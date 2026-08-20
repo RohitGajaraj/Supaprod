@@ -31,7 +31,15 @@
  */
 import { useState } from "react";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num } from "@/components/meridian/surface-parts";
+import {
+  Num,
+  Action,
+  NothingYet,
+  PageHeading,
+  ReadFailedLine,
+  Reading,
+  Region,
+} from "@/components/meridian/surface-parts";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -42,7 +50,6 @@ import { getValueReceipts } from "@/lib/value-receipts.functions";
 import { exportWorkspace, listExportLog } from "@/lib/projects.functions";
 import { exportSkillsFile } from "@/lib/skills-export.functions";
 import { getSubprocessors, type SubProcessor } from "@/lib/compliance.functions";
-import { Block, Button, Empty, Failed, Loading, PageHead } from "@/components/shell/primitives";
 
 const CATEGORY_LABEL: Record<SubProcessor["category"], string> = {
   ai_gateway: "AI gateway",
@@ -146,7 +153,7 @@ export function DataSection({ workspaceId }: { workspaceId?: string }) {
 
   return (
     <>
-      <PageHead
+      <PageHeading
         title="Your data"
         sub={
           hasSeal && sealData
@@ -155,7 +162,7 @@ export function DataSection({ workspaceId }: { workspaceId?: string }) {
         }
       />
 
-      <Block title="Where it lives">
+      <Region title="Where it lives">
         <Line
           label="A Postgres database of your own"
           sub="With pgvector for the brain's semantic search. Not a shared model and not a black box: it is queryable, exportable, and yours to take."
@@ -186,18 +193,18 @@ export function DataSection({ workspaceId }: { workspaceId?: string }) {
             </Link>
           </Line>
         ) : null}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title="What archive, delete and forget each mean"
         sub="They are three different things, and the difference is what happens to the brain."
       >
         {TIERS.map((t) => (
           <Line key={t.label} label={t.label} sub={t.body} />
         ))}
-      </Block>
+      </Region>
 
-      <Block title="Take it with you">
+      <Region title="Take it with you">
         <Line
           label="The whole workspace, as one JSON file"
           sub={
@@ -212,31 +219,33 @@ export function DataSection({ workspaceId }: { workspaceId?: string }) {
             )
           }
         >
-          <Button disabled={busy !== null} onClick={onExportWorkspace}>
+          <Action disabled={busy !== null} onClick={onExportWorkspace}>
             {busy === "workspace" ? "Preparing" : "Download"}
-          </Button>
+          </Action>
         </Line>
 
         <Line
           label="The same record, written for another agent"
           sub="Decisions, outcomes and standing house rules as one markdown file. Mount it into Claude Code, Codex or any coding fleet and your other tools inherit what Supaprod already knows."
         >
-          <Button disabled={busy !== null} onClick={onExportAgentContext}>
+          <Action disabled={busy !== null} onClick={onExportAgentContext}>
             {busy === "agents" ? "Preparing" : "Download"}
-          </Button>
+          </Action>
         </Line>
-      </Block>
+      </Region>
 
-      <Block title="What you have taken out before">
+      <Region title="What you have taken out before">
         {history.isLoading ? (
-          <Loading>Reading your exports.</Loading>
+          <Reading>Reading your exports.</Reading>
         ) : history.isError ? (
-          <Failed onRetry={() => void history.refetch()}>
+          <ReadFailedLine onRetry={() => void history.refetch()}>
             The export history did not load.{" "}
             {(history.error as Error)?.message ?? "The read failed."}
-          </Failed>
+          </ReadFailedLine>
         ) : exports.length === 0 ? (
-          <Empty>Nothing exported yet. The two buttons above are the whole escape hatch.</Empty>
+          <NothingYet>
+            Nothing exported yet. The two buttons above are the whole escape hatch.
+          </NothingYet>
         ) : (
           exports.slice(0, 6).map((e) => (
             <Row
@@ -252,20 +261,20 @@ export function DataSection({ workspaceId }: { workspaceId?: string }) {
             />
           ))
         )}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title="Who else touches it"
         sub="A provider is listed only while your data actually flows to it."
       >
         {subs.isLoading ? (
-          <Loading>Reading the list.</Loading>
+          <Reading>Reading the list.</Reading>
         ) : subs.isError ? (
-          <Failed onRetry={() => void subs.refetch()}>
+          <ReadFailedLine onRetry={() => void subs.refetch()}>
             The list did not load. {(subs.error as Error)?.message ?? "The read failed."}
-          </Failed>
+          </ReadFailedLine>
         ) : items.length === 0 ? (
-          <Empty>Nothing outside Supaprod processes your data right now.</Empty>
+          <NothingYet>Nothing outside Supaprod processes your data right now.</NothingYet>
         ) : (
           items.map((s) => (
             <Row
@@ -279,12 +288,16 @@ export function DataSection({ workspaceId }: { workspaceId?: string }) {
             />
           ))
         )}
-      </Block>
+      </Region>
 
       {/* MOVED here from Profile: the trust documents belong beside the
-          sub-processor list and the export, not beside your display name. */}
-      <Block title="The terms this runs under">
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--sp-space-5)" }}>
+          sub-processor list and the export, not beside your display name.
+
+          The row gap was `--sp-space-5`, 20px. Meridian's ramp steps 16px then
+          24px, so there is no 20: taking `--mrd-s6` because the design ratchet
+          forbids shrinking a surface to answer a port. */}
+      <Region title="The terms this runs under">
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--mrd-s6)" }}>
           {[...TERMS, { href: "/subprocessors", label: "Public sub-processor disclosure" }].map(
             (l) => (
               <a
@@ -292,14 +305,14 @@ export function DataSection({ workspaceId }: { workspaceId?: string }) {
                 href={l.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}
+                style={{ fontSize: "var(--mrd-t-base)", color: "var(--mrd-mute)" }}
               >
                 {l.label}
               </a>
             ),
           )}
         </div>
-      </Block>
+      </Region>
     </>
   );
 }

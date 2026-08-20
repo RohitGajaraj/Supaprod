@@ -23,12 +23,19 @@
 //     star is one click away on the product itself.
 import { useServerFn } from "@tanstack/react-start";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Num,
+  Actions,
+  Action,
+  NothingYet,
+  ReadFailedLine,
+  Reading,
+  Region,
+} from "@/components/meridian/surface-parts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useConfirm, usePrompt } from "@/hooks/use-confirm";
 import { toast } from "@/lib/notify";
-import { Block, Button, Empty, Failed, Loading } from "@/components/shell/primitives";
 import {
   getPortfolio,
   setProjectArchived,
@@ -165,14 +172,14 @@ export function ProductsTab() {
   }
 
   if (portfolio.isLoading) {
-    return <Loading>Reading the portfolio.</Loading>;
+    return <Reading>Reading the portfolio.</Reading>;
   }
 
   if (portfolio.error) {
     return (
-      <Failed onRetry={() => void portfolio.refetch()}>
+      <ReadFailedLine onRetry={() => void portfolio.refetch()}>
         The portfolio did not load. {(portfolio.error as Error)?.message ?? "The read failed."}
-      </Failed>
+      </ReadFailedLine>
     );
   }
 
@@ -182,22 +189,22 @@ export function ProductsTab() {
 
   if (all.length === 0) {
     return (
-      <Empty
+      <NothingYet
         action={
-          <Button variant="primary" onClick={addProduct}>
+          <Action variant="primary" onClick={addProduct}>
             New product
-          </Button>
+          </Action>
         }
       >
         A product is where signals, opportunities, and specs live. New workspaces start with one
         named after the workspace; add one here to begin.
-      </Empty>
+      </NothingYet>
     );
   }
 
   return (
     <>
-      <Block
+      <Region
         title={`Portfolio · ${active.length} product${active.length === 1 ? "" : "s"}`}
         sub={
           active.length > 1 ? "Click a product to make it the one the crew works on." : undefined
@@ -217,7 +224,7 @@ export function ProductsTab() {
               lead={
                 <>
                   {p.name}
-                  {isActive ? <span style={{ color: "var(--sp-mute)" }}> · Active</span> : null}
+                  {isActive ? <span style={{ color: "var(--mrd-mute)" }}> · Active</span> : null}
                 </>
               }
               sub={
@@ -231,15 +238,15 @@ export function ProductsTab() {
               }
               action={
                 <>
-                  <Button variant="ghost" onClick={() => runExport(p)}>
+                  <Action variant="quiet" onClick={() => runExport(p)}>
                     Export
-                  </Button>
-                  <Button variant="ghost" onClick={() => archive(p)}>
+                  </Action>
+                  <Action variant="quiet" onClick={() => archive(p)}>
                     Archive
-                  </Button>
-                  <Button variant="ghost" onClick={() => remove(p)}>
+                  </Action>
+                  <Action variant="quiet" onClick={() => remove(p)}>
                     Delete
-                  </Button>
+                  </Action>
                 </>
               }
             />
@@ -247,29 +254,29 @@ export function ProductsTab() {
         })}
 
         <Actions>
-          <Button onClick={addProduct}>New product</Button>
+          <Action onClick={addProduct}>New product</Action>
         </Actions>
-      </Block>
+      </Region>
 
       {archived.length > 0 ? (
-        <Block
+        <Region
           title={`Archived · ${archived.length} product${archived.length === 1 ? "" : "s"}`}
           sub="Nothing here is worked on. Restore one to bring it back into the portfolio."
         >
           {archived.map((p) => (
             <Line key={p.id} label={p.name}>
-              <Button variant="ghost" onClick={() => restore(p)}>
+              <Action variant="quiet" onClick={() => restore(p)}>
                 Restore
-              </Button>
-              <Button variant="ghost" onClick={() => runExport(p)}>
+              </Action>
+              <Action variant="quiet" onClick={() => runExport(p)}>
                 Export
-              </Button>
-              <Button variant="ghost" onClick={() => remove(p)}>
+              </Action>
+              <Action variant="quiet" onClick={() => remove(p)}>
                 Delete
-              </Button>
+              </Action>
             </Line>
           ))}
-        </Block>
+        </Region>
       ) : null}
     </>
   );

@@ -934,6 +934,123 @@ export function ReadFailedLine({
   );
 }
 
+/**
+ * A closed padlock, and the reason it is not another ring with a mark in it.
+ *
+ * `FailMark` above is a circle. Law 3 asks that colour survive a greyscale test,
+ * so the difference between a failure and a refusal may not be carried by hue:
+ * strip the colour and a second ringed glyph would leave two states that read
+ * identically at a glance. A shackle over a body is a different silhouette at
+ * 14px, which is the size a reader actually meets it at.
+ *
+ * The stroke matches `FailMark` at 2.2 rather than thinning to suit the drawing.
+ * These two sit in the same slot of the same box and a weight change there would
+ * read as emphasis, which is a meaning neither of them carries.
+ */
+function RefusedMark() {
+  return (
+    <svg
+      width={14}
+      height={14}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      className="mt-px shrink-0 text-mrd-hold"
+    >
+      <rect x="4" y="10.5" width="16" height="10.5" rx="2.5" />
+      <path d="M8.25 10.5V7.75a3.75 3.75 0 0 1 7.5 0v2.75" />
+    </svg>
+  );
+}
+
+/**
+ * THE READ SUCCEEDED AND THE ANSWER IS NO.
+ *
+ * A THIRD FACT, and the reason it needed its own component rather than a prop on
+ * an existing one. Three things can be true when a surface has nothing to show:
+ *
+ *   NOTHING IS HERE      the read ran and the answer was empty.
+ *   THE READ FAILED      the read did not finish, so nobody knows the answer.
+ *   YOU MAY NOT SEE IT   the read finished, the answer exists, and it is not
+ *                        yours. Nothing is broken and nothing is missing.
+ *
+ * They send a person in three different directions, and the middle one is where
+ * this repo has already been caught: `_authenticated.admin.tsx` had to write the
+ * distinction out in its own header and then honour it by hand, because the
+ * system had no word for the third. A refusal wearing `ReadFailed`'s clothes
+ * sends an operator to reload a page that will refuse them again, and a refusal
+ * wearing `NothingHere`'s clothes tells them a console does not exist.
+ *
+ * ── AMBER, NOT RED, AND IT IS A REAL ARGUMENT EITHER WAY ────────────────
+ * Both readings are defensible and the choice is `hold`.
+ *
+ * FOR `fail`: the colour law says red reports an OUTCOME that has happened, and
+ * a refusal is exactly that. The check ran, it resolved, and the verdict is no.
+ * That is not an intent, so red would not be breaking the rule that keeps it off
+ * "roll back".
+ *
+ * WHY `hold` WINS ANYWAY, on two grounds. First, red is already spent one slot
+ * away: `ReadFailed` draws the same box in the same place and paints its mark
+ * `--mrd-fail`. The whole purpose of this component is that a refusal stops
+ * being confused with a failure, and painting it the neighbour's hue reinstates
+ * the confusion at the layer a person reads fastest. Second, `--mrd-hold` is
+ * declared in meridian.css as "stopped, and not on you", which is a literal
+ * description of a refusal: the surface is stopped, the condition is a grant of
+ * access, and the reader is not the one who can give it. Amber says wait for a
+ * condition. Red would say something went wrong, and nothing did.
+ *
+ * NOT `you`, which was the third candidate. Orchid means a person is required
+ * AND a decision by THIS reader releases it. Nothing this reader decides opens a
+ * refusal. Where an act genuinely does exist it arrives as `action`, drawn as a
+ * control rather than as a hue.
+ *
+ * ── NO RETRY, AND `detail` IS REQUIRED ──────────────────────────────────
+ * There is deliberately no `onRetry`. Running the same read again produces the
+ * same refusal, and offering the button would be the copy defect this component
+ * exists to prevent, drawn as a control.
+ *
+ * `detail` is required rather than defaulted, and that is the one prop shape here
+ * that departs from `ReadFailed`. A default sentence about a refusal can only be
+ * generic, and a generic refusal is the failure mode: it has to name what was
+ * refused and what happens next, with the data of the surface it is on. Making
+ * it required is how the component asks for that instead of hoping for it.
+ *
+ * `action` is the door and it is omitted rather than filled with a
+ * plausible-looking button, same rule as `NothingHere`. It exists because a
+ * refusal sometimes has one genuine way out that is not "ask someone": the admin
+ * console's bootstrap claim, where a workspace with no admin at all would
+ * otherwise be unadministrable.
+ */
+export function Refused({
+  children,
+  detail,
+  action,
+}: {
+  children: React.ReactNode;
+  detail: React.ReactNode;
+  action?: React.ReactNode;
+}) {
+  return (
+    <section
+      data-mrd=""
+      role="status"
+      aria-live="polite"
+      className="rounded-mrd-card border border-mrd-line bg-mrd-sink px-mrd-6 py-mrd-5"
+    >
+      <h2 className="flex items-start gap-mrd-3 text-[13px] leading-snug font-medium text-mrd-ink">
+        <RefusedMark />
+        <span>{children}</span>
+      </h2>
+      <p className="mt-mrd-3 max-w-[62ch] text-[12.5px] leading-relaxed text-mrd-body">{detail}</p>
+      {action ? <div className="mt-mrd-5 flex flex-wrap gap-mrd-3">{action}</div> : null}
+    </section>
+  );
+}
+
 /* ------------------------------------------------------------------ *
  * A diff, and the record speaking
  * ------------------------------------------------------------------ */

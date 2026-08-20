@@ -3,20 +3,19 @@
  * promise, and the only place a bet can enter Now.
  *
  * ============================================================================
- * 2026-08-10: REDRAWN ON THE INK TOKENS, AND THE GLASS CAME OFF.
+ * 2026-08-10: THE GLASS CAME OFF. 2026-08-20: REDRAWN ON MERIDIAN.
  * ============================================================================
  *
  * It was the last dialog on this station in the retired kit: `material-modal`
  * with `backdropFilter: blur(20px)` on the content AND `blur(3px)` on the
- * overlay, drawn in `--text-primary`, `--surface-raised`, `--hairline`,
- * `--radius-control` and `--overlay-modal`, with `MonoLabel` shouting "OUTCOME"
- * and "MEASURE" in letter-spaced caps and a `variant="accent"` button.
+ * overlay, with `MonoLabel` shouting "OUTCOME" and "MEASURE" in letter-spaced
+ * caps and a `variant="accent"` button.
  *
  * The blur is the point. The spec editor's own docblock records the ruling in as
  * many words: "The retired action bar was sticky and blurred, which is the glass
  * ban." A dialog is the one thing on screen and it does not need to prove it by
- * dissolving what is behind it; `--sp-float` is the token for something
- * genuinely floating and `--sp-scrim` is the token for dimming what it covers,
+ * dissolving what is behind it; `--mrd-float` is the token for something
+ * genuinely floating and `--mrd-scrim` is the token for dimming what it covers,
  * and both exist precisely so no surface has to invent a blur.
  *
  * NOTHING ABOUT THE CONTRACT MOVED. Same props, same `canConfirm` rule (both
@@ -30,11 +29,24 @@
  * telling the person what happens. It says what the promise BUYS now, which is
  * the only reason a person should be asked to write one: it is what Learn grades
  * the work against later.
+ *
+ * ── WHY IT IS STILL RADIX AND NOT MERIDIAN'S `Dialog` ───────────────────
+ * Meridian has a `Dialog` now, and this is deliberately not it yet. `Dialog.tsx`
+ * makes the argument itself about the confirm 32 surfaces share: "swapping the
+ * drawing under live surfaces is not a thing to do in the same commit as
+ * introducing the part." Two things here are load bearing and would have to be
+ * re-established rather than carried. Radix PORTALS, and Meridian's `Dialog`
+ * deliberately does not, so adopting it makes this pane's position depend on
+ * whether any ancestor of the plan board has a transform or a `container-type`
+ * -- and `/plan` mounts this from two files. And `Dialog` right-aligns its
+ * actions with the confirming control last, where this ceremony leads with
+ * "Commit to Now"; flipping that is a composition decision, not a paint one.
+ * So the vocabulary below is Meridian and the mount is unchanged.
  */
 import { useId, useState } from "react";
-import { Actions } from "@/components/meridian/surface-parts";
+import { Action, Actions } from "@/components/meridian/surface-parts";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { Button, Field, Input } from "@/components/shell/primitives";
+import { Field, Input } from "@/components/meridian/forms";
 
 export interface CommitCeremonyBet {
   id: string;
@@ -70,34 +82,25 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
       <DialogPrimitive.Portal>
         {/* The scrim dims what it covers. It does not blur it: pure black over a
             warm ground reads as a hole rather than as a dimming, which is the
-            reasoning `--sp-scrim` was defined under. */}
-        <DialogPrimitive.Overlay
-          className="fixed inset-0 z-40"
-          style={{ background: "var(--sp-scrim)" }}
-        />
+            reasoning `--mrd-scrim` was defined under. */}
+        <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-mrd-scrim" />
         <DialogPrimitive.Content
+          data-mrd=""
           aria-describedby={undefined}
-          className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 outline-none"
+          className="fixed top-1/2 left-1/2 z-50 w-[480px] max-w-[92vw] -translate-x-1/2 -translate-y-1/2 rounded-mrd-pane border border-mrd-line bg-mrd-float p-mrd-6 font-mrd outline-none"
           style={{
-            width: "480px",
-            maxWidth: "92vw",
-            background: "var(--sp-float)",
-            border: "1px solid var(--sp-line)",
-            borderRadius: "var(--sp-radius-pane)",
-            boxShadow: "var(--sp-shadow-sheet)",
-            padding: "var(--sp-space-6)",
+            /* The deepest shadow in the system, which is what a pane floating
+               over a dimmed page was measured for. `--sp-shadow-sheet` was the
+               retired name for the same role. */
+            boxShadow: "var(--mrd-shadow-pane)",
           }}
         >
-          <DialogPrimitive.Title
-            style={{
-              fontSize: "var(--sp-text-gate)",
-              fontWeight: "var(--sp-weight-strong)",
-              letterSpacing: "var(--sp-track-gate)",
-              lineHeight: "var(--sp-leading-gate)",
-              color: "var(--sp-ink)",
-              margin: 0,
-            }}
-          >
+          {/* NO LETTER-SPACING, and that is the one thing this title lost rather
+              than carried. The retired kit set `--sp-track-gate` at -0.019em;
+              Meridian has no negative tracking token at any size, and its own
+              `PageHeading` sets none at 25px, so tightening this by hand would
+              be inventing a value outside the system to keep a retired one. */}
+          <DialogPrimitive.Title className="m-0 text-[20px] leading-tight font-semibold text-mrd-ink">
             {hasBoth ? "Commit this to Now" : "Name the promise first"}
           </DialogPrimitive.Title>
 
@@ -106,30 +109,15 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
               station's Gate) and only one of them had the title in view when it
               opened. A ceremony that does not name what it is about is a
               confirmation, which is the thing this is not. */}
-          <p
-            style={{
-              margin: "var(--sp-space-2) 0 0",
-              fontSize: "var(--sp-text-meta)",
-              color: "var(--sp-mute)",
-            }}
-          >
-            {bet.title}
-          </p>
+          <p className="mt-mrd-4 mb-0 text-[13px] text-mrd-mute">{bet.title}</p>
 
-          <div style={{ marginTop: "var(--sp-space-4)" }}>
+          <div className="mt-mrd-5">
             {hasBoth ? (
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: "var(--sp-text-prose)",
-                  lineHeight: "var(--sp-leading-body)",
-                  color: "var(--sp-body)",
-                }}
-              >
+              <p className="m-0 text-[14px] leading-relaxed text-mrd-body">
                 You are promising: {bet.outcome}. Measured by {bet.measure}.
               </p>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "var(--sp-space-3)" }}>
+              <div className="flex flex-col gap-mrd-5">
                 <Field label="Outcome" htmlFor={outcomeId}>
                   <Input
                     id={outcomeId}
@@ -153,31 +141,34 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
             )}
           </div>
 
-          <p
-            style={{
-              marginTop: "var(--sp-space-3)",
-              marginBottom: 0,
-              fontSize: "var(--sp-text-meta)",
-              color: "var(--sp-mute)",
-            }}
-          >
+          <p className="mt-mrd-5 mb-0 text-[13px] text-mrd-mute">
             {hasBoth
               ? "Now is the one thing the team builds next. Everything else waits."
               : "Without both halves this is a task rather than a promise, and nothing can tell you later whether it worked."}
           </p>
 
-          <Actions>
-            <Button
+          {/* `mt-mrd-5` IS REQUIRED HERE AND WAS MISSING. Meridian's `Actions`
+              sets no outer margin on purpose, and its own docblock says the call
+              sites that relied on the retired container's baked-in `mt-mrd-4`
+              have to say it themselves. This one never did, so the buttons sat
+              flush against the sentence above them.
+
+              `Action variant="primary"` AND NOT `Approve`. Approve is the one
+              control that RELEASES something held, and nothing is held here: the
+              person opened this dialog in order to declare a promise, so the
+              accent that means "a person is required" has nothing to mark. */}
+          <Actions className="mt-mrd-5">
+            <Action
               variant="primary"
               disabled={!canConfirm || pending}
               title={!canConfirm ? "Both the outcome and the measure are required" : undefined}
               onClick={() => onConfirm({ outcome: outcome.trim(), measure: measure.trim() })}
             >
               {pending ? "Committing" : "Commit to Now"}
-            </Button>
-            <Button variant="ghost" onClick={onCancel} disabled={pending}>
+            </Action>
+            <Action variant="quiet" onClick={onCancel} disabled={pending}>
               Not yet
-            </Button>
+            </Action>
           </Actions>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>

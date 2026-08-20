@@ -54,14 +54,14 @@
  * primitive and draws the majority of the sections here: matching it is a
  * change to this surface, moving it would be a change to every station. */
 .today-page {
-  --today-quiet: var(--sp-mute);
+  --today-quiet: var(--mrd-mute);
   --today-section-gap: 36px;
   width: 100%;
   max-width: 1120px;
 }
 
 [data-theme="light"] .today-page {
-  --today-quiet: var(--sp-body);
+  --today-quiet: var(--mrd-body);
 }
 
 .today-page .sp-subtitle,
@@ -117,7 +117,7 @@
 .today-kicker,
 .today-evidence-label,
 .today-recommendation-label {
-  font-family: var(--sp-font-sans);
+  font-family: var(--mrd-font);
   font-size: var(--sp-text-meta);
   font-weight: var(--sp-weight-medium);
   letter-spacing: normal;
@@ -154,9 +154,9 @@
 .today-open {
   margin-top: var(--sp-space-4);
   padding: var(--sp-space-5) var(--sp-space-6) var(--sp-space-6);
-  background: var(--sp-float);
-  border: 1px solid var(--sp-line);
-  border-radius: var(--sp-radius-panel);
+  background: var(--mrd-float);
+  border: 1px solid var(--mrd-line);
+  border-radius: var(--mrd-r-card);
   box-shadow: var(--sp-shadow);
 }
 
@@ -178,7 +178,7 @@
 .today-open-meta > * + *::before {
   content: "·";
   margin-right: var(--sp-space-2);
-  color: color-mix(in oklab, var(--sp-mute) 55%, transparent);
+  color: color-mix(in oklab, var(--mrd-mute) 55%, transparent);
 }
 
 /* The tick box is a CONTROL, not one of the facts, so nothing punctuates
@@ -191,7 +191,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--sp-body);
+  color: var(--mrd-body);
 }
 
 .today-open-who .sp-mark {
@@ -318,11 +318,11 @@
 .today-example-keys kbd {
   display: inline-block;
   padding: 1px 5px;
-  border: 1px solid var(--sp-line);
-  border-radius: var(--sp-radius-xs);
-  background: var(--sp-lift);
-  color: var(--sp-body);
-  font-family: var(--sp-font-mono);
+  border: 1px solid var(--mrd-line);
+  border-radius: var(--mrd-r-xs);
+  background: var(--mrd-lift);
+  color: var(--mrd-body);
+  font-family: var(--mrd-mono);
   font-size: var(--sp-text-kbd);
   line-height: 1.5;
 }
@@ -354,13 +354,13 @@
 .today-example {
   margin-top: var(--today-section-gap);
   padding: var(--sp-space-6);
-  background: var(--sp-sink);
+  background: var(--mrd-sink);
   /* Mixed from the metadata ink, not from --sp-line. The edge token measures
      about 1.2:1 against this ground, and a dashed border nobody can see does
      not do the one job it is here for. Still monochrome: an example is not a
      status and may not spend a hue. */
-  border: 1px dashed color-mix(in oklab, var(--sp-mute) 45%, transparent);
-  border-radius: var(--sp-radius-panel);
+  border: 1px dashed color-mix(in oklab, var(--mrd-mute) 45%, transparent);
+  border-radius: var(--mrd-r-card);
 }
 
 .today-example-head {
@@ -375,11 +375,11 @@
 .today-example-tag {
   display: inline-flex;
   padding: 2px 7px;
-  border: 1px solid var(--sp-line);
-  border-radius: var(--sp-radius-chip);
-  background: var(--sp-lift);
-  color: var(--sp-body);
-  font-family: var(--sp-font-sans);
+  border: 1px solid var(--mrd-line);
+  border-radius: var(--mrd-r-chip);
+  background: var(--mrd-lift);
+  color: var(--mrd-body);
+  font-family: var(--mrd-font);
   font-size: var(--sp-text-label);
   font-weight: var(--sp-weight-medium);
   line-height: var(--sp-leading-tight);
@@ -394,10 +394,10 @@
 .today-example-title {
   max-width: 60ch;
   margin: var(--sp-space-4) 0 0;
-  font-family: var(--sp-font-sans);
+  font-family: var(--mrd-font);
   font-size: var(--sp-text-prose);
   font-weight: var(--sp-weight-regular);
-  color: var(--sp-body);
+  color: var(--mrd-body);
   line-height: var(--sp-leading-body);
   text-wrap: pretty;
 }
@@ -409,12 +409,12 @@
 .today-example-q {
   max-width: var(--sp-gate-max);
   margin: 0;
-  font-family: var(--sp-font-sans);
+  font-family: var(--mrd-font);
   font-size: var(--sp-text-gate);
   font-weight: var(--sp-weight-strong);
   letter-spacing: var(--sp-track-gate);
   line-height: var(--sp-leading-gate);
-  color: var(--sp-ink);
+  color: var(--mrd-ink);
   text-wrap: balance;
 }
 
@@ -427,17 +427,17 @@
   padding: 5px 0;
   max-width: 72ch;
   font-size: var(--sp-text-prose);
-  color: var(--sp-body);
+  color: var(--mrd-body);
   line-height: var(--sp-leading-body);
 }
 
 .today-example-label {
   margin: 0 0 var(--sp-space-2);
-  font-family: var(--sp-font-mono);
+  font-family: var(--mrd-mono);
   font-size: var(--sp-text-data-sm);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--sp-mute);
+  color: var(--mrd-mute);
 }
 
 .today-example-keys {
@@ -456,9 +456,9 @@
   min-width: 0;
   margin-top: var(--today-section-gap);
   padding: var(--sp-space-6);
-  background: var(--sp-sink);
+  background: var(--mrd-sink);
   border: 1px solid var(--sp-line-soft);
-  border-radius: var(--sp-radius-panel);
+  border-radius: var(--mrd-r-card);
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
   column-gap: var(--sp-space-8);
@@ -486,8 +486,8 @@
 .today-notice h3,
 .today-critic-title {
   margin: 0;
-  font-family: var(--sp-font-sans);
-  color: var(--sp-ink);
+  font-family: var(--mrd-font);
+  color: var(--mrd-ink);
   font-weight: var(--sp-weight-strong);
   text-wrap: balance;
 }
@@ -501,7 +501,7 @@
 
 .today-director-detail {
   margin: var(--sp-space-3) 0 0;
-  color: var(--sp-body);
+  color: var(--mrd-body);
   font-size: var(--sp-text-prose);
   line-height: var(--sp-leading-note);
   text-wrap: pretty;
@@ -528,7 +528,7 @@
   margin-top: var(--sp-space-5);
   padding-top: var(--sp-space-4);
   border-top: 1px solid var(--sp-line-soft);
-  color: var(--sp-body);
+  color: var(--mrd-body);
   font-size: var(--sp-text-meta);
   line-height: var(--sp-leading-tight);
 }
@@ -577,11 +577,11 @@
   right: var(--sp-space-3);
   transform: translateY(-50%);
   padding: 2px 5px;
-  border: 1px solid var(--sp-line);
-  border-radius: var(--sp-radius-xs);
-  background: var(--sp-lift);
+  border: 1px solid var(--mrd-line);
+  border-radius: var(--mrd-r-xs);
+  background: var(--mrd-lift);
   color: var(--today-quiet);
-  font-family: var(--sp-font-mono);
+  font-family: var(--mrd-mono);
   font-size: var(--sp-text-kbd);
   line-height: 1.2;
   pointer-events: none;
@@ -601,7 +601,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--sp-space-2);
-  color: color-mix(in oklab, var(--sp-stage-discover) 68%, var(--sp-ink));
+  color: color-mix(in oklab, var(--sp-stage-discover) 68%, var(--mrd-ink));
 }
 
 .today-notices .today-kicker::before {
@@ -687,11 +687,11 @@
   display: inline-flex;
   align-items: center;
   padding: 2px 7px;
-  border: 1px solid color-mix(in oklab, var(--today-evidence-hue) 28%, var(--sp-line));
-  border-radius: var(--sp-radius-chip);
+  border: 1px solid color-mix(in oklab, var(--today-evidence-hue) 28%, var(--mrd-line));
+  border-radius: var(--mrd-r-chip);
   background: color-mix(in oklab, var(--today-evidence-hue) 10%, transparent);
-  color: color-mix(in oklab, var(--today-evidence-hue) 70%, var(--sp-ink));
-  font-family: var(--sp-font-sans);
+  color: color-mix(in oklab, var(--today-evidence-hue) 70%, var(--mrd-ink));
+  font-family: var(--mrd-font);
   font-size: var(--sp-text-label);
   font-weight: var(--sp-weight-medium);
   line-height: var(--sp-leading-tight);
@@ -728,9 +728,9 @@
 .today-critic {
   margin-top: var(--today-section-gap);
   padding: var(--sp-space-6);
-  background: var(--sp-float);
-  border: 1px solid var(--sp-line);
-  border-radius: var(--sp-radius-panel);
+  background: var(--mrd-float);
+  border: 1px solid var(--mrd-line);
+  border-radius: var(--mrd-r-card);
 }
 
 .today-critic-title {
@@ -743,7 +743,7 @@
 .today-critic-summary {
   max-width: 72ch;
   margin: var(--sp-space-3) 0 0;
-  color: var(--sp-body);
+  color: var(--mrd-body);
   font-size: var(--sp-text-prose);
   line-height: var(--sp-leading-note);
   text-wrap: pretty;
@@ -755,9 +755,9 @@
   gap: var(--sp-space-6);
   margin-top: var(--sp-space-5);
   padding: var(--sp-space-4);
-  background: var(--sp-sink);
-  border-radius: var(--sp-radius-panel);
-  color: var(--sp-body);
+  background: var(--mrd-sink);
+  border-radius: var(--mrd-r-card);
+  color: var(--mrd-body);
   font-size: var(--sp-text-meta);
   line-height: var(--sp-leading-body);
 }

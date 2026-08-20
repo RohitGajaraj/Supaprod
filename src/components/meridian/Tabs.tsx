@@ -91,6 +91,7 @@ export function Tabs<Id extends string>({
   tabs,
   active,
   onSelect,
+  rule = true,
 }: {
   /** Unique per tab row on the page. Every id here is derived from it. */
   group: string;
@@ -99,6 +100,24 @@ export function Tabs<Id extends string>({
   tabs: readonly TabDef<Id>[];
   active: Id;
   onSelect: (id: Id) => void;
+  /**
+   * The hairline under the row. ON by default, and it stays that way for every
+   * caller that had one before this prop existed: a tab row is normally the
+   * head of a panel, and the rule is what says the panel below belongs to it.
+   *
+   * TURN IT OFF WHEN THE ROW SHARES ITS LINE WITH ANOTHER CONTROL. Settings'
+   * plan table puts the audience row at one end of a flex line and the
+   * billing-period control at the other. This element is a flex ITEM there, so
+   * it is sized to its own two words, and `border-b` then draws a rule under
+   * those two words with bare line either side of it. That reads as a broken
+   * edge rather than as an edge. The bottom padding is the second half of it:
+   * it makes this row taller than the control beside it, and the parent's
+   * `items-center` then lifts these labels off the line that one sits on.
+   *
+   * It does not change the keyboard, the roles or the ids. A row without the
+   * rule is still a tablist and still owns its panel.
+   */
+  rule?: boolean;
 }) {
   const refs = React.useRef(new Map<string, HTMLButtonElement>());
 
@@ -124,7 +143,9 @@ export function Tabs<Id extends string>({
   return (
     <div
       data-mrd=""
-      className="flex flex-wrap items-center gap-mrd-2 border-b border-mrd-line pb-mrd-3"
+      className={`flex flex-wrap items-center gap-mrd-2 ${
+        rule ? "border-b border-mrd-line pb-mrd-3" : ""
+      }`}
       role="tablist"
       aria-label={label}
       onKeyDown={onKeyDown}

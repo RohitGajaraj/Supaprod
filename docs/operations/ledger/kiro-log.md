@@ -4885,3 +4885,503 @@ anywhere in the baseline before or after.
 **Gates.** tsc 0 · test 0 fail · build pass · docs:check pass. `lane:gates` green, real exit 0.
 **Owed.** Not looked at in a browser, and a focus ring is exactly the thing a test cannot confirm is
 visible. A keyboard tab through the engine room and the runs table in both grounds would settle it.
+
+---
+
+## K-29 · BUILT · 2026-08-20 19:52
+
+**Did.** Deleted 56 shadowed custom-property declarations from the early top-level
+`[data-obsidian]` block in `src/styles.css`, which is now 1980-2151 rather than 1980-2238, plus the
+section comments whose every declaration went. The shadowed set was **computed, not taken from the
+item's list**: a comment-and-string-aware parse found the four top-level blocks whose selector is
+exactly `[data-obsidian]` (1980, 2242, 2451, 3595 pre-edit), all at brace depth 0 so none sits inside
+`@layer`, `@media` or `@supports`, and intersected the early block's property names with every later
+one. Identical selector, identical (0,1,0) specificity, later source order, so every deleted name is
+unconditionally overridden.
+
+**Unsure.** Two of the item's numbers do not hold, and I did not match either.
+1. **"109 unique properties remain" is wrong; it is 104.** The item's own arithmetic gives
+   160 − 56 = 104, and 104 is what the file now holds (103 custom properties plus `color-scheme`).
+   Proof it is not a silent loss rather than a recount: the *pre-edit* "unique to the early block"
+   name list diffed against the *post-edit* surviving list is identical, 104 against 104, zero
+   difference. The 159-vs-160 split is where the item's aside went astray.
+2. **The predicted debt drop is wrong in both endpoints.** The item says `1224 → 1181`, −43. **1224
+   is the pre-K-28 number** and the baseline already recorded 1022. Measured through the ratchet's
+   own scanner the real move is **1022 → 971, a 51-count drop**: `--ds-` 520→518, `--text-` 57→49,
+   `--hairline` 51→46, `--madder` 6→4, `--glacier` 19→15, `--font-pixel` 7→5, `--raised` 11→9,
+   raw-colour 313→287. `data-obsidian` stays 38, correctly, because no selector was removed. Where
+   the item's 43 came from I cannot say.
+3. **Comment deletion was a judgment call four times.** I kept the `--font-mono intentionally NOT
+   redeclared here` guardrail even though every declaration around it went, because **the winning
+   block at 3595 points at it by name** and it documents a declaration that deliberately does not
+   exist, so it was never orphaned. It now sits alone between blank lines, which looks odd; the
+   alternative was breaking a live cross-reference.
+
+**Noticed.** Three.
+1. **The winning block's line references were already stale before I touched anything.** It named
+   the two earlier blocks as "~1913, ~2356"; they were at 1980 and 2451. I **removed the numbers
+   rather than re-pinning them**, because they drift on the next deletion in this file.
+2. **One sentence in the winning block became false and I corrected it.** It said the two earlier
+   blocks "do carry a distinct three-step ramp"; after this deletion only the Loom block does.
+3. `--blossom` is the one early-block colour the 3595 block deliberately does *not* override, and
+   says so in a comment. My computed set kept it, which was independent confirmation the method was
+   right. Nine of the 56 are shadowed by the Loom block at 2451 rather than by 3595, five of them
+   **only** there, exactly as the item says.
+
+**Gates.** tsc 0 · test 0 fail · build pass · docs:check pass. Structural check: braces unchanged at
+403/403, top-level block count unchanged, file 3886 → 3799 lines. Post-edit re-scan: 104
+declarations, **0 shadowed by any later `[data-obsidian]` block.**
+
+---
+
+## K-34 · BUILT · 2026-08-20 19:52
+
+**Did.** Swapped **211** `var(--sp-X)` reference sites to their Meridian tokens and deleted 8
+now-unread aliases: `primitives.css` 161 swaps (`--sp-` 429 → 268), `today.css` 50 swaps (194 → 144),
+`ink.css` 8 declarations deleted (109 → 101). **219 occurrences retired.** `shell.css` needed no
+edit. Every swap was a token whose entire `ink.css` value is already `var(--mrd-…)`, so **no spacing
+or type token was touched at all** and the positional-mapping trap never came into play: none of the
+23 aliases in scope is a space or type stop. All 8 deletions were confirmed at zero live `var()`
+readers repo-wide first.
+
+**Unsure.** Two things, and the first is the item's headline number.
+1. **The count is 222, not 262, and I reproduced 262 to prove where it went.** At `d87745cd6~1`, the
+   commit before K-32, a comment-stripped sweep returns primitives 211 + today 50 + shell 1 = **262
+   exactly**. **K-32's 460-line cut took 40 of those out of `primitives.css`.** So the true current
+   figure is 222 live sites. That is the item's own declared dependency doing its job rather than a
+   false premise, so I built.
+2. **11 sites deliberately NOT swapped, because `surface-discipline.test.ts` reads those rule bodies
+   as text and asserts the literal `--sp-*` name.** That file is K-32's `Owns`, not K-34's.
+   Respelling here would have left six assertions either failing for an unrelated reason or **passing
+   over text that no longer says what they check**, which is the worse outcome. I followed the
+   precedent already in `shell.css:394-403`, where an earlier worker pinned the same coupling with a
+   comment. Zero px moved: every pinned name resolves through one alias to the identical Meridian
+   value. Three were genuinely arguable — `.sp-diff .sp-fail` ×2 is read by no guard and I pinned it
+   only so the added and removed halves of one visual object are not spelled two ways.
+3. **The item's "provably a no-op" argument needed one more step than it states.**
+   `[data-theme="light"]` is not always root-level: `_authenticated.meridian.tsx:215` stamps it on a
+   wrapper div on purpose, to show both grounds on one page, and inside that panel `--mrd-*`
+   re-resolves to paper where a `:root`-only `--sp-*` alias would not. It closes clean — that route
+   renders **zero** `.sp-*` and `.today-*` classes — but the argument as written is incomplete.
+
+**Noticed.** Three.
+1. **`--sp-radius-xs` is now at zero readers, a ninth deletion candidate.** My swap took the 5
+   stylesheet readers; K-42's `RoadmapColumns.tsx` edit in this same batch takes the last. I did not
+   delete it, because that would have made `ink.css` depend on work that had not landed. **It is
+   deletable as of this commit.**
+2. **A confusing adjacency the swap creates, now commented in `ink.css`:** `--sp-radius-ctl` is a
+   literal 8px and stays, while `var(--mrd-r-ctl)`, which `--sp-radius-row` swapped to, is **9px**.
+   They read as the same token and are not.
+3. `ink.css:641` `.sp-num` reads `var(--sp-font-mono)` and I left it: it is a class rule, not one of
+   the `:root` chains this item scoped. Flagging so it is not mistaken for a miss. 4 textual
+   occurrences remain in comments, all historical prose recording what a rule used to read.
+
+**Gates.** tsc 0 · test 0 fail · build pass · docs:check pass. **`surface-discipline.test.ts` 19 of
+19**, which is the point: the six assertions the swap would have broken are green via the pinning.
+
+---
+
+## K-39 · BUILT · 2026-08-20 19:52
+
+**Did.** All seven settings panels off `shell/primitives`, with `--sp-`, `class:sp-`,
+`import:shell/primitives` and `usage:shell/primitives` at zero on each: `IntegrationsTab` 8/18,
+`MembersCard` 4/9, `DataSection` 3/15, `DiagnosticsSection` 2/11, `ProductsTab` 1/13, `TeamCard`
+1/13, `NotificationsSection` 0/15, plus one import each. Every user-visible string is byte-identical;
+the only additions are three `mt-mrd-5` wrappers around `Pre` and two minted `Field` id pairs.
+
+**Unsure.** Three of the item's mappings I did not follow, and each names a component whose own
+header forbids the item's choice.
+1. **`Loading` → `Reading`, not `LoadingState`.** `LoadingState`'s header says an elapsed timer on a
+   200ms fetch is noise and ordinary reads get a plain quiet state. Every site here is a plain
+   `useQuery`. 8 sites.
+2. **`Failed` → `ReadFailedLine`, not `ReadFailed`.** `ReadFailed` draws a bordered box the retired
+   `.sp-empty` never had, and its `detail` prop injects a **default sentence of new user-visible
+   copy** where nobody wrote one. 8 sites.
+3. **`Empty` → `NothingYet` everywhere, never `NothingHere`.** `.sp-empty` has no border, so
+   `NothingYet` is the render-identical half. **The two whole-pane empty states had a real argument
+   for the boxed `NothingHere` under its own docstring, and I chose fidelity over the contract.**
+   That one could defensibly go the other way. 9 sites.
+
+Spacing and type, before → after, larger stop taken every time Meridian straddles: `--sp-space-2`
+8 → **10px** (form rows) · `--sp-space-4` 16 → 16px exact · `--sp-space-5` 20 → **24px** ·
+`.sp-pre`'s baked 12px top margin → **16px** on three wrappers · `--sp-text-meta` 13 → 13px exact ·
+`--sp-text-prose` 13.5 → **14px** · weight 600 → 600 exact. I did **not** add a
+`flex flex-col gap-mrd-7` wrapper: these components return fragments whose Regions become direct
+flex children of the route's own column, and a wrapper here breaks that once K-58 lands.
+
+**Noticed.** Three, and the first is a visible regression with a named owner.
+1. **The route is the missing half.** `.sp-block` carried `margin-top: 36px`, `padding-top: 28px` and
+   a `border-top`; `Region` carries none of that on purpose, and `_authenticated.settings.tsx` still
+   renders these panes into a bare `<div className="sp-main">` with no vertical gap, **so the seven
+   panels now stack flush.** That gap belongs to K-58, whose mapping independently reads
+   `Loading`→`Reading` and `Failed`→`ReadFailedLine`, the same two corrections above. **This pair
+   wants verifying together, or /settings looks worse in between.** Recorded in `TeamCard`'s docblock.
+2. **`class:sp-` was not in the item's scope and 6 occurrences survive**, across `DataSection` (1),
+   `DiagnosticsSection` (4) and `MembersCard` (1). **`sp-warn` is the sixth status word in a
+   five-word system**, and Meridian's answer is `Value tone="hold"` — but that shifts 13px → 12.5px,
+   which the ratchet forbids as a port answer, so it needs a ruling rather than a rename.
+3. **The item's test path is wrong.** It is `src/lib/settings-search.test.ts`, not under
+   `src/__tests__/`. Every count in the item's `What` was exact.
+
+**Gates.** tsc 0 · test 0 fail · build pass · docs:check pass. `settings-search.test.ts` 16 of 16,
+**unmodified**. Route and settings suites 437 pass / 0 fail.
+
+---
+
+## K-41 · BUILT · 2026-08-20 19:52
+
+**Did.** `AccountConnectionsSection.tsx` fully off `shell/primitives`: all 51 markers to zero
+(`usage` 38, `import` 1, `--sp-` 4, `class:sp-` 8), verified by running the ratchet scanner's own
+`debtIn()` against the file, which returns `{}`. The eight `.sp-*` class strings became
+`text-mrd-fail` ×5, `text-mrd-hold` ×1 and one link-face constant. **No user-visible string changed**,
+checked by diffing the word multiset of the comment-stripped source before and after: every delta is
+an identifier or a class name.
+
+**Unsure.** Four, and the last one is not this item's to fix but is the honest headline.
+1. **`sp-warn` was a sixth status word and Meridian has five.** Every non-error status this row can
+   hold — pending, revoked, expiring — is the connection **waiting on a condition**, so it lands on
+   `hold`. Not `you`, which was the reflex and would promise a control on that row that moves it.
+2. **The fail/hold fragments are colour-only spans, not `Value`.** `Value` fixes 12.5px and these sit
+   inside a `Row`'s 13px `sub`, where `.sp-fail` set colour alone, so `Value` would shave half a
+   pixel off prose a port may not shrink. `ReadFailedLine` uses a bare `text-mrd-fail` for the same
+   reason, so the idiom is Meridian's own. **If `data-tone` in the markup is wanted here, `Value`
+   needs a size-inherit mode.**
+3. **Region separation went from 36px margin + 28px padding + a hairline to a flat 40px**, stated
+   once at the surface as `gap-mrd-7`, per the founder ruling recorded in `primitives.css`'s own
+   `.sp-block` header. Side effect worth a look: in `ConnectorDetail`'s connected branch,
+   `PageHeading` → `Actions` was flush and is now 40px apart.
+4. **Control and field metrics shrank, and it is Meridian's decision rather than mine.** `.sp-btn`
+   was 13.5px on a 38px box; `Action` is 12.5px on 32px. `.sp-input` was 13.5px on 40px with 12px
+   padding; `forms.Input` is 13px on `h-8` with `px-2.5`. **Flagging because the ratchet forbids
+   shrinking type as a port answer and this port does shrink it** — the decision is upstream in the
+   components every ported surface already uses.
+
+**Noticed.** Four.
+1. **The connections findings are not in `agent-audit-2026-08.md` at all** — no occurrence of
+   "connector" or "connection" in it. They live in `audit-reports/billing-and-connectors.md`, which
+   carries **twelve behavioural findings for this exact pane**, none establishable from the repo
+   alone. One of them is: "Test it" renders *"It did not authenticate. adapter not implemented An
+   admin has to rotate the secret."*, which instructs a fix that cannot work **and is missing a
+   terminator**. The terminator is a one-character fix in this file and I left it, because copy is
+   frozen for a port.
+2. **`ConnectTrustDialog.tsx`, which this pane's entire connect flow routes through, is still 100% on
+   `components/ui` (shadcn/Tempo v5)** with `text-copy-13`, `border-border` and shadcn's own
+   `Button`. It is the connect-moment trust interstitial, the most consequential screen this pane
+   opens, and it is in nobody's `Owns`. **Worth its own item.**
+3. `Remove` and both `Disconnect`s pass `destructive: true` to `confirm()` and all render neutral,
+   because shell's `Button` had no destructive face. Meridian's `Action` now has one and its docstring
+   names this exact control. I did not take it: a colour-law call I cannot see rendered is not a port.
+4. The item's counts are exact, all ten symbols. `Region`'s `more`/`onMore` never came up here.
+
+**Gates.** tsc 0 · test 0 fail · build pass · docs:check pass. eslint clean, prettier applied. Six
+relevant suites 102 pass / 0 fail, 438 assertions, all six unmodified, including the two source-text
+guards that pin `const primary = conns[0]` and `mVerify.mutate(primary.id)`.
+
+---
+
+## K-42 · BUILT · 2026-08-20 19:52
+
+**Did.** `CommitCeremony.tsx` and `RoadmapColumns.tsx` both fully off `shell/primitives`, 22 `--sp-`
+refs each to zero, `usage` 6 and 12, one import each. **The plan folder's debt is now 0.** The
+selection bar is **`BulkBar`** with the same `selection`/`total`/`noun` contract, `Choices` gained the
+now-required `mode="one"`, and the Radix overlay moved to `bg-mrd-scrim` /
+`rounded-mrd-pane border border-mrd-line bg-mrd-float`. **`DecisionQueue.tsx` and
+`DiscoverSurface.tsx` were not touched**: the item says change them only if K-38's chosen name forces
+an import edit, and it does not, since `SelectionBar` still exists in `shell/primitives` and both
+files still resolve. They keep their 10 and 3 recorded usages for their own items.
+
+**Unsure.** Four, and one figure went down.
+1. **`--sp-leading-gate` 1.32 → `leading-tight` 1.25 is the one number that shrank.** Both title
+   strings are one line in every state so it is not observable, but on the take-the-larger rule it
+   should arguably have gone to `leading-relaxed` 1.625, which would have been worse. Title type
+   19 → **20px**. **`--sp-track-gate` at −0.019em was dropped entirely: Meridian has no negative
+   tracking token at any size** and `PageHeading` sets none at 25px, so keeping it meant hand-writing
+   a value outside the system. **Missing token: a `--mrd-track-tight` for h3 and above.**
+2. Spacing, every straddle upward: `--sp-space-3` 12 → **16px** (column-heading margin, card-stack
+   gap, field gap, footer margin) · `--sp-space-2` 8 → **10px** · skeleton card radius 10 → **12px**,
+   which is what the ported `BetCard` now draws. Both match what `BetCard` recorded when I ported it.
+3. **The "Only undeclared" toggle's pressed face is the VARIANT, not a class on top of one.** The
+   retired sheet drew `[data-variant="ghost"][aria-pressed="true"]`; `Action` has no `aria-pressed`
+   face, and layering `text-mrd-ink` over `quiet`'s `text-mrd-mute` is two same-specificity utilities
+   racing on stylesheet order. So `default` when on, `quiet` when off. **A reviewer could reasonably
+   want a real `Toggle` here instead.**
+4. **Kept Radix in `CommitCeremony` rather than adopting Meridian's `Dialog`.** `Dialog` deliberately
+   does not portal, so adopting it makes this pane's position depend on whether any ancestor of
+   `/plan` carries a transform or a `container-type`, which I cannot check without the running app.
+   It also right-aligns actions with the confirming control last, where this ceremony leads with
+   "Commit to Now" — a composition decision, not a paint one.
+
+**Noticed.** Three.
+1. **A live name collision in Meridian: `text-mrd-body` is defined twice.** `@theme inline` declares
+   `--color-mrd-body`, which generates `text-mrd-body` as a **colour**; K-09's `@utility
+   text-mrd-body` declares the same class name as a **14px font-size**. Roughly **60 call sites**
+   across `components/meridian`, `approvals`, `engine-room`, `runs` and `billing` use it meaning
+   colour and none uses it meaning size. Which wins depends on emission order and I cannot tell
+   without a browser, **so if the `@utility` wins, body-text colour is silently falling back across
+   60 sites.** I avoided the family and used `text-[13px]`/`text-[14px]` the way 50 sibling Meridian
+   components do. `body` is the only collision; the other twelve stops are safe. **K-45 hit this
+   independently.**
+2. **`CommitCeremony`'s `Actions` had no gap above it** and nothing on screen said so, which is the
+   exact failure `Actions`' own docblock warns about when it removed the baked-in `mt-mrd-4`. Other
+   call sites ported in the same wave may have inherited it. Added `mt-mrd-5`.
+3. The item's "the `plan` folder is 106 of which `BetCard` is the other 42" is **stale**: `BetCard`
+   was ported earlier in this same batch and carries zero recorded debt. The plan folder's real debt
+   was 64, all of it these two files.
+
+**Gates.** tsc 0 in both my files · test 0 fail · build pass · docs:check pass. `bulk-bar.test.tsx`
+17 of 17 including Escape-clears and select-all-only-when-it-changes-something. prettier clean.
+
+---
+
+## K-45 · BUILT · 2026-08-20 19:52
+
+**Did.** `PlanPicker.tsx` all 32 occurrences off: 27 `--sp-` refs and all five `.sp-*` classes. The
+audience row is now `meridian/Tabs` + `TabPanel`, with the panel wrapping the paragraph and the card
+grid so `aria-controls` points at an element that is genuinely in the document. `meridian/Tabs`
+gained **one additive prop, `rule?: boolean` defaulting to `true`**, which drops
+`border-b border-mrd-line pb-mrd-3`; nothing else about it changed, same roles, ids and keyboard.
+
+**Unsure.** Three, and the first is a deliberate departure from the item.
+1. **The billing-period row is NOT a tablist and no longer claims to be.** The item says both
+   `sp-tabs`/`sp-tab` go to `Tabs`. Monthly/Annual **switches no panel** — it rewrites a price inside
+   cards that stay put — so through `Tabs` its `aria-controls` would have had to name a panel id that
+   does not exist, which `Tabs`'s own header calls a broken reference rather than a quiet one.
+   `Choices mode="one"` is a radiogroup with the same arrow-key contract and is what
+   `plan.spec.$id.tsx` adopted under the same ruling. **This changes that control's look** from quiet
+   text tabs to Meridian's sunken track with a raised thumb. The audience row does switch a panel, so
+   it went through `Tabs` and the acceptance criterion is met there.
+2. **`Tabs`'s seven other callers are safe and I checked each.** `runs.index`, `runs.$missionId`,
+   `engine-room`, `admin.people`, `admin`, `brain`, and `studio/ChangesPanel` (**seven, not six** —
+   `ChangesPanel` imports `Tabs` without `TabPanel`). None passes `rule`, all default to `true`, all
+   render byte-identical CSS. The prop is needed because `Tabs` is a flex ITEM in this row, so
+   `border-b` draws a rule as wide as two words with bare line either side.
+3. **Tab text 13px → 12.5px is the one figure that came down.** It is `Tabs`'s own stop, shared with
+   seven other rows, and I judged matching the system worth half a pixel. It is still a shrink.
+   Everything else went up: card padding-top 20 → **24px**, every 12px gap → **16px**, 8px gaps →
+   **10px**, card radius 10 → **12px**, price 19 → **20px**, prose leading 1.55 → **1.625**.
+
+Two more calls that departed from the item's letter, both because the target component refuses the
+job: **`sp-field-label` did not become `Field`** (it requires `htmlFor` and a real `<label>`, and the
+band selector was removed on 2026-08-03 so there is no control to bind — a label pointing at nothing
+is a false binding, so it wears `Field`'s label face on a `<span>`), and **`sp-block-more` did not
+become `Region`** (whose docstring refuses a cap-reveal prop outright). **`sp-hint` was deleted
+rather than replaced**: it resolves in no stylesheet in the repo, so that line has always rendered at
+inherited size, and painting it now would be a new design decision wearing a port's clothes.
+
+**Noticed.** Four.
+1. **`text-mrd-body` is both a colour and a 14px font size**, so any element carrying it plus another
+   `text-*` size has its size decided by emission order. `Door`, `Field` and `Tabs` all use it as a
+   colour. I sidestepped with an inline `fontSize` and said so in the file. **Same finding as K-42,
+   reached independently.** It is the only such collision in the ladder; I checked every stop against
+   every colour name.
+2. **The item's "mounted from two routes" is wrong.** Only `_authenticated.settings.tsx` imports
+   `PlanTable`; `admin.pricing.tsx` merely mentions it in a comment. One mount.
+3. **The audit register has no billing section at all** — no match for `billing`, `PlanPicker` or
+   `Stripe`. The register is silent rather than disagreeing, and the item's numbers came from the debt
+   table, where all of them check out.
+4. **The right fix for the disclosure is an `expanded` prop on `Door`** in `surface-parts.tsx`, which
+   K-71 owned this batch. `Door` takes no `aria-expanded` and this control is a disclosure, so I wrote
+   `Door`'s paint out with the ARIA rather than importing a component that would drop it. Also left in
+   place per the mention-do-not-delete rule: `CREDIT_DROPDOWN_TIERS` imported and never used, and
+   `selectId` computed and never read, both remnants of the removed band picker.
+
+**Gates.** tsc 0 · test 0 fail · build pass · docs:check pass. Meridian and route suites **838 pass /
+0 fail**. There is no existing test for `meridian/Tabs`; the seven callers are covered by the route
+suites.
+
+---
+
+## K-54 · BUILT · 2026-08-20 19:52
+
+**Did.** `_authenticated.admin.platform.tsx` off `shell/primitives` entirely, all 13 symbols resolved
+to Meridian and the one `var(--sp-font-mono)` swapped, so all 36 markers go to zero (`usage` 34,
+`import` 1, `--sp-` 1). Because `Region`, `Actions` and `Pre` all set no outer margin where the
+retired sheet baked one in, the surface now states its own rhythm: `gap-mrd-6` between the four
+regions, `mt-mrd-5 flex flex-col gap-mrd-4` on both forms, `mt-mrd-5` on the audit payload. No local
+`<pre>`, no hand-rolled control.
+
+**Unsure.** Three, and two of them are shrinks I took deliberately against the port instruction.
+1. **Region rhythm shrank, 36px margin + 28px padding + a hairline (~64px and a rule) → `gap-mrd-6`,
+   24px, no hairline.** The instruction says take the larger stop. I took the smaller because
+   `admin.pricing.tsx` and `admin.index.tsx` both already ship exactly this with the same comment,
+   and **three admin tabs disagreeing about their own spacing is worse than 40px**. Argue with this
+   one first if any.
+2. **Form stacking shrank 2px**, `.sp-field`'s 12px margin → `gap-mrd-4` 10px, same reason:
+   `admin.index.tsx` uses `mt-mrd-5 flex flex-col gap-mrd-4` verbatim. `gap-mrd-5` was the
+   larger-stop answer and would have made this form the odd one out.
+3. **Two `variant="ghost"`, not one.** The item names line 425 only; the notice's "Take it down" is
+   the second. Both went `quiet`. Deleting a flag arguably wants Meridian's `destructive` face since
+   it removes something behind a confirm, but that is a design change rather than a port.
+   Where I did take the larger stop: both 12px offsets → **16px**. `Pre` also newly caps at 320px and
+   scrolls both axes where `.sp-pre` set `overflow-x` only, and its padding moves 16/18px → **10/12px**
+   with type unchanged.
+
+**Noticed.** Three, and the first is the answer to the item's framing.
+1. **`meridian/forms` is complete for this route. Nothing missing, nothing hand-rolled.** `Field`,
+   `Input` and `Checkbox` are prop-compatible one for one, and `Picker`/`Toggle` match
+   `Select`/`Switch` exactly. **The item's premise that four ids needed minting is already
+   satisfied** — `flag-key`, `flag-payload`, `notice-msg` and `deploy-reason` were all bound before I
+   touched it, and four more ride `Line`'s optional `htmlFor`. No accessible name was lost.
+2. **No `checkClass` shape here and no read-failure-as-empty-state.** This route is the good example:
+   each of its four reads carries its own failed state with a retry. I updated its header's one stale
+   reference to `Failed`.
+3. **Three findings in `audit-reports/admin-surfaces.md` land on this exact file and all are outside
+   my Owns.** P0 #6: `admin_set_memory_expiry_enabled` writes `target_kind='app_settings'`, which is
+   **not in the CHECK constraint**, so the switch on line one of this page **can never move** and the
+   operator gets a raw Postgres message. P0 #8: nothing outside admin reads `system_banner`, so this
+   page's own sub ("A notice sits above every screen for every signed-in person") **and** its toast
+   ("Everyone sees it now.") are both false. P1: the deploy insert in `build.functions.ts:1244` names
+   columns that do not exist, so **the only irreversible act on the page never reaches the ledger
+   below it**. All three are DB or server-side; strings left byte-identical.
+
+**Gates.** tsc 0 · test 0 fail · build pass · docs:check pass. Meridian and styles suites 473 pass /
+0 fail.
+
+---
+
+## K-55 · BUILT · 2026-08-20 19:52
+
+**Did.** `_authenticated.sync.tsx` off `shell/primitives`: `Button`→`Action` ×13, `Block`→`Region` ×2,
+`Failed`→`ReadFailedLine` ×2, `Loading`→`Reading` ×2, `PageHead`→`PageHeading` ×2, plus `Surface`,
+`Gate` and `Pre` from their Meridian modules, so 32 markers go to zero (`usage` 29, `import` 1,
+`class:sp-` 2) and **no `variant="ghost"` survives**. Both hand-written `sp-btn` controls now wear
+`CONTROL_SHAPE`: the "Read both first" anchor keeps `href`/`target`/`rel` and its quiet intent, the
+"Connect another source" `Link` stays a router link on the default face. **Every line number in the
+item is exact** (import 99, ghosts 264/269/368/375/512/521, anchor 278, `Link` 304); its "32
+occurrences" is the whole ledger entry rather than symbol usages alone.
+
+**Unsure.** Four.
+1. **`Empty`→`NothingYet`, not `NothingHere`, all four.** `.sp-empty` draws no border. Three of the
+   four sit inside a region and the fourth is one sentence standing in the column, so `NothingHere`
+   would add four boxes **this surface's own rebuild header went out of its way to remove** ("KILL,
+   every bento card … one bordered container per region, maximum"). Deliberate deviation from the
+   item's letter; either satisfies its acceptance.
+2. **`Revoke` stayed `quiet` rather than becoming `destructive`.** It removes something, so the
+   destructive face is arguable, but it was `ghost`, and moving a control onto `--mrd-stop` says
+   something new about this surface rather than restating what the old one said. Its confirm is
+   unchanged and is the part that protects it.
+3. **The `Link` imports `LINK_AS_CONTROL` from `components/runs/run-parts`, which pulls a runs module
+   into the sync chunk.** That constant is exported precisely so it is not copied, so I imported it;
+   say so if you would rather it were inlined.
+4. **Component-owned shrinks I could not parametrise:** control label 13.5 → 12.5px and height
+   38 → 32px, region title 14 → 13px, region sub 13 → 12.5px, empty/reading 13.5 → 13px and their
+   26px vertical padding goes. Section rhythm 36px + 24px + a hairline → one `gap-mrd-7`, 40px, no
+   rule, matching seven other stations. Question 19 → 20px. Curl example 12px → **16px**, larger
+   stop. The gate **gains** the orchid "Waiting on you" marker the retired one never drew, which is
+   honest here because the head sentence already says a person must choose, and **loses** the
+   `sp-gate-in` entrance.
+
+**Noticed.** Four.
+1. **`sp-btn` is not finished with this repo. Six files still carry it**, and two of them —
+   `WorkspaceBindingsSection.tsx` and `BindingPicker.tsx` — **render inside this route**, so /sync
+   still shows retired control paint until they are ported.
+2. **A named Meridian gap, and this is the second copy of the string rather than the first.**
+   `surface-parts.tsx` should export a **quiet** link face beside `LINK_AS_CONTROL`. `Action`'s
+   `quiet` cannot be borrowed because it is written `enabled:hover:` and `:enabled` never matches an
+   `<a>`. `AccountConnectionsSection.tsx` declares the identical local constant, K-41 said the same
+   thing independently, and two copies is where it stops being a nice-to-have.
+3. **`Block`'s `more` became `Region`'s `toggle`/`toggled`/`onToggle`, which is an accessibility gain
+   rather than a rename**: the curl disclosure now emits `aria-expanded`, where the retired slot
+   emitted nothing.
+4. **`Pre` takes no `className`** yet its own header tells callers to write `mt-mrd-3` "where it can
+   be seen". There is no prop to write it on, so I wrapped it. Small contract/docstring mismatch.
+   Also: `.sp-gate` is declared twice in `primitives.css` (323 as a text-colour utility, 361 as the
+   section), already noted in the sheet's own comment. `Action` has no `aria-busy` and five controls
+   here have in-flight states, but the retired `Button` did not announce it either, so no regression.
+
+**Gates.** tsc 0 · test 0 fail · build pass · docs:check pass. prettier and `check-humanized.sh` both
+clean on the file. Route suites plus `surface-registry` 317 pass / 0 fail.
+
+---
+
+## K-71 · BUILT · 2026-08-20 19:52
+
+**Did.** Added `Refused` to `surface-parts.tsx` with a private `RefusedMark` (a monoline padlock,
+stroke 2.2 to match its sibling `FailMark`, `text-mrd-hold`), placed directly after
+`ReadFailedLine` in the "things a read can be, kept apart" section. Same box as
+`ReadFailed`/`NothingHere`, same `data-mrd` and `role="status" aria-live="polite"`. Then replaced the
+whole body of `NoAccessCard` in `_authenticated.admin.tsx`, which was a local div with five inline
+styles, `var(--card)`/`var(--radius-card)`, a 20px div doing an h2's job and **no `data-mrd`**, so its
+claim button took the legacy app-wide ring. 13 tests in `refused.test.tsx`.
+
+**Unsure.** The status word, and `fail` was genuinely arguable rather than notionally.
+**For `fail`:** the colour law says red reports an outcome that happened, and a refusal is exactly
+that — the check ran, resolved, and the verdict is no. That is not an intent, so red would not be
+breaking the rule that keeps it off "roll back". **`hold` wins on two grounds.** Red is already spent
+one slot over: `ReadFailed` draws the same box in the same place with `--mrd-fail` on its mark, and
+the entire purpose of this component is that a refusal **stops** being confused with a failure, so
+painting it the neighbour's hue reinstates the confusion at the layer a person reads fastest. And
+`--mrd-hold` is declared in `meridian.css` as "stopped, and not on you", which is a literal
+description of a refusal. `you` was the third candidate and is wrong: orchid means a decision by
+**this** reader releases it, and nothing this reader decides opens a refusal. **Because the hue is
+arguable, the greyscale carrier is the silhouette**, asserted separately from the token, so a future
+edit that reuses `FailMark`'s ring fails even if the colour check passes.
+Two prop-shape departures from `ReadFailed`, both argued in the docblock: **no `onRetry`**, because
+re-running the read returns the same no and the button would be the copy defect drawn as a control;
+and **`detail` is required rather than defaulted**, because a default sentence about a refusal can
+only be generic, which is the exact failure the component exists to prevent.
+
+**Noticed.** Five, and two of them are corrections to the item.
+1. **The old copy contradicted the branch beneath it.** `NoAccessCard` said "Ask a current admin to
+   grant you access" **unconditionally**, including when `anyAdminExists` is false — the one case
+   where there is provably nobody to ask, with the claim button directly underneath saying so. The
+   detail branches now, which is a bug fix rather than a rewrite.
+2. **"Baseline re-frozen lower" has no basis: `_authenticated.admin.tsx` is not in the baseline at
+   all.** It carried zero recorded debt, because `--card`, `--radius-card`, `--font-sans` and
+   `--font-mono` are none of them on the retired-marker list. **This item moves the ratchet by
+   zero**, confirmed — neither file appears in the reclaimed list. Whoever wrote it was probably
+   looking at `admin.platform.tsx` or `components/admin/admin-ui.tsx`.
+3. **The item's "Why" names the wrong component**: it says admin honours the distinction with
+   `AdminErrorCard`, which is the *failed* half. The *denied* half was `NoAccessCard`. The "How" gets
+   it right, so nothing was mis-scoped.
+4. **A denied state already exists one level down, under another name.** `GovernedWriteNote` plus
+   `writeDeniedReason` (`roles.functions.ts:91`) are the **control-level** refusal, a genuinely
+   different scope from a surface you cannot open, so not a duplicate — **but `GovernedWriteNote`
+   renders `className="sp-subtitle"`, a retired Cadence/ink class, so the one existing denied surface
+   in the product is painted by a retired system.**
+5. **`AdminErrorCard` is four retired vocabularies deep** and is still the read-failed state on this
+   route: `--madder`, `--text-muted`, `--text-primary`, `--raised`, `--top-light`, and a
+   `focus-visible:[outline-color:var(--focus-ring)]` that is permanently inert. Not my file.
+   **The acceptance line "rendered in the gallery in both grounds" is unsatisfiable from this item's
+   Owns** — `_authenticated.meridian.tsx` is outside it — so the machine half is a
+   render-twice-and-compare test and the door is the admin route. **Somebody still owes the gallery a
+   `<Case>`.**
+
+**Gates.** tsc 0 · test 0 fail · build pass · docs:check pass. `refused.test.tsx` 13 of 13, and
+**proven red as well as green**: planting `text-mrd-fail` on the mark and swapping the padlock body
+for a circle turned it to 11 pass / 2 fail, hitting exactly the hue and silhouette assertions.
+Every test file importing `surface-parts.tsx` green, 107 pass / 0 fail.
+
+---
+
+## K-69 (guard correction) · BUILT · 2026-08-20 19:52
+
+**Did.** `src/__tests__/focus-ring-is-inherited.test.ts` **no longer scans test files**, and that
+replaced an exemption rather than adding one. K-71's new `refused.test.tsx` asserts the focus utility
+is **absent**, and so tripped a guard looking for the utility: a test proving the rule holds was
+reported as breaking it. The scan now skips `__tests__/` and `*.test.ts(x)`, and the one entry on the
+exemption list that was a test fixture is gone with it, because the second test correctly fails when
+an exemption stops describing a real file.
+
+**Unsure.** Nothing much. The rule this guard enforces is about **what a keyboard reader meets**, and
+nobody tabs through happy-dom, so a test was never in scope. The alternative was a fourteenth
+exemption, which would have kept two unrelated ideas sharing one array. **This is the same shape as
+K-63's ghost-status guard**, which had to assemble its forbidden string from parts so it would not
+satisfy its own grep; here the cheaper answer is to not read the files that talk *about* the rule
+while checking the files that *obey* it.
+
+**Noticed.** The exemption list is better for it: all 13 remaining entries are now one kind of thing,
+a live file with a broken ring owned by another item, so it reads as a debt register. The
+exemption-honesty test still passes, which is the evidence the scan is still live rather than
+narrowed into uselessness: it only passes if every one of those 13 paths still declares a ring and
+still carries no `data-mrd`.
+
+**Gates.** `lane:gates` green, real exit 0 read from `$?`. **Baseline re-frozen: 4,585 → 3,980
+occurrences, 242 → 232 files carrying debt, 49 counts reclaimed** across
+K-29/K-34/K-39/K-41/K-42/K-45/K-54/K-55.
+
+**Owed to Claude, on all nine.** None of these was looked at in a browser, and two things want it
+most. **`/settings` is worse until K-58 lands**: K-39's seven panels now stack flush, because
+`.sp-block`'s 36px margin and 28px padding lived in the stylesheet and `Region` carries neither.
+And **`text-mrd-body` resolves as both a colour and a 14px size**, found independently by K-42 and
+K-45 across roughly 60 call sites, which only a build can settle.

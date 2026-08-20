@@ -1,12 +1,21 @@
 import { useState } from "react";
 import { Line } from "@/components/meridian/rows";
-import { Actions } from "@/components/meridian/surface-parts";
+import {
+  Actions,
+  Action,
+  NothingYet,
+  Picker,
+  Pre,
+  ReadFailedLine,
+  Reading,
+  Region,
+} from "@/components/meridian/surface-parts";
+import { Field, Input } from "@/components/meridian/forms";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { inviteMember, listInvitations, revokeInvitation } from "@/lib/workspaces.functions";
 import { toast } from "@/lib/notify";
-import { Block, Button, Empty, Failed, Field, Input, Loading, Pre, Select } from "@/components/shell/primitives";
 
 // Invite teammates: the calm-front view of WM-F5 (workspace invitations). Manager-only RLS
 // gates the backend; this surfaces the invite form, the join link (outbound email is a
@@ -21,6 +30,12 @@ import { Block, Button, Empty, Failed, Field, Input, Loading, Pre, Select } from
 // copies, and Pre already holds its own whitespace and scrolls inside itself.
 // FIXED, beyond styling: the invitations read had no failure state at all, so a
 // failed read rendered "No invitations yet." That is a lie about the workspace.
+//
+// Ported to Meridian 2026-08-20. `Block` is `Region`, which draws no outer margin
+// and no section rule on purpose: the SURFACE states that rhythm once, and the
+// surface here is `_authenticated.settings.tsx`, still on the retired layer and
+// owning that gap in its own port. Until that lands this card stacks flush
+// against MembersCard above it.
 
 type Invitation = {
   id: string;
@@ -87,20 +102,29 @@ export function TeamCard() {
   const canInvite = !!activeWorkspaceId && email.trim().length > 0 && !invite.isPending;
 
   return (
-    <Block
+    <Region
       title="Invite teammates"
       sub="They join with the role you pick. Outbound email is off for now, so share the join link the invite gives you."
     >
+      {/* The gap was `--sp-space-2`, 8px. Meridian's ramp steps 6px then 10px,
+          so there is no 8: taking `--mrd-s4` because the ratchet forbids
+          shrinking a surface to answer a port. */}
       <div
         style={{
           display: "flex",
-          gap: "var(--sp-space-2)",
+          gap: "var(--mrd-s4)",
           flexWrap: "wrap",
           alignItems: "flex-end",
         }}
       >
-        <Field label="Email">
+        {/* Meridian's `Field` renders its label as a SIBLING bound by `htmlFor`,
+            where the retired one wrapped the control, so both ids are real and
+            minted here. The `aria-label`s stay: an existing one still wins the
+            accessible name, and removing it would change what a screen reader
+            says while porting the paint. */}
+        <Field label="Email" htmlFor="team-invite-email">
           <Input
+            id="team-invite-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -109,8 +133,9 @@ export function TeamCard() {
             style={{ minWidth: 240 }}
           />
         </Field>
-        <Field label="Role">
-          <Select
+        <Field label="Role" htmlFor="team-invite-role">
+          <Picker
+            id="team-invite-role"
             value={role}
             onChange={(e) => setRole(e.target.value as "admin" | "member" | "viewer")}
             aria-label="Role"
@@ -121,12 +146,12 @@ export function TeamCard() {
                 {r.label}
               </option>
             ))}
-          </Select>
+          </Picker>
         </Field>
         <Actions>
-          <Button variant="primary" disabled={!canInvite} onClick={() => invite.mutate()}>
+          <Action variant="primary" disabled={!canInvite} onClick={() => invite.mutate()}>
             {invite.isPending ? "Inviting" : "Send invite"}
-          </Button>
+          </Action>
         </Actions>
       </div>
 
@@ -135,41 +160,46 @@ export function TeamCard() {
         // confirmation that one exists. Nothing else on this surface can be
         // acted on by pasting it somewhere, so it gets the room to be selected.
         <>
-          <Pre>{fullLink}</Pre>
+          {/* Meridian's `Pre` sets no outer margin, where `.sp-pre` baked in a
+              12px `margin-top`. The ramp has no 12, so the wrapper states 16px
+              rather than 10px: the ratchet forbids shrinking to answer a port. */}
+          <div className="mt-mrd-5">
+            <Pre>{fullLink}</Pre>
+          </div>
           <Actions>
-            <Button onClick={copyLink}>Copy link</Button>
-            <Button variant="ghost" onClick={() => setLastLink(null)}>
+            <Action onClick={copyLink}>Copy link</Action>
+            <Action variant="quiet" onClick={() => setLastLink(null)}>
               Done
-            </Button>
+            </Action>
           </Actions>
         </>
       ) : null}
 
       {invitations.isLoading ? (
-        <Loading>Reading the pending invitations.</Loading>
+        <Reading>Reading the pending invitations.</Reading>
       ) : invitations.isError ? (
-        <Failed onRetry={() => void invitations.refetch()}>
+        <ReadFailedLine onRetry={() => void invitations.refetch()}>
           The pending invitations did not load.{" "}
           {(invitations.error as Error)?.message ?? "The read failed."}
-        </Failed>
+        </ReadFailedLine>
       ) : pending.length === 0 ? (
-        <Empty>Nobody is waiting on an invite.</Empty>
+        <NothingYet>Nobody is waiting on an invite.</NothingYet>
       ) : (
         pending.map((inv) => (
           <Line key={inv.id} label={inv.email} sub={`${inv.role} · ${inv.status}`}>
             {inv.status === "pending" ? (
-              <Button
-                variant="ghost"
+              <Action
+                variant="quiet"
                 disabled={revoke.isPending}
                 onClick={() => revoke.mutate(inv.id)}
                 aria-label={`Revoke invitation for ${inv.email}`}
               >
                 Revoke
-              </Button>
+              </Action>
             ) : null}
           </Line>
         ))
       )}
-    </Block>
+    </Region>
   );
 }

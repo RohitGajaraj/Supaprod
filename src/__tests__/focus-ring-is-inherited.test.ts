@@ -64,6 +64,29 @@ import { REPO_ROOT, stripComments } from "./meridian-ratchet-scan";
 
 const SCAN_ROOT = "src";
 const EXTENSIONS = [".tsx", ".ts"];
+/**
+ * TESTS ARE NOT SCANNED, and this replaced an exemption rather than adding one.
+ *
+ * The rule this guard enforces is about what a KEYBOARD READER MEETS: a control
+ * that asks for a ring in its own class names and does not get one, because the
+ * unlayered `[data-obsidian] :focus-visible` rule in `src/styles.css` beats every
+ * `@layer`. A test renders into happy-dom and nobody tabs through it, so the rule
+ * has nothing to say about one.
+ *
+ * It also caught the wrong thing twice, in opposite directions. A fixture passing
+ * the string to a component as data sat on the exemption list as "a genuine
+ * exception". Then `refused.test.tsx` arrived asserting the utility is ABSENT,
+ * and tripped a guard looking for the utility -- a test proving the rule holds
+ * was reported as breaking it. That is the same shape as the ghost-status guard,
+ * which had to assemble its forbidden string from parts so it would not satisfy
+ * its own grep, and the answer here is the cheaper one: do not read the files
+ * that talk ABOUT the rule while checking the files that OBEY it.
+ *
+ * The exemption list is better for it. Every entry left is now one kind of thing,
+ * a live file with a broken ring owned by another item, so the list reads as a
+ * debt register rather than as two unrelated ideas sharing an array.
+ */
+const IS_TEST = /(?:^|\/)__tests__\/|\.test\.tsx?$/;
 
 /**
  * A component asking for a focus ring in its own class names, in either syntax
@@ -100,11 +123,6 @@ const CARRIES_ATTRIBUTE = /data-mrd\s*=/;
  *   defence of the code: all thirteen have broken rings in production today.
  */
 const EXEMPT: ReadonlyArray<{ path: string; why: string }> = [
-  {
-    path: "src/components/supaprod/__tests__/sketch-components.test.tsx",
-    why: "A GENUINE EXCEPTION. A hand-built props fixture inside a test, passing the string to a component as data. It declares no ring and renders no control.",
-  },
-
   // The retired component layers. `meridian-ratchet-scan.ts` counts imports from
   // both trees as debt; the end state is deletion, so a ring here is not worth
   // porting.
@@ -201,6 +219,7 @@ function scanRings(): Scanned[] {
   const out: Scanned[] = [];
   for (const file of walk(join(REPO_ROOT, SCAN_ROOT))) {
     const rel = relative(REPO_ROOT, file).split(sep).join("/");
+    if (IS_TEST.test(rel)) continue;
     const code = stripComments(readFileSync(file, "utf8"));
     const rings = code.match(DECLARES_RING)?.length ?? 0;
     if (rings === 0) continue;

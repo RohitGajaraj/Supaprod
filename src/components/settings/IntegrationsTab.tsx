@@ -18,21 +18,34 @@
 // Ported to the rebuild primitives 2026-07-29. The route draws the PageHead and
 // the "what an agent outside Supaprod may read" line, so the intro card that
 // said the same thing a second time is gone (hard ban 10). The four stacked
-// `material-medium` cards are four Blocks, which are rules rather than boxes.
+// `material-medium` cards are four regions, which are rules rather than boxes.
 //
-// The one thing on this surface that genuinely wears ember is the freshly
+// The one thing on this surface that genuinely wears the accent is the freshly
 // issued secret: it is shown once, it is asking the human to act now, and if
 // they do not, it is lost. That is the definition of the gate colour. Every
 // other control here stays monochrome.
+//
+// Ported to Meridian 2026-08-20. That accent is `--mrd-you`, orchid, which is
+// what `--sp-gate` had already been aliased to: this paragraph said "ember" and
+// the paint had not been ember for some time. Border only, never a fill.
 import { useServerFn } from "@tanstack/react-start";
 import { Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Num,
+  Actions,
+  Action,
+  NothingYet,
+  Pre,
+  ReadFailedLine,
+  Reading,
+  Region,
+} from "@/components/meridian/surface-parts";
+import { Field, Input } from "@/components/meridian/forms";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { Block, Button, Empty, Failed, Field, Input, Loading, Pre } from "@/components/shell/primitives";
 import {
   listMCPTokens,
   issueMCPToken,
@@ -72,7 +85,7 @@ function fmtDate(iso: string | null): string {
 function CopyButton({ text, label = "Copy" }: { text: string; label?: string }) {
   const [copied, setCopied] = useState(false);
   return (
-    <Button
+    <Action
       aria-label={copied ? "Copied to clipboard" : `${label} to clipboard`}
       onClick={async () => {
         try {
@@ -85,7 +98,7 @@ function CopyButton({ text, label = "Copy" }: { text: string; label?: string }) 
       }}
     >
       {copied ? "Copied" : label}
-    </Button>
+    </Action>
   );
 }
 
@@ -158,12 +171,12 @@ export function IntegrationsTab() {
   const live = tokens.filter((t) => !t.revoked_at).length;
 
   if (!activeWorkspaceId) {
-    return <Empty>Pick a workspace to manage its agent access.</Empty>;
+    return <NothingYet>Pick a workspace to manage its agent access.</NothingYet>;
   }
 
   return (
     <>
-      <Block
+      <Region
         title="Issue a token"
         sub="Name it for the tool that will use it. The secret is shown once, right after you create it."
       >
@@ -173,16 +186,25 @@ export function IntegrationsTab() {
             if (slug.trim() && !issue.isPending) issue.mutate();
           }}
         >
+          {/* The gap was `--sp-space-2`, 8px. Meridian's ramp steps 6px then
+              10px, so there is no 8: taking `--mrd-s4` because the ratchet
+              forbids shrinking a surface to answer a port. */}
           <div
             style={{
               display: "flex",
-              gap: "var(--sp-space-2)",
+              gap: "var(--mrd-s4)",
               flexWrap: "wrap",
               alignItems: "flex-end",
             }}
           >
-            <Field label="Token name">
+            {/* Meridian's `Field` renders its label as a SIBLING bound by
+                `htmlFor`, where the retired one wrapped the control, so both ids
+                are real and minted here. The `aria-label`s stay: an existing one
+                still wins the accessible name, and dropping it would change what
+                a screen reader says while porting the paint. */}
+            <Field label="Token name" htmlFor="mcp-token-name">
               <Input
+                id="mcp-token-name"
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
                 placeholder="e.g. claude-desktop, cursor, my-agent"
@@ -191,8 +213,9 @@ export function IntegrationsTab() {
                 style={{ minWidth: 260 }}
               />
             </Field>
-            <Field label="Calls per minute">
+            <Field label="Calls per minute" htmlFor="mcp-rate-limit">
               <Input
+                id="mcp-rate-limit"
                 type="number"
                 min={1}
                 max={1000}
@@ -203,46 +226,55 @@ export function IntegrationsTab() {
               />
             </Field>
             <Actions>
-              <Button type="submit" variant="primary" disabled={!slug.trim() || issue.isPending}>
+              <Action type="submit" variant="primary" disabled={!slug.trim() || issue.isPending}>
                 {issue.isPending ? "Issuing" : "Issue token"}
-              </Button>
+              </Action>
             </Actions>
           </div>
         </form>
 
         {freshToken ? (
-          // Ember, and this is the one place on the surface that earns it: the
-          // secret exists for as long as this element does, and it is asking
-          // the human to act right now. Border only, never a fill.
+          // `--mrd-you`, orchid, and this is the one place on the surface that
+          // earns it: the secret exists for as long as this element does, and it
+          // is asking the human to act right now. Border only, never a fill.
           <div
             style={{
-              marginTop: "var(--sp-space-4)",
-              padding: "var(--sp-space-4)",
-              borderRadius: "var(--sp-radius-panel)",
-              border: "1px solid var(--sp-gate)",
+              marginTop: "var(--mrd-s5)",
+              padding: "var(--mrd-s5)",
+              borderRadius: "var(--mrd-r-card)",
+              border: "1px solid var(--mrd-you)",
             }}
           >
             <div
               style={{
-                fontSize: "var(--sp-text-prose)",
-                fontWeight: "var(--sp-weight-strong)",
-                color: "var(--sp-ink)",
+                // 13.5px had no stop on Meridian's ramp, which steps 13px then
+                // 14px. Taking the larger: the ratchet forbids shrinking type to
+                // answer a port, and this is the one sentence on the surface that
+                // has to be read before the secret disappears.
+                fontSize: "var(--mrd-t-body)",
+                fontWeight: "var(--mrd-w-semi)",
+                color: "var(--mrd-ink)",
               }}
             >
               Copy it now. It is not shown again.
             </div>
-            <Pre>{freshToken}</Pre>
+            {/* Meridian's `Pre` sets no outer margin, where `.sp-pre` baked in a
+                12px `margin-top`. The ramp has no 12, so this states 16px rather
+                than 10px, for the same reason as the type above. */}
+            <div className="mt-mrd-5">
+              <Pre>{freshToken}</Pre>
+            </div>
             <Actions>
               <CopyButton text={freshToken} label="Copy token" />
-              <Button variant="ghost" onClick={() => setFreshToken(null)}>
+              <Action variant="quiet" onClick={() => setFreshToken(null)}>
                 Done
-              </Button>
+              </Action>
             </Actions>
           </div>
         ) : null}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title="Active tokens"
         sub={
           tokensQ.isSuccess
@@ -251,13 +283,13 @@ export function IntegrationsTab() {
         }
       >
         {tokensQ.isLoading ? (
-          <Loading>Reading the issued tokens.</Loading>
+          <Reading>Reading the issued tokens.</Reading>
         ) : tokensQ.error ? (
-          <Failed onRetry={() => void tokensQ.refetch()}>
+          <ReadFailedLine onRetry={() => void tokensQ.refetch()}>
             The token list did not load. {(tokensQ.error as Error).message}
-          </Failed>
+          </ReadFailedLine>
         ) : tokens.length === 0 ? (
-          <Empty>No tokens yet. Issue one above to connect an external agent.</Empty>
+          <NothingYet>No tokens yet. Issue one above to connect an external agent.</NothingYet>
         ) : (
           tokens.map((t) => {
             const revoked = !!t.revoked_at;
@@ -273,22 +305,22 @@ export function IntegrationsTab() {
                 }
               >
                 {!revoked ? (
-                  <Button
-                    variant="ghost"
+                  <Action
+                    variant="quiet"
                     aria-label={`Revoke ${t.slug}`}
                     disabled={revoke.isPending && revoke.variables === t.id}
                     onClick={() => onRevoke(t)}
                   >
                     Revoke
-                  </Button>
+                  </Action>
                 ) : null}
               </Line>
             );
           })
         )}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title="How to connect"
         sub="It speaks the native MCP handshake (initialize, tools/list, tools/call) over JSON-RPC 2.0, so a standards client connects with a pasted bearer header."
       >
@@ -302,10 +334,12 @@ export function IntegrationsTab() {
         <Actions>
           <CopyButton text={curl} label="Copy curl" />
         </Actions>
-        <Pre>{curl}</Pre>
-      </Block>
+        <div className="mt-mrd-5">
+          <Pre>{curl}</Pre>
+        </div>
+      </Region>
 
-      <Block
+      <Region
         title="What a token can call"
         sub="Read access, plus appending a decision that still waits for your approval."
       >
@@ -313,7 +347,7 @@ export function IntegrationsTab() {
         {MCP_METHODS.map((m) => (
           <Line key={m.name} label={<Num>{m.name}</Num>} sub={m.desc} />
         ))}
-      </Block>
+      </Region>
     </>
   );
 }

@@ -1,6 +1,14 @@
 import * as React from "react";
 import { Line } from "@/components/meridian/rows";
-import { Num } from "@/components/meridian/surface-parts";
+import {
+  Num,
+  Action,
+  NothingYet,
+  Picker,
+  ReadFailedLine,
+  Reading,
+} from "@/components/meridian/surface-parts";
+import { Receipt } from "@/components/meridian/Receipt";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -14,7 +22,6 @@ import {
 } from "@/lib/workspaces.functions";
 import { GOVERNED_WRITES, canWriteGoverned, type Role } from "@/lib/roles.functions";
 import { toast } from "@/lib/notify";
-import { Button, Empty, Failed, Loading, Receipt, Select } from "@/components/shell/primitives";
 
 // Members: the calm-front view of who is in the workspace (WM-F4 + RBAC). Identity (name/email)
 // comes from the membership-gated workspace_members_with_identity RPC, because profiles RLS is
@@ -250,13 +257,13 @@ export function MembersCard() {
       {policy ? <div className="sp-block-sub">{policy}</div> : null}
 
       {membersQ.isLoading ? (
-        <Loading>Reading who is in this workspace.</Loading>
+        <Reading>Reading who is in this workspace.</Reading>
       ) : membersQ.isError ? (
-        <Failed onRetry={() => void membersQ.refetch()}>
+        <ReadFailedLine onRetry={() => void membersQ.refetch()}>
           The member list did not load. {(membersQ.error as Error)?.message ?? "The read failed."}
-        </Failed>
+        </ReadFailedLine>
       ) : members.length === 0 ? (
-        <Empty>Nobody is in this workspace yet. Invite someone below.</Empty>
+        <NothingYet>Nobody is in this workspace yet. Invite someone below.</NothingYet>
       ) : (
         members.map((m) => {
           const name = memberName(m);
@@ -286,28 +293,28 @@ export function MembersCard() {
             <Line key={m.userId} label={m.isSelf ? `${name} (you)` : name} sub={sub}>
               {confirming ? (
                 <>
-                  <span style={{ color: "var(--sp-mute)", fontSize: "var(--sp-text-meta)" }}>
+                  <span style={{ color: "var(--mrd-mute)", fontSize: "var(--mrd-t-base)" }}>
                     Make {name} the owner? You become an admin.
                   </span>
-                  <Button
+                  <Action
                     variant="primary"
                     disabled={transfer.isPending}
                     onClick={() => transfer.mutate({ userId: m.userId, name })}
                   >
                     {transfer.isPending ? "Transferring" : "Confirm"}
-                  </Button>
-                  <Button
-                    variant="ghost"
+                  </Action>
+                  <Action
+                    variant="quiet"
                     disabled={transfer.isPending}
                     onClick={() => setConfirmTransfer(null)}
                   >
                     Cancel
-                  </Button>
+                  </Action>
                 </>
               ) : (
                 <>
                   {manageable ? (
-                    <Select
+                    <Picker
                       value={m.role}
                       disabled={changeRole.isPending}
                       onChange={(e) =>
@@ -323,23 +330,23 @@ export function MembersCard() {
                       <option value="admin">Admin</option>
                       <option value="member">Member</option>
                       <option value="viewer">Viewer</option>
-                    </Select>
+                    </Picker>
                   ) : (
-                    <span style={{ color: "var(--sp-mute)", fontSize: "var(--sp-text-meta)" }}>
+                    <span style={{ color: "var(--mrd-mute)", fontSize: "var(--mrd-t-base)" }}>
                       {ROLE_LABEL[m.role] ?? m.role}
                     </span>
                   )}
                   {manageable ? (
                     <>
-                      <Button
-                        variant="ghost"
+                      <Action
+                        variant="quiet"
                         onClick={() => setConfirmTransfer(m.userId)}
                         aria-label={`Make ${name} the owner`}
                       >
                         Make owner
-                      </Button>
-                      <Button
-                        variant="ghost"
+                      </Action>
+                      <Action
+                        variant="quiet"
                         disabled={remove.isPending}
                         aria-label={`Remove ${name}`}
                         onClick={() => {
@@ -351,7 +358,7 @@ export function MembersCard() {
                         }}
                       >
                         Remove
-                      </Button>
+                      </Action>
                     </>
                   ) : null}
                 </>

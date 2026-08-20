@@ -1,6 +1,22 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  Cell,
+  CONTROL_SHAPE,
+  Grid,
+  NothingHere,
+  NothingYet,
+  Num,
+  PageHeading,
+  Picker,
+  ReadFailed,
+  ReadFailedLine,
+  Reading,
+  Region,
+} from "@/components/meridian/surface-parts";
+import { Input } from "@/components/meridian/forms";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
@@ -41,7 +57,6 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { ConnectTrustDialog } from "./ConnectTrustDialog";
 import { ProviderMark } from "./provider-marks";
 import { latestIso, relTimeCaps } from "@/components/discover/format";
-import { Block, Button, Cell, Empty, Failed, Grid, Input, Loading, PageHead, Select } from "@/components/shell/primitives";
 
 /**
  * SOURCES. Redesigned 2026-07-29 against the founder's own words: "the
@@ -148,6 +163,26 @@ import { Block, Button, Cell, Empty, Failed, Grid, Input, Loading, PageHead, Sel
  */
 
 const GATEWAY_BASE_URL = "https://connector-gateway.lovable.dev";
+
+/**
+ * AN ADDRESS WEARING A QUIET CONTROL'S FACE. "Open sync" is a NAVIGATION, so
+ * the element stays a router `<Link>` and only the paint comes from Meridian: a
+ * `<button>` that programmatically navigates loses the middle click, the
+ * modifier click and the status bar, and a `<button>` inside an `<a>` is markup
+ * browsers repair unpredictably.
+ *
+ * NOT `run-parts.tsx`'s `LINK_AS_CONTROL`, which is the same idea in the
+ * DEFAULT face. This control was `ghost` here, and the Line beside it carries
+ * the form's own Request button; levelling the two would put the secondary act
+ * at the weight of the primary one. So it is the quiet face, and the missing
+ * piece is a shared quiet variant of that constant in Meridian rather than a
+ * second face invented here.
+ *
+ * `hover:` and NOT `enabled:hover:`, which is the trap both `CONTROL_SHAPE` and
+ * `LINK_AS_CONTROL` record: `:enabled` matches form controls only, so an anchor
+ * wearing the prefixed utilities would have no hover state at all.
+ */
+const LINK_AS_QUIET_CONTROL = `${CONTROL_SHAPE} text-mrd-mute hover:bg-mrd-hover hover:text-mrd-body`;
 
 // Registry providers backed by the multi-account suite-connections layer
 // (stored in user_calendar_connections, native OAuth - not the single-
@@ -581,7 +616,12 @@ export function AccountConnectionsSection({
     // walks it: the binding, then whose account carries it.
     const parts: ReactNode[] = [];
     if (broken) {
-      parts.push(<span className="sp-fail">It stopped authorising. Reconnect it.</span>);
+      /* A COLOUR-ONLY SPAN AND NOT `Value`, and the reason is the type stop
+         rather than the tone. `Value` fixes 12.5px; this fragment sits inside a
+         Row's 13px `sub` and `.sp-fail` set colour alone, so wearing `Value`
+         here would take half a pixel off a sentence a port is not allowed to
+         shrink. Same call at the four other fail fragments below. */
+      parts.push(<span className="text-mrd-fail">It stopped authorising. Reconnect it.</span>);
     } else if (status === "active") {
       parts.push(<>Reading on a workspace credential an admin set</>);
     } else if (count > 1) {
@@ -604,7 +644,7 @@ export function AccountConnectionsSection({
           {b.connection_status === "connected" ? null : (
             <>
               {" "}
-              <span className="sp-fail">not reading</span>
+              <span className="text-mrd-fail">not reading</span>
             </>
           )}
         </>,
@@ -642,39 +682,48 @@ export function AccountConnectionsSection({
           </span>
         ))}
         action={
-          <Button variant="ghost" onClick={() => onOpenDetail(e.id)}>
+          <Action variant="quiet" onClick={() => onOpenDetail(e.id)}>
             Manage
-          </Button>
+          </Action>
         }
       />
     );
   };
 
   return (
-    <div id="connections">
-      <PageHead title="Connectors" sub={headSub} />
+    /* THE SURFACE STATES ITS OWN RHYTHM, ONCE. `.sp-block` carried 36px of
+       margin, 28px of padding and a hairline per region; primitives.css records
+       the founder's ruling that Meridian's `Region` draws none of that on
+       purpose, that no section divider comes back, and that the caller states
+       the gap. `gap-mrd-7` is 40px, which is what every ported station already
+       says, so this pane does not invent a distance of its own. */
+    <div id="connections" className="flex flex-col gap-mrd-7">
+      <PageHeading title="Connectors" sub={headSub} />
 
-      <Block
+      <Region
         title="What the crew reads"
         sub="Each line says which account carries the connector and what it is pointed at in this workspace."
       >
+        {/* THE BARE HALVES, because this region already draws the container: a
+            failed read is one sentence with a way out, not a second box inside
+            the first. */}
         {failed ? (
-          <Failed onRetry={() => void list.refetch()}>
+          <ReadFailedLine onRetry={() => void list.refetch()}>
             Your connectors did not load. {(list.error as Error)?.message ?? "The read failed."}
-          </Failed>
+          </ReadFailedLine>
         ) : loading ? (
-          <Loading>Reading your connectors.</Loading>
+          <Reading>Reading your connectors.</Reading>
         ) : readingSorted.length === 0 ? (
-          <Empty>
+          <NothingYet>
             Nothing connected. The crew reads only what you connect, so every mission currently runs
             on what you type into it.
-          </Empty>
+          </NothingYet>
         ) : (
           readingSorted.map(readingLine)
         )}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title="Add a connector"
         sub={
           failed || loading
@@ -684,15 +733,13 @@ export function AccountConnectionsSection({
               : `${connectableCount} you can connect now.`
         }
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "var(--sp-space-2)",
-            flexWrap: "wrap",
-            marginBottom: "var(--sp-space-3)",
-          }}
-        >
+        {/* Meridian's ramp grows rather than stepping by four, so neither of the
+            two retired figures has an exact stop: 8px of gutter lands between
+            `--mrd-s3` (6px) and `--mrd-s4` (10px), and 12px of air below lands
+            between `--mrd-s4` and `--mrd-s5` (16px). Both take the LARGER stop,
+            because the ratchet's floor is today's design and a port may not pay
+            for tidiness with density. */}
+        <div className="mb-mrd-5 flex flex-wrap items-center gap-mrd-4">
           <Input
             value={query}
             onChange={(ev) => setQuery(ev.target.value)}
@@ -702,7 +749,7 @@ export function AccountConnectionsSection({
           />
           {/* The ten category headings, and their 32px of air apiece, said as
               one control. Same information, none of the height. */}
-          <Select
+          <Picker
             value={category}
             aria-label="Filter by category"
             onChange={(ev) => setCategory(ev.target.value as ConnectorCategory | "all")}
@@ -714,17 +761,19 @@ export function AccountConnectionsSection({
                 {g.label}
               </option>
             ))}
-          </Select>
+          </Picker>
         </div>
 
         {failed ? (
-          <Empty>The catalog needs the connectors read above. Retry it and this fills in.</Empty>
+          <NothingYet>
+            The catalog needs the connectors read above. Retry it and this fills in.
+          </NothingYet>
         ) : loading ? (
-          <Loading>Reading the catalog.</Loading>
+          <Reading>Reading the catalog.</Reading>
         ) : filteredCatalog.length === 0 ? (
-          <Empty action={<Button onClick={clearFilters}>Clear the filter</Button>}>
+          <NothingYet action={<Action onClick={clearFilters}>Clear the filter</Action>}>
             {q ? `Nothing matches ${query.trim()}.` : "Nothing left to connect in that kind."}
-          </Empty>
+          </NothingYet>
         ) : (
           <Grid>
             {filteredCatalog.map((a) => {
@@ -749,7 +798,7 @@ export function AccountConnectionsSection({
             })}
           </Grid>
         )}
-      </Block>
+      </Region>
 
       {/* The two things that are not a source: where sources bind, and the one
           you wish we carried. */}
@@ -764,7 +813,7 @@ export function AccountConnectionsSection({
           label="Point a connector at something else"
           sub="Which repo, team, channel or database each one reads, and any two-sided edit waiting to be settled."
         >
-          <Link to="/sync" className="sp-btn" data-variant="ghost">
+          <Link to="/sync" className={LINK_AS_QUIET_CONTROL}>
             Open sync
           </Link>
         </Line>
@@ -777,9 +826,9 @@ export function AccountConnectionsSection({
             aria-label="Source you want"
             style={{ width: 180 }}
           />
-          <Button type="submit" disabled={!wanted.trim() || request.isPending}>
+          <Action type="submit" disabled={!wanted.trim() || request.isPending}>
             Request
-          </Button>
+          </Action>
         </Line>
       </form>
 
@@ -893,21 +942,27 @@ export function ConnectorDetail({
   // must not change when the loading render gives way to the loaded one).
   const [showTrust, setShowTrust] = useState(false);
 
+  /* `mb-mrd-5` is 16px where this was 12px, for the reason the catalog's filter
+     row records: the ramp has no 12px stop and a port takes the larger one. The
+     way back keeps its own margin rather than joining the 40px column below,
+     because it belongs to the title it sits above, not to the regions. */
   const back = (
-    <div style={{ marginBottom: "var(--sp-space-3)" }}>
-      <Button variant="ghost" onClick={onBack}>
+    <div className="mb-mrd-5">
+      <Action variant="quiet" onClick={onBack}>
         All connectors
-      </Button>
+      </Action>
     </div>
   );
 
   // The route validates ?connector= against the registry; this guards a
   // hand-edited URL that slips a non-user-facing provider through.
   if (!spec || spec.userFacing === false) {
+    /* THE BOXED HALF, because there is no region here to sit inside: this branch
+       IS the whole drill, so the container has to come from the state itself. */
     return (
-      <Empty action={<Button onClick={onBack}>All connectors</Button>}>
+      <NothingHere action={<Action onClick={onBack}>All connectors</Action>}>
         No connector by that name.
-      </Empty>
+      </NothingHere>
     );
   }
 
@@ -915,7 +970,7 @@ export function ConnectorDetail({
   // the mark earns its brand hue here as it does in the catalogue. Sized to the
   // title beside it, inline, no tile (ban 8).
   const titled = (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: "var(--sp-space-2)" }}>
+    <span className="inline-flex items-center gap-mrd-4">
       <ProviderMark provider={provider} tone="brand" size={20} />
       {spec.label}
     </span>
@@ -925,7 +980,7 @@ export function ConnectorDetail({
     return (
       <>
         {back}
-        <Loading>Reading {spec.label}.</Loading>
+        <Reading>Reading {spec.label}.</Reading>
       </>
     );
   }
@@ -937,16 +992,24 @@ export function ConnectorDetail({
     return (
       <>
         {back}
-        <PageHead title={titled} />
-        <Failed
-          onRetry={() => {
-            void list.refetch();
-            void bindingsQ.refetch();
-            if (isSuite) void suite.refetch();
-          }}
-        >
-          {spec.label} did not load. {err?.message ?? "The read failed."}
-        </Failed>
+        <div className="flex flex-col gap-mrd-7">
+          <PageHeading title={titled} />
+          {/* THE BOXED HALF AGAIN, and the two strings are split across the slots
+              rather than rewritten: `children` carries the sentence this surface
+              already said and `detail` carries the reason, so the words a reader
+              sees are the same words, and the default detail ("Nothing has been
+              changed...") never appears where nobody wrote it. */}
+          <ReadFailed
+            onRetry={() => {
+              void list.refetch();
+              void bindingsQ.refetch();
+              if (isSuite) void suite.refetch();
+            }}
+            detail={err?.message ?? "The read failed."}
+          >
+            {spec.label} did not load.
+          </ReadFailed>
+        </div>
       </>
     );
   }
@@ -978,30 +1041,32 @@ export function ConnectorDetail({
     return (
       <>
         {back}
-        <PageHead title={titled} sub={spec.description} />
-        <Line
-          label="Active through a workspace credential"
-          // Active means the secret is set. Whether it still authenticates is a
-          // different fact, and it is the one the button answers.
-          sub={
-            envCheck ? (
-              envCheck.ok ? (
-                "It still authenticates."
+        <div className="flex flex-col gap-mrd-7">
+          <PageHeading title={titled} sub={spec.description} />
+          <Line
+            label="Active through a workspace credential"
+            // Active means the secret is set. Whether it still authenticates is a
+            // different fact, and it is the one the button answers.
+            sub={
+              envCheck ? (
+                envCheck.ok ? (
+                  "It still authenticates."
+                ) : (
+                  <>
+                    <span className="text-mrd-fail">It did not authenticate.</span>{" "}
+                    {envCheck.detail ?? "No reason given."} An admin has to rotate the secret.
+                  </>
+                )
               ) : (
-                <>
-                  <span className="sp-fail">It did not authenticate.</span>{" "}
-                  {envCheck.detail ?? "No reason given."} An admin has to rotate the secret.
-                </>
+                "Set by an admin, so there is nothing here for you to connect."
               )
-            ) : (
-              "Set by an admin, so there is nothing here for you to connect."
-            )
-          }
-        >
-          <Button disabled={mVerifyEnv.isPending} onClick={() => mVerifyEnv.mutate()}>
-            {mVerifyEnv.isPending ? "Testing" : "Test it"}
-          </Button>
-        </Line>
+            }
+          >
+            <Action disabled={mVerifyEnv.isPending} onClick={() => mVerifyEnv.mutate()}>
+              {mVerifyEnv.isPending ? "Testing" : "Test it"}
+            </Action>
+          </Line>
+        </div>
       </>
     );
   }
@@ -1012,8 +1077,10 @@ export function ConnectorDetail({
     return (
       <>
         {back}
-        <PageHead title={titled} sub={spec.description} />
-        <Empty>Not available yet. {hint}</Empty>
+        <div className="flex flex-col gap-mrd-7">
+          <PageHeading title={titled} sub={spec.description} />
+          <NothingHere>Not available yet. {hint}</NothingHere>
+        </div>
       </>
     );
   }
@@ -1023,15 +1090,17 @@ export function ConnectorDetail({
     return (
       <>
         {back}
-        <PageHead
-          title={titled}
-          sub={`${spec.description} Connect it once and what it syncs starts feeding the shared brain.`}
-        />
-        <Actions>
-          <Button variant="primary" disabled={busy} onClick={() => setShowTrust(true)}>
-            Connect {spec.label}
-          </Button>
-        </Actions>
+        <div className="flex flex-col gap-mrd-7">
+          <PageHeading
+            title={titled}
+            sub={`${spec.description} Connect it once and what it syncs starts feeding the shared brain.`}
+          />
+          <Actions>
+            <Action variant="primary" disabled={busy} onClick={() => setShowTrust(true)}>
+              Connect {spec.label}
+            </Action>
+          </Actions>
+        </div>
         <ConnectTrustDialog
           provider={provider}
           label={spec.label}
@@ -1071,164 +1140,176 @@ export function ConnectorDetail({
   return (
     <>
       {back}
-      <PageHead
-        title={titled}
-        // The three stat cards, said as one sentence. Numbers in mono.
-        sub={
-          <>
-            {since ? (
-              <>
-                Since <Num>{since}</Num>
-                {" · "}
-              </>
-            ) : null}
-            <Num>{accountCount}</Num> {accountCount === 1 ? "account" : "accounts"}
-            {lastIso ? (
-              <>
-                {" · "}
-                {isSuite ? "synced" : "verified"} <Num>{shortDate(lastIso)}</Num>
-              </>
-            ) : null}
-            {broken ? (
-              <>
-                {" · "}
-                <span className="sp-fail">{primary.status}</span>
-              </>
-            ) : null}
-          </>
-        }
-      />
+      <div className="flex flex-col gap-mrd-7">
+        <PageHeading
+          title={titled}
+          // The three stat cards, said as one sentence. Numbers in mono.
+          sub={
+            <>
+              {since ? (
+                <>
+                  Since <Num>{since}</Num>
+                  {" · "}
+                </>
+              ) : null}
+              <Num>{accountCount}</Num> {accountCount === 1 ? "account" : "accounts"}
+              {lastIso ? (
+                <>
+                  {" · "}
+                  {isSuite ? "synced" : "verified"} <Num>{shortDate(lastIso)}</Num>
+                </>
+              ) : null}
+              {broken ? (
+                <>
+                  {" · "}
+                  <span className="text-mrd-fail">{primary.status}</span>
+                </>
+              ) : null}
+            </>
+          }
+        />
 
-      {isSuite ? (
-        <Actions
-          trailing={
-            calAccounts.length > 0 ? (
-              <Button
-                variant="ghost"
+        {isSuite ? (
+          <Actions
+            trailing={
+              calAccounts.length > 0 ? (
+                <Action
+                  variant="quiet"
+                  disabled={busy || manageBusy}
+                  onClick={async () => {
+                    const ok = await confirm({
+                      title: `Disconnect this ${suiteSpec?.product === "mail" ? "mailbox" : "calendar"}?`,
+                      body:
+                        suiteSpec?.product === "mail"
+                          ? "Stored signals stay but no further messages will be pulled in."
+                          : "Stored events stay but no further sync will happen.",
+                      confirmLabel: "Disconnect",
+                      destructive: true,
+                    });
+                    if (ok) mSuiteDisconnect.mutate(calAccounts[0]!.id);
+                  }}
+                >
+                  Disconnect
+                </Action>
+              ) : null
+            }
+          >
+            <Action disabled={busy} onClick={() => setShowTrust(true)}>
+              Connect another account
+            </Action>
+          </Actions>
+        ) : (
+          // Remove destroys the connection and every binding on it, so it sits
+          // apart by DISTANCE rather than by colour: red carries outcomes here,
+          // not intent.
+          <Actions
+            trailing={
+              <Action
+                variant="quiet"
                 disabled={busy || manageBusy}
                 onClick={async () => {
                   const ok = await confirm({
-                    title: `Disconnect this ${suiteSpec?.product === "mail" ? "mailbox" : "calendar"}?`,
-                    body:
-                      suiteSpec?.product === "mail"
-                        ? "Stored signals stay but no further messages will be pulled in."
-                        : "Stored events stay but no further sync will happen.",
-                    confirmLabel: "Disconnect",
+                    title: "Remove this connection?",
+                    body: "Deletes the connection and every workspace binding that uses it. This cannot be undone.",
+                    confirmLabel: "Remove",
                     destructive: true,
                   });
-                  if (ok) mSuiteDisconnect.mutate(calAccounts[0]!.id);
+                  if (ok) mDelete.mutate(primary.id);
                 }}
               >
-                Disconnect
-              </Button>
-            ) : null
-          }
-        >
-          <Button disabled={busy} onClick={() => setShowTrust(true)}>
-            Connect another account
-          </Button>
-        </Actions>
-      ) : (
-        // Remove destroys the connection and every binding on it, so it sits
-        // apart by DISTANCE rather than by colour: red carries outcomes here,
-        // not intent.
-        <Actions
-          trailing={
-            <Button
-              variant="ghost"
+                Remove
+              </Action>
+            }
+          >
+            <Action disabled={busy} onClick={() => mVerify.mutate(primary.id)}>
+              Verify
+            </Action>
+            <Action
               disabled={busy || manageBusy}
               onClick={async () => {
                 const ok = await confirm({
-                  title: "Remove this connection?",
-                  body: "Deletes the connection and every workspace binding that uses it. This cannot be undone.",
-                  confirmLabel: "Remove",
+                  title: "Disconnect this account?",
+                  body: "The stored credential is deleted. Workspace bindings stay visible but stop working until you reconnect.",
+                  confirmLabel: "Disconnect",
                   destructive: true,
                 });
-                if (ok) mDelete.mutate(primary.id);
+                if (ok) mDisconnect.mutate(primary.id);
               }}
             >
-              Remove
-            </Button>
-          }
-        >
-          <Button disabled={busy} onClick={() => mVerify.mutate(primary.id)}>
-            Verify
-          </Button>
-          <Button
-            disabled={busy || manageBusy}
-            onClick={async () => {
-              const ok = await confirm({
-                title: "Disconnect this account?",
-                body: "The stored credential is deleted. Workspace bindings stay visible but stop working until you reconnect.",
-                confirmLabel: "Disconnect",
-                destructive: true,
-              });
-              if (ok) mDisconnect.mutate(primary.id);
-            }}
-          >
-            Disconnect
-          </Button>
-        </Actions>
-      )}
+              Disconnect
+            </Action>
+          </Actions>
+        )}
 
-      <Block title="What it feeds">
-        {provBindings.length === 0 ? (
-          <Empty>Nothing bound yet. Bind repos, projects or pages under workspace sync.</Empty>
-        ) : (
-          provBindings.map((b) => (
-            <Row
-              key={b.id}
-              tight
-              lead={b.resource_label ?? b.resource_id}
-              sub={
-                <>
-                  {/* The registry's own word for this resource ("Repository",
+        <Region title="What it feeds">
+          {provBindings.length === 0 ? (
+            <NothingYet>
+              Nothing bound yet. Bind repos, projects or pages under workspace sync.
+            </NothingYet>
+          ) : (
+            provBindings.map((b) => (
+              <Row
+                key={b.id}
+                tight
+                lead={b.resource_label ?? b.resource_id}
+                sub={
+                  <>
+                    {/* The registry's own word for this resource ("Repository",
                     "Stakeholder digest channel"), never the stored key. A kind
                     the registry does not carry falls through rather than
                     printing nothing. */}
-                  {spec.resourceTypes.find((rt) => rt.kind === b.resource_kind)?.label ??
-                    b.resource_kind}
-                  {b.owner_display ? <> · bound by {b.owner_display}</> : null}
-                  {b.connection_status === "connected" ? null : (
-                    <>
-                      {" · "}
-                      <span className="sp-fail">not reading</span>
-                    </>
-                  )}
-                </>
-              }
-            />
-          ))
-        )}
-      </Block>
-
-      <Block title="Accounts">
-        {isSuite
-          ? calAccounts.map((c) => (
-              <Row
-                key={c.id}
-                tight
-                lead={c.account_email ?? c.display_name ?? "Connected"}
-                time={c.last_sync_at ? shortDate(c.last_sync_at) : null}
+                    {spec.resourceTypes.find((rt) => rt.kind === b.resource_kind)?.label ??
+                      b.resource_kind}
+                    {b.owner_display ? <> · bound by {b.owner_display}</> : null}
+                    {b.connection_status === "connected" ? null : (
+                      <>
+                        {" · "}
+                        <span className="text-mrd-fail">not reading</span>
+                      </>
+                    )}
+                  </>
+                }
               />
             ))
-          : conns.map((c) => (
-              <Row
-                key={c.id}
-                tight
-                lead={c.account_label ?? c.account_email ?? "Connected"}
-                // Only the exception earns a second line. A row that says
-                // "connected" under a heading that already says so is the
-                // redundancy ban with extra steps.
-                sub={
-                  c.status === "connected" ? null : (
-                    <span className={c.status === "error" ? "sp-fail" : "sp-warn"}>{c.status}</span>
-                  )
-                }
-                time={c.last_verified_at ? shortDate(c.last_verified_at) : null}
-              />
-            ))}
-      </Block>
+          )}
+        </Region>
+
+        <Region title="Accounts">
+          {isSuite
+            ? calAccounts.map((c) => (
+                <Row
+                  key={c.id}
+                  tight
+                  lead={c.account_email ?? c.display_name ?? "Connected"}
+                  time={c.last_sync_at ? shortDate(c.last_sync_at) : null}
+                />
+              ))
+            : conns.map((c) => (
+                <Row
+                  key={c.id}
+                  tight
+                  lead={c.account_label ?? c.account_email ?? "Connected"}
+                  // Only the exception earns a second line. A row that says
+                  // "connected" under a heading that already says so is the
+                  // redundancy ban with extra steps.
+                  /* `sp-warn` WAS A SIXTH STATUS WORD AND MERIDIAN HAS FIVE.
+                     Every non-error status this can hold -- pending, revoked,
+                     expiring -- is the connection waiting on a condition, which
+                     is what amber says here, so it lands on `hold`. Not `you`,
+                     which would be the reflex and would promise a control on
+                     this row that moves it. */
+                  sub={
+                    c.status === "connected" ? null : (
+                      <span className={c.status === "error" ? "text-mrd-fail" : "text-mrd-hold"}>
+                        {c.status}
+                      </span>
+                    )
+                  }
+                  time={c.last_verified_at ? shortDate(c.last_verified_at) : null}
+                />
+              ))}
+        </Region>
+      </div>
 
       <ConnectTrustDialog
         provider={provider}

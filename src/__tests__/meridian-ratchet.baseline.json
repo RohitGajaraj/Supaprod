@@ -5,8 +5,8 @@
     "It only ever moves DOWN. A file absent from this list must be clean.",
     "Do not hand-edit; do not regenerate to silence a failure."
   ],
-  "totalOccurrences": 4585,
-  "fileCount": 242,
+  "totalOccurrences": 3980,
+  "fileCount": 232,
   "files": {
     "src/components/admin/admin-ui.tsx": {
       "--text-": 2,
@@ -95,10 +95,6 @@
       "--raised": 1,
       "raw-colour": 6
     },
-    "src/components/billing/PlanPicker.tsx": {
-      "--sp-": 27,
-      "class:sp-": 5
-    },
     "src/components/billing/StripeEmbeddedCheckout.tsx": {
       "--hairline": 1,
       "import:components/ui": 1,
@@ -124,12 +120,6 @@
     "src/components/cockpit/TrustDial.tsx": {
       "import:shell/primitives": 1,
       "usage:shell/primitives": 7
-    },
-    "src/components/connections/AccountConnectionsSection.tsx": {
-      "--sp-": 4,
-      "class:sp-": 8,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 38
     },
     "src/components/connections/BindingPicker.tsx": {
       "--madder": 1,
@@ -549,16 +539,6 @@
       "import:components/obsidian": 1,
       "usage:components/obsidian": 1
     },
-    "src/components/plan/CommitCeremony.tsx": {
-      "--sp-": 22,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 6
-    },
-    "src/components/plan/RoadmapColumns.tsx": {
-      "--sp-": 22,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 12
-    },
     "src/components/plg/PreSignupCTA.tsx": {
       "raw-colour": 4
     },
@@ -592,46 +572,18 @@
       "class:sp-": 1
     },
     "src/components/settings/DataSection.tsx": {
-      "--sp-": 3,
-      "class:sp-": 1,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 15
+      "class:sp-": 1
     },
     "src/components/settings/DiagnosticsSection.tsx": {
-      "--sp-": 2,
-      "class:sp-": 4,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 11
-    },
-    "src/components/settings/IntegrationsTab.tsx": {
-      "--sp-": 8,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 18
+      "class:sp-": 4
     },
     "src/components/settings/MembersCard.tsx": {
-      "--sp-": 4,
-      "class:sp-": 1,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 9
-    },
-    "src/components/settings/NotificationsSection.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 15
-    },
-    "src/components/settings/ProductsTab.tsx": {
-      "--sp-": 1,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 13
+      "class:sp-": 1
     },
     "src/components/settings/RedeemCodeCard.tsx": {
       "import:components/ui": 2,
       "usage:components/ui": 2,
       "raw-colour": 1
-    },
-    "src/components/settings/TeamCard.tsx": {
-      "--sp-": 1,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 13
     },
     "src/components/shell/agent-glyphs.tsx": {
       "--sp-": 8
@@ -826,11 +778,6 @@
       "import:shell/primitives": 1,
       "usage:shell/primitives": 10
     },
-    "src/routes/_authenticated.admin.platform.tsx": {
-      "--sp-": 1,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 34
-    },
     "src/routes/_authenticated.admin.proof.tsx": {
       "import:shell/primitives": 1,
       "usage:shell/primitives": 6
@@ -849,11 +796,6 @@
       "class:sp-": 9,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 98
-    },
-    "src/routes/_authenticated.sync.tsx": {
-      "class:sp-": 2,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 29
     },
     "src/routes/_authenticated.today.tsx": {
       "import:shell/primitives": 1,
@@ -993,21 +935,21 @@
       "raw-colour": 8
     },
     "src/styles.css": {
-      "--ds-": 520,
-      "--text-": 57,
-      "--hairline": 51,
-      "--madder": 6,
-      "--glacier": 19,
-      "--font-pixel": 7,
-      "--raised": 11,
+      "--ds-": 518,
+      "--text-": 49,
+      "--hairline": 46,
+      "--madder": 4,
+      "--glacier": 15,
+      "--font-pixel": 5,
+      "--raised": 9,
       "data-obsidian": 38,
-      "raw-colour": 313
+      "raw-colour": 287
     },
     "src/styles/decide.css": {
       "--sp-": 1
     },
     "src/styles/ink.css": {
-      "--sp-": 109,
+      "--sp-": 101,
       "raw-colour": 89
     },
     "src/styles/meridian.css": {
@@ -1015,7 +957,7 @@
       "raw-colour": 8
     },
     "src/styles/primitives.css": {
-      "--sp-": 429,
+      "--sp-": 268,
       "data-obsidian": 3,
       "class:sp-": 8
     },
@@ -1026,7 +968,7 @@
       "raw-colour": 1
     },
     "src/styles/today.css": {
-      "--sp-": 194
+      "--sp-": 144
     }
   }
 }

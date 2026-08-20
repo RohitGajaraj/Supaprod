@@ -81,7 +81,21 @@
  */
 import { useEffect, useState } from "react";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  CONTROL_SHAPE,
+  NothingYet,
+  Num,
+  PageHeading,
+  Pre,
+  ReadFailedLine,
+  Reading,
+  Region,
+} from "@/components/meridian/surface-parts";
+import { Gate } from "@/components/meridian/Gate";
+import { Surface } from "@/components/meridian/Surface";
+import { LINK_AS_CONTROL } from "@/components/runs/run-parts";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -96,7 +110,30 @@ import { getIngestToken, rotateIngestToken, revokeIngestToken } from "@/lib/inge
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { latestIso, relTimeCaps } from "@/components/discover/format";
-import { Block, Button, Empty, Failed, Gate, Loading, PageHead, Pre, Surface } from "@/components/shell/primitives";
+
+/**
+ * AN ADDRESS WEARING A QUIET CONTROL'S FACE, and the second copy of this string
+ * in the product rather than the first.
+ *
+ * "Read both first" is an OUTBOUND address, so the element stays an `<a>`: a
+ * `<button>` that opens a window loses the middle click, the modifier click and
+ * the status bar, and `Action` renders `<button type="button">`, so adopting it
+ * would drop `href`, `target` and `rel` and turn a real document link into a
+ * dead box.
+ *
+ * `hover:` and NOT `enabled:hover:`, which is the trap `CONTROL_SHAPE` records
+ * for `active:`: `:enabled` matches form controls only, so an anchor wearing the
+ * prefixed utilities would have no hover state at all. That is why this cannot
+ * simply borrow `Action`'s `quiet` face, which is written with the prefix.
+ *
+ * THE GAP THIS RECORDS. `AccountConnectionsSection.tsx` already declares this
+ * exact string, and its own note says what is missing: a shared QUIET variant of
+ * `run-parts.tsx`'s `LINK_AS_CONTROL`, in Meridian, beside the default one. Two
+ * copies is the point at which that stops being a nice-to-have, and the reason
+ * it is not fixed here is ownership rather than judgement -- `surface-parts.tsx`
+ * belongs to another item.
+ */
+const LINK_AS_QUIET_CONTROL = `${CONTROL_SHAPE} text-mrd-mute hover:bg-mrd-hover hover:text-mrd-body`;
 
 export const Route = createFileRoute("/_authenticated/sync")({
   component: SyncPage,
@@ -109,12 +146,21 @@ export const Route = createFileRoute("/_authenticated/sync")({
       : {},
   errorComponent: ({ error, reset }) => (
     <Surface wide>
-      <PageHead title="Sync did not open." sub={(error as Error)?.message ?? "The read failed."} />
-      <Actions>
-        <Button variant="primary" onClick={reset}>
-          Try again
-        </Button>
-      </Actions>
+      {/* Meridian's `PageHeading` and `Actions` both set no outer margin, on
+          purpose: the column decides how far apart its own parts sit and it
+          decides once, here. `gap-mrd-7` is 40px, the step every ported surface
+          in this product states for exactly this. */}
+      <div className="flex flex-col gap-mrd-7">
+        <PageHeading
+          title="Sync did not open."
+          sub={(error as Error)?.message ?? "The read failed."}
+        />
+        <Actions>
+          <Action variant="primary" onClick={reset}>
+            Try again
+          </Action>
+        </Actions>
+      </div>
     </Surface>
   ),
 });
@@ -219,175 +265,217 @@ function SyncPage() {
 
   return (
     <Surface wide>
-      <PageHead title="Sync" sub={head} />
+      {/* THE COLUMN OWNS ITS OWN RHYTHM, WHICH IS WHAT CHANGED HERE. The retired
+          `Block` baked a 36px top margin and a hairline into every region, so the
+          space between sections was decided eight times over by the components
+          that happened to be in them. Meridian's `Region` draws neither, so the
+          surface states the gap once: `gap-mrd-7`, 40px, the step Brain, Crew,
+          Decide, Design, Learn, Plan and Ship all took for the same job. */}
+      <div className="flex flex-col gap-mrd-7">
+        <PageHeading title="Sync" sub={head} />
 
-      {/* The decision, first and biggest, because it is the only thing on this
+        {/* The decision, first and biggest, because it is the only thing on this
           surface that is waiting on a person. */}
-      {q.isError ? (
-        <Failed onRetry={() => void q.refetch()}>
-          The sync state did not load. {(q.error as Error)?.message ?? "The read failed."}
-        </Failed>
-      ) : null}
-
-      {followedGone ? <Empty>The conflict you followed here is already resolved.</Empty> : null}
-
-      {conflicts.map((m) => {
-        const twoWay = TWO_WAY.has(m.provider);
-        return (
-          <Gate
-            key={m.id}
-            question={`Which copy of ${m.external_id} wins?`}
-            lines={[
-              <>
-                Both sides changed since the last sync. Supaprod is on version{" "}
-                <Num>{m.version_local}</Num>, {providerLabel(m.provider)} is on version{" "}
-                <Num>{m.version_remote}</Num>.
-              </>,
-            ]}
-          >
-            {/* Neither copy is inherently right, so neither button is primary.
-                The Gate itself is the emphasis. */}
-            <Button
-              disabled={mResolve.isPending}
-              onClick={() => mResolve.mutate({ id: m.id, strategy: "keep_local" })}
-            >
-              Keep the Supaprod copy
-            </Button>
-            <Button
-              disabled={mResolve.isPending}
-              onClick={() => mResolve.mutate({ id: m.id, strategy: "keep_remote" })}
-            >
-              Keep the {providerLabel(m.provider)} copy
-            </Button>
-            {twoWay ? (
-              <>
-                <Button variant="ghost" disabled={isBusy(m.id)} onClick={() => mPush.mutate(m.id)}>
-                  {mPush.isPending && mPush.variables === m.id
-                    ? "Pushing"
-                    : "Push ours and resolve"}
-                </Button>
-                <Button variant="ghost" disabled={isBusy(m.id)} onClick={() => mPull.mutate(m.id)}>
-                  {mPull.isPending && mPull.variables === m.id
-                    ? "Pulling"
-                    : "Pull theirs and resolve"}
-                </Button>
-              </>
-            ) : null}
-            {m.external_url ? (
-              <a
-                className="sp-btn"
-                data-variant="ghost"
-                href={m.external_url}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Read both first
-              </a>
-            ) : null}
-          </Gate>
-        );
-      })}
-
-      <WorkspaceBindingsSection />
-
-      {activeProductId && activeWorkspaceId ? (
-        <ProductBindingsSection
-          projectId={activeProductId}
-          workspaceId={activeWorkspaceId}
-          projectName={activeProduct?.name}
-        />
-      ) : null}
-
-      {/* One door back, and it sits where a person who cannot find their source
-          actually needs it, rather than as a breadcrumb at the top left. */}
-      <Actions>
-        <Link to="/settings" search={{ section: "connections" }} className="sp-btn">
-          Connect another source
-        </Link>
-      </Actions>
-
-      <Block
-        title="Documents in sync"
-        sub={
-          q.isError || q.isLoading
-            ? undefined
-            : synced.length === 0
-              ? undefined
-              : "Each row opens the document in the tool that owns it."
-        }
-      >
         {q.isError ? (
-          <Empty>The list needs the read above. Retry it and this fills in.</Empty>
-        ) : q.isLoading ? (
-          <Loading>Reading what is in sync.</Loading>
-        ) : synced.length === 0 ? (
-          <Empty>
-            Nothing synced yet. Point a Notion database or a Google Docs folder at this workspace
-            above and the documents appear here.
-          </Empty>
-        ) : (
-          synced.slice(0, 20).map((m) => {
-            const twoWay = TWO_WAY.has(m.provider);
-            const lastSync = latestIso([m.last_pulled_at, m.last_pushed_at]);
-            const verb =
-              m.last_pushed_at && (!m.last_pulled_at || m.last_pushed_at > m.last_pulled_at)
-                ? "pushed"
-                : "pulled";
-            return (
-              <Row
-                key={m.id}
-                tight
-                // The mark slot on this list was 34px of nothing, and the one
-                // fact it should have carried is which tool owns the document.
-                // Monochrome: the subject of the row is the sync state.
-                marks={<ProviderMark provider={m.provider} />}
-                lead={m.external_id}
-                sub={
-                  <>
-                    {providerLabel(m.provider)}
-                    {" · "}
-                    {lastSync ? (
-                      <>
-                        {verb} <Num>{relTimeCaps(lastSync).toLowerCase()}</Num>
-                      </>
-                    ) : (
-                      "not synced yet"
-                    )}
-                    {twoWay ? null : " · reads only"}
-                  </>
-                }
-                onClick={
-                  m.external_url
-                    ? () => window.open(m.external_url!, "_blank", "noopener,noreferrer")
-                    : undefined
-                }
-                action={
-                  twoWay ? (
-                    <>
-                      <Button
-                        variant="ghost"
-                        disabled={isBusy(m.id)}
-                        onClick={() => mPull.mutate(m.id)}
-                      >
-                        {mPull.isPending && mPull.variables === m.id ? "Pulling" : "Pull"}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        disabled={isBusy(m.id)}
-                        onClick={() => mPush.mutate(m.id)}
-                      >
-                        {mPush.isPending && mPush.variables === m.id ? "Pushing" : "Push"}
-                      </Button>
-                    </>
-                  ) : null
-                }
-              />
-            );
-          })
-        )}
-      </Block>
+          <ReadFailedLine onRetry={() => void q.refetch()}>
+            The sync state did not load. {(q.error as Error)?.message ?? "The read failed."}
+          </ReadFailedLine>
+        ) : null}
 
-      <WebhookIngest />
+        {/* THE BARE HALF OF THE PAIR, and not `NothingHere`. This is one quiet
+          sentence standing in the column with no region around it, and the
+          bordered box is what this surface's own rebuild went out of its way to
+          remove ("KILL - every bento card ... one bordered container per region,
+          maximum"). The retired `Empty` drew no border either, so the bare half
+          is also the faithful port. */}
+        {followedGone ? (
+          <NothingYet>The conflict you followed here is already resolved.</NothingYet>
+        ) : null}
+
+        {conflicts.map((m) => {
+          const twoWay = TWO_WAY.has(m.provider);
+          return (
+            <Gate
+              key={m.id}
+              question={`Which copy of ${m.external_id} wins?`}
+              lines={[
+                <>
+                  Both sides changed since the last sync. Supaprod is on version{" "}
+                  <Num>{m.version_local}</Num>, {providerLabel(m.provider)} is on version{" "}
+                  <Num>{m.version_remote}</Num>.
+                </>,
+              ]}
+            >
+              {/* Neither copy is inherently right, so neither button is primary.
+                The Gate itself is the emphasis. */}
+              <Action
+                disabled={mResolve.isPending}
+                onClick={() => mResolve.mutate({ id: m.id, strategy: "keep_local" })}
+              >
+                Keep the Supaprod copy
+              </Action>
+              <Action
+                disabled={mResolve.isPending}
+                onClick={() => mResolve.mutate({ id: m.id, strategy: "keep_remote" })}
+              >
+                Keep the {providerLabel(m.provider)} copy
+              </Action>
+              {twoWay ? (
+                <>
+                  <Action
+                    variant="quiet"
+                    disabled={isBusy(m.id)}
+                    onClick={() => mPush.mutate(m.id)}
+                  >
+                    {mPush.isPending && mPush.variables === m.id
+                      ? "Pushing"
+                      : "Push ours and resolve"}
+                  </Action>
+                  <Action
+                    variant="quiet"
+                    disabled={isBusy(m.id)}
+                    onClick={() => mPull.mutate(m.id)}
+                  >
+                    {mPull.isPending && mPull.variables === m.id
+                      ? "Pulling"
+                      : "Pull theirs and resolve"}
+                  </Action>
+                </>
+              ) : null}
+              {m.external_url ? (
+                /* THE ONE CONTROL IN THIS GATE THAT LEAVES THE APP, so it stays
+                 an `<a>` and takes only the paint. It never had an `onClick`
+                 and does not get one. `data-mrd` is what carries the Meridian
+                 focus ring; the shell root already grants it by descent, and
+                 it is written here too because every Meridian control root
+                 declares its own, so this one keeps the ring wherever it is
+                 dropped. */
+                <a
+                  data-mrd=""
+                  className={LINK_AS_QUIET_CONTROL}
+                  href={m.external_url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Read both first
+                </a>
+              ) : null}
+            </Gate>
+          );
+        })}
+
+        <WorkspaceBindingsSection />
+
+        {activeProductId && activeWorkspaceId ? (
+          <ProductBindingsSection
+            projectId={activeProductId}
+            workspaceId={activeWorkspaceId}
+            projectName={activeProduct?.name}
+          />
+        ) : null}
+
+        {/* One door back, and it sits where a person who cannot find their source
+          actually needs it, rather than as a breadcrumb at the top left.
+
+          A router `<Link>` renders its own anchor, so this takes the shared face
+          rather than becoming a `<button>` that navigates: a middle click, a
+          modifier click and the status bar all have to keep working. The default
+          face, because that is what it wore, and `runs.index` already points the
+          mirror-image door here with the same constant. */}
+        <Actions>
+          <Link
+            data-mrd=""
+            to="/settings"
+            search={{ section: "connections" }}
+            className={LINK_AS_CONTROL}
+          >
+            Connect another source
+          </Link>
+        </Actions>
+
+        <Region
+          title="Documents in sync"
+          sub={
+            q.isError || q.isLoading
+              ? undefined
+              : synced.length === 0
+                ? undefined
+                : "Each row opens the document in the tool that owns it."
+          }
+        >
+          {q.isError ? (
+            <NothingYet>The list needs the read above. Retry it and this fills in.</NothingYet>
+          ) : q.isLoading ? (
+            <Reading>Reading what is in sync.</Reading>
+          ) : synced.length === 0 ? (
+            <NothingYet>
+              Nothing synced yet. Point a Notion database or a Google Docs folder at this workspace
+              above and the documents appear here.
+            </NothingYet>
+          ) : (
+            synced.slice(0, 20).map((m) => {
+              const twoWay = TWO_WAY.has(m.provider);
+              const lastSync = latestIso([m.last_pulled_at, m.last_pushed_at]);
+              const verb =
+                m.last_pushed_at && (!m.last_pulled_at || m.last_pushed_at > m.last_pulled_at)
+                  ? "pushed"
+                  : "pulled";
+              return (
+                <Row
+                  key={m.id}
+                  tight
+                  // The mark slot on this list was 34px of nothing, and the one
+                  // fact it should have carried is which tool owns the document.
+                  // Monochrome: the subject of the row is the sync state.
+                  marks={<ProviderMark provider={m.provider} />}
+                  lead={m.external_id}
+                  sub={
+                    <>
+                      {providerLabel(m.provider)}
+                      {" · "}
+                      {lastSync ? (
+                        <>
+                          {verb} <Num>{relTimeCaps(lastSync).toLowerCase()}</Num>
+                        </>
+                      ) : (
+                        "not synced yet"
+                      )}
+                      {twoWay ? null : " · reads only"}
+                    </>
+                  }
+                  onClick={
+                    m.external_url
+                      ? () => window.open(m.external_url!, "_blank", "noopener,noreferrer")
+                      : undefined
+                  }
+                  action={
+                    twoWay ? (
+                      <>
+                        <Action
+                          variant="quiet"
+                          disabled={isBusy(m.id)}
+                          onClick={() => mPull.mutate(m.id)}
+                        >
+                          {mPull.isPending && mPull.variables === m.id ? "Pulling" : "Pull"}
+                        </Action>
+                        <Action
+                          variant="quiet"
+                          disabled={isBusy(m.id)}
+                          onClick={() => mPush.mutate(m.id)}
+                        >
+                          {mPush.isPending && mPush.variables === m.id ? "Pushing" : "Push"}
+                        </Action>
+                      </>
+                    ) : null
+                  }
+                />
+              );
+            })
+          )}
+        </Region>
+
+        <WebhookIngest />
+      </div>
     </Surface>
   );
 }
@@ -478,26 +566,32 @@ function WebhookIngest() {
   }
 
   return (
-    <Block
+    /* `toggle` rather than `goTo`, and that is not a rename. This control reveals
+       the curl example in place instead of leaving the region, and `Region` emits
+       `aria-expanded` for a toggle and not for a way out. The retired `more` slot
+       emitted neither, so a reader who could not see the label change was told
+       nothing at all. */
+    <Region
       title="Send anything in"
       sub="Point Zapier, a Slack outgoing webhook, a form or a script at this endpoint. Each request becomes signals in this workspace."
-      more={curlOpen ? "Hide the example" : "Show a curl example"}
-      onMore={() => setCurlOpen((v) => !v)}
+      toggle={curlOpen ? "Hide the example" : "Show a curl example"}
+      toggled={curlOpen}
+      onToggle={() => setCurlOpen((v) => !v)}
     >
       <Line label="Endpoint" sub={<Num>{endpoint || "reading"}</Num>}>
-        <Button disabled={!origin} onClick={() => copy(endpoint, "Endpoint")}>
+        <Action disabled={!origin} onClick={() => copy(endpoint, "Endpoint")}>
           Copy
-        </Button>
+        </Action>
       </Line>
 
       {q.isLoading ? (
-        <Loading>Reading your token.</Loading>
+        <Reading>Reading your token.</Reading>
       ) : q.isError ? (
         // A failed token read must not dress as "no token yet" and offer
         // Generate: that would create a second token nobody asked for.
-        <Failed onRetry={() => void q.refetch()}>
+        <ReadFailedLine onRetry={() => void q.refetch()}>
           The token did not load. {(q.error as Error)?.message ?? "The read failed."}
-        </Failed>
+        </ReadFailedLine>
       ) : token ? (
         <Line
           label="Token"
@@ -509,35 +603,53 @@ function WebhookIngest() {
         >
           {freshToken ? (
             <>
-              <Button variant="ghost" onClick={() => setRevealed((v) => !v)}>
+              <Action variant="quiet" onClick={() => setRevealed((v) => !v)}>
                 {revealed ? "Hide" : "Reveal"}
-              </Button>
-              <Button onClick={() => copy(freshToken, "Token")}>Copy</Button>
+              </Action>
+              <Action onClick={() => copy(freshToken, "Token")}>Copy</Action>
             </>
           ) : null}
-          <Button disabled={mRotate.isPending} onClick={onRotate}>
+          <Action disabled={mRotate.isPending} onClick={onRotate}>
             {mRotate.isPending ? "Rotating" : "Rotate"}
-          </Button>
-          <Button variant="ghost" disabled={mRevoke.isPending} onClick={onRevoke}>
+          </Action>
+          {/* QUIET, AND NOT `destructive`, WHICH IS THE ONE THING THIS PORT
+              DELIBERATELY DID NOT DECIDE. Revoke does remove something, so
+              Meridian's `destructive` face is arguable — but it was `ghost` here,
+              and moving a control onto `--mrd-stop` changes what the colour says
+              on this surface rather than restating what the old one said. What
+              protects it is unchanged and is the part that matters: it sits
+              behind a confirm that names what stops. */}
+          <Action variant="quiet" disabled={mRevoke.isPending} onClick={onRevoke}>
             {mRevoke.isPending ? "Revoking" : "Revoke"}
-          </Button>
+          </Action>
         </Line>
       ) : (
         <Line
           label="Token"
           sub="No token yet, so nothing can post in. The full token is shown once, when it is made."
         >
-          <Button variant="primary" disabled={mRotate.isPending} onClick={() => mRotate.mutate()}>
+          <Action variant="primary" disabled={mRotate.isPending} onClick={() => mRotate.mutate()}>
             {mRotate.isPending ? "Generating" : "Generate a token"}
-          </Button>
+          </Action>
         </Line>
       )}
 
       {token && !freshToken ? (
-        <Empty>The full token is only ever shown once, at the moment it is made.</Empty>
+        <NothingYet>The full token is only ever shown once, at the moment it is made.</NothingYet>
       ) : null}
 
-      {curlOpen ? <Pre>{curlExample}</Pre> : null}
-    </Block>
+      {/* 16px above the example, said here rather than by the box: the retired
+          `.sp-pre` baked a 12px top margin in, and Meridian's `Pre` sets none so
+          the composition owns the space. 12px straddles `--mrd-s4` (10px) and
+          `--mrd-s5` (16px), and the ratchet forbids shrinking as a port answer,
+          so it takes the larger stop. A WRAPPER rather than a class on `Pre`,
+          which takes no `className` — its own header says a caller "writes
+          `mt-mrd-3` where it can be seen", and there is no prop to write it on. */}
+      {curlOpen ? (
+        <div className="mt-mrd-5">
+          <Pre>{curlExample}</Pre>
+        </div>
+      ) : null}
+    </Region>
   );
 }

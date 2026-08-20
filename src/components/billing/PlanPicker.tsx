@@ -28,10 +28,41 @@
  *
  * Nothing here wears ember. This table never contains a genuinely-required
  * action, and ember marks the human.
+ *
+ * ── PORTED TO MERIDIAN 2026-08-20 ───────────────────────────────────────
+ * Every retired `--sp-*` token and every `.sp-*` class is gone. What moved, and
+ * where a figure changed:
+ *
+ *   THE AUDIENCE ROW IS A REAL TABLIST NOW. It was `.sp-tabs` with
+ *       `role="tablist"`, no roving tab stop, no arrow keys and no panel, which
+ *       is the half-built tablist `meridian/Tabs` was written to end. `Tabs`
+ *       plus `TabPanel` gives the keyboard and points `aria-controls` at a panel
+ *       that is actually in the document.
+ *   THE BILLING-PERIOD ROW IS NOT A TABLIST AND NO LONGER CLAIMS TO BE. It
+ *       switches no panel: it rewrites a price inside cards that stay put. Wired
+ *       through `Tabs` it would have had to name a panel id that does not exist,
+ *       which is a broken reference rather than a quiet one. `Choices mode="one"`
+ *       is the house answer for a mode switch with no panel, and it is what the
+ *       spec surface adopted under the same ruling.
+ *   TWO SPACING STOPS GREW, because Meridian's ramp is 2/4/6/10/16/24 and has no
+ *       8 or 12. Card padding-top 20px to 24px, and every 12px gap to 16px: the
+ *       card's own stack, the grid between cards, and the row holding the two
+ *       controls. 8px became 10px in the card header and above "Show less".
+ *   THE PRICE WENT FROM 19px TO 20px and the card radius from 10px to 12px, both
+ *       the nearest Meridian stop upward. Prose leading went 1.55 to 1.625.
+ *   TAB TEXT WENT FROM 13px TO 12.5px, which is the one figure that came DOWN.
+ *       It is `Tabs`'s own stop, shared with every other tab row in the product,
+ *       and matching the system is worth half a pixel.
+ *   `sp-hint` WAS DELETED RATHER THAN REPLACED. It resolved in no stylesheet in
+ *       the repo, so it painted nothing: the credit line has always rendered at
+ *       inherited size. Giving it a Meridian face would be a new design decision
+ *       dressed as a port, so the text is left exactly as it renders today.
  */
 import { useState } from "react";
 import { StripeEmbeddedCheckout } from "@/components/billing/StripeEmbeddedCheckout";
+import { Choices } from "@/components/meridian/forms";
 import { Action, Num } from "@/components/meridian/surface-parts";
+import { TabPanel, Tabs } from "@/components/meridian/Tabs";
 import { toast } from "@/lib/notify";
 import { getStripeEnvironment, paymentsConfigured } from "@/lib/stripe";
 import { priceForCredits, lookupKeyFor } from "@/lib/billing-tier";
@@ -51,15 +82,15 @@ type AudienceTab = "personal" | "teams";
 const CONNECTOR_LABELS = ["GitHub", "Linear", "Notion", "Jira", "Google Docs"] as const;
 
 const META: React.CSSProperties = {
-  fontSize: "var(--sp-text-label)",
-  color: "var(--sp-mute)",
-  lineHeight: "var(--sp-leading-tight)",
+  fontSize: "var(--mrd-t-label)",
+  color: "var(--mrd-mute)",
+  lineHeight: "var(--mrd-lh-snug)",
 };
 
 const BODY: React.CSSProperties = {
-  fontSize: "var(--sp-text-meta)",
-  color: "var(--sp-body)",
-  lineHeight: "var(--sp-leading-body)",
+  fontSize: "var(--mrd-t-base)",
+  color: "var(--mrd-body)",
+  lineHeight: "var(--mrd-lh-prose)",
 };
 
 function ConnectorList({ showWrite = false }: { showWrite?: boolean }) {
@@ -86,37 +117,21 @@ function nextTierFor(tier: PlanTier): PlanTier | null {
   }
 }
 
-/** The system's filter tabs, doing what the pill toggles used to do. */
-function Toggle<T extends string>({
-  label,
-  options,
-  value,
-  onChange,
-  labelOf,
-}: {
-  label: string;
-  options: readonly T[];
-  value: T;
-  onChange: (v: T) => void;
-  labelOf: (v: T) => React.ReactNode;
-}) {
-  return (
-    <div className="sp-tabs" role="tablist" aria-label={label} style={{ marginTop: 0 }}>
-      {options.map((o) => (
-        <button
-          key={o}
-          type="button"
-          role="tab"
-          className="sp-tab"
-          aria-selected={value === o}
-          onClick={() => onChange(o)}
-        >
-          {labelOf(o)}
-        </button>
-      ))}
-    </div>
-  );
-}
+/** The one tab row on this surface, and the id the panel is derived from. */
+const AUDIENCE = "plan-audience";
+
+const AUDIENCE_TABS = [
+  { id: "personal", label: "Personal" },
+  { id: "teams", label: "Teams" },
+] as const satisfies readonly { id: AudienceTab; label: string }[];
+
+type BillingPeriod = "monthly" | "annual";
+
+/** Two named options, one decision, no panel. See the header. */
+const BILLING_OPTIONS = [
+  { id: "monthly", label: "Monthly" },
+  { id: "annual", label: "Annual, two months free" },
+] as const satisfies readonly { id: BillingPeriod; label: string }[];
 
 export function PlanTable({
   currentTier,
@@ -141,73 +156,78 @@ export function PlanTable({
           alignItems: "center",
           justifyContent: "space-between",
           flexWrap: "wrap",
-          gap: "var(--sp-space-3)",
+          gap: "var(--mrd-s5)",
         }}
       >
-        <Toggle
+        {/* No rule under this row, because the billing control shares its line.
+            See the `rule` prop's own note in `meridian/Tabs`. */}
+        <Tabs
+          group={AUDIENCE}
           label="Who the plan is for"
-          options={["personal", "teams"] as const}
-          value={tab}
-          onChange={setTab}
-          labelOf={(t) => (t === "personal" ? "Personal" : "Teams")}
+          tabs={AUDIENCE_TABS}
+          active={tab}
+          onSelect={setTab}
+          rule={false}
         />
-        <Toggle
+        <Choices
+          mode="one"
           label="How often you are billed"
-          options={["monthly", "annual"] as const}
+          options={BILLING_OPTIONS}
           value={annual ? "annual" : "monthly"}
           onChange={(m) => setAnnual(m === "annual")}
-          labelOf={(m) => (m === "monthly" ? "Monthly" : "Annual, two months free")}
         />
       </div>
 
-      {/* What the Personal/Teams split actually means. Founder ruling
-          2026-08-02: Teams is a capability that appears when a team appears,
-          never a checkbox unlocked on the solo user's memory. Said here, once,
-          at metadata weight, so the tab does not read as a paywall. */}
-      <p style={{ ...META, margin: "var(--sp-space-3) 0 0" }}>
-        {tab === "personal"
-          ? "One seat. You are the only author, so nothing in your record is held back for a higher plan, and you can hand any decision to a colleague with a link."
-          : "Two seats minimum. Business is what appears once a second person starts writing decisions too. It is not a lock lifted on what already guides you."}
-      </p>
+      <TabPanel group={AUDIENCE} active={tab}>
+        {/* What the Personal/Teams split actually means. Founder ruling
+            2026-08-02: Teams is a capability that appears when a team appears,
+            never a checkbox unlocked on the solo user's memory. Said here, once,
+            at metadata weight, so the tab does not read as a paywall. */}
+        <p style={{ ...META, margin: 0 }}>
+          {tab === "personal"
+            ? "One seat. You are the only author, so nothing in your record is held back for a higher plan, and you can hand any decision to a colleague with a link."
+            : "Two seats minimum. Business is what appears once a second person starts writing decisions too. It is not a lock lifted on what already guides you."}
+        </p>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(min(300px, 100%), 1fr))",
-          gap: "var(--sp-space-3)",
-          marginTop: "var(--sp-space-4)",
-        }}
-      >
-        {tab === "personal" ? (
-          <>
-            <FreeCard isCurrent={currentTier === "free"} />
-            <PaidTierCard
-              tier="pro"
-              isCurrent={currentTier === "pro" || currentTier === "max"}
-              currentTier={currentTier}
-              canSelect={canSelect}
-              popular={recommended === "pro"}
-              annual={annual}
-            />
-          </>
-        ) : (
-          <>
-            <PaidTierCard
-              tier="team"
-              isCurrent={currentTier === "team"}
-              currentTier={currentTier}
-              canSelect={canSelect}
-              popular={recommended === "team"}
-              annual={annual}
-            />
-            <EnterpriseCard
-              isCurrent={currentTier === "enterprise"}
-              currentTier={currentTier}
-              popular={recommended === "enterprise"}
-            />
-          </>
-        )}
-      </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(300px, 100%), 1fr))",
+            gap: "var(--mrd-s5)",
+            marginTop: "var(--mrd-s5)",
+          }}
+        >
+          {tab === "personal" ? (
+            <>
+              <FreeCard isCurrent={currentTier === "free"} />
+              <PaidTierCard
+                tier="pro"
+                isCurrent={currentTier === "pro" || currentTier === "max"}
+                currentTier={currentTier}
+                canSelect={canSelect}
+                popular={recommended === "pro"}
+                annual={annual}
+              />
+            </>
+          ) : (
+            <>
+              <PaidTierCard
+                tier="team"
+                isCurrent={currentTier === "team"}
+                currentTier={currentTier}
+                canSelect={canSelect}
+                popular={recommended === "team"}
+                annual={annual}
+              />
+              <EnterpriseCard
+                isCurrent={currentTier === "enterprise"}
+                currentTier={currentTier}
+                popular={recommended === "enterprise"}
+              />
+            </>
+          )}
+        </div>
+      </TabPanel>
     </>
   );
 }
@@ -229,11 +249,11 @@ function CardShell({
       style={{
         display: "flex",
         flexDirection: "column",
-        gap: "var(--sp-space-3)",
-        padding: "var(--sp-space-5) var(--sp-space-4) var(--sp-space-4)",
-        borderRadius: "var(--sp-radius-card)",
-        background: "var(--sp-lift)",
-        boxShadow: popular || isCurrent ? "inset 0 0 0 1px var(--sp-ink)" : undefined,
+        gap: "var(--mrd-s5)",
+        padding: "var(--mrd-s6) var(--mrd-s5) var(--mrd-s5)",
+        borderRadius: "var(--mrd-r-card)",
+        background: "var(--mrd-lift)",
+        boxShadow: popular || isCurrent ? "inset 0 0 0 1px var(--mrd-ink)" : undefined,
       }}
     >
       {children}
@@ -261,14 +281,14 @@ function CardHeader({
           display: "flex",
           alignItems: "baseline",
           justifyContent: "space-between",
-          gap: "var(--sp-space-2)",
+          gap: "var(--mrd-s4)",
         }}
       >
         <span
           style={{
-            fontSize: "var(--sp-text-body)",
-            fontWeight: "var(--sp-weight-strong)",
-            color: "var(--sp-ink)",
+            fontSize: "var(--mrd-t-body)",
+            fontWeight: "var(--mrd-w-semi)",
+            color: "var(--mrd-ink)",
           }}
         >
           {name}
@@ -280,7 +300,7 @@ function CardHeader({
         ) : null}
       </div>
       <p style={{ ...META, margin: "3px 0 0" }}>{forWhom}</p>
-      <p style={{ ...BODY, margin: "var(--sp-space-1) 0 0" }}>{tagline}</p>
+      <p style={{ ...BODY, margin: "var(--mrd-s2) 0 0" }}>{tagline}</p>
     </div>
   );
 }
@@ -291,9 +311,9 @@ function Price({ amount, unit }: { amount: React.ReactNode; unit?: string }) {
     <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
       <span
         style={{
-          fontSize: "var(--sp-text-gate)",
-          fontWeight: "var(--sp-weight-strong)",
-          color: "var(--sp-ink)",
+          fontSize: "var(--mrd-t-h3)",
+          fontWeight: "var(--mrd-w-semi)",
+          color: "var(--mrd-ink)",
           lineHeight: 1,
         }}
       >
@@ -332,12 +352,40 @@ function ExpandableBullets({ items }: { items: string[] }) {
         })}
       </ul>
       {hiddenCount > 0 ? (
+        /* MERIDIAN'S `Door` PAINT, WRITTEN OUT RATHER THAN IMPORTED, for the
+           same reason `prds/SpecProse.tsx` writes it out: the component takes
+           no ARIA. This control is a DISCLOSURE, so it has to carry
+           `aria-expanded`, and dropping that would tell a screen reader nothing
+           while the visible label changed under a sighted reader's eyes --
+           exactly the half `Region`'s `toggled` prop exists to stop being lost.
+           The right fix is an `expanded` prop on `Door`, which lives in
+           `surface-parts.tsx` and is another item's file.
+
+           `Region`'s own control face is the other candidate and is wrong here:
+           that face belongs in a HEADING, and `Region` states in as many words
+           that a reveal past a cap gets no prop and belongs to the content. This
+           one sits under the list it reveals, where a reader arrives having
+           actually hit the limit.
+
+           The size is pinned at 13px rather than inherited, which is the one
+           thing `Door` does differently. It matches the bullets it belongs to,
+           and it is what the retired class already rendered. It is set INLINE
+           rather than with `text-mrd-base`, because `text-mrd-body` in the paint
+           above is BOTH a colour and a font size in Meridian -- the colour comes
+           from the theme, the size from an `@utility` of the same name -- so two
+           `text-*` classes on one element would leave the size decided by
+           emission order. An inline declaration cannot lose that race. */
         <button
           type="button"
-          className="sp-block-more"
+          data-mrd=""
+          className="rounded-mrd-xs text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
           onClick={() => setExpanded((e) => !e)}
           aria-expanded={expanded}
-          style={{ marginTop: "var(--sp-space-2)" }}
+          style={{
+            marginTop: "var(--mrd-s4)",
+            fontSize: "var(--mrd-t-base)",
+            transitionDuration: "var(--mrd-d-press)",
+          }}
         >
           {expanded ? "Show less" : `Show ${hiddenCount} more`}
         </button>
@@ -348,7 +396,7 @@ function ExpandableBullets({ items }: { items: string[] }) {
 
 /** A hairline between the commercial half of a card and the feature half. */
 function Divider() {
-  return <div style={{ height: 1, background: "var(--sp-line-soft)" }} />;
+  return <div style={{ height: 1, background: "var(--mrd-line-soft)" }} />;
 }
 
 function FreeCard({ isCurrent }: { isCurrent: boolean }) {
@@ -556,12 +604,31 @@ function PaidTierCard({
           100-to-10,000 band selector that scaled price linearly, which put Pro's entry
           at 100 credits for $20 against Free's 750 for $0. Capacity is sold by top-ups
           now, so a heavy solo user has a paid path that is not "join a team plan". */}
+      {/* NOT MERIDIAN'S `Field`, AND THE REASON IS THE ONE THING `Field`
+          REQUIRES. It renders a real `<label htmlFor>` and makes that binding
+          mandatory, because fifteen call sites once shipped with no accessible
+          name. There is nothing to bind here: the band selector was removed on
+          2026-08-03 and the number below is a FACT, not a control. A `<label>`
+          pointing at something that cannot be labelled is a false binding, so
+          this wears `Field`'s label FACE and stays a caption. It keeps the
+          retired class's mute ink rather than taking `Field`'s body ink, because
+          the value under it is the thing being read. */}
       <div style={{ marginTop: 0 }}>
-        <span className="sp-field-label">Credits a month</span>
+        <span
+          data-mrd=""
+          className="block text-mrd-label font-medium tracking-mrd-label text-mrd-mute"
+          style={{ marginBottom: 6 }}
+        >
+          Credits a month
+        </span>
         <div style={{ fontSize: 15, fontWeight: 500 }}>
           {includedCreditsFor(tier)?.toLocaleString() ?? "Custom"} included
         </div>
-        <div className="sp-hint" style={{ marginTop: 3 }}>
+        {/* `sp-hint` resolved in no stylesheet in this repo, so this line has
+            always rendered at inherited size and ink. The class is gone and
+            nothing has replaced it: painting it now would be a new decision
+            wearing a port's clothes. */}
+        <div style={{ marginTop: 3 }}>
           Need more? Add credits any time, up to twice your monthly allowance. No plan change.
         </div>
       </div>

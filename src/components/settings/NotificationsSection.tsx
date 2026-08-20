@@ -16,9 +16,14 @@
  *     rebuild deleted, plus the four uppercase MonoLabel headings inside them.
  *   - The "Preferences Matrix" heading. A mechanism name for a thing whose
  *     outcome is "what reaches you, and how".
- *   - The bare checkbox as the on/off control. The system has a Switch, it is
- *     green when live because green carries status, and a boundary that is on
- *     should look on from across the room.
+ *   - The bare checkbox as the on/off control. The system has a switch, and a
+ *     boundary that is on should look on from across the room.
+ *
+ * Ported to Meridian 2026-08-20. The switch is `Toggle`, which is deliberately
+ * NOT green: under Meridian green reports an OUTCOME, so a green track would
+ * say the preference SUCCEEDED. The knob position carries it instead, which is
+ * the half that survives greyscale. `Loading` became `Reading` and not
+ * `LoadingState`, whose own header forbids an elapsed timer on a plain fetch.
  *
  * KEPT: every server function, both preference paths (the server-stored matrix
  * and the device-local interaction feedback), the same query keys, and the
@@ -27,7 +32,17 @@
  */
 import { useEffect, useState } from "react";
 import { Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Num,
+  Actions,
+  Action,
+  PageHeading,
+  Picker,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Toggle,
+} from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
@@ -37,7 +52,6 @@ import {
   type UserNotificationPreferences,
 } from "@/lib/notifications.functions";
 import { getFeedbackPrefs, setFeedbackPrefs, fireFeedback } from "@/lib/interaction-feedback";
-import { Block, Button, Failed, Loading, PageHead, Select, Switch } from "@/components/shell/primitives";
 
 type Category = "Approvals" | "Health" | "Budget" | "Drift";
 type Channel = "app" | "email" | "digest";
@@ -153,13 +167,13 @@ export function NotificationsSection() {
   if (prefs.isError) {
     return (
       <>
-        <PageHead title="Notifications" sub="When the product may interrupt you, and where." />
+        <PageHeading title="Notifications" sub="When the product may interrupt you, and where." />
         {/* A failed read must not render an empty matrix whose save would
             silence every alert. */}
-        <Failed onRetry={() => void prefs.refetch()}>
+        <ReadFailedLine onRetry={() => void prefs.refetch()}>
           Your preferences did not load, so nothing here is safe to change yet.{" "}
           {(prefs.error as Error)?.message ?? "The read failed."}
-        </Failed>
+        </ReadFailedLine>
       </>
     );
   }
@@ -167,15 +181,15 @@ export function NotificationsSection() {
   if (prefs.isLoading) {
     return (
       <>
-        <PageHead title="Notifications" sub="When the product may interrupt you, and where." />
-        <Loading>Reading your preferences.</Loading>
+        <PageHeading title="Notifications" sub="When the product may interrupt you, and where." />
+        <Reading>Reading your preferences.</Reading>
       </>
     );
   }
 
   return (
     <>
-      <PageHead
+      <PageHeading
         title="Notifications"
         sub={
           reachable === 0 ? (
@@ -189,33 +203,33 @@ export function NotificationsSection() {
         }
       />
 
-      <Block
+      <Region
         title="What reaches you, and how"
         sub="Your working hours still apply: outside them, anything scheduled waits."
       >
         {CATEGORIES.map((c) => (
           <Line key={c.key} label={c.label} sub={c.sub}>
             {CHANNELS.map((ch) => (
-              <Button
+              <Action
                 key={ch.key}
-                variant={matrix[c.key][ch.key] ? "default" : "ghost"}
+                variant={matrix[c.key][ch.key] ? "default" : "quiet"}
                 aria-pressed={matrix[c.key][ch.key]}
                 title={ch.title}
                 onClick={() => toggle(c.key, ch.key)}
               >
                 {ch.label}
-              </Button>
+              </Action>
             ))}
           </Line>
         ))}
-      </Block>
+      </Region>
 
-      <Block title="The digest">
+      <Region title="The digest">
         <Line
           label="How often it goes out"
           sub="Anything set to Digest above waits for this send rather than pinging you."
         >
-          <Select
+          <Picker
             value={frequency}
             aria-label="Digest frequency"
             onChange={(e) => {
@@ -225,13 +239,13 @@ export function NotificationsSection() {
           >
             <option value="daily">Every day</option>
             <option value="weekly">Every week</option>
-          </Select>
+          </Picker>
         </Line>
         <Line
           label="Include a stakeholder update"
           sub="Your newest decision, rewritten for the audience you pick, riding the same email. No separate send."
         >
-          <Switch
+          <Toggle
             checked={stakeholder}
             label="Include a stakeholder update in the digest"
             onChange={(next) => {
@@ -242,7 +256,7 @@ export function NotificationsSection() {
         </Line>
         {stakeholder ? (
           <Line label="Written for">
-            <Select
+            <Picker
               value={audience}
               aria-label="Stakeholder audience"
               onChange={(e) => {
@@ -253,18 +267,18 @@ export function NotificationsSection() {
               <option value="exec">Executives</option>
               <option value="eng">Engineering</option>
               <option value="board">The board</option>
-            </Select>
+            </Picker>
           </Line>
         ) : null}
-      </Block>
+      </Region>
 
       <Actions>
-        <Button variant="primary" disabled={!dirty || save.isPending} onClick={onSave}>
+        <Action variant="primary" disabled={!dirty || save.isPending} onClick={onSave}>
           {save.isPending ? "Saving" : dirty ? "Save" : "Saved"}
-        </Button>
+        </Action>
       </Actions>
 
-      <Block
+      <Region
         title="On this device"
         sub="These two apply the moment you set them, and only here. They are not part of the save above."
       >
@@ -272,7 +286,7 @@ export function NotificationsSection() {
           label="A sound when something completes"
           sub="Synthesized and short. It never plays for anything you did not start."
         >
-          <Switch
+          <Toggle
             checked={sound}
             label="Sound on actions"
             onChange={(next) => {
@@ -286,7 +300,7 @@ export function NotificationsSection() {
           label="A tap when something completes"
           sub="Only fires on hardware that supports haptics; elsewhere it does nothing."
         >
-          <Switch
+          <Toggle
             checked={haptics}
             label="Haptics on actions"
             onChange={(next) => {
@@ -296,7 +310,7 @@ export function NotificationsSection() {
             }}
           />
         </Line>
-      </Block>
+      </Region>
     </>
   );
 }

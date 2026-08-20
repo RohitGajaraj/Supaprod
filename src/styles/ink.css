@@ -99,8 +99,12 @@
   /* Repointed at Meridian 2026-08-15 (founder ruling: the reference
      typography applies across the whole app). Mona Sans and IBM Plex Mono are
      no longer the faces; their @font-face blocks above are now inert and go
-     when this layer does. */
-  --sp-font-sans: var(--mrd-font);
+     when this layer does.
+     `--sp-font-sans` is GONE, 2026-08-20: its last seven readers were the seven
+     `font-family` declarations in `primitives.css` and `today.css`, and all
+     seven now say `var(--mrd-font)` outright. `--sp-font-mono` stays because
+     `.sp-num` below still reads it, and so do five files under `src/` that this
+     item does not own. */
   --sp-font-mono: var(--mrd-mono);
 
   /* ---- Type scale ----
@@ -212,12 +216,16 @@
   --sp-icon: 17px; /* nav and toolbar icons, at the size of their label */
   --sp-icon-sm: 15px;
 
-  /* ---- Radius ---- */
+  /* ---- Radius ----
+   * `--sp-radius-chip` and `--sp-radius-row` are GONE, 2026-08-20. Both were
+   * pure aliases and both had stylesheet readers only, so those readers now say
+   * `var(--mrd-r-chip)` and `var(--mrd-r-ctl)` directly. The three below with
+   * literal values are NOT aliases and stay until their call sites port; note
+   * that `--sp-radius-ctl` is 8px while the Meridian stop it sits next to,
+   * `--mrd-r-ctl`, is 9px, so they are not each other. */
   --sp-radius-xs: var(--mrd-r-xs); /* keycap */
   --sp-radius-sm: 5px; /* diffstat cell */
-  --sp-radius-chip: var(--mrd-r-chip); /* chips, run chip, agent mark */
   --sp-radius-ctl: 8px; /* buttons, inputs, live line */
-  --sp-radius-row: var(--mrd-r-ctl); /* nav rows, list rows */
   --sp-radius-card: 10px; /* agent card, ask composer */
   --sp-radius-panel: var(--mrd-r-card); /* record recess, gate detail */
   --sp-radius-pane: var(--mrd-r-pane); /* floating panes */
@@ -297,7 +305,9 @@
    * prototype: --bg --sheet --lift --sink --float
    * Never #000 or #fff; every neutral is tinted. */
   --sp-bg: var(--mrd-bg); /* the canvas */
-  --sp-sheet: var(--mrd-sheet); /* header, rail: the chrome that frames work */
+  /* `--sp-sheet` is GONE, 2026-08-20. Two readers, both in `primitives.css`,
+     both now `var(--mrd-sheet)`. The ladder it named is unchanged; only the
+     second spelling of one rung went. */
   --sp-lift: var(--mrd-lift); /* a raised control */
   --sp-sink: var(--mrd-sink); /* a recess: the record, the gate detail */
   --sp-float: var(--mrd-float); /* something genuinely floating */
@@ -318,11 +328,15 @@
    *
    * Each theme moves AWAY from its own canvas: lighter on the dark target,
    * inked on paper. Same rule, opposite direction, which is how the rest of
-   * this file already behaves. */
-  --sp-solid: var(--mrd-solid); /* the primary button's face */
-  --sp-solid-hover: var(--mrd-solid-hover);
-  --sp-solid-ink: var(--mrd-on-solid); /* what is written on it */
-  --sp-solid-edge: var(--mrd-sheen);
+   * this file already behaves.
+   *
+   * ALL FOUR DECLARATIONS ARE GONE, 2026-08-20. The reasoning above is why the
+   * ladder ends where it does and is kept for that, but the aliases had one
+   * reader each and all four sat on one button: three in
+   * `.sp-btn[data-variant="primary"]` and the fourth in its `:hover`, in
+   * `primitives.css`. That button now reads `--mrd-solid`, `--mrd-on-solid`,
+   * `--mrd-sheen` and `--mrd-solid-hover` directly. Meridian carries the same
+   * argument in its own words at `meridian.css:236`. */
 
   /* ---- Text ramp ---- prototype: --ink --body --mute */
   --sp-ink: var(--mrd-ink); /* the thing itself */

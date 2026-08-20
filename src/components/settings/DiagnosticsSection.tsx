@@ -21,13 +21,20 @@
  */
 import { useState } from "react";
 import { Line } from "@/components/meridian/rows";
-import { Num } from "@/components/meridian/surface-parts";
+import {
+  Num,
+  Action,
+  NothingYet,
+  PageHeading,
+  ReadFailedLine,
+  Reading,
+  Region,
+} from "@/components/meridian/surface-parts";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getReliabilitySlo, getRunawayMissions } from "@/lib/reliability.functions";
 import { summarizeHealth } from "@/lib/reliability/health-view";
-import { Block, Button, Empty, Failed, Loading, PageHead } from "@/components/shell/primitives";
 
 const WINDOWS = [7, 30] as const;
 
@@ -66,7 +73,7 @@ export function DiagnosticsSection() {
 
   return (
     <>
-      <PageHead
+      <PageHeading
         title="Diagnostics"
         sub={
           bothFailed
@@ -79,37 +86,37 @@ export function DiagnosticsSection() {
 
       <Line label="Window" sub={`Everything below covers the last ${days} days.`}>
         {WINDOWS.map((w) => (
-          <Button
+          <Action
             key={w}
-            variant={days === w ? "default" : "ghost"}
+            variant={days === w ? "default" : "quiet"}
             aria-pressed={days === w}
             onClick={() => setDays(w)}
           >
             {w} days
-          </Button>
+          </Action>
         ))}
       </Line>
 
       {rollup.signals.length > 0 ? (
-        <Block title="What needs a look">
+        <Region title="What needs a look">
           {rollup.signals.map((s, i) => (
             <Line key={i} label={s} />
           ))}
-        </Block>
+        </Region>
       ) : null}
 
-      <Block title="AI calls">
+      <Region title="AI calls">
         {sloQ.isError ? (
-          <Failed onRetry={() => void sloQ.refetch()}>
+          <ReadFailedLine onRetry={() => void sloQ.refetch()}>
             The call health did not load. {(sloQ.error as Error)?.message ?? "The read failed."}
-          </Failed>
+          </ReadFailedLine>
         ) : sloQ.isLoading ? (
-          <Loading>Reading call health.</Loading>
+          <Reading>Reading call health.</Reading>
         ) : evaluated === 0 ? (
-          <Empty>
+          <NothingYet>
             No AI calls in the last {days} days, so there is nothing to score. Start a run and this
             fills in.
-          </Empty>
+          </NothingYet>
         ) : metrics && budget ? (
           <>
             <Line
@@ -140,7 +147,7 @@ export function DiagnosticsSection() {
               sub="The middle call, and the slowest one in twenty."
             >
               <Num>{metrics.p50LatencyMs}ms</Num>
-              <span style={{ color: "var(--sp-mute)", fontSize: "var(--sp-text-meta)" }}>and</span>
+              <span style={{ color: "var(--mrd-mute)", fontSize: "var(--mrd-t-base)" }}>and</span>
               <Num>{metrics.p95LatencyMs}ms</Num>
             </Line>
             <Line
@@ -153,19 +160,19 @@ export function DiagnosticsSection() {
             </Line>
           </>
         ) : null}
-      </Block>
+      </Region>
 
-      <Block title="Runs">
+      <Region title="Runs">
         {runawayQ.isError ? (
-          <Failed onRetry={() => void runawayQ.refetch()}>
+          <ReadFailedLine onRetry={() => void runawayQ.refetch()}>
             The run scan did not load. {(runawayQ.error as Error)?.message ?? "The read failed."}
-          </Failed>
+          </ReadFailedLine>
         ) : runawayQ.isLoading ? (
-          <Loading>Scanning runs.</Loading>
+          <Reading>Scanning runs.</Reading>
         ) : spinning === 0 && toReview === 0 ? (
-          <Empty>
+          <NothingYet>
             No run in the last {days} days went in circles or ran past what it should have.
-          </Empty>
+          </NothingYet>
         ) : (
           <>
             {spinning > 0 ? (
@@ -198,7 +205,7 @@ export function DiagnosticsSection() {
             </Line>
           </>
         )}
-      </Block>
+      </Region>
     </>
   );
 }

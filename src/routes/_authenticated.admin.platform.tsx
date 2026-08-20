@@ -57,7 +57,7 @@
  *    it before you have to look.
  *    The confusion this surface must refuse: a failed read presented as an empty
  *    list. "No flags yet" and "we could not read the flags" lead to opposite
- *    actions, so each read carries its own Failed state with a retry, and the
+ *    actions, so each read carries its own ReadFailedLine with a retry, and the
  *    free-text JSON field is still validated before it can reach the server.
  *
  * 6. WHERE DOES THE CREW APPEAR, AND WHAT DOES IT PROVE?
@@ -72,7 +72,20 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { Row, Line, Who } from "@/components/meridian/rows";
-import { Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  NothingHere,
+  Picker,
+  Pre,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Toggle,
+  Value,
+} from "@/components/meridian/surface-parts";
+import { Checkbox, Field, Input } from "@/components/meridian/forms";
+import { Gate } from "@/components/meridian/Gate";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -93,7 +106,6 @@ import {
 } from "@/lib/admin-platform.functions";
 import { getMemoryExpiryEnabled, adminSetMemoryExpiryEnabled } from "@/lib/pricing.functions";
 import { inBandError } from "@/components/admin/admin-ui";
-import { Block, Button, Checkbox, Empty, Failed, Field, Gate, Input, Loading, Pre, Select, Switch, Value } from "@/components/shell/primitives";
 
 export const Route = createFileRoute("/_authenticated/admin/platform")({
   component: AdminPlatform,
@@ -101,12 +113,17 @@ export const Route = createFileRoute("/_authenticated/admin/platform")({
 
 function AdminPlatform() {
   return (
-    <>
+    // THE RHYTHM BETWEEN REGIONS, STATED HERE. The retired `Block` carried its
+    // own top margin and a rule above every section, so this page's spacing
+    // lived in a stylesheet. `Region` draws neither, so the surface owns it, and
+    // `gap-mrd-6` is the step the other ported admin tabs use. The
+    // between-region hairlines do not come back.
+    <div className="flex flex-col gap-mrd-6">
       <SwitchesBlock />
       <NoticeBlock />
       <AuditBlock />
       <DeployGate />
-    </>
+    </div>
   );
 }
 
@@ -225,15 +242,15 @@ function SwitchesBlock() {
         : `${on} of ${flags.length} feature flag${flags.length === 1 ? " is" : "s are"} on`;
 
   return (
-    <Block
+    <Region
       title={title}
       sub="The first line is a built-in boundary. The rest are feature flags added by key, and each one goes live for every user the moment it moves."
     >
       {expiryError ? (
-        <Failed onRetry={() => void expiry.refetch()}>
+        <ReadFailedLine onRetry={() => void expiry.refetch()}>
           Could not read whether free-tier memories expire, so this switch is not safe to move.{" "}
           {expiryError}
-        </Failed>
+        </ReadFailedLine>
       ) : (
         <Line
           label="Free-tier memories expire after 14 days"
@@ -243,7 +260,7 @@ function SwitchesBlock() {
               : "Off. Nothing the machine learns for a free-tier user ever fades."
           }
         >
-          <Switch
+          <Toggle
             checked={expiryOn}
             disabled={expiry.isLoading || toggleExpiry.isPending}
             label="Free-tier memories expire after 14 days"
@@ -253,35 +270,35 @@ function SwitchesBlock() {
       )}
 
       {list.isLoading ? (
-        <Loading>Reading the feature flags.</Loading>
+        <Reading>Reading the feature flags.</Reading>
       ) : listError ? (
-        <Failed onRetry={() => void list.refetch()}>
+        <ReadFailedLine onRetry={() => void list.refetch()}>
           The feature flags did not load, so this is not the full set. {listError}
-        </Failed>
+        </ReadFailedLine>
       ) : flags.length === 0 ? (
-        <Empty>
+        <NothingHere>
           No feature flags are set. Add one below to turn something on for everyone without shipping
           a new build.
-        </Empty>
+        </NothingHere>
       ) : (
         flags.map((f) => (
           <Line
             key={f.id}
-            label={<span style={{ fontFamily: "var(--sp-font-mono)" }}>{f.key}</span>}
+            label={<span style={{ fontFamily: "var(--mrd-mono)" }}>{f.key}</span>}
             sub={
               f.payload && f.payload !== "{}"
                 ? `${f.payload} · last changed ${f.updated_at.slice(0, 10)}`
                 : `No details set · last changed ${f.updated_at.slice(0, 10)}`
             }
           >
-            <Switch
+            <Toggle
               checked={f.enabled}
               disabled={upsert.isPending}
               label={f.key}
               onChange={(next) => saveFlag({ key: f.key, enabled: next, payloadJson: f.payload })}
             />
-            <Button
-              variant="ghost"
+            <Action
+              variant="quiet"
               disabled={del.isPending}
               onClick={async () => {
                 const ok = await confirm({
@@ -294,12 +311,16 @@ function SwitchesBlock() {
               }}
             >
               Delete
-            </Button>
+            </Action>
           </Line>
         ))
       )}
 
+      {/* `Region` sets no spacing between its children and `Actions` sets no
+          outer margin, both on purpose, so the composition says where the form
+          sits rather than a stylesheet deciding for it. */}
       <form
+        className="mt-mrd-5 flex flex-col gap-mrd-4"
         onSubmit={(e) => {
           e.preventDefault();
           if (key.trim()) saveFlag({ key: key.trim(), enabled, payloadJson: payload });
@@ -332,12 +353,12 @@ function SwitchesBlock() {
           />
         </Line>
         <Actions>
-          <Button type="submit" disabled={!key.trim() || upsert.isPending}>
+          <Action type="submit" disabled={!key.trim() || upsert.isPending}>
             {upsert.isPending ? "Saving" : "Save flag"}
-          </Button>
+          </Action>
         </Actions>
       </form>
-    </Block>
+    </Region>
   );
 }
 
@@ -402,17 +423,17 @@ function NoticeBlock() {
         : "No notice is showing";
 
   return (
-    <Block
+    <Region
       title={title}
       sub="A notice sits above every screen for every signed-in person until it expires or you take it down."
     >
       {cur.isLoading ? (
-        <Loading>Reading the current notice.</Loading>
+        <Reading>Reading the current notice.</Reading>
       ) : cur.isError ? (
-        <Failed onRetry={() => void cur.refetch()}>
+        <ReadFailedLine onRetry={() => void cur.refetch()}>
           The current notice did not load, so publishing now could replace one you cannot see.{" "}
           {cur.error instanceof Error ? cur.error.message : "The read failed."}
-        </Failed>
+        </ReadFailedLine>
       ) : banner ? (
         <Line
           label={banner.message}
@@ -422,13 +443,14 @@ function NoticeBlock() {
               : `${LEVEL_WORD[banner.level]} · stays up until you take it down`
           }
         >
-          <Button variant="ghost" disabled={clear.isPending} onClick={() => clear.mutate()}>
+          <Action variant="quiet" disabled={clear.isPending} onClick={() => clear.mutate()}>
             {clear.isPending ? "Taking it down" : "Take it down"}
-          </Button>
+          </Action>
         </Line>
       ) : null}
 
       <form
+        className="mt-mrd-5 flex flex-col gap-mrd-4"
         onSubmit={(e) => {
           e.preventDefault();
           if (message.trim()) publish.mutate();
@@ -447,7 +469,7 @@ function NoticeBlock() {
           />
         </Field>
         <Line label="How loudly it reads" htmlFor="notice-level">
-          <Select
+          <Picker
             id="notice-level"
             value={level}
             onChange={(e) => setLevel(e.target.value as SystemBanner["level"])}
@@ -455,7 +477,7 @@ function NoticeBlock() {
             <option value="info">Information</option>
             <option value="warn">Warning</option>
             <option value="alert">Alert</option>
-          </Select>
+          </Picker>
         </Line>
         <Line
           label="Take it down by itself"
@@ -472,16 +494,16 @@ function NoticeBlock() {
           />
         </Line>
         <Actions>
-          <Button type="submit" disabled={!message.trim() || publish.isPending}>
+          <Action type="submit" disabled={!message.trim() || publish.isPending}>
             {publish.isPending
               ? "Publishing"
               : banner
                 ? "Replace the notice"
                 : "Show it to everyone"}
-          </Button>
+          </Action>
         </Actions>
       </form>
-    </Block>
+    </Region>
   );
 }
 
@@ -538,12 +560,12 @@ function AuditBlock() {
         : `${rows.length} change${rows.length === 1 ? "" : "s"} on the record`;
 
   return (
-    <Block
+    <Region
       title={title}
       sub="Every admin action, newest first, with who did it. Open a line to read exactly what was sent."
     >
       <Line label="Show" htmlFor="audit-kind">
-        <Select
+        <Picker
           id="audit-kind"
           value={targetKind}
           onChange={(e) => {
@@ -556,20 +578,20 @@ function AuditBlock() {
               {k.label}
             </option>
           ))}
-        </Select>
+        </Picker>
       </Line>
 
       {list.isLoading ? (
-        <Loading>Reading the record.</Loading>
+        <Reading>Reading the record.</Reading>
       ) : listError ? (
-        <Failed onRetry={() => void list.refetch()}>
+        <ReadFailedLine onRetry={() => void list.refetch()}>
           The record did not load, so this is not the full history. {listError}
-        </Failed>
+        </ReadFailedLine>
       ) : rows.length === 0 ? (
-        <Empty>
+        <NothingHere>
           No admin change matches this filter. Every switch, role and billing change lands here as
           it happens.
-        </Empty>
+        </NothingHere>
       ) : (
         rows.map((r) => (
           <div key={r.id}>
@@ -590,11 +612,18 @@ function AuditBlock() {
               time={r.created_at.slice(0, 16).replace("T", " ")}
               onClick={() => setOpen(open === r.id ? null : r.id)}
             />
-            {open === r.id ? <Pre>{readable(r.payload)}</Pre> : null}
+            {/* `Pre` sets no outer margin, where the retired `.sp-pre` baked one
+                in, so the payload says how far it sits under the row it belongs
+                to rather than a stylesheet deciding for it. */}
+            {open === r.id ? (
+              <div className="mt-mrd-5">
+                <Pre>{readable(r.payload)}</Pre>
+              </div>
+            ) : null}
           </div>
         ))
       )}
-    </Block>
+    </Region>
   );
 }
 
@@ -660,9 +689,9 @@ function DeployGate() {
         />
       </Field>
       <Actions>
-        <Button variant="primary" disabled={deploy.isPending} onClick={() => void onDeploy()}>
+        <Action variant="primary" disabled={deploy.isPending} onClick={() => void onDeploy()}>
           {deploy.isPending ? "Sending" : "Ship it"}
-        </Button>
+        </Action>
         {last ? <Value>{last}</Value> : null}
       </Actions>
     </Gate>

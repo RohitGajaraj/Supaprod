@@ -1980,62 +1980,10 @@ html[data-motion="off"] .ai-working-word {
 [data-obsidian] {
   color-scheme: dark;
 
-  /* === tokens/colors.css · Surfaces: depth from tint, not shadow === */
-  --canvas: #0a0a0b; /* page background */
-  --rail: #0d0d0f; /* sidebar */
-  --card: #111113; /* default card */
-  --raised: #17171a; /* raised surface, table header, secondary button */
-  --hover: #1d1d21; /* hover fill, avatar chip */
-  --surface-active: #1a1a1e; /* selected/active row: nav rail, settings index, command palette */
-  --surface-canvas: var(--canvas);
-  --surface-rail: var(--rail);
-  --surface-card: var(--card);
-  --surface-card-deep: #0e0e10; /* alternating rows, call-card base */
-  --surface-raised: var(--raised);
-  --surface-hover: var(--hover);
-  --surface-recessed: #0b0b0d; /* raw/detail card, one step darker than card: Ask trace box, mission raw trace, Ask canvas blocks */
-
-  /* Hairlines replace shadows */
-  --hairline: rgba(255, 255, 255, 0.07);
-  --hairline-strong: rgba(255, 255, 255, 0.09);
-  --hairline-faint: rgba(255, 255, 255, 0.05);
-
-  /* === Ink === */
-  --text-primary: #f2f0ed;
-  --text-body: #b5afa6;
-  --text-muted: #9c978f;
-  --text-subtle: #7d786f;
-  --text-faint: #55524c;
-
   /* === Role colors · each has exactly ONE job === */
-  /* Ember: needs a human. Calls, gates, the one primary CTA. Never decoration. */
-  --ember: oklch(0.72 0.16 315);
-  --ember-deep: oklch(0.6 0.15 315); /* pressed/active */
-  --ember-soft: oklch(0.82 0.1 315); /* tints, highlights, sparing */
-  /* Glacier: THE machine voice. Live state, agent presence, mono-label accent.
-   * Loom v4.1 (founder color ruling 2026-07-06): retuned from cyan #7fd1dc to
-   * a soft luminous azure-periwinkle. A cleaner complement to warm ember, more
-   * premium/elegant/modern (the Linear/Arc register), and it smooths the thread
-   * gradient (cyan->blue jump gone). */
-  /* One source of truth (2026-07-11): the --ds-blue scale IS the glacier
-     family now, so this aliases the scale instead of repeating the hex. */
-  --glacier: var(--ds-blue-600);
-  /* RETIRED from AI treatments (founder, 2026-07-11 refined ruling: the
-     purple was not landing on screen). Kept defined only so any stale
-     consumer degrades to the blue family instead of breaking. */
-  --violet-shimmer: var(--ds-blue-900);
   /* Blossom: pink CATEGORICAL color only (graph categories, the pet-feature
      pencil tag). NOT a link color since 2026-07-11 — links are glacier. */
   --blossom: #e5bddf;
-  --fuchsia: #c2337e; /* blossom's pressed depth */
-  /* Moss: outcomes only, positive (validated, shipped, kept). */
-  --moss: #7fbf8e;
-  --moss-bright: #8fd9a0; /* chip text on tinted fill */
-  /* Madder: outcomes only, negative (missed, failed, killed). */
-  --madder: #e06557;
-  --madder-bright: #ee7a6c;
-  /* Marigold: in-review status only. */
-  --marigold: #e8b44c;
   /* Blush: alternate light tint for small mono-caps labels. */
   --blush: #f3c1c1;
 
@@ -2072,40 +2020,12 @@ html[data-motion="off"] .ai-working-word {
   --ash: #a8a29a;
   --slate: #6e6a64;
 
-  /* === Pencil annotations (the PM's own ink) === */
-  --pencil-lime: #cde07a; /* strongest bet */
-  --pencil-blossom: #e5bddf; /* pet feature */
-  --pencil-apricot: #ffb27a; /* scope creep */
-
-  /* === Semantic aliases === */
-  --cta: var(--ember);
-  --cta-pressed: var(--ember-deep);
-  --cta-ink: #0a0a0b; /* text on ember fill */
-  --machine: var(--glacier);
-  --link: var(--glacier); /* links are glacier, not pink (founder ruling 2026-07-11) */
-  --focus-ring: var(--glacier); /* 2px glacier focus ring */
-  --selection: color-mix(in srgb, var(--text-primary) 20%, transparent);
-
-  /* === legacy Ember Editorial voice names, aliased to Tempo v5 (DESIGN-TEMPO.md §3) ===
-   * Kept as var names only — ~130 components still reference var(--font-sans) /
-   * var(--font-serif) / var(--font-pencil). Never reintroduce a literal font
-   * string here; point every voice at the Tempo trio (--font-sans / --font-mono
-   * / --font-pixel) or a var() alias to one of them. See the guardrail note above. */
-  --font-serif: var(
-    --font-display
-  ); /* was Newsreader; Tempo v5 has no serif — Geist covers display too */
-  --font-ui: var(--font-sans); /* was Schibsted Grotesk */
   /* --font-mono intentionally NOT redeclared here — the Geist Mono definition
      above is the single source of truth; a second declaration in this same
      @theme block would silently win (last-declaration-wins) and revert it. */
-  --font-dotted: var(--font-pixel); /* was Codystar; aurora numerals = a brand moment */
-  --font-pencil: var(--font-pixel); /* was Caveat; pencil annotations = a brand moment */
 
-  --text-hero: 34px; /* Geist display, -0.015em, 1.15 */
-  --text-h2: 28px; /* Geist display */
   --text-card-title: 20px; /* Geist display, 1.3 */
   --text-score: 52px; /* Geist Pixel, aurora cards only */
-  --tempo-text-base: 13px; /* Geist, 1.55 line height */
   --tempo-text-sm: 12px;
   --text-helper: 11.5px;
   --text-mono-label: 9.5px; /* mono caps, 0.10-0.12em tracking */
@@ -2130,11 +2050,8 @@ html[data-motion="off"] .ai-working-word {
   --radius-pill: 99px;
   --radius-aurora: 16px;
 
-  /* === tokens/motion.css · one easing, three durations === */
-  --ease: cubic-bezier(0.23, 1, 0.32, 1);
+  /* === tokens/motion.css === */
   --dur-control: 140ms;
-  --dur-panel: 200ms;
-  --dur-page: 280ms;
   /* The AI shimmer: only on text/marks representing the machine actively
    * working; at most ONE per screen. THE standard AI-presence marker
    * (founder ruling 2026-07-11, refined same day): a light sweep that stays
@@ -2182,8 +2099,6 @@ html[data-motion="off"] .ai-working-word {
   --border: var(--hairline);
   --input: var(--hairline);
   --ring: var(--focus-ring);
-  --chart-1: var(--teal);
-  --chart-2: var(--cornflower);
   --chart-3: var(--flamingo);
   --chart-4: var(--marigold-data);
   --chart-5: var(--mauve);
@@ -2232,8 +2147,6 @@ html[data-motion="off"] .ai-working-word {
   --dark-navy: var(--surface-card-deep);
 
   /* Depth = hairlines, never shadows (contract: hairlines replace shadows). */
-  --shadow-glass: inset 0 1px 0 var(--hairline-faint);
-  --shadow-elevated: inset 0 1px 0 var(--hairline-faint);
   --shadow-focus: 0 0 0 2px var(--focus-ring);
 }
 
@@ -3619,8 +3532,8 @@ html[data-motion="off"] .ai-pulse-mark {
    * secondary metadata drew them the same, and the hierarchy the design system
    * believes it has did not exist on screen. It is THIS block that decides: it
    * is the last [data-obsidian] block in the sheet, so at equal specificity it
-   * wins over the two earlier ones (~1913, ~2356) which do carry a distinct
-   * three-step ramp. The app shell mounts inside the scope (_authenticated.tsx
+   * wins over the earlier Loom one, which does carry a distinct three-step
+   * ramp. The app shell mounts inside the scope (_authenticated.tsx
    * sets data-obsidian on the shell and on documentElement), so this is the
    * whole product, not a corner of it.
    *

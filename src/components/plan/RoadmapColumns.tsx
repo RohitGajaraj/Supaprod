@@ -8,7 +8,14 @@ import {
 } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  BulkBar,
+  NothingYet,
+  Num,
+  ReadFailedLine,
+} from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import {
   getRoadmap,
@@ -24,7 +31,12 @@ import { BetCard } from "./BetCard";
 import { revertRoadmapItemToPrevious } from "@/lib/artifact-rewind.functions";
 import { stillWaiting } from "@/lib/query-state";
 import { CommitCeremony, type CommitCeremonyBet } from "./CommitCeremony";
-import { Button, Choices, Empty, Failed, Receipt, SelectionBar } from "@/components/shell/primitives";
+import { Choices } from "@/components/meridian/forms";
+import { Receipt } from "@/components/meridian/Receipt";
+/* `use-selection` is NOT the retired layer and stays. It sits in `shell/` only
+   because that folder's convention gave a hook its own file: it holds no class
+   name, reads no token and renders nothing. `BulkBar` takes the object it
+   returns, which is why Meridian imports the type from here too. */
 import { useSelection } from "@/components/shell/use-selection";
 
 /** The three columns, in plain words. NOW used to be printed in ember: ember
@@ -50,7 +62,7 @@ const BOARD_SCROLLER: CSSProperties = { overflowX: "auto" };
 const BOARD_TRACK: CSSProperties = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-  gap: "var(--sp-space-4)",
+  gap: "var(--mrd-s5)",
 };
 
 /**
@@ -477,11 +489,17 @@ export function RoadmapColumns() {
   // first because it is the right order on its own terms: the strongest known
   // fact is stated first, and "we could not find out" outranks "still looking".
   // Do not move it back down on the grounds that it is now safe there.
+  //
+  // `ReadFailedLine` AND NOT `ReadFailed`, which is the bordered half of the
+  // pair. plan.index mounts this board inside `<Region title="Now, Next and
+  // Later">`, so the container is already drawn and two containers around one
+  // sentence is a frame. It is also what the retired `Failed` drew: a bare
+  // `.sp-empty` line, never a box.
   if (roadmap.isError) {
     return (
-      <Failed onRetry={() => void roadmap.refetch()}>
+      <ReadFailedLine onRetry={() => void roadmap.refetch()}>
         {(roadmap.error as Error)?.message ?? "The roadmap did not load."}
-      </Failed>
+      </ReadFailedLine>
     );
   }
 
@@ -503,29 +521,17 @@ export function RoadmapColumns() {
    */
   if (stillWaiting(roadmap)) {
     return (
-      <div role="status" style={BOARD_SCROLLER}>
+      <div data-mrd="" role="status" style={BOARD_SCROLLER}>
         <span className="sr-only">Reading the roadmap.</span>
         <div style={BOARD_TRACK} aria-hidden="true">
           {COLUMNS.map((c) => (
-            <div key={c.key} style={{ minWidth: 0 }}>
-              <div
-                style={{
-                  height: 10,
-                  width: 72,
-                  marginBottom: "var(--sp-space-3)",
-                  borderRadius: "var(--sp-radius-xs)",
-                  background: "var(--sp-lift)",
-                  opacity: 0.6,
-                }}
-              />
-              <div
-                style={{
-                  minHeight: 132,
-                  borderRadius: "var(--sp-radius-card)",
-                  background: "var(--sp-sink)",
-                  opacity: 0.5,
-                }}
-              />
+            <div key={c.key} className="min-w-0">
+              {/* The stand-in for a column heading, then for its first card. The
+                  card's radius follows `--mrd-r-card`, which is the stop a real
+                  BetCard will sit on: a skeleton drawn on a different radius from
+                  the thing it stands in for makes the swap visible. */}
+              <div className="mb-mrd-5 h-2.5 w-[72px] rounded-mrd-xs bg-mrd-lift opacity-60" />
+              <div className="min-h-[132px] rounded-mrd-card bg-mrd-sink opacity-50" />
             </div>
           ))}
         </div>
@@ -575,9 +581,12 @@ export function RoadmapColumns() {
    */
   const placeDoor = (variant: "primary" | undefined) =>
     unplacedDecided.length > 0 ? (
-      <Button variant={variant} onClick={() => handleMove(unplacedDecided[0], "now")}>
+      /* `Action` and not `Approve`, even at `primary`. Approve is reserved for a
+         click that RELEASES something held; this one opens the ceremony, which
+         then asks for the promise. Nothing is blocked pending the press. */
+      <Action variant={variant} onClick={() => handleMove(unplacedDecided[0], "now")}>
         Place it in Now
-      </Button>
+      </Action>
     ) : null;
 
   if (items.length === 0) {
@@ -593,13 +602,15 @@ export function RoadmapColumns() {
             // empty board and must not borrow its instruction: telling somebody
             // to go to Discover when they have simply filtered everything out
             // would send them away from the answer.
-            <Empty
-              action={<Button onClick={() => setOnlyUndeclared(false)}>Show every bet</Button>}
+            <NothingYet
+              action={<Action onClick={() => setOnlyUndeclared(false)}>Show every bet</Action>}
             >
               Every bet on the board names an outcome, so the filter has nothing to show.
-            </Empty>
+            </NothingYet>
           ) : (
-            <Empty>No bets on the roadmap yet. Commit a ranked opportunity from Discover.</Empty>
+            <NothingYet>
+              No bets on the roadmap yet. Commit a ranked opportunity from Discover.
+            </NothingYet>
           )}
         </>
       );
@@ -628,7 +639,7 @@ export function RoadmapColumns() {
             all checked). The fix belongs where the idiom lives, either as an
             `onCloseAutoFocus` on the ceremony or as a focus target handed to
             Empty, and neither of those is this file. */}
-        <Empty action={placeDoor("primary")}>
+        <NothingYet action={placeDoor("primary")}>
           {unplacedDecided.length === 1 ? (
             <>
               One bet is committed and it is in no lane yet, so this board has nothing to draw:{" "}
@@ -640,7 +651,7 @@ export function RoadmapColumns() {
               this board has nothing to draw. Highest-ranked: {topTitle}.
             </>
           )}
-        </Empty>
+        </NothingYet>
         {ceremony}
       </>
     );
@@ -659,22 +670,34 @@ export function RoadmapColumns() {
           neither. */}
       <Actions
         trailing={
-          <Button
-            variant="ghost"
+          /* THE PRESSED FACE IS THE VARIANT, NOT A CLASS ON TOP OF ONE. The
+             retired sheet drew `[data-variant="ghost"][aria-pressed="true"]` as
+             ink on lift with a line border, so the toggle showed it was on;
+             Meridian's `Action` has no `aria-pressed` face, and adding
+             `text-mrd-ink` after `variant="quiet"`'s `text-mrd-mute` would be two
+             same-specificity utilities racing on stylesheet order. `default` IS
+             that face, so the state is carried by picking the variant. */
+          <Action
+            variant={onlyUndeclared ? "default" : "quiet"}
             aria-pressed={onlyUndeclared}
             onClick={() => setOnlyUndeclared((v) => !v)}
             title="Show only the committed bets that carry no outcome and no measure"
           >
             {onlyUndeclared ? "Showing undeclared only" : "Only undeclared"}
-          </Button>
+          </Action>
         }
       >
-        <span style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>Order by</span>
+        <span className="text-[13px] text-mrd-mute">Order by</span>
+        {/* `mode="one"` is now DECLARED rather than defaulted. The retired
+            `Choices` defaulted to it; Meridian's makes it required, because the
+            ARIA differs between the two modes and a default was how a radio
+            group shipped announcing three toggle buttons. */}
         <Choices<Sort>
+          mode="one"
           label="How the board is ordered"
           value={sort}
           options={SORTS.map((s) => ({ id: s.id, label: s.label, title: s.title }))}
-          onPick={setSort}
+          onChange={setSort}
         />
       </Actions>
 
@@ -716,10 +739,17 @@ export function RoadmapColumns() {
           shift-click, all of which arrive with `useSelection` rather than being
           written here for a ninth time.
 
-          THE SENTENCE UNDER IT IS THE CEREMONY BYPASS, NAMED. See `bulkMove`. */}
-      <SelectionBar selection={selection} total={visibleIds.length} noun="bet">
+          THE SENTENCE UNDER IT IS THE CEREMONY BYPASS, NAMED. See `bulkMove`.
+
+          IT IS `BulkBar`, NOT `SelectionActions`. Meridian exports both and only
+          one of them is this: `SelectionActions` takes a live DOM `Range` and a
+          container ref and draws highlight panels over a passage of prose, so
+          pointed at a set of row ids it renders nothing at all. Same contract as
+          the retired bar it replaces, plus a height that matches Meridian's 44px
+          row floor rather than the retired sheet's 38px. */}
+      <BulkBar selection={selection} total={visibleIds.length} noun="bet">
         {COLUMNS.map((col) => (
-          <Button
+          <Action
             key={col.key}
             disabled={bulkMove.isPending}
             title={
@@ -736,17 +766,11 @@ export function RoadmapColumns() {
             }
           >
             {col.label}
-          </Button>
+          </Action>
         ))}
-      </SelectionBar>
+      </BulkBar>
       {selection.count > 0 && undeclaredSelected > 0 ? (
-        <p
-          style={{
-            margin: "var(--sp-space-2) 0 0",
-            fontSize: "var(--sp-text-meta)",
-            color: "var(--sp-mute)",
-          }}
-        >
+        <p data-mrd="" className="mt-mrd-4 mb-0 text-[13px] text-mrd-mute">
           <Num>{undeclaredSelected}</Num> of the{" "}
           {selection.count === 1 ? "bet you picked carries" : "bets you picked carry"} no outcome. A
           bulk move sets the lane and does not ask for one, so they stay tasks rather than promises
@@ -761,35 +785,22 @@ export function RoadmapColumns() {
             const expanded = expandedCols.has(col.key);
             const shownItems = expanded ? colItems : colItems.slice(0, VISIBLE_ITEMS);
             return (
-              <div key={col.key} style={{ minWidth: 0 }}>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "baseline",
-                    gap: "var(--sp-space-2)",
-                    marginBottom: "var(--sp-space-3)",
-                    paddingBottom: "var(--sp-space-2)",
-                    borderBottom: "1px solid var(--sp-line-soft)",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: "var(--sp-text-label)",
-                      fontWeight: "var(--sp-weight-strong)",
-                      color: "var(--sp-ink)",
-                    }}
-                  >
-                    {col.label}
-                  </span>
+              <div key={col.key} className="min-w-0">
+                {/* THE RULE UNDER THE COLUMN HEADING IS GONE, and it is not an
+                    oversight. It was `1px solid var(--sp-line-soft)`. Founder
+                    ruling 2026-08-18, made while reviewing exactly this class of
+                    thing: a retired system's hairlines and section rules are not
+                    the baseline, the baseline is Meridian, and nothing of that
+                    kind comes back "now or in the future". Rule 1 of the ratchet
+                    protects information and composition; a divider is neither. So
+                    the separation is space, which is what Meridian uses
+                    everywhere else, and the heading's own padding-bottom becomes
+                    part of the gap rather than the gutter for a line. */}
+                <div className="mb-mrd-5 flex items-baseline gap-mrd-4">
+                  <span className="text-[12.5px] font-semibold text-mrd-ink">{col.label}</span>
                   <Num>{colItems.length}</Num>
                 </div>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "var(--sp-space-3)",
-                  }}
-                >
+                <div className="flex flex-col gap-mrd-5">
                   {shownItems.map((item, rowIndex) => (
                     <BetCard
                       key={item.id}
@@ -833,20 +844,14 @@ export function RoadmapColumns() {
                     />
                   ))}
                   {colItems.length === 0 ? (
-                    <span
-                      style={{
-                        fontSize: "var(--sp-text-meta)",
-                        color: "var(--sp-mute)",
-                        padding: "var(--sp-space-2) 0",
-                      }}
-                    >
+                    <span className="py-mrd-4 text-[13px] text-mrd-mute">
                       {onlyUndeclared ? "Every bet here names an outcome." : "Nothing here."}
                     </span>
                   ) : null}
                   {colItems.length > VISIBLE_ITEMS ? (
-                    <Button variant="ghost" onClick={() => toggleExpanded(col.key)}>
+                    <Action variant="quiet" onClick={() => toggleExpanded(col.key)}>
                       {expanded ? "Show fewer" : `Show ${colItems.length - VISIBLE_ITEMS} more`}
-                    </Button>
+                    </Action>
                   ) : null}
                 </div>
               </div>

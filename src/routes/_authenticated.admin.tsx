@@ -47,7 +47,7 @@ import { createFileRoute, Outlet, useLocation, useNavigate } from "@tanstack/rea
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Surface } from "@/components/meridian/Surface";
-import { Action, PageHeading } from "@/components/meridian/surface-parts";
+import { Action, PageHeading, Refused } from "@/components/meridian/surface-parts";
 import { Tabs, TabPanel } from "@/components/meridian/Tabs";
 import { AdminErrorCard, AdminSkeleton } from "@/components/admin/admin-ui";
 import { amIAdmin, bootstrapSelfAdmin } from "@/lib/pricing.functions";
@@ -165,46 +165,42 @@ function NoAccessCard({ anyAdminExists }: { anyAdminExists: boolean }) {
   });
 
   return (
-    <div
-      style={{
-        background: "var(--card)",
-        border: "1px solid var(--mrd-line)",
-        borderRadius: "var(--radius-card)",
-        padding: "20px 22px",
-        display: "grid",
-        gap: 12,
-      }}
-    >
-      <div style={{ fontFamily: "var(--font-sans)", fontSize: 20, color: "var(--mrd-ink)" }}>
-        Admin access required
-      </div>
-      <p style={{ fontSize: 13, color: "var(--mrd-body)", margin: 0, maxWidth: 520 }}>
-        The admin console manages members, roles, audit, and workspace billing. Ask a current admin
-        to grant you access.
-      </p>
-      {!anyAdminExists ? (
-        <div className="flex items-center" style={{ gap: 10 }}>
-          {/* The screen's one primary CTA, on `Action` so it carries Meridian's
-              control shape, focus ring and press feedback. `primary` is what
-              obsidian called `accent`, and the in-flight state is now the
-              `disabled` the mutation already knows about: obsidian's `loading`
-              additionally set `aria-busy`, which `Action` cannot express, so that
-              announcement is lost and recorded as a Meridian gap rather than
-              patched into a component this item does not own. */}
-          <Action
-            variant="primary"
-            disabled={claim.isPending}
-            onClick={() => claim.mutate()}
-          >
+    /* MERIDIAN'S `Refused`, WHICH THIS CARD WAS THE HAND-BUILT VERSION OF. The
+       header above (point 5) states the rule this screen honours, that an error
+       must never wear another state's clothes, and the third state it needed had
+       no component: an access check that FAILED is `AdminErrorCard` above, and an
+       access check that RESOLVED to no is this. It was a local div with five
+       inline styles and no `data-mrd`, so the claim button took the legacy
+       app-wide focus ring rather than Meridian's.
+
+       THE COPY BRANCHES NOW, AND THAT IS A BUG FIX RATHER THAN A REWRITE. The
+       old body said "Ask a current admin to grant you access" unconditionally,
+       INCLUDING when `anyAdminExists` is false, so on the one screen where there
+       is provably nobody to ask it sent the reader to ask them. The claim button
+       sat underneath contradicting the sentence above it. */
+    <Refused
+      detail={
+        anyAdminExists
+          ? "Admin changes what other people can do and what this workspace spends, so it stays with the admins here. Ask one of them to add you, and the console opens the next time this page loads."
+          : "Admin changes what other people can do and what this workspace spends. Nobody holds it in this workspace yet, so there is nobody to ask: the first person to claim it becomes the admin."
+      }
+      action={
+        anyAdminExists ? undefined : (
+          /* KEPT DELIBERATELY. A workspace with zero admins is unadministrable
+             and this is the only way out of it, which is why `Refused` carries an
+             `action` slot at all. `primary` is what obsidian called `accent`, and
+             the in-flight state is the `disabled` the mutation already knows
+             about: obsidian's `loading` additionally set `aria-busy`, which
+             `Action` cannot express, so that announcement is lost and recorded as
+             a Meridian gap rather than patched into a component this item does
+             not own. */
+          <Action variant="primary" disabled={claim.isPending} onClick={() => claim.mutate()}>
             {claim.isPending ? "Claiming…" : "Claim admin · one-time setup"}
           </Action>
-          <span
-            style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, color: "var(--mrd-mute)" }}
-          >
-            No admin exists yet. Whoever claims first becomes the first admin.
-          </span>
-        </div>
-      ) : null}
-    </div>
+        )
+      }
+    >
+      You are not an admin of this workspace.
+    </Refused>
   );
 }
