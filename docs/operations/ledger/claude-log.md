@@ -5722,3 +5722,189 @@ exactly right -- I could not force a navigation slow enough to trigger that load
 item's to fix: `_authenticated.tsx:37-38` still states "With `defaultPendingMs: 150` and
 `defaultPendingMinMs: 300`" in the present tense. Both numbers are now wrong. The
 conclusion around it still holds, so nothing is broken, but the comment is stale.
+
+---
+
+## K-60 · REJECTED · 2026-08-20 16:20 · the entry asserts an identity that production falsifies by 33.8%
+
+**The two keys it added are correct.** `waiting_approval -> "queued"` and `halted -> "failed"`
+both check out, and I confirmed the writers exist in production: 7 runs at `waiting_approval`,
+8 at `halted`.
+
+**The rejection is what it did not add.** `RUN_STATE` has no key for
+**`completed_with_failures`**, so `runBucket` returns `"other"` for it. The file's own comment
+at `agent-fleet.ts:90` says what that means:
+
+> `"other": uncounted in all four tallies while `total` still counted it`
+
+**That is 622 runs, 33.9% of every agent run in the system, and it is the single biggest
+status after `completed`.** The item existed to stop runs falling into `other` uncounted, and
+it fixed `complete`, `waiting_approval` and `halted` while leaving the largest offender in
+place.
+
+**The entry asserts the arithmetic identity `running + queued + done + failed === total`.**
+Executed against the production distribution:
+
+```
+  running   0      completed                693 -> done
+  queued    7      completed_with_failures  622 -> other
+  done    695      failed                   509 -> failed
+  failed  517      halted                     8 -> failed
+  other   622      waiting_approval           7 -> queued
+  ----                                        complete  2 -> done
+  four buckets  1,219        total  1,841
+  identity holds: FALSE      missing: 622  (33.8%)
+```
+
+**The tests pass because they test the two statuses the item added** -- a halted run and a
+gated run -- and never the one that breaks the claim. **An identity asserted over four buckets
+is only worth its weakest input**, and this one is a third of the table.
+
+**To clear this.** Add `completed_with_failures` to `RUN_STATE`. Which bucket is a real
+judgement and should be argued in the file, not guessed: it finished, so `done` is defensible,
+and it finished badly, so `failed` is defensible. **What is not defensible is `other`**, and
+the identity test should be extended to enumerate every status production writes rather than
+the two this item touched.
+
+---
+
+## K-61 · VERIFIED · 2026-08-20 16:22 · both additions confirmed against production, and the third omission has no stated reason
+
+**`halted -> "attention"` is the significant one and production says so: 67 of 349 missions
+are `halted`, 19.2%.** Executed `laneForStatus("halted")` and it returns `attention`. Before
+this key those 67 fell to the default.
+
+`"complete"` in `STEP_DONE` verified, and the entry proved it non-vacuous by removing the key
+and watching the progress case fail. Production backs the premise: `complete` exists on
+`agent_runs` (2 rows) and on no other table, exactly as the comment claims.
+
+**Executed against every status production writes**, which is the check the tests do not make:
+
+| missions.status | rows | lane |
+| --- | --- | --- |
+| `proposed` | 232 | awaiting |
+| `halted` | 67 | **attention** |
+| `completed` | 27 | done |
+| `completed_with_failures` | 22 | **awaiting** |
+| `cancelled` | 1 | attention |
+
+**Noticed, and it is the reason this is not a clean pass.** The entry says it added no key for
+"`complete`, `waiting_approval` or `completed_with_failures`" and then gives a reason for the
+first two only: `complete` belongs to `agent_runs`, `waiting_approval` never reaches the parent
+mission. **Both are right. Neither covers `completed_with_failures`, and that one does reach
+the parent mission -- 22 rows of it.** So 22 finished missions render in the `awaiting` lane.
+
+It is 6.3% rather than K-60's 33.8%, and it is outside this item's stated scope, so it is a
+Noticed rather than a rejection. **But the omission is asserted as reasoned and it is not.**
+
+Its own Noticed 3 is sharp and correct: the `attention` blurb reads "Stopped early. Failed or
+cancelled", and a halted mission is neither, so the blurb is now narrower than its contents.
+
+---
+
+## K-62 · VERIFIED · 2026-08-20 16:24 · every mission status in production is now classified, and the omission I went looking for is correct
+
+I expected to reject this one. The entry deliberately excludes the singular `complete` and
+pins it with a negative assertion, and `complete` **does** exist in production. **It exists on
+`agent_runs` and nowhere else**, and `TERMINAL_STATUSES` is read against `missions.status`
+(`runaway.ts:26-27`, and `m.status` at :213). So excluding it is right and my concern was
+unfounded.
+
+**Executed `isTerminalStatus` over every value `missions.status` actually holds:**
+
+```
+  proposed                232   false     <- correct, not finished
+  halted                   67   TRUE      <- added by this item
+  completed                27   true
+  completed_with_failures  22   TRUE      <- added by this item
+  cancelled                 1   true
+```
+
+**All five classified correctly, and the two additions cover 89 of 349 missions, 25.5%.** That
+is the real effect: a breached mission at `halted` or `completed_with_failures` previously read
+as `runaway`, meaning "breached AND still active", when it had already finished. **A quarter of
+missions could be reported as actionable-now when the right answer is post-hoc `watch`.**
+
+`done`, `failed` and `canceled` are in the set and appear zero times in `missions.status`
+today. Unlike the relay's dead `done` arm this costs nothing, because being generous about
+terminal only ever moves a verdict from `runaway` to `watch`.
+
+---
+
+## K-28 · VERIFIED · 2026-08-20 16:26 · the deleted block was dead, and both grounds still paint
+
+**Ratchet:** `src/styles.css` sums to exactly **1,022** across its nine markers, the 202 drop
+the entry claims. Repo total **5,340** across 257 files, down from 5,542 after K-27 and 5,864
+originally. **§10 criterion 19 is "never higher" and it is now 524 lower than its own baseline.**
+
+**The check a build cannot make.** This deleted a `[data-theme="light"], .light-theme` block,
+so the risk is that the paper ground stops painting. Driven in a real browser across all three
+theme states:
+
+```
+  data-theme="dark"     body rgb(10,10,10)      ink oklch(96.5% .003 70)
+  data-theme="light"    body rgb(255,255,255)   ink oklch(22% .012 70)
+  no attribute          body rgb(10,10,10)      ink oklch(96.5% .003 70)
+```
+
+**Both grounds invert correctly**, 759 `[data-mrd]` nodes render in each, and **zero console
+errors and zero page errors** in all three. The block was superseded, not load-bearing.
+
+---
+
+## K-67 · VERIFIED · 2026-08-20 16:27 · the canary is the part that makes the pass mean anything
+
+Three assertions collecting offenders into an array and asserting `toEqual([])`, so a failure
+**names** the dead keycap rather than counting it.
+
+**The canary is present and is the reason I am verifying rather than shrugging:**
+`nav-model.test.ts:401` -- *"the resolver can fail, so a pass below is evidence rather than a
+vacuum"*. Without it, a resolver that silently matched everything would make all three
+assertions pass while the rail was broken. **That is the exact failure this repo has recorded
+twice today** -- a guard on a spelling rather than on the claim -- and this item pre-empted it
+without being asked.
+
+Gates are green, so all four cases pass. Nothing here needs production.
+
+---
+
+## K-72 · VERIFIED · 2026-08-20 16:28 · one attribute, on the member that renders most
+
+`data-mrd=""` is present on `EmptyRow` at `RoomDetail.tsx:101`. The family claim holds: it is
+now on all six members, and `role="status" aria-live="polite"` remains on only the three
+pending and failed ones.
+
+**The argument for no aria is right and is arithmetic rather than taste** -- the two other
+empty states carry no live region either, so adding one here would make this the odd member of
+a different family. **And the item is correct that the empty state is what production shows
+most often**, which is what makes a missing focus ring on it worth a commit of its own.
+
+---
+
+## K-73 · VERIFIED · 2026-08-20 16:30 · the scope table agrees with the CHECK constraint nobody told it about
+
+Pure module, no imports, so what I could add is whether its vocabulary survives contact with
+the rows. **Executed `resolveMemoryScope` over every kind `agent_memory` actually holds:**
+
+| kind | rows | real | scope | promotable |
+| --- | --- | --- | --- | --- |
+| `reflection` | 1,195 | 116 | workspace | yes |
+| `precedent` | 28 | 0 | product | no |
+| `note` | 25 | 0 | product | no |
+| `correction` | 11 | 1 | workspace | yes |
+
+**Four kinds in production, all four resolve, none throws, and every reason reads as a
+sentence a person would say.**
+
+**The cross-check worth having: this agrees exactly with a database constraint it does not
+import.** `20260819182000` added `check (kind not in ('reflection','correction') or product_id
+is null)` -- method memory may not carry a product. This module independently puts
+`reflection` and `correction` at `workspace` scope and everything else at `product`. **Two
+statements of one rule, written in different places by different lanes, and they match.**
+
+**Noticed, and it is a defect in a third place rather than in this item.**
+`src/lib/liveness/registry.ts:256` declares `agent_memory`'s kinds as
+`['reflection','note','outcome','fact','preference','precedent']`. Production holds
+`reflection`, `note`, `precedent` and **`correction`**. So that list **omits a kind that exists
+and names three that do not**. K-73 is right and the liveness probe is wrong; anything checking
+memory coverage through that registry is checking the wrong vocabulary.
