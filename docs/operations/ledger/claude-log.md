@@ -4231,3 +4231,64 @@ fails at **exit 1**.
 
 `bun run docs:check` now runs unpiped, with `$?` read explicitly. **A gate whose
 result I read through `tail` is not a gate I ran.**
+
+---
+
+## Claude lane · LANDED · 2026-08-20 10:36 · a gate you read through `tail` is not a gate, so the gates now answer on their own last line
+
+The follow-through from the last tick. **I fixed my habit; a habit is what
+failed.** This replaces it with a command, which is the same move `lane-sync.sh`
+made when "rebase before every batch" turned out to be a reminder nobody could
+time.
+
+### `bun run lane:gates`
+
+Runs all four - `tsc`, `docs:check`, `test`, `build` - reads each exit code, and
+prints the verdict as **its own final line**:
+
+```
+GATES GREEN - tsc, docs:check, test, build all passed.
+GATES FAILED: docs:check - do not commit or push.
+```
+
+**The last line is the design, not a flourish.** What broke was
+`bun run docs:check 2>&1 | tail -2`: a pipe reports the exit status of `tail`, and
+`docs-doctor` prints "clean of hard rot" as a footer two lines BELOW "ISSUES
+FOUND", so a failing gate ends on a reassuring sentence. **A defence that only
+works when nobody takes the shortcut is not a defence, because the shortcut is
+what happened.**
+
+Tested both directions rather than assumed:
+
+- green tree: every gate passes, exit **0**, last line `GATES GREEN`
+- planted violation in `docs/`: exit **1**, and read through the exact shortcut
+  that failed, `| tail -1` prints
+  **`GATES FAILED: docs:check - do not commit or push.`**
+
+It also names the failing gate and prints its last 12 lines inline, so the reason
+is in front of you rather than in a temp file you have to be told about.
+
+**And bun reinforces it for free**: through `bun run`, a non-zero exit appends
+`error: script "lane:gates" exited with code 1`, so a `tail -1` shows a failure
+even if my own line scrolled past. **There is no tail depth that reads as
+success**, which is exactly what was wrong with reading `docs:check` directly.
+
+### It runs all four even after one fails
+
+The question before a push is "what is broken", not "what broke first". A second
+run to discover the next failure costs more than finishing the first.
+
+### Documented where the rule lives, not just here
+
+`AGENTS.md` stated the cycle as three commands and **did not list `docs:check` at
+all**, which is part of why it was the one being read loosely. It now names all
+four, recommends `lane:gates`, and carries the incident in two sentences, because
+a command nobody knows about is half a feature and the reason is what stops
+somebody "simplifying" it back to a pipe.
+
+### The pattern this is the third instance of
+
+`lane-sync.sh` replaced "remember to rebase". The counting fix replaced "remember
+that a rejected item can come back". This replaces "remember not to pipe the
+gate". **Each one started as a rule an agent was expected to hold, and each failed
+the same way: silently, while the agent believed it was complying.**

@@ -187,10 +187,25 @@ Non-negotiable. A change that breaks one of these is wrong even if it works.
 **Every cycle, no exceptions:**
 
 ```bash
+bun run lane:gates    # all four, exit code read, verdict on the LAST line
+```
+
+Or the four by hand, if you want one of them alone:
+
+```bash
 bunx tsc --noEmit     # 0 errors
 bun test              # 0 failures
 bun run build         # succeeds
+bun run docs:check    # 0 FAIL items, and it is a gate like the others
 ```
+
+**Prefer `lane:gates`, and the reason is an incident rather than convenience.** On
+2026-08-20 main went out red on the doc gate while the gate was being run every
+time, because it was being read as `bun run docs:check | tail -2`. A pipe reports
+the exit status of `tail`, and `docs-doctor` prints its cheerful footer BELOW its
+failure summary, so a failing gate ends on a reassuring sentence. `lane:gates`
+runs all four, reads each exit code, and **puts the verdict on its own last line**,
+so the shortcut that hid the failure cannot hide it again.
 
 Plus an adversarial read for **runtime-fatal** bugs, the class typechecking cannot see:
 
