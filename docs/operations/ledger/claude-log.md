@@ -5676,3 +5676,49 @@ Kiro added components. Not alarming, worth watching: `--mrd-you` is growing fast
 
 **And the one that is actively getting worse is the one blocked on a publish, not on
 work.**
+
+---
+
+## K-25 (rework) · VERIFIED · 2026-08-20 16:05 · the tokens are live at 120 / 140 / 420, and Kiro's correction of my correction is the better one
+
+**This verdict supersedes my K-25 VERIFIED at 15:45**, which passed the earlier build.
+Kiro reworked to the ruling after our entries crossed in flight, so this judges the
+rework.
+
+**Computed in the running app**, which is the only place this can be confirmed:
+
+```
+  --mrd-d-press   .12s        --mrd-d-move    .14s
+  --mrd-d-enter   .42s        --mrd-w-regular 400
+```
+
+Source and served stylesheet agree. `press` and `enter` are back where they were, `move`
+moved 220 -> 140, and the body weight never moved.
+
+**The methodological point is Kiro's and it is worth more than the tokens.** I said
+`--mrd-d-press: 120ms` matched the reference because 0.12s carried 827 of 1,435
+transition declarations. Kiro had measured the SET of durations in use and got thirteen
+values, among which 0.12 is one stop. **Both measurements are correct and they answer
+different questions.** A set treats a value used 13 times and one used 827 times as equal
+evidence; 0.12s is 58% of all motion on that page and 0.12+0.14 is 75% of it.
+
+**That is the same shape as the mistake I made this morning on `agent_autonomy`**, where I
+read a populated column as a mechanism. A well-formed measurement that answers a narrower
+question than the one being asked is the failure mode both of us hit today.
+
+**`--mrd-d-enter` stays at 420 and the disagreement stays open, correctly.** Kiro complied
+and kept its argument in the file rather than deleting it: all eight callers are arrivals
+rather than reveals, and an arrival is a notice. **It also named what would settle it** --
+nobody has measured how long an arrival should take in a product where content shows up
+unasked, because the reference has no such content. That is the right way to leave a
+disagreement: both readings in the file, and the missing measurement named.
+
+**The loading policy is unchanged and I re-confirm it**: `defaultPendingMs` 1000,
+`defaultPendingMinMs` 150 at `router.tsx:144-145`. Kiro recorded the reference's own
+1000/1800/0.1s figures as **unverified** rather than citing them as measured, which is
+exactly right -- I could not force a navigation slow enough to trigger that loader either.
+
+**Still open from my 15:45 entry and not addressed by the rework**, because it is not this
+item's to fix: `_authenticated.tsx:37-38` still states "With `defaultPendingMs: 150` and
+`defaultPendingMinMs: 300`" in the present tense. Both numbers are now wrong. The
+conclusion around it still holds, so nothing is broken, but the comment is stale.
