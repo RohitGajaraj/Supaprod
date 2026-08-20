@@ -1985,3 +1985,101 @@ closed by extracting a shared module rather than by tuning three files to match.
 **Spend is the outlier and that is coherent**, not an oversight: K-07 is the item
 I REJECTED, so it has not been rebuilt yet. When it is, it should adopt
 `run-rows` and the set is whole.
+
+## K-17 · RULED · 2026-08-20 05:45 · withdrawn, not deferred
+
+**The block is correct and the item is wrong. Do not mount either component.**
+
+**The premise holds and I confirmed it:** `StreamingText` and `ToolChips` have
+**zero product callers** -- their only importers are the gallery and their tests.
+That much of the item is right.
+
+**The prescription is wrong, and the decisive evidence is that the surface I would
+have sent it to has already refused it in writing.** `AskTurn.tsx:261-268`:
+
+> *"There is deliberately no second branch for the in-flight case: the stream
+> patches `content` on this same message, so the half-written answer and the
+> finished one are the same JSX and cannot render differently. A separate
+> 'streaming text' path is exactly how a surface ends up showing raw hashes for
+> the eight seconds a person is actually watching it, and then tidying itself up
+> once they have stopped."*
+
+**That is this item's proposal, refused, with the failure mode named.** An item
+that asks for a pattern another surface has already rejected on the record is an
+item that needed to read that file first.
+
+**And on the run route both would say something twice.** `ToolChips` is a fourth
+view of a run against three that were just unified onto `run-rows.tsx`, while the
+steps ledger already renders every tool call. `StreamingText` would animate prose
+that arrived minutes ago off a 4-second poll -- **the animation asserts "this is
+being written now" about a finished string**, which is the class of claim this
+repo forbids -- and `ReturnSummary` already renders that same message.
+
+**Two of its four inputs have nothing honest to fill them**, which is the tell
+that the fit is wrong rather than merely awkward: there is no citation structure
+in the run record, so `sources` is empty on every real run, and `LoopStep` carries
+no duration.
+
+**WITHDRAWN, not deferred, and the distinction matters.** There is nothing to come
+back to. **A component with no home is not a defect to be fixed by finding it
+one** -- mounting something to justify its existence is how a surface acquires a
+second way of saying what it already said. They stay as reference ports in the
+gallery, which is what they are.
+
+**The `run-parts.tsx` check is the part I want kept.** Kiro tested whether the
+existing ledger might be the old thing worth replacing, which would have made this
+item coherent, and found **3 `--sp-` occurrences and no ratchet baseline entry at
+all** -- current-generation and tuned, not debt. Checking whether the thing you
+are about to duplicate is actually obsolete is the step that turns a refusal into
+a finding.
+
+**Noticed and worth acting on separately:**
+`engine-room/AgentScorecardPanel.tsx:81` declares its own local `ToolChips`. **Two
+components, one name, and the local one is the one with callers.** Rename before
+somebody imports the wrong one.
+
+---
+
+## K-18 · RULED · 2026-08-20 05:45 · rewritten as the defect it found
+
+**The block is correct on both counts and I verified both.**
+
+**There are 15 hold reasons, not 16.** Counted off `HOLD_LINE` in
+`spine/driver.ts`: fifteen exactly. **The acceptance criteria asked for 16 to
+render and could never have been satisfied.**
+
+**And `done` is among them, which is the sharper catch.** It reads *"The route is
+finished. This work has been graded."* Rendering it in a list of stopped work
+would report finished work as stuck -- **the same defect `PlanCard` exists
+because of, one layer up.** An item that had shipped as written would have
+introduced it.
+
+**"None of them surfaces anywhere" is false.** `holdLine` → `rowToTrack`
+(`track.functions.ts:141`) → `TrackStart.tsx:472`, rendered as `sub={t.hold ??
+t.summary}`. All fifteen reach a surface. The item's `Why` described a gap that
+had been closed.
+
+**THE REAL DEFECT IS SMALLER, IT IS IN A FILE THE ITEM DOES NOT OWN, AND IT IS
+WORSE THAN THE ITEM.** `TrackStart.tsx:487`:
+
+    <Value tone={t.hold ? "hold" : "quiet"}>{AGENT_STATIONS[t.station].name}</Value>
+
+**Every hold paints amber, including `waiting-on-a-person`.** So a gate waiting
+on **you** renders in the token that means *stopped, and NOT on you* -- the exact
+distinction the item calls the whole reason both tokens exist, inverted for the
+one reason where it matters most. **The file computes `waitingOnAPerson` at
+`:452` and does not use it for the tone.**
+
+**Adopt Kiro's classification.** Four orchid (`waiting-on-a-person`,
+`station-cannot-finish`, `corrections-spent`, `given-up`), ten amber, and `done`
+excluded as not a hold. It is argued from `meridian.css`'s own enumeration rather
+than from the sentences, and `StalledWork`'s header supports the amber side from
+production: **26 tracks were starved of evidence while the product told their
+owners to go inspect a station.** The test that settles the hard cases is right --
+*you top up an account, you do not decide this track* -- so `over-budget` and
+`out-of-credit` sit in amber despite sentences that sound like a request.
+
+**K-18 becomes the tone fix**, owning `TrackStart.tsx`, with the fifteen
+classified and `done` excluded. The rendering work the item originally asked for
+is deleted rather than rescheduled, because it was asking for something already
+shipped.
