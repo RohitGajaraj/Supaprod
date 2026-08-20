@@ -6359,3 +6359,137 @@ through K-29, K-30 and now K-31. **Baseline re-frozen: 3,400 → 3,355.**
 sites, so there is no rendered surface to compare. The things that *do* render were each confirmed by
 keeping their token declaration or their `@keyframes` and re-checking for dangling references, which
 came back empty.
+
+---
+
+## K-79 · BUILT · 2026-08-21 02:20 · the last item in the queue
+
+**Did.** Appended a 331-line **BRAIN** pass to `REFERENCE-PATTERNS.md` and added the Brain row to the
+reference-class table, which the acceptance line requires. Structure matches K-76, K-77 and K-78
+heading for heading. Read the actual path before researching: `_authenticated.brain.tsx`,
+`memory-scope.ts`, `ai/memory.server.ts`, the RF-02 and RF-03 migrations, and the `agent_memory` /
+`house_rules` shapes.
+
+**The structural finding, and it is why the item's framing needed inverting.** **This is the only one
+of the eight passes where the reference class is mostly counter-examples, and the reason is a single
+verb.** Every product here models itself as a place that HOLDS things: a card, a note, a saved memory.
+That framing is what makes them undefensible and it is exactly what the canon bans, so the useful
+reading is not "copy their surface" but **"they solved retrieval display and none of them solved what
+makes retrieval worth trusting."** Four of the ten named references are marked as counter-examples.
+
+**The single most valuable sentence in the whole pass came from the category's own definition.**
+ThoughtWorks defines context graph against its obvious neighbour: unlike GraphRAG, which builds from a
+static document corpus, **a context graph maintains temporal validity on every edge, so a superseded
+fact is invalidated rather than overwritten.** That is a precise description of `supersededContent`,
+which appends and keeps the prior verdict verbatim on the argument that *"we called it validated in
+March and it was missed by June"* is the highest-signal thing this product owns. **So we already do the
+thing the category is named for, and we do it in a content string rather than on an edge** — which is
+the difference the ROADMAP directive is about, and the honest reading is that a reader can see a fact
+was superseded and a query cannot filter on *when*.
+
+**Two comparisons the product wins, stated because a research pass that only finds gaps is not
+reading.** **Guru's freshness trigger is a clock; ours is an outcome.** A lapsed card is deprioritised
+in generated answers; RF-02 sinks a row whose verdict is missed below an equally similar row that is
+validated, with decay on `last_used_at` as a smaller second input. **An outcome-weighted rerank is
+strictly better than a calendar, because a lesson does not become wrong by ageing, it becomes wrong by
+being contradicted.** What Guru has and we do not is the part a reader can see. And **we hold a join
+none of these products has**: `memory_recall_log` records every recalled id against the trace, RF-03
+upgrades it to `used` or `contradicted` from a rating, so the product can already say *these lessons
+were in front of the model and this is how the run went.* That is a stronger claim than a citation.
+**It is written, correctly keyed, and rendered nowhere.**
+
+**Unsure.** Three.
+1. **The highest-value directive is PROVEN rather than WIRING, and I checked that twice because it is
+   unusual.** Rendering what a run read needs no new column: the join, the trace key and the
+   used/contradicted upgrade all exist. **That makes it the rare case where the moat claim and the
+   cheap change are the same change**, and if that reads as too good it is the first thing to
+   re-measure.
+2. **I left two occurrences of banned vocabulary in and both are deliberate.** One is
+   `the ban on *"remembers"*`, because you cannot name a ban without naming the word, and the other is
+   the literal title of the Anthropic doc in the source list. A third, "two stores with two authors",
+   used the word as a noun and I reworded it to "records" anyway, because the distinction is too fine
+   to leave for a reader to adjudicate.
+3. **I said plainly that the class has no answer to question 1 rather than padding a template.** Glean,
+   Guru and Notion AI are query surfaces, and **a person opening Brain has no query**: they are not
+   asking where a policy is, they are asking what has been learned, which cannot be typed because you
+   do not know the answer's shape. The nearest thing to an answer is Obsidian's **local** graph, and
+   its own community supplied the correction that the global graph is unusable in practice. A reviewer
+   could hold that a search box plus good citations is enough; I do not think it is, and the argument
+   is in the doc rather than only here.
+
+**Noticed.** Four, and the second reframes an earlier finding.
+1. **`precedent` is one of the six node types in the industry's own context-graph enumeration.** K-73
+   found nothing writes it and read it as a naming slip between a ruling and its writers. Read against
+   the category definition it is more: it is the node that says *this was settled before, this way*.
+   So **the product has a precedent engine that does not read the precedent kind** (it filters
+   `kind === "outcome"`) **and a precedent kind no writer produces**, while production holds 28 rows of
+   it. That is a wiring gap rather than a vocabulary one, and it is now argued as premise correction 2.
+2. **The `scope` column answers a different question from the one it looks like it answers**, and the
+   file says so: `agent` 1,083 rows, `workspace` 81, `global` 11, all three about **which agents may
+   reach a row**. The product-versus-workspace question is `resolveMemoryScope`'s, on top of `kind`.
+   **Any surface showing "scope" has to name which of the two it means.**
+3. **`agent_memory` holds zero rows of kind `outcome`, which is the kind the precedent engine reads.**
+   `memory.server.ts` documents why at length: on the only settle path that has ever run, the write was
+   skipped before it started because `prdId` was required and 84 of 119 learnings carry none. **So the
+   pool the Critic's red team reads has never held a row.** That parameter is nullable now, and whether
+   the pool has filled since is a production question rather than a repo one. Every directive is
+   written to be worth building either way, and this is flagged as the first thing to check.
+4. `formatDecisionPrecedent` renders a null title as "an untitled spec", **naming a spec that does not
+   exist**, and it is reachable the moment a spec-less verdict is recalled. Pre-existing, documented in
+   the file, and not in this item.
+
+**Gates.** `docs:check` exit **0, zero FAIL** across all eleven checks, orphan check [10] ok on the
+first run. `lane:gates` green, real exit 0 read from `$?`.
+**Dashes verified programmatically over the appended range, and the check caught one.** A scan of all
+331 lines for U+2012 through U+2015, U+2212, U+00AD, U+200B-D, U+2060, U+180E, U+FEFF, U+00A0 and
+U+202F found **one em dash**, which I removed by rewriting the clause rather than swapping the
+character. A full non-ASCII inventory now returns **exactly one character**, `·` MIDDLE DOT, 42 times,
+which is the file's own separator. **Worth recording that the eyeball would have missed it and the
+script did not.**
+
+**Note on how this item arrived.** A sub-agent hit a network error mid-task and had written **only the
+table row**, which claimed "researched 2026-08-20, below" with no section below. That is a claim
+outrunning its wiring in a live doc, so rather than leave it or revert it I wrote the pass myself and
+made the row true.
+
+---
+
+## Queue state · 2026-08-21 02:20 · the queue is finished
+
+**Every item K-25 through K-85 now carries a log entry.** K-79 was the last one with no entry, and
+nothing is blocked, because nothing is left.
+
+**What this session did:** 61 items from K-25 onward, in 14 pushes, every one of them gated with
+`lane:gates` read from `$?` rather than through a pipe. **Baseline across the session: 5,157 → 3,355
+occurrences, 257 → 230 files carrying debt**, and `src/styles.css` alone went 3,886 → 2,797 lines
+across K-28, K-29, K-30 and K-31.
+
+**Two items are not builds and are waiting on a person, both logged above with the argument rather
+than a summary.** K-37's four ACT verbs: **delete, or wire the listener and mount the palette**, where
+the cost is more than it looks because both candidate hosts are themselves unreachable. And K-31's
+eight `.btn-*` classes, kept because **`styles.css` carries a dated explicit DO-NOT-DELETE ruling** on
+that family which the item does not acknowledge, and the item's counter-argument is real, so it is a
+founder call rather than mine.
+
+**What is owed to a browser, in the order I would look.** **`text-mrd-body` resolves as both a colour
+and a 14px font size**, found independently by three workers and measured against the real compiler by
+a fourth, which found `text-mrd-base text-mrd-body` renders at 14px because the `@utility` rules sort
+alphabetically. Then **`/settings` and `/pricing`**, the two surfaces that changed most. Then a
+**keyboard tab through the engine room, the runs table and the agent inbox in both grounds**, because
+a focus ring and a single tab stop are exactly what a test cannot confirm is visible. And
+**`/today`'s now-colourless notices section**, where K-59 refused to build station hues in
+`meridian.css` and a reviewer who wants a hue back should look before ruling.
+
+**Findings that are nobody's item yet, in the order I would raise them.**
+1. **The generated types are stale against applied migrations**, so `tsc` rejects three columns that
+   exist. That is AGENTS.md §9's trap in mirror image and it blocks two Learn directives.
+2. **A fifth copy of the failure surface at `src/router.tsx:35`**, invisible to the ratchet because
+   `src/router.tsx` is outside `SCAN_ROOTS`.
+3. **The calibration number the forecast thesis rests on is computed nightly against the wrong table**,
+   so the product scores the claims it generates about itself and cannot score the claims a person
+   records.
+4. **`agent_memory` holds zero rows of the one kind the precedent engine reads**, which is the first
+   thing to check in production.
+5. **`ConnectTrustDialog.tsx` is entirely shadcn/Tempo v5** and is the connect-moment trust
+   interstitial. Also `every-token-used-is-defined.test.ts` is scoped to `--sp-*` and never opens
+   `src/styles.css`, so it is the §9 file-versus-directory trap living inside a guard.

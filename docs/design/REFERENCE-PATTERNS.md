@@ -30,6 +30,7 @@ official product documentation**, with URLs. Treat it as reliable.
 | **Build** | GitHub Copilot · Devin · Cursor · Claude Code · Codex | ✅ researched 2026-08-01, below |
 | **Ship** | Linear Releases · Vercel Rolling Releases and Instant Rollback · LaunchDarkly guarded rollouts · Statsig Release Pipelines · GitHub Releases and environment protection rules · Sentry release health · Datadog deployment tracking · LaunchNotes | ✅ researched 2026-08-20, below |
 | **Learn** | Amplitude Experiment readouts · Statsig Pulse and Release Pipelines · Eppo experiment status and decision criteria · GrowthBook Decision Framework · Metaculus scoring and resolution · Good Judgment · incident.io post-mortems · Jeli · ADR practice | ✅ researched 2026-08-20, below |
+| **Brain** (layer 03, not a station, and the reason it was in no row until now) | Guru verification · Glean Assistant citations and knowledge graph · Notion AI Connectors and Q&A · Obsidian local graph · Cursor rules and memories · Claude Code `CLAUDE.md` and auto memory · Windsurf Cascade Memories · ChatGPT saved memories · Perplexity numbered citations · the ThoughtWorks context-graph entry | ✅ researched 2026-08-20, below. **Four of the named references are counter-examples rather than templates** |
 
 ---
 
@@ -2387,5 +2388,338 @@ Jeli: [Jeli Incident Analysis](https://www.pagerduty.com/platform/jeli/incident-
 ADR practice: [Architecture Decision Record](https://martinfowler.com/bliki/ArchitectureDecisionRecord.html) ·
 [Maintain an architecture decision record (Azure Well-Architected Framework)](https://learn.microsoft.com/en-us/azure/well-architected/architect-role/architecture-decision-record) ·
 [Architectural decision record process (AWS Prescriptive Guidance)](https://docs.aws.amazon.com/prescriptive-guidance/latest/architectural-decision-records/adr-process.html).
+
+Content was rephrased for compliance with licensing restrictions.
+
+---
+
+# BRAIN: showing what a system has learned without claiming more than it did
+
+Researched 2026-08-20 against official product documentation. **Structural insight: this is the only
+one of the eight where the reference class is mostly a set of counter-examples, and the reason is a
+single verb. Every product here models itself as a place that HOLDS things: a card, a note, a file, a
+saved memory. That framing is what makes them undefensible and it is what the canon bans, so the
+useful reading of this class is not "copy their surface" but "they solved retrieval display and none
+of them solved the thing that makes retrieval worth trusting."** Four of the ten named references are
+counter-examples rather than templates, and they are marked as such below.
+
+**The one exception is the category's own definition, and it is the most valuable sentence found in
+this whole pass.** ThoughtWorks placed **context graph** at Assess in April 2026 and defined it
+against the obvious neighbour: unlike GraphRAG, which builds from a static document corpus, **a
+context graph maintains temporal validity on every edge, so a superseded fact is invalidated rather
+than overwritten**, and it is worth assessing for agentic applications needing persistent recall
+across sessions or traceable decision reasoning. That is a precise description of `supersededContent`
+in `src/lib/ai/memory.server.ts`, which appends a note and keeps the prior verdict verbatim on the
+argument that *"we called it validated in March and it was missed by June"* is the highest-signal
+thing this product owns. **So we already do the thing the category is named for. We do it in a content
+string rather than on an edge, and the difference is what the directives below are about.**
+
+## Three premise corrections, because two of them change what may be recommended
+
+**1. The item says Brain is in no reference row. That was true and the gap is wider than a row.** Brain
+is not a station, it is layer 03, and the seven station rows are all *surfaces where work happens*.
+Brain is the surface where **what the work taught** is read, so its reference class was never going to
+come from product tooling: it comes from enterprise knowledge search, from note graphs, and from how
+coding agents display what they pulled in. The row added at the top of this file names all ten.
+
+**2. `precedent` is one of the six node types in the industry's own context-graph enumeration, and
+nothing in this repo writes it.** K-73 found the absence and read it as a naming slip between a ruling
+and its writers. Read against the category definition it is more than that: the enumeration is
+decisions, policies, exceptions, **precedents**, evidence and outcomes, and `precedent` is exactly the
+node that says *this was settled before, this way*. `memory-scope.ts` carries it in `EVIDENCE_KINDS`
+because production holds 28 rows of it, and `decision-precedent.server.ts` filters on
+`kind === "outcome"` instead. **So the product has a precedent engine that does not read the precedent
+kind, and a precedent kind no writer produces.** That is a wiring gap rather than a vocabulary one.
+
+**3. The `scope` column looks like it answers the retrieval-boundary question and answers a different
+one.** Measured in `memory-scope.ts` against production: `agent` 1,083 rows, `workspace` 81, `global`
+11, and all three are statements about **which agents may reach a row**, never about whose evidence it
+is. The product-versus-workspace question is answered by `resolveMemoryScope` on top of the `kind`
+column, and **11 of 17 workspaces already hold more than one product while 7 hold four**, so this is
+the majority state rather than a future case. Any recommendation about showing scope on a surface has
+to name which of the two questions it is showing.
+
+## Verdict on the named class first, and one question has no answer in it at all
+
+| Question | Does the knowledge-surface class answer it? | What actually answers it |
+| --- | --- | --- |
+| 1. Showing what the system knows without becoming a search box | **No, and this is the flat no.** Glean, Guru and Notion AI are all search boxes by design, and their own framing is a company brain you query. A box that answers questions is the correct shape for *"where is the invoice policy"* and the wrong shape for *"what has this team learned"*, because the second has no query: the reader does not know what to ask | **Obsidian's LOCAL graph**, for the constrained-neighbourhood read, and its own community's verdict on the global graph as the counter-example · **Guru's trust indicator**, for a per-item freshness state shown without being asked · **Claude Code's `/memory`**, for making what the machine wrote inspectable at all |
+| 2. Showing a retrieved memory at the point it influenced something | **Partly, and the good part is very good.** Glean puts a citation immediately after the statement that needs backing, and its **deep-linked citations resolve to the exact passage** rather than to the document | **Glean deep-linked citations** · **Perplexity's numbered inline citations** · **Cursor's context pills and Claude Code's visible file reads**, which show what was pulled in *before* the answer rather than after it |
+| 3. Showing it learned something without claiming more than it did | **No, and two of them claim considerably more.** Cursor's own community documentation of the memories mechanism describes it as internal and not something the user sees or interacts with; Guru's marketing calls a connected corpus a company brain | **Claude Code**, which is the one honest reference: its docs state the two memory systems are treated **as context rather than as enforced configuration**, and `/memory` shows a toggle · **Guru's verification lapse**, where stale content is deprioritised in AI answers rather than hidden or claimed |
+
+## The merged information model for one thing the brain holds
+
+**Tier 1, the row is not trustworthy without these**
+
+| # | Field | Lifted from |
+| --- | --- | --- |
+| 1 | **the lesson in the words it was written in, never rewritten** | the context-graph definition (a superseded fact is invalidated, not overwritten) · ours already, in `supersededContent` |
+| 2 | **what settled it, resolvable to the exact passage and not to the artifact** | Glean deep-linked citations · Perplexity numbered citations |
+| 3 | **whose lesson it is: the product it was learned in, or the whole workspace** | ours already, in `resolveMemoryScope`, and the only field here with no reference-class equivalent, because none of these products has a tenancy question inside one customer |
+| 4 | **a freshness state a reader can see without asking**, and a verb to renew it | Guru verification and its trust indicator · Metaculus Reaffirm, carried forward from the Learn pass |
+| 5 | **written by a person, or written by the machine**, as two different things | Cursor rules against memories · Claude Code `CLAUDE.md` against auto memory |
+| 6 | **whether it has been used, and whether using it went well** | ours already, and stronger than the class: `memory_recall_log` plus the outcome-weighted rerank |
+| 7 | the temporal validity of the edge, so a chain can be walked as at a date | the context-graph definition, which is the only source that states it |
+| 8 | **what reads it next**, named rather than counted | incident.io, carried forward from the Learn pass |
+| 9 | an importance the reader can see, since it is already in the ranking | ours already, in `agent_memory.importance` |
+| 10 | **the kind, from a vocabulary the read side agrees with** | ours, and currently the weakest link: see premise correction 2 |
+
+**Tier 2**: the count of times it was recalled, apart from the last time · the supersession chain as
+links in both directions · the run that wrote it · the agent that wrote it, apart from the person who
+approved it · a per-kind view, so evidence and method are never read as one list · the reason a lesson
+is not promotable, in the words the promotion prompt uses · a stale marker distinct from a superseded
+one.
+
+**Tier 3, focused pane only**: the embedding neighbourhood of one lesson · the rerank arithmetic that
+put one row above another · the recall log for one row across every trace that pulled it · the graph
+at depth two from one node · which lessons a given standing rule was distilled from.
+
+> **The finding that most changes our build, and it is a comparison we win.** Guru's freshness model
+> is the closest thing in this class to a memory that decays, and **its trigger is a clock**: a card
+> comes due, a named verifier confirms it in one click or updates it and re-verifies, and a lapsed
+> card is deprioritised in AI answers. Our equivalent is `match_agent_memory` after RF-02, and **its
+> trigger is an outcome**: a row whose metadata carries a missed verdict sinks below an equally
+> similar row that carries a validated one, with the decay term on `last_used_at` as a second, smaller
+> input. **An outcome-weighted rerank is a strictly better signal than a calendar, because a lesson
+> does not become wrong by ageing, it becomes wrong by being contradicted.** What Guru has and we do
+> not is the part a reader can see: a trust indicator on the item, and a verb to renew it. **We have
+> the better mechanism and no surface for it, which is the exact inversion of this class.**
+
+> **The second finding, and it is the one that would embarrass us.** Every reference in this class
+> shows what it retrieved. Glean cites after the sentence that needs backing and deep-links to the
+> passage; Perplexity numbers its sources inline; Cursor draws a pill per attached file; Claude Code
+> prints the file reads as it makes them. **Our retrieval is invisible at the moment it acts.**
+> `recallMemoryRefs` returns lines that are injected into the system prompt, `logMemoryRecall` writes
+> a `memory_recall_log` row per recalled id keyed on the trace, and the correlation key is the trace
+> rather than the event **for a stated and correct reason** (one recall's lines are baked into the
+> prompt once and reused by every model call in the run's step loop). So the product already knows,
+> per run, exactly which lessons shaped it. **Nothing renders that.** The reader sees an answer and
+> the record separately, and the join between them exists in a table nobody reads on a surface.
+
+## The verb set
+
+`[CG]` the context-graph definition · `[GU]` Guru · `[GL]` Glean · `[NO]` Notion AI · `[OB]` Obsidian ·
+`[CU]` Cursor · `[CC]` Claude Code · `[WS]` Windsurf · `[PX]` Perplexity. Marked verbs are lifted close
+to literally, including the name.
+
+| Verb | Required effect on the data |
+| --- | --- |
+| Invalidate `[CG]` | marks a fact false **from a date**, on the edge, without touching the text of the fact. The whole distinction the category is named for, and the reason it is not an overwrite |
+| Verify `[GU]` | a named person confirms an item is still true, in one press, **and that press is a fresh timestamp rather than an edit**. The item carries a visible indicator of the result |
+| Lapse `[GU]` | verification expires on an interval and the item is **deprioritised in generated answers**, not hidden and not deleted. Silence is not read as continued agreement |
+| Evaluate on a schedule `[GU]` | an agent reviews the corpus nightly, flags what looks stale, and **leaves a transparent log of every decision it made**. The log is the product, not the flagging |
+| Cite after the claim `[GL]` `[PX]` | the reference sits immediately after the statement that needs backing, never collected at the end, so **the reader never has to work out which source supports which sentence** |
+| Deep-link to the passage `[GL]` | the citation resolves to the exact supporting passage rather than to the document containing it. Available only where the answer is grounded in real content, and it falls back rather than faking one |
+| Enforce permission at retrieval `[GL]` | access is applied **during** retrieval rather than filtered afterwards, so a cited source is one the reader may open. Our tenancy analogue is `resolveMemoryScope` and the RPC's workspace clause |
+| Attach `[CU]` `[NO]` | a person puts a specific thing into the working set for one exchange, and it is drawn as an object they can see and remove |
+| Distinguish rule from memory `[CU]` `[CC]` | two records with two authors: what a person wrote as standing instruction, and what the machine wrote from experience. **Loaded together and labelled apart** |
+| Treat as context, not configuration `[CC]` | the honest framing, and stated in the docs rather than implied: what is loaded informs the model and does not bind it. **The one place this class refuses to overclaim** |
+| Inspect and toggle `[CC]` | one command shows every file the machine has been writing into, with a switch. A machine-written record a person cannot read is not a record they can trust |
+| Read the local neighbourhood `[OB]` | show what THIS node connects to at depth one or two, not the whole corpus. Its own community's verdict is that the constrained view is the useful one |
+
+## The three questions, answered
+
+### 1. Showing what the system knows without becoming a search box
+
+**The class has no answer, and saying so is more useful than a template.** Glean, Guru and Notion AI
+are query surfaces: you arrive with a question and they ground an answer in your own content, with
+citations and permissions. That is the right shape for a factual lookup and the wrong shape for this
+station, because **a person opening Brain has no query**. They are not asking where a policy is. They
+are asking what has been learned, which is a question you cannot type because you do not know the
+answer's shape.
+
+**Obsidian is the closest thing to an answer and its own community supplied the correction.** The
+global graph is widely reported as unusable in practice: node positions change on every load, nodes
+overlap, and at any real size it is a decorative blob. The **local** graph is what people actually
+use, on the stated ground that *which notes this note links to* is constrained enough to focus on. The
+forum thread arguing this is titled after the complaint it answers. **So the lift is not "draw the
+graph", it is "draw the neighbourhood of one thing"**, and it comes with a documented warning about
+the version we would otherwise reach for first.
+
+**Guru supplies the other half, and it is the half that needs no query at all.** A verified card
+carries a trust indicator, so a reader learns something about reliability **before** asking anything,
+and a lapsed card is deprioritised in generated answers rather than silently equal to a fresh one.
+That is a per-item state visible at rest, which is what a station full of lessons needs and what a
+search box structurally cannot give.
+
+**Ours, and it is further along than this comparison suggests.** `_authenticated.brain.tsx` is already
+not a search box: it leads with a headline computed from the record (`recordHeadline`), carries
+`guidanceLines` for what the record would tell you next, renders `StandingRules` and `CrewCarries`,
+and holds a graph preview plus tabs for decisions, outcomes and documents. `recordIsBlank` exists so
+an empty record says so rather than rendering an empty frame. **The gap is not the shape of the
+surface, it is that no row on it carries a state.** A lesson on Brain today reads the same whether it
+has been recalled forty times and validated, or written once and contradicted since.
+
+### 2. Showing a retrieved memory at the point it influenced something
+
+**This is where the class is genuinely ahead of us and the fix is small.**
+
+**Glean's rule is the one to lift verbatim: the citation goes immediately after the statement that
+needs backing.** Not gathered into a footer, not a source list beside the answer. And **deep-linked
+citations resolve to the exact passage** that supports the sentence, with a documented fallback to an
+ordinary citation where the answer is not grounded in real content, so the mechanism never invents a
+precision it does not have. Perplexity's numbered inline citations are the same instinct in a
+consumer surface.
+
+**The coding agents answer a different half of the question and it is the half we are missing
+entirely: they show the retrieval BEFORE the answer.** Cursor draws attached files as pills in the
+prompt, and its rules are documented as being included at the start of the model context. Claude Code
+prints its file reads as it makes them. **So a reader watching either one can see the working set
+being assembled, which means a wrong retrieval is visible while it is still cheap.** In our loop the
+recalled lines go into the system prompt and the reader sees nothing at all.
+
+**And we hold the join that would make this exact, which none of these products has.** `memory_recall_log`
+records every recalled memory id against the trace that recalled it, and RF-03 upgrades those rows
+from `ignored` to `used` or `contradicted` when a rating arrives for any event in the trace. **So for
+any run, the product can already say which lessons were in front of the model and whether the run they
+shaped turned out well.** That is a stronger claim than a citation, because a citation says *this
+supported the sentence* while this says *this shaped the work, and here is how the work went.* It is
+written, it is keyed correctly, and it is rendered nowhere.
+
+### 3. Showing it learned something without claiming more than it did
+
+**Two of the references are the warning rather than the model, and the canon predicted both.**
+
+The clearest counter-example is the framing of an internal memory mechanism as something the user
+neither sees nor interacts with, which appears in Cursor's own community documentation of how the
+memories system is meant to be described to a model. **A record a person cannot inspect is a claim
+rather than a record**, and it is the precise failure the ban on *"remembers"* protects against: the
+verb asserts a capability whose evidence is unavailable. The second is the marketing use of a company
+brain to describe a set of connectors over existing content, where the honest description is grounded
+permission-aware answers over your own documents.
+
+**Claude Code is the one reference that gets this right, and it does it with two moves.** Its
+documentation states that the two memory systems are loaded at the start of every conversation and
+treated **as context rather than as enforced configuration**, which is a deliberate and published
+under-claim about what loading something achieves. And `/memory` renders the files with a toggle, so **what the
+machine wrote about your project is inspectable and switchable off.** The split it draws is the same
+one this product already has, between a rule a person wrote and a lesson the machine distilled, and it
+is worth noting that this repo's own `AGENTS.md` is that artifact.
+
+**Guru's third move is the schedule.** Its agent evaluates content nightly and leaves a transparent
+log of every decision it made, so the claim being made is not *the corpus is good*, it is *here is what
+was checked and what it concluded*. **That is the shape of an honest learning claim: the process is
+visible and the conclusion is dated.**
+
+**Ours, and the honest reading.** The canon's rule is that we never claim accumulated learning in the
+present tense, and the surface currently honours it structurally: `recordIsBlank` and `guidanceLines`
+mean an empty record says what it is. What is missing is the positive form. **When there IS something
+to show, the surface has no way to say how strongly it holds**, because no row carries a recall count,
+a validation state or a date it was last confirmed, even though the ranking behind it reads all three.
+
+## What these products get wrong for an agent-operated product
+
+Anti-patterns. Do not copy them.
+
+1. **The global graph, which the community has already ruled on.** Positions shift on every load,
+   nodes overlap, and past a small size it carries no information. Brain's own graph preview is the
+   place this would land, and Obsidian's own forums are the argument for keeping it a local
+   neighbourhood.
+2. **A freshness clock standing in for a truth signal.** Guru's verification interval is configurable
+   per card precisely because evergreen content should not keep coming due, which concedes the point:
+   **age is a proxy and a weak one.** We have the stronger signal already, and adopting the clock
+   alongside it would let a stale-but-validated lesson outrank a fresh contradicted one.
+3. **A machine-written record the reader cannot open.** Named above. The correction is one command.
+4. **Company brain as a claim rather than as a description.** The canon keeps **shared brain** and it
+   earns it by being the thing agents actually read at the chokepoint. What must not follow is the
+   adjacent claim that connecting sources constitutes learning.
+5. **Citations collected at the end of an answer.** Glean's own guidance puts the reference after the
+   statement, and the reason is that a footer makes the reader do the matching. Anywhere this product
+   renders a grounded answer, a source list at the bottom is the version to refuse.
+6. **A verify press that is also an edit.** Guru separates confirming from updating: one press means
+   *still true*, and changing the content is a different act that then needs its own confirmation.
+   Collapsing them makes a track record uninterpretable, because you cannot tell a belief that held
+   from a belief that was quietly rewritten.
+7. **Overwriting a superseded fact**, which is the thing the category is defined against and which
+   this product already avoids. Recorded here so nobody optimises `supersededContent` into a rewrite.
+8. **A depth that lets the walk wrap around.** The Ship and Learn passes both found loops in this
+   graph by design, since a learning re-opens the decision that produced it.
+   `AuditLineageSheet.tsx` already caps its walk at depth 3 for exactly this reason, having found a
+   changeset presented as a mission's ancestor at the default depth. Any Brain graph read inherits
+   that constraint.
+
+## What this means for our Brain surface, stated as directives rather than status
+
+Verified from the repo only. Nothing here was checked against production, and each directive is tagged
+for how much wiring it needs: **PROVEN** means every row it reads is already read or written on this
+path, **WIRING** means a column or an edge has to exist first, **ROADMAP** means the substrate is not
+there at all.
+
+**The constraint every directive obeys.** The chain is broken in two places and the Learn pass
+measured the second precisely, so **nothing below grades against a deploy lineage.** And the honesty
+rule binds hardest on this station of all eight: the loop is wired and proven and begins accruing on
+first real use, and no directive here may render a sentence that outruns that.
+
+- **PROVEN. Render what a run read.** `memory_recall_log` already holds the join, keyed on the trace
+  for a stated reason, and RF-03 already upgrades a row to `used` or `contradicted` from a rating.
+  Every part of *"these six lessons were in front of the model, and this is how the run went"* is
+  written. **This is the highest-value item in the pass and it needs no new column**, which makes it
+  the rare case where the moat claim and the cheap change are the same change.
+- **PROVEN. Put a state on every row Brain draws.** `importance`, `last_used_at` and the verdict in
+  `metadata` are all read by the rerank today, and none is shown. Guru's trust indicator is the
+  reference, our signal is the better one, and the surface currently spends none of it.
+- **PROVEN. Make the supersession chain walkable on the surface.** `rememberOutcome` writes
+  `metadata.supersedes` naming what a row replaced, and marks each replaced row with the note naming
+  its successor, so **the chain is already bidirectional in the data.** Brain renders neither end. The
+  context-graph definition is the argument for why this is the station's most defensible view.
+- **PROVEN. Name what a standing rule was distilled from, rather than counting it.** The Learn pass
+  found `HouseRulesPanel` rendering "distilled from 3 learnings" with no way to reach the three, and
+  `house_rules.source_learning_ids` holds the ids. Same count-versus-pointer correction, third
+  occurrence across three passes.
+- **WIRING. A verb that renews a lesson, and a state for a lapsed one.** Guru's verify, and Metaculus's
+  Reaffirm from the Learn pass, are the same act: **a press that means still true and writes a fresh
+  timestamp without editing the text.** `last_used_at` is not it, because recall is not confirmation.
+  It needs one column and it makes silence stop reading as agreement.
+- **WIRING. Write the `precedent` kind, or stop carrying it.** Premise correction 2: the precedent
+  engine filters on `outcome`, no writer produces `precedent`, and production holds 28 rows of it. One
+  of the two has to move, and the category's own enumeration argues for making the kind real rather
+  than deleting it.
+- **WIRING. A citation that resolves to a passage.** Glean's deep link, in our terms, is a recalled
+  lesson that opens the settled outcome it came from at the line that settled it. `metadata` already
+  carries `learning_id`, `prd_id` and `opportunity_id`, so the artifact resolves; the passage does not.
+- **ROADMAP. Temporal validity on the edge rather than in the text.** The category's defining property.
+  `supersededContent` achieves the honesty of it inside a content string, which means **a reader can
+  see that a fact was superseded and a query cannot filter on when.** Moving it onto an edge is what
+  would let the record be read as at a date, and it is a schema change rather than a surface one.
+- **ROADMAP. Two authors, labelled apart, on one surface.** Cursor's rules against memories and Claude
+  Code's `CLAUDE.md` against auto memory. We have both halves in `house_rules` and `agent_memory` and
+  Brain does not draw the distinction, which matters because a person may overrule one of them and not
+  the other.
+- **The verbs to add first, in the order the research argues for:** show what a run read, put the state
+  we already compute onto the row, and add the press that means still true.
+
+**One thing this pass could not settle, said plainly rather than padded.** `agent_memory` holds 879
+reflection rows, 28 precedent, 26 note, 8 correction and **zero of kind `outcome`**, which is the kind
+the precedent engine reads. `memory.server.ts` documents why at length: on the only settle path that
+has ever run in production the memory write was skipped before it started, because `prdId` was
+required and 84 of 119 learnings carry none. That parameter is nullable now and the docblock records
+the remaining cost, that a spec-less verdict never supersedes and is never superseded because there is
+no correct key to chain it on. **So the pool the Critic's red team reads has never held a row, and
+whether it does now is a production question rather than a repo one.** Every directive above is written
+so that it is worth building either way, but the first one to check is that.
+
+## Sources
+
+The category: [Context graph, Thoughtworks Technology Radar Vol.34](https://www.thoughtworks.com/en-gb/radar/techniques/context-graph) ·
+[Technology Radar Vol.34](https://www.thoughtworks.com/radar) ·
+[Macro trends in the tech industry, April 2026](https://www.thoughtworks.com/insights/blog/technology-strategy/macro-trends-tech-industry-april-2026).
+Guru: [Verification](https://www.getguru.com/features/verification) ·
+[What is Verification?](https://help.getguru.com/docs/what-is-verifcation) ·
+[How content is verified](https://help.getguru.com/docs/verifying-and-unverifying-cards) ·
+[Verifying Cards in Slack](https://help.getguru.com/docs/verifying-guru-cards-in-slack) ·
+[Knowledge Agent Quality setup](https://help.getguru.com/docs/knowledge-agent-quality-setup-guide).
+Glean: [Citations](https://docs.glean.com/user-guide/assistant/glean-chat/glean-chat-citations/glean-citations) ·
+[Deep-linked citations](https://docs.glean.com/user-guide/assistant/glean-chat/glean-chat-citations/deep-linked-citations) ·
+[Deep-linked citations, developer guide](https://developers.glean.com/guides/chat/deep-linked-citations) ·
+[How Glean accesses information](https://docs.glean.com/user-guide/assistant/how-glean-accesses-info) ·
+[How knowledge graphs work](https://www.glean.com/blog/knowledge-graph-agentic-engine).
+Cursor: [Rules](https://docs.cursor.com/context/rules) ·
+[Best practices for coding with agents](https://cursor.com/blog/agent-best-practices) ·
+[Rules versus memories, community thread](https://forum.cursor.com/t/best-way-to-provide-context-rules-vs-memories/132960).
+Claude Code: [How Claude remembers your project](https://docs.anthropic.com/en/docs/claude-code/claudemd) ·
+[Memory, localised docs stating the context-not-configuration position](https://code.claude.com/docs/fr/memory).
+Obsidian: [You all say the graph is useless, let me show you how to use it](https://forum.obsidian.md/t/you-all-say-the-graph-is-useless-let-me-show-you-how-to-use-it/116738) ·
+[What is the point of the graph view](https://forum.obsidian.md/t/whats-the-point-of-the-graph-view-how-are-you-using-it/71316/19) ·
+[The power of the local graph](https://thesweetsetup.com/the-power-of-obsidians-local-graph/).
 
 Content was rephrased for compliance with licensing restrictions.
