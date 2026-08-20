@@ -2316,3 +2316,88 @@ code, parsed `oklch()` with a regex written for `rgb()`, asked a per-workspace
 question of a per-user lookup, and read an empty result from a broken shell loop
 as a clean answer. **An empty result from a broken query is indistinguishable
 from a clean result.** Ask the instrument its sample size before believing it.
+
+---
+
+# ✅ SESSION CLOSED 2026-08-20 11:55 — the verification lane, overnight into midday
+
+**Appended, not replacing.** Three lanes write this file and the last one to save it
+wins if it replaces.
+
+## State at close
+
+| | |
+|---|---|
+| `cadence-lane-1` working tree | clean |
+| unpushed commits | **0** |
+| `HEAD` vs `origin/main` | **identical**, 0 ahead / 0 behind |
+| gates at last push | tsc, docs:check, test, build all green via `bun run lane:gates` |
+
+Every commit this session went out with `git push origin parallel/lane-1-fresh:main`,
+so **the lane has been continuously landed on main**. There is nothing to merge.
+
+## LIVE NOW, because migrations apply immediately
+
+1. **`ai_evals` workspace trigger** (`20260820072500`) — the eval tick had **never
+   written a row in its life**. `workspace_id` was NOT NULL defaulting to
+   `current_user_default_workspace()`, which returns null under the service role.
+2. **The eval tick's cron URL** (`20260820074000`) — job 40 posted to
+   `/hooks/cadence-eval-tick`, which 404s. The route is `/hooks/eval-tick`.
+   **Two independent faults, each of which fully explained the symptom alone.**
+3. **Two retired agents disabled** (`20260820084500`) — `operations` and
+   `growth-strategist`. §10 criterion 17 is now **2 → 0**.
+4. **`liveness_results`** (`20260820110000`) — inert until the app publishes.
+
+**The eval tick is verified running**: 4 fires in 3 hours on its `*/30`, 54 real
+rows written on 2026-08-20 across 6 workspaces, all attributed by the trigger,
+polarity correctly negative at −0.765.
+
+## WAITING ON PUBLISH — everything below is on main and not live
+
+- **K-11** and with it §10 criterion 2: **158 of 316 approvals ever raised should
+  never have been raised**, and resolve on deploy with no further code.
+- The eval tick's honest reserve error (it reported a concurrency race for what was
+  a constraint failure, which is how the outage hid for seven weeks).
+- `resumeAgentLoop` refusing a switched-off agent, cancelling rather than stranding.
+- The liveness rotation and stored-results read.
+- Every component Kiro built from 06:00 onward.
+
+## OPEN, with the expensive half already done
+
+- **30 of 36 scheduled jobs are unwatched.** Coverage is no longer capped — the
+  registry can grow now — so this is a judgement about which are capabilities,
+  not a limit. The census with every job's cadence and last run is in
+  `claude-log.md` (08:30); adding one is an entry, not an investigation.
+- **`enabled` is honoured by 13 of 41 agent reads.** Not a defect: `runAgentLoop`
+  enforces it at the single dispatch chokepoint. Recorded so nobody "fixes" 28
+  call sites that are right.
+- **`src/integrations/supabase/types.ts` is stale** and now misses
+  `liveness_results` too. It cost two structural-client casts today.
+- **PostgREST aggregate support is unknown and unknowable from an agent seat** —
+  it decides whether the liveness probes can get cheaper. One request settles it.
+
+## KIRO HAD WORK IN FLIGHT AT CLOSE
+
+Its worktree holds **10 STAGED, uncommitted files**, including a new
+`meridian/PlanGate.tsx` and `__tests__/plan-gate.test.tsx` — that is **K-23**,
+mid-commit.
+
+**Not committed by this lane, deliberately.** Committing another lane's unverified
+component work is how main goes red, and the rule against writing a file another
+item owns exists for exactly this. **The work is safe**: staged files live in that
+worktree on disk and closing a session does not touch them.
+
+## THE ONE THING THAT WOULD HAVE SAVED THE MOST TIME
+
+Four separate findings today were **fixtures posing as measurements** — forecasts,
+approvals, evals, learnings — and one of them had already been built into shipped
+reasoning before it was caught.
+
+`workspaces.is_sample` exists, is correctly populated, and answers it in one join.
+**Every §10 measurement filters on it**, and name-matching is retired: it called
+"Explore workspace" real when the column says it is a sample.
+
+```sql
+WITH real_ws AS (SELECT id FROM workspaces WHERE NOT is_sample AND deleted_at IS NULL)
+SELECT ... FROM <table> WHERE workspace_id IN (SELECT id FROM real_ws);
+```
