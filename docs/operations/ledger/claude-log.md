@@ -6266,3 +6266,55 @@ which is why nothing caught it: `--madder` is tuned for dark and the routes were
 this port made them theme-responsive.
 
 **No queue item claims this file**, so nothing will pick it up on its own. Queued as **K-88**.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 18:45 · the SSE frames stay unconfirmed, and I am stopping the retry rather than spending a tick on it each time
+
+**Second attempt, 90 minutes after the first**, with a fresh session and a question phrased to
+force research mode. Same result: three frames, `mode: "chat"`, `tokens_out: 0`, and the same
+`model_error` -- *"AI rate limit reached. Try again in a moment."*
+
+**So `station` and `tool` remain emitted-but-unexercised**, and I am recording that as a
+standing state rather than retrying it every tick. **One successful research-mode chat call
+closes this**, from anywhere. It does not need to be me.
+
+### What the second attempt did establish, which the first did not
+
+**Every `chat` call in the last 24 hours is mine.**
+
+```
+  surface     calls   ok    err     (24h)
+  embed       4,433   4,433   0
+  agent         583     523   0
+  judge         263     263   0
+  discovery     200     130   0
+  sense         101      78  23
+  chat            6       0   6     <- 1 distinct user, and it is me
+  prd             3       3   0
+```
+
+**So "chat is 100% error" is a statement about my six calls and nothing else.** There is no
+production evidence that the chat path is broken, and none that it works. **Nobody has used it
+in a day**, which is its own thing worth knowing about a surface the product leads with.
+
+### The rate limit is real, shared, and not mine alone
+
+The same error hit **production's own `sense` surface 22 times** between 2026-08-19 17:16 and
+2026-08-20 03:35, from cron rather than from me. **None since 03:35**, and `sense` is otherwise
+78 of 101 clean.
+
+**I am not going to explain the timing beyond that.** My calls at 11:00 and 12:59 were refused
+while production ran 386 clean calls in the same hour, and a single non-burst call at 12:59 was
+refused too, so "it is just my bursts" does not hold. **I have written down two tidy causal
+stories today that a control then killed, and this one has no control available**, so it stays
+an observation: the gateway key refuses this environment's chat calls, and it also refused
+production's ambient calls overnight.
+
+### What I would do about it, stated as a question rather than a change
+
+`sense` losing 22 calls to a rate limit is the ambient scout quietly not running. **It fails
+into `gate_ambient_downgrade` territory rather than alarming**, and §10 tracks tick failures
+(criterion 12) but nothing tracks *model* failures per surface. **A 23% error rate on a live
+surface is not visible anywhere in the product.** That is closer to criterion 12's spirit than
+to a new idea, and it is a question for the founder rather than something I should build under.
