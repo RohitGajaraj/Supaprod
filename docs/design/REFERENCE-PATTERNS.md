@@ -1160,3 +1160,48 @@ four stations are hidden**, with `scrollbar-width: none` from `.mrd-fade-scroll`
 affordance of any kind.** It has never shown because the gallery gives it the full page width.
 The fix is the same shared `useScrollEdges` extraction that `Dialog` wanted in K-03 and that
 `RunTimeline.tsx` already carries a comment asking for.
+
+---
+
+## Linear's Inbox, for `AgentInbox` (K-24, 2026-08-20)
+
+Read off [Linear's own docs](https://linear.app/docs/inbox) rather than off a screenshot, for the same
+reason every other port here is: the mechanics are the hard part and a picture loses all of them.
+
+### Lifted
+
+| | Linear | `AgentInbox` |
+| --- | --- | --- |
+| Moving through the list | `J` / `K` or the arrows | the same four keys |
+| Tab stops | one for the list | one, via a roving `tabIndex` |
+| Reading an item | opens "in a special Inbox view", never leaves | expands in place, no route change |
+| Truncation | caps at 2,000 and **says so** | folds past three and prints the count |
+
+**The single tab stop is the mechanic worth naming.** Sixty sessions would otherwise be sixty tab
+stops between the inbox and anything after it, which is the difference between a triage surface and a
+list of links.
+
+### Not lifted, and each omission is a decision
+
+- **Linear groups by notification TYPE.** Ours groups by what a session needs from a person. Grouping
+  by type would rebuild the activity dashboard this component exists against.
+- **Read / unread.** An agent session has no read state, it has a need. Porting read/unread would add
+  a second axis that competes with the only one that matters.
+- **Snooze.** Replaced rather than ported: a row goes quiet on its own after one `track-tick`, so
+  nobody has to tell the product "not now". Linear's snooze is a person doing that work by hand.
+
+### What planting found, which is the part worth reading
+
+**The suite HUNG rather than failing.** With the keyboard accelerator's text-control guard removed, a
+keystroke from inside the reply field reached the selection-mover, whose `focus()` pulled focus out of
+an input carrying `autoFocus`. Removing the `focus()` call made the hang go away, which is what
+identified it.
+
+Two lessons, both general:
+
+1. **A test that hangs cannot tell a defect from broken infrastructure.** The fix belongs at the
+   dangerous act rather than at one caller: the guard now sits inside the mover, so the loop is
+   impossible however it is reached, and the caller's guard is left in place because it protects a
+   different thing (`preventDefault` swallowing a letter somebody is typing).
+2. **Focus and selection must have one writer.** This had two: focus set the selection and the mover
+   set the selection and then moved focus. Two-way bindings on focus are how lists loop.

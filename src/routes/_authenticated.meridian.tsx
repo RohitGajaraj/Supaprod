@@ -23,6 +23,7 @@ import { RunTimeline, type TimelineEvent } from "@/components/meridian/RunTimeli
 import { ToolStream, type ToolStreamRow } from "@/components/meridian/ToolStream";
 import { PlanCard, type PlanStep } from "@/components/meridian/PlanCard";
 import { PlanGate } from "@/components/meridian/PlanGate";
+import { AgentInbox, type AgentSession } from "@/components/meridian/AgentInbox";
 import { Action, Actions, Approve } from "@/components/meridian/surface-parts";
 import { Dialog } from "@/components/meridian/Dialog";
 import { Spend } from "@/components/meridian/Spend";
@@ -2143,8 +2144,143 @@ function MeridianGallery() {
             <PlanGateCases />
           </Pair>
         </Panel>
+
+        <Panel
+          title="The Agent Inbox"
+          note="Sorted by who needs you, never by who is working, and that is the whole design rather than a preference. The instinct in an agent product is to render every agent working at once because that is what looks impressive, and the evidence says it is the wrong surface: Cursor shipped eight-way parallelism with no compare-and-pick surface and per-turn review died with it, active human focus caps at three or four items, and Anthropic's own sizing guidance is that three focused teammates often outperform five scattered ones. Separately, review is now the bottleneck rather than generation: across twenty-two thousand developers over two years, throughput rose thirty-four per cent while median review time rose four hundred and forty-one per cent and changes merged with no review at all rose thirty-one per cent. So the four groups are what a session needs from a person, in that order, and an empty group is not drawn at all. The mechanics are lifted from Linear's inbox rather than invented: press j or k, or the arrows, and the selection walks the visible rows with one tab stop for the whole list, so sixty sessions are not sixty tab stops. Answering happens here and never navigates. A run that has gone quiet folds into one line past the third, and the line says how many rather than silently showing five of nine, but nothing waiting on a person and nothing that failed is ever folded away, because those are the rows worth reading. Failing is an outcome and not a fifth group: a failed run still says which of the four it needs, so it can be failed and waiting on you at the same time."
+        >
+          <Pair>
+            <AgentInboxCases />
+          </Pair>
+        </Panel>
       </div>
     </div>
+  );
+}
+
+/*
+ * ── K-24, THE AGENT INBOX ───────────────────────────────────────────────
+ * Every slug here is a real roster slug, checked against the catalogue rather than
+ * invented: the roster guard caught `release-manager` in K-23's fixtures, where it
+ * rendered as "Release Manager" through `agentDisplayName`'s title-case fallback
+ * and looked entirely correct.
+ *
+ * The times are relative to a fixed `now` so the panel is deterministic. The idle
+ * threshold is one `track-tick`, ten minutes, so anything stamped further back than
+ * that is quiet by the system's own clock.
+ */
+function AgentInboxCases() {
+  const now = 1_760_000_000_000;
+  const mins = (n: number) => now - n * 60_000;
+
+  const morning: AgentSession[] = [
+    {
+      id: "m1",
+      title: "Shorten the verify step",
+      need: "needs-input",
+      activity: "waiting on you",
+      asking: "Keep the email confirmation, or drop it and verify on first sign-in?",
+      agentSlug: "critic",
+      at: mins(42),
+    },
+    {
+      id: "m2",
+      title: "Zendesk backlog, last fourteen days",
+      need: "ready",
+      activity: "finished reading 1,284 tickets",
+      agentSlug: "researcher",
+      at: mins(6),
+    },
+    {
+      id: "m3",
+      title: "Open the pull request behind a flag",
+      need: "working",
+      activity: "writing the migration",
+      agentSlug: "builder",
+      at: mins(1),
+    },
+    {
+      id: "m4",
+      title: "Post the change to the release channel",
+      need: "done",
+      activity: "posted it, and linked the spec",
+      agentSlug: "release",
+      at: mins(18),
+    },
+  ];
+
+  return (
+    <Stack>
+      <Case label="A working morning, which is all four groups at once">
+        <AgentInbox sessions={morning} now={now} />
+      </Case>
+
+      <Case label="Nothing running, which is a good state rather than an empty one">
+        <AgentInbox sessions={morning.filter((s) => s.need !== "working")} now={now} />
+      </Case>
+
+      <Case label="Everything blocked on one person, which is a policy failure to surface">
+        <AgentInbox
+          now={now}
+          sessions={[1, 2, 3, 4].map((n) => ({
+            id: `b${n}`,
+            title: ["Shorten the verify step", "Drop the Zendesk source", "Raise the daily ceiling", "Rename the Plan station"][n - 1]!,
+            need: "needs-input" as const,
+            activity: "waiting on you",
+            agentSlug: ["critic", "researcher", "operations", "ux-architect"][n - 1]!,
+            at: mins(n * 20),
+          }))}
+        />
+      </Case>
+
+      <Case label="One agent failed, and it is still the group it needs rather than a fifth one">
+        <AgentInbox
+          now={now}
+          sessions={[
+            {
+              id: "f1",
+              title: "Open the pull request behind a flag",
+              need: "ready",
+              failed: true,
+              activity: "stopped after the checks came back red twice",
+              agentSlug: "builder",
+              at: mins(11),
+            },
+            {
+              id: "f2",
+              title: "Grade the shorter verify step",
+              need: "needs-input",
+              failed: true,
+              activity: "could not reach PostHog, and is asking which source to use instead",
+              agentSlug: "data-analyst",
+              at: mins(34),
+            },
+            ...morning.filter((s) => s.need === "working"),
+          ]}
+        />
+      </Case>
+
+      <Case label="Five have gone quiet, so they fold into one line that says how many">
+        <AgentInbox
+          now={now}
+          sessions={[
+            ...[1, 2, 3, 4, 5].map((n) => ({
+              id: `q${n}`,
+              title: `A piece of work nobody has heard from, number ${n}`,
+              need: "working" as const,
+              activity: "waiting for the next tick",
+              agentSlug: "builder",
+              at: mins(20 + n),
+            })),
+            ...morning.filter((s) => s.need === "working"),
+          ]}
+        />
+      </Case>
+
+      <Case label="Nothing needs you, drawn as one sentence and silence">
+        <AgentInbox sessions={[]} now={now} />
+      </Case>
+    </Stack>
   );
 }
 

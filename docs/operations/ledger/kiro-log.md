@@ -3008,3 +3008,96 @@ stylesheet, and the two corrections in Noticed 1 and 2 exist only because of tha
 > four values, and onto the decision record. That is the wiring the item deliberately left out and it
 > needs the live schema. Worth deciding at the same time whether `run-it` means `trusted` or
 > `ambient`, because the difference is whether a hard-locked tool still stops the run.
+
+---
+
+## K-24 · BUILT · 2026-08-20 12:48
+
+**Did.** Built `AgentInbox`: four groups in the order `needs input → ready → working → done`, empty
+groups not drawn at all, one-line present-participle activity per row, reply in place with no route
+change, and idle rows folding into one line past the third that says how many. The keyboard mechanics
+are `j`/`k` and the arrows over one tab stop for the whole list. It uses K-08's per-mark state, which
+is the surface that change was made for: four rows in four states on one screen.
+
+**The reference is Linear's Inbox, read off its docs and named before building**, written up in
+`REFERENCE-PATTERNS.md` alongside K-23's entry. Lifted: `J`/`K` plus arrows moving a selection with a
+single tab stop, and opening a row never leaving the inbox. **Not lifted, deliberately:** Linear groups
+by notification *type* and carries read/unread. An agent session has no read state, it has a need, and
+grouping by type here would rebuild the activity dashboard this item exists against. Its snooze is
+replaced rather than ported: a row goes quiet on its own, so nobody has to tell the product "not now".
+
+**The item's premise held and I have nothing to push back on.** The four groups, the participles, the
+three-row collapse and the reply-in-place requirement all survive contact with the code.
+
+**Unsure.**
+
+1. **`failed` is a field rather than a fifth group, and the item did not say which.** The acceptance
+   asks for a composed case where "one agent failed", and a four-value union had nowhere to put it.
+   **A fifth group was the tempting fix and it would have been wrong**: grouping is by what a session
+   needs from a person, and failing is an outcome. Mixing the axes would make "failed and waiting on
+   you" unrenderable, which is a real state. So a failed row sits in whichever group it needs and the
+   chip says `Failed`. **The other reading is that a failure always needs a person and should force
+   `needs-input`**, and if that is the ruling it is a two-line change.
+2. **`IDLE_AFTER_MS` is ten minutes because `track-tick` is ten minutes.** A session that has moved
+   inside the last tick is live by the system's own clock and one that has not is idle by it. That is
+   the most defensible number I could find, but it is a derivation rather than a measurement: nobody
+   has watched a real inbox to see whether ten minutes reads as quiet.
+3. **The reply reuses `ReasonField`, whose name is now narrower than its job.** A reply is not a
+   reason. The mechanic is identical though, and it is Enter-submits, Escape-cancels, dead until
+   non-empty, which is exactly what a fourth copy would have got subtly wrong. **The component wants
+   renaming to something like `InlineAsk`**, which touches four callers and belongs in its own item
+   rather than in this commit.
+4. **A reply is drawn `quiet` rather than as `Approve`, and answering a blocking question arguably
+   unblocks it.** I left it quiet for consistency with the other three `ReasonField` callers and
+   because whether an answer unblocks depends on the answer. Could go the other way.
+5. **The group headings are second person for two groups and third for two** ("Waiting on you",
+   "Ready for you to look at", "Running", "Finished"). That switch is deliberate and it is the
+   information design: two of these are yours and two are the machine's. It could read as
+   inconsistent voice to someone who has not been told.
+
+**Noticed.**
+
+1. **The component had a latent infinite loop and planting found it.** With the accelerator's
+   text-control guard removed, the suite did not fail, it **hung** until the runner was killed at 120
+   seconds. Bisected it: a keystroke arriving from inside the reply field reached `move()`, whose
+   `focus()` pulled focus out of an input carrying `autoFocus`; deleting the `focus()` call made the
+   hang go away, which is what identified it. **A test that hangs cannot tell a defect from broken
+   infrastructure**, and a latent loop in a component meant to render sixty rows is worth more than
+   the convenience that caused it. Two fixes, protecting two different things: the guard inside
+   `move()` makes the loop impossible however `move` is reached, and the guard at the keydown handler
+   stops `preventDefault` swallowing a letter somebody is typing. **I also removed a two-way
+   focus/selection binding** found on the way (`onFocus` set the selection while `move()` set the
+   selection and then moved focus); `move()` is now the only writer.
+2. **One of my tests was testing the wrong guard, and I only saw it because the first fix did not make
+   the plant fail.** "does not steal j and k while a reply is being typed" read
+   `document.activeElement`, which is the guard inside `move()`, so it passed whether or not the
+   keydown guard existed. Rewritten to assert the event was **not cancelled**, which is precisely what
+   the keydown guard buys. Plant G now fails in 3ms instead of hanging.
+3. **A leftover background process from my own plant harness overwrote four of my edits.** I killed
+   the script, but an instance survived long enough to run its `cp` restore step after I had edited the
+   file, silently reverting the `failed` field, the mark state, the `isIdle` change and the focus fix.
+   `tsc` caught it as "Property 'failed' does not exist". **A plant harness that restores from a backup
+   must not be left running while you edit the file it backs up**, and the safe shape is a harness that
+   restores from git rather than from `/tmp`. Both the script and its backup are deleted.
+4. **`StalledWork` and this component now both answer "what needs me", and they must not merge.**
+   `StalledWork` headlines the cost of work being stopped, tiered by how long, over the gates. This
+   lists every session and sorts by need. They overlap on one group of four. Named in the file so the
+   next reader does not fold one into the other, but **if the two ever disagree about that group the
+   fault is in whatever feeds them**, and only a production read can tell.
+5. **The row markup is divs rather than a `ul`/`li` tree, on purpose.** An `option` has to be a
+   descendant of its `listbox` with only `group` between them, and the reply field puts a form inside a
+   row. A `<ul>` of `<li>` carrying that is invalid where this is merely plain.
+
+**Planted, nine defects, each failing exactly the tests it should.** Groups ordered by recency (4
+fail), empty groups drawn (2), collapsed idle rows dropped rather than summarised (3), idle applied to
+every group so gates fold away (1), no `stopPropagation` so answering navigates (1), every row its own
+tab stop (1), the keydown guard removed (1, and see Noticed 1 and 2), within-group order reversed, and
+a chip on every group (2).
+
+**Gates.** tsc clean · 9,940 pass / 0 fail / 23 skip / 60 todo across 590 files · build ok ·
+`bun run docs:check` clean of hard rot.
+
+> **Claude does after:** two things. Whether ten minutes is the right idle threshold, which needs a
+> look at real session gaps rather than at the cron cadence. And whether a failed run should be forced
+> into `needs-input` rather than staying in the group it claims, which is a product call about whether
+> every failure is a question.

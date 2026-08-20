@@ -1,0 +1,571 @@
+/**
+ * THE ORDER IS THE COMPONENT, so the order is what this pins hardest.
+ *
+ * Every other property of this list is negotiable. What is not is that a session
+ * waiting on a person comes before one that is running, because the whole item
+ * exists against the instinct to render every agent working at once. A regression
+ * that sorts by recency instead would look completely normal and would quietly
+ * turn this back into the activity dashboard it replaced.
+ *
+ * WHAT IS NOT ASSERTED: that it looks right at sixty rows. The suite can prove no
+ * row is wider than its container and that nothing is dropped; whether sixty rows
+ * are readable is a browser and an eye.
+ */
+import { readFileSync } from "node:fs";
+
+import { describe, expect, it } from "bun:test";
+import { fireEvent, render, screen } from "@testing-library/react";
+
+import { AgentInbox, IDLE_AFTER_MS, type AgentSession } from "../AgentInbox";
+
+const NOW = 1_760_000_000_000;
+const mins = (n: number) => NOW - n * 60_000;
+
+function session(over: Partial<AgentSession> & { id: string }): AgentSession {
+  return {
+    title: "Shorten the verify step",
+    need: "working",
+    activity: "reading Intercom",
+    at: mins(1),
+    agentSlug: "researcher",
+    ...over,
+  };
+}
+
+/** The four groups as rendered, in document order. */
+function groupOrder(): string[] {
+  return [...document.querySelectorAll('[role="group"]')].map(
+    (g) => g.getAttribute("aria-label") ?? "",
+  );
+}
+
+/** Row titles in document order, which is what the keyboard walks. */
+function rowTitles(): string[] {
+  return [...document.querySelectorAll('[role="option"]')].map(
+    (r) => r.querySelector(".truncate")?.textContent ?? "",
+  );
+}
+
+describe("it is sorted by what it needs from a person", () => {
+  it("puts the four groups in that order and no other", () => {
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[
+          session({ id: "d", need: "done", activity: "opened the pull request", at: mins(30) }),
+          session({ id: "w", need: "working" }),
+          session({ id: "r", need: "ready", activity: "waiting for you to read the spec" }),
+          session({ id: "n", need: "needs-input", activity: "waiting on you" }),
+        ]}
+      />,
+    );
+
+    expect(groupOrder()).toEqual([
+      "Waiting on you",
+      "Ready for you to look at",
+      "Running",
+      "Finished",
+    ]);
+  });
+
+  it("hides an empty group entirely rather than drawing a heading with nothing under it", () => {
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[session({ id: "n", need: "needs-input", activity: "waiting on you" })]}
+      />,
+    );
+    expect(groupOrder()).toEqual(["Waiting on you"]);
+    expect(screen.queryByText("Running")).toBeNull();
+    expect(screen.queryByText("Finished")).toBeNull();
+  });
+
+  it("does not sort by recency across groups, which is the failure this exists against", () => {
+    /*
+     * The `done` row is the most recent thing that happened and the `needs-input`
+     * row is the oldest. A list sorted by recency puts the finished one first,
+     * looks entirely normal, and answers "what is the machine doing" instead of
+     * "what needs me".
+     */
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[
+          session({ id: "fresh", need: "done", title: "Post the release note", at: mins(0) }),
+          session({ id: "old", need: "needs-input", title: "Shorten the verify step", at: mins(90) }),
+        ]}
+      />,
+    );
+    expect(rowTitles()).toEqual(["Shorten the verify step", "Post the release note"]);
+  });
+
+  it("sorts newest first WITHIN a group", () => {
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[
+          session({ id: "a", title: "Older", at: mins(5) }),
+          session({ id: "b", title: "Newer", at: mins(1) }),
+        ]}
+      />,
+    );
+    expect(rowTitles()).toEqual(["Newer", "Older"]);
+  });
+
+  it("counts the group on its heading rather than badging every row", () => {
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[
+          session({ id: "a", title: "One" }),
+          session({ id: "b", title: "Two" }),
+          session({ id: "c", title: "Three" }),
+        ]}
+      />,
+    );
+    const heading = screen.getByRole("group", { name: "Running" }).querySelector("h3")!;
+    expect(heading.textContent).toContain("3");
+  });
+});
+
+describe("the activity is a present participle, and the component cannot invent one", () => {
+  it("prints the caller's participle beside the agent, in one format", () => {
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[session({ id: "a", agentSlug: "researcher", activity: "reading Intercom" })]}
+      />,
+    );
+    /* `Research · reading Intercom`, and the same format on every row including
+       the ones where half of it is missing. */
+    expect(screen.getByText("Research · reading Intercom")).toBeTruthy();
+  });
+
+  it("drops the agent rather than the format when the slug is unknown", () => {
+    render(<AgentInbox now={NOW} sessions={[session({ id: "a", agentSlug: null })]} />);
+    expect(screen.getByText("reading Intercom")).toBeTruthy();
+  });
+});
+
+describe("idle rows collapse past three, and the number is real", () => {
+  const idleAt = NOW - IDLE_AFTER_MS - 1;
+
+  it("leaves three idle rows alone", () => {
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[1, 2, 3].map((n) => session({ id: `i${n}`, title: `Quiet ${n}`, at: idleAt }))}
+      />,
+    );
+    expect(rowTitles().length).toBe(3);
+    expect(screen.queryByText(/gone quiet/)).toBeNull();
+  });
+
+  it("collapses the fourth into one row that says how many", () => {
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[1, 2, 3, 4].map((n) => session({ id: `i${n}`, title: `Quiet ${n}`, at: idleAt }))}
+      />,
+    );
+    expect(rowTitles().length, "idle rows were still drawn individually").toBe(0);
+    expect(screen.getByRole("button", { name: "4 agents have gone quiet" })).toBeTruthy();
+  });
+
+  it("does not drop them, and opens on the summary", () => {
+    /*
+     * Silent truncation is the defect this repo has recorded twice. The count is
+     * printed and the rows are one click away.
+     */
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[1, 2, 3, 4].map((n) => session({ id: `i${n}`, title: `Quiet ${n}`, at: idleAt }))}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "4 agents have gone quiet" }));
+    expect(rowTitles().length).toBe(4);
+    expect(screen.getByRole("button", { name: "Hide the quiet ones" })).toBeTruthy();
+  });
+
+  it("keeps the live rows visible while the quiet ones are folded away", () => {
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[
+          ...[1, 2, 3, 4].map((n) => session({ id: `i${n}`, title: `Quiet ${n}`, at: idleAt })),
+          session({ id: "live", title: "Still going", at: mins(1) }),
+        ]}
+      />,
+    );
+    expect(rowTitles()).toEqual(["Still going"]);
+    expect(screen.getByRole("group", { name: "Running" }).querySelector("h3")!.textContent).toContain(
+      "5",
+    );
+  });
+
+  it("never folds a row that is waiting on a person, however long it has waited", () => {
+    /*
+     * THE ONE WAY THIS MECHANIC COULD DO REAL HARM. Four gates untouched for a day
+     * are the four most important rows on the surface, and a rule that hides
+     * anything quiet would hide exactly them.
+     */
+    const old = NOW - 26 * 60 * 60 * 1000;
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[1, 2, 3, 4].map((n) =>
+          session({ id: `g${n}`, title: `Gate ${n}`, need: "needs-input", at: old }),
+        )}
+      />,
+    );
+    expect(rowTitles().length, "a gate was folded away for being quiet").toBe(4);
+    expect(screen.queryByText(/gone quiet/)).toBeNull();
+  });
+});
+
+describe("answering happens here, without a route change", () => {
+  it("draws no reply control when the caller cannot take one", () => {
+    render(
+      <AgentInbox now={NOW} sessions={[session({ id: "a", need: "needs-input" })]} />,
+    );
+    expect(screen.queryByRole("button", { name: "Answer it" })).toBeNull();
+  });
+
+  it("takes a reply in place and hands it back", () => {
+    const replies: string[] = [];
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[
+          session({
+            id: "a",
+            need: "needs-input",
+            activity: "waiting on you",
+            asking: "Which verify step should stay?",
+            onReply: (t) => replies.push(t),
+          }),
+        ]}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Answer it" }));
+    fireEvent.change(screen.getByLabelText("Answer Research"), {
+      target: { value: "  The shorter one  " },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send it" }));
+
+    expect(replies).toEqual(["The shorter one"]);
+  });
+
+  it("does not open the session while the reply is being opened", () => {
+    /*
+     * The row is itself a control, and the reply button is inside it. Without
+     * `stopPropagation` one click both opens the reply and navigates away, which
+     * is the exact failure the acceptance calls out.
+     */
+    let opened = 0;
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[
+          session({ id: "a", need: "needs-input", onOpen: () => opened++, onReply: () => {} }),
+        ]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Answer it" }));
+    expect(opened, "answering navigated away from the inbox").toBe(0);
+  });
+
+  it("closes the reply without sending on cancel", () => {
+    const replies: string[] = [];
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[session({ id: "a", need: "needs-input", onReply: (t) => replies.push(t) })]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Answer it" }));
+    fireEvent.click(screen.getByRole("button", { name: "Not now" }));
+    expect(replies).toEqual([]);
+    expect(screen.getByRole("button", { name: "Answer it" })).toBeTruthy();
+  });
+});
+
+describe("one tab stop, and the keyboard walks the visible order", () => {
+  const three = [
+    session({ id: "n", need: "needs-input", title: "Gate", at: mins(9) }),
+    session({ id: "w", need: "working", title: "Running", at: mins(2) }),
+    session({ id: "d", need: "done", title: "Finished", at: mins(1) }),
+  ];
+
+  it("gives the list one tab stop rather than one per row", () => {
+    render(<AgentInbox now={NOW} sessions={three} />);
+    const options = [...document.querySelectorAll('[role="option"]')];
+    expect(options.length).toBe(3);
+    expect(
+      options.filter((o) => o.getAttribute("tabindex") === "0").length,
+      "sixty sessions would be sixty tab stops",
+    ).toBeLessThanOrEqual(1);
+  });
+
+  it("moves down the groups with j and the arrows", () => {
+    const { container } = render(<AgentInbox now={NOW} sessions={three} />);
+    const root = container.firstElementChild!;
+
+    fireEvent.keyDown(root, { key: "j" });
+    expect(document.activeElement?.id).toBe("agent-inbox-row-n");
+
+    fireEvent.keyDown(root, { key: "ArrowDown" });
+    expect(document.activeElement?.id).toBe("agent-inbox-row-w");
+
+    fireEvent.keyDown(root, { key: "k" });
+    expect(document.activeElement?.id).toBe("agent-inbox-row-n");
+  });
+
+  it("wraps rather than stopping, so k from the top reaches the bottom", () => {
+    const { container } = render(<AgentInbox now={NOW} sessions={three} />);
+    const root = container.firstElementChild!;
+    fireEvent.keyDown(root, { key: "j" });
+    fireEvent.keyDown(root, { key: "k" });
+    expect(document.activeElement?.id).toBe("agent-inbox-row-d");
+  });
+
+  it("does not swallow j and k while a reply is being typed", () => {
+    /*
+     * ASSERTED ON WHETHER THE EVENT WAS CANCELLED, not on where focus ended up,
+     * and the difference is the whole point of the test.
+     *
+     * `fireEvent` returns false when a handler called `preventDefault`. That is
+     * exactly what the keydown guard buys: without it, `j` is swallowed and the
+     * letter never reaches the field, so somebody typing "just the shorter one"
+     * types "ust the shorter one". Reading `document.activeElement` instead tested
+     * the OTHER guard, the one inside `move`, and passed whether or not this one
+     * existed.
+     */
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[session({ id: "a", need: "needs-input", onReply: () => {} })]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Answer it" }));
+    const field = screen.getByLabelText("Answer Research") as HTMLInputElement;
+    field.focus();
+
+    const notCancelled = fireEvent.keyDown(field, { key: "j" });
+
+    expect(notCancelled, "the accelerator swallowed a letter being typed").toBe(true);
+    expect(document.activeElement, "typing a j moved the selection").toBe(field);
+  });
+});
+
+describe("the states nobody drew", () => {
+  it("says nothing needs you rather than drawing four empty headings", () => {
+    const { container } = render(<AgentInbox now={NOW} sessions={[]} />);
+    expect(screen.getByText("Nothing needs you.")).toBeTruthy();
+    expect(container.querySelector('[role="listbox"]')).toBeNull();
+    expect(
+      container.querySelector("[data-mrd]"),
+      "the early return lost data-mrd, so its controls lose the focus ring",
+    ).toBeTruthy();
+  });
+
+  it("renders 3, 12 and 60 sessions and keeps every row inside the container", () => {
+    for (const n of [3, 12, 60]) {
+      const { container, unmount } = render(
+        <AgentInbox
+          now={NOW}
+          sessions={Array.from({ length: n }, (_, i) =>
+            session({
+              id: `s${i}`,
+              title: `A piece of work with a deliberately long name, number ${i}`,
+              need: (["needs-input", "ready", "working", "done"] as const)[i % 4],
+              at: mins(i),
+            }),
+          )}
+        />,
+      );
+      /* Nothing may be wider than the row: the title truncates rather than
+         pushing the page sideways, which is what `min-w-0 truncate` buys. */
+      for (const title of container.querySelectorAll('[role="option"] .truncate')) {
+        expect(title.className).toContain("min-w-0");
+      }
+      expect(container.querySelectorAll('[role="option"]').length).toBeGreaterThan(0);
+      unmount();
+    }
+  });
+
+  it("puts everything in one group when it is all blocked on one person", () => {
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[1, 2, 3].map((n) =>
+          session({ id: `g${n}`, need: "needs-input", title: `Gate ${n}` }),
+        )}
+      />,
+    );
+    expect(groupOrder()).toEqual(["Waiting on you"]);
+  });
+});
+
+describe("colour confirms the group, and the structure carries it", () => {
+  it("chips only the group that requires a person", () => {
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[
+          session({ id: "n", need: "needs-input" }),
+          session({ id: "r", need: "ready" }),
+          session({ id: "w", need: "working" }),
+          session({ id: "d", need: "done" }),
+        ]}
+      />,
+    );
+    /* One chip across four rows. A chip on all four makes the one that matters
+       invisible, and the heading already says what each group needs. */
+    expect(screen.getAllByText("Needs you").length).toBe(1);
+  });
+
+  it("carries the group in the mark's state as well as in the heading", () => {
+    /*
+     * K-08 made `MarkState` per mark, and this is the surface that change was for:
+     * four rows in four states on one screen.
+     */
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[
+          session({ id: "n", need: "needs-input" }),
+          session({ id: "w", need: "working" }),
+          session({ id: "d", need: "done" }),
+        ]}
+      />,
+    );
+    const marks = [...document.querySelectorAll('[role="img"]')].map((m) =>
+      m.getAttribute("aria-label"),
+    );
+    expect(marks.some((m) => m?.endsWith("gate"))).toBe(true);
+    expect(marks.some((m) => m?.endsWith("running"))).toBe(true);
+    expect(marks.some((m) => m?.endsWith("verified"))).toBe(true);
+  });
+
+  it("survives greyscale, because the group heading is the answer", () => {
+    /*
+     * The structural half of the greyscale rule, which is the half a test can
+     * see: remove every hue and the four headings still say what each row needs.
+     * The hue only confirms it.
+     */
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[
+          session({ id: "n", need: "needs-input" }),
+          session({ id: "w", need: "working" }),
+        ]}
+      />,
+    );
+    expect(screen.getByRole("group", { name: "Waiting on you" })).toBeTruthy();
+    expect(screen.getByRole("group", { name: "Running" })).toBeTruthy();
+  });
+});
+
+describe("failing is an outcome, not a fifth group", () => {
+  it("keeps a failed session in whichever group it needs, and says it failed", () => {
+    /*
+     * There is no fifth group and there must not be. Grouping is by what a session
+     * needs from a person; failing is an outcome. A failed run still has to say
+     * which of the four it wants.
+     */
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[
+          session({
+            id: "f",
+            need: "ready",
+            failed: true,
+            title: "Open the pull request",
+            activity: "stopped after the checks came back red twice",
+          }),
+        ]}
+      />,
+    );
+    expect(groupOrder()).toEqual(["Ready for you to look at"]);
+    expect(screen.getByText("Failed")).toBeTruthy();
+  });
+
+  it("lets a session be failed AND waiting on a person at once", () => {
+    /* The case a fifth group would have made unrenderable. */
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[session({ id: "f", need: "needs-input", failed: true })]}
+      />,
+    );
+    expect(groupOrder()).toEqual(["Waiting on you"]);
+    /* The outcome outranks the need on the chip: "Failed" reads first, and the
+       heading is already saying it is waiting on you. */
+    expect(screen.getByText("Failed")).toBeTruthy();
+    expect(screen.queryByText("Needs you")).toBeNull();
+  });
+
+  it("marks it failed rather than running", () => {
+    render(<AgentInbox now={NOW} sessions={[session({ id: "f", failed: true })]} />);
+    const mark = document.querySelector('[role="img"]')!;
+    expect(mark.getAttribute("aria-label")).toContain("failed");
+  });
+
+  it("never folds a failed row away for being quiet", () => {
+    /*
+     * A failed run goes quiet BY DEFINITION: nothing is going to happen next. It is
+     * also the row most worth reading, so the idle rule must not reach it.
+     */
+    const idleAt = NOW - IDLE_AFTER_MS - 1;
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[1, 2, 3, 4].map((n) =>
+          session({ id: `f${n}`, title: `Broke ${n}`, failed: true, at: idleAt }),
+        )}
+      />,
+    );
+    expect(rowTitles().length, "a failed run was hidden for being quiet").toBe(4);
+    expect(screen.queryByText(/gone quiet/)).toBeNull();
+  });
+});
+
+describe("the selection has exactly one writer", () => {
+  it("does not set the selection from focus, which is how it used to loop", () => {
+    /*
+     * IT HAD AN `onFocus` HANDLER AND THAT WAS A LATENT INFINITE LOOP: focus set
+     * the selection, and `move()` set the selection and then moved focus. Planting
+     * the accelerator's text-control guard turned it from latent into real, and it
+     * did not fail, it HUNG until the runner was killed. A test that hangs is worse
+     * than a test that fails, so the binding is gone rather than worked around.
+     *
+     * Asserted against the source, because the absence of a handler is the fix and
+     * there is no render in which its presence is visible.
+     */
+    const src = readFileSync(new URL("../AgentInbox.tsx", import.meta.url), "utf8");
+    const code = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+    expect(code, "the two-way focus binding came back").not.toContain("onFocus");
+    /* And `move` is still the writer, so the keyboard has not been disconnected. */
+    expect(code).toContain("setSelected(id)");
+  });
+
+  it("still moves the selection from the keyboard after that change", () => {
+    const { container } = render(
+      <AgentInbox
+        now={NOW}
+        sessions={[
+          session({ id: "a", title: "First", at: mins(1) }),
+          session({ id: "b", title: "Second", at: mins(2) }),
+        ]}
+      />,
+    );
+    fireEvent.keyDown(container.firstElementChild!, { key: "j" });
+    expect(document.activeElement?.id).toBe("agent-inbox-row-a");
+    expect(document.querySelector('[aria-selected="true"]')?.id).toBe("agent-inbox-row-a");
+  });
+});
