@@ -27,6 +27,22 @@ The work list is [`../kiro-queue.md`](../kiro-queue.md). **This folder is not th
 
 There is no status field to fight over. **The current state of any item is whatever the most recent entry mentioning it says**, across both logs.
 
+> **"Most recent" means further down the file, not the later timestamp.** The
+> timestamps in these headings are written by the agents, not measured, and they
+> have already drifted badly: checked against commit times on 2026-08-20, Kiro's
+> stamps were accurate for five entries and then ran monotonically fast, ending
+> **+247 minutes ahead**, with one entry stamped for a time that had not yet
+> happened. Because those stamps now sort after every verdict in `claude-log.md`,
+> **ordering the two logs by timestamp reports verified items as unverified** —
+> which happened, to five items at once, at 06:00 that morning.
+>
+> Both files are append-only with a single writer, so **position in the file is
+> the reliable order**, and `git log` is the reliable clock. Better still, ask
+> the question without a clock at all: an item is waiting on a verdict when it
+> has been built more times than it has been judged. That is what
+> `scripts/lane-sync.sh` counts, and it is why that script gave the right answer
+> in the same minute a timestamp-ordered read gave the wrong one.
+
 ```
   K-04 STARTED   (kiro-log)     → in progress
   K-04 BUILT     (kiro-log)     → waiting on verification
