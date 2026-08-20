@@ -1,3 +1,113 @@
+# ✅ SESSION CLOSED 2026-08-21 · Claude (verification and database lane) · the queue is verified, the app is published, and the moat tables are still empty
+
+**State at close.** `parallel/lane-1-fresh`, tree clean, **0 ahead / 0 behind** `origin/main` at
+`d60b2523b`. `lane:gates` green on all four, exit code read from `$?` rather than through a pipe.
+**Nothing awaiting a verdict.** Live app **published and current**: deployed
+`b0947bfba`, and the only commit after it is docs-only, so no app code is undeployed.
+
+## Read this first if you are about to measure anything
+
+**Five separate times today a clean-looking measurement was my instrument rather than the
+product.** Each had the same tell: **a cluster of failures sharing one shape**, or a suspiciously
+round number.
+
+1. **Colours are OKLCH.** `getComputedStyle().color` returns `oklch(...)`, which no `rgb()` regex
+   matches, so a regex-based contrast sweep **silently skips every element and reports a clean
+   page**. Resolve through a 1x1 canvas.
+2. **An outline paints OUTSIDE the border box.** Comparing a focus ring against its own element's
+   background gives contrast 1.00 and reads as an invisible ring. Compare against the PARENT.
+3. **Measure after hydration.** A probe at 1.8s found 1 text element on a page that has 105.
+4. **Public routes theme by a `dark` class on `<html>`**, not `data-theme`. Setting the wrong one
+   silently does nothing and both grounds measure identically.
+5. **Lovable migrations carry a UUID as `name`** and are recorded seconds after the filename
+   timestamp. A 14-digit prefix match reads seven applied migrations as missing.
+
+## What this lane did
+
+**37 items verified, 2 rejected and both came back fixed, 1 ruled, 2 items queued (K-87, K-88),
+8 findings registered, 4 closed.**
+
+**Two production writes, both founder-authorised and both verified in the running app afterwards:**
+
+- **Five accounts topped up to 5,000 credits.** `compass@` 0, `harbor@` 0, `lantern@` 1,
+  `explore@` 2, `voyage@` 8 were all at or under `LOW_CREDITS_WARN` (100), so *"Running low: 0 AI
+  credits left"* was **the first line on every page** of the investor logins, and
+  `gate_credit_exhausted` had refused 167 calls in 24h. `admin_grant_user_credits` refuses the MCP
+  (it guards on `auth.uid()` having the admin role), so it was replicated in one atomic statement:
+  balance, `credit_ledger` row with reason `grant`, and `admin_audit_log` row. **Banner gone,
+  confirmed by signing in.**
+- **Seventeen migrations recorded that had never been recorded.** None was unapplied. They were
+  applied out of band via direct SQL, which does not write `schema_migrations`, and
+  `check-migrations.sh` runs on `prebuild` and would have failed the first CI run with database
+  credentials. **Every one verified by effect before its row was written.**
+
+## The three numbers that matter, and one of them is the whole story
+
+```
+  Meridian ratchet      5,864 -> 3,355     42.8% of recorded debt cleared in one day
+  criterion 1           regrowing -> stopped, confirmed with a control
+  learnings, real rows                     0
+  forecast_resolution, real workspaces     0
+  agent_memory kind='outcome'              0
+```
+
+**Eight research passes and roughly a hundred ports landed today and not one of them changed the
+last three lines.** The moat claim is the forecast captured at decision time; nothing has captured
+one. `supersededContent`, the function K-79 called "the thing the category is named for", **has
+never written a row**, because the kind it writes has never been written.
+
+**The highest-value work left is not another port. It is one real mission running end to end so
+those three zeros become ones.**
+
+## Waiting on the founder
+
+1. **Regenerate the Supabase types through Lovable.** `types.ts` is missing
+   `learnings.product_id`, `learnings.decision_id`, `agent_memory.product_id` and `is_sample` on
+   both, so **any `.insert({ product_id })` fails `tsc` today** and the `is_sample` filter every
+   agent is told to use cannot be written in TypeScript. **This blocks the entire column-stamping
+   lane** and is the single highest-value unblock.
+2. **K-31's two `.btn-pill` families.** The `styles.css` DO-NOT-DELETE ruling covers six; **four of
+   them have 82 live call sites** including the sign-in page, so they are not a ruling question at
+   all. Only `.btn-pill` and `.btn-pill-outline` are at zero. **The decision is two families, well
+   under 130 lines.**
+3. **Criterion 18 is drifting away from target, monotonically, and the ports are doing it.**
+   `--mrd-you` 97 -> 141 -> **165**; `--mrd-agent` has not moved from **92** since morning. The
+   criterion wants near parity. **No item treats it as a target**, and it is cheapest to fix before
+   another fifty call sites land on the wrong side.
+4. **Two findings on the credit ledger.** `credit_ledger.product_id` is 0 of 14,383 and the only
+   credit cap in production is product-scoped, so it reads 0 spend and **fails open**. Underneath
+   it, `ai_events.product_id` is a second orphan: 0 on every one of the last 20 days. **Fix
+   `logAiEvent` first and one trigger replaces a 54-call-site sweep.**
+
+## Open and unclaimed
+
+- **K-88** queued: the admin error state renders at **2.79:1 on paper** from `admin-ui.tsx`'s
+  retired `--madder`, on four ported admin pages, none of which owns the file.
+- **K-87** queued: `mapRelayStatus` sends `completed_with_failures` to `idle`, **34% of runs**, on
+  two mounted surfaces.
+- **The `station` and `tool` SSE frames are emitted and never exercised.** Not evidence they are
+  broken. **One successful research-mode chat request closes it, from anywhere.** Every chat call
+  from this environment was rate limited; all six chat calls in 24h were mine, so there is no
+  production evidence either way.
+- **The 38-approval backlog is now safe to clear.** The condition set this morning was "not until
+  the code behind it is live", and the publish landed at 13:47.
+
+## Rules this lane learned the hard way today
+
+- **A verdict must say which half it rests on.** Four items sharing one line of evidence is weaker
+  than three items each carrying their own, and saying so is the difference.
+- **Check the tree before deferring to a ruling about the tree.** K-31's ruling was defended on
+  "zero call sites today", and it was not zero.
+- **An average over a bursty series is not a prediction.** I said criterion 1 regrows one row every
+  two to three hours; it grew +2 in four hours and then stopped for three and a half.
+- **Read the item's scope before prescribing a fix.** My K-60 rejection told Kiro to do the one
+  thing its item forbids, and Kiro was right to refuse and escalate.
+- **A number without its query is not evidence, and that applies to surfaces too.** I filed
+  "14 decisions are ready" as unreconcilable; it is a composite of ten sources and I had compared
+  it against two of its parts, one of which was not even an input.
+
+---
+
 # ✅ SESSION CLOSED 2026-08-21 · Kiro · the build queue is finished, and two questions are waiting on the founder
 
 **State at close.** Working tree clean, no untracked files, `HEAD` identical to `origin/main` at
