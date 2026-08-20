@@ -2398,3 +2398,104 @@ and adding a third empty leg changes every agent's rank today while explaining
 nothing about any agent. The right order is to establish why the first two are
 empty before widening the formula. Filed as the next thing in my own lane, not
 as a Kiro item -- it is server work.
+
+---
+
+## Claude lane · RULED · 2026-08-20 06:38 · no fifth trust leg. Both empty legs are starved upstream, and one station has never run at all
+
+Last entry I said the fifth leg waits until I know why two of four legs are
+empty. Now I know, and the answer rules the leg out rather than scheduling it.
+
+### The outcome leg is not broken. It is proven and unfed.
+
+I expected to find a wiring fault and there is none. The leg joins
+`learnings.prd_id` to a decision naming an agent, and on production data that
+join lands:
+
+| | |
+|---|---|
+| learnings carrying a `prd_id` | **77** |
+| whose `prd_id` has a decision | **49** |
+| whose decision names an agent | **49** |
+| that would score as `validated` | **35** |
+
+**35 rows would move an agent's rank today**, so the leg is demonstrably wired,
+end to end, against real rows in a real database. What it is not, is fed: every
+one of those 77 rows is `is_sample = true`. **Zero real learnings exist**, which
+I had established before and which is unchanged.
+
+### Why no real learning exists, which is the part I did not know
+
+Not an approval backlog -- that was my hypothesis, because
+`defaults.ts:169` gates `learning.record` at `mode: "confirm"` and criterion 3
+counts 130 approvals raised then never decided. **It is falsified: there has
+never been a single `learning.record` approval in this database**, of any status.
+The tool has never been called.
+
+It has never been called because **work does not reach Learn.** Track members by
+station:
+
+| station | members | tracks | last |
+|---|---|---|---|
+| sense | **646** | 24 | 2026-08-20 |
+| define | 34 | 4 | 2026-08-19 |
+| design | 8 | 4 | 2026-08-19 |
+| decide | 7 | 6 | 2026-08-19 |
+| build | 3 | 3 | 2026-08-19 |
+| **ship** | **0** | **0** | **never** |
+| learn | 2 | 1 | **2026-08-01** |
+
+**Ship has never had a track member.** The station union is seven wide in code
+(`agent-vocabulary.ts`: sense, decide, define, design, build, ship, learn) and
+production has rows for six of them. Learn's two members did not arrive through
+Ship, because Ship has never held anything -- consistent with the route being
+skippable rather than a conveyor.
+
+Sensing ran **today**. Learn was last touched **19 days ago**, on one track. The
+lifecycle collapses at a ratio of 646 to 2.
+
+### The eval leg is starved by something older than my cutoff
+
+I have been describing this leg as empty because `EVAL_CONTRACT_FIXED_AT`
+excludes the 77 historical rows judged under the self-contradicting prompt. **That
+is true and it is not the binding constraint.**
+
+`ai_evals` holds 77 rows, first `2026-06-29`, **last `2026-07-23`**. Nothing in
+**28 days**. Delete the cutoff tomorrow and the leg still carries no current
+evidence, only stale rows on the inverted polarity.
+
+**And this sharpens the eval-tick diagnosis.** `cron.eval-tick` last succeeded
+`2026-08-05 12:30`. The last eval row predates that by **13 days**, so the tick
+was running, successfully, for a fortnight while writing nothing -- and then
+stopped. Whatever killed the schedule is a second fault, not the reason the table
+went quiet. **Two failures, and I had been treating them as one.**
+
+### The ruling
+
+**No fifth leg reading `forecast_resolution`.** Not deferred on taste; refused on
+the evidence:
+
+1. **Two of four legs already carry no evidence in real workspaces** -- 50% of the
+   weight, both returning the prior. A third empty leg makes it 65% prior and
+   moves every agent's rank today while explaining nothing about any agent.
+2. **Neither empty leg is empty for a reason a formula can fix.** One waits on
+   work reaching Learn; the other waits on evals being written at all. **Adding
+   inputs to a score whose existing inputs are starved is arithmetic, not
+   measurement.**
+3. **Criterion 7 does not need a new leg to move.** The outcome leg already reads
+   `decisions` on the row that holds the resolution and selects only the join
+   keys. When forecasts resolve in a real workspace, the cheaper and truer change
+   is to widen that select -- one column on a proven join, rather than a new
+   weighted term.
+
+**What actually unblocks the trust score is upstream of it**, and neither part is
+a scoring change: work has to reach Ship and Learn, and something has to write an
+eval. **Recording that as the finding rather than shipping a formula that would
+have looked like progress.**
+
+**One caveat I am keeping honest.** 16 users, one of whom has ever saved a
+notification preference, and workspaces named "Explore workspace" and "My
+workspace". **Most of this is the absence of real use rather than a defect**, and
+a starved leg on an unused product is not evidence of a broken leg. The two
+things that are defects regardless of usage are Ship never having run and the
+eval tick being dead.
