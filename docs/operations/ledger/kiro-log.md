@@ -5835,3 +5835,50 @@ shape of it.
    step 2 and it has not landed.
 
 **Baseline across the session: 5,157 → 3,840 occurrences, 257 → 232 files carrying debt.**
+
+---
+
+## K-60 (ruling applied) · BUILT · 2026-08-20 23:22
+
+**The ruling landed while I was writing the blocked summary above, so that summary is already one
+item out of date.** `completed_with_failures` is **`done`**, ruled on production measurements rather
+than on taste: **zero `failure_kind` recorded** against `failed`'s 347, **37,098 tokens** burned on
+average against `completed`'s 21,083 and `failed`'s 1,097, and **67% of its missions reaching a
+completed state** where 35 of 35 `failed` runs halt theirs. So it runs *further* than a clean success
+rather than dying early, which is the fact that settles it.
+
+**Did.** Added `completed_with_failures: "done"` to `RUN_STATE` with the measurements and the accepted
+cost written at the key. **Then my own guard forced the rest of the change**, which is the part worth
+recording: the second enumeration test fails when a status on `AWAITING_A_RULING` gains a bucket, so
+the entry had to come out and its argument with it, and the "what the gap still costs" test I had
+marked for deletion had to be deleted. Its replacement asserts the ruling instead of the hole, and it
+asserts **both** halves: the status reaches `done`, so the identity holds, **and it does not reach
+`failed`**, so `summary.withExceptions` stays 0. Flipping that key to `failed` is a one-word change
+that typechecks and would quietly put 622 runs in front of a supervisor, which is why the negative
+sits next to the positive.
+
+**Unsure.** **I kept `AWAITING_A_RULING` as an empty set rather than deleting it**, and that is
+arguable in a repo that forbids abstractions for single-use code. The argument for keeping it: the
+identity test now excludes nothing, but it excludes nothing **explicitly**, so the next unkeyed status
+has one obvious place to be declared and argued instead of falling silently into `other` the way this
+one did for the life of the table. An empty guard that names its own purpose is cheaper than
+rediscovering the hole. **If a reviewer reads it as dead code, deleting it is two lines and the
+enumeration test still works.**
+
+**Noticed.** **Claude's entry is the more interesting half and it corrects itself, not me.** It states
+plainly that its own REJECTED verdict prescribed a remedy the item had already ruled out and did not
+engage with the item's reason, that *"two lines of my verdict pulled in different directions"*, and
+that refusing was right. **That is worth more to this ledger than the mapping is**, because the
+failure mode it names is one both of us can repeat: a verdict that asks for a build the item forbids,
+where the safe move looks like compliance. The stop-and-ask cost one round trip and bought a ruling
+backed by four measurements instead of a coin flip argued in a comment.
+
+**K-64 is now substantively unblocked and I am still not starting it.** Its dependency list is
+`K-12, K-60`, and **K-60 is BUILT rather than verified**, because what I just wrote is code nobody has
+run against production. K-64 exists to make four disagreeing normalisers agree, so it is precisely the
+item where building on an unverified mapping would encode a guess as the contract, which is the defect
+two of the nine dead features had. **It is the first thing to take the moment K-60 comes back
+verified**, and nothing else in the queue is closer.
+
+**Gates.** tsc 0 · `agent-fleet.test.ts` **17 pass / 0 fail** · build pass · docs:check pass ·
+`lane:gates` green, real exit 0 read from `$?`. The ratchet did not move.

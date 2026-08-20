@@ -71,29 +71,27 @@ const STATUSES_PRODUCTION_WRITES = [
 ] as const;
 
 /**
- * THE ONE STATUS DELIBERATELY LEFT IN "other", AND IT IS A RULING RATHER THAN
- * AN OVERSIGHT.
+ * NOTHING IS AWAITING A RULING, AND THE SET STAYS BECAUSE IT IS THE MECHANISM.
  *
- * `completed_with_failures` is 622 runs, 33.8% of the table, and the repo is
- * genuinely split on what it means. **Six sites treat it as stopped:**
- * `run-state.ts:32` puts it in `STOPPED`, `AgentRosterPanel.tsx:81`,
- * `AgentInspector.tsx:58`, `obsidian/build-status.ts:31`,
- * `ask-blocks.server.ts:290`, and `mission-advance.server.ts`, which excludes it
- * from `RUN_SUCCESS_STATUSES` on purpose. **Two treat it as delivered:**
- * `credit-policy.ts:161` and `run-analytics.ts:74`.
+ * It held `completed_with_failures` for one commit. **Ruled `done` on 2026-08-20**,
+ * on measurements rather than on taste: zero `failure_kind` recorded against
+ * `failed`'s 347, 37,098 tokens burned against `completed`'s 21,083 and `failed`'s
+ * 1,097, and 67% of its missions reaching a completed state where 35 of 35 `failed`
+ * runs halt theirs. The argument, and the cost being accepted, are written at the
+ * key itself in `agent-fleet.ts`.
  *
- * Because `computeAgentFleet`'s `failed` tally drives `summary.withExceptions`,
- * which is the supervise-by-exception signal, bucketing it either way makes the
- * fleet view contradict the governance roster over the same rows. That is a
- * product decision about what the word means, not a mapping a port may pick, so
- * it is named here and left unbucketed until it is ruled on.
+ * **The entry was removed because the test below forced it.** That is the half
+ * worth keeping: an exemption list that only ever grows becomes fiction, so this
+ * one fails in both directions, and a status gaining a key cannot leave its own
+ * justification behind describing a decision already made.
  *
- * WHAT THIS SET BUYS. It turns a silent hole into a tested fact: the identity
- * below is asserted with its precondition stated, and the test underneath fails
- * the moment somebody buckets this status without removing it from here. So the
- * gap cannot be closed quietly, and it cannot be forgotten either.
+ * EMPTY IS THE RIGHT RESTING STATE, not a reason to delete the set. It is what
+ * makes the identity below assert something: the exclusion is stated explicitly
+ * rather than by omission, so the next unkeyed status has one obvious place to be
+ * declared and argued instead of falling silently into `other` the way this one
+ * did for the life of the table.
  */
-const AWAITING_A_RULING: ReadonlySet<string> = new Set(["completed_with_failures"]);
+const AWAITING_A_RULING: ReadonlySet<string> = new Set<string>();
 
 describe("agent-fleet — every status this product writes is accounted for", () => {
   it("buckets every status production writes, or names it as awaiting a ruling", () => {
@@ -145,20 +143,30 @@ describe("agent-fleet — every status this product writes is accounted for", ()
     expect(scout.running + scout.queued + scout.done + scout.failed).toBe(scout.total);
   });
 
-  it("shows what the unruled status still costs, measured rather than asserted", () => {
-    // Not a tautology: it is the arithmetic Claude ran against production, in
-    // miniature, and it is the number the ruling is worth. Delete this test in
-    // the same change that rules on the status.
+  it("counts the biggest status in the table as delivered, and not as an exception", () => {
+    /*
+     * The test that used to sit here measured what the gap COST, and it was marked
+     * for deletion the moment the ruling landed. This is its replacement, asserting
+     * the ruling rather than the hole.
+     *
+     * Both halves matter and the second is the one a later edit would break. It
+     * reaches `done`, so the identity holds. And **it does not reach `failed`**, so
+     * `summary.withExceptions` stays the supervise-by-exception signal rather than
+     * a list of 622 runs nobody has to look at. Flipping this key to `failed` is a
+     * one-word change that would pass a type check and quietly drown that signal,
+     * which is why the negative is asserted next to the positive.
+     */
     const fleet = computeAgentFleet([
       r({ agent_slug: "scout", status: "completed" }),
       r({ agent_slug: "scout", status: "completed_with_failures" }),
     ]);
     const scout = fleet.agents.find((a) => a.slug === "scout")!;
-    expect(scout.total).toBe(2);
+    expect(scout).toMatchObject({ done: 2, failed: 0, total: 2 });
+    expect(scout.running + scout.queued + scout.done + scout.failed).toBe(scout.total);
     expect(
-      scout.running + scout.queued + scout.done + scout.failed,
-      "completed_with_failures reached a tally, so the ruling landed and this test is stale",
-    ).toBe(1);
+      fleet.summary.withExceptions,
+      "a run that finished and left its mission completed was put in front of a supervisor",
+    ).toBe(0);
   });
 });
 

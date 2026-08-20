@@ -75,6 +75,32 @@ const RUN_STATE: Readonly<Record<string, RunBucket>> = {
   // dropping it out of every tally while `total` still counts it.
   waiting_approval: "queued",
   completed: "done",
+  /*
+   * `completed_with_failures` IS DONE, AND IT IS A RULING RATHER THAN A MAPPING.
+   *
+   * 622 runs, 33.8% of the table and the biggest status after `completed`, and it
+   * had no key at all: `total += 1` counted it and none of the four tallies did,
+   * so it was the one input that made the identity below false. The repo is split
+   * on what the word means, six sites to two, which is why a port was not allowed
+   * to pick. Ruled 2026-08-20 on measurements rather than on taste:
+   *
+   *   ZERO `failure_kind` recorded, where `failed` records 347.
+   *   37,098 tokens burned on average, against `completed`'s 21,083 and
+   *     `failed`'s 1,097 -- so it runs FURTHER than a clean success rather than
+   *     dying early.
+   *   67% of its missions reach a completed state, where 35 of 35 `failed` runs
+   *     halt theirs.
+   *
+   * THE COST IS REAL AND IS ACCEPTED: the fleet view now calls a run delivered
+   * where six other surfaces call it stopped. The two are asking different
+   * questions and both answers are right for the question asked. Those six ask
+   * *was this a clean success*. `RUN_STATE` feeds `summary.withExceptions`, the
+   * supervise-by-exception signal, so it asks *does anything need a person* -- and
+   * a run that finished, produced output and left its mission completed does not.
+   * Bucketing it `failed` would have put 622 runs in front of a supervisor and
+   * drowned the signal the tally exists to raise.
+   */
+  completed_with_failures: "done",
   // `complete`, singular, is what runAgent writes on the happy path
   // (agents.functions.ts). It was missing here, so every run that finished
   // through that path fell to the "other" bucket and went uncounted as
