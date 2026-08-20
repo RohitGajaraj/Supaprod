@@ -678,7 +678,7 @@ The argument is already written in this tool's own description, applied to a dif
 ---
 
 **K-20 · The Run Map**
-`STATUS: TODO` · deps: K-06 · size: L
+`STATUS: BUILT` · deps: K-06 · size: L
 
 **What.** A component rendering a run's route as a horizontal station spine, expandable into its step DAG. Three modes: **editable** before start, **live** during, **replay** after.
 
@@ -698,6 +698,7 @@ The argument is already written in this tool's own description, applied to a dif
 - Horizontal overflow scrolls inside its own container; the page body never scrolls sideways.
 
 **Owns.** `src/components/meridian/RunMap.tsx`, `src/components/meridian/__tests__/run-map.test.tsx`, `src/routes/_authenticated.meridian.tsx`
+· built also with `src/components/meridian/station-glyphs.tsx` (the `AgentStation` to `StationGlyphKind` map, which was declared twice already in `CrewChrome.tsx` and `AppFrame.tsx`; both now read the shared one rather than a third copy being written here).
 
 ---
 

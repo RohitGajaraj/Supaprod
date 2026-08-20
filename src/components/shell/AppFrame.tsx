@@ -131,7 +131,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { MarkStack } from "@/components/meridian/marks";
-import { StationGlyph, type StationGlyphKind } from "@/components/meridian/station-glyphs";
+import { GLYPH_FOR_STATION, StationGlyph } from "@/components/meridian/station-glyphs";
 import { RunStripProvider, STAGE_LABEL, STATION_ROUTE, type RunStripSpec } from "./run-strip";
 import { agentDisplayName, agentStation, type AgentStation } from "@/lib/agent-vocabulary";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
@@ -308,15 +308,7 @@ const THREADS_PATHS: readonly string[] = ["/threads"];
  * station to the vocabulary fails the build HERE until somebody draws it,
  * instead of shipping one chip with an empty corner.
  */
-const STATION_MARK: Record<AgentStation, StationGlyphKind> = {
-  sense: "discover",
-  decide: "decide",
-  define: "plan",
-  design: "design",
-  build: "build",
-  ship: "ship",
-  learn: "learn",
-};
+const STATION_MARK = GLYPH_FOR_STATION;
 
 const RAIL = [
   {

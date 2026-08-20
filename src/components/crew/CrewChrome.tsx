@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { glyphForSlug } from "@/components/shell/agent-glyphs";
-import { StationGlyph, type StationGlyphKind } from "@/components/meridian/station-glyphs";
+import { GLYPH_FOR_STATION, StationGlyph } from "@/components/meridian/station-glyphs";
 import { Chevron } from "@/components/meridian/surface-parts";
 import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
 
@@ -287,21 +287,8 @@ const WORD_FOR: Record<CrewMarkState, string> = {
  * The station heading
  * ------------------------------------------------------------------ */
 
-/**
- * The station ids are the product's own vocabulary and the glyph kinds are
- * Meridian's; both are load bearing (the ids in the database, the kinds in the
- * sidebar and the station strip), so neither is renamed and this map is the
- * one place the two meet.
- */
-const GLYPH_FOR_STATION: Record<AgentStation, StationGlyphKind> = {
-  sense: "discover",
-  decide: "decide",
-  define: "plan",
-  design: "design",
-  build: "build",
-  ship: "ship",
-  learn: "learn",
-};
+/* The map moved to `station-glyphs.tsx`, beside the drawings it keys, when a
+   third copy was about to be written. See its note for why. */
 
 /**
  * THE GROUP HEAD, WITHOUT ITS COLOURED BAR.

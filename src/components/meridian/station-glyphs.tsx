@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import type { AgentStation } from "@/lib/agent-vocabulary";
+
 /*
  * THE SEVEN STATIONS, AS MARKS.
  *
@@ -45,6 +47,38 @@ import type { ReactNode } from "react";
 
 export type StationGlyphKind =
   "discover" | "decide" | "plan" | "design" | "build" | "ship" | "learn";
+
+/**
+ * THE ONE PLACE THE PRODUCT'S STATION IDS AND MERIDIAN'S GLYPH KINDS MEET.
+ *
+ * Two vocabularies, both load bearing, neither renameable. `AgentStation` is
+ * what the database stores and what every server function speaks
+ * (`sense`, `define`); `StationGlyphKind` is what the drawings are keyed by
+ * (`discover`, `plan`). They disagree on two of the seven, which is exactly the
+ * kind of near-miss that gets papered over locally.
+ *
+ * IT WAS DECLARED TWICE BEFORE THIS, character for character: `GLYPH_FOR_STATION`
+ * in `crew/CrewChrome.tsx` and `STATION_MARK` in `shell/AppFrame.tsx`. Both
+ * carried a comment explaining that it was "the one place the two meet", and
+ * both were right about the principle and wrong about being the place. A third
+ * copy was about to be written here for `RunMap`, which is the point the repo's
+ * own lesson applies: seven copies of `initialsFrom`, four status normalisers
+ * that disagree. The cost is never the duplicate, it is that copies drift and
+ * then a station is a spiral on one surface and a target on another.
+ *
+ * `Record<AgentStation, …>` rather than a partial, which is `AppFrame`'s own
+ * argument and worth keeping: an eighth station fails the build HERE, until
+ * somebody draws it, rather than shipping a chip with an empty corner.
+ */
+export const GLYPH_FOR_STATION: Record<AgentStation, StationGlyphKind> = {
+  sense: "discover",
+  decide: "decide",
+  define: "plan",
+  design: "design",
+  build: "build",
+  ship: "ship",
+  learn: "learn",
+};
 
 export const STATION_GLYPHS: Record<StationGlyphKind, ReactNode> = {
   discover: (

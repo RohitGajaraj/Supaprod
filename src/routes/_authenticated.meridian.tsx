@@ -28,6 +28,8 @@ import { Spend } from "@/components/meridian/Spend";
 import { MarkStack } from "@/components/meridian/marks";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { Flowchart, flowFromSteps, type FlowEdge, type FlowNode } from "@/components/meridian/Flowchart";
+import { RunMap, type RunMapStation } from "@/components/meridian/RunMap";
+import { AGENT_STATION_ORDER } from "@/lib/agent-vocabulary";
 import {
   RecordStatus,
   RecordTag,
@@ -2122,6 +2124,15 @@ function MeridianGallery() {
             <FlowchartCases />
           </Pair>
         </Panel>
+
+        <Panel
+          title="The Run Map"
+          note="The route a piece of work takes through the seven stations, and what came of each one. It exists to turn a policy into a control: the founder ruling that a skipped station is a decision on the record with a reason has been in force for weeks, SpineRoute.waived has carried the shape of it all along, and nothing in the product ever asked anyone for one. Here, taking a station off the route IS the gesture and the reason is the next beat, so the removal cannot complete without it, and a waiver that arrived without one says so out loud rather than looking complete. It is deliberately not a workflow builder: no palette, no conditions, no branches, no reordering, no adding. Subtraction with a reason is the only authoring gesture, because it is the only judgement the record actually needs from a person. Every node is labelled by outcome and never by tool, and that is enforced by absence rather than by a filter, since there is no field on a stop that could carry a tool name. Station identity is the glyph and there is no per-station hue anywhere in the file, which is law 4 and has been broken on this three separate times. Opening a station draws its steps through Flowchart rather than a second graph, and it opens below the spine, because a graph unfolding inside a horizontal row pushes every station after it sideways and the reader loses the route they were reading."
+        >
+          <Pair>
+            <RunMapCases />
+          </Pair>
+        </Panel>
       </div>
     </div>
   );
@@ -3041,6 +3052,87 @@ function FlowchartCases() {
       </Case>
       <Case label="Forty nodes, which is the size nobody draws">
         <Flowchart {...many} />
+      </Case>
+    </Stack>
+  );
+}
+
+/*
+ * THE FIVE CASES ARE THE FIVE THINGS THAT CAN BE TRUE OF A ROUTE, not five
+ * pretty ones: the whole loop, a route that skips most of it, the editable mode
+ * where the reason prompt lives, a live route with something held, and a waiver
+ * that arrived with no reason on it.
+ *
+ * The last one is the case that matters most and would never be composed by
+ * accident: it is the founder ruling failing, drawn, so anyone can see what the
+ * record looks like when nobody said why.
+ */
+function RunMapCases() {
+  const seven: RunMapStation[] = AGENT_STATION_ORDER.map((station, i) => ({
+    station,
+    state: i === 0 ? "done" : i === 1 ? "active" : "pending",
+    outcome:
+      i === 0
+        ? "Read Intercom and PostHog for verify-step drop-off"
+        : i === 1
+          ? "Ranking it against the other four bets"
+          : undefined,
+  }));
+
+  const short: RunMapStation[] = [
+    {
+      station: "define",
+      state: "done",
+      outcome: "Wrote the firmware reboot notice spec, with the outage precedent cited",
+      steps: [
+        { id: "s1", label: "Read the outage thread", state: "done", station: "discover" },
+        { id: "s2", label: "Draft the spec", state: "done", station: "plan" },
+      ],
+    },
+    { station: "design", state: "skipped", waivedReason: "The notice reuses a shipped component, so there is nothing new to draw" },
+    {
+      station: "build",
+      state: "active",
+      outcome: "Writing the notice component",
+      steps: [
+        { id: "b1", label: "Write the notice component", state: "active", station: "build" },
+        { id: "b2", label: "Run the checks", state: "pending", station: "build" },
+      ],
+    },
+    { station: "ship", state: "pending" },
+  ];
+
+  const held: RunMapStation[] = [
+    { station: "define", state: "done", outcome: "Wrote the spec" },
+    { station: "build", state: "pending", hold: "out-of-credit" },
+    { station: "ship", state: "pending" },
+  ];
+
+  const unexplained: RunMapStation[] = [
+    { station: "define", state: "done", outcome: "Wrote the spec" },
+    { station: "design", state: "skipped" },
+    { station: "build", state: "failed", outcome: "The checks came back red twice" },
+  ];
+
+  return (
+    <Stack>
+      <Case label="No route yet">
+        <RunMap stops={[]} />
+      </Case>
+      <Case label="The whole loop, live">
+        <RunMap stops={seven} mode="live" />
+      </Case>
+      <Case label="A short route, with two stations that open">
+        <RunMap stops={short} mode="replay" />
+      </Case>
+      <Case label="Editable, where taking a station off asks why">
+        <RunMap stops={short} mode="editable" onWaive={noop} />
+      </Case>
+      <Case label="Live, and the account ran dry">
+        <RunMap stops={held} mode="live" />
+      </Case>
+      <Case label="A skip nobody explained, and a station that failed">
+        <RunMap stops={unexplained} mode="replay" />
       </Case>
     </Stack>
   );

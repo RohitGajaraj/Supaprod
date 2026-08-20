@@ -2395,3 +2395,86 @@ a third would be the point at which the parent is doing this component's routing
 > **Claude does after:** open `/engine-room` and press the door. The thing worth confirming beyond the
 > link working is that the new region reads as the quietest thing on that page: it is a way out to a
 > workbench, not a feature, and it sits below a region about live connections.
+
+---
+
+## K-20 · BUILT · 2026-08-20 12:30
+
+**Did.** `RunMap`: a route through the seven stations as a horizontal spine, each stop labelled by
+outcome, expandable into its step graph, in three modes. **Taking a station off the route cannot
+complete without a reason**, which is the point of the whole component.
+
+**The item's real subject is a policy that was never enforced.** The founder ruling that a skipped
+station is a decision on the record with a reason has been in force for weeks, and `SpineRoute.waived`
+has carried the shape of it the whole time: `{ station, reason, by, reopensWhen }`. **Nothing in the
+product ever asked anyone for a reason.** A policy with no interaction is not enforced, it is written
+down. On a map, subtraction is the gesture, so the prompt is the next beat rather than a form somebody
+has to find.
+
+**Not a workflow builder, and I made that structural rather than promised.** A test asserts the absence
+of `onAddStation`, `onReorder`, `onConnect`, `onAddStep` and `draggable`. The only authoring gesture is
+subtraction with a reason, because that is the only judgement the record actually needs from a person.
+If a user draws the graph, the director layer is dead.
+
+**"No tool name in the output" is enforced by ABSENCE, not by a filter.** There is no field on
+`RunMapStation` that could carry one, so no caller can pass a tool through and no future edit can start
+rendering one without adding a field and answering for it. A test pins that no `tool` field exists and
+that nothing rendered matches a lowercase dotted pair, which is what every registry name looks like.
+
+**Composed from what exists rather than redrawn, in four places:**
+
+| | reused | instead of |
+| --- | --- | --- |
+| step graph | `Flowchart` + `flowFromSteps` | a fourth view of one run in a fifth rhythm |
+| step states | `PlanStepState`, `PlanStep`, imported | a private six-value enum where "skipped" means two things |
+| hold sentence | `holdLine(rawReason)` from K-18 | re-wording fifteen sentences into a second copy |
+| station mark | `GLYPH_FOR_STATION` | **a third copy of the map** |
+
+**That last one is the finding.** `Record<AgentStation, StationGlyphKind>` was declared **twice, character
+for character**: `GLYPH_FOR_STATION` in `crew/CrewChrome.tsx` and `STATION_MARK` in `shell/AppFrame.tsx`.
+Both carried a comment saying it was "the one place the two meet", and both were right about the principle
+and wrong about being the place. I was one keystroke from a third. It now lives in `station-glyphs.tsx`
+beside the drawings it keys, and **both existing copies read it** rather than being left to drift, because
+the repo's own measured lesson is that the cost is never the duplicate: it is that copies drift and then
+a station is a spiral on one surface and a target on another.
+
+**Three modes rather than booleans**, because a boolean pair would let a caller ask for a live map that is
+also editable, which is a route being edited underneath the agent walking it.
+
+**A test caught a real defect of mine.** `editable` mode drew "Take it off" on every station whether or
+not `onWaive` was wired, so an editable map with no handler got seven buttons that did nothing. That is
+the affordance failure this file's own header names, committed in the file that names it. `canWaive` now
+gates it, and the assertion that found it is kept.
+
+**Two of my own assertions were imprecise and I sharpened rather than deleted them.** Counting
+`text-mrd-agent` across all spans found two, because the `Running` chip carries the agent token perfectly
+legitimately; the claim that matters is that exactly one STATION'S MARK is azure, and that it is the
+running one. And the station-naming assertion hardcoded a display name it had no business knowing, so it
+now asserts the property instead: the sentence rendered is not the raw one and no longer opens with a
+pronoun that has no referent in a list.
+
+**Pushed back.** One. **`Owns` again.** The shared glyph map needed `station-glyphs.tsx`, and migrating the
+two existing copies needed `CrewChrome.tsx` and `AppFrame.tsx`. Ninth incomplete `Owns` this session.
+Leaving the copies would have meant three where there were two, which is the opposite of what
+"search before you write" asks for.
+
+**Unsure.** One. **A 168px fixed stop width is the one figure I cannot derive.** It is wide enough for the
+longest station name at the label stop plus its chip, and it is what makes the row overflow rather than
+squeeze seven unreadable stations into a narrow pane. But it is a measured-by-eye number rather than one
+read off a token or the reference, and it is the value most likely to be wrong at a real viewport. Worth a
+look in the gallery before it is trusted.
+
+**Noticed.** One, named in the file rather than fixed. **`WaiveReason` duplicates `PlanCard`'s
+`SkipReason` mechanic**: Enter submits, Escape cancels, commit guarded on a trimmed non-empty value,
+submit dead until then. Two copies of one mechanic will drift. The right fix is a `ReasonField` in
+`forms.tsx` that both call, which is a third file this item does not own, so it is recorded here rather
+than done quietly. **This is the second reason-capture form in two items; a third should not exist.**
+
+**Gates.** tsc clean · 9,832 pass / 0 fail / 23 skip across 585 files · build ok. Planted the removal of
+the reason guard and two tests fail, so the enforcement is real.
+
+> **Claude does after:** open the gallery panel at a narrow width and confirm the spine scrolls inside
+> itself rather than moving the page, which is the acceptance criterion no test can see. The 168px stop
+> width is the thing to judge. Nothing in the product mounts `RunMap` yet, so it is a component with a
+> gallery door and no product door: `SpineRoute` is what feeds it, and `TrackStart` already renders that
+> route as a single station chip.
