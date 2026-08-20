@@ -3928,3 +3928,65 @@ nothing to collide with.
 
 **Declaring the overreach with its reason is the behaviour the rule is for.** The
 rule exists to stop two agents writing one file, not to stop a correct change.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 09:47 · both of this morning's fixes verified as holding, and I got the same grain wrong a third time on the way
+
+No item awaiting a verdict, so this tick checked whether my own claims survive
+contact with a few hours rather than starting something new. **A fix verified once
+is a fix observed once.**
+
+### The eval tick is sustainably running, not a single lucky fire
+
+| | |
+|---|---|
+| `cron.eval-tick` runs in the last 3 hours | **4** — 02:30, 03:00, 03:30, 04:00 |
+| `ai_evals` total | **131**, from 77 |
+| written today by the tick | **54** |
+| rows carrying a `workspace_id` | **54 of 54** |
+| distinct workspaces | 6 |
+| new 404s since the URL fix | **0** (the old 8 are aging out of the 6-hour window) |
+
+**The trigger is doing its job in the wild and not merely passing my probe.** Every
+one of the 54 rows was attributed, across six tenants, by the derivation added in
+`20260820072500`. The rate is the `*/30` cadence exactly.
+
+**Polarity holds with real variance.** `corr(hallucination_score, groundedness)`
+is **-0.765** across today's rows, against **-1.000** on the first twenty and
+**+0.999** on the seed. Correctly anti-correlated, and the softer number is the
+believable one: twenty rows agreeing perfectly was always more likely to be
+quantisation than truth.
+
+One row sits `pending` at 11 minutes old, which is `RESERVE_STALE_MS` plus one, so
+the 04:30 fire reclaims it. **That is the stale-reservation path working**, not a
+leak, and it is the first time that code has ever had a live row to reclaim.
+
+### Criterion 17 is 0, and this time it is measured at the right grain
+
+All 16 users now hold an **identical enabled roster of 16 slugs**, no deprecated
+slug enabled anywhere. Mapped through the catalogue, those 16 resolve to **16
+distinct (display name, station) pairs**: Announce@ship, Chief of Staff@decide,
+Engineer@build, Watch@sense and so on. **Zero collisions.**
+
+### The grain, wrong a third time, by me, this morning
+
+My first query this tick was `GROUP BY user_id, slug HAVING count(*) > 1`. It
+returned 0 and **that 0 was worthless**: a display-name collision is two DIFFERENT
+slugs resolving to one catalogue name, which grouping by slug cannot see by
+construction.
+
+That is the identical mistake as grouping on `agents.name` at 07:12, which is what
+made me record criterion 17 as met when it was 2. **Third occurrence, and the
+second inside four hours, of asking the database a question whose answer lives in
+the code.**
+
+It is worth naming precisely, because the pattern is narrower than "be careful":
+**`agents` stores a slug and a name, the catalogue maps slug to a DISPLAY name,
+and the two `name`s are different things.** Any question about what a person sees
+has to cross that boundary, and every query I have written that stayed on the
+database side of it has returned a confident wrong number.
+
+The correct instrument, for whoever measures this next: read enabled slugs from
+`agents`, resolve them through `agent-vocabulary.ts`, and group on
+`(name, station)`. **Never on anything the database calls a name.**
