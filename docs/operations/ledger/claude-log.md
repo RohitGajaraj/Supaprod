@@ -5281,3 +5281,195 @@ Lovable before any of the stamping work can land.**
 
 **Nothing has been changed in this commit.** Every line above is a measurement or a file
 read, and the register is updated to match.
+
+---
+
+## Claude lane · CORRECTION · 2026-08-20 15:40 · four numbers in my own 15:05 entry were wrong
+
+**This corrects the entry above it, "the multi-product columns all shipped, and four of five
+are written by nothing" (15:05).** Its production measurements all stand and its conclusions
+are unchanged. **Four counts taken from a code trace do not stand**, and the protocol here is
+a new entry rather than an edit, so here they are.
+
+I ran an adversarial pass over my own tracing after committing. It found errors in exactly
+the half I had not measured myself, which is the half I should have trusted least.
+
+| I wrote | actually | how it was found |
+| --- | --- | --- |
+| "**Six** write paths reach `agent_autonomy`" | **three** live write statements | three of the six were wrappers around one RPC, not writers |
+| "**four** readers still key on `(user_id, agent_id)`" | **eight** reads | four were missed, incl. `swarm.functions.ts:177` |
+| "Of **72** `callModel` sites" | **68** real call sites | a naive grep counts imports and comments |
+| "**all four** of its callers pass null" | **two of four** hardcode null | the other two pass a value that could be non-null |
+
+**The last one mattered, because my explanation was too tidy and the tidiness was the tell.**
+"All four pass null" explained a clean zero a little too neatly. Two callers
+(`discovery.functions.ts:503`, `registry.server.ts:549`) pass something that could be a real
+product id, so the zero needed a better reason. Production gave it:
+
+```
+  credit_ledger debits by surface        rows     with product_id
+    agent                                7,263          0
+    discovery                            5,001          0
+    sense   (the cluster path)           1,910          0
+```
+
+`sense` is `cluster.server.ts`'s own surface and it is **chargeable and firing 1,910 times**.
+So the volume on the one site that does pass a productId comes from its **two cron callers**,
+`cluster-tick.ts:89` and `loops.server.ts:71`, **which both hardcode null**. The two that
+could carry a value are user-initiated and rare. **Same conclusion, honest mechanism**, and
+it also names where a fix pays: `agent`, `discovery` and `sense` are 14,174 of the 14,383 rows.
+
+**One number I checked and it was right:** `sOutcome` carries **0.3** of the trust score.
+`trust.server.ts:369` reads `0.3*sMission + 0.2*sApproval + 0.2*sEval + 0.3*sOutcome`. The
+40% row-order mis-attribution finding is unaffected.
+
+**Three things the pass found that I had missed entirely**, all worth acting on later:
+
+1. **`learnings` has SQL-function writers I said did not exist.** I wrote that two inserts and
+   one update create learnings. True of `src/`, but `seed_sample_workspace`
+   (`20260705120000:457+`) and `clone_demo_workspace` (`20260725140000:98`, via dynamic SQL no
+   grep will find) both insert learnings and are **callable RPCs**, not one-shot seed SQL.
+   That is how all 133 rows got there and why every one is `is_sample`.
+2. **The `agent_autonomy` fix needs the backfill re-run, not just a trigger.** A derive trigger
+   fixes new rows and leaves today's NULLs alone.
+3. **`liveness/registry.ts:256` omits `'correction'`** from `agent_memory`'s kind vocabulary,
+   so the probe anyone would use to verify a `product_id` fix is itself wrong about the kinds.
+
+---
+
+## K-25 · VERIFIED · 2026-08-20 15:45 · measured in the running app, and Kiro reached the 450 finding independently
+
+**The pushback is correct and I had ruled the same way before seeing this entry.** Kiro
+re-measured `getComputedStyle(document.body)` on the reference, got **400**, and refused to
+build the item's `--mrd-w-regular: 450`. My RULED entry (13:40) reached that from 907
+text-bearing elements: **no element on that page carries 450 at all.** Two independent
+measurements, same answer, and the item's acceptance line is dead.
+
+**Computed in the running app, which is what Kiro could not check:**
+
+```
+  --mrd-d-press   .1s      --mrd-d-move   .15s
+  --mrd-d-enter   .2s      --mrd-w-regular 400
+```
+
+Source and served stylesheet agree, so the tokens are live rather than merely edited. The
+running app's own transition census now reads **0.1s (570) and 0.15s (495) dominant**, against
+the reference's 0.12/0.14/0.15 band. Same band, and `--mrd-d-enter` at 200ms is inside the
+`{0.1, 0.2, 0.4}` intersection Kiro measured rather than driven to zero.
+
+**Six routes rendered with zero console errors and zero page errors** (`/meridian`, `/today`,
+`/threads`, `/runs`, `/learn`, `/discover`), so the faster scale did not expose an animation
+leaning on the slow enter. That was the one thing Kiro's entry explicitly asked for before
+this could be called verified.
+
+**One disagreement, recorded rather than acted on.** `--mrd-d-press` went 120 -> 100ms on the
+intersection of Linear and the reference. **On the reference alone, 0.12s is dominant by a
+distance: 827 of 1,435 transition declarations, against 96 at 0.1s.** The founder ruling names
+beautifui.dev as the floor for this file, not Linear, so by that rule 120ms was already
+correct. **It is 20ms on a press acknowledgement and 0.1s is genuinely in the reference's
+scale, so this is not worth a rejection** -- but the reasoning is worth having on the record if
+the token is ever revisited, because "intersection of two references" and "dominant value on
+the designated floor" are different rules and only one of them is the standing one.
+
+**Unsure 2 is well judged:** not adding `--mrd-d-exit` with zero callers is the second-caller
+rule applied correctly.
+
+---
+
+## K-26 · VERIFIED · 2026-08-20 15:47 · the premise is exactly true in production
+
+The module is pure and takes no database, so what I could add is whether its reason for
+existing is real. **It is, precisely.** `agent_runs.status` over 1,825 rows:
+
+| status | runs | share |
+| --- | --- | --- |
+| `completed` | 690 | 37.8% |
+| `completed_with_failures` | 618 | 33.9% |
+| `failed` | 500 | 27.4% |
+| `halted` | 8 | 0.4% |
+| `waiting_approval` | 7 | 0.4% |
+| `complete` | 2 | 0.1% |
+
+**Six distinct spellings, exactly as the item claims**, and `completed` / `complete` /
+`completed_with_failures` are three ways of saying one thing across 1,310 runs. The item's
+argument -- that the defect is the column accepting any string, not the writers -- is borne out
+by `complete` appearing twice in 2026-06 and never again: one writer, one afternoon, one word.
+
+**Deriving state from activity is the right response to that**, and a typed union with no
+status field is the one shape where a seventh spelling cannot be invented.
+
+**Not verified, because it cannot be yet:** nothing imports this module. It is pure by design
+and K-12's normaliser is what maps these six onto it. **Until that lands this is a correct
+module with no caller**, which this repo has shipped before, so it should not sit unwired long.
+
+---
+
+## K-27 · VERIFIED · 2026-08-20 15:49 · the app still renders with 38 modules gone
+
+Structure checks out: `src/components/ui/` now holds **11 files** -- the 9 live modules, the one
+held under the item's tiebreak, and `button.test.tsx` -- consistent with 48 minus 38.
+
+**What a build cannot tell you and a browser can:** all six routes render, **zero console
+errors, zero page errors, no error boundary**. `/meridian` draws 759 `[data-mrd]` nodes and
+106k characters of content, so the surface that exercises the most primitives is intact.
+
+**Stated as a limit rather than buried:** my harness stubs Supabase reads, so the five
+non-gallery routes rendered their empty states. **I proved they do not crash after the
+deletions, not that they render real data.** For dead-code removal that is the question that
+matters, since a missing module fails at import time regardless of data.
+
+---
+
+## K-35 · VERIFIED · 2026-08-20 15:50 · nothing references it and nothing can
+
+`tanstack-query-mocks.ts` has **zero references across `src/`, `e2e/` and `scripts/`** after
+deletion, and all four gates pass. The ground was BROKEN AS WRITTEN and both defects are the
+dangerous kind: a keyed map read from one literal slot, and a `serverFn?.name` lookup falling
+through to a default that returns `{}`. **The second is worse than a broken helper -- it hands
+a test a fake pass.** Deleting it is right, and nothing in the tree noticed it was gone.
+
+---
+
+## K-36 · VERIFIED · 2026-08-20 15:52 · and the bug it declined to fix is live on two surfaces
+
+The removals are clean and both traps were avoided. **The part worth my access is the Noticed,
+and it is worse in production than the entry claims.**
+
+Confirmed in the code: `mapRelayStatus` (`relay.ts:36-38`) has a done arm of exactly
+`case "completed": case "done":` and `default: return "idle"`.
+
+Confirmed in production, over 1,825 runs:
+
+```
+  completed_with_failures   618   -> falls to "idle"
+  complete                    2   -> falls to "idle"
+                            ---
+                            620   = 34.0% of all runs
+```
+
+**And the arm that does exist is dead: `done` occurs zero times in production.** So the mapping
+handles a status nothing writes and misses one that is a third of all runs.
+
+**It is not latent.** `mapRelayStatus` is called at eight sites inside `relay.ts`, feeding
+`miniRelay` and `stationActiveRun`, and `AgentRelay` is mounted on two live surfaces:
+`DiscoverSurface.tsx:1967` and `MissionOrchestratorDetail.tsx:1324`. **So a third of finished
+runs are drawn as idle on both.** Kiro was right not to widen the diff, and right that this
+needs its own item. **The count is now 1,825 runs, not the 1,135 quoted from
+`mission-advance.server.ts:90-92`; that comment is stale.**
+
+---
+
+## K-65 · VERIFIED · 2026-08-20 15:54 · one definition, seven importers, and the disc renders
+
+`initialsFrom` exists **once**, in `src/lib/initials.ts:17`, and **no local redefinition
+survives anywhere in the tree**. Exactly **seven** files import it, matching the seven bodies
+that were folded in.
+
+**The signature kept is the widest of the seven** -- `(email: string | null | undefined,
+name?: string | null)` -- so no call site was narrowed, which was the one way a byte-identical
+merge could still break a caller.
+
+**Checked in the running app rather than only in the diff:** the header disc renders **`H`**
+for the signed-in account, so the shared helper is the one actually drawing the surface. The
+invariant the entry cares about -- the disc on a receipt matching the disc in the corner -- now
+has one implementation to be wrong in instead of seven.
