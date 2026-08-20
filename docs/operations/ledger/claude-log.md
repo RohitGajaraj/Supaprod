@@ -6734,3 +6734,70 @@ falling ratchet, and a rendering app** -- which is Kiro's half of the proof, not
 **Naming that is the point.** A verdict that does not say which half it rests on is the thing this
 ledger exists to prevent, and four items sharing one line of evidence is weaker than three items
 each carrying their own.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 21:40 · three of the four investor logins are out of credits, and the first line of every page says so
+
+**This is the one to act on tonight, and it is commercial rather than technical.**
+
+`demo-credentials.md` designates four accounts as **"Investor logins, one per application"**,
+sent into venture programme applications, opened by reviewers **"asynchronously and
+unpredictably, sometimes weeks after submitting"**. Measured just now:
+
+| account | credits | what a reviewer sees |
+| --- | --- | --- |
+| `compass@supaprod.ai` | **0** | the banner, and every agent action refused |
+| `lantern@supaprod.ai` | **1** | the banner |
+| `voyage@supaprod.ai` | **8** | the banner |
+| `meridian@supaprod.ai` | 742 | fine |
+| `harbor@supaprod.ai` (rehearsal) | **0** | the banner |
+
+**I signed in as `harbor@` and the first line on every page is:**
+
+> *"Running low: 0 AI credits left. Top up or upgrade so the loop keeps running."*
+
+Confirmed on `/today`, `/runs`, `/approvals` and `/decide` -- it is in the shell, so it is on
+every surface. **The demo tells the reviewer the product is out of fuel before they see anything
+work.**
+
+**It is not only a banner.** `gate_credit_exhausted` blocked **167 calls in the last 24 hours
+across 5 users**, which is all five demo accounts. So a reviewer who ignores the banner and
+presses something gets a refusal.
+
+**This is the same failure `demo-credentials.md` already documents on a different axis and did
+not generalise.** That file warns the approval queues "decay on their own" and must be re-armed
+before every review window, because the seed's `expires_at` sits hours out. **Credits are a
+second decay axis and nobody wrote it down.** The queue rots by time; the balance rots by use,
+and this lane's own agents have been spending it all day.
+
+**I am not topping them up.** Granting credits is a billing write and a commercial decision, and
+nothing in section 5 makes that mine to take unilaterally. **Founder: three accounts need a
+top-up before the next review window, and `demo-credentials.md` needs a line about credits
+beside its line about expiries.**
+
+---
+
+## Claude lane · LANDED · 2026-08-20 21:45 · a surface shows a number I cannot reproduce, which is the ledger's own rule pointed at the product
+
+Signed in for real and read what `/approvals` displays against what the database holds.
+
+**The surface says: "14 decisions are ready for you".**
+
+**Harbor's workspace holds 4 pending approvals and 7 decisions with no forecast resolution.**
+Neither is 14, and 4 + 7 is 11.
+
+**I do not know what composes 14 and I am not going to guess.** It may be a correct count of
+something I have not found; "decisions ready" is not obviously either of the two things I
+measured. **What I can say is that the number cannot be reconstructed from the two obvious
+candidate queries, which is the same defect this ledger warns about internally** -- *"a number
+without its query is not evidence"* -- pointed at a surface rather than at an entry.
+
+**And I nearly reported a much bigger discrepancy from my own mistake.** My first query grouped
+pending approvals by workspace **name** and returned 37 for "Helio Labs", which against 14 looks
+alarming. **There are seven Helio Labs clones**, one per demo account, and grouping by name
+collapsed them. By id, harbor's own workspace has **4**. The 37 was mine, not the product's.
+
+**What would settle it:** the query behind that headline. If it is right, it wants a comment
+naming what it counts; if it is wrong, it is a surface overstating a person's queue by three
+times, on the page whose whole job is to say what needs them.
