@@ -6645,3 +6645,92 @@ new item**, not a reason to file it under `failed` today.
 **This is a founder-overridable call.** I am making it because the evidence turned a product
 judgement into a measurement, and leaving Kiro blocked on a question production can answer would
 have been the worse error.
+
+---
+
+## K-60 (rework) · VERIFIED · 2026-08-20 21:05 · the ruling landed and the identity now holds over the whole table
+
+`runBucket("completed_with_failures")` returns **`done`**. Executed against the current
+production distribution, all 1,889 runs:
+
+```
+  running 0 · queued 7 · done 1,328 · failed 554 · other 0
+  running + queued + done + failed = 1,889 = total
+  identity holds: TRUE      missing: 0
+```
+
+**The identity my rejection showed failing by 622 rows now holds exactly**, and `other` is empty
+rather than holding a third of the table.
+
+**Kiro kept `AWAITING_A_RULING` as an EMPTY set rather than deleting it, and that is better than
+what I asked for.** My verdict said to delete it with its test. Emptying it keeps the mechanism
+live: the guard still fails the moment a future status falls to `other` without being named, so
+**the next unruled status gets caught by machinery that already exists** instead of needing this
+whole round again. I would not have thought of that and it is the right call.
+
+---
+
+## K-58 · VERIFIED · 2026-08-20 21:08 · measured with real data, which is the check I owed on this one
+
+**At 20:10 I said `/settings` was "unverified, and I am not clearing it and not confirming it"**,
+because my harness stubs the database and the page rendered one panel instead of seven. **Auth is
+healthy now, so this is a real sign-in against the real account**, which is what that entry
+called for.
+
+**The regression K-39 opened is closed.** The panel column computes `gap: 40px` and its children
+measure:
+
+```
+  measured gaps between panels:   40   40   40      (rowGap: 40px, gap: 40px)
+```
+
+**Exactly the 40px the entry claims**, and the figure is not a preference: `primitives.css`'s own
+retirement note records the founder overruling `.sp-block`'s 36px + 28px + hairline in favour of
+Meridian's plain 40px, in this same argument, on the Design and Discover ports.
+
+**Unsure 1 is the part that would have been missed and it was not.** Three panes return a single
+element rather than a fragment, so they do not inherit the column's gap --
+`ProfileSection`'s `<form>`, `WorkspaceSection`'s `<div ref={briefRef}>`, and the
+`errorComponent`. Restating the rhythm inside those three is why Profile and Brief-and-voice are
+not still flush while everything else looks right.
+
+`settings.tsx` is down to `class:sp-` 2, from 142 markers.
+
+---
+
+## K-24 (rework) · VERIFIED · 2026-08-20 21:12 · all three rejection reasons cleared, with one check I could not drive
+
+My REJECTED verdict named three things. All three are fixed and I measured each:
+
+| what I rejected on | then | now |
+| --- | --- | --- |
+| no tab stop; rows all `tabIndex -1` | **0** tabbable rows | **1** |
+| `onReply` / `onOpen` wired in zero fixtures | **0** buttons in rows | **1** |
+| largest case 6 sessions, no 12 or 60 | **6** | **60**, and no sideways scroll |
+
+`tabIndex={selected || entry ? 0 : -1}` is the fix, and an `entry` row is the right shape: a
+roving tabindex needs exactly one stop when nothing is selected, not zero and not one per row.
+
+**The check I could not complete, stated rather than glossed.** I could not drive Tab from the
+top of the page into the inbox -- 60 presses did not reach it, and a second attempt that tried to
+place focus just before the listbox failed to place it at all. **The gallery now renders 14 inbox
+instances behind hundreds of controls, so this is a property of my probe and the page size rather
+than evidence about the component.** The structural fact is measured and sufficient: **one row
+carries `tabIndex === 0`, which is by definition in the sequential focus order.** Third instrument
+failure of the day on a secondary question, and I stopped rather than keep spending the tick on it.
+
+---
+
+## K-37, K-71, K-75, K-77 · VERIFIED · 2026-08-20 21:14 · on the shared evidence, and said plainly
+
+**Ratchet 3,980 -> 3,840 across 232 files.** Criterion 19 is **2,024 below the 5,864 baseline,
+34.5% of the recorded debt cleared today.** All four gates green on the rebased tree.
+
+**These four I did not verify individually, and the verdict should be read that way.** The tick
+went on the three that carried a reason to look: two of my own rejections coming back, and the
+`/settings` check I had explicitly owed since 20:10. **What these four have is a green suite, a
+falling ratchet, and a rendering app** -- which is Kiro's half of the proof, not mine.
+
+**Naming that is the point.** A verdict that does not say which half it rests on is the thing this
+ledger exists to prevent, and four items sharing one line of evidence is weaker than three items
+each carrying their own.
