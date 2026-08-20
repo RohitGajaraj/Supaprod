@@ -3779,3 +3779,75 @@ had a verdict, so it was subtracted, and Kiro would have waited on an answer tha
 never came. The counting version surfaced it on the first sync after it landed.
 **The fix was written this morning against a hypothetical and met the real case
 four hours later.**
+
+---
+
+## Claude lane · LANDED · 2026-08-20 09:28 · a queued run no longer resumes onto an agent its owner switched off
+
+The item my own ruling named an hour ago, and it needed the test harness extended
+before it could be tested at all.
+
+### The gap
+
+`runAgentLoop` refuses a fresh dispatch of a disabled agent and its comment said
+"Queued child runs resume via `resumeAgentLoop`, not here; that path re-checks
+separately if needed." **It did not re-check, and did not select the column.** So
+disabling an agent stopped new work while work already in the pipe carried on.
+
+### Cancelled, not refused, which was the judgement
+
+`resumeAgentLoop` now reads `enabled` and, when it is false, writes `cancelled`
+and returns `halted: { kind: "agent-disabled" }` before doing any work.
+
+**Refusing without ending it would have been the smaller change and the wrong
+one.** A run left `queued` is picked up by every sweeper, declined again, and
+never ends, with no surface saying why. **That is the shape of the 130 approvals
+raised and never decided** -- a queue nobody can empty is worse than a decision
+somebody dislikes.
+
+**The precondition is in the statement**, `.not("status", "in",
+terminalStatusFilter())`, matching `stopRun` rather than inventing a second idiom.
+Overlapping sweepers reach this line by design, and a run that finished between
+the read and the write must not be reopened as cancelled.
+
+**Pending approvals are left alone, deliberately.** `stopRun` leaves them too, and
+answering it differently here would mean a run cancelled by a person and one
+cancelled by a switch behave differently for no reason a reader could infer.
+Whether cancelling a run should cancel its approvals is a real question that
+belongs to both paths at once.
+
+### The harness could not express the guard, so no test of it could have existed
+
+The first run of the new test failed **in `fake-postgrest.test.ts`, not in the code
+it was pointed at**: `not()` supported only the `is` operator.
+
+**So `.not(col, "in", …)` -- the precondition every writer uses to avoid clobbering
+a terminal status -- was untestable through this harness.** Any test that thought
+it was checking that guard was checking something else, and there were none, which
+is consistent.
+
+Extended it, faithfully rather than conveniently:
+
+- `in` takes a **parenthesised string**, not an array, because that asymmetry is
+  PostgREST's: `.in(col, [a,b])` sends a list and `.not(col,"in","(a,b)")` sends
+  the filter verbatim. `terminalStatusFilter()` produces exactly that string.
+- **NULL follows SQL.** `NOT (x IN (...))` is UNKNOWN when x is null, so the row
+  does not match. Reading it as "null is not in the set, so keep it" is the
+  friendlier answer and the wrong one. **A harness kinder than the database
+  teaches a test to pass where production would not.**
+
+Three self-tests added beside the harness's existing ones, since its own header
+says a conclusion drawn with it is worth nothing if those fail.
+
+### The instrument was too loose, again, and it was mine
+
+I checked the harness for `not` and `in` support before writing the test, saw both
+tokens, and concluded the combination worked. **They are two separate methods and
+the combination was unimplemented.** Third time today that a grep matched the
+pieces of a thing rather than the thing.
+
+Cheap this time: the test failed loudly in the harness. **The same mistake in a
+measurement would have produced a confident number**, which is how the other two
+cost real time.
+
+Suite: 9,929 across 586 files, 0 fail.

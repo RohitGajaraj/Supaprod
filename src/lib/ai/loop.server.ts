@@ -1700,11 +1700,65 @@ export async function resumeAgentLoop(
 
   const { data: agent } = await supabase
     .from("agents")
-    .select("id,slug,name,role,system_prompt,max_tool_risk")
+    .select("id,slug,name,role,system_prompt,enabled,max_tool_risk")
     .eq("id", run.agent_id)
     .eq("user_id", run.user_id)
     .maybeSingle();
   if (!agent) throw new Error(`agent not found for run ${runId}`);
+
+  /*
+   * ── A RUN DOES NOT RESUME ONTO AN AGENT ITS OWNER SWITCHED OFF ──────────
+   *
+   * `runAgentLoop` refuses a FRESH dispatch of a disabled agent and says so in
+   * its own comment: "Queued child runs resume via `resumeAgentLoop`, not here;
+   * that path re-checks separately if needed." **It did not re-check.** Measured
+   * 2026-08-20: this function did not even SELECT `enabled`. So a run queued
+   * before the switch was flipped carried on afterwards, and disabling an agent
+   * stopped new work while leaving work already in the pipe running.
+   *
+   * Disabling is a withdrawal of authority rather than a pause. A queued run that
+   * resumes afterwards acts on authority the person has taken back, which is the
+   * one thing the switch exists to prevent.
+   *
+   * CANCELLED RATHER THAN REFUSED, and that is the whole judgement here. Simply
+   * declining to resume leaves the row `queued` forever: every sweeper picks it
+   * up, re-reads it, declines again, and nothing on any surface says why. That is
+   * the shape of the 130 approvals raised and never decided -- a queue nobody can
+   * empty is worse than a decision somebody dislikes. A terminal status ends it
+   * and the run is visible as cancelled instead of pending forever.
+   *
+   * THE PRECONDITION IS IN THE STATEMENT, not around it, matching `stopRun`. Two
+   * sweepers can reach this line at once, and a run that finished between the
+   * read above and the write below must not be reopened as cancelled. `.not(
+   * "status", "in", terminalStatusFilter())` makes the check and the write one
+   * operation, which is the entire reason `run-status.ts` exports that string.
+   *
+   * PENDING APPROVALS ARE LEFT ALONE, deliberately. `stopRun` leaves them too,
+   * and inventing a second answer here would mean a run cancelled by a person and
+   * a run cancelled by a switch behave differently for no reason a reader could
+   * infer. Whether cancelling a run should cancel its approvals is a real
+   * question and it belongs to both paths at once.
+   */
+  if (agent.enabled === false) {
+    await supabase
+      .from("agent_runs")
+      .update({ status: "cancelled" })
+      .eq("id", runId)
+      .not("status", "in", terminalStatusFilter())
+      .select("id");
+    return {
+      trace_id: "",
+      agent_slug: run.agent_slug,
+      steps: [],
+      final: `${run.agent_slug} is switched off, so this run was cancelled instead of resumed.`,
+      approvals_queued: 0,
+      run_id: runId,
+      halted: {
+        kind: "agent-disabled",
+        reason: "The agent was switched off while this run was waiting to continue.",
+      },
+    };
+  }
 
   // F-STUDIO: a run paused on a shipping gate only resumes once every queued
   // approval is decided AND executed (approved-but-unexecuted still blocks —

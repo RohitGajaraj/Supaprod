@@ -173,6 +173,34 @@ class FakeQuery implements PromiseLike<{ data: FakeRow[] | null; error: unknown;
     return this;
   }
   not(col: string, op: string, val: unknown): this {
+    /*
+     * `in` takes a PARENTHESISED STRING here, not an array, and that asymmetry is
+     * PostgREST's rather than this harness's: `.in(col, [a, b])` sends a list,
+     * while `.not(col, "in", "(a,b)")` sends the filter verbatim. `run-status.ts`
+     * exports `terminalStatusFilter()` producing exactly that string, and the
+     * writers that must not clobber a terminal status use it, so a harness that
+     * could not express it could not test the one guard those writers have.
+     * Added 2026-08-20, after a test of that guard failed here rather than in the
+     * code it was pointed at.
+     */
+    if (op === "in") {
+      const set = new Set(
+        String(val)
+          .replace(/^\(|\)$/g, "")
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      );
+      /*
+       * NULL follows SQL, deliberately. `NOT (x IN (...))` is UNKNOWN when x is
+       * null, so the row does NOT match. Reading it as "null is not in the set,
+       * therefore keep it" would be the friendlier answer and the wrong one, and
+       * a harness that is kinder than the database teaches a test to pass where
+       * production would not.
+       */
+      this.preds.push((r) => r[col] !== null && r[col] !== undefined && !set.has(String(r[col])));
+      return this;
+    }
     if (op !== "is") throw new Error(`fake-postgrest: unsupported not() operator "${op}"`);
     this.preds.push(
       (r) => !(val === null ? r[col] === null || r[col] === undefined : r[col] === val),
@@ -371,5 +399,54 @@ describe("fake-postgrest applies filters to writes, not only to reads", () => {
     const second = await db.from("t").insert({ scope: "s", key: "k" });
     expect(first.error).toBeNull();
     expect((second.error as { code?: string } | null)?.code).toBe("23505");
+  });
+});
+
+/*
+ * The new operator's own coverage. The harness's header says a conclusion drawn
+ * with it is worth nothing if these fail, and `not.in` is now load-bearing for
+ * every writer that must not overwrite a terminal status.
+ */
+describe("fake-postgrest not(col, 'in', ...)", () => {
+  test("excludes the listed values and keeps the rest", () => {
+    const db = makeFakeDb({
+      t: [{ id: "a", status: "queued" }, { id: "b", status: "completed" }, { id: "c", status: "running" }],
+    });
+    return db
+      .from("t")
+      .update({ status: "cancelled" })
+      .not("status", "in", "(completed,failed,cancelled)")
+      .select("id")
+      .then(() => {
+        const by = Object.fromEntries(db.tables.t.map((r) => [r.id, r.status]));
+        expect(by.a).toBe("cancelled");
+        expect(by.c).toBe("cancelled");
+        // The terminal one is untouched, which is the entire point.
+        expect(by.b).toBe("completed");
+      });
+  });
+
+  test("a null column does not match, following SQL rather than intuition", () => {
+    const db = makeFakeDb({ t: [{ id: "a", status: null }] });
+    return db
+      .from("t")
+      .update({ status: "cancelled" })
+      .not("status", "in", "(completed)")
+      .select("id")
+      .then(() => {
+        expect(db.tables.t[0].status).toBeNull();
+      });
+  });
+
+  test("tolerates spaces in the list", () => {
+    const db = makeFakeDb({ t: [{ id: "a", status: "completed" }] });
+    return db
+      .from("t")
+      .update({ status: "cancelled" })
+      .not("status", "in", "( completed , failed )")
+      .select("id")
+      .then(() => {
+        expect(db.tables.t[0].status).toBe("completed");
+      });
   });
 });
