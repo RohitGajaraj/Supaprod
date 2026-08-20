@@ -263,7 +263,7 @@ The design system has no vocabulary for an agent working. Measured: `--mrd-you` 
 ---
 
 **K-01 · `--mrd-stop`, the token an interrupt can wear**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: VERIFIED 2026-08-19` · deps: none · size: S
 
 **What.** Add one token to `src/styles/meridian.css` for a control that stops work in progress, plus its `@theme inline` binding. Measure it in both grounds and record the ratios in the token's own comment.
 
@@ -281,7 +281,7 @@ The design system has no vocabulary for an agent working. Measured: `--mrd-you` 
 ---
 
 **K-02 · `Action` gains a `destructive` variant**
-`STATUS: TODO` · deps: K-01 · size: S
+`STATUS: VERIFIED 2026-08-19` · deps: K-01 · size: S
 
 **What.** Add a fourth variant to `Action` in `src/components/meridian/surface-parts.tsx`, wearing `--mrd-stop`.
 
@@ -301,7 +301,7 @@ The design system has no vocabulary for an agent working. Measured: `--mrd-you` 
 ---
 
 **K-03 · `Dialog`**
-`STATUS: TODO` · deps: K-02 · size: M
+`STATUS: REJECTED 2026-08-20` · deps: K-02 · size: M
 
 **What.** A modal in `src/components/meridian/Dialog.tsx` — scrim, focus trap, Escape to dismiss, restore focus on close, `aria-modal`, a title, a body, and an actions row.
 
@@ -321,7 +321,7 @@ The design system has no vocabulary for an agent working. Measured: `--mrd-you` 
 ---
 
 **K-04 · `RunTimeline`**
-`STATUS: TODO` · deps: none · size: L
+`STATUS: VERIFIED 2026-08-19` · deps: none · size: L
 
 **What.** A component in `src/components/meridian/RunTimeline.tsx` that renders an ordered sequence of events against a real time axis. Props (shape is yours to finalise, this is the contract): a list of `{id, at, kind, label, detail?, agentSlug?, station?, durationMs?, state}` plus an optional `now` for live mode.
 
@@ -341,7 +341,7 @@ The design system has no vocabulary for an agent working. Measured: `--mrd-you` 
 ---
 
 **K-05 · `ToolStream`**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: VERIFIED 2026-08-20` · deps: none · size: M
 
 **What.** An append-as-it-arrives log in `src/components/meridian/ToolStream.tsx`: rows arrive one at a time, the newest is visible, and the view pins to the bottom **unless the reader has scrolled up**, in which case it stays put and offers a "jump to latest" control.
 
@@ -360,7 +360,7 @@ The design system has no vocabulary for an agent working. Measured: `--mrd-you` 
 ---
 
 **K-06 · `PlanCard`**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: VERIFIED 2026-08-20` · deps: none · size: M
 
 **What.** A forward-looking list of steps an agent commits to **before** acting: each step has a label, an owning agent, a station, and a state of `pending | active | done | skipped | failed | needs-approval`.
 
@@ -380,7 +380,7 @@ The design system has no vocabulary for an agent working. Measured: `--mrd-you` 
 ---
 
 **K-07 · `Spend`**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: REJECTED 2026-08-20` · deps: none · size: S
 
 **What.** A component rendering cost against a ceiling: amount spent, cap, and proximity to it.
 
@@ -398,7 +398,7 @@ The design system has no vocabulary for an agent working. Measured: `--mrd-you` 
 ---
 
 **K-08 · `MarkStack` takes a state per mark**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: VERIFIED 2026-08-20` · deps: none · size: M
 
 **What.** Change `MarkStack` in `src/components/meridian/marks.tsx` so each mark carries its own `MarkState` instead of the stack sharing one.
 
@@ -417,7 +417,7 @@ The design system has no vocabulary for an agent working. Measured: `--mrd-you` 
 ---
 
 **K-09 · Type-size tokens get `@theme inline` bindings**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: VERIFIED 2026-08-20` · deps: none · size: M
 
 **What.** Add `--text-mrd-*` bindings for all 13 type-size tokens, then replace the off-ladder arbitrary values in `src/components/meridian/`.
 
@@ -441,7 +441,7 @@ Correctness here is provable from the repo. Claude wires the results to real dat
 ---
 
 **K-10 · The approval policy engine, as pure functions**
-`STATUS: TODO` · deps: none · size: L
+`STATUS: VERIFIED 2026-08-20` · deps: none · size: L
 
 **What.** A new module `src/lib/ai/approval-policy.ts` exporting a pure `resolveApprovalPolicy(input) => { decision, reason }` where decision is `never-ask | earn-it | always-human | disabled`, plus exhaustive unit tests.
 
@@ -473,7 +473,7 @@ Take the track record as a plain argument (`{approved, rejected, consecutiveReje
 ---
 
 **K-11 · Catalogue the 17 uncatalogued tools**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: VERIFIED 2026-08-20` · deps: none · size: M
 
 **What.** Add `CONSEQUENCES` and `RISK_PROFILE` entries in `src/lib/tool-consequences.ts` for the 17 tools that have none: `cluster.trigger`, `critic.evaluate`, `github.ci.read`, `mission.observe`, `repo.read`, `repo.search`, `repo.tree`, `signals.list`, `sources.connect`, `sources.status`, `studio.checks.run`, `themes.list`, `web.fetch`, `web.map`, `web.search`, `workspace.list_tasks`, `workspace.search`. Add a test asserting **registry ⊆ catalogue** so this cannot recur.
 
@@ -492,7 +492,7 @@ Take the track record as a plain argument (`{approved, rejected, consecutiveReje
 ---
 
 **K-12 · One enumerated set of run statuses**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: VERIFIED 2026-08-20` · deps: none · size: M
 
 **What.** A single exported union and a normaliser in `src/lib/run-status.ts`, plus a test pinning every historical spelling to its canonical form.
 
@@ -511,7 +511,7 @@ Take the track record as a plain argument (`{approved, rejected, consecutiveReje
 ---
 
 **K-13 · `decision.record` gains forecast fields**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: VERIFIED 2026-08-20` · deps: none · size: M
 
 **What.** Extend the `argsSchema` of `decision.record` in `src/lib/ai/tools/registry.server.ts` with `forecast_claim`, `forecast_how_we_will_know` and `forecast_horizon_date`, refused as a set (all three or none) and refusing a horizon at or before now. Update the tool description to say why.
 
@@ -534,7 +534,7 @@ The argument is already written in this tool's own description, applied to a dif
 ---
 
 **K-14 · Close the `uncertain` verdict crash**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: VERIFIED 2026-08-20` · deps: none · size: S
 
 **What.** Narrow the `verdict` enum on `learning.record` from four values to the three the database actually permits, and change the tool description that currently instructs the agent to use the fourth.
 
@@ -552,7 +552,7 @@ The argument is already written in this tool's own description, applied to a dif
 ---
 
 **K-15 · Emit the two dead SSE frames**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: VERIFIED 2026-08-20` · deps: none · size: M
 
 **What.** Emit `station` and `tool` frames from `src/routes/api/chat.ts` at the points where the information already exists.
 
@@ -573,7 +573,7 @@ The argument is already written in this tool's own description, applied to a dif
 ---
 
 **K-16 · Repair the dead dispatch branch**
-`STATUS: BUILT` · deps: K-15 · size: M
+`STATUS: VERIFIED 2026-08-20` · deps: K-15 · size: M
 
 **What.** Make `intent: "do"` able to promote a request to a mission on its own, and make the silent-degrade path explicit.
 
@@ -623,7 +623,7 @@ The argument is already written in this tool's own description, applied to a dif
 ---
 
 **K-18 · A gate waiting on YOU is painted amber, which means it is not on you**
-`STATUS: BUILT` · deps: none · size: S
+`STATUS: VERIFIED 2026-08-20` · deps: none · size: S
 
 > **REWRITTEN 2026-08-20 after Kiro's BLOCKED entry, which was right on both counts.** The original asked for "the sixteen hold reasons" to be given a surface. **There are fifteen**, so its acceptance could never be satisfied; **one of them is `done`**, which is not a hold and would have rendered finished work as stuck; and **all fifteen already reach a surface** via `holdLine` -> `rowToTrack` -> `TrackStart.tsx:472`. The gap it described was closed. What follows is the defect it found instead.
 
@@ -652,7 +652,7 @@ The argument is already written in this tool's own description, applied to a dif
 ---
 
 **K-19 · Doors for the six orphan routes**
-`STATUS: BUILT` · deps: none · size: S
+`STATUS: VERIFIED 2026-08-20` · deps: none · size: S
 
 > **Six of the seven paths named here are redirect stubs, and a redirect stub with no inbound link is
 > doing its job.** It catches links that already exist outside the codebase. Adding one would manufacture
@@ -678,7 +678,7 @@ The argument is already written in this tool's own description, applied to a dif
 ---
 
 **K-20 · The Run Map**
-`STATUS: BUILT` · deps: K-06 · size: L
+`STATUS: VERIFIED 2026-08-20` · deps: K-06 · size: L
 
 **What.** A component rendering a run's route as a horizontal station spine, expandable into its step DAG. Three modes: **editable** before start, **live** during, **replay** after.
 
@@ -1950,7 +1950,7 @@ The standing rule since 2026-08-01: **research the best proven product in that c
 ### Group M — The one reference component that was never ported
 
 **K-80 · `Flowchart`, the twentieth component**
-`STATUS: TODO` · deps: K-09 · size: L · **PRIORITY: BUILD THIS NEXT, ahead of its number**
+`STATUS: VERIFIED 2026-08-20` · deps: K-09 · size: L · **PRIORITY: BUILD THIS NEXT, ahead of its number**
 
 > **This item jumps the queue** (founder ruling 2026-08-20, restated at the top of this file). Its number records when it was written, not when it should be built. A primitive that does not exist is a primitive nobody builds a feature with, so every day it is missing, some later item quietly invents a one-off graph instead.
 
@@ -1982,7 +1982,7 @@ It also happens to be the primitive the direction already asked for. [`../planni
 ---
 
 **K-85 · `Flowchart` gains dragging and a violet ground**
-`STATUS: BUILT` · deps: none · size: L · **PRIORITY: jump list, second**
+`STATUS: VERIFIED 2026-08-20` · deps: none · size: L · **PRIORITY: jump list, second**
 
 **What.** Make the nodes draggable with the connectors following, and give the dotted canvas a faint violet cast in both grounds.
 
@@ -2019,7 +2019,7 @@ It also happens to be the primitive the direction already asked for. [`../planni
 ---
 
 **K-81 · `AgentPulse` keeps its azure and loses the brand mark**
-`STATUS: BUILT` · deps: K-09 · size: S · **PRIORITY: jump list, second**
+`STATUS: VERIFIED 2026-08-20` · deps: K-09 · size: S · **PRIORITY: jump list, second**
 
 > **REWRITTEN 2026-08-20 after Kiro's QUESTION, which was right.** The original item named `LoadingState` and every one of its four criteria was already met there: monochrome `bg-mrd-ink` cells, a 13px label over a 12px mono elapsed, and Drive/Dots/Orbit with Surfer already skipped. **The component being described was `AgentPulse`.** The original also cited a founder ruling to `DESIGN-SYSTEM.md`, where `grep -ci brand` returns 0. Full correction in the Claude log.
 
@@ -2083,7 +2083,7 @@ It also happens to be the primitive the direction already asked for. [`../planni
 ---
 
 **K-83 · The glyphs name the wrong things, and nothing connects one step to the next**
-`STATUS: BUILT` · deps: K-09 · size: M · **PRIORITY: jump list, fourth**
+`STATUS: VERIFIED 2026-08-20` · deps: K-09 · size: M · **PRIORITY: jump list, fourth**
 
 **What.** Two changes to the run views, both about the same thing: a row should say what it touched, and a reader should be able to see that one row led to another.
 
@@ -2112,7 +2112,7 @@ It also happens to be the primitive the direction already asked for. [`../planni
 ---
 
 **K-84 · A plan step states what it is and offers nothing to do about it**
-`STATUS: BUILT` · deps: K-09 · size: M · **PRIORITY: jump list, fifth**
+`STATUS: VERIFIED 2026-08-20` · deps: K-09 · size: M · **PRIORITY: jump list, fifth**
 
 **What.** Give a `PlanCard` step the two controls a person needs on it, the context to decide, and an alignment that holds.
 
