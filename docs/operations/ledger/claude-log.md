@@ -2904,3 +2904,75 @@ because it had no rows to read. It now has a path to rows -- once the schedule i
 revived. **The schedule is the remaining half and still needs `psql`**, but it is
 now worth reviving, which before today it was not: a revived tick would have run
 48 times a day writing nothing.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 07:34 · swept the eval-tick bug's SHAPE across the codebase: exactly one instance, and no siblings
+
+Yesterday's rule is that a defect is a shape rather than a location, so the
+`ai_evals` fix is not finished until the same shape has been looked for
+everywhere. **It has been. There is one instance and it is the one already
+fixed.**
+
+### The shape
+
+A table whose `workspace_id` is **NOT NULL** with **DEFAULT
+`current_user_default_workspace()`**, written by a **service-role client** that
+**omits the column**. All three are required: the default resolves to NULL
+without `auth.uid()`, and only a NOT NULL column turns that into a failed insert.
+
+**38 tables carry the first two conditions** -- `ai_budgets`, `decisions`, `docs`,
+`opportunities`, `prds`, `signals`, `spine_tracks`, `themes`, `tasks`,
+`tool_calls` and 28 more. The shape is everywhere. What is rare is a writer that
+omits the column.
+
+### The sweep, and the two times it lied before it was right
+
+**First pass** matched `supabaseAdmin` within 80 characters of `.from(`, and
+returned exactly one hit. **That answer was worthless and nearly went in this
+log**, because `scout-tick.ts` writes through `db.from(...)`. Adding local alias
+resolution -- `const X = supabaseAdmin` -- found **70 aliases across `src`**, so
+the first sweep had been blind to most call sites in the repo. **A negative result
+from an instrument that cannot see half the call sites is worse than no result,
+because it closes the question.**
+
+**Second pass**, with aliases resolved, flagged two:
+
+| flagged | verdict |
+|---|---|
+| `routes/api/public/hooks/eval-tick.ts:231` (`ai_evals`) | **real**, fixed in `20260820072500` |
+| `lib/sources/sink.server.ts:100` (`signals`) | **false positive** |
+
+The signals sink inserts `rowsWithVectors`, built from
+`prepareSignalRows(userId, workspaceId, …)`, which does
+`rows.push({ user_id: userId, workspace_id: workspaceId, … })`. **The column is
+stamped in a helper two files away**, so no text window around the insert could
+ever see it.
+
+Same false positive as `sense-tick.ts`, which builds `toInsert` with an explicit
+`workspace_id` before calling `.insert(toInsert)`. **A sweep that reads the insert
+call cannot see a row assembled elsewhere**, which is a permanent limit of this
+instrument rather than a bug in it, and the reason every flag was opened and read
+rather than counted.
+
+### Why only the eval tick got it wrong, which is the useful part
+
+Every other service-role writer supplies `workspace_id` because **it needs the
+value anyway** -- to scope its own reads, dedupe within a tenant, or stamp a trail
+row. The workspace is already in hand, so passing it costs nothing.
+
+The eval tick is the one writer with no independent need for it. **An eval is
+about an event, and the event carries the tenancy**, so it is genuinely reasonable
+to assume the row inherits it. It does not: PostgREST sends the columns given, and
+the default fills the rest, and that default needed a logged-in user.
+
+**So the fix generalises even though the bug did not.** The trigger now derives
+the workspace from the judged event, which is what the original author assumed was
+happening.
+
+### Closed
+
+No further instances, no queue item, nothing to hand to Kiro. Recorded so that the
+next reader does not re-run this sweep, and so that if a 39th table is added with
+this shape, the reason it is safe is written down: **the default is a trap only
+for a writer with no reason to know its own workspace.**
