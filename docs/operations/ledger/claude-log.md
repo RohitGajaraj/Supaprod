@@ -5473,3 +5473,102 @@ merge could still break a caller.
 for the signed-in account, so the shared helper is the one actually drawing the surface. The
 invariant the entry cares about -- the disc on a receipt matching the disc in the corner -- now
 has one implementation to be wrong in instead of seven.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 15:20 · the eval leg was already decided, so I re-measured it on 5x the data and found where it is one edit from failing open
+
+Nothing was awaiting a verdict, so I took lane item 3, the trust composition. **It is already
+built** -- `evalScore` in `trust.server.ts`, quality mean times one minus worst risk, with a
+cutoff at `EVAL_CONTRACT_FIXED_AT`. **So this is not a re-decision.** It is the check that the
+decision still holds against data that has grown from 20 live rows to 111 since it was written.
+
+**It holds, and the cutoff is exactly right.** But three things are worth recording.
+
+### The bi-scale is a property of the JUDGE, and the guard keys on the DATE
+
+This is the one to act on. `ai_evals.hallucination_score` is stored on **two opposite scales**,
+and they split cleanly by judge model rather than by time:
+
+| judge | rows | first .. last | corr(hallucination, groundedness) | mean h | mean g |
+| --- | --- | --- | --- | --- | --- |
+| `google/gemini-2.5-flash-lite` | 111 | 08-20 only | **-0.8744** | 0.156 | 0.807 |
+| `claude-sonnet-4-5` | 63 | 06-29 .. 07-23 | **+0.9995** | 0.843 | 0.857 |
+| `gemini-2.5-pro` | 14 | 07-09 .. 07-16 | **+1.0000** | 0.895 | 0.905 |
+
+**63 + 14 = 77**, which is exactly the cohort the register measured, so its `+0.999` was correct
+about its own data and the existing correction in `trust.server.ts` is right that those rows are
+fixtures. Nothing there needs changing.
+
+**What needs changing is the shape of the guard.** `judgedUnderCurrentContract` asks
+`created_at >= 2026-08-20T00:00:00Z`. The property it is actually protecting against is **which
+model judged the row**. Those two agree today only because `JUDGE_MODEL` is a hardcoded constant
+at `eval-tick.ts:7`. **Change that one line -- a cost or quality decision somebody will make
+without thinking about trust scores -- and old-scale rows sail through a date cutoff that cannot
+see them.**
+
+An inverted row scores near 0.119 under `evalScore` against the 0.5 the frozen leg used to give,
+so admitting them collapses every agent at once, which is the failure the cutoff exists to stop.
+**The guard should key on `judge_model` against an allowlist**, with the date kept as a second
+condition rather than the only one. A date is a proxy for the thing; the thing is available.
+
+### The risk half of the composition has never once fired
+
+Across all **111** rows the live judge has written:
+
+```
+  toxicity               1 distinct value   0.00   sd 0.0000
+  pii_risk               1 distinct value   0.00   sd 0.0000
+  prompt_injection_risk  1 distinct value   0.00   sd 0.0000
+```
+
+**Three of the four risk dimensions are constant zero.** The MAX-not-mean design exists so one
+serious safety failure cannot be averaged away by good prose. That reasoning is right and I would
+keep it. **But it has never been exercised**, because no row has ever recorded a non-zero safety
+score. It is an untested mechanism, not a working one, and it should be described that way rather
+than counted as evidence the product measures safety.
+
+**A correction to the register while I am here:** finding 3 says `prompt_injection_risk` is
+"NULL in all 77 rows -- never written once". **It is now written**: 109 of 188 rows carry a value.
+It is simply always **0.00**. The defect moved from "never written" to "written and constant",
+which has the same consequence and a different fix.
+
+### The fourth risk dimension is the complement of a quality dimension
+
+`hallucination_score + groundedness = 1` **exactly, in 103 of 111 live rows**. Since the other
+three risks are zero, `worstRisk` **is** `hallucination_score` in 110 of 111 rows, so the formula
+reduces to `mean(g, r, c) x g` wherever it bites: **groundedness is counted twice.**
+
+I expected that to be a large distortion. Measured, it is not, and the reason is worth having:
+
+| | rows | mean quality | mean score | penalty |
+| --- | --- | --- | --- | --- |
+| risk leg inert (`h` = 0) | **90** | 0.947 | 0.947 | 0.000 |
+| risk leg bites | **21** | 0.205 | 0.165 | **0.040** |
+
+**81% of rows are untouched**, because a grounded answer scores `h = 0` and the multiplier is 1.
+The leg only bites on rows that were already bad, where it takes a further 0.040 off 0.205 -- a
+**19.5% relative** cut. So the double-count is real, bounded, and fires **only on low-quality
+rows**, which is directionally defensible.
+
+**It should be a stated choice rather than an accident.** Either drop `hallucination_score` from
+the risk max while it remains the complement of a dimension already in the quality mean, or keep
+it and say plainly that an ungrounded answer is penalised twice on purpose. **I would keep it and
+say so** -- ungrounded is the failure this product can least afford -- but the file currently
+argues for the MAX on the strength of `pii_risk` and `toxicity`, and those two have never been
+anything but zero.
+
+### What I did not change
+
+Nothing. `evalScore` is correct as written for the data it currently sees, and the two changes
+worth making -- the judge-model allowlist and the hallucination double-count -- are a decision
+about what the score should mean, not a defect I should quietly rewrite under. **Both are now
+in the register.**
+
+### K-87 queued for Kiro
+
+The `mapRelayStatus` defect from K-36 is now a queue item rather than only a register line, with
+the production distribution, both mounted call sites, and the judgement call about
+`completed_with_failures` named rather than pre-decided. It is provable by a unit test, so it
+belongs in Kiro's lane; **what it needed from mine was the measurement that it is 34% of runs and
+that `done` is a dead arm.**

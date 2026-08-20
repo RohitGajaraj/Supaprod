@@ -2214,6 +2214,71 @@ So a scout that is failing on every target, or silently truncated by its cap, re
 **Owns.** the signals surface it lands on, plus its test. **Not** `src/routes/api/public/hooks/scout-tick.ts`, which is the writer and stays as it is.
 
 
+---
+
+**K-87 · A third of finished runs are drawn as idle, on two live surfaces**
+`STATUS: OPEN` · deps: none · size: S
+
+**What.** Give `mapRelayStatus` (`src/lib/relay.ts:26-49`) a done arm that covers every spelling
+production actually writes, and a test that pins the mapping to measured values rather than to a
+guessed list.
+
+**Why.** Found by K-36, which correctly declined to widen its own diff, and confirmed against
+production on 2026-08-20 (`claude-log.md`). The done arm is exactly:
+
+```ts
+case "completed":
+case "done":
+  return "done";
+...
+default:
+  return "idle";
+```
+
+`agent_runs.status` over **1,825** rows holds six spellings:
+
+| status | runs | share | maps to |
+| --- | --- | --- | --- |
+| `completed` | 690 | 37.8% | `done` |
+| **`completed_with_failures`** | **618** | **33.9%** | **`idle`** |
+| `failed` | 500 | 27.4% | `failed` |
+| `halted` | 8 | 0.4% | `failed` |
+| `waiting_approval` | 7 | 0.4% | `gate` |
+| **`complete`** | **2** | 0.1% | **`idle`** |
+
+**620 runs, 34.0%, are finished and drawn as idle.** And `done`, the arm the code does carry,
+**occurs zero times in production** -- it handles a status nothing writes while missing one that is
+a third of all runs.
+
+**It is not latent.** `mapRelayStatus` is called at eight sites inside `relay.ts`, feeding
+`miniRelay` and `stationActiveRun`; `AgentRelay` is mounted at `DiscoverSurface.tsx:1967` and
+`MissionOrchestratorDetail.tsx:1324`. Both surfaces are wrong today.
+
+**How.** `completed_with_failures` is the judgement call and it should NOT simply join the `done`
+arm without a thought: a run that finished with failures is finished, but it is not a clean success,
+and `RelayStatus` has no word for that today. **Decide deliberately and say why in the file** --
+either it is `done` (finished is finished, and the failure belongs to the run detail rather than the
+relay), or `RelayStatus` gains a sixth word. Do not invent a seventh spelling anywhere.
+
+**Keep `done` in the arm.** It costs nothing and something may yet write it; the defect is the
+absence of the other two, not its presence.
+
+**Pin the test to the measured list.** The reason this survived is that no test enumerated what
+production writes. A test that asserts `mapRelayStatus` is non-`idle` for every one of the six
+measured spellings is the guard, and it is the thing that stops the seventh spelling landing quietly.
+
+**Acceptance.**
+- Every one of the six measured spellings maps to something other than `idle`.
+- The `completed_with_failures` decision is argued in the file, not just made.
+- A test enumerates the six and fails if any maps to `idle`.
+- `bun test` covers the `complete` / `completed` / `completed_with_failures` trio explicitly.
+
+**Owns.** `src/lib/relay.ts`, and a test file for it.
+
+**Not owned:** `src/lib/ai/mission-advance.server.ts`, whose comment at :90-92 quotes **1,135** runs.
+That figure is stale -- it is 1,825 now -- but the file is not yours for this item.
+
+
 ## Related
 
 - [`../planning/initiatives/agent-first-platform.md`](../planning/initiatives/agent-first-platform.md) — the direction this queue implements, with the evidence for every "why" above
