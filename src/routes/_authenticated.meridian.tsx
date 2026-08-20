@@ -24,7 +24,21 @@ import { ToolStream, type ToolStreamRow } from "@/components/meridian/ToolStream
 import { PlanCard, type PlanStep } from "@/components/meridian/PlanCard";
 import { PlanGate } from "@/components/meridian/PlanGate";
 import { AgentInbox, type AgentSession } from "@/components/meridian/AgentInbox";
-import { Action, Actions, Approve } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  Approve,
+  BulkBar,
+  Cell,
+  Grid,
+  Pre,
+  Value,
+} from "@/components/meridian/surface-parts";
+import { useSelection } from "@/components/shell/use-selection";
+/* The mark OF the thing being named, rather than a letter that was to hand. The
+   catalog cell is the one place a brand hue is earned: you are scanning twenty
+   products to find one, so the provider IS the subject. */
+import { ProviderMark } from "@/components/connections/provider-marks";
 import { Dialog } from "@/components/meridian/Dialog";
 import { Spend } from "@/components/meridian/Spend";
 import { MarkStack } from "@/components/meridian/marks";
@@ -2153,6 +2167,15 @@ function MeridianGallery() {
             <AgentInboxCases />
           </Pair>
         </Panel>
+
+        <Panel
+          title="The four parts 79 files were held on"
+          note="Not a new idea, a port. 79 component files still import the retired component layer, they use 29 distinct symbols between them, and 25 of those already had a Meridian answer; these are the four that did not, and until they existed the four largest consumers in the tree could not move at all. What makes them worth looking at rather than reading is that half of each one's contract lived in the retired stylesheet and none of it is visible in the component: the grid's column measure, the cell's hover, the bar's height and the preformatted box's overflow. Two of those figures did not survive the port and both changed for a measurement. The cell's hover was computed from its own tint with one colour mix, which is elegant and lands the paper hover at 0.897 lightness, BELOW the recess at 0.932, so a hovered raised cell would have read as a recess on the ground where the whole ladder is tightest; Meridian's measured pair clears it at 0.938, so the tint and its hover now come out of one table instead of one formula and still cannot disagree. The selection bar was 38px because that was one scan row in a system whose rows were 38px, and Meridian's row floor is 44px, so the bar follows the intent rather than the number and still occupies exactly one row. The cell also takes Row's type scale outright, 14px ink over 13px mute, because a grid of cells and a list of rows are two arrangements of one information model and they shipped at two scales with no argument anywhere for either. The one value that deliberately does not follow Row is the weight on the lead: a row is read in sequence and a cell is one of twenty being scanned, and today's design is the floor. Read the clickable cells with a keyboard: they are real buttons, so they answer Space and Enter and take the ring, and the selection ring is drawn as an overlay rather than an inset shadow because the app-wide focus rule sets box-shadow to none and would erase it at the exact moment a reader arrived on it."
+        >
+          <Pair>
+            <CatalogPartCases />
+          </Pair>
+        </Panel>
       </div>
     </div>
   );
@@ -3483,6 +3506,234 @@ function RunMapCases() {
       </Case>
       <Case label="A skip nobody explained, and a station that failed">
         <RunMap stops={unexplained} mode="replay" />
+      </Case>
+    </Stack>
+  );
+}
+
+/*
+ * ── K-38, THE FOUR PARTS THE PORT WAS BLOCKED ON ────────────────────────
+ *
+ * Every fixture here is a real call site rather than a pretty one, because the
+ * three defects this panel exists to catch are all invisible in a tidy fixture:
+ *
+ *   the connector catalog, which is what `Cell` was built for and the only place
+ *       the mark, the tint, the hover, the picked state and the dead state all
+ *       appear at once. The provider ids are real registry ids, so the marks are
+ *       the mark OF the thing being named rather than a letter that was to hand.
+ *   the sizes nobody draws: one cell, nineteen cells, a ninety-character label, a
+ *       four-hundred-line log, a three-hundred-column line, and a selection of
+ *       one against a selection of all.
+ *   the bar with nothing selected, which is the state that must draw NOTHING and
+ *       is therefore the one case a screenshot cannot show. It is drawn anyway,
+ *       labelled, because the absence is the assertion.
+ *
+ * The bar is LIVE in both grounds: click the cells, then press Escape. That is
+ * the behaviour a paint-only port drops, and it is the reason this panel is
+ * interactive where most of the page is not.
+ */
+
+/* Every id here is in `provider-marks`' own registry, checked rather than
+   assumed: `ProviderMark` draws NOTHING for an id it does not know instead of
+   borrowing another provider's identity, so an invented id renders a cell with a
+   silently missing mark and looks entirely correct. */
+const CATALOG: { id: string; label: string; flow: string }[] = [
+  { id: "github", label: "GitHub", flow: "Sign in with GitHub" },
+  { id: "linear", label: "Linear", flow: "Sign in with Linear" },
+  { id: "slack", label: "Slack", flow: "Add to a channel" },
+  { id: "notion", label: "Notion", flow: "Pick the pages it may read" },
+  { id: "intercom", label: "Intercom", flow: "Sign in with Intercom" },
+  { id: "jira", label: "Jira", flow: "Pick the projects it may read" },
+  { id: "zendesk", label: "Zendesk", flow: "Sign in with Zendesk" },
+  { id: "figma", label: "Figma", flow: "Pick the files it may read" },
+  { id: "stripe", label: "Stripe", flow: "Sign in with Stripe" },
+];
+
+/** Frozen, so the empty bar's hook is not handed a new array on every render. */
+const NO_ROWS: string[] = [];
+
+/* The real shape of a failure, kept long enough to hit the cap and wide enough
+   to need the horizontal scroll. Both were named as pain points, and a document
+   is the one place sideways scrolling is unavoidable. */
+const DEPLOY_LOG = [
+  "$ bun run build",
+  "vite v6.0.7 building for production...",
+  "transforming (1284) src/routes/_authenticated.meridian.tsx",
+  "✗ Build failed in 4.21s",
+  'error during build: [vite]: Rollup failed to resolve import "@/components/shell/primitives" from "src/components/plan/RoadmapColumns.tsx". This is most likely unintended because it can break your application at runtime.',
+  "    at getRollupError (file:///node_modules/rollup/dist/es/shared/parseAst.js:401:41)",
+  "    at error (file:///node_modules/rollup/dist/es/shared/parseAst.js:397:42)",
+].join("\n");
+
+const LONG_LOG = Array.from(
+  { length: 400 },
+  (_, i) => `${String(i + 1).padStart(4, " ")}  read decision 8f2c-${i} and wrote one forecast`,
+).join("\n");
+
+const SCORES: { label: string; value: number | null }[] = [
+  { label: "helpfulness", value: 0.82 },
+  { label: "grounding", value: 0.94 },
+  { label: "tone", value: null },
+  { label: "cost", value: 0.61 },
+];
+
+/** The bar wired to real selection state, so Escape actually leaves the mode. */
+function LiveBulkBar({ noun = "decision" }: { noun?: string }) {
+  const ids = ["d1", "d2", "d3", "d4", "d5", "d6"];
+  const picked = useSelection(ids);
+
+  return (
+    <div className="flex flex-col gap-mrd-4">
+      <BulkBar selection={picked} total={ids.length} noun={noun}>
+        <Action>Approve</Action>
+        <Action variant="quiet">Send back</Action>
+      </BulkBar>
+      <Grid cellMin={132}>
+        {ids.map((id, i) => (
+          <Cell
+            key={id}
+            lead={`Decision ${i + 1}`}
+            sub={picked.has(id) ? "picked" : "shorten the verify step"}
+            selected={picked.has(id)}
+            onClick={() => picked.toggle(id)}
+          />
+        ))}
+      </Grid>
+    </div>
+  );
+}
+
+function CatalogPartCases() {
+  const [picked, setPicked] = useState<string | null>("linear");
+  /* Held at the top rather than called inside the case below it, so the hook
+     order is readable and does not depend on where a `<Case>` happens to sit. */
+  const nothingPicked = useSelection(NO_ROWS);
+
+  return (
+    <Stack>
+      <Case label="One cell, which is the size a grid must not make look broken">
+        <Grid>
+          <Cell
+            mark={<ProviderMark provider="github" tone="brand" size={18} />}
+            lead="GitHub"
+            sub="Sign in with GitHub"
+            onClick={noop}
+          />
+        </Grid>
+      </Case>
+
+      <Case label="Nine to scan across, which is the whole arithmetic of the part">
+        <Grid>
+          {CATALOG.map((a) => (
+            <Cell
+              key={a.id}
+              mark={<ProviderMark provider={a.id} tone="brand" size={18} />}
+              lead={a.label}
+              sub={a.flow}
+              title={`Connect ${a.label}`}
+              onClick={noop}
+            />
+          ))}
+        </Grid>
+      </Case>
+
+      <Case label="Picked, unpicked and one nobody may touch, side by side">
+        <Grid>
+          {CATALOG.slice(0, 3).map((a) => (
+            <Cell
+              key={a.id}
+              mark={<ProviderMark provider={a.id} tone="brand" size={18} />}
+              lead={a.label}
+              sub={a.flow}
+              selected={picked === a.id}
+              onClick={() => setPicked(a.id)}
+            />
+          ))}
+          {/* No `onClick` and no `selected`: an affordance is a promise, so a
+              connector waiting on an admin never lights up and never claims to
+              be a toggle. */}
+          <Cell
+            mark={<ProviderMark provider="salesforce" tone="brand" size={18} />}
+            lead="Salesforce"
+            sub="Waiting on an admin"
+            title="An admin has to connect this one first"
+            disabled
+          />
+        </Grid>
+      </Case>
+
+      <Case label="A ninety character label, which a real catalog will hand it">
+        <Grid>
+          <Cell
+            mark={<ProviderMark provider="github" tone="brand" size={18} />}
+            lead="GitHub Enterprise Server, self hosted behind the corporate VPN"
+            sub="Sign in with the enterprise instance rather than with github.com, which needs an admin"
+            onClick={noop}
+          />
+          <Cell lead="Short" sub="And a sub" onClick={noop} />
+        </Grid>
+      </Case>
+
+      <Case label="Recessed, on ground that is already raised, and no mark at all">
+        {/* What `EvalScoreChips` renders: four characters per cell, so the
+            measure comes down to 132px rather than leaving half of each empty.
+            The outcome is reported by a `Value` in the sub, which is where the
+            five status words live. A tone is not a sixth one. */}
+        <div className="rounded-mrd-card bg-mrd-lift p-mrd-5">
+          <Grid cellMin={132}>
+            {SCORES.map((s) => (
+              <Cell
+                key={s.label}
+                tone="recessed"
+                lead={s.value == null ? "not scored" : `${Math.round(s.value * 100)}%`}
+                sub={
+                  s.value == null ? (
+                    <Value tone="hold">the judge did not return it</Value>
+                  ) : (
+                    <Value tone={s.value >= 0.8 ? "pass" : "fail"}>{s.label}</Value>
+                  )
+                }
+              />
+            ))}
+          </Grid>
+        </div>
+      </Case>
+
+      <Case label="A fixed number of equal columns, which the retired grid could not say">
+        <Grid columns={2}>
+          <Cell tone="recessed" lead="296" sub="decisions carrying a forecast" />
+          <Cell tone="recessed" lead="0" sub="of them resolved" />
+        </Grid>
+      </Case>
+
+      <Case label="Nothing selected, which draws nothing at all rather than an empty strip">
+        <div className="flex flex-col gap-mrd-4">
+          <BulkBar selection={nothingPicked} total={0} noun="decision">
+            <Action>Approve</Action>
+          </BulkBar>
+          <p className="text-[12.5px] text-mrd-faint">
+            The bar is mounted directly above this line and renders nothing. An empty selection must
+            not hold a row open on every list in the product.
+          </p>
+        </div>
+      </Case>
+
+      <Case label="Live: pick some rows, then press Escape">
+        <LiveBulkBar />
+      </Case>
+
+      <Case label="A failure printed verbatim, which is what the box is for">
+        <Pre>
+          <Value tone="fail">{DEPLOY_LOG}</Value>
+        </Pre>
+      </Case>
+
+      <Case label="One line, which is a token you copy and never read">
+        <Pre>sk_live_4f2a9c7e1b8d3056a7c2e9f14b6d8093</Pre>
+      </Case>
+
+      <Case label="Four hundred lines, which is the size that used to grow the page">
+        <Pre>{LONG_LOG}</Pre>
       </Case>
     </Stack>
   );

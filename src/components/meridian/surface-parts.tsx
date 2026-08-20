@@ -1,6 +1,18 @@
 import * as React from "react";
 
 /*
+ * THE ONE IMPORT FROM `shell/` IN THIS FILE, AND IT IS A TYPE.
+ *
+ * `use-selection.ts` is the multi-select STATE, and it is not part of the
+ * retired paint layer: it holds no class name, reads no token and renders
+ * nothing. It sits in `shell/` only because that folder's convention gave a hook
+ * its own file. `BulkBar` takes the object that hook returns, so the shape has
+ * to come from where the shape is defined; importing it type-only means no
+ * runtime edge from Meridian back into `shell/`.
+ */
+import type { Selection } from "@/components/shell/use-selection";
+
+/*
  * THE CHROME FIVE SURFACES HAD EACH GROWN A PRIVATE COPY OF.
  *
  * ── WHY THIS FILE EXISTS ────────────────────────────────────────────────
@@ -196,6 +208,18 @@ export function Chevron({ open = false, className = "" }: { open?: boolean; clas
  * making the difference a different NAME rather than a different string is what
  * stops it recurring.
  */
+/**
+ * The face of a quiet text control sitting in a HEADING SLOT.
+ *
+ * Hoisted out of `Region`'s body 2026-08-20 rather than copied, because the row
+ * selection bar needs the same face and this file's whole argument is that a
+ * second copy of a part is how the product ended up with four of everything. It
+ * is 12.5px against a 13px statement on purpose: the label states, the control
+ * offers, and the half-pixel step is what says which is which.
+ */
+const HEADING_CONTROL =
+  "shrink-0 rounded-mrd-xs text-[12.5px] text-mrd-mute transition-colors hover:text-mrd-ink";
+
 export function Region({
   title,
   sub,
@@ -256,8 +280,7 @@ export function Region({
   children: React.ReactNode;
 }) {
   const head = Boolean(title || goTo || toggle || act);
-  const controlFace =
-    "shrink-0 rounded-mrd-xs text-[12.5px] text-mrd-mute transition-colors hover:text-mrd-ink";
+  const controlFace = HEADING_CONTROL;
 
   return (
     <section data-mrd="" className="flex flex-col">
@@ -1111,5 +1134,472 @@ export function Value({
     <span data-tone={tone} className={`text-[12.5px] ${paint}`}>
       {children}
     </span>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * THE FOUR PARTS 79 FILES WERE STILL HELD ON
+ *
+ * Measured for this item: 79 component files import the retired
+ * `shell/primitives`, they use 29 distinct symbols between them, and 25 of
+ * those already had a Meridian answer. These are the four that did not, and
+ * without them `AccountConnectionsSection` (51 occurrences), `RoadmapColumns`
+ * (35), `IntegrationsTab` (27) and `TeamCard` (15) could not be ported at all.
+ *
+ * ── EVERY VALUE BELOW IS CARRIED ACROSS OR ARGUED, NEVER PICKED ──────────
+ * `rows.tsx` said it best when it ported `Row` and `Line`: a rebuild is the
+ * moment a measured value gets silently rounded off. So each of these reads the
+ * retired STYLESHEET as well as the component, because half of the contract was
+ * paint: the grid's column measure, the cell's computed hover, the bar's height
+ * and the preformatted box's overflow all lived in `primitives.css` and none of
+ * them is visible in the `.tsx`. Where the retired figure disagrees with a
+ * Meridian token that was solved for in BOTH grounds, Meridian wins and the
+ * paragraph says which one moved and why.
+ * ------------------------------------------------------------------ */
+
+/**
+ * PREFORMATTED OUTPUT THAT NOBODY WROTE FOR A READER: a deploy log, a stderr
+ * blob, a curl line, a token, a JSON payload, a diff.
+ *
+ * ── WHY THIS IS NOT `CodeBlock`, WHICH IS THE FIRST THING TO CHECK ───────
+ * `CodeBlock` is Meridian's preformatted box and it is the wrong shape here, on
+ * four counts that three porting agents reached independently before this one
+ * (the argument is written out at the top of `studio/RunReturn.tsx`, which
+ * refused the swap and kept a retired import rather than force it):
+ *
+ *   `filename: string` is REQUIRED, and a raw stderr blob does not have one.
+ *       Forcing it means inventing a filename, which puts a false fact in the
+ *       chrome of a box whose entire job is to print something verbatim.
+ *   `lines: CodeToken[][]` is PRE-TOKENISED. Every caller here holds a string.
+ *       Tokenising plain text is work with no consumer, and the token union has
+ *       no outcome tone, so a failure printed verbatim loses its voice.
+ *   It draws a LINE-NUMBER GUTTER and a copy control. `<Pre>{fullLink}</Pre>` in
+ *       `TeamCard` is a one-line invite link; a numbered gutter beside a single
+ *       line reads as a table with one row.
+ *   It carries a STREAMING caret and a reveal. Nothing that reaches this box is
+ *       arriving a line at a time.
+ *
+ * A `mode="raw"` on `CodeBlock` was the other option and it is worse: it would
+ * make `filename` and `lines` optional and add `children`, so one component
+ * would carry two mutually exclusive prop sets. This file's own header names
+ * that move and rules against it, because merging a disagreement behind a flag
+ * is how a design system turns into a pile of them.
+ *
+ * ── WHAT IT TAKES FROM `CodeBlock` ANYWAY, AND THAT IS THE POINT ─────────
+ * The paint is `CodeBlock`'s scroller, to the pixel: same recess, same 12px
+ * mono, same 1.7 leading, same padding, same cap. A raw log and a written file
+ * appearing on one screen must not read as two products, and the size of the
+ * type is the first thing that gives that away.
+ *
+ * IT CAPS ITS HEIGHT, WHICH THE RETIRED `.sp-pre` DID NOT. That sheet set
+ * `overflow-x: auto` and nothing else, so a 400-line log grew the page to
+ * whatever the machine happened to write and pushed every control under it off
+ * the screen. `CodeBlock` exists because that exact defect was found live at
+ * `traces.$traceId` under a comment claiming the box clipped and scrolled. It
+ * did neither, and neither did this. `overflow-auto` scrolls both axes, so a
+ * 300-column JSON line no longer takes the page sideways with it.
+ *
+ * FOCUSABLE BECAUSE IT SCROLLS: a region a mouse can scroll and a keyboard
+ * cannot is unreachable. It does NOT wear `mrd-focus-inset`, and that is the one
+ * difference from `CodeBlock` worth stating. That class exists for a control
+ * flush inside a clipping parent, whose outset ring comes back sheared in half.
+ * This box IS the outer element, nothing clips it, and the inset rule only
+ * matches a DESCENDANT of a `data-mrd` root anyway, so on the root itself it
+ * would paint nothing at all.
+ *
+ * IT SETS NO OUTER MARGIN. `.sp-pre` baked in a `margin-top`, so the box decided
+ * the space above itself and a caller who wanted it elsewhere could not say so.
+ * Same call as `Actions`: a composition decision belongs to the composition, and
+ * a caller that wants the old spacing writes `mt-mrd-3` where it can be seen.
+ */
+export function Pre({
+  children,
+  maxHeight = 320,
+}: {
+  children: React.ReactNode;
+  /** The cap, in px. `CodeBlock`'s default, so the two boxes agree on the one
+   *  dimension a reader cannot predict. */
+  maxHeight?: number;
+}) {
+  return (
+    <pre
+      data-mrd=""
+      tabIndex={0}
+      className="overflow-auto rounded-mrd-card bg-mrd-sink px-3 py-2.5 font-mrd-mono text-[12px] leading-[1.7] text-mrd-body"
+      style={{ maxHeight }}
+    >
+      {children}
+    </pre>
+  );
+}
+
+/**
+ * A LIST IS READ DOWN. A CATALOG IS SCANNED ACROSS.
+ *
+ * The arithmetic that makes this a grid rather than a column, and it is the
+ * whole reason the part exists: nineteen providers down a column is nineteen
+ * rows of scrolling, and the same nineteen at three or four across is five.
+ *
+ * ── THE COLUMN MEASURE IS A PROP, BECAUSE IT ALREADY HAD TO BE ───────────
+ * The retired sheet carried it as a custom property so a grid whose contents
+ * need a different measure could set that instead of redeclaring the whole grid
+ * and drifting from it. Two live callers took it up, and both are the reason
+ * this is typed rather than a style hole:
+ *
+ *   `EvalScoreChips` sets 132px, because a score is four characters and the
+ *       196px default would leave half of every cell empty.
+ *   `DetailKit` wanted a FIXED number of equal columns and could not say so, so
+ *       it re-declared `gridTemplateColumns` inline over the class -- which is
+ *       exactly the drift the custom property was introduced to prevent.
+ *
+ * So both are props. `columns` wins when both are passed, since a caller asking
+ * for four across has already answered the question `cellMin` exists to ask.
+ */
+export function Grid({
+  children,
+  cellMin = 196,
+  columns,
+}: {
+  children: React.ReactNode;
+  /** The narrowest a column may get before the grid drops one, in px. */
+  cellMin?: number;
+  /** A fixed number of equal columns, for a set whose count is the point. */
+  columns?: number;
+}) {
+  return (
+    <div
+      data-mrd=""
+      className="grid gap-mrd-4"
+      style={{
+        gridTemplateColumns: columns
+          ? `repeat(${columns}, minmax(0, 1fr))`
+          : `repeat(auto-fill, minmax(${cellMin}px, 1fr))`,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** `raised` | `recessed`. TWO GROUNDS, AND DELIBERATELY NOT A STATUS WORD.
+ *
+ *  Meridian has five status words and this is not a sixth vocabulary: both of
+ *  these name a place on the SURFACE ladder, which is the same axis `bg-mrd-lift`
+ *  and `bg-mrd-sink` already sit on. A cell is furniture, and furniture does not
+ *  get a palette. Anything a cell needs to report about an OUTCOME goes in its
+ *  `sub` as a `Value`, which is where the five words live. `EvalScoreChips` and
+ *  `DetailKit` both already do exactly that. */
+export type CellTone = "raised" | "recessed";
+
+/*
+ * ── THE TINT AND ITS HOVER, WHICH IS THE ONE MECHANIC A PAINT-ONLY PORT DROPS ──
+ *
+ * The retired stylesheet computed the hover from the tint with a single
+ * `color-mix(in oklab, <the tint> 92%, <ink>)`, and its comment says that
+ * coupling is the entire reason `tone` works: a lane had reported that an inline
+ * background silently outranks a class hover, so their cells faked hover with
+ * `onMouseEnter` state and lost the focus state with it. Mixing INK into the
+ * ground moved it the right way in both themes, lighter on dark and darker on
+ * paper, with one rule.
+ *
+ * THAT RULE IS NOT PORTED, AND THE REASON IS ARITHMETIC RATHER THAN TASTE.
+ * Meridian already owns this exact problem and solved it by measuring both
+ * grounds instead of computing one: `--mrd-lift-hover` is set per ground, and
+ * meridian.css states the constraint the computed version cannot see -- the
+ * hover is "held clear of `sink` (0.932) so a hovered control never reads as a
+ * recess." Run the retired mix against Meridian's own values and it breaks that
+ * on paper: `lift` 0.951 mixed 92% with `ink` 0.28 lands at 0.897, which is
+ * BELOW `sink` at 0.932. So a hovered raised cell would read as a recess, on the
+ * ground where the whole ladder is tightest. Meridian's measured pair is 0.938
+ * and clears it.
+ *
+ * So the coupling survives and the formula does not: the tone picks a ground and
+ * its hover together, out of one table, so the two can still never disagree.
+ * `recessed` rises to the raised stop under the pointer, which is one direction
+ * in both grounds and is the only step available that was measured rather than
+ * computed. A recess that lifts when you reach for it is also the truer reading
+ * of what a hover means.
+ */
+const CELL_GROUND: Record<CellTone, string> = {
+  raised: "bg-mrd-lift enabled:hover:bg-mrd-lift-hover",
+  recessed: "bg-mrd-sink enabled:hover:bg-mrd-lift",
+};
+
+/**
+ * ONE CELL OF A `Grid`.
+ *
+ * TINTED, NEVER BORDERED. Nineteen bordered cells in one region is nineteen
+ * bordered containers and the standard caps a region at one, so the ground
+ * changes instead of the edge. It reads as a cell because what is under it
+ * changed, and the WHOLE cell is the affordance rather than carrying a button,
+ * which is what keeps it two lines tall.
+ *
+ * ── IT IS A REAL `<button>` WHEN IT DOES SOMETHING ───────────────────────
+ * So it is tabbable, it answers Space and Enter, and it takes the Meridian focus
+ * ring without being asked. The retired grid was written for a `<div>`, so every
+ * lane that needed a clickable card wrote the same eight-property reset inline.
+ * Two of those properties are the ones a `<button>` gets wrong for this shape
+ * and both are set here: `text-left`, because a button centres its label and a
+ * two-line cell must start on one edge, and `font: inherit`, which Tailwind's
+ * own preflight already does.
+ *
+ * ── IT SHARES `Row`'s RHYTHM, WHICH IS THE PART THAT WAS NEVER CHOSEN ────
+ * A grid of cells and a list of rows are two arrangements of one information
+ * model -- a mark, a lead, a different fact underneath -- and they shipped at
+ * two type scales and two gutters. There is no argument anywhere for either set,
+ * so this takes `Row`'s: a 14px ink lead, a 13px mute sub, `leading-[1.4]`, a
+ * 13px gutter after the mark, `py-[9px]`, and the 44px floor that is both the
+ * decision-row height and the smallest square a finger reliably hits. A catalog
+ * and a queue now read as one product, and the radius follows for the same
+ * reason: `rounded-mrd-ctl`, which is `Row`'s, rather than the card radius the
+ * retired sheet used.
+ *
+ * ONE VALUE DOES NOT FOLLOW `Row`, AND IT IS DELIBERATE RATHER THAN DRIFT. The
+ * lead keeps `font-medium` where `Row`'s is regular. A row is read in sequence,
+ * so its lead only has to be the next thing; a cell is one of twenty being
+ * SCANNED, and the retired sheet spent the weight on exactly that. Today's
+ * design is the floor here, and taking emphasis off a scan target to win a
+ * consistency argument is a smaller surface, not a better one.
+ *
+ * ── BOTH LINES TRUNCATE, UNCONDITIONALLY ────────────────────────────────
+ * Founder ruling: one or two lines, and depth is a click away rather than
+ * showcased on the cell. `Row` makes this opt-in through `tight` because a row
+ * in a detail view sometimes should wrap. A cell in a grid never should: it
+ * would take its whole row of the grid with it. So there is no prop.
+ */
+export function Cell({
+  mark,
+  lead,
+  sub,
+  onClick,
+  selected,
+  disabled = false,
+  tone = "raised",
+  title,
+}: {
+  /** A provider or agent mark, or nothing. A cell for a thing nobody acts as
+   *  carries none. */
+  mark?: React.ReactNode;
+  lead: React.ReactNode;
+  /** The different fact, never a restatement of the lead. */
+  sub?: React.ReactNode;
+  /** Absent when nothing happens on click. An affordance is a promise, so a
+   *  cell that does nothing is a div and never lights up under the cursor. */
+  onClick?: () => void;
+  /** Present only on a cell that is one of a set you PICK from. It makes the
+   *  cell a toggle to a screen reader, so leave it undefined on a cell that
+   *  opens or connects something. */
+  selected?: boolean;
+  disabled?: boolean;
+  tone?: CellTone;
+  title?: string;
+}) {
+  /*
+   * A RING, NEVER A FILL, and drawn as a pseudo-element rather than as a ring
+   * utility. Both halves are ported reasoning.
+   *
+   * The fill is out because Meridian's own `--mrd-select` is a translucent wash
+   * meant to sit over a container's ground, and a cell brings its own opaque
+   * one, so the wash would REPLACE the tint rather than layer over it and the
+   * tone would stop being visible on the selected cell. A ring is also structure
+   * rather than hue, so it survives the greyscale test on its own.
+   *
+   * The pseudo-element is because the obvious drawing, an inset `box-shadow`, is
+   * quietly broken here: the app-wide focus rule is UNLAYERED and sets
+   * `box-shadow: none`, and Meridian's own focus rule sets it too, so the
+   * selection ring would vanish at the exact moment a keyboard reader arrived on
+   * the cell that has it. An overlay is immune to that and costs no layout,
+   * where a real border would move every cell in the grid by a pixel.
+   */
+  const ring = selected
+    ? "before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:border before:border-mrd-ink before:content-['']"
+    : "";
+
+  const shape = `relative flex w-full items-center gap-[13px] min-h-11 rounded-mrd-ctl px-mrd-4 py-[9px] text-left transition-colors ${CELL_GROUND[tone]} ${ring}`;
+
+  const body = (
+    <>
+      {mark ? <span className="flex shrink-0 items-center">{mark}</span> : null}
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-[14px] leading-[1.4] font-medium text-mrd-ink">
+          {lead}
+        </span>
+        {sub ? (
+          <span className="mt-0.5 block truncate text-[13px] leading-[1.4] text-mrd-mute">
+            {sub}
+          </span>
+        ) : null}
+      </span>
+    </>
+  );
+
+  /* `data-tone`, `data-selected` and `data-disabled` DECLARE the state and the
+     classes only paint it, which is the rule `Value` and `Num` already follow in
+     this file: a guard that wants to assert what a cell is claiming cannot read
+     a Tailwind class without rendering the paint. */
+  if (!onClick) {
+    return (
+      <div
+        data-mrd=""
+        data-tone={tone}
+        data-disabled={disabled}
+        title={title}
+        aria-disabled={disabled || undefined}
+        className={`${shape} ${disabled ? "opacity-45" : ""}`}
+        style={{ transitionDuration: "var(--mrd-d-press)" }}
+      >
+        {body}
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      data-mrd=""
+      data-tone={tone}
+      data-selected={selected ?? false}
+      data-disabled={disabled}
+      aria-pressed={selected}
+      disabled={disabled}
+      title={title}
+      onClick={onClick}
+      className={`${shape} cursor-pointer disabled:cursor-default disabled:opacity-45`}
+      style={{ transitionDuration: "var(--mrd-d-press)" }}
+    >
+      {body}
+    </button>
+  );
+}
+
+/**
+ * THE BAR A ROW SELECTION PUTS IN A LIST'S HEADER SLOT.
+ *
+ * ── THE NAME, AND IT IS THE FIRST THING TO SETTLE ───────────────────────
+ * IT IS CALLED `BulkBar` AND NOT `SelectionBar`, AND THAT IS NOT A STYLE CHOICE.
+ * Meridian already exports `SelectionActions`, and it is an unrelated concept
+ * wearing a colliding name: read its signature and it takes a live DOM `range:
+ * Range | null` and a positioned `containerRef`, draws highlight panels over the
+ * range's own client rects, and hides itself entirely when the range is null. It
+ * is the toolbar that appears when a reader selects A PASSAGE OF PROSE and hands
+ * those words to an agent. It lands on the spec, the PRD and the release
+ * document. Point it at a set of row ids and it renders nothing at all.
+ *
+ * This is the other kind of selection: ROW IDS held by `use-selection`, a count,
+ * a select-all, a clear, and the verbs. An agent scanning this folder's exports
+ * for the retired `SelectionBar` finds `SelectionActions` and takes it as the
+ * answer, and that has already happened once on the record. So the name shares
+ * no substring with either of them, which makes the port checkable: after a
+ * consumer moves across, `SelectionBar` grepping to zero in that file is proof
+ * rather than a guess. `Bulk` is what the pattern is called everywhere it
+ * exists, and `Bar` follows `PromptBar` for a strip that sits in a slot.
+ *
+ * ── WHAT IT SAYS, AND WHAT IT REFUSES TO CARRY ──────────────────────────
+ * It states the count as a fact and then offers verbs. Nothing else: a selection
+ * bar that also carries filters or a search box has stopped being a statement
+ * about what is selected.
+ *
+ * `Escape` clears, because a selection is a mode and every mode in this product
+ * leaves by the same key. That listener is the behaviour a paint-only port drops
+ * without noticing, and until this item nothing in the repo rendered this
+ * component in a test, so nothing asserted it.
+ *
+ * ── THE MEASUREMENTS, EACH ONE CARRIED OR ARGUED ────────────────────────
+ * The ground is `bg-mrd-lift` and carries no status hue, because a selection is
+ * a STATE and not a status and colour here reports only what happened. The
+ * radius is `rounded-mrd-ctl`, which is what the retired row radius already
+ * resolved to. The verbs push to the trailing edge so the count and the two
+ * escapes stay together on the left where the eye lands first, and the gap
+ * between those two groups (16px) is visibly larger than the gap within the
+ * verbs (10px), which is Meridian's own spacing law.
+ *
+ * THE HEIGHT MOVED FROM 38px TO 44px, and it is the one figure here that is not
+ * a carry. The retired sheet set 38px so "the bar occupies one scan row and the
+ * list below it does not shift when a selection begins", and 38px was one scan
+ * row in a system whose rows were 38px. Meridian's row floor is 44px, argued
+ * twice over in `rows.tsx`: a row carrying a decision earns the height, and 44px
+ * is the smallest square a finger reliably hits. A 38px bar above 44px rows is
+ * two rhythms, so the figure follows the intent rather than the number.
+ *
+ * ── THE EARLY RETURN CARRIES NO `data-mrd`, AND CANNOT ──────────────────
+ * Every component with an early return carries `data-mrd` on that return too, or
+ * its controls lose the focus ring. This one returns `null`: an empty selection
+ * must not hold a row open, so there is no element for the attribute to sit on
+ * and no control inside it to lose a ring. Stated rather than left to look like
+ * an omission.
+ */
+export function BulkBar({
+  selection,
+  total,
+  noun = "item",
+  children,
+}: {
+  selection: Selection;
+  /** How many rows are selectable right now, after filtering. */
+  total: number;
+  /** Singular. "call", "run", "decision". Pluralised here. */
+  noun?: string;
+  /** The verbs. Controls, and the destructive one last. */
+  children: React.ReactNode;
+}) {
+  const { count, allSelected, selectAll, clear } = selection;
+
+  /*
+   * `onEscape` rather than `onKey`, and the name is load bearing. `decide.tsx`
+   * found this out the hard way: `decide-holds-its-guard-across-the-confirm.test.ts`
+   * locates that route's gate-key effect by the FIRST `const onKey = (e:
+   * KeyboardEvent) =>` in the file, so a second handler spelled the same way
+   * pointed the guard at the wrong effect. The guard reading a spelling is its
+   * own weakness, but this handler only ever answers Escape and saying so costs
+   * nothing.
+   *
+   * GATED ON `count === 0`, which is why the listener is not always live: a
+   * product-wide Escape handler that runs while nothing is selected is a
+   * keystroke competing with every dialog and menu that also leaves by Escape.
+   */
+  React.useEffect(() => {
+    if (count === 0) return;
+    const onEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") clear();
+    };
+    window.addEventListener("keydown", onEscape);
+    return () => window.removeEventListener("keydown", onEscape);
+  }, [count, clear]);
+
+  if (count === 0) return null;
+
+  return (
+    <div
+      data-mrd=""
+      role="region"
+      aria-label={`${count} selected`}
+      className="flex min-h-11 items-center gap-mrd-5 rounded-mrd-ctl bg-mrd-lift px-mrd-4 text-[13px] text-mrd-body"
+    >
+      <span className="font-medium whitespace-nowrap text-mrd-ink">
+        <Num>{count}</Num> {count === 1 ? noun : `${noun}s`} selected
+      </span>
+      {/* Only offered when it would change something. Everything already
+          selected, or a total that does not exceed the count, means this button
+          would report a number and do nothing. */}
+      {!allSelected && total > count ? (
+        <button
+          type="button"
+          onClick={selectAll}
+          className={HEADING_CONTROL}
+          style={{ transitionDuration: "var(--mrd-d-press)" }}
+        >
+          Select all {total}
+        </button>
+      ) : null}
+      <button
+        type="button"
+        onClick={clear}
+        className={HEADING_CONTROL}
+        style={{ transitionDuration: "var(--mrd-d-press)" }}
+      >
+        Clear
+      </button>
+      <span className="ml-auto flex items-center gap-mrd-4">{children}</span>
+    </div>
   );
 }
