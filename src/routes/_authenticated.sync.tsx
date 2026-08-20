@@ -309,13 +309,13 @@ function SyncPage() {
               {/* Neither copy is inherently right, so neither button is primary.
                 The Gate itself is the emphasis. */}
               <Action
-                disabled={mResolve.isPending}
+                busy={mResolve.isPending}
                 onClick={() => mResolve.mutate({ id: m.id, strategy: "keep_local" })}
               >
                 Keep the Supaprod copy
               </Action>
               <Action
-                disabled={mResolve.isPending}
+                busy={mResolve.isPending}
                 onClick={() => mResolve.mutate({ id: m.id, strategy: "keep_remote" })}
               >
                 Keep the {providerLabel(m.provider)} copy
@@ -609,7 +609,7 @@ function WebhookIngest() {
               <Action onClick={() => copy(freshToken, "Token")}>Copy</Action>
             </>
           ) : null}
-          <Action disabled={mRotate.isPending} onClick={onRotate}>
+          <Action busy={mRotate.isPending} onClick={onRotate}>
             {mRotate.isPending ? "Rotating" : "Rotate"}
           </Action>
           {/* QUIET, AND NOT `destructive`, WHICH IS THE ONE THING THIS PORT
@@ -619,7 +619,7 @@ function WebhookIngest() {
               on this surface rather than restating what the old one said. What
               protects it is unchanged and is the part that matters: it sits
               behind a confirm that names what stops. */}
-          <Action variant="quiet" disabled={mRevoke.isPending} onClick={onRevoke}>
+          <Action variant="quiet" busy={mRevoke.isPending} onClick={onRevoke}>
             {mRevoke.isPending ? "Revoking" : "Revoke"}
           </Action>
         </Line>
@@ -628,7 +628,7 @@ function WebhookIngest() {
           label="Token"
           sub="No token yet, so nothing can post in. The full token is shown once, when it is made."
         >
-          <Action variant="primary" disabled={mRotate.isPending} onClick={() => mRotate.mutate()}>
+          <Action variant="primary" busy={mRotate.isPending} onClick={() => mRotate.mutate()}>
             {mRotate.isPending ? "Generating" : "Generate a token"}
           </Action>
         </Line>

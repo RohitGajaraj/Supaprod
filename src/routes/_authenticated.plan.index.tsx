@@ -1013,7 +1013,7 @@ function PlanPage() {
                   sub="In Now with no spec. Draft reads the bet, writes the spec against what the record already holds, cites it, and this lands you on it."
                 >
                   <Action
-                    disabled={draftSpec.isPending}
+                    busy={draftSpec.isPending}
                     onClick={() =>
                       draftSpec.mutate({
                         id: uncoveredNowBet.id,

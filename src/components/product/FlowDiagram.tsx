@@ -66,7 +66,7 @@ export function FlowDiagram({ prdId }: Props) {
             label, 12px to 14px, to sit at the size of the word beside it. */}
         <Action
           onClick={() => generate.mutate()}
-          disabled={generate.isPending}
+          busy={generate.isPending}
           className="sp-btn gap-1.5"
         >
           <RefreshCw className="h-3.5 w-3.5" />

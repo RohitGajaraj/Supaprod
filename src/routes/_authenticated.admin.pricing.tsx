@@ -532,13 +532,13 @@ function TopupEditor({
         <Actions
           trailing={
             onDelete ? (
-              <Action variant="quiet" type="button" disabled={busy} onClick={onDelete}>
+              <Action variant="quiet" type="button" busy={busy} onClick={onDelete}>
                 Remove it
               </Action>
             ) : undefined
           }
         >
-          <Action variant="primary" type="submit" disabled={busy}>
+          <Action variant="primary" type="submit" busy={busy}>
             {busy ? "Saving" : row ? "Save this top-up" : "Add this top-up"}
           </Action>
           <Action variant="quiet" type="button" onClick={onCancel}>
@@ -838,13 +838,13 @@ function BundleEditor({
         <Actions
           trailing={
             onDelete ? (
-              <Action variant="quiet" type="button" disabled={busy} onClick={onDelete}>
+              <Action variant="quiet" type="button" busy={busy} onClick={onDelete}>
                 Remove it
               </Action>
             ) : undefined
           }
         >
-          <Action variant="primary" type="submit" disabled={busy}>
+          <Action variant="primary" type="submit" busy={busy}>
             {busy ? "Saving" : row ? "Save this bundle" : "Add this bundle"}
           </Action>
           <Action variant="quiet" type="button" onClick={onCancel}>

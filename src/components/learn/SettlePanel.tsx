@@ -797,7 +797,7 @@ export function SettlePanel({
             ) : (
               <Action
                 variant="primary"
-                disabled={drafting}
+                busy={drafting}
                 onClick={() => draft.mutate(target.prdId)}
               >
                 {drafting
@@ -808,7 +808,7 @@ export function SettlePanel({
             {settledByAgent ? (
               <Action onClick={() => setOverturnId(null)}>Leave it as it is</Action>
             ) : canRecord && !s ? (
-              <Action disabled={drafting} onClick={() => draft.mutate(target.prdId)}>
+              <Action busy={drafting} onClick={() => draft.mutate(target.prdId)}>
                 {drafting ? "Reading the outcome." : `Ask ${agentDisplayName(MEASURE_SLUG)}`}
               </Action>
             ) : null}
@@ -820,7 +820,7 @@ export function SettlePanel({
               fourth verdict. */}
             {!settledByAgent ? (
               <Action
-                disabled={defer.isPending}
+                busy={defer.isPending}
                 onClick={() => defer.mutate({ target })}
                 title="No verdict is written. It returns to this desk in two weeks."
               >

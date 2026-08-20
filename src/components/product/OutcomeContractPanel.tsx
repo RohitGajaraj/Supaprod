@@ -406,13 +406,13 @@ export function OutcomeContractPanel({ prdId, specTitle, bodyMd, contract, inval
         <ContractBody contract={draft} />
         <VerifiabilityVerdict contract={draft} />
         <div className="mt-5 flex items-center gap-2">
-          <Action onClick={() => applyMut.mutate(draft)} disabled={applyMut.isPending}>
+          <Action onClick={() => applyMut.mutate(draft)} busy={applyMut.isPending}>
             {applyMut.isPending ? "Applying…" : "Apply contract"}
           </Action>
           {/* The escape from a draft review, and the second door out of it: the
               X in this panel's own header does the same setDraft(null). A ghost
               is what an exit standing next to the act looks like here. */}
-          <Action variant="quiet" onClick={() => setDraft(null)} disabled={applyMut.isPending}>
+          <Action variant="quiet" onClick={() => setDraft(null)} busy={applyMut.isPending}>
             Discard
           </Action>
         </div>
@@ -796,7 +796,7 @@ function AddClauseControl({
             setOpen(false);
             setText("");
           }}
-          disabled={addMut.isPending}
+          busy={addMut.isPending}
         >
           Cancel
         </Action>

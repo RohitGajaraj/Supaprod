@@ -293,7 +293,7 @@ export function MemoryList() {
           action={
             <Action
               variant="quiet"
-              disabled={forget.isPending}
+              busy={forget.isPending}
               onClick={() => void confirmAndForget(r)}
               title="Take this out of what the crew reads"
             >

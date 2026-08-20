@@ -150,7 +150,7 @@ export function ShareDecisionButton({
   if (!s.is_public) {
     return (
       <Action
-        disabled={toggle.isPending}
+        busy={toggle.isPending}
         onClick={() => toggle.mutate(true)}
         title="Make this decision public and copy a shareable link"
       >
@@ -170,7 +170,7 @@ export function ShareDecisionButton({
       >
         Copy the link
       </Action>
-      <Action variant="quiet" disabled={toggle.isPending} onClick={() => toggle.mutate(false)}>
+      <Action variant="quiet" busy={toggle.isPending} onClick={() => toggle.mutate(false)}>
         {toggle.isPending ? "Working" : "Make it private"}
       </Action>
     </>

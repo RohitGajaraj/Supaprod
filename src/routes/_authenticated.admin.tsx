@@ -194,7 +194,7 @@ function NoAccessCard({ anyAdminExists }: { anyAdminExists: boolean }) {
              `Action` cannot express, so that announcement is lost and recorded as
              a Meridian gap rather than patched into a component this item does
              not own. */
-          <Action variant="primary" disabled={claim.isPending} onClick={() => claim.mutate()}>
+          <Action variant="primary" busy={claim.isPending} onClick={() => claim.mutate()}>
             {claim.isPending ? "Claiming…" : "Claim admin · one-time setup"}
           </Action>
         )

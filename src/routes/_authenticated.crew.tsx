@@ -847,10 +847,10 @@ function Proposals({ member, onDecided }: { member: CrewMember; onDecided: () =>
           {/* The keycaps are drawn because the keys are bound above. `shortcut`
               renders a <kbd> and binds nothing by itself, so it is never passed
               without the effect that makes it true. */}
-          <Approve shortcut="a" disabled={decide.isPending} onClick={() => settle(true)}>
+          <Approve shortcut="a" busy={decide.isPending} onClick={() => settle(true)}>
             Give it the room
           </Approve>
-          <Action shortcut="d" disabled={decide.isPending} onClick={() => settle(false)}>
+          <Action shortcut="d" busy={decide.isPending} onClick={() => settle(false)}>
             Not yet
           </Action>
         </Gate>
@@ -1049,7 +1049,7 @@ function Boundary({ member, onChanged }: { member: CrewMember; onChanged: () => 
               : `${member.name} has more room than its record backs. On what it has actually done, it belongs at "${ARC_CHOICE[t.suggestedArc]}".`}
           </RecordSpeaks>
           <Actions>
-            <Action disabled={arc.isPending} onClick={() => arc.mutate(t.suggestedArc)}>
+            <Action busy={arc.isPending} onClick={() => arc.mutate(t.suggestedArc)}>
               {suggestion === "up" ? "Give it that" : "Pull it back"}
             </Action>
           </Actions>

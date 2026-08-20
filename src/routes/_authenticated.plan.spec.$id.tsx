@@ -1708,7 +1708,7 @@ function SpecEditorPage() {
             </Action>
             {prd.github_issue_url ? null : (
               <Action
-                disabled={createIssue.isPending}
+                busy={createIssue.isPending}
                 onClick={() => createIssue.mutate()}
                 // It never opened the route: the route was never shut. The hint
                 // says what the issue is actually for, which is the pull request
@@ -1722,7 +1722,7 @@ function SpecEditorPage() {
               `ghost`. Same face, and there is no `ghost` variant to reach for. */}
             <Action
               variant="quiet"
-              disabled={captureDecision.isPending}
+              busy={captureDecision.isPending}
               onClick={() => captureDecision.mutate()}
               title="Put this on the record as a decision"
             >
@@ -1933,7 +1933,7 @@ function SpecEditorPage() {
                     <Action
                       key={a}
                       variant="quiet"
-                      disabled={assist.isPending}
+                      busy={assist.isPending}
                       onClick={() => assist.mutate(a)}
                     >
                       {ASSIST_LABEL[a]}
@@ -2181,7 +2181,7 @@ function SpecEditorPage() {
                     label="No GitHub issue is open for this spec"
                     sub="The send runs without one: Build works from the spec itself. What an issue buys is the Closes line in the pull request, which is what makes the issue close itself when the work lands."
                   >
-                    <Action disabled={createIssue.isPending} onClick={() => createIssue.mutate()}>
+                    <Action busy={createIssue.isPending} onClick={() => createIssue.mutate()}>
                       {createIssue.isPending ? "Creating" : "Create GitHub issue"}
                     </Action>
                   </Line>

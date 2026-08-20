@@ -299,7 +299,7 @@ function SwitchesBlock() {
             />
             <Action
               variant="quiet"
-              disabled={del.isPending}
+              busy={del.isPending}
               onClick={async () => {
                 const ok = await confirm({
                   title: `Delete ${f.key}?`,
@@ -443,7 +443,7 @@ function NoticeBlock() {
               : `${LEVEL_WORD[banner.level]} · stays up until you take it down`
           }
         >
-          <Action variant="quiet" disabled={clear.isPending} onClick={() => clear.mutate()}>
+          <Action variant="quiet" busy={clear.isPending} onClick={() => clear.mutate()}>
             {clear.isPending ? "Taking it down" : "Take it down"}
           </Action>
         </Line>
@@ -689,7 +689,7 @@ function DeployGate() {
         />
       </Field>
       <Actions>
-        <Action variant="primary" disabled={deploy.isPending} onClick={() => void onDeploy()}>
+        <Action variant="primary" busy={deploy.isPending} onClick={() => void onDeploy()}>
           {deploy.isPending ? "Sending" : "Ship it"}
         </Action>
         {last ? <Value>{last}</Value> : null}

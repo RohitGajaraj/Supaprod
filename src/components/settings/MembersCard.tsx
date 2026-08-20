@@ -298,14 +298,14 @@ export function MembersCard() {
                   </span>
                   <Action
                     variant="primary"
-                    disabled={transfer.isPending}
+                    busy={transfer.isPending}
                     onClick={() => transfer.mutate({ userId: m.userId, name })}
                   >
                     {transfer.isPending ? "Transferring" : "Confirm"}
                   </Action>
                   <Action
                     variant="quiet"
-                    disabled={transfer.isPending}
+                    busy={transfer.isPending}
                     onClick={() => setConfirmTransfer(null)}
                   >
                     Cancel
@@ -347,7 +347,7 @@ export function MembersCard() {
                       </Action>
                       <Action
                         variant="quiet"
-                        disabled={remove.isPending}
+                        busy={remove.isPending}
                         aria-label={`Remove ${name}`}
                         onClick={() => {
                           void (async () => {

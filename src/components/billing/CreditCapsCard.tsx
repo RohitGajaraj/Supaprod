@@ -175,7 +175,7 @@ export function CreditCapsCard() {
               <span style={{ color: "var(--mrd-mute)", fontSize: "var(--mrd-t-base)" }}>
                 <Num>{c.capCredits.toLocaleString()}</Num> credits {winLabel(c.windowKind)}
               </span>
-              <Action variant="quiet" onClick={() => rmMut.mutate(c.id)} disabled={rmMut.isPending}>
+              <Action variant="quiet" onClick={() => rmMut.mutate(c.id)} busy={rmMut.isPending}>
                 Remove
               </Action>
             </Line>
@@ -236,7 +236,7 @@ export function CreditCapsCard() {
               </Picker>
             </Field>
             <Actions>
-              <Action onClick={addProductCap} disabled={setMut.isPending}>
+              <Action onClick={addProductCap} busy={setMut.isPending}>
                 Add cap
               </Action>
             </Actions>
@@ -271,7 +271,7 @@ export function CreditCapsCard() {
               <span style={{ color: "var(--mrd-mute)", fontSize: "var(--mrd-t-base)" }}>
                 <Num>{c.capCredits.toLocaleString()}</Num> credits {winLabel(c.windowKind)}
               </span>
-              <Action variant="quiet" onClick={() => rmMut.mutate(c.id)} disabled={rmMut.isPending}>
+              <Action variant="quiet" onClick={() => rmMut.mutate(c.id)} busy={rmMut.isPending}>
                 Remove
               </Action>
             </Line>
@@ -341,7 +341,7 @@ export function CreditCapsCard() {
             </Picker>
           </Field>
           <Actions>
-            <Action onClick={addMemberCap} disabled={setMut.isPending}>
+            <Action onClick={addMemberCap} busy={setMut.isPending}>
               Set limit
             </Action>
           </Actions>

@@ -611,14 +611,14 @@ function ApprovalsSurface() {
           >
             <Approve
               shortcut="a"
-              disabled={decide.isPending}
+              busy={decide.isPending}
               onClick={() => decide.mutate({ item: focused, verdict: "approve" })}
             >
               Approve
             </Approve>
             <Action
               shortcut="d"
-              disabled={decide.isPending}
+              busy={decide.isPending}
               onClick={() => decide.mutate({ item: focused, verdict: "reject" })}
             >
               Decline

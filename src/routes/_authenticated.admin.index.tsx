@@ -395,7 +395,7 @@ function AdminOverview() {
                   })
           }
         >
-          <Action variant="primary" disabled={setFlag.isPending} onClick={() => void onFlip()}>
+          <Action variant="primary" busy={setFlag.isPending} onClick={() => void onFlip()}>
             {setFlag.isPending ? "Saving" : charging ? "Turn off charging" : "Turn on charging"}
           </Action>
           {readiness.isError || (readiness.data && "error" in readiness.data) ? (

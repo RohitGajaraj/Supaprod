@@ -69,7 +69,7 @@ export function LaunchPlanPanel({ prdId }: Props) {
         <div className="mono-label flex items-center gap-2">
           <Rocket className="h-3.5 w-3.5" /> Launch plan
         </div>
-        <Action onClick={() => generate.mutate()} disabled={generate.isPending}>
+        <Action onClick={() => generate.mutate()} busy={generate.isPending}>
           {generate.isPending ? "Drafting…" : plan ? "Regenerate" : "Draft launch plan"}
         </Action>
       </div>
@@ -151,7 +151,7 @@ export function LaunchPlanPanel({ prdId }: Props) {
                   button, and the shared height is what makes them read as one
                   control: `.input` stands about 35px and `.sp-btn` is 38, where
                   the pill it replaces was 26 and visibly short of the field. */}
-              <Action onClick={() => rearm.mutate()} disabled={rearm.isPending}>
+              <Action onClick={() => rearm.mutate()} busy={rearm.isPending}>
                 Rearm, days out
               </Action>
             </div>

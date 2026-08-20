@@ -1319,7 +1319,7 @@ function BuildRun() {
                decision rather than a navigation dressed as one. It is a
                different COMPONENT rather than a variant, which is what stops
                the accent from being one string away on every other control. */
-              disabled={busy}
+              busy={busy}
               onClick={() =>
                 decide.mutate({ id: call.id, tool: call.tool_name, decision: "approve" })
               }

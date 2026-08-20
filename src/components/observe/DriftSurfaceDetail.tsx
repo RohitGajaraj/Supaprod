@@ -493,7 +493,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
         )}
 
         <Actions>
-          <Action disabled={runMut.isPending} onClick={() => runMut.mutate()}>
+          <Action busy={runMut.isPending} onClick={() => runMut.mutate()}>
             {runMut.isPending ? "Checking" : "Run the drift check"}
           </Action>
         </Actions>
@@ -577,7 +577,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
                 action={
                   <Action
                     variant="quiet"
-                    disabled={busy}
+                    busy={busy}
                     onClick={() =>
                       decideMut.mutate({
                         incidentId: inc.id,

@@ -80,7 +80,7 @@ export function CriticBadge({ review, target, invalidateKey }: Props) {
     return (
       <>
         <Action
-          disabled={run.isPending}
+          busy={run.isPending}
           onClick={() => run.mutate()}
           title="Have the Critic read this and rule on it"
         >
@@ -199,7 +199,7 @@ export function CriticBadge({ review, target, invalidateKey }: Props) {
           ) : null}
 
           <Actions>
-            <Action disabled={run.isPending} onClick={() => run.mutate()}>
+            <Action busy={run.isPending} onClick={() => run.mutate()}>
               {run.isPending ? "Reading it again" : "Have it read this again"}
             </Action>
           </Actions>

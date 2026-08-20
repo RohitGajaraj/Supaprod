@@ -312,7 +312,7 @@ export function DocsPanel() {
               trailing={
                 <Action
                   variant="quiet"
-                  disabled={mDelete.isPending}
+                  busy={mDelete.isPending}
                   onClick={() => {
                     void (async () => {
                       const ok = await confirm({
@@ -329,7 +329,7 @@ export function DocsPanel() {
                 </Action>
               }
             >
-              <Action disabled={mPush.isPending} onClick={() => mPush.mutate(doc)}>
+              <Action busy={mPush.isPending} onClick={() => mPush.mutate(doc)}>
                 {mPush.isPending ? "Sending" : "Send it to Discovery"}
               </Action>
               <Action
@@ -387,7 +387,7 @@ export function DocsPanel() {
             >
               {importOpen ? "Close" : "Bring one in"}
             </Action>
-            <Action variant="primary" onClick={() => mCreate.mutate()} disabled={mCreate.isPending}>
+            <Action variant="primary" onClick={() => mCreate.mutate()} busy={mCreate.isPending}>
               {mCreate.isPending ? "Starting" : "Start a page"}
             </Action>
           </Actions>
@@ -599,7 +599,7 @@ function ImportPage({
             </Field>
             <Actions
               trailing={
-                <Action variant="quiet" onClick={onClose} disabled={busy}>
+                <Action variant="quiet" onClick={onClose} busy={busy}>
                   Cancel
                 </Action>
               }
@@ -663,7 +663,7 @@ function ImportPage({
             </Field>
             <Actions
               trailing={
-                <Action variant="quiet" onClick={onClose} disabled={busy}>
+                <Action variant="quiet" onClick={onClose} busy={busy}>
                   Cancel
                 </Action>
               }

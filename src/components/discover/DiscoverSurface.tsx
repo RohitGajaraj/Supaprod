@@ -2072,7 +2072,7 @@ export function DiscoverSurface({
             Connect a source
           </Action>
           {sampleOffered ? (
-            <Action disabled={sampleMutation.isPending} onClick={() => sampleMutation.mutate()}>
+            <Action busy={sampleMutation.isPending} onClick={() => sampleMutation.mutate()}>
               {sampleMutation.isPending ? "Opening the sample" : "Explore a sample workspace"}
             </Action>
           ) : null}
@@ -2176,13 +2176,13 @@ export function DiscoverSurface({
               Red reports an outcome in this system and orchid means a person is
               required, so neither is available to mark an intention, and two
               accents in one row is how an accent stops meaning anything. */}
-          <Approve disabled={busy} shortcut="a" onClick={() => promote.mutate(focused.theme.id)}>
+          <Approve busy={busy} shortcut="a" onClick={() => promote.mutate(focused.theme.id)}>
             {promote.isPending ? "Making it a bet" : "Make it a bet"}
           </Approve>
-          <Action disabled={busy} shortcut="m" onClick={() => setPicking(true)}>
+          <Action busy={busy} shortcut="m" onClick={() => setPicking(true)}>
             Add to an existing bet
           </Action>
-          <Action disabled={busy} shortcut="d" onClick={() => decline.mutate(focused.theme.id)}>
+          <Action busy={busy} shortcut="d" onClick={() => decline.mutate(focused.theme.id)}>
             Not a pattern
           </Action>
           <MoreMenu label={`More for ${focused.theme.title}`}>
@@ -2214,7 +2214,7 @@ export function DiscoverSurface({
               question is "Nothing is waiting on a call." Nothing is held, so
               there is nothing to release. This dispatches a model run, which is
               the same thing the Region above spends `act` on. */}
-          <Action variant="primary" disabled={cluster.isPending} onClick={() => cluster.mutate()}>
+          <Action variant="primary" busy={cluster.isPending} onClick={() => cluster.mutate()}>
             {cluster.isPending ? "Reading them together" : "Cluster them now"}
           </Action>
         </Gate>
@@ -2823,7 +2823,7 @@ export function DiscoverSurface({
                       action={
                         status === "promoted" ? undefined : (
                           <Action
-                            disabled={busy}
+                            busy={busy}
                             onClick={() =>
                               undecline.mutate({ themeId: t.id, title: t.title, from: status })
                             }
@@ -3169,7 +3169,7 @@ export function DiscoverSurface({
                   )
                 }
               >
-                <Action disabled={fileReading} onClick={() => fileInput.current?.click()}>
+                <Action busy={fileReading} onClick={() => fileInput.current?.click()}>
                   {fileReading ? "Reading the file" : "Choose a file"}
                 </Action>
               </Line>

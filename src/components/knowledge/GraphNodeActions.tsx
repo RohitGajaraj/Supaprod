@@ -246,19 +246,19 @@ export function GraphNodeActions({ node }: { node: GraphNode }) {
         // rather than beside the two things that move work forward.
         trailing={
           isDecision ? (
-            <Action disabled={reopen.isPending} onClick={() => reopen.mutate()}>
+            <Action busy={reopen.isPending} onClick={() => reopen.mutate()}>
               {reopen.isPending ? "Reopening" : "Reopen the call"}
             </Action>
           ) : undefined
         }
       >
         {canStartMission ? (
-          <Action disabled={startMission.isPending} onClick={() => void confirmAndStartMission()}>
+          <Action busy={startMission.isPending} onClick={() => void confirmAndStartMission()}>
             {startMission.isPending ? "Starting" : "Start a mission from this"}
           </Action>
         ) : null}
         {isReviewable ? (
-          <Action disabled={critic.isPending} onClick={() => critic.mutate()}>
+          <Action busy={critic.isPending} onClick={() => critic.mutate()}>
             {critic.isPending ? "Reviewing" : "Send it to the Critic"}
           </Action>
         ) : null}

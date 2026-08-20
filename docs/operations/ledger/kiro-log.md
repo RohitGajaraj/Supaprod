@@ -6860,3 +6860,61 @@ register's "277 arbitrary `text-[Npx]` values, 13 off-ladder" finding (K-09), al
 into here.
 
 **Gates.** The guard 4 pass 0 fail, and 1 fail with the regression planted. `lane:gates` green, real exit 0.
+
+---
+
+## K-92 · BUILT · 2026-08-21 08:40 · every control in the product said "unavailable" while it was working
+
+**Did.** `Action` and `Approve` gained `busy`, which sets `aria-busy` **and implies `disabled`** so a
+caller says it once, both placed **after** the `{...rest}` spread so a stray `disabled` in `rest` cannot
+beat the combination. Then **161 call sites migrated**, `disabled={x.isPending}` → `busy={x.isPending}`,
+one attribute each, expression untouched. **63 in `src/routes/` and 98 in `src/components/`**, run as two
+parallel workers on disjoint directories.
+
+**Why it was worth doing at that size.** **196 sites disabled on a pending flag and not one announced
+it**, so a screen reader heard **"unavailable" for the whole round trip of every mutation in the
+product** -- every save, approve, promote and rollback. **"Unavailable" and "working on it" are different
+facts and only one of them was true.**
+
+**Why it had to be a prop rather than a fix inside the component**, and this is the measurement that
+settles it: **70 of the 196 are mixed.** `disabled={!dirty || save.isPending}` is disabled because there
+is nothing to save **or** because it is saving, and only the second half is busy. **A component cannot
+tell which term fired**, so the caller says. Every one of those 70 is byte-identical after this pass.
+
+**The pattern already existed one file away and was never generalised, which is the part worth
+recording.** `Region`'s `act` control has always set `aria-busy={acting || undefined}`, and its note
+reads *"the work is announced with `aria-busy` and the control is disabled while it runs, which is the
+same fact told once."* **Three separate call sites wrote the gap into their own comments** rather than
+close it -- `admin.invites.tsx`, `admin.tsx`'s claim button and `ship.tsx`'s `RowDoor`, each saying
+`aria-busy` "is lost and is recorded as a Meridian gap rather than patched into a component this item
+does not own." **Three readers found it, each filed it, and the component stayed as it was.**
+
+**Guarded, and the guard is deliberately narrower than the migration.**
+`src/__tests__/a-working-control-says-so.test.ts` fails on **a bare pending reference as the whole of
+`disabled`**, which is the one shape with nothing to judge, and **permits every compound**, because
+ruling on those would be wrong. **Proven by reverting one site** in `TeamCard.tsx`: the guard failed
+naming it, and passed again on restore. Its brace-counting reader is not decoration either -- a lazy
+regex stops inside a nested `trailing={<Action .../>}` and reports the inner control's attributes against
+the outer one, which the first version did.
+
+**Verified independently of both workers**, because `tsc` cannot catch a wrongly-converted compound:
+a separate brace-aware audit of all 161 sites confirms **every `busy` expression is a single simple
+reference, zero containing `||`, `&&` or a call.**
+
+**Unsure, and both agents flagged it rather than deciding.** **`ControlsPanel`'s two sites use
+`deciding(live.id)`, a call**, which is pending-only in meaning and fails the literal rule, so they were
+left; same for `sync.tsx`'s four `isBusy(m.id)`. They are the strongest candidates if call expressions
+should be in scope. And **`DataSection.tsx`'s `disabled={busy !== null}` is worse than it looks**: the
+local is `"workspace" | "agents" | null`, a discriminant naming *which* export is running, so
+`busy !== null` is the wrong value at both sites and a different wrong value at each. The honest form is
+per-site (`busy === "workspace"` / `busy === "agents"`) alongside the existing `disabled`, and the local
+wants renaming to `exporting` in the same change.
+
+**Noticed.** **28 of the 63 route sites read `busy={busy}`**, which looks like a tautology and is not:
+in every case the local is a pending aggregate, read and confirmed one by one. Several are shared across
+sibling mutations, so a control now announces `aria-busy` while a *neighbouring* mutation runs. **That
+conflation already existed in `disabled` and was preserved exactly rather than narrowed**, because
+narrowing is a per-site judgement.
+
+**Gates.** `bunx tsc --noEmit` 0 · `bun test` 10,263 pass 0 fail · `bun run build` 0 · the guard 2 pass,
+and 1 fail with the regression planted. `lane:gates` green, real exit 0.

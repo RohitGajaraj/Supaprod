@@ -513,7 +513,7 @@ function WorkspaceInFocus({
         >
           <Value tone={deleted ? "fail" : "pass"}>{deleted ? "deleted" : "live"}</Value>
           <Action
-            disabled={busy}
+            busy={busy}
             onClick={() => {
               if (deleted) {
                 restore.mutate();
@@ -555,7 +555,7 @@ function WorkspaceInFocus({
             sub="Clears every signal, decision and opportunity in here. The workspace and its members stay, and reseeding the sample is a separate script an engineer runs."
           >
             <Action
-              disabled={busy}
+              busy={busy}
               onClick={() => {
                 void (async () => {
                   const ok = await confirm({
@@ -592,7 +592,7 @@ function WorkspaceInFocus({
             const removeMember = (
               <Action
                 variant="quiet"
-                disabled={busy}
+                busy={busy}
                 onClick={() => {
                   void (async () => {
                     const ok = await confirm({
@@ -654,7 +654,7 @@ function WorkspaceInFocus({
                     ) : (
                       <Actions trailing={removeMember}>
                         <Action
-                          disabled={busy}
+                          busy={busy}
                           onClick={() => {
                             void (async () => {
                               const ok = await confirm({

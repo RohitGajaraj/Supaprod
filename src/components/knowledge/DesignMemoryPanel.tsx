@@ -303,12 +303,12 @@ function DesignMemoryRowView({
             // failure, it is the other answer.
             <Actions
               trailing={
-                <Action variant="quiet" disabled={deciding} onClick={() => onDecide("reject")}>
+                <Action variant="quiet" busy={deciding} onClick={() => onDecide("reject")}>
                   Reject
                 </Action>
               }
             >
-              <Approve disabled={deciding} onClick={() => onDecide("approve")}>
+              <Approve busy={deciding} onClick={() => onDecide("approve")}>
                 Approve
               </Approve>
             </Actions>
@@ -462,7 +462,7 @@ function AddDesignLanguage({
 
         <Actions
           trailing={
-            <Action variant="quiet" onClick={done} disabled={submitting}>
+            <Action variant="quiet" onClick={done} busy={submitting}>
               Cancel
             </Action>
           }

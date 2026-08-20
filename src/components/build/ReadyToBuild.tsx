@@ -782,7 +782,7 @@ export function ReadyToBuild() {
                       Open the run
                     </Door>
                     <Action
-                      disabled={busy}
+                      busy={busy}
                       title="Start a SECOND mission and a second billed run on this spec"
                       onClick={() => void gatedStart({ id: row.id, title: row.title })}
                     >
@@ -800,7 +800,7 @@ export function ReadyToBuild() {
                      station without borrowing the gate's colour. */
                   <Action
                     variant="primary"
-                    disabled={busy}
+                    busy={busy}
                     onClick={() => void gatedStart({ id: row.id, title: row.title })}
                   >
                     {pressing ? "Starting" : "Build this"}

@@ -2586,6 +2586,46 @@ than smaller** and is what the ruling permits. **`Region` is the only part headi
 
 ---
 
+# Group Q · the control that went dead without saying why
+
+**K-92 · `Action` and `Approve` disable on a pending flag and announce nothing**
+`STATUS: TODO` · deps: none · size: L
+**What.** Add a `busy` prop to `Action` and `Approve` in `src/components/meridian/surface-parts.tsx`,
+where `busy` sets `aria-busy` **and implies `disabled`** so a caller says it once. Then migrate every
+call site whose `disabled` is a single pending reference, and guard it.
+**Why.** **Counted 2026-08-21: 196 `Action`/`Approve` call sites disable themselves on a pending flag
+and not one announced it.** So a screen reader heard **"unavailable" for the entire round trip of every
+mutation in the product** -- every save, every approve, every promote, every rollback. **"Unavailable"
+and "working on it" are different facts and only one of them was true.**
+**It cannot be derived, which is the whole reason this is a prop rather than a fix inside the
+component.** Of the 196, **70 are mixed**: `disabled={!dirty || save.isPending}` is disabled because
+there is nothing to save **or** because it is saving, and only the second is busy. A component cannot
+tell which term fired, so the caller has to say. The other **126 are a single pending reference**, where
+`busy` alone is the whole answer.
+**The pattern was already established one file away and never generalised.** `Region`'s own `act`
+control sets `aria-busy={acting || undefined}` and its note reads *"the work is announced with
+`aria-busy` and the control is disabled while it runs, which is the same fact told once."* `Action` could
+not express it, and **three separate call sites recorded that as a known Meridian gap in their own
+comments** rather than closing it.
+**How.** Destructure `disabled` alongside the new `busy` and place both **after** the `{...rest}` spread,
+so a stray `disabled` in `rest` cannot beat the combination and an older site's hand-written `aria-busy`
+cannot overwrite it. **Migrate only the unambiguous sites**: `disabled={x.isPending}` becomes
+`busy={x.isPending}`, one attribute, expression untouched. **Leave every compound alone** -- those want
+`busy=` *alongside* the `disabled` they already have, and which clause means "not allowed" is a reading
+of the surface rather than a rule. **Split routes and components across parallel workers**, since the two
+directories are disjoint. Verify the import on every file touched: only `Action`/`Approve` from
+`surface-parts` have the prop.
+**Acceptance.**
+- `busy` implies `disabled` and sets `aria-busy`, both after the spread.
+- Every single-pending-reference site migrated; **every compound site byte-identical**.
+- A guard fails on a bare pending `disabled` with no `busy`, **proven by reverting one site**.
+- The guard **permits compounds**, because ruling on those would be wrong.
+- No site's `busy` expression contains `||`, `&&` or a call, checked independently of the migration.
+**Owns.** `src/components/meridian/surface-parts.tsx`, `src/routes/**`, `src/components/**`,
+`src/__tests__/a-working-control-says-so.test.ts`
+
+---
+
 ## Related
 
 - [`../planning/initiatives/agent-first-platform.md`](../planning/initiatives/agent-first-platform.md) — the direction this queue implements, with the evidence for every "why" above

@@ -751,7 +751,7 @@ export function RoadmapColumns() {
         {COLUMNS.map((col) => (
           <Action
             key={col.key}
-            disabled={bulkMove.isPending}
+            busy={bulkMove.isPending}
             title={
               col.key === "now" && undeclaredSelected > 0
                 ? `${undeclaredSelected} of these carry no outcome. A bulk move places the lane and does not ask for one.`

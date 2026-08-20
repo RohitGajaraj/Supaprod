@@ -202,7 +202,7 @@ function AdminInvites() {
                   // outcome in this system and the confirm dialog is what makes
                   // this safe.
                   <Action
-                    disabled={revoke.isPending}
+                    busy={revoke.isPending}
                     onClick={async () => {
                       const ok = await confirm({
                         title: `Revoke ${c.code}?`,

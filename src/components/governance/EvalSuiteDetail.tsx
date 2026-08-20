@@ -727,7 +727,7 @@ function CaseList({
                     ) : null}
                     <Actions>
                       <Action
-                        disabled={remove.isPending}
+                        busy={remove.isPending}
                         onClick={async () => {
                           const ok = await confirm({
                             title: "Delete this case?",
@@ -851,7 +851,7 @@ function Config({
 
       <Actions>
         <Action
-          disabled={remove.isPending}
+          busy={remove.isPending}
           onClick={async () => {
             const ok = await confirm({
               title: "Delete this suite?",

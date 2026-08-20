@@ -460,12 +460,12 @@ function TemplateDetail({
         ) : null}
 
         <Actions>
-          <Action disabled={mFork.isPending} onClick={() => mFork.mutate()}>
+          <Action busy={mFork.isPending} onClick={() => mFork.mutate()}>
             {mFork.isPending ? "Forking it" : "Fork a draft from the right"}
           </Action>
           {rightId && rightId !== template.active_version_id ? (
             <Action
-              disabled={mSetActive.isPending}
+              busy={mSetActive.isPending}
               onClick={() => mSetActive.mutate(rightId)}
               title="Routes every new call to this version"
             >
@@ -754,7 +754,7 @@ function AssignmentBlock({
       {save.isError ? <ReadFailedLine>{(save.error as Error).message}</ReadFailedLine> : null}
 
       <Actions>
-        <Action disabled={save.isPending} onClick={() => save.mutate()}>
+        <Action busy={save.isPending} onClick={() => save.mutate()}>
           {save.isPending ? "Saving it" : "Save the split"}
         </Action>
       </Actions>

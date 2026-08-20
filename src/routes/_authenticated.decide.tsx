@@ -2818,16 +2818,16 @@ function DecideSurface() {
               releasing anything downstream, and opening the record only shows
               you something. Two accents on one Gate is how the accent stops
               meaning anything. */}
-            <Approve shortcut="a" disabled={busy} onClick={() => void keepBet(activeOpp)}>
+            <Approve shortcut="a" busy={busy} onClick={() => void keepBet(activeOpp)}>
               Keep it
             </Approve>
-            <Action shortcut="c" disabled={busy} onClick={() => challenge.mutate(activeOpp.id)}>
+            <Action shortcut="c" busy={busy} onClick={() => challenge.mutate(activeOpp.id)}>
               Challenge it
             </Action>
-            <Action shortcut="d" disabled={busy} onClick={() => dropBet(activeOpp)}>
+            <Action shortcut="d" busy={busy} onClick={() => dropBet(activeOpp)}>
               Drop it
             </Action>
-            <Action variant="quiet" disabled={busy} onClick={() => setOpenId(activeOpp.id)}>
+            <Action variant="quiet" busy={busy} onClick={() => setOpenId(activeOpp.id)}>
               Open the full record
             </Action>
             {/* Both of the first two buttons dispatch an agent, and until now the
@@ -3186,7 +3186,7 @@ function DecideSurface() {
                 keeping is three model runs a bet and challenging is one, so
                 neither may ever be spent by a single press on a batch. */}
               <Action
-                disabled={dropMany.isPending}
+                busy={dropMany.isPending}
                 onClick={() => void askDropMany([...picked.ids])}
               >
                 {dropMany.isPending ? "Dropping them" : "Drop them"}

@@ -2381,7 +2381,7 @@ function Ship() {
               until this is pressed, which is the definition `Approve` is for.
               Every other control here does something and unblocks nothing. */}
             <Approve
-              disabled={promote.isPending}
+              busy={promote.isPending}
               onClick={() =>
                 promote.mutate({ changesetId: ready[0].changesetId, title: ready[0].title })
               }
@@ -2582,7 +2582,7 @@ function Ship() {
                 >
                   {mode.kind === "edit" ? "Save the post" : "Save the draft"}
                 </Action>
-                <Action variant="quiet" disabled={busy} onClick={() => setMode({ kind: "idle" })}>
+                <Action variant="quiet" busy={busy} onClick={() => setMode({ kind: "idle" })}>
                   Cancel
                 </Action>
               </Actions>
@@ -2638,22 +2638,22 @@ function Ship() {
               deliberately NOT an Approve -- it starts a wait rather than ending
               one -- and neither are the two after it, which edit and compose. */}
             {call.status === "pending" && canPublish ? (
-              <Approve disabled={busy} onClick={() => publish.mutate(call.id)}>
+              <Approve busy={busy} onClick={() => publish.mutate(call.id)}>
                 Publish it
               </Approve>
             ) : null}
             {call.status === "draft" && canContribute ? (
-              <Action variant="primary" disabled={busy} onClick={() => submit.mutate(call.id)}>
+              <Action variant="primary" busy={busy} onClick={() => submit.mutate(call.id)}>
                 Send for approval
               </Action>
             ) : null}
             {canContribute ? (
-              <Action disabled={busy} onClick={() => startEdit(call)}>
+              <Action busy={busy} onClick={() => startEdit(call)}>
                 Edit the post
               </Action>
             ) : null}
             {canContribute ? (
-              <Action variant="quiet" disabled={busy} onClick={startNew}>
+              <Action variant="quiet" busy={busy} onClick={startNew}>
                 Write another
               </Action>
             ) : null}
@@ -2705,7 +2705,7 @@ function Ship() {
             {canContribute ? (
               <Action
                 variant={nothingShipped ? "default" : "primary"}
-                disabled={busy}
+                busy={busy}
                 onClick={startNew}
               >
                 {nothingShipped ? "Write one anyway" : "Write an announcement"}

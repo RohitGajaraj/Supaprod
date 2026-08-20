@@ -134,7 +134,7 @@ export function RewindButton({ prdId, hasSnapshot, onCommit, onReverted }: Rewin
             <AlertDialog.Action asChild>
               <Action
                 variant="primary"
-                disabled={revert.isPending}
+                busy={revert.isPending}
                 onClick={(e) => {
                   // The dialog closes on its own success rather than on the
                   // press, so a refused revert leaves the confirm on screen with
@@ -148,7 +148,7 @@ export function RewindButton({ prdId, hasSnapshot, onCommit, onReverted }: Rewin
               </Action>
             </AlertDialog.Action>
             <AlertDialog.Cancel asChild>
-              <Action variant="quiet" disabled={revert.isPending}>
+              <Action variant="quiet" busy={revert.isPending}>
                 Keep it as it is
               </Action>
             </AlertDialog.Cancel>

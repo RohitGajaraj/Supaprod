@@ -508,17 +508,17 @@ function FocusedCall({
   return (
     <>
       <Gate question={`Let ${name} run ${a.tool_name}?`} lines={lines}>
-        <Approve disabled={busy} onClick={onApprove}>
+        <Approve busy={busy} onClick={onApprove}>
           Approve, and it runs
         </Approve>
-        <Action disabled={busy} onClick={onReject}>
+        <Action busy={busy} onClick={onReject}>
           Decline, and nothing runs
         </Action>
       </Gate>
 
       <Actions
         trailing={
-          <Action variant="quiet" disabled={extending} onClick={onExtend}>
+          <Action variant="quiet" busy={extending} onClick={onExtend}>
             Give it 24 more hours
           </Action>
         }

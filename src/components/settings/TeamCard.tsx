@@ -190,7 +190,7 @@ export function TeamCard() {
             {inv.status === "pending" ? (
               <Action
                 variant="quiet"
-                disabled={revoke.isPending}
+                busy={revoke.isPending}
                 onClick={() => revoke.mutate(inv.id)}
                 aria-label={`Revoke invitation for ${inv.email}`}
               >

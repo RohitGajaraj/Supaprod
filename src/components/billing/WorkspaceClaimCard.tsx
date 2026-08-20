@@ -224,7 +224,7 @@ function YourClaim({ workspaceId }: { workspaceId: string }) {
             <Actions>
               <Action
                 variant="quiet"
-                disabled={release.isPending}
+                busy={release.isPending}
                 onClick={async () => {
                   const ok = await confirm({
                     title: "Release this workspace?",
@@ -275,7 +275,7 @@ function YourClaim({ workspaceId }: { workspaceId: string }) {
           <NothingYet>{view.canWithdrawBlocker}</NothingYet>
         ) : (
           <Actions>
-            <Action variant="quiet" disabled={withdraw.isPending} onClick={() => withdraw.mutate()}>
+            <Action variant="quiet" busy={withdraw.isPending} onClick={() => withdraw.mutate()}>
               {withdraw.isPending ? "Withdrawing" : "Withdraw the offer"}
             </Action>
           </Actions>
@@ -527,7 +527,7 @@ function AccountClaims({ workspaceId }: { workspaceId: string }) {
             </Action>
             <Action
               variant="quiet"
-              disabled={respond.isPending}
+              busy={respond.isPending}
               onClick={() => respond.mutate({ workspaceId: row.workspaceId, decision: "decline" })}
             >
               Decline
@@ -547,7 +547,7 @@ function AccountClaims({ workspaceId }: { workspaceId: string }) {
           <Actions>
             <Action
               variant="quiet"
-              disabled={release.isPending}
+              busy={release.isPending}
               onClick={async () => {
                 const ok = await confirm({
                   title: `Release ${row.workspaceName}?`,

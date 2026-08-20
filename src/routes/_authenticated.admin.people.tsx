@@ -576,7 +576,7 @@ function PersonInFocus({ userId }: { userId: string }) {
         >
           <Value tone={blocked ? "fail" : "pass"}>{blocked ? "blocked" : "allowed"}</Value>
           <Action
-            disabled={busy}
+            busy={busy}
             onClick={() => {
               void (async () => {
                 const ok = await confirm({
@@ -615,7 +615,7 @@ function PersonInFocus({ userId }: { userId: string }) {
           <Action
             variant="quiet"
             aria-expanded={openPlan}
-            disabled={busy}
+            busy={busy}
             onClick={() => setOpenPlan((v) => !v)}
           >
             Change
@@ -664,7 +664,7 @@ function PersonInFocus({ userId }: { userId: string }) {
                 overrideTier ? (
                   <Action
                     variant="quiet"
-                    disabled={busy}
+                    busy={busy}
                     onClick={() => clearOverride.mutate()}
                     type="button"
                   >
@@ -673,7 +673,7 @@ function PersonInFocus({ userId }: { userId: string }) {
                 ) : undefined
               }
             >
-              <Action variant="primary" type="submit" disabled={busy}>
+              <Action variant="primary" type="submit" busy={busy}>
                 {override.isPending ? "Saving" : "Save the plan"}
               </Action>
             </Actions>
@@ -730,7 +730,7 @@ function PersonInFocus({ userId }: { userId: string }) {
                 <Action
                   variant="quiet"
                   type="button"
-                  disabled={busy}
+                  busy={busy}
                   onClick={() => {
                     void (async () => {
                       const ok = await confirm({

@@ -152,7 +152,7 @@ export function InjectionDefenseCard() {
           <Action
             key={ex.label}
             variant="quiet"
-            disabled={assess.isPending}
+            busy={assess.isPending}
             onClick={() => {
               setText(ex.text);
               assess.mutate(ex.text);

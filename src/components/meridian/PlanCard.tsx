@@ -508,12 +508,12 @@ function Step({
              * orchid controls on one card is that failure inside one component.
              */}
             {canApprove ? (
-              <Action variant="quiet" onClick={() => onApproveStep?.(step.id)} disabled={busy}>
+              <Action variant="quiet" onClick={() => onApproveStep?.(step.id)} busy={busy}>
                 Approve this step
               </Action>
             ) : null}
             {canSkip ? (
-              <Action variant="quiet" onClick={() => setAsking(true)} disabled={busy}>
+              <Action variant="quiet" onClick={() => setAsking(true)} busy={busy}>
                 Skip it
               </Action>
             ) : null}
@@ -634,12 +634,12 @@ export function PlanCard({
       {onApprove || onRevise ? (
         <Actions className="mt-mrd-5">
           {onApprove ? (
-            <Approve onClick={onApprove} disabled={busy}>
+            <Approve onClick={onApprove} busy={busy}>
               {approveLabel}
             </Approve>
           ) : null}
           {onRevise ? (
-            <Action variant="quiet" onClick={onRevise} disabled={busy}>
+            <Action variant="quiet" onClick={onRevise} busy={busy}>
               {reviseLabel}
             </Action>
           ) : null}

@@ -646,7 +646,7 @@ function ThreadsSurface() {
                 {/* Rendered only when there IS a crew answer to keep. A control
                     that cannot act teaches people the controls are decorative. */}
                 {canKeep ? (
-                  <Action disabled={keep.isPending} onClick={() => keep.mutate()}>
+                  <Action busy={keep.isPending} onClick={() => keep.mutate()}>
                     Keep the last answer
                   </Action>
                 ) : null}

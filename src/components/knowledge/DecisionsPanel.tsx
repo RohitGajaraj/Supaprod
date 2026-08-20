@@ -568,7 +568,7 @@ function LogDecision({
 
         <Actions
           trailing={
-            <Action variant="quiet" onClick={onCancel} disabled={submitting}>
+            <Action variant="quiet" onClick={onCancel} busy={submitting}>
               Cancel
             </Action>
           }

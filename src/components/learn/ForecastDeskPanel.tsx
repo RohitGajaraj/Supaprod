@@ -174,7 +174,7 @@ export function ForecastDeskPanel() {
               kind of one.
             */}
               <Action
-                disabled={defer.isPending}
+                busy={defer.isPending}
                 onClick={() => defer.mutate(picked.id)}
                 title="No verdict is written. It returns to this desk in two weeks."
               >

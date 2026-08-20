@@ -166,7 +166,7 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
             >
               {pending ? "Committing" : "Commit to Now"}
             </Action>
-            <Action variant="quiet" onClick={onCancel} disabled={pending}>
+            <Action variant="quiet" onClick={onCancel} busy={pending}>
               Not yet
             </Action>
           </Actions>

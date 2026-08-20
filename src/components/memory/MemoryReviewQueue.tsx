@@ -231,13 +231,13 @@ export function MemoryReviewQueue() {
           ]}
         >
           <Approve
-            disabled={decide.isPending}
+            busy={decide.isPending}
             onClick={() => decide.mutate({ row: focused, decision: "approve" })}
           >
             Let it in
           </Approve>
           <Action
-            disabled={decide.isPending}
+            busy={decide.isPending}
             onClick={() => decide.mutate({ row: focused, decision: "reject" })}
           >
             Keep it out

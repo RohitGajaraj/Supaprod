@@ -1240,14 +1240,14 @@ function Design() {
               person is required to unblock this". */}
             <Approve
               shortcut="a"
-              disabled={settle.isPending}
+              busy={settle.isPending}
               onClick={() => settle.mutate("approve")}
             >
               Approve
             </Approve>
             <Action
               shortcut="d"
-              disabled={settle.isPending}
+              busy={settle.isPending}
               onClick={() => settle.mutate("reject")}
             >
               Decline
@@ -1730,7 +1730,7 @@ function Design() {
                   className="mt-mrd-4"
                   trailing={
                     focus.drawing ? (
-                      <Action variant="quiet" disabled={busy} onClick={() => hand.mutate()}>
+                      <Action variant="quiet" busy={busy} onClick={() => hand.mutate()}>
                         Make a link
                       </Action>
                     ) : undefined
@@ -1771,11 +1771,11 @@ function Design() {
                           back settles the same gate and releases nothing, so
                           it is an `Action`. */}
                         {focus.gateStatus === "approved" ? null : (
-                          <Approve disabled={busy} onClick={() => verdict.mutate("approve")}>
+                          <Approve busy={busy} onClick={() => verdict.mutate("approve")}>
                             Approve the design
                           </Approve>
                         )}
-                        <Action disabled={busy} onClick={() => verdict.mutate("reject")}>
+                        <Action busy={busy} onClick={() => verdict.mutate("reject")}>
                           Send it back
                         </Action>
                       </>
@@ -1792,12 +1792,12 @@ function Design() {
                           without borrowing the gate's meaning. */}
                         <Action
                           variant="primary"
-                          disabled={busy}
+                          busy={busy}
                           onClick={() => taste.mutate(true)}
                         >
                           Good fit
                         </Action>
-                        <Action disabled={busy} onClick={() => taste.mutate(false)}>
+                        <Action busy={busy} onClick={() => taste.mutate(false)}>
                           Not a fit
                         </Action>
                       </>
@@ -1817,12 +1817,12 @@ function Design() {
                      release. Dressing it in the gate's orchid would frame a
                      deliberate skip as a stuck row being freed, which is the
                      opposite of what it records. */
-                    <Action disabled={busy} onClick={() => skipDesign.mutate()}>
+                    <Action busy={busy} onClick={() => skipDesign.mutate()}>
                       Record that this needs no screen
                     </Action>
                   )}
                   {focus.drawing ? (
-                    <Action disabled={busy} onClick={() => critic.mutate()}>
+                    <Action busy={busy} onClick={() => critic.mutate()}>
                       {critic.isPending ? "The Critic is reading" : "Ask the Critic"}
                     </Action>
                   ) : null}

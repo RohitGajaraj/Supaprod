@@ -815,7 +815,7 @@ export function ArtifactsView() {
             <Actions
               className="mt-mrd-4"
               trailing={
-                <Action variant="quiet" disabled={busy} onClick={() => void onDelete(focused)}>
+                <Action variant="quiet" busy={busy} onClick={() => void onDelete(focused)}>
                   Delete
                 </Action>
               }
@@ -823,7 +823,7 @@ export function ArtifactsView() {
               <Action variant="primary" onClick={() => window.location.assign(focused.href)}>
                 Open
               </Action>
-              <Action disabled={busy} onClick={() => setDraft(focused.name)}>
+              <Action busy={busy} onClick={() => setDraft(focused.name)}>
                 Rename
               </Action>
             </Actions>

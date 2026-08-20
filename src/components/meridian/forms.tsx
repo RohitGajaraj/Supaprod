@@ -491,7 +491,7 @@ export function ReasonField({
         <Action variant="quiet" onClick={commit} disabled={!ready || busy}>
           {commitLabel}
         </Action>
-        <Action variant="quiet" onClick={onCancel} disabled={busy}>
+        <Action variant="quiet" onClick={onCancel} busy={busy}>
           {cancelLabel}
         </Action>
       </Actions>

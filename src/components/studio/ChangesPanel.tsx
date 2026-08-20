@@ -1023,12 +1023,12 @@ export function ChangesPanel({
             `quiet` is the Meridian face for the retired `ghost`: muted ink, no
             border, a hover wash. */}
         {changeset.status === "merged" ? (
-          <Action variant="quiet" disabled={rollbackMut.isPending} onClick={triggerRollback}>
+          <Action variant="quiet" busy={rollbackMut.isPending} onClick={triggerRollback}>
             {rollbackMut.isPending ? "Rolling back" : "Roll back"}
           </Action>
         ) : null}
         {["staged", "committed", "pr_open"].includes(changeset.status) ? (
-          <Action variant="quiet" disabled={abandonMut.isPending} onClick={triggerAbandon}>
+          <Action variant="quiet" busy={abandonMut.isPending} onClick={triggerAbandon}>
             {abandonMut.isPending ? "Killing" : "Kill this change"}
           </Action>
         ) : null}
@@ -1428,7 +1428,7 @@ export function ChangesPanel({
                      the ladder nothing else uses. */
                   <Action
                     variant="primary"
-                    disabled={promoteMut.isPending}
+                    busy={promoteMut.isPending}
                     onClick={() => promoteMut.mutate()}
                   >
                     {promoteMut.isPending ? "Promoting" : "Promote to production"}
@@ -1501,7 +1501,7 @@ export function ChangesPanel({
               and it reaches customers; this one reconciles a record. */}
           {changeset.status === "merged" && hasReleaseNotes ? (
             <Actions>
-              <Action disabled={publishEntryMut.isPending} onClick={() => publishEntryMut.mutate()}>
+              <Action busy={publishEntryMut.isPending} onClick={() => publishEntryMut.mutate()}>
                 {publishEntryMut.isPending ? "Listing it" : "List it on Ship"}
               </Action>
             </Actions>
@@ -1700,7 +1700,7 @@ export function ChangesPanel({
                   and red reports an OUTCOME rather than an intention. What
                   protects it is that the sub-line directly above states exactly
                   how many files are outside the list before anyone presses. */}
-              <Action disabled={enforceMut.isPending} onClick={() => enforceMut.mutate()}>
+              <Action busy={enforceMut.isPending} onClick={() => enforceMut.mutate()}>
                 {enforceMut.isPending ? "Dropping them" : "Drop the files outside it"}
               </Action>
             </Actions>
@@ -1734,7 +1734,7 @@ export function ChangesPanel({
                 />
               </Field>
               <Actions>
-                <Action disabled={setScopeMut.isPending} onClick={saveScope}>
+                <Action busy={setScopeMut.isPending} onClick={saveScope}>
                   {setScopeMut.isPending ? "Saving" : "Save the scope"}
                 </Action>
               </Actions>

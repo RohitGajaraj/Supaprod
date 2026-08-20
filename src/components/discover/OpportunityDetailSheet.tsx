@@ -576,10 +576,10 @@ function TeardownPulse({ targetId }: { targetId: string }) {
   if (!verdict) {
     return (
       <Line label="Was this teardown useful?">
-        <Action disabled={react.isPending} onClick={() => react.mutate(true)}>
+        <Action busy={react.isPending} onClick={() => react.mutate(true)}>
           Yes
         </Action>
-        <Action disabled={react.isPending} onClick={() => react.mutate(false)}>
+        <Action busy={react.isPending} onClick={() => react.mutate(false)}>
           No
         </Action>
       </Line>
@@ -1479,7 +1479,7 @@ export function OpportunityDetailSheet({
             <Region>
               <Actions
                 trailing={
-                  <Action variant="quiet" onClick={onDelete} disabled={busy}>
+                  <Action variant="quiet" onClick={onDelete} busy={busy}>
                     Delete
                   </Action>
                 }

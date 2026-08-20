@@ -1062,7 +1062,7 @@ export function ConnectorDetail({
               )
             }
           >
-            <Action disabled={mVerifyEnv.isPending} onClick={() => mVerifyEnv.mutate()}>
+            <Action busy={mVerifyEnv.isPending} onClick={() => mVerifyEnv.mutate()}>
               {mVerifyEnv.isPending ? "Testing" : "Test it"}
             </Action>
           </Line>
@@ -1096,7 +1096,7 @@ export function ConnectorDetail({
             sub={`${spec.description} Connect it once and what it syncs starts feeding the shared brain.`}
           />
           <Actions>
-            <Action variant="primary" disabled={busy} onClick={() => setShowTrust(true)}>
+            <Action variant="primary" busy={busy} onClick={() => setShowTrust(true)}>
               Connect {spec.label}
             </Action>
           </Actions>
@@ -1194,7 +1194,7 @@ export function ConnectorDetail({
               ) : null
             }
           >
-            <Action disabled={busy} onClick={() => setShowTrust(true)}>
+            <Action busy={busy} onClick={() => setShowTrust(true)}>
               Connect another account
             </Action>
           </Actions>
@@ -1221,7 +1221,7 @@ export function ConnectorDetail({
               </Action>
             }
           >
-            <Action disabled={busy} onClick={() => mVerify.mutate(primary.id)}>
+            <Action busy={busy} onClick={() => mVerify.mutate(primary.id)}>
               Verify
             </Action>
             <Action

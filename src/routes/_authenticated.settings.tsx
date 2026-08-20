@@ -971,7 +971,7 @@ function ProfileSection() {
             />
           </Line>
           <Actions>
-            <Action variant="primary" type="submit" disabled={save.isPending}>
+            <Action variant="primary" type="submit" busy={save.isPending}>
               {save.isPending ? "Saving" : "Save profile"}
             </Action>
           </Actions>
@@ -2059,7 +2059,7 @@ function ModelsSection() {
                     </Picker>
                     <Action
                       variant="primary"
-                      disabled={saveModel.isPending}
+                      busy={saveModel.isPending}
                       onClick={() => saveModel.mutate()}
                     >
                       {saveModel.isPending ? "Saving" : "Save"}
@@ -2100,7 +2100,7 @@ function ModelsSection() {
                     </Picker>
                     <Action
                       variant="primary"
-                      disabled={saveAgenticModel.isPending}
+                      busy={saveAgenticModel.isPending}
                       onClick={() => saveAgenticModel.mutate()}
                     >
                       {saveAgenticModel.isPending ? "Saving" : "Save"}
@@ -2519,7 +2519,7 @@ function PlanSection({ checkout }: { checkout?: string }) {
             {hasSub ? (
               <Action
                 variant={isPastDue ? "primary" : "default"}
-                disabled={openPortal.isPending}
+                busy={openPortal.isPending}
                 onClick={() => openPortal.mutate()}
               >
                 {openPortal.isPending ? "Opening" : "Manage billing"}
@@ -2527,11 +2527,11 @@ function PlanSection({ checkout }: { checkout?: string }) {
             ) : null}
             {hasSub ? (
               sub?.cancelAtPeriodEnd ? (
-                <Action disabled={resumeSub.isPending} onClick={() => resumeSub.mutate()}>
+                <Action busy={resumeSub.isPending} onClick={() => resumeSub.mutate()}>
                   {resumeSub.isPending ? "Resuming" : "Resume the plan"}
                 </Action>
               ) : (
-                <Action variant="quiet" disabled={cancelSub.isPending} onClick={onCancelClick}>
+                <Action variant="quiet" busy={cancelSub.isPending} onClick={onCancelClick}>
                   {cancelSub.isPending ? "Canceling" : "Cancel the plan"}
                 </Action>
               )

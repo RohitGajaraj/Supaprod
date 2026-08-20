@@ -210,7 +210,7 @@ export function OutcomeCard({ prd, invalidateKey }: Props) {
             </span>
             <Action
               onClick={() => suggest.mutate()}
-              disabled={suggest.isPending}
+              busy={suggest.isPending}
               title="Let the Historian draft a predicted-vs-actual verdict you can edit"
             >
               {suggest.isPending ? "Drafting…" : "Draft with Historian"}
@@ -311,7 +311,7 @@ export function OutcomeCard({ prd, invalidateKey }: Props) {
             Ships when the linked GitHub issue closes.
           </p>
           {prd.github_issue_url ? (
-            <Action onClick={() => check.mutate()} disabled={check.isPending}>
+            <Action onClick={() => check.mutate()} busy={check.isPending}>
               {check.isPending ? "Checking…" : "Check ship status"}
             </Action>
           ) : (

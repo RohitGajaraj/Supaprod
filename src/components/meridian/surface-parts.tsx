@@ -518,18 +518,47 @@ const ACTION_FACE: Record<ActionVariant, string> = {
 export function Action({
   variant = "default",
   shortcut,
+  busy = false,
+  disabled,
   className = "",
   children,
   ...rest
 }: {
   variant?: ActionVariant;
   shortcut?: string;
+  /**
+   * TRUE WHILE THIS CONTROL'S OWN WORK IS RUNNING, and it is not the same fact
+   * as `disabled`.
+   *
+   * `disabled` alone cannot carry it, which is the whole reason this prop
+   * exists. Counted 2026-08-21: 196 `Action` call sites disable on a pending
+   * flag and **not one** announced it, so a screen reader heard "unavailable"
+   * for the entire round trip of every mutation in the product. "Unavailable"
+   * and "working on it" are different facts and only one of them is true.
+   *
+   * AND IT CANNOT BE DERIVED. Of those 196, **70 are mixed**: `disabled={!dirty
+   * || save.isPending}` is disabled because there is nothing to save OR because
+   * it is saving, and only the second is busy. A component cannot tell which
+   * half fired, so the caller has to say. The other 126 are a single pending
+   * reference and `busy` alone is the whole answer there.
+   *
+   * `busy` IMPLIES `disabled`, so a caller says it once. That is the rule
+   * `Region`'s own act control already follows a few hundred lines up, where the
+   * note reads "the work is announced with `aria-busy` and the control is
+   * disabled while it runs, which is the same fact told once".
+   */
+  busy?: boolean;
   children: React.ReactNode;
 } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       type="button"
       {...rest}
+      /* After the spread, so a stray `disabled` in `rest` cannot beat the
+       * combination, and `aria-busy` cannot be overwritten by an older call
+       * site that set it by hand. */
+      disabled={disabled || busy || undefined}
+      aria-busy={busy || undefined}
       data-mrd=""
       className={`${CONTROL_SHAPE} ${CONTROL_DEAD} ${ACTION_FACE[variant]} ${className}`}
       style={{
@@ -566,17 +595,26 @@ export function Action({
  */
 export function Approve({
   shortcut,
+  busy = false,
+  disabled,
   className = "",
   children,
   ...rest
 }: {
   shortcut?: string;
+  /** True while the approval is in flight. See `Action`'s `busy` for why this
+   *  cannot be derived from `disabled`. It matters more here than anywhere: the
+   *  note above records that a gate sets `disabled` for the whole round trip of
+   *  a decision, so this is the control that spends the longest saying nothing. */
+  busy?: boolean;
   children: React.ReactNode;
 } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       type="button"
       {...rest}
+      disabled={disabled || busy || undefined}
+      aria-busy={busy || undefined}
       data-mrd=""
       className={`${CONTROL_SHAPE} ${CONTROL_DEAD} bg-mrd-you text-mrd-on-you enabled:hover:opacity-90 disabled:bg-mrd-solid disabled:text-mrd-on-solid ${className}`}
       style={{

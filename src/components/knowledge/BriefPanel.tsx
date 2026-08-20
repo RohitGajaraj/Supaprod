@@ -409,7 +409,7 @@ export function BriefPanel() {
                     trailing={
                       <Action
                         variant="quiet"
-                        disabled={retire.isPending}
+                        busy={retire.isPending}
                         onClick={() => void confirmAndRetire(bet)}
                       >
                         Retire
@@ -494,7 +494,7 @@ function BriefForm({
         >
           {submitting ? "Saving" : submitLabel}
         </Action>
-        <Action variant="quiet" onClick={onCancel} disabled={submitting}>
+        <Action variant="quiet" onClick={onCancel} busy={submitting}>
           Cancel
         </Action>
       </Actions>

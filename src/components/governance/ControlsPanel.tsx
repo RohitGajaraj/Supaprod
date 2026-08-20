@@ -617,7 +617,7 @@ export function ControlsPanel({
                 <Action
                   variant="quiet"
                   title="It stops firing."
-                  disabled={deleteSubMut.isPending}
+                  busy={deleteSubMut.isPending}
                   onClick={() => deleteSubMut.mutate({ id: s.id, name: pipeName(s) })}
                 >
                   Remove

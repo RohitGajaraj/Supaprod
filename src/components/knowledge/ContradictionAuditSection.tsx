@@ -213,7 +213,7 @@ export function ContradictionAuditSection({
                     </span>
                   ) : (
                     <Action
-                      disabled={pending}
+                      busy={pending}
                       onClick={() =>
                         propose.mutate({ supersededId: item.decisionId, title: item.title })
                       }

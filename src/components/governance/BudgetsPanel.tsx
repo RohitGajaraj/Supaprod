@@ -504,7 +504,7 @@ export function BudgetsPanel() {
                     // not imply a number nobody would type.
                     style={{ width: 108 }}
                   />
-                  <Action variant="primary" type="submit" disabled={setCapMut.isPending}>
+                  <Action variant="primary" type="submit" busy={setCapMut.isPending}>
                     Set it
                   </Action>
                   <Action variant="quiet" onClick={() => setEditCap(null)}>
@@ -584,7 +584,7 @@ export function BudgetsPanel() {
                 // Three digits and a percent sign, nothing more.
                 style={{ width: 76 }}
               />
-              <Action variant="primary" type="submit" disabled={setPctMut.isPending}>
+              <Action variant="primary" type="submit" busy={setPctMut.isPending}>
                 Set it
               </Action>
               <Action variant="quiet" onClick={() => setPctDraft(null)}>

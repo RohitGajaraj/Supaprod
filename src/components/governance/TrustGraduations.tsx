@@ -155,10 +155,10 @@ export function TrustGraduationsBlock({
             ...(live.rationale ? [<>{live.rationale}</>] : []),
           ]}
         >
-          <Approve disabled={decide.isPending} onClick={() => settle(true)}>
+          <Approve busy={decide.isPending} onClick={() => settle(true)}>
             Give it the room
           </Approve>
-          <Action disabled={decide.isPending} onClick={() => settle(false)}>
+          <Action busy={decide.isPending} onClick={() => settle(false)}>
             Not yet
           </Action>
         </Gate>

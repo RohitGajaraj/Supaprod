@@ -348,7 +348,7 @@ export function DriftPanel() {
       {rows.length === 0 ? (
         <NothingYet
           action={
-            <Action disabled={runMut.isPending} onClick={() => runMut.mutate()}>
+            <Action busy={runMut.isPending} onClick={() => runMut.mutate()}>
               {runMut.isPending ? "Checking" : "Run the drift check"}
             </Action>
           }
@@ -417,7 +417,7 @@ export function DriftPanel() {
           arrives is exactly what policy in advance means. */}
       <Actions>
         {rows.length > 0 ? (
-          <Action disabled={runMut.isPending} onClick={() => runMut.mutate()}>
+          <Action busy={runMut.isPending} onClick={() => runMut.mutate()}>
             {runMut.isPending ? "Checking" : "Run the drift check"}
           </Action>
         ) : null}
@@ -461,7 +461,7 @@ export function DriftPanel() {
           ))}
 
           <Actions>
-            <Action variant="primary" disabled={saveMut.isPending} onClick={() => saveMut.mutate()}>
+            <Action variant="primary" busy={saveMut.isPending} onClick={() => saveMut.mutate()}>
               {saveMut.isPending ? "Saving" : "Save the baseline"}
             </Action>
           </Actions>
