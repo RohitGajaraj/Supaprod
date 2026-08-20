@@ -113,37 +113,59 @@ function shrink(rate: number, n: number): number {
  * on bad data is the thing being removed.
  */
 /**
- * ── ROWS JUDGED BEFORE 2026-08-20 CANNOT BE SCORED BY THIS FUNCTION ───────────
+ * ── ROWS WRITTEN BEFORE 2026-08-20 CANNOT BE SCORED BY THIS FUNCTION ──────────
  *
- * Not a convenience. The judge's prompt contradicted itself about
- * `hallucination_score`: its header said "0.0 worst to 1.0 best, except *_risk",
- * and that field has no `_risk` suffix, so the model scored it quality-shaped
- * while its own inline comment and both readers treated it as risk-shaped. Fixed
- * in `eval-tick.ts` on 2026-08-20.
+ * **The reason recorded here on 2026-08-20 was wrong, and the correction matters
+ * more than the original claim.** It said the judge's prompt had inverted
+ * `hallucination_score`, citing production: `corr(hallucination_score,
+ * groundedness) = +0.999`. That correlation is real. **It is not the judge.**
  *
- * **Every row written before that fix is on the opposite polarity**, and
- * production says exactly how much that matters. Scored under the corrected
- * contract, all 77 existing rows come out at a mean of **0.119** against the
- * 0.5 the frozen leg was contributing, because their mean `worstRisk` is 0.853
- * -- which is `hallucination_score` reading as near-total hallucination on
- * responses that simultaneously score 0.892 on quality. They are the same number
- * twice, once inverted.
+ * All 77 rows that existed when this was written are SEED DATA, inserted by
+ * `20260725130000_helio_demo_seed_rich.sql` as 11 rows cloned into each of seven
+ * Helio Labs demo workspaces. **The eval tick had never written a row** -- it
+ * could not, because `ai_evals.workspace_id` was NOT NULL defaulting to
+ * `current_user_default_workspace()`, which returns null under the service role
+ * (fixed by trigger in `20260820072500`), and its cron job was posting to a 404
+ * (fixed in `20260820074000`).
  *
- * **So scoring them under the new rules would not measure those agents, it would
- * measure the bug.** Every one of them would collapse, and an operator watching
- * an agent fall from trusted to observing overnight would be looking at a
- * prompt fix, not at their agent.
+ * So the +0.999 was a property of the seed generator, measured on rows the judge
+ * never produced, and offered as evidence about the judge. **A number measured on
+ * fixtures is not evidence about the product.**
  *
- * The rows are not deleted and not rewritten. They stay as the record of what
- * was judged, under the contract that judged them. **They are simply not
- * evidence about agent quality**, and this leg says so by not counting them.
+ * WHAT THE LIVE JUDGE ACTUALLY DOES, measured the first time it ever ran, at
+ * 2026-08-20 02:30 UTC, on the prompt then deployed:
  *
- * CONSEQUENCE, STATED PLAINLY: the eval leg contributes nothing until the tick
- * runs again and produces rows under the corrected prompt. `shrink` holds it at
- * PRIOR meanwhile, which is where it has been all along -- the difference is
- * that it is now waiting for evidence rather than pretending to have it, and it
- * will move the moment real evidence exists. The tick last succeeded on
- * 2026-07-23 and restarting it is separate work.
+ *   cohort              n    corr(hall, ground)   mean ground   mean hall
+ *   seed rows          77         +0.999             0.865        0.853
+ *   live judge         20         -1.000             0.900        0.100
+ *
+ * **Perfectly anti-correlated, which is the correct polarity.** The judge reads
+ * `hallucination_score` as risk-shaped, exactly as both consumers do. The prompt
+ * edit in `eval-tick.ts` remains worth keeping -- the header did say "six
+ * dimensions" over a list of seven, and every field now states its own direction
+ * -- but it was a clarity fix, not the repair of an observed defect, and this
+ * comment claimed otherwise.
+ *
+ * ── THE CUTOFF STANDS, ON A REASON THAT SURVIVES THE CORRECTION ───────────────
+ *
+ * **Two independent grounds, either sufficient:**
+ *
+ * 1. **They are fixtures.** They describe a demo tenant's scripted content, not
+ *    any agent's work. Scoring them would rank agents on rows they did not write.
+ * 2. **Their values are inverted whatever produced them.** Mean
+ *    `hallucination_score` 0.853 alongside mean `groundedness` 0.865 -- the same
+ *    number twice, once flipped. Under `evalScore` they come out near **0.119**
+ *    against the 0.5 the frozen leg contributed, so counting them would collapse
+ *    every agent at once.
+ *
+ * The rows are not deleted and not rewritten. They stay as the record of what the
+ * demo contains. **They are simply not evidence about agent quality**, and this
+ * leg says so by not counting them.
+ *
+ * CONSEQUENCE, AND IT IS NO LONGER HYPOTHETICAL: the eval leg held at PRIOR for
+ * as long as the table held nothing but fixtures. **As of 2026-08-20 02:30 the
+ * tick runs and writes real rows** -- 20 on its first fire, every one after this
+ * cutoff -- so the leg now has evidence and will move as it accumulates.
  */
 export const EVAL_CONTRACT_FIXED_AT = Date.parse("2026-08-20T00:00:00Z");
 

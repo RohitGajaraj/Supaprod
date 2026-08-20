@@ -3209,3 +3209,75 @@ Noted here as the next candidate in my lane, with the constraint that matters
 already known: `net._http_response` holds about six hours, so this is a live
 signal and not a history. Anything reading it has to run often or record what it
 saw.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 08:05 · the eval tick ran, wrote 20 real rows, and immediately falsified a claim I had built into the trust score
+
+**The prediction recorded at 07:56, before the result was known, is confirmed in
+every part.**
+
+| predicted | observed |
+|---|---|
+| `job_runs` row within a minute of 02:30 | **`cron.eval-tick` at 02:30:01** |
+| no new 404 after 02:00:01 | **newest 404 still 02:00:01** |
+| the tick writes rows | **`ai_evals` 77 → 96, twenty new** |
+
+First run since 2026-08-05, and **the first eval rows this product has ever
+written that are not seed data.** Both migrations were needed and neither would
+have shown anything alone.
+
+### And the first thing they proved is that I was wrong
+
+I have been saying the judge's prompt inverted `hallucination_score`, citing
+production: `corr(hallucination_score, groundedness) = +0.999`. **That
+correlation is real and it is not the judge.**
+
+| cohort | n | corr(hall, ground) | mean ground | mean hall |
+|---|---|---|---|---|
+| seed rows | 77 | **+0.999** | 0.865 | **0.853** |
+| live judge | 20 | **−1.000** | 0.900 | **0.100** |
+
+**Perfectly anti-correlated is the CORRECT polarity**, and the live judge produced
+it **on the prompt currently deployed** -- which is the un-fixed one, because my
+edit ships with the app and the app has not been published.
+
+So the +0.999 was a property of the **seed generator**, measured on rows the judge
+never wrote, and offered as evidence about the judge. **The fourth time tonight a
+fixture has posed as a measurement, and the first time one of them had already
+been built into shipped reasoning.**
+
+The prompt edit itself stays: the header genuinely did say "six dimensions" over a
+list of seven, and every field now declares its own direction. **But it was a
+clarity fix, not the repair of an observed defect**, and I claimed otherwise in a
+code comment and a test.
+
+### Corrected in both places, and the guard is now stronger
+
+`trust.server.ts` and `trust.server.test.ts` both carried the wrong reason. **A
+guard defended by a false premise is one a careful reader can correctly refute and
+delete** -- and that test exists precisely to stop someone deleting the filter to
+"make the eval leg finally do something".
+
+Rewritten to stand on two independent grounds, either sufficient:
+
+1. **They are fixtures.** Demo-tenant content, not any agent's work. Scoring them
+   ranks agents on rows they did not write.
+2. **They are inverted whatever produced them.** Mean `hallucination_score` 0.853
+   beside mean `groundedness` 0.865 -- the same number twice, once flipped --
+   scoring near **0.119** under `evalScore`, which would collapse every agent at
+   once.
+
+The test now says explicitly that it **pins the date, not the story about the
+date**, so a better explanation of why those rows are bad does not unpin the
+guard. 16 tests still pass, unchanged in behaviour.
+
+### The eval leg is no longer hypothetical
+
+It held at PRIOR because the table held nothing but fixtures. **It now has 20 real
+rows, all after the cutoff, and will move as they accumulate** -- 20 per fire,
+every 30 minutes, on `gemini-2.5-flash-lite`, so no spend spike from the fifteen
+day backlog.
+
+That is one of the two starved legs fed. The other, `outcome`, still waits on work
+reaching Learn, which waits on Ship, which has never run.

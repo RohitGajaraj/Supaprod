@@ -144,18 +144,26 @@ describe("evalScore", () => {
 /*
  * ── THE CUTOFF ────────────────────────────────────────────────────────────────
  *
- * The reason for it is in `trust.server.ts`: every eval written before
- * 2026-08-20 was judged under a prompt that contradicted itself about
- * `hallucination_score`'s direction. Scored under the corrected contract those
- * 77 rows average 0.119 against the 0.5 the frozen leg contributed, so counting
- * them would demote every agent on the strength of a prompt fix.
+ * The reason is in `trust.server.ts`, and it was CORRECTED on 2026-08-20 after
+ * the eval tick ran for the first time. The original justification -- that those
+ * 77 rows were judged under a self-contradicting prompt -- was wrong: they are
+ * demo seed rows the judge never wrote, and the live judge gets the polarity
+ * right (`corr(hallucination, groundedness) = -1.000` on its first 20 rows,
+ * against +0.999 on the seed).
+ *
+ * **The cutoff survives the correction on two independent grounds**: those rows
+ * are fixtures describing a demo tenant rather than any agent's work, and their
+ * values are inverted whatever produced them -- mean `hallucination_score` 0.853
+ * beside mean `groundedness` 0.865, which scores near 0.119 and would collapse
+ * every agent at once.
  *
  * This is the test that stops someone deleting the filter to "make the eval leg
- * finally do something".
+ * finally do something". It pins the DATE, not the story about the date, so a
+ * better explanation of why those rows are bad does not unpin the guard.
  */
 describe("judgedUnderCurrentContract", () => {
   it("refuses every row written before the prompt was fixed", () => {
-    // The newest real row on production is 2026-07-23.
+    // The newest SEED row is 2026-07-23; the tick wrote nothing before that date.
     expect(judgedUnderCurrentContract("2026-07-23T08:23:19.160542+00")).toBe(false);
     expect(judgedUnderCurrentContract("2026-08-19T23:59:59.000Z")).toBe(false);
   });
