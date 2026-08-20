@@ -3348,3 +3348,69 @@ everything.
 
 **The narrower instrument looked attractive because it was closer to the specific
 bug I had just fixed.** That is the wrong reason to build an instrument.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 08:30 · a census of the whole tick layer: no other silent deaths, and my first two attempts at the census were both wrong
+
+Having found one tick dead for fifteen days with nothing watching, the question
+that matters is whether there are others. **There are not.** All 36 scheduled jobs
+are alive and inside their schedules.
+
+### The census
+
+Every hook resolved to the job name it writes, then each name's most recent
+`job_runs` row measured against its cron schedule:
+
+| band | jobs | oldest in band | schedule allows |
+|---|---|---|---|
+| weekly | 3 | 66.9h | 168h |
+| daily | 9 | 23.9h | 24h |
+| 2-6 hourly | 3 | 2.9h | 2-6h |
+| hourly | 4 | 0.9h | 1h |
+| every 1-30 min | 17 | 0.0-0.4h | ≤0.5h |
+
+`cron.eval-tick` sits at 0.4h, cycling normally on its `*/30` since the repair.
+**Nothing else is overdue by any margin.**
+
+### Both earlier versions of this census were wrong, in the same way
+
+**First attempt** counted hooks by grepping `withJobRun(` and found 21 of 36. I
+briefly concluded that 15 scheduled jobs wrote no observability row at all -- a
+dramatic finding, and false.
+
+**Second attempt** asked whether those 15 files mentioned `withJobRun` anywhere.
+They did, 16 of them, which contradicted the first result. **Two of my own
+instruments disagreed, which is the only reason I looked closer.**
+
+The answer was **a second wrapper**: `withJobRunHttp`, which those 16 use because
+they need a thrown error rebuilt into an identical JSON 500 rather than scored as
+a resolved callback. Matching one name and not the other left **16 jobs unchecked
+-- any of which could have been the next eval tick** -- while reporting a clean
+census of the 21 I could see.
+
+**This is the fourth time in twelve hours** that a sweep answered a narrower
+question than the one asked, and the third time the tell was two instruments
+disagreeing rather than anything looking wrong. **A single sweep returning a tidy
+number is the least trustworthy thing I produce.**
+
+### One real oddity, recorded not fixed
+
+`funnel.week2-return` has **never written a `job_runs` row**, and it is the one
+wrapped hook with no cron job pointing at it. It is not a dead schedule -- there
+is no schedule -- so it is either called from outside this repo or it is a
+capability nobody ever turned on. **Not touching it**: I cannot tell those apart
+from here, and the previous time I acted on "this looks unused" the answer was a
+redirect stub doing its job.
+
+### Where the liveness registry stands
+
+Not 34 unwatched, as I wrote an hour ago: **33**, now that `eval-judging` is
+registered. The census above is exactly the work each remaining entry needs -- a
+job name, a proof row, and a measured cadence -- so the expensive half is done and
+recorded here rather than needing to be re-derived per entry.
+
+**But the census is a snapshot and the registry is the standing check.** Every job
+being alive this morning says nothing about tomorrow, which is the entire lesson
+of a tick that ran 48 times a day into a wall for fifteen days while every surface
+reported health.
