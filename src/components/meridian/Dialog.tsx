@@ -5,12 +5,23 @@ import { useCallback, useEffect, useId, useRef } from "react";
  * THE DIALOG: the one place this product may ask a question that blocks.
  *
  * ── WHY IT HAD TO BE BUILT ──────────────────────────────────────────────
- * `--mrd-shadow-pane` is declared in meridian.css and read by NOTHING. `--mrd-scrim`
- * has exactly one caller, `prds/RewindButton.tsx`, and that one is a Radix
- * `AlertDialog` drawn in retired primitives. So the deepest shadow in the system
- * and the token for dimming the page behind a question were both measured,
- * argued for, and then never used, because there was no Meridian surface that
- * floats.
+ * NO MERIDIAN-LAYER COMPONENT CONSUMED `--mrd-scrim` OR `--mrd-shadow-pane`.
+ *
+ * That is the claim that survives measurement, and the first version of this
+ * comment made a stronger one that was false: it said the pane shadow was "read
+ * by NOTHING" and the scrim had "exactly one caller". Re-measured 2026-08-20,
+ * both are live outside `components/meridian/`. The pane shadow has five
+ * consumers: `shell.css` :2200, :2271, :2380, :2848, and `RewindButton.tsx:120`
+ * through the `shadow-mrd-pane` utility. The scrim has three: `shell.css:2176`
+ * (`.sp-boardpanel-scrim`), `shell.css:2836` (`.sp-keys-scrim`), and
+ * `RewindButton.tsx:112`.
+ *
+ * Every one of those is either the retired shell layer or a Radix `AlertDialog`
+ * drawn in retired primitives. So the deepest shadow in the system and the token
+ * for dimming a page behind a question had been measured, argued for, and then
+ * never spent by anything in Meridian, because Meridian had no surface that
+ * floats. And the other half of the reason was never in doubt: every dialog in
+ * the product is still legacy.
  *
  * The product cannot ask "stop this run and discard forty minutes of work?"
  * without one. `alert`, `confirm`, `prompt` and the native `<dialog>` are banned
@@ -87,6 +98,11 @@ export function Dialog({
    * the vocabulary; a dialog that hard-coded its own buttons would be a fifth
    * copy of the control faces and would make its own call about which of them is
    * the accent, which is exactly what `surface-parts.tsx` was written to stop.
+   *
+   * THE RULE, AND IT IS NOT OPTIONAL: pass the way out FIRST and the confirming
+   * action LAST. The row is right-aligned by this component, so last means
+   * rightmost, and rightmost is where every confirming action in this product
+   * already lives. See the block above the actions row for why.
    */
   actions?: ReactNode;
   /** Overrides the generated title id, for a caller that titles it elsewhere. */
@@ -226,7 +242,23 @@ export function Dialog({
          * acceptance criterion is explicit that a click inside does not close.
          */
         onClick={(event) => event.stopPropagation()}
-        className="relative w-full max-w-[420px] rounded-mrd-pane border border-mrd-line bg-mrd-float px-mrd-6 py-mrd-5"
+        /*
+         * IT CAPS ITS OWN HEIGHT AND SCROLLS ITS BODY, and the first version did
+         * neither, which made a tall panel UNRECOVERABLE rather than merely ugly.
+         * The overlay centres, so a panel taller than the viewport overflowed
+         * both edges at once; the effect on the mount above locks
+         * `document.body`, so the page behind could not be scrolled either; and a
+         * centred flex item cannot be scrolled back up to by any means. The half
+         * that went off the top edge is the QUESTION. Three gallery cases all
+         * fitted, so it looked fine.
+         *
+         * `max-h-full` against the padded overlay, `flex-col`, and the body as
+         * the only `min-h-0 overflow-y-auto` child. That keeps the title and the
+         * controls pinned while the consequence scrolls, which is what both
+         * siblings that can grow already do (`RunTimeline.tsx`, `ToolStream.tsx`)
+         * and what the product's own summoned sheet does (`shell.css:2195`).
+         */
+        className="relative flex max-h-full w-full max-w-[420px] flex-col rounded-mrd-pane border border-mrd-line bg-mrd-float px-mrd-6 py-mrd-5"
         style={{
           /* The deepest shadow in the system, which until now had no caller.
              A pane that floats over a dimmed page is what it was measured for. */
@@ -238,18 +270,45 @@ export function Dialog({
           animation: "mrd-pop-in 180ms var(--mrd-ease) both",
         }}
       >
-        <h2 id={titleId} className="text-[14px] font-medium text-mrd-ink">
+        <h2 id={titleId} className="shrink-0 text-[14px] font-medium text-mrd-ink">
           {title}
         </h2>
 
         <div
           id={bodyId}
-          className="mt-mrd-3 max-w-[62ch] text-[12.5px] leading-relaxed text-mrd-body"
+          className="mt-mrd-3 max-w-[62ch] min-h-0 overflow-y-auto text-[12.5px] leading-relaxed text-mrd-body"
         >
           {children}
         </div>
 
-        {actions ? <div className="mt-mrd-5">{actions}</div> : null}
+        {/*
+         * THE CONFIRMING ACTION IS ALWAYS ON THE RIGHT. One side, every dialog,
+         * no exceptions, and this row is where that is enforced rather than
+         * requested.
+         *
+         * The first version left the side to the caller and the caller moved it:
+         * across this component's own three gallery cases the confirming button
+         * was right, then LEFT, then right. This is the one component whose whole
+         * job is to make a click deliberate, and it was putting that click under
+         * a different part of the pointer's travel from one question to the next.
+         *
+         * RIGHT rather than left, decided by what already ships instead of by
+         * taste: `hooks/use-confirm.tsx` is the confirm 32 surfaces share and it
+         * has always put cancel first and the confirming action last, in a
+         * right-aligned footer. A new rule that contradicts 32 live surfaces is a
+         * second convention, not a convention.
+         *
+         * SO THIS ROW DELIBERATELY DOES NOT USE `Actions`' `trailing` SLOT, and
+         * that is a departure worth naming. `trailing` protects a destructive
+         * control with DISTANCE, which is right on a card, where a click destroys
+         * immediately. In a dialog the distance has already been paid: the
+         * question itself is the confirmation step, and the reader arrived here by
+         * asking to. Spending the protection twice buys nothing and costs the
+         * fixed side, which is worth more. A caller who passes `trailing` anyway
+         * gets the same geometry regardless, because `ml-auto` has no free space
+         * to work with inside a shrink-to-fit row.
+         */}
+        {actions ? <div className="mt-mrd-5 flex shrink-0 justify-end">{actions}</div> : null}
       </div>
     </div>
   );

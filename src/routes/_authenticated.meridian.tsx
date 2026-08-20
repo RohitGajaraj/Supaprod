@@ -2073,7 +2073,7 @@ function MeridianGallery() {
 
         <Panel
           title="Dialog"
-          note="The first Meridian surface that floats, and it exists because two tokens had nowhere to be spent: the scrim had one caller in the whole tree and the pane shadow had none, so the deepest shadow in the system and the way to dim a page behind a question were both measured and then never used. Press a trigger and the dialog opens inside that column, wearing that column's ground, which is the reason it does not portal to the body: the light theme here is an attribute on a subtree, so anything that leaves the subtree leaves the theme. Try the keyboard on it. Focus lands on the first control, Tab wraps at both ends and cannot get out, Escape closes, and focus returns to the trigger you pressed rather than to the top of the page, which is the half most dialogs drop. Clicking the dim area closes; clicking inside does not; pressing an action closes nothing by itself, because keeping the question open to say what went wrong is a real answer and only the caller knows when it applies."
+          note="The first Meridian surface that floats, and it exists because two tokens had never been spent by anything in Meridian: the scrim and the pane shadow are both live in the retired shell layer, three rules and five, and no component in this folder had a use for either, because nothing here floated. An earlier version of this note said the pane shadow had no caller at all, which was wrong, and the narrower claim is the sharper one anyway. Press a trigger and the dialog opens wearing this column's ground, which is the reason it does not portal to the body: the light theme here is an attribute on a subtree, so anything that leaves the subtree leaves the theme. Try the keyboard on it. Focus lands on the first control, Tab wraps at both ends and cannot get out, Escape closes, and focus returns to the trigger you pressed rather than to the top of the page, which is the half most dialogs drop. Clicking the dim area closes; clicking inside does not; pressing an action closes nothing by itself, because keeping the question open to say what went wrong is a real answer and only the caller knows when it applies. The confirming action is on the right in all four cases and it is the component that puts it there, not the caller: this is the one surface whose job is to make a click deliberate, and it cannot move that click from one question to the next. The last case is the one that broke the first build. Narrow the window until the panel is taller than the screen and the question stays reachable."
         >
           <Pair>
             <DialogCases />
@@ -2656,7 +2656,7 @@ function ControlCases() {
  * the repo for 41 minutes across nine files, and credits already drawn.
  */
 function DialogCases() {
-  const [asking, setAsking] = useState<"stop" | "plain" | "long" | null>(null);
+  const [asking, setAsking] = useState<"stop" | "plain" | "long" | "tall" | null>(null);
 
   return (
     <Stack>
@@ -2671,15 +2671,12 @@ function DialogCases() {
           onClose={() => setAsking(null)}
           title="Stop this run?"
           actions={
-            <Actions
-              trailing={
-                <Action variant="destructive" onClick={() => setAsking(null)}>
-                  Stop it
-                </Action>
-              }
-            >
+            <Actions>
               <Action variant="quiet" onClick={() => setAsking(null)}>
                 Keep going
+              </Action>
+              <Action variant="destructive" onClick={() => setAsking(null)}>
+                Stop it
               </Action>
             </Actions>
           }
@@ -2698,13 +2695,10 @@ function DialogCases() {
           onClose={() => setAsking(null)}
           title="Let the crew run the whole plan?"
           actions={
-            <Actions
-              trailing={
-                <Action variant="quiet" onClick={() => setAsking(null)}>
-                  Not yet
-                </Action>
-              }
-            >
+            <Actions>
+              <Action variant="quiet" onClick={() => setAsking(null)}>
+                Not yet
+              </Action>
               <Approve shortcut="A" onClick={() => setAsking(null)}>
                 Approve it
               </Approve>
@@ -2727,15 +2721,12 @@ function DialogCases() {
           onClose={() => setAsking(null)}
           title="Remove the Zendesk connection?"
           actions={
-            <Actions
-              trailing={
-                <Action variant="destructive" onClick={() => setAsking(null)}>
-                  Remove it
-                </Action>
-              }
-            >
+            <Actions>
               <Action variant="quiet" onClick={() => setAsking(null)}>
                 Leave it connected
+              </Action>
+              <Action variant="destructive" onClick={() => setAsking(null)}>
+                Remove it
               </Action>
             </Actions>
           }
@@ -2745,6 +2736,56 @@ function DialogCases() {
           currently waiting on this source stay where they are standing, and the grouping that runs
           every ten minutes will have nothing new to group. Reconnecting later starts from the
           newest ticket, not from where it left off, so anything filed in between is not picked up.
+        </Dialog>
+      </Case>
+
+      <Case label="A question taller than the screen, which has to stay recoverable">
+        <Actions>
+          <Action variant="destructive" onClick={() => setAsking("tall")}>
+            Delete the workspace
+          </Action>
+        </Actions>
+        <Dialog
+          open={asking === "tall"}
+          onClose={() => setAsking(null)}
+          title="Delete this workspace and everything in it?"
+          actions={
+            <Actions>
+              <Action variant="quiet" onClick={() => setAsking(null)}>
+                Keep the workspace
+              </Action>
+              <Action variant="destructive" onClick={() => setAsking(null)}>
+                Delete it
+              </Action>
+            </Actions>
+          }
+        >
+          <p>
+            This is the case that broke the first build of this component, kept as a case rather
+            than as a note. Shrink the window until this panel is taller than the viewport and the
+            title stays put, the controls stay put, and this text scrolls between them. Before the
+            fix the panel overflowed both edges at once, and because a dialog locks the page behind
+            it, the top half was gone for good.
+          </p>
+          <p className="mt-mrd-3">
+            Nine missions, four of them still running, and the two changesets waiting on review are
+            discarded with them. The 1,284 signals read through Zendesk and the 86 themes Discover
+            grouped out of them go too, along with every decision recorded against them and the
+            reasons attached to each one.
+          </p>
+          <p className="mt-mrd-3">
+            The credits already drawn this month stay drawn, because the work was done. What you
+            lose is the record of why it was done, and that is the part nothing can rebuild: the
+            forecasts written at decision time were only ever written here.
+          </p>
+          <p className="mt-mrd-3">
+            Three people share this workspace. They keep their accounts and lose their access at the
+            same moment you press this, with no notice sent and nothing for them to open.
+          </p>
+          <p className="mt-mrd-3">
+            Type nothing, and read it again instead. There is no undo behind this control, which is
+            why it is the last thing on the row rather than the loudest thing on the pane.
+          </p>
         </Dialog>
       </Case>
     </Stack>

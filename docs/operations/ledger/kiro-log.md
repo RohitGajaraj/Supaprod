@@ -2553,3 +2553,108 @@ to `active` and the collision guard fires, so it is not vacuous.
 > **Claude does after:** the migration above. Also worth a production read on whether `reactor` and
 > `archivist` should exist as catalogue rows at all: they are active, dispatched by nothing, and the
 > subsystem that shares the first one's name never refers to it.
+
+---
+
+## K-03 (rejected, fixed) · BUILT · 2026-08-20 09:05
+
+> **The stamp above is the real clock, and it goes BACKWARDS against the entry before it.** That entry
+> says 13:35; `date` at the moment I wrote this says 08:59, and `git log -1` on the parent commit
+> agrees with `date` rather than with the heading. This is the drift `ledger/README.md` already
+> records, measured at +247 minutes, and continuing it costs more than the discontinuity does. From
+> here my stamps are read off the machine. **Position in the file remains the order; the clock is
+> `git log`.**
+
+**Did.** Fixed the four things the rejection named and did not rebuild the component, which was the
+first instruction in it. The false claim came out of all three places it shipped: the header comment in
+`Dialog.tsx`, the gallery note a person actually reads, and worst, the test name at `dialog.test.tsx:199`
+that asserted the pane shadow "had no caller in the whole tree" and passed forever. All three now carry
+the narrower true claim, that no Meridian-layer component consumed either token. The panel caps its own
+height and scrolls only its body, so a question taller than the screen is recoverable. And the
+confirming action is now on one side, decided by this component rather than by its caller.
+
+**The three claims, re-measured rather than copied from the verdict.** The verdict says the pane shadow
+has four consumers; it has **five**. Four `box-shadow: var(--mrd-shadow-pane)` rules in `shell.css`
+(:2200, :2271, :2380, :2848) plus `RewindButton.tsx:120`, which reaches it through the
+`shadow-mrd-pane` utility rather than the variable, so a grep for `var(--mrd-shadow-pane)` misses it.
+The scrim's three are right: `shell.css:2176`, `shell.css:2836`, `RewindButton.tsx:112`. Every one of
+the eight is the retired shell layer or a Radix `AlertDialog` drawn in retired primitives, which is why
+the narrower claim is also the sharper one: it is the actual reason the component had to exist.
+
+**The scroll fix, and it is measured in a real browser rather than asserted.** happy-dom lays nothing
+out, so I served the built stylesheet and the panel's exact markup at a 900x420 viewport and read
+`getBoundingClientRect`. **The defect reproduces exactly as described: title top at -74.2px, actions row
+bottom at 494.2px against a 420px viewport, page locked, both edges lost at once and neither
+recoverable.** With `max-h-full flex-col` on the panel and `min-h-0 overflow-y-auto` on the body: panel
+388px inside 420, title fully visible at top 33, actions row fully visible at bottom 387, body scrolls
+502 into 287. Kept centred rather than switching to `items-start` like the shipped sheet, because
+capping the panel makes centring safe and centring is better for the short dialog, which is nearly all
+of them.
+
+**The side, decided by what already ships rather than by taste.** `hooks/use-confirm.tsx` is the confirm
+32 surfaces share and it has always put cancel first and the confirming action last in a right-aligned
+footer. A new rule that contradicts 32 live surfaces is a second convention, not a convention. So:
+**confirming action rightmost, way out immediately left of it, and the Dialog right-aligns the row
+itself** rather than trusting the caller to. All four gallery cases now agree, and the first focus stop
+is the way out in every one of them.
+
+**Unsure.**
+
+1. **The biggest judgement in this entry: I did not use `Actions`' `trailing` slot, and `trailing` is
+   the mechanism the design system offers for exactly this row.** Its doc at `surface-parts.tsx:553`
+   defines it as "the control that undoes or destroys, separated by DISTANCE rather than by colour",
+   which is a good rule on a card, where the click destroys immediately. It cannot coexist with a fixed
+   side: in a destructive dialog the confirm IS the dangerous control and goes right, and in a gate
+   dialog the confirm is the safe one and would go left. That is precisely the swing the rejection
+   found. I resolved it by arguing the distance has already been paid, since the dialog itself is the
+   confirmation step and the reader arrived by asking to, and by writing that argument into the file.
+   **The other reading is that `trailing` wins and the fixed side is wrong**, in which case the fix is
+   to put the confirm in `trailing` in all four cases and change `Actions`' doc comment to say
+   "commits" rather than "undoes or destroys". I did not take that path because it changes a slot's
+   meaning for every caller of `Actions` in the repo from inside a Dialog fix, and because
+   `surface-parts.tsx` is K-02's `Owns`. If the founder or Claude prefers it, it is a small change and
+   the argument to overturn is in one comment block.
+2. **A caller who passes `trailing` anyway now gets the right geometry by accident, and I did not test
+   it.** The row is shrink-to-fit inside a `justify-end` parent, so `ml-auto` has no free space to work
+   with and `trailing` degrades to "last". I reasoned that from the box model and did not measure it,
+   because none of the four cases uses the slot any more.
+3. **The class-name assertions in the two new scroll tests are the weakest kind in this suite** and I
+   said so in the file. happy-dom cannot see a viewport, so there is no honest way to assert from a
+   test that the top of a tall panel is reachable. The browser measurement above is the real check and
+   it lives in this entry rather than in CI. Both tests were proven non-vacuous by planting.
+4. **I added a fourth gallery case rather than only fixing three**, which edits a section of
+   `_authenticated.meridian.tsx` instead of appending to the end of it. The append-only rule exists to
+   stop merge conflicts, and this is my own item's own section, so I judged it safe. The case is the
+   defect itself, kept as something to look at: narrow the window and the question stays reachable.
+
+**Noticed.**
+
+1. **The hard cut at the scroll boundary has no affordance, and I deliberately did not fix it.** Looking
+   at the render, the body clips mid-sentence with nothing saying there is more. The machinery for this
+   exists: `.mrd-fade-scroll` plus `edgeMask()`. **I did not use it because it would be the third copy
+   of the same effect, and `RunTimeline.tsx:297` carries a comment saying the second copy "should not
+   stay that way".** The measurement effect (a scroll listener, a guarded `ResizeObserver`, a 1px
+   tolerance) is duplicated verbatim between `SidebarNav.tsx` and `RunTimeline.tsx`; only `edgeMask`
+   itself is shared. Applying `.mrd-fade-scroll` without the mask would make it worse, since that class
+   hides the scrollbar. **The third caller has now arrived, which is the queue's own trigger for
+   extracting `useScrollEdges` into `run-rows.tsx` or a hook beside it.** That touches `SidebarNav.tsx`
+   and `RunTimeline.tsx`, both owned elsewhere, so it is an item rather than something to slip in here.
+2. **`z-50` is still hardcoded in `Dialog.tsx` against the ladder at `shell.css:93-97`**, where
+   `--shell-z-tip` is already 50. The rejection explicitly did not charge this to the item and I have
+   not either. Recorded so it is in two places rather than one.
+3. **`RewindButton.tsx` is a genuine mixed-layer surface and nobody has queued it.** It draws a Radix
+   `AlertDialog` and paints it with Meridian utilities: `rounded-mrd-pane`, `bg-mrd-float`,
+   `shadow-mrd-pane`, `bg-mrd-scrim`. It is the single closest thing in the tree to what `Dialog.tsx`
+   now is, and it is the obvious first port once `useConfirm` is moved onto this component.
+4. **The test I added reads the gallery route from disk**, which is the first test in the suite to do
+   that. I checked: nothing in `src/__tests__` or `src/components/meridian/__tests__` reads
+   `_authenticated.meridian.tsx`. It is there because the defect was invisible to a component test by
+   construction, the component was fine and its four reference cases disagreed with each other.
+
+**Planted, so none of the five new assertions is vacuous.** Dropped `max-h-full`, dropped `min-h-0`,
+dropped `justify-end`, dropped the title's `shrink-0`, and put case 3's confirm back into `trailing`.
+Each planted defect failed exactly one test and the other 25 stayed green.
+
+**Gates.** tsc clean · 9,841 pass / 0 fail / 23 skip / 60 todo across 585 files · build ok. Verified all
+six utility classes the fix depends on exist in the built stylesheet before measuring, since a class
+absent from `styles-*.css` measures as a fix to a problem that is still there.

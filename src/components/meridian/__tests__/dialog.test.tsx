@@ -185,7 +185,7 @@ describe("it is announced as a modal, and named by its own question", () => {
   });
 });
 
-describe("it uses the two tokens that had no caller", () => {
+describe("it spends the two tokens no Meridian component had spent", () => {
   it("dims with --mrd-scrim rather than blurring", () => {
     const { container } = render(<Question open />);
     const scrim = container.querySelector("[aria-hidden]");
@@ -196,7 +196,15 @@ describe("it uses the two tokens that had no caller", () => {
     expect(container.innerHTML).not.toContain("blur(");
   });
 
-  it("floats on --mrd-shadow-pane, which had no caller in the whole tree", () => {
+  it("floats on --mrd-shadow-pane, which no Meridian component had consumed", () => {
+    /*
+     * THIS NAME USED TO ASSERT SOMETHING UNTRUE and it passed anyway, which is
+     * the worst version of the problem: a test name is the artefact a future
+     * reader trusts most, and this one said the pane shadow "had no caller in the
+     * whole tree". It has five, all in the retired layer. The token is unspent
+     * WITHIN MERIDIAN, which is the claim that survives measuring and is also the
+     * sharper one, since it is the reason this component had to exist.
+     */
     render(<Question open />);
     expect(screen.getByRole("dialog").getAttribute("style")).toContain("var(--mrd-shadow-pane)");
   });
@@ -257,14 +265,15 @@ describe("the controls are the caller's, not the dialog's", () => {
       <Question
         open
         actions={
-          <Actions trailing={<Action variant="destructive">Discard it</Action>}>
+          <Actions>
+            <Action variant="quiet">Discard it</Action>
             <Approve>Let it finish</Approve>
           </Actions>
         }
       />,
     );
-    expect(screen.getByRole("button", { name: "Let it finish" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Discard it" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Let it finish" })).toBeTruthy();
   });
 
   it("draws no actions row at all when there are none", () => {
@@ -280,5 +289,105 @@ describe("the controls are the caller's, not the dialog's", () => {
      * Escape, and never an unnamed dismiss control.
      */
     expect(screen.queryAllByRole("button").length).toBe(0);
+  });
+});
+
+describe("a panel taller than the screen is recoverable", () => {
+  /*
+   * WHAT THESE CAN AND CANNOT PROVE, said out loud because the defect they guard
+   * shipped past a green suite. happy-dom lays nothing out: no viewport, no
+   * heights, no overflow, so there is no honest way to assert from here that the
+   * top of a tall panel is reachable. What IS assertable is the structure that
+   * makes it reachable, and the first build's structure could not: a centred flex
+   * item with no height cap, no scroll region, and the page behind it locked.
+   *
+   * These read class names, which is the weakest kind of assertion in this suite.
+   * They are here because the alternative is nothing, and because the specific
+   * strings they name are load-bearing rather than cosmetic. The real check was a
+   * browser at 400px tall.
+   */
+  it("caps the panel against the overlay instead of growing past it", () => {
+    render(<Question open />);
+    const panel = screen.getByRole("dialog");
+    expect(panel.className, "a panel with no cap overflows both edges at once").toContain(
+      "max-h-full",
+    );
+    expect(panel.className, "the cap only means anything if the panel is a column").toContain(
+      "flex-col",
+    );
+  });
+
+  it("scrolls the consequence and nothing else", () => {
+    render(<Question open />);
+    const panel = screen.getByRole("dialog");
+    const body = document.getElementById(panel.getAttribute("aria-describedby")!)!;
+
+    expect(body.className).toContain("overflow-y-auto");
+    /*
+     * `min-h-0` is the whole trick and it is invisible: a flex child's default
+     * `min-height: auto` refuses to shrink below its content, so `overflow-y-auto`
+     * on its own does nothing and the panel grows anyway. Both siblings that can
+     * grow carry the same pair.
+     */
+    expect(body.className, "overflow-y-auto without min-h-0 does nothing in a flex column").toContain(
+      "min-h-0",
+    );
+
+    /* The question and the controls stay put while the middle moves. */
+    const title = document.getElementById(panel.getAttribute("aria-labelledby")!)!;
+    expect(title.className).toContain("shrink-0");
+    expect(title.className).not.toContain("overflow-y-auto");
+  });
+});
+
+describe("the confirming action is on one side, and the component decides which", () => {
+  it("right-aligns the actions row itself rather than leaving it to the caller", () => {
+    render(<Question open />);
+    const panel = screen.getByRole("dialog");
+    /* Title, consequence, controls. The controls are last, which is the point. */
+    const row = panel.lastElementChild!;
+    expect(row.contains(screen.getByRole("button", { name: "Stop it" }))).toBe(true);
+    expect(row.className, "the side moved across this component's own gallery cases").toContain(
+      "justify-end",
+    );
+    expect(row.className).toContain("shrink-0");
+  });
+
+  it("leaves the way out as the first stop, so nothing lands on the destructive control", () => {
+    render(<Question open />);
+    const stops = screen.getAllByRole("button");
+    expect(stops[0].textContent).toBe("Keep going");
+    expect(stops[stops.length - 1].textContent).toBe("Stop it");
+    expect(document.activeElement?.textContent).toBe("Keep going");
+  });
+
+  it("holds that side across every case on the gallery route", () => {
+    /*
+     * READ FROM THE ROUTE, because that is where the defect actually was: the
+     * component was fine and its four reference cases disagreed with each other,
+     * right then LEFT then right. Nothing in a component test could see that, and
+     * a component test is what passed while it was true.
+     *
+     * `trailing` is what moved it. `Actions` renders children then `trailing` with
+     * `ml-auto`, so a confirming action placed there jumps sides depending on
+     * which control the caller happened to put in that slot. A dialog does not use
+     * the slot at all, and this asserts that against the source rather than
+     * against the comments in it.
+     */
+    const route = readFileSync(
+      new URL("../../../routes/_authenticated.meridian.tsx", import.meta.url),
+      "utf8",
+    );
+    const start = route.indexOf("function DialogCases()");
+    expect(start, "DialogCases was renamed or removed").toBeGreaterThan(-1);
+    const after = route.indexOf("\nfunction ", start + 1);
+    const cases = route.slice(start, after === -1 ? undefined : after);
+
+    const code = cases.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+    expect(code, "a dialog case reached for the trailing slot and moved the confirm").not.toContain(
+      "trailing",
+    );
+    /* Presence is asserted against the raw slice, so a comment cannot satisfy it. */
+    expect(cases.split("<Dialog").length - 1).toBeGreaterThanOrEqual(4);
   });
 });
