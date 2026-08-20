@@ -4705,3 +4705,143 @@ counts, **which is the guard working.** `settings-search.test.ts` 16 of 16 unmod
 Five of them now rest on `gap-mrd-6` for a rhythm a stylesheet used to own, and two lost a
 between-region hairline. **That wants a dev-server pass in both grounds**, and `pricing.tsx` wants it
 most, because it stopped being force-dark.
+
+---
+
+## K-44 · BUILT · 2026-08-20 18:34
+
+**Did.** `BetCard.tsx` is fully Meridian: 33 `--sp-*` refs, 4 `.sp-*` classes and the
+`shell/primitives` import (1 import, 4 usages) are gone, the checkbox is
+`meridian/forms.Checkbox` and the text field `meridian/forms.Input`. One new token was built,
+`--mrd-mark-rule: 2px`, in the space ramp of `meridian.css` with its argument in the file.
+
+**Unsure.** Three, and the first two are visible px changes.
+1. **Spacing does not map positionally and I moved four gaps up, never down.** Before → after:
+   `--sp-space-1` 4px → `--mrd-s2` **4px** (exact) · `--sp-space-2` 8px → `--mrd-s4` **10px (+2)`
+   ×4 sites · `--sp-space-3` 12px → `--mrd-s5` **16px (+4)** ×2 sites · `--sp-space-4` 16px →
+   `--mrd-s5` **16px** (exact) · `--sp-radius-card` 10px → `--mrd-r-card` **12px (+2)**. The ratchet
+   forbids shrinking as a port answer, so where the scale straddled the old value I took the larger
+   stop. **The +4 on the two `--sp-space-3` sites is the one I would look at first in a browser**,
+   because both are row-internal gaps on the meta line and 12 → 16 is a 33% loosening.
+2. **`--mrd-mark-rule` is a new token and could have been four more literals.** The second-caller
+   rule is satisfied and then some: `SpecProse.tsx` already holds `const EVIDENCE_RULE = "2px"` with
+   a comment naming the retired token it stands in for, and `StreamingText.tsx`, `EvidenceQuality.tsx`
+   and this file each carry their own literal 2px. So it is the fourth caller, not a forecast. **It is
+   a distance and not a colour**, so it sits in the space ramp, is measured in neither ground, and the
+   hue beside it stays the caller's — here `--mrd-you`, because the ember rule marks the one bet a
+   person owns. I did **not** go back and re-point the other three files at it; they are not in this
+   item's `Owns` and each is another item's file.
+3. **Type: I followed the item's mapping and it is right about the trap.** `--sp-text-data` 12px →
+   `--mrd-t-small` (**not** `--mrd-t-data`, which is 11.5px) and `--sp-text-data-sm` 11.5px →
+   `--mrd-t-data`, so the two swap ranks. A positional swap would have shrunk both.
+
+**Noticed.** Two.
+1. **The four unmapped refs the item flagged resolved without a fifth token.** `--sp-line-soft` ×2
+   was the awkward one, a **raw rgba** at `ink.css:366` with a second light-ground declaration at 603,
+   and it became `--mrd-line`, which is already measured in both grounds and is what a hairline is
+   for. `--sp-leading-row` and `--sp-font-mono` had exact Meridian counterparts. `--sp-eviq-rule` is
+   what `--mrd-mark-rule` replaces.
+2. **The ratchet does not count markers inside block comments.** The file still contains the strings
+   `--sp-eviq-rule` and `.sp-block-more` in its header, where they document what the port replaced,
+   and the scanner reports `--sp-: 33 -> 0`. Worth knowing before someone strips a comment thinking
+   it is debt.
+
+**Gates.** tsc 0 · test 0 fail · build pass · docs:check pass. `lane:gates` green, real exit 0 read
+from `$?`.
+
+---
+
+## K-50 · BUILT · 2026-08-20 18:34
+
+**Did.** `_authenticated.threads.tsx` drops the whole `shell/primitives` import (1 import,
+24 usages) and its 10 `--sp-*` and 7 `.sp-*` markers. The hand-rolled context column is gone: it
+now composes `meridian/ContextColumn`'s `CtxHead` / `CtxBody` / `CtxRow` rather than re-drawing
+them, and `Input`, `Receipt` and `Surface` come from their Meridian modules.
+
+**Unsure.** The column used to own its own rhythm through the retired stylesheet and now rests on
+`gap-mrd-6`. That is the established `ContextColumn` API and 7 other routes already read that way, so
+consistency argues for it, but **this file is where the change is largest** and I have not seen it.
+`Switch` and `Button` also came off shell; the Meridian equivalents take the same props, so nothing
+there needed a judgment call.
+
+**Noticed.** The route was already importing `meridian/rows` and `meridian/marks`, so half the
+vocabulary was in the file before the port. The item is right that this made it the natural pair for
+the trace route.
+
+**Gates.** tsc 0 · test 0 fail · build pass · docs:check pass.
+
+---
+
+## K-53 · BUILT · 2026-08-20 18:34
+
+**Did.** Both admin routes ported in one change, as the item asks.
+`_authenticated.admin.pricing.tsx` loses 2 `.sp-*` classes and 31 `shell/primitives` markers
+(1 import, 30 usages); `_authenticated.admin.index.tsx` loses 6 `.sp-*` and 15 markers
+(1 import, 14 usages).
+
+**Unsure.** **`checkClass` was returning the literal strings `"sp-fail"` and `"sp-warn"`**, so the
+status paint was arriving through the retired stylesheet by name rather than through a token. I
+mapped them onto Meridian's `fail` and `hold` status words — `hold` for the warn case, because what
+the check reports is *waiting on a condition* rather than an intent, and `hold` is the word for that.
+**It could have gone to `fail` as a softer variant**, and if a reviewer reads the warn state as "this
+is wrong, just less wrong", `hold` is the wrong pick. I took the definition over the vibe.
+
+**Noticed.** **`pricing.tsx` stopped being force-dark.** It carried its own ground rather than
+inheriting, and the port removed that, so it now follows the app. That is almost certainly the
+intent, but it is the single biggest visual change in this batch and it is unlooked-at.
+
+**Gates.** tsc 0 · test 0 fail · build pass · docs:check pass.
+
+---
+
+## K-56 · BUILT · 2026-08-20 18:34
+
+**Did.** `_authenticated.boundary.tsx` drops `shell/primitives` entirely (1 import, 32 usages) and
+becomes the first route adoption of `meridian/MoreMenu`, taking `MoreItem` / `MoreMenu` from there
+and `CtxBody` / `CtxHead` from `meridian/ContextColumn`.
+
+**Unsure.** **Meridian's `MoreMenu` has no open-state paint.** The retired
+`.sp-more-btn[aria-expanded="true"]` painted the trigger while the menu was open, and the Meridian
+component does not, so the trigger now looks identical open and closed. I did **not** add one:
+`MoreMenu.tsx` is not in this item's `Owns` and a new open-state is a Meridian decision rather than a
+route port. **This is a real regression on this surface** and it is owed either to a Meridian item or
+to a ruling.
+
+**Noticed.** **`DeclinedLedger`'s `isError` branch renders a read failure through `NothingHere`.** A
+failed read and an empty result are different facts and this surface tells the user the second when
+the first happened — so a boundary that could not load reads as a boundary that does not exist. Not
+in this item, not fixed here, and it is the same confusion K-68 exists to remove one level up.
+
+**Gates.** tsc 0 · test 0 fail · build pass · docs:check pass.
+
+---
+
+## K-68 · BUILT · 2026-08-20 18:34
+
+**Did.** Built `src/components/meridian/boundary-states.tsx` with four exports — `ShellReadFailed`,
+`ShellRouteMissing`, `PageReadFailed`, `PageRouteMissing` — and pointed `__root.tsx` and
+`_authenticated.tsx` at them. That clears `__root.tsx`'s `--ds-` 1, `--text-` 6, `--font-pixel` 1 and
+`data-obsidian` 1, and `_authenticated.tsx`'s `--text-` 5, `--hairline` 1, 5 raw colours and 2 of its
+5 `data-obsidian`. A 254-line test file covers all four.
+
+**Unsure.** **I dropped the literal hex fallbacks and that is the one decision worth arguing with.**
+The old markup read `var(--text-body, #C6C0B8)`, and a fallback like that only fires when
+`styles.css` has not resolved — but in exactly that state `--canvas` is unresolved too, so the card
+is painting light-grey text on white at about **1.7:1**. The fallback was not a safety net, it was a
+second failure mode dressed as one. Meridian tokens with no fallback fail visibly instead, which is
+the better failure for a surface whose entire job is to tell you something broke.
+
+**Noticed.** **There is a fifth copy of the failure surface, at `src/router.tsx:35` (`RouteError`),
+and the ratchet cannot see it** because `src/router.tsx` sits outside `SCAN_ROOTS`. The item counts
+two universal failure surfaces; there are three in the shell path once you include the router's own,
+and it is invisible to the guard that is supposed to stop them multiplying. **I did not touch it** —
+not in `Owns`, and it is now the obvious next caller for `ShellReadFailed`. Worth a queue item.
+Separately: the retired shell's `aria-busy` did not survive into Meridian's `Action`, which is a
+Meridian gap K-57 also ran into.
+
+**Gates.** tsc 0 · test 0 fail · build pass · docs:check pass. **Baseline re-frozen: 4,778 → 4,585
+occurrences, 247 → 242 files carrying debt, 24 counts reclaimed** across K-44/K-50/K-53/K-56/K-68.
+
+**Owed to Claude, on all five.** None of these was looked at in a browser. Several surfaces now rest
+on `gap-mrd-6` where a retired stylesheet owned the rhythm, and a few lost a between-region hairline.
+`pricing.tsx` wants that pass most, because it stopped being force-dark.

@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/react-router";
-import { useEffect, type CSSProperties } from "react";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { GotoShortcuts } from "@/components/supaprod/CommandPalette";
 import { BrandWait } from "@/components/supaprod/BrandWait";
@@ -10,6 +10,7 @@ import { needsOnboarding } from "@/lib/onboarding-gate";
 import { BackendHealthBanner } from "@/components/system/BackendHealthBanner";
 import { BillingBanner } from "@/components/billing/BillingBanner";
 
+import { ShellReadFailed, ShellRouteMissing } from "@/components/meridian/boundary-states";
 import { AskProvider } from "@/lib/ask-context";
 import { ROOM_ROUTE_IDS } from "@/lib/room-url";
 import { GlobalComposer } from "@/components/mission/composer";
@@ -73,87 +74,30 @@ export const Route = createFileRoute("/_authenticated")({
     }
   },
   component: AuthedLayout,
-  // LOOM W4 - shell-level boundaries (DESIGN-LOOM §9). A crash or a bad URL
-  // inside the authenticated tree renders a quiet fallback here instead of
-  // tearing down the whole app frame.
-  errorComponent: AuthedError,
-  notFoundComponent: AuthedNotFound,
+  /*
+   * SHELL-LEVEL BOUNDARIES. A crash or a bad URL inside the authenticated tree
+   * renders a composed state here instead of a stack trace or a blank field.
+   *
+   * BOTH ARE MERIDIAN AS OF 2026-08-20, and the reason the port mattered more
+   * than the token count: neither of these carried `data-mrd`, and
+   * `AuthedLayout` below mounts `data-obsidian` on `<html>` for the whole
+   * authenticated tree, so the one control on each of them took the legacy
+   * app-wide focus ring rather than Meridian's. That is live behaviour on the
+   * boundary for 94 routes, not a lint. See
+   * `src/components/meridian/boundary-states.tsx` for why the pair sits in one
+   * module and how the two states are kept apart.
+   *
+   * THE TWO ARRIVE BY DIFFERENT ROUTES, and that is why the frame they share
+   * still paints its own ground. A not-found bubbles up from a child and
+   * renders in the work region with the shell around it. An error here is this
+   * route's OWN failure -- the session read or the onboarding gate in
+   * `beforeLoad` -- so `AuthedLayout` never mounts and there is no chrome left
+   * to supply one. `router.tsx`'s `defaultErrorComponent` is what catches a
+   * child route's own crash, not this.
+   */
+  errorComponent: ({ error }) => <ShellReadFailed error={error} />,
+  notFoundComponent: () => <ShellRouteMissing />,
 });
-
-const fallbackWrap: CSSProperties = {
-  minHeight: "50vh",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: 12,
-  padding: 24,
-  textAlign: "center",
-  background: "var(--canvas)",
-};
-
-function AuthedError({ error }: { error: Error }) {
-  const message =
-    error instanceof Error && error.message
-      ? error.message
-      : "Something went wrong while loading this page.";
-  return (
-    <div data-obsidian style={fallbackWrap}>
-      <p style={{ margin: 0, fontSize: 14, lineHeight: 1.55, color: "var(--text-body, #C6C0B8)" }}>
-        This part of Supaprod hit an error.
-      </p>
-      <p
-        style={{
-          margin: 0,
-          fontSize: 12.5,
-          lineHeight: 1.5,
-          maxWidth: "56ch",
-          color: "var(--text-muted, #A39D94)",
-          overflowWrap: "anywhere",
-        }}
-      >
-        {message}
-      </p>
-      <button
-        type="button"
-        onClick={() => window.location.reload()}
-        style={{
-          marginTop: 4,
-          padding: "6px 14px",
-          fontSize: 12.5,
-          borderRadius: 8,
-          border: "1px solid var(--hairline)",
-          background: "transparent",
-          color: "var(--text-body, #C6C0B8)",
-          cursor: "pointer",
-        }}
-      >
-        Reload the page
-      </button>
-    </div>
-  );
-}
-
-function AuthedNotFound() {
-  return (
-    <div data-obsidian style={fallbackWrap}>
-      <p style={{ margin: 0, fontSize: 14, lineHeight: 1.55, color: "var(--text-body, #C6C0B8)" }}>
-        This page does not exist.
-      </p>
-      <a
-        href="/today"
-        style={{
-          fontSize: 12.5,
-          color: "var(--text-muted, #A39D94)",
-          textDecoration: "underline",
-          textUnderlineOffset: 3,
-        }}
-      >
-        Back to Today
-      </a>
-    </div>
-  );
-}
 
 function AuthedLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });

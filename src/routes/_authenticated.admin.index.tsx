@@ -68,14 +68,23 @@
  */
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Row } from "@/components/meridian/rows";
-import { Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  NothingHere,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Value,
+} from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
 import { inBandError } from "@/components/admin/admin-ui";
-import { Block, Button, Empty, Failed, Field, Gate, Input, Loading } from "@/components/shell/primitives";
+import { Field, Input } from "@/components/meridian/forms";
+import { Gate } from "@/components/meridian/Gate";
 import {
   getPricingCatalog,
   adminSetCreditsEnabled,
@@ -91,12 +100,42 @@ export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminOverview,
 });
 
-/** Only a problem wears colour. Five green lines would be colour carrying the
- *  hierarchy, which the greyscale test exists to catch; the words already say
- *  which check passed. */
-function checkClass(status: GoLiveCheck["status"]): string | undefined {
-  if (status === "fail") return "sp-fail";
-  if (status === "warn") return "sp-warn";
+/**
+ * THE TONE A FAILING CHECK SPEAKS IN, and it used to be a CLASS NAME.
+ *
+ * This was `checkClass`, and it returned the literal strings `"sp-fail"` and
+ * `"sp-warn"`. A helper that hands back a retired class name is worse than a
+ * hard-coded one written at a call site: the retired vocabulary is COMPUTED, so
+ * every caller inherits it and the strings do not appear anywhere a reader is
+ * looking at markup. Six of this file's class occurrences were `sp-*` status
+ * words, and two of them lived in here.
+ *
+ * ── `warn` BECOMES `hold`, AND IT IS A DECISION RATHER THAN A RENAME ─────
+ * `GoLiveCheck["status"]` has a `warn`. Meridian's tone union does not, on
+ * purpose: it carries five status words and amber among them is `hold`, which
+ * means WAITING ON A CONDITION. That is exactly what every warning check here
+ * is -- a key that is not live yet, a bundle whose volume has not been proved
+ * round-trippable. Orchid (`you`) would be the reflex and it is wrong, because
+ * it promises a control on this screen that moves the thing. `Value` has no
+ * `you` tone for the same reason.
+ *
+ * ── THE RETURN TYPE IS TAKEN FROM `Value` ITSELF ────────────────────────
+ * Not a hand-written union, and not `string`. `shell/primitives` also exports a
+ * `Value`, and THAT one has a `warn` tone, so a port that reached for it would
+ * compile, change nothing, and defeat the whole item. Reading the type off the
+ * Meridian component means the compiler enforces the mapping: a sixth status
+ * word cannot be invented here without failing the typecheck.
+ *
+ * Only a problem wears colour. Five green lines would be colour carrying the
+ * hierarchy, which the greyscale test exists to catch; the words already say
+ * which check passed. So a passing check returns nothing and renders as plain
+ * body text.
+ */
+type CheckTone = NonNullable<React.ComponentProps<typeof Value>["tone"]>;
+
+function checkTone(status: GoLiveCheck["status"]): CheckTone | undefined {
+  if (status === "fail") return "fail";
+  if (status === "warn") return "hold";
   return undefined;
 }
 
@@ -227,14 +266,14 @@ function AdminOverview() {
   function healthState(): { text: React.ReactNode; needsYou: boolean } {
     if (health.isLoading) return { text: "Reading.", needsYou: false };
     if (!healthData) {
-      return { text: <span className="sp-fail">This read did not load.</span>, needsYou: true };
+      return { text: <Value tone="fail">This read did not load.</Value>, needsYou: true };
     }
     const clauses: React.ReactNode[] = [];
     if (staleJobs > 0) {
       clauses.push(
-        <span className="sp-fail" key="stale">
+        <Value tone="fail" key="stale">
           {staleJobs} scheduled job{staleJobs === 1 ? " has" : "s have"} stopped running
-        </span>,
+        </Value>,
       );
     }
     if (agentFailures > 0) {
@@ -273,7 +312,7 @@ function AdminOverview() {
   const bannerLine: { text: React.ReactNode; needsYou: boolean } = banner.isLoading
     ? { text: "Reading.", needsYou: false }
     : bannerFailed
-      ? { text: <span className="sp-fail">This read did not load.</span>, needsYou: true }
+      ? { text: <Value tone="fail">This read did not load.</Value>, needsYou: true }
       : activeBanner
         ? { text: `Showing now: ${activeBanner.message}`, needsYou: true }
         : { text: "No notice is showing.", needsYou: false };
@@ -299,8 +338,13 @@ function AdminOverview() {
           : `${adminList.length} people can change this workspace`;
 
   return (
-    <>
-      <Block
+    // THE RHYTHM BETWEEN REGIONS, STATED HERE. The retired `Block` carried its
+    // own top margin and a rule above every section, so this page's spacing lived
+    // in a stylesheet. `Region` draws neither, so the surface owns it, and
+    // `gap-mrd-6` is the step every ported surface uses between regions. The
+    // between-region hairlines do not come back.
+    <div className="flex flex-col gap-mrd-6">
+      <Region
         title={attentionTitle}
         sub="Two reads that no tab label can carry: whether anything scheduled has stopped, and what every user is seeing right now. Each line opens the tab that holds the detail."
       >
@@ -316,18 +360,18 @@ function AdminOverview() {
           sub={bannerLine.text}
           onClick={() => void navigate({ to: "/admin/platform" })}
         />
-      </Block>
+      </Region>
 
       {catalog.isLoading ? (
-        <Loading>Reading whether AI use is charged.</Loading>
+        <Reading>Reading whether AI use is charged.</Reading>
       ) : catalog.isError ? (
         // Without knowing which way the switch sits, the gate would ask the
         // wrong question, and a gate asking the wrong question is worse than
         // none. So it does not draw.
-        <Failed onRetry={() => void catalog.refetch()}>
+        <ReadFailedLine onRetry={() => void catalog.refetch()}>
           Could not read whether AI use is being charged, so the flip is not safe to offer.{" "}
           {catalog.error instanceof Error ? catalog.error.message : "The read failed."}
-        </Failed>
+        </ReadFailedLine>
       ) : (
         <Gate
           question={charging ? "Stop charging for AI use?" : "Start charging for AI use?"}
@@ -336,44 +380,47 @@ function AdminOverview() {
               ? ["Checking what the flip would do."]
               : checks.length === 0
                 ? [
-                    <span className="sp-fail" key="failed">
+                    <Value tone="fail" key="failed">
                       The pre-flight checks did not load, so nothing here says what the flip would
                       do.
-                    </span>,
+                    </Value>,
                   ]
-                : checks.map((c) => (
-                    <span key={c.id}>
-                      <b>{c.label}</b> <span className={checkClass(c.status)}>{c.detail}</span>
-                    </span>
-                  ))
+                : checks.map((c) => {
+                    const tone = checkTone(c.status);
+                    return (
+                      <span key={c.id}>
+                        <b>{c.label}</b> {tone ? <Value tone={tone}>{c.detail}</Value> : c.detail}
+                      </span>
+                    );
+                  })
           }
         >
-          <Button variant="primary" disabled={setFlag.isPending} onClick={() => void onFlip()}>
+          <Action variant="primary" disabled={setFlag.isPending} onClick={() => void onFlip()}>
             {setFlag.isPending ? "Saving" : charging ? "Turn off charging" : "Turn on charging"}
-          </Button>
+          </Action>
           {readiness.isError || (readiness.data && "error" in readiness.data) ? (
-            <Button variant="ghost" onClick={() => void readiness.refetch()}>
+            <Action variant="quiet" onClick={() => void readiness.refetch()}>
               Retry the checks
-            </Button>
+            </Action>
           ) : null}
         </Gate>
       )}
 
-      <Block
+      <Region
         title={adminTitle}
         sub="An admin can change billing, roles and platform switches for everyone in this workspace. The last admin cannot be removed, because a workspace with none cannot be administered at all."
       >
         {admins.isLoading ? (
-          <Loading>Reading the admin list.</Loading>
+          <Reading>Reading the admin list.</Reading>
         ) : adminsError ? (
-          <Failed onRetry={() => void admins.refetch()}>
+          <ReadFailedLine onRetry={() => void admins.refetch()}>
             The admin list did not load, so this is not the full set. {adminsError}
-          </Failed>
+          </ReadFailedLine>
         ) : adminList.length === 0 ? (
-          <Empty>
+          <NothingHere>
             No account holds the admin role. Add one by email below, or nobody can change billing,
             roles or platform switches again.
-          </Empty>
+          </NothingHere>
         ) : (
           adminList.map((a) => (
             <Row
@@ -382,8 +429,8 @@ function AdminOverview() {
               lead={a.email}
               sub={`Admin since ${a.created_at.slice(0, 10)}`}
               action={
-                <Button
-                  variant="ghost"
+                <Action
+                  variant="quiet"
                   disabled={removeAdmin.isPending || adminList.length <= 1}
                   title={
                     adminList.length <= 1
@@ -393,13 +440,17 @@ function AdminOverview() {
                   onClick={() => void onRemove(a.user_id, a.email)}
                 >
                   Remove
-                </Button>
+                </Action>
               }
             />
           ))
         )}
 
+        {/* `Region` sets no spacing between its children and `Actions` sets no
+            outer margin, both on purpose, so the composition says where the form
+            sits rather than a stylesheet deciding for it. */}
         <form
+          className="mt-mrd-5 flex flex-col gap-mrd-4"
           onSubmit={(e) => {
             e.preventDefault();
             if (email.trim()) addAdmin.mutate();
@@ -416,12 +467,12 @@ function AdminOverview() {
             />
           </Field>
           <Actions>
-            <Button type="submit" disabled={addAdmin.isPending || !email.trim()}>
+            <Action type="submit" disabled={addAdmin.isPending || !email.trim()}>
               {addAdmin.isPending ? "Adding" : "Add admin"}
-            </Button>
+            </Action>
           </Actions>
         </form>
-      </Block>
-    </>
+      </Region>
+    </div>
   );
 }

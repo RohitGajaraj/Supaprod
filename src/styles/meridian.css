@@ -826,6 +826,42 @@
    */
   --mrd-fade-rail: 44px;
 
+  /*
+   * THE WEIGHT OF A RULE THAT MARKS A WHOLE BLOCK AS BELONGING TO ONE THING.
+   *
+   * Not a border and not a divider, and the distinction is the reason it needs a
+   * name. A border encloses; a divider separates two things of equal standing.
+   * This runs down ONE side and claims everything beside it for one status, one
+   * source or one person. It is found by scanning the left margin, which is
+   * cheaper than reading four chips, and it survives greyscale because a rule is
+   * geometry and only its hue is status.
+   *
+   * 2px, and the number is inherited rather than picked. The retired ink layer
+   * fixed it at 2px and called it invariant; Meridian shipped with no
+   * counterpart, so four files solved it locally instead:
+   *
+   *   SpecProse.tsx        `const EVIDENCE_RULE = "2px"`, and its own comment
+   *                        names the retired token it is standing in for
+   *   StreamingText.tsx    a literal 2px on the read-failure card
+   *   EvidenceQuality.tsx  a literal 2px per evidence source
+   *   BetCard.tsx          the one orchid rule on the plan board
+   *
+   * So the second caller is not a forecast here, it is the third and the fourth.
+   * The alternative is the shape this repo has already paid for with seven
+   * copies of one helper and four disagreeing status normalisers: one idea, four
+   * literals, and they drift the first time anybody changes one.
+   *
+   * A DISTANCE, NOT A COLOUR, so it sits in the space ramp and is measured in
+   * neither ground. How wide a mark is is a fact about its geometry, not about
+   * the light it sits in. The hue beside it is always one of the five status
+   * words and is the caller's to choose.
+   *
+   * Why not 1px or 3px: 1px is a hairline and reads as an edge the layout
+   * happens to have, which is what `--mrd-line` is for. 3px reads as a coloured
+   * band and starts competing with the text it is marking.
+   */
+  --mrd-mark-rule: 2px;
+
   /* ── RADIUS. ─────────────────────────────────────────────────────────── */
   --mrd-r-xs: 4px;
   --mrd-r-chip: 7px;

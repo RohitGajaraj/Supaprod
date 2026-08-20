@@ -2,14 +2,67 @@
  * ONE BET, ON THE BOARD. The atom of station 3.
  *
  * ============================================================================
- * 2026-08-10: REDRAWN ON THE INK TOKENS, AND IT WAS THE LAST RETIRED SURFACE
- * ON THIS STATION.
+ * 2026-08-21: PORTED TO MERIDIAN. THE VOCABULARY MOVED AND THE DESIGN DID NOT.
  * ============================================================================
  *
- * /plan was ported onto the `--sp-*` primitives in an earlier pass and this file
- * was not: the head, the gate, the receipts and the spec rows all spoke ink
- * while the CARDS, which are the only thing on the board a person actually
- * looks at, were still drawn in `--card`, `--hairline`, `--ember-line`,
+ * The 2026-08-10 pass below drew this card in the retired ink layer, which was
+ * the right call on the day: /plan was ink, and one card speaking a sixth system
+ * would have been worse than one station speaking a retired one. Meridian is now
+ * the only design system, so this file carries 33 token references and four
+ * class names of a language nothing new may speak.
+ *
+ * ALL FOUR RULINGS BELOW STILL HOLD, and each of them is now expressed in
+ * Meridian rather than described in ink:
+ *
+ *   1. THE PROMISE STILL LEADS. The outcome is the first line under the title
+ *      and the measure sits beneath it in mono. Unchanged.
+ *   2. EMBER IS STILL A 2px RULE AND NOT A CHIP. The weight now comes from
+ *      `--mrd-mark-rule`, built in `meridian.css` in this change because Meridian
+ *      had no counterpart to ink's `--sp-eviq-rule` and four files had each
+ *      hard-coded 2px instead. The hue is `--mrd-you`, which means a person is
+ *      required, and that is exactly what a committed bet with no declared
+ *      outcome is waiting for.
+ *   3. STILL NO MONO CAPS. The quiet actions are `Door` now, which is Meridian's
+ *      own quiet action and a line-for-line port of what `.sp-block-more` did:
+ *      body ink, a dotted underline that goes solid on hover, and a size
+ *      inherited from the row rather than fixed.
+ *   4. THE CHECKBOX IS NOW GENUINELY THE REAL ONE. It used to be a raw `<input>`
+ *      wearing the primitive's CLASS, because `Checkbox`'s `onChange(next)`
+ *      cannot carry the shift key and shift-click range-select is the whole point
+ *      of a checkbox on a board of twenty bets. That compromise is no longer
+ *      needed: `DecisionQueue` and `queue-instruments` both solved it the same
+ *      way and `queue-instruments.test.tsx` pins the behaviour. The modifier is
+ *      caught on the way IN, on a wrapper, and read back inside `onChange`.
+ *      Capture phase, so mousedown and keyboard Space both reach it before the
+ *      change lands.
+ *
+ * WHAT MOVED ON PURPOSE, in pixels, because a spacing change that nobody wrote
+ * down is a spacing change nobody can defend. Meridian's ramp grows (2/4/6/10/
+ * 16/24/40/64) where ink's was linear (4/8/12/16), so 8px and 12px have no stop
+ * anywhere on it and both had to be decided rather than renamed:
+ *
+ *   card padding        16px -> 16px  exact
+ *   stack gap            8px -> 10px  rounded UP, one stop
+ *   control row gap     12px -> 16px  rounded UP, one stop
+ *   row top margin       4px ->  4px  exact
+ *   card radius         10px -> 12px  Meridian's card radius
+ *   row leading          1.4 ->  1.5  Meridian replaced 1.4 with this on purpose
+ *
+ * Rounded up rather than down in both cases, because the ratio between them is
+ * what carried the grouping (8:12 was 1:1.5, 10:16 is 1:1.6) and because
+ * shrinking a surface is not an answer this system accepts. Every type size,
+ * weight and colour is an exact value match.
+ *
+ * ============================================================================
+ * 2026-08-10: REDRAWN ON THE INK TOKENS, AND IT WAS THE LAST RETIRED SURFACE
+ * ON THIS STATION. Kept because it is the record of why the card looks like
+ * this; the token names in it are historical from here on.
+ * ============================================================================
+ *
+ * /plan was ported onto the ink primitives in an earlier pass and this file was
+ * not: the head, the gate, the receipts and the spec rows all spoke ink while
+ * the CARDS, which are the only thing on the board a person actually looks at,
+ * were still drawn in `--card`, `--hairline`, `--ember-line`,
  * `--shadow-elevated`, `--font-mono`, `--text-subtle` and `loom-press`, with a
  * `VerdictChip` from the retired kit on top. Two design systems, forty pixels
  * apart, on the surface the founder opens to see what the team committed to.
@@ -26,18 +79,17 @@
  *      `<VerdictChip tone="REVISE">NEEDS OUTCOME</VerdictChip>`, an ember-filled
  *      lozenge shouting in mono caps. Ember marks the human and nothing else,
  *      and this is genuinely the one thing on the board waiting on a person, so
- *      it keeps ember and loses the fill: a 2px left rule the height of the card
- *      (`--sp-eviq-rule`, the invariant weight this system already owns) and a
- *      sentence in words. The card is found by scanning the left margin, which
- *      is cheaper than reading four chips, and it survives greyscale because the
- *      rule is geometry.
+ *      it keeps the human's hue and loses the fill: a 2px left rule the height
+ *      of the card and a sentence in words. The card is found by scanning the
+ *      left margin, which is cheaper than reading four chips, and it survives
+ *      greyscale because the rule is geometry.
  *
  *   3. NO MONO CAPS ANYWHERE. `NOW`, `NEXT`, `LATER`, `+ OUTCOME`,
  *      `EDIT OUTCOME`, `REWIND`, `REWINDING…` and the relative time were all
  *      letter-spaced uppercase mono. That is eight shouted words on a 120px card
  *      and it was the loudest thing in the region. They are sentence-case quiet
- *      actions now, wearing `.sp-block-more`, which is the system's existing
- *      quiet action and already carries its own hover and focus states.
+ *      actions now, and the quiet action carries its own hover and focus states
+ *      so this file never draws either.
  *
  *   4. THE CHECKBOX IS THE REAL ONE. It was a raw `<input>` with an inline
  *      `accentColor: var(--ember)`, which spent the human's colour on a value
@@ -64,12 +116,12 @@
  * says in as many words, so they need no entry and get one anyway in the sense
  * that they behave the way every list in every operating system behaves.
  */
-import { useState, memo, type KeyboardEvent } from "react";
-import { Num } from "@/components/meridian/surface-parts";
+import { useState, useRef, memo, type KeyboardEvent } from "react";
+import { Action, Door, Num } from "@/components/meridian/surface-parts";
+import { Checkbox, Input } from "@/components/meridian/forms";
 import type { RoadmapBucket } from "@/lib/roadmap.functions";
 import { RoadmapHistory } from "@/components/product/RoadmapHistory";
 import { AuditTag } from "@/components/supaprod/AuditTag";
-import { Button, Input } from "@/components/shell/primitives";
 import { decisionOptionLabel } from "./format";
 
 export interface BetCardProps {
@@ -98,16 +150,16 @@ export interface BetCardProps {
 }
 
 /**
- * The three lanes, in ink. NOW no longer carries an ember edge: ember marks the
- * human, and a column heading is not a person. What separates the lanes is
+ * The three lanes. NOW no longer carries an ember edge: the human's hue marks a
+ * person, and a column heading is not a person. What separates the lanes is
  * VALUE, which is the quietest signal a design system has and the one that
  * survives greyscale: Now and Next sit on the raised surface at full ink, Later
  * sinks and its text steps back one stop on the ramp.
  */
 const LANE_STYLE: Record<RoadmapBucket, { background: string; border: string; ink: string }> = {
-  now: { background: "var(--sp-lift)", border: "var(--sp-line)", ink: "var(--sp-ink)" },
-  next: { background: "var(--sp-lift)", border: "var(--sp-line-soft)", ink: "var(--sp-ink)" },
-  later: { background: "var(--sp-sink)", border: "var(--sp-line-soft)", ink: "var(--sp-body)" },
+  now: { background: "var(--mrd-lift)", border: "var(--mrd-line)", ink: "var(--mrd-ink)" },
+  next: { background: "var(--mrd-lift)", border: "var(--mrd-line-soft)", ink: "var(--mrd-ink)" },
+  later: { background: "var(--mrd-sink)", border: "var(--mrd-line-soft)", ink: "var(--mrd-body)" },
 };
 
 const MOVE_TARGETS: { bucket: RoadmapBucket; label: string }[] = [
@@ -127,7 +179,7 @@ function MeasureLine({ measure }: { measure: string }) {
   return (
     <>
       {parts.map((part, i) => (
-        <span key={i} style={{ color: /^-?\d/.test(part) ? "var(--sp-ink)" : undefined }}>
+        <span key={i} style={{ color: /^-?\d/.test(part) ? "var(--mrd-ink)" : undefined }}>
           {part}
         </span>
       ))}
@@ -163,6 +215,9 @@ function BetCardComponent({
   const [editing, setEditing] = useState(false);
   const [outcomeVal, setOutcomeVal] = useState(outcome ?? "");
   const [measureVal, setMeasureVal] = useState(measure ?? "");
+  /* Whether Shift was down when the tick was reached. See ruling 4 in the
+     header: the modifier is caught on the way in and read back on change. */
+  const shift = useRef(false);
 
   const startEdit = () => {
     setOutcomeVal(outcome ?? "");
@@ -181,6 +236,9 @@ function BetCardComponent({
   return (
     <div
       ref={registerRef}
+      // Meridian's focus treatment travels with the part, not with the page, and
+      // the card is itself a tab stop as well as the parent of five controls.
+      data-mrd=""
       tabIndex={tabIndex}
       onKeyDown={onCardKeyDown}
       onFocus={onFocusCard}
@@ -189,48 +247,52 @@ function BetCardComponent({
       role="group"
       aria-label={decisionOptionLabel(title)}
       style={{
-        borderRadius: "var(--sp-radius-card)",
-        padding: "var(--sp-space-4)",
+        borderRadius: "var(--mrd-r-card)",
+        padding: "var(--mrd-s5)",
         background: lane.background,
         border: `1px solid ${lane.border}`,
-        // THE ONE EMBER ON THE BOARD. A committed bet carrying no declared
+        // THE ONE ORCHID ON THE BOARD. A committed bet carrying no declared
         // outcome is the only thing here genuinely waiting on a person, so it
         // gets the human's colour, as the rule this system fixes at 2px and
         // never as a fill.
         borderLeft: hasOutcome
           ? `1px solid ${lane.border}`
-          : `var(--sp-eviq-rule) solid var(--sp-gate)`,
+          : `var(--mrd-mark-rule) solid var(--mrd-you)`,
         display: "flex",
         flexDirection: "column",
-        gap: "var(--sp-space-2)",
+        gap: "var(--mrd-s4)",
       }}
     >
-      <span style={{ display: "flex", alignItems: "center", gap: "var(--sp-space-2)" }}>
-        {/* THE PRIMITIVE'S CLASS ON A RAW CONTROL, RATHER THAN A SECOND CONTROL,
-            and for one reason: `Checkbox`'s `onChange(next: boolean)` cannot
-            carry the shift key, and shift-click range-select is the whole point
-            of putting a checkbox on a board of twenty bets. `onClick` on the
-            input is the only handler that sees `shiftKey`, and it fires for a
-            keyboard Space too, because a checkbox dispatches a click either way.
-            `onChange` is present and empty so React still treats this as a
-            controlled input; the state it reflects lives in `useSelection`. */}
-        <input
-          type="checkbox"
-          className="sp-check"
-          checked={selected}
-          aria-label={`Select ${decisionOptionLabel(title)}`}
-          onChange={() => {}}
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleSelect(!selected, { shiftKey: e.shiftKey });
+      <span style={{ display: "flex", alignItems: "center", gap: "var(--mrd-s4)" }}>
+        {/* THE MODIFIER IS CAUGHT ON THE WRAPPER, WHICH IS THE HOUSE PATTERN.
+            `Checkbox` reports a value rather than an event, deliberately, so it
+            cannot hand over `shiftKey` and shift-click range-select is the whole
+            point of a tick on a board of twenty bets. Capture phase, because the
+            change fires after the mousedown that produced it, and keyboard Space
+            arrives the same way so shift-Space extends a range too. Identical to
+            `DecisionQueue`'s `Pick` and `queue-instruments`' `SelectBox`, and
+            `queue-instruments.test.tsx` is what pins the behaviour. */}
+        <span
+          style={{ display: "inline-flex" }}
+          onMouseDownCapture={(e) => {
+            shift.current = e.shiftKey;
           }}
-        />
+          onKeyDownCapture={(e) => {
+            shift.current = e.shiftKey;
+          }}
+        >
+          <Checkbox
+            checked={selected}
+            label={`Select ${decisionOptionLabel(title)}`}
+            onChange={(next) => onToggleSelect(next, { shiftKey: shift.current })}
+          />
+        </span>
         <span
           style={{
             flex: 1,
             minWidth: 0,
-            fontSize: "var(--sp-text-body)",
-            fontWeight: "var(--sp-weight-strong)",
+            fontSize: "var(--mrd-t-body)",
+            fontWeight: "var(--mrd-w-semi)",
             color: lane.ink,
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -248,15 +310,15 @@ function BetCardComponent({
       {editing ? null : outcomeText ? (
         <span
           style={{
-            fontSize: "var(--sp-text-meta)",
-            lineHeight: "var(--sp-leading-row)",
-            color: "var(--sp-body)",
+            fontSize: "var(--mrd-t-base)",
+            lineHeight: "var(--mrd-lh-snug)",
+            color: "var(--mrd-body)",
           }}
         >
           {outcomeText}
         </span>
       ) : (
-        <span style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
+        <span style={{ fontSize: "var(--mrd-t-base)", color: "var(--mrd-mute)" }}>
           No outcome declared, so nothing can grade it later.
         </span>
       )}
@@ -264,9 +326,9 @@ function BetCardComponent({
       {editing ? null : measureText ? (
         <span
           style={{
-            fontFamily: "var(--sp-font-mono)",
-            fontSize: "var(--sp-text-data)",
-            color: "var(--sp-mute)",
+            fontFamily: "var(--mrd-mono)",
+            fontSize: "var(--mrd-t-small)",
+            color: "var(--mrd-mute)",
           }}
         >
           <MeasureLine measure={measureText} />
@@ -274,7 +336,7 @@ function BetCardComponent({
       ) : null}
 
       {editing ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--sp-space-2)" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--mrd-s4)" }}>
           <Input
             autoFocus
             value={outcomeVal}
@@ -290,11 +352,11 @@ function BetCardComponent({
             aria-label="Measure"
             maxLength={500}
           />
-          <span style={{ display: "flex", justifyContent: "flex-end", gap: "var(--sp-space-2)" }}>
-            <Button variant="ghost" onClick={() => setEditing(false)}>
+          <span style={{ display: "flex", justifyContent: "flex-end", gap: "var(--mrd-s4)" }}>
+            <Action variant="quiet" onClick={() => setEditing(false)}>
               Cancel
-            </Button>
-            <Button
+            </Action>
+            <Action
               variant="primary"
               disabled={saveDisabled}
               // Disabled pairs with an explanation.
@@ -306,7 +368,7 @@ function BetCardComponent({
               onClick={saveEdit}
             >
               {editPending ? "Saving" : "Save the promise"}
-            </Button>
+            </Action>
           </span>
         </div>
       ) : (
@@ -314,44 +376,36 @@ function BetCardComponent({
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "var(--sp-space-3)",
-            marginTop: "var(--sp-space-1)",
+            gap: "var(--mrd-s5)",
+            marginTop: "var(--mrd-s2)",
             flexWrap: "wrap",
+            // `Door` inherits its size from the line it sits in rather than
+            // fixing one, so the row declares it once for all of them.
+            fontSize: "var(--mrd-t-base)",
           }}
         >
           {MOVE_TARGETS.filter((t) => t.bucket !== column).map((t) => (
-            <button
-              key={t.bucket}
-              type="button"
-              className="sp-block-more"
-              onClick={(e) => {
-                e.stopPropagation();
-                onMoveTo(t.bucket);
-              }}
-            >
-              {/* THE CURRENT LANE IS NOT DRAWN DISABLED, IT IS NOT DRAWN.
-                  Three controls of which one is always dead is a third of the
-                  card's controls spent saying where it already is, which the
-                  column heading above it already says. */}
+            // THE CURRENT LANE IS NOT DRAWN DISABLED, IT IS NOT DRAWN. Three
+            // controls of which one is always dead is a third of the card's
+            // controls spent saying where it already is, which the column
+            // heading above it already says.
+            <Door key={t.bucket} onClick={() => onMoveTo(t.bucket)}>
               {t.label}
-            </button>
+            </Door>
           ))}
-          <button type="button" className="sp-block-more" onClick={startEdit}>
-            {hasOutcome ? "Edit the promise" : "Declare the outcome"}
-          </button>
+          <Door onClick={startEdit}>{hasOutcome ? "Edit the promise" : "Declare the outcome"}</Door>
           <RoadmapHistory opportunityId={id} />
           {canRewind && onRewind ? (
-            <button
-              type="button"
-              className="sp-block-more"
-              disabled={rewindPending}
-              onClick={(e) => {
-                e.stopPropagation();
-                onRewind();
-              }}
-            >
-              {rewindPending ? "Rewinding" : "Rewind"}
-            </button>
+            rewindPending ? (
+              /* DEAD, NOT HIDDEN. `Door` has no disabled state, and the state it
+                 would draw is exactly this: the word stays in place, steps back
+                 to the metadata ink and drops the underline, so it cannot be
+                 pressed twice while the rewind is in flight. That is what the
+                 retired quiet action's `:disabled` rule did, to the pixel. */
+              <span style={{ color: "var(--mrd-mute)" }}>Rewinding</span>
+            ) : (
+              <Door onClick={onRewind}>Rewind</Door>
+            )
           ) : null}
         </span>
       )}
@@ -365,10 +419,10 @@ function BetCardComponent({
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "var(--sp-space-3)",
+          gap: "var(--mrd-s5)",
           flexWrap: "wrap",
-          fontSize: "var(--sp-text-data-sm)",
-          color: "var(--sp-mute)",
+          fontSize: "var(--mrd-t-data)",
+          color: "var(--mrd-mute)",
         }}
       >
         {iceScore !== null ? (

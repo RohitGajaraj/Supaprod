@@ -117,14 +117,24 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  NothingHere,
+  Num,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Value,
+} from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Fragment, useMemo, useState } from "react";
 
 import { useConfirm } from "@/hooks/use-confirm";
 import { VouchersPanel } from "@/components/admin/VouchersPanel";
-import { Block, Button, Checkbox, Empty, Failed, Field, Input, Loading, Receipt } from "@/components/shell/primitives";
+import { Checkbox, Field, Input } from "@/components/meridian/forms";
+import { Receipt } from "@/components/meridian/Receipt";
 import {
   getPricingCatalog,
   adminUpsertBundle,
@@ -201,13 +211,16 @@ function AdminPricing() {
 
   // A money surface must never render a failed read as an empty catalog: an
   // admin could "fix" the blank by recreating bundles that already exist.
-  if (catalog.isLoading) return <Loading>Reading the catalog.</Loading>;
+  if (catalog.isLoading) return <Reading>Reading the catalog.</Reading>;
   if (catalog.isError) {
     return (
-      <Failed onRetry={() => void catalog.refetch()}>
+      // Both early returns are Meridian roots in their own right: `Reading` and
+      // `ReadFailedLine` each carry `data-mrd` on their outermost element, so
+      // the retry `Door` inside this one still takes the Meridian focus ring.
+      <ReadFailedLine onRetry={() => void catalog.refetch()}>
         The catalog did not load, so this page is not a picture of what anything costs.{" "}
         {(catalog.error as Error)?.message ?? "The read failed."}
-      </Failed>
+      </ReadFailedLine>
     );
   }
 
@@ -217,7 +230,12 @@ function AdminPricing() {
     .sort();
 
   return (
-    <>
+    // THE RHYTHM BETWEEN REGIONS, STATED HERE. The retired `Block` carried its
+    // own top margin and a rule above every section, so this page's spacing lived
+    // in a stylesheet. `Region` draws neither, so the surface owns it, and
+    // `gap-mrd-6` is the step every ported surface uses between regions. The
+    // between-region hairlines do not come back.
+    <div className="flex flex-col gap-mrd-6">
       <TopupSection
         rows={topups}
         editing={editing}
@@ -242,15 +260,15 @@ function AdminPricing() {
         />
       ))}
 
-      <Block
+      <Region
         title="Vouchers"
         sub="Codes that hand out credits. Moved here from People: a voucher is a discount on the ladder above, not a fact about a person. The panel below still carries its old chrome and is queued for the same treatment as the rest of this page."
       >
         <VouchersPanel />
-      </Block>
+      </Region>
 
       {settled.length > 0 ? (
-        <Block title="What you changed">
+        <Region title="What you changed">
           {settled.map((s) => (
             <Receipt
               key={s.id}
@@ -260,9 +278,9 @@ function AdminPricing() {
               time={s.at}
             />
           ))}
-        </Block>
+        </Region>
       ) : null}
-    </>
+    </div>
   );
 }
 
@@ -336,17 +354,29 @@ function TopupSection({
   const live = rows.filter((r) => r.active).length;
 
   return (
-    <Block
+    // `more`/`onMore` HAS NO COUNTERPART ON `Region`, AND THIS ONE IS A
+    // DISCLOSURE. The retired slot served three different controls under one
+    // name; `Region` splits it by what the control DOES -- `goTo` navigates
+    // away, `toggle` reveals something in place, `act` dispatches work. This
+    // button opens and closes the new-top-up editor inside this region: it goes
+    // nowhere and it starts nothing, so it is `toggle`. It was already swapping
+    // its own label between "Add a top-up" and "Close", which is a state a
+    // sighted reader could see and nobody else could, so it now owes and gets
+    // the `aria-expanded` that `toggled` emits.
+    <Region
       title="Top-ups"
       sub={`The only prices on this page a customer ever reads: these are the shelf in Settings, Credits, and the credits are what the crew spends. ${live} of ${rows.length} are on sale.`}
-      more={adding ? "Close" : "Add a top-up"}
-      onMore={() => setEditing(adding ? null : NEW_TOPUP)}
+      toggle={adding ? "Close" : "Add a top-up"}
+      onToggle={() => setEditing(adding ? null : NEW_TOPUP)}
+      toggled={adding}
     >
       {rows.length === 0 && !adding ? (
-        <Empty action={<Button onClick={() => setEditing(NEW_TOPUP)}>Add the first top-up</Button>}>
+        <NothingHere
+          action={<Action onClick={() => setEditing(NEW_TOPUP)}>Add the first top-up</Action>}
+        >
           Nothing is on the shelf, so nobody can buy credits at all. The Credits page in Settings is
           empty until a bundle exists here.
-        </Empty>
+        </NothingHere>
       ) : null}
 
       {adding ? (
@@ -376,7 +406,7 @@ function TopupSection({
                   <>{dollars(r.price_cents)} · on sale</>
                 ) : (
                   <>
-                    {dollars(r.price_cents)} · <span className="sp-fail">switched off</span>
+                    {dollars(r.price_cents)} · <Value tone="fail">switched off</Value>
                   </>
                 )
               }
@@ -405,7 +435,7 @@ function TopupSection({
           </Fragment>
         );
       })}
-    </Block>
+    </Region>
   );
 }
 
@@ -461,57 +491,61 @@ function TopupEditor({
         });
       }}
     >
-      <Field label="Credits" htmlFor={idFor("credits")}>
-        <Input
-          id={idFor("credits")}
-          type="number"
-          min={1}
-          value={credits}
-          onChange={(e) => {
-            setCredits(Number(e.target.value));
-            setProblem(null);
-          }}
-        />
-      </Field>
-      <Field label="Price in dollars" htmlFor={idFor("price")}>
-        <Input
-          id={idFor("price")}
-          type="number"
-          step="0.01"
-          min={0}
-          value={price}
-          onChange={(e) => {
-            setPrice(Number(e.target.value));
-            setProblem(null);
-          }}
-        />
-      </Field>
-      <Line
-        label="On sale"
-        sub="Switched off, it disappears from the Credits page and the checkout refuses it."
-        htmlFor={idFor("active")}
-      >
-        <Checkbox id={idFor("active")} label="On sale" checked={active} onChange={setActive} />
-      </Line>
+      <div className="flex flex-col gap-mrd-4">
+        <Field label="Credits" htmlFor={idFor("credits")}>
+          <Input
+            id={idFor("credits")}
+            type="number"
+            min={1}
+            value={credits}
+            onChange={(e) => {
+              setCredits(Number(e.target.value));
+              setProblem(null);
+            }}
+          />
+        </Field>
+        <Field label="Price in dollars" htmlFor={idFor("price")}>
+          <Input
+            id={idFor("price")}
+            type="number"
+            step="0.01"
+            min={0}
+            value={price}
+            onChange={(e) => {
+              setPrice(Number(e.target.value));
+              setProblem(null);
+            }}
+          />
+        </Field>
+        <Line
+          label="On sale"
+          sub="Switched off, it disappears from the Credits page and the checkout refuses it."
+          htmlFor={idFor("active")}
+        >
+          <Checkbox id={idFor("active")} label="On sale" checked={active} onChange={setActive} />
+        </Line>
 
-      {problem ? <Failed>{problem}</Failed> : null}
+        {problem ? <ReadFailedLine>{problem}</ReadFailedLine> : null}
 
-      <Actions
-        trailing={
-          onDelete ? (
-            <Button variant="ghost" type="button" disabled={busy} onClick={onDelete}>
-              Remove it
-            </Button>
-          ) : undefined
-        }
-      >
-        <Button variant="primary" type="submit" disabled={busy}>
-          {busy ? "Saving" : row ? "Save this top-up" : "Add this top-up"}
-        </Button>
-        <Button variant="ghost" type="button" onClick={onCancel}>
-          Cancel
-        </Button>
-      </Actions>
+        {/* `Actions` sets no outer margin, deliberately, so the gap comes from
+            the form's own column. */}
+        <Actions
+          trailing={
+            onDelete ? (
+              <Action variant="quiet" type="button" disabled={busy} onClick={onDelete}>
+                Remove it
+              </Action>
+            ) : undefined
+          }
+        >
+          <Action variant="primary" type="submit" disabled={busy}>
+            {busy ? "Saving" : row ? "Save this top-up" : "Add this top-up"}
+          </Action>
+          <Action variant="quiet" type="button" onClick={onCancel}>
+            Cancel
+          </Action>
+        </Actions>
+      </div>
     </form>
   );
 }
@@ -596,18 +630,25 @@ function TierSection({
   const live = rows.filter((r) => r.active).length;
 
   return (
-    <Block
+    // Same call as `TopupSection`, and it is the same control: this opens and
+    // closes the new-bundle editor inside this region, so it is a DISCLOSURE
+    // (`toggle`) rather than a way out (`goTo`) or a dispatch (`act`). It gains
+    // the `aria-expanded` its own label swap had been standing in for.
+    <Region
       title={title}
       sub={
         known
           ? `${live} of ${rows.length} switched on. The launch readiness check reads these credit volumes; the prices a customer is quoted still come from the code ladder in entitlements.ts, not from here.`
           : `${live} of ${rows.length} switched on. This tier has bundles but no section of its own in the old editor, so they were live and invisible. Check whether it should exist at all.`
       }
-      more={adding ? "Close" : "Add a bundle"}
-      onMore={() => setEditing(adding ? null : newBundleKey(tier))}
+      toggle={adding ? "Close" : "Add a bundle"}
+      onToggle={() => setEditing(adding ? null : newBundleKey(tier))}
+      toggled={adding}
     >
       {rows.length === 0 && !adding ? (
-        <Empty>No bundles on this tier. Nothing breaks; the ladder is simply empty here.</Empty>
+        <NothingHere>
+          No bundles on this tier. Nothing breaks; the ladder is simply empty here.
+        </NothingHere>
       ) : null}
 
       {adding ? (
@@ -641,7 +682,7 @@ function TierSection({
                 ) : (
                   <>
                     {dollars(r.monthly_cents)} a month · {dollars(r.yearly_cents)} a year ·{" "}
-                    <span className="sp-fail">switched off</span>
+                    <Value tone="fail">switched off</Value>
                   </>
                 )
               }
@@ -671,7 +712,7 @@ function TierSection({
           </Fragment>
         );
       })}
-    </Block>
+    </Region>
   );
 }
 
@@ -740,70 +781,77 @@ function BundleEditor({
         });
       }}
     >
-      <Field label="Credits a month" htmlFor={idFor("credits")}>
-        <Input
-          id={idFor("credits")}
-          type="number"
-          min={1}
-          value={credits}
-          onChange={(e) => {
-            setCredits(Number(e.target.value));
-            clear();
-          }}
-        />
-      </Field>
-      <Field label="Monthly price in dollars" htmlFor={idFor("monthly")}>
-        <Input
-          id={idFor("monthly")}
-          type="number"
-          step="0.01"
-          min={0}
-          value={monthly}
-          onChange={(e) => {
-            setMonthly(Number(e.target.value));
-            clear();
-          }}
-        />
-      </Field>
-      <Field label="Yearly price in dollars" htmlFor={idFor("yearly")}>
-        <Input
-          id={idFor("yearly")}
-          type="number"
-          step="0.01"
-          min={0}
-          value={yearly}
-          onChange={(e) => {
-            setYearly(Number(e.target.value));
-            clear();
-          }}
-        />
-      </Field>
-      <Line
-        label="Switched on"
-        sub="Off, the launch readiness check stops testing whether this volume can be granted."
-        htmlFor={idFor("active")}
-      >
-        <Checkbox id={idFor("active")} label="Switched on" checked={active} onChange={setActive} />
-      </Line>
+      <div className="flex flex-col gap-mrd-4">
+        <Field label="Credits a month" htmlFor={idFor("credits")}>
+          <Input
+            id={idFor("credits")}
+            type="number"
+            min={1}
+            value={credits}
+            onChange={(e) => {
+              setCredits(Number(e.target.value));
+              clear();
+            }}
+          />
+        </Field>
+        <Field label="Monthly price in dollars" htmlFor={idFor("monthly")}>
+          <Input
+            id={idFor("monthly")}
+            type="number"
+            step="0.01"
+            min={0}
+            value={monthly}
+            onChange={(e) => {
+              setMonthly(Number(e.target.value));
+              clear();
+            }}
+          />
+        </Field>
+        <Field label="Yearly price in dollars" htmlFor={idFor("yearly")}>
+          <Input
+            id={idFor("yearly")}
+            type="number"
+            step="0.01"
+            min={0}
+            value={yearly}
+            onChange={(e) => {
+              setYearly(Number(e.target.value));
+              clear();
+            }}
+          />
+        </Field>
+        <Line
+          label="Switched on"
+          sub="Off, the launch readiness check stops testing whether this volume can be granted."
+          htmlFor={idFor("active")}
+        >
+          <Checkbox
+            id={idFor("active")}
+            label="Switched on"
+            checked={active}
+            onChange={setActive}
+          />
+        </Line>
 
-      {problem ? <Failed>{problem}</Failed> : null}
+        {problem ? <ReadFailedLine>{problem}</ReadFailedLine> : null}
 
-      <Actions
-        trailing={
-          onDelete ? (
-            <Button variant="ghost" type="button" disabled={busy} onClick={onDelete}>
-              Remove it
-            </Button>
-          ) : undefined
-        }
-      >
-        <Button variant="primary" type="submit" disabled={busy}>
-          {busy ? "Saving" : row ? "Save this bundle" : "Add this bundle"}
-        </Button>
-        <Button variant="ghost" type="button" onClick={onCancel}>
-          Cancel
-        </Button>
-      </Actions>
+        <Actions
+          trailing={
+            onDelete ? (
+              <Action variant="quiet" type="button" disabled={busy} onClick={onDelete}>
+                Remove it
+              </Action>
+            ) : undefined
+          }
+        >
+          <Action variant="primary" type="submit" disabled={busy}>
+            {busy ? "Saving" : row ? "Save this bundle" : "Add this bundle"}
+          </Action>
+          <Action variant="quiet" type="button" onClick={onCancel}>
+            Cancel
+          </Action>
+        </Actions>
+      </div>
     </form>
   );
 }

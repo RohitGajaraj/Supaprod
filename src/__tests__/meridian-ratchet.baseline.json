@@ -5,8 +5,8 @@
     "It only ever moves DOWN. A file absent from this list must be clean.",
     "Do not hand-edit; do not regenerate to silence a failure."
   ],
-  "totalOccurrences": 4778,
-  "fileCount": 247,
+  "totalOccurrences": 4585,
+  "fileCount": 242,
   "files": {
     "src/components/admin/admin-ui.tsx": {
       "--text-": 2,
@@ -549,12 +549,6 @@
       "import:components/obsidian": 1,
       "usage:components/obsidian": 1
     },
-    "src/components/plan/BetCard.tsx": {
-      "--sp-": 33,
-      "class:sp-": 4,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 4
-    },
     "src/components/plan/CommitCeremony.tsx": {
       "--sp-": 22,
       "import:shell/primitives": 1,
@@ -821,20 +815,11 @@
       "--ds-": 14
     },
     "src/routes/__root.tsx": {
-      "--ds-": 1,
-      "--text-": 6,
-      "--font-pixel": 1,
-      "data-obsidian": 1,
       "raw-colour": 1
     },
     "src/routes/_authenticated.admin.ai-costs.tsx": {
       "import:shell/primitives": 1,
       "usage:shell/primitives": 6
-    },
-    "src/routes/_authenticated.admin.index.tsx": {
-      "class:sp-": 6,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 14
     },
     "src/routes/_authenticated.admin.landing.tsx": {
       "--sp-": 2,
@@ -846,11 +831,6 @@
       "import:shell/primitives": 1,
       "usage:shell/primitives": 34
     },
-    "src/routes/_authenticated.admin.pricing.tsx": {
-      "class:sp-": 2,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 30
-    },
     "src/routes/_authenticated.admin.proof.tsx": {
       "import:shell/primitives": 1,
       "usage:shell/primitives": 6
@@ -859,10 +839,6 @@
       "--sp-": 2,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 7
-    },
-    "src/routes/_authenticated.boundary.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 32
     },
     "src/routes/_authenticated.runs.$missionId.tsx": {
       "import:components/obsidian": 1,
@@ -879,22 +855,13 @@
       "import:shell/primitives": 1,
       "usage:shell/primitives": 29
     },
-    "src/routes/_authenticated.threads.tsx": {
-      "--sp-": 10,
-      "class:sp-": 7,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 24
-    },
     "src/routes/_authenticated.today.tsx": {
       "import:shell/primitives": 1,
       "usage:shell/primitives": 28
     },
     "src/routes/_authenticated.tsx": {
-      "--text-": 5,
-      "--hairline": 1,
-      "data-obsidian": 5,
-      "class:sp-": 1,
-      "raw-colour": 5
+      "data-obsidian": 3,
+      "class:sp-": 1
     },
     "src/routes/api/public/connect/figma/callback.ts": {
       "raw-colour": 5

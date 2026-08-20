@@ -13,71 +13,27 @@ import { supabase } from "@/integrations/supabase/client";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { ConfirmProvider } from "@/hooks/use-confirm";
 import { MachineViewProvider } from "@/hooks/use-machine-view";
-import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
+import { PageReadFailed, PageRouteMissing } from "@/components/meridian/boundary-states";
 
 import appCss from "../styles.css?url";
 
-// Root boundaries. These render OUTSIDE the _authenticated tree, so they carry
-// their own `data-obsidian` scope to read as the same calm dark, on-brand
-// Supaprod surface as the app (never a raw stack or a blank screen). A user
-// always sees the brand mark and a clear way back.
-function BoundaryShell({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      data-obsidian
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 24,
-        background: "var(--canvas)",
-        color: "var(--text-primary)",
-      }}
-    >
-      <div style={{ maxWidth: 420, width: "100%", textAlign: "center" }}>
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
-          <SupaprodMark size={44} />
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-}
-
+/*
+ * THE ROOT BOUNDARIES, and they are the last thing standing for all 112 routes.
+ *
+ * Both are Meridian as of 2026-08-20. The composition, the copy rule and the
+ * argument for dropping the literal hex fallbacks these used to carry all live
+ * in `src/components/meridian/boundary-states.tsx`; the contract they answer to
+ * is `docs/design/DESIGN-SYSTEM.md` section 2, "the states nobody screenshots
+ * are composed". That citation replaces a reference to the archived v5 Tempo
+ * contract, which had been standing here as the authority for the 404's type.
+ *
+ * These render OUTSIDE the authenticated tree, so nothing above them supplies a
+ * ground or a shell. `--mrd-*` is declared on `:root`, so the tokens resolve
+ * with no scope attribute mounted, which is what let the old `data-obsidian`
+ * wrapper go.
+ */
 function NotFoundComponent() {
-  return (
-    <BoundaryShell>
-      {/* The 404 numeral is the page's single Geist Pixel brand moment
-          (DESIGN-TEMPO.md sections 3 and 8: big numerals qualify, max one
-          Pixel element per screen). --text-score is the 52px display scale. */}
-      <div
-        style={{
-          fontFamily: "var(--font-pixel)",
-          fontSize: "var(--text-score, 52px)",
-          lineHeight: 1,
-          color: "var(--ds-gray-1000)",
-          marginBottom: 12,
-        }}
-      >
-        404
-      </div>
-      <h1 className="text-heading-24" style={{ color: "var(--text-primary)", marginBottom: 8 }}>
-        Page not found
-      </h1>
-      <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 20, lineHeight: 1.55 }}>
-        This page doesn't exist or has moved. Let's get you back on track.
-      </p>
-      <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
-        <a href="/" className="btn btn-primary btn-sm">
-          Go home
-        </a>
-        <a href="/login" className="btn btn-ghost btn-sm">
-          Sign in
-        </a>
-      </div>
-    </BoundaryShell>
-  );
+  return <PageRouteMissing />;
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
@@ -85,35 +41,19 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
 
   return (
-    <BoundaryShell>
-      <div className="mono-label" style={{ marginBottom: 8 }}>
-        something broke
-      </div>
-      <h1
-        className="font-display"
-        style={{ fontSize: 26, color: "var(--text-primary)", marginBottom: 8 }}
-      >
-        This page didn't load
-      </h1>
-      <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 20, lineHeight: 1.55 }}>
-        Something went wrong on our end. Try again, or head back home.
-      </p>
-      <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
-        <button
-          type="button"
-          onClick={() => {
-            router.invalidate();
-            reset();
-          }}
-          className="btn btn-primary btn-sm"
-        >
-          Try again
-        </button>
-        <a href="/" className="btn btn-ghost btn-sm">
-          Go home
-        </a>
-      </div>
-    </BoundaryShell>
+    <PageReadFailed
+      error={error}
+      onRetry={() => {
+        // BOTH HALVES, ALWAYS. `reset()` clears the boundary so this subtree
+        // will render again; `router.invalidate()` drops the loader data that
+        // failed. Calling either one alone looks identical and recovers
+        // nothing: reset without invalidate re-renders against the same bad
+        // cache, and invalidate without reset refetches behind a boundary that
+        // is still holding the error.
+        router.invalidate();
+        reset();
+      }}
+    />
   );
 }
 

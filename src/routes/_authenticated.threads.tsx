@@ -120,7 +120,17 @@
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Row, Line, Who } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  NothingHere,
+  Num,
+  PageHeading,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Toggle,
+} from "@/components/meridian/surface-parts";
 import { invalidateShellReads } from "@/lib/query-keys";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -141,7 +151,10 @@ import { proposeMemoryCandidate } from "@/lib/memory-candidates.functions";
 import { openAskConversation } from "@/lib/ask-open";
 import { initialsFrom } from "@/lib/initials";
 import { Answer } from "@/components/ask/Answer";
-import { Block, Button, Empty, Failed, Input, Loading, PageHead, Receipt, Surface, Switch } from "@/components/shell/primitives";
+import { Input } from "@/components/meridian/forms";
+import { Receipt } from "@/components/meridian/Receipt";
+import { Surface } from "@/components/meridian/Surface";
+import { CtxBody, CtxHead, CtxRow } from "@/components/meridian/ContextColumn";
 import { AgentMark, YouMark } from "@/components/meridian/marks";
 
 const searchSchema = z.object({ c: z.string().optional() });
@@ -198,8 +211,9 @@ function since(iso: string | null): string | null {
  *
  *  Local, and the gap is reported in the header: `Row` centres its mark slot
  *  and renders its second line as metadata, so a paragraph would hang the
- *  mark in mid-air and print the message in label grey. Every value here is a
- *  token; nothing carries a literal colour. `overflowWrap` is load bearing:
+ *  mark in mid-air and print the message in label grey. Every stop here is
+ *  Meridian's and nothing carries a literal colour. `overflowWrap` is load
+ *  bearing:
  *  a pasted URL or a code fragment must break inside this column rather than
  *  push the page sideways, which was named twice as a pain point. It is an
  *  inherited property, so it still governs inside the parsed blocks `Answer`
@@ -229,35 +243,31 @@ function Said({
   children: ReactNode;
 }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        gap: 13,
-        alignItems: "flex-start",
-        padding: "var(--sp-space-4) 0",
-        borderTop: "1px solid var(--sp-line-soft)",
-      }}
-    >
-      <span style={{ flex: "none", width: 34, display: "flex", paddingTop: 1 }}>{mark}</span>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ display: "block", fontSize: "var(--sp-text-body)" }}>
+    // THE STOPS ARE `Row`'s, NOT A SECOND SET. A transcript line and a list row
+    // sit on the same screen here, so the mark slot (34px), the gutter (13px)
+    // and the timestamp (12px mono, mute) are the ones `meridian/rows` already
+    // measured. The divider stays `--mrd-line-soft`, which is the token `Row`
+    // itself uses BETWEEN consecutive rows: it separates items in a list rather
+    // than framing a region, so it is not one of the section rules that were
+    // retired.
+    <div className="flex items-start gap-[13px] border-t border-mrd-line-soft py-mrd-5">
+      <span className="flex w-[34px] flex-none pt-px">{mark}</span>
+      <div className="min-w-0 flex-1">
+        <span className="block text-[14px]">
           <Who>{who}</Who>
         </span>
         <div
+          className="mt-mrd-2 text-[14px] leading-relaxed text-mrd-body"
           style={{
-            marginTop: "var(--sp-space-1)",
             whiteSpace: plain ? "pre-wrap" : undefined,
             overflowWrap: "anywhere",
-            fontSize: "var(--sp-text-prose)",
-            lineHeight: "var(--sp-leading-body)",
-            color: "var(--sp-body)",
           }}
         >
           {children}
         </div>
       </div>
       {at ? (
-        <span style={{ flex: "none", fontSize: "var(--sp-text-data)", color: "var(--sp-mute)" }}>
+        <span className="flex-none text-[12px] text-mrd-mute">
           <Num>{at}</Num>
         </span>
       ) : null}
@@ -467,225 +477,256 @@ function ThreadsSurface() {
   return (
     <Surface
       context={
-        <>
-          <div className="sp-ctx-head">Who you are talking to</div>
-          <div className="sp-ctx-row">
-            <AgentMark slug={ANSWERED_BY} state="quiet" />
-            <span>
-              <span className="sp-ctx-name">{agentDisplayName(ANSWERED_BY)}</span>
-              <span className="sp-ctx-sub">{agentBlurb(ANSWERED_BY)}</span>
-            </span>
-          </div>
-          <div className="sp-ctx-body">
-            Ask goes here first. It answers, or it starts a run and the crew works it. Which of the
-            crew wrote a line is not kept on the message, so nothing here guesses.
+        // THE COLUMN COMPOSES `ContextColumn` NOW, instead of re-drawing it.
+        // This file hand-wrote `sp-ctx-head`, `sp-ctx-row`, `sp-ctx-name`,
+        // `sp-ctx-sub` and `sp-ctx-body` as raw divs, so the retired paint
+        // survived every component-level port: there was no component here to
+        // swap. The three real parts carry the same information model, and the
+        // name/sub pair that was two hand-rolled spans is `CtxRow`'s own slots.
+        //
+        // The rhythm is stated here because the retired classes carried it in a
+        // stylesheet: `gap-mrd-6` between the column's groups, `gap-mrd-4`
+        // within one, which is the shape the ported Learn and spec columns use.
+        <div className="flex flex-col gap-mrd-6">
+          <div className="flex flex-col gap-mrd-4">
+            <CtxHead>Who you are talking to</CtxHead>
+            <CtxRow
+              mark={<AgentMark slug={ANSWERED_BY} state="quiet" />}
+              name={agentDisplayName(ANSWERED_BY)}
+              sub={agentBlurb(ANSWERED_BY)}
+            />
+            <CtxBody>
+              Ask goes here first. It answers, or it starts a run and the crew works it. Which of
+              the crew wrote a line is not kept on the message, so nothing here guesses.
+            </CtxBody>
           </div>
 
-          <div className="sp-ctx-head">Find a thread</div>
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Anything that was said"
-            aria-label="Search your threads"
-          />
-          {activeProductId ? (
-            <Line label="This product only" sub={activeProduct?.name ?? undefined}>
-              <Switch
-                checked={thisProductOnly}
-                onChange={setThisProductOnly}
-                label="Show only threads in this product"
-              />
-            </Line>
-          ) : null}
+          <div className="flex flex-col gap-mrd-4">
+            <CtxHead>Find a thread</CtxHead>
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Anything that was said"
+              aria-label="Search your threads"
+            />
+            {activeProductId ? (
+              <Line label="This product only" sub={activeProduct?.name ?? undefined}>
+                <Toggle
+                  checked={thisProductOnly}
+                  onChange={setThisProductOnly}
+                  label="Show only threads in this product"
+                />
+              </Line>
+            ) : null}
 
-          {list.isError ? (
-            <Failed onRetry={() => void list.refetch()}>Your threads did not load.</Failed>
-          ) : searching && found.isError ? (
-            <Failed onRetry={() => void found.refetch()}>The search did not run.</Failed>
-          ) : list.isLoading || (searching && found.isLoading) ? null : visible.length === 0 ? (
-            <Empty>
-              {searching ? "Nothing said matches that." : "No threads in this product yet."}
-            </Empty>
-          ) : (
-            <>
-              {groups.map((g) => (
-                <div key={g.label} style={{ marginTop: "var(--sp-space-5)" }}>
-                  <div className="sp-ctx-head">{g.label}</div>
-                  {g.items.map((t) => (
-                    <Row
-                      key={t.id}
-                      tight
-                      focused={t.id === selectedId}
-                      marks={
-                        t.lastRole === "user" ? (
-                          <YouMark initials={initials} />
-                        ) : (
-                          // Ember only when this thread genuinely holds
-                          // something waiting on your call.
-                          <AgentMark slug={ANSWERED_BY} state={t.waiting ? "gate" : "quiet"} />
-                        )
-                      }
-                      lead={t.title}
-                      // A DIFFERENT fact, not more of the title: the one state
-                      // that needs you, else what was last said.
-                      sub={
-                        t.waiting
-                          ? "A line from this waits for your call"
-                          : t.inBrain
-                            ? "A line from this is in the brain"
-                            : t.snippet || undefined
-                      }
-                      time={clock(t.updatedAt)}
-                      onClick={() => open(t.id)}
-                    />
-                  ))}
-                </div>
-              ))}
-              {!searching && visible.length > SHOWN ? (
-                <Empty>
-                  <Num>{visible.length - SHOWN}</Num> more above. Search finds a thread by anything
-                  said inside it.
-                </Empty>
-              ) : null}
-            </>
-          )}
-        </>
+            {list.isError ? (
+              <ReadFailedLine onRetry={() => void list.refetch()}>
+                Your threads did not load.
+              </ReadFailedLine>
+            ) : searching && found.isError ? (
+              <ReadFailedLine onRetry={() => void found.refetch()}>
+                The search did not run.
+              </ReadFailedLine>
+            ) : list.isLoading || (searching && found.isLoading) ? null : visible.length === 0 ? (
+              <NothingHere>
+                {searching ? "Nothing said matches that." : "No threads in this product yet."}
+              </NothingHere>
+            ) : (
+              <div className="flex flex-col gap-mrd-6">
+                {groups.map((g) => (
+                  <div key={g.label} className="flex flex-col gap-mrd-3">
+                    <CtxHead>{g.label}</CtxHead>
+                    {/* The rows stay adjacent siblings: `Row` draws its divider
+                        with a `+ [data-mrd-row]` variant, so anything wedged
+                        between two rows takes the rule away with it. */}
+                    <div>
+                      {g.items.map((t) => (
+                        <Row
+                          key={t.id}
+                          tight
+                          focused={t.id === selectedId}
+                          marks={
+                            t.lastRole === "user" ? (
+                              <YouMark initials={initials} />
+                            ) : (
+                              // Ember only when this thread genuinely holds
+                              // something waiting on your call.
+                              <AgentMark slug={ANSWERED_BY} state={t.waiting ? "gate" : "quiet"} />
+                            )
+                          }
+                          lead={t.title}
+                          // A DIFFERENT fact, not more of the title: the one state
+                          // that needs you, else what was last said.
+                          sub={
+                            t.waiting
+                              ? "A line from this waits for your call"
+                              : t.inBrain
+                                ? "A line from this is in the brain"
+                                : t.snippet || undefined
+                          }
+                          time={clock(t.updatedAt)}
+                          onClick={() => open(t.id)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                {!searching && visible.length > SHOWN ? (
+                  <NothingHere>
+                    <Num>{visible.length - SHOWN}</Num> more above. Search finds a thread by
+                    anything said inside it.
+                  </NothingHere>
+                ) : null}
+              </div>
+            )}
+          </div>
+        </div>
       }
     >
-      <PageHead
-        title={
-          editing ? (
-            <Input
-              autoFocus
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && draft.trim()) rename.mutate(draft.trim());
-                if (e.key === "Escape") setEditing(false);
-              }}
-              aria-label="Thread name"
-              style={{
-                font: "inherit",
-                height: "auto",
-                padding: "2px 10px",
-              }}
-            />
-          ) : (
-            headline
-          )
-        }
-        sub={editing ? "Enter saves it. Escape leaves it alone." : sub}
-      />
-
-      {selectedId && !thread.isError ? (
-        <Actions>
-          {editing ? (
-            <>
-              <Button
-                variant="primary"
-                disabled={!draft.trim() || rename.isPending}
-                onClick={() => rename.mutate(draft.trim())}
-              >
-                Save the name
-              </Button>
-              <Button variant="ghost" onClick={() => setEditing(false)}>
-                Cancel
-              </Button>
-            </>
-          ) : (
-            <>
-              {/* THE WAY BACK INTO ASK, and the reason it is the primary here.
-                  Ask and Threads are ONE OBJECT AT TWO MOMENTS: Ask is the
-                  conversation happening, this is the same conversation
-                  remembered. Both read `conversations`. Without this control the
-                  second half of that claim is a description of the schema rather
-                  than something a person can do, so re-reading and continuing
-                  become one motion and this is the forward action on the
-                  surface. "Keep the last answer" steps down to default: one
-                  primary per screen, and keeping is the side errand. */}
-              <Button variant="primary" onClick={reopenInAsk}>
-                Continue in Ask
-              </Button>
-              {/* Rendered only when there IS a crew answer to keep. A control
-                  that cannot act teaches people the controls are decorative. */}
-              {canKeep ? (
-                <Button disabled={keep.isPending} onClick={() => keep.mutate()}>
-                  Keep the last answer
-                </Button>
-              ) : null}
-              <Button onClick={() => void copyLink()}>Copy link</Button>
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  setDraft(title);
-                  setEditing(true);
+      {/* THE RHYTHM BETWEEN REGIONS, STATED HERE. `.sp-block` carried a 36px
+          top margin and a rule above every section, so this page's spacing lived
+          in a stylesheet. `Region` draws neither, so the surface owns it, and
+          `gap-mrd-6` is the step every ported surface uses between regions. The
+          between-region hairlines do not come back. */}
+      <div data-mrd="" className="flex flex-col gap-mrd-6">
+        <PageHeading
+          title={
+            editing ? (
+              <Input
+                autoFocus
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && draft.trim()) rename.mutate(draft.trim());
+                  if (e.key === "Escape") setEditing(false);
                 }}
-              >
-                Rename
-              </Button>
-            </>
-          )}
-        </Actions>
-      ) : null}
+                aria-label="Thread name"
+                style={{
+                  font: "inherit",
+                  height: "auto",
+                  padding: "2px 10px",
+                }}
+              />
+            ) : (
+              headline
+            )
+          }
+          sub={editing ? "Enter saves it. Escape leaves it alone." : sub}
+        />
 
-      {notes.length > 0 ? (
-        <Block title="What you did here">
-          {notes.map((n) => (
-            <Receipt
-              key={n.key}
-              initials={initials}
-              verb={n.verb}
-              consequence={n.consequence}
-              time={n.at}
-              failed={n.failed}
-            />
-          ))}
-        </Block>
-      ) : null}
+        {selectedId && !thread.isError ? (
+          <Actions>
+            {editing ? (
+              <>
+                <Action
+                  variant="primary"
+                  disabled={!draft.trim() || rename.isPending}
+                  onClick={() => rename.mutate(draft.trim())}
+                >
+                  Save the name
+                </Action>
+                <Action variant="quiet" onClick={() => setEditing(false)}>
+                  Cancel
+                </Action>
+              </>
+            ) : (
+              <>
+                {/* THE WAY BACK INTO ASK, and the reason it is the primary here.
+                    Ask and Threads are ONE OBJECT AT TWO MOMENTS: Ask is the
+                    conversation happening, this is the same conversation
+                    remembered. Both read `conversations`. Without this control the
+                    second half of that claim is a description of the schema rather
+                    than something a person can do, so re-reading and continuing
+                    become one motion and this is the forward action on the
+                    surface. "Keep the last answer" steps down to default: one
+                    primary per screen, and keeping is the side errand. */}
+                <Action variant="primary" onClick={reopenInAsk}>
+                  Continue in Ask
+                </Action>
+                {/* Rendered only when there IS a crew answer to keep. A control
+                    that cannot act teaches people the controls are decorative. */}
+                {canKeep ? (
+                  <Action disabled={keep.isPending} onClick={() => keep.mutate()}>
+                    Keep the last answer
+                  </Action>
+                ) : null}
+                <Action onClick={() => void copyLink()}>Copy link</Action>
+                <Action
+                  variant="quiet"
+                  onClick={() => {
+                    setDraft(title);
+                    setEditing(true);
+                  }}
+                >
+                  Rename
+                </Action>
+              </>
+            )}
+          </Actions>
+        ) : null}
 
-      {/* Three states, three primitives, on both reads (2026-08-10).
+        {notes.length > 0 ? (
+          <Region title="What you did here">
+            {notes.map((n) => (
+              <Receipt
+                key={n.key}
+                initials={initials}
+                verb={n.verb}
+                consequence={n.consequence}
+                time={n.at}
+                failed={n.failed}
+              />
+            ))}
+          </Region>
+        ) : null}
+
+        {/* Three states, three primitives, on both reads (2026-08-10).
           Both branches used `isLoading ? null`, so a cold load rendered
           nothing and then announced that nothing had ever been asked. A read
           in flight was indistinguishable from an empty workspace, which is the
-          one confusion Empty, Failed and Loading exist to prevent.
+          one confusion NothingHere, ReadFailedLine and Reading exist to prevent.
           The list read also had no error arm at all, while the thread read two
           lines below it did. Same page, same shape of failure, one of them
           silent: a failed list would also have claimed the workspace was
           empty. */}
-      {!selectedId ? (
-        list.isLoading ? (
-          <Loading>Reading what has been asked.</Loading>
-        ) : list.isError ? (
-          <Failed onRetry={() => void list.refetch()}>The thread list did not load.</Failed>
+        {!selectedId ? (
+          list.isLoading ? (
+            <Reading>Reading what has been asked.</Reading>
+          ) : list.isError ? (
+            <ReadFailedLine onRetry={() => void list.refetch()}>
+              The thread list did not load.
+            </ReadFailedLine>
+          ) : (
+            <NothingHere>Nothing has been asked in this workspace yet.</NothingHere>
+          )
+        ) : thread.isError ? (
+          <ReadFailedLine onRetry={() => void thread.refetch()}>
+            This thread did not open.
+          </ReadFailedLine>
+        ) : thread.isLoading ? (
+          <Reading>Opening the thread.</Reading>
+        ) : messages.length === 0 ? (
+          <NothingHere>This thread has no messages yet.</NothingHere>
         ) : (
-          <Empty>Nothing has been asked in this workspace yet.</Empty>
-        )
-      ) : thread.isError ? (
-        <Failed onRetry={() => void thread.refetch()}>This thread did not open.</Failed>
-      ) : thread.isLoading ? (
-        <Loading>Opening the thread.</Loading>
-      ) : messages.length === 0 ? (
-        <Empty>This thread has no messages yet.</Empty>
-      ) : (
-        <Block title="What was said">
-          {messages.map((m, i) => {
-            const isYou = m.role === "user";
-            const text = typeof m.content === "string" ? m.content : "";
-            return (
-              <Said
-                key={m.id ?? i}
-                mark={
-                  isYou ? (
-                    <YouMark initials={initials} />
-                  ) : (
-                    <AgentMark slug={ANSWERED_BY} state="quiet" />
-                  )
-                }
-                who={isYou ? "You" : agentDisplayName(ANSWERED_BY)}
-                at={clock(m.createdAt)}
-                plain={isYou}
-              >
-                {/* THE CREW'S WORDS GO THROUGH THE ONE RENDERER, and this
+          <Region title="What was said">
+            {messages.map((m, i) => {
+              const isYou = m.role === "user";
+              const text = typeof m.content === "string" ? m.content : "";
+              return (
+                <Said
+                  key={m.id ?? i}
+                  mark={
+                    isYou ? (
+                      <YouMark initials={initials} />
+                    ) : (
+                      <AgentMark slug={ANSWERED_BY} state="quiet" />
+                    )
+                  }
+                  who={isYou ? "You" : agentDisplayName(ANSWERED_BY)}
+                  at={clock(m.createdAt)}
+                  plain={isYou}
+                >
+                  {/* THE CREW'S WORDS GO THROUGH THE ONE RENDERER, and this
                     surface was the second place they did not.
                     `Answer` (src/components/ask/Answer.tsx) exists because the
                     founder read `### Workspace Status` and `**finalizing**`
@@ -705,12 +746,13 @@ function ThreadsSurface() {
                     heading, and their newlines are the only structure they
                     have. Parsing their text would rewrite what they said, which
                     is a worse defect than the one being fixed. */}
-                {isYou ? text : <Answer>{text}</Answer>}
-              </Said>
-            );
-          })}
-        </Block>
-      )}
+                  {isYou ? text : <Answer>{text}</Answer>}
+                </Said>
+              );
+            })}
+          </Region>
+        )}
+      </div>
     </Surface>
   );
 }
