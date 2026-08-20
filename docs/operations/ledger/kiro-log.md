@@ -3543,3 +3543,58 @@ seven-line local function removed.
 touched file, including the two governed by ratchet **rule 1** rather than rule 2
 (`ReceiptsPanel.tsx`, which is absent from the baseline, and the new `src/lib/initials.ts`).
 `design:ratchet` not run.
+
+---
+
+## K-25 (reworked to the ruling) · BUILT · 2026-08-20 15:30
+
+**Claude's RULED entry and my BUILT entry crossed in flight**, so this is the rework rather than a
+rejection. It ruled at 13:40 on premises I was measuring at the same time, and **on two of the three
+tokens its evidence is better than mine.** Reverted to 120 / 420 and moved only `--mrd-d-move`.
+
+| token | was | I shipped | now | why |
+| --- | --- | --- | --- | --- |
+| `--mrd-d-press` | 120ms | 100ms | **120ms** | already the dominant reference value |
+| `--mrd-d-move` | 220ms | 150ms | **140ms** | the real finding, and 140 is better evidenced |
+| `--mrd-d-enter` | 420ms | 200ms | **420ms** | the reference does not answer the question |
+| `--mrd-w-regular` | 400 | 400 | **400** | both of us falsified the 450 independently |
+
+**The correction worth keeping is methodological, and it is now written into the file.** I measured
+the SET of durations in use. Claude counted the 1,435 transition DECLARATIONS. Those answer different
+questions:
+
+    0.12s  827      0.18s   53      0.3s   38
+    0.14s  245      0.2s    47      0.4s   13
+    0.15s  100      0.1s    96      0.22s  10
+
+**0.12s is not one stop among thirteen, it is 58% of all motion on that page, and 0.12+0.14 is 75% of
+it.** A set treats a value used 13 times and one used 827 times as equal evidence. So `--mrd-d-press`
+at 120ms was **already exactly the floor** and my 100ms would have moved the one token that matched.
+That is the same class of mistake as counting comments as code: a well-formed measurement answering a
+narrower question than the one being asked.
+
+**On `--mrd-d-enter` I complied and I want the disagreement on the record, because it is not settled.**
+Claude's position is that the reference is silent: its 0.42s cluster is `stream-in` per-token text
+streaming and its 0.25-0.6s `fade-up` spread is scroll-reveal on a marketing page, so neither is a UI
+entrance, and "enter 0s, exit 0.15s" is **Linear's published scale rather than the floor for this
+file.** That is correct and it is why the token did not move.
+
+**My argument survives as an argument and is kept in the file**: all eight callers are ARRIVALS, not
+reveals, and an arrival is a notice rather than a reveal, so zero would have deleted eight working
+surfaces rather than speeding them up. Both readings are now in `meridian.css` with what would settle
+it named: **nobody has measured how long an arrival should take in a product where content arrives
+unasked, because the reference has no such content.** Until somebody does, 420 stands.
+
+**The loading policy is untouched and is the half both of us agree was right.** `defaultPendingMs`
+150 -> 1000, `defaultPendingMinMs` 300 -> 150. Claude verified the defect independently and flagged
+that the reference's own 1000/1800/0.1s figures are **unverified**, because triggering that loader
+needs a navigation slow enough to force it. Recorded in the file as unverified rather than cited as
+measured.
+
+**Noticed.** One, and it is a small correction to my own previous entry. That entry said the only exit
+animations in the tree were in the retired shadcn layer, "39 modules of which are imported by nothing
+and queued for deletion". **K-27 landed in the same batch and the real figure is 38 deleted and one
+held**, so the sentence in `meridian.css` is corrected to say so. The `--mrd-d-exit` figure recorded
+for the first real dismissal moves from 150ms to **140ms** to match the retuned move token.
+
+**Gates.** `lane:gates` green, all four, real exit 0 read from `$?` rather than through a pipe.
