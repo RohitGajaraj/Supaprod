@@ -40,8 +40,25 @@ import * as React from "react";
  * answered rather than reverted.
  */
 
-const FOCUS =
-  "focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]";
+/*
+ * ── THE RING IS INHERITED, AND THE CONSTANT THAT USED TO BE HERE PAINTED
+ *    NOTHING ────────────────────────────────────────────────────────────
+ * A `FOCUS` constant declaring `focus-visible:outline-*` sat here, spelled
+ * correctly and pointing at the right token. It was inert. The authenticated
+ * app mounts `[data-obsidian]` on <html>, `src/styles.css` carries an UNLAYERED
+ * `[data-obsidian] :focus-visible` rule, and unlayered CSS beats every layer
+ * whatever the specificity, so a Tailwind utility could not win. `data-mrd` on
+ * the root is the mechanism that actually paints.
+ *
+ * `mrd-focus-inset` STAYS AS A CLASS, and it is not a focus utility. It is a
+ * real class in meridian.css that needs a `data-mrd` ANCESTOR rather than the
+ * attribute on itself, and it moves the ring inside the control. A run row sits
+ * in a column that clips, and an outset ring there comes back sheared in half.
+ * The attribute is on the strip AND on the button so a `RowAction` dropped
+ * somewhere on its own still takes a ring: inside the strip the inset rule
+ * scores (0,3,1) and wins the offset, standing alone the button's own (0,3,0)
+ * rule paints the outset ring. Both draw something, which is the point.
+ */
 
 export function RowAction({
   destructive = false,
@@ -55,9 +72,10 @@ export function RowAction({
   return (
     <button
       type="button"
-      className={`inline-flex h-[22px] shrink-0 items-center rounded-mrd-xs px-1.5 text-[12px] font-medium whitespace-nowrap transition-colors hover:bg-mrd-hover hover:text-mrd-ink disabled:pointer-events-none disabled:opacity-45 ${
+      data-mrd=""
+      className={`mrd-focus-inset inline-flex h-[22px] shrink-0 items-center rounded-mrd-xs px-1.5 text-[12px] font-medium whitespace-nowrap transition-colors hover:bg-mrd-hover hover:text-mrd-ink disabled:pointer-events-none disabled:opacity-45 ${
         destructive ? "border border-mrd-edge text-mrd-body" : "text-mrd-mute"
-      } ${FOCUS} ${className ?? ""}`}
+      } ${className ?? ""}`}
       style={{ transitionDuration: "var(--mrd-d-press)" }}
       {...rest}
     >
@@ -81,7 +99,7 @@ export function RowActions({
   destructive?: React.ReactNode;
 }) {
   return (
-    <span className="flex items-center justify-end gap-1.5">
+    <span data-mrd="" className="flex items-center justify-end gap-1.5">
       {children}
       {destructive ? (
         <>

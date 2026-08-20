@@ -4845,3 +4845,43 @@ occurrences, 247 → 242 files carrying debt, 24 counts reclaimed** across K-44/
 **Owed to Claude, on all five.** None of these was looked at in a browser. Several surfaces now rest
 on `gap-mrd-6` where a retired stylesheet owned the rhythm, and a few lost a between-region hairline.
 `pricing.tsx` wants that pass most, because it stopped being force-dark.
+
+---
+
+## K-69 · BUILT · 2026-08-20 18:41
+
+**Did.** Removed the dead `focus-visible:outline-*` declarations from six components —
+`engine-room/RoomCard.tsx`, `engine-room/ConnectionStrip.tsx`, `runs/RowActions.tsx`,
+`design/DrawingsTable.tsx`, `supaprod/AuditTag.tsx`, `billing/BillingBanner.tsx` — and tagged each
+root with `data-mrd=""`, which is the mechanism that actually paints. Added
+`src/__tests__/focus-ring-is-inherited.test.ts` (298 lines) to keep the next one from being written.
+
+**The premise holds, and the mechanism is worth stating plainly** because it is not a specificity
+problem and cannot be fixed by winning one. The authenticated app mounts `[data-obsidian]` on
+`<html>`; `src/styles.css` carries an **unlayered** `[data-obsidian] :focus-visible` rule; unlayered
+CSS beats every `@layer` regardless of specificity. A Tailwind `focus-visible:outline-*` utility
+lands in the `utilities` layer, so it is **permanently inert** in the authenticated app. Every one of
+these declarations was wrong twice: it lost the cascade, and it named the legacy `--focus-ring` alias
+rather than Meridian's status-free neutral, so it would have painted the wrong colour had it won.
+
+**Unsure.** Two, and they pull opposite ways.
+1. **I scoped the guard to what I fixed, with 14 written exemptions.** Six live files carry genuinely
+   broken rings and are owned by other queue items. Widening the fix collides with those items;
+   weakening the guard so it passes everywhere makes it decorative. So the test fails on any **new**
+   untagged focus declaration and each exemption carries a reason and a date, plus a second test that
+   fails when an exemption stops describing a real file — otherwise the list quietly becomes fiction.
+   **If a reviewer wants one number rather than a list, this is the decision to reopen.**
+2. **`AuditTag` got the tag on the wrapper, not on each control.** Its two controls are
+   `role="button"` spans, so the ring is the only thing telling a keyboard reader where they are.
+   Tagging the wrapper is the smaller diff and inherits correctly; tagging both controls is more
+   explicit. I took inheritance.
+
+**Noticed.** **K-69 reclaimed zero ratchet counts, and that is not a failure.** `--focus-ring` and
+`--mrd-focus` are not ratchet markers, so 58 broken rings were invisible to the guard that is
+supposed to catch retired vocabulary. The debt number did not move; the app got more usable. **The
+count and the quality are measuring different things here**, and the item's 58 does not appear
+anywhere in the baseline before or after.
+
+**Gates.** tsc 0 · test 0 fail · build pass · docs:check pass. `lane:gates` green, real exit 0.
+**Owed.** Not looked at in a browser, and a focus ring is exactly the thing a test cannot confirm is
+visible. A keyboard tab through the engine room and the runs table in both grounds would settle it.

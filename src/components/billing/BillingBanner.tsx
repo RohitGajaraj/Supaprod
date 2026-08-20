@@ -111,8 +111,20 @@ export function BillingBanner() {
     <>
       {/* LOOM W1: the checkout-preview banner is contextual to billing
           surfaces only (chrome-quiet law); Settings mounts its own. */}
+      {/* `data-mrd` on both banner roots, because the ring is inherited rather
+          than declared. All three controls in this file used to ask for a
+          `focus-visible:outline-*` of their own and none of them got one: the
+          authenticated app mounts `[data-obsidian]` on <html>, `src/styles.css`
+          carries an UNLAYERED `[data-obsidian] :focus-visible` rule, and
+          unlayered CSS beats every layer whatever the specificity, so a Tailwind
+          utility in the `utilities` layer could not win. They also named the
+          legacy `--focus-ring` alias rather than Meridian's status-free neutral.
+          Both branches are tagged because each is a root in its own right: a
+          banner that renders only when the card failed cannot borrow the
+          attribute from a sibling that is not on screen. */}
       {pastDue ? (
         <div
+          data-mrd=""
           className="flex w-full items-center justify-center gap-3 px-4 py-2 text-xs"
           style={{
             borderBottom: "1px solid color-mix(in oklab, var(--rose) 35%, transparent)",
@@ -125,7 +137,7 @@ export function BillingBanner() {
             type="button"
             onClick={openPortal}
             disabled={opening}
-            className="rounded-[8px] px-2.5 py-1 text-[11px] font-medium outline-none hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] disabled:opacity-60"
+            className="rounded-[8px] px-2.5 py-1 text-[11px] font-medium hover:opacity-90 disabled:opacity-60"
             style={{ background: "var(--rose)", color: "var(--destructive-foreground)" }}
           >
             {opening ? "Opening..." : "Update card"}
@@ -134,6 +146,7 @@ export function BillingBanner() {
       ) : null}
       {!pastDue && runningLow ? (
         <div
+          data-mrd=""
           className="flex w-full items-center justify-center gap-3 px-4 py-1.5 text-xs"
           style={{
             borderBottom: "1px solid var(--hairline)",
@@ -148,7 +161,7 @@ export function BillingBanner() {
           <Link
             to="/settings"
             search={{ section: "credits" }}
-            className="outline-none hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+            className="hover:underline"
             style={{ color: "var(--action-blue)", fontWeight: 500 }}
           >
             Add credits
@@ -156,7 +169,7 @@ export function BillingBanner() {
           <button
             type="button"
             onClick={dismissLow}
-            className="cursor-pointer outline-none [color:var(--text-subtle)] hover:underline hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+            className="cursor-pointer [color:var(--text-subtle)] hover:underline hover:[color:var(--text-primary)]"
             style={{ background: "transparent", border: "none" }}
           >
             Later

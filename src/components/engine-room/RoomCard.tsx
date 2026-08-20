@@ -34,12 +34,22 @@ export const RoomCard = React.forwardRef<HTMLButtonElement, RoomCardProps>(
       ref={ref}
       type="button"
       onClick={onOpen}
+      /* THE RING IS INHERITED, NOT DECLARED. This card used to ask for one in
+       * its own class names and never got it: the authenticated app mounts
+       * `[data-obsidian]` on <html>, `src/styles.css` carries an UNLAYERED
+       * `[data-obsidian] :focus-visible` rule, and unlayered CSS beats every
+       * layer whatever the specificity, so a Tailwind utility (which lands in
+       * the `utilities` layer) is permanently inert here. The old declaration
+       * was wrong twice over: it lost the cascade AND it named the legacy
+       * `--focus-ring` alias rather than Meridian's status-free neutral, so it
+       * would have painted the wrong colour even if it had won. `data-mrd` is
+       * the mechanism that actually paints, per the rule in meridian.css. */
+      data-mrd=""
       className={cn(
-        "grid text-left outline-none material-medium",
+        "grid text-left material-medium",
         "hover:[background-color:var(--hover)]",
         "hover:[box-shadow:var(--shadow-raised)]",
         "active:scale-[0.98]",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]",
         className,
       )}
       style={{

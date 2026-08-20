@@ -11,9 +11,15 @@ function providerLabel(provider: string): string {
   return CONNECTOR_REGISTRY[provider as ProviderId]?.label ?? provider;
 }
 
-/** Shared link treatment for the card's one door to /sync. Focus ring rides
- * the global [data-obsidian] :focus-visible rule plus the explicit outline
- * classes (never removed, Tempo law). */
+/** Shared link treatment for the card's one door to /sync. It carries no focus
+ * treatment of its own, and the reason is worth keeping: the ring is owned by
+ * meridian.css and reaches every control under a `data-mrd` root. The outline
+ * utilities that used to sit here were inert. The authenticated app mounts
+ * `[data-obsidian]` on <html>, `src/styles.css` carries an UNLAYERED
+ * `[data-obsidian] :focus-visible` rule, and unlayered CSS beats every layer
+ * whatever the specificity, so a Tailwind utility could not win no matter what
+ * colour it named. Each of this component's four returns carries `data-mrd`
+ * instead, which is the mechanism that actually paints. */
 const doorLink: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
   letterSpacing: "0.11em",
@@ -22,9 +28,6 @@ const doorLink: React.CSSProperties = {
   textDecoration: "none",
   whiteSpace: "nowrap",
 };
-
-const focusRing =
-  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]";
 
 /** Links must answer the pointer too, not only the keyboard. */
 const linkHover = "hover:underline";
@@ -78,7 +81,7 @@ export function ConnectionStrip() {
 
   if (q.isLoading) {
     return (
-      <div className="flex items-center material-small" style={strip}>
+      <div data-mrd="" className="flex items-center material-small" style={strip}>
         {title}
         <span
           aria-hidden="true"
@@ -99,7 +102,7 @@ export function ConnectionStrip() {
 
   if (q.isError) {
     return (
-      <div className="flex flex-wrap items-center material-small" style={strip}>
+      <div data-mrd="" className="flex flex-wrap items-center material-small" style={strip}>
         {title}
         <span
           style={{
@@ -111,7 +114,7 @@ export function ConnectionStrip() {
         </span>
         <button
           type="button"
-          className={`uppercase cursor-pointer hover:underline active:opacity-80 ${focusRing}`}
+          className="uppercase cursor-pointer hover:underline active:opacity-80"
           onClick={() => {
             void q.refetch();
             if (sync.isError) void sync.refetch();
@@ -128,7 +131,7 @@ export function ConnectionStrip() {
           RETRY
         </button>
         <span className="flex-1" />
-        <Link to="/sync" className={`${focusRing} ${linkHover}`} style={doorLink}>
+        <Link to="/sync" className={linkHover} style={doorLink}>
           OPEN SYNC &amp; BINDINGS →
         </Link>
       </div>
@@ -168,7 +171,7 @@ export function ConnectionStrip() {
     <Link
       to="/sync"
       search={{ conflict: conflicts[0]!.id }}
-      className={`inline-flex items-center uppercase ${focusRing} ${linkHover}`}
+      className={`inline-flex items-center uppercase ${linkHover}`}
       aria-label={`${conflicts.length} sync ${conflicts.length === 1 ? "conflict needs" : "conflicts need"} your call. Open the first one.`}
       style={{
         gap: "6px",
@@ -200,7 +203,7 @@ export function ConnectionStrip() {
 
   if (bindings.length === 0) {
     return (
-      <div className="flex flex-wrap items-center material-small" style={strip}>
+      <div data-mrd="" className="flex flex-wrap items-center material-small" style={strip}>
         {title}
         <span
           style={{
@@ -211,7 +214,7 @@ export function ConnectionStrip() {
           No sources connected to this workspace yet.
         </span>
         <span className="flex-1" />
-        <Link to="/sync" className={`${focusRing} ${linkHover}`} style={doorLink}>
+        <Link to="/sync" className={linkHover} style={doorLink}>
           OPEN SYNC &amp; BINDINGS →
         </Link>
       </div>
@@ -222,7 +225,7 @@ export function ConnectionStrip() {
   const more = bindings.length - shown.length;
 
   return (
-    <div className="flex flex-wrap items-center material-small" style={strip}>
+    <div data-mrd="" className="flex flex-wrap items-center material-small" style={strip}>
       {title}
       {shown.map((b) => {
         const connected = b.connection_status === "connected";
@@ -277,7 +280,7 @@ export function ConnectionStrip() {
       ) : null}
       {conflictVerdict}
       <span className="flex-1" />
-      <Link to="/sync" className={`${focusRing} ${linkHover}`} style={doorLink}>
+      <Link to="/sync" className={linkHover} style={doorLink}>
         OPEN SYNC &amp; BINDINGS →
       </Link>
     </div>

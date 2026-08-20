@@ -63,8 +63,19 @@ export function AuditTag({
    * product and stay out of the shop window. */
   const defaultTitle = `Trace ${tag}: its full audit trail`;
 
+  /* THE RING IS INHERITED, NOT DECLARED. Both controls below used to ask for a
+   * `focus-visible:outline-*` of their own and neither got one: the
+   * authenticated app mounts `[data-obsidian]` on <html>, `src/styles.css`
+   * carries an UNLAYERED `[data-obsidian] :focus-visible` rule, and unlayered
+   * CSS beats every layer whatever the specificity, so a Tailwind utility in the
+   * `utilities` layer is permanently inert here. They also named the legacy
+   * `--focus-ring` alias rather than Meridian's status-free neutral, so they
+   * would have painted the wrong colour even if they had won. `data-mrd` on the
+   * root is the mechanism that paints, and it matters more here than on most
+   * controls: these are `role="button"` spans, so the ring is the only thing
+   * telling a keyboard reader that the trace chip is where they are. */
   return (
-    <span className="inline-flex items-center" style={{ gap: 6 }}>
+    <span data-mrd="" className="inline-flex items-center" style={{ gap: 6 }}>
       <span
         role="button"
         tabIndex={0}
@@ -81,7 +92,7 @@ export function AuditTag({
         }}
         title={title ?? defaultTitle}
         aria-label={`Trace audit id ${tag}`}
-        className="loom-press outline-none transition-colors hover:[color:var(--text-primary)] hover:[border-color:var(--hairline-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+        className="loom-press transition-colors hover:[color:var(--text-primary)] hover:[border-color:var(--hairline-strong)]"
         style={{
           fontFamily: "var(--font-mono)",
           letterSpacing: "0.06em",
@@ -113,7 +124,7 @@ export function AuditTag({
           }}
           aria-label="Copy the full trace id"
           title="Copy the full trace id"
-          className="loom-press inline-flex items-center outline-none transition-colors [color:var(--text-faint)] hover:[color:var(--text-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          className="loom-press inline-flex items-center transition-colors [color:var(--text-faint)] hover:[color:var(--text-subtle)]"
           style={{ cursor: "pointer" }}
         >
           {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}

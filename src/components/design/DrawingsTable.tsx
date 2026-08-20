@@ -65,9 +65,6 @@ const ROWS_ON_SCREEN = 12;
  *  second list would be furniture. */
 const FINDER_FLOOR = 10;
 
-const FOCUS =
-  "focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]";
-
 /**
  * Plain-words relative time. Mono and alignment are the column's job, not this
  * function's. Moved here from the route with the rows it describes.
@@ -150,6 +147,16 @@ function rank(r: DesignWorkRow, gateOn: boolean): number {
  * are looking at is not a row asking you for anything. A bar, a step up the ink
  * ramp and `aria-current` say it three ways, one of which survives greyscale
  * and one of which is spoken.
+ *
+ * THE RING IS INHERITED. A `FOCUS` constant declaring `focus-visible:outline-*`
+ * used to sit above this and painted nothing: the authenticated app mounts
+ * `[data-obsidian]` on <html>, `src/styles.css` carries an UNLAYERED
+ * `[data-obsidian] :focus-visible` rule, and unlayered CSS beats every layer
+ * whatever the specificity, so a Tailwind utility in the `utilities` layer could
+ * not win. `data-mrd` on the cell is what paints, and `mrd-focus-inset` on the
+ * button moves the ring inside it, which this cell needs because the grid clips
+ * under its pinned first column. That class wants a `data-mrd` ANCESTOR rather
+ * than the attribute on itself, which is why the attribute goes on the wrapper.
  */
 function NameCell({
   row,
@@ -163,7 +170,7 @@ function NameCell({
   onPick: (prdId: string) => void;
 }) {
   return (
-    <span className="flex min-w-0 items-center gap-2">
+    <span data-mrd="" className="flex min-w-0 items-center gap-2">
       <span
         aria-hidden
         className="h-4 w-0.5 shrink-0 rounded-full"
@@ -175,7 +182,7 @@ function NameCell({
         onClick={() => onPick(row.prdId)}
         aria-current={focused ? "true" : undefined}
         title={row.title}
-        className={`min-w-0 flex-1 truncate rounded-mrd-xs py-0.5 text-left transition-colors ${FOCUS} ${
+        className={`mrd-focus-inset min-w-0 flex-1 truncate rounded-mrd-xs py-0.5 text-left transition-colors ${
           focused ? "font-medium text-mrd-ink" : "font-normal text-mrd-body hover:text-mrd-ink"
         }`}
         style={{ transitionDuration: "var(--mrd-d-press)" }}
