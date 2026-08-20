@@ -6264,3 +6264,98 @@ standing-rule blockquote every future researcher reads first, and the item said 
 
 **No baseline movement from either item**, and `lane:gates` is green with the four gates read from
 `$?`. Session total stands at **5,157 → 3,400 occurrences, 257 → 230 files carrying debt.**
+
+---
+
+## K-31 · BUILT · 2026-08-21 01:12
+
+**Did.** Deleted **67 of the item's 75 class families** from `src/styles.css`: **102 rule blocks, 15
+`@keyframes`, 9 now-empty at-rule wrappers, 876 lines.** File **3,673 → 2,797**, which is **23.9% of
+it**. The 9 wrappers went because deleting their only inner rule left them empty: two
+`@media (hover: hover)`, one `@media (max-width: 1100px)`, one `@supports not (backdrop-filter…)` and
+five `@media (prefers-reduced-motion: reduce)`.
+
+**The eight I kept are a premise disagreement rather than a reachability finding, and it is the whole
+entry.** `styles.css` carries a **dated, reasoned, explicit DO-NOT-DELETE ruling** on the `.btn-*`
+family that the item does not acknowledge: *"THIS FAMILY IS THE RETIRED PALETTE AND IT IS STILL
+LOAD-BEARING. DO NOT DELETE IT. Marked, not cut, deliberately… Zero call sites today is not proof of
+zero call sites at the next `git pull`: this repo takes commits from more than one tool… Naming costs
+nothing and cannot regress."* **The item names 5 of the 6 that ruling covers by name**, and
+`.btn-pill` and `.btn-pill-outline` each carry their own "Kept, not cut" note. The item's Why argues
+the opposite case, that a retired name with an explanatory comment is how the next reader re-adopts
+it — **that is a real argument and it is a design disagreement with a recorded decision, so it is the
+founder's call rather than mine.** All 8 kept, zero lines touched, **~130 lines recoverable in one pass
+if the ruling is reversed.** The family also does not cleanly satisfy SUPERSEDED: `.btn`,
+`.btn-primary`, `.btn-ghost` and `.btn-sm` are live on 15 mostly-unauthenticated surfaces where the
+file says this palette is still the right one, so **there is no Meridian equivalent in force there.**
+
+**Unsure.** The method first, stated so it can be re-run, because on a deletion this size the method
+*is* the evidence.
+1. **Class census** by comment-blanking brace walker collecting `\.(-?[A-Za-z_][\w-]*)` in selector
+   position at every depth: **147 before, 80 after**. A bare `grep -o '\.[A-Za-z][\w-]*'` gives 167 and
+   is wrong, because it counts comment mentions.
+2. **Reference census on the BARE name, not `.name`**, across `tsx/ts/html/css/svg/json/md` in `src`,
+   `index.html` and `public`, excluding only the file under edit — so **composed and Tailwind-arbitrary
+   spellings cannot hide.** Every non-zero hit opened by hand to decide `className` versus `var()`
+   versus docblock.
+3. **Composition check** by enumerating every full name each family *prefix* produces across the tree.
+   Nothing composes a deleted name; the only `${}`-built strings nearby are a React key, a test id and
+   a deploy name.
+4. **Keyframe check both directions**: each `@keyframes` counted for surviving references, and every
+   `animation` value parsed to assert its target still exists. **After: 0 dangling animation names.**
+   **Five `@keyframes` were kept precisely because a surviving rule still animates them** — `fadeUp`,
+   `agent-shimmer`, `ai-pulse-sheen`, `supaprodSpin`, `cad-spin` — and **four grouped selectors were
+   edited rather than deleted** because each shared a body with a live class.
+
+**Five token-versus-class collisions resolved by deleting only the class rule**, which is the trap the
+item names: `.hairline-strong`, `.surface-3`, `.text-ink-subtle`, `.rule-strong` and `.shadow-glass`
+all went while every declaration stayed. **`--hairline-strong` is declared in FOUR places, not the
+item's five** — and that was checked properly rather than assumed: walking `git log -- src/styles.css`
+and counting the declaration per revision shows **5 at `ff6f80c4d`, 4 from `654cfbe51` on**, so K-29
+removed the shadowed copy.
+Two deletions could have gone the other way. **`.material-base` and `.material-fullscreen` are the
+shakiest of the 67**: both are zero-reference, but their family is *partly live as classes*
+(`.material-medium` 32 call sites, `.material-menu` 6, `.material-small` 6), so "an unused rung of a
+working preset ladder" is closer to **a missing door** than to superseded. I deleted them because the
+item names them and Tempo is retired, **and I treated the type ladder next door differently** — there
+the app has genuinely moved to Tailwind arbitrary values, so the surviving rungs are residue rather
+than the mechanism. Reversing the two is 10 lines. And **`.ai-working-word` was deleted against its own
+comment**, which claims "Chat and other AI surfaces consume this class; do not re-roll per surface" —
+the claim is false at 0 references, its live equivalent is `.agent-live`, and it wore the retired
+`--font-pixel`.
+
+**Noticed.** Five.
+1. **Three of the item's counts are wrong.** 147 declared classes, not 152. **129 rule blocks** touch
+   one of the 75, not 110. **876 lines, not "roughly 668"** — the item says "a sixth of the file",
+   which would be 612; the truth is closer to a quarter. Every line reference is stale as expected:
+   `.hairline-strong` was at **625**, not 606; `.rule-hairline` at **1039**, not 1020.
+2. **Four classes are equally dead and the item does not name them, so I left them**:
+   `.material-tooltip`, `.text-label-16`, `.text-label-13-mono`, `.text-tabular`.
+   **`.material-tooltip` is the sharp one** — it sits between two live rungs and is exactly as
+   unreferenced as the `.material-base` the item *does* name, so **the item's own selection inside that
+   family is internally inconsistent.**
+3. **No guard reads any of these rules as source text**, checked rather than assumed across every
+   `.test.ts`/`.test.tsx` plus `meridian-ratchet-scan.ts`: zero hits outside `styles.css`.
+   `surface-discipline.test.ts` reads only `styles/shell.css` and `styles/primitives.css` and **never
+   the root sheet**; `design-tempo-font-guard.test.ts` does open it but scans for retired font faces.
+4. **Five tokens lost their last reader to this change and I did not delete them**, because token
+   pruning is K-30's scope and the instruction was to err toward keeping: `--hero-ink` (5 readers → 0),
+   `--shadow-glass` (1 → 0), `--ds-shadow-border`, `--ds-shadow-fullscreen`, `--ds-radius-large`.
+   **`--shadow-glass` is the notable one: four declarations survive and nothing in the repo reads it.**
+5. **Two components reference type classes that exist in no stylesheet.**
+   `supaprod/Primitives.tsx:185` uses `text-heading-26` and `:364` uses `text-heading-21`, and neither
+   is declared anywhere, **so those two headings have been painting nothing.** Pre-existing and worth a
+   queue item. Also: two `@keyframes` were already orphaned before this started and still are,
+   `cadFlutter` and `cadArrive`, and I rewrote `cadFlutter`'s header so it says it is a keyframe waiting
+   on a consumer rather than pointing at a twin that no longer exists. **Three comments were corrected
+   in the same change because the deletions made them false.**
+
+**Gates.** tsc 0 · test 0 fail · build pass · docs:check pass. All seven named guards green,
+**54 pass / 0 fail**, and all four were green *before* the edit at 58 pass, so the only new signal was
+the ratchet asking for the re-freeze. **Structural check: 2,797 lines, brace balance 0, top-level
+blocks 110 → 78, and the blocks whose selector is exactly `[data-obsidian]` still 4**, unchanged
+through K-29, K-30 and now K-31. **Baseline re-frozen: 3,400 → 3,355.**
+**No dev-server look, and here that is defensible rather than owed**: every deleted class has zero call
+sites, so there is no rendered surface to compare. The things that *do* render were each confirmed by
+keeping their token declaration or their `@keyframes` and re-checking for dangling references, which
+came back empty.

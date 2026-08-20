@@ -5,7 +5,7 @@
     "It only ever moves DOWN. A file absent from this list must be clean.",
     "Do not hand-edit; do not regenerate to silence a failure."
   ],
-  "totalOccurrences": 3400,
+  "totalOccurrences": 3355,
   "fileCount": 230,
   "files": {
     "src/components/admin/admin-ui.tsx": {
@@ -928,15 +928,15 @@
       "raw-colour": 8
     },
     "src/styles.css": {
-      "--ds-": 398,
-      "--text-": 40,
-      "--hairline": 46,
+      "--ds-": 374,
+      "--text-": 39,
+      "--hairline": 40,
       "--madder": 4,
-      "--glacier": 15,
-      "--font-pixel": 5,
+      "--glacier": 12,
+      "--font-pixel": 3,
       "--raised": 9,
-      "data-obsidian": 38,
-      "raw-colour": 193
+      "data-obsidian": 33,
+      "raw-colour": 189
     },
     "src/styles/decide.css": {
       "--sp-": 1

@@ -608,9 +608,6 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
-  .animate-aurora {
-    animation: none !important;
-  }
   .ai-glow {
     animation: none !important;
     /* static glacier ring (2026-07-11): matches the recolored aiGlow */
@@ -622,12 +619,6 @@
   .hairline {
     border-color: var(--color-hairline);
   }
-  .hairline-strong {
-    border-color: var(--hairline-strong);
-  }
-  .text-ink-subtle {
-    color: var(--ink-subtle);
-  }
   .text-ink-faint {
     color: var(--ink-faint);
   }
@@ -636,12 +627,6 @@
   }
   .surface-2 {
     background-color: var(--surface-2);
-  }
-  .surface-3 {
-    background-color: var(--surface-3);
-  }
-  .shadow-glass {
-    box-shadow: var(--shadow-glass);
   }
   .shadow-elevated {
     box-shadow: var(--shadow-elevated);
@@ -846,64 +831,6 @@
   .rise-2 {
     animation: fadeUp 340ms var(--ease-out);
   }
-  .rise-3 {
-    animation: fadeUp 420ms var(--ease-out);
-  }
-
-  /* Gentle vertical drift for the small hero butterflies — transform only,
-   * calm and slow; killed by prefers-reduced-motion globally. */
-  @keyframes floatSoft {
-    from {
-      transform: translateY(0);
-    }
-    to {
-      transform: translateY(-7px);
-    }
-  }
-  .float-soft {
-    animation: floatSoft 5.6s ease-in-out infinite alternate;
-  }
-
-  /* Ghost butterfly watermark inside the hero band. */
-  .hero-ghost-mark {
-    position: absolute;
-    right: -48px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--hero-ink);
-    opacity: 0.08;
-    pointer-events: none;
-  }
-
-  /* Brand mark — butterfly wings breathe in a slow flutter.
-   * NOTE (OBS-01): the keyframes were renamed cadFlutter -> cadFlutterBrand
-   * (identical values, zero visual change) because the Obsidian v3 layer at
-   * the end of this file owns the canonical `cadFlutter` name (different
-   * amplitude, 0.72) and keyframe names are global in CSS. */
-  .cad-flutter {
-    transform-origin: 12px 12px;
-    animation: cadFlutterBrand 3.2s ease-in-out infinite alternate;
-  }
-  .cad-flutter-l {
-    transform-origin: 12px 12px;
-    animation: cadFlutterL 3.2s ease-in-out infinite alternate;
-  }
-  @keyframes cadFlutterBrand {
-    from {
-      transform: scaleX(1);
-    }
-    to {
-      transform: scaleX(0.86);
-    }
-  }
-  @keyframes cadFlutterL {
-    from {
-      transform: scaleX(1);
-    }
-    to {
-      transform: scaleX(0.86);
-    }
-  }
 
   /* Uppercase mono technical label — metadata, counts, section kickers.
    * 10px / 0.12em tracking per the design contract. */
@@ -1028,189 +955,12 @@
     background-color: color-mix(in oklab, var(--ember) 10%, transparent);
   }
 
-  /* Stone band — soft parchment block. */
-  .band-stone {
-    background-color: var(--soft-stone);
-    color: var(--ink);
-    border-radius: 12px;
-  }
-
-  /* Editorial rule — thin hairline divider for list rows. */
-  .rule-hairline {
-    border-bottom: 1px solid var(--hairline);
-  }
-  .rule-strong {
-    border-bottom: 1px solid var(--hairline-strong);
-  }
-
-  .ambient-weather {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    border-radius: 999px;
-    padding: 0.125rem 0.5rem;
-    border: 1px solid color-mix(in oklab, currentColor 28%, transparent);
-    box-shadow: inset 0 1px 0 color-mix(in oklab, var(--canvas) 42%, transparent);
-  }
-  .ambient-weather--sunny {
-    color: var(--ember);
-    background: linear-gradient(
-      90deg,
-      color-mix(in oklab, var(--ember) 20%, transparent),
-      color-mix(in oklab, var(--saffron) 12%, transparent)
-    );
-  }
-  .ambient-weather--partly {
-    color: var(--ember);
-    background: linear-gradient(
-      90deg,
-      color-mix(in oklab, var(--ember) 16%, transparent),
-      color-mix(in oklab, var(--action-blue) 10%, transparent)
-    );
-  }
-  .ambient-weather--night {
-    color: var(--action-blue);
-    background: linear-gradient(
-      90deg,
-      color-mix(in oklab, var(--hero-bg) 14%, transparent),
-      color-mix(in oklab, var(--action-blue) 12%, transparent)
-    );
-  }
-  .ambient-weather--overcast,
-  .ambient-weather--fog {
-    color: var(--ink-subtle);
-    background: linear-gradient(
-      90deg,
-      color-mix(in oklab, var(--ink-subtle) 12%, transparent),
-      color-mix(in oklab, var(--soft-stone) 55%, transparent)
-    );
-  }
-  .ambient-weather--rain,
-  .ambient-weather--showers {
-    color: var(--action-blue);
-    background: linear-gradient(
-      90deg,
-      color-mix(in oklab, var(--action-blue) 20%, transparent),
-      color-mix(in oklab, var(--pale-blue) 80%, transparent)
-    );
-  }
-  .ambient-weather--snow,
-  .ambient-weather--freezing {
-    color: var(--action-blue);
-    background: linear-gradient(
-      90deg,
-      color-mix(in oklab, var(--action-blue) 14%, transparent),
-      color-mix(in oklab, var(--pale-blue) 90%, transparent)
-    );
-  }
-  .ambient-weather--storm {
-    color: var(--agent);
-    background: linear-gradient(
-      90deg,
-      color-mix(in oklab, var(--agent) 18%, transparent),
-      color-mix(in oklab, var(--ember) 10%, transparent)
-    );
-  }
-  .ambient-weather--hot {
-    color: var(--ember);
-    background: linear-gradient(
-      90deg,
-      color-mix(in oklab, var(--ember) 24%, transparent),
-      color-mix(in oklab, var(--saffron) 16%, transparent)
-    );
-  }
-  .ambient-weather--neutral {
-    color: var(--muted-foreground);
-    background: color-mix(in oklab, var(--accent) 70%, transparent);
-  }
-
   /* Action link — indigo with underline-on-hover. */
   .link-action {
     color: var(--action-blue);
     text-decoration-line: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 3px;
-  }
-
-  /* Editorial hero — the signature plum-umber band. Slow ember·indigo·saffron
-   * aurora (::after), engraved loop rings (::before). Per supaprod/tokens.css. */
-  .hero-editorial {
-    position: relative;
-    overflow: hidden;
-    border-radius: 14px;
-    background-color: var(--hero-bg);
-    background-image: linear-gradient(
-      118deg,
-      transparent 55%,
-      color-mix(in oklab, var(--ember) 7%, transparent) 100%
-    );
-    color: var(--hero-ink);
-  }
-  .hero-editorial::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background:
-      radial-gradient(
-        46% 64% at 8% 112%,
-        color-mix(in oklab, var(--action-blue) 16%, transparent) 0%,
-        transparent 70%
-      ),
-      radial-gradient(
-        40% 58% at 64% -12%,
-        color-mix(in oklab, var(--saffron) 12%, transparent) 0%,
-        transparent 72%
-      ),
-      radial-gradient(
-        48% 72% at 104% 64%,
-        color-mix(in oklab, var(--ember) 20%, transparent) 0%,
-        transparent 70%
-      );
-    background-size: 160% 160%;
-    animation: heroFlow 16s ease-in-out infinite alternate;
-  }
-  .hero-editorial::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    background: repeating-radial-gradient(
-      circle at 84% 36%,
-      transparent 0px,
-      transparent 30px,
-      color-mix(in oklab, var(--hero-ink) 5%, transparent) 30px,
-      color-mix(in oklab, var(--hero-ink) 5%, transparent) 31px
-    );
-    -webkit-mask-image: radial-gradient(56% 110% at 84% 36%, oklch(0 0 0) 0%, transparent 72%);
-    mask-image: radial-gradient(56% 110% at 84% 36%, oklch(0 0 0) 0%, transparent 72%);
-    pointer-events: none;
-  }
-  .hero-editorial h1 {
-    font-family: var(--font-display);
-    font-optical-sizing: auto;
-    font-weight: 400;
-    letter-spacing: -0.02em;
-  }
-  .hero-editorial h1 em {
-    font-style: italic;
-    font-weight: 380;
-    color: color-mix(in oklab, var(--ember-soft) 80%, var(--hero-ink));
-  }
-  .dark .hero-editorial {
-    background-image:
-      radial-gradient(
-        50% 70% at 88% -8%,
-        color-mix(in oklab, var(--ember) 16%, transparent) 0%,
-        transparent 70%
-      ),
-      linear-gradient(
-        118deg,
-        transparent 60%,
-        color-mix(in oklab, var(--ember) 5%, transparent) 100%
-      );
-    border: 1px solid oklch(0.92 0.02 80 / 9%);
   }
 
   /* Bento card — parchment, hairline, 12px. Depth from tint, not shadow.
@@ -1244,65 +994,6 @@
   .dark .glass {
     background-color: color-mix(in oklab, var(--surface-2) 70%, transparent);
     backdrop-filter: saturate(180%) blur(20px);
-  }
-  .text-balance {
-    text-wrap: balance;
-  }
-
-  /* Soft editorial wash — parchment-tinted radials (light) / faint ember
-   * breath on char (dark). Used behind auth pages + chat empty state. */
-  .neural-gradient {
-    background:
-      radial-gradient(
-        60% 70% at 20% 30%,
-        color-mix(in oklab, var(--pale-green) 100%, transparent) 0%,
-        transparent 70%
-      ),
-      radial-gradient(
-        50% 60% at 80% 25%,
-        color-mix(in oklab, var(--pale-blue) 100%, transparent) 0%,
-        transparent 70%
-      ),
-      radial-gradient(
-        45% 55% at 60% 90%,
-        color-mix(in oklab, var(--soft-stone) 100%, transparent) 0%,
-        transparent 70%
-      );
-  }
-  .dark .neural-gradient {
-    background:
-      radial-gradient(
-        55% 75% at 18% 25%,
-        color-mix(in oklab, var(--ember) 12%, transparent) 0%,
-        transparent 70%
-      ),
-      radial-gradient(
-        50% 65% at 82% 20%,
-        color-mix(in oklab, var(--action-blue) 9%, transparent) 0%,
-        transparent 70%
-      ),
-      radial-gradient(
-        50% 60% at 62% 95%,
-        color-mix(in oklab, var(--saffron) 7%, transparent) 0%,
-        transparent 70%
-      );
-  }
-  .neural-text {
-    background: linear-gradient(
-      110deg,
-      var(--primary-ink) 0%,
-      var(--ember) 60%,
-      var(--action-blue) 100%
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  .dark .neural-text {
-    background: linear-gradient(110deg, var(--ink) 0%, var(--ember) 55%, var(--saffron) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
   }
 
   /* .ring-glow-violet removed 2026-07-11 (zero consumers; the violet-only
@@ -1399,70 +1090,6 @@
       0 10px 30px -8px color-mix(in oklab, var(--agent) 55%, transparent);
   }
 
-  /* Aurora drift — slow movement for the neural-gradient washes. */
-  @keyframes aurora {
-    0% {
-      transform: translate3d(0, 0, 0) scale(1);
-    }
-    50% {
-      transform: translate3d(-2%, 1%, 0) scale(1.03);
-    }
-    100% {
-      transform: translate3d(0, 0, 0) scale(1);
-    }
-  }
-  .animate-aurora {
-    animation: aurora 24s ease-in-out infinite;
-  }
-
-  /* Stagger entrance — small rise per child. */
-  @keyframes supaprod-rise {
-    from {
-      opacity: 0;
-      transform: translateY(6px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  .stagger-rise > * {
-    animation: supaprod-rise 320ms var(--ease-out) both;
-  }
-  .stagger-rise > *:nth-child(1) {
-    animation-delay: 0ms;
-  }
-  .stagger-rise > *:nth-child(2) {
-    animation-delay: 24ms;
-  }
-  .stagger-rise > *:nth-child(3) {
-    animation-delay: 48ms;
-  }
-  .stagger-rise > *:nth-child(4) {
-    animation-delay: 72ms;
-  }
-  .stagger-rise > *:nth-child(5) {
-    animation-delay: 96ms;
-  }
-  .stagger-rise > *:nth-child(6) {
-    animation-delay: 120ms;
-  }
-  .stagger-rise > *:nth-child(7) {
-    animation-delay: 144ms;
-  }
-  .stagger-rise > *:nth-child(8) {
-    animation-delay: 168ms;
-  }
-  .stagger-rise > *:nth-child(9) {
-    animation-delay: 192ms;
-  }
-  .stagger-rise > *:nth-child(10) {
-    animation-delay: 216ms;
-  }
-  .stagger-rise > *:nth-child(n + 11) {
-    animation-delay: 240ms;
-  }
-
   /* Entrances — transform only, never opacity (content survives print +
    * reduced motion). Per the Ember motion contract. */
   @keyframes fadeUp {
@@ -1526,19 +1153,6 @@
     border-color: var(--hairline-strong);
     box-shadow: 0 2px 8px -4px oklch(0.2 0.02 60 / 14%);
   }
-  @media (hover: hover) and (pointer: fine) {
-    .hover-lift {
-      transition:
-        transform var(--dur-base) var(--ease-out),
-        box-shadow var(--dur-base) var(--ease-out),
-        border-color var(--dur-base) var(--ease-out);
-    }
-    .hover-lift:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 30px -12px oklch(0.2 0.02 60 / 20%);
-      border-color: var(--hairline-strong);
-    }
-  }
   /* Pressable cards respond to touch (Emil: a pressable must feel heard). On
      press the lift's hover-raise yields to a small scale — instant feedback. */
   .lift:focus-visible {
@@ -1550,33 +1164,6 @@
   }
   html[data-motion="off"] .lift:active {
     transform: none;
-  }
-
-  /* receipt-card: a neutral lift on hover when the decision is still standing.
-     JS hover is avoided — the data-superseded attr drives the selector so
-     the effect only fires on live receipts, not archived ones.
-
-     The glow was ember-tinted until 2026-08-15. Hovering a card is the reader
-     moving a pointer across a list; it is not the card asking for anything, and
-     tinting it meant the accent flickered on and off under the cursor down a
-     whole page of them. Elevation alone says "this one is live" and survives
-     greyscale, which the tint never did. */
-  .receipt-card {
-    transition: box-shadow var(--dur-fast) var(--ease-out);
-  }
-  .receipt-card:not([data-superseded="true"]):hover {
-    box-shadow: 0 2px 10px -2px rgba(0, 0, 0, 0.22);
-  }
-
-  /* station-row: a quiet background tint on hover so the list feels interactive
-     without the full card-lift (these are navigation rows, not pressable cards). */
-  .station-row {
-    transition: background var(--dur-fast) var(--ease-out);
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .station-row:hover {
-      background: var(--soft-stone);
-    }
   }
 
   /* Hand-sketched line draw-in — opt-in flourish for SketchLine (animate).
@@ -1667,18 +1254,6 @@
     animation: aiGlow 2.8s ease-in-out infinite;
   }
 
-  /* Streaming caret — glacier blink while tokens arrive: the sanctioned
-   * streaming marker (recolored from ember 2026-07-11, founder ruling B). */
-  @keyframes caretBlink {
-    50% {
-      opacity: 0;
-    }
-  }
-  .stream-caret {
-    color: var(--glacier);
-    animation: caretBlink 0.8s steps(1) infinite;
-  }
-
   /* Citation chip — [n] inline; evidence is verbatim. */
   .cite {
     display: inline-flex;
@@ -1726,105 +1301,6 @@
   }
   .cite:hover .cite-pop {
     display: block;
-  }
-
-  /* Construction pill — temporary "still building" notice. Founder review
-     2026-06-12 (top-chrome pass): now an IN-FLOW element living in the
-     TopBar's center slot, never `fixed` — a floating pill overlapped the
-     ticker text behind it. In-flow means overlap is structurally impossible;
-     below 1100px the center slot vanishes, so the pill hides rather than
-     crowd the breadcrumbs. */
-  .construction-pill {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
-    white-space: nowrap;
-    background: color-mix(in oklab, var(--ember) 10%, var(--canvas));
-    border: 1px solid color-mix(in oklab, var(--ember) 35%, transparent);
-    border-radius: 99px;
-    padding: 4px 8px 4px 13px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--ink-muted);
-    animation: fadeUp var(--dur-slow) var(--ease-out);
-  }
-  .construction-pill > span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  @media (max-width: 1100px) {
-    .construction-pill {
-      display: none;
-    }
-  }
-
-  /* Cooking banner — the mission ticker strip below the TopBar. The slow
-     ember wash travels the strip (9s, alternate) — the reference's premium
-     "something is alive here" tell; dark rides surface-1 so the warmth stays
-     in the accents (no brown floors). Gated by data-motion + reduced-motion. */
-  .cooking-banner {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 0 24px;
-    height: 32px;
-    flex-shrink: 0;
-    border-bottom: 1px solid var(--hairline);
-    background: linear-gradient(
-      90deg,
-      color-mix(in oklab, var(--ember) 13%, var(--canvas)) 0%,
-      var(--canvas) 38%,
-      color-mix(in oklab, var(--ember) 8%, var(--canvas)) 72%,
-      var(--canvas) 100%
-    );
-    background-size: 220% 100%;
-    animation: bannerSweep 9s ease-in-out infinite alternate;
-  }
-  .dark .cooking-banner {
-    background: linear-gradient(
-      90deg,
-      color-mix(in oklab, var(--ember) 14%, var(--surface-1)) 0%,
-      var(--surface-1) 38%,
-      color-mix(in oklab, var(--ember) 9%, var(--surface-1)) 72%,
-      var(--surface-1) 100%
-    );
-    background-size: 220% 100%;
-  }
-  html[data-motion="off"] .cooking-banner {
-    animation: none;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .cooking-banner {
-      animation: none;
-    }
-  }
-
-  /* Cooking-banner sweep — something is always running. */
-  @keyframes bannerSweep {
-    from {
-      background-position: 0% 0;
-    }
-    to {
-      background-position: 100% 0;
-    }
-  }
-
-  @keyframes heroFlow {
-    from {
-      background-position:
-        0% 0%,
-        100% 0%,
-        100% 100%;
-    }
-    to {
-      background-position:
-        100% 100%,
-        0% 100%,
-        0% 0%;
-    }
   }
 
   /* Scrollbar polish */
@@ -1890,20 +1366,6 @@ html.flow main > header:hover {
   opacity: 1;
 }
 
-/* Gentle breathing on the active Flow icon — a sign of life, not a distraction. */
-@keyframes flowBreathe {
-  0%,
-  100% {
-    opacity: 0.55;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-.flow-pulse {
-  animation: flowBreathe 3.6s var(--ease-in-out) infinite;
-}
-
 /* AGENT-EXP: a flowing sheen on a live/running agent's name (Claude-Code-style).
    Recolored 2026-07-11 (founder ruling B): the ONE shimmer signature is the
    glacier-dominant --shimmer-gradient, consumed here instead of a private
@@ -1930,32 +1392,6 @@ html[data-motion="off"] .agent-live {
 @media (prefers-reduced-motion: reduce) {
   .agent-live {
     animation: none;
-  }
-}
-
-/* The codified platform pairing for "the machine is working" copy: a Pixel
-   working word wearing the glacier shimmer (founder ruling 2026-07-11).
-   Chat and other AI surfaces consume this class; do not re-roll per surface. */
-.ai-working-word {
-  font-family: var(--font-pixel);
-  font-weight: 400;
-  background: var(--shimmer-gradient);
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: agent-shimmer 2.6s linear infinite;
-}
-html[data-motion="off"] .ai-working-word {
-  animation: none;
-  background: none;
-  color: var(--glacier);
-}
-@media (prefers-reduced-motion: reduce) {
-  .ai-working-word {
-    animation: none;
-    background: none;
-    color: var(--glacier);
   }
 }
 
@@ -2255,7 +1691,9 @@ html[data-motion="off"] .ai-working-word {
 }
 
 /* Butterfly wing flutter (transform-origin: 12px 12px) — the canonical v3
- * name; the parchment brand mark uses cadFlutterBrand above. */
+ * name. Its cadFlutterBrand twin went with the .cad-flutter class that was
+ * the only thing animating it. This one has no animation reference left
+ * either, so it is a keyframe waiting on a consumer, not a live rule. */
 @keyframes cadFlutter {
   0%,
   100% {
@@ -2294,36 +1732,6 @@ html[data-motion="off"] .ai-working-word {
   to {
     transform: translateY(0);
   }
-}
-
-/* PM Desk — the focus-session edge glow breathes slowly while a block runs
- * (the machine is genuinely live, so motion is legal); the global
- * prefers-reduced-motion block stills it to a constant glow. Opacity-only.
- * The animation lives in a class (not an inline style) so the in-product
- * motion toggle (html[data-motion="off"]) can kill it, per DESIGN-LOOM §5
- * "the in-product toggle survives". */
-@keyframes cadFocusBreathe {
-  0%,
-  100% {
-    opacity: 0.7;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-.cad-focus-glow {
-  animation: cadFocusBreathe 6s var(--ease-in-out, ease-in-out) infinite;
-}
-
-html[data-motion="off"] .cad-focus-glow {
-  animation: none;
-}
-
-/* Review fix (PM Desk pass): the flow dot's pulse honored only
- * prefers-reduced-motion, never the in-product toggle. */
-html[data-motion="off"] .flow-pulse {
-  animation: none;
 }
 
 /* OBS-14 — the onboarding Arrival butterfly's one-shot fly-in, before it
@@ -2432,122 +1840,6 @@ html[data-motion="off"] .flow-pulse {
   transform: scale(0.98);
 }
 
-/* §2 canvas atmosphere: one fixed vignette + grain layer per app root.
- * Pointer-events none, never on a scrolling container; kills the flat void. */
-[data-obsidian] .loom-atmosphere {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(
-      58% 48% at 10% -2%,
-      color-mix(in oklab, var(--ember) 7%, transparent) 0%,
-      transparent 60%
-    ),
-    radial-gradient(
-      52% 44% at 94% 4%,
-      color-mix(in oklab, var(--action-blue) 6%, transparent) 0%,
-      transparent 58%
-    ),
-    radial-gradient(ellipse 120% 90% at 50% 20%, transparent 55%, rgba(0, 0, 0, 0.03) 100%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.015'/%3E%3C/svg%3E");
-}
-
-/* Liquid-crystal glass surfaces (founder direction 2026-07-13): a premium,
-   translucent material for elevated/overlapping surfaces. Backdrop blur +
-   saturation so color behind it refracts, a bright top edge (the glass
-   catch-light), and a soft depth shadow. Only for surfaces that sit OVER
-   content (headers, overlays, cards on the ambient wash). Degrades to a solid
-   card where backdrop-filter is unsupported. */
-.glass-panel {
-  position: relative;
-  background: color-mix(in oklab, var(--card) 74%, transparent);
-  -webkit-backdrop-filter: blur(18px) saturate(1.5);
-  backdrop-filter: blur(18px) saturate(1.5);
-  border: 1px solid color-mix(in oklab, var(--text-primary) 9%, var(--hairline));
-  border-radius: var(--radius-panel, 16px);
-  box-shadow:
-    inset 0 1px 0 0 color-mix(in oklab, #fff 7%, transparent),
-    0 20px 44px -24px rgba(0, 0, 0, 0.62);
-}
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .glass-panel {
-    background: var(--card);
-  }
-}
-
-/* Living aurora — the Today hero's ambient wash, brought back from Loom (the
-   ember+maroon "needs you" aura / the moss+gold "all clear" aura). Two slow,
-   offset radial blooms that drift so the surface feels alive without pulling
-   focus. Colors are set inline per state; these classes only move them. */
-.hero-aurora {
-  position: absolute;
-  inset: -30%;
-  filter: blur(48px) saturate(1.15);
-  opacity: 0.8;
-  pointer-events: none;
-  will-change: transform;
-}
-.hero-aurora-a {
-  animation: heroAuroraA 26s ease-in-out infinite;
-}
-.hero-aurora-b {
-  animation: heroAuroraB 34s ease-in-out infinite;
-}
-@keyframes heroAuroraA {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  50% {
-    transform: translate3d(-5%, 4%, 0) scale(1.12);
-  }
-}
-@keyframes heroAuroraB {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(1.05);
-  }
-  50% {
-    transform: translate3d(6%, -5%, 0) scale(1.18);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero-aurora-a,
-  .hero-aurora-b {
-    animation: none;
-  }
-}
-/* Light mode: the tone must gel with a white surface, not stain it. Pull the
-   blooms back so they read as a warm tint, not a spill. */
-[data-theme="light"] .hero-aurora,
-.light-theme .hero-aurora {
-  opacity: 0.38;
-  filter: blur(52px) saturate(1);
-}
-/* Weather glyph — a slow living breath so the top-bar weather reads as dynamic,
-   not a static icon (paused under prefers-reduced-motion). */
-.weather-live {
-  animation: weatherBreathe 4.5s ease-in-out infinite;
-  transform-origin: center;
-}
-@keyframes weatherBreathe {
-  0%,
-  100% {
-    opacity: 0.9;
-    transform: translateY(0) scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: translateY(-1px) scale(1.06);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .weather-live {
-    animation: none;
-  }
-}
 /* REMOVED 2026-08-15: `.ask-composer` and `.ask-composer:focus-within`, which
    painted an ember border plus a 3px ember halo the moment anyone clicked into
    the composer. Founder: an orange box appearing whenever you enter a text
@@ -2619,33 +1911,6 @@ html[data-motion="off"] .flow-pulse {
     display: none;
   }
 }
-/* Hero brand watermark — a large monochrome mark that bleeds into a corner,
-   turning very slowly. Subtle brand presence, never a focal point. */
-.hero-watermark-spin {
-  transform-origin: center;
-  animation: supaprodSpin 90s linear infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero-watermark-spin {
-    animation: none;
-  }
-}
-
-/* Rail active-thread indicator (§6): a static 2px thread on the active row. */
-[data-obsidian] .loom-thread-active {
-  position: relative;
-}
-[data-obsidian] .loom-thread-active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 6px;
-  bottom: 6px;
-  width: 2px;
-  border-radius: 2px;
-  background: var(--ember);
-  opacity: 0.9;
-}
 
 /* §2b gradient language (founder direction 2026-07-04) — the three NEW legal
  * gradient homes beyond the thread/CTA/aurora. Rules: max ONE glow field per
@@ -2696,15 +1961,6 @@ html[data-motion="off"] .flow-pulse {
     rgba(255, 255, 255, 0.02) 60%,
     transparent
   );
-}
-
-/* Collapsible disclosure (Loom §0.1 anti-scroll): a real control, chevron
- * rotates on open. Hides the default marker across browsers. */
-[data-obsidian] .loom-details > summary::-webkit-details-marker {
-  display: none;
-}
-[data-obsidian] .loom-details[open] > summary .loom-details-chevron {
-  transform: rotate(90deg);
 }
 
 /* Native <select> theming (founder ruling 2026-07-06: dropdowns must not
@@ -2821,15 +2077,6 @@ html[data-obsidian] {
     background-position: -80% 0;
   }
 }
-@keyframes ai-pulse-flutter {
-  0%,
-  100% {
-    transform: scaleX(1) rotate(-1.5deg);
-  }
-  50% {
-    transform: scaleX(0.88) rotate(1.5deg);
-  }
-}
 /* A GLOSSY spotlight sweep in glacier: cool blue overall with a NARROW
  * near-white glint (~4% wide) that reads as a moving gloss. A cool glow sits
  * under it. Working state = glacier (founder ruling 2026-07-11). */
@@ -2852,47 +2099,11 @@ html[data-obsidian] {
   filter: drop-shadow(0 0 9px color-mix(in srgb, var(--ds-blue-600) 50%, transparent));
   animation: ai-pulse-sheen 2.4s linear infinite;
 }
-/* The mark: a Pixel "C" (span content, set by AiPulse.tsx) wearing the same
- * glossy sweep via text-clip + the flutter. The butterfly SVG mask is gone. */
-.ai-pulse-mark {
-  display: inline-block;
-  flex-shrink: 0;
-  font-family: var(--font-pixel);
-  font-weight: 400;
-  background: linear-gradient(
-    100deg,
-    var(--ds-blue-700) 0%,
-    var(--ds-blue-600) 32%,
-    var(--ds-blue-1000) 47%,
-    var(--ds-white) 50%,
-    var(--ds-blue-1000) 53%,
-    var(--ds-blue-600) 68%,
-    var(--ds-blue-700) 100%
-  );
-  background-size: 260% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  transform-origin: center;
-  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--ds-blue-600) 55%, transparent));
-  animation:
-    ai-pulse-sheen 2.4s linear infinite,
-    ai-pulse-flutter 2.6s ease-in-out infinite;
-}
 /* Human gate (.waiting): the SAME glossy sweep + glow, in EMBER - needs-human
  * is ember by law, so "waiting on you" carries the warm hue (swap of the
- * 2026-07-08 mapping, founder ruling 2026-07-11). The mark keeps a gentle
- * attention pulse on top so it draws the eye. */
-@keyframes ai-pulse-attention {
-  0%,
-  100% {
-    transform: scale(0.94);
-  }
-  50% {
-    transform: scale(1.06);
-  }
-}
+ * 2026-07-08 mapping, founder ruling 2026-07-11). The mark that used to carry
+ * an attention pulse on top of this is gone: AiPulse.tsx renders SupaprodMark
+ * instead, so the word is the whole signal. */
 .ai-pulse-text.waiting {
   background: linear-gradient(
     100deg,
@@ -2912,33 +2123,11 @@ html[data-obsidian] {
   filter: drop-shadow(0 0 9px color-mix(in srgb, var(--ds-ember-600) 50%, transparent));
   animation: ai-pulse-sheen 2.4s linear infinite;
 }
-.ai-pulse-mark.waiting {
-  background: linear-gradient(
-    100deg,
-    var(--ds-ember-800) 0%,
-    var(--ds-ember-600) 32%,
-    color-mix(in srgb, var(--ds-ember-900) 45%, var(--ds-ember-1000)) 47%,
-    var(--ds-ember-1000) 50%,
-    color-mix(in srgb, var(--ds-ember-900) 45%, var(--ds-ember-1000)) 53%,
-    var(--ds-ember-600) 68%,
-    var(--ds-ember-800) 100%
-  );
-  background-size: 260% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--ds-ember-600) 60%, transparent));
-  transform-origin: center;
-  animation:
-    ai-pulse-sheen 2.4s linear infinite,
-    ai-pulse-attention 1.8s ease-in-out infinite;
-}
-html[data-motion="off"] .ai-pulse-text,
-html[data-motion="off"] .ai-pulse-mark {
+html[data-motion="off"] .ai-pulse-text {
   animation: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  .ai-pulse-text,
-  .ai-pulse-mark {
+  .ai-pulse-text {
     animation: none;
   }
 }
@@ -3184,7 +2373,7 @@ html[data-motion="off"] .ai-pulse-mark {
 
   /* --- Glacier + shimmer at root (founder rulings A + B, 2026-07-11) so
      consumers OUTSIDE the [data-obsidian] scope (landing, .btn, .agent-live,
-     .ai-working-word, .stream-caret) resolve the same family --- */
+     .ai-glow) resolve the same family --- */
   --glacier: var(--ds-blue-600);
   --machine: var(--glacier);
   --link: var(--glacier);
@@ -3500,30 +2689,6 @@ html[data-motion="off"] .ai-pulse-mark {
  * components layer they still beat base styles but yield to utilities,
  * which is the intended contract. */
 @layer components {
-  .text-heading-72 {
-    font: 600 72px/72px var(--font-sans);
-    letter-spacing: -4.32px;
-  }
-  .text-heading-64 {
-    font: 600 64px/64px var(--font-sans);
-    letter-spacing: -3.84px;
-  }
-  .text-heading-56 {
-    font: 600 56px/56px var(--font-sans);
-    letter-spacing: -3.36px;
-  }
-  .text-heading-48 {
-    font: 600 48px/56px var(--font-sans);
-    letter-spacing: -2.88px;
-  }
-  .text-heading-40 {
-    font: 600 40px/48px var(--font-sans);
-    letter-spacing: -2.4px;
-  }
-  .text-heading-32 {
-    font: 600 32px/40px var(--font-sans);
-    letter-spacing: -1.28px;
-  }
   .text-heading-24 {
     font: 600 24px/32px var(--font-sans);
     letter-spacing: -0.96px;
@@ -3549,12 +2714,6 @@ html[data-motion="off"] .ai-pulse-mark {
   .text-button-12 {
     font: 500 12px/16px var(--font-sans);
   }
-  .text-label-20 {
-    font: 400 20px/32px var(--font-sans);
-  }
-  .text-label-18 {
-    font: 400 18px/20px var(--font-sans);
-  }
   .text-label-16 {
     font: 400 16px/20px var(--font-sans);
   }
@@ -3567,26 +2726,11 @@ html[data-motion="off"] .ai-pulse-mark {
   .text-label-12 {
     font: 400 12px/16px var(--font-sans);
   }
-  .text-label-14-mono {
-    font: 400 14px/20px var(--font-mono);
-  }
   .text-label-13-mono {
     font: 400 13px/16px var(--font-mono);
   }
   .text-label-12-mono {
     font: 400 12px/16px var(--font-mono);
-  }
-  .text-copy-24 {
-    font: 400 24px/36px var(--font-sans);
-  }
-  .text-copy-20 {
-    font: 400 20px/36px var(--font-sans);
-  }
-  .text-copy-18 {
-    font: 400 18px/28px var(--font-sans);
-  }
-  .text-copy-16 {
-    font: 400 16px/24px var(--font-sans);
   }
   .text-copy-14 {
     font: 400 14px/20px var(--font-sans);
@@ -3594,23 +2738,13 @@ html[data-motion="off"] .ai-pulse-mark {
   .text-copy-13 {
     font: 400 13px/18px var(--font-sans);
   }
-  .text-copy-13-mono {
-    font: 400 13px/18px var(--font-mono);
-  }
   .text-label-14 strong,
   .text-label-13 strong,
   .text-label-12 strong,
-  .text-copy-16 strong,
   .text-copy-14 strong,
   .text-copy-13 strong {
     font-weight: 600;
   }
-  .text-heading-72 strong,
-  .text-heading-64 strong,
-  .text-heading-56 strong,
-  .text-heading-48 strong,
-  .text-heading-40 strong,
-  .text-heading-32 strong,
   .text-heading-24 strong,
   .text-heading-20 strong,
   .text-heading-16 strong,
@@ -3623,11 +2757,6 @@ html[data-motion="off"] .ai-pulse-mark {
   }
 
   /* --- Tempo material presets (tokens/materials.css) --- */
-  .material-base {
-    border-radius: var(--ds-radius-small);
-    background: var(--ds-background-100);
-    box-shadow: var(--ds-shadow-border);
-  }
   .material-small {
     border-radius: var(--ds-radius-small);
     background: var(--ds-background-100);
@@ -3657,11 +2786,6 @@ html[data-motion="off"] .ai-pulse-mark {
     border-radius: var(--ds-radius-medium);
     background: var(--ds-background-100);
     box-shadow: var(--ds-shadow-modal);
-  }
-  .material-fullscreen {
-    border-radius: var(--ds-radius-large);
-    background: var(--ds-background-100);
-    box-shadow: var(--ds-shadow-fullscreen);
   }
 }
 
