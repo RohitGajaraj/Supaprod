@@ -47,8 +47,15 @@ export function BrandWait({
   /**
    * What a screen reader is told, once. Never rendered visually.
    * Say the work where the caller knows it ("Opening the run"), not "spinner".
+   *
+   * THE DEFAULT SAYS THE WAIT IS TAKING A MOMENT, and it can only say that
+   * because of the router threshold. This component does not mount until a
+   * navigation has already run for a full second, so by the time the live
+   * region speaks, the delay is a fact rather than a possibility. "Loading",
+   * which is what this said before, would fit any of forty screens and told a
+   * screen reader nothing the situation did not already imply.
    */
-  label = "Loading",
+  label = "This page is taking a moment",
   /**
    * 76px on the overlay, not 44. Measured on a 1512x860 screen: at 44 the mark
    * sat in the middle of a very large dark field and read as lost rather than as
@@ -82,9 +89,13 @@ export function BrandWait({
               // half-drawn page reads as a failure. At near-full opacity this reads
               // as the product composing itself, which is what is happening.
               background: "var(--sp-bg, var(--bg, #0a0a0a))",
-              // Above the shell, below any dialog. `defaultPendingMs` keeps this
-              // off screen entirely for fast navigations, so it only ever appears
-              // when there is a genuine wait to explain.
+              // Above the shell, below any dialog. The router's threshold keeps
+              // this off screen for the first full second of any navigation, so
+              // by the time it mounts there is a real wait to explain rather
+              // than a fast route being covered up. That figure used to be
+              // 150ms with a 300ms hold, which meant a 200ms navigation was
+              // GUARANTEED to flash this overlay. See THE LOADING POLICY in
+              // `src/styles/meridian.css` for the whole argument.
               zIndex: 40,
             }
           : {

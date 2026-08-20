@@ -26,6 +26,13 @@ function RoutePending() {
 // wear an empty state's clothes, and it always ships the cause + one action).
 // Inline styles + CSS variables with dark-safe literal fallbacks, since this
 // also mounts on public (parchment) routes and before token layers load.
+//
+// NOTHING IN HERE ANIMATES, AND THAT IS A RULE RATHER THAN AN OVERSIGHT.
+// Checked 2026-08-20 while the loading policy below was set: no animation, no
+// transition, no spinner. A thing that is still moving reads as a thing still
+// trying, and an error has already stopped trying. Motion here would promise a
+// recovery that is not coming. The policy is stated in full in
+// `src/styles/meridian.css`, under THE LOADING POLICY.
 function RouteError({ error }: { error: Error }) {
   const message =
     error instanceof Error && error.message
@@ -108,8 +115,34 @@ export const getRouter = () => {
     defaultPreloadStaleTime: 0,
     defaultPendingComponent: RoutePending,
     defaultErrorComponent: RouteError,
-    defaultPendingMs: 150,
-    defaultPendingMinMs: 300,
+
+    // ── THE LOADING POLICY. Set 2026-08-20. Was 150 / 300. ───────────────
+    //
+    // These two numbers are the whole policy and this is the ONLY place they
+    // may be set. The argument for each is written out in
+    // `src/styles/meridian.css` under THE LOADING POLICY; the short version:
+    //
+    // WHAT WAS WRONG. At 150 / 300 a 200ms navigation crossed the threshold at
+    // 150ms, mounted a full-viewport opaque overlay, and was then held there
+    // for a further 300ms by the minimum. So a navigation that would have
+    // finished in a fifth of a second took nearly half of one, and tore the
+    // surface down in the middle of it. Every fast navigation in the product
+    // was paying for the loader meant to reassure it, which is the opposite of
+    // the design contract's own outstanding item 6: fix the latency, not the
+    // spinner.
+    //
+    // 1000ms is Nielsen's response-time limit for keeping a person's flow of
+    // thought uninterrupted, published 1993 and restated by MDN's performance
+    // guidance as the point at which you must indicate that content is
+    // loading. Below it a person is still in the same thought; a spinner
+    // interrupts a wait they had not noticed yet.
+    //
+    // 150ms, down from 300, is the flicker floor and nothing more. It clears
+    // Nielsen's 0.1s instantaneous boundary so the wait registers as a state
+    // rather than a glitch, and it is `--mrd-d-move`, so the loader leaves on
+    // the same budget as every other dismissal in the system.
+    defaultPendingMs: 1000,
+    defaultPendingMinMs: 150,
   });
 
   return router;

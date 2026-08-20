@@ -750,6 +750,35 @@
   --mrd-t-h1: 32px;
   --mrd-t-display: 40px;
 
+  /*
+   * ── 400, AND IT STAYS 400. THE CLAIM AGAINST IT IS FALSIFIED ────────────
+   * Re-measured 2026-08-20. Do not raise this to 450.
+   *
+   * `agent-audit-2026-08.md` §6 records "body weight 400 vs the reference's
+   * 450" and a queue item was written to change this token on the strength of
+   * that one line. It does not reproduce.
+   * `getComputedStyle(document.body)` on beautifului.dev returns
+   * `font-weight: 400`, `font-size: 14px`, `font-family: Inter`.
+   *
+   * Measured twice, on two separate days, by two different readers: once during
+   * the type sweep on 2026-08-19, which is where the note in
+   * `docs/operations/kiro-queue.md` §1 saying "re-measure before acting" came
+   * from, and again on 2026-08-20 before this comment was written. Both read
+   * 400. So 400 at 14px Inter is not one notch lighter than the reference. It
+   * IS the reference, and this token was already correct.
+   *
+   * WHAT THE AUDIT WAS PROBABLY REACTING TO IS REAL AND IS A DIFFERENT DEFECT.
+   * Measured across every Meridian component on the same day: the type scale in
+   * actual use was 14px and nothing else. With no size hierarchy nothing
+   * declares its rank, so a row reads as undifferentiated grey and the honest
+   * description of that is FLAT. Flat is not thin, and adding 50 to every
+   * weight in the product would have masked it rather than fixed it. The fix
+   * shipped instead as the thirteen-stop ladder above and the `text-mrd-*`
+   * utilities below.
+   *
+   * This note exists so the 450 claim cannot come back a third time. If it
+   * does, the reply is a measurement, not an argument.
+   */
   --mrd-w-regular: 400;
   --mrd-w-medium: 500;
   --mrd-w-semi: 600; /* Inter holds 600 cleanly; Geist did not, hence the old 590 */
@@ -807,9 +836,157 @@
   /* ── MOTION. Ease out, exponential. No bounce, no elastic. ───────────── */
   --mrd-ease: cubic-bezier(0.22, 1, 0.36, 1); /* out-quint */
   --mrd-ease-soft: cubic-bezier(0.33, 1, 0.68, 1);
-  --mrd-d-press: 120ms; /* a control acknowledging a press */
-  --mrd-d-move: 220ms; /* something changing position or size */
-  --mrd-d-enter: 420ms; /* something arriving that was not there */
+
+  /*
+   * ── THE SCALE WAS TWICE AS SLOW AS THE REFERENCE CLASS ──────────────────
+   * Retuned 2026-08-20. Was: press 120ms, move 220ms, enter 420ms.
+   *
+   * Those three sat inside Material's 200-500ms band, which is a specification
+   * written for touch hardware with input latency of its own to absorb. It is
+   * the wrong band for a dense desktop working UI, and the two products this
+   * system is measured against are both entirely below it.
+   *
+   * MEASURED IN A BROWSER, `getComputedStyle` over every element on the page,
+   * 2026-08-20. Not read off a bundle and not read off a screenshot:
+   *
+   *   linear.app        0.1  0.16  0.2  0.4
+   *                     Four transition durations in the whole product.
+   *   beautifului.dev   0.1  0.12  0.14  0.15  0.18  0.2  0.22  0.25
+   *                     0.28  0.3  0.32  0.4  0.5
+   *                     Thirteen stops, with the mass of usage at the low end.
+   *
+   * THE INTERSECTION OF THE TWO SETS IS EXACTLY {0.1, 0.2, 0.4}, and that is
+   * worth noticing rather than adopting: 0.4 is present in both, so a 400ms
+   * duration is not off-scale in the abstract. What is wrong is spending it on
+   * the most frequent motion in the product. The reference reserves its 0.4 for
+   * a rare, large move; Meridian was spending 420ms on every card that landed.
+   *
+   * SO THE VALUES BELOW ARE 100 / 150 / 200. Each is on at least one measured
+   * list, press and enter are on both, and the whole scale now sits under
+   * linear's second stop. 150 is beautifului.dev's, and it is also the exact
+   * figure linear spends on a dismissal, which matters for the next paragraph.
+   */
+
+  --mrd-d-press: 100ms; /* a control acknowledging a press. Both lists, and
+                           beautifului.dev's single most common value. */
+  --mrd-d-move: 150ms; /* something changing position or size, AND the budget a
+                          dismissal spends. See the asymmetry note below. */
+  --mrd-d-enter: 200ms; /* content arriving that a person did not ask for */
+
+  /*
+   * ── THE ASYMMETRY, AND WHY `--mrd-d-enter` IS NOT NEAR ZERO ─────────────
+   *
+   * The finding this retune came from says: things should appear instantly and
+   * leave gently, so enter approaches zero while exit and movement carry the
+   * easing budget. The first half of that is right and the second half does not
+   * apply to this token, because the finding is describing a different object
+   * from the one the token serves. That is worth eight lines rather than a
+   * silent edit, because the obvious reading breaks eight working surfaces.
+   *
+   * TWO THINGS WERE BEING CALLED "ENTER" AND THEY ARE NOT THE SAME MOTION.
+   *
+   *   A REVEAL is a surface a person just summoned. A menu, a popover, a
+   *     confirm. They clicked; any delay before it lands is the software
+   *     thinking in front of them. It appears on the frame and it leaves over
+   *     about 150ms, which is the 0s / 0.15s pairing the reference ships.
+   *
+   *   AN ARRIVAL is content that showed up unasked, because an agent wrote it
+   *     while somebody was watching. A card landing in a roster, a receipt, a
+   *     line of streamed text resolving. Here the motion is not a reveal, it is
+   *     a NOTICE: it is how a reader knows which row is new and where it came
+   *     from. Deleting it does not make the product feel faster, it makes new
+   *     content teleport into a list, which is worse in the one product whose
+   *     premise is that machines write into surfaces you are looking at.
+   *
+   * EVERY CALLER OF `--mrd-d-enter` IS AN ARRIVAL. Counted 2026-08-20: eight
+   * of them, all `animation:` on `mrd-fade-up`, `mrd-fade-in` or `mrd-pop-in`
+   * (`_authenticated.settings.tsx`, `Receipt`, `AgentCards`, `Search`,
+   * `StreamingText`, `ContextCards` four times, `InsightCards`). Not one is a
+   * reveal. Taking this token to 0 would not speed those up, it would delete
+   * them, and this file's own reduced-motion rule already draws that line: if
+   * stopping it removes a fact, it is not decoration.
+   *
+   * So the arrival halves, 420 to 200, and keeps a real duration.
+   *
+   * WHERE THE REVEAL ASYMMETRY ACTUALLY LIVES. A reveal's appearance is not a
+   * token, it is the ABSENCE of one: nothing transitions on open, so there is
+   * no duration to name. A reveal's dismissal spends `--mrd-d-move`, now
+   * 150ms, which is the reference's measured exit figure exactly.
+   *
+   * WHAT WAS CONSIDERED AND REJECTED, so this is not relitigated:
+   *
+   *   `--mrd-d-reveal: 0ms`. Rejected. A duration token that computes to zero
+   *     reads as intent and paints as absence; the correct expression of "it
+   *     appears on the frame" is writing no transition at all.
+   *   A separate `--mrd-d-exit: 150ms`. Rejected TODAY, under the standing rule
+   *     that a token earns its place on its SECOND caller (`AGENTS.md` §5), and
+   *     this one would have had zero callers rather than one. Verified
+   *     rather than assumed: nothing in `src/components/meridian` animates a
+   *     dismissal, and the only exit animations anywhere in the tree are in the
+   *     retired shadcn layer under `src/components/ui`, 39 modules of which are
+   *     imported by nothing and queued for deletion. Every Meridian dismissal
+   *     unmounts on the frame.
+   *   Keeping 420ms and adding a faster token beside it. Rejected: two
+   *     durations for one meaning is how the three tracking values happened,
+   *     and the file above already argues that case.
+   *
+   * WHEN THE FIRST COMPONENT DOES ANIMATE A DISMISSAL, it has a correct token
+   * to reach for on day one, and `--mrd-d-exit` earns its own declaration on
+   * the second one. The figure to use is 150ms. It is written down here so that
+   * decision is not made again from taste.
+   */
+
+  /*
+   * ── THE LOADING POLICY. Added 2026-08-20, because there was not one ─────
+   *
+   * There is no token below this paragraph and that is deliberate: the two
+   * numbers are consumed by the router in JavaScript, and a CSS custom property
+   * cannot reach it. They are written here because this is the design contract
+   * and a policy nobody can find is a policy nobody keeps. They are ENFORCED in
+   * `src/router.tsx`, which is the only place they may be set.
+   *
+   *   SHOW NOTHING FOR THE FIRST 1000ms.   `defaultPendingMs: 1000`
+   *   ONCE SHOWN, HOLD FOR 150ms.          `defaultPendingMinMs: 150`
+   *   NOTHING ANIMATES IN AN ERROR STATE.
+   *
+   * WHAT WAS WRONG, and it is the rare case where the loader made the product
+   * measurably slower to use. The router shipped `defaultPendingMs: 150` with
+   * `defaultPendingMinMs: 300`. A 200ms navigation therefore crossed the
+   * threshold at 150ms, mounted a full-viewport opaque overlay, and was then
+   * held on screen for a further 300ms by the minimum. A navigation that would
+   * have completed in a fifth of a second took nearly half of one and tore the
+   * whole surface down in the middle of it. Every fast navigation in the
+   * product was paying for the loader that was supposed to reassure it.
+   *
+   * WHY 1000ms AND NOT A SMALLER NUMBER. This is the oldest settled figure in
+   * interface work. Nielsen's response-time limits, published 1993 and unchanged
+   * since: 0.1s reads as instantaneous, 1.0s is the limit for keeping a person's
+   * flow of thought uninterrupted, 10s is the limit for holding their attention
+   * at all. MDN's performance guidance restates the middle one directly, naming
+   * one second as the point at which you must indicate that content is loading.
+   * Under a second, a person is still in the same thought and needs nothing;
+   * showing them a spinner interrupts a wait they had not yet noticed.
+   *
+   * WHY 150ms AND NOT ZERO FOR THE MINIMUM. The minimum exists to stop a flash:
+   * a loader that appears and vanishes twenty milliseconds later reads as a
+   * glitch in the page rather than as a state. But 300ms was solving that
+   * problem for a loader appearing at 150ms, where flashes are common. At a
+   * 1000ms threshold the wait is already genuine and the minimum almost never
+   * binds, so it only has to clear the flicker floor. 150ms is above Nielsen's
+   * 0.1s instantaneous boundary, so it registers as something that happened,
+   * and it is `--mrd-d-move`, so the wait leaves on the same budget as every
+   * other dismissal in the system rather than on a number of its own.
+   *
+   * NOTHING ANIMATES IN AN ERROR STATE, and this was CHECKED rather than
+   * asserted. `RouteError` in `src/router.tsx` draws no animation, no
+   * transition and no spinner: a cause, a message and one action. `BrandWait`
+   * cannot reach an error, because the router mounts it from
+   * `defaultPendingComponent` and mounts `RouteError` from
+   * `defaultErrorComponent`, and the two are never on screen together. The rule
+   * matters because a thing that is still moving reads as a thing still trying,
+   * and an error has already stopped trying. Motion there promises a recovery
+   * that is not coming.
+   */
 
   /* ── ELEVATION. Warm, never a black shadow. ──────────────────────────── */
   --mrd-shadow-card: 0 1px 2px oklch(0.09 0.005 70 / 0.4);

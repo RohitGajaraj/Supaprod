@@ -3101,3 +3101,105 @@ a chip on every group (2).
 > look at real session gaps rather than at the cron cadence. And whether a failed run should be forced
 > into `needs-input` rather than staying in the group it claims, which is a product call about whether
 > every failure is a question.
+
+---
+
+## K-25 · BUILT · 2026-08-20 13:20
+
+**Did.** Three token-level corrections in `meridian.css`, each with its argument in the file.
+Motion: `--mrd-d-press` 120 -> **100ms**, `--mrd-d-move` 220 -> **150ms**, `--mrd-d-enter` 420 ->
+**200ms**, every figure taken from one of the two reference sets rather than interpolated. Loading
+policy: `defaultPendingMs` 150 -> **1000**, `defaultPendingMinMs` 300 -> **150**, so a 200ms
+navigation no longer flashes a loader for 300ms. Body weight **unchanged at 400**, which is a
+pushback rather than a build, see below.
+
+**Measured both references in a real browser rather than reading a figure out of a doc.**
+`getComputedStyle` over every element:
+
+| | transition durations actually in use |
+| --- | --- |
+| `linear.app` | 0.1 · 0.16 · 0.2 · 0.4 |
+| `beautifului.dev` | 0.1 · 0.12 · 0.14 · 0.15 · 0.18 · 0.2 · 0.22 · 0.25 · 0.28 · 0.3 · 0.32 · 0.4 · 0.5 |
+
+The intersection is exactly `{0.1, 0.2, 0.4}`, which is written into the file because it undercuts
+the lazy reading of the finding: **420ms is not off-scale in the abstract, the reference reserves
+0.4 for a rare large move** while Meridian was spending it on every card that landed.
+
+**## K-25 · the 450 body weight is falsified and I did not build it**
+
+The item says `--mrd-w-regular` should be 450 because "the reference sets running text at 450".
+The queue's own §1 already flags this as the one audit number that did not reproduce.
+Re-measured: `getComputedStyle(document.body)` on `beautifului.dev` returns **fontWeight 400**,
+fontSize 14px, Inter. `--mrd-w-regular` is already 400, so the token **matches** the reference and
+changing it would have moved every piece of running text in the product away from the floor it is
+supposed to be ported from. The measurement and both dates are now written next to the token, so
+the claim has a number to hit rather than an argument to win.
+
+**Unsure.** Four, and the first is the whole judgement in the item.
+
+1. **`--mrd-d-enter` was two different motions wearing one name, and I split the concept rather
+   than taking the token to zero.** "Enter approaches zero" is right for a **reveal**, something a
+   person just summoned, and that is the `0s / 0.15s` pairing the reference ships. It is wrong for
+   an **arrival**, content that showed up unasked because an agent wrote it while somebody was
+   watching, where the animation is not decoration but the only thing saying which row is new.
+   **All eight callers of this token are arrivals and none is a reveal** (`settings.tsx`,
+   `Receipt`, `AgentCards`, `Search` x2, `StreamingText`, `ContextCards` x4, `InsightCards`), so
+   taking it to zero would have deleted eight working arrivals in the one product whose premise is
+   that machines write into surfaces you are looking at. So the arrival **halves** and keeps a real
+   duration, and the reveal asymmetry is expressed without a new token: a reveal's appearance is the
+   ABSENCE of a duration, and its dismissal spends `--mrd-d-move`, now 150ms, which is the
+   reference's exit figure exactly.
+2. **I did not add `--mrd-d-exit: 150ms`, and this is the one I would most expect to be overturned.**
+   It would have **zero** callers: nothing in `src/components/meridian` animates a dismissal, and
+   the only exit animations in the tree were in the retired shadcn layer, 38 modules of which K-27
+   deleted in this same batch. The second-caller rule says a token earns its place on the second
+   caller, and `--mrd-d-move` at 150ms already gives the first real dismissal a correct token.
+   **But the queue's own primitives-first ruling argues the other way** and I would not fight it.
+   Both the figure and the reasoning are recorded in the file so the decision is not re-taken from
+   taste.
+3. **`--mrd-d-move` at 150 rather than 160.** Linear measures 0.16, the reference has 0.15 and no
+   0.16. I took 150 because it doubles as the exit budget. Ten milliseconds nobody can see, picked
+   deliberately rather than averaged.
+4. **`defaultPendingMinMs: 150` rather than 0.** At a 1000ms threshold the minimum almost never
+   binds; 150 keeps a genuine wait from flashing sub-frame, and it IS `--mrd-d-move`, so the wait
+   leaves on the same budget as every other dismissal.
+
+**## K-25 · `Owns` extension, declared rather than buried**
+
+`src/router.tsx` is not in this item's `Owns` and **part 3 is unbuildable without it**:
+`defaultPendingMs` and `defaultPendingMinMs` exist only there, and `BrandWait` is the component the
+router mounts with no say in when. My edit is confined to those two values, their comments, and one
+comment above `RouteError`. No logic, no JSX, no styling. Tenth incomplete `Owns` list this session.
+
+**Noticed.** Four.
+
+1. **`src/router.tsx` sits outside the ratchet's scan roots**, so `RouteError` is off-ledger AND
+   off-Meridian: it paints in `--text-body`, `--text-muted`, `--line` and the raw hex `#C6C0B8`,
+   `#A39D94`, `rgba(255,255,255,0.12)`, with hand-written `fontSize: 14 / 12.5` and
+   `borderRadius: 8`. **The app's one route-level error surface is invisible to the guard that
+   exists to catch exactly this.** Two items worth writing: port `RouteError`, and add
+   `src/router.tsx` to `SCAN_ROOTS`.
+2. **`_authenticated.tsx` now carries a stale comment I could not fix.** Its `pendingComponent`
+   docblock states in the present tense "With `defaultPendingMs: 150` and `defaultPendingMinMs:
+   300`", and both figures are now wrong. Its conclusion still holds, so nothing is broken. Not in
+   `Owns`. Good news from the same read: **no route overrides either threshold anywhere**, so one
+   change reaches the whole product.
+3. **The item's own description of Linear's scale does not match the live site.** It gives
+   `0s / 0.15s / 0.1s / 0.25s / 0.35s` as read from a bundle; measured live, 0.25 and 0.35 do not
+   appear at all. The same figures are repeated in
+   `docs/planning/initiatives/agent-first-platform.md` around line 821. I used the measured values
+   and said so in the file; the bundle-derived numbers in both docs are suspect.
+4. **`meridian.css:729` cites a rule that is not in this file.** It says "by the rule in the file
+   header a second caller already earns a token"; the header has no such rule, it lives in
+   `AGENTS.md` §5. I caught it because I nearly copied the citation into my own comment. Left as a
+   pre-existing inaccuracy rather than widening the diff.
+
+**A faster scale did not expose an animation leaning on the slow enter**, which the item warned it
+might, but that is a read of eight call sites rather than a look at a running app. All eight are 4px
+fade-ups or plain opacity fades with nothing structural riding on the duration. **Worth one look in
+the browser before this is called verified.**
+
+**Gates.** tsc clean · 9,940 pass / 0 fail / 23 skip / 60 todo across 590 files · build ok ·
+`docs:check` clean · `check-humanized.sh` clean. Ratchet total unchanged; `BrandWait`'s recorded
+debt is preserved exactly, because removing its one `--sp-bg` fallback would have tripped rule 3
+and I am not the item that re-freezes the baseline.
