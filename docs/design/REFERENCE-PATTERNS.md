@@ -29,7 +29,7 @@ official product documentation**, with URLs. Treat it as reliable.
 | **Design** | Figma Dev Mode + Make · v0 · Lovable · Uizard · Stitch | ✅ researched 2026-08-01, below |
 | **Build** | GitHub Copilot · Devin · Cursor · Claude Code · Codex | ✅ researched 2026-08-01, below |
 | **Ship** | Linear Releases · Vercel Rolling Releases and Instant Rollback · LaunchDarkly guarded rollouts · Statsig Release Pipelines · GitHub Releases and environment protection rules · Sentry release health · Datadog deployment tracking · LaunchNotes | ✅ researched 2026-08-20, below |
-| **Learn** | Amplitude / experiment readouts | ⬜ not yet researched |
+| **Learn** | Amplitude Experiment readouts · Statsig Pulse and Release Pipelines · Eppo experiment status and decision criteria · GrowthBook Decision Framework · Metaculus scoring and resolution · Good Judgment · incident.io post-mortems · Jeli · ADR practice | ✅ researched 2026-08-20, below |
 
 ---
 
@@ -1879,5 +1879,513 @@ Datadog: [Deployment Tracking](https://docs.datadoghq.com/tracing/services/deplo
 [Rollback Detection](https://docs.datadoghq.com/continuous_delivery/features/rollbacks_detection/).
 LaunchNotes: [Organizing announcements and roadmap items](https://help.launchnotes.com/en/articles/5125625-how-do-i-organize-announcements-and-roadmap-items-to-match-my-product-structure) ·
 [Sending announcements to a specific group of subscribers](https://help.launchnotes.com/en/articles/13975253-how-do-i-send-announcements-to-a-specific-group-of-subscribers).
+
+Content was rephrased for compliance with licensing restrictions.
+
+---
+
+# LEARN: grading a claim that was written down before the outcome was known
+
+Researched 2026-08-20 against official product documentation. **Structural insight: this market
+splits in two, and the split is not statistical. An experiment readout settles a question about the
+world. A forecast resolution settles a question about the forecaster. Learn has to do both in one
+act, and the two halves need different states, different words and different non-answers.** Every
+analytics and experiment product researched here does the first and refuses the second on purpose,
+and the products that do the second are not product tooling at all.
+
+**This section builds on the seam the Ship section ended on rather than rediscovering it.** That pass
+found that every product in the release category separates deployed from delivered, that guarded
+rollouts come closest to a forecast because their metrics are chosen before the rollout starts, and
+that not one of them keeps the claim after the rollout resolves. Learn is where that claim would be
+graded, so the question here is not whether the gap exists. It is what a surface does with a claim it
+has kept: which states it needs, what it may not let a person edit, and what has to move when the
+claim is settled. **The forecasting platforms have answered all three for twenty years and no product
+tool has read their manual.**
+
+## Three premise corrections before anything else, because two of them change what may be recommended
+
+**1. The lesson path has the two edges the brief says it lacks, in the database, and does not have
+them in the generated types.** The brief carries K-75's measurement that no product column exists
+anywhere on the lesson path. Measured against
+[`../../src/integrations/supabase/types.ts`](../../src/integrations/supabase/types.ts) that is still
+exactly right: `learnings` carries `prd_id`, `opportunity_id`, `mission_id` and `workspace_id` and no
+`product_id` and no `decision_id`, and `agent_memory` carries no `product_id`. The findings register
+says the opposite and says it precisely: `learnings.decision_id` and `learnings.product_id` were
+added and applied on 2026-08-19 by `20260819181000`, `agent_memory.product_id` by
+`20260819182000`, both migrations are in the tree, and the register records the column as
+**CLOSED (schema)** with nothing writing it yet. **Both statements are true of different artifacts,
+and the disagreement is the finding: the columns exist on the database and are invisible to the type
+checker, so code that reads `learnings.decision_id` fails `tsc` today while succeeding at runtime.**
+That is the mirror image of the trap section's warning that `tsc` passes a column name that does not
+exist. Every directive below that needs either edge is tagged WIRING for that reason, and the first
+thing the wiring needs is a regenerated `types.ts`.
+
+**2. A forecast on this product carries no credence, so no Brier score is computable for it.** The
+`decisions` table holds `forecast_claim`, `forecast_how_we_will_know`, `forecast_horizon_date`,
+`forecast_next_check_at`, `forecast_deferred_at`, `forecast_deferred_count`, `forecast_resolution`,
+`forecast_resolution_rationale`, `forecast_resolution_suggestion`, `forecast_resolved_at` and
+`forecast_resolved_by_agent_slug`. **There is no column for how likely the team thought it was.**
+Meanwhile `insights` carries `claim`, `confidence`, `resolution` and `brier_score`,
+`computeBrierScore` in
+[`../../src/lib/brain/calibrate-insights.server.ts`](../../src/lib/brain/calibrate-insights.server.ts)
+is written and unit-tested against six cases including the clamp and the null fallback, and the
+register records `insights.brier_score` among nine columns written by a tick and read by nothing,
+calling it the sharpest of the nine. **So the product scores the claims it generates itself and
+cannot score the claims a person records, which is the inverse of the arrangement the positioning
+argues for.** The forecasting references below are all about the second case, so every
+calibration recommendation is tagged WIRING or ROADMAP and names the missing column.
+
+**3. The named class answers one of the brief's three questions and barely touches the other two.**
+Amplitude is the right reference for showing a hypothesis against a result and the wrong one for
+everything about a track record, because an experiment platform deliberately holds no opinion about
+whether the person who wrote the hypothesis is usually right. That is a product decision rather than
+an oversight, and the anti-patterns section argues it is the correct decision for them and the wrong
+one for us.
+
+## Verdict on the named class first
+
+| Question | Does Amplitude and the experiment-readout class answer it? | What actually answers it |
+| --- | --- | --- |
+| 1. How a forecast is shown against its outcome | **Partly, and the good half is very good.** Amplitude's Summary card states the experiment's hypothesis and whether it reached significance, assembled from what was entered during the design and rollout phases rather than re-asked. What it cannot show is the belief's strength, because none was recorded as a number | **Amplitude's Summary card** for the shape · **Metaculus** for the only complete published model of a stated belief scored against a resolution · **Eppo's decision criteria in a protocol** and **GrowthBook's target MDE** for the standard being fixed before the data arrives |
+| 2. How *not yet conclusive* is expressed without reading as failure | **Yes for the statistical case, and it is the strongest answer in the market.** Amplitude ships `Inconclusive` as a badge beside `Significant` and `Not Significant`, GrowthBook greys the middle band of Chance to Win instead of colouring it, and both refuse to compute anything at all below a data floor | **GrowthBook** (a grey band and a `~X days left` status, so waiting is a computed number rather than an absence) · **Eppo's `Wrap Up`** state · **Metaculus's `Ambiguous` and `Annulled`**, which are the deeper answer: two different non-verdicts, split by whether the world was unclear or the claim was, and neither one scores |
+| 3. How a readout shows what it changed downstream | **No, and the class says so about itself.** Amplitude's closing guidance is to decide whether to run another test or promote the winner, which is advice rather than a link. Nothing writes back | **incident.io**, which has spent several published posts diagnosing exactly this failure and names the cure · **ADR practice**, for the append-only supersession model · **Metaculus Conditional Pairs**, for a claim that another claim's resolution settles automatically |
+
+**Two references earned their place and are named nowhere in this file before today.** Metaculus,
+because its scoring and resolution documentation is the only complete specification found of a belief
+recorded before an outcome and graded after it, which is the sentence the strategy uses to describe
+this station. And incident.io, because the reference class whose artifact is a learning rather than a
+fix has already published its own post-mortem on why learnings change nothing, and the diagnosis
+lands on our surface exactly.
+
+## The merged information model for one settled claim
+
+**Tier 1, the readout is not usable without these**
+
+| # | Field | Lifted from |
+| --- | --- | --- |
+| 1 | **the claim, in the words it was written in, frozen and not editable once the clock is running** | Metaculus (changing a question after it opens is highly discouraged, and edits are noted in the body; only admins may touch resolution terms once forecasting has begun) |
+| 2 | **the observable that will settle it, written before the outcome and standing on its own** | Metaculus (the resolution criteria are self-contained instructions, and the background material is explicitly not used for resolution) · ours already, as `forecast_how_we_will_know` and the contract's proof oracle |
+| 3 | **the strength of the belief, as a number, recorded at the same moment as the claim** | Metaculus (a probability, which is what makes a score possible at all) · Amplitude and GrowthBook (a target effect size, which is the same commitment stated as a threshold) |
+| 4 | the date it comes due, chosen when the claim is made | Metaculus open, close and resolve dates, three separate dates with three separate meanings · Statsig's guidance to pick the readout date at launch and disregard the statistics until then |
+| 5 | **the outcome, from a closed vocabulary that includes at least two ways of not settling** | Metaculus (Yes, No, Ambiguous, Annulled) · Amplitude (Significant, Not Significant, Inconclusive) |
+| 6 | **two independent axes on the result: against the previous state, and against the number that was promised** | Amplitude (`Above Control` / `Below Control` and `Above Goal` / `Below Goal` are separate badges that can appear together) |
+| 7 | who or what settled it, and under whose authority | Metaculus Resolution Councils (for the highest-impact questions the resolver is named in the criteria in advance) · Eppo (a decision is a person filling out an outcome, and the state does not advance without it) · ours already, as `forecast_resolved_by_agent_slug` and `outcome->>settled_by` |
+| 8 | **a data floor below which no verdict is offered at all** | Amplitude (no p-value or interval until 100 users and 25 conversions per variant) · GrowthBook (nothing before the minimum runtime, defaulting to three days) · LaunchDarkly's extend, already captured in the Ship section |
+| 9 | the score, and the track record it joins | Metaculus (a resolved question yields a score, and scores across many questions become the measure) |
+| 10 | **what the settled result changed, as a link rather than as prose** | incident.io (a follow-up that lives in the learning document is already dying) · ADR practice (a superseding record links back to the one it replaced) |
+
+**Tier 2**: the reason a claim was deferred, and how many times · the resolution history with a reason
+per reopen · a health or data-quality panel kept apart from the result · the reason a claim was
+withdrawn rather than settled · the settled claim's own supersession edge · notifications on the
+events that need a person (the date arrived, the standard was met, the data went wrong) · the segment
+or slice the result held in, held separately from the headline · a same-shape comparison against the
+immediately previous claim of the same kind.
+
+**Tier 3, focused pane only**: the confidence interval and the observation count behind each number ·
+the belief's history over time, including where it was withdrawn · the aggregate against the
+individual · the per-slice breakdown that answers whether the effect was uniform · the model's own
+draft of the verdict with its reasoning and its own confidence · the arithmetic of the score.
+
+> **The finding that most changes our build: the whole market fixes the standard before the data
+> arrives, and every one of them does it with a stored field rather than with a convention.** Eppo
+> puts primary metrics, guardrails and the criteria for recommending a rollout into a **protocol**,
+> and its own writing gives the reason in one image: drawing the target after seeing where the shots
+> landed is how a team finds patterns that are not there. GrowthBook stores a **target minimum
+> detectable effect** per metric and will not render a decision until that precision is reached.
+> Amplitude assembles the readout from the design and rollout phases so the hypothesis on the result
+> screen is the one that was typed before the test ran. **Our contract's success clauses with their
+> proof oracles are already this artifact, and `gradeOutcomeContract` already refuses to sign off a
+> spec whose every standing clause is unfalsifiable, which is a stronger gate than anything in this
+> class.** What is missing is one number: nothing anywhere records how likely the team thought it
+> was. Without that, a settled claim can say right or wrong and can never say well or badly
+> calibrated, and the calibration half is the part no model arrives holding.
+
+> **The second finding, and it is the answer to the brief's hardest question.** Nobody solves
+> *not yet conclusive* with a gentler word. They solve it structurally, and there are three separate
+> mechanics doing it. **Refuse to speak below a floor**, so an early result is not a weak result, it
+> is not a result. **Give waiting a number**, which is GrowthBook's `~X days left` computed from
+> power rather than from anyone's patience. And **split the non-verdict by whose fault it was**, which
+> is Metaculus's `Ambiguous` for a world that stayed unclear against `Annulled` for a claim that was
+> underspecified or whose assumption was overturned. Neither of the two scores, both are terminal,
+> and the second one is a judgment about the claim rather than about the team. **We have one
+> non-verdict, "too early to tell", and it is a date move rather than a state**, so a claim that was
+> unanswerable as written has nowhere to land except a miss.
+
+## The verb set
+
+`[A]` Amplitude · `[ST]` Statsig · `[E]` Eppo · `[G]` GrowthBook · `[M]` Metaculus ·
+`[GJ]` Good Judgment · `[I]` incident.io · `[ADR]` architecture decision records. Marked verbs are
+lifted close to literally, including the name.
+
+| Verb | Required effect on the data |
+| --- | --- |
+| Set the criteria `[E]` `[G]` | writes the metrics, the guardrails and the standard for a positive call **onto the claim, before it can be judged**. Eppo holds it as a reusable protocol so a team states it once for a class of decisions rather than per decision, which is the difference between policy and permission on this station |
+| Set the target effect `[G]` | the smallest movement worth acting on, per metric, stored. It decides **how long the claim waits**, and it is what makes "we have enough to judge" computable instead of arguable |
+| Reaffirm `[M]` | records the same belief again, now. **Not a change, a fresh timestamp on an unchanged view**, so a standing belief and a stale one are different rows rather than the same row read charitably |
+| Withdraw `[M]` | stops a belief accruing from this moment without erasing what it already earned, and **draws as a break in the timeline rather than as a gap**. Nothing retroactive: the aggregate it fed on earlier days still says what it said |
+| Auto-withdraw `[M]` | a belief nobody has reaffirmed within a set fraction of the claim's life is withdrawn by the system, with a warning first. **Silence expires on its own** rather than being read as continued agreement |
+| Make the decision `[E]` | the act that moves a claim to its terminal state, carrying both an outcome and a decision, and **the state cannot reach terminal without it**. Eppo's `Concluded` is defined as a decision having been made, never as a date having passed |
+| Resolve `[M]` | settles the claim against the stated observable and releases the score. Only an authorised resolver may do it, and for the highest-impact claims **that resolver is named in the criteria before anyone forecasts** |
+| Annul `[M]` | terminal, unscored, and it says **the claim was at fault**: underspecified, or an assumption it rested on was overturned. A distinct verb from resolving it wrongly, and the distinction is the whole point |
+| Resolve ambiguous `[M]` | terminal, unscored, and it says **the world stayed unclear**. Reserved for conflicting evidence or a source that went missing, never for a claim that was badly written |
+| Re-resolve `[M]` | a settled claim may be settled again when the first settlement was wrong on the evidence available, and **a claim may state up front that it will re-resolve** if initial reporting is later corrected |
+| Reopen `[E]` | returns a concluded claim to the reviewable state so the dates and the decision can be edited. Eppo allows it and records no reason; ours requires one, see the directives |
+| Extend the window `[G]` `[A]` | the claim waits longer because the data has not arrived, expressed as **days remaining computed from the target**, never as a status that reads like a stall |
+| Refuse to judge `[A]` | below the data floor the product **produces no interval and no verdict at all**, and says which floor was not met. Not a low-confidence answer, no answer |
+| Flag the data, not the result `[A]` `[G]` | traffic imbalance, double exposure and low power are their own panel with their own remedies, so **a broken measurement never reads as a negative outcome** |
+| Group by `[A]` | asks whether the result held the same way for everyone, in one control rather than by re-filtering. The honest form of "it worked" is often "it worked for these and not those" |
+| Supersede `[ADR]` | writes a **new** record that replaces the old one and links both ways. The replaced record keeps its text and gains a status, because **it is the answer to why the earlier call was ever made** |
+| Own the follow-up `[I]` | a consequence gets a named person, wording specific enough to act on, and **a home in the tool people already open**. incident.io's diagnosis is that the four ways a follow-up dies are no owner, the wrong tool, vague wording and no cadence |
+| Theme across claims `[I]` | reads patterns across many settled claims rather than one, because **the second occurrence is the finding** and a single readout cannot show it |
+| Score `[M]` `[GJ]` | grades the stated belief against the outcome and adds it to a track record. Weighted by how long the belief stood, so a call made early and held is worth more than one made late |
+
+## The three questions, answered
+
+### 1. How a forecast is shown against its outcome
+
+**Amplitude gives the layout and the discipline behind it.** The Summary card states the hypothesis
+and then says whether it reached significance, and the load-bearing sentence in the documentation is
+that Experiment reuses what was entered during the design and rollout phases so nothing is asked
+twice. That is the anti-retrofit mechanic expressed as a convenience: **the hypothesis on the readout
+is the one that was typed before the run, because there is no second field to type it into.** Our
+equivalent already exists and is already read: `standingClauses` in `WhatShipped.tsx` pulls the spec's
+standing success clauses, `PromisedMetric` carries a clause's text with the oracle that will settle
+it, and `SettlePanel` seeds the metric label from the promise rather than from a blank field
+(`seedMetricLabel` prefers the launch plan's metric, then the first clause whose head reads as a
+label).
+
+**The badge set is where Amplitude is ahead of us, and it is one line of difference.** It ships
+`Significant` and `Not Significant` for the statistical question, `Inconclusive` for the primary
+metric, and then **two more pairs that are about meaning rather than about statistics**:
+`Above Control` or `Below Control`, and `Above Goal` or `Below Goal`, which may appear at the same
+time. So "the number moved and still missed the target" is one readout with two badges rather than an
+argument. **Ours collapses both axes into one of three words.** `VERDICT_SAYS` gives "it worked", "it
+did not work" and "the signal was mixed", `learnings.verdict` is constrained on the database to those
+three keys, and the two facts a person needs on this station, better than before and as good as
+promised, are folded into whichever of the three feels closest. The contract already holds the goal;
+`prior_ice` and `new_ice` on `learnings` already hold the movement.
+
+**Metaculus supplies the half the experiment class refuses, and refuses on purpose.** A belief is a
+probability, a resolved question yields a score, and the sequence of scores becomes a track record
+whose whole value is that it accumulated across unrelated questions over years. Three properties of
+that design transfer, and the third is the one nobody would think of.
+
+1. **The score is weighted by how long the belief stood**, which Metaculus calls coverage. A
+   prediction that was standing for one day of a five-day question earns a fifth of the coverage. So
+   **a call made early and held is worth more than the same call made once the answer was obvious**,
+   and a late change of mind cannot quietly claim the whole question. Ours has one belief with one
+   timestamp and no notion of how long it stood.
+2. **Withdrawing is a first-class act with no retroactive effect.** Stopping a belief stops the score
+   and the coverage from that moment, keeps everything already earned, and does not remove the
+   belief from the aggregate it fed on earlier days. Withdrawals are drawn on the timeline as
+   crosses, so **the absence is a mark rather than a gap**.
+3. **A stale belief expires by default.** Auto-withdrawal removes a forecast after a configurable
+   fraction of the question's life unless the forecaster reaffirms it, with a reminder first, and the
+   stated reason is to keep stale beliefs out of both the individual's accuracy and the aggregate.
+   The verb that pairs with it, **Reaffirm**, is the cheapest and most useful thing in this whole
+   pass: it is a click that means *I still think this*, and it exists so that a belief nobody has
+   restated cannot pass for a current one. The Plan section found Linear marking a project stale when
+   an update is overdue; this is the same instinct with teeth, because the stale belief is not merely
+   flagged, it stops counting.
+
+### 2. How *not yet conclusive* is expressed without reading as failure
+
+**The market's answer is three mechanics, and none of them is a kinder word.**
+
+**Refuse to speak below a floor.** Amplitude computes no p-value and no confidence interval for a
+binary metric until each variant has 100 users and 25 conversions, and for other metrics until 100
+users per variant. GrowthBook shows no decision and no days-remaining estimate before the
+organisation's minimum runtime, defaulting to three days, and its only two statuses available that
+early are `Unhealthy` and `No data`. Statsig tells readers plainly not to make decisions inside the
+first 24 hours and to disregard the statistical interpretation until the target duration is reached.
+**The pattern is that an early result is not a weak result, it is not a result**, and the surface says
+which floor has not been met rather than showing a number with a caveat.
+
+**Give waiting a number.** GrowthBook's `~X days left` is computed from how much data the target
+effect still needs, and the documentation attaches the three usual causes to it: too many goal
+metrics, a target effect too small for the traffic, or too little traffic. **So the waiting state
+carries its own diagnosis**, which is what stops it reading as a stall. Eppo's `Wrap Up` is the other
+half: the end date has passed, results are no longer updating, and the requirements for a decision
+were never met. That is a distinct state from `Ready for Review`, and having both is what lets a
+surface say "this one is judgeable now" and "this one ran out of road" without one word covering both.
+
+**Colour the middle band grey.** GrowthBook's Chance to Win greens above 95%, reds below 5%, and
+**greys everything between rather than tinting it toward either end**. That is our colour law arriving
+from somebody else's docs: `pass` and `fail` report an outcome that happened, and an inconclusive
+result is not a bad outcome, it is a claim still under a condition, which is precisely what
+`--mrd-hold` is declared to mean. Our `PromotionCard` reached the same place for the same reason and
+its file says so at length.
+
+**And the deepest answer is Metaculus's, because it splits the non-verdict by fault.** A question can
+resolve `Ambiguous`, which means reality stayed unclear: reporting conflicted, or the source that was
+supposed to settle it stopped publishing. Or it can be `Annulled`, which means reality was clear and
+**the question was not**: it was underspecified, or an assumption it rested on was overturned, or its
+outcomes were so imbalanced that only one of them was ever really reachable. Neither is scored,
+both are terminal, and the documentation is explicit that the reason for having two rather than one is
+fairness to the people being scored. **Ours has one non-verdict and it is not a state at all.**
+`deferOutcomeCheck` and `deferForecastCheck` move a date and write nothing to the verdict column,
+which `buildDeferPatch` pins by the absence of a key and a test asserts on the patch object rather
+than through a stubbed query. That is the right build for "the evidence is not in yet". It is the
+wrong build, and the only build available, for "this claim could never have been settled as written",
+which today has to be recorded as a miss against whoever made the call.
+
+### 3. How a readout shows what it changed downstream
+
+**The experiment class does not answer this, and its own closing advice is the proof.** Amplitude's
+next-steps guidance is that no experiment is a failure and the reader should consider running another
+test or promoting the winner. Sound advice, and it is advice: nothing on the readout points at a
+thing that changed because of it.
+
+**incident.io has published the diagnosis, and it is about our surface as much as theirs.** Its
+argument is that a follow-up written into the review document is already dying, and it names four
+causes: no named owner, the wrong tracking tool, wording too vague to act on, and no cadence that
+brings it back. The cure it argues for is the one worth lifting exactly: **the consequence lives in
+the tool people open every day, not in the document that recorded the learning.** It also argues,
+against a common view in its own field, that separating the learning discussion from the action
+discussion does more harm than good, because the two are inseparable in practice. And its
+blameless framing supplies the sentence this station needs when a verdict lands badly: a human error
+is where the investigation starts, not where it ends.
+
+**ADR practice supplies the shape of the write-back.** An accepted record is immutable; a changed
+decision is a **new** record that supersedes it, and the superseded one keeps its text and gains a
+status plus a link both ways. The reason given is the one this product argues for elsewhere: the
+replaced record is the answer to why the earlier call was ever made. `spec-projections.ts` already
+does this with `superseded` clauses, and the Plan section already found that nothing in the planning
+class keeps a dropped slice resolvable with its reason. Same mechanic, one station later.
+
+**Metaculus Conditional Pairs are the most interesting downstream mechanic found, and nothing in
+product tooling has anything like it.** A conditional claim is defined against a parent claim, and
+when the parent resolves, **the branch that assumed the other outcome is annulled automatically and
+the surviving branch inherits the child's resolution**. So settling one claim settles others without
+anybody revisiting them. That is the loop closing, expressed as a typed edge rather than as a
+re-ranking, and it is the sharpest available answer to the brief's extra requirement that a settled
+result must be shown to change something else.
+
+**Ours, and the honest reading of it.** Two write-backs are real and one of them is genuinely the
+best-built part of this product.
+
+The first is ranking. `applyOutcome` moves the decision's confidence by
+`VERDICT_CONFIDENCE_DELTA`, clamps it to the one-to-ten axis, recomputes ICE through `iceOf`, and
+writes `prior_ice` and `new_ice` onto the learning, so a settled verdict changes where the bet it came
+from sits in what Discover and Decide rank next. The register lists that chain as wired and reading.
+`overturnMove` handles the case where a verdict replaces one, so an overturn does not double-count.
+The second is retrieval: `20260703000000_rf02_outcome_weighted_retrieval.sql` reweights
+`match_agent_memory` so a validated memory sorts ahead of a missed one at the same distance, which
+means **a settled verdict changes what the next agent is handed** rather than only what a person can
+look up.
+
+The third path is the one the brief's extra criterion is really asking about, and it exists and does
+not surface here. An approved house rule is injected into every agent's system prompt at the
+chokepoint through `renderHouseRulesBlock` in `loop.server.ts`, `house_rules.source_learning_ids`
+records which settled learnings it was distilled from, and
+[`../../src/lib/brain-standing.functions.ts`](../../src/lib/brain-standing.functions.ts) states the
+chain in its own header. **So the strongest downstream consequence a learning can have is a standing
+rule that changes every future run, and it is rendered on `/engine-room?room=safety` and in the
+approvals queue, not on Learn.** `HouseRulesPanel` also renders it as a **count**, "distilled from 3
+learnings", with no way to reach the three. That is the same count-versus-pointer gap the Plan
+section named about citations, in a second place, and the register's note that a settled forecast
+re-ranks nothing because every reader of it is a display or a queue filter is the third.
+
+## What these products get wrong for an agent-operated product
+
+Anti-patterns. Do not copy them.
+
+1. **The draft verdict is shown before the person answers, which anchors the answer it is meant to
+   inform.** This one is ours rather than theirs, and the reference is what makes it visible:
+   Metaculus hides the community prediction when a question first opens, stating outright that the
+   purpose is to stop the earliest forecasts from grounding later ones. `ForecastDeskPanel` renders
+   "A draft says it came true" with its rationale directly above the three verdict buttons, and
+   `SettlePanel` seeds the form fields from the drafted verdict. **The three-state
+   `suggestionQuality` split is exactly the right instinct and it solves a different problem**: it
+   keeps a considered draft apart from a parse failure dressed as one. What neither solves is that a
+   person reading a confident draft is no longer an independent judge of the claim. The cheap fix is
+   ordering, and it is the one the Ship section already argued for at its gate: the facts, then the
+   answer, then the draft.
+2. **A track record measured on a person is a track record that gets quietly abandoned.** This is the
+   canon's own ruling arriving from the outside. Corporate prediction markets at Google beat expert
+   forecasts and died anyway because the transparency exposed the people who could have kept them,
+   and Metaculus's entire apparatus of coverage, withdrawal and annulment exists to make scoring
+   feel fair to volunteers who chose to be scored. **A product team did not choose.** So the score
+   belongs on the claim and on the loop, offered as something the next call can use, and it must
+   never be the headline of a person's page. Good Judgment's own framing is the safe one: a belief is
+   a hypothesis under test, not a possession.
+3. **Editing the standard after the result is in, which every product forbids and none prevents.**
+   Metaculus's rule is the tightest: once a question opens, changing it is highly discouraged, edits
+   are noted in the body and the comments, and an ambiguity discovered after close is held to a
+   higher standard of evidence than one raised while it was open. Eppo and GrowthBook let the
+   decision criteria and the target effect be customised per experiment at any time. **Nothing in
+   this class makes the standard immutable at the moment the clock starts**, which is the one
+   guarantee that would make the record worth more than the memory of it.
+4. **Retroactive closure, and the exact condition under which it is dishonest.** Metaculus allows a
+   claim's clock to be wound back after the fact only when the outcome is independent of the timing,
+   gives a rocket launch as the safe case and a snap election as the unsafe one, and says it will
+   ignore an inappropriate retroactive clause even when a question specifies it. **That is the
+   sharpest published statement of the retrofit failure mode**, and the general form is the one to
+   hold: any adjustment made after the outcome is known has to be shown to be independent of the
+   outcome, or it is scoring yourself.
+5. **A deferral one half of the system cannot see.** Ours, and the register records it: a person
+   pressing "too early to tell" on a spec outcome writes `outcome_check_by`, which only the human
+   queue reads, and the agent sweep settles the bet anyway. So the one control a person has for
+   saying *not yet* is invisible to the thing most likely to overrule them. The forecast half was
+   built correctly and shares its filter through `dueCheckFilter`, precisely so the desk query and
+   the tick query cannot disagree about what is due, with the comment recording that writing the
+   clause twice is how the spec queue got it wrong in one of its two halves. **One station, two
+   deferral mechanics, one of them right.**
+6. **A verdict that a data problem can produce.** Amplitude keeps Data Quality as its own card with
+   its own remedies, and GrowthBook makes `Unhealthy` and `No data` statuses that outrank every
+   result status and appear before the minimum runtime. Ours has no equivalent: a bet whose metric
+   was never instrumented and a bet that genuinely did not work arrive at the same three buttons.
+   The empty-state handling in the route is honest about a missing draft and names what was absent
+   when asked, which is the right instinct one step short of a state.
+7. **The consequence filed where the learning lives.** incident.io's four causes of a dead follow-up
+   are worth checking ourselves against one by one, and we fail two: a distilled rule has no named
+   owner, and it is not shown on the station where the learning was settled. We pass the other two,
+   because `house_rules` sits in the same review substrate as everything else a person approves and
+   the steward pass brings undistilled learnings back on a cadence.
+8. **Themes across claims are a separate product, sold separately.** Jeli's positioning is that the
+   value is in patterns across incidents rather than in any one review, and incident.io's list view
+   exists to make a body of post-mortems filterable. Both treat the single readout as the atom and
+   the pattern as a later, optional read. **For a station whose claim is that the record guides the
+   next call, the second occurrence is the whole point**, so cross-claim reading cannot be a
+   downstream feature.
+9. **A reopen with no reason.** Eppo lets a concluded experiment return to `Ready for Review` so the
+   dates and the decision can be edited, and records nothing about why. Ours is better and it is
+   worth saying so, since this file exists to stop the same research twice: `forecast_resolution_log`
+   carries a non-null `reason` alongside the resolution being replaced, the person who reopened it
+   and when, so an overturned verdict keeps the verdict it overturned. **That is the one place on
+   this station where we are ahead of every reference in the class.**
+
+## What this means for our Learn surface, stated as directives rather than status
+
+Verified from the repo only. Nothing here was checked against production, and each directive is
+tagged for how much wiring it needs: **PROVEN** means every row it reads is already read on this
+station, **WIRING** means a column or an edge has to exist first, **ROADMAP** means the substrate is
+not there at all.
+
+**The constraint every directive below obeys.** AGENTS.md records the signal to shipped to learned
+chain as broken in two places, and the Ship section measured the second precisely: the edges are
+declared in `src/lib/spine/attach.ts`, `spine_track_members` holds no ship row of any kind, and
+`deployments` holds 42 successful rows. **So Learn cannot grade against a deploy lineage, and nothing
+below assumes one.** The register adds two more limits that bind here: a settled forecast re-ranks
+nothing because all four of its readers are displays or queue filters, and `/decide` writes no
+`decisions` row at all, so the claims this station would grade are almost entirely agent-recorded.
+One of 304 decisions carries a forecast and none has ever resolved.
+
+- **PROVEN. Put the promise above the answer, and the draft below it.** The gate order test already
+  pins the shape, that a gate asks, shows its reasons through `lines`, then offers the control, and
+  `PromisedMetric` already carries each clause's text with its oracle. Amplitude's Summary card is
+  the reference: **the claim and its observable read first, the verdict buttons next, and the drafted
+  verdict last**, so the draft informs a judgment that has already been formed rather than seeding
+  it. This is a reordering of parts that are all on the screen today, and it closes the anchoring
+  anti-pattern above without removing the draft.
+- **PROVEN. Say both things a verdict means.** `learnings` already holds `prior_ice` and `new_ice`,
+  and the contract already holds the standing clauses. Amplitude's split is the lift: **against what
+  was there, and against what was promised, as two statements that can disagree.** Today a bet that
+  moved the metric and missed the target has to be squeezed into "the signal was mixed", which is the
+  one verdict of the three that tells a later reader nothing about which half failed.
+- **PROVEN. Name what the verdict changed, on this station, with a link.** `getImpactLedger` already
+  reports how far priority moved and how many calls were later replaced, which is the aggregate. What
+  is missing is the specific: the rule the learning was distilled into. `house_rules` carries
+  `source_learning_ids`, `getActiveHouseRulesForWorkspace` already reads by workspace, and
+  `HouseRulesPanel` already renders a rule with its count. **A settled learning that became a
+  standing rule should say so where it was settled, and the rule should resolve back to the learning
+  rather than counting it.** incident.io's diagnosis is the argument, and the count-versus-pointer
+  correction is the Plan section's.
+- **PROVEN. Add Reaffirm to the desk.** A forecast that has come due, been deferred and come back
+  twice is currently indistinguishable from one nobody has thought about since it was written.
+  `forecast_deferred_count` is already read and rendered by `deferredNote`. Metaculus's verb is the
+  cheap half: **a click that records the belief again, now**, so the desk can tell a held belief from
+  a forgotten one. The expiry half is ROADMAP below.
+- **WIRING. One column, and it is the moat's column: how likely the team thought it was.** A
+  credence on `decisions` beside `forecast_claim`, written at the same moment and never afterwards.
+  `computeBrierScore` already exists, is unit-tested and is running nightly against `insights`, so
+  **the scoring half of calibration is built and is pointed at the wrong table.** Without this number
+  a settled claim can only ever say right or wrong. With it, the track record the strategy rests on
+  is computable from rows we already write. This is the single highest-value item in this pass.
+- **WIRING. Two non-verdicts, split by fault.** Metaculus's `Ambiguous` for a world that stayed
+  unclear and `Annulled` for a claim that was underspecified or whose assumption was overturned,
+  both terminal, both unscored, both distinct from the existing date move. The verdict CHECK on
+  `learnings` permits exactly three values and the register already carries a related defect, that
+  `learning.record` invites the agent to say `uncertain` and an obedient agent gets a constraint
+  violation. **So the vocabulary is already one value short of what its own tool description
+  promises, and this is the principled way to widen it** rather than adding a fourth synonym for
+  failure. `gradeOutcomeContract` supplies the annulment test for free: a claim whose every standing
+  clause graded `unverifiable` was never settleable, and the grade was computed before the spec was
+  approved.
+- **WIRING. Write the learning back against the decision it graded.** `learnings.decision_id` exists
+  on the database, is absent from `types.ts`, and the register says nothing writes it while
+  `trust.server.ts` still rebuilds the edge in JavaScript. **The canon's sentence about a verdict
+  being written back against the decision that caused it is the one this column exists for**, so the
+  order is regenerate the types, then write the column at `applyOutcome`, then read it. Until it is
+  written, a settled outcome reaches its decision only through `prd_id`, and the register notes that
+  `prd_id` does not identify a decision.
+- **WIRING. A lesson has to be able to say which product it came from.** `learnings.product_id` and
+  `agent_memory.product_id` exist on the database with a derivation trigger and a CHECK refusing a
+  product on `reflection` and `correction`, and neither is in `types.ts`. `resolveMemoryScope`
+  already decides the question the columns answer, already defaults an unknown kind to product, and
+  `PromotionCard` already calls it so a card cannot offer to promote a measurement however it was
+  labelled. **The rule is built and enforced at the surface, and the column it rules on is invisible
+  to the compiler.** Nothing new is designed here; the types are regenerated and the writers stamp
+  it.
+- **WIRING. Give a data problem its own state, above every result.** GrowthBook's `Unhealthy` and
+  `No data` outrank all result statuses and appear before any minimum runtime. Our nearest available
+  form needs no analytics: a bet whose contract graded `hazy` or `empty`, or whose promised clauses
+  carry no oracle, **cannot produce a verdict worth writing**, and `gradeOutcomeContract` already
+  says which of the two it is and why in one sentence written for the owner. Surfacing that on the
+  desk turns a bet nobody can judge into a state instead of a guess.
+- **ROADMAP. Persist the third promotion answer.** `decideMemoryCandidate` takes `approve` and
+  `reject` only, so "never put this forward again" cannot be stored as distinct from "not yet", while
+  `PromotionCard` already renders three answers and puts the destructive one in the trailing slot.
+  Metaculus's annulment is the argument for why the third answer has to be terminal rather than a
+  quieter no: **an item that keeps returning to a queue is a queue that teaches people to stop
+  reading it**, which is the governance canon's own objection to approvals.
+- **ROADMAP. Expiry on a belief nobody has restated.** Metaculus auto-withdraws a forecast after a
+  configurable fraction of the claim's life unless it is reaffirmed, warns first, and keeps
+  everything already earned. `plg-memory-expiry.ts` and `agent_memory.expires_at` show the shape
+  exists elsewhere in this product. It needs the credence and the standing-time model first, because
+  withdrawing a belief that was never scored costs nothing and proves nothing.
+- **ROADMAP. Coverage, meaning how long a belief stood.** The weighting that makes an early held call
+  worth more than a late one. It needs a belief history rather than one column, so it needs the
+  credence, a timestamp per restatement, and the withdraw verb. Recorded here so nobody designs the
+  score before the thing it scores.
+- **ROADMAP. A claim another claim's resolution settles.** Metaculus Conditional Pairs, where
+  resolving a parent annuls the branch that assumed otherwise and the survivor inherits the child's
+  resolution. This is the strongest closed-loop mechanic in the pass and it needs a typed edge
+  between claims that does not exist.
+- **The verbs to add first, in the order the research argues for:** record how likely we think it is,
+  annul a claim that was never settleable, and reaffirm a belief that is still held.
+
+## Sources
+
+Amplitude: [Learn from your experiment](https://amplitude.com/docs/feature-experiment/workflow/experiment-learnings) ·
+[The Experiment Analysis view](https://www.amplitude.com/docs/faq/experiment-analysis) ·
+[Post-experiment steps](https://www.amplitude.com/docs/en/web-experiment/post-experiment) ·
+[Feature Experiment overview](https://www.amplitude.com/docs/feature-experiment/overview).
+Statsig: [How to Read Experiment Results](https://docs.statsig.com/pulse) ·
+[Read Results](https://docs.statsig.com/statsig-warehouse-native/features/interpreting-results/read-results) ·
+[FAQ on using Pulse](https://docs.statsig.com/experiments/interpreting-results/faq) ·
+[Frequentist Sequential Testing](https://docs.statsig.com/experiments-plus/sequential-testing).
+Eppo: [Experiment status](https://docs.geteppo.com/experiment-analysis/reading-results/experiment-status/) ·
+[Recommended Decision Defaults](https://docs.geteppo.com/administration/recommended-decisions/) ·
+[Experiment Protocols](https://docs.geteppo.com/experiment-analysis/configuration/protocols/) ·
+[Mastering Experimentation Methods](https://www.geteppo.com/blog/mastering-experimentation-methods-design-to-analysis).
+GrowthBook: [Experiment Decision Framework](https://docs.growthbook.io/app/experiment-decisions) ·
+[Understanding Experiment Results](https://docs.growthbook.io/app/experiment-results) ·
+[Hypothesis Testing Explained](https://www.growthbook.io/insights/hypothesis-testing).
+Metaculus: [Metaculus FAQ](https://www.metaculus.com/faq/) ·
+[Medals FAQ](https://www.metaculus.com/help/medals-faq/) ·
+[Track Record](https://www.mintlify.com/Metaculus/metaculus/guides/track-record).
+Good Judgment: [Beliefs as Hypotheses](https://goodjudgment.com/superforecasters-toolbox-beliefs/) ·
+[Common Questions about Good Judgment and Superforecasters](https://goodjudgment.com/common-questions-good-judgment-superforecasters/).
+incident.io: [Why post-mortem action items die](https://incident.io/blog/why-post-mortem-action-items-die) ·
+[Why do post-mortem action items fail](https://incident.io/blog/why-do-post-mortem-action-items-fail-how-to-make-incident-follow-ups-actually-get-done) ·
+[SRE incident post-mortem best practices](https://incident.io/blog/sre-incident-postmortem-best-practices) ·
+[Why I like discussing action items in incident reviews](https://incident.io/blog/why-i-like-discussing-actions-items-in-incident-reviews) ·
+[Managing your post-mortems](https://docs.incident.io/post-incident/postmortem-management).
+Jeli: [Jeli Incident Analysis](https://www.pagerduty.com/platform/jeli/incident-analysis/) ·
+[Get Started with Jeli Post-Incident Reviews](https://support.pagerduty.com/main/docs/get-started-with-jeli).
+ADR practice: [Architecture Decision Record](https://martinfowler.com/bliki/ArchitectureDecisionRecord.html) ·
+[Maintain an architecture decision record (Azure Well-Architected Framework)](https://learn.microsoft.com/en-us/azure/well-architected/architect-role/architecture-decision-record) ·
+[Architectural decision record process (AWS Prescriptive Guidance)](https://docs.aws.amazon.com/prescriptive-guidance/latest/architectural-decision-records/adr-process.html).
 
 Content was rephrased for compliance with licensing restrictions.

@@ -38,7 +38,16 @@ export function runState(s: StudioSessionListItem): RunState {
   if (status === "running") return "working";
   if (status === "queued") return "queued";
   if (STOPPED.has(status)) return "stopped";
-  if (status === "completed" || status === "done") return "done";
+  /*
+   * `complete`, SINGULAR, and it was the omission. `agents.functions.ts` writes
+   * it on the single-agent happy path; this line tested only the plural and the
+   * word `done`, so a finished run fell through to the neutral fallback and read
+   * "Queued" in the list AND sat under Queued on the board. That is exactly the
+   * pair this file's header names as the failure it exists to prevent, and it was
+   * this file producing it. Two of 1,889 production runs carry the singular, and
+   * `runBucket` and `classifyRunOutcome` were both already right about it.
+   */
+  if (status === "completed" || status === "complete" || status === "done") return "done";
   return "queued";
 }
 

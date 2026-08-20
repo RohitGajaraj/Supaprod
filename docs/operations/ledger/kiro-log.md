@@ -6094,3 +6094,173 @@ settle fastest.
 
 **Baseline re-frozen: 3,840 → 3,400 occurrences, 232 → 230 files carrying debt.** Across the session:
 **5,157 → 3,400, and 257 → 230 files.**
+
+---
+
+## K-64 · BUILT · 2026-08-21 00:34
+
+**Did.** Built `one-run-status-vocabulary.test.ts`, 26 tests over one table of **every spelling a
+writer in this repo actually produces** — twelve, each carrying its writer by name — driving all four
+normalisers, with every offender **printed by name with the word it returned** rather than counted.
+Fixed **five mappings, three named in the item and two found**: `run-state.ts` gains the singular
+`complete`; `run-analytics.ts` gains `cancelled`/`canceled` → `abandoned` **and `done` → `succeeded`**;
+`TaskRows.tsx` gains `queued`, `stopped` and `partial` as real states so eight spellings stop reaching
+the `default` arm; `today/RunState.tsx` gains the three words and tones.
+
+**The three agreement assertions, and all three measure against `run-status.ts` rather than against
+each other**, so there is no arbitrary tie-break. **Terminal**: bound for all four, **no exemptions**,
+because every one of the four unions has a member for finished and a member for not, so a terminal
+status filed as live is not a different question answered well. **Clean success**: bound for all four
+with **exactly one declared cell** exempt, `runBucket` on `completed_with_failures`, carrying K-60's
+production measurements — and a second test asserts every licensed cell is **still needed**, so the
+licence cannot outlive the behaviour it excuses. **A person is required**: bound only for the two whose
+union can *say* it, and **the exemption is checked rather than assumed** — `RANGE` pins each
+normaliser's full output set, so the day either grows a member meaning "a person is required", the pin
+fails and somebody re-decides instead of inheriting.
+
+**Unsure.** Four, and the second is the item being wrong.
+1. **The licence is one cell wide, not one axis wide.** Both the item and the ruling frame axis 2 as
+   *the* axis where the four may differ. After the fixes `runBucket` is the **only** normaliser calling
+   `completed_with_failures` a clean success and the other three all refuse it, so **a second
+   divergence anywhere on that axis fails the build.** That is the line: a legitimate difference of
+   question is one cell with a production measurement behind it; anything else is the defect AGENTS.md
+   records.
+2. **The item is wrong about `proposed`, and I pinned it rather than "fixing" it.** It lists `queued`,
+   `proposed` and `pending` together as wrongly resolving to "Waiting on you". **`proposed` is not
+   wrongly resolved**: three independently reasoned sites already say a person is exactly what it waits
+   for — `run-status.ts`'s `isWaitingOnAPerson`, `run-state.ts` → `gate`, and `build-status.ts` → `gate`
+   with the OBS-10 note calling it "the trigger-tick's own HITL gate". **At 232 of 349 missions, moving
+   it would have painted two thirds of the mission table the wrong way round.** What *was* wrong is
+   that `taskStatus` reached the right answer through the same `default` arm that got seven others
+   wrong.
+3. **Three new `TaskStatus` members where the item asked for one.** `queued` is the one asked for;
+   `stopped` and `partial` are **forced by axes 1 and 3**, because `halted`, `cancelled` and
+   `completed_with_failures` were all resolving to `blocked`, which is both non-terminal and
+   person-required. Neither is invented: both import a treatment `today/RunState.tsx` had already
+   settled in writing. `queued` takes `--mrd-hold`, which `run-parts.tsx` already spends on a queued
+   run. **No sixth hue was added.** Also flagged because a reviewer will hit it: `PlanCard.tsx` says
+   "DO NOT EXTEND `TaskStatus`", and I read that as not binding, because its ruling is about `pending`
+   and `skipped` for **plan steps** ("a task is a thing being done; a plan step is a thing PROMISED")
+   and these are states of a real run row. `plan-card.test.tsx` passes untouched.
+4. **Column scoping considered and deliberately not encoded.** K-63 establishes a reader is held only
+   to its own column's vocabulary, and `proposed`/`blocked` are mission-only. **Measured: scoping the
+   axes per column excuses nothing here**, because both mission-only words are non-terminal and not a
+   clean success, so both `agent_runs` normalisers answer them correctly by falling through. Encoding a
+   dimension that changes no verdict is machinery pretending to be a guard.
+   **Rendered labels: exactly one changes today.** A run whose status is the singular `complete` moves
+   from "Queued" to "Done" on `/runs` and stops being counted as live. Two of 1,889 production runs
+   carry it. **The `STOPPED` wrapper in `today/RunState.tsx` stays and its comment now says why**: it is
+   no longer patching a defect, it is that `cancelled` (a person decided) and `halted` (the engine
+   stopped) are the same state and different facts, and that lane's job is why work stopped.
+
+**Noticed.** Four.
+1. **There are six status projections, not four, and the repo's two "lists of four" disagree about
+   which.** `run-status.ts`'s header names run-state, agent-fleet, **`obsidian/build-status.ts`** and
+   run-analytics; the item names run-state, agent-fleet, run-analytics and **`taskStatus`**.
+   `build-status.ts` is a fifth and `run-status.ts` itself is a sixth. Left alone, outside Owns, and its
+   answers are consistent with axes 1 and 3.
+2. **`classifyRunOutcome("done") === null` is a defect the item did not name**, the same shape as the
+   one it did: `foldDelegateResult` writes the literal `"done"` to `agent_runs.status`, so **a finished
+   delegate job was dropped from every success rate.**
+3. **`runState` had no test at all** — `run-state.test.ts` covers only attribution, so its documented
+   claim that a pending approval outranks every status string was unasserted. It is now, over the whole
+   table. Also: `Ring`'s stroke was hardcoded to `TONE.blocked`, correct while `blocked` was the only
+   state reaching that branch and **an orchid leak the moment `queued` did.**
+4. **`agent_runs` carried zero `cancelled` rows** at the K-60 measurement, because there was no way to
+   stop a run until `stopRun` landed the same day. So the item's "dropped from every success rate
+   forever" is forward-looking rather than retrospective, and that is recorded at the case so nobody
+   reads the fix as recovering lost history. **The three new states are not in the Meridian gallery**,
+   which is outside Owns: a state nobody can look at is the door problem this repo keeps paying for.
+
+**Gates.** tsc 0 · **full suite 10,253 pass / 0 fail across 603 files** · build pass · docs:check pass.
+The new guard is **26 pass / 57 assertions**, and **proven red four separate ways rather than once**:
+against all three unfixed mappings together it was **15 pass / 11 fail** with every failure naming the
+defect, then each fix reverted individually — removing `complete` reds 3, removing `cancelled` reds 2,
+removing the `queued` case reds 4, and planting a bogus `LICENSED` entry reds the still-needed check.
+All four plants reverted. **The purity claim is asserted rather than assumed, as the item asked**: the
+value-import graph is walked from source text, reaches nothing containing `.server`, and bottoms out at
+`ai/tools/defaults`, confirmed to import nothing.
+
+---
+
+## K-78 · BUILT · 2026-08-21 00:34
+
+**Did.** Appended a 508-line **LEARN** pass to `REFERENCE-PATTERNS.md` and marked the station row,
+matching K-76 and K-77 heading for heading, and **saying in the opening that it builds on K-77's seam
+rather than rediscovering it**. References studied against official docs: **Amplitude Experiment**,
+**Statsig**, **Eppo**, **GrowthBook**, **Metaculus**, **Good Judgment**, **incident.io**, **Jeli** and
+**ADR practice**.
+
+**The structural finding, and it is the one worth carrying out.** **This market splits in two and the
+split is not statistical: an experiment readout settles a question about the world, a forecast
+resolution settles a question about the forecaster.** Learn has to do both in one act, and the two
+halves need different states, different words and different non-answers. Every analytics and experiment
+product researched does the first and **refuses the second on purpose**, and the products that do the
+second are not product tooling at all — which is why Metaculus, not Amplitude, turned out to be the
+deepest source.
+
+**Three answers worth the whole pass.** **The market fixes the standard before the data arrives and
+every one of them does it with a stored field rather than a convention** — Eppo's reusable protocol,
+GrowthBook's target minimum detectable effect, Amplitude assembling the readout from the design phase
+so there is no second field to retype the hypothesis into. **Nobody solves "not yet conclusive" with a
+gentler word**: they refuse to speak below a data floor, they give waiting a computed number carrying
+its own diagnosis, and they grey the middle band. **And the deepest answer splits the non-verdict by
+fault** — Metaculus's `Ambiguous` for a world that stayed unclear against `Annulled` for a claim that
+was underspecified, both terminal, both unscored, and the documentation says the reason for having two
+is fairness to the people being scored.
+
+**Unsure.** Two calls that could have gone the other way, both declared in the doc.
+1. **The credence column is tagged WIRING and could be read as ROADMAP.** One number implies a composer
+   that asks for it, and `/decide` writes no `decisions` row at all, so there is almost nowhere for a
+   person to type it. I kept WIRING because **the scoring half genuinely exists and is pointed at the
+   wrong table**, which is a wiring problem rather than an absent substrate.
+2. **I named our own drafted verdict as an anti-pattern, which is a criticism of shipped, deliberate
+   work.** `ForecastDeskPanel` renders "A draft says it came true" directly above the three verdict
+   buttons, and Metaculus hides the community prediction early **stating outright** that the purpose is
+   to stop the earliest forecasts grounding later ones. So I said plainly that the three-state
+   `suggestionQuality` split solves a different and real problem, and that **the fix is ordering rather
+   than removal** — facts, then the answer, then the draft, which is the order K-77's gate directive
+   already argues for.
+   **Nothing was tagged PROVEN that needs the broken ship or deploy edges.** The four PROVEN directives
+   read only rows this station already reads.
+
+**Noticed.** Four, and the first two are the sharpest.
+1. **The generated types are stale against applied migrations, and it is the mirror image of the trap
+   AGENTS.md §9 documents.** `learnings.decision_id`, `learnings.product_id` and
+   `agent_memory.product_id` are recorded by the register as applied on 2026-08-19 with both migrations
+   in the tree, and **none of the three is in `types.ts`**. §9 warns that `tsc` passes a column that
+   does not exist; **here `tsc` rejects columns that do.** That also reconciles K-75's measurement with
+   the register: both are true of different artifacts. Regenerating the types is the precondition for
+   two directives.
+2. **The calibration number the forecast thesis rests on is computed on the wrong table.** `insights`
+   carries `claim`, `confidence`, `resolution` and `brier_score`, and `computeBrierScore` is written,
+   unit-tested and running nightly. `decisions` carries a forecast claim, an observable and a horizon
+   and **no credence**. So **the product scores the claims it generates about itself and cannot score
+   the claims a person records**, which is the inverse of the arrangement the positioning argues for.
+   One of 304 decisions carries a forecast and none has ever resolved.
+3. **One station, two deferral mechanics, one of them right.** The forecast half shares its NULL-safe
+   due filter through `dueCheckFilter` precisely so the desk query and the tick query cannot disagree.
+   The spec half does not: a person pressing "too early to tell" writes `outcome_check_by`, which only
+   the human queue reads, **so the one control a person has for saying *not yet* is invisible to the
+   thing most likely to overrule them.**
+4. **The strongest write-back a learning has is rendered on another station.** An approved house rule
+   reaches every agent's system prompt through `renderHouseRulesBlock`, and `source_learning_ids`
+   records which learnings it came from — and it surfaces on `/engine-room?room=safety` and in the
+   approvals queue, **never on Learn**, rendered as a **count** ("distilled from 3 learnings") with no
+   way to reach the three. That is the same count-versus-pointer gap the Plan pass named about
+   citations, in a second place. Also: `outcome-contract-grade.ts` opens with **"Receipts are to
+   decision work what the test suite is to code"**, which is banned vocabulary in a load-bearing module
+   header.
+
+**Gates.** `docs:check` exit **0, zero FAIL**, orphan check [10] ok on the first run so no concurrency
+artifact. **No em or en dashes, verified programmatically rather than by eye**: a scan of all 508
+appended lines for U+2012 through U+2015 plus U+00AD, U+200B-D, U+2060, U+180E and U+FEFF returned
+none, and a full non-ASCII inventory over the same range returned **exactly one character**, `·`, 55
+times, which is the file's existing separator. A `grep -c` for the two dash code points independently
+returned 0. The station-table row was scanned separately.
+**One thing left alone deliberately:** this doc's header is `> _Created 2026-08-01. **Standing rule…`
+rather than the canonical form, so there was no "Last updated" to move. Converting it would rewrite the
+standing-rule blockquote every future researcher reads first, and the item said not to restructure.
+
+**No baseline movement from either item**, and `lane:gates` is green with the four gates read from
+`$?`. Session total stands at **5,157 → 3,400 occurrences, 257 → 230 files carrying debt.**

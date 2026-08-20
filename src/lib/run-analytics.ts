@@ -58,11 +58,12 @@ export type RunRow = {
 /**
  * What happened to a run, collapsed to the four states a person cares about.
  *
- * `completed` and `complete` are BOTH mapped to succeeded. They are the same
- * state written by two code paths (agents.functions.ts writes the singular,
- * the loop writes the plural), and 2 of 245 real successful runs carry the
- * singular. Any surface that grouped by the raw column silently split them and
- * showed a two-run category nobody could explain.
+ * `completed`, `complete` and `done` are ALL mapped to succeeded. They are one
+ * state written by three code paths (the loop writes the plural,
+ * agents.functions.ts writes the singular, delegate/poll.server.ts folds an
+ * external job's `done` straight onto the row), and 2 of 245 real successful
+ * runs carry the singular. Any surface that grouped by the raw column silently
+ * split them and showed a two-run category nobody could explain.
  */
 export type RunOutcome = "succeeded" | "succeeded_with_failures" | "failed" | "abandoned";
 
@@ -70,17 +71,48 @@ export function classifyRunOutcome(status: string | null | undefined): RunOutcom
   switch ((status ?? "").trim()) {
     case "complete":
     case "completed":
+    /*
+     * `done` is a THIRD spelling of the same state and it was missing, so an
+     * external delegate job that finished was counted as still running.
+     * `foldDelegateResult` in `delegate/poll.server.ts` writes one value to both
+     * `mission_steps.status` and `agent_runs.status`, and on the happy path that
+     * value is the literal "done".
+     */
+    case "done":
       return "succeeded";
     case "completed_with_failures":
       return "succeeded_with_failures";
     case "failed":
       return "failed";
+    /*
+     * A STOP IS AN ENDING, AND BOTH OF THESE WERE FALLING THROUGH TO `null`.
+     *
+     * `null` means in flight, so a cancelled run was dropped from its station's
+     * success rate permanently: never counted as finished, never counted as
+     * failed, and invisible in the denominator that gives every other number its
+     * meaning. `agent-fleet.ts` buckets `cancelled` as failed and `run-state.ts`
+     * calls it stopped; only this file thought it was still going.
+     *
+     * `abandoned` rather than `failed`, for the same reason `halted` is: the work
+     * stopped without finishing and no fault was recorded. Reporting a run
+     * somebody deliberately stopped as a failure sends a person to look at an
+     * agent that did nothing wrong.
+     *
+     * It matters more from here on than it did behind: production carried zero
+     * `cancelled` runs when this was measured on 2026-08-20, because there was no
+     * way to stop one. `stopRun` landed the same day.
+     */
+    case "cancelled":
+    case "canceled":
     case "halted":
       return "abandoned";
     default:
-      // running / waiting_approval / anything unrecognised is IN FLIGHT, not a
-      // silent success. Returning null keeps it out of every rate below rather
-      // than inflating the denominator with runs that have not finished.
+      // queued / running / waiting_approval / proposed / blocked / anything
+      // unrecognised is IN FLIGHT, not a silent success. Returning null keeps it
+      // out of every rate below rather than inflating the denominator with runs
+      // that have not finished. Every spelling a writer in this repo produces is
+      // now an explicit case above, so this arm sees only the live ones and words
+      // nobody writes: `one-run-status-vocabulary.test.ts` holds that line.
       return null;
   }
 }

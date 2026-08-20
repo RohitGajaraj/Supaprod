@@ -14,7 +14,7 @@ import { taskStatus, type TaskStatus } from "@/components/meridian/TaskRows";
  * unrecognised value resolves to "a person is required" rather than to "a
  * machine is working", because claiming an agent is on something nobody
  * recognises is the one reading that can be false in a way that costs someone
- * their morning. This file is the WORD and the COLOUR for the four states that
+ * their morning. This file is the WORD and the COLOUR for the states that
  * mapping returns, and nothing else.
  *
  * ── WHY A WORD AND NOT A CHIP ───────────────────────────────────────────
@@ -40,48 +40,53 @@ import { taskStatus, type TaskStatus } from "@/components/meridian/TaskRows";
 
 const WORD: Record<TaskStatus, string> = {
   running: "running",
+  queued: "queued",
+  blocked: "waiting on you",
+  stopped: "stopped",
+  partial: "partial",
   done: "done",
   failed: "failed",
-  blocked: "waiting on you",
 };
 
 const TONE: Record<TaskStatus, string> = {
   running: "text-mrd-agent",
+  queued: "text-mrd-hold",
+  blocked: "text-mrd-you",
+  stopped: "text-mrd-mute",
+  partial: "font-medium text-mrd-ink",
   done: "text-mrd-pass",
   failed: "text-mrd-fail",
-  blocked: "text-mrd-you",
 };
 
 /*
- * ── THE TWO STATES `taskStatus` CANNOT ANSWER FOR, AND WHY THEY ARE HERE ──
- * `taskStatus` resolves anything it does not recognise to "blocked", which is
- * the right default for an unknown value and the wrong answer for these two.
- * Today's Stuck lane feeds it `missions.status`, whose STUCK set is exactly
- * `failed · halted · cancelled · blocked`. Two of those four are not in
- * `taskStatus`'s cases, so both were arriving here as "waiting on you", in
- * ORCHID, the hue this system reserves for A PERSON IS REQUIRED.
+ * ── THIS IS A CHOICE OF WORDS NOW, AND IT USED TO BE A PATCH ─────────────
+ * It was written because `taskStatus` resolved `halted` and `cancelled` through
+ * its `default` arm to "blocked", so both arrived here as "waiting on you", in
+ * ORCHID, the hue this system reserves for A PERSON IS REQUIRED. Today's Stuck
+ * lane feeds it `missions.status`, whose STUCK set is exactly
+ * `failed · halted · cancelled · blocked`, so half that lane wore the accent.
+ * `cancelMission` withdraws that mission's approvals as it closes, so the
+ * product had stopped asking while the row went on saying it was asking, and a
+ * run somebody cancelled yesterday sat in the accent all night.
  *
- * Both are terminal. `cancelMission` withdraws that mission's approvals as it
- * closes, so the product had stopped asking and the row went on saying it was
- * asking. A run somebody cancelled yesterday sat in the accent all night,
- * claiming the morning of whoever read it first.
+ * THE MAPPING ANSWERS FOR BOTH NOW. `taskStatus` returns `stopped` for them,
+ * terminal and wearing no status hue, so this map is no longer covering a
+ * defect. A fix applied at one caller is how the next caller inherits the bug,
+ * so it was moved to the mapping and this stayed for the one thing the mapping
+ * cannot do.
  *
- * It was also a straight contradiction inside one product: `run-state.ts` puts
- * `halted` and `cancelled` in STOPPED and the Runs grid renders them "Stopped",
- * so the row's own click destination disagreed with the row. That file's header
- * names this as the failure that "destroys trust in both at once".
+ * ── WHAT IT IS STILL FOR: TWO WORDS WHERE THE MAPPING HAS ONE STATE ──────
+ * They are the same STATE and different FACTS, and the lane's whole job is why
+ * work stopped: `cancelled` is a person deciding to stop, `halted` is the engine
+ * stopping. Runs groups them because a grid sorts by state; a lane that explains
+ * itself should not. So the state comes from the mapping and the word comes from
+ * here, which is the division that was always intended.
  *
- * ── WHY TWO WORDS RATHER THAN ONE, AND WHY NEITHER GETS A HUE ────────────
- * They are different facts and the lane's whole job is why work stopped:
- * `cancelled` is a person deciding to stop, `halted` is the engine stopping.
- * Runs groups them because a grid sorts by state; a lane that explains itself
- * should not.
- *
- * Neither takes a colour. There is no hue for "deliberately stopped": it is not
- * an outcome, so it is not green or red, and it needs nobody, so it is not
- * orchid. This is the same ruling `partial` gets nine lines up, and the same
- * answer: a state that feels like it wants a warning colour wants structure
- * instead. Reaching for amber here is how the banned colour gets back in.
+ * Neither takes a colour, and `WORD`/`TONE` above agree: there is no hue for
+ * "deliberately stopped". It is not an outcome, so it is not green or red, and
+ * it needs nobody, so it is not orchid. Same ruling as `partial`, same answer: a
+ * state that feels like it wants a warning colour wants structure instead.
+ * Reaching for amber here is how the banned colour gets back in.
  */
 const STOPPED: Record<string, string> = {
   cancelled: "cancelled",
@@ -105,14 +110,18 @@ export function RunState({ status }: { status: string | null | undefined }) {
 }
 
 /**
- * The shipped lane's own word, which `taskStatus` deliberately cannot supply.
+ * The shipped lane's own two words.
  *
- * `completed_with_failures` IS a live run: it went out, and the hole in it is a
- * fact about the thing that shipped rather than a different lane. `taskStatus`
- * does not know the value and resolves it to "a person is required", which is
- * the correct default for a state nobody recognises and the wrong answer for
- * this one, because the lane above it already knows the run went live. So the
- * shipped lane keeps its own two words and never asks.
+ * `completed_with_failures` IS a run that went out, and the hole in it is a fact
+ * about the thing that shipped rather than a different lane. This used to say
+ * `taskStatus` "does not know the value and resolves it to a person is
+ * required", and that is no longer true: it returns `partial`, in the brightest
+ * ink at medium weight, which is what this function draws. The two now agree.
+ *
+ * It still takes a BOOLEAN rather than the raw status, because the lane already
+ * knows the run went live and the caller already holds the comparison. Handing
+ * it the raw value would be the better shape and it belongs to whoever owns
+ * `_authenticated.today.tsx`, not here.
  */
 export function ShippedState({ partial }: { partial: boolean }) {
   if (partial) return <span className="font-medium text-mrd-ink">partial</span>;

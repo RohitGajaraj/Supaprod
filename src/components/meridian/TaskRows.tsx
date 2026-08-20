@@ -16,18 +16,37 @@ import { useState } from "react";
  * /runs and Today's four lanes. Today currently prints a raw database enum
  * into the Stuck row, so a reader is shown `halted` and left to work out what
  * that is and whether it is theirs to fix. `taskStatus` below is the fix: raw
- * values go in, one of four meanings comes out, and no surface prints the
+ * values go in, one of the meanings below comes out, and no surface prints the
  * enum again.
  *
- * ── THE FOUR STATES ARE THE COMPONENT ───────────────────────────────────
- * This row exists to separate four facts that all currently read as "not
+ * ── THE STATES ARE THE COMPONENT ────────────────────────────────────────
+ * This row exists to separate facts that all otherwise read as "not
  * finished", and the separation is the entire point of the file:
  *
  *   running   `--mrd-agent`. A machine is working. Nothing is asked of anyone.
- *   done      `--mrd-pass`. Outcome. It worked.
- *   failed    `--mrd-fail`. Outcome. It did not.
+ *   queued    `--mrd-hold`. Nothing has picked it up yet. Waiting on a
+ *             condition, and NOT on a person.
  *   blocked   `--mrd-you`. A person is required, and until one arrives this
  *             row is not moving.
+ *   stopped   `--mrd-mute`. It ended without finishing, by decision or by the
+ *             engine. Terminal, and needs nobody.
+ *   partial   `--mrd-ink`. It finished and produced output with a hole in it.
+ *   done      `--mrd-pass`. Outcome. It worked.
+ *   failed    `--mrd-fail`. Outcome. It did not.
+ *
+ * THE THREE THAT ARRIVED LATE, AND WHY EACH IS NOT A NEW COLOUR. `queued`,
+ * `stopped` and `partial` were all reaching `taskStatus`' `default` and coming
+ * out `blocked`, so eight spellings a writer in this repo actually produces
+ * were telling a reader that a person was required. `--mrd-hold` is already
+ * declared "stopped, and not on you" and `run-parts.tsx` already spends it on a
+ * queued run, so `queued` reuses that rather than inventing a hue. `stopped`
+ * and `partial` take a NEUTRAL and no status hue at all, which is not an
+ * omission: `today/RunState.tsx` settled both, in writing, before this mapping
+ * could answer for them. A deliberate stop is not an outcome, so it is neither
+ * green nor red, and it needs nobody, so it is not orchid. A run that shipped
+ * with a hole in it is not a fifth outcome and there is no colour for one, so
+ * it takes the brightest ink and medium weight. There is no warn token and
+ * there must not be one.
  *
  * "running" and "blocked" are the pair that matters. Both look like unfinished
  * work in a list and they demand opposite responses: one says wait, the other
@@ -61,7 +80,29 @@ import { useState } from "react";
 const FOCUS_INSET =
   "mrd-focus-inset focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]";
 
-export type TaskStatus = "running" | "done" | "failed" | "blocked";
+export type TaskStatus =
+  | "running"
+  | "queued"
+  | "blocked"
+  | "stopped"
+  | "partial"
+  | "done"
+  | "failed";
+
+/**
+ * Terminal, as this vocabulary spells it. Exported because it is the thing every
+ * other status normaliser in the repo also has to answer, and a guard that
+ * re-derives it from the union would be asserting its own copy.
+ *
+ * `stopped` and `partial` are here and `blocked` is not, which is the whole
+ * distinction: a blocked row is still going to move when somebody arrives.
+ */
+export const TERMINAL_TASK_STATUS: ReadonlySet<TaskStatus> = new Set<TaskStatus>([
+  "done",
+  "failed",
+  "stopped",
+  "partial",
+]);
 
 export type TaskDetail = { label: string; meta?: string };
 
@@ -77,37 +118,95 @@ export type Task = {
   details?: TaskDetail[];
 };
 
-const LABEL: Record<TaskStatus, string> = {
+/** Exported so a guard can read the WORD a state prints rather than guessing at
+ *  it, and so a failure message can name the label a reader would have seen. */
+export const TASK_LABEL: Record<TaskStatus, string> = {
   running: "Running",
+  queued: "Queued",
+  blocked: "Waiting on you",
+  stopped: "Stopped",
+  partial: "Partial",
   done: "Completed",
   failed: "Failed",
-  blocked: "Waiting on you",
 };
 
-const TONE: Record<TaskStatus, string> = {
+/** Exported for the same reason, and for one more: `--mrd-you` means a person is
+ *  required, so which states may spend it is a claim worth failing a build. */
+export const TASK_TONE: Record<TaskStatus, string> = {
   running: "var(--mrd-agent)",
+  queued: "var(--mrd-hold)",
+  blocked: "var(--mrd-you)",
+  stopped: "var(--mrd-mute)",
+  partial: "var(--mrd-ink)",
   done: "var(--mrd-pass)",
   failed: "var(--mrd-fail)",
-  blocked: "var(--mrd-you)",
 };
 
 /**
- * Raw run state to one of the four meanings a reader can act on.
+ * Raw run state to one meaning a reader can act on.
  *
- * Unknown values resolve to "blocked" on purpose. The alternative defaults are
- * both worse: calling an unrecognised state "running" claims a machine is
- * working when nobody knows that, and calling it "failed" reports an outcome
- * that has not happened. "A person should look at this" is the only reading
- * that is true whatever the value turns out to mean.
+ * ── WHAT THE DEFAULT ARM USED TO SWALLOW ────────────────────────────────
+ * This had three cases and a `default: return "blocked"`, so EVERY spelling
+ * below arrived at the label "Waiting on you" in `--mrd-you`, the one hue this
+ * system reserves for a person being required:
+ *
+ *   queued, pending, scheduled   nobody has picked it up. It is waiting for a
+ *                                worker, not for a reader.
+ *   halted, cancelled            it already ended. `cancelMission` withdraws
+ *                                that mission's approvals as it closes, so the
+ *                                product had stopped asking while the row went
+ *                                on saying it was asking.
+ *   completed_with_failures      it finished and produced output. 627 runs,
+ *                                the second largest status in the table.
+ *
+ * `today/RunState.tsx` had already wrapped this function in a `STOPPED` map to
+ * patch two of them, with a comment saying both were arriving as "waiting on
+ * you, in ORCHID". A fix applied at one caller is how the next caller inherits
+ * the bug, so it is applied here and the caller keeps only its choice of WORDS.
+ *
+ * ── WHAT STAYS EXACTLY AS IT WAS ────────────────────────────────────────
+ * `proposed`, `blocked` and `waiting_approval` DO need a person, and reached the
+ * right answer through that default. They are explicit cases now so the answer
+ * is stated rather than inherited: a proposed mission is one an ambient trigger
+ * raised and nobody has promoted, which is 232 of 349 missions.
+ *
+ * And an unrecognised value still resolves to "blocked", which is unchanged and
+ * deliberate. Every spelling a writer in this repo produces now has a case, so
+ * this arm only sees words nobody writes, and the alternatives are both worse:
+ * calling an unrecognised state "running" claims a machine is working when
+ * nobody knows that, and calling it "failed" reports an outcome that has not
+ * happened. "A person should look at this" is the only reading that is true
+ * whatever the value turns out to mean.
+ *
+ * Held by `lib/__tests__/one-run-status-vocabulary.test.ts`, which drives this
+ * and the repo's three other status normalisers over one table and fails when
+ * they disagree about what has finished or about who is being asked.
  */
 export function taskStatus(raw: string | null | undefined): TaskStatus {
   switch ((raw ?? "").toLowerCase()) {
     case "running":
     case "in_progress":
+    case "dispatched":
+    case "processing":
+    case "executing":
     case "active":
     case "working":
     case "started":
       return "running";
+    case "queued":
+    case "pending":
+    case "scheduled":
+      return "queued";
+    case "waiting_approval":
+    case "blocked":
+    case "proposed":
+      return "blocked";
+    case "halted":
+    case "cancelled":
+    case "canceled":
+      return "stopped";
+    case "completed_with_failures":
+      return "partial";
     case "done":
     case "complete":
     case "completed":
@@ -118,6 +217,7 @@ export function taskStatus(raw: string | null | undefined): TaskStatus {
     case "failure":
     case "error":
     case "errored":
+    case "timed_out":
       return "failed";
     default:
       return "blocked";
@@ -185,22 +285,28 @@ function Ring({ status, step }: { status: TaskStatus; step?: number }) {
             cy={size / 2}
             r={r}
             fill="none"
-            stroke={TONE.running}
+            stroke={TASK_TONE.running}
             strokeWidth={stroke}
             strokeLinecap="round"
             strokeDasharray={`${c * 0.28} ${c * 0.72}`}
           />
         ) : (
           /*
-           * Blocked. A closed ring, not an arc: an arc is a progress reading
+           * Not running. A closed ring, not an arc: an arc is a progress reading
            * and there is no progress to report on work that has stopped.
+           *
+           * THE STROKE IS THE STATE'S OWN TONE, and it was `TASK_TONE.blocked`
+           * hardcoded until the vocabulary grew past four. That was correct
+           * while `blocked` was the only state that reached this branch and it
+           * became a colour-law breach the moment `queued` did: orchid means a
+           * person is required, and a run nobody has picked up requires nobody.
            */
           <circle
             cx={size / 2}
             cy={size / 2}
             r={r}
             fill="none"
-            stroke={TONE.blocked}
+            stroke={TASK_TONE[status]}
             strokeWidth={stroke}
           />
         )}
@@ -218,7 +324,7 @@ function Disc({ status }: { status: "done" | "failed" }) {
     <span
       className="flex size-[22px] shrink-0 items-center justify-center rounded-full"
       style={{
-        background: TONE[status],
+        background: TASK_TONE[status],
         color: "var(--mrd-bg)",
         animation: "mrd-fade-up 300ms var(--mrd-ease) both",
       }}
@@ -232,6 +338,13 @@ function Disc({ status }: { status: "done" | "failed" }) {
   );
 }
 
+/*
+ * `stopped` and `partial` are terminal and still take the RING, which is worth a
+ * line because the rule above says an outcome gets a disc. A disc carries a tick
+ * or a cross and neither is true of them: a stop is not a verdict on the work,
+ * and a partial run has both a tick and a cross in it. The still closed ring in
+ * the state's own tone says "this is not moving" without claiming which.
+ */
 function Marker({ status, step }: { status: TaskStatus; step?: number }) {
   if (status === "done" || status === "failed") return <Disc status={status} />;
   return <Ring status={status} step={step} />;
@@ -246,12 +359,12 @@ function Pill({ status }: { status: TaskStatus }) {
     <span
       className="inline-flex h-[22px] shrink-0 items-center rounded-full px-2 text-[11.5px] font-medium"
       style={{
-        color: TONE[status],
-        background: `color-mix(in oklab, ${TONE[status]} 16%, transparent)`,
+        color: TASK_TONE[status],
+        background: `color-mix(in oklab, ${TASK_TONE[status]} 16%, transparent)`,
         animation: "mrd-fade-in 200ms var(--mrd-ease-soft) both",
       }}
     >
-      {LABEL[status]}
+      {TASK_LABEL[status]}
     </span>
   );
 }
