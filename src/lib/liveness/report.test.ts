@@ -331,6 +331,59 @@ describe("the query budget", () => {
 });
 
 describe("the registry itself", () => {
+  /*
+   * A PROBE THAT NAMES A JOB NOTHING WRITES REPORTS "DEAD" FOREVER.
+   *
+   * `job_runs.job_name` is a string in two places that must agree: the label a
+   * hook passes to `withJobRun`/`withJobRunHttp`, and the `jobName` a registry
+   * probe asks for. Nothing connects them, so a typo in either produces a
+   * capability that is permanently dead on the health page while the job runs
+   * perfectly.
+   *
+   * That is the worst failure this file can have. A missed alarm is bad; **a
+   * false alarm in the alarm system is worse**, because it teaches the reader to
+   * discount the page, and this page exists precisely because five features died
+   * unnoticed.
+   *
+   * Added 2026-08-20 after registering three capabilities by copying job names
+   * out of a census. They were right. Nothing would have said so if they were not.
+   */
+  it("probes a job name that some hook actually writes", async () => {
+    const { readdirSync, readFileSync } = await import("node:fs");
+    const dir = "src/routes/api/public/hooks";
+
+    const written = new Set<string>();
+    for (const file of readdirSync(dir)) {
+      if (!file.endsWith(".ts") || file.endsWith(".test.ts") || file.startsWith("-")) continue;
+      const src = readFileSync(`${dir}/${file}`, "utf8");
+      const call = src.match(/withJobRun(?:Http)?\(\s*([^,]+?)\s*,/);
+      if (!call) continue;
+      const arg = call[1].trim();
+      if (arg.startsWith('"') || arg.startsWith("'")) {
+        written.add(arg.slice(1, -1));
+        continue;
+      }
+      // The label is a local constant, which about half the hooks use.
+      const bound = src.match(
+        new RegExp(`(?:const|let)\\s+${arg}\\s*(?::[^=]+)?=\\s*["']([^"']+)["']`),
+      );
+      if (bound) written.add(bound[1]);
+    }
+
+    // The harness itself has to be working, or this test passes by finding
+    // nothing to check. Same reason `fake-postgrest` tests its own operators.
+    expect(written.size).toBeGreaterThan(10);
+
+    const probed = TRACKED_CAPABILITIES.flatMap((c) =>
+      c.probe.source === "job_runs" ? [{ id: c.id, jobName: c.probe.jobName }] : [],
+    );
+    expect(probed.length).toBeGreaterThan(0);
+
+    const orphans = probed.filter((p) => !written.has(p.jobName));
+    expect(orphans).toEqual([]);
+  });
+
+
   it("gives every entry a stable unique id", () => {
     const ids = [
       ...TRACKED_CAPABILITIES.map((c) => c.id),

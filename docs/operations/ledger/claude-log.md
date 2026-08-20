@@ -4630,3 +4630,58 @@ tick entirely.**
 
 Coverage is now 6 of 36. The remaining 30 are a judgement about which are
 capabilities rather than a limit on how many fit.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 12:04 · verified the three probes I registered, and made the check permanent
+
+No item awaiting a verdict, so this tick checked the work I shipped last tick
+rather than starting new work.
+
+### The three new probes name real jobs
+
+A registry probe asks `job_runs` for a `job_name`, and a hook writes that name
+through `withJobRun`. **Nothing connects the two**, so a typo in either produces a
+capability that reads dead forever while the job runs perfectly.
+
+I registered three capabilities by copying names out of a census. Checked all six
+job probes against the labels the hooks actually write: **6 of 6 match, 0
+orphans.**
+
+### And the check is now a test, because being right once is not a guarantee
+
+`report.test.ts` reads every hook, extracts the label each passes to
+`withJobRun`/`withJobRunHttp` -- including the half that pass a local constant --
+and asserts every `job_runs` probe names one of them.
+
+**This is the worst failure this file can have.** A missed alarm is bad. **A false
+alarm inside the alarm system is worse**, because it teaches the reader to
+discount the page, and the page exists precisely because five features died
+unnoticed.
+
+**Verified the guard can fail**, which is the part that matters: planted
+`cron.embed-tikc` in the registry, ran it, and it failed. Restored, 13 pass.
+
+**It also failed a second test I did not expect**, and that is worth recording
+rather than claiming sole credit: *"does not cry wolf about the things that were
+working"* also goes red, because a probe naming a job nothing writes finds no rows
+and reports dead. So there was already partial protection.
+
+**What the new guard adds is the REASON.** The existing test says a verdict is
+wrong; the new one says which probe names a job nothing writes. Only the second
+tells you what to fix, and a test that fails without naming the cause is how an
+afternoon goes.
+
+The guard also asserts it found more than ten labels before checking anything, so
+it cannot pass by reading zero hooks -- the same reason `fake-postgrest` tests its
+own operators.
+
+### The MCP is degraded right now
+
+Three production queries in a row were cancelled, including a `VALUES` lateral
+that ran fine at 08:30. Stopped after the third rather than continuing.
+
+**It did not block this**, because the stronger check was local: a probe name that
+matches the source is correct by construction, whatever production currently
+holds. The production side was already established in the 08:30 census, where all
+three jobs appear with runs under an hour old.
