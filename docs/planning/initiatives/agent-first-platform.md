@@ -943,6 +943,23 @@ Behavioural, measured in production, not in tests. This repo has shipped nine fe
 | 18 | `--mrd-agent` usage vs `--mrd-you` | 59 vs 97 | **near parity** |
 | 19 | Meridian ratchet total | 5,864 | **never higher** |
 
+> **Re-measured 2026-08-20 15:35 (`ledger/claude-log.md`). Every figure is a query; the queries are in that entry.**
+>
+> | # | Original | now | | # | Original | now |
+> | --- | --- | --- | --- | --- | --- | --- |
+> | 1 | 53 | **36** | | 9 | 38% | **37.8%** |
+> | 3 | 130 | **66** | | 16 | 6 | **6** |
+> | 4 | 627h | **644h** | | 17 | 2 | **0 live · 10 in catalog** |
+> | 5 | 0.3% | **0 of 55 real** | | 18 | 59 v 97 | **92 v 141** |
+> | 6 | 0 | **0** | | 19 | 5,864 | **5,542** |
+> | 8 | 66% | **66.5%** | | | | |
+>
+> **Criterion 1 is regressing and it is not waiting on work, it is waiting on a publish.** All 8 of its live rows are `cluster.trigger`, first seen 2026-08-19 20:20 and still arriving; every other pending tool is frozen in the seeded July batch. K-11 fixed the cause in application code, and application code is not live until the founder publishes.
+>
+> **Criterion 3 is `status='expired'`, and the definition matters:** `decided_at IS NULL` returns 151, because it folds in 36 pending and 49 rows this lane cancelled deliberately. Recording a number without its query is how that gets read as an 85-point regression.
+>
+> **19 is the only criterion that improved**, by K-27 deleting 322 occurrences of dead code. Criteria 2, 7, 10, 11, 12, 13, 14 and 15 were not re-measured this tick.
+
 **One counter-metric, and it is the important one.** Every criterion above can be gamed by simply asking less. So measure alongside it: **human review time per run**, and **the rate at which auto-approved actions are later reverted** (`artifact.rewind`). If approvals fall while reverts rise, the policy engine is not working, it is hiding. The BCG/MIT finding that a named, autonomous-looking agent draws 16% less scrutiny is the specific mechanism to watch for.
 
 **Gates, every cycle:** `bunx tsc --noEmit`, `bun test`, `bun run build`, plus a production query for each criterion above. A green suite is evidence the code does what the test says and nothing more.

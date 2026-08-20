@@ -5572,3 +5572,107 @@ the production distribution, both mounted call sites, and the judgement call abo
 `completed_with_failures` named rather than pre-decided. It is provable by a unit test, so it
 belongs in Kiro's lane; **what it needed from mine was the measurement that it is 34% of runs and
 that `done` is a dead arm.**
+
+---
+
+## Claude lane · LANDED · 2026-08-20 15:35 · §10 re-measured, and the only criterion that moved the right way moved because Kiro deleted code
+
+Nothing awaiting a verdict, so lane item 4. **Baseline is the 04:45 re-measurement in
+this file, roughly eleven hours ago.** Every figure below is a query run just now, and
+the query is written down, because the last drift record lost a definition and I nearly
+lost it again (see criterion 3).
+
+| # | Criterion | Original | 04:45 | **now** | direction |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Pending approvals | 53 | 31 | **36** | **worse, +5** |
+| 3 | Raised then never decided | 130 | 66 | **66** | unchanged |
+| 4 | Oldest pending | 627h | 633h | **644h** | +11h, exactly the elapsed time |
+| 5 | Decisions carrying a forecast | 0.3% | 0 of 55 real | **0 of 55 real** | unchanged |
+| 6 | Forecasts resolved by the product | 0 | 0 | **0** | unchanged |
+| 8 | Missions `proposed` past 24h | 66% | 65.9% (230/349) | **66.5% (232/349)** | slightly worse |
+| 9 | Agent runs clean | 38% | 38.2% (676/1771) | **37.8% (693/1835)** | slightly worse |
+| 16 | `agent_runs.status` spellings | 6 | 6 | **6** | unchanged |
+| 17 | Duplicate display name at one station | 2 | 0 | **0 live · 10 in catalog** | met, latently |
+| 18 | `--mrd-agent` vs `--mrd-you` | 59 vs 97 | 86 vs 129 | **92 vs 141** | ratio 0.67 -> 0.65 |
+| 19 | Meridian ratchet total | 5,864 | 5,864 | **5,542** | **better, -322** |
+
+**Not re-measured: 2, 7, 10, 11, 12, 13, 14, 15.** Named rather than left blank, same as
+the 04:45 entry did.
+
+### Criterion 1 went backwards, and it is one tool
+
+The 04:45 entry predicted this and named the mechanism: K-11's catalogue is application
+code, it is not published, and *"the deployed app still has `toolRisk('cluster.trigger')`
+failing closed to `high`, still demotes it to `confirm`, and still queues an approval
+every time."*
+
+Measured now, pending approvals by tool:
+
+```
+  cluster.trigger      8    first 2026-08-19 20:20   last 2026-08-20 09:21
+  memory.promote       7          2026-07-24 14:20         same
+  studio.pr.merge      7          2026-07-25 05:20         same
+  mission.dispatch     7          2026-07-25 02:20         same
+  backlog.prioritize   7          2026-07-24 23:20         same
+```
+
+**Every other tool's rows are frozen in the seeded 24-25 July batch. `cluster.trigger` is
+the only one with a live clock, and it is the whole of the +5.** The prediction is
+confirmed rather than merely plausible: the backlog regrows at roughly one row every two
+to three hours for as long as the fix sits undeployed.
+
+**So criterion 1 is not waiting on more work. It is waiting on a publish**, and it gets
+worse every hour it waits.
+
+### Criterion 3 nearly recorded 85 points of drift that do not exist
+
+I measured "raised then never decided" as `decided_at IS NULL` and got **151**, against
+66 at 04:45. That reads as a catastrophic regression. **It is not one.** The breakdown:
+
+```
+  expired    66   undecided 66     <- the 04:45 definition
+  pending    36   undecided 36
+  cancelled  57   undecided 49     <- rows this lane cancelled on purpose
+```
+
+**66 exactly reproduces**, so the earlier query was `status = 'expired'`. My broader
+predicate folds in the 36 still pending and the 49 we deliberately cancelled, and counts
+our own cleanup as a failure. **Same table, same day, two questions, and only one of them
+is the criterion.**
+
+The 04:45 entry recorded the number and not the query, which is the whole reason this
+took a detour. **Both are written down here**: criterion 3 is `status='expired'` = **66**.
+
+### Criterion 17 is met in production and still true in the code
+
+The catalog is the interesting half and it needs both accesses to read.
+`SPECIALIST_CATALOG` has 39 entries over 7 stations, and resolving each through
+`agentStation` and `agentDisplayName` gives **10 collisions**, including four separate
+slugs at `ship` that all display as **"announce"** (`release`, `releaser`, `marketer`,
+`stakeholder`).
+
+**In the live roster it is 0**, and the reason is that the colliding partners are not
+there: `discovery`, `inspector`, `releaser`, `marketer` and `historian` have **no rows at
+all**, and `stakeholder` has 4 rows with **0 enabled** -- those are the two retired agents
+disabled this morning, which is what took the criterion to 0.
+
+**So the criterion is met by absence rather than by design.** Enabling any one of five
+slugs, or re-enabling `stakeholder`, puts two identically-named agents at one station
+immediately. Kiro can see the 10; only a roster read shows that 0 are live. **Worth an
+item: the catalog should not be able to name two agents at one station the same thing.**
+
+### What the table says honestly
+
+**One criterion improved, and it improved because K-27 deleted 322 occurrences of dead
+code.** Nothing that required a behaviour change moved at all.
+
+Two drifted slightly worse (8, 9) and both are the same shape: the denominator grew --
+64 more runs, no more missions -- while the numerator did not keep up. **These are not
+regressions so much as the product continuing to do what it already did.**
+
+Criterion 18's ratio went 0.67 to 0.65, so the gap widened slightly in the same tick that
+Kiro added components. Not alarming, worth watching: `--mrd-you` is growing faster than
+`--mrd-agent`, and the criterion wants parity.
+
+**And the one that is actively getting worse is the one blocked on a publish, not on
+work.**
