@@ -5991,3 +5991,148 @@ attempts are being refused for credit rather than served, and nothing in §10 tr
   request. Worth retrying when the gateway key has headroom; it is minutes of work, not hours.
 - `missionId` on every station and the per-run stop both landed earlier (criteria 10 and 11 at
   04:45), and neither has a control to press, which is Kiro's half rather than mine.
+
+---
+
+## K-63 · VERIFIED · 2026-08-20 17:15 · the ghost is gone from the tree and production confirms it was never real
+
+The item's own acceptance is a grep and it passes: `awaiting_approval` returns **nothing**
+across `src/` and `supabase/` outside tests.
+
+**What I could add is whether the deleted spelling was ever written by anything**, which is
+the half a grep cannot answer:
+
+| table | `awaiting_approval` | `waiting_approval` | `planning` |
+| --- | --- | --- | --- |
+| `agent_runs` | **0** | 7 | 0 |
+| `mission_steps` | **0** | 7 | 0 |
+| `missions` | **0** | 0 | 0 |
+
+**Zero rows carry the ghost, in any table, ever.** The single-`a` spelling is the real one and
+it is the one kept. **`planning` is also zero everywhere**, so removing that branch from
+`AgentInspector` and `AgentRosterPanel` deleted a case nothing could reach either.
+
+Importing `LIVE_RUN_STATUSES` rather than re-declaring it is the right shape: this repo's
+recurring defect is two lists of statuses drifting apart, and one importer cannot drift.
+
+---
+
+## K-74 · VERIFIED · 2026-08-20 17:17 · the narrowing is real and it applies to most of the estate
+
+**`retrievalProductId` has existed as a working option since PC-36 and the pane never set it**,
+so Ask read across every product in the workspace. That is a cross-product context leak, and it
+is the same family as the multi-product findings I filed at 15:05.
+
+**`retrievalScope` guards on `manyProducts` before narrowing anything**, which is the decision
+worth checking against the estate rather than against taste. Measured:
+
+```
+  workspaces holding at least one product   17
+  holding MORE than one                     10   <- narrowing applies
+  most products in one workspace             4
+```
+
+**So 10 of 17 workspaces (59%) get the narrowing and 7 are deliberately untouched.** A
+single-product workspace has nothing to disambiguate, and a chip there would be noise claiming
+a choice nobody made. The guard is right and it is load-bearing rather than defensive.
+
+The "name absent for a beat" branch returning `productId` with an empty chip is also right:
+**it narrows the retrieval and stays quiet about it** rather than blinking a placeholder, so
+the answer is correct before the label is pretty.
+
+---
+
+## K-32 · VERIFIED · 2026-08-20 17:19 · 460 lines out and the live equivalents still draw
+
+Ground was SUPERSEDED and the entry confirmed it rather than repeating it, which is the right
+order. `primitives.css` **2,561 -> 2,101**.
+
+**The check a grep cannot make: the surfaces those rules used to paint still render.** Driven
+in a browser after the deletion, `/meridian` draws **835 `[data-mrd]` nodes** and 154,939
+characters with **zero console errors and zero page errors**, and no error boundary anywhere.
+
+---
+
+## K-33 · VERIFIED · 2026-08-20 17:20 · the riskiest deletion in the batch, and nothing moved
+
+150 lines out across two files (`ink.css` 981 -> 893, `shell.css` 2,968 -> 2,951), removing
+**65 token names read by nothing**.
+
+**This is the one most able to break something silently**, because a deleted custom property
+does not error, it falls back to nothing and a colour quietly goes transparent. **Writing the
+sweep rather than trusting the item's list is the right call**, and stripping comments first
+matters: this file's own docblocks name dozens of tokens they do not use, so a naive grep would
+have called them live and deleted nothing.
+
+**Checked the way it can actually fail**: both grounds still paint, all three theme states, and
+the same zero-error render above. Nothing went transparent.
+
+**Ratchet across the three CSS items today: 5,864 -> 5,542 (K-27) -> 5,340 (K-28) -> 5,157.**
+§10 criterion 19 is "never higher" and it is now **707 below its own baseline.**
+
+---
+
+## K-38 · VERIFIED · 2026-08-20 17:22 · verified against the diff and the render, as its own note asks
+
+**The entry says the build reports were lost and that verification should lean on the diff
+rather than on its `Unsure` field.** That is an unusually honest thing to write and it changes
+what a verdict can mean here: **I am confirming what the code does, and nobody is in a position
+to tell me what the author was unsure about.** Recording that rather than pretending the
+verdict is as strong as the others.
+
+**What renders:** the gallery grew from 759 `[data-mrd]` nodes to **835** and from 106k to
+155k characters, so the new parts are on screen rather than merely exported. The selection bar
+is present in the rendered page. Zero console errors.
+
+**`BulkBar` rather than `SelectionActions` is the right call and the reasoning generalises.**
+Meridian already exports `SelectionActions` for prose-range highlighting; this is row ids and a
+count. **Two unrelated concepts under one name is how an agent picks the wrong export**, which
+K-42's own body warned about. Six blocked items inherit this name, so getting it distinct
+mattered more than getting it fast.
+
+---
+
+## K-66 · VERIFIED · 2026-08-20 17:23 · and the floor test is why the pass counts
+
+Ran the suite directly: **8 pass, 0 fail, 10 expect() calls.**
+
+**The floor test is the part worth naming.** Two of the three assertions were red before K-11
+filled the catalogue and are green because of it, which is exactly the shape that turns into a
+vacuous pass later: empty the registry and the loops iterate nothing and report success.
+`the catalogue is real, so no loop below passes by having nothing to check` closes that.
+
+**That is the third item today to add its own anti-vacuity guard without being asked** (K-24's
+plants, K-67's canary, this). It is becoming a habit in this lane and it is the right one.
+
+---
+
+## K-70 · VERIFIED · 2026-08-20 17:24 · focusable, announced and inert is worse than not focusable, and it is fixed
+
+`CtxRow`'s interactive branch is now a real `<button type="button">` carrying `w-full
+text-left` and `data-mrd=""`. The old branch was `<div onClick role="button" tabIndex={0}>`
+**with no `onKeyDown`** -- reachable by Tab, announcing itself as a button, taking the focus
+ring, and doing nothing on Enter or Space.
+
+**Confirmed in the rendered app rather than only in the diff: `div[role="button"]` appears
+ZERO times anywhere in the gallery.** So the pattern is gone from the surface, not just from
+this component.
+
+The non-interactive branch correctly stays a plain `div` with no role and no `tabIndex` -- it
+is not focusable and does not claim to be, which is the honest half of the same rule.
+
+---
+
+## K-76 · VERIFIED · 2026-08-20 17:25 · the research exists, and it is research rather than opinion
+
+322 lines appended to `REFERENCE-PATTERNS.md`, which now runs to 1,523. Structure matches the
+existing Discover section: four questions answered, an information model with a source column,
+verbs marked for what was lifted, a deliberately-not-adopted list, a directives section, and a
+**Sources** block with URLs.
+
+**The part that makes this worth a verdict rather than a nod is the "what these products get
+wrong for an agent-operated product" section.** Lifting an information model outright is this
+repo's standing rule; lifting it *uncritically* from tools built for humans typing is how an
+agent product ends up with a Gantt chart. Naming what not to take is the half that keeps the
+rule from becoming cargo cult.
+
+Nothing here needs production. `docs:check` passes, so it is linked from its index.
