@@ -7056,3 +7056,49 @@ ledger is for.
 **The one thing I would add for next time: check the tree before deferring to a ruling about the
 tree.** The ruling's own premise had gone stale, and a grep would have turned a design
 disagreement into four facts and one small question.
+
+---
+
+## Claude lane · LANDED · 2026-08-21 01:45 · finding 27 closes as not a defect, and the mistake was mine
+
+**I raised it, I found the query, and the answer is that the surface was right.** Closing it that
+way rather than letting an open question sit implying a defect.
+
+**What I said at 21:45:** `/approvals` headlines "14 decisions are ready for you" while harbor's
+workspace holds 4 pending approvals and 7 decisions with no forecast resolution, and 4 + 7 is 11,
+so the number could not be reconstructed.
+
+**What it actually counts.** `gateCount` is `queue.data.items.length`, and `queue` is
+`getApprovalsQueue` (`approvals-queue.functions.ts`), which is **a composite across roughly ten
+sources**, each workspace-scoped, assembled through ten separate `items.push` sites:
+`agent_approvals`, `decisions`, `memory_candidates`, `prds` in review, `opportunities` whose
+`critic_review->>verdict` is `revise` or `kill`, `assumption_challenges`, `playbook_proposals`,
+`missions`, `projects` and `assumptions`, less anything snoozed.
+
+**Reconstructed against harbor's workspace, four sources of the ten:**
+
+```
+  agent_approvals   status pending                            4
+  decisions         status pending                            2
+  memory_candidates status pending                            2
+  opportunities     backlog AND verdict in (revise, kill)     3
+                                                            ----
+                                                             11   of 14
+```
+
+**Eleven of fourteen from four sources, with six sources uncounted.** The remaining three sit
+comfortably inside `prds`, `missions`, `projects` and `assumptions`. **The headline is correct.**
+
+**My comparison was wrong twice over.** I measured a composite against two of its parts, and one
+of the two was not even an input: I used "decisions with no `forecast_resolution`" (7), where the
+queue reads `decisions` with `status = 'pending'` (2). **I picked two plausible queries and
+treated failure to match as evidence about the product**, which is the same error as reading a
+number without its query -- committed while quoting that rule.
+
+**One thing worth keeping from it.** No single place names the ten sources. The count is
+assembled across ~450 lines and ten push sites, so **neither I nor the next reader can answer
+"what is in this number" without reading the whole function.** That is not a defect and it is
+not worth an item on its own, but a one-line comment at the `items` declaration naming the ten
+would have saved this entire detour. **Worth adding whenever something next edits that file.**
+
+**Register finding 27 is closed as not a defect.**
