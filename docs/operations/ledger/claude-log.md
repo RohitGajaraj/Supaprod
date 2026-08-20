@@ -5046,3 +5046,238 @@ error -- so a seeded session reaches `/meridian`, and the gallery cases are stat
 fixtures that never touch the database. **K-23 and K-24 were both verified in the
 real running app on that basis**, with only the auth boundary supplied. Where a
 verdict depended on that, it says so.
+
+---
+
+## Claude lane · LANDED · 2026-08-20 15:05 · the multi-product columns all shipped, and four of five are written by nothing
+
+The database came back, so I took lane item 1. **The migrations from 2026-08-19 all
+applied and every column is live in production.** That is the half that was already
+done. This entry is about the other half.
+
+| column | rows | populated | why |
+| --- | --- | --- | --- |
+| `credit_ledger.product_id` | 14,383 | **0** | 1 of 72 call sites supplies it, and its 4 callers all pass null |
+| `agent_memory.product_id` | 1,250 | **0** | see below |
+| `learnings.decision_id` | 133 | **0** | no writer, and a trigger would have to guess |
+| `learnings.product_id` | 133 | **0** | trigger IS correct; these rows predate it. **No reader exists** |
+| `agent_autonomy.workspace_id` | 88 | 40 | a one-off UPDATE inside the migration, not a writer |
+
+**A column with no writer is the failure this repo has recorded nine times.** The
+register named the risk itself at line 223 and then the same shape shipped five more
+times in one day.
+
+### The one I got wrong first, because a snapshot is not a mechanism
+
+I measured `agent_autonomy.workspace_id` at 40 of 88 and checked the 48 NULLs: every one
+points at an agent whose own `agents.workspace_id` is NULL, which is a global agent with
+no workspace to inherit. **I concluded the column was correct by design. That was
+wrong**, and it is worth recording how.
+
+The 40 populated rows were not populated by a writer. They were populated by **a single
+UPDATE statement inside migration `20260819183000`**. Six write paths reach this table
+and **none of them stamps `workspace_id`**, so the number is a photograph of one moment,
+not a property that holds. I had measured the rows and inferred the mechanism, which is
+the same error as reading a column that looks tended and assuming something tends it.
+
+**And the dominant writer is not the app.** 86 of 87 rows carry `set_by IS NULL`, which
+is the fingerprint of `auto_advance_agent_arc`, a SECURITY DEFINER function that inserts
+on every clean agent run. So fixing the operator upsert in `trust.functions.ts` alone
+would stamp roughly 1% of new rows **while making the column look tended** -- strictly
+worse than leaving it empty.
+
+**It fails at three layers, not one, and I confirmed the third in production myself:**
+
+```
+  polname                      cmd     using
+  agent_autonomy owner read    SELECT  (auth.uid() = user_id)
+  agent_autonomy owner write   ALL     (auth.uid() = user_id)
+```
+
+Nothing writes it · four readers still key on `(user_id, agent_id)` · **and RLS forbids
+the cross-colleague read the column exists for.** Migration `20260805130000` declined to
+role-gate this table because "there is no `workspace_id` to ask a role about". There is
+now, and the policies never moved. **Stamping the column changes nothing until the
+SELECT policy does.**
+
+### `credit_ledger`, where the SQL is right and the plumbing is empty
+
+The database side is **correct and needs no change**: `debit_account_credits` inserts
+`product_id` verbatim, and `runtime.server.ts:1420` passes `opts.productId ?? null`. Of
+13 INSERTs into this table, 11 are grants, top-ups, vouchers and clawbacks that are
+**correctly NULL by design**.
+
+**The count is 0 rather than merely low for a precise reason.** Of 72
+`callModel`/`callModelStream` sites, 55 are chargeable and **exactly one** supplies a
+productId (`cluster.server.ts:175`) -- **and all four of that one's callers pass null.**
+
+**A live consequence, and I checked whether it costs money.** `runtime.server.ts:1356`
+reads `credit_ledger` by `product_id` when a cap is product-scoped. There is exactly one
+credit cap in production and **its scope is `product`**:
+
+```
+  cap 5,000 credits / month     rows the cap can see:  0
+  account this month:           2,476 debits, 20,685 credits spent
+```
+
+`capExceeded(spent, projected, cap)` is `max(0,spent) + max(0,projected) > cap`. With
+`spent` pinned at 0 it can only fire if a **single call** projects over 5,000 credits,
+against an account averaging 8.4 credits per call. **The cap is unconditionally inert,
+and it fails open**, which is the wrong direction for a spend control.
+
+**It is not costing money today and I want that stated plainly rather than dressed up.**
+That account is `harbor@supaprod.ai`, the demo login, and it owns one sample workspace
+and zero real ones. No customer is under-billed. **It is a latent failure waiting for the
+first paying customer who sets a product cap**, not a live leak.
+
+**Two traps in the obvious fix.**
+
+1. **Stamping a wrong value gives away free AI calls.** `20260819184000` added
+   `credit_ledger_product_id_fkey -> projects(id)`, validated. `debit_account_credits`
+   has no exception handler and its balance UPDATE and ledger INSERT are one
+   transaction, so a `product_id` that is not a live `projects.id` **rolls the debit
+   back entirely** -- and the caller only `console.error`s it. Every value stamped must
+   be a verified `projects.id`.
+2. **`chat.ts` carries a client-supplied `body.scope.productId`.** Passing it through
+   unvalidated would let a member tag spend to another product or dodge a cap. The
+   `CallOpts` invariant at `runtime.server.ts:389` is a security control, not a style
+   note.
+
+**And the fix is probably not 54 call sites.** `credit_ledger.ai_event_id` points at
+`ai_events`, which already has a `product_id` column, so a BEFORE INSERT trigger would
+cover every writer at once. **That does not work today**, and this is the trap worth
+naming: `logAiEvent` neither accepts nor sets `product_id`, so the trigger would derive
+NULL every time. Measured:
+
+```
+  ai_events            61,156 rows,   128 carry product_id
+  last 7 days          19,258 rows,     0 carry product_id
+  every day for 20 days                 0
+```
+
+**So `ai_events.product_id` is a second orphan sitting underneath the first.** Fix
+`logAiEvent` and one trigger replaces the whole call-site sweep. That is the order of
+work I would take.
+
+### `learnings.decision_id`, and the defect found on the way is worse than the column
+
+Two inserts and one overturn UPDATE create learnings, and none sets `decision_id`.
+Fixing the single insert at `outcome.functions.ts:591` covers all three doors into it
+(the human `/learn` path, the historian sweep, and the MCP `settle_outcome` tool).
+
+**The register's pointer is stale**: it cites `trust.server.ts:151`; the code is now at
+`trust.server.ts:312-330`.
+
+**What that code does is the real finding.** It reconstructs the learning-to-decision
+edge in JS by joining on the shared spec:
+
+```
+  decisionsByPrd = new Map(decisionRows.map(d => [d.prd_id, d.decided_by_agent_slug]))
+```
+
+**There is no `.order()` and no tie-break.** When several decisions share one spec, the
+last row in PostgREST's arbitrary order silently wins, and a learning is credited to
+whichever agent that happens to be. I measured whether that case is real:
+
+```
+  specs carrying decisions                         14
+  of those, with MORE THAN ONE decision            14
+  of those, where two DIFFERENT agents decided     14
+```
+
+**Every spec in the system is the ambiguous case.** Of the 35 decisive learnings that
+feed trust, **14 (40%) are attributed by row order.** That feeds `sOutcome`, which
+carries 0.3 of the trust score at `trust.server.ts:369` -- **and agents graduate
+autonomy on that score.** So this is lane item 3's problem arriving early, and it is a
+correctness bug rather than a design question.
+
+Writing `decision_id` collapses steps 2 and 3 into a primary-key join and the ambiguity
+stops existing rather than being settled by row order.
+
+**Do not add a derivation trigger for this column.** It would have only `prd_id` to work
+from, which is exactly the guess migration `20260819181000` ruled out, and it would then
+look populated on every row.
+
+### `learnings.product_id` is the one case where doing nothing is right
+
+Its trigger `trg_learnings_derive_product` is live and correct on INSERT, so every future
+row is stamped. The 133 existing rows predate it. A backfill using the trigger's own
+logic would fill **61 of 133** (49 via `prd_id`, 12 more via `opportunity_id`) and leave
+72 NULL.
+
+**I am not doing that backfill yet, and the reason is the rule I keep quoting.** Nothing
+reads the column. Every query against `learnings` filters on `user_id`, `workspace_id` or
+`id`; `promote.server.ts:111` still reaches product context by joining
+`opportunity:opportunities(theme_id)`, which is the join `product_id` exists to replace.
+**A half-populated column with no reader is the worst of the three states**, so this
+waits for its reader, and the trigger keeps it honest in the meantime.
+
+**Also worth knowing before anyone reads a number off this table: all 133 learnings are
+`is_sample`. The compounding record has zero real rows.** 9 real workspaces exist and
+they hold 46 real memories between them.
+
+### `agent_memory.product_id`, where the migration tells you to do the thing it forbids
+
+Eight paths create rows here and none stamps the column. **Only five of the eight are
+even eligible**, because `20260819182000` added:
+
+```sql
+  check (kind not in ('reflection','correction') or product_id is null)
+```
+
+It **refuses** the write rather than nulling it, on purpose. So a blanket stamp is not a
+partial fix, it is an outage: `autoReflect` (`reflection.server.ts:179`) writes
+`kind: 'reflection'`, and **that path wrote all 46 real rows on this system.** The only
+writer producing real data is the one a careless fix breaks first.
+
+**The migration's own header contradicts its own constraint.** It instructs a future
+reader to stamp `spine/correction.server.ts:316` because "`args.trackId` is in scope and
+`spine_tracks.product_id` exists". That writer sets `kind: 'correction'`, which the
+CHECK **added in the same file** refuses. Following the migration's guidance ships a hard
+failure. **The comment is wrong and should be corrected rather than acted on**, which is
+the same class of defect as the 450 in the register: an instruction that survived because
+nobody re-derived it.
+
+### The generated types are stale, so none of this compiles yet
+
+Checked `src/integrations/supabase/types.ts` against what is applied:
+
+| column | applied | in generated types |
+| --- | --- | --- |
+| `learnings.product_id` | yes | **missing** |
+| `learnings.decision_id` | yes | **missing** |
+| `agent_memory.product_id` | yes | **missing** |
+| `learnings.is_sample` / `agent_memory.is_sample` | yes | **missing** |
+| `credit_ledger.product_id` | yes | present |
+| `agent_autonomy.workspace_id` | yes | present |
+
+So the file is **partially** stale: `20260819183000` and `184000` are represented and
+`180000` to `182000` are not. **Any `.insert({ product_id })` against `learnings` or
+`agent_memory` fails `bunx tsc --noEmit` today**, which is the gate this lane may not
+cross. `is_sample` missing also means the sample filter the handoff tells every agent to
+use cannot be written in TypeScript, only in SQL.
+
+**This is the first thing to fix and it is not mine to guess at** -- the types are
+generated through Lovable, and hand-editing a generated file is how it gets silently
+reverted on the next regeneration. **Founder: this needs a types regeneration through
+Lovable before any of the stamping work can land.**
+
+### The order of work I would take
+
+1. **Regenerate the Supabase types.** Nothing below compiles without it.
+2. **`logAiEvent` carries `product_id`.** That unlocks a single derive trigger for
+   `credit_ledger` and replaces a 54-call-site sweep, and it fixes `ai_events` itself,
+   which is 0 for 20 days and is an orphan nobody had logged.
+3. **`decision_id` at `outcome.functions.ts:591`**, which fixes all three doors, and then
+   collapse the `trust.server.ts:312-330` JS join onto a primary key. **That removes a
+   live 40% mis-attribution from the trust score**, and it is the highest-value item
+   here because autonomy graduates on that number.
+4. **`agent_autonomy`: a derive trigger plus the RLS policy, together.** Either alone is
+   pointless, and the trigger alone is worse than nothing because the column then looks
+   tended.
+5. **`agent_memory`: five paths, each guarded on `kind`**, and fix the migration comment
+   that says otherwise.
+6. **`learnings.product_id`: nothing, until it has a reader.**
+
+**Nothing has been changed in this commit.** Every line above is a measurement or a file
+read, and the register is updated to match.

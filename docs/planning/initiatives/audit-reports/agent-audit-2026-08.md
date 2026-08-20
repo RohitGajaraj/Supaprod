@@ -61,7 +61,7 @@ The numbers the whole direction rests on. All queried 2026-08-19.
 | Agent slugs seeded / never used | **22 / 4** | QUEUED K-21 |
 | Workspaces holding >1 product | **11 of 17**, 7 hold four | context |
 | `agent_memory` rows, all workspace-visible | **1,170**, and **101 cross-author recalls** | CLOSED — README corrected |
-| `credit_ledger` rows carrying `product_id` | **0 of 13,788** (column exists) | OPEN |
+| `credit_ledger` rows carrying `product_id` | **0 of 14,383** (was 0 of 13,788; 595 more rows, still zero) | **OPEN, and diagnosed 2026-08-20.** The SQL is correct: `debit_account_credits` inserts `_product_id` verbatim. Of 72 `callModel` sites, 55 are chargeable and **one** passes a productId, whose own 4 callers all pass null. See `claude-log.md` |
 | Measured COGS per completed mission | **$0.338** against a $0.50 assumption | context — economics hold |
 
 ---
@@ -249,18 +249,22 @@ of these is finished.
 1. Six of seven stations unsteerable (`missionId: null`)
 2. No per-run stop; `cancelled` overwritten by `completed`
 3. Trust eval leg — **needs a decision on how seven dimensions compose, and it cannot be made yet.** Two of the seven are unusable as written. **`prompt_injection_risk` is NULL in all 77 rows** — never written once. And **`hallucination_score` is stored on the inverted scale**: `eval-tick.ts` tells the judge *"score on six dimensions (0.0 worst to 1.0 best, except `*_risk` which are 0.0 safe to 1.0 risky)"*, lists **seven** fields, and `hallucination_score` does not end in `_risk`, so the model scores it higher-is-better while the inline comment on the next line says the opposite. Production settles it: **`corr(hallucination_score, groundedness) = +0.999`**. Meanwhile `traces.$traceId.tsx:300` renders it `higherIsBetter: false` and `EvalScoreChips` calls it risk-shaped, so **every hallucination score in the product is displayed with its meaning inverted.** Fix the prompt's self-contradiction before composing anything from these numbers
-4. `learnings.decision_id` — **the column now exists** (`20260819181000`, applied 2026-08-19) and **nothing writes it.** Half done, and the remaining half is the half that matters
+4. `learnings.decision_id` — **the column now exists** (`20260819181000`, applied 2026-08-19) and **nothing writes it.** Half done, and the remaining half is the half that matters. **Measured 2026-08-20, and the cost is bigger than the column:** the JS reconstruction it replaces (`trust.server.ts:312-330`, NOT `:151`, that pointer is stale) builds `new Map()` keyed on `prd_id` with **no `.order()` and no tie-break**. Production: **14 of 14 specs carrying decisions have more than one, and all 14 have two different deciding agents** — so **14 of the 35 decisive learnings (40%) are attributed to an agent by PostgREST's arbitrary row order**, feeding `sOutcome`, 0.3 of the trust score agents graduate autonomy on
 5. A settled forecast re-ranks nothing
 6. `/decide` writes no decision row
 7. ~2,880 tick failures invisible; ops is admin-only
 8. Nine tick-written tables with no reader, incl. `insights.brier_score`
 9. The digest is unreachable without a Settings visit
-10. `credit_ledger.product_id` never stamped
+10. `credit_ledger.product_id` never stamped — **and the single production credit cap is scoped `product`, so it reads 0 spend and is unconditionally inert (fails open).** Latent rather than costly: that account is the `harbor@` demo login with zero real workspaces. Two traps in the fix: a bad value hits `credit_ledger_product_id_fkey` and **rolls the whole debit back, giving a free call**, and `chat.ts`'s productId is client-supplied
 11. `ai_events.agent_id` never written; `tool_calls` has no parent edge
 12. 11 signal-sink bypasses
 13. `funnel-week2` orphaned; `liveness-tick` outside the watchdog
 14. Design gate unreachable on the autonomous path
 15. `lifecycle-signal-to-learning.md` not yet corrected
+16. **`ai_events.product_id` is a second orphan under the first, and had never been logged.** 128 of 61,156 rows ever; **0 of the 19,258 in the last 7 days, and 0 on every one of the last 20 days.** `logAiEvent` neither accepts nor sets it. This is why a derive trigger from `credit_ledger.ai_event_id` would stamp NULL on every row, and why fixing `logAiEvent` first replaces a 54-call-site sweep with one trigger (found 2026-08-20)
+17. **The generated Supabase types are stale against applied migrations, and it blocks the stamping work.** `src/integrations/supabase/types.ts` is missing `learnings.product_id`, `learnings.decision_id`, `agent_memory.product_id` and `is_sample` on both, while carrying `credit_ledger.product_id` and `agent_autonomy.workspace_id` — so `180000`-`182000` are unrepresented and `183000`-`184000` are. **Any `.insert({ product_id })` on those two tables fails `bunx tsc --noEmit` today**, and the `is_sample` filter every agent is told to use cannot be written in TypeScript. Needs a regeneration through Lovable (found 2026-08-20)
+18. **`20260819182000`'s own header instructs a fix its own CHECK forbids.** It tells the reader to stamp `spine/correction.server.ts:316`, which writes `kind: 'correction'` — refused by `agent_memory_method_has_no_product`, added in the same file. The comment is wrong and should be corrected rather than followed (found 2026-08-20)
+19. **`agent_autonomy.workspace_id` fails at three layers, not one.** Nothing writes it (the 40 populated rows are a one-off UPDATE inside `20260819183000`, and the dominant writer is the `auto_advance_agent_arc` RPC — 86 of 87 rows carry `set_by IS NULL`); four readers still key on `(user_id, agent_id)`; and **both RLS policies are still `auth.uid() = user_id`**, so the cross-colleague read the column exists for is forbidden regardless. Stamping it alone is worse than leaving it empty (found 2026-08-20)
 
 ---
 
