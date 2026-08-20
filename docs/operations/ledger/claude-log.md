@@ -6927,3 +6927,73 @@ it the same way.
 
 **Neither of those two got its own browser pass.** The app renders and the ratchet fell, which is
 Kiro's half of the proof. Naming which half a verdict rests on is the habit worth keeping.
+
+---
+
+## K-64 · VERIFIED · 2026-08-21 00:50 · the pattern I registered as finding 22 is now closed across all four normalisers
+
+**This is the systematic close of the defect I recorded this afternoon** -- that
+`completed_with_failures` is the status every mapping forgets, in four tables written by three
+items. K-64 built one table of every spelling a writer in this repo produces, each carrying its
+writer by name, and drove all four normalisers through it. Suite: **26 pass, 0 fail, 57
+assertions.**
+
+**Driven myself against every spelling production actually writes** (13 distinct, across
+`agent_runs`, `missions` and `mission_steps`):
+
+| status | `classifyRunOutcome` | `runState` | `runBucket` | terminal |
+| --- | --- | --- | --- | --- |
+| `completed` | succeeded | done | done | yes |
+| `completed_with_failures` | succeeded_with_failures | **stopped** | **done** | yes |
+| `failed` | failed | stopped | failed | yes |
+| `halted` | -- | stopped | failed | yes |
+| `waiting_approval` | null | -- | queued | no |
+| `complete` | succeeded | done | done | -- |
+
+**All six `agent_runs` spellings bucket cleanly and not one falls to `other`.** That was 622 rows,
+33.8% of the table, this morning.
+
+**And the disagreement on `completed_with_failures` is deliberate, declared, and exactly the
+ruling.** `run-state.ts` says `stopped`; `runBucket` says `done`. K-64 binds all four normalisers
+on "clean success" with **exactly one exempt cell**, `runBucket`, carrying K-60's argument.
+**That is the right implementation of a ruling I was half-wrong about**: the six surfaces answer
+"was this a clean success", `RUN_STATE` answers "does anything need a person", and the exemption
+is now a declared cell in a test rather than a divergence nobody wrote down.
+
+`classifyRunOutcome` returning null for `running`, `dispatched`, `planned`, `proposed`, `skipped`
+and `waiting_approval` is **its declared `RunOutcome | null` return for work that has no outcome
+yet**, not a default arm. `planned` and `skipped` reaching `runBucket`'s `other` is **my probe
+feeding step statuses to a run normaliser**, not a defect: neither ever appears in `agent_runs`.
+
+**Two mappings it found that the item did not name** -- `run-analytics.ts` gaining
+`cancelled`/`canceled` and `done`, and `TaskRows.tsx` gaining `queued`, `stopped` and `partial`
+so eight spellings stop reaching a default arm -- are the same shape as the original finding, one
+level further out.
+
+**Register finding 22 is closed.**
+
+---
+
+## K-78 · VERIFIED · 2026-08-21 00:52 · the LEARN research exists, and its structural finding is the useful part
+
+508 lines appended, `REFERENCE-PATTERNS.md` now 2,391. The station row is marked researched with
+its nine sources named, and the section carries the same shape as K-76 and K-77: merged
+information model, verb set, three questions answered, a deliberately-not-adopted section, sources.
+`docs:check` passes, so it is linked from its index.
+
+**The finding worth carrying out of it is structural rather than a pattern list:** *an experiment
+readout settles a question about the world; a forecast resolution settles a question about the
+forecaster.* Learn has to do both in one act, and the two halves need different states, different
+words and different non-answers.
+
+**That is why Metaculus rather than Amplitude turned out to be the deepest source**, and it is a
+genuinely non-obvious result from research that could easily have returned nine analytics products
+saying the same thing. Every experiment product studied does the first half and **refuses the
+second on purpose.**
+
+**It also matters to this lane specifically.** The moat claim is the forecast captured at decision
+time, and `forecast_resolution` is a column I measured at **0 in real workspaces** today. Research
+that names what the resolution half needs, and that no product on the market does it, is directly
+upstream of that gap rather than beside it.
+
+Nothing here needs production. This rests on the file and the gate.
