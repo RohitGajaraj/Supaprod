@@ -8324,3 +8324,97 @@ rather than through a pipe. The three source-text guards K-37 names (`AppFrame.s
 `no-synthetic-key-dispatch`, `route-inventory`) are green and unweakened: 77 pass.
 
 ---
+
+## The is_sample leak, CLOSED · 2026-08-21 17:11 IST · one tick was the whole of it, and researcher-tick was never guilty
+
+**Deploy lag versus an unfiltered path is now SEPARATED, which is what the last handoff asked for.** Enough
+time had passed to make them distinguishable, and the answer is unambiguous: **an unfiltered path.** Sample
+agent runs were still starting at **11:10 and 11:30 UTC**, two hours after the fix deployed, one of them
+`status: running` while I was looking at it.
+
+**The whole residual leak was ONE tick, and it is `track-tick`.** Every query below ran through the Lovable
+MCP against production and is recorded so the next reader can re-run it rather than trust me.
+
+```sql
+-- Who is still spending, split at the deploy boundary
+select e.surface,
+       count(*) filter (where e.created_at <  '2026-08-21 08:03:00+00') as before_first_push,
+       count(*) filter (where e.created_at >= '2026-08-21 08:03:00+00'
+                          and e.created_at <  '2026-08-21 09:30:00+00') as during_deploy_window,
+       count(*) filter (where e.created_at >= '2026-08-21 09:30:00+00') as after_deploy_settled,
+       round(sum(coalesce(e.est_cost_usd,0))
+             filter (where e.created_at >= '2026-08-21 09:30:00+00')::numeric, 4) as usd_after_deploy
+from ai_events e join workspaces w on w.id = e.workspace_id
+where e.created_at >= '2026-08-21 00:00:00+00' and w.is_sample
+group by e.surface order by usd_after_deploy desc nulls last;
+
+-- Which tick started them, and whether any real work was waiting
+select (select count(*) from agent_runs
+         where created_at >= '2026-08-21 09:30:00+00' and track_id is not null) as with_track,
+       (select count(*) from agent_runs
+         where created_at >= '2026-08-21 09:30:00+00' and track_id is null)     as without_track,
+       (select count(*) from spine_tracks t join workspaces w on w.id=t.workspace_id
+         where t.status='open' and w.is_sample)          as open_tracks_on_sample,
+       (select count(*) from spine_tracks t join workspaces w on w.id=t.workspace_id
+         where t.status='open' and w.is_sample is false) as open_tracks_on_real;
+```
+
+**The fourteen-hook fix WORKED, and the numbers say so rather than my opinion.** Across the deploy boundary
+`sense` went from 56 calls before the push to **3** after, and `discovery` from 73 to **16**. What did not
+move was `agent`: **114 calls and $0.2072 in the two hours after the deploy, still 100% sample** — about
+$0.10/hour, roughly **$75/month from this one path**, which is larger than the $52/month the original
+measurement was written to stop.
+
+**The second query is the one that settles blame.** Post-deploy `agent_runs` **with** a `track_id`: **23**.
+**Without** one: **0**. Open `spine_tracks` on sample workspaces: **52**. On real workspaces: **0**. So every
+remaining model call came through the track driver, and it was driving fifty-two demo tracks in a circle
+while nothing real waited on it.
+
+**`researcher-tick` was never a second instance. It was this one, seen twice.** The last session read fresh
+`researcher` runs as proof its own fix had failed, and wrote a new helper on that basis. Every one of those
+runs carried a `track_id`: `track-tick` was driving a track through a research station. **A run records
+which AGENT ran, never which TICK started it**, so the agent slug is the wrong end of the question. The
+helper was still the right helper — `track-tick` needed exactly it — but the diagnosis behind it was wrong,
+and believing it would have sent the next person back to `researcher-tick` a third time.
+
+**THE FIX.** `spine_tracks` is workspace-scoped, so the exclusion travels by id:
+`notInList(await sampleWorkspaceIds(...))`, then `.not("workspace_id", "in", excluded)`. Same shape as
+`researcher-tick`, same helper, one call site.
+
+**THE GUARD IS WIDENED, because the old one was structurally blind to this.** It read `.from("workspaces")`
+and nothing else, so it could not see a tick that picks work from a workspace-scoped table — and it passed on
+both leaks that survived the first fix. The new assertion is keyed on **reaching a model** rather than on a
+table name: any hook importing `@/lib/ai/` or `@/lib/spine/` must resolve the exclusion or carry a **named
+reason** in the test file. A table list would have to track the schema forever and would have been wrong the
+day `spine_tracks` was added. **Proven by removing the exclusion from `track-tick`**: the suite named that
+file and went red, then green when it was put back. Stale exemptions fail the build too — each must still
+name a hook that exists and still reaches a model.
+
+**SEVEN hooks reach a model without the exclusion, and five are exempt with reasons rather than quietly
+skipped.** `ci-poll-tick`, `fanout-reconcile-tick` and `resume-runs` poll work already dispatched and paid
+for. `eval-suite-tick` **cannot** carry it: `eval_suites` has no `workspace_id` column at all, confirmed
+against the live schema, so it needs a join or a migration rather than a filter. `drift-tick` hits a real
+trap: `ai_events.workspace_id` **is nullable** and 417 of today's calls had none, so a `not in` filter would
+silently drop every unattributed event from the drift input.
+
+**TWO REAL INSTANCES LEFT UNFILTERED ON PURPOSE, and sized rather than assumed.** `eval-tick` judges
+`ai_events` including sample ones (`judge`: **$0.0228 across 417 calls** in the day) and `outcome-tick`
+selects `prds` (`prd`: **7 calls, $0.0046**). Together that is about **$1/month against the $75/month just
+closed**; they are the moat path and the nullable-column path respectively, and changing either unmeasured
+beside a fix fifty times larger is precisely how the last diagnosis went wrong. Filed, not bundled.
+
+**One defect in my own guard, caught before it shipped.** The first draft matched spend imports with a `/g`
+regex and `.test()`. A global regex carries `lastIndex` between calls, so one shared instance tested across
+many files skips matches on alternate calls and the offender list depends on iteration order. It reported
+four false offenders. **I also misread the failure diff** as four offenders when it was two plus brackets,
+and printed the actual list rather than acting on the misreading.
+
+**Unattributed AI spend is its own gap, found on the way past.** 417 `judge` calls and 1,787 `embed` calls
+today carry **no `workspace_id` at all**, so no filter keyed on workspace can ever see them and no per-account
+cost attribution can either. Not fixed here, and named because it bounds what any `is_sample` guard can
+achieve.
+
+**Gates: exit 0 on all four.** Re-measurement after this deploys is the last step, and the number that
+matters is post-deploy sample `agent` calls going to zero.
+
+---

@@ -36,12 +36,28 @@ committed by the repair for the second.** No unit test in this repo could catch 
 `validateSearch` is exercised by nothing but the router. The parser now lives in
 [`src/lib/search-flag.ts`](../../src/lib/search-flag.ts), which a test can call.
 
-## Still open and NOT part of K-37
+## The is_sample leak is CLOSED, and the last handoff's diagnosis was wrong
 
-**The is_sample spend fix is still incomplete**, unchanged from the last handoff: `discovery-scout`,
-`design-critic` and `ux-architect` may still run on samples, deploy lag has not been separated from an
-unfiltered path, and the guard only reads `.from("workspaces")` so it cannot see a tick that selects from a
-workspace-scoped table. **Re-measure before assuming either.**
+**Deploy lag versus an unfiltered path: separated. It was an unfiltered path**, and the whole of it was
+**one tick**. `track-tick` selects `spine_tracks`, which carries `workspace_id` and no `is_sample`, so the
+`workspaces` filter could never reach it. Measured post-deploy: `agent` **114 calls / $0.2072 in two hours,
+100% sample** (~$75/month), with **23 of 23** post-deploy runs carrying a `track_id` and **zero** without,
+against **52 open tracks on samples and 0 on real workspaces**.
+
+**`researcher-tick` was never a second instance — it was this one seen twice.** Its `researcher` runs all
+carried a `track_id`. **A run records which AGENT ran, never which TICK started it**, so an agent slug cannot
+tell you who spent the money. The helper the last session wrote was still correct; the reason given for it
+was not.
+
+**Guard widened off table names onto reaching a model:** any hook importing `@/lib/ai/` or `@/lib/spine/`
+must resolve the exclusion or carry a named reason in the test file. Proven by pulling the fix and watching
+it name `track-tick`.
+
+**Residual, filed not bundled, ~$1/month total:** `eval-tick` ($0.0228/day), `outcome-tick` ($0.0046/day),
+`eval-suite-tick` (`eval_suites` has no `workspace_id` — needs a join or a migration), `drift-tick`
+(`ai_events.workspace_id` is nullable; a `not in` filter would drop 417 unattributed events/day).
+**Separate and larger: `judge` and `embed` calls carry no `workspace_id` at all**, so nothing keyed on
+workspace can see them — including cost attribution.
 
 ---
 

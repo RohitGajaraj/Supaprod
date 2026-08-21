@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { withJobRun } from "@/lib/observability";
 import { driveTrackOnce, DRIVE_SELECT, type DriveRow } from "@/lib/spine/driver.server";
+import { notInList, sampleWorkspaceIds } from "@/lib/ticks/real-workspaces.server";
 
 /**
  * The heartbeat that makes the loop run when nobody is watching.
@@ -30,6 +31,30 @@ import { driveTrackOnce, DRIVE_SELECT, type DriveRow } from "@/lib/spine/driver.
  *
  * Bounded at 5 tracks. Tolerates the pre-migration window by returning ok and
  * doing nothing, the goal-tick precedent.
+ *
+ * NOT ON DEMO FIXTURES (2026-08-21). This tick was the single remaining path
+ * spending real money on sample workspaces after the fourteen-hook `is_sample`
+ * fix, and it was by far the largest. Measured in production in the two hours
+ * after that fix deployed: **every** agent run carried a `track_id` -- 23 of 23,
+ * none from any other tick -- at 114 `agent` model calls and **$0.21 in two
+ * hours**, which annualises past the whole spend the first fix was written to
+ * stop.
+ *
+ * The fix could not have reached it, and the shape is the lesson: `spine_tracks`
+ * is a WORKSPACE-SCOPED table, so it carries `workspace_id` and no `is_sample`
+ * at all, and a filter on the `workspaces` table never touches it. The exclusion
+ * has to travel by id -- see `lib/ticks/real-workspaces.server.ts`.
+ *
+ * **`researcher-tick` was never a second instance of this. It was this one, seen
+ * twice.** Its `researcher` runs were read as proof its own fix had failed. They
+ * all carried a `track_id`: this tick was driving a track through a research
+ * station, and that fix had worked all along. A run records which AGENT ran,
+ * never which TICK started it, so the agent slug is the wrong end of the
+ * question and `track_id` is the right one.
+ *
+ * At the time of writing there were **52 open tracks and every one was on a
+ * sample workspace**, none on a real one, so this tick was doing no useful work
+ * whatsoever: a demo fixture driving itself in a circle.
  */
 
 const MAX_TRACKS_PER_TICK = 5;
@@ -42,10 +67,18 @@ export const Route = createFileRoute("/api/public/hooks/track-tick")({
         if (unauth) return unauth;
 
         return withJobRun("spine.track-tick", async () => {
-          const { data: tracks, error } = await supabaseAdmin
+          // Excluded BY ID, because spine_tracks carries workspace_id and not
+          // is_sample. An empty exclusion list means nothing to exclude, which is
+          // right for a fresh database and is also what a failed read returns: a
+          // tick that cannot reach the list should still drive real work rather
+          // than stop silently.
+          const excluded = notInList(await sampleWorkspaceIds(supabaseAdmin as never));
+          let trackQuery = supabaseAdmin
             .from("spine_tracks" as never)
             .select(DRIVE_SELECT)
-            .eq("status", "open")
+            .eq("status", "open");
+          if (excluded) trackQuery = trackQuery.not("workspace_id", "in", excluded) as never;
+          const { data: tracks, error } = await trackQuery
             .order("driven_at", { ascending: true, nullsFirst: true })
             .limit(MAX_TRACKS_PER_TICK);
 
