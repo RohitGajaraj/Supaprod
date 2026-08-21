@@ -193,6 +193,7 @@ export const Route = createFileRoute("/api/public/hooks/sense-tick")({
           const { data: workspaces, error } = await supabaseAdmin
             .from("workspaces")
             .select("id, owner_id, last_auto_sense_at")
+            .eq("is_sample", false)
             .eq("auto_sense_enabled", true)
             .order("last_auto_sense_at", { ascending: true, nullsFirst: true })
             .limit(MAX_WORKSPACES);
@@ -369,6 +370,7 @@ async function tagUntaggedSignals(ownerId: string, workspaceId: string): Promise
   const { data, error } = await supabaseAdmin
     .from("signals")
     .select("id, title, content, source, tags, sentiment")
+    .eq("is_sample", false)
     .eq("user_id", ownerId)
     .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: false })

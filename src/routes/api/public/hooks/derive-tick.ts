@@ -22,6 +22,7 @@ export const Route = createFileRoute("/api/public/hooks/derive-tick")({
           const { data: workspaces, error } = await supabaseAdmin
             .from("workspaces")
             .select("id, owner_id, last_auto_sense_at")
+            .eq("is_sample", false)
             .eq("auto_sense_enabled", true)
             .order("last_auto_sense_at", { ascending: true, nullsFirst: true })
             .limit(3);

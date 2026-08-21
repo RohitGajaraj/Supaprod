@@ -88,6 +88,7 @@ export const Route = createFileRoute("/api/public/hooks/trigger-tick")({
           const { data: workspaces, error } = await supabaseAdmin
             .from("workspaces")
             .select("id, owner_id, last_auto_trigger_at")
+            .eq("is_sample", false)
             .eq("auto_trigger_enabled", true)
             .order("last_auto_trigger_at", { ascending: true, nullsFirst: true })
             .limit(MAX_WORKSPACES);
@@ -156,6 +157,7 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
       // typechecks clean here and only shows up at runtime).
       .from("themes")
       .select("id, title, frequency, severity, status, novelty")
+      .eq("is_sample", false)
       .eq("user_id", ownerId)
       .limit(100),
     supabaseAdmin

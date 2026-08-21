@@ -217,6 +217,7 @@ export const Route = createFileRoute("/api/public/hooks/retro-tick")({
           const { data: workspaces, error: wsErr } = await supabaseAdmin
             .from("workspaces")
             .select("id, owner_id")
+            .eq("is_sample", false)
             .order("created_at", { ascending: true })
             .limit(MAX_WORKSPACES);
           if (wsErr) return json({ ok: false, error: wsErr.message }, 500);

@@ -16,6 +16,7 @@ export const Route = createFileRoute("/api/public/hooks/calibrate-tick")({
           const { data: workspaces, error } = await supabaseAdmin
             .from("workspaces")
             .select("id, owner_id")
+            .eq("is_sample", false)
             .eq("auto_derive_enabled", true)
             .limit(20);
 

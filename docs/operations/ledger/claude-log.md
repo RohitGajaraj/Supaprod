@@ -8123,3 +8123,76 @@ gating fix is what makes that reachable at all**: gated on `hasCoverage` it woul
 exactly the workspace with nothing configured.
 
 ---
+
+## LANDED · 2026-08-21 13:34 · 89% of the AI spend was agents running against demo fixtures, founder-authorised
+
+**Founder asked why anything runs when it is not needed. The answer was worse than the question**, and it
+took a join no one had run: `ai_events` to `workspaces.is_sample`, over 24 hours.
+
+| surface | calls | cost | whose workspace |
+| --- | --- | --- | --- |
+| agent | 1,034 | **$1.6556** | **100% SAMPLE** |
+| discovery | 239 | $0.0507 | 98% SAMPLE |
+| sense | 131 | $0.0073 | 100% SAMPLE |
+
+**$1.71 of $1.92 that day, 89%, went to autonomous agents working on demo fixtures.** Real workspaces drew
+**zero** agent calls. Every one of the **230 agent runs** in the window was on a sample workspace, and they
+were still firing at 08:00: `discovery-scout` 103, `researcher` 49, `ux-architect` 29, `prd-writer` 16.
+**Roughly $52 a month, on data nobody reads.**
+
+**The cause was uniform, which is why the fix is too.** **Fourteen hook files select workspaces and not one
+filtered `is_sample`.** A shape, not a location.
+
+**Fixed: 14 filters across 12 files**, plus a guard,
+`src/__tests__/ticks-do-not-run-on-sample-workspaces.test.ts`, that reads **every** hook rather than the
+twelve that were touched, so a fifteenth arrives failing rather than quietly spending. **Proven by removing
+the filter from `retro-tick`**: the guard failed naming that file, and passed again on restore.
+
+**Two sites were deliberately left alone and the guard exempts them by rule rather than by name.**
+`outcome-tick:216` and `researcher-tick:180` resolve a **known** workspace's owner through `.in("id", ...)`
+and `.eq("id", ...)`. Those are lookups, not selections. Filtering them would break the lookup **without
+stopping any work**, which is the worst of both.
+
+**`is_sample` is `NOT NULL DEFAULT false`**, checked before writing the predicate, so equality is exact and
+no real workspace can fall through a NULL.
+
+**Two things I did NOT do, and the reasons are not the same.**
+1. **`loop-tick` runs 144 times a day returning `{"ok":true,"processed":0,"note":"loops not migrated yet"}`
+   -- a no-op by its own admission.** Disabling it saves **no model tokens**, only HTTP, and re-enabling it
+   when loops land is a step somebody has to remember. **Recording it beats setting that trap for a saving
+   that is not the one that mattered.**
+2. **The three every-minute ticks** (`approvals-tick`, `event-reactor-tick`, `resume-runs`, 1,437 runs each
+   per day, **7,040 tick invocations daily in total**) are DB-only and cost no tokens. Their cadence is an
+   approval-latency decision, which is the founder's, not this lane's.
+
+**Correcting the premise of the question, because it changes what is worth fixing.** Nothing ran for 48
+hours. *"1 dormant response in 48 hours"* was the width of my query window, not a duration: I searched two
+days of history and one row matched the word. Each request completes in milliseconds. **The waste was real
+and it was spend, not runtime.**
+
+---
+
+## LANDED · 2026-08-21 13:34 · the generated Supabase types were four columns behind the database
+
+**This was mine to do and I had been calling it a founder blocker, which was wrong.** The Lovable MCP is
+reachable from this lane.
+
+**Verified the columns exist before asking for anything**: `learnings.product_id`, `learnings.decision_id`,
+`agent_memory.product_id`, `agent_autonomy.workspace_id` are all present in `information_schema`, all
+`uuid`, all nullable, no default. `workspaces.is_sample` was already typed.
+
+**Asked Lovable to regenerate, and its answer was correct about its own copy and wrong about this one.** It
+reported all five already present and changed nothing. **They are not present here.** `origin/main`'s
+`types.ts` has **zero** occurrences of `product_id` or `decision_id` in the `learnings` block, and the
+commit Lovable returned (`95bba2464`) **does not exist in this repository**.
+
+**The finding underneath that is bigger than the types.** `gpt-engineer-app[bot]` last pushed **six days
+ago**. **Lovable's sandbox and this repository have been diverging since**, and the repository is what the
+Worker builds from. Asking Lovable to sync would risk six days of unrelated change landing on `main`
+mid-lane, so it is recorded for the founder rather than triggered.
+
+**Patched the four columns here instead**, 12 declarations across `Row`, `Insert` and `Update`, inserted in
+alphabetical position to match the generator, nullable `string | null` and optional on the write shapes.
+`bunx tsc --noEmit` exit 0. **The column-stamping half of this lane is no longer blocked.**
+
+---

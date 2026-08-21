@@ -60,6 +60,7 @@ export const Route = createFileRoute("/api/public/hooks/self-improve-tick")({
           const { data: workspaces, error } = await admin
             .from("workspaces")
             .select("id, owner_id")
+            .eq("is_sample", false)
             .limit(50);
 
           if (error) {

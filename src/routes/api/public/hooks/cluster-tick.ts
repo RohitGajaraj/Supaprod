@@ -36,6 +36,7 @@ export const Route = createFileRoute("/api/public/hooks/cluster-tick")({
           const { data: workspaces, error } = await supabaseAdmin
             .from("workspaces")
             .select("id, owner_id, last_auto_cluster_at")
+            .eq("is_sample", false)
             .eq("auto_cluster_enabled", true)
             .order("last_auto_cluster_at", { ascending: true, nullsFirst: true })
             .limit(5);

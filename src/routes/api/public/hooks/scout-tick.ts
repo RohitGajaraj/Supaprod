@@ -81,6 +81,7 @@ export const Route = createFileRoute("/api/public/hooks/scout-tick")({
           const { data: rawWorkspaces, error } = await db
             .from("workspaces")
             .select("id, owner_id, scout_daily_fetch_cap, last_auto_scout_at")
+            .eq("is_sample", false)
             .eq("auto_scout_enabled", true)
             .order("last_auto_scout_at", { ascending: true, nullsFirst: true })
             .limit(MAX_WORKSPACES);

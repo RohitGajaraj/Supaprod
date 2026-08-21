@@ -48,6 +48,7 @@ export const Route = createFileRoute("/api/public/hooks/steward-tick")({
           const { data: workspaces, error: wsErr } = await supabaseAdmin
             .from("workspaces")
             .select("id, owner_id")
+            .eq("is_sample", false)
             .eq("auto_sense_enabled", true)
             .not("owner_id", "is", null)
             .order("created_at", { ascending: true })

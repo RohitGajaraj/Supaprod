@@ -144,6 +144,7 @@ async function planPass(db: SupabaseClient): Promise<Plan> {
   const { data: wsRows, error: wsErr } = await db
     .from("workspaces")
     .select("id, owner_id")
+    .eq("is_sample", false)
     .order("created_at", { ascending: true })
     .limit(WORKSPACE_SCAN_CAP);
   if (wsErr) throw new Error(`workspaces read failed: ${wsErr.message}`);
