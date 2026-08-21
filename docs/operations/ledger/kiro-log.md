@@ -7206,3 +7206,70 @@ separate components with their own callers, and the existing header in this test
 that way. No caller needed an edit: all three were already passing what they meant.
 **Gates.** `lane:gates` green, real exit 0. **Not seen in a browser.** The three rows should be looked at by
 whoever has a session, because the fix changes what they say.
+---
+## K-97 · BUILT · 2026-08-21 16:05 · the ratchet could not tell its eyes widening from the code getting worse
+**What this closes.** K-87's open question, which Claude ruled at 02:31 and re-ruled at 11:45 rather than
+leaving me blocked. **The ruling had three parts and all three shipped.** Filed as K-97 because it is a
+different change from K-87: that item fixed `router.tsx`; this one fixes the guard's ability to grow.
+**1. A colour inside `var(--mrd-*, <fallback>)` is not raw colour.** `stripMeridianFallbacks` in
+`meridian-ratchet-scan.ts` removes the fallback from the **colour pass only**, and **that split is
+load-bearing rather than tidy**: `shell.css:1390` reads `var(--mrd-line, var(--hairline,
+rgba(255,255,255,0.1)))`, so the rgba stops counting as colour **while the `--hairline` in the same
+expression keeps counting as a retired marker.** Running the stripper before the marker pass would have
+masked it, which is the exact condition the ruling was granted on. Balanced-paren scanning, not a regex,
+because `[^)]*` stops at the first `)` and that expression has two; **an unbalanced `var(` is left in and
+therefore still counted**, which is the safe direction, since this guard may overcount and may never
+undercount.
+**Only `--mrd-*` qualifies, and the opposite reading was available and measured.** **26 colour literals sit
+inside a *retired* token's fallback** across the scanned trees (`var(--text-subtle, #7d786f)`,
+`var(--hairline, rgba(...))`). Excusing those is wrong twice: **the end state for `--text-*` and `--hairline`
+is deletion, and the day `ink.css` goes the fallback stops being a fallback and becomes the only paint the
+declaration has** -- a frozen hex that cannot answer the paper ground, which is what the rule exists for. A
+non-Meridian, non-retired property (`var(--shell-row-h, 44px)`) does not qualify either: it is a local
+variable, not a design token.
+**2. `SCAN_ROOTS` widened, one level deep only.** `src` is a **shallow** scope. Recursing would pull in
+`src/lib`, `src/hooks` and roughly the whole codebase, which is a far larger decision than the one ruled, and
+would double-count the two trees. `routeTree.gen.ts` is skipped through a named `GENERATED_FILES` set.
+**3. The coverage-expansion step, and the mechanism is the interesting part.** The three root constants are
+now a named table, `SCAN_SCOPES`, and **the baseline records a `scopes` array: what the scanner LOOKED AT,
+not only what it found.** That was the whole cause of the gap. **A clean file and an unscanned file are both
+simply absent from the baseline**, so "has no key" can never mean "never scanned" -- and if it could, rule 1
+would evaporate and a brand-new component full of `--sp-*` would be adopted on the next run. A file is
+adopted only when **its scope id is one the baseline has never held AND it has no baseline key**; anything
+else that rises is still refused. **The door shuts behind itself**, because the same run writes `src/*` into
+`scopes`. No flag and no path exemption: both were rejected, and the precedent is created by the override
+rather than by the mechanism. `scopeIdFor` is exported from the scanner rather than reimplemented in the
+script, so the two lists cannot drift.
+**The final numbers.** **`src/router.tsx` records zero** and is absent from the baseline entirely: all four
+literals are Meridian fallbacks, cleared by part 1 **without touching the file**. **`src/server.ts` records
+`raw-colour: 8`**, adopted, and may now only go down. Movement **228 files / 3342 → 229 / 3349**: +8 adopted,
+-1 reclaimed (`shell.css`'s nested rgba). **No count on any previously-scanned file rose.**
+**Four planted-defect proofs, because a guard this permissive needs to be shown still to bite.**
+- A bare `#ff0000` in `src/routes/updates.tsx` (already keyed at 8) → `bun test` fails rule 2, `8 -> 9`, exit 1.
+- **The same literal as `var(--mrd-body, #ff0000)` at the same site → 5 pass, exit 0.** The pair is the proof
+  that part 1 is a refinement and not a hole.
+- The bare plant run through `design:ratchet` → `REFUSING TO WRITE ... 8 -> 9`, exit 1.
+- **A new file in the scope adopted seconds earlier** (`src/k97-probe.ts`, one `#ff0000`) → refused,
+  `0 -> 1`. **The adopt door really does shut behind itself.** Probe deleted; `updates.tsx` byte-identical.
+**A fifth assertion added to `meridian-ratchet.test.ts`**: the scanner's coverage and the baseline's must
+agree, so a widened scanner or a hand-edited `scopes` list fails loudly rather than going quiet.
+**The narrower guard stays, and its header is corrected** -- the paragraph calling the hole open is gone.
+**It is mostly redundant on markers and not entirely**: it is a **ban** rather than a ratchet, so there is no
+permitted number at the top of `src` for anyone to grow into (the ratchet now permits `server.ts` 8 raw
+colours indefinitely); it fails with the path on one line rather than a JSON diff; and it pins the file list
+by reading the directory itself, so the top of `src` cannot go quiet if a scope is renamed out from under it.
+**Whether the overlap earns a second file is the founder's call and the file says so.**
+**One assumption, and it is spent after this run.** A baseline written before `scopes` existed records none,
+so the known set is inferred as the scopes that already own at least one recorded file. Measured correct on
+today's baseline: 176 / 46 / 5 / 1 files across the four legacy scopes, with `src/*` correctly unknown. It
+would be wrong only for a genuinely-covered scope carrying zero debt anywhere, which no scope is today, and
+it cannot recur because from here the list is explicit.
+**Gates.** `lane:gates` green, real exit 0. **Nothing rendered changed**: `router.tsx` and `server.ts` were
+not touched.
+**Noticed, and it is about the machine rather than the change.** **The disk is full.** `lane:gates` failed all
+four with `No space left on device` mid-item; the volume is at 100% with about 600 MB free. I reclaimed only
+what one command regenerates (`.output`, `node_modules/.vite`) and the gates then ran green. **`git
+count-objects -vH` reports 2.58 GiB of garbage** -- six abandoned `tmp_pack_*` files and a `.idx`/`.rev` pair
+with no corresponding `.pack`, which is what an interrupted fetch leaves behind on a full disk. **I did not
+remove them**: they sit inside `.git`, and after the 2026-07 orphan incident a deletion in there is the
+founder's call, not mine. It is the single largest reclaim available and it is genuinely unreferenced.

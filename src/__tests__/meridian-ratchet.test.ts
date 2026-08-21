@@ -20,13 +20,15 @@ import { describe, expect, it } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { REPO_ROOT, scan, totalDebt, type DebtLedger } from "./meridian-ratchet-scan";
+import { REPO_ROOT, SCAN_SCOPES, scan, totalDebt, type DebtLedger } from "./meridian-ratchet-scan";
 
 const BASELINE_PATH = join(REPO_ROOT, "src/__tests__/meridian-ratchet.baseline.json");
 
-const baseline: DebtLedger = existsSync(BASELINE_PATH)
-  ? (JSON.parse(readFileSync(BASELINE_PATH, "utf8")).files as DebtLedger)
+const recorded = existsSync(BASELINE_PATH)
+  ? (JSON.parse(readFileSync(BASELINE_PATH, "utf8")) as { files?: DebtLedger; scopes?: string[] })
   : {};
+
+const baseline: DebtLedger = recorded.files ?? {};
 
 const current = scan();
 
@@ -64,6 +66,12 @@ describe("the Meridian ratchet: everything new is Meridian", () => {
             "  no Meridian token fits  ->  that is a GAP IN MERIDIAN, and the",
             "      founder's standing ruling is to build Meridian first rather",
             "      than reach past it. See docs/design/DESIGN-SYSTEM.md.",
+            "",
+            "ONE EXCEPTION, and it is not one you can invoke by hand. If you just",
+            "widened the SCANNER -- a new scope in SCAN_SCOPES -- these files are",
+            "not new debt, they are files nobody was looking at. `design:ratchet`",
+            "detects that from the scopes the baseline was frozen under and adopts",
+            "them once at their current count. It cannot be asked to do it.",
             "",
           ].join("\n"),
     ).toEqual([]);
@@ -131,6 +139,43 @@ describe("the Meridian ratchet: everything new is Meridian", () => {
             "",
           ].join("\n"),
     ).toEqual([]);
+  });
+
+  it("records what the scanner looked at, not only what it found", () => {
+    /*
+     * The cause of the 2026-08-21 ruling, turned into an assertion. A clean file
+     * and an unscanned file are both absent from the baseline, so COVERAGE has to
+     * be written down or nothing can tell a widened scanner from added debt. This
+     * fails when the two drift, which is the moment a reader can still act on it.
+     */
+    const scanned = SCAN_SCOPES.map((s) => s.id).sort();
+    const frozen = [...(recorded.scopes ?? [])].sort();
+    expect(
+      frozen,
+      frozen.length === 0
+        ? [
+            "",
+            "THE BASELINE DOES NOT RECORD WHAT WAS SCANNED.",
+            "",
+            "Re-freeze it once and this becomes self-maintaining:",
+            "",
+            "  bun run design:ratchet",
+            "",
+          ].join("\n")
+        : [
+            "",
+            "THE SCANNER'S COVERAGE AND THE BASELINE'S DISAGREE.",
+            "",
+            `  scanner : ${scanned.join(", ")}`,
+            `  baseline: ${frozen.join(", ")}`,
+            "",
+            "If you widened the scanner, run `bun run design:ratchet`: the files in",
+            "a scope the baseline has never held are adopted at their current count,",
+            "which is a coverage expansion rather than a rise. If you did not widen",
+            "it, somebody hand-edited this list and the adopt door is standing open.",
+            "",
+          ].join("\n"),
+    ).toEqual(scanned);
   });
 
   it("reports the debt as one number, so the direction of travel is visible", () => {

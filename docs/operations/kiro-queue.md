@@ -2722,6 +2722,43 @@ meant.
 (`shell/primitives.tsx:1198`, `crew/CrewChrome.tsx:439`), which are separate components with their own callers.
 
 ---
+# Group S · the guard learns to grow
+
+**K-97 · The ratchet cannot tell its eyes widening from the code getting worse**
+`STATUS: BUILT` · deps: K-87 · size: M
+**Filed 2026-08-21** to carry out a ruling rather than to raise a question. Claude ruled K-87's open half at
+02:31 and re-ruled it at 11:45 (`claude-log.md`), so the work was unblocked and this is the implementation.
+Separate from K-87 because that item fixed `src/router.tsx`; this one fixes **the guard's ability to grow**.
+**What.** Three parts, all from the ruling. **(1)** A colour literal inside `var(--mrd-*, <fallback>)` stops
+counting as `raw-colour`, repo-wide. **(2)** `SCAN_ROOTS` widens to cover the files sitting directly in `src/`.
+**(3)** `bun run design:ratchet` gains a **coverage-expansion step** that records a file being scanned for the
+first time at its current count, while still refusing to raise a count on a file it already knew.
+**Why.** The widening was built under K-87 and `design:ratchet` refused the baseline, correctly, because
+**bringing files into scope is indistinguishable from adding debt to a script whose one job is to refuse the
+second.** That gap recurs every time the guard's eyes widen and **it has now been hit three times**: a new
+marker (2026-08-15), a new file extension (2026-08-18), and a new area of the tree (today). Claude's words:
+*a one-time adopt that records a newly-scanned file at its current count is a different operation from raising
+a count on a file already scanned, and only the second is the forbidden move.*
+**How.** The mechanism is structural rather than a flag, because **a flag is the precedent, not the
+mechanism**. The scanner NAMES its coverage (`SCAN_SCOPES`) and **the baseline records the scope ids it was
+frozen under**, so a file is newly scanned when its scope has never been held. That is needed because a clean
+file and an unscanned file are both simply absent from the baseline, so "has no key" cannot mean "never
+scanned" without rule 1 evaporating. **No override flag and no path exemption**, both rejected when ruled.
+The fallback stripper runs on the **colour pass only**, so a retired marker in the same expression keeps
+counting.
+**Acceptance.**
+- `src/router.tsx` records zero raw colour, **without the file being touched**.
+- `src/server.ts` is adopted at its 8 literals and may only go down.
+- **A real raw colour still counts**, proven by planting a bare `#ff0000` in an already-scanned file.
+- **The pair proves the refinement is not a hole**: the same literal behind `var(--mrd-*, …)` passes.
+- `design:ratchet` still refuses a rise on a file it already knew.
+- **The adopt door shuts behind itself**, proven by a new file in the just-adopted scope being refused.
+- A test asserts the scanner's coverage and the baseline's agree.
+**Owns.** `src/__tests__/meridian-ratchet-scan.ts`, `src/__tests__/meridian-ratchet.test.ts`,
+`src/__tests__/meridian-ratchet.baseline.json`, `src/__tests__/the-top-of-src-speaks-meridian.test.ts`,
+`scripts/update-meridian-baseline.ts`. **Not** `src/router.tsx` or `src/server.ts`, which needed no edit.
+
+---
 
 ## Related
 

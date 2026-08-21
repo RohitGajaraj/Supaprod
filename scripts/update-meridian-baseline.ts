@@ -15,22 +15,29 @@ import { join } from "node:path";
 
 import {
   REPO_ROOT,
+  SCAN_SCOPES,
   scan,
+  scopeIdFor,
   totalDebt,
   type DebtLedger,
 } from "../src/__tests__/meridian-ratchet-scan";
 
 const BASELINE_PATH = join(REPO_ROOT, "src/__tests__/meridian-ratchet.baseline.json");
 
-const previous: DebtLedger = existsSync(BASELINE_PATH)
-  ? (JSON.parse(readFileSync(BASELINE_PATH, "utf8")).files as DebtLedger)
+const recorded = existsSync(BASELINE_PATH)
+  ? (JSON.parse(readFileSync(BASELINE_PATH, "utf8")) as {
+      files?: DebtLedger;
+      scopes?: unknown;
+    })
   : {};
+const previous: DebtLedger = recorded.files ?? {};
 const current = scan();
 
 const first = Object.keys(previous).length === 0;
 const grew: string[] = [];
 const shrank: string[] = [];
 const newlyMeasured: string[] = [];
+const adopted: string[] = [];
 
 /*
  * WIDENING THE GUARD IS NOT RAISING THE DEBT, and telling the two apart is the
@@ -73,6 +80,66 @@ const knownMarkers = new Set(Object.values(previous).flatMap((f) => Object.keys(
 const knownExtensions = new Set(Object.keys(previous).map((f) => f.slice(f.lastIndexOf("."))));
 const inNewScope = (file: string) => !knownExtensions.has(file.slice(file.lastIndexOf(".")));
 
+/*
+ * ── AND THE SAME ARGUMENT AGAIN, FOR A WHOLE AREA OF THE TREE ───────────
+ *
+ * Ruled 2026-08-21, after this script refused to widen `SCAN_ROOTS` to cover the
+ * files sitting directly in `src/` and the refusal was allowed to stand.
+ *
+ * THE GAP. This script could not tell "the code got worse" from "the scanner got
+ * better", and that gap recurs every single time the guard's eyes widen. It has
+ * now been hit three times: a new marker, a new file extension, and a new area of
+ * the tree. **A one-time adopt that records a newly-scanned file at its current
+ * count is a different operation from raising a count on a file already scanned,
+ * and only the second is the forbidden move.**
+ *
+ * WHY IT COULD NOT BE READ OFF THE BASELINE. The baseline records files that
+ * carry debt. A clean file and a file nobody looked at are both simply absent, so
+ * "has no key" cannot mean "never scanned" -- if it did, rule 1 would evaporate
+ * and a brand-new component full of `--sp-*` would be adopted on the next run.
+ * That is exactly why the extension trick above is cut so narrowly.
+ *
+ * WHAT MAKES IT STRUCTURAL. The scanner now NAMES its coverage (`SCAN_SCOPES`)
+ * and the baseline records the scope ids it was frozen under. A file is newly
+ * scanned when its scope is one the baseline has never held. There is no flag to
+ * pass and no path to exempt -- both were rejected when this was ruled, because
+ * the precedent is created by the override, not by the mechanism -- and the door
+ * shuts behind itself: the scope is written into the baseline by this same run,
+ * so from the next run every file in it is held to rule 1 like everything else.
+ *
+ * THE ONE ASSUMPTION, AND IT IS SPENT AFTER THIS RUN. A baseline written before
+ * scopes existed records none, so the known set is INFERRED as the scopes that
+ * already own at least one recorded file. On the 2026-08-21 baseline that yields
+ * exactly the four legacy scopes (`src/components/**` 176 files, `src/routes/**`
+ * 46, `src/styles/**` 5, `src/styles.css` 1) and correctly leaves `src/*` unknown.
+ * It would be wrong only for a scope that was genuinely covered and had zero debt
+ * anywhere in it, which is not true of any scope today, and cannot arise again
+ * because from here on the list is explicit.
+ */
+const recordedScopes: string[] | undefined = Array.isArray(recorded.scopes)
+  ? recorded.scopes.filter((s): s is string => typeof s === "string")
+  : undefined;
+
+const knownScopes = new Set(
+  recordedScopes ??
+    SCAN_SCOPES.filter((s) => Object.keys(previous).some((f) => scopeIdFor(f) === s.id)).map(
+      (s) => s.id,
+    ),
+);
+
+const newScopes = SCAN_SCOPES.filter((s) => !knownScopes.has(s.id)).map((s) => s.id);
+
+/*
+ * Both conditions, and the second is not redundant defensiveness: a file with a
+ * baseline key was demonstrably scanned before, whatever its scope id says today,
+ * so it can only ever go down. That keeps a renamed scope id from adopting files
+ * the baseline already holds.
+ */
+const newlyScanned = (file: string) => {
+  const id = scopeIdFor(file);
+  return id !== undefined && !knownScopes.has(id) && !(file in previous);
+};
+
 for (const file of new Set([...Object.keys(previous), ...Object.keys(current)])) {
   const markers = new Set([
     ...Object.keys(previous[file] ?? {}),
@@ -82,12 +149,38 @@ for (const file of new Set([...Object.keys(previous), ...Object.keys(current)]))
     const was = previous[file]?.[m] ?? 0;
     const now = current[file]?.[m] ?? 0;
     if (now > was) {
-      if (!first && (!knownMarkers.has(m) || inNewScope(file)))
+      if (!first && newlyScanned(file)) adopted.push(`  ${file}  ${m}: ${now}`);
+      else if (!first && (!knownMarkers.has(m) || inNewScope(file)))
         newlyMeasured.push(`  ${file}  ${m}: ${now}`);
       else grew.push(`  ${file}  ${m}: ${was} -> ${now}`);
     }
     if (now < was) shrank.push(`  ${file}  ${m}: ${was} -> ${now}`);
   }
+}
+
+if (adopted.length > 0) {
+  console.log(
+    [
+      "",
+      `FILES ARE BEING SCANNED FOR THE FIRST TIME (${adopted.length} ${
+        adopted.length === 1 ? "entry" : "entries"
+      }).`,
+      "This is a COVERAGE EXPANSION, not a rise. These files were never looked",
+      "at, so they are adopted at the count they already carry. Nothing was",
+      "added; the guard's eyes widened.",
+      "",
+      `  scopes newly covered : ${newScopes.join(", ")}`,
+      "",
+      ...adopted.slice(0, 12),
+      adopted.length > 12 ? `  ... and ${adopted.length - 12} more` : "",
+      "",
+      "From the next run these scopes are known, so every file in them is held",
+      "to rule 1 like everything else: born clean, and it may only go down.",
+      "",
+    ]
+      .filter(Boolean)
+      .join("\n"),
+  );
 }
 
 if (newlyMeasured.length > 0) {
@@ -135,7 +228,11 @@ writeFileSync(
         "This is the retired-design-system debt each file is permitted to carry.",
         "It only ever moves DOWN. A file absent from this list must be clean.",
         "Do not hand-edit; do not regenerate to silence a failure.",
+        "`scopes` is what the scanner LOOKED AT when this was frozen. A file in a",
+        "scope listed here may only go down. A file in a scope that is not listed",
+        "has never been scanned, so it is adopted once at its current count.",
       ],
+      scopes: SCAN_SCOPES.map((s) => s.id).sort((a, b) => a.localeCompare(b)),
       totalOccurrences: totalDebt(current),
       fileCount: Object.keys(current).length,
       files: Object.fromEntries(Object.entries(current).sort(([a], [b]) => a.localeCompare(b))),

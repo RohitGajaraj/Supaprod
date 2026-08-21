@@ -4,47 +4,60 @@ import { join } from "node:path";
 import { debtIn, REPO_ROOT, RETIRED_MARKERS } from "./meridian-ratchet-scan";
 
 /**
- * THE RATCHET CANNOT SEE THE TOP OF THE TREE IT GUARDS, AND THIS IS THE HALF OF
- * THAT HOLE THAT NEEDS NO RULING.
+ * THE TOP OF SRC, AND THE HALF OF THE HOLE THAT NEEDED NO RULING.
  *
- * THE HOLE. `meridian-ratchet-scan.ts` sets `SCAN_ROOTS = ["src/components",
- * "src/routes"]`, so every file sitting DIRECTLY in `src/` is invisible to it.
- * That is AGENTS.md §9's `src/styles.css`-versus-`src/styles/` trap one level up:
- * two directories are named and the files beside them are not. `src/router.tsx`
- * was carrying three retired `--text-*` uses when this was found, and it is not a
- * marginal file -- it owns `RouteError`, the route-level error fallback that
- * mounts on the public parchment routes as well as the dark app. So the one
- * surface a person reads BECAUSE something already broke was painting from a
- * retired layer, and the ratchet reported a clean tree throughout.
+ * ── THE HOLE, AND IT IS NOW CLOSED ON BOTH SIDES ────────────────────────
+ * `meridian-ratchet-scan.ts` used to set `SCAN_ROOTS = ["src/components",
+ * "src/routes"]` and nothing else, so every file sitting DIRECTLY in `src/` was
+ * invisible to it. That is AGENTS.md §9's `src/styles.css`-versus-`src/styles/`
+ * trap one level up: two directories are named and the files beside them are not.
+ * `src/router.tsx` was carrying four retired `--text-*` uses when this was found,
+ * and it is not a marginal file -- it owns `RouteError`, the route-level error
+ * fallback that mounts on the public parchment routes as well as the dark app. So
+ * the one surface a person reads BECAUSE something already broke was painting
+ * from a retired layer, and the ratchet reported a clean tree throughout.
  *
- * WHY THIS IS A SEPARATE GUARD RATHER THAN A WIDER `SCAN_ROOTS`. Widening the
- * roots was built, proven to work, and then REFUSED by `design:ratchet`, which
- * would not write a baseline that raises permitted debt:
+ * **UPDATED 2026-08-21. THE RATCHET NOW SCANS THIS TOO, so the paragraph that
+ * used to sit here calling the hole open is no longer true.** `SCAN_SCOPES`
+ * carries `src/*` as a shallow scope, `src/server.ts` is recorded in the baseline
+ * at its 8 literals, and `src/router.tsx` records zero, because a colour inside
+ * `var(--mrd-*, <fallback>)` is no longer counted as raw colour.
  *
- *   src/router.tsx  raw-colour: 0 -> 4
- *   src/server.ts   raw-colour: 0 -> 14
- *
- * The refusal is correct and the widening was reverted rather than forced,
- * because a guard that can be talked past is not a guard. But it conflates two
- * rules that are not equally applicable here:
+ * WHY IT TOOK TWO PASSES, KEPT BECAUSE IT IS THE USEFUL PART. Widening the roots
+ * was built first and `design:ratchet` REFUSED to write the baseline, since
+ * bringing files into scope is indistinguishable from adding debt to a script
+ * whose one job is to refuse the second. The refusal was correct and the widening
+ * was reverted rather than forced. What shipped in the meantime was this guard,
+ * enforcing only the rule with no precondition:
  *
  *   A RETIRED MARKER means "this file speaks a language the product retired".
  *   That is wrong in every file, always, with no precondition.
  *
- *   A RAW COLOUR means "this hardcodes a colour where a token belongs". That
- *   rule has a PRECONDITION -- a reachable token layer -- and these two files
- *   provably do not meet it, each saying so in its own comment. `router.tsx`
- *   mounts before the token layers load, and `server.ts`'s
- *   `renderBrandedErrorPage()` is the catastrophic 500 fallback, a standalone
- *   HTML document whose comment states the app stylesheet may be unreachable.
- *   Its literals were re-resolved to Meridian's own values on 2026-08-21 and it
- *   still needs literals, because there is nothing there to read a token from.
+ *   A RAW COLOUR means "this hardcodes a colour where a token belongs", and that
+ *   rule PRESUMES A REACHABLE TOKEN LAYER. `router.tsx` mounts before the token
+ *   layers load, and `server.ts`'s `renderBrandedErrorPage()` is the catastrophic
+ *   500 fallback, a standalone HTML document whose comment states the app
+ *   stylesheet may be unreachable.
  *
- * So this guard enforces the rule that applies unconditionally and stays silent
- * on the one that does not. **Whether the ratchet itself should widen, and how it
- * should treat a colour inside `var(--mrd-*, <fallback>)`, is still an open
- * question for the founder.** This closes the vocabulary half of it today
- * without pre-empting that decision or touching the baseline.
+ * The ruling settled both halves without lowering either rule: `router.tsx` reads
+ * its Meridian tokens FIRST and degrades to a literal, which is the arrangement
+ * the rule wants rather than the one it forbids, so it counts zero; `server.ts`
+ * has no `var()` at all, so its 8 are recorded where a reader can audit them, and
+ * from now on a NEW literal in either file fails the build.
+ *
+ * ── SO WHY IS THIS FILE STILL HERE ──────────────────────────────────────
+ * Because the two guards fail in different ways and the difference is not
+ * cosmetic. The ratchet is a RATCHET: a retired marker at the top of `src` fails
+ * it only if the count goes UP, and `server.ts` is now permitted 8 raw colours
+ * forever. This guard is a BAN, on retired vocabulary only, with no baseline and
+ * nothing to permit -- there is no number here that anybody can grow into. It
+ * also fails with the offending path in one line rather than a JSON diff, and it
+ * pins the file list as non-empty, so the top of `src` cannot go quiet by having
+ * a scope silently renamed out from under it.
+ *
+ * It overlaps the ratchet on every marker it counts, and that overlap is the
+ * cheap half of it. **Whether the overlap is worth a second file is the founder's
+ * call, not this file's.**
  *
  * IT READS THE RATCHET'S OWN LEXER RATHER THAN A SECOND COPY. `debtIn` strips
  * comments the same way, counts the same markers, and gains any marker added
@@ -62,7 +75,10 @@ function topLevelFiles(): string[] {
     if (!/\.(tsx|ts)$/.test(entry)) continue;
     // Generated, and regenerated by a command rather than edited. AGENTS.md §3
     // forbids hand-editing it, so failing a build on its contents would demand
-    // an edit the rules refuse.
+    // an edit the rules refuse. The scanner exempts it by name for the same
+    // reason (`GENERATED_FILES`); this reads the directory itself rather than
+    // asking the scanner, so that emptying a scope cannot make this guard go
+    // quiet -- the same argument as the marker-list pin below.
     if (entry === "routeTree.gen.ts") continue;
     // Tests are exempt in the ratchet for a stated reason: a guard's whole job
     // can be to assert a legacy literal is still present. Same exemption here.
@@ -88,9 +104,11 @@ describe("no file at the top of src speaks a retired design system", () => {
     for (const file of files) {
       const debt = debtIn(readFileSync(file, "utf8"));
       for (const [id, count] of Object.entries(debt)) {
-        // `raw-colour` is the one rule with a precondition these files do not
-        // meet. See the header: it is deliberately not enforced here, and that
-        // is not the same as it being acceptable.
+        // `raw-colour` is the rule with a precondition, and it is the RATCHET's
+        // to enforce now that `src/*` is a scanned scope: `server.ts` is recorded
+        // at 8 and may not grow. Skipped here because this guard is a flat ban
+        // with no baseline, and a flat ban is the wrong shape for a rule whose
+        // answer depends on whether a token layer is reachable.
         if (id === "raw-colour") continue;
         offences.push(`${file.slice(REPO_ROOT.length + 1)} carries ${count}x ${id}`);
       }
