@@ -7920,3 +7920,55 @@ under a cap, and use exponential rather than linear backoff for `RATE_LIMIT` onl
 as it is.
 
 ---
+
+## LANDED · 2026-08-21 12:30 · the rate limit is now waited out rather than retried past, founder-authorised
+
+**Founder ruled 2026-08-21: fix it properly rather than raise a constant.** The measurement is in my
+previous entry; this is what was built.
+
+**One pure module, `src/lib/ai/retry-policy.ts`, called by both retry loops.** The loops in
+`runtime.server.ts` were byte-identical apart from indentation and had drifted independently before, so a
+second copy of this logic was the wrong answer. The module does no I/O and takes `random` as a parameter,
+which is why it can be tested without a gateway.
+
+**Three changes, and the third is the one that makes it a fix rather than a bigger number.**
+1. **`Retry-After` is read and believed**, at both 429 throw sites, capped at 20s for any single wait.
+   Both legal forms are handled, delta-seconds and HTTP-date. A signed integer is rejected outright rather
+   than handed to `Date.parse`, which does not return `NaN` for `"-5"` in every engine; a date parser
+   quietly inventing a wait is exactly how a wrong one would ship.
+2. **`RATE_LIMIT` backs off exponentially with equal jitter**, 1s base, doubling. Equal rather than full
+   jitter because full jitter can return a near-zero delay, which is the failure being fixed, and the
+   **13 `sense` call sites fire together**, so decorrelation is load-bearing. **`SERVER_ERROR` keeps its
+   old 400/800 schedule** exactly, because a 5xx blip was never the defect.
+3. **The wait is bounded by a per-surface budget.** How long a caller may wait is not a property of the
+   error, it is a property of **who is waiting**. A tick can sit out a per-minute window; a person
+   watching a stream cannot. `sense`, `judge`, `eval`, `embed` and `agent` get **45s and 6 attempts**;
+   everything else gets **6s and 3**. An **unknown surface is treated as interactive**, so a surface added
+   later fails fast by default instead of silently inheriting patience nobody chose. An explicit
+   `maxRetries` or the new `retryBudgetMs` from a caller wins outright.
+
+**A delay that would overrun the budget stops instead of half-waiting**, because a partial wait that then
+fails is strictly worse than failing now.
+
+**Proven, not asserted.** 23 tests. The arithmetic ones cover both `Retry-After` forms, the past-date
+case, jitter bounds at random() 0 and 1, budget exhaustion, and spent-time accounting. **A pinned
+regression test walks the policy the way the loop does and asserts the total wait now exceeds the old
+1.2s window several times over.** And **five wiring tests**, because a pure policy nothing calls is the
+"correct code no path reaches" defect this repo keeps closing: they assert both loops route through
+`nextRetryDelayMs`, both throw sites call `parseRetryAfterMs`, both budgets come from `opts.surface`, and
+that `400 * (i + 1)` appears nowhere. **Proven by planting that expression back**: the guard failed naming
+it, and passed again on restore, with the file byte-identical.
+
+**Full suite 10,300 pass, 0 fail, 12.4s**, so nothing depended on the old timing and the change adds no
+measurable time to the suite.
+
+**What I did NOT do, and why it is not an oversight.** After retries exhaust, the code still walks the
+model fallback chain, which cannot help a per-key limit and spends more requests against an already
+throttled key. I left it: `resolveFallbackChain` may include a provider on a **different** key, and
+skipping it would lose a genuine recovery path on evidence I do not have. Worth a look, not a guess.
+
+**Also still open: the copy.** Finding 23's message still advises switching models when the budget is
+genuinely exhausted, which its own test proved cannot work. The retry half makes it rarer; it does not
+make it true.
+
+---

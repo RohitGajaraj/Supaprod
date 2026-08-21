@@ -8,6 +8,12 @@
  * - Returns { output, eventId, hits, blocked }
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  maxAttemptsFor,
+  nextRetryDelayMs,
+  parseRetryAfterMs,
+  rateLimitBudgetMs,
+} from "./retry-policy";
 import { estimateCostUsd, creditsForCost, projectCallCredits } from "./pricing";
 import { costRoutedModel, cheapestLiveModel } from "./routing";
 import { resolveFallbackChain } from "./fallback";
@@ -412,6 +418,10 @@ export type CallOpts = {
   fallbackModels?: string[];
   /** Max retries on 429/5xx for the primary model (default 2) */
   maxRetries?: number;
+  /** Total ms this call may spend WAITING on rate limits, excluding the requests
+   *  themselves. Defaults per surface: a background tick can sit out a per-minute
+   *  window, a person watching a stream cannot. See `retry-policy.ts`. */
+  retryBudgetMs?: number;
   /** When true, retrieve relevant chunks from rag_chunks and prepend as system context */
   retrieval?: boolean | { k?: number; sourceKinds?: string[] };
   /** When set, resolve a prompt template (surface, key) and prepend its system prompt. */
@@ -790,6 +800,13 @@ async function callGateway(
   if (res.status === 429) {
     const e = new Error("AI rate limit reached. Try again in a moment.");
     (e as { code?: string }).code = "RATE_LIMIT";
+    // The gateway usually says how long to wait. Nothing read this until
+    // 2026-08-21, which is why three retries inside 1.2s never cleared a
+    // per-minute limit. See retry-policy.ts for the measurement.
+    (e as { retryAfterMs?: number | null }).retryAfterMs = parseRetryAfterMs(
+      res.headers.get("retry-after"),
+      Date.now(),
+    );
     throw e;
   }
   if (res.status === 402) throw new Error("AI credits exhausted. Add credits in Settings → Usage.");
@@ -1840,7 +1857,6 @@ export async function callModel(
   let fallback = false;
   let modelUsed = effectiveModel;
 
-  const maxRetries = opts.maxRetries ?? 2;
 
   // WM-M15b: Response cache check
   let cacheHit = false;
@@ -1913,16 +1929,28 @@ export async function callModel(
   // the provider unconditionally, making the cache a no-op).
   if (!cacheHit) {
     providerOut = { text: "", in_tok: 0, out_tok: 0, latency: Date.now() - t0 };
-    for (let i = 0; i <= maxRetries; i++) {
+    let retryAttempt = 0;
+    let retryWaitedMs = 0;
+    for (;;) {
       try {
         providerOut = await attempt(effectiveModel);
         lastErr = null;
         break;
       } catch (e) {
         lastErr = e;
-        const code = (e as { code?: string }).code;
-        if (code !== "RATE_LIMIT" && code !== "SERVER_ERROR") break;
-        if (i < maxRetries) await new Promise((r) => setTimeout(r, 400 * (i + 1)));
+        const code = (e as { code?: string }).code ?? "";
+        const delay = nextRetryDelayMs({
+          attempt: retryAttempt,
+          code,
+          retryAfterMs: (e as { retryAfterMs?: number | null }).retryAfterMs,
+          spentMs: retryWaitedMs,
+          budgetMs: rateLimitBudgetMs(opts.surface, opts.retryBudgetMs),
+          maxAttempts: maxAttemptsFor(code, opts.surface, opts.maxRetries),
+        });
+        if (delay === null) break;
+        await new Promise((r) => setTimeout(r, delay));
+        retryWaitedMs += delay;
+        retryAttempt++;
       }
     }
     if (lastErr) {
@@ -2510,7 +2538,6 @@ export async function callModelStream(
     });
   };
 
-  const maxRetries = opts.maxRetries ?? 2;
   let response: Response | null = null;
   let lastErr: unknown = null;
 
@@ -2527,12 +2554,15 @@ export async function callModelStream(
     if (ttftMs === null) ttftMs = Date.now() - tDispatch;
   };
 
-  for (let i = 0; i <= maxRetries; i++) {
+  let retryAttempt = 0;
+  let retryWaitedMs = 0;
+  for (;;) {
     try {
       response = await attemptStream(effectiveModel);
       if (response.status === 429) {
         throw Object.assign(new Error("AI rate limit reached. Try again in a moment."), {
           code: "RATE_LIMIT",
+          retryAfterMs: parseRetryAfterMs(response.headers.get("retry-after"), Date.now()),
         });
       }
       if (response.status >= 500) {
@@ -2545,9 +2575,19 @@ export async function callModelStream(
       break;
     } catch (e) {
       lastErr = e;
-      const code = (e as { code?: string }).code;
-      if (code !== "RATE_LIMIT" && code !== "SERVER_ERROR") break;
-      if (i < maxRetries) await new Promise((r) => setTimeout(r, 400 * (i + 1)));
+      const code = (e as { code?: string }).code ?? "";
+      const delay = nextRetryDelayMs({
+        attempt: retryAttempt,
+        code,
+        retryAfterMs: (e as { retryAfterMs?: number | null }).retryAfterMs,
+        spentMs: retryWaitedMs,
+        budgetMs: rateLimitBudgetMs(opts.surface, opts.retryBudgetMs),
+        maxAttempts: maxAttemptsFor(code, opts.surface, opts.maxRetries),
+      });
+      if (delay === null) break;
+      await new Promise((r) => setTimeout(r, delay));
+      retryWaitedMs += delay;
+      retryAttempt++;
     }
   }
 
