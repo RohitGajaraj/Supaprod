@@ -2373,7 +2373,7 @@ pass by finding nothing.
 ---
 
 **K-87 · The ratchet cannot see the top of `src/`**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: BUILT` · deps: none · size: S
 **What.** `src/__tests__/meridian-ratchet-scan.ts:68` sets `SCAN_ROOTS = ["src/components", "src/routes"]`,
 so **every file directly in `src/` is invisible to the ratchet.** `src/router.tsx` carries three retired
 `--text-*` uses at lines 60, 71 and 87. Replace them with Meridian and **widen the roots to cover
@@ -2412,7 +2412,34 @@ they need nothing; confirm that rather than assuming it.
   invisible, and from now on a *new* retired token or raw colour in either file fails the build. **That is the
   whole value of the item.** An exemption was considered and rejected: `isExempt` is path-based, so exempting
   these two files would also blind the guard to `--ds-`, `--sp-` and every other marker in them.
-**Owns.** `src/router.tsx`, `src/__tests__/meridian-ratchet-scan.ts`, `src/__tests__/meridian-ratchet.baseline.json`
+- **Corrected again 2026-08-21, and the widening did not ship.** The correction above reasoned the recording
+  through and was still wrong about one thing: **`design:ratchet` refuses to write that baseline**, and it is
+  right to. It reported `src/router.tsx raw-colour: 0 -> 4` and `src/server.ts raw-colour: 0 -> 14` and
+  stopped, because its one job is to refuse a baseline that raises permitted debt, and it cannot read the
+  difference between debt that was added and debt that became visible. **The widening was reverted rather than
+  forced**, because a guard that can be argued past is not a guard, and forcing it is the move DESIGN-SYSTEM
+  bans whatever the intent behind it. (`server.ts` reads 14 rather than the 8 measured earlier: Claude's
+  500-page port landed in between and added literals to the same standalone document.)
+- **What shipped instead: a second guard that enforces only the rule with no precondition.**
+  `src/__tests__/the-top-of-src-speaks-meridian.test.ts` scans the top of `src` for **retired markers** and
+  ignores `raw-colour`. The split is the point. *A retired marker* means the file speaks a language the
+  product retired, which is wrong in every file, always. *A raw colour* means a token belongs there, which
+  **presumes a reachable token layer**, and these two files provably do not have one and each says so in its
+  own comment. So the vocabulary half is closed today and the colour half is left open, honestly, rather than
+  being settled by whichever guard happened to be easier to satisfy.
+- **It reads the ratchet's own lexer**, importing `debtIn` and `RETIRED_MARKERS`, so it strips comments the
+  same way and gains any marker added later for free. A private regex would be the two-lists-drifting defect
+  this repo has already paid for. Three assertions: the offence scan, a pin that the file list is non-empty
+  and contains `router.tsx`, and a pin on the marker list so an emptied `RETIRED_MARKERS` fails loudly instead
+  of passing by finding nothing.
+- **Proven by planting the defect.** `--text-muted` put back into `src/router.tsx` fails the new guard and
+  **`meridian-ratchet.test.ts` still passes**, which is the hole demonstrated rather than described.
+- **OPEN FOR THE FOUNDER, and deliberately not decided here.** Should the ratchet widen its roots, and how
+  should it count a literal that sits inside `var(--mrd-*, <fallback>)`? Today every such fallback counts as a
+  raw colour, which is why these two files read as 18 occurrences of debt when what they actually are is 18
+  correct fallbacks for a token layer that has not loaded yet. A refinement there would let the roots widen
+  with no baseline change at all. **`SCAN_ROOTS` and the baseline are untouched.**
+**Owns.** `src/router.tsx`, `src/__tests__/the-top-of-src-speaks-meridian.test.ts`
 
 ---
 

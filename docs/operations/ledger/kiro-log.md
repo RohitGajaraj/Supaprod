@@ -7046,3 +7046,44 @@ judge**: widening it to admit calls would admit the compounds too.
 
 **Gates.** `bunx tsc --noEmit` 0 · `lane:gates` green, real exit 0. **Not checked in a browser**, and it is
 a settings surface, so the both-grounds look belongs to whoever has a session.
+---
+## K-87 (follow-through) · BUILT · 2026-08-21 14:10 · the ratchet's blind spot is closed for the half that needs no ruling
+**Did.** Added `src/__tests__/the-top-of-src-speaks-meridian.test.ts`. It scans the files sitting **directly
+in `src/`** -- the ones `SCAN_ROOTS = ["src/components", "src/routes"]` cannot see -- and fails on any
+**retired marker**. `src/router.tsx`'s three `--text-*` uses were already fixed under K-87 itself; this is the
+guard that stops a fourth arriving, which the item asked for and which the widening was supposed to provide.
+**Why it is a separate guard and not a wider `SCAN_ROOTS`.** The widening was built and it worked.
+`design:ratchet` then **refused to write the baseline**: `src/router.tsx raw-colour: 0 -> 4`,
+`src/server.ts raw-colour: 0 -> 14`. **The refusal is correct and I reverted rather than forced it.** The
+ratchet's one job is to refuse a baseline that raises permitted debt, and it cannot tell debt that was added
+from debt that became visible. A guard that can be argued past is not a guard. (`server.ts` is 14 now, not the
+8 I measured earlier: Claude's 500-page port landed in between and added literals to the same document.)
+**The split that makes this honest rather than convenient.** Two rules were being enforced as one.
+**A retired marker** means *this file speaks a language the product retired* -- wrong in every file, always,
+no precondition. **A raw colour** means *a token belongs here* -- and that **presumes a reachable token
+layer**, which these two files provably lack, each saying so in its own comment. `router.tsx` mounts before
+the token layers load; `server.ts`'s `renderBrandedErrorPage()` is the catastrophic 500 fallback, a standalone
+HTML document whose own comment states the app stylesheet may be unreachable. So the guard enforces the
+unconditional rule and stays silent on the conditional one. **Silent is not the same as acceptable**, and the
+header says so where the next reader will find it.
+**Proven by planting the defect.** `--text-muted` back into `src/router.tsx` fails the new guard, and
+**`meridian-ratchet.test.ts` still passes at exit 0.** That is the hole demonstrated, not described.
+**It reads the ratchet's own lexer.** `debtIn` and `RETIRED_MARKERS` are imported, so comments are stripped
+the same way and any marker added later is covered for free. A private regex here would be the
+two-lists-drifting defect this repo has already paid for. Three assertions, because two of them exist to stop
+the first passing vacuously: the offence scan; a pin that the file list is non-empty and contains
+`router.tsx`; and a pin on the marker ids, so an emptied `RETIRED_MARKERS` fails loudly instead of finding
+nothing and reporting clean. Exemptions match the ratchet's for the ratchet's stated reasons:
+`routeTree.gen.ts` (generated, and AGENTS.md §3 forbids hand-editing it, so failing a build on its contents
+would demand an edit the rules refuse) and `*.test.ts` (a guard's whole job can be to assert a legacy literal
+is still present).
+**Three approaches rejected, and the reasons are the useful part.** *Forcing the baseline* -- the guard
+refused, correctly. *A path-based `isExempt` for the two files* -- `isExempt` is path-based, so it would also
+blind the guard to `--ds-`, `--sp-` and every other marker in them, which is the opposite of the item.
+*Rewriting the ratchet's raw-colour rule* -- that pre-empts a decision that is the founder's.
+**OPEN FOR THE FOUNDER.** Should `SCAN_ROOTS` widen, and how should the ratchet count a literal inside
+`var(--mrd-*, <fallback>)`? Today each fallback counts as debt, which is why these two files read as 18
+occurrences when what they are is **18 correct fallbacks for a token layer that has not loaded yet**. Refine
+that and the roots widen with no baseline change at all. **`SCAN_ROOTS` and the baseline are untouched.**
+**Gates.** `bun run lane:gates` green, real exit 0. New guard 3 pass. **Nothing to look at in a browser**:
+this change adds a test and no rendered surface.
