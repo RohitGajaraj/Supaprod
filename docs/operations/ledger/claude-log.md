@@ -7878,3 +7878,45 @@ live mutation. The state shape is verified by reading, the implication `busy` to
 measured in the DOM under K-92 itself, and this file needs data the lane harness stubs out.
 
 ---
+
+## LANDED · 2026-08-21 12:12 · three findings, one cause: a rate limit nothing can wait out
+
+**Went to close finding 24 and found the reason it has never been closeable.** 24 needs one successful
+research-mode request; the classifier is a model call and it was rate limited every attempt. **The rate
+limit is not a run of bad luck, and it is the same limit behind findings 23 and 25.**
+
+**Measured in production.** `ai_events` over 36 hours: `chat` has **6 events, every one `model_error`**,
+none since 2026-08-20 12:59, so there is still no evidence the `station`/`tool` frames work or are broken.
+`sense` has **115 ok and 33 error**, and **32 of the 33 are one message**, *"AI rate limit reached. Try
+again in a moment."*, running **2026-08-19 19:28 to 2026-08-21 06:25 without a break. 35 hours.**
+
+**Bucketed by hour, because a sustained outage and a burst limit need opposite fixes.** Every hour that has
+errors also has successes: 5/7, 4/6, 3/3, 2/2, 4/7. **Successes and failures interleave**, so the key is
+not out of quota, it is being throttled per minute or per concurrent call, and roughly **30% of `sense`
+calls are lost in every active hour.** That is the ambient scout quietly failing a third of the time.
+
+**Why the two mechanisms that exist for exactly this cannot help, which is the part worth keeping.**
+1. **Retries run, and they run too fast.** `runtime.server.ts:2530` retries `RATE_LIMIT` and `SERVER_ERROR`
+   and breaks on everything else, so the branch is correct. But the backoff is
+   `setTimeout(400 * (i + 1))`: 400ms then 800ms, so **all three attempts finish inside about 1.2
+   seconds.** Against a per-minute limiter that is one attempt wearing a disguise.
+2. **`Retry-After` is never read.** `grep -riE "retry-after" src/lib/ai/` returns **nothing**. The gateway
+   is presumably saying how long to wait and the product does not look.
+3. **The fallback chain is the wrong tool here.** Finding 23 already proved by test that switching
+   `gemini-3-flash-preview` to `gemini-2.5-flash-lite` returns the **identical** limit, because it is on
+   the **gateway key, not the model**. So every entry in the chain 429s the same way.
+
+**Only elapsed time clears a per-key limit, and nothing in the path waits.** That is one cause under
+finding 23 (the message tells you to switch models, which cannot work), finding 25 (a live surface losing
+a third of its calls), and finding 24 being unclosable for two days.
+
+**Register updated in this commit.** Finding 25's *"none since 2026-08-20 03:35"* was stale and is
+corrected with the 35-hour span and the root cause; 23 is cross-linked as the same cause.
+
+**Not fixed here, deliberately.** The change is to a shared chokepoint every AI call in the product goes
+through, and lengthening backoff trades a fast failure for a slow one on user-facing paths. **That
+tradeoff is a founder call, not a lane call**, and the honest fix is narrow: read `Retry-After`, honour it
+under a cap, and use exponential rather than linear backoff for `RATE_LIMIT` only, leaving `SERVER_ERROR`
+as it is.
+
+---
