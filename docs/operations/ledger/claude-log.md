@@ -7824,3 +7824,57 @@ corrections: strip `prose` from the 100 arbitrary-size sites, restore the 22 var
 and give the 10 bare sites an explicit size.
 
 ---
+
+## K-87 (follow-through) · VERIFIED · 2026-08-21 11:45 · proved the guard on a different file than the one it was built against
+
+**Ran the guard against a planted defect rather than trusting the entry.** Kiro proved it with
+`--text-muted` in `router.tsx`; I planted `var(--text-muted)` in **`src/server.ts`**, a file it was not
+demonstrated on, and the guard named it exactly: `"src/server.ts carries 1x --text-"`, **2 pass 1 fail**.
+Restored, **3 pass 0 fail**, file byte-identical apart from my own comment edit.
+
+**The split is the right one and it is better than what I ruled.** I ruled option 2 plus a
+coverage-expansion step, treating both rules as one problem. Kiro separated them: **a retired marker is
+wrong in every file with no precondition**, while **a raw colour presumes a reachable token layer**, which
+these two files provably lack. Guarding the unconditional rule and staying loud-in-the-header about the
+conditional one closes the half that needed no decision, immediately, without touching `SCAN_ROOTS` or the
+baseline. **That is a cleaner cut than mine.**
+
+---
+
+## K-87 (the open question) · RULED · 2026-08-21 11:45 · option 2 stands, and the number that made it look expensive was mine
+
+**Re-ruling the same way, with the arithmetic corrected.** A colour inside `var(--mrd-*, <fallback>)` is
+already tokenised and the literal is the documented degradation, so it should not count as raw-colour debt.
+**That clears all 4 in `router.tsx`, every one of which I confirmed is a `var()` fallback.**
+
+**`server.ts` is 8, not 14, and the 6 were mine.** The entry reports 14 and is right about what it
+measured, but I checked what the rise was made of: **my 500-page port repeated six token hex values inside
+a comment**, and a documentation hex counts exactly like a painted one. The CSS is still the same 8
+literals it was before the port. **Fixed in this commit by naming the tokens and not repeating their
+values**, with the reason written at the site so it is not reintroduced. So the real question is 8
+literals in one standalone document that cannot reach a token layer, not 18 across two.
+
+**This is an engineering rule about how a guard counts, not a design decision**, so I am ruling it rather
+than leaving Kiro blocked; the founder ruled the 500-page port itself and can overrule this cheaply. **Do
+not force the baseline** and do not add a path exemption. Both were rejected for the right reasons.
+
+---
+
+## K-92 (follow-through) · VERIFIED · 2026-08-21 11:45 · both facts are now said separately, and the rename was the load-bearing half
+
+**Exactly the fix I passed back.** `DataSection.tsx:125` is now
+`const [exporting, setExporting] = useState<"workspace" | "agents" | null>(null)`, and each control carries
+**both** facts: `disabled={exporting !== null}` on both, because one-export-at-a-time is true of both, and
+`busy={exporting === "workspace"}` / `busy={exporting === "agents"}` per control, because this-one-is-working
+is true of exactly one. The nine remaining `busy` occurrences are the `Action` prop and its comments; **no
+boolean-shaped local survives.**
+
+**The rename mattering more than the tidy is the part worth keeping.** Called `busy` the local read as a
+boolean, which is how both controls ended up on one condition, and it would have collided with the `busy`
+prop `Action` gained the same day, one passed into the other with different types.
+
+**What I did not check:** the exports were not triggered, so `aria-busy` was not observed flipping on a
+live mutation. The state shape is verified by reading, the implication `busy` to `disabled` was already
+measured in the DOM under K-92 itself, and this file needs data the lane harness stubs out.
+
+---

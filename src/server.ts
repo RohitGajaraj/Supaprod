@@ -25,10 +25,14 @@ async function getServerEntry(): Promise<ServerEntry> {
 
 // Catastrophic 500 fallback rendered by this worker entry. A standalone HTML
 // document with inline styles because the app stylesheet and token layer may
-// not be reachable at this point; the hex values are Meridian's dark ground,
-// resolved through a 1x1 canvas because the tokens are OKLCH and cannot be
-// read off the source: --mrd-bg #0c0a08, --mrd-ink #f5f3f1, --mrd-mute
-// #a19e9a, --mrd-body #bebcb9, --mrd-solid #37332f, --mrd-on-solid #f5f3f1.
+// not be reachable at this point; the literals below are Meridian's dark
+// ground, resolved through a 1x1 canvas because the tokens are OKLCH and
+// cannot be read off the source. In order of use: --mrd-bg, --mrd-ink,
+// --mrd-mute, --mrd-solid with --mrd-on-solid, and --mrd-body. The values are
+// deliberately NOT repeated in this comment. A documentation hex counts as
+// raw-colour debt exactly like a painted one, and repeating six of them here
+// took this file from 8 to 14 while changing nothing that paints, which
+// inflates the very number the SCAN_ROOTS decision turns on.
 // Measured 2026-08-21: ink on ground 17.86:1, mute on ground 7.41:1, and the
 // primary pair 11.31:1, which is the pair surface-parts.tsx documents as light
 // in both grounds. This page was Tempo greys with a v1 Ember button fill until
