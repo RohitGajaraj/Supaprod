@@ -729,7 +729,7 @@ The argument is already written in this tool's own description, applied to a dif
 ---
 
 **K-22 · Correct the three stale architecture contracts**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: BUILT` · deps: none · size: M
 
 **What.** Fix `architecture/orchestration.md`, `architecture/runtime.md` and `architecture/observability.md` where they describe things the code does not do.
 
@@ -754,7 +754,7 @@ Each of these is a mechanic measured in a shipped product, not an idea. The evid
 ---
 
 **K-23 · `PlanGate` — one gate, three answers, and the dial is the forecast**
-`STATUS: TODO` · deps: K-06 · size: L
+`STATUS: BUILT` · deps: K-06 · size: L
 
 **What.** A component that presents a plan and takes **one** decision with three answers:
 
@@ -786,7 +786,7 @@ It renders the plan (K-06 `PlanCard`), the route (K-20 `RunMap` when present), t
 ---
 
 **K-24 · `AgentInbox` — sorted by who needs you, not by who is working**
-`STATUS: TODO` · deps: K-08 · size: L
+`STATUS: BUILT` · deps: K-08 · size: L
 
 **What.** A list component grouping agent sessions as **needs input → ready for review → working → done**, with one-line present-participle summaries, reply-in-place without navigating away, idle rows self-hiding, and everything past three collapsing to "N idle agents".
 
@@ -809,7 +809,7 @@ Separately, the review surface is now the actual bottleneck: across 22,000 devel
 ---
 
 **K-25 · Correct Meridian's motion, weight and loading policy**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: BUILT` · deps: none · size: M
 
 **What.** Three token-level corrections in `src/styles/meridian.css`, each with its reasoning written into the file.
 
@@ -833,7 +833,7 @@ Separately, the review surface is now the actual bottleneck: across 22,000 devel
 ---
 
 **K-26 · One activity vocabulary for agent sessions**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: BUILT` · deps: none · size: M
 
 **What.** A pure module `src/lib/agent-activity.ts` defining the emittable activity types, the derived session states, and a pure `deriveSessionState(activities, now)`.
 
@@ -896,7 +896,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-27 · Delete the 39 dead shadcn modules in `src/components/ui`**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: BUILT` · deps: none · size: S
 
 **What.** Delete the 39 unreachable modules under `src/components/ui`: `accordion`, `alert`, `aspect-ratio`, `avatar`, `badge`, `breadcrumb`, `calendar`, `card`, `carousel`, `chart`, `checkbox`, `collapsible`, `context-menu`, `dot-pattern`, `drawer`, `form`, `hover-card`, `input-otp`, `menubar`, `navigation-menu`, `pagination`, `progress`, `radio-group`, `resizable`, `scroll-area`, `select`, `separator`, `shader-animation`, `sidebar`, `skeleton`, `slider`, `sonner`, `switch`, `table`, `tabs`, `textarea`, `toggle`, `toggle-group`, `tooltip`. In the same commit change `src/__tests__/client-storage-consent.test.ts:303` — the assertion that `writers` equals exactly `["src/components/ui/sidebar.tsx"]` becomes `[]` — and correct `docs/operations/security/cookie-and-storage-policy.md`, which states at line 15 and again in the table at line 32 that the only `document.cookie` write in the tree is `sidebar_state` at `src/components/ui/sidebar.tsx:86`.
 
@@ -916,7 +916,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-28 · Delete the early light-theme block in `styles.css`, and move nothing out of it**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: BUILT` · deps: none · size: S
 
 **What.** Delete `styles.css` lines **1856–1991** — the first `[data-theme="light"], .light-theme` block — in full. **Move neither property out of it.**
 
@@ -934,7 +934,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-29 · Delete the shadowed declarations in the early `[data-obsidian]` block**
-`STATUS: TODO` · deps: K-28 · size: S
+`STATUS: BUILT` · deps: K-28 · size: S
 
 **What.** `styles.css` declares `[data-obsidian]` at top level **four** times — 2096, 2358, 2567 (the Loom v4 block) and 3711 — plus `html[data-obsidian]` at 3013. Compute the set of property names in the block at **2096–2354** that any *later* `[data-obsidian]` block redeclares, and delete those lines from the early block only. Do not touch the later blocks.
 
@@ -953,7 +953,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-30 · Delete the unreachable `--ds-*` and `--text-*` token names from `styles.css`**
-`STATUS: TODO` · deps: K-29 · size: M
+`STATUS: BUILT` · deps: K-29 · size: M
 
 **What.** Write a throwaway reachability script: strip comments from every `.css`, `.ts` and `.tsx` under `src/`, plus `index.html` and `public/`, capture **both** `var(--x)` and `var(--x, fallback)` forms, seed the live set with every token named outside `styles.css`, then close over token-to-token references until fixed. Delete the declaration lines for everything not in the closure. Run the script, do not trust any pre-written list.
 
@@ -972,7 +972,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-31 · Delete the 75 dead class families in `styles.css`**
-`STATUS: TODO` · deps: K-30 · size: M
+`STATUS: BUILT` · deps: K-30 · size: M
 
 **What.** Delete the rule blocks for the 75 of `styles.css`'s 152 declared classes that no component references, and the `@keyframes` they orphan. Whole retired eras: the 12 `.ambient-weather--*` variants plus `.ambient-weather` and `.weather-live`; the Loom atmosphere (`.loom-atmosphere`, `.loom-details`, `.loom-details-chevron`, `.loom-thread-active`); the hero layer (`.hero-aurora`, `.hero-aurora-a/b`, `.hero-editorial`, `.hero-ghost-mark`, `.hero-watermark-spin`, `.animate-aurora`); the Tempo type scale (`.text-heading-32/40/48/56/64/72`, `.text-copy-16/18/20/24`, `.text-copy-13-mono`, `.text-label-14-mono/18/20`, `.text-ink-subtle`, `.text-balance`); the retired button set (`.btn-agentic`, `.btn-approve`, `.btn-lg`, `.btn-link`, `.btn-tertiary`, `.btn-pill`, `.btn-pill-outline`, `.btn-reject`); material and elevation presets (`.material-base`, `.material-fullscreen`, `.shadow-glass`, `.glass-panel`); the cad motion utilities (`.cad-flutter`, `.cad-flutter-l`, `.cad-focus-glow`, `.flow-pulse`, `.stagger-rise`, `.rise-3`, `.float-soft`, `.hover-lift`); and the singles (`.ai-pulse-mark`, `.ai-working-word`, `.receipt-card`, `.neural-gradient`, `.neural-text`, `.construction-pill`, `.cooking-banner`, `.band-stone`, `.station-row`, `.stream-caret`, `.rule-hairline`, `.rule-strong`, `.hairline-strong`, `.surface-3`).
 
@@ -991,7 +991,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-32 · Delete the dead codediff, term and split families from `primitives.css`**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: BUILT` · deps: none · size: M
 
 **What.** Delete `primitives.css` lines **1417–1836** (the whole span; no non-target top-level selector lives inside it, including the bare `.sp-term` at 1558) and **1904–1930** (`.sp-agrid` from 1904, `.sp-acard` and its hover 1909–1919, `.sp-aname`/`.sp-asub` 1920–1930), plus `.sp-filename`. Then repoint the three assertions in `src/__tests__/surface-discipline.test.ts:123-130` — `ruleBody(css, '.sp-codediff-row[data-kind="add"]')`, its `del` twin, and `expect(css).toContain(".sp-codediff-sign")` — at `CodeDiff.tsx`, exactly as the §1 test in that same file was already repointed at `.cd-body`.
 
@@ -1009,7 +1009,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-33 · Delete the unreachable `--sp-*` declarations and the five dead rules in `ink.css` and `shell.css`**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: BUILT` · deps: none · size: M
 
 **What.** Two sweeps in one commit because they share a file and a re-freeze. (a) `ink.css` holds 180 `--sp-*` declaration **lines** over 159 unique names (21 are second-mode re-declarations). Run a comment-stripped `var()` sweep across every `.css`/`.ts`/`.tsx` under `src/`, plus `index.html` and `public/`, capturing both the bare and fallback forms, and delete every declaration line for a name with zero references — **65 names across 73 lines** when last measured. (b) Delete `.sp-iconbtn` (`shell.css:437-455`, three rules), and in `ink.css` `.ink-hairline-b` (876), `.ink-kicker` (886), `.ink-input-focus` (855-865) **together with its sole consumer token `--ink-input-ring` at 858**, and `.ink-skeleton` across **915–933** — that range covers `@keyframes ink-skeleton` (915-922), the rule (924-928) **and the `@media (prefers-reduced-motion: reduce)` override at 929-933**, which is orphaned if you stop at 930.
 
@@ -1027,7 +1027,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-34 · Swap the 262 exactly one-to-one `--sp-*` references to their Meridian tokens**
-`STATUS: TODO` · deps: K-32, K-33 · size: M
+`STATUS: BUILT` · deps: K-32, K-33 · size: M
 
 **What.** `ink.css` declares 23 `--sp-*` tokens whose entire value is `var(--mrd-…)` — `--sp-ink`, `--sp-mute`, `--sp-line`, `--sp-pass`, `--sp-fail`, the `--sp-solid*` set, the five `--sp-radius-*` and the rest. Textually replace each `var(--sp-X)` with `var(--mrd-Y)` at the **262 stylesheet reference sites**: `primitives.css` (211), `today.css` (50), `shell.css` (1). Then delete the eight aliases no component references either — `--sp-font-sans`, `--sp-radius-chip`, `--sp-radius-row`, `--sp-sheet`, `--sp-solid`, `--sp-solid-edge`, `--sp-solid-hover`, `--sp-solid-ink` — from `ink.css`. The other 15 aliases stay until their component call sites port.
 
@@ -1046,7 +1046,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-35 · Delete the unused TanStack query harness**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: BUILT` · deps: none · size: S
 
 **What.** Delete `src/lib/testing/tanstack-query-mocks.ts`.
 
@@ -1063,7 +1063,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-36 · Delete two dead exports sitting in live modules**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: BUILT` · deps: none · size: S
 
 **What.** Delete `rollUpStations` and its `StationState` type from `src/lib/relay.ts` **52–110**, and `describeTurn` from `src/lib/spine/activity.ts` **148–167**.
 
@@ -1118,7 +1118,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-38 · Build `Pre`, `Grid`, `Cell` and a row `SelectionBar`**
-`STATUS: TODO` · deps: K-09 · size: M
+`STATUS: BUILT` · deps: K-09 · size: M
 
 **What.** Add to `src/components/meridian`: (1) a `Pre` for plain preformatted monospace output; (2) a `Grid`; (3) a `Cell` carrying shell/primitives' `mark`/`lead`/`sub`/`onClick`/`selected`/`disabled`/`tone` contract, rendering a **real `<button>`** when `onClick` is present; (4) a bulk-row selection bar taking the `Selection` object from `src/components/shell/use-selection.ts` plus a row count, under a name that does **not** collide with the existing `SelectionActions`. Draw them on Meridian Tailwind utilities the way `Region` does (`rounded-mrd-xs`, `text-mrd-mute`, `gap-mrd-4`), never on `.sp-*` classes.
 
@@ -1139,7 +1139,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-39 · The seven settings panels off `shell/primitives`**
-`STATUS: TODO` · deps: K-38 · size: M
+`STATUS: BUILT` · deps: K-38 · size: M
 
 **What.** Port `IntegrationsTab`, `DataSection`, `DiagnosticsSection`, `NotificationsSection`, `TeamCard`, `ProductsTab` and `MembersCard` to Meridian imports. The union of symbols across all seven is exactly: `Block`→`Region`, `Button`→`Action`/`Approve`, `Empty`→`NothingHere`/`NothingYet`, `Failed`→`ReadFailed`, `Loading`→`LoadingState`, `PageHead`→`PageHeading`, `Select`→`Picker`, `Switch`→`Toggle`, `Field`/`Input`/`Receipt` keeping their names, and `Pre` (K-38) in `IntegrationsTab` and `TeamCard`. Then clear the residual inline `--sp-*` tokens: 8 in `IntegrationsTab`, 4 in `MembersCard`, 3 in `DataSection`, 2 in `DiagnosticsSection`, 1 each in `TeamCard` and `ProductsTab`.
 
@@ -1158,7 +1158,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-40 · `WorkspaceClaimCard` and `CreditCapsCard`**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: BUILT` · deps: none · size: M
 
 **What.** Swap both files' `shell/primitives` imports for Meridian. `WorkspaceClaimCard` uses `Block`, `Button`, `Checkbox`, `Empty`, `Failed`, `Loading`, `Value`; `CreditCapsCard` uses `Block`, `Button`, `Empty`, `Failed`, `Field`, `Input`, `Select` and carries 5 inline `--sp-*` refs. Additionally replace the raw `<select className="sp-select">` at `WorkspaceClaimCard.tsx:303-319` with `Picker` and give it an id of its own.
 
@@ -1177,7 +1177,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-41 · `AccountConnectionsSection`, the largest primitives consumer in the tree**
-`STATUS: TODO` · deps: K-38 · size: M
+`STATUS: BUILT` · deps: K-38 · size: M
 
 **What.** Port the settings connections panel: 38 rendered primitives across `Block`, `Button`, `Cell`, `Empty`, `Failed`, `Grid`, `Input`, `Loading`, `PageHead`, `Select`, plus 4 inline `--sp-*` refs and 8 `.sp-*` classes.
 
@@ -1196,7 +1196,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-42 · `RoadmapColumns` and `CommitCeremony`**
-`STATUS: TODO` · deps: K-38 · size: M
+`STATUS: BUILT` · deps: K-38 · size: M
 
 **What.** Port both plan-board files off `shell/primitives`. `RoadmapColumns` uses `Button`, `Choices`, `Empty`, `Failed`, `Receipt` and the selection bar, plus 22 inline `--sp-*` refs; `CommitCeremony` uses six primitive call sites across three components (`Button` ×2, `Field` ×2, `Input` ×2) plus 22 `--sp-*` refs.
 
@@ -1214,7 +1214,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-43 · `AuditLineageSheet`: 45 class names, all defined in one stylesheet**
-`STATUS: TODO` · deps: K-34 · size: M
+`STATUS: BUILT` · deps: K-34 · size: M
 
 **What.** Port the lineage pane's 29 distinct `.sp-*` class names (`sp-lineage-*`, `sp-chain-*`, `sp-trail-*`) onto Meridian utilities, deleting the matching rule blocks from `src/styles/shell.css` as each one goes.
 
@@ -1233,7 +1233,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-44 · `BetCard`: 42 occurrences and no data hooks**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: BUILT` · deps: none · size: M
 
 **What.** Replace the 33 inline `--sp-*` references in `src/components/plan/BetCard.tsx` with Meridian tokens, swap the 5 `shell/primitives` markers (1 import, 4 usages) for `forms.Checkbox`/`forms.Input`, and re-home the 4 `.sp-*` classes.
 
@@ -1252,7 +1252,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-45 · `PlanPicker`**
-`STATUS: TODO` · deps: K-09 · size: S
+`STATUS: BUILT` · deps: K-09 · size: S
 
 **What.** Swap the 27 inline `--sp-*` refs for Meridian tokens and move the five class names onto Meridian components: `sp-tabs`/`sp-tab` → `src/components/meridian/Tabs.tsx`, `sp-field-label` → Meridian `Field`, `sp-block-more` → `Region`'s `goTo`/`toggle` control face, and `sp-hint` → a Meridian equivalent.
 
@@ -1271,7 +1271,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-46 · `AppFrame`: the six occurrences that are not the class-name argument**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: BUILT` · deps: none · size: S
 
 **What.** Swap the four `--sp-*` refs in the `KEYCAP` object at `src/components/shell/AppFrame.tsx:567` — `--sp-font-mono`→`--mrd-mono`, `--sp-text-kbd`→`--mrd-t-micro`, `--sp-weight-regular`→`--mrd-w-regular`, `--sp-radius-xs`→`--mrd-r-xs`. Then kill the two scanner artefacts: line 1620 renders the command glyph as the HTML entity `&#8984;`, whose `#8984` is what the raw-colour regex counts, so emit the literal glyph; line 1818 carries `key="sp-tier-rule"`, a React key matched by the `class:sp-` pattern — rename it.
 
@@ -1295,7 +1295,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-47 · The two public money pages: `/pricing` and `/checkout`**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: BUILT` · deps: none · size: M
 
 **What.** Replace every ink-era colour in `src/routes/pricing.tsx` and `src/routes/checkout.tsx` with `--mrd-*`: `var(--ink-subtle,#6b6457)`→`var(--mrd-mute)`, `var(--ink,#1f1b16)`→`var(--mrd-ink)`, `var(--paper,#f6f2ea)`→`var(--mrd-bg)`, `var(--hairline,rgba(0,0,0,0.09))`→`var(--mrd-line)`, `var(--canvas)`→ its Meridian ground, `var(--moss-success,#4f8a59)`→`var(--mrd-pass)`. Replace **all 13** `--ember` occurrences in `pricing.tsx` — lines 100, 101, 102 (the chip near the top), 367 and 370 (the recommended card's border and background tint), 392, 393, 394 (the tier-icon chip), 404 and 405 (the "Popular" badge, whose text is at 410), 627 and 629 (the primary CTA), and 732 — with `--mrd-solid` / `--mrd-you`. **Then delete the `inkTheme` object at `pricing.tsx:724-733` and its spread into the page root at line 745.**
 
@@ -1314,7 +1314,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-48 · The public shared-decision page**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: BUILT` · deps: none · size: S
 
 **What.** In `src/routes/d.$slug.tsx` replace the ink-era palette with `--mrd-*`: `var(--paper,#f6f2ea)`→`var(--mrd-bg)` (61), `var(--ink,#1f1b16)`→`var(--mrd-ink)` (62), the three `var(--hairline,…)` borders (74, 107, 216)→`var(--mrd-line)`, `--ink-subtle` (113, 214, 244), `--ink-faint` (96, 148, 160, 225), `--ink-muted` (137, 233), and all **three** `var(--emerald,#2f8f6b)` sites — 49 in `STATUS`, plus 215 and 216 where it sets the "Still stands" chip and appears inside a `color-mix()` in a template-literal border. Map the `STATUS` table at 49–51 onto the status ladder: emerald→`--mrd-pass`, `var(--rose,#b4493f)`→`--mrd-fail`, pending's `--ink-faint`→`--mrd-hold`.
 
@@ -1333,7 +1333,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-49 · Observability: status words become `Value` tones**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: BUILT` · deps: none · size: M
 
 **What.** In `src/routes/_authenticated.admin.observability.tsx` replace the `shell/primitives` import at line 116: `Value`→`surface-parts.Value` (10), `Block`→`Region` (9), `Empty`→`NothingHere` (5), `Failed`→`ReadFailedLine` (3), `Loading`→`Reading` (3), `Switch`→`Toggle` (1). Convert the six inline status spans at lines 295, 338, 364, 529, 561, 613 — two of which are ternaries carrying both classes — into `<Value tone="hold">` and `<Value tone="fail">`. Swap the two `var(--sp-font-mono)` (528, 560) for `var(--mrd-mono)` and `var(--text-subtle)` at 784 for `var(--mrd-mute)`.
 
@@ -1352,7 +1352,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-50 · Threads: retire the hand-rolled context column**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: BUILT` · deps: none · size: M
 
 **What.** In `src/routes/_authenticated.threads.tsx` replace the `shell/primitives` import at line 143: `Button`→`Action` (6), `Empty`→`NothingHere` (4), `Failed`→`ReadFailedLine` (4), `Block`→`Region` (2), `Input`→`forms.Input` (2), `Loading`→`Reading` (2), `PageHead`→`PageHeading` (1), `Switch`→`Toggle` (1), plus `Surface` and `Receipt` as import-line swaps. Replace the seven hand-written `sp-ctx-*` divs at 478–520 with `CtxHead`/`CtxRow`/`CtxBody` from `@/components/meridian/ContextColumn`. Map the ten `--sp-*` tokens, including **`--sp-body` at line 260**, which no prefix rule reaches.
 
@@ -1371,7 +1371,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-51 · Trace detail: one query, four context blocks**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: BUILT` · deps: none · size: M
 
 **What.** In `src/routes/_authenticated.traces.$traceId.tsx` replace line 133's import: `Button`→`Action` (4), `PageHead`→`PageHeading` (4), `Surface`→`meridian/Surface` (4), `Block`→`Region` (3), `CtxHead` (3), `CtxBody` (2), `CtxRow` (2) → `meridian/ContextColumn`, `Empty`→`NothingHere` (2), `Failed`→`ReadFailedLine` (2), `Loading`→`Reading` (1).
 
@@ -1389,7 +1389,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-52 · The two admin roster panes, ported together**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: BUILT` · deps: none · size: M
 
 **What.** Port `src/routes/_authenticated.admin.people.tsx` and `src/routes/_authenticated.admin.workspaces.tsx` in one pass — they import the identical primitive set at lines 117 and 114. `Button`→`Action`, `Block`→`Region`, `Field`→`forms.Field`, `Input`→`forms.Input`, `Value`→`surface-parts.Value`, `Empty`→`NothingHere`, `Failed`→`ReadFailedLine`, `Loading`→`Reading`, `Select`→`Picker`, `Receipt`→`meridian/Receipt`. Replace the hand-rolled tablist at `people.tsx:147-160` (`sp-tabs` plus two `sp-tab` buttons with `role="tablist"`) with `meridian/Tabs`, and the two `sp-fail` spans — `people.tsx:258` and `workspaces.tsx:280` — with `<Value tone="fail">`.
 
@@ -1407,7 +1407,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-53 · Admin pricing and the admin overview, ported as one**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: BUILT` · deps: none · size: M
 
 **What.** Port `src/routes/_authenticated.admin.pricing.tsx` (import at 127) and `src/routes/_authenticated.admin.index.tsx` (import at 78) together. pricing: `Button`→`Action` (7), `Field`→`forms.Field` (5), `Input`→`forms.Input` (5), `Block`→`Region` (4), `Failed`→`ReadFailedLine` (3), `Checkbox`→`forms.Checkbox` (2), `Empty`→`NothingHere` (2), `Loading`→`Reading` (1), `Receipt`→`meridian/Receipt` (1). index: `Button`→`Action` (4), `Block`→`Region` (2), `Failed`→`ReadFailedLine` (2), `Loading`→`Reading` (2), `Empty`→`NothingHere` (1), `Field`→`forms.Field` (1), `Gate`→`meridian/Gate` (1), `Input`→`forms.Input` (1). Convert the six inline status spans (index 230, 235, 276, 339; pricing 379, 644) to `<Value tone>` and rewrite `checkClass` at `admin.index.tsx:98-99` — which literally returns the strings `"sp-fail"`/`"sp-warn"` — into a tone-returning helper.
 
@@ -1426,7 +1426,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-54 · Admin platform: the proof that `meridian/forms` is complete**
-`STATUS: TODO` · deps: K-38 · size: M
+`STATUS: BUILT` · deps: K-38 · size: M
 
 **What.** In `src/routes/_authenticated.admin.platform.tsx` swap the thirteen-symbol import at line 96: `Button`→`Action` (5), `Input`→`forms.Input` (5), `Failed`→`ReadFailedLine` (4), `Field`→`forms.Field` (4), `Block`→`Region` (3), `Loading`→`Reading` (3), `Empty`→`NothingHere` (2), `Select`→`Picker` (2), `Switch`→`Toggle` (2), `Checkbox`→`forms.Checkbox` (1), `Value`→`surface-parts.Value` (1), `Gate`→`meridian/Gate` (1), `Pre`→K-38's `Pre` (1). Swap the one `var(--sp-font-mono)` for `var(--mrd-mono)`.
 
@@ -1444,7 +1444,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-55 · Sync: kill the two hand-written `sp-btn` controls**
-`STATUS: TODO` · deps: K-38 · size: M
+`STATUS: BUILT` · deps: K-38 · size: M
 
 **What.** In `src/routes/_authenticated.sync.tsx` replace line 99's import: `Button`→`Action` (13), `Empty`→`NothingHere` (4), `Block`→`Region` (2), `Failed`→`ReadFailedLine` (2), `Loading`→`Reading` (2), `PageHead`→`PageHeading` (2), `Surface`→`meridian/Surface` (2), `Gate`→`meridian/Gate` (1), `Pre`→K-38's `Pre` (1). Then fix the two controls that skipped the component entirely: **line 278 is an anchor** — `<a className="sp-btn" data-variant="ghost" href={m.external_url} target="_blank" rel="noreferrer">Read both first</a>` — and line 304 is a `<Link className="sp-btn">`. Both need Meridian's `CONTROL_SHAPE` face; the anchor keeps `href`/`target`/`rel` and its `ghost` intent, not an `onClick` it never had.
 
@@ -1462,7 +1462,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-56 · Boundary: the first route adoption of `meridian/MoreMenu`**
-`STATUS: TODO` · deps: none · size: L
+`STATUS: BUILT` · deps: none · size: L
 
 **What.** `src/routes/_authenticated.boundary.tsx` already imports `meridian/Surface` at line 88; finish it by replacing line 87's `shell/primitives` import. `Block`→`Region` (8), `Empty`→`NothingHere` (4), `Input`→`forms.Input` (3), `MoreItem`→`meridian/MoreMenu.MoreItem` (3), `Value`→`surface-parts.Value` (3), `CtxBody`/`CtxHead`→`meridian/ContextColumn` (2 each), `Loading`→`Reading` (2), `PageHead`→`PageHeading` (2), `Failed`→`ReadFailedLine` (1), `MoreMenu`→`meridian/MoreMenu` (1), `Receipt`→`meridian/Receipt` (1).
 
@@ -1481,7 +1481,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-57 · Take the Obsidian `Button` out of the two routes that still render one**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: BUILT` · deps: none · size: S
 
 **What.** `src/routes/_authenticated.admin.invites.tsx:59` and `src/routes/_authenticated.admin.tsx:50` both do `import { Button } from "@/components/obsidian"`. Replace both with `surface-parts.Action`, mapping obsidian's `variant="accent"` → `primary`, `variant="secondary"` → `default`, and its `loading` prop → `disabled={mutation.isPending}` — the pattern already used at `src/routes/_authenticated.crew.tsx:850,853`. **invites has two call sites, not one**: line 190 (`secondary`, already `disabled={revoke.isPending}`) and line 334 (`accent`, `loading={mint.isPending}`, `disabled={mint.isPending || !note.trim()}`); admin.tsx's is line 206. While there, finish invites' `shell/primitives` import at 58 (`Field`→`forms.Field` 4, `Input`→`forms.Input` 4, `Block`→`Region` 3, `Empty`→`NothingHere` 2, `Failed`→`ReadFailedLine` 1, `Loading`→`Reading` 1), the three `var(--sp-font-mono)` at 180/350/358 and `var(--text-body)`/`var(--text-primary)` at 347/351. In admin.tsx replace the eight `--text-*` and two `--hairline` occurrences (120, 134–144, 184, 191, 194, 210) and swap `PageHead`→`PageHeading`, `Surface`→`meridian/Surface`.
 
@@ -1500,7 +1500,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-58 · Settings: the largest single block of route debt**
-`STATUS: TODO` · deps: K-38 · size: L
+`STATUS: BUILT` · deps: K-38 · size: L
 
 **What.** Swap the one `@/components/shell/primitives` import at **`src/routes/_authenticated.settings.tsx:241`** for Meridian equivalents and rename the call sites: `Button`→`Action` (21), `PageHead`→`PageHeading` (17), `Block`→`Region` (15, `more`/`onMore` → `goTo`/`onGoTo`), `Empty`→`NothingHere` (10), `Input`→`forms.Input` (9), `Loading`→`Reading` (9), `Failed`→`ReadFailedLine` (8), `Field`→`forms.Field` (4), `Select`→`Picker` (3), `Textarea`→`forms.Textarea` (2). Map the 34 `--sp-*` tokens (`--sp-ink`/`--sp-mute`→`--mrd-ink`/`--mrd-mute`, `--sp-space-N`→`--mrd-sN`, `--sp-text-*`→`--mrd-t-*`, `--sp-font-mono`→`--mrd-mono`, `--sp-radius-card`→`--mrd-r-card`, `--sp-line`→`--mrd-line`, `--sp-lift`→`--mrd-lift`) and the 9 `sp-` class strings: `sp-pass`/`sp-fail`/`sp-warn` become `<Value tone="pass|fail|hold">`.
 
@@ -1519,7 +1519,7 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-59 · Today, together with the stylesheet that paints it**
-`STATUS: TODO` · deps: K-34 · size: L
+`STATUS: BUILT` · deps: K-34 · size: L
 
 **What.** Port `src/routes/_authenticated.today.tsx` and `src/styles/today.css` as one unit, because `today.tsx:39` imports the sheet. Route: `Failed`→`ReadFailedLine` (6), `Block`→`Region` (5), `Button`→`Action` (4), `Loading`→`Reading` (3), `PageHead`→`PageHeading` (3), `Surface`→`meridian/Surface` (3), `Empty`→`NothingHere` (1), `Receipt`→`meridian/Receipt` (1), `Value`→`surface-parts.Value` (1). Stylesheet: remap the remaining `--sp-*` declarations to `--mrd-*`. Port `src/routes/__tests__/today-states-its-wait.test.ts` in the same commit.
 
@@ -1549,7 +1549,7 @@ A standing distinction for the whole group, because it is the thing that has rep
 ---
 
 **K-60 · `runBucket` is blind to 41% of runs**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: BUILT` · deps: none · size: S
 
 **What.** Add `halted → "failed"` and `waiting_approval → "queued"` to `RUN_STATE` in `src/lib/agent-fleet.ts`, and add a case per key to `src/lib/agent-fleet.test.ts`, which names neither today. Then delete the special-case `bucketOf()` at `src/lib/crew.functions.ts:161-166` and its comment, which claims `runBucket` "does not carry" `complete` — `agent-fleet.ts:77` has carried it since.
 
@@ -1567,7 +1567,7 @@ A standing distinction for the whole group, because it is the thing that has rep
 ---
 
 **K-61 · The delegate desk files finished missions under Queued**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: BUILT` · deps: none · size: S
 
 **What.** Add `halted: "attention"` to `STATUS_TO_LANE` in `src/lib/delegate-desk.ts` (80–118), add `complete` to `STEP_DONE` (line 128), and extend `src/lib/delegate-desk.test.ts` with a case for each.
 
@@ -1585,7 +1585,7 @@ A standing distinction for the whole group, because it is the thing that has rep
 ---
 
 **K-62 · Terminal statuses the runaway detector calls active**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: BUILT` · deps: none · size: S
 
 **What.** Add `halted` and `completed_with_failures` to `TERMINAL_STATUSES` in `src/lib/reliability/runaway.ts:66`, add a case per status to `src/lib/reliability/runaway.test.ts` asserting severity `"watch"` rather than `"runaway"` for a breached-but-finished mission, and correct `docs/features/runaway-detection.md`, which documents terminal as "(done/failed/cancelled)".
 
@@ -1603,7 +1603,7 @@ A standing distinction for the whole group, because it is the thing that has rep
 ---
 
 **K-63 · The ghost status `awaiting_approval`, and the mission words leaking into run readers**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: BUILT` · deps: none · size: S
 
 **What.** Replace `LIVE_STATUS` at `src/components/governance/AgentRosterPanel.tsx:80` with the canonical set that already exists at `src/lib/governance.functions.ts:349` — `LIVE_RUN_STATUSES = new Set(["queued", "running", "waiting_approval"])` — importing it rather than re-declaring. Fix `src/components/cockpit/AgentInspector.tsx:43` and `:57` the same way, including the `status === "running" || status === "planning"` branch at 56. **Delete** the dead `awaiting_approval` key from `STATUS_TO_LANE` in `src/lib/delegate-desk.ts:86` and add nothing in its place. Then add a guard test asserting that every status string a reader keys on is one a writer writes **to that same column**.
 
@@ -1622,7 +1622,7 @@ A standing distinction for the whole group, because it is the thing that has rep
 ---
 
 **K-64 · Two of the four normalisers have no tests, and three of the four disagree**
-`STATUS: TODO` · deps: K-12, K-60 · size: M
+`STATUS: BUILT` · deps: K-12, K-60 · size: M
 
 **What.** Write `src/lib/__tests__/one-run-status-vocabulary.test.ts`. Build one table of every spelling the repo writes or reads — `complete`, `completed`, `completed_with_failures`, `done`, `succeeded`, `failed`, `halted`, `cancelled`, `running`, `queued`, `waiting_approval`, `blocked`, `proposed` — and drive all four normalisers over it: `runState` (`src/components/runs/run-state.ts:34`), `runBucket` (`src/lib/agent-fleet.ts:91`), `classifyRunOutcome` (`src/lib/run-analytics.ts:69`), `taskStatus` (`src/components/meridian/TaskRows.tsx:103`). Assert the three things they must agree on — which spellings are **terminal**, which are **successful**, which mean **a person is required** — then fix the two branches that are wrong and pin `taskStatus`'s not-yet-started case explicitly.
 
@@ -1647,7 +1647,7 @@ A standing distinction for the whole group, because it is the thing that has rep
 ---
 
 **K-65 · Seven copies of `initialsFrom`**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: BUILT` · deps: none · size: S
 
 **What.** Move `initialsFrom` into its own pure module under `src/lib` and import it from the seven call sites: `src/components/memory/MemoryReviewQueue.tsx:83`, `src/components/ask/AskPane.tsx:150`, `src/components/knowledge/DecisionsPanel.tsx:154`, `src/components/engine-room/rooms/ReceiptsPanel.tsx:107`, `src/routes/_authenticated.threads.tsx:196`, `src/routes/_authenticated.runs.$missionId.tsx:400`, `src/components/shell/AppFrame.tsx:586`. Widen the signature to the `AppFrame` variant, the only one that accepts `undefined`.
 
@@ -1665,7 +1665,7 @@ A standing distinction for the whole group, because it is the thing that has rep
 ---
 
 **K-66 · A declared default must survive the runtime**
-`STATUS: TODO` · deps: K-11 · size: M
+`STATUS: BUILT` · deps: K-11 · size: M
 
 **What.** Write `src/lib/ai/tools/a-declared-default-must-survive-the-runtime.test.ts` with three assertions, each proved by planting the defect — delete one catalogue row and watch it go red.
 
@@ -1692,7 +1692,7 @@ Add a floor test (`Object.keys(TOOL_DEFAULTS).length > 40`) so an emptied regist
 ---
 
 **K-67 · Every nav door resolves to a route file**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: BUILT` · deps: none · size: S
 
 **What.** Add cases to `src/lib/nav-model.test.ts` asserting that every `to` in `PRIMARY_NAV`, `FOOTER_NAV` and `ENGINE_ROOM_PATHS` resolves to a route file on disk.
 
@@ -1716,7 +1716,7 @@ Add a floor test (`Object.keys(TOOL_DEFAULTS).length > 40`) so an emptied regist
 ---
 
 **K-68 · The app's two universal failure surfaces render entirely outside Meridian**
-`STATUS: TODO` · deps: K-09 · size: M
+`STATUS: BUILT` · deps: K-09 · size: M
 
 **What.** Port `AuthedError` (`_authenticated.tsx:95-135`) and `AuthedNotFound` (`:137-156`), and the root `NotFoundComponent` (`__root.tsx:48-81`) and `ErrorComponent` (`:83-118`), onto Meridian: rebuild them from `ReadFailed`/`NothingHere` plus `Action`, put `data-mrd=""` on each root, and delete `fallbackWrap` (`_authenticated.tsx:83-93`) and `BoundaryShell` (`__root.tsx:24`).
 
@@ -1735,7 +1735,7 @@ Add a floor test (`Object.keys(TOOL_DEFAULTS).length > 40`) so an emptied regist
 ---
 
 **K-69 · 58 focus rings that paint nothing, because the utility loses to an unlayered rule**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: BUILT` · deps: none · size: M
 
 **What.** Replace per-component `focus-visible:outline-*` Tailwind utilities with `data-mrd=""` on the component root in the 28 files that declare a ring and carry no `data-mrd`, starting with the live surfaces: `RoomCard.tsx:42`, `ConnectionStrip.tsx`, `RowActions.tsx`, `DrawingsTable.tsx`, `AuditTag.tsx`, `BillingBanner.tsx`, `_authenticated.admin.tsx:132`. Then add a guard asserting no file declares a `focus-visible:outline` utility without `data-mrd`.
 
@@ -1754,7 +1754,7 @@ Add a floor test (`Object.keys(TOOL_DEFAULTS).length > 40`) so an emptied regist
 ---
 
 **K-70 · Meridian's `CtxRow` is announced as a button and does nothing**
-`STATUS: TODO` · deps: K-09 · size: S
+`STATUS: BUILT` · deps: K-09 · size: S
 
 **What.** Make `CtxRow` in `src/components/meridian/ContextColumn.tsx` render a real `<button type="button">` when `onClick` is present, instead of `<div role="button" tabIndex={0}>`. While there, drop the dead `data-mrd` token from the className string at line 34 — it is a class name, not the attribute, and no `.data-mrd` rule exists in any stylesheet.
 
@@ -1773,7 +1773,7 @@ Add a floor test (`Object.keys(TOOL_DEFAULTS).length > 40`) so an emptied regist
 ---
 
 **K-71 · `Refused` — the denied state has no component**
-`STATUS: TODO` · deps: K-09 · size: S
+`STATUS: BUILT` · deps: K-09 · size: S
 
 **What.** Add a `Refused` component to `src/components/meridian/surface-parts.tsx` beside `ReadFailed`, for the case where a read **succeeded** and the answer is "you may not see this", and adopt it at `src/routes/_authenticated.admin.tsx`, the one surface that already distinguishes the case by hand.
 
@@ -1792,7 +1792,7 @@ Add a floor test (`Object.keys(TOOL_DEFAULTS).length > 40`) so an emptied regist
 ---
 
 **K-72 · `EmptyRow` left the system**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: BUILT` · deps: none · size: S
 
 **What.** Add `data-mrd=""` to `EmptyRow` at `src/components/engine-room/RoomDetail.tsx:99-101`.
 
@@ -1818,7 +1818,7 @@ Add a floor test (`Object.keys(TOOL_DEFAULTS).length > 40`) so an emptied regist
 ---
 
 **K-73 · `resolveMemoryScope`, as a pure function**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: BUILT` · deps: none · size: M
 
 **What.** A new pure module `src/lib/memory-scope.ts` exporting `resolveMemoryScope({kind, origin}) => { scope: "product" | "workspace", promotable: boolean, reason: string }`, plus exhaustive tests.
 
@@ -1839,7 +1839,7 @@ Make `reason` a sentence a person could read in a promotion prompt, because it w
 ---
 
 **K-74 · Ask retrieves workspace-wide no matter where you are standing**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: BUILT` · deps: none · size: S
 
 **What.** Set `retrievalProductId` from the resolved scope in `src/components/ask/AskPane.tsx`, and show which product Ask is answering from.
 
@@ -1858,7 +1858,7 @@ Make `reason` a sentence a person could read in a promotion prompt, because it w
 ---
 
 **K-75 · `PromotionCard`: a lesson graduating is an event, not an accident**
-`STATUS: TODO` · deps: K-73 · size: M
+`STATUS: BUILT` · deps: K-73 · size: M
 
 **What.** A Meridian component rendering one proposed promotion: the lesson, the product it was learned in, the evidence under it, what it would change if approved, and approve / not-yet / never controls.
 
@@ -1894,7 +1894,7 @@ The standing rule since 2026-08-01: **research the best proven product in that c
 ---
 
 **K-76 · Research the Plan station**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: BUILT` · deps: none · size: M
 
 **What.** Research and append a Plan section to `REFERENCE-PATTERNS.md`. Reference class already named in that file: **Linear cycles, Productboard roadmap**. Add whatever else genuinely earns a place.
 
@@ -1907,7 +1907,7 @@ The standing rule since 2026-08-01: **research the best proven product in that c
 ---
 
 **K-77 · Research the Ship station**
-`STATUS: TODO` · deps: K-76 · size: M
+`STATUS: BUILT` · deps: K-76 · size: M
 
 **What.** Research and append a Ship section. Named class: **changelog and release-notes tooling**. Worth adding: Vercel and Netlify deploy surfaces, LaunchDarkly and Statsig rollout controls, GitHub Releases.
 
@@ -1920,7 +1920,7 @@ The standing rule since 2026-08-01: **research the best proven product in that c
 ---
 
 **K-78 · Research the Learn station**
-`STATUS: TODO` · deps: K-77 · size: M
+`STATUS: BUILT` · deps: K-77 · size: M
 
 **What.** Research and append a Learn section. Named class: **Amplitude and experiment readouts**. Worth adding: Statsig and Eppo results surfaces, and how forecasting tools show a resolved prediction against its claim.
 
@@ -1933,7 +1933,7 @@ The standing rule since 2026-08-01: **research the best proven product in that c
 ---
 
 **K-79 · Research Brain, which is in no reference table at all**
-`STATUS: TODO` · deps: K-78 · size: M
+`STATUS: BUILT` · deps: K-78 · size: M
 
 **What.** Add a **Brain** row to the reference-class table and research it. Candidate class: **Notion AI and its knowledge surfaces, Glean, Guru, Obsidian's graph, and how coding agents surface what they retrieved** (Cursor's context pills, Claude Code's file reads).
 
@@ -2181,8 +2181,13 @@ Not a backlog — the complement of this queue, listed so Kiro knows these are c
 
 ---
 
-**K-86 · The scout writes down that it failed and nothing reads the column**
-`STATUS: OPEN` · deps: none · size: M
+**K-93 · The scout writes down that it failed and nothing reads the column**
+`STATUS: TODO` · deps: none · size: M
+**Renumbered 2026-08-21, and the collision was mine.** This was filed as **K-86** in `claude-log.md:2278`.
+Group M was written later, saw a queue whose last number looked like 85, and reused 86, 87 and 88 for three
+different items. Those three are now built and **verified under those numbers in both ledgers**, and four
+commit messages cite them, so the numbers are settled there and these three move instead. **The cost of the
+collision was not the numbering: it was that these three read as already done and sat unbuilt for a day.**
 
 **What.** Surface the scout's per-run outcome so a workspace can see that its scout errored, or was cut short by its own daily cap, without an admin present.
 
@@ -2216,8 +2221,9 @@ So a scout that is failing on every target, or silently truncated by its cap, re
 
 ---
 
-**K-87 · A third of finished runs are drawn as idle, on two live surfaces**
-`STATUS: OPEN` · deps: none · size: S
+**K-94 · A third of finished runs are drawn as idle, on two live surfaces**
+`STATUS: TODO` · deps: none · size: S
+**Renumbered 2026-08-21** from **K-87** (`claude-log.md:5568`). See K-93 for why.
 
 **What.** Give `mapRelayStatus` (`src/lib/relay.ts:26-49`) a done arm that covers every spelling
 production actually writes, and a test that pins the mapping to measured values rather than to a
@@ -2281,8 +2287,9 @@ That figure is stale -- it is 1,825 now -- but the file is not yours for this it
 
 ---
 
-**K-88 · The admin pages were ported and their error state was left behind**
-`STATUS: OPEN` · deps: none · size: S
+**K-95 · The admin pages were ported and their error state was left behind**
+`STATUS: TODO` · deps: none · size: S
+**Renumbered 2026-08-21** from **K-88** (`claude-log.md:6268`). See K-93 for why.
 
 **What.** Port `src/components/admin/admin-ui.tsx` off the retired vocabulary. The baseline
 records four occurrences: `--text-` x2, `--madder` x1, `--raised` x1.
@@ -2333,8 +2340,15 @@ or it does not, a component imports a retired system or it does not.
 reason to write them up rather than act on the note: two of the three were filed with a blast radius the
 code does not support.
 
+**This group's numbering collided, and it cost a day.** It took 86, 87 and 88 because the last *group*
+header ended at 85, without checking that three items already carried those numbers further up the file.
+Those three are now **K-93, K-94 and K-95**. They were the only genuinely open items in the queue and they
+read as done for a day, because a reader scanning for the next number found this group instead. **The
+numbers here stay**, since both ledgers verified them and four commits cite them. The lesson is the check
+that was skipped: **grep the number before claiming it**, rather than reading the last heading.
+
 **K-86 · Two heading classes that are declared in no stylesheet**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: BUILT` · deps: none · size: S
 **What.** In `src/components/supaprod/Primitives.tsx`, `SurfaceHeader` (line 185) sets
 `className="text-heading-26"` on its `<h1>` and `DrillHeader` (line 364) sets `className="text-heading-21"`
 on its title `<div>`. **Neither class is declared anywhere.** The declared scale is
@@ -2444,7 +2458,7 @@ they need nothing; confirm that rather than assuming it.
 ---
 
 **K-88 · The connect-moment trust dialog is still Tempo v5**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: BUILT` · deps: none · size: M
 **What.** `src/components/connections/ConnectTrustDialog.tsx`, 78 lines, is built entirely from the retired
 stack: `@/components/ui/dialog` and `@/components/ui/button` (shadcn) plus the Tempo v5 class
 `text-copy-13`. Port it onto Meridian: `src/components/meridian/Dialog.tsx` and the Meridian control set in
@@ -2475,7 +2489,7 @@ that reads wrong on paper is worse than one that reads plain.
 # Group N · the founder ruling on K-17
 
 **K-89 · Delete `StreamingText` and `ToolChips`, and leave the argument where the code was**
-`STATUS: TODO` · deps: K-17 · size: M
+`STATUS: BUILT` · deps: K-17 · size: M
 **What.** **Founder ruling 2026-08-21, recorded at `ledger/claude-log.md` under "K-17 · RULED · delete
 both".** K-17 asked for these two to be mounted, Kiro refused, and the refusal was upheld. Delete
 `src/components/meridian/StreamingText.tsx` and `src/components/meridian/ToolChips.tsx`, their gallery
@@ -2526,7 +2540,7 @@ since it already carries the section explaining the distinction and is the survi
 # Group O · one class name that does two jobs
 
 **K-90 · `text-mrd-body` is both a colour and a font size**
-`STATUS: BUILT (guard) + FOUNDER QUESTION (the rename)` · deps: none · size: S for the guard, M for the rename
+`STATUS: BUILT (guard, and the rename, once the founder ruled)` · deps: none · size: S for the guard, M for the rename
 **What.** Meridian declares its type scale as **13 explicit `@utility text-mrd-*` rules** setting `font-size`,
 and separately declares **60 colours as `--color-mrd-*`**, each of which Tailwind turns into a `text-mrd-*`
 rule setting `color`. **Exactly one name falls in both sets: `body`.** So `.text-mrd-body` compiles to two
@@ -2604,7 +2618,7 @@ alias** -- the `--sp-radius-lg` post-mortem rules out the alias, and an arbitrar
 # Group P · a fix the port dropped
 
 **K-91 · `Region`'s heading was smaller than the rows it introduces, for the second time**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: BUILT` · deps: none · size: S
 **What.** `Region`'s `<h2>` in `src/components/meridian/surface-parts.tsx` was `text-[13px]` in its default
 branch, while `Row`'s `lead` in `src/components/meridian/rows.tsx` -- an ordinary item **inside that very
 region** -- is `text-[14px]`. **So every region label in the product was set smaller than its own content.**
@@ -2641,7 +2655,7 @@ than smaller** and is what the ruling permits. **`Region` is the only part headi
 # Group Q · the control that went dead without saying why
 
 **K-92 · `Action` and `Approve` disable on a pending flag and announce nothing**
-`STATUS: TODO` · deps: none · size: L
+`STATUS: BUILT` · deps: none · size: L
 **What.** Add a `busy` prop to `Action` and `Approve` in `src/components/meridian/surface-parts.tsx`,
 where `busy` sets `aria-busy` **and implies `disabled`** so a caller says it once. Then migrate every
 call site whose `disabled` is a single pending reference, and guard it.
