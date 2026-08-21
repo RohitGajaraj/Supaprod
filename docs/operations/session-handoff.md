@@ -2917,3 +2917,116 @@ the "noticed, not fixed" paragraphs at the end of each entry in `kiro-log.md`. T
 3. **`markFor` in `AgentRelay.tsx` is not exhaustive** — an if-chain with a `return "quiet"` fallback, so the
    next word added to `RelayStatus` renders as quiet with a clean typecheck. It also draws a finished run as
    `MarkState "idle"` when `"verified"` exists and `today.tsx:995` uses it for exactly that.
+
+---
+
+# 2026-08-21 · KIRO LANE CLOSED. Everything passes to Claude from here.
+
+**Founder ruling 2026-08-21: Kiro is out of credits. All build work is Claude's from this point.** This
+section is the handover, so read it before `kiro-queue.md`.
+
+## STATE AT CLOSE
+
+Pushed and clean on `main`, `git status` empty, `0 0` against `origin/main`, `bun run lane:gates` real exit 0.
+**`docs/operations/kiro-queue.md` has zero `TODO` items.** K-01 through K-97 are all `BUILT`, `VERIFIED`,
+`REJECTED`, `WITHDRAWN` or `DECLINED`.
+
+**Disk was at 100% and is fixed.** 2.6 GB of git garbage removed with founder approval, `152 MB → 2.8 GB`,
+`git fsck` exit 0, `garbage: 0`. Detail and the trap it taught are in the previous section and in
+`kiro-log.md` under **Machine · 2026-08-21**.
+
+## THE ONE OPEN ITEM: K-37, RULED B+, AND IT IS CLAUDE'S TO BUILD
+
+**Founder chose option B+ and asked for it documented rather than built**, so Kiro wrote the record and
+touched no code. Two files carry it:
+
+- **[`../decisions/palette-verb-shapes.md`](../decisions/palette-verb-shapes.md)** — the ADR. The rule, the
+  three shapes, why the broken one cannot work, the per-station table, the options and the cost accepted.
+  **Read this first.**
+- **`kiro-queue.md`** K-37 — the five build steps and the acceptance list.
+
+**The rule in one line.** *A palette verb either navigates to the station that owns the job, or it acts in
+place through something mounted globally. It never does both.*
+
+**Why it needed a rule and not a fix.** The palette is mounted on every authenticated route
+(`_authenticated.tsx:211`), so "what a verb does" is a cross-station question by construction — which is how
+four verbs came to be broken on twelve surfaces at once. There are three shapes; the product demonstrates
+which two work:
+
+| Shape | How | Verbs | State |
+| --- | --- | --- | --- |
+| **1** | navigate to the owning station, no event | 3 | works |
+| **2** | act in place through a globally mounted listener, no navigation | 2 events | works |
+| **3** | navigate **and** open on arrival, via `desk-compose.ts`'s pending flag + 10s TTL | 4 | **all broken** |
+
+**Shape 3 is used nowhere else in the repo, and that is not luck.** It is the only shape that couples a global
+dispatcher to a route-specific mount across a navigation boundary. Shape 1 has no listener to miss; shape 2
+has no navigation to race.
+
+**The root cause is a sentence, and this is the part not to lose.** `palette-sections.ts:32` asserts *"no verb
+merely navigates and calls it an action"* — which **forbids the shape that works and demands the one that
+cannot.** Step 4 corrects it. **Delete the verbs and leave that comment standing and they get rebuilt
+identically.**
+
+**The structural finding underneath it.** `palette-sections.ts` has a DERIVATION LAW and applies it to one of
+its two lists: **JUMP is derived from `PRIMARY_NAV`; ACT is a hand-written array.** A hand-written action list
+cannot notice its destination was rebuilt underneath it, which is exactly what happened when Today lost its
+Desk. **That asymmetry is why ACT rotted and JUMP could not.**
+
+**And a free win nobody had filed: Decide has `NameABet` (`decide.tsx:3385`) and no palette verb at all.** Four
+verbs that lie were shipping while arguably the most valuable act in the product had none.
+
+**Two caveats Kiro could not close, both repeated in the build steps.** *"The capture box is off-screen on
+arrival"* is inferred from source position and the surface's own comments, **not measured in a viewport** —
+confirm it in a browser. And **`/decide` has no `validateSearch` at all**, so giving step 2 the same landing
+treatment as step 1 is a bigger change than it looks and may be worth deferring.
+
+**Two jobs leave the product under B+ and should be re-filed rather than forgotten.** *Add a task* and *Share
+status*, both needing **a surface designed** rather than a listener wired: `createTask`'s only client caller is
+`use-ask-stream.ts:243`, and `getStakeholderUpdate` / `getStakeholderPack` have **zero callers anywhere in
+`src/`**. `FINAL-ia.md:137` bounds it — the palette *"ships and it is never load-bearing"*.
+
+## WHAT IS AWAITING A VERDICT RATHER THAN A BUILD
+
+Claude verified K-93 through K-97 and the K-95 correction on 2026-08-21. Everything Kiro built is in
+[`ledger/kiro-log.md`](./ledger/kiro-log.md), newest last, each entry ending with what it could not check.
+
+**The standing gap in every one of them is the same: Kiro cannot open an authenticated page.** The surfaces
+that shipped this session and have never been seen render:
+
+- **K-93's four rows** in Discover's context rail. The error row carries a clipped machine string into a 316px
+  column. Claude has since measured production: `scout_targets` is **empty** and the newest `scout_runs` row is
+  27 days old, so **the red and amber rows are unexercised rather than wrong**, and the fourth row — the one
+  that makes no claim — will be the surface's first truthful act.
+- **K-96's three corrected `CtxRow` callers**, also on Discover's rail. The evidence rows now show quotes where
+  they were showing URLs, so the fix changes what they say.
+- **K-95's admin failure card** on `/admin`, `/admin/observability`, `/admin/invites`. **This one is confirmed:**
+  Claude measured 5.82:1 in a browser against the 5.83 computed from source.
+
+## THREE THINGS KIRO WOULD FILE NEXT, IF ANYONE WANTS THEM
+
+Sourced from the "noticed, not fixed" paragraphs in `kiro-log.md`, most concrete first.
+
+1. **`.material-medium` is retired Tempo v5 paint and the ratchet cannot see it**, because the class marker
+   only matches `sp-*`. It is `AdminErrorCard`'s own container and the ground every K-95 contrast number was
+   measured against, so that file is ratchet-clean rather than Meridian.
+2. **`AdminErrorCard` is a sixth copy of the failed-read state.** Meridian owns `ReadFailed` and
+   `ReadFailedLine`, pulled together precisely because it had already reached five.
+3. **`markFor` in `AgentRelay.tsx` is not exhaustive** — an if-chain with a `return "quiet"` fallback, so the
+   next word added to `RelayStatus` renders as quiet with a clean typecheck. It also draws a finished run as
+   `MarkState "idle"` when `"verified"` exists and `today.tsx:995` uses it for exactly that.
+
+Plus the adjacent defect K-37 named and did not fold in: **`_authenticated.tasks.tsx` redirects to `/today`
+claiming Today "owns the surviving task-capture list", and that list is not there.**
+
+## THE FOUR LESSONS FROM THIS LANE, IN ONE PLACE
+
+1. **A `STATUS:` line nobody flips is worse than no status line.** 62 stale `TODO`s turned the queue into an
+   instruction to redo finished work. Flip it in the same commit as the item.
+2. **Grep the id before you claim it.** Reading the last group header is how three open items went dark for a
+   day under a number collision.
+3. **Do not infer from source the one thing that needs measuring.** K-90 (emission order) and K-95 (which theme
+   fires) failed the same way. Which theme fires depends on stored preference and an OS setting — **neither is
+   in the repo.**
+4. **A gate that dies for want of disk is indistinguishable from a gate that dies of your change.** Check
+   `df -h .` before debugging a sudden four-gate failure.

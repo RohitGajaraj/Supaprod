@@ -1,6 +1,23 @@
 # The Kiro build queue
 
-> _Created: 2026-08-19 · Last updated: 2026-08-19_
+> _Created: 2026-08-19 · Last updated: 2026-08-21_
+
+> # THE QUEUE IS EMPTY AND THE KIRO LANE IS CLOSED. 2026-08-21.
+>
+> **Founder ruling 2026-08-21: Kiro is out of credits, and all build work passes to Claude from here.**
+>
+> **Zero items are `TODO`.** K-01 through K-97 are all `BUILT`, `VERIFIED`, `REJECTED`, `WITHDRAWN` or
+> `DECLINED`. **The one item left is K-37, and it is RULED and assigned to Claude, not to Kiro** — the founder
+> chose option B+ and asked that it be documented rather than built. Its five build steps and acceptance list
+> are in its own row; the reasoning is the ADR,
+> [`../decisions/palette-verb-shapes.md`](../decisions/palette-verb-shapes.md).
+>
+> **If you are Kiro reading this in a later session: do not start K-37.** It is a live user-facing surface whose
+> correctness needs a browser, which is exactly the split §1 draws. Ask the founder before taking anything here.
+>
+> **If you are Claude: K-37 is yours, and it is the only open item in this file.** Everything else needs a
+> verdict rather than a build. What is `BUILT` and awaiting one is listed in
+> [`ledger/kiro-log.md`](./ledger/kiro-log.md), newest last.
 
 > ### PRIMITIVES BUILD BEFORE THE THINGS THAT USE THEM. This overrides the numbers.
 >
@@ -1080,7 +1097,71 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-37 · The palette's two unwired mechanisms: one deletion, one decision**
-`STATUS: NEEDS A RULING` · deps: none · size: S
+`STATUS: RULED 2026-08-21 — B+ — HANDED TO CLAUDE, DO NOT BUILD AS KIRO` · deps: none · size: M
+
+> # RULED, AND THE BUILD IS CLAUDE'S
+>
+> **Founder ruling 2026-08-21: option B+.** The reasoning, the three shapes, the per-station table and the
+> cost accepted are the ADR: **[`../decisions/palette-verb-shapes.md`](../decisions/palette-verb-shapes.md).
+> Read it before touching this.** Kiro measured and documented; **Kiro did not write any of this code**, at the
+> founder's instruction, and the Kiro lane is closed from here.
+>
+> **The rule, one line.** *A palette verb either navigates to the station that owns the job, or it acts in
+> place through something mounted globally. It never does both.*
+>
+> **THE FIVE STEPS.**
+>
+> **1. Re-point *Capture a signal* to Discover, and land on the box.** `{ to: "/discover", search: { capture: "1" } }`,
+> event removed. Then teach `_authenticated.discover.tsx` the param: add `capture` to `validateSearch`
+> (**the route drops any param it does not parse** — that is exactly how `?focus=` was silently broken, written
+> up in that file's own header at `:5-30`), pass it to `DiscoverSurface`, and focus or scroll the capture box at
+> `DiscoverSurface.tsx:3141`. Follow `?focus=`'s existing shape rather than inventing a second one.
+> **Check in a browser whether the box is actually off-screen on arrival** — Kiro inferred that from source
+> position and could not measure it.
+>
+> **2. Add Decide's verb, which is the free win.** `{ label: "Name a bet", run: { to: "/decide" } }`.
+> `NameABet` exists at `_authenticated.decide.tsx:3385` and **the palette has never offered it.** Note it is
+> below the ranking on a populated workspace by deliberate design (`:3373-3380`), so it may want the same
+> landing treatment as step 1 — **your call, and `/decide` has no `validateSearch` at all today**, so that is a
+> larger change than Discover's and may be worth deferring rather than bundling.
+>
+> **3. Delete the other three verbs and the mechanism.** *Add a task*, *Share status*, *Start a focus block*
+> out of `ACT_VERBS`; delete `src/lib/desk-compose.ts`; remove the `DESK_COMPOSE_EVENTS` branch and the
+> `supaprod:focus-compose` early return from **both** `GlobalComposer.tsx:127-142` and
+> `CommandPalette.tsx:153-161`.
+>
+> **4. Correct the stated law, because it is the root cause.** `palette-sections.ts:32` currently asserts
+> *"no verb merely navigates and calls it an action"*, which **forbids the shape that works and demands the one
+> that cannot.** Replace it with the rule above and a pointer to the ADR. Leave that sentence standing and the
+> next person rebuilds shape 3.
+>
+> **5. Guard it, or it is a suggestion.** `palette-catalog.test.ts:67-72` checks only that a verb has a label
+> and a `run.to`, and **is silent on the event, which is how this shipped.** Add an assertion that every ACT
+> verb is one of the two shapes: **no `event`, or an `event` whose listener is mounted globally.** The two that
+> qualify today are `supaprod:open-ask` (`ask-context.tsx:324`) and `supaprod:open-lineage`
+> (`AuditLineageSheet.tsx:279` via `AppFrame.tsx:2042`). **Prove it by planting a shape-3 verb.**
+>
+> **ACCEPTANCE.**
+> - `Capture a signal` lands on the capture box, not merely on Discover.
+> - `Name a bet` appears and reaches `NameABet`.
+> - The three verbs and `desk-compose.ts` are gone, with no dangling import and no orphan early-return branch.
+> - `palette-sections.ts` no longer asserts the falsified law.
+> - The guard fails on a planted shape-3 verb and passes on the real list.
+> - The three source-text guards K-37 already names stay green and unweakened:
+>   `AppFrame.station-keys.test.ts:40`, `no-synthetic-key-dispatch.test.ts:75`, `route-inventory.test.ts:155`.
+> - `bun run lane:gates` real exit 0. **Look at Cmd+K in a browser on both grounds** — this is a user-facing
+>   surface and Kiro could not open it.
+>
+> **TWO JOBS LEAVE THE PRODUCT AND SHOULD BE RE-FILED, not forgotten.** *Add a task* and *Share status* become
+> unreachable from Cmd+K. Both need **a surface designed**, not a listener wired: `createTask`'s only client
+> caller is `use-ask-stream.ts:243` (Ask promoting a task out of a stream), and `getStakeholderUpdate` /
+> `getStakeholderPack` have **zero callers anywhere in `src/`**. `FINAL-ia.md:137` bounds the urgency: the
+> palette *"ships and it is never load-bearing"*, so neither job may use it as its only door.
+>
+> **ONE ADJACENT DEFECT, NOT FOLDED IN.** `src/routes/_authenticated.tasks.tsx` is a 12-line redirect to
+> `/today` whose own comment reads *"Today, which owns the surviving task-capture list (same `tasks` table)"*.
+> **That list is not on Today.** The table still exists, so the redirect promises a destination that was removed
+> from under it. It wants its own decision alongside *Add a task*.
 
 > **RECLASSIFIED 2026-08-19 under the Group F rule.** This item was written as a deletion and only half of it is one.
 >

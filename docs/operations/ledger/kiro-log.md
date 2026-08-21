@@ -7434,3 +7434,76 @@ is the second reason not to have run it.
 that dies of your change.** `docs-doctor` could not create a temp file and `lane-gates.sh` could not write
 its own logs, and the first read of that was "something I just did broke four gates at once". **Check
 `df -h .` before debugging a sudden four-gate failure.**
+---
+## K-37 · RULED (B+) · HANDED TO CLAUDE · 2026-08-21 19:30 · the root cause was a sentence, and it forbade the shape that works
+**Founder ruling: option B+, documented and not built.** Kiro is out of credits and all build work passes to
+Claude, so this entry and the ADR are the deliverable. **No code was changed.** The durable record is
+[`../../decisions/palette-verb-shapes.md`](../../decisions/palette-verb-shapes.md); the five build steps and
+the acceptance list are on K-37's row in the queue.
+**The rule, which is what was actually decided.** *A palette verb either navigates to the station that owns
+the job, or it acts in place through something mounted globally. It never does both.*
+**What the investigation turned up, and it changed the answer twice.** The founder asked whether to take B or
+C, and specifically what the plan was for the other stations, since the palette is mounted on all of them.
+That question is what produced the finding: **there are three shapes a verb can take, the product already
+demonstrates which two work, and shape 3 is used nowhere else.**
+- **Shape 1, navigate to the owning station.** No event. Three verbs. Works from anywhere because navigation
+  is station-independent by nature.
+- **Shape 2, act in place through a globally mounted listener.** No navigation. Exactly two events qualify:
+  `supaprod:open-ask` (`ask-context.tsx:324`) and `supaprod:open-lineage` (`AuditLineageSheet.tsx:279`, mounted
+  by `AppFrame.tsx:2042`, which wraps every authenticated surface). Works from anywhere because the listener is
+  everywhere.
+- **Shape 3, navigate AND open on arrival.** `desk-compose.ts`: a module-level pending flag with a 10-second
+  TTL. Four verbs, all four broken, **and it is the repo's only attempt at cross-navigation coordination.**
+**Why shape 3 could not have worked, which is the part worth keeping.** It is the only shape that **couples a
+global dispatcher to a route-specific mount across a navigation boundary.** Both working shapes avoid that
+coupling in opposite directions: shape 1 has no listener to miss, shape 2 has no navigation to race. Shape 3
+needs the destination to mount a listener within a TTL of a route change it does not control, which is a
+timing contract between two things that do not know about each other, enforced by nothing.
+**The root cause is a sentence.** `palette-sections.ts:32` asserts *"no verb merely navigates and calls it an
+action"*, which **forbids the shape that works and demands the one that cannot.** That is why shape 3 exists,
+and it is why deleting the verbs alone would have got them rebuilt identically. `desk-compose.ts:1-13` repeats
+it with two premises that are now false: the focus dock is not mounted globally (**there is no `FocusDock`
+file**) and Today has no Desk.
+**Two pieces of older canon already disagreed with that sentence and were right.** The click registers
+(`FINAL-click-register.md:173`, `clicks-a-chrome.md:71`) both prescribe navigation as the honest repair. And
+**the product already shipped the correct answer for this exact job**: `brain.tsx:1483` labels its primary
+*"Capture a signal"*, navigates to `/discover`, and its copy tells you what to press when you land.
+**The structural finding, and it is the answer to "what about other stations".** `palette-sections.ts` carries
+a **DERIVATION LAW** in its header and applies it to one of its two lists. **JUMP is derived** from
+`PRIMARY_NAV`, so *"the palette can never drift from the rail"*. **ACT is a hand-written array.** That
+asymmetry is the whole story: a hand-written action list cannot notice its destination was rebuilt underneath
+it, which is exactly what happened when Today lost its Desk. So the rule generalises as *an ACT verb exists
+for a station when that station owns a create surface, and it navigates there* -- no machinery, correct from
+all twelve destinations.
+**Measured per station, and it found a free win nobody had filed.** Discover has its capture box
+(`DiscoverSurface.tsx:3141`); Plan has draft-the-spec (`plan.index.tsx:1016`); Ship has the announcement
+composer (`ship.tsx:2511`); Learn has `SettlePanel` (`learn.tsx:564`). And **Decide has `NameABet` at
+`decide.tsx:3385` with no palette verb at all.** So **four verbs that lie were shipping while the most
+valuable act in the product had none.**
+**Why C is not one decision but four.** *Add a task* has no page a human opens: `createTask`'s only client
+caller is `use-ask-stream.ts:243`, Ask promoting a task out of a stream, and every other insert is an agent
+path. *Share status* has `getStakeholderUpdate` and `getStakeholderPack` with **zero callers anywhere in
+`src/`** -- no standup, no broadcast, no digest preview. *Start a focus block* has no listener, no `FocusDock`
+and no focus-block concept anywhere. **Three of the four mean design a surface, not wire a listener.**
+**The deep-link half, which is what makes B+ rather than B.** `discover.tsx:5-11` sets the standard, and it
+was written about a palette link: *"A deep link either lands on the thing it names or it is broken, and this
+one was broken quietly, which is worse."* A bare `/discover` does not meet it -- the capture box sits at
+roughly line 3,122 of a 3,442-line surface, **deliberately below the ranked reading by its own comments.** So
+step 1 adds a `?capture=1` param, and **the route already learned this exact lesson for `?focus=`**, written up
+in that same header as a repair of that same law. `validateSearch` drops any param it does not parse, which is
+how `?focus=` was silently broken; that trap is called out in the build steps.
+**The cost B+ accepts, stated rather than glossed.** *Add a task* and *Share status* leave the palette, so both
+jobs become unreachable from Cmd+K until somebody designs their surfaces. That is the right trade because **a
+verb that silently does nothing is worse than an absent one** -- it spends trust and returns nothing -- and
+shape 2 is open to both later through Ask, which is already global. `FINAL-ia.md:137` bounds the urgency: the
+palette *"ships and it is never load-bearing"*.
+**The guard is step 5 and it is not optional.** `palette-catalog.test.ts:67-72` checks only that a verb has a
+label and a `run.to`. **It is silent on the event, which is precisely how shape 3 shipped.** The new assertion
+is that every ACT verb is one of the two shapes, proven by planting a shape-3 verb.
+**Unsure, and flagged for whoever builds it.** **"Off-screen" is inferred from source position and the
+surface's own stated design, not measured in a viewport** -- Kiro cannot open an authenticated page. If the box
+turns out to be visible on arrival, the param is a smaller win and still the honest form. Also **`/decide` has
+no `validateSearch` at all**, so giving step 2 the same landing treatment is a larger change than Discover's
+and may be worth deferring rather than bundling. Both are said in the steps.
+**Gates.** `lane:gates` green, real exit 0. **Documentation only**: one new ADR, its index row, the queue's
+K-37 row and closing banner, this entry, and the session handoff.
