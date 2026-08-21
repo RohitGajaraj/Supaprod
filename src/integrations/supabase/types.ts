@@ -314,6 +314,7 @@ export type Database = {
           set_by: string | null
           updated_at: string
           user_id: string
+          workspace_id: string | null
         }
         Insert: {
           agent_id: string
@@ -324,6 +325,7 @@ export type Database = {
           set_by?: string | null
           updated_at?: string
           user_id: string
+          workspace_id?: string | null
         }
         Update: {
           agent_id?: string
@@ -334,6 +336,7 @@ export type Database = {
           set_by?: string | null
           updated_at?: string
           user_id?: string
+          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -341,6 +344,13 @@ export type Database = {
             columns: ["agent_id"]
             isOneToOne: false
             referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_autonomy_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
         ]
@@ -383,9 +393,11 @@ export type Database = {
           expires_at: string | null
           id: string
           importance: number
+          is_sample: boolean
           kind: string
           last_used_at: string | null
           metadata: Json
+          product_id: string | null
           scope: string
           updated_at: string
           user_id: string
@@ -402,9 +414,11 @@ export type Database = {
           expires_at?: string | null
           id?: string
           importance?: number
+          is_sample?: boolean
           kind?: string
           last_used_at?: string | null
           metadata?: Json
+          product_id?: string | null
           scope?: string
           updated_at?: string
           user_id: string
@@ -421,9 +435,11 @@ export type Database = {
           expires_at?: string | null
           id?: string
           importance?: number
+          is_sample?: boolean
           kind?: string
           last_used_at?: string | null
           metadata?: Json
+          product_id?: string | null
           scope?: string
           updated_at?: string
           user_id?: string
@@ -431,6 +447,13 @@ export type Database = {
           workspace_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "agent_memory_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "agent_memory_workspace_id_fkey"
             columns: ["workspace_id"]
@@ -455,6 +478,7 @@ export type Database = {
           source_trace_id: string | null
           to_agent_id: string | null
           to_agent_slug: string
+          track_id: string | null
           user_id: string
           workspace_id: string
         }
@@ -472,6 +496,7 @@ export type Database = {
           source_trace_id?: string | null
           to_agent_id?: string | null
           to_agent_slug: string
+          track_id?: string | null
           user_id: string
           workspace_id: string
         }
@@ -489,6 +514,7 @@ export type Database = {
           source_trace_id?: string | null
           to_agent_id?: string | null
           to_agent_slug?: string
+          track_id?: string | null
           user_id?: string
           workspace_id?: string
         }
@@ -498,6 +524,13 @@ export type Database = {
             columns: ["mission_id"]
             isOneToOne: false
             referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_messages_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "spine_tracks"
             referencedColumns: ["id"]
           },
         ]
@@ -2537,6 +2570,13 @@ export type Database = {
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_ledger_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -4705,9 +4745,11 @@ export type Database = {
       learnings: {
         Row: {
           created_at: string
+          decision_id: string | null
           embedding: string | null
           embedding_model: string | null
           id: string
+          is_sample: boolean
           metric_label: string | null
           metric_value: string | null
           mission_id: string | null
@@ -4715,6 +4757,7 @@ export type Database = {
           opportunity_id: string | null
           prd_id: string | null
           prior_ice: number | null
+          product_id: string | null
           recorded_by_agent_slug: string | null
           summary: string
           updated_at: string
@@ -4724,9 +4767,11 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          decision_id?: string | null
           embedding?: string | null
           embedding_model?: string | null
           id?: string
+          is_sample?: boolean
           metric_label?: string | null
           metric_value?: string | null
           mission_id?: string | null
@@ -4734,6 +4779,7 @@ export type Database = {
           opportunity_id?: string | null
           prd_id?: string | null
           prior_ice?: number | null
+          product_id?: string | null
           recorded_by_agent_slug?: string | null
           summary: string
           updated_at?: string
@@ -4743,9 +4789,11 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          decision_id?: string | null
           embedding?: string | null
           embedding_model?: string | null
           id?: string
+          is_sample?: boolean
           metric_label?: string | null
           metric_value?: string | null
           mission_id?: string | null
@@ -4753,6 +4801,7 @@ export type Database = {
           opportunity_id?: string | null
           prd_id?: string | null
           prior_ice?: number | null
+          product_id?: string | null
           recorded_by_agent_slug?: string | null
           summary?: string
           updated_at?: string
@@ -4761,6 +4810,13 @@ export type Database = {
           workspace_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "learnings_decision_id_fkey"
+            columns: ["decision_id"]
+            isOneToOne: false
+            referencedRelation: "decisions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "learnings_mission_id_fkey"
             columns: ["mission_id"]
@@ -4780,6 +4836,20 @@ export type Database = {
             columns: ["prd_id"]
             isOneToOne: false
             referencedRelation: "prds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learnings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learnings_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
         ]
@@ -4824,6 +4894,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      liveness_results: {
+        Row: {
+          capability_id: string
+          checked_at: string
+          detail: Json
+          kind: string
+          reason: string
+          verdict: string
+          window_days: number
+        }
+        Insert: {
+          capability_id: string
+          checked_at?: string
+          detail?: Json
+          kind: string
+          reason: string
+          verdict: string
+          window_days: number
+        }
+        Update: {
+          capability_id?: string
+          checked_at?: string
+          detail?: Json
+          kind?: string
+          reason?: string
+          verdict?: string
+          window_days?: number
+        }
+        Relationships: []
       }
       loop_runs: {
         Row: {
