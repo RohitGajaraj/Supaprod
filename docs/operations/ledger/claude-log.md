@@ -7757,3 +7757,70 @@ Re-ran clean and green before committing. **At least one test in this suite is l
 failing name was lost because the captured output kept only its tail.
 
 ---
+
+## K-90 (the rename) · REJECTED · 2026-08-21 11:40 · the acceptance test I wrote caught it, and 316 elements now paint a size nobody asked for
+
+**The rename itself is correct and the emitted CSS is right.** `.text-mrd-body` is one rule (colour),
+`.text-mrd-prose` is one rule (size), `--mrd-t-prose: 14px` is declared, no orphaned `var(--mrd-t-body)`
+survives, and **the six fixed themselves exactly as ruled**: the 10 `text-mrd-base` elements now paint
+**13px**, and `data` (86 at 11.5px) and `label` (30 at 12.5px) are untouched. **Finding the 17 raw-token
+consumers was a real catch and my spec was wrong to omit them.**
+
+**But I ran the computed-style diff the ruling required, which Kiro could not, and the answer is a
+rejection.** My acceptance test said exactly 10 elements may change font-size and anything else moving
+means a site was missed. **Far more moved.**
+
+**Defect 1: 316 elements paint 14px instead of the size their own class asks for.** The codemod added
+`text-mrd-prose` to sites that already carried an arbitrary size, and **`prose` wins the cascade against
+`text-[Npx]` where the old `text-mrd-body` size lost it.** Measured in the running gallery, and **not one
+of the 316 painted what it asked**:
+
+| asked | painted | elements |
+| --- | --- | --- |
+| 13px | 14px | 138 |
+| 12.5px | 14px | 60 |
+| 12px | 14px | 46 |
+| 11.5px | 14px | 38 |
+| 11px | 14px | 28 |
+| 10.5px | 14px | 6 |
+
+**100 source sites**, and the largest jump is 3.5px on text that was deliberately set small.
+
+**My spec is half the cause and I am recording that rather than only the consequence.** It said "the 157
+sites carrying `text-mrd-body` and no other size **utility**", and `text-[13px]` is an arbitrary value
+rather than a named utility, so the instruction read as excluding it when it should have excluded any
+font-size **source**. **Kiro implemented what I wrote.** The fix is to remove `text-mrd-prose` from every
+site that already carries a `text-[...]` size, not to add anything.
+
+**Defect 2: 22 hover states changed from a colour to a size.** These were `hover:text-mrd-body` and
+`group-hover:text-mrd-body`, meaning *brighten on hover*, and the pass renamed the variant along with the
+base class, so they now read `hover:text-mrd-prose`, meaning *grow on hover*. The diff on
+`CrewChrome.tsx:144` is the clearest:
+
+```
+-      <Chevron className="text-mrd-faint group-hover:text-mrd-body" />
++      <Chevron className="text-mrd-faint group-hover:text-mrd-prose text-mrd-body" />
+```
+
+**Two faults in one line.** The hover now changes size instead of colour, and the added unconditional
+`text-mrd-body` pins the colour so **the faint-to-body hover is dead even in principle**. `transition-colors`
+sits on the same element, transitioning a property that no longer changes. **A variant carrying the colour
+must keep the colour name; only a bare `text-mrd-body` meaning the SIZE should have become `prose`, and a
+variant never meant the size.** Present in `engine-room`, `CrewChrome`, `InsightCards` ×2, `Tabs`,
+`FineTuneCard` and 16 more.
+
+**Defect 3, smallest: 10 source sites still carry `text-mrd-body` with no size source at all**, so they
+fall to inheritance where they used to be 14px. Most are icon buttons that also carry `text-mrd-mute`, so
+they hold **two colour classes**, which is worth a look in its own right: the collision this item closed in
+the type scale exists in the colour ramp too, and `text-mrd-mute text-mrd-body` has no defined winner a
+reader can predict.
+
+**What I checked, so this can be re-run.** Exact class-token matching rather than a substring selector,
+after a first pass reported 322 false orphans by matching `hover:text-mrd-body` as if it were the class.
+**The 674 elements carrying the exact token split 646 unchanged and the rest as above.**
+
+**Not a re-do of the rename.** The name is right, the CSS is right, and the six are fixed. Three targeted
+corrections: strip `prose` from the 100 arbitrary-size sites, restore the 22 variants to the colour name,
+and give the 10 bare sites an explicit size.
+
+---
