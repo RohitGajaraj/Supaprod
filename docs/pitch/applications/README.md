@@ -1,6 +1,12 @@
 # Accelerator, incubator, residency and grant applications — the master tracker
 
-> ### ❌ First outcome is in: South Park Commons said no, 2026-08-11 at 05:31 IST
+> ### ❌ Two outcomes are in, and both are noes. EF The Bridge said no on 2026-08-21, three days after we filed
+>
+> **EF The Bridge Residency SF: REJECTED 2026-08-21.** Applied 2026-08-18, so the turnaround was **three days** against South Park Commons' eleven. **That speed is the only signal this outcome currently carries**, and it points at a screen rather than a considered read of the 13 answers. **Their verbatim text is not yet captured** — until it is, no reason may be written down for this one either. See the rule immediately below, which was learned the hard way on the first rejection.
+>
+> **Two noes is still not a pattern.** Different programmes, different filters, one of them decided in three days. The temptation after a second rejection is to rewrite the positioning; the discipline is to fix what we can *prove* is wrong (the retired numbers listed further down) and leave the thesis alone until something actually tells us it is wrong.
+>
+> ### ❌ First outcome: South Park Commons said no, 2026-08-11 at 05:31 IST
 >
 > **Reason given: "not the right fit."** No further detail, which is the normal form and carries little signal on its own.
 >
@@ -88,7 +94,7 @@ This rule was learned the hard way — the same claim escaped six separate sweep
 | [**`conviction-embed/`**](./conviction-embed/) | 🚀 **SUBMITTED 2026-08-14** (Winter 2026 cohort) | **$250K on an uncapped no-discount MFN SAFE, plus $1.2M+ in credits.** Solo founders explicitly welcome. Remote, with one mandatory SF retreat **11-13 September** and demo day **12 November**. **No published deadline — it closes when the cohort fills**, so this is the time-critical one. All 28 fields as filed in [`APPLICATION-FINAL.md`](./conviction-embed/APPLICATION-FINAL.md). **🔗 An endorsement link was issued on submission and is unused — no other programme here offers a third-party signal after the fact** |
 | [**`berkeley-skydeck/`**](./berkeley-skydeck/) | 🚀 **SUBMITTED 2026-08-13** | Filed eight days before the 2026-08-21 deadline, verified on the post-submission page. [`APPLICATION-FINAL.md`](./berkeley-skydeck/APPLICATION-FINAL.md) holds the filed text of all 21 answers. **Interviews 09-08 to 10-05** — re-arm the demo queues in early September. |
 | [**`sequoia-arc/`**](./sequoia-arc/) | **❌ NOT OPEN — the 08-17 deadline was wrong** | **Checked live 2026-08-13: `sequoiacap.com/arc/apply/` renders an empty page and `/arc/` says "sign up to be notified when the next call opens."** Arc has also changed shape: the Arc Intensive is now a four-day program **for founders Sequoia has already invested in**, not a standalone accelerator, so applying to Arc now means applying to Sequoia. The drafted answers are kept for whenever the call reopens. |
-| [`ef-bridge-sf/`](./ef-bridge-sf/) | **SUBMITTED 2026-08-18**, twelve days early | Application id **1892**. All 13 answers rewritten to a founder lens, video recorded and filed at <https://youtu.be/_3yemDMdyHQ>. Retrieval email is `rohit.gajaraj@gmail.com`. |
+| [`ef-bridge-sf/`](./ef-bridge-sf/) | ❌ **REJECTED 2026-08-21**, three days after filing 2026-08-18 | Application id **1892**. All 13 answers rewritten to a founder lens, video recorded and filed at <https://youtu.be/_3yemDMdyHQ>. Retrieval email is `rohit.gajaraj@gmail.com`. |
 | [`betaworks-ai-camp/`](./betaworks-ai-camp/) | Yes, 2026-07-31 | Answers left as filed. **Interview correction block added at the top of both files** — four claims to not repeat, with the replacement for each. |
 | [`the-residency/`](./the-residency/) | Yes, 2026-07-31 | Same. Decisions by 2026-08-28. Includes the dogfooding line, which is the one that would actually cost us. |
 | [`south-park-commons/`](./south-park-commons/) | Yes, 2026-07-31 | ❌ **REJECTED 2026-08-11, 05:31 IST. No reason was given** — they state the volume of applicants means no individual feedback. They invite a future application. |
@@ -213,6 +219,7 @@ python3 scripts/funding-sync.py --no-icloud
 | **[South Park Commons](./south-park-commons/)** | 2026-07-31 | ❌ **rejected 2026-08-11, 05:31 IST. No reason given** | `voyage@supaprod.ai` | none. They invite a future application |
 | **[Betaworks AI Camp](./betaworks-ai-camp/)** | 2026-07-31 | rolling, batch starts 08-31 | `compass@supaprod.ai` | none |
 | **[The Residency, Fall 2026](./the-residency/)** | 2026-07-31 | by 2026-08-28 | none given | none |
+| **[EF The Bridge Residency SF](./ef-bridge-sf/)** | 2026-08-18 | ❌ **rejected 2026-08-21, three days later. Verbatim text not yet captured** | `voyage@supaprod.ai` ⚠️ | **Capture their exact email into the Notion card's `Outcome detail`.** Also: this login was already spent on South Park Commons, so two programmes hold the same demo account |
 
 ---
 
