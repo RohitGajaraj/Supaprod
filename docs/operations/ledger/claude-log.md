@@ -7707,3 +7707,53 @@ something a literal-shaped guard can judge, and widening the guard to admit call
 compounds too.
 
 ---
+
+## LANDED · 2026-08-21 11:07 · the consent moment stops claiming three capabilities the product does not have
+
+**Swept every connector mechanically rather than chasing the one I found**, because the registry's own
+comment said google_tasks and jira shared the shape and because a defect that travels under several
+wordings is the one this lane keeps missing. Compared every `weRead` in `connect-trust.ts` against its
+`description` in `connectors/registry.ts`, all 21 providers, and **exactly three contradict**:
+
+| provider | registry says | consent screen said |
+| --- | --- | --- |
+| figma | *"Referencing design files from specs and briefs is not built yet"* | *"File metadata for the files you reference in a spec or brief."* |
+| google_tasks | *"Syncing action items with Google Tasks is not built yet"* | *"Your Google Tasks lists, to sync action items."* |
+| jira | *"Pushing planned work to Jira is not built yet"* | *"Work items and their status in the projects you connect."* |
+
+**No judgement call is involved: the same codebase states both.** The other 18 either deliver what they
+claim or claim nothing.
+
+**Measured what each adapter actually calls, so the replacement is accurate rather than merely vaguer.**
+`figmaAdapter` calls only `/v1/me`. `jiraAdapter` calls only `/me` and `/oauth/token/accessible-resources`,
+which is the list of sites the grant covers. `google_tasks` is `stubAdapter`. **None of the three reads a
+design file, a work item or a task list**, and jira has no JQL, no issue fetch and no `PULL_INGESTORS`
+entry anywhere in `src/`.
+
+**Fixed six strings, not three, and the second three are the point.** `weNeverRead` carried the same
+falsehood in the field a reader trusts most: figma's *"files you have not referenced"* and jira's
+*"projects you have not connected"* both state that the OTHER half **is** read. Correcting `weRead` alone
+would have left the claim intact one line below it, which is the defect shape this repo has paid for
+before. Now: *"Your design files, or anything inside them"* and *"Your work items, billing, or admin
+settings."*
+
+**Verified by calling `trustCopyFor` directly** rather than reading the diff, with `slack` as an untouched
+control returning its original strings. The dialog itself still cannot be rendered by this harness, which
+is the K-88 gap already passed back.
+
+**What this does NOT reach, filed as finding 30.** `routes/pricing.tsx` `READ_CONNECTORS` lists **jira** on
+the **public pricing page**, making the same false read claim to a stranger before signup. Removing a
+provider from a public pricing page is outward-facing and the founder's call, so it is recorded rather than
+done. `_authenticated.meridian.tsx:3478` carries it too, as gallery fixture copy.
+
+**Findings register updated in the same commit:** 29 closed, 30 added.
+
+**One thing about the gates, worth recording because it nearly cost a wrong verdict.** `lane:gates` failed
+on `test` with 1 fail and a **914 second** suite; a clean re-run with nothing competing passed 10,265 with
+**0 fail in 14 seconds**. Two suites were running concurrently at the time. **The background wrapper
+reported "exit code 0" while `lane:gates` itself exited 1**, so the notification's exit code is the
+wrapper's and not the gate's, which is the same shape as reading a pipe's status instead of the gate's.
+Re-ran clean and green before committing. **At least one test in this suite is load-sensitive**, and the
+failing name was lost because the captured output kept only its tail.
+
+---

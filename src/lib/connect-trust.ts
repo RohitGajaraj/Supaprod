@@ -37,8 +37,8 @@ const TRUST_COPY: Record<ProviderId, TrustCopy> = {
     weNeverRead: "We never send email as you, and never touch Drive or Calendar.",
   },
   google_tasks: {
-    weRead: "Your Google Tasks lists, to sync action items.",
-    weNeverRead: "Gmail, Calendar, or Drive.",
+    weRead: "Nothing yet. Connecting authorizes the account, and syncing action items with Google Tasks is not built.",
+    weNeverRead: "Your task lists, Gmail, Calendar, or Drive.",
   },
   microsoft_outlook: {
     weRead: "Your Outlook calendar events, to sync and create meetings from decisions.",
@@ -48,13 +48,20 @@ const TRUST_COPY: Record<ProviderId, TrustCopy> = {
     weRead: "Recent inbox messages, read-only, to surface customer and lead signals.",
     weNeverRead: "We never send email as you, and never touch Calendar or files.",
   },
+  // 2026-08-21. These three say "not built yet" because the registry withdrew the
+  // same promise on 2026-08-06 and this file was never swept, so the consent moment
+  // kept claiming a capability the product does not have. figmaAdapter calls only
+  // /v1/me, jiraAdapter only /me plus accessible-resources, and google_tasks is
+  // stubAdapter. None of the three reads a design file, a work item or a task list.
+  // weNeverRead moved too: "files you have not referenced" implied the referenced
+  // ones were read, which restated the same false claim in the reassuring field.
   figma: {
-    weRead: "File metadata for the files you reference in a spec or brief.",
-    weNeverRead: "Account settings, or files you have not referenced.",
+    weRead: "Your Figma account identity, to confirm the connection. Referencing design files from specs and briefs is not built yet.",
+    weNeverRead: "Your design files, or anything inside them.",
   },
   jira: {
-    weRead: "Work items and their status in the projects you connect.",
-    weNeverRead: "Billing, admin settings, or projects you have not connected.",
+    weRead: "Your Atlassian identity and which sites the grant covers, to confirm the connection. Reading work items is not built yet.",
+    weNeverRead: "Your work items, billing, or admin settings.",
   },
   firecrawl: {
     weRead: "Nothing personal - this is shared crawl infrastructure, not a per-user connection.",
