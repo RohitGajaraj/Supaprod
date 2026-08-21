@@ -2802,3 +2802,118 @@ which returns 400. Re-measure before changing it repo-wide.
 
 **K-37 still needs a founder ruling** and is the worked example of an item nobody
 should build without one.
+
+---
+
+# 2026-08-21 · Kiro lane, close of session — the queue is empty, and three items had been hiding
+
+**Pushed and clean.** `d57052ae3` on `main`, `git status` empty, `0 0` against `origin/main`.
+`bun run lane:gates` real exit 0 at close. Claude was active in another session throughout; every commit was
+rebased onto its work and nothing conflicted.
+
+## THE QUEUE IS EMPTY, WHICH IT WAS NOT WHEN THIS SESSION STARTED
+
+`docs/operations/kiro-queue.md` now has **zero `TODO` items**. One entry is not terminal:
+**K-37 still needs a founder ruling** on its four unwired ACT verbs, delete or mount the palette. It is the
+worked example of an item nobody should build without one.
+
+**But the queue was lying, and this is the part to read.** It reported **62 `TODO` and 3 `OPEN`** items at the
+start of this session. All 62 already had `BUILT` entries in `docs/operations/ledger/kiro-log.md` and had been
+built days earlier: nobody had ever flipped the status line, so **the shared coordination surface was telling
+Claude to rebuild finished work.** They are flipped now.
+
+**The 3 `OPEN` ones were real, and they were invisible for a day because of an ID collision I created.**
+Claude filed three findings as K-86, K-87 and K-88 (`claude-log.md:2278`, `:5568`, `:6268`). Group M was
+written later, **saw a group header ending at 85 and claimed 86, 87 and 88 without grepping for them.** Both
+ledgers then verified the Group M items under those ids and four commits cite them, so the numbers stayed
+there and the unbuilt trio became **K-93, K-94, K-95**. All three are now built.
+
+**The trap, and it is not the numbering.** A reader scanning for the next free number found the newest group,
+so **three open items read as done.** Grep the number before claiming it; do not read the last heading.
+
+## WHAT LANDED, SEVEN ITEMS
+
+| item | what it was |
+| --- | --- |
+| **K-87 (follow-through)** | the guard for the top of `src/`, enforcing only the rule with no precondition |
+| **K-93** | the scout records `error` and `skipped-cap` and nothing read the column |
+| **K-94** | 34% of finished runs drawn as idle on two mounted surfaces |
+| **K-95** | the admin failure card, lowest-contrast text on three pages |
+| **K-96** | `CtxRow`'s tooltip rendered instead of the row's name |
+| **K-97** | the ratchet learns to tell its eyes widening from the code getting worse |
+| **K-95 (correction)** | my own severity claim, corrected after Claude measured it in a browser |
+
+Full detail per item is in `kiro-log.md`; this section is the index, not a second copy.
+
+**K-97 is the one worth knowing about even if you touch nothing else here.** `design:ratchet` had no way to
+tell "the code got worse" from "the scanner got better", and that gap had already been hit three times: a new
+marker, a new file extension, and a new area of the tree. **The baseline now records `scopes` — what was
+LOOKED AT, not only what was found** — because a clean file and an unscanned file are otherwise identical to
+it. A file in a scope never held is adopted once at its current count; anything else that rises is still
+refused, and the door shuts behind itself in the same run. **No flag and no path exemption**, both rejected
+when it was ruled, because the precedent is created by the override rather than by the mechanism.
+
+## FOUR THINGS THIS SESSION PAID FOR
+
+1. **A `STATUS:` line nobody flips is worse than no status line.** 62 stale ones turned the queue into an
+   instruction to redo finished work. **Flip it in the same commit as the item**, which is what the split
+   protocol already says and what was not done for two weeks.
+2. **`grep` the id before you claim it.** Reading the last group header is how three open items went dark.
+3. **Which theme fires is not in the repo, and I inferred it anyway.** K-95's contrast table was computed
+   correctly and validated against a known browser figure, then applied to **the wrong ground**, because the
+   branch depends on stored preference and an OS setting. Claude measured `data-theme` absent by default, so
+   the number a real user saw was 4.97 rather than the 2.79 I led with. **Same failure as K-90: I inferred
+   from source the one thing that needed measuring.** The instrument was fine; the input was a guess wearing a
+   citation.
+4. **A precondition is not the same as an exemption.** K-87's widening was refused by `design:ratchet` and the
+   right move was **not** to force it, exempt a path, or rewrite the rule. A retired marker is wrong
+   unconditionally; a raw colour presumes a reachable token layer. Guarding the first and staying loud about
+   the second closed half the problem the same day and left the other half to a ruling, which then arrived.
+
+## THE MACHINE, AND THIS ONE NEEDS THE FOUNDER
+
+**The disk is full.** `/System/Volumes/Data` is at **100%, about 600 MB free**, and `bun run lane:gates`
+failed all four gates mid-session with `No space left on device` — `docs-doctor` could not write a temp file
+and `lane-gates.sh` could not write its own logs. **A gate that fails for want of disk looks like a red tree.**
+
+Reclaimed only what one command regenerates: `.output` and `node_modules/.vite`, about 84 MB, after which the
+gates ran green. **The real reclaim was left alone on purpose.** `git count-objects -vH` reports:
+
+```
+size-pack: 2.08 GiB
+garbage: 9   size-garbage: 2.58 GiB
+```
+
+Six abandoned `tmp_pack_*` files and an `.idx`/`.rev` pair with no corresponding `.pack`, which is what an
+interrupted fetch leaves behind on a full disk. **They are unreferenced and it is 2.58 GiB.** I did not remove
+them: they live inside `.git`, and after the 2026-07 orphan incident a deletion in there is the founder's call.
+
+## WHAT NOBODY HAS LOOKED AT
+
+**Kiro cannot open an authenticated page, so nothing below has been seen render.** Four items shipped user
+facing surfaces this session and each entry says so at the end:
+
+- **K-93's four new rows** in Discover's context rail. The error row carries a **clipped machine string into a
+  316px column** and that is the one to look at, on both grounds.
+- **K-96's three corrected `CtxRow` callers**, also on Discover's rail. The fix changes what they say, so the
+  evidence rows now show quotes where they showed URLs.
+- **K-95's admin failure card** on `/admin`, `/admin/observability`, `/admin/invites`. Claude has since
+  measured this one at 5.82:1 in a browser, so it is the one surface here that is confirmed.
+- **K-94** changed no pixel directly but moves 690 relay dots from idle to done on `DiscoverSurface` and
+  `MissionOrchestratorDetail`.
+
+`bun run dev --port 8099` starts and redirects to `/login`, which is as far as this lane gets.
+
+## WHERE TO RESUME
+
+**Nothing is queued for Kiro.** The next Kiro item has to be filed first, and the honest sources for one are
+the "noticed, not fixed" paragraphs at the end of each entry in `kiro-log.md`. The three most concrete:
+
+1. **`.material-medium` is retired Tempo v5 paint and the ratchet cannot see it**, because the class marker
+   only matches `sp-*`. It is `AdminErrorCard`'s own container and the ground every K-95 number was measured
+   against, so that file is ratchet-clean rather than Meridian.
+2. **`AdminErrorCard` is a sixth copy of the failed-read state.** Meridian owns `ReadFailed` and
+   `ReadFailedLine`, pulled together precisely because it had reached five.
+3. **`markFor` in `AgentRelay.tsx` is not exhaustive** — an if-chain with a `return "quiet"` fallback, so the
+   next word added to `RelayStatus` renders as quiet with a clean typecheck. It also draws a finished run as
+   `MarkState "idle"` when `"verified"` exists and `today.tsx:995` uses it for exactly that.
