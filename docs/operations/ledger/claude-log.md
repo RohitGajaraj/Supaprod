@@ -7972,3 +7972,78 @@ genuinely exhausted, which its own test proved cannot work. The retry half makes
 make it true.
 
 ---
+
+## K-94 · VERIFIED · 2026-08-21 12:48 · measured the one thing the item said it could not measure
+
+**The entry says plainly that every production number in it is transcribed and that the list being complete
+is the item's claim rather than Kiro's. That is the half only this lane can settle, so I settled it.**
+
+```sql
+SELECT status, count(*) FROM agent_runs GROUP BY status;
+```
+
+**Six spellings, and there is no seventh.** `completed` 782, `completed_with_failures` 688, `failed` 557,
+`halted` 8, `waiting_approval` 7, `complete` 2. The list the test enumerates is exactly the list production
+writes, so the fix cannot miss a value.
+
+**Then ran `mapRelayStatus` against those six rather than reading the `case` labels.** All six now return
+something other than `idle`: `done` for `completed`, `completed_with_failures` and `complete`, `failed` for
+`failed` and `halted`, `gate` for `waiting_approval`. **690 of 2,044 rows were drawn as nothing happening
+and 0 are now**, which is **33.8%** and confirms the item's headline on fresh data rather than transcribed
+data.
+
+**One thing is already stale, and it is the sum.** The test pins the six counts as summing to **1,825**.
+Production is **2,044**, up 219 since 2026-08-20. The tripwire still works as designed, since editing one
+count without re-measuring the rest breaks the sum. But the table is a snapshot and it is nine days of
+drift away from being read as current. **Not a defect in the fix**, which is correct at any count.
+
+---
+
+## K-95 · VERIFIED · 2026-08-21 12:48 · the fix is right, and the ground it reasons about is the wrong one
+
+**This was my finding and Kiro validated its instrument against my number before trusting it**, computing
+`--madder` on paper at 2.79:1 against the 2.79:1 I measured through a canvas. That is the right order of
+operations and it is why the rest of its table is worth reading.
+
+**Reached `/admin` in a browser, which the entry says was not possible, and measured the string.** The
+failure copy *"Could not load your admin access"* now measures **5.82:1**. Kiro computed **5.83** from
+source. **Independent method, same number to a rounding place**, so the fix is confirmed and so is the
+script that produced the rest of the table.
+
+**But the ground determination is backwards, and it changes the severity of my own finding.** The entry
+says `__root.tsx`'s bootstrap stamps `data-theme="light"` so the paper half of the selector fires.
+Measured: **`data-theme` is absent entirely** and the ground is `rgb(10, 10, 10)`. The source says why, at
+`__root.tsx:258`: *"with NO data-theme (`:root` already holds the dark tokens); light = data-theme='light'
+with the 'dark' class removed"*, and the bootstrap sets light only when the stored preference is `light`,
+or `system` **and** the OS prefers light. **With nothing stored, dark fires.** The page's own control read
+*"Switch to light"*, which is the same fact from the other side.
+
+**So the number a default user actually saw was `--madder`'s 4.97, not 2.79.** 2.79 is the paper figure and
+it only ever fired for someone who had chosen light. **My finding led with it as the headline and should
+not have**; the defect was real and worth fixing, and it was AA-passing-by-0.47 for most people rather than
+illegible for everyone.
+
+**Verdict is unaffected**, because `--mrd-fail` passes both grounds, 5.83 dark and 6.64 paper. **Recorded
+because the ground determination will be reused**, and the next contrast call that is only safe in one
+ground will be decided with it.
+
+---
+
+## K-96 · VERIFIED (on the item's own evidence) · 2026-08-21 12:48 · and I could not reach it, which I am saying rather than implying
+
+**The defect is real and the reasoning is sound.** `title || name` meant a caller passing both lost the
+name and got no tooltip, and the third caller is the one that matters: the evidence rail under a focused
+cluster passed `name={signalPreview(...)}` with `title={`Open the source: ${s.url}`}`, so **the section
+whose whole job is to show a quote verbatim rendered the quote's address instead.** Narrowing `title` to
+`string` rather than `ReactNode` is the half that stops the two roles being confused again.
+
+**Kiro proved it in a render before and after, and by planting**: `title || name` restored gives 5 of 12
+failing, reverted gives 12 pass.
+
+**What I did not do.** `CtxRow`'s three callers are on Discover's context rail and **none of them renders
+in the gallery**, so I could not measure the fixed row in a browser. I checked: the gallery's only
+`[title]` elements are chrome controls. **So this verdict rests on the item's own render evidence rather
+than on an independent measurement**, which is weaker than the other two above it and is worth a browser
+pass by whoever next has Discover with a focused cluster on screen.
+
+---
