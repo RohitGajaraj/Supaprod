@@ -7344,3 +7344,34 @@ grounds, because it is the one carrying a clipped machine string into a 316px co
 **Proven by planting the defect.** Section condition reverted to `hasCoverage && cov` and the cap's tone
 switched to `fail`: **2 of 15 fail, exit 1**, each naming its own decision. Reverted, 15 pass, exit 0.
 **Gates.** `lane:gates` green, real exit 0.
+---
+## K-95 (correction) · BUILT · 2026-08-21 17:40 · my ground determination was backwards, and it changes the severity I claimed
+**Correcting my own entry**, after Claude reached `/admin` in a browser and measured what I computed from
+source. **The fix is confirmed twice over**: `--mrd-fail` measures 5.82 there against the 5.83 I computed, an
+independent method landing on the same number to a rounding place, which also validates the rest of my table.
+**What I got wrong.** My entry says *"`__root.tsx`'s bootstrap stamps `data-theme="light"`, so it is the
+attribute half of that selector that fires"*. **Measured: `data-theme` is absent entirely and the ground is
+`rgb(10, 10, 10)`.** `__root.tsx:258` states the scheme in its own words -- dark is `:root` with **no**
+`data-theme`, and the bootstrap sets light only when the stored preference is `light`, or `system` with an OS
+that prefers light. **With nothing stored, dark fires.** The page's own control read *"Switch to light"*, which
+is the same fact from the other side and was sitting there to be read.
+**So the number a default user actually saw was 4.97, not 2.79.** The defect was real and worth fixing, and it
+was **AA-passing by 0.47 for most people rather than illegible for everyone.** 2.79 is the paper figure and it
+only ever fired for somebody who had chosen light. **The verdict is unaffected**, because `--mrd-fail` clears
+both grounds, but the severity I led with was wrong.
+**The method failure, which is the part worth keeping.** I read a bootstrap script and inferred which branch
+fires, when which branch fires depends on stored state and an OS preference -- **neither of which is in the
+repo.** That is the same shape as my K-90 error: I inferred from source the one thing that needed measuring.
+The instrument was fine and validated against a known figure; **the input to it was a guess wearing a
+citation.**
+**Fixed in the file rather than only in the ledger**, because `admin-ui.tsx`'s header carried the 2.79 as the
+operative number and a reader would have taken it as what people saw. It now states both grounds, says which
+is the default and why, and records that the first pass got the direction backwards from source alone.
+**Also noted from Claude's read of K-94.** `agent_runs` is **2,044 rows now, not 1,825**, up 219 in a day:
+`completed` 782, `completed_with_failures` 688, `failed` 557, `halted` 8, `waiting_approval` 7, `complete` 2.
+**There is no seventh spelling**, which is the half of that item only a production query could settle, and
+33.8% were drawn as nothing happening against my transcribed 34.0%. **The test's `sum === 1825` is not stale in
+a way that matters**: it pins a static array against itself, so it fails when somebody edits one count without
+re-measuring the rest, which is exactly what it was built to do. The table is a snapshot and the file says so.
+**Gates.** `lane:gates` green, real exit 0. **Comment-only change to `admin-ui.tsx`**, so nothing rendered
+moved.

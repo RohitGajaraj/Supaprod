@@ -10,12 +10,21 @@
  * failure through. So the four retired tokens here were painting inside three
  * otherwise-Meridian pages, and one of them was illegible.
  *
- * `--madder` resolves to `--ds-red-600`, which is `#ff6a6e` on paper. Against
- * the card's own ground (`.material-medium` -> `--ds-background-100` -> `#fff`)
- * that is 2.79:1 against a 4.5 floor -- the LOWEST-contrast text on those pages,
- * on the one string somebody reads because something already went wrong. It hid
- * because `--madder` is tuned for the dark ground, where it measures 4.97, and
- * these routes were dark-only until the port made them theme-responsive.
+ * `--madder` resolves to `--ds-red-600`. Against the card's own ground
+ * (`.material-medium` -> `--ds-background-100`) it measured **4.97:1 on dark and
+ * 2.79:1 on paper**, on the one string somebody reads because something already
+ * went wrong.
+ *
+ * WHICH OF THOSE TWO A PERSON ACTUALLY SAW, corrected 2026-08-21 after this file
+ * was measured in a browser rather than reasoned about. **Dark is the default and
+ * 4.97 is the number most people got**, so this was AA-passing by 0.47 rather
+ * than illegible for everyone. `__root.tsx:258` says why: dark is `:root` with NO
+ * `data-theme`, and the bootstrap stamps `data-theme="light"` only when the
+ * stored preference is `light`, or `system` with an OS that prefers light. With
+ * nothing stored, dark fires. **2.79 was real and only fired for someone who had
+ * chosen light.** Recorded at this length because the first pass got the
+ * direction backwards from source alone, and the next contrast call that is safe
+ * in only one ground will be decided with it.
  *
  * `--mrd-fail` measures 5.83 on dark and 6.64 on paper on the same ground, and
  * it is the token `surface-parts.tsx`'s `ReadFailedLine` and the Engine Room's
