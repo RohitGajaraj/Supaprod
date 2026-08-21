@@ -10,7 +10,6 @@ import {
 } from "@/lib/palette-sections";
 import { OPEN_MODAL_SELECTOR } from "@/lib/overlay";
 import { PRIMARY_NAV, FOOTER_NAV, navKeyHint, NAV_CHORD_PREFIX } from "@/lib/nav-model";
-import { DESK_COMPOSE_EVENTS, fireDeskCompose } from "@/lib/desk-compose";
 import { EmptyState } from "@/components/supaprod/EmptyState";
 
 // OBS-11 - the glass ⌘K palette + capability catalog, superseding the
@@ -146,19 +145,13 @@ export function CommandPalette() {
       return;
     }
     if (row.section === "ACT" && row.event) {
-      // Desk composers (add a task, capture a signal, share status): fire the
-      // scoped intent so an already-mounted card opens its composer NOW, and
-      // hold it pending so the card consumes it right after the /today landing.
-      if (DESK_COMPOSE_EVENTS.includes(row.event)) {
-        fireDeskCompose(row.event);
-        navigate({ to: row.to, search: row.search as never });
-        return;
-      }
+      // K-37 (2026-08-21): an ACT verb that carries an event acts IN PLACE and
+      // does not navigate. The listener is mounted globally or the verb does not
+      // ship, so there is nothing to navigate to. The branch removed from here
+      // did both — dispatch, then navigate to /today and wait for a card to
+      // mount and consume a pending intent — and no card ever consumed one.
       window.dispatchEvent(new CustomEvent(row.event, { detail: {} }));
-      if (row.event === "supaprod:open-ask") return;
-      // PM Desk: the focus composer opens in place on any page — the dock
-      // listens for this event; navigating away would defeat it.
-      if (row.event === "supaprod:focus-compose") return;
+      return;
     }
     navigate({ to: row.to, search: row.search as never });
   };

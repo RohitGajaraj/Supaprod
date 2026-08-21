@@ -200,14 +200,30 @@ function AuthedLayout() {
                 <Outlet />
               </AppFrame>
             )}
-            {/* Phase 2 (front-end reimagining): the ONE summonable composer.
-                  Cmd/Ctrl+J and Cmd/Ctrl+K plus the supaprod:open-ask /
-                  supaprod:open-cmdk events open the ComposerOverlay on every
-                  old-app surface. The retired CommandPalette and AskPanel
-                  components stay in the tree source but are unmounted
-                  (Addendum 1.1 rule 8); inside the room its own
-                  MissionShell answers the same keys and events, so
-                  GlobalComposer stands down there (it self-excludes). */}
+            {/* THIS MOUNTS ASK, NOT A PALETTE, and the note that used to stand
+                  here said the opposite. It read "Cmd/Ctrl+J and Cmd/Ctrl+K
+                  plus the supaprod:open-ask / supaprod:open-cmdk events open
+                  the ComposerOverlay on every old-app surface", and every
+                  clause of that is now false: `GlobalComposer` returns
+                  `<AskDock>`, Cmd+K is bound in `ask-context.tsx` beside the
+                  state it toggles, and NOTHING in `src/` dispatches
+                  `supaprod:open-cmdk` any more. The room it also described was
+                  retired on 2026-08-10.
+
+                  WHAT THAT COST, so the next reader does not pay it again
+                  (2026-08-21, K-37). This line is what a reader checks to
+                  answer "is the command palette live?", and stopping at
+                  `<GlobalComposer />` being mounted says yes. It is not: the
+                  palette lives in `GlobalComposerHost`, which is declared in
+                  that same file and never called, and in `CommandPalette`,
+                  which is mounted nowhere. So `ACT_VERBS` and the whole
+                  JUMP / ACT / Catalog list are unreachable by a real user
+                  today, and a ruling was very nearly taken on the belief that
+                  four of those verbs were lying to people in production.
+
+                  Retired UI stays in the tree unmounted (Addendum 1.1 rule 8),
+                  which is why both hosts still exist. Remounting either one is
+                  a live option and a deliberate call, not a cleanup. */}
             {!isOnboarding && <GlobalComposer />}
             {/* The focus dock is RETIRED by the rebuild (2026-07-29). The
                 approved shell is four regions and not eight, and a fixed

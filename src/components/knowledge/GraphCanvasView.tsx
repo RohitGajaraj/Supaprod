@@ -320,7 +320,13 @@ export function GraphCanvasView({
   ) {
     return (
       <NothingYet
-        action={<Action onClick={() => navigate({ to: "/discover" })}>Capture a signal</Action>}
+        action={
+          // `capture: true` lands on the capture box rather than on the top of
+          // Discover, where this control's own label is not what you see.
+          <Action onClick={() => navigate({ to: "/discover", search: { capture: true } })}>
+            Capture a signal
+          </Action>
+        }
       >
         Nothing is connected yet. The map draws itself as you work: promote a signal, approve a
         spec, or record a decision, and the connections appear here on their own.

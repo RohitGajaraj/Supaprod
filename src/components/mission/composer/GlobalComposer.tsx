@@ -31,7 +31,6 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { useOpenRoom } from "@/hooks/use-open-room";
 import { ROOM_PRODUCT_ROUTE_IDS } from "@/lib/room-url";
 import { useDictation } from "@/hooks/use-voice";
-import { DESK_COMPOSE_EVENTS, fireDeskCompose } from "@/lib/desk-compose";
 import { journeyById, type JourneyId } from "@/lib/journeys";
 import type { PaletteRun } from "@/lib/palette-sections";
 import type { StageId } from "@/components/mission/Spine";
@@ -123,24 +122,24 @@ function GlobalComposerHost() {
   }, []);
 
   // Jump / Act / Catalog rows keep the command palette's exact run semantics.
+  //
+  // K-37 (2026-08-21): an event and a navigation are now mutually exclusive
+  // here, which is the shape law from palette-sections.ts enforced at the call
+  // site rather than only in the data. What used to live between these two
+  // branches was the third shape - dispatch, then navigate, and hope the
+  // destination mounts a listener within a ten-second TTL - and it never worked
+  // for any of the four verbs that used it.
   const onRun = (run: PaletteRun) => {
     if (run.event) {
-      if (DESK_COMPOSE_EVENTS.includes(run.event)) {
-        fireDeskCompose(run.event);
-        setOpen(false);
-        void navigate({ to: run.to, search: run.search as never });
-        return;
-      }
       if (run.event === "supaprod:open-ask") {
         // The palette's own ASK row: open Ask with whatever is typed.
         handOffToAsk(draft.trim());
         return;
       }
+      // Acts in place. The listener is mounted globally or the verb does not
+      // ship, so there is nowhere to navigate to and navigating would defeat it.
       window.dispatchEvent(new CustomEvent(run.event, { detail: {} }));
       setOpen(false);
-      // The focus composer opens in place; navigating away would defeat it.
-      if (run.event === "supaprod:focus-compose") return;
-      void navigate({ to: run.to, search: run.search as never });
       return;
     }
     setOpen(false);

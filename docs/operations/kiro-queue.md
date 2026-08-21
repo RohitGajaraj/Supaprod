@@ -15,9 +15,16 @@
 > **If you are Kiro reading this in a later session: do not start K-37.** It is a live user-facing surface whose
 > correctness needs a browser, which is exactly the split §1 draws. Ask the founder before taking anything here.
 >
-> **If you are Claude: K-37 is yours, and it is the only open item in this file.** Everything else needs a
-> verdict rather than a build. What is `BUILT` and awaiting one is listed in
-> [`ledger/kiro-log.md`](./ledger/kiro-log.md), newest last.
+> **K-37 IS BUILT (Claude, 2026-08-21). THIS FILE NOW HAS NOTHING OPEN IN IT AT ALL.** All five steps
+> landed, gates green. **The build also falsified one of K-37's premises: the command palette is not
+> mounted**, so `ACT_VERBS` was never reachable and no user was being lied to. The rule still stands and
+> the guard still matters -- it is what stops shape 3 returning the day the palette is remounted. The
+> correction is at the top of the ADR, and the founder question it raises (does the palette come back, or
+> does it go?) is an open finding in [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md),
+> not a row here.
+>
+> Everything else in this file needs a verdict rather than a build. What is `BUILT` and awaiting one is
+> listed in [`ledger/kiro-log.md`](./ledger/kiro-log.md), newest last.
 
 > ### PRIMITIVES BUILD BEFORE THE THINGS THAT USE THEM. This overrides the numbers.
 >
@@ -1097,7 +1104,73 @@ Every item here removes lines. The measured Meridian debt in this repo is **not 
 ---
 
 **K-37 · The palette's two unwired mechanisms: one deletion, one decision**
-`STATUS: RULED 2026-08-21 — B+ — HANDED TO CLAUDE, DO NOT BUILD AS KIRO` · deps: none · size: M
+`STATUS: BUILT 2026-08-21 (Claude) — B+, all five steps, gates green` · deps: none · size: M
+
+> # BUILT 2026-08-21 (Claude). All five steps, and one premise of this item is WRONG.
+>
+> **THE PREMISE THAT FAILED: the command palette is not mounted, so `ACT_VERBS` is unreachable and the four
+> verbs were never lying to anyone.** `_authenticated.tsx:211` renders `<GlobalComposer />`, which returns
+> `<AskDock />`. The palette lives in `GlobalComposerHost` (declared in that file, **never called**) and in
+> `CommandPalette` (**mounted nowhere**). Cmd+K is bound in `ask-context.tsx:296` and opens Ask -- the
+> shell's own button reads **"Ask ⌘K"**, seen in a browser. Nothing dispatches `supaprod:open-cmdk`. The
+> re-measurement above confirmed the MOUNT and stopped without reading what the component returns, and the
+> stale comment above that line (now corrected) asserted the opposite.
+>
+> **Every step was still worth building, and all five are in.** The rule and its guard are what stop shape 3
+> returning the day somebody remounts the palette. Detail: the ADR's correction block.
+>
+> **WHAT LANDED.**
+>
+> 1. **`Capture a signal` -> `{ to: "/discover", search: { capture: "1" } }`**, event removed. `capture`
+>    added to `_authenticated.discover.tsx`'s `validateSearch`, passed to `DiscoverSurface`, and the box is
+>    scrolled to and focused by a callback ref (`captureBox`) rather than an effect, because the box mounts
+>    behind `!loadError && !loading && !picking` and an effect would have to guess which one released it.
+>    **Measured in a browser, which settles this item's own caveat:** on a populated workspace the box sits
+>    at **1173px in a 627px viewport, 546px below the fold**, nothing focused. With the param: **346px, in
+>    the viewport, focused.** The inference in the ADR was right.
+> 2. **`Name a bet` -> `{ to: "/decide" }`** added. Plain navigation, no landing param: `/decide` has no
+>    `validateSearch` at all, and adding one to a route that has none REMOVES every param it currently
+>    passes through, which is the `?focus=` defect wearing a different hat. Nothing links to `/decide` with
+>    a search param today, so it is safe to add later -- **deferred deliberately, not forgotten.**
+> 3. **The three verbs and `desk-compose.ts` are gone**, with both early-return branches. The generic event
+>    branch in `GlobalComposer.onRun` and `CommandPalette.runRow` **no longer navigates at all**, so the law
+>    is enforced at the call site and not only in the data.
+> 4. **The falsified law is replaced** in `palette-sections.ts`, with the rule, the reason ACT rotted while
+>    JUMP could not, and a pointer to the ADR. **A second stale law was found and corrected in the same
+>    class:** the comment above `_authenticated.tsx:211` asserted that Cmd+K and `supaprod:open-cmdk` open
+>    the `ComposerOverlay`. Every clause of it was false, and it is what made stopping at that line feel
+>    like confirmation.
+> 5. **The guard is in `palette-catalog.test.ts`**, reading `GLOBALLY_MOUNTED_EVENTS` from
+>    `palette-sections.ts`. **Proven twice:** the four historical shape-3 events are asserted to fail the
+>    check, and a shape-3 verb was planted in the real `ACT_VERBS` array -- the suite went red on exactly
+>    the shape assertion, then green when it was removed. Two more assertions ACT never had: every verb's
+>    `run.to` must be a route the app has (the check JUMP got for free by derivation), and a verb pointing
+>    at `/discover` must say which part of that 3,400-line surface it means.
+>
+> **ONE DEFECT I SHIPPED AND CAUGHT, worth more than the feature.** The first `capture` parser read
+> `search.capture === "1"`. It reads correctly, matches the link that generates it, and **never fires**:
+> TanStack Router runs each search value through `JSON.parse` before a validator sees it, so `?capture=1`
+> arrives as the **number** 1. `validateSearch` is a whitelist, so the param was dropped by its own parser
+> and the landing silently did nothing -- **this route's third instance of that exact defect, committed by
+> the repair for the second one.** No unit test in this repo could have caught it, because an inline
+> `validateSearch` is only ever exercised by the router. Fixed by extracting `src/lib/search-flag.ts`, which
+> a test CAN call, and it now accepts `1`, `"1"`, `true` and `"true"` with 2 tests over 14 assertions.
+>
+> **BEYOND THE FIVE STEPS, one sweep.** The same landing defect had two live instances outside the palette:
+> `_authenticated.brain.tsx:1482` and `GraphCanvasView.tsx:323` are both labelled *"Capture a signal"* and
+> both navigated to a bare `/discover`. Both carry the param now. **A defect is a shape, not a location**,
+> and these two are the only ones a user can actually reach today.
+>
+> **Meridian's `Textarea` now takes a `ref`** (`ComponentPropsWithRef` rather than `TextareaHTMLAttributes`,
+> which omits it). React 19 passes it through the existing spread, which is why there is no `forwardRef`
+> anywhere in Meridian. Without it a caller had no way to reach the control and would have queried the DOM
+> by id.
+>
+> **STILL OPEN, and all of it queues behind ONE founder question -- does the palette come back, or does it
+> go?** *Add a task* and *Share status* (both need a surface designed), the `/tasks` 12-line redirect that
+> promises a list Today does not have, and `/decide`'s landing param. Filed as one open finding in
+> [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) rather than four rows, because they
+> share a blocker. Twelve files in `mission/` exist only to serve `GlobalComposerHost`.
 
 > # RULED, AND THE BUILD IS CLAUDE'S
 >

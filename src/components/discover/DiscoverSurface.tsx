@@ -491,8 +491,21 @@ export function DiscoverSurface({
    * see rather than something merely related to it.
    */
   focus,
+  /**
+   * `?capture=1` — land ON the capture box rather than merely on this station.
+   *
+   * The box is at the bottom of this surface by deliberate design, below the
+   * ranked reading, so every control labelled "Capture a signal" that
+   * navigated to a bare `/discover` put the person on the right page with the
+   * thing they came for off screen. Same defect `?focus=` had and the same
+   * repair; the route's header carries both.
+   */
+  // Aliased: `capture` is already the name of the capture MUTATION below, and
+  // the URL param is the thing that has to keep this spelling.
+  capture: captureOnArrival,
 }: {
   focus?: string;
+  capture?: boolean;
 } = {}) {
   // The spine, lit on this station. One shared query across all seven
   // (use-spine-strip.ts), so an always-on strip costs one request, not seven.
@@ -524,6 +537,37 @@ export function DiscoverSurface({
    *  queue: exactly one thing asks at a time, the rest are one-line rows. */
   const [focusedId, setFocusedId] = React.useState<string | null>(null);
   const [draft, setDraft] = React.useState("");
+  /**
+   * Where `?capture=1` lands: the capture box itself, scrolled to and focused.
+   *
+   * A CALLBACK REF RATHER THAN AN EFFECT, because the box is not on screen when
+   * this component first renders. It is gated behind `!loadError && !loading &&
+   * !picking`, so an effect would have to name all three as dependencies, guess
+   * right about which one released it, and would then re-run on every unrelated
+   * change to any of them. The ref fires when the textarea actually attaches,
+   * which is the one moment the landing is possible.
+   *
+   * HONOURED ONCE, for the same reason the `?focus=` landing is honoured once:
+   * the link decides where you arrive, and the moment you scroll or click
+   * somewhere else you have decided instead. A landing that reasserted itself on
+   * every refetch would drag the page back off whatever you chose.
+   *
+   * `scrollIntoView` with no `behavior` is a jump rather than a smooth scroll,
+   * so there is no reduced-motion leak -- the same reason CommandPalette's
+   * row-into-view effect gives for `block: "nearest"`. `preventScroll` on the
+   * focus stops the browser doing a second, worse scroll of its own immediately
+   * afterwards.
+   */
+  const captureLanded = React.useRef(false);
+  const captureBox = React.useCallback(
+    (el: HTMLTextAreaElement | null) => {
+      if (!el || !captureOnArrival || captureLanded.current) return;
+      captureLanded.current = true;
+      el.scrollIntoView({ block: "center" });
+      el.focus({ preventScroll: true });
+    },
+    [captureOnArrival],
+  );
   /**
    * The longer-form capture, revealed IN PLACE inside the same Block.
    *
@@ -3163,6 +3207,8 @@ export function DiscoverSurface({
             }}
           >
             <Textarea
+              // Where `?capture=1` lands. See `captureBox` above.
+              ref={captureBox}
               value={draft}
               // Held at the same ceiling the server enforces, so a very long
               // paste is trimmed while it is still editable rather than coming

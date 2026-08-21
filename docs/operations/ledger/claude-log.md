@@ -8265,3 +8265,62 @@ thing to pick up next session**, with the rule as ruled: *a palette verb either 
 owns the job, or it acts in place through something mounted globally, never both.*
 
 ---
+
+## K-37 · BUILT · 2026-08-21 16:53 IST · all five steps, and the item's central premise was wrong
+
+**The build is done and the finding is worth more than the build.** K-37 said four palette verbs "are
+reachable by a real user today" and that **the four verbs that lie were shipping**. They were not.
+`_authenticated.tsx:211` renders `<GlobalComposer />`, and `GlobalComposer()` returns `<AskDock />`. The
+palette lives in `GlobalComposerHost`, declared in that same file and **never called**, and in
+`CommandPalette`, which is **mounted nowhere**. Nothing in `src/` dispatches `supaprod:open-cmdk`. Cmd+K is
+bound in `ask-context.tsx:296` and opens Ask — the shell's own button reads **"Ask ⌘K"**, seen in a browser.
+
+**So `ACT_VERBS` is dead data, and this is the same error one layer out from the one the re-measurement
+caught.** That pass's own note says *"a name is not a symbol"* and records catching itself twice. It then
+read `<GlobalComposer />` at `:211`, confirmed the mount, and stopped without reading what the component
+returns. **The comment directly above that line asserted Cmd+K opens the `ComposerOverlay`**, so stopping
+there felt like confirmation. Every clause of that comment was false and it is corrected in this commit.
+
+**And the previous session's browser attempt was the product telling the truth.** Its log says *"the palette
+did not open on Cmd/Ctrl+K under this harness and I did not see the four verbs myself"*, attributed to
+headless focus or a workspace-less user. It did not open because it does not exist. **Two sessions in a row
+read a real negative result as an instrument fault.**
+
+**All five steps were still worth building and all five are in**, because the rule and its guard are what
+stop shape 3 returning the day somebody remounts the palette. What is genuinely user-facing today is the one
+piece that does not involve the palette at all: **two live controls labelled *"Capture a signal"*
+(`brain.tsx:1482`, `GraphCanvasView.tsx:323`) navigated to a bare `/discover`**, and both carry the landing
+param now. A defect is a shape, not a location.
+
+**MEASURED, which settles the caveat K-37 raised about its own evidence.** It flagged that "the capture box
+is off screen" was inferred from source position rather than measured. On a populated workspace (89
+clusters): the box sits at **1173px in a 627px viewport — 546px below the fold**, nothing focused. With
+`?capture=1`: **346px, in the viewport, and focused.** The inference was right.
+
+**THE DEFECT I SHIPPED AND CAUGHT, and it is the reusable lesson.** My first parser read
+`search.capture === "1"`. It reads correctly, matches the link that generates it, and **never fires**:
+TanStack Router runs every search value through `JSON.parse` before a validator sees it, so `?capture=1`
+arrives as the **number** 1. `validateSearch` is a whitelist, so the param was dropped by its own parser and
+the landing silently did nothing — **this route's third instance of that exact defect, committed by the
+repair for the second one.** It was caught only because I opened a browser: **no unit test in this repo could
+reach it**, since an inline `validateSearch` is exercised by nothing but the router. Fixed by extracting
+`src/lib/search-flag.ts`, which a test can call, accepting `1`, `"1"`, `true` and `"true"`.
+
+**The guard is proven twice, not asserted.** `palette-catalog.test.ts` reads `GLOBALLY_MOUNTED_EVENTS`;
+the four historical shape-3 events are asserted to fail it, and a shape-3 verb was **planted in the real
+`ACT_VERBS` array** — the suite went red on exactly the shape assertion and green when it was pulled. Two
+assertions ACT never had also went in: every verb's `run.to` must be a route the app has (the check JUMP got
+for free by being derived), and a verb pointing at `/discover` must say which part of it it means.
+
+**Deferred on purpose and named rather than implied.** `/decide` gets no landing param yet: it has no
+`validateSearch` at all, and **adding one to a route without it drops every param it currently passes
+through** — the `?focus=` defect in a different hat. Nothing links to `/decide` with a search param today, so
+it is safe to add later. *Add a task*, *Share status*, the `/tasks` redirect and that param are filed as
+**one** open finding on the board, because they share a single blocker: does the palette come back, or does
+it go? That is a founder call.
+
+**Gates: `bun run lane:gates` exit 0 — tsc, docs:check, test, build all pass**, exit code read from `$?`
+rather than through a pipe. The three source-text guards K-37 names (`AppFrame.station-keys`,
+`no-synthetic-key-dispatch`, `route-inventory`) are green and unweakened: 77 pass.
+
+---

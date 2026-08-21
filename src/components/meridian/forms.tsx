@@ -160,11 +160,15 @@ export function Input({ className = "", ...rest }: React.InputHTMLAttributes<HTM
  * `resize-y` and a floor, never `resize` in both directions: a control that can
  * be dragged wider than its own column breaks the measure of everything beside
  * it, and no caller has ever wanted that.
+ *
+ * TAKES A `ref` (2026-08-21). `ComponentPropsWithRef` rather than
+ * `TextareaHTMLAttributes`, which omits it -- so a caller that needed to focus
+ * or scroll to this control had no way to reach it and would have queried the
+ * DOM by id instead. React 19 passes `ref` through the spread below with no
+ * `forwardRef`, which is why there is none anywhere in Meridian. The first
+ * caller is Discover's `?capture=1` landing.
  */
-export function Textarea({
-  className = "",
-  ...rest
-}: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+export function Textarea({ className = "", ...rest }: React.ComponentPropsWithRef<"textarea">) {
   return (
     <textarea
       {...rest}

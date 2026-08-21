@@ -1,10 +1,33 @@
 # The three shapes a palette verb can take, and the one that cannot work
 
-> _Created: 2026-08-21 · Last updated: 2026-08-21_
+> _Created: 2026-08-21 · Last updated: 2026-08-21 (built, with one premise corrected)_
 
-**Founder ruling, 2026-08-21. Settles K-37.** Measured by Kiro, ruled by the founder, **built by Claude** — Kiro documented this and did not touch the code.
+**Founder ruling, 2026-08-21. Settles K-37.** Measured by Kiro, ruled by the founder, **built by Claude** — Kiro documented this and did not touch the code. **BUILT 2026-08-21, and the build falsified one of the premises below. Read the correction first.**
 
 **The decision in one line: a palette verb either navigates to the station that owns the job, or it acts in place through something mounted globally. It never does both.**
+
+---
+
+## ⚠️ CORRECTION 2026-08-21, found while building this: the palette is not mounted, so nothing was lying to anyone
+
+**The rule above survives unchanged. The urgency behind it does not.** This document says four verbs "are reachable by a real user today — type 'task', 'signal', 'status' or 'focus' into Cmd+K", and that **the four verbs that lie were shipping**. Both are false, and the sentence they rest on is the one immediately below: *"`src/routes/_authenticated.tsx:211` renders `{!isOnboarding && <GlobalComposer />}`, so it is available on every authenticated route."*
+
+**That line is real. What it renders is not the palette.** `GlobalComposer()` returns `<AskDock />`. The palette lives in `GlobalComposerHost`, declared in that same file and **never called**, and in `CommandPalette`, which is **mounted nowhere**. `SuggestionPopover` — the file cited as proof a user reaches `ACT_VERBS` — renders only inside `Composer` ← `ComposerOverlay` ← `GlobalComposerHost`. **Nothing in `src/` dispatches `supaprod:open-cmdk`, and both of its listeners are unmounted anyway.** Cmd+K is bound in `src/lib/ask-context.tsx:296` and opens Ask; the shell's own button says **"Ask ⌘K"**, confirmed in a browser on 2026-08-21.
+
+**So `ACT_VERBS` is dead data. There is no command palette in the running product.**
+
+**This is the same error the re-measurement warned about, one layer further out.** Its own method note says *"a name is not a symbol"* and records catching itself twice. It then read `<GlobalComposer />` at `:211`, confirmed the mount, and stopped — without reading what `GlobalComposer` returns. The stale comment sitting directly above that line asserted Cmd+K opens the `ComposerOverlay`, which made stopping there feel like confirmation; that comment has been corrected in the same commit as this note.
+
+**The previous session's browser attempt was the product telling the truth and was written off as an instrument fault.** Its log records *"the palette did not open on Cmd/Ctrl+K under this harness and I did not see the four verbs myself"*, and attributes it to headless keyboard focus or a workspace-less user. It did not open because it does not exist.
+
+**What this changes, and what it does not.**
+
+- **Every one of the five build steps was still the right thing to do**, and all five are built. The law correction and the guard are what stop shape 3 being reinvented the day somebody remounts the palette, which is the day it would matter.
+- **The one step with user-visible value today is the Discover landing**, and it does not involve the palette at all: two **live** controls labelled *"Capture a signal"* (`_authenticated.brain.tsx:1482`, `GraphCanvasView.tsx:323`) navigated to a bare `/discover`, and now carry the param.
+- **Two acceptance lines in K-37 cannot be met and were not claimed.** *"`Capture a signal` lands on the capture box"* and *"`Name a bet` appears"* were to be checked in Cmd+K. They are verified in the DATA and by direct URL; they are **not** verifiable through a palette that does not open.
+- **The founder now has a question that is bigger than K-37: does the palette come back, or does it go?** Filed as an open finding in `../planning/SOURCE-OF-TRUTH.md`. Twelve files in `mission/` exist only to serve `GlobalComposerHost`, and the two jobs this ruling removed from `ACT_VERBS` both queue behind the answer.
+
+**The caveat this document raised about its own evidence was the right instinct and the measurement is now done.** It said "off-screen" was inferred from source position rather than a measured viewport. Measured 2026-08-21 in a browser on a populated workspace: the capture box sits at **1173px in a 627px viewport — 546px below the fold**, nothing focused. With `?capture=1` it sits at **346px, in the viewport and focused.** The inference was correct.
 
 ---
 

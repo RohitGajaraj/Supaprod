@@ -28,9 +28,35 @@
  * could be a theme id tomorrow (the surface resolves either), and a parser
  * that guessed which one it was holding would be asserting something the URL
  * does not say.
+ *
+ * THE THIRD DECISION, `?capture=1`, and it is the SAME repair a second time
+ * (2026-08-21, K-37). The capture box sits at roughly line 3,140 of a
+ * 3,440-line surface, deliberately below the ranked reading -- the surface's
+ * own comments say so at :2166 and :2193 ("Or capture it yourself below"). So
+ * every control labelled "Capture a signal" that navigated to a bare
+ * `/discover` landed the person on the right station with the box off screen,
+ * which is the standard this file's own header sets and fails: a deep link
+ * either lands on the thing it names or it is broken. Two such controls are
+ * live today (`_authenticated.brain.tsx:1482` and
+ * `GraphCanvasView.tsx:323`), and the palette's re-pointed verb is a third.
+ *
+ * Parsed as a BOOLEAN by `searchFlag`, and it accepts `1`, `"1"`, `true` and
+ * `"true"`. It is a flag rather than an id, so unlike `focus` there is nothing
+ * here the URL could be holding that a type would be guessing at.
+ *
+ * THE FOUR SPELLINGS ARE NOT DEFENSIVENESS, they are the bug. This line first
+ * shipped as `search.capture === "1"`, which reads correctly and never fired:
+ * the router runs every search value through `JSON.parse` before a validator
+ * sees it, so `?capture=1` arrives as the NUMBER 1. The param was therefore
+ * dropped by its own parser and the landing silently did nothing -- the third
+ * time this one route has held that exact defect. It was caught by measuring
+ * the page in a browser, because an inline `validateSearch` is only ever
+ * exercised by the router and no unit test in this repo could reach it. That is
+ * why the parser now lives in `src/lib/search-flag.ts`, where one can.
  */
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { DiscoverSurface } from "@/components/discover/DiscoverSurface";
+import { searchFlag } from "@/lib/search-flag";
 import { Surface } from "@/components/meridian/Surface";
 import { Action, NothingHere, PageHeading } from "@/components/meridian/surface-parts";
 
@@ -41,16 +67,18 @@ export type DiscoverTab = "signals" | "queue";
  *  from inside the component would mean the component importing the route that
  *  imports the component. */
 function DiscoverRoute() {
-  const { focus } = Route.useSearch();
+  const { focus, capture } = Route.useSearch();
   if (focus === "__probe_forced_error__") throw new Error("probe: forced render failure");
-  return <DiscoverSurface focus={focus} />;
+  return <DiscoverSurface focus={focus} capture={capture} />;
 }
 
 export const Route = createFileRoute("/_authenticated/discover")({
   // Validated so a mangled link degrades to the plain surface rather than
   // crashing. The retired "opportunities" value maps onto the queue token so
   // both legacy spellings take the same redirect below.
-  validateSearch: (search: Record<string, unknown>): { tab?: DiscoverTab; focus?: string } => ({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { tab?: DiscoverTab; focus?: string; capture?: boolean } => ({
     tab:
       search.tab === "queue" || search.tab === "opportunities"
         ? "queue"
@@ -58,6 +86,11 @@ export const Route = createFileRoute("/_authenticated/discover")({
           ? "signals"
           : undefined,
     focus: typeof search.focus === "string" && search.focus ? search.focus : undefined,
+    // `searchFlag`, not an inline comparison. The first draft of this line read
+    // `search.capture === "1"` and dropped the param on every real link,
+    // because the router JSON-parses first and hands a validator the NUMBER 1.
+    // See src/lib/search-flag.ts for why that is not a detail.
+    capture: searchFlag(search.capture),
   }),
   beforeLoad: ({ search }) => {
     if (search.tab === "queue") throw redirect({ to: "/decide" });

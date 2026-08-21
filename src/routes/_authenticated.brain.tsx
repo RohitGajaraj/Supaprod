@@ -1479,7 +1479,13 @@ function MemoryPage() {
           <Region title="How the first thing gets onto the record">
             <NothingYet
               action={
-                <Action variant="primary" onClick={() => navigate({ to: "/discover" })}>
+                <Action
+                  variant="primary"
+                  // Lands ON the capture box, not merely on Discover: the box is
+                  // below the ranked reading there by design, and this control
+                  // names it. Same repair as `?focus=` (K-37, 2026-08-21).
+                  onClick={() => navigate({ to: "/discover", search: { capture: true } })}
+                >
                   Capture a signal
                 </Action>
               }

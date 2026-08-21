@@ -1,3 +1,50 @@
+# 2026-08-21 ~17:00 IST — K-37 IS BUILT. Do not pick it up again. Gates green.
+
+**All five ruled steps landed and the Kiro queue now has nothing open in it at all.** Detail:
+[`ledger/claude-log.md`](./ledger/claude-log.md) under "K-37 · BUILT", and the correction block at the top
+of [`../decisions/palette-verb-shapes.md`](../decisions/palette-verb-shapes.md).
+
+## The finding is bigger than the build, and it needs the founder
+
+**There is no command palette in the running product.** `_authenticated.tsx:211` renders
+`<GlobalComposer />`, and `GlobalComposer()` returns `<AskDock />`. The palette lives in
+`GlobalComposerHost` (declared in that file, **never called**) and `CommandPalette` (**mounted nowhere**).
+Cmd+K is bound in `ask-context.tsx:296` and opens Ask; the shell's button reads **"Ask ⌘K"**. So `ACT_VERBS`
+is data nobody can reach, and **K-37's premise that four verbs were lying to users in production was false.**
+
+**Two sessions in a row read a real negative result as a broken instrument.** The prior log records "the
+palette did not open on Cmd/Ctrl+K under this harness". It did not open because it does not exist. The
+comment above `:211` asserted the opposite and is corrected now.
+
+**ONE founder question, and four things queue behind it: does the palette come back, or does it go?** Filed
+as a single open finding in [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) — *Add a
+task*, *Share status*, the `/tasks` redirect, and `/decide`'s landing param.
+
+## What is user-facing today, and it is not the palette
+
+**`?capture=1` on Discover lands you on the capture box.** Two **live** controls labelled "Capture a signal"
+(`brain.tsx:1482`, `GraphCanvasView.tsx:323`) navigated to a bare `/discover`; both carry the param now.
+Measured on a populated workspace: the box was at **1173px in a 627px viewport** (546px below the fold,
+unfocused), and is at **346px, in view, focused** with the param.
+
+## Read this before you write a `validateSearch`
+
+**My first parser was `search.capture === "1"` and it never fired.** TanStack Router `JSON.parse`s every
+search value before a validator sees it, so `?capture=1` arrives as the **number** 1. `validateSearch` is a
+whitelist, so the param was dropped by its own parser — **this route's third instance of that exact defect,
+committed by the repair for the second.** No unit test in this repo could catch it: an inline
+`validateSearch` is exercised by nothing but the router. The parser now lives in
+[`src/lib/search-flag.ts`](../../src/lib/search-flag.ts), which a test can call.
+
+## Still open and NOT part of K-37
+
+**The is_sample spend fix is still incomplete**, unchanged from the last handoff: `discovery-scout`,
+`design-critic` and `ux-architect` may still run on samples, deploy lag has not been separated from an
+unfiltered path, and the guard only reads `.from("workspaces")` so it cannot see a tick that selects from a
+workspace-scoped table. **Re-measure before assuming either.**
+
+---
+
 # Session closed 2026-08-21 14:45 IST — verification lane. All pushed, 0 ahead, gates green.
 
 ## Pick this up FIRST
