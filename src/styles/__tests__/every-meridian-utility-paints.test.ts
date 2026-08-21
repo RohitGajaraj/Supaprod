@@ -184,7 +184,7 @@ describe("every Meridian utility class paints", () => {
             "The usual cause is reading a name in meridian.css and typing it",
             "verbatim. The raw custom property and the Tailwind name differ:",
             "  --mrd-s3            ->  spacing utilities say  mrd-3   (no `s`)",
-            "  --mrd-t-body        ->  text-mrd-body. The thirteen type stops are",
+            "  --mrd-t-prose       ->  text-mrd-prose. The thirteen type stops are",
             "                          `@utility` rules rather than `@theme` keys,",
             "                          because Tailwind's font-size namespace is",
             "                          `--text-*` and that string is a RETIRED",

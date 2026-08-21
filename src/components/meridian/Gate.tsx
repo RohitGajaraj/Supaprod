@@ -86,7 +86,7 @@ export function Gate({
           ) : null}
           <ul className="flex flex-col gap-mrd-3">
             {lines.map((line, i) => (
-              <li key={i} className="text-[13px] leading-relaxed text-mrd-body">
+              <li key={i} className="text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
                 {line}
               </li>
             ))}

@@ -94,7 +94,7 @@ function GlanceFigure({ label, value, note }: { label: string; value: string; no
       <span className="block truncate text-[13px] leading-snug text-mrd-ink" title={value}>
         <Figure>{value}</Figure>
       </span>
-      <span className="block text-[12px] leading-snug text-mrd-body">{label}</span>
+      <span className="block text-[12px] leading-snug text-mrd-prose text-mrd-body">{label}</span>
       {note ? <span className="block text-[11.5px] leading-snug text-mrd-mute">{note}</span> : null}
     </span>
   );
@@ -159,7 +159,7 @@ export function RoomGlanceCard({ glance, onOpen }: { glance: RoomGlance; onOpen:
         room={glance.key}
         trailing={
           <>
-            <span className="min-w-0 text-[12.5px] text-mrd-body">{glance.verdict}</span>
+            <span className="min-w-0 text-[12.5px] text-mrd-prose text-mrd-body">{glance.verdict}</span>
             <StateWord state={glance.state} />
           </>
         }
@@ -183,7 +183,7 @@ export function RoomGlanceCard({ glance, onOpen }: { glance: RoomGlance; onOpen:
       {glance.latest ? (
         <span className="flex min-w-0 items-baseline gap-mrd-3 text-[12px] text-mrd-mute">
           <span className="shrink-0">Latest</span>
-          <span className="min-w-0 truncate text-mrd-body" title={glance.latest.what}>
+          <span className="min-w-0 truncate text-mrd-prose text-mrd-body" title={glance.latest.what}>
             {glance.latest.what}
           </span>
           {stamp ? (
@@ -196,7 +196,7 @@ export function RoomGlanceCard({ glance, onOpen }: { glance: RoomGlance; onOpen:
 
       {/* The next step, on the surface where the door is chosen. */}
       {glance.action ? (
-        <span className="text-[12px] leading-snug text-mrd-body">{glance.action}</span>
+        <span className="text-[12px] leading-snug text-mrd-prose text-mrd-body">{glance.action}</span>
       ) : null}
     </CardShell>
   );

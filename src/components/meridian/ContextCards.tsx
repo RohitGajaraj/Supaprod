@@ -518,7 +518,7 @@ export function ContextCards({
         <h2 className="text-[13px] font-semibold text-mrd-ink">{title}</h2>
         {/* The count is what is on screen over what exists, never a fixed figure. */}
         {!failure && chunks.length > 0 && (
-          <span className="inline-flex h-5 items-center rounded-mrd-xs border border-mrd-line bg-mrd-sink px-1.5 font-mrd-mono text-[11.5px] font-medium text-mrd-body tabular-nums">
+          <span className="inline-flex h-5 items-center rounded-mrd-xs border border-mrd-line bg-mrd-sink px-1.5 font-mrd-mono text-[11.5px] font-medium text-mrd-prose text-mrd-body tabular-nums">
             {shown.length === chunks.length ? chunks.length : `${shown.length} of ${chunks.length}`}
           </span>
         )}
@@ -576,7 +576,7 @@ export function ContextCards({
             <button
               type="button"
               onClick={onClearFilter}
-              className={`mt-1 rounded-mrd-ctl border border-mrd-edge px-2.5 py-1 text-[12.5px] font-medium text-mrd-body transition-colors hover:bg-mrd-hover hover:text-mrd-ink ${FOCUS}`}
+              className={`mt-1 rounded-mrd-ctl border border-mrd-edge px-2.5 py-1 text-[12.5px] font-medium text-mrd-prose text-mrd-body transition-colors hover:bg-mrd-hover hover:text-mrd-ink ${FOCUS}`}
               style={{ transitionDuration: "var(--mrd-d-press)" }}
             >
               Clear the filter
@@ -642,7 +642,7 @@ export function ContextCards({
                 </span>
               </div>
 
-              <p className="px-3 pt-2 pb-1 text-[12.5px] leading-relaxed text-mrd-body">
+              <p className="px-3 pt-2 pb-1 text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">
                 {chunk.body}
               </p>
 
@@ -678,7 +678,7 @@ export function ContextCards({
             <button
               type="button"
               onClick={onShowAll}
-              className={`rounded-mrd-ctl border border-mrd-edge px-2 py-0.5 text-[12px] font-medium text-mrd-body transition-colors hover:bg-mrd-hover hover:text-mrd-ink ${FOCUS}`}
+              className={`rounded-mrd-ctl border border-mrd-edge px-2 py-0.5 text-[12px] font-medium text-mrd-prose text-mrd-body transition-colors hover:bg-mrd-hover hover:text-mrd-ink ${FOCUS}`}
               style={{ transitionDuration: "var(--mrd-d-press)" }}
             >
               Show all {chunks.length}

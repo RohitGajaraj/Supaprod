@@ -286,7 +286,7 @@ function CardHeader({
       >
         <span
           style={{
-            fontSize: "var(--mrd-t-body)",
+            fontSize: "var(--mrd-t-prose)",
             fontWeight: "var(--mrd-w-semi)",
             color: "var(--mrd-ink)",
           }}
@@ -378,7 +378,7 @@ function ExpandableBullets({ items }: { items: string[] }) {
         <button
           type="button"
           data-mrd=""
-          className="rounded-mrd-xs text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
+          className="rounded-mrd-xs text-mrd-prose text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
           onClick={() => setExpanded((e) => !e)}
           aria-expanded={expanded}
           style={{

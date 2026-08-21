@@ -49,7 +49,7 @@ export function RetentionLine() {
           to itself. The two look identical on purpose. */}
       <a
         href="/pricing"
-        className="rounded-mrd-xs text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
+        className="rounded-mrd-xs text-mrd-prose text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
         style={{ transitionDuration: "var(--mrd-d-press)" }}
       >
         Keep it

@@ -206,7 +206,7 @@ function CitationChip({ n, source }: { n: number; source: Citation }) {
       <button
         type="button"
         aria-describedby={popoverId}
-        className="rounded-mrd-xs text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
+        className="rounded-mrd-xs text-mrd-prose text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
         style={{
           fontFamily: "var(--mrd-mono)",
           fontSize: "11.5px",

@@ -101,7 +101,7 @@ export function RewindButton({ prdId, hasSnapshot, onCommit, onReverted }: Rewin
             props, not before. */}
         <button
           type="button"
-          className="rounded-mrd-xs text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
+          className="rounded-mrd-xs text-mrd-prose text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
           style={{ transitionDuration: "var(--mrd-d-press)" }}
         >
           Rewind
@@ -124,7 +124,7 @@ export function RewindButton({ prdId, hasSnapshot, onCommit, onReverted }: Rewin
           >
             Take the crew's edit back?
           </AlertDialog.Title>
-          <AlertDialog.Description className="mt-[12px] mb-0 text-[13.5px] leading-[1.55] text-mrd-body">
+          <AlertDialog.Description className="mt-[12px] mb-0 text-[13.5px] leading-[1.55] text-mrd-prose text-mrd-body">
             This restores what the spec said before the last agent edit. The version on screen is
             kept too, so this is itself reversible.
           </AlertDialog.Description>

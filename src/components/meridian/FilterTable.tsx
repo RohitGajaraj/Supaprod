@@ -136,7 +136,7 @@ export function FilterTable<Row>({
         className={`flex h-6.5 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-medium transition-[background-color,box-shadow,color] ${FOCUS} ${
           isActive
             ? "bg-mrd-lift text-mrd-ink"
-            : "text-mrd-body hover:bg-mrd-hover hover:text-mrd-ink"
+            : "text-mrd-prose text-mrd-body hover:bg-mrd-hover hover:text-mrd-ink"
         }`}
         style={{
           /*
@@ -170,7 +170,7 @@ export function FilterTable<Row>({
         {label}
         <span
           className={`rounded-mrd-xs px-1 font-mrd-mono text-[10.5px] tabular-nums ${
-            isActive ? "bg-mrd-sink text-mrd-body" : "text-mrd-mute"
+            isActive ? "bg-mrd-sink text-mrd-prose text-mrd-body" : "text-mrd-mute"
           }`}
         >
           {count}

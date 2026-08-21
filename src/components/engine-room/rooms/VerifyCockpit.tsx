@@ -192,7 +192,7 @@ function PendingApprovals({
               {/* The agent slug and the tool name are IDENTIFIERS, which is one
                   of the things mono is for. The verb between them is not. */}
               <div className="truncate text-[13px] font-medium text-mrd-ink">
-                <span className="font-mrd-mono text-mrd-body">{a.agent_slug ?? "agent"}</span> wants{" "}
+                <span className="font-mrd-mono text-mrd-prose text-mrd-body">{a.agent_slug ?? "agent"}</span> wants{" "}
                 <span className="font-mrd-mono">{a.tool_name}</span>
               </div>
               <div className="mt-0.5 truncate text-[12px] text-mrd-mute">

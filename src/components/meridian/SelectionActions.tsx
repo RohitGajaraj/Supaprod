@@ -500,7 +500,7 @@ export function SelectionActions({
              */}
             {error ? (
               <>
-                <span className="inline-flex h-7 items-center gap-1.5 px-2.5 text-[12.5px] whitespace-nowrap text-mrd-body">
+                <span className="inline-flex h-7 items-center gap-1.5 px-2.5 text-[12.5px] whitespace-nowrap text-mrd-prose text-mrd-body">
                   <span className="text-mrd-fail">
                     <Icon size={13} strokeWidth={2.2}>
                       <circle cx="12" cy="12" r="9" />
@@ -572,7 +572,7 @@ export function SelectionActions({
                       type="button"
                       aria-label="Try again"
                       onClick={onRetry}
-                      className={`flex size-7 shrink-0 items-center justify-center rounded-full text-mrd-mute transition-[background-color,color,transform] duration-150 hover:bg-mrd-hover hover:text-mrd-body active:scale-[0.96] ${FOCUS_INSET}`}
+                      className={`flex size-7 shrink-0 items-center justify-center rounded-full text-mrd-mute transition-[background-color,color,transform] duration-150 hover:bg-mrd-hover hover:text-mrd-prose text-mrd-body active:scale-[0.96] ${FOCUS_INSET}`}
                     >
                       <Icon>
                         <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" />

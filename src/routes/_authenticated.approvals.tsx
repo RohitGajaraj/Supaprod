@@ -554,7 +554,7 @@ function ApprovalsSurface() {
               the split is what makes those two numbers one fact instead of a
               contradiction. Do not shorten this back to one sentence. */}
           {n > 0 ? (
-            <p className="mt-mrd-3 text-[13px] leading-relaxed text-mrd-body">
+            <p className="mt-mrd-3 text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
               Settled in order, oldest first. The one in front of you is the one that moves, and the
               rest are listed under it.
             </p>
@@ -650,7 +650,7 @@ function ApprovalsSurface() {
 
         {otherWorkspacesCount > 0 ? (
           <p className="text-[12.5px] text-mrd-mute">
-            <span className="font-mrd-mono tabular-nums text-mrd-body">{otherWorkspacesCount}</span>{" "}
+            <span className="font-mrd-mono tabular-nums text-mrd-prose text-mrd-body">{otherWorkspacesCount}</span>{" "}
             more waiting in your other workspaces.
           </p>
         ) : null}

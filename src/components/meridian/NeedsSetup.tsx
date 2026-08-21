@@ -110,7 +110,7 @@ export function NeedsSetup({
     >
       <h2 className="text-mrd-lead leading-snug font-medium text-mrd-ink">{title ?? words.title}</h2>
 
-      <p className="mt-mrd-3 max-w-[62ch] text-[13px] leading-relaxed text-mrd-body">
+      <p className="mt-mrd-3 max-w-[62ch] text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
         {body ?? words.body}
       </p>
 

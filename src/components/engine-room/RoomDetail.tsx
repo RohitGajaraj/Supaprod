@@ -130,7 +130,7 @@ export function PanelPending({ children }: { children?: React.ReactNode }) {
 
 export function VerdictSentence({ children }: { children: React.ReactNode }) {
   return (
-    <p className="mb-mrd-5 max-w-[74ch] text-[13px] leading-relaxed text-mrd-body">{children}</p>
+    <p className="mb-mrd-5 max-w-[74ch] text-[13px] leading-relaxed text-mrd-prose text-mrd-body">{children}</p>
   );
 }
 
@@ -218,7 +218,7 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
           <h2 className="text-[20px] leading-tight font-medium text-mrd-ink">
             {ROOM_QUESTIONS[room]}
           </h2>
-          <p className="mt-mrd-2 text-[12.5px] leading-relaxed text-mrd-body">
+          <p className="mt-mrd-2 text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">
             {status?.error
               ? "This room's summary did not load."
               : (status?.glance?.verdict ?? "\u00A0")}
@@ -227,7 +227,7 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
               Guidance text, not a status control, so it carries no accent: it
               is derived from the same real state as the verdict. */}
           {status?.glance?.action ? (
-            <p className="mt-mrd-3 border-l-2 border-mrd-edge pl-mrd-4 text-[12.5px] leading-relaxed text-mrd-body">
+            <p className="mt-mrd-3 border-l-2 border-mrd-edge pl-mrd-4 text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">
               <span className="mr-mrd-3 text-[10px] font-[650] tracking-mrd-label text-mrd-mute uppercase">
                 Next
               </span>

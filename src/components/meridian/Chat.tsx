@@ -103,7 +103,7 @@ function Step({ step }: { step: ChatStep }) {
           />
         )}
         <span className="font-medium text-mrd-ink">{step.title}</span>
-        {step.source && <span className="text-mrd-body">{step.source}</span>}
+        {step.source && <span className="text-mrd-prose text-mrd-body">{step.source}</span>}
         {step.duration && (
           <span className="font-mrd-mono text-[11px] text-mrd-mute tabular-nums">
             {step.duration}
@@ -223,7 +223,7 @@ export function Chat({
               type="button"
               aria-label="New thread"
               onClick={onNewThread}
-              className="flex size-6 items-center justify-center rounded-mrd-xs text-mrd-mute transition-colors duration-100 hover:bg-mrd-hover hover:text-mrd-body"
+              className="flex size-6 items-center justify-center rounded-mrd-xs text-mrd-mute transition-colors duration-100 hover:bg-mrd-hover hover:text-mrd-prose text-mrd-body"
             >
               <Icon>
                 <path d="M12 5v14M5 12h14" />
@@ -244,7 +244,7 @@ export function Chat({
          */}
         {turns.length === 0 && !busy && (
           <div className="my-auto py-6">
-            <p className="text-[13px] font-medium text-mrd-body">{emptyLabel}</p>
+            <p className="text-[13px] font-medium text-mrd-prose text-mrd-body">{emptyLabel}</p>
             <p className="mt-1 text-[13px] leading-[1.65] text-mrd-mute">{emptyHint}</p>
           </div>
         )}

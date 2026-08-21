@@ -148,7 +148,7 @@ function ScrubField({
             onChange(field.max);
           }
         }}
-        className={`flex h-full shrink-0 cursor-ew-resize touch-none items-center rounded-mrd-xs px-0.5 text-[12px] select-none ${edited ? "text-mrd-you" : "text-mrd-mute hover:text-mrd-body"} ${FOCUS_RING}`}
+        className={`flex h-full shrink-0 cursor-ew-resize touch-none items-center rounded-mrd-xs px-0.5 text-[12px] select-none ${edited ? "text-mrd-you" : "text-mrd-mute hover:text-mrd-prose text-mrd-body"} ${FOCUS_RING}`}
       >
         {field.label}
       </span>

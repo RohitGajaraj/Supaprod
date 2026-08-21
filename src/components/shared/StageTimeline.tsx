@@ -101,7 +101,7 @@ export function StageTimeline({ entityType, entityId, variant = "detailkit" }: S
       <div style={{ display: "grid", gap: "8px" }}>
         {events.map((e) => (
           <div key={e.id} className="flex items-baseline" style={{ gap: "8px" }}>
-            <span className="text-[13px] text-mrd-body">
+            <span className="text-[13px] text-mrd-prose text-mrd-body">
               {e.from_stage ? `${e.from_stage} -> ${e.to_stage}` : e.to_stage}
             </span>
             {/* THE ACTOR STOPS SHOUTING. It was mono, uppercased, at 0.06em

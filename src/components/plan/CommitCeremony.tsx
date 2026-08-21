@@ -113,7 +113,7 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
 
           <div className="mt-mrd-5">
             {hasBoth ? (
-              <p className="m-0 text-[14px] leading-relaxed text-mrd-body">
+              <p className="m-0 text-[14px] leading-relaxed text-mrd-prose text-mrd-body">
                 You are promising: {bet.outcome}. Measured by {bet.measure}.
               </p>
             ) : (

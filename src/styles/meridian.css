@@ -743,7 +743,30 @@
   --mrd-t-small: 12px; /* secondary UI text. the most used stop */
   --mrd-t-label: 12.5px; /* labels and dense row text */
   --mrd-t-base: 13px; /* a card's subject, a row's title */
-  --mrd-t-body: 14px; /* THE BASE. prose and anything read at length */
+  /*
+   * WAS `--mrd-t-body` UNTIL 2026-08-21, AND THE RENAME IS THE FIX FOR A
+   * COLLISION RATHER THAN A TIDY-UP.
+   *
+   * `--color-mrd-body` also exists, and Tailwind turns it into a `text-mrd-body`
+   * rule setting `color`. So `.text-mrd-body` compiled to TWO rules, a font-size
+   * and a colour, and both always applied. Not a "which one wins" bug, which is
+   * why it survived every gate: different properties do not conflict, so the
+   * class quietly did two jobs and every caller got both.
+   *
+   * THE SIZE STOP GAVE UP THE NAME, NOT THE COLOUR, and that is the opposite of
+   * the first ruling. The colour ramp is coherent: ink is the thing itself, body
+   * is supporting prose, mute is labels and metadata, faint is the quietest stop
+   * still AA. The type scale was the incoherent one: it held a stop called
+   * `base` at 13px and then named a DIFFERENT stop "THE BASE" one line below.
+   * A scale cannot do that, so the misnamed stop is the one that moved.
+   *
+   * It also decided the six broken call sites for free. They read
+   * `text-mrd-base font-medium text-mrd-body`, asking for card-subject size with
+   * supporting-prose colour, and painted 14px because the colour's hidden size
+   * beat `base`. With the size renamed they need no edit: `text-mrd-base`
+   * supplies the 13px and `text-mrd-body` supplies the colour.
+   */
+  --mrd-t-prose: 14px; /* prose and anything read at length */
   --mrd-t-lead: 17px; /* a figure worth reading before the words */
   --mrd-t-h3: 20px;
   --mrd-t-h2: 25px;
@@ -1425,8 +1448,14 @@
 @utility text-mrd-base {
   font-size: var(--mrd-t-base);
 }
-@utility text-mrd-body {
-  font-size: var(--mrd-t-body);
+/*
+ * `text-mrd-prose`, NOT `text-mrd-body`, and the name is load-bearing: with a
+ * `--color-mrd-body` in the theme, a `text-mrd-body` here would emit a second
+ * rule under the same selector and the class would silently set a size as well
+ * as a colour. `text-mrd-body` is now the colour and nothing else.
+ */
+@utility text-mrd-prose {
+  font-size: var(--mrd-t-prose);
 }
 @utility text-mrd-lead {
   font-size: var(--mrd-t-lead);

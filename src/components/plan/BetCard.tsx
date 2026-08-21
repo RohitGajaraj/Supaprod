@@ -291,7 +291,7 @@ function BetCardComponent({
           style={{
             flex: 1,
             minWidth: 0,
-            fontSize: "var(--mrd-t-body)",
+            fontSize: "var(--mrd-t-prose)",
             fontWeight: "var(--mrd-w-semi)",
             color: lane.ink,
             overflow: "hidden",

@@ -165,7 +165,7 @@ export function Tabs<Id extends string>({
             className={`inline-flex h-8 items-center rounded-mrd-chip px-3 text-[12.5px] transition-colors ${
               selected
                 ? "bg-mrd-select font-medium text-mrd-ink"
-                : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-body"
+                : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-prose text-mrd-body"
             }`}
             style={{ transitionDuration: "var(--mrd-d-press)" }}
             aria-selected={selected}

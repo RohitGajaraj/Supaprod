@@ -216,7 +216,7 @@ export function DiffTable({
                             {value && (
                               <span
                                 title={value}
-                                className="inline-flex h-5.5 max-w-full items-center rounded-full border border-mrd-line bg-mrd-sink px-2 text-[11px] font-medium text-mrd-body transition-opacity duration-[400ms]"
+                                className="inline-flex h-5.5 max-w-full items-center rounded-full border border-mrd-line bg-mrd-sink px-2 text-[11px] font-medium text-mrd-prose text-mrd-body transition-opacity duration-[400ms]"
                                 style={{ opacity: out ? 0.55 : 1 }}
                               >
                                 {/*
@@ -315,7 +315,7 @@ export function DiffTable({
                                     {value && (
                                       <span
                                         title={value}
-                                        className="inline-flex h-5.5 max-w-full items-center rounded-full border border-mrd-line bg-mrd-sheet px-2 text-[11px] font-medium text-mrd-body"
+                                        className="inline-flex h-5.5 max-w-full items-center rounded-full border border-mrd-line bg-mrd-sheet px-2 text-[11px] font-medium text-mrd-prose text-mrd-body"
                                       >
                                         <span className="min-w-0 truncate">{value}</span>
                                       </span>

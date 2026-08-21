@@ -361,7 +361,7 @@ export function ContextNote({ head, children }: { head: string; children: React.
   return (
     <section data-mrd="" className="mt-mrd-5 first:mt-0">
       <h2 className="text-[10px] font-[650] tracking-mrd-label text-mrd-faint uppercase">{head}</h2>
-      <div className="mt-mrd-3 text-[12.5px] leading-relaxed text-mrd-body">{children}</div>
+      <div className="mt-mrd-3 text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">{children}</div>
     </section>
   );
 }
@@ -388,7 +388,7 @@ export function ContextLine({
     <div data-mrd="" className="flex items-start gap-mrd-3 py-mrd-2">
       {mark ? <span className="mt-px flex w-4 shrink-0 justify-center">{mark}</span> : null}
       <span className="min-w-0">
-        <span className="block text-[12.5px] leading-snug text-mrd-body">{name}</span>
+        <span className="block text-[12.5px] leading-snug text-mrd-prose text-mrd-body">{name}</span>
         <span className="mt-0.5 block text-[12px] leading-snug text-mrd-faint">{sub}</span>
       </span>
     </div>
@@ -496,7 +496,7 @@ export function RunGate({
          */
         <ul className="mt-mrd-5 flex flex-col gap-mrd-3 rounded-mrd-card bg-mrd-sink px-mrd-5 py-mrd-4">
           {lines.map((line, i) => (
-            <li key={i} className="text-[13px] leading-relaxed text-mrd-body">
+            <li key={i} className="text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
               {line}
             </li>
           ))}
@@ -568,7 +568,7 @@ export function Commit({
       <span className="min-w-0 flex-1">
         <span className={`font-medium ${failed ? "text-mrd-fail" : "text-mrd-ink"}`}>{verb}</span>
         <span className="text-mrd-mute"> · </span>
-        <span className="text-mrd-body">{consequence}</span>
+        <span className="text-mrd-prose text-mrd-body">{consequence}</span>
       </span>
       {handoff ? (
         <span className="flex shrink-0 items-center gap-1.5">
@@ -700,11 +700,11 @@ export function Fact({
       className="flex items-center justify-between gap-mrd-5 border-b border-mrd-line-soft py-mrd-3 text-[12.5px] leading-snug last:border-0"
     >
       {htmlFor ? (
-        <label className="min-w-0 text-mrd-body" htmlFor={htmlFor}>
+        <label className="min-w-0 text-mrd-prose text-mrd-body" htmlFor={htmlFor}>
           {body}
         </label>
       ) : (
-        <span className="min-w-0 text-mrd-body">{body}</span>
+        <span className="min-w-0 text-mrd-prose text-mrd-body">{body}</span>
       )}
       {children ? <span className="shrink-0 text-right">{children}</span> : null}
     </div>

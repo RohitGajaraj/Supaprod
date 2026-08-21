@@ -209,7 +209,7 @@
   background: var(--mrd-bg);
   color: var(--mrd-ink);
   font-family: var(--mrd-font);
-  font-size: var(--mrd-t-body);
+  font-size: var(--mrd-t-prose);
   line-height: var(--mrd-lh-snug);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -253,7 +253,7 @@
  * rather than fussy. A per-element override here would be the one word on the
  * screen set differently from every other word. */
 .sp-wordmark {
-  font-size: var(--mrd-t-body);
+  font-size: var(--mrd-t-prose);
   font-weight: var(--mrd-w-semi);
   color: var(--mrd-ink);
 }
@@ -268,7 +268,7 @@
   align-items: center;
   gap: 7px;
   font: inherit;
-  font-size: var(--mrd-t-body);
+  font-size: var(--mrd-t-prose);
   font-weight: var(--mrd-w-semi);
   color: var(--mrd-ink);
   padding: 5px 8px;
@@ -1399,7 +1399,7 @@
   color: var(--mrd-body);
   cursor: pointer;
   text-decoration: none;
-  font-size: var(--mrd-t-body);
+  font-size: var(--mrd-t-prose);
   transition:
     background var(--mrd-d-press) var(--mrd-ease),
     color var(--mrd-d-press) var(--mrd-ease);
@@ -2631,7 +2631,7 @@ body:has(.sp-app[data-rail="narrow"]) .sp-dock {
   gap: 5px;
 }
 .sp-keys-rules li {
-  font-size: var(--mrd-t-body);
+  font-size: var(--mrd-t-prose);
   color: var(--mrd-body);
 }
 .sp-keys-section + .sp-keys-section {
@@ -2648,7 +2648,7 @@ body:has(.sp-app[data-rail="narrow"]) .sp-dock {
 }
 .sp-keys-note {
   margin: 0;
-  font-size: var(--mrd-t-body);
+  font-size: var(--mrd-t-prose);
   color: var(--mrd-mute);
 }
 .sp-keys-list {
@@ -2675,7 +2675,7 @@ body:has(.sp-app[data-rail="narrow"]) .sp-dock {
   margin: 0;
 }
 .sp-keys-row dd {
-  font-size: var(--mrd-t-body);
+  font-size: var(--mrd-t-prose);
   color: var(--mrd-body);
 }
 .sp-keys-cap {

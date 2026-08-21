@@ -94,7 +94,7 @@ function ToolApprovalChips({ tools }: { tools: ToolRecord[] }) {
         <span
           key={t.tool_name}
           title={`${t.tool_name}: approved ${t.approved} of ${t.total}`}
-          className="inline-flex items-center gap-mrd-3 rounded-mrd-chip border border-mrd-line bg-mrd-sink px-2 py-0.5 text-[12px] text-mrd-body"
+          className="inline-flex items-center gap-mrd-3 rounded-mrd-chip border border-mrd-line bg-mrd-sink px-2 py-0.5 text-[12px] text-mrd-prose text-mrd-body"
         >
           <span className="text-mrd-mute">{t.tool_name}</span>
           <span className="font-mrd-mono tabular-nums">
@@ -189,7 +189,7 @@ export function AgentScorecardPanel() {
           <Action onClick={() => void query.refetch()}>Try again</Action>
         </div>
       ) : cards.length === 0 ? (
-        <p className="mt-mrd-5 max-w-[62ch] text-[13px] leading-relaxed text-mrd-body">
+        <p className="mt-mrd-5 max-w-[62ch] text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
           No decided history yet. Track records appear here as you approve, reject, or rewind what
           the agents do.
         </p>

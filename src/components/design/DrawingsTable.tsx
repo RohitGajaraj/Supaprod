@@ -183,7 +183,7 @@ function NameCell({
         aria-current={focused ? "true" : undefined}
         title={row.title}
         className={`mrd-focus-inset min-w-0 flex-1 truncate rounded-mrd-xs py-0.5 text-left transition-colors ${
-          focused ? "font-medium text-mrd-ink" : "font-normal text-mrd-body hover:text-mrd-ink"
+          focused ? "font-medium text-mrd-ink" : "font-normal text-mrd-prose text-mrd-body hover:text-mrd-ink"
         }`}
         style={{ transitionDuration: "var(--mrd-d-press)" }}
       >

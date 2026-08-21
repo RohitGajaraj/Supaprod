@@ -201,7 +201,7 @@ export function EvalCalibrationPanel() {
                   size={15}
                   strokeWidth={1.8}
                   aria-hidden
-                  className="flex-none text-mrd-faint transition-colors group-hover:text-mrd-body"
+                  className="flex-none text-mrd-faint transition-colors group-hover:text-mrd-prose text-mrd-body"
                 />
               </span>
             </button>

@@ -50,7 +50,7 @@ export function QueueFilters<T extends string>({
             className={`inline-flex h-8 items-center gap-2 rounded-mrd-chip px-3 text-[12.5px] transition-colors ${
               on
                 ? "bg-mrd-lift font-medium text-mrd-ink"
-                : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-body"
+                : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-prose text-mrd-body"
             }`}
             style={{ transitionDuration: "var(--mrd-d-press)" }}
           >
@@ -90,7 +90,7 @@ export function FilterExcludedEverything({
   return (
     <section className="rounded-mrd-card border border-mrd-line bg-mrd-sink px-mrd-6 py-mrd-6">
       <h2 className="text-[16px] leading-snug font-medium text-mrd-ink">Nothing under {label}.</h2>
-      <p className="mt-mrd-3 max-w-[62ch] text-[13px] leading-relaxed text-mrd-body">
+      <p className="mt-mrd-3 max-w-[62ch] text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
         {total === 1
           ? "One call is still waiting, under another heading."
           : `${total} calls are still waiting, under other headings.`}

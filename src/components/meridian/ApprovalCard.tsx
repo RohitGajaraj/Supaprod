@@ -150,7 +150,7 @@ export function ApprovalCard({
         data-mrd=""
         className="w-full max-w-80 rounded-mrd-card border border-mrd-line bg-mrd-sheet px-4 py-4 font-mrd"
       >
-        <p className="text-[13px] font-medium text-mrd-body">Nothing is waiting on you.</p>
+        <p className="text-[13px] font-medium text-mrd-prose text-mrd-body">Nothing is waiting on you.</p>
         <p className="mt-1 text-[12px] leading-relaxed text-mrd-mute">
           When an agent stops to ask something, the question arrives here and the run holds until
           you answer it.
@@ -305,7 +305,7 @@ export function ApprovalCard({
                       )}
                     </span>
                     <span
-                      className={`text-[13px] transition-colors duration-200 ${on ? "text-mrd-ink" : "text-mrd-body"}`}
+                      className={`text-[13px] transition-colors duration-200 ${on ? "text-mrd-ink" : "text-mrd-prose text-mrd-body"}`}
                     >
                       {option}
                     </span>
@@ -337,7 +337,7 @@ export function ApprovalCard({
               aria-label="Previous question"
               disabled={qi === 0 || sent}
               onClick={() => setQi((current) => Math.max(0, current - 1))}
-              className="flex size-6 items-center justify-center rounded-mrd-xs text-mrd-mute transition-colors duration-100 enabled:hover:bg-mrd-hover enabled:hover:text-mrd-body disabled:opacity-35"
+              className="flex size-6 items-center justify-center rounded-mrd-xs text-mrd-mute transition-colors duration-100 enabled:hover:bg-mrd-hover enabled:hover:text-mrd-prose text-mrd-body disabled:opacity-35"
             >
               <Icon>
                 <path d="M15 18l-6-6 6-6" />
@@ -383,7 +383,7 @@ export function ApprovalCard({
               aria-label="Next question"
               disabled={last || sent}
               onClick={() => setQi((current) => Math.min(questions.length - 1, current + 1))}
-              className="flex size-6 items-center justify-center rounded-mrd-xs text-mrd-mute transition-colors duration-100 enabled:hover:bg-mrd-hover enabled:hover:text-mrd-body disabled:opacity-35"
+              className="flex size-6 items-center justify-center rounded-mrd-xs text-mrd-mute transition-colors duration-100 enabled:hover:bg-mrd-hover enabled:hover:text-mrd-prose text-mrd-body disabled:opacity-35"
             >
               <Icon>
                 <path d="M9 6l6 6-6 6" />

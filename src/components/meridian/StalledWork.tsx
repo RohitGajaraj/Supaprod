@@ -198,7 +198,7 @@ function Item({ item, now }: { item: StalledItem; now: number }) {
         </div>
 
         {item.blocking ? (
-          <p className="mt-1 text-[12.5px] leading-snug text-mrd-body">
+          <p className="mt-1 text-[12.5px] leading-snug text-mrd-prose text-mrd-body">
             {/*
              * Naming the held-up work is the whole argument. "Pending approval"
              * costs a reader nothing to ignore. "Blocking: Homeowners cannot
@@ -221,7 +221,7 @@ function Item({ item, now }: { item: StalledItem; now: number }) {
           <button
             type="button"
             onClick={item.onOpen}
-            className="rounded-mrd-ctl px-2 py-1 text-[12.5px] text-mrd-mute transition-colors hover:bg-mrd-hover hover:text-mrd-body"
+            className="rounded-mrd-ctl px-2 py-1 text-[12.5px] text-mrd-mute transition-colors hover:bg-mrd-hover hover:text-mrd-prose text-mrd-body"
             style={{ transitionDuration: "var(--mrd-d-press)" }}
           >
             Open
@@ -286,7 +286,7 @@ export function StalledWork({
         )}
       </h2>
       {oldest ? (
-        <p className="mt-1 text-[12.5px] text-mrd-body">
+        <p className="mt-1 text-[12.5px] text-mrd-prose text-mrd-body">
           The oldest has been stopped for{" "}
           <span className="font-mrd-mono tabular-nums text-mrd-ink">
             {stoppedFor(oldest.since, now)}

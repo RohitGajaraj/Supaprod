@@ -233,7 +233,7 @@ export interface OpportunityDetailRecord {
 /** Supporting prose inside a region. 13px on prose leading, the same stop the
  *  system's other read-this-sentence blocks take. */
 function P({ children }: { children: ReactNode }) {
-  return <p className="m-0 text-[13px] leading-relaxed text-mrd-body">{children}</p>;
+  return <p className="m-0 text-[13px] leading-relaxed text-mrd-prose text-mrd-body">{children}</p>;
 }
 
 /** One stated fact: a label, and under it the thing itself. ONE label, and the
@@ -837,7 +837,7 @@ export function PublishTeardown({
       <Stated label="Publish this teardown">
         It goes on the open web at a link that needs no account. What a reader gets:
       </Stated>
-      <ul className="mt-mrd-2 list-disc pl-[1.1em] text-[13px] leading-relaxed text-mrd-body">
+      <ul className="mt-mrd-2 list-disc pl-[1.1em] text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
         {PUBLISHED_FIELDS.map((f) => (
           <li key={f}>{f}</li>
         ))}
@@ -1158,7 +1158,7 @@ export function OpportunityDetailSheet({
       <SheetContent
         side="right"
         data-mrd=""
-        className="sm:max-w-md overflow-y-auto bg-mrd-sheet font-mrd text-mrd-body"
+        className="sm:max-w-md overflow-y-auto bg-mrd-sheet font-mrd text-mrd-prose text-mrd-body"
       >
         {/* Accessible name and description for the dialog. The visible head
             below carries the same title, so this stays screen-reader only. */}

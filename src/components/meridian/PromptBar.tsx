@@ -385,7 +385,7 @@ export function PromptBar({
           className={`flex h-7 shrink-0 items-center gap-1 px-1.5 text-[12px] font-medium transition-colors duration-150 ${btnRadius} ${FOCUS_INSET} ${
             modelOpen
               ? "bg-mrd-select text-mrd-ink"
-              : "text-mrd-body hover:bg-mrd-hover hover:text-mrd-ink"
+              : "text-mrd-prose text-mrd-body hover:bg-mrd-hover hover:text-mrd-ink"
           }`}
         >
           {model.name}
@@ -547,7 +547,7 @@ export function PromptBar({
                     className="relative z-10 flex h-9 w-full items-center gap-2.5 rounded-mrd-xs px-2 text-left"
                   >
                     {source?.icon && (
-                      <span className="flex size-5.5 shrink-0 items-center justify-center text-mrd-body">
+                      <span className="flex size-5.5 shrink-0 items-center justify-center text-mrd-prose text-mrd-body">
                         {source.icon}
                       </span>
                     )}
@@ -700,7 +700,7 @@ export function PromptBar({
                    * neither ground at a glance, which is what the reference's
                    * hairline is there to prevent.
                    */
-                  className={`flex h-6.5 items-center gap-1.5 bg-mrd-sink py-1 pr-1 pl-1.5 text-[11.5px] text-mrd-body shadow-[inset_0_0_0_1px_var(--mrd-line)] ${
+                  className={`flex h-6.5 items-center gap-1.5 bg-mrd-sink py-1 pr-1 pl-1.5 text-[11.5px] text-mrd-prose text-mrd-body shadow-[inset_0_0_0_1px_var(--mrd-line)] ${
                     pill ? "rounded-full" : "rounded-mrd-chip"
                   }`}
                   /* A file appearing on the composer is something arriving that

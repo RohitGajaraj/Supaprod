@@ -141,7 +141,7 @@ export function DoorRow({
           {time}
         </span>
       ) : null}
-      <Chevron className="text-mrd-faint group-hover:text-mrd-body" />
+      <Chevron className="text-mrd-faint group-hover:text-mrd-prose text-mrd-body" />
     </button>
   );
 }
@@ -355,7 +355,7 @@ export function Gate({
         <div className="mt-mrd-5 rounded-mrd-card bg-mrd-sink px-mrd-5 py-mrd-4">
           <ul className="flex flex-col gap-mrd-3">
             {lines.map((line, i) => (
-              <li key={i} className="text-[13px] leading-relaxed text-mrd-body">
+              <li key={i} className="text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
                 {line}
               </li>
             ))}
@@ -409,7 +409,7 @@ export function Settled({
       <span className={`text-[13px] font-medium ${failed ? "text-mrd-fail" : "text-mrd-ink"}`}>
         {verb}
       </span>
-      <span className="min-w-0 text-[12.5px] leading-snug text-mrd-body">{consequence}</span>
+      <span className="min-w-0 text-[12.5px] leading-snug text-mrd-prose text-mrd-body">{consequence}</span>
       {time ? (
         <span className="font-mrd-mono ml-auto shrink-0 text-[12px] text-mrd-faint tabular-nums">
           {time}
@@ -432,7 +432,7 @@ export function CtxHead({ children }: { children: React.ReactNode }) {
 
 /** A paragraph in the context column. */
 export function CtxBody({ children }: { children: React.ReactNode }) {
-  return <p className="mt-mrd-3 text-[12.5px] leading-relaxed text-mrd-body">{children}</p>;
+  return <p className="mt-mrd-3 text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">{children}</p>;
 }
 
 /** A named fact in the context column, with one different fact under it. */

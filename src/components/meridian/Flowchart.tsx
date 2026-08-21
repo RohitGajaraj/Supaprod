@@ -456,7 +456,7 @@ export function Flowchart({
           <span className="flex items-center gap-2.5 px-3 py-2.5">
             {node.station ? (
               <span
-                className="flex size-9 shrink-0 items-center justify-center rounded-mrd-ctl border border-mrd-line bg-mrd-lift text-mrd-body"
+                className="flex size-9 shrink-0 items-center justify-center rounded-mrd-ctl border border-mrd-line bg-mrd-lift text-mrd-prose text-mrd-body"
                 aria-hidden
               >
                 <StationGlyph kind={node.station} size={16} />

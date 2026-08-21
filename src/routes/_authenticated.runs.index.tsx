@@ -636,7 +636,7 @@ function Composer({
                       through run-parts' Door, which owns its own element. */}
                   <Link
                     to="/plan"
-                    className="rounded-mrd-xs text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
+                    className="rounded-mrd-xs text-mrd-prose text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
                     style={{ transitionDuration: "var(--mrd-d-press)" }}
                   >
                     Approve one in Plan

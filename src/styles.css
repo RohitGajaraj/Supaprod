@@ -516,7 +516,7 @@
        light rather than cramped. `letter-spacing` is NOT set here any more —
        declaring 0 on body reset the entire tree and silently defeated the
        document-level tracking. */
-    font-size: var(--mrd-t-body);
+    font-size: var(--mrd-t-prose);
     line-height: var(--mrd-lh-snug);
   }
 

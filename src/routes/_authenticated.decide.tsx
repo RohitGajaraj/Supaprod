@@ -867,7 +867,7 @@ function QueueSelectionBar({
       data-mrd=""
       role="region"
       aria-label={`${count} selected`}
-      className="flex min-h-[38px] items-center gap-mrd-5 rounded-mrd-ctl bg-mrd-lift px-mrd-5 text-[13px] text-mrd-body"
+      className="flex min-h-[38px] items-center gap-mrd-5 rounded-mrd-ctl bg-mrd-lift px-mrd-5 text-[13px] text-mrd-prose text-mrd-body"
     >
       <span className="font-medium whitespace-nowrap text-mrd-ink">
         <Num>{count}</Num> {count === 1 ? "bet" : "bets"} selected

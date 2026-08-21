@@ -143,13 +143,13 @@ function ProposalEnricher({
        the ground rather than on top of it. */
     <div className="mt-mrd-4 rounded-mrd-card bg-mrd-sink px-mrd-5 py-mrd-4">
       <Eyebrow>Why this is happening</Eyebrow>
-      <p className="mt-mrd-2 text-[12.5px] leading-relaxed text-mrd-body">{data.explanation}</p>
+      <p className="mt-mrd-2 text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">{data.explanation}</p>
       {data.suggested_fix ? (
         <>
           <div className="mt-mrd-4">
             <Eyebrow>Suggested fix</Eyebrow>
           </div>
-          <p className="mt-mrd-2 text-[12.5px] leading-relaxed text-mrd-body">
+          <p className="mt-mrd-2 text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">
             {data.suggested_fix}
           </p>
         </>
@@ -286,7 +286,7 @@ function SelfImproveModeControl({ workspaceId }: { workspaceId: string }) {
            below and touching it moves the thing. That is the whole definition
            of `--mrd-you`. A rule and text rather than a fill, because a filled
            accent block is a hero and this is a standing advisory. */
-        <p className="mb-mrd-5 border-l-2 border-mrd-you pl-mrd-4 text-[12.5px] leading-relaxed text-mrd-body">
+        <p className="mb-mrd-5 border-l-2 border-mrd-you pl-mrd-4 text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">
           {nudge.message}
         </p>
       ) : null}
@@ -336,7 +336,7 @@ function SelfImproveModeControl({ workspaceId }: { workspaceId: string }) {
               } ${
                 selected
                   ? "bg-mrd-select font-medium text-mrd-ink"
-                  : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-body"
+                  : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-prose text-mrd-body"
               }`}
               style={{ transitionDuration: "var(--mrd-d-press)" }}
             >
@@ -346,7 +346,7 @@ function SelfImproveModeControl({ workspaceId }: { workspaceId: string }) {
         })}
       </div>
 
-      <p className="mt-mrd-4 max-w-[68ch] text-[12.5px] leading-relaxed text-mrd-body">
+      <p className="mt-mrd-4 max-w-[68ch] text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">
         {copy.outcome}
       </p>
       <p className="mt-mrd-2 max-w-[68ch] text-[12px] leading-relaxed text-mrd-mute">
@@ -396,7 +396,7 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
       {wsId ? <SelfImproveModeControl workspaceId={wsId} /> : null}
 
       {proposals.length === 0 ? (
-        <div className="rounded-mrd-card border border-mrd-line bg-mrd-sink px-mrd-6 py-mrd-5 text-[13px] leading-relaxed text-mrd-body">
+        <div className="rounded-mrd-card border border-mrd-line bg-mrd-sink px-mrd-6 py-mrd-5 text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
           No quality issues flagged. Signals are healthy or still gathering data.
         </div>
       ) : (

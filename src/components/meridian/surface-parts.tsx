@@ -110,7 +110,7 @@ export function PageHeading({ title, sub }: { title: React.ReactNode; sub?: Reac
     <header data-mrd="">
       <h1 className="text-[25px] leading-tight font-medium text-mrd-ink">{title}</h1>
       {sub ? (
-        <p className="mt-mrd-3 max-w-[74ch] text-[13px] leading-relaxed text-mrd-body">{sub}</p>
+        <p className="mt-mrd-3 max-w-[74ch] text-[13px] leading-relaxed text-mrd-prose text-mrd-body">{sub}</p>
       ) : null}
     </header>
   );
@@ -862,7 +862,7 @@ export function NothingHere({
       data-mrd=""
       className="rounded-mrd-card border border-mrd-line bg-mrd-sink px-mrd-6 py-mrd-5"
     >
-      <div className="max-w-[62ch] text-[13px] leading-relaxed text-mrd-body">{children}</div>
+      <div className="max-w-[62ch] text-[13px] leading-relaxed text-mrd-prose text-mrd-body">{children}</div>
       {action ? <div className="mt-mrd-5 flex flex-wrap gap-mrd-3">{action}</div> : null}
     </div>
   );
@@ -884,7 +884,7 @@ export function NothingYet({
   action?: React.ReactNode;
 }) {
   return (
-    <div data-mrd="" className="max-w-[62ch] text-[13px] leading-relaxed text-mrd-body">
+    <div data-mrd="" className="max-w-[62ch] text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
       {/* A div rather than a p, and that is a bug fix rather than a preference:
           a `<p>` may only contain phrasing content, so the moment a caller
           passes two paragraphs the markup is invalid and React refuses to
@@ -953,7 +953,7 @@ export function ReadFailed({
         <FailMark />
         <span>{children}</span>
       </h2>
-      <p className="mt-mrd-3 max-w-[62ch] text-[12.5px] leading-relaxed text-mrd-body">{detail}</p>
+      <p className="mt-mrd-3 max-w-[62ch] text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">{detail}</p>
       {onRetry ? (
         <div className="mt-mrd-5">
           <Action onClick={onRetry}>{retryLabel}</Action>
@@ -1109,7 +1109,7 @@ export function Refused({
         <RefusedMark />
         <span>{children}</span>
       </h2>
-      <p className="mt-mrd-3 max-w-[62ch] text-[12.5px] leading-relaxed text-mrd-body">{detail}</p>
+      <p className="mt-mrd-3 max-w-[62ch] text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">{detail}</p>
       {action ? <div className="mt-mrd-5 flex flex-wrap gap-mrd-3">{action}</div> : null}
     </section>
   );
@@ -1208,7 +1208,7 @@ export function RecordSpeaks({
 }) {
   return (
     <div data-mrd="" className="border-l-2 border-mrd-edge pl-mrd-5">
-      <p className="max-w-[62ch] text-[13px] leading-relaxed text-mrd-body">{children}</p>
+      <p className="max-w-[62ch] text-[13px] leading-relaxed text-mrd-prose text-mrd-body">{children}</p>
       {evidence ? <p className="mt-mrd-2 text-[12px] text-mrd-faint">{evidence}</p> : null}
     </div>
   );
@@ -1406,7 +1406,7 @@ export function Pre({
     <pre
       data-mrd=""
       tabIndex={0}
-      className="overflow-auto rounded-mrd-card bg-mrd-sink px-3 py-2.5 font-mrd-mono text-[12px] leading-[1.7] text-mrd-body"
+      className="overflow-auto rounded-mrd-card bg-mrd-sink px-3 py-2.5 font-mrd-mono text-[12px] leading-[1.7] text-mrd-prose text-mrd-body"
       style={{ maxHeight }}
     >
       {children}
@@ -1754,7 +1754,7 @@ export function BulkBar({
       data-mrd=""
       role="region"
       aria-label={`${count} selected`}
-      className="flex min-h-11 items-center gap-mrd-5 rounded-mrd-ctl bg-mrd-lift px-mrd-4 text-[13px] text-mrd-body"
+      className="flex min-h-11 items-center gap-mrd-5 rounded-mrd-ctl bg-mrd-lift px-mrd-4 text-[13px] text-mrd-prose text-mrd-body"
     >
       <span className="font-medium whitespace-nowrap text-mrd-ink">
         <Num>{count}</Num> {count === 1 ? noun : `${noun}s`} selected

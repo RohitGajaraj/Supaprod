@@ -93,7 +93,7 @@ export function Crumb({
       <span aria-hidden className="text-mrd-faint">
         ·
       </span>
-      <span className="text-mrd-body">{here}</span>
+      <span className="text-mrd-prose text-mrd-body">{here}</span>
     </nav>
   );
 }
@@ -328,7 +328,7 @@ export function ViewSwitch<T extends string>({
             className={`inline-flex h-8 items-center rounded-mrd-chip px-3 text-[12.5px] transition-colors ${
               on
                 ? "bg-mrd-select font-medium text-mrd-ink"
-                : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-body"
+                : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-prose text-mrd-body"
             }`}
             style={{ transitionDuration: "var(--mrd-d-press)" }}
           >
@@ -373,7 +373,7 @@ export function SegmentedFilter<T extends string>({
             className={`inline-flex h-8 items-center rounded-mrd-chip px-3 text-[12.5px] transition-colors ${
               on
                 ? "bg-mrd-select font-medium text-mrd-ink"
-                : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-body"
+                : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-prose text-mrd-body"
             }`}
             style={{ transitionDuration: "var(--mrd-d-press)" }}
           >

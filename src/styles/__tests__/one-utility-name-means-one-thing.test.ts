@@ -56,11 +56,16 @@ function sizeNames(css: string): Set<string> {
 /**
  * The collisions that exist today, and the ONLY ones permitted.
  *
- * `body` is here because it is real and unfixed, not because it is acceptable.
- * Removing it from this list is the acceptance test for whoever renames it; the
- * list is a ratchet and it only ever gets shorter.
+ * **EMPTIED 2026-08-21, which was this guard's own acceptance test.** It held
+ * `["body"]` while `--mrd-t-body` and `--color-mrd-body` both existed. The size
+ * stop was renamed to `--mrd-t-prose` and `text-mrd-body` is now the colour and
+ * nothing else, so there is no permitted collision left.
+ *
+ * The list is a ratchet and it only ever gets shorter. An addition here is a
+ * decision to ship a class that does two jobs, and it needs the reasoning beside
+ * it rather than a name on its own.
  */
-const KNOWN_COLLISIONS = ["body"];
+const KNOWN_COLLISIONS: string[] = [];
 
 describe("a text-mrd-* name means either a colour or a size, never both", () => {
   const css = stripCssComments(MERIDIAN);
@@ -81,12 +86,18 @@ describe("a text-mrd-* name means either a colour or a size, never both", () => 
     expect(colourNames(css).has("ink")).toBe(true);
   });
 
-  it("the known collision is still exactly one name, and it is `body`", () => {
-    // Pinned separately from the set comparison above so that the day someone
-    // fixes it, the failure says WHICH expectation to update rather than only
-    // that a list changed.
-    expect(KNOWN_COLLISIONS).toEqual(["body"]);
+  it("`body` is a colour and no longer a size, which is what the rename bought", () => {
+    // This pinned `["body"]` and the collision itself until 2026-08-21. It is
+    // inverted rather than deleted, because the invariant worth guarding is not
+    // "the list is empty" but WHICH WAY the one fixed name resolved: the size
+    // stop gave up the name and the colour kept it. Asserting the halves
+    // separately means a regression says which one came back.
+    expect(KNOWN_COLLISIONS).toEqual([]);
     expect(colourNames(css).has("body")).toBe(true);
-    expect(sizeNames(css).has("body")).toBe(true);
+    expect(sizeNames(css).has("body")).toBe(false);
+    // And the size stop landed under its new name rather than vanishing, which
+    // is the failure a bare `has("body") === false` would have passed.
+    expect(sizeNames(css).has("prose")).toBe(true);
+    expect(colourNames(css).has("prose")).toBe(false);
   });
 });

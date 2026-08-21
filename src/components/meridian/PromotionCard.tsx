@@ -234,7 +234,7 @@ export function PromotionCard({
         repo names first, and it is at its most plausible in a line nobody reads
         twice.
       */}
-      <p className="mt-mrd-3 max-w-[68ch] text-[13px] leading-relaxed text-mrd-body">
+      <p className="mt-mrd-3 max-w-[68ch] text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
         {learnedIn ? (
           <>
             Learned in <span className="font-medium text-mrd-ink">{learnedIn}</span>
@@ -270,7 +270,7 @@ export function PromotionCard({
               ) : (
                 <ul className="flex flex-col gap-mrd-3">
                   {evidence.map((item) => (
-                    <li key={item.key} className="text-[13px] leading-relaxed text-mrd-body">
+                    <li key={item.key} className="text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
                       {item.onOpen ? <Door onClick={item.onOpen}>{item.label}</Door> : item.label}
                     </li>
                   ))}
@@ -294,7 +294,7 @@ export function PromotionCard({
                 ) : (
                   <ul className="flex flex-col gap-mrd-3">
                     {guides.map((line) => (
-                      <li key={line} className="text-[13px] leading-relaxed text-mrd-body">
+                      <li key={line} className="text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
                         {line}
                       </li>
                     ))}
@@ -358,7 +358,7 @@ function SettledIn({
 
   return (
     <div data-mrd="" role="status" aria-live="polite" className="mt-mrd-5">
-      <p className="max-w-[68ch] text-[13px] leading-relaxed text-mrd-body">
+      <p className="max-w-[68ch] text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
         <span className="font-medium text-mrd-ink">
           {outcome === "approve"
             ? "You let it guide the workspace."
@@ -384,7 +384,7 @@ function SettledIn({
           <Eyebrow>What reads it next</Eyebrow>
           <ul className="mt-mrd-3 flex flex-col gap-mrd-3">
             {guides.map((line) => (
-              <li key={line} className="text-[13px] leading-relaxed text-mrd-body">
+              <li key={line} className="text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
                 {line}
               </li>
             ))}

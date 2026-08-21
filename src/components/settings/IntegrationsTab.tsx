@@ -251,7 +251,7 @@ export function IntegrationsTab() {
                 // 14px. Taking the larger: the ratchet forbids shrinking type to
                 // answer a port, and this is the one sentence on the surface that
                 // has to be read before the secret disappears.
-                fontSize: "var(--mrd-t-body)",
+                fontSize: "var(--mrd-t-prose)",
                 fontWeight: "var(--mrd-w-semi)",
                 color: "var(--mrd-ink)",
               }}

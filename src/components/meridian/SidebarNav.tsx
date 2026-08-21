@@ -708,7 +708,7 @@ export function SidebarNav({
             onClick={() => setCollapsed(true)}
             aria-label="Collapse rail to icons"
             aria-expanded
-            className={`flex size-7 shrink-0 items-center justify-center rounded-mrd-xs text-mrd-mute transition-[background-color,color] duration-100 hover:bg-mrd-hover hover:text-mrd-body ${FOCUS_RING}`}
+            className={`flex size-7 shrink-0 items-center justify-center rounded-mrd-xs text-mrd-mute transition-[background-color,color] duration-100 hover:bg-mrd-hover hover:text-mrd-prose text-mrd-body ${FOCUS_RING}`}
           >
             <svg
               aria-hidden
@@ -744,7 +744,7 @@ export function SidebarNav({
           onFocus={() => openTip("__search")}
           onBlur={closeTip}
           aria-label="Search, expands the rail"
-          className={`relative flex h-8 items-center justify-center rounded-mrd-ctl bg-mrd-sink text-mrd-mute transition-colors duration-100 hover:text-mrd-body ${FOCUS_RING}`}
+          className={`relative flex h-8 items-center justify-center rounded-mrd-ctl bg-mrd-sink text-mrd-mute transition-colors duration-100 hover:text-mrd-prose text-mrd-body ${FOCUS_RING}`}
           style={{ marginBottom: "var(--mrd-s2)" }}
         >
           <svg
@@ -1012,7 +1012,7 @@ export function SidebarNav({
                       {!isCollapsed && (
                         <>
                           <span
-                            className={`min-w-0 flex-1 truncate text-[13px] whitespace-nowrap transition-colors duration-150 ${isActive ? "font-medium text-mrd-ink" : "text-mrd-body"}`}
+                            className={`min-w-0 flex-1 truncate text-[13px] whitespace-nowrap transition-colors duration-150 ${isActive ? "font-medium text-mrd-ink" : "text-mrd-prose text-mrd-body"}`}
                           >
                             {item.label}
                           </span>
@@ -1031,7 +1031,7 @@ export function SidebarNav({
                               key={waiting}
                               aria-hidden
                               className={`flex h-4.5 min-w-4.5 shrink-0 items-center justify-center rounded-full px-1 text-[10.5px] font-semibold tabular-nums ${
-                                isActive ? "bg-mrd-lift text-mrd-body" : "bg-mrd-you text-mrd-bg"
+                                isActive ? "bg-mrd-lift text-mrd-prose text-mrd-body" : "bg-mrd-you text-mrd-bg"
                               }`}
                               style={{
                                 /* Scale, not slide. `mrd-pop-in` is the system's
@@ -1188,7 +1188,7 @@ export function SidebarNav({
           onBlur={closeTip}
           aria-label="Expand rail to show labels"
           aria-expanded={false}
-          className={`relative mx-auto flex size-7 items-center justify-center rounded-mrd-xs text-mrd-mute transition-[background-color,color] duration-100 hover:bg-mrd-hover hover:text-mrd-body ${FOCUS_RING}`}
+          className={`relative mx-auto flex size-7 items-center justify-center rounded-mrd-xs text-mrd-mute transition-[background-color,color] duration-100 hover:bg-mrd-hover hover:text-mrd-prose text-mrd-body ${FOCUS_RING}`}
           style={{ marginTop: "var(--mrd-s4)" }}
         >
           <svg

@@ -1368,7 +1368,7 @@ function DiagnosticsMoved({ onOpen }: { onOpen: () => void }) {
           <button
             type="button"
             onClick={onOpen}
-            className="rounded-full border border-mrd-line bg-mrd-sink px-3 py-1.5 text-[12px] text-mrd-body transition-colors hover:border-mrd-edge hover:bg-mrd-lift hover:text-mrd-ink"
+            className="rounded-full border border-mrd-line bg-mrd-sink px-3 py-1.5 text-[12px] text-mrd-prose text-mrd-body transition-colors hover:border-mrd-edge hover:bg-mrd-lift hover:text-mrd-ink"
           >
             Open Diagnostics
           </button>
@@ -1762,7 +1762,7 @@ function AgentDetail({
       <div className="text-[10.5px] font-medium tracking-[0.08em] text-mrd-mute uppercase">
         {label}
       </div>
-      <div className="text-[12.5px] leading-relaxed text-mrd-body">{children}</div>
+      <div className="text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">{children}</div>
     </div>
   );
 
@@ -1911,7 +1911,7 @@ function AgentDetail({
         <button
           type="button"
           onClick={() => onOpenRecord(member.slug)}
-          className="rounded-full border border-mrd-line bg-mrd-sink px-2.5 py-1 text-[11.5px] text-mrd-body transition-colors hover:border-mrd-edge hover:bg-mrd-lift hover:text-mrd-ink"
+          className="rounded-full border border-mrd-line bg-mrd-sink px-2.5 py-1 text-[11.5px] text-mrd-prose text-mrd-body transition-colors hover:border-mrd-edge hover:bg-mrd-lift hover:text-mrd-ink"
         >
           Change what {member.name} may touch, and read its history
         </button>
@@ -2797,7 +2797,7 @@ function CreditsSection() {
                     <span
                       style={{
                         display: "block",
-                        fontSize: "var(--mrd-t-body)",
+                        fontSize: "var(--mrd-t-prose)",
                         fontWeight: "var(--mrd-w-medium)",
                       }}
                     >

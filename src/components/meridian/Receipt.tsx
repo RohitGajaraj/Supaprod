@@ -84,7 +84,7 @@ export function Receipt({
       data-mrd=""
       role="status"
       aria-live="polite"
-      className="flex items-center gap-mrd-4 py-[11px] text-[14px] leading-snug text-mrd-body"
+      className="flex items-center gap-mrd-4 py-[11px] text-[14px] leading-snug text-mrd-prose text-mrd-body"
       style={{ animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease)" }}
     >
       {initials ? <YouMark initials={initials} mine /> : null}

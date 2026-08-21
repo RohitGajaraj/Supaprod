@@ -63,7 +63,7 @@ export function UndatedCalls({ calls }: { calls: UndatedCall[] }) {
               type="button"
               onClick={call.onOpen}
               data-mrd=""
-              className="shrink-0 rounded-mrd-ctl px-2 py-1 text-[12.5px] text-mrd-mute transition-colors hover:bg-mrd-hover hover:text-mrd-body"
+              className="shrink-0 rounded-mrd-ctl px-2 py-1 text-[12.5px] text-mrd-mute transition-colors hover:bg-mrd-hover hover:text-mrd-prose text-mrd-body"
               style={{ transitionDuration: "var(--mrd-d-press)" }}
             >
               Open

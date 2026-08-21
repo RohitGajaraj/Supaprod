@@ -133,7 +133,7 @@ function TraceRef({ id, onFollow }: { id: string; onFollow: (next: string) => vo
   return (
     <button
       type="button"
-      className="rounded-mrd-xs border border-mrd-line px-mrd-3 py-px tracking-mrd-label text-mrd-body transition-[color,border-color] duration-[var(--mrd-d-press)] ease-[var(--mrd-ease)] hover:border-mrd-ink hover:text-mrd-ink"
+      className="rounded-mrd-xs border border-mrd-line px-mrd-3 py-px tracking-mrd-label text-mrd-prose text-mrd-body transition-[color,border-color] duration-[var(--mrd-d-press)] ease-[var(--mrd-ease)] hover:border-mrd-ink hover:text-mrd-ink"
       style={{ fontSize: "var(--mrd-t-data)" }}
       onClick={() => onFollow(id)}
       title={`Trace ${id}`}
@@ -472,7 +472,7 @@ export function AuditLineageSheet() {
            * Choosing re-enters on the uuid, never on the tag, because the uuid
            * path is exact and the tag path is what collided. */
           <>
-            <p className="mt-0 mb-[14px] text-mrd-body leading-[1.5]">
+            <p className="mt-0 mb-[14px] text-mrd-prose text-mrd-body leading-[1.5]">
               This tag matches <strong>{d.candidateCount}</strong> records. Six characters are not
               enough to name one, so nothing has been chosen.
             </p>

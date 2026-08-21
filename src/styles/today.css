@@ -461,7 +461,7 @@
   max-width: 60ch;
   margin: var(--mrd-s5) 0 0;
   font-family: var(--mrd-font);
-  font-size: var(--mrd-t-body);
+  font-size: var(--mrd-t-prose);
   font-weight: var(--mrd-w-regular);
   color: var(--mrd-body);
   line-height: var(--mrd-lh-prose);
@@ -510,7 +510,7 @@
   margin: 0;
   padding: 5px 0;
   max-width: 72ch;
-  font-size: var(--mrd-t-body);
+  font-size: var(--mrd-t-prose);
   color: var(--mrd-body);
   line-height: var(--mrd-lh-prose);
 }
@@ -585,7 +585,7 @@
 .today-director-detail {
   margin: var(--mrd-s5) 0 0;
   color: var(--mrd-body);
-  font-size: var(--mrd-t-body);
+  font-size: var(--mrd-t-prose);
   line-height: var(--mrd-lh-prose);
   text-wrap: pretty;
 }
@@ -793,7 +793,7 @@
 
 .today-notice h3 {
   margin-top: var(--mrd-s4);
-  font-size: var(--mrd-t-body);
+  font-size: var(--mrd-t-prose);
   line-height: var(--mrd-lh-snug);
 }
 
@@ -838,7 +838,7 @@
   max-width: 72ch;
   margin: var(--mrd-s5) 0 0;
   color: var(--mrd-body);
-  font-size: var(--mrd-t-body);
+  font-size: var(--mrd-t-prose);
   line-height: var(--mrd-lh-prose);
   text-wrap: pretty;
 }

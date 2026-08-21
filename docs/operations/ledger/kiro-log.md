@@ -6965,3 +6965,50 @@ gallery case exercises it. The 8 at 13px are `ReadFailed` and `Refused`, which K
 level-rather-than-smaller, and the measurement agrees with that scoping.
 
 **Gates.** `docs:check` exit 0, zero FAIL. `lane:gates` green, real exit 0.
+
+---
+
+## K-90 (the rename) · BUILT · 2026-08-21 12:10 · one class name now does one job, and the spec was 17 consumers short
+
+**Did.** Executed the founder's option B. `--mrd-t-body` became **`--mrd-t-prose`** and the
+`@utility text-mrd-body` that set `font-size` became `@utility text-mrd-prose`. `--color-mrd-body` did not
+move. **`text-mrd-prose` added to exactly the 157 sites carrying `text-mrd-body` and no other size
+utility**, and the **10 that already carry one were not touched**.
+
+**The acceptance test, and it is the emitted stylesheet rather than an argument.** Before, `.text-mrd-body`
+compiled to **two** rules. After:
+```
+  .text-mrd-body   -> 1 rule:  color:var(--mrd-body)
+  .text-mrd-prose  -> 1 rule:  font-size:var(--mrd-t-prose)
+```
+**One name, one job.** `--mrd-t-prose: 14px` is declared, and there are **zero orphaned
+`var(--mrd-t-body)` references** and zero old declarations left in the build.
+
+**And the six fixed themselves, which is what made option B the right ruling.** Source now splits
+167 = **157 `prose` + 6 `base` + 3 `data` + 1 `label`**, and **nothing is left without a size**, so nothing
+falls back to inheritance. The six read `text-mrd-base font-medium text-mrd-body` and needed no edit at
+all: with the colour no longer carrying a size, `text-mrd-base` supplies the 13px they were always asking
+for. **So exactly six source sites change font-size, 14px → 13px**, and no other site *can* change,
+because every one of the 167 now carries exactly one font-size utility and only those six changed which
+utility supplies it.
+
+**The spec was 17 consumers short, and that gap was the whole risk.** It said "rename the size stop only"
+and named no other reader. **`--mrd-t-body` had 17 consumers outside its own declaration**: `styles.css` ×1,
+`today.css` ×5, `shell.css` ×7, and **four inline `fontSize` styles in TSX** (`IntegrationsTab`, `BetCard`,
+`PlanPicker`, `_authenticated.settings`). A bare rename would have dropped every one of them to
+inheritance, silently, in exactly the way this whole item exists to stop. All 17 updated in the same pass.
+
+**Guard inverted rather than emptied.** `KNOWN_COLLISIONS` is `[]`, and its `it` no longer asserts "the
+list is empty": it asserts **which way the name resolved**, that `body` is still a colour and is no longer
+a size, **and that `prose` exists as a size and not as a colour**. The last clause is the one that matters,
+because a bare `has("body") === false` would pass if the size stop had simply been deleted.
+
+**Noticed.** `--mrd-lh-prose` already existed at `meridian.css:789`, so the two now read as a matched pair,
+size and line-height under one word, which is better than either alone. And **Claude's own closing note
+stands**: `--mrd-t-base` at 13px is still an odd name for *"a card's subject"* now that `prose` sits beside
+it. Not folded in, per that note.
+
+**Gates.** `lane:gates` green, real exit 0. **I could not run the in-browser computed-style diff** the
+ruling asks for: `/meridian` is behind auth and the browser suite may not carry a password, so the proof
+above is source plus emitted CSS. It is complete for the question asked, and it is not the same evidence as
+a rendered diff; whoever has a session should still confirm the six.

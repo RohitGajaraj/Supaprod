@@ -365,7 +365,7 @@ export function LineageDrawer({
       <SheetContent
         side="right"
         data-mrd=""
-        className="sm:max-w-md overflow-y-auto bg-mrd-sheet font-mrd text-mrd-body"
+        className="sm:max-w-md overflow-y-auto bg-mrd-sheet font-mrd text-mrd-prose text-mrd-body"
       >
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2 text-[15px] font-medium text-mrd-ink">
@@ -413,7 +413,7 @@ export function LineageDrawer({
               <h4 className={SECTION_HEAD}>
                 <Radar className="h-3 w-3" /> Traces back to
               </h4>
-              <p className="mb-2 text-[12.5px] leading-relaxed text-mrd-body">
+              <p className="mb-2 text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">
                 <Num>{prov!.signal_count}</Num> source signal
                 {prov!.signal_count === 1 ? "" : "s"} through <Num>{prov!.node_count}</Num> step
                 {prov!.node_count === 1 ? "" : "s"} of the discovery chain.

@@ -525,7 +525,7 @@ export function ReceiptsPanel() {
     <div data-mrd="" className="flex flex-col gap-mrd-5">
       {/* What the record holds, in plain words, from real counts only. */}
       {!query.isPending && !query.isError && counts.all > 0 ? (
-        <p className="max-w-[74ch] text-[13px] leading-relaxed text-mrd-body">
+        <p className="max-w-[74ch] text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
           {ledgerSummary(counts)}
         </p>
       ) : null}

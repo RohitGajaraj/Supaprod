@@ -649,7 +649,7 @@ function Chart({
             {series.map((line) => (
               <span
                 key={line.id}
-                className="flex items-center gap-1.5 text-[11px] whitespace-nowrap text-mrd-body"
+                className="flex items-center gap-1.5 text-[11px] whitespace-nowrap text-mrd-prose text-mrd-body"
               >
                 <span
                   aria-hidden
@@ -702,7 +702,7 @@ function TrendBody({ insight }: { insight: TrendInsight }) {
                 aria-pressed={i === view}
                 onClick={() => setView(i)}
                 className={`rounded-full px-2 py-0.5 text-[11px] font-medium transition-[background-color,color,transform] duration-150 active:scale-[0.96] ${
-                  i === view ? "bg-mrd-lift text-mrd-ink" : "text-mrd-mute hover:text-mrd-body"
+                  i === view ? "bg-mrd-lift text-mrd-ink" : "text-mrd-mute hover:text-mrd-prose text-mrd-body"
                 } ${FOCUS_RING}`}
               >
                 {option.label}
@@ -736,7 +736,7 @@ function TrendBody({ insight }: { insight: TrendInsight }) {
           const tone = seriesColour(line, insight.verdict);
           return (
             <div key={line.id} className="min-w-0">
-              <span className="flex items-center gap-1.5 text-[11.5px] text-mrd-body">
+              <span className="flex items-center gap-1.5 text-[11.5px] text-mrd-prose text-mrd-body">
                 <span
                   aria-hidden
                   className="size-2 shrink-0 rounded-full"
@@ -781,7 +781,7 @@ function TrendBody({ insight }: { insight: TrendInsight }) {
          */}
         <div className="flex items-center justify-between gap-2 border-b border-mrd-line px-2.5 py-1.5">
           <span className="truncate text-[11px] text-mrd-mute">{frameLabel}</span>
-          <span className="shrink-0 rounded-full bg-mrd-lift px-2 py-0.5 text-[10.5px] font-medium text-mrd-body">
+          <span className="shrink-0 rounded-full bg-mrd-lift px-2 py-0.5 text-[10.5px] font-medium text-mrd-prose text-mrd-body">
             {insight.verdict === "open" || insight.verdict === undefined ? "Open" : "Settled"}
           </span>
         </div>
@@ -939,7 +939,7 @@ function SplitBody({ insight }: { insight: SplitInsight }) {
             className={`flex items-center gap-1.5 rounded-full px-1.5 py-0.5 text-[11.5px] transition-[background-color,color,transform] duration-150 active:scale-[0.96] ${
               selected === segment.id
                 ? "bg-mrd-lift text-mrd-ink"
-                : "text-mrd-body hover:bg-mrd-hover hover:text-mrd-ink"
+                : "text-mrd-prose text-mrd-body hover:bg-mrd-hover hover:text-mrd-ink"
             } ${FOCUS_RING}`}
           >
             <span
@@ -966,7 +966,7 @@ function SplitBody({ insight }: { insight: SplitInsight }) {
           >
             {active.label}
           </span>
-          <span className="mt-1 block text-[11px] leading-relaxed text-mrd-body">
+          <span className="mt-1 block text-[11px] leading-relaxed text-mrd-prose text-mrd-body">
             {active.detail}
           </span>
         </div>
@@ -1030,7 +1030,7 @@ function ThresholdBody({ insight }: { insight: ThresholdInsight }) {
                 aria-pressed={i === view}
                 onClick={() => setView(i)}
                 className={`rounded-full px-2 py-0.5 text-[11px] font-medium transition-[background-color,color,transform] duration-150 active:scale-[0.96] ${
-                  i === view ? "bg-mrd-lift text-mrd-ink" : "text-mrd-mute hover:text-mrd-body"
+                  i === view ? "bg-mrd-lift text-mrd-ink" : "text-mrd-mute hover:text-mrd-prose text-mrd-body"
                 } ${FOCUS_RING}`}
               >
                 {option.label}
@@ -1113,7 +1113,7 @@ function NothingSettledYet({
       <span className="block text-mrd-lead font-medium text-mrd-ink">
         No outcome has been settled yet
       </span>
-      <p className="mt-[var(--mrd-s3)] max-w-[46ch] text-[13px] leading-relaxed text-mrd-body">
+      <p className="mt-[var(--mrd-s3)] max-w-[46ch] text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
         The loop is wired and proven, and it begins accruing on first real use. An insight appears
         here once a shipped decision gets its verdict at Learn and that verdict is written back
         against the call that caused it.
@@ -1168,7 +1168,7 @@ function CouldNotRead({ reason, onRetry }: { reason: string; onRetry?: () => voi
         </svg>
         Learn could not be read
       </span>
-      <p className="mt-[var(--mrd-s3)] max-w-[46ch] text-[13px] leading-relaxed text-mrd-body">
+      <p className="mt-[var(--mrd-s3)] max-w-[46ch] text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
         {reason} Nothing below is missing because the station is empty; it is missing because this
         read did not complete.
       </p>
@@ -1319,7 +1319,7 @@ export function InsightCards({
               animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both",
             }}
           >
-            <p className="text-[12.5px] leading-relaxed text-mrd-body">{current.lead}</p>
+            <p className="text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">{current.lead}</p>
             <div className="mt-[var(--mrd-s4)]">
               {current.kind === "trend" ? (
                 <TrendBody insight={current} />

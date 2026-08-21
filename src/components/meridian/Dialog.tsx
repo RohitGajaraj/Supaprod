@@ -276,7 +276,7 @@ export function Dialog({
 
         <div
           id={bodyId}
-          className="mt-mrd-3 max-w-[62ch] min-h-0 overflow-y-auto text-[12.5px] leading-relaxed text-mrd-body"
+          className="mt-mrd-3 max-w-[62ch] min-h-0 overflow-y-auto text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body"
         >
           {children}
         </div>

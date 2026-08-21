@@ -1150,7 +1150,7 @@ function ToolPolicy({ member, onChanged }: { member: CrewMember; onChanged: () =
               ))}
             </Picker>
           ) : (
-            <span className="text-mrd-body">{MODE_CHOICE[t.resolvedMode]}</span>
+            <span className="text-mrd-prose text-mrd-body">{MODE_CHOICE[t.resolvedMode]}</span>
           ),
         sortValue: (t) => MODE_CHOICE[t.resolvedMode],
       },

@@ -297,7 +297,7 @@ function ShelfFilter({
             className={`flex h-6.5 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-medium transition-[background-color,box-shadow,color] ${
               on
                 ? "bg-mrd-lift text-mrd-ink"
-                : "text-mrd-body hover:bg-mrd-hover hover:text-mrd-ink"
+                : "text-mrd-prose text-mrd-body hover:bg-mrd-hover hover:text-mrd-ink"
             }`}
             style={{
               boxShadow: on
@@ -309,7 +309,7 @@ function ShelfFilter({
             {option.label}
             <span
               className={`rounded-mrd-xs px-1 font-mrd-mono text-[10.5px] tabular-nums ${
-                on ? "bg-mrd-sink text-mrd-body" : "text-mrd-mute"
+                on ? "bg-mrd-sink text-mrd-prose text-mrd-body" : "text-mrd-mute"
               }`}
             >
               {option.count}
@@ -404,7 +404,7 @@ function ChangedTrail({ lines }: { lines: Settled[] }) {
             >
               {line.verb}
             </span>
-            <span className="min-w-0 text-[12.5px] leading-snug text-mrd-body">
+            <span className="min-w-0 text-[12.5px] leading-snug text-mrd-prose text-mrd-body">
               {line.consequence}
             </span>
             <span className="font-mrd-mono ml-auto shrink-0 text-[12px] tabular-nums text-mrd-faint">
