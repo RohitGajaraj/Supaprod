@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { notInList, sampleWorkspaceIds } from "@/lib/ticks/real-workspaces.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
@@ -70,10 +71,17 @@ export const Route = createFileRoute("/api/public/hooks/researcher-tick")({
           ).toISOString();
 
           // Workspaces with auto_sense_enabled, oldest researcher tick first
-          const { data: rawBriefs, error: briefErr } = await supabaseAdmin
+          // Sample workspaces are excluded BY ID, because workspace_briefs carries
+          // workspace_id and not is_sample. See lib/ticks/real-workspaces.server.ts:
+          // the fourteen-hook `is_sample` fix did not reach this tick, and it was
+          // still starting `researcher` runs on fixtures after that fix shipped.
+          const excluded = notInList(await sampleWorkspaceIds(supabaseAdmin as never));
+          let briefQuery = supabaseAdmin
             .from("workspace_briefs")
             .select("workspace_id, current_focus, researcher_targets, last_researcher_tick_at")
-            .or(`last_researcher_tick_at.is.null,last_researcher_tick_at.lt.${cooldownCutoff}`)
+            .or(`last_researcher_tick_at.is.null,last_researcher_tick_at.lt.${cooldownCutoff}`);
+          if (excluded) briefQuery = briefQuery.not("workspace_id", "in", excluded) as never;
+          const { data: rawBriefs, error: briefErr } = await briefQuery
             .order("last_researcher_tick_at", { ascending: true, nullsFirst: true })
             .limit(MAX_WORKSPACES);
           // Cast: new columns not in generated types until migration is applied

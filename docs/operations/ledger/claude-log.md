@@ -8196,3 +8196,39 @@ alphabetical position to match the generator, nullable `string | null` and optio
 `bunx tsc --noEmit` exit 0. **The column-stamping half of this lane is no longer blocked.**
 
 ---
+
+## LANDED · 2026-08-21 14:22 · the is_sample fix was necessary and not sufficient, caught by re-measuring it
+
+**Went back to check my own fix rather than assume it worked, which is the whole point of this lane.**
+Measured `ai_events` 90 minutes after pushing the fourteen-hook `is_sample` filter: **81 `agent` calls,
+still 100% on SAMPLE workspaces, latest 08:41 UTC.**
+
+**Then separated deploy lag from an incomplete fix**, because those need opposite responses. **Six new
+`agent_runs` were CREATED on sample workspaces after the push**, latest 08:40:41: `discovery-scout` 2,
+`researcher` 2, `design-critic` 1, `ux-architect` 1.
+
+**`researcher` is the one that proves the fix was incomplete.** `researcher-tick` chooses its work from
+**`workspace_briefs`**, not from `workspaces`, so a filter on the workspaces table never applied to it. I
+had classified that hook's `.eq("id", ...)` as a lookup and been right about it, and that correctness is
+exactly what hid the gap: the file passed my guard because the query the guard reads is not the query that
+picks the work.
+
+**The shape is one level up from where I fixed it.** A tick selects work from a **workspace-scoped table**,
+and those tables carry `workspace_id` rather than `is_sample`, so the exclusion has to travel by id.
+
+**Built `src/lib/ticks/real-workspaces.server.ts`** and wired `researcher-tick` to it.
+`sampleWorkspaceIds` returns the ids to exclude and `notInList` renders the PostgREST literal.
+
+**Two decisions in it that are not incidental.** It returns the **sample** ids rather than the real ones,
+because `is_sample` is `NOT NULL DEFAULT false`: a workspace created a second from now is real, and
+excluding a known sample list keeps it included where selecting a known real list would silently drop it.
+And a **failed read returns an empty array rather than throwing**, so a tick that cannot reach the list
+still runs: stopping every tick on a transient read error is a worse failure than one extra fixture run.
+
+**Still open, and I am naming it rather than implying the sweep is done.** `discovery-scout`,
+`design-critic` and `ux-architect` also started on samples after the push. Those may be deploy lag, since
+the cron calls the deployed Worker and the push was 32 minutes old. **I have not separated that yet**, and
+the guard still only reads `.from("workspaces")`, so it cannot see a tick that selects from a
+workspace-scoped table. Widening it is the next piece.
+
+---
