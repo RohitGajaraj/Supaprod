@@ -35,7 +35,7 @@ mock.module("@tanstack/react-router", () => ({
   useNavigate: () => navigateSpy,
 }));
 
-const { GotoShortcuts } = await import("./CommandPalette");
+const { GotoShortcuts } = await import("./GotoShortcuts");
 
 /** A key press the way a person makes one: on the window, no modifiers. */
 const press = (key: string) =>

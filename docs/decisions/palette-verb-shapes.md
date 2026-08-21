@@ -2,6 +2,16 @@
 
 > _Created: 2026-08-21 · Last updated: 2026-08-21 (built, with one premise corrected)_
 
+> **SUPERSEDED IN PART, 2026-08-21 (same day, later): THE PALETTE THIS RULING SHAPES IS RETIRED.** The shape law below is still
+> correct and its build guard (`src/lib/palette-catalog.test.ts`) still runs — `ACT_VERBS` and `JUMP_DESTINATIONS` survive as data
+> in `src/lib/palette-sections.ts` — but **no UI reads them**, because there is no command palette any more. What is recorded here
+> about *why* the third shape rots is worth keeping and applies to any future verb list. What is recorded here about the palette
+> being a live surface no longer holds. Full record, including the two written contracts the retirement reverses and the case for
+> keeping the palette verbatim: [`./palette-retired-2026-08.md`](./palette-retired-2026-08.md).
+>
+> **One correction carried forward:** only **1** of the 19 catalog rows was genuinely dead (`open-calendar` → `/today`), not the
+> 5 an intermediate reading claimed. `challenge-belief`, `point-critic` and `tickets-to-signals` all routed correctly.
+
 **Founder ruling, 2026-08-21. Settles K-37.** Measured by Kiro, ruled by the founder, **built by Claude** — Kiro documented this and did not touch the code. **BUILT 2026-08-21, and the build falsified one of the premises below. Read the correction first.**
 
 **The decision in one line: a palette verb either navigates to the station that owns the job, or it acts in place through something mounted globally. It never does both.**

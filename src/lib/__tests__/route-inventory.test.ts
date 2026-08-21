@@ -152,7 +152,6 @@ const RETIRED_LINKERS = [
   "components/mission/MissionShell.tsx",
   "components/mission/MissionShellView.tsx",
   "components/mission/RoomChrome.tsx",
-  "components/supaprod/CommandPalette.tsx",
 ];
 
 /** Authenticated surfaces that legitimately have no door, each with a reason.

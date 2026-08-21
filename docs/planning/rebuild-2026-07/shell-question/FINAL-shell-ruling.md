@@ -451,6 +451,9 @@ currently impossible. The fix is two-sided and both sides are required:
    field inside each pane).
 2. `⌘K` mounts the palette as an accelerator.
 
+> **SUPERSEDED 2026-08-21 — the palette is retired, not mounted.** The clause is left standing so the reversal can be checked. Every job it reserved the palette for is now done by something mounted (`GotoShortcuts`, `RailFind`, `ShortcutSheet`), and ⌘K is Ask's by the founder's 2026-07-30 call, so it had no key left. Record and the case for keeping it: `docs/decisions/palette-retired-2026-08.md`.
+
+
 This is the highest-value single item in shell-c's list. It is precondition P9, the founder's
 literal stated goal, and it is satisfied by a list in every one of the seven reference products.
 

@@ -8,7 +8,8 @@
  * about `alertdialog` and the copies disagreed again.
  *
  * WHY A FILE OF ITS OWN, rather than living in CommandPalette.tsx where it
- * started. It was exported from there and three unrelated modules imported it,
+ * started (that file is `components/supaprod/GotoShortcuts.tsx` now -- its
+ * palette was retired on 2026-08-21 and it was renamed for what it holds). It was exported from there and three unrelated modules imported it,
  * which meant importing a large React component -- with its catalog, its
  * recents, its Radix dialog and their transitive graph -- to read one string.
  * That is not a style objection: it broke AskPane's own test suite the moment

@@ -450,7 +450,9 @@ export function railOwnerOf(path: string): string | null {
 /* ==================================================================
  * THE TWELVE KEYS THAT FIRED AND WERE DRAWN NOWHERE.
  *
- * GotoShortcuts (CommandPalette.tsx:419) is mounted on every
+ * GotoShortcuts (components/supaprod/GotoShortcuts.tsx -- cite the symbol,
+ * not a line: this pointer read CommandPalette.tsx:419 and was already wrong
+ * by a hundred lines before that file was renamed) is mounted on every
  * authenticated surface except onboarding and Mission Control
  * (_authenticated.tsx:190), and it binds a bare key per destination
  * derived from `navKeyHint`. So today, on this shell, pressing 3

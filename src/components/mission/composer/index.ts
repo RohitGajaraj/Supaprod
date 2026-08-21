@@ -1,26 +1,18 @@
-// Mission Control composer (front-end reimagining Phase 2): the docked
-// strip, the shortcut summon, the suggestion rows, and the journey chips.
-// These components consume props only.
+// Mission Control composer: what is left of it is Ask's mount point.
 //
-// THE THREAD RE-EXPORT IS GONE, with the Mission Control room that owned it.
-// `Thread.tsx` rendered the room's conversation column, and the room was
-// deleted on 2026-08-10 as unreachable: `ROOM_PRODUCT_ROUTE_IDS` in
-// `src/lib/room-url.ts` is an empty array with both route ids commented out,
-// so nothing could mount it. Re-exporting a deleted module from a barrel is
-// not a dangling name a reader can ignore -- this barrel is what
-// `src/routes/_authenticated.tsx` imports `GlobalComposer` through, so a stale
-// line here fails the whole authenticated tree at compile time.
+// THIS BARREL EXPORTS ONE NAME, and it used to export nine. Composer,
+// ComposerSurface, ComposerOverlay, SuggestionPopover, buildSuggestionRows,
+// JourneyChips and COMPOSER_JOURNEYS were the command palette's overlay and
+// its rows; they were reachable only through `GlobalComposerHost`, which was
+// declared in `GlobalComposer.tsx` and never called. The palette was retired
+// by ruling on 2026-08-21 and those files were deleted with it. The reasoning
+// is in `docs/decisions/palette-retired-2026-08.md`.
 //
-// What remains is re-exported because it is still reachable: `GlobalComposer`
-// is mounted by that route, and Composer / ComposerOverlay / SuggestionPopover
-// / JourneyChips are its transitive dependencies through `ComposerOverlay`.
+// `OPEN_COMPOSER_EVENTS` went with them: it named `supaprod:open-cmdk`, the
+// palette's summon, which nothing in `src/` ever dispatched.
+//
+// Keep this barrel. `src/routes/_authenticated.tsx` imports `GlobalComposer`
+// through it, so a stale line here fails the whole authenticated tree at
+// compile time -- which is exactly why it is worth keeping honest.
 
-export { Composer, ComposerSurface } from "./Composer";
-export type { ComposerProps, ComposerSurfaceProps } from "./Composer";
-export { ComposerOverlay } from "./ComposerOverlay";
-export type { ComposerOverlayProps } from "./ComposerOverlay";
-export { SuggestionPopover, buildSuggestionRows } from "./SuggestionPopover";
-export type { SuggestionPopoverProps, SuggestionRow, SuggestionSection } from "./SuggestionPopover";
-export { JourneyChips, COMPOSER_JOURNEYS } from "./JourneyChips";
-export type { JourneyChipsProps } from "./JourneyChips";
-export { GlobalComposer, OPEN_COMPOSER_EVENTS } from "./GlobalComposer";
+export { GlobalComposer } from "./GlobalComposer";

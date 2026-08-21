@@ -1,15 +1,20 @@
-// GlobalComposer: the mount point for the two summons on old-app surfaces.
+// GlobalComposer: Ask's mount point, and the guard that the palette stays gone.
 //
-// THE CONTRACT CHANGED, and these tests changed with it. Cmd/Ctrl+J and
-// Cmd/Ctrl+K used to open the SAME centred overlay, which is why Ask was "very
-// bare": it was the command palette with a thread stapled above it. They are
-// two surfaces again:
+// THIS FILE IS NOW A RETIREMENT GUARD. Cmd/Ctrl+J and Cmd/Ctrl+K used to open
+// the SAME centred overlay, which is why Ask read "very bare": it was the
+// command palette with a thread stapled above it. The palette was retired by
+// ruling on 2026-08-21 and its overlay deleted
+// (docs/decisions/palette-retired-2026-08.md), so every assertion below is
+// NEGATIVE by design and that is the point:
 //
-//   Cmd/Ctrl+K and supaprod:open-cmdk -> the palette overlay, tested here.
-//   Cmd/Ctrl+J and supaprod:open-ask  -> AskPane, which owns its open state in
-//     AskProvider. GlobalComposer only mounts it, so the cases that used to
-//     assert "open-ask opens the overlay" now assert the opposite: the palette
-//     must NOT answer Ask's door, or one key press opens two panels.
+//   supaprod:open-cmdk -> must open NOTHING. It was the palette's summon and
+//     nothing in `src/` has ever dispatched it; this asserts that a stale
+//     dispatcher appearing later still cannot resurrect the overlay.
+//   Cmd/Ctrl+K and supaprod:open-ask -> AskPane, which owns its open state in
+//     AskProvider. GlobalComposer only mounts it.
+//
+// Do not "fix" these tests by deleting them when they look tautological. A
+// passing negative here is the evidence that the retirement held.
 //
 // AskPane is MOCKED here on purpose, and not only for isolation: it imports the
 // approvals queue's server functions, which transitively load the Supabase

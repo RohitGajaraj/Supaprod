@@ -553,8 +553,11 @@ export function DiscoverSurface({
    * every refetch would drag the page back off whatever you chose.
    *
    * `scrollIntoView` with no `behavior` is a jump rather than a smooth scroll,
-   * so there is no reduced-motion leak -- the same reason CommandPalette's
-   * row-into-view effect gives for `block: "nearest"`. `preventScroll` on the
+   * so there is no reduced-motion leak: a jump has no animation for
+   * `prefers-reduced-motion` to need to suppress. (This reason used to be
+   * borrowed by citing the command palette's row-into-view effect, which was
+   * retired on 2026-08-21; it is stated here directly now, because a reason
+   * that lives in another file dies with it.) `preventScroll` on the
    * focus stops the browser doing a second, worse scroll of its own immediately
    * afterwards.
    */

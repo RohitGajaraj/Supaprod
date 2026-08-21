@@ -136,6 +136,9 @@ questions, two modes, one drawing, always labelled.
 | **Settings as a destination** | 3433 lines, 5 groups, 16 sections, every one a thing you configure *so the room behaves differently*. Linear, Vercel and Notion all overlay settings for that reason: you want to see what you changed. It becomes the config overlay. |
 | **A palette as the IA** | Search answers "take me to a thing I can name". It cannot answer "what should I do". It ships (§6.6) and it is never load-bearing. |
 
+> **SUPERSEDED 2026-08-21 — the palette is retired, not mounted.** The clause is left standing so the reversal can be checked. Every job it reserved the palette for is now done by something mounted (`GotoShortcuts`, `RailFind`, `ShortcutSheet`), and ⌘K is Ask's by the founder's 2026-07-30 call, so it had no key left. Record and the case for keeping it: `docs/decisions/palette-retired-2026-08.md`.
+
+
 ---
 
 ## 2. THE HOME TABLE
@@ -976,6 +979,9 @@ line C crossed and this design does not.
 | `src/lib/room-url.ts` | **Extended**, keeping every existing guarantee, and becomes the single URL builder for every param in §6.1. Nothing constructs a room URL by string concatenation. |
 | `src/lib/lineage.functions.ts`, `src/lib/knowledge-graph-view.ts` | **Extended** per §5.1, with one enum deriving from the other so they cannot drift again. |
 | `src/components/supaprod/CommandPalette.tsx` | **Kept and finally mounted** (§6.7); its Deck becomes the empty state. |
+
+> **SUPERSEDED 2026-08-21 — the palette is retired, not mounted.** The clause is left standing so the reversal can be checked. Every job it reserved the palette for is now done by something mounted (`GotoShortcuts`, `RailFind`, `ShortcutSheet`), and ⌘K is Ask's by the founder's 2026-07-30 call, so it had no key left. Record and the case for keeping it: `docs/decisions/palette-retired-2026-08.md`.
+
 
 ### 7.5 Concepts killed
 

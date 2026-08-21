@@ -534,8 +534,10 @@
    *
    * THE GAP IT FOUND. This system has never named what stacks above what. The
    * consequence is eleven bare z-index values across shell.css and
-   * primitives.css (30, 50, 60, 62, 70, 70) and two more inline in
-   * CommandPalette.tsx (80, 81), none of which say what they outrank or why.
+   * primitives.css (30, 50, 60, 62, 70, 70), none of which say what they
+   * outrank or why. (This once counted two more inline at 80 and 81 in
+   * CommandPalette.tsx; that file's palette was retired on 2026-08-21 and
+   * those two values went with it.)
    * Two of them are the same number on two different objects, which means the
    * winner is decided by the order the rules happen to appear in the file. That
    * is a layout accident, not a decision, and it is exactly the class of thing

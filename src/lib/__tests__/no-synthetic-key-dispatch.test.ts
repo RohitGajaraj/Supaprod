@@ -72,7 +72,7 @@ function stripComments(src: string): string {
 const KNOWN_ASK_OPENERS = [
   join("lib", "ask-open.ts"),
   join("components", "shell", "AppFrame.tsx"),
-  join("components", "supaprod", "CommandPalette.tsx"),
+  join("components", "supaprod", "GotoShortcuts.tsx"),
   join("components", "mission", "composer", "GlobalComposer.tsx"),
   join("components", "mission", "RoomChrome.tsx"),
   join("routes", "_authenticated.m.index.tsx"),

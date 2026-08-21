@@ -31,7 +31,7 @@ import { PRIMARY_NAV, FOOTER_NAV, navKeyHint, NAV_CHORD_PREFIX } from "@/lib/nav
  * React happened to mount things in, and settles it in one place forever.
  */
 
-const SRC = readFileSync(join(import.meta.dir, "CommandPalette.tsx"), "utf8");
+const SRC = readFileSync(join(import.meta.dir, "GotoShortcuts.tsx"), "utf8");
 
 /** The block that binds the chord, so a match elsewhere in the file cannot
  *  stand in for the real one. */

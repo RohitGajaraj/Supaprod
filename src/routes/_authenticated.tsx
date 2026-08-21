@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { GotoShortcuts } from "@/components/supaprod/CommandPalette";
+import { GotoShortcuts } from "@/components/supaprod/GotoShortcuts";
 import { BrandWait } from "@/components/supaprod/BrandWait";
 import { AppFrame } from "@/components/shell/AppFrame";
 import { WorkspaceProvider } from "@/hooks/use-workspace";
@@ -200,30 +200,35 @@ function AuthedLayout() {
                 <Outlet />
               </AppFrame>
             )}
-            {/* THIS MOUNTS ASK, NOT A PALETTE, and the note that used to stand
-                  here said the opposite. It read "Cmd/Ctrl+J and Cmd/Ctrl+K
-                  plus the supaprod:open-ask / supaprod:open-cmdk events open
-                  the ComposerOverlay on every old-app surface", and every
-                  clause of that is now false: `GlobalComposer` returns
-                  `<AskDock>`, Cmd+K is bound in `ask-context.tsx` beside the
-                  state it toggles, and NOTHING in `src/` dispatches
-                  `supaprod:open-cmdk` any more. The room it also described was
-                  retired on 2026-08-10.
+            {/* THIS MOUNTS ASK. There is no command palette any more, and as
+                  of 2026-08-21 that is a ruling rather than an accident.
+                  `GlobalComposer` returns `<AskDock>`; Cmd+K is bound in
+                  `ask-context.tsx` beside the state it toggles.
 
-                  WHAT THAT COST, so the next reader does not pay it again
-                  (2026-08-21, K-37). This line is what a reader checks to
-                  answer "is the command palette live?", and stopping at
-                  `<GlobalComposer />` being mounted says yes. It is not: the
-                  palette lives in `GlobalComposerHost`, which is declared in
-                  that same file and never called, and in `CommandPalette`,
-                  which is mounted nowhere. So `ACT_VERBS` and the whole
-                  JUMP / ACT / Catalog list are unreachable by a real user
-                  today, and a ruling was very nearly taken on the belief that
-                  four of those verbs were lying to people in production.
+                  WHY THE PALETTE WENT, in one line each, with the full record
+                  and the two written contracts it reverses in
+                  docs/decisions/palette-retired-2026-08.md. It had no key: ⌘K
+                  is Ask's by the founder's 2026-07-30 call. It had no door:
+                  nothing in `src/` ever dispatched `supaprod:open-cmdk`. It had
+                  no reader: Rollup tree-shook it out of the production build
+                  entirely. And every job the July rulings held it for is now
+                  done by something mounted -- `GotoShortcuts` below for the
+                  chords, `RailFind` for search-by-name, `ShortcutSheet` for the
+                  chord table. Its data survives on purpose in
+                  `lib/palette-catalog.ts` and `lib/palette-sections.ts`,
+                  because the capability list is the one thing with no other
+                  home; it is filed as a board item, not deleted.
 
-                  Retired UI stays in the tree unmounted (Addendum 1.1 rule 8),
-                  which is why both hosts still exist. Remounting either one is
-                  a live option and a deliberate call, not a cleanup. */}
+                  WHAT THIS LINE COST TWICE, so nobody pays it a third time.
+                  This is what a reader checks to answer "is the palette live?",
+                  and stopping at `<GlobalComposer />` being mounted said yes
+                  for a year while the answer was no. A mount is not a render.
+                  Addendum 1.1 rule 8 keeps retired UI in the tree unmounted,
+                  and it was suspended here deliberately: two dead hosts nobody
+                  could reach cost two sessions and nearly bought a ruling taken
+                  on the belief that four palette verbs were lying to users in
+                  production. Recoverability that reads as live code is a trap,
+                  not a safety net. */}
             {!isOnboarding && <GlobalComposer />}
             {/* The focus dock is RETIRED by the rebuild (2026-07-29). The
                 approved shell is four regions and not eight, and a fixed

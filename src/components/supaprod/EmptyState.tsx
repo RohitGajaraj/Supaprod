@@ -12,7 +12,13 @@ import type { ReactNode } from "react";
  * - Responsive: spacing adjusts on mobile
  * - a11y: semantic div, headline in Pixel so screen readers see it
  *
- * Reference: CommandPalette empty state is the gold standard (Pixel headline + Sans body).
+ * NO REFERENCE SURFACE ANY MORE, deliberately. This block used to name the
+ * command palette's empty state as "the gold standard". That palette was
+ * retired on 2026-08-21 (docs/decisions/palette-retired-2026-08.md) and it
+ * spoke a retired design vocabulary -- nineteen Obsidian-era tokens against
+ * zero Meridian ones -- so the pointer was sending the next author to copy
+ * exactly what the ratchet exists to stop. The anatomy above is the contract;
+ * Meridian is the vocabulary. Do not re-add a "copy this file" line here.
  */
 export function EmptyState({
   icon,

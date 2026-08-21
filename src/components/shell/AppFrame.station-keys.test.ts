@@ -37,7 +37,7 @@ import { AGENT_STATION_ORDER } from "@/lib/agent-vocabulary";
 
 const SRC = readFileSync(join(import.meta.dir, "AppFrame.tsx"), "utf8");
 const CSS = readFileSync(join(import.meta.dir, "..", "..", "styles", "shell.css"), "utf8");
-const PALETTE = readFileSync(join(import.meta.dir, "..", "supaprod", "CommandPalette.tsx"), "utf8");
+const PALETTE = readFileSync(join(import.meta.dir, "..", "supaprod", "GotoShortcuts.tsx"), "utf8");
 
 describe("every station draws the key that opens it", () => {
   it("resolves a key for all seven, not six", () => {
