@@ -2222,7 +2222,7 @@ So a scout that is failing on every target, or silently truncated by its cap, re
 ---
 
 **K-94 · A third of finished runs are drawn as idle, on two live surfaces**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: BUILT` · deps: none · size: S
 **Renumbered 2026-08-21** from **K-87** (`claude-log.md:5568`). See K-93 for why.
 
 **What.** Give `mapRelayStatus` (`src/lib/relay.ts:26-49`) a done arm that covers every spelling
@@ -2288,7 +2288,7 @@ That figure is stale -- it is 1,825 now -- but the file is not yours for this it
 ---
 
 **K-95 · The admin pages were ported and their error state was left behind**
-`STATUS: TODO` · deps: none · size: S
+`STATUS: BUILT` · deps: none · size: S
 **Renumbered 2026-08-21** from **K-88** (`claude-log.md:6268`). See K-93 for why.
 
 **What.** Port `src/components/admin/admin-ui.tsx` off the retired vocabulary. The baseline
@@ -2689,6 +2689,37 @@ directories are disjoint. Verify the import on every file touched: only `Action`
 - No site's `busy` expression contains `||`, `&&` or a call, checked independently of the migration.
 **Owns.** `src/components/meridian/surface-parts.tsx`, `src/routes/**`, `src/components/**`,
 `src/__tests__/a-working-control-says-so.test.ts`
+
+---
+# Group R · the hint that ate the name
+
+**K-96 · `CtxRow`'s tooltip renders instead of the row's name, and no tooltip is emitted**
+`STATUS: BUILT` · deps: none · size: S
+**Filed and built 2026-08-21**, found while designing K-93's rows in the component they land in.
+**What.** `CtxRow` in `src/components/meridian/ContextColumn.tsx` computed `const displayName = title || name`
+and set no `title` attribute on any of its three branches. **So a caller passing both lost the name and never
+got the tooltip.**
+**Why.** Three callers pass `title`, all on Discover's context rail, and all three meant a hover hint. Two
+rendered a sentence about a door where the thing behind the door belongs. **The third is the one that matters:**
+"What backs this", the evidence under a focused cluster, passes `name={signalPreview(s.content, 96)}` with a
+`title` of ``Open the source: ${s.url}``, so **the section whose entire job is to show a quote verbatim showed
+the quote's URL.** Its own comment says the rail exists so the evidence under a call is not "a wall of quotes
+you had to take on trust"; it was a wall of addresses.
+**Proven in a render rather than inferred**, which is the K-90 lesson applied: `<CtxRow name="GitHub"
+title="Open this source in Settings, Connections" />` printed the sentence and carried no `title` attribute.
+**How.** `title` becomes `string` rather than `React.ReactNode`, is passed to the div, button and anchor
+branches, and `name` is what renders. **The narrower type is half the fix**: a tooltip can only carry a string,
+so a node can no longer be handed over as one. No caller needed an edit; all three already passed what they
+meant.
+**Acceptance.**
+- The name renders and the hint lands in the `title` attribute, on all three branches.
+- No `title` attribute at all when no hint was given, so a row with nothing to add grows no hover target.
+- A test asserts the evidence shape shows the quote and **not** its `https://`.
+- The one-line clip is pinned, because the hint is also the only way to read a long name in full.
+- **Proven by planting the defect**: 5 of 12 fail, exit 1.
+**Owns.** `src/components/meridian/ContextColumn.tsx`,
+`src/components/meridian/__tests__/context-column.test.tsx`. **Not** the two other `CtxRow` exports
+(`shell/primitives.tsx:1198`, `crew/CrewChrome.tsx:439`), which are separate components with their own callers.
 
 ---
 

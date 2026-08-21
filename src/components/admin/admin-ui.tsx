@@ -1,8 +1,32 @@
 /**
- * Shared admin-console states (Loom W2-ADMIN, DESIGN-LOOM §9): shimmer
- * skeletons that match the row layout, an error card that never wears an
- * empty state's clothes (register D-11), and a debounced-value hook for the
- * search inputs (register D-22). An error may NEVER read as "no results".
+ * Shared admin-console states: shimmer skeletons that match the row layout, an
+ * error card that never wears an empty state's clothes (register D-11), and a
+ * debounced-value hook for the search inputs (register D-22). An error may
+ * NEVER read as "no results".
+ *
+ * ── K-95: THE ERROR STATE THE ADMIN PORT LEFT BEHIND ────────────────────
+ * The Group H ports moved every `_authenticated.admin*.tsx` to Meridian and
+ * walked past this module, which is the one place all of them draw their
+ * failure through. So the four retired tokens here were painting inside three
+ * otherwise-Meridian pages, and one of them was illegible.
+ *
+ * `--madder` resolves to `--ds-red-600`, which is `#ff6a6e` on paper. Against
+ * the card's own ground (`.material-medium` -> `--ds-background-100` -> `#fff`)
+ * that is 2.79:1 against a 4.5 floor -- the LOWEST-contrast text on those pages,
+ * on the one string somebody reads because something already went wrong. It hid
+ * because `--madder` is tuned for the dark ground, where it measures 4.97, and
+ * these routes were dark-only until the port made them theme-responsive.
+ *
+ * `--mrd-fail` measures 5.83 on dark and 6.64 on paper on the same ground, and
+ * it is the token `surface-parts.tsx`'s `ReadFailedLine` and the Engine Room's
+ * `AgentScorecardPanel` already use for exactly this sentence, so the product's
+ * failure states now agree rather than each picking their own red.
+ *
+ * `--raised` + `--top-light` were Obsidian's elevation recipe: a ground step
+ * plus a white inset top edge. Meridian raises by the ground ladder alone, so
+ * the skeleton takes `--mrd-lift` and the inset goes with it -- a 5% white
+ * hairline is invisible on paper and the founder's 2026-08-18 ruling rules out
+ * reintroducing one. Matches the skeleton bars in `_authenticated.brain.tsx`.
  */
 import { useEffect, useState } from "react";
 
@@ -44,8 +68,7 @@ export function AdminSkeleton({ rows = 4, height = 36 }: { rows?: number; height
           style={{
             height,
             borderRadius: "var(--radius-control)",
-            background: "var(--raised)",
-            boxShadow: "var(--top-light)",
+            background: "var(--mrd-lift)",
             animation: "admin-skeleton-pulse 1.6s ease-in-out infinite",
             animationDelay: `${i * 80}ms`,
           }}
@@ -81,7 +104,7 @@ export function AdminErrorCard({
           fontFamily: "var(--font-mono)",
           letterSpacing: "0.11em",
           textTransform: "uppercase",
-          color: "var(--madder)",
+          color: "var(--mrd-fail)",
         }}
       >
         Could not load {what}
@@ -91,7 +114,7 @@ export function AdminErrorCard({
           style={{
             margin: 0,
             fontFamily: "var(--font-sans)",
-            color: "var(--text-muted)",
+            color: "var(--mrd-mute)",
             maxWidth: 520,
           }}
         >
@@ -106,7 +129,7 @@ export function AdminErrorCard({
           fontFamily: "var(--font-mono)",
           letterSpacing: "0.11em",
           textTransform: "uppercase",
-          color: "var(--text-primary)",
+          color: "var(--mrd-ink)",
           background: "none",
           border: "none",
           padding: 0,

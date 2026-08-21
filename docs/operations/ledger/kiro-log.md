@@ -7087,3 +7087,122 @@ occurrences when what they are is **18 correct fallbacks for a token layer that 
 that and the roots widen with no baseline change at all. **`SCAN_ROOTS` and the baseline are untouched.**
 **Gates.** `bun run lane:gates` green, real exit 0. New guard 3 pass. **Nothing to look at in a browser**:
 this change adds a test and no rendered surface.
+---
+## K-94 · BUILT · 2026-08-21 15:05 · a third of finished runs were drawn as nothing happening
+**Did.** Two `case` labels into `mapRelayStatus`'s existing done arm in `src/lib/relay.ts`
+-- `completed_with_failures` and `complete` -- plus `src/__tests__/every-finished-run-is-drawn-as-finished.test.ts`,
+which enumerates all six spellings production writes. **`RelayStatus` is unchanged and no line was modified**,
+only added to. `failed`/`halted` and `waiting_approval` already had arms, so those two labels are the whole
+fix: all six measured spellings now map to something other than `idle`.
+**`completed_with_failures` is `done`, and no sixth word.** The judgement is argued in the file, and the
+decisive reason is not the philosophical one. **A sixth word would have nowhere to render, so it would repeat
+this exact defect in new clothes:** the only consumer, `markFor` in `AgentRelay.tsx:45`, is an if-chain
+falling through to `"quiet"`, and `MarkState` carries no value meaning "finished with failures". An unhandled
+sixth word typechecks clean and draws **quieter** than `done` does. The supporting reasons: the relay's six
+words are all about motion and attention rather than outcome quality, so a run nobody is working on is
+finished whatever shape it finished in; and **the repo already ruled this value on measured grounds** in
+`agent-fleet.ts:79-103` (zero `failure_kind` against `failed`'s 347, 37,098 average tokens against `failed`'s
+1,097, so it runs further than a clean success rather than dying early), with `reliability/runaway.ts:75-87`
+calling it terminal. **The accepted cost is named in the file**: the relay now calls this run delivered where
+`run-state.ts` and `build-status.ts` call it stopped, because those two ask *was this clean* and this one asks
+*is anyone still working*.
+**`done` stays in the arm** though production writes it zero times. The defect was the absence of the other
+two, not its presence.
+**The test pins the measured table, not a plausible one**, and that is the part that stops a seventh spelling
+landing quietly. It asserts none of the six maps to `idle`, each maps to its ruled value, the
+`complete`/`completed`/`completed_with_failures` trio explicitly, and **that the six counts sum to 1,825** --
+so a reader who edits a count without re-measuring fails the build. Eight tests, 20 assertions.
+**Proven by planting the defect.** Both new labels commented out: 5 of 8 fail, the first naming
+`["completed_with_failures", "complete"]` as drawn idle. Reverted, and the tree carries only the additions.
+**Every production number in both files is transcribed, not measured by me.** The 1,825 rows, the six counts,
+and the two mount sites (`DiscoverSurface.tsx:1967`, `MissionOrchestratorDetail.tsx:1324`) come from the queue
+item and from `agent-fleet.ts`'s comment. **The list being complete is the item's claim, not mine**: the sum
+assertion cannot see a seventh spelling production started writing after 2026-08-20.
+**Noticed, not fixed.** `markFor` draws a finished run as `MarkState "idle"`, so 620 runs move from quiet to
+idle rather than to anything reading as delivered, and `MarkState` has `"verified"`, which `today.tsx:995`
+uses for exactly that. It is also **not exhaustive** -- an if-chain with a `return "quiet"` fallback, so the
+next word added to `RelayStatus` renders as quiet with a clean typecheck. Both are outside this item's files.
+`mapRelayStatus` also does not trim whitespace where `agent-fleet.ts`'s `runBucket` does; recorded in a test
+comment rather than changed, since nothing measured says production writes padded values.
+**Gates.** `lane:gates` green, real exit 0. **Nothing rendered**: this is a pure function and its test.
+---
+## K-95 · BUILT · 2026-08-21 15:10 · the one string you read because something broke was the least legible on the page
+**Did.** `src/components/admin/admin-ui.tsx` off the retired layer. Four occurrences, and **the item named
+three of them**: `--madder` → `--mrd-fail`, `--text-muted` → `--mrd-mute`, `--raised` → `--mrd-lift`, and
+**`--text-primary` → `--mrd-ink`**, which is the `--text-` the item did not mention. This is the shared module
+every ported admin page draws its failure state through, so the Group H ports left retired paint inside three
+otherwise-Meridian pages.
+**Measured rather than eyeballed, and the method was validated first.** No browser session exists for
+`/admin`, so the contrast was computed from source: the declarations parsed out of `meridian.css`, OKLCh to
+linear sRGB to sRGB, relative luminance, `(L1+0.05)/(L2+0.05)`. **The script reproduced the queue's
+browser-through-canvas figure exactly** -- `--madder` on paper computed 2.79:1 against the reported 2.79:1 --
+which is what makes the rest of the numbers worth reading. Nothing fell outside sRGB, so no clamping affected
+any value. Script deleted.
+The ground is followed to its literal rather than assumed: the card carries `.material-medium` →
+`--ds-background-100` → `#0a0a0a` dark, `#ffffff` paper, and `__root.tsx`'s bootstrap stamps
+`data-theme="light"`, so it is the attribute half of that selector that fires.
+| string | dark | paper |
+| --- | --- | --- |
+| `--mrd-fail` (was 4.97 / **2.79**) | **5.83** | **6.64** |
+| `--mrd-mute` | 7.40 | 6.55 |
+| `--mrd-ink` | 17.88 | 17.33 |
+**So it was not only illegible on paper, it was passing dark by 0.47.** The token that looked fine had almost
+no margin either.
+**One change beyond the four, and it is a deletion.** `boxShadow: "var(--top-light)"` came off the skeleton
+bar, because `--raised` + `--top-light` are one Obsidian recipe -- a ground step plus a 5%-white inset edge --
+and Meridian raises by the ground ladder alone. The inset is invisible on paper and the founder's 2026-08-18
+ruling rules out reintroducing a hairline. Matched `_authenticated.brain.tsx:519-522`'s `TabSkeleton`, a bare
+`bg-mrd-lift` bar. **The pulse and its `prefers-reduced-motion` opt-out stayed**: removing motion would be a
+reduction under the ratchet law.
+**`--mrd-mute` was checked, not taken on the item's word.** It is declared at `meridian.css:324` and `:1126`,
+commented *labels, metadata*. The competing stop is `--mrd-body`, *supporting prose*. `mute` won on precedent
+rather than on the comment: the string is a raw in-band machine cause, and Meridian renders exactly that with
+`mute` in `boundary-states.tsx`'s `Cause`. **If a reader takes the message as prose, `--mrd-body` is the other
+defensible answer.**
+**The baseline shrank and nothing was forced.** `design:ratchet` accepted it and reclaimed 3 counts; the
+`src/components/admin/admin-ui.tsx` key is gone, totals 3346 → 3342 and 229 → 228 files. **No count anywhere
+rose.**
+**Queue citation corrected for the next reader.** `AgentScorecardPanel.tsx` is at `src/components/engine-room/`,
+not `src/components/agents/`, and its `text-mrd-fail` line is 188. Meridian's own `ReadFailedLine`
+(`surface-parts.tsx:993`) uses the same token for the same sentence, so three failure states now agree.
+**Noticed, not fixed, and the first one is the honest end state.** `.material-medium` **is retired Tempo v5
+paint and the ratchet cannot see it**, because the scanner's class marker only matches `sp-*`. It is the
+card's own container and the ground every number above was measured against, so this file is ratchet-clean
+rather than Meridian. Porting it to `ReadFailed`'s container changes radius, border and shadow on three pages
+nobody can look at, which is its own item. Also: **`AdminErrorCard` is a sixth copy of the failed-read state**,
+with a different prop shape and callers outside this item; **neither root carries `data-mrd=""`**, so the
+retry's `focus-visible:[outline-color:var(--focus-ring)]` is inert against the unlayered `[data-obsidian]`
+rule; and **five more retired-era names the ratchet does not count** survive (`--radius-control`, `--space-4`,
+`--geist-space-2x`, `--font-mono`, `--font-sans`, `--focus-ring`), all with Meridian equivalents.
+**Gates.** `lane:gates` green, real exit 0. `meridian-ratchet.test.ts` 4 pass. **Not seen in a browser**: the
+three admin pages are behind auth, so every number here is computed from source rather than sampled from a
+rendered pixel.
+---
+## K-96 · BUILT · 2026-08-21 15:20 · the hover hint ate the row's name, and the evidence column showed a URL
+**Filed and built in one pass.** Found while designing K-93's rows, in the component they land in.
+**Did.** `CtxRow` in `src/components/meridian/ContextColumn.tsx` read `const displayName = title || name` and
+set no `title` attribute anywhere, **so a caller passing both lost the name and never got the tooltip.**
+`title` is `string` now, it is passed to all three branches (div, button, anchor), and `name` is what renders.
+Six tests appended to `context-column.test.tsx`.
+**Proven in a render before touching anything**, because inferring from source is the method that failed on
+K-90. `<CtxRow name="GitHub" title="Open this source in Settings, Connections" />` printed
+`"Open this source in Settings, Connections"` and emitted no `title`. Throwaway test deleted after.
+**Three callers, all on Discover's context rail, and all three meant a tooltip.** Two showed a sentence about
+a door where the thing behind the door belongs. **The third is the one that matters:** "What backs this", the
+evidence under a focused cluster, passes `name={signalPreview(s.content, 96)}` with
+`title={`Open the source: ${s.url}`}`. So **the section whose entire job is to show the quote verbatim was
+showing the quote's address instead**, and a reader was asked to trust evidence they could not see. Its own
+comment says the rail exists so "the evidence under a call" is not "a wall of quotes you had to take on
+trust"; it was a wall of URLs.
+**`string` rather than `React.ReactNode` is half the fix.** A tooltip can only carry a string, and the narrow
+type is what stops the two roles being confused again: a node can no longer be passed as a hint.
+**The truncation is why this cost twice.** The name is clipped to one line, so the tooltip is also the only
+way to read a long one in full. `title || name` removed the hint and the overflow escape in the same move,
+and a test pins that.
+**Proven by planting the defect**: `title || name` restored and the attributes removed gives **5 of 12
+failing**, exit 1; reverted, 12 pass, exit 0.
+**Not touched.** The two other `CtxRow` exports (`shell/primitives.tsx:1198`, `crew/CrewChrome.tsx:439`) are
+separate components with their own callers, and the existing header in this test file already scopes itself
+that way. No caller needed an edit: all three were already passing what they meant.
+**Gates.** `lane:gates` green, real exit 0. **Not seen in a browser.** The three rows should be looked at by
+whoever has a session, because the fix changes what they say.

@@ -90,3 +90,81 @@ describe("a row that does something is a real button", () => {
     expect(el.classList.contains("data-mrd")).toBe(false);
   });
 });
+
+/**
+ * THE HOVER HINT ATE THE ROW'S NAME, ON ALL THREE OF ITS CALLERS.
+ *
+ * `const displayName = title || name` rendered the hint INSTEAD of the name and
+ * emitted no `title` attribute, so a caller passing both lost the name and never
+ * got the tooltip. Proven in a render before the fix: `<CtxRow name="GitHub"
+ * title="Open this source in Settings, Connections" />` printed the sentence and
+ * carried no `title`.
+ *
+ * All three callers are on Discover's context rail and all three meant a
+ * tooltip. The one that mattered is "What backs this", the evidence under a
+ * cluster: `name={signalPreview(s.content, 96)}` with `title={`Open the source:
+ * ${s.url}`}`, so **the section whose whole job is to show the quote verbatim
+ * showed the quote's URL.** A reader was asked to trust evidence they could not
+ * see.
+ *
+ * The `truncate` assertion is not incidental. The name is clipped to one line,
+ * so the tooltip is also the only way to read a long one in full, and the old
+ * behaviour removed the hint and the overflow escape together.
+ */
+describe("the hover hint is a hint, and it never replaces the name", () => {
+  it("renders the name and puts the hint in the title attribute", () => {
+    const { container } = render(
+      <CtxRow name="GitHub" title="Open this source in Settings, Connections" />,
+    );
+    const root = container.firstElementChild as HTMLElement;
+
+    expect(container.textContent).toBe("GitHub");
+    expect(root.getAttribute("title")).toBe("Open this source in Settings, Connections");
+  });
+
+  it("carries the hint on the button branch, where the row is a control", () => {
+    render(<CtxRow name="GitHub" title="Open Connections in Settings" onClick={() => {}} />);
+    const el = screen.getByRole("button");
+
+    expect(el.textContent).toBe("GitHub");
+    expect(el.getAttribute("title")).toBe("Open Connections in Settings");
+  });
+
+  it("carries the hint on the anchor branch too", () => {
+    const { container } = render(
+      <CtxRow name="The spec" title="Open the spec" href="/plan/spec/abc" />,
+    );
+    const el = container.firstElementChild as HTMLElement;
+
+    expect(el.textContent).toBe("The spec");
+    expect(el.getAttribute("title")).toBe("Open the spec");
+  });
+
+  it("shows the evidence rather than its address, which is the defect that mattered", () => {
+    // The "What backs this" shape, verbatim.
+    const quote = "Renewal blocked because SSO metadata will not import";
+    const { container } = render(
+      <CtxRow name={quote} title={`Open the source: https://example.com/t/91`} />,
+    );
+
+    expect(container.textContent).toBe(quote);
+    expect(container.textContent).not.toContain("https://");
+  });
+
+  it("emits no title attribute when no hint was given", () => {
+    // An empty tooltip is a tooltip, and a row with nothing to add should not
+    // grow a hover target that says nothing.
+    const { container } = render(<CtxRow name="GitHub" />);
+    const root = container.firstElementChild as HTMLElement;
+
+    expect(root.hasAttribute("title")).toBe(false);
+  });
+
+  it("keeps the name on one line, so the hint is the only way to read a long one", () => {
+    const { container } = render(<CtxRow name="A name long enough to clip" title="the full name" />);
+    const nameEl = container.querySelector(".truncate") as HTMLElement;
+
+    expect(nameEl).not.toBe(null);
+    expect(nameEl.textContent).toBe("A name long enough to clip");
+  });
+});

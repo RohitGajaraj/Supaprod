@@ -23,7 +23,29 @@ export interface CtxRowProps {
   key?: string | number;
   mark?: React.ReactNode;
   name?: React.ReactNode;
-  title?: React.ReactNode;
+  /**
+   * THE HOVER HINT, AND IT USED TO EAT THE ROW'S NAME.
+   *
+   * This was `React.ReactNode` and the body read `const displayName = title ||
+   * name`, so a caller passing both got the hint rendered AS the name and no
+   * tooltip at all. Proven in a render on 2026-08-21: `<CtxRow name="GitHub"
+   * title="Open this source in Settings, Connections" />` printed
+   * `"Open this source in Settings, Connections"` and emitted no `title`
+   * attribute.
+   *
+   * Every caller in the tree meant a tooltip, and all three are on Discover's
+   * context rail, so all three were showing a sentence about a door where the
+   * thing behind the door belongs. The worst was "What backs this", the evidence
+   * under a cluster: it passed `name={signalPreview(s.content, 96)}` and
+   * `title={`Open the source: ${s.url}`}`, so the quote a person is being asked
+   * to trust was replaced by its own URL. **A section whose entire job is to
+   * show the evidence verbatim was showing the address instead.**
+   *
+   * It is `string` now rather than `ReactNode` because that is what an HTML
+   * `title` can carry, and the narrower type is what stops the two roles being
+   * confused again: a node cannot be a tooltip, so it cannot be passed as one.
+   */
+  title?: string;
   sub?: React.ReactNode;
   onClick?: () => void | Promise<void>;
   href?: string;
@@ -36,13 +58,14 @@ export function CtxRow({ mark, name, title, sub, onClick, href }: CtxRowProps) {
     "flex gap-mrd-2 py-mrd-1 px-mrd-2 rounded-mrd-ctl text-[12px] transition-colors";
   const hoverClass = onClick || href ? "hover:bg-mrd-hover cursor-pointer" : "";
 
-  const displayName = title || name;
-
+  /* The name is truncated to one line, so the tooltip is also the only way to
+     read a long one in full. That is the second thing the old `title || name`
+     took away: it removed the hint AND the overflow escape in one move. */
   const content = (
     <>
       {mark && <div className="flex-shrink-0">{mark}</div>}
       <div className="flex-1 min-w-0">
-        <div className="font-medium text-mrd-ink truncate">{displayName}</div>
+        <div className="font-medium text-mrd-ink truncate">{name}</div>
         {sub && <div className="text-[10px] text-mrd-mute truncate">{sub}</div>}
       </div>
     </>
@@ -50,7 +73,7 @@ export function CtxRow({ mark, name, title, sub, onClick, href }: CtxRowProps) {
 
   if (href) {
     return (
-      <a href={href} className={`${className} ${hoverClass}`} data-mrd="">
+      <a href={href} className={`${className} ${hoverClass}`} title={title} data-mrd="">
         {content}
       </a>
     );
@@ -75,6 +98,7 @@ export function CtxRow({ mark, name, title, sub, onClick, href }: CtxRowProps) {
         type="button"
         onClick={onClick}
         className={`${className} ${hoverClass} w-full text-left`}
+        title={title}
         data-mrd=""
       >
         {content}
@@ -83,7 +107,7 @@ export function CtxRow({ mark, name, title, sub, onClick, href }: CtxRowProps) {
   }
 
   return (
-    <div className={`${className} ${hoverClass}`} data-mrd="">
+    <div className={`${className} ${hoverClass}`} title={title} data-mrd="">
       {content}
     </div>
   );

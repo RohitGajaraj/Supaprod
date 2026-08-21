@@ -34,6 +34,53 @@ export function mapRelayStatus(s: string | null | undefined): RelayStatus {
     case "gate":
       return "gate";
     case "completed":
+    /*
+     * `completed_with_failures` IS `done` HERE, AND NO SIXTH WORD IS ADDED.
+     *
+     * 618 of 1,825 `agent_runs` rows, 33.9%, measured in production 2026-08-20.
+     * It fell to `default: return "idle"`, so a third of all finished runs were
+     * drawn as nothing happening on both mounted surfaces (DiscoverSurface and
+     * MissionOrchestratorDetail). Together with `complete`'s 2 rows that was
+     * 620 runs, 34.0%, finished and drawn idle.
+     *
+     * Why not a sixth `RelayStatus` word for "finished with a hole in it":
+     *
+     *   1. THE RELAY ASKS A DIFFERENT QUESTION than a scorecard does. Its six
+     *      words are all about motion and attention, never about the quality of
+     *      an outcome: who is working, who is waiting on you, who is finished.
+     *      A run that finished, produced output and handed off does not need a
+     *      person, and that is the only thing this vocabulary is for. The hole
+     *      in what it shipped is a fact about the artifact, and it belongs in
+     *      the run detail where a reader can act on it.
+     *   2. A SIXTH WORD WOULD HAVE NOWHERE TO RENDER, so it would repeat this
+     *      exact defect in a new coat. The only consumer, `markFor` in
+     *      AgentRelay.tsx, is an if-chain that falls through to `"quiet"`, and
+     *      `MarkState` carries no value meaning "finished with failures". An
+     *      unhandled sixth word would typecheck clean and draw QUIETER than
+     *      `done` does.
+     *   3. `latestLine` below branches on these same words, and its `done` arm
+     *      shows the run's final message. A run that finished with failures has
+     *      one, and it is the line worth showing.
+     *   4. THE REPO HAS ALREADY RULED IT, on measurements rather than taste:
+     *      `agent-fleet.ts` buckets it `done` for the supervise-by-exception
+     *      tally (zero `failure_kind` against `failed`'s 347; 37,098 tokens
+     *      burned against `failed`'s 1,097, so it runs further than a clean
+     *      success rather than dying early; 67% of its missions reach a
+     *      completed state). That tally asks the same question the relay asks.
+     *      `reliability/runaway.ts` calls it terminal for the same reason.
+     *
+     * The cost is accepted and it is the same one agent-fleet.ts accepted: the
+     * relay calls this run delivered where `run-state.ts` and `build-status.ts`
+     * call it stopped. Those two ask *was this a clean success*. This one asks
+     * *is anyone still working on it*.
+     */
+    case "completed_with_failures":
+    // The singular, written by `runAgent` on the happy path
+    // (agents.functions.ts). 2 rows in production, and it was falling to `idle`
+    // with the other 618.
+    case "complete":
+    // Zero rows in production write `done`. It stays: the defect was the
+    // absence of the two above, not its presence, and it costs nothing.
     case "done":
       return "done";
     case "failed":
