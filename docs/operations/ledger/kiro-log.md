@@ -7375,3 +7375,62 @@ a way that matters**: it pins a static array against itself, so it fails when so
 re-measuring the rest, which is exactly what it was built to do. The table is a snapshot and the file says so.
 **Gates.** `lane:gates` green, real exit 0. **Comment-only change to `admin-ui.tsx`**, so nothing rendered
 moved.
+---
+## K-37 (re-measured) · BUILT (the correction) + STILL A QUESTION · 2026-08-21 18:20 · the verbs are not dead code, they are live and lying
+**Did.** Corrected the K-37 item, which the founder was about to rule on. **No code changed and the
+question is untouched**, because the item says not to decide it alone and the founder has not answered.
+**The premise was wrong in the one way that changes the answer.** The item's `How` says *"Both candidate
+writer sites are dead code"* and that `GlobalComposerHost` *"is referenced only inside its own comments"*.
+That is true of `GlobalComposerHost` and **false of `GlobalComposer`, a different symbol.**
+`_authenticated.tsx:211` renders `{!isOnboarding && <GlobalComposer />}` **on every authenticated route**, it
+opens on Cmd/Ctrl+K, and `SuggestionPopover.tsx:99` surfaces `ACT_VERBS` as soon as a query is typed. **So
+all four verbs are reachable by a real user right now.** My own 2026-08-20 entry repeated the item's claim
+and was wrong for the same reason: I trusted the filing instead of grepping the mount.
+**And I nearly repeated the error in the other direction.** `_authenticated.runs.index.tsx:1311` renders
+`<Composer`, which looked like a live mount of `mission/composer/Composer`. **It is a local function
+declared at line 419 of that same route file**, a different component that happens to share the name. Traced
+it rather than assuming, which is the only reason the conclusion is right.
+**What each verb does, traced through `GlobalComposer.onRun` rather than inferred.** The three desk events
+are in `DESK_COMPOSE_EVENTS`, so they hit `fireDeskCompose` (dispatch plus a 10-second pending flag) and then
+navigate to `/today` -- **and `useDeskComposeIntent`, `consumePendingDeskCompose` and
+`resetDeskComposeForTest` have zero callers**, so nothing opens. **"Start a focus block" is the worst of the
+four**: it falls past the desk branch to a bare `dispatchEvent`, closes the overlay, and **returns early
+without navigating**, because the comment says the focus composer opens in place. `find src -name
+"FocusDock*"` returns nothing. So it closes the palette and does nothing at all.
+**The cost of wiring, which is what the ruling actually turns on.** `desk-compose.ts:11` states *"These three
+composers live on Today's Desk"*. **Today has no Desk.** Its Regions are the workspaces you are in, a door to
+the shared brain, settled calls, and the learning block. **No task list, no signal box, no status card.** So
+wiring is not three hook calls; it is building two composers that exist nowhere, which is a product decision
+about what Today is for.
+**One live destination exists, and it is the cheap win.** *"Capture a signal"* has one: Discover's *"Capture
+what you heard"* box at `DiscoverSurface.tsx:3141`. Wrong route, already built.
+**Noticed, and it is a small separate defect.** `/tasks` is a 12-line redirect to `/today` whose own comment
+reads *"Today, which owns the surviving task-capture list (same `tasks` table)"*. **That list is not on
+Today.** The `tasks` table still exists, so the redirect promises a destination that was removed from under
+it. Not folded in: it is not this item's file and it wants its own decision alongside the verbs.
+**Still open, and now it is one word.** **(A)** delete all four. **(B)** delete three, re-point *"Capture a
+signal"* at `/discover`. **(C)** wire them, and rule on what Today owns. **My read is B and I did not act on
+it.**
+**Gates.** `lane:gates` green, real exit 0. Documentation-only change.
+---
+## Machine · 2026-08-21 18:20 · the disk, fixed with the founder's approval
+**2.6 GB reclaimed, and the repo is provably intact.** Removed the nine objects `git count-objects -vH`
+reported as garbage: six read-only `tmp_pack_*` files all timestamped **Aug 18 18:00 to 18:14**, so a single
+interrupted fetch three days ago, plus a `.idx`/`.rev` pair with no corresponding `.pack` and one
+`tmp_obj_*`. **A pack with no index is unreadable by git and a `tmp_pack_*` name is recorded nowhere**, which
+is why these could not be referenced. Largest was 1.2 GB.
+**Asked first, and the narrow action was the point.** `/System/Volumes/Data` was at **152 MB and falling**
+(889 MB fifteen minutes earlier), and `lane:gates` had already failed all four gates with
+`No space left on device`, which **reads exactly like a red tree**. **`git gc --prune` was deliberately not
+used**: it would also drop unreachable objects, and after the 2026-07 orphan incident that is not a call to
+make casually. Nine explicit paths, no globs beyond the literal names.
+**Verified after, not assumed.** `git fsck` **exit 0, zero errors, zero missing, zero broken**. HEAD
+unchanged at `c4f9b6c52`, tree clean, **5,650 commits still readable**, a commit from earlier in the week
+still resolves, `git fetch` works, and `bun run lane:gates` is **green at real exit 0**. The dangling commits
+`fsck` lists are pre-existing stash and branch tips -- **exactly what `gc --prune` would have taken**, which
+is the second reason not to have run it.
+**Free space: 152 MB → 2.8 GB. `garbage: 0`.**
+**The trap worth carrying forward.** **A gate that dies for want of disk is indistinguishable from a gate
+that dies of your change.** `docs-doctor` could not create a temp file and `lane-gates.sh` could not write
+its own logs, and the first read of that was "something I just did broke four gates at once". **Check
+`df -h .` before debugging a sudden four-gate failure.**
