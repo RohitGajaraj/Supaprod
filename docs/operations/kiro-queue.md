@@ -2182,7 +2182,22 @@ Not a backlog — the complement of this queue, listed so Kiro knows these are c
 ---
 
 **K-93 · The scout writes down that it failed and nothing reads the column**
-`STATUS: TODO` · deps: none · size: M
+`STATUS: BUILT` · deps: none · size: M
+**Corrected 2026-08-21, after measuring, and one criterion was unbuildable as written.** The item asks the
+surface to distinguish the three unhappy outcomes, and it implies a fourth case that **cannot be judged from
+`scout_runs` at all.** `scout/diff.ts`'s `backoffNext` multiplies the cadence by
+`min(2 ** consecutiveUnchanged, MAX_BACKOFF_FACTOR)` and the factor **caps at 8**, against a `weekly` period of
+7 days, **so a target that keeps coming back unchanged legitimately waits up to 56 days between checks.** A
+seven-day window with nothing in it is therefore equally a dead cron and a healthy resting target, and nothing
+in `scout_runs` separates them. So that row **says when and makes no claim about whether**, which needed
+`lastCheckAt` read outside the window as its own query. Painting it as a fault would have told people their
+watcher was broken while it rested.
+**And the gating was the bigger half.** The section this lands in was gated on `hasCoverage`
+(`cov.sources.length > 0`). **A scout erroring on every target produces no signals, so the workspace whose
+watching is most broken is the one the section would have said nothing to.** Fixed with `hasWatching`, derived
+from the watching and never from the sources.
+**Owns, as built.** `src/lib/discovery.functions.ts`, `src/components/discover/DiscoverSurface.tsx`,
+`src/components/discover/the-watching-reports-itself.test.ts`. `scout-tick.ts` untouched, as the item requires.
 **Renumbered 2026-08-21, and the collision was mine.** This was filed as **K-86** in `claude-log.md:2278`.
 Group M was written later, saw a queue whose last number looked like 85, and reused 86, 87 and 88 for three
 different items. Those three are now built and **verified under those numbers in both ledgers**, and four

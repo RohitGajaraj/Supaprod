@@ -1133,12 +1133,105 @@ export const getSenseCoverage = createServerFn({ method: "GET" })
       }))
       .sort((a, b) => b.recent - a.recent || b.prior - a.prior);
 
+    /*
+     * ── THE SCOUT WROTE DOWN THAT IT FAILED AND NOTHING READ THE COLUMN ─────
+     *
+     * Measured 2026-08-20: `scout_runs` had exactly two queries against it in
+     * the whole codebase. One sums `fetch_count` for the daily cap. The other is
+     * the insert. **So six of its seven columns were written on every run and
+     * read by nothing** -- including `outcome`, whose CHECK constraint allows
+     * `error` and `skipped-cap`.
+     *
+     * A scout failing on every target, or truncated by its own cap, recorded
+     * exactly that and showed it to nobody, **not even an admin.** The product's
+     * promise is that it watches your sources so you do not have to, and a
+     * promise nobody can see failing is the worst kind.
+     *
+     * WHY IT BELONGS HERE RATHER THAN ON A PAGE OF ITS OWN, and this is the part
+     * that makes it more than a missing reader. `quiet` above is computed from
+     * `signals` alone: delivered before, silent now. **A source whose every
+     * fetch is erroring produces no signals, so it reads as `quiet` -- and
+     * "quiet" says the source has nothing new, when the truth is that we could
+     * not reach it.** Those send a person in opposite directions. One is
+     * somebody else's product going still; the other is ours being broken. The
+     * outcome column is the only thing that can tell them apart, and it was
+     * sitting one table away from the surface that got it wrong.
+     *
+     * NOTHING NEW IS WRITTEN AND NO COLUMN IS ADDED. `scout-tick.ts` is
+     * untouched. Everything below was already on every row.
+     *
+     * READ SEPARATELY AND ALLOWED TO FAIL ON ITS OWN. The signals read above
+     * throws, which is right: it is the whole point of the call. This one must
+     * not, because **a failed scout read that took the sources list with it
+     * would be a worse surface than the one that had no scout read at all.** But
+     * swallowing it silently is the defect this item is about, one level up. So
+     * the failure is reported as `unread` and the surface says which it is.
+     */
+    const runWindowStart = new Date(now - windowMs).toISOString();
+    const runs = await supabase
+      .from("scout_runs")
+      .select("outcome,created_at,detail")
+      .gte("created_at", runWindowStart)
+      .order("created_at", { ascending: false })
+      .limit(500);
+    /*
+     * THE LAST CHECK, READ OUTSIDE THE WINDOW, and the reason is measured rather
+     * than defensive. `backoffNext` multiplies the cadence by
+     * `min(2 ** consecutiveUnchanged, MAX_BACKOFF_FACTOR)`, and
+     * `MAX_BACKOFF_FACTOR` is 8 against a `weekly` period of 7 days, **so a
+     * target that keeps coming back unchanged can legitimately wait 56 days
+     * between checks.** A seven-day window with nothing in it therefore proves
+     * nothing at all: it is equally a healthy backed-off weekly target and a
+     * dead cron. Reading the newest row with no window is what lets the surface
+     * say *when* rather than guess *whether*.
+     */
+    const latest = await supabase
+      .from("scout_runs")
+      .select("created_at")
+      .order("created_at", { ascending: false })
+      .limit(1);
+    /*
+     * ENABLED TARGETS, AND IT IS WHAT MAKES SILENCE READABLE. With no runs at
+     * all, "your sources have not been checked yet" and "you have asked us to
+     * watch nothing" are different facts and only one of them needs an answer.
+     * Without this count the surface would have to guess, and guessing wrong
+     * here means telling somebody their scout is broken when they never set one
+     * up.
+     */
+    const targets = await supabase
+      .from("scout_targets")
+      .select("id", { count: "exact", head: true })
+      .eq("enabled", true);
+
+    const runRows = (runs.data ?? []) as ReadonlyArray<{
+      outcome: string;
+      created_at: string;
+      detail: string | null;
+    }>;
+    const errored = runRows.filter((r) => r.outcome === "error");
+    const capped = runRows.filter((r) => r.outcome === "skipped-cap");
+
     return {
       sources,
       total7d: sources.reduce((n, s) => n + s.recent, 0),
       totalPrior7d: sources.reduce((n, s) => n + s.prior, 0),
       unclustered,
       quietCount: sources.filter((s) => s.quiet).length,
+      watching: {
+        /** Sources you asked us to watch. Zero means nothing is expected. */
+        targets: targets.count ?? 0,
+        /** Checks in the last 7 days. See `latest` for why this can be 0 and fine. */
+        checks: runRows.length,
+        errors: errored.length,
+        capped: capped.length,
+        /** Newest check ever, not newest in the window. See `latest`. */
+        lastCheckAt: (latest.data?.[0]?.created_at as string | undefined) ?? null,
+        /* The CAUSE, not only the count. "4 could not be read" sends somebody
+           looking; "4 could not be read: 404" tells them where to look. */
+        lastErrorDetail: errored[0]?.detail ?? null,
+        /** The read itself failed. Distinct from "it ran and found nothing". */
+        unread: Boolean(runs.error) || Boolean(targets.error) || Boolean(latest.error),
+      },
     };
   });
 

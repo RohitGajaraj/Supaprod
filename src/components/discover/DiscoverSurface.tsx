@@ -311,6 +311,7 @@ import {
   Reading,
   Region,
   Toggle,
+  Value,
 } from "@/components/meridian/surface-parts";
 import { Surface } from "@/components/meridian/Surface";
 import { Choices, Field, Input, Textarea } from "@/components/meridian/forms";
@@ -1667,8 +1668,20 @@ export function DiscoverSurface({
      is invisible unless something says so. */
   const coverageFailed = coverage.isError;
   const hasCoverage = !!cov && cov.sources.length > 0;
+  /* WHETHER THE WATCHING HAS ANYTHING TO SAY, computed separately from whether
+     any signal ever arrived, because the case that matters most is exactly the
+     one where those two disagree.
+     A scout erroring on every target produces NO signals, so `cov.sources` is
+     empty, so `hasCoverage` is false -- and the section below used to be gated on
+     `hasCoverage` alone. **The workspace whose watching is most broken is the
+     workspace this section would have said nothing to.** That is the shape of
+     defect this whole surface keeps paying for: the reader who needs the warning
+     is the one the condition excludes. */
+  const scout = cov?.watching;
+  const hasWatching = !!scout && (scout.unread || scout.targets > 0 || scout.checks > 0);
   const hasEvidence = !!focused && focusedMembers.length > 0;
-  const hasContext = !!watcher || fleetFailed || coverageFailed || hasCoverage || hasEvidence;
+  const hasContext =
+    !!watcher || fleetFailed || coverageFailed || hasCoverage || hasWatching || hasEvidence;
 
   return (
     <Surface
@@ -1740,10 +1753,10 @@ export function DiscoverSurface({
                   has gone quiet.
                 </ReadFailedLine>
               </>
-            ) : hasCoverage && cov ? (
+            ) : (hasCoverage || hasWatching) && cov ? (
               <>
                 <CtxHead>What is feeding this</CtxHead>
-                {cov.sources.slice(0, SOURCES_IN_CONTEXT).map((s) => (
+                {(hasCoverage ? cov.sources : []).slice(0, SOURCES_IN_CONTEXT).map((s) => (
                   <CtxRow
                     key={s.source}
                     /* The readable name, not the column value. `getSenseCoverage`
@@ -1831,6 +1844,140 @@ export function DiscoverSurface({
                       navigate({ to: "/settings", search: { section: "connections" } })
                     }
                   />
+                ) : null}
+
+                {/* WHETHER THE WATCHING ITSELF IS WORKING, which the scout has
+                been writing down on every run since 2026-06-30 and nothing has
+                ever read. `scout_runs` carries an `outcome` per target and its
+                CHECK constraint allows `error` and `skipped-cap`; the only query
+                against the table summed `fetch_count` for the daily cap.
+
+                THIS IS NOT A SECOND OPINION ON THE ROWS ABOVE, it is the fact
+                they cannot carry. `quiet` up there is computed from signals
+                alone, so a source whose every fetch errors delivers nothing and
+                reads as quiet -- and "quiet" means the source has nothing new
+                for you, when the truth is that we could not reach it. One is
+                somebody else's product going still and the other is ours being
+                broken, and they were the same row.
+
+                THE THREE UNHAPPY OUTCOMES NEED DIFFERENT THINGS, so they are
+                three rows and never one count. Ordered worst first, because the
+                rail is narrow and the reader stops early. */}
+                {scout && scout.unread ? (
+                  /* The read that carries the failure warning failed. Same rule
+                     as the two branches above it: a silent section here reads as
+                     "your watching is fine", which is the most reassuring
+                     possible rendering of a read that produced no information. */
+                  <CtxRow
+                    name="Whether your sources were checked did not load"
+                    sub="the sources above are still accurate"
+                  />
+                ) : scout ? (
+                  <>
+                    {scout.errors > 0 ? (
+                      <CtxRow
+                        name={
+                          <Value tone="fail">
+                            <Num>{scout.errors}</Num> check{plural(scout.errors)} could not read the
+                            source
+                          </Value>
+                        }
+                        /* THE CAUSE, not just the count, because they send a
+                           person to different places. `detail` is the scout's
+                           own error string and it is the most specific thing
+                           anyone has about why. Clipped, since the rail is 316px
+                           and the row is one line. */
+                        sub={
+                          scout.lastErrorDetail
+                            ? `most recent: ${scout.lastErrorDetail.slice(0, 90)}`
+                            : "no reason was recorded"
+                        }
+                        title={scout.lastErrorDetail ?? undefined}
+                      />
+                    ) : null}
+
+                    {scout.capped > 0 ? (
+                      /* AMBER AND NOT RED, AND NOT ORCHID EITHER, which is the
+                         one colour decision on this row worth writing down.
+                         Red reports an outcome, and a capped check is not a
+                         failure: the scout worked exactly as configured and the
+                         configuration is what ran out. Orchid promises that a
+                         person is REQUIRED, and nobody is -- the cap will reset
+                         tomorrow on its own. Amber is "waiting on a condition",
+                         the condition is the cap, and the door below is how you
+                         change the condition rather than a demand that you do.
+                         Painting this as a fault is the exact amber/orchid
+                         confusion K-18 found on the gates. */
+                        <CtxRow
+                          name={
+                            <Value tone="hold">
+                              the daily cap stopped <Num>{scout.capped}</Num> check
+                              {plural(scout.capped)} early
+                            </Value>
+                          }
+                          sub="raise it in Settings, or leave it and they run tomorrow"
+                          title="Open Connections in Settings"
+                          onClick={() =>
+                            navigate({ to: "/settings", search: { section: "connections" } })
+                          }
+                        />
+                      ) : null}
+
+                    {scout.checks > 0 && scout.errors === 0 && scout.capped === 0 ? (
+                      /* THE HEALTHY CASE, AND IT DOES NOT SHOUT. No tone at all:
+                         `unchanged` is the ordinary state of a source that is
+                         being watched properly, and a green mark on it would
+                         spend the outcome colour on nothing happening. It is
+                         here at all because "we checked and there was nothing"
+                         and "we did not check" are different facts, and without
+                         this row the absence of a warning meant both. */
+                      <CtxRow
+                        name={
+                          <>
+                            <Num>{scout.checks}</Num> check{plural(scout.checks)} in{" "}
+                            <Num>7d</Num>, none failed
+                          </>
+                        }
+                        sub={
+                          since(scout.lastCheckAt)
+                            ? `last ${since(scout.lastCheckAt)}`
+                            : "watching your sources"
+                        }
+                      />
+                    ) : null}
+
+                    {scout.checks === 0 && scout.targets > 0 ? (
+                      /* NOTHING THIS WEEK, AND THAT IS NOT EVIDENCE OF A FAULT,
+                         which is why it carries no tone and makes no claim.
+                         Measured in `scout/diff.ts`: `backoffNext` multiplies the
+                         cadence by `min(2 ** consecutiveUnchanged,
+                         MAX_BACKOFF_FACTOR)` and the factor caps at 8, so a
+                         WEEKLY target that keeps coming back unchanged
+                         legitimately waits up to 56 days between checks. A dead
+                         cron and a healthy backed-off target look identical over
+                         seven days, and `scout_runs` cannot tell them apart. So
+                         this says WHEN and lets the reader judge, rather than
+                         guessing WHETHER and telling somebody their watcher is
+                         broken when it is resting. */
+                      <CtxRow
+                        name={
+                          <>
+                            <Num>{scout.targets}</Num> source{plural(scout.targets)} watched, none
+                            checked this week
+                          </>
+                        }
+                        sub={
+                          since(scout.lastCheckAt)
+                            ? `last checked ${since(scout.lastCheckAt)}; a quiet source is checked less often`
+                            : "nothing has been checked yet"
+                        }
+                        title="Open Connections in Settings"
+                        onClick={() =>
+                          navigate({ to: "/settings", search: { section: "connections" } })
+                        }
+                      />
+                    ) : null}
+                  </>
                 ) : null}
               </>
             ) : null}

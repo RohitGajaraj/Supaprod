@@ -7273,3 +7273,74 @@ count-objects -vH` reports 2.58 GiB of garbage** -- six abandoned `tmp_pack_*` f
 with no corresponding `.pack`, which is what an interrupted fetch leaves behind on a full disk. **I did not
 remove them**: they sit inside `.git`, and after the 2026-07 orphan incident a deletion in there is the
 founder's call, not mine. It is the single largest reclaim available and it is genuinely unreferenced.
+---
+## K-93 · BUILT · 2026-08-21 17:10 · the scout wrote down that it failed, and now something reads it
+**Did.** `getSenseCoverage` in `src/lib/discovery.functions.ts` gains a `watching` block, and Discover's
+"What is feeding this" section reports it. Plus
+`src/components/discover/the-watching-reports-itself.test.ts`, 15 tests. **No column, no table, no write:**
+`scout-tick.ts` is untouched and everything shown was already on every row. This is a reader, which is the
+whole item.
+**The `quiet` collision is the finding, and it is worse than a missing reader.** `quiet` is computed from
+`signals` alone -- delivered before, silent now. **A source whose every fetch errors produces no signals, so it
+read as `quiet`, and "quiet" tells you the source has nothing new when the truth is that we could not reach
+it.** One is somebody else's product going still; the other is ours being broken, and a person acts
+differently on each. The outcome column that distinguishes them was one table away from the surface getting
+it wrong.
+**The gating defect, which is the half I would have shipped if I had followed the spec literally.** The
+section was gated on `hasCoverage`, which is `cov.sources.length > 0`. **A scout erroring on every target
+produces no signals, so that is false, so the workspace whose watching is most broken is the one this section
+would have said nothing to.** The reader who needs the warning was the reader the condition excluded. It is
+now `(hasCoverage || hasWatching)`, with `hasWatching` derived from the watching and never from the sources,
+and a test asserts that line contains no reference to `sources`.
+**Four rows, because the item is right that the three unhappy outcomes need different things, and a fourth
+case turned up in measurement.**
+- **`error` is red**, and red here reports something that happened, which is the only thing this system's red
+  is allowed to mean. **It carries the cause and not only the count**: `detail` is the scout's own error
+  string and the most specific thing anybody has about why, clipped to 90 characters because the rail is 316px.
+- **`skipped-cap` is amber, and it is neither red nor orchid.** Red would report a failure that did not happen:
+  the scout worked exactly as configured and **the configuration is what ran out**. Orchid promises a person is
+  required and nobody is, since the cap resets tomorrow on its own. Amber means waiting on a condition, the
+  condition is the cap, and **the door is how you change it rather than a demand that you do.** Painting this
+  as a fault is the exact amber/orchid confusion K-18 found on the gates, and a test pins the tone and pins
+  the absence of the other two.
+- **The healthy case says so with no tone at all.** `unchanged` is the ordinary state of a source being
+  watched properly and green would spend the outcome colour on nothing happening. It exists because "we
+  checked and there was nothing" and "we did not check" are different facts, and without it **the absence of a
+  warning meant both**.
+- **A week with no checks in it, which makes NO claim, and this is the row the measurement changed.** I was
+  about to paint it as a fault. `scout/diff.ts`'s `backoffNext` multiplies the cadence by
+  `min(2 ** consecutiveUnchanged, MAX_BACKOFF_FACTOR)` and the factor **caps at 8**, against a `weekly` period
+  of 7 days -- **so a target that keeps coming back unchanged legitimately waits up to 56 days between
+  checks.** A dead cron and a healthy resting target are identical over seven days and `scout_runs` cannot tell
+  them apart. So the row says **when** and lets the reader judge, rather than guessing **whether** and telling
+  somebody their watcher is broken while it rests. That is why `lastCheckAt` is read **outside** the window,
+  as its own `limit(1)` query.
+**Enabled targets are counted, and that is what makes silence readable.** With no runs at all, *your sources
+have not been checked yet* and *you have asked us to watch nothing* are different facts and only one needs an
+answer. Guessing wrong means telling somebody their scout is broken when they never set one up. With zero
+targets and zero signals the section does not render at all, so there is no empty shape.
+**The scout read is allowed to fail on its own.** The signals read throws, correctly, because it is the point
+of the call. This one must not: **a failed scout read that took the sources list down with it would be a worse
+surface than the one that had no scout read at all.** But swallowing it is this item's own defect one level up,
+so it returns `unread` and the surface says which it is, the same rule the fleet and coverage branches beside
+it already state.
+**A guard on the writer's domain, because a reader that ignores a sixth value is this defect one turn later.**
+The test pins `recordRun`'s outcome union to its five values, so adding an outcome fails the build and somebody
+has to decide what the surface says about it.
+**Verified against the repo, and here is exactly how far that goes.** Both column sets are confirmed in the
+generated `types.ts` (`scout_runs`: `outcome`, `created_at`, `detail`; `scout_targets`: `id`, `enabled`), which
+matters because **`tsc` passes on a wrong column name inside a `.select()` string**. RLS is confirmed in
+`20260630121000_scout_watchtower.sql`: `scout_runs_member_read` grants SELECT to any workspace member, which
+is what the item's non-admin criterion depends on, and `GRANT SELECT ... TO authenticated` is there too.
+`types.ts` containing the table is itself repo-visible evidence it exists in production, since that file is
+generated from the live database. **`targets.server.ts`'s header is stale** where it says these tables are not
+in the generated types; they both are.
+**What I could not do.** **Nobody has seen these four rows render.** `/discover` is behind auth and I have no
+session, so the test reads source text -- the precedent `discover-boundary.test.ts` set for this file for a
+stated reason, since `DiscoverSurface.tsx` is 163 KB behind a dozen server functions and a render harness
+would assert the harness. **It pins the decisions and cannot prove a pixel**, and the two counts and the cause
+string have never been shown against real rows. Whoever has a session should look at the error row on both
+grounds, because it is the one carrying a clipped machine string into a 316px column.
+**Proven by planting the defect.** Section condition reverted to `hasCoverage && cov` and the cap's tone
+switched to `fail`: **2 of 15 fail, exit 1**, each naming its own decision. Reverted, 15 pass, exit 0.
+**Gates.** `lane:gates` green, real exit 0.
