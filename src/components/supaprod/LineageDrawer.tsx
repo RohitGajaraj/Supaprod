@@ -222,7 +222,13 @@ const ROUTES: Partial<
   // until /decide declares a `?focus=` parser. See the sweep note above.
   opportunity: () => ({ to: "/decide" }),
   prd: (id) => ({ to: "/plan/spec/$id", params: { id } }),
-  task: () => ({ to: "/tasks" }),
+  // Right station, no row, and NOT `/tasks`: that route is a bare redirect to
+  // /today (_authenticated.tasks.tsx), and Today has no task list -- it imports
+  // `taskStatus` for a mission dot and nothing else. The surface that actually
+  // renders tasks is /plan/spec/$id (it calls `listTasks`), reached from /plan.
+  // Zero-arg because a task id does not resolve to a spec id here, same shape
+  // as the `opportunity` row above.
+  task: () => ({ to: "/plan" }),
   signal: (id) => ({ to: "/discover", search: { focus: id } }),
   theme: (id) => ({ to: "/discover", search: { focus: id } }),
   // Carries the id and still lands short: /meetings/$id forwards it to
