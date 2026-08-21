@@ -1,3 +1,71 @@
+# SESSION CLOSED 2026-08-21 ~18:00 IST · Claude · K-37 built, and the AI-spend leak closed and VERIFIED IN PRODUCTION
+
+**State at close:** `main`, tree clean, 0 ahead / 0 behind. `lane:gates` exit 0. Nothing awaiting a verdict.
+**All 556 migrations verified applied** (see below) so nothing needs migrating.
+
+## Pick this up FIRST: one founder question, and four things wait on it
+
+**Does the command palette come back, or does it go?** There is no command palette in the running product:
+`_authenticated.tsx:211` renders `<GlobalComposer />`, which returns `<AskDock />`. The palette lives in
+`GlobalComposerHost` (declared in that file, **never called**) and `CommandPalette` (**mounted nowhere**).
+Cmd+K is bound in `ask-context.tsx:296` and opens Ask; the shell's own button reads **"Ask ⌘K"**. So
+`ACT_VERBS` is data nobody can reach. Waiting on the answer: *Add a task*, *Share status*, the `/tasks`
+12-line redirect promising a list Today does not have, and `/decide`'s landing param. Filed as ONE finding in
+[`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md). Twelve files in `mission/` exist only to
+serve `GlobalComposerHost`.
+
+## Two things that will save the next session an hour each
+
+**1. `deploy_project` ships what LOVABLE holds, not what GitHub holds.** Lovable is the only deploy path
+(`.github/workflows` has `ci`, `claude-code-review`, `claude`; nothing invokes `wrangler`). Its GitHub sync
+**stalled for 24 minutes** today while `deploy_project` returned success and republished the OLDER commit.
+`git push` succeeding, `deploy_project` succeeding and green gates are three success signals that all lie
+about production. **Check `read_file` on the file you changed** before trusting any measurement; an **empty
+commit re-triggers the webhook** and it synced within six minutes.
+
+**2. A quiet background job is not a fixed job.** `spine.track-tick` returned `ok` in 1,231 ms with zero agent
+runs and that nearly read as the filter working. It was a held cohort: `driven_at` HAD advanced on five
+tracks that `driveTrackOnce` skipped, and the next tick burned 61 seconds. A filter stops SELECTION, a hold
+stops DISPATCH, and both look fast and quiet. Assert on what the fix uniquely controls.
+
+## What landed and is verified
+
+**K-37, all five ruled steps** (option B+), plus the correction that its central premise was false. The one
+piece with user-facing value today does not involve the palette: **`?capture=1` lands on Discover's capture
+box**, and two LIVE controls labelled "Capture a signal" (`brain.tsx:1482`, `GraphCanvasView.tsx:323`) now
+carry it. Measured: box at **1173px in a 627px viewport** (546px below the fold, unfocused) becomes **346px,
+in view, focused**.
+
+**The is_sample leak, CLOSED AND VERIFIED IN PRODUCTION.** `track-tick` selected `spine_tracks`, a
+workspace-scoped table with no `is_sample`, so the fourteen-hook fix could never reach it: **114 `agent`
+calls / $0.2072 in two hours, ~$75/month**, with 23 of 23 post-deploy runs carrying a `track_id` and 52 open
+tracks all on samples, zero on real. Proof it is fixed, two ticks ten minutes apart:
+**12:10 = 61,587 ms / 5 tracks / 2 runs**, then **12:20 = 186 ms / 0 / 0** with last sample `driven_at`
+frozen at 12:11:02, and **zero sample runs since**. `researcher-tick` was never a second instance, it was
+this one seen twice: a run records which AGENT ran, never which TICK started it.
+
+**The guard is widened off table names onto reaching a model:** any hook importing `@/lib/ai/` or
+`@/lib/spine/` must resolve the exclusion or carry a named reason. Proven by pulling the fix and watching it
+name `track-tick`.
+
+## Residual, filed and sized rather than assumed (~$1/month, against $75 closed)
+
+`eval-tick` judges sample `ai_events` ($0.0228/day) · `outcome-tick` selects `prds` ($0.0046/day) ·
+`eval-suite-tick` **cannot** be filtered, `eval_suites` has no `workspace_id` column · `drift-tick` cannot
+safely, `ai_events.workspace_id` is nullable and a `not in` filter drops 417 unattributed events/day.
+**Larger and separate: `judge` and `embed` calls carry no `workspace_id` at all**, so nothing keyed on
+workspace can see them, including cost attribution.
+
+## Migrations: all 556 verified applied, individually
+
+517 by exact version · **37 under Lovable's restamped versions** (it restamps 4 to 32s off the filename, so a
+naive version diff reports false misses) · 2 true orphans verified by content (198 `artifact_lineage`
+backfill rows; the `decisions_source_kind_check` 10-value array) · **11 duplicate-prefix files that carry no
+record of their own**, verified by content (4 tables, 8 indexes, 4 functions, 1 seed row, 2 columns, 2 cron
+jobs). `track-tick` runs `*/10 * * * *`, which is why every measurement here is on a ten-minute boundary.
+
+---
+
 # 2026-08-21 ~17:00 IST — K-37 IS BUILT. Do not pick it up again. Gates green.
 
 **All five ruled steps landed and the Kiro queue now has nothing open in it at all.** Detail:
@@ -36,7 +104,33 @@ committed by the repair for the second.** No unit test in this repo could catch 
 `validateSearch` is exercised by nothing but the router. The parser now lives in
 [`src/lib/search-flag.ts`](../../src/lib/search-flag.ts), which a test can call.
 
-## The is_sample leak is CLOSED, and the last handoff's diagnosis was wrong
+## READ THIS BEFORE YOU MEASURE A DEPLOY: `deploy_project` ships what LOVABLE holds, not what GitHub holds
+
+**Lovable is the only deploy path** (`.github/workflows` has `ci`, `claude-code-review`, `claude` and nothing
+that invokes `wrangler`). It logs every GitHub commit as a `developer_update` edit, and it had caught the
+previous six within **3 to 6 minutes each**. It then **stalled**: the spend fix sat unsynced for 24 minutes,
+`deploy_project` returned success while republishing the OLDER commit it still held, and `read_file` against
+Lovable's own copy of the changed file returned the pre-fix version. **An empty commit re-triggered the
+webhook** and it synced within six minutes.
+
+**So `git push` succeeding proves nothing about production here, and neither does `deploy_project` returning
+success.** The cheap reliable check is `read_file` on the file you changed, because it reads what will be
+built. Check that BEFORE trusting any measurement.
+
+## The is_sample leak is CLOSED and VERIFIED IN PRODUCTION (12:20 UTC)
+
+**Two consecutive ticks of the same cron, ten minutes apart:** `spine.track-tick` went from **61,587 ms /
+5 sample tracks driven / 2 sample agent runs** to **186 ms / 0 / 0**, with the last sample `driven_at`
+unchanged at 12:11:02.
+
+**The verification test had to be `driven_at`, not duration or run count.** At 12:00 the tick returned `ok` in
+1,231 ms with zero agent runs and I nearly called that success. It was a held cohort, not the filter:
+`driven_at` had advanced on five tracks that `driveTrackOnce` skipped (`needs-evidence` x4,
+`waiting-on-a-person` x1), and the very next tick burned 61 seconds. **A fast quiet tick looks identical to a
+working filter and to a held cohort.** Only `driven_at` tells them apart, because a filter stops SELECTION
+and a hold stops DISPATCH.
+
+## What the leak actually was, and the diagnosis it corrects
 
 **Deploy lag versus an unfiltered path: separated. It was an unfiltered path**, and the whole of it was
 **one tick**. `track-tick` selects `spine_tracks`, which carries `workspace_id` and no `is_sample`, so the

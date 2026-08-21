@@ -357,7 +357,9 @@ export function Choices<T extends string>({
               onClick={() => onChange(o.id)}
               onKeyDown={(e) => onKeyDown(e, i)}
               className={`rounded-[6px] px-2.5 py-1 text-[12.5px] font-medium whitespace-nowrap transition-colors disabled:cursor-default disabled:opacity-45 ${RING} ${
-                on ? "bg-mrd-lift text-mrd-ink" : "text-mrd-mute enabled:hover:text-mrd-prose text-mrd-body"
+                on
+                  ? "bg-mrd-lift text-mrd-ink"
+                  : "text-mrd-mute enabled:hover:text-mrd-prose text-mrd-body"
               }`}
               style={{ transitionDuration: "var(--mrd-d-press)" }}
             >

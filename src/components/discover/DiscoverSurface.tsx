@@ -1952,20 +1952,20 @@ export function DiscoverSurface({
                          change the condition rather than a demand that you do.
                          Painting this as a fault is the exact amber/orchid
                          confusion K-18 found on the gates. */
-                        <CtxRow
-                          name={
-                            <Value tone="hold">
-                              the daily cap stopped <Num>{scout.capped}</Num> check
-                              {plural(scout.capped)} early
-                            </Value>
-                          }
-                          sub="raise it in Settings, or leave it and they run tomorrow"
-                          title="Open Connections in Settings"
-                          onClick={() =>
-                            navigate({ to: "/settings", search: { section: "connections" } })
-                          }
-                        />
-                      ) : null}
+                      <CtxRow
+                        name={
+                          <Value tone="hold">
+                            the daily cap stopped <Num>{scout.capped}</Num> check
+                            {plural(scout.capped)} early
+                          </Value>
+                        }
+                        sub="raise it in Settings, or leave it and they run tomorrow"
+                        title="Open Connections in Settings"
+                        onClick={() =>
+                          navigate({ to: "/settings", search: { section: "connections" } })
+                        }
+                      />
+                    ) : null}
 
                     {scout.checks > 0 && scout.errors === 0 && scout.capped === 0 ? (
                       /* THE HEALTHY CASE, AND IT DOES NOT SHOUT. No tone at all:
@@ -1978,8 +1978,8 @@ export function DiscoverSurface({
                       <CtxRow
                         name={
                           <>
-                            <Num>{scout.checks}</Num> check{plural(scout.checks)} in{" "}
-                            <Num>7d</Num>, none failed
+                            <Num>{scout.checks}</Num> check{plural(scout.checks)} in <Num>7d</Num>,
+                            none failed
                           </>
                         }
                         sub={

@@ -8418,3 +8418,52 @@ achieve.
 matters is post-deploy sample `agent` calls going to zero.
 
 ---
+
+## VERIFIED IN PRODUCTION · 2026-08-21 12:20 UTC · the fix is live, and the deploy was the hard part
+
+**The tick that was burning the money now selects nothing.** Measured across two consecutive ticks of the
+same cron job, ten minutes apart:
+
+| | 12:10 (old code) | 12:20 (fix live) |
+| --- | --- | --- |
+| `spine.track-tick` duration | 61,587 ms | **186 ms** |
+| sample tracks driven | 5 | **0** |
+| sample `agent_runs` created | 2 | **0** |
+| last sample track `driven_at` | 12:11:02 | **12:11:02, unchanged** |
+
+186 ms is the shape the fix predicts: read the sample workspace ids, build the exclusion, select zero tracks,
+return. All 52 open tracks are on sample workspaces and none on a real one, so selecting zero is correct
+rather than broken.
+
+**THE VERIFICATION TEST HAD TO BE `driven_at`, NOT DURATION OR RUN COUNT, and that is the transferable
+lesson.** At 12:00 this tick returned `ok` in 1,231 ms and created zero agent runs, and I nearly read that as
+the fix working. It was not. `driven_at` HAD advanced on five sample tracks: the tick selected them and
+`driveTrackOnce` returned early because all five were held (`needs-evidence` x4, `waiting-on-a-person` x1).
+The tick drives least-recently-driven-first, so it had simply landed on a held cohort, and the next tick
+burned 61 seconds. **A fast, quiet tick is what a working filter looks like AND what a held cohort looks
+like.** Only `driven_at` separates them, because the filter stops selection and a hold stops dispatch.
+
+**THE DEPLOY WAS THE ACTUAL BLOCKER, AND IT WAS NOT PERMISSION.** Three things had to be untangled:
+
+1. **`deploy_project` deploys what LOVABLE holds, not what GitHub holds.** It was called at 11:56, returned
+   success, and republished `c8c49984` -- the newest commit Lovable had. The fix was in `4615ed17`.
+2. **Lovable is the only deploy path here.** `.github/workflows` carries `ci`, `claude-code-review` and
+   `claude` only, and nothing invokes `wrangler`, so there is no second pipeline that could have shipped it.
+3. **Lovable's GitHub sync had STALLED.** It records every commit as a `developer_update` edit and had caught
+   the previous six within **3 to 6 minutes each**, including `c8c49984` at 11:26:05. `4615ed17` was still
+   absent after **24 minutes**, and `read_file` against Lovable's own copy of `track-tick.ts` returned the
+   pre-fix version -- which is the check that proved it rather than inferring it from a timestamp.
+
+**An empty commit unstuck it.** `b5e30893f`, no files changed, pushed 12:05:17 as a nudge and a probe: if it
+synced promptly the webhook worked and `4615ed17` was one miss, and if neither synced the integration needed
+the founder. Within six minutes Lovable's copy carried the exclusion. Then a publish, then the 12:20 tick.
+
+**So the operational rule for this repo: check the deployed SHA before measuring anything, and check it
+against LOVABLE rather than against GitHub.** `git push` succeeding proves nothing about production here, and
+neither does `deploy_project` returning success. The cheapest reliable check is `read_file` on the changed
+file, because it reads the thing that will actually be built.
+
+**Residual sample spend after the fix: $0.0011 in the 12:19 to 12:22 window**, which is the `eval-tick` and
+`discovery` trickle already filed rather than track-tick. The $75/month path is closed.
+
+---

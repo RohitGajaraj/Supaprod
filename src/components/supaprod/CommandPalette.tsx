@@ -106,11 +106,7 @@ export function CommandPalette() {
   const rows: PaletteRow[] = useMemo(() => {
     const q = query.trim();
     if (!q) {
-      return [
-        ...JUMP_DESTINATIONS.map(jumpToRow),
-        ...SETTINGS_ROWS,
-        ...ACT_VERBS.map(actToRow),
-      ];
+      return [...JUMP_DESTINATIONS.map(jumpToRow), ...SETTINGS_ROWS, ...ACT_VERBS.map(actToRow)];
     }
     const ql = q.toLowerCase();
     const jump = JUMP_DESTINATIONS.filter((d) => d.label.toLowerCase().includes(ql)).map(jumpToRow);
