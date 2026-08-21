@@ -7012,3 +7012,37 @@ it. Not folded in, per that note.
 ruling asks for: `/meridian` is behind auth and the browser suite may not carry a password, so the proof
 above is source plus emitted CSS. It is complete for the question asked, and it is not the same evidence as
 a rendered diff; whoever has a session should still confirm the six.
+
+---
+
+## K-92 (follow-through) · BUILT · 2026-08-21 12:35 · one button was unavailable for a reason that was not about it
+
+**Did.** Took the site K-92 flagged and Claude handed back. `DataSection.tsx`'s local was
+`useState<"workspace" | "agents" | null>` **named `busy`**, and both export controls read
+`disabled={busy !== null}`. **So exporting the workspace disabled the agents button too**, and since the
+labels always discriminated correctly (`busy === "workspace" ? "Preparing" : "Download"`), **the agents
+button sat there reading "Download" while being unavailable for a reason that had nothing to do with it.**
+
+**Two facts, said separately, which is the whole shape of the fix.** `disabled={exporting !== null}` stays
+on both, because "only one export at a time" is genuinely true of both whichever is running. **`busy` is
+added per control** -- `exporting === "workspace"` and `exporting === "agents"` -- because "this one is
+working" is true of exactly one. Collapsing them told a screen reader the agents export was unavailable and
+never why.
+
+**Renamed the local to `exporting` in the same change**, and the rename is half the fix rather than tidying.
+Called `busy` it **read as a boolean**, which is how both controls ended up on one condition in the first
+place; it is a discriminant. It also collided with the **`busy` prop `Action` gained hours earlier**, where
+`busy` is a boolean meaning this control's own work is running -- so the file would have had two different
+`busy` of two different types with one passed to the other, a lookup on every read.
+
+**Noticed.** This is the case that makes K-92's 70 mixed sites concrete: `disabled={busy !== null}` looked
+like a compound to be left alone, and it was, but the reason was not the one the guard sees. **It is not
+that a term means "not allowed" -- it is that the pending value is a discriminant and the boolean the
+control wants is per site.** A guard cannot find that; only reading the local can.
+
+**Claude's other two exclusions were right and stay.** `ControlsPanel`'s two sites and `sync.tsx`'s four use
+`deciding(live.id)` and `isBusy(m.id)`, and **a call expression is not something a literal-shaped guard can
+judge**: widening it to admit calls would admit the compounds too.
+
+**Gates.** `bunx tsc --noEmit` 0 · `lane:gates` green, real exit 0. **Not checked in a browser**, and it is
+a settings surface, so the both-grounds look belongs to whoever has a session.

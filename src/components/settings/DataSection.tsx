@@ -107,10 +107,25 @@ export function DataSection({ workspaceId }: { workspaceId?: string }) {
     queryFn: () => fSubprocessors({ data: {} }),
   });
 
-  const [busy, setBusy] = useState<"workspace" | "agents" | null>(null);
+  /*
+   * `exporting`, NOT `busy`, AND THE RENAME IS HALF THE FIX.
+   *
+   * This is a DISCRIMINANT naming which of the two exports is running, not a
+   * boolean. Called `busy` it read as one, which is how both controls ended up
+   * on `disabled={busy !== null}`: exporting the workspace disabled the agents
+   * button too, for a reason that has nothing to do with it. The labels below
+   * always distinguished correctly, so the agents button sat there reading
+   * "Download" while being unavailable.
+   *
+   * It also collided with the `busy` PROP that `Action` gained on 2026-08-21,
+   * where `busy` is a boolean meaning this control's own work is running. Two
+   * different `busy` of two different types, one passed to the other, is a
+   * lookup on every read.
+   */
+  const [exporting, setExporting] = useState<"workspace" | "agents" | null>(null);
 
   async function onExportWorkspace() {
-    setBusy("workspace");
+    setExporting("workspace");
     try {
       const data = await fExport({ data: workspaceId ? { workspaceId } : {} });
       const stamp = new Date().toISOString().slice(0, 10);
@@ -125,12 +140,12 @@ export function DataSection({ workspaceId }: { workspaceId?: string }) {
     } catch (e) {
       toast.error((e as Error)?.message ?? "Export failed");
     } finally {
-      setBusy(null);
+      setExporting(null);
     }
   }
 
   async function onExportAgentContext() {
-    setBusy("agents");
+    setExporting("agents");
     try {
       const { markdown, counts } = await fSkills();
       const stamp = new Date().toISOString().slice(0, 10);
@@ -141,7 +156,7 @@ export function DataSection({ workspaceId }: { workspaceId?: string }) {
     } catch (e) {
       toast.error((e as Error)?.message ?? "Export failed");
     } finally {
-      setBusy(null);
+      setExporting(null);
     }
   }
 
@@ -219,8 +234,17 @@ export function DataSection({ workspaceId }: { workspaceId?: string }) {
             )
           }
         >
-          <Action disabled={busy !== null} onClick={onExportWorkspace}>
-            {busy === "workspace" ? "Preparing" : "Download"}
+          {/* TWO DIFFERENT FACTS, SAID SEPARATELY. `disabled` is "only one
+              export at a time", which is true of both buttons whichever is
+              running. `busy` is "this one is working", which is true of exactly
+              one. Collapsing them told a screen reader the agents export was
+              unavailable and never why. */}
+          <Action
+            disabled={exporting !== null}
+            busy={exporting === "workspace"}
+            onClick={onExportWorkspace}
+          >
+            {exporting === "workspace" ? "Preparing" : "Download"}
           </Action>
         </Line>
 
@@ -228,8 +252,12 @@ export function DataSection({ workspaceId }: { workspaceId?: string }) {
           label="The same record, written for another agent"
           sub="Decisions, outcomes and standing house rules as one markdown file. Mount it into Claude Code, Codex or any coding fleet and your other tools inherit what Supaprod already knows."
         >
-          <Action disabled={busy !== null} onClick={onExportAgentContext}>
-            {busy === "agents" ? "Preparing" : "Download"}
+          <Action
+            disabled={exporting !== null}
+            busy={exporting === "agents"}
+            onClick={onExportAgentContext}
+          >
+            {exporting === "agents" ? "Preparing" : "Download"}
           </Action>
         </Line>
       </Region>
