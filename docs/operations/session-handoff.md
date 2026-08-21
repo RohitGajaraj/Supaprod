@@ -1,3 +1,65 @@
+# Session closed 2026-08-21 14:45 IST — verification lane. All pushed, 0 ahead, gates green.
+
+## Pick this up FIRST
+
+**K-37 is ruled and handed to this lane to BUILD. Kiro is out of credits, so all build
+work now passes to Claude.** No code was changed; the deliverable is the ADR at
+[`docs/decisions/palette-verb-shapes.md`](../decisions/palette-verb-shapes.md) plus five
+build steps on K-37's queue row. The rule as ruled:
+
+> A palette verb either navigates to the station that owns the job, or it acts in place
+> through something mounted globally. **It never does both.**
+
+Deliberately not started minutes before a close: it builds two composers that exist
+nowhere, and half of that left behind is worse than none.
+
+## The one that is shipped but NOT finished
+
+**89% of the daily AI spend was agents running on demo fixtures.** Measured by joining
+`ai_events` to `workspaces.is_sample`: `agent` 1,034 calls / $1.6556 / **100% SAMPLE**,
+real workspaces **zero**. About $52/month.
+
+Fixed in two passes and **the second pass is incomplete**:
+1. `.eq("is_sample", false)` on 14 selection sites across 12 hooks, plus a guard.
+2. **Re-measured 90 minutes later and it was still spending.** `researcher-tick` picks
+   its work from `workspace_briefs`, not `workspaces`, so the filter never applied.
+   Added `src/lib/ticks/real-workspaces.server.ts` and wired that one tick.
+
+**Still open:** `discovery-scout`, `design-critic` and `ux-architect` also started on
+samples after the push. **Deploy lag and an unfiltered path have NOT been separated** —
+the cron calls the deployed Worker and the push was 32 minutes old at the time. And the
+guard still only reads `.from("workspaces")`, so it cannot see a tick that selects from
+a workspace-scoped table. **Re-measure before assuming either.**
+
+## Landed and verified this session
+
+- **Retry policy** (`src/lib/ai/retry-policy.ts`, founder-authorised). `Retry-After` is
+  read at both 429 sites, exponential + equal jitter for `RATE_LIMIT` only, and a
+  **per-surface budget** — background 45s/6 attempts, interactive 6s/3, unknown surface
+  treated as interactive. 23 tests. The old policy retried three times inside **1.2s**,
+  which cannot clear a per-minute limit.
+- **Root cause behind three findings**: the gateway limit is **per KEY, not per model**,
+  so the fallback chain cannot help either. `sense` lost 32 calls over 35 hours.
+- **500 error page** ported off Tempo + v1 Ember to Meridian, measured in a browser.
+- **Verdicts**: K-82, K-86 to K-97 all answered. K-90's rename **REJECTED** (316 elements
+  painted a size nobody asked for; half the cause was an ambiguity in my own spec).
+
+## Watch these
+
+- **Disk filled completely mid-session** and three gates failed at once. Three gates
+  failing together is diagnostic of the machine, not the change.
+- **`bun run lane:gates` only** — a pipe reports `tail`'s status, and a backgrounded run
+  reports the *wrapper's* exit code while the gate itself exits 1. Read the verdict line.
+- **The scout has nothing to watch.** `scout_targets` is empty, the newest `scout_runs`
+  row is 2026-07-25, and all 98 rows share the microsecond `.11332` — fixtures. `error`
+  and `skipped-cap` outcomes have **never** been written, so K-93's red and amber rows
+  are unexercised rather than wrong.
+- **Types**: I patched 4 columns by hand *and* Lovable's bot pushed a regeneration 48
+  minutes later. **No duplicates, tsc clean** — but check before patching that file again.
+
+
+---
+
 # ✅ SESSION CLOSED 2026-08-21 · Claude (verification and database lane) · the queue is verified, the app is published, and the moat tables are still empty
 
 **State at close.** `parallel/lane-1-fresh`, tree clean, **0 ahead / 0 behind** `origin/main` at

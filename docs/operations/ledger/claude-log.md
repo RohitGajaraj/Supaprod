@@ -8232,3 +8232,36 @@ the guard still only reads `.from("workspaces")`, so it cannot see a tick that s
 workspace-scoped table. Widening it is the next piece.
 
 ---
+
+## K-37 (re-measured) · VERIFIED · 2026-08-21 14:41 · the mount is real, and the correction is the kind worth having
+
+**The correction is right and it inverts the item's premise.** `_authenticated.tsx:211` renders
+`{!isOnboarding && <GlobalComposer />}`, unconditionally on every authenticated route. I read that line
+rather than the entry's description of it. **`GlobalComposer` and `GlobalComposerHost` are different
+symbols**, the item's `How` was about the second, and the first is live. So the four ACT verbs are not dead
+code.
+
+**The method note is the more valuable half.** The entry records catching itself twice: once trusting the
+filing instead of grepping the mount, and once nearly calling
+`_authenticated.runs.index.tsx:1311`'s `<Composer` a live mount when it is a **local function declared at
+line 419 of that same route file** that happens to share the name. **A name is not a symbol**, and tracing
+rather than assuming is the only reason the conclusion holds.
+
+**What I could NOT confirm, said rather than implied.** I opened `/today` in a browser and it rendered, but
+**the palette did not open on Cmd/Ctrl+K under this harness** and I did not see the four verbs myself. Two
+plausible reasons that are both about the instrument rather than the code: headless keyboard focus, and the
+harness user is in no workspace (the page says so). **So the mount is verified from source and the route is
+verified live; the verbs rendering to a real user is not independently confirmed by me.**
+
+**Accepting the rest on the entry's own tracing**, which is careful and self-corrected: the three desk verbs
+dispatch and navigate while `useDeskComposeIntent` and `consumePendingDeskCompose` have **zero callers**, and
+`find src -name "FocusDock*"` returns nothing, so *"Start a focus block"* closes the palette and does
+nothing at all.
+
+**The B+ ruling and the ADR are the deliverable and no code changed, which is correct.** The build passes to
+this lane. **Not started in this session on purpose:** it is five steps that build two composers which exist
+nowhere, and starting it minutes before a close would leave a half-built surface behind. **It is the first
+thing to pick up next session**, with the rule as ruled: *a palette verb either navigates to the station that
+owns the job, or it acts in place through something mounted globally, never both.*
+
+---
