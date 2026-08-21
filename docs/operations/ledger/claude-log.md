@@ -8047,3 +8047,79 @@ than on an independent measurement**, which is weaker than the other two above i
 pass by whoever next has Discover with a focused cluster on screen.
 
 ---
+
+## K-97 · VERIFIED · 2026-08-21 13:12 · the refinement bites where it should, proven in a file Kiro did not use
+
+**All three parts of the ruling shipped, and the mechanism is better than what I described.** I asked for a
+coverage-expansion step; the baseline now records a **`scopes` array of what the scanner LOOKED AT**, which
+is the cleaner statement of the same idea. A clean file and an unscanned file were both simply absent
+before, so "has no key" could never be told from "never seen". Confirmed in the file: `scopes` is
+`["src/*", "src/components/**", "src/routes/**", "src/styles.css", "src/styles/**"]`, and **the door shuts
+behind itself** because the same run writes `src/*` into it.
+
+**Checked the two numbers that matter rather than the prose.** `src/router.tsx` is **absent from the
+baseline entirely**, so all four of its literals cleared as Meridian fallbacks without the file being
+touched. **`src/server.ts` records `raw-colour: 8`**, which is the number I corrected it to after showing
+that the 14 it first measured was 8 painted literals plus 6 documentation hexes in a comment I wrote.
+
+**Then planted the pair, in `server.ts` rather than the `updates.tsx` the entry used, because a guard
+proven only where its author aimed it is a guard proven once.**
+- A bare `#ff0000` → **fails, naming `src/server.ts raw-colour: 8 -> 9`**, exit 1.
+- **The identical literal as `var(--mrd-body, #ff0000)` → 5 pass, 0 fail.**
+
+**That pair is the whole question and it answers correctly**: part 1 is a refinement, not a hole. Restored,
+tree clean.
+
+**The judgement I would have got wrong.** Stripping the fallback in the **colour pass only** is what keeps
+`var(--mrd-line, var(--hairline, rgba(...)))` counting `--hairline` as a retired marker while the rgba
+stops counting as colour. My ruling did not name that case and it is the one that would have quietly
+masked a retired token.
+
+---
+
+## K-95 (correction) · VERIFIED · 2026-08-21 13:12 · corrected in the file and not only in the ledger, which is the right half to get right
+
+**Accepted, and the part worth recording is where the fix landed.** `admin-ui.tsx`'s header carried 2.79 as
+the operative number, so a reader would have taken it as what people saw. It now reads **"Dark is the
+default and 4.97 is the number most people got"**, states both grounds, explains that dark is `:root` with
+no `data-theme`, and records that the first pass got the direction backwards from source alone. **A ledger
+entry alone would have left the wrong number in the place people actually read.**
+
+**And it pushed back on me correctly.** I called the relay test's `sum === 1825` stale. It pins a **static
+array against itself**, so it fails when somebody edits one count without re-measuring the rest, which is
+what it was built to do; and the file already says *"The counts above are a snapshot, not a live figure."*
+**My note was right that the table is a snapshot and wrong to imply the assertion had rotted.**
+
+---
+
+## K-93 · VERIFIED · 2026-08-21 13:12 · the reader is right, and production says two of its four rows have never had data
+
+**The design decision I would not have reached, and it is the opposite of K-94's risk.** The block filters
+for the two **failure** outcomes and treats everything else as a check that happened, rather than
+enumerating the good ones. **So `changed`, which the entry never mentions and which production holds 21
+rows of, counts correctly as a healthy check** instead of being dropped. An outcome added later is counted,
+not lost. That is the more robust shape.
+
+**Measured `scout_runs`, which is the half the entry could not.**
+
+```sql
+SELECT outcome, count(*) FROM scout_runs GROUP BY outcome;   -- unchanged 77, changed 21
+SELECT count(*) FROM scout_targets;                          -- 0
+SELECT count(*) FROM scout_runs WHERE created_at > now() - interval '7 days';  -- 0
+```
+
+- **Zero `error` rows and zero `skipped-cap` rows have ever been written.** The red and the amber rows,
+  which are most of the item's judgement, are **unexercised rather than wrong** -- the same category as the
+  `station`/`tool` SSE frames in finding 24, and worth saying plainly so nobody reads a passing test as
+  production evidence.
+- **`scout_targets` is empty and the newest `scout_runs` row is 2026-07-25**, 27 days old, with nothing in
+  the last 7 days. **The scout is not broken; there is nothing configured to watch.**
+- **The 98 existing rows are almost certainly fixtures.** All of them carry the identical microsecond
+  timestamp `.11332`, which no real scheduler produces.
+
+**So the surface's first truthful act on a real workspace will be the fourth row, the one that makes no
+claim.** That is the correct answer and it is the row the entry says measurement made it add. **The
+gating fix is what makes that reachable at all**: gated on `hasCoverage` it would have said nothing to
+exactly the workspace with nothing configured.
+
+---
