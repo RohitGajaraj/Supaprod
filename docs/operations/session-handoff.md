@@ -3419,3 +3419,102 @@ claiming Today "owns the surviving task-capture list", and that list is not ther
    in the repo.**
 4. **A gate that dies for want of disk is indistinguishable from a gate that dies of your change.** Check
    `df -h .` before debugging a sudden four-gate failure.
+
+---
+
+# 2026-08-22 evening — the loop was fed from outside itself for the first time
+
+Appended, not replacing what is above. Three sessions once closed within ten minutes and each
+overwrote the others.
+
+## What is now true that was not this morning
+
+**The product has external input.** The public ingest webhook had never been used in its life:
+zero `ingest_tokens`, zero calls. A token was minted for workspace
+`0b792d52-82e2-43e2-adc5-8a26e5c800b4` (prefix `92ca7a00`; the plaintext was never written to the
+repo and is not recoverable — mint a new one). Ten measured findings from the day's own audit went
+in and clustered into four themes at the 17:50 tick. Best: *Silent Failures via Swallowed Database
+and API Errors*, frequency 4, severity 5, confidence 0.95.
+
+**Do not read that as "ingestion works" without reading the next paragraph.**
+
+## The door you are told to use was the one skipping the sink
+
+`ingest-signals.ts` built row literals and called `.insert()` directly. The first signal it ever
+accepted, in production, landed with `source_kind` NULL and `embedding` NULL, and with no
+restatement dedup — on an unauthenticated push endpoint, on the same day dedup shipped because
+thirteen restatements of two sentences burned a month of credit in eighty minutes.
+
+It routes through `writeSignals` now. Proven live: the same ten posted twice returned
+`created: 10` then `created: 0, restated: 10`.
+
+**The general lesson, because it will happen again.** The sink's header lists which doors bypass
+it. That list is only true on the day someone checks. `ingest_signal` (MCP) is the last
+untrusted-input door still screening for itself and is the obvious next one to move.
+
+**And a free deployment oracle:** when you change a response contract, poll for the new key
+instead of sleeping. `{"created":10,"quarantined":0}` versus the same call returning `restated`
+told me which build was executing, with no guessing about propagation.
+
+## THE ONE THAT COST A DAY: a station that restarts its crew can never finish it
+
+`spine.track-tick` drives up to five tracks under ONE shared 45s deadline
+(`TICK_DEADLINE_MS`). A station is a crew of up to three agent dispatches. The crew loop began at
+its first seat every tick.
+
+So a station that does not fit in the window left to it pays for a seat, breaks on the clock, is
+stamped `out-of-time`, and starts that same seat again next tick. Forever.
+
+Measured: ten consecutive ticks at 87s, 107s, 53s, 63s, 54s, 7s, 8s, 46s, 8s, 8s against a 45s
+deadline. All four tracks `out-of-time`, `driven_at` within one second of each other,
+`spend_used_usd` climbing tick over tick (one went 0.093 → 0.100 while I watched).
+
+**Why it hid for a day.** `attempts` is 0 on every track, and that is correct — running out of OUR
+clock is not the track's fault. The consequence is that `MAX_STATION_ATTEMPTS` never trips, so
+nothing ever declares the track stuck, and `job_runs` says `ok` on every tick. A livelocked spine
+and a quiet workspace look identical from every surface.
+
+Fixed with `spine_tracks.seat_cursor`, written only on the out-of-time exit and cleared on every
+other one, riding the same write as the spend meter so the two cannot disagree. The brief survives
+the gap for free: `loadUpstream` re-reads from the database each tick and each seat files through
+`attachProducts` before the clock is checked.
+
+**Unverified at handoff.** `975ddb9de` is what Lovable holds, but the last sweep I observed
+(17:50:47) ran the old build. **Check `seat_cursor > 0` on a held track after a sweep** — that is
+the assertion that proves the fix engaged, not the absence of complaints.
+
+## The bar, and what is genuinely the founder's
+
+`promotion_min_frequency = 4` is set on that one workspace. Severity and confidence untouched and
+met on merit (5 vs 4, 0.95 vs 0.8). Reverse it with one statement:
+
+```sql
+UPDATE workspaces SET promotion_min_frequency = NULL
+ WHERE id = '0b792d52-82e2-43e2-adc5-8a26e5c800b4';
+```
+
+**Cold start could not do this and it is worth knowing why.** `COLD_START_MATURE_AT` is 40 signals
+and the ramp is linear, so at 37 signals `ceil(8 * 37 / 40)` is already 8 — zero relief — while the
+best theme a real corpus has ever produced is 6, and the best from genuine external input is 4.
+The ramp retires itself long before a corpus can reach the bar it is ramping toward. **Corpus size
+is the wrong maturity proxy**; what a corpus has actually clustered is the right one. That is a
+spend decision and it is filed under *Needs the founder*, not decided.
+
+## Smaller things, all committed
+
+- `admin_grant_credits` defaulted `_reason` to `'admin_grant'`, which its own CHECK rejects. It
+  failed on the path its signature invites and worked for everyone who passed a reason. Now
+  `'topup'`, matching the column it actually moves.
+- Both `tool_calls` inserts stamp `workspace_id` (fixed earlier today) **and now check the error**.
+  The repair had reproduced the shape of the bug: a discarded error object. No agent has run since,
+  so the stamp is still unverified in production — the check is what turns the next run into
+  evidence.
+- `docs-doctor` had a `/tmp` race producing 394 phantom orphans. `mktemp` + `trap`.
+
+## Where I would start
+
+1. Confirm `seat_cursor` engages, per above. It gates everything else, because nothing can finish a
+   station until it does.
+2. Watch whether the frequency-4 theme promotes and walks past Decide. Two tracks already reached
+   `decide` today, so the route works; the question is whether a station now completes.
+3. `ingest_signal` (MCP) onto the sink, same treatment as the webhook.
