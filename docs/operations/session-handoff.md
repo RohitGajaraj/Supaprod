@@ -60,7 +60,7 @@ one JS chunk; the authenticated routes are code-split and only load after sign-i
 | Item | State | Needs |
 | --- | --- | --- |
 | **`8a3e0a00b` unpushed** | committed, tree clean | one `git push origin main`. Unpushed looks identical to shipped |
-| **EF The Bridge rejection** | card set to `Rejected`, decision date 2026-08-21 | **their verbatim email.** `Outcome detail` deliberately records NO reason — the board's own rule, learned when "not the right fit" turned out to be our paraphrase on the SPC card |
+| **EF The Bridge rejection** | ✅ **CLOSED.** Verbatim email captured on the card, date confirmed from its header | nothing. **No reason was given** — *"highly competitive… only a small group can progress to the next stage"* is a volume statement. The phrase **"next stage"** confirms a staged process, so this was a first-pass screen and the 13 filed answers were probably never judged. **Do not rewrite them against this outcome** |
 | **`voyage@supaprod.ai` given twice** | flagged in `applications/README.md` | a decision. It went to South Park Commons AND EF inline in Q4, against the board's one-login-per-programme rule. Sign-ins can no longer be attributed |
 | **4 of 5 filed applications quote retired numbers** | documented, untouched | the real strengthening work, and it is evidence-backed unlike the rejections. Audit filed text against `../pitch/verified-numbers.md` |
 | **`bun run dev` keypress check** | never ran | `g`+letter must navigate, ⌘K must open Ask. The Chrome extension was down the whole session (three attempts, hours apart). Automated equivalents pass |

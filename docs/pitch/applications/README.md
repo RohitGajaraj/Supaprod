@@ -2,7 +2,9 @@
 
 > ### ❌ Two outcomes are in, and both are noes. EF The Bridge said no on 2026-08-21, three days after we filed
 >
-> **EF The Bridge Residency SF: REJECTED 2026-08-21.** Applied 2026-08-18, so the turnaround was **three days** against South Park Commons' eleven. **That speed is the only signal this outcome currently carries**, and it points at a screen rather than a considered read of the 13 answers. **Their verbatim text is not yet captured** — until it is, no reason may be written down for this one either. See the rule immediately below, which was learned the hard way on the first rejection.
+> **EF The Bridge Residency SF: REJECTED 2026-08-21.** Applied 2026-08-18, so the turnaround was **three days** against South Park Commons' eleven. **Their exact words are now on the Notion card**, and they give **no reason** — *"Selection for The Bridge is highly competitive, and only a small group can progress to the next stage."* That is a volume statement, not an assessment of the company, the market or the founder. **No reason may be written down for this one either**, per the rule immediately below, learned the hard way on the first rejection.
+>
+> **The one new fact the email does carry: *"progress to the next stage"*.** The process is staged and this was a **first-pass screen**, which fits a three-day turnaround. **That means the thirteen filed answers were very likely never the thing being judged** — so rewriting them in response to this outcome would be optimising against a decision nobody made. They invite reapplication explicitly: *"Many talented applicants reapply successfully in the future."*
 >
 > **Two noes is still not a pattern.** Different programmes, different filters, one of them decided in three days. The temptation after a second rejection is to rewrite the positioning; the discipline is to fix what we can *prove* is wrong (the retired numbers listed further down) and leave the thesis alone until something actually tells us it is wrong.
 >
@@ -219,7 +221,7 @@ python3 scripts/funding-sync.py --no-icloud
 | **[South Park Commons](./south-park-commons/)** | 2026-07-31 | ❌ **rejected 2026-08-11, 05:31 IST. No reason given** | `voyage@supaprod.ai` | none. They invite a future application |
 | **[Betaworks AI Camp](./betaworks-ai-camp/)** | 2026-07-31 | rolling, batch starts 08-31 | `compass@supaprod.ai` | none |
 | **[The Residency, Fall 2026](./the-residency/)** | 2026-07-31 | by 2026-08-28 | none given | none |
-| **[EF The Bridge Residency SF](./ef-bridge-sf/)** | 2026-08-18 | ❌ **rejected 2026-08-21, three days later. Verbatim text not yet captured** | `voyage@supaprod.ai` ⚠️ | **Capture their exact email into the Notion card's `Outcome detail`.** Also: this login was already spent on South Park Commons, so two programmes hold the same demo account |
+| **[EF The Bridge Residency SF](./ef-bridge-sf/)** | 2026-08-18 | ❌ **rejected 2026-08-21, three days later. No reason given** — *"highly competitive… only a small group can progress to the next stage"*. Verbatim email on the Notion card | `voyage@supaprod.ai` ⚠️ | **This login was already spent on South Park Commons**, so two programmes hold the same demo account and a sign-in cannot be attributed. Needs a rotation decision |
 
 ---
 
