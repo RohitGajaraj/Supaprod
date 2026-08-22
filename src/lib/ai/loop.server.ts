@@ -40,6 +40,7 @@ import { HIGH_RISK_MIN_CONFIRM, HIGH_RISK_FORCE_REVIEW, BUILD_LANE_AUTONOMOUS } 
 import { consumeInboundHandoff, renderHandoffBlock, maybeCompleteMission } from "./handoff.server";
 import { autoReflect, maybeAutoAdvanceArc } from "./reflection.server";
 import { isHighRiskTool, toolRisk, toolConsequence } from "@/lib/tool-consequences";
+import { planApprovalExpiry } from "@/lib/ai/approval-expiry";
 import { capToolsByRisk } from "@/lib/agent-tool-cap";
 import { resolveBestAgentModelForUser } from "./platform-keys.server";
 import { buildNativeToolDefs } from "./tool-schemas.server";
@@ -1466,6 +1467,17 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
     const isWrite = def.category === "write" || def.category === "planning";
 
     if (!isControlFlow && isWrite && (mode === "confirm" || mode === "review")) {
+      /* THE GATE DECLARES ITS OWN DEFAULT, and the deadline is part of the
+       * question rather than a sweeper's opinion later.
+       *
+       * This used to be a flat seven days for everything, which is how the queue
+       * measured on 2026-08-22 came to hold 38 unanswered calls with the oldest at
+       * 696 hours: a week is longer than anyone waits (the 95th percentile of every
+       * human decision on record is 12.9 hours) and nothing happened at the end of
+       * it anyway. `planApprovalExpiry` reads the reversibility and boundary axes
+       * this codebase already keeps in `tool-consequences.ts` and returns both the
+       * clock and what happens when it runs out. */
+      const expiry = planApprovalExpiry(call.name);
       const { data: appr } = await supabase
         .from("agent_approvals")
         .insert({
@@ -1476,7 +1488,7 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
           tool_name: call.name,
           args: parseRes.data,
           rationale: call.reason ?? null,
-          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          expires_at: expiry.expiresAt,
           // F-STUDIO: mission context so gated tools can execute post-approval
           // (outside the live loop) and the sweeper can resume the paused run.
           run_id: runId,
@@ -1485,6 +1497,17 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
         })
         .select("id")
         .single();
+      /* Written second, and best-effort, on the `decision_reason` precedent a few
+       * hundred lines away in governance.functions.ts: the column lands in its own
+       * migration and a gate must never fail to be raised because the migration has
+       * not applied yet. Without it the sweeper re-derives the same answer from the
+       * same catalogue and says in the row that it did. */
+      if ((appr as { id: string } | null)?.id) {
+        await supabase
+          .from("agent_approvals")
+          .update({ expiry_default: expiry.onExpiry } as never)
+          .eq("id", (appr as { id: string }).id);
+      }
       approvalsQueued++;
       steps.push({
         kind: "tool_call",
