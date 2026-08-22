@@ -27,6 +27,8 @@ import { checkUserAiRateLimit } from "@/lib/ai-ratelimit.server";
 // `describeRoutedIntent` is deliberately NOT imported: see the routing comment
 // at the dispatch reply for why its sentence was built and then withdrawn.
 import { routeIntent, asStation } from "@/lib/ask/route-intent";
+import { asWorkShape, planProposalLine, type PlanProposal } from "@/lib/ask/plan-proposal";
+import { resolveMissionSpendCap } from "@/lib/ai/mission-caps.server";
 import {
   dispatchBlockedMessage,
   instructionForDispatch,
@@ -246,23 +248,26 @@ const WORK_SHAPE_MENU = (Object.keys(WORK_SHAPE_LABEL) as WorkShape[])
  * The mirror of `asStation`, and defensive for the same reason: this reads a
  * value a language model wrote, so "feature" or "bugfix" or a whole sentence
  * are all live possibilities. An unrecognised value has to land on null and
- * behave exactly as the day before this field existed, because the only thing
- * downstream of it is one extra sentence in a reply and no sentence at all is a
- * fine outcome. A parse that threw here would turn a cosmetic miss into a
- * failed dispatch.
+ * behave exactly as the day before this field existed. A parse that threw here
+ * would turn a cosmetic miss into a failed dispatch.
+ *
+ * ── WHAT IS DOWNSTREAM OF IT CHANGED ON 2026-08-22 ──────────────────────
+ *
+ * This comment used to say the only thing downstream was "one extra sentence in
+ * a reply", and that a miss cost a sentence rather than a dispatch. That is no
+ * longer true and the sentence it described was withdrawn anyway. A recognised
+ * shape now decides whether the handover is GATED: a route the classifier can
+ * name gets a plan published and waits for an answer, and a null still
+ * dispatches straight through exactly as it always did. So a miss now costs the
+ * gate, not the run — which is the fail direction a gate must have. Falling
+ * closed here would mean a shape the model spelled oddly could stall work
+ * behind a plan nobody can draw.
+ *
+ * THE READER ITSELF MOVED to `@/lib/ask/plan-proposal`, because the client has
+ * to make the identical judgement about the same value coming back off the
+ * wire, and two copies of a closed-set check is how the two ends come to
+ * disagree about what the five are.
  */
-const WORK_SHAPES = new Set<string>(Object.keys(WORK_SHAPE_LABEL));
-
-function asWorkShape(value: unknown): WorkShape | null {
-  if (typeof value !== "string") return null;
-  // A Set of the five, and NOT `value in WORK_SHAPE_LABEL`. `in` walks the
-  // prototype chain, so the first draft of this accepted "constructor" and
-  // "toString" as work shapes — and every one of them then reached
-  // `SHAPES[shape]` in suggestRoute, which has no such key, and threw on
-  // `spec.waive` inside the dispatch try. A defensive reader that turns a
-  // strange model output into a 500 is worse than no reader at all.
-  return WORK_SHAPES.has(value) ? (value as WorkShape) : null;
-}
 
 /**
  * F-AGENTS-MENTIONABLE: extract candidate @agentslug tokens from a message.
@@ -762,6 +767,213 @@ You must output a JSON object EXACTLY in this format:
 
         // 3. Dispatch orchestrated mission and exit if classified as mission
         if (dispatching && startingAgent && workspaceId) {
+          /**
+           * ══ THE PLAN GATE ══════════════════════════════════════════════
+           *
+           * `routed` moved above `createMission` and stopped being `void`. This
+           * is the consumer the seam comment below named, and the paragraphs
+           * there are the argument for everything here; read them first.
+           *
+           * WHAT THIS DOES. When the classifier gave a shape, the route becomes
+           * a PROPOSAL: the plan goes out on the stream, the mission row is not
+           * written, no agent is dispatched, and nothing is charged. The request
+           * ends there. The answer comes back on `/api/plan-gate`, which is a
+           * route of its own because a gate makes the request outlive its own
+           * stream — the same reason `mission_steps` approvals have never been
+           * settled on the stream that created them.
+           *
+           * WHY THE GATE IS HERE AND NOT AT EACH STEP. Anthropic instrumented
+           * real sessions: people take about 70% of PLANNING decisions and about
+           * 20% of EXECUTION decisions, while one prompt triggers around ten
+           * agent actions and sometimes over a hundred. And 93% of permission
+           * prompts are approved, which they name approval fatigue. A gate that
+           * is clicked through is worse than no gate, because it manufactures
+           * the appearance of review while producing none of it. Our own record
+           * is worse than theirs: six agents at a 100% approval rate, eleven
+           * tools asked 130 times and answered zero times. So one answer at the
+           * top, and then the run is left alone.
+           *
+           * ── THE THREE PLACES THIS DELIBERATELY DOES NOT GATE ────────────
+           *
+           * 1. A MENTION. `@builder ship the flag` is an unambiguous command to
+           *    one named agent, the classifier never runs on that branch (it is
+           *    gated on `!mentionedAgent`), and there is therefore no shape and
+           *    no route. Publishing a plan there would mean inventing one.
+           *
+           * 2. A SHAPE THE CLASSIFIER COULD NOT NAME. Then there is no route,
+           *    and a gate with no plan on it is a confirm dialog: it asks for a
+           *    click and shows nothing to decide with, which is precisely the
+           *    93%-approved shape this whole interaction exists to replace. So
+           *    the handover dispatches exactly as it did the day before, and the
+           *    honest reason is that we have nothing to show, not that we chose
+           *    not to ask.
+           *
+           * 3. ANYTHING PRE-FLIGHT ALREADY BLOCKED. `preflightBlock` returns
+           *    below this line untouched. A plan for a run that cannot start is
+           *    the worst of both.
+           *
+           * `PlanGate` has its own answer for a plan that arrives empty — it
+           * draws the state and offers no answers, because a plan with no steps
+           * is not something a person can decide about. That is the client-side
+           * floor under the same rule, for a server that grows a shape this
+           * build has never heard of.
+           *
+           * ── WHAT IS RECORDED, AND WHERE ────────────────────────────────
+           *
+           * Nothing, here. This request writes the person's message and streams
+           * a proposal; the belief is the ANSWER, and the answer is written by
+           * `/api/plan-gate` into `human_gate_events`. That file carries the note
+           * on what that table would want and does not have.
+           */
+          const routed =
+            classifiedShape && !mentionedAgent
+              ? routeIntent({
+                  shape: classifiedShape,
+                  // The person's own words are where this work came from, which
+                  // is what the ORIGIN RULE asks for: a route entering below
+                  // Discover has no evidence behind it, so `validateRoute`
+                  // refuses one that cannot say where it came from.
+                  origin: body.content.slice(0, 200),
+                  station: classifiedStation,
+                })
+              : null;
+
+          if (routed && classifiedShape) {
+            /**
+             * THE CEILING IS READ, NEVER GUESSED. `resolveMissionSpendCap` is
+             * the exact call `createMission` makes for the run this plan would
+             * become, so the number under "Spend ceiling" is the number that
+             * would actually halt it. A gate that shows a plausible figure the
+             * run does not obey is asking a person to decide about a fiction,
+             * and this is the one control on the card that is about money.
+             */
+            const proposal: PlanProposal = {
+              id: crypto.randomUUID(),
+              shape: classifiedShape,
+              // The classifier's raw answer, not `routed.station`, so that the
+              // client's own `routeIntent` call takes the identical inputs.
+              // See `plan-proposal.ts`.
+              station: asStation(classifiedStation),
+              origin: body.content.slice(0, 200),
+              title: missionTitle.trim() || instruction.slice(0, 80),
+              goal: missionGoal || instruction,
+              spendCapUsd: await resolveMissionSpendCap(supabase, workspaceId, undefined),
+            };
+
+            const { error: gateUserInsErr } = await supabase.from("messages").insert({
+              conversation_id: body.conversationId,
+              user_id: userId,
+              role: "user",
+              content: body.content,
+            });
+            if (gateUserInsErr) {
+              const sanitized = sanitizeError(gateUserInsErr, "Failed to insert user message");
+              return json(
+                { error: sanitized.message, errorId: sanitized.errorId },
+                500,
+                corsOrigin,
+              );
+            }
+
+            /**
+             * THE SENTENCE HAS TO STAY TRUE AFTER A RELOAD, and that is what
+             * decided its wording.
+             *
+             * Nothing persists a proposal — there is no table for one and this
+             * lane did not invent it — so the gate lives for as long as the pane
+             * does. The words are persisted, though, and they outlive it. "Here
+             * is the plan" would be a broken promise to somebody who came back
+             * tomorrow and found no plan under it. What is written instead is
+             * only what is still true at any later moment: nothing started,
+             * nothing was charged, and the person has the say.
+             */
+            const gateText = `**${proposal.title}** is waiting on you. Nothing has started and nothing has been charged. Say how much of it can run without you.`;
+
+            const encoder = new TextEncoder();
+            const gateStreamAbort = new AbortController();
+            const gateStream = new ReadableStream({
+              cancel() {
+                gateStreamAbort.abort();
+              },
+              async start(controller) {
+                controller.enqueue(
+                  encoder.encode(
+                    `data: ${JSON.stringify({
+                      choices: [{ delta: { content: gateText } }],
+                    })}\n\n`,
+                  ),
+                );
+
+                /**
+                 * NO `station` FRAME BESIDE THIS ONE, and the omission is the
+                 * rule rather than an oversight. `station` says the work MOVED
+                 * to a station; here it has not moved anywhere, because nothing
+                 * has been dispatched. The station is inside the proposal, where
+                 * it reads as part of a question. Emitting both would put the
+                 * same id on the wire once as a fact and once as a proposal, and
+                 * `use-ask-stream` would light the station strip for a run that
+                 * does not exist.
+                 *
+                 * The line is built by `planProposalLine` rather than written
+                 * here, because the first `landing` emitter in this same file
+                 * shipped the parser's RETURN shape instead of its INPUT and was
+                 * dropped in silence by `parseSseLine`. One builder, one shape,
+                 * and a test that walks its output through the real parser.
+                 */
+                controller.enqueue(encoder.encode(planProposalLine(proposal)));
+
+                const gateMeta: ChatMeta = {
+                  model,
+                  via: "gateway",
+                  latency_ms: Date.now() - t0,
+                  tokens_in: 0,
+                  tokens_out: 0,
+                  cost_usd: 0,
+                  sources: [],
+                  web_used: false,
+                  workspace_chunks: 0,
+                };
+                controller.enqueue(
+                  encoder.encode(`data: ${JSON.stringify({ meta: gateMeta })}\n\n`),
+                );
+                controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+                controller.close();
+
+                if (gateStreamAbort.signal.aborted || request.signal.aborted) return;
+
+                const gateMsgInsert = supabase.from("messages") as unknown as {
+                  insert: (p: Record<string, unknown>) => Promise<{ error: unknown }>;
+                };
+                await gateMsgInsert.insert({
+                  conversation_id: body.conversationId,
+                  user_id: userId,
+                  role: "assistant",
+                  content: gateText,
+                  model,
+                });
+
+                const gateConvBuilder = supabase.from("conversations") as unknown as {
+                  update: (p: Record<string, unknown>) => {
+                    eq: (c: string, v: string) => Promise<{ error: unknown }>;
+                  };
+                };
+                await gateConvBuilder
+                  .update({
+                    // The proposal's title is the mission's title if it starts,
+                    // so the thread is named the same either way and a plan that
+                    // is sent back does not leave a thread called something else.
+                    ...(conv.title === "New conversation"
+                      ? { title: proposal.title.slice(0, 60).trim() }
+                      : {}),
+                    updated_at: new Date().toISOString(),
+                  })
+                  .eq("id", body.conversationId);
+              },
+            });
+
+            return new Response(gateStream, { headers: getSseHeaders(corsOrigin) });
+          }
+
           try {
             // Create the mission row
             const mission = await createMission(supabase, userId, workspaceId, {
@@ -864,111 +1076,66 @@ You must output a JSON object EXACTLY in this format:
              * which is where the truth actually becomes visible.
              */
             /**
-             * THE ROUTE IS COMPUTED AND DELIBERATELY NOT SAID. Read the comment
-             * directly above before changing this; it is the same rule, caught
-             * a second time in the same file on the same day.
+             * THE ROUTE IS COMPUTED ABOVE NOW, AND IT IS NO LONGER `void`.
              *
-             * WHAT WAS BUILT AND THEN TAKEN BACK OUT. The classifier now emits
-             * a station and a shape, `routeIntent` turns those into an entry
-             * station and its seats, and a first version appended
-             * `describeRoutedIntent(routed)` to the reply so it read: "**Title**
-             * is open and the crew is starting on it now. Plan picks this up,
-             * with Draft on it."
+             * ── WHAT THIS BRANCH IS, AFTER THE GATE ────────────────────────
              *
-             * WHY THAT SENTENCE COULD NOT SHIP. Nothing routes. The only
-             * dispatch on this branch is `runAgentLoop(..., { agentSlug:
-             * "orchestrator" })` above, which never sees the shape, the station
-             * or the crew — the orchestrator plans its own DAG and picks its own
-             * agents. So the sentence was a CLASSIFIER'S GUESS printed as a
-             * report, sitting one clause after "the crew is starting on it now",
-             * where a reader can only take it as a statement about the dispatch
-             * that just happened. `route-intent.ts` scopes that helper in
-             * writing to "the one sentence the pane can show BEFORE anything is
-             * dispatched" — a preview, used here as a receipt. And the text is
-             * persisted to the message row below, so the unbacked claim would
-             * outlive the request in the transcript.
+             * Reaching this line means one of three things is true, and each of
+             * them is a reason there was no plan to publish:
              *
-             * WHAT WOULD MAKE IT TRUE, and it is a small change with a product
-             * decision inside it: `startTrackCore` has two production callers
-             * and this file is not one of them. Once a chat dispatch actually
-             * starts a track carrying this `SpineRoute`, the station stops being
-             * a guess and the sentence becomes a receipt. That call needs
-             * someone to settle whether a chat dispatch creates a mission, a
-             * track, or both, and which id the SSE `mission_id` frame returns —
-             * which is why the lane that built this was told not to make it.
+             *   · a person named an agent, so the classifier never ran;
+             *   · the classifier ran and could not name a shape, so there is no
+             *     route and a gate here would be a confirm dialog with nothing
+             *     on it;
+             *   · the shape was named and the person ANSWERED the gate — in
+             *     which case this code is running inside `/api/plan-gate`'s
+             *     dispatch and not inside a chat turn at all.
              *
-             * `routed` is kept, not deleted. It is the value that call will
-             * need, it is what a `station` SSE frame would carry, and computing
-             * it costs one pure function with no network and no clock.
+             * So this is the ungated path, unchanged, and it is still honest for
+             * the reason the paragraph above it gives: the work is open and
+             * starting, and the next line invites you to watch it.
              *
-             * ── WHAT CHANGED ON 2026-08-22, AND WHAT DID NOT ────────────────
+             * ── THE SENTENCE THAT COULD NOT SHIP, AND STILL CANNOT ─────────
              *
-             * WHAT CHANGED: until today this expression evaluated to `null` on
-             * every handover, and the paragraphs above did not know it. The Ask
-             * pane prefixed the literal string `@cos` onto every instruction,
-             * that resolved to the conductor, and the classifier is gated on
-             * `!mentionedAgent`. So `classifiedShape` was never set on the one
-             * path this was written for, and `routeIntent` was never called.
-             * The debate above was about a value that did not exist. The pane
-             * now sends the person's words with `intent: "do"` beside them, the
-             * classifier runs, and `routed` is a real route for the first time.
+             * A first version appended `describeRoutedIntent(routed)` to this
+             * reply so it read: "**Title** is open and the crew is starting on
+             * it now. Plan picks this up, with Draft on it." It was withdrawn
+             * because nothing routes: the only dispatch on this branch is
+             * `runAgentLoop(..., { agentSlug: "orchestrator" })` above, which
+             * never sees the shape, the station or the crew — the orchestrator
+             * plans its own DAG and picks its own agents. The sentence was a
+             * classifier's GUESS printed as a REPORT, one clause after "the crew
+             * is starting on it now", and it was persisted to the message row
+             * below so the unbacked claim outlived the request.
              *
-             * WHAT DID NOT CHANGE, and it is deliberate: it still routes
-             * nothing, and `void` is still the honest verb. Every argument
-             * above survives the repair intact — the orchestrator plans its own
-             * DAG and picks its own agents, so a station this file chose would
-             * still be a guess about a dispatch it does not control. The two
-             * ways to make it load-bearing are both fenced off from this lane
-             * and both are product decisions rather than plumbing:
+             * NONE OF THAT CHANGED, and the gate is why it did not have to. The
+             * route is now said in the one place where it is a QUESTION rather
+             * than a report — before anything is dispatched, on the proposal
+             * frame, where a person can change it or refuse it. That is the
+             * whole repair: the same value, moved from after the dispatch to
+             * before it, where it is checkable instead of unbacked.
+             *
+             * ── THE TWO THINGS STILL FENCED OFF, AND THEY ARE UNCHANGED ────
+             *
+             * Neither is needed for the gate, and both are product decisions
+             * rather than plumbing:
              *
              *   · START THE MISSION AT `routed.crew[0]` INSTEAD OF THE
-             *     CONDUCTOR. Mechanically trivial: the mention branch below
+             *     CONDUCTOR. Mechanically trivial: the mention branch above
              *     already does exactly this. It is also a downgrade as it
-             *     stands, because it turns every handover into the single-step
-             *     run the `@cos` accident was producing, and multi-agent work
-             *     is the thing the orchestrator branch exists to plan.
-             *   · CALL `startTrackCore` WITH THIS ROUTE, per the paragraph
-             *     above. That settles it properly and needs the mission/track
-             *     question answered first.
+             *     stands, because it turns every handover into a single-step
+             *     run, and multi-agent work is the thing the orchestrator branch
+             *     exists to plan. A confirmed station does NOT change this: the
+             *     person answered how much rope the work gets, not who takes it.
+             *   · CALL `startTrackCore` WITH THIS ROUTE. That settles the
+             *     station properly and needs the mission/track question answered
+             *     first — whether a chat dispatch creates a mission, a track, or
+             *     both, and which id the SSE `mission_id` frame returns.
              *
-             * THE CONSUMER THAT MAKES IT TRUE IS THE PLAN GATE, and naming it
-             * is the useful thing this comment can do. `routed` is a forecast,
-             * and a forecast becomes a fact the moment a person confirms it:
-             * `PlanGate`/`PlanCard` show the entry station and the crew BEFORE
-             * anything runs and ask for a yes. At that point the station is not
-             * this file's guess about someone else's dispatch, it is a proposal
-             * the person accepted, and it can be dispatched by, emitted as a
-             * `station` frame, and written onto a track. The gate is another
-             * lane's; the interface it needs from here is at the bottom of this
-             * comment block in `PLAN GATE SEAM`.
-             *
-             * ── PLAN GATE SEAM ──────────────────────────────────────────────
-             * The gate belongs BETWEEN `routed` and `createMission`, and it
-             * needs exactly three things, all of which exist at this line:
-             *   in   `routed.station`, `routed.stationName`, `routed.crew` and
-             *        `routed.route` (path + waivers), plus `missionTitle` and
-             *        `missionGoal` — a plan to show, before a row is written.
-             *   out  a confirmed station, or a rejection.
-             *   wire a frame carrying the proposal, and a way for the answer to
-             *        say a run is WAITING on it rather than open. Note that a
-             *        gate makes this request outlive its own stream, so the
-             *        confirmation cannot come back on it — it needs a route of
-             *        its own, the way `mission_steps` approvals already do.
-             * Nothing above this line has to move for that; the mission row is
-             * created below and everything before it is a read.
+             * The confirmed route reaches `/api/plan-gate` and is recorded there
+             * as the belief a person committed to. It is not yet ENFORCED: see
+             * that file's note on what `check-writes` would need to bind.
              */
-            const routed = classifiedShape
-              ? routeIntent({
-                  shape: classifiedShape,
-                  // The person's own words are where this work came from, which
-                  // is what the ORIGIN RULE asks for: a route entering below
-                  // Discover has no evidence behind it, so `validateRoute`
-                  // refuses one that cannot say where it came from.
-                  origin: body.content.slice(0, 200),
-                  station: classifiedStation,
-                })
-              : null;
-            void routed;
 
             const text = mentionedAgent
               ? `On it. I've dispatched **${mission.title}** to ${mentionedAgent.name}.\n\nYou can track its progress and approve decisions inline below.`
@@ -1060,15 +1227,22 @@ You must output a JSON object EXACTLY in this format:
                  * ── THE `station` FRAME, AND WHY IT COMES FROM THE AGENT AND
                  * NOT FROM `routed` ──────────────────────────────────────────
                  *
-                 * READ THE `void routed` PARAGRAPH ABOVE BEFORE CHANGING THIS. It
+                 * READ THE ROUTING PARAGRAPH ABOVE BEFORE CHANGING THIS. It
                  * argues, correctly, that the classifier's entry station is a
                  * GUESS: nothing on this branch routes by it, the orchestrator
                  * plans its own DAG and picks its own agents, so saying it would
-                 * report work nobody does. The same paragraph notes that `routed`
-                 * "is what a `station` SSE frame would carry", and that is the one
-                 * line in it this frame declines to follow, for the reason the
-                 * `landing` comment below states: a frame is emitted here only
-                 * when it is A FACT, NOT A FORECAST.
+                 * report work nobody does. `routed` is what a `station` SSE frame
+                 * WOULD carry, and that is the one line this frame declines to
+                 * follow, for the reason the `landing` comment below states: a
+                 * frame is emitted here only when it is A FACT, NOT A FORECAST.
+                 *
+                 * THE GATE DOES NOT CHANGE THIS EITHER, and it is worth saying
+                 * why, because a confirmed station looks like it should. What a
+                 * person answered at the gate is how much rope the work gets;
+                 * they did not choose who takes it, and the orchestrator still
+                 * plans its own DAG. So the station remains this file's guess
+                 * about somebody else's dispatch, confirmed or not, and the
+                 * proposal frame is where it is said as the question it is.
                  *
                  * SO IT IS EMITTED ONLY ON THE MENTION BRANCH, where a person
                  * named an agent, that agent was resolved against the catalogue,

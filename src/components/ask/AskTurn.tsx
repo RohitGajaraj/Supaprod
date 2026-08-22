@@ -55,6 +55,10 @@ import { Answer } from "./Answer";
 import { AskGateCard } from "./AskGateCard";
 import { AskLanding, type LandedArtifact } from "./AskLanding";
 import { AskBlocked } from "./AskBlocked";
+import { AskPlanGate } from "./AskPlanGate";
+import type { PlanProposal } from "@/lib/ask/plan-proposal";
+import type { PlanGateDecision } from "@/components/meridian/PlanGate";
+import type { PlanDecisionState } from "@/hooks/use-ask-stream";
 import type { DispatchBlock } from "@/lib/chat-dispatch";
 import { AskRunCard } from "./AskRunCard";
 import { Working } from "./Working";
@@ -196,6 +200,9 @@ export function AskTurn({
   onRetry,
   landings,
   blocked,
+  proposal,
+  planDecision,
+  onDecidePlan,
 }: {
   turn: Turn;
   /** True only for the message genuinely in flight. */
@@ -237,6 +244,23 @@ export function AskTurn({
    * Null on every ordinary turn, which is nearly all of them.
    */
   blocked?: DispatchBlock | null;
+  /**
+   * THE PLAN THIS TURN PUBLISHED, when it published one instead of starting work.
+   *
+   * A THIRD KIND OF TURN, and it is worth naming against the other two. An
+   * ordinary turn ANSWERS. A dispatching turn STARTS something and hands the
+   * reader a run to watch. This one PROPOSES and stops, and the difference the
+   * person sees is that nothing is moving and the next move is theirs.
+   *
+   * Keyed by message rather than handed to the last turn like `landings` and
+   * `blocked`, because those describe a request in flight and this is an OPEN
+   * QUESTION. A later turn must not take it off the screen while it is still
+   * unanswered; see the map it comes out of in `use-ask-stream`.
+   */
+  proposal?: PlanProposal | null;
+  /** What became of it, or undefined while it is still open. */
+  planDecision?: PlanDecisionState;
+  onDecidePlan?: (decision: PlanGateDecision) => void;
 }) {
   const question = turn.question?.content ?? "";
   const answer = turn.answer;
@@ -260,6 +284,17 @@ export function AskTurn({
     !!answer &&
     !answer.error &&
     !blocked &&
+    /*
+     * `!proposal` IS THE SAME DEFECT AS `!blocked`, CAUGHT ON THE WAY IN.
+     *
+     * A gated turn returns a hand-written meta with `workspace_chunks: 0`,
+     * because no retrieval ran — there was no question to answer. Every clause
+     * below is then satisfied and the turn prints "The record has nothing on
+     * this yet. That answer stands on the model alone." underneath a plan. There
+     * is no answer for the record to be missing from, and saying so beside a
+     * gate reads as a reason to distrust the plan.
+     */
+    !proposal &&
     !streaming &&
     !!answer.meta &&
     answer.meta.workspace_chunks === 0;
@@ -318,6 +353,53 @@ export function AskTurn({
             {!streaming ? <Provenance msg={answer} /> : null}
           </Register>
         )
+      ) : null}
+
+      {/*
+          THE ONE DECISION, BEFORE ANYTHING RUNS.
+
+          It sits directly under the words that published it and above
+          everything else on the turn, because it is the only thing on the
+          screen that is waiting on a person. A landing register or a run card
+          below a gate would be describing work that has not started.
+
+          THE DECIDED STATES ARE NOT THE GATE GREYED OUT. Once a plan has been
+          answered the question is gone, so what stands in its place is one line
+          saying what happened — and on the answer that started a run, nothing at
+          all, because the run card below is now the truthful thing to look at
+          and a second line saying "started" would be narrating it.
+       */}
+      {proposal && planDecision?.status === "sent-back" ? (
+        <Register name="Sent back">
+          <p className="max-w-[62ch] text-mrd-small leading-relaxed text-mrd-mute">
+            Nothing started and nothing was charged. The crew has your note and comes back with a
+            new plan.
+          </p>
+        </Register>
+      ) : null}
+
+      {proposal && planDecision?.status !== "sent-back" && planDecision?.status !== "started" ? (
+        <Register name="Before it starts">
+          {/*
+              A FAILED ANSWER LEAVES THE GATE OPEN, and this is the reason the
+              failure is a line ABOVE the card rather than a state that replaces
+              it. A POST that did not land started nothing and sent nothing back,
+              so the plan is exactly where it was and the only useful thing to
+              put in front of a person is the same three answers again. Replacing
+              the gate with an apology would strand the work behind a decision
+              they had already taken.
+           */}
+          {planDecision?.status === "failed" ? (
+            <p className="mb-2 max-w-[62ch] text-mrd-small leading-relaxed text-mrd-mute">
+              {planDecision.message} Nothing started, so the plan still stands as it was.
+            </p>
+          ) : null}
+          <AskPlanGate
+            proposal={proposal}
+            busy={planDecision?.status === "deciding"}
+            onDecide={(d) => onDecidePlan?.(d)}
+          />
+        </Register>
       ) : null}
 
       {citation ? (

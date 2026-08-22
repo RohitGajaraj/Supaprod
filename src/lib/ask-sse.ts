@@ -3,6 +3,7 @@ import { parseResearchStatus, type ResearchStatus } from "@/components/chat/Rese
 import { isAnswerBlock, type AnswerBlock } from "@/lib/ask-blocks";
 import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
 import { asDispatchBlock, type DispatchBlock } from "@/lib/chat-dispatch";
+import { parsePlanProposal, type PlanProposal } from "@/lib/ask/plan-proposal";
 
 // OBS-12 - the pure half of the Ask panel's SSE line parser, split out of
 // `AskPanel.tsx` so the /api/chat protocol handling (status/meta/delta
@@ -121,6 +122,34 @@ export type SseEvent =
    * than rendering an empty card.
    */
   | { kind: "dispatch-blocked"; reason: DispatchBlock }
+  /**
+   * ── THE FIFTH WORK FRAME, AND THE ONLY ONE THAT ASKS SOMETHING ──────────
+   *
+   * The four above REPORT: work moved here, a tool ran, a result landed, no run
+   * opened. This one proposes, and then the request stops and waits.
+   *
+   * WHY IT IS NOT A CONTRADICTION OF THE RULE ABOVE. Every frame in this
+   * protocol is emitted only where it is a FACT rather than a forecast, and a
+   * proposal looks like the forecast the rule forbids. It is not, and the
+   * distinction is the same one the `void routed` paragraph in `api/chat.ts`
+   * draws: what was refused there was a classifier's guess printed as a REPORT
+   * about a dispatch that had already happened. This frame is emitted BEFORE
+   * anything is dispatched, and what it asserts is checkable on the spot — no
+   * mission row exists, nothing has been charged, and this is the route the work
+   * would take. A person is being asked, not told.
+   *
+   * IT CARRIES THE INPUTS TO THE ROUTE, NOT THE ROUTE. `routeIntent` is pure, so
+   * shape + station + origin regenerate the path, the waivers and the crew
+   * identically on either side of the wire. That is what lets the confirmation
+   * route recompute the plan a person answered about instead of trusting a copy
+   * of it. See `plan-proposal.ts`, which is where the whole argument lives.
+   *
+   * THE STREAM ENDS UNDER IT, on purpose. A gate makes the request outlive its
+   * own stream, so the answer cannot come back on it; `/api/plan-gate` is the
+   * transport for that, the way `mission_steps` approvals already work. This
+   * frame is the handover to it.
+   */
+  | { kind: "plan-proposal"; proposal: PlanProposal }
   | { kind: "done" }
   | { kind: "ignored" }
   /** JSON.parse failed - the line may be a chunk-boundary split; the caller
@@ -197,6 +226,17 @@ export function parseSseLine(line: string): SseEvent | null {
     (parsed as { dispatch_blocked?: { reason?: unknown } }).dispatch_blocked?.reason,
   );
   if (blockedReason) return { kind: "dispatch-blocked", reason: blockedReason };
+
+  /**
+   * The plan a person is being asked about. Read through `parsePlanProposal`
+   * rather than cast, on this protocol's standing rule: a proposal that fails
+   * any one of its checks parses as `ignored`, so a gate is never drawn about a
+   * plan whose shape, station or ceiling this client cannot name. The one
+   * surface where silence beats a guess is the one that decides how much may be
+   * spent without asking again.
+   */
+  const proposal = parsePlanProposal((parsed as { plan_proposal?: unknown }).plan_proposal);
+  if (proposal) return { kind: "plan-proposal", proposal };
 
   const choices = (parsed as { choices?: { delta?: { content?: string; mission_id?: string } }[] })
     .choices;

@@ -20,6 +20,8 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { answerTitle, hydrateMessages, type StoredMessageRow } from "@/lib/ask-thread";
 import { parseSseLine } from "@/lib/ask-sse";
 import type { DispatchBlock } from "@/lib/chat-dispatch";
+import type { PlanProposal } from "@/lib/ask/plan-proposal";
+import type { PlanGateDecision } from "@/components/meridian/PlanGate";
 import type { AgentStation } from "@/lib/agent-vocabulary";
 import type { ResearchStatus } from "@/components/chat/ResearchActivity";
 import type { AskScope } from "@/lib/ask-context";
@@ -173,6 +175,22 @@ function writeScopedConversationId(scopeKey: string, id: string | null): void {
  * every page load and keeps its thread across a close and reopen, and those
  * two facts are the same storage choice.
  */
+/**
+ * WHAT BECAME OF ONE PLAN GATE, once it was answered.
+ *
+ * FOUR STATES AND NOT A BOOLEAN, because the four are what a person needs told
+ * apart and three of them are terminal in different ways. "Sent back" is not a
+ * failure and must not read as one; "failed" is not a send-back and the answer
+ * can be given again; "started" is the only one where a run exists to go and
+ * watch. A `busy` flag plus a nullable mission id would collapse three of these
+ * into the same rendering.
+ */
+export type PlanDecisionState =
+  | { status: "deciding" }
+  | { status: "started"; missionId: string }
+  | { status: "sent-back" }
+  | { status: "failed"; message: string };
+
 export type AskPointer = "durable" | "session";
 
 function readPointer(pointer: AskPointer, scopeKey: string): string | null {
@@ -231,6 +249,18 @@ export type AskStreamState = {
   /** Promote an answer to a record (note / decision / task). */
   promote: (msg: AskStreamMsg, kind: "note" | "decision" | "task") => void;
   promotedByMsg: Record<string, PromotedRecords>;
+  /**
+   * The plan published on an answer, keyed by that answer's id.
+   *
+   * Kept across later turns on purpose: a gate is an open question, and clearing
+   * it when the next message is sent would take it off the screen with no way
+   * back to it. See the `plan-proposal` branch in the read loop.
+   */
+  proposalByMsg: Record<string, PlanProposal>;
+  /** What became of each answered gate. Absent means it is still open. */
+  planDecisionByMsg: Record<string, PlanDecisionState>;
+  /** Answer one plan gate. The route it posts to outlives the stream that asked. */
+  decidePlan: (msgId: string, decision: PlanGateDecision) => void;
   /** "Start a project from this": turn the drafted intent into a real project. */
   startProjectFromIntent: (intent: string) => Promise<void>;
   startingProject: boolean;
@@ -257,6 +287,18 @@ export function useAskStream(options: UseAskStreamOptions = {}): AskStreamState 
   const [liveStatus, setLiveStatus] = React.useState<ResearchStatus | null>(null);
   const [work, setWork] = React.useState<AskWork>(NO_WORK);
   const [promotedByMsg, setPromotedByMsg] = React.useState<Record<string, PromotedRecords>>({});
+  /**
+   * THE OPEN GATES, one per answer that published a plan.
+   *
+   * Two maps rather than one object with a nullable decision, because they are
+   * written by two different things at two different times: the stream writes
+   * the proposal and only the person's answer writes the decision. Merging them
+   * would make every proposal frame touch a field it knows nothing about.
+   */
+  const [proposalByMsg, setProposalByMsg] = React.useState<Record<string, PlanProposal>>({});
+  const [planDecisionByMsg, setPlanDecisionByMsg] = React.useState<
+    Record<string, PlanDecisionState>
+  >({});
   const conversationIdRef = React.useRef<string | null>(null);
   const abortControllerRef = React.useRef<AbortController | null>(null);
   const fCreate = useServerFn(createConversation);
@@ -520,6 +562,34 @@ export function useAskStream(options: UseAskStreamOptions = {}): AskStreamState 
               }));
               continue;
             }
+            if (event.kind === "plan-proposal") {
+              /**
+               * KEYED BY THE MESSAGE, NOT HELD IN `work`, and that is the one
+               * place this frame parts company with the four beside it.
+               *
+               * `work` is per-TURN and reset the moment the next one starts, and
+               * for `station` / `tool` / `landing` / `blocked` that is right:
+               * they describe the request in flight and re-labelling an older
+               * answer with a newer run's facts is the exact lie those fields
+               * exist to prevent.
+               *
+               * A gate is different because it is UNANSWERED. Clearing it on the
+               * next send would take an open question off the screen while it
+               * was still open, and the person would have no way back to it —
+               * nothing persists a proposal. So it lands in a map beside
+               * `promotedByMsg`, which already keeps a per-message fact across
+               * turns for exactly this reason, and stays on its own turn where
+               * the question was asked.
+               *
+               * FIRST ONE WINS, on the same rule as `dispatch-blocked`: the
+               * server returns the instant it publishes a plan, so a second
+               * proposal on one turn would be two plans for one request, and
+               * overwriting would swap the plan under a person mid-decision.
+               */
+              const forMsg = assistantMsg.id;
+              setProposalByMsg((m) => (m[forMsg] ? m : { ...m, [forMsg]: event.proposal }));
+              continue;
+            }
             if (event.kind === "dispatch-blocked") {
               // FIRST REASON WINS. `api/chat.ts` returns the instant it blocks,
               // so a second one on the same turn would mean two refusals for one
@@ -705,6 +775,125 @@ export function useAskStream(options: UseAskStreamOptions = {}): AskStreamState 
     [doCreateProject, activeWorkspaceId, queryClient],
   );
 
+  /**
+   * ANSWER ONE PLAN GATE.
+   *
+   * ── WHY THIS IS A SECOND REQUEST AND NOT A FRAME BACK UP THE STREAM ─────
+   *
+   * The stream that published the plan is closed. It closed itself: the server
+   * writes the proposal, the meta and `[DONE]` and shuts the controller, because
+   * a person reading a plan takes seconds or minutes and an isolate held open
+   * for that is an isolate held open for nothing. So the answer travels on
+   * `/api/plan-gate`, which is a route with its own lifetime — the same shape
+   * `mission_steps` approvals have always had, and the shape `ask-sse.ts` argues
+   * for whenever something outlives the request that started it.
+   *
+   * ── WHAT IS SENT, AND WHAT IS DELIBERATELY NOT ─────────────────────────
+   *
+   * The proposal goes back exactly as it arrived, and the server re-derives the
+   * route from it rather than believing any plan this client draws. What only
+   * this client can supply travels beside it: the answer, and the edits the
+   * person made before answering. `PlanGate` hands back the whole edited plan as
+   * component state; it is reduced here to the two things that are actually a
+   * DIFFERENCE from what was proposed — steps taken out and stations waived,
+   * each with the reason given. Posting the full step list would be posting a
+   * copy of something the server can compute, and a copy is a thing that drifts.
+   *
+   * ONE ANSWER PER GATE IS ENFORCED IN BOTH PLACES. Here, because the state is
+   * set to `deciding` before the fetch and a second call sees it. And on the
+   * server, off the proposal id, because a guard that only exists in a React
+   * component is not a guard — this repo has a migration whose whole subject is
+   * a gate that was answered twice.
+   */
+  const decidePlan = React.useCallback(
+    (msgId: string, decision: PlanGateDecision) => {
+      const proposal = proposalByMsg[msgId];
+      if (!proposal) return;
+      /*
+       * A FAILED ANSWER IS NOT AN ANSWER, so it does not close the gate. Every
+       * other state does: `deciding` means one is in flight, and `started` and
+       * `sent-back` are both settled and both wrote a row. Only the failure left
+       * the plan exactly as it was, which is the one case where asking again is
+       * the right thing rather than a second decision.
+       */
+      const current = planDecisionByMsg[msgId];
+      if (current && current.status !== "failed") return;
+      setPlanDecisionByMsg((m) => ({ ...m, [msgId]: { status: "deciding" } }));
+
+      void (async () => {
+        try {
+          const convId = conversationIdRef.current;
+          if (!convId) throw new Error("no conversation");
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
+          const res = await fetch("/api/plan-gate", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+            },
+            body: JSON.stringify({
+              conversationId: convId,
+              proposal: {
+                id: proposal.id,
+                shape: proposal.shape,
+                station: proposal.station,
+                origin: proposal.origin,
+                title: proposal.title,
+                goal: proposal.goal,
+                spend_cap_usd: proposal.spendCapUsd,
+              },
+              autonomy: decision.autonomy,
+              ...(decision.reason ? { reason: decision.reason } : {}),
+              edits: {
+                skipped: decision.editedPlan.steps
+                  .filter((s) => s.state === "skipped")
+                  .map((s) => ({ id: s.id, why: s.why ?? null })),
+                waived: decision.editedPlan.stops
+                  .filter((s) => s.state === "skipped")
+                  .map((s) => ({ station: s.station, reason: s.waivedReason ?? null })),
+              },
+            }),
+          });
+          const payload = (await res.json().catch(() => null)) as {
+            missionId?: string | null;
+            message?: string;
+            error?: string;
+          } | null;
+          if (!res.ok) {
+            throw new Error(payload?.error || "I could not send that answer just now. Try again.");
+          }
+          const missionId = payload?.missionId ?? null;
+          if (missionId) {
+            setPlanDecisionByMsg((m) => ({ ...m, [msgId]: { status: "started", missionId } }));
+            /*
+             * THE RUN IS ATTACHED TO THE ANSWER THAT PROPOSED IT, which is what
+             * makes `AskRunCard` appear under this turn instead of the person
+             * having to go and find the mission. Same field the ungated dispatch
+             * sets from its `mission_id` delta; it just arrives one request later.
+             */
+            setMessages((prev) => patchMessage(prev, msgId, { mission_id: missionId }));
+          } else {
+            setPlanDecisionByMsg((m) => ({ ...m, [msgId]: { status: "sent-back" } }));
+          }
+        } catch (e) {
+          setPlanDecisionByMsg((m) => ({
+            ...m,
+            [msgId]: {
+              status: "failed",
+              message:
+                e instanceof Error && e.message
+                  ? e.message
+                  : "I could not send that answer just now. Try again.",
+            },
+          }));
+        }
+      })();
+    },
+    [proposalByMsg, planDecisionByMsg],
+  );
+
   // Consumer went away (enabled false = the surface closed): abort any
   // in-flight stream and go quiet, exactly like AskPanel closing.
   React.useEffect(() => {
@@ -738,6 +927,9 @@ export function useAskStream(options: UseAskStreamOptions = {}): AskStreamState 
     startNewConversation,
     promote: promoteMessage,
     promotedByMsg,
+    proposalByMsg,
+    planDecisionByMsg,
+    decidePlan,
     startProjectFromIntent,
     startingProject,
     dictation,

@@ -38,6 +38,7 @@ import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as DSlugRouteImport } from './routes/d.$slug'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
+import { Route as ApiPlanGateRouteImport } from './routes/api/plan-gate'
 import { Route as ApiMcpRouteImport } from './routes/api/mcp'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedTrustLedgerRouteImport } from './routes/_authenticated.trust-ledger'
@@ -336,6 +337,11 @@ const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
   id: '/return',
   path: '/return',
   getParentRoute: () => CheckoutRoute,
+} as any)
+const ApiPlanGateRoute = ApiPlanGateRouteImport.update({
+  id: '/api/plan-gate',
+  path: '/api/plan-gate',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiMcpRoute = ApiMcpRouteImport.update({
   id: '/api/mcp',
@@ -1266,6 +1272,7 @@ export interface FileRoutesByFullPath {
   '/trust-ledger': typeof AuthenticatedTrustLedgerRoute
   '/api/chat': typeof ApiChatRoute
   '/api/mcp': typeof ApiMcpRoute
+  '/api/plan-gate': typeof ApiPlanGateRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/d/$slug': typeof DSlugRoute
   '/join/$token': typeof JoinTokenRoute
@@ -1448,6 +1455,7 @@ export interface FileRoutesByTo {
   '/trust-ledger': typeof AuthenticatedTrustLedgerRoute
   '/api/chat': typeof ApiChatRoute
   '/api/mcp': typeof ApiMcpRoute
+  '/api/plan-gate': typeof ApiPlanGateRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/d/$slug': typeof DSlugRoute
   '/join/$token': typeof JoinTokenRoute
@@ -1634,6 +1642,7 @@ export interface FileRoutesById {
   '/_authenticated/trust-ledger': typeof AuthenticatedTrustLedgerRoute
   '/api/chat': typeof ApiChatRoute
   '/api/mcp': typeof ApiMcpRoute
+  '/api/plan-gate': typeof ApiPlanGateRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/d/$slug': typeof DSlugRoute
   '/join/$token': typeof JoinTokenRoute
@@ -1820,6 +1829,7 @@ export interface FileRouteTypes {
     | '/trust-ledger'
     | '/api/chat'
     | '/api/mcp'
+    | '/api/plan-gate'
     | '/checkout/return'
     | '/d/$slug'
     | '/join/$token'
@@ -2002,6 +2012,7 @@ export interface FileRouteTypes {
     | '/trust-ledger'
     | '/api/chat'
     | '/api/mcp'
+    | '/api/plan-gate'
     | '/checkout/return'
     | '/d/$slug'
     | '/join/$token'
@@ -2187,6 +2198,7 @@ export interface FileRouteTypes {
     | '/_authenticated/trust-ledger'
     | '/api/chat'
     | '/api/mcp'
+    | '/api/plan-gate'
     | '/checkout/return'
     | '/d/$slug'
     | '/join/$token'
@@ -2318,6 +2330,7 @@ export interface RootRouteChildren {
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiMcpRoute: typeof ApiMcpRoute
+  ApiPlanGateRoute: typeof ApiPlanGateRoute
   DSlugRoute: typeof DSlugRoute
   JoinTokenRoute: typeof JoinTokenRoute
   PSlugRoute: typeof PSlugRoute
@@ -2596,6 +2609,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/checkout/return'
       preLoaderRoute: typeof CheckoutReturnRouteImport
       parentRoute: typeof CheckoutRoute
+    }
+    '/api/plan-gate': {
+      id: '/api/plan-gate'
+      path: '/api/plan-gate'
+      fullPath: '/api/plan-gate'
+      preLoaderRoute: typeof ApiPlanGateRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/mcp': {
       id: '/api/mcp'
@@ -3934,6 +3954,7 @@ const rootRouteChildren: RootRouteChildren = {
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   ApiChatRoute: ApiChatRoute,
   ApiMcpRoute: ApiMcpRoute,
+  ApiPlanGateRoute: ApiPlanGateRoute,
   DSlugRoute: DSlugRoute,
   JoinTokenRoute: JoinTokenRoute,
   PSlugRoute: PSlugRoute,

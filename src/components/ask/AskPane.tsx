@@ -757,6 +757,23 @@ function AskPaneOpen() {
                * later dispatch was blocked.
                */
               blocked={t.answer?.id === lastId ? stream.work.blocked : null}
+              /*
+               * THE PLAN THIS ANSWER PUBLISHED, ON THE ANSWER THAT PUBLISHED IT
+               * — and NOT gated on `lastId`, which is the whole difference
+               * between this prop and the two above it.
+               *
+               * `landings` and `blocked` come out of `stream.work`, which
+               * describes the request in flight and is reset when the next one
+               * starts, so handing them to every turn would re-label an old
+               * answer with a new run's facts. A proposal is the opposite kind
+               * of thing: it is an UNANSWERED question, it is keyed by message
+               * in the hook precisely so it survives the next turn, and taking
+               * it off the screen because somebody typed again would strand work
+               * behind a decision they never got to make.
+               */
+              proposal={t.answer ? (stream.proposalByMsg[t.answer.id] ?? null) : null}
+              planDecision={t.answer ? stream.planDecisionByMsg[t.answer.id] : undefined}
+              onDecidePlan={t.answer ? (d) => stream.decidePlan(t.answer!.id, d) : undefined}
             />
           ))
         )}

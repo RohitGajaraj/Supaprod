@@ -378,9 +378,31 @@ describe("the emitter sends the parser's INPUT shape, not its output", () => {
      */
     const code = source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
-    // `routed` is still computed and still unused. Both halves matter: deleting
-    // it would lose the value the gate needs, using it would ship the guess.
-    expect(code).toContain("void routed;");
+    /*
+     * ── `void routed;` IS GONE, AND THIS TEST OUTLIVED IT ───────────────────
+     *
+     * It used to be pinned here, with the note that "deleting it would lose the
+     * value the gate needs, using it would ship the guess". The gate is built
+     * now, so the first half is spent: the route IS consumed, by the plan
+     * proposal frame, one branch above the dispatch. The paragraph this test
+     * pointed at said exactly this would happen and named the assertion to
+     * delete when it did.
+     *
+     * WHAT IS NOT SPENT IS THE SECOND HALF, which is the whole claim of this
+     * test and is untouched by the gate: the classifier's entry station must
+     * never go out as a `station` FRAME. That frame means the work MOVED to a
+     * station, and on the orchestrator branch nothing has moved — the conductor
+     * plans its own DAG and picks its own agents, confirmed plan or not. The
+     * route is now said, once, inside a PROPOSAL, which is a question asked
+     * before anything is dispatched rather than a report about a dispatch. Two
+     * frames, two meanings, and only one of them may carry a guess.
+     *
+     * So the assertions below are unchanged, and the one that named a specific
+     * line is replaced by the one that names the fact: the route is consumed,
+     * and it is consumed by the gate.
+     */
+    expect(code).toContain("const routed =");
+    expect(code).toContain("planProposalLine(proposal)");
 
     const stationFrames = code.match(/JSON\.stringify\(\{\s*station:\s*([A-Za-z0-9_.]+)/g) ?? [];
     expect(stationFrames.length, "no station frame is emitted at all any more").toBe(1);

@@ -131,6 +131,19 @@ mock.module("@/hooks/use-ask-stream", () => ({
      * suite asserting against a contract nobody ships.
      */
     work: { station: null, tools: [], landings: [] },
+    /**
+     * THE PLAN GATE'S THREE, and the paragraph above is the reason they are
+     * here rather than defended against in the pane.
+     *
+     * The real hook always returns all three: two maps that are empty on every
+     * turn that did not publish a plan, and the action that answers one. The
+     * pane reads them by message id, so an absent map is `undefined[id]` and
+     * kills the render — which is exactly how `work` broke fourteen tests the
+     * last time this mock fell behind the contract.
+     */
+    proposalByMsg: {},
+    planDecisionByMsg: {},
+    decidePlan: () => {},
   }),
 }));
 
