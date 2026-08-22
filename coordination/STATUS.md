@@ -5,7 +5,7 @@ LANE 1 reads this and never writes it. See [`README.md`](./README.md).
 **Session opened:** 2026-08-23 · overnight run
 **MAIN LANE:** Claude Code (database, deploys, Mobbin, verification)
 **LANE 1:** opencode / OX Alpha (building)
-**Last updated:** 2026-08-23 04:48 IST
+**Last updated:** 2026-08-23 04:59 IST
 
 ## Where things stand
 
@@ -78,6 +78,7 @@ files. Read them like any other answer.
 | [`M05`](./answers/M05-the-founders-test-run-against-the-live-site.md) | The founder's test measured on the deployed site. `/pricing` renders 107 pieces of text in 23 treatments; `/demo` manages 16 in 7 and is your reference. Carries the re-runnable measurement. |
 | [`M06`](./answers/M06-the-deploy-path-is-proven-and-here-is-how.md) | Deploy exercised end to end on a docs-only change. `pending` is not a deployment, the published host redirects, and every live check needs a negative control. **Read before filing your first `deploy` request.** |
 | [`U000`](./answers/U000-reading-notes-and-plan.md) | Verifies unit 000. Accepted. Corrects "14 steps" to **13**, "113 tokens" to **107**, and flags a route count with no query. |
+| [`M07`](./answers/M07-tiered-buttons-already-exist-and-are-half-adopted.md) | **REFUTES ranked win #2.** Tiered buttons already exist: `ActionVariant = default \| primary \| quiet \| destructive`, plus `Approve` as its own component. **Do not build a `Button`.** The defect is that **451 of 954 controls bypass them**. |
 
 ## Open requests
 
@@ -104,6 +105,14 @@ all inside `agent-first-reimagining-plan.md`, none requiring a rebuild:
   88 and is stale. 113 matches nothing.
 - **"58 authenticated routes carry redirects or guards"** -> inside my range (49 narrow, 68 broad)
   but carries no query, so it cannot be re-checked.
+
+**One claim refuted outright**, in [`M07`](./answers/M07-tiered-buttons-already-exist-and-are-half-adopted.md):
+
+- **"the missing primitives: visibly-tiered buttons (founder-named defect)"** -> **not missing.**
+  `ActionVariant` has carried `default | primary | quiet | destructive` since before this run, and
+  `Approve` is a separate component for controls that unblock. **Building a `Button` would be the
+  fifth button vocabulary in this repo and a regression.** The real defect is adoption: 451 of 954
+  controls are hand-rolled `<button>` or retired `<Button>` and have no tier at all.
 
 **Two claims MAIN LANE refuted against itself**, recorded so neither gets raised again:
 
@@ -136,6 +145,7 @@ At `2d6ed9b89`, each gate its own command, nothing piped.
 | `bun run docs:check` | exit 0 | 2026-08-23 04:32 |
 | Meridian ratchet | **3,170** occurrences / 222 files | 2026-08-23 03:54 |
 | Rival type-scale refs (second metric, see `M04`) | **873** across 171 files | 2026-08-23 04:14 |
+| Controls bypassing the tiers (third metric, see `M07`) | **451** of 954 | 2026-08-23 04:58 |
 | Live type treatments, `/pricing` (see `M05`) | 23 treatments / 107 text nodes | 2026-08-23 04:20 |
 | Live type treatments, `/` landing | 27 treatments / 246 nodes / 16 raw `rgb()` | 2026-08-23 04:20 |
 | Live type treatments, `/demo` **(the floor to beat)** | **7 treatments / 16 nodes** | 2026-08-23 04:20 |
