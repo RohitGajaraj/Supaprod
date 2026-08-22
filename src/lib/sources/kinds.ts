@@ -73,4 +73,16 @@ export type SinkResult = {
   skipped: number;
   /** Structural injections rejected by the screen (never stored). */
   quarantined: number;
+  /**
+   * Rows folded into an observation this workspace already holds.
+   *
+   * A SEPARATE COUNT FROM `skipped`, because they are separate facts and collapsing
+   * them would hide the one worth acting on. `skipped` means "this exact item was
+   * already pulled" - idempotency, and the reason re-running a connector is safe.
+   * `restated` means "this is the same observation said again in different words",
+   * which is a statement about the QUALITY of what a source is producing. Thirteen
+   * restatements in twenty minutes is a source misbehaving; thirteen skips is a
+   * connector working correctly.
+   */
+  restated: number;
 };

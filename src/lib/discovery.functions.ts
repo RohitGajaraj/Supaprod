@@ -285,7 +285,8 @@ async function captureManual(
   candidates: SignalCandidate[],
   productId: string | null,
 ): Promise<SinkResult> {
-  if (candidates.length === 0) return { inserted: 0, skipped: 0, quarantined: 0, ids: [] };
+  if (candidates.length === 0)
+    return { inserted: 0, skipped: 0, quarantined: 0, restated: 0, ids: [] };
   const { data: workspaceId, error } = await supabase.rpc("current_user_default_workspace");
   if (error) throw new Error(`Could not resolve your workspace: ${error.message}`);
   if (!workspaceId) {

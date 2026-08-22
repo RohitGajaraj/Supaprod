@@ -6,6 +6,20 @@
  * structural injection, flag a borderline one), drop duplicates (stored AND within
  * the batch), and normalize tags/sentiment. No I/O - fully unit-testable.
  * sink.server.ts wraps this with the dedup query and the insert.
+ *
+ * THIS IS ONLY HALF THE DEDUP, and saying so here matters because for four months
+ * this header read as though it were all of it. The rule below keys on `external_id`,
+ * which a source has to supply. `signals.log` - the tool the autonomous loop's whole
+ * Discover crew is told to call - supplies none, so on 2026-08-22 the branch never
+ * fired and thirteen restatements of two sentences were stored as thirteen
+ * independent signals, promoting a theme that burned a month of credits in 80
+ * minutes. 92% of the rows in `public.signals` carry no external_id, so this rule
+ * has never covered the common case.
+ *
+ * The other half is `restatement.ts`, which recognises the same OBSERVATION rather
+ * than the same item. It cannot live in this function and that is not an accident:
+ * it needs the row's embedding, and the embedding is attached after prepare runs.
+ * The sink runs the two in order. Both are pure; only their inputs differ.
  */
 import { autoTag, inferSentiment } from "@/lib/sensing/normalize";
 import { screenIngestText, INGEST_REVIEW_TAG } from "@/lib/ingest-guardrails";
