@@ -23,6 +23,7 @@ import {
   exportSkillpack,
   ingestSignal,
   logMCPCall,
+  classifyWriteAudit,
   type IngestSignalArgs,
 } from "@/lib/mcp.functions";
 
@@ -240,13 +241,29 @@ export const Route = createFileRoute("/api/public/a2a/message/stream")({
                 };
                 await write(sseEvent("task_failed", failed));
               } else {
+                // Same fix as a2a.message.send.ts, which carries the reasoning and
+                // the reason it is gated on isWriteSkill rather than applied to
+                // every skill the way the MCP route can.
+                const writeAudit = isWriteSkill(skillId) ? classifyWriteAudit(result) : null;
                 await logMCPCall(
                   {
                     token_id,
                     workspace_id,
                     tool_name: skillId,
-                    result: "success",
-                    metadata: { elapsed_ms: elapsed, source: "a2a_stream" },
+                    result: writeAudit?.result ?? "success",
+                    error_message: writeAudit?.reason ?? undefined,
+                    metadata: {
+                      elapsed_ms: elapsed,
+                      source: "a2a_stream",
+                      ...(writeAudit
+                        ? {
+                            write: true,
+                            wrote: writeAudit.wrote,
+                            ...(writeAudit.status ? { tool_status: writeAudit.status } : {}),
+                            ...(writeAudit.id ? { row_id: writeAudit.id } : {}),
+                          }
+                        : {}),
+                    },
                   },
                   supabase,
                 );

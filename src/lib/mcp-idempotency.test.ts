@@ -125,8 +125,30 @@ describe("what is remembered, and what deliberately is not", () => {
     // Anchored on the WRITE log specifically. The first `tool_name:
     // dispatch.toolName` in this route belongs to the permission-denied log,
     // which is a different call and must not carry a replay flag.
-    const anchor = ROUTE.indexOf('result: writeResult.success ? "success" : "error"');
+    //
+    // THE ANCHOR MOVED 2026-08-23, and why is the point. It used to be a literal
+    // copy of `result: writeResult.success ? "success" : "error"` -- the very
+    // expression it sat above -- so the day that expression was corrected (it
+    // audited seven non-throwing refusals as successful writes) this test failed
+    // while having nothing whatever to say about idempotency. A guard spelling out
+    // the line it guards fails on improvements and passes on regressions. The new
+    // anchor is the structural marker: the classifier call is what has to be there.
+    // Bounded by the next STATEMENT rather than by a character count, because a
+    // character count is the same brittleness in a different disguise: the window
+    // was 1200 and a comment explaining the fix pushed the assertion out of it.
+    const anchor = ROUTE.indexOf("const writeAudit = classifyWriteAudit(");
     expect(anchor).toBeGreaterThan(-1);
-    expect(ROUTE.slice(anchor, anchor + 1200)).toContain("writeResult.idempotent_replay ? { idempotent_replay: true }");
+    const auditBlock = ROUTE.slice(anchor, ROUTE.indexOf("const writeData", anchor));
+    expect(auditBlock.length).toBeGreaterThan(0);
+    expect(auditBlock).toContain("writeResult.idempotent_replay ? { idempotent_replay: true }");
+  });
+
+  it("no longer maps a non-throwing refusal straight through as a success", () => {
+    // The old expression, pinned as absent. `runWriteTool` returns success:true for
+    // any tool that does not throw, and six quarantine returns plus
+    // settle_forecast's already_settled do not throw, so this mapping wrote audit
+    // rows indistinguishable from real writes -- confirmed in production on
+    // api_calls e8cf280c against 0 matching decisions.
+    expect(ROUTE).not.toContain('result: writeResult.success ? "success" : "error"');
   });
 });

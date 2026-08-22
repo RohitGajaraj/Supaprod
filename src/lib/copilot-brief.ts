@@ -7,6 +7,7 @@
 // catalogue — never model output, so the claim never outruns the wiring) that the
 // brief prompt leads with. The AI then grounds its lead in real stakes, not a tally.
 import {
+  gateHeadline,
   toolConsequence,
   toolRisk,
   type Reversibility,
@@ -50,7 +51,15 @@ export function summarizeGateStakes(gates: PendingGate[] | null | undefined): Ga
     const score = REV_WEIGHT[c.reversible] * 3 + RISK_WEIGHT[risk];
     if (score > topScore) {
       topScore = score;
-      top = { toolName: tool, effect: c.effect, reversibility: c.reversible, risk };
+      /*
+       * `gateHeadline` for the sentence, `c` for the two axes. The brief LEADS
+       * with `top.effect`, so an uncatalogued name made the chief-of-staff open
+       * on "Runs the tool with the agent's arguments." -- the least useful
+       * sentence available, in the position this helper exists to make the most
+       * useful. Identical output for all 59 registered tools; it differs only on
+       * the six names the seed migrations write and no tool defines.
+       */
+      top = { toolName: tool, effect: gateHeadline(tool), reversibility: c.reversible, risk };
     }
   }
   return {

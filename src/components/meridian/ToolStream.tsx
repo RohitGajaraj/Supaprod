@@ -1,6 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
 
-import { formatDuration } from "@/components/studio/run-return";
 import { toolActionLabel } from "@/lib/agent-vocabulary";
 
 import { StatusChip } from "./StatusChip";
@@ -37,8 +36,10 @@ import {
  *      that header on a live run is a shimmer over a number nobody should
  *      trust. This component prints no total at all.
  *   c. IT HAS NO CLOCK, because a finished list has no arrival instants to
- *      show. `at` is REQUIRED here and the SSE frame does not carry it: the
- *      client stamps arrival, which is the only honest instant a stream has.
+ *      show. `at` is REQUIRED here. On the SSE feed the frame does not carry
+ *      it, so the client stamps arrival, which is the only honest instant a
+ *      stream has; on the mission poll the row carries a recorded one and that
+ *      wins. See `at` on `ToolStreamRow` for why the two differ.
  *   d. AND ONE THAT IS A HABIT RATHER THAN A CONSEQUENCE, listed because it is
  *      the one that gets copied: a block that appears whole animates every row
  *      on every render, which is right for it and wrong for a column that
@@ -55,6 +56,22 @@ import {
  * `[DONE]` and closes the controller before the mission runs. This component is
  * written against that frame's real shape, so wiring it is a mount and not an
  * adapter.
+ *
+ * ── AND IT IS MOUNTED NOW, ON A POLL RATHER THAN ON THAT STREAM ─────────
+ * Since 2026-08-22 the mission half has a real caller: `/runs/$missionId`
+ * renders this while a run is LIVE, fed by `getStudioSession`'s `toolCalls`
+ * (studio.functions.ts) on the 4s poll that surface already runs. The SSE
+ * argument above is not stale — it is precisely WHY the feed is a poll. A
+ * mission's tool calls can never reach the ask stream, so the transport that
+ * can see them is the one already asking the database every four seconds.
+ *
+ * What that source gives and what it costs: rows come from `public.tool_calls`
+ * joined mission -> agent_runs -> latest checkpoint -> state.traceId ->
+ * trace_id, which is the only join that table has. Those runs are filtered to
+ * `agent_slug='builder'`, so an orchestrator goal-run resolves to no traces and
+ * the route does not mount this at all there rather than show it empty. And a
+ * row is written only after its call returns, which is where `running` goes
+ * (see `ToolStreamState`).
  *
  * ── THE ALTERNATIVE WAS BUILT, CONSIDERED, AND DELETED ──────────────────
  * Two Meridian components used to sit beside this one in the gallery: a chips
@@ -121,7 +138,23 @@ import {
  * counted and offered rather than forced.
  */
 
-/** Three, because a live call is either happening, back, or broken. */
+/**
+ * Three, because a live call is either happening, back, or broken.
+ *
+ * "running" HAS NO WRITER IN THIS PRODUCT, and a caller must not invent one.
+ * The loop measures `Date.now() - t0` at loop.server.ts:1661 and inserts the
+ * `tool_calls` row at :1690 (ok) or :1732 (failed), both after the tool has
+ * returned; the checkpoint that could otherwise witness an in-flight call is
+ * written BEFORE the provider call (:1201). So no table records "this call is
+ * out". The state is reachable only from a transport that sees the call being
+ * ISSUED, which today is the ask stream and not the mission poll.
+ *
+ * A QUEUED CALL IS NOT ONE OF THESE THREE EITHER. `LoopStep` carries
+ * `status: "executed" | "queued" | "error" | "denied"` (loop.server.ts:239) and
+ * a queued call is blocked on a person, not executing — mapping it to "running"
+ * would say the machine is busy when it is waiting on you, and mapping it to
+ * "failed" would say it broke. The run route's Gate already carries that fact.
+ */
 export type ToolStreamState = "running" | "done" | "failed";
 
 export type ToolStreamRow = {
@@ -130,12 +163,21 @@ export type ToolStreamRow = {
   /** The registry name, exactly as the SSE `tool` frame carries it. */
   tool: string;
   /**
-   * When this reached the reader, ms since epoch.
+   * When this call came back, ms since epoch.
    *
-   * REQUIRED, and the SSE frame does not carry it: the client stamps arrival.
-   * That is the honest instant for a stream and it is not optional, because a
-   * clock column that is present on some rows and absent on others is the same
-   * component in two rhythms.
+   * REQUIRED, and it is not optional, because a clock column present on some
+   * rows and absent on others is the same component in two rhythms.
+   *
+   * TWO REAL SOURCES, AND THE RECORDED ONE WINS WHERE IT EXISTS. On the ask
+   * stream the SSE frame carries no instant, so the client stamps arrival, and
+   * that is the only honest instant a stream has. On the run surface the source
+   * is `tool_calls.created_at` — the instant the call RETURNED and the row was
+   * written. That is not the same as the instant it was issued, and the
+   * difference is deliberately not reconstructed: subtracting `latency_ms` to
+   * fake a start would be inventing a measurement. It is also invisible at the
+   * rendered resolution, since `RunClock` prints HH:MM and the calls in the
+   * table run 27ms to 3.5s. A client stamp is WRONG there: reopening a settled
+   * run would bunch every row into the instant the page loaded.
    */
   at: number;
   state: ToolStreamState;
@@ -143,11 +185,46 @@ export type ToolStreamRow = {
   label?: string;
   /** What it was called with: a path, a query, a command. Inert by design. */
   argument?: string;
-  /** How long the call took. Settled rows only; omit rather than estimate. */
+  /**
+   * How long the call took. Settled rows only; omit rather than estimate.
+   *
+   * On the run surface this is `tool_calls.latency_ms`, which the loop derives
+   * from `Date.now() - t0`. A 0 there means the call came back inside the
+   * clock's resolution, NOT that it was instant, so 0 draws nothing — see
+   * `callTook`.
+   */
   durationMs?: number;
   /** What broke, in a sentence. Failed rows only. */
   error?: string;
 };
+
+/**
+ * How long ONE CALL took, at the resolution a tool call actually runs at.
+ *
+ * THE CORRECTION, and it was found by the data rather than by review. This
+ * component used `formatDuration` (studio/run-return.ts:65-74), which floors to
+ * whole seconds because it was written for "worked for 18m 06s" on a settled
+ * run. A single tool call is three orders of magnitude smaller. Measured
+ * 2026-08-22 20:30:16 UTC against the two newest traces the run surface now
+ * reads — `select array_agg(latency_ms order by created_at), count(*) filter
+ * (where latency_ms < 1000), count(*) from public.tool_calls where trace_id in
+ * ('5a37e139-f7e6-4674-898c-2a4455f299cd','614bd26d-a98a-4353-9320-ff31f217927e')`
+ * -> {68,27,82,386,536,1139,3531}, 5, 7 — FIVE OF THOSE SEVEN would have
+ * rendered as a confident "0s". A stream whose job is to be the proof of what
+ * an agent did cannot print zero for a call it timed at 386ms.
+ *
+ * NOT A FOURTH COPY OF A DURATION FORMATTER, and the distinction is the
+ * quantity rather than the code. `formatDuration` takes a finished RUN SPAN;
+ * `formatElapsed` (run-rows.tsx:479) takes a LIVE TICK in tenths; this takes a
+ * SINGLE CALL'S LATENCY. The product already made this exact split once and
+ * this follows it rather than inventing a rule: `/traces/$traceId`, the one
+ * other surface that renders `tool_calls.latency_ms` per call, formats it
+ * ms-under-a-second and to two decimals above (traces.$traceId.tsx:206-210), so
+ * the two places that show a tool's latency now agree on what it looks like.
+ */
+function callTook(ms: number): string {
+  return ms < 1000 ? `${Math.round(ms)}ms` : `${(ms / 1000).toFixed(2)}s`;
+}
 
 const FOCUS_INSET =
   "mrd-focus-inset focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]";
@@ -274,7 +351,13 @@ export function ToolStream({
         <ol className={RUN_STACK}>
           {rows.map((row, i) => {
             const caption = row.label ?? toolActionLabel(row.tool) ?? row.tool;
-            const took = row.durationMs === undefined ? null : formatDuration(row.durationMs);
+            /* `> 0` rather than `>= 0`, and it is not defensive noise: the loop
+               measures with `Date.now() - t0` (loop.server.ts:1661), so a 0 is
+               "under the clock's resolution" and not a call that took no time.
+               Rendering "0ms" would turn the absence of a measurement into
+               one. */
+            const took =
+              row.durationMs === undefined || row.durationMs <= 0 ? null : callTook(row.durationMs);
             const arrived = i >= settledAtMount.current;
 
             const body = (

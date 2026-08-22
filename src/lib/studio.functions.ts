@@ -56,6 +56,13 @@ import { specGateBlocksDispatch, SPEC_GATE_BLOCK_MESSAGE } from "@/lib/build/spe
 import { loadDesignGateState, loadDesignDispatchContext } from "@/lib/build/design-gate.server";
 import type { ArdDesignSection } from "@/lib/ard-schema";
 import { recordStageEvent } from "@/lib/stage-events.server";
+/* `studio-format.ts` is a component-free module (zero imports, its own header
+ * says "pure helpers, no components"), so pulling one formatter across the
+ * lib/components line costs nothing at runtime and keeps the run surface and
+ * this payload from summarizing the same args two different ways. 25 files
+ * under src/lib already import from @/components on the same grounds —
+ * decisions.functions.ts:11 and governance.functions.ts:11 among them. */
+import { summarizeArgs } from "@/components/studio/studio-format";
 
 export type StudioChangesetSummary = {
   id: string;
@@ -125,6 +132,38 @@ export type StudioRunDetail = {
   steps: LoopStep[];
   cost_usd: number;
   tokens: number;
+};
+
+/**
+ * One row of `public.tool_calls`, for the live tool stream on /runs/$missionId.
+ *
+ * WHY THERE IS NO `state` ON THIS WIRE, and it is the load-bearing omission.
+ * `ToolStreamRow` (components/meridian/ToolStream.tsx) accepts running | done |
+ * failed, and NOTHING IN THIS PRODUCT RECORDS AN EXECUTING CALL. The loop
+ * measures `const latency = Date.now() - t0` at loop.server.ts:1661 and writes
+ * the row at :1690 (success) or :1732 (failure), both AFTER the tool has
+ * returned; the only other witness, the checkpoint, is written BEFORE the
+ * provider call (:1201, "so a governance halt or worker eviction mid-stream
+ * doesn't double-bill on resume"). So there is no instant at which any table
+ * holds "this call is out". The client derives done/failed from `ok` and never
+ * synthesizes `running` — inventing one would be the fabricated agent step
+ * `src/__tests__/no-fabricated-agent-steps.test.ts` exists to ban.
+ *
+ * `argument` is summarized HERE rather than shipping raw `args` jsonb, because
+ * this rides the run route's 4s poll: the largest args payload in the table
+ * today is ~1.3k chars, but `studio.stage` carries whole file bodies and would
+ * put them on every tick. `null` is the "(no args)" case, mapped from
+ * `summarizeArgs`'s sentinel so the client has one falsy test rather than a
+ * magic string.
+ */
+export type StudioToolCall = {
+  id: string;
+  tool_name: string;
+  ok: boolean;
+  error: string | null;
+  latency_ms: number;
+  created_at: string;
+  argument: string | null;
 };
 
 /** Serializable JSON for server-fn payloads (matches the loop's Json shape). */
@@ -906,6 +945,74 @@ export const getStudioSession = createServerFn({ method: "GET" })
       }
     }
 
+    /*
+     * WHAT IT IS CALLING, for the live tool stream on the run surface.
+     *
+     * Same trace list, same guard and same shape as the cost read directly
+     * above, because `tool_calls` has NO mission_id and no run_id: schema at
+     * integrations/supabase/types.ts:8286-8300 is agent_id, args, created_at,
+     * error, event_id, id, latency_ms, ok, result, tool_name, trace_id,
+     * user_id, workspace_id. mission -> agent_runs -> latest checkpoint ->
+     * state.traceId -> tool_calls.trace_id is the ONLY join this table has
+     * (reflection.server.ts:58 says so, and missions.functions.ts:484,
+     * build.functions.ts:197 and run-stages.functions.ts:479 all walk it).
+     *
+     * NEWEST 200, THEN REVERSED. ToolStream requires arrival order oldest
+     * first (ToolStream.tsx:162), but a cap taken off the FRONT of that order
+     * would throw away the rows a person watching a live run is actually
+     * looking at. So the cap is taken newest-first and the window is flipped.
+     * The cap is far above anything real: measured 2026-08-22 20:29 UTC,
+     * `select trace_id, count(*) from public.tool_calls group by trace_id order
+     * by 2 desc limit 5` returns 13 rows on each of the five busiest traces, and
+     * all five are Helio demo seed ids of the form N0000000-2a02-4000-8000-
+     * 000000000902 (supabase/migrations/20260725130000_helio_demo_seed_rich.sql,
+     * which writes no checkpoints at all, so those trace ids can never enter
+     * this `.in()`). Real traces carry 1 to 5 calls each.
+     *
+     * EMPTY IS THE HONEST ANSWER FOR AN ORCHESTRATOR MISSION and the route
+     * relies on it: `runs` above is filtered to agent_slug 'builder', so
+     * `traceList` is empty for a goal-run and this returns []. The route does
+     * not mount the stream on that branch for exactly that reason.
+     */
+    let toolCalls: StudioToolCall[] = [];
+    if (traceList.length) {
+      const { data: calls } = await db
+        .from("tool_calls")
+        .select("id,tool_name,args,ok,error,latency_ms,created_at")
+        .in("trace_id", traceList)
+        .order("created_at", { ascending: false })
+        .limit(200);
+      toolCalls = (
+        (calls ?? []) as Array<{
+          id: string;
+          tool_name: string;
+          args: unknown;
+          ok: boolean;
+          error: string | null;
+          latency_ms: number | null;
+          created_at: string;
+        }>
+      )
+        .map((c) => {
+          // `args` is jsonb, so it is Json and not necessarily an object. A
+          // string would make Object.entries yield character-index pairs and
+          // summarizeArgs would render "0: s · 1: e · 2: a". asPlainObject is
+          // the normalizer this file already uses for that class of drift.
+          const obj = asPlainObject<Record<string, unknown>>(c.args) ?? {};
+          const summary = summarizeArgs(obj);
+          return {
+            id: c.id,
+            tool_name: c.tool_name,
+            ok: c.ok,
+            error: c.error,
+            latency_ms: c.latency_ms ?? 0,
+            created_at: c.created_at,
+            argument: summary && summary !== "(no args)" ? summary : null,
+          };
+        })
+        .reverse();
+    }
+
     // Approvals — every gate on this mission (pending ones render as inline cards).
     const { data: approvals } = await db
       .from("agent_approvals")
@@ -1106,6 +1213,7 @@ export const getStudioSession = createServerFn({ method: "GET" })
       kind,
       spec,
       runs: runsDetailed,
+      toolCalls,
       changeset: csRow
         ? { ...(csRow as Record<string, unknown>), file_count: changes.length }
         : null,

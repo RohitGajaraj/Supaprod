@@ -3,7 +3,10 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { buildSkillpack, clampSkillpackLimit, type SkillpackLessonInput } from "./skillpack";
 import { supersededChildIds, type LineageEdgeLite } from "./trust-ledger.functions";
-import { screenIngestText, INGEST_REVIEW_TAG } from "./ingest-guardrails";
+// INGEST_REVIEW_TAG went with `ingestSignal`'s hand-built row on 2026-08-23; the
+// sink appends it now. `screenIngestText` stays: five write tools below still run
+// their own screen because they write to tables the signal sink does not own.
+import { screenIngestText } from "./ingest-guardrails";
 import { OutcomeContractSchema } from "./discovery.functions";
 // The forecast rules, from the one place that owns them. Both the human door
 // (`createDecision`, `setDecisionForecastSchema`) and the agent door
@@ -147,7 +150,28 @@ export interface LogAPICallInput {
   input_tokens?: number;
   output_tokens?: number;
   cost_usd?: number;
-  result: "success" | "rate_limit" | "not_found" | "error" | "permission_denied";
+  /**
+   * `"quarantined"` WAS ADDED 2026-08-23 rather than reusing a value that was
+   * already here, and the board ruled it that way for a reason worth keeping.
+   *
+   * `permission_denied` means the token lacked a scope, and it is the only way to
+   * find the tokens that need a wider grant -- production row 5d6bb073 is
+   * `settle_outcome / permission_denied / "Token is missing the required scope:
+   * write:outcome"`, which is a real signal that folding content refusals into it
+   * would poison. `error` means the call was malformed or the server failed. A
+   * quarantine is neither: it is a well-formed, fully authorized call whose CONTENT
+   * the injection screen refused, and it is precisely the row a workspace owner
+   * needs to find when asking whether anybody has tried to inject through the agent
+   * API. Mapped onto either of the other two, that question becomes unanswerable.
+   *
+   * THE WIDENING IS CODE-ONLY, verified twice: `api_calls.result` is
+   * `VARCHAR(20) NOT NULL DEFAULT 'unknown'` with NO CHECK constraint (migrations
+   * 20260617150000:62 and 20260617191502:42, whose `log_api_call` RPC takes
+   * `_result VARCHAR` unconstrained), and nothing in the repo reads the column --
+   * `checkRateLimit` counts rows without filtering on it
+   * (mcp-auth.server.ts:122-127, :161-166). "quarantined" is 11 characters.
+   */
+  result: "success" | "quarantined" | "rate_limit" | "not_found" | "error" | "permission_denied";
   error_message?: string;
   metadata?: Record<string, unknown>;
 }
@@ -174,6 +198,137 @@ export async function logMCPCall(input: LogAPICallInput, supabaseClient: any) {
     return null;
   }
   return true;
+}
+
+/** What the audit trail should say about one governed write. */
+export type WriteAuditClassification = {
+  result: LogAPICallInput["result"];
+  /** Sentence for `error_message` when the tool refused without throwing. */
+  reason: string | null;
+  /** The tool's own returned status, for `metadata.tool_status`. */
+  status: string | null;
+  /** The row the tool says it wrote, for `metadata.row_id`. */
+  id: string | null;
+  /** Whether a row actually changed on THIS call. */
+  wrote: boolean;
+};
+
+/** The id keys the six governed write tools return, in the order they are tried. */
+const WRITE_ID_KEYS = ["id", "learningId", "decisionId"] as const;
+
+/**
+ * A REFUSED WRITE IS NOT A SUCCESSFUL ONE. Decide what the audit trail says about
+ * one governed write, from what the tool actually returned.
+ *
+ * WHAT WAS WRONG. `runWriteTool` wraps any non-throwing return as
+ * `{ success: true }` and never looks at the payload, and the route mapped that
+ * straight to `result: "success"`. Seven refusals across the six write tools do not
+ * throw -- six quarantine returns (mcp.functions.ts, the `screenIngestText`
+ * branches) and `settle_forecast`'s `already_settled` -- so each of them wrote an
+ * audit row IDENTICAL IN EVERY AUDITED FIELD to a real write.
+ *
+ * WHAT IT COST, in production. `api_calls` row e8cf280c-68a2-48bf-8457-8fd8c4b45456,
+ * 2026-08-10 15:15:01.800993: `record_decision / success / error_message null /
+ * metadata {"elapsed_ms":1156,"write":true}`. Against it, `select count(*) from
+ * public.decisions where source_kind = 'mcp'` is 0, and no decision was created
+ * anywhere in that window. The single governed write this surface has ever recorded
+ * as a success wrote nothing. The attribution to the quarantine branch is by
+ * ELIMINATION rather than observation -- a schema or RLS refusal would have thrown
+ * and logged `error` -- and it remains conceivable the row was written and later
+ * deleted. Either way the audit row cannot tell you which, which is the defect.
+ *
+ * PURE AND EXPORTED so the guard test needs no database. The payload is whatever a
+ * tool returned, so every read of it is guarded: it can be undefined, an array, or
+ * a primitive, and a future tool returning a bare value must not crash the audit
+ * path of the call it is auditing.
+ */
+export function classifyWriteAudit(r: {
+  success: boolean;
+  error?: string;
+  data?: unknown;
+  idempotent_replay?: boolean;
+}): WriteAuditClassification {
+  // (a) The tool threw and `runWriteTool` caught it. The sentence is already in
+  // `r.error` and the caller passes it through, so no reason is invented here.
+  if (!r.success) return { result: "error", reason: null, status: null, id: null, wrote: false };
+
+  const payload =
+    r.data && typeof r.data === "object" && !Array.isArray(r.data)
+      ? (r.data as Record<string, unknown>)
+      : null;
+  const status = typeof payload?.status === "string" ? payload.status : null;
+  // The board asked for the written row id in metadata alongside the status,
+  // because "the write succeeded" and "here is what it wrote" are different claims
+  // and only the second one can be checked. The three tools spell it three ways.
+  let id: string | null = null;
+  for (const key of WRITE_ID_KEYS) {
+    if (typeof payload?.[key] === "string") {
+      id = payload[key] as string;
+      break;
+    }
+  }
+
+  // (b) The injection screen refused the content. Well-formed call, authorized
+  // token, nothing stored.
+  if (status === "quarantined") {
+    return {
+      result: "quarantined",
+      reason: "The text was refused by the injection screen and was never stored.",
+      status,
+      id,
+      wrote: false,
+    };
+  }
+
+  /*
+   * (c) `settle_forecast` found the verdict already recorded and returned instead
+   * of throwing.
+   *
+   * WHY THIS IS NOT A SUCCESS. `settle_outcome` refuses the IDENTICAL act by
+   * throwing -- outcome.functions.ts:651, "This outcome is already settled; an agent
+   * does not overwrite one." -- and therefore already audits `error`. Its sibling
+   * refuses it by returning, and audited `success`. Two tools, one refusal, two
+   * different audit rows, and the only thing separating them was throw versus
+   * return. That is not a distinction the trail should be recording.
+   *
+   * THE TRAIL IS DELIBERATELY STRICTER THAN THE WIRE HERE, and that is a choice
+   * rather than an oversight. The route still builds a non-error envelope for this
+   * case, because `settleForecastViaMcp`'s own header argues for it: an agent told
+   * "already settled" must not retry, and a bare failure would send it back round.
+   * So the caller is told it is fine and the trail records a refusal. `metadata.wrote`
+   * is what reconciles the two, and it is the field to read if they ever look like
+   * they disagree.
+   *
+   * WHERE THIS IS HARSH: the same agent retrying its own settle without an
+   * idempotency key lands here too, and the tool cannot tell that from a second
+   * agent overwriting somebody else's verdict, because it never compares the
+   * requested resolution against the stored one. The `error_message` makes the row
+   * readable either way.
+   */
+  if (status === "already_settled") {
+    return {
+      result: "error",
+      reason: "This forecast is already settled; an agent does not overwrite one.",
+      status,
+      id,
+      wrote: false,
+    };
+  }
+
+  /*
+   * (d) Dedup is not refusal. The caller's signal IS on the books -- which is what
+   * it asked for -- it is just on a row that already existed. That is the same
+   * ruling the route already made for `idempotent_replay`, and `wrote: false` is
+   * what carries the "nothing changed this time" fact in both cases.
+   */
+  if (status === "restated" || status === "skipped") {
+    return { result: "success", reason: null, status, id, wrote: false };
+  }
+
+  // (e) A real write. A replay is a real write that already happened, so the row it
+  // points at is real and `wrote` is false: one write, however many times it was
+  // asked for.
+  return { result: "success", reason: null, status, id, wrote: !r.idempotent_replay };
 }
 
 // ─────────────────────────────────────────────────────────────────────
@@ -676,19 +831,70 @@ export async function outcomeHistory(
 // INTEROP-V11 · Q2 — the GOVERNED WRITE tool (ingest_signal).
 //
 // An external / peer agent contributes a discovery signal into a workspace. The
-// route enforces the scope + dormant-gate authorization BEFORE calling this; here
-// we (1) re-screen the attacker-controlled text for prompt injection exactly as
-// the public ingest-webhook door does, and (2) insert with the SAME column shape
-// createSignal/ingest-signals use (schema verified against prod), stamping the
-// token's user_id + workspace_id so the tenant boundary can never be spoofed by
-// the caller. Pure-ish: all I/O is the single screened insert.
+// route enforces the scope + dormant-gate authorization BEFORE calling this.
+//
+// THIS TOOL FILES THROUGH THE SINK, and until 2026-08-23 it did not. It ran its own
+// copy of the injection screen and inserted a hand-built row, which meant it was the
+// last untrusted-input door in the product still deciding for itself what a signal
+// is. What it inherited by not going through `writeSignals`, in the order it hurts:
+// no `stage_events` to_stage='sensed' row, so an MCP-contributed signal never
+// registered on the loop-state surface; no `source_kind`, so it belonged to no lane
+// and every fabric read that filters by lane was blind to it; no restatement dedup,
+// the protection shipped 2026-08-22 after thirteen restatements of two sentences
+// promoted a theme and burned a month of credits in eighty minutes; and no inline
+// embedding, which also disables the vector half of that dedup.
+//
+// NOTHING WAS BACKFILLED BECAUSE NOTHING WAS EVER WRITTEN. `select count(*) from
+// public.signals where source = 'mcp'` is 0 and no un-revoked row exists in
+// `mcp_tokens`, so this door had never once stored a signal. That is why the result
+// contract below could be widened without breaking a live caller, and it is the
+// difference between this door and the webhook next to it: the webhook came off the
+// bypass list the first time somebody used it, with a real row carrying
+// `source_kind` NULL and `embedding` NULL to prove the cost. This one moved before
+// anyone paid it. Say it that way rather than borrowing the webhook's measurement.
+//
+// DUPLICATING THE CLASSIFIER IS WHAT LETS TWO DOORS DRIFT, so the screen moves
+// rather than being copied. The sink runs `screenIngestText` for any candidate
+// marked `untrusted`, with the same two outcomes this function implemented by hand:
+// a structural attack is quarantined and never stored, a borderline lexical override
+// is stored and tagged for review. The screened STRING is not byte-identical to the
+// old one -- prepare screens the already-defaulted candidate, so an omitted content
+// becomes the title again and an omitted source becomes the literal "mcp" -- but the
+// verdict cannot change, because every feature in injection-classifier.ts carries
+// `cap: 1` and the score is `Math.min(raw, f.cap)`, so repeated or extra text cannot
+// move a decision either way.
+//
+// TWO BEHAVIOURS IMPROVE AS A SIDE EFFECT, named here rather than left to be
+// discovered: the row now carries auto-derived tags and an inferred sentiment (it
+// carried `tags: []` and no sentiment at all), and it now writes the trail row, so
+// an MCP-contributed signal reaches the loop-state surface for the first time.
 // ─────────────────────────────────────────────────────────────────────
 
 export type IngestSignalArgs = { title?: unknown; content?: unknown; source?: unknown };
 
-export type IngestSignalResult =
-  | { status: "stored" | "flagged"; created: 1; quarantined: 0 }
-  | { status: "quarantined"; created: 0; quarantined: 1 };
+/**
+ * What the door tells the calling agent.
+ *
+ * `restated` IS NEW AND IS NOT A FAILURE. It is the sink recognising that this
+ * workspace already holds the same observation in different words, and it exists
+ * because of what happened on 2026-08-22: thirteen restatements of two sentences
+ * were stored as thirteen independent signals, promoted a theme, and burned a
+ * month's credit grant in eighty minutes. An agent re-filing its own output is the
+ * exact shape that produced it, so this door is the one that most needs to say so
+ * out loud. `created: 0` carries the fact that nothing new was written.
+ *
+ * THERE IS NO `skipped`. That branch of the sink's dedup keys on `external_id`, and
+ * this tool accepts no external id, so it can never fire here. Reporting a field
+ * that is structurally always zero would be inviting a caller to branch on it.
+ */
+export type IngestSignalResult = {
+  status: "stored" | "flagged" | "quarantined" | "restated";
+  created: 0 | 1;
+  quarantined: 0 | 1;
+  restated: 0 | 1;
+  /** The row just written, or null when nothing was stored. */
+  id: string | null;
+};
 
 // Matches the F-V5-INGEST-WEBHOOK caps so the two doors agree.
 const ingestSignalSchema = z.object({
@@ -698,13 +904,20 @@ const ingestSignalSchema = z.object({
 });
 
 /**
- * Validate + injection-screen + insert ONE governed signal. `workspace_id` and
+ * Validate ONE governed signal and hand it to the sink. `workspace_id` and
  * `user_id` come from the validated token (never from the caller). Throws on a
  * validation error (the route reports it as a tool execution error); a structural
  * injection is quarantined (never stored) rather than thrown.
+ *
+ * `_supabaseClient` IS UNUSED ON PURPOSE, the same way `settleOutcome`'s
+ * `_workspace_id` is. `writeSignals` ignores any client handed to it and writes
+ * through its own module-level `supabaseAdmin`, which is not a different identity:
+ * `client.server.ts` reads SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY, and the three
+ * routes that call this function build the client they pass from those same two
+ * variables. The parameter stays because all three of them pass it positionally.
  */
 export async function ingestSignal(
-  supabaseClient: any,
+  _supabaseClient: any,
   workspace_id: string,
   user_id: string,
   args: IngestSignalArgs,
@@ -715,29 +928,44 @@ export async function ingestSignal(
   }
   const { title, content, source } = parsed.data;
 
-  // Screen ALL attacker-controlled free text that reaches downstream agent
-  // context (title + content + source — the reactor copies `source` into the
-  // event payload). Reuses the structural-gate classifier, so an item merely
-  // QUOTING an injection is stored, while a fence-breakout / forged-system-turn
-  // is rejected and never persisted.
-  const decision = screenIngestText(`${title} ${content ?? ""} ${source ?? ""}`);
-  if (decision === "quarantine") {
-    return { status: "quarantined", created: 0, quarantined: 1 };
-  }
+  // DYNAMIC IMPORT, for the reason this file gives twice already: it is reachable
+  // from client bundles through its createServerFn exports (IntegrationsTab.tsx
+  // imports from here), and sink.server.ts pulls in the service-role client. Same
+  // shape as `settleOutcome` reaching applyOutcome and `recordForecast` reaching
+  // setDecisionForecastImpl.
+  const { writeSignals } = await import("@/lib/sources/sink.server");
+  const result = await writeSignals(user_id, workspace_id, [
+    {
+      source: source?.trim() || "mcp",
+      // The lane the database itself picked for this door: migration
+      // 20260702202247 backfills `source = 'mcp'` to `source_kind = 'mcp_source'`,
+      // and the Discover surface labels that lane "A connected agent".
+      sourceKind: "mcp_source",
+      title,
+      // signals.content is NOT NULL and the sink falls back to title anyway; the
+      // trim is kept here so a whitespace-only content is not stored as content.
+      content: content?.trim() || title,
+      // An inbound agent push is attacker-controlled free text by definition. This
+      // is the flag that turns the sink's injection screen on, and it is the whole
+      // reason the screen could be deleted from this function.
+      untrusted: true,
+    },
+  ]);
 
-  const { error } = await supabaseClient.from("signals").insert({
-    user_id,
-    workspace_id,
-    title,
-    content: content?.trim() || title, // signals.content is NOT NULL — fall back to title
-    source: source?.trim() || "mcp",
-    tags: decision === "flag" ? [INGEST_REVIEW_TAG] : [],
-  });
-  if (error) throw new Error(error.message);
+  // EXACTLY ONE OF THESE THREE IS 1, because exactly one candidate went in and the
+  // fourth outcome the sink can report -- `skipped` -- keys on an external_id this
+  // tool never sets. The order is the order of consequence: refused, folded, stored.
+  if (result.quarantined === 1)
+    return { status: "quarantined", created: 0, quarantined: 1, restated: 0, id: null };
+  if (result.restated === 1)
+    return { status: "restated", created: 0, quarantined: 0, restated: 1, id: null };
 
-  return decision === "flag"
-    ? { status: "flagged", created: 1, quarantined: 0 }
-    : { status: "stored", created: 1, quarantined: 0 };
+  // Straight off the sink's own `.select("id")`, so this is the id the database
+  // accepted rather than one read back afterwards.
+  const id = result.ids[0] ?? null;
+  return result.flagged === 1
+    ? { status: "flagged", created: 1, quarantined: 0, restated: 0, id }
+    : { status: "stored", created: 1, quarantined: 0, restated: 0, id };
 }
 
 // ───────────────────────────────────────────────────────────────────────────

@@ -198,7 +198,7 @@ import * as React from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { stepLabel } from "@/lib/agent-vocabulary";
-import { REVERSIBILITY_LABEL, toolConsequence } from "@/lib/tool-consequences";
+import { REVERSIBILITY_LABEL, gateHeadline, toolConsequence } from "@/lib/tool-consequences";
 import { stripAutoPrefix } from "@/components/plan/format";
 import {
   getStudioSession,
@@ -209,6 +209,7 @@ import {
   type StudioConstraints,
   type StudioFileSetPolicy,
   type StudioRunDetail,
+  type StudioToolCall,
 } from "@/lib/studio.functions";
 import { decideApproval } from "@/lib/agent_loop.functions";
 import { listDeployments } from "@/lib/deployments.functions";
@@ -244,6 +245,7 @@ import { traceRef } from "@/components/discover/format";
  */
 import { Surface } from "@/components/meridian/Surface";
 import { AgentPulse } from "@/components/meridian/AgentPulse";
+import { ToolStream, type ToolStreamRow } from "@/components/meridian/ToolStream";
 import {
   Actor,
   Button,
@@ -594,7 +596,18 @@ function approveVerb(tool: string): string {
 function gateLines(a: StudioApproval, holder: string): React.ReactNode[] {
   const c = toolConsequence(a.tool_name);
   const lines: React.ReactNode[] = [
-    <span key="effect">{c.effect}</span>,
+    /*
+     * `gateHeadline`, not `c.effect`, for the lead line only. Both return the
+     * identical catalogued sentence for all 59 registered tools; they differ on
+     * a name the catalogue does not hold, where `c.effect` falls through to
+     * "Runs the tool with the agent's arguments." -- a claim, in the line a
+     * person reads first. Five seed migrations still write six such names into
+     * `agent_approvals` (21 tuples, 8 of them `status = 'pending'`), so this is
+     * reachable by a re-seed rather than hypothetical. The undo line below keeps
+     * reading `c`: "Effect not catalogued. Review the arguments before
+     * approving." is the honest thing to say in that slot and needs no change.
+     */
+    <span key="effect">{gateHeadline(a.tool_name)}</span>,
     <span key="undo">
       {REVERSIBILITY_LABEL[c.reversible]}. {c.undo}
     </span>,
@@ -691,6 +704,54 @@ function BuildRun() {
    * box. The ledger alone rebuilds a React element per step. Held here rather
    * than inside each memo: one of them would be forgotten. */
   const runs = React.useMemo(() => (data?.runs ?? []) as StudioRunDetail[], [data?.runs]);
+  /* Held for the same identity reason as `runs` directly above: `?? []` mints a
+   * fresh array every render, and `calls` below maps over it. */
+  const toolCalls = React.useMemo(
+    () => (data?.toolCalls ?? []) as StudioToolCall[],
+    [data?.toolCalls],
+  );
+  /*
+   * `public.tool_calls` rows in the shape ToolStream takes. Four decisions here
+   * are not free choices:
+   *
+   *   `state` IS DERIVED FROM `ok` AND IS NEVER "running". Nothing in this
+   *   product records an executing call — the loop measures latency at
+   *   loop.server.ts:1661 and inserts the row at :1690 / :1732, both after the
+   *   tool has returned, and the checkpoint that might otherwise witness one is
+   *   written BEFORE the provider call (:1201). A `running` row here would be
+   *   an invented agent step.
+   *
+   *   `durationMs` IS GUARDED RATHER THAN PASSED THROUGH. `formatDuration`
+   *   (components/studio/run-return.ts:65-74) rejects only negatives and
+   *   non-finite, so a 0 renders as a confident "0s". The loop's
+   *   `Date.now() - t0` returns 0 for any tool that comes back inside a
+   *   millisecond, and nothing about that is a measurement worth printing.
+   *   Measured 2026-08-22 20:14 UTC: `select count(*) filter (where latency_ms
+   *   = 0) from public.tool_calls` is 0 of 345 rows, so this guard is for the
+   *   case that has not happened yet rather than one on screen today.
+   *
+   *   `label` IS NOT PASSED. ToolStream resolves the caption through
+   *   `toolActionLabel`, the single place that turns `prd.draft` into "drafting
+   *   a spec"; a tool the vocabulary has never met falls back to its raw name,
+   *   which is ugly on purpose so a missing entry gets noticed.
+   *
+   *   `at` IS THE RECORDED `created_at`, not a client stamp. Reopening a
+   *   settled run would otherwise bunch every row into the instant the page
+   *   loaded.
+   */
+  const calls = React.useMemo<ToolStreamRow[]>(
+    () =>
+      toolCalls.map((tc) => ({
+        id: tc.id,
+        tool: tc.tool_name,
+        at: Date.parse(tc.created_at),
+        state: tc.ok ? "done" : "failed",
+        durationMs: tc.latency_ms > 0 ? tc.latency_ms : undefined,
+        argument: tc.argument ?? undefined,
+        error: tc.ok ? undefined : (tc.error ?? undefined),
+      })),
+    [toolCalls],
+  );
   const changeset = (data?.changeset ?? null) as
     (StudioChangesetSummary & { base_sha?: string | null; updated_at?: string | null }) | null;
   const changes = (data?.changes ?? []) as ChangeRow[];
@@ -1378,7 +1439,9 @@ function BuildRun() {
                   tight
                   mark={<RunMark slug={holderSlug} name={holder} state="gate" />}
                   lead={gateQuestion(a.tool_name)}
-                  sub={toolConsequence(a.tool_name).effect}
+                  // Same swap as `gateLines` above, for the same reason: this
+                  // sub-line is the only description these rows carry.
+                  sub={gateHeadline(a.tool_name)}
                   time={ago(a.created_at)}
                   onClick={() => setPicked(a.id)}
                 />
@@ -1440,6 +1503,61 @@ function BuildRun() {
           </Region>
         ) : (
           <>
+            {/* BEAT 0, AND ONLY WHILE THE RUN IS ALIVE.
+              What this page said about a live run before this existed was ONE
+              pulsing caption: `RunReturn.tsx:113-127` renders `<AgentPulse
+              label={`${holder} is still working`} detail={liveAction} />`, and
+              `liveAction` is a single string off the last step. Everything else
+              on the surface answers what a run DID.
+
+              LIVE-ONLY IS THE RULING, NOT A PREFERENCE. The chips block that
+              took a settled array of the same rows was deleted on 2026-08-21
+              (the argument is kept in full at ToolStream.tsx:68-77): the Steps
+              ledger below already renders every tool call, so a settled stream
+              beside it is one fact on screen twice in two rhythms. Rendering
+              only while `isLive` answers that, because the ledger is CLOSED on
+              arrival (`readTab` returns null by default, :298-303, behind a
+              toggle reading "Look at it", :1566) and it cannot say either of
+              the two things this can.
+
+              THE TWO FACTS IT ADDS, and they are the whole justification:
+              `tool_calls.created_at` gives a per-call clock, which the ledger
+              has nowhere (only the RUN row carries `time=`, :1016), and
+              `tool_calls.latency_ms` gives how long each call took, which
+              appears nowhere on this surface at all.
+
+              WHAT STILL OVERLAPS, said here rather than left for the next
+              reader to find: the ledger's tool_call row draws the SAME caption
+              (`cap(stepLabel(s))`, :1046, which is `toolActionLabel`) and the
+              SAME argument line (`summarizeArgs`, :1048). Live-only shrinks
+              that window to the minutes a run is alive; it does not close it,
+              because a reader can open Steps on a live run.
+
+              `working` IS LITERALLY `isLive`, not a spinner flag. It changes
+              one sentence: "Nothing called yet" for a run that has called
+              nothing SO FAR, versus "This run called no tools" for one that
+              never will. Passing it wrong tells the reader the opposite of the
+              truth.
+
+              `label` REPEATS THE REGION TITLE ON PURPOSE. It is never painted —
+              it is the `role="log"` aria-label (ToolStream.tsx:261) — so
+              leaving the default would give a screen reader two different names
+              for one region.
+
+              NOT MOUNTED ON THE ORCHESTRATOR BRANCH. `getStudioSession` builds
+              its trace list from `agent_slug='builder'` runs only
+              (studio.functions.ts:844), so `toolCalls` is [] for a goal-run and
+              this would print "Nothing called yet." over a run that is calling
+              things. The follow-on has its data source already in hand:
+              `MissionOrchestratorDetail` holds `hops[].tool_calls`
+              (missions.functions.ts:484-489) and is missing only a summarized
+              `args`. */}
+            {isLive ? (
+              <Region title="What it is calling">
+                <ToolStream rows={calls} working label="What it is calling" />
+              </Region>
+            ) : null}
+
             {/* BEAT 1 AND 2 OF THE RETURN. The duration receipt is already on the
               headline, so what lands here is the agent's own account: whole, and
               short, with the rest one press away. This is the artefact that used

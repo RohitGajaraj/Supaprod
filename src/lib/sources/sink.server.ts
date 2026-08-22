@@ -2,10 +2,25 @@
  * Signal Fabric - the write path every source SHOULD funnel through.
  *
  * IT IS NOT THE ONLY ONE, and this header claimed it was until 2026-08-15. That
- * claim mattered because it is the kind a reader believes: seventeen code paths
- * insert into `public.signals` and, at the time of writing, seven reach this
- * function. The eleven that did not were each missing everything below, and the
- * omission was invisible precisely because the header said it could not happen.
+ * claim mattered because it is the kind a reader believes. The correction that
+ * replaced it was itself wrong and stayed wrong for a week -- "seventeen code paths
+ * insert into public.signals and seven reach this function. The eleven that did
+ * not" -- three numbers that do not even add up, written from memory and never
+ * re-run. RE-MEASURED 2026-08-23, and the query is recorded here so the next reader
+ * can re-run it instead of inheriting it:
+ *
+ *   grep -rn 'from("signals")' src --include='*.ts' --include='*.tsx' | grep -v '\.test\.'
+ *   keeping the hits with an `.insert(` within the next four lines, and
+ *   grep -rn 'writeSignals(' src for the other half.
+ *
+ * Both of those now match these two lines of this comment, so subtract one from
+ * each before comparing with the numbers below.
+ *
+ * ELEVEN code paths insert into `public.signals`. One of them is this function, so
+ * TEN were bypasses; the MCP `ingest_signal` tool came off that list on 2026-08-23
+ * and NINE remain. NINETEEN call sites reach this function. Each bypass is missing
+ * everything below, and the omission was invisible precisely because the header
+ * first said it could not happen and then said it in numbers nobody checked.
  *
  * WHAT A BYPASS COSTS, in the order it hurts:
  *
@@ -31,23 +46,31 @@
  *   The inline embedding, so a signal is clusterable on the tick it lands rather
  *   than at the next backfill sweep.
  *
- * THE REMAINING BYPASSES ARE NAMED RATHER THAN LEFT AS A SURPRISE. The MCP
- * `ingest_signal` tool screens its own input and inserts directly; the demo feed,
- * onboarding, meetings, audio, support triage and pulse each build their own row.
- * Some are defensible and some are debt, but a reader deciding whether to add the
- * eighteenth door should know which they are joining, not be told the door does
- * not exist.
+ * THE REMAINING NINE ARE NAMED RATHER THAN LEFT AS A SURPRISE, by file, so the list
+ * can be checked: `analytics-ingest.server.ts`, `meetings.functions.ts`,
+ * `onboarding.functions.ts` (twice), `audio.functions.ts`,
+ * `support-triage.functions.ts`, `pulse.functions.ts`, and the `sense-tick` /
+ * `steward-tick` hooks. EVERY ONE OF THEM IS AN INTERNAL PRODUCER: none accepts
+ * untrusted text from outside the product, so the injection screen is not what they
+ * are missing -- the trail row, `source_kind` and the embedding are. Some are
+ * defensible and some are debt, but a reader deciding whether to add a twelfth door
+ * should know which they are joining, not be told the door does not exist.
  *
- * The public ingest webhook was on that list until 2026-08-22, and came off it the
- * first time anyone actually used it. The very first signal that endpoint accepted
- * in production landed with `source_kind` NULL and `embedding` NULL, which is the
- * bypass cost above, measured rather than predicted. It now routes through here.
- * That leaves the MCP tool as the last untrusted-input door still screening for
- * itself, and it is the obvious next one to move.
+ * BOTH UNTRUSTED-INPUT DOORS ARE NOW CLOSED, and they closed for opposite reasons
+ * that are worth keeping side by side. The public ingest webhook came off the list
+ * on 2026-08-22, the first time anyone actually used it: the very first signal that
+ * endpoint accepted in production landed with `source_kind` NULL and `embedding`
+ * NULL, which is the bypass cost above, measured rather than predicted. The MCP
+ * `ingest_signal` tool came off it on 2026-08-23 having never stored a row at all --
+ * `select count(*) from public.signals where source = 'mcp'` is 0, and there is no
+ * un-revoked row in `mcp_tokens` -- so there was nothing to backfill and no live
+ * caller whose contract could break. That is the cheap moment to move a door, and
+ * the webhook is what the expensive one looks like.
  *
- * Every source that DOES come through here (connectors, the Scout, MCP sources,
- * the webhook token path, manual capture, and the agent's own signals.log) hands
- * over a SignalCandidate[] rather than a row. The sink fetches the external_ids already stored
+ * Every source that DOES come through here (connectors, the Scout, MCP sources, the
+ * MCP `ingest_signal` tool, the webhook token path, manual capture, and the agent's
+ * own signals.log) hands over a SignalCandidate[] rather than a row. The sink
+ * fetches the external_ids already stored
  * for this (user, workspace), runs the pure prepare core (screen + dedup + normalize
  * + stamp source_kind), and inserts. This is the one place dedup, injection-screening,
  * and the source_kind discriminator live, so a new source inherits all three by
@@ -56,6 +79,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
+// The marker prepare appends when the screen calls text borderline. Imported as the
+// constant rather than re-spelt as a literal, so `flagged` below counts the same
+// thing every downstream reader filters on and cannot drift from it.
+import { INGEST_REVIEW_TAG } from "@/lib/ingest-guardrails";
 import { prepareSignalRows } from "./prepare";
 import { attachEmbeddings } from "./signal-embedding.server";
 import {
@@ -127,12 +154,18 @@ type EmbeddedRow = {
  * reachable from `signals.log`, which files one candidate per call, but a connector
  * that pulls the same item under two ids in one page would otherwise walk straight
  * past a screen the stored-row path catches.
+ *
+ * GENERIC OVER THE ROW so the caller gets its own type back. This screen only reads
+ * the five fields in EmbeddedRow, but the objects flowing through it are full
+ * prepared rows, and a signature that narrowed them to EmbeddedRow threw away
+ * `tags` on the way out -- which is the field `flagged` is counted from below. The
+ * rows were never actually narrowed at runtime; only the type was.
  */
-async function screenRestatements(
+async function screenRestatements<T extends EmbeddedRow>(
   userId: string,
   workspaceId: string,
-  rows: EmbeddedRow[],
-): Promise<{ keep: EmbeddedRow[]; restated: FoldedRow[] }> {
+  rows: T[],
+): Promise<{ keep: T[]; restated: FoldedRow[] }> {
   const foldable = rows.filter((r) => isFoldable({ externalId: r.external_id }));
   if (foldable.length === 0) return { keep: rows, restated: [] };
 
@@ -177,7 +210,7 @@ async function screenRestatements(
     embeddingModel: r.embedding_model,
   }));
 
-  const keep: EmbeddedRow[] = [];
+  const keep: T[] = [];
   const restated: FoldedRow[] = [];
   // Rows accepted earlier in this same batch, so the second copy of a sentence that
   // arrives in one page is folded into the first rather than both being stored.
@@ -280,7 +313,7 @@ export async function writeSignals(
   opts?: { productId?: string | null },
 ): Promise<SinkResult> {
   if (candidates.length === 0)
-    return { inserted: 0, skipped: 0, quarantined: 0, restated: 0, ids: [] };
+    return { inserted: 0, skipped: 0, quarantined: 0, restated: 0, flagged: 0, ids: [] };
 
   // Fetch already-seen external_ids for this workspace to skip them cheaply.
   const extIds = candidates.map((c) => c.externalId).filter((id): id is string => Boolean(id));
@@ -303,7 +336,8 @@ export async function writeSignals(
     opts,
   );
 
-  if (rows.length === 0) return { inserted: 0, skipped, quarantined, restated: 0, ids: [] };
+  if (rows.length === 0)
+    return { inserted: 0, skipped, quarantined, restated: 0, flagged: 0, ids: [] };
 
   // Stamp the comparison vector on the way in so a freshly sensed signal is
   // dedupable and clusterable immediately rather than at the next sweep. This is a
@@ -323,7 +357,10 @@ export async function writeSignals(
   const { keep, restated } = await screenRestatements(userId, workspaceId, rowsWithVectors);
   if (keep.length === 0) {
     await recordRestatements(restated);
-    return { inserted: 0, skipped, quarantined, restated: restated.length, ids: [] };
+    // `flagged: 0` and not "how many of the folded rows the screen had flagged".
+    // Nothing was stored, so there is no flagged row to review, and reporting one
+    // would send a caller looking for a row that does not exist.
+    return { inserted: 0, skipped, quarantined, restated: restated.length, flagged: 0, ids: [] };
   }
 
   // .select("id") so each sensed signal can write its stage_events trail row.
@@ -351,11 +388,17 @@ export async function writeSignals(
 
   // The ids come off the same `.select("id")` the trail loop above already reads,
   // so this reports what the database actually accepted rather than what was sent.
+  //
+  // `flagged` is counted off `keep` -- the rows that survived BOTH screens -- rather
+  // than off prepare's own verdict, for the reason kinds.ts states: a row the
+  // injection screen called borderline can still be folded as a restatement, and a
+  // count taken at prepare time would then report a flagged row nobody can open.
   return {
     inserted: keep.length,
     skipped,
     quarantined,
     restated: restated.length,
+    flagged: keep.filter((r) => r.tags.includes(INGEST_REVIEW_TAG)).length,
     ids: ((inserted ?? []) as Array<{ id: string }>).map((r) => r.id),
   };
 }

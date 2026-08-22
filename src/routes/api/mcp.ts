@@ -22,6 +22,7 @@ import {
   settleForecastViaMcp,
   listDueForecastsForAgent,
   logMCPCall,
+  classifyWriteAudit,
 } from "@/lib/mcp.functions";
 import { getGoverningDecision, getContradictionHistory } from "@/lib/ai/mcp-brain.server";
 import {
@@ -736,22 +737,46 @@ export const Route = createFileRoute("/api/mcp")({
                 tokenUserId,
                 dispatch.args,
               );
+              // THE PAYLOAD DECIDES WHAT THE TRAIL SAYS, not the absence of a
+              // throw. This line used to be `writeResult.success ? "success" :
+              // "error"`, and `runWriteTool` returns `success: true` for any
+              // non-throwing tool -- including the seven refusals that report
+              // themselves in the payload instead. Measured in production:
+              // api_calls e8cf280c, 2026-08-10 15:15:01, `record_decision /
+              // success / error_message null / write: true`, against 0 rows in
+              // `decisions where source_kind = 'mcp'`. The only governed write
+              // this surface has ever logged as a success wrote nothing, and the
+              // row was identical in every audited field to one that had.
+              // classifyWriteAudit owns the rules and the reasoning.
+              const writeAudit = classifyWriteAudit(writeResult);
               await logMCPCall(
                 {
                   token_id,
                   workspace_id,
                   tool_name: dispatch.toolName,
-                  result: writeResult.success ? "success" : "error",
-                  error_message: writeResult.error,
+                  result: writeAudit.result,
+                  // A thrown refusal already carries its own sentence; a returned
+                  // one gets the classifier's. Never both, and never neither.
+                  error_message: writeResult.error ?? writeAudit.reason ?? undefined,
                   // THE TRAIL HAS TO KNOW IT WAS A REPLAY. Without this a
                   // retried call logs a second successful write, so the audit
                   // record shows two writes where one happened, and anybody
                   // counting agent activity off api_calls counts the retry as
                   // work. The flag is the difference between "it did this twice"
                   // and "it asked twice and we did it once".
+                  //
+                  // `write: true` MEANS "THIS WAS A WRITE TOOL", which is a fact
+                  // about the catalogue and not about what happened, so it could
+                  // not be reused to answer the only question that matters here.
+                  // `wrote` is the answer: did a row change on this call.
+                  // `row_id` is what changed, so the claim can be checked rather
+                  // than believed.
                   metadata: {
                     elapsed_ms: Date.now() - startTime,
                     write: true,
+                    wrote: writeAudit.wrote,
+                    ...(writeAudit.status ? { tool_status: writeAudit.status } : {}),
+                    ...(writeAudit.id ? { row_id: writeAudit.id } : {}),
                     ...(writeResult.idempotent_replay ? { idempotent_replay: true } : {}),
                   },
                 },

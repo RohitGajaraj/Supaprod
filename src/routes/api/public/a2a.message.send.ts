@@ -23,6 +23,7 @@ import {
   exportSkillpack,
   ingestSignal,
   logMCPCall,
+  classifyWriteAudit,
   type IngestSignalArgs,
 } from "@/lib/mcp.functions";
 
@@ -221,13 +222,46 @@ export const Route = createFileRoute("/api/public/a2a/message/send")({
             });
           }
 
+          /*
+           * THE SAME DEFECT AS /api/mcp, SWEPT MECHANICALLY RATHER THAN FOUND
+           * SEPARATELY. This site hard-coded `result: "success"` for any
+           * non-throwing dispatch, and `dispatchSkill` routes `ingest_signal`
+           * through the very same `ingestSignal` the MCP route calls -- so a
+           * quarantine arrived here as a success too, for the same reason and with
+           * the same consequence. Fixing one door and not the other would have left
+           * the class half-closed. a2a.message.stream.ts carries the identical
+           * change; this is the only copy of the explanation.
+           *
+           * GATED ON `isWriteSkill`, WHICH THE MCP ROUTE DOES NOT NEED TO DO. That
+           * route reaches this code only inside its write branch. This one is the
+           * single audit site for EVERY skill: `search_signals` and
+           * `export_skillpack` land here too, and they are reads. Running the
+           * classifier over them would stamp `wrote` -- a claim that a row changed
+           * -- onto calls that changed nothing, and would sniff a `status` field off
+           * payloads the classifier does not own (searchSignals returns an array).
+           * Writing a false write into the audit trail while fixing the audit trail
+           * is the one outcome this lane cannot ship.
+           */
+          const writeAudit = isWriteSkill(skillId) ? classifyWriteAudit(result) : null;
           await logMCPCall(
             {
               token_id,
               workspace_id,
               tool_name: skillId,
-              result: "success",
-              metadata: { elapsed_ms: elapsed, source: "a2a" },
+              result: writeAudit?.result ?? "success",
+              error_message: writeAudit?.reason ?? undefined,
+              metadata: {
+                elapsed_ms: elapsed,
+                source: "a2a",
+                ...(writeAudit
+                  ? {
+                      write: true,
+                      wrote: writeAudit.wrote,
+                      ...(writeAudit.status ? { tool_status: writeAudit.status } : {}),
+                      ...(writeAudit.id ? { row_id: writeAudit.id } : {}),
+                    }
+                  : {}),
+              },
             },
             supabase,
           );

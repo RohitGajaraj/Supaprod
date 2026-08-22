@@ -85,4 +85,27 @@ export type SinkResult = {
    * connector working correctly.
    */
   restated: number;
+  /**
+   * Rows that were stored carrying the review tag, because the injection screen
+   * called the text borderline rather than clean.
+   *
+   * ADDED 2026-08-23, for the same reason `ids` was added above: the sink already
+   * decided this and then discarded it. `prepareSignalRows` appends
+   * INGEST_REVIEW_TAG when `screenIngestText` returns "flag", the tag reaches the
+   * database, and no caller of this function could learn what had just happened
+   * without re-reading the row it had only that moment written.
+   *
+   * THE MCP `ingest_signal` DOOR IS WHAT FORCED IT. That tool answers a calling
+   * agent with `status: "flagged"`, and it can only keep doing so if the sink
+   * reports the flag. A door routed through here without this field would have
+   * quietly started telling agents their borderline text was stored clean, which
+   * is the audit trail lying in exactly the place this product's claim rests on.
+   *
+   * COUNTED OFF THE ROWS ACTUALLY INSERTED, never off the rows prepared, so it can
+   * never exceed `inserted`. A flagged row that is then folded into an observation
+   * the workspace already holds is reported as `restated` and is NOT counted here,
+   * because it was not stored. That ordering is the difference between a number a
+   * caller can act on and a number that merely describes what the screen thought.
+   */
+  flagged: number;
 };

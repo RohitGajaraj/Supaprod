@@ -77,7 +77,7 @@ function approvalAgentSlug(kind: ApprovalKind, explicit: string | null): string 
 }
 import { ACTION_LABEL } from "@/lib/agent-vocabulary";
 import { sourceLabel } from "@/lib/memory-candidates";
-import { toolConsequence, REVERSIBILITY_LABEL } from "@/lib/tool-consequences";
+import { toolConsequence, gateHeadline, REVERSIBILITY_LABEL } from "@/lib/tool-consequences";
 import type { ApprovalItem } from "@/components/ink/ApprovalCard";
 import type { VerdictTone } from "@/components/ink/chips";
 import { cleanTitle } from "@/components/plan/format";
@@ -522,7 +522,20 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
         kind: "GATE",
         kindTone,
         project: a.mission_title ?? undefined,
-        title: consequence.effect,
+        /*
+         * The 19px `sp-gate-q` heading -- the question the person is here to
+         * answer -- so it may never be generic. `consequence.effect` alone put
+         * "Runs the tool with the agent's arguments." in this slot for any tool
+         * with no catalogue row, which is the defect found on the rendered
+         * /today on 2026-08-16. All 59 registered tools have a row now, but the
+         * seed migrations still write six names no tool defines (21 tuples, 8 of
+         * them `status = 'pending'`), so this slot is still reachable by a
+         * re-seed. `gateHeadline` returns the same catalogued sentence for all 59
+         * and an honest one for anything else. The `evidence` push above keeps
+         * reading `consequence`, because "Effect not catalogued. Review the
+         * arguments before approving." is already true there.
+         */
+        title: gateHeadline(a.tool_name),
         evidence,
         impact: `${a.risk} risk${a.mission_title ? ` · in ${a.mission_title}` : ""}`,
         approveConsequence: "Approve · runs the action",

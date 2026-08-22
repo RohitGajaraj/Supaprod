@@ -912,9 +912,7 @@ async function correctIfPossible(
   // today is Discover alone. Every other station is answered entirely from the
   // track's own record and costs no extra query.
   const externalMet =
-    need.from === null
-      ? await externalEvidence(supabase, row.workspace_id, row.driven_at)
-      : null;
+    need.from === null ? await externalEvidence(supabase, row.workspace_id, row.driven_at) : null;
 
   const decision = decideCorrection({
     hold: at.hold,

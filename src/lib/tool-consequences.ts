@@ -439,6 +439,18 @@ const DEFAULT: ToolConsequence = {
   undo: "Effect not catalogued. Review the arguments before approving.",
 };
 
+/**
+ * `DEFAULT.effect`, exported so a guard can say "not this sentence" without
+ * keeping a fourth hand-typed copy of it.
+ *
+ * The three copies that already exist stay literals on purpose
+ * (`tool-risk-six-dimensions.test.ts`, and twice in `tool-consequences.test.ts`):
+ * a test that imports the string it is pinning cannot notice that string
+ * changing. This export is for the opposite assertion -- "this surface must NOT
+ * be showing the sentinel" -- where a literal buys nothing and only rots.
+ */
+export const UNCATALOGUED_EFFECT = DEFAULT.effect;
+
 export function toolConsequence(toolName: string | null | undefined): ToolConsequence {
   if (!toolName) return DEFAULT;
   return CONSEQUENCES[toolName] ?? DEFAULT;
@@ -556,6 +568,53 @@ export function isSideEffectingTool(toolName: string | null | undefined): boolea
  */
 export function isCataloguedTool(toolName: string | null | undefined): boolean {
   return !!toolName && toolName in CONSEQUENCES;
+}
+
+/**
+ * The one sentence a person is shown at the TOP of a gate, for a tool that may
+ * not be in this file at all.
+ *
+ * WHAT WAS WRONG. `toolConsequence` answers every caller with `DEFAULT` when it
+ * holds no row, and `DEFAULT.effect` reads "Runs the tool with the agent's
+ * arguments." That is a CLAIM, and three surfaces put it in the one slot
+ * reserved for the question a person is there to answer: the 19px `sp-gate-q`
+ * heading on the approval queue, the `sub` line of a run's "also waiting on you"
+ * row, and the lead of the chief-of-staff brief. It tells a reader the product
+ * knows what the call does, one line above the button that runs it.
+ *
+ * WHAT IT COSTS, MEASURED 2026-08-23. No REGISTERED tool can reach that sentence
+ * any more: the registry defines 59 tools and all 59 have a row, closed on
+ * 2026-08-19/20 and guarded three times over from the registry side. The door
+ * still open is the SEED. Six tool names are written into `agent_approvals` by
+ * five seed migrations and are defined by no tool anywhere -- `code.commit`,
+ * `decisions.kill`, `changelog.publish`, `rollout.ramp`, `schema.migrate`,
+ * `experiments.create`. That is 21 insert tuples on disk and 32 rows already in
+ * production (none of them pending today, because 20260820013000 cancelled the
+ * seven that were). EIGHT OF THE 21 ARE WRITTEN `status = 'pending'` WITH A LIVE
+ * `expires_at`, so the next re-seed stands a gate up on the queue that nothing in
+ * the product can describe. 20260820013000 said so at the time -- "SO THE SEED IS
+ * THE REAL DEFECT AND CANCELLING IS ONLY HALF" -- and cancelled the rows without
+ * closing the door. The guard that closes it is
+ * `__tests__/a-seed-may-not-raise-a-gate-the-product-cannot-answer.test.ts`;
+ * this function is what the surfaces say in the meantime.
+ *
+ * WHY A SEPARATE FUNCTION AND NOT A BETTER `DEFAULT.effect`. Rewriting the
+ * default is one edit and it would DISARM TWO GUARDS. Both
+ * `tool-risk-six-dimensions.test.ts` and `tool-consequences.test.ts` find
+ * fall-through tools by comparing against a hand-typed copy of that exact
+ * sentence; change it here and they search for a string nothing returns, and
+ * pass for ever, vacuously. `DEFAULT` also remains the right answer for
+ * `reversible` and `undo`, which the same three callers read off the same object.
+ *
+ * NO TOOL NAME IN THIS STRING, and that is a ruling, not a taste.
+ * `runs.$missionId.tsx` states it where it renders the gate ("Plain words, never
+ * the tool name"), and `tool-consequences.test.ts` states it as a property of the
+ * default ("must degrade to a conservative sentence rather than crash or leak its
+ * id"). An internal identifier is not the thing a person is being asked to judge.
+ */
+export function gateHeadline(toolName: string | null | undefined): string {
+  if (isCataloguedTool(toolName)) return toolConsequence(toolName).effect;
+  return "Nothing here says what this call changes.";
 }
 
 export const REVERSIBILITY_LABEL: Record<Reversibility, string> = {

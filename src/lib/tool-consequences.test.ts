@@ -4,6 +4,8 @@ import { join } from "node:path";
 import { TOOL_DEFAULTS } from "@/lib/ai/tools/defaults";
 import {
   toolConsequence,
+  gateHeadline,
+  UNCATALOGUED_EFFECT,
   isSideEffectingTool,
   isCataloguedTool,
   toolRisk,
@@ -21,6 +23,27 @@ describe("toolConsequence (existing)", () => {
   it("returns a conservative default for an unknown tool", () => {
     const c = toolConsequence("nope.unknown");
     expect(c.reversible).toBe("partial");
+  });
+  it("gateHeadline keeps the catalogued sentence and refuses the generic one", () => {
+    /*
+     * The heading a person actually reads, split out of `toolConsequence` on
+     * 2026-08-23. Falling through to DEFAULT is right for `reversible` and
+     * `undo` and wrong for the 19px gate question: "Runs the tool with the
+     * agent's arguments." is a claim, and five applied seed migrations still
+     * write six tool names that no tool defines. The seed door itself is
+     * guarded in
+     * `__tests__/a-seed-may-not-raise-a-gate-the-product-cannot-answer.test.ts`;
+     * what is pinned here is the predicate, beside this module's others.
+     */
+    expect(gateHeadline("studio.pr.merge")).toBe(toolConsequence("studio.pr.merge").effect);
+    expect(gateHeadline("rollout.ramp")).not.toBe(UNCATALOGUED_EFFECT);
+    // Never the tool id in the sentence a person is asked to judge.
+    expect(gateHeadline("rollout.ramp")).not.toContain("rollout");
+    // Null, empty and unknown land on the same honest sentence, not on a blank
+    // heading -- an empty 19px slot reads as a loading state, not as an answer.
+    expect(gateHeadline(null)).toBe(gateHeadline("nope.unknown"));
+    expect(gateHeadline("")).toBe(gateHeadline("nope.unknown"));
+    expect(gateHeadline(undefined).trim().length).toBeGreaterThan(0);
   });
   it("isSideEffectingTool is false for a read and true for anything that leaves a row", () => {
     /*
