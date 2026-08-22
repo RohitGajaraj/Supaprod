@@ -92,7 +92,12 @@ describe("it is sorted by what it needs from a person", () => {
         now={NOW}
         sessions={[
           session({ id: "fresh", need: "done", title: "Post the release note", at: mins(0) }),
-          session({ id: "old", need: "needs-input", title: "Shorten the verify step", at: mins(90) }),
+          session({
+            id: "old",
+            need: "needs-input",
+            title: "Shorten the verify step",
+            at: mins(90),
+          }),
         ]}
       />,
     );
@@ -165,7 +170,9 @@ describe("idle rows collapse past three, and the number is real", () => {
     render(
       <AgentInbox
         now={NOW}
-        sessions={[1, 2, 3, 4].map((n) => session({ id: `i${n}`, title: `Quiet ${n}`, at: idleAt }))}
+        sessions={[1, 2, 3, 4].map((n) =>
+          session({ id: `i${n}`, title: `Quiet ${n}`, at: idleAt }),
+        )}
       />,
     );
     expect(rowTitles().length, "idle rows were still drawn individually").toBe(0);
@@ -180,7 +187,9 @@ describe("idle rows collapse past three, and the number is real", () => {
     render(
       <AgentInbox
         now={NOW}
-        sessions={[1, 2, 3, 4].map((n) => session({ id: `i${n}`, title: `Quiet ${n}`, at: idleAt }))}
+        sessions={[1, 2, 3, 4].map((n) =>
+          session({ id: `i${n}`, title: `Quiet ${n}`, at: idleAt }),
+        )}
       />,
     );
     fireEvent.click(screen.getByRole("button", { name: "4 agents have gone quiet" }));
@@ -199,9 +208,9 @@ describe("idle rows collapse past three, and the number is real", () => {
       />,
     );
     expect(rowTitles()).toEqual(["Still going"]);
-    expect(screen.getByRole("group", { name: "Running" }).querySelector("h3")!.textContent).toContain(
-      "5",
-    );
+    expect(
+      screen.getByRole("group", { name: "Running" }).querySelector("h3")!.textContent,
+    ).toContain("5");
   });
 
   it("never folds a row that is waiting on a person, however long it has waited", () => {
@@ -226,9 +235,7 @@ describe("idle rows collapse past three, and the number is real", () => {
 
 describe("answering happens here, without a route change", () => {
   it("draws no reply control when the caller cannot take one", () => {
-    render(
-      <AgentInbox now={NOW} sessions={[session({ id: "a", need: "needs-input" })]} />,
-    );
+    render(<AgentInbox now={NOW} sessions={[session({ id: "a", need: "needs-input" })]} />);
     expect(screen.queryByRole("button", { name: "Answer it" })).toBeNull();
   });
 
@@ -498,10 +505,7 @@ describe("failing is an outcome, not a fifth group", () => {
   it("lets a session be failed AND waiting on a person at once", () => {
     /* The case a fifth group would have made unrenderable. */
     render(
-      <AgentInbox
-        now={NOW}
-        sessions={[session({ id: "f", need: "needs-input", failed: true })]}
-      />,
+      <AgentInbox now={NOW} sessions={[session({ id: "f", need: "needs-input", failed: true })]} />,
     );
     expect(groupOrder()).toEqual(["Waiting on you"]);
     /* The outcome outranks the need on the chip: "Failed" reads first, and the
@@ -611,9 +615,7 @@ describe("AgentInbox — the list has exactly one way in", () => {
      * resident stop and `order[0]` have to be the same row.
      */
     const { container } = render(<AgentInbox now={NOW} sessions={two} />);
-    expect(container.querySelector('[role="option"][tabindex="0"]')?.id).toBe(
-      "agent-inbox-row-a",
-    );
+    expect(container.querySelector('[role="option"][tabindex="0"]')?.id).toBe("agent-inbox-row-a");
   });
 
   it("still holds exactly one once a selection exists, which is the whole contract", () => {
@@ -691,5 +693,136 @@ describe("AgentInbox — the reply control follows the question", () => {
     expect(said, "the reply never reached the caller, so reply in place is decorative").toEqual([
       "Drop it.",
     ]);
+  });
+});
+
+/**
+ * THE SCAN-BAND CUT, WHICH IS THE IDLE COLLAPSE ONE LEVEL UP.
+ *
+ * `maxPerGroup` exists for Today, which replaced three lanes with this list and
+ * whose lanes drew three rows each. The defect measured on that surface on
+ * 2026-08-11 was NOT the three: it was that the heading counted four and the body
+ * drew three, with nothing on screen reconciling them. So what is pinned here is
+ * the reconciliation, not the number — the heading counts everything the group
+ * holds, the control says how many are behind it, and pressing it opens them
+ * where they stand rather than sending anyone to another page.
+ */
+describe("a group past the cut says how many it is holding, and opens them in place", () => {
+  const four: AgentSession[] = [
+    session({ id: "1", need: "done", activity: "shipped", at: mins(1) }),
+    session({ id: "2", need: "done", activity: "shipped", at: mins(2) }),
+    session({ id: "3", need: "done", activity: "shipped", at: mins(3) }),
+    session({ id: "4", need: "done", activity: "shipped", at: mins(4) }),
+  ];
+
+  it("draws every row when no cut is asked for", () => {
+    render(<AgentInbox now={NOW} sessions={four} />);
+    expect(document.querySelectorAll('[role="option"]').length).toBe(4);
+    expect(screen.queryByText(/more/)).toBeNull();
+  });
+
+  it("counts the hidden rows on the heading, so the number never disagrees with the body", () => {
+    render(<AgentInbox now={NOW} sessions={four} maxPerGroup={3} />);
+    expect(document.querySelectorAll('[role="option"]').length).toBe(3);
+    const heading = [...document.querySelectorAll("h3")].find((h) =>
+      h.textContent?.startsWith("Finished"),
+    );
+    expect(
+      heading?.textContent,
+      "the heading counted only what was drawn, which is the exact defect this replaced",
+    ).toContain("4");
+  });
+
+  it("opens them where they stand rather than dropping them", () => {
+    render(<AgentInbox now={NOW} sessions={four} maxPerGroup={3} />);
+    const control = screen.getByRole("button", { name: "1 more" });
+    fireEvent.click(control);
+    expect(document.querySelectorAll('[role="option"]').length).toBe(4);
+    // And it closes again, so the cut is a control rather than a one-way door.
+    fireEvent.click(screen.getByRole("button", { name: "Show fewer" }));
+    expect(document.querySelectorAll('[role="option"]').length).toBe(3);
+  });
+
+  it("keeps the newest rows standing and puts the oldest behind the control", () => {
+    render(<AgentInbox now={NOW} sessions={four} maxPerGroup={2} />);
+    // Newest first inside a group: 1 and 2 are the most recent of the four.
+    expect(rowTitles().length).toBe(2);
+    const ids = [...document.querySelectorAll('[role="option"]')].map((r) => r.id);
+    expect(ids).toEqual(["agent-inbox-row-1", "agent-inbox-row-2"]);
+  });
+
+  it("a row behind a closed control is not somewhere the keyboard can land", () => {
+    render(<AgentInbox now={NOW} sessions={four} maxPerGroup={3} />);
+    const list = screen.getByRole("listbox");
+    // Four presses of `j` on a three-row list wraps back to the first row. If the
+    // hidden row were in the order, the fourth press would select something that
+    // is not on screen and focus would go nowhere.
+    for (let i = 0; i < 4; i += 1) fireEvent.keyDown(list, { key: "j" });
+    expect(document.activeElement?.id).toBe("agent-inbox-row-1");
+  });
+});
+
+/**
+ * THE SENTENCE UNDER A GROUP HEADING, WHICH BELONGS TO THE CALLER.
+ *
+ * Today's lanes each carried a line about what that group COSTS — a shipped run
+ * costs a rollback to undo, a running one is waiting on an agent and not on you.
+ * Those are claims about that surface's own population, so this file provides the
+ * slot and never a default: a sentence written here would be one sentence shared
+ * by every screen that ever mounts the inbox.
+ */
+describe("a group can carry the caller's own sentence, and never one of ours", () => {
+  it("draws the note it was handed, under the heading it belongs to", () => {
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[session({ id: "d", need: "done", activity: "shipped", at: mins(1) })]}
+        groupNote={{ done: "Live and waiting on nobody. Undoing one costs a rollback." }}
+      />,
+    );
+    const group = document.querySelector('[role="group"][aria-label="Finished"]');
+    expect(group?.textContent).toContain("Undoing one costs a rollback.");
+  });
+
+  it("draws nothing at all for a group with nothing to say", () => {
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[
+          session({ id: "d", need: "done", activity: "shipped", at: mins(1) }),
+          session({ id: "w", need: "working", at: mins(1) }),
+        ]}
+        groupNote={{ done: "Undoing one costs a rollback." }}
+      />,
+    );
+    const running = document.querySelector('[role="group"][aria-label="Running"]');
+    expect(running?.querySelector("p"), "an unasked-for note appeared on a group").toBeNull();
+  });
+});
+
+/**
+ * `activity` TAKES A NODE, and the reason is a fact that dies if it is flattened.
+ *
+ * Today hands this line `RunState`, whose HUE is load-bearing: orchid says a
+ * person is required, azure says a machine is working, and `cancelled` and
+ * `halted` are two different facts sharing one state. A `string` type would have
+ * kept the sentence and dropped the distinction at the type boundary, quietly.
+ */
+describe("the activity line carries whatever the caller composed", () => {
+  it("renders an element, not the word [object Object]", () => {
+    render(
+      <AgentInbox
+        now={NOW}
+        sessions={[
+          session({
+            id: "s",
+            need: "ready",
+            activity: <span data-testid="composed">cancelled 4h ago</span>,
+          }),
+        ]}
+      />,
+    );
+    expect(screen.getByTestId("composed").textContent).toBe("cancelled 4h ago");
+    expect(document.body.textContent).not.toContain("[object Object]");
   });
 });

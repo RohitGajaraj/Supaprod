@@ -124,8 +124,21 @@ export type AgentSession = {
    * The component does not compose this and deliberately cannot: only the caller
    * knows what the agent is actually touching, and inventing a generic sentence
    * per group is how ten screens end up with one sentence between them.
+   *
+   * ── IT IS A NODE RATHER THAN A STRING, 2026-08-22, AND THAT IS THE SAME
+   *    ARGUMENT ONE STEP FURTHER ────────────────────────────────────────────
+   * The first caller outside the gallery is Today, whose rows already say their
+   * state through `RunState` — a component, not a word, because in that mapping
+   * the HUE is load-bearing: orchid says a person is required, azure says a
+   * machine is working, and `cancelled` and `halted` are two facts sharing one
+   * state. Flattening that to a string would have kept the sentence and dropped
+   * the distinction, which is exactly the "hiding information" ratchet law 1
+   * forbids, done quietly at a type boundary.
+   *
+   * So the type widened rather than the caller narrowing. What did NOT change is
+   * whose sentence it is: still the caller's, still never composed here.
    */
-  activity: string;
+  activity: React.ReactNode;
   /** Epoch ms of the last thing that happened. Drives idle; never a string. */
   at: number;
   agentSlug?: string | null;
@@ -286,15 +299,63 @@ export function AgentInbox({
   sessions,
   now = Date.now(),
   label = "What the crew needs from you",
+  maxPerGroup,
+  groupNote,
 }: {
   sessions: AgentSession[];
   /** Injectable so this renders deterministically in a test or a screenshot. */
   now?: number;
   label?: string;
+  /**
+   * HOW MANY ROWS OF A GROUP STAND OPEN, and the rest go behind one control that
+   * says how many they are. Omitted, every row stands, which is what a dedicated
+   * inbox surface wants.
+   *
+   * ── WHY IT EXISTS, AND WHY IT IS NOT A CAP ──────────────────────────────
+   * Added for Today, which is a SCAN BAND rather than a list: it draws four
+   * sections above the fold and its whole job is deciding what not to show. The
+   * lanes this replaced showed three rows each, and the defect measured there on
+   * 2026-08-11 was not the three — it was that the heading counted four and the
+   * body drew three, with nothing on the surface reconciling them.
+   *
+   * So this is the IDLE COLLAPSE one level up, deliberately the same mechanic
+   * and not a second one: the count is on screen with no press, the control says
+   * how many are behind it, and it opens IN PLACE. Nothing here ever renders
+   * `slice(0, n)` and stops, because a list that quietly shows five of nine is a
+   * list nobody can trust.
+   */
+  maxPerGroup?: number;
+  /**
+   * ONE SENTENCE UNDER A GROUP'S HEADING, saying what that group COSTS.
+   *
+   * The heading says what a group needs and the count says how many. Neither can
+   * say the thing a reader actually weighs before choosing which group to open:
+   * that undoing a shipped run costs a rollback, that a running one is waiting on
+   * an agent and not on you, that nothing has happened yet on a pending call so
+   * undo is free. Today's lanes carried exactly those three sentences, one per
+   * lane, and they are the reason that surface reads as judgement rather than as
+   * a count.
+   *
+   * SO IT IS A SLOT AND NOT A TABLE IN THIS FILE. The sentence is a claim about
+   * the caller's own population — Today's runs are reversible in ways an
+   * approvals queue's are not — and a default written here would be one sentence
+   * shared by ten screens, which is the failure `activity` is already guarded
+   * against. A group with nothing to say passes nothing and draws nothing.
+   */
+  groupNote?: Partial<Record<InboxNeed, React.ReactNode>>;
 }) {
   const [selected, setSelected] = React.useState<string | null>(null);
   const [replyingTo, setReplyingTo] = React.useState<string | null>(null);
   const [idleOpen, setIdleOpen] = React.useState(false);
+  /* Which groups have their overflow open. A list rather than one value: two
+     groups can be open at once, and forcing them to take turns would be a rule
+     the reader has to discover by having a section close under them. */
+  const [openGroups, setOpenGroups] = React.useState<InboxNeed[]>([]);
+  const groupOpen = (need: InboxNeed) => openGroups.includes(need);
+  const toggleGroup = (need: InboxNeed) =>
+    setOpenGroups((prev) =>
+      prev.includes(need) ? prev.filter((n) => n !== need) : [...prev, need],
+    );
 
   /*
    * IDLE IS A PROPERTY OF A RUNNING SESSION AND OF NOTHING ELSE. A session
@@ -308,17 +369,26 @@ export function AgentInbox({
     const rows = sessions.filter((s) => s.need === need);
     const idle = need === "working" ? rows.filter(isIdle) : [];
     const collapse = idle.length > IDLE_COLLAPSE_AT;
+    /* Newest first inside a group. Between groups the order is the need. */
+    const standing = (collapse ? rows.filter((s) => !isIdle(s)) : rows).sort((a, b) => b.at - a.at);
+    /* The cut is taken AFTER the sort and AFTER the idle split, so what stands
+       open is the newest live work rather than whatever the filter happened to
+       reach first, and the quiet ones keep their own control and their own
+       sentence rather than being absorbed into a bare count. */
+    const cut = maxPerGroup ?? standing.length;
     return {
       need,
-      /* Newest first inside a group. Between groups the order is the need. */
-      rows: (collapse ? rows.filter((s) => !isIdle(s)) : rows).sort((a, b) => b.at - a.at),
+      rows: standing.slice(0, cut),
+      over: standing.slice(cut),
       idle: collapse ? idle.sort((a, b) => b.at - a.at) : [],
     };
-  }).filter((g) => g.rows.length > 0 || g.idle.length > 0);
+  }).filter((g) => g.rows.length > 0 || g.over.length > 0 || g.idle.length > 0);
 
-  /* The flattened visible order, which is what the keyboard moves through. */
+  /* The flattened visible order, which is what the keyboard moves through. A row
+     behind a closed control is not on screen, so `j` may not land on it. */
   const order = grouped.flatMap((g) => [
     ...g.rows.map((r) => r.id),
+    ...(groupOpen(g.need) ? g.over.map((r) => r.id) : []),
     ...(idleOpen ? g.idle.map((r) => r.id) : []),
   ]);
 
@@ -435,13 +505,41 @@ export function AgentInbox({
               <h3 className="mb-mrd-2 flex items-baseline gap-2 px-mrd-3 text-mrd-data font-medium text-mrd-mute">
                 {GROUP_TITLE[group.need]}
                 <span className="font-mrd-mono tabular-nums text-mrd-faint">
-                  {group.rows.length + group.idle.length}
+                  {group.rows.length + group.over.length + group.idle.length}
                 </span>
               </h3>
+
+              {/* What the group costs, in the caller's words. Normal weight under
+                  a medium-weight heading, so it reads as the heading's second
+                  line rather than as a second heading. */}
+              {groupNote?.[group.need] ? (
+                <p className="mb-mrd-2 max-w-[62ch] px-mrd-3 text-mrd-data leading-relaxed text-mrd-mute">
+                  {groupNote[group.need]}
+                </p>
+              ) : null}
 
               {group.rows.map((session) => (
                 <Row key={session.id} {...rowProps(session)} />
               ))}
+
+              {/*
+               * THE ROWS PAST THE CUT, and the heading above already counted
+               * them. One control, the real number, and it opens in place — see
+               * `maxPerGroup` for why this is the idle mechanic one level up
+               * rather than a second collapse with its own manners.
+               */}
+              {group.over.length > 0 ? (
+                <>
+                  <Actions className="px-mrd-3 py-mrd-2">
+                    <Action variant="quiet" onClick={() => toggleGroup(group.need)}>
+                      {groupOpen(group.need) ? "Show fewer" : `${group.over.length} more`}
+                    </Action>
+                  </Actions>
+                  {groupOpen(group.need)
+                    ? group.over.map((session) => <Row key={session.id} {...rowProps(session)} />)
+                    : null}
+                </>
+              ) : null}
 
               {/*
                * THE COLLAPSED IDLE ROWS, AND THE NUMBER IS REAL. Past three, they

@@ -1,5 +1,4 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Row, Who } from "@/components/meridian/rows";
 import {
   Action,
   Door,
@@ -18,6 +17,7 @@ import * as React from "react";
 
 import { SendBackSheet } from "@/components/approvals/SendBack";
 import { ConfidenceDisclosureChip } from "@/components/governance/ConfidenceDisclosureChip";
+import { AgentInbox, type AgentSession } from "@/components/meridian/AgentInbox";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import { taskStatus } from "@/components/meridian/TaskRows";
 import { AskComposer } from "@/components/today/AskComposer";
@@ -31,7 +31,6 @@ import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { useSelection } from "@/components/shell/use-selection";
 import { Receipt } from "@/components/meridian/Receipt";
 import { Surface } from "@/components/meridian/Surface";
-import { AgentMark } from "@/components/meridian/marks";
 import { stripAutoPrefix, cleanTitle } from "@/components/plan/format";
 import { useWorkspace } from "@/hooks/use-workspace";
 import {
@@ -73,29 +72,40 @@ import "@/styles/today.css";
  *    sound right and are not spoken — "receipt", "unattended", "audit trail",
  *    all under 3 per million — appear nowhere in this file's copy.
  *
- * 2. THE LANES ARE NAMED FOR WHO IS BLOCKED, NOT FOR WHAT THE OBJECT IS.
- *    "Shipped", "Ready for your review", "Stuck", "Still running" — each says
- *    whose move it is. A lane sectioned by object type ("Missions",
+ * 2. EVERY SECTION IS NAMED FOR WHO IS BLOCKED, NOT FOR WHAT THE OBJECT IS.
+ *    "Ready for your review", "Waiting on you", "Running", "Finished" — each
+ *    says whose move it is. A section sorted by object type ("Missions",
  *    "Approvals", "Insights") makes the reader do the translation into "so
  *    what do I do", every morning, forever.
  *
- * 3. THEY RENDER AT ZERO, and that is deliberate rather than an oversight.
+ *    HOW IT IS DRAWN CHANGED ON 2026-08-22 AND THE RULE DID NOT. Three of the
+ *    four lanes — Shipped, Stuck, Still running — were grouped by OUTCOME, which
+ *    is the same list one step short of the rule: it says what the machine did
+ *    and leaves the reader to work out whose move it is. They are now one
+ *    `AgentInbox`, whose groups ARE the four needs and whose order is the need.
+ *    "Ready for your review" stays its own lane, because the approvals queue it
+ *    holds carries walk mode, bulk verbs and send-back, and an inbox row is not
+ *    those things. See the note on `crew` for the fact-by-fact account of
+ *    everything the three lanes carried and where each thing went.
+ *
+ * 3. IT RENDERS AT ZERO, and that is deliberate rather than an oversight.
  *    "Ready for your review — nothing is waiting on you" is the best sentence
  *    this product can show a person, and a quiet morning is the only chance it
- *    gets to teach the four names while nothing is at stake. This is not the
+ *    gets to teach the names while nothing is at stake. This is not the
  *    zero-tile the research warns about: a tile reading "0" is a number with
- *    no taxonomy attached, information that changes nothing you do. A lane at
+ *    no taxonomy attached, information that changes nothing you do. A section at
  *    zero names who is blocked, and "nobody" is the answer the reader came for.
+ *    An empty GROUP inside the inbox draws nothing at all, so the assurances it
+ *    would have made — nothing stopped, no agent is working, nothing went live —
+ *    are collected and said once on the region's own line instead.
  *
  * 4. THE ORDER IS REVERSIBILITY, NOT RECENCY AND NOT PRIORITY. The morning
  *    question is not "what matters most", it is "what is hardest to undo".
- *    Shipped is first because it is live and undoing it costs a rollback;
- *    the decisions waiting on you are next because nothing has happened yet
- *    and undo is free; stuck and still-running are last because nothing has
- *    happened at all. Reading order is therefore shipped-first while VISUAL
- *    weight stays call-first: the shipped lane is a two-line scan band, the
- *    open call is the only Gate on the page. You glance at what went live,
- *    you land on the one thing that needs you.
+ *    Inside the run inbox that is exactly the need order it already sorts by,
+ *    read from the other end: what needs you cannot be undone until you act,
+ *    what is finished is live and undoing it costs a rollback, and what is
+ *    running has not happened at all. VISUAL weight stays call-first: the open
+ *    call is the only Gate on the page, and everything else is a scan band.
  *
  * WHAT THIS SURFACE MUST NEVER CLAIM. It sharpens the reader's call; it never
  * says it handled anything. Every consequence printed here comes from the item
@@ -168,23 +178,29 @@ const STUCK = new Set(["failed", "halted", "cancelled", "blocked"]);
 const WORKING = new Set(["running", "in_progress"]);
 
 /**
- * HOW MANY ROWS A LANE DRAWS, AND THE DOOR THAT ACCOUNTS FOR THE REST.
+ * HOW MANY ROWS OF A GROUP STAND OPEN, AND WHAT HAPPENS TO THE REST.
  *
  * Measured in a browser on 2026-08-11 at 1280: the Shipped lane printed
  * "4 live and waiting on nobody" over exactly THREE rows, under a door
- * labelled only "Open Runs". Every lane does the same thing -- the subtitle
- * counts the whole set and the body renders `slice(0, 3)` -- so the count and
+ * labelled only "Open Runs". Every lane did the same thing -- the subtitle
+ * counted the whole set and the body rendered `slice(0, 3)` -- so the count and
  * the list disagreed on screen and nothing on the surface reconciled them. A
  * reader either reads three and distrusts the four, or reads four and hunts
  * for the row that is not there.
  *
- * The cap stays, because the lane is a scan band and not a list. What changes
- * is that the door says what it holds that the lane does not show, which is
- * the one fact the reader was missing and the one place it costs no space.
+ * The three stays, because this surface is a scan band and not a list. What has
+ * changed twice is where the other rows go:
+ *
+ *   2026-08-11  a door that named them: "Open Runs · 1 more". It closed the
+ *               contradiction and it still made you leave the page to see one
+ *               row.
+ *   2026-08-22  `AgentInbox`'s `maxPerGroup`. The group heading counts every row
+ *               it holds, the control under it says how many are behind it, and
+ *               pressing it opens them WHERE THEY STAND. Nothing is hidden and
+ *               nobody navigates, so the door and the arithmetic that fed it are
+ *               both gone.
  */
 const LANE_ROWS = 3;
-const laneDoor = (total: number): string =>
-  total > LANE_ROWS ? `Open Runs · ${total - LANE_ROWS} more` : "Open Runs";
 
 /**
  * THE HEADING NAMES THE ROW ON SCREEN, NOT THE SIZE OF THE RECORD.
@@ -365,8 +381,14 @@ function CriticBrief({
 
 /** One lane. A name, one line saying who is blocked and what undoing it costs,
  *  and a body that is allowed to be nothing. `quiet` collapses the lane's own
- *  breathing room when it has no body, so four lanes at zero read as a short
- *  taxonomy rather than as four empty rooms. */
+ *  breathing room when it has no body, so a lane at zero reads as a short
+ *  taxonomy rather than as an empty room.
+ *
+ *  TWO CALLERS NOW, NOT FOUR. The approvals queue is one, and the crew's own
+ *  runs are the other: three lanes grouped by outcome became one `AgentInbox`
+ *  on 2026-08-22 and it wears this same wrapper rather than restating its
+ *  markup, so the two sections cannot drift apart on spacing or on how a quiet
+ *  one collapses. */
 function Lane({
   name,
   waiting,
@@ -380,8 +402,8 @@ function Lane({
   quiet: boolean;
   /** The way OUT of this lane, naming where it lands. `Region` split the retired
    *  `more`/`onMore` into `goTo` (navigates) and `toggle` (reveals in place, and
-   *  emits `aria-expanded`) because one prop was serving two controls. Every
-   *  lane here navigates to /runs, so this is the navigating half. */
+   *  emits `aria-expanded`) because one prop was serving two controls. The one
+   *  lane that uses it navigates to /runs, so this is the navigating half. */
   goTo?: string;
   onGoTo?: () => void;
   children?: React.ReactNode;
@@ -488,6 +510,165 @@ function Today() {
       : runsState === "failed"
         ? "This could not be read."
         : known;
+
+  /*
+   * ══ THE THREE RUN LANES, AS ONE INBOX ═══════════════════════════════════
+   *
+   * Shipped, Stuck and Still running were three lanes grouped by OUTCOME.
+   * `AgentInbox` groups by WHAT A RUN NEEDS FROM A PERSON, and its own header
+   * makes the argument this replaces: a list grouped by what the machine is
+   * doing "answers the question nobody opens the app with". Two of the three
+   * lanes were exactly that list, and the third — Stuck — carried a comment
+   * admitting it had promised a verb it could not deliver.
+   *
+   * IT IS A REPLACEMENT RATHER THAN A FOURTH THING ON THE PAGE, and every fact
+   * the three lanes carried is still on screen. Written out, because "nothing is
+   * lost" is a claim and not a feeling:
+   *
+   *   the coloured state word     `activity` takes a node now, so `RunState` and
+   *                               `ShippedState` are handed through as the
+   *                               components they are. `cancelled` and `halted`
+   *                               still read as two different facts.
+   *   the row's age               folded into the same line: "stopped 4h ago".
+   *   the handoff count           folded into the same line, ahead of the state.
+   *   three rows per lane         `maxPerGroup`, which is the lane's own
+   *                               `LANE_ROWS`. The rest open IN PLACE behind a
+   *                               control that says how many, which is strictly
+   *                               more than the door's "N more" managed: that
+   *                               said how many were missing and made you leave
+   *                               the page to see them.
+   *   each lane's sentence        `groupNote`, verbatim where it still parses.
+   *   the door to /runs           one door on the region rather than three.
+   *   the read failure + retry    one line above the inbox rather than three
+   *                               copies of one fetch, which this file's own
+   *                               note already flagged as the thing to fix if it
+   *                               proved too loud in a screen reader.
+   *   "nothing stopped" etc       an empty group draws nothing, so the assurance
+   *                               moved into the region's own line, where all
+   *                               three are said at once.
+   *
+   * WHAT IT ADDS: one tab stop for the whole set with `j`/`k` moving through it,
+   * ordering by need instead of by taxonomy, and the idle collapse — a running
+   * agent that has not moved in ten minutes says so, which none of the three
+   * lanes could tell you.
+   *
+   * WHAT IS DELIBERATELY NOT WIRED: `onReply`. The inbox can take an answer
+   * inline and this surface has no writer for one, and drawing a control that
+   * cannot deliver is the affordance failure the component's own header names.
+   * Reported as a gap rather than faked.
+   */
+  const crew = React.useMemo<AgentSession[]>(() => {
+    /* Every row opens its run, exactly as every lane row did. Built once here so
+       three loops cannot drift into three different destinations. */
+    const open = (id: string) => () =>
+      void navigate({ to: "/runs/$missionId", params: { missionId: id } });
+    /* `at` DRIVES IDLE AND SORT, so it may never be NaN: `now - NaN` is NaN,
+       which is false against every comparison, so a row with an unreadable time
+       would quietly never be called quiet and would sort unpredictably against
+       its neighbours. The three filters above make that unreachable today
+       (`shipped` and `stuck` are both windowed on a parsed date, `updated_at` is
+       NOT NULL), which is exactly why the guard is here rather than trusted: it
+       is unreachable until the day a filter changes. Epoch is the honest floor —
+       a row nobody can date is the oldest thing in its group. */
+    const instant = (iso: string | null | undefined, fallback: string): number => {
+      const first = Date.parse(iso ?? "");
+      if (Number.isFinite(first)) return first;
+      const second = Date.parse(fallback);
+      return Number.isFinite(second) ? second : 0;
+    };
+    const out: AgentSession[] = [];
+
+    for (const m of stuck) {
+      /* The mapping, not a second copy of it: `taskStatus` resolves anything it
+         does not recognise to "a person is required", which is the one reading
+         that cannot cost somebody their morning by being wrong. `blocked` is the
+         only stuck state that is genuinely waiting on a human, so it is the only
+         one that lands in the group that says so. */
+      const state = taskStatus(m.status);
+      const when = ago(m.completed_at ?? m.updated_at);
+      out.push({
+        id: m.id,
+        title: cleanTitle(m.title),
+        need: state === "blocked" ? "needs-input" : "ready",
+        activity: (
+          <>
+            <RunState status={m.status} />
+            {when ? ` ${when}` : ""}
+          </>
+        ),
+        at: instant(m.completed_at ?? m.updated_at, m.created_at),
+        agentSlug: m.current_agent_slug,
+        /* An outcome, on its own axis. `halted` and `cancelled` resolve to
+           `stopped`, which is a deliberate stop rather than a failure, so they
+           wear no Failed chip and say which one they were in the line above. */
+        failed: state === "failed",
+        onOpen: open(m.id),
+      });
+    }
+
+    for (const m of running) {
+      const elapsed = ago(m.created_at);
+      out.push({
+        id: m.id,
+        /* The sub-goal, not the title: the running lane always led with what the
+           agent is actually doing right now, and that is the sentence this
+           product is for. */
+        title: stripAutoPrefix(m.current_sub_goal ?? m.title),
+        need: "working",
+        activity: elapsed ? `${elapsed} running` : "running",
+        /* The last thing that happened, which is what `IDLE_AFTER_MS` measures
+           against. `created_at` would call every long run idle. */
+        at: instant(m.updated_at, m.created_at),
+        agentSlug: m.current_agent_slug,
+        onOpen: open(m.id),
+      });
+    }
+
+    for (const m of shipped) {
+      const when = ago(m.completed_at);
+      out.push({
+        id: m.id,
+        title: cleanTitle(m.title),
+        need: "done",
+        activity: (
+          <>
+            {m.hop_count > 0 ? (
+              <>
+                <Num>{m.hop_count}</Num> {m.hop_count === 1 ? "handoff" : "handoffs"} ·{" "}
+              </>
+            ) : null}
+            <ShippedState partial={m.status === "completed_with_failures"} />
+            {when ? ` ${when}` : ""}
+          </>
+        ),
+        at: instant(m.completed_at, m.updated_at),
+        agentSlug: m.current_agent_slug,
+        /* `completed_with_failures` is NOT a failure: it went out, and the hole
+           in it is a fact about the thing that shipped. `ShippedState` says
+           "partial" in the line above, which is the whole of what is true. */
+        onOpen: open(m.id),
+      });
+    }
+
+    return out;
+  }, [stuck, running, shipped, navigate]);
+
+  /* EVERY EMPTY CATEGORY, NAMED. An empty group draws nothing at all inside the
+     inbox, which is right there and wrong here: "nothing stopped" is the single
+     most valuable sentence on a morning surface and it used to be said out loud
+     by the lane that was empty. So the assurances are collected and said once,
+     on the region's own line, where all three fit and read as one sentence. */
+  const crewQuiet = [
+    stuck.length === 0 ? "nothing stopped" : null,
+    running.length === 0 ? "no agent is working" : null,
+    shipped.length === 0 ? "nothing went live" : null,
+  ].filter((s): s is string => s !== null);
+  const crewQuietLine =
+    crewQuiet.length === 0
+      ? null
+      : crewQuiet.length === 1
+        ? crewQuiet[0]!
+        : `${crewQuiet.slice(0, -1).join(", ")} and ${crewQuiet[crewQuiet.length - 1]}`;
 
   /* WALKING IS A MODE, AND ARRIVAL IS ALWAYS ARRIVAL. Never persisted: the
      founder ruling is about what the surface does when you LAND on it, so a
@@ -940,90 +1121,6 @@ function Today() {
 
         <div className="today-lanes">
           <Lane
-            name="Shipped"
-            waiting={runsLane(
-              shipped.length === 0 ? (
-                "Nothing went live."
-              ) : (
-                <>
-                  <Num>{shipped.length}</Num> live and waiting on nobody. Undoing one costs a
-                  rollback.
-                </>
-              ),
-            )}
-            quiet={shipped.length === 0 && runsState === "ready"}
-            goTo={shipped.length > 0 ? laneDoor(shipped.length) : undefined}
-            onGoTo={() => navigate({ to: "/runs" })}
-          >
-            {/* THE ONE LIVE REGION FOR THE RUN RECORD, AND IT COVERS THE WAIT
-                ONLY. Three lanes are fed by this single read, and three
-                `Reading`s would announce the same fetch three times to a screen
-                reader. The other two say they are reading in their own subtitle
-                and stay silent.
-                THE FAILURE IS A DIFFERENT CASE AND ALL THREE NOW CARRY IT. The
-                retry lived here alone, so a reader whose run record refused was
-                told "This could not be read." over the stuck and still-running
-                lanes with no way to ask again, on the two lanes where not
-                knowing costs the most.
-
-                AND THE MERIDIAN PORT CHANGED WHAT THAT COSTS, so it is written
-                down rather than assumed. The retired `Failed` was a plain
-                paragraph and announced nothing; `ReadFailedLine` carries
-                `role="status" aria-live="polite"`. So one refused run record now
-                speaks three times instead of none. That is judged acceptable and
-                not the same defect as three identical waits: each of the three
-                says a DIFFERENT thing ("what went live", "what stopped", "what
-                is still going"), which is three facts a reader needs rather than
-                one fact repeated. If it turns out to be too much in a real
-                screen reader, the fix belongs on the primitive as an opt-out,
-                not as a hand-rolled silent copy here. */}
-            {stillWaiting(missions) ? (
-              <Reading>Reading what the crew finished.</Reading>
-            ) : missions.isError ? (
-              <ReadFailedLine onRetry={() => void missions.refetch()}>
-                The run record did not load, so this cannot say what went live.
-              </ReadFailedLine>
-            ) : (
-              shipped.slice(0, LANE_ROWS).map((mission) => (
-                <Row
-                  key={mission.id}
-                  tight
-                  marks={
-                    <AgentMark
-                      slug={mission.current_agent_slug}
-                      name={mission.build_driver}
-                      state={mission.status === "completed_with_failures" ? "idle" : "verified"}
-                    />
-                  }
-                  lead={<Who>{cleanTitle(mission.title)}</Who>}
-                  sub={
-                    <>
-                      {mission.hop_count > 0 ? (
-                        <>
-                          <Num>{mission.hop_count}</Num>{" "}
-                          {mission.hop_count === 1 ? "handoff" : "handoffs"} ·{" "}
-                        </>
-                      ) : null}
-                      {/* `partial` used to be gold. Gold IS BANNED and there is
-                          no warn token because there must not be one, so this
-                          is not an absence for a later hand to fill in. A run
-                          that shipped with a hole in it is also not a fifth
-                          outcome. It takes the brightest ink and medium weight
-                          instead, so it still stops the eye and still survives
-                          a greyscale reading. */}
-                      <ShippedState partial={mission.status === "completed_with_failures"} />
-                    </>
-                  }
-                  time={ago(mission.completed_at)}
-                  onClick={() =>
-                    navigate({ to: "/runs/$missionId", params: { missionId: mission.id } })
-                  }
-                />
-              ))
-            )}
-          </Lane>
-
-          <Lane
             name="Ready for your review"
             waiting={
               /* THIS LINE AND THE BODY TWELVE LINES DOWN USED TO CONTRADICT EACH
@@ -1102,109 +1199,80 @@ function Today() {
               </div>
             ) : null}
           </Lane>
-
+          {/* THE CREW'S OWN RUNS. Shipped, Stuck and Still running were three
+              lanes here until 2026-08-22; see the note on `crew` above for the
+              fact-by-fact account of where each thing they carried went. */}
           <Lane
-            name="Stuck"
+            name="What the crew has been doing"
+            quiet={crew.length === 0 && runsState === "ready"}
             waiting={runsLane(
-              stuck.length === 0 ? (
-                "Nothing stopped."
-              ) : (
-                /* THE VERB THIS LANE COULD NOT KEEP. It read "Waiting on you to
-                   unblock" and offered nothing to unblock with: no control on
-                   the lane, none on the row, and no query on this surface that
-                   could supply one. A promised verb with no control behind it is
-                   the small lie that teaches a reader to stop trusting the
-                   controls that ARE real, and there are several on this page.
-                   So the lane promises what it can deliver, which is the door.
-                   The row still says who is blocked; this says where to go. */
-                <>
-                  <Num>{stuck.length}</Num> stopped before finishing. Open one to see where it
-                  stopped.
-                </>
-              ),
+              <>
+                {crew.length > 0 ? (
+                  <>
+                    <Num>{crew.length}</Num> {crew.length === 1 ? "run" : "runs"}, in the order of
+                    what each one needs from you.{" "}
+                  </>
+                ) : null}
+                {crewQuietLine
+                  ? `${crewQuietLine.charAt(0).toUpperCase()}${crewQuietLine.slice(1)}.`
+                  : null}
+              </>,
             )}
-            quiet={stuck.length === 0 && runsState === "ready"}
-            goTo={stuck.length > 0 ? laneDoor(stuck.length) : undefined}
+            goTo={rows.length > 0 ? "Open Runs" : undefined}
             onGoTo={() => navigate({ to: "/runs" })}
           >
-            {/* The wait is announced once, by the shipped lane; see the note
-                there. The refusal is not announced at all, so it belongs on
-                every lane that cannot draw without the read, with the retry
-                that used to exist in one place only. */}
-            {runsState === "reading" ? null : runsState === "failed" ? (
+            {/* ONE WAIT AND ONE REFUSAL FOR ONE READ. Three lanes drew three of
+                  each off this single query, and the note the shipped lane
+                  carried already said that was the thing to fix if it proved too
+                  loud. It is one fetch, so it says so once. */}
+            {/* THE READ IS NAMED HERE RATHER THAN READ THROUGH `runsState`, and
+                  that is a guard obeyed on purpose rather than worked around.
+                  `today-states-its-wait.test.ts` asserts that every read Today
+                  makes admits its own wait AND its own refusal in the JSX, by the
+                  query's own name. Branching on a derived word would have kept the
+                  behaviour and hidden the read from the one check that exists to
+                  prove no region resolves to silence. `runsState` still composes
+                  the region's sub-line and its quiet flag, where the derived word
+                  is what is wanted. */}
+            {stillWaiting(missions) ? (
+              <Reading>Reading the run record.</Reading>
+            ) : missions.isError ? (
               <ReadFailedLine onRetry={() => void missions.refetch()}>
-                The run record did not load, so this cannot say what stopped.
+                The run record did not load, so this cannot say what went live, what stopped or what
+                is still going.
               </ReadFailedLine>
-            ) : (
-              stuck.slice(0, LANE_ROWS).map((mission) => (
-                <Row
-                  key={mission.id}
-                  tight
-                  marks={
-                    <AgentMark
-                      slug={mission.current_agent_slug}
-                      name={mission.build_driver}
-                      state={taskStatus(mission.status) === "failed" ? "failed" : "idle"}
-                    />
-                  }
-                  lead={<Who>{cleanTitle(mission.title)}</Who>}
-                  /* THE ROW PRINTED THE DATABASE'S OWN WORD. `halted`,
-                     `cancelled` and `blocked` went to screen verbatim, and a
-                     reader got three words nobody says out loud and no way to
-                     tell which of them was theirs to fix. `RunState` runs the
-                     value through the Meridian mapping, which resolves anything
-                     it does not recognise to "a person is required" rather than
-                     claiming a machine is still working on it. */
-                  sub={<RunState status={mission.status} />}
-                  time={ago(mission.completed_at ?? mission.updated_at)}
-                  onClick={() =>
-                    navigate({ to: "/runs/$missionId", params: { missionId: mission.id } })
-                  }
-                />
-              ))
-            )}
-          </Lane>
-
-          <Lane
-            name="Still running"
-            waiting={runsLane(
-              running.length === 0 ? (
-                "No agent is working."
-              ) : (
-                <>
-                  <Num>{running.length}</Num> waiting on an agent, not on you.
-                </>
-              ),
-            )}
-            quiet={running.length === 0 && runsState === "ready"}
-            goTo={running.length > 0 ? laneDoor(running.length) : undefined}
-            onGoTo={() => navigate({ to: "/runs" })}
-          >
-            {/* Same division as the stuck lane: the wait is announced once by
-                the shipped lane, the refusal is silent and belongs here too. */}
-            {runsState === "reading" ? null : runsState === "failed" ? (
-              <ReadFailedLine onRetry={() => void missions.refetch()}>
-                The run record did not load, so this cannot say what is still going.
-              </ReadFailedLine>
-            ) : (
-              running.slice(0, LANE_ROWS).map((mission) => {
-                const agent = mission.current_agent_slug
-                  ? agentDisplayName(mission.current_agent_slug)
-                  : "The crew";
-                const elapsed = ago(mission.created_at);
-                return (
-                  <Row
-                    key={mission.id}
-                    tight
-                    marks={<AgentMark slug={mission.current_agent_slug} state="running" />}
-                    lead={stripAutoPrefix(mission.current_sub_goal ?? mission.title)}
-                    sub={`${agent}${elapsed ? ` · ${elapsed} running` : " · running"}`}
-                    onClick={() =>
-                      navigate({ to: "/runs/$missionId", params: { missionId: mission.id } })
-                    }
-                  />
-                );
-              })
+            ) : crew.length === 0 /*
+               * A LANE AT ZERO IS A NAME AND A SENTENCE, WHICH IS WHAT THE THREE
+               * IT REPLACED DREW: each one mapped an empty array and rendered no
+               * body at all, and `Lane` says in its own doc that a body is
+               * allowed to be nothing.
+               *
+               * AND THE INBOX'S OWN ZERO CASE WOULD BE WRONG HERE, which is the
+               * real reason. It reads "Nothing needs you. No run is waiting on an
+               * answer and nothing is asking to be looked at." — true on a
+               * dedicated inbox, and false on this page, where the approvals
+               * queue in the lane directly above may be holding four calls that
+               * are waiting on exactly that. Two adjacent sections making
+               * opposite claims is the defect the Ready lane's own subtitle was
+               * fixed for; it is not being reintroduced one lane down.
+               *
+               * The sentence is on the lane's own line, where all three
+               * assurances fit at once.
+               */ ? null : (
+              <AgentInbox
+                sessions={crew}
+                label="Runs, grouped by what each one needs from you"
+                /* The lane's own three, kept: this surface is a scan band. Past
+                     three, a group says how many more it holds and opens them
+                     where they stand. */
+                maxPerGroup={LANE_ROWS}
+                groupNote={{
+                  "needs-input": "Nothing moves on these until you answer.",
+                  ready: "The crew has finished with these. Open one to see where it stopped.",
+                  working: "Waiting on an agent, not on you.",
+                  done: "Live and waiting on nobody. Undoing one costs a rollback.",
+                }}
+              />
             )}
           </Lane>
         </div>

@@ -51,6 +51,43 @@
 // chips, because ratchet law 1 forbids hiding information as an answer. That is
 // also why Meridian's `RunTimeline` was NOT swapped in for `TraceHop`: it is
 // flatter, and the swap would have lost the handoffs and the step nesting.
+//
+// `RunTimeline` IS MOUNTED NOW, 2026-08-22, AND NOT WHERE THAT PARAGRAPH LOOKED.
+// The ruling above is about the HOPS, and it stands: TraceHop keeps them. What
+// this adds is a third reading of the PLAN, which is a different population and
+// the only one on this page carrying real per-step instants.
+//
+//   `mission_steps` has `dispatched_at` and `completed_at` on every row.
+//   `listMissionSteps` already selects both. `planRows` — the List view and the
+//   Graph that shares its rows — throws both away and renders agent, goal,
+//   status, note and deps. So this card has held a genuine time axis in memory
+//   on every poll since it was written and has never been able to draw one.
+//
+// The question that costs a reader their morning is a question about a MOMENT:
+// the crew dispatched Research at 03:12 and nothing moved until 03:40. A list
+// cannot state that, because a list has no space between its rows. `RunTimeline`
+// is exactly that space, and its silence rows here are REAL: the gap between one
+// step completing and the next being dispatched is the orchestrator waiting, and
+// it is measured off two recorded timestamps rather than interpolated.
+//
+// IT IS A THIRD SEGMENT, NEVER A REPLACEMENT, and the reason is ratchet law 1.
+// A step at `planned` or `ready` has NO `dispatched_at`, because it has not
+// happened; on today's missions that is most of them. A time axis that replaced
+// the List would therefore silently drop every step that has not started, which
+// is the exact "hiding information" the law forbids. So List stays the default
+// and keeps all N rows, the axis says in words how many it is not showing, and
+// the view switch — which already existed for Graph — means only one is on
+// screen at a time and nothing is drawn twice.
+//
+// AND NOT ON THE BUILD PATH, for a reason worth writing down. The other half of
+// `/runs/$missionId` renders a flat step ledger from `StudioRunDetail.steps`,
+// and `LoopStep` (loop.server.ts:227) is a three-variant union with no timestamp
+// on any variant. The instants exist in the record — `agent_run_checkpoints` is
+// append-only, one row per loop iteration, with `created_at` — but
+// `getStudioSession` reads only the LATEST checkpoint per run and takes the
+// accumulated `state.steps` array off it, so the per-iteration instants never
+// reach the client. Mounting the timeline there would mean interpolating a clock
+// AND the silence durations, which is fabricated data on a product surface.
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -77,6 +114,8 @@ import { MissionGraph, type MissionGraphStep } from "@/components/supaprod/Missi
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { AgentRelay } from "@/components/agents/AgentRelay";
 import { MissionDiff } from "@/components/missions/MissionDiff";
+import { RunTimeline } from "@/components/meridian/RunTimeline";
+import { missionStepEvents, type MissionStepRow } from "@/components/missions/mission-timeline";
 import { MODELS } from "@/lib/ai/models";
 import {
   getMission,
@@ -918,7 +957,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const [view, setView] = useState<"plan" | "graph">("plan");
+  const [view, setView] = useState<"plan" | "when" | "graph">("plan");
 
   const data = m.data;
   const stepRows = steps.data?.steps ?? [];
@@ -999,6 +1038,33 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
     status: graphStatus(r.status),
     note: r.note,
   }));
+
+  /*
+   * THE SAME PLAN, AGAINST THE CLOCK. This file's header says why it is a third
+   * segment rather than a replacement; `mission-timeline.ts` holds the mapping
+   * and the rule that keeps every instant on it real, which is a pure function
+   * with a test on it rather than a `map` nobody can call without a router.
+   *
+   * `stepRows` ONLY, never the hop fallback `planRows` uses: a hop's instants are
+   * already drawn by TraceHop's timing bar further down this page, so a second
+   * drawing of them is the duplication the last ruling on this page avoided. A
+   * mission with no plan simply does not offer this view.
+   */
+  const timeline = useMemo(() => missionStepEvents(stepRows as MissionStepRow[]), [stepRows]);
+
+  /* WHAT THE AXIS IS NOT SHOWING, counted rather than assumed. Said in words
+     under the timeline, because a view that quietly renders 2 of 9 is the
+     truncation defect this repo has already recorded twice. */
+  const notDispatched = stepRows.length - timeline.length;
+
+  /*
+   * LIVE MODE ONLY WHILE THE MISSION IS. Passing `now` gives the timeline its
+   * ticking tail and its TRAILING silence, and both are wanted on a mission that
+   * is still open — "nothing has been reported for 40 minutes" is the finding.
+   * On a settled mission the trailing silence would just be the age of the
+   * record, restated every time anyone opens the page.
+   */
+  const axisNow = missionActive ? Date.now() : undefined;
 
   const maxElapsed = Math.max(1, ...hops.map((h) => hopElapsedMs(h)));
 
@@ -1083,9 +1149,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           }}
         >
           <div>
-            <MonoLabel
-              style={{ color: "color-mix(in oklab, var(--mrd-ink) 60%, transparent)" }}
-            >
+            <MonoLabel style={{ color: "color-mix(in oklab, var(--mrd-ink) 60%, transparent)" }}>
               {/* The platform's own trace ref, the same six characters the
                 Build page and every audit tag show, so a person can paste it
                 into Ask or the lineage pane. Eight characters off the front of
@@ -1297,10 +1361,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               style={{ color: "color-mix(in oklab, var(--mrd-ink) 55%, transparent)" }}
             >
               {l}{" "}
-              <strong
-                className="tabular-nums"
-                style={{ color: "var(--mrd-ink)", fontWeight: 600 }}
-              >
+              <strong className="tabular-nums" style={{ color: "var(--mrd-ink)", fontWeight: 600 }}>
                 {v}
               </strong>
             </span>
@@ -1311,10 +1372,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             title={captainTitle}
           >
             captain{" "}
-            <strong
-              className="tabular-nums"
-              style={{ color: "var(--mrd-ink)", fontWeight: 600 }}
-            >
+            <strong className="tabular-nums" style={{ color: "var(--mrd-ink)", fontWeight: 600 }}>
               {captainLabel}
             </strong>
           </span>
@@ -1333,10 +1391,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                 </strong>
               </Link>
             ) : (
-              <strong
-                className="tabular-nums"
-                style={{ color: "var(--mrd-ink)", fontWeight: 600 }}
-              >
+              <strong className="tabular-nums" style={{ color: "var(--mrd-ink)", fontWeight: 600 }}>
                 none yet
               </strong>
             )}
@@ -1468,8 +1523,14 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               {(
                 [
                   ["plan", "List"],
+                  /* Offered only where there is a plan to put on a clock. The
+                     hop fallback carries no `dispatched_at`, so on a mission
+                     with no `mission_steps` this segment would open onto the
+                     timeline's zero case every time — a control that promises a
+                     view the record cannot fill. */
+                  ...(stepRows.length > 0 ? ([["when", "When"]] as const) : []),
                   ["graph", "Graph"],
-                ] as ["plan" | "graph", string][]
+                ] as ["plan" | "when" | "graph", string][]
               ).map(([id, label]) => (
                 <button
                   key={id}
@@ -1553,6 +1614,27 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                 </div>
               ))
             )}
+          </div>
+        ) : view === "when" ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <RunTimeline
+              events={timeline}
+              now={axisNow}
+              label="When each step of this mission ran"
+              maxHeight={460}
+            />
+            {/* WHAT IS NOT ON THE AXIS, IN WORDS AND WITH THE NUMBER. The List
+                segment is one press away and holds every row, so this is a view
+                that shows less rather than one that hides something — but only
+                because it says so. */}
+            {notDispatched > 0 ? (
+              <p style={{ color: "var(--mrd-mute)" }}>
+                {notDispatched} of {stepRows.length}{" "}
+                {stepRows.length === 1 ? "step has" : "steps have"} not been dispatched, so{" "}
+                {notDispatched === 1 ? "it has" : "they have"} no instant to sit on. List has all{" "}
+                {stepRows.length}.
+              </p>
+            ) : null}
           </div>
         ) : (
           <MissionGraph steps={graphSteps} />
