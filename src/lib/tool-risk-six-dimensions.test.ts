@@ -9,9 +9,12 @@
  * per-agent cap and the min-confirm floor both read the old answer.
  */
 import { expect, test, describe } from "bun:test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { TOOL_DEFAULTS } from "@/lib/ai/tools/defaults";
 import {
   assessTool,
+  toolConsequence,
   toolRisk,
   toolRiskProfile,
   CATALOGUED_TOOLS,
@@ -146,6 +149,129 @@ describe("coverage: every registered tool is catalogued", () => {
     ]) {
       expect(toolRisk(t), `${t} stopped being high-risk`).toBe("high");
     }
+  });
+});
+
+/*
+ * ── THE HOP THE GUARD ABOVE TAKES ON TRUST, CLOSED 2026-08-22 ─────────────
+ *
+ * The block above checks the catalogue against `TOOL_DEFAULTS`, not against the
+ * registry. That is one hop short. What makes it hold today is a SECOND guard in
+ * a different file — `src/lib/ai/tools/defaults.test.ts`, whose `registeredTools()`
+ * reads the registry as source text and asserts `TOOL_DEFAULTS` covers it. So the
+ * real chain is
+ *
+ *     registry source -> TOOL_DEFAULTS -> CONSEQUENCES / RISK_PROFILE
+ *                     ^ defaults.test.ts   ^ the block above
+ *
+ * and a tool the FIRST link misses is invisible to the second. That link is a
+ * regex, `/\bdef\(\{\s*\n\s*name:\s*"([^"]+)"/`, which requires the newline
+ * between `def({` and `name:`. A def written on one line is registered, absent
+ * from TOOL_DEFAULTS, absent from this catalogue, and green in both files —
+ * scoring `high`, demoted to `confirm` by `loop.server.ts`, queueing approvals
+ * nobody chose. That is the 2026-08-19 defect exactly, arriving through the one
+ * door still open.
+ *
+ * So this block measures the registry AGAIN, independently, and deliberately not
+ * the same way: it keys off the `name:`/`category:` pair every ToolDef carries
+ * rather than off the `def({` call, so the two guards cannot share a blind spot.
+ * Reading source rather than importing is not laziness — `registry.server.ts` is
+ * worker-only and pulls in Supabase, the AI runtime and every connector adapter.
+ */
+describe("coverage: the catalogue is checked against the registry itself", () => {
+  /**
+   * Tool names read straight from the registry source, via the `name:` +
+   * `category:` pair rather than the `def({` call site.
+   *
+   * Both files are scanned because the four `mission.*` tools live in
+   * orchestrator.server.ts and are only imported into the registry array.
+   *
+   * THE PAIR IS BOUNDED BY A LOOKAHEAD, NOT BY A CHARACTER WINDOW, and that is not
+   * a stylistic preference. The first version of this scan allowed 900 characters
+   * between `name:` and `category:` and silently dropped `decision.record`, whose
+   * description runs 1186 characters — one tool short, and every coverage
+   * assertion below would have passed on the reduced set. A window is a guess
+   * about how long a description is allowed to get; `(?!\bname:\s*")` instead says
+   * the real thing, which is "this tool's category, not the next tool's".
+   */
+  function registeredToolsFromSource(): string[] {
+    const dir = join(process.cwd(), "src/lib/ai/tools");
+    const src = ["registry.server.ts", "orchestrator.server.ts"]
+      .map((f) => readFileSync(join(dir, f), "utf8"))
+      .join("\n");
+    return [
+      ...src.matchAll(
+        /name:\s*"([^"]+)",(?:(?!\bname:\s*")[\s\S])*?category:\s*"(?:read|write|memory|planning)"/g,
+      ),
+    ].map((m) => m[1]);
+  }
+
+  const FROM_SOURCE = registeredToolsFromSource();
+
+  test("the source scan found a plausible registry, and found each tool once", () => {
+    /*
+     * Every assertion below passes vacuously against an empty or truncated scan,
+     * so the scan is checked before it is trusted. The duplicate check guards the
+     * other direction: the pair regex walks forward until it finds a `category:`,
+     * so if it ever started pairing one tool's name with another's category, the
+     * same name would appear twice and show up here first.
+     *
+     * A FLOOR IS NOT ENOUGH ON ITS OWN, and this test should not be read as if it
+     * were. `> 50` would have happily accepted the 58 the first version of this
+     * scan returned. What actually catches an off-by-one is the roster comparison
+     * in the next test, which names the missing tool instead of counting.
+     */
+    expect(FROM_SOURCE.length).toBeGreaterThan(50);
+    expect([...new Set(FROM_SOURCE)].length).toBe(FROM_SOURCE.length);
+  });
+
+  test("the two rosters agree, so neither guard is measuring a partial registry", () => {
+    /*
+     * The assertion that closes the hop. If the source scan and TOOL_DEFAULTS
+     * disagree in EITHER direction, one of them is wrong about what is registered
+     * and every downstream coverage test is checking the wrong set. Failing here
+     * names the tool, which is the whole work of fixing it.
+     */
+    const inSourceOnly = FROM_SOURCE.filter((t) => !(t in TOOL_DEFAULTS));
+    const inDefaultsOnly = Object.keys(TOOL_DEFAULTS).filter((t) => !FROM_SOURCE.includes(t));
+    expect(inSourceOnly, "registered but with no platform default").toEqual([]);
+    expect(inDefaultsOnly, "a default for something the registry does not define").toEqual([]);
+  });
+
+  test("every tool the registry defines has a consequence and a profile", () => {
+    const noConsequence = FROM_SOURCE.filter((t) => !CATALOGUED_TOOLS.includes(t));
+    const noProfile = FROM_SOURCE.filter((t) => !PROFILED_TOOLS.includes(t));
+    expect(
+      noConsequence,
+      "these score `high`, get demoted to `confirm`, and queue an approval nobody chose",
+    ).toEqual([]);
+    expect(noProfile, "these score worst-case on all four axes and can never auto-approve").toEqual(
+      [],
+    );
+  });
+
+  test("no registered tool falls through to the generic default sentence", () => {
+    /*
+     * The same statement asserted on BEHAVIOUR rather than on set membership, so
+     * it survives a change to how the lookup works: if `toolConsequence` stopped
+     * consulting the catalogue, the three tests above would still pass on their
+     * key lists and this one would not.
+     *
+     * The default effect is a sentinel — no real tool's effect is that sentence —
+     * so this cannot false-alarm on a legitimately severe tool, which is why it is
+     * checked here instead of "the profile is maximal on all four axes"
+     * (`release.publish` and `delegate.openhands` sit close enough to maximal that
+     * the next genuinely dangerous tool would trip it for the wrong reason).
+     *
+     * `tool-consequences.test.ts` makes this assertion too, scoped to `confirm`
+     * and `review` tools, because those are the ones that render the sentence as a
+     * 19px gate heading. This one is the whole registry: an `auto` tool with no
+     * entry never reaches a gate, but it does score `high` and get demoted into
+     * one, which is the defect that put `cluster.trigger` at 34% of the queue.
+     */
+    const DEFAULT_EFFECT = "Runs the tool with the agent's arguments.";
+    const generic = FROM_SOURCE.filter((t) => toolConsequence(t).effect === DEFAULT_EFFECT);
+    expect(generic, "these have no catalogue entry at all").toEqual([]);
   });
 });
 

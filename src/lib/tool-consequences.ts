@@ -445,12 +445,50 @@ export function toolConsequence(toolName: string | null | undefined): ToolConseq
 }
 
 /**
- * True for tools that change the world (have a catalogued blast radius). Used to
- * flag a `tool_calls` row as an UNATTENDED write: every tool_calls row is an
- * inline (auto-mode) execution — gated tools queue an approval instead — so a
- * side-effecting one means the agent's trust arc executed it without a human
- * gate. Read tools also execute inline but aren't delegation, so they're
- * excluded. Keep CONSEQUENCES in sync when a side-effecting tool is added.
+ * Catalogue membership. Used to flag a `tool_calls` row as an UNATTENDED write:
+ * every tool_calls row is an inline (auto-mode) execution — gated tools queue an
+ * approval instead — so a side-effecting one means the agent's trust arc executed
+ * it without a human gate.
+ *
+ * ── THIS NO LONGER MEANS WHAT ITS NAME SAYS. Measured 2026-08-22. ──────────
+ *
+ * The doc here used to end "Read tools also execute inline but aren't delegation,
+ * so they're excluded." That was true while the catalogue held only writers. It
+ * stopped being true on 2026-08-19, when completing the catalogue added the
+ * sixteen read-only tools it was missing, and nobody moved this predicate.
+ *
+ * The body is `name in CONSEQUENCES` and CONSEQUENCES now covers all 59 registry
+ * tools, so this returns TRUE FOR ALL 59 — including the 20 whose registry
+ * `category` is `"read"`: workspace.search, workspace.list_tasks, signals.list,
+ * themes.list, sources.status, sources.connect, github.ci.read, repo.tree,
+ * repo.read, repo.search, ci.logs, studio.secrets.scan, studio.tests.plan,
+ * studio.checks.run, studio.deps.audit, web.search, web.fetch, web.map,
+ * web.crawl, mission.observe.
+ *
+ * WHAT THAT COSTS, per caller, all four verified by reading them:
+ *   - `consent-classes.ts` returns `"read-only"` only when this is false, so that
+ *     class now matches NOTHING. Scored over the whole registry it is 0 read-only,
+ *     47 internal-write, 5 stakeholder, 7 repo-write. A bucket the consent surface
+ *     renders in its fixed order is permanently empty, and a `web.search` is filed
+ *     beside a `decision.record` as an internal write.
+ *   - `today.functions.ts` and `missions.functions.ts` mark a row `is_unattended`
+ *     from this, so a repo read now counts as work the loop carried unattended.
+ *   - `approval-policy.ts` is the one that IMPROVED: its fail-closed always-human
+ *     branch fires on `!isSideEffectingTool`, so completing the catalogue moved
+ *     the reads off it, which is exactly what 2026-08-19 was for.
+ *
+ * LEFT AS IT IS, DELIBERATELY. The registry already knows the answer — every def
+ * carries `category: "read" | "write" | "memory" | "planning"` — but that lives in
+ * a worker-only module and this file is client-safe, so the read set has to be
+ * mirrored here the way EXTERNAL_TOOLS mirrors the boundary. That is a change to
+ * four production surfaces, not to this line, and
+ * `build-verification.test.ts` already pins the current answer
+ * (`isSideEffectingTool("ci.logs") === true`) and names itself the place the
+ * expectation gets updated when the predicate is fixed. Fixing it here alone would
+ * flip those four surfaces with no test moving to say so.
+ *
+ * Keep CONSEQUENCES in sync when any tool is added; the guard in
+ * `tool-risk-six-dimensions.test.ts` fails the build if you do not.
  */
 export function isSideEffectingTool(toolName: string | null | undefined): boolean {
   return !!toolName && toolName in CONSEQUENCES;
@@ -639,8 +677,18 @@ const SURFACE_SCORE: Record<ChangeSurface, number> = { narrow: 0, moderate: 1, b
  * a tool with no row scored `high` and `loop.server.ts` demoted it from `auto` to
  * `confirm`. An omission was the strictest gate available, applied silently, and
  * it cost 34% of the pending approval queue. Every registry tool is catalogued
- * now, read-only ones included, and `registry-is-catalogued.test.ts` fails the
- * build if a new one arrives without a row. Within it, every one of the 36 is scored explicitly rather than derived
+ * now, read-only ones included: 59 rows against the registry's 59 tools, checked
+ * both directions.
+ *
+ * THE GUARD IS IN `tool-risk-six-dimensions.test.ts`, under "coverage: every
+ * registered tool is catalogued". This used to name `registry-is-catalogued.ts`,
+ * which has never existed in this repo — a comment pointing at an imaginary test
+ * is worse than no comment, because it tells the next reader the hole is already
+ * covered and stops them looking. Corrected 2026-08-22, along with the count
+ * below, which still said 36 (the pre-2026-08-19 total) while sitting on a table
+ * of 59.
+ *
+ * Within it, every one of the 59 is scored explicitly rather than derived
  * from a naming pattern, because the interesting cases are exactly the ones a
  * pattern gets wrong (`studio.secrets.scan` is an internal read that touches
  * the most sensitive data in the product; `scheduler.propose` sounds external
