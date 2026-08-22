@@ -84,7 +84,13 @@ export function LandingFooter() {
         // workspace. When one exists, /proof lists it live, which is why /proof
         // above is the honest destination for this idea. The guard in
         // src/components/landing/no-seeded-slugs.test.ts now covers every file.
-        { label: "A public teardown", href: "/p/teardown" },
+        // REMOVED 2026-08-22 (founder): { label: "A public teardown", href: "/p/teardown" }.
+        // The surface is retired; the URL is now a permanent redirect to /demo,
+        // so keeping the row would have put a silently-bouncing link in the
+        // footer. Nothing replaces it here: /demo is where the redirect lands
+        // and it is already the second row of the "product" column above, so
+        // re-listing it under "proof" would be the same destination twice.
+        // Record: docs/decisions/public-teardown-retired-2026-08.md.
         { label: "ARD spec", href: "/ard" },
       ],
     },

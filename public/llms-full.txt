@@ -124,7 +124,6 @@ Supaprod is designed for the agentic era. Every page supports structured agent c
 | `/terms` | Plain-language terms of service |
 | `/updates` | Changelog: what shipped, in plain language, dated |
 | `/ard` | ARD standard documentation: what it is, the schema, how to fetch/export |
-| `/p/teardown` | No-signup Critic: paste a PRD and get a sharp, evidence-based teardown |
 | `/.well-known/agent.json` | Machine-readable agent manifest (A2A card) |
 | `/agents.txt` | Agent access policy (robots.txt equivalent for the agentic era) |
 | `/api/public/health` | App health and readiness endpoint |
@@ -163,7 +162,7 @@ Two motions, and the first is the larger of the two:
 
 The moat is the forecast captured at decision time, rather than the record underneath it. Any vendor can hold your decisions, and causes can be reconstructed after the fact because they survive in chat logs, email and call recordings. What cannot be reconstructed is what a team believed would happen before the outcome landed: a forecast is not an artifact and leaves no trace unless something captured it at the moment of the call. Supaprod captures that, then writes the settled outcome back against the decision that caused it, which changes what you are shown next.
 
-Entry point: the Critic (free, no-signup teardown at `/p/teardown`). Expands to the decision system of record for the whole product org.
+Entry point: `/demo`, a real seeded workspace with no login. Expands to the decision system of record for the whole product org.
 
 **One limit worth stating plainly**, because an overstated claim here would be found within a week: the workspace record travels to whoever inherits it, and the compounded recall that pushes past outcomes into an agent's prompt is still scoped to the author who wrote it. The record travels today. The memory does not, yet.
 

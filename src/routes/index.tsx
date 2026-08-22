@@ -157,7 +157,7 @@ When a build breaks, Supaprod diagnoses the failure, revises its own spec, rebui
 
 ## Live proof
 - Track record: /proof (publishes our calibration score live, including an honest zero until outcomes land)
-- Public teardown (no signup): /p/teardown
+- A real workspace, no signup: /demo (live seeded data: a decision history and one mission traced end to end)
 - Shipping log: /updates
 - The film: /film (2:22, narrated. One signal through all seven stations, and an outcome scored against the call that caused it)
 

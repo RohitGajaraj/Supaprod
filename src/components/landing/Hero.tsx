@@ -538,23 +538,35 @@ export function Hero() {
                * computes to #111111): the label is 12.78:1 and the mono line is
                * 7.2:1, both clear of the 4.5:1 floor. zinc-500 was the obvious
                * choice for a second line and it is the wrong one, at 4.1:1. */}
-              <a
-                href="/p/teardown"
-                className="hero-try rounded-xl border border-white/10 bg-white/[0.03] px-4 py-[7px] text-left"
-              >
-                <span className="flex items-center gap-2 text-sm font-medium leading-5 text-zinc-300">
-                  Tear down your PRD
-                  <span className="hero-arrow inline-block" aria-hidden>
-                    &rarr;
-                  </span>
-                </span>
-                <span
-                  className="mt-0.5 block font-mono text-[11px] uppercase leading-[14px] text-zinc-400"
-                  style={{ letterSpacing: "0.08em" }}
-                >
-                  No signup &middot; evidence in a minute
-                </span>
-              </a>
+              {/* THE TEARDOWN DOOR IS GONE, 2026-08-22 (founder), AND THIS IS
+                  THE THIRD RULING ON THIS ONE CONTROL. Read the note above it
+                  first: everything that note says about WHY a stranger needs
+                  something to do here is still true, and nothing below replaces
+                  it. Full record:
+                  docs/decisions/public-teardown-retired-2026-08.md.
+
+                  It read "Tear down your PRD" over the mono line "No signup ·
+                  evidence in a minute" and pointed at /p/teardown. The founder's
+                  words: "remove the public teardown... It's of no value. I feel
+                  it's one of the weakest weak points... It's like another copilot
+                  or ChatGPT window. There is nothing USP."
+
+                  THE OBJECTION IS ABOUT THE OFFER, NOT THE MECHANISM. A textarea
+                  that answers you is the single most copyable shape in this
+                  market, and it showed a stranger the one layer any vendor can
+                  clone. The Critic itself is untouched and still runs inside the
+                  product at Decide; what left is the free-standing window onto
+                  it. /p/teardown is now a permanent redirect to /demo, because
+                  the URL shipped in two waitlist emails and in the footer.
+
+                  WHAT THE HERO LOSES, SAID PLAINLY RATHER THAN EXPLAINED AWAY.
+                  The row is back to one ember button and no open door, which is
+                  the arrangement the 2026-08-11 note above called insufficient
+                  and it was right at the time. A visitor with no invite code now
+                  has /demo and the film, both of which are somebody else's run.
+                  Nothing here has been substituted for the removed control on
+                  purpose: inventing a replacement door in the same commit would
+                  bury the cost of the ruling instead of recording it. */}
               {/* THE THIRD LINK IS GONE, 2026-08-12 (founder), AND THIS IS THE
                   SECOND TIME THE SAME RULE HAS BEEN APPLIED HERE.
 

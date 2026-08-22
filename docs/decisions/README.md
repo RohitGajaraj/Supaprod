@@ -1,8 +1,8 @@
 # Decisions
 
-> _Created: 2026-08-04 · Last updated: 2026-08-21_
+> _Created: 2026-08-04 · Last updated: 2026-08-22_
 
-**Why a technical call went the way it did.** Thirteen records (the count read "ten" while the table held twelve; corrected 2026-08-21). Read one when you are about to change something it decided, or when you are tempted to re-litigate a choice somebody already thought through.
+**Why a technical call went the way it did.** Fourteen records (the count read "ten" while the table held twelve; corrected 2026-08-21, and again on 2026-08-22 when the public-teardown record landed). Read one when you are about to change something it decided, or when you are tempted to re-litigate a choice somebody already thought through.
 
 A decision record is not a plan. It captures the options that were on the table, what was chosen, and the cost accepted. If you disagree with one, the honest move is to add a new record superseding it, not to quietly build the other way.
 
@@ -22,6 +22,7 @@ A decision record is not a plan. It captures the options that were on the table,
 | [`free-tier-shape-and-trial.md`](./free-tier-shape-and-trial.md) | Whether Free should be a time-bound trial. **No, not as a replacement:** a 14-day window cannot demonstrate layer 03, because outcomes take weeks to land, so a trial showcases the two copyable layers and expires before the defensible one appears. Recommends a 14-day full-access trial that **degrades into** permanent Free. |
 | [`palette-verb-shapes.md`](./palette-verb-shapes.md) | **A palette verb either navigates to the station that owns the job, or acts in place through something mounted globally — never both.** Settles K-37's four silent verbs. The third shape, navigate-then-open-on-arrival, is used nowhere else in the product and is the only one that rotted, because it couples a global dispatcher to a route-specific mount across a navigation boundary. Also: why ACT drifted while JUMP could not, and what the rule yields per station. |
 | [`palette-retired-2026-08.md`](./palette-retired-2026-08.md) | **The ⌘K command palette is retired, its data kept, and the gap it covered filed as work.** Reverses two written contracts (`FINAL-ia.md:137` "It ships", `FINAL-shell-ruling.md:452` "the highest-value single item") that were never overturned, so it records the case for keeping it verbatim. **Read before building a command palette here.** Also: why the delete is a one-way door the ratchet will not let you revert. |
+| [`public-teardown-retired-2026-08.md`](./public-teardown-retired-2026-08.md) | **The free no-signup PRD teardown is retired from the website; the Critic agent inside the product is not.** The founder's objection was to a paste-box that "is like another copilot or ChatGPT window", not to the reader half of Decide, which is rank key 2 in the comparator. Also: why it is NOT attributable to the EF rejection (EF gave no reason), the 10-calls-from-2-IPs lifetime usage, and the `/t/$slug` seam that was deliberately left standing. |
 | [`naming.md`](./naming.md) | The product-name status and candidate log. The decision itself, Cadence to Supaprod, is [`../pitch/naming-decision-supaprod.md`](../pitch/naming-decision-supaprod.md), with the unmigrated-identifier ledger at [`../operations/rename-cadence-to-supaprod.md`](../operations/rename-cadence-to-supaprod.md). |
 
 ---

@@ -73,12 +73,6 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://supaprod.ai/p/teardown</loc>
-    <lastmod>2026-08-07</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://supaprod.ai/privacy</loc>
     <lastmod>2026-08-07</lastmod>
     <changefreq>yearly</changefreq>

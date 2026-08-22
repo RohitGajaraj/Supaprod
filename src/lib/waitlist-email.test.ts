@@ -15,19 +15,28 @@ describe("A1 waitlist welcome", () => {
     else process.env.LAUNCH_DATE = ORIGINAL;
   });
 
-  test("carries exactly one link, the teardown", () => {
+  test("carries exactly one link, and it is not a redirect", () => {
     // docs/growth/email-sequences.md section 7: "One naked URL per email,
     // matching the single CTA." A second link halves the first and reads as a
     // redirect chain to a filter that has no reputation history to weigh it
     // against. The footer's unsubscribe is a mailto, which is not a web link
     // and does not count against this.
+    //
+    // THE DESTINATION CHANGED ON 2026-08-22: it was /p/teardown until the
+    // public teardown was retired. /p/teardown still resolves, as a permanent
+    // redirect, which is precisely why this test now asserts it is ABSENT
+    // rather than just asserting the new path. A cold sending domain whose
+    // first-ever email links through a redirect is a spam signal, and the
+    // failure would have been invisible: the link would still work.
     const urls = a1Text().match(/https?:\/\/[^\s)]+/g) ?? [];
     expect(urls).toHaveLength(1);
-    expect(urls[0]).toContain("/p/teardown");
+    expect(urls[0]).toContain("/demo");
+    expect(urls[0]).not.toContain("/p/teardown");
 
     const hrefs = a1Html().match(/href="https?:[^"]+"/g) ?? [];
     expect(hrefs).toHaveLength(1);
-    expect(hrefs[0]).toContain("/p/teardown");
+    expect(hrefs[0]).toContain("/demo");
+    expect(hrefs[0]).not.toContain("/p/teardown");
   });
 
   test("never invents a launch date when LAUNCH_DATE is unset", () => {
@@ -73,8 +82,11 @@ describe("A1 waitlist welcome", () => {
     for (const img of imgs) {
       expect(img).toMatch(/alt="[^"]+"/);
     }
-    // The CTA is a text link, not a wrapped image.
-    const cta = /<a href="[^"]*\/p\/teardown"[^>]*>([\s\S]*?)<\/a>/.exec(html);
+    // The CTA is a text link, not a wrapped image. Matched by SHAPE (the one
+    // non-mailto anchor) rather than by the destination path: pinning the path
+    // here is what let this assertion keep passing against /p/teardown after
+    // the CTA above had already moved off it.
+    const cta = /<a href="https?:[^"]*"[^>]*>([\s\S]*?)<\/a>/.exec(html);
     expect(cta).not.toBeNull();
     expect(cta?.[1]).not.toContain("<img");
     expect(cta?.[1].replace(/<[^>]*>/g, "").trim().length).toBeGreaterThan(0);

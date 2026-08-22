@@ -45,6 +45,14 @@
  * paragraph, which was always the actual argument here and never needed the
  * table under it -- it is a claim about calendar time, not a demonstration.
  *
+ * ---------------------------------------------------------------------------
+ * 2026-08-22 - /p/teardown is retired (founder), so the sentence above is now
+ * history rather than description. It is kept verbatim because the ruling it
+ * records is still binding on everything else in this beat; only its first
+ * example is gone. /demo took the slot. See the note on `artifacts` below for
+ * why that is a downgrade and not a swap, and
+ * docs/decisions/public-teardown-retired-2026-08.md for the ruling.
+ *
  * /proof earns its link back the day one outcome settles. Not before. Do NOT
  * re-add an illustrative table to fill the space: that is the exact loop this
  * ruling closes, and Receipts.test.ts now fails if those rows come back.
@@ -60,8 +68,24 @@ export function Receipts() {
   // Only destinations a stranger can check without an account, and only ones
   // with something on the other side. A link that resolves to an empty page is
   // not a receipt, it is a claim with extra steps.
+  //
+  // THE TEARDOWN ROW LEFT ON 2026-08-22 (founder). Record:
+  // docs/decisions/public-teardown-retired-2026-08.md. It read "A public
+  // teardown, no signup" and pointed at /p/teardown, which is now a permanent
+  // redirect to /demo.
+  //
+  // /demo IS THE REPLACEMENT AND IT IS A WEAKER ONE, WHICH IS WORTH SAYING.
+  // The teardown ran on the READER'S OWN document, which is what made it
+  // checkable rather than merely viewable; /demo is a seeded workspace they can
+  // read but not touch. It qualifies for this list under the rule above (no
+  // account, and something real on the other side) and it does not qualify
+  // under the spirit of it. It is here to keep the beat at two links rather
+  // than one, not because it is as good.
+  //
+  // Do NOT restore an /proof row to fill the gap: Receipts.test.ts fails on it,
+  // and the reason is four paragraphs up.
   const artifacts = [
-    { label: "A public teardown, no signup", href: "/p/teardown" },
+    { label: "A real workspace, no login", href: "/demo" },
     { label: "What shipped this week", href: "/updates" },
   ];
 
@@ -94,23 +118,30 @@ export function Receipts() {
                 claims only what a stranger can go and check right now, with no
                 account, on the two links beside it. */}
             <p className="text-lg text-zinc-400" style={{ maxWidth: "48ch" }}>
-              Every link here opens a page you can check without an account: run the teardown on
-              your own PRD, read the dated log of what shipped. Supaprod has run on its own loop
-              since June 2026.
+              Every link here opens a page you can check without an account: walk a real seeded
+              workspace, read the dated log of what shipped. Supaprod has run on its own loop since
+              June 2026.
             </p>
             <div className="cap-scrim hidden md:flex flex-col gap-2.5 mt-12 py-6 px-8 -mx-8">
               <span className="font-mono text-[11px] text-zinc-400 mb-1.5">On the record</span>
-              {["graded verdicts", "real decisions", "public teardowns", "dated shipping log"].map(
-                (f) => (
-                  <span
-                    key={f}
-                    className="cap-item font-mono text-[12px] uppercase text-zinc-400"
-                    style={{ letterSpacing: "0.12em" }}
-                  >
-                    {f}
-                  </span>
-                ),
-              )}
+              {/* "public teardowns" was the third item until 2026-08-22. The
+                  product no longer publishes one, so it was the single item on
+                  this list that named a thing that had stopped existing. The
+                  other three still describe what the record holds. */}
+              {[
+                "graded verdicts",
+                "real decisions",
+                "recorded forecasts",
+                "dated shipping log",
+              ].map((f) => (
+                <span
+                  key={f}
+                  className="cap-item font-mono text-[12px] uppercase text-zinc-400"
+                  style={{ letterSpacing: "0.12em" }}
+                >
+                  {f}
+                </span>
+              ))}
             </div>
           </div>
 

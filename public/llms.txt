@@ -37,7 +37,7 @@ Two motions, and the first is the larger:
 - **Transform** an existing product. Connect the sources you already have, and the loop starts from your real signals. Nothing to migrate and nothing to rip out.
 - **Create** a new one, agent-native from the first decision.
 
-Entry point: the Critic teardown at `/p/teardown`, free and with no signup. Paste a spec and get it argued against, with evidence. Expands to the decision system of record for the whole product org.
+Entry point: `/demo`, a real seeded workspace with no login: a decision history with the evidence behind each call, and one mission traced end to end. Expands to the decision system of record for the whole product org.
 
 ## Machine-readable interfaces
 
@@ -64,17 +64,19 @@ Supaprod is designed for the agentic era. Every page supports structured agent c
 
 ## Public surfaces
 
-Everything here is crawlable without a token. The first four are the ones that
-show the claim rather than assert it.
+Everything here is crawlable without a token. `/demo`, `/proof` and `/updates`
+are the ones that show the claim rather than assert it. (The line here used to
+read "the first four", counting `/p/teardown` at the head of the table; that
+surface was retired on 2026-08-22 and a positional count is the kind of thing
+that silently starts pointing at the wrong rows.)
 
 | Route | What it contains |
 |---|---|
-| `/p/teardown` | The Critic, free and with no signup: paste a spec and get it argued against, with the evidence for and against attached |
 | `/proof` | Our own calibration score, published live, including the misses. It reads from the real record, so when there is nothing settled yet it shows an honest zero rather than a number |
 | `/product` | How it works: the seven stations, the loop, and the moat |
 | `/updates` | Changelog: what shipped, in plain language, dated against the build log |
 | `/` | Landing page: product thesis, the three layers, core capabilities |
-| `/demo` | Live, no-signup demo workspace (read-only), opening with the film |
+| `/demo` | A real seeded workspace, no login: the film, a decision history with the evidence behind each call, and one mission traced end to end |
 | `/film` | The product film, 2:22 and narrated: one signal through all seven stations, and an outcome scored against the call that caused it |
 | `/faq` | Frequently asked questions, question-shaped for answer engines |
 | `/pricing` | Pricing and plans |

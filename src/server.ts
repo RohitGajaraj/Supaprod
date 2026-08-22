@@ -132,7 +132,9 @@ const CACHEABLE_MARKETING_ROUTES = new Set([
   "/proof",
   "/investors",
   "/brief",
-  "/p/teardown",
+  // "/p/teardown" left this set on 2026-08-22. It is now a permanent redirect,
+  // and the guard below only caches a 200, so listing it would have been inert
+  // as well as wrong.
 ]);
 
 export function withMarketingCacheHeaders(response: Response, pathname: string): Response {

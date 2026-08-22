@@ -20,11 +20,9 @@ import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { stripAutoPrefix } from "@/components/plan/format";
 import {
   getDemoOverview,
-  getDemoTeardown,
   getDemoLedger,
   getDemoMissionTrace,
   type DemoOverview,
-  type DemoTeardown,
   type DemoLedgerRow,
   type DemoMissionTrace,
   type DemoStepState,
@@ -35,16 +33,13 @@ import { trackActivation } from "@/lib/activation.functions";
 const SITE = "https://supaprod.ai";
 const TITLE = "Try a real Supaprod demo workspace. No signup.";
 const DESC =
-  "Walk through a real teardown, a real decision history, and a real mission trace. No account needed.";
+  "Walk through a real decision history and a real mission trace, in a live seeded workspace. No account needed.";
 
 // The three-voice grammar from the landing: agents speak blue, the human
 // ask is the page's one ember object, verdicts keep their status tones.
 const AGENT_BLUE = "#6cb0f5";
-const VERDICT_COLOR: Record<string, string> = {
-  ship: "#4ac26b",
-  revise: "#d9a13c",
-  kill: "#e5534b",
-};
+// VERDICT_COLOR (ship #4ac26b / revise #d9a13c / kill #e5534b) left with the
+// teardown section on 2026-08-22. It was read by nothing else on this page.
 
 // How a mission outcome reads on a public page. The row status never reaches
 // the screen: `halted` used to be printed raw, in agent blue, which said
@@ -88,13 +83,15 @@ export const Route = createFileRoute("/demo")({
   loader: async () => {
     // Each pull degrades on its own: a failed section hides itself instead
     // of turning the whole demo into an error page for a prospect.
-    const [overview, teardown, ledger, mission] = await Promise.all([
+    // getDemoTeardown() was the second pull here until 2026-08-22. It is not
+    // deleted, it is unread: see the block comment where TeardownSection used
+    // to be defined, below.
+    const [overview, ledger, mission] = await Promise.all([
       getDemoOverview().catch(() => null),
-      getDemoTeardown().catch(() => null),
       getDemoLedger().catch(() => [] as DemoLedgerRow[]),
       getDemoMissionTrace().catch(() => null),
     ]);
-    return { overview, teardown, ledger, mission };
+    return { overview, ledger, mission };
   },
   head: () => ({
     meta: [
@@ -217,65 +214,28 @@ function OverviewSection({ overview }: { overview: DemoOverview | null }) {
   );
 }
 
-function TeardownSection({ teardown }: { teardown: DemoTeardown | null }) {
-  if (!teardown) return null;
-  const col = teardown.verdict ? (VERDICT_COLOR[teardown.verdict] ?? "#a1a1aa") : "#a1a1aa";
-  return (
-    <section className="px-6 pb-14">
-      <div className="max-w-5xl mx-auto">
-        <Eyebrow>A real teardown</Eyebrow>
-        <h2 className="text-2xl font-semibold text-white mb-6" style={{ letterSpacing: "-0.02em" }}>
-          {stripAutoPrefix(teardown.title)}
-        </h2>
-        <Card>
-          <div className="flex items-center gap-3 mb-4">
-            {teardown.verdict ? (
-              <span
-                className="font-mono text-[10.5px] uppercase rounded-full px-3 py-0.5"
-                style={{ color: col, border: `1px solid ${col}55`, letterSpacing: "0.06em" }}
-              >
-                {teardown.verdict}
-              </span>
-            ) : null}
-            {teardown.iceScore !== null ? (
-              <span className="text-xs text-zinc-600 font-mono">
-                ICE {teardown.iceScore.toFixed(1)}
-              </span>
-            ) : null}
-          </div>
-          {teardown.summary ? (
-            <p className="text-sm text-zinc-400 leading-relaxed mb-4">{teardown.summary}</p>
-          ) : null}
-          {teardown.risks.length > 0 ? (
-            <div className="mb-3">
-              <p className="text-[11px] text-zinc-600 mb-1.5">Risks</p>
-              <ul className="m-0 pl-4 list-disc text-sm text-zinc-500">
-                {teardown.risks.slice(0, 3).map((r) => (
-                  <li key={r} className="mb-1 leading-relaxed">
-                    {r}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-          {teardown.missingEvidence.length > 0 ? (
-            <div>
-              <p className="text-[11px] text-zinc-600 mb-1.5">What you cannot prove yet</p>
-              <ul className="m-0 pl-4 list-disc text-sm text-zinc-500">
-                {teardown.missingEvidence.slice(0, 3).map((r) => (
-                  <li key={r} className="mb-1 leading-relaxed">
-                    {r}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-        </Card>
-        <ArtifactLink href="/p/teardown">Read a full public teardown, no signup</ArtifactLink>
-      </div>
-    </section>
-  );
-}
+/*
+ * THE TEARDOWN SECTION IS GONE, 2026-08-22 (founder). Record:
+ * docs/decisions/public-teardown-retired-2026-08.md.
+ *
+ * It rendered the demo workspace's Critic verdict (ship / revise / kill), its
+ * ICE score, its risks and its missing-evidence list, and closed on an
+ * ArtifactLink to /p/teardown. The founder retired the public teardown as
+ * "another copilot or ChatGPT window" with no USP in it, and widened that to
+ * the Critic wherever the WEBSITE shows it to a visitor. This was the one
+ * unauthenticated page that rendered a Critic verdict as its own beat.
+ *
+ * WHAT WAS KEPT AND WHY. `getDemoTeardown` in demo.functions.ts stays. It is a
+ * read-only GET server function over seeded data, it is the only projection of
+ * that shape anywhere, and the deletion doctrine of 2026-08-19 is explicit that
+ * removing the data removes the evidence of the gap. The loader no longer calls
+ * it; nothing else does either. That is deliberate, and it mirrors what
+ * palette-retired-2026-08.md did with palette-catalog.ts.
+ *
+ * THE IN-PRODUCT CRITIC IS UNTOUCHED. It still runs at Decide, still writes
+ * critic_review, and is still rank key 2 in the Decide comparator. Only the
+ * public window onto it closed.
+ */
 
 function LedgerSection({ ledger }: { ledger: DemoLedgerRow[] }) {
   if (ledger.length === 0) return null;
@@ -396,7 +356,7 @@ function MissionSection({ mission }: { mission: DemoMissionTrace | null }) {
 }
 
 function DemoPage() {
-  const { overview, teardown, ledger, mission } = Route.useLoaderData();
+  const { overview, ledger, mission } = Route.useLoaderData();
   const sessionId = useDemoSessionId();
   const fTrack = useServerFn(trackActivation);
   const [viewedTracked, setViewedTracked] = useState(false);
@@ -461,8 +421,8 @@ function DemoPage() {
               style={{ maxWidth: "58ch" }}
             >
               No login, nothing to set up. Everything below is live data from a seeded demo
-              workspace: a real teardown, a real decision history, a real mission trace. You cannot
-              break anything, so look around.
+              workspace: a real decision history and a real mission trace. You cannot break
+              anything, so look around.
             </p>
           </div>
         </section>
@@ -487,37 +447,48 @@ function DemoPage() {
         </section>
 
         <OverviewSection overview={overview} />
-        <TeardownSection teardown={teardown} />
+        {/* <TeardownSection /> sat here until 2026-08-22. See the block comment
+            where it used to be defined. */}
         <LedgerSection ledger={ledger} />
         <MissionSection mission={mission} />
 
         {/* The close: this page's single ember object */}
         <section className="px-6 pb-20">
           <div className="max-w-5xl mx-auto">
-            {/* The ask kept its shape and changed its promise. "Tear down your
-                own pet feature" required an account, and accounts are invite
-                only from 2026-08-07, so the button now offers the thing a
-                visitor can genuinely have this minute: the public Critic, which
-                needs no account at all and is the same teardown they have just
-                spent a page reading. The waitlist is the line under it, not the
-                button, because asking somebody to wait is a worse close than
-                handing them the product. */}
+            {/* THIS CLOSE HAS NOW BEEN RULED ON THREE TIMES, and the third
+                ruling takes away the answer the first two had found.
+
+                It read "Tear down your own pet feature" and pointed at
+                /p/teardown. Before that it required an account, which stopped
+                being honest when signup shut on 2026-08-07. The teardown was
+                the fix for that: the one thing a visitor could genuinely have
+                this minute.
+
+                2026-08-22 (founder) retired the public teardown, so the fix is
+                gone and the page is back to asking. There is no third option to
+                reach for -- every other door in this product needs an invite
+                code -- so the close now says the true thing instead of
+                inventing a softer one, and the invite ask is promoted from the
+                line beneath the button into the button itself. Record:
+                docs/decisions/public-teardown-retired-2026-08.md. */}
             <a
-              href="/p/teardown"
+              href="/#join"
+              onClick={onSignupClick}
               // text-[var(--cta-ink)]: white on ember is 2.84:1 and fails WCAG
               // AA. See the note on Hero.tsx's CTA.
               className="inline-block px-8 py-3 rounded-full bg-[#FF6B2C] text-[var(--cta-ink)] font-medium hover:bg-[#ff8344] active:scale-[0.98] transition-all duration-200 no-underline"
             >
-              Tear down your own pet feature
+              Join the beta
             </a>
             {/* Said "the beta is open for sign-ups", which was true and is the
                 exact sentence the Hero comment cited as proof the product was
-                NOT gated. It is gated now. */}
+                NOT gated. It is gated now, and since 2026-08-22 this line no
+                longer opens with "no account needed": nothing on the other side
+                of this button is account-free any more, and leaving that phrase
+                over an invite-only door would be the exact ambiguity the Hero
+                notes spend four paragraphs killing. */}
             <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mt-4 mb-0">
-              no account needed &middot;{" "}
-              <a href="/#join" onClick={onSignupClick} className="underline underline-offset-4">
-                the beta is invite only, ask for a code
-              </a>
+              invite only &middot; everything above is real and needs no login
             </p>
           </div>
         </section>

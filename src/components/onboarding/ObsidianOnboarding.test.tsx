@@ -220,7 +220,8 @@ describe("ObsidianOnboarding - the verdict is shareable", () => {
 
   it("ends with the shared receipt footer, so the paste carries the loop", () => {
     const out = asPlainText(criticReviewAsShareable(review));
-    expect(out.trimEnd().endsWith("https://supaprod.ai/p/teardown")).toBe(true);
+    expect(out.trimEnd().endsWith("https://supaprod.ai")).toBe(true);
+    expect(out).not.toContain("/p/teardown");
   });
 
   it("survives a review with nothing in it rather than throwing", () => {

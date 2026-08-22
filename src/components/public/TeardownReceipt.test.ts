@@ -32,7 +32,11 @@ describe("asPlainText", () => {
   });
 
   test("ends with an attributed link, because this is the growth loop", () => {
-    expect(asPlainText(full).trimEnd().endsWith("https://supaprod.ai/p/teardown")).toBe(true);
+    expect(asPlainText(full).trimEnd().endsWith("https://supaprod.ai")).toBe(true);
+    // Pinned NEGATIVELY too: the retired teardown URL must never come back
+    // here. This string reaches a clipboard from the authenticated onboarding
+    // surface, not just from a public page.
+    expect(asPlainText(full)).not.toContain("/p/teardown");
   });
 
   test("drops empty sections rather than printing a bare heading", () => {

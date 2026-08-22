@@ -33,7 +33,6 @@ Allow: /*?view=machine
 
 # Public surfaces: all crawlable without a token
 Allow: /
-Allow: /p/teardown
 Allow: /proof
 Allow: /product
 Allow: /updates

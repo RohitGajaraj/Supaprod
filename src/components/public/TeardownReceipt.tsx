@@ -256,7 +256,17 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
 }
 
 /** The receipt as plain text, in the order a reader scans it on screen.
- *  Exported for the test that pins the shared format. */
+ *  Exported for the test that pins the shared format.
+ *
+ *  THE FOOTER URL CHANGED ON 2026-08-22, and this function is the reason the
+ *  file survived the removal at all. It read "Try your own:
+ *  https://supaprod.ai/p/teardown". The public teardown is retired (record:
+ *  docs/decisions/public-teardown-retired-2026-08.md) and this string is not
+ *  confined to that page: ObsidianOnboarding reuses `asPlainText` for the
+ *  copy-to-share on an AUTHENTICATED user's Critic review, so the retirement
+ *  would have quietly put a redirecting URL on every clipboard in the product.
+ *  "Try your own" also stopped being true the moment there was nothing for a
+ *  stranger to try, so the whole clause goes rather than just the path. */
 export function asPlainText(t: Teardown): string {
   const block = (label: string, items: string[]) =>
     items.length ? `\n${label}\n${items.map((i) => `- ${i}`).join("\n")}` : "";
@@ -268,7 +278,7 @@ export function asPlainText(t: Teardown): string {
     block("WHAT YOU CANNOT PROVE YET", t.gaps ?? []),
     t.recommendation ? `\nRECOMMENDATION\n${t.recommendation}` : "",
     "",
-    "Torn down by Supaprod's Critic. Try your own: https://supaprod.ai/p/teardown",
+    "Torn down by Supaprod's Critic. https://supaprod.ai",
   ]
     .filter(Boolean)
     .join("\n");

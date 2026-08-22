@@ -106,7 +106,6 @@ import { Route as AuthenticatedMIndexRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedBuildIndexRouteImport } from './routes/_authenticated.build.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
 import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhook'
-import { Route as ApiPublicTeardownRouteImport } from './routes/api/public/teardown'
 import { Route as ApiPublicIngestSignalsRouteImport } from './routes/api/public/ingest-signals'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as AuthenticatedTracesTraceIdRouteImport } from './routes/_authenticated.traces.$traceId'
@@ -686,11 +685,6 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
 const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
   id: '/api/stripe/webhook',
   path: '/api/stripe/webhook',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicTeardownRoute = ApiPublicTeardownRouteImport.update({
-  id: '/api/public/teardown',
-  path: '/api/public/teardown',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicIngestSignalsRoute = ApiPublicIngestSignalsRouteImport.update({
@@ -1301,7 +1295,6 @@ export interface FileRoutesByFullPath {
   '/traces/$traceId': typeof AuthenticatedTracesTraceIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ingest-signals': typeof ApiPublicIngestSignalsRoute
-  '/api/public/teardown': typeof ApiPublicTeardownRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/build/': typeof AuthenticatedBuildIndexRoute
@@ -1484,7 +1477,6 @@ export interface FileRoutesByTo {
   '/traces/$traceId': typeof AuthenticatedTracesTraceIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ingest-signals': typeof ApiPublicIngestSignalsRoute
-  '/api/public/teardown': typeof ApiPublicTeardownRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/build': typeof AuthenticatedBuildIndexRoute
@@ -1671,7 +1663,6 @@ export interface FileRoutesById {
   '/_authenticated/traces/$traceId': typeof AuthenticatedTracesTraceIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ingest-signals': typeof ApiPublicIngestSignalsRoute
-  '/api/public/teardown': typeof ApiPublicTeardownRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/build/': typeof AuthenticatedBuildIndexRoute
@@ -1858,7 +1849,6 @@ export interface FileRouteTypes {
     | '/traces/$traceId'
     | '/api/public/health'
     | '/api/public/ingest-signals'
-    | '/api/public/teardown'
     | '/api/stripe/webhook'
     | '/admin/'
     | '/build/'
@@ -2041,7 +2031,6 @@ export interface FileRouteTypes {
     | '/traces/$traceId'
     | '/api/public/health'
     | '/api/public/ingest-signals'
-    | '/api/public/teardown'
     | '/api/stripe/webhook'
     | '/admin'
     | '/build'
@@ -2227,7 +2216,6 @@ export interface FileRouteTypes {
     | '/_authenticated/traces/$traceId'
     | '/api/public/health'
     | '/api/public/ingest-signals'
-    | '/api/public/teardown'
     | '/api/stripe/webhook'
     | '/_authenticated/admin/'
     | '/_authenticated/build/'
@@ -2339,7 +2327,6 @@ export interface RootRouteChildren {
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicIngestSignalsRoute: typeof ApiPublicIngestSignalsRoute
-  ApiPublicTeardownRoute: typeof ApiPublicTeardownRoute
   ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
   ApiPublicA2aTasksRoute: typeof ApiPublicA2aTasksRoute
   ApiPublicArdSchemaRoute: typeof ApiPublicArdSchemaRoute
@@ -3084,13 +3071,6 @@ declare module '@tanstack/react-router' {
       path: '/api/stripe/webhook'
       fullPath: '/api/stripe/webhook'
       preLoaderRoute: typeof ApiStripeWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/teardown': {
-      id: '/api/public/teardown'
-      path: '/api/public/teardown'
-      fullPath: '/api/public/teardown'
-      preLoaderRoute: typeof ApiPublicTeardownRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/ingest-signals': {
@@ -3963,7 +3943,6 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicIngestSignalsRoute: ApiPublicIngestSignalsRoute,
-  ApiPublicTeardownRoute: ApiPublicTeardownRoute,
   ApiStripeWebhookRoute: ApiStripeWebhookRoute,
   ApiPublicA2aTasksRoute: ApiPublicA2aTasksRoute,
   ApiPublicArdSchemaRoute: ApiPublicArdSchemaRoute,

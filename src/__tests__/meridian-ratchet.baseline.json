@@ -15,7 +15,7 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 3181,
+  "totalOccurrences": 3176,
   "fileCount": 222,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
@@ -829,7 +829,7 @@
     },
     "src/routes/demo.tsx": {
       "--font-pixel": 2,
-      "raw-colour": 14
+      "raw-colour": 9
     },
     "src/routes/faq.tsx": {
       "raw-colour": 1

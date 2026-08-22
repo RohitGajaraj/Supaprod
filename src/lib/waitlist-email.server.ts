@@ -131,17 +131,36 @@ function greeting(firstName?: string): string {
   return n ? `Hey ${n},` : "Hey,";
 }
 
+/*
+ * THE CTA CHANGED ON 2026-08-22 (founder) AND THIS EMAIL SENDS, so the change
+ * is not cosmetic. Record: docs/decisions/public-teardown-retired-2026-08.md.
+ *
+ * A1's single call to action was absoluteUrl("/p/teardown") under the line
+ * "hand the Critic a bet you are genuinely unsure about". The public teardown
+ * is retired, so that link now bounces through a redirect to /demo and the
+ * sentence above it promises a textarea that no longer exists.
+ *
+ * /demo is the honest replacement for THIS email specifically: it is the only
+ * remaining surface a person with no invite code can open, which is exactly the
+ * situation A1 is written into (you are on the list, your code has not come
+ * yet, here is something to do meanwhile).
+ *
+ * WHAT THE COPY CAN NO LONGER SAY. Not "hand the Critic YOUR bet" -- /demo runs
+ * on a seeded workspace and the reader supplies nothing. Not "twenty seconds"
+ * -- that was the model call's latency, not a page's. Overclaiming here is
+ * worse than in the product, because this arrives unsolicited in an inbox.
+ */
 export function a1Text(firstName?: string): string {
-  const teardown = absoluteUrl("/p/teardown");
+  const demo = absoluteUrl("/demo");
   return [
     greeting(firstName),
     ``,
     `You are in early. We are opening a few places at a time, so your code comes with your name on it rather than in a link that went to everyone.`,
     ``,
     ...(launchSentence() ? [launchSentence(), ``] : []),
-    `One thing you can do now, no account needed: hand the Critic a bet you are genuinely unsure about. Twenty seconds, and it shows the evidence it used.`,
+    `One thing you can do now, no account needed: open a real Supaprod workspace and read it. A decision history with the evidence behind each call, and one mission traced end to end.`,
     ``,
-    teardown,
+    demo,
     ``,
     `Rohit`,
     ``,
@@ -152,7 +171,7 @@ export function a1Text(firstName?: string): string {
 }
 
 export function a1Html(firstName?: string): string {
-  const teardown = absoluteUrl("/p/teardown");
+  const demo = absoluteUrl("/demo");
   const p = (t: string) =>
     `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#1f1b16;">${t}</p>`;
   return emailShell(
@@ -163,9 +182,9 @@ export function a1Html(firstName?: string): string {
       ),
       launchSentence() ? p(launchSentence()) : "",
       p(
-        `One thing you can do now, no account needed: hand the Critic a bet you are genuinely unsure about. Twenty seconds, and it shows the evidence it used.`,
+        `One thing you can do now, no account needed: open a real Supaprod workspace and read it. A decision history with the evidence behind each call, and one mission traced end to end.`,
       ),
-      emailButton(teardown, "Try the Critic"),
+      emailButton(demo, "Open the demo workspace"),
       p(`Rohit`),
       `<hr style="border:none;border-top:1px solid #e5e0d8;margin:24px 0 12px;">`,
       `<p style="margin:0;font-size:12px;line-height:1.5;color:#6b6457;">You are receiving this because you joined the Supaprod waitlist at supaprod.ai. To come off the list, reply with "unsubscribe" or write to <a href="mailto:${UNSUB}" style="color:#6b6457;">${UNSUB}</a>.</p>`,
