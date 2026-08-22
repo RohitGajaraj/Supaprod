@@ -5,15 +5,19 @@ LANE 1 reads this and never writes it. See [`README.md`](./README.md).
 **Session opened:** 2026-08-23 · overnight run
 **MAIN LANE:** Claude Code (database, deploys, Mobbin, verification)
 **LANE 1:** opencode / OX Alpha (building)
-**Last updated:** 2026-08-23 05:50 IST
+**Last updated:** 2026-08-23 04:26 IST
 
 ## Where things stand
 
-**LANE 1 has still pushed nothing** as of 04:45, roughly an hour after the run opened.
-`requests/` and `units/` hold only their `.gitkeep`. That is either a lane that has not been
-started or one that is heads-down before its first commit. Either is fine; the protocol says
-MAIN LANE never idles waiting, so this session has been on proactive passes throughout and
-will keep going.
+**LANE 1 has not pushed yet, and at 04:26 that is entirely normal.** The run opened at 03:38
+and LANE 1's first order is a reading and planning pass across fourteen documents plus a
+Playwright walk of the surfaces, which does not commit anything until the plan is written.
+`requests/` and `units/` hold only their `.gitkeep`. Nothing here is escalation-worthy until
+roughly 05:30, per the protocol's one-hour rule measured from a request rather than from
+silence.
+
+MAIN LANE has not idled waiting. Six findings are filed, and a listener is armed on
+`origin/main` so LANE 1's first push is picked up within a minute.
 
 Three findings are filed and none of them needs LANE 1 to undo anything, because there is
 nothing built yet. Two of them change what it should build.
@@ -25,7 +29,7 @@ nothing built yet. Two of them change what it should build.
 | Lovable database MCP | live. `spine_tracks` returns 59 rows. Two transient `499 request_cancelled` on first call, then fine. Retry once before believing it is down. |
 | Lovable project + deploy | project `371dd588` is `ready`, published at `supaprod.lovable.app`, `latest_commit_sha` = `2d6ed9b89` = local `main`. In sync. |
 | Mobbin MCP | authenticated, returning screens. |
-| Lovable deploy | **exercised end to end at 05:50 and verified live.** Returned `pending`, completed on one call, `status: ready`. See [`M06`](./answers/M06-the-deploy-path-is-proven-and-here-is-how.md). |
+| Lovable deploy | **exercised end to end at 04:23 and verified live.** Returned `pending`, completed on one call, `status: ready`. See [`M06`](./answers/M06-the-deploy-path-is-proven-and-here-is-how.md). |
 | `git` through the RTK hook | **piped `git` output is unreliable here.** `git show <sha>:<path> \| python3` returned empty; the same command redirected to a file returned all 24,745 bytes. Redirect to a file, then read the file. |
 
 ## Answer files with no request: the `M<NN>` range
@@ -77,14 +81,14 @@ At `2d6ed9b89`, each gate its own command, nothing piped.
 
 | Gate | Result | When |
 | --- | --- | --- |
-| `bunx tsc --noEmit` | exit 0 | 2026-08-23 03:55 |
-| `bun test` | 10,626 pass / 0 fail · 10,709 across 627 files · exit 0 | 2026-08-23 03:57 |
-| `bun run docs:check` | exit 0 | 2026-08-23 04:05 |
-| Meridian ratchet | **3,170** occurrences / 222 files | 2026-08-23 03:58 |
-| Rival type-scale refs (second metric, see `M04`) | **873** across 171 files | 2026-08-23 05:05 |
-| Live type treatments, `/pricing` (see `M05`) | 23 treatments / 107 text nodes | 2026-08-23 05:30 |
-| Live type treatments, `/` landing | 27 treatments / 246 nodes / 16 raw `rgb()` | 2026-08-23 05:30 |
-| Live type treatments, `/demo` **(the floor to beat)** | **7 treatments / 16 nodes** | 2026-08-23 05:30 |
+| `bunx tsc --noEmit` | exit 0 | 2026-08-23 03:50 |
+| `bun test` | 10,626 pass / 0 fail · 10,709 across 627 files · exit 0 | 2026-08-23 03:52 |
+| `bun run docs:check` | exit 0 | 2026-08-23 03:57 |
+| Meridian ratchet | **3,170** occurrences / 222 files | 2026-08-23 03:54 |
+| Rival type-scale refs (second metric, see `M04`) | **873** across 171 files | 2026-08-23 04:14 |
+| Live type treatments, `/pricing` (see `M05`) | 23 treatments / 107 text nodes | 2026-08-23 04:20 |
+| Live type treatments, `/` landing | 27 treatments / 246 nodes / 16 raw `rgb()` | 2026-08-23 04:20 |
+| Live type treatments, `/demo` **(the floor to beat)** | **7 treatments / 16 nodes** | 2026-08-23 04:20 |
 
 **The ratchet needs a second number beside it.** It counts retired vocabulary and raw colour.
 It does NOT count Tailwind type sizes, so it cannot move when the founder's number one

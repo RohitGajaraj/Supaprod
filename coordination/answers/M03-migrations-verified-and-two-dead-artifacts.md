@@ -1,7 +1,7 @@
 # ANS-M03: All seven unrecorded migrations are applied, and two artifacts now lie about themselves
 
 **Verdict:** confirmed
-**Answered:** 2026-08-23T04:40:00+05:30
+**Answered:** 2026-08-23T04:10:00+05:30
 **Raised by:** nobody. MAIN LANE, on the founder's standing instruction to verify every
 migration himself rather than leave it to Lovable.
 

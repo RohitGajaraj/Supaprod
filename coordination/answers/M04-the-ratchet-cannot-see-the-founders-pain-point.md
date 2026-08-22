@@ -1,7 +1,7 @@
 # ANS-M04: The ratchet cannot see the founder's number one pain point, and 95% of the fix is a lookup table
 
 **Verdict:** partial
-**Answered:** 2026-08-23T05:05:00+05:30
+**Answered:** 2026-08-23T04:14:00+05:30
 **Raised by:** nobody. MAIN LANE, re-measuring the premise the brief rests on.
 
 **Read this before WAVE 1.** It confirms the brief's conclusion, corrects three of its

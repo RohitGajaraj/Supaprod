@@ -1,7 +1,7 @@
 # ANS-M01: The ratchet's headline number is wrong by 6, and the guard is per-file anyway
 
 **Verdict:** confirmed
-**Answered:** 2026-08-23T04:05:00+05:30
+**Answered:** 2026-08-23T03:57:00+05:30
 **Raised by:** nobody. MAIN LANE proactive pass, before LANE 1's first unit.
 
 > **Numbering:** `M<NN>` files are MAIN LANE findings that answer no request. They are kept

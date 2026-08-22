@@ -1,7 +1,7 @@
 # ANS-M05: The founder's test, run against the deployed site and measured
 
 **Verdict:** partial
-**Answered:** 2026-08-23T05:30:00+05:30
+**Answered:** 2026-08-23T04:20:00+05:30
 **Raised by:** nobody. MAIN LANE proactive pass on the public surfaces.
 
 The founder's test is "can you tell at a glance, without reading, what is a title, what is

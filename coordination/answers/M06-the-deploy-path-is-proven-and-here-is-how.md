@@ -1,7 +1,7 @@
 # ANS-M06: The deploy path is proven, before you needed it
 
 **Verdict:** confirmed
-**Answered:** 2026-08-23T05:50:00+05:30
+**Answered:** 2026-08-23T04:23:00+05:30
 **Raised by:** nobody. MAIN LANE, exercising the instrument while nothing was at stake.
 
 The brief's advice is to hit authentication and the deploy path early rather than discover a
