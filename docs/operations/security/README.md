@@ -1,5 +1,8 @@
 # Security
 
+> **Publishing blocked by a security scan? Read [`lovable-scanner-false-positives.md`](./lovable-scanner-false-positives.md) first.** Lovable refuses to publish while a critical is unresolved. The two criticals standing on 2026-08-22 are **false positives** — the scanner reads RLS policies statically and cannot see the `BEFORE UPDATE` triggers that enforce both rules. Verified against production. The action is Ignore, not a migration.
+
+
 > _Created: 2026-08-03 · Last updated: 2026-08-03_
 
 Audit findings, remediation state, and the one implementation guide. For the architectural contract (RLS, tenancy, the server boundary), read [`../../architecture/security.md`](../../../architecture/security.md). For the rules a change must satisfy, [`../../AGENTS.md`](../../../AGENTS.md) §3.
