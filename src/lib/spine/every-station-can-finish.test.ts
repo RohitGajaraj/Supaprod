@@ -37,6 +37,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { stationCrew } from "./driver";
+import { TOOL_REGISTRY } from "@/lib/ai/tools/registry.server";
 import { TOOL_PRODUCTS, STATION_ARTIFACT } from "./attach";
 import { ARTIFACT_SOURCE } from "./chain";
 import { TOOL_DEFAULTS } from "@/lib/ai/tools/defaults";
@@ -162,6 +163,79 @@ describe("every station can be RECORDED as finishing", () => {
         `${station} is expected to file ${String(expected)} and its crew cannot`,
       ).toContain(expected);
     }
+  });
+});
+
+describe("a brief must name the arguments its tool actually refuses without", () => {
+  /**
+   * THE FIFTH AGREEMENT, and the one the other four could not catch.
+   *
+   * The lists above check that a brief names a tool that EXISTS, is ENABLED, and
+   * COUNTS as output. All three can hold while the brief still sends the agent
+   * into a guaranteed refusal, because none of them reads the tool's SCHEMA.
+   *
+   * That is not hypothetical. `prd-writer` once named an argument `prd.draft` did
+   * not have, and the fix had to land in both the crew seat and the `FILE_IT`
+   * fallback -- the comment recording it is still in `driver.ts`. On 2026-08-22
+   * `decision.record` began REFUSING a decision with no forecast, on the same
+   * grounds it already refuses one with no rejected alternative, and three seats
+   * still described the old call.
+   *
+   * The cost is not a crash. `loop.server.ts` hands the refusal back and the agent
+   * retries, so it self-heals while burning a turn and filing an error step on
+   * every Decide run. A self-healing defect survives longest, because nothing
+   * ever goes red.
+   *
+   * THE REQUIREMENT IS READ FROM THE SCHEMA, NOT HARDCODED. If the forecast stops
+   * being required, this guard stops demanding it, on its own.
+   */
+  const DECISION_RECORD = "decision.record";
+
+  /** Does the live schema refuse a decision that carries no forecast? */
+  function forecastIsRequired(): boolean {
+    const def = (TOOL_REGISTRY as Record<string, { argsSchema?: { safeParse: (v: unknown) => { success: boolean } } }>)[
+      DECISION_RECORD
+    ];
+    if (!def?.argsSchema) return false;
+    // Satisfies every OTHER rule the tool has, and carries no forecast.
+    return !def.argsSchema.safeParse({
+      title: "a title",
+      rationale: "a rationale long enough that the schema accepts it on its own terms",
+      alternatives_considered: ["a rejected alternative"],
+    }).success;
+  }
+
+  it("refuses a forecast-less decision, or this guard is measuring nothing", () => {
+    expect(forecastIsRequired()).toBe(true);
+  });
+
+  it("every crew seat that names decision.record names the forecast", () => {
+    if (!forecastIsRequired()) return;
+    const silent: string[] = [];
+    for (const station of AGENT_STATION_ORDER) {
+      for (const seat of stationCrew(station)) {
+        if (!toolsNamedIn(seat.file, KNOWN_TOOLS).includes(DECISION_RECORD)) continue;
+        if (!/forecast/i.test(seat.file)) silent.push(`${station}/${seat.slug}`);
+      }
+    }
+    expect(silent).toEqual([]);
+  });
+
+  it("the FILE_IT fallback that names decision.record names the forecast", () => {
+    if (!forecastIsRequired()) return;
+    // Read from source: `FILE_IT` is module-private, and the `prd-writer`
+    // precedent is explicit that the seat and the fallback are two places one
+    // correction has to land. A guard covering only the seats would miss half.
+    const src = readFileSync(join(import.meta.dir, "driver.ts"), "utf8");
+    const block = src.slice(src.indexOf("const FILE_IT"));
+    const entries = block.matchAll(/^\s{2}([a-z]+):\s*\n?\s*"((?:[^"\\]|\\.)*)"/gm);
+    const silent: string[] = [];
+    for (const m of entries) {
+      const [, station, text] = m;
+      if (!text.includes(DECISION_RECORD)) continue;
+      if (!/forecast/i.test(text)) silent.push(`FILE_IT.${station}`);
+    }
+    expect(silent).toEqual([]);
   });
 });
 

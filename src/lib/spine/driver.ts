@@ -110,7 +110,15 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
   // 02 Decide
   strategist: {
     job: "Weigh this against what else could be done, and say what the evidence supports. If the evidence does not support it, say so plainly rather than finding a reason.",
-    file: "Call decision.record with the alternatives you weighed. A decision that is only in your answer is not on the record.",
+    /*
+     * NAME THE ARGUMENTS THE TOOL ACTUALLY HAS, the same correction the
+     * `prd-writer` seat needed. `decision.record` began REFUSING a decision with
+     * no forecast on 2026-08-22, on the same grounds it already refuses one with
+     * no rejected alternative. A seat that does not name the three forecast
+     * arguments sends the agent into a refusal it can only learn about by
+     * failing, which costs a turn and files an error step every time.
+     */
+    file: "Call decision.record with the alternatives you weighed and your forecast: what you expect to happen, the observable that will settle it, and the date it comes due as an ISO timestamp with an offset. A decision that is only in your answer is not on the record, and one with no forecast is refused.",
   },
   critic: {
     job: "Red-team the call that was just made. Argue the strongest case against it, and say what would have to be true for it to be wrong.",
@@ -155,7 +163,7 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
   // 06 Ship
   "release-verifier": {
     job: "Decide whether this is ready to go out. Check it against the spec and against what review found. Shipping cannot be undone from inside this product, so say no if it is not ready.",
-    file: "Record your readiness call with decision.record, naming what you checked. If it is not ready, say so and stop; do not publish.",
+    file: "Record your readiness call with decision.record, naming what you checked, and your forecast: what you expect to happen, the observable that will settle it, and the date it comes due as an ISO timestamp with an offset. If it is not ready, say so and stop; do not publish.",
   },
   release: {
     job: "Publish it and record where it went, so the release can be pointed at.",
@@ -521,7 +529,7 @@ const FILE_IT: Record<AgentStation, string> = {
   sense:
     "Finish by filing what you found: call signals.log for each piece of evidence, and research.synthesize or cluster.trigger to group them. A finding that is only in your answer is not on the record and the next station cannot read it.",
   decide:
-    "Finish by calling decision.record with the alternatives you weighed. A decision that is only in your answer is not on the record and the next station cannot read it.",
+    "Finish by calling decision.record with the alternatives you weighed and your forecast: what you expect to happen, the observable that will settle it, and the date it comes due as an ISO timestamp with an offset. A decision that is only in your answer is not on the record and the next station cannot read it, and one with no forecast is refused.",
   // Same correction as the `prd-writer` seat above, and it has to be made in
   // both places: this is the fallback used when a station has no crew entry, and
   // a fallback that names an argument the tool does not have is the same defect
