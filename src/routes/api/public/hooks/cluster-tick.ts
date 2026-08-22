@@ -7,7 +7,7 @@ import { clusterSignalsCore } from "@/lib/ai/cluster.server";
 import { withJobRun } from "@/lib/observability";
 import { promoteClustersOnce } from "@/lib/spine/promote.server";
 import { loadAutonomyPolicy } from "@/lib/autonomy-policy.server";
-import { promotionBarFor } from "@/lib/autonomy-policy";
+import { coldStartBarFor, promotionBarFor } from "@/lib/autonomy-policy";
 
 // workspace_routine_prefs (PC-08, migration 20260710220000) predates the
 // last generated Supabase types.
@@ -61,6 +61,24 @@ export const Route = createFileRoute("/api/public/hooks/cluster-tick")({
               .eq("enabled", false)
               .in("workspace_id", candidateIds);
             disabledWorkspaceIds = new Set((prefs ?? []).map((p) => p.workspace_id as string));
+          }
+
+          /*
+           * THE COLD-START GATE, read the same tolerant way as the routine prefs
+           * above. It is a separate query rather than a column on the select
+           * because `cold_start_promotion_enabled` post-dates the generated
+           * Supabase types, and widening that select would fail tsc for every
+           * other field on the row. Absent column, failed read and unset flag all
+           * resolve identically to "off", which is the shipped behaviour.
+           */
+          let coldStartWorkspaceIds = new Set<string>();
+          if (candidateIds.length > 0) {
+            const { data: coldRows } = await routinesDb
+              .from("workspaces")
+              .select("id,cold_start_promotion_enabled")
+              .eq("cold_start_promotion_enabled", true)
+              .in("id", candidateIds);
+            coldStartWorkspaceIds = new Set((coldRows ?? []).map((r) => r.id as string));
           }
 
           const results: Array<{
@@ -117,11 +135,33 @@ export const Route = createFileRoute("/api/public/hooks/cluster-tick")({
                 // resolves to the platform bar, so this changes nothing until
                 // somebody deliberately moves it.
                 const policy = await loadAutonomyPolicy(routinesDb, ws.id);
-                const sweep = await promoteClustersOnce(
-                  supabaseAdmin,
-                  ws.owner_id,
-                  promotionBarFor(policy),
-                );
+                let bar = promotionBarFor(policy);
+
+                /*
+                 * THE COLD START. Frequency is the only one of the three numbers
+                 * that is relative to the corpus it came from, and a bar of 8 is
+                 * unreachable for a workspace holding five signals -- which is why
+                 * no real workspace has ever promoted a cluster. Measured
+                 * 2026-08-22: 27 real themes, maximum frequency 3, and 17 of them
+                 * already clear severity AND confidence.
+                 *
+                 * Gated per workspace and off by default, because turning it on
+                 * starts autonomous spend. The count is the workspace's whole
+                 * corpus, and `head: true` makes it a count rather than a read.
+                 */
+                if (coldStartWorkspaceIds.has(ws.id)) {
+                  const { count, error: countErr } = await supabaseAdmin
+                    .from("signals")
+                    .select("id", { count: "exact", head: true })
+                    .eq("workspace_id", ws.id);
+                  // A failed count must not silently loosen the bar: an unknown
+                  // corpus is treated as mature, which is the shipped behaviour.
+                  if (!countErr && typeof count === "number") {
+                    bar = coldStartBarFor(bar, count);
+                  }
+                }
+
+                const sweep = await promoteClustersOnce(supabaseAdmin, ws.owner_id, bar);
                 started = sweep.outcomes.filter((p) => p.trackId).length;
                 qualified = sweep.qualified;
                 already = sweep.alreadyPromoted;

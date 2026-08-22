@@ -196,6 +196,66 @@ export function promotionBarFor(policy: AutonomyPolicy): PromotionBar {
   };
 }
 
+/**
+ * ── THE COLD START, AND WHY ONE ABSOLUTE NUMBER CANNOT SERVE BOTH ENDS ──────
+ *
+ * Measured against production on 2026-08-22. Across all nine real workspaces
+ * there are 27 themes, average frequency 1.26 and MAXIMUM 3, against a shipped
+ * bar of 8. So no real workspace can ever promote a cluster, no real workspace
+ * has ever had a `spine_tracks` row, and the autonomous loop has run only on
+ * demo fixtures for its whole life.
+ *
+ * The bar itself is not wrong. Its own argument, at `DEFAULT_PROMOTION_BAR`, is
+ * that fewer than eight independent signals is a hunch rather than something
+ * worth spending money on unwatched, and in a workspace holding four hundred
+ * signals that is exactly right. The defect is that **frequency is the only one
+ * of the three numbers that is relative to the corpus it came from.** Three
+ * signals out of four hundred is noise. Three out of five is the dominant thing
+ * that workspace knows, and refusing to act on it is the product failing at the
+ * one job it claims: telling you what to build.
+ *
+ * So the bar reads maturity. Below `COLD_START_MATURE_AT` it scales with how
+ * much the workspace has actually said, and it is clamped at both ends:
+ *
+ *   - it NEVER rises above the configured bar, so this can only ever make the
+ *     product more willing to act, never less, and a workspace that deliberately
+ *     set a low number keeps it;
+ *   - it never falls below `COLD_START_FLOOR`, because one signal is a report
+ *     and two is a coincidence, at any workspace size.
+ *
+ * **Severity and confidence deliberately do not scale.** They measure the
+ * QUALITY of a cluster, not its weight of evidence: pain is not less severe in a
+ * young workspace, and a clustering that is unsure is unsure at any size. Only
+ * frequency is corpus-relative, so only frequency moves. Measured on the same
+ * data, this is not a theoretical distinction: 17 of those 27 real themes
+ * already clear severity AND confidence, and frequency alone is what stops
+ * every one of them.
+ *
+ * Gated per workspace and OFF by default (`workspaces.cold_start_promotion_enabled`),
+ * because turning it on is a decision to start spending with nobody watching,
+ * which the canon's fourth floor makes a person's call rather than ours.
+ */
+export const COLD_START_MATURE_AT = 40;
+export const COLD_START_FLOOR = 3;
+
+/**
+ * The promotion bar a workspace of this size should actually be held to.
+ *
+ * `totalSignals` is the workspace's whole corpus, not the theme's frequency.
+ * Returns the bar unchanged once the workspace is mature, so the steady state is
+ * byte-for-byte what shipped.
+ */
+export function coldStartBarFor(bar: PromotionBar, totalSignals: number): PromotionBar {
+  if (!Number.isFinite(totalSignals) || totalSignals >= COLD_START_MATURE_AT) return bar;
+
+  const scaled = Math.ceil((bar.minFrequency * Math.max(0, totalSignals)) / COLD_START_MATURE_AT);
+  // The floor may not exceed what the workspace asked for: a deliberate 2 stays 2.
+  const floor = Math.min(COLD_START_FLOOR, bar.minFrequency);
+  const minFrequency = Math.max(floor, Math.min(bar.minFrequency, scaled));
+
+  return { ...bar, minFrequency };
+}
+
 /** The two numbers `classifyOutcomeSettlement` places its sliding bar with. */
 export function settleBarFor(policy: AutonomyPolicy): SettleBar {
   return { floor: policy.settleFloor, span: policy.settleStakesSpan };

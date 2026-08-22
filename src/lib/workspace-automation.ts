@@ -32,7 +32,11 @@
 export type AutomationFlag = {
   /** The `workspaces` column. */
   column:
-    "auto_sense_enabled" | "auto_derive_enabled" | "auto_trigger_enabled" | "auto_scout_enabled";
+    | "auto_sense_enabled"
+    | "auto_derive_enabled"
+    | "auto_trigger_enabled"
+    | "auto_scout_enabled"
+    | "cold_start_promotion_enabled";
   /** What a person is actually turning on. Practitioner words, not column names. */
   label: string;
   /**
@@ -120,6 +124,13 @@ export const AUTOMATION_FLAGS: readonly AutomationFlag[] = [
     costsModelCalls: true,
     darkWhenOff:
       "Insights are never resolved or scored, and a due forecast reaches the desk with no drafted verdict. The desk itself still works: settling by hand is not gated on this.",
+  },
+  {
+    column: "cold_start_promotion_enabled",
+    label: "Start work before the evidence piles up",
+    costsModelCalls: true,
+    darkWhenOff:
+      "A new workspace waits, and it waits forever. Work starts on its own only once eight signals say the same thing, and a workspace holding fewer than eight signals in total can never reach that bar, so nothing is ever proposed from what it already knows. Measured 2026-08-22: no real workspace has ever started work this way. With this on, the frequency bar scales with how much this workspace has actually said, never below three, and severity and confidence are untouched.",
   },
   {
     column: "auto_scout_enabled",

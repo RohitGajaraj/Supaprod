@@ -1,6 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import {
   AUTONOMY_BOUNDS,
+  coldStartBarFor,
+  COLD_START_FLOOR,
+  COLD_START_MATURE_AT,
   decideSettlement,
   promotionBarFor,
   resolveAutonomyPolicy,
@@ -371,5 +374,64 @@ describe("a policy object is enough on its own to drive both engines", () => {
     expect(promotionBarFor(p).minSeverity).toBe(DEFAULT_PROMOTION_BAR.minSeverity);
     expect(settleBarFor(p).floor).toBe(0.5);
     expect(settleBarFor(p).span).toBe(SETTLE_STAKES_SPAN);
+  });
+});
+
+/*
+ * THE COLD START. Every number below is the shape measured in production on
+ * 2026-08-22: real workspaces hold 4 to 7 signals and their largest theme
+ * clusters 3, against a shipped bar of 8, which is why no real workspace has
+ * ever promoted a cluster.
+ */
+describe("coldStartBarFor", () => {
+  const bar = DEFAULT_PROMOTION_BAR; // minFrequency 8
+
+  test("a mature workspace is held to exactly the bar that shipped", () => {
+    expect(coldStartBarFor(bar, COLD_START_MATURE_AT)).toEqual(bar);
+    expect(coldStartBarFor(bar, 400)).toEqual(bar);
+  });
+
+  test("the real-workspace case: five signals resolves to the floor, not to one", () => {
+    // ceil(8 * 5 / 40) is 1, and one signal is a report rather than a pattern.
+    expect(coldStartBarFor(bar, 5).minFrequency).toBe(COLD_START_FLOOR);
+  });
+
+  test("it scales between the floor and the bar rather than stepping", () => {
+    expect(coldStartBarFor(bar, 20).minFrequency).toBe(4);
+    expect(coldStartBarFor(bar, 30).minFrequency).toBe(6);
+    expect(coldStartBarFor(bar, 39).minFrequency).toBe(8);
+  });
+
+  test("it can only ever lower the bar, never raise it", () => {
+    for (const n of [0, 1, 5, 12, 25, 39, 40, 100]) {
+      expect(coldStartBarFor(bar, n).minFrequency).toBeLessThanOrEqual(bar.minFrequency);
+    }
+  });
+
+  test("a workspace that deliberately set a low bar keeps it", () => {
+    const deliberate = { ...bar, minFrequency: 2 };
+    // The floor must not raise a number a person chose on purpose.
+    expect(coldStartBarFor(deliberate, 5).minFrequency).toBe(2);
+  });
+
+  test("severity and confidence never move, because they are not corpus-relative", () => {
+    const scaled = coldStartBarFor(bar, 5);
+    expect(scaled.minSeverity).toBe(bar.minSeverity);
+    expect(scaled.minConfidence).toBe(bar.minConfidence);
+  });
+
+  test("an unknown corpus size is treated as mature, so it cannot loosen anything", () => {
+    expect(coldStartBarFor(bar, Number.NaN)).toEqual(bar);
+  });
+
+  test("the measured live theme still has to clear severity and confidence", () => {
+    // 17 of 27 real themes clear severity and confidence; frequency alone blocks
+    // them. A theme that clears the scaled frequency but not the quality bars
+    // must still be refused.
+    const scaled = coldStartBarFor(bar, 5);
+    const weak = { title: "t", frequency: 3, severity: 2, confidence: 0.9, status: "open" };
+    expect(qualifies(weak, scaled).ok).toBe(false);
+    const good = { title: "t", frequency: 3, severity: 4, confidence: 0.8, status: "open" };
+    expect(qualifies(good, scaled).ok).toBe(true);
   });
 });
