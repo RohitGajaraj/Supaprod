@@ -2,7 +2,7 @@
 
 > _Created: 2026-08-04 · Last updated: 2026-08-22_
 
-**Twelve contracts describing what is true about how this system is built.** A contract states the invariant and where it is enforced. It does not argue for the choice; that is [`../docs/decisions/`](../docs/decisions/README.md).
+**Thirteen contracts describing what is true about how this system is built.** A contract states the invariant and where it is enforced. It does not argue for the choice; that is [`../docs/decisions/`](../docs/decisions/README.md).
 
 These live at repo root rather than under `docs/` because they are read alongside code, not alongside planning.
 
@@ -26,6 +26,7 @@ These live at repo root rather than under `docs/` because they are read alongsid
 | --- | --- |
 | [`api.md`](./api.md) | The API and interface reference: server functions, the public hook endpoints, the A2A card. **Its §4 predates the machine surface being built and still calls it planned** — for anything machine-facing read [`agent-to-agent.md`](./agent-to-agent.md) first. |
 | [`agent-to-agent.md`](./agent-to-agent.md) | **The three machine doors an external agent reaches us through**, and which one is the product. What a caller can read, write, and cannot do at all, mapped onto Question → Bet → Run → Verdict. A Run is not driveable headlessly: no tool starts, watches, steers or stops one. The approval policy engine does not run on this path; scope plus the global `interop_write_enabled()` gate plus status floors do. |
+| [`station-journeys.md`](./station-journeys.md) | **The same journey walked twice at every station: once as the person, once as an external agent.** What each can read, write and must clear, with the real route and the real tool named. Five of the nine stations have no external-agent path at all, and the per-station asymmetry is the point of the file. Sits on top of [`agent-to-agent.md`](./agent-to-agent.md) and does not repeat it. |
 | [`integrations.md`](./integrations.md) | The connector platform: the typed provider registry, adapters, and the `resolveProviderAuth` credential chain (workspace binding, then user connection, then env fallback). BYO keys are enterprise-only, encrypted AES-256-GCM in a service-role-only vault. |
 | [`deployment.md`](./deployment.md) | Vite to a Cloudflare Worker, and how a deploy actually reaches production. **Note the operational fact that catches people: pushing does not deploy.** The founder clicks publish in Lovable. |
 | [`observability.md`](./observability.md) | What we can see and what we cannot. Read with [`../docs/planning/initiatives/analytics-and-failure-detection-plan.md`](../docs/planning/initiatives/analytics-and-failure-detection-plan.md) before adding any vendor SDK; the façade rule keeps leaving Lovable a one-day redeploy. |
