@@ -208,7 +208,12 @@ export const runAgent = createServerFn({ method: "POST" })
       const tag = via === "byo" ? `\n\n_via your ${provider} key_` : "";
       const { data: updated } = await supabase
         .from("agent_runs")
-        .update({ output: output + tag, status: "complete", duration_ms: duration })
+        // "complete" here wrote the ONLY spelling of a finished run that no reader
+        // understands. `run-status.ts` measured the damage: it falls through to
+        // `queued` in both `run-state.ts` and `build-status.ts`, so a finished run
+        // reads as one waiting to start. Two live rows carry it, both real rather
+        // than demo, and this line is their only source.
+        .update({ output: output + tag, status: "completed", duration_ms: duration })
         .eq("id", runRow!.id)
         .select()
         .single();

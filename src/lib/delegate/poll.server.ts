@@ -128,6 +128,20 @@ export async function foldDelegateResult({
   }
   try {
     const stepStatus = pollResult.status === "done" ? "done" : "failed";
+    /*
+     * TWO TABLES, TWO VOCABULARIES, AND THIS LINE USED TO SPEND ONE ON BOTH.
+     *
+     * `mission_steps.status` says "done". `agent_runs.status` does not have that
+     * word -- its finished spelling is "completed", and an unrecognised one falls
+     * through to `queued` in `run-state.ts` and `build-status.ts`, so a delegated
+     * run that succeeded would have read as one waiting to start.
+     *
+     * Zero rows carry it today because this path is dormant behind
+     * DELEGATE_OUTBOUND_ENABLED, which is exactly why it is worth separating now:
+     * the cost of the fix is a variable, and the cost of finding it later is a
+     * dashboard that undercounts every delegated run.
+     */
+    const runStatus = pollResult.status === "done" ? "completed" : "failed";
     const now = new Date().toISOString();
     const resultPayload: Record<string, unknown> = {
       provider,
@@ -153,7 +167,7 @@ export async function foldDelegateResult({
     const { error: runErr } = await supabase
       .from("agent_runs")
       .update({
-        status: stepStatus,
+        status: runStatus,
         delegate_meta: {
           provider,
           external_job_id: externalJobId,
