@@ -5,6 +5,11 @@ import { buildSkillpack, clampSkillpackLimit, type SkillpackLessonInput } from "
 import { supersededChildIds, type LineageEdgeLite } from "./trust-ledger.functions";
 import { screenIngestText, INGEST_REVIEW_TAG } from "./ingest-guardrails";
 import { OutcomeContractSchema } from "./discovery.functions";
+// The forecast rules, from the one place that owns them. Both the human door
+// (`createDecision`, `setDecisionForecastSchema`) and the agent door
+// (`decision.record`) wire this same function rather than re-deriving it, which
+// is why all three can be asserted to reach identical verdicts.
+import { forecastRefusal } from "./decisions.functions";
 import { buildArdDocument, type ArdDesignSection } from "./ard-schema";
 import { MCP_WRITE_SCOPES } from "./mcp-protocol";
 import { loadDesignDispatchContext } from "@/lib/build/design-gate.server";
@@ -768,11 +773,88 @@ export async function ingestSignal(
 //   agent surface that could land an approved decision would be a hole in it.
 // ───────────────────────────────────────────────────────────────────────────
 
-const recordDecisionSchema = z.object({
-  title: z.string().min(1).max(300),
-  rationale: z.string().max(4000).optional(),
-  agent_slug: z.string().max(80).optional(),
-});
+/**
+ * THE REFUSAL, WORD FOR WORD FROM THE INTERNAL DOOR.
+ *
+ * `decision.record` (lib/ai/tools/registry.server.ts) carries this exact string
+ * on all three forecast fields, and the reasoning for it lives there: the tool
+ * loop hands `error.message` straight back to the model, so whatever is written
+ * here is the entire explanation a caller gets, and zod's default "Required"
+ * teaches the shape rather than the point.
+ *
+ * IT IS DUPLICATED RATHER THAN IMPORTED, and that is a deliberate trade with a
+ * guard on it. `registry.server.ts` pulls in the whole agent runtime, and this
+ * module is reachable from client bundles through its `createServerFn` exports,
+ * so importing it here would drag the tool registry into the browser graph — the
+ * same reason `settleOutcome` below reaches `applyOutcome` by dynamic import.
+ * The copy is pinned instead: `mcp-record-decision-drift.test.ts` parses the
+ * same bad input through both doors and asserts the messages are byte-identical,
+ * so the day one of them is reworded the other fails rather than drifting.
+ */
+const FORECAST_REQUIRED =
+  "A decision needs a forecast, and this one has none. Give all three parts: forecast_claim (what you expect to happen), forecast_how_we_will_know (the observable that will settle it), and forecast_horizon_date (an ISO 8601 timestamp with offset, in the future). A decision with no forecast is an opinion, not a bet. It is the one thing about a decision that cannot be reconstructed afterwards, so it is recorded now or it is never recorded at all.";
+
+/**
+ * ── THE HEADLESS DOOR WAS THE WEAKER ONE INTO THE SAME TABLE (2026-08-22) ──
+ *
+ * `decision.record` was tightened on 2026-08-22 to refuse a decision with no
+ * rationale, no rejected alternative, or no forecast. This schema still asked
+ * for `title` alone: no alternatives field, no forecast field at all. So an
+ * external agent holding `write:decision` could write, into `decisions`, a row
+ * the product's own agents are refused — and the weaker door was the one facing
+ * outward, which is the wrong way round for every reason at once.
+ *
+ * The rules are the internal tool's, matched field for field and message for
+ * message, and the horizon rule is not re-derived here: `forecastRefusal` is the
+ * function both other doors wire, so a fourth rule added there arrives on this
+ * door the same day.
+ *
+ * TWO DIFFERENCES ARE KEPT ON PURPOSE, because they make this door STRICTER
+ * rather than looser, and closing an asymmetry does not mean levelling down:
+ *
+ *   · `status: 'pending'`, always. The internal tool runs `decideDecisionReview`
+ *     and usually lands 'approved'. Nothing an external agent writes lands
+ *     finished; that is this surface's whole posture and it is not relaxed here.
+ *   · No `prd_id`. The internal tool accepts one and then stamps the edge with
+ *     `recordDecisionOrigins`. Accepting the id here without writing that hop
+ *     would create exactly the silent gap `the-ledger-chain-has-a-writer-for-
+ *     every-hop.test.ts` exists to find, so the parameter stays off this door
+ *     until the hop is written with it.
+ *
+ * `title` drops from 300 to 200 to match. A title accepted at one door and
+ * refused at the other is the same drift in miniature, and nothing is broken by
+ * narrowing it: `decisions WHERE source_kind='mcp'` is 0 rows.
+ */
+const recordDecisionSchema = z
+  .object({
+    title: z.string().min(1).max(200),
+    // Required now. A call with no stated reason cannot be re-read later by the
+    // person who has to live with it, and the internal door refuses it.
+    rationale: z.string().min(1).max(4000),
+    // A choice with nothing weighed against it is an assertion, not a decision.
+    alternatives_considered: z.array(z.string().min(1).max(500)).min(1).max(10),
+    agent_slug: z.string().max(80).optional(),
+    forecast_claim: z
+      .string({ required_error: FORECAST_REQUIRED, invalid_type_error: FORECAST_REQUIRED })
+      .min(1)
+      .max(500),
+    forecast_how_we_will_know: z
+      .string({ required_error: FORECAST_REQUIRED, invalid_type_error: FORECAST_REQUIRED })
+      .min(1)
+      .max(500),
+    /** ISO 8601 with offset, and in the future. Both rules are refusals. */
+    forecast_horizon_date: z
+      .string({ required_error: FORECAST_REQUIRED, invalid_type_error: FORECAST_REQUIRED })
+      .datetime({
+        offset: true,
+        message:
+          "forecast_horizon_date must be an ISO 8601 timestamp with an offset, for example 2026-09-05T00:00:00Z. A bare date leaves the moment it comes due ambiguous, and this column is what the due index reads.",
+      }),
+  })
+  .superRefine((v, ctx) => {
+    const bad = forecastRefusal(v);
+    if (bad) ctx.addIssue({ code: z.ZodIssueCode.custom, path: [bad.path], message: bad.message });
+  });
 
 export type RecordDecisionResult = {
   status: "stored" | "flagged" | "quarantined";
@@ -787,11 +869,40 @@ export async function recordDecision(
 ): Promise<RecordDecisionResult> {
   const parsed = recordDecisionSchema.safeParse(args);
   if (!parsed.success) {
-    throw new Error("expected { title: string, rationale?: string, agent_slug?: string }");
+    /*
+     * THE REASON TRAVELS WITH THE REFUSAL, which the shape hint alone cannot do.
+     * This threw a bare "expected { title, rationale?, agent_slug? }" and
+     * discarded every zod message, so the forecast refusal above — the one
+     * sentence that explains WHY a decision needs a bet — would have been
+     * written and then never seen by the only reader it is addressed to. The
+     * shape hint is kept first, because a caller scanning for the arg list still
+     * finds it, and the messages follow it.
+     */
+    throw new Error(
+      "expected { title: string, rationale: string, alternatives_considered: string[], forecast_claim: string, forecast_how_we_will_know: string, forecast_horizon_date: ISO 8601 with offset, in the future, agent_slug?: string }. " +
+        parsed.error.issues.map((i) => i.message).join(" "),
+    );
   }
-  const { title, rationale, agent_slug } = parsed.data;
+  const {
+    title,
+    rationale,
+    alternatives_considered,
+    agent_slug,
+    forecast_claim,
+    forecast_how_we_will_know,
+    forecast_horizon_date,
+  } = parsed.data;
 
-  const decision = screenIngestText(`${title} ${rationale ?? ""}`);
+  // ALL OF IT IS SCREENED, not just the title and the rationale. The
+  // alternatives and the forecast are free text an external caller wrote, they
+  // land in a human's reading pane and in later agent context exactly as the
+  // rationale does, and screening the two oldest fields while three new ones go
+  // through unread is the half-fix this file's own test already names.
+  const decision = screenIngestText(
+    [title, rationale, ...alternatives_considered, forecast_claim, forecast_how_we_will_know].join(
+      " ",
+    ),
+  );
   if (decision === "quarantine") return { status: "quarantined", id: null };
 
   const { data, error } = await supabaseClient
@@ -800,7 +911,27 @@ export async function recordDecision(
       user_id,
       workspace_id,
       title,
-      rationale: rationale?.trim() || null,
+      rationale: rationale.trim(),
+      alternatives_considered,
+      /*
+       * ALWAYS THREE VALUES, NEVER A NULL — the schema refuses the call without
+       * all three, so there is no branch here that writes a forecast-less
+       * decision. Set-once from this statement on: `enforce_forecast_immutable`
+       * refuses any later change, so `record_forecast` will correctly report
+       * this decision as already carrying one.
+       *
+       * NO SECOND SCOPE IS REQUIRED FOR THIS, and the separation the forecast
+       * tools were built on is intact. `write:forecast` guards attaching a
+       * forecast to a decision somebody ELSE recorded, and
+       * `write:forecast_resolution` guards grading one — the loop the
+       * immutability trigger exists to break. Stating what you expect from the
+       * call you are recording, in the same write, is one act, and gating it
+       * behind a scope the caller may not hold would make a REQUIRED field
+       * unwritable, which is a tool that always fails.
+       */
+      forecast_claim,
+      forecast_how_we_will_know,
+      forecast_horizon_date,
       // Pending, always. See the header: an agent proposes.
       status: "pending",
       // 'mcp' is a real allowed value as of migration 20260810160000. Writing

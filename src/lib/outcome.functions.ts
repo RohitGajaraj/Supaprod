@@ -413,7 +413,179 @@ export type ApplyOutcomeResult = {
   themeMoved: { themeId: string; before: number; after: number; otherBets: number } | null;
   /** Set when this write replaced a verdict that was already on the record. */
   overturned: OutcomeOverturn | null;
+  /** The decision this verdict was written back against, and — when it is null
+   *  — the reason no hop could name one. See `resolveSettledDecision`. */
+  decisionEdge: SettledDecisionEdge;
 };
+
+/** What `resolveSettledDecision` found, and why, so a NULL is a stated answer
+ *  rather than a gap somebody has to go and re-derive. */
+export type SettledDecisionEdge = {
+  /** The decision this verdict settles. Null when no hop could name exactly one. */
+  decisionId: string | null;
+  /** Which hop answered, or why none did. Plain enough to put on a receipt. */
+  why: string;
+};
+
+/**
+ * WHICH DECISION A VERDICT SETTLES, and the two hops allowed to answer.
+ *
+ * The canon's central sentence is that a verdict is "written back against the
+ * decision that caused it". `learnings.decision_id` has existed since migration
+ * 20260819181000 and NOTHING wrote it: 0 of 133 rows carried one, measured
+ * 2026-08-22. This resolves the value that closes it, and the hard part is not
+ * the write, it is refusing to invent an edge when the record does not hold one.
+ *
+ * THE MIGRATION THAT ADDED THE COLUMN REFUSED TO DERIVE IT, and it was right
+ * about the derivation it refused: "prd_id does not identify a decision, since
+ * many decisions share one spec". Measured the same day, 14 specs carry a
+ * decision and NOT ONE of them carries exactly one — every one carries two or
+ * three. A plain join on `prd_id` would therefore have written a wrong edge on
+ * every row it touched. `trust.server.ts` builds exactly that map today
+ * (`new Map(decisionRows.map(d => [d.prd_id, d.decided_by_agent_slug]))`, where
+ * the last row of an unordered result silently wins) and is the cost this column
+ * exists to stop paying — so copying its shape here would have carved the defect
+ * into the schema instead of removing it.
+ *
+ * SO THE RULE IS UNIQUENESS, NOT PROXIMITY. The nearest hop that knows anything
+ * answers; if that hop knows more than one thing the answer is NULL and the
+ * ladder STOPS. Ambiguity is never resolved by looking further away, because a
+ * farther hop that happens to be unique is not evidence about which of the near
+ * candidates was meant — it is a tiebreak invented by the query.
+ *
+ *   1. THE SPEC'S OWN DECISIONS. `decisions.prd_id = spec.id`, in the spec's
+ *      workspace, excluding `superseded`: a call that was replaced is not the
+ *      call this verdict grades, and dropping it is the one narrowing that
+ *      genuinely disambiguates rather than guessing.
+ *
+ *   2. THE TRACK, only when the spec carries no decision at all. This is not a
+ *      fallback for taste. It is the ONLY hop that can ever answer on the
+ *      autonomous route, where the edge matters most: `decision.record` writes
+ *      `prd_id` only when the agent passes one, and at Decide the spec does not
+ *      exist yet, so `decisions.prd_id` is null there by construction — the same
+ *      fact `learning.record` records against itself in registry.server.ts. What
+ *      DOES exist is the track: the driver files the Decide call and the spec it
+ *      produced as members of one piece of work. Measured 2026-08-22, five
+ *      tracks hold a decision member and three hold exactly one.
+ *
+ *      Two guards stop that becoming a guess. The candidate must sit in the
+ *      spec's workspace, and it must have been created no later than the spec: a
+ *      decision recorded on the track AFTER the spec is a later call, not the one
+ *      the spec came out of.
+ *
+ * WHY THERE IS NO MISSION HOP, though `applyOutcome` holds a `missionId` and it
+ * looks like a third route. The only caller that supplies one derives it from
+ * the newest decision on this same spec (outcome-review.server.ts, "the most
+ * recent decision linking this spec to a mission"), so a mission hop would
+ * re-ask rung 1 with the uniqueness rule dropped — the guess, laundered through
+ * a second table. The other callers pass nothing.
+ *
+ * NOTHING HERE MAY THROW. A verdict is real work somebody or something did; an
+ * attribution failure reports less and never loses it.
+ */
+export async function resolveSettledDecision(
+  db: SupabaseClient,
+  spec: { id: string; workspaceId: string | null; createdAt: string | null },
+): Promise<SettledDecisionEdge> {
+  const ids = (rows: unknown, key: string): string[] => [
+    ...new Set(
+      ((rows ?? []) as Array<Record<string, unknown>>)
+        .map((r) => r?.[key])
+        .filter((v): v is string => typeof v === "string" && v.length > 0),
+    ),
+  ];
+
+  try {
+    // ---- 1. The spec's own decisions. `limit(2)` because the question is
+    //         "exactly one or not", and reading a third row answers nothing.
+    let onSpec = db
+      .from("decisions")
+      .select("id")
+      .eq("prd_id", spec.id)
+      .neq("status", "superseded");
+    if (spec.workspaceId) onSpec = onSpec.eq("workspace_id", spec.workspaceId);
+    const { data: specRows, error: specErr } = await onSpec.limit(2);
+    if (specErr) return { decisionId: null, why: `the decision lookup failed: ${specErr.message}` };
+    const onSpecIds = ids(specRows, "id");
+    if (onSpecIds.length === 1) {
+      return {
+        decisionId: onSpecIds[0],
+        why: "the one standing decision recorded against this spec",
+      };
+    }
+    if (onSpecIds.length > 1) {
+      return {
+        decisionId: null,
+        why: "this spec carries more than one standing decision, so which one the verdict settles is not on the record",
+      };
+    }
+
+    // ---- 2. The track this spec came out of.
+    const { data: prdMembers, error: prdMemberErr } = await db
+      .from("spine_track_members")
+      .select("track_id")
+      .eq("artifact_kind", "prd")
+      .eq("artifact_id", spec.id);
+    if (prdMemberErr) {
+      return { decisionId: null, why: `the track lookup failed: ${prdMemberErr.message}` };
+    }
+    const trackIds = ids(prdMembers, "track_id");
+    if (trackIds.length === 0) {
+      return {
+        decisionId: null,
+        why: "no decision names this spec and the spec belongs to no track",
+      };
+    }
+
+    const { data: decisionMembers, error: decMemberErr } = await db
+      .from("spine_track_members")
+      .select("artifact_id")
+      .eq("artifact_kind", "decision")
+      .in("track_id", trackIds);
+    if (decMemberErr) {
+      return { decisionId: null, why: `the track lookup failed: ${decMemberErr.message}` };
+    }
+    const candidates = ids(decisionMembers, "artifact_id");
+    if (candidates.length === 0) {
+      return { decisionId: null, why: "this spec's track recorded no decision" };
+    }
+
+    let onTrack = db
+      .from("decisions")
+      .select("id")
+      .in("id", candidates)
+      .neq("status", "superseded");
+    if (spec.workspaceId) onTrack = onTrack.eq("workspace_id", spec.workspaceId);
+    // The call has to have come BEFORE the spec it produced.
+    if (spec.createdAt) onTrack = onTrack.lte("created_at", spec.createdAt);
+    const { data: trackRows, error: trackErr } = await onTrack.limit(2);
+    if (trackErr) {
+      return { decisionId: null, why: `the decision lookup failed: ${trackErr.message}` };
+    }
+    const onTrackIds = ids(trackRows, "id");
+    if (onTrackIds.length === 1) {
+      return {
+        decisionId: onTrackIds[0],
+        why: "the one decision on the track this spec came out of",
+      };
+    }
+    if (onTrackIds.length > 1) {
+      return {
+        decisionId: null,
+        why: "this spec's track recorded more than one decision, so which one the verdict settles is not on the record",
+      };
+    }
+    return {
+      decisionId: null,
+      why: "this spec's track recorded no decision that predates the spec",
+    };
+  } catch (e) {
+    return {
+      decisionId: null,
+      why: `the decision attribution failed: ${e instanceof Error ? e.message : "unknown error"}`,
+    };
+  }
+}
 
 /**
  * Record a shipped PRD's real-world outcome: write prds.outcome, adjust the
@@ -462,7 +634,10 @@ export async function applyOutcome(
   {
     const { data: prd, error: prdErr } = await db
       .from("prds")
-      .select("id,workspace_id,opportunity_id,title,outcome")
+      // `created_at` is here for one reason: it is the guard on the track hop in
+      // `resolveSettledDecision`. A decision filed on the same track AFTER the
+      // spec is a later call, not the one the spec came out of.
+      .select("id,workspace_id,opportunity_id,title,outcome,created_at")
       .eq("id", data.prdId)
       .single();
     if (prdErr) throw new Error(prdErr.message);
@@ -561,6 +736,18 @@ export async function applyOutcome(
       ? `${data.summary}\n\nOverturned: ${prior.by === "agent" ? `${prior.agentSlug ?? "an agent"} settled this as` : "this was previously settled as"} ${prior.verdict}. A person read it again and called it ${data.verdict}.`
       : data.summary;
 
+    // THE EDGE THE CANON'S CENTRAL SENTENCE NAMES. Resolved before the write so
+    // both branches below carry the same answer, and resolved from the SPEC
+    // rather than from the caller because three of the four callers are not
+    // human and none of them knows which decision it is settling. Fail-soft by
+    // construction: `resolveSettledDecision` never throws and returns NULL with
+    // a stated reason wherever the record cannot name one.
+    const decisionEdge = await resolveSettledDecision(db, {
+      id: prd.id as string,
+      workspaceId: (prd.workspace_id as string | null) ?? null,
+      createdAt: (prd.created_at as string | null) ?? null,
+    });
+
     const learningFields = {
       verdict: data.verdict,
       summary: overturnSummary.slice(0, 4000),
@@ -585,6 +772,23 @@ export async function applyOutcome(
       // prior_ice on the superseded row already holds the pre-verdict score.
       const rowPrior = (updated as { prior_ice?: number | string | null } | null)?.prior_ice;
       priorIce = rowPrior == null ? priorIce : Number(rowPrior);
+      // FILL, NEVER OVERWRITE. Every learning written before 2026-08-22 carries
+      // no decision, and an overturn — a person disagreeing with an agent — is
+      // the highest-signal row this product owns, so it is the last row that
+      // should stay unattributed. But the decision a verdict settles does not
+      // change because the verdict did, so a row that already names one keeps
+      // it: the `.is()` filter is in the WHERE clause rather than in a preceding
+      // read, so a concurrent fill loses the race instead of being clobbered.
+      if (decisionEdge.decisionId && !(updated as { decision_id?: string | null })?.decision_id) {
+        const { data: filled } = await db
+          .from("learnings")
+          .update({ decision_id: decisionEdge.decisionId })
+          .eq("id", supersedes)
+          .is("decision_id", null)
+          .select()
+          .maybeSingle();
+        if (filled) learning = filled;
+      }
     } else {
       const { data: inserted, error: learnErr } = await db
         .from("learnings")
@@ -594,6 +798,9 @@ export async function applyOutcome(
           prd_id: prd.id,
           opportunity_id: prd.opportunity_id,
           mission_id: data.missionId ?? null,
+          // Null on purpose whenever the record cannot name exactly one call.
+          // `decisionEdge.why` says which, and it travels back on the result.
+          decision_id: decisionEdge.decisionId,
           prior_ice: priorIce,
           ...learningFields,
         })
@@ -926,6 +1133,7 @@ export async function applyOutcome(
       arcHold,
       themeMoved,
       overturned,
+      decisionEdge,
     };
   }
 }

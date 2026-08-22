@@ -280,16 +280,44 @@ export const MCP_WRITE_TOOLS: McpTool[] = [
   },
   {
     name: "record_decision",
+    /*
+     * The description says every refusal out loud, because an agent that has to
+     * discover a required field by failing burns a round trip and often files
+     * nothing instead. It is written to the same shape as the internal
+     * `decision.record` description for the same reason the schema is: the two
+     * doors write the same table and must not teach different rules.
+     */
     description:
-      "Record a decision in this workspace's audit trail (governed write). Requires the write:decision scope and the workspace's outward-write gate. Lands at status 'pending' for a human to approve; an agent never lands a decision already approved. Text is injection-screened before storage.",
+      "Record a decision in this workspace's audit trail (governed write): the call, why you made it, the alternatives you rejected, and the forecast you are making. Requires the write:decision scope and the workspace's outward-write gate. Requires at least one rejected alternative -- a choice with nothing weighed against it is an assertion, not a decision, and is refused. Requires a forecast on the same grounds -- a decision with no forecast is an opinion rather than a bet, and is refused. All three forecast parts are required together: `forecast_claim`, what you expect to happen; `forecast_how_we_will_know`, the observable that will settle it, chosen now rather than after the answer arrives; and `forecast_horizon_date`, an ISO 8601 timestamp with an offset (e.g. 2026-09-05T00:00:00Z) -- it is set once, it cannot be moved later, and a horizon that has already passed is refused. Only a forecast recorded before the outcome is known can ever be graded. Lands at status 'pending' for a human to approve; an agent never lands a decision already approved. Text is injection-screened before storage.",
     inputSchema: {
       type: "object",
       properties: {
         title: { type: "string" },
-        rationale: { type: "string" },
+        rationale: { type: "string", description: "Why you made this call." },
+        alternatives_considered: {
+          type: "array",
+          items: { type: "string" },
+          description: "The options you rejected. At least one, at most ten.",
+        },
+        forecast_claim: { type: "string", description: "What you expect to happen." },
+        forecast_how_we_will_know: {
+          type: "string",
+          description: "The observable that will settle this, chosen before the answer is known.",
+        },
+        forecast_horizon_date: {
+          type: "string",
+          description: "ISO 8601 timestamp with offset. Must be in the future. Set once.",
+        },
         agent_slug: { type: "string" },
       },
-      required: ["title"],
+      required: [
+        "title",
+        "rationale",
+        "alternatives_considered",
+        "forecast_claim",
+        "forecast_how_we_will_know",
+        "forecast_horizon_date",
+      ],
     },
   },
   {
