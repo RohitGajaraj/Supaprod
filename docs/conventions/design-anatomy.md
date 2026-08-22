@@ -1,5 +1,8 @@
 # Design anatomy: cards, detail views, trace refs, ranking, color & naming
 
+> **STALE, 2026-08-22.** Written 2026-07-07 against Loom v4. Its card and detail anatomy predates Meridian. The design system is **Meridian** and there is no other one — contract [`DESIGN-SYSTEM.md`](../design/DESIGN-SYSTEM.md), system `src/styles/meridian.css`, components `src/components/meridian/`. v1 Ember, v3 Obsidian, v4 Loom, v5 Tempo and Cadence/ink were all retired 2026-08-14 and the retirement is enforced by `src/__tests__/meridian-ratchet.test.ts`.
+
+
 > _Created: 2026-07-07 · Last updated: 2026-07-07_
 
 > **The comprehensive reference for how every object looks, reads, and behaves in the Supaprod app.** This is the "how to build a surface" companion to the design law. [`design/archive/loom-v4.md`](../design/archive/loom-v4.md) §0.1 dimension 17 is the short, binding CONTRACT (the rule any change is gated on); this doc is the LONG-FORM reference behind it: the full anatomy, the shared primitives, the color/token palette, the naming conventions, the ranking and designation logic, and the reasoning (the WHY) behind each decision. When the two agree they are the same rule stated at two lengths; if this doc ever drifts from the contract, the contract wins and this doc is corrected in the same change.

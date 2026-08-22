@@ -8,6 +8,8 @@ If you are starting a session: read this, then [`../operations/session-handoff.m
 
 > **And before touching a subsystem, read its section in [`initiatives/audit-reports/agent-audit-2026-08.md`](./initiatives/audit-reports/agent-audit-2026-08.md).** That is the findings register from the 2026-08-19 audit — roughly 60 agents, every finding verified against code or production, grouped by subsystem, with what is still open and has no queue item. **It is not status and it does not compete with this file**; it is the evidence layer, and it names which other docs are stale so you do not trust one that is. Fixing a finding means updating its state there in the same commit.
 
+> **And before proposing a platform redesign, read [`initiatives/agent-first-platform.md`](./initiatives/agent-first-platform.md) — it is already written.** The first-principles redesign of the whole platform, dated 2026-08-19 and built on the audit above: the judgment-shaped model (Question → Bet → Run → Verdict), the four surfaces, every station traced end to end, 27 catalogued gaps, seven implementation slices and 19 production validation criteria. **The index of every piece of groundwork already done — that design, the station audits, the surface brief, the KIRO logs — is [`initiatives/README.md`](./initiatives/README.md).** Read it before starting a redesign. Two sessions have now paid to rediscover work that was already on disk, because nothing at any entry point pointed at it.
+
 ---
 
 ## Now

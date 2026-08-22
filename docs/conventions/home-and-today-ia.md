@@ -1,5 +1,8 @@
 # Convention: home (Today) and surface-placement IA
 
+> **STALE, 2026-08-22.** Written 2026-06-16, before the 2026-07 rebuild and before Meridian. Its "where does X go" answers predate the current rail (Today / Runs / Brain / Guardrails). The durable rules — Today is not a dashboard; every artifact has one home; relocate and curate rather than delete — still hold.
+
+
 > _Created: 2026-06-16 · Last updated: 2026-06-16_
 
 **Status: standing rule, founder ruling 2026-06-16. This evolves the early v5 "Today = tight ritual" idea (which was written before we had built and felt the product) into an enforceable IA. Where this and the old v5 canon disagree, this wins.**

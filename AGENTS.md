@@ -79,7 +79,8 @@ Four things carry most of the value in this file. If you read nothing else:
 
 | Question | File |
 | --- | --- |
-| What is in flight, what is next, what needs the founder | [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) §0 |
+| What is in flight, what is next, what needs the founder | [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md), the `## Now` section (**there is no §0**) |
+| **Groundwork already done — read before proposing a redesign** | [`docs/planning/initiatives/README.md`](./docs/planning/initiatives/README.md). Answers “is my question already answered?” and routes to the platform design, the station audits, the surface brief and the build logs. |
 | Per-feature status and who is on what | [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) |
 | What the last session did and left open | [`docs/operations/session-handoff.md`](./docs/operations/session-handoff.md) |
 | What is actually true in production | **The live database.** Not a doc. |

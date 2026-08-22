@@ -1,5 +1,8 @@
 # Surface discipline: space, scroll, colour and the wait
 
+> **PARTLY STALE, 2026-08-22.** **Its laws still bind and are enforced by `src/__tests__/surface-discipline.test.ts` — one page scroller, `@container` not `@media` inside a pane.** What is stale is the *vocabulary in its examples*: they name `--sp-*` tokens from the retired Cadence/ink system. Read the laws, ignore the token names. The design system is **Meridian** and there is no other one — contract [`DESIGN-SYSTEM.md`](../design/DESIGN-SYSTEM.md), system `src/styles/meridian.css`, components `src/components/meridian/`. v1 Ember, v3 Obsidian, v4 Loom, v5 Tempo and Cadence/ink were all retired 2026-08-14 and the retirement is enforced by `src/__tests__/meridian-ratchet.test.ts`.
+
+
 > _Created: 2026-08-01 · Last updated: 2026-08-01_
 
 **What this is.** The rules that govern how any Supaprod surface uses vertical space,

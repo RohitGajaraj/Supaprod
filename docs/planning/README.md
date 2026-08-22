@@ -22,6 +22,8 @@ Plus [`cross-cutting-gaps.md`](./cross-cutting-gaps.md) for non-functional gaps 
 
 Open one only when you are building that thing. Each carries per-ID specs: context, files, migration, steps, acceptance, how to verify.
 
+**Start at [`initiatives/README.md`](./initiatives/README.md) — it answers "is my question already answered?" before you open anything here, and lists what each bible settles.**
+
 | Initiative | Bible |
 | --- | --- |
 | Workspaces, accounts, tenancy, monetization | [`workspace-tenancy-and-monetization-plan.md`](./initiatives/workspace-tenancy-and-monetization-plan.md) |

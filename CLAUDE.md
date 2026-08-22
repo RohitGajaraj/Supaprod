@@ -18,8 +18,9 @@ This file is deliberately short. Claude Code loads it into **every** session, so
 ## Start of session
 
 1. `git pull origin main`. Several tools write here, including Lovable's bot.
-2. Read [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) §0 and [`docs/operations/session-handoff.md`](./docs/operations/session-handoff.md). Nothing else. The corpus is large; read the file you need, when you need it.
-3. **Scan the session reminder for available skills, agents, plugins and MCP servers before acting.** That list is the source of truth. Never invoke from memory, and give no namespace preferential treatment.
+2. Read the `## Now` section of [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) (**there is no §0** — that name is stale) and [`docs/operations/session-handoff.md`](./docs/operations/session-handoff.md). Nothing else. The corpus is large; read the file you need, when you need it.
+3. **Before proposing a redesign, an audit, or any platform-wide change, read [`docs/planning/initiatives/README.md`](./docs/planning/initiatives/README.md).** It answers “is my question already answered?” and routes to the groundwork that exists — including the platform design at `initiatives/agent-first-platform.md`. Skipping it is how the same work gets paid for twice.
+4. **Scan the session reminder for available skills, agents, plugins and MCP servers before acting.** That list is the source of truth. Never invoke from memory, and give no namespace preferential treatment.
 
 ## Commands
 

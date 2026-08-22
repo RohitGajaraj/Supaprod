@@ -1,4 +1,7 @@
 # The Seven Stations: End-to-End Loop Blueprint
+
+> **INCOMPLETE AND PRE-MERIDIAN, 2026-08-22.** Its own header records only Discover and Decide as complete. It predates Meridian. For current station thinking read [`../planning/initiatives/agent-first-platform.md`](../planning/initiatives/agent-first-platform.md) §5, which traces every station end to end.
+
 ## Complete User Journey from Signal to Outcome
 
 > **Purpose**: Show how the seven stations chain together in the lived experience of a product team. Each audit (Discover, Decide, Plan, Design, Build, Ship, Learn) must justify itself on its own merits AND as part of the continuous loop. This document shows both.
