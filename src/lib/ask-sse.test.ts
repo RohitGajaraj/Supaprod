@@ -357,9 +357,46 @@ describe("the emitter sends the parser's INPUT shape, not its output", () => {
      * If a chat dispatch ever starts a track carrying that route, this assertion is
      * the one to delete, and the paragraph above `const routed` says what else has
      * to change with it.
+     *
+     * ── MATCHED ON THE EMISSION, NOT THE WORD (rewritten 2026-08-22) ────────
+     *
+     * This used to read `expect(source).not.toContain("routed.station")`, and it
+     * FAILED THE FIRST TIME SOMEBODY WROTE DOWN WHY THE FRAME IS NOT SENT. The
+     * paragraph above `const routed` now names the fields a plan gate would
+     * need from it — `routed.station`, `routed.crew` — while arguing that this
+     * file must not use them, and a substring guard cannot tell an argument
+     * from a violation. Its own sibling three tests up already learned this and
+     * says so in writing: "the branch's own comments name the frame while
+     * arguing against sending it, and a guard that could not tell those apart
+     * would forbid writing the argument down."
+     *
+     * So the claim is pinned instead of the spelling. Comments are stripped,
+     * every `station:` frame this file enqueues is found, and each one has to
+     * be the mention-branch value. That is stronger than the string match it
+     * replaces: the old one passed for `const s = routed["station"]`, and this
+     * one does not.
      */
-    expect(source).toContain("void routed;");
-    expect(source).not.toContain("station: routed");
-    expect(source).not.toContain("routed.station");
+    const code = source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+
+    // `routed` is still computed and still unused. Both halves matter: deleting
+    // it would lose the value the gate needs, using it would ship the guess.
+    expect(code).toContain("void routed;");
+
+    const stationFrames = code.match(/JSON\.stringify\(\{\s*station:\s*([A-Za-z0-9_.]+)/g) ?? [];
+    expect(stationFrames.length, "no station frame is emitted at all any more").toBe(1);
+    expect(stationFrames[0]).toContain("dispatchedStation");
+
+    /*
+     * And nothing READS the route's own station or crew outside a comment,
+     * which is the shape any first attempt at using it would take.
+     *
+     * `\??` IS NOT DECORATION. The first version of this line was
+     * `/routed\s*[.[]/` and a mutation walked straight through it: `routed` is
+     * nullable, so the natural way to use it is `routed?.station`, and the `?`
+     * sits exactly where that pattern demanded a `.`. Found by writing the
+     * violation, watching this test pass, and fixing the guard rather than the
+     * mutation.
+     */
+    expect(code).not.toMatch(/routed\s*\??\s*[.[]\s*["']?(station|crew|stationName)/);
   });
 });

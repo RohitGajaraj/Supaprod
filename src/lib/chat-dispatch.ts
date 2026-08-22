@@ -11,10 +11,16 @@ import { agentDisplayName } from "@/lib/agent-vocabulary";
  * `intent: "do"` could never fire: `startingAgent` is assigned inside the
  * `isMission` block, and the line below it read `forcedDo && startingAgent`,
  * which is false for every request `isMission` had not already claimed. "Hand
- * it over" worked anyway, by accident, because the client prefixes the literal
+ * it over" worked anyway, by accident, because the client prefixed the literal
  * string `@cos` and a resolved mention takes a different path entirely. With no
  * conductor seeded, the mention resolved to nothing, the classifier read the
  * words as chat, and the button returned prose and started nothing.
+ *
+ * THE ACCIDENT WAS REMOVED ON 2026-08-22, once this predicate had made the
+ * honest path work. `contentForIntent` sends the person's words unedited and
+ * `intent: "do"` is now the only thing promoting a stated instruction, so
+ * `wantsDispatch` is no longer a repair with a fallback behind it — it is the
+ * whole promotion path. `ask-intent.ts` records what the prefix was costing.
  *
  * `wantsDispatch` is the single expression both gates now call, so they cannot
  * drift apart again. It is here rather than there because a route module in
@@ -46,17 +52,78 @@ import { agentDisplayName } from "@/lib/agent-vocabulary";
  * sends only the id, which is the same split `sanitizeError` makes everywhere
  * else.
  */
-export type DispatchBlock =
+export const DISPATCH_BLOCKS = [
   /** No default workspace, so there is nowhere for a run to live. */
-  | "no-workspace"
+  "no-workspace",
   /** The conductor seat could not be set up, or was still not there after. */
-  | "conductor-unavailable"
+  "conductor-unavailable",
   /** A conductor with nobody to hand work to. The common one. */
-  | "no-specialists"
+  "no-specialists",
   /** An unexpected throw during pre-flight. Nothing was created. */
-  | "preflight-failed"
+  "preflight-failed",
   /** The dispatch itself threw. A run row may already exist. */
-  | "dispatch-failed";
+  "dispatch-failed",
+] as const;
+
+export type DispatchBlock = (typeof DISPATCH_BLOCKS)[number];
+
+/**
+ * A block id THAT CROSSED THE WIRE, or null.
+ *
+ * WHY THE LIST BECAME A RUNTIME VALUE. The union above was a type and nothing
+ * else, which is enough while the only reader is the same isolate that wrote
+ * it. `api/chat.ts` now puts the id on the SSE stream so the pane can render a
+ * named state rather than a paragraph, and a string arriving over a network is
+ * not a union member just because TypeScript would like it to be. This is the
+ * same rule `ask-sse.ts` already applies to a station id: validate against the
+ * closed set, and degrade to silence rather than render a guess.
+ *
+ * The type is DERIVED from the array so the two cannot drift. Adding a member
+ * to the array without a sentence for it fails `dispatchBlockedMessage`'s
+ * exhaustive switch at compile time, which is the point: a state that cannot
+ * be explained to a person has no business existing.
+ */
+export function asDispatchBlock(value: unknown): DispatchBlock | null {
+  if (typeof value !== "string") return null;
+  return (DISPATCH_BLOCKS as readonly string[]).includes(value) ? (value as DispatchBlock) : null;
+}
+
+/**
+ * WHERE A PERSON GOES TO CLEAR THIS, as an in-app route, or null when there is
+ * nowhere to send them.
+ *
+ * `dispatchBlockedMessage` names the destination in words and deliberately
+ * carries no link, because that text renders through `Answer`, whose anchor
+ * component sends every href to a new tab. A named state is a different
+ * surface: it is a component, so it can use the router and keep the person in
+ * the app. The words and the route are kept side by side here so the sentence
+ * and the button cannot name two different places.
+ *
+ * NULL FOR THREE OF THE FIVE, and each null was checked rather than assumed.
+ * `preflight-failed` and `conductor-unavailable` are ours to fix and no screen
+ * helps; a button there would be busywork dressed as an action. `no-workspace`
+ * looks like it should point somewhere and does not: this product has no
+ * create-a-workspace surface, because `ensureDefaultWorkspace` makes one during
+ * onboarding and the `_authenticated` gate sends an un-onboarded account
+ * straight there. Sending someone to Settings to do a thing Settings cannot do
+ * is the wrong-destination failure `AskLanding` already refuses by name, and it
+ * costs a navigation, a search, and their belief in every other button like it.
+ *
+ * The two that DO point somewhere point at the place their own sentence
+ * already names, which is the check that keeps them honest.
+ */
+export function dispatchBlockRoute(block: DispatchBlock): { to: string; label: string } | null {
+  switch (block) {
+    case "no-specialists":
+      return { to: "/agents", label: "Open Agents" };
+    case "dispatch-failed":
+      return { to: "/runs", label: "Open Runs" };
+    case "no-workspace":
+    case "conductor-unavailable":
+    case "preflight-failed":
+      return null;
+  }
+}
 
 /**
  * THE THREE NAMED HERE ARE ONE PER PHASE MOST WORK PASSES THROUGH, which is
@@ -105,18 +172,26 @@ export function dispatchBlockedMessage(block: DispatchBlock): string {
 /**
  * WHAT IS LEFT WHEN THE ADDRESSING COMES OFF THE FRONT.
  *
- * The client prefixes `@cos` when someone hands work over, so the words that
- * arrive at the server are not the words they typed. While the `forcedDo`
+ * The client USED TO PREFIX `@cos` when someone handed work over, so the words
+ * that arrived at the server were not the words they typed. While the `forcedDo`
  * branch was dead this never mattered: either the mention resolved and the
  * mention path stripped it, or nothing dispatched at all. Repairing the branch
- * makes it matter, because the title and goal fall back to the raw content
+ * made it matter, because the title and goal fall back to the raw content
  * whenever the classifier read the request as chat, and a run called
- * "@cos fix the redirect" would be a defect this change introduced.
+ * "@cos fix the redirect" would have been a defect that change introduced.
+ *
+ * THE CLIENT NO LONGER WRITES ONE AND THIS IS STILL NEEDED, which is worth
+ * being explicit about because "the prefix is gone" reads like a reason to
+ * delete it. A person can type `@anything` at the front of a sentence. When it
+ * names an agent on their roster the mention branch handles it; when it does
+ * NOT — a slug they do not have, a typo, a colleague's name — `mentionedAgent`
+ * stays null, the words fall through to here, and the addressing has to come
+ * off before it becomes a run's title.
  *
  * LEADING ONLY. A mention further into a sentence is subject rather than
  * address ("ask @engineer why this broke"), and cutting it would edit somebody's
  * instruction. Returns "" for a bare mention with nothing after it, which is
- * the signal `wantsDispatch` uses to refuse: "@cos" alone is a greeting, and a
+ * the signal `wantsDispatch` uses to refuse: a bare "@cos" is a greeting, and a
  * run whose entire goal is the name of the seat you handed it to is worse than
  * the chat reply it would have got.
  */
@@ -132,6 +207,13 @@ export function instructionForDispatch(content: string): string {
  * `isMission` is the classifier's read or a resolved mention. `forcedDo` is the
  * person pressing the fork themselves, which outranks a guess and is sufficient
  * on its own, as long as they said something to act on.
+ *
+ * SINCE THE PREFIX WENT, THE SECOND CLAUSE IS THE ONLY WAY A HANDOVER STARTS.
+ * It used to be belt and braces — a stated "do" that also arrived wearing a
+ * resolved mention, so `isMission` was already true. Now nothing else is
+ * carrying it, which is the point (the classifier gets to run, and the run gets
+ * planned) and also the risk: break this clause and "Hand it over" goes back to
+ * answering. `chat-dispatch.test.ts` asserts the bare case first for that reason.
  */
 export function wantsDispatch(opts: {
   isMission: boolean;

@@ -19,6 +19,7 @@ import {
 import { useWorkspace } from "@/hooks/use-workspace";
 import { answerTitle, hydrateMessages, type StoredMessageRow } from "@/lib/ask-thread";
 import { parseSseLine } from "@/lib/ask-sse";
+import type { DispatchBlock } from "@/lib/chat-dispatch";
 import type { AgentStation } from "@/lib/agent-vocabulary";
 import type { ResearchStatus } from "@/components/chat/ResearchActivity";
 import type { AskScope } from "@/lib/ask-context";
@@ -76,6 +77,10 @@ class AskUiError extends Error {}
  * `landing` is where a result came to rest, so a run can hand back to the
  * station that owns it instead of ending in a chat log.
  *
+ * A FOURTH FIELD, `blocked`, HOLDS THE OPPOSITE FACT: a run was asked for and
+ * none opened. It is here rather than on the message because it is a state, not
+ * a sentence, and the sentence a person reads is derived from it.
+ *
  * TWO OF THE THREE ARE ON THE WIRE NOW. `api/chat.ts` emits `station` once, off
  * the agent a mention resolved to, and a `tool` frame per research phase that
  * actually calls one -- plus, since 2026-08-22, one on the plain chat branch for
@@ -104,6 +109,20 @@ export type AskWork = {
    * yet emitting frames to make the disagreement visible.
    */
   landings: Array<{ kind: string; id: string; station?: AgentStation }>;
+  /**
+   * WHY NO RUN OPENED, when one was asked for and none did.
+   *
+   * The three fields above are facts about work that happened. This is the
+   * absence, and it is a field rather than the lack of one because a person who
+   * pressed "Hand it over" is owed the difference between "nothing has arrived
+   * yet" and "nothing is coming". Null on every turn where a run was not
+   * refused, which is nearly all of them.
+   *
+   * The ID, never the sentence. `dispatchBlockedMessage` and
+   * `dispatchBlockRoute` both key off it, so the surface renders one state
+   * rather than assembling two halves that could disagree.
+   */
+  blocked: DispatchBlock | null;
 };
 
 /** The inert value. Frozen so a consumer cannot mutate the shared empty. The
@@ -113,6 +132,7 @@ const NO_WORK: AskWork = Object.freeze({
   station: null,
   tools: [],
   landings: Object.freeze([]) as unknown as AskWork["landings"],
+  blocked: null,
 });
 
 /* -------------------- localStorage (SSR-safe) --------------------- */
@@ -500,6 +520,14 @@ export function useAskStream(options: UseAskStreamOptions = {}): AskStreamState 
               }));
               continue;
             }
+            if (event.kind === "dispatch-blocked") {
+              // FIRST REASON WINS. `api/chat.ts` returns the instant it blocks,
+              // so a second one on the same turn would mean two refusals for one
+              // request, and the later one would be describing a retry this
+              // stream never made. Overwriting would show the person the second.
+              setWork((w) => (w.blocked ? w : { ...w, blocked: event.reason }));
+              continue;
+            }
             if (event.kind !== "delta") continue;
             if (event.piece) acc += event.piece;
             if (event.piece || event.missionId) {
@@ -547,7 +575,8 @@ export function useAskStream(options: UseAskStreamOptions = {}): AskStreamState 
    * did not have to.
    *
    * "Hand it over" survived the gap by accident: `contentForIntent` prefixes
-   * `@cos`, and a resolved mention skips the classifier on its own. ASK had no
+   * the conductor's alias, and a resolved mention skips the classifier on its
+   * own (a prefix retired 2026-08-22; see `ask-intent.ts`). ASK had no
    * such fallback, so the half that was broken is the half that matters — the
    * one where a question misread as an instruction dispatches a mission the
    * person never asked for and spends real money doing it.

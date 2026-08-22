@@ -12,20 +12,52 @@
  * so the pane can say which of the two is about to happen. Pure and cheap: no
  * model call, so it can run on every keystroke.
  *
- * HOW "hand it over" ACTUALLY DISPATCHES, with no contract change: `api/chat.ts`
- * treats a leading `@slug` as "an unambiguous command", skips its classifier
- * entirely and dispatches a single-step mission to that agent. So handing work
- * over prefixes the conductor's own alias and the person sees the prefix in
- * their own message. Where the roster has no conductor row the mention resolves
- * to nothing and the server's classifier runs exactly as it does today, so the
- * worst case is today's behaviour rather than a broken send.
+ * ── HOW "HAND IT OVER" DISPATCHES, AND THE PREFIX THAT USED TO DO IT ────────
+ *
+ * This file used to prefix the literal string `@cos` onto every instruction.
+ * `api/chat.ts` treats a leading `@slug` as an unambiguous command, so the
+ * mention resolved to the conductor, the classifier was SKIPPED, and a mission
+ * dispatched. It worked. It was also an accident, and the accident cost four
+ * things that only became visible once the honest path was repaired:
+ *
+ *   1. THE CLASSIFIER NEVER RAN ON A HANDOVER. `api/chat.ts` gates it on
+ *      `!mentionedAgent && !forcedAsk`, so a resolved `@cos` skipped it
+ *      entirely. Every field that call produces — the mission title, the goal,
+ *      the research mode, and the entry station and work shape that
+ *      `routeIntent` needs — was null for the one kind of turn that most needs
+ *      them. The classifier's output was not "discarded" on this path; it was
+ *      never computed.
+ *   2. IT TOOK A DIFFERENT DISPATCH PATH. A resolved mention pre-plans a
+ *      SINGLE-STEP DAG addressed to the mentioned agent and hands it to
+ *      `advanceMissionCore`. So handing work over produced a one-step run whose
+ *      only step was assigned to the conductor — the seat whose entire job is
+ *      to plan a run for other agents — instead of `runAgentLoop`, which is the
+ *      branch that actually plans a multi-step DAG. Multi-step work was
+ *      reachable only when the classifier independently guessed "mission",
+ *      which the prefix had just stopped it from doing.
+ *   3. IT PUT A FALSE STATION ON THE WIRE. The mention branch emits a `station`
+ *      frame off `agentStation(slug)`, and the conductor's catalog row carries
+ *      `station: "decide"` with `conductor: true` — a row the catalog itself
+ *      documents as "routes work, never a station occupant". So every handover
+ *      lit Decide for a moment, on the strength of a seat that occupies no
+ *      station.
+ *   4. THE PERSON SAW `@cos` IN THEIR OWN SENTENCE. Their words were edited on
+ *      the way to the transcript so that a mention hack would fire.
+ *
+ * WHAT REPLACED IT, and why nothing had to be invented for it: the request
+ * field. `api/chat.ts` reads `body.intent` into `forcedDo`, and since the
+ * 2026-08-20 repair `wantsDispatch({ isMission, forcedDo, instruction })` gates
+ * BOTH the pre-flight checks and the dispatch off one expression. A stated "do"
+ * with words after it opens a run on its own. That is the branch this control
+ * was built for, so the control now uses it and the words travel verbatim.
+ *
+ * A LEADING `@slug` THE PERSON TYPED IS STILL HONOURED, untouched. "@engineer
+ * rename the caller" names a specialist deliberately, the mention branch is the
+ * right path for it, and that is a sentence somebody wrote rather than one we
+ * rewrote on their behalf.
  */
 
 export type AskIntent = "question" | "instruction";
-
-/** The alias `api/chat.ts` maps to the conductor (MENTION_ALIASES: cos ->
- *  orchestrator). Handing work over addresses the seat that runs the crew. */
-export const HANDOVER_MENTION = "@cos";
 
 /** Leading interrogatives and the shapes a question takes without one. */
 const QUESTION_RE =
@@ -54,9 +86,18 @@ export function defaultIntent(draft: string): AskIntent {
   return "question";
 }
 
-/** What actually goes on the wire. A question travels verbatim. */
-export function contentForIntent(draft: string, intent: AskIntent): string {
-  const text = draft.trim();
-  if (intent === "question" || text.startsWith("@")) return text;
-  return `${HANDOVER_MENTION} ${text}`;
+/**
+ * What actually goes on the wire: the person's words, unedited, either way.
+ *
+ * THIS FUNCTION USED TO BE THE DISPATCH LEVER and now it is not, which is the
+ * whole repair — see the `@cos` section at the top of the file. The lever is
+ * the `intent` field that travels beside this string in the request body
+ * (`AskPane` maps question/instruction to the API's ask/do), and it has been
+ * load-bearing on the server since the two dispatch gates were made to ask one
+ * question. Kept as a function rather than inlined because the caller's shape
+ * ("what goes on the wire for this intent") is the thing worth naming, and
+ * because a future intent may genuinely need to alter the text.
+ */
+export function contentForIntent(draft: string, _intent: AskIntent): string {
+  return draft.trim();
 }

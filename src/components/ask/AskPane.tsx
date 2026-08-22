@@ -495,11 +495,19 @@ function AskPaneOpen() {
      * BOTH HALVES OF THE CHOICE TRAVEL NOW.
      *
      * `contentForIntent` only ever carried the INSTRUCTION half, by prefixing
-     * `@cos` so a resolved mention skips the server's classifier. The question
-     * half had no representation on the wire at all, so pressing Ask sent a
-     * bare sentence and the classifier was free to read it as work and dispatch
-     * a mission that spends money. The request field `api/chat.ts` reads into
-     * `forcedAsk` was never emitted by anything.
+     * the conductor's alias so a resolved mention skips the server's
+     * classifier. The question half had no representation on the wire at all,
+     * so pressing Ask sent a bare sentence and the classifier was free to read
+     * it as work and dispatch a mission that spends money. The request field
+     * `api/chat.ts` reads into `forcedAsk` was never emitted by anything.
+     *
+     * SINCE 2026-08-22 THE FIELD CARRIES BOTH HALVES AND THE TEXT CARRIES
+     * NEITHER. The prefix is gone: it skipped the classifier, took the
+     * single-step dispatch path instead of the planning loop, and edited the
+     * person's own sentence on the way to their transcript. `ask-intent.ts`
+     * has the full account. `contentForIntent` still runs, because trimming is
+     * its job and because the day an intent genuinely needs to change the text
+     * this is where it belongs.
      *
      * The vocabulary differs on purpose and is mapped rather than renamed: this
      * pane thinks in "question / instruction", which is what the control says,
@@ -741,6 +749,14 @@ function AskPaneOpen() {
                * mission reachable only by knowing to go and look for it.
                */
               landings={t.answer?.id === lastId ? stream.work.landings : undefined}
+              /*
+               * WHY NOTHING STARTED, on the turn that asked for something and
+               * got nothing. Same rule as `landings` and for the same reason:
+               * `stream.work` describes THIS request, so handing it to every
+               * turn would re-label an old answer as a refusal the moment a
+               * later dispatch was blocked.
+               */
+              blocked={t.answer?.id === lastId ? stream.work.blocked : null}
             />
           ))
         )}

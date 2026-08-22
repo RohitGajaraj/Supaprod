@@ -45,21 +45,23 @@ describe("wantsDispatch: the one question, asked once", () => {
     // person pressing the fork anyway. Before this, the promotion line needed
     // `startingAgent`, which only the `isMission` block could assign, so this
     // combination returned prose and started nothing.
-    expect(wantsDispatch({ isMission: false, forcedDo: true, instruction: "fix the redirect" })).toBe(
+    expect(
+      wantsDispatch({ isMission: false, forcedDo: true, instruction: "fix the redirect" }),
+    ).toBe(true);
+  });
+
+  it("dispatches on a classifier verdict with no forced intent", () => {
+    expect(wantsDispatch({ isMission: true, forcedDo: false, instruction: "draft the spec" })).toBe(
       true,
     );
   });
 
-  it("dispatches on a classifier verdict with no forced intent", () => {
-    expect(
-      wantsDispatch({ isMission: true, forcedDo: false, instruction: "draft the spec" }),
-    ).toBe(true);
-  });
-
   it("refuses a forced do with nothing to act on", () => {
-    // A bare "@cos" reaches the server as a bare "@cos": the client prefixes the
-    // handover mention and the person typed nothing after it. Dispatching would
-    // open a run whose entire goal is the name of the seat it was handed to.
+    // A bare "@cos" typed by hand, or a draft that was nothing but whitespace.
+    // Dispatching would open a run whose entire goal is the name of the seat it
+    // was handed to. (Until 2026-08-22 the client MANUFACTURED this case, by
+    // prefixing "@cos" onto every handover; it no longer does, and the case
+    // stays reachable because a person can still type it.)
     expect(wantsDispatch({ isMission: false, forcedDo: true, instruction: "" })).toBe(false);
   });
 
@@ -79,7 +81,7 @@ describe("wantsDispatch: the one question, asked once", () => {
 });
 
 describe("instructionForDispatch: the addressing comes off, the words stay", () => {
-  it("strips the handover mention the client prefixes", () => {
+  it("strips a handover mention a person typed themselves", () => {
     expect(instructionForDispatch("@cos fix the checkout redirect")).toBe(
       "fix the checkout redirect",
     );
@@ -90,7 +92,8 @@ describe("instructionForDispatch: the addressing comes off, the words stay", () 
   });
 
   it("returns nothing at all for a bare mention", () => {
-    // The signal `wantsDispatch` refuses on.
+    // The signal `wantsDispatch` refuses on. Still reachable: the client no
+    // longer writes this prefix, and nothing stops a person typing it.
     expect(instructionForDispatch("@cos")).toBe("");
     expect(instructionForDispatch("  @cos  ")).toBe("");
   });
@@ -130,9 +133,7 @@ describe("dispatchBlockedMessage: five states, five sentences", () => {
     // starts work. Four say nothing started; the fifth cannot, because a row may
     // already exist, and it opens by saying so.
     for (const block of ALL_BLOCKS) {
-      expect(dispatchBlockedMessage(block)).toMatch(
-        /^(Nothing started\.|The run did not start,)/,
-      );
+      expect(dispatchBlockedMessage(block)).toMatch(/^(Nothing started\.|The run did not start,)/);
     }
   });
 
@@ -228,7 +229,7 @@ describe("api/chat.ts: the wiring the predicate cannot see", () => {
 
   it("ends the turn on a block instead of asking the model to explain it", () => {
     expect(CHAT).toContain(
-      "return streamFriendly(dispatchBlockedMessage(preflightBlock), baseMeta());",
+      "return streamFriendly(dispatchBlockedMessage(preflightBlock), baseMeta(), preflightBlock);",
     );
     // The system message that used to splice a Postgres error into the answer
     // prompt. Its absence is the point of this item.
@@ -244,21 +245,34 @@ describe("api/chat.ts: the wiring the predicate cannot see", () => {
     expect(CHAT).not.toMatch(/streamFriendly\([^)]*preflightDetail/);
   });
 
-  it("keeps the @cos path working", () => {
-    // The mention branch is untouched: a resolved mention still sets isMission,
-    // still pre-plans its single step, and still reaches `advanceMissionCore`.
-    // Removing the client's prefix would move handover onto a different dispatch
-    // path (runAgentLoop instead of the deterministic advance), which is a live
-    // behaviour change nothing here can check.
+  it("keeps the typed-mention path working", () => {
+    /*
+     * The mention branch is untouched: a resolved mention still sets isMission,
+     * still pre-plans its single step, and still reaches `advanceMissionCore`.
+     *
+     * WHAT CHANGED AROUND IT ON 2026-08-22, and this test's title with it. This
+     * used to be called "keeps the @cos path working" and its comment predicted
+     * that removing the client's prefix "would move handover onto a different
+     * dispatch path (runAgentLoop instead of the deterministic advance), which
+     * is a live behaviour change nothing here can check." That prediction was
+     * right and the move was the point: the deterministic advance runs a
+     * SINGLE-STEP DAG, so every handover was producing a one-step run whose only
+     * step was assigned to the conductor — the seat whose job is to plan runs
+     * for other agents. Handovers now go through `runAgentLoop`, which plans.
+     *
+     * The branch itself is still load-bearing and still guarded here, because
+     * "@engineer rename the column" is a real thing a person types and naming a
+     * specialist directly is exactly what it is for.
+     */
     expect(CHAT).toContain("startingAgent = { id: mentionedAgent.id };");
-    expect(CHAT).toContain('agent_slug: mentionedAgent.slug,');
+    expect(CHAT).toContain("agent_slug: mentionedAgent.slug,");
   });
 
   it("titles a forced run from the words, never from the wire content", () => {
-    // `body.content` still carries the client's `@cos` prefix whenever the
-    // mention did not resolve, so a fallback title built from it would read
-    // "@cos fix the redirect". This case only became reachable when the branch
-    // came back to life.
+    // `body.content` carries whatever addressing the PERSON typed whenever the
+    // mention did not resolve — an @slug for an agent they do not have, say —
+    // so a fallback title built from it would read "@cos fix the redirect".
+    // This case only became reachable when the branch came back to life.
     expect(CHAT).toContain("title: missionTitle.trim() || instruction.slice(0, 80),");
     expect(CHAT).toContain("goal: missionGoal || instruction,");
     expect(CHAT).not.toMatch(/goal: missionGoal \|\| body\.content/);

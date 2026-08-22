@@ -2,6 +2,7 @@ import { parseChatMeta, type ChatMeta } from "@/components/chat/MessageMeta";
 import { parseResearchStatus, type ResearchStatus } from "@/components/chat/ResearchActivity";
 import { isAnswerBlock, type AnswerBlock } from "@/lib/ask-blocks";
 import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
+import { asDispatchBlock, type DispatchBlock } from "@/lib/chat-dispatch";
 
 // OBS-12 - the pure half of the Ask panel's SSE line parser, split out of
 // `AskPanel.tsx` so the /api/chat protocol handling (status/meta/delta
@@ -78,6 +79,10 @@ export type SseEvent =
    * a registry name, which `toolActionLabel` turns into "drafting a spec";
    * `landing` is where a result came to rest, so a run can hand back to the
    * station that owns it instead of ending in a chat log.
+   *
+   * A FOURTH JOINED THEM on 2026-08-22, and it is the one that says NO work
+   * started. Its own comment is below `landing`; it belongs to this group and
+   * follows every rule in it.
    */
   /** The work moved to this station. One of AGENT_STATION_ORDER. */
   | { kind: "station"; station: AgentStation }
@@ -85,6 +90,37 @@ export type SseEvent =
   | { kind: "tool"; tool: string }
   /** The result came to rest here, so the reader can go and see it. */
   | { kind: "landing"; artifact: { kind: string; id: string; station?: AgentStation } }
+  /**
+   * ── THE FOURTH WORK FRAME: A RUN THAT DID NOT OPEN ──────────────────────
+   *
+   * The three above say what work DID. This one says that none started, and it
+   * exists because the alternative was the failure this protocol keeps making
+   * in a new place each time: a real state delivered as a paragraph.
+   *
+   * WHAT IT REPLACES, WHICH WAS ALREADY THE SECOND ATTEMPT. The first version
+   * of a blocked dispatch spliced the Postgres error into the answer prompt and
+   * had a model paraphrase it, so the person read a generated account of a
+   * database fault. That was repaired on 2026-08-20 into `dispatchBlockedMessage`
+   * — our own sentence, written once, never paraphrased. Better, and still
+   * prose: it arrives on the delta channel, renders inside `Answer`, and is
+   * pixel-for-pixel an answer. Somebody who pressed "Hand it over" gets back
+   * something shaped exactly like the thing they did not ask for, and neither
+   * the pane nor any later reader of the transcript can tell a refusal from a
+   * reply. A protocol that can say "the work landed on Build" and cannot say
+   * "no work started" is missing the half that matters more.
+   *
+   * IT CARRIES THE ID, NOT THE SENTENCE, on the rule the three frames above
+   * already follow: the smallest honest fact, never a rendered string. The
+   * words live in `dispatchBlockedMessage` and the destination in
+   * `dispatchBlockRoute`, both keyed off this id, so the sentence a person
+   * reads and the button they press cannot name two different things.
+   *
+   * VALIDATED AGAINST THE CLOSED SET, exactly like `station`: a reason this
+   * client does not know parses as `ignored`, so a server that grows a sixth
+   * state degrades to the prose that still streams beside this frame rather
+   * than rendering an empty card.
+   */
+  | { kind: "dispatch-blocked"; reason: DispatchBlock }
   | { kind: "done" }
   | { kind: "ignored" }
   /** JSON.parse failed - the line may be a chunk-boundary split; the caller
@@ -148,6 +184,19 @@ export function parseSseLine(line: string): SseEvent | null {
       };
     }
   }
+
+  /**
+   * `dispatch_blocked`, not `blocked`, and the long name is deliberate: `block`
+   * is already this protocol's word for a typed ANSWER card (`AnswerBlock`), and
+   * two frames one letter apart in a wire format nobody can typecheck is how the
+   * next reader ships the wrong one. Read as an object with a `reason` rather
+   * than a bare string so the frame has somewhere to grow — a retry-after, an
+   * error id — without a second key at the top level.
+   */
+  const blockedReason = asDispatchBlock(
+    (parsed as { dispatch_blocked?: { reason?: unknown } }).dispatch_blocked?.reason,
+  );
+  if (blockedReason) return { kind: "dispatch-blocked", reason: blockedReason };
 
   const choices = (parsed as { choices?: { delta?: { content?: string; mission_id?: string } }[] })
     .choices;

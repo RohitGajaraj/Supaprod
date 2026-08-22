@@ -54,6 +54,8 @@ import { Failed, MoreItem, MoreMenu, Record } from "@/components/shell/primitive
 import { Answer } from "./Answer";
 import { AskGateCard } from "./AskGateCard";
 import { AskLanding, type LandedArtifact } from "./AskLanding";
+import { AskBlocked } from "./AskBlocked";
+import type { DispatchBlock } from "@/lib/chat-dispatch";
 import { AskRunCard } from "./AskRunCard";
 import { Working } from "./Working";
 
@@ -193,6 +195,7 @@ export function AskTurn({
   initials,
   onRetry,
   landings,
+  blocked,
 }: {
   turn: Turn;
   /** True only for the message genuinely in flight. */
@@ -218,17 +221,48 @@ export function AskTurn({
    * gains an empty heading promising a result that never arrives.
    */
   landings?: LandedArtifact[];
+  /**
+   * WHY NO RUN OPENED, when this turn asked for one and none did.
+   *
+   * IT REPLACES THE ANSWER REGISTER RATHER THAN JOINING IT, and that is the
+   * whole point of the prop. `api/chat.ts` still streams the sentence on the
+   * delta channel, because the transcript has to hold a record of the refusal
+   * and a reader without this frame has to get something. So the words arrive
+   * twice: once as `answer.content` and once, derived from this id, inside
+   * `AskBlocked`. Rendering both would print the same sentence twice under a
+   * heading that says "Answer", which is the exact confusion the frame exists
+   * to end. Rendering neither would lose it. So the state wins and the prose
+   * stands down.
+   *
+   * Null on every ordinary turn, which is nearly all of them.
+   */
+  blocked?: DispatchBlock | null;
 }) {
   const question = turn.question?.content ?? "";
   const answer = turn.answer;
 
   const citation = answer && !answer.error ? recordCitationFor(answer) : null;
 
-  // The honest absence, and it is a DIFFERENT fact from a failed read. We can
-  // only say it once the answer has landed and its meta tells us retrieval read
-  // nothing. Before that we say nothing at all, because we do not know yet.
+  /*
+   * The honest absence, and it is a DIFFERENT fact from a failed read. We can
+   * only say it once the answer has landed and its meta tells us retrieval read
+   * nothing. Before that we say nothing at all, because we do not know yet.
+   *
+   * `!blocked` IS NOT BELT AND BRACES, it is a defect caught on the way in. A
+   * refused dispatch returns `baseMeta()`, whose `workspace_chunks` is 0
+   * because no retrieval ran, so every clause of this was satisfied and the
+   * turn printed "The record has nothing on this yet. That answer stands on the
+   * model alone." underneath a state that just said nothing started. There is
+   * no answer for the record to be missing from. Same shape as the bug this
+   * whole change is about: a true-sounding sentence attached to the wrong turn.
+   */
   const recordWasEmpty =
-    !!answer && !answer.error && !streaming && !!answer.meta && answer.meta.workspace_chunks === 0;
+    !!answer &&
+    !answer.error &&
+    !blocked &&
+    !streaming &&
+    !!answer.meta &&
+    answer.meta.workspace_chunks === 0;
 
   const gates = answer && !answer.error ? gatesForAnswer(queue, answer, question) : [];
   const policy = policyProposal(gates);
@@ -241,6 +275,13 @@ export function AskTurn({
         </Register>
       ) : null}
 
+      {/*
+          NOTHING STARTED, said where the answer would have been. Above the
+          error branch is wrong (a stream that failed has no verdict about a
+          dispatch) and below the ordinary branch is wrong (it would draw the
+          refusal as prose first and then again as a state), so it sits between
+          them as a third branch of the same conditional.
+       */}
       {answer ? (
         answer.error ? (
           <Register name="Answer">
@@ -254,6 +295,10 @@ export function AskTurn({
             >
               {answer.content}
             </Failed>
+          </Register>
+        ) : blocked ? (
+          <Register name="Why it did not start">
+            <AskBlocked reason={blocked} />
           </Register>
         ) : (
           <Register name="Answer">

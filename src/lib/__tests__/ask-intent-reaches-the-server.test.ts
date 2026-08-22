@@ -18,11 +18,17 @@ import { join } from "node:path";
  * guessing while the pane showed a control implying it did not have to.
  *
  * WHY THE BROKEN HALF WAS THE ONE THAT MATTERS. "Hand it over" survived the gap
- * by accident: `contentForIntent` prefixes `@cos`, and `api/chat.ts` skips its
+ * by accident: `contentForIntent` prefixed `@cos`, and `api/chat.ts` skips its
  * classifier for a resolved mention. ASK had no such fallback. So the failure
  * mode was a question being misread as work and dispatching a mission the
  * person never asked for, spending their money -- which is, verbatim, what the
  * field's own comment in chat.ts says it exists to prevent.
+ *
+ * THE ACCIDENTAL HALF WAS RETIRED ON 2026-08-22 and this guard got MORE
+ * important, not less. "Hand it over" no longer has a fallback either: with the
+ * prefix gone, `intent: "do"` is the only thing that promotes a stated
+ * instruction, so the wrapper regression this file exists to catch would now
+ * break BOTH forks instead of one. Everything asserted below is unchanged.
  *
  * NOTHING COULD SEE IT. Every file typechecked. The narrower wrapper type was
  * itself valid TypeScript, and no test asserted the shape of the request body.
@@ -61,6 +67,45 @@ describe("Ask's visible fork travels to the server", () => {
   it("the request body carries the field when an intent was chosen", () => {
     const flat = hook.replace(/\s+/g, " ");
     expect(flat).toMatch(/\.\.\.\(intent \? \{ intent \} : \{\}\)/);
+  });
+
+  it("the field is the ONLY thing promoting a handover now", () => {
+    /*
+     * WHAT THIS BECAME ON 2026-08-22. Until today "Hand it over" had a second,
+     * accidental route: `contentForIntent` prefixed `@cos`, `api/chat.ts`
+     * resolved it to the conductor, and a resolved mention dispatches without
+     * consulting the classifier at all. The field could have been broken the
+     * whole time and the button would still have started runs.
+     *
+     * That prefix is gone, for four reasons `ask-intent.ts` sets out, and the
+     * consequence for THIS file is that the guard above got teeth it did not
+     * have: break the wrapper now and both forks break, not one.
+     */
+    const flat = pane.replace(/\s+/g, " ");
+    // The pane writes no mention of its own. `@` in a sent string would mean
+    // the accident had come back under a different alias.
+    expect(flat).not.toMatch(/sendIntent\(\s*[`"']@/);
+    expect(stripComments(read(join("lib", "ask-intent.ts")))).not.toMatch(/@(cos|chief)/);
+  });
+
+  it("a handover now reaches the classifier, which the prefix used to skip", () => {
+    /*
+     * THE THING THAT WAS BEING THROWN AWAY, and it was not being thrown away —
+     * it was never computed. `api/chat.ts` gates its classifier on
+     * `!mentionedAgent && !forcedAsk`. A resolved `@cos` set `mentionedAgent`,
+     * so on every handover the classifier did not run: no mission title, no
+     * goal, no research mode, and no `station`/`shape` for `routeIntent`. With
+     * the prefix gone a forced "do" carries no mention, so the gate opens.
+     *
+     * Asserted on the GATE rather than on the outcome, because the outcome is a
+     * live model call. If someone re-adds `|| forcedDo` to this condition the
+     * classifier stops running on handovers again and this fails.
+     */
+    const flat = server.replace(/\s+/g, " ");
+    expect(flat).toContain("if (!mentionedAgent && !forcedAsk) {");
+    // The fields that gate only exists to produce, still read into the route.
+    expect(flat).toContain("classifiedStation = asStation(parsed.station);");
+    expect(flat).toContain("classifiedShape = asWorkShape(parsed.shape);");
   });
 
   it("the pane passes what the person pressed, mapped to the API's words", () => {

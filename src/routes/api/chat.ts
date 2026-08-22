@@ -561,8 +561,8 @@ export const Route = createFileRoute("/api/chat")({
         const forcedDo = body.intent === "do";
         /**
          * The words with the addressing taken off the front, which is what a run
-         * is actually about. Empty for a bare "@cos", and `wantsDispatch` reads
-         * that as nothing to do. See `chat-dispatch.ts` for both.
+         * is actually about. Empty for a bare "@cos" somebody typed, and
+         * `wantsDispatch` reads that as nothing to do. See `chat-dispatch.ts`.
          */
         const instruction = instructionForDispatch(body.content);
 
@@ -767,8 +767,10 @@ You must output a JSON object EXACTLY in this format:
             const mission = await createMission(supabase, userId, workspaceId, {
               // `instruction`, not `body.content`. A forced "do" that the
               // classifier read as chat leaves both of these empty, and the raw
-              // content still carries the client's `@cos` prefix, so the
+              // content carries whatever addressing the PERSON typed, so the
               // fallback used to be able to name a run "@cos fix the redirect".
+              // (The client stopped writing that prefix on 2026-08-22; a typed
+              // one still arrives, which is why the strip stays.)
               title: missionTitle.trim() || instruction.slice(0, 80),
               goal: missionGoal || instruction,
               starting_agent_id: startingAgent.id,
@@ -898,6 +900,62 @@ You must output a JSON object EXACTLY in this format:
              * `routed` is kept, not deleted. It is the value that call will
              * need, it is what a `station` SSE frame would carry, and computing
              * it costs one pure function with no network and no clock.
+             *
+             * ── WHAT CHANGED ON 2026-08-22, AND WHAT DID NOT ────────────────
+             *
+             * WHAT CHANGED: until today this expression evaluated to `null` on
+             * every handover, and the paragraphs above did not know it. The Ask
+             * pane prefixed the literal string `@cos` onto every instruction,
+             * that resolved to the conductor, and the classifier is gated on
+             * `!mentionedAgent`. So `classifiedShape` was never set on the one
+             * path this was written for, and `routeIntent` was never called.
+             * The debate above was about a value that did not exist. The pane
+             * now sends the person's words with `intent: "do"` beside them, the
+             * classifier runs, and `routed` is a real route for the first time.
+             *
+             * WHAT DID NOT CHANGE, and it is deliberate: it still routes
+             * nothing, and `void` is still the honest verb. Every argument
+             * above survives the repair intact — the orchestrator plans its own
+             * DAG and picks its own agents, so a station this file chose would
+             * still be a guess about a dispatch it does not control. The two
+             * ways to make it load-bearing are both fenced off from this lane
+             * and both are product decisions rather than plumbing:
+             *
+             *   · START THE MISSION AT `routed.crew[0]` INSTEAD OF THE
+             *     CONDUCTOR. Mechanically trivial: the mention branch below
+             *     already does exactly this. It is also a downgrade as it
+             *     stands, because it turns every handover into the single-step
+             *     run the `@cos` accident was producing, and multi-agent work
+             *     is the thing the orchestrator branch exists to plan.
+             *   · CALL `startTrackCore` WITH THIS ROUTE, per the paragraph
+             *     above. That settles it properly and needs the mission/track
+             *     question answered first.
+             *
+             * THE CONSUMER THAT MAKES IT TRUE IS THE PLAN GATE, and naming it
+             * is the useful thing this comment can do. `routed` is a forecast,
+             * and a forecast becomes a fact the moment a person confirms it:
+             * `PlanGate`/`PlanCard` show the entry station and the crew BEFORE
+             * anything runs and ask for a yes. At that point the station is not
+             * this file's guess about someone else's dispatch, it is a proposal
+             * the person accepted, and it can be dispatched by, emitted as a
+             * `station` frame, and written onto a track. The gate is another
+             * lane's; the interface it needs from here is at the bottom of this
+             * comment block in `PLAN GATE SEAM`.
+             *
+             * ── PLAN GATE SEAM ──────────────────────────────────────────────
+             * The gate belongs BETWEEN `routed` and `createMission`, and it
+             * needs exactly three things, all of which exist at this line:
+             *   in   `routed.station`, `routed.stationName`, `routed.crew` and
+             *        `routed.route` (path + waivers), plus `missionTitle` and
+             *        `missionGoal` — a plan to show, before a row is written.
+             *   out  a confirmed station, or a rejection.
+             *   wire a frame carrying the proposal, and a way for the answer to
+             *        say a run is WAITING on it rather than open. Note that a
+             *        gate makes this request outlive its own stream, so the
+             *        confirmation cannot come back on it — it needs a route of
+             *        its own, the way `mission_steps` approvals already do.
+             * Nothing above this line has to move for that; the mission row is
+             * created below and everything before it is a read.
              */
             const routed = classifiedShape
               ? routeIntent({
@@ -955,6 +1013,48 @@ You must output a JSON object EXACTLY in this format:
                  * saying it would report work nobody does. This says only that
                  * a row exists and where it lives, both checkable the instant
                  * the person follows the link.
+                 *
+                 * ── ONE KIND OF ELEVEN, AND THE OTHER TEN ARE NOT A BACKLOG ──
+                 *
+                 * `AskLanding`'s `KIND_LANDING` knows eleven kinds. This is the
+                 * only frame this route emits, so ten of them are unreachable
+                 * from here. That reads like a gap and it is not one, so here is
+                 * the audit rather than a number:
+                 *
+                 *   REACHABLE (1)
+                 *     mission   — this line. Both dispatch branches end at
+                 *                 `createMission`, so a mention and a handover
+                 *                 produce the same kind.
+                 *
+                 *   NOT REACHABLE, BECAUSE THIS REQUEST CANNOT PRODUCE ONE (8)
+                 *     prd · spec · decision · opportunity · design · changeset ·
+                 *     release · announcement
+                 *                 A landing says WHAT THIS TURN MADE. This route
+                 *                 writes exactly three rows — `messages`,
+                 *                 `missions`, and one `mission_steps` on the
+                 *                 mention branch — and none of them is any of
+                 *                 these. The agents write them, later, on a run
+                 *                 that outlives this stream and after the
+                 *                 controller is closed. There is no emitter to
+                 *                 add here; there is a second transport to
+                 *                 build, and `ask-sse.ts` already argues that
+                 *                 case at length for `tool`. It is the same
+                 *                 argument and the same answer.
+                 *     learning · outcome
+                 *                 The same, one degree further out: both are
+                 *                 graded AFTER a run finishes, so they cannot
+                 *                 exist at any point during the request that
+                 *                 started it.
+                 *
+                 * THE TEMPTING WRONG FIX, written down so it stays refused: the
+                 * answer path retrieves real decisions, specs and opportunities
+                 * and already renders them as `AnswerBlock` cards. Emitting a
+                 * landing for one of those would put "The decision is on Decide"
+                 * under a heading that says "Where it landed", about a row that
+                 * was made last Tuesday by somebody else. Every word of it true,
+                 * the causation invented. That is why `AnswerBlock` and `landing`
+                 * are separate frames: one is what the answer CITED, one is what
+                 * the turn MADE.
                  */
                 /**
                  * ── THE `station` FRAME, AND WHY IT COMES FROM THE AGENT AND
@@ -1125,11 +1225,46 @@ You must output a JSON object EXACTLY in this format:
           ...over,
         });
 
-        // Graceful-failure stream: a readable assistant sentence + meta + [DONE].
-        const streamFriendly = (text: string, meta: ChatMeta): Response => {
+        /**
+         * Graceful-failure stream: a readable assistant sentence + meta + [DONE].
+         *
+         * `blocked` NAMES THE STATE THE SENTENCE DESCRIBES, and it is optional
+         * because only one of this function's two callers has one. The other is
+         * a missing BYO key, which is a different kind of stop: the request
+         * never asked for a run, so there is no dispatch to report on.
+         */
+        const streamFriendly = (
+          text: string,
+          meta: ChatMeta,
+          blocked: DispatchBlock | null = null,
+        ): Response => {
           const enc = new TextEncoder();
           const s = new ReadableStream<Uint8Array>({
             async start(controller) {
+              /**
+               * THE FRAME GOES FIRST, AND THE ORDER IS LOAD-BEARING.
+               *
+               * `AskTurn` draws the named state INSTEAD of the answer prose
+               * when it holds a reason, so a delta that arrived first would
+               * paint the sentence as an ordinary answer for one frame and then
+               * swap it. A flicker between "the product answered you" and "the
+               * product refused you" is the worst possible half-second to get
+               * wrong, and it costs nothing to avoid.
+               *
+               * THE SENTENCE STILL GOES OUT BEHIND IT, and that is deliberate
+               * rather than leftover. It is what gets persisted below, so the
+               * transcript holds the refusal when the conversation is reopened
+               * and no frame survives; and a client that does not know this
+               * frame — the parser drops an unknown one in silence, by design —
+               * still shows the person something true.
+               */
+              if (blocked) {
+                controller.enqueue(
+                  enc.encode(
+                    `data: ${JSON.stringify({ dispatch_blocked: { reason: blocked } })}\n\n`,
+                  ),
+                );
+              }
               controller.enqueue(
                 enc.encode(
                   `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`,
@@ -1173,9 +1308,25 @@ You must output a JSON object EXACTLY in this format:
          * PLACED AFTER the user message insert on purpose: their words are in
          * the transcript before this returns, so "your words are saved above" is
          * true when they read it, and retrying does not mean retyping.
+         *
+         * ── AND IT IS A NAMED STATE NOW, NOT ONLY A SENTENCE (2026-08-22) ────
+         *
+         * The repair above was real and it was not finished. The sentence went
+         * out on the DELTA channel, which is the answer channel, so it rendered
+         * inside `Answer` in the same type at the same place as a reply. The
+         * words said "Nothing started"; everything around them said "here is
+         * your answer". Nothing in the pane, in a surface test, or in the
+         * transcript could tell a refusal from a reply, which is the same defect
+         * one layer up from where it was fixed.
+         *
+         * So the id travels too, on its own frame, and `AskBlocked` draws the
+         * state with the one in-app action that clears it where one exists. The
+         * sentence still streams behind the frame for the two reasons in
+         * `streamFriendly`: it is what persists, and an older client still needs
+         * to be told something true.
          */
         if (preflightBlock) {
-          return streamFriendly(dispatchBlockedMessage(preflightBlock), baseMeta());
+          return streamFriendly(dispatchBlockedMessage(preflightBlock), baseMeta(), preflightBlock);
         }
 
         // F-CHAT-V2 model switching: a non-gateway model with NO reachable key cannot
