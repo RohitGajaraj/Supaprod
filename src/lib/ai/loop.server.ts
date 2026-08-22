@@ -11,6 +11,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   callModel,
+  CreditExhaustedError,
   GovernanceHaltError,
   resolveCreditAccountId,
   type KeyResolutionCache,
@@ -1290,6 +1291,71 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
           halted,
         };
       }
+      /*
+       * RUNNING OUT OF MONEY IS NOT A FAILURE, AND THE WHOLE TAXONOMY SAYS IT IS.
+       *
+       * Measured in production 2026-08-22, and it is the entire dataset rather
+       * than a skew: `agent_runs.failure_kind` has ONE distinct value in its
+       * whole history -- `model_error`, 389 rows -- and all 389 carry the
+       * credit-refusal sentence. **Not one genuine model failure has ever been
+       * recorded.** On `status` it is the same: 584 of 588 `failed` runs, 99.3%,
+       * are the account being empty.
+       *
+       * That is not a reporting nuisance. `computeAllAgentTrust`
+       * (`trust.server.ts`) counts `status === "completed"`, so every other
+       * status counts against the agent, which means **an agent's autonomy
+       * ladder has been driven by the workspace's credit balance.** An agent
+       * that did nothing wrong, on a run that never started, lost ground it
+       * then had to earn back.
+       *
+       * `GovernanceHaltError` already models exactly this: a run stopped by a
+       * boundary rather than by a fault, marked `halted`, refunded, and kept out
+       * of the failure counts. A spend cap biting and a credit pool emptying are
+       * the same event at two scopes. `CreditExhaustedError` simply was not one
+       * -- it extends `Error` -- and this file never named it, so it fell
+       * through to the generic path below.
+       *
+       * A branch rather than a widened class hierarchy: `instanceof
+       * GovernanceHaltError` is caught in four places, three of them inside the
+       * AI chokepoint, so changing what that class covers would move behaviour
+       * at sites this change has no business touching.
+       */
+      if (e instanceof CreditExhaustedError) {
+        const reason = "out_of_credit";
+        halted = { kind: reason, reason: e.message };
+        const msg = `Halted: ${e.message}`;
+        steps.push({ kind: "final", message: msg });
+        if (runId) {
+          await supabase
+            .from("agent_runs")
+            .update({
+              status: "halted",
+              output: msg,
+              // The TAXONOMY, not the sentence -- the same rule the governance
+              // branch above follows, because a reader groups by the reason and
+              // the human wording is already in `output`.
+              halted_reason: reason,
+              halted_at: new Date().toISOString(),
+              ...elapsedPatch(s.startedAtMs),
+            })
+            .eq("id", runId);
+          // A run that never started delivered nothing, so its draw goes back,
+          // exactly as a governance halt's does. It matters more here: the
+          // account is by definition at zero, so a draw left outstanding is
+          // money taken for work that could not happen.
+          await refundIfAbandoned(supabase, userId, workspaceId, runId, agent.slug);
+        }
+        return {
+          trace_id: traceId,
+          agent_slug: agent.slug,
+          steps,
+          final: msg,
+          approvals_queued: approvalsQueued,
+          run_id: runId,
+          halted,
+        };
+      }
+
       // KI-07: a non-governance provider failure previously left the run
       // stuck in "running" and its mission spinning forever. Mark both
       // terminal before re-throwing so the UI and sweeper see the failure.
