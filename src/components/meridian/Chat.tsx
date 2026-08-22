@@ -267,7 +267,7 @@ export function Chat({
              * has come back, and the pane must not look like it swallowed it.
              */}
             {(turn.steps ?? []).length === 0 && (
-              <div className="flex items-center gap-1.5 text-[12px] text-mrd-mute">
+              <div className="flex items-center gap-1.5 mrd-meta">
                 <span
                   aria-hidden
                   className="size-1.5 shrink-0 rounded-full bg-mrd-agent"

@@ -404,7 +404,7 @@ export function TaskRows({
         className="w-full max-w-[440px] rounded-mrd-card border border-mrd-line bg-mrd-sheet px-4 py-4 font-mrd"
       >
         <p className="text-[13px] font-medium text-mrd-prose text-mrd-body">No work has run here yet.</p>
-        <p className="mt-1 text-[12px] leading-relaxed text-mrd-mute">
+        <p className="mt-1 mrd-meta">
           Each step an agent takes gets a line here, with whether it is running, finished, broken,
           or waiting on you.
         </p>

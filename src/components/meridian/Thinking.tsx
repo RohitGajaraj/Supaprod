@@ -502,7 +502,7 @@ export function Thinking({
 
               {variant === "Search" && !working && moreCount > 0 && (
                 <span
-                  className="px-1.5 text-[12px] text-mrd-mute"
+                  className="px-1.5 mrd-meta"
                   style={{ animation: "mrd-fade-in 300ms ease-out both" }}
                 >
                   +{moreCount} more

@@ -1113,7 +1113,7 @@ function NothingSettledYet({
       <span className="block text-mrd-lead font-medium text-mrd-ink">
         No outcome has been settled yet
       </span>
-      <p className="mt-[var(--mrd-s3)] max-w-[46ch] text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
+      <p className="mt-[var(--mrd-s3)] max-w-[46ch] mrd-copy">
         The loop is wired and proven, and it begins accruing on first real use. An insight appears
         here once a shipped decision gets its verdict at Learn and that verdict is written back
         against the call that caused it.
@@ -1168,7 +1168,7 @@ function CouldNotRead({ reason, onRetry }: { reason: string; onRetry?: () => voi
         </svg>
         Learn could not be read
       </span>
-      <p className="mt-[var(--mrd-s3)] max-w-[46ch] text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
+      <p className="mt-[var(--mrd-s3)] max-w-[46ch] mrd-copy">
         {reason} Nothing below is missing because the station is empty; it is missing because this
         read did not complete.
       </p>
@@ -1319,7 +1319,7 @@ export function InsightCards({
               animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both",
             }}
           >
-            <p className="text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">{current.lead}</p>
+            <p className="mrd-copy">{current.lead}</p>
             <div className="mt-[var(--mrd-s4)]">
               {current.kind === "trend" ? (
                 <TrendBody insight={current} />

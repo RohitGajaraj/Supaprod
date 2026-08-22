@@ -278,7 +278,7 @@ export function RecordsTable<Row>({
           <span className="text-[13px] font-medium" style={{ color: "var(--mrd-fail)" }}>
             {failure.message}
           </span>
-          <span className="text-[12px] text-mrd-mute">
+          <span className="mrd-meta">
             This is a read that did not come back, not an empty workspace.
           </span>
           {failure.onRetry && (
@@ -299,7 +299,7 @@ export function RecordsTable<Row>({
       <td colSpan={span} className="px-4 py-10">
         <div className="mx-auto flex max-w-[46ch] flex-col items-center gap-2 text-center">
           <span className="text-[13px] font-medium text-mrd-ink">No rows match this filter</span>
-          <span className="text-[12px] text-mrd-mute">
+          <span className="mrd-meta">
             {totalBeforeFilter
               ? `${totalBeforeFilter} row${totalBeforeFilter === 1 ? "" : "s"} exist and the filter is hiding all of them.`
               : "The rows exist. Widen the filter to bring them back."}
@@ -322,7 +322,7 @@ export function RecordsTable<Row>({
       <td colSpan={span} className="px-4 py-10">
         <div className="mx-auto flex max-w-[46ch] flex-col items-center gap-1.5 text-center">
           <span className="text-[13px] font-medium text-mrd-ink">{emptyTitle}</span>
-          {emptyDetail && <span className="text-[12px] text-mrd-mute">{emptyDetail}</span>}
+          {emptyDetail && <span className="mrd-meta">{emptyDetail}</span>}
         </div>
       </td>
     </tr>
@@ -535,7 +535,7 @@ export function RecordsTable<Row>({
           {/* Sans, not mono: this is a sentence that happens to contain
               numbers, and mono is for the numbers themselves. `tabular-nums`
               stays so the counts do not jitter as rows load. */}
-          <span className="text-[12px] text-mrd-mute tabular-nums">
+          <span className="mrd-meta tabular-nums">
             Showing {shown.length} of {sorted.length} rows. {withheld} not shown.
           </span>
           <button
@@ -550,7 +550,7 @@ export function RecordsTable<Row>({
       )}
 
       {footer && (
-        <div className="border-t border-mrd-line bg-mrd-sink px-3 py-2 text-[12px] text-mrd-mute">
+        <div className="border-t border-mrd-line bg-mrd-sink px-3 py-2 mrd-meta">
           {footer}
         </div>
       )}

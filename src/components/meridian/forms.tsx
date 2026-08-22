@@ -136,7 +136,7 @@ export function Field({
         {label}
       </label>
       {children}
-      {hint ? <span className="text-[12px] leading-relaxed text-mrd-mute">{hint}</span> : null}
+      {hint ? <span className="mrd-meta">{hint}</span> : null}
     </div>
   );
 }

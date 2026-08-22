@@ -65,8 +65,10 @@ import { useElapsed } from "@/components/meridian/use-elapsed";
  * The retired glyph was painted `--sp-pass`. GREEN. In Meridian green reports
  * an OUTCOME and nothing else, so a working indicator wearing it is the same
  * conflation `Value` was corrected for: "still deploying" and "deployed
- * successfully" rendering in one colour. A machine at work is `--mrd-agent`,
- * present tense, which is the token that exists to say exactly this.
+ * successfully" rendering in one colour. The fix stands; only its destination
+ * changed. As of 2026-08-23 the lattice is INK and the MOTION carries "present
+ * tense", which is what the reference does and what `LoadingState` already did.
+ * See THE LATTICE IS INK below.
  *
  * ── THERE IS NO BOOLEAN, AND THAT IS DELIBERATE ─────────────────────────
  * This takes no `working`, `pending`, `busy` or `isPending` prop. Mounting it
@@ -93,11 +95,29 @@ import { useElapsed } from "@/components/meridian/use-elapsed";
  * staggered chevron so two fronts are always in flight and the grid never reads
  * as empty mid-cycle.
  *
- * IT IS TINTED `--mrd-agent`, WHERE `LoadingState` USES INK, and that is the one
- * thing about this component that must not be tidied. It is not a preference.
- * `LoadingState` reports a JOB running, which has no actor; this reports an
- * AGENT running, and azure is the token that says so. The same lattice in ink
- * would be the generic loader wearing our spacing, and the two components would
+ * IT IS INK, THE SAME AS `LoadingState`, REVERSED 2026-08-23 ON FOUNDER RULING.
+ * This block used to say the azure tint was "the one thing about this component
+ * that must not be tidied", on the argument that `LoadingState` reports a JOB
+ * with no actor while this reports an AGENT, so azure named the actor.
+ *
+ * THE ARGUMENT DOES NOT SURVIVE THE OBVIOUS CHECK. The actor is already named,
+ * in words, in the label this component requires: "Scout is reading the record".
+ * A hue repeating what the sentence beside it already says is decoration, and it
+ * is the carrier that dies first in greyscale and for a reader who cannot
+ * separate it. What is left after repainting still says a machine is working
+ * four ways over: the label, the rotating gerund, the lattice's motion, and the
+ * elapsed figure.
+ *
+ * AND ONE MECHANIC MEANING ONE THING CANNOT WEAR TWO COLOURS. That is the defect
+ * a design system exists to prevent, and it had it in its own two components:
+ * the same 3x3 chevron, the same 650ms stagger, the same meaning, two paints.
+ * The ink one is the faithful port; this one re-implemented and re-coloured it.
+ *
+ * Azure is not retired. It stays wherever it separates a machine from a person
+ * on the same glyph family, which is work a neutral cannot do: `marks.tsx` sets
+ * `running` azure against `gate` orchid, `StatusChip` carries the agent chip,
+ * and `InsightCards` marks a row `you` or `agent`. Hue answers WHO when there is
+ * someone to be told apart from. Motion answers IN PROGRESS. Here there was no
  * become one with a rotating word.
  *
  * THE AZURE IS NOT WHAT WAS INVISIBLE ON PAPER, which is worth stating because
@@ -105,11 +125,39 @@ import { useElapsed } from "@/components/meridian/use-elapsed";
  * measured 1.00 contrast on the light ground because entering
  * `[data-theme="light"]` re-declared every token and never re-bound `color`, so
  * every `currentColor` glyph inherited the dark ground's ink. That is fixed in
- * `meridian.css`. Measured after the fix, this lattice is 7.02 on dark and 5.62
- * on paper. It is also the canonical use of `--mrd-agent`, which the 2026-08-19
- * audit counts at 59 against `--mrd-you`'s 97 and names as the imbalance to
- * close: repainting it in ink would delete the one surface in the product that
- * says a machine is working.
+ * `meridian.css`.
+ *
+ * ── THE LATTICE IS INK, NOT AZURE. REVERSED 2026-08-23 ──────────────────
+ * FOUNDER, this session: *"Why should it be blue colour? ... can't it be the
+ * same as how it is there in the loading state? The loading state colours are
+ * both light and dark, and they look premium."* He had raised it once before.
+ *
+ * WHAT THIS FILE USED TO ARGUE, so the reversal is on the record rather than
+ * quietly applied: that this was the canonical use of `--mrd-agent`, and that
+ * "repainting it in ink would delete the one surface in the product that says a
+ * machine is working."
+ *
+ * THAT ARGUMENT WAS OVERSTATED, and checking it is what settles this. Four
+ * things here say a machine is working: the rotating gerund, the lattice's
+ * motion, the elapsed figure, and the hue. Repainting removes ONE of the four,
+ * and it is the weakest of them, because a hue is exactly the carrier that dies
+ * in greyscale and for a reader who cannot separate it. This file's own
+ * neighbour makes that argument about `--mrd-fail` against `--mrd-stop`.
+ *
+ * THE DECIDING FACT IS AN INCONSISTENCY, not a preference. `LoadingState` draws
+ * THE SAME chevron lattice, on the same 650ms stagger, for the same meaning, in
+ * `bg-mrd-ink` -- and it is the one ported faithfully from the reference, while
+ * this one re-implemented the mechanic and re-coloured it. One mechanic meaning
+ * one thing cannot wear two colours; that is the defect the design system exists
+ * to prevent, and it had it in its own two components.
+ *
+ * WHERE AZURE STAYS, because this is not "remove the agent hue". It stays
+ * wherever it separates a machine from a person on the SAME glyph family, which
+ * is real work a neutral cannot do: `marks.tsx` pairs `running` azure against
+ * `gate` orchid, `StatusChip` carries the agent chip, and `InsightCards` marks a
+ * row `you` or `agent`. Hue answers WHO when there is someone to be told apart
+ * from. Motion answers IN PROGRESS. Here there is no "a person is working"
+ * counterpart to contrast with, so the hue was decorating rather than saying.
  */
 function PixelGlyph() {
   /* The chevron stagger from LoadingState's Drive variant. `null` is a cell
@@ -120,7 +168,7 @@ function PixelGlyph() {
       {delays.map((d, i) => (
         <span
           key={i}
-          className="size-[4px] rounded-[1px] bg-mrd-agent"
+          className="size-[4px] rounded-[1px] bg-mrd-ink"
           style={{ opacity: 0.15, animation: `mrd-pixel-on 650ms ease-in-out ${d}ms infinite` }}
         />
       ))}
@@ -249,10 +297,11 @@ export function AgentPulse({
        * inside the shimmering span, so it travels with the word as one string
        * rather than being a second thing that moves.
        *
-       * THE HIGHLIGHT IS `--mrd-agent`, not `--mrd-ink`. `LoadingState` shimmers
-       * toward ink because it reports a JOB running. This reports an AGENT
-       * running, and azure is the token that means exactly that, so the colour
-       * law is carried by the brightest part of the sweep.
+       * THE HIGHLIGHT IS `--mrd-ink`, matching `LoadingState`, since 2026-08-23.
+       * It shimmered toward azure on the argument that this reports an AGENT
+       * rather than a JOB. The label already names the agent, so the hue was
+       * repeating it; the sweep now carries brightness alone, which is the part
+       * a reader actually perceives as motion.
        */}
       <span
         key={word}
@@ -260,7 +309,7 @@ export function AgentPulse({
         className="shrink-0 bg-clip-text font-medium text-transparent"
         style={{
           backgroundImage:
-            "linear-gradient(90deg, var(--mrd-mute) 35%, var(--mrd-agent) 50%, var(--mrd-mute) 65%)",
+            "linear-gradient(90deg, var(--mrd-mute) 35%, var(--mrd-ink) 50%, var(--mrd-mute) 65%)",
           backgroundSize: "200% 100%",
           /* Two animations, one object: it arrives, then it breathes. Keyed on
              the word so it RE-ENTERS on each change rather than cross-fading in

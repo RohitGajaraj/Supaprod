@@ -187,7 +187,7 @@ export function RecommendationCard({
         className="w-full max-w-[380px] rounded-mrd-card border border-mrd-line bg-mrd-sheet px-4 py-4 font-mrd"
       >
         <p className="text-[13px] font-medium text-mrd-prose text-mrd-body">No suggestion yet.</p>
-        <p className="mt-1 text-[12px] leading-relaxed text-mrd-mute">
+        <p className="mt-1 mrd-meta">
           Nothing has been proposed for this call. The gate is open and the decision is yours to
           make directly.
         </p>
@@ -210,7 +210,7 @@ export function RecommendationCard({
         <span className="text-[13px] font-semibold text-mrd-ink">{question}</span>
         <p
           key={active.key}
-          className="mt-1.5 min-h-12 text-[13px] leading-relaxed text-mrd-prose text-mrd-body"
+          className="mt-1.5 min-h-12 mrd-copy"
           style={{ animation: "mrd-fade-in 180ms var(--mrd-ease-soft) both" }}
         >
           {unreadable ? (

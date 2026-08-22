@@ -228,7 +228,7 @@ export function Search<Item>({
       <span className="text-[13px] font-medium" style={{ color: "var(--mrd-fail)" }}>
         {failure.message}
       </span>
-      <span className="text-[12px] text-mrd-mute">
+      <span className="mrd-meta">
         Nothing was searched. This is a read that did not come back.
       </span>
       {failure.onRetry && (
@@ -262,7 +262,7 @@ export function Search<Item>({
         <MagnifierIcon size={15} />
       </span>
       <span className="text-[13px] font-medium text-mrd-ink">{emptyTitle}</span>
-      {emptyDetail && <span className="text-[12px] text-mrd-mute">{emptyDetail}</span>}
+      {emptyDetail && <span className="mrd-meta">{emptyDetail}</span>}
     </div>
   ) : resting ? (
     /*
@@ -291,7 +291,7 @@ export function Search<Item>({
       style={{ animation: "mrd-fade-in var(--mrd-d-enter) var(--mrd-ease) both" }}
     >
       <span className="text-[13px] font-medium text-mrd-ink">No matches</span>
-      <span className="text-[12px] text-mrd-mute">
+      <span className="mrd-meta">
         None of the {items.length} {items.length === 1 ? noun : many} contain that.
       </span>
       <button
@@ -450,7 +450,7 @@ export function Search<Item>({
            * the count changes, and it is all that was ever needed here. This is
            * the third time this exact defect has been found in this repo.
            */}
-          <span className="text-[12px] text-mrd-mute tabular-nums">
+          <span className="mrd-meta tabular-nums">
             Showing {shown.length} of {matched.length}. {withheld} not shown.
           </span>
           <button

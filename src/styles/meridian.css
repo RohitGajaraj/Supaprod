@@ -1508,6 +1508,109 @@
 }
 
 /*
+ * ── THE TEXT ROLES, ADDED 2026-08-23 ────────────────────────────────────
+ *
+ * THE DEFECT, in the founder's words: "there is no proper distinction between
+ * what is header one, what is header two, and what is header three... text is
+ * randomly dumped." He named `NeedsSetup` as the example, and it is a fair one.
+ * It renders four levels at 17px, 13-or-14px, 12.5px and 12px, and the bottom
+ * two share `--mrd-mute`. Two levels one half-pixel apart in the same colour are
+ * not two levels. They are one level and a rendering accident.
+ *
+ * WHY THE LADDER ABOVE DID NOT PREVENT IT, AND COULD NOT.
+ * The thirteen stops are SIZES and nothing else, which is the right shape for a
+ * ladder and is defended two comments up. But a reader does not perceive
+ * hierarchy from size alone; they perceive it from size AND weight AND colour
+ * moving together. So every author had to choose three things independently:
+ * one of 13 sizes, one of 60 colours, one of 4 weights. That is a space of
+ * roughly three thousand combinations with nothing marking which are correct,
+ * and the measured result is that no two components chose the same one.
+ *
+ * Measured 2026-08-23 across the 47 components in `src/components/meridian/`:
+ * 259 hard-coded `text-[Npx]` values, and 57 elements declaring `font-size`
+ * TWICE, almost all of them `text-[Npx]` beside `text-mrd-prose`. The second
+ * number is the tell. Nobody writes two sizes on one element on purpose; they
+ * write one, then reach for a class that they think sets a colour and it sets a
+ * size too. The system was asking for a decision it should have been making.
+ *
+ * ── WHY THIS DOES NOT BREAK "ONE STOP PER RULE, NO SHORTHANDS" ──────────
+ * That rule governs the LADDER, and it still holds: every `text-mrd-*` above
+ * sets `font-size` and nothing else, so it composes cleanly and nothing here
+ * changes that. These are a different layer and a different job. A stop answers
+ * "how big"; a ROLE answers "what is this piece of text FOR", and the answer
+ * carries a size, a weight, a colour and a leading that were chosen together
+ * and measured together.
+ *
+ * It is the same call `surface-parts.tsx` already made for controls, and for the
+ * same reason. `Approve` is a separate COMPONENT from `Action` rather than a
+ * fifth variant string, because four authors disagreed about what `primary`
+ * meant and the WORD was the problem. Here four authors disagreed about what a
+ * subtitle is. Making the role one class rather than three decisions is what
+ * stops that recurring, and a caller who names the role cannot get the
+ * combination wrong because there is no combination left to get wrong.
+ *
+ * ── THE RULE THESE ENCODE ───────────────────────────────────────────────
+ * ADJACENT STOPS ARE FOR DENSITY, NOT FOR HIERARCHY. 12px beside 12.5px is a
+ * table that needed to fit, not a heading above a caption. Two roles a reader
+ * must tell apart WITHOUT READING differ on at least TWO axes, and every pair
+ * below does:
+ *
+ *   eyebrow -> title      2.0x size, 650 -> 500, mute -> ink, and case
+ *   title   -> subtitle   1.43x size, and the drop out of display sizing
+ *   subtitle-> copy       600 -> 400 weight, ink -> body colour
+ *   copy    -> meta       1.17x size, body -> mute colour
+ *
+ * `subtitle` is deliberately the SAME SIZE as `copy` and separates on weight and
+ * colour instead. A third heading size between 20px and 14px would sit 2px from
+ * one of its neighbours, which is the exact failure being fixed. Weight at 600
+ * against 400 is visible at a glance and survives greyscale; two pixels does not.
+ *
+ * WHAT THESE ARE NOT FOR. A page's own title is not a role, it is a heading, and
+ * `text-mrd-h1` / `text-mrd-h2` already serve it. These five describe text
+ * INSIDE a block: a card, a panel, a dialog, an empty state.
+ */
+
+@utility mrd-eyebrow {
+  font-size: var(--mrd-t-nano);
+  font-weight: var(--mrd-w-micro);
+  line-height: var(--mrd-lh-tight);
+  letter-spacing: var(--mrd-track-label);
+  text-transform: uppercase;
+  color: var(--mrd-mute);
+}
+
+@utility mrd-title {
+  font-size: var(--mrd-t-h3);
+  font-weight: var(--mrd-w-medium);
+  line-height: var(--mrd-lh-tight);
+  letter-spacing: var(--mrd-track);
+  color: var(--mrd-ink);
+}
+
+/* Same size as `copy` on purpose. See the rule above: it separates on weight
+ * and colour, because a third size here would land 2px from a neighbour. */
+@utility mrd-subtitle {
+  font-size: var(--mrd-t-prose);
+  font-weight: var(--mrd-w-semi);
+  line-height: var(--mrd-lh-snug);
+  color: var(--mrd-ink);
+}
+
+@utility mrd-copy {
+  font-size: var(--mrd-t-prose);
+  font-weight: var(--mrd-w-regular);
+  line-height: var(--mrd-lh-prose);
+  color: var(--mrd-body);
+}
+
+@utility mrd-meta {
+  font-size: var(--mrd-t-small);
+  font-weight: var(--mrd-w-regular);
+  line-height: var(--mrd-lh-snug);
+  color: var(--mrd-mute);
+}
+
+/*
  * ── MOTION KEYFRAMES ────────────────────────────────────────────────────
  * Prefixed, because `spin` and `fade-in` already exist in a 133KB stylesheet
  * and a keyframe collision resolves by source order with no warning.

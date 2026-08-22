@@ -462,7 +462,7 @@ export function FineTuneCard({
       {/* choice */}
       {choices && choices.length > 0 && (
         <div className="flex items-center justify-between gap-2 p-[var(--mrd-s4)]">
-          <span className="text-[12px] text-mrd-mute">{choiceLabel}</span>
+          <span className="mrd-meta">{choiceLabel}</span>
           <div className="relative -mr-0.5 w-30">
             <button
               ref={triggerRef}

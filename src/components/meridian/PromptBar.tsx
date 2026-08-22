@@ -555,7 +555,7 @@ export function PromptBar({
                       {row.name}
                     </span>
                     {row.desc && (
-                      <span className="min-w-0 flex-1 truncate text-[12px] text-mrd-mute">
+                      <span className="min-w-0 flex-1 truncate mrd-meta">
                         {row.desc}
                       </span>
                     )}
@@ -595,7 +595,7 @@ export function PromptBar({
              * "nothing exists".
              */}
             {rows.length === 0 && (
-              <div className="flex h-9 items-center px-2 text-[12px] text-mrd-mute">
+              <div className="flex h-9 items-center px-2 mrd-meta">
                 {menu === "at"
                   ? sources.length === 0
                     ? "No sources linked yet"

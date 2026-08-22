@@ -432,7 +432,7 @@ export function CodeBlock({
         tabIndex={0}
       >
         {empty ? (
-          <span className="font-mrd text-[12px] text-mrd-mute">
+          <span className="font-mrd mrd-meta">
             {streaming ? "Waiting for the first line." : emptyLabel}
           </span>
         ) : (

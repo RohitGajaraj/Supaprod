@@ -71,10 +71,40 @@ function regionHeadingStops(): { lead: number; base: number } {
    */
   const h2 = src.match(/<h2\b[\s\S]*?<\/h2>/);
   if (!h2) throw new Error("Region's <h2> is gone; this guard needs rewriting rather than deleting");
-  const branches = [...h2[0].matchAll(/"text-\[(\d+(?:\.\d+)?)px\]([^"]*)"/g)].map((m) => ({
-    px: Number(m[1]),
-    tight: m[2].includes("leading-tight"),
-  }));
+  /*
+   * THE THIRD BUG THIS FUNCTION HAD, fixed 2026-08-23. It read the heading's
+   * size by regex for `text-[Npx]`, so it broke the moment the branches moved
+   * onto the ROLE utilities (`mrd-title`, `mrd-subtitle`) and found one branch
+   * instead of two. It was reading a SPELLING, not the claim.
+   *
+   * A role's size is not written at the call site by design, which is the whole
+   * point of a role, so it is resolved here the only honest way: through
+   * `meridian.css`, from the utility to its `--mrd-t-*` token to the px. A guard
+   * that hard-coded "mrd-title is 20" would agree with itself forever while the
+   * token moved underneath it.
+   */
+  const css = readFileSync(join(MERIDIAN, "..", "..", "styles", "meridian.css"), "utf8");
+  const roleToPx = (role: string): number | null => {
+    const rule = css.match(new RegExp(`@utility\\s+${role}\\s*\\{([^}]*)\\}`));
+    if (!rule) return null;
+    const tok = rule[1].match(/font-size:\s*var\((--mrd-t-[a-z0-9-]+)\)/);
+    if (!tok) return null;
+    const decl = css.match(new RegExp(`${tok[1]}\\s*:\\s*([0-9.]+)px`));
+    return decl ? Number(decl[1]) : null;
+  };
+
+  type Branch = { px: number; tight: boolean };
+  const branches: Branch[] = [];
+  for (const m of h2[0].matchAll(/"text-\[(\d+(?:\.\d+)?)px\]([^"]*)"/g)) {
+    branches.push({ px: Number(m[1]), tight: m[2].includes("leading-tight") });
+  }
+  for (const m of h2[0].matchAll(/"(mrd-[a-z]+)"/g)) {
+    const px = roleToPx(m[1]);
+    if (px === null) throw new Error(`Region's <h2> names ${m[1]}, which meridian.css does not size`);
+    // `mrd-title` is the lead branch: it is the only role in the ladder that
+    // carries a display stop. Everything else in an <h2> here is the quiet one.
+    branches.push({ px, tight: m[1] === "mrd-title" });
+  }
   if (branches.length !== 2) {
     throw new Error(`expected two heading branches in Region's <h2>, read ${branches.length}`);
   }

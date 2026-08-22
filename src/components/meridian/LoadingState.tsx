@@ -106,7 +106,7 @@ export function LoadingState({
       </span>
 
       {/* Tabular figures, so the number does not jitter sideways as it ticks. */}
-      <span className="font-mrd-mono text-[12px] text-mrd-mute tabular-nums">{elapsed}</span>
+      <span className="font-mrd-mono mrd-meta tabular-nums">{elapsed}</span>
     </div>
   );
 }

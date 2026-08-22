@@ -178,7 +178,7 @@ export function DiffTable({
            * and nothing else reads as a failed load, and this is not one: it is
            * an edit that proposes nothing, which is a legitimate answer.
            */
-          <p className="px-2.5 py-4 text-[12px] text-mrd-mute">{emptyLabel}</p>
+          <p className="px-2.5 py-4 mrd-meta">{emptyLabel}</p>
         ) : (
           <table className="w-full table-fixed border-collapse text-left">
             <colgroup>

@@ -539,7 +539,7 @@ export function ContextCards({
           <span className="text-[13px] font-medium" style={{ color: "var(--mrd-fail)" }}>
             {failure.message}
           </span>
-          <span className="text-[12px] text-mrd-mute">
+          <span className="mrd-meta">
             No excerpt was read. Do not take this as an answer with no evidence behind it.
           </span>
           {failure.onRetry && (
@@ -567,7 +567,7 @@ export function ContextCards({
           <span className="text-[13px] font-medium text-mrd-ink">
             No excerpt matches this filter
           </span>
-          <span className="text-[12px] text-mrd-mute">
+          <span className="mrd-meta">
             {totalBeforeFilter
               ? `${totalBeforeFilter} excerpt${totalBeforeFilter === 1 ? "" : "s"} exist and the filter is hiding all of them.`
               : "The excerpts exist. Widen the filter to bring them back."}
@@ -589,7 +589,7 @@ export function ContextCards({
           style={{ animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }}
         >
           <span className="text-[13px] font-medium text-mrd-ink">{emptyTitle}</span>
-          {emptyDetail && <span className="text-[12px] text-mrd-mute">{emptyDetail}</span>}
+          {emptyDetail && <span className="mrd-meta">{emptyDetail}</span>}
         </div>
       ) : (
         <ul className="flex flex-col gap-2">
@@ -636,13 +636,13 @@ export function ContextCards({
                   {/* "241 characters", "lines 12 to 18" — a phrase, not a
                       figure, so the sans face with tabular figures kept. */}
                   {chunk.extent && (
-                    <span className="text-[12px] text-mrd-mute tabular-nums">{chunk.extent}</span>
+                    <span className="mrd-meta tabular-nums">{chunk.extent}</span>
                   )}
                   {chunk.relevance !== undefined && <Relevance value={chunk.relevance} />}
                 </span>
               </div>
 
-              <p className="px-3 pt-2 pb-1 text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">
+              <p className="px-3 pt-2 pb-1 mrd-copy">
                 {chunk.body}
               </p>
 
@@ -671,7 +671,7 @@ export function ContextCards({
       {withheld > 0 && (
         <div className="flex items-center justify-between gap-3 rounded-mrd-ctl border border-mrd-line bg-mrd-sink px-3 py-2">
           {/* A sentence, so the sans face. See the note in StalledWork. */}
-          <span className="text-[12px] text-mrd-mute tabular-nums">
+          <span className="mrd-meta tabular-nums">
             {withheld} more excerpt{withheld === 1 ? "" : "s"} not shown.
           </span>
           {onShowAll && (

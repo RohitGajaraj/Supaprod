@@ -75,7 +75,7 @@ export function Gate({
         <span className="shrink-0 text-[11px] font-medium text-mrd-you">Waiting on you</span>
       </span>
 
-      <h2 className="mt-mrd-4 text-[20px] leading-tight font-medium text-mrd-ink">{question}</h2>
+      <h2 className="mt-mrd-4 mrd-title">{question}</h2>
 
       {lines?.length ? (
         <div className="mt-mrd-5 rounded-mrd-card bg-mrd-sink px-mrd-5 py-mrd-4">
@@ -86,7 +86,7 @@ export function Gate({
           ) : null}
           <ul className="flex flex-col gap-mrd-3">
             {lines.map((line, i) => (
-              <li key={i} className="text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
+              <li key={i} className="mrd-copy">
                 {line}
               </li>
             ))}

@@ -319,7 +319,6 @@ import { MoreItem, MoreMenu } from "@/components/meridian/MoreMenu";
 import { Receipt } from "@/components/meridian/Receipt";
 import { Gate } from "@/components/meridian/Gate";
 import { CtxBody, CtxHead, CtxRow } from "@/components/meridian/ContextColumn";
-import { AgentStatusIndicator } from "@/components/meridian/AgentStatusIndicator";
 import { useSelection } from "@/components/shell/use-selection";
 import {
   BatchHeader,

@@ -35,6 +35,23 @@ import type { ReactNode } from "react";
  * judgement look the same, the reader stops trusting that the colour means
  * anything.
  *
+ * ── THE HIERARCHY, REBUILT 2026-08-23 ──────────────────────────────────
+ * The founder named this component as the example of his top complaint: "no
+ * proper distinction between what is header one, what is header two, and what
+ * is header three." He was right, and the numbers say so. It rendered four
+ * levels at 17px, 13-or-14px, 12.5px and 12px, with the bottom two both in
+ * `--mrd-mute`. Half a pixel and no colour change is not a level.
+ *
+ * Worse, the body line carried `text-[13px]` AND `text-mrd-prose` together.
+ * Both set `font-size`, so which one a reader actually saw was decided by
+ * stylesheet order rather than by anyone. It was one of 57 elements in this
+ * directory in that state.
+ *
+ * It now names ROLES rather than assembling sizes: `mrd-title`, `mrd-copy`,
+ * `mrd-meta`. Each carries its size, weight, colour and leading as one decision,
+ * so the levels cannot drift apart again and the combination cannot be got
+ * wrong. Reasoning for the ladder is in `meridian.css` under THE TEXT ROLES.
+ *
  * ── WHY IT IS NOT AN EMPTY STATE WITH BETTER COPY ───────────────────────
  * Because it must carry an ACTION, and an empty state must not invent one. When
  * a workspace is genuinely empty the honest response is to wait or to do the
@@ -108,11 +125,9 @@ export function NeedsSetup({
       // Not aria-live. This is the state on arrival, not a change to announce,
       // and a live region here would interrupt a screen reader mid-navigation.
     >
-      <h2 className="text-mrd-lead leading-snug font-medium text-mrd-ink">{title ?? words.title}</h2>
+      <h2 className="mrd-title">{title ?? words.title}</h2>
 
-      <p className="mt-mrd-3 max-w-[62ch] text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
-        {body ?? words.body}
-      </p>
+      <p className="mt-mrd-3 max-w-[62ch] mrd-copy">{body ?? words.body}</p>
 
       {thenWhat ? (
         /*
@@ -121,9 +136,7 @@ export function NeedsSetup({
          * one concrete sentence about what lands here is worth more than any
          * amount of encouragement.
          */
-        <p className="mt-mrd-3 max-w-[62ch] text-[12.5px] leading-relaxed text-mrd-mute">
-          Once it is, {thenWhat}
-        </p>
+        <p className="mt-mrd-3 max-w-[62ch] mrd-meta">Once it is, {thenWhat}</p>
       ) : null}
 
       {action ? (
@@ -135,7 +148,7 @@ export function NeedsSetup({
              * label carries the warning gets read as a warning and not pressed;
              * a button beside a plain fact gets read as a choice.
              */
-            <span className="text-[12px] text-mrd-mute">This one spends model credits.</span>
+            <span className="mrd-meta">This one spends model credits.</span>
           ) : null}
         </div>
       ) : null}

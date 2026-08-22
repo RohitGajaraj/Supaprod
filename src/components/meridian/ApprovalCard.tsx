@@ -151,7 +151,7 @@ export function ApprovalCard({
         className="w-full max-w-80 rounded-mrd-card border border-mrd-line bg-mrd-sheet px-4 py-4 font-mrd"
       >
         <p className="text-[13px] font-medium text-mrd-prose text-mrd-body">Nothing is waiting on you.</p>
-        <p className="mt-1 text-[12px] leading-relaxed text-mrd-mute">
+        <p className="mt-1 mrd-meta">
           When an agent stops to ask something, the question arrives here and the run holds until
           you answer it.
         </p>
@@ -245,7 +245,7 @@ export function ApprovalCard({
             >
               Approved
             </span>
-            <span className="text-center text-[12px] text-mrd-mute">
+            <span className="text-center mrd-meta">
               The run picks up from here.
             </span>
           </div>

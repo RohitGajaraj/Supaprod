@@ -78,32 +78,59 @@ describe("the brand mark is gone, and not merely un-defaulted", () => {
   });
 });
 
-describe("the azure stays, and a test is the reason it can", () => {
-  it("paints the lattice with the agent token", () => {
+/*
+ * REVERSED 2026-08-23, ON A FOUNDER RULING, AND THE GUARD IS KEPT RATHER THAN
+ * DELETED.
+ *
+ * This block used to be called "the azure stays, and a test is the reason it
+ * can", and it asserted the opposite of everything below. It is inverted rather
+ * than removed because the decision still needs enforcing; only its direction
+ * changed. Deleting it would leave the next author free to re-tint the lattice
+ * with nothing to stop them and no record that it was ever decided.
+ *
+ * FOUNDER, verbatim: "Why should it be blue colour? ... can't it be the same as
+ * how it is there in the loading state? The loading state colours are both light
+ * and dark, and they look premium."
+ *
+ * THE OLD ARGUMENT, so the reversal is arguable rather than merely obeyed:
+ * `LoadingState` reports a JOB, which has no actor, while this reports an AGENT,
+ * so azure named the actor. It does not survive the check. The actor is already
+ * named in words, in the label this component REQUIRES ("Scout is reading the
+ * record"), so the hue repeated a sentence sitting next to it. Four carriers say
+ * a machine is working here (label, gerund, motion, elapsed) and repainting
+ * removes only the one that dies in greyscale.
+ *
+ * The deciding fact was an inconsistency rather than a preference: the same 3x3
+ * chevron, the same 650ms stagger, the same meaning, two different paints across
+ * two components in one design system. Reasoning lives in `AgentPulse.tsx` under
+ * THE LATTICE IS INK.
+ */
+describe("the lattice is ink, matching LoadingState, and a test is the reason it stays", () => {
+  it("paints the lattice with ink", () => {
     const { container } = render(<AgentPulse label="Scout is reading the record" />);
     const cells = [...container.querySelectorAll("span")].filter((s) =>
-      s.className.includes("bg-mrd-agent"),
+      s.className.includes("bg-mrd-ink"),
     );
     // Nine cells on the chevron stagger, which is the reference's grid.
     expect(cells.length).toBe(9);
   });
 
-  it("never paints it in ink, which is LoadingState's job", () => {
-    // `LoadingState` reports a job, which has no actor. This reports an agent.
-    // In ink the two become one component with a rotating word.
+  it("never re-tints the lattice with the agent hue", () => {
+    // One mechanic meaning one thing wears one colour. `LoadingState` draws this
+    // same lattice in ink; a second paint here is the two-vocabularies defect.
     const { container } = render(<AgentPulse label="Scout is reading the record" />);
-    expect(container.innerHTML).not.toContain("bg-mrd-ink");
+    expect(container.innerHTML).not.toContain("bg-mrd-agent");
   });
 
-  it("shimmers the word toward azure rather than toward ink", () => {
-    // The colour law is carried by the brightest part of the sweep, so the
-    // gradient's midpoint is the assertion that matters.
+  it("shimmers the word toward ink rather than toward azure", () => {
+    // Brightness is what a reader perceives as motion, so the gradient's
+    // midpoint is the assertion that matters.
     const { container } = render(<AgentPulse label="Scout is reading the record" />);
     const shimmer = [...container.querySelectorAll("span")].find((s) =>
       (s.getAttribute("style") ?? "").includes("linear-gradient"),
     );
-    expect(shimmer?.getAttribute("style")).toContain("var(--mrd-agent) 50%");
-    expect(shimmer?.getAttribute("style")).not.toContain("var(--mrd-ink)");
+    expect(shimmer?.getAttribute("style")).toContain("var(--mrd-ink) 50%");
+    expect(shimmer?.getAttribute("style")).not.toContain("var(--mrd-agent)");
   });
 
   it("uses no raw colour", () => {
