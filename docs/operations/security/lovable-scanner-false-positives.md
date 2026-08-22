@@ -143,3 +143,80 @@ END $$;
 
 `RAISE EXCEPTION` at the end is deliberate: it reports the result and rolls the transaction back, so a probe
 against production leaves nothing behind.
+
+## The real one is now fixed, in a migration that is written but NOT applied
+
+_Appended 2026-08-22, later the same day._ **This supersedes the "It is not fixed here, deliberately"
+paragraph under [The one that is REAL](#the-one-that-is-real-an-account-owner-can-delete-their-own-spend-ceiling)
+above.** That paragraph held because the fix looked like it needed a number nobody had chosen. It does not:
+the ceiling is enforced as a **ratchet**, so no absolute maximum has to be invented.
+
+`supabase/migrations/20260822160000_the_spend_ceiling_can_be_deleted_by_the_person_it_binds.sql` adds
+`protect_credit_cap_ceiling()`, in the shape `protect_account_billing_columns()` already establishes and
+with the same exemption model (service_role only). **It is not applied. The main session applies it.**
+
+**The asymmetry is the whole design.** An owner lowering their own cap is legitimate — a cap is a safety
+control and tightening one is always safe — so this is not a column freeze. For any caller that is not
+`service_role`:
+
+| Write | Result |
+| --- | --- |
+| `cap_credits` lowered | **lands** |
+| `cap_credits` raised | clamped to the old value, `least(NEW, OLD)` |
+| `enabled` true → false | reverted to true |
+| `account_id` · `scope` · `target_id` · `window_kind` · `id` | frozen — re-pointing a cap is a DELETE wearing an UPDATE's clothes |
+| `DELETE` | silently skipped (`BEFORE DELETE` returning `NULL`) |
+| `INSERT` | unguarded on purpose — see below |
+
+`INSERT` needs no guard because caps **AND** together: `assertCreditCaps`
+(`src/lib/ai/runtime.server.ts`) evaluates every enabled cap matching the call and throws on the first one
+exceeded, so a second row can only ever tighten the first. `src/lib/payments/credit-cap-guard.test.ts` pins
+that, because if enforcement ever changed to pick a single winner, `INSERT` becomes the bypass.
+
+**Measured against production, before and after, on the value the row held and never on whether the
+statement threw** — the guards revert silently and succeed, so an exception check reports "allowed" and is
+wrong. Both runs impersonated the account's own owner with `set local role authenticated` so RLS was live,
+and both ended in `RAISE EXCEPTION`, so nothing persisted:
+
+| Attack, as the owner | Before | After |
+| --- | --- | --- |
+| raise 5,000 → 999,999,999 | **999999999** | 5000 |
+| lower → 100 | 100 | **100** (still works) |
+| raise 100 → 5,000 | — | 100 (the ratchet holds) |
+| `enabled = false` | **false** | true |
+| re-point `target_id`, `window_kind` → `day` | **re-pointed, `day`** | unchanged, `cycle` |
+| `DELETE` | **0 rows remain** | 1 row remains |
+| same six as `service_role` | — | all succeed |
+
+**No per-tier ceiling exists to read, and that half is still a founder decision.** The schema knows
+`tier_product_limit`, `tier_workspace_limit`, `tier_connector_limit` and `tier_seat_limit`, but there is no
+`tier_credit_limit`. The only per-tier credit numbers in SQL are the grant CASE hand-mirrored inside
+`backfill_account_credits` (750 / 3750 / 15000 / 15000, pinned to `entitlements.ts` by
+`credit-grant-sql-parity.test.ts`), and reusing a **grant** as a **ceiling** would be inventing pricing
+policy. So the open question is narrower than before: not "what is the number", but **should an owner be
+able to raise a cap at all without an admin, and if so up to what.** Until that is answered, raising is
+refused outright and a deliberate raise goes through service_role.
+
+**Two things that will cost an hour if nobody wrote them down.**
+
+`auth.role()` reads the REQUEST, not the database role, so a psql or SQL-editor session sets no claims and
+is guarded like any client — the founder included. A deliberate raise claims the role in the same
+transaction:
+
+```sql
+begin;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
+update public.credit_caps set cap_credits = 20000 where id = '...';
+commit;
+```
+
+**The settings UI will report success while nothing changes.** `saveCreditCap` and `removeCreditCap`
+(`src/lib/payments.functions.ts`) write through the acting user's client, so a raise or a delete returns
+`ok: true` and is silently discarded — the same behaviour the two billing guards already have on `accounts`
+and `workspaces`. That is what makes the guard unbypassable, and it is also a lie to the operator. The
+surface should say "ask an admin to raise a cap". Not fixed in that migration on purpose: it is product
+code owned by another lane.
+
+**Adjacent and unchecked:** `ai_budgets` and `ai_surface_budgets` are the other spend caps in the schema,
+and the 2026-08-05 role-aware-writes migration left them writable by any non-viewer member. Nobody has run
+this same probe against them.
