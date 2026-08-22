@@ -4,7 +4,24 @@
 code: `tsc` 0 · `bun test` 0 (**10,292 pass / 0 fail**) · `build` 0 · `docs:check` 0 · `design:ratchet` 0.
 CI is still dead (runner or billing block, not a test failure) so local gates remain the only real ones.
 
-## Pick this up FIRST: one experiment is mid-flight and it is the most important number in the product
+## Pick this up FIRST: publishing is BLOCKED, and it is blocking the one experiment that matters
+
+**`deploy_project` is refused:** *"the latest security scan found 2 unresolved critical security findings.
+Fix or intentionally ignore the blocking findings in the project's Security view, then publish again."*
+The findings live in **Lovable's own scanner, not our database** — there is no `security`/`scan`/`finding`
+table in `public`, so an agent cannot read them. **This needs the founder to open the Lovable Security view.**
+
+**Consequence, and it is the documented trap:** `deploy_project` ships **what Lovable holds, not what GitHub
+holds**. The deploy that DID succeed today ran at ~13:13, when Lovable still held `f68813221` (the TraceHop
+port). The cold-start commit `e3e4ea865` synced afterwards, and the re-deploy that would have shipped it was
+refused. **So the maturity-aware bar is committed, pushed, tested and NOT LIVE.** The 13:40 tick processed
+the target workspace and correctly did nothing, because it was running pre-change code. That is not a defect
+in the logic.
+
+Once publishing is unblocked: deploy, then read the experiment below. Nothing else needs doing to it.
+
+## The experiment is armed and waiting on that deploy
+
 
 **`cold_start_promotion_enabled` is ON for exactly one real workspace** — `My workspace`,
 `0b792d52-82e2-43e2-adc5-8a26e5c800b4`, 7 signals. Its `last_auto_cluster_at` was pushed back three hours so
