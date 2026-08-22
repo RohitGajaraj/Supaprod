@@ -111,6 +111,59 @@ function escapeRe(s: string): string {
 }
 
 /**
+ * A GIT REF IS UNTRUSTED INPUT, AND IT SHARED A COMMAND LINE WITH A WRITE TOKEN.
+ *
+ * `defaultSetup` interpolated `ref` unquoted into the clone, on the one command
+ * in this whole file that carries `$SUPAPROD_GIT_TOKEN` in its environment --
+ * and BEFORE the `git remote set-url` scrub and the `! grep -q "x-access-token"`
+ * assertion that follow it. The header above that step says the token is never
+ * interpolated into a command string. That was true of the token and false of
+ * the value two words to its left.
+ *
+ * The value is not ours. `changesetRef` returns `changeset.branch` or, failing
+ * that, the repo's `default_branch` straight from the GitHub API -- a name the
+ * repo's owner chooses. `git check-ref-format --branch` accepts `a;id`,
+ * `a$(id)`, `` a`id` ``, `a|id`, `a&&id` and `a'id`, so a branch name was a way
+ * to run a command next to a token with push access to the customer's repo.
+ *
+ * Two guards, because either alone can be argued around:
+ *
+ *   1. REFUSE what is not a plausible ref. A branch name is a constrained value,
+ *      so an allowlist is honest here in a way it would not be for free text.
+ *      Refusing beats sanitising: a mangled ref would clone the wrong thing.
+ *   2. QUOTE what survives. POSIX single quotes take everything literally, and
+ *      the only character that needs care is `'` itself, closed and re-opened
+ *      through a backslash. Belt and braces, so a future loosening of the
+ *      allowlist cannot silently reopen this.
+ */
+const REF_ALLOWED = /^[A-Za-z0-9._\/-]{1,255}$/;
+
+export function assertSafeRef(ref: string): string {
+  // git's own rules, the subset that matters: no leading dash (it would read as
+  // a flag), no `..` (path traversal in a ref), no trailing `.lock`, no leading
+  // or trailing slash, and nothing outside the allowlist.
+  if (
+    !REF_ALLOWED.test(ref) ||
+    ref.startsWith("-") ||
+    ref.startsWith("/") ||
+    ref.endsWith("/") ||
+    ref.endsWith(".lock") ||
+    ref.includes("..")
+  ) {
+    throw new Error(
+      `Refusing to clone: ${JSON.stringify(ref)} is not a usable git ref. ` +
+        `A ref may contain letters, digits, dot, underscore, slash and hyphen.`,
+    );
+  }
+  return ref;
+}
+
+/** POSIX single-quoting. Everything inside is literal; only `'` needs escaping. */
+export function quoteShellArg(s: string): string {
+  return `'${s.replace(/'/g, `'\\''`)}'`;
+}
+
+/**
  * PURE: strip credentials from a captured stream.
  *
  * `literals` are the exact secret values this run was handed, which is the reliable
@@ -209,7 +262,7 @@ export function defaultSetup(repo: string, ref: string): ExecCommandSpec[] {
       name: "clone",
       // `$SUPAPROD_GIT_TOKEN` is expanded by the sandbox's shell, never by us.
       run: [
-        `git clone --depth 1 --branch ${ref} "https://x-access-token:$${GIT_TOKEN_ENV}@github.com/${repo}.git" /home/user/repo`,
+        `git clone --depth 1 --branch ${quoteShellArg(assertSafeRef(ref))} "https://x-access-token:$${GIT_TOKEN_ENV}@github.com/${repo}.git" /home/user/repo`,
         `cd /home/user/repo`,
         `git remote set-url origin "${bare}"`,
         // Fail loudly if the credential outlived the rewrite.

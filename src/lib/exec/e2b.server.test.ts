@@ -245,9 +245,52 @@ describe("setup and checks", () => {
   });
 
   it("clones the requested ref rather than whatever HEAD happens to be", () => {
+    // Now quoted, so the assertion moves with it.
     expect(defaultSetup("acme/app", "feat/a").find((c) => c.name === "clone")!.run).toContain(
-      "--branch feat/a",
+      "--branch 'feat/a'",
     );
+  });
+
+  /*
+   * A BRANCH NAME WAS A WAY TO RUN A COMMAND NEXT TO A WRITE TOKEN.
+   *
+   * `ref` is `changeset.branch` or the repo's `default_branch` from the GitHub
+   * API -- a name the repo's owner chooses -- and it was interpolated unquoted
+   * into the ONE command in this file carrying `$SUPAPROD_GIT_TOKEN`, before
+   * the `remote set-url` scrub and the `! grep -q "x-access-token"` assertion
+   * that follow it. `git check-ref-format --branch` accepts every payload below.
+   */
+  const INJECTIONS = [
+    "main;id",
+    "main$(id)",
+    "main`id`",
+    "main|id",
+    "main&&id",
+    "main'id",
+    "main\ntouch /tmp/pwned",
+    "--upload-pack=id",
+    "../../../etc/passwd",
+    "main.lock",
+    "/main",
+    "main/",
+  ];
+
+  it.each(INJECTIONS)("refuses a ref that could run a command: %j", (ref) => {
+    expect(() => defaultSetup("acme/app", ref)).toThrow(/not a usable git ref/);
+  });
+
+  it("never lets an unquoted ref reach the command carrying the token", () => {
+    // The control: a legitimate ref still clones, and it is quoted.
+    const run = defaultSetup("acme/app", "release/2026.08")!.find((c) => c.name === "clone")!.run;
+    expect(run).toContain("--branch 'release/2026.08'");
+    // And the token is still on that same line, which is why the quoting matters.
+    expect(run).toContain("x-access-token");
+  });
+
+  it("accepts the ref shapes real repositories actually use", () => {
+    for (const ref of ["main", "master", "feat/a-b_c.1", "v1.2.3", "release/2026.08"]) {
+      expect(() => defaultSetup("acme/app", ref)).not.toThrow();
+    }
   });
 
   it("runs typecheck, test and lint", () => {
