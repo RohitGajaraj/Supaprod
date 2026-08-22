@@ -23,9 +23,34 @@
 // buttons, actions or tasks", and ink.css:236 declares it the mark that "marks
 // the human, and nothing else" — every legitimate use in the system is a colour
 // or an edge, never a fill. Those five are now `<Button>` / `.sp-btn` from
-// @/components/shell/primitives, which resolves through the --sp-* layer. The
-// rest of the file still runs on the legacy --text-*/--hairline tokens carried
-// by the [data-obsidian] bridge; that port is a separate job.
+// @/components/shell/primitives, which resolves through the retired Cadence
+// layer. Those five remain the last retired thing in this file.
+//
+// THE COLOUR LAYER IS MERIDIAN NOW, ported 2026-08-22. This paragraph used to
+// say the rest of the file still ran on legacy tokens and that the port was a
+// separate job. It is done: 71 occurrences of the retired vocabulary are gone
+// and the file is the fifth largest debt carrier in the repo no longer.
+//
+// Mapped by MEANING rather than appearance, which is the naming law:
+//   - the cancel control wears `--mrd-stop`, not `--mrd-fail`. Meridian reserves
+//     fail for an outcome that HAPPENED and gives a control that halts work in
+//     progress its own token, and this button's own title is "Stop this mission
+//     so it will not advance further".
+//   - the `live · refreshing` indicator is `--mrd-agent`: a machine is working.
+//   - the step rail's timing bar is `--mrd-agent` while live and `--mrd-pass`
+//     once settled, which is exactly what those two tokens mean.
+//   - genuine failures -- the load error, a step's error note, the failed-mission
+//     block -- are `--mrd-fail`.
+//   - the trace link is `--mrd-ink`. Meridian has no link token on purpose:
+//     colour carries status and never decorates, and a link is not a status.
+//   - the `<pre>` holding tool output is `--mrd-sink`, the recess this system
+//     reserves for evidence.
+//
+// Nothing was dropped to get there. The hop stays collapsible and keeps its
+// timing bar, memory-context chip, input and output expanders and both handoff
+// chips, because ratchet law 1 forbids hiding information as an answer. That is
+// also why Meridian's `RunTimeline` was NOT swapped in for `TraceHop`: it is
+// flatter, and the swap would have lost the handoffs and the step nesting.
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -87,10 +112,10 @@ const FOCUS =
 /* Hover for the quiet outline pills: background in the class (never inline)
    so the hover can actually resolve; Tailwind preflight already gives
    buttons a transparent base. */
-const HOVER_BG = "transition-colors hover:[background:var(--surface-hover)]";
+const HOVER_BG = "transition-colors hover:[background:var(--mrd-lift-hover)]";
 /* Hover for borderless mono-text controls: base + hover color both in the
    class so the pair wins together. */
-const HOVER_TEXT = "transition-colors [color:var(--text-subtle)] hover:[color:var(--text-body)]";
+const HOVER_TEXT = "transition-colors [color:var(--mrd-mute)] hover:[color:var(--mrd-ink)]";
 
 /** Production step statuses → the reference's StepDot vocabulary. */
 function stepDotStatus(s?: string): string {
@@ -188,7 +213,7 @@ function CaptureMissionDecision({
         display: "inline-flex",
         alignItems: "center",
         gap: 5,
-        border: "1px solid var(--hairline)",
+        border: "1px solid var(--mrd-edge)",
         borderRadius: 99,
         padding: "3px 10px",
         opacity: cap.isPending ? 0.5 : 1,
@@ -273,7 +298,7 @@ function GatePanel({
           <div key={appr.id}>
             <p
               style={{
-                color: "var(--text-body)",
+                color: "var(--mrd-ink)",
                 margin: "6px 0 12px",
                 lineHeight: 1.5,
               }}
@@ -282,7 +307,7 @@ function GatePanel({
               <span
                 className="mono-label"
                 style={{
-                  color: "var(--text-primary)",
+                  color: "var(--mrd-ink)",
                   display: "inline-flex",
                 }}
               >
@@ -419,7 +444,7 @@ function TraceHop({
   const tint = (st: Hop["steps"][number]): CSSProperties => {
     if (st.kind === "tool_call") return { color: "var(--mrd-ink)" };
     if (st.kind === "thought") return { color: "var(--mrd-mute)", fontStyle: "italic" };
-    return { color: "var(--moss)" };
+    return { color: "var(--mrd-pass)" };
   };
   return (
     <div style={{ fontFamily: "var(--font-mono)", marginBottom: 10 }}>
@@ -715,7 +740,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
         )}
       </div>
       {n === 0 ? (
-        <p style={{ color: "var(--text-body)", lineHeight: 1.5 }}>
+        <p style={{ color: "var(--mrd-ink)", lineHeight: 1.5 }}>
           This mission started fresh. As the loop runs it draws on what it has already learned, and
           that compounds here. The next mission on this product will not start cold.
         </p>
@@ -744,12 +769,12 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
                 fontWeight: 600,
                 letterSpacing: "-0.02em",
                 lineHeight: 1,
-                color: "var(--text-primary)",
+                color: "var(--mrd-ink)",
               }}
             >
               {n}
             </span>
-            <span style={{ color: "var(--text-body)", lineHeight: 1.4 }}>
+            <span style={{ color: "var(--mrd-ink)", lineHeight: 1.4 }}>
               earlier {n === 1 ? "lesson" : "lessons"} guided this mission, instead of starting cold
             </span>
           </div>
@@ -761,16 +786,16 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
                   display: "flex",
                   gap: 10,
                   paddingTop: i === 0 ? 0 : 6,
-                  borderTop: i === 0 ? "none" : "1px solid var(--hairline)",
+                  borderTop: i === 0 ? "none" : "1px solid var(--mrd-edge)",
                 }}
               >
-                <span style={{ color: "var(--text-body)", flex: 1, lineHeight: 1.45 }}>
+                <span style={{ color: "var(--mrd-ink)", flex: 1, lineHeight: 1.45 }}>
                   {mem.summary}
                 </span>
                 {mem.agents.size > 0 && (
                   <span
                     className="mono-label"
-                    style={{ color: "var(--text-subtle)", flexShrink: 0, whiteSpace: "nowrap" }}
+                    style={{ color: "var(--mrd-mute)", flexShrink: 0, whiteSpace: "nowrap" }}
                   >
                     {[...mem.agents].join(" · ")}
                   </span>
@@ -778,7 +803,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
               </div>
             ))}
             {moreCount > 0 && (
-              <span className="mono-label" style={{ color: "var(--text-subtle)", marginTop: 4 }}>
+              <span className="mono-label" style={{ color: "var(--mrd-mute)", marginTop: 4 }}>
                 +{moreCount} more in the snapshot
               </span>
             )}
@@ -1000,8 +1025,8 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
     return (
       <div style={{ maxWidth: 980, margin: "0 auto" }}>
         <div style={{ ...LOOM_CARD, padding: "var(--geist-gap)", maxWidth: 560 }}>
-          <MonoLabel style={{ color: "var(--madder)" }}>Couldn't load this mission</MonoLabel>
-          <p style={{ color: "var(--text-muted)", marginTop: 8 }}>
+          <MonoLabel style={{ color: "var(--mrd-fail)" }}>Couldn't load this mission</MonoLabel>
+          <p style={{ color: "var(--mrd-mute)", marginTop: 8 }}>
             {(m.error as Error)?.message?.slice(0, 160)}
           </p>
           {/* The raised default, not `variant="primary"`: this branch replaces
@@ -1059,7 +1084,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
         >
           <div>
             <MonoLabel
-              style={{ color: "color-mix(in oklab, var(--text-primary) 60%, transparent)" }}
+              style={{ color: "color-mix(in oklab, var(--mrd-ink) 60%, transparent)" }}
             >
               {/* The platform's own trace ref, the same six characters the
                 Build page and every audit tag show, so a person can paste it
@@ -1101,7 +1126,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             />
             <p
               style={{
-                color: "color-mix(in oklab, var(--text-primary) 70%, transparent)",
+                color: "color-mix(in oklab, var(--mrd-ink) 70%, transparent)",
                 display: "-webkit-box",
                 WebkitLineClamp: 4,
                 WebkitBoxOrient: "vertical",
@@ -1120,7 +1145,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   alignItems: "center",
                   gap: 5,
                   marginTop: 8,
-                  color: "color-mix(in oklab, var(--text-primary) 65%, transparent)",
+                  color: "color-mix(in oklab, var(--mrd-ink) 65%, transparent)",
                 }}
                 title="Open the mission this one was replayed from"
               >
@@ -1181,15 +1206,15 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                 }}
                 disabled={cancel.isPending}
                 // Destructive hover: a whisper of the madder it warns about.
-                className={`mono-label loom-press transition-colors hover:enabled:[background:color-mix(in_oklab,var(--madder)_10%,transparent)] ${FOCUS}`}
+                className={`mono-label loom-press transition-colors hover:enabled:[background:color-mix(in_oklab,var(--mrd-stop)_10%,transparent)] ${FOCUS}`}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 5,
                   padding: "3px 10px",
                   borderRadius: 5,
-                  border: "1px solid color-mix(in oklab, var(--madder) 35%, transparent)",
-                  color: "var(--madder)",
+                  border: "1px solid color-mix(in oklab, var(--mrd-stop) 35%, transparent)",
+                  color: "var(--mrd-stop)",
                   opacity: cancel.isPending ? 0.5 : 1,
                 }}
                 title="Stop this mission so it will not advance further"
@@ -1213,9 +1238,9 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   style={{
                     padding: "3px 6px",
                     borderRadius: 5,
-                    border: "1px solid color-mix(in oklab, var(--text-primary) 35%, transparent)",
+                    border: "1px solid color-mix(in oklab, var(--mrd-ink) 35%, transparent)",
                     background: "transparent",
-                    color: "var(--text-primary)",
+                    color: "var(--mrd-ink)",
                     maxWidth: 160,
                   }}
                 >
@@ -1236,8 +1261,8 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                     gap: 5,
                     padding: "3px 10px",
                     borderRadius: 5,
-                    border: "1px solid color-mix(in oklab, var(--text-primary) 35%, transparent)",
-                    color: "var(--text-primary)",
+                    border: "1px solid color-mix(in oklab, var(--mrd-ink) 35%, transparent)",
+                    color: "var(--mrd-ink)",
                     opacity: replay.isPending ? 0.5 : 1,
                   }}
                   title="Re-run this goal as a new mission, optionally with a different model"
@@ -1269,12 +1294,12 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             <span
               key={l}
               className="mono-label"
-              style={{ color: "color-mix(in oklab, var(--text-primary) 55%, transparent)" }}
+              style={{ color: "color-mix(in oklab, var(--mrd-ink) 55%, transparent)" }}
             >
               {l}{" "}
               <strong
                 className="tabular-nums"
-                style={{ color: "var(--text-primary)", fontWeight: 600 }}
+                style={{ color: "var(--mrd-ink)", fontWeight: 600 }}
               >
                 {v}
               </strong>
@@ -1282,27 +1307,27 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           ))}
           <span
             className="mono-label"
-            style={{ color: "color-mix(in oklab, var(--text-primary) 55%, transparent)" }}
+            style={{ color: "color-mix(in oklab, var(--mrd-ink) 55%, transparent)" }}
             title={captainTitle}
           >
             captain{" "}
             <strong
               className="tabular-nums"
-              style={{ color: "var(--text-primary)", fontWeight: 600 }}
+              style={{ color: "var(--mrd-ink)", fontWeight: 600 }}
             >
               {captainLabel}
             </strong>
           </span>
           <span
             className="mono-label"
-            style={{ color: "color-mix(in oklab, var(--text-primary) 55%, transparent)" }}
+            style={{ color: "color-mix(in oklab, var(--mrd-ink) 55%, transparent)" }}
           >
             trace{" "}
             {data.usage.trace_id ? (
               <Link to="/traces/$traceId" params={{ traceId: data.usage.trace_id }}>
                 <strong
                   className="tabular-nums"
-                  style={{ color: "var(--text-primary)", fontWeight: 600 }}
+                  style={{ color: "var(--mrd-ink)", fontWeight: 600 }}
                 >
                   {data.usage.trace_id.slice(0, 8)}
                 </strong>
@@ -1310,7 +1335,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             ) : (
               <strong
                 className="tabular-nums"
-                style={{ color: "var(--text-primary)", fontWeight: 600 }}
+                style={{ color: "var(--mrd-ink)", fontWeight: 600 }}
               >
                 none yet
               </strong>
@@ -1340,7 +1365,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               display: "inline-flex",
               alignItems: "center",
               gap: 6,
-              color: "var(--glacier)",
+              color: "var(--mrd-agent)",
             }}
           >
             <span className="dot dot-running" style={{ width: 5, height: 5 }} />
@@ -1371,8 +1396,8 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               gap: 5,
               padding: "3px 10px",
               borderRadius: 5,
-              border: "1px solid color-mix(in oklab, var(--text-subtle) 45%, transparent)",
-              color: "var(--text-body)",
+              border: "1px solid color-mix(in oklab, var(--mrd-mute) 45%, transparent)",
+              color: "var(--mrd-ink)",
               marginBottom: showDiff ? 10 : 0,
             }}
             title="Compare this replay with the mission it was replayed from"
@@ -1423,8 +1448,8 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                 style={{
                   padding: "3px 10px",
                   borderRadius: 5,
-                  border: "1px solid var(--hairline)",
-                  color: "var(--text-primary)",
+                  border: "1px solid var(--mrd-edge)",
+                  color: "var(--mrd-ink)",
                   opacity: advance.isPending ? 0.5 : 1,
                 }}
               >
@@ -1435,7 +1460,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               style={{
                 display: "flex",
                 gap: 2,
-                border: "1px solid var(--hairline)",
+                border: "1px solid var(--mrd-edge)",
                 borderRadius: 7,
                 padding: 2,
               }}
@@ -1450,13 +1475,13 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   key={id}
                   onClick={() => setView(id)}
                   aria-pressed={view === id}
-                  className={`mono-label loom-press transition-colors hover:[background:var(--surface-hover)] ${FOCUS}`}
+                  className={`mono-label loom-press transition-colors hover:[background:var(--mrd-lift-hover)] ${FOCUS}`}
                   style={{
                     padding: "3px 10px",
                     borderRadius: 5,
                     // Inline background only on the active pill so hover resolves.
-                    background: view === id ? "var(--raised)" : undefined,
-                    color: view === id ? "var(--text-primary)" : "var(--text-subtle)",
+                    background: view === id ? "var(--mrd-lift)" : undefined,
+                    color: view === id ? "var(--mrd-ink)" : "var(--mrd-mute)",
                   }}
                 >
                   {label}
@@ -1470,7 +1495,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             {planRows.length === 0 ? (
               <div
                 style={{
-                  color: "var(--text-subtle)",
+                  color: "var(--mrd-mute)",
                   fontStyle: "italic",
                 }}
               >
@@ -1485,7 +1510,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                     gap: 14,
                     alignItems: "flex-start",
                     padding: "10px 0",
-                    borderBottom: i < planRows.length - 1 ? "1px solid var(--hairline)" : "none",
+                    borderBottom: i < planRows.length - 1 ? "1px solid var(--mrd-edge)" : "none",
                   }}
                 >
                   <span
@@ -1499,19 +1524,19 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   </span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <span className="mono-label" style={{ color: "var(--text-primary)" }}>
+                      <span className="mono-label" style={{ color: "var(--mrd-ink)" }}>
                         {s.agent}
                       </span>
                       <StatusBadge status={badgeStatus(s.status)} />
                       {s.deps.length > 0 ? (
-                        <span className="mono-label" style={{ color: "var(--text-subtle)" }}>
+                        <span className="mono-label" style={{ color: "var(--mrd-mute)" }}>
                           after {s.deps.map((d) => d + 1).join(", ")}
                         </span>
                       ) : null}
                     </div>
                     <div
                       style={{
-                        color: "var(--text-body)",
+                        color: "var(--mrd-ink)",
                         marginTop: 3,
                         display: "-webkit-box",
                         WebkitLineClamp: 2,
@@ -1522,7 +1547,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                       {s.goal}
                     </div>
                     {s.note ? (
-                      <div style={{ color: "var(--madder)", marginTop: 2 }}>{s.note}</div>
+                      <div style={{ color: "var(--mrd-fail)", marginTop: 2 }}>{s.note}</div>
                     ) : null}
                   </div>
                 </div>
@@ -1570,7 +1595,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           </div>
           <p
             style={{
-              color: "var(--text-subtle)",
+              color: "var(--mrd-mute)",
               marginBottom: 12,
             }}
           >
@@ -1590,7 +1615,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                     gap: "var(--geist-space-3x)",
                     alignItems: "flex-start",
                     padding: "10px 0",
-                    borderBottom: i < unattended.length - 1 ? "1px solid var(--hairline)" : "none",
+                    borderBottom: i < unattended.length - 1 ? "1px solid var(--mrd-edge)" : "none",
                   }}
                 >
                   <span style={{ flexShrink: 0, alignSelf: "flex-start" }}>
@@ -1605,7 +1630,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                     <span
                       style={{
                         display: "block",
-                        color: "var(--text-body)",
+                        color: "var(--mrd-ink)",
                         lineHeight: 1.5,
                         marginTop: 2,
                       }}
@@ -1639,7 +1664,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
         {hops.length === 0 ? (
           <div
             style={{
-              color: "var(--text-subtle)",
+              color: "var(--mrd-mute)",
               fontStyle: "italic",
             }}
           >
@@ -1677,14 +1702,14 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             borderRadius: 10,
             marginTop: 16,
             marginBottom: 16,
-            background: "color-mix(in oklab, var(--madder) 7%, transparent)",
-            border: "1px solid color-mix(in oklab, var(--madder) 35%, transparent)",
+            background: "color-mix(in oklab, var(--mrd-fail) 7%, transparent)",
+            border: "1px solid color-mix(in oklab, var(--mrd-fail) 35%, transparent)",
           }}
         >
           <div
             className="mono-label"
             style={{
-              color: "var(--madder)",
+              color: "var(--mrd-fail)",
               display: "flex",
               alignItems: "center",
               gap: 6,
@@ -1698,7 +1723,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           {failedStep ? (
             <p
               style={{
-                color: "var(--text-body)",
+                color: "var(--mrd-ink)",
                 margin: "6px 0 10px",
               }}
             >
@@ -1708,7 +1733,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           ) : (
             <p
               style={{
-                color: "var(--text-body)",
+                color: "var(--mrd-ink)",
                 margin: "6px 0 10px",
               }}
             >

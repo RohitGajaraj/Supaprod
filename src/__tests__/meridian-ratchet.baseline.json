@@ -15,7 +15,7 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 3305,
+  "totalOccurrences": 3250,
   "fileCount": 226,
   "files": {
     "src/components/admin/InvitationsPanel.tsx": {
@@ -414,11 +414,6 @@
       "--madder": 2
     },
     "src/components/missions/MissionOrchestratorDetail.tsx": {
-      "--text-": 39,
-      "--hairline": 6,
-      "--madder": 8,
-      "--glacier": 1,
-      "--raised": 1,
       "class:sp-": 5,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 4
