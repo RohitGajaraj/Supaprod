@@ -1,3 +1,85 @@
+# SESSION CLOSED 2026-08-22 ~16:40 IST · Claude · The command palette question is ANSWERED, BUILT and IN PRODUCTION
+
+**State at close:** `main`, tree clean, **1 ahead of origin** — `8a3e0a00b` (the EF rejection docs) is committed
+but **NOT PUSHED**. Everything else is pushed and deployed. Gates at close: `tsc` 0, `bun test` 0
+(**10280 pass / 0 fail**), `build` 0, `docs:check` 0, `design:ratchet` 0, each run as its own command with its
+own exit code.
+
+## The last handoff's "Pick this up FIRST" is DONE. Do not re-open it.
+
+**"Does the command palette come back, or does it go?" — IT GOES.** Ruled and built after the founder handed
+over the call. Full record, including the case FOR keeping it recorded verbatim:
+[`../decisions/palette-retired-2026-08.md`](../decisions/palette-retired-2026-08.md). **It reverses two written
+contracts that were never overturned** (`FINAL-ia.md:137` *"It ships"*, `FINAL-shell-ruling.md:452` *"the
+highest-value single item"*), so it is a supersession, not a cleanup, and both are superseded in place with the
+original text left standing.
+
+**Shipped:** `GlobalComposerHost`, the `CommandPalette()` body and the 17-file orphan tree behind them —
+**2,203 lines**, 21 retired-design occurrences reclaimed. `CommandPalette.tsx` is now
+`components/supaprod/GotoShortcuts.tsx`, named for what it actually holds. **Deployed and verified:**
+Lovable's `latest_commit_sha` is `ccd4efdd5`, `read_file` confirms `GotoShortcuts.tsx` present AND
+`ComposerOverlay.tsx` 404 — addition and deletion both.
+
+**KEPT ON PURPOSE:** `lib/palette-catalog.ts` and `lib/palette-sections.ts`. `src/lib/**` is outside the
+ratchet's `SCAN_SCOPES`, so the 19-row capability list costs nothing to keep, and deleting it would have
+destroyed the evidence of the gap. **The gap is filed as a board item**, not lost.
+
+**THE DELETE IS A ONE-WAY DOOR.** All 19 retired tokens sat in the deleted region, so the file scans clean and
+`design:ratchet` **dropped its baseline key**. Restoring the old palette trips rule 1 of
+`meridian-ratchet.test.ts:41` with no sanctioned repair. **`git revert` will not land it.** Use
+`git show ccd4efdd5^:src/components/supaprod/CommandPalette.tsx` if you ever want to read it.
+
+**A CORRECTION THAT MUST NOT BE INHERITED:** only **1** of the 19 catalog rows was genuinely dead
+(`open-calendar` → `/today`), **not 5**. An intermediate reading claimed five and three judges repeated it;
+`challenge-belief`, `point-critic` and `tickets-to-signals` all route correctly. The wrong figure reached no
+document.
+
+## Pick this up FIRST: CI has been dead all day and the red X does not mean what it looks like
+
+**Six consecutive CI runs failed in ~4 seconds with `total_ms: 0`, zero steps recorded and no retrievable
+logs.** That is a runner or billing block, not a test failure — `ci.yml`'s own header says it was built for
+"GitHub Actions' free tier". **Nothing distinguishes "no runner ran" from "tests broke" on the badge**, so the
+repo's correctness gate has been silently non-functional since at least 2026-08-21 09:13. Check billing/minutes
+before trusting any CI signal. Local gates are the only real ones right now.
+
+## Two things that will save the next session an hour each
+
+**1. `bun run lint` is RED repo-wide (1598 errors) and always has been.** Do not read that as your regression.
+It is excluded from CI deliberately (`ci.yml` header: ~4k legacy findings). **`bun test` is the gate.** And
+never pipe a gate into `tail` — `bun run lint | tail -3; echo $?` printed **0** while lint truly exited **1**.
+That exact shape shipped a red main here once already.
+
+**2. The build output is `.output/`, NOT `dist/`.** A bundle grep against `dist/` returns "absent" for
+everything because the directory does not exist, and the control fails silently the same way. **Always assert
+both directions** — the palette strings absent AND `⌘K` / `data-chord` present — or the test proves nothing.
+Related: you cannot grep the LIVE bundle for authenticated code. The public landing page references exactly
+one JS chunk; the authenticated routes are code-split and only load after sign-in.
+
+## Open, and what each needs
+
+| Item | State | Needs |
+| --- | --- | --- |
+| **`8a3e0a00b` unpushed** | committed, tree clean | one `git push origin main`. Unpushed looks identical to shipped |
+| **EF The Bridge rejection** | card set to `Rejected`, decision date 2026-08-21 | **their verbatim email.** `Outcome detail` deliberately records NO reason — the board's own rule, learned when "not the right fit" turned out to be our paraphrase on the SPC card |
+| **`voyage@supaprod.ai` given twice** | flagged in `applications/README.md` | a decision. It went to South Park Commons AND EF inline in Q4, against the board's one-login-per-programme rule. Sign-ins can no longer be attributed |
+| **4 of 5 filed applications quote retired numbers** | documented, untouched | the real strengthening work, and it is evidence-backed unlike the rejections. Audit filed text against `../pitch/verified-numbers.md` |
+| **`bun run dev` keypress check** | never ran | `g`+letter must navigate, ⌘K must open Ask. The Chrome extension was down the whole session (three attempts, hours apart). Automated equivalents pass |
+
+## The lesson worth carrying, and it is not about the palette
+
+**Recoverability that reads as live code is a trap, not a safety net.** Addendum 1.1 rule 8 keeps retired UI in
+the tree unmounted. Here that rule cost **two sessions** and nearly bought a ruling taken on the belief that
+four palette verbs were lying to users in production, because `<GlobalComposer />` being mounted answered "is
+the palette live?" with yes for a year. The rule was suspended deliberately and the reasoning is in
+`_authenticated.tsx` itself, not only in the decision record. **A file named for a feature it no longer
+contains is the same trap** — that is why the rename happened rather than a comment explaining the mismatch.
+
+**Second: when a control fails, suspect the instrument before the finding.** It happened three times in one
+session — a `dist/` that does not exist, a `tail` pipe eating an exit code, and a background job truncating the
+file a foreground grep was reading. Every one produced a confident, wrong "absent".
+
+---
+
 # SESSION CLOSED 2026-08-21 ~18:00 IST · Claude · K-37 built, and the AI-spend leak closed and VERIFIED IN PRODUCTION
 
 **State at close:** `main`, tree clean, 0 ahead / 0 behind. `lane:gates` exit 0. Nothing awaiting a verdict.
