@@ -123,13 +123,27 @@ export const CONSEQUENCE_CLASS_ORDER: readonly ConsequenceClassId[] = [
 /**
  * PURE. The consequence class one tool belongs to, derived entirely from the
  * existing static primitives:
- *  - not side-effecting (not in the consequence catalogue) => read-only research
+ *  - not side-effecting (the registry calls it a read)      => read-only research
  *  - side-effecting but internal to the workspace           => internal write
  *  - external and reversible (medium blast radius)          => stakeholder-facing
  *  - external and high blast radius (irreversible / commit) => repo write
  *
  * Fail-closed: an unknown external tool scores high blast radius (toolRisk), so it
  * lands in repo-write (always gate) rather than a looser class.
+ *
+ * ── THE FIRST LINE ONLY STARTED BEING TRUE ON 2026-08-22 ─────────────────
+ * It used to read "not in the consequence catalogue", which is what
+ * `isSideEffectingTool` tested, and the catalogue was completed to all 59 registry
+ * tools on 2026-08-19. From then until the predicate was fixed this function could
+ * not return `read-only` at all: the registry scored 0 read-only, 47
+ * internal-write, 5 stakeholder, 7 repo-write, so the first bucket
+ * `CONSEQUENCE_CLASS_ORDER` renders stood empty on every surface and a
+ * `web.search` sat in the same class as a `decision.record`. The predicate now
+ * answers from the registry's `category`, so all 20 reads land here again.
+ *
+ * The fail-closed line above also stopped being aspirational in the same change:
+ * an unrecognised name is no longer read as "not side-effecting", so it can no
+ * longer fall through to the one class that never gates.
  */
 export function classifyConsequence(toolName: string | null | undefined): ConsequenceClassId {
   if (!isSideEffectingTool(toolName)) return "read-only";

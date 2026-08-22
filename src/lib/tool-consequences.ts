@@ -445,52 +445,116 @@ export function toolConsequence(toolName: string | null | undefined): ToolConseq
 }
 
 /**
- * Catalogue membership. Used to flag a `tool_calls` row as an UNATTENDED write:
- * every tool_calls row is an inline (auto-mode) execution — gated tools queue an
- * approval instead — so a side-effecting one means the agent's trust arc executed
- * it without a human gate.
+ * The registry tools whose `category` is `"read"`, mirrored here because
+ * `isSideEffectingTool` has to answer on the client and `registry.server.ts` —
+ * which holds the categories — is worker-only and pulls in Supabase, the AI
+ * runtime and every connector adapter. Mirrored the way `EXTERNAL_TOOLS` below
+ * mirrors the workspace boundary: a hand-kept copy of a fact that lives
+ * somewhere else.
  *
- * ── THIS NO LONGER MEANS WHAT ITS NAME SAYS. Measured 2026-08-22. ──────────
+ * A HAND-KEPT COPY DRIFTS, so it is not left to discipline. The guard in
+ * `tool-consequences.test.ts` reads the registry source and fails if this set and
+ * the registry's `read` category disagree in either direction — a read added to
+ * the registry and not to this set is a read that gets counted as an unattended
+ * write; a name left here after the registry stops calling it a read is a write
+ * that gets filed as harmless research.
  *
- * The doc here used to end "Read tools also execute inline but aren't delegation,
- * so they're excluded." That was true while the catalogue held only writers. It
- * stopped being true on 2026-08-19, when completing the catalogue added the
- * sixteen read-only tools it was missing, and nobody moved this predicate.
+ * IT IS THE CATEGORY THAT IS MIRRORED, NOT THE CONSEQUENCE SENTENCE, and the two
+ * do not always agree. `studio.review` reads a diff and its consequence says
+ * "Writes no code and opens nothing" — true, and it still updates
+ * `studio_changesets.code_review`, so the registry files it under `planning` and
+ * it is not in this set. `studio.checks.run` is the opposite case: it executes
+ * code, and the registry deliberately calls it a read because the sandbox is
+ * destroyed and nothing a person can see survives the call. The question this set
+ * asks is "does anything outlive the call", and `category` is the field that
+ * tracks it.
+ */
+const READ_ONLY_TOOLS = new Set<string>([
+  "workspace.search",
+  "workspace.list_tasks",
+  "signals.list",
+  "themes.list",
+  "sources.status",
+  "sources.connect",
+  "github.ci.read",
+  "repo.tree",
+  "repo.read",
+  "repo.search",
+  "ci.logs",
+  "studio.secrets.scan",
+  "studio.tests.plan",
+  "studio.checks.run",
+  "studio.deps.audit",
+  "web.search",
+  "web.fetch",
+  "web.map",
+  "web.crawl",
+  "mission.observe",
+]);
+
+/** The mirror above as a list, exported for the drift guard only. The guard has
+ *  to compare it to the registry in BOTH directions, and the direction a
+ *  membership test cannot see is the orphan: a tool renamed in the registry
+ *  leaves its old name here, answering for nothing. */
+export const READ_ONLY_TOOL_NAMES: readonly string[] = [...READ_ONLY_TOOLS];
+
+/**
+ * Does anything survive running this tool?
  *
- * The body is `name in CONSEQUENCES` and CONSEQUENCES now covers all 59 registry
- * tools, so this returns TRUE FOR ALL 59 — including the 20 whose registry
- * `category` is `"read"`: workspace.search, workspace.list_tasks, signals.list,
- * themes.list, sources.status, sources.connect, github.ci.read, repo.tree,
- * repo.read, repo.search, ci.logs, studio.secrets.scan, studio.tests.plan,
- * studio.checks.run, studio.deps.audit, web.search, web.fetch, web.map,
- * web.crawl, mission.observe.
+ * It flags a `tool_calls` row as an UNATTENDED write — every tool_calls row is an
+ * inline (auto-mode) execution, since gated tools queue an approval instead, so a
+ * side-effecting one is work the agent's trust arc carried without a human gate —
+ * and it sorts a tool into a consent class.
  *
- * WHAT THAT COSTS, per caller, all four verified by reading them:
+ * ── FIXED 2026-08-22. IT USED TO BE `name in CONSEQUENCES`. ───────────────
+ * That is catalogue membership wearing this name, and it gave the right answer
+ * only while the catalogue held nothing but writers. On 2026-08-19 the catalogue
+ * was completed to all 59 registry tools to fix a different defect — a tool with
+ * no row scored `high` in `toolRisk` and was silently demoted to `confirm` — and
+ * completing it made this predicate return `true` for all 59, the 20 reads
+ * included. What that cost, measured at each caller before the fix:
+ *
  *   - `consent-classes.ts` returns `"read-only"` only when this is false, so that
- *     class now matches NOTHING. Scored over the whole registry it is 0 read-only,
- *     47 internal-write, 5 stakeholder, 7 repo-write. A bucket the consent surface
- *     renders in its fixed order is permanently empty, and a `web.search` is filed
- *     beside a `decision.record` as an internal write.
- *   - `today.functions.ts` and `missions.functions.ts` mark a row `is_unattended`
- *     from this, so a repo read now counts as work the loop carried unattended.
- *   - `approval-policy.ts` is the one that IMPROVED: its fail-closed always-human
- *     branch fires on `!isSideEffectingTool`, so completing the catalogue moved
- *     the reads off it, which is exactly what 2026-08-19 was for.
+ *     class matched NOTHING. Scored over the whole registry: 0 read-only, 47
+ *     internal-write, 5 stakeholder, 7 repo-write. A bucket the consent surface
+ *     renders in a fixed order stood permanently empty, and a `web.search` was
+ *     filed beside a `decision.record`.
+ *   - `today.functions.ts`, `missions.functions.ts` and `gauntlet.functions.ts`
+ *     mark a row unattended from this, so a repo read counted as work the loop
+ *     carried on its own — and in gauntlet's case it went into the numerator of
+ *     the autonomy ratio the product reports.
+ *   - `approval-policy.ts` was the one caller the 2026-08-19 change IMPROVED: its
+ *     fail-closed always-human branch fires on the negation, so cataloguing the
+ *     reads moved them off it. That improvement is kept, by giving that branch
+ *     the question it was actually asking — see `isCataloguedTool` below.
  *
- * LEFT AS IT IS, DELIBERATELY. The registry already knows the answer — every def
- * carries `category: "read" | "write" | "memory" | "planning"` — but that lives in
- * a worker-only module and this file is client-safe, so the read set has to be
- * mirrored here the way EXTERNAL_TOOLS mirrors the boundary. That is a change to
- * four production surfaces, not to this line, and
- * `build-verification.test.ts` already pins the current answer
- * (`isSideEffectingTool("ci.logs") === true`) and names itself the place the
- * expectation gets updated when the predicate is fixed. Fixing it here alone would
- * flip those four surfaces with no test moving to say so.
+ * FAIL CLOSED, which is what the rest of this file does. An unrecognised name is
+ * not in the read set, so it answers `true`. `toolRisk` scores an unknown tool
+ * `high`, `assessTool` scores it irreversible, and `DEFAULT` tells the reader to
+ * check the arguments before approving; a predicate that answered "read-only
+ * research" for that same name would be the one place an unvetted tool could be
+ * filed as never-gate. A null or empty name is not a tool at all — it is a
+ * non-tool gate — and stays false.
+ */
+export function isSideEffectingTool(toolName: string | null | undefined): boolean {
+  return !!toolName && !READ_ONLY_TOOLS.has(toolName);
+}
+
+/**
+ * Is there a row in this file saying what the tool does?
+ *
+ * Split out of `isSideEffectingTool` on 2026-08-22, because one predicate was
+ * answering two questions and fixing it for one would have answered the other
+ * wrongly. `approval-policy.ts` asks THIS one: its fail-closed default says
+ * "nothing is written down about what this changes", which is a statement about
+ * the catalogue and not about the tool. Reads are catalogued, so they keep the
+ * never-ask default they gained on 2026-08-19 instead of dropping back onto
+ * always-human behind a reason that is no longer true of them.
  *
  * Keep CONSEQUENCES in sync when any tool is added; the guard in
  * `tool-risk-six-dimensions.test.ts` fails the build if you do not.
  */
-export function isSideEffectingTool(toolName: string | null | undefined): boolean {
+export function isCataloguedTool(toolName: string | null | undefined): boolean {
   return !!toolName && toolName in CONSEQUENCES;
 }
 

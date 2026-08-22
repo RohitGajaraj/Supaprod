@@ -108,15 +108,43 @@ describe("Build verification tools: nothing they added lowered an existing floor
     expect(TOOL_DEFAULTS["studio.fix.commit"].mode).toBe("auto");
   });
 
-  it("does not turn a read into a catalogued side effect by accident", () => {
-    // isSideEffectingTool is `name in CONSEQUENCES`, which ci.logs already trips
-    // as a catalogued read. Pinning it here so the quirk stays a known,
-    // deliberate consequence of the catalogue's shape rather than drifting into
-    // these four unremarked: they are reads, and the day that predicate is
-    // fixed, this assertion is where the expectation gets updated.
-    expect(isSideEffectingTool("ci.logs")).toBe(true);
-    for (const tool of VERIFICATION_TOOLS) {
-      expect(isSideEffectingTool(tool)).toBe(true);
+  it("counts three of the four as reads, and the reviewer as a write", () => {
+    /*
+     * THE UPDATE THIS ASSERTION ASKED FOR, made 2026-08-22. It used to expect
+     * `true` from all four and from `ci.logs`, and its comment said so plainly:
+     * `isSideEffectingTool` was `name in CONSEQUENCES`, every catalogued read
+     * tripped it, and "the day that predicate is fixed, this assertion is where
+     * the expectation gets updated". That day is today. The predicate now answers
+     * from the registry's `category`, so:
+     *
+     * `ci.logs`, `studio.secrets.scan`, `studio.tests.plan` and
+     * `studio.deps.audit` are `category: "read"` and answer false, which is what
+     * they always were — they read a diff, a PR, a lockfile, and write nowhere.
+     *
+     * `studio.review` is not a read and answers true. That is not the old bug
+     * surviving in one place: it is `category: "planning"`, and it persists its
+     * verdict to `studio_changesets.code_review`, so something outlives the call.
+     * The three above are the ones that leave no trace, and the predicate can now
+     * tell the difference — which is the point of fixing it.
+     *
+     * None of this changes what it takes to RUN any of the four. That is decided
+     * by `TOOL_DEFAULTS`, `toolRisk` and `resolveToolMode`, all asserted above and
+     * all untouched by this. What it changes is how a completed call is COUNTED:
+     * three of these stop being reported as work the loop carried unattended.
+     */
+    for (const tool of [
+      "ci.logs",
+      "studio.secrets.scan",
+      "studio.tests.plan",
+      "studio.deps.audit",
+    ]) {
+      expect(isSideEffectingTool(tool), `${tool} reads and writes nothing`).toBe(false);
     }
+    expect(isSideEffectingTool("studio.review"), "it writes its verdict to the changeset").toBe(
+      true,
+    );
+    // The four still resolve to auto and still carry no floor; that is asserted
+    // in the block above and neither claim moved.
+    expect(VERIFICATION_TOOLS.filter((t) => isSideEffectingTool(t))).toEqual(["studio.review"]);
   });
 });

@@ -3769,7 +3769,8 @@ const decisionRecord = def({
      */
     .superRefine((v, ctx) => {
       const bad = forecastRefusal(v);
-      if (bad) ctx.addIssue({ code: z.ZodIssueCode.custom, path: [bad.path], message: bad.message });
+      if (bad)
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: [bad.path], message: bad.message });
     }),
   /*
    * WHAT THIS IS AND IS NOT. A `ToolDef.preview` renders the call in plain

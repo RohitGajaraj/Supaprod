@@ -1,12 +1,16 @@
 import { describe, it, expect } from "bun:test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { TOOL_DEFAULTS } from "@/lib/ai/tools/defaults";
 import {
   toolConsequence,
   isSideEffectingTool,
+  isCataloguedTool,
   toolRisk,
   isHighRiskTool,
   isExternalTool,
   filterToolsByRisk,
+  READ_ONLY_TOOL_NAMES,
   RISK_RANK,
 } from "./tool-consequences";
 
@@ -18,10 +22,131 @@ describe("toolConsequence (existing)", () => {
     const c = toolConsequence("nope.unknown");
     expect(c.reversible).toBe("partial");
   });
-  it("isSideEffectingTool is true only for catalogued tools", () => {
+  it("isSideEffectingTool is false for a read and true for anything that leaves a row", () => {
+    /*
+     * REWRITTEN 2026-08-22. This used to be titled "true only for catalogued
+     * tools" and asserted `isSideEffectingTool("nope.unknown") === false`, both
+     * of which described the old body, `name in CONSEQUENCES`. That body stopped
+     * being a side-effect test the day the catalogue was completed to all 59
+     * registry tools; see the function's own comment for what the four callers
+     * paid for it.
+     */
     expect(isSideEffectingTool("memory.remember")).toBe(true);
-    expect(isSideEffectingTool("nope.unknown")).toBe(false);
+    expect(isSideEffectingTool("repo.read")).toBe(false);
+    expect(isSideEffectingTool("web.search")).toBe(false);
+    // Fail closed: an unrecognised name is not a known read, so it is treated as
+    // if it changed something. `toolRisk` and `assessTool` already answer that
+    // way, and a predicate that called an unvetted tool "read-only research"
+    // would be the one door left open into the never-gate consent class.
+    expect(isSideEffectingTool("nope.unknown")).toBe(true);
+    // A null name is a non-tool gate rather than a tool, and stays out of it.
     expect(isSideEffectingTool(null)).toBe(false);
+    expect(isSideEffectingTool(undefined)).toBe(false);
+    expect(isSideEffectingTool("")).toBe(false);
+  });
+
+  it("isCataloguedTool still answers the question the old predicate was answering", () => {
+    // approval-policy's fail-closed branch asks this one. It has to keep saying
+    // yes for a read, or all 20 of them drop back onto always-human.
+    expect(isCataloguedTool("repo.read")).toBe(true);
+    expect(isCataloguedTool("memory.remember")).toBe(true);
+    expect(isCataloguedTool("nope.unknown")).toBe(false);
+    expect(isCataloguedTool(null)).toBe(false);
+  });
+});
+
+/**
+ * ── THE MIRROR MAY NOT DRIFT FROM THE REGISTRY ────────────────────────────
+ *
+ * `isSideEffectingTool` answers from `READ_ONLY_TOOLS`, a hand-kept copy of which
+ * registry tools carry `category: "read"`. The registry itself is worker-only —
+ * importing `registry.server.ts` into a unit test drags in Supabase, the AI
+ * runtime and every connector adapter — so the copy exists for the same reason
+ * `EXTERNAL_TOOLS` does, and it can go stale for the same reason too.
+ *
+ * BOTH DIRECTIONS ARE CHECKED, because they fail differently and neither is
+ * visible from the other side:
+ *   - a read the registry has and the mirror lacks is a read counted as an
+ *     unattended write on /today, in mission detail and in the gauntlet's
+ *     autonomy ratio, and filed under "ask first" on the consent surface;
+ *   - a name left in the mirror after the registry stops calling it a read is a
+ *     WRITE filed as read-only research, which is the never-gate class. That is
+ *     the direction a membership test cannot see, and it is the worse one.
+ *
+ * The scan reads source rather than importing, and pairs `name:` with the
+ * `category:` that follows it, bounded by a lookahead rather than a character
+ * window. That regex is not invented here: it is the one
+ * `tool-risk-six-dimensions.test.ts` arrived at after a 900-character window
+ * silently dropped `decision.record`, whose description runs 1186 characters.
+ */
+describe("isSideEffectingTool mirrors the registry's read category", () => {
+  function registryCategories(): Array<[string, string]> {
+    const dir = join(process.cwd(), "src/lib/ai/tools");
+    // Both files: the four `mission.*` tools are defined in orchestrator.server.ts
+    // and only imported into the registry array.
+    const src = ["registry.server.ts", "orchestrator.server.ts"]
+      .map((f) => readFileSync(join(dir, f), "utf8"))
+      .join("\n");
+    return [
+      ...src.matchAll(
+        /name:\s*"([^"]+)",(?:(?!\bname:\s*")[\s\S])*?category:\s*"(read|write|memory|planning)"/g,
+      ),
+    ].map((m) => [m[1], m[2]] as [string, string]);
+  }
+
+  const PAIRS = registryCategories();
+  const REGISTRY_READS = PAIRS.filter(([, c]) => c === "read").map(([n]) => n);
+
+  it("read a plausible registry, once per tool, with more than one category in it", () => {
+    /*
+     * Every assertion below passes vacuously against an empty or truncated scan,
+     * and the category floor is not decoration: a regex that lost its second
+     * capture group would return `undefined` for every category, find zero reads,
+     * and make the drift test pass while measuring nothing.
+     */
+    expect(PAIRS.length).toBeGreaterThan(50);
+    expect([...new Set(PAIRS.map(([n]) => n))].length).toBe(PAIRS.length);
+    expect(REGISTRY_READS.length).toBeGreaterThan(10);
+    expect(PAIRS.filter(([, c]) => c === "write").length).toBeGreaterThan(10);
+  });
+
+  it("says false for every registry read and true for every registry non-read", () => {
+    const readsCalledWrites = REGISTRY_READS.filter((t) => isSideEffectingTool(t));
+    const writesCalledReads = PAIRS.filter(([n, c]) => c !== "read" && !isSideEffectingTool(n)).map(
+      ([n]) => n,
+    );
+    // Named rather than counted: the failure should print which tool to move,
+    // since that is the whole work of fixing it.
+    expect(
+      readsCalledWrites,
+      "the registry calls these reads; they are being counted as unattended writes",
+    ).toEqual([]);
+    expect(
+      writesCalledReads,
+      "these change something and are being filed as read-only research, which never gates",
+    ).toEqual([]);
+  });
+
+  it("holds no name the registry no longer calls a read", () => {
+    const orphans = READ_ONLY_TOOL_NAMES.filter((t) => !REGISTRY_READS.includes(t));
+    expect(
+      orphans,
+      "these mirror entries answer for nothing, or for a tool that now writes",
+    ).toEqual([]);
+  });
+
+  it("keeps the one that reads a diff and writes its verdict on the write side", () => {
+    /*
+     * Named because it is the pair most likely to be 'corrected' by someone
+     * reading the consequence sentences instead of the categories.
+     * `studio.review` says "Writes no code and opens nothing" and still persists
+     * to `studio_changesets.code_review`, so the registry files it under
+     * `planning` and it is side-effecting. `studio.checks.run` runs code in a
+     * sandbox that is then destroyed, so the registry deliberately files it under
+     * `read` and it is not.
+     */
+    expect(isSideEffectingTool("studio.review")).toBe(true);
+    expect(isSideEffectingTool("studio.checks.run")).toBe(false);
   });
 });
 

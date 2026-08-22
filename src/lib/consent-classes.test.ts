@@ -8,12 +8,34 @@ import {
 } from "./consent-classes";
 
 describe("classifyConsequence", () => {
-  test("non-side-effecting / uncatalogued reads are read-only research", () => {
-    // Not in the consequence catalogue => reads, nothing to undo.
-    expect(classifyConsequence("research.search")).toBe("read-only");
-    expect(classifyConsequence("nope.unknown")).toBe("read-only");
+  test("registry reads are read-only research", () => {
+    /*
+     * REWRITTEN 2026-08-22, and the stand-in changed from `research.search` —
+     * which is not a tool and never has been — to real registry reads. That
+     * mattered: `isSideEffectingTool` was catalogue membership, so an invented
+     * name was the ONLY thing that could reach this class once the catalogue was
+     * completed on 2026-08-19, and this test went on passing for three days while
+     * the class matched nothing a person could actually enable. A stand-in that
+     * cannot appear in the input is a test of the fallback, not of the rule.
+     */
+    expect(classifyConsequence("repo.read")).toBe("read-only");
+    expect(classifyConsequence("workspace.search")).toBe("read-only");
+    expect(classifyConsequence("web.search")).toBe("read-only");
+    expect(classifyConsequence("ci.logs")).toBe("read-only");
+    // A null name is a non-tool gate, not a tool, and stays in the floor class.
     expect(classifyConsequence(null)).toBe("read-only");
     expect(classifyConsequence(undefined)).toBe("read-only");
+  });
+
+  test("an unrecognised tool does not land in the class that never gates", () => {
+    /*
+     * The module's header has always claimed it fails closed. Until the predicate
+     * was fixed it did not: an unknown name read as "not side-effecting" and was
+     * filed as read-only research, whose default posture is auto-run. It now
+     * lands on the internal-write default, which is ask-first.
+     */
+    expect(classifyConsequence("nope.unknown")).toBe("internal-write");
+    expect(consequenceClass("internal-write").defaultPosture.mode).toBe("confirm");
   });
 
   test("side-effecting workspace-internal tools are internal writes", () => {
@@ -68,7 +90,7 @@ describe("default posture per class (trust ladder RPT-17)", () => {
 
 describe("groupToolsByConsequenceClass", () => {
   const names = [
-    "research.search", // read-only
+    "repo.read", // read-only
     "tasks.create", // internal
     "github.pr.open", // stakeholder
     "studio.pr.merge", // repo
@@ -83,7 +105,7 @@ describe("groupToolsByConsequenceClass", () => {
   test("partitions tools into the right class, preserving input order", () => {
     const groups = groupToolsByConsequenceClass(names, (n) => n);
     const byId = Object.fromEntries(groups.map((g) => [g.id, g.tools]));
-    expect(byId["read-only"]).toEqual(["research.search"]);
+    expect(byId["read-only"]).toEqual(["repo.read"]);
     expect(byId["internal-write"]).toEqual(["tasks.create", "notes.create"]);
     expect(byId["stakeholder"]).toEqual(["github.pr.open"]);
     expect(byId["repo-write"]).toEqual(["studio.pr.merge"]);
@@ -91,7 +113,7 @@ describe("groupToolsByConsequenceClass", () => {
 
   test("keeps the original item shape so callers can render display names", () => {
     const items = [
-      { tool_name: "research.search", display_name: "Search" },
+      { tool_name: "repo.read", display_name: "Read repo files" },
       { tool_name: "studio.commit", display_name: "Commit" },
     ];
     const groups = groupToolsByConsequenceClass(items, (t) => t.tool_name);

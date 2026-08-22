@@ -896,7 +896,14 @@ export const getRecentExecutedUnattended = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
 
     // Side-effecting only = the writes the loop carried unattended (read tools run
-    // inline too but are not delegation). Catalogue-gated via isSideEffectingTool.
+    // inline too but are not delegation).
+    //
+    // For three days this card was wrong and said nothing about it. Between
+    // 2026-08-19 and 2026-08-22 `isSideEffectingTool` was catalogue membership,
+    // the catalogue covered all 59 registry tools, and so every read the loop had
+    // run — a repo.read, a web.search — was rendered here as work carried
+    // unattended. The predicate now answers from the registry's `category`, so
+    // the six rows below are writes again.
     const sideEffecting = (
       (rows ?? []) as {
         tool_name: string;

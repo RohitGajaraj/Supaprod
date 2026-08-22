@@ -516,6 +516,13 @@ export const getMission = createServerFn({ method: "POST" })
         error: t.error,
         latency_ms: t.latency_ms,
         created_at: t.created_at,
+        /* A `tool_calls` row is always an inline execution — a gated tool queues
+           an approval instead — so this flag is asking whether the hop CHANGED
+           anything without a person. It read `true` for every hop between
+           2026-08-19 and 2026-08-22, when the predicate behind it was catalogue
+           membership and the catalogue had just been completed to all 59 tools;
+           a mission whose hops were all reads showed as fully unattended. It
+           answers from the registry's `category` now. */
         is_unattended: isSideEffectingTool(t.tool_name),
       });
       tcByTrace.set(t.trace_id, arr);

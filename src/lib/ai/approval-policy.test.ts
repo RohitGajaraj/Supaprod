@@ -42,9 +42,7 @@ const FORCE_REVIEW = "release.publish";
  */
 const UNCATALOGUED = "quarry.excavate";
 
-function record(
-  over: Partial<ApprovalTrackRecord> = {},
-): ApprovalTrackRecord {
+function record(over: Partial<ApprovalTrackRecord> = {}): ApprovalTrackRecord {
   return { approved: 0, rejected: 0, consecutiveRejections: 0, ...over };
 }
 
@@ -121,11 +119,11 @@ describe("an uncatalogued tool fails closed, and says why in words", () => {
 
   it("blames the missing record rather than inventing a consequence", () => {
     /*
-     * This currently OVER-gates, and the reason has to say so. 17 registry tools
-     * have no catalogue entry and most are plainly read-only, so they land here
-     * for the same wrong reason they score high risk in `toolRisk`. A reason that
-     * invented a consequence would hide a missing table row; this one points at
-     * it.
+     * The reason names the missing table row rather than inventing a consequence.
+     * It used to add "this currently OVER-gates: 17 registry tools have no
+     * catalogue entry and most are plainly read-only" — true when written, false
+     * since 2026-08-19. The count is 0 of 59, so this branch is now reached only
+     * by a name that really is in no catalogue, which is what it was for.
      */
     const { reason } = resolveApprovalPolicy({ tool: UNCATALOGUED });
     expect(reason).toContain("Nothing is written down");
@@ -206,15 +204,15 @@ describe("all refusals switches it off rather than asking again", () => {
 
 describe("demotion is automatic and drops exactly one rung", () => {
   it("stops asking nothing after a run of refusals", () => {
-    expect(decide(INTERNAL_REVERSIBLE, { approved: 9, consecutiveRejections: APPROVAL_DEMOTE_N })).toBe(
-      "earn-it",
-    );
+    expect(
+      decide(INTERNAL_REVERSIBLE, { approved: 9, consecutiveRejections: APPROVAL_DEMOTE_N }),
+    ).toBe("earn-it");
   });
 
   it("takes an earning tool up to a person after a run of refusals", () => {
-    expect(decide(INTERNAL_PARTIAL, { approved: 9, consecutiveRejections: APPROVAL_DEMOTE_N })).toBe(
-      "always-human",
-    );
+    expect(
+      decide(INTERNAL_PARTIAL, { approved: 9, consecutiveRejections: APPROVAL_DEMOTE_N }),
+    ).toBe("always-human");
   });
 
   it("does not drop on one fewer", () => {

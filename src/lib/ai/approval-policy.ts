@@ -1,6 +1,6 @@
 import {
+  isCataloguedTool,
   isExternalTool,
-  isSideEffectingTool,
   toolConsequence,
   type Reversibility,
 } from "@/lib/tool-consequences";
@@ -138,12 +138,22 @@ type AxisDefault = { decision: ApprovalDecision; reason: string };
  * right about any single tool: a policy module that is more permissive than the
  * enforcement path is the dangerous direction of wrong.
  *
- * It is worth knowing that this currently over-gates. 17 registry tools have no
- * `CONSEQUENCES` entry and most are plainly read-only (`repo.read`, `web.search`,
- * `themes.list`), so they resolve `always-human` here for the same reason they
- * score `high` risk there. That is a missing table row rather than a real
- * judgment, the reason says as much rather than inventing a consequence, and
- * cataloguing them is what fixes it.
+ * IT NO LONGER OVER-GATES, and the note that used to stand here said it did.
+ * Until 2026-08-19 this read "17 registry tools have no `CONSEQUENCES` entry and
+ * most are plainly read-only (`repo.read`, `web.search`, `themes.list`), so they
+ * resolve `always-human` here". That was accurate when it was written and the
+ * catalogue was completed the same week: the count is now 0 of 59, and those
+ * three resolve `never-ask`, `earn-it` and `never-ask` respectively. Corrected
+ * 2026-08-22 rather than left standing, because a stale caveat about a fixed
+ * defect reads as a live one and invites the next person to re-fix it.
+ *
+ * ── IT ASKS `isCataloguedTool`, NOT `isSideEffectingTool` (2026-08-22) ──
+ * Those were the same function until this week, and the branch below wants the
+ * catalogue one: its reason is "nothing is written down about what this changes",
+ * which is a claim about the table, not about the tool. Now that
+ * `isSideEffectingTool` means what its name says, asking it here would drop all
+ * 20 read tools back onto `always-human` behind a reason that is false of every
+ * one of them — undoing the one thing completing the catalogue got right.
  */
 function axisDefault(tool: string): AxisDefault {
   if (HIGH_RISK_FORCE_REVIEW.has(tool)) {
@@ -154,7 +164,7 @@ function axisDefault(tool: string): AxisDefault {
     };
   }
 
-  if (!isSideEffectingTool(tool)) {
+  if (!isCataloguedTool(tool)) {
     return {
       decision: "always-human",
       reason:

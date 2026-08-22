@@ -42,7 +42,8 @@ const tool = TOOL_REGISTRY["decision.record"];
 /** Everything a decision needed before the forecast was required. No longer enough. */
 const BASE = {
   title: "Ship the firmware notice behind a flag",
-  rationale: "Homeowners cannot tell a planned restart from an outage, and support volume shows it.",
+  rationale:
+    "Homeowners cannot tell a planned restart from an outage, and support volume shows it.",
   alternatives_considered: ["Rewrite the whole onboarding", "Do nothing and watch another month"],
 };
 
@@ -153,7 +154,9 @@ describe("a forecast is only a forecast before the outcome is known", () => {
   it("refuses a horizon of right now", () => {
     // `<=`, not `<`. A horizon of this instant is being written with the answer
     // available, same as one an hour ago.
-    expect(parse({ ...VALID, forecast_horizon_date: new Date().toISOString() }).success).toBe(false);
+    expect(parse({ ...VALID, forecast_horizon_date: new Date().toISOString() }).success).toBe(
+      false,
+    );
   });
 
   it("says why, rather than reporting an invalid date", () => {
