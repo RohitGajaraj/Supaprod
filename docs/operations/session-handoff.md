@@ -3586,3 +3586,38 @@ track that was promoted out of Discover's own output.
 Two deploys were needed. `deploy_project` returned `pending` and the cron path kept serving the old
 build for roughly twenty minutes and two sweeps; a second `deploy_project` call is what landed it.
 Budget for that, and assert on behaviour rather than on the deploy call returning.
+
+## 19:01 — the ceiling worked, and the loop stopped itself
+
+The track that could not finish a station this morning has now finished one, failed it three
+times honestly, escalated, and **stopped spending**.
+
+| Time | `last_hold` | `attempts` | `spend_used_usd` |
+| --- | --- | --- | --- |
+| 18:00–18:20 | `out-of-time` | 0 | climbing every tick |
+| 18:30 | `produced-nothing` | 1 | 0.042531 |
+| 18:40 | `produced-nothing` | 2 | 0.055403 |
+| 18:50 | `produced-nothing` | 3 | 0.066972 |
+| 19:00 | **`needs-evidence`** | 3 | **0.066972, unchanged** |
+
+`needs-evidence` is the correction loop's own reason and its operator sentence is actionable:
+*"This station has nothing to work from, and no other station can make it. Connect a source, or
+file the missing input by hand, and this starts again on its own."* That is the correct diagnosis
+of the Discover question in the addendum above, reached by the product rather than by a person
+reading the database.
+
+**The frozen spend is the proof.** Money stopped moving the moment the ceiling was reached. Before
+today `attempts` was pinned at 0 by the `out-of-time` exemption, so `MAX_STATION_ATTEMPTS` could
+never be reached and nothing ever stopped.
+
+Two other tracks reached `attempts: 1` in the same window, so this is the spine generally, not one
+lucky track.
+
+### Door tests, run against production 2026-08-22
+
+| Test | Result |
+| --- | --- |
+| POST with no token | `401 missing ingest token` |
+| POST with an invalid token | `401 invalid ingest token` (auth is checked before the body, so a bad token never reaches the validator) |
+| POST an observation already on the record | `created: 0, restated: 1` |
+| POST a structural prompt injection (forged `</user><system>` turn asking for API keys and blanket gate approval) | `created: 0, quarantined: 1`, and **zero rows stored** — verified by query, not by the response |
