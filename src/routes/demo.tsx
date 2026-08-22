@@ -1,14 +1,41 @@
-// PC-04 - the no-signup demo. Zero-auth, read-only view of the public demo
-// workspace (docs/operations/demo-credentials.md). Every data call is a
-// GET-only server function in demo.functions.ts with no mutation path at
-// all - there is nothing on this page a visitor can change.
+// PC-04 - the no-signup demo. The film, and nothing else.
+//
+// ── WHAT THIS PAGE WAS UNTIL 2026-08-22, AND WHY IT STOPPED ─────────────────
+//
+// It rendered three live sections read out of the seeded demo workspace at
+// request time: an overview with live counts, a decision history, and a
+// mission trace. Founder ruling, 2026-08-22: keep the film, keep a line or two
+// of description, remove the rest.
+//
+// THE PRIVACY ARGUMENT, STATED HONESTLY BECAUSE IT IS THE INTERESTING PART.
+// No customer data was ever exposed. Those sections read one hardcoded id,
+// DEMO_WORKSPACE_ID, which is `is_sample = true`, named "Sample sandbox", and
+// holds eleven decisions about an invented savings product. Checked on the
+// live database the day this changed.
+//
+// The SHAPE was the problem. This is an unauthenticated public page that
+// reached the database through `supabaseAdmin`, the service-role client, which
+// bypasses RLS by design. So the only thing standing between a public page and
+// a real tenant's decision history was one constant continuing to be correct.
+// There was no second line of defence behind it: no RLS, no is_sample check at
+// the callsite, nothing that would fail closed if that id were ever repointed
+// or that sandbox ever handed to a real person.
+//
+// Deleting the sections removes the risk rather than guarding it. This route no
+// longer has a loader and makes no database call of any kind, which is a
+// property a reader can verify by looking rather than a rule someone has to
+// keep obeying.
+//
+// WHAT WAS KEPT AND WHY, following exactly what the teardown removal did on
+// this same page four hours earlier. `getDemoOverview`, `getDemoLedger` and
+// `getDemoMissionTrace` stay in demo.functions.ts, unread. They are read-only
+// GET server functions over seeded data, and the deletion doctrine of
+// 2026-08-19 is explicit that removing the data removes the evidence of the
+// gap. Nothing calls them now. That is deliberate, and it mirrors what
+// palette-retired-2026-08.md did with palette-catalog.ts.
 //
 // Speaks the landing v2 ink language (founder 2026-07-15): the starfield
-// canvas, zinc text, mono eyebrows, blue data numerals, agent voice in blue,
-// ember reserved for the page's one ask. The header is the page's single
-// piece of pinned chrome - it carries the brand, the read-only honesty tag,
-// and the escape hatch. The footer scrolls on purpose: pinning a footer
-// permanently spends viewport height that the artifacts need.
+// canvas, zinc text, mono eyebrows, ember reserved for the page's one ask.
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -16,83 +43,24 @@ import { SupaprodWordmark } from "@/components/supaprod/SupaprodWordmark";
 import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
 import { FILM_DURATION_LABEL, FilmPlayer } from "@/components/landing/FilmPlayer";
 import { PUBLIC_INK_THEME } from "@/components/landing/inkTheme";
-import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { stripAutoPrefix } from "@/components/plan/format";
-import {
-  getDemoOverview,
-  getDemoLedger,
-  getDemoMissionTrace,
-  type DemoOverview,
-  type DemoLedgerRow,
-  type DemoMissionTrace,
-  type DemoStepState,
-  type MissionOutcome,
-} from "@/lib/demo.functions";
 import { trackActivation } from "@/lib/activation.functions";
 
 const SITE = "https://supaprod.ai";
-const TITLE = "Try a real Supaprod demo workspace. No signup.";
+// THE TITLE AND DESCRIPTION FOLLOW THE PAGE. Both promised "a real decision
+// history and a real mission trace" and "a live seeded workspace", which is
+// what this page used to serve and no longer does. A meta description that
+// describes the previous version of a page is the same defect as a stale
+// header, except a search engine repeats it.
+const TITLE = "Watch Supaprod run. No signup.";
 const DESC =
-  "Walk through a real decision history and a real mission trace, in a live seeded workspace. No account needed.";
-
-// The three-voice grammar from the landing: agents speak blue, the human
-// ask is the page's one ember object, verdicts keep their status tones.
-const AGENT_BLUE = "#6cb0f5";
-// VERDICT_COLOR (ship #4ac26b / revise #d9a13c / kill #e5534b) left with the
-// teardown section on 2026-08-22. It was read by nothing else on this page.
-
-// How a mission outcome reads on a public page. The row status never reaches
-// the screen: `halted` used to be printed raw, in agent blue, which said
-// "live" about a run that had stopped. Each outcome gets its own word and its
-// own tone, and the stopped case says so plainly instead of borrowing the
-// language of motion.
-const MISSION_OUTCOME_VIEW: Record<
-  MissionOutcome,
-  { eyebrow: string; word: string; color: string; note: string | null }
-> = {
-  delivered: {
-    eyebrow: "One mission, end to end",
-    word: "delivered",
-    color: "#4ac26b",
-    note: null,
-  },
-  open: {
-    eyebrow: "One mission, in motion",
-    word: "still open",
-    color: AGENT_BLUE,
-    note: null,
-  },
-  stopped: {
-    eyebrow: "One mission, stopped short",
-    word: "stopped",
-    color: "#e5534b",
-    note: "This one stopped before it finished. Supaprod shows you the stop, with the work each agent had already done. Nothing here is hidden because it went badly.",
-  },
-};
-
-// Step states get outcome words too, for the same reason.
-const STEP_STATE_WORD: Record<DemoStepState, string> = {
-  done: "done",
-  working: "working",
-  planned: "planned",
-  stopped: "stopped",
-};
+  "Supaprod tells you what to build, builds it, ships it, then grades the call against the forecast you recorded before anyone knew the answer. Watch the whole loop in a film. No account needed.";
 
 export const Route = createFileRoute("/demo")({
   ssr: true,
-  loader: async () => {
-    // Each pull degrades on its own: a failed section hides itself instead
-    // of turning the whole demo into an error page for a prospect.
-    // getDemoTeardown() was the second pull here until 2026-08-22. It is not
-    // deleted, it is unread: see the block comment where TeardownSection used
-    // to be defined, below.
-    const [overview, ledger, mission] = await Promise.all([
-      getDemoOverview().catch(() => null),
-      getDemoLedger().catch(() => [] as DemoLedgerRow[]),
-      getDemoMissionTrace().catch(() => null),
-    ]);
-    return { overview, ledger, mission };
-  },
+  // NO LOADER, deliberately, and this is the privacy fix rather than a tidy-up.
+  // It fetched the demo workspace's overview, decisions and mission trace on
+  // every request through the service-role client. The page shows the film now,
+  // so it reads nothing.
   head: () => ({
     meta: [
       { title: TITLE },
@@ -126,237 +94,7 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Card({ children }: { children: React.ReactNode }) {
-  return <div className="border border-white/[0.08] bg-[#0d0d0e] rounded-xl p-6">{children}</div>;
-}
-
-// Every section that summarizes a real artifact links into the full object:
-// the demo is a hub into live pages, not a dead-end sheet.
-function ArtifactLink({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <a
-      href={href}
-      className="group inline-flex items-baseline gap-2 mt-4 text-sm text-zinc-500 hover:text-zinc-200 transition-colors"
-    >
-      <span>{children}</span>
-      <span className="group-hover:translate-x-0.5 transition-transform">&rarr;</span>
-    </a>
-  );
-}
-
-// THE WORKSPACE NAME, decided 2026-08-05. The eyebrow used to read "Today, in
-// Sample sandbox" about fifty pixels under the h1 "This is a real Supaprod
-// workspace." Two separate faults. "Today" was false: the newest mission here
-// is weeks old, so the line claimed a freshness the data does not have. And
-// the bare name, sat under that h1, read as a rebuttal to it.
-//
-// The name stays, because it is the real name of the real workspace these
-// numbers come from and the ratchet does not let a page drop a true fact to
-// look better. What changes is the claim wrapped around it. "Live from" says
-// only what is actually true - these counts are read live, at request time -
-// and it stops competing with the h1, because the hero paragraph directly
-// above already tells the reader this is a seeded demo workspace. Once that
-// is said out loud, "Sample sandbox" is corroboration, not contradiction.
-function OverviewSection({ overview }: { overview: DemoOverview | null }) {
-  if (!overview) return null;
-  return (
-    <section className="px-6 pb-14">
-      <div className="max-w-5xl mx-auto">
-        <Eyebrow>Live from {overview.workspaceName}</Eyebrow>
-        <h2 className="text-2xl font-semibold text-white mb-6" style={{ letterSpacing: "-0.02em" }}>
-          What Supaprod is watching right now.
-        </h2>
-        {/* Every number here is counted by the words next to it, and the three
-            mission counts are exhaustive: delivered plus open plus stopped is
-            every mission in the workspace. That is the point of splitting the
-            old single "missions in flight" figure, which summed halted runs
-            into a claim of motion. A zero is printed, never suppressed - a
-            workspace with nothing running says so. */}
-        <div className="flex flex-wrap gap-x-10 gap-y-4">
-          {[
-            // Each label carries its singular, because these counts really do
-            // land on 1 - the workspace has exactly one delivered mission - and
-            // "1 missions delivered" undoes the credibility the honest number
-            // just bought.
-            {
-              n: overview.openOpportunities,
-              one: "opportunity in play",
-              many: "opportunities in play",
-            },
-            {
-              n: overview.decisionsRecorded,
-              one: "decision on record",
-              many: "decisions on record",
-            },
-            { n: overview.missionsDelivered, one: "mission delivered", many: "missions delivered" },
-            { n: overview.missionsOpen, one: "mission still open", many: "missions still open" },
-            { n: overview.missionsStopped, one: "mission stopped", many: "missions stopped" },
-          ].map(({ n, one, many }) => (
-            <div key={many} className="flex items-baseline gap-2.5">
-              <span
-                className="text-2xl"
-                style={{
-                  fontFamily: "var(--font-pixel)",
-                  fontVariantNumeric: "tabular-nums",
-                  // Blue data tone (the in-app PixelStat ruling), same as the
-                  // landing's live counters.
-                  color: AGENT_BLUE,
-                }}
-              >
-                {n}
-              </span>
-              <span className="text-sm text-zinc-500">{n === 1 ? one : many}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/*
- * THE TEARDOWN SECTION IS GONE, 2026-08-22 (founder). Record:
- * docs/decisions/public-teardown-retired-2026-08.md.
- *
- * It rendered the demo workspace's Critic verdict (ship / revise / kill), its
- * ICE score, its risks and its missing-evidence list, and closed on an
- * ArtifactLink to /p/teardown. The founder retired the public teardown as
- * "another copilot or ChatGPT window" with no USP in it, and widened that to
- * the Critic wherever the WEBSITE shows it to a visitor. This was the one
- * unauthenticated page that rendered a Critic verdict as its own beat.
- *
- * WHAT WAS KEPT AND WHY. `getDemoTeardown` in demo.functions.ts stays. It is a
- * read-only GET server function over seeded data, it is the only projection of
- * that shape anywhere, and the deletion doctrine of 2026-08-19 is explicit that
- * removing the data removes the evidence of the gap. The loader no longer calls
- * it; nothing else does either. That is deliberate, and it mirrors what
- * palette-retired-2026-08.md did with palette-catalog.ts.
- *
- * THE IN-PRODUCT CRITIC IS UNTOUCHED. It still runs at Decide, still writes
- * critic_review, and is still rank key 2 in the Decide comparator. Only the
- * public window onto it closed.
- */
-
-function LedgerSection({ ledger }: { ledger: DemoLedgerRow[] }) {
-  if (ledger.length === 0) return null;
-  return (
-    <section className="px-6 pb-14">
-      <div className="max-w-5xl mx-auto">
-        <Eyebrow>The track record</Eyebrow>
-        <h2 className="text-2xl font-semibold text-white mb-6" style={{ letterSpacing: "-0.02em" }}>
-          Every call, on the record.
-        </h2>
-        <div className="border border-white/[0.08] bg-[#0d0d0e] rounded-xl overflow-hidden">
-          {ledger.map((row, i) => (
-            <div
-              key={row.title + row.createdAt}
-              className={`px-5 py-4 ${i < ledger.length - 1 ? "border-b border-white/[0.06]" : ""}`}
-            >
-              <div className="flex items-baseline gap-2.5 mb-1">
-                <span className="text-sm text-zinc-100 font-medium">
-                  {stripAutoPrefix(row.title)}
-                </span>
-                <span className="font-mono text-[9.5px] uppercase text-zinc-600">{row.status}</span>
-              </div>
-              {row.rationale ? (
-                <p
-                  className="text-[13px] text-zinc-500 leading-relaxed m-0"
-                  style={{
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
-                  }}
-                >
-                  {row.rationale}
-                </p>
-              ) : null}
-              <p className="text-[11px] text-zinc-600 mt-1.5 m-0">
-                <span style={{ color: AGENT_BLUE }}>{agentDisplayName(row.agentSlug)}</span>{" "}
-                &middot;{" "}
-                {new Date(row.createdAt).toLocaleDateString(undefined, {
-                  month: "short",
-                  day: "numeric",
-                })}
-              </p>
-            </div>
-          ))}
-        </div>
-        <ArtifactLink href="/proof">The whole track record, wins and misses</ArtifactLink>
-      </div>
-    </section>
-  );
-}
-
-// The demo's climax. It is headed by the OUTCOME the picked mission actually
-// reached, never by a fixed promise of motion: the old copy said "One mission,
-// in motion" over whichever mission was newest, and the newest one here had
-// been halted for sixteen days. The picker in demo.functions.ts now hands over
-// the best evidence the workspace holds, and this section reports it as what
-// it is. A stopped mission still gets shown, in full, with its own heading.
-function MissionSection({ mission }: { mission: DemoMissionTrace | null }) {
-  if (!mission) return null;
-  const view = MISSION_OUTCOME_VIEW[mission.outcome];
-  const stamp = mission.finishedAt ?? mission.createdAt;
-  const stampLabel = mission.finishedAt ? "finished" : "started";
-  return (
-    <section className="px-6 pb-16">
-      <div className="max-w-5xl mx-auto">
-        <Eyebrow>{view.eyebrow}</Eyebrow>
-        <h2 className="text-2xl font-semibold text-white mb-6" style={{ letterSpacing: "-0.02em" }}>
-          {stripAutoPrefix(mission.title)}
-        </h2>
-        <Card>
-          {/* The date is not decoration. Without it the page implies this run
-              is happening as you read, which is the same overclaim the counts
-              above used to make. */}
-          <div className="flex items-baseline gap-3 mb-4 flex-wrap">
-            <span
-              className="font-mono text-[10.5px] uppercase"
-              style={{ color: view.color, letterSpacing: "0.06em" }}
-            >
-              {view.word}
-            </span>
-            <span className="font-mono text-[10px] text-zinc-600">
-              {stampLabel}{" "}
-              {new Date(stamp).toLocaleDateString(undefined, {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </span>
-          </div>
-          {view.note ? (
-            <p className="text-sm text-zinc-400 leading-relaxed mt-0 mb-4">{view.note}</p>
-          ) : null}
-          {mission.steps.length === 0 ? (
-            <p className="text-sm text-zinc-600 m-0">No agent has picked this one up yet.</p>
-          ) : (
-            <div className="flex flex-col gap-2.5">
-              {mission.steps.map((s, i) => (
-                <div key={i} className="flex items-baseline gap-3">
-                  <span
-                    className="text-[13px] font-medium shrink-0"
-                    style={{ color: AGENT_BLUE, minWidth: 100 }}
-                  >
-                    {agentDisplayName(s.agentSlug)}
-                  </span>
-                  <span className="text-sm text-zinc-400 flex-1">{s.subGoal ?? "Working"}</span>
-                  <span className="font-mono text-[10px] uppercase text-zinc-600">
-                    {STEP_STATE_WORD[s.state]}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-      </div>
-    </section>
-  );
-}
-
 function DemoPage() {
-  const { overview, ledger, mission } = Route.useLoaderData();
   const sessionId = useDemoSessionId();
   const fTrack = useServerFn(trackActivation);
   const [viewedTracked, setViewedTracked] = useState(false);
@@ -381,76 +119,109 @@ function DemoPage() {
         <LandingBackdrop />
       </div>
 
-      {/* The one pinned bar: brand, the read-only honesty tag, the escape
-          hatch. Neutral CTA up here so the closing ask below keeps the
-          page's single ember object (landing law 4.1b). */}
+      {/* The one pinned bar: brand and the escape hatch. Neutral CTA up here so
+          the closing ask below keeps the page's single ember object (landing
+          law 4.1b).
+
+          THE HONESTY TAG IS GONE WITH THE DATA IT WAS ABOUT. It read "read-only
+          demo · live seeded data", which existed to tell a visitor that the
+          numbers under it were real rows rather than a mockup. There are no
+          numbers now, so the tag would be answering a question the page no
+          longer raises. */}
       <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#0a0a0a]/75 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
           <Link to="/" className="inline-flex items-center no-underline text-white">
             <SupaprodWordmark tier="public" />
           </Link>
-          <span className="hidden sm:block text-[10px] font-mono uppercase tracking-widest text-zinc-500">
-            read-only demo &middot; live seeded data
-          </span>
-          {/* Pointed at /signup while signup was open. It is invite only from
-              2026-08-07, and a demo visitor is by definition somebody who has
-              not been invited yet: sending them to a form that asks for a code
-              would end the best sales page we have on a locked door. The
-              waitlist anchor on the landing page is where the ask now lands. */}
-          <a
-            href="/#join"
-            onClick={onSignupClick}
-            className="px-4 py-2 rounded-full bg-white text-black text-sm font-medium hover:bg-zinc-200 active:scale-[0.98] transition-all"
-          >
-            Request access
-          </a>
+          <div className="flex items-center gap-4">
+            {/* SIGN IN, ADDED 2026-08-22, BECAUSE THIS PAGE STRANDED THE PEOPLE
+                WHO ALREADY HAVE ACCOUNTS. The landing nav has carried
+                `Sign in -> /login` next to its beta CTA for weeks and this
+                header never did, so an existing user who landed here had no
+                door at all: every control pointed at a waitlist they are
+                already past.
+
+                It goes in the nav rather than beside the ask, which is
+                Hero.tsx's standing rule and its reason: three doors under one
+                button is what made the old hero unreadable. The nav is where a
+                returning person looks for it, and it costs the ember CTA
+                nothing. */}
+            <a href="/login" className="text-sm text-zinc-400 hover:text-white transition-colors">
+              Sign in
+            </a>
+            {/* Pointed at /signup while signup was open. It is invite only from
+                2026-08-07, and a demo visitor is by definition somebody who has
+                not been invited yet: sending them to a form that asks for a code
+                would end the best sales page we have on a locked door. The
+                waitlist anchor on the landing page is where the ask now lands. */}
+            <a
+              href="/#join"
+              onClick={onSignupClick}
+              className="px-4 py-2 rounded-full bg-white text-black text-sm font-medium hover:bg-zinc-200 active:scale-[0.98] transition-all"
+            >
+              Request access
+            </a>
+          </div>
         </div>
       </header>
 
       <main className="flex-1">
-        <section className="px-6 pt-16 pb-14">
+        {/* THE HEADING CHANGED WITH THE PAGE. It said "This is a real Supaprod
+            workspace." and the paragraph under it said "Everything below is
+            live data from a seeded demo workspace: a real decision history and
+            a real mission trace." Both were true of the old page and neither is
+            true of this one, and a page that opens by describing content that
+            is not on it is worse than a page with no opening at all. */}
+        <section className="px-6 pt-16 pb-10">
           <div className="max-w-5xl mx-auto">
             <h1
               className="text-3xl md:text-4xl text-white m-0"
               style={{ fontFamily: "var(--font-pixel)", fontWeight: 400, maxWidth: "24ch" }}
             >
-              This is a real Supaprod workspace.
+              See the whole loop.
             </h1>
+            {/* WHY THIS SENTENCE HAS TWO HALVES, and why the second one is the
+                one that cannot be cut.
+
+                The first draft read "what to build, built, shipped, then
+                graded" and stopped there. Everything it named is the part any
+                vendor can claim: the lifecycle. It left out the half the
+                product is actually defensible on -- the forecast recorded at
+                the moment of the call, before the outcome was known, which is
+                what the grade is measured against and what makes the next call
+                better than the last.
+
+                Ordered so the forecast arrives BEFORE the grade, because that
+                is the whole point of it. A forecast written after the fact is a
+                summary; the claim here is that it was on the record first.
+
+                Present tense describes the MECHANISM, not a body of learning
+                already accumulated. The standing rule is that we never claim
+                accrued learning in the present tense, and "guides the next one"
+                is what the loop does with a settled forecast, which is wired
+                and proven. */}
             <p
               className="text-lg text-zinc-400 leading-relaxed mt-5 mb-0"
               style={{ maxWidth: "58ch" }}
             >
-              No login, nothing to set up. Everything below is live data from a seeded demo
-              workspace: a real decision history and a real mission trace. You cannot break
-              anything, so look around.
+              Supaprod tells you what to build, builds it, and ships it. Then it grades the call
+              against the forecast you recorded before anyone knew the answer, and that is what
+              guides the next one.
             </p>
           </div>
         </section>
 
-        {/* THE FILM, ADDED 2026-08-12, AND WHY IT LANDS HERE FIRST.
-            The landing hero's tertiary link read "Watch a real run" and
-            pointed at this page for weeks. Nothing on it moves: every section
-            below is live seeded DATA, which is the right thing for this page
-            to be and is not a run anybody can watch. The film is the moving
-            answer, so it opens the page the promise was aimed at.
-
-            It sits ABOVE the live sections rather than below them because the
-            film is the fastest explanation of what the numbers underneath
-            even are. A visitor who plays it reads the rest with context; one
-            who skips it loses nothing, since the film is click to play and
-            costs no bytes until pressed. */}
+        {/* THE FILM, ADDED 2026-08-12, AND NOW THE ONLY THING HERE.
+            The landing hero's tertiary link read "Watch a real run" and pointed
+            at this page for weeks while nothing on it moved: every section was
+            live seeded DATA, which is not a run anybody can watch. The film was
+            the moving answer. As of 2026-08-22 it is the whole answer. */}
         <section className="px-6 pb-14">
           <div className="mx-auto max-w-5xl">
             <Eyebrow>The film &middot; {FILM_DURATION_LABEL} &middot; sound on</Eyebrow>
             <FilmPlayer surface="demo" />
           </div>
         </section>
-
-        <OverviewSection overview={overview} />
-        {/* <TeardownSection /> sat here until 2026-08-22. See the block comment
-            where it used to be defined. */}
-        <LedgerSection ledger={ledger} />
-        <MissionSection mission={mission} />
 
         {/* The close: this page's single ember object */}
         <section className="px-6 pb-20">
@@ -480,23 +251,31 @@ function DemoPage() {
             >
               Join the beta
             </a>
-            {/* Said "the beta is open for sign-ups", which was true and is the
-                exact sentence the Hero comment cited as proof the product was
-                NOT gated. It is gated now, and since 2026-08-22 this line no
-                longer opens with "no account needed": nothing on the other side
-                of this button is account-free any more, and leaving that phrase
-                over an invite-only door would be the exact ambiguity the Hero
-                notes spend four paragraphs killing. */}
-            <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mt-4 mb-0">
-              invite only &middot; everything above is real and needs no login
-            </p>
+            {/* THE TRAILING LINE IS GONE, and dropping it finishes a ruling
+                rather than reversing one.
+
+                It read "invite only · everything above is real and needs no
+                login". The second half was a claim about the live sections, and
+                there are none now, so it described a film as though it were
+                data. That much is just rot.
+
+                The first half went with it, on three grounds. The 2026-08-22
+                ruling had already "promoted the invite ask from the line
+                beneath the button into the button itself" -- this line is the
+                residue that move left behind, not a separate decision. The
+                header now says "Request access" and "Sign in" side by side,
+                which states the gate in the place a person is actually deciding
+                something. And the landing, which is the surface this page has
+                to agree with, carries no invite-only caveat at all: two words in
+                mono under a button is the weakest place on a page to put a
+                fact, and it was the third statement of the same one. */}
           </div>
         </section>
       </main>
 
       {/* Scrolls with the page on purpose: the pinned job (orientation and
           the next step) belongs to the header; a fixed footer would spend
-          viewport height the artifacts need. */}
+          viewport height the film needs. */}
       <footer className="border-t border-white/[0.07] px-6 py-6">
         <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-4">
           <p className="text-xs text-zinc-600 m-0">&copy; 2026 Supaprod</p>

@@ -177,6 +177,22 @@ const KNOWN_UNREACHED: readonly string[] = [
   "dashboard",
   "delegate-desk",
   "delegate-poll",
+  // Unread from 2026-08-22, when the founder reduced /demo to the film. Its
+  // three readers (overview, decision history, mission trace) were the page's
+  // live sections and the page no longer has any.
+  //
+  // NOT DELETED, on the 2026-08-19 deletion doctrine that removing the data
+  // removes the evidence of the gap, and following exactly what the teardown
+  // removal did to `getDemoTeardown` in this same module four hours earlier.
+  //
+  // THIS ONE SHOULD PROBABLY NEVER COME BACK, which is the honest note to leave
+  // for whoever reads this countdown. These are read-only GET functions, but
+  // they reach the database through `supabaseAdmin` for an UNAUTHENTICATED
+  // page, so RLS is bypassed and the only thing holding the privacy boundary is
+  // DEMO_WORKSPACE_ID continuing to point at a sample workspace. Rewiring them
+  // to a public surface reintroduces that, and it should be a deliberate
+  // decision with a real guard rather than an import.
+  "demo",
   "design-interchange",
   "fanout",
   "funnel",
