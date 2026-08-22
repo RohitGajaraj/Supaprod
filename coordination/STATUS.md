@@ -5,11 +5,18 @@ LANE 1 reads this and never writes it. See [`README.md`](./README.md).
 **Session opened:** 2026-08-23 · overnight run
 **MAIN LANE:** Claude Code (database, deploys, Mobbin, verification)
 **LANE 1:** opencode / OX Alpha (building)
-**Last updated:** 2026-08-23 04:05 IST
+**Last updated:** 2026-08-23 04:45 IST
 
 ## Where things stand
 
-LANE 1 has not pushed a request or a unit yet. MAIN LANE is on proactive passes.
+**LANE 1 has still pushed nothing** as of 04:45, roughly an hour after the run opened.
+`requests/` and `units/` hold only their `.gitkeep`. That is either a lane that has not been
+started or one that is heads-down before its first commit. Either is fine; the protocol says
+MAIN LANE never idles waiting, so this session has been on proactive passes throughout and
+will keep going.
+
+Three findings are filed and none of them needs LANE 1 to undo anything, because there is
+nothing built yet. Two of them change what it should build.
 
 **Instruments checked and working**, so none of these is a surprise at 3am:
 
@@ -28,7 +35,9 @@ files. Read them like any other answer.
 
 | File | What it says |
 | --- | --- |
-| [`M01`](./answers/M01-ratchet-header-total-is-stale.md) | The ratchet's headline total is stale by 6, and the guard is per-file, not a total. Read before your first port. |
+| [`M01`](./answers/M01-ratchet-header-total-is-stale.md) | The ratchet's headline total is stale by 6, and the guard is per-file, not a total. **Read before your first port.** |
+| [`M02`](./answers/M02-the-loop-is-alive-and-blocked-on-evidence.md) | The loop is alive but no real track has ever passed Decide. 63.6% of signals are agent-authored with no source link, and the critic is correctly rejecting them. **Do not build a surface that shows a signal count as evidence strength.** |
+| [`M03`](./answers/M03-migrations-verified-and-two-dead-artifacts.md) | All seven unrecorded migrations verified applied. Two artifacts describe themselves wrongly: the sink's restatement comment and `agent_runs.attempt`. **Trust the live database over any comment or count.** |
 
 ## Open requests
 
@@ -36,7 +45,27 @@ None.
 
 ## Refuted claims LANE 1 must act on
 
-None.
+None. LANE 1 has claimed nothing yet.
+
+**Two claims MAIN LANE refuted against itself**, recorded so neither gets raised again:
+
+- *"The `design` station has been starved for 34 hours."* False. All six tracks there are in
+  sample workspaces and are excluded from the tick on purpose. Real open work is five tracks,
+  all driven within the last 45 minutes.
+- *"The de-duplication fold is broken, 656 duplicate signals."* False. 654 of the 656 predate
+  the fold landing at 2026-08-22 16:42Z, and the five hours since show zero new duplicates.
+  The fold works in production. The historical rows remain and still inflate cited counts.
+
+## For MAIN LANE to fix once LANE 1 has pushed and gone quiet
+
+Product code, so it waits on the protocol rather than racing LANE 1 for the file:
+
+- `src/lib/sources/sink.server.ts:275` claims `restated_count` does not exist and the counter
+  is inert. Both are false now; the column, the RPC and seven non-zero counts are live.
+- `agent_runs.attempt` is set on 6 rows of 2,225 and nothing has written it in two days.
+  Either it gets a writer or it should stop being offered to readers.
+- 654 historical duplicate signal rows still inflate the counts agents cite. Folding them is
+  irreversible, so it is a founder call, not mine.
 
 ## Gates, last run by MAIN LANE on the merged tree
 
