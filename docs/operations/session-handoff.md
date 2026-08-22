@@ -3518,3 +3518,37 @@ spend decision and it is filed under *Needs the founder*, not decided.
 2. Watch whether the frequency-4 theme promotes and walks past Decide. Two tracks already reached
    `decide` today, so the route works; the question is whether a station now completes.
 3. `ingest_signal` (MCP) onto the sink, same treatment as the webhook.
+
+## Addendum, 18:05 — the loop closed, and the telemetry fix paid for itself within the hour
+
+**The chain completed.** Track `c4b12e7c-2be4-4ef3-aa54-14645bf28510`, created 18:00:02 from the
+frequency-4 theme, **four webhook signals behind it**. Its own origin sentence, written by the
+product: *"Critical system errors, including missing columns (42703) and 404 URL targets, are being
+swallowed or coalesced into 'success' states, leading to weeks of undetected process stagnation."*
+That is the product reading the exact defect class this session spent the day fixing, off input it
+received from outside itself. External signal → sink → embed → cluster → theme → promotion → track
+→ crew dispatch, unattended.
+
+**The livelock is now proven at seat level, not inferred.** On the 18:00 sweep the new track ran
+`discovery-scout` (18:00:04) and `researcher` (18:00:29), both `completed`, and the clock cut it
+before `customer-insights`. Two of three seats, every tick, forever. **That sweep still ran the old
+build** — under the new code `seat_cursor` would read 2 and it reads 0. So the fix remains
+unverified live; the assertion is unchanged.
+
+**`tool_calls` is written again.** Five rows in the half hour, newest 18:00:40. The table had been
+frozen at 2026-07-25 for four weeks. The `workspace_id` stamp works, confirmed on real runs.
+
+**And it immediately exposed the next defect, which is the point of fixing telemetry first.** All
+five calls are READS — `signals.list` x3, `workspace.search` x2. Not one write: no `signals.log`,
+no `research.synthesize`, no `cluster.trigger`. **Discover's crew reads the workspace and files
+nothing**, which is why the two completed seats left only the seed `theme` in
+`spine_track_members`.
+
+**Do not treat that as a bug before reading this.** `max_tool_risk` is NULL on all three agents, so
+nothing is gated and the filing tools were reachable. The likelier reading is that the crew was
+correct: it was asked to gather evidence for a theme whose evidence is already on the record, found
+nothing new to log, and filed nothing. The driver then reads "filed nothing" as `produced-nothing`.
+**At Discover, a promoted theme's evidence is already filed by construction**, so the station's
+brief asks for the one thing that cannot exist. That is a design question about what Discover is
+FOR on a promoted track, not a tool or a permissions fault, and it should be answered before anyone
+"fixes" it by loosening the driver.
