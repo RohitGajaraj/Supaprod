@@ -11,6 +11,10 @@ An initiative here is a **bible**: the durable thinking behind one area. It is n
 
 ---
 
+**The 2026-08-22 reimagining spans ten documents and 49 commits. One door to all of it:**
+[`agent-first-reimagining-index.md`](./agent-first-reimagining-index.md) — the founder's ten required
+sections mapped to what was delivered, the five things a new reader gets wrong, and what is still open.
+
 ## Start here: is your question already answered?
 
 | If you are about to ask… | It is answered in | Dated |
