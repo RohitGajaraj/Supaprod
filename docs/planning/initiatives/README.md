@@ -15,6 +15,10 @@ An initiative here is a **bible**: the durable thinking behind one area. It is n
 [`agent-first-reimagining-index.md`](./agent-first-reimagining-index.md) — the founder's ten required
 sections mapped to what was delivered, the five things a new reader gets wrong, and what is still open.
 
+**The build plan executing against that groundwork (2026-08-23, LANE 1):**
+[`agent-first-reimagining-plan.md`](./agent-first-reimagining-plan.md) — the wave order, the Meridian
+extensions argued, and the acceptance criteria per surface.
+
 ## Start here: is your question already answered?
 
 | If you are about to ask… | It is answered in | Dated |
