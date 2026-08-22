@@ -3658,15 +3658,33 @@ const decisionRevise = def({
  * ------------------------------------------------------------------ */
 
 /**
+ * THE REFUSAL, WRITTEN ONCE AND CARRIED BY ALL THREE FIELDS.
+ *
+ * zod reports a missing key per key, and the tool loop hands `error.message`
+ * straight back to the model (`loop.server.ts:1413`, "Fix args or finalize"), so
+ * whatever is written here is the entire explanation an agent gets. The default
+ * for a missing required string is "Required", which teaches the shape and not
+ * the point: an agent told "Required" three times learns to fill three boxes,
+ * and a fabricated horizon satisfies the schema exactly as well as a real one.
+ * So the reason travels with the refusal.
+ *
+ * Deliberately the same sentence on all three, because they are one artifact and
+ * a per-field message would read as three separate omissions.
+ */
+const FORECAST_REQUIRED =
+  "A decision needs a forecast, and this one has none. Give all three parts: forecast_claim (what you expect to happen), forecast_how_we_will_know (the observable that will settle it), and forecast_horizon_date (an ISO 8601 timestamp with offset, in the future). A decision with no forecast is an opinion, not a bet. It is the one thing about a decision that cannot be reconstructed afterwards, so it is recorded now or it is never recorded at all.";
+
+/**
  * decision.record, the Decide stage.
  * The station's missing artifact. Records the call an agent actually made, with
- * what it rejected, which is the column the company brain compounds on: next
- * time it can say this was already weighed and why it lost.
+ * what it rejected and what it expects to follow, which is what the shared brain
+ * compounds on: next time it can say this was already weighed, why it lost, and
+ * whether the bet behind it came in.
  */
 const decisionRecord = def({
   name: "decision.record",
   description:
-    "Record a decision you have made: the call, why you made it, and the alternatives you rejected. Use at the Decide station once the call is genuinely made, not to propose one. Requires at least one rejected alternative -- a choice with nothing weighed against it is an assertion, not a decision, and is refused. Optionally carries a FORECAST: what you expect to happen, how you will know, and by when. A decision with no forecast is an opinion rather than a bet, and only a forecast recorded BEFORE the outcome is known can ever be graded -- everything else about a decision can be reconstructed afterwards, and that one thing cannot. Give all three parts or none, and never a horizon that has already passed.",
+    "Record a decision you have made: the call, why you made it, the alternatives you rejected, and the forecast you are making. Use at the Decide station once the call is genuinely made, not to propose one. Requires at least one rejected alternative -- a choice with nothing weighed against it is an assertion, not a decision, and is refused. Requires a forecast on the same grounds -- a decision with no forecast is an opinion rather than a bet, and is refused. All three parts are required together: `forecast_claim`, what you expect to happen; `forecast_how_we_will_know`, the observable that will settle it, chosen now rather than after the answer arrives; and `forecast_horizon_date`, an ISO 8601 timestamp with an offset (e.g. 2026-09-05T00:00:00Z) that is a real date you are committing to -- it is set once, it cannot be moved later, and a horizon that has already passed is refused. Prefer a short horizon you can actually check over a distant one that sounds safe. Only a forecast recorded before the outcome is known can ever be graded: everything else about a decision can be reconstructed afterwards, and that one thing cannot.",
   category: "write",
   argsSchema: z
     .object({
@@ -3676,27 +3694,65 @@ const decisionRecord = def({
       prd_id: z.string().uuid().optional(),
 
       /*
-       * ── THE FORECAST, ADDED 2026-08-20 ────────────────────────────────
+       * ── THE FORECAST. ADDED OPTIONAL 2026-08-20, REQUIRED 2026-08-22 ──
        *
        * WHY THIS TOOL HAD NO FORECAST PARAMETER AND WHAT IT COST. `decisions`
        * carries eleven forecast columns, an immutability trigger, a refusal
-       * guard and a partial index, and 1 row of 304 uses them. The cause was
-       * here: this is the tool the Decide crew is told to call, and it could not
-       * express a forecast at all, so 303 of 304 decisions were recorded through
-       * a hand that could not hold the one thing the strategy calls defensible.
+       * guard and a partial index. The cause of their emptiness was here: this
+       * is the tool the Decide crew is told to call, and it could not express a
+       * forecast at all, so 303 of 304 decisions were recorded through a hand
+       * that could not hold the one thing the strategy calls defensible.
        *
-       * OPTIONAL RATHER THAN REQUIRED, and that is a deliberate reading of the
-       * item, which says "gains forecast fields" without saying required. Two
-       * reasons. A decision genuinely can be worth recording without one, and
-       * making it mandatory would mean an agent either fabricates a horizon to
-       * satisfy the schema or files nothing at all. Both are worse than a
-       * decision recorded honestly with no bet attached. The refusal below is
-       * about COHERENCE, not presence: give all three or give none.
+       * WHY THEY ARE NOW REQUIRED, AND WHY THE ARGUMENT FOR OPTIONAL LOST.
+       * These three shipped optional two days ago, on the reasoning that a
+       * mandatory forecast would make an agent fabricate a horizon or file
+       * nothing. That reasoning was testable and it was tested by shipping it.
+       * Measured in production 2026-08-22: five decisions carry
+       * source_kind='agent', which is only ever written here, and ZERO carry a
+       * forecast -- including one recorded at 2026-08-20 18:20Z, some twenty-two
+       * hours after the optional fields went out. An optional field on a tool
+       * an LLM calls is a field that does not exist. Across real workspaces the
+       * number is 0 of 131; the 146 forecast-bearing rows are all seed.
+       *
+       * So the refusal is now about PRESENCE as well as coherence, and it is the
+       * same argument the tool already makes one field up. A choice with nothing
+       * weighed against it is an assertion rather than a decision, and is
+       * refused. A choice with nothing wagered on it is an opinion rather than a
+       * bet, and is refused for the identical reason: neither one can be graded,
+       * and an ungradeable record is the thing any vendor can already store.
+       *
+       * The fabrication risk is real and is not answered by leaving the field
+       * off -- an agent that would invent a horizon under a required schema was
+       * going to skip it entirely under an optional one, which is strictly less
+       * recoverable, because a wrong forecast resolves to a miss and teaches
+       * something while an absent one resolves to nothing. What answers it is
+       * the horizon rule below: a date already past is refused, so the cheapest
+       * fabrication (a horizon that is safely in the settled past) cannot land.
+       *
+       * LIMITS AND FORMAT ARE THE MCP PATH'S, NOT THIS FILE'S OPINION.
+       * `record_forecast` (mcp.functions.ts) and `setDecisionForecastSchema`
+       * (decisions.functions.ts) both use 500/500 and a full ISO 8601 timestamp
+       * with offset. These read 1000/1000 and `max(40)` on a bare string, which
+       * is the same drift in miniature: the column is `timestamptz`, so a bare
+       * "2026-09-05" is silently taken as midnight UTC and comes due on a day
+       * nobody chose. Matched here rather than left to diverge.
        */
-      forecast_claim: z.string().min(1).max(1000).optional(),
-      forecast_how_we_will_know: z.string().min(1).max(1000).optional(),
-      /** ISO date or timestamp. Refused if it is not in the future. */
-      forecast_horizon_date: z.string().min(1).max(40).optional(),
+      forecast_claim: z
+        .string({ required_error: FORECAST_REQUIRED, invalid_type_error: FORECAST_REQUIRED })
+        .min(1)
+        .max(500),
+      forecast_how_we_will_know: z
+        .string({ required_error: FORECAST_REQUIRED, invalid_type_error: FORECAST_REQUIRED })
+        .min(1)
+        .max(500),
+      /** ISO 8601 with offset, and in the future. Both rules are refusals. */
+      forecast_horizon_date: z
+        .string({ required_error: FORECAST_REQUIRED, invalid_type_error: FORECAST_REQUIRED })
+        .datetime({
+          offset: true,
+          message:
+            "forecast_horizon_date must be an ISO 8601 timestamp with an offset, for example 2026-09-05T00:00:00Z. A bare date leaves the moment it comes due ambiguous, and this column is what the due index reads.",
+        }),
     })
     /*
      * THE RULES ARE NOT RE-DERIVED HERE. `forecastRefusal` is the human path's
@@ -3704,22 +3760,31 @@ const decisionRecord = def({
      * and the agent path getting its own copy is how the two would come to
      * disagree about what a valid forecast is. This is the same `superRefine`
      * wiring `createDecision` uses, against the same function.
+     *
+     * All three are required by the object above, so only the horizon rule can
+     * fire here -- zod does not run a refinement over an object that failed its
+     * own shape. Same position `setDecisionForecastSchema` is in, and it stays
+     * wired to the whole function rather than to that one rule, so the day a
+     * fourth forecast rule is added it arrives on both doors at once.
      */
     .superRefine((v, ctx) => {
       const bad = forecastRefusal(v);
       if (bad) ctx.addIssue({ code: z.ZodIssueCode.custom, path: [bad.path], message: bad.message });
     }),
   /*
-   * The approval card reads this, so a person deciding whether to let a decision
-   * land sees the BET rather than only the title. Without the horizon on the
-   * card, the one field that makes the record gradeable is the one field the
-   * reviewer cannot see.
+   * WHAT THIS IS AND IS NOT. A `ToolDef.preview` renders the call in plain
+   * language, and a comment here used to claim the approval card reads it. It
+   * does not: `loop.server.ts` files `args` on the `agent_approvals` row and
+   * nothing in the running product calls `preview` at all (checked repo-wide).
+   * Correcting the claim rather than the code, because the string is right and
+   * the reason given for it was not.
+   *
+   * The bet is now unconditional, since the schema above refuses a call without
+   * one. The horizon is in it because that is the field that decides whether the
+   * record can ever be graded.
    */
-  preview: (a) => {
-    const base = `Record decision "${a.title}" against ${a.alternatives_considered.length} rejected alternative${a.alternatives_considered.length === 1 ? "" : "s"}`;
-    if (!a.forecast_claim || !a.forecast_horizon_date) return base;
-    return `${base}, forecasting "${a.forecast_claim}" by ${a.forecast_horizon_date}`;
-  },
+  preview: (a) =>
+    `Record decision "${a.title}" against ${a.alternatives_considered.length} rejected alternative${a.alternatives_considered.length === 1 ? "" : "s"}, forecasting "${a.forecast_claim}" by ${a.forecast_horizon_date}`,
   run: async (a, { supabase, userId, agentSlug, missionId, workspaceId }) => {
     /**
      * THE STATUS IS DECIDED HERE, NOT ASSERTED. This line used to read
@@ -3776,17 +3841,22 @@ const decisionRecord = def({
         rationale: a.rationale,
         alternatives_considered: a.alternatives_considered,
         /*
-         * NULL RATHER THAN OMITTED, all three together. The schema has already
-         * refused a partial set, so these are either all present or all absent,
-         * and writing explicit nulls means the row shape does not depend on
-         * which branch of the tool ran. `forecast_horizon_date` in particular is
-         * what `idx_decisions_forecast_due` indexes, so a row that omitted it
-         * versus one that nulled it would be the difference between a forecast
-         * that comes due and one that silently never does.
+         * ALWAYS THREE VALUES, NEVER A NULL. The schema refuses the call
+         * outright without all three, so there is no branch of this tool that
+         * writes a forecast-less decision and no `?? null` to soften one.
+         * `forecast_horizon_date` is what `idx_decisions_forecast_due` indexes,
+         * which is what makes the bet come due, get graded, and feed the
+         * calibration record -- a null there is a forecast that silently never
+         * resolves, and the whole point of the refusal above is that this row
+         * cannot be that.
+         *
+         * Set-once from here on: `enforce_forecast_immutable` refuses any later
+         * change to these three, so this insert is the only moment they are
+         * writable and there is no repair path if the agent guessed.
          */
-        forecast_claim: a.forecast_claim ?? null,
-        forecast_how_we_will_know: a.forecast_how_we_will_know ?? null,
-        forecast_horizon_date: a.forecast_horizon_date ?? null,
+        forecast_claim: a.forecast_claim,
+        forecast_how_we_will_know: a.forecast_how_we_will_know,
+        forecast_horizon_date: a.forecast_horizon_date,
         status: gate.status,
         decided_by_agent_slug: agentSlug ?? null,
         /**
