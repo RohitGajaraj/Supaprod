@@ -209,9 +209,9 @@ describe("the lines api/chat.ts actually writes, through the real parser", () =>
   });
 
   it("reads the landing frame the mission branch writes", () => {
-    expect(parseSseLine(line({ landing: { kind: "mission", id: "abc", station: "build" } }))).toEqual(
-      { kind: "landing", artifact: { kind: "mission", id: "abc", station: "build" } },
-    );
+    expect(
+      parseSseLine(line({ landing: { kind: "mission", id: "abc", station: "build" } })),
+    ).toEqual({ kind: "landing", artifact: { kind: "mission", id: "abc", station: "build" } });
   });
 
   it("does not read a status frame as a tool, or the reverse", () => {
@@ -245,7 +245,7 @@ describe("the emitter sends the parser's INPUT shape, not its output", () => {
      * The specific mistake the landing frame made. `{kind:"station", station:…}`
      * would parse as `ignored`, because `parseSseLine` looks for the KEY.
      */
-    expect(source).toContain('JSON.stringify({ station: dispatchedStation })');
+    expect(source).toContain("JSON.stringify({ station: dispatchedStation })");
     expect(source).not.toContain('kind: "station"');
   });
 

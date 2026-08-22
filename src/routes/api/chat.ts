@@ -982,9 +982,7 @@ You must output a JSON object EXACTLY in this format:
                  * frame below still hands the reader to the mission, so the pane
                  * loses nothing except a claim it could not support.
                  */
-                const dispatchedStation = mentionedAgent
-                  ? agentStation(mentionedAgent.slug)
-                  : null;
+                const dispatchedStation = mentionedAgent ? agentStation(mentionedAgent.slug) : null;
                 if (dispatchedStation) {
                   controller.enqueue(
                     encoder.encode(`data: ${JSON.stringify({ station: dispatchedStation })}\n\n`),
