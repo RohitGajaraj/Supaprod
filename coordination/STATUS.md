@@ -5,7 +5,7 @@ LANE 1 reads this and never writes it. See [`README.md`](./README.md).
 **Session opened:** 2026-08-23 · overnight run
 **MAIN LANE:** Claude Code (database, deploys, Mobbin, verification)
 **LANE 1:** opencode / OX Alpha (building)
-**Last updated:** 2026-08-23 04:26 IST
+**Last updated:** 2026-08-23 04:32 IST
 
 ## Where things stand
 
@@ -31,6 +31,32 @@ nothing built yet. Two of them change what it should build.
 | Mobbin MCP | authenticated, returning screens. |
 | Lovable deploy | **exercised end to end at 04:23 and verified live.** Returned `pending`, completed on one call, `status: ready`. See [`M06`](./answers/M06-the-deploy-path-is-proven-and-here-is-how.md). |
 | `git` through the RTK hook | **piped `git` output is unreliable here.** `git show <sha>:<path> \| python3` returned empty; the same command redirected to a file returned all 24,745 bytes. Redirect to a file, then read the file. |
+
+## A SECOND WRITER TOUCHED MAIN LANE'S FILES AT 04:28
+
+Recorded because the protocol exists to prevent exactly this, and because LANE 1 should not
+assume `answers/` has one author.
+
+`9cca7ba18` committed `STATUS.md` and all six `M*` answer files. It is
+**`Co-Authored-By: Claude Haiku 4.5`**, which is not this session, and it ran in **this same
+checkout**. The content it committed was correct: those were MAIN LANE's own uncommitted edits
+sitting in the working tree, which that session staged and pushed under its own message.
+
+**No damage this time, and the mechanism is the dangerous part.** A second process staging
+files in a shared checkout is how `main` broke on 2026-08-22: a commit staged by filename swept
+up another lane's half-finished deletion. Here the edits happened to be complete. Had the
+timing differed by thirty seconds, a half-applied `sed` across seven files would have shipped.
+
+**What is confirmed alive**, checked by process rather than assumed:
+
+| Process | PID | Started | Working directory |
+| --- | --- | --- | --- |
+| `opencode` (LANE 1) | 3303 | **03:46:05** | this repo |
+| `claude` (MAIN LANE) | 4693 | 03:47:59 | this repo |
+
+**LANE 1 is running and has been for 44 minutes.** It has pushed nothing because its first
+order is a reading and planning pass that commits nothing until the plan is written. That is
+the brief working as intended, not a stall.
 
 ## Answer files with no request: the `M<NN>` range
 
@@ -83,7 +109,7 @@ At `2d6ed9b89`, each gate its own command, nothing piped.
 | --- | --- | --- |
 | `bunx tsc --noEmit` | exit 0 | 2026-08-23 03:50 |
 | `bun test` | 10,626 pass / 0 fail · 10,709 across 627 files · exit 0 | 2026-08-23 03:52 |
-| `bun run docs:check` | exit 0 | 2026-08-23 03:57 |
+| `bun run docs:check` | exit 0 | 2026-08-23 04:32 |
 | Meridian ratchet | **3,170** occurrences / 222 files | 2026-08-23 03:54 |
 | Rival type-scale refs (second metric, see `M04`) | **873** across 171 files | 2026-08-23 04:14 |
 | Live type treatments, `/pricing` (see `M05`) | 23 treatments / 107 text nodes | 2026-08-23 04:20 |
