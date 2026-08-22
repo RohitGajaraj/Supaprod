@@ -355,13 +355,13 @@ function GatePanel({
    structural metadata, not a live-status signal). */
 const rail: CSSProperties = {
   paddingLeft: 22,
-  borderLeft: "1px solid var(--hairline)",
+  borderLeft: "1px solid var(--mrd-edge)",
   marginLeft: 5,
 };
 const preStyle: CSSProperties = {
   marginTop: 6,
-  background: "var(--canvas)",
-  border: "1px solid var(--hairline)",
+  background: "var(--mrd-sink)",
+  border: "1px solid var(--mrd-edge)",
   borderRadius: 8,
   padding: 10,
   lineHeight: 1.6,
@@ -369,15 +369,15 @@ const preStyle: CSSProperties = {
   wordBreak: "break-word",
   maxHeight: 200,
   overflowY: "auto",
-  color: "var(--text-subtle)",
+  color: "var(--mrd-mute)",
 };
 const handoffChip: CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
   gap: 5,
-  color: "var(--text-subtle)",
-  border: "1px solid var(--hairline-strong)",
-  background: "var(--raised)",
+  color: "var(--mrd-mute)",
+  border: "1px solid var(--mrd-edge)",
+  background: "var(--mrd-lift)",
   borderRadius: 99,
   padding: "2px 8px",
 };
@@ -388,12 +388,12 @@ const handoffChipBtn: CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
   gap: 5,
-  border: "1px solid var(--hairline-strong)",
+  border: "1px solid var(--mrd-edge)",
   borderRadius: 99,
   padding: "2px 8px",
 };
 const CHIP_BTN =
-  "[background:var(--raised)] [color:var(--text-subtle)] transition-colors hover:[background:var(--surface-hover)] hover:[color:var(--text-body)]";
+  "[background:var(--mrd-lift)] [color:var(--mrd-mute)] transition-colors hover:[background:var(--mrd-lift-hover)] hover:[color:var(--mrd-ink)]";
 
 function TraceHop({
   h,
@@ -417,8 +417,8 @@ function TraceHop({
   // Accent restraint (2026-07-11): identifiers stay in ink, purple is retired
   // from AI treatments; only outcome colors carry hue on the rail.
   const tint = (st: Hop["steps"][number]): CSSProperties => {
-    if (st.kind === "tool_call") return { color: "var(--text-body)" };
-    if (st.kind === "thought") return { color: "var(--text-subtle)", fontStyle: "italic" };
+    if (st.kind === "tool_call") return { color: "var(--mrd-ink)" };
+    if (st.kind === "thought") return { color: "var(--mrd-mute)", fontStyle: "italic" };
     return { color: "var(--moss)" };
   };
   return (
@@ -459,11 +459,11 @@ function TraceHop({
         }}
       >
         {open ? (
-          <ChevronDown size={16} style={{ color: "var(--text-faint)" }} />
+          <ChevronDown size={16} style={{ color: "var(--mrd-faint)" }} />
         ) : (
-          <ChevronRight size={16} style={{ color: "var(--text-faint)" }} />
+          <ChevronRight size={16} style={{ color: "var(--mrd-faint)" }} />
         )}
-        <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>
+        <span style={{ color: "var(--mrd-ink)", fontWeight: 600 }}>
           {agentDisplayName(h.agent_slug, h.agent_name)}
         </span>
         {/* THE ROW HAS TO REACH ITS RIGHT EDGE. The bar used to be `flex: 1`
@@ -483,7 +483,7 @@ function TraceHop({
             flexShrink: 1,
             height: 3,
             borderRadius: 99,
-            background: "var(--raised)",
+            background: "var(--mrd-lift)",
             overflow: "hidden",
           }}
         >
@@ -492,7 +492,7 @@ function TraceHop({
               display: "block",
               height: "100%",
               width: `${pct}%`,
-              background: live ? "var(--glacier)" : "var(--moss)",
+              background: live ? "var(--mrd-agent)" : "var(--mrd-pass)",
             }}
           ></span>
         </span>
@@ -521,7 +521,7 @@ function TraceHop({
               <Link
                 to="/traces/$traceId"
                 params={{ traceId: h.trace_id }}
-                style={{ color: "var(--glacier)" }}
+                style={{ color: "var(--mrd-ink)" }}
               >
                 trace
               </Link>
@@ -538,7 +538,7 @@ function TraceHop({
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 5,
-                  border: "1px solid var(--hairline-strong)",
+                  border: "1px solid var(--mrd-edge)",
                   borderRadius: 99,
                   padding: "2px 8px",
                 }}
@@ -552,7 +552,7 @@ function TraceHop({
                     <div
                       key={mi}
                       style={{
-                        color: "var(--text-subtle)",
+                        color: "var(--mrd-mute)",
                         lineHeight: 1.7,
                       }}
                     >
@@ -565,7 +565,7 @@ function TraceHop({
           ) : null}
           {h.steps.length === 0 ? (
             <div
-              style={{ ...rail, lineHeight: 1.8, color: "var(--text-subtle)", fontStyle: "italic" }}
+              style={{ ...rail, lineHeight: 1.8, color: "var(--mrd-mute)", fontStyle: "italic" }}
             >
               {live ? "waiting for the first checkpoint" : "no recorded steps"}
             </div>
