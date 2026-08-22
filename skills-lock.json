@@ -7,6 +7,12 @@
       "skillPath": "agent_reach/skill/SKILL.md",
       "computedHash": "c9fa09a33f4d41de0a9752162c693aab9a402fcb20e51923954585f621b465ee"
     },
+    "ai-sdk": {
+      "source": "vercel/ai",
+      "sourceType": "github",
+      "skillPath": "skills/use-ai-sdk/SKILL.md",
+      "computedHash": "da25c27a274ef2b71017c255f95a26350d2519765a75cb54ee1a37872b121dab"
+    },
     "brag": {
       "source": "latent-spaces/brag",
       "sourceType": "github",
