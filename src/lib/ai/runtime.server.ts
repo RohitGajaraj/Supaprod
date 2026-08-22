@@ -37,6 +37,10 @@ import {
   withinBoundedOverage,
 } from "./credit-policy";
 import { supabaseAdmin } from "../../integrations/supabase/client.server";
+// The low-credit notice. Lives in payments because it is a billing signal, not
+// an AI one; called from the pre-call credit check below, which is the only
+// place that already holds the balance, the grant and the cycle anchor.
+import { noteLowRunway } from "../payments/credit-runway.server";
 import { evaluateGuardrails, type GuardrailRule } from "./guardrails.server";
 import { withFloor } from "./guardrail-floor";
 import { retrieve, formatContextBlock, type RetrievedChunk } from "../rag/retriever.server";
@@ -1308,12 +1312,61 @@ async function assertAccountCredits(
     await logCreditExhausted(supabase, userId, opts, accountId, balance, projected);
     throw new CreditExhaustedError(
       accountId,
-      `Account credit balance (${balance}) is below the projected cost (${projected}).`,
+      // THE WORDING IS THE TAXONOMY, and that is not a style point.
+      //
+      // This error escapes callModel and is caught by loop.server.ts,
+      // agents.functions.ts and executeApproval, and every one of them does the
+      // same thing with it: `e.message` -> `classifyFailureCode` ->
+      // `agent_runs.failure_kind`. That classifier is a substring heuristic, and
+      // the sentence this used to throw ("Account credit balance (0) is below
+      // the projected cost (16).") matches none of its money branches — not
+      // "budget", not "cap", not "credits exhausted", not "402" — so it fell
+      // through to the default and every credit refusal was filed as
+      // `model_error`.
+      //
+      // Measured in production 2026-08-22: of 381 `agent_runs` rows carrying a
+      // failure_kind, 381 were `model_error` and 381 had this exact sentence in
+      // `output`. Every single row in the failure taxonomy was a billing state,
+      // and the observability failure breakdown, run-analytics' topFailureKinds
+      // and anything reading "how often do the models fail" were reading a
+      // wallet. `ai_events` had it right the whole time — the same refusal
+      // writes `gate_credit_exhausted` there — so the two tables disagreed
+      // about one event, which is the exact union gates.ts promises.
+      //
+      // The fix is the phrase "credits exhausted", which is not invented here:
+      // line ~812 of this file already throws it for a 402 from the gateway, so
+      // one wallet failure now reads the same as the other. `budget_kill` is
+      // blunt (it cannot tell an empty pool from a mission spend cap) but it is
+      // in the money family instead of the quality family, and it is already a
+      // legal value of the `agent_runs.failure_kind` CHECK constraint, so this
+      // needs no migration and cannot silently drop a write.
+      `AI credits exhausted: account credit balance (${balance}) is below the projected cost (${projected}). Top up or upgrade in Settings → Usage.`,
     );
   }
   // WM-M14: the account pool can cover the call, but an owner-set per-product / per-member
   // cap may still halt this one scope. Only runs when an enabled cap exists.
   await assertCreditCaps(supabase, userId, opts, accountId, projected, cycleAnchorIso);
+
+  // The call is going to be served. Before it is, check how much RUNWAY is left
+  // rather than how many credits: `LOW_CREDITS_WARN = 100` fired eleven minutes
+  // before the pool emptied on 2026-08-22, into a browser banner, for a loop
+  // that runs unattended. Everything about that decision lives in
+  // ../payments/credit-runway.ts; this is the only place with the balance, the
+  // grant and the cycle anchor already in hand, so it is the only place the
+  // question can be asked without a second read. Never throws, warns at most
+  // once per cycle, and is a no-op on an account that is not near the end.
+  await noteLowRunway({
+    userId,
+    accountId,
+    workspaceId: opts.workspaceId ?? null,
+    surface: opts.surface,
+    traceId: opts.traceId ?? null,
+    balance,
+    projected,
+    monthlyGrantCredits: monthlyGrant,
+    cycleAnchorIso,
+    admin,
+  });
   return null;
 }
 
@@ -1856,7 +1909,6 @@ export async function callModel(
   let errMsg: string | undefined;
   let fallback = false;
   let modelUsed = effectiveModel;
-
 
   // WM-M15b: Response cache check
   let cacheHit = false;
