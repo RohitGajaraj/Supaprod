@@ -266,8 +266,20 @@ export const MCP_WRITE_SCOPES: readonly string[] = [
 export const MCP_WRITE_TOOLS: McpTool[] = [
   {
     name: "ingest_signal",
+    /*
+     * SAYS ALL FOUR OUTCOMES, on the doctrine written two tool definitions below:
+     * an agent that has to discover a rule by failing burns a round trip and often
+     * files nothing instead.
+     *
+     * `restated` was added to the wire on 2026-08-23, when this tool stopped
+     * building its own row and started filing through the sink. That is the one
+     * outcome a caller is most likely to misread, because it is the only refusal
+     * that is not a rejection: the observation is already on the record, so
+     * nothing was stored and nothing is wrong. An agent told only "not created"
+     * would reasonably retry with the same text forever.
+     */
     description:
-      "Contribute a discovery signal into this workspace (governed write). Requires the write:signal scope and the workspace's outward-write gate. The text is injection-screened before storage; a structural prompt-injection is rejected, a borderline one is stored flagged for review.",
+      "Contribute a discovery signal into this workspace (governed write). Requires the write:signal scope and the workspace's outward-write gate. Four outcomes, all returned as `status`: `stored` (written, `created: 1`, `id` set); `flagged` (written and tagged for review, because the text reads as a borderline instruction override); `quarantined` (a structural prompt-injection, never stored, `created: 0`); and `restated` (this workspace already holds the same observation under different wording, so it is folded rather than stored -- `created: 0`, `restated: 1`, `id: null`). A restatement is not an error and retrying it will not store anything: send it only if the observation is genuinely new.",
     inputSchema: {
       type: "object",
       properties: {
