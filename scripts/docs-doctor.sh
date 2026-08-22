@@ -245,6 +245,18 @@ else echo "  ok"; fi
 echo "-- [10] live docs reachable from nowhere (orphans) --"
 # ONE grep over the tree emitting "path:referenced.md", then awk decides. A file is
 # reachable when some OTHER file names it. Self-references do not count, which is the
+# THIS FILE MUST BE PER-PROCESS. It was `/tmp/dd_referenced.txt`, a fixed path, and
+# two concurrent runs shared it: the second truncates it with `>` while the first is
+# still grepping it, so every doc reads as unreferenced. Measured 2026-08-22 while
+# several agents worked one tree -- one run reported 394 phantom orphans and the next
+# reported none, from an unchanged repo. A gate that fails at random gets ignored,
+# which is worse than one that does not exist.
+#
+# This repo has already paid for this exact shape once, recorded as "a background job
+# truncating the file a foreground grep was reading".
+DD_REFERENCED="$(mktemp "${TMPDIR:-/tmp}/dd_referenced.XXXXXX")"
+trap 'rm -f "$DD_REFERENCED"' EXIT
+
 # subtle part: a doc that only mentions its own filename is still an orphan.
 ORPH="$(grep -roE '[A-Za-z0-9._-]+\.md' docs architecture ./AGENTS.md ./README.md ./CLAUDE.md ./GEMINI.md --include='*.md' 2>/dev/null \
   | awk -F: '
@@ -253,14 +265,14 @@ ORPH="$(grep -roE '[A-Za-z0-9._-]+\.md' docs architecture ./AGENTS.md ./README.m
         if (ref != self) seen[ref] = 1
       }
       END { for (r in seen) print r }' \
-  | sort -u > /tmp/dd_referenced.txt; \
+  | sort -u > "$DD_REFERENCED"; \
   find docs architecture -name "*.md" -not -path "*/archive/*" 2>/dev/null \
   | while IFS= read -r f; do
       b="$(basename "$f")"
       [ "$b" = "README.md" ] && continue
-      grep -qxF "$b" /tmp/dd_referenced.txt || echo "  FAIL orphan (linked from nowhere): $f"
+      grep -qxF "$b" "$DD_REFERENCED" || echo "  FAIL orphan (linked from nowhere): $f"
     done)"
-rm -f /tmp/dd_referenced.txt
+rm -f "$DD_REFERENCED"
 if [ -n "$ORPH" ]; then
   printf '%s\n' "$ORPH"
   echo "  (link it from its folder's README in the same commit, or move it to an archive/)"
