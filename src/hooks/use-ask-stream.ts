@@ -78,8 +78,10 @@ class AskUiError extends Error {}
  *
  * TWO OF THE THREE ARE ON THE WIRE NOW. `api/chat.ts` emits `station` once, off
  * the agent a mention resolved to, and a `tool` frame per research phase that
- * actually calls one. `landing` is emitted from the mission branch. The frames
- * still arrive only on turns that dispatch or research, so `NO_WORK` below stays
+ * actually calls one -- plus, since 2026-08-22, one on the plain chat branch for
+ * the workspace search it was already running silently. `landing` is emitted from
+ * the mission branch. The frames still arrive only on turns that dispatch,
+ * research, or search, so `NO_WORK` below stays
  * a single frozen value rather than a fresh object per render: an ordinary
  * answer gets the IDENTICAL reference on every render and a memoized consumer
  * sees no change at all.
