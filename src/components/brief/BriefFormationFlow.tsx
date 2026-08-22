@@ -13,7 +13,26 @@
 // watched-assumption extraction), and shares the ["brief-items"] query cache so
 // the underlying cards update the moment the flow writes. No new storage, no new
 // injection: an approved call reaches every agent's system prompt exactly as
-// before (renderBriefItemsBlock in loop.server.ts). Dark Tempo overlay.
+// before (renderBriefItemsBlock in loop.server.ts).
+//
+// THE COLOUR LAYER IS MERIDIAN, ported 2026-08-22. The header used to end "Dark
+// Tempo overlay", which is a retired system naming itself. 19 occurrences of the
+// retired vocabulary are gone and the file carries none. There were no status
+// colours in it at all, so the port is the neutral ramp and the edges: ink,
+// mute, faint and edge.
+//
+// The one call that was not a table lookup is the overlay itself. It was
+// `color-mix(in oklab, var(--canvas) 78%, black)`, which is opaque, and on the
+// paper ground that composited to a flat mid grey that hid the page completely
+// rather than dimming it. `--mrd-scrim` is the token Meridian built for this
+// and it is measured in both grounds, so the dialog now dims what is behind it
+// instead of deleting it.
+//
+// STILL RETIRED HERE: `Button` and `MonoLabel` come from the Obsidian barrel
+// `@/components/obsidian`. The ratchet's import pattern matches a path with a
+// segment AFTER /obsidian/, so a barrel import scores zero and this file reads
+// as clean while still rendering retired controls. Said out loud because a
+// count that looks finished and is not is worse than a count that admits it.
 
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -154,7 +173,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
         position: "fixed",
         inset: 0,
         zIndex: 60,
-        background: "color-mix(in oklab, var(--canvas) 78%, black)",
+        background: "var(--mrd-scrim)",
         display: "flex",
         alignItems: "flex-start",
         justifyContent: "center",
@@ -168,7 +187,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
           width: "100%",
           maxWidth: 560,
           background: "var(--card)",
-          border: "1px solid var(--hairline)",
+          border: "1px solid var(--mrd-edge)",
           borderRadius: "var(--radius-card)",
           boxShadow: "var(--shadow-elevated)",
           padding: "24px 26px 22px",
@@ -182,7 +201,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
             aria-label="Close"
             style={{
               fontFamily: "var(--font-mono)",
-              color: "var(--text-subtle)",
+              color: "var(--mrd-mute)",
               background: "transparent",
               border: "none",
               textTransform: "uppercase",
@@ -198,7 +217,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
             <h2
               style={{
                 fontWeight: 600,
-                color: "var(--text-primary)",
+                color: "var(--mrd-ink)",
                 margin: "0 0 10px",
                 lineHeight: 1.25,
               }}
@@ -207,7 +226,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
             </h2>
             <p
               style={{
-                color: "var(--text-body)",
+                color: "var(--mrd-ink)",
                 lineHeight: 1.55,
                 margin: "0 0 8px",
               }}
@@ -216,7 +235,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
               seen, and what you are betting on. Each becomes a standing, versioned decision every
               agent reads on every task.
             </p>
-            <p style={{ color: "var(--text-subtle)", lineHeight: 1.55, margin: 0 }}>
+            <p style={{ color: "var(--mrd-mute)", lineHeight: 1.55, margin: 0 }}>
               Each call also grows watched assumptions that Supaprod checks against incoming
               signals, so a strategy drifting out of date surfaces itself.
             </p>
@@ -234,7 +253,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
             <h2
               style={{
                 fontWeight: 600,
-                color: "var(--text-primary)",
+                color: "var(--mrd-ink)",
                 margin: "0 0 6px",
                 lineHeight: 1.3,
               }}
@@ -243,7 +262,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
             </h2>
             <p
               style={{
-                color: "var(--text-subtle)",
+                color: "var(--mrd-mute)",
                 lineHeight: 1.5,
                 margin: "0 0 14px",
               }}
@@ -291,7 +310,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
             <h2
               style={{
                 fontWeight: 600,
-                color: "var(--text-primary)",
+                color: "var(--mrd-ink)",
                 margin: "0 0 6px",
                 lineHeight: 1.3,
               }}
@@ -300,7 +319,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
             </h2>
             <p
               style={{
-                color: "var(--text-subtle)",
+                color: "var(--mrd-mute)",
                 lineHeight: 1.5,
                 margin: "0 0 14px",
               }}
@@ -314,7 +333,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
                   <div
                     key={bet.id}
                     style={{
-                      border: "1px solid var(--hairline)",
+                      border: "1px solid var(--mrd-edge)",
                       borderRadius: 10,
                       padding: "10px 12px",
                     }}
@@ -322,7 +341,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
                     <p
                       style={{
                         fontWeight: 500,
-                        color: "var(--text-primary)",
+                        color: "var(--mrd-ink)",
                         margin: 0,
                       }}
                     >
@@ -331,7 +350,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
                     {bet.body ? (
                       <p
                         style={{
-                          color: "var(--text-body)",
+                          color: "var(--mrd-ink)",
                           lineHeight: 1.5,
                           margin: "3px 0 0",
                         }}
@@ -391,7 +410,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
             <h2
               style={{
                 fontWeight: 600,
-                color: "var(--text-primary)",
+                color: "var(--mrd-ink)",
                 margin: "0 0 12px",
                 lineHeight: 1.3,
               }}
@@ -407,14 +426,14 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
                       {bets.length > 0 ? (
                         <ul style={{ margin: "6px 0 0", paddingLeft: 16 }}>
                           {bets.map((b) => (
-                            <li key={b.id} style={{ color: "var(--text-body)", lineHeight: 1.5 }}>
+                            <li key={b.id} style={{ color: "var(--mrd-ink)", lineHeight: 1.5 }}>
                               <strong style={{ fontWeight: 500 }}>{b.title}</strong>
                               {b.body ? `: ${b.body}` : ""}
                             </li>
                           ))}
                         </ul>
                       ) : (
-                        <p style={{ color: "var(--text-faint)", margin: "4px 0 0" }}>None set.</p>
+                        <p style={{ color: "var(--mrd-faint)", margin: "4px 0 0" }}>None set.</p>
                       )}
                     </div>
                   );
@@ -425,7 +444,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
                     <MonoLabel>{s.label}</MonoLabel>
                     <p
                       style={{
-                        color: cur ? "var(--text-body)" : "var(--text-faint)",
+                        color: cur ? "var(--mrd-ink)" : "var(--mrd-faint)",
                         lineHeight: 1.5,
                         margin: "4px 0 0",
                       }}
@@ -438,10 +457,10 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
             </div>
             <p
               style={{
-                color: "var(--text-subtle)",
+                color: "var(--mrd-mute)",
                 lineHeight: 1.55,
                 marginTop: 16,
-                borderTop: "1px solid var(--hairline)",
+                borderTop: "1px solid var(--mrd-edge)",
                 paddingTop: 12,
               }}
             >

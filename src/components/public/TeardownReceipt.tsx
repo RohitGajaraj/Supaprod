@@ -13,17 +13,43 @@ import type { Teardown, TeardownVerdict } from "@/lib/ai/public-teardown.server"
 // RPT-03 receipt. Renders a Teardown as a Critic receipt: the verdict as a
 // labeled chip (icon + word, so it is grayscale-safe and never color-only), the
 // headline, RISKS and GAPS as two labeled lists, the recommendation, and a
-// confidence line. Dark ember Tempo aesthetic; reads under the data-obsidian
-// scope its parent page mounts. One honest caption grounds what the Critic did.
+// confidence line. One honest caption grounds what the Critic did.
+//
+// THE COLOUR LAYER IS MERIDIAN, ported 2026-08-22. This header used to claim a
+// "dark ember Tempo aesthetic" reading under the data-obsidian scope its parent
+// page mounts. Both systems are retired, so the claim was a description of a
+// palette that no longer decides anything here. 17 occurrences of the retired
+// vocabulary are gone and the file carries none.
+//
+// Mapped by MEANING, which is the naming law, and the three verdicts are the
+// only calls in the file that needed judgement rather than a table:
+//   - "worth building" is `--mrd-pass` and "risky as written" is `--mrd-fail`.
+//     Both are outcomes that HAVE happened: the Critic read the text and
+//     reached a judgement, which is exactly what those two words mean.
+//   - "needs work" is `--mrd-hold`, not `--mrd-you`. Meridian's `you` means a
+//     person is REQUIRED to unblock something, and no decision unblocks this;
+//     what it waits on is the spec getting better, which is a condition. That
+//     is `hold`, and Meridian has no sixth status word to reach for instead.
+//   - the GAPS list takes `--mrd-hold` for the same reason. A gap is what you
+//     cannot prove YET: it waits on evidence arriving, not on a person.
+//   - the RISKS list takes `--mrd-fail`. A flagged risk is a result the Critic
+//     reported, not an intent, so the clause that keeps red off "roll back"
+//     does not apply to it.
+//   - the copy control turns `--mrd-pass` once the clipboard write RESOLVES,
+//     never on the press, so the colour still reports something that happened.
+//
+// Nothing was dropped. Every verdict still carries its own icon beside the
+// word, so the receipt survives the greyscale test on shape alone and the
+// colour is doing no load-bearing work by itself.
 
 const VERDICT_META: Record<TeardownVerdict, { color: string; Icon: typeof CheckCircle2 }> = {
-  "worth building": { color: "var(--moss)", Icon: CheckCircle2 },
-  "needs work": { color: "var(--marigold)", Icon: PencilRuler },
-  "risky as written": { color: "var(--madder)", Icon: ShieldAlert },
+  "worth building": { color: "var(--mrd-pass)", Icon: CheckCircle2 },
+  "needs work": { color: "var(--mrd-hold)", Icon: PencilRuler },
+  "risky as written": { color: "var(--mrd-fail)", Icon: ShieldAlert },
 };
 
 const sectionLabel: CSSProperties = {
-  color: "var(--text-subtle)",
+  color: "var(--mrd-mute)",
   display: "flex",
   alignItems: "center",
   gap: 6,
@@ -32,7 +58,7 @@ const sectionLabel: CSSProperties = {
 
 const hairline: CSSProperties = {
   height: 1,
-  background: "var(--hairline)",
+  background: "var(--mrd-edge)",
   margin: "20px 0",
 };
 
@@ -48,14 +74,14 @@ function List({
   empty: string;
 }) {
   if (items.length === 0) {
-    return <p style={{ color: "var(--text-subtle)", lineHeight: 1.5 }}>{empty}</p>;
+    return <p style={{ color: "var(--mrd-mute)", lineHeight: 1.5 }}>{empty}</p>;
   }
   return (
     <ul style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       {items.map((item, i) => (
         <li key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
           <Icon size={16} strokeWidth={1.5} style={{ color: tone, flexShrink: 0, marginTop: 2 }} />
-          <span style={{ color: "var(--text-body)", lineHeight: 1.5 }}>{item}</span>
+          <span style={{ color: "var(--mrd-ink)", lineHeight: 1.5 }}>{item}</span>
         </li>
       ))}
     </ul>
@@ -83,7 +109,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
           flexWrap: "wrap",
         }}
       >
-        <div className="mono-label" style={{ color: "var(--text-subtle)" }}>
+        <div className="mono-label" style={{ color: "var(--mrd-mute)" }}>
           Supaprod Critic · evidence
         </div>
         <div
@@ -101,7 +127,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
           <span
             style={{
               fontWeight: 600,
-              color: "var(--text-primary)",
+              color: "var(--mrd-ink)",
               textTransform: "capitalize",
             }}
           >
@@ -114,7 +140,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
       <h2
         style={{
           lineHeight: 1.35,
-          color: "var(--text-primary)",
+          color: "var(--mrd-ink)",
           margin: "16px 0 0",
           fontWeight: 600,
         }}
@@ -132,7 +158,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
       <List
         items={teardown.risks}
         Icon={AlertTriangle}
-        tone="var(--madder)"
+        tone="var(--mrd-fail)"
         empty="No load-bearing risks flagged in what you pasted."
       />
 
@@ -146,7 +172,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
       <List
         items={teardown.gaps}
         Icon={HelpCircle}
-        tone="var(--marigold)"
+        tone="var(--mrd-hold)"
         empty="No missing evidence flagged in what you pasted."
       />
 
@@ -157,7 +183,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
             <ArrowRight size={16} strokeWidth={1.5} />
             Recommendation
           </div>
-          <p style={{ color: "var(--text-body)", lineHeight: 1.55 }}>{teardown.recommendation}</p>
+          <p style={{ color: "var(--mrd-ink)", lineHeight: 1.55 }}>{teardown.recommendation}</p>
         </>
       ) : null}
 
@@ -167,7 +193,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
       <div
         style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
       >
-        <span className="mono-label" style={{ color: "var(--text-subtle)" }}>
+        <span className="mono-label" style={{ color: "var(--mrd-mute)" }}>
           Critic confidence
         </span>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, maxWidth: 200 }}>
@@ -176,7 +202,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
               flex: 1,
               height: 4,
               borderRadius: 999,
-              background: "var(--hairline)",
+              background: "var(--mrd-edge)",
               overflow: "hidden",
             }}
           >
@@ -184,14 +210,14 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
               style={{
                 width: `${confidencePct}%`,
                 height: "100%",
-                background: "var(--text-body)",
+                background: "var(--mrd-ink)",
                 borderRadius: 999,
               }}
             />
           </div>
           <span
             className="mono-label"
-            style={{ color: "var(--text-body)", minWidth: 34, textAlign: "right" }}
+            style={{ color: "var(--mrd-ink)", minWidth: 34, textAlign: "right" }}
           >
             {confidencePct}%
           </span>
@@ -217,7 +243,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
       {/* Honest caption: what this receipt is, and what it is not. */}
       <p
         style={{
-          color: "var(--text-subtle)",
+          color: "var(--mrd-mute)",
           lineHeight: 1.55,
           marginTop: 18,
         }}
@@ -270,10 +296,10 @@ function CopyReceipt({ teardown }: { teardown: Teardown }) {
         alignItems: "center",
         gap: 6,
         background: "none",
-        border: "1px solid var(--hairline)",
+        border: "1px solid var(--mrd-edge)",
         borderRadius: 999,
         padding: "5px 12px",
-        color: copied ? "var(--moss)" : "var(--text-muted)",
+        color: copied ? "var(--mrd-pass)" : "var(--mrd-mute)",
         cursor: "pointer",
       }}
       // The label reports what the press DID, not what the button is.

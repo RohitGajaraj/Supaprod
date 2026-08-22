@@ -9,9 +9,29 @@ import type { Teardown } from "@/lib/ai/public-teardown.server";
 
 // RPT-03: Zero-connector first receipt. THE public demo wedge: a stranger, no
 // signup and no connectors, pastes a PRD or a one-line product bet and gets a
-// receipted Critic teardown. Dark ember Tempo aesthetic matching /login (mounts
-// the same data-obsidian scope), self-hosted Geist, mono-labels, hairline
-// borders, one Pixel brand moment in the hero.
+// receipted Critic teardown. Self-hosted Geist, mono-labels, one Pixel brand
+// moment in the hero.
+//
+// THE COLOUR LAYER IS MERIDIAN, ported 2026-08-22. The header used to promise a
+// "dark ember Tempo aesthetic matching /login" with "hairline borders", written
+// when both of those systems were live. 15 occurrences of the retired
+// vocabulary are gone and the file carries none. The page still mounts the
+// data-obsidian scope through `useObsidianAuthSurface`, because /login and the
+// rest of the auth surfaces have not been ported and the scope is what keeps
+// them consistent with each other; that is the remaining retired thing here and
+// it is a shared decision, not this file's to make alone.
+//
+// Meridian's tokens live on `:root` and flip on `[data-theme="light"]`, exactly
+// as the `--ds-*` scale underneath the obsidian scope already did, so this page
+// reads correctly in both grounds for the same reason it did before.
+//
+// Two calls needed judgement rather than a table:
+//   - the character counter turning at 90% of the cap is `--mrd-hold`, not
+//     `--mrd-fail`. Nothing has failed; the textarea is about to be capped by a
+//     condition, and red reports a result rather than warning of one. Meridian
+//     retired the sixth status word on purpose, so `hold` is the honest stop.
+//   - the error notice is `--mrd-fail`. The Critic ran and did not finish, which
+//     is an outcome that happened.
 
 const MAX = 8000;
 
@@ -56,8 +76,8 @@ const surface: CSSProperties = {
   position: "relative",
   isolation: "isolate",
   minHeight: "100vh",
-  background: "var(--canvas)",
-  color: "var(--text-primary)",
+  background: "var(--mrd-bg)",
+  color: "var(--mrd-ink)",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
@@ -69,11 +89,11 @@ const noticeBox: CSSProperties = {
   width: "100%",
   padding: "16px 18px",
   borderRadius: 12,
-  border: "1px solid var(--hairline)",
-  background: "var(--surface-1)",
+  border: "1px solid var(--mrd-edge)",
+  background: "var(--mrd-lift)",
   fontSize: 13.5,
   lineHeight: 1.55,
-  color: "var(--text-body)",
+  color: "var(--mrd-ink)",
   display: "flex",
   gap: 10,
   alignItems: "flex-start",
@@ -158,7 +178,7 @@ function TeardownPage() {
           position: "absolute",
           right: -130,
           bottom: -140,
-          color: "var(--text-primary)",
+          color: "var(--mrd-ink)",
           opacity: 0.04,
           transform: "rotate(-12deg)",
           pointerEvents: "none",
@@ -176,7 +196,7 @@ function TeardownPage() {
           <div style={{ display: "flex", justifyContent: "center" }}>
             <SupaprodMark size={44} />
           </div>
-          <div className="mono-label" style={{ marginTop: 14, color: "var(--text-subtle)" }}>
+          <div className="mono-label" style={{ marginTop: 14, color: "var(--mrd-mute)" }}>
             Supaprod Critic · live teardown
           </div>
           {/* The one Geist Pixel brand moment on this surface. */}
@@ -186,7 +206,7 @@ function TeardownPage() {
               fontSize: "clamp(26px, 6vw, 40px)",
               lineHeight: 1.1,
               marginTop: 12,
-              color: "var(--text-primary)",
+              color: "var(--mrd-ink)",
             }}
           >
             Paste a PRD. Get an evidence-backed teardown.
@@ -194,7 +214,7 @@ function TeardownPage() {
           <p
             style={{
               fontSize: 14,
-              color: "var(--text-subtle)",
+              color: "var(--mrd-mute)",
               lineHeight: 1.55,
               maxWidth: 460,
               margin: "14px auto 0",
@@ -254,7 +274,7 @@ function TeardownPage() {
             {trimmed ? (
               <span
                 className="mono-label"
-                style={{ color: nearLimit ? "var(--madder)" : "var(--text-subtle)" }}
+                style={{ color: nearLimit ? "var(--mrd-hold)" : "var(--mrd-mute)" }}
               >
                 {text.length} / {MAX}
               </span>
@@ -264,10 +284,10 @@ function TeardownPage() {
                 onClick={() => setText(EXAMPLE_BET)}
                 className="mono-label"
                 style={{
-                  color: "var(--text-muted)",
+                  color: "var(--mrd-mute)",
                   background: "none",
                   border: "none",
-                  borderBottom: "1px solid color-mix(in srgb, var(--text-muted) 40%, transparent)",
+                  borderBottom: "1px solid color-mix(in srgb, var(--mrd-mute) 40%, transparent)",
                   padding: 0,
                   cursor: "pointer",
                 }}
@@ -349,7 +369,7 @@ function TeardownPage() {
 
           {state.kind === "error" ? (
             <div
-              style={{ ...noticeBox, borderColor: "var(--madder)", color: "var(--text-body)" }}
+              style={{ ...noticeBox, borderColor: "var(--mrd-fail)", color: "var(--mrd-ink)" }}
               role="alert"
             >
               <span>{state.message}</span>
@@ -363,7 +383,7 @@ function TeardownPage() {
             <p
               style={{
                 fontSize: 13,
-                color: "var(--text-subtle)",
+                color: "var(--mrd-mute)",
                 lineHeight: 1.55,
                 maxWidth: 420,
                 margin: "0 auto 12px",
@@ -396,7 +416,7 @@ function TeardownPage() {
         <p
           style={{
             fontSize: 11,
-            color: "var(--text-subtle)",
+            color: "var(--mrd-mute)",
             textAlign: "center",
             lineHeight: 1.55,
             marginTop: 32,

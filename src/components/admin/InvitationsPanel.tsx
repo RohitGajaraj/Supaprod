@@ -8,6 +8,26 @@
  * yet." (register D-11); every mutation checks the in-band `{error}` result
  * and surfaces thrown failures. Queries, mutations, and data shapes are
  * unchanged.
+ *
+ * MERIDIAN COLOUR PORT, 2026-08-22. The Obsidian tokens that Loom pass moved
+ * this file ONTO are themselves retired now, so the paragraph above is a record
+ * of a migration that has since been superseded rather than a description of
+ * what this file draws. 18 occurrences are gone and it carries none.
+ *
+ * Straight mapping throughout, because this panel has no status colour in it:
+ * ink, mute and edge. Two calls were not the table:
+ *   - the text input's border is `--mrd-field`, not `--mrd-edge`. Meridian has
+ *     a token for a form control at rest, measured against that control's own
+ *     fill, and `forms.tsx` draws every Meridian input with it. Using the
+ *     generic edge here would have been a near-match that the system already
+ *     has a better word for.
+ *   - "Reject" stays `--mrd-mute` and does not become `--mrd-stop`. It is a
+ *     verdict on a queued request, not a control that halts work in progress,
+ *     and it was a quiet secondary control before this change.
+ *
+ * Spacing was deliberately left alone: `--space-*` is not retired vocabulary,
+ * and nobody can look at an authenticated admin surface in the session this was
+ * ported in, so nothing here was allowed to move.
  */
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -98,7 +118,7 @@ function InviteCreator() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="email@example.com"
           aria-label="Email address"
-          className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
+          className={`${FOCUS_RING} placeholder:[color:var(--mrd-mute)]`}
           style={input(220)}
         />
         <select
@@ -127,7 +147,7 @@ function InviteCreator() {
         rows={4}
         placeholder={"alice@co.com\nbob@co.com"}
         aria-label="Email addresses, one per line"
-        className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
+        className={`${FOCUS_RING} placeholder:[color:var(--mrd-mute)]`}
         style={{ ...input(), width: "100%", fontFamily: "var(--font-mono)" }}
       />
       <Button
@@ -184,8 +204,8 @@ function InviteList() {
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={r.id} style={{ borderTop: "1px solid var(--hairline)" }}>
-                  <td style={{ ...td(), color: "var(--text-primary)" }}>{r.email}</td>
+                <tr key={r.id} style={{ borderTop: "1px solid var(--mrd-edge)" }}>
+                  <td style={{ ...td(), color: "var(--mrd-ink)" }}>{r.email}</td>
                   <td style={td()}>{r.role}</td>
                   <td style={td()}>{r.state}</td>
                   <td style={td()}>{r.expires_at?.slice(0, 10)}</td>
@@ -219,7 +239,7 @@ function InviteList() {
                       padding: "var(--space-3)",
                       textAlign: "center",
                       fontFamily: "var(--font-sans)",
-                      color: "var(--text-subtle)",
+                      color: "var(--mrd-mute)",
                     }}
                   >
                     No invitations yet. Create one above to bring someone in.
@@ -277,7 +297,7 @@ function DomainList() {
           onChange={(e) => setDomain(e.target.value)}
           placeholder="acme.com"
           aria-label="Email domain"
-          className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
+          className={`${FOCUS_RING} placeholder:[color:var(--mrd-mute)]`}
           style={input(200)}
         />
         <select
@@ -310,7 +330,7 @@ function DomainList() {
         <p
           style={{
             fontFamily: "var(--font-sans)",
-            color: "var(--text-subtle)",
+            color: "var(--mrd-mute)",
             margin: 0,
           }}
         >
@@ -323,13 +343,13 @@ function DomainList() {
               key={d.id}
               style={{
                 fontFamily: "var(--font-sans)",
-                color: "var(--text-body)",
+                color: "var(--mrd-ink)",
                 display: "flex",
                 gap: "var(--space-2)",
                 alignItems: "center",
               }}
             >
-              <code style={{ fontFamily: "var(--font-mono)", color: "var(--text-primary)" }}>
+              <code style={{ fontFamily: "var(--font-mono)", color: "var(--mrd-ink)" }}>
                 {d.domain}
               </code>{" "}
               · {d.default_role}
@@ -390,7 +410,7 @@ function SignupApprovalsList() {
         <p
           style={{
             fontFamily: "var(--font-sans)",
-            color: "var(--text-subtle)",
+            color: "var(--mrd-mute)",
             margin: 0,
           }}
         >
@@ -406,7 +426,7 @@ function SignupApprovalsList() {
                 gap: "var(--space-2)",
                 alignItems: "center",
                 fontFamily: "var(--font-sans)",
-                color: "var(--text-body)",
+                color: "var(--mrd-ink)",
               }}
             >
               {s.email} · {new Date(s.created_at).toLocaleDateString()}
@@ -421,7 +441,7 @@ function SignupApprovalsList() {
               <Button
                 variant="secondary"
                 disabled={review.isPending}
-                style={{ padding: "6px 10px", color: "var(--text-subtle)" }}
+                style={{ padding: "6px 10px", color: "var(--mrd-mute)" }}
                 onClick={() => review.mutate({ id: s.id, approve: false })}
               >
                 Reject
@@ -446,10 +466,10 @@ function card(): React.CSSProperties {
 function input(width?: number): React.CSSProperties {
   return {
     padding: "8px 10px",
-    border: "1px solid var(--hairline-strong)",
+    border: "1px solid var(--mrd-field)",
     borderRadius: "var(--radius-control)",
-    background: "var(--raised)",
-    color: "var(--text-primary)",
+    background: "var(--mrd-lift)",
+    color: "var(--mrd-ink)",
     fontFamily: "var(--font-sans)",
     width,
   };
@@ -462,8 +482,8 @@ function th(): React.CSSProperties {
     textTransform: "uppercase",
     textAlign: "left",
     fontWeight: 400,
-    color: "var(--text-subtle)",
-    borderBottom: "1px solid var(--hairline-strong)",
+    color: "var(--mrd-mute)",
+    borderBottom: "1px solid var(--mrd-edge)",
   };
 }
 function td(): React.CSSProperties {
@@ -471,6 +491,6 @@ function td(): React.CSSProperties {
     padding: "10px",
     verticalAlign: "middle",
     fontFamily: "var(--font-sans)",
-    color: "var(--text-body)",
+    color: "var(--mrd-ink)",
   };
 }
