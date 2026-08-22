@@ -3710,3 +3710,60 @@ verified BEFORE building. That stage paid for itself: it refuted five claims in 
    Right trade, real cost, recorded rather than buried.
 5. **The promotion bar** remains the founder's call (board, *Needs the founder*).
 6. Six phantom tool names are baked into applied seed migrations and cannot be removed from them.
+
+## 03:15 IST — the overnight two-lane run is set up and ready to start
+
+**Everything is in one file: [`../../coordination/README.md`](../../coordination/README.md)**
+(881 lines). It holds the protocol and BOTH paste-ready prompts as sections. `STATUS.md`,
+`requests/`, `answers/` and `units/` sit beside it.
+
+**NAME COLLISION, READ THIS.** This handoff already contains "LANE 1" entries from
+2026-08-10 through 2026-08-14 describing a completely different parallel-worktree
+arrangement that is long finished. **They are not this.** Tonight's LANE 1 is an opencode /
+OX Alpha session running overnight against `main`, with Claude Code as MAIN LANE. If you
+grep this file for "LANE 1" you will hit the old ones first.
+
+**The shape.** LANE 1 builds and has no database, no deploys and no Mobbin. MAIN LANE holds
+all three plus verification. They talk only through git.
+
+**Why the folder is outside `docs/`, so nobody helpfully moves it:** `requests/`, `answers/`
+and `units/` fill with message files during a run, and `docs-doctor` **hard-fails** any doc
+under `docs/` that nothing links to. A live queue there breaks the gate on every new
+message. `docs/operations/README.md` points at it instead.
+
+**Three protocol rules, each one a failure this repo has already had:**
+
+1. **One file per message, one writer per directory.** Three sessions closed within ten
+   minutes on 2026-08-22 and each silently overwrote the others' handoff by editing one
+   shared file. Files that cannot collide always rebase clean.
+2. **MAIN LANE never edits product code LANE 1 holds.** A commit staged by filename swept up
+   another lane's half-finished deletion and broke `main` the same day.
+3. **git IS the channel; unpushed work does not exist.** Push after every unit, pull before
+   every unit and again before every push. Never `git add -A`.
+
+**LANE 1 must not block.** It files a request, parks the item, continues. An hour-old
+blocking request is MAIN LANE's failure, not a reason to stop the night.
+
+**The measured finding the brief is built on.** The founder's number one pain point is that
+text is dumped with no visible difference between heading, body, subtext, status and
+tagline, and buttons are not differentiable. Measured before writing the brief: Meridian
+already has **14 typographic steps** and a **full status family** with `-chip` / `-on-chip`
+variants. So this is an **adoption failure, not a design-system gap** — which changes the
+order of the work, and the order is the actual deliverable:
+
+| File | Debt occurrences |
+| --- | --- |
+| `src/styles.css` | 703 |
+| `src/styles/primitives.css` | 279 |
+| `src/styles/ink.css` | 190 |
+
+**1,172 of 3,170 — 37% — in three files defining rival scales every surface inherits.** Fix
+surfaces first and you fight them on all 222 files. Wave 1 is killing the competing
+definitions; nothing else starts until it lands.
+
+**The headline metric for the run is the ratchet: 3,170 occurrences across 222 files.** It
+may only ever go down, and a drop must be locked into
+`src/__tests__/meridian-ratchet.baseline.json` in the same commit.
+
+**Mobbin MCP is connected and authenticated** (`search_flows`, `search_screens`,
+`search_sections`). MAIN LANE can answer design-reference requests immediately.
