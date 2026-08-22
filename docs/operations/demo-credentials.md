@@ -28,10 +28,52 @@ Application reviewers are the reason isolation is not optional. They log in **as
 
 | Account | Password | Workspace | Given to | Sent on |
 | --- | --- | --- | --- | --- |
-| `voyage@supaprod.ai` | `Supaprod!Voyage2026` | Helio Labs (`20000000-…`) | _(fill in)_ | |
-| `compass@supaprod.ai` | `Supaprod!Compass2026` | Helio Labs (`30000000-…`) | _(fill in)_ | |
-| `meridian@supaprod.ai` | `Supaprod!Meridian2026` | Helio Labs (`40000000-…`) | _(fill in)_ | |
-| `lantern@supaprod.ai` | `Supaprod!Lantern2026` | Helio Labs (`50000000-…`) | _(fill in)_ | |
+| `voyage@supaprod.ai` | `Supaprod!Voyage2026` | Helio Labs (`20000000-…`) | South Park Commons ❌, then EF The Bridge ❌. **✅ FREE AGAIN 2026-08-22 — this is the NEXT allocation** | 2026-07-31, 2026-08-18 |
+| `compass@supaprod.ai` | `Supaprod!Compass2026` | Helio Labs (`30000000-…`) | Betaworks AI Camp — **live, do not reissue** | 2026-07-31 |
+| `meridian@supaprod.ai` | `Supaprod!Meridian2026` | Helio Labs (`40000000-…`) | **Nobody. The last never-issued account — hold it as the reserve** | — |
+| `lantern@supaprod.ai` | `Supaprod!Lantern2026` | Helio Labs (`50000000-…`) | Campus Founders CF#9 — **live, decision 2026-08-28** | 2026-08-16 |
+
+> **`explore@supaprod.ai` sits outside this table and went to Y Combinator** (2026-07-23). It is the one account with a sign-in nobody has attributed. See below.
+
+### ✅ `voyage@` was double-issued, and measuring it showed that did not matter
+
+**It went to two programmes against the one-login rule** — South Park Commons on 2026-07-31 and EF The Bridge inline in Q4 on 2026-08-18. Both rejected. The obvious fear was that a reviewer from one had cleared the approval queue for the other, which is the exact failure this file exists to prevent.
+
+**Measured against the live database on 2026-08-22, that fear was unfounded: `last_sign_in_at` is NULL.** Neither firm ever signed in. The queue is intact at **6 live pending** and **2,087 credits**, and the 14 decided rows are the 2026-07-21 seed that every demo account carries, not reviewer activity. **Nothing to re-arm, nothing to rotate.** It returns to the pool clean.
+
+```sql
+-- the query behind every number above; re-run it before issuing any login
+SELECT u.email, w.name AS workspace,
+       coalesce(ac.balance_credits,0)+coalesce(ac.topup_credits,0) AS credits,
+       (SELECT count(*) FROM agent_approvals a
+         WHERE a.workspace_id=w.id AND a.status='pending'
+           AND a.decided_at IS NULL AND a.expires_at > now()) AS live_pending,
+       u.last_sign_in_at
+FROM auth.users u
+JOIN workspace_members wm ON wm.user_id=u.id
+JOIN workspaces w ON w.id=wm.workspace_id
+LEFT JOIN account_credits ac ON ac.account_id=w.account_id
+ORDER BY u.email;
+```
+
+### 🔍 NO PROGRAMME REVIEWER HAS EVER SIGNED IN, and that is the finding worth acting on
+
+Across every login issued to a venture programme, `last_sign_in_at` tells one story:
+
+| Account | Programme | Last sign-in | Whose |
+| --- | --- | --- | --- |
+| `voyage@` | SPC, EF | **never** | — |
+| `compass@` | Betaworks | **never** | — |
+| `meridian@` | none | **never** | — |
+| `lantern@` | Campus Founders | 2026-08-16 05:54 UTC | **ours** — matches the recorded 11:25 IST verification exactly |
+| `explore@` | Y Combinator | 2026-08-13 08:12 UTC | **UNATTRIBUTED.** Nobody recorded doing this. It is either an unlogged check of ours or the only reviewer sign-in we have ever had |
+| `harbor@` | rehearsal only | 2026-08-21 05:45 UTC | ours, as intended |
+
+**Two consequences.** First, the one-login-per-programme rule has never once been load-bearing, because no second reviewer has ever arrived to find a cleared queue. Keep the rule — the cost of breaking it is asymmetric — but stop treating a double-issue as an emergency. Second, **`explore@`'s 2026-08-13 sign-in needs attributing**, because if it was YC it is the single most interesting datapoint in this file and nothing anywhere records it.
+
+### ⏰ The queues lapse around 2026-09-26, inside SkyDeck's interview window
+
+The 2026-07-28 re-arm set `expires_at` to **+60 days**. Berkeley SkyDeck interviews run **09-08 to 10-05**, so a reviewer arriving in the last week of that window finds an expired queue. **Re-run the reset before 2026-09-26.**
 
 ### The rehearsal copy (never send this one out)
 

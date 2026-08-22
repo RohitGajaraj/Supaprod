@@ -221,7 +221,7 @@ python3 scripts/funding-sync.py --no-icloud
 | **[South Park Commons](./south-park-commons/)** | 2026-07-31 | ❌ **rejected 2026-08-11, 05:31 IST. No reason given** | `voyage@supaprod.ai` | none. They invite a future application |
 | **[Betaworks AI Camp](./betaworks-ai-camp/)** | 2026-07-31 | rolling, batch starts 08-31 | `compass@supaprod.ai` | none |
 | **[The Residency, Fall 2026](./the-residency/)** | 2026-07-31 | by 2026-08-28 | none given | none |
-| **[EF The Bridge Residency SF](./ef-bridge-sf/)** | 2026-08-18 | ❌ **rejected 2026-08-21, three days later. No reason given** — *"highly competitive… only a small group can progress to the next stage"*. Verbatim email on the Notion card | `voyage@supaprod.ai` ⚠️ | **This login was already spent on South Park Commons**, so two programmes hold the same demo account and a sign-in cannot be attributed. Needs a rotation decision |
+| **[EF The Bridge Residency SF](./ef-bridge-sf/)** | 2026-08-18 | ❌ **rejected 2026-08-21, three days later. No reason given** — *"highly competitive… only a small group can progress to the next stage"*. Verbatim email on the Notion card | `voyage@supaprod.ai` ✅ | **Released back to the pool 2026-08-22 and verified CLEAN.** It was double-issued with South Park Commons, but `last_sign_in_at` is NULL on both — neither firm ever signed in, the queue is intact (6 live pending, 2,087 credits), so there was nothing to rotate. It is the next allocation; `meridian@` stays the reserve. Evidence and the query: [`../../operations/demo-credentials.md`](../../operations/demo-credentials.md) |
 
 ---
 

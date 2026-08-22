@@ -36,6 +36,8 @@ document.
 
 ## Pick this up FIRST: CI has been dead all day and the red X does not mean what it looks like
 
+**QUEUE EXPIRY, dated:** the demo approval queues lapse around **2026-09-26** (the 2026-07-28 re-arm was +60 days), which falls INSIDE Berkeley SkyDeck's 09-08 to 10-05 interview window. Re-run the reset before then or a reviewer finds a dead approval room.
+
 **Six consecutive CI runs failed in ~4 seconds with `total_ms: 0`, zero steps recorded and no retrievable
 logs.** That is a runner or billing block, not a test failure — `ci.yml`'s own header says it was built for
 "GitHub Actions' free tier". **Nothing distinguishes "no runner ran" from "tests broke" on the badge**, so the
@@ -61,9 +63,9 @@ one JS chunk; the authenticated routes are code-split and only load after sign-i
 | --- | --- | --- |
 | **`8a3e0a00b` unpushed** | committed, tree clean | one `git push origin main`. Unpushed looks identical to shipped |
 | **EF The Bridge rejection** | ✅ **CLOSED.** Verbatim email captured on the card, date confirmed from its header | nothing. **No reason was given** — *"highly competitive… only a small group can progress to the next stage"* is a volume statement. The phrase **"next stage"** confirms a staged process, so this was a first-pass screen and the 13 filed answers were probably never judged. **Do not rewrite them against this outcome** |
-| **`voyage@supaprod.ai` given twice** | flagged in `applications/README.md` | a decision. It went to South Park Commons AND EF inline in Q4, against the board's one-login-per-programme rule. Sign-ins can no longer be attributed |
+| **`voyage@supaprod.ai` given twice** | ✅ **CLOSED 2026-08-22.** Released to the pool, verified clean | nothing. `last_sign_in_at` NULL on both holders, queue intact (6 pending, 2,087 credits) — nothing to rotate. **Bigger finding: NO programme reviewer has EVER signed into ANY demo login.** One unattributed sign-in on `explore@` (YC) 2026-08-13 needs owning — see [`demo-credentials.md`](./demo-credentials.md) |
 | **4 of 5 filed applications quote retired numbers** | documented, untouched | the real strengthening work, and it is evidence-backed unlike the rejections. Audit filed text against `../pitch/verified-numbers.md` |
-| **`bun run dev` keypress check** | never ran | `g`+letter must navigate, ⌘K must open Ask. The Chrome extension was down the whole session (three attempts, hours apart). Automated equivalents pass |
+| **`bun run dev` keypress check** | **DEFERRED by the founder 2026-08-22** — he will re-run it himself | `g`+letter must navigate, ⌘K must open Ask. Chrome extension was down all session (three attempts, hours apart). Every automated equivalent passes; no human has pressed the keys on the deployed build |
 
 ## The lesson worth carrying, and it is not about the palette
 
