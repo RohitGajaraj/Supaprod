@@ -545,7 +545,7 @@ export function SelectionActions({
                     backgroundImage:
                       "linear-gradient(90deg, var(--mrd-mute) 35%, var(--mrd-ink) 50%, var(--mrd-mute) 65%)",
                     backgroundSize: "200% 100%",
-                    animation: "mrd-shimmer 1.4s linear infinite",
+                    animation: "mrd-shimmer var(--mrd-d-alive) linear infinite",
                   }}
                 >
                   {workingLabel}

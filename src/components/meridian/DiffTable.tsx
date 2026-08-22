@@ -281,7 +281,7 @@ export function DiffTable({
                       style={{
                         gridTemplateRows: revealed ? "1fr" : "0fr",
                         opacity: revealed ? 1 : 0,
-                        transitionTimingFunction: "cubic-bezier(0.23, 1, 0.32, 1)",
+                        transitionTimingFunction: "var(--mrd-ease)",
                       }}
                     >
                       <div className="overflow-hidden" style={{ background: WASH.added }}>

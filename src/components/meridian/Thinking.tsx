@@ -288,7 +288,7 @@ export function Thinking({
               backgroundImage:
                 "linear-gradient(90deg, var(--mrd-mute) 35%, var(--mrd-ink) 50%, var(--mrd-mute) 65%)",
               backgroundSize: "200% 100%",
-              animation: "mrd-shimmer 1.4s linear infinite",
+              animation: "mrd-shimmer var(--mrd-d-alive) linear infinite",
             }}
           >
             {label ?? ACTIVE_LABEL[variant]}
@@ -332,7 +332,7 @@ export function Thinking({
         style={{
           gridTemplateRows: expanded ? "1fr" : "0fr",
           opacity: expanded ? 1 : 0,
-          transitionTimingFunction: "cubic-bezier(0.23, 1, 0.32, 1)",
+          transitionTimingFunction: "var(--mrd-ease)",
         }}
       >
         <div className="overflow-hidden">
@@ -344,7 +344,7 @@ export function Thinking({
                 style={{
                   top: -8,
                   height: railHeight ? railHeight - 2 : 0,
-                  transition: "height 500ms cubic-bezier(0.23,1,0.32,1)",
+                  transition: "height 500ms var(--mrd-ease)",
                 }}
               />
             )}
@@ -355,7 +355,7 @@ export function Thinking({
                   className="flex h-6 items-center gap-2 px-1.5"
                   style={{
                     animation: expanded
-                      ? "mrd-fade-up 300ms cubic-bezier(0.23,1,0.32,1) both"
+                      ? "mrd-fade-up 300ms var(--mrd-ease) both"
                       : undefined,
                   }}
                 >
@@ -384,7 +384,7 @@ export function Thinking({
               {rows.map((row, i) => {
                 const delay = i < staggerUntil.current ? i * 120 : 0;
                 const enter = {
-                  animation: `mrd-fade-up 320ms cubic-bezier(0.23,1,0.32,1) ${delay}ms both`,
+                  animation: `mrd-fade-up 320ms var(--mrd-ease) ${delay}ms both`,
                 };
                 const rowClass =
                   "flex min-h-7 w-full items-center gap-2 rounded-mrd-chip px-1.5 py-0.5 text-left";

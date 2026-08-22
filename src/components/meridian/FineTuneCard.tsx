@@ -385,7 +385,7 @@ export function FineTuneCard({
                 backgroundImage:
                   "linear-gradient(90deg, var(--mrd-agent-dim) 35%, var(--mrd-agent) 50%, var(--mrd-agent-dim) 65%)",
                 backgroundSize: "200% 100%",
-                animation: "mrd-shimmer 1.4s linear infinite",
+                animation: "mrd-shimmer var(--mrd-d-alive) linear infinite",
               }}
             >
               {agentLabel}

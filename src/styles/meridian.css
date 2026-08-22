@@ -948,6 +948,40 @@
   --mrd-d-enter: 420ms; /* content arriving that a person did not ask for */
 
   /*
+   * ── HOW LONG ONE PASS OF "STILL GOING" TAKES ────────────────────────────
+   * Added 2026-08-22. The three tokens above are all ONE-SHOT: a control
+   * acknowledges, a thing moves, content lands. Not one of them names a PERIOD,
+   * and this product's premise is that a machine keeps working while somebody
+   * watches, so the motion it needs most is the one the scale had no word for.
+   *
+   * IT DID NOT EARN THIS ON A SECOND CALLER, IT EARNED IT ON A FIFTH. Counted
+   * 2026-08-22, the literal `mrd-shimmer 1.4s linear infinite`, character for
+   * character, in `LoadingState`, `AgentPulse`, `Thinking`, `FineTuneCard` and
+   * `SelectionActions`. Five files agreeing on a number by copying it is not
+   * agreement, it is five chances to disagree later, and this file already
+   * records what that costs: "one idea, four literals, and they drift the first
+   * time anybody changes one."
+   *
+   * WHAT IT NAMES, EXACTLY, because over-claiming here would be worse than no
+   * token. This is the period of the highlight that travels through a LABEL to
+   * say the work behind it has not stopped. It is not "the speed of the system's
+   * repeating motion" in general: the MARKS beside those labels run at 650ms,
+   * 900ms, 1.1s, 1.6s and 2s, each argued at its own call site, and that spread
+   * is a finding this pass records rather than a thing this token resolves. See
+   * `docs/design/premium-pass-2026-08.md`.
+   *
+   * WHY THE VALUE DOES NOT MOVE. 1400ms is what all five already ship, so this
+   * changes no pixel today. Naming a number is the cheapest moment to name it,
+   * and it is the only moment at which changing it later is one edit.
+   *
+   * GROUND-INVARIANT, like every other duration here. See the paper block's own
+   * note: "Type, space, radius and motion never change with the ground; a layout
+   * that shifts on a theme toggle is a bug." No `--mrd-d-*` is restated under
+   * `[data-theme="light"]` and this one must not be either.
+   */
+  --mrd-d-alive: 1400ms;
+
+  /*
    * ── THE ASYMMETRY, AND WHY `--mrd-d-enter` IS STILL 420ms ───────────────
    *
    * The finding this retune came from says: things should appear instantly and
@@ -1605,6 +1639,85 @@
   [style*="mrd-spin"] {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
+  }
+
+  /*
+   * ── AND THE MARK HAS TO SURVIVE THE STOP, WHICH IT DID NOT ──────────────
+   * Added 2026-08-22, after measuring the rule above instead of reading it.
+   *
+   * The rule stops the animation by running it once for a millisecond. None of
+   * these keyframes declares a fill mode, so when that one iteration ends the
+   * element falls back to its OWN resting style. For six of the eight that is
+   * correct and was checked at the call site: `CrewChrome`, `Chat` twice,
+   * `run-parts` and `PromptBar` set no resting opacity at all, so they revert to
+   * 1 and their own comments say so ("the orchid stays", "the colour survives
+   * without it").
+   *
+   * THE TWO NOBODY CHECKED ARE THE TWO THAT MATTER. `LoadingState` and
+   * `AgentPulse` are the pixel lattice, and a lattice cell carries an inline
+   * `opacity: 0.15` -- the TROUGH of `mrd-pixel-on`, the value the cell sits at
+   * between flashes. Stopping the animation therefore parks all nine cells at
+   * the bottom of their own envelope. Measured in a live browser on 2026-08-22,
+   * composited through a canvas against every ground a lattice can sit on:
+   *
+   *                                   dark          paper
+   *   agent lattice, animating (peak) 7.02          5.62
+   *   agent lattice, reduced motion   1.19          1.24
+   *   ink lattice,   reduced motion   1.43          1.36
+   *
+   * 1.19 is the number this system's own contract records as the catastrophe it
+   * caught by rendering rather than by reasoning (DESIGN-SYSTEM.md, law 5). It
+   * is the same defect in the same direction: a value that is correct while
+   * something else is true, and invisible once it is not. Verified empirically
+   * rather than derived -- under `emulateMedia({ reducedMotion: 'reduce' })` all
+   * 128 lattice cells on the gallery report `getAnimations() == []` and
+   * `opacity: 0.15`.
+   *
+   * SO THE MARK STOPS AT ITS PEAK RATHER THAN AT ITS TROUGH. Nothing moves, and
+   * the fact that a machine is working is still on the screen, which is this
+   * block's own stated rule: decoration stops, information does not.
+   *
+   * IT MOVES ONLY THE LATTICE, and that is a property of the selector rather
+   * than a claim. The six callers with no resting opacity already compute to 1,
+   * so this is a no-op for them. `LoadingState`'s dead cells -- the ones that
+   * shape the chevron -- are excluded for free: their inline `animation` is the
+   * string `none`, so `[style*="mrd-pixel-on"]` never matches them and they keep
+   * their 0.07. The shape survives with the visibility.
+   */
+  [style*="mrd-pixel-on"] {
+    opacity: 1 !important;
+  }
+
+  /*
+   * ── AND THE WORD HAS TO STOP SOMEWHERE DELIBERATE ───────────────────────
+   * The same 1ms-then-revert mechanism, one component up. `mrd-shimmer` drives
+   * `background-position` across a label painted `text-transparent` with
+   * `bg-clip-text`, so when it reverts the word is not "unstyled", it is frozen
+   * at whatever slice of the gradient sits at position 0.
+   *
+   * WHERE THAT LANDS, AND WHY IT LOOKS LIKE A FAULT. The image is
+   * `linear-gradient(90deg, mute 35%, <bright> 50%, mute 65%)` at
+   * `background-size: 200%`. At position `0% 0` the window shows the image's
+   * left half, so the bright stop at 50% of the image lands at 100% of the
+   * WORD: "Reading the record" renders quiet for two thirds and then brightens
+   * into its last syllable. Seen on the gallery in both grounds on 2026-08-22.
+   * A highlight hard against one edge of a word reads as a rendering fault
+   * rather than as emphasis, which is the worst thing a resting state can do.
+   *
+   * `50% 0` centres the image instead: the window shows image fraction 25% to
+   * 75%, so all three stops are inside it and the highlight sits in the middle
+   * of the word, symmetrical. That is the animation's own midpoint held still,
+   * which is the same answer the lattice above gets, and it needs no component
+   * to know about it.
+   *
+   * WHY NOT FLATTEN IT TO ONE COLOUR, which was the first idea. Only the
+   * component knows which colour is honest: `LoadingState` shimmers toward INK
+   * because it reports a job, `AgentPulse` toward AZURE because it reports an
+   * agent, and one stylesheet rule cannot tell them apart. Holding the gradient
+   * still keeps each component's own meaning without asking this file to guess.
+   */
+  [style*="mrd-shimmer"] {
+    background-position: 50% 0 !important;
   }
 }
 

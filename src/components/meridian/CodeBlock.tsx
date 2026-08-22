@@ -441,7 +441,7 @@ export function CodeBlock({
               key={i}
               className="flex"
               style={{
-                animation: "mrd-fade-up 250ms cubic-bezier(0.23,1,0.32,1) both",
+                animation: "mrd-fade-up 250ms var(--mrd-ease) both",
               }}
             >
               {/*

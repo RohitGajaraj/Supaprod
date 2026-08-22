@@ -49,6 +49,16 @@ component, because one may already exist. Measured 2026-08-22: **47 components a
 the contract's stale "23 and 88", and **14 components render only in the gallery**. Take the inventory
 from the directory and the rules from the contract; the file carries the command to regenerate itself.
 
+[`premium-pass-2026-08.md`](./premium-pass-2026-08.md) is the 2026-08-22 premium pass, run under the
+founder's ruling that overrides "design pass is LAST". It answers one question — **when an agent is
+working, what does a person see** — and every number in it was taken from `meridian.css` or from a
+live browser. It carries the measured reduced-motion defect (the working mark parked at **1.19:1**,
+the same number law 5 records as the catastrophe), the motion drift table (nine arrival speeds inside
+the design system's own folder), the finding that `/pricing`, `/security` and `/product` render **zero**
+Meridian, and the four proposals this pass argued rather than built. Read it before the next design
+pass, because its main recommendation is that deep agent visibility is blocked on a transport and not
+on a design.
+
 [`MERIDIAN-REFERENCE-PARITY.md`](./MERIDIAN-REFERENCE-PARITY.md) is also trustworthy, and it is the
 one to read before touching a Meridian component. It maps all 19 components against the
 beautifui.dev source, records which gaps were real and what was done about each, and carries the

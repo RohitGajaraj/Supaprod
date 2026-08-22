@@ -266,7 +266,7 @@ export function AgentPulse({
              the word so it RE-ENTERS on each change rather than cross-fading in
              place, which is what makes it read as a new word and not a flicker. */
           animation:
-            "mrd-fade-up 260ms var(--mrd-ease) both, mrd-shimmer 1.4s linear infinite 260ms",
+            "mrd-fade-up 260ms var(--mrd-ease) both, mrd-shimmer var(--mrd-d-alive) linear infinite 260ms",
         }}
       >
         {word}
