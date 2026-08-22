@@ -21,6 +21,7 @@ An initiative here is a **bible**: the durable thinking behind one area. It is n
 | *What does each screen do, and what is missing on it?* | [`functionality-audit-2026-08.md`](./functionality-audit-2026-08.md) | 2026-08-14 |
 | *How does a forecast get graded once its horizon passes?* | [`forecast-resolution-plan.md`](./forecast-resolution-plan.md) — the grading half of FC-01 | 2026-08-12 |
 | *What should a station's surface look and behave like?* | [`../../design/agent-first-surface-brief.md`](../../design/agent-first-surface-brief.md), plus the six per-station audits in [`../../design/`](../../design/README.md) — **the audits are unverified agent output; treat every claim as a lead, not a finding** | 2026-08-19 |
+| *Should we copy an open-source agent harness into this product?* | [`deepseek-harness-read-2026-08.md`](./deepseek-harness-read-2026-08.md) — the DeepSeek Harness read in full. **Answer: no, and licensing is not why.** Also the four live defects of ours that the read found | 2026-08-22 |
 | *What was built, verified or rejected in the last build push?* | [`../../operations/ledger/kiro-log.md`](../../operations/ledger/kiro-log.md) and [`claude-log.md`](../../operations/ledger/claude-log.md). The queue itself, [`../../operations/kiro-queue.md`](../../operations/kiro-queue.md), is **empty and closed** — K-01 through K-97 are all resolved | 2026-08-21 |
 
 **The design contract is separate and it is not optional:**

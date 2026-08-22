@@ -24,7 +24,23 @@ for f in src/components/meridian/*.tsx; do
 done
 ```
 
-## The finding: 14 components are built and unreachable
+## The finding: 12 components are built and unreachable
+
+> **Updated 2026-08-22 evening: 14 → 12.** `RunTimeline` now has a real caller on
+> `/runs/$missionId` (a third segment beside List and Graph, fed from `mission_steps`
+> instants that were already arriving on every poll and being discarded), and
+> `AgentInbox` replaced three lanes on `/today` after being extended three times so
+> nothing was lost. Roughly 910 lines came off the unreachable total.
+>
+> **Four were deliberately left, each with its argument recorded in the commit:**
+> `RunMap` (the seven stations are already drawn on that route by the shell's run
+> strip, and its waive-with-reason control only exists in `editable` mode),
+> `DiffTable` (its subject is a proposed edit with an approval lifecycle; the only
+> diff in reach is a settled comparison), `Chat` (its own header says it is the Ask
+> pane's body), and `ToolStream` (the transport still cannot deliver a mission frame).
+> **A component left unmounted for a stated reason is finished work, not a gap.**
+
+
 
 A component whose **only** importer is `_authenticated.meridian.tsx` renders nowhere a user can go. The
 gallery feeds it fabricated sample data, so it looks finished and is not reached.
