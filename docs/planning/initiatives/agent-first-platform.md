@@ -816,6 +816,22 @@ Every extension below is justified against Meridian's own law: a token earns its
 
 ### 7.1 Two corrections to Meridian itself, measured against the reference class
 
+> **SUPERSEDED 2026-08-22. Do not act on this section. All three of its claims were
+> investigated after it was written, and two were falsified by measurement.**
+>
+> | Claim below | State |
+> | --- | --- |
+> | Motion is ~2x slower than the reference | **Half fixed, half refused with a counted argument.** `--mrd-d-move` is already **140ms**, not the 220ms quoted. `--mrd-d-enter` deliberately stays at 420ms: all eight of its callers were counted on 2026-08-20 and **not one is a reveal** -- they are arrivals, content appearing that nobody asked for. Taking it to zero would not speed them up, it would delete them, and this system's own reduced-motion rule says that if stopping it removes a fact it is not decoration. |
+> | Body weight should be 450, not 400 | **FALSIFIED, twice, on two days, by two readers.** `getComputedStyle(document.body)` on the reference returns `font-weight: 400`. 400 is not one notch lighter than the reference, it IS the reference. The real defect underneath the complaint was that the type scale in use was 14px and nothing else, so nothing declared its rank -- flat, not thin -- and adding 50 to every weight would have masked it. Fixed instead by the thirteen-stop ladder. |
+> | Loading policy: no loader for 1000ms | **Already shipped.** `BrandWait` no longer appears at 150ms with a 300ms hold. |
+>
+> The argument and both measurements live in `src/styles/meridian.css` beside the tokens
+> themselves, which is why this was caught. That file's own note reads: *"This note exists so
+> the 450 claim cannot come back a third time. If it does, the reply is a measurement, not an
+> argument."* This session was the third time. **Take Meridian's numbers from
+> `src/styles/meridian.css`, never from a document about it.**
+
+
 Meridian's own standing rule is that beautifui.dev is the floor and the mechanics get ported from source. These two were never ported because they are not visible in a component, only in a token file.
 
 **Motion is roughly twice as slow as the premium reference, and the asymmetry is inverted.** Meridian ships `--mrd-d-press: 120ms`, `--mrd-d-move: 220ms`, `--mrd-d-enter: 420ms`. Linear's shipped scale, read from its bundle, is `0s / 0.15s / 0.1s / 0.25s / 0.35s` — the entire scale sits **below** Material's 200-500ms band, and the governing choice is **enter 0s, exit 0.15s**.
