@@ -790,7 +790,9 @@ export const Route = createFileRoute("/api/mcp")({
               // value when it is not, rather than being dropped.
               const writeData =
                 writeResult.idempotent_replay && writeResult.success
-                  ? writeResult.data && typeof writeResult.data === "object" && !Array.isArray(writeResult.data)
+                  ? writeResult.data &&
+                    typeof writeResult.data === "object" &&
+                    !Array.isArray(writeResult.data)
                     ? { ...(writeResult.data as Record<string, unknown>), idempotent_replay: true }
                     : { result: writeResult.data, idempotent_replay: true }
                   : writeResult.data;

@@ -3621,3 +3621,92 @@ lucky track.
 | POST with an invalid token | `401 invalid ingest token` (auth is checked before the body, so a bad token never reaches the validator) |
 | POST an observation already on the record | `created: 0, restated: 1` |
 | POST a structural prompt injection (forged `</user><system>` turn asking for API keys and blanket gate approval) | `created: 0, quarantined: 1`, and **zero rows stored** — verified by query, not by the response |
+
+---
+
+# 2026-08-23 ~02:20 IST — session close: four lanes, and two things I got wrong
+
+Appended, not replacing. Everything above still stands.
+
+## Migrations: ALL APPLIED, and the ledger does not know it
+
+**Nothing is pending.** Seven migrations exist newer than the ledger's newest row, and every one
+was verified applied by checking its EFFECT against the live schema rather than by trusting a file:
+
+| Migration | Verified live |
+| --- | --- |
+| `20260822120000` promotion bar | `workspaces.cold_start_promotion_enabled` exists |
+| `20260822160000` spend ceiling | `protect_credit_cap_ceiling()` + `trg_protect_credit_cap_ceiling` |
+| `20260822190000` approval expiry | `agent_approvals.expiry_default` + `agent_approvals_pending_expiry_idx` |
+| `20260822210000` decision edge | comment-only on `learnings.decision_id` |
+| `20260822230000` restatement | `signals.restated_count`, `last_restated_at`, `bump_signal_restatement()`, `signals_restatement_window_idx` |
+| `20260823000000` grant default | `admin_grant_credits(..., _reason text DEFAULT 'topup')` |
+| `20260823010000` seat cursor | `spine_tracks.seat_cursor` |
+
+**`supabase_migrations.schema_migrations` newest row is `20260820110000`.** It has no row for any of
+the seven, because they were applied as direct DDL through the Lovable MCP rather than by the
+migration runner, and only the runner writes the ledger.
+
+**I did NOT backfill the ledger, deliberately.** Inserting rows claiming a runner applied something
+it did not would make the ledger say a false thing, and it is the artifact a future reader trusts to
+decide what still needs running. The safer property is that **all seven are idempotent** -- every
+`CREATE INDEX`/`ADD COLUMN` carries `IF NOT EXISTS`, every function is `CREATE OR REPLACE`, and the
+one bare `create trigger` is preceded by `drop trigger if exists` -- so if the runner ever replays
+them, nothing breaks. Verify that claim before relying on it rather than inheriting it.
+
+## Two things I told the founder that were WRONG
+
+**1. "Nothing emits the station and tool SSE frames."** False, and stale by two days. All three are
+emitted from `chat.ts` (station :1261, tool :1628 and :1679, landing :1265) and have a live product
+reader in `use-ask-stream.ts` feeding `AskWorkLine.tsx`. `ask-sse.ts:34` says "ALL THREE ARE EMITTED
+NOW" in its own header. I had read the file's ARGUMENT about a second transport and missed its
+correction four lines later. **Read past the paragraph that agrees with you.**
+
+**2. "Starvation is slow rotation, not unbounded."** False, and this one mattered. I inferred it
+from one track's `spend_used_usd` moving 0 -> 0.005356. The real mechanism: `driveTrackOnce` stamps
+`driven_at` on EVERY path out including out-of-time, so an unserved track had its ordering key
+rewritten and `ORDER BY driven_at ASC` reproduced the previous order exactly. **18 consecutive ticks
+in identical order; one track at zero seats for 2h50m.** A symptom moving is not a mechanism working.
+
+## What shipped
+
+Four lanes, dispatched as a workflow (11 agents, 0 errors, ~50 min), each scoped then adversarially
+verified BEFORE building. That stage paid for itself: it refuted five claims in my own brief.
+
+- **`067c39689` MCP doors.** `ingest_signal` files through the sink -- verified by counting, direct
+  insert sites 11 -> 10 and `writeSignals` call sites 18 -> 19. Refusals-audited-as-success closed as
+  a CLASS via one pure `classifyWriteAudit` at the single audit call site. There were **seven**, not
+  the six the board recorded: `settle_forecast` returns `already_settled` where its sibling
+  `settle_outcome` throws, so throw-vs-return was the only thing separating the two audit rows. Two
+  more sites in `a2a.message.send` / `.stream` hard-coded success and were swept.
+- **`067c39689` approval gate.** Six tool names written into `agent_approvals` by applied seed
+  migrations and registered nowhere, so `toolRisk` failed closed and sent every one to a person for
+  nothing: `changelog.publish`, `code.commit`, `decisions.kill`, `experiments.create`,
+  `rollout.ramp`, `schema.migrate`. Guard test stops the set regrowing.
+- **`067c39689` run surface.** `ToolStream` mounted on `/runs/$missionId` reading real `tool_calls`
+  via the trace join. Guard test is mutation-proven (five mutations, each caught, each restored
+  byte-identical).
+- **`6d08f0838` spine rotation.** The sweep now checks the shared deadline before starting a track,
+  so a track it cannot serve is never started and never stamped, keeps its older `driven_at`, and
+  goes first next tick. `driven` counts what was driven; `skipped` sits beside it.
+- **`6711790b0`** `ingest_signal`'s published description gained the `restated` outcome it started
+  returning.
+
+## Still open, and none of it is hidden
+
+1. **`ToolStream` is UNPROVEN on a live run.** `getStudioSession` reads `agent_slug='builder'` only.
+   Newest builder run is 2026-08-21 04:50 and `tool_calls` was dead across it, so all ten newest
+   builder runs join to zero rows. Every existing mission renders the honest empty state. **The first
+   real proof is the next dispatched builder run** -- verify through checkpoint -> trace -> tool_calls
+   before claiming it shows anything. The agent declined to dispatch one because that spends real
+   money on production data; that was the right call.
+2. **A quarantine is still cached by the idempotency wrapper.** Fixing the audit did not fix this:
+   `runWriteTool` still returns `success: true` for a quarantine, so a caller retrying the same key
+   with corrected text gets the quarantine replayed forever. Making the callback throw changes what
+   the CALLER receives, not just the trail, which is a separate decision.
+3. **The tick still overruns.** The deadline is checked BEFORE a seat, so worst case is 45s plus the
+   longest seat that starts just inside the window -- measured 100.6s, against pg_net's 180s timeout.
+4. **Fairness cost the head track latency.** A three-seat station can now take up to five rotations.
+   Right trade, real cost, recorded rather than buried.
+5. **The promotion bar** remains the founder's call (board, *Needs the founder*).
+6. Six phantom tool names are baked into applied seed migrations and cannot be removed from them.
