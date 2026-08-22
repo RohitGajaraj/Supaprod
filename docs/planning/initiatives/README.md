@@ -17,6 +17,7 @@ An initiative here is a **bible**: the durable thinking behind one area. It is n
 | --- | --- | --- |
 | *How should the whole platform be reshaped around agents?* | [`agent-first-platform.md`](./agent-first-platform.md) — **the current platform direction** | 2026-08-19 |
 | *What is actually broken, half-wired or dark right now?* | [`audit-reports/agent-audit-2026-08.md`](./audit-reports/agent-audit-2026-08.md) — the findings register, ~60 agents, every claim carrying a query or a `file:line` | 2026-08-19 |
+| *What is the case AGAINST all of this?* | [`adversarial-review-2026-08.md`](./adversarial-review-2026-08.md) — a hostile read through six lenses (product, design, agent architecture, engineering, psychology, enterprise buyer), plus what each of the four big labs would delete. **Deliberately one-sided**, measured against production on 2026-08-22 | 2026-08-22 |
 | *What does each screen do, and what is missing on it?* | [`functionality-audit-2026-08.md`](./functionality-audit-2026-08.md) | 2026-08-14 |
 | *How does a forecast get graded once its horizon passes?* | [`forecast-resolution-plan.md`](./forecast-resolution-plan.md) — the grading half of FC-01 | 2026-08-12 |
 | *What should a station's surface look and behave like?* | [`../../design/agent-first-surface-brief.md`](../../design/agent-first-surface-brief.md), plus the six per-station audits in [`../../design/`](../../design/README.md) — **the audits are unverified agent output; treat every claim as a lead, not a finding** | 2026-08-19 |
