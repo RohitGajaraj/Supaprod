@@ -31,12 +31,19 @@
  *   The inline embedding, so a signal is clusterable on the tick it lands rather
  *   than at the next backfill sweep.
  *
- * THE REMAINING BYPASSES ARE NAMED RATHER THAN LEFT AS A SURPRISE. The public
- * ingest webhook and the MCP `ingest_signal` tool both screen their own input and
- * insert directly; the demo feed, onboarding, meetings, audio, support triage and
- * pulse each build their own row. Some are defensible and some are debt, but a
- * reader deciding whether to add the eighteenth door should know which they are
- * joining, not be told the door does not exist.
+ * THE REMAINING BYPASSES ARE NAMED RATHER THAN LEFT AS A SURPRISE. The MCP
+ * `ingest_signal` tool screens its own input and inserts directly; the demo feed,
+ * onboarding, meetings, audio, support triage and pulse each build their own row.
+ * Some are defensible and some are debt, but a reader deciding whether to add the
+ * eighteenth door should know which they are joining, not be told the door does
+ * not exist.
+ *
+ * The public ingest webhook was on that list until 2026-08-22, and came off it the
+ * first time anyone actually used it. The very first signal that endpoint accepted
+ * in production landed with `source_kind` NULL and `embedding` NULL, which is the
+ * bypass cost above, measured rather than predicted. It now routes through here.
+ * That leaves the MCP tool as the last untrusted-input door still screening for
+ * itself, and it is the obvious next one to move.
  *
  * Every source that DOES come through here (connectors, the Scout, MCP sources,
  * the webhook token path, manual capture, and the agent's own signals.log) hands
