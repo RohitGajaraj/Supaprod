@@ -43,6 +43,12 @@ document. It is verified research against official product documentation with so
 trustworthy, and it is where every future research pass gets appended so the same research is
 never paid for twice. Read it before researching any surface's reference class.
 
+[`MERIDIAN-INVENTORY.md`](./MERIDIAN-INVENTORY.md) answers the question neither the contract nor the
+parity map does: **what is built, and is anything rendering it.** Read it before building a Meridian
+component, because one may already exist. Measured 2026-08-22: **47 components and 111 tokens** against
+the contract's stale "23 and 88", and **14 components render only in the gallery**. Take the inventory
+from the directory and the rules from the contract; the file carries the command to regenerate itself.
+
 [`MERIDIAN-REFERENCE-PARITY.md`](./MERIDIAN-REFERENCE-PARITY.md) is also trustworthy, and it is the
 one to read before touching a Meridian component. It maps all 19 components against the
 beautifui.dev source, records which gaps were real and what was done about each, and carries the
