@@ -1034,7 +1034,7 @@ session. **Each primitive's target surface already does that job, in retired voc
 | Primitive | Its target surface already has | So the work is |
 | --- | --- | --- |
 | `RunTimeline` | `TraceHop` fills `Region title="What happened, in order"` on `/runs/$missionId` — and it is collapsible, carries inbound and outbound handoffs, and nests steps. RunTimeline is flatter | port `TraceHop`, or place RunTimeline somewhere it is not a lossy duplicate |
-| `ToolStream` | the run route's steps ledger. Its own header records the sibling component deleted 2026-08-21 for exactly this | **blocked first**: the `tool` SSE frame is emitted nowhere, and on the mission path the stream closes before the mission runs |
+| `ToolStream` | the run route's steps ledger. Its own header records the sibling component deleted 2026-08-21 for exactly this | **blocked on the MISSION path only**: the `tool` frame IS emitted -- from the research phase map at `chat.ts:1306` since 2026-08-20, and from the chat branch's workspace search since 2026-08-22, but on the mission path the stream closes before the mission runs, so no frame can arrive there |
 | `AgentInbox` | `/today` has `DecisionQueue`, `PushedInsights`, `FocusNext` | port, do not add |
 | `PlanGate` / `PlanCard` | `/plan` has `TrackStart` and the Now/Next/Later board | port, do not add |
 
@@ -1050,8 +1050,7 @@ Porting it puts the most important agent-watching surface on Meridian, gives `Ru
 moves the one validation criterion that has ever improved.
 
 **Two corrections to §1.3 while measuring this.** The `station` SSE frame **is** emitted, at
-`src/routes/api/chat.ts:974`, though only on the `@`-mention path. The `tool` frame is emitted nowhere,
-confirmed by grep across `src/routes/api/` and `src/lib/`. And the mission path enqueues `landing`, `meta`
+`src/routes/api/chat.ts:974`, though only on the `@`-mention path. **CORRECTED 2026-08-22:** the `tool` frame IS emitted -- from the research phase map at `chat.ts:1306` since 2026-08-20, and from the chat branch's workspace search since 2026-08-22. My grep searched for the literal `tool:` and missed the shorthand `send({ tool })`, which is how it is written. And the mission path enqueues `landing`, `meta`
 and `[DONE]` then **closes the stream before the mission runs**, so a tool frame can never arrive on it —
 "wiring it is a mount and not an adapter" is true of the component and false of the transport.
 

@@ -93,9 +93,15 @@ Worked example: `RunTimeline` was deliberately **not** swapped in for `TraceHop`
 collapsible and carries handoffs and nested steps it has no room for. `TraceHop` was ported instead.
 
 **3. `ToolStream` is blocked on a transport, not a surface.** Its header says wiring it is *"a mount and not
-an adapter"*, true of the component and false of the product: the `tool` SSE frame is **emitted nowhere**, and
-on the mission path `api/chat.ts` enqueues `landing`, `meta` and `[DONE]` and **closes the stream before the
-mission runs**. The `station` frame IS emitted, at `api/chat.ts:974`, on the `@`-mention path only.
+an adapter"*, true of the component and false of the product **on the mission path only**.
+**CORRECTED 2026-08-22, and the correction came from a lane I had briefed with the wrong claim:** the `tool`
+frame IS emitted, from the research phase map at `chat.ts:1306` since 2026-08-20 and from the chat branch's
+workspace search since 2026-08-22. My grep looked for the literal `tool:` and the code writes the shorthand
+`send({ tool })`. What remains true is narrower: on the mission path `api/chat.ts` enqueues `landing`, `meta`
+and `[DONE]` and **closes the stream before the mission runs**, so a frame for mission work can never arrive
+there. The transport that would carry it is the run route's existing poll, or a per-run SSE endpoint. The
+`station` frame is emitted on the `@`-mention path only, and widening it to the classifier's guess was
+deliberately refused: `routed.station` is a forecast, not a fact, and a committed guard keeps it off the wire.
 
 ## Open, and what each needs
 

@@ -50,11 +50,24 @@ law 1 forbids *"hiding information, dropping a state"* as an answer. Worked exam
 collapsible and carries handoffs and nested steps that `RunTimeline` has no room for. `TraceHop` was
 ported to Meridian tokens instead, and the run route's colour layer is now Meridian with nothing lost.
 
-**`ToolStream` is blocked on a transport, not a surface.** Its own header says wiring it is *"a mount and
-not an adapter"*, which is true of the component and false of the product: the `tool` SSE frame is emitted
-nowhere, and on the mission path `api/chat.ts` enqueues `landing`, `meta` and `[DONE]` and **closes the
-stream before the mission runs**, so the frame can never arrive on it. The `station` frame IS emitted, at
-`api/chat.ts:974`, on the `@`-mention path only.
+**`ToolStream` is blocked on a transport, not a surface — and only on one path.** Its own header says wiring
+it is *"a mount and not an adapter"*, which is true of the component and false of the product on the mission
+path.
+
+**Corrected 2026-08-22.** An earlier version of this file said the `tool` frame was emitted nowhere. It is
+emitted: from the research phase map at `chat.ts:1306` since 2026-08-20, and from the chat branch's workspace
+search since 2026-08-22. The grep behind the wrong claim looked for the literal `tool:` and the code writes
+the shorthand `send({ tool })`.
+
+What is still true is narrower, and it is what actually blocks this component: **a `tool` frame for MISSION
+work can never arrive on that stream.** `api/chat.ts` enqueues `landing`, `meta` and `[DONE]` and closes the
+controller before the mission runs, so by the time a tool name exists there is nothing to write to. The
+transport that would carry it is the run route's existing poll, or a per-run SSE endpoint — a second
+transport, not a missing line in this one.
+
+The `station` frame is emitted on the `@`-mention path only. Widening it to the classifier's guess was
+deliberately refused: `routed.station` is a forecast rather than a fact, nothing routes by it, and a
+committed guard keeps it off the wire.
 
 ## Genuinely load-bearing
 

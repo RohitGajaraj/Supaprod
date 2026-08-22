@@ -10,7 +10,9 @@
  *
  * `src/lib/ask-sse.ts` now parses three frames that carry the missing facts
  * (`station`, `tool`, `landing`) and `use-ask-stream.ts` accumulates them into
- * `work`. This is the surface that reads them. NOTHING EMITS THEM YET, so this
+ * `work`. This is the surface that reads them. AS OF 2026-08-20 AND 2026-08-22 BOTH ARE EMITTED -- `station` on the
+ * `@`-mention dispatch, `tool` from the research phases and the chat branch's
+ * workspace search. On a turn that dispatches nothing and searches nothing this
  * component renders nothing on every turn the product serves today; it costs
  * exactly one null check on an ordinary answer.
  *

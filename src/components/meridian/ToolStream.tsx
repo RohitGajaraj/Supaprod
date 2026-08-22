@@ -47,7 +47,12 @@ import {
  * Nothing in this system showed work ARRIVING. That is the largest hole in "you
  * can see agents working", which is the product's own stated core, and the frame
  * that feeds it already exists: `ask-sse.ts` declares `{ kind: "tool", tool:
- * string }`, the client parses it, and nothing emits it yet. This component is
+ * string }`, the client parses it, and IT IS NOW EMITTED -- from the research
+ * phase map at `chat.ts:1306` since 2026-08-20, and from the chat branch's
+ * workspace search since 2026-08-22. What is still true is narrower and it is
+ * the part that blocks this component: a tool frame for MISSION work can never
+ * arrive on that stream, because the handler enqueues `landing`, `meta` and
+ * `[DONE]` and closes the controller before the mission runs. This component is
  * written against that frame's real shape, so wiring it is a mount and not an
  * adapter.
  *
