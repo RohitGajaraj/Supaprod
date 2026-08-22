@@ -1682,7 +1682,12 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
       // Stamped the way the checkpoint upsert above (:1044) and the approvals
       // insert below (:1496) already stamp it, from the same `workspaceId` in
       // the same scope.
-      await supabase.from("tool_calls").insert({
+      // STAMPING THE COLUMN FIXED THE CAUSE AND LEFT NO WAY TO KNOW IT WORKED.
+      // The whole defect above was a discarded error object, and the repair
+      // discarded the error object too, so a regression would go silent again in
+      // exactly the same way. Telemetry must never abort the run that produced
+      // it, so this logs rather than throws -- but it does not stay quiet.
+      const { error: telemetryError } = await supabase.from("tool_calls").insert({
         user_id: userId,
         workspace_id: workspaceId,
         agent_id: agent.id,
@@ -1693,6 +1698,11 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
         ok: true,
         latency_ms: latency,
       });
+      if (telemetryError) {
+        console.error(
+          `[loop] tool_calls write dropped for ${call.name}: ${telemetryError.message}`,
+        );
+      }
       steps.push({
         kind: "tool_call",
         name: call.name,
@@ -1716,7 +1726,10 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
       // `agent_run_checkpoints.state->'steps'`, because the table built to
       // answer "which tool failed and why" had discarded every answer it was
       // ever given. See the note on the success insert above.
-      await supabase.from("tool_calls").insert({
+      // Checked for the same reason as the success path, and it matters more
+      // here: this is the row someone reads when they are already debugging, so
+      // losing it silently costs twice.
+      const { error: telemetryError } = await supabase.from("tool_calls").insert({
         user_id: userId,
         workspace_id: workspaceId,
         agent_id: agent.id,
@@ -1727,6 +1740,11 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
         error: msg,
         latency_ms: Date.now() - t0,
       });
+      if (telemetryError) {
+        console.error(
+          `[loop] tool_calls failure row dropped for ${call.name}: ${telemetryError.message}`,
+        );
+      }
       steps.push({
         kind: "tool_call",
         name: call.name,
