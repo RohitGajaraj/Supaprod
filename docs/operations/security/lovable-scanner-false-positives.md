@@ -93,6 +93,35 @@ the row should be refused outright. Guessing a number and enforcing it would be 
 of the fix, once the numbers are chosen, is the same trigger pattern `protect_account_billing_columns`
 already uses.
 
+## The seven ignored findings, and the one whose paperwork is broken
+
+All seven carry a recorded ignore reason and all seven reasons are sound. Six need nothing. The two realtime
+ones need their tracking repaired, because **an accepted risk with a dead pointer is a forgotten risk.**
+
+**The ignore reason cites `docs/feature-backlog.md`. That file does not exist.** The real row is
+[`../../planning/archive/feature-backlog.md`](../../planning/archive/feature-backlog.md) line 1017, as
+`F-SEC-REALTIME-RLS`, still marked `☐ (deferred by operator)` — and it is in an **archive** directory, so
+nothing live owns it and it appears on no board.
+
+**It also disagrees with itself.** `planning/archive/build-log.md:1817` records the same F-ID as *closed*, by
+dropping `public.agent_runs` from the `supabase_realtime` publication. The backlog row still reads deferred.
+
+**Live state, measured 2026-08-22, which settles it:**
+
+| Check | Value |
+| --- | --- |
+| `realtime.messages` RLS enabled | **true** |
+| Policies on `realtime.messages` | **0** |
+| Tables in the `supabase_realtime` publication | **`agent_approvals`, and nothing else** |
+
+So the drop did happen and the risk is **narrower than the ignore reason describes** — one table broadcasts,
+not every table. It is not zero: `agent_approvals` is workspace-scoped, and a public channel subscription is
+not membership-checked. The reason's core argument still holds, that payloads carry ids and event types
+while the actual row reads go through RLS-protected REST.
+
+**What this needs is not a fix, it is an owner.** Either move `F-SEC-REALTIME-RLS` out of `archive/` onto the
+board, or correct the ignore reason to point at where it really lives and say the blast radius is one table.
+
 ## How to re-verify any of this in one query
 
 Impersonate the row's own owner and assert on the value:
