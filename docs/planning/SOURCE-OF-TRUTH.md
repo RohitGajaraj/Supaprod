@@ -38,6 +38,29 @@ is correctly not the track's fault, which is also why `MAX_STATION_ATTEMPTS` nev
 nothing ever called the track stuck. Fixed by `spine_tracks.seat_cursor`, written only on the
 out-of-time exit and cleared on every other one.
 
+**THE SPINE COULD NOT ROTATE, AND THE SEAT CURSOR DID NOT FIX THAT HALF.** Found 2026-08-23 by
+an investigation agent, and it refutes what this file implied earlier the same night. The seat
+cursor let an interrupted station RESUME; it did not give the tail track a turn to resume in.
+`driveTrackOnce` stamps `driven_at` on every path out, including the out-of-time path where it did
+nothing, so a track the sweep never served had its ordering key rewritten and
+`ORDER BY driven_at ASC` reproduced the previous tick's order exactly. Position was fixed by
+whatever order tracks first entered the batch. Measured: **eighteen consecutive ticks in identical
+order, one track at zero seats for two hours fifty minutes** with `spend_used_usd` 0 and `attempts`
+0. The route's own header claimed *"one busy track can never starve the rest"*, which was the one
+thing it could not do.
+
+**Fixed by an absence.** `track-tick` now checks the shared deadline before starting a track, so a
+track it cannot serve is never started and never stamped, keeps its older timestamp, and sorts
+first next tick. Frozen order becomes strict round robin with nothing tracking whose turn it is.
+`driven` now counts what was actually driven and `skipped` is reported beside it, because this
+field is quoted in this document as production evidence.
+
+**Two things this deliberately does NOT fix.** The tick still overruns -- the check is before a
+seat, so worst case is 45s plus the longest seat that starts just inside the window (measured
+100.6s, against pg_net's 180s timeout). And per-track latency gets WORSE for whichever track is
+currently winning: a 3-seat station can now take up to 5 rotations. That is the price of fairness
+and it is the right trade, but it is a real cost and not a free win.
+
 **The promotion bar was moved on ONE workspace and it is reversible in one statement.**
 `promotion_min_frequency = 4` on `0b792d52-82e2-43e2-adc5-8a26e5c800b4`; severity and confidence
 are untouched and are met on merit (5 against 4, 0.95 against 0.8). The cold-start ramp could not

@@ -155,6 +155,26 @@ export function isOverTrackBudget(spent: number, cap: number | null): boolean {
  * record what was produced, so the margin is for finishing the bookkeeping of
  * the seat that IS running, not for squeezing in one more.
  */
+/*
+ * IT BOUNDS THE SWEEP AS WELL AS THE SEATS, since 2026-08-23, and the second
+ * reader is the one that was missing.
+ *
+ * Everything above describes this deadline as a check BETWEEN SEATS inside one
+ * track. That is where it was checked, and it left the sweep itself unbounded:
+ * `track-tick` started every one of its five tracks whatever the clock said, and
+ * `driveTrackOnce` stamps `driven_at` on every path out including the one where
+ * it did nothing. So an unserved track had its ordering key rewritten, and the
+ * next tick's `ORDER BY driven_at ASC` reproduced the previous order exactly.
+ *
+ * Stamping a track the tick never served is what froze the rotation. Measured:
+ * eighteen consecutive ticks in the same order, one track at zero seats for two
+ * hours fifty minutes. The sweep now checks this same predicate before starting
+ * a track, so a track it cannot serve is left alone and sorts first next time.
+ *
+ * This is the file to open when someone asks why 45s does not bound a tick. It
+ * still does not: the check happens BEFORE a seat, so the worst case remains
+ * this deadline plus the longest single seat that starts just inside it.
+ */
 export const TICK_DEADLINE_MS = 45_000;
 
 /** Has this tick used the wall clock it was given? */

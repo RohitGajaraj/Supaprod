@@ -5,6 +5,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { withJobRun } from "@/lib/observability";
 import { driveTrackOnce, DRIVE_SELECT, type DriveRow } from "@/lib/spine/driver.server";
 import { notInList, sampleWorkspaceIds } from "@/lib/ticks/real-workspaces.server";
+// The sweep and the driver now stop on the SAME clock. Sharing the predicate
+// rather than re-deriving one is what keeps them from drifting apart.
+import { outOfTime } from "@/lib/spine/track-caps.server";
 
 /**
  * The heartbeat that makes the loop run when nobody is watching.
@@ -26,8 +29,18 @@ import { notInList, sampleWorkspaceIds } from "@/lib/ticks/real-workspaces.serve
  * anyone present, just visibly and interruptibly.
  *
  * LEAST RECENTLY DRIVEN FIRST (the partial index added by migration
- * 20260801150000, NULLS FIRST), so a newly started track begins promptly and
- * one busy track can never starve the rest.
+ * 20260801150000, NULLS FIRST), so a newly started track begins promptly.
+ *
+ * THE ORDERING IS RIGHT AND IT WAS NOT ENOUGH. This sentence used to end "and
+ * one busy track can never starve the rest", which was the one thing it could
+ * not do. `driveTrackOnce` stamps `driven_at` on every path out, including the
+ * out-of-time path where it did nothing, so an unserved track had its ordering
+ * key rewritten too and the next tick reproduced this tick's order exactly.
+ * Measured before the fix: eighteen consecutive ticks in identical order, and a
+ * track sat two hours fifty minutes at zero seats, zero spend, zero attempts.
+ * The sweep now stops at the shared deadline instead of starting a track it
+ * cannot serve, so an unreached track keeps its older timestamp and goes first
+ * next time. See the loop below.
  *
  * Bounded at 5 tracks. Tolerates the pre-migration window by returning ok and
  * doing nothing, the goal-tick precedent.
@@ -102,7 +115,47 @@ export const Route = createFileRoute("/api/public/hooks/track-tick")({
           // Sequential, not parallel. Each drive dispatches a real agent that
           // spends real money against a shared cap, and five concurrent loops
           // would race the cap check rather than respect it.
+          /*
+           * THE SWEEP STOPS AT THE SAME DEADLINE THE DRIVER CHECKS, and until
+           * 2026-08-23 it did not, which is what froze the rotation.
+           *
+           * `driveTrackOnce` stamps `driven_at` on EVERY path out of it,
+           * including the out-of-time one where it did no work at all. So a
+           * track the tick could not serve still had the ordering key rewritten,
+           * and `ORDER BY driven_at ASC` on the next tick reproduced this tick's
+           * order exactly. Position in the queue was set by whatever order the
+           * tracks first entered the batch and nothing could ever change it.
+           *
+           * Measured in production: eighteen consecutive ticks in the same
+           * order, one track holding zero seats for two hours fifty minutes with
+           * `spend_used_usd` 0 and `attempts` 0, and the order identical across
+           * two snapshots taken an hour apart. The header above claimed "one busy
+           * track can never starve the rest"; it was the one thing the sweep
+           * could not do.
+           *
+           * NOT STAMPING IS THE WHOLE FIX. An unreached track keeps its older
+           * `driven_at`, so it sorts to the head of the next tick and the frozen
+           * order becomes a strict round robin. Nothing needs to remember whose
+           * turn it is, because the timestamp already does.
+           *
+           * `break` rather than `continue`: the rows are ordered and every one
+           * after this is equally out of time, so continuing would pay each
+           * track's read prologue to reach the same conclusion.
+           */
+          // Counted, not derived from `outcomes.length`, because `outcomes` also
+          // carries the skip line below and a throw still counts as a track this
+          // tick looked at and stamped.
+          let driven = 0;
+          let skipped = 0;
           for (const row of rows) {
+            if (outOfTime(tickStartedAt, Date.now())) {
+              skipped = rows.length - driven;
+              outcomes.push(
+                `The loop ran long, so ${skipped} ${skipped === 1 ? "piece" : "pieces"} of work were not looked at this time. They go first next time.`,
+              );
+              break;
+            }
+            driven += 1;
             try {
               const outcome = await driveTrackOnce(client, row, tickStartedAt);
               outcomes.push(outcome.line);
@@ -115,7 +168,10 @@ export const Route = createFileRoute("/api/public/hooks/track-tick")({
             }
           }
 
-          return json({ ok: true, driven: rows.length, outcomes });
+          // `driven` was `rows.length`, which counted a track the sweep stamped
+          // and never served. SOURCE-OF-TRUTH quotes this field as production
+          // evidence, so it has to mean what it says.
+          return json({ ok: true, driven, skipped, outcomes });
         });
       },
     },
