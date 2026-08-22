@@ -482,10 +482,36 @@ const listThemes = def({
     limit: z.number().int().min(1).max(30).default(10),
   }),
   preview: (a) => `List themes (severity >= ${a.min_severity})`,
+  /**
+   * THE TABLE IS `themes`. THERE HAS NEVER BEEN A `signal_themes`.
+   *
+   * This read named a table that does not exist in any migration, so every call
+   * threw PostgREST's "Could not find the table 'public.signal_themes' in the
+   * schema cache" and the tool has never once returned a theme. It is a read, so
+   * nothing was corrupted and no test caught it — the failure is invisible until
+   * you read what the agent then SAID.
+   *
+   * That is the actual damage, and it is worse than a dead tool. An agent asks
+   * for themes, is told the table is missing, and reasons from the error to a
+   * conclusion about the CUSTOMER'S data. On 2026-08-22, in the first hour this
+   * loop ever ran on a real workspace, two runs reported to the user that
+   * "no themes exist" and that the cluster "cannot be evaluated because the
+   * 'signal_themes' table is missing due to insufficient signal ingestion".
+   * That workspace held ten themes, five of them since 2026-07-09. Our bug was
+   * reported to a customer as their empty pipeline.
+   *
+   * Columns move with the table. `themes` has no `member_count` and no
+   * `updated_at`; `frequency` IS the cluster's member count, so it is aliased
+   * rather than renamed to keep the shape this tool's description promises, and
+   * `last_signal_at` carries the recency `updated_at` was reaching for.
+   * Precedent for the column set: brain/derive-insights.server.ts:125.
+   */
   run: async (a, { supabase, userId, workspaceId }) => {
     let q = supabase
-      .from("signal_themes")
-      .select("id, title, summary, severity, confidence, member_count, updated_at")
+      .from("themes")
+      .select(
+        "id, title, summary, severity, confidence, member_count:frequency, last_signal_at, created_at",
+      )
       .eq("user_id", userId)
       .gte("severity", a.min_severity)
       .order("severity", { ascending: false })

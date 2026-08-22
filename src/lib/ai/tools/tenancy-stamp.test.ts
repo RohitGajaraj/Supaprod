@@ -65,6 +65,36 @@ const WORKSPACE_SCOPED_TABLES = new Set([
 
 const SOURCE = readFileSync(join(import.meta.dir, "registry.server.ts"), "utf8");
 
+/**
+ * EVERY FILE THAT WRITES DURING AN AGENT RUN, not just the tool registry.
+ *
+ * This guard already listed `tool_calls` in the set above, and still did not
+ * catch `tool_calls` losing its tenant stamp — because it read one file, and the
+ * two inserts into that table live in `loop.server.ts`, one directory up. The
+ * table was named, the rule was right, and the scan was pointed somewhere else.
+ *
+ * What it cost, measured 2026-08-22: both inserts omitted `workspace_id`, the
+ * NOT NULL default resolved NULL for a server-side run exactly as the header
+ * above predicts, and supabase-js returns errors rather than throwing them, so
+ * an unchecked insert made a discarded row and a written row the same
+ * expression. `tool_calls` therefore holds ZERO rows from any agent run ever.
+ * 94% of what it does hold is one bulk fixture insert into a sample workspace,
+ * carrying tool names — `ci.status`, `github.readFile`, `critic.review` — that
+ * have never existed in `TOOL_REGISTRY`. The table built to answer "which tool
+ * failed and why" could not answer it for the first real customer run, and the
+ * diagnosis had to be reconstructed from `agent_run_checkpoints.state`.
+ *
+ * The membership test is "does this run with no end-user JWT", which is what
+ * makes the NOT NULL default lethal rather than merely imprecise. Browser
+ * server-functions are deliberately NOT in this list: `auth.uid()` resolves for
+ * them, so the default bridges as intended and a miss there is an attribution
+ * question, not a dropped write.
+ */
+const AGENT_WRITE_SOURCES: ReadonlyArray<readonly [string, string]> = [
+  ["registry.server.ts", SOURCE],
+  ["loop.server.ts", readFileSync(join(import.meta.dir, "..", "loop.server.ts"), "utf8")],
+];
+
 /** One `.insert({ … })` call: the table it targets and the object literal body. */
 type InsertSite = { table: string; body: string; line: number };
 
@@ -118,12 +148,30 @@ describe("agent tool writes stamp the tenant", () => {
   });
 
   it("sets workspace_id on every insert into a workspace-scoped table", () => {
-    const missing = insertSites(SOURCE)
-      .filter((s) => WORKSPACE_SCOPED_TABLES.has(s.table))
-      .filter((s) => !/\bworkspace_id\s*:/.test(s.body))
-      .map((s) => `${s.table} (registry.server.ts:${s.line})`);
+    const missing = AGENT_WRITE_SOURCES.flatMap(([file, src]) =>
+      insertSites(src)
+        .filter((s) => WORKSPACE_SCOPED_TABLES.has(s.table))
+        .filter((s) => !/\bworkspace_id\s*:/.test(s.body))
+        .map((s) => `${s.table} (${file}:${s.line})`),
+    );
 
     expect(missing).toEqual([]);
+  });
+
+  it("scans the loop as well as the registry, so a named table cannot be missed again", () => {
+    // The scanner must actually reach `loop.server.ts` and find writes there.
+    // Without this, a bad path or a renamed file silently returns no sites and
+    // the assertion above passes by looking at nothing — which is precisely how
+    // `tool_calls` stayed broken while a test named it.
+    const loop = AGENT_WRITE_SOURCES.find(([f]) => f === "loop.server.ts");
+    expect(loop, "loop.server.ts is no longer scanned").toBeTruthy();
+    const sites = insertSites(loop![1]);
+    expect(sites.length).toBeGreaterThan(0);
+    const toolCalls = sites.filter((s) => s.table === "tool_calls");
+    // Both arms — the success insert and the failure insert. The failure arm is
+    // the one whose loss hurt most: it is where the error string lives.
+    expect(toolCalls.length).toBe(2);
+    for (const site of toolCalls) expect(site.body).toContain("workspace_id");
   });
 
   it("keeps the two tools that caused the 2026-08-03 outage stamped", () => {

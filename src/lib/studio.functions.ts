@@ -274,8 +274,7 @@ export const dispatchStudioSession = createServerFn({ method: "POST" })
       // THE APPROVAL GATE, AT THE SERVER, on the other dispatch path. Both paths
       // enforce one rule from one module, which is the same contract
       // `design-gate.ts` states for itself. Reasoning: ./build/spec-gate.
-      if (specGateBlocksDispatch({ status: prd.status }))
-        throw new Error(SPEC_GATE_BLOCK_MESSAGE);
+      if (specGateBlocksDispatch({ status: prd.status })) throw new Error(SPEC_GATE_BLOCK_MESSAGE);
       sourceTitle = prd.title;
       workspaceId = prd.workspace_id;
       sections.push(
@@ -2436,18 +2435,37 @@ export const refreshStudioCi = createServerFn({ method: "POST" })
     const prNumber = (csRow as { pr_number?: number | null } | null)?.pr_number;
     if (!prNumber) throw new Error("No PR on this session yet");
     const ciRead = TOOL_REGISTRY["github.ci.read"];
+    // Read once and reuse: the tool ctx and the trail row must agree on which
+    // tenant this refresh belongs to, and deriving it twice invites them to drift.
+    const changesetWorkspaceId =
+      (csRow as { workspace_id?: string | null } | null)?.workspace_id ?? null;
     const result = (await ciRead.run(
       { pr_number: prNumber },
       {
         supabase,
         userId,
         missionId: data.missionId,
-        workspaceId: (csRow as { workspace_id?: string | null }).workspace_id ?? null,
+        workspaceId: changesetWorkspaceId,
       },
     )) as { [k: string]: StudioJson };
     // Persist so getStudioSession's snapshot reflects manual refreshes too.
+    //
+    // Stamped explicitly rather than left to the column default. The default is
+    // `current_user_default_workspace()`, which answers "this person's default
+    // workspace" — not "the workspace this changeset is in". Those are the same
+    // value for a single-workspace account and different for anyone else, so the
+    // default files one tenant's CI trail under another tenant the moment a
+    // person works outside their default. The changeset already knows the right
+    // answer and it is two lines above.
+    //
+    // This path survived the tenancy retrofit only because it runs behind
+    // `requireSupabaseAuth`, so `auth.uid()` resolves and the default returns
+    // something. The agent loop has no end-user JWT, so the same omission there
+    // returned NULL against a NOT NULL column and silently discarded every row —
+    // see the note at ai/loop.server.ts:1596.
     await db.from("tool_calls").insert({
       user_id: userId,
+      workspace_id: changesetWorkspaceId,
       tool_name: "github.ci.read",
       args: { pr_number: prNumber },
       result,

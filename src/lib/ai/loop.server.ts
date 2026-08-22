@@ -1593,8 +1593,32 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
         () => def.run(parseRes.data, ctx) as Promise<unknown>,
       );
       const latency = Date.now() - t0;
+      // THE SAME TENANCY MISS AS signals.log, IN THE TABLE THAT WATCHES FOR IT.
+      //
+      // registry.server.ts:309-333 documents this bug class in full: the
+      // tenancy retrofit (20260530120200_tenancy_c_tighten_policies.sql) made
+      // workspace_id NOT NULL with a DEFAULT of
+      // `current_user_default_workspace()`, which resolves off `auth.uid()`. An
+      // agent runs server-side with no end-user JWT, so the default resolves
+      // NULL against a NOT NULL column and the insert dies 23502. The retrofit
+      // was swept through the product's write tools and this one was missed,
+      // because it is instrumentation and nobody reads instrumentation until
+      // they need it.
+      //
+      // Nothing surfaced it because the result is never checked — supabase-js
+      // returns errors, it does not throw them, so a discarded row and a
+      // written row are the same expression. Measured 2026-08-22: `tool_calls`
+      // holds ZERO rows from any server-side agent run, and the newest row in
+      // the whole table predates this investigation by four weeks. Every
+      // per-tool failure rate, latency and error string this product has ever
+      // quoted came from somewhere else or from nowhere.
+      //
+      // Stamped the way the checkpoint upsert above (:1044) and the approvals
+      // insert below (:1496) already stamp it, from the same `workspaceId` in
+      // the same scope.
       await supabase.from("tool_calls").insert({
         user_id: userId,
+        workspace_id: workspaceId,
         agent_id: agent.id,
         trace_id: traceId,
         tool_name: call.name,
@@ -1621,8 +1645,14 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
       });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
+      // Same stamp, and this is the half that cost the most: the FAILURE row.
+      // Diagnosing the 2026-08-22 cold start had to be done out of
+      // `agent_run_checkpoints.state->'steps'`, because the table built to
+      // answer "which tool failed and why" had discarded every answer it was
+      // ever given. See the note on the success insert above.
       await supabase.from("tool_calls").insert({
         user_id: userId,
+        workspace_id: workspaceId,
         agent_id: agent.id,
         trace_id: traceId,
         tool_name: call.name,
