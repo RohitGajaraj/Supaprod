@@ -136,6 +136,17 @@ Nothing below can be done autonomously. Each needs a decision, a secret, an acco
 
 ## Open findings
 
+- **EVERY GOVERNED WRITE TOOL ON THE MCP SURFACE AUDITS A REFUSAL AS A SUCCESS.** Found 2026-08-22 while closing the two doors. **This is a class, not a one-off:** six non-throwing quarantine returns — `mcp.functions.ts:725, 906, 976, 1027, 1128, 1171`.
+  - **The mechanism.** `screenIngestText` returns `"quarantine"`, the tool **returns normally** with `{status:"quarantined", id:null}`, `runWriteTool` (`routes/api/mcp.ts:401`) wraps any non-throw as `{success:true}` and never inspects `data.status`, and the audit writes `result:'success'` with `error_message` NULL. **The row is identical in every audited field to a real write.**
+  - **Confirmed in production.** The one `record_decision` call ever made, 2026-08-10 15:15:01, is `result='success'`, `error_message=null` — and `decisions` holds **0** rows with `source_kind='mcp'` and 0 rows created anywhere in that window. An RLS refusal would have thrown, which narrows it to the quarantine branch.
+  - **The sharper consequence:** `dispatchWriteTool`'s own header says *"a refusal THROWS inside the callback, nothing is stored."* A quarantine is the one refusal that does not throw, so **`withIdempotency` caches it**. A caller retrying with the same key gets the quarantine replayed as `success` forever.
+  - **Why it matters more here than it would elsewhere:** this product's claim rests on a trustworthy audit trail. One that cannot say whether the write happened is worse than one that says it failed.
+  - **The fix is code-only — no schema change.** `api_calls.result` has no CHECK constraint and no reader filters on it. Widen the union to `'quarantined'`, put the reason in `error_message`, and carry the tool's own returned status plus the written row id in `metadata`. Doing it at the one audit call site makes all six tools honest at once.
+
+- **`trust.server.ts:441` and `auto_advance_agent_arc` both pick an arbitrary decision per spec.** Found 2026-08-22. Both build `prd_id -> decision` as a plain map, so the last unordered row silently wins. Measured: **14 specs carry a decision and NOT ONE carries exactly one**, maximum 3. `resolveSettledDecision` (`outcome.functions.ts:486`) is the correct resolver and is exported. **Do not switch the readers to `learnings.decision_id` yet** — all 133 learnings are sample rows and real workspaces hold none, so a reader switched today goes blank.
+
+- **`learning.record` writes `learnings` without going through `applyOutcome`**, so it still records no `decision_id`. It is the autonomous route, where the track hop pays off most. One line: call the exported `resolveSettledDecision`.
+
 - **✅ CLOSED 2026-08-22 ~14:40. THE LOOP NOW RUNS ON REAL DATA, for the first time in the product's history.** The cold-start bar shipped, one real workspace was opted in, and the autonomous layer started. Measured, not inferred:
   - **3 `spine_tracks` rows on a non-sample workspace**, against zero ever before. The first, at 13:50, is the theme this was predicted to unlock: *"Slow Tier-1 Support Response for Off-Hours Users"*, frequency **3** — which clears a scaled bar of 3 and could never clear the shipped 8.
   - **13 agent runs on real workspaces between 14:00 and 14:40**, against **zero in the preceding seven days**. `discovery-scout` and `researcher`, the Discover crew, dispatched per track and running in parallel as the design says they should. 10 of the 13 carry a `track_id`.
