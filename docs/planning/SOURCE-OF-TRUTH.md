@@ -136,6 +136,16 @@ Nothing below can be done autonomously. Each needs a decision, a secret, an acco
 
 ## Open findings
 
+- **`completed_with_failures` IS ANTI-CORRELATED WITH PRODUCING ANYTHING, so criterion 9 is measuring the wrong thing.** Measured 2026-08-22 on the first real runs and confirmed at scale.
+  - Of the 8 real runs that finished `completed_with_failures`, **7 filed an artifact**. Of the 5 that finished `completed`, **none filed anything** — they were pure reads.
+  - Not a 13-run artifact: across **508 runs since 2026-08-08**, `completed_with_failures` filed something **75.1%** of the time against **54.2%** for `completed`.
+  - The cause is that `anyToolStepFailed(steps)` decides the word (`loop.server.ts` ~:804). It measures tool-call hygiene, not production, and it is the word a customer reads. **Criterion 9's target of ">70% clean" would be satisfied by runs that do less.**
+  - This needs a taxonomy decision rather than a patch: what a run's status should describe, and whether "produced an artifact" belongs in it.
+
+- **The single largest failure cause platform-wide is the model guessing argument names.** `signals.log` is sent `text` / `tag` / `source_kind` where the schema wants `content` / `tags` / `source` — 6 steps across 3 of the 13 real runs, and 109 steps across 88 demo runs. It guesses because `describeToolsForPrompt` (`registry.server.ts:5085`) is deliberately "no schemas": the model gets names and prose. The native-schema path exists and is env-gated off (`AGENT_NATIVE_TOOLCALLING`, blank in `.env.example`). **Three fixes with very different blast radii** — flip the flag, render arg schemas into the prompt, or accept aliases in the schema — and one of them is an env change on a loop that started carrying real customer data on 2026-08-22. **Founder call.**
+
+- **31 further sites omit `workspace_id` on a workspace-scoped table.** Reproducible list. Most run under a user JWT where `current_user_default_workspace()` bridges correctly, so triaging which are genuine no-JWT paths is its own job. Three were fixed 2026-08-22 (`loop.server.ts` x2, `studio.functions.ts`). Separately `ai_events.workspace_id` is nullable with **52,021 NULL rows** — an attribution gap rather than a dropped write.
+
 - **EVERY GOVERNED WRITE TOOL ON THE MCP SURFACE AUDITS A REFUSAL AS A SUCCESS.** Found 2026-08-22 while closing the two doors. **This is a class, not a one-off:** six non-throwing quarantine returns — `mcp.functions.ts:725, 906, 976, 1027, 1128, 1171`.
   - **The mechanism.** `screenIngestText` returns `"quarantine"`, the tool **returns normally** with `{status:"quarantined", id:null}`, `runWriteTool` (`routes/api/mcp.ts:401`) wraps any non-throw as `{success:true}` and never inspects `data.status`, and the audit writes `result:'success'` with `error_message` NULL. **The row is identical in every audited field to a real write.**
   - **Confirmed in production.** The one `record_decision` call ever made, 2026-08-10 15:15:01, is `result='success'`, `error_message=null` — and `decisions` holds **0** rows with `source_kind='mcp'` and 0 rows created anywhere in that window. An RLS refusal would have thrown, which narrows it to the quarantine branch.
