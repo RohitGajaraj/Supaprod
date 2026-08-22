@@ -989,6 +989,27 @@ Behavioural, measured in production, not in tests. This repo has shipped nine fe
 
 > ---
 >
+> **THE WHOLE TABLE HAS A COMMON DEFECT, found by the third instance on 2026-08-22.**
+> **Almost every criterion here is measured platform-wide, and platform-wide is mostly the two demo tenants.**
+> Three separate lanes hit this independently in one day:
+>
+> | Criterion | Reads as | Actually |
+> | --- | --- | --- |
+> | 5, decisions carrying a forecast | 146 of 290 | **0 of 131** in real workspaces; all 146 are Helio Labs and Sample workspace, backdated to February |
+> | 6, forecasts resolved | 91 | **0** in real workspaces |
+> | 1, pending approvals | 38 | **0** on a real workspace. All 38 are sample, and 28 of them sat outside the sweep's own select |
+> | 9, agent runs clean | 39% | 821 of 2094 platform-wide, but only **30 of 80** runs in real workspaces |
+>
+> **Every criterion in this section needs `JOIN workspaces w ON ... WHERE w.is_sample IS NOT TRUE`, and the
+> table above should be read as unmeasured until it does.** A number computed across both populations is not a
+> weaker signal, it is a different measurement: the demo tenants were seeded to look like a working product,
+> so they will always report the product working.
+>
+> This is the same defect the repo already paid for once, recorded in
+> `planning/launch-audit/station-chain-audit.md`, which was **fully retracted** because every edge count in it
+> was seed data. The lesson written there — *"writer existence must be derived from the code, never from row
+> counts"* — has a sibling: **a row count must be derived from the population you actually mean.**
+
 > **RE-MEASURED 2026-08-22, and two readings in this table are traps. Split every criterion by demo versus real workspace or the number means nothing.**
 >
 > | # | Was | Now | Read |
