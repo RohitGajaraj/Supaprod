@@ -5,11 +5,16 @@ LANE 1 reads this and never writes it. See [`README.md`](./README.md).
 **Session opened:** 2026-08-23 · overnight run
 **MAIN LANE:** Claude Code (database, deploys, Mobbin, verification)
 **LANE 1:** opencode / OX Alpha (building)
-**Last updated:** 2026-08-23 04:32 IST
+**Last updated:** 2026-08-23 04:48 IST
 
 ## Where things stand
 
-**LANE 1 has not pushed yet, and at 04:26 that is entirely normal.** The run opened at 03:38
+**LANE 1 pushed its first unit at 04:40 and it is verified.** See
+[`U000`](./answers/U000-reading-notes-and-plan.md). Gates green on the merged tree, ratchet
+correctly untouched, no fabrication, and its `harbor@` Playwright census checked out as real
+observation. Three numbers in the plan are wrong and are corrected there.
+
+**Superseded, kept for the record:** *LANE 1 has not pushed yet, and at 04:26 that is entirely normal.* The run opened at 03:38
 and LANE 1's first order is a reading and planning pass across fourteen documents plus a
 Playwright walk of the surfaces, which does not commit anything until the plan is written.
 `requests/` and `units/` hold only their `.gitkeep`. Nothing here is escalation-worthy until
@@ -72,14 +77,33 @@ files. Read them like any other answer.
 | [`M04`](./answers/M04-the-ratchet-cannot-see-the-founders-pain-point.md) | **The most useful file here.** The ratchet is blind to Tailwind type sizes, so it cannot see the founder's number one pain point. 480 hard-coded sizes exist and 457 of them re-type a step that already exists. Corrects three numbers in the brief. **Read before WAVE 1.** |
 | [`M05`](./answers/M05-the-founders-test-run-against-the-live-site.md) | The founder's test measured on the deployed site. `/pricing` renders 107 pieces of text in 23 treatments; `/demo` manages 16 in 7 and is your reference. Carries the re-runnable measurement. |
 | [`M06`](./answers/M06-the-deploy-path-is-proven-and-here-is-how.md) | Deploy exercised end to end on a docs-only change. `pending` is not a deployment, the published host redirects, and every live check needs a negative control. **Read before filing your first `deploy` request.** |
+| [`U000`](./answers/U000-reading-notes-and-plan.md) | Verifies unit 000. Accepted. Corrects "14 steps" to **13**, "113 tokens" to **107**, and flags a route count with no query. |
 
 ## Open requests
 
 None.
 
+## FOR THE FOUNDER: a decision that is now unblocked
+
+`agent-first-reimagining-index.md` says the cold-start promotion flag "stays off everywhere
+**until the sink can tell a restatement from a signal**."
+
+**It can now.** The restatement fold shipped 2026-08-22 16:42Z; 654 of 656 duplicate signal rows
+predate it and the hours since show zero new ones (`M02`). The flag is still `false` on all 21
+workspaces. **The stated precondition is met and nothing has moved.** Re-enabling costs money
+and changes loop behaviour, so it waits for you. Neither lane will act on it.
+
 ## Refuted claims LANE 1 must act on
 
-None. LANE 1 has claimed nothing yet.
+Nothing refuted. Three numbers corrected in [`U000`](./answers/U000-reading-notes-and-plan.md),
+all inside `agent-first-reimagining-plan.md`, none requiring a rebuild:
+
+- **"each of the 14 steps"** -> there are **13**. `--mrd-t-body` was renamed to `--mrd-t-base` on
+  2026-08-21. Matters because Wave 2's contract gives every step a row.
+- **"Meridian's 113 tokens"** -> disk says **107**, or 167 with bridge aliases. The document says
+  88 and is stale. 113 matches nothing.
+- **"58 authenticated routes carry redirects or guards"** -> inside my range (49 narrow, 68 broad)
+  but carries no query, so it cannot be re-checked.
 
 **Two claims MAIN LANE refuted against itself**, recorded so neither gets raised again:
 
