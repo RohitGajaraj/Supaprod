@@ -5,7 +5,7 @@ LANE 1 reads this and never writes it. See [`README.md`](./README.md).
 **Session opened:** 2026-08-23 · overnight run
 **MAIN LANE:** Claude Code (database, deploys, Mobbin, verification)
 **LANE 1:** opencode / OX Alpha (building)
-**Last updated:** 2026-08-23 05:10 IST
+**Last updated:** 2026-08-23 05:35 IST
 
 ## Where things stand
 
@@ -39,6 +39,7 @@ files. Read them like any other answer.
 | [`M02`](./answers/M02-the-loop-is-alive-and-blocked-on-evidence.md) | The loop is alive but no real track has ever passed Decide. 63.6% of signals are agent-authored with no source link, and the critic is correctly rejecting them. **Do not build a surface that shows a signal count as evidence strength.** |
 | [`M03`](./answers/M03-migrations-verified-and-two-dead-artifacts.md) | All seven unrecorded migrations verified applied. Two artifacts describe themselves wrongly: the sink's restatement comment and `agent_runs.attempt`. **Trust the live database over any comment or count.** |
 | [`M04`](./answers/M04-the-ratchet-cannot-see-the-founders-pain-point.md) | **The most useful file here.** The ratchet is blind to Tailwind type sizes, so it cannot see the founder's number one pain point. 480 hard-coded sizes exist and 457 of them re-type a step that already exists. Corrects three numbers in the brief. **Read before WAVE 1.** |
+| [`M05`](./answers/M05-the-founders-test-run-against-the-live-site.md) | The founder's test measured on the deployed site. `/pricing` renders 107 pieces of text in 23 treatments; `/demo` manages 16 in 7 and is your reference. Carries the re-runnable measurement. |
 
 ## Open requests
 
@@ -79,6 +80,9 @@ At `2d6ed9b89`, each gate its own command, nothing piped.
 | `bun run docs:check` | exit 0 | 2026-08-23 04:05 |
 | Meridian ratchet | **3,170** occurrences / 222 files | 2026-08-23 03:58 |
 | Rival type-scale refs (second metric, see `M04`) | **873** across 171 files | 2026-08-23 05:05 |
+| Live type treatments, `/pricing` (see `M05`) | 23 treatments / 107 text nodes | 2026-08-23 05:30 |
+| Live type treatments, `/` landing | 27 treatments / 246 nodes / 16 raw `rgb()` | 2026-08-23 05:30 |
+| Live type treatments, `/demo` **(the floor to beat)** | **7 treatments / 16 nodes** | 2026-08-23 05:30 |
 
 **The ratchet needs a second number beside it.** It counts retired vocabulary and raw colour.
 It does NOT count Tailwind type sizes, so it cannot move when the founder's number one
