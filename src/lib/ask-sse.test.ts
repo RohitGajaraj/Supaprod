@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "bun:test";
 import { parseSseLine } from "./ask-sse";
+import { TOOL_DEFAULTS } from "@/lib/ai/tools/defaults";
+import { toolActionLabel } from "@/lib/agent-vocabulary";
 
 describe("ask-sse - parseSseLine", () => {
   it("returns null for a non-data line", () => {
@@ -273,6 +275,75 @@ describe("the emitter sends the parser's INPUT shape, not its output", () => {
     expect(table).toContain("workspace:");
     expect(table, "a tool name was put on a phase where no tool runs").not.toContain("plan:");
     expect(table, "a tool name was put on a phase where no tool runs").not.toContain("synthesize:");
+  });
+
+  /** The framing the route enqueues, so a line can be walked through the parser. */
+  const line = (obj: unknown) => `data: ${JSON.stringify(obj)}`;
+
+  it("puts the chat branch's own constant on the wire, and the parser reads it", () => {
+    /*
+     * NOT A DUPLICATE of the three-name loop above. That loop hard-codes the
+     * names; this reads the string the route will ACTUALLY write out of the
+     * route and walks that through the real parser, which is the only check
+     * that catches a typo in `WORKSPACE_SEARCH` before it ships as a frame the
+     * client silently drops.
+     *
+     * Two further assertions, because a tool frame has two ways to be useless.
+     * A name outside `TOOL_DEFAULTS` is not a registry name at all, which the
+     * frame's contract requires. A name `toolActionLabel` cannot translate
+     * returns null, and `AskWorkLine` then renders NOTHING rather than leak a
+     * raw id — indistinguishable, to a reader, from never having sent it.
+     */
+    const m = source.match(/const WORKSPACE_SEARCH = "([^"]+)"/);
+    expect(m, "WORKSPACE_SEARCH was renamed or removed").not.toBeNull();
+    const tool = (m as RegExpMatchArray)[1];
+    expect(parseSseLine(line({ tool }))).toEqual({ kind: "tool", tool });
+    expect(TOOL_DEFAULTS[tool], "not a registered tool").toBeDefined();
+    expect(toolActionLabel(tool), "the client could not name this to a person").toBeTruthy();
+  });
+
+  it("sends that frame BEFORE the retrieval, not after it", () => {
+    /*
+     * The frame says "an agent STARTED this tool". Moved below the await it
+     * becomes a report on a finished call, and a name that arrives only once the
+     * work is done is the poll this frame exists to replace.
+     */
+    const at = source.indexOf("F-CHAT-V2 lightweight chat path");
+    expect(at, "the chat branch moved or was renamed").toBeGreaterThan(-1);
+    const branch = source.slice(at, source.indexOf("workspaceChunks = chunks.length", at));
+    const emit = branch.indexOf("send({ tool: WORKSPACE_SEARCH })");
+    expect(emit, "the chat branch emits no tool frame for the search it runs").toBeGreaterThan(-1);
+    expect(emit).toBeLessThan(branch.indexOf("await retrieve("));
+  });
+
+  it("one name, shared with the research map, so a rename cannot half-land", () => {
+    // The research `workspace` phase and the chat branch call the same function
+    // with the same arguments. Two literals would let one drift off the registry.
+    const at = source.indexOf("const RESEARCH_PHASE_TOOL");
+    const table = source.slice(at, source.indexOf("};", at));
+    expect(table).toContain("workspace: WORKSPACE_SEARCH");
+  });
+
+  it("puts no tool frame on the mission stream, where nothing has called one yet", () => {
+    /*
+     * THE FRAME THAT CANNOT HONESTLY EXIST. The mission branch dispatches
+     * fire-and-forget and then writes delta, station, landing, meta, [DONE] and
+     * closes the controller. At every one of those lines the agent loop has
+     * called nothing, so any tool name between them is a forecast dressed as an
+     * observation. Asserted here because the tempting repair is exactly that, or
+     * a timer in the client, and this repo deleted a component for the second.
+     *
+     * Matched on the EMISSION, not the word: the branch's own comments name the
+     * frame while arguing against sending it, and a guard that could not tell
+     * those apart would forbid writing the argument down.
+     */
+    const at = source.indexOf("const dispatchedStation");
+    expect(at, "the mission branch moved").toBeGreaterThan(-1);
+    const missionBranch = source.slice(at, source.indexOf("[DONE]", at));
+    expect(
+      missionBranch,
+      "a tool name was put on the mission stream, where no tool has run yet",
+    ).not.toMatch(/JSON\.stringify\(\s*\{\s*tool/);
   });
 
   it("leaves the classifier's guessed station off the wire", () => {

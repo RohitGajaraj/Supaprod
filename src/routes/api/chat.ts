@@ -136,6 +136,21 @@ function getSseHeaders(origin: string | null) {
 }
 
 /**
+ * THE REGISTRY NAME FOR A WORKSPACE VECTOR SEARCH, held once because TWO
+ * branches of this handler run one.
+ *
+ * `registry.server.ts` defines `workspace.search` as, in full,
+ * `retrieve(supabase, userId, { query, k, mmr: true })`. The research
+ * pipeline's `workspace` phase reaches that through the registry; the
+ * lightweight chat branch below calls the same function directly with k=4. So
+ * this is not an analogy drawn between two operations that resemble each other,
+ * it is one operation with one name, and the name is held in one place so a
+ * registry rename cannot leave half this file pointing at a tool that no longer
+ * exists.
+ */
+const WORKSPACE_SEARCH = "workspace.search";
+
+/**
  * WHICH RESEARCH PHASE IS A TOOL CALL, and which is the model thinking.
  *
  * A map rather than a switch inside the emitter, so the answer is readable in one
@@ -151,7 +166,7 @@ function getSseHeaders(origin: string | null) {
 const RESEARCH_PHASE_TOOL: Partial<Record<ResearchStatus["phase"], string>> = {
   search: "web.search",
   read: "web.fetch",
-  workspace: "workspace.search",
+  workspace: WORKSPACE_SEARCH,
 };
 
 const GENERIC_FAILURE = "I hit a snag answering that. Try again or switch models.";
@@ -1305,6 +1320,40 @@ You must output a JSON object EXACTLY in this format:
             } else {
               // F-CHAT-V2 lightweight chat path: RAG k=4, no numbered citations.
               try {
+                /*
+                 * ── THE SECOND PLACE A TOOL REALLY RUNS INSIDE THIS STREAM ───
+                 *
+                 * The `tool` frame was wired above for the research pipeline and
+                 * this branch was left silent, which reads as "plain chat calls
+                 * nothing". It calls `retrieve`, which IS `workspace.search` in
+                 * its entirety (see `WORKSPACE_SEARCH`), so the frame is the same
+                 * fact here as it is there and the silence hid a real search from
+                 * a person watching for one. This is the whole of the widening:
+                 * every other await on this path — the audit-tag lookup, the
+                 * answer blocks, the decision precedent — is a query no registry
+                 * tool wraps, and naming one of them `memory.reflect` or the like
+                 * would put a name on the wire for work that tool did not do.
+                 *
+                 * SENT BEFORE THE CALL, not after. The frame's contract in
+                 * `ask-sse.ts` is "an agent STARTED this tool", and a reader is
+                 * watching to learn what is happening now; a frame sent after the
+                 * await reports a finished call, arriving exactly as late as the
+                 * poll the frame exists to replace. A retrieval that then fails is
+                 * caught below and degrades to a plain answer, and the frame was
+                 * still true when it was written — the same property the research
+                 * emitter has, where `runResearch` announces a phase as it enters
+                 * it.
+                 *
+                 * NO `status` FRAME GOES WITH IT, which is a decision and not an
+                 * omission. The research branch sends both because it has a phase
+                 * label to send; this branch has never sent a status, and
+                 * inventing one would put a research-progress line on every
+                 * ordinary chat turn to say something the tool name already says.
+                 * The two land in different accumulators, and `AskWorkLine` draws
+                 * a tool with no station and no status as an unlit rail with an
+                 * action on it, which is exactly what this turn is.
+                 */
+                send({ tool: WORKSPACE_SEARCH });
                 const chunks = await retrieve(supabase, userId, {
                   query: body.content,
                   k: 4,

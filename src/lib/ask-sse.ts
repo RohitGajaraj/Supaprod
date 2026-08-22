@@ -32,10 +32,38 @@ export type SseEvent =
    * a matter of coverage. `api/chat.ts` sends `station` on the mention branch
    * only, off the station of the agent a mention actually resolved to, and
    * stays silent on the orchestrator branch because there the entry station is
-   * a classifier's guess that nothing routes by. `tool` goes out per research
-   * phase that really calls one (`web.search`, `web.fetch`,
-   * `workspace.search`); the phases that call nothing send nothing. `landing`
-   * goes out once the mission row exists.
+   * a classifier's guess that nothing routes by. `tool` goes out wherever a
+   * tool really runs within the life of the stream: once per research phase
+   * that calls one (`web.search`, `web.fetch`, `workspace.search`), and once on
+   * the lightweight chat branch, which calls `retrieve` — `workspace.search`
+   * itself — with no research pipeline around it. The phases that call nothing
+   * send nothing. `landing` goes out once the mission row exists.
+   *
+   * WHAT THIS PROTOCOL CANNOT CARRY, AND WHY THAT IS NOT A MISSING LINE.
+   *
+   * A `tool` frame for MISSION work can never arrive on this stream. The
+   * mission branch of `api/chat.ts` dispatches the run fire-and-forget through
+   * `keepAliveAfterResponse`, then writes delta, station, landing, meta and
+   * `[DONE]` and CLOSES the controller — all before the agent loop has called
+   * anything. There is no emitter to add, because by the time a tool name
+   * exists the stream it would travel on is shut. The frames above describe
+   * what THE REQUEST did, and a mission is by construction work that outlives
+   * the request.
+   *
+   * So the honest state of a dispatching turn is: one station (when a mention
+   * named the agent), one landing, and then nothing. Filling that silence from
+   * the client — a timer walking an index through step labels while the stream
+   * is closed — is theatre by this repo's own definition, and a component was
+   * deleted for exactly it.
+   *
+   * WHAT WOULD CARRY IT is a transport that outlives the request, and one
+   * already exists: `_authenticated.runs.$missionId.tsx` polls the run every 4s
+   * and its stage lineage every 8s, which is where mission tool names surface
+   * today. The `landing` frame is the bridge to it — it hands the reader to the
+   * run rather than pretending this stream can follow it. A per-run SSE
+   * endpoint would upgrade that poll to a live feed, but it is a SECOND
+   * transport with its own route and its own lifetime, not a line missing from
+   * this one.
    *
    * They were declared, parsed and accumulated for some hours before anything
    * sent one. That was survivable because they are additive and the consumer
