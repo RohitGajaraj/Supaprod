@@ -792,3 +792,31 @@ const SPECIALIST_STATION_NAME: Record<AgentStation, string> = AGENT_STATION_ORDE
   },
   {} as Record<AgentStation, string>,
 );
+
+/**
+ * Which crew seat a station should start at, given what the last tick saved.
+ *
+ * A station is up to three agent dispatches and the tick deadline they share
+ * belongs to the whole sweep, so a crew can be cut off part way through. Before
+ * this existed the next tick began that crew again at its first seat, paid for
+ * the seats it had already bought, and the track never moved: measured on
+ * 2026-08-22 as four tracks all holding `out-of-time` with `attempts` still 0
+ * and real money spent, across ten consecutive ticks running 46s to 107s
+ * against a 45s deadline.
+ *
+ * THE CLAMP IS THE POINT. A saved cursor is only meaningful against the crew it
+ * was saved from, and crews change between deploys. A cursor at or past the end
+ * of a shorter crew would skip the station's remaining work and let the track
+ * advance on strength of seats that never ran, which is a worse failure than
+ * repeating one: repeating costs money, skipping produces a station that claims
+ * to be done and is not. Anything out of range therefore restarts the crew.
+ *
+ * Nonsense in, first seat out. Null, undefined, negative and fractional values
+ * all resolve to zero, which is the behaviour that shipped before the column
+ * existed.
+ */
+export function resumeSeatFrom(saved: number | null | undefined, crewLength: number): number {
+  const n = Math.trunc(Number(saved ?? 0));
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  return n < crewLength ? n : 0;
+}

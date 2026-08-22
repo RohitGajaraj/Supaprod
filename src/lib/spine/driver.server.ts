@@ -37,6 +37,7 @@ import {
   decideDrive,
   holdLine,
   HOLD_LINE,
+  resumeSeatFrom,
   newestSpecId,
   stationCrew,
   stationGoal,
@@ -132,6 +133,17 @@ type DriveRow = {
    * workspace as it stands" rather than as "nothing has arrived".
    */
   driven_at: string | null;
+  /**
+   * Which crew seat the current station still owes, when the tick deadline cut
+   * the crew short.
+   *
+   * Zero on every ordinary track. It is set only by the `out-of-time` exit and
+   * cleared by every other one, so a non-zero value means precisely "this
+   * station was interrupted mid-crew and the seats before this index are already
+   * paid for". Absent or null reads as zero, which is the behaviour that shipped
+   * before the column existed.
+   */
+  seat_cursor?: number | null;
 };
 
 /** Is everything switched off for this workspace? Checked first, always. */
@@ -1164,6 +1176,8 @@ export async function driveTrackOnce(
   let spent = Number(row.spend_used_usd ?? 0);
   let overBudget = false;
   let ranLong = false;
+  /** The seat the clock stopped us before reaching, so the next tick starts there. */
+  let ranLongAtSeat = 0;
   /** What the crew filed, accumulated seat by seat as each one runs. */
   const made: Attachment[] = [];
   try {
@@ -1189,7 +1203,25 @@ export async function driveTrackOnce(
     const missionId =
       station === "build" ? await missionForTrack(supabase, row, decision.agentSlug) : null;
 
-    for (const seat of crew) {
+    /*
+     * WHERE THIS CREW STARTS, which until 2026-08-22 was always the first seat.
+     *
+     * The deadline this loop checks belongs to the TICK, shared by every track
+     * the sweep drives, and a station is up to three agent dispatches. So a
+     * station that does not fit in the window left to it paid for its first seat,
+     * broke on the clock, and then began again at that same seat on the next
+     * tick, forever. Measured: four tracks, every one holding `out-of-time` with
+     * `attempts` still 0 and real dollars on the clock, while ten consecutive
+     * ticks ran 46s to 107s against a 45s deadline.
+     *
+     * Clamped rather than trusted. A crew that got shorter between deploys would
+     * otherwise leave a cursor past its own end and skip the station's work
+     * entirely, which is the one outcome worse than repeating it, so an
+     * out-of-range cursor restarts the crew.
+     */
+    const startSeat = resumeSeatFrom(row.seat_cursor, crew.length);
+    for (let seatIndex = startSeat; seatIndex < crew.length; seatIndex++) {
+      const seat = crew[seatIndex];
       // THE CEILING WHERE THE AUTONOMY IS. Checked before each seat rather than
       // once per tick, because a crew is two or three dispatches and a budget
       // checked only at the top would be overrun by the rest of the crew before
@@ -1206,6 +1238,9 @@ export async function driveTrackOnce(
       // track exactly where it is for the next tick to pick up.
       if (outOfTime(tickStartedAtMs, Date.now())) {
         ranLong = true;
+        // Checked BEFORE this seat runs, so this index is the seat still owed
+        // rather than the last one paid for. Resuming here repeats nothing.
+        ranLongAtSeat = seatIndex;
         break;
       }
 
@@ -1313,9 +1348,16 @@ export async function driveTrackOnce(
   // A tick that spent money and then held at a gate, stalled, or ran out of
   // budget has still spent it, and a counter that only advances on the happy
   // path is a budget that resets itself every time work gets interesting.
+  //
+  // THE SEAT CURSOR RIDES THE SAME WRITE, so it can never disagree with the
+  // money. Set only when the clock cut the crew short, and cleared to zero on
+  // every other way out of this function. A crew stopped by a human gate, a
+  // budget ceiling, a failure, or simply finishing is NOT a crew part way
+  // through its seats, and resuming one of those would skip work rather than
+  // repeat it, which is the worse of the two mistakes.
   await supabase
     .from("spine_tracks" as never)
-    .update({ spend_used_usd: spent } as never)
+    .update({ spend_used_usd: spent, seat_cursor: ranLong ? ranLongAtSeat : 0 } as never)
     .eq("id", row.id);
 
   // Out of TIME, ours rather than the station's, so it is reported before the
@@ -1615,6 +1657,11 @@ export const DRIVE_SELECT =
   // The budget columns. A DriveRow missing these reads them as null, which
   // resolves to "spent nothing" and silently removes the ceiling, so they
   // belong in the shared constant rather than in whichever caller remembers.
-  "spend_used_usd,spend_cap_usd";
+  "spend_used_usd,spend_cap_usd," +
+  // Where the crew got to when the tick deadline cut it short. Missing, it reads
+  // as zero and the station restarts its crew, which is the defect this column
+  // exists to end, so it belongs in the shared constant for the same reason the
+  // budget columns do.
+  "seat_cursor";
 
 export type { DriveRow };
