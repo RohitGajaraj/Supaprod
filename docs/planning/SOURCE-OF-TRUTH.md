@@ -14,6 +14,39 @@ If you are starting a session: read this, then [`../operations/session-handoff.m
 
 ## Now
 
+**THE LOOP RAN ON REAL EXTERNAL INPUT FOR THE FIRST TIME, 2026-08-22.** The public ingest
+webhook had never been used, so a token was minted and ten measured findings from the day's
+own audit were POSTed to `https://supaprod.ai/api/public/ingest-signals` against workspace
+`0b792d52-82e2-43e2-adc5-8a26e5c800b4`. They landed, embedded inline, and clustered into four
+themes at the 17:50 tick. The best is *Silent Failures via Swallowed Database and API Errors*,
+frequency 4, severity 5, confidence 0.95. **This is the first content in this product's history
+that came from outside its own crew.**
+
+**Opening that door found the door was broken.** The webhook built row literals and called
+`.insert()` directly rather than going through `writeSignals`, so the very first signal it ever
+accepted landed with `source_kind` NULL and `embedding` NULL, and with no restatement dedup on
+an unauthenticated push endpoint. It now routes through the sink. Proven live: ten posted twice
+returned `created: 10` then `created: 0, restated: 10`.
+
+**THE SPINE COULD NOT FINISH A STATION, AND NOTHING SAID SO.** `spine.track-tick` drives up to
+five tracks under one shared 45s deadline (`TICK_DEADLINE_MS`) and a station is a crew of up to
+three dispatches, but the crew loop restarted at its first seat every tick. So a station that
+did not fit paid for a seat, broke on the clock, and began that same seat again next tick,
+forever. Ten consecutive ticks ran 46s to 107s against the 45s deadline; all four tracks held
+`out-of-time` with `attempts` still 0 and real money spent. `attempts` stays 0 because our clock
+is correctly not the track's fault, which is also why `MAX_STATION_ATTEMPTS` never tripped and
+nothing ever called the track stuck. Fixed by `spine_tracks.seat_cursor`, written only on the
+out-of-time exit and cleared on every other one.
+
+**The promotion bar was moved on ONE workspace and it is reversible in one statement.**
+`promotion_min_frequency = 4` on `0b792d52-82e2-43e2-adc5-8a26e5c800b4`; severity and confidence
+are untouched and are met on merit (5 against 4, 0.95 against 0.8). The cold-start ramp could not
+do this: at 37 signals `ceil(8 x 37 / 40)` is 8, so `COLD_START_MATURE_AT` retires the relief long
+before a real corpus can reach frequency 8. **That calibration is the open question** and it is a
+spend decision, so it is in *Needs the founder* rather than changed here. Reverse with
+`UPDATE workspaces SET promotion_min_frequency = NULL WHERE id = '0b792d52-82e2-43e2-adc5-8a26e5c800b4';`
+
+
 **THE PRODUCT FILM SHIPPED 2026-08-12 and went into the YC application.** A 2:22 film — teaser + system demo, Arthur narration, hang-drum score — founder-approved after ~40 review rounds. Masters, sources, and the how-to-change-it manual: [`videos/supaprod-film/README.md`](../../videos/supaprod-film/README.md). The YC upload file is `renders/supaprod-product-film-2026.mp4` (1080). The 4K master is on disk only (GitHub's 100MB limit); it regenerates from source in ~15 min. **WEBSITE EMBED SHIPPED 2026-08-12, reversing the same-day deferral (founder, asked for directly).** Three surfaces off one component (`src/components/landing/FilmPlayer.tsx`): a landing section between `ThreeLayers` and `LoopWalkthrough`, the top of `/demo`, and a shareable `/film` with `og:type: video.other`. **The site serves NEITHER master:** Cloudflare Workers caps a static asset at 25 MiB and Lovable deploys onto Workers, so 93MB is 3.7x over and 4K's 192MB is 7.7x over; `public/film/` carries re-encodes at 21.9MB (1080, CRF 23) and 9.0MB (720), plus a poster and 43 generated caption cues. **Two things this fixed on the way past:** the hero's tertiary link read *"Watch a real run"* and pointed at `/demo`, which is live seeded DATA where nothing moves — a promise the destination could never keep; that link is now removed entirely (founder: it read as an orphaned third door) and the film sits in the nav instead. The player carries an in-frame share control (native sheet, clipboard fallback) pointing at the canonical `supaprod.ai/film`. Regeneration commands and the one seam that can drift: [`videos/supaprod-film/README.md`](../../videos/supaprod-film/README.md#the-web-renditions-what-the-site-actually-serves).
 
 **WEBSITE REDESIGN WAS ATTEMPTED AND REJECTED 2026-08-12 (~22:50 IST). STOP-WORK STANDS: no website redesign activity until the founder reopens it.** A from-scratch enterprise site was built on `site/v3-enterprise` at `/next` and rejected on sight — *"absolute crap… it looks like generated output."* The live landing page is untouched and canonical. **DO NOT MERGE `site/v3-enterprise` INTO `main`:** it uses "operating system" in its hero (on the Never list for the landing page), makes the seven-station diagram the front door (banned — it is the visual signature of SAFe, which this buyer is ripping out), and was pushed with **two failing tests** (`no-fabricated-agent-steps` — a timer advancing an index through step labels, i.e. theatre by the repo's own definition; and `reserved-workspace-slugs` — the `/next` slug unreserved, the identical defect fixed for `/film` four hours earlier). The branch is a record, not a candidate. Full post-mortem, plus a P0–P5 audit of the LIVE site (**no mobile nav at all**; nine text styles under WCAG AA): [`../design/archive/website-v3-enterprise-2026-08.md`](../design/archive/website-v3-enterprise-2026-08.md). **The durable output is [`../research/claims-audit.md`](../research/claims-audit.md) — 143 claims tested, 43 refuted, including live overclaims on production. Read it before writing any outward copy.**
@@ -128,6 +161,7 @@ Nothing below can be done autonomously. Each needs a decision, a secret, an acco
 | **`RESEND_API_KEY`** on a founder-owned transactional email account | The out-of-app reach channel is built and env-gated; it does nothing without this. |
 | **Figma OAuth registration** | Blocks design-system import (`DSN-05`). |
 | **`FIRECRAWL_API_KEY`** | Not blocking, but it arms the scout and researcher ticks so discovery runs on live data instead of seeded data. |
+| **The promotion bar, now that a restatement counts once** | `DEFAULT_PROMOTION_BAR.minFrequency` is 8 and its own comment justifies that as *eight INDEPENDENT signals*. Until 2026-08-22 nothing made the count independent: thirteen restatements of two sentences cleared it and emptied a month of credit in eighty minutes. Dedup shipped that day, so frequency N now means N distinct observations, which is strictly stronger evidence than the number the 8 was chosen against. Measured against real data the bar is unreachable: across every real workspace the best theme ever recorded is frequency 6, and the best built from genuine external input is 4 at severity 5 and confidence 0.95. The cold-start ramp cannot bridge it either, because `COLD_START_MATURE_AT` is 40 signals and `ceil(8 x 37 / 40)` is already 8, so relief is gone at 37 signals while themes top out at 4. Three ways out and they are not equivalent: re-derive the platform bar post-dedup, re-shape the ramp so maturity is measured by what a corpus has actually clustered rather than by how many rows it holds, or leave both and treat the per-workspace lever as the only door. **This is a spend decision, so it is not being made here.** One workspace is running at 4 as a bounded test, capped at $5 per track. |
 | **Delete five merged branches**, if you want them gone | Agents cannot delete branches. The list and the two to keep are in [`../operations/session-handoff.md`](../operations/session-handoff.md). |
 
 **Verify before acting on any of these.** They are carried forward from a list last reconciled 2026-07-10, so some may already be done. Check Lovable or the code rather than trusting this table.
