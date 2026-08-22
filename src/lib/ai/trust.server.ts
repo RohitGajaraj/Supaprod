@@ -254,10 +254,125 @@ type EvalRow = {
   pii_risk: number | null;
   prompt_injection_risk: number | null;
 };
-type EventRow = { id: string; agent_id: string | null };
+type EventRow = { id: string; surface_ref: string | null };
 type AutonomyRow = { agent_id: string; arc: Arc };
 type LearningRow = { prd_id: string | null; verdict: string | null };
 type DecisionRow = { prd_id: string | null; decided_by_agent_slug: string | null };
+
+/**
+ * ── THE REPAIR ABOVE WAS REAL, AND FOR TWO DAYS IT WAS UNREACHABLE ────────────
+ *
+ * Everything the comment above says about composing seven dimensions is correct
+ * and is still what `evalScore` does. **It never ran.** The `ai_evals` half of
+ * the query was fixed on 2026-08-20; the query one step EARLIER was still asking
+ * `ai_events` for a column that has never existed on it:
+ *
+ *   .from("ai_events").select("id,agent_id").not("agent_id", "is", null)
+ *
+ *   select table_name from information_schema.columns where column_name='agent_id';
+ *   -- agent_approvals · agent_autonomy · agent_memory · agent_runs · tasks · tool_calls
+ *
+ * Six tables carry `agent_id`. `ai_events` is not one of them, and no migration
+ * ever added it. PostgREST answers 42703, `.data` comes back null, and `?? []`
+ * turns that into an empty event list -- so `eventIds` was empty, the `ai_evals`
+ * query was never even ISSUED, and `evals_total` stayed 0.
+ *
+ * **Which is bit-for-bit the frozen +0.10 the comment above declares fixed.**
+ * `shrink(0, 0)` is PRIOR, PRIOR is 0.5, the leg carries 0.2, and every agent
+ * kept the same free tenth of a trust score while the file explained at length
+ * why it no longer had one. A fix one layer up from the defect reads exactly
+ * like a fix, right up until you query the meter.
+ *
+ * **The failure was invisible because a broken read and an empty read return the
+ * same value.** A user whose events could not be queried and a user who has
+ * never run an agent both arrive here as `[]`. That is the same shape as the
+ * bug `eval-tick.ts` documents -- a failed insert filed as a lost race -- and it
+ * wants the same remedy: read the error, and say what it costs.
+ *
+ * ── ATTRIBUTION IS NOT MISSING, IT IS SPELLED DIFFERENTLY ─────────────────────
+ *
+ * The audit that found this proposed writing `agent_id` at the insert sites.
+ * **It does not need to be written, because it is already there.** The agent
+ * loop names the agent on every model call it makes (`loop.server.ts:1220`):
+ *
+ *   callModel(supabase, userId, { surface: "agent", surface_ref: agent.slug, ... })
+ *
+ * So the join is `ai_events.surface_ref = agents.slug`, on `surface = 'agent'`,
+ * and it resolves against live data:
+ *
+ *   select ev.surface_ref, count(*) evts, count(ea.id) evals
+ *     from ai_events ev
+ *     left join ai_evals ea on ea.event_id = ev.id and ea.status='complete'
+ *    where ev.surface='agent' group by 1 order by 2 desc;
+ *   -- discovery-scout 2856/200 · researcher 1815/164 · prd-writer 536/4 · ...
+ *
+ * **`surface` is pinned, not just implied by the slug matching.** Under
+ * `surface='agent'` the ref is not always a slug -- `reflect:discovery-scout`,
+ * `orchestrator:plan`, `mission_title` all appear -- and those are excluded for
+ * free by an exact slug match today. Pinning the surface anyway is what stops a
+ * ref minted by some other surface, which happens to equal an agent slug, from
+ * being counted as that agent's work later.
+ *
+ * ── THE QUERY IS INVERTED: EVALS FIRST, THEN THE EVENTS THEY NAME ─────────────
+ *
+ * Fetching events first cannot be made safe. PostgREST caps a response at 1000
+ * rows and the old call passed no `order`, so on any large account it would have
+ * read an ARBITRARY subset and scored agents on it:
+ *
+ *   select user_id, count(*) from ai_events where surface='agent' group by 1
+ *    order by 2 desc;  -- 1529 · 1437 · 1302 · 1242 · 1125 · 700 ...
+ *
+ * Five accounts are already over the cap. Evals are the bounded side -- only a
+ * row judged at or after the cutoff can count, and the largest account has 487
+ * of those -- so the eval query leads, and the events are looked up only for the
+ * ids it returns. That also drops the second latent URL bug in the old shape: an
+ * `in` list of a thousand uuids is a ~37KB query string, and PostgREST puts it
+ * in the URL. The lookup is chunked for the same reason.
+ *
+ * A cap is still a cap. `EVAL_FETCH_LIMIT` is explicit and ordered newest-first,
+ * so if an account ever exceeds it the score is computed on its most recent
+ * evidence rather than on whichever rows the database happened to hand back.
+ */
+const EVAL_FETCH_LIMIT = 1000;
+
+/** PostgREST sends `in` lists in the URL, so they are chunked to keep it short. */
+const EVENT_LOOKUP_CHUNK = 200;
+
+/**
+ * event id → agent slug, for the events an eval actually names.
+ *
+ * A chunk that errors is logged and skipped rather than thrown: the callers are
+ * read-only surfaces (the Crew roster, getCapabilities) and one of them has no
+ * catch, so a failed lookup must not blank the page. **The log states the
+ * consequence** -- a partial attribution biases the leg back toward PRIOR, which
+ * is the flattering direction and the whole reason this defect survived two
+ * sessions unnoticed.
+ */
+async function loadAgentSlugByEvent(
+  supabase: SupabaseClient,
+  eventIds: string[],
+): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  for (let i = 0; i < eventIds.length; i += EVENT_LOOKUP_CHUNK) {
+    const { data, error } = await supabase
+      .from("ai_events")
+      .select("id,surface_ref")
+      .eq("surface", "agent")
+      .in("id", eventIds.slice(i, i + EVENT_LOOKUP_CHUNK));
+    if (error) {
+      console.error(
+        `trust: agent attribution lookup failed (${error.message}). The eval leg will read as ` +
+          `no-evidence for some agents, which is NOT the same as a clean record - it inflates ` +
+          `their score toward PRIOR.`,
+      );
+      continue;
+    }
+    for (const e of (data ?? []) as EventRow[]) {
+      if (e.surface_ref) out.set(e.id, e.surface_ref);
+    }
+  }
+  return out;
+}
 
 /**
  * Compute trust for every agent owned by the user in a single round-trip.
@@ -267,15 +382,23 @@ export async function computeAllAgentTrust(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<AgentTrust[]> {
-  const [agentsRes, runsRes, apprRes, eventsRes, autoRes, learningsRes] = await Promise.all([
+  const [agentsRes, runsRes, apprRes, evalsRes, autoRes, learningsRes] = await Promise.all([
     supabase.from("agents").select("id,slug").eq("user_id", userId),
     supabase.from("agent_runs").select("agent_id,status").eq("user_id", userId),
     supabase.from("agent_approvals").select("agent_id,status").eq("user_id", userId),
+    // Bounded by the cutoff (nothing older can count) and by `complete` (a
+    // pending reserve or a failed judge has null dimensions and `evalScore`
+    // would drop it anyway). Newest first, so the cap truncates the oldest.
     supabase
-      .from("ai_events")
-      .select("id,agent_id")
+      .from("ai_evals")
+      .select(
+        "event_id,created_at,groundedness,relevance,coherence,hallucination_score,toxicity,pii_risk,prompt_injection_risk",
+      )
       .eq("user_id", userId)
-      .not("agent_id", "is", null),
+      .eq("status", "complete")
+      .gte("created_at", new Date(EVAL_CONTRACT_FIXED_AT).toISOString())
+      .order("created_at", { ascending: false })
+      .limit(EVAL_FETCH_LIMIT),
     supabase.from("agent_autonomy").select("agent_id,arc").eq("user_id", userId),
     // RF-06: recorded outcome quality, joined to agent attribution below.
     supabase
@@ -289,29 +412,35 @@ export async function computeAllAgentTrust(
   const agents = (agentsRes.data ?? []) as AgentRow[];
   const runs = (runsRes.data ?? []) as RunRow[];
   const apprs = (apprRes.data ?? []) as ApprovalRow[];
-  const events = (eventsRes.data ?? []) as EventRow[];
   const autonomy = new Map<string, Arc>(
     ((autoRes.data ?? []) as AutonomyRow[]).map((a) => [a.agent_id, a.arc]),
   );
   const learnings = (learningsRes.data ?? []) as LearningRow[];
 
-  // Fetch evals only for this user's events.
-  const eventIds = events.map((e) => e.id);
-  let evals: EvalRow[] = [];
-  if (eventIds.length > 0) {
-    const { data: evalRows } = await supabase
-      .from("ai_evals")
-      .select(
-        "event_id,created_at,groundedness,relevance,coherence,hallucination_score,toxicity,pii_risk,prompt_injection_risk",
-      )
-      .in("event_id", eventIds);
-    evals = (evalRows ?? []) as EvalRow[];
+  // The error is READ. A query that failed and a user who has never run an
+  // agent both produce `[]`, and telling them apart in the log is the only
+  // reason this leg's last outage was ever found.
+  if (evalsRes.error) {
+    console.error(
+      `trust: eval fetch failed (${evalsRes.error.message}). Every agent's eval leg will fall ` +
+        `back to PRIOR, which reads as a neutral 0.5 but is a free +0.10 on the score.`,
+    );
   }
-  const eventToAgent = new Map<string, string>(events.map((e) => [e.id, e.agent_id as string]));
+  const evals = (evalsRes.data ?? []) as EvalRow[];
+
+  // Attribution: `ai_events` has no `agent_id`; the agent is named by
+  // `surface_ref` on the `agent` surface. Looked up only for the events these
+  // evals actually cite, so the fetch is bounded by evals rather than by the
+  // user's whole model-call history.
+  const evalEventIds = [...new Set(evals.map((e) => e.event_id).filter(Boolean))];
+  const eventToSlug =
+    evalEventIds.length > 0
+      ? await loadAgentSlugByEvent(supabase, evalEventIds)
+      : new Map<string, string>();
 
   // RF-06: no FK exists between learnings and decisions (both key off prd_id
   // independently), so resolve agent attribution via a second query + JS join,
-  // same idiom the rest of this function already uses (eventToAgent above).
+  // same idiom the rest of this function already uses (eventToSlug above).
   const prdIds = [
     ...new Set(learnings.map((l) => l.prd_id).filter((id): id is string => Boolean(id))),
   ];
@@ -344,7 +473,12 @@ export async function computeAllAgentTrust(
     const approval_acceptance_rate = approvals_total > 0 ? approvals_approved / approvals_total : 0;
 
     const aEvalScores = evals
-      .filter((e) => eventToAgent.get(e.event_id) === a.id && judgedUnderCurrentContract(e.created_at))
+      .filter(
+        // The SQL already bounds the fetch to the cutoff; this is the CONTRACT
+        // guard, kept so a change to the query cannot quietly re-admit the 77
+        // seed rows the cutoff exists to exclude.
+        (e) => eventToSlug.get(e.event_id) === a.slug && judgedUnderCurrentContract(e.created_at),
+      )
       .map(evalScore)
       .filter((v): v is number => v !== null);
     const evals_total = aEvalScores.length;

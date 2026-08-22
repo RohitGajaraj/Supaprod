@@ -16,7 +16,12 @@
  */
 import { describe, expect, it } from "bun:test";
 
-import { evalScore, judgedUnderCurrentContract } from "./trust.server";
+import {
+  computeAllAgentTrust,
+  EVAL_CONTRACT_FIXED_AT,
+  evalScore,
+  judgedUnderCurrentContract,
+} from "./trust.server";
 
 /** A perfect row: everything good, nothing risky. */
 const PERFECT = {
@@ -178,5 +183,213 @@ describe("judgedUnderCurrentContract", () => {
     // it, and the safe reading is the one that does not feed the score.
     expect(judgedUnderCurrentContract(null)).toBe(false);
     expect(judgedUnderCurrentContract("not a date")).toBe(false);
+  });
+});
+
+/*
+ * ── THE LEG IS WIRED TO COLUMNS THAT EXIST, AND THAT IS WHAT THIS PINS ────────
+ *
+ * Everything above tests `evalScore` in isolation, and all of it passed for the
+ * two days the leg was dead. It was dead one layer up: `computeAllAgentTrust`
+ * asked `ai_events` for an `agent_id` column that has never existed on that
+ * table, PostgREST answered 42703, and `?? []` turned the failure into "this
+ * user has no events" -- so `evals_total` was 0 and every agent kept the free
+ * +0.10 that `shrink(0, 0)` hands back.
+ *
+ * **A fake that answers every select with rows cannot catch that.** So this one
+ * carries the REAL `ai_events` column list and returns 42703 for anything else,
+ * exactly as the database does. Reintroduce `agent_id` here and these tests go
+ * red the same way production went quiet.
+ */
+const AI_EVENTS_COLUMNS = new Set([
+  "id",
+  "user_id",
+  "trace_id",
+  "parent_event_id",
+  "surface",
+  "surface_ref",
+  "provider",
+  "via",
+  "model",
+  "prompt_tokens",
+  "completion_tokens",
+  "total_tokens",
+  "est_cost_usd",
+  "latency_ms",
+  "ttft_ms",
+  "status",
+  "error_code",
+  "error_message",
+  "fallback",
+  "cache_hit",
+  "request_hash",
+  "input_preview",
+  "output_preview",
+  "created_at",
+  "workspace_id",
+  "product_id",
+  "system_preview",
+  "cached_tokens",
+]);
+
+type Recorded = { table: string; columns: string; filters: Array<[string, unknown]> };
+
+const AGENTS = [
+  { id: "agent-researcher", slug: "researcher" },
+  { id: "agent-builder", slug: "builder" },
+];
+
+/**
+ * `surface_ref` is the agent slug on the `agent` surface. `evt-reflect` carries
+ * a ref that merely CONTAINS a slug (`reflect:researcher`), which is a real
+ * shape in production and must not be attributed to the researcher.
+ */
+const AI_EVENTS = [
+  { id: "evt-1", surface: "agent", surface_ref: "researcher" },
+  { id: "evt-2", surface: "agent", surface_ref: "researcher" },
+  { id: "evt-3", surface: "agent", surface_ref: "builder" },
+  { id: "evt-reflect", surface: "agent", surface_ref: "reflect:researcher" },
+  { id: "evt-chat", surface: "chat", surface_ref: "builder" },
+];
+
+const PERFECT_ROW = { ...PERFECT, created_at: "2026-08-21T00:00:00.000Z" };
+
+const AI_EVALS = [
+  { event_id: "evt-1", ...PERFECT_ROW }, // researcher: 1
+  { event_id: "evt-2", ...PERFECT_ROW, toxicity: 1 }, // researcher: 0
+  { event_id: "evt-3", ...PERFECT_ROW }, // builder: 1
+  { event_id: "evt-reflect", ...PERFECT_ROW }, // nobody
+  { event_id: "evt-chat", ...PERFECT_ROW }, // nobody: not the agent surface
+  // Pre-cutoff. The SQL `gte` is deliberately NOT applied by this fake, so the
+  // row reaches the JS guard and proves the guard still drops it.
+  { event_id: "evt-1", ...PERFECT, created_at: "2026-07-23T08:23:19.160Z" },
+];
+
+function makeSupabase(recorded: Recorded[]) {
+  function answer(rec: Recorded): { data: unknown; error: unknown } {
+    if (rec.table === "ai_events") {
+      const asked = [
+        ...rec.columns.split(",").map((c) => c.trim()),
+        ...rec.filters.map(([col]) => col),
+      ];
+      const bad = asked.find((c) => c && !AI_EVENTS_COLUMNS.has(c));
+      if (bad) {
+        return {
+          data: null,
+          error: { code: "42703", message: `column ai_events.${bad} does not exist` },
+        };
+      }
+      const surface = rec.filters.find(([c]) => c === "surface")?.[1];
+      const ids = rec.filters.find(([c]) => c === "id")?.[1] as string[] | undefined;
+      return {
+        data: AI_EVENTS.filter(
+          (e) => (!surface || e.surface === surface) && (!ids || ids.includes(e.id)),
+        ),
+        error: null,
+      };
+    }
+    if (rec.table === "ai_evals") return { data: AI_EVALS, error: null };
+    if (rec.table === "agents") return { data: AGENTS, error: null };
+    return { data: [], error: null };
+  }
+
+  const from = (table: string) => {
+    const rec: Recorded = { table, columns: "*", filters: [] };
+    recorded.push(rec);
+    const chain: Record<string, unknown> = {
+      select: (cols?: string) => {
+        rec.columns = cols ?? "*";
+        return chain;
+      },
+      eq: (col: string, val: unknown) => {
+        rec.filters.push([col, val]);
+        return chain;
+      },
+      gte: (col: string, val: unknown) => {
+        rec.filters.push([col, val]);
+        return chain;
+      },
+      in: (col: string, val: unknown) => {
+        rec.filters.push([col, val]);
+        return chain;
+      },
+      not: (col: string, ...rest: unknown[]) => {
+        rec.filters.push([col, rest]);
+        return chain;
+      },
+      order: () => chain,
+      limit: () => chain,
+      maybeSingle: () => chain,
+      then: (resolve: (v: unknown) => unknown, reject: (e: unknown) => unknown) =>
+        Promise.resolve(answer(rec)).then(resolve, reject),
+    };
+    return chain;
+  };
+  return { from } as unknown as Parameters<typeof computeAllAgentTrust>[0];
+}
+
+async function runTrust() {
+  const recorded: Recorded[] = [];
+  const trust = await computeAllAgentTrust(makeSupabase(recorded), "user-1");
+  return {
+    recorded,
+    byId: new Map(trust.map((t) => [t.agent_id, t])),
+  };
+}
+
+describe("computeAllAgentTrust: the eval leg reaches real data", () => {
+  it("never asks ai_events for a column it does not have", async () => {
+    const { recorded } = await runTrust();
+    const eventQueries = recorded.filter((r) => r.table === "ai_events");
+    expect(eventQueries.length).toBeGreaterThan(0);
+    for (const q of eventQueries) {
+      expect(q.columns).not.toContain("agent_id");
+      expect(q.filters.map(([c]) => c)).not.toContain("agent_id");
+    }
+  });
+
+  it("counts evals, so the leg is no longer a frozen PRIOR", async () => {
+    // The regression in one line: this was 0 for every agent, forever.
+    const { byId } = await runTrust();
+    expect(byId.get("agent-researcher")?.breakdown.evals_total).toBe(2);
+    expect(byId.get("agent-builder")?.breakdown.evals_total).toBe(1);
+  });
+
+  it("attributes an eval by surface_ref, the slug the agent loop writes", async () => {
+    const { byId } = await runTrust();
+    // researcher scored 1 and 0; builder scored 1. If attribution were by
+    // substring or by user alone, these two would be identical.
+    expect(byId.get("agent-researcher")?.breakdown.eval_mean_score).toBeCloseTo(0.5, 5);
+    expect(byId.get("agent-builder")?.breakdown.eval_mean_score).toBeCloseTo(1, 5);
+  });
+
+  it("does not credit an agent for a ref that merely contains its slug", async () => {
+    // `reflect:researcher` is a real production ref and is not the researcher's
+    // own work. Three evals name a researcher-ish event; only two are hers.
+    const { byId } = await runTrust();
+    expect(byId.get("agent-researcher")?.breakdown.evals_total).not.toBe(3);
+  });
+
+  it("ignores an eval on a non-agent surface", async () => {
+    // `evt-chat` has surface_ref 'builder' but surface 'chat'. Pinning the
+    // surface is what stops another surface's ref colliding with a slug.
+    const { byId } = await runTrust();
+    expect(byId.get("agent-builder")?.breakdown.evals_total).toBe(1);
+  });
+
+  it("bounds the eval fetch to complete rows at or after the cutoff", async () => {
+    const { recorded } = await runTrust();
+    const evalQuery = recorded.find((r) => r.table === "ai_evals");
+    const filters = new Map(evalQuery?.filters ?? []);
+    expect(filters.get("user_id")).toBe("user-1");
+    expect(filters.get("status")).toBe("complete");
+    expect(Date.parse(String(filters.get("created_at")))).toBe(EVAL_CONTRACT_FIXED_AT);
+  });
+
+  it("still drops a pre-cutoff row that reaches it, whatever the query did", async () => {
+    // The fake returns a 2026-07-23 seed row regardless of the `gte`. The JS
+    // guard is the contract, and it holds even when the query stops helping.
+    const { byId } = await runTrust();
+    expect(byId.get("agent-researcher")?.breakdown.evals_total).toBe(2);
   });
 });
