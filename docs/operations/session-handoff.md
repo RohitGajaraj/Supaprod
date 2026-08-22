@@ -1,118 +1,88 @@
-# SESSION 2026-08-22 evening · Claude · The loop has never run on real data, and the reason is one unset default
+# SESSION CLOSED 2026-08-22 ~21:00 IST · Claude · The loop runs on real data, and the design did not need reimagining
 
-**State:** `main`, 9 commits, all pushed, tree clean. Gates each run as its own command with its own exit
-code: `tsc` 0 · `bun test` 0 (**10,292 pass / 0 fail**) · `build` 0 · `docs:check` 0 · `design:ratchet` 0.
-CI is still dead (runner or billing block, not a test failure) so local gates remain the only real ones.
+**State:** `main`, tree clean, 0 ahead / 0 behind, **36 commits**. Gates on a quiescent tree, each its own
+command with its own exit code: `tsc` 0 · `bun test` 0 (**10,412 pass / 0 fail**) · `build` 0 · `docs:check` 0 ·
+`design:ratchet` 0.
 
-## Pick this up FIRST: publishing is BLOCKED, and it is blocking the one experiment that matters
+## The headline: the autonomous loop ran on real customer data for the first time
 
-**`deploy_project` is refused:** *"the latest security scan found 2 unresolved critical security findings.
-Fix or intentionally ignore the blocking findings in the project's Security view, then publish again."*
-The findings live in **Lovable's own scanner, not our database** — there is no `security`/`scan`/`finding`
-table in `public`, so an agent cannot read them. **This needs the founder to open the Lovable Security view.**
+| | Before today | Now |
+| --- | --- | --- |
+| Spine tracks on a **real** workspace | **0, ever** | **4**, and one has crossed into `decide` |
+| Agent runs on real workspaces | **0 in 7 days** | **16 today** |
+| Daily AI spend | **89% demo fixtures** | **$0.10 real vs $0.04 sample** |
 
-**Consequence, and it is the documented trap:** `deploy_project` ships **what Lovable holds, not what GitHub
-holds**. The deploy that DID succeed today ran at ~13:13, when Lovable still held `f68813221` (the TraceHop
-port). The cold-start commit `e3e4ea865` synced afterwards, and the re-deploy that would have shipped it was
-refused. **So the maturity-aware bar is committed, pushed, tested and NOT LIVE.** The 13:40 tick processed
-the target workspace and correctly did nothing, because it was running pre-change code. That is not a defect
-in the logic.
+**One number caused it.** Autonomous promotion needed a theme at frequency ≥8; real workspaces max out at 3,
+and `workspaces.promotion_min_frequency` was NULL on all 21. `coldStartBarFor` scales the frequency bar with
+the workspace's own corpus below 40 signals, floored at 3, never above the configured bar. **Gated per
+workspace and ON for exactly one** (`0b792d52-82e2-43e2-adc5-8a26e5c800b4`).
 
-Once publishing is unblocked: deploy, then read the experiment below. Nothing else needs doing to it.
+**The caveats, and they matter more than the headline.** Every signal written today carries `source: agent`
+— **the loop is feeding itself** through `signals.log`, not through a connector. Real workspaces hold **0
+scaffolds, 0 deployments, 0 learnings**, so Design, Ship and Learn have never run on a real tenant.
 
-## The experiment is armed and waiting on that deploy
+## Pick this up FIRST: an agent told a customer our bug was their empty pipeline
 
+`themes.list` queried `public.signal_themes`, **a table that has never existed**. Being a read, nothing
+corrupted and no test caught it. What made it serious is what the agents did with the error: they reasoned
+from our message to a claim about the customer's data and said it in output a person reads — *"no themes
+exist"*, and a cluster *"cannot be evaluated because the signal_themes table is missing due to insufficient
+signal ingestion."* **That workspace holds 12 themes.** Fixed and verified live.
 
-**`cold_start_promotion_enabled` is ON for exactly one real workspace** — `My workspace`,
-`0b792d52-82e2-43e2-adc5-8a26e5c800b4`, 7 signals. Its `last_auto_cluster_at` was pushed back three hours so
-`cluster-tick` picks it first. **Expected: the theme `5945ee55-9f33-4fba-ace9-ff7441d1ee0a` ("Slow Tier-1
-Support Response for Off-Hours Users", frequency 3, severity 4, confidence 1.00) becomes the first
-`spine_tracks` row a real workspace has ever had.** Check with:
+**It was only visible because the loop finally ran on real data.** Assume there are more of these, and that
+the next one also surfaces as a confident sentence to a user rather than as a red test.
 
-```sql
-SELECT count(*) FROM spine_tracks k JOIN workspaces w ON w.id=k.workspace_id WHERE w.is_sample IS NOT TRUE;
-```
+## Three numbers that were fiction, and are now not
 
-**If it is still 0 after two more ticks, the next thing to check is whether the deploy landed**, not the
-logic: the logic is unit-tested, source-guarded and mutation-tested. `cluster-tick` runs every 10 minutes and
-takes only **5 workspaces per run** ordered by `last_auto_cluster_at`, against 9 real ones, so a workspace
-comes up roughly every 20 minutes and missing a batch is normal rather than a fault.
+1. **`tool_calls` has discarded every agent row since the tenancy retrofit.** Both inserts omitted
+   `workspace_id`; the column is `NOT NULL DEFAULT current_user_default_workspace()`, which resolves off
+   `auth.uid()` — absent server-side. The error was returned and never checked. **0 rows from any agent run,
+   ever; 154 of its 283 rows name six tools that have never existed.** Any per-tool failure rate quoted from
+   it is fiction. Fixed at three writers; `tenancy-stamp.test.ts` widened, and it had listed `tool_calls` all
+   along while scanning one file a directory away.
+2. **The trust eval leg was fixed one layer above the defect and stayed dead.** It queried
+   `ai_events.agent_id`, a column that has never existed → 42703 → `?? []` → "no events" → the eval query
+   never issued. 20% of every agent's trust score sat frozen at the constant its own comment claimed repaired.
+3. **`completed_with_failures` is anti-correlated with producing anything.** 7 of 8 filed an artifact; all 5
+   "clean" runs filed nothing. Across 508 runs: **75.1% vs 54.2%**. **Criterion 9 rewards runs that do less.**
 
-**To turn it off:** set the column false. It is a per-workspace flag, off by default everywhere else.
+## The design did not need reimagining. It needed activating.
 
-## The finding the whole session turned on
+`agent-first-platform.md` (2026-08-19) already contained nine of the ten sections the goal asked for, and was
+**referenced from no entry point** — two sessions had paid to rediscover it. Routing fixed, plus a
+`initiatives/README.md` that answers "is my question already answered?", plus the session-boot hook, which
+was pointing every session at an archived file that does not exist.
 
-**Zero agent runs in 24 hours. The last agent run in the product's history is 2026-08-21 12:10, ten minutes
-before the AI-spend leak was recorded closed.** That fix excluded sample workspaces, and **no real workspace
-has ever had a `spine_tracks` row**, so the spine now has nothing at all to drive while `pg_cron` fires
-**7,497 times a day**.
-
-The cause is a single number. Autonomous promotion needs a theme at `frequency >= 8`. Across all nine real
-workspaces there are **27 themes, average frequency 1.26, maximum 3** — none can ever qualify. Sample
-workspaces reach 19 and clear it 17 times. The lever, `workspaces.promotion_min_frequency`, is **NULL on all
-21 workspaces**, so everyone runs the shipped 8.
-
-**Do not read §10 of `agent-first-platform.md` platform-wide.** All 146 decisions carrying a forecast and all
-91 resolutions sit in the two seeded demo tenants, backdated to February. **Across all six real workspaces it
-is 0 of 131.** A summary reading "50% forecast coverage" is reading demo rows. Split every criterion by demo
-versus real workspace or the number means nothing.
-
-## What shipped
-
-- **The discoverability fix the founder asked for.** `agent-first-platform.md`, a 986-line platform design
-  from 2026-08-19, was referenced in **none** of `SOURCE-OF-TRUTH.md`, `CLAUDE.md`, `AGENTS.md` or
-  `README.md`. Two sessions had paid to rediscover it. Now routed from all of them, plus a new
-  `docs/planning/initiatives/README.md` that answers *"is my question already answered?"*. **The session-boot
-  hook was pointing every session at `docs/strategy/v10-master-blueprint.md`, which does not exist** — it is
-  archived and the 2026-07-28 rebuild revoked every surface it specified. Repointed. Six live docs teaching
-  retired design systems were bannered; the worst called the doubly-retired Obsidian v3 contract *"the design
-  brief that loads by default on any design work."*
-- **The run route's colour layer is Meridian.** `MissionOrchestratorDetail.tsx`, the 1,752-line component
-  rendering `/runs/$missionId`, went from **86 retired-token occurrences to 10** and the ten left are the
-  `shell/primitives` buttons. Ratchet **3,326 → 3,250**. Verified live in Lovable both directions: `mrd-`
-  present AND retired tokens absent.
-- **The maturity-aware promotion bar**, gated per workspace and off by default, with the migration applied to
-  the live database before the code that reads it.
-- **`docs/design/MERIDIAN-INVENTORY.md`**, because the contract says 88 tokens and 23 components while the
-  directory holds **111 and 47**, and roughly 26 appeared in no document at all.
-
-## Three traps that will cost the next session time
-
-**1. `agent-first-platform.md` §7.1 is SUPERSEDED and I was the third attempt it warned about.** Its two
-"corrections to Meridian" are stale or falsified. `--mrd-d-move` is already 140ms, not 220. `--mrd-d-enter`
-deliberately stays 420ms because all eight callers were counted and **not one is a reveal** — taking it to
-zero deletes them rather than speeding them up. **Body weight 450 is falsified, twice, on two days, by two
-readers:** `getComputedStyle` on the reference returns **400**. `meridian.css` carries the note *"so the 450
-claim cannot come back a third time. If it does, the reply is a measurement, not an argument."* **Take
-Meridian's numbers from `src/styles/meridian.css`, never from a document about it.**
-
-**2. The gallery-only primitives are a PORT programme, not a MOUNT programme.** Fourteen components, roughly
-7,500 lines, render only in `_authenticated.meridian.tsx`. Each one's target surface already does that job in
-retired vocabulary, so a swap loses capability and **ratchet law 1 forbids dropping a state as an answer**.
-Worked example: `RunTimeline` was deliberately **not** swapped in for `TraceHop`, because `TraceHop` is
-collapsible and carries handoffs and nested steps it has no room for. `TraceHop` was ported instead.
-
-**3. `ToolStream` is blocked on a transport, not a surface.** Its header says wiring it is *"a mount and not
-an adapter"*, true of the component and false of the product **on the mission path only**.
-**CORRECTED 2026-08-22, and the correction came from a lane I had briefed with the wrong claim:** the `tool`
-frame IS emitted, from the research phase map at `chat.ts:1306` since 2026-08-20 and from the chat branch's
-workspace search since 2026-08-22. My grep looked for the literal `tool:` and the code writes the shorthand
-`send({ tool })`. What remains true is narrower: on the mission path `api/chat.ts` enqueues `landing`, `meta`
-and `[DONE]` and **closes the stream before the mission runs**, so a frame for mission work can never arrive
-there. The transport that would carry it is the run route's existing poll, or a per-run SSE endpoint. The
-`station` frame is emitted on the `@`-mention path only, and widening it to the classifier's guess was
-deliberately refused: `routed.station` is a forecast, not a fact, and a committed guard keeps it off the wire.
+Since it was written: the navigation collapse had **already shipped**, `stopRun` had **already shipped**, and
+**7 of its 9 "missing" Meridian primitives already existed** — mounted only in the gallery. So the remaining
+work is a **port programme, not a mount programme**: each primitive's target surface already does that job in
+retired vocabulary, and ratchet law 1 forbids a lossy swap.
 
 ## Open, and what each needs
 
 | Item | State | Needs |
 | --- | --- | --- |
-| **The cold-start experiment** | flag on, one workspace, awaiting a tick | the query above. This is the unlock for every other criterion |
-| **Meridian law 5, "look at it before you ship it"** | **NOT satisfied for the port** | a human. I cannot enter a password into a form, so no authenticated surface can be visually checked by me. `/runs/$missionId` needs the founder's eyes |
-| **`AskPane` port** | deliberately not started | its 44 occurrences are `--sp-*` **spacing and layout**, not just colour. Porting that blind, with no visual check, is how a regression ships |
-| **Founder ruling 2026-08-22** | recorded | the 2026-06-18 *"design pass is LAST, done ONCE"* ruling is **overridden by the founder directly**. Full authority given to reimagine and implement. It should be superseded in place in the board and the design contract, original text left standing |
+| **The loosest door onto `decisions` is now the person's** | agent doors require rationale + alternative + all three forecast parts; human `createDecision` still takes a bare title | close it, or rule that the human path is deliberately looser |
+| **Every governed write tool audits a refusal as success** | six non-throwing quarantine returns; `withIdempotency` caches it so a retry replays "success" forever | code-only, one audit call site, no schema change |
+| **`signals.log` arg-name guessing** | largest failure cause platform-wide; the prompt gives names and prose, no schemas | **founder call** — three fixes, very different blast radii, one is an env flag on a live loop |
+| **Guardrails is wrongly unreadable** | an agent cannot discover its spend cap, autonomy ceiling or kill switch; it learns the boundary by hitting it | a read tool |
+| **`/t/$slug`** | left standing deliberately | **founder call** — different feature, its writer half is authenticated, and deleting it is a one-way door on the ratchet |
+| **Meridian law 5** | **not satisfied** | a human. I cannot enter a password, so no authenticated surface was looked at |
+
+## Traps this session paid for
+
+**A gate run against a tree other lanes are writing produces false failures.** `docs-doctor` also had a real
+race — a fixed `/tmp` path truncated mid-read reported **394 phantom orphans**, then none, from an unchanged
+repo. Fixed with `mktemp` + trap and proved with three concurrent runs.
+
+**Staging by filename while lanes are mid-edit broke `main`.** One of my commits swept up a lane's staged
+deletion of an endpoint whose caller still posted to it. Land a lane's work whole, or not at all.
+
+**Three of my briefs to lanes were factually wrong and every lane caught it.** Brief the claim *and* say
+"verify this first" — the corrections were worth more than the tasks.
 
 ---
+
 
 # SESSION CLOSED 2026-08-22 ~16:40 IST · Claude · The command palette question is ANSWERED, BUILT and IN PRODUCTION
 
