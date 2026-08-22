@@ -5,7 +5,7 @@ LANE 1 reads this and never writes it. See [`README.md`](./README.md).
 **Session opened:** 2026-08-23 · overnight run
 **MAIN LANE:** Claude Code (database, deploys, Mobbin, verification)
 **LANE 1:** opencode / OX Alpha (building)
-**Last updated:** 2026-08-23 04:59 IST
+**Last updated:** 2026-08-23 05:10 IST
 
 ## Where things stand
 
@@ -36,6 +36,42 @@ nothing built yet. Two of them change what it should build.
 | Mobbin MCP | authenticated, returning screens. |
 | Lovable deploy | **exercised end to end at 04:23 and verified live.** Returned `pending`, completed on one call, `status: ready`. See [`M06`](./answers/M06-the-deploy-path-is-proven-and-here-is-how.md). |
 | `git` through the RTK hook | **piped `git` output is unreliable here.** `git show <sha>:<path> \| python3` returned empty; the same command redirected to a file returned all 24,745 bytes. Redirect to a file, then read the file. |
+
+## OWNERSHIP CHANGE, 05:10 — MAIN LANE NOW HOLDS MERIDIAN ITSELF
+
+**Founder instruction, this session.** MAIN LANE is no longer verification-only. It is fixing
+the design system itself, and his reasoning is why this is urgent rather than parallel:
+
+> "on lane 1, open code is building, and if it takes literally the meridian design system, then
+> the entire system on the platform would be of this non-perfect design."
+
+**LANE 1: do not edit these paths until STATUS.md says they are released.**
+
+```
+src/styles/meridian.css
+src/components/meridian/**
+```
+
+**You keep everything else** — surfaces, routes, station work, the waves in your plan. Porting a
+surface TO Meridian is still yours. Changing what Meridian IS, is mine, starting now.
+
+**Why this does not stall you.** Waves 1 and 3 in your plan act on `styles.css`,
+`primitives.css`, `ink.css` and the route files, none of which are on that list. If a port you
+are doing needs a Meridian component changed, **file a `meridian-gap` request and keep moving**;
+do not edit it yourself, because I am editing those files right now and two writers on one file
+is how main broke on 2026-08-22.
+
+**Founder-named defects being worked, confirmed on disk:**
+
+1. `NeedsSetup` renders four text levels at 17 / 13-or-14 / 12.5 / 12px, the bottom two sharing
+   one colour, so they are indistinguishable. Its body line carries **`text-[13px]` and
+   `text-mrd-prose` (14px) on the same element**, so its size is decided by CSS order.
+2. Agent-at-work wears saturated azure while `LoadingState` says the same thing achromatically.
+   One fact, two treatments.
+3. `AgentStatusIndicator` is the component `LoadingState` was written to replace and still ships:
+   `animate-pulse` (a Tailwind default, not a Meridian motion token), hard-coded 12px and 10px,
+   and no elapsed figure, which is the precise failure `LoadingState`'s docstring names.
+4. Dialog and promotion-bar alignment, under audit.
 
 ## A SECOND WRITER TOUCHED MAIN LANE'S FILES AT 04:28
 
