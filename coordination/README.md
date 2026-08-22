@@ -169,6 +169,48 @@ awake alongside you. It holds the things you cannot reach: the live Supabase dat
 Lovable deploy button, and the Mobbin MCP for design references. You two talk **only
 through git**. The protocol is `coordination/README.md`. Read it before your first commit.
 
+### YOUR TWO ORDERS, IN THIS ORDER. DO NOT INVERT THEM.
+
+**1. PLAN THE ENTIRE REIMAGINING. Then commit the plan.**
+
+Read the documentation below. Study every surface as it stands today — actually open them
+in Playwright, do not read the code and imagine them. Understand what Supaprod is for and
+where it is failing. **Then write the plan**, covering all ten of these, because this is
+what the founder asked for and it is the thing that makes the build coherent instead of 113
+disconnected redesigns:
+
+1. Current state and prior-work findings — what exists, what is incomplete, what failed and why
+2. Supaprod's agent-first product model
+3. The reimagined lifecycle and the entire platform, not only stations 01 to 07
+4. Dual user/agent journeys for every surface
+5. Station, signal, agent, backend and handoff architecture
+6. The headless / MCP / agent-to-agent model
+7. Meridian and Beautiful UI application, plus every extension you intend to make and why
+8. Product, UX, engineering and agent gaps
+9. Implementation sequence
+10. Validation and acceptance criteria
+
+**Where the plan goes:** `docs/planning/initiatives/agent-first-reimagining-plan.md`, and
+you MUST add a link to it in `docs/planning/initiatives/README.md` **in the same commit**.
+`docs-doctor` hard-fails any document under `docs/` that nothing links to, so an unlinked
+plan breaks the gate for everyone.
+
+Do not spend the whole night here. This is a plan that makes the building coherent, not a
+document to admire — a focused pass, committed, and then you move.
+
+**2. THEN BUILD IT. All of it.**
+
+Work the plan, wave by wave, continuously until the founder stops you. Every unit gated,
+committed and pushed on its own. Update the plan as you learn — a plan you never revised is
+a plan you stopped reading.
+
+**Build in parallel, not in a line.** Dispatch subagents on disjoint file sets wherever the
+work splits, which is nearly always. See *Parallel is the default* below; it is an
+instruction, not an option.
+
+**Both orders are yours. Nobody will tell you to move from one to the other.** When the plan
+is committed, start building in the same session, in the same breath.
+
 ### STEP ZERO: READ BEFORE YOU WRITE ANYTHING
 
 **Do not open an editor until you have read this list.** You are being asked to reimagine a
@@ -420,6 +462,54 @@ capability has no home in the new model, say so plainly and propose where it bel
 not leave it stranded in a corner because it used to live there. If nothing in the product
 should own it, recommend removing it and record the argument. You have full liberty here.
 
+### THE ULTIMATE GOAL: WHAT IT SHOULD FEEL LIKE
+
+**A new-age platform. Truly agent-first. Unique, interactive, intuitive, clean and
+ultra-premium.** That is the outcome, in the founder's words. Adjectives are not buildable,
+so here is what each one has to mean by the time you are done.
+
+**New-age** means it does not look like software from 2015. No dense dashboards, no
+grey-on-grey tables, no sidebar of twenty items, no screen that opens with a paragraph
+explaining itself. If a screenshot of a surface would be indistinguishable from a generic
+B2B admin panel, it has failed regardless of how correct it is.
+
+**Truly agent-first** means the agent is visibly the one doing the work, and the interface
+is where you watch it, steer it and take over. Not a form with a sparkle icon. A person
+should be able to state intent and see something start happening.
+
+**Interactive** means surfaces respond. Hover reveals, focus is visible and beautiful, state
+changes animate rather than jump, and the thing you just did is acknowledged. Motion is
+short and purposeful: things appear quickly and leave gently, never the reverse.
+
+**Intuitive** means the first-time user needs no tour. If you find yourself writing helper
+text to explain a control, the control is wrong — redesign it until the text is unnecessary,
+then delete the text.
+
+**Clean and ultra-premium** is mostly restraint, and it is decidable. On any surface, check:
+one focal point rather than five competing ones; generous, consistent spacing on a rhythm;
+a type hierarchy you can read from across the room; colour used only to carry status; no
+orphaned control with nothing to do; no border that could be whitespace instead. Expensive
+software is mostly the things it chose not to put on the screen.
+
+**Illustration is welcome, and it must earn its place.** Where a surface would otherwise be
+a wall of text or a bare empty state, use a small illustration, a diagram, a spot graphic or
+a piece of considered iconography. The best places are exactly the ones usually neglected:
+**empty states, onboarding, the moment an agent is working, and any screen explaining what
+just happened or why.** Rules: it carries meaning rather than decorating; it uses Meridian
+colour tokens so it stays right in both grounds; it is inline SVG or a token-driven
+component, never a heavy raster; and it never delays the content behind it.
+
+**Design the interaction moments deliberately, not just the layouts.** The moments are where
+a product feels good or cheap, and they are usually left to defaults: the first second after
+a click, waiting for an agent, an empty state before anything exists, a long list arriving,
+an error, a confirmation, a success, a hand-off from agent to human. **Each of those is a
+designed thing here, not a fallback.** A surface whose happy path is beautiful and whose
+loading state is a bare spinner has not been done.
+
+**And it must stay simple while doing more.** Every one of the above is subordinate to that.
+If adding delight adds a decision the user has to make, cut it. Premium is not more; it is
+less, executed exactly.
+
 ### YOUR INSTRUMENTS — and the one you must lean on hardest
 
 **You are building blind to the database. Playwright is your eyes. Use it constantly.**
@@ -456,9 +546,19 @@ one in the same breath. Do not end a turn with "shall I continue?" — continue.
 things that legitimately pause you are a gate you cannot get green and a request you have
 already filed and parked.
 
-**Split the work and run it in parallel.** Use subagents wherever the task decomposes, and
-it decomposes constantly: 113 route files, 222 files carrying debt, dozens of components.
-Do not walk them one at a time when you could dispatch several.
+**PARALLEL IS THE DEFAULT. SERIAL IS THE EXCEPTION YOU HAVE TO JUSTIFY.**
+
+This is an explicit instruction, not a suggestion: **use subagents wherever the work
+decomposes into disjoint pieces, and dispatch them together.** Doing by hand, one at a time,
+work that could have run five at a time is the single biggest way you will waste this night.
+
+The work decomposes constantly and obviously: **113 route files, 222 files carrying debt,
+47 components, seven stations, dozens of empty and error states.** Most of those touch
+completely different files. There is no reason to walk them in a line.
+
+Before you start any batch, ask: **can this be split?** If two pieces of work do not share a
+file, they do not need to share a turn. If you catch yourself working through a list
+sequentially, stop and fan it out instead.
 
 - **Fan out on independent work.** Surfaces that share no files can be built at once.
 - **Give every parallel agent a DISJOINT file list**, and tell it never to touch a file
@@ -741,6 +841,21 @@ You are not the builder tonight. **You are the instrument LANE 1 does not have.*
 reach the database, cannot deploy, and cannot call Mobbin. You can. Your job is to keep it
 unblocked and to keep it honest.
 
+**YOU ARE ALSO RUNNING OVERNIGHT, CONTINUOUSLY, AND AUTONOMOUSLY.** This is not a help desk
+you staff between other work. Both sessions run all night in parallel: LANE 1 builds, you
+verify, answer, research and rule, and neither of you waits to be told to continue. Treat
+this as a 24-hour session. You do not need permission to keep going, to start a proactive
+review, or to pull a Mobbin reference nobody asked for yet.
+
+**Never go idle.** If the request queue is empty and there is nothing new to verify, that is
+not a break — it is the moment to do the work in *Proactive passes* below. An idle MAIN LANE
+while LANE 1 builds for six hours means six hours of unreviewed surfaces landing on `main`.
+
+**Use the skills, agents and MCPs available to you**, and dispatch subagents when a
+verification or research task decomposes. You have Mobbin, the Lovable MCP for the database
+and deploys, the Chrome extension, and Playwright. LANE 1 has none of those except
+Playwright, so the depth of what you can reach is the ceiling on what it can build.
+
 ### Your loop
 
 Run this continuously. Do not go idle waiting.
@@ -753,6 +868,8 @@ Run this continuously. Do not go idle waiting.
    reality, not against the report.
 4. Update `coordination/STATUS.md`. Commit. Push.
 5. If there is nothing to answer and nothing to verify, do a **proactive** pass (below).
+   Never stop the loop; there is always a surface LANE 1 has finished that nobody has looked
+   at yet, and always a reference worth pulling before it is asked for.
 
 ### How to answer each kind of request
 
