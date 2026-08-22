@@ -1,3 +1,96 @@
+# SESSION 2026-08-22 evening · Claude · The loop has never run on real data, and the reason is one unset default
+
+**State:** `main`, 9 commits, all pushed, tree clean. Gates each run as its own command with its own exit
+code: `tsc` 0 · `bun test` 0 (**10,292 pass / 0 fail**) · `build` 0 · `docs:check` 0 · `design:ratchet` 0.
+CI is still dead (runner or billing block, not a test failure) so local gates remain the only real ones.
+
+## Pick this up FIRST: one experiment is mid-flight and it is the most important number in the product
+
+**`cold_start_promotion_enabled` is ON for exactly one real workspace** — `My workspace`,
+`0b792d52-82e2-43e2-adc5-8a26e5c800b4`, 7 signals. Its `last_auto_cluster_at` was pushed back three hours so
+`cluster-tick` picks it first. **Expected: the theme `5945ee55-9f33-4fba-ace9-ff7441d1ee0a` ("Slow Tier-1
+Support Response for Off-Hours Users", frequency 3, severity 4, confidence 1.00) becomes the first
+`spine_tracks` row a real workspace has ever had.** Check with:
+
+```sql
+SELECT count(*) FROM spine_tracks k JOIN workspaces w ON w.id=k.workspace_id WHERE w.is_sample IS NOT TRUE;
+```
+
+**If it is still 0 after two more ticks, the next thing to check is whether the deploy landed**, not the
+logic: the logic is unit-tested, source-guarded and mutation-tested. `cluster-tick` runs every 10 minutes and
+takes only **5 workspaces per run** ordered by `last_auto_cluster_at`, against 9 real ones, so a workspace
+comes up roughly every 20 minutes and missing a batch is normal rather than a fault.
+
+**To turn it off:** set the column false. It is a per-workspace flag, off by default everywhere else.
+
+## The finding the whole session turned on
+
+**Zero agent runs in 24 hours. The last agent run in the product's history is 2026-08-21 12:10, ten minutes
+before the AI-spend leak was recorded closed.** That fix excluded sample workspaces, and **no real workspace
+has ever had a `spine_tracks` row**, so the spine now has nothing at all to drive while `pg_cron` fires
+**7,497 times a day**.
+
+The cause is a single number. Autonomous promotion needs a theme at `frequency >= 8`. Across all nine real
+workspaces there are **27 themes, average frequency 1.26, maximum 3** — none can ever qualify. Sample
+workspaces reach 19 and clear it 17 times. The lever, `workspaces.promotion_min_frequency`, is **NULL on all
+21 workspaces**, so everyone runs the shipped 8.
+
+**Do not read §10 of `agent-first-platform.md` platform-wide.** All 146 decisions carrying a forecast and all
+91 resolutions sit in the two seeded demo tenants, backdated to February. **Across all six real workspaces it
+is 0 of 131.** A summary reading "50% forecast coverage" is reading demo rows. Split every criterion by demo
+versus real workspace or the number means nothing.
+
+## What shipped
+
+- **The discoverability fix the founder asked for.** `agent-first-platform.md`, a 986-line platform design
+  from 2026-08-19, was referenced in **none** of `SOURCE-OF-TRUTH.md`, `CLAUDE.md`, `AGENTS.md` or
+  `README.md`. Two sessions had paid to rediscover it. Now routed from all of them, plus a new
+  `docs/planning/initiatives/README.md` that answers *"is my question already answered?"*. **The session-boot
+  hook was pointing every session at `docs/strategy/v10-master-blueprint.md`, which does not exist** — it is
+  archived and the 2026-07-28 rebuild revoked every surface it specified. Repointed. Six live docs teaching
+  retired design systems were bannered; the worst called the doubly-retired Obsidian v3 contract *"the design
+  brief that loads by default on any design work."*
+- **The run route's colour layer is Meridian.** `MissionOrchestratorDetail.tsx`, the 1,752-line component
+  rendering `/runs/$missionId`, went from **86 retired-token occurrences to 10** and the ten left are the
+  `shell/primitives` buttons. Ratchet **3,326 → 3,250**. Verified live in Lovable both directions: `mrd-`
+  present AND retired tokens absent.
+- **The maturity-aware promotion bar**, gated per workspace and off by default, with the migration applied to
+  the live database before the code that reads it.
+- **`docs/design/MERIDIAN-INVENTORY.md`**, because the contract says 88 tokens and 23 components while the
+  directory holds **111 and 47**, and roughly 26 appeared in no document at all.
+
+## Three traps that will cost the next session time
+
+**1. `agent-first-platform.md` §7.1 is SUPERSEDED and I was the third attempt it warned about.** Its two
+"corrections to Meridian" are stale or falsified. `--mrd-d-move` is already 140ms, not 220. `--mrd-d-enter`
+deliberately stays 420ms because all eight callers were counted and **not one is a reveal** — taking it to
+zero deletes them rather than speeding them up. **Body weight 450 is falsified, twice, on two days, by two
+readers:** `getComputedStyle` on the reference returns **400**. `meridian.css` carries the note *"so the 450
+claim cannot come back a third time. If it does, the reply is a measurement, not an argument."* **Take
+Meridian's numbers from `src/styles/meridian.css`, never from a document about it.**
+
+**2. The gallery-only primitives are a PORT programme, not a MOUNT programme.** Fourteen components, roughly
+7,500 lines, render only in `_authenticated.meridian.tsx`. Each one's target surface already does that job in
+retired vocabulary, so a swap loses capability and **ratchet law 1 forbids dropping a state as an answer**.
+Worked example: `RunTimeline` was deliberately **not** swapped in for `TraceHop`, because `TraceHop` is
+collapsible and carries handoffs and nested steps it has no room for. `TraceHop` was ported instead.
+
+**3. `ToolStream` is blocked on a transport, not a surface.** Its header says wiring it is *"a mount and not
+an adapter"*, true of the component and false of the product: the `tool` SSE frame is **emitted nowhere**, and
+on the mission path `api/chat.ts` enqueues `landing`, `meta` and `[DONE]` and **closes the stream before the
+mission runs**. The `station` frame IS emitted, at `api/chat.ts:974`, on the `@`-mention path only.
+
+## Open, and what each needs
+
+| Item | State | Needs |
+| --- | --- | --- |
+| **The cold-start experiment** | flag on, one workspace, awaiting a tick | the query above. This is the unlock for every other criterion |
+| **Meridian law 5, "look at it before you ship it"** | **NOT satisfied for the port** | a human. I cannot enter a password into a form, so no authenticated surface can be visually checked by me. `/runs/$missionId` needs the founder's eyes |
+| **`AskPane` port** | deliberately not started | its 44 occurrences are `--sp-*` **spacing and layout**, not just colour. Porting that blind, with no visual check, is how a regression ships |
+| **Founder ruling 2026-08-22** | recorded | the 2026-06-18 *"design pass is LAST, done ONCE"* ruling is **overridden by the founder directly**. Full authority given to reimagine and implement. It should be superseded in place in the board and the design contract, original text left standing |
+
+---
+
 # SESSION CLOSED 2026-08-22 ~16:40 IST · Claude · The command palette question is ANSWERED, BUILT and IN PRODUCTION
 
 **State at close:** `main`, tree clean, **1 ahead of origin** — `8a3e0a00b` (the EF rejection docs) is committed
