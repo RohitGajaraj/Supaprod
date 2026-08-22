@@ -3532,8 +3532,8 @@ received from outside itself. External signal → sink → embed → cluster →
 **The livelock is now proven at seat level, not inferred.** On the 18:00 sweep the new track ran
 `discovery-scout` (18:00:04) and `researcher` (18:00:29), both `completed`, and the clock cut it
 before `customer-insights`. Two of three seats, every tick, forever. **That sweep still ran the old
-build** — under the new code `seat_cursor` would read 2 and it reads 0. So the fix remains
-unverified live; the assertion is unchanged.
+build** — under the new code `seat_cursor` would read 2 and it reads 0. **SUPERSEDED at 18:30:
+the fix is verified live. See the closing section.**
 
 **`tool_calls` is written again.** Five rows in the half hour, newest 18:00:40. The table had been
 frozen at 2026-07-25 for four weeks. The `workspace_id` stamp works, confirmed on real runs.
@@ -3552,3 +3552,37 @@ nothing new to log, and filed nothing. The driver then reads "filed nothing" as 
 brief asks for the one thing that cannot exist. That is a design question about what Discover is
 FOR on a promoted track, not a tool or a permissions fault, and it should be answered before anyone
 "fixes" it by loosening the driver.
+
+## Closing, 18:32 — the spine finished a station for the first time
+
+`agent_runs` for track `c4b12e7c`, one row per seat, is the whole argument:
+
+| Sweep | Seats that ran |
+| --- | --- |
+| 18:00 | `discovery-scout`, `researcher` |
+| 18:10 | `discovery-scout`, `researcher` — again |
+| 18:20 | `discovery-scout`, `researcher` — again, then `seat_cursor` saved as 2 |
+| 18:30 | **`customer-insights` only** |
+
+Three sweeps paid for the same two seats and threw both away. The fourth ran only the third seat.
+That is the livelock and its fix in one table.
+
+**What the track looks like now, and every field of it is new:**
+
+- `seat_cursor` back to 0, because the crew finished rather than being cut off.
+- **`attempts: 1`.** The first attempt this product has ever recorded against a track. The ceiling
+  works now: `MAX_STATION_ATTEMPTS` can count, so a genuinely stuck station escalates through the
+  correction loop instead of spinning at zero forever.
+- **`last_hold: produced-nothing`, no longer `out-of-time`.** The driver is finally judging the
+  WORK rather than our clock. That is a real diagnosis and it is the correct one: the crew read the
+  workspace and filed nothing.
+
+**So the remaining problem is now the right problem.** `produced-nothing` at Discover on a promoted
+theme is the design question from the addendum above — the evidence the station is told to gather
+is already on the record by construction — and it will now escalate properly rather than hide
+behind a clock. **Do not loosen the driver to make it green.** Answer what Discover is for on a
+track that was promoted out of Discover's own output.
+
+Two deploys were needed. `deploy_project` returned `pending` and the cron path kept serving the old
+build for roughly twenty minutes and two sweeps; a second `deploy_project` call is what landed it.
+Budget for that, and assert on behaviour rather than on the deploy call returning.
