@@ -1,6 +1,6 @@
 # F-V5-INGEST-WEBHOOK — The public continuous-ingest door
 
-> _Created: 2026-06-16 · Last updated: 2026-06-19_
+> _Created: 2026-06-16 · Last updated: 2026-08-22_
 
 **Status:** Shipped (webhook endpoint deployed 2026-06-11 · KI-10 rate limiting added 2026-06-16)  
 **Unblocks:** M-0 (one live ingest source) · M-A (real data loop)  
@@ -206,3 +206,55 @@ curl -X POST https://supaprod.lovable.app/api/public/ingest-signals \
 - [`operations/demo-credentials.md`](../operations/demo-credentials.md) — demo workspace logins
 - [`planning/archive/v7-trd.md`](../planning/archive/v7-trd.md) (archived, superseded by v10), B.4 · Connector activation
 - [`planning/known-issues.md`](../planning/known-issues.md) — KI-10, KI-12 (OAuth setup)
+
+---
+
+## 2026-08-22 — first real use, and what it found
+
+**This door had never been used.** Zero rows in `ingest_tokens`, zero calls, from the day it
+shipped in June until 2026-08-22. Everything above describes a route nobody had walked.
+
+**It was not routing through the sink.** It built row literals and called `.insert()` directly.
+Measured on the very first signal it ever accepted in production: `source_kind` NULL and
+`embedding` NULL. What that cost, in the order it hurts:
+
+- **No restatement dedup**, on an unauthenticated push endpoint, on the same day dedup shipped
+  because thirteen restatements of two sentences promoted a theme and emptied a month of credit in
+  eighty minutes. A misconfigured Zapier retrying is the same shape and easier to trigger.
+- **No `source_kind`.** The `webhook` lane exists in `SOURCE_KINDS` and had never once been
+  stamped, so every read that filters the fabric by lane was blind to this door.
+- **No embedding**, which also disables the vector half of the dedup, so the two compound.
+- **No `external_id` dedup**, so a retry stored a second row.
+
+It now calls `writeSignals` with `sourceKind: "webhook"` and `untrusted: true`. The injection
+screen MOVED rather than being duplicated: the sink runs the same classifier for any untrusted
+candidate, with the same two outcomes this route implemented by hand (structural attack quarantined
+and never stored, borderline lexical override stored and tagged for review). One classifier in one
+place, so the two cannot drift.
+
+### The response body changed
+
+```json
+{ "ok": true, "created": 10, "quarantined": 0, "skipped": 0, "restated": 10 }
+```
+
+`restated` is reported separately from `skipped` on purpose. A **skip** is a producer behaving
+correctly and re-sending a known `external_id`. A **restatement** is the same observation arriving
+twice with nothing to tell the two occurrences apart. Someone tuning a webhook needs to know which
+they are looking at.
+
+Proven live: the same batch of ten posted twice returned `created: 10, restated: 0`, then
+`created: 0, restated: 10`.
+
+### What it unblocked
+
+Ten measured findings went in against a real workspace, embedded inline, clustered into four themes
+at the next tick, and the best of them (frequency 4, severity 5, confidence 0.95) was promoted into
+a `spine_tracks` row without anyone clicking anything. **That is the first content in this
+product's history that came from outside its own crew**, and the first track built from external
+input.
+
+### If you need a token
+
+The one minted on 2026-08-22 has prefix `92ca7a00`; the plaintext was never written to the repo and
+is not recoverable. Mint a new one through `src/lib/ingest.functions.ts` rather than looking for it.
