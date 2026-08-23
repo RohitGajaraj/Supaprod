@@ -320,12 +320,12 @@ already answered at 11:43 once its worktree was read directly. Nothing is waitin
 | [`L0-004`](./requests/L0-004-loom-press-is-live-app-wide.md) | 15:40 | 16:25 | 18:2x, **corrected 19:5x** | ruled — [`RL0-004`](./answers/RL0-004-loom-press-stays-and-the-gap-is-mine.md). My "Meridian has no touch rule" was WRONG; `CONTROL_SHAPE` has carried 44px since `17130d7c2` |
 | [`L0-005`](./requests/L0-005-block-and-pre-have-no-meridian-equivalent.md) | 19:45 | 19:45 | 19:5x | ruled — [`RL0-005`](./answers/RL0-005-both-already-exist-in-meridian.md). **Neither gap is real**; `Region` and `Pre` both exist in `surface-parts.tsx` |
 | [`L0-005` **addenda**](./requests/L0-005-block-and-pre-have-no-meridian-equivalent.md) | 01:30 + 01:50 | 20:33 | **20:4x** | ruled — [`RL0-005b`](./answers/RL0-005b-the-other-four-exist-too-and-three-were-renamed.md). **All four exist; three were RENAMED** — `Select`→`Picker`, `SelectionBar`→`BulkBar`, `Record`→`RecordSpeaks` (two homes). `Value` remaps two dead `warn`s. **REQ-L0-005 now closed in full, all 23 sites routed** |
-| [`005`](./requests/005-three-meridian-gaps-from-the-control-ports.md) | ~20:0x | 20:33 | — | **OPEN, MAIN LANE owes a ruling.** Link face, selection control, landing single-theme call |
-| [`006`](./requests/006-does-the-display-face-join-meridian.md) | ~20:0x | 20:33 | — | **OPEN, MAIN LANE owes a ruling.** Does `--font-display` alias `--mrd-font`, or does Geist stay the display voice |
+| [`005`](./requests/005-three-meridian-gaps-from-the-control-ports.md) | ~20:0x | 20:33 | **21:0x** | ruled — [`R005`](./answers/R005-the-link-face-is-built-and-the-other-two-already-exist.md). **Link face was real and is BUILT** (`ActionLink` + `ACTION_LINK_FACE`, 3 local copies collapsed). Selection control **already exists twice** — `Choices mode="one"` for words, `Cell selected` for cards. Landing: **refused**, `PUBLIC_INK_THEME` would add 21 raw hexes and 4 retired tokens |
+| [`006`](./requests/006-does-the-display-face-join-meridian.md) | ~20:0x | 20:33 | **21:0x** | ruled — [`R006`](./answers/R006-geist-stays-and-it-was-never-optional.md). **Geist stays; `--mrd-face-display` LANDED.** No Meridian utility sets `font-family`, so every Meridian heading was already rendering in Geist — aliasing would have restyled the whole product |
 
-**MAIN LANE owes two rulings as of 20:4x: REQ-005 and REQ-006, both from LANE 1,
-both landed in the 20:33 pull.** Neither blocks anything downstream — LANE 1 said so
-on both and I confirmed it. Everything LANE 0 raised is closed.
+**Nothing is waiting on MAIN LANE as of 21:0x.** Every request from both lanes is
+ruled, and the two tokens/components the rulings depended on are shipped rather than
+promised: `--mrd-face-display` and `ActionLink`.
 
 ### THE FAILURE REQ-L0-005 EXPOSED, and what now prevents it
 

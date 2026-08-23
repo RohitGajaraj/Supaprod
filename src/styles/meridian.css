@@ -794,6 +794,46 @@
    */
   --mrd-face-brand: "Geist Pixel Square", ui-monospace, monospace;
 
+  /*
+   * ── THE FOURTH FACE, AND IT IS THE ONE ALREADY DOING THE WORK ────────────
+   *
+   * The display face: every heading in the product. Added 2026-08-23 answering
+   * REQ-006, which asked whether Geist stays the display voice or aliases to
+   * `--mrd-font` like sans and mono did. It stays, and the reason is a fact the
+   * request could not see from its own path.
+   *
+   * MERIDIAN'S HEADINGS WERE ALREADY GEIST, AND NOTHING HERE SAID SO. Measured
+   * for this ruling: no utility in this file sets `font-family` at all --
+   * `mrd-title` sets size, weight, leading, tracking and colour, and
+   * `text-mrd-h1` sets size alone. So a Meridian `<h2 className="mrd-title">`
+   * inherits its face from the `h1..h6` base rule in `styles.css`, which reads
+   * `var(--font-display)`, which is Geist. Aliasing that to `--mrd-font` would
+   * not have converged two type systems; it would have silently restyled every
+   * heading on every Meridian surface in the product, which no ruling asked for
+   * and which the founder ruling of 2026-08-15 does not authorise. That ruling
+   * says WHERE faces are declared -- "TYPE IS MERIDIAN'S, APP-WIDE ... faces
+   * are declared in styles/meridian.css" -- and says nothing about how many
+   * there are. An Inter body against a Geist display is a deliberate pairing,
+   * and Geist is genuinely loaded and self-hosted.
+   *
+   * IT DOES TAKE THE TYPE STOPS, WHICH IS THE OPPOSITE OF `--mrd-face-brand`
+   * ABOVE, AND THE DIFFERENCE IS NOT A DETAIL. The brand face gets no stop
+   * because "brand moments only" stops being a rule the moment it is reachable
+   * as a general type choice. This one IS the general choice: it is what a
+   * heading is set in, at whatever `--mrd-t-*` the heading takes. Do not carry
+   * the brand face's rule across to it, and do not read this as a second brand
+   * token.
+   *
+   * WHAT IT DOES NOT YET FIX. Naming the face does not move the DEPENDENCY:
+   * Meridian headings still take their family from a base rule in the retired
+   * file, so deleting that block -- which is the whole direction of travel --
+   * would drop every heading in the product to Inter without one test failing.
+   * `--font-mrd-display` below exists so a Meridian surface can own its face
+   * explicitly (`font-mrd-display`) rather than inheriting it, which is how
+   * that dependency gets paid off a surface at a time instead of all at once.
+   */
+  --mrd-face-display: "Geist", ui-sans-serif, system-ui, sans-serif;
+
   /* The one that does the most work. Uniform, never per-size. */
   --mrd-track: -0.14px;
 
@@ -1491,6 +1531,10 @@
 
   --font-mrd: var(--mrd-font);
   --font-mrd-mono: var(--mrd-mono);
+  /* Generates `font-mrd-display`. The face is Geist and every heading already
+     renders in it; this is what lets a surface SAY so instead of inheriting it
+     from the retired file's `h1..h6` rule. See `--mrd-face-display` above. */
+  --font-mrd-display: var(--mrd-face-display);
   /* `tracking-mrd-label`, so a micro-label never hand-writes an em value. */
   --tracking-mrd-label: var(--mrd-track-label);
 

@@ -689,6 +689,91 @@ export function Actions({
 }
 
 /**
+ * A NAVIGATION WEARING A CONTROL'S FACE.
+ *
+ * Added 2026-08-23 answering REQ-005. Five anchors across `signup`,
+ * `reset-password` and `join.$token` still wear the retired `.btn` classes, and
+ * they cannot become `Action`s: they are navigations, so middle-click and
+ * modifier-click have to keep working, and a `<button>` with an `onClick` that
+ * calls `navigate()` breaks both.
+ *
+ * ── WHY `Action`'S FACES CANNOT SIMPLY BE BORROWED, WHICH IS THE WHOLE POINT ──
+ * `ACTION_FACE` is written with the `enabled:hover:` prefix, and `:enabled`
+ * matches FORM CONTROLS ONLY. An anchor is not one, so an anchor wearing those
+ * classes has NO HOVER STATE AT ALL -- it looks like a control, and then it does
+ * not answer the cursor. That is not a detail anyone infers; both hand-rolled
+ * copies of this had to discover it and write it down. The faces below use the
+ * bare `hover:`, and an anchor has no disabled state for the prefix to guard.
+ *
+ * ── THE STRING IS THE API, AND THE COMPONENT IS THE MINORITY CASE ────────────
+ * FOUR of the five call sites are TanStack `<Link to=...>`, not `<a href=...>`,
+ * because in-app navigation has to stay client-side. A component that renders an
+ * `<a>` would be unusable to them. So `ACTION_LINK_FACE` is exported as the
+ * primary interface -- `<Link to="/sync" className={ACTION_LINK_FACE.default}>`
+ * -- and `ActionLink` exists for the one genuine external `<a>` (the waitlist
+ * href on `signup`).
+ *
+ * A CONSTANT AND NOT A FUNCTION, deliberately: `react-refresh/only-export-components`
+ * runs with `allowConstantExport`, so a module that exports components may also
+ * export a constant and may NOT export a helper. `run-parts.tsx` records the
+ * same constraint on its own copy.
+ *
+ * ── WHAT IT COLLAPSES ───────────────────────────────────────────────────────
+ * THREE hand-rolled copies, which is well past the second caller that earns a
+ * token: `run-parts.tsx`'s exported `LINK_AS_CONTROL` (the default face),
+ * `sync.tsx`'s local `LINK_AS_QUIET_CONTROL`, and a third declaration of that
+ * same quiet string in `AccountConnectionsSection.tsx`. Both quiet copies carry
+ * a note asking for exactly this, and both say the reason they did not build it
+ * was ownership rather than judgement. It is owned here, so it is built here.
+ *
+ * ── NO `destructive`, AND THAT IS A RULING RATHER THAN AN OMISSION ───────────
+ * `ActionVariant` has four faces and this has three. A destructive act must be
+ * a `<button>`: it needs to be disabled while the work runs and it must not be
+ * reachable by a middle-click that opens it in a background tab the person
+ * never looks at. If it navigates, it is not destructive; if it destroys, it is
+ * not a link.
+ *
+ * Width is the caller's: these are `inline-flex` like every other control, and
+ * a full-width centred one appends `w-full justify-center` rather than reaching
+ * for an inline `style`, which is what all five sites do today.
+ */
+export type ActionLinkVariant = "default" | "primary" | "quiet";
+
+export const ACTION_LINK_FACE: Record<ActionLinkVariant, string> = {
+  /* Carried verbatim from `run-parts.tsx`'s `LINK_AS_CONTROL` so the port is a
+     no-op on the sites already wearing it. */
+  default: `${CONTROL_SHAPE} border border-mrd-line bg-mrd-lift text-mrd-body hover:bg-mrd-lift-hover hover:text-mrd-ink`,
+  /* `ACTION_FACE.primary` with the prefix dropped. The specular top edge that
+     `Action` sets in `style` is set here as a class, because a bare string has
+     nowhere to put an inline style and a caller spreading one would lose it. */
+  primary: `${CONTROL_SHAPE} bg-mrd-solid text-mrd-on-solid shadow-[inset_0_1px_0_var(--mrd-sheen)] hover:bg-mrd-solid-hover`,
+  /* Both existing copies of the quiet face, which are byte-identical to each
+     other. */
+  quiet: `${CONTROL_SHAPE} text-mrd-mute hover:bg-mrd-hover hover:text-mrd-body`,
+};
+
+/**
+ * The plain-anchor form. Use `ACTION_LINK_FACE` directly on a TanStack `<Link>`.
+ *
+ * `data-mrd` for the same reason every part here carries it: without it the
+ * focus ring does not apply, and a keyboard user loses the control entirely.
+ */
+export function ActionLink({
+  variant = "default",
+  className = "",
+  ...rest
+}: React.AnchorHTMLAttributes<HTMLAnchorElement> & { variant?: ActionLinkVariant }) {
+  return (
+    <a
+      {...rest}
+      data-mrd=""
+      className={`${ACTION_LINK_FACE[variant]} ${className}`}
+      style={{ transitionDuration: "var(--mrd-d-press)", ...rest.style }}
+    />
+  );
+}
+
+/**
  * A WORD INSIDE A SENTENCE THAT GOES SOMEWHERE.
  *
  * The quiet end of the affordance scale, and the reason it is not an `Action`

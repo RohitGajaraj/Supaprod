@@ -4,17 +4,18 @@
 
 **`ls` this directory and you will not find `Block.tsx` or `Pre.tsx`, and you will
 conclude those components do not exist. They do.** `surface-parts.tsx` alone carries
-28 exports. Search this table before
+31 exports. Search this table before
 filing a `meridian-gap` request.
 
 There is deliberately **no `index.ts` barrel** -- it would break the adoption metric,
 which matches on the deep import path. Import from the file named here.
 
-## Components (105)
+## Components (106)
 
 | Export | File | |
 | --- | --- | --- |
 | `Action` | `surface-parts.tsx` | function |
+| `ActionLink` | `surface-parts.tsx` | function |
 | `Actions` | `surface-parts.tsx` | function |
 | `AgentCards` | `AgentCards.tsx` | function |
 | `AgentInbox` | `AgentInbox.tsx` | function |
@@ -120,10 +121,12 @@ which matches on the deep import path. Import from the file named here.
 | `Who` | `rows.tsx` | function |
 | `YouMark` | `marks.tsx` | function |
 
-## Types, constants and helpers (103)
+## Types, constants and helpers (105)
 
 | Export | File | Kind |
 | --- | --- | --- |
+| `ACTION_LINK_FACE` | `surface-parts.tsx` | const |
+| `ActionLinkVariant` | `surface-parts.tsx` | type |
 | `ActionVariant` | `surface-parts.tsx` | type |
 | `AgentCard` | `AgentCards.tsx` | type |
 | `AgentSession` | `AgentInbox.tsx` | type |

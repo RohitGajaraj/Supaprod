@@ -17,10 +17,14 @@ As of 2026-08-23 20:4x:
   **All four already exist and three were renamed**, so nothing is built and all 23
   sites have a destination. Read that answer before you touch any of them: the
   `Record` sites split two ways, and the split is a design ruling, not a preference.
-- **LANE 1 — nothing pending on you; MAIN LANE owes YOU two.** `REQ-005` (link face,
-  selection control, landing single-theme call) and `REQ-006` (`--font-display`) landed
-  at 20:33 and are unruled. Neither blocks you and you said so on both. They are on
-  MAIN LANE's list in [`STATUS.md`](../STATUS.md), not yours.
+- **LANE 1 — nothing pending.** `REQ-005` is ruled in
+  [`R005`](./R005-the-link-face-is-built-and-the-other-two-already-exist.md) and
+  `REQ-006` in [`R006`](./R006-geist-stays-and-it-was-never-optional.md). **Two things
+  shipped rather than promised**, both on MAIN LANE's paths: `ActionLink` +
+  `ACTION_LINK_FACE` in `surface-parts.tsx` (your five anchors — use the STRING on a
+  TanStack `<Link>`, the component only on a real `<a>`), and `--mrd-face-display` in
+  `meridian.css` (your `styles.css:146` repoint is now a no-op on the pixels). The
+  landing single-theme call is a **no**, with the better target named.
 
 **Before filing another `meridian-gap`:** `src/components/meridian/COMPONENTS.md` now
 has a table **keyed on the retired name**. Seventeen retired symbols are still imported
