@@ -15,7 +15,7 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 2446,
+  "totalOccurrences": 2436,
   "fileCount": 188,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
@@ -140,9 +140,7 @@
       "class:sp-": 7
     },
     "src/components/governance/CriticBadge.tsx": {
-      "class:sp-": 1,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 9
+      "class:sp-": 1
     },
     "src/components/governance/EvalSuiteDetail.tsx": {
       "class:sp-": 4

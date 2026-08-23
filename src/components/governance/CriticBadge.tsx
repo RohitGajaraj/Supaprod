@@ -32,7 +32,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { runCriticReview, type CriticReview } from "@/lib/discovery.functions";
 import { tierFromProbability } from "@/lib/confidence";
-import { CtxBody, CtxHead, CtxRow } from "@/components/shell/primitives";
+import { CtxBody, CtxHead, CtxRow } from "@/components/meridian/ContextColumn";
 import { ConfidenceDisclosureChip } from "@/components/governance/ConfidenceDisclosureChip";
 
 type Props = {
