@@ -108,55 +108,60 @@
   --sp-font-mono: var(--mrd-mono);
 
   /* ---- Type scale ----
-   * Role named, lifted verbatim from the prototype. These are tuned by
-   * hand, not generated: 25 / 19 / 14 / 11.5 sit on a 1.22 ladder, the
-   * 12 to 13.5 band does not, because that band is a density ramp for
-   * secondary text rather than a heading ladder. See the OPEN QUESTION
-   * note at the foot of this block. 12px floor on anything a person
-   * reads; the two values below it carry data, not prose. */
-  --sp-text-gate: 19px; /* the gate question, biggest thing on a surface */
-  --sp-text-body: 14px; /* base. rows, nav, agent names, inputs */
-  --sp-text-prose: 13.5px; /* secondary reading. live line, gate lines, ask */
-  --sp-text-meta: 13px; /* row second line, sublabels */
-  --sp-text-label: 12.5px; /* field labels, context headings */
-  --sp-text-data: 12px; /* mono. timestamps, counts, durations */
-  --sp-text-data-sm: 11.5px; /* mono. rail counts, stage numbers */
+   * ALIASED ONTO MERIDIAN, 2026-08-23, per ANS-001 (coordination/answers/
+   * 001-meridian-gap-spacing-stops.md): the six lesser gaps all snap, and the
+   * value-exact steps alias outright. The definitions keep their old names
+   * because their consumers have not ported yet; the VALUES are Meridian's
+   * now, so the two scales can no longer drift apart. Where a name and a
+   * value disagree across systems (sp "data" is 12px = mrd-t-small; sp
+   * "data-sm" is 11.5px = mrd-t-data) the alias follows the VALUE, and says
+   * so. --sp-leading-title/gate/note keep literal values: no exact Meridian
+   * stop and no ruling. */
+  --sp-text-gate: var(--mrd-t-h3); /* was 19px; ANS-001: up, not down. A gate heading is a heading. */
+  --sp-text-body: var(--mrd-t-prose); /* was 14px, value-identical */
+  --sp-text-prose: var(--mrd-t-prose); /* was 13.5px; ANS-001: named prose, takes the prose stop */
+  --sp-text-meta: var(--mrd-t-base); /* was 13px, value-identical */
+  --sp-text-label: var(--mrd-t-label); /* was 12.5px, value-identical */
+  --sp-text-data: var(--mrd-t-small); /* was 12px, value-identical to small, not data's 11.5 */
+  --sp-text-data-sm: var(--mrd-t-data); /* was 11.5px, value-identical */
 
   /* ---- Leading ---- */
   --sp-leading-title: 1.24;
   --sp-leading-gate: 1.32;
-  --sp-leading-row: 1.4; /* two-line rows, kept tight */
-  --sp-leading-tight: 1.5;
-  --sp-leading-body: 1.55; /* document default */
+  --sp-leading-row: var(--mrd-lh-snug); /* was 1.4; ANS-001: 0.1 of leading on 13px is invisible, and snug is the considered stop */
+  --sp-leading-tight: var(--mrd-lh-snug); /* was 1.5, value-identical to snug (Meridian's tight is 1.15, a different job) */
+  --sp-leading-body: var(--mrd-lh-prose); /* was 1.55; ANS-001: same argument as row */
   --sp-leading-note: 1.6;
 
   /* ---- Tracking ---- (negative as size grows, positive on small caps) */
-  --sp-track-title: -0.028em;
-  --sp-track-gate: -0.019em;
+  --sp-track-title: var(--mrd-track); /* was -0.028em; ANS-001: at 12-13px mono the em value and -0.14px differ by under 0.03px */
+  --sp-track-gate: var(--mrd-track); /* was -0.019em; same ruling */
 
   /* ---- Weight ----
-   * Mona Sans is installed as four STATIC instances (400/500/600/700),
-   * not a variable font. The prototype asks for 550 and 650 in eight
-   * places; CSS font matching snaps those up to 600 and 700, so the
-   * system as built is four weights, not the three anti-slop.md commits
-   * to. Encoded here as what actually renders. See OPEN QUESTION 2. */
-  --sp-weight-regular: 400;
-  --sp-weight-medium: 500; /* labels, quiet emphasis */
-  --sp-weight-strong: 600; /* headings, active nav, names (was 550) */
+   * Aliased 2026-08-23: all three values identical to Meridian's weight
+   * tokens. Mona Sans history kept in the record: installed as four STATIC
+   * instances (400/500/600/700), not a variable font; the prototype's 550/650
+   * snap up in CSS font matching, so the system as built was four weights.
+   * Meridian's faces hold these cleanly. */
+  --sp-weight-regular: var(--mrd-w-regular);
+  --sp-weight-medium: var(--mrd-w-medium); /* labels, quiet emphasis */
+  --sp-weight-strong: var(--mrd-w-semi); /* headings, active nav, names */
 
   /* ---- Density ----
    * The law (anti-slop.md §3): tight inside a group, generous between
-   * groups. 8 inside a component, 12 between components, 32 between
    * groups. The ramp below governs gaps BETWEEN things. Padding INSIDE
    * a single component stays literal in that component: it is optical
    * and per shape, and tokenizing twenty one-off paddings would name
-   * decisions that were never made. */
-  --sp-space-1: 4px;
-  --sp-space-2: 8px; /* THE LAW: inside a component */
-  --sp-space-3: 12px; /* THE LAW: between components */
-  --sp-space-4: 16px;
+   * decisions that were never made.
+   *
+   * REMOVED 2026-08-23, zero remaining uses measured across every tsx/ts/css
+   * under src outside tests: --sp-space-1 (4), -space-4 (16), -space-6 (24).
+   * The surviving stops stay literal pending each consumer's port, because
+   * ANS-001 maps space-2/space-3 to gap-mrd-inline/gap-mrd-stack BY ROLE at
+   * the call site (inside vs between), which no single definition can decide. */
+  --sp-space-2: 8px; /* THE LAW: inside a component; becomes gap-mrd-inline where its use is inside one */
+  --sp-space-3: 12px; /* THE LAW: between components; becomes gap-mrd-stack where its use is between them */
   --sp-space-5: 20px;
-  --sp-space-6: 24px;
   --sp-space-7: 28px; /* the rule's breathing room, below a block edge */
 
   /* ---- Shell geometry ---- (step 2 builds against these) */
@@ -216,24 +221,28 @@
    * `--sp-radius-chip` and `--sp-radius-row` are GONE, 2026-08-20. Both were
    * pure aliases and both had stylesheet readers only, so those readers now say
    * `var(--mrd-r-chip)` and `var(--mrd-r-ctl)` directly. The three below with
-   * literal values are NOT aliases and stay until their call sites port; note
-   * that `--sp-radius-ctl` is 8px while the Meridian stop it sits next to,
-   * `--mrd-r-ctl`, is 9px, so they are not each other. */
+   * literal values are NOT aliases and stay until their call sites port.
+   *
+   * PORTED PER ANS-001, 2026-08-23: `--sp-radius-ctl` was 8px against
+   * Meridian's 9px stop; the ruling is one pixel of corner is no argument for
+   * a second control radius. `--sp-radius-panel` and `--sp-radius-pane` were
+   * DELETED the same day: both were pure aliases with zero remaining readers
+   * anywhere under src. */
   --sp-radius-sm: 5px; /* diffstat cell */
-  --sp-radius-ctl: 8px; /* buttons, inputs, live line */
+  --sp-radius-ctl: var(--mrd-r-ctl); /* buttons, inputs, live line */
   --sp-radius-card: 10px; /* agent card, ask composer */
-  --sp-radius-panel: var(--mrd-r-card); /* record recess, gate detail */
-  --sp-radius-pane: var(--mrd-r-pane); /* floating panes */
 
   /* ---- Motion ----
    * Motion confirms, it never performs. The prototype carried ten
    * distinct durations between 100ms and 300ms; the differences inside
    * each cluster are imperceptible, so they collapse to four. Anything
-   * a person cannot tell apart was never a decision. */
-  --sp-ease: cubic-bezier(0.22, 1, 0.36, 1); /* the system ease */
+   * a person cannot tell apart was never a decision.
+   *
+   * REMOVED 2026-08-23, zero remaining uses measured: `--sp-ease` and
+   * `--sp-dur-fast`. Every live consumer now reads `var(--mrd-ease)` /
+   * `var(--mrd-d-move)` outright (primitives.css ported them on 2026-08-08). */
   --sp-ease-breath: cubic-bezier(0.45, 0, 0.55, 1); /* symmetric, for loops */
   --sp-dur-press: 100ms; /* the 1px button push */
-  --sp-dur-fast: 140ms; /* hover, colour, background */
   --sp-dur-mid: 200ms; /* rail width, toggle travel */
   --sp-dur-slow: 280ms; /* pane slide, scrim */
   /* Named loops. Each one is a fact that is genuinely still changing. */
@@ -249,11 +258,12 @@
   --sp-stage-build: #6d97c2;
   --sp-stage-learn: #a89f66;
 
-  /* ---- Outcomes and gates ---- never on an agent mark */
-  --sp-pass: var(--mrd-pass);
-  --sp-fail: var(--mrd-fail);
+  /* ---- Outcomes and gates ---- never on an agent mark
+   * REMOVED 2026-08-23, zero remaining uses: `--sp-pass`, `--sp-fail` and
+   * `--sp-gate`. They were already pure aliases into Meridian; their last
+   * readers were ported with primitives.css. `--sp-warn` stays (three live
+   * uses, no Meridian ruling on its value yet). */
   --sp-warn: #e8b44c;
-  --sp-gate: var(--mrd-you); /* orchid. marks the human, and nothing else */
 
   /* ---- Magnitude: the score ramp and the movement pair ----
    *
@@ -296,14 +306,14 @@
 
   /* ---- Surfaces (dark: the design target) ----
    * prototype: --bg --sheet --lift --sink --float
-   * Never #000 or #fff; every neutral is tinted. */
-  --sp-bg: var(--mrd-bg); /* the canvas */
+   * Never #000 or #fff; every neutral is tinted.
+   *
+   * REMOVED 2026-08-23, zero remaining uses measured across src outside
+   * tests: `--sp-bg`, `--sp-lift`, `--sp-sink`, `--sp-float`. All four were
+   * pure aliases into Meridian; their readers ported with primitives.css. */
   /* `--sp-sheet` is GONE, 2026-08-20. Two readers, both in `primitives.css`,
      both now `var(--mrd-sheet)`. The ladder it named is unchanged; only the
      second spelling of one rung went. */
-  --sp-lift: var(--mrd-lift); /* a raised control */
-  --sp-sink: var(--mrd-sink); /* a recess: the record, the gate detail */
-  --sp-float: var(--mrd-float); /* something genuinely floating */
 
   /* ---- The one solid control ----
    * THE PRIMARY BUTTON NEEDS A FACE, and the two obvious candidates were both
@@ -331,13 +341,14 @@
    * `--mrd-sheen` and `--mrd-solid-hover` directly. Meridian carries the same
    * argument in its own words at `meridian.css:236`. */
 
-  /* ---- Text ramp ---- prototype: --ink --body --mute */
-  --sp-ink: var(--mrd-ink); /* the thing itself */
-  --sp-body: var(--mrd-body); /* supporting prose */
-  --sp-mute: var(--mrd-mute); /* labels, metadata, quiet state */
+  /* ---- Text ramp ---- prototype: --ink --body --mute
+   * REMOVED 2026-08-23, zero remaining uses: all three. They were pure
+   * aliases into Meridian's ramp and their readers ported with
+   * primitives.css. */
 
-  /* ---- Structure ---- prototype: --line --line2 --hover */
-  --sp-line: var(--mrd-line); /* a real edge */
+  /* ---- Structure ---- prototype: --line --line2 --hover
+   * `--sp-line` REMOVED 2026-08-23, zero remaining uses; it was already
+   * `var(--mrd-line)`. */
   /* A FIELD EDGE THAT CAN BE SEEN, which --sp-line cannot be.
    *
    * WCAG 1.4.11 asks 3:1 for the boundary of a control when the boundary is the
@@ -694,11 +705,12 @@
  * =================================================================== */
 
 :root {
-  /* Surfaces */
+  /* Surfaces
+   * REMOVED 2026-08-23, zero remaining uses measured across src outside
+   * tests: `--ink-overlay`. */
   --ink-bg: #0a0a0a;
   --ink-panel: #0d0d0e;
   --ink-raised: #18181b;
-  --ink-overlay: rgba(0, 0, 0, 0.8);
 
   /* Text ramp (zinc).
    *
@@ -732,35 +744,23 @@
   --ink-subtle: #8b8b93;
   --ink-faint: #7a7a82;
 
-  /* Structure */
+  /* Structure
+   * REMOVED 2026-08-23, zero remaining uses: `--ink-grid-fine` and
+   * `--ink-grid-coarse`. */
   --ink-hairline: rgba(255, 255, 255, 0.09);
   --ink-hairline-soft: rgba(255, 255, 255, 0.05);
-  --ink-grid-fine: rgba(255, 255, 255, 0.038);
-  --ink-grid-coarse: rgba(255, 255, 255, 0.06);
 
-  /* The three voices (color = who is speaking, never decoration) */
+  /* The three voices (color = who is speaking, never decoration)
+   * REMOVED 2026-08-23, zero remaining uses: `--voice-human-border`,
+   * `--voice-human-dim`, `--voice-human-soft`, `--voice-human-faint`,
+   * `--voice-machine-border`, `--voice-machine-faint`, the whole
+   * `--voice-memory-*` family, and the whole chip ramp (`--chip-*`, five
+   * tokens, founder ruling 2026-07-19 Addendum 1.3 retired with them). */
   --voice-human: oklch(0.72 0.16 315);
   --voice-human-hover: oklch(0.78 0.15 315);
-  --voice-human-dim: oklch(0.56 0.12 315);
-  --voice-human-border: color-mix(in oklab, var(--voice-human) 40%, transparent);
-  --voice-human-soft: oklch(0.26 0.07 315);
-  --voice-human-faint: oklch(0.21 0.05 315);
   --voice-machine: #6cb0f5;
   --voice-machine-dim: #4d7fb3;
-  --voice-machine-border: rgba(108, 176, 245, 0.35);
   --voice-machine-soft: #172534;
-  --voice-machine-faint: #0f1822;
-  /* Chip ramp: slate silver, founder ruling 2026-07-19 (Addendum 1.3). Chips never wear ember. */
-  --chip-fg: #b9c4d4;
-  --chip-dim: #79828f;
-  --chip-border: rgba(185, 196, 212, 0.28);
-  --chip-soft: #171b21;
-  --chip-faint: #101317;
-  --voice-memory: #d3c39c; /* Vellum, founder pick 2026-07-19; memory moments ONLY */
-  --voice-memory-dim: #8f8060;
-  --voice-memory-border: rgba(211, 195, 156, 0.32);
-  --voice-memory-soft: #211c10;
-  --voice-memory-faint: #16130b;
 
   /* Verdicts (outcomes only; working IS the machine speaking, so it uses the machine ramp) */
   --verdict-pass: #4ac26b;
@@ -770,25 +770,20 @@
   --ink-focus-gap: var(--ink-bg);
   --ink-focus-ring: var(--voice-human);
 
-  /* Geometry */
-  --ink-radius-control: 8px;
+  /* Geometry
+   * REMOVED 2026-08-23, zero remaining uses: `--ink-radius-control`,
+   * `--ink-radius-hero`, `--ink-control-sm/md/lg`. */
   --ink-radius-panel: 12px;
-  --ink-radius-hero: 14px;
-  --ink-control-sm: 32px;
-  --ink-control-md: 36px;
-  --ink-control-lg: 40px;
 
-  /* Motion (state, never decoration) */
+  /* Motion (state, never decoration)
+   * REMOVED 2026-08-23, zero remaining uses: `--ink-fast`, `--ink-slow`. */
   --ink-ease: cubic-bezier(0.23, 1, 0.3, 1);
-  --ink-fast: 150ms;
-  --ink-slow: 250ms;
 }
 
 [data-theme="light"] {
   --ink-bg: #ffffff;
   --ink-panel: #fafafa;
   --ink-raised: #f4f4f5;
-  --ink-overlay: rgba(255, 255, 255, 0.85);
 
   --ink-text: #18181b;
   --ink-body: #52525b;
@@ -797,30 +792,15 @@
 
   --ink-hairline: rgba(0, 0, 0, 0.09);
   --ink-hairline-soft: rgba(0, 0, 0, 0.05);
-  --ink-grid-fine: rgba(0, 0, 0, 0.03);
-  --ink-grid-coarse: rgba(0, 0, 0, 0.05);
 
+  /* The dead dark-ground members above were mirrored here and are removed
+   * with them, 2026-08-23: overlay, grid-fine/coarse, the voice border/dim/
+   * soft/faint steps, the whole memory family, the chip ramp. */
   --voice-human: oklch(0.5 0.19 315);
   --voice-human-hover: oklch(0.44 0.185 315);
-  --voice-human-dim: oklch(0.58 0.14 315);
-  --voice-human-border: color-mix(in oklab, var(--voice-human) 45%, transparent);
-  --voice-human-soft: oklch(0.95 0.03 315);
-  --voice-human-faint: #fdf2ec;
   --voice-machine: #2e6ed6;
   --voice-machine-dim: #5b86bd;
-  --voice-machine-border: rgba(46, 110, 214, 0.35);
   --voice-machine-soft: #e4eefb;
-  --voice-machine-faint: #f0f6fd;
-  --chip-fg: #3f4c60;
-  --chip-dim: #77839a;
-  --chip-border: rgba(63, 76, 96, 0.28);
-  --chip-soft: #edf0f4;
-  --chip-faint: #f5f7fa;
-  --voice-memory: #7d6c42;
-  --voice-memory-dim: #a8996f;
-  --voice-memory-border: rgba(125, 108, 66, 0.35);
-  --voice-memory-soft: #f2eddf;
-  --voice-memory-faint: #f8f5ec;
 
   --verdict-pass: #1a7f37;
   --verdict-fail: #cf222e;

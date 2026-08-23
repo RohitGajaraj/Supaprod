@@ -52,6 +52,25 @@ const ROWS: ReadonlyArray<{ selector: string; file: string }> = [
   { selector: ".sp-dock-row", file: "shell.css" },
 ];
 
+/**
+ * Resolve a leading token to its number, through an alias if need be.
+ *
+ * Since ANS-001 (2026-08-23) ink.css declares these as `var(--mrd-lh-*)`
+ * rather than literals, so the value that paints lives in meridian.css. The
+ * doctrine is about the VALUES, not about where they are written, so an alias
+ * resolves before comparing. A token that resolves to nothing fails below,
+ * which is the safe direction.
+ */
+function resolveLeading(ink: string, meridian: string, token: string): number {
+  const decl = new RegExp(`--${token}:\\s*([^;]+);`).exec(ink)?.[1]?.trim();
+  if (!decl) return NaN;
+  const direct = Number(decl);
+  if (Number.isFinite(direct)) return direct;
+  const ref = /^var\(--([a-z0-9-]+)\)$/.exec(decl)?.[1];
+  if (!ref) return NaN;
+  return Number(new RegExp(`--${ref}:\\s*([\\d.]+)`).exec(meridian)?.[1]);
+}
+
 describe("row primitives are scanned, not read", () => {
   for (const { selector, file } of ROWS) {
     it(`${selector} declares its own leading`, () => {
@@ -69,9 +88,12 @@ describe("row primitives are scanned, not read", () => {
   it("keeps row leading tighter than body leading", () => {
     // The whole change is worthless if these two tokens ever converge, and a
     // future tidy-up that "simplifies" the scale is exactly how that happens.
+    // Resolved through aliases since 2026-08-23: snug (1.5) against prose
+    // (1.625), wherever those values are declared.
     const ink = css("ink.css");
-    const row = Number(/--sp-leading-row:\s*([\d.]+)/.exec(ink)?.[1]);
-    const body = Number(/--sp-leading-body:\s*([\d.]+)/.exec(ink)?.[1]);
+    const meridian = css("meridian.css");
+    const row = resolveLeading(ink, meridian, "sp-leading-row");
+    const body = resolveLeading(ink, meridian, "sp-leading-body");
     expect(Number.isFinite(row)).toBe(true);
     expect(Number.isFinite(body)).toBe(true);
     expect(row).toBeLessThan(body);
