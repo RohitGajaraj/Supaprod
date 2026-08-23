@@ -2,25 +2,41 @@
 
 > _Created: 2026-08-23 · Last updated: 2026-08-23_
 
-**One folder, one document.** Two sessions run at once on this repository and talk only
-through git. Both prompts are in this file: scroll to
-[Lane 1](#lane-1-prompt-paste-into-opencode--ox-alpha) or
-[Main lane](#main-lane-prompt-paste-into-claude-code), select the section, paste it in.
+**THREE sessions run at once** on this repository and talk only through git. **Each has its own
+prompt file, so it can be copied in one action and pasted whole:**
 
-| Lane | Runs on | Owns | Cannot |
+| Paste this | Into |
+| --- | --- |
+| [`PROMPT-main-lane.md`](./PROMPT-main-lane.md) | Claude Code |
+| [`PROMPT-lane-1.md`](./PROMPT-lane-1.md) | opencode / OX Alpha, worktree `cadence-lane-1` |
+| [`PROMPT-lane-0.md`](./PROMPT-lane-0.md) | opencode / OX Alpha, worktree `cadence-lane-0` |
+
+**This file is the protocol they share.** It is the reference all three point back at; the
+prompts are self-contained and a lane does not have to read this to start.
+
+The `LANE 1 PROMPT` and `MAIN LANE PROMPT` sections further down are the ORIGINALS from
+2026-08-23 03:00, kept for the record. **They are superseded by the three files above**, which
+carry the three-way split and everything Meridian gained during the run.
+
+| Lane | Runs on | Owns (BY PATH) | Worktree |
 | --- | --- | --- | --- |
-| **LANE 1** | opencode / OX Alpha, overnight | Building: surfaces, components, Meridian adoption | Reach the database, deploy, or call Mobbin |
-| **MAIN LANE** | Claude Code | Verification, live database, deploys, Mobbin MCP, approvals | Build on files LANE 1 holds |
+| **MAIN LANE** | Claude Code | `src/styles/meridian.css`, `src/components/meridian/**`, plus the live database, deploys, Mobbin and every ruling | `Supaprod` (on `main`) |
+| **LANE 1** | opencode / OX Alpha | `src/styles/**` except meridian.css, `src/components/shell/**`, `src/routes/**` | `cadence-lane-1` |
+| **LANE 0** | opencode / OX Alpha | `src/components/**` EXCEPT `meridian/` and `shell/` | `cadence-lane-0` |
+
+**The split is by PATH and it is absolute.** Three autonomous sessions can only hold a boundary
+they can check with a path prefix before every edit. A file touched by two lanes is the failure
+that broke `main` on 2026-08-22.
 
 **What is in this folder**
 
 | Path | Who writes it |
 | --- | --- |
-| `README.md` (this file) | Nobody during the run. It is the brief. |
-| `STATUS.md` | MAIN LANE only. LANE 1 reads it. |
-| `requests/` | LANE 1 only. One file per question. |
+| `README.md` (this file) | Nobody during the run. It is the brief and every prompt. |
+| `STATUS.md` | MAIN LANE only. Both building lanes read it. |
+| `requests/` | The building lanes. One file per question. **LANE 0 prefixes `L0-`.** |
 | `answers/` | MAIN LANE only. One file per answer. |
-| `units/` | LANE 1 only. One file per completed unit. |
+| `units/` | The building lanes. One file per completed unit. **LANE 0 prefixes `L0-`.** |
 
 **Why this folder is not under `docs/`.** `requests/`, `answers/` and `units/` fill up with
 message files during the run, and `docs-doctor` hard-fails any doc under `docs/` that
@@ -993,6 +1009,6 @@ quality of what you send it.
   directly; he does not hold that credential.
 - The founder's number one pain point is typographic and status hierarchy: text is
   *"randomly dumped"* with no visible difference between heading, body, subtext, status and
-  tagline, and buttons that are not differentiable. Meridian already has 14 type steps and a
-  full status family, so this is an **adoption** failure. Judge every surface against that
-  first.
+  tagline, and buttons that are not differentiable. Meridian has **13** type steps and **five**
+  status words, so this is an **adoption** failure. Judge every surface against that first.
+  Both counts were corrected on 2026-08-23; see `answers/M04`.

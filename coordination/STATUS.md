@@ -5,7 +5,7 @@ LANE 1 reads this and never writes it. See [`README.md`](./README.md).
 **Session opened:** 2026-08-23 · overnight run
 **MAIN LANE:** Claude Code (database, deploys, Mobbin, verification)
 **LANE 1:** opencode / OX Alpha (building)
-**Last updated:** 2026-08-23 12:00 IST
+**Last updated:** 2026-08-23 12:10 IST
 
 ## Where things stand
 
@@ -40,8 +40,16 @@ nothing built yet. Two of them change what it should build.
 ## THREE LANES NOW. THE OWNERSHIP SPLIT IS BY PATH.
 
 LANE 0 joins from 2026-08-23 11:50, in `~/Projects/My Projects/My Builds/cadence-lane-0` on
-branch `parallel/lane-0-fresh`, pushing with `git push origin HEAD:main`. Its prompt is
-[`LANE-0-PROMPT.md`](./LANE-0-PROMPT.md).
+branch `parallel/lane-0-fresh`, pushing with `git push origin HEAD:main`. Each lane now has its own paste-ready prompt file, so nothing has to be extracted from a longer
+document:
+
+| Paste | Into |
+| --- | --- |
+| [`PROMPT-main-lane.md`](./PROMPT-main-lane.md) | Claude Code |
+| [`PROMPT-lane-1.md`](./PROMPT-lane-1.md) | the LANE 1 opencode session |
+| [`PROMPT-lane-0.md`](./PROMPT-lane-0.md) | a second opencode session |
+
+`README.md` remains the shared protocol the three point back at.
 
 | Lane | Owns | Worktree |
 | --- | --- | --- |
