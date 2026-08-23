@@ -114,7 +114,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           }}
         >
           <SupaprodMark />
-          <span className="font-display" style={{ fontSize: 14 }}>
+          <span className="font-display text-mrd-prose">
             Supaprod
           </span>
         </Link>
@@ -128,13 +128,13 @@ function Shell({ children }: { children: React.ReactNode }) {
       </main>
 
       <footer
+        className="text-mrd-tiny"
         style={{
           borderTop: "1px solid var(--mrd-edge)",
           padding: "14px 18px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          fontSize: 11,
           color: "var(--ink-subtle)",
         }}
       >
@@ -153,9 +153,8 @@ function Section({ title, items, empty }: { title: string; items: string[]; empt
   return (
     <div style={{ marginTop: 18 }}>
       <div
-        className="mono-label"
+        className="mono-label text-mrd-nano"
         style={{
-          fontSize: 10,
           textTransform: "uppercase",
           letterSpacing: "0.16em",
           color: "var(--ink-muted)",
@@ -165,7 +164,7 @@ function Section({ title, items, empty }: { title: string; items: string[]; empt
         {title}
       </div>
       {items.length === 0 ? (
-        <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: 0 }}>{empty}</p>
+        <p className="text-mrd-label" style={{ color: "var(--ink-muted)", margin: 0 }}>{empty}</p>
       ) : (
         <ul
           style={{ display: "flex", flexDirection: "column", gap: 6, paddingLeft: 16, margin: 0 }}
@@ -188,10 +187,10 @@ function PublicTeardownPage() {
     return (
       <Shell>
         <div className="bento" style={{ padding: 24, textAlign: "center" }}>
-          <div className="font-display" style={{ fontSize: 20, marginBottom: 6 }}>
+          <div className="font-display text-mrd-h3" style={{ marginBottom: 6 }}>
             Not available
           </div>
-          <p style={{ fontSize: 13, color: "var(--ink-muted)", margin: 0 }}>
+          <p className="text-mrd-base" style={{ color: "var(--ink-muted)", margin: 0 }}>
             This teardown is private, or the link is no longer valid.
           </p>
         </div>
@@ -243,8 +242,8 @@ function PublicTeardownPage() {
           The verdict
         </div>
         <p
+          className="text-mrd-prose"
           style={{
-            fontSize: 14,
             lineHeight: 1.65,
             color: "var(--ink-muted)",
             margin: 0,
@@ -268,8 +267,8 @@ function PublicTeardownPage() {
       />
 
       <p
+        className="text-mrd-data"
         style={{
-          fontSize: 11.5,
           color: "var(--ink-subtle)",
           marginTop: 22,
           lineHeight: 1.5,

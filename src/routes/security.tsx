@@ -90,7 +90,7 @@ function SecurityPage() {
       <LegalSection title="No training on your data">
         <p>
           Your product's decisions, specs, and code are not used to train a shared model. See the{" "}
-          <a href="/privacy" style={{ color: "#ff9542" }}>
+          <a href="/privacy" style={{ color: "var(--ember)" }}>
             privacy policy
           </a>{" "}
           for the full statement.
@@ -102,7 +102,7 @@ function SecurityPage() {
           Supaprod relies on infrastructure and AI providers to deliver the product, and on
           third-party services that you explicitly connect (for example a code repository or
           calendar). The full, live list of sub-processors and what each one receives is public at{" "}
-          <a href="/subprocessors" style={{ color: "#ff9542" }}>
+          <a href="/subprocessors" style={{ color: "var(--ember)" }}>
             the sub-processor disclosure
           </a>
           . Connections you create are scoped to your workspace, and you can disconnect them at any
@@ -115,7 +115,7 @@ function SecurityPage() {
           You can delete data you have created (workspaces, products, documents, signals) from
           inside the app, and export your data in open formats from Settings. Account deletion or
           data export requests can also be made by emailing{" "}
-          <a href="mailto:privacy@supaprod.ai" style={{ color: "#ff9542" }}>
+          <a href="mailto:privacy@supaprod.ai" style={{ color: "var(--ember)" }}>
             privacy@supaprod.ai
           </a>
           .
@@ -125,7 +125,7 @@ function SecurityPage() {
       <LegalSection title="Reporting a concern">
         <p>
           If you find a security issue, tell us before you tell anyone else. Email{" "}
-          <a href="mailto:security@supaprod.ai" style={{ color: "#ff9542" }}>
+          <a href="mailto:security@supaprod.ai" style={{ color: "var(--ember)" }}>
             security@supaprod.ai
           </a>
           . We will acknowledge real reports and keep you posted as we fix them.

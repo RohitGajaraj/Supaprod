@@ -70,8 +70,8 @@ function ForgotPasswordPage() {
       {sent ? (
         <div style={{ textAlign: "center" }}>
           <p
+            className="text-mrd-label"
             style={{
-              fontSize: 12.5,
               color: "var(--mrd-mute)",
               margin: "4px 0 14px",
               lineHeight: "var(--mrd-lh-prose)",

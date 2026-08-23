@@ -168,8 +168,8 @@ function LoginPage() {
       title="Welcome back"
       subhead={
         <p
+          className="text-mrd-small"
           style={{
-            fontSize: 12,
             color: "var(--mrd-mute)",
             marginTop: 10,
             lineHeight: "var(--mrd-lh-snug)",

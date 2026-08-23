@@ -790,7 +790,10 @@ function EmailHealth() {
           {test.isPending ? "Sending" : "Send test"}
         </Action>
       </div>
-      <p style={{ fontSize: 11, color: "var(--mrd-mute)", margin: "8px 0 0", lineHeight: 1.5 }}>
+      <p
+        className="text-mrd-tiny"
+        style={{ color: "var(--mrd-mute)", margin: "8px 0 0", lineHeight: 1.5 }}
+      >
         A real send, not a validation call: only a message arriving in an inbox answers the
         question. Gmail plus-addressing gives you unlimited distinct test addresses that all land in
         one inbox, so <Value>you+test1@</Value> and <Value>you+test2@</Value> both work.

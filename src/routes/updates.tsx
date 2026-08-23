@@ -120,9 +120,9 @@ function UpdatesPage() {
         {ENTRIES.map((e) => (
           <div key={e.title} style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 20 }}>
             <span
+              className="text-mrd-data"
               style={{
                 fontFamily: "Geist Mono, monospace",
-                fontSize: 11.5,
                 color: "var(--ink-subtle)",
                 paddingTop: 2,
               }}
@@ -158,17 +158,23 @@ function UpdatesPage() {
           <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 20 }}>
             {ENTRIES.filter((e) => e.fromPulse).map((e) => (
               <div key={e.title}>
-                <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", margin: "0 0 4px" }}>
+                <h3
+                  className="text-mrd-prose"
+                  style={{ fontWeight: 600, color: "var(--ink)", margin: "0 0 4px" }}
+                >
                   {e.title}
                 </h3>
-                <p style={{ fontSize: 13, color: "var(--ink-subtle)", margin: 0, lineHeight: 1.6 }}>
+                <p
+                  className="text-mrd-base"
+                  style={{ color: "var(--ink-subtle)", margin: 0, lineHeight: 1.6 }}
+                >
                   {e.body}
                 </p>
               </div>
             ))}
           </div>
         ) : (
-          <p style={{ fontSize: 13, color: "var(--ink-faint)", margin: 0 }}>
+          <p className="text-mrd-base" style={{ color: "var(--ink-faint)", margin: 0 }}>
             Nothing here yet. Every thumbs-up or thumbs-down in the product becomes a real signal,
             and this section fills in with real shipped changes once one drives a decision.
           </p>

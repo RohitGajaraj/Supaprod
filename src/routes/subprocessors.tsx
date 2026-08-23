@@ -57,14 +57,17 @@ function ProcessorRow({ s, first }: { s: SubProcessor; first: boolean }) {
         }}
       >
         <span style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>{s.name}</span>
-        <span className="mono-label" style={{ fontSize: 10, color: "var(--ink-faint)" }}>
+        <span className="mono-label text-mrd-nano" style={{ color: "var(--ink-faint)" }}>
           {CATEGORY_LABEL[s.category]}
         </span>
       </div>
       <p style={{ fontSize: 13.5, color: "var(--ink-muted)", margin: "5px 0 0", lineHeight: 1.5 }}>
         {s.purpose}
       </p>
-      <p style={{ fontSize: 12.5, color: "var(--ink-faint)", margin: "5px 0 0", lineHeight: 1.5 }}>
+      <p
+        className="text-mrd-label"
+        style={{ color: "var(--ink-faint)", margin: "5px 0 0", lineHeight: 1.5 }}
+      >
         Receives: {s.dataCategories.join(", ")}
         {s.region ? ` · Processed in ${s.region}` : ""}
       </p>
@@ -78,7 +81,10 @@ function Section({ title, note, items }: { title: string; note?: string; items: 
     <section style={{ marginTop: 36 }}>
       <h2 style={{ fontSize: 16, fontWeight: 600, color: "var(--ink)", margin: 0 }}>{title}</h2>
       {note && (
-        <p style={{ fontSize: 13, color: "var(--ink-faint)", margin: "6px 0 0", lineHeight: 1.5 }}>
+        <p
+          className="text-mrd-base"
+          style={{ color: "var(--ink-faint)", margin: "6px 0 0", lineHeight: 1.5 }}
+        >
           {note}
         </p>
       )}
@@ -115,7 +121,7 @@ function SubprocessorsPage() {
         <a href="/" className="font-display text-sm" style={{ color: "var(--ink)" }}>
           Supaprod
         </a>
-        <span className="mono-label" style={{ fontSize: 10, color: "var(--ink-faint)" }}>
+        <span className="mono-label text-mrd-nano" style={{ color: "var(--ink-faint)" }}>
           Trust
         </span>
       </header>
@@ -146,8 +152,8 @@ function SubprocessorsPage() {
         />
 
         <p
+          className="text-mrd-label"
           style={{
-            fontSize: 12.5,
             color: "var(--ink-faint)",
             margin: "40px 0 0",
             lineHeight: 1.6,

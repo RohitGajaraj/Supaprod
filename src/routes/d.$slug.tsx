@@ -105,9 +105,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           }}
         >
           <SupaprodMark />
-          <span className="font-display" style={{ fontSize: 14 }}>
-            Supaprod
-          </span>
+          <span className="font-display text-mrd-prose">Supaprod</span>
         </Link>
         <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint)" }}>
           shared decision
@@ -119,13 +117,13 @@ function Shell({ children }: { children: React.ReactNode }) {
       </main>
 
       <footer
+        className="text-mrd-tiny"
         style={{
           borderTop: "1px solid var(--soft-stone)",
           padding: "14px 18px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          fontSize: 11,
           color: "var(--ink-subtle)",
         }}
       >
@@ -147,10 +145,10 @@ function PublicDecisionPage() {
     return (
       <Shell>
         <div className="bento" style={{ padding: 24, textAlign: "center" }}>
-          <div className="font-display" style={{ fontSize: 20, marginBottom: 6 }}>
+          <div className="font-display text-mrd-h3" style={{ marginBottom: 6 }}>
             Not available
           </div>
-          <p style={{ fontSize: 13, color: "var(--ink-muted)", margin: 0 }}>
+          <p className="text-mrd-base" style={{ color: "var(--ink-muted)", margin: 0 }}>
             This decision is private, or the link is no longer valid.
           </p>
         </div>
@@ -192,12 +190,11 @@ function PublicDecisionPage() {
         }}
       >
         <span
-          className="mono-label"
+          className="mono-label text-mrd-nano"
           style={{
             display: "inline-flex",
             alignItems: "center",
             gap: 5,
-            fontSize: 10,
             color: st.color,
           }}
         >
@@ -214,7 +211,7 @@ function PublicDecisionPage() {
         </span>
         {/* TRUST-SHARE: the honest provenance outcome — does this call still stand? */}
         <span
-          className="mono-label"
+          className="mono-label text-mrd-nano"
           title={
             decision.outcome === "superseded"
               ? "A later decision superseded this one, shown for honest history."
@@ -224,7 +221,6 @@ function PublicDecisionPage() {
             display: "inline-flex",
             alignItems: "center",
             gap: 5,
-            fontSize: 10,
             padding: "2px 8px",
             borderRadius: 99,
             color: decision.outcome === "superseded" ? "var(--ink-subtle)" : "var(--mrd-pass)",
@@ -242,8 +238,8 @@ function PublicDecisionPage() {
           Why
         </div>
         <p
+          className="text-mrd-prose"
           style={{
-            fontSize: 14,
             lineHeight: 1.65,
             color: "var(--ink-muted)",
             margin: 0,
@@ -254,8 +250,8 @@ function PublicDecisionPage() {
         </p>
       </div>
       <p
+        className="text-mrd-data"
         style={{
-          fontSize: 11.5,
           color: "var(--ink-subtle)",
           marginTop: 18,
           lineHeight: 1.5,

@@ -86,8 +86,8 @@ function ResetPasswordPage() {
       {done ? (
         <div style={{ textAlign: "center" }}>
           <p
+            className="text-mrd-label"
             style={{
-              fontSize: 12.5,
               color: "var(--mrd-mute)",
               margin: "4px 0 14px",
               lineHeight: "var(--mrd-lh-prose)",
@@ -119,8 +119,8 @@ function ResetPasswordPage() {
             style={{ color: "var(--mrd-mute)" }}
           />
           <p
+            className="text-mrd-label"
             style={{
-              fontSize: 12.5,
               color: "var(--mrd-mute)",
               margin: "4px 0",
               lineHeight: "var(--mrd-lh-prose)",
@@ -132,8 +132,8 @@ function ResetPasswordPage() {
       ) : canReset === false ? (
         <div style={{ textAlign: "center" }}>
           <p
+            className="text-mrd-label"
             style={{
-              fontSize: 12.5,
               color: "var(--mrd-mute)",
               margin: "4px 0 14px",
               lineHeight: "var(--mrd-lh-prose)",

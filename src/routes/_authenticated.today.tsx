@@ -1426,6 +1426,15 @@ function Today() {
                   stretched across a region centres its text and underlines it
                   across the full width, which reads as a broken heading. */}
               <div className="flex flex-col items-start gap-mrd-3">
+                {/* What this learning was about, named above the claim rather
+                    than folded into the evidence line: evidence is mono and
+                    holds counts and dates, never a title. Absent when the
+                    learning carries no opportunity, and then nothing prints. */}
+                {learning.opportunity_title ? (
+                  <p className="m-0 max-w-[68ch] text-mrd-label leading-mrd-prose text-mrd-mute">
+                    About {learning.opportunity_title}
+                  </p>
+                ) : null}
                 <RecordSpeaks
                   evidence={
                     <>

@@ -247,7 +247,7 @@ function DemoPage() {
               onClick={onSignupClick}
               // text-[var(--cta-ink)]: white on ember is 2.84:1 and fails WCAG
               // AA. See the note on Hero.tsx's CTA.
-              className="inline-block px-8 py-3 rounded-full bg-[#FF6B2C] text-[var(--cta-ink)] font-medium hover:bg-[#ff8344] active:scale-[0.98] transition-all duration-200 no-underline"
+              className="inline-block px-8 py-3 rounded-full bg-[var(--ember)] text-[var(--cta-ink)] font-medium hover:bg-[#ff8344] active:scale-[0.98] transition-all duration-200 no-underline"
             >
               Join the beta
             </a>

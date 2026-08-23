@@ -83,7 +83,7 @@ function PrivacyPage() {
           workspaces by row-level security. You can export your data in open formats at any time
           from Settings. The third parties that process data on Supaprod's behalf, and what each one
           receives, are listed publicly on{" "}
-          <a href="/subprocessors" style={{ color: "#ff9542" }}>
+          <a href="/subprocessors" style={{ color: "var(--ember)" }}>
             the sub-processor disclosure
           </a>
           .
@@ -145,11 +145,11 @@ function PrivacyPage() {
       <LegalSection title="Contact">
         <p>
           Questions about this policy or a request to export or delete your data: email{" "}
-          <a href="mailto:privacy@supaprod.ai" style={{ color: "#ff9542" }}>
+          <a href="mailto:privacy@supaprod.ai" style={{ color: "var(--ember)" }}>
             privacy@supaprod.ai
           </a>
           , or see the{" "}
-          <a href="/security" style={{ color: "#ff9542" }}>
+          <a href="/security" style={{ color: "var(--ember)" }}>
             security page
           </a>{" "}
           for how to report a concern.

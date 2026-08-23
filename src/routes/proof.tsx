@@ -100,13 +100,13 @@ function Shell({ children }: { children: React.ReactNode }) {
       </main>
 
       <footer
+        className="text-mrd-tiny"
         style={{
           borderTop: "1px solid var(--mrd-edge)",
           padding: "14px 18px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          fontSize: 11,
           color: "var(--ink-subtle)",
         }}
       >
@@ -185,12 +185,11 @@ function CalibrationHero({
         </>
       )}
       <div
-        className="mono-label"
+        className="mono-label text-mrd-nano"
         style={{
           marginTop: 16,
           paddingTop: 14,
           borderTop: "1px solid var(--mrd-edge)",
-          fontSize: 10,
           color: "var(--ink-subtle)",
         }}
       >
@@ -237,7 +236,8 @@ function ProofPage() {
       {decisions.length === 0 ? (
         <div className="bento" style={{ padding: 24, textAlign: "center" }}>
           <p
-            style={{ fontSize: 13, color: "var(--ink-muted)", margin: 0, lineHeight: 1.6 }}
+            className="text-mrd-base"
+            style={{ color: "var(--ink-muted)", margin: 0, lineHeight: 1.6 }}
           >
             No public decisions yet. Every one of these is a real call from Supaprod's own build,
             shared by its owner, receipt and all, never seeded or staged. That is why this section

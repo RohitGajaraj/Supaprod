@@ -92,7 +92,7 @@ function ConnectorChips({ showWrite = false }: { showWrite?: boolean }) {
           </svg>
         </span>
       ))}
-      <span style={{ fontSize: 10, color: "var(--mrd-mute)", fontWeight: 500 }}>+ more</span>
+      <span className="text-mrd-nano" style={{ color: "var(--mrd-mute)", fontWeight: 500 }}>+ more</span>
       <span
         style={{
           fontSize: 9,
@@ -271,8 +271,8 @@ function BillingToggle({ annual, onChange }: { annual: boolean; onChange: (v: bo
             <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
               Annual
               <span
+                className="text-mrd-micro"
                 style={{
-                  fontSize: 10.5,
                   fontWeight: 600,
                   color: "var(--mrd-pass)",
                   background: "color-mix(in oklab, var(--mrd-pass) 14%, transparent)",
@@ -402,9 +402,8 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
        * All visual properties are set here explicitly, so promoting the tag
        * changes the semantics and nothing about the rendering. */}
       <h2
-        className="font-display"
+        className="font-display text-mrd-h3"
         style={{
-          fontSize: 20,
           fontWeight: 460,
           marginBottom: 6,
           display: "block",
@@ -417,8 +416,8 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
 
       {/* Who it's for */}
       <p
+        className="text-mrd-label"
         style={{
-          fontSize: 12.5,
           color: "var(--mrd-ink)",
           fontWeight: 500,
           margin: "0 0 5px",
@@ -430,8 +429,8 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
 
       {/* Tagline */}
       <p
+        className="text-mrd-data"
         style={{
-          fontSize: 11.5,
           color: "var(--mrd-mute)",
           margin: 0,
           lineHeight: 1.5,
@@ -452,8 +451,8 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             Custom
           </span>
           <span
+            className="text-mrd-small"
             style={{
-              fontSize: 12,
               color: "var(--mrd-body)",
               display: "block",
               marginTop: 4,
@@ -462,8 +461,8 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             Committed credits, unlimited seats
           </span>
           <span
+            className="text-mrd-data"
             style={{
-              fontSize: 11.5,
               color: "var(--mrd-mute)",
               display: "block",
               marginTop: 2,
@@ -475,12 +474,12 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
       ) : isFree ? (
         <div style={{ marginBottom: 16 }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-            <span className="font-display" style={{ fontSize: 32, fontWeight: 480, lineHeight: 1 }}>
+            <span className="font-display text-mrd-h1" style={{ fontWeight: 480, lineHeight: 1 }}>
               $0
             </span>
-            <span style={{ fontSize: 12, color: "var(--mrd-mute)" }}>/month</span>
+            <span className="text-mrd-small" style={{ color: "var(--mrd-mute)" }}>/month</span>
           </div>
-          <p style={{ fontSize: 11, color: "var(--mrd-mute)", margin: "5px 0 0" }}>
+          <p className="text-mrd-tiny" style={{ color: "var(--mrd-mute)", margin: "5px 0 0" }}>
             No credit card needed
           </p>
         </div>
@@ -488,10 +487,10 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
         <div style={{ marginBottom: 16 }}>
           {/* Price + billing label row */}
           <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-            <span className="font-display" style={{ fontSize: 32, fontWeight: 480, lineHeight: 1 }}>
+            <span className="font-display text-mrd-h1" style={{ fontWeight: 480, lineHeight: 1 }}>
               ${displayPrice}
             </span>
-            <span style={{ fontSize: 13, color: "var(--mrd-mute)" }}>/mo</span>
+            <span className="text-mrd-base" style={{ color: "var(--mrd-mute)" }}>/mo</span>
           </div>
           <div
             style={{
@@ -502,13 +501,13 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
               flexWrap: "wrap",
             }}
           >
-            <span style={{ fontSize: 11, color: "var(--mrd-mute)" }}>
+            <span className="text-mrd-tiny" style={{ color: "var(--mrd-mute)" }}>
               {annual ? "billed annually" : "billed monthly"}
             </span>
             {yearlySavings && (
               <span
+                className="text-mrd-tiny"
                 style={{
-                  fontSize: 11,
                   fontWeight: 600,
                   color: "var(--mrd-pass)",
                   background: "color-mix(in oklab, var(--mrd-pass) 14%, transparent)",
@@ -545,7 +544,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
           <div style={{ fontSize: 15, color: "var(--mrd-ink)", fontWeight: 500 }}>
             {includedCreditsFor(tier)?.toLocaleString() ?? "Custom"} included
           </div>
-          <div style={{ fontSize: 11.5, color: "var(--mrd-mute)", marginTop: 3 }}>
+          <div className="text-mrd-data" style={{ color: "var(--mrd-mute)", marginTop: 3 }}>
             Need more? Add credits any time, up to twice your monthly allowance. No plan change.
           </div>
         </div>
@@ -639,11 +638,11 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
           return (
             <li
               key={i}
+              className="text-mrd-small"
               style={{
                 display: "flex",
                 flexDirection: "column",
                 gap: 0,
-                fontSize: 12,
                 lineHeight: 1.45,
                 color: quiet ? "var(--mrd-mute)" : "var(--mrd-ink)",
                 fontWeight: isHeader ? 500 : 400,
@@ -723,14 +722,14 @@ function PricingPage() {
             }}
           >
             <SupaprodMark />
-            <span className="font-display" style={{ fontSize: 14 }}>
+            <span className="font-display text-mrd-prose">
               Supaprod
             </span>
           </Link>
           <a
             href="/login"
+            className="text-mrd-base"
             style={{
-              fontSize: 13,
               color: "var(--mrd-ink)",
               textDecoration: "none",
               border: "1px solid var(--mrd-line)",
@@ -747,9 +746,9 @@ function PricingPage() {
             {/* Headline */}
             <div style={{ textAlign: "center", marginBottom: 28 }}>
               <p
+                className="text-mrd-nano"
                 style={{
                   fontFamily: "Geist Mono, monospace",
-                  fontSize: 10,
                   letterSpacing: "0.16em",
                   textTransform: "uppercase",
                   color: "var(--mrd-mute)",
@@ -775,8 +774,8 @@ function PricingPage() {
                 Free to start, once you are in. Pick the capacity that fits how hard you run it.
               </h1>
               <p
+                className="text-mrd-prose"
                 style={{
-                  fontSize: 14,
                   lineHeight: 1.6,
                   color: "var(--mrd-mute)",
                   margin: "0 auto 24px",
@@ -819,8 +818,8 @@ function PricingPage() {
               With one author there is nobody to share with, so nothing is held
               back, and a link covers the times you need to show someone. */}
             <p
+              className="text-mrd-small"
               style={{
-                fontSize: 12,
                 color: "var(--mrd-mute)",
                 textAlign: "center",
                 marginTop: 28,
@@ -839,8 +838,8 @@ function PricingPage() {
 
             {/* Footer note */}
             <p
+              className="text-mrd-data"
               style={{
-                fontSize: 11.5,
                 color: "var(--mrd-mute)",
                 textAlign: "center",
                 marginTop: 12,
@@ -857,13 +856,13 @@ function PricingPage() {
         </main>
 
         <footer
+          className="text-mrd-tiny"
           style={{
             borderTop: "1px solid var(--mrd-line)",
             padding: "14px 18px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            fontSize: 11,
             color: "var(--mrd-mute)",
           }}
         >
@@ -872,7 +871,8 @@ function PricingPage() {
           </span>
           <a
             href="/#join"
-            style={{ fontSize: 11, color: "var(--mrd-mute)", textDecoration: "none" }}
+            className="text-mrd-tiny"
+            style={{ color: "var(--mrd-mute)", textDecoration: "none" }}
           >
             Request access &rarr;
           </a>

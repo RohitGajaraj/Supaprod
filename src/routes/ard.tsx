@@ -33,7 +33,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section style={{ marginTop: 28 }}>
       <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{title}</h2>
-      <div style={{ color: "var(--ink-muted)", lineHeight: 1.6, fontSize: 14 }}>
+      <div className="text-mrd-prose" style={{ color: "var(--ink-muted)", lineHeight: 1.6 }}>
         {children}
       </div>
     </section>
@@ -105,7 +105,7 @@ function ArdPage() {
           <SupaprodMark size={22} />
           <span style={{ fontWeight: 600 }}>Supaprod</span>
         </Link>
-        <nav style={{ display: "flex", gap: 14, fontSize: 13 }}>
+        <nav className="text-mrd-base" style={{ display: "flex", gap: 14 }}>
           <a href="/llms.txt" style={{ color: "inherit", textDecoration: "none" }}>
             llms.txt
           </a>
@@ -120,8 +120,8 @@ function ArdPage() {
 
       <main style={{ maxWidth: 760, margin: "0 auto", padding: "48px 20px 80px" }}>
         <p
+          className="text-mrd-tiny"
           style={{
-            fontSize: 11,
             letterSpacing: "0.12em",
             textTransform: "uppercase",
             color: "var(--ink-muted)",
@@ -203,12 +203,12 @@ function ArdPage() {
 
         <Section title="Example document">
           <pre
+            className="text-mrd-small"
             style={{
               background: "rgba(0,0,0,0.04)",
               border: "1px solid var(--soft-stone)",
               borderRadius: 8,
               padding: "14px 16px",
-              fontSize: 12,
               lineHeight: 1.55,
               overflowX: "auto",
               fontFamily:
@@ -220,8 +220,8 @@ function ArdPage() {
         </Section>
 
         <p
+          className="text-mrd-label"
           style={{
-            fontSize: 12.5,
             color: "var(--ink-muted)",
             margin: "40px 0 0",
             lineHeight: 1.6,

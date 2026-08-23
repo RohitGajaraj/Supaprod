@@ -101,7 +101,7 @@ function JoinPage() {
         {(state.kind === "checking" || state.kind === "accepting") && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
             <Loader2 size={20} className="animate-spin" style={{ color: "var(--mrd-mute)" }} />
-            <p style={{ fontSize: 14, color: "var(--mrd-mute)" }}>
+            <p className="text-mrd-prose" style={{ color: "var(--mrd-mute)" }}>
               {state.kind === "checking" ? "Checking your invitation" : "Joining the workspace"}
             </p>
           </div>
@@ -110,14 +110,14 @@ function JoinPage() {
         {state.kind === "needs-login" && (
           <div>
             <h1
-              className="font-display"
-              style={{ fontSize: 20, color: "var(--mrd-ink)", marginBottom: 8 }}
+              className="font-display text-mrd-h3"
+              style={{ color: "var(--mrd-ink)", marginBottom: 8 }}
             >
               You have a workspace invitation
             </h1>
             <p
+              className="text-mrd-base"
               style={{
-                fontSize: 13,
                 color: "var(--mrd-mute)",
                 marginBottom: 18,
                 lineHeight: "var(--mrd-lh-prose)",
@@ -140,8 +140,8 @@ function JoinPage() {
                 here, in front of the person it affects, rather than left as a
                 dead button they discover on the next screen. */}
             <p
+              className="text-mrd-small"
               style={{
-                fontSize: 12,
                 color: "var(--mrd-mute)",
                 marginBottom: 18,
                 lineHeight: "var(--mrd-lh-prose)",
@@ -187,12 +187,12 @@ function JoinPage() {
               <Check size={16} />
             </div>
             <h1
-              className="font-display"
-              style={{ fontSize: 20, color: "var(--mrd-ink)", marginBottom: 8 }}
+              className="font-display text-mrd-h3"
+              style={{ color: "var(--mrd-ink)", marginBottom: 8 }}
             >
               You are in
             </h1>
-            <p style={{ fontSize: 13, color: "var(--mrd-mute)", marginBottom: 18 }}>
+            <p className="text-mrd-base" style={{ color: "var(--mrd-mute)", marginBottom: 18 }}>
               You have joined the workspace.
             </p>
             <Action variant="primary" onClick={() => navigate({ to: "/" })}>
@@ -204,14 +204,14 @@ function JoinPage() {
         {state.kind === "error" && (
           <div>
             <h1
-              className="font-display"
-              style={{ fontSize: 20, color: "var(--mrd-ink)", marginBottom: 8 }}
+              className="font-display text-mrd-h3"
+              style={{ color: "var(--mrd-ink)", marginBottom: 8 }}
             >
               This invitation could not be accepted
             </h1>
             <p
+              className="text-mrd-base"
               style={{
-                fontSize: 13,
                 color: "var(--mrd-mute)",
                 marginBottom: 18,
                 lineHeight: "var(--mrd-lh-prose)",

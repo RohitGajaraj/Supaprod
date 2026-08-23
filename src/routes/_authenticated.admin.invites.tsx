@@ -361,7 +361,10 @@ function MintBlock() {
             very next thing that happens to it is a copy into a message. It stays
             on screen until the next mint rather than flashing past in a toast. */}
         {minted ? (
-          <p style={{ fontSize: 12.5, color: "var(--mrd-body)", margin: 0, lineHeight: 1.6 }}>
+          <p
+            className="text-mrd-label"
+            style={{ color: "var(--mrd-body)", margin: 0, lineHeight: 1.6 }}
+          >
             <span
               style={{
                 fontFamily: "var(--mrd-mono)",

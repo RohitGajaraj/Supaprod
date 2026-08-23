@@ -131,9 +131,9 @@ function ProductPage() {
           }}
         >
           <p
+            className="text-mrd-small"
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "12px",
               fontWeight: 500,
               letterSpacing: "0.12em",
               textTransform: "uppercase",
@@ -247,9 +247,9 @@ function ProductPage() {
           </p>
 
           <button
+            className="text-mrd-prose"
             style={{
               fontFamily: "var(--font-sans)",
-              fontSize: "14px",
               fontWeight: 500,
               padding: "12px 24px",
               borderRadius: "6px",

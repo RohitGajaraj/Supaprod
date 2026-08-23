@@ -75,7 +75,6 @@ const label: CSSProperties = {
 const field: CSSProperties = {
   width: "100%",
   padding: "10px 12px",
-  fontSize: 14,
   borderRadius: 8,
   // `--mrd-field` is the border of a form control at rest, measured at 3.05:1 on
   // both grounds. `--mrd-line` is a structural edge and reads too quiet on an input.
@@ -124,12 +123,12 @@ function CheckoutPage() {
       >
         <Link
           to="/pricing"
+          className="text-mrd-base"
           style={{
             display: "inline-flex",
             alignItems: "center",
             gap: 8,
             marginBottom: 26,
-            fontSize: 13,
             color: "var(--mrd-mute)",
             textDecoration: "none",
           }}
@@ -139,7 +138,7 @@ function CheckoutPage() {
         </Link>
 
         <h1 style={{ fontSize: 26, marginBottom: 6 }}>Start with {p.name}</h1>
-        <p style={{ fontSize: 14, color: "var(--mrd-mute)", marginBottom: 26 }}>{p.tagline}</p>
+        <p className="text-mrd-prose" style={{ color: "var(--mrd-mute)", marginBottom: 26 }}>{p.tagline}</p>
 
         {/* 1 — plan, switchable here so a buyer who changed their mind does not go back */}
         <section style={{ marginBottom: 22 }}>
@@ -184,7 +183,7 @@ function CheckoutPage() {
               <Action type="button" aria-label="Add a seat" onClick={() => setSeats((n) => n + 1)}>
                 +
               </Action>
-              <span style={{ fontSize: 12, color: "var(--mrd-mute)" }}>
+              <span className="text-mrd-small" style={{ color: "var(--mrd-mute)" }}>
                 Two minimum. You can invite the rest after you sign in.
               </span>
             </div>
@@ -195,6 +194,7 @@ function CheckoutPage() {
         <section style={{ marginBottom: 22 }}>
           <span style={label}>YOUR NAME</span>
           <input
+            className="text-mrd-prose"
             style={{ ...field, marginBottom: 14 }}
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -203,6 +203,7 @@ function CheckoutPage() {
           />
           <span style={label}>WORK EMAIL</span>
           <input
+            className="text-mrd-prose"
             style={field}
             type="email"
             value={email}
@@ -210,7 +211,7 @@ function CheckoutPage() {
             placeholder="you@company.com"
             autoComplete="email"
           />
-          <p style={{ fontSize: 11.5, color: "var(--mrd-mute)", marginTop: 6 }}>
+          <p className="text-mrd-data" style={{ color: "var(--mrd-mute)", marginTop: 6 }}>
             This becomes the owner of the workspace. Your account is created after payment succeeds,
             never before.
           </p>
@@ -251,10 +252,10 @@ function CheckoutPage() {
             <span>${total}</span>
           </div>
           <div
+            className="text-mrd-small"
             style={{
               display: "flex",
               justifyContent: "space-between",
-              fontSize: 12,
               color: "var(--mrd-mute)",
               marginTop: 6,
             }}
@@ -263,10 +264,10 @@ function CheckoutPage() {
             <span>{includedCredits.toLocaleString()} a month</span>
           </div>
           <div
+            className="text-mrd-lead"
             style={{
               display: "flex",
               justifyContent: "space-between",
-              fontSize: 17,
               fontWeight: 600,
               marginTop: 12,
               paddingTop: 12,
@@ -290,11 +291,11 @@ function CheckoutPage() {
           </Action>
         ) : (
           <div
+            className="text-mrd-base"
             style={{
               border: "1px solid var(--mrd-line)",
               borderRadius: 11,
               padding: 16,
-              fontSize: 13,
               color: "var(--mrd-mute)",
             }}
           >
@@ -319,7 +320,7 @@ function CheckoutPage() {
           </div>
         )}
 
-        <p style={{ fontSize: 11.5, color: "var(--mrd-mute)", marginTop: 16 }}>
+        <p className="text-mrd-data" style={{ color: "var(--mrd-mute)", marginTop: 16 }}>
           Change or cancel anytime from Settings. Need more capacity later? Add credits without
           changing plan.
         </p>

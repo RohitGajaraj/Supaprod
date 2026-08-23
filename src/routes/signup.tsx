@@ -503,8 +503,8 @@ function SignupPage() {
               What is left is the half that is still true and that the panel does
               not say: what happens once you are in, and that it costs nothing. */}
           <p
+            className="text-mrd-small"
             style={{
-              fontSize: 12,
               color: "var(--mrd-mute)",
               marginTop: 10,
               lineHeight: "var(--mrd-lh-snug)",
@@ -516,8 +516,8 @@ function SignupPage() {
           </p>
           {planPickLine ? (
             <p
+              className="text-mrd-data"
               style={{
-                fontSize: 11.5,
                 color: "var(--mrd-mute)",
                 marginTop: 8,
                 lineHeight: "var(--mrd-lh-snug)",
@@ -578,13 +578,13 @@ function SignupPage() {
        * gated product reads as a broken one. */}
       {hasCode ? (
         <div
+          className="text-mrd-small"
           style={{
             border: "1px solid var(--mrd-edge)",
             borderRadius: "var(--radius-card)",
             background: "var(--mrd-lift)",
             padding: "10px 12px",
             marginBottom: 14,
-            fontSize: 12,
             lineHeight: "var(--mrd-lh-snug)",
             color: "var(--mrd-body)",
           }}
@@ -615,8 +615,8 @@ function SignupPage() {
             Invite only, for now
           </p>
           <p
+            className="text-mrd-small"
             style={{
-              fontSize: 12,
               color: "var(--mrd-body)",
               margin: "0 0 12px",
               lineHeight: "var(--mrd-lh-prose)",
@@ -639,8 +639,8 @@ function SignupPage() {
             Join the waitlist
           </ActionLink>
           <p
+            className="text-mrd-data"
             style={{
-              fontSize: 11.5,
               color: "var(--mrd-mute)",
               margin: "10px 0 0",
               lineHeight: "var(--mrd-lh-snug)",
@@ -708,7 +708,8 @@ function SignupPage() {
           // moment it is worth the most.
           <p
             id="signup-invite-help"
-            style={{ fontSize: 11.5, color: "var(--mrd-mute)", margin: 0, lineHeight: "var(--mrd-lh-snug)" }}
+            className="text-mrd-data"
+            style={{ color: "var(--mrd-mute)", margin: 0, lineHeight: "var(--mrd-lh-snug)" }}
           >
             Codes are not case sensitive, and pasting the whole invite link is fine.
           </p>
