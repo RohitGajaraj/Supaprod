@@ -252,7 +252,19 @@ export function Line({
     <>
       {label}
       {sub ? (
-        <span className="mt-0.5 block max-w-[56ch] text-mrd-label text-mrd-mute">{sub}</span>
+        /*
+         * ITS OWN LEADING, AND THIS DOES NOT REOPEN THE MEASURED FIX ABOVE.
+         * The row sets `leading-[1.4]` to land a single-line Line at 40.9px, and
+         * that number is defended in this file's header. It was an argument about
+         * a ROW'S BOX HEIGHT. This is a wrapped sentence up to 56 characters wide
+         * that happened to inherit the same value, and 1.4 is the figure Meridian
+         * deliberately left behind: `--mrd-lh-snug` reads "was 1.4; the reference's
+         * air lives here". A Line with no `sub` is unchanged, which is the case the
+         * 40.9px was measured on.
+         */
+        <span className="mt-0.5 block max-w-[56ch] text-mrd-label leading-mrd-snug text-mrd-mute">
+          {sub}
+        </span>
       ) : null}
     </>
   );
