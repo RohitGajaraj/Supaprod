@@ -56,6 +56,28 @@ const CONTROLS = /<(Action|Approve)\b/g;
  */
 const PENDING = /^[\w$]*(isPending|pending|loading|saving|busy|acting|submitting|drafting|deciding|checking|revoking)[\w$]*$/i;
 
+/**
+ * THE EXEMPTION REGISTER, each entry carrying why `busy` would be the false
+ * fact. The header above claims "no case where the first is preferable"; that
+ * held until answers/UL0-004 found one. A BYSTANDER control blocked while a
+ * SIBLING's write runs does no work of its own: its handler is a synchronous
+ * setPhase move. `busy` on it would announce "working on it" about a control
+ * that is merely standing aside, which is exactly the inverse lie this guard
+ * exists to prevent. For such controls `disabled` alone states the true fact:
+ * clicking it right now is not allowed.
+ *
+ * Keyed by file and the exact bare expression, so a NEW distinct expression in
+ * an exempted file still fails loudly and must earn its own entry with its own
+ * reason.
+ */
+const EXEMPT: ReadonlyArray<{ file: string; expr: string; why: string }> = [
+  {
+    file: "src/components/brief/BriefFormationFlow.tsx",
+    expr: "save.isPending",
+    why: "Skip and the three Backs are bystanders blocked during Save-and-continue's versioned upsert; their handlers are synchronous setPhase moves, so busy would announce work they do not perform (answers/UL0-004 C-01 and C-03)",
+  },
+];
+
 /** Every `.tsx` under `src`, skipping tests and the file that declares the props. */
 function surfaces(dir: string, out: string[] = []): string[] {
   for (const e of readdirSync(dir, { withFileTypes: true })) {
@@ -128,7 +150,11 @@ describe("a control that is working says so, rather than only going dead", () =>
       // so there is no second term to preserve and nothing to judge.
       if (!PENDING.test(expr.split(".").pop() ?? "") && !PENDING.test(expr)) continue;
       if (/(?<!aria-)\bbusy=\{/.test(tag)) continue;
-      offenders.push(`${file.slice(ROOT.length + 1)}:${line} disabled={${expr}} should be busy={${expr}}`);
+      // The register: a bystander control blocked during a sibling's write
+      // states the true fact with `disabled` alone (answers/UL0-004 C-01).
+      const rel = file.slice(ROOT.length + 1);
+      if (EXEMPT.some((e) => e.file === rel && e.expr === expr)) continue;
+      offenders.push(`${rel}:${line} disabled={${expr}} should be busy={${expr}}`);
     }
   }
 

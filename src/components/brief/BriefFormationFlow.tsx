@@ -297,14 +297,23 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
               </div>
             ) : null}
             <div className="flex items-center justify-between" style={{ marginTop: 18 }}>
+              {/* TIER: Action, quiet face. Blocked while the step's write is in
+                  flight (C-03): Back abandons a versioned upsert mid-write and
+                  leaves the user off the step that was saving. The harmless
+                  control must not be the only one blocked. */}
               <Action
                 variant="quiet"
                 onClick={() => setPhase((p) => Math.max(INTRO, p - 1))}
+                disabled={save.isPending}
               >
                 Back
               </Action>
               <div className="flex items-center" style={{ gap: 10 }}>
-                <Action variant="quiet" onClick={advance} busy={save.isPending}>
+                {/* TIER: Action, quiet face. Moves only, so disabled rather than
+                    busy: its handler is a synchronous setPhase and announcing
+                    work would be false (answers/UL0-004 C-01). It still blocks
+                    during the step's own save so a skip cannot race the write. */}
+                <Action variant="quiet" onClick={advance} disabled={save.isPending}>
                   Skip
                 </Action>
                 {/* The step's whole point is the write: versioned upsert on click. */}
@@ -404,9 +413,12 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
             </div>
 
             <div className="flex items-center justify-between" style={{ marginTop: 18 }}>
+              {/* C-03: blocked during the step's own write, same as the first
+                  Back. Abandoning a mid-upsert is the destructive direction. */}
               <Action
                 variant="quiet"
                 onClick={() => setPhase((p) => Math.max(INTRO, p - 1))}
+                disabled={save.isPending}
               >
                 Back
               </Action>
@@ -477,9 +489,12 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
               surface as a "worth re-examining?" prompt rather than drifting silently.
             </p>
             <div className="flex items-center justify-between" style={{ marginTop: 18 }}>
+              {/* C-03: blocked during the step's own write, same as the first
+                  Back. Abandoning a mid-upsert is the destructive direction. */}
               <Action
                 variant="quiet"
                 onClick={() => setPhase((p) => Math.max(INTRO, p - 1))}
+                disabled={save.isPending}
               >
                 Back
               </Action>

@@ -1,12 +1,20 @@
 // Shared Ember Editorial primitives — ported 1:1 from
 // design-reference/supaprod/icons.jsx (the design of record). Values are the
 // reference's; do not retune here — change the reference first.
+// EXCEPTION, answers/UL0-004 C-02: MonoLabel now wears Meridian's mrd-eyebrow
+// instead of the retired .mono-label paint. The founder-level ruling overrides
+// this file's own do-not-retune line for that one component. TabRow is deleted
+// outright: zero consumers, and its only job was wrapping FlashlightTabs, which
+// made every import of anything in this file reach the Obsidian barrel.
 import type { CSSProperties, ReactNode } from "react";
-import { FlashlightTabs } from "@/components/obsidian/flashlight-tabs";
 import { Button } from "@/components/ui/button";
 
-/* MonoLabel — uppercase mono metadata row, optional leading icon. The icon
-   prop takes a lucide component (production icon set, 1.75 stroke). */
+/* MonoLabel — uppercase micro-label row, optional leading icon. Ported onto
+   Meridian per answers/UL0-004 C-02: the old .mono-label class was painted by
+   retired styles.css (hard-coded 10px, --text-subtle with a raw hex fallback,
+   weight 500); mrd-eyebrow is the same stop done right, at weight 650 because
+   10px uppercase does not hold at 500. The icon prop keeps its lucide contract
+   so every caller survives unchanged. */
 export function MonoLabel({
   icon: Icon,
   children,
@@ -20,8 +28,8 @@ export function MonoLabel({
 }) {
   return (
     <div
-      className={`mono-label ${className ?? ""}`}
-      style={{ display: "flex", alignItems: "center", gap: 6, ...style }}
+      className={`mrd-eyebrow flex items-center gap-mrd-inline ${className ?? ""}`}
+      style={style}
     >
       {Icon ? <Icon size={16} strokeWidth={1.5} /> : null}
       <span>{children}</span>
@@ -190,43 +198,6 @@ export function SurfaceHeader({
   );
 }
 
-/* TabRow — hairline tab bar with ember underline + per-tab description line.
-   Ported 1:1 from design-reference/supaprod/loop.jsx (TabRow). Production
-   addition: tabs may be { id, label, badge } so search-param ids and live
-   counts (a production affordance the reference lacks) ride the reference
-   visuals — the badge renders as a quiet mono tabular count. */
-export type TabRowItem = { id: string; label: string; badge?: number };
-
-export function TabRow({
-  tabs,
-  active,
-  onSet,
-  desc,
-}: {
-  tabs: (string | TabRowItem)[];
-  active: string;
-  onSet: (id: string) => void;
-  desc?: Record<string, ReactNode>;
-}) {
-  const items: TabRowItem[] = tabs.map((t) => (typeof t === "string" ? { id: t, label: t } : t));
-  return (
-    <div style={{ marginBottom: 20 }}>
-      <FlashlightTabs
-        tabs={items.map((t) => ({
-          id: t.id,
-          label: t.label,
-          badge: t.badge ?? undefined,
-        }))}
-        active={active}
-        onSelect={onSet}
-      />
-      {desc && desc[active] ? (
-        <p style={{ color: "var(--ds-gray-700)", marginTop: 8 }}>{desc[active]}</p>
-      ) : null}
-    </div>
-  );
-}
-
 /* EmptyState — bento empty slate with icon tile, pixel title, single CTA.
    Ported from design-reference/supaprod/loop.jsx (EmptyState); title face
    moved to Geist Pixel per DESIGN-TEMPO §3 (empty-state headlines are a
@@ -309,7 +280,7 @@ export function RiskTag({ risk }: { risk: string }) {
   const [c, label] = map[risk] || map.medium;
   return (
     <span
-      className="mono-label"
+      className="mrd-eyebrow"
       style={{
         color: c,
         border: `1px solid color-mix(in oklab, ${c} 45%, transparent)`,
@@ -344,7 +315,7 @@ export function DrillHeader({
   return (
     <div style={{ marginBottom: 16 }}>
       <button
-        className="mono-label"
+        className="mrd-eyebrow"
         style={{ color: "var(--ds-gray-900)", marginBottom: 10 }}
         onClick={onBack}
       >
@@ -389,7 +360,7 @@ export function SubTabs({
         <button
           key={t}
           onClick={() => onSet(t)}
-          className="mono-label"
+          className="mrd-eyebrow"
           style={{
             padding: "5px 11px",
             borderRadius: 99,
