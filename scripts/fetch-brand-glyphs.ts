@@ -35,8 +35,20 @@ const SOURCES: Record<string, string> = {
   github: `${GILBARBARA}/github-icon.svg`,
   intercom: `${GILBARBARA}/intercom-icon.svg`,
   zendesk: `${GILBARBARA}/zendesk-icon.svg`,
-  stripe: `${GILBARBARA}/stripe.svg`,
-  hubspot: `${GILBARBARA}/hubspot.svg`,
+  /*
+   * SIMPLE-ICONS FOR THESE TWO, DELIBERATELY, AND IT IS THE ONE PLACE MONOCHROME
+   * IS THE RIGHT ANSWER. gilbarbara publishes the full LOCKUP for both: HubSpot
+   * at 512x149 and Stripe at 512x214, mark plus wordmark. Fitted into a 16px
+   * square that wordmark is roughly four pixels tall, which is not a logo, it is
+   * a smudge. Founder, looking at it: "you have used text plus mark logo, which
+   * is not readable".
+   *
+   * simple-icons only ever publishes the MARK, never a lockup, which is exactly
+   * what a 16px slot needs. They arrive without fill and take the brand's own
+   * colour from `--mrd-brand-*` below.
+   */
+  stripe: `${SIMPLE}/stripe.svg`,
+  hubspot: `${SIMPLE}/hubspot.svg`,
   salesforce: `${GILBARBARA}/salesforce.svg`,
   gmail: `${GILBARBARA}/google-gmail.svg`,
   google_calendar: `${GILBARBARA}/google-calendar.svg`,
@@ -55,6 +67,9 @@ const SOURCES: Record<string, string> = {
  * stays monochrome, which is what it is.
  */
 const MONOCHROME_BRANDS = new Set([
+  // Single-colour marks that carry their brand hue through the token.
+  "hubspot",
+  "stripe",
   "github",
   "linear",
   "notion",
@@ -127,13 +142,15 @@ async function main() {
     const res = await fetch(SOURCES[id]);
     if (!res.ok) throw new Error(`${id}: ${SOURCES[id]} answered ${res.status}`);
     const { viewBox, parts: raw } = parse(await res.text());
-    if (raw.length === 0) throw new Error(`${id}: no drawable shapes found, refusing to emit an empty mark`);
+    if (raw.length === 0)
+      throw new Error(`${id}: no drawable shapes found, refusing to emit an empty mark`);
 
     let parts = raw;
     // Notion publishes a white backing plate under the mark. On any ground but
     // white it is wrong, and the black path IS the mark.
     if (id === "notion") parts = parts.filter((p) => !/^#(fff|ffffff)$/i.test(p.fill ?? ""));
-    if (id === "jira") parts = parts.map((p) => ({ ...p, fill: p.fill?.startsWith("url(") ? JIRA_FLAT : p.fill }));
+    if (id === "jira")
+      parts = parts.map((p) => ({ ...p, fill: p.fill?.startsWith("url(") ? JIRA_FLAT : p.fill }));
 
     const token = `var(--mrd-brand-${id.replace(/_/g, "-")})`;
     const body = parts
@@ -148,7 +165,9 @@ async function main() {
   }
   const out = `${HEADER}${blocks.join("\n")}\n};\n`;
   await Bun.write("src/components/meridian/brand-glyphs.gen.ts", out);
-  console.log(`\nwrote src/components/meridian/brand-glyphs.gen.ts (${out.length} bytes, ${ids.length} brands)`);
+  console.log(
+    `\nwrote src/components/meridian/brand-glyphs.gen.ts (${out.length} bytes, ${ids.length} brands)`,
+  );
 }
 
 await main();

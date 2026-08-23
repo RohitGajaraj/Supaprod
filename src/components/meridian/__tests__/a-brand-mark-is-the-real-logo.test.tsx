@@ -65,10 +65,15 @@ describe("a brand mark is the real logo", () => {
     for (const { id, leastColours } of POLYCHROME) {
       const fills = fillsOf(id);
       const distinct = new Set(fills.map((f) => f.toLowerCase()));
-      expect(distinct.size, `${id} rendered ${distinct.size} colour(s); it is a ${leastColours}-colour mark`)
-        .toBeGreaterThanOrEqual(leastColours);
+      expect(
+        distinct.size,
+        `${id} rendered ${distinct.size} colour(s); it is a ${leastColours}-colour mark`,
+      ).toBeGreaterThanOrEqual(leastColours);
       // The specific regression: everything collapsing to the theme's ink.
-      expect([...distinct].every((f) => f === "currentcolor"), `${id} is a silhouette again`).toBe(false);
+      expect(
+        [...distinct].every((f) => f === "currentcolor"),
+        `${id} is a silhouette again`,
+      ).toBe(false);
     }
   });
 
@@ -99,11 +104,44 @@ describe("a brand mark is the real logo", () => {
     expect(BRAND_GLYPHS.linear.parts[0].d.length).toBeGreaterThan(200);
   });
 
+  it("is a MARK and never a wordmark lockup", () => {
+    /*
+     * THE DEFECT THIS PINS, found by the founder in the rendered product:
+     * HubSpot arrived as the full lockup, sprocket plus the word "HubSpot", on a
+     * 512x149 box. Fitted into a 16px square the wordmark is about four pixels
+     * tall. His words: "you have used text plus mark logo, which is not
+     * readable". Stripe was the same shape of mistake at 512x214.
+     *
+     * A lockup is detectable without looking at it, which is what makes this
+     * worth a guard rather than a code review: a mark is roughly square because
+     * it is a symbol, and a lockup is wide because it contains a word. Every
+     * correct glyph here sits between 0.67 (Figma, which is genuinely tall) and
+     * 1.42 (Salesforce). Nothing legitimate is anywhere near 3.44.
+     *
+     * The band is deliberately generous. It is not trying to judge proportion,
+     * only to catch the one mistake that a 16px slot cannot survive.
+     */
+    const offenders: string[] = [];
+    for (const [id, g] of Object.entries(BRAND_GLYPHS)) {
+      const [, , w, h] = g.viewBox.split(/\s+/).map(Number);
+      const ratio = w / h;
+      if (!Number.isFinite(ratio) || ratio > 2 || ratio < 0.5) {
+        offenders.push(`${id} is ${w}x${h} (ratio ${ratio.toFixed(2)}); that is a lockup, use the mark`);
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+
   it("fits each publisher's own viewBox instead of assuming a 24 grid", () => {
     // Figma publishes 256x384 and Stripe 512x214. A fixed scale squashed them.
     const boxes = new Set(Object.values(BRAND_GLYPHS).map((g) => g.viewBox));
-    expect(boxes.size, "every mark shares one viewBox, which means they were redrawn").toBeGreaterThan(3);
+    expect(
+      boxes.size,
+      "every mark shares one viewBox, which means they were redrawn",
+    ).toBeGreaterThan(3);
     const { container } = render(<ProviderMark provider="figma" />);
-    expect(container.querySelector("svg")?.getAttribute("preserveAspectRatio")).toBe("xMidYMid meet");
+    expect(container.querySelector("svg")?.getAttribute("preserveAspectRatio")).toBe(
+      "xMidYMid meet",
+    );
   });
 });
