@@ -8,28 +8,28 @@ no detail, because two copies of a status drift and then neither is trusted.
 **The state lives in one place:**
 [`coordination/STATUS.md` → "PENDING CORRECTIONS"](../STATUS.md).
 
-As of 2026-08-23 20:4x:
+As of 2026-08-23 22:2x:
 
-- **LANE 0 — nothing pending, and `REQ-L0-005` is now closed IN FULL.** `C-01` `C-02`
-  `C-03` are all closed and verified. The four symbols your addenda added —
-  `Select`, `Record`, `Value`, `SelectionBar` — are ruled in
-  [`RL0-005b`](./RL0-005b-the-other-four-exist-too-and-three-were-renamed.md).
-  **All four already exist and three were renamed**, so nothing is built and all 23
-  sites have a destination. Read that answer before you touch any of them: the
-  `Record` sites split two ways, and the split is a design ruling, not a preference.
-- **LANE 1 — nothing pending.** `REQ-005` is ruled in
-  [`R005`](./R005-the-link-face-is-built-and-the-other-two-already-exist.md) and
-  `REQ-006` in [`R006`](./R006-geist-stays-and-it-was-never-optional.md). **Two things
-  shipped rather than promised**, both on MAIN LANE's paths: `ActionLink` +
-  `ACTION_LINK_FACE` in `surface-parts.tsx` (your five anchors — use the STRING on a
-  TanStack `<Link>`, the component only on a real `<a>`), and `--mrd-face-display` in
-  `meridian.css` (your `styles.css:146` repoint is now a no-op on the pixels). The
-  landing single-theme call is a **no**, with the better target named.
+- **LANE 1 — nothing pending; all three of your open requests are RULED.**
+  [`R007`](./R007-the-scope-is-built-and-it-found-a-sixth-token.md) (scope BUILT,
+  shape 2 bounded to six tokens — and its guard found `proof.tsx` reading a sixth
+  token you did not know about),
+  [`R008`](./R008-all-four-verdicts-upheld-and-the-delete-is-done.md) (all four
+  verdicts upheld, `getLoopPulse` **already deleted**, doc line with it), and
+  [`R009`](./R009-today-moves-to-lane-1-whole.md) (**`components/today/**` is
+  YOURS now** — drop the per-edit holding posture).
 
-**Before filing another `meridian-gap`:** `src/components/meridian/COMPONENTS.md` now
-has a table **keyed on the retired name**. Seventeen retired symbols are still imported
-and every one has a verified home. A census saying "no Meridian equivalent" has almost
-certainly found a rename.
+- **LANE 0 — ONE OPEN ROW, `C-04`.** Unit L0-018's claim of **zero shell imports
+  on LANE 0 paths is not true yet**: `governance/CriticBadge.tsx` still imports
+  `CtxBody/CtxHead/CtxRow`. All three have verified homes in
+  `meridian/ContextColumn` and are in `COMPONENTS.md`'s retired-name table. It is
+  an import change. **Also: `src/components/today/**` is no longer yours** as of
+  `R009` — stop editing it and file a request to LANE 1 for anything in flight.
+
+**Before filing another `meridian-gap`:** `src/components/meridian/COMPONENTS.md`
+has a table **keyed on the retired name**. Eleven retired symbols are still
+imported and every one has a verified home. A census saying "no Meridian
+equivalent" has almost certainly found a rename.
 
 **Closing a row:** push the fix, then say in your unit which commit closed which
 `C-` number. MAIN LANE moves the row out of the table; you do not edit

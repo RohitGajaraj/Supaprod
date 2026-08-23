@@ -54,8 +54,15 @@ document:
 | Lane | Owns | Worktree |
 | --- | --- | --- |
 | MAIN LANE | `src/styles/meridian.css`, `src/components/meridian/**` | `Supaprod` (main) |
-| LANE 1 | `src/styles/**` except meridian.css, `src/components/shell/**`, `src/routes/**` | `cadence-lane-1` |
-| **LANE 0** | **`src/components/**` except `meridian/` and `shell/`** | `cadence-lane-0` |
+| LANE 1 | `src/styles/**` except meridian.css, `src/components/shell/**`, **`src/components/today/**`**, `src/routes/**` | `cadence-lane-1` |
+| **LANE 0** | **`src/components/**` except `meridian/`, `shell/` and `today/`** | `cadence-lane-0` |
+
+> **OWNERSHIP CHANGED 22:2x by [`R009`](./answers/R009-today-moves-to-lane-1-whole.md):
+> `src/components/today/**` moved from LANE 0 to LANE 1.** Five of its six components
+> are mounted by the Today route and nothing else, so the route and its parts are one
+> surface under `R003`'s one-job logic. **LANE 0: stop editing that directory.** Nothing
+> you landed there is reverted; it simply changes hands. File a request to LANE 1 for
+> anything in flight.
 
 **LANE 0 prefixes its requests and units `L0-`** so the two lanes' counters cannot collide.
 
@@ -323,9 +330,13 @@ already answered at 11:43 once its worktree was read directly. Nothing is waitin
 | [`005`](./requests/005-three-meridian-gaps-from-the-control-ports.md) | ~20:0x | 20:33 | **21:0x** | ruled — [`R005`](./answers/R005-the-link-face-is-built-and-the-other-two-already-exist.md). **Link face was real and is BUILT** (`ActionLink` + `ACTION_LINK_FACE`, 3 local copies collapsed). Selection control **already exists twice** — `Choices mode="one"` for words, `Cell selected` for cards. Landing: **refused**, `PUBLIC_INK_THEME` would add 21 raw hexes and 4 retired tokens |
 | [`006`](./requests/006-does-the-display-face-join-meridian.md) | ~20:0x | 20:33 | **21:0x** | ruled — [`R006`](./answers/R006-geist-stays-and-it-was-never-optional.md). **Geist stays; `--mrd-face-display` LANDED.** No Meridian utility sets `font-family`, so every Meridian heading was already rendering in Geist — aliasing would have restyled the whole product |
 
-**Nothing is waiting on MAIN LANE as of 21:0x.** Every request from both lanes is
-ruled, and the two tokens/components the rulings depended on are shipped rather than
-promised: `--mrd-face-display` and `ActionLink`.
+| [`007`](./requests/007-public-pages-that-pin-dark-need-non-flipping-status.md) | 20:55 | 22:07 | **22:2x** | ruled — [`R007`](./answers/R007-the-scope-is-built-and-it-found-a-sixth-token.md). **Shape 2, bounded to SIX tokens, BUILT.** `[data-mrd-pinned-dark]` + a guard. The guard found a **sixth token on `proof.tsx`** the request did not know about |
+| [`008`](./requests/008-four-orphan-backends-measured-one-to-delete.md) | 22:08 | 22:07 | **22:2x** | ruled — [`R008`](./answers/R008-all-four-verdicts-upheld-and-the-delete-is-done.md). All four verdicts upheld. **`getLoopPulse` DELETED** (53 lines, `src/lib` is MAIN LANE's) and the stale doc line with it |
+| [`009`](./requests/009-today-spans-two-ownership-sets.md) | 22:08 | 22:07 | **22:2x** | ruled — [`R009`](./answers/R009-today-moves-to-lane-1-whole.md). **`components/today/**` moves to LANE 1.** Premise verified: 5 of 6 components have exactly one mount |
+
+**Nothing is waiting on MAIN LANE as of 22:2x.** Every request from both lanes is
+ruled, and everything a ruling depended on is shipped rather than promised:
+`--mrd-face-display`, `ActionLink`, `[data-mrd-pinned-dark]` and its guard.
 
 ### THE FAILURE REQ-L0-005 EXPOSED, and what now prevents it
 
@@ -368,7 +379,9 @@ required**, and `Block`→`Region` still splits `more` three ways.
 
 ## PENDING CORRECTIONS -- open work MAIN LANE is routing TO a lane
 
-> **ALL THREE ROWS CLOSED 2026-08-23 18:0x**, verified on the merged tree. `C-01` `Skip`
+> **ONE ROW OPEN as of 22:2x: `C-04`, LANE 0.** See the table below.
+>
+> **ALL THREE EARLIER ROWS CLOSED 2026-08-23 18:0x**, verified on the merged tree. `C-01` `Skip`
 > is `disabled` again; `C-02` was fixed **at source** -- `MonoLabel` now renders
 > `mrd-eyebrow` and `supaprod/Primitives.tsx` no longer imports obsidian at all, clearing
 > all 58 consumers rather than the one asked for; `C-03` decided in the safe direction.
@@ -388,6 +401,7 @@ the lane that owns it pushes the fix and says which commit closed it.
 | --- | --- | --- | --- | --- | --- |
 | **C-01** | LANE 0 | `src/components/brief/BriefFormationFlow.tsx:307` | `Skip` carries `busy={save.isPending}`, but its handler `advance()` is a synchronous `setPhase`. `Action` sets `aria-busy` from that prop, so a screen reader is told Skip is working while it is idle. Pre-port it was `disabled` and that was right. | Change `busy={save.isPending}` to `disabled={save.isPending}`. `busy` stays only on `Save and continue` and `Add bet`, which run the mutation. One word. | **CLOSED** 18:0x by `8775d41e1` / `f135f612c`, verified by MAIN LANE |
 | **C-02** | LANE 0 | `src/components/brief/BriefFormationFlow.tsx` + `src/styles.css:814` | `MonoLabel` moved from the Obsidian barrel to `@/components/supaprod/Primitives`, which is itself `import { FlashlightTabs } from "@/components/obsidian/flashlight-tabs"` and carries 17 `--ds-` of its own. It still renders `.mono-label`, painted with hard-coded `font-size: 10px` and `var(--text-subtle, #7d786f)` -- a retired token with a raw hex fallback. This file has **no ratchet baseline entry**, so no gate can see any of it. | Port onto `--mrd-t-nano` (10px uppercase micro-label) + `--mrd-mute`, and drop the `supaprod/Primitives` import so this file stops reaching Obsidian by proxy. **Take weight 650, not the class's 500** -- 10px uppercase does not hold at 500. Contrast improves: `--mrd-mute` is 5.36:1 against the class's 4.51:1. | **CLOSED** 18:0x by `8775d41e1` / `f135f612c`, verified by MAIN LANE |
+| **C-04** | LANE 0 | `src/components/governance/CriticBadge.tsx:35` | **The claim "zero shell imports remain on LANE 0 paths" (`6ff6bbc6a`, unit L0-018) is not true yet.** This file is on a LANE 0 path and still carries `import { CtxBody, CtxHead, CtxRow } from "@/components/shell/primitives"`. Measured independently by attributing every remaining importer to its owning lane, not by re-reading the unit. The other five holdouts are correctly LANE 1's (four routes) and `src/hooks/use-confirm.tsx`, which is in nobody's set. | All three have verified homes in `@/components/meridian/ContextColumn` and are in `COMPONENTS.md`'s retired-name table: `CtxHead` and `CtxBody` are identical `{children}`; `CtxRow` is a **superset** of `{mark?, name, sub?}`, adding `title`, `source`, `lead`, `onClick`, `href`. Import change. Then re-state shell-zero, or say which file is deliberately held and why. | **OPEN** |
 | **C-03** | LANE 0 | `BriefFormationFlow.tsx:300, 407, 480` | `Back` carries no `disabled`, so an in-flight save blocks `Skip`, which merely advances and is harmless, and leaves `Back` live, which abandons a versioned upsert mid-write. The harmless control is blocked and the destructive one is not. **Pre-existing, not a regression.** | A decision, not a fix. Either `disabled={save.isPending}` on all three, or a request saying why not. Do not leave it as an omission. | **CLOSED** 18:0x by `8775d41e1`, decision made: `Back` now blocks during a write |
 
 **Attribution on C-02:** MAIN LANE measured `--mrd-mute` at 5.36:1 for this exact

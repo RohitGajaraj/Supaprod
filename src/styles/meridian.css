@@ -1252,6 +1252,65 @@
  * neutrals rises slightly against the dark theme's, because a paper white with
  * no warmth in it reads as an unstyled page rather than as a chosen surface.
  */
+/*
+ * ── PINNED DARK: A PUBLIC SURFACE THAT HAS COMMITTED TO ONE GROUND ──────
+ *
+ * Added 2026-08-23 answering REQ-007. A public route scopes none of Meridian's
+ * adaptive tokens, so every public page pins its ground dark by spreading
+ * `PUBLIC_INK_THEME`. That object pins the INK family and nothing else, so a
+ * page that legitimately reads Meridian's outcome ladder -- the decision
+ * archive at `d.$slug`, whose whole job is approved / rejected / pending --
+ * gets dark neutrals with LIGHT-TUNED status hues for any visitor carrying a
+ * stored light theme. Degraded contrast rather than the white-on-white the
+ * landing had, but the same shape of bug: a surface inheriting half a palette.
+ *
+ * ── WHY A SCOPE AND NOT A `-fixed` TRIO, WHICH WAS THE OTHER PROPOSAL ────
+ * Three tokens named `--mrd-pass-fixed` and so on would be reachable from
+ * ANYWHERE with only a written rule saying when they may be used, and this file
+ * already refused that exact bargain once: `--mrd-face-brand` deliberately gets
+ * no type stop, because "the moment this is reachable as a general type choice,
+ * it gets picked for a heading that is not a brand moment". A status hue that
+ * means IGNORE THE THEME is the same hazard pointed the other way -- picked for
+ * an app surface, it puts a dark-tuned hue on a light ground and nothing fails.
+ *
+ * A scope cannot be misused that way. It does nothing at all until an element
+ * stamps it, and stamping it is a deliberate act on a page that has already
+ * committed to a single ground. It also covers what the trio could not: the two
+ * `var(--mrd-edge)` reads on `subprocessors` that LANE 1 correctly HELD rather
+ * than half-fixing, and any future public surface.
+ *
+ * ── IT IS FIVE TOKENS AND NOT THE WHOLE RAMP, WHICH IS THE OTHER HALF ────
+ * The proposal was to re-declare the full `--mrd-*` ramp inside the scope.
+ * Measured: `[data-theme="light"]` re-declares 67 tokens, and the public routes
+ * read exactly FIVE of them. Copying 67 to cover 5 is 62 declarations that exist
+ * only to drift, and this file's own note on `--mrd-sheen` states the rule --
+ * three files doing the same colour arithmetic is three files that drift.
+ *
+ * ── THE VALUES ARE COPIES, AND A GUARD IS WHAT MAKES THAT SAFE ───────────
+ * CSS cannot read "the value this token had before the light block", so these
+ * are literal copies of the `:root` declarations. Duplication is not prevented
+ * here; DIVERGENCE IS MADE LOUD. `pinned-dark-matches-root.test.ts` parses this
+ * file and asserts each value below is byte-identical to the `:root` value for
+ * the same token, and that every `--mrd-*` a public route reads appears here.
+ * Change a dark value in `:root` and the test names this block.
+ *
+ * Custom properties inherit, so a declaration on the page's own root element
+ * beats the one inherited from `[data-theme="light"]` on `<html>` regardless of
+ * specificity. That is the same mechanism `PUBLIC_INK_THEME` already relies on.
+ */
+[data-mrd-pinned-dark] {
+  --mrd-bg: oklch(0.145 0.006 70);
+  --mrd-edge: oklch(0.98 0.003 70 / 0.22);
+  /* `proof` reads this on a pinned ground and REQ-007 did not know it did. The
+     guard found it, which is the only reason it is here: the request described
+     three labels on one low-traffic page, and the sixth token was a muted text
+     colour on a surface nobody had connected to the same defect. */
+  --mrd-mute: oklch(0.7 0.006 70);
+  --mrd-pass: oklch(0.74 0.15 152);
+  --mrd-fail: oklch(0.66 0.19 27);
+  --mrd-hold: oklch(0.79 0.125 78);
+}
+
 [data-theme="light"] {
   --mrd-bg: oklch(0.965 0.008 85);
   --mrd-sink: oklch(0.932 0.011 85);
