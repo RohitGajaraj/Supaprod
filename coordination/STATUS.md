@@ -5,7 +5,7 @@ LANE 1 reads this and never writes it. See [`README.md`](./README.md).
 **Session opened:** 2026-08-23 · overnight run
 **MAIN LANE:** Claude Code (database, deploys, Mobbin, verification)
 **LANE 1:** opencode / OX Alpha (building)
-**Last updated:** 2026-08-23 11:30 IST
+**Last updated:** 2026-08-23 11:50 IST
 
 ## Where things stand
 
@@ -36,6 +36,34 @@ nothing built yet. Two of them change what it should build.
 | Mobbin MCP | authenticated, returning screens. |
 | Lovable deploy | **exercised end to end at 04:23 and verified live.** Returned `pending`, completed on one call, `status: ready`. See [`M06`](./answers/M06-the-deploy-path-is-proven-and-here-is-how.md). |
 | `git` through the RTK hook | **piped `git` output is unreliable here.** `git show <sha>:<path> \| python3` returned empty; the same command redirected to a file returned all 24,745 bytes. Redirect to a file, then read the file. |
+
+## THREE LANES NOW. THE OWNERSHIP SPLIT IS BY PATH.
+
+LANE 0 joins from 2026-08-23 11:50, in `~/Projects/My Projects/My Builds/cadence-lane-0` on
+branch `parallel/lane-0-fresh`, pushing with `git push origin HEAD:main`. Its prompt is
+[`LANE-0-PROMPT.md`](./LANE-0-PROMPT.md).
+
+| Lane | Owns | Worktree |
+| --- | --- | --- |
+| MAIN LANE | `src/styles/meridian.css`, `src/components/meridian/**` | `Supaprod` (main) |
+| LANE 1 | `src/styles/**` except meridian.css, `src/components/shell/**`, `src/routes/**` | `cadence-lane-1` |
+| **LANE 0** | **`src/components/**` except `meridian/` and `shell/`** | `cadence-lane-0` |
+
+**LANE 0 prefixes its requests and units `L0-`** so the two lanes' counters cannot collide.
+
+## WHY LANE 1 LOOKED STUCK, AND IT WAS NOT SLOWNESS
+
+Diagnosed 11:41 after the founder reported it stalled. **It had been blocked for eight hours on
+a request it never pushed.** `coordination/requests/001-meridian-gap-spacing-stops.md` sat
+untracked in its worktree, written around 03:20, never committed, so no pull could show it to
+anyone. It was found by listing that worktree directly rather than through the channel.
+
+It was also **11 commits behind**, so the ruling it needed, which landed at `cc72ca439` at 09:53,
+had never reached it. It was correctly holding 76 call sites the whole time.
+
+Answered in [`001`](./answers/001-meridian-gap-spacing-stops.md): no new stops, all eight snap.
+**Both lanes: push a request the moment you write it, and pull far more often than feels
+necessary.** This is the exact failure the protocol's first paragraph was written about.
 
 ## OWNERSHIP CHANGE, 05:10 — MAIN LANE NOW HOLDS MERIDIAN ITSELF
 
