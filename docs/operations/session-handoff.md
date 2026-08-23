@@ -3828,8 +3828,26 @@ of mine carried dates in their filenames, which docs-doctor bans. Renamed to
 `20260823010000` = repo head. The seven rows repaired earlier are all present as
 `main-lane-ledger-repair`. Nothing to backfill.
 
-**Deploy: called at ~21:1x, reported `pending` across three calls on one stable
-`deployment_id`.** Live site 200 throughout. Nothing shipped tonight changes a
-rendered surface — `ActionLink` has no callers yet and `--mrd-face-display` is
-unread until LANE 1 repoints `styles.css:146` — so a lagging deploy costs
-nothing. **Confirm it reached `ready` before claiming it landed.**
+**DEPLOY IS STUCK AND IT MATTERS. Called ~21:1x, still `pending` after ~10
+minutes across five calls on one stable `deployment_id`.** `M06` records this
+path completing on a single call, so this is a stall rather than a slow deploy.
+It never reached `ready` and **must not be recorded as landed.**
+
+`supaprod.ai` returns 200 throughout and `supaprod.lovable.app` 302s, which is
+the documented redirect and not a fault. **The live site is serving the 20:0x
+build.**
+
+**Correcting something I wrote one paragraph earlier in this same handoff:** I
+said nothing shipped tonight changes a rendered surface. That is true of MY
+commits — `ActionLink` has no callers yet and `--mrd-face-display` is unread
+until LANE 1 repoints `styles.css:146` — and **false of the merged range.** The
+lanes shipped real surface work in it: `RunReturn`, `MissionChain`,
+`ReceiptDetailSheet` and `ard.tsx`, 17 files and 283 insertions across `src/`.
+**That work is what is waiting on this deploy**, so the stall is not free.
+
+**Next session, first action:** re-call `deploy_project` and read the status. If
+it is still `pending` on `091e0425-2391-4577-b707-0f44e016416b`, push an empty
+commit to unstick the GitHub webhook — that worked on 2026-08-23 when the sync
+stalled 24 minutes — and confirm with a string that must APPEAR and one that must
+DISAPPEAR, anchored with `git grep` to a commit. `M06`: matching the sha and
+reading `ready` are each necessary and neither is sufficient.
