@@ -3845,7 +3845,67 @@ lanes shipped real surface work in it: `RunReturn`, `MissionChain`,
 `ReceiptDetailSheet` and `ard.tsx`, 17 files and 283 insertions across `src/`.
 **That work is what is waiting on this deploy**, so the stall is not free.
 
-**Next session, first action:** re-call `deploy_project` and read the status. If
+**PROVEN STALE ON THE LIVE SITE, not inferred from the status.** `M06` is right
+that `pending` and a matching sha are each insufficient, so the only test that
+settles it is one string that must APPEAR and one that must DISAPPEAR. Unit 018
+rewrote `ard.tsx`, and `/ard` is public, so it supplies both:
+
+| check | expected after unit 018 | live at 21:2x |
+| --- | --- | --- |
+| `#f6f2ea` (parchment fallback unit 018 DELETED) | absent | **PRESENT** |
+| `--paper` / `#0a0a0a` (the `PUBLIC_INK_THEME` ground it ADDED) | present | **absent** |
+| "Agent Requirements Document" (control) | present | present |
+
+The control rules out a failed fetch. **`supaprod.ai` is serving a build older
+than unit 018.**
+
+**The stall is at the GITHUB SYNC, not the deploy.** Lovable's tree reads
+`5cbc7609`, which predates `0c8daf0b6` (unit 018), so `deploy_project` has been
+faithfully deploying an old tree and reporting `pending` on two successive
+deployment ids. Deploying harder would never have fixed it.
+
+**Empty commit `27db663fb` pushed at 21:2x to unstick the webhook**, which is what
+worked earlier today when the sync fell 24 minutes behind.
+
+**THE UNSTICK WORKED, PARTIALLY. Re-tested at 21:2x:**
+
+| check | before empty commit | after |
+| --- | --- | --- |
+| `#f6f2ea` on `/ard` (must vanish) | present | **gone** |
+| `--paper` / `#0a0a0a` on `/ard` (must appear) | absent | **present** |
+
+**So LANE 1's unit 018 IS LIVE.** The sync advanced from `5cbc7609` to
+`0c8daf0b6`.
+
+**It did NOT reach my 21:0x commit, and the CSS bundle proves it.** The bundle is
+still `styles-ClpdenTj.css` — the SAME hash as before the unstick, so the CSS was
+never rebuilt. Tested with two controls so the instrument is not in doubt:
+
+| token in `/assets/styles-ClpdenTj.css` | shipped | live |
+| --- | --- | --- |
+| `--mrd-face-brand` (control) | ~18:2x today | **1** |
+| `mrd-eyebrow` (control) | earlier today | **1** |
+| `--mrd-face-display` (MINE) | ~21:0x | **0** |
+
+Both tokens sit in the SAME `:root` block, opened at `meridian.css:141`, and a
+plain `:root` is emitted verbatim rather than tree-shaken — so the absence is a
+stale build and not Tailwind dropping an unused variable. **`deploy_project` has
+now returned `pending` on FOUR successive deployment ids.**
+
+**What this costs right now: nothing that renders.** `--mrd-face-display` is
+unread until LANE 1 repoints `styles.css:146`, and `ActionLink` has no callers.
+The lanes' surface work in unit 018 is live. **But do not record the 21:0x commit
+as deployed.**
+
+**Two instrument failures to not repeat, both caught by controls rather than by
+noticing:** `grep -oE '/[A-Za-z0-9_/.-]+\.css'` silently matched nothing on a page
+that plainly contains `/assets/styles-ClpdenTj.css`, so an empty variable made
+`curl` fetch the HTML instead of the stylesheet and BOTH tokens read 0 — the
+control going to 0 with them is the only reason it was caught. And two fetches of
+the same URL came back byte-identical in LENGTH with different md5s. **Grep for
+the literal string first, and never measure without a control that must pass.**
+
+**Then:** re-call `deploy_project` and read the status. If
 it is still `pending` on `091e0425-2391-4577-b707-0f44e016416b`, push an empty
 commit to unstick the GitHub webhook — that worked on 2026-08-23 when the sync
 stalled 24 minutes — and confirm with a string that must APPEAR and one that must
