@@ -413,7 +413,7 @@ export function RunMeta({ children }: { children: ReactNode }) {
  *  because half a reason is worse than a wrapped one. */
 export function RunNote({ children }: { children: ReactNode }) {
   return (
-    <span className="mt-0.5 block text-mrd-data leading-relaxed text-mrd-body">{children}</span>
+    <span className="mt-0.5 block text-mrd-data leading-mrd-prose text-mrd-body">{children}</span>
   );
 }
 

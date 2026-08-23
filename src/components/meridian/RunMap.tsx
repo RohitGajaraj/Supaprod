@@ -314,12 +314,12 @@ function StopFace({
        * the map is read rather than the spine strip in the shell.
        */}
       {stop.outcome ? (
-        <span className="text-mrd-data leading-relaxed text-mrd-body">{stop.outcome}</span>
+        <span className="text-mrd-data leading-mrd-prose text-mrd-body">{stop.outcome}</span>
       ) : null}
 
       {/* K-18's sentence, verbatim from `holdLine`. Never re-worded here: one
           copy of the words, in `driver.ts`, or they drift. */}
-      {hold ? <span className="text-mrd-data leading-relaxed text-mrd-mute">{hold}</span> : null}
+      {hold ? <span className="text-mrd-data leading-mrd-prose text-mrd-mute">{hold}</span> : null}
 
       {/*
        * A WAIVED STATION CARRIES ITS REASON, AND SAYS SO WHEN IT HAS NONE.
@@ -330,7 +330,7 @@ function StopFace({
        * the record look complete when it is not.
        */}
       {waived ? (
-        <span className="text-mrd-data leading-relaxed text-mrd-mute">
+        <span className="text-mrd-data leading-mrd-prose text-mrd-mute">
           {stop.waivedReason ?? "Nobody said why this station came off the route."}
         </span>
       ) : null}
@@ -374,7 +374,7 @@ export function RunMap({
         className="w-full rounded-mrd-card border border-mrd-line bg-mrd-sink px-mrd-6 py-mrd-5 font-mrd"
       >
         <p className="text-mrd-base font-medium text-mrd-body">This work has no route yet.</p>
-        <p className="mt-1 max-w-[62ch] text-mrd-small leading-relaxed text-mrd-mute">
+        <p className="mt-1 max-w-[62ch] text-mrd-small leading-mrd-prose text-mrd-mute">
           Once it has one, every station it will visit appears here in order, with the ones it skips
           and the reason each was left out.
         </p>

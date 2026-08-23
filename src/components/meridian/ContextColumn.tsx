@@ -161,7 +161,7 @@ export interface CtxBodyProps {
 
 export function CtxBody({ children }: CtxBodyProps) {
   return (
-    <p className="text-mrd-small leading-[1.625] text-mrd-body" data-mrd="">
+    <p className="text-mrd-small leading-mrd-prose text-mrd-body" data-mrd="">
       {children}
     </p>
   );

@@ -670,11 +670,11 @@ export function SidebarNav({
           {!isCollapsed && (
             <>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-mrd-base font-medium leading-tight text-mrd-ink">
+                <span className="block truncate text-mrd-base font-medium leading-mrd-tight text-mrd-ink">
                   {workspaceName}
                 </span>
                 {workspaceDetail && (
-                  <span className="block truncate text-mrd-tiny leading-tight text-mrd-mute">
+                  <span className="block truncate text-mrd-tiny leading-mrd-tight text-mrd-mute">
                     {workspaceDetail}
                   </span>
                 )}

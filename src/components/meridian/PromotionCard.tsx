@@ -307,7 +307,7 @@ export function PromotionCard({
           {/* The one sentence written for this prompt, printed rather than
               paraphrased. On a row that may not be put forward it is also the
               explanation for the missing controls. */}
-          <p className="mt-mrd-4 max-w-[68ch] text-mrd-label leading-relaxed text-mrd-mute">
+          <p className="mt-mrd-4 max-w-[68ch] text-mrd-label leading-mrd-prose text-mrd-mute">
             {decision.reason}
           </p>
 

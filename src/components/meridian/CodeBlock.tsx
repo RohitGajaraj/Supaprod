@@ -417,7 +417,7 @@ export function CodeBlock({
        */}
       <pre
         ref={scroller}
-        className="mrd-focus-inset overflow-auto bg-mrd-sink px-3 py-2.5 font-mrd-mono text-mrd-small leading-[1.7]"
+        className="mrd-focus-inset overflow-auto bg-mrd-sink px-3 py-2.5 font-mrd-mono text-mrd-small leading-mrd-mono"
         style={{
           maxHeight,
           minHeight: reveal ? Math.min(maxHeight, lines.length * LINE_H + PAD_Y) : undefined,

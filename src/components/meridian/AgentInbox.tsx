@@ -433,7 +433,7 @@ export function AgentInbox({
     return (
       <div data-mrd="" className="w-full max-w-[560px] font-mrd">
         <p className="text-mrd-base font-medium text-mrd-body">Nothing needs you.</p>
-        <p className="mt-1 max-w-[62ch] text-mrd-small leading-relaxed text-mrd-mute">
+        <p className="mt-1 max-w-[62ch] text-mrd-small leading-mrd-prose text-mrd-mute">
           No run is waiting on an answer and nothing is asking to be looked at. When one is, it
           arrives here rather than in a notification you have to go and find.
         </p>
@@ -513,7 +513,7 @@ export function AgentInbox({
                   a medium-weight heading, so it reads as the heading's second
                   line rather than as a second heading. */}
               {groupNote?.[group.need] ? (
-                <p className="mb-mrd-2 max-w-[62ch] px-mrd-3 text-mrd-data leading-relaxed text-mrd-mute">
+                <p className="mb-mrd-2 max-w-[62ch] px-mrd-3 text-mrd-data leading-mrd-prose text-mrd-mute">
                   {groupNote[group.need]}
                 </p>
               ) : null}

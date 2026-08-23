@@ -245,7 +245,7 @@ export function Chat({
         {turns.length === 0 && !busy && (
           <div className="my-auto py-6">
             <p className="text-mrd-base font-medium text-mrd-body">{emptyLabel}</p>
-            <p className="mt-1 text-mrd-base leading-[1.65] text-mrd-mute">{emptyHint}</p>
+            <p className="mt-1 text-mrd-base leading-mrd-prose text-mrd-mute">{emptyHint}</p>
           </div>
         )}
 
@@ -327,7 +327,7 @@ export function Chat({
             }}
             placeholder={placeholder}
             aria-label="Ask a question"
-            className="min-h-[18px] w-full resize-none bg-transparent text-mrd-base leading-[1.5] text-mrd-ink outline-none [overflow-wrap:anywhere] placeholder:text-mrd-mute"
+            className="min-h-[18px] w-full resize-none bg-transparent text-mrd-base leading-mrd-snug text-mrd-ink outline-none [overflow-wrap:anywhere] placeholder:text-mrd-mute"
             style={{ maxHeight: COMPOSER_MAX_H }}
           />
           <div className="flex items-center justify-end">

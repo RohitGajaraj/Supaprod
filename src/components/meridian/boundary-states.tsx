@@ -242,7 +242,7 @@ export function PageRouteMissing({
       <p className="text-mrd-display text-mrd-mute mb-mrd-3 text-center leading-none">
         <Figure>404</Figure>
       </p>
-      <h1 className="text-mrd-h2 text-mrd-ink mb-mrd-5 text-center leading-tight font-medium">
+      <h1 className="text-mrd-h2 text-mrd-ink mb-mrd-5 text-center leading-mrd-tight font-medium">
         There is no page at this address
       </h1>
       <NothingHere

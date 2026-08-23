@@ -91,7 +91,9 @@ function sizeOnLineWith(file: string, marker: string): number {
  * number and agrees with you is worse than no guard, which is the same lesson
  * the type-class collector in `src/styles/__tests__` had to learn.
  *
- * `lead` is the branch carrying `leading-tight`; the default is the other one.
+ * `lead` is the branch carrying a tight leading (`leading-mrd-tight` since the
+ * Meridian leading family landed 2026-08-23, `leading-tight` before it); the
+ * default is the other one.
  */
 function regionHeadingStops(): { lead: number; base: number } {
   const src = read("surface-parts.tsx");
@@ -129,7 +131,10 @@ function regionHeadingStops(): { lead: number; base: number } {
   type Branch = { px: number; tight: boolean };
   const branches: Branch[] = [];
   for (const m of h2[0].matchAll(/"text-\[(\d+(?:\.\d+)?)px\]([^"]*)"/g)) {
-    branches.push({ px: Number(m[1]), tight: m[2].includes("leading-tight") });
+    // Either spelling: `leading-mrd-tight` is the house one since 2026-08-23,
+    // `leading-tight` is what this branch used before the Meridian leading family
+    // existed. Pinning the CLAIM rather than one of its two names.
+    branches.push({ px: Number(m[1]), tight: /leading-(mrd-)?tight\b/.test(m[2]) });
   }
   for (const m of h2[0].matchAll(/"(mrd-[a-z]+)"/g)) {
     const px = roleToPx(m[1]);

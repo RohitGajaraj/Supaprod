@@ -198,7 +198,7 @@ function Item({ item, now }: { item: StalledItem; now: number }) {
         </div>
 
         {item.blocking ? (
-          <p className="mt-1 text-mrd-label leading-snug text-mrd-body">
+          <p className="mt-1 text-mrd-label leading-mrd-snug text-mrd-body">
             {/*
              * Naming the held-up work is the whole argument. "Pending approval"
              * costs a reader nothing to ignore. "Blocking: Homeowners cannot
@@ -210,7 +210,7 @@ function Item({ item, now }: { item: StalledItem; now: number }) {
         ) : null}
 
         {!needsPerson ? (
-          <p className="mt-1 text-mrd-label leading-snug text-mrd-mute">
+          <p className="mt-1 text-mrd-label leading-mrd-snug text-mrd-mute">
             No source is connected, so there is nothing for this to read. Connecting one starts it.
           </p>
         ) : null}
@@ -274,7 +274,7 @@ export function StalledWork({
        * who reads only this line should already know whether to act, and the
        * oldest age is the fact that decides it.
        */}
-      <h2 className="text-mrd-lead leading-snug font-medium text-mrd-ink">
+      <h2 className="text-mrd-lead leading-mrd-snug font-medium text-mrd-ink">
         {waitingOnPerson.length > 0 ? (
           <>
             {waitingOnPerson.length === 1

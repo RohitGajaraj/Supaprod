@@ -210,7 +210,7 @@ export function PlanGate({
         <p className="text-mrd-base font-medium text-mrd-body">
           There is no plan to decide on yet.
         </p>
-        <p className="mt-1 max-w-[62ch] text-mrd-small leading-relaxed text-mrd-mute">
+        <p className="mt-1 max-w-[62ch] text-mrd-small leading-mrd-prose text-mrd-mute">
           The crew files one before it starts, and this is where you say how much of it can run
           without you. Nothing is charged while it is being written.
         </p>
@@ -246,7 +246,7 @@ export function PlanGate({
           {/* The status is a chip and the answers carry no colour at all. */}
           <StatusChip status="you">Needs you</StatusChip>
         </div>
-        <p className="mt-0.5 max-w-[62ch] text-mrd-data leading-relaxed text-mrd-mute">
+        <p className="mt-0.5 max-w-[62ch] text-mrd-data leading-mrd-prose text-mrd-mute">
           Change anything you disagree with first. You are answering once, and the answer decides
           how much of the rest happens without you.
         </p>
@@ -385,7 +385,7 @@ export function PlanGate({
               </span>
               <span className="flex min-w-0 flex-col gap-0.5">
                 <span className="text-mrd-small font-medium text-mrd-ink">{answer.label}</span>
-                <span className="max-w-[62ch] text-mrd-data leading-relaxed text-mrd-mute">
+                <span className="max-w-[62ch] text-mrd-data leading-mrd-prose text-mrd-mute">
                   {answer.consequence}
                 </span>
               </span>

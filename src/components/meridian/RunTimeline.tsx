@@ -347,7 +347,7 @@ export function RunTimeline({
         className="w-full max-w-[520px] rounded-mrd-card border border-mrd-line bg-mrd-sink px-mrd-6 py-mrd-5 font-mrd"
       >
         <p className="text-mrd-base font-medium text-mrd-body">Nothing has happened here yet.</p>
-        <p className="mt-1 max-w-[62ch] text-mrd-small leading-relaxed text-mrd-mute">
+        <p className="mt-1 max-w-[62ch] text-mrd-small leading-mrd-prose text-mrd-mute">
           Once a run starts, every step lands here against the clock it happened on, and any stretch
           where nothing moved gets its own line saying what it was waiting on.
         </p>

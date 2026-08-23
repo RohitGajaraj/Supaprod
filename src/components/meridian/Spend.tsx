@@ -327,7 +327,7 @@ export function Spend({
        * work out next.
        */}
       {word || note || cap === null ? (
-        <p className="mt-mrd-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-mrd-data leading-relaxed text-mrd-mute">
+        <p className="mt-mrd-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-mrd-data leading-mrd-prose text-mrd-mute">
           {cap === null ? (
             <span>No cap is set, so nothing stops this on spend.</span>
           ) : (

@@ -359,7 +359,7 @@ export function Flowchart({
         className="w-full rounded-mrd-card border border-mrd-line bg-mrd-sink px-mrd-6 py-mrd-5 font-mrd"
       >
         <p className="text-mrd-base font-medium text-mrd-body">This run has no map yet.</p>
-        <p className="mt-1 max-w-[62ch] text-mrd-small leading-relaxed text-mrd-mute">
+        <p className="mt-1 max-w-[62ch] text-mrd-small leading-mrd-prose text-mrd-mute">
           Once the crew commits to a route, every step and every branch appears here, so you can see
           where the work went rather than reading which station it reached.
         </p>
@@ -467,7 +467,7 @@ export function Flowchart({
                 {node.title}
               </span>
               {node.caption ? (
-                <span className="mt-0.5 block text-mrd-small leading-snug text-mrd-mute">
+                <span className="mt-0.5 block text-mrd-small leading-mrd-snug text-mrd-mute">
                   {node.caption}
                 </span>
               ) : null}

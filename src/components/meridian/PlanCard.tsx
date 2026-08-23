@@ -463,7 +463,7 @@ function Step({
         {step.why ? (
           <RunNote>{step.why}</RunNote>
         ) : skipped ? (
-          <span className="mt-0.5 block text-mrd-data leading-relaxed text-mrd-mute">
+          <span className="mt-0.5 block text-mrd-data leading-mrd-prose text-mrd-mute">
             Nobody said why this was skipped.
           </span>
         ) : null}
@@ -584,7 +584,7 @@ export function PlanCard({
         className="w-full max-w-[520px] rounded-mrd-card border border-mrd-line bg-mrd-sheet px-mrd-6 py-mrd-5 font-mrd"
       >
         <p className="text-mrd-base font-medium text-mrd-body">No plan has been filed yet.</p>
-        <p className="mt-1 max-w-[62ch] text-mrd-small leading-relaxed text-mrd-mute">
+        <p className="mt-1 max-w-[62ch] text-mrd-small leading-mrd-prose text-mrd-mute">
           When the crew commits to one, every step it intends to take appears here first, with who is
           taking it and where, so the whole thing can be approved once instead of a step at a time.
         </p>

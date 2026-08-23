@@ -410,7 +410,7 @@ export function Thinking({
                     <span
                       className={`min-w-0 truncate text-mrd-label ${
  variant === "Reasoning"
- ? "leading-relaxed whitespace-normal text-mrd-body"
+ ? "leading-mrd-prose whitespace-normal text-mrd-body"
  : "font-medium text-mrd-ink"
  } ${
  variant === "Search"

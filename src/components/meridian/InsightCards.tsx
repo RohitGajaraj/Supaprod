@@ -966,7 +966,7 @@ function SplitBody({ insight }: { insight: SplitInsight }) {
           >
             {active.label}
           </span>
-          <span className="mt-1 block text-mrd-tiny leading-relaxed text-mrd-body">
+          <span className="mt-1 block text-mrd-tiny leading-mrd-prose text-mrd-body">
             {active.detail}
           </span>
         </div>

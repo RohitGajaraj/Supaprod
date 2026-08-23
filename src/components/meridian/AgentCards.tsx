@@ -253,7 +253,7 @@ export function AgentCards({
                   {card.name}
                 </span>
                 {card.role ? (
-                  <span className="line-clamp-2 text-mrd-small leading-snug text-mrd-mute">
+                  <span className="line-clamp-2 text-mrd-small leading-mrd-snug text-mrd-mute">
                     {card.role}
                   </span>
                 ) : (

@@ -108,7 +108,7 @@ export function Eyebrow({ children }: { children: React.ReactNode }) {
 export function PageHeading({ title, sub }: { title: React.ReactNode; sub?: React.ReactNode }) {
   return (
     <header data-mrd="">
-      <h1 className="text-mrd-h2 leading-tight font-medium text-mrd-ink">{title}</h1>
+      <h1 className="text-mrd-h2 leading-mrd-tight font-medium text-mrd-ink">{title}</h1>
       {sub ? (
         <p className="mt-mrd-3 max-w-[74ch] mrd-copy">{sub}</p>
       ) : null}
@@ -367,7 +367,7 @@ export function Region({
 
       {sub ? (
         <div
-          className={`${head ? "mt-mrd-3" : ""} max-w-[68ch] text-mrd-label leading-relaxed text-mrd-mute`}
+          className={`${head ? "mt-mrd-3" : ""} max-w-[68ch] text-mrd-label leading-mrd-prose text-mrd-mute`}
         >
           {sub}
         </div>
@@ -985,7 +985,7 @@ export function ReadFailedLine({
       data-mrd=""
       role="status"
       aria-live="polite"
-      className="max-w-[68ch] text-mrd-base leading-relaxed"
+      className="max-w-[68ch] text-mrd-base leading-mrd-prose"
     >
       <span className="text-mrd-fail">{children}</span>
       {onRetry ? (
@@ -1406,7 +1406,7 @@ export function Pre({
     <pre
       data-mrd=""
       tabIndex={0}
-      className="overflow-auto rounded-mrd-card bg-mrd-sink px-3 py-2.5 font-mrd-mono text-mrd-small leading-[1.7] text-mrd-body"
+      className="overflow-auto rounded-mrd-card bg-mrd-sink px-3 py-2.5 font-mrd-mono text-mrd-small leading-mrd-mono text-mrd-body"
       style={{ maxHeight }}
     >
       {children}

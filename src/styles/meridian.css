@@ -1519,8 +1519,11 @@
  * 1.5 applies at every size rather than varying with it.
  *
  * ONE STOP PER RULE, NO SHORTHANDS. Each of these sets `font-size` and nothing
- * else, so `text-mrd-base leading-mrd-body` composes and neither surprises the
- * other.
+ * else, so `text-mrd-base leading-mrd-prose` composes and neither surprises the
+ * other. That leading family is defined directly below; until 2026-08-23 this
+ * sentence named `leading-mrd-body`, which was neither a built utility nor a
+ * token in the `--mrd-lh-*` family, so following the rule as written emitted no
+ * rule at all.
  */
 
 @utility text-mrd-nano {
@@ -1567,6 +1570,60 @@
 }
 @utility text-mrd-display {
   font-size: var(--mrd-t-display);
+}
+
+/*
+ * ── THE LEADING FAMILY, ADDED 2026-08-23 ────────────────────────────────
+ *
+ * IT WAS DOCUMENTED ABOVE AND NEVER BUILT. The comment on the ladder says
+ * "`text-mrd-base leading-mrd-body` composes and neither surprises the other".
+ * No `leading-mrd-*` utility has ever existed, and `--mrd-lh-body` is not in the
+ * family either, which is tight / snug / prose / mono. So an author who read the
+ * rule and followed it wrote a class that emits nothing, and the element
+ * inherited whatever leading its parent had. Silently.
+ *
+ * ── THE COLLISION, WHICH IS THE REAL REASON THIS HAS TO EXIST ───────────
+ * Two of these names already mean something else in Tailwind, and mean it at a
+ * DIFFERENT NUMBER:
+ *
+ *   leading-snug    Tailwind 1.375   Meridian --mrd-lh-snug  1.5
+ *   leading-tight   Tailwind 1.25    Meridian --mrd-lh-tight 1.15
+ *
+ * An author writing `leading-snug` inside a Meridian component is reaching for
+ * the Meridian scale by every reasonable reading of the name, and is silently
+ * given Tailwind's. Measured today: 6 sites on `leading-snug` and 4 on
+ * `leading-tight` across this directory, every one of them believing it was on
+ * scale.
+ *
+ * The snug case is the one that shows on screen, and it is the founder's own
+ * complaint with a number attached. `--mrd-lh-snug` is 1.5 because, as its own
+ * comment says, it "was 1.4" and "the reference's air lives here" -- the value
+ * was raised deliberately to stop UI rows reading as stuck together. The six
+ * sites are rendering at 1.375, which is TIGHTER THAN THE VALUE MERIDIAN
+ * REPLACED. "Every word is stuck and very close to each other, especially on the
+ * right side" is a fair description of a 1.375 row, and it was never a judgment
+ * call by their authors; it is a name resolving to the wrong system.
+ *
+ * ── WHY NOT A `leading-none` ────────────────────────────────────────────
+ * One call site wants it, a display numeral in `boundary-states.tsx`. The rule
+ * this repo settled on 2026-08-23 for exactly this question is that a token
+ * earns its place on the SECOND caller, and that rule was applied to eight of
+ * LANE 1's requested stops the same morning. It applies here too. The numeral
+ * keeps Tailwind's `leading-none` and this family does not grow to serve one
+ * element.
+ */
+
+@utility leading-mrd-tight {
+  line-height: var(--mrd-lh-tight);
+}
+@utility leading-mrd-snug {
+  line-height: var(--mrd-lh-snug);
+}
+@utility leading-mrd-prose {
+  line-height: var(--mrd-lh-prose);
+}
+@utility leading-mrd-mono {
+  line-height: var(--mrd-lh-mono);
 }
 
 /*
