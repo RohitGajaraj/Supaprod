@@ -55,7 +55,7 @@ import { useConfirm } from "@/hooks/use-confirm";
 import { useConnectPoll } from "@/hooks/use-connect-poll";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { ConnectTrustDialog } from "./ConnectTrustDialog";
-import { ProviderMark } from "./provider-marks";
+import { ProviderMark } from "@/components/meridian/source-marks";
 import { latestIso, relTimeCaps } from "@/components/discover/format";
 
 /**

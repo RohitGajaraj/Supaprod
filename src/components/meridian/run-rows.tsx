@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { ProviderMark } from "@/components/connections/provider-marks";
+import { ProviderMark } from "@/components/meridian/source-marks";
 
 import { STATION_GLYPHS, type StationGlyphKind } from "./station-glyphs";
 

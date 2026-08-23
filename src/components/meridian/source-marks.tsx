@@ -1,6 +1,25 @@
 /**
  * Provider marks. The connector catalogue's answer to "which one is Linear".
  *
+ * ── MOVED INTO MERIDIAN 2026-08-23, AND THE MOVE IS THE POINT ───────────
+ * This lived in `components/connections/` while `PlanCard`, `run-rows`, the
+ * Meridian gallery route and `/sync` all already imported it. A design-system
+ * component sitting outside the design system, with the system depending on it,
+ * is the layering upside down, and it is why nothing OUTSIDE connections ever
+ * reached for it: the marks were there and the rail did not know.
+ *
+ * Two things were fixed in the move rather than carried:
+ *   The ink token was Cadence/ink, a RETIRED one, in the one expression that
+ *       decides how a brand hue meets the theme. It is `--mrd-ink` now.
+ *   The twelve brand hues were hex. They are the same colours in `oklch`, which
+ *       is lossless, and it means a brand hue now composes with `color-mix(in
+ *       oklab, ...)` on the same terms as every Meridian colour instead of being
+ *       a foreign body the rest of the palette cannot reason about.
+ *
+ * The hex is kept in a trailing comment on each line, because the brand's own
+ * spec is the hex and a reader checking us against Slack's brand page needs the
+ * number they will find there.
+ *
  * THE DEFECT, in the founder's words (2026-07-29): "For the connectors part,
  * you need to display some sort of icon. It needs to know what tool it is, and
  * if you need to add some color for icons, color is optional, but you need to
@@ -73,10 +92,10 @@
  *   · firecrawl       - platform infrastructure, `userFacing: false`, never
  *                       rendered in the connections UI at all.
  *
- * Every hue that IS carried is mixed with `--sp-ink` before it is used. Mixing
+ * Every hue that IS carried is mixed with the ink token before it is used. Mixing
  * INK into a colour moves it the right way in BOTH themes, lighter on dark and
  * darker on light, which is the same one-rule trick `.sp-cell` uses for its
- * hover. Without it the light sheet (#efe9dc) swallows the brighter blues.
+ * hover. Without it the light sheet, which is a warm near-white, swallows the brighter blues.
  */
 
 import type { CSSProperties, ReactElement, ReactNode, SVGProps } from "react";
@@ -335,18 +354,18 @@ const MARKS: Record<ProviderId, () => ReactElement> = {
  *  with a reserved system colour. Everything absent stays in ink, on purpose;
  *  the reasons are in the file header. */
 const BRAND: Partial<Record<ProviderId, string>> = {
-  intercom: "#1f8ded",
-  stripe: "#635bff",
-  slack: "#36c5f0",
-  salesforce: "#00a1e0",
-  linear: "#5e6ad2",
-  jira: "#2684ff",
-  google_docs: "#4285f4",
-  google_calendar: "#4285f4",
-  gmail: "#ea4335",
-  google_tasks: "#1a73e8",
-  microsoft_outlook: "#0f6cbd",
-  microsoft_mail: "#0f6cbd",
+  intercom: "oklch(0.634 0.171 250.8)", /* brand spec 1f8ded */
+  stripe: "oklch(0.578 0.235 278.3)", /* brand spec 635bff */
+  slack: "oklch(0.768 0.130 223.2)", /* brand spec 36c5f0 */
+  salesforce: "oklch(0.670 0.143 235.4)", /* brand spec 00a1e0 */
+  linear: "oklch(0.567 0.159 275.2)", /* brand spec 5e6ad2 */
+  jira: "oklch(0.628 0.202 257.4)", /* brand spec 2684ff */
+  google_docs: "oklch(0.630 0.180 260.0)", /* brand spec 4285f4 */
+  google_calendar: "oklch(0.630 0.180 260.0)", /* brand spec 4285f4 */
+  gmail: "oklch(0.626 0.206 29.1)", /* brand spec ea4335 */
+  google_tasks: "oklch(0.574 0.195 257.9)", /* brand spec 1a73e8 */
+  microsoft_outlook: "oklch(0.526 0.149 251.6)", /* brand spec 0f6cbd */
+  microsoft_mail: "oklch(0.526 0.149 251.6)", /* brand spec 0f6cbd */
 };
 
 /** The brand hue, carried toward the current theme's ink so it holds on the
@@ -373,7 +392,7 @@ export type MarkTone = "mono" | "brand";
  * is wrong, not this component.
  *
  * `size` is the GLYPH. The box around it is six units larger, which is exactly
- * the 16-in-22 proportion `--sp-mark` gives an agent glyph, so a provider row
+ * the 16-in-22 proportion the agent glyph mark size gives, so a provider row
  * and an agent row start their text on the same pixel.
  */
 export function ProviderMark({
@@ -415,7 +434,7 @@ export function ProviderMark({
 /** The gap between a mark and the words it introduces, and therefore also the
  *  indent that puts the second line under those words. One value, two uses, so
  *  they cannot drift apart. */
-const NAME_GAP = "var(--sp-space-2)";
+const NAME_GAP = "var(--mrd-s3)"; /* 6px: a mark and the word it belongs to */
 
 /**
  * A provider's name with its mark, for a `Line` label.

@@ -31,7 +31,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
 import { CreateRepoModal } from "./CreateRepoModal";
-import { ProviderName, UnderMark } from "./provider-marks";
+import { ProviderName, UnderMark } from "@/components/meridian/source-marks";
 import {
   listConnections,
   listProductBindings,

@@ -103,7 +103,7 @@ import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
 import { WorkspaceBindingsSection } from "@/components/connections/WorkspaceBindingsSection";
 import { ProductBindingsSection } from "@/components/connections/ProductBindingsSection";
-import { ProviderMark } from "@/components/connections/provider-marks";
+import { ProviderMark } from "@/components/meridian/source-marks";
 import { listSyncMappings, resolveSyncConflict } from "@/lib/integrations.functions";
 import { pullMapping, pushMapping } from "@/lib/sync.functions";
 import { getIngestToken, rotateIngestToken, revokeIngestToken } from "@/lib/ingest.functions";

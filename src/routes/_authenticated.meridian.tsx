@@ -39,7 +39,7 @@ import { useSelection } from "@/components/shell/use-selection";
 /* The mark OF the thing being named, rather than a letter that was to hand. The
    catalog cell is the one place a brand hue is earned: you are scanning twenty
    products to find one, so the provider IS the subject. */
-import { ProviderMark } from "@/components/connections/provider-marks";
+import { ProviderMark } from "@/components/meridian/source-marks";
 import { Dialog } from "@/components/meridian/Dialog";
 import { Spend } from "@/components/meridian/Spend";
 import { MarkStack } from "@/components/meridian/marks";

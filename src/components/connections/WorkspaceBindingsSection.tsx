@@ -13,7 +13,7 @@ import {
 } from "@/lib/connections.functions";
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
 import { BindingPicker } from "@/components/connections/BindingPicker";
-import { ProviderName, UnderMark } from "@/components/connections/provider-marks";
+import { ProviderName, UnderMark } from "@/components/meridian/source-marks";
 import { latestIso, relTimeCaps } from "@/components/discover/format";
 import { Block, Button, Empty, Failed, Loading } from "@/components/shell/primitives";
 
