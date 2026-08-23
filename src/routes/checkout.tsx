@@ -25,6 +25,7 @@ import { useState, type CSSProperties } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
+import { Action } from "@/components/meridian/surface-parts";
 import { planPresentation, includedCreditsFor, type PlanTier } from "@/lib/entitlements";
 import { priceForCredits } from "@/lib/billing-tier";
 import { paymentsConfigured } from "@/lib/stripe";
@@ -80,16 +81,6 @@ const field: CSSProperties = {
   border: "1px solid var(--mrd-field)",
   background: "var(--mrd-sink)",
   color: "var(--mrd-ink)",
-};
-
-const stepper: CSSProperties = {
-  width: 32,
-  height: 32,
-  borderRadius: 8,
-  border: "1px solid var(--mrd-line)",
-  background: "var(--mrd-lift)",
-  color: "var(--mrd-ink)",
-  fontSize: 16,
 };
 
 function CheckoutPage() {
@@ -188,30 +179,20 @@ function CheckoutPage() {
           <section style={{ marginBottom: 22 }}>
             <span style={label}>SEATS</span>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <button
+              <Action
                 type="button"
                 aria-label="Remove a seat"
                 disabled={seats <= MIN_SEATS}
                 onClick={() => setSeats((n) => Math.max(MIN_SEATS, n - 1))}
-                style={{
-                  ...stepper,
-                  cursor: seats <= MIN_SEATS ? "not-allowed" : "pointer",
-                  opacity: seats <= MIN_SEATS ? 0.4 : 1,
-                }}
               >
                 -
-              </button>
+              </Action>
               <span style={{ fontSize: 18, fontWeight: 500, minWidth: 24, textAlign: "center" }}>
                 {seats}
               </span>
-              <button
-                type="button"
-                aria-label="Add a seat"
-                onClick={() => setSeats((n) => n + 1)}
-                style={{ ...stepper, cursor: "pointer" }}
-              >
+              <Action type="button" aria-label="Add a seat" onClick={() => setSeats((n) => n + 1)}>
                 +
-              </button>
+              </Action>
               <span style={{ fontSize: 12, color: "var(--mrd-mute)" }}>
                 Two minimum. You can invite the rest after you sign in.
               </span>
@@ -319,24 +300,14 @@ function CheckoutPage() {
 
         {/* 6 — pay. Honest when there is nothing to pay with. */}
         {payable ? (
-          <button
+          <Action
             type="button"
+            variant="primary"
+            className="w-full"
             disabled={!canContinue}
-            style={{
-              width: "100%",
-              padding: "13px 0",
-              borderRadius: 9,
-              fontSize: 14.5,
-              fontWeight: 500,
-              border: "none",
-              cursor: canContinue ? "pointer" : "not-allowed",
-              opacity: canContinue ? 1 : 0.5,
-              background: "var(--mrd-solid)",
-              color: "var(--mrd-on-solid)",
-            }}
           >
             Continue to payment · ${total}/mo
-          </button>
+          </Action>
         ) : (
           <div
             style={{

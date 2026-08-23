@@ -7,6 +7,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Zap, User, Users, Building2, Star } from "lucide-react";
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
+import { Action } from "@/components/meridian/surface-parts";
 import { planPresentation, type PlanTier, includedCreditsFor } from "@/lib/entitlements";
 import { priceForCredits } from "@/lib/billing-tier";
 
@@ -684,22 +685,14 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
       </ul>
 
       {hiddenCount > 0 && (
-        <button
+        <Action
           type="button"
+          variant="quiet"
+          className="mt-2.5"
           onClick={() => setExpanded((e) => !e)}
-          style={{
-            background: "none",
-            border: "none",
-            padding: "10px 0 0",
-            fontSize: 11.5,
-            color: "var(--mrd-mute)",
-            cursor: "pointer",
-            textDecoration: "underline",
-            textAlign: "left",
-          }}
         >
           {expanded ? "Show less" : `Show ${hiddenCount} more features`}
-        </button>
+        </Action>
       )}
     </div>
   );

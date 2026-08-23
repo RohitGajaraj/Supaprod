@@ -1364,15 +1364,7 @@ function DiagnosticsMoved({ onOpen }: { onOpen: () => void }) {
       <NeedsSetup
         title="Diagnostics is read in the Engine Room now"
         body="Whether the platform is having a bad day, the reliability window, and any run that went away with your credits all sit under Quality."
-        action={
-          <button
-            type="button"
-            onClick={onOpen}
-            className="rounded-full border border-mrd-line bg-mrd-sink px-3 py-1.5 text-mrd-prose text-mrd-body transition-colors hover:border-mrd-edge hover:bg-mrd-lift hover:text-mrd-ink"
-          >
-            Open Diagnostics
-          </button>
-        }
+        action={<Action onClick={onOpen}>Open Diagnostics</Action>}
       />
     </>
   );
@@ -1908,13 +1900,9 @@ function AgentDetail({
               : `${member.name} is asking for more room on ${asking} tools`}
           </button>
         )}
-        <button
-          type="button"
-          onClick={() => onOpenRecord(member.slug)}
-          className="rounded-full border border-mrd-line bg-mrd-sink px-2.5 py-1 text-mrd-prose text-mrd-body transition-colors hover:border-mrd-edge hover:bg-mrd-lift hover:text-mrd-ink"
-        >
+        <Action onClick={() => onOpenRecord(member.slug)}>
           Change what {member.name} may touch, and read its history
-        </button>
+        </Action>
       </div>
     </div>
   );
