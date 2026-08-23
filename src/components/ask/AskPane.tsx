@@ -113,7 +113,8 @@
 
 import * as React from "react";
 import { Row } from "@/components/meridian/rows";
-import { Actions } from "@/components/meridian/surface-parts";
+import { Actions, ReadFailedLine } from "@/components/meridian/surface-parts";
+import { LoadingState } from "@/components/meridian/LoadingState";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -134,7 +135,7 @@ import {
   contextualStarters,
   type Starter,
 } from "@/lib/ask-starters";
-import { Button, Choices, Failed, Loading, Textarea } from "@/components/shell/primitives";
+import { Button, Choices, Textarea } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 import { AgentPulse } from "@/components/meridian/AgentPulse";
 import { IconMic } from "@/components/shell/icons";
@@ -1093,13 +1094,13 @@ function Opening({
         // Never silently. A generic suggestion here would be indistinguishable
         // from a grounded one, so the honest move is to say the read broke.
         <div style={{ marginTop: "var(--mrd-s5)" }}>
-          <Failed onRetry={onRetry}>
+          <ReadFailedLine onRetry={onRetry}>
             We could not read what is running, so the suggestions below are general ones.
-          </Failed>
+          </ReadFailedLine>
         </div>
       ) : loading ? (
         <div style={{ marginTop: "var(--mrd-s5)" }}>
-          <Loading>Reading what is running.</Loading>
+          <LoadingState label="Reading what is running." />
         </div>
       ) : null}
 

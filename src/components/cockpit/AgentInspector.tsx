@@ -19,7 +19,9 @@
 
 import { useState } from "react";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num } from "@/components/meridian/surface-parts";
+import { Num, ReadFailedLine } from "@/components/meridian/surface-parts";
+import { EmptyRegion } from "@/components/meridian/EmptyRegion";
+import { LoadingState } from "@/components/meridian/LoadingState";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -30,7 +32,7 @@ import {
   type AgentMemory,
 } from "@/lib/agent-runs.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { Block, Empty, Failed, Loading, Select, Value } from "@/components/shell/primitives";
+import { Block, Select, Value } from "@/components/shell/primitives";
 import { AgentMark, type MarkState } from "@/components/meridian/marks";
 
 type AgentLite = { agent_id: string; slug: string; name: string; role: string };
@@ -127,16 +129,16 @@ export function AgentInspector({ agents }: { agents: AgentLite[] }) {
         </Line>
 
         {runsQ.isLoading ? (
-          <Loading>Reading its runs.</Loading>
+          <LoadingState label="Reading its runs." />
         ) : runsQ.isError ? (
-          <Failed onRetry={() => runsQ.refetch()}>
+          <ReadFailedLine onRetry={() => runsQ.refetch()}>
             Its runs did not load, so this is not the whole history.
-          </Failed>
+          </ReadFailedLine>
         ) : runs.length === 0 ? (
-          <Empty>
+          <EmptyRegion title="No runs yet">
             {name} has not run in this account yet. A run is recorded the first time a mission
             dispatches it.
-          </Empty>
+          </EmptyRegion>
         ) : (
           runs.map((r) => (
             <Row
@@ -171,16 +173,16 @@ export function AgentInspector({ agents }: { agents: AgentLite[] }) {
         sub="What it learned itself, plus the shared pool every agent here draws on."
       >
         {memQ.isLoading ? (
-          <Loading>Reading what it learned.</Loading>
+          <LoadingState label="Reading what it learned." />
         ) : memQ.isError ? (
-          <Failed onRetry={() => memQ.refetch()}>
+          <ReadFailedLine onRetry={() => memQ.refetch()}>
             This did not load, so it is not everything the agent goes on.
-          </Failed>
+          </ReadFailedLine>
         ) : memories.length === 0 ? (
-          <Empty>
+          <EmptyRegion title="No lessons yet">
             {name} has learned nothing yet. It draws a lesson after a run it can learn from, and it
             reads anything the crew has put in the shared pool.
-          </Empty>
+          </EmptyRegion>
         ) : (
           memories.map((m) => (
             <Row

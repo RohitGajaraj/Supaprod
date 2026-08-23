@@ -19,7 +19,7 @@
 //     supersedes another rewrites what the graph reasons over, which is not a
 //     four-second fact (agents/FINAL-agent-presence.md R10). It leaves a
 //     Receipt naming the decision it superseded.
-//   KILLED the audit error toast. A failed read renders Failed with a retry,
+//   KILLED the audit error toast. A failed read renders ReadFailedLine with a retry,
 //     never silence and never an empty state.
 //
 // UNCHANGED: auditDecision / proposeSupersession, and the
@@ -59,7 +59,8 @@ import {
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { auditDecision, proposeSupersession } from "@/lib/contradiction-auditor.functions";
-import { Loading, Receipt } from "@/components/shell/primitives";
+import { Receipt } from "@/components/shell/primitives";
+import { AgentPulse } from "@/components/meridian/AgentPulse";
 import { Provenance } from "./EvidenceQuality";
 
 export function ContradictionAuditSection({
@@ -127,16 +128,18 @@ export function ContradictionAuditSection({
       {audit.isPending ? (
         // AN AGENT IS GENUINELY RUNNING, so this is the working indicator rather
         // than the quiet read: auditDecision -> auditDecisionContradictions ->
-        // callModel (contradiction-auditor.server.ts). `working` is the honest
-        // flag and the sentence stays exactly as it was, because it already says
-        // the work.
+        // callModel (contradiction-auditor.server.ts). AgentPulse takes no
+        // working flag: mounting it is the claim, and the sentence stays exactly
+        // as it was, because it already says the work.
         // THE DETAIL IS THE CALL BEING AUDITED, which needed a prop from the
         // parent: an id in a noun's place would be an opaque string dressed as
         // information. The auditor's own count (how many it scanned) is not known
         // until the call returns, so it cannot serve here.
-        <Loading working agent="contradiction-auditor" detail={decisionTitle}>
-          Re-reading the workspace&apos;s decisions.
-        </Loading>
+        <AgentPulse
+          seed="contradiction-auditor"
+          detail={decisionTitle}
+          label="Re-reading the workspace's decisions."
+        />
       ) : audit.isError ? (
         <ReadFailedLine onRetry={() => audit.mutate()}>
           The audit did not run, so this is not a claim that nothing disagrees.{" "}

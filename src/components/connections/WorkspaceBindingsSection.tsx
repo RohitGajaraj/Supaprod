@@ -1,6 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { Line } from "@/components/meridian/rows";
-import { Num } from "@/components/meridian/surface-parts";
+import { Num, ReadFailedLine } from "@/components/meridian/surface-parts";
+import { EmptyRegion } from "@/components/meridian/EmptyRegion";
+import { LoadingState } from "@/components/meridian/LoadingState";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
@@ -15,7 +17,7 @@ import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
 import { BindingPicker } from "@/components/connections/BindingPicker";
 import { ProviderName, UnderMark } from "@/components/meridian/source-marks";
 import { latestIso, relTimeCaps } from "@/components/discover/format";
-import { Block, Button, Empty, Failed, Loading } from "@/components/shell/primitives";
+import { Block, Button } from "@/components/shell/primitives";
 
 /**
  * WORKSPACE BINDINGS. What each connected source is actually pointed at.
@@ -96,7 +98,7 @@ export function WorkspaceBindingsSection() {
       }
     >
       {failed ? (
-        <Failed
+        <ReadFailedLine
           onRetry={() => {
             void qConnections.refetch();
             void qBindings.refetch();
@@ -106,9 +108,9 @@ export function WorkspaceBindingsSection() {
           {(qConnections.error as Error)?.message ??
             (qBindings.error as Error)?.message ??
             "The read failed."}
-        </Failed>
+        </ReadFailedLine>
       ) : isLoading ? (
-        <Loading>Reading what each source is pointed at.</Loading>
+        <LoadingState label="Reading what each source is pointed at." />
       ) : (
         providers.flatMap((spec) =>
           spec.resourceTypes.map((rt) => {
@@ -191,7 +193,9 @@ export function WorkspaceBindingsSection() {
       )}
 
       {!failed && !isLoading && providers.length === 0 ? (
-        <Empty>No source in the catalog has anything to point at yet.</Empty>
+        <EmptyRegion title="Nothing to point at yet">
+          No source in the catalog has anything to point at yet.
+        </EmptyRegion>
       ) : null}
     </Block>
   );

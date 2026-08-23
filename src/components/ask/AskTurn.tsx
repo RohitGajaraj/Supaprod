@@ -43,14 +43,14 @@
  */
 
 import * as React from "react";
-import { Num } from "@/components/meridian/surface-parts";
+import { Num, ReadFailedLine } from "@/components/meridian/surface-parts";
 import type { AskStreamMsg } from "@/lib/ask-stream-core";
 import type { ApprovalQueueItem } from "@/lib/approvals-queue.functions";
 import { recordCitationFor } from "@/lib/ask-record";
 import { gatesForAnswer, policyProposal } from "@/lib/ask-actions";
 import type { ResearchStatus } from "@/components/chat/ResearchActivity";
 import { modelLabel, spendLabel } from "@/lib/model-label";
-import { Failed, MoreItem, MoreMenu, Record } from "@/components/shell/primitives";
+import { MoreItem, MoreMenu, Record } from "@/components/shell/primitives";
 import { Answer } from "./Answer";
 import { AskGateCard } from "./AskGateCard";
 import { AskLanding, type LandedArtifact } from "./AskLanding";
@@ -320,7 +320,7 @@ export function AskTurn({
       {answer ? (
         answer.error ? (
           <Register name="Answer">
-            <Failed
+            <ReadFailedLine
               onRetry={
                 answer.retryContent
                   ? () => onRetry(answer.id, answer.retryContent as string)
@@ -329,7 +329,7 @@ export function AskTurn({
               retryLabel="Ask again"
             >
               {answer.content}
-            </Failed>
+            </ReadFailedLine>
           </Register>
         ) : blocked ? (
           <Register name="Why it did not start">

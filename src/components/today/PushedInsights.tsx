@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Num } from "@/components/meridian/surface-parts";
+import { Num, ReadFailedLine } from "@/components/meridian/surface-parts";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Button, Failed } from "@/components/shell/primitives";
+import { Button } from "@/components/shell/primitives";
 import { useWorkspace } from "@/hooks/use-workspace";
 import {
   getPushedInsights,
@@ -73,10 +73,10 @@ export function PushedInsights() {
             <h2 id="today-notices-title">What changed while you were away</h2>
           </div>
         </div>
-        <Failed onRetry={() => void pushed.refetch()}>
+        <ReadFailedLine onRetry={() => void pushed.refetch()}>
           This did not load, so nothing here can be trusted to be the full picture. Something may
           have changed while you were away.
-        </Failed>
+        </ReadFailedLine>
       </section>
     );
   }

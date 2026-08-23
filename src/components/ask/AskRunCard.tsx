@@ -20,7 +20,8 @@
  */
 
 import * as React from "react";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import { Num, Actions, ReadFailedLine } from "@/components/meridian/surface-parts";
+import { LoadingState } from "@/components/meridian/LoadingState";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getAskMissionCanvas } from "@/lib/ask-canvas.functions";
@@ -28,7 +29,7 @@ import { steerStudioSession } from "@/lib/studio.functions";
 import { decideApproval } from "@/lib/agent_loop.functions";
 import { ACTION_LABEL } from "@/lib/agent-vocabulary";
 import type { LoopStep } from "@/lib/ai/loop.server";
-import { Button, Failed, Loading, Receipt, Record, Textarea } from "@/components/shell/primitives";
+import { Button, Receipt, Record, Textarea } from "@/components/shell/primitives";
 
 const POLL_MS = 4000;
 
@@ -125,12 +126,12 @@ export function AskRunCard({ missionId, initials }: { missionId: string; initial
 
   if (canvas.isError) {
     return (
-      <Failed onRetry={() => void canvas.refetch()}>
+      <ReadFailedLine onRetry={() => void canvas.refetch()}>
         The run did not report back. Nothing here is a claim about what it did.
-      </Failed>
+      </ReadFailedLine>
     );
   }
-  if (canvas.isLoading) return <Loading>Reading the run.</Loading>;
+  if (canvas.isLoading) return <LoadingState label="Reading the run." />;
 
   const data = canvas.data;
   if (!data) return null;

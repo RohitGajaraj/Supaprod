@@ -31,13 +31,15 @@
 
 import * as React from "react";
 import { Row } from "@/components/meridian/rows";
-import { Actions } from "@/components/meridian/surface-parts";
+import { Actions, ReadFailedLine } from "@/components/meridian/surface-parts";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listThreads, type ThreadSummary } from "@/lib/threads.functions";
 import { relativeTime } from "@/lib/memory-view";
-import { Button, Empty, Failed, Loading } from "@/components/shell/primitives";
+import { Button } from "@/components/shell/primitives";
+import { EmptyRegion } from "@/components/meridian/EmptyRegion";
+import { LoadingState } from "@/components/meridian/LoadingState";
 import { AgentMark, YouMark } from "@/components/meridian/marks";
 
 /** How many the shallow path shows. Small on purpose: this is the list you
@@ -98,13 +100,15 @@ export function AskSwitcher({
       <div style={{ marginTop: "var(--sp-space-5)" }}>
         <div style={sectionLabel}>Recent</div>
         {list.isError ? (
-          <Failed onRetry={() => void list.refetch()}>
+          <ReadFailedLine onRetry={() => void list.refetch()}>
             We could not read your conversations. That is not the same as having none.
-          </Failed>
+          </ReadFailedLine>
         ) : list.isLoading ? (
-          <Loading>Reading your conversations.</Loading>
+          <LoadingState label="Reading your conversations." />
         ) : recent.length === 0 ? (
-          <Empty>Nothing asked yet. The one you are in is the first.</Empty>
+          <EmptyRegion title="Nothing asked yet">
+            The one you are in is the first.
+          </EmptyRegion>
         ) : (
           recent.map((t) => (
             <Row

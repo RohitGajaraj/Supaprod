@@ -26,7 +26,9 @@
  */
 import { useState } from "react";
 import { Line } from "@/components/meridian/rows";
-import { Actions } from "@/components/meridian/surface-parts";
+import { Actions, ReadFailedLine } from "@/components/meridian/surface-parts";
+import { EmptyRegion } from "@/components/meridian/EmptyRegion";
+import { LoadingState } from "@/components/meridian/LoadingState";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
@@ -41,7 +43,7 @@ import {
   type ConnectionRow,
 } from "@/lib/connections.functions";
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
-import { Block, Button, Empty, Failed, Loading, Select } from "@/components/shell/primitives";
+import { Block, Button, Select } from "@/components/shell/primitives";
 
 type Props = {
   projectId: string;
@@ -116,14 +118,14 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
     const err = (qConnections.error ?? qBindings.error) as Error | null;
     return (
       <Block title={title}>
-        <Failed
+        <ReadFailedLine
           onRetry={() => {
             void qConnections.refetch();
             void qBindings.refetch();
           }}
         >
           The overrides did not load. {err?.message ?? "The read failed."}
-        </Failed>
+        </ReadFailedLine>
       </Block>
     );
   }
@@ -131,7 +133,7 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
   if (isLoading) {
     return (
       <Block title={title}>
-        <Loading>Reading this product's overrides.</Loading>
+        <LoadingState label="Reading this product's overrides." />
       </Block>
     );
   }
@@ -233,7 +235,9 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
       )}
 
       {providers.length === 0 ? (
-        <Empty>No connected source has anything this product could override.</Empty>
+        <EmptyRegion title="No bindings yet">
+          No connected source has anything this product could override.
+        </EmptyRegion>
       ) : null}
 
       {hasGithub ? (

@@ -44,12 +44,12 @@
 
 import * as React from "react";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import { Num, Actions, ReadFailedLine } from "@/components/meridian/surface-parts";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-import { Block, Button, Failed, Prose, Record as RecordSays, Value } from "@/components/shell/primitives";
+import { Block, Button, Prose, Record as RecordSays, Value } from "@/components/shell/primitives";
 import { traceRef } from "@/components/discover/format";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
 import { artifactWord, relationWord } from "@/lib/artifact-words";
@@ -124,7 +124,7 @@ export function ShareControl({ decisionId }: { decisionId: string }) {
       <Button disabled={m.isPending} onClick={() => m.mutate()}>
         {m.isPending ? "Publishing" : m.isError ? "Try publishing again" : "Publish it"}
       </Button>
-      {m.isError ? <Failed>{(m.error as Error).message}</Failed> : null}
+      {m.isError ? <ReadFailedLine>{(m.error as Error).message}</ReadFailedLine> : null}
     </>
   );
 }
@@ -425,7 +425,7 @@ function StageHistory({
   if (q.isError) {
     return (
       <Block title={title}>
-        <Failed onRetry={() => q.refetch()}>Its history did not load.</Failed>
+        <ReadFailedLine onRetry={() => q.refetch()}>Its history did not load.</ReadFailedLine>
       </Block>
     );
   }
