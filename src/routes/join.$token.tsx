@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { acceptInvitation } from "@/lib/workspaces.functions";
 import { authErrorMessage } from "@/lib/auth-errors";
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
+import { Action } from "@/components/meridian/surface-parts";
 import { useObsidianAuthSurface } from "@/components/supaprod/AuthScaffold";
 
 // WM-F5 accept side: the join landing for a workspace invitation link. A standalone
@@ -194,13 +195,9 @@ function JoinPage() {
             <p style={{ fontSize: 13, color: "var(--mrd-mute)", marginBottom: 18 }}>
               You have joined the workspace.
             </p>
-            <button
-              type="button"
-              className="btn btn-primary btn-sm"
-              onClick={() => navigate({ to: "/" })}
-            >
+            <Action variant="primary" onClick={() => navigate({ to: "/" })}>
               Go to Supaprod
-            </button>
+            </Action>
           </div>
         )}
 

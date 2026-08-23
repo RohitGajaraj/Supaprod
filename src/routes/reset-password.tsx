@@ -4,6 +4,7 @@ import { Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { authErrorMessage } from "@/lib/auth-errors";
+import { Action } from "@/components/meridian/surface-parts";
 import { AuthScaffold, fieldLabelStyle, fieldErrorStyle } from "@/components/supaprod/AuthScaffold";
 
 // Recovery-link landing on the shared dark auth scaffold (auth_surfaces pass).
@@ -214,12 +215,12 @@ function ResetPasswordPage() {
               {formError}
             </p>
           ) : null}
-          <button
-            className="btn btn-primary"
+          <Action
+            variant="primary"
             type="submit"
+            className="w-full justify-center"
             disabled={loading}
-            aria-busy={loading || undefined}
-            style={{ width: "100%", justifyContent: "center" }}
+            busy={loading}
           >
             {loading ? (
               <>
@@ -229,7 +230,7 @@ function ResetPasswordPage() {
             ) : (
               "Update password · takes effect now"
             )}
-          </button>
+          </Action>
         </form>
       )}
     </AuthScaffold>

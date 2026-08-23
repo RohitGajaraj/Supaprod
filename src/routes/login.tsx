@@ -5,6 +5,7 @@ import { toast } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { authErrorMessage } from "@/lib/auth-errors";
+import { Action } from "@/components/meridian/surface-parts";
 import { AuthScaffold, fieldLabelStyle, fieldErrorStyle } from "@/components/supaprod/AuthScaffold";
 import { recordAuthEvent } from "@/lib/observability/auth.functions";
 
@@ -228,13 +229,12 @@ function LoginPage() {
         </>
       }
     >
-      <button
-        type="button"
-        className="btn btn-ghost"
-        style={{ width: "100%", justifyContent: "center" }}
+      <Action
+        variant="default"
+        className="w-full justify-center"
         onClick={signInGoogle}
         disabled={busy}
-        aria-busy={loadingGoogle || undefined}
+        busy={loadingGoogle}
         title={loadingEmail ? "Hold on, signing you in" : undefined}
       >
         {loadingGoogle ? (
@@ -245,7 +245,7 @@ function LoginPage() {
         ) : (
           "Continue with Google"
         )}
-      </button>
+      </Action>
       <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "16px 0" }}>
         <span style={{ flex: 1, height: 1, background: "var(--mrd-edge)" }}></span>
         <span className="mono-label" style={{ fontSize: 8.5 }}>
@@ -316,13 +316,13 @@ function LoginPage() {
             {formError}
           </p>
         ) : null}
-        <button
-          className="btn btn-primary"
+        <Action
+          variant="primary"
           type="submit"
+          className="w-full justify-center"
           disabled={busy}
-          aria-busy={loadingEmail || undefined}
+          busy={loadingEmail}
           title={loadingGoogle ? "Hold on, opening Google" : undefined}
-          style={{ width: "100%", justifyContent: "center" }}
         >
           {loadingEmail ? (
             <>
@@ -332,7 +332,7 @@ function LoginPage() {
           ) : (
             "Sign in · opens your workspace"
           )}
-        </button>
+        </Action>
       </form>
     </AuthScaffold>
   );

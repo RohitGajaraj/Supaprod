@@ -5,6 +5,7 @@ import { toast } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { authErrorMessage } from "@/lib/auth-errors";
+import { Action } from "@/components/meridian/surface-parts";
 import { AuthScaffold, fieldLabelStyle, fieldErrorStyle } from "@/components/supaprod/AuthScaffold";
 import { recordAuthEvent } from "@/lib/observability/auth.functions";
 import { claimLandingSession } from "@/lib/landing.functions";
@@ -713,13 +714,12 @@ function SignupPage() {
           </p>
         )}
       </div>
-      <button
-        type="button"
-        className="btn btn-ghost"
-        style={{ width: "100%", justifyContent: "center" }}
+      <Action
+        variant="default"
+        className="w-full justify-center"
         onClick={signupGoogle}
         disabled={busy}
-        aria-busy={loadingGoogle || undefined}
+        busy={loadingGoogle}
         title={loading ? "Hold on, creating your account" : undefined}
       >
         {loadingGoogle ? (
@@ -730,7 +730,7 @@ function SignupPage() {
         ) : (
           "Continue with Google"
         )}
-      </button>
+      </Action>
       <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "16px 0" }}>
         <span style={{ flex: 1, height: 1, background: "var(--mrd-edge)" }}></span>
         <span className="mono-label" style={{ fontSize: 8.5 }}>
@@ -802,13 +802,13 @@ function SignupPage() {
             {formError}
           </p>
         ) : null}
-        <button
-          className="btn btn-primary"
+        <Action
+          variant="primary"
           type="submit"
+          className="w-full justify-center"
           disabled={busy}
-          aria-busy={loading || undefined}
+          busy={loading}
           title={loadingGoogle ? "Hold on, opening Google" : undefined}
-          style={{ width: "100%", justifyContent: "center" }}
         >
           {loading ? (
             <>
@@ -818,7 +818,7 @@ function SignupPage() {
           ) : (
             "Create account · setup starts"
           )}
-        </button>
+        </Action>
       </form>
     </AuthScaffold>
   );

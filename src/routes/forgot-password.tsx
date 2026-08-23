@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { authErrorMessage } from "@/lib/auth-errors";
+import { Action } from "@/components/meridian/surface-parts";
 import { AuthScaffold, fieldLabelStyle, fieldErrorStyle } from "@/components/supaprod/AuthScaffold";
 
 // Reset-request on the shared dark auth scaffold (auth_surfaces pass). Real
@@ -80,14 +81,13 @@ function ForgotPasswordPage() {
             <strong style={{ color: "var(--mrd-ink)" }}>{email}</strong>, the reset link is on
             its way.
           </p>
-          <button
-            type="button"
-            className="btn btn-ghost"
-            style={{ width: "100%", justifyContent: "center" }}
+          <Action
+            variant="default"
+            className="w-full justify-center"
             onClick={() => setSent(false)}
           >
             Send again · same address
-          </button>
+          </Action>
         </div>
       ) : (
         <form onSubmit={sendResetLink}>
@@ -115,12 +115,12 @@ function ForgotPasswordPage() {
               {formError}
             </p>
           ) : null}
-          <button
-            className="btn btn-primary"
+          <Action
+            variant="primary"
             type="submit"
+            className="w-full justify-center"
             disabled={loading}
-            aria-busy={loading || undefined}
-            style={{ width: "100%", justifyContent: "center" }}
+            busy={loading}
           >
             {loading ? (
               <>
@@ -130,7 +130,7 @@ function ForgotPasswordPage() {
             ) : (
               "Send reset link · lands in your inbox"
             )}
-          </button>
+          </Action>
         </form>
       )}
     </AuthScaffold>
