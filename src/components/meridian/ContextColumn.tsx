@@ -80,8 +80,8 @@ export function CtxRow({ mark, name, title, sub, source, lead, onClick, href }: 
    * type defect this session just removed, rebuilt in spacing.
    */
   const className = lead
-    ? "flex gap-mrd-3 py-mrd-4 px-mrd-3 rounded-mrd-ctl bg-mrd-lift transition-colors"
-    : "flex gap-mrd-3 py-mrd-4 px-mrd-3 rounded-mrd-ctl transition-colors";
+    ? "flex gap-mrd-inline py-mrd-4 px-mrd-3 rounded-mrd-ctl bg-mrd-lift transition-colors"
+    : "flex gap-mrd-inline py-mrd-4 px-mrd-3 rounded-mrd-ctl transition-colors";
   const hoverClass = onClick || href ? "hover:bg-mrd-hover cursor-pointer" : "";
 
   /* The name is truncated to one line, so the tooltip is also the only way to
@@ -101,13 +101,14 @@ export function CtxRow({ mark, name, title, sub, source, lead, onClick, href }: 
   const content = (
     <>
       {glyph && <div className="flex-shrink-0">{glyph}</div>}
-      <div className="flex-1 min-w-0">
+      {/* `gap-mrd-pair` rather than a margin on the subtitle: the gap belongs to
+          the RELATIONSHIP between the two lines, not to one of them, so it
+          cannot go missing when a caller renders the name without a subtitle. */}
+      <div className="flex min-w-0 flex-1 flex-col gap-mrd-pair">
         <div className={lead ? "mrd-subtitle truncate" : "text-mrd-base font-medium text-mrd-ink truncate"}>
           {name}
         </div>
-        {/* 2px, the one step that exists for a thing and its own subtitle. It was
-            zero, which is why they read as a single crushed line. */}
-        {sub && <div className="mt-mrd-1 text-mrd-tiny text-mrd-mute truncate">{sub}</div>}
+        {sub && <div className="text-mrd-tiny text-mrd-mute truncate">{sub}</div>}
       </div>
     </>
   );

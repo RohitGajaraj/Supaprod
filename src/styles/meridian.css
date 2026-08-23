@@ -1673,6 +1673,73 @@
 }
 
 /*
+ * ── THE SPACING ROLES, ADDED 2026-08-23 ─────────────────────────────────
+ *
+ * THE SAME MOVE AS THE TEXT ROLES, ONE AXIS OVER, and it earned its place the
+ * same way: by being argued down first.
+ *
+ * WHAT WAS MEASURED. 79% of the spacing inside the design system's own
+ * components was not on the design system's scale: 511 uses of Tailwind's
+ * default numeric scale and 59 arbitrary pixel values against 147 on Meridian's.
+ * The ratchet cannot see any of it, for the same reason it could not see
+ * `text-[13px]`: `gap-2` is not retired vocabulary, it is a default, and no
+ * guard was ever pointed at it.
+ *
+ * THE 8PX QUESTION, AND WHY THE ANSWER IS NO. 8px was the commonest single
+ * spacing value in the product, 116 uses, ahead of every step that exists, and
+ * the ladder has no 8. The reflex was to add one. Checking each of the 116
+ * against what the relationship actually needs found 6px or 10px equally correct
+ * and usually better, and the ladder is non-linear on purpose (2 4 6 10 16 24 40
+ * 64) so adjacent steps stay visibly different. Adding 8 between 6 and 10 would
+ * put three values inside four pixels, which is precisely the type defect
+ * removed earlier the same day, where 12px and 12.5px sat beside each other
+ * pretending to be a hierarchy. So no step is added and none is renumbered.
+ *
+ * FOUNDER, on being asked to arbitrate: "we should not be making the call, since
+ * already we have 8 and 12 in the plan or platform. We should not be adopting
+ * that. Does it really make sense? Does it look clean? Does it look premium? Is
+ * it readable?" The ladder is right. 8px was a habit.
+ *
+ * SO WHY ROLES AT ALL, IF THE LADDER SURVIVES. Because a number at the call site
+ * is still the thing that goes wrong. `gap-mrd-4` tells the next author nothing
+ * about whether 10px was a decision or a guess, and the two spacings that
+ * actually caused the founder's "back to back" complaint were not 8px at all,
+ * they were a 4px between rows and a 0px between a name and its own subtitle.
+ * Nobody chose those. They were what was left when nobody chose.
+ *
+ * These name the RELATIONSHIP. Five of them, over the eight steps that already
+ * exist, adding nothing to the ladder and renumbering nothing, which is what
+ * makes this additive exactly the way the text roles were.
+ */
+
+/** A mark and the word it belongs to, read as one object. */
+@utility gap-mrd-inline {
+  gap: var(--mrd-s3);
+}
+
+/** A name and its own subtitle: close, but not touching. This was ZERO on the
+ *  context rail, which is why the two read as one crushed line. */
+@utility gap-mrd-pair {
+  gap: var(--mrd-s1);
+}
+
+/** One row to the next in a list. This was 4px on the rail. */
+@utility gap-mrd-stack {
+  gap: var(--mrd-s4);
+}
+
+/** Inside a card or a panel, where prose needs a margin to be read at length. */
+@utility p-mrd-inset {
+  padding: var(--mrd-s5);
+}
+
+/** One block of meaning to the next. The largest gap that is still inside one
+ *  surface; anything wider is a layout decision rather than a spacing one. */
+@utility gap-mrd-section {
+  gap: var(--mrd-s6);
+}
+
+/*
  * ── MOTION KEYFRAMES ────────────────────────────────────────────────────
  * Prefixed, because `spin` and `fade-in` already exist in a 133KB stylesheet
  * and a keyframe collision resolves by source order with no warning.
