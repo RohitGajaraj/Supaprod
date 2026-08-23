@@ -84,6 +84,37 @@ leading-mrd-body` composes"*) and **it had never been built**, and `--mrd-lh-bod
 family either. So an author who read the rule and obeyed it emitted no rule at all and inherited
 the parent's leading, invisibly. Built and corrected in `b7d2c4021`.
 
+## HOW FAR THIS ACTUALLY GOES, INCLUDING THE PART THAT IS ALREADY FINE
+
+Measured after the conversion, so nobody spends a day on a number that is not a defect.
+804 `className` attributes in `src/components/meridian/`:
+
+| | count |
+| --- | --- |
+| use one of the five text ROLES (leading comes bundled) | 64 |
+| set a font size explicitly | 254 |
+| of those, set **no** line height, so leading is inherited rather than chosen | 207 |
+
+**207 looks like the finding and it is not.** Split by whether leading can actually affect
+readability:
+
+| | count |
+| --- | --- |
+| explicitly single line (`truncate`, `line-clamp-N`, `whitespace-nowrap`, `tabular-nums`) | 62 |
+| explicitly wrapping (`max-w-[Nch]`) with no chosen leading | **0** |
+| no marker either way, not classifiable from the class alone | 145 |
+
+**Zero.** Every element in this directory that declares a wrap width already has a leading or a
+role. On a single line, leading sets box height and not readability, so the 62 are not a defect
+either. **Do not convert the 207.** The leading half of the founder's complaint is closed here as
+far as it can be checked without rendering.
+
+Stated honestly, because the 145 is a real limit: an element with no `max-w` can still wrap inside
+a narrow container, and markup alone cannot say. What is defensible is the narrower claim, and it
+is the one to quote: **no element in Meridian that declares a wrap width is missing a leading.**
+
+That is also why the lane number below matters more than anything left in here.
+
 ## THE PART THAT IS YOURS, AND THE GUARD DOES NOT COVER IT
 
 `leading-stays-on-the-meridian-scale.test.ts` scans **`src/components/meridian/` only**, because
