@@ -1805,6 +1805,9 @@ export function DiscoverSurface({
                 {(hasCoverage ? cov.sources : []).slice(0, SOURCES_IN_CONTEXT).map((s) => (
                   <CtxRow
                     key={s.source}
+                    /* The mark, so a reader recognises the source before reading
+                       its name. Brand where we have the brand, kind otherwise. */
+                    source={s.source}
                     /* The readable name, not the column value. `getSenseCoverage`
                      groups on `source_kind || source`, so this list used to read
                      "pull_connector" and "manual" at a person, which are our
@@ -2040,6 +2043,10 @@ export function DiscoverSurface({
                 {focusedMembers.slice(0, QUOTES_IN_FOCUS).map((s) => (
                   <CtxRow
                     key={s.id}
+                    /* Which source this sentence was lifted out of, said as a
+                       mark rather than as more words. The founder's case: "this
+                       is coming from Intercom, this is coming from Slack". */
+                    source={s.source}
                     name={signalPreview(s.content, 96)}
                     /* THE QUOTE OPENS THE THING IT CAME FROM. `signals.url` has
                      held the ticket, the thread or the review this sentence was

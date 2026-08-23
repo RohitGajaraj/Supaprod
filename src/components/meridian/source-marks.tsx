@@ -467,3 +467,205 @@ export function UnderMark({ children }: { children: ReactNode }) {
   const style: CSSProperties = { display: "block", paddingLeft: `calc(22px + ${NAME_GAP})` };
   return <span style={style}>{children}</span>;
 }
+
+/* ------------------------------------------------------------------ *
+ * THE KINDS, added 2026-08-23
+ * ------------------------------------------------------------------ *
+ *
+ * FOUNDER, this session: "wherever the inputs are coming from any connected
+ * sources or any sources that we are calling out, I think we need to use their
+ * original logos or glyphs next to that... people will connect."
+ *
+ * THE PART THAT ONLY THE DATABASE COULD ANSWER. Twenty brand marks cover twenty
+ * brands, and the live `signals.source` column is mostly not brands. Counted on
+ * 2026-08-23 across 1,418 rows:
+ *
+ *   agent 913 · analytics 51 · sales-call 43 · support 33 · nps 30 ·
+ *   interview 26 · app-store 22 · slack 21 · github 21 · market 12 ·
+ *   competitive_research 12 · workspace_brief 25 · churn-call 8 · churn-survey 7
+ *
+ * So `slack` and `github` are the ONLY branded connectors in the real data, and
+ * a brand-logo-only answer would leave the large majority of rows with nothing
+ * beside them. That is worse than no marks at all, because an absent mark then
+ * reads as a missing integration rather than as a kind of evidence.
+ *
+ * These are the other half: one mark per KIND of evidence, drawn to the same
+ * contract as the twenty so a rail mixing Slack with an interview reads as one
+ * set. Same 16x16 box, same optical square, same round caps, and never both ink
+ * densities in one mark.
+ *
+ * THEY ARE NEVER BRAND-TINTED. A kind has no brand, so `tone="brand"` resolves
+ * to nothing for these and they stay on `currentColor`. That is the honest
+ * behaviour: hue here would be a colour we invented for a category, which is
+ * the decoration the colour law exists to prevent.
+ */
+
+/** Support, a feature request, anything that arrived as someone talking to us. */
+const Conversation = () => (
+  <svg {...g}>
+    <path d="M4 3h8a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H7l-3 2.5V11a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
+  </svg>
+);
+
+/** A call: the waveform of a recording, not a handset. The handset is a device
+ *  nobody under forty has held; the waveform is what a recording LOOKS like. */
+const Call = () => (
+  <svg {...g} strokeWidth={1.8}>
+    <path d="M3 6.5v3M6 3.5v9M9 5.5v5M12 7v2" />
+  </svg>
+);
+
+/** A survey or an NPS score: a gauge, because the fact is a READING. */
+const Survey = () => (
+  <svg {...g}>
+    <path d="M2.5 11.5a5.5 5.5 0 0 1 11 0" />
+    <path d="M8 11.5 11 7.5" />
+  </svg>
+);
+
+/** An interview: a person, because the evidence is somebody's own words. */
+const Interview = () => (
+  <svg {...g}>
+    <circle cx="8" cy="5" r="2.5" />
+    <path d="M3.5 13.5a4.5 4.5 0 0 1 9 0" />
+  </svg>
+);
+
+/** Analytics: a trend against a baseline. */
+const Analytics = () => (
+  <svg {...g}>
+    <path d="M2.5 13.5h11" />
+    <path d="M4 11l3-3.5 2.5 2L13 4.5" />
+  </svg>
+);
+
+/** An app-store review: a rating. */
+const AppStore = () => (
+  <svg {...g}>
+    <path d="M8 2.5l1.75 3.55 3.9.57-2.82 2.75.66 3.88L8 11.4l-3.49 1.85.66-3.88L2.35 6.62l3.9-.57z" />
+  </svg>
+);
+
+/** Market or competitive research: looking outward on purpose. */
+const Research = () => (
+  <svg {...g}>
+    <circle cx="7.25" cy="7.25" r="4.75" />
+    <path d="M10.75 10.75 13.8 13.8" />
+  </svg>
+);
+
+/** A brief, an audit, anything that arrived as a written document. */
+const Document = () => (
+  <svg {...g}>
+    <path d="M4.5 2h4.5L12 5.2v8.3a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5z" />
+    <path d="M9 2v3.2h3M6.5 9h3M6.5 11.3h3" />
+  </svg>
+);
+
+/** A session replay: watching it happen again. */
+const Replay = () => (
+  <svg {...g}>
+    <circle cx="8" cy="8" r="5.5" />
+    <path d="M6.9 5.9 10.6 8l-3.7 2.1z" />
+  </svg>
+);
+
+/** Our own agent filed it. The 3x3 lattice is deliberate: it is the same shape
+ *  `LoadingState` and `AgentPulse` animate, so a row filed by an agent and an
+ *  agent visibly working are recognisably the same actor. */
+const AgentKind = () => (
+  <svg {...f}>
+    <path d="M3 3h2.2v2.2H3zM6.9 3h2.2v2.2H6.9zM10.8 3H13v2.2h-2.2zM3 6.9h2.2v2.2H3zM6.9 6.9h2.2v2.2H6.9zM10.8 6.9H13v2.2h-2.2zM3 10.8h2.2V13H3zM6.9 10.8h2.2V13H6.9zM10.8 10.8H13V13h-2.2z" />
+  </svg>
+);
+
+const KIND_MARKS = {
+  conversation: Conversation,
+  call: Call,
+  survey: Survey,
+  interview: Interview,
+  analytics: Analytics,
+  appstore: AppStore,
+  research: Research,
+  document: Document,
+  replay: Replay,
+  agent: AgentKind,
+} as const;
+
+export type SourceKind = keyof typeof KIND_MARKS;
+
+/**
+ * Read a `signals.source` string and say what to draw.
+ *
+ * MATCHED ON SUBSTRINGS, LOWERCASED, PUNCTUATION STRIPPED, and that is not
+ * laziness. The column is free text: the live data holds `sales-call`,
+ * `churn-call`, `NPS survey`, `churn-survey`, `session replay archive` and
+ * `Sam Weller support ticket clusters`, all written by different producers over
+ * three months. An exact map would answer four of those and shrug at the rest.
+ *
+ * ORDER MATTERS AND IS DELIBERATE. `churn-survey` contains both "churn" and
+ * "survey"; survey is checked before call so it does not become a phone call.
+ * A row that matches nothing draws NOTHING rather than borrowing a kind, for
+ * the same reason an unknown provider id does: a wrong mark is worse than none,
+ * because it is confidently wrong and a person reads it as fact.
+ */
+export function sourceKindFor(source: string | null | undefined): SourceKind | undefined {
+  if (!source) return undefined;
+  const s = source.toLowerCase().replace(/[^a-z0-9]+/g, " ");
+  const has = (...w: string[]) => w.some((x) => s.includes(x));
+  if (has("agent")) return "agent";
+  if (has("replay")) return "replay";
+  if (has("survey", "nps", "csat", "score")) return "survey";
+  if (has("interview")) return "interview";
+  if (has("call", "meeting")) return "call";
+  if (has("analytic", "dashboard", "telemetry", "metric")) return "analytics";
+  if (has("app store", "appstore", "review", "rating")) return "appstore";
+  if (has("market", "competit", "research", "scout")) return "research";
+  if (has("brief", "audit", "doc", "transcript", "note", "paste")) return "document";
+  if (has("support", "ticket", "feature request", "churn", "feedback", "request"))
+    return "conversation";
+  return undefined;
+}
+
+/**
+ * THE ONE A SURFACE SHOULD CALL. Give it whatever the row says its source is and
+ * it resolves a brand mark first, then a kind, then draws nothing.
+ *
+ * WHY BRAND WINS. `slack` is both a provider id and a word that could be read as
+ * a kind of conversation. If a workspace genuinely connected Slack, the Slack
+ * mark tells a person more than a speech bubble does, and recognition is the
+ * whole reason the founder asked for this.
+ */
+export function SourceMark({
+  source,
+  size = 16,
+  tone = "brand",
+}: {
+  source: string | null | undefined;
+  size?: number;
+  tone?: MarkTone;
+}) {
+  const key = (source ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "_");
+  if (MARKS[key as ProviderId]) return <ProviderMark provider={key} size={size} tone={tone} />;
+  const kind = sourceKindFor(source);
+  if (!kind) return null;
+  const Mark = KIND_MARKS[kind];
+  const box = size + 6;
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        display: "inline-flex",
+        flex: "none",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        width: box,
+        height: box,
+      }}
+    >
+      <span style={{ display: "block", width: size, height: size }}>
+        <Mark />
+      </span>
+    </span>
+  );
+}
