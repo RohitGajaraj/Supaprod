@@ -3767,3 +3767,69 @@ may only ever go down, and a drop must be locked into
 
 **Mobbin MCP is connected and authenticated** (`search_flows`, `search_screens`,
 `search_sections`). MAIN LANE can answer design-reference requests immediately.
+
+---
+
+## MAIN LANE · 2026-08-23 ~21:1x IST · the three requests that all turned on one hole
+
+**Appended, not replacing.** Three lanes write this file; see the rule on shared handoffs.
+
+**Everything both lanes raised is ruled. Nothing is waiting on MAIN LANE.**
+
+### What closed
+
+| Request | Ruling |
+| --- | --- |
+| `REQ-L0-005` **addenda** | [`RL0-005b`](../../coordination/answers/RL0-005b-the-other-four-exist-too-and-three-were-renamed.md). All four exist; **three were renamed** — `Select`→`Picker`, `SelectionBar`→`BulkBar`, `Record`→`RecordSpeaks` (two homes). All 23 sites routed. |
+| `REQ-005` | [`R005`](../../coordination/answers/R005-the-link-face-is-built-and-the-other-two-already-exist.md). Link face **built** (`ActionLink` + `ACTION_LINK_FACE`). Selection control already exists twice. Landing: **refused**. |
+| `REQ-006` | [`R006`](../../coordination/answers/R006-geist-stays-and-it-was-never-optional.md). Geist stays; **`--mrd-face-display` landed**. |
+
+### The one thing worth inheriting
+
+**A renamed export reads exactly like a missing one.** Three requests asked MAIN
+LANE to BUILD six components that already existed. The inventory built after the
+first two was keyed on the **Meridian** name and could not answer "what replaced
+`Select`", so the third request landed anyway. `COMPONENTS.md` now carries a
+second table **keyed on the retired name**, generated and checked —
+`bun run meridian:exports` exits non-zero if a destination stops existing.
+
+**The headline it produced: 17 retired symbols are still imported across 46 files
+and every one already has a home. Nothing on the retired layer needs a component
+built.** A census reading "no Meridian equivalent" has found a rename.
+
+**A name match is not a contract match.** Comparing signatures caught three that
+are NOT straight swaps, two of which my own draft map had labelled identical:
+`Loading`→`Reading` **drops `working`/`agent`** (all five live sites pass children
+only, so still a drop-in for them; the agent-is-working fact is `LoadingState`),
+and **`Field`'s `htmlFor` is now required**.
+
+### Two things I got wrong tonight, do not inherit them
+
+1. **`RL0-005` answered half a request and I called it closed.** Two addenda had
+   added four symbols. The lane held 11 call sites while the board said nothing
+   was outstanding. **Re-read a request before closing it; addenda do not announce
+   themselves.**
+2. **A census regex that read 80 symbols against a true 17.** `[\s\S]*?` is lazy,
+   but lazy only means shortest match satisfying the REST of the pattern — with a
+   required suffix it stretched from the first import in the file until it found
+   one, swallowing every import between. `[^}]*` cannot cross a brace. **Only an
+   independent count made the wrong number visible.**
+
+### State at close
+
+`tsc` **0** · `bun test` **10650 pass / 0 fail** across 631 files · `docs:check`
+**0**, on the merged tree with both lanes' pushes in it.
+
+**`main` had been red on `docs:check`** since earlier tonight — two answer files
+of mine carried dates in their filenames, which docs-doctor bans. Renamed to
+`V001`/`V002`, gate green.
+
+**Migration ledger is IN SYNC**, checked this session: `schema_migrations` head
+`20260823010000` = repo head. The seven rows repaired earlier are all present as
+`main-lane-ledger-repair`. Nothing to backfill.
+
+**Deploy: called at ~21:1x, reported `pending` across three calls on one stable
+`deployment_id`.** Live site 200 throughout. Nothing shipped tonight changes a
+rendered surface — `ActionLink` has no callers yet and `--mrd-face-display` is
+unread until LANE 1 repoints `styles.css:146` — so a lagging deploy costs
+nothing. **Confirm it reached `ready` before claiming it landed.**
