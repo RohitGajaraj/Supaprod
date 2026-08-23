@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
 import { Action, Num, ReadFailed } from "@/components/meridian/surface-parts";
+import { openAsk } from "@/lib/ask-open";
 import { getFocusNext, type FocusInsight } from "@/lib/brain/insights.functions";
 
 export function FocusNext({ workspaceId }: { workspaceId: string | null }) {
@@ -52,6 +53,7 @@ export function FocusNext({ workspaceId }: { workspaceId: string | null }) {
   const recommendation = focus.data;
   const evidence = recommendation.evidence;
   const recency = formatHours(evidence.recencyHours);
+  const move = recommendation.recommendedAction;
 
   return (
     <section className="today-director" aria-labelledby="today-director-title">
@@ -84,25 +86,34 @@ export function FocusNext({ workspaceId }: { workspaceId: string | null }) {
           </span>
         ) : null}
       </div>
-      {recommendation.recommendedAction ? (
+      {move ? (
         <div className="today-director-move">
           <div>
             <div className="today-recommendation-label">Recommended move</div>
-            <div>{recommendation.recommendedAction.goal}</div>
+            <div>{move.goal}</div>
+            {move.agent_slug ? (
+              <span className="font-mrd-mono text-mrd-nano tracking-mrd-label uppercase text-mrd-mute mt-mrd-2 inline-block">
+                {move.agent_slug}
+              </span>
+            ) : null}
           </div>
-          <Action
-            title="Open supporting evidence in Discover"
-            onClick={() =>
-              navigate({
-                to: "/discover",
-                search: recommendation.themeId
-                  ? ({ focus: recommendation.themeId } as never)
-                  : undefined,
-              })
-            }
-          >
-            See evidence
-          </Action>
+          <div className="flex items-center gap-mrd-3">
+            <Action onClick={() => openAsk(move.goal)}>Hand it over</Action>
+            <Action
+              variant="quiet"
+              title="Open supporting evidence in Discover"
+              onClick={() =>
+                navigate({
+                  to: "/discover",
+                  search: recommendation.themeId
+                    ? ({ focus: recommendation.themeId } as never)
+                    : undefined,
+                })
+              }
+            >
+              See evidence
+            </Action>
+          </div>
         </div>
       ) : null}
     </section>

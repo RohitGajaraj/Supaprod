@@ -13,6 +13,7 @@ import {
 } from "@/components/meridian/surface-parts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import * as React from "react";
 
 import { SendBackSheet } from "@/components/approvals/SendBack";
@@ -32,6 +33,7 @@ import { useSelection } from "@/components/shell/use-selection";
 import { Receipt } from "@/components/meridian/Receipt";
 import { Surface } from "@/components/meridian/Surface";
 import { stripAutoPrefix, cleanTitle } from "@/components/plan/format";
+import { useConfirm } from "@/hooks/use-confirm";
 import { useWorkspace } from "@/hooks/use-workspace";
 import {
   getApprovalsQueue,
@@ -43,7 +45,7 @@ import {
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { openAsk } from "@/lib/ask-open";
 import { tierFromProbability } from "@/lib/confidence";
-import { listMissions, type MissionListRow } from "@/lib/missions.functions";
+import { cancelMission, listMissions, type MissionListRow } from "@/lib/missions.functions";
 import { listLearnings } from "@/lib/outcome.functions";
 import { approvalsQueueKey, missionsKey, invalidateShellReads } from "@/lib/query-keys";
 import { stillWaiting } from "@/lib/query-state";
@@ -241,6 +243,33 @@ const VERDICT_TONE: Record<string, "pass" | "quiet" | "fail"> = {
   kill: "fail",
 };
 
+/**
+ * THE OUTCOME RECORD'S VERDICT WORDS, WHICH ARE NOT THE CRITIC'S THREE ABOVE.
+ * A learning's verdict is validated, missed or mixed, so it cannot ride
+ * `VERDICT_TONE`: different keys, different facts. Only two take colour, and
+ * the classes are the exact status strings `RunState.tsx` spends on done and
+ * failed -- colour carries an outcome that happened, never decoration. "mixed"
+ * is deliberately absent: it is neither cleanly, so it wears the line's own
+ * ink and the word carries it.
+ */
+const LEARNING_VERDICT_CLASS: Record<string, string> = {
+  validated: "text-mrd-pass",
+  missed: "text-mrd-fail",
+};
+
+/** ICE arrives over PostgREST as a numeric-typed string, so both ends coerce
+ *  through `Number()` before they are called numbers. A movement needs both
+ *  ends: one alone says nothing about direction, so it draws nothing. */
+function iceMovement(
+  prior: number | string | null,
+  next: number | string | null,
+): { prior: number; next: number } | null {
+  if (prior === null || prior === "" || next === null || next === "") return null;
+  const from = Number(prior);
+  const to = Number(next);
+  return Number.isFinite(from) && Number.isFinite(to) ? { prior: from, next: to } : null;
+}
+
 type CriticHandoff = {
   idea: string;
   verdict?: string;
@@ -434,8 +463,10 @@ function Today() {
   const fetchQueue = useServerFn(getApprovalsQueue);
   const fetchMissions = useServerFn(listMissions);
   const fetchLearnings = useServerFn(listLearnings);
+  const fCancelMission = useServerFn(cancelMission);
   const decide = useServerFn(decideApprovalItem);
   const snooze = useServerFn(snoozeApprovalItem);
+  const confirm = useConfirm();
 
   const queue = useQuery({
     queryKey: approvalsQueueKey(workspaceId),
@@ -483,7 +514,52 @@ function Today() {
   );
   const running = React.useMemo(() => rows.filter((m) => WORKING.has(m.status)), [rows]);
 
+  /* THE BRAKE PEDAL A RUNNING ROW CAN HONESTLY OFFER. `cancelMission` stops
+     advancement, cancels the run's in-flight steps, releases held build claims
+     and clears its pending approvals, which makes it irreversible -- so it is
+     gated behind the app's own confirm (never a native dialog) in the handler
+     below. Feedback is a toast rather than a receipt: cancelling belongs to
+     this lane, not to the review queue's settled list. */
+  const cancelRun = useMutation({
+    mutationFn: (missionId: string) => fCancelMission({ data: { missionId } }),
+    onSuccess: (result) => {
+      if (result.alreadyTerminal) {
+        toast.success("That run had already finished on its own.");
+      } else {
+        toast.success(
+          typeof result.approvalsCancelled === "number" && result.approvalsCancelled > 0
+            ? `Run cancelled · ${result.approvalsCancelled} pending approval${result.approvalsCancelled === 1 ? "" : "s"} cleared.`
+            : "Run cancelled · it will not advance further.",
+        );
+      }
+      void queryClient.invalidateQueries({ queryKey: ["today"] });
+      invalidateShellReads(queryClient);
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+  /* `mutate` is stable across renders, so the row wiring below can depend on
+     this without rebuilding the crew list every time the component renders. */
+  const { mutate: fireCancelRun } = cancelRun;
+  const cancelRunAt = React.useCallback(
+    async (missionId: string) => {
+      const ok = await confirm({
+        title: "Cancel this run?",
+        body: "It stops now and will not advance further. Its pending approvals clear and any held build locks release. Work already done is kept. This cannot be undone.",
+        destructive: true,
+        confirmLabel: "Cancel run",
+      });
+      if (ok) fireCancelRun(missionId);
+    },
+    [confirm, fireCancelRun],
+  );
+
   const learning = learnings.data?.learnings?.[0] ?? null;
+  /* Resolved once here rather than inline in the block's evidence line, so the
+     JSX below reads as what is printed and not as how it was parsed. */
+  const learningVerdictClass = learning ? LEARNING_VERDICT_CLASS[learning.verdict] : undefined;
+  const learningIce = learning
+    ? iceMovement(learning.prior_ice, learning.new_ice)
+    : null;
   const oldest = React.useMemo(
     () =>
       rows.reduce<string | null>(
@@ -552,10 +628,19 @@ function Today() {
    * agent that has not moved in ten minutes says so, which none of the three
    * lanes could tell you.
    *
-   * WHAT IS DELIBERATELY NOT WIRED: `onReply`. The inbox can take an answer
-   * inline and this surface has no writer for one, and drawing a control that
-   * cannot deliver is the affordance failure the component's own header names.
-   * Reported as a gap rather than faked.
+   * WHAT IS WIRED, AND ONLY WHERE AN ANSWER REALLY GOES SOMEWHERE: `onReply`
+   * is passed for the blocked rows alone. Their reply opens Ask through
+   * `openAsk`, the one writer this surface has, carrying the run's own title
+   * ahead of the answer so the conversation starts knowing which work it is
+   * about. Ready and finished rows stay unwired -- nothing consumes a reply
+   * addressed to work that has ended -- and so do running rows, where a reply
+   * has no path into an agent mid-flight. A control that cannot deliver is the
+   * affordance failure the component's own header names.
+   *
+   * THE OTHER CONTROL A RUNNING ROW GETS is Cancel, wired to the real
+   * `cancelMission` mutation behind the app confirm. It lives in the row's
+   * activity line because `AgentInbox` owns the row markup; stopping its click
+   * from reaching the row's own navigation is not optional.
    */
   const crew = React.useMemo<AgentSession[]>(() => {
     /* Every row opens its run, exactly as every lane row did. Built once here so
@@ -603,6 +688,13 @@ function Today() {
            wear no Failed chip and say which one they were in the line above. */
         failed: state === "failed",
         onOpen: open(m.id),
+        /* Only the rows asking you something take a reply, because Ask is
+           where it can genuinely land. The title rides ahead of the answer so
+           the conversation does not start holding half a sentence. */
+        onReply:
+          state === "blocked"
+            ? (text) => openAsk(`About the run "${cleanTitle(m.title)}": ${text}`)
+            : undefined,
       });
     }
 
@@ -615,7 +707,23 @@ function Today() {
            product is for. */
         title: stripAutoPrefix(m.current_sub_goal ?? m.title),
         need: "working",
-        activity: elapsed ? `${elapsed} running` : "running",
+        activity: (
+          <>
+            {elapsed ? `${elapsed} running` : "running"}
+            <Action
+              variant="quiet"
+              busy={cancelRun.isPending}
+              className="ml-mrd-2 h-6! px-mrd-2!"
+              onClick={(event) => {
+                /* The row itself navigates on click; this must not. */
+                event.stopPropagation();
+                void cancelRunAt(m.id);
+              }}
+            >
+              Cancel run
+            </Action>
+          </>
+        ),
         /* The last thing that happened, which is what `IDLE_AFTER_MS` measures
            against. `created_at` would call every long run idle. */
         at: instant(m.updated_at, m.created_at),
@@ -651,7 +759,7 @@ function Today() {
     }
 
     return out;
-  }, [stuck, running, shipped, navigate]);
+  }, [stuck, running, shipped, navigate, cancelRun.isPending, cancelRunAt]);
 
   /* EVERY EMPTY CATEGORY, NAMED. An empty group draws nothing at all inside the
      inbox, which is right there and wrong here: "nothing stopped" is the single
@@ -1330,6 +1438,23 @@ function Today() {
                             month: "short",
                           })}`
                         : ""}
+                      {learning.verdict ? (
+                        <>
+                          {" · "}
+                          <span className={learningVerdictClass}>{learning.verdict}</span>
+                        </>
+                      ) : null}
+                      {/* A movement, written plainly, because a reader should
+                          not have to know which column is which end. */}
+                      {learningIce ? (
+                        <>
+                          {" · ICE "}
+                          <Num>{learningIce.prior}</Num> to <Num>{learningIce.next}</Num>
+                        </>
+                      ) : null}
+                      {learning.metric_label && learning.metric_value
+                        ? ` · ${learning.metric_label}: ${learning.metric_value}`
+                        : null}
                     </>
                   }
                 >
