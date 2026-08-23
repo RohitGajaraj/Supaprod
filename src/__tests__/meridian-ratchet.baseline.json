@@ -15,7 +15,7 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 2849,
+  "totalOccurrences": 2800,
   "fileCount": 219,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
@@ -893,8 +893,8 @@
       "--sp-": 1
     },
     "src/styles/ink.css": {
-      "--sp-": 87,
-      "raw-colour": 83
+      "--sp-": 69,
+      "raw-colour": 52
     },
     "src/styles/meridian.css": {
       "--ds-": 3,
