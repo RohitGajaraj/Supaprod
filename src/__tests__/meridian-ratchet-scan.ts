@@ -160,7 +160,26 @@ const SHALLOW_ROOTS = ["src"];
  * demand an edit the rules refuse. Keyed by POSIX-relative path, which is the
  * form `scan` normalises to before it calls `isExempt`.
  */
-const GENERATED_FILES = new Set(["src/routeTree.gen.ts"]);
+const GENERATED_FILES = new Set([
+  "src/routeTree.gen.ts",
+  /*
+   * Third-party brand art, written by `bun run scripts/fetch-brand-glyphs.ts`
+   * and never by hand. It is full of raw colour BECAUSE THAT IS THE POINT: they
+   * are other companies' brand hexes, and Slack's #E01E5A has to read as
+   * #E01E5A so anyone can check it against Slack's own brand page. Converting
+   * them to oklch to satisfy this scanner would hide the one thing a reviewer
+   * needs to see, and would also be gaming a guard rather than obeying it.
+   *
+   * The same argument already lives in `styles.css`, where `--brand-mark-ember`
+   * is a deliberate literal for exactly this reason: identity is fixed, so it
+   * is written down rather than derived.
+   *
+   * The exemption is EARNED by the file genuinely being generated. The script
+   * is checked in beside it, so "regenerate rather than edit" is a command
+   * anyone can run, not a promise in a comment.
+   */
+  "src/components/meridian/brand-glyphs.gen.ts",
+]);
 
 function isExempt(relPath: string): boolean {
   return (

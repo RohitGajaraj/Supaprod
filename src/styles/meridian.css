@@ -614,7 +614,9 @@
   --mrd-brand-slack: var(--mrd-ink); /* 4A154B aubergine, lightness 0.31 */
   --mrd-brand-intercom: oklch(0.911 0.127 186.6); /* 6AFDEF */
   --mrd-brand-stripe: oklch(0.578 0.235 278.3); /* 635BFF, Stripe Indigo */
-  --mrd-brand-linear: oklch(0.567 0.159 275.2); /* 5E6AD2 */
+  --mrd-brand-linear: var(--mrd-ink); /* the MARK is 222326, near black, and Linear publishes a light mark for dark grounds. 5E6AD2 is Linear's accent, not its logo. */
+  --mrd-brand-google-docs: oklch(0.630 0.180 260.0); /* 4285F4, reads on both grounds so it does not switch */
+  --mrd-brand-google-tasks: oklch(0.630 0.180 260.0); /* 4285F4 */
   --mrd-brand-jira: oklch(0.480 0.201 260.5); /* 0052CC */
   --mrd-brand-figma: oklch(0.648 0.208 35.7); /* F24E1E */
   --mrd-brand-gmail: oklch(0.626 0.206 29.1); /* EA4335 */
@@ -1337,6 +1339,9 @@
   --mrd-brand-zendesk: oklch(0.306 0.051 209.3); /* 03363D */
   --mrd-brand-slack: oklch(0.306 0.108 327.1); /* 4A154B */
   --mrd-brand-intercom: oklch(0.62 0.115 186.6); /* 6AFDEF, darkened to hold on paper */
+  --mrd-brand-linear: oklch(0.256 0.006 271.2); /* 222326, the published mark, which reads on paper as itself */
+  --mrd-brand-google-docs: oklch(0.630 0.180 260.0); /* 4285F4 */
+  --mrd-brand-google-tasks: oklch(0.630 0.180 260.0); /* 4285F4 */
 
   /* The reference's own light-theme data palette. Each is darker and more
      saturated than its dark-theme twin, which is what keeps a 2px series

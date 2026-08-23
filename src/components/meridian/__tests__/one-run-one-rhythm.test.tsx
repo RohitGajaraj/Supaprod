@@ -613,9 +613,25 @@ describe("a mark names the thing it touched, and it is drawn where the ink is", 
         expect(svg.getAttribute("width")).toBe("14");
         ours++;
       } else {
-        // `provider-marks.tsx`'s own contract: one 16x16 box for all twenty, sized
-        // by its wrapper rather than by width attributes.
-        expect(svg.getAttribute("viewBox")).toBe("0 0 16 16");
+        /*
+         * THE RENDERED BOX, NOT THE viewBox. This asserted `"0 0 16 16"` until
+         * 2026-08-23, which was true only while every borrowed mark had been
+         * redrawn onto one synthetic grid. They now carry their PUBLISHER'S
+         * viewBox, because they are the publisher's own art: GitHub ships
+         * 256x250, Figma 256x384, Stripe 512x214. Normalising those by hand is
+         * what produced a "Linear" mark that was three freehand strokes.
+         *
+         * The claim this guard exists for is unchanged and is about SIZE ON
+         * SCREEN, so that is what it reads now: a square pixel box, with the
+         * aspect ratio preserved so a 256x384 mark is fitted rather than
+         * stretched. A mark that came back bigger than its neighbours still
+         * fails, which is the whole point.
+         */
+        const w = svg.getAttribute("width");
+        const h = svg.getAttribute("height");
+        expect(w, "a borrowed mark must declare its rendered width").toBeTruthy();
+        expect(h).toBe(w);
+        expect(svg.getAttribute("preserveAspectRatio")).toBe("xMidYMid meet");
         borrowed++;
       }
     }
