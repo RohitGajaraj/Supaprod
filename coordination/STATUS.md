@@ -314,6 +314,30 @@ already answered at 11:43 once its worktree was read directly. Nothing is waitin
 | Request | Raised | Landed on main | Answered | Verdict |
 | --- | --- | --- | --- | --- |
 | [`001`](./requests/001-meridian-gap-spacing-stops.md) | 03:20 | **12:33** | 11:43 | ruled — no new stops, all eight snap |
+| [`002`](./requests/002-route-definition-layer-lane-0-half.md) | 13:53 | 13:53 | 13:55 | routed — [`R002`](./answers/R002-route-the-definition-layer-lane-0-half.md) |
+| [`003`](./requests/003-shell-pair-needs-vocabulary-ruling.md) | ~16:20 | **16:33** | 16:36 | ruled — [`R003`](./answers/R003-the-shell-names-are-identifiers-and-the-rename-is-mine.md), hold upheld, rename is MAIN LANE's |
+
+## PENDING CORRECTIONS -- open work MAIN LANE is routing TO a lane
+
+**This table is the open/closed state. `coordination/answers/` has no status in it**,
+so a lane reading 22 answer files cannot tell an acceptance from an outstanding
+correction. Read this before you pick up a unit. A row leaves this table only when
+the lane that owns it pushes the fix and says which commit closed it.
+
+**LANE 1: nothing pending.** Unit 008 accepted on independent measurement, and
+`REQ-003` is ruled in `R003`. Do not go looking.
+
+**LANE 0: three rows, all from [`UL0-004`](./answers/UL0-004-the-buttons-ported-and-monolabel-only-moved.md).**
+
+| # | Lane | File | What is wrong | What closes it | Status |
+| --- | --- | --- | --- | --- | --- |
+| **C-01** | LANE 0 | `src/components/brief/BriefFormationFlow.tsx:307` | `Skip` carries `busy={save.isPending}`, but its handler `advance()` is a synchronous `setPhase`. `Action` sets `aria-busy` from that prop, so a screen reader is told Skip is working while it is idle. Pre-port it was `disabled` and that was right. | Change `busy={save.isPending}` to `disabled={save.isPending}`. `busy` stays only on `Save and continue` and `Add bet`, which run the mutation. One word. | **OPEN** |
+| **C-02** | LANE 0 | `src/components/brief/BriefFormationFlow.tsx` + `src/styles.css:814` | `MonoLabel` moved from the Obsidian barrel to `@/components/supaprod/Primitives`, which is itself `import { FlashlightTabs } from "@/components/obsidian/flashlight-tabs"` and carries 17 `--ds-` of its own. It still renders `.mono-label`, painted with hard-coded `font-size: 10px` and `var(--text-subtle, #7d786f)` -- a retired token with a raw hex fallback. This file has **no ratchet baseline entry**, so no gate can see any of it. | Port onto `--mrd-t-nano` (10px uppercase micro-label) + `--mrd-mute`, and drop the `supaprod/Primitives` import so this file stops reaching Obsidian by proxy. **Take weight 650, not the class's 500** -- 10px uppercase does not hold at 500. Contrast improves: `--mrd-mute` is 5.36:1 against the class's 4.51:1. | **OPEN** |
+| **C-03** | LANE 0 | `BriefFormationFlow.tsx:300, 407, 480` | `Back` carries no `disabled`, so an in-flight save blocks `Skip`, which merely advances and is harmless, and leaves `Back` live, which abandons a versioned upsert mid-write. The harmless control is blocked and the destructive one is not. **Pre-existing, not a regression.** | A decision, not a fix. Either `disabled={save.isPending}` on all three, or a request saying why not. Do not leave it as an omission. | **OPEN — decision** |
+
+**Attribution on C-02:** MAIN LANE measured `--mrd-mute` at 5.36:1 for this exact
+question earlier today and never sent the ruling, so LANE 0 ported into a silence.
+The lane did not act out of turn.
 
 ## FOR THE FOUNDER: the retrieval index holds one usable row
 
