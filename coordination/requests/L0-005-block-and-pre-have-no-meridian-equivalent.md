@@ -44,3 +44,15 @@ Nothing converted; Block and Pre sites keep their retired imports and stay
 counted in the ratchet baseline. Everything else in the shell/primitives
 census on my paths (Empty, Failed, Loading, Receipt, Gate, Prose) is
 already migrated as of units L0-008 through L0-011.
+
+## ADDENDUM (2026-08-24T01:30+05:30): Select joins this request
+
+After units L0-008 through L0-014, the shell/primitives census on my paths
+is down to: Block x7, Pre x5, and now **Select x2** -
+cockpit/AgentInspector.tsx and connections/ProductBindingsSection.tsx.
+Meridian's forms.tsx carries Input/Textarea/Checkbox/Choices/ReasonField
+but no Select. The retired one is a bare passthrough
+(`<select className="sp-select" {...props} />`), so either a Meridian
+Select lands in forms.tsx beside its siblings or the two sites hand-roll
+onto whatever ruling prefers. Everything else the census listed has since
+migrated (units L0-008..L0-014).
