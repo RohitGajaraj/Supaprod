@@ -687,7 +687,7 @@ export function RoadmapColumns() {
           </Action>
         }
       >
-        <span className="text-[13px] text-mrd-mute">Order by</span>
+        <span className="text-mrd-base text-mrd-mute">Order by</span>
         {/* `mode="one"` is now DECLARED rather than defaulted. The retired
             `Choices` defaulted to it; Meridian's makes it required, because the
             ARIA differs between the two modes and a default was how a radio
@@ -770,7 +770,7 @@ export function RoadmapColumns() {
         ))}
       </BulkBar>
       {selection.count > 0 && undeclaredSelected > 0 ? (
-        <p data-mrd="" className="mt-mrd-4 mb-0 text-[13px] text-mrd-mute">
+        <p data-mrd="" className="mt-mrd-4 mb-0 text-mrd-base text-mrd-mute">
           <Num>{undeclaredSelected}</Num> of the{" "}
           {selection.count === 1 ? "bet you picked carries" : "bets you picked carry"} no outcome. A
           bulk move sets the lane and does not ask for one, so they stay tasks rather than promises
@@ -797,7 +797,7 @@ export function RoadmapColumns() {
                     everywhere else, and the heading's own padding-bottom becomes
                     part of the gap rather than the gutter for a line. */}
                 <div className="mb-mrd-5 flex items-baseline gap-mrd-4">
-                  <span className="text-[12.5px] font-semibold text-mrd-ink">{col.label}</span>
+                  <span className="text-mrd-label font-semibold text-mrd-ink">{col.label}</span>
                   <Num>{colItems.length}</Num>
                 </div>
                 <div className="flex flex-col gap-mrd-5">
@@ -844,7 +844,7 @@ export function RoadmapColumns() {
                     />
                   ))}
                   {colItems.length === 0 ? (
-                    <span className="py-mrd-4 text-[13px] text-mrd-mute">
+                    <span className="py-mrd-4 text-mrd-base text-mrd-mute">
                       {onlyUndeclared ? "Every bet here names an outcome." : "Nothing here."}
                     </span>
                   ) : null}

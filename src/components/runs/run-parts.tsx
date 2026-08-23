@@ -309,15 +309,15 @@ export function RunRow({
     <>
       <span className="flex w-4 shrink-0 justify-center">{mark}</span>
       <span className="min-w-0 flex-1">
-        <span className={`block text-[12.5px] leading-mrd-snug text-mrd-ink ${clamp}`}>{lead}</span>
+        <span className={`block text-mrd-label leading-mrd-snug text-mrd-ink ${clamp}`}>{lead}</span>
         {sub ? (
-          <span className={`mt-0.5 block text-[12px] leading-mrd-snug text-mrd-mute ${clamp}`}>
+          <span className={`mt-0.5 block text-mrd-small leading-mrd-snug text-mrd-mute ${clamp}`}>
             {sub}
           </span>
         ) : null}
       </span>
       {time ? (
-        <span className="font-mrd-mono shrink-0 text-[11.5px] tabular-nums text-mrd-faint">
+        <span className="font-mrd-mono shrink-0 text-mrd-data tabular-nums text-mrd-faint">
           {time}
         </span>
       ) : null}
@@ -360,7 +360,7 @@ export function RunRow({
 export function ContextNote({ head, children }: { head: string; children: React.ReactNode }) {
   return (
     <section data-mrd="" className="mt-mrd-5 first:mt-0">
-      <h2 className="text-[10px] font-[650] tracking-mrd-label text-mrd-faint uppercase">{head}</h2>
+      <h2 className="text-mrd-nano font-[650] tracking-mrd-label text-mrd-faint uppercase">{head}</h2>
       <div className="mt-mrd-3 leading-mrd-prose text-mrd-prose text-mrd-body">{children}</div>
     </section>
   );
@@ -389,7 +389,7 @@ export function ContextLine({
       {mark ? <span className="mt-px flex w-4 shrink-0 justify-center">{mark}</span> : null}
       <span className="min-w-0">
         <span className="block leading-mrd-snug text-mrd-prose text-mrd-body">{name}</span>
-        <span className="mt-0.5 block text-[12px] leading-mrd-snug text-mrd-faint">{sub}</span>
+        <span className="mt-0.5 block text-mrd-small leading-mrd-snug text-mrd-faint">{sub}</span>
       </span>
     </div>
   );
@@ -474,7 +474,7 @@ export function RunGate({
        * shrinks to what only a mark can add -- a colour and a shape that survive
        * a glance -- and the words are dropped rather than repeated.
        */}
-      <h2 className="flex items-baseline gap-mrd-3 text-[20px] leading-mrd-tight font-medium text-mrd-ink">
+      <h2 className="flex items-baseline gap-mrd-3 text-mrd-h3 leading-mrd-tight font-medium text-mrd-ink">
         {standing === "failed" ? (
           <span aria-hidden className="mt-1.5 size-1.5 shrink-0 rounded-full bg-mrd-fail" />
         ) : null}
@@ -484,7 +484,7 @@ export function RunGate({
       {standing === "you" ? (
         <span className="mt-mrd-3 flex min-w-0 items-center gap-1.5">
           <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-mrd-you" />
-          <span className="shrink-0 text-[11px] font-medium text-mrd-you">Waiting on you</span>
+          <span className="shrink-0 text-mrd-tiny font-medium text-mrd-you">Waiting on you</span>
         </span>
       ) : null}
 
@@ -558,7 +558,7 @@ export function Commit({
       data-mrd=""
       role="status"
       aria-live="polite"
-      className="flex items-baseline gap-mrd-3 border-b border-mrd-line-soft py-mrd-3 text-[12.5px] leading-mrd-snug last:border-0"
+      className="flex items-baseline gap-mrd-3 border-b border-mrd-line-soft py-mrd-3 text-mrd-label leading-mrd-snug last:border-0"
     >
       {initials ? (
         <span className="self-start">
@@ -579,7 +579,7 @@ export function Commit({
         </span>
       ) : null}
       {time ? (
-        <span className="font-mrd-mono shrink-0 text-[11.5px] tabular-nums text-mrd-faint">
+        <span className="font-mrd-mono shrink-0 text-mrd-data tabular-nums text-mrd-faint">
           {time}
         </span>
       ) : null}
@@ -625,7 +625,7 @@ export function Field({
  * declare the border step and stay out of its way.
  */
 const FIELD_FACE =
-  "w-full rounded-mrd-ctl border border-mrd-field bg-mrd-sink px-mrd-4 py-mrd-3 text-[13px] text-mrd-ink transition-colors placeholder:text-mrd-faint focus:border-mrd-field-focus disabled:cursor-default disabled:opacity-45";
+  "w-full rounded-mrd-ctl border border-mrd-field bg-mrd-sink px-mrd-4 py-mrd-3 text-mrd-base text-mrd-ink transition-colors placeholder:text-mrd-faint focus:border-mrd-field-focus disabled:cursor-default disabled:opacity-45";
 
 /** NAMED `Textarea` DELIBERATELY. See this file's header: the keycap guard reads
  *  every `<Textarea` opening tag on the two runs routes and asserts that none of
@@ -691,13 +691,13 @@ export function Fact({
   const body = (
     <>
       {label}
-      {sub ? <span className="mt-0.5 block text-[12px] text-mrd-faint">{sub}</span> : null}
+      {sub ? <span className="mt-0.5 block text-mrd-small text-mrd-faint">{sub}</span> : null}
     </>
   );
   return (
     <div
       data-mrd=""
-      className="flex items-center justify-between gap-mrd-5 border-b border-mrd-line-soft py-mrd-3 text-[12.5px] leading-mrd-snug last:border-0"
+      className="flex items-center justify-between gap-mrd-5 border-b border-mrd-line-soft py-mrd-3 text-mrd-label leading-mrd-snug last:border-0"
     >
       {htmlFor ? (
         <label className="min-w-0 text-mrd-prose text-mrd-body" htmlFor={htmlFor}>
@@ -750,7 +750,7 @@ export function Stat({
             ? "text-mrd-agent"
             : "text-mrd-mute";
   return (
-    <span data-mrd="" className={`inline-flex items-center gap-1.5 text-[12.5px] ${paint}`}>
+    <span data-mrd="" className={`inline-flex items-center gap-1.5 text-mrd-label ${paint}`}>
       {tone === "live" ? (
         <span
           aria-hidden
@@ -828,9 +828,9 @@ export function RunCard({
     <>
       {mark}
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[12.5px] leading-mrd-snug text-mrd-ink">{lead}</span>
+        <span className="block truncate text-mrd-label leading-mrd-snug text-mrd-ink">{lead}</span>
         {sub ? (
-          <span className="mt-0.5 block truncate text-[12px] leading-mrd-snug text-mrd-mute">
+          <span className="mt-0.5 block truncate text-mrd-small leading-mrd-snug text-mrd-mute">
             {sub}
           </span>
         ) : null}
@@ -898,9 +898,9 @@ export function Recess({
     <>
       <span aria-hidden className="mt-1.5 size-2.5 shrink-0 rotate-45 bg-mrd-ink" />
       <span className="min-w-0">
-        <span className="block text-[17px] leading-mrd-tight text-mrd-ink">{children}</span>
+        <span className="block text-mrd-lead leading-mrd-tight text-mrd-ink">{children}</span>
         {evidence ? (
-          <span className="font-mrd-mono mt-mrd-3 block text-[11.5px] tabular-nums text-mrd-mute">
+          <span className="font-mrd-mono mt-mrd-3 block text-mrd-data tabular-nums text-mrd-mute">
             {evidence}
           </span>
         ) : null}

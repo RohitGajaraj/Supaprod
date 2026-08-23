@@ -141,7 +141,7 @@ export function LandingFooter() {
           {columns.map((col) => (
             <div key={col.heading}>
               <h4
-                className="font-mono text-[10px] uppercase text-zinc-400 mb-4"
+                className="font-mono text-mrd-nano uppercase text-zinc-400 mb-4"
                 style={{ letterSpacing: "0.2em" }}
               >
                 {col.heading}

@@ -55,13 +55,13 @@ export interface RowProps {
 export function Row({ subject, value, statusWord, tone, onOpen }: RowProps) {
   const body = (
     <>
-      <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-mrd-ink">
+      <span className="min-w-0 flex-1 truncate text-mrd-label font-medium text-mrd-ink">
         {subject}
       </span>
-      <span className="font-mrd-mono shrink-0 text-right text-[12px] text-mrd-mute tabular-nums">
+      <span className="font-mrd-mono shrink-0 text-right text-mrd-small text-mrd-mute tabular-nums">
         {value}
       </span>
-      <span className="shrink-0 text-right text-[12px]">
+      <span className="shrink-0 text-right text-mrd-small">
         {tone ? (
           <RecordStatus tone={tone} label={statusWord} />
         ) : (
@@ -98,7 +98,7 @@ export function Row({ subject, value, statusWord, tone, onOpen }: RowProps) {
 /** NOTHING EXISTS in this view, which is not a failed read and not a filter. */
 export function EmptyRow({ message }: { message: string }) {
   return (
-    <p data-mrd="" className="py-mrd-5 text-[13px] leading-mrd-prose text-mrd-mute">
+    <p data-mrd="" className="py-mrd-5 text-mrd-base leading-mrd-prose text-mrd-mute">
       {message}
     </p>
   );
@@ -215,7 +215,7 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
     <div data-mrd="" className="flex flex-col gap-mrd-6">
       <div className="flex flex-wrap items-start justify-between gap-mrd-4">
         <div className="min-w-0 flex-1">
-          <h2 className="text-[20px] leading-mrd-tight font-medium text-mrd-ink">
+          <h2 className="text-mrd-h3 leading-mrd-tight font-medium text-mrd-ink">
             {ROOM_QUESTIONS[room]}
           </h2>
           <p className="mt-mrd-2 leading-mrd-prose text-mrd-prose text-mrd-body">
@@ -228,7 +228,7 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
               is derived from the same real state as the verdict. */}
           {status?.glance?.action ? (
             <p className="mt-mrd-3 border-l-2 border-mrd-edge pl-mrd-4 leading-mrd-prose text-mrd-prose text-mrd-body">
-              <span className="mr-mrd-3 text-[10px] font-[650] tracking-mrd-label text-mrd-mute uppercase">
+              <span className="mr-mrd-3 text-mrd-nano font-[650] tracking-mrd-label text-mrd-mute uppercase">
                 Next
               </span>
               {status.glance.action}
@@ -243,7 +243,7 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
               to="/proof"
               data-mrd=""
               className={cn(
-                "rounded-mrd-xs text-[12.5px] text-mrd-mute transition-colors hover:text-mrd-ink",
+                "rounded-mrd-xs text-mrd-label text-mrd-mute transition-colors hover:text-mrd-ink",
                 "mrd-focus-inset",
               )}
             >
@@ -271,7 +271,7 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
 
       {/* Descriptor strip: the one plain line that says what this view answers,
           so a click never lands on a bare table with no context. */}
-      <p className="max-w-[74ch] text-[12.5px] leading-mrd-prose text-mrd-mute">
+      <p className="max-w-[74ch] text-mrd-label leading-mrd-prose text-mrd-mute">
         {activeMeta.descriptor}
       </p>
 
@@ -283,7 +283,7 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
           No hue on either term: only the plain label lifts a step brighter than
           the connective words, so the mapping still catches the eye (Stress
           tests -> Gauntlet, Is it slipping? -> Drift) without a tint. */}
-      <p className="border-t border-mrd-line-soft pt-mrd-4 text-[11.5px] text-mrd-faint">
+      <p className="border-t border-mrd-line-soft pt-mrd-4 text-mrd-data text-mrd-faint">
         <span className="text-mrd-mute">{activeMeta.label}</span>
         {" · the engine calls this "}
         <span>{activeMeta.technical}</span>

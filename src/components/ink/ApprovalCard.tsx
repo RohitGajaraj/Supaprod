@@ -82,12 +82,12 @@ export function ApprovalCard({
         <div className="flex min-w-0 items-center gap-2">
           <VerdictChip tone={item.kindTone ?? "human"}>{item.kind}</VerdictChip>
           {item.agentSlug ? (
-            <span className="ink-mono shrink-0 rounded border border-[var(--ink-hairline)] px-1.5 text-[10px] uppercase tracking-[0.04em] text-[var(--ink-subtle)]">
+            <span className="ink-mono shrink-0 rounded border border-[var(--ink-hairline)] px-1.5 text-mrd-nano uppercase tracking-[0.04em] text-[var(--ink-subtle)]">
               {agentDisplayName(item.agentSlug)}
             </span>
           ) : null}
           {item.project ? (
-            <span className="ink-mono truncate text-[11px] text-[var(--ink-subtle)]">
+            <span className="ink-mono truncate text-mrd-tiny text-[var(--ink-subtle)]">
               {item.project}
             </span>
           ) : null}
@@ -95,7 +95,7 @@ export function ApprovalCard({
         {item.timestamp ? (
           <time
             dateTime={item.timestamp}
-            className="ink-mono shrink-0 text-[11px] text-[var(--ink-faint)]"
+            className="ink-mono shrink-0 text-mrd-tiny text-[var(--ink-faint)]"
           >
             {shortTime(item.timestamp)}
           </time>
@@ -119,7 +119,7 @@ export function ApprovalCard({
       {item.evidence.length > 0 && (
         <ul className="mt-2 space-y-1">
           {item.evidence.map((line, i) => (
-            <li key={i} className="flex gap-2 text-[13px] leading-5 text-[var(--ink-body)]">
+            <li key={i} className="flex gap-2 text-mrd-base leading-5 text-[var(--ink-body)]">
               <span aria-hidden className="mt-[9px] h-px w-3 shrink-0 bg-[var(--ink-hairline)]" />
               {line}
             </li>
@@ -128,11 +128,11 @@ export function ApprovalCard({
       )}
 
       {item.impact ? (
-        <p className="ink-mono mt-2.5 text-[11px] text-[var(--ink-subtle)]">{item.impact}</p>
+        <p className="ink-mono mt-2.5 text-mrd-tiny text-[var(--ink-subtle)]">{item.impact}</p>
       ) : null}
 
       {error ? (
-        <p className="ink-mono mt-2.5 text-[11px] text-[var(--ink-madder)]" role="alert">
+        <p className="ink-mono mt-2.5 text-mrd-tiny text-[var(--ink-madder)]" role="alert">
           {error}
         </p>
       ) : null}
@@ -151,7 +151,7 @@ export function ApprovalCard({
             >
               {pending === "approve" ? "Approving" : "Approve"}
             </button>
-            <span className="ink-mono text-[10px] text-[var(--ink-faint)]">
+            <span className="ink-mono text-mrd-nano text-[var(--ink-faint)]">
               {item.approveConsequence}
             </span>
           </div>
@@ -167,7 +167,7 @@ export function ApprovalCard({
             >
               {pending === "reject" ? "Rejecting" : "Reject"}
             </button>
-            <span className="ink-mono text-[10px] text-[var(--ink-faint)]">
+            <span className="ink-mono text-mrd-nano text-[var(--ink-faint)]">
               {item.rejectConsequence}
             </span>
           </div>
@@ -176,7 +176,7 @@ export function ApprovalCard({
           <button
             type="button"
             onClick={() => onOpen(item.id)}
-            className="ink-focus rounded-sm text-[13px] text-[var(--ink-subtle)] transition-colors hover:text-[var(--ink-text)]"
+            className="ink-focus rounded-sm text-mrd-base text-[var(--ink-subtle)] transition-colors hover:text-[var(--ink-text)]"
           >
             Open
           </button>

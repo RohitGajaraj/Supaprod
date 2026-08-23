@@ -93,7 +93,7 @@ export function AskBlocked({ reason }: { reason: DispatchBlock }) {
       {action ? (
         <Link
           to={action.to}
-          className="ml-auto flex shrink-0 items-center rounded-mrd-ctl border border-mrd-line bg-mrd-sheet px-3 py-2 text-[12.5px] font-medium text-mrd-ink no-underline transition-colors duration-100 hover:bg-mrd-hover"
+          className="ml-auto flex shrink-0 items-center rounded-mrd-ctl border border-mrd-line bg-mrd-sheet px-3 py-2 text-mrd-label font-medium text-mrd-ink no-underline transition-colors duration-100 hover:bg-mrd-hover"
         >
           {action.label}
         </Link>

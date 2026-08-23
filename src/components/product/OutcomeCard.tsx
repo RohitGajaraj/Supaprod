@@ -184,7 +184,7 @@ export function OutcomeCard({ prd, invalidateKey }: Props) {
 
   return (
     <div className="rounded-lg border hairline bg-card/60 p-4">
-      <div className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground mb-3 flex items-center gap-2">
+      <div className="text-mrd-nano uppercase tracking-[0.16em] text-muted-foreground mb-3 flex items-center gap-2">
         <Target className="h-3 w-3" /> Outcome
       </div>
 
@@ -205,7 +205,7 @@ export function OutcomeCard({ prd, invalidateKey }: Props) {
             />
           )}
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[11px] text-muted-foreground">
+            <span className="text-mrd-tiny text-muted-foreground">
               Score this bet against what you predicted.
             </span>
             <Action
@@ -379,7 +379,7 @@ function OutcomeSuggestionBanner({
   return (
     <div className="rounded-md border hairline bg-background/60 p-3 space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground flex items-center gap-1.5">
+        <span className="text-mrd-nano uppercase tracking-[0.14em] text-muted-foreground flex items-center gap-1.5">
           <Sparkles className="h-3 w-3" />
           {highConfidence ? "Suggested outcome" : "Suggested · review before recording"}
         </span>

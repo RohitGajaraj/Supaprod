@@ -816,7 +816,7 @@ export function ReadyToBuild() {
             it having actually run out of rows, which is the only moment an
             offer to see more of a list is answering a question they have. */}
         {beyond > 0 && !showAll ? (
-          <div className="mt-mrd-4 text-[12.5px] text-mrd-mute">
+          <div className="mt-mrd-4 text-mrd-label text-mrd-mute">
             <Num>{beyond}</Num> more {beyond === 1 ? "spec is" : "specs are"} approved and not
             shown.{" "}
             <Door onClick={() => setShowAll(true)}>

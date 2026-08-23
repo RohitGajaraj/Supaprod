@@ -137,7 +137,7 @@ export function BillingBanner() {
             type="button"
             onClick={openPortal}
             disabled={opening}
-            className="rounded-[8px] px-2.5 py-1 text-[11px] font-medium hover:opacity-90 disabled:opacity-60"
+            className="rounded-[8px] px-2.5 py-1 text-mrd-tiny font-medium hover:opacity-90 disabled:opacity-60"
             style={{ background: "var(--rose)", color: "var(--destructive-foreground)" }}
           >
             {opening ? "Opening..." : "Update card"}

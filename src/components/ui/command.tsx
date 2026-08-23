@@ -95,8 +95,8 @@ const CommandGroup = React.forwardRef<
     className={cn(
       // Heading type matches SelectLabel/DropdownMenuLabel (text-label-12 + medium,
       // gray-700). text-label-12 is a plain CSS class, not a Tailwind utility, so it
-      // cannot ride an arbitrary variant; text-[12px] leading-4 mirrors its 12px/16px.
-      "overflow-hidden text-(--ds-gray-1000) [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[12px] [&_[cmdk-group-heading]]:leading-4 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-(--ds-gray-700)",
+      // cannot ride an arbitrary variant; text-mrd-small leading-4 mirrors its 12px/16px.
+      "overflow-hidden text-(--ds-gray-1000) [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-mrd-small [&_[cmdk-group-heading]]:leading-4 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-(--ds-gray-700)",
       className,
     )}
     {...props}

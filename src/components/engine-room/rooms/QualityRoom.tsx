@@ -74,7 +74,7 @@ function RigorStat({ label, value }: { label: string; value: React.ReactNode }) 
   return (
     <div className="flex flex-col gap-mrd-2">
       <Eyebrow>{label}</Eyebrow>
-      <span className="font-mrd-mono text-[13px] text-mrd-ink tabular-nums">{value}</span>
+      <span className="font-mrd-mono text-mrd-base text-mrd-ink tabular-nums">{value}</span>
     </div>
   );
 }

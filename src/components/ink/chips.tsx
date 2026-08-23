@@ -30,7 +30,7 @@ export function VerdictChip({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border px-2 py-px font-mono text-[10px] font-semibold uppercase leading-4 tracking-[0.1em]",
+        "inline-flex items-center rounded-full border px-2 py-px font-mono text-mrd-nano font-semibold uppercase leading-4 tracking-[0.1em]",
         className,
       )}
       style={{ color, borderColor: `color-mix(in oklab, ${color} 45%, transparent)` }}
@@ -68,7 +68,7 @@ export function StatusGlyph({
         className={cn("h-1.5 w-1.5 rounded-full", meta.pulse && "ink-working")}
         style={{ background: meta.color }}
       />
-      <span className="ink-mono text-[11px]" style={{ color: meta.color }}>
+      <span className="ink-mono text-mrd-tiny" style={{ color: meta.color }}>
         {label ?? meta.word}
       </span>
     </span>

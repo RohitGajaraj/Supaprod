@@ -83,7 +83,7 @@ export function MissionOnboarding() {
     >
       <div className="w-full max-w-xl">
         <p
-          className="font-mono text-[11px] uppercase tracking-[0.14em]"
+          className="font-mono text-mrd-tiny uppercase tracking-[0.14em]"
           style={{ color: "var(--ink-subtle)" }}
         >
           Step one of one
@@ -125,7 +125,7 @@ export function MissionOnboarding() {
             {enter.isPending ? "Opening…" : hasAnswer ? "Continue" : "Walk me in"}
             {hasAnswer ? (
               <span
-                className="ml-2 rounded px-1 font-mono text-[10px]"
+                className="ml-2 rounded px-1 font-mono text-mrd-nano"
                 style={{ background: "rgba(10,10,10,0.28)", color: "rgba(10,10,10,0.72)" }}
               >
                 {"⌘⏎"}
@@ -138,7 +138,7 @@ export function MissionOnboarding() {
               type="button"
               disabled={busy}
               onClick={() => explore.mutate()}
-              className="ink-focus inline-flex h-10 items-center rounded-lg px-3 text-[13px] transition-colors hover:bg-[var(--ink-raised)] disabled:opacity-40"
+              className="ink-focus inline-flex h-10 items-center rounded-lg px-3 text-mrd-base transition-colors hover:bg-[var(--ink-raised)] disabled:opacity-40"
               style={{ color: "var(--ink-subtle)" }}
             >
               {explore.isPending ? "Opening…" : "Or tour a workspace we already filled"}
@@ -146,7 +146,7 @@ export function MissionOnboarding() {
           ) : null}
         </div>
 
-        <p className="mt-6 text-[12px]" style={{ color: "var(--ink-faint)" }}>
+        <p className="mt-6 text-mrd-small" style={{ color: "var(--ink-faint)" }}>
           This isn't a form. Reword it, or ignore it, whenever, in Settings.
         </p>
       </div>

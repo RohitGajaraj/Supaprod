@@ -208,7 +208,7 @@ export function LoopWalkthrough() {
               role="tab"
               aria-selected={activeTab === tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`pb-3 text-[13px] font-medium transition-colors duration-200 border-b-2 -mb-px ${
+              className={`pb-3 text-mrd-base font-medium transition-colors duration-200 border-b-2 -mb-px ${
                 activeTab === tab.id
                   ? "text-white border-white"
                   : "text-zinc-500 border-transparent hover:text-zinc-300"
@@ -228,7 +228,7 @@ export function LoopWalkthrough() {
             system described at two zoom levels. */}
         <div className="mt-14">
           <span
-            className="mb-5 block font-mono text-[11px] uppercase text-zinc-400"
+            className="mb-5 block font-mono text-mrd-tiny uppercase text-zinc-400"
             style={{ letterSpacing: "0.12em" }}
           >
             In every run
@@ -243,12 +243,12 @@ export function LoopWalkthrough() {
                 style={{ transitionDelay: inView ? `${i * 70}ms` : "0ms" }}
               >
                 <span
-                  className="mb-1.5 block font-mono text-[12px] uppercase text-zinc-300"
+                  className="mb-1.5 block font-mono text-mrd-small uppercase text-zinc-300"
                   style={{ letterSpacing: "0.12em" }}
                 >
                   {r.label}
                 </span>
-                <span className="block text-[12px] leading-mrd-prose text-zinc-500">{r.gloss}</span>
+                <span className="block text-mrd-small leading-mrd-prose text-zinc-500">{r.gloss}</span>
               </div>
             ))}
           </div>
@@ -265,7 +265,7 @@ export function LoopWalkthrough() {
                 data: { event: "demo_click", sessionKey: getLandingSessionKey() },
               })
             }
-            className="group inline-flex items-baseline gap-2 font-mono text-[12px] uppercase text-zinc-500 hover:text-white transition-colors"
+            className="group inline-flex items-baseline gap-2 font-mono text-mrd-small uppercase text-zinc-500 hover:text-white transition-colors"
             style={{ letterSpacing: "0.12em" }}
           >
             Open the live demo

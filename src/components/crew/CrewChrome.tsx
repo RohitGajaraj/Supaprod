@@ -74,9 +74,9 @@ export function Setting({
 }) {
   const body = (
     <>
-      <span className="block text-[13px] text-mrd-ink">{label}</span>
+      <span className="block text-mrd-base text-mrd-ink">{label}</span>
       {sub ? (
-        <span className="mt-0.5 block max-w-[62ch] text-[12px] leading-mrd-snug text-mrd-mute">
+        <span className="mt-0.5 block max-w-[62ch] text-mrd-small leading-mrd-snug text-mrd-mute">
           {sub}
         </span>
       ) : null}
@@ -131,13 +131,13 @@ export function DoorRow({
     >
       {marks ? <span className="shrink-0">{marks}</span> : null}
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[13px] font-medium text-mrd-ink">{lead}</span>
+        <span className="block truncate text-mrd-base font-medium text-mrd-ink">{lead}</span>
         {sub ? (
-          <span className="mt-0.5 block truncate text-[12px] text-mrd-mute">{sub}</span>
+          <span className="mt-0.5 block truncate text-mrd-small text-mrd-mute">{sub}</span>
         ) : null}
       </span>
       {time ? (
-        <span className="font-mrd-mono shrink-0 text-[11.5px] text-mrd-faint tabular-nums">
+        <span className="font-mrd-mono shrink-0 text-mrd-data text-mrd-faint tabular-nums">
           {time}
         </span>
       ) : null}
@@ -169,13 +169,13 @@ export function ListRow({
     >
       {marks ? <span className="shrink-0">{marks}</span> : null}
       <span className="min-w-0 flex-1">
-        <span className="block text-[13px] leading-mrd-snug text-mrd-ink">{lead}</span>
+        <span className="block text-mrd-base leading-mrd-snug text-mrd-ink">{lead}</span>
         {sub ? (
-          <span className="mt-0.5 block text-[12px] leading-mrd-snug text-mrd-mute">{sub}</span>
+          <span className="mt-0.5 block text-mrd-small leading-mrd-snug text-mrd-mute">{sub}</span>
         ) : null}
       </span>
       {time ? (
-        <span className="font-mrd-mono shrink-0 text-[11.5px] text-mrd-faint tabular-nums">
+        <span className="font-mrd-mono shrink-0 text-mrd-data text-mrd-faint tabular-nums">
           {time}
         </span>
       ) : null}
@@ -304,8 +304,8 @@ export function StationHeading({ station, count }: { station: AgentStation; coun
   return (
     <div className="flex items-center gap-mrd-3">
       <StationGlyph kind={GLYPH_FOR_STATION[station]} className="shrink-0 text-mrd-mute" />
-      <h2 className="text-[13px] font-medium text-mrd-ink">{AGENT_STATIONS[station].name}</h2>
-      <span className="font-mrd-mono text-[11px] text-mrd-faint tabular-nums">{count}</span>
+      <h2 className="text-mrd-base font-medium text-mrd-ink">{AGENT_STATIONS[station].name}</h2>
+      <span className="font-mrd-mono text-mrd-tiny text-mrd-faint tabular-nums">{count}</span>
       <span aria-hidden className="h-px min-w-6 flex-1 bg-mrd-line-soft" />
     </div>
   );
@@ -346,10 +346,10 @@ export function Gate({
     >
       <span className="flex items-center gap-1.5">
         <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-mrd-you" />
-        <span className="text-[11px] font-medium text-mrd-you">Waiting on you</span>
+        <span className="text-mrd-tiny font-medium text-mrd-you">Waiting on you</span>
       </span>
 
-      <h2 className="mt-mrd-4 text-[20px] leading-mrd-tight font-medium text-mrd-ink">{question}</h2>
+      <h2 className="mt-mrd-4 text-mrd-h3 leading-mrd-tight font-medium text-mrd-ink">{question}</h2>
 
       {lines?.length ? (
         <div className="mt-mrd-5 rounded-mrd-card bg-mrd-sink px-mrd-5 py-mrd-4">
@@ -406,12 +406,12 @@ export function Settled({
       className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 rounded-mrd-ctl border border-mrd-line bg-mrd-sink px-mrd-5 py-mrd-3"
       style={{ animation: "mrd-fade-up 300ms var(--mrd-ease) both" }}
     >
-      <span className={`text-[13px] font-medium ${failed ? "text-mrd-fail" : "text-mrd-ink"}`}>
+      <span className={`text-mrd-base font-medium ${failed ? "text-mrd-fail" : "text-mrd-ink"}`}>
         {verb}
       </span>
       <span className="min-w-0 leading-mrd-snug text-mrd-prose text-mrd-body">{consequence}</span>
       {time ? (
-        <span className="font-mrd-mono ml-auto shrink-0 text-[12px] text-mrd-faint tabular-nums">
+        <span className="font-mrd-mono ml-auto shrink-0 text-mrd-small text-mrd-faint tabular-nums">
           {time}
         </span>
       ) : null}
@@ -426,7 +426,7 @@ export function Settled({
 /** A heading in the context column. Quiet, and never a second navigation. */
 export function CtxHead({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="text-[11px] font-medium tracking-wide text-mrd-mute uppercase">{children}</h2>
+    <h2 className="text-mrd-tiny font-medium tracking-wide text-mrd-mute uppercase">{children}</h2>
   );
 }
 
@@ -439,8 +439,8 @@ export function CtxBody({ children }: { children: React.ReactNode }) {
 export function CtxRow({ name, sub }: { name: React.ReactNode; sub?: React.ReactNode }) {
   return (
     <div className="mt-mrd-4">
-      <span className="block text-[12.5px] text-mrd-ink">{name}</span>
-      {sub ? <span className="mt-0.5 block text-[11px] text-mrd-mute">{sub}</span> : null}
+      <span className="block text-mrd-label text-mrd-ink">{name}</span>
+      {sub ? <span className="mt-0.5 block text-mrd-tiny text-mrd-mute">{sub}</span> : null}
     </div>
   );
 }

@@ -51,12 +51,12 @@ function RoutineRowView({ routine }: { routine: RoutineRow }) {
     <div className="flex items-center gap-mrd-5 border-b border-mrd-line-soft px-mrd-5 py-mrd-4 last:border-0">
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-mrd-3">
-          <span className="text-[13px] font-medium text-mrd-ink">{routine.name}</span>
-          <span className="text-[12px] text-mrd-faint">{routine.castOwner}</span>
+          <span className="text-mrd-base font-medium text-mrd-ink">{routine.name}</span>
+          <span className="text-mrd-small text-mrd-faint">{routine.castOwner}</span>
         </div>
-        <p className="mt-mrd-1 text-[12.5px] leading-mrd-snug text-mrd-mute">{routine.whatItDoes}</p>
+        <p className="mt-mrd-1 text-mrd-label leading-mrd-snug text-mrd-mute">{routine.whatItDoes}</p>
         {/* Mono, and it earns it: both halves of this line are timestamps. */}
-        <p className="font-mrd-mono mt-mrd-2 text-[11.5px] text-mrd-faint tabular-nums">
+        <p className="font-mrd-mono mt-mrd-2 text-mrd-data text-mrd-faint tabular-nums">
           Last run {relativeTime(routine.lastRunAt, () => "not yet tracked")} · Next run{" "}
           {nextRunLabel(routine.nextRunAt)}
         </p>
@@ -65,7 +65,7 @@ function RoutineRowView({ routine }: { routine: RoutineRow }) {
              not choose, arriving after they looked away from the control. Red
              reports the outcome of the write, which is the only thing red means
              in this system. */
-          <p role="alert" className="mt-mrd-2 text-[12px] text-mrd-fail">
+          <p role="alert" className="mt-mrd-2 text-mrd-small text-mrd-fail">
             The change did not save. Flip the switch again to retry.
           </p>
         ) : null}

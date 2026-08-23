@@ -310,7 +310,7 @@ export function DocEditor({
             className="material-menu fixed z-30 w-56 p-1"
             style={{ left: slash.x, top: slash.y }}
           >
-            <div className="px-2 py-1 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+            <div className="px-2 py-1 text-mrd-nano uppercase tracking-[0.14em] text-muted-foreground">
               Insert
             </div>
             {slashItems.map((it) => (

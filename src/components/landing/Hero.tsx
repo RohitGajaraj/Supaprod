@@ -199,7 +199,7 @@ export function Hero() {
               // read. Size goes 11 to 12 (12 to 13 at md) for the same reason,
               // since 11px mono uppercase at 0.14em tracking is small even when
               // the contrast is legal.
-              className="hero-rise mb-4 font-mono text-[12px] uppercase text-zinc-400 md:text-[13px]"
+              className="hero-rise mb-4 font-mono text-mrd-small uppercase text-zinc-400 md:text-mrd-base"
               style={{ animationDelay: "0ms", letterSpacing: "0.14em" }}
             >
               {/* "who ship with agents" CAME OUT 2026-08-10, and it was doing
@@ -372,7 +372,7 @@ export function Hero() {
                 here; below lg it is what keeps the sentence wrapping sanely on
                 a phone, where none of the rest of this applies. */}
             <p
-              className="hero-sub hero-rise mb-14 text-base leading-mrd-prose text-zinc-300 md:text-lg lg:whitespace-nowrap lg:text-[17px]"
+              className="hero-sub hero-rise mb-14 text-base leading-mrd-prose text-zinc-300 md:text-lg lg:whitespace-nowrap lg:text-mrd-lead"
               style={{ animationDelay: "120ms", maxWidth: "48ch" }}
             >
               {/*
@@ -643,7 +643,7 @@ export function Hero() {
               feel". "while it still matters" lost "still" for the same reason:
               it was the one phrase too wide to hold its line. */}
           <div
-            className="hero-spec hero-rise hidden pl-5 font-mono text-[12px] uppercase text-zinc-400 lg:grid lg:grid-cols-[auto_1fr] lg:gap-x-3 lg:gap-y-3.5"
+            className="hero-spec hero-rise hidden pl-5 font-mono text-mrd-small uppercase text-zinc-400 lg:grid lg:grid-cols-[auto_1fr] lg:gap-x-3 lg:gap-y-3.5"
             style={{ animationDelay: "120ms", letterSpacing: "0.14em", lineHeight: "var(--mrd-lh-snug)" }}
           >
             <span>to decide</span>

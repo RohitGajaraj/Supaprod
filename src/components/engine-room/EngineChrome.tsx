@@ -81,7 +81,7 @@ export function Crumb({
   here: string;
 }) {
   return (
-    <nav data-mrd="" className="flex items-center gap-mrd-3 text-[12px]" aria-label="Where you are">
+    <nav data-mrd="" className="flex items-center gap-mrd-3 text-mrd-small" aria-label="Where you are">
       <button
         type="button"
         onClick={back}
@@ -120,7 +120,7 @@ export function QuietAction({
       type="button"
       {...rest}
       data-mrd=""
-      className={`rounded-mrd-xs text-[12.5px] text-mrd-mute transition-colors hover:text-mrd-ink ${className}`}
+      className={`rounded-mrd-xs text-mrd-label text-mrd-mute transition-colors hover:text-mrd-ink ${className}`}
       style={{ transitionDuration: "var(--mrd-d-press)" }}
     >
       {children}
@@ -150,7 +150,7 @@ export function TextInput({
   return (
     <input
       {...rest}
-      className={`h-8 rounded-mrd-ctl border border-mrd-field bg-mrd-sink px-2.5 text-[12.5px] text-mrd-ink transition-colors placeholder:text-mrd-faint focus:border-mrd-field-focus ${className}`}
+      className={`h-8 rounded-mrd-ctl border border-mrd-field bg-mrd-sink px-2.5 text-mrd-label text-mrd-ink transition-colors placeholder:text-mrd-faint focus:border-mrd-field-focus ${className}`}
       style={{ transitionDuration: "var(--mrd-d-press)" }}
     />
   );
@@ -169,7 +169,7 @@ export function Field({
 }) {
   return (
     <div data-mrd="" className="flex flex-col gap-mrd-2">
-      <label className="text-[12px] text-mrd-mute" htmlFor={htmlFor}>
+      <label className="text-mrd-small text-mrd-mute" htmlFor={htmlFor}>
         {label}
       </label>
       {children}
@@ -227,7 +227,7 @@ export function FigureCard({
       <p className={`font-mrd-mono mt-mrd-2 text-[25px] leading-mrd-tight tabular-nums ${ink}`}>
         {value}
       </p>
-      {note ? <p className="mt-mrd-1 text-[12px] text-mrd-mute">{note}</p> : null}
+      {note ? <p className="mt-mrd-1 text-mrd-small text-mrd-mute">{note}</p> : null}
     </div>
   );
 }
@@ -325,7 +325,7 @@ export function ViewSwitch<T extends string>({
             type="button"
             aria-current={on ? "true" : undefined}
             onClick={() => onSelect(v.id)}
-            className={`inline-flex h-8 items-center rounded-mrd-chip px-3 text-[12.5px] transition-colors ${
+            className={`inline-flex h-8 items-center rounded-mrd-chip px-3 text-mrd-label transition-colors ${
               on
                 ? "bg-mrd-select font-medium text-mrd-ink"
                 : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-ink text-mrd-body"
@@ -370,7 +370,7 @@ export function SegmentedFilter<T extends string>({
                this button reports whether its filter is applied. */
             aria-pressed={on}
             onClick={() => onSelect(o.id)}
-            className={`inline-flex h-8 items-center rounded-mrd-chip px-3 text-[12.5px] transition-colors ${
+            className={`inline-flex h-8 items-center rounded-mrd-chip px-3 text-mrd-label transition-colors ${
               on
                 ? "bg-mrd-select font-medium text-mrd-ink"
                 : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-ink text-mrd-body"
@@ -399,7 +399,7 @@ export function SegmentedFilter<T extends string>({
  */
 export function PanelReading({ children = "Reading." }: { children?: React.ReactNode }) {
   return (
-    <p data-mrd="" className="py-mrd-6 text-[13px] text-mrd-mute" role="status" aria-live="polite">
+    <p data-mrd="" className="py-mrd-6 text-mrd-base text-mrd-mute" role="status" aria-live="polite">
       {children}
     </p>
   );
@@ -435,7 +435,7 @@ export function StateWord({ state }: { state: RoomStateWord }) {
   return (
     <span
       data-mrd=""
-      className={`inline-flex items-center gap-1.5 whitespace-nowrap text-[12px] ${ink}`}
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap text-mrd-small ${ink}`}
     >
       <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-current" />
       {word}

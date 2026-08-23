@@ -17,7 +17,7 @@ export function PaymentTestModeBanner() {
   if (!clientToken) {
     return (
       <div
-        className="rounded-[10px] border px-3 py-2 text-[11px]"
+        className="rounded-[10px] border px-3 py-2 text-mrd-tiny"
         style={{
           borderColor: "var(--hairline, rgba(0,0,0,0.12))",
           background: "var(--raised, rgba(0,0,0,0.04))",
@@ -32,7 +32,7 @@ export function PaymentTestModeBanner() {
   if (clientToken.startsWith("pk_test_")) {
     return (
       <div
-        className="rounded-[10px] border px-3 py-2 text-[11px]"
+        className="rounded-[10px] border px-3 py-2 text-mrd-tiny"
         style={{
           borderColor: "var(--ember-line, rgba(194,96,46,0.30))",
           background: "var(--ember-tint, rgba(194,96,46,0.08))",

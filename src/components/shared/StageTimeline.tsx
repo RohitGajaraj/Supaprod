@@ -110,11 +110,11 @@ export function StageTimeline({ entityType, entityId, variant = "detailkit" }: S
                 a NAME and mono is for data, which is the rule `Num` exists to
                 hold -- so the name is plain text at the row's own size and the
                 only thing left carrying it is the quiet ink. */}
-            <span className="text-[12.5px] text-mrd-mute">{e.actor}</span>
+            <span className="text-mrd-label text-mrd-mute">{e.actor}</span>
             {/* And the timestamp keeps mono, because that IS data. `Num` rather
                 than a hand-rolled font-family, so it carries `data-num` and the
                 tabular figures a column of times needs. */}
-            <span className="ml-auto text-[12.5px] text-mrd-faint">
+            <span className="ml-auto text-mrd-label text-mrd-faint">
               <Num>{relTimeCaps(e.at)}</Num>
             </span>
           </div>
@@ -127,7 +127,7 @@ export function StageTimeline({ entityType, entityId, variant = "detailkit" }: S
         <Link
           to="/engine-room"
           search={{ room: "record" }}
-          className="text-[12.5px] text-mrd-mute underline decoration-dotted underline-offset-2 transition-colors hover:text-mrd-ink hover:decoration-solid"
+          className="text-mrd-label text-mrd-mute underline decoration-dotted underline-offset-2 transition-colors hover:text-mrd-ink hover:decoration-solid"
         >
           See the full chain in the record room
         </Link>

@@ -183,7 +183,7 @@ function YouDisc({ initials }: { initials: string }) {
   return (
     <span
       aria-hidden
-      className="font-mrd-mono inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-mrd-solid text-[10px] font-medium text-mrd-on-solid"
+      className="font-mrd-mono inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-mrd-solid text-mrd-nano font-medium text-mrd-on-solid"
       style={{ boxShadow: "inset 0 1px 0 var(--mrd-sheen)" }}
     >
       {initials}
@@ -238,14 +238,14 @@ function ReceiptRow({
     >
       {marks}
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[13px] font-medium text-mrd-ink">
+        <span className="block truncate text-mrd-base font-medium text-mrd-ink">
           {stripAutoPrefix(r.title)}
         </span>
         {/* The second line is a different fact, never more of the first: who,
             what family of record, and how it stands. The rationale, the
             evidence and where it came from belong to the one record you open,
             not to fifty rows. */}
-        <span className="mt-0.5 block truncate text-[12px] text-mrd-mute">
+        <span className="mt-0.5 block truncate text-mrd-small text-mrd-mute">
           {attribution(r)} · {r.kind} ·{" "}
           <span className={failed ? "text-mrd-fail" : undefined}>
             {receiptStatusLabel(r.status)}
@@ -260,7 +260,7 @@ function ReceiptRow({
         </span>
       </span>
       {stamp ? (
-        <span className="font-mrd-mono shrink-0 text-[11.5px] text-mrd-faint tabular-nums">
+        <span className="font-mrd-mono shrink-0 text-mrd-data text-mrd-faint tabular-nums">
           {stamp}
         </span>
       ) : null}
@@ -317,10 +317,10 @@ function SealPanel() {
           <div className="min-w-0">
             {/* A fingerprint, a count and a stamp are all figures, so all three
                 are mono. The words around them are not. */}
-            <p className="text-[13px] text-mrd-ink">
+            <p className="text-mrd-base text-mrd-ink">
               Fingerprint <Figure>{shortHead(seal.head)}</Figure>
             </p>
-            <p className="mt-0.5 text-[12px] text-mrd-mute">
+            <p className="mt-0.5 text-mrd-small text-mrd-mute">
               <Figure>{seal.count}</Figure> record{seal.count === 1 ? "" : "s"}
               {sealedAt ? (
                 <>

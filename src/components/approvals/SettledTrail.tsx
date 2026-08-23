@@ -52,7 +52,7 @@ export function SettledTrail({ lines }: { lines: SettledLine[] }) {
 
   return (
     <section>
-      <h2 className="text-[13px] font-medium text-mrd-mute">What you settled</h2>
+      <h2 className="text-mrd-base font-medium text-mrd-mute">What you settled</h2>
 
       <ul className="mt-mrd-4 flex flex-col gap-mrd-2">
         {lines.map((line, i) => (
@@ -72,14 +72,14 @@ export function SettledTrail({ lines }: { lines: SettledLine[] }) {
              * already says who acted.
              */}
             <span
-              className={`text-[13px] font-medium ${line.failed ? "text-mrd-fail" : "text-mrd-ink"}`}
+              className={`text-mrd-base font-medium ${line.failed ? "text-mrd-fail" : "text-mrd-ink"}`}
             >
               {line.verb}
             </span>
             <span className="min-w-0 leading-mrd-snug text-mrd-prose text-mrd-body">
               {line.consequence}
             </span>
-            <span className="font-mrd-mono ml-auto shrink-0 text-[12px] tabular-nums text-mrd-faint">
+            <span className="font-mrd-mono ml-auto shrink-0 text-mrd-small tabular-nums text-mrd-faint">
               {line.at}
             </span>
           </li>

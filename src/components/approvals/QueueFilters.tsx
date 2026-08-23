@@ -47,7 +47,7 @@ export function QueueFilters<T extends string>({
             aria-selected={on}
             onClick={() => onSelect(f.id)}
             data-mrd=""
-            className={`inline-flex h-8 items-center gap-2 rounded-mrd-chip px-3 text-[12.5px] transition-colors ${
+            className={`inline-flex h-8 items-center gap-2 rounded-mrd-chip px-3 text-mrd-label transition-colors ${
               on
                 ? "bg-mrd-lift font-medium text-mrd-ink"
                 : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-ink text-mrd-body"
@@ -56,7 +56,7 @@ export function QueueFilters<T extends string>({
           >
             {f.label}
             {counts[f.id] > 0 ? (
-              <span className="font-mrd-mono text-[11px] tabular-nums text-mrd-faint">
+              <span className="font-mrd-mono text-mrd-tiny tabular-nums text-mrd-faint">
                 {counts[f.id]}
               </span>
             ) : null}

@@ -136,7 +136,7 @@ export function EvalCalibrationPanel() {
 
   if (calibrations.length === 0) {
     return (
-      <p className="py-mrd-5 text-[13px] leading-mrd-prose text-mrd-mute">
+      <p className="py-mrd-5 text-mrd-base leading-mrd-prose text-mrd-mute">
         No AI surfaces are registered for calibration yet. Add an eval suite under Quality, then its
         surface appears here with a coverage verdict.
       </p>
@@ -167,7 +167,7 @@ export function EvalCalibrationPanel() {
               style={{ transitionDuration: "var(--mrd-d-press)" }}
             >
               <span className="flex min-w-0 flex-1 flex-col gap-mrd-1">
-                <span className="truncate text-[13px] font-medium text-mrd-ink">{cal.label}</span>
+                <span className="truncate text-mrd-base font-medium text-mrd-ink">{cal.label}</span>
                 {/* The dot and its word travel together, so the state never
                     reads by colour alone and survives greyscale. */}
                 <RecordStatus tone={stateMeta.tone} label={stateMeta.label} />
@@ -177,7 +177,7 @@ export function EvalCalibrationPanel() {
                 <span className="min-w-[60px] text-right">
                   {passRatePct != null ? (
                     <span
-                      className={`font-mrd-mono block text-[13px] font-medium tabular-nums ${
+                      className={`font-mrd-mono block text-mrd-base font-medium tabular-nums ${
                         /* Green only where it is an OUTCOME worth reporting: a
                            surface passing at or above ninety. Below that the
                            figure is a measurement and stays neutral, because a
@@ -189,10 +189,10 @@ export function EvalCalibrationPanel() {
                       {passRatePct}%
                     </span>
                   ) : (
-                    <span className="block text-[12px] text-mrd-faint">no runs</span>
+                    <span className="block text-mrd-small text-mrd-faint">no runs</span>
                   )}
                   {cal.runCount > 0 ? (
-                    <span className="font-mrd-mono mt-0.5 block text-[11.5px] text-mrd-faint tabular-nums">
+                    <span className="font-mrd-mono mt-0.5 block text-mrd-data text-mrd-faint tabular-nums">
                       {cal.runCount} suite{cal.runCount === 1 ? "" : "s"}
                     </span>
                   ) : null}
@@ -211,7 +211,7 @@ export function EvalCalibrationPanel() {
 
       {/* Summary line when coverage is complete. */}
       {calibrations.every((c) => c.coverageState === "covered") ? (
-        <p className="border-t border-mrd-line-soft pt-mrd-4 text-[12px] text-mrd-mute">
+        <p className="border-t border-mrd-line-soft pt-mrd-4 text-mrd-small text-mrd-mute">
           All canonical surfaces are guarded with evals.
         </p>
       ) : null}

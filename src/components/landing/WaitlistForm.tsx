@@ -222,13 +222,13 @@ export function WaitlistForm({ waitlistCount }: { waitlistCount: number | null }
 
       {/* The offer, stated once, in the metadata voice: what the first hundred
           get, not how few are left. Mono, 11px, zinc-600 (founder 2026-07-25). */}
-      <p className="text-[11px] leading-mrd-prose text-zinc-400 font-mono">
+      <p className="text-mrd-tiny leading-mrd-prose text-zinc-400 font-mono">
         First 100 get the Critic: our red-team agent tears your riskiest bet apart before you spend
         a sprint on it.
       </p>
 
       {waitlistCount != null && waitlistCount >= WAITLIST_NUDGE_FLOOR && (
-        <p className="mt-2 text-[11px] font-mono text-zinc-400">
+        <p className="mt-2 text-mrd-tiny font-mono text-zinc-400">
           <span className="text-zinc-400" style={{ fontVariantNumeric: "tabular-nums" }}>
             {waitlistCount.toLocaleString()}
           </span>{" "}

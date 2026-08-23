@@ -54,14 +54,14 @@ function RateStat({
     <div className="min-w-[128px] flex-[1_1_128px]">
       <Eyebrow>{label}</Eyebrow>
       {p == null ? (
-        <p className="mt-mrd-2 text-[12.5px] text-mrd-faint">no history yet</p>
+        <p className="mt-mrd-2 text-mrd-label text-mrd-faint">no history yet</p>
       ) : (
         <>
           <div className="mt-mrd-2 flex items-baseline gap-mrd-3">
-            <span className="font-mrd-mono text-[13px] font-medium text-mrd-ink tabular-nums">
+            <span className="font-mrd-mono text-mrd-base font-medium text-mrd-ink tabular-nums">
               {p}
             </span>
-            <span className="font-mrd-mono text-[11.5px] text-mrd-mute tabular-nums">{detail}</span>
+            <span className="font-mrd-mono text-mrd-data text-mrd-mute tabular-nums">{detail}</span>
           </div>
           <div className="mt-mrd-2 h-[3px] overflow-hidden rounded-full bg-mrd-line">
             <div
@@ -104,7 +104,7 @@ function ToolApprovalChips({ tools }: { tools: ToolRecord[] }) {
       ))}
       {/* A CAP PRINTS ITS REAL NUMBER, because a reader cannot know they are
           missing something otherwise. */}
-      {extra > 0 ? <span className="text-[12px] text-mrd-faint">+{extra} more</span> : null}
+      {extra > 0 ? <span className="text-mrd-small text-mrd-faint">+{extra} more</span> : null}
     </div>
   );
 }
@@ -123,13 +123,13 @@ function ScorecardRow({ card }: { card: AgentScorecard }) {
           <Glyph />
         </span>
         <div className="min-w-0">
-          <div className="text-[13px] font-medium text-mrd-ink">{agentDisplayName(card.slug)}</div>
-          {stationLabel ? <div className="text-[12px] text-mrd-mute">{stationLabel}</div> : null}
+          <div className="text-mrd-base font-medium text-mrd-ink">{agentDisplayName(card.slug)}</div>
+          {stationLabel ? <div className="text-mrd-small text-mrd-mute">{stationLabel}</div> : null}
         </div>
         {card.reverts > 0 ? (
           <span
             title="Times a human rewound this agent's shipped work"
-            className="ml-auto shrink-0 rounded-mrd-chip border border-mrd-line px-2 py-0.5 text-[12px] text-mrd-mute"
+            className="ml-auto shrink-0 rounded-mrd-chip border border-mrd-line px-2 py-0.5 text-mrd-small text-mrd-mute"
           >
             <span className="font-mrd-mono tabular-nums">{card.reverts}</span>{" "}
             {card.reverts === 1 ? "rewind" : "rewinds"}
@@ -170,7 +170,7 @@ export function AgentScorecardPanel() {
       className="rounded-mrd-card border border-mrd-line bg-mrd-sheet px-mrd-5 py-mrd-5 shadow-mrd-card"
     >
       <Eyebrow>Track record, by agent and task type</Eyebrow>
-      <p className="mt-mrd-3 max-w-[62ch] text-[12.5px] leading-mrd-prose text-mrd-mute">
+      <p className="mt-mrd-3 max-w-[62ch] text-mrd-label leading-mrd-prose text-mrd-mute">
         The tier list, kept for you: how often each agent&rsquo;s work is approved and how often it
         turns out right, per task type. Only decided history counts, so a fresh agent shows nothing
         rather than a hollow score.
@@ -185,7 +185,7 @@ export function AgentScorecardPanel() {
         </div>
       ) : query.isError ? (
         <div className="mt-mrd-5 flex flex-wrap items-center gap-mrd-4">
-          <span className="text-[13px] text-mrd-fail">Could not load the scorecard.</span>
+          <span className="text-mrd-base text-mrd-fail">Could not load the scorecard.</span>
           <Action onClick={() => void query.refetch()}>Try again</Action>
         </div>
       ) : cards.length === 0 ? (
@@ -201,7 +201,7 @@ export function AgentScorecardPanel() {
         </div>
       )}
 
-      <p className="mt-mrd-5 max-w-[68ch] border-t border-mrd-line-soft pt-mrd-4 text-[12px] leading-mrd-prose text-mrd-mute">
+      <p className="mt-mrd-5 max-w-[68ch] border-t border-mrd-line-soft pt-mrd-4 text-mrd-small leading-mrd-prose text-mrd-mute">
         Grades reuse the same decided-judgment record shown in the trust dial above, so the numbers
         agree. Per-vendor grading (native vs a BYO model) is not shown yet: the call-level vendor
         signal is not joined to an agent in the data today, so claiming it would be a guess.

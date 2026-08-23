@@ -129,7 +129,7 @@ export function IntentVsBuiltReceipt({ prdId }: { prdId: string }) {
                 <div className="min-w-0 flex-1">
                   <span className={p.evidenced ? "" : "text-muted-foreground"}>{p.text}</span>
                   {!p.checkable ? (
-                    <div className="mt-0.5 text-[11px] text-muted-foreground">
+                    <div className="mt-0.5 text-mrd-tiny text-muted-foreground">
                       no gradeable terms to check
                     </div>
                   ) : p.evidenced && p.matched_terms.length > 0 ? (
@@ -144,7 +144,7 @@ export function IntentVsBuiltReceipt({ prdId }: { prdId: string }) {
                       ))}
                     </div>
                   ) : (
-                    <div className="mt-0.5 text-[11px] text-muted-foreground">
+                    <div className="mt-0.5 text-mrd-tiny text-muted-foreground">
                       not evident in the release notes
                     </div>
                   )}
@@ -155,7 +155,7 @@ export function IntentVsBuiltReceipt({ prdId }: { prdId: string }) {
         </>
       )}
 
-      <p className="mt-5 text-[11px] text-muted-foreground leading-mrd-prose">
+      <p className="mt-5 text-mrd-tiny text-muted-foreground leading-mrd-prose">
         This is a text-evidence projection ({receipt.evidence_basis}): it checks whether the words
         of each intent point appear in what shipped. It is a signal that a point was addressed, not
         a guarantee the behavior is correct.

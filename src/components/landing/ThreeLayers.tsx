@@ -168,7 +168,7 @@ const BEAT = "layer-beat border-t border-white/[0.09] pt-6 pb-9 last:pb-0 md:pb-
  * the claim a medium sentence, which is the hierarchy upside down. The name is
  * a label. The claim is the impact. Labels are small, impact is big.
  */
-const CN = "mb-3 block font-mono text-[11px] uppercase";
+const CN = "mb-3 block font-mono text-mrd-tiny uppercase";
 const CN_STYLE = { letterSpacing: "0.2em", fontVariantNumeric: "tabular-nums" } as const;
 
 /**
@@ -188,7 +188,7 @@ const CT_STYLE = {
  * The brief's .cd: what the layer actually IS. Deliberately the quietest tier,
  * so the eye reads colour, then claim, then detail, in that order every time.
  */
-const CD = "text-[13px] text-zinc-500";
+const CD = "text-mrd-base text-zinc-500";
 const CD_STYLE = { lineHeight: 1.7, maxWidth: "42ch" } as const;
 
 export function ThreeLayers() {
@@ -269,7 +269,7 @@ export function ThreeLayers() {
               at this point in a page, it describes what actually follows, and
               it carries no tense. The brief keeps its own wording. */}
           <span
-            className="font-mono text-[11px] uppercase md:text-[12px]"
+            className="font-mono text-mrd-tiny uppercase md:text-mrd-small"
             style={{ color: "#FF6B2C", letterSpacing: "0.2em" }}
           >
             How it works

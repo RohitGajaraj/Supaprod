@@ -538,7 +538,7 @@ function LogDecision({
         {/* Said once, above the two fields it governs, rather than repeated on
             each. The lock is the surprising part and the person should meet it
             before they type, not after they try to edit. */}
-        <p className="text-[12px] text-zinc-400">
+        <p className="text-mrd-small text-zinc-400">
           Recorded before the outcome is known, and locked once saved. This is the part nobody can
           reconstruct afterwards.
         </p>
@@ -560,7 +560,7 @@ function LogDecision({
           />
         </Field>
         {partial ? (
-          <p role="alert" className="text-[12px] text-zinc-400">
+          <p role="alert" className="text-mrd-small text-zinc-400">
             A forecast needs all three: what you expect, how you will know, and by when. Without the
             signal it cannot be settled, and without a date it never comes due.
           </p>

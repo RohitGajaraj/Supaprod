@@ -249,7 +249,7 @@ function FileName({ path }: { path: string }) {
     /* `.sp-filename` was: block, min-width 0, ellipsis, nowrap, mono at 12px,
        full ink. Every one of those is a Meridian utility and none of them
        changes value in the move. */
-    <span className="font-mrd-mono block min-w-0 truncate text-[12px] text-mrd-ink" title={path}>
+    <span className="font-mrd-mono block min-w-0 truncate text-mrd-small text-mrd-ink" title={path}>
       {name}
     </span>
   );
@@ -292,7 +292,7 @@ const TOUCH_LIST_ID = "studio-scope-touch-list";
 const FILE_CAP_ID = "studio-scope-file-cap";
 
 const QUIET =
-  "rounded-mrd-xs text-[13px] text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid disabled:cursor-default disabled:opacity-45";
+  "rounded-mrd-xs text-mrd-base text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid disabled:cursor-default disabled:opacity-45";
 
 /**
  * Changes tab: what the run wrote. The file list, the commit history, the

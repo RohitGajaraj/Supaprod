@@ -123,7 +123,7 @@ export function Receipts() {
               June 2026.
             </p>
             <div className="cap-scrim hidden md:flex flex-col gap-2.5 mt-12 py-6 px-8 -mx-8">
-              <span className="font-mono text-[11px] text-zinc-400 mb-1.5">On the record</span>
+              <span className="font-mono text-mrd-tiny text-zinc-400 mb-1.5">On the record</span>
               {/* "public teardowns" was the third item until 2026-08-22. The
                   product no longer publishes one, so it was the single item on
                   this list that named a thing that had stopped existing. The
@@ -136,7 +136,7 @@ export function Receipts() {
               ].map((f) => (
                 <span
                   key={f}
-                  className="cap-item font-mono text-[12px] uppercase text-zinc-400"
+                  className="cap-item font-mono text-mrd-small uppercase text-zinc-400"
                   style={{ letterSpacing: "0.12em" }}
                 >
                   {f}
@@ -191,7 +191,7 @@ export function Receipts() {
                 An explicit px value sidesteps the collision. See the note in
                 styles.css. */}
             <p
-              className="mt-12 md:mt-auto md:pt-16 text-[17px] leading-mrd-prose text-zinc-300"
+              className="mt-12 md:mt-auto md:pt-16 text-mrd-lead leading-mrd-prose text-zinc-300"
               style={{ maxWidth: "52ch" }}
             >
               {/* CORRECTED 2026-08-10. This sentence used to assert that the

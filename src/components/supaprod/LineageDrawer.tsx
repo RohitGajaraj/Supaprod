@@ -281,17 +281,17 @@ const KIND_LABEL: Record<ArtifactKind, string> = {
  *  in the product uses, so the drawer reads as part of the system rather than
  *  as a page of its own. `tracking-mrd-label` rather than a hand-written em. */
 const SECTION_HEAD =
-  "mb-2 flex items-center gap-1.5 text-[10px] font-[650] uppercase tracking-mrd-label text-mrd-mute";
+  "mb-2 flex items-center gap-1.5 text-mrd-nano font-[650] uppercase tracking-mrd-label text-mrd-mute";
 
 /** The eyebrow over the subject card. Same register, no leading glyph. */
-const KIND_EYEBROW = "text-[10px] font-[650] uppercase tracking-mrd-label text-mrd-mute";
+const KIND_EYEBROW = "text-mrd-nano font-[650] uppercase tracking-mrd-label text-mrd-mute";
 
 /** What KIND a node is. A kind is CATEGORICAL, so it takes no status hue and
  *  no tint: the recessed fill and the word are the whole chip. `rounded-mrd-xs`
  *  rather than a pill, because a full round on a two-word label is the shape
  *  this system reserves for a count. */
 const KIND_CHIP =
-  "shrink-0 rounded-mrd-xs bg-mrd-sink px-2 py-0.5 text-[10px] uppercase tracking-mrd-label text-mrd-body";
+  "shrink-0 rounded-mrd-xs bg-mrd-sink px-2 py-0.5 text-mrd-nano uppercase tracking-mrd-label text-mrd-body";
 
 function PeerLink({ kind, id, title }: { kind: ArtifactKind; id: string; title: string | null }) {
   const route = ROUTES[kind]?.(id);
@@ -377,7 +377,7 @@ export function LineageDrawer({
           <SheetTitle className="flex items-center gap-2 text-[15px] font-medium text-mrd-ink">
             <GitBranch className="h-4 w-4 text-mrd-mute" /> Lineage
           </SheetTitle>
-          <SheetDescription className="text-[12.5px] leading-mrd-prose text-mrd-mute">
+          <SheetDescription className="text-mrd-label leading-mrd-prose text-mrd-mute">
             How this {KIND_LABEL[kind].toLowerCase()} connects across the product lifecycle.
           </SheetDescription>
         </SheetHeader>
@@ -386,7 +386,7 @@ export function LineageDrawer({
           {title && (
             <div className="rounded-mrd-card border border-mrd-line bg-mrd-sink p-mrd-4">
               <div className={KIND_EYEBROW}>{KIND_LABEL[kind]}</div>
-              <div className="mt-1 text-[13px] font-medium text-mrd-ink">{title}</div>
+              <div className="mt-1 text-mrd-base font-medium text-mrd-ink">{title}</div>
             </div>
           )}
 
@@ -398,11 +398,11 @@ export function LineageDrawer({
             {/* Not italic, and not "artifacts". Italic is emphasis spent on an
                 absence, and the word is the table's, not the reader's. */}
             {!q.isLoading && ancestors.length === 0 && (
-              <p className="text-[12.5px] text-mrd-mute">Nothing upstream of this.</p>
+              <p className="text-mrd-label text-mrd-mute">Nothing upstream of this.</p>
             )}
             <ul className="space-y-2">
               {ancestors.map((e) => (
-                <li key={e.id} className="flex items-start gap-2 text-[12.5px]">
+                <li key={e.id} className="flex items-start gap-2 text-mrd-label">
                   <span className={KIND_CHIP}>{KIND_LABEL[e.parent_kind as ArtifactKind]}</span>
                   <PeerLink
                     kind={e.parent_kind as ArtifactKind}
@@ -426,7 +426,7 @@ export function LineageDrawer({
               </p>
               <ul className="space-y-2">
                 {prov!.source_signals.slice(0, 8).map((s) => (
-                  <li key={s.id} className="flex items-start gap-2 text-[12.5px]">
+                  <li key={s.id} className="flex items-start gap-2 text-mrd-label">
                     <span className={KIND_CHIP}>{s.source ?? "signal"}</span>
                     <PeerLink
                       kind="signal"
@@ -437,13 +437,13 @@ export function LineageDrawer({
                 ))}
               </ul>
               {prov!.source_signals.length > 8 && (
-                <p className="mt-1.5 text-[12px] text-mrd-faint">
+                <p className="mt-1.5 text-mrd-small text-mrd-faint">
                   <Num>+{prov!.source_signals.length - 8}</Num> more source signal
                   {prov!.source_signals.length - 8 === 1 ? "" : "s"}
                 </p>
               )}
               {prov!.truncated && (
-                <p className="mt-1 text-[12px] text-mrd-faint">
+                <p className="mt-1 text-mrd-small text-mrd-faint">
                   The chain stops here, at the depth cap. There is more of it.
                 </p>
               )}
@@ -456,11 +456,11 @@ export function LineageDrawer({
             </h4>
             {q.isLoading && <Reading>Reading the chain.</Reading>}
             {!q.isLoading && descendants.length === 0 && (
-              <p className="text-[12.5px] text-mrd-mute">Nothing promoted from this yet.</p>
+              <p className="text-mrd-label text-mrd-mute">Nothing promoted from this yet.</p>
             )}
             <ul className="space-y-2">
               {descendants.map((e) => (
-                <li key={e.id} className="flex items-start gap-2 text-[12.5px]">
+                <li key={e.id} className="flex items-start gap-2 text-mrd-label">
                   <span className={KIND_CHIP}>{KIND_LABEL[e.child_kind as ArtifactKind]}</span>
                   <PeerLink
                     kind={e.child_kind as ArtifactKind}

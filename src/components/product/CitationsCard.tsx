@@ -55,7 +55,7 @@ export function CitationsCard({ citations }: Props) {
 
   return (
     <div className="rounded-lg border hairline bg-card/60 p-4">
-      <div className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground mb-3 flex items-center gap-2">
+      <div className="text-mrd-nano uppercase tracking-[0.16em] text-muted-foreground mb-3 flex items-center gap-2">
         <BookOpen className="h-3 w-3" /> Cited evidence · {citations.length}
       </div>
       <ol className="space-y-2.5">
@@ -64,7 +64,7 @@ export function CitationsCard({ citations }: Props) {
           const link = linkFor(c);
           const inner = (
             <>
-              <span className="font-mono text-[10px] text-muted-foreground tabular-nums shrink-0 mt-0.5">
+              <span className="font-mono text-mrd-nano text-muted-foreground tabular-nums shrink-0 mt-0.5">
                 [{c.n}]
               </span>
               <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
@@ -73,7 +73,7 @@ export function CitationsCard({ citations }: Props) {
                   {c.title ?? untitled(c.source_kind)}
                 </span>
                 {c.snippet && (
-                  <span className="block text-[11px] text-muted-foreground line-clamp-2">
+                  <span className="block text-mrd-tiny text-muted-foreground line-clamp-2">
                     {c.snippet}
                   </span>
                 )}

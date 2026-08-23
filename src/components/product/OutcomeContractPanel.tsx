@@ -234,7 +234,7 @@ function VerifiabilityVerdict({ contract }: { contract: OutcomeContract }) {
             <p className="text-xs font-medium text-destructive">
               Cannot be approved: no success metric can be checked.
             </p>
-            <p className="text-[11px] text-muted-foreground mt-0.5 leading-mrd-prose">
+            <p className="text-mrd-tiny text-muted-foreground mt-0.5 leading-mrd-prose">
               {grade.reason}
             </p>
             {grade.unverifiableClauses.length > 0 ? (
@@ -242,7 +242,7 @@ function VerifiabilityVerdict({ contract }: { contract: OutcomeContract }) {
                 {grade.unverifiableClauses.map((c) => (
                   <li
                     key={c.id}
-                    className="text-[11px] text-muted-foreground flex items-start gap-1.5"
+                    className="text-mrd-tiny text-muted-foreground flex items-start gap-1.5"
                   >
                     <span className="mono-label text-[9px] mt-0.5 shrink-0 opacity-70">
                       {c.pending ? "uncompiled" : "watched"}
@@ -268,7 +268,7 @@ function VerifiabilityVerdict({ contract }: { contract: OutcomeContract }) {
         <ShieldAlert className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
         <div className="min-w-0">
           <p className="text-xs font-medium">Verification is hazy</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5 leading-mrd-prose">{grade.reason}</p>
+          <p className="text-mrd-tiny text-muted-foreground mt-0.5 leading-mrd-prose">{grade.reason}</p>
         </div>
       </div>
     );
@@ -284,7 +284,7 @@ function VerifiabilityVerdict({ contract }: { contract: OutcomeContract }) {
       />
       <div className="min-w-0">
         <p className="text-xs font-medium">{label}</p>
-        <p className="text-[11px] text-muted-foreground mt-0.5 leading-mrd-prose">{grade.reason}</p>
+        <p className="text-mrd-tiny text-muted-foreground mt-0.5 leading-mrd-prose">{grade.reason}</p>
       </div>
     </div>
   );
@@ -469,7 +469,7 @@ export function OutcomeContractPanel({ prdId, specTitle, bodyMd, contract, inval
         prdId={prdId}
         invalidateKey={invalidateKey}
       />
-      <p className="mt-5 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+      <p className="mt-5 text-mrd-nano uppercase tracking-[0.16em] text-muted-foreground">
         Drafted by {contract?.drafted_by ?? "human"}
         {contract?.drafted_at ? ` · ${new Date(contract.drafted_at).toLocaleDateString()}` : ""}
       </p>
@@ -489,7 +489,7 @@ function ContractBody({
   return (
     <div className="space-y-5">
       <div>
-        <div className="mono-label text-[10px] text-muted-foreground mb-1.5">Intent</div>
+        <div className="mono-label text-mrd-nano text-muted-foreground mb-1.5">Intent</div>
         <p className="text-sm leading-mrd-prose">{contract.intent}</p>
       </div>
 
@@ -515,13 +515,13 @@ function ContractBody({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {contract.budget.estimate ? (
             <div>
-              <div className="mono-label text-[10px] text-muted-foreground mb-1.5">Budget</div>
+              <div className="mono-label text-mrd-nano text-muted-foreground mb-1.5">Budget</div>
               <p className="text-xs leading-mrd-prose">{contract.budget.estimate}</p>
             </div>
           ) : null}
           {contract.budget.blast_radius ? (
             <div>
-              <div className="mono-label text-[10px] text-muted-foreground mb-1.5">
+              <div className="mono-label text-mrd-nano text-muted-foreground mb-1.5">
                 Blast radius
               </div>
               <p className="text-xs leading-mrd-prose">{contract.budget.blast_radius}</p>
@@ -532,7 +532,7 @@ function ContractBody({
 
       {contract.ambiguity_policy ? (
         <div>
-          <div className="mono-label text-[10px] text-muted-foreground mb-1.5">
+          <div className="mono-label text-mrd-nano text-muted-foreground mb-1.5">
             Ambiguity policy
           </div>
           <p className="text-xs leading-mrd-prose">{contract.ambiguity_policy}</p>
@@ -840,7 +840,7 @@ function ClauseList({
 
   return (
     <div>
-      <div className="mono-label text-[10px] text-muted-foreground mb-1.5">{label}</div>
+      <div className="mono-label text-mrd-nano text-muted-foreground mb-1.5">{label}</div>
       {standing.length > 0 ? (
         <ul className="space-y-1.5">
           {standing.map((c) => (
@@ -876,7 +876,7 @@ function ClauseList({
       )}
       {superseded.length > 0 ? (
         <details className="mt-1.5">
-          <summary className="text-[11px] text-muted-foreground cursor-pointer">
+          <summary className="text-mrd-tiny text-muted-foreground cursor-pointer">
             {superseded.length} superseded
           </summary>
           <ul className="mt-1.5 space-y-1 pl-3">

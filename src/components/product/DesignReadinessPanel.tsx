@@ -24,12 +24,12 @@ export function DesignReadinessPanel({ body }: { body: string }) {
     <div className="mb-6 rounded-lg border hairline bg-card p-4">
       <div className="flex items-center gap-2.5">
         <Palette className="h-3.5 w-3.5" style={{ color: lvl.color }} strokeWidth={1.5} />
-        <span className="text-[13px] font-medium text-foreground">Design readiness</span>
-        <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
+        <span className="text-mrd-base font-medium text-foreground">Design readiness</span>
+        <span className="font-mono text-mrd-tiny tabular-nums text-muted-foreground">
           {r.score}/{r.total}
         </span>
         <span
-          className="font-mono text-[10px] uppercase tracking-wide"
+          className="font-mono text-mrd-nano uppercase tracking-wide"
           style={{ color: lvl.color }}
         >
           {lvl.label}
@@ -49,7 +49,7 @@ export function DesignReadinessPanel({ body }: { body: string }) {
         </p>
       ) : (
         <div className="mt-3">
-          <p className="mb-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
+          <p className="mb-1.5 text-mrd-tiny uppercase tracking-wide text-muted-foreground">
             Add before design ({gaps.length})
           </p>
           <ul className="flex flex-col gap-1.5">
@@ -69,7 +69,7 @@ export function DesignReadinessPanel({ body }: { body: string }) {
         </div>
       )}
 
-      <p className="mt-3 border-t hairline pt-2 text-[11px] text-muted-foreground">
+      <p className="mt-3 border-t hairline pt-2 text-mrd-tiny text-muted-foreground">
         Checks the spec is ready to design. A generated mockup and live preview come from Build (a
         later add-on).
       </p>

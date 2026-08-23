@@ -106,7 +106,7 @@ export function CreateRepoModal({
               className="mt-1 font-mono text-sm"
               autoFocus
             />
-            <p className="text-[11px] text-muted-foreground mt-1">
+            <p className="text-mrd-tiny text-muted-foreground mt-1">
               Letters, numbers, hyphens, dots, and underscores only.
             </p>
           </div>
@@ -122,7 +122,7 @@ export function CreateRepoModal({
               placeholder="your-org"
               className="mt-1 font-mono text-sm"
             />
-            <p className="text-[11px] text-muted-foreground mt-1">
+            <p className="text-mrd-tiny text-muted-foreground mt-1">
               Leave blank to create in your personal account.
             </p>
           </div>
@@ -152,7 +152,7 @@ export function CreateRepoModal({
               <Unlock className="h-3.5 w-3.5 shrink-0" />
             )}
             {isPrivate ? "Private repo" : "Public repo"}
-            <span className="text-[11px] ml-auto text-muted-foreground/50">click to toggle</span>
+            <span className="text-mrd-tiny ml-auto text-muted-foreground/50">click to toggle</span>
           </button>
         </div>
 

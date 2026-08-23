@@ -29,7 +29,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 /** The label above a fact, a section, or an id. One atom, so a section heading
  *  and a field heading can never drift apart by six pixels. */
 export function FactLabel({ children }: { children: React.ReactNode }) {
-  return <div className="mb-mrd-3 text-[11px] font-medium text-mrd-mute">{children}</div>;
+  return <div className="mb-mrd-3 text-mrd-tiny font-medium text-mrd-mute">{children}</div>;
 }
 
 /*
@@ -51,7 +51,7 @@ export function Fact({ label, children }: { label: string; children: React.React
       <FactLabel>{label}</FactLabel>
       {/* Wraps. It used to truncate, and a truncated model name is a wrong
           answer rendered confidently. */}
-      <div className="text-[13px] leading-mrd-snug break-words text-mrd-ink">{children}</div>
+      <div className="text-mrd-base leading-mrd-snug break-words text-mrd-ink">{children}</div>
     </div>
   );
 }
@@ -87,7 +87,7 @@ export function CopyButton({ value, what }: { value: string; what: string }) {
       type="button"
       aria-label={`Copy the ${what}`}
       onClick={copy}
-      className={`flex h-6 shrink-0 items-center rounded-mrd-xs px-1.5 text-[11px] font-medium transition-colors duration-100 hover:bg-mrd-hover ${
+      className={`flex h-6 shrink-0 items-center rounded-mrd-xs px-1.5 text-mrd-tiny font-medium transition-colors duration-100 hover:bg-mrd-hover ${
         copied ? "text-mrd-pass" : "text-mrd-mute hover:text-mrd-ink"
       }`}
     >
@@ -102,7 +102,7 @@ export function IdFact({ label, value }: { label: string; value: string }) {
     <div className="mt-mrd-5">
       <FactLabel>{label}</FactLabel>
       <div className="flex flex-wrap items-center gap-x-mrd-4 gap-y-mrd-2">
-        <code className="min-w-0 font-mrd-mono text-[12px] break-all text-mrd-ink" title={value}>
+        <code className="min-w-0 font-mrd-mono text-mrd-small break-all text-mrd-ink" title={value}>
           {value}
         </code>
         <CopyButton value={value} what={label.toLowerCase()} />

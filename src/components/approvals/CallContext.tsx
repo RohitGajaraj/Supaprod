@@ -21,7 +21,7 @@ import { glyphForSlug } from "@/components/shell/agent-glyphs";
 
 function Head({ children }: { children: ReactNode }) {
   return (
-    <h2 className="text-[11px] font-medium tracking-wide text-mrd-mute uppercase">{children}</h2>
+    <h2 className="text-mrd-tiny font-medium tracking-wide text-mrd-mute uppercase">{children}</h2>
   );
 }
 
@@ -61,8 +61,8 @@ export function CallContext({
             <Glyph />
           </span>
           <span className="min-w-0">
-            <span className="block text-[12.5px] text-mrd-ink">{agentName}</span>
-            <span className="mt-0.5 block text-[11px] text-mrd-mute">{where}</span>
+            <span className="block text-mrd-label text-mrd-ink">{agentName}</span>
+            <span className="mt-0.5 block text-mrd-tiny text-mrd-mute">{where}</span>
           </span>
         </div>
       </Section>
@@ -87,7 +87,7 @@ export function CallContext({
 /** A key, as it is actually pressed. Mono so it reads as a keycap in a sentence. */
 export function Key({ children }: { children: ReactNode }) {
   return (
-    <kbd className="font-mrd-mono rounded-mrd-xs border border-mrd-line bg-mrd-lift px-1 text-[11px] text-mrd-ink">
+    <kbd className="font-mrd-mono rounded-mrd-xs border border-mrd-line bg-mrd-lift px-1 text-mrd-tiny text-mrd-ink">
       {children}
     </kbd>
   );

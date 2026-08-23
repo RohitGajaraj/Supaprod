@@ -88,7 +88,7 @@ export function ProductAnalyticsPanel({
           <BarChart2 className="h-3.5 w-3.5 text-muted-foreground" />
           <span className="text-xs font-semibold text-foreground">Post-ship analytics</span>
           {d.ingestGated && (
-            <span className="text-[10px] bg-muted text-amber-500 border border-border rounded px-1.5 py-0.5">
+            <span className="text-mrd-nano bg-muted text-amber-500 border border-border rounded px-1.5 py-0.5">
               Key needed
             </span>
           )}
@@ -148,13 +148,13 @@ export function ProductAnalyticsPanel({
         ) : d.featureEvent ? (
           <div className="flex items-center gap-1.5">
             <CheckCircle className="h-3 w-3 shrink-0" style={{ color: "var(--emerald)" }} />
-            <code className="text-[11px] text-muted-foreground">{d.featureEvent}</code>
+            <code className="text-mrd-tiny text-muted-foreground">{d.featureEvent}</code>
             <button
               onClick={() => {
                 setEventDraft(d.featureEvent ?? "");
                 setEditingEvent(true);
               }}
-              className="ml-auto text-[10px] text-muted-foreground hover:text-muted-foreground"
+              className="ml-auto text-mrd-nano text-muted-foreground hover:text-muted-foreground"
             >
               change
             </button>
@@ -186,7 +186,7 @@ export function ProductAnalyticsPanel({
         {/* Cohort sparkline */}
         {hasData && (
           <div>
-            <div className="flex items-baseline justify-between text-[11px] text-muted-foreground">
+            <div className="flex items-baseline justify-between text-mrd-tiny text-muted-foreground">
               <span>30-day distinct users</span>
               <span className="font-semibold text-foreground">{totalUsers} total</span>
             </div>
@@ -201,7 +201,7 @@ export function ProductAnalyticsPanel({
               />
             </div>
             {latestDay && (
-              <div className="text-[10px] text-muted-foreground mt-1 text-right">
+              <div className="text-mrd-nano text-muted-foreground mt-1 text-right">
                 Latest: {latestDay.distinct_users} users on {latestDay.cohort_date}
               </div>
             )}
@@ -209,7 +209,7 @@ export function ProductAnalyticsPanel({
         )}
 
         {!hasData && d.featureEvent && (
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-mrd-tiny text-muted-foreground">
             {d.ingestGated
               ? "Set POSTHOG_PERSONAL_API_KEY + POSTHOG_PROJECT_ID to pull cohort data."
               : "No data yet. Click refresh to pull from PostHog."}
@@ -219,19 +219,19 @@ export function ProductAnalyticsPanel({
         {/* ICE adjustment history */}
         {d.iceAdjustments.length > 0 && (
           <div className="border-t border-border pt-2.5">
-            <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
+            <div className="text-mrd-nano font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
               ICE auto-adjustments
             </div>
             {d.iceAdjustments.map((adj, i) => (
               <div key={i} className="flex items-start gap-2 py-1">
                 <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-[var(--action-blue)] shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <div className="text-[11px] text-foreground leading-mrd-snug">
+                  <div className="text-mrd-tiny text-foreground leading-mrd-snug">
                     Impact {adj.old_impact}→{adj.new_impact} · Confidence {adj.old_confidence}→
                     {adj.new_confidence}
                     <span className="text-muted-foreground ml-1">· {adj.sample_users} users</span>
                   </div>
-                  <div className="text-[10px] text-muted-foreground">{when(adj.adjusted_at)}</div>
+                  <div className="text-mrd-nano text-muted-foreground">{when(adj.adjusted_at)}</div>
                 </div>
               </div>
             ))}
@@ -239,7 +239,7 @@ export function ProductAnalyticsPanel({
         )}
 
         {latestAdj && (
-          <p className="text-[10px] text-muted-foreground leading-mrd-prose">{latestAdj.reason}</p>
+          <p className="text-mrd-nano text-muted-foreground leading-mrd-prose">{latestAdj.reason}</p>
         )}
       </div>
     </div>

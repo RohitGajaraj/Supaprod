@@ -37,12 +37,12 @@ export function UndatedCalls({ calls }: { calls: UndatedCall[] }) {
 
   return (
     <section>
-      <h2 className="text-[13px] font-medium text-mrd-mute">
+      <h2 className="text-mrd-base font-medium text-mrd-mute">
         {calls.length === 1
           ? "One call, with no start time recorded"
           : `${calls.length} calls, with no start time recorded`}
       </h2>
-      <p className="mt-mrd-3 max-w-[62ch] text-[12.5px] leading-mrd-prose text-mrd-faint">
+      <p className="mt-mrd-3 max-w-[62ch] text-mrd-label leading-mrd-prose text-mrd-faint">
         These need you like the rest. How long they have been waiting is the one thing this screen
         cannot tell you about them.
       </p>
@@ -54,16 +54,16 @@ export function UndatedCalls({ calls }: { calls: UndatedCall[] }) {
             className="flex items-start gap-mrd-4 rounded-mrd-ctl border border-mrd-line bg-mrd-sink px-mrd-5 py-mrd-4"
           >
             <div className="min-w-0 flex-1">
-              <span className="text-[13px] font-medium text-mrd-ink">{call.asking}</span>
+              <span className="text-mrd-base font-medium text-mrd-ink">{call.asking}</span>
               {call.where ? (
-                <p className="mt-1 text-[12.5px] leading-mrd-snug text-mrd-mute">{call.where}</p>
+                <p className="mt-1 text-mrd-label leading-mrd-snug text-mrd-mute">{call.where}</p>
               ) : null}
             </div>
             <button
               type="button"
               onClick={call.onOpen}
               data-mrd=""
-              className="shrink-0 rounded-mrd-ctl px-2 py-1 text-[12.5px] text-mrd-mute transition-colors hover:bg-mrd-hover hover:text-mrd-ink text-mrd-body"
+              className="shrink-0 rounded-mrd-ctl px-2 py-1 text-mrd-label text-mrd-mute transition-colors hover:bg-mrd-hover hover:text-mrd-ink text-mrd-body"
               style={{ transitionDuration: "var(--mrd-d-press)" }}
             >
               Open

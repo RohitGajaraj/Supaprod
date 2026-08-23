@@ -73,7 +73,7 @@ export function RowAction({
     <button
       type="button"
       data-mrd=""
-      className={`mrd-focus-inset inline-flex h-[22px] shrink-0 items-center rounded-mrd-xs px-1.5 text-[12px] font-medium whitespace-nowrap transition-colors hover:bg-mrd-hover hover:text-mrd-ink disabled:pointer-events-none disabled:opacity-45 ${
+      className={`mrd-focus-inset inline-flex h-[22px] shrink-0 items-center rounded-mrd-xs px-1.5 text-mrd-small font-medium whitespace-nowrap transition-colors hover:bg-mrd-hover hover:text-mrd-ink disabled:pointer-events-none disabled:opacity-45 ${
         destructive ? "border border-mrd-edge text-mrd-prose text-mrd-body" : "text-mrd-mute"
       } ${className ?? ""}`}
       style={{ transitionDuration: "var(--mrd-d-press)" }}

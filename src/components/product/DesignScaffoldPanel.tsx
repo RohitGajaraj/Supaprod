@@ -174,7 +174,7 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
 
   const gateChip = gate?.stageEnabled ? (
     <span
-      className="rounded-full border hairline px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide"
+      className="rounded-full border hairline px-2 py-0.5 font-mono text-mrd-nano uppercase tracking-wide"
       style={{
         color:
           gate.status === "approved"
@@ -198,7 +198,7 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
         <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
           <div className="flex items-center gap-2">
             <Sparkles className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
-            <span className="text-[13px] font-medium text-foreground">Design gate</span>
+            <span className="text-mrd-base font-medium text-foreground">Design gate</span>
             {gateChip}
           </div>
           {gateActions}
@@ -213,11 +213,11 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
       <div className="flex items-center justify-between border-b hairline px-4 py-3">
         <div className="flex items-center gap-2">
           <Sparkles className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
-          <span className="text-[13px] font-medium text-foreground">Design mockup</span>
+          <span className="text-mrd-base font-medium text-foreground">Design mockup</span>
           {gateChip}
           {prestaged && (
             <span
-              className="rounded-full border hairline px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide"
+              className="rounded-full border hairline px-2 py-0.5 font-mono text-mrd-nano uppercase tracking-wide"
               style={{ color: "var(--blossom)" }}
             >
               Pre-staged while you reviewed
@@ -351,7 +351,7 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
 
           {designReview && (
             <div className="mt-3 rounded-lg border hairline bg-background/60 p-3">
-              <div className="mb-2 font-mono text-[10.5px] uppercase tracking-wide text-muted-foreground">
+              <div className="mb-2 font-mono text-mrd-micro uppercase tracking-wide text-muted-foreground">
                 Design consistency · {designReview.verdict}
               </div>
               {designReview.findings.length === 0 ? (

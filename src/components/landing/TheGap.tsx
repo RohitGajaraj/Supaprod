@@ -6,9 +6,9 @@ import { PixelStat } from "@/components/supaprod/PixelStat";
  * so a per-column exception has nowhere to hide: the last version drifted
  * precisely because each side was styled by hand.
  */
-const EXHIBIT_LABEL = "mb-4 block font-mono text-[11px] uppercase text-zinc-500";
+const EXHIBIT_LABEL = "mb-4 block font-mono text-mrd-tiny uppercase text-zinc-500";
 const EXHIBIT_LABEL_STYLE = { letterSpacing: "0.2em" } as const;
-const EXHIBIT_SOURCE = "not-italic mt-4 block font-mono text-[10.5px] uppercase text-zinc-400";
+const EXHIBIT_SOURCE = "not-italic mt-4 block font-mono text-mrd-micro uppercase text-zinc-400";
 const EXHIBIT_SOURCE_STYLE = { letterSpacing: "0.12em" } as const;
 
 const TYPED_WORD = "Devs";
@@ -359,7 +359,7 @@ export function TheGap() {
         </h2>
 
         <p
-          className={revealCls("mb-5 font-mono text-[11px] uppercase text-zinc-500 md:text-[12px]")}
+          className={revealCls("mb-5 font-mono text-mrd-tiny uppercase text-zinc-500 md:text-mrd-small")}
           style={{ transitionDelay: revealDelay(60), letterSpacing: "0.14em" }}
         >
           Every craft got its AI-native home
@@ -390,12 +390,12 @@ export function TheGap() {
                 }`}
               >
                 <span
-                  className="font-mono text-[10px] uppercase"
+                  className="font-mono text-mrd-nano uppercase"
                   style={{ letterSpacing: "0.12em", color: missing ? "#FF6B2C" : "#71717a" }}
                 >
                   {row.craft}
                 </span>
-                <span className="text-[12px] leading-mrd-snug text-zinc-300">
+                <span className="text-mrd-small leading-mrd-snug text-zinc-300">
                   {missing ? (
                     // The hole, and its answer typed into it.
                     //
@@ -413,11 +413,11 @@ export function TheGap() {
                     // full width so the row cannot reflow while characters land,
                     // which is a layout job the border was never doing.
                     <span className="relative inline-flex min-h-[1.5em] w-full max-w-[232px] items-center">
-                      <span aria-hidden className="invisible whitespace-pre text-[12px]">
+                      <span aria-hidden className="invisible whitespace-pre text-mrd-small">
                         {MISSING_ANSWER}
                       </span>
                       <span
-                        className="absolute left-0 right-0 whitespace-pre text-[12px]"
+                        className="absolute left-0 right-0 whitespace-pre text-mrd-small"
                         style={{ color: "#FF6B2C" }}
                       >
                         {slotTyped}
@@ -581,7 +581,7 @@ export function TheGap() {
                 so only the payoff takes the face. It sets at 0.94em because
                 Pixel runs optically wider than Sans at the same nominal size
                 and would otherwise outweigh the clause above it. */}
-            <p className="mt-3.5 text-[15px] leading-mrd-snug text-zinc-500 md:text-[17px]">
+            <p className="mt-3.5 text-[15px] leading-mrd-snug text-zinc-500 md:text-mrd-lead">
               The building was never the problem.{" "}
               <span
                 className="gap-turn"

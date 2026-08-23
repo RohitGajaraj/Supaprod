@@ -336,8 +336,8 @@ function MethodCard({ ranking }: { ranking: PlaybookRanking }) {
   return (
     <article className="rounded-mrd-card border border-mrd-line bg-mrd-sheet px-mrd-5 py-mrd-4">
       <div className="flex flex-wrap items-baseline justify-between gap-x-mrd-5 gap-y-mrd-1">
-        <h3 className="text-[13px] font-medium text-mrd-ink">{p.name}</h3>
-        <span className="flex shrink-0 items-baseline gap-mrd-4 text-[12px]">
+        <h3 className="text-mrd-base font-medium text-mrd-ink">{p.name}</h3>
+        <span className="flex shrink-0 items-baseline gap-mrd-4 text-mrd-small">
           {/* Mono and tabular, because both of these are counts and rates. The
               run count is always true; the record beside it is printed only
               when `methodRecord` says the numbers are allowed to speak. */}
@@ -350,7 +350,7 @@ function MethodCard({ ranking }: { ranking: PlaybookRanking }) {
         </span>
       </div>
 
-      <p className="mt-mrd-2 max-w-[68ch] text-[12.5px] leading-mrd-prose text-mrd-mute">
+      <p className="mt-mrd-2 max-w-[68ch] text-mrd-label leading-mrd-prose text-mrd-mute">
         {p.summary}
       </p>
 
@@ -361,7 +361,7 @@ function MethodCard({ ranking }: { ranking: PlaybookRanking }) {
       <ol className="mt-mrd-4 flex list-none flex-col gap-mrd-2 rounded-mrd-card bg-mrd-sink px-mrd-5 py-mrd-4">
         {p.steps.map((step, i) => (
           <li key={step} className="flex gap-mrd-4 leading-mrd-prose text-mrd-prose text-mrd-body">
-            <span className="font-mrd-mono shrink-0 text-[11px] text-mrd-faint tabular-nums">
+            <span className="font-mrd-mono shrink-0 text-mrd-tiny text-mrd-faint tabular-nums">
               {i + 1}
             </span>
             <span className="min-w-0">{step}</span>
@@ -369,7 +369,7 @@ function MethodCard({ ranking }: { ranking: PlaybookRanking }) {
         ))}
       </ol>
 
-      <p className="mt-mrd-3 text-[12px] leading-mrd-prose text-mrd-mute">
+      <p className="mt-mrd-3 text-mrd-small leading-mrd-prose text-mrd-mute">
         What counts as this one working: {p.rankingSignal}.
       </p>
     </article>

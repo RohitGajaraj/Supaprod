@@ -90,9 +90,9 @@ export function CallGate({
       <div className="flex flex-wrap items-center justify-between gap-mrd-4">
         <span className="flex min-w-0 items-center gap-1.5">
           <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-mrd-you" />
-          <span className="shrink-0 text-[11px] font-medium text-mrd-you">Waiting on you</span>
+          <span className="shrink-0 text-mrd-tiny font-medium text-mrd-you">Waiting on you</span>
           {subject ? (
-            <span className="min-w-0 truncate text-[11px] text-mrd-mute">{subject}</span>
+            <span className="min-w-0 truncate text-mrd-tiny text-mrd-mute">{subject}</span>
           ) : null}
         </span>
 
@@ -105,20 +105,20 @@ export function CallGate({
         {since !== null ? (
           <span
             title={new Date(since).toLocaleString()}
-            className={`font-mrd-mono shrink-0 text-[12px] tabular-nums ${
+            className={`font-mrd-mono shrink-0 text-mrd-small tabular-nums ${
               overdue ? "font-semibold text-mrd-you" : "font-medium text-mrd-mute"
             }`}
           >
             Stopped for {stoppedFor(since, now)}
           </span>
         ) : (
-          <span className="shrink-0 text-[12px] text-mrd-faint">
+          <span className="shrink-0 text-mrd-small text-mrd-faint">
             How long this has been waiting is not known.
           </span>
         )}
       </div>
 
-      <h2 className="mt-mrd-4 text-[20px] leading-mrd-tight font-medium text-mrd-ink">{question}</h2>
+      <h2 className="mt-mrd-4 text-mrd-h3 leading-mrd-tight font-medium text-mrd-ink">{question}</h2>
 
       {lines.length > 0 || consequence ? (
         /*
@@ -143,7 +143,7 @@ export function CallGate({
            * them, and an arrow to nowhere is worse than none.
            */}
           {hiddenLineCount > 0 ? (
-            <p className="font-mrd-mono mt-mrd-3 text-[12px] tabular-nums text-mrd-faint">
+            <p className="font-mrd-mono mt-mrd-3 text-mrd-small tabular-nums text-mrd-faint">
               {hiddenLineCount} further {hiddenLineCount === 1 ? "line" : "lines"} not shown here.
             </p>
           ) : null}

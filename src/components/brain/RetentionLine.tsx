@@ -42,7 +42,7 @@ export function RetentionLine() {
        without this file naming a colour. See the note at the top of
        record-parts.tsx: the attribute outranks the unlayered legacy
        `:focus-visible` rule that would otherwise paint an accent here. */
-    <p data-mrd="" className="text-[12.5px] leading-mrd-prose text-mrd-mute">
+    <p data-mrd="" className="text-mrd-label leading-mrd-prose text-mrd-mute">
       On the free plan this record fades after <Figure>{FREE_MEMORY_RETENTION_DAYS}</Figure> days.{" "}
       {/* A real anchor, not a Door: /pricing is a page with an address, and the
           Door primitive next door is a <button> for something this surface does

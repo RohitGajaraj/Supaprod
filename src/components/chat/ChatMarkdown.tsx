@@ -29,7 +29,7 @@ function CodeBlock({ children }: { children?: ReactNode }) {
 
   return (
     <div className="group/code relative my-3">
-      <pre className="material-small overflow-x-auto p-3 font-mono text-[12.5px] leading-mrd-prose [&_code]:bg-transparent [&_code]:p-0">
+      <pre className="material-small overflow-x-auto p-3 font-mono text-mrd-label leading-mrd-prose [&_code]:bg-transparent [&_code]:p-0">
         {children}
       </pre>
       <button
@@ -137,7 +137,7 @@ const components: Components = {
   },
   code: ({ children, className }) => (
     <code
-      className={`rounded bg-secondary/70 px-1 py-0.5 font-mono text-[12px] ${className ?? ""}`}
+      className={`rounded bg-secondary/70 px-1 py-0.5 font-mono text-mrd-small ${className ?? ""}`}
     >
       {children}
     </code>
@@ -145,7 +145,7 @@ const components: Components = {
   pre: ({ children }) => <CodeBlock>{children}</CodeBlock>,
   table: ({ children }) => (
     <div className="my-3 overflow-x-auto">
-      <table className="w-full text-left text-[13px]">{children}</table>
+      <table className="w-full text-left text-mrd-base">{children}</table>
     </div>
   ),
   th: ({ children }) => (

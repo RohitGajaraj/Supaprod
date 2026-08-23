@@ -252,7 +252,7 @@ export function FilmPlayer({ surface }: { surface: FilmSurface }) {
       <div className="absolute top-3 right-3 flex items-center gap-2">
         {shared ? (
           <span
-            className="rounded-full px-2.5 py-1 font-mono text-[10px] tracking-wide text-zinc-200 uppercase"
+            className="rounded-full px-2.5 py-1 font-mono text-mrd-nano tracking-wide text-zinc-200 uppercase"
             style={{ backgroundColor: "rgba(10,10,10,0.7)", backdropFilter: "blur(2px)" }}
           >
             Link copied
@@ -260,7 +260,7 @@ export function FilmPlayer({ surface }: { surface: FilmSurface }) {
         ) : null}
         {copyFailed ? (
           <span
-            className="rounded-full px-2.5 py-1 font-mono text-[10px] text-zinc-200 select-all"
+            className="rounded-full px-2.5 py-1 font-mono text-mrd-nano text-zinc-200 select-all"
             style={{ backgroundColor: "rgba(10,10,10,0.8)", backdropFilter: "blur(2px)" }}
           >
             {FILM_URL}

@@ -128,7 +128,7 @@ function ProposalEnricher({
         type="button"
         onClick={() => enrich.mutate()}
         data-mrd=""
-        className="mt-mrd-4 inline-flex items-center gap-mrd-3 rounded-mrd-ctl text-[12.5px] text-mrd-mute transition-colors hover:text-mrd-ink"
+        className="mt-mrd-4 inline-flex items-center gap-mrd-3 rounded-mrd-ctl text-mrd-label text-mrd-mute transition-colors hover:text-mrd-ink"
         style={{ transitionDuration: "var(--mrd-d-press)" }}
       >
         <Sparkles size={14} aria-hidden="true" />
@@ -158,7 +158,7 @@ function ProposalEnricher({
       {/* Transparency: this half IS AI-composed (unlike the flag), and it says
           how many real records it was grounded on. The count is mono because it
           is a count; the sentence around it is not. */}
-      <p className="mt-mrd-4 text-[11.5px] text-mrd-faint">
+      <p className="mt-mrd-4 text-mrd-data text-mrd-faint">
         AI-composed ·{" "}
         {data.grounded_on > 0 ? (
           <>
@@ -177,7 +177,7 @@ function ProposalEnricher({
       {data.suggested_fix ? (
         <div className="mt-mrd-4 border-t border-mrd-line-soft pt-mrd-4">
           {applied ? (
-            <p className="text-[12.5px] leading-mrd-prose text-mrd-pass">
+            <p className="text-mrd-label leading-mrd-prose text-mrd-pass">
               {/* The claim is narrowed to what applyFixCore GUARANTEES. Its own
                   comment calls the decision stamp best-effort, and a supabase
                   insert returns its error instead of throwing, so an ordinary
@@ -203,7 +203,7 @@ function ProposalEnricher({
                      object rather than a coloured rectangle, and the label is
                      `--mrd-on-solid` because that is the only token that stays
                      light on the dark face in BOTH grounds. */
-                  className="inline-flex h-8 items-center rounded-mrd-ctl bg-mrd-solid px-3 text-[12.5px] font-medium text-mrd-on-solid transition-colors hover:bg-mrd-solid-hover"
+                  className="inline-flex h-8 items-center rounded-mrd-ctl bg-mrd-solid px-3 text-mrd-label font-medium text-mrd-on-solid transition-colors hover:bg-mrd-solid-hover"
                   style={{
                     boxShadow: "inset 0 1px 0 var(--mrd-sheen)",
                     transitionDuration: "var(--mrd-d-press)",
@@ -213,7 +213,7 @@ function ProposalEnricher({
                 </button>
               )}
               {apply.data && !apply.data.applied && apply.data.reason ? (
-                <p className="mt-mrd-3 text-[12px] leading-mrd-snug text-mrd-mute">
+                <p className="mt-mrd-3 text-mrd-small leading-mrd-snug text-mrd-mute">
                   {apply.data.reason}
                 </p>
               ) : null}
@@ -294,7 +294,7 @@ function SelfImproveModeControl({ workspaceId }: { workspaceId: string }) {
       <div className="flex items-baseline justify-between gap-mrd-4">
         <Eyebrow>How it runs</Eyebrow>
         {settings.data.open_flag_count > 0 ? (
-          <span className="font-mrd-mono shrink-0 text-[11.5px] text-mrd-mute tabular-nums">
+          <span className="font-mrd-mono shrink-0 text-mrd-data text-mrd-mute tabular-nums">
             {settings.data.open_flag_count} open
           </span>
         ) : null}
@@ -331,7 +331,7 @@ function SelfImproveModeControl({ workspaceId }: { workspaceId: string }) {
                  whichever mode happened to be current, on a panel nobody is
                  being asked to touch. Ground and full-strength ink say "this
                  one" without spending the accent, and it survives greyscale. */
-              className={`mrd-focus-inset px-4 py-1.5 text-[12.5px] transition-colors disabled:cursor-wait ${
+              className={`mrd-focus-inset px-4 py-1.5 text-mrd-label transition-colors disabled:cursor-wait ${
                 idx === 0 ? "" : "border-l border-mrd-edge"
               } ${
                 selected
@@ -349,7 +349,7 @@ function SelfImproveModeControl({ workspaceId }: { workspaceId: string }) {
       <p className="mt-mrd-4 max-w-[68ch] leading-mrd-prose text-mrd-prose text-mrd-body">
         {copy.outcome}
       </p>
-      <p className="mt-mrd-2 max-w-[68ch] text-[12px] leading-mrd-prose text-mrd-mute">
+      <p className="mt-mrd-2 max-w-[68ch] text-mrd-small leading-mrd-prose text-mrd-mute">
         Trade-off: {copy.con}
       </p>
     </div>
@@ -386,7 +386,7 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
         <Eyebrow>What Supaprod would improve about itself</Eyebrow>
         {/* The honesty caption, plain-spoken: these are rule-fired flags, not AI
             guesses. It stays true whether the list is full or empty. */}
-        <p className="mt-mrd-3 max-w-[74ch] text-[12.5px] leading-mrd-prose text-mrd-mute">
+        <p className="mt-mrd-3 max-w-[74ch] text-mrd-label leading-mrd-prose text-mrd-mute">
           Deterministic flags from Supaprod&rsquo;s own quality signals: failing eval suites,
           over-corrected agents, and losing playbooks. Each one fired on a real number over a real
           sample. Nothing here is an AI guess.
@@ -413,10 +413,10 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
                   <Icon size={15} aria-hidden="true" className={`mt-0.5 shrink-0 ${meta.ink}`} />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-mrd-4">
-                      <h3 className="text-[13px] font-medium text-mrd-ink">{p.title}</h3>
-                      <span className={`shrink-0 text-[11.5px] ${meta.ink}`}>{meta.word}</span>
+                      <h3 className="text-mrd-base font-medium text-mrd-ink">{p.title}</h3>
+                      <span className={`shrink-0 text-mrd-data ${meta.ink}`}>{meta.word}</span>
                     </div>
-                    <p className="mt-mrd-3 text-[12.5px] leading-mrd-prose text-mrd-mute">
+                    <p className="mt-mrd-3 text-mrd-label leading-mrd-prose text-mrd-mute">
                       {p.detail}
                     </p>
                     <div className="mt-mrd-3 flex flex-wrap items-center gap-mrd-3">

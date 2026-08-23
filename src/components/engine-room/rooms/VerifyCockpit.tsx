@@ -114,14 +114,14 @@ const CARD = "overflow-hidden rounded-mrd-card border border-mrd-line bg-mrd-she
 
 /** The small neutral control this panel repeats: a file tab, a diff toggle, a
  *  reject. Sans, not mono, because none of them is a figure. */
-const SMALL_BTN = `inline-flex h-7 items-center rounded-mrd-chip border border-mrd-line px-2.5 text-[12px] whitespace-nowrap text-mrd-body transition-colors enabled:hover:bg-mrd-hover enabled:hover:text-mrd-ink disabled:cursor-not-allowed disabled:opacity-45`;
+const SMALL_BTN = `inline-flex h-7 items-center rounded-mrd-chip border border-mrd-line px-2.5 text-mrd-small whitespace-nowrap text-mrd-body transition-colors enabled:hover:bg-mrd-hover enabled:hover:text-mrd-ink disabled:cursor-not-allowed disabled:opacity-45`;
 
 function SectionHead({ label, note }: { label: string; note?: string | null }) {
   return (
     <div className="mb-mrd-4 flex items-baseline gap-mrd-3">
       <Eyebrow>{label}</Eyebrow>
       {note ? (
-        <span className="font-mrd-mono text-[11.5px] text-mrd-faint tabular-nums">{note}</span>
+        <span className="font-mrd-mono text-mrd-data text-mrd-faint tabular-nums">{note}</span>
       ) : null}
     </div>
   );
@@ -191,11 +191,11 @@ function PendingApprovals({
             <div className="min-w-0 flex-1">
               {/* The agent slug and the tool name are IDENTIFIERS, which is one
                   of the things mono is for. The verb between them is not. */}
-              <div className="truncate text-[13px] font-medium text-mrd-ink">
+              <div className="truncate text-mrd-base font-medium text-mrd-ink">
                 <span className="font-mrd-mono text-mrd-prose text-mrd-body">{a.agent_slug ?? "agent"}</span> wants{" "}
                 <span className="font-mrd-mono">{a.tool_name}</span>
               </div>
-              <div className="mt-0.5 truncate text-[12px] text-mrd-mute">
+              <div className="mt-0.5 truncate text-mrd-small text-mrd-mute">
                 <span className={RISK_INK[a.risk] ?? "text-mrd-body"}>{a.risk} risk</span>
                 {a.mission_title ? ` · in ${a.mission_title}` : ""}
                 {a.rationale ? ` · ${a.rationale}` : ""}
@@ -221,7 +221,7 @@ function PendingApprovals({
                 type="button"
                 disabled={busy}
                 onClick={() => decide.mutate({ approvalId: a.id, decision: "approve" })}
-                className={`inline-flex h-7 items-center rounded-mrd-chip bg-mrd-you px-2.5 text-[12px] font-medium whitespace-nowrap text-mrd-on-you transition-opacity enabled:hover:opacity-90 disabled:bg-mrd-solid disabled:text-mrd-on-solid`}
+                className={`inline-flex h-7 items-center rounded-mrd-chip bg-mrd-you px-2.5 text-mrd-small font-medium whitespace-nowrap text-mrd-on-you transition-opacity enabled:hover:opacity-90 disabled:bg-mrd-solid disabled:text-mrd-on-solid`}
                 style={{ transitionDuration: "var(--mrd-d-press)" }}
               >
                 {busy ? "Working..." : "Approve"}
@@ -326,10 +326,10 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
           className="min-w-0 flex-1 rounded-mrd-xs text-left transition-opacity hover:opacity-90"
           style={{ transitionDuration: "var(--mrd-d-press)" }}
         >
-          <div className="truncate text-[13px] font-medium text-mrd-ink">{change.title}</div>
+          <div className="truncate text-mrd-base font-medium text-mrd-ink">{change.title}</div>
           {/* A file COUNT and a timestamp are figures; the mission name is not,
               so only the parts that are numbers wear mono. */}
-          <div className="mt-0.5 truncate text-[12px] text-mrd-mute">
+          <div className="mt-0.5 truncate text-mrd-small text-mrd-mute">
             {change.mission_title ? `in ${change.mission_title} · ` : ""}
             <span className="font-mrd-mono tabular-nums">
               {change.file_count} file{change.file_count === 1 ? "" : "s"}
@@ -348,7 +348,7 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
               href={change.pr_url}
               target="_blank"
               rel="noreferrer"
-              className="font-mrd-mono rounded-mrd-xs text-[12px] text-mrd-mute transition-colors hover:text-mrd-ink"
+              className="font-mrd-mono rounded-mrd-xs text-mrd-small text-mrd-mute transition-colors hover:text-mrd-ink"
               style={{ transitionDuration: "var(--mrd-d-press)" }}
             >
               {change.pr_number ? `PR #${change.pr_number}` : "PR"}
@@ -421,10 +421,10 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
               ) : null}
               <div className="flex items-center gap-mrd-4 border-b border-mrd-line-soft px-mrd-5 py-mrd-3">
                 {/* A path is an identifier, so it is mono. */}
-                <span className="font-mrd-mono min-w-0 flex-1 truncate text-[12px] text-mrd-ink">
+                <span className="font-mrd-mono min-w-0 flex-1 truncate text-mrd-small text-mrd-ink">
                   {selectedPath ?? ""}
                 </span>
-                <span className="font-mrd-mono shrink-0 text-[11.5px] text-mrd-mute tabular-nums">
+                <span className="font-mrd-mono shrink-0 text-mrd-data text-mrd-mute tabular-nums">
                   {hunks.length} hunk{hunks.length === 1 ? "" : "s"} · base vs merged
                 </span>
               </div>

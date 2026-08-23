@@ -27,7 +27,7 @@ export function TheFilm() {
             press play is deciding how much of their time to spend. Naming it
             up front is the difference between an offer and a trap. */}
         <p
-          className="mb-4 font-mono text-[10px] uppercase text-zinc-600"
+          className="mb-4 font-mono text-mrd-nano uppercase text-zinc-600"
           style={{ letterSpacing: "0.18em" }}
         >
           The film &middot; {FILM_DURATION_LABEL}

@@ -170,7 +170,7 @@ const KIND_ICONS: Record<Exclude<SourceKind, "web">, LucideIcon> = {
 };
 
 const chipClass =
-  "inline-flex max-w-[200px] items-center gap-1 rounded-full border hairline bg-background/60 px-2 py-0.5 text-[10px] text-muted-foreground transition-colors duration-150 hover:border-primary/40 hover:text-foreground";
+  "inline-flex max-w-[200px] items-center gap-1 rounded-full border hairline bg-background/60 px-2 py-0.5 text-mrd-nano text-muted-foreground transition-colors duration-150 hover:border-primary/40 hover:text-foreground";
 
 /**
  * One numbered source chip. Web sources open the page in a new tab; internal

@@ -294,7 +294,7 @@ function ShelfFilter({
             type="button"
             aria-pressed={on}
             onClick={() => onPick(option.id)}
-            className={`flex h-6.5 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-medium transition-[background-color,box-shadow,color] ${
+            className={`flex h-6.5 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-mrd-small font-medium transition-[background-color,box-shadow,color] ${
               on
                 ? "bg-mrd-lift text-mrd-ink"
                 : "text-mrd-prose text-mrd-body hover:bg-mrd-hover hover:text-mrd-ink"
@@ -308,7 +308,7 @@ function ShelfFilter({
           >
             {option.label}
             <span
-              className={`rounded-mrd-xs px-1 font-mrd-mono text-[10.5px] tabular-nums ${
+              className={`rounded-mrd-xs px-1 font-mrd-mono text-mrd-micro tabular-nums ${
                 on ? "bg-mrd-sink text-mrd-prose text-mrd-body" : "text-mrd-mute"
               }`}
             >
@@ -346,14 +346,14 @@ function NameField({
 }) {
   return (
     <label data-mrd="" htmlFor={id} className="flex flex-col gap-mrd-2">
-      <span className="text-[11px] font-medium tracking-wide text-mrd-mute uppercase">{label}</span>
+      <span className="text-mrd-tiny font-medium tracking-wide text-mrd-mute uppercase">{label}</span>
       <input
         id={id}
         value={value}
         autoFocus={autoFocus}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={onKeyDown}
-        className="h-8 w-full max-w-[46ch] rounded-mrd-ctl border border-mrd-field bg-mrd-sink px-2.5 text-[13px] text-mrd-ink transition-colors placeholder:text-mrd-faint focus:border-mrd-field-focus"
+        className="h-8 w-full max-w-[46ch] rounded-mrd-ctl border border-mrd-field bg-mrd-sink px-2.5 text-mrd-base text-mrd-ink transition-colors placeholder:text-mrd-faint focus:border-mrd-field-focus"
         style={{ transitionDuration: "var(--mrd-d-press)" }}
       />
     </label>
@@ -400,14 +400,14 @@ function ChangedTrail({ lines }: { lines: Settled[] }) {
             style={{ animation: "mrd-fade-up 300ms var(--mrd-ease) both" }}
           >
             <span
-              className={`text-[13px] font-medium ${line.failed ? "text-mrd-fail" : "text-mrd-ink"}`}
+              className={`text-mrd-base font-medium ${line.failed ? "text-mrd-fail" : "text-mrd-ink"}`}
             >
               {line.verb}
             </span>
             <span className="min-w-0 leading-mrd-snug text-mrd-prose text-mrd-body">
               {line.consequence}
             </span>
-            <span className="font-mrd-mono ml-auto shrink-0 text-[12px] tabular-nums text-mrd-faint">
+            <span className="font-mrd-mono ml-auto shrink-0 text-mrd-small tabular-nums text-mrd-faint">
               {line.at}
             </span>
           </li>

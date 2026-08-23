@@ -58,7 +58,7 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
             /security for the full answers. Founder 2026-07-25: this block
             looks clean, leave it. Untouched except for the margin arithmetic
             below, which produced the same gap by two opposing numbers. */}
-        <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 mb-4">
+        <p className="text-mrd-nano font-mono uppercase tracking-widest text-zinc-400 mb-4">
           the rules the agents cannot break
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
@@ -116,7 +116,7 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
               queue for. The founder closed signup that morning, which makes this
               line the honest one it was pretending to be, and makes the form
               under it a real request rather than a courtesy. */}
-          <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-5">
+          <p className="text-mrd-nano font-mono uppercase tracking-widest text-zinc-500 mb-5">
             the beta is invite only
           </p>
           <h2

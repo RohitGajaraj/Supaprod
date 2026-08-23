@@ -100,7 +100,7 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
               Meridian has no negative tracking token at any size, and its own
               `PageHeading` sets none at 25px, so tightening this by hand would
               be inventing a value outside the system to keep a retired one. */}
-          <DialogPrimitive.Title className="m-0 text-[20px] leading-mrd-tight font-semibold text-mrd-ink">
+          <DialogPrimitive.Title className="m-0 text-mrd-h3 leading-mrd-tight font-semibold text-mrd-ink">
             {hasBoth ? "Commit this to Now" : "Name the promise first"}
           </DialogPrimitive.Title>
 
@@ -109,7 +109,7 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
               station's Gate) and only one of them had the title in view when it
               opened. A ceremony that does not name what it is about is a
               confirmation, which is the thing this is not. */}
-          <p className="mt-mrd-4 mb-0 text-[13px] text-mrd-mute">{bet.title}</p>
+          <p className="mt-mrd-4 mb-0 text-mrd-base text-mrd-mute">{bet.title}</p>
 
           <div className="mt-mrd-5">
             {hasBoth ? (
@@ -141,7 +141,7 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
             )}
           </div>
 
-          <p className="mt-mrd-5 mb-0 text-[13px] text-mrd-mute">
+          <p className="mt-mrd-5 mb-0 text-mrd-base text-mrd-mute">
             {hasBoth
               ? "Now is the one thing the team builds next. Everything else waits."
               : "Without both halves this is a task rather than a promise, and nothing can tell you later whether it worked."}

@@ -91,11 +91,11 @@ function ago(iso: string | null | undefined): string | null {
 function GlanceFigure({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
     <span className="block min-w-0">
-      <span className="block truncate text-[13px] leading-mrd-snug text-mrd-ink" title={value}>
+      <span className="block truncate text-mrd-base leading-mrd-snug text-mrd-ink" title={value}>
         <Figure>{value}</Figure>
       </span>
       <span className="block leading-mrd-snug text-mrd-prose text-mrd-body">{label}</span>
-      {note ? <span className="block text-[11.5px] leading-mrd-snug text-mrd-mute">{note}</span> : null}
+      {note ? <span className="block text-mrd-data leading-mrd-snug text-mrd-mute">{note}</span> : null}
     </span>
   );
 }
@@ -145,7 +145,7 @@ function CardShell({
 function Head({ room, trailing }: { room: RoomKey; trailing?: ReactNode }) {
   return (
     <span className="flex flex-wrap items-baseline gap-x-mrd-3 gap-y-mrd-1">
-      <span className="text-[13px] font-medium text-mrd-ink">{ROOM_NAMES[room]}</span>
+      <span className="text-mrd-base font-medium text-mrd-ink">{ROOM_NAMES[room]}</span>
       {trailing}
     </span>
   );
@@ -181,13 +181,13 @@ export function RoomGlanceCard({ glance, onOpen }: { glance: RoomGlance; onOpen:
           the source row carried one, so this line never dates an event we
           cannot date. */}
       {glance.latest ? (
-        <span className="flex min-w-0 items-baseline gap-mrd-3 text-[12px] text-mrd-mute">
+        <span className="flex min-w-0 items-baseline gap-mrd-3 text-mrd-small text-mrd-mute">
           <span className="shrink-0">Latest</span>
           <span className="min-w-0 truncate text-mrd-prose text-mrd-body" title={glance.latest.what}>
             {glance.latest.what}
           </span>
           {stamp ? (
-            <span className="font-mrd-mono shrink-0 text-[11.5px] text-mrd-faint tabular-nums">
+            <span className="font-mrd-mono shrink-0 text-mrd-data text-mrd-faint tabular-nums">
               {stamp}
             </span>
           ) : null}
@@ -211,7 +211,7 @@ export function RoomGlanceCardPending({ room }: { room: RoomKey }) {
       <Head
         room={room}
         trailing={
-          <span className="text-[12.5px] text-mrd-mute" role="status" aria-live="polite">
+          <span className="text-mrd-label text-mrd-mute" role="status" aria-live="polite">
             Reading.
           </span>
         }
@@ -234,7 +234,7 @@ export function RoomGlanceCardFailed({
   return (
     <CardShell>
       <Head room={room} trailing={<StateWord state="failed" />} />
-      <span className="text-[12px] leading-mrd-snug text-mrd-mute">{message}</span>
+      <span className="text-mrd-small leading-mrd-snug text-mrd-mute">{message}</span>
       <span>
         {/*
          * A control inside the shell rather than the shell itself. The card is
@@ -247,7 +247,7 @@ export function RoomGlanceCardFailed({
           type="button"
           onClick={onRetry}
           data-mrd=""
-          className="rounded-mrd-xs text-[12.5px] text-mrd-mute transition-colors hover:text-mrd-ink"
+          className="rounded-mrd-xs text-mrd-label text-mrd-mute transition-colors hover:text-mrd-ink"
           style={{ transitionDuration: "var(--mrd-d-press)" }}
         >
           Read this room again

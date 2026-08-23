@@ -140,7 +140,7 @@ describe("VerdictChip component render contract", () => {
       "px-2",
       "py-px", // compact vertical padding
       "font-mono", // mono font for tech tone
-      "text-[10px]", // small size
+      "text-mrd-nano", // small size
       "font-semibold", // strong weight
       "uppercase", // all caps
       "leading-4",
@@ -237,7 +237,7 @@ describe("StatusGlyph component render contract", () => {
     // StatusGlyph applies "ink-mono" class to text, matching the chip's
     // technical tone and creating visual consistency across state indicators
     expect("ink-mono").toBeTruthy();
-    expect("text-[11px]").toBeTruthy();
+    expect("text-mrd-tiny").toBeTruthy();
   });
 
   test("StatusGlyph text color matches dot color via same CSS variable", () => {

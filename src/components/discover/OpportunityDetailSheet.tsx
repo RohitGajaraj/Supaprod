@@ -246,7 +246,7 @@ function P({ children }: { children: ReactNode }) {
 function Stated({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="mt-mrd-5">
-      <span className="mb-mrd-2 block text-[12.5px] font-medium text-mrd-mute">{label}</span>
+      <span className="mb-mrd-2 block text-mrd-label font-medium text-mrd-mute">{label}</span>
       <P>{children}</P>
     </div>
   );
@@ -255,7 +255,7 @@ function Stated({ label, children }: { label: string; children: ReactNode }) {
 /** The quiet evidence line under a claim. Numbers inside it wear mono via
  * `Num`; the words around them do not. */
 function Meta({ children }: { children: ReactNode }) {
-  return <div className="mt-mrd-4 text-[12.5px] leading-mrd-snug text-mrd-mute">{children}</div>;
+  return <div className="mt-mrd-4 text-mrd-label leading-mrd-snug text-mrd-mute">{children}</div>;
 }
 
 /* ------------------------------------------------------------------ *
