@@ -56,3 +56,22 @@ but no Select. The retired one is a bare passthrough
 Select lands in forms.tsx beside its siblings or the two sites hand-roll
 onto whatever ruling prefers. Everything else the census listed has since
 migrated (units L0-008..L0-014).
+
+## ADDENDUM 2 (2026-08-24T01:50+05:30): the final census - this request now covers every remaining shell reach
+
+Three more symbols checked against meridian/ after the form singletons
+landed, none with a home:
+
+- **Record x4** ({children, evidence?, onClick?, title?}) - a standalone
+  claim-citation card. RecordsTable/RecordStatus/RecordTag are a table
+  system, not this.
+- **Value x3** ({children, tone: quiet|pass|warn|fail|live}) - a
+  tone-coloured figure span.
+- **SelectionBar x2** ({selection, total, noun, children}) - a bulk-action
+  toolbar bound to a Selection object. Meridian's SelectionActions is an
+  unrelated range-editing surface.
+
+FINAL census of shell/primitives consumers on LANE 0 paths, all awaiting
+this one ruling: Block x7, Pre x5, Select x2, Record x4, Value x3,
+SelectionBar x2 = 23 sites across ~14 files. Everything else migrated in
+units L0-008 through L0-014.
