@@ -16,7 +16,8 @@
  * for why no pane primitive was built).
  */
 import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
-import { Button as SpButton, Field, Input as SpInput } from "@/components/shell/primitives";
+import { Action } from "@/components/meridian/surface-parts";
+import { Field, Input } from "@/components/meridian/forms";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -125,8 +126,9 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
             )}
           </AlertDialogHeader>
           {confirmState?.typedConfirm && (
-            <Field label={`Type ${confirmState.typedConfirm} to confirm`}>
-              <SpInput
+            <Field label={`Type ${confirmState.typedConfirm} to confirm`} htmlFor="confirm-typed">
+              <Input
+                id="confirm-typed"
                 autoFocus
                 value={typed}
                 onChange={(e) => setTyped(e.target.value)}
@@ -135,12 +137,12 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
             </Field>
           )}
           <AlertDialogFooter>
-            <SpButton onClick={() => resolveConfirm(false)}>
+            <Action onClick={() => resolveConfirm(false)}>
               {confirmState?.cancelLabel ?? "Cancel"}
-            </SpButton>
-            <SpButton variant="primary" disabled={!typedOk} onClick={() => resolveConfirm(true)}>
+            </Action>
+            <Action variant="primary" disabled={!typedOk} onClick={() => resolveConfirm(true)}>
               {confirmState?.confirmLabel ?? "Confirm"}
-            </SpButton>
+            </Action>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -163,8 +165,9 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
             }}
             className="space-y-3"
           >
-            <Field label={promptState?.label ?? ""}>
-              <SpInput
+            <Field label={promptState?.label ?? ""} htmlFor="prompt-value">
+              <Input
+                id="prompt-value"
                 autoFocus
                 value={promptValue}
                 onChange={(e) => setPromptValue(e.target.value)}
@@ -172,12 +175,12 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
               />
             </Field>
             <DialogFooter>
-              <SpButton type="button" onClick={() => resolvePrompt(null)}>
+              <Action type="button" onClick={() => resolvePrompt(null)}>
                 {promptState?.cancelLabel ?? "Cancel"}
-              </SpButton>
-              <SpButton type="submit" variant="primary" disabled={!promptValue.trim()}>
+              </Action>
+              <Action type="submit" variant="primary" disabled={!promptValue.trim()}>
                 {promptState?.confirmLabel ?? "Save"}
-              </SpButton>
+              </Action>
             </DialogFooter>
           </form>
         </DialogContent>

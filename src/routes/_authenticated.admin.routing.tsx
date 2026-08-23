@@ -59,11 +59,10 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import { Action, Actions, Num, Picker, ReadFailed, Reading, Region } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Block, Button, Failed, Loading, Select } from "@/components/shell/primitives";
 import {
   getRoutingTable,
   setSurfacePin,
@@ -146,6 +145,16 @@ function AdminRouting() {
 
   const [open, setOpen] = useState<RoutingSurface | null>(null);
   const [draft, setDraft] = useState("");
+  // Which surface's pin is in flight, so only the row the user pressed
+  // announces itself as working while the whole board stays locked.
+  const [pinningSurface, setPinningSurface] = useState<string | null>(null);
+  function pinRow(surface: string, modelId: string | null) {
+    setPinningSurface(surface);
+    pin.mutate(
+      { surface, modelId },
+      { onSettled: () => setPinningSurface(null) },
+    );
+  }
 
   const table = useQuery({
     queryKey: QUERY_KEY,
@@ -168,19 +177,19 @@ function AdminRouting() {
   });
 
   if (table.isLoading) {
-    return <Loading>Reading what every surface routes to.</Loading>;
+    return <Reading>Reading what every surface routes to.</Reading>;
   }
 
   if (!table.data || "error" in table.data) {
     return (
-      <Failed onRetry={() => void table.refetch()}>
+      <ReadFailed onRetry={() => void table.refetch()}>
         The routing table did not load, so nothing here is safe to change.{" "}
         {table.data && "error" in table.data
           ? table.data.error
           : table.error instanceof Error
             ? table.error.message
             : "The read failed."}
-      </Failed>
+      </ReadFailed>
     );
   }
 
@@ -188,7 +197,7 @@ function AdminRouting() {
   const opportunities = rows.filter((r) => r.recommendation !== null).length;
 
   return (
-    <Block
+    <Region
       title={
         opportunities === 0
           ? `No cheaper model matches the score on any of the ${rows.length} surfaces`
@@ -237,12 +246,13 @@ function AdminRouting() {
               }
               action={
                 rec ? (
-                  <Button
+                  <Action
+                    busy={pinningSurface === row.surface}
                     disabled={pin.isPending}
-                    onClick={() => pin.mutate({ surface: row.surface, modelId: rec.modelId })}
+                    onClick={() => pinRow(row.surface, rec.modelId)}
                   >
-                    {pin.isPending ? "Recording" : `Take ${recLabel}`}
-                  </Button>
+                    {pinningSurface === row.surface ? "Recording" : `Take ${recLabel}`}
+                  </Action>
                 ) : undefined
               }
             />
@@ -259,10 +269,11 @@ function AdminRouting() {
                   }
                   htmlFor={`pin-${row.surface}`}
                 >
-                  <Select
+                  <Picker
                     id={`pin-${row.surface}`}
                     value={draft}
                     disabled={pin.isPending}
+                    aria-busy={pinningSurface === row.surface}
                     onChange={(e) => setDraft(e.target.value)}
                   >
                     <option value="">
@@ -273,28 +284,29 @@ function AdminRouting() {
                         {m.label}
                       </option>
                     ))}
-                  </Select>
+                  </Picker>
                 </Line>
                 <Actions>
-                  <Button
+                  <Action
                     variant="primary"
+                    busy={pinningSurface === row.surface}
                     disabled={
                       pin.isPending ||
                       draft === (row.setting.kind === "pinned" ? row.setting.modelId : "")
                     }
-                    onClick={() => pin.mutate({ surface: row.surface, modelId: draft || null })}
+                    onClick={() => pinRow(row.surface, draft || null)}
                   >
-                    {pin.isPending ? "Recording" : "Record this pin"}
-                  </Button>
-                  <Button variant="ghost" onClick={() => setOpen(null)}>
+                    {pinningSurface === row.surface ? "Recording" : "Record this pin"}
+                  </Action>
+                  <Action variant="quiet" onClick={() => setOpen(null)}>
                     Close
-                  </Button>
+                  </Action>
                 </Actions>
               </div>
             ) : null}
           </div>
         );
       })}
-    </Block>
+    </Region>
   );
 }

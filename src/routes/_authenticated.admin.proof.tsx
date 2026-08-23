@@ -65,13 +65,13 @@
  */
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Row } from "@/components/meridian/rows";
+import { ReadFailed, Reading, Region } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { inBandError } from "@/components/admin/admin-ui";
 import { getMoatMetrics } from "@/lib/observability.functions";
 import { getProofSurfaceExtras } from "@/lib/proof-surface.functions";
 import type { Trend } from "@/lib/gauntlet-metrics";
-import { Block, Failed, Loading } from "@/components/shell/primitives";
 
 export const Route = createFileRoute("/_authenticated/admin/proof")({
   component: AdminProof,
@@ -115,7 +115,7 @@ function AdminProof() {
   });
 
   if (extrasQ.isLoading || metricsQ.isLoading) {
-    return <Loading>Reading what the record can prove.</Loading>;
+    return <Reading>Reading what the record can prove.</Reading>;
   }
 
   // A failed read must never render as three empty measures, which on this
@@ -133,14 +133,14 @@ function AdminProof() {
 
   if (extrasError && metricsError) {
     return (
-      <Failed
+      <ReadFailed
         onRetry={() => {
           void extrasQ.refetch();
           void metricsQ.refetch();
         }}
       >
         Neither half of the proof loaded, so nothing on this page is safe to quote. {extrasError}
-      </Failed>
+      </ReadFailed>
     );
   }
 
@@ -232,7 +232,7 @@ function AdminProof() {
 
   return (
     <>
-      <Block
+      <Region
         title={title}
         sub="The claim this page exists to support: the system gets measurably better at this workspace's decisions as it learns more of them. Every figure below is read from real records, and a measure with nothing behind it says so rather than showing a zero."
       >
@@ -240,18 +240,18 @@ function AdminProof() {
           <Row key={m.id} lead={m.claim} sub={m.backing} time={m.figure} />
         ))}
         {extrasError ? (
-          <Failed onRetry={() => void extrasQ.refetch()}>
+          <ReadFailed onRetry={() => void extrasQ.refetch()}>
             Three of these measures did not load: {extrasError}
-          </Failed>
+          </ReadFailed>
         ) : null}
         {metricsError ? (
-          <Failed onRetry={() => void metricsQ.refetch()}>
+          <ReadFailed onRetry={() => void metricsQ.refetch()}>
             The volume and cost figures did not load: {metricsError}
-          </Failed>
+          </ReadFailed>
         ) : null}
-      </Block>
+      </Region>
 
-      <Block title="The rest of the proof, where it already lives">
+      <Region title="The rest of the proof, where it already lives">
         <Row
           tight
           lead="Spend"
@@ -264,7 +264,7 @@ function AdminProof() {
           sub="Acceptance, autonomy, ritual retention, outcome accuracy and compounding learning"
           onClick={() => void navigate({ to: "/engine-room", search: { room: "quality" } })}
         />
-      </Block>
+      </Region>
     </>
   );
 }

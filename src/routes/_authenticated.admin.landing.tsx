@@ -60,10 +60,9 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { Row } from "@/components/meridian/rows";
-import { Num } from "@/components/meridian/surface-parts";
+import { NothingYet, Num, ReadFailed, Reading, Region } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { Block, Empty, Failed, Loading } from "@/components/shell/primitives";
 import { getLandingFunnel, type LandingEventName } from "@/lib/landing.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/landing")({
@@ -113,7 +112,7 @@ function AdminLanding() {
   });
 
   if (funnel.isLoading) {
-    return <Loading>Reading what the landing page recorded.</Loading>;
+    return <Reading>Reading what the landing page recorded.</Reading>;
   }
 
   // A read that did not complete is not a quiet launch. These two facts look
@@ -121,14 +120,14 @@ function AdminLanding() {
   // never gets to borrow an empty state's clothes.
   if (!funnel.data || "error" in funnel.data) {
     return (
-      <Failed onRetry={() => void funnel.refetch()}>
+      <ReadFailed onRetry={() => void funnel.refetch()}>
         The launch figures did not load, so nothing here can be read as a count.{" "}
         {funnel.data && "error" in funnel.data
           ? funnel.data.error
           : funnel.error instanceof Error
             ? funnel.error.message
             : "The read failed."}
-      </Failed>
+      </ReadFailed>
     );
   }
 
@@ -168,7 +167,7 @@ function AdminLanding() {
 
   return (
     <>
-      <Block
+      <Region
         title={funnelVerdict}
         sub={
           <>
@@ -182,12 +181,12 @@ function AdminLanding() {
         }
       >
         {!anyEvent ? (
-          <Empty>
+          <NothingYet>
             No landing event has been recorded in the last {f.windowDays} days. This table is
             written by the landing page itself, so it stays empty until somebody opens it. If the
             page is live and busy, an empty block here is the capture being broken rather than the
             launch being quiet.
-          </Empty>
+          </NothingYet>
         ) : (
           STEPS.map((s) => {
             const n = f.totals[s.event];
@@ -211,11 +210,11 @@ function AdminLanding() {
                 time={String(n)}
               />
             );
-          })
+          }          )
         )}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title={dayVerdict}
         sub={
           <>
@@ -229,10 +228,10 @@ function AdminLanding() {
         }
       >
         {f.days.length === 0 ? (
-          <Empty>
+          <NothingYet>
             Not one event or signup landed on any day in the last {f.windowDays} days. The first row
             appears the first time somebody opens the landing page.
-          </Empty>
+          </NothingYet>
         ) : (
           f.days.map((d) => (
             <Row
@@ -257,18 +256,18 @@ function AdminLanding() {
             />
           ))
         )}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title={referrerVerdict}
         sub="Taken from the visit event, which records the referring HOSTNAME and nothing else: never the path, never the query string. It is the only event that carries one."
       >
         {f.referrers.length === 0 ? (
-          <Empty>
+          <NothingYet>
             No landing visit has been recorded in the last {f.windowDays} days, so there is no
             referrer to break down. This fills in on the first visit after somebody links to the
             page.
-          </Empty>
+          </NothingYet>
         ) : (
           f.referrers.map((r) => (
             <Row
@@ -297,9 +296,9 @@ function AdminLanding() {
             />
           ))
         )}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title={
           f.sources.length === 0
             ? "No signup carries a source yet"
@@ -308,10 +307,10 @@ function AdminLanding() {
         sub="The source stamped on the waitlist row at the moment it was written, which is the product's own account of the entry point rather than the browser's."
       >
         {f.sources.length === 0 ? (
-          <Empty>
+          <NothingYet>
             Nobody has joined the waitlist in the last {f.windowDays} days, so there is no source to
             break down. The first row appears with the first signup.
-          </Empty>
+          </NothingYet>
         ) : (
           f.sources.map((s) => (
             <Row
@@ -333,7 +332,7 @@ function AdminLanding() {
             />
           ))
         )}
-      </Block>
+      </Region>
     </>
   );
 }

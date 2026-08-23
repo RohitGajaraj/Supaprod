@@ -56,11 +56,10 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { Row } from "@/components/meridian/rows";
-import { Num } from "@/components/meridian/surface-parts";
+import { NothingYet, Num, ReadFailed, Reading, Region } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { Block, Empty, Failed, Loading } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 import { getMoatMetrics } from "@/lib/observability.functions";
 
@@ -94,19 +93,19 @@ function AdminAiCosts() {
   });
 
   if (metrics.isLoading) {
-    return <Loading>Reading what the crew spent.</Loading>;
+    return <Reading>Reading what the crew spent.</Reading>;
   }
 
   if (!metrics.data || "error" in metrics.data) {
     return (
-      <Failed onRetry={() => void metrics.refetch()}>
+      <ReadFailed onRetry={() => void metrics.refetch()}>
         The spend figures did not load, so nothing here is safe to read as a cost.{" "}
         {metrics.data && "error" in metrics.data
           ? (metrics.data as { error: string }).error
           : metrics.error instanceof Error
             ? metrics.error.message
             : "The read failed."}
-      </Failed>
+      </ReadFailed>
     );
   }
 
@@ -170,7 +169,7 @@ function AdminAiCosts() {
 
   return (
     <>
-      <Block
+      <Region
         title={
           decisions30d === 0 || perDecision === null
             ? "No agent recorded a decision in the last 30 days"
@@ -179,10 +178,10 @@ function AdminAiCosts() {
         sub="Rolling 30 days, summed across every workspace. Lower is better, and an agent spending with no decisions beside it is spending on something the record does not show."
       >
         {agents.length === 0 ? (
-          <Empty>
+          <NothingYet>
             No agent has spent anything against a recorded decision yet. The first figures appear
             once the crew runs against real work.
-          </Empty>
+          </NothingYet>
         ) : (
           agents.map((a) => (
             <Row
@@ -213,17 +212,17 @@ function AdminAiCosts() {
             />
           ))
         )}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title="Decisions by week"
         sub="Made is what the loop recorded, shipped is what reached a real result, replaced is what it later revised. Every figure on this page is recomputed overnight, so if this series stops moving at all, the nightly job has stopped and Health says so."
       >
         {weekRows.length === 0 ? (
-          <Empty>
+          <NothingYet>
             No decisions have been recorded in any workspace yet. This fills in the first week the
             loop closes one.
-          </Empty>
+          </NothingYet>
         ) : (
           weekRows.map(([week, w]) => (
             <Row
@@ -243,7 +242,7 @@ function AdminAiCosts() {
             />
           ))
         )}
-      </Block>
+      </Region>
     </>
   );
 }
