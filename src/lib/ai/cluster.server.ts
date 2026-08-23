@@ -283,6 +283,19 @@ Return STRICT JSON only, no prose, no markdown fences.`;
     // abort the remaining themes after their signals were already claimed.
     // PERF: batch lineage inserts instead of N+1 individual upserts.
     if (claimedIds.length > 0) {
+      // THE WHY A FOUNDING MEMBER LANDED HERE, FROM DATA ALREADY IN HAND.
+      //
+      // The attach path below stamps each signal with its similarity match,
+      // but creation-time members only ever got "Clustered into theme", which
+      // names the what and never the why. The model had already produced the
+      // concept these signals were grouped under (title + summary) before any
+      // claim was made, so cite it: Discover reads this back under each member.
+      // Deterministic slices, no new model call. With no summary the title
+      // alone still names the grouping.
+      const concept = (t.summary ?? "").trim().slice(0, 160);
+      const rationale = `Founded theme "${t.title.slice(0, 120)}"${
+        concept ? ` (${concept})` : ""
+      }`;
       try {
         const edges = claimedIds.map((sid) => ({
           user_id: userId,
@@ -291,7 +304,7 @@ Return STRICT JSON only, no prose, no markdown fences.`;
           child_kind: "theme" as const,
           child_id: theme.id,
           relation: "promoted",
-          rationale: "Clustered into theme",
+          rationale,
           created_by_agent: "discovery-scout",
         }));
         await supabase.from("artifact_lineage").upsert(edges, {

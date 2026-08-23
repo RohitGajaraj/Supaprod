@@ -43,6 +43,11 @@ const StartSchema = z.object({
   // D4-REPLAY: when this start is a replay of an existing mission, the parent's
   // id, recorded on the new mission as the branch link.
   replayedFrom: z.string().uuid().optional(),
+  // Where this mission was spawned from. The Decide sheet's hand-off passes its
+  // bet here, so Brain's graph and Build can walk provenance backward to it.
+  origin: z
+    .object({ kind: z.literal("opportunity"), id: z.string().uuid() })
+    .optional(),
 });
 
 export const startOrchestratedMission = createServerFn({ method: "POST" })
@@ -97,6 +102,33 @@ export const startOrchestratedMission = createServerFn({ method: "POST" })
         .update({ replayed_from_mission_id: data.replayedFrom } as never)
         .eq("id", mission.id);
       if (linkErr) console.warn("[startOrchestratedMission] replay link skipped:", linkErr.message);
+    }
+
+    // Record what this mission was spawned by, as the same artifact_lineage edge
+    // every other door writes (cluster.server.ts's upsert shape, relation
+    // "dispatched" like the prd -> mission edges). Non-fatal: the run is real
+    // whether or not the edge landed.
+    if (data.origin) {
+      try {
+        await supabase.from("artifact_lineage").upsert(
+          [
+            {
+              user_id: userId,
+              parent_kind: data.origin.kind,
+              parent_id: data.origin.id,
+              child_kind: "mission",
+              child_id: mission.id,
+              relation: "dispatched",
+              rationale: "Handed off from Decide",
+            },
+          ],
+          {
+            onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation",
+          },
+        );
+      } catch {
+        // Best-effort: the mission runs whether or not the edge landed.
+      }
     }
 
     // 5. Run the orchestrator loop. It will plan + dispatch on this call;

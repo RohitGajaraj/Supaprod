@@ -267,6 +267,7 @@ import {
   toggleAutoCluster,
 } from "@/lib/discovery.functions";
 import { getAgentFleet } from "@/lib/agent-fleet.functions";
+import { getLineage } from "@/lib/lineage.functions";
 import {
   isSampleWorkspaceEnabled,
   triggerSampleWorkspace,
@@ -344,6 +345,16 @@ const SENSE_AGENTS = ["discovery-scout", "researcher"];
  *  belongs to this rail alone: the full member list for the focused cluster
  *  renders in the Gate, which carries every signal this desk holds. */
 const QUOTES_IN_FOCUS = 4;
+
+/**
+ * The rationale every founding member carried before routing reasons became
+ * concrete (cluster.server.ts, before the same change that reads them back
+ * here). It states the what ("clustered") and never the why, so reading it
+ * back under a source label would render a sub-line that answers nothing.
+ * Treated as no stored reason: members clustered before the change show no
+ * line at all rather than a placeholder. Never fabricate one either.
+ */
+const LEGACY_CLUSTER_REASON = "Clustered into theme";
 
 /** How many sources the coverage line names before it counts the rest. */
 const SOURCES_IN_CONTEXT = 5;
@@ -887,6 +898,40 @@ export function DiscoverSurface({
     enabled: Boolean(focused?.theme.id),
     staleTime: 5 * 60_000,
   });
+
+  /**
+   * WHY EACH MEMBER LANDED IN THIS CLUSTER, READ BACK FROM THE RECORD.
+   *
+   * cluster.server.ts writes a routing rationale onto every signal->theme
+   * lineage edge: founding members cite the theme they founded, attached
+   * members cite their similarity match. Until now nothing on Discover read
+   * any of it back. `getLineage` is the reader the record already has, so
+   * this goes through it rather than a second bespoke read of the same table,
+   * keyed on the theme in focus the way the precedent read above is, so
+   * moving down the ranking is one cheap read.
+   */
+  const fLineage = useServerFn(getLineage);
+  const memberLineage = useQuery({
+    queryKey: ["theme-member-lineage", focused?.theme.id],
+    queryFn: () => fLineage({ data: { kind: "theme", id: focused!.theme.id } }),
+    enabled: Boolean(focused?.theme.id),
+    staleTime: 5 * 60_000,
+  });
+
+  /** Signal id -> the reason it was filed under this cluster, when one exists.
+   *  Ancestors are the edges INTO the theme; anything whose parent is not a
+   *  signal (or that carries only the legacy placeholder) has no reason to
+   *  show and gets none. First edge wins; both writers use one relation. */
+  const reasonBySignal = React.useMemo(() => {
+    const map = new Map<string, string>();
+    for (const e of memberLineage.data?.ancestors ?? []) {
+      if (e.parent_kind !== "signal") continue;
+      const why = e.rationale?.trim();
+      if (!why || why === LEGACY_CLUSTER_REASON) continue;
+      if (!map.has(e.parent_id)) map.set(e.parent_id, why);
+    }
+    return map;
+  }, [memberLineage.data]);
 
   /** The open bets, read only while the merge picker is up. */
   const opportunities = useQuery({
@@ -2407,40 +2452,55 @@ export function DiscoverSurface({
                   </div>
                   {focusedMembers.length > 0 ? (
                     <div className="mt-mrd-3 max-h-[320px] overflow-y-auto pr-mrd-1">
-                      {focusedMembers.map((s) => (
-                        <Row
-                          key={s.id}
-                          marks={<SourceMark source={s.source} size={16} />}
-                          lead={signalPreview(s.content, 320)}
-                          sub={
-                            <>
-                              {s.is_sample ? (
-                                <>
-                                  <b>Example</b>
-                                  {" · "}
-                                </>
-                              ) : null}
-                              {sourceLabel(s.source, s.source_kind)}
-                              {s.is_sample || capturedByHand(s.source, s.source_kind)
-                                ? ""
-                                : ", sensed"}
-                            </>
-                          }
-                          time={since(s.created_at)}
-                          /* The same door the rail's quotes carry: the url is
-                             the ticket, thread or review this sentence was
-                             lifted out of, opened in a new tab because the
-                             address belongs to somebody else's product. A hand
-                             capture with nowhere to go keeps no door. */
-                          onClick={
-                            s.url
-                              ? () => {
-                                  window.open(s.url as string, "_blank", "noopener,noreferrer");
-                                }
-                              : undefined
-                          }
-                        />
-                      ))}
+                      {focusedMembers.map((s) => {
+                        const reason = reasonBySignal.get(s.id);
+                        return (
+                          <Row
+                            key={s.id}
+                            marks={<SourceMark source={s.source} size={16} />}
+                            lead={signalPreview(s.content, 320)}
+                            sub={
+                              <>
+                                {s.is_sample ? (
+                                  <>
+                                    <b>Example</b>
+                                    {" · "}
+                                  </>
+                                ) : null}
+                                {sourceLabel(s.source, s.source_kind)}
+                                {s.is_sample || capturedByHand(s.source, s.source_kind)
+                                  ? ""
+                                  : ", sensed"}
+                                {/* WHY IT LANDED HERE, the answer to "why did
+                                   it route into this cluster". Read back from
+                                   the lineage edge the clusterer wrote at
+                                   attach or founding time; a member with no
+                                   stored reason renders nothing rather than a
+                                   guess. One line quieter than the source
+                                   label above it. */}
+                                {reason ? (
+                                  <span className="block text-mrd-tiny text-mrd-mute">
+                                    {reason}
+                                  </span>
+                                ) : null}
+                              </>
+                            }
+                            time={since(s.created_at)}
+                            /* The same door the rail's quotes carry: the url is
+                               the ticket, thread or review this sentence was
+                               lifted out of, opened in a new tab because the
+                               address belongs to somebody else's product. A hand
+                               capture with nowhere to go keeps no door. */
+                            onClick={
+                              s.url
+                                ? () => {
+                                    window.open(s.url as string, "_blank", "noopener,noreferrer");
+                                  }
+                                : undefined
+                            }
+                          />
+                        );
+                      })}
                     </div>
                   ) : null}
                 </div>

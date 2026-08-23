@@ -1110,6 +1110,43 @@ function BriefLinkLine({ opportunity }: { opportunity: OpportunityDetailRecord }
   );
 }
 
+/* ------------------------------------------------------------------ *
+ * The hand-off goal. The crew was receiving one sentence -- title and ref
+ * only -- while the case itself (problem, hypothesis, target user, scores,
+ * the Critic's teardown) sat unused on this very record. Labelled sections,
+ * because the orchestrator parses the goal as work, not prose.
+ * ------------------------------------------------------------------ */
+
+/** Per-field caps sized so every section together can never pass the 4000-char
+ * goal cap startOrchestratedMission enforces: worst case lands near 3600, so a
+ * long teardown can never fail the dispatch. */
+const HANDOFF_CAPS = { problem: 1000, hypothesis: 900, targetUser: 350, critic: 800 } as const;
+
+/** Trim to the cap, marking what was cut rather than stopping mid-word silently. */
+function clip(text: string | null | undefined, cap: number): string {
+  const t = (text ?? "").trim();
+  return t.length <= cap ? t : `${t.slice(0, cap - 1).trimEnd()}…`;
+}
+
+/** The full case, one labelled line per fact the ranking already scored on. */
+function handOffGoal(o: OpportunityDetailRecord): string {
+  const ref = o.id.slice(0, 8).toUpperCase();
+  const critic = o.critic_review;
+  return [
+    "Red-team this opportunity before it is committed to.",
+    "",
+    `Bet: "${o.title}" (ref ${ref})`,
+    `Problem: ${clip(o.problem, HANDOFF_CAPS.problem) || "Not stated."}`,
+    `Hypothesis: ${clip(o.hypothesis, HANDOFF_CAPS.hypothesis) || "Not stated."}`,
+    `Target user: ${clip(o.target_user, HANDOFF_CAPS.targetUser) || "Not stated."}`,
+    `Scores: Impact ${o.impact} / Confidence ${o.confidence} / Ease ${o.ease} (ICE ${
+      o.ice_score ?? "unscored"
+    })`,
+    `Critic verdict: ${critic ? `${critic.verdict} at confidence ${critic.confidence}` : "none yet"}`,
+    `Critic summary: ${clip(critic?.summary, HANDOFF_CAPS.critic) || "No teardown recorded."}`,
+  ].join("\n");
+}
+
 export interface OpportunityDetailSheetProps {
   open: boolean;
   onOpenChange: (next: boolean) => void;
@@ -1169,21 +1206,24 @@ export function OpportunityDetailSheet({
   const fStartMission = useServerFn(startOrchestratedMission);
   const challengerName = agentDisplayName(CHALLENGER);
 
-  // The bet, handed to the crew as real work. Same server function, same goal
-  // text and same destination the retired one-item menu used, so nothing about
-  // what the loop receives changes.
+  // The bet, handed to the crew as real work. Same server function and same
+  // destination the retired one-item menu used; the goal now carries the whole
+  // case, and `origin` records that this mission was spawned by this bet.
   const handOff = useMutation({
     mutationFn: () => {
       if (!opportunity) throw new Error("No bet is open.");
-      const ref = opportunity.id.slice(0, 8).toUpperCase();
       return fStartMission({
         data: {
-          goal: `Red-team this opportunity before it is committed to: "${opportunity.title}" (ref ${ref})`,
+          goal: handOffGoal(opportunity),
           title: opportunity.title.slice(0, 200),
+          origin: { kind: "opportunity", id: opportunity.id },
         },
       });
     },
     onSuccess: (res) => {
+      // Receipt continuity: the run page takes a beat to draw, so the toast
+      // carries the bet forward by name instead of dropping context here.
+      toast.success(`The crew picked up "${opportunity?.title ?? "the bet"}".`);
       onOpenChange(false);
       // Straight to the run's own surface, which is where the seven-stage
       // strip lives. This used to go to /build?mission=, a URL that now only
