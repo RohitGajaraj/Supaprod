@@ -334,7 +334,32 @@ already answered at 11:43 once its worktree was read directly. Nothing is waitin
 | [`008`](./requests/008-four-orphan-backends-measured-one-to-delete.md) | 22:08 | 22:07 | **22:2x** | ruled — [`R008`](./answers/R008-all-four-verdicts-upheld-and-the-delete-is-done.md). All four verdicts upheld. **`getLoopPulse` DELETED** (53 lines, `src/lib` is MAIN LANE's) and the stale doc line with it |
 | [`009`](./requests/009-today-spans-two-ownership-sets.md) | 22:08 | 22:07 | **22:2x** | ruled — [`R009`](./answers/R009-today-moves-to-lane-1-whole.md). **`components/today/**` moves to LANE 1.** Premise verified: 5 of 6 components have exactly one mount |
 
-**Nothing is waiting on MAIN LANE as of 22:2x.** Every request from both lanes is
+| [`L0-005` **addendum 3**](./requests/L0-005-block-and-pre-have-no-meridian-equivalent.md) | 03:00 | 23:08 | **23:2x** | ruled — [`RL0-005c`](./answers/RL0-005c-no-sub-nano-stop-and-a-rationale-that-went-stale.md). **NO sub-nano stop.** 12 of 15 sites override a class that already sets 10px; 2 are `role="img"` monograms, not text. `RewindButton` keeps 19px and takes `font-mrd-semi` |
+
+**C-04 is CLOSED and verified independently** (`650910d28`): shell-zero on LANE 0
+paths confirmed by attributing every remaining importer to its owning lane. Five
+importers remain — four LANE 1 admin routes and `src/hooks/use-confirm.tsx`, which
+is in **nobody's set**.
+
+## WHERE THE PLATFORM STANDS — read [`M14`](./answers/M14-where-the-platform-stands-and-the-five-things-left.md)
+
+| metric | run start | now |
+| --- | --- | --- |
+| ratchet | 3,170 / 222 files | **2,426 / 184** (−744, −23%) |
+| hard-coded type sizes (the founder's #1) | 873 | **40** (−95%) |
+| files importing `shell/primitives` | 137 | **5** |
+| Meridian components used in product | — | **38 / 48** |
+
+**The five things left, ranked:** (1) `styles.css` is 29% of all remaining debt in
+one file, and the three rival-scale files are 40% together — the proportion went UP
+from 37%, because the lanes cleared surfaces and the rival scales still stand.
+(2) **`shell/primitives.tsx` can be deleted outright** — 5 importers, every symbol
+already mapped. (3) **`src/hooks/**` is in no lane's set** and blocks (2).
+(4) duplicates exist outside `shell/` — `PersonMark` duplicates Meridian's
+`YouMark`; the map needs widening, which is MAIN LANE's. (5) ten Meridian
+components are exhibited rather than adopted, `run-rows` used nowhere at all.
+
+**Nothing is waiting on MAIN LANE as of 23:3x.** Every request from both lanes is
 ruled, and everything a ruling depended on is shipped rather than promised:
 `--mrd-face-display`, `ActionLink`, `[data-mrd-pinned-dark]` and its guard.
 

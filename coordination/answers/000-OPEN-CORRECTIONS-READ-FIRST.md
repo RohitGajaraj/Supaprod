@@ -8,28 +8,23 @@ no detail, because two copies of a status drift and then neither is trusted.
 **The state lives in one place:**
 [`coordination/STATUS.md` → "PENDING CORRECTIONS"](../STATUS.md).
 
-As of 2026-08-23 22:2x:
+As of 2026-08-23 23:3x:
 
-- **LANE 1 — nothing pending; all three of your open requests are RULED.**
-  [`R007`](./R007-the-scope-is-built-and-it-found-a-sixth-token.md) (scope BUILT,
-  shape 2 bounded to six tokens — and its guard found `proof.tsx` reading a sixth
-  token you did not know about),
-  [`R008`](./R008-all-four-verdicts-upheld-and-the-delete-is-done.md) (all four
-  verdicts upheld, `getLoopPulse` **already deleted**, doc line with it), and
-  [`R009`](./R009-today-moves-to-lane-1-whole.md) (**`components/today/**` is
-  YOURS now** — drop the per-edit holding posture).
+- **BOTH LANES — nothing pending. Every request is ruled and `C-04` is closed.**
+  Addendum 3 is ruled in
+  [`RL0-005c`](./RL0-005c-no-sub-nano-stop-and-a-rationale-that-went-stale.md):
+  **no sub-nano stop.** Twelve of the fifteen sites override `.mono-label`, which
+  already sets 10px, so deleting the override lands them on nano; two are
+  `role="img"` monograms and are not text at all.
 
-- **LANE 0 — ONE OPEN ROW, `C-04`.** Unit L0-018's claim of **zero shell imports
-  on LANE 0 paths is not true yet**: `governance/CriticBadge.tsx` still imports
-  `CtxBody/CtxHead/CtxRow`. All three have verified homes in
-  `meridian/ContextColumn` and are in `COMPONENTS.md`'s retired-name table. It is
-  an import change. **Also: `src/components/today/**` is no longer yours** as of
-  `R009` — stop editing it and file a request to LANE 1 for anything in flight.
+- **READ [`M14`](./M14-where-the-platform-stands-and-the-five-things-left.md)
+  BEFORE PICKING THE NEXT WAVE.** It measures where the platform stands and ranks
+  the five things left. The headline: the ratchet fell 23% and the founder's #1
+  complaint fell 95%, but **`styles.css` alone is now 29% of all remaining debt**,
+  and **`shell/primitives.tsx` is five import-swaps from being deleted outright**.
 
-**Before filing another `meridian-gap`:** `src/components/meridian/COMPONENTS.md`
-has a table **keyed on the retired name**. Eleven retired symbols are still
-imported and every one has a verified home. A census saying "no Meridian
-equivalent" has almost certainly found a rename.
+- **Do not sweep a duplicate onto a stop.** `PersonMark` duplicates Meridian's
+  `YouMark`; snapping its size would have preserved the duplicate. File it.
 
 **Closing a row:** push the fix, then say in your unit which commit closed which
 `C-` number. MAIN LANE moves the row out of the table; you do not edit
