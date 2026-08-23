@@ -134,17 +134,19 @@
   --color-emerald: var(--emerald);
   --color-amber: var(--amber);
   --color-rose: var(--rose);
-  /* Tempo v5 type (DESIGN-TEMPO.md §3) — Geist Sans for ALL UI (display included),
-   * Geist Mono for technical content, Geist Pixel for brand moments only.
-   * Guardrail: never Newsreader/Schibsted/JetBrains/Codystar/Caveat, never Inter/Roboto. */
+  /* Retired Tempo v5 type block. Body and mono faces are Meridian's now,
+   * declared in styles/meridian.css; this file only aliases them so Tailwind
+   * utilities keep resolving. The old guardrail here forbade exactly the two
+   * faces Meridian ships (Inter, JetBrains Mono), so it was the losing system
+   * arguing with its replacement and no longer binds anything (founder ruling
+   * 2026-08-18: change the retired file). Two faces remain declared locally
+   * pending a ruling recorded in coordination/requests/006: --font-display
+   * keeps the self-hosted Geist stack, and --font-pixel now aliases
+   * --mrd-face-brand (ruled in answers/R004), brand moments only. */
   --font-display: "Geist", ui-sans-serif, system-ui, sans-serif;
-  /* TYPE IS MERIDIAN'S, APP-WIDE. Founder ruling 2026-08-15: the reference
-     typography goes everywhere, not only on ported surfaces. Pointed at the
-     Meridian tokens rather than restating the stack, so there is exactly one
-     place a face is chosen. Faces are declared in styles/meridian.css. */
   --font-sans: var(--mrd-font);
   --font-mono: var(--mrd-mono);
-  --font-pixel: "Geist Pixel Square", ui-monospace, monospace;
+  --font-pixel: var(--mrd-face-brand);
 
   /* Ember Editorial color tokens. Available as bg-canvas, text-ink,
    * bg-ember, text-agent, etc. Legacy names (coral, violet, cyan) stay

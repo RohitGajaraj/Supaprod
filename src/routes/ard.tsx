@@ -127,7 +127,7 @@ function ArdPage() {
             fontSize: 34,
             fontWeight: 500,
             margin: "8px 0 14px",
-            fontFamily: "var(--font-display, ui-serif, Georgia, serif)",
+            fontFamily: "var(--font-display, ui-sans-serif, system-ui, sans-serif)",
           }}
         >
           The Agent Requirements Document (ARD)
