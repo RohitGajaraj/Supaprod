@@ -232,6 +232,7 @@ export type Database = {
           escalation_state: string
           execution_claimed_at: string | null
           expires_at: string | null
+          expiry_default: string | null
           expiry_notified_at: string | null
           id: string
           mission_id: string | null
@@ -260,6 +261,7 @@ export type Database = {
           escalation_state?: string
           execution_claimed_at?: string | null
           expires_at?: string | null
+          expiry_default?: string | null
           expiry_notified_at?: string | null
           id?: string
           mission_id?: string | null
@@ -288,6 +290,7 @@ export type Database = {
           escalation_state?: string
           execution_claimed_at?: string | null
           expires_at?: string | null
+          expiry_default?: string | null
           expiry_notified_at?: string | null
           id?: string
           mission_id?: string | null
@@ -7305,9 +7308,11 @@ export type Database = {
           external_id: string | null
           id: string
           is_sample: boolean
+          last_restated_at: string | null
           product_id: string | null
           project_id: string | null
           reference_urls: Json
+          restated_count: number
           sentiment: string | null
           source: string
           source_kind: string | null
@@ -7326,9 +7331,11 @@ export type Database = {
           external_id?: string | null
           id?: string
           is_sample?: boolean
+          last_restated_at?: string | null
           product_id?: string | null
           project_id?: string | null
           reference_urls?: Json
+          restated_count?: number
           sentiment?: string | null
           source?: string
           source_kind?: string | null
@@ -7347,9 +7354,11 @@ export type Database = {
           external_id?: string | null
           id?: string
           is_sample?: boolean
+          last_restated_at?: string | null
           product_id?: string | null
           project_id?: string | null
           reference_urls?: Json
+          restated_count?: number
           sentiment?: string | null
           source?: string
           source_kind?: string | null
@@ -7455,6 +7464,7 @@ export type Database = {
           pending_gates: Json
           product_id: string | null
           project_id: string | null
+          seat_cursor: number
           spend_cap_usd: number | null
           spend_used_usd: number
           station: string
@@ -7478,6 +7488,7 @@ export type Database = {
           pending_gates?: Json
           product_id?: string | null
           project_id?: string | null
+          seat_cursor?: number
           spend_cap_usd?: number | null
           spend_used_usd?: number
           station?: string
@@ -7501,6 +7512,7 @@ export type Database = {
           pending_gates?: Json
           product_id?: string | null
           project_id?: string | null
+          seat_cursor?: number
           spend_cap_usd?: number | null
           spend_used_usd?: number
           station?: string
@@ -8977,6 +8989,7 @@ export type Database = {
           auto_scout_enabled: boolean
           auto_sense_enabled: boolean
           auto_trigger_enabled: boolean
+          cold_start_promotion_enabled: boolean
           created_at: string
           default_mission_spend_cap_usd: number | null
           default_track_spend_cap_usd: number | null
@@ -9014,6 +9027,7 @@ export type Database = {
           auto_scout_enabled?: boolean
           auto_sense_enabled?: boolean
           auto_trigger_enabled?: boolean
+          cold_start_promotion_enabled?: boolean
           created_at?: string
           default_mission_spend_cap_usd?: number | null
           default_track_spend_cap_usd?: number | null
@@ -9051,6 +9065,7 @@ export type Database = {
           auto_scout_enabled?: boolean
           auto_sense_enabled?: boolean
           auto_trigger_enabled?: boolean
+          cold_start_promotion_enabled?: boolean
           created_at?: string
           default_mission_spend_cap_usd?: number | null
           default_track_spend_cap_usd?: number | null
@@ -9659,6 +9674,10 @@ export type Database = {
       bump_memory_importance: {
         Args: { p_delta: number; p_memory_id: string }
         Returns: number
+      }
+      bump_signal_restatement: {
+        Args: { p_by?: number; p_signal_id: string }
+        Returns: undefined
       }
       bump_waitlist_referral: { Args: { _code: string }; Returns: undefined }
       can_manage_account: { Args: { account: string }; Returns: boolean }
