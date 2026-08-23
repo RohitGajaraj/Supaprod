@@ -105,7 +105,7 @@ export function MoreItem({
     <button
       type="button"
       onClick={onClick}
-      className="rounded-mrd-ctl px-[9px] py-[7px] text-left text-[13px] whitespace-nowrap text-mrd-prose text-mrd-body transition-colors hover:bg-mrd-hover hover:text-mrd-ink"
+      className="rounded-mrd-ctl px-[9px] py-[7px] text-left text-mrd-base whitespace-nowrap text-mrd-body transition-colors hover:bg-mrd-hover hover:text-mrd-ink"
       style={{ transitionDuration: "var(--mrd-d-press)" }}
     >
       {children}

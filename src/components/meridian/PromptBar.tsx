@@ -382,11 +382,11 @@ export function PromptBar({
           /* Open is a held state here too, and it takes the same stop the plus
              button takes, so the two never disagree about what "open" looks
              like inside one composer. */
-          className={`flex h-7 shrink-0 items-center gap-1 px-1.5 text-[12px] font-medium transition-colors duration-150 ${btnRadius} ${FOCUS_INSET} ${
-            modelOpen
-              ? "bg-mrd-select text-mrd-ink"
-              : "text-mrd-prose text-mrd-body hover:bg-mrd-hover hover:text-mrd-ink"
-          }`}
+          className={`flex h-7 shrink-0 items-center gap-1 px-1.5 text-mrd-small font-medium transition-colors duration-150 ${btnRadius} ${FOCUS_INSET} ${
+ modelOpen
+ ? "bg-mrd-select text-mrd-ink"
+ : "text-mrd-body hover:bg-mrd-hover hover:text-mrd-ink"
+ }`}
         >
           {model.name}
           <span className="text-mrd-mute">
@@ -700,9 +700,9 @@ export function PromptBar({
                    * neither ground at a glance, which is what the reference's
                    * hairline is there to prevent.
                    */
-                  className={`flex h-6.5 items-center gap-1.5 bg-mrd-sink py-1 pr-1 pl-1.5 text-[11.5px] text-mrd-prose text-mrd-body shadow-[inset_0_0_0_1px_var(--mrd-line)] ${
-                    pill ? "rounded-full" : "rounded-mrd-chip"
-                  }`}
+                  className={`flex h-6.5 items-center gap-1.5 bg-mrd-sink py-1 pr-1 pl-1.5 text-mrd-data text-mrd-body shadow-[inset_0_0_0_1px_var(--mrd-line)] ${
+ pill ? "rounded-full" : "rounded-mrd-chip"
+ }`}
                   /* A file appearing on the composer is something arriving that
                      was not there, which is the case `pop-in` exists for. */
                   style={{ animation: "mrd-pop-in var(--mrd-d-move) var(--mrd-ease) both" }}

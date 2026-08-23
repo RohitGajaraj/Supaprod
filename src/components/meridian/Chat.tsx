@@ -244,7 +244,7 @@ export function Chat({
          */}
         {turns.length === 0 && !busy && (
           <div className="my-auto py-6">
-            <p className="text-[13px] font-medium text-mrd-prose text-mrd-body">{emptyLabel}</p>
+            <p className="text-mrd-base font-medium text-mrd-body">{emptyLabel}</p>
             <p className="mt-1 text-[13px] leading-[1.65] text-mrd-mute">{emptyHint}</p>
           </div>
         )}

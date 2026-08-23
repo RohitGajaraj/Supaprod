@@ -162,11 +162,11 @@ export function Tabs<Id extends string>({
             id={tabId(group, t.id)}
             type="button"
             role="tab"
-            className={`inline-flex h-8 items-center rounded-mrd-chip px-3 text-[12.5px] transition-colors ${
-              selected
-                ? "bg-mrd-select font-medium text-mrd-ink"
-                : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-prose text-mrd-body"
-            }`}
+            className={`inline-flex h-8 items-center rounded-mrd-chip px-3 text-mrd-label transition-colors ${
+ selected
+ ? "bg-mrd-select font-medium text-mrd-ink"
+ : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-body"
+ }`}
             style={{ transitionDuration: "var(--mrd-d-press)" }}
             aria-selected={selected}
             aria-controls={tabPanelId(group)}

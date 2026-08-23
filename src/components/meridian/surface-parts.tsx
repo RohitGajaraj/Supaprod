@@ -1406,7 +1406,7 @@ export function Pre({
     <pre
       data-mrd=""
       tabIndex={0}
-      className="overflow-auto rounded-mrd-card bg-mrd-sink px-3 py-2.5 font-mrd-mono text-[12px] leading-[1.7] text-mrd-prose text-mrd-body"
+      className="overflow-auto rounded-mrd-card bg-mrd-sink px-3 py-2.5 font-mrd-mono text-mrd-small leading-[1.7] text-mrd-body"
       style={{ maxHeight }}
     >
       {children}
@@ -1754,7 +1754,7 @@ export function BulkBar({
       data-mrd=""
       role="region"
       aria-label={`${count} selected`}
-      className="flex min-h-11 items-center gap-mrd-5 rounded-mrd-ctl bg-mrd-lift px-mrd-4 text-[13px] text-mrd-prose text-mrd-body"
+      className="flex min-h-11 items-center gap-mrd-5 rounded-mrd-ctl bg-mrd-lift px-mrd-4 text-mrd-base text-mrd-body"
     >
       <span className="font-medium whitespace-nowrap text-mrd-ink">
         <Num>{count}</Num> {count === 1 ? noun : `${noun}s`} selected

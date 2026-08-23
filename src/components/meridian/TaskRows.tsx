@@ -403,7 +403,7 @@ export function TaskRows({
         data-mrd=""
         className="w-full max-w-[440px] rounded-mrd-card border border-mrd-line bg-mrd-sheet px-4 py-4 font-mrd"
       >
-        <p className="text-[13px] font-medium text-mrd-prose text-mrd-body">No work has run here yet.</p>
+        <p className="text-mrd-base font-medium text-mrd-body">No work has run here yet.</p>
         <p className="mt-1 mrd-meta">
           Each step an agent takes gets a line here, with whether it is running, finished, broken,
           or waiting on you.
@@ -480,7 +480,7 @@ export function TaskRows({
                * survive the other way round.
                */}
               {task.amount ? (
-                <span className="shrink-0 text-[12.5px] text-mrd-prose text-mrd-body tabular-nums">
+                <span className="shrink-0 text-mrd-label text-mrd-body tabular-nums">
                   {task.amount}
                 </span>
               ) : null}
@@ -545,7 +545,7 @@ export function TaskRows({
                               : undefined
                           }
                         >
-                          <span className="min-w-0 truncate text-[12px] text-mrd-prose text-mrd-body">
+                          <span className="min-w-0 truncate text-mrd-small text-mrd-body">
                             {detail.label}
                           </span>
                           {detail.meta ? (

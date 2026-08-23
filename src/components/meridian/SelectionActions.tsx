@@ -500,7 +500,7 @@ export function SelectionActions({
              */}
             {error ? (
               <>
-                <span className="inline-flex h-7 items-center gap-1.5 px-2.5 text-[12.5px] whitespace-nowrap text-mrd-prose text-mrd-body">
+                <span className="inline-flex h-7 items-center gap-1.5 px-2.5 text-mrd-label whitespace-nowrap text-mrd-body">
                   <span className="text-mrd-fail">
                     <Icon size={13} strokeWidth={2.2}>
                       <circle cx="12" cy="12" r="9" />

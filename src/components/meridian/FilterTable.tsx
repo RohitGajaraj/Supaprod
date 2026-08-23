@@ -133,11 +133,11 @@ export function FilterTable<Row>({
         type="button"
         aria-pressed={isActive}
         onClick={() => setActive(key)}
-        className={`flex h-6.5 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-medium transition-[background-color,box-shadow,color] ${FOCUS} ${
-          isActive
-            ? "bg-mrd-lift text-mrd-ink"
-            : "text-mrd-prose text-mrd-body hover:bg-mrd-hover hover:text-mrd-ink"
-        }`}
+        className={`flex h-6.5 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-mrd-small font-medium transition-[background-color,box-shadow,color] ${FOCUS} ${
+ isActive
+ ? "bg-mrd-lift text-mrd-ink"
+ : "text-mrd-body hover:bg-mrd-hover hover:text-mrd-ink"
+ }`}
         style={{
           /*
            * ── THE PRESSED CHIP HAS TO LOOK PRESSED ──────────────────────────
@@ -169,9 +169,9 @@ export function FilterTable<Row>({
       >
         {label}
         <span
-          className={`rounded-mrd-xs px-1 font-mrd-mono text-[10.5px] tabular-nums ${
-            isActive ? "bg-mrd-sink text-mrd-prose text-mrd-body" : "text-mrd-mute"
-          }`}
+          className={`rounded-mrd-xs px-1 font-mrd-mono text-mrd-micro tabular-nums ${
+ isActive ? "bg-mrd-sink text-mrd-body" : "text-mrd-mute"
+ }`}
         >
           {count}
         </span>

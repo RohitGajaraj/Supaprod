@@ -649,7 +649,7 @@ function Chart({
             {series.map((line) => (
               <span
                 key={line.id}
-                className="flex items-center gap-1.5 text-[11px] whitespace-nowrap text-mrd-prose text-mrd-body"
+                className="flex items-center gap-1.5 text-mrd-tiny whitespace-nowrap text-mrd-body"
               >
                 <span
                   aria-hidden
@@ -701,9 +701,9 @@ function TrendBody({ insight }: { insight: TrendInsight }) {
                 type="button"
                 aria-pressed={i === view}
                 onClick={() => setView(i)}
-                className={`rounded-full px-2 py-0.5 text-[11px] font-medium transition-[background-color,color,transform] duration-150 active:scale-[0.96] ${
-                  i === view ? "bg-mrd-lift text-mrd-ink" : "text-mrd-mute hover:text-mrd-prose text-mrd-body"
-                } ${FOCUS_RING}`}
+                className={`rounded-full px-2 py-0.5 text-mrd-tiny font-medium transition-[background-color,color,transform] duration-150 active:scale-[0.96] ${
+ i === view ? "bg-mrd-lift text-mrd-ink" : "text-mrd-mute hover:text-mrd-body"
+ } ${FOCUS_RING}`}
               >
                 {option.label}
               </button>
@@ -736,7 +736,7 @@ function TrendBody({ insight }: { insight: TrendInsight }) {
           const tone = seriesColour(line, insight.verdict);
           return (
             <div key={line.id} className="min-w-0">
-              <span className="flex items-center gap-1.5 text-[11.5px] text-mrd-prose text-mrd-body">
+              <span className="flex items-center gap-1.5 text-mrd-data text-mrd-body">
                 <span
                   aria-hidden
                   className="size-2 shrink-0 rounded-full"
@@ -781,7 +781,7 @@ function TrendBody({ insight }: { insight: TrendInsight }) {
          */}
         <div className="flex items-center justify-between gap-2 border-b border-mrd-line px-2.5 py-1.5">
           <span className="truncate text-[11px] text-mrd-mute">{frameLabel}</span>
-          <span className="shrink-0 rounded-full bg-mrd-lift px-2 py-0.5 text-[10.5px] font-medium text-mrd-prose text-mrd-body">
+          <span className="shrink-0 rounded-full bg-mrd-lift px-2 py-0.5 text-mrd-micro font-medium text-mrd-body">
             {insight.verdict === "open" || insight.verdict === undefined ? "Open" : "Settled"}
           </span>
         </div>
@@ -936,11 +936,11 @@ function SplitBody({ insight }: { insight: SplitInsight }) {
             type="button"
             aria-pressed={selected === segment.id}
             onClick={() => setSelected(segment.id)}
-            className={`flex items-center gap-1.5 rounded-full px-1.5 py-0.5 text-[11.5px] transition-[background-color,color,transform] duration-150 active:scale-[0.96] ${
-              selected === segment.id
-                ? "bg-mrd-lift text-mrd-ink"
-                : "text-mrd-prose text-mrd-body hover:bg-mrd-hover hover:text-mrd-ink"
-            } ${FOCUS_RING}`}
+            className={`flex items-center gap-1.5 rounded-full px-1.5 py-0.5 text-mrd-data transition-[background-color,color,transform] duration-150 active:scale-[0.96] ${
+ selected === segment.id
+ ? "bg-mrd-lift text-mrd-ink"
+ : "text-mrd-body hover:bg-mrd-hover hover:text-mrd-ink"
+ } ${FOCUS_RING}`}
           >
             <span
               aria-hidden
@@ -966,7 +966,7 @@ function SplitBody({ insight }: { insight: SplitInsight }) {
           >
             {active.label}
           </span>
-          <span className="mt-1 block text-[11px] leading-relaxed text-mrd-prose text-mrd-body">
+          <span className="mt-1 block text-mrd-tiny leading-relaxed text-mrd-body">
             {active.detail}
           </span>
         </div>
@@ -1029,9 +1029,9 @@ function ThresholdBody({ insight }: { insight: ThresholdInsight }) {
                 type="button"
                 aria-pressed={i === view}
                 onClick={() => setView(i)}
-                className={`rounded-full px-2 py-0.5 text-[11px] font-medium transition-[background-color,color,transform] duration-150 active:scale-[0.96] ${
-                  i === view ? "bg-mrd-lift text-mrd-ink" : "text-mrd-mute hover:text-mrd-prose text-mrd-body"
-                } ${FOCUS_RING}`}
+                className={`rounded-full px-2 py-0.5 text-mrd-tiny font-medium transition-[background-color,color,transform] duration-150 active:scale-[0.96] ${
+ i === view ? "bg-mrd-lift text-mrd-ink" : "text-mrd-mute hover:text-mrd-body"
+ } ${FOCUS_RING}`}
               >
                 {option.label}
               </button>

@@ -1012,7 +1012,7 @@ export function SidebarNav({
                       {!isCollapsed && (
                         <>
                           <span
-                            className={`min-w-0 flex-1 truncate text-[13px] whitespace-nowrap transition-colors duration-150 ${isActive ? "font-medium text-mrd-ink" : "text-mrd-prose text-mrd-body"}`}
+                            className={`min-w-0 flex-1 truncate text-mrd-base whitespace-nowrap transition-colors duration-150 ${isActive ? "font-medium text-mrd-ink" : "text-mrd-body"}`}
                           >
                             {item.label}
                           </span>
@@ -1030,9 +1030,9 @@ export function SidebarNav({
                                */
                               key={waiting}
                               aria-hidden
-                              className={`flex h-4.5 min-w-4.5 shrink-0 items-center justify-center rounded-full px-1 text-[10.5px] font-semibold tabular-nums ${
-                                isActive ? "bg-mrd-lift text-mrd-prose text-mrd-body" : "bg-mrd-you text-mrd-bg"
-                              }`}
+                              className={`flex h-4.5 min-w-4.5 shrink-0 items-center justify-center rounded-full px-1 text-mrd-micro font-semibold tabular-nums ${
+ isActive ? "bg-mrd-lift text-mrd-body" : "bg-mrd-you text-mrd-bg"
+ }`}
                               style={{
                                 /* Scale, not slide. `mrd-pop-in` is the system's
                                    "this was not here a moment ago", and it comes

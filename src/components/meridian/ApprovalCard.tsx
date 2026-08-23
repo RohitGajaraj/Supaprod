@@ -150,7 +150,7 @@ export function ApprovalCard({
         data-mrd=""
         className="w-full max-w-80 rounded-mrd-card border border-mrd-line bg-mrd-sheet px-4 py-4 font-mrd"
       >
-        <p className="text-[13px] font-medium text-mrd-prose text-mrd-body">Nothing is waiting on you.</p>
+        <p className="text-mrd-base font-medium text-mrd-body">Nothing is waiting on you.</p>
         <p className="mt-1 mrd-meta">
           When an agent stops to ask something, the question arrives here and the run holds until
           you answer it.
@@ -305,7 +305,7 @@ export function ApprovalCard({
                       )}
                     </span>
                     <span
-                      className={`text-[13px] transition-colors duration-200 ${on ? "text-mrd-ink" : "text-mrd-prose text-mrd-body"}`}
+                      className={`text-mrd-base transition-colors duration-200 ${on ? "text-mrd-ink" : "text-mrd-body"}`}
                     >
                       {option}
                     </span>

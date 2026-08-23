@@ -153,7 +153,7 @@ export function RecordStatus({ tone, label }: { tone: RecordTone; label: string 
  */
 export function RecordTag({ label }: { label: string }) {
   return (
-    <span className="inline-flex h-5 items-center rounded-mrd-xs border border-mrd-line bg-mrd-sink px-1.5 text-[11.5px] text-mrd-prose text-mrd-body">
+    <span className="inline-flex h-5 items-center rounded-mrd-xs border border-mrd-line bg-mrd-sink px-1.5 text-mrd-data text-mrd-body">
       {label}
     </span>
   );
@@ -308,7 +308,7 @@ export function RecordsTable<Row>({
             <button
               type="button"
               onClick={onClearFilter}
-              className={`mt-1 rounded-mrd-ctl border border-mrd-edge px-2.5 py-1 text-[12.5px] font-medium text-mrd-prose text-mrd-body transition-colors hover:bg-mrd-hover hover:text-mrd-ink ${FOCUS}`}
+              className={`mt-1 rounded-mrd-ctl border border-mrd-edge px-2.5 py-1 text-mrd-label font-medium text-mrd-body transition-colors hover:bg-mrd-hover hover:text-mrd-ink ${FOCUS}`}
               style={{ transitionDuration: "var(--mrd-d-press)" }}
             >
               Clear the filter
@@ -541,7 +541,7 @@ export function RecordsTable<Row>({
           <button
             type="button"
             onClick={() => setCapLifted(true)}
-            className={`rounded-mrd-ctl border border-mrd-edge px-2 py-0.5 text-[12px] font-medium text-mrd-prose text-mrd-body transition-colors hover:bg-mrd-hover hover:text-mrd-ink ${FOCUS}`}
+            className={`rounded-mrd-ctl border border-mrd-edge px-2 py-0.5 text-mrd-small font-medium text-mrd-body transition-colors hover:bg-mrd-hover hover:text-mrd-ink ${FOCUS}`}
             style={{ transitionDuration: "var(--mrd-d-press)" }}
           >
             Show all {sorted.length}

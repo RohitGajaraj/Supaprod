@@ -300,7 +300,7 @@ export function Search<Item>({
           setQuery("");
           inputRef.current?.focus();
         }}
-        className={`mt-1 rounded-mrd-ctl border border-mrd-edge px-2.5 py-1 text-[12.5px] font-medium text-mrd-prose text-mrd-body transition-colors hover:bg-mrd-hover hover:text-mrd-ink ${FOCUS}`}
+        className={`mt-1 rounded-mrd-ctl border border-mrd-edge px-2.5 py-1 text-mrd-label font-medium text-mrd-body transition-colors hover:bg-mrd-hover hover:text-mrd-ink ${FOCUS}`}
         style={{ transitionDuration: "var(--mrd-d-press)" }}
       >
         Clear the search
@@ -321,7 +321,7 @@ export function Search<Item>({
             type="button"
             onClick={() => onSelect?.(item)}
             onKeyDown={(event) => onRowKeyDown(event, index)}
-            className={`flex min-h-8 w-full items-center rounded-mrd-xs px-2 py-1.5 text-left text-[13px] text-mrd-prose text-mrd-body transition-colors hover:bg-mrd-hover hover:text-mrd-ink ${FOCUS}`}
+            className={`flex min-h-8 w-full items-center rounded-mrd-xs px-2 py-1.5 text-left text-mrd-base text-mrd-body transition-colors hover:bg-mrd-hover hover:text-mrd-ink ${FOCUS}`}
             /*
              * Each row fades in, which the port had dropped. It matters more
              * here than it looks: results REPLACE each other as the query
@@ -456,7 +456,7 @@ export function Search<Item>({
           <button
             type="button"
             onClick={() => setCapLifted(true)}
-            className={`rounded-mrd-ctl border border-mrd-edge px-2 py-0.5 text-[12px] font-medium text-mrd-prose text-mrd-body transition-colors hover:bg-mrd-hover hover:text-mrd-ink ${FOCUS}`}
+            className={`rounded-mrd-ctl border border-mrd-edge px-2 py-0.5 text-mrd-small font-medium text-mrd-body transition-colors hover:bg-mrd-hover hover:text-mrd-ink ${FOCUS}`}
             style={{ transitionDuration: "var(--mrd-d-press)" }}
           >
             Show all {matched.length}

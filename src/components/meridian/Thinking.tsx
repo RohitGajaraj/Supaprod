@@ -295,7 +295,7 @@ export function Thinking({
           </span>
         ) : (
           <span
-            className="text-[13px] font-medium whitespace-nowrap text-mrd-prose text-mrd-body"
+            className="text-mrd-base font-medium whitespace-nowrap text-mrd-body"
             style={{ animation: "mrd-fade-in 350ms ease-out both" }}
           >
             {summary ?? settledLabel(variant, rows.length, durationMs)}
@@ -373,7 +373,7 @@ export function Thinking({
                     <circle cx="11" cy="11" r="7" />
                     <path d="M21 21l-4.3-4.3" />
                   </svg>
-                  <span className="text-[12.5px] text-mrd-prose text-mrd-body">{query}</span>
+                  <span className="text-mrd-label text-mrd-body">{query}</span>
                 </div>
               )}
 
@@ -408,15 +408,15 @@ export function Thinking({
                      * is the only underline that can arrive rather than snap.
                      */}
                     <span
-                      className={`min-w-0 truncate text-[12.5px] ${
-                        variant === "Reasoning"
-                          ? "leading-relaxed whitespace-normal text-mrd-prose text-mrd-body"
-                          : "font-medium text-mrd-ink"
-                      } ${
-                        variant === "Search"
-                          ? "underline decoration-transparent underline-offset-[3px] transition-colors duration-200 group-hover:decoration-current"
-                          : ""
-                      }`}
+                      className={`min-w-0 truncate text-mrd-label ${
+ variant === "Reasoning"
+ ? "leading-relaxed whitespace-normal text-mrd-body"
+ : "font-medium text-mrd-ink"
+ } ${
+ variant === "Search"
+ ? "underline decoration-transparent underline-offset-[3px] transition-colors duration-200 group-hover:decoration-current"
+ : ""
+ }`}
                     >
                       {row.primary}
                     </span>

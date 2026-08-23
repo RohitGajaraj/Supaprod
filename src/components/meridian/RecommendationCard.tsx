@@ -140,7 +140,7 @@ function Confidence({ confidence }: { confidence: number | null }) {
   return (
     <span className="flex min-w-0 items-center gap-2">
       {confidence === null ? <NoReading /> : <Meter confidence={confidence} />}
-      <span className="truncate text-[12.5px] font-medium text-mrd-prose text-mrd-body">
+      <span className="truncate text-mrd-label font-medium text-mrd-body">
         {confidence === null ? "No usable answer" : band(confidence)}
       </span>
     </span>
@@ -186,7 +186,7 @@ export function RecommendationCard({
         data-mrd=""
         className="w-full max-w-[380px] rounded-mrd-card border border-mrd-line bg-mrd-sheet px-4 py-4 font-mrd"
       >
-        <p className="text-[13px] font-medium text-mrd-prose text-mrd-body">No suggestion yet.</p>
+        <p className="text-mrd-base font-medium text-mrd-body">No suggestion yet.</p>
         <p className="mt-1 mrd-meta">
           Nothing has been proposed for this call. The gate is open and the decision is yours to
           make directly.
