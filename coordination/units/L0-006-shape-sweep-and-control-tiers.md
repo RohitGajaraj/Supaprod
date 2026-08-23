@@ -1,80 +1,79 @@
-# UNIT L0-006: The three density shapes die across components
+# UNIT L0-006: Three density shapes swept out of components, five control files tiered
 
 **Lane:** LANE 0
-**Completed:** 2026-08-23T18:05+05:30
-**Commit:** c66c644f5 (49 files)
+**Completed:** 2026-08-23T19:20+05:30
+**Commits:** c66c644f5 (49 files), this record
 
-## What this unit was
+## What was wrong
 
-The founder's number one complaint ("everything looks like one single dump,
-back to back back to back") had three mechanical causes left in my tree after
-MissionOrchestratorDetail closed clean. All three swept in one fan-out of six
-disjoint file sets, plus two control-tier ports that answers/M10 ranked.
+Three shapes, all serving the founder's number one complaint about text
+reading as one undifferentiated dump:
 
-## Shape 1: silent sizes (the U006 defect, component half)
+1. **Silent sizes** (the U006 defect shape, component half): 37 elements
+   carried both a text-[Npx] arbitrary and a text-mrd-* size utility. The
+   utility is emitted after the arbitrary and always won, so authored
+   12px, 12.5px, 13px and 13.5px all painted at prose(14px) with nobody
+   choosing that. Fix deletes the loser, so rendering is unchanged by
+   construction.
+2. **Bare Tailwind leadings**: leading-snug resolved to 1.375, tighter than
+   the 1.4 Meridian explicitly replaced with --mrd-lh-snug=1.5
+   (answers/M13 calls this the founder's complaint in its most literal
+   form). Converted onto leading-mrd-{tight,snug,prose}; snug/tight move
+   value on purpose (more air), relaxed renames at identical 1.625.
+3. **Untiered controls** in the answers/M10 concentrations:
+   ObsidianOnboarding (8), DecisionQueue (7), InvitationsPanel (6 after
+   port), DesignScaffoldPanel (gate pair, owner toggle, feedback rows),
+   ProductAnalyticsPanel (icon actions). Every conversion carries a TIER
+   comment naming which clause fired: Approve for releases held for a
+   person, Action for verdicts/writes/dispatches, quiet for deferrals,
+   plain button kept for navigation-only doors.
 
-37 elements carried both a text-[Npx] arbitrary and a text-mrd-* size
-utility. CSS emission order makes the utility win, so every authored px
-below 14 rendered as prose(14px) without anyone choosing it. Fix deletes
-the loser; rendering unchanged by construction. Verified zero remaining by
-grep, including reverse order.
+## Two regressions caught rather than shipped
 
-## Shape 2: bare leadings off Meridian's ladder
-
-leading-snug resolved to Tailwind's 1.375, tighter than the 1.4 Meridian
-explicitly replaced with --mrd-lh-snug=1.5 (answers/M13). Converted across
-~60 sites to leading-mrd-{tight,snug,prose}; snug/tight move value on
-purpose (more air, exactly what M13 orders), relaxed renames at identical
-1.625. Remaining bare leadings in my tree: comment mentions only.
-
-## Shape 3: control tiers (M10 queue, five files)
-
-ObsidianOnboarding 8 controls, DecisionQueue 7, InvitationsPanel 6,
-DesignScaffoldPanel gate pair + owner toggle + feedback rows,
-ProductAnalyticsPanel icon actions. Each carries a TIER comment naming the
-M10 clause that fired: Approve for releases held for a person, Action for
-verdicts and writes, quiet for deferrals and secondary paths, plain button
-for navigation-only (Go to workspace etc.). loom-press retained wherever it
-still guards a plain button, retired where CONTROL_SHAPE supersedes it.
-
-## Two regressions caught, not shipped
-
-1. DesignScaffoldPanel's port duplicated var(--madder) into new branches:
-   ratchet grew 4 to 5 and failed the build. Converted all five to
-   --mrd-fail; file now carries zero madder.
+1. DesignScaffoldPanel's background-agent port duplicated var(--madder)
+   into new branches, growing its ratchet count 4 to 5. All five uses
+   converted to --mrd-fail; the file now carries zero madder.
 2. Seven controls used hover:text-mrd-prose believing prose was a colour
-   step. It is font-size only, so label text GREW on hover. Now
+   step. It is font-size only, so label text GREW on hover while
+   transition-colors announced a colour change that never came. Now
    hover:text-mrd-ink, matching each file's own active state.
-
-Also consolidated DecisionQueue's duplicate surface-parts import left by
-the interrupted agent run.
 
 ## Measured
 
 | Metric | Before | After | Query |
 | --- | --- | --- | --- |
 | Ratchet total | 2,721 / 212 | **2,684 / 209** | design:ratchet over merged disk |
-| Silent-size doubles (my tree) | 37 | 0 | grep text-[Npx]+text-mrd-(size) |
-| Bare leadings (my tree) | ~60 | 0 live (2 comment mentions) | grep |
-| Retired Button uses in the five M10 files | 35 | 0 | grep '<Button' + obsidian imports |
+| Silent-size doubles, my tree | 37 | 0 | grep text-[Npx]+text-mrd-(prose/base/small/label) |
+| Bare leadings, my tree | ~60 live | 0 live; 2 comment mentions | grep |
+| Retired Button uses, five files | ~35 | 0 | grep '<Button', obsidian imports |
 | hover:size traps | 7 | 0 | grep hover:text-mrd-prose |
-| tsc / bun test | - | exit 0 / 10,733 tests, 0 fail | full suite |
+| Gates | - | tsc exit 0; 10,733 tests, 0 fail | full suite |
 
-Fan-out note: two agents were interrupted mid-run but kept writing to the
-worktree afterwards; their edits landed while I verified. Detected by
-watching git diff --stat grow between polls and by the ratchet failing on
-a madder line I had already cleaned. Lesson recorded: after an interrupt,
-poll for quiescence (three consecutive identical diff-stats) before
-touching any file an agent owned.
+## Verified in the browser (dev server started and stopped for this)
 
-## Open items handed forward
+Landing page rendered post-sweep: h1 at display scale with tight leading;
+body copy 13px at 1.5; lead 17px; no layout breakage from the leading
+conversions. Console carries two PRE-EXISTING errors unrelated to this
+unit (SSR hydration attribute mismatch; Vite HMR worker blocked by CSP in
+dev only) - static className renames cannot cause either, and both should
+be investigated separately if they reproduce in production.
 
-1. GraphSlider remains the one obsidian import in ProductAnalyticsPanel;
-   Meridian has no slider component, so its replacement needs a meridian-gap
-   ruling first.
-2. ObsidianOnboarding keeps AiPulse on a deep retired path (tracked debt).
-3. Landing surfaces converted mechanically but not yet eyeballed; next unit
-   runs the dev server once and verifies Hero/TheGap/TrustClose render
-   before more copy work lands there.
-4. MissionOrchestratorDetail hierarchy pass (spacing roles, one focal point)
-   remains open as Wave 3 surface work; its controls and shapes are done.
+## Process lesson recorded
+
+Two subagents were interrupted mid-run but kept writing to the worktree
+afterwards. Detected by watching git diff --stat grow between polls and by
+the ratchet failing on a line already cleaned. After any interrupt: poll
+for quiescence (three consecutive identical diff-stats) before touching a
+file an agent owned, or two writers collide exactly the way main broke on
+2026-08-22.
+
+## Handed forward
+
+1. ProductAnalyticsPanel keeps GraphSlider on the retired barrel: Meridian
+   has no slider, so replacement needs a meridian-gap ruling first.
+2. ObsidianOnboarding keeps AiPulse on a deep retired path (tracked debt,
+   not growing).
+3. MissionOrchestratorDetail hierarchy pass (spacing roles, single focal
+   point) remains open Wave 3 surface work; controls and shapes are clean.
+4. Empty/loading/error states and source marks are the next ranked
+   missions untouched this session.
