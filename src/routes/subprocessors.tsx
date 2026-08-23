@@ -12,6 +12,7 @@
 // no jargon. Role-color law: active-vs-available is informational (not a verdict),
 // so it uses neutral ink tones, never the reserved ember/madder/moss accents.
 import { createFileRoute } from "@tanstack/react-router";
+import { PUBLIC_INK_THEME } from "@/components/landing/inkTheme";
 import { allSubprocessors, type SubProcessor } from "@/lib/compliance/subprocessors";
 
 const SITE = "https://supaprod.ai";
@@ -96,8 +97,21 @@ function SubprocessorsPage() {
   const inactive = all.filter((s) => !s.active);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b hairline px-5 py-3 flex items-center justify-between bg-background/60 backdrop-blur">
+    <div
+      className="min-h-screen"
+      style={{ ...PUBLIC_INK_THEME, background: "var(--paper)", color: "var(--ink)" }}
+    >
+      {/* This page has no ground mechanism of its own, so without the pinned ink
+          set above it silently re-themed light for light-theme users while every
+          other public page pins dark. The ground reads --paper from this same
+          element's spread (custom properties serve their own element), so it
+          pins dark with no raw colour. Same pattern as product.tsx. */}
+      <header
+        className="border-b hairline px-5 py-3 flex items-center justify-between backdrop-blur"
+        style={{
+          background: "color-mix(in srgb, var(--paper) 60%, transparent)",
+        }}
+      >
         <a href="/" className="font-display text-sm" style={{ color: "var(--ink)" }}>
           Supaprod
         </a>

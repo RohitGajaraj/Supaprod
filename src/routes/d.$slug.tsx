@@ -49,6 +49,11 @@ export const Route = createFileRoute("/d/$slug")({
 // defines, so this stops being three ad-hoc hexes on the one page an outsider is
 // shown as evidence. Every one renders its own word beside the dot, so the meaning
 // survives greyscale and never rests on hue.
+//
+// Known residue, recorded in requests/007: these three mrd status hues flip
+// light-tuned under data-theme="light" while this page pins dark, so a light
+// user sees muted status colour. Every NEUTRAL on the page reads
+// spread-pinned ink-family vars so nothing else flips with them.
 const STATUS: Record<string, { label: string; color: string }> = {
   approved: { label: "Approved", color: "var(--mrd-pass)" },
   rejected: { label: "Rejected", color: "var(--mrd-fail)" },
@@ -62,8 +67,15 @@ function Shell({ children }: { children: React.ReactNode }) {
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
-        background: "var(--mrd-bg)",
-        color: "var(--mrd-ink)",
+        // Pinned dark, not var(--mrd-bg): PUBLIC_INK_THEME below feeds .bento
+        // cards and .mono-label children fixed ink-family values, so an
+        // adaptive Meridian ground would flip white under a light theme and
+        // leave white text on white. The ground reads --paper from this same
+        // element's spread (custom properties serve their own element), so it
+        // pins dark with no raw colour. The public-pages fleet is dark-pinned
+        // by convention.
+        background: "var(--paper)",
+        color: "var(--ink)",
         isolation: "isolate",
         ...PUBLIC_INK_THEME,
       }}
@@ -75,7 +87,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       </div>
       <header
         style={{
-          borderBottom: "1px solid var(--mrd-line)",
+          borderBottom: "1px solid var(--soft-stone)",
           padding: "12px 18px",
           display: "flex",
           alignItems: "center",
@@ -97,7 +109,7 @@ function Shell({ children }: { children: React.ReactNode }) {
             Supaprod
           </span>
         </Link>
-        <span className="mono-label" style={{ fontSize: 9, color: "var(--mrd-faint)" }}>
+        <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint)" }}>
           shared decision
         </span>
       </header>
@@ -108,13 +120,13 @@ function Shell({ children }: { children: React.ReactNode }) {
 
       <footer
         style={{
-          borderTop: "1px solid var(--mrd-line)",
+          borderTop: "1px solid var(--soft-stone)",
           padding: "14px 18px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           fontSize: 11,
-          color: "var(--mrd-mute)",
+          color: "var(--ink-subtle)",
         }}
       >
         <span className="mono-label" style={{ fontSize: 9 }}>
@@ -138,7 +150,7 @@ function PublicDecisionPage() {
           <div className="font-display" style={{ fontSize: 20, marginBottom: 6 }}>
             Not available
           </div>
-          <p style={{ fontSize: 13, color: "var(--mrd-body)", margin: 0 }}>
+          <p style={{ fontSize: 13, color: "var(--ink-muted)", margin: 0 }}>
             This decision is private, or the link is no longer valid.
           </p>
         </div>
@@ -151,7 +163,7 @@ function PublicDecisionPage() {
   // status hue: a word we cannot place must not claim an outcome.
   const st = STATUS[decision.status] ?? {
     label: decision.status,
-    color: "var(--mrd-faint)",
+    color: "var(--ink-faint)",
   };
   const date = new Date(decision.created_at).toLocaleDateString(undefined, {
     year: "numeric",
@@ -163,7 +175,7 @@ function PublicDecisionPage() {
     <Shell>
       <div
         className="mono-label"
-        style={{ fontSize: 9, color: "var(--mrd-faint)", marginBottom: 10 }}
+        style={{ fontSize: 9, color: "var(--ink-faint)", marginBottom: 10 }}
       >
         Decision · {who} · {date}
       </div>
@@ -215,8 +227,8 @@ function PublicDecisionPage() {
             fontSize: 10,
             padding: "2px 8px",
             borderRadius: 99,
-            color: decision.outcome === "superseded" ? "var(--mrd-mute)" : "var(--mrd-pass)",
-            border: `1px solid ${decision.outcome === "superseded" ? "var(--mrd-line)" : "color-mix(in srgb, var(--mrd-pass) 35%, transparent)"}`,
+            color: decision.outcome === "superseded" ? "var(--ink-subtle)" : "var(--mrd-pass)",
+            border: `1px solid ${decision.outcome === "superseded" ? "var(--soft-stone)" : "color-mix(in srgb, var(--mrd-pass) 35%, transparent)"}`,
           }}
         >
           {decision.outcome === "superseded" ? "Superseded" : "Still stands"}
@@ -225,7 +237,7 @@ function PublicDecisionPage() {
       <div className="bento" style={{ padding: "var(--card-pad, 18px)" }}>
         <div
           className="mono-label"
-          style={{ fontSize: 9, color: "var(--mrd-faint)", marginBottom: 8 }}
+          style={{ fontSize: 9, color: "var(--ink-faint)", marginBottom: 8 }}
         >
           Why
         </div>
@@ -233,7 +245,7 @@ function PublicDecisionPage() {
           style={{
             fontSize: 14,
             lineHeight: 1.65,
-            color: "var(--mrd-body)",
+            color: "var(--ink-muted)",
             margin: 0,
             whiteSpace: "pre-wrap",
           }}
@@ -244,7 +256,7 @@ function PublicDecisionPage() {
       <p
         style={{
           fontSize: 11.5,
-          color: "var(--mrd-mute)",
+          color: "var(--ink-subtle)",
           marginTop: 18,
           lineHeight: 1.5,
         }}
