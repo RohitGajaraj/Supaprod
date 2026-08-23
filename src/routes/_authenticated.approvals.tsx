@@ -128,7 +128,7 @@ import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import { StalledWork, type StalledItem } from "@/components/meridian/StalledWork";
 
 import { CallGate } from "@/components/approvals/CallGate";
-import { Action, Approve, ReadFailed } from "@/components/meridian/surface-parts";
+import { Action, Approve, ReadFailed, Reading } from "@/components/meridian/surface-parts";
 import { CallContext, Key } from "@/components/approvals/CallContext";
 import { FilterExcludedEverything, QueueFilters } from "@/components/approvals/QueueFilters";
 import { SettledTrail, type SettledLine } from "@/components/approvals/SettledTrail";
@@ -582,9 +582,7 @@ function ApprovalsSurface() {
             live elapsed timer and belongs where an agent genuinely runs for
             seconds. On an ordinary read it would invent a wait. */}
         {queue.isLoading ? (
-          <p className="text-mrd-base text-mrd-mute" role="status" aria-live="polite">
-            Reading the queue.
-          </p>
+          <Reading>Reading the queue.</Reading>
         ) : queue.isError ? (
           <ReadFailed
             onRetry={() => void queue.refetch()}

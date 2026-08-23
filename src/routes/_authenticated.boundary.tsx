@@ -192,7 +192,7 @@ function DeclinedLedger({
   if (q.isError) {
     return (
       <Region title="What they did not do">
-        <NothingHere>The record could not be read. Your boundary is unchanged.</NothingHere>
+        <ReadFailedLine>The record could not be read. Your boundary is unchanged.</ReadFailedLine>
       </Region>
     );
   }

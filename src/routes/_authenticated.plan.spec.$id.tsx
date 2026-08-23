@@ -1486,22 +1486,32 @@ function SpecEditorPage() {
           <div className="flex flex-col gap-mrd-6">
             <div className="flex flex-col gap-mrd-4">
               <CtxHead>Linked work</CtxHead>
+              {/* The failure is said OUTSIDE the paragraph below, not inside
+                  it: `ReadFailedLine` draws a div and `CtxBody` draws a p, so
+                  nesting one in the other is markup the browser refuses. It
+                  takes nothing away to make room — the GitHub fact comes off
+                  the spec row rather than the tasks and stays either way,
+                  which is also why this mirrors the task list's own failure
+                  arm instead of replacing the sentence with it. */}
+              {tasksQ.isError ? (
+                <ReadFailedLine onRetry={() => void tasksQ.refetch()}>
+                  The work on this spec did not load.
+                </ReadFailedLine>
+              ) : null}
               <CtxBody>
                 {/* THE COUNT IS NOT CLAIMED UNLESS IT IS KNOWN.
                   `listTasks` has no failure path anywhere on this page, so a
-                  refused read left `tasksQ.data` undefined, `prdTasks` [], and
-                  this rail printed "0 tasks on this spec." as a FACT beside a
-                  block that printed "No tasks yet." as another one. Two
-                  confident statements, both manufactured out of an error nobody
-                  handled, on the question this rail exists to answer.
-                  primitives.tsx states the rule at <Failed>: "nothing here" and
-                  "we could not find out" are different facts and a person acts
-                  differently on each. So the count speaks only when the read
-                  answered, and the GitHub fact beside it is unaffected either
-                  way because it comes off the spec row rather than the tasks. */}
-                {tasksQ.isError ? (
-                  <span className="text-mrd-fail">The work on this spec did not load.</span>
-                ) : tasksQ.isLoading ? (
+                 refused read left `tasksQ.data` undefined, `prdTasks` [], and
+                 this rail printed "0 tasks on this spec." as a FACT beside a
+                 block that printed "No tasks yet." as another one. Two
+                 confident statements, both manufactured out of an error nobody
+                 handled, on the question this rail exists to answer.
+                 primitives.tsx states the rule at <Failed>: "nothing here" and
+                 "we could not find out" are different facts and a person acts
+                 differently on each. So the count speaks only when the read
+                 answered, and the GitHub fact beside it is unaffected either
+                 way because it comes off the spec row rather than the tasks. */}
+                {tasksQ.isError ? null : tasksQ.isLoading ? (
                   "Reading the work on this spec."
                 ) : (
                   <>

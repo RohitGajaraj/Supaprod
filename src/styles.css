@@ -44,24 +44,26 @@
  *
  * FOOTGUN (fixed 2026-07-11, do not reintroduce): this file still carries a
  * legacy `[data-obsidian]` token block (~line 1690) with historical Ember
- * voice-name vars (--font-serif/--font-ui/--font-dotted/--font-pencil). A
- * later corrective `[data-obsidian]` block (~line 2887) re-aliases them to
+ * voice-name vars (--font-serif/--font-pencil). A
+ * later corrective `[data-obsidian]` block re-aliases them to
  * Geist and wins the cascade (same selector, later source order). Any legacy
  * -named font var must always resolve through --font-sans/--font-mono/
  * --font-pixel — never a literal font-family string — in BOTH blocks.
  *
  * SAME FOOTGUN, COLOR EDITION (found + fixed 2026-07-11): the early
  * `[data-obsidian]` block also held the named role colors --rose,
- * --primary-ink, --deep-green, and --action-blue, and --agent as either a
+ * --deep-green, and --action-blue, and --agent as either a
  * literal legacy hex or a var() pointing at an unaliased "working palette"
  * var (--pearl/--cornflower/--mauve — themselves still legacy hexes with no
  * corrective re-alias). The later corrective block never redeclared any of
- * the five, so under the live `<div data-obsidian>` app scope (which the
+ * the four, so under the live `<div data-obsidian>` app scope (which the
  * root `:root` rules do not directly match — only `[data-obsidian]` does)
  * these silently resolved to pre-Tempo values. Fixed the same way as the
  * font footgun: each now aliases directly via var() to the same --ds-*
- * token the corrected :root block already uses for that name. The broader
- * "working palette" data-viz hexes (--tangerine/--melon/--cornflower/
+ * token the corrected :root block already uses for that name. (--primary-ink
+ * had the same fix applied then; every scope's copy was pruned 2026-08-24
+ * after its last consumer went.) The broader
+ * "working palette" data-viz hexes (--tangerine/--cornflower/
  * --mauve/--teal/--pearl/etc.) and the retired pencil-annotation vars are
  * intentionally left as-is — no unambiguous 1:1 Tempo target exists for
  * that bespoke chart palette; do not guess-alias them without a design call.
@@ -91,8 +93,6 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
@@ -100,27 +100,9 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-ring-offset-background: var(--background);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
   --color-paper: var(--paper);
@@ -183,7 +165,6 @@
   --radius: 0.5rem; /* 8px controls · cards 12px · hero 14px · pills 99px */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --dur-fast: 140ms;
   --dur-base: 180ms;
   --dur-slow: 260ms;
@@ -270,19 +251,14 @@
   /* Rules — whisper-light; depth comes from surface tints, not lines */
   --hairline: oklch(0.905 0.01 80);
   --hairline-strong: oklch(0.82 0.013 75);
-  --border-light: oklch(0.92 0.011 80);
-  --card-border: oklch(0.94 0.011 82);
 
   /* Brand roles */
-  --primary-ink: oklch(0.215 0.018 50); /* cacao block (logo, toast) */
   --deep-green: oklch(0.3 0.018 75); /* approve — solid espresso, premium */
   --action-blue: oklch(
     0.47 0.11 245
   ); /* links + running state — clean rich blue (was indigo 265) */
   --focus-blue: oklch(0.55 0.12 245);
-  --form-focus: var(--focus-blue);
   --coral: var(--ember); /* legacy token name → ember */
-  --coral-soft: var(--ember-soft);
   --saffron: oklch(0.8 0.12 85); /* highlight / celebration */
   /* Agent presence is the machine's RICH BLUE (refined ruling 2026-07-11:
      orchid/violet retired from AI treatments). Late-bound var so this early
@@ -300,7 +276,6 @@
 
   /* Hero / dark product band — deep plum-umber, lifted by the aurora. */
   --hero-bg: oklch(0.27 0.03 40);
-  --hero-ink: oklch(0.965 0.008 85);
   --dark-navy: var(--hero-bg);
 
   /* PC-37 density pass (2026-07-12): compact spacing for world-class density
@@ -312,7 +287,6 @@
     --ds-size-small
   ); /* button/input height, 32px — alias of the Tempo v5 scale, not a second one */
   --row-h: 38px; /* table/list row height (was 48px) */
-  --bento-pad: 14px; /* bento grid cell padding (from aurora cards) */
 
   --background: var(--paper);
   --foreground: var(--ink);
@@ -347,29 +321,7 @@
   --sidebar-border: var(--hairline);
   --sidebar-ring: var(--focus-blue);
 
-  /* Decorative washes — the hero aurora and cooking sweep are the only
-   * sanctioned gradients. Everything else is flat parchment. */
-  --gradient-aurora:
-    radial-gradient(
-      60% 70% at 20% 30%,
-      color-mix(in oklab, var(--pale-green) 100%, transparent) 0%,
-      transparent 70%
-    ),
-    radial-gradient(
-      50% 60% at 80% 20%,
-      color-mix(in oklab, var(--pale-blue) 100%, transparent) 0%,
-      transparent 70%
-    );
-  --gradient-card: linear-gradient(180deg, var(--canvas) 0%, var(--surface-1) 100%);
-  --gradient-trace: linear-gradient(90deg, var(--agent), var(--action-blue) 55%, var(--ember));
-  --shadow-glass: 0 1px 0 0 var(--hairline) inset, 0 1px 2px -1px oklch(0.2 0.02 60 / 8%);
   --shadow-elevated: 0 1px 0 0 var(--hairline) inset, 0 8px 24px -12px oklch(0.2 0.02 60 / 16%);
-  --shadow-focus: 0 0 0 2px color-mix(in oklab, var(--focus-blue) 70%, transparent);
-
-  /* Subscription status glow effects (Settings billing section) */
-  --glow-subscription-active: 0 0 8px color-mix(in srgb, var(--marigold) 50%, transparent);
-  --glow-subscription-past-due: 0 0 8px color-mix(in srgb, var(--madder) 50%, transparent);
-  --glow-subscription-default: 0 0 8px color-mix(in srgb, var(--moss) 50%, transparent);
 
   /* Modal overlay backdrop (near-black, 60% opacity, blurred) */
   --overlay-modal: oklch(0.015 0.002 60 / 60%);
@@ -401,16 +353,11 @@
 
   --hairline: oklch(0.92 0.02 80 / 19%);
   --hairline-strong: oklch(0.92 0.02 80 / 32%);
-  --border-light: oklch(0.92 0.02 80 / 14%);
-  --card-border: oklch(0.92 0.02 80 / 11%);
 
-  --primary-ink: var(--ember);
   --deep-green: oklch(0.9 0.01 80);
   --action-blue: oklch(0.72 0.11 240);
   --focus-blue: oklch(0.72 0.12 240);
-  --form-focus: var(--focus-blue);
   --coral: var(--ember);
-  --coral-soft: oklch(0.5 0.09 55);
   --saffron: oklch(0.84 0.11 88);
   --agent: var(--ds-blue-600); /* machine blue; orchid retired (2026-07-11) */
 
@@ -423,7 +370,6 @@
 
   /* dark hero — deeper than the floor, ember bloom in one corner */
   --hero-bg: oklch(0.115 0.005 55);
-  --hero-ink: oklch(0.965 0.008 85);
   --dark-navy: var(--hero-bg);
 
   --background: var(--paper);
@@ -459,23 +405,8 @@
   --sidebar-border: var(--hairline);
   --sidebar-ring: var(--focus-blue);
 
-  --gradient-aurora:
-    radial-gradient(
-      55% 75% at 18% 28%,
-      color-mix(in oklab, var(--ember) 14%, transparent) 0%,
-      transparent 65%
-    ),
-    radial-gradient(
-      50% 65% at 82% 22%,
-      color-mix(in oklab, var(--action-blue) 10%, transparent) 0%,
-      transparent 65%
-    );
-  --gradient-card: linear-gradient(180deg, var(--surface-1) 0%, var(--canvas) 100%);
-  --gradient-trace: linear-gradient(90deg, var(--agent), var(--action-blue) 55%, var(--ember));
-  --shadow-glass: 0 1px 0 0 oklch(0.95 0.015 85 / 4%) inset, 0 8px 32px -8px oklch(0 0 0 / 55%);
   --shadow-elevated:
     0 1px 0 0 oklch(0.95 0.015 85 / 5%) inset, 0 24px 60px -20px oklch(0 0 0 / 70%);
-  --shadow-focus: 0 0 0 2px color-mix(in oklab, var(--focus-blue) 65%, transparent);
 }
 
 /* Responsive breakpoints — fluid padding and spacing */
@@ -1234,35 +1165,23 @@ html[data-motion="off"] .agent-live {
   /* Blossom: pink CATEGORICAL color only (graph categories, the pet-feature
      pencil tag). NOT a link color since 2026-07-11 — links are glacier. */
   --blossom: #e5bddf;
-  /* Blush: alternate light tint for small mono-caps labels. */
-  --blush: #f3c1c1;
 
   /* === Working palette · data only; role colors never plot data === */
   /* Spend and cost */
   --tangerine: #f97316;
   --marigold-data: #e8a33d;
-  --melon: #ff9466;
-  /* Severity, Safety room only */
-  --scarlet: #e23d33;
-  --poppy: #f0533f;
   /* User-behavior data */
   --flamingo: #f26b8a;
-  --magenta: #c2337e;
   --rose: var(
     --ds-red-600
   ); /* aliased to Tempo (2026-07-11 fix): matches --madder/--destructive and the corrected :root block below, so the alert/failure role reads identically whether or not the data-obsidian scope is active */
   /* Agent identity (one fixed shade per face) */
   --mauve: #b78bc7;
-  --amethyst: #7e5aa6;
   /* Benchmarks, baselines, comparisons. Retuned 2026-07-11 to harmonize with
      the ~215 glacier hue (was #6b8afd/#3b5bdb at hue ~228): same hue family,
      separated by lightness, so only glacier reads as THE blue. Chart series
      literals are a sanctioned exception to token-tracing. */
   --cornflower: #5c88c9;
-  --cobalt: #2f5d9e;
-  /* Chart annotations, calendar density */
-  --lemon: #f2e27a;
-  --daffodil: #f5d94e;
   /* The machine's data series */
   --teal: #2e9e8f;
   /* Axes, grids, de-emphasized, disabled */
@@ -1275,20 +1194,12 @@ html[data-motion="off"] .agent-live {
      @theme block would silently win (last-declaration-wins) and revert it. */
 
   --text-card-title: 20px; /* Geist display, 1.3 */
-  --tempo-text-sm: 12px;
 
-  --leading-body: 1.55;
-  --leading-display: 1.15;
-  --tracking-mono: 0.12em;
-  --tracking-display: -0.015em;
-
-  /* === tokens/geometry.css · 4px grid; rhythm 8/12/16/24/40 === */
+  /* === tokens/geometry.css · 4px grid; rhythm 8/12/16 === */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
-  --space-6: 24px;
-  --space-10: 40px;
 
   --radius-control: 8px;
   --radius-card: 12px;
@@ -1314,13 +1225,10 @@ html[data-motion="off"] .agent-live {
   );
 
   /* === Density (extensions §8) · comfortable is the spec as written.
-   * Compact = rows lose one rhythm step; type NEVER changes; the loop strip
+   * Compact = cards lose one rhythm step; type NEVER changes; the loop strip
    * and top bar are exempt (consumption rule for the components). === */
-  --density-row-pad-y: 14px;
-  --density-row-pad-x: 18px;
   --density-card-pad: 20px;
   --density-card-pad-lg: 22px;
-  --density-list-gap: 13px;
 
   /* === SEMANTIC BRIDGE · shadcn + parchment names -> Obsidian values ===
    * Keeps every existing component readable under the scope (coherent dark)
@@ -1370,11 +1278,6 @@ html[data-motion="off"] .agent-live {
   --soft-stone: var(--raised);
   --pale-green: var(--raised);
   --pale-blue: var(--raised);
-  --border-light: var(--hairline-faint);
-  --card-border: var(--hairline-faint);
-  --primary-ink: var(
-    --ds-gray-1000
-  ); /* aliased to Tempo (2026-07-11 fix): was var(--pearl), an unaliased legacy hex; now matches the corrected :root block */
   --deep-green: var(
     --ds-green-800
   ); /* aliased to Tempo (2026-07-11 fix): was var(--pearl) — wrong scale entirely (the approve-button role needs green, not the pearl axis color); now matches the corrected :root block */
@@ -1382,18 +1285,13 @@ html[data-motion="off"] .agent-live {
     --ds-blue-600
   ); /* aliased to Tempo (2026-07-11 fix): was var(--cornflower), an unaliased legacy hex; now matches the corrected :root block */
   --focus-blue: var(--focus-ring);
-  --form-focus: var(--focus-ring);
   --saffron: var(--marigold);
   --agent: var(
     --ds-blue-600
   ); /* machine blue (refined ruling 2026-07-11): orchid/violet retired from agent presence */
   --emerald: var(--moss);
   --hero-bg: var(--surface-card-deep);
-  --hero-ink: var(--text-primary);
   --dark-navy: var(--surface-card-deep);
-
-  /* Depth = hairlines, never shadows (contract: hairlines replace shadows). */
-  --shadow-focus: 0 0 0 2px var(--focus-ring);
 }
 
 /* Obsidian base: jet-black cockpit, working voice, glacier focus, ember
@@ -1453,11 +1351,8 @@ html[data-motion="off"] .agent-live {
  * scope root or any subtree (Settings -> You, extensions §8). */
 [data-obsidian][data-density="compact"],
 [data-obsidian] [data-density="compact"] {
-  --density-row-pad-y: 10px;
-  --density-row-pad-x: 14px;
   --density-card-pad: 16px;
   --density-card-pad-lg: 18px;
-  --density-list-gap: 9px;
 }
 
 /* === tokens/motion.css · the eight cad* keyframes, VERBATIM ===
@@ -1548,19 +1443,6 @@ html[data-motion="off"] .agent-live {
   }
 }
 
-/* OBS-14 — the onboarding Arrival butterfly's one-shot fly-in, before it
- * settles into the cadFlutter idle rest. */
-@keyframes cadArrive {
-  from {
-    opacity: 0;
-    transform: translateY(18px) scale(0.92);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
 /* Slide-over entrance from the right */
 @keyframes cadSlideIn {
   from {
@@ -1598,26 +1480,19 @@ html[data-motion="off"] .agent-live {
   --cta-ink: #160903;
 
   /* §2 light and depth: one ambient light source from above.
-   * Three-tier elevation system (Tempo v5 enforcement 2026-07-17):
-   *   --shadow-ambient  : cards at rest, slight depth (no top-light)
+   * Two-tier elevation system (was three; --shadow-ambient had no consumers
+   * left and was pruned 2026-08-24):
    *   --shadow-raised   : hover-lifted cards, floated elements, popovers
    *   --shadow-elevated : modals, dropdowns, persistent overlays
-   * Use only these three — never inline rgba literals. */
+   * Use only these two — never inline rgba literals. */
   --top-light: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  --top-light-hover: inset 0 1px 0 rgba(255, 255, 255, 0.07);
-  --shadow-ambient: 0 8px 24px -12px rgba(0, 0, 0, 0.55);
   --shadow-raised: inset 0 1px 0 var(--ds-gray-alpha-200), 0 8px 24px -12px rgba(0, 0, 0, 0.55);
   --shadow-overlay: 0 24px 64px -16px rgba(0, 0, 0, 0.65);
-  --shadow-glass: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   --shadow-elevated: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 24px -12px rgba(0, 0, 0, 0.55);
 
   /* §5 motion doctrine tokens (Kowalski/Freiberg school) */
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --dur-press: 140ms;
-  --dur-pop: 180ms;
-  --dur-panel: 240ms;
-  --dur-drawer: 300ms;
 
   /* §6 the thread: one connective line language (moves ONLY where the
    * machine is genuinely alive). Refined 2026-07-11: violet is retired from
@@ -1631,7 +1506,6 @@ html[data-motion="off"] .agent-live {
   );
 
   /* §4b desktop-first canvas: container tiers */
-  --container-standard: 1240px;
   --container-work: 1520px;
 }
 
@@ -2049,7 +1923,7 @@ html[data-motion="off"] .ai-pulse-text {
      "not good" was a brief to redesign, not to flatten to gray). The scale
      keeps hue ~215 but carries more chroma at slightly deeper lightness so
      it reads luminous and confident, never washed. Every consumer
-     (--glacier, --machine, --link, --action-blue, --cyan, --chart-1, focus
+     (--glacier, --link, --action-blue, --cyan, --chart-1, focus
      outlines) resolves to this family. Stock Geist #0090ff stays retired,
      and violet is retired from every AI treatment. */
   --ds-blue-100: #0d1726;
@@ -2086,33 +1960,23 @@ html[data-motion="off"] .ai-pulse-text {
   /* --- Materials / motion / sizes (theme-invariant) --- */
   --ds-shadow-background-border: 0 0 0 1px var(--ds-background-200);
   --ds-shadow-border-base: 0 0 0 1px #ffffff25;
-  --ds-shadow-border: var(--ds-shadow-border-base), var(--ds-shadow-background-border);
-  --ds-shadow-2xs: 0px 1px 1px #00000029;
-  --ds-shadow-xs: 0px 1px 2px #00000029;
   --ds-shadow-small: 0px 1px 2px #00000029;
   --ds-shadow-medium: 0px 2px 2px #00000052, 0px 8px 8px -8px #00000029;
   --ds-shadow-large: 0px 2px 2px #0000000a, 0px 8px 16px -4px #0000000a;
-  --ds-shadow-xl: 0px 1px 1px #00000005, 0px 4px 8px -4px #0000000a, 0px 16px 24px -8px #0000000f;
-  --ds-shadow-2xl: 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a, 0px 24px 32px -8px #0000000f;
   --ds-shadow-border-small:
     var(--ds-shadow-border-base), var(--ds-shadow-small), var(--ds-shadow-background-border);
   --ds-shadow-border-medium:
     var(--ds-shadow-border-base), var(--ds-shadow-medium), var(--ds-shadow-background-border);
   --ds-shadow-border-large:
     var(--ds-shadow-border-base), var(--ds-shadow-large), var(--ds-shadow-background-border);
-  --ds-shadow-tooltip:
-    var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 4px 8px #0000000a,
-    var(--ds-shadow-background-border);
   --ds-shadow-menu:
     var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 4px 8px -4px #0000000a,
     0px 16px 24px -8px #0000000f, var(--ds-shadow-background-border);
   --ds-shadow-modal:
     var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a,
     0px 24px 32px -8px #0000000f, var(--ds-shadow-background-border);
-  --ds-shadow-fullscreen: var(--ds-shadow-modal);
   --ds-radius-small: 6px;
   --ds-radius-medium: 12px;
-  --ds-radius-large: 16px;
   --ds-motion-timing-swift: cubic-bezier(0.175, 0.885, 0.32, 1.1);
   --ds-motion-overlay-duration: 0.3s;
   --ds-motion-popover-duration: 0.2s;
@@ -2151,45 +2015,21 @@ html[data-motion="off"] .ai-pulse-text {
   --ds-focus-ring: 0 0 0 2px var(--ds-background-100), 0 0 0 4px var(--ds-focus-color);
   /* keyboard focus as a plain outline (dialog/sheet close buttons need it) */
   --ds-focus-ring-outline: 2px solid var(--ds-focus-color); /* overridden by [data-theme] */
-  /* modal/sheet/drawer backdrops were invisible without these (theme-invariant) */
-  --ds-overlay-backdrop-color: #000;
-  --ds-overlay-backdrop-opacity: 0.8;
   --ds-black: #000;
   --ds-white: #fff;
-  --brand: var(--ds-ember-600);
 
-  /* --- Spacing ramp (tokens/spacing.css, copied verbatim: this sheet is the
-     only stylesheet the app loads, so it must carry the full contract) --- */
-  --geist-space: 4px;
+  /* --- Spacing ramp (tokens/spacing.css; pruned 2026-08-24 to the members
+     with live consumers — the rest of the verbatim copy was dead) --- */
   --geist-space-2x: 8px;
   --geist-space-3x: 12px;
   --geist-space-4x: 16px;
-  --geist-space-6x: 24px;
-  --geist-space-8x: 32px;
-  --geist-space-10x: 40px;
-  --geist-space-16x: 64px;
-  --geist-space-24x: 96px;
-  --geist-space-32x: 128px;
-  --geist-space-48x: 192px;
-  --geist-space-64x: 256px;
   --geist-gap: 24px;
-  --geist-gap-half: 12px;
-  --geist-gap-quarter: 8px;
-  --geist-gap-double: 40px;
   --geist-gap-section: 32px;
-  --geist-space-negative: -4px;
-  --geist-space-2x-negative: -8px;
-  --geist-space-4x-negative: -16px;
-  --geist-space-8x-negative: -32px;
-  --geist-space-16x-negative: -64px;
-  --geist-space-24x-negative: -96px;
-  --geist-space-32x-negative: -128px;
 
   /* --- Glacier + shimmer at root (founder rulings A + B, 2026-07-11) so
      consumers OUTSIDE the [data-obsidian] scope (landing, .btn, .agent-live,
      .ai-glow) resolve the same family --- */
   --glacier: var(--ds-blue-600);
-  --machine: var(--glacier);
   --link: var(--glacier);
   /* Violet retired from AI treatments (refined ruling 2026-07-11): the sweep
      stays inside the rich blue family. */
@@ -2207,7 +2047,6 @@ html[data-motion="off"] .ai-pulse-text {
      touching every rule. --dur-fast (140ms) has no Tempo equivalent, kept. --- */
   --ease-out: var(--ds-motion-timing-swift);
   --ease-in-out: var(--ds-motion-timing-swift);
-  --ease-drawer: var(--ds-motion-timing-swift);
   --dur-base: var(--ds-motion-popover-duration);
   --dur-slow: var(--ds-motion-overlay-duration);
 
@@ -2230,15 +2069,10 @@ html[data-motion="off"] .ai-pulse-text {
   --ink-faint: var(--ds-gray-600);
   --hairline: var(--ds-gray-alpha-400);
   --hairline-strong: var(--ds-gray-alpha-500);
-  --border-light: var(--ds-gray-alpha-300);
-  --card-border: var(--ds-gray-alpha-300);
-  --primary-ink: var(--ds-gray-1000);
   --deep-green: var(--ds-green-800);
   --action-blue: var(--ds-blue-600);
   --focus-blue: var(--ds-focus-color);
-  --form-focus: var(--ds-focus-color);
   --coral: var(--ds-ember-600);
-  --coral-soft: var(--ds-ember-900);
   --saffron: var(--ds-amber-600);
   --agent: var(--ds-blue-600); /* machine blue; orchid retired (2026-07-11) */
   --violet: var(--ds-purple-600);
@@ -2248,11 +2082,8 @@ html[data-motion="off"] .ai-pulse-text {
   --emerald: var(--ds-green-700);
   --rose: var(--ds-red-600);
   --hero-bg: var(--ds-background-200);
-  --hero-ink: var(--ds-gray-1000);
   --dark-navy: var(--ds-background-200);
-  --shadow-glass: var(--ds-shadow-border-small);
   --shadow-elevated: var(--ds-shadow-border-medium);
-  --shadow-focus: var(--ds-focus-ring);
 
   /* --- shadcn semantic vars → Tempo dark --- */
   --background: var(--ds-background-100);
@@ -2356,13 +2187,9 @@ html[data-motion="off"] .ai-pulse-text {
   --ds-pink-700: #f22782;
   --ds-pink-900: #c41562;
   --ds-shadow-border-base: 0 0 0 1px #00000014;
-  --ds-shadow-2xs: 0px 1px 1px #0000000a;
-  --ds-shadow-xs: 0px 1px 2px #0000000a;
   --ds-shadow-small: 0px 2px 2px #0000000a;
   --ds-shadow-medium: 0px 2px 2px #0000000a, 0px 8px 8px -8px #0000000a;
   --ds-shadow-large: 0px 2px 2px #0000000a, 0px 8px 16px -4px #0000000a;
-  --ds-shadow-xl: 0px 1px 1px #00000005, 0px 4px 8px -4px #0000000a, 0px 16px 24px -8px #0000000f;
-  --ds-shadow-2xl: 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a, 0px 24px 32px -8px #0000000f;
   --destructive: var(--ds-red-800);
   /* Focus color, light theme (same as the root default). Not ember: see the
      note at the `:root` declaration. */
@@ -2389,9 +2216,6 @@ html[data-motion="off"] .ai-pulse-text {
   --card: var(--ds-gray-100);
   --raised: var(--ds-gray-200);
   --hover: var(--ds-gray-200);
-  --surface-active: var(--ds-gray-300);
-  --surface-canvas: var(--ds-background-100);
-  --surface-rail: var(--ds-background-200);
   --surface-card: var(--ds-gray-100);
   --surface-card-deep: var(--ds-background-200);
   --surface-raised: var(--ds-gray-200);
@@ -2432,7 +2256,6 @@ html[data-motion="off"] .ai-pulse-text {
   --text-subtle: var(--ds-gray-700);
   --text-faint: var(--ds-gray-600);
   --ember: var(--mrd-you); /* was var(--ds-ember-600); both grounds value-identical to Meridian's you */
-  --ember-deep: var(--ds-ember-800);
   --ember-soft: var(--ds-ember-900);
   /* Loom ember sub-tokens re-based on the Tempo scale (2026-07-11): the early
      Loom block held retired literals (#ff8a50, rgba(255,107,44,...), #ff7a3d,
@@ -2443,13 +2266,9 @@ html[data-motion="off"] .ai-pulse-text {
   --cta-grad-top: var(--ds-ember-600);
   --cta-grad-bottom: var(--ds-ember-700);
   --glacier: var(--ds-blue-600);
-  /* RETIRED from AI treatments (refined ruling 2026-07-11): degrades to the
-     blue family for any stale consumer. */
-  --violet-shimmer: var(--ds-blue-900);
   /* --blossom intentionally NOT overridden here (2026-07-11): it returns to
      its original pink categorical value in the early block; links use
      var(--link) -> glacier. Do not re-point blossom at blue again. */
-  --fuchsia: var(--ds-pink-700);
   /* Pencil annotations re-based on theme-flipping ds ramps (2026-07-11): the
      early block's pastels were dark-only literals with no light override, so
      DesignationTag inks washed out on light backgrounds. The 900 steps read
@@ -2462,10 +2281,7 @@ html[data-motion="off"] .ai-pulse-text {
   --madder: var(--ds-red-600);
   --madder-bright: var(--ds-red-900);
   --marigold: var(--ds-amber-600);
-  --cta: var(--ds-ember-600);
-  --cta-pressed: var(--ds-ember-800);
   --cta-ink: var(--ds-background-100);
-  --machine: var(--glacier);
   --link: var(--glacier);
   --focus-ring: var(--ds-focus-color);
   --selection: color-mix(in srgb, var(--text-primary) 20%, transparent);
@@ -2478,8 +2294,6 @@ html[data-motion="off"] .ai-pulse-text {
      intentionally NOT redeclared - the @theme definition is the single
      source of truth (see the guardrail note in the early block). */
   --font-serif: var(--font-sans);
-  --font-ui: var(--font-sans);
-  --font-dotted: var(--font-pixel);
   /* Pencil annotations are the app's one sanctioned personality touch
      (PencilLabel in obsidian/pencil-mark.tsx, the insight/scale labels in
      supaprod/Sketch.tsx) - they need Pixel to actually read as different from
@@ -2490,11 +2304,6 @@ html[data-motion="off"] .ai-pulse-text {
      equivalent and keep their early-block values. */
   --ease: var(--ds-motion-timing-swift);
   --ease-in-out: var(--ds-motion-timing-swift);
-  --ease-drawer: var(--ds-motion-timing-swift);
-  --dur-panel: var(--ds-motion-popover-duration);
-  --dur-pop: var(--ds-motion-popover-duration);
-  --dur-page: var(--ds-motion-overlay-duration);
-  --dur-drawer: var(--ds-motion-overlay-duration);
 }
 
 /* --- Tempo type classes (tokens/typography.css) + material presets ---
