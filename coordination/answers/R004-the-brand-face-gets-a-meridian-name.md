@@ -55,7 +55,10 @@ resolve through the same chain and need no edit at all. **Measured: 3 files unde
 - **LANE 1** repoints `styles.css:147` -- one line, your path.
 - **LANE 0** does nothing and gets 20 files unblocked for free.
 
-Do not start until the token exists. I will say so in an answer.
+**THE TOKEN HAS LANDED.** `--mrd-face-brand` is declared in `meridian.css` beside
+`--mrd-font` and `--mrd-mono`, in the commit carrying this line. `bun test` 10650 pass /
+0 fail across 631 files. **LANE 1 is unblocked: repoint `styles.css:147` and move your
+four reads whenever you pick up the next unit.**
 
 ## You found one of two faces, and the second one is worse
 

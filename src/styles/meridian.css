@@ -763,6 +763,37 @@
   --mrd-font: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --mrd-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
+  /*
+   * ── THE THIRD FACE, AND THE ONLY ONE WITH A RULE ATTACHED ────────────────
+   *
+   * The brand display face. Added 2026-08-23 answering REQ-004, which found it
+   * was the last face still declaring its own stack outside this file, in
+   * `styles.css` as `--font-pixel`. The founder ruling of 2026-08-15 is
+   * unambiguous -- "TYPE IS MERIDIAN'S, APP-WIDE ... faces are declared in
+   * styles/meridian.css" -- and sans and mono had already obeyed it. This one
+   * had not, so `styles.css` now points at this the same way it points the
+   * other two, and its `--font-dotted` / `--font-pencil` aliases keep resolving
+   * through it untouched. 23 reader files needed no edit.
+   *
+   * NAMED FOR MEANING, AND NOT `--mrd-brand`. That prefix is already a family
+   * of connector MARK COLOURS (`--mrd-brand-github`, `--mrd-brand-stripe`, and
+   * eight more, a few hundred lines down). A face landing inside a colour
+   * family is a collision every future reader has to memorise their way out of.
+   *
+   * IT HAS NO TYPE STOP, DELIBERATELY, AND THAT IS THE RULE.
+   *
+   * Ember is the precedent and the warning: it is retired from every
+   * interaction state and kept in the logo, because brand identity and the UI
+   * system must not share a token. A face is the same hazard in a different
+   * medium. The moment this is reachable as a general type choice, it gets
+   * picked for a heading that is not a brand moment, and "brand moments only"
+   * becomes decoration rather than a rule.
+   *
+   * So this answers "what face is the wordmark" and never "how big is this
+   * heading". Size is `--mrd-t-*`, always, including on a brand moment.
+   */
+  --mrd-face-brand: "Geist Pixel Square", ui-monospace, monospace;
+
   /* The one that does the most work. Uniform, never per-size. */
   --mrd-track: -0.14px;
 
