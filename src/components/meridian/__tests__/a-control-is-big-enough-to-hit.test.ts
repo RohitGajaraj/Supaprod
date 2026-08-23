@@ -41,7 +41,9 @@ const WCAG_AAA_TARGET_PX = 44;
 function controlShape(src: string): string {
   const m = src.match(/export const CONTROL_SHAPE\s*=\s*\n?\s*"([^"]+)"/);
   if (!m) {
-    throw new Error("CONTROL_SHAPE is gone or no longer a plain string; this guard needs rewriting rather than deleting");
+    throw new Error(
+      "CONTROL_SHAPE is gone or no longer a plain string; this guard needs rewriting rather than deleting",
+    );
   }
   return m[1];
 }
