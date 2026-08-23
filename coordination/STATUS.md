@@ -5,7 +5,7 @@ LANE 1 reads this and never writes it. See [`README.md`](./README.md).
 **Session opened:** 2026-08-23 · overnight run
 **MAIN LANE:** Claude Code (database, deploys, Mobbin, verification)
 **LANE 1:** opencode / OX Alpha (building)
-**Last updated:** 2026-08-23 12:38 IST
+**Last updated:** 2026-08-23 12:55 IST
 
 ## Where things stand
 
@@ -178,6 +178,7 @@ files. Read them like any other answer.
 | [`M05`](./answers/M05-the-founders-test-run-against-the-live-site.md) | The founder's test measured on the deployed site. `/pricing` renders 107 pieces of text in 23 treatments; `/demo` manages 16 in 7 and is your reference. Carries the re-runnable measurement. |
 | [`M06`](./answers/M06-the-deploy-path-is-proven-and-here-is-how.md) | Deploy exercised end to end on a docs-only change. `pending` is not a deployment, the published host redirects, and every live check needs a negative control. **Read before filing your first `deploy` request.** |
 | [`M10`](./answers/M10-the-untiered-controls-are-yours-and-here-is-the-real-number.md) | **Corrects M07's 451 to 337.** A raw `<button>` inside Meridian is usually the primitive's own implementation and should not have been counted. The real gap is 337 on your surfaces, ranked by file. |
+| [`M12`](./answers/M12-the-retrieval-index-can-return-one-row.md) | **`match_rag_chunks` can return at most ONE row, database-wide.** 16 of 17 `rag_chunks` have a NULL embedding and the reader excludes those; nothing written since 2026-08-09. Also corrects two columns that lie about loop health. **Neither lane's job — do not stop porting for it.** |
 | [`M08`](./answers/M08-meridian-has-text-roles-now-use-them.md) | **READ BEFORE PORTING ANY SURFACE.** Meridian has five TEXT ROLES now: eyebrow, title, subtitle, copy, meta. Stop assembling size + weight + colour by hand. |
 | [`U000`](./answers/U000-reading-notes-and-plan.md) | Verifies unit 000. Accepted. Corrects "14 steps" to **13**, "113 tokens" to **107**, and flags a route count with no query. |
 | [`M07`](./answers/M07-tiered-buttons-already-exist-and-are-half-adopted.md) | **REFUTES ranked win #2.** Tiered buttons already exist: `ActionVariant = default \| primary \| quiet \| destructive`, plus `Approve` as its own component. **Do not build a `Button`.** The defect is that **451 of 954 controls bypass them**. |
@@ -190,6 +191,32 @@ already answered at 11:43 once its worktree was read directly. Nothing is waitin
 | Request | Raised | Landed on main | Answered | Verdict |
 | --- | --- | --- | --- | --- |
 | [`001`](./requests/001-meridian-gap-spacing-stops.md) | 03:20 | **12:33** | 11:43 | ruled — no new stops, all eight snap |
+
+## FOR THE FOUNDER: the retrieval index holds one usable row
+
+Measured 12:52 today through the Lovable MCP. `rag_chunks` is the corpus the brain layer reaches
+when it needs something that was written down. It holds **17 rows, of which one is retrievable**;
+the other 16 carry a NULL embedding and `match_rag_chunks` excludes those by design. Nothing has
+been written to it since **2026-08-09**, and no `prd`, `doc`, `note`, `signal` or `meeting` chunk
+has ever existed in it — every row is a `finding`.
+
+**This is not a leak and not a fire.** Live loop spend is about $0.94 over fourteen hours. Nothing
+is burning and nothing throws; retrieval just comes back nearly empty and every caller degrades
+quietly, which is why two weeks passed without it surfacing.
+
+**It matters because it sits beside the evidence question rather than inside it.** M02 found the
+critic correctly refusing to pass Decide because 902 of 1,418 signals are agent-authored with no
+source link. M12 is a second, independent reason evidence cannot be assembled: the index that
+would supply it has one usable row. **Answering the signal-linking question alone would not give
+the critic more to read.** Both need to move.
+
+The strongest single piece of evidence is an old comment being still true: `discovery.functions.ts`
+recorded "16 rows and every one is source_kind 'finding'" on 2026-08-06. It reads 17 today. The
+corpus indexer has never once succeeded in seventeen days, and it is currently being killed before
+it can report on roughly seven of every eight runs.
+
+Full working, every query re-runnable, in
+[`M12`](./answers/M12-the-retrieval-index-can-return-one-row.md).
 
 ## FOR THE FOUNDER: the health signal is lying about the critic
 
