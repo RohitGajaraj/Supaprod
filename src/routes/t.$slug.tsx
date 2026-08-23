@@ -96,7 +96,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       </div>
       <header
         style={{
-          borderBottom: "1px solid var(--hairline, rgba(0,0,0,0.08))",
+          borderBottom: "1px solid var(--mrd-edge)",
           padding: "12px 18px",
           display: "flex",
           alignItems: "center",
@@ -129,7 +129,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 
       <footer
         style={{
-          borderTop: "1px solid var(--hairline, rgba(0,0,0,0.08))",
+          borderTop: "1px solid var(--mrd-edge)",
           padding: "14px 18px",
           display: "flex",
           alignItems: "center",

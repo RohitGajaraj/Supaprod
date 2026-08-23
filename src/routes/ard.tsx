@@ -78,7 +78,7 @@ function ArdPage() {
     >
       <header
         style={{
-          borderBottom: "1px solid var(--hairline, rgba(0,0,0,0.08))",
+          borderBottom: "1px solid var(--mrd-edge)",
           padding: "12px 18px",
           display: "flex",
           alignItems: "center",
@@ -198,7 +198,7 @@ function ArdPage() {
           <pre
             style={{
               background: "rgba(0,0,0,0.04)",
-              border: "1px solid var(--hairline, rgba(0,0,0,0.08))",
+              border: "1px solid var(--mrd-edge)",
               borderRadius: 8,
               padding: "14px 16px",
               fontSize: 12,
@@ -218,7 +218,7 @@ function ArdPage() {
             color: "var(--ink-muted, #6b6258)",
             margin: "40px 0 0",
             lineHeight: 1.6,
-            borderTop: "1px solid var(--hairline, rgba(0,0,0,0.08))",
+            borderTop: "1px solid var(--mrd-edge)",
             paddingTop: 20,
           }}
         >

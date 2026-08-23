@@ -71,7 +71,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       </div>
       <header
         style={{
-          borderBottom: "1px solid var(--hairline, rgba(0,0,0,0.08))",
+          borderBottom: "1px solid var(--mrd-edge)",
           padding: "12px 18px",
           display: "flex",
           alignItems: "center",
@@ -101,7 +101,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 
       <footer
         style={{
-          borderTop: "1px solid var(--hairline, rgba(0,0,0,0.08))",
+          borderTop: "1px solid var(--mrd-edge)",
           padding: "14px 18px",
           display: "flex",
           alignItems: "center",
@@ -189,7 +189,7 @@ function CalibrationHero({
         style={{
           marginTop: 16,
           paddingTop: 14,
-          borderTop: "1px solid var(--hairline, rgba(0,0,0,0.08))",
+          borderTop: "1px solid var(--mrd-edge)",
           fontSize: 10,
           color: "var(--ink-subtle, #6b6457)",
         }}
@@ -226,7 +226,7 @@ function ProofPage() {
         className="mono-label"
         style={{
           fontSize: 9,
-          color: "var(--text-subtle, #7d786f)",
+          color: "var(--mrd-mute)",
           margin: "0 0 12px",
           fontWeight: 500,
         }}

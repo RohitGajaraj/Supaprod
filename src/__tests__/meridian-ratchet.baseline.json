@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 2756,
-  "fileCount": 214,
+  "totalOccurrences": 2736,
+  "fileCount": 213,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "--text-": 16,
@@ -806,8 +806,7 @@
       "raw-colour": 5
     },
     "src/routes/ard.tsx": {
-      "--hairline": 3,
-      "raw-colour": 10
+      "raw-colour": 7
     },
     "src/routes/demo.tsx": {
       "--font-pixel": 1,
@@ -836,19 +835,13 @@
       "raw-colour": 10
     },
     "src/routes/proof.tsx": {
-      "--text-": 1,
-      "--hairline": 3,
-      "raw-colour": 14
+      "raw-colour": 10
     },
     "src/routes/security.tsx": {
       "raw-colour": 4
     },
-    "src/routes/subprocessors.tsx": {
-      "--hairline": 2
-    },
     "src/routes/t.$slug.tsx": {
-      "--hairline": 2,
-      "raw-colour": 15
+      "raw-colour": 13
     },
     "src/routes/terms.tsx": {
       "raw-colour": 1

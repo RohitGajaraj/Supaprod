@@ -43,7 +43,7 @@ function ProcessorRow({ s, first }: { s: SubProcessor; first: boolean }) {
     <li
       style={{
         padding: "16px 0",
-        borderTop: first ? "none" : "1px solid var(--hairline)",
+        borderTop: first ? "none" : "1px solid var(--mrd-edge)",
       }}
     >
       <div
@@ -137,7 +137,7 @@ function SubprocessorsPage() {
             color: "var(--ink-faint)",
             margin: "40px 0 0",
             lineHeight: 1.6,
-            borderTop: "1px solid var(--hairline)",
+            borderTop: "1px solid var(--mrd-edge)",
             paddingTop: 20,
           }}
         >
