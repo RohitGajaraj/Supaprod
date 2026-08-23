@@ -40,10 +40,10 @@
  *    "412 visits turned into 37 waitlist signups", earned from real rows.
  *    The confusion this surface must keep refusing is the one every analytics
  *    page invites: a zero that means "nobody came" wearing the same clothes as a
- *    zero that means "the capture broke". A failed read renders Failed with a
- *    retry and never an empty state, an empty window says what would fill it,
- *    and a visit count of zero standing beside a non-zero signup count is
- *    reported as the contradiction it is rather than smoothed over.
+ *    zero that means "the capture broke". A failed read renders ReadFailed
+ *    with a retry and never an empty state, an empty window says what would
+ *    fill it, and a visit count of zero standing beside a non-zero signup
+ *    count is reported as the contradiction it is rather than smoothed over.
  *
  * 6. WHERE DOES THE CREW APPEAR, AND WHAT DOES IT PROVE?
  *    Nowhere, and that is the correct answer rather than a gap. No agent writes
