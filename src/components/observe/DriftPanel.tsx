@@ -57,8 +57,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState, useEffect, type ReactNode } from "react";
 import { getDriftOverview, runDriftNow, updateDriftBaseline } from "@/lib/drift.functions";
-import { Receipt } from "@/components/shell/primitives";
 import { relTime } from "@/components/product/format";
+import { Receipt } from "@/components/meridian/Receipt";
 
 const DEFAULT_CFG = {
   window_days: 7,

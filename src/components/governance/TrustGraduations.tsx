@@ -30,7 +30,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { Gate, Receipt } from "@/components/shell/primitives";
+import { Receipt } from "@/components/meridian/Receipt";
+import { Gate } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 import {
   listTrustGraduationProposals,

@@ -71,7 +71,8 @@ import { humanWriteError } from "@/lib/roles.functions";
 import { useGovernedWrite } from "@/hooks/use-workspace-role";
 import { GovernedWriteNote } from "./GovernedWriteNote";
 import { relTime } from "@/components/product/format";
-import { Pre, Receipt } from "@/components/shell/primitives";
+import { Receipt } from "@/components/meridian/Receipt";
+import { Pre } from "@/components/shell/primitives";
 
 type Kind = "regex" | "keyword" | "pii" | "injection" | "secret";
 type Action = "block" | "warn" | "redact";

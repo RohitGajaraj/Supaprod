@@ -50,7 +50,7 @@ import { startOrchestratedMission } from "@/lib/orchestrator.functions";
 import type { GraphNode, GraphNodeKind } from "@/lib/knowledge-graph-view";
 import { artifactWord } from "@/lib/artifact-words";
 import { useConfirm } from "@/hooks/use-confirm";
-import { Receipt } from "@/components/shell/primitives";
+import { Receipt } from "@/components/meridian/Receipt";
 
 /**
  * The kinds "Start a mission from this" is offered on.

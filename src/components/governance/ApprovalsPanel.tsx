@@ -70,7 +70,8 @@ import {
   type AgentOutcomeRecord,
 } from "@/lib/agent-track-record";
 import { rejectionCountFor } from "@/lib/rejection-learning";
-import { Gate, Pre, Receipt } from "@/components/shell/primitives";
+import { Receipt } from "@/components/meridian/Receipt";
+import { Gate, Pre } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 import { TrustGraduationsBlock } from "./TrustGraduations";
 import {

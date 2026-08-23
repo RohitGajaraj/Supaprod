@@ -58,7 +58,8 @@ import {
   type DesignMemoryRow,
   type DesignMemoryCategory,
 } from "@/lib/design-memory.functions";
-import { Prose, Receipt } from "@/components/shell/primitives";
+import { Receipt } from "@/components/meridian/Receipt";
+import { Prose } from "@/components/shell/primitives";
 import { ageOf } from "./decisions-shared";
 import { CATEGORY_LABEL, SOURCE_LABEL } from "./design-memory-shared";
 

@@ -69,9 +69,9 @@ import { forgetMemory } from "@/lib/agent_loop.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useConfirm } from "@/hooks/use-confirm";
 import { agentLabel, kindLabel, relativeTime, type MemoryRow } from "@/lib/memory-view";
-import { Receipt } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 import { Provenance, type EvidenceSource } from "@/components/knowledge/EvidenceQuality";
+import { Receipt } from "@/components/meridian/Receipt";
 
 function plural(n: number, word: string): string {
   return `${n} ${word}${n === 1 ? "" : "s"}`;

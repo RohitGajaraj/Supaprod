@@ -60,7 +60,8 @@ import {
   updateEvalCase,
   deleteEvalCase,
 } from "@/lib/evals.functions";
-import { Prose, Receipt } from "@/components/shell/primitives";
+import { Receipt } from "@/components/meridian/Receipt";
+import { Prose } from "@/components/shell/primitives";
 import { relTime } from "@/components/product/format";
 import { useConfirm } from "@/hooks/use-confirm";
 

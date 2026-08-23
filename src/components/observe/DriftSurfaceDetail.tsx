@@ -71,9 +71,9 @@ import {
   resolveDriftIncident,
   reopenDriftIncident,
 } from "@/lib/drift.functions";
-import { Receipt } from "@/components/shell/primitives";
 import { relTime } from "@/components/product/format";
 import type { Incident, Snapshot } from "./DriftPanel";
+import { Receipt } from "@/components/meridian/Receipt";
 
 const DEFAULT_WINDOWS = { window_days: 7, baseline_days: 14 };
 

@@ -72,8 +72,8 @@ import {
 import { humanWriteError } from "@/lib/roles.functions";
 import { useGovernedWrite } from "@/hooks/use-workspace-role";
 import { GovernedWriteNote } from "./GovernedWriteNote";
-import { Receipt } from "@/components/shell/primitives";
 import { fmtUsd } from "@/components/product/format";
+import { Receipt } from "@/components/meridian/Receipt";
 
 const SURFACES = [
   "agent",

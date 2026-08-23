@@ -69,7 +69,8 @@ import { listDocs, getDoc, createDoc, updateDoc, deleteDoc } from "@/lib/docs.fu
 import { importGoogleDoc } from "@/lib/gdocs.functions";
 import { importNotionPage, searchNotionPages } from "@/lib/notion.functions";
 import { createSignal } from "@/lib/discovery.functions";
-import { Prose, Receipt } from "@/components/shell/primitives";
+import { Receipt } from "@/components/meridian/Receipt";
+import { Prose } from "@/components/shell/primitives";
 
 type DocNode = {
   id: string;

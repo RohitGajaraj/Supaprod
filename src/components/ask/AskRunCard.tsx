@@ -29,7 +29,8 @@ import { steerStudioSession } from "@/lib/studio.functions";
 import { decideApproval } from "@/lib/agent_loop.functions";
 import { ACTION_LABEL } from "@/lib/agent-vocabulary";
 import type { LoopStep } from "@/lib/ai/loop.server";
-import { Button, Receipt, Record, Textarea } from "@/components/shell/primitives";
+import { Receipt } from "@/components/meridian/Receipt";
+import { Button, Record, Textarea } from "@/components/shell/primitives";
 
 const POLL_MS = 4000;
 

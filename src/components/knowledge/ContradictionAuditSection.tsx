@@ -59,9 +59,9 @@ import {
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { auditDecision, proposeSupersession } from "@/lib/contradiction-auditor.functions";
-import { Receipt } from "@/components/shell/primitives";
 import { AgentPulse } from "@/components/meridian/AgentPulse";
 import { Provenance } from "./EvidenceQuality";
+import { Receipt } from "@/components/meridian/Receipt";
 
 export function ContradictionAuditSection({
   decisionId,

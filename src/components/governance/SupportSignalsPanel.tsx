@@ -52,7 +52,8 @@ import {
   draftSupportReply,
   type SupportClusterRow,
 } from "@/lib/support-triage.functions";
-import { Prose, Receipt } from "@/components/shell/primitives";
+import { Receipt } from "@/components/meridian/Receipt";
+import { Prose } from "@/components/shell/primitives";
 
 /** Plain-words relative time. Mono is applied by the receipt, not here. */
 function ago(iso: string): string | null {

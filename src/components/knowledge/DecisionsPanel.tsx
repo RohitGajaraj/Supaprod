@@ -87,10 +87,10 @@ import {
   type DecisionSource,
 } from "@/lib/decisions.functions";
 import { initialsFrom } from "@/lib/initials";
-import { Receipt } from "@/components/shell/primitives";
 import { AgentMark, YouMark } from "@/components/meridian/marks";
 import { ageOf, displayWho, OUTCOME_WORD, SOURCE_LABEL } from "./decisions-shared";
 import { stripAutoPrefix } from "@/components/plan/format";
+import { Receipt } from "@/components/meridian/Receipt";
 
 type SourceFilter = "all" | DecisionSource;
 type StatusFilter = "all" | "pending" | "approved" | "rejected";

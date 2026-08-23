@@ -50,9 +50,9 @@ import {
   type BriefItem,
   type BriefItemKind,
 } from "@/lib/briefs.functions";
-import { Receipt } from "@/components/shell/primitives";
 import { BriefFormationFlow } from "@/components/brief/BriefFormationFlow";
 import { useConfirm } from "@/hooks/use-confirm";
+import { Receipt } from "@/components/meridian/Receipt";
 
 const SINGLETON_KINDS: readonly BriefItemKind[] = ["vision", "icp", "positioning"];
 

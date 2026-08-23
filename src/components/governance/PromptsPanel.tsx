@@ -62,7 +62,8 @@ import {
   getPromptAnalytics,
   rollbackPromptVersion,
 } from "@/lib/prompts.functions";
-import { Pre, Receipt } from "@/components/shell/primitives";
+import { Receipt } from "@/components/meridian/Receipt";
+import { Pre } from "@/components/shell/primitives";
 
 type TemplateRow = {
   id: string;

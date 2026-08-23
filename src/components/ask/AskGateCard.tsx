@@ -30,7 +30,8 @@ import {
   snoozeApprovalItem,
   type ApprovalQueueItem,
 } from "@/lib/approvals-queue.functions";
-import { Button, Gate, Receipt } from "@/components/shell/primitives";
+import { Receipt } from "@/components/meridian/Receipt";
+import { Button, Gate } from "@/components/shell/primitives";
 
 type Settled = { verdict: "approve" | "reject" | "snooze"; consequence: string; failed?: boolean };
 

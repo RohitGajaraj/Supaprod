@@ -86,8 +86,8 @@ import { VERDICT_SAYS, type Verdict } from "@/components/learn/verdict-words";
 // `Receipt` has no Meridian part yet, so it stays on the retired layer rather
 // than being hand-rolled here: five surfaces each drawing their own chrome is
 // exactly how the product ended up with four copies of one component.
-import { Receipt } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
+import { Receipt } from "@/components/meridian/Receipt";
 
 /** Choices needs a value; "none" is never drawn as an option. */
 type VerdictPick = Verdict | "none";

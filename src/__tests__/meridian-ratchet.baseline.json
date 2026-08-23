@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 2641,
-  "fileCount": 208,
+  "totalOccurrences": 2605,
+  "fileCount": 207,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "--text-": 16,
@@ -46,7 +46,7 @@
     },
     "src/components/ask/AskGateCard.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 5
+      "usage:shell/primitives": 4
     },
     "src/components/ask/AskLanding.tsx": {
       "--sp-": 3,
@@ -60,7 +60,7 @@
     "src/components/ask/AskRunCard.tsx": {
       "class:sp-": 4,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 6
+      "usage:shell/primitives": 5
     },
     "src/components/ask/AskSwitcher.tsx": {
       "--sp-": 3,
@@ -174,19 +174,17 @@
     "src/components/governance/ApprovalsPanel.tsx": {
       "class:sp-": 1,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 3
+      "usage:shell/primitives": 2
     },
     "src/components/governance/BudgetsPanel.tsx": {
       "--sp-": 2,
-      "class:sp-": 1,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 2
+      "class:sp-": 1
     },
     "src/components/governance/ControlsPanel.tsx": {
       "--sp-": 4,
       "class:sp-": 7,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 2
+      "usage:shell/primitives": 1
     },
     "src/components/governance/CriticBadge.tsx": {
       "class:sp-": 1,
@@ -200,58 +198,52 @@
     "src/components/governance/EvalSuiteDetail.tsx": {
       "class:sp-": 4,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 8
+      "usage:shell/primitives": 7
     },
     "src/components/governance/GovernedWriteNote.tsx": {
       "class:sp-": 1
     },
     "src/components/governance/GuardrailsPanel.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 2
+      "usage:shell/primitives": 1
     },
     "src/components/governance/HouseRulesPanel.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 2
+      "usage:shell/primitives": 1
     },
     "src/components/governance/PromptsPanel.tsx": {
       "--sp-": 1,
       "class:sp-": 2,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 3
+      "usage:shell/primitives": 1
     },
     "src/components/governance/SupportSignalsPanel.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 3
+      "usage:shell/primitives": 1
     },
     "src/components/governance/TrustGraduations.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 2
+      "usage:shell/primitives": 1
     },
     "src/components/knowledge/BriefPanel.tsx": {
-      "--sp-": 8,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 1
+      "--sp-": 8
     },
     "src/components/knowledge/CompoundingPanel.tsx": {
       "class:sp-": 2
     },
     "src/components/knowledge/ContradictionAuditSection.tsx": {
-      "class:sp-": 3,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 1
+      "class:sp-": 3
     },
     "src/components/knowledge/DecisionDetail.tsx": {
       "class:sp-": 3,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 3
+      "usage:shell/primitives": 2
     },
     "src/components/knowledge/decisions-shared.ts": {
       "class:sp-": 2
     },
     "src/components/knowledge/DecisionsPanel.tsx": {
-      "--sp-": 2,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 1
+      "--sp-": 2
     },
     "src/components/knowledge/design-memory-shared.ts": {
       "class:sp-": 2
@@ -260,13 +252,13 @@
       "--sp-": 1,
       "class:sp-": 2,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 3
+      "usage:shell/primitives": 2
     },
     "src/components/knowledge/DocsPanel.tsx": {
       "--sp-": 2,
       "class:sp-": 3,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 2
+      "usage:shell/primitives": 1
     },
     "src/components/knowledge/graph-visual.ts": {
       "--sp-": 6,
@@ -285,10 +277,6 @@
       "--madder": 1,
       "class:sp-": 3,
       "raw-colour": 17
-    },
-    "src/components/knowledge/GraphNodeActions.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 1
     },
     "src/components/knowledge/GraphNodeStory.tsx": {
       "class:sp-": 6
@@ -369,21 +357,17 @@
       "raw-colour": 7
     },
     "src/components/learn/SettlePanel.tsx": {
-      "class:sp-": 2,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 1
+      "class:sp-": 2
     },
     "src/components/machine/MachineViewContainer.tsx": {
       "raw-colour": 9
     },
     "src/components/memory/MemoryList.tsx": {
-      "--sp-": 1,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 2
+      "--sp-": 1
     },
     "src/components/memory/MemoryReviewQueue.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 2
+      "usage:shell/primitives": 1
     },
     "src/components/meridian/Surface.tsx": {
       "class:sp-": 4
@@ -401,15 +385,11 @@
       "usage:shell/primitives": 6
     },
     "src/components/observe/DriftPanel.tsx": {
-      "class:sp-": 2,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 1
+      "class:sp-": 2
     },
     "src/components/observe/DriftSurfaceDetail.tsx": {
       "--sp-": 1,
-      "class:sp-": 3,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 1
+      "class:sp-": 3
     },
     "src/components/observe/EvalScoreChips.tsx": {
       "--sp-": 2,
