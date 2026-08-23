@@ -106,7 +106,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "@/lib/notify";
-import { Action, Approve, Actions } from "@/components/meridian/surface-parts";
+import { Action, Approve, Actions, ReadFailedLine } from "@/components/meridian/surface-parts";
 import { MonoLabel, StepDot, StatusBadge, VerdictChip } from "@/components/supaprod/Primitives";
 import { toolConsequence, REVERSIBILITY_LABEL } from "@/lib/tool-consequences";
 import { MissionGraph, type MissionGraphStep } from "@/components/supaprod/MissionGraph";
@@ -780,14 +780,17 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
                 set no font-size at all, so the numeral rendered at the 13px
                 body size that styles.css gives `body` — the costume was the
                 only thing making it read as a stat. It now says the same thing
-                in the working typeface and louder: Geist at 22/600, still
+                in the working typeface and louder: Geist at 600 weight, still
                 baseline-aligned with the sentence beside it, still the one
-                numeral on this surface that IS the moat made visible. */}
+                numeral on this surface that IS the moat made visible.
+                SNAPPED ONTO THE LADDER, 2026-08-23: it typed a literal 22px,
+                which is not a step; per answers/M04 the nearer step wins and
+                h3 (20px) beats h2 (25px) by two pixels to three. */}
             <span
               className="tabular-nums"
               style={{
                 fontFamily: "var(--font-sans)",
-                fontSize: 22,
+                fontSize: "var(--mrd-t-h3)",
                 fontWeight: 600,
                 letterSpacing: "-0.02em",
                 lineHeight: 1,
@@ -1508,7 +1511,16 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
         </div>
         {view === "plan" ? (
           <div style={{ display: "flex", flexDirection: "column" }}>
-            {planRows.length === 0 ? (
+            {steps.isError ? (
+              /* THE EMPTY STATE WAS LYING. This query had no error branch, so a
+                 failed read degraded through `steps.data?.steps ?? []` into
+                 planRows.length === 0 and printed "No steps yet" about a mission
+                 that may have plenty. A read failure names itself and offers the
+                 read again; only a genuinely empty plan earns the empty state. */
+              <ReadFailedLine onRetry={() => steps.refetch()}>
+                The mission's steps could not be read just now.
+              </ReadFailedLine>
+            ) : planRows.length === 0 ? (
               <div
                 style={{
                   color: "var(--mrd-mute)",

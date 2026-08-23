@@ -9,9 +9,18 @@
 // celebration colour; `--rose` only when the replay regressed on failures. A
 // fetch error names its cause with a retry (the panel is user-invoked); only a
 // loaded-but-missing original degrades silent.
+//
+// THE COLOUR LAYER IS MERIDIAN NOW, 2026-08-23: --text-faint/-subtle/-body,
+// --madder and --hairline were the retired palette's grounds; each maps onto
+// Meridian's ladder (--mrd-faint, -mute, -body, -fail, -line) at the same
+// perceptual job, so nothing moved visually that was not already wrong. The
+// retry left `.btn btn-ghost btn-sm` for Meridian's `Action` by the answers/M10
+// tier test: re-reading is work the surface does, not something it unblocks,
+// so default face and never Approve.
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { MonoLabel } from "@/components/supaprod/Primitives";
+import { Action } from "@/components/meridian/surface-parts";
 import { getMission, type MissionDetail } from "@/lib/missions.functions";
 import { LOOM_CARD } from "@/components/studio/studio-ui";
 import { diffMissions } from "@/lib/mission-diff";
@@ -40,7 +49,7 @@ function Delta({
 }) {
   if (value === 0) {
     return (
-      <span style={{ color: "var(--text-faint)" }} title="No change">
+      <span style={{ color: "var(--mrd-faint)" }} title="No change">
         ·
       </span>
     );
@@ -53,7 +62,7 @@ function Delta({
   return (
     <span
       style={{
-        color: regressed ? "var(--madder)" : "var(--text-body)",
+        color: regressed ? "var(--mrd-fail)" : "var(--mrd-body)",
         whiteSpace: "nowrap",
       }}
     >
@@ -81,11 +90,11 @@ function MetricRow({
         gap: "var(--geist-space-2x)",
         alignItems: "baseline",
         padding: "5px 0",
-        borderTop: "1px solid var(--hairline)",
+        borderTop: "1px solid var(--mrd-line)",
       }}
     >
-      <span style={{ color: "var(--text-subtle)" }}>{label}</span>
-      <span style={{ color: "var(--text-body)", fontVariantNumeric: "tabular-nums" }}>
+      <span style={{ color: "var(--mrd-mute)" }}>{label}</span>
+      <span style={{ color: "var(--mrd-body)", fontVariantNumeric: "tabular-nums" }}>
         {original}
       </span>
       <span style={{ fontVariantNumeric: "tabular-nums" }}>{replay}</span>
@@ -123,19 +132,18 @@ export function MissionDiff({
   if (q.isError) {
     return (
       <div style={{ ...LOOM_CARD, padding: "var(--card-pad)" }}>
-        <MonoLabel style={{ color: "var(--madder)" }}>Couldn't load the original</MonoLabel>
-        <p style={{ color: "var(--text-subtle)", margin: "6px 0 0" }}>
+        <MonoLabel style={{ color: "var(--mrd-fail)" }}>Couldn't load the original</MonoLabel>
+        <p style={{ color: "var(--mrd-mute)", margin: "6px 0 0" }}>
           {(q.error as Error)?.message?.slice(0, 160) ??
             "The original mission could not be fetched."}
         </p>
-        <button
-          type="button"
+        <Action
+          variant="default"
           onClick={() => q.refetch()}
-          className="btn btn-ghost btn-sm loom-press"
-          style={{ marginTop: 10 }}
+          className="mt-mrd-4"
         >
           Retry · reloads the original
-        </button>
+        </Action>
       </div>
     );
   }
@@ -152,11 +160,11 @@ export function MissionDiff({
       <MonoLabel style={{ marginBottom: 4 }}>replay vs original · what changed</MonoLabel>
 
       {diff.finalOutputChanged ? (
-        <p style={{ color: "var(--text-body)", margin: "0 0 10px" }}>
+        <p style={{ color: "var(--mrd-body)", margin: "0 0 10px" }}>
           The final answer changed between the two runs.
         </p>
       ) : (
-        <p style={{ color: "var(--text-subtle)", margin: "0 0 10px" }}>
+        <p style={{ color: "var(--mrd-mute)", margin: "0 0 10px" }}>
           The final answer is unchanged; the run shape may still differ below.
         </p>
       )}
@@ -169,7 +177,7 @@ export function MissionDiff({
           gap: "var(--geist-space-2x)",
           letterSpacing: "0.04em",
           textTransform: "uppercase",
-          color: "var(--text-subtle)",
+          color: "var(--mrd-mute)",
           paddingBottom: 2,
         }}
       >
@@ -221,7 +229,7 @@ export function MissionDiff({
         replay={fmtDur(diff.replay.durationMs)}
         delta={
           diff.deltas.durationMs === null ? (
-            <span style={{ color: "var(--text-faint)" }}>-</span>
+            <span style={{ color: "var(--mrd-faint)" }}>-</span>
           ) : (
             <Delta value={diff.deltas.durationMs} render={fmtDur} desirable="lower" />
           )
@@ -237,11 +245,11 @@ export function MissionDiff({
               <li
                 key={h.index}
                 style={{
-                  color: "var(--text-subtle)",
+                  color: "var(--mrd-mute)",
                   padding: "3px 0",
                 }}
               >
-                <span style={{ color: "var(--text-body)" }}>
+                <span style={{ color: "var(--mrd-body)" }}>
                   Hop {h.index + 1}
                   {h.agentSlug ? ` · ${h.agentSlug}` : ""}
                 </span>{" "}
@@ -259,7 +267,7 @@ export function MissionDiff({
           </ul>
         </div>
       ) : (
-        <p style={{ color: "var(--text-subtle)", marginTop: 10 }}>
+        <p style={{ color: "var(--mrd-mute)", marginTop: 10 }}>
           Every hop matched the original step for step.
         </p>
       )}

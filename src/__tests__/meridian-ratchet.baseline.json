@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 2736,
-  "fileCount": 213,
+  "totalOccurrences": 2721,
+  "fileCount": 212,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "--text-": 16,
@@ -390,11 +390,6 @@
     },
     "src/components/mission/MissionOnboarding.tsx": {
       "raw-colour": 3
-    },
-    "src/components/missions/MissionDiff.tsx": {
-      "--text-": 12,
-      "--hairline": 1,
-      "--madder": 2
     },
     "src/components/observe/AgentSpendDetail.tsx": {
       "--sp-": 1,
