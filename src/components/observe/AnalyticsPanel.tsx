@@ -88,7 +88,8 @@ import {
 } from "@/lib/analytics.functions";
 import { getBudgetSummary } from "@/lib/budgets.functions";
 import { relTime } from "@/components/product/format";
-import { Cell, Grid, Pre } from "@/components/shell/primitives";
+import { Cell, Grid } from "@/components/shell/primitives";
+import { Pre } from "@/components/meridian/surface-parts";
 import { Prose } from "@/components/meridian/Prose";
 import { AgentMark } from "@/components/meridian/marks";
 
@@ -755,7 +756,9 @@ function EventDetail({ data, onBack }: { data: EventDetailData; onBack: () => vo
 
       <Region title="What went in">
         {e.input_preview ? (
-          <Pre>{e.input_preview}</Pre>
+          <div className="mt-mrd-4">
+            <Pre>{e.input_preview}</Pre>
+          </div>
         ) : (
           <NothingYet>No input preview was recorded for this call.</NothingYet>
         )}
@@ -763,7 +766,9 @@ function EventDetail({ data, onBack }: { data: EventDetailData; onBack: () => vo
 
       <Region title="What came back">
         {e.output_preview ? (
-          <Pre>{e.output_preview}</Pre>
+          <div className="mt-mrd-4">
+            <Pre>{e.output_preview}</Pre>
+          </div>
         ) : (
           <NothingYet>No output preview was recorded for this call.</NothingYet>
         )}
@@ -771,9 +776,11 @@ function EventDetail({ data, onBack }: { data: EventDetailData; onBack: () => vo
 
       {e.error_message ? (
         <Region title="Why it failed">
-          <Pre>
+          <div className="mt-mrd-4">
+            <Pre>
             <span className="sp-fail">{e.error_message}</span>
           </Pre>
+          </div>
         </Region>
       ) : null}
     </>

@@ -49,7 +49,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-import { Block, Record as RecordSays, Value } from "@/components/shell/primitives";
+import { Record as RecordSays, Value } from "@/components/shell/primitives";
+import { Region } from "@/components/meridian/surface-parts";
 import { Prose } from "@/components/meridian/Prose";
 import { traceRef } from "@/components/discover/format";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
@@ -193,7 +194,7 @@ export function ReceiptDetail({
 
   return (
     <>
-      <Block
+      <Region
         title={stripAutoPrefix(r.title)}
         sub={
           <>
@@ -205,10 +206,12 @@ export function ReceiptDetail({
             {isAutoTitle(r.title) ? <> Raised automatically by the loop.</> : null}
           </>
         }
-        more={onClose ? "Close" : undefined}
-        onMore={onClose}
-      >
-        {/* THE RECORD SPEAKING. A receipt either still governs or it has been
+        // TIER: goTo. Closing the sheet is the way OUT of this region - it
+        // names no destination but also reveals nothing and runs nothing, so
+        // it takes the plain-button slot (answers/RL0-005).
+        goTo={onClose ? "Close" : undefined}
+        onGoTo={onClose}
+      >{/* THE RECORD SPEAKING. A receipt either still governs or it has been
             replaced, and that is a claim about the workspace rather than a
             status column, so it takes the one lit surface in the product. */}
         <RecordSays
@@ -241,9 +244,9 @@ export function ReceiptDetail({
             </Line>
           )
         ) : null}
-      </Block>
+      </Region>
 
-      <Block title="Why">
+      <Region title="Why">
         {r.rationale ? (
           <Prose>{r.rationale}</Prose>
         ) : (
@@ -252,10 +255,10 @@ export function ReceiptDetail({
         {r.outcome === "proven" && r.provenBy ? (
           <Prose>{r.provenBy.summary ?? "Proven by a learning with no summary on it."}</Prose>
         ) : null}
-      </Block>
+      </Region>
 
       {edges.length ? (
-        <Block title="What backs it">
+        <Region title="What backs it">
           {edges.map((e) => {
             const go = edgeGo(e);
             return (
@@ -270,10 +273,10 @@ export function ReceiptDetail({
               />
             );
           })}
-        </Block>
+        </Region>
       ) : null}
 
-      <Block title="Where it came from">
+      <Region title="Where it came from">
         {sources.length ? (
           sources.map((s) => {
             const go = sourceGo(s);
@@ -296,10 +299,10 @@ export function ReceiptDetail({
                 : "An autonomous action, decided at its own approval gate."}
           </Prose>
         )}
-      </Block>
+      </Region>
 
       {r.build ? (
-        <Block title="What it built">
+        <Region title="What it built">
           {r.build.branch ? (
             <Line label="Branch">
               <Num>{r.build.branch}</Num>
@@ -325,11 +328,11 @@ export function ReceiptDetail({
           >
             <Num>{r.build.fixAttempts}</Num>
           </Line>
-        </Block>
+        </Region>
       ) : null}
 
       {r.deploys?.length ? (
-        <Block title="Where it landed">
+        <Region title="Where it landed">
           {r.deploys.map((d, i) => (
             <Row
               key={`${d.environment}-${d.commitSha}-${i}`}
@@ -346,7 +349,7 @@ export function ReceiptDetail({
               }
             />
           ))}
-        </Block>
+        </Region>
       ) : null}
 
       {/* Stage history from the real stage_events rows: the receipt's own (a
@@ -373,7 +376,7 @@ export function ReceiptDetail({
         ) : null,
       )}
 
-      <Block>
+      <Region>
         <Actions
           trailing={
             onClose ? (
@@ -408,7 +411,7 @@ export function ReceiptDetail({
           </button>
           {r.kind === "decision" ? <ShareControl decisionId={r.id} /> : null}
         </Actions>
-      </Block>
+      </Region>
     </>
   );
 }
@@ -439,16 +442,16 @@ function StageHistory({
   // FAILED is a different fact and says so.
   if (q.isError) {
     return (
-      <Block title={title}>
+      <Region title={title}>
         <ReadFailedLine onRetry={() => q.refetch()}>Its history did not load.</ReadFailedLine>
-      </Block>
+      </Region>
     );
   }
   const events = q.data?.events ?? [];
   if (events.length === 0) return null;
 
   return (
-    <Block title={title}>
+    <Region title={title}>
       {events.map((e) => (
         <Row
           key={e.id}
@@ -458,7 +461,7 @@ function StageHistory({
           tight
         />
       ))}
-    </Block>
+    </Region>
   );
 }
 

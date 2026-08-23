@@ -20,7 +20,8 @@
 import { traceRef } from "@/components/discover/format";
 import { Row } from "@/components/meridian/rows";
 import { Num } from "@/components/meridian/surface-parts";
-import { Block, Value } from "@/components/shell/primitives";
+import { Value } from "@/components/shell/primitives";
+import { Region } from "@/components/meridian/surface-parts";
 import type {
   ChainStep,
   ChainLinkStatus,
@@ -91,7 +92,7 @@ function StepRow({ step }: { step: ChainStep }) {
 export function MissionChain({ chain }: { chain: MissionChainData }) {
   const missingCount = chain.steps.filter((s) => s.status === "missing").length;
   return (
-    <Block
+    <Region
       title={chain.missionTitle}
       sub={
         chain.unbroken ? (
@@ -107,6 +108,6 @@ export function MissionChain({ chain }: { chain: MissionChainData }) {
       {chain.steps.map((s) => (
         <StepRow key={s.key} step={s} />
       ))}
-    </Block>
+    </Region>
   );
 }

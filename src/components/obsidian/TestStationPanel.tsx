@@ -23,7 +23,7 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { StatusDot } from "./status";
-import { Block } from "@/components/shell/primitives";
+import { Region } from "@/components/meridian/surface-parts";
 import { toast } from "@/lib/notify";
 import {
   getMissionTestPlan,
@@ -106,7 +106,7 @@ export function TestStationPanel({ missionId }: { missionId: string }) {
     // KILL list rules out, and the run surface names its sections in plain
     // sentences ("What happened, in order", "What it produced"), so this one
     // says what it answers rather than which station it belongs to.
-    <Block title="Whether it meets the spec">
+    <Region title="Whether it meets the spec">
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
           <StatusDot state={meta.state} word={meta.word} />
@@ -200,7 +200,7 @@ export function TestStationPanel({ missionId }: { missionId: string }) {
           </TestItemGroup>
         ) : null}
       </div>
-    </Block>
+    </Region>
   );
 }
 

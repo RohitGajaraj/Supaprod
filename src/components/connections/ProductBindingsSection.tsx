@@ -43,7 +43,8 @@ import {
   type ConnectionRow,
 } from "@/lib/connections.functions";
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
-import { Block, Select } from "@/components/shell/primitives";
+import { Select } from "@/components/shell/primitives";
+import { Region } from "@/components/meridian/surface-parts";
 
 type Props = {
   projectId: string;
@@ -117,7 +118,7 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
   if (failed) {
     const err = (qConnections.error ?? qBindings.error) as Error | null;
     return (
-      <Block title={title}>
+      <Region title={title}>
         <ReadFailedLine
           onRetry={() => {
             void qConnections.refetch();
@@ -126,15 +127,15 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
         >
           The overrides did not load. {err?.message ?? "The read failed."}
         </ReadFailedLine>
-      </Block>
+      </Region>
     );
   }
 
   if (isLoading) {
     return (
-      <Block title={title}>
+      <Region title={title}>
         <LoadingState label="Reading this product's overrides." />
-      </Block>
+      </Region>
     );
   }
 
@@ -144,7 +145,7 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
   const hasGithub = connections.some((c) => c.provider === "github" && c.status === "connected");
 
   return (
-    <Block
+    <Region
       title={title}
       sub={
         bindings.length === 0
@@ -275,6 +276,6 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
           qc.invalidateQueries({ queryKey: ["product-bindings", projectId] });
         }}
       />
-    </Block>
+    </Region>
   );
 }

@@ -32,7 +32,8 @@ import {
   type AgentMemory,
 } from "@/lib/agent-runs.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { Block, Select, Value } from "@/components/shell/primitives";
+import { Select, Value } from "@/components/shell/primitives";
+import { Region } from "@/components/meridian/surface-parts";
 import { AgentMark, type MarkState } from "@/components/meridian/marks";
 
 type AgentLite = { agent_id: string; slug: string; name: string; role: string };
@@ -107,7 +108,7 @@ export function AgentInspector({ agents }: { agents: AgentLite[] }) {
 
   return (
     <>
-      <Block title="What one of them has been doing">
+      <Region title="What one of them has been doing">
         <Line
           label="Which one"
           // A different fact from the control beside it: the control says WHICH
@@ -166,9 +167,9 @@ export function AgentInspector({ agents }: { agents: AgentLite[] }) {
             />
           ))
         )}
-      </Block>
+      </Region>
 
-      <Block
+      <Region
         title="What it knows"
         sub="What it learned itself, plus the shared pool every agent here draws on."
       >
@@ -199,7 +200,7 @@ export function AgentInspector({ agents }: { agents: AgentLite[] }) {
             />
           ))
         )}
-      </Block>
+      </Region>
     </>
   );
 }

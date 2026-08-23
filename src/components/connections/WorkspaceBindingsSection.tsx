@@ -17,7 +17,7 @@ import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
 import { BindingPicker } from "@/components/connections/BindingPicker";
 import { ProviderName, UnderMark } from "@/components/meridian/source-marks";
 import { latestIso, relTimeCaps } from "@/components/discover/format";
-import { Block } from "@/components/shell/primitives";
+import { Region } from "@/components/meridian/surface-parts";
 
 /**
  * WORKSPACE BINDINGS. What each connected source is actually pointed at.
@@ -85,7 +85,7 @@ export function WorkspaceBindingsSection() {
   const notReading = bindings.filter((b) => b.connection_status !== "connected").length;
 
   return (
-    <Block
+    <Region
       title="What each source is pointed at"
       sub={
         isLoading || failed
@@ -199,6 +199,6 @@ export function WorkspaceBindingsSection() {
           No source in the catalog has anything to point at yet.
         </EmptyRegion>
       ) : null}
-    </Block>
+    </Region>
   );
 }

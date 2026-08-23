@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 2524,
-  "fileCount": 199,
+  "totalOccurrences": 2492,
+  "fileCount": 197,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "--text-": 16,
@@ -30,9 +30,7 @@
     },
     "src/components/agents/AgentRelay.tsx": {
       "--sp-": 3,
-      "class:sp-": 2,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 1
+      "class:sp-": 2
     },
     "src/components/approvals/SendBack.tsx": {
       "class:sp-": 12
@@ -97,7 +95,7 @@
     },
     "src/components/cockpit/AgentInspector.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 4
+      "usage:shell/primitives": 2
     },
     "src/components/cockpit/TrustDial.tsx": {
       "import:shell/primitives": 1,
@@ -114,16 +112,14 @@
     },
     "src/components/connections/ProductBindingsSection.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 4
+      "usage:shell/primitives": 1
     },
     "src/components/connections/ProviderLogo.tsx": {
       "--text-": 2,
       "--hairline": 1
     },
     "src/components/connections/WorkspaceBindingsSection.tsx": {
-      "class:sp-": 1,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 1
+      "class:sp-": 1
     },
     "src/components/decisions/RewindButton.tsx": {
       "import:components/ui": 1,
@@ -158,9 +154,7 @@
       "--madder": 2
     },
     "src/components/governance/ApprovalsPanel.tsx": {
-      "class:sp-": 1,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 1
+      "class:sp-": 1
     },
     "src/components/governance/BudgetsPanel.tsx": {
       "--sp-": 2,
@@ -185,15 +179,9 @@
     "src/components/governance/GovernedWriteNote.tsx": {
       "class:sp-": 1
     },
-    "src/components/governance/GuardrailsPanel.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 1
-    },
     "src/components/governance/PromptsPanel.tsx": {
       "--sp-": 1,
-      "class:sp-": 2,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 1
+      "class:sp-": 2
     },
     "src/components/knowledge/BriefPanel.tsx": {
       "--sp-": 8
@@ -340,7 +328,7 @@
     "src/components/observe/AnalyticsPanel.tsx": {
       "class:sp-": 8,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 5
+      "usage:shell/primitives": 2
     },
     "src/components/observe/DriftPanel.tsx": {
       "class:sp-": 2
@@ -416,9 +404,7 @@
       "--glacier": 3
     },
     "src/components/obsidian/TestStationPanel.tsx": {
-      "--text-": 6,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 1
+      "--text-": 6
     },
     "src/components/obsidian/toast.tsx": {
       "--text-": 1,
@@ -505,10 +491,6 @@
     "src/components/studio/RepoGateDialog.tsx": {
       "import:components/ui": 2,
       "usage:components/ui": 10
-    },
-    "src/components/studio/RunReturn.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 1
     },
     "src/components/studio/studio-format.ts": {
       "--text-": 2
@@ -602,12 +584,12 @@
     },
     "src/components/trust/MissionChain.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 5
+      "usage:shell/primitives": 4
     },
     "src/components/trust/ReceiptDetailSheet.tsx": {
       "class:sp-": 1,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 13
+      "usage:shell/primitives": 4
     },
     "src/components/ui/alert-dialog.tsx": {
       "--ds-": 6,

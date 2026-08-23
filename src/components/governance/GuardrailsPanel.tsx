@@ -45,6 +45,7 @@ import {
   Actions,
   NothingYet,
   Num,
+  Pre,
   Picker,
   ReadFailed,
   ReadFailedLine,
@@ -72,7 +73,6 @@ import { useGovernedWrite } from "@/hooks/use-workspace-role";
 import { GovernedWriteNote } from "./GovernedWriteNote";
 import { relTime } from "@/components/product/format";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Pre } from "@/components/shell/primitives";
 
 type Kind = "regex" | "keyword" | "pii" | "injection" | "secret";
 type Action = "block" | "warn" | "redact";
@@ -759,7 +759,11 @@ function RuleEditor({
                 {testResult.hits.length === 1 ? " match" : " matches"}
               </Value>
             </Line>
-            {testResult.hits.length > 0 ? <Pre>{testResult.text}</Pre> : null}
+            {testResult.hits.length > 0 ? (
+              <div className="mt-mrd-4">
+                <Pre>{testResult.text}</Pre>
+              </div>
+            ) : null}
           </>
         ) : null}
       </Region>

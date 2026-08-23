@@ -29,7 +29,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getMission } from "@/lib/missions.functions";
 import { getSwarmHud } from "@/lib/swarm.functions";
-import { Block } from "@/components/shell/primitives";
+import { Region } from "@/components/meridian/surface-parts";
 import { AgentMark, MarkStack, type MarkState } from "@/components/meridian/marks";
 import type { AgentStation } from "@/lib/agent-vocabulary";
 import {
@@ -85,7 +85,7 @@ function FullRelay({ missionId }: { missionId: string }) {
   const blinkRunId = steps.find((s) => s.status === "gate")?.runId ?? null;
 
   return (
-    <Block title="The relay" sub="Who is working, and who picks it up next.">
+    <Region title="The relay" sub="Who is working, and who picks it up next.">
       {groups.map((g) => (
         <div key={g.station}>
           <div className="sp-block-sub" style={{ margin: "var(--mrd-s5) 0 0" }}>
@@ -115,7 +115,7 @@ function FullRelay({ missionId }: { missionId: string }) {
           ))}
         </div>
       ))}
-    </Block>
+    </Region>
   );
 }
 

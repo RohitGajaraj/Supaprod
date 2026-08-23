@@ -19,7 +19,7 @@
 
 import * as React from "react";
 import { Row } from "@/components/meridian/rows";
-import { Num, Door, NothingYet, Region } from "@/components/meridian/surface-parts";
+import { Num, Door, NothingYet, Pre, Region } from "@/components/meridian/surface-parts";
 import { Prose } from "@/components/meridian/Prose";
 import { AgentPulse } from "@/components/meridian/AgentPulse";
 /*
@@ -33,7 +33,6 @@ import { AgentPulse } from "@/components/meridian/AgentPulse";
  * verbatim -- would lose its voice. A half-fitting primitive that drops a
  * failure state is worse than one retired import.
  */
-import { Pre } from "@/components/shell/primitives";
 import {
   checkCalls,
   finalSummary,
@@ -273,7 +272,11 @@ export function CheckedItself({ runs, ci }: { runs: RunLike[]; ci: CiCheck[] | n
                   />
                   {/* The machine's own words, untouched. A failure paraphrased is
                       a failure you cannot act on. */}
-                  {open && c.stderr ? <Pre>{c.stderr}</Pre> : null}
+                  {open && c.stderr ? (
+                    <div className="mt-mrd-4">
+                      <Pre>{c.stderr}</Pre>
+                    </div>
+                  ) : null}
                 </React.Fragment>
               );
             })}

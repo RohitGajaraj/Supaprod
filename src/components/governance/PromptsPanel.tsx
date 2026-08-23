@@ -40,6 +40,7 @@ import {
   NothingHere,
   NothingYet,
   Num,
+  Pre,
   PageHeading,
   Picker,
   ReadFailed,
@@ -63,7 +64,6 @@ import {
   rollbackPromptVersion,
 } from "@/lib/prompts.functions";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Pre } from "@/components/shell/primitives";
 
 type TemplateRow = {
   id: string;
@@ -584,7 +584,8 @@ function DiffBlock({ base, head }: { base: string; head: string }) {
       {same ? (
         <NothingYet>The two are identical, line for line.</NothingYet>
       ) : (
-        <Pre>
+        <div className="mt-mrd-4">
+          <Pre>
           {diff.map((d, i) => (
             <span
               key={i}
@@ -596,6 +597,7 @@ function DiffBlock({ base, head }: { base: string; head: string }) {
             </span>
           ))}
         </Pre>
+        </div>
       )}
     </Region>
   );

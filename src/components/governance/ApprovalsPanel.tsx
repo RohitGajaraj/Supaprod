@@ -50,6 +50,7 @@ import {
   Approve,
   NothingHere,
   Num,
+  Pre,
   ReadFailed,
   Reading,
   Region,
@@ -71,7 +72,6 @@ import {
 } from "@/lib/agent-track-record";
 import { rejectionCountFor } from "@/lib/rejection-learning";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Pre } from "@/components/shell/primitives";
 import { Gate } from "@/components/meridian/Gate";
 import { AgentMark } from "@/components/meridian/marks";
 import { TrustGraduationsBlock } from "./TrustGraduations";
@@ -537,7 +537,9 @@ function FocusedCall({
           product lead reads to make it. */}
       <details>
         <summary className="sp-block-more">The exact payload</summary>
-        <Pre>{JSON.stringify(a.args, null, 2)}</Pre>
+        <div className="mt-mrd-4">
+          <Pre>{JSON.stringify(a.args, null, 2)}</Pre>
+        </div>
       </details>
     </>
   );
