@@ -353,7 +353,7 @@ function SpanDetail({
       <IdFact label="Span id" value={span.id} />
 
       {span.error_message ? (
-        <div className="mt-mrd-5 text-[13px] text-mrd-fail">{span.error_message}</div>
+        <div className="mt-mrd-5 text-mrd-base text-mrd-fail">{span.error_message}</div>
       ) : null}
 
       {hits.length > 0 ? (
@@ -411,7 +411,7 @@ function SpanDetail({
             // and they must never share a treatment. Quoted, in prose, in the
             // judge's own words rather than paraphrased into a fact.
             <div
-              className={`max-w-[var(--mrd-measure)] text-[13px] leading-mrd-prose text-mrd-prose text-mrd-body ${
+              className={`max-w-[var(--mrd-measure)] text-mrd-base leading-mrd-prose text-mrd-prose text-mrd-body ${
                 scores.length > 0 ? "mt-mrd-5" : ""
               }`}
             >
@@ -452,7 +452,7 @@ function ToolDetail({ tool }: { tool: ToolCallRow }) {
 
       <IdFact label="Call id" value={tool.id} />
 
-      {tool.error ? <div className="mt-mrd-5 text-[13px] text-mrd-fail">{tool.error}</div> : null}
+      {tool.error ? <div className="mt-mrd-5 text-mrd-base text-mrd-fail">{tool.error}</div> : null}
 
       {tool.args != null ? (
         <TracePane label="Arguments" json text={JSON.stringify(tool.args, null, 2)} />

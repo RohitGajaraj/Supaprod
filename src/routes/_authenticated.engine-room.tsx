@@ -325,10 +325,10 @@ function EngineRoomPage() {
              the original comment measured it. The sub always sits at eye
              level. */
           <div className="flex flex-col gap-mrd-3">
-            <h2 className="text-[11px] font-medium tracking-wide text-mrd-mute uppercase">
+            <h2 className="text-mrd-tiny font-medium tracking-wide text-mrd-mute uppercase">
               The engine calls this
             </h2>
-            <p className="text-[12.5px] leading-mrd-prose text-mrd-prose text-mrd-body">{meta.technical}</p>
+            <p className="text-mrd-label leading-mrd-prose text-mrd-prose text-mrd-body">{meta.technical}</p>
           </div>
         }
       >
@@ -573,7 +573,7 @@ function SourcesLine({ onSync }: { onSync: (conflictId?: string) => void }) {
       style={{ transitionDuration: "var(--mrd-d-press)" }}
     >
       <span className="min-w-0 flex-1">
-        <span className="block text-[13px] font-medium text-mrd-ink">
+        <span className="block text-mrd-base font-medium text-mrd-ink">
           {count === 0 ? (
             "Nothing is bound to this workspace yet"
           ) : (
@@ -589,13 +589,13 @@ function SourcesLine({ onSync }: { onSync: (conflictId?: string) => void }) {
             only carry you to the surface that can. A read that failed is red,
             which is the outcome it is. */}
         {conflicts.length > 0 ? (
-          <span className="mt-0.5 block text-[12px] text-mrd-hold">
+          <span className="mt-0.5 block text-mrd-small text-mrd-hold">
             {conflicts.length === 1
               ? "One conflict is waiting on your call"
               : `${conflicts.length} conflicts are waiting on your call`}
           </span>
         ) : syncQ.isError ? (
-          <span className="mt-0.5 block text-[12px] text-mrd-fail">
+          <span className="mt-0.5 block text-mrd-small text-mrd-fail">
             Sync status did not load, so the conflict count is unknown
           </span>
         ) : null}

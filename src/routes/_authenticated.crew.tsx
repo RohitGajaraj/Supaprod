@@ -593,10 +593,10 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
                     >
                       <CrewMark slug={e.slug} name={e.name} size="lg" state={stateFor(e.slug)} />
                       <span className="min-w-0">
-                        <span className="block truncate text-[13px] font-medium text-mrd-ink">
+                        <span className="block truncate text-mrd-base font-medium text-mrd-ink">
                           {e.name}
                         </span>
-                        <span className="mt-0.5 block text-[12px] leading-mrd-snug text-mrd-mute">
+                        <span className="mt-0.5 block text-mrd-small leading-mrd-snug text-mrd-mute">
                           {/* The blurb says what it does, which is what the roster
                               teaches. The two exceptions are facts that
                               contradict the blurb: it is switched off, or this

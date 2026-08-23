@@ -546,7 +546,7 @@ function ApprovalsSurface() {
     >
       <div className="flex flex-col gap-mrd-7">
         <header>
-          <h1 className="text-[25px] leading-mrd-tight font-medium text-mrd-ink">{headline}</h1>
+          <h1 className="text-mrd-h2 leading-mrd-tight font-medium text-mrd-ink">{headline}</h1>
           {/* THE SECOND CLAUSE EARNS ITS WORDS, and it is not decoration. The
               headline counts the WHOLE queue and the section below the gate
               counts the queue MINUS the call in the gate, so on twelve pending
@@ -554,7 +554,7 @@ function ApprovalsSurface() {
               the split is what makes those two numbers one fact instead of a
               contradiction. Do not shorten this back to one sentence. */}
           {n > 0 ? (
-            <p className="mt-mrd-3 text-[13px] leading-mrd-prose text-mrd-prose text-mrd-body">
+            <p className="mt-mrd-3 text-mrd-base leading-mrd-prose text-mrd-prose text-mrd-body">
               Settled in order, oldest first. The one in front of you is the one that moves, and the
               rest are listed under it.
             </p>
@@ -582,7 +582,7 @@ function ApprovalsSurface() {
             live elapsed timer and belongs where an agent genuinely runs for
             seconds. On an ordinary read it would invent a wait. */}
         {queue.isLoading ? (
-          <p className="text-[13px] text-mrd-mute" role="status" aria-live="polite">
+          <p className="text-mrd-base text-mrd-mute" role="status" aria-live="polite">
             Reading the queue.
           </p>
         ) : queue.isError ? (
@@ -632,7 +632,7 @@ function ApprovalsSurface() {
              someone deciding whether to close the tab. */
           <div className="flex flex-col gap-mrd-4">
             <ApprovalCard questions={[]} />
-            {quietLine ? <p className="text-[12.5px] text-mrd-mute">{quietLine}</p> : null}
+            {quietLine ? <p className="text-mrd-label text-mrd-mute">{quietLine}</p> : null}
           </div>
         ) : (
           <FilterExcludedEverything
@@ -649,7 +649,7 @@ function ApprovalsSurface() {
         <UndatedCalls calls={undated} />
 
         {otherWorkspacesCount > 0 ? (
-          <p className="text-[12.5px] text-mrd-mute">
+          <p className="text-mrd-label text-mrd-mute">
             <span className="font-mrd-mono tabular-nums text-mrd-prose text-mrd-body">{otherWorkspacesCount}</span>{" "}
             more waiting in your other workspaces.
           </p>

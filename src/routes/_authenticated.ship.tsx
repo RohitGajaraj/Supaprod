@@ -259,7 +259,7 @@ const VISIBLE = 6;
  * where there is no sentence to inherit from and the row would hand it the
  * 14px lead size. Stated once here rather than at each of the six call sites.
  */
-const ROW_META = "text-[13px]";
+const ROW_META = "text-mrd-base";
 
 /** `Door`'s paint, to the class, minus its hover. The two shapes below add the
  *  hover separately, because they need different prefixes for it. */
@@ -394,7 +394,7 @@ function MoreRows({
   if (total <= shown && !open) return null;
   return (
     <div className="mt-mrd-3 flex items-center justify-between gap-mrd-4">
-      <span className="text-[12px] tabular-nums text-mrd-mute">
+      <span className="text-mrd-small tabular-nums text-mrd-mute">
         {open
           ? `Showing all ${total}.`
           : `Showing ${shown} of ${total}. ${total - shown} not shown.`}

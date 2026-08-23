@@ -211,7 +211,7 @@ function Ground({
       className="rounded-mrd-card border border-mrd-line bg-mrd-bg p-6"
       style={{ boxShadow: "var(--mrd-shadow-card)", ...style }}
     >
-      <p className="mb-4 font-mrd-mono text-[11px] tracking-wide text-mrd-mute uppercase">
+      <p className="mb-4 font-mrd-mono text-mrd-tiny tracking-wide text-mrd-mute uppercase">
         {label}
       </p>
       {children}
@@ -223,8 +223,8 @@ function Panel({ title, note, children }: { title: string; note: string; childre
   return (
     <section className="border-t border-mrd-line py-10">
       <header className="mb-6">
-        <h2 className="text-[20px] leading-mrd-tight font-medium text-mrd-ink">{title}</h2>
-        <p className="mt-1 max-w-[68ch] text-[13px] leading-mrd-prose text-mrd-prose text-mrd-body">{note}</p>
+        <h2 className="text-mrd-h3 leading-mrd-tight font-medium text-mrd-ink">{title}</h2>
+        <p className="mt-1 max-w-[68ch] text-mrd-base leading-mrd-prose text-mrd-prose text-mrd-body">{note}</p>
       </header>
       {children}
     </section>
@@ -251,7 +251,7 @@ function Pair({ children }: { children: ReactNode }) {
 function Case({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-2">
-      <p className="font-mrd-mono text-[10.5px] tracking-wide text-mrd-faint uppercase">{label}</p>
+      <p className="font-mrd-mono text-mrd-micro tracking-wide text-mrd-faint uppercase">{label}</p>
       {children}
     </div>
   );
@@ -267,7 +267,7 @@ function Button({ label }: { label: string }) {
   return (
     <button
       type="button"
-      className="rounded-mrd-ctl bg-mrd-solid px-3 py-1.5 text-[13px] font-medium text-mrd-on-solid transition-opacity hover:opacity-90"
+      className="rounded-mrd-ctl bg-mrd-solid px-3 py-1.5 text-mrd-base font-medium text-mrd-on-solid transition-opacity hover:opacity-90"
       style={{ transitionDuration: "var(--mrd-d-press)" }}
     >
       {label}
@@ -1055,7 +1055,7 @@ function SelectionCase({ phase, error }: { phase: SelectionPhase; error?: string
 
   return (
     <div ref={host} className="relative pb-14">
-      <p className="text-[13px] leading-[1.75] text-mrd-prose text-mrd-body" style={{ maxWidth: "46ch" }}>
+      <p className="text-mrd-base leading-[1.75] text-mrd-prose text-mrd-body" style={{ maxWidth: "46ch" }}>
         The banner appears when the panel reports a reboot and disappears on its own once the panel
         answers again.{" "}
         <span ref={mark}>
@@ -1226,8 +1226,8 @@ function MeridianGallery() {
     <div className="min-h-screen bg-mrd-sink">
       <div className="mx-auto max-w-[1180px] px-8 py-12">
         <header>
-          <h1 className="text-[32px] leading-mrd-tight font-semibold text-mrd-ink">Meridian</h1>
-          <p className="mt-2 max-w-[68ch] text-[13px] leading-mrd-prose text-mrd-prose text-mrd-body">
+          <h1 className="text-mrd-h1 leading-mrd-tight font-semibold text-mrd-ink">Meridian</h1>
+          <p className="mt-2 max-w-[68ch] text-mrd-base leading-mrd-prose text-mrd-prose text-mrd-body">
             Every component, in both grounds, before it is wired to anything. One accent, and it
             says exactly one thing: a person is required. Green and red are outcome, never need.
           </p>
@@ -3643,7 +3643,7 @@ function CatalogPartCases() {
           <BulkBar selection={nothingPicked} total={0} noun="decision">
             <Action>Approve</Action>
           </BulkBar>
-          <p className="text-[12.5px] text-mrd-faint">
+          <p className="text-mrd-label text-mrd-faint">
             The bar is mounted directly above this line and renders nothing. An empty selection must
             not hold a row open on every list in the product.
           </p>

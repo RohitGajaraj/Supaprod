@@ -253,11 +253,11 @@ function Said({
     <div className="flex items-start gap-[13px] border-t border-mrd-line-soft py-mrd-5">
       <span className="flex w-[34px] flex-none pt-px">{mark}</span>
       <div className="min-w-0 flex-1">
-        <span className="block text-[14px]">
+        <span className="block text-mrd-prose">
           <Who>{who}</Who>
         </span>
         <div
-          className="mt-mrd-2 text-[14px] leading-mrd-prose text-mrd-prose text-mrd-body"
+          className="mt-mrd-2 text-mrd-prose leading-mrd-prose text-mrd-prose text-mrd-body"
           style={{
             whiteSpace: plain ? "pre-wrap" : undefined,
             overflowWrap: "anywhere",
@@ -267,7 +267,7 @@ function Said({
         </div>
       </div>
       {at ? (
-        <span className="flex-none text-[12px] text-mrd-mute">
+        <span className="flex-none text-mrd-small text-mrd-mute">
           <Num>{at}</Num>
         </span>
       ) : null}

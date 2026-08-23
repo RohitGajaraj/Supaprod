@@ -543,8 +543,8 @@ function TabSkeleton() {
 function RecordHead({ title, sub }: { title: ReactNode; sub?: ReactNode }) {
   return (
     <header data-mrd="">
-      <h1 className="text-[25px] leading-mrd-tight font-medium text-mrd-ink">{title}</h1>
-      {sub ? <p className="mt-mrd-3 text-[13px] leading-mrd-prose text-mrd-prose text-mrd-body">{sub}</p> : null}
+      <h1 className="text-mrd-h2 leading-mrd-tight font-medium text-mrd-ink">{title}</h1>
+      {sub ? <p className="mt-mrd-3 text-mrd-base leading-mrd-prose text-mrd-prose text-mrd-body">{sub}</p> : null}
     </header>
   );
 }
@@ -1734,7 +1734,7 @@ function MemoryPage() {
               zero either. */}
             {substrateShown.length > 0 ? (
               <>
-                <p className="mb-mrd-4 text-[12.5px] text-mrd-mute">
+                <p className="mb-mrd-4 text-mrd-label text-mrd-mute">
                   What the crew reads before it acts, beyond the five doors above.
                 </p>
                 {/* A GRID, which is the system's shape for things that are SCANNED
@@ -1761,10 +1761,10 @@ function MemoryPage() {
                   {substrateShown.map((s) => {
                     const body = (
                       <>
-                        <span className="block text-[17px] leading-mrd-tight text-mrd-ink">
+                        <span className="block text-mrd-lead leading-mrd-tight text-mrd-ink">
                           <Figure>{s.value}</Figure>
                         </span>
-                        <span className="mt-0.5 block text-[12px] text-mrd-mute">{s.label}</span>
+                        <span className="mt-0.5 block text-mrd-small text-mrd-mute">{s.label}</span>
                       </>
                     );
                     return s.open ? (

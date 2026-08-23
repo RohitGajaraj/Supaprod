@@ -1368,7 +1368,7 @@ function DiagnosticsMoved({ onOpen }: { onOpen: () => void }) {
           <button
             type="button"
             onClick={onOpen}
-            className="rounded-full border border-mrd-line bg-mrd-sink px-3 py-1.5 text-[12px] text-mrd-prose text-mrd-body transition-colors hover:border-mrd-edge hover:bg-mrd-lift hover:text-mrd-ink"
+            className="rounded-full border border-mrd-line bg-mrd-sink px-3 py-1.5 text-mrd-prose text-mrd-body transition-colors hover:border-mrd-edge hover:bg-mrd-lift hover:text-mrd-ink"
           >
             Open Diagnostics
           </button>
@@ -1759,10 +1759,10 @@ function AgentDetail({
      is the real reason and it is unchanged.) */
   const Facet = ({ label, children }: { label: string; children: ReactNode }) => (
     <div className="flex flex-col gap-1 pt-2.5 first:pt-0">
-      <div className="text-[10.5px] font-medium tracking-[0.08em] text-mrd-mute uppercase">
+      <div className="text-mrd-micro font-medium tracking-[0.08em] text-mrd-mute uppercase">
         {label}
       </div>
-      <div className="text-[12.5px] leading-mrd-prose text-mrd-prose text-mrd-body">{children}</div>
+      <div className="text-mrd-label leading-mrd-prose text-mrd-prose text-mrd-body">{children}</div>
     </div>
   );
 
@@ -1818,7 +1818,7 @@ function AgentDetail({
             {tools.map((t) => (
               <span
                 key={t.toolName}
-                className="flex items-center gap-1.5 rounded-full border border-mrd-line bg-mrd-sink px-2 py-1 text-[11.5px]"
+                className="flex items-center gap-1.5 rounded-full border border-mrd-line bg-mrd-sink px-2 py-1 text-mrd-data"
               >
                 <span className="text-mrd-ink">{t.label}</span>
                 <span className="text-mrd-mute">{MODE_CHOICE[t.resolvedMode]}</span>
@@ -1899,7 +1899,7 @@ function AgentDetail({
           <button
             type="button"
             onClick={() => onOpenRecord(member.slug)}
-            className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-medium transition-colors"
+            className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-mrd-data font-medium transition-colors"
             style={{ color: "var(--mrd-you)", background: "var(--mrd-select)" }}
           >
             <span aria-hidden className="size-1.5 rounded-full" style={{ background: "var(--mrd-you)" }} />
@@ -1911,7 +1911,7 @@ function AgentDetail({
         <button
           type="button"
           onClick={() => onOpenRecord(member.slug)}
-          className="rounded-full border border-mrd-line bg-mrd-sink px-2.5 py-1 text-[11.5px] text-mrd-prose text-mrd-body transition-colors hover:border-mrd-edge hover:bg-mrd-lift hover:text-mrd-ink"
+          className="rounded-full border border-mrd-line bg-mrd-sink px-2.5 py-1 text-mrd-prose text-mrd-body transition-colors hover:border-mrd-edge hover:bg-mrd-lift hover:text-mrd-ink"
         >
           Change what {member.name} may touch, and read its history
         </button>

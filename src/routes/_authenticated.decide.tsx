@@ -867,7 +867,7 @@ function QueueSelectionBar({
       data-mrd=""
       role="region"
       aria-label={`${count} selected`}
-      className="flex min-h-[38px] items-center gap-mrd-5 rounded-mrd-ctl bg-mrd-lift px-mrd-5 text-[13px] text-mrd-prose text-mrd-body"
+      className="flex min-h-[38px] items-center gap-mrd-5 rounded-mrd-ctl bg-mrd-lift px-mrd-5 text-mrd-prose text-mrd-body"
     >
       <span className="font-medium whitespace-nowrap text-mrd-ink">
         <Num>{count}</Num> {count === 1 ? "bet" : "bets"} selected
@@ -2377,7 +2377,7 @@ function DecideSurface() {
                 that truncates it. Convert the day CtxRow grows an unstyled
                 slot, not before. */}
               {activeOpp.critic_review ? (
-                <div className="flex gap-mrd-2 px-mrd-2 py-mrd-1 text-[12px]">
+                <div className="flex gap-mrd-2 px-mrd-2 py-mrd-1 text-mrd-small">
                   <div className="flex-shrink-0">
                     <AgentMark slug={CHALLENGER} state="idle" />
                   </div>

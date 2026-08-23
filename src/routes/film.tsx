@@ -90,7 +90,7 @@ function FilmPage() {
         <section className="px-6 pt-16 pb-16">
           <div className="mx-auto max-w-5xl">
             <p
-              className="mb-4 font-mono text-[10px] uppercase text-zinc-600"
+              className="mb-4 font-mono text-mrd-nano uppercase text-zinc-600"
               style={{ letterSpacing: "0.18em" }}
             >
               The film &middot; {FILM_DURATION_LABEL} &middot; sound on

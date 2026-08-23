@@ -105,7 +105,7 @@ function PublicPage() {
       <div className="min-h-screen flex flex-col bg-background text-foreground">
         <header className="border-b hairline px-4 py-2.5 flex items-center justify-between bg-background/60 backdrop-blur">
           <div className="font-display text-sm">{title}</div>
-          <div className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+          <div className="text-mrd-nano uppercase tracking-[0.16em] text-muted-foreground">
             Made with Supaprod
           </div>
         </header>
@@ -132,7 +132,7 @@ function PublicPage() {
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <header className="border-b hairline px-4 py-2.5 flex items-center justify-between bg-background/60 backdrop-blur">
         <div className="font-display text-sm">{state.name}</div>
-        <div className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+        <div className="text-mrd-nano uppercase tracking-[0.16em] text-muted-foreground">
           Made with Supaprod
         </div>
       </header>

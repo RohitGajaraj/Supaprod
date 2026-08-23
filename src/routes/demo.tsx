@@ -90,7 +90,7 @@ function useDemoSessionId() {
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-600 mb-3">{children}</p>
+    <p className="text-mrd-nano font-mono uppercase tracking-widest text-zinc-600 mb-3">{children}</p>
   );
 }
 

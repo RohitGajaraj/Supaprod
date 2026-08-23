@@ -1607,7 +1607,7 @@ function SpecEditorPage() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             aria-label="Spec title"
-            className="w-full max-w-[56ch] rounded-none border-0 border-b border-mrd-line-soft bg-transparent px-0 pt-0 pb-1.5 text-[25px] leading-[1.24] font-[600] text-mrd-ink outline-none focus:border-mrd-mute"
+            className="w-full max-w-[56ch] rounded-none border-0 border-b border-mrd-line-soft bg-transparent px-0 pt-0 pb-1.5 text-mrd-h2 leading-[1.24] font-[600] text-mrd-ink outline-none focus:border-mrd-mute"
             style={{ letterSpacing: "-0.028em" }}
           />
           {/* Two facts, never the same one twice: what state it is in, and when
@@ -1633,7 +1633,7 @@ function SpecEditorPage() {
             second-highest line on the largest surface in the product. Same
             options as `onDate`, so the two stations date a thing the same way. */}
           {/* `.sp-subtitle` was 13.5px in the mute ink with 8px above it. */}
-          <div className="mt-2 text-[13.5px] text-mrd-mute">
+          <div className="mt-2 text-mrd-prose text-mrd-mute">
             {specStateWords(prd.status)} · saved{" "}
             <Num>
               {savedAt ??
@@ -1915,7 +1915,7 @@ function SpecEditorPage() {
                   aria-label="Spec body, markdown"
                   spellCheck={false}
                   rows={26}
-                  className="w-full min-h-20 resize-y rounded-mrd-ctl border border-mrd-field bg-mrd-sink px-3 py-2.5 text-[13.5px] leading-[1.55] text-mrd-ink transition-colors placeholder:text-mrd-faint focus:border-mrd-field-focus focus:outline-none"
+                  className="w-full min-h-20 resize-y rounded-mrd-ctl border border-mrd-field bg-mrd-sink px-3 py-2.5 text-mrd-prose leading-[1.55] text-mrd-ink transition-colors placeholder:text-mrd-faint focus:border-mrd-field-focus focus:outline-none"
                   style={{
                     fontFamily: "var(--mrd-mono)",
                     maxWidth: PROSE_MEASURE,
