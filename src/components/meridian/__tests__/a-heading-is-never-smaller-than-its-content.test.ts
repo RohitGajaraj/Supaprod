@@ -36,12 +36,45 @@ const MERIDIAN = join(import.meta.dir, "..");
 
 const read = (file: string) => readFileSync(join(MERIDIAN, file), "utf8");
 
-/** The px in the FIRST `text-[Npx]` on a line matching `marker`. */
+/** A `text-mrd-*` stop resolved to px, through meridian.css rather than a table
+ *  kept in this file, so the ladder can move without this guard agreeing with
+ *  itself forever. */
+function stopToPx(stop: string): number | null {
+  const css = readFileSync(join(MERIDIAN, "..", "..", "styles", "meridian.css"), "utf8");
+  const rule = css.match(new RegExp(`@utility\\s+text-mrd-${stop}\\s*\\{([^}]*)\\}`));
+  if (!rule) return null;
+  const tok = rule[1].match(/font-size:\s*var\((--mrd-t-[a-z0-9-]+)\)/);
+  if (!tok) return null;
+  const decl = css.match(new RegExp(`${tok[1]}\\s*:\\s*([0-9.]+)px`));
+  return decl ? Number(decl[1]) : null;
+}
+
+/**
+ * The size on the FIRST line matching `marker`, however it is written.
+ *
+ * THE FOURTH TIME THIS FILE HAS READ A SPELLING INSTEAD OF A CLAIM, and the last
+ * one: it looked only for `text-[Npx]`, so it threw the moment `rows.tsx` said
+ * the same 14px as `text-mrd-prose`. A named stop is not a different size, it is
+ * the same size with the guess taken out, which is the direction this whole
+ * migration moves in. A guard that fails when the code gets better is measuring
+ * the wrong thing.
+ */
 function sizeOnLineWith(file: string, marker: string): number {
-  const line = read(file)
+  const src = read(file);
+  const named = src
+    .split("\n")
+    .find((l) => l.includes(marker) && /text-mrd-[a-z0-9]+/.test(l));
+  if (named) {
+    const stop = named.match(/text-mrd-([a-z0-9]+)/);
+    if (stop) {
+      const px = stopToPx(stop[1]);
+      if (px !== null) return px;
+    }
+  }
+  const line = src
     .split("\n")
     .find((l) => l.includes(marker) && /text-\[\d+(?:\.\d+)?px\]/.test(l));
-  if (!line) throw new Error(`no line in ${file} carrying ${marker} and a text-[Npx]`);
+  if (!line) throw new Error(`no line in ${file} carrying ${marker} and a size`);
   const m = line.match(/text-\[(\d+(?:\.\d+)?)px\]/);
   if (!m) throw new Error(`no text-[Npx] on the matched line in ${file}`);
   return Number(m[1]);

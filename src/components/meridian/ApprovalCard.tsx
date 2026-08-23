@@ -100,9 +100,9 @@ function WaitingMarker({ subject }: { subject?: string }) {
   return (
     <span className="flex min-w-0 items-center gap-1.5">
       <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-mrd-you" />
-      <span className="shrink-0 text-[11px] font-medium text-mrd-you">Waiting on you</span>
+      <span className="shrink-0 text-mrd-tiny font-medium text-mrd-you">Waiting on you</span>
       {subject ? (
-        <span className="min-w-0 truncate text-[11px] text-mrd-mute">{subject}</span>
+        <span className="min-w-0 truncate text-mrd-tiny text-mrd-mute">{subject}</span>
       ) : null}
     </span>
   );
@@ -203,7 +203,7 @@ export function ApprovalCard({
         type="button"
         data-mrd=""
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded-mrd-ctl border border-mrd-line bg-mrd-sheet px-3 py-2 font-mrd text-[12.5px] font-medium text-mrd-ink transition-colors duration-100 hover:bg-mrd-hover"
+        className="flex items-center gap-2 rounded-mrd-ctl border border-mrd-line bg-mrd-sheet px-3 py-2 font-mrd text-mrd-label font-medium text-mrd-ink transition-colors duration-100 hover:bg-mrd-hover"
       >
         <span aria-hidden className="size-1.5 rounded-full bg-mrd-you" />
         Still waiting on you
@@ -240,7 +240,7 @@ export function ApprovalCard({
               </Icon>
             </span>
             <span
-              className="text-[13px] font-medium text-mrd-ink"
+              className="text-mrd-base font-medium text-mrd-ink"
               style={{ animation: "mrd-fade-up 350ms var(--mrd-ease) 100ms both" }}
             >
               Approved
@@ -269,7 +269,7 @@ export function ApprovalCard({
               </button>
             </div>
 
-            <p className="mt-2 text-[13px] font-medium text-mrd-ink">{question.ask}</p>
+            <p className="mt-2 text-mrd-base font-medium text-mrd-ink">{question.ask}</p>
 
             <div className="mt-2 flex flex-col gap-0.5">
               {question.options.map((option) => {
@@ -321,7 +321,7 @@ export function ApprovalCard({
                     onChange={(event) => setOther(event.target.value)}
                     placeholder="Answer in your own words"
                     aria-label="Answer in your own words"
-                    className="min-w-0 flex-1 bg-transparent text-[13px] text-mrd-ink outline-none placeholder:text-mrd-mute"
+                    className="min-w-0 flex-1 bg-transparent text-mrd-base text-mrd-ink outline-none placeholder:text-mrd-mute"
                   />
                 </label>
               ) : null}
@@ -396,7 +396,7 @@ export function ApprovalCard({
               type="button"
               disabled={!hasAnswer}
               onClick={() => (last ? approve() : setQi((current) => current + 1))}
-              className="flex h-7 items-center gap-1.5 rounded-mrd-ctl px-3 text-[12.5px] font-medium transition-[background-color,color,box-shadow,transform] duration-200 enabled:active:scale-[0.96] disabled:cursor-default"
+              className="flex h-7 items-center gap-1.5 rounded-mrd-ctl px-3 text-mrd-label font-medium transition-[background-color,color,box-shadow,transform] duration-200 enabled:active:scale-[0.96] disabled:cursor-default"
               style={{
                 /*
                  * THREE FACES, and each one states a different fact.

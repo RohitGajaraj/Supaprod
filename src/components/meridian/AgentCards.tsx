@@ -79,7 +79,7 @@ function StateLine({ card }: { card: AgentCard }) {
 
   if (waiting > 0) {
     return (
-      <span className="flex items-center gap-1.5 text-[11.5px] font-medium" style={{ color: "var(--mrd-you)" }}>
+      <span className="flex items-center gap-1.5 text-mrd-data font-medium" style={{ color: "var(--mrd-you)" }}>
         <span aria-hidden className="size-1.5 rounded-full" style={{ background: "var(--mrd-you)" }} />
         {waiting === 1 ? "Asking you" : `${waiting} asking you`}
       </span>
@@ -87,14 +87,14 @@ function StateLine({ card }: { card: AgentCard }) {
   }
   if (card.enabled === false) {
     return (
-      <span className="flex items-center gap-1.5 text-[11.5px]" style={{ color: "var(--mrd-hold)" }}>
+      <span className="flex items-center gap-1.5 text-mrd-data" style={{ color: "var(--mrd-hold)" }}>
         <span aria-hidden className="size-1.5 rounded-full" style={{ background: "var(--mrd-hold)" }} />
         Switched off
       </span>
     );
   }
   return (
-    <span className="text-[11.5px] text-mrd-mute">
+    <span className="text-mrd-data text-mrd-mute">
       {card.runsAlone ? "Runs on its own" : "Asks before it acts"}
     </span>
   );
@@ -153,7 +153,7 @@ export function AgentCards({
           {group && (
             /* The same quiet micro heading the rail uses for its own groups, so a
                station heading reads identically wherever it appears. */
-            <div className="text-[10.5px] font-medium tracking-[0.08em] text-mrd-mute uppercase">
+            <div className="text-mrd-micro font-medium tracking-[0.08em] text-mrd-mute uppercase">
               {group}
             </div>
           )}
@@ -253,7 +253,7 @@ export function AgentCards({
                   {card.name}
                 </span>
                 {card.role ? (
-                  <span className="line-clamp-2 text-[12px] leading-snug text-mrd-mute">
+                  <span className="line-clamp-2 text-mrd-small leading-snug text-mrd-mute">
                     {card.role}
                   </span>
                 ) : (

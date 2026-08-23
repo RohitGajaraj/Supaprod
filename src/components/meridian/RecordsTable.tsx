@@ -275,7 +275,7 @@ export function RecordsTable<Row>({
     <tr>
       <td colSpan={span} className="px-4 py-10">
         <div className="mx-auto flex max-w-[46ch] flex-col items-center gap-2 text-center">
-          <span className="text-[13px] font-medium" style={{ color: "var(--mrd-fail)" }}>
+          <span className="text-mrd-base font-medium" style={{ color: "var(--mrd-fail)" }}>
             {failure.message}
           </span>
           <span className="mrd-meta">
@@ -285,7 +285,7 @@ export function RecordsTable<Row>({
             <button
               type="button"
               onClick={failure.onRetry}
-              className={`mt-1 rounded-mrd-ctl bg-mrd-solid px-2.5 py-1 text-[12.5px] font-medium text-mrd-on-solid transition-opacity hover:opacity-90 ${FOCUS}`}
+              className={`mt-1 rounded-mrd-ctl bg-mrd-solid px-2.5 py-1 text-mrd-label font-medium text-mrd-on-solid transition-opacity hover:opacity-90 ${FOCUS}`}
               style={{ transitionDuration: "var(--mrd-d-press)" }}
             >
               Try again
@@ -298,7 +298,7 @@ export function RecordsTable<Row>({
     <tr>
       <td colSpan={span} className="px-4 py-10">
         <div className="mx-auto flex max-w-[46ch] flex-col items-center gap-2 text-center">
-          <span className="text-[13px] font-medium text-mrd-ink">No rows match this filter</span>
+          <span className="text-mrd-base font-medium text-mrd-ink">No rows match this filter</span>
           <span className="mrd-meta">
             {totalBeforeFilter
               ? `${totalBeforeFilter} row${totalBeforeFilter === 1 ? "" : "s"} exist and the filter is hiding all of them.`
@@ -321,7 +321,7 @@ export function RecordsTable<Row>({
     <tr>
       <td colSpan={span} className="px-4 py-10">
         <div className="mx-auto flex max-w-[46ch] flex-col items-center gap-1.5 text-center">
-          <span className="text-[13px] font-medium text-mrd-ink">{emptyTitle}</span>
+          <span className="text-mrd-base font-medium text-mrd-ink">{emptyTitle}</span>
           {emptyDetail && <span className="mrd-meta">{emptyDetail}</span>}
         </div>
       </td>
@@ -483,7 +483,7 @@ export function RecordsTable<Row>({
                     key={column.key}
                     scope="col"
                     aria-sort={active ? (sort!.dir === 1 ? "ascending" : "descending") : "none"}
-                    className={`sticky top-0 border-b border-mrd-line bg-mrd-sheet px-3 py-2 text-[11.5px] font-medium text-mrd-mute ${
+                    className={`sticky top-0 border-b border-mrd-line bg-mrd-sheet px-3 py-2 text-mrd-data font-medium text-mrd-mute ${
                       column.numeric ? "text-right" : ""
                     } ${index === 0 ? (selectable ? "left-9 z-[3]" : "left-0 z-[3]") : "z-[2]"}`}
                   >

@@ -311,7 +311,7 @@ function Ring({ status, step }: { status: TaskStatus; step?: number }) {
           />
         )}
       </svg>
-      <span className="relative text-[10.5px] font-semibold tabular-nums text-mrd-ink">
+      <span className="relative text-mrd-micro font-semibold tabular-nums text-mrd-ink">
         {step ?? ""}
       </span>
     </span>
@@ -357,7 +357,7 @@ function Marker({ status, step }: { status: TaskStatus; step?: number }) {
 function Pill({ status }: { status: TaskStatus }) {
   return (
     <span
-      className="inline-flex h-[22px] shrink-0 items-center rounded-full px-2 text-[11.5px] font-medium"
+      className="inline-flex h-[22px] shrink-0 items-center rounded-full px-2 text-mrd-data font-medium"
       style={{
         color: TASK_TONE[status],
         background: `color-mix(in oklab, ${TASK_TONE[status]} 16%, transparent)`,
@@ -464,7 +464,7 @@ export function TaskRows({
             >
               <Marker status={task.status} step={task.step} />
 
-              <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-mrd-ink">
+              <span className="min-w-0 flex-1 truncate text-mrd-base font-medium text-mrd-ink">
                 {task.label}
               </span>
 
@@ -549,7 +549,7 @@ export function TaskRows({
                             {detail.label}
                           </span>
                           {detail.meta ? (
-                            <span className="shrink-0 font-mrd-mono text-[11.5px] text-mrd-mute tabular-nums">
+                            <span className="shrink-0 font-mrd-mono text-mrd-data text-mrd-mute tabular-nums">
                               {detail.meta}
                             </span>
                           ) : null}
@@ -560,7 +560,7 @@ export function TaskRows({
                         <button
                           type="button"
                           onClick={() => onRetry(task)}
-                          className="mt-0.5 flex w-fit items-center gap-1.5 rounded-mrd-ctl bg-mrd-lift px-2 py-1 text-[12px] font-medium text-mrd-ink transition-colors duration-100 hover:bg-mrd-hover"
+                          className="mt-0.5 flex w-fit items-center gap-1.5 rounded-mrd-ctl bg-mrd-lift px-2 py-1 text-mrd-small font-medium text-mrd-ink transition-colors duration-100 hover:bg-mrd-hover"
                         >
                           <Glyph d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" size={12} width={2.4} />
                           Run it again

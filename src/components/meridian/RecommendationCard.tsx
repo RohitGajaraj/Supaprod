@@ -207,7 +207,7 @@ export function RecommendationCard({
       style={{ boxShadow: "var(--mrd-shadow-card)" }}
     >
       <div className="px-4 pt-3.5 pb-3">
-        <span className="text-[13px] font-semibold text-mrd-ink">{question}</span>
+        <span className="text-mrd-base font-semibold text-mrd-ink">{question}</span>
         <p
           key={active.key}
           className="mt-1.5 min-h-12 mrd-copy"
@@ -237,7 +237,7 @@ export function RecommendationCard({
         >
           <div className="overflow-hidden">
             <div className="border-t border-mrd-line-soft bg-mrd-sink px-2 py-2">
-              <p className="px-1.5 pb-1 text-[11px] font-medium text-mrd-mute">Other options</p>
+              <p className="px-1.5 pb-1 text-mrd-tiny font-medium text-mrd-mute">Other options</p>
               {others.map(({ option, i }) => (
                 <button
                   key={option.key}
@@ -254,10 +254,10 @@ export function RecommendationCard({
                   ) : (
                     <Meter confidence={option.confidence} />
                   )}
-                  <span className="min-w-0 flex-1 truncate text-[12.5px] text-mrd-ink">
+                  <span className="min-w-0 flex-1 truncate text-mrd-label text-mrd-ink">
                     {option.short}
                   </span>
-                  <span className="shrink-0 text-[11px] text-mrd-mute">
+                  <span className="shrink-0 text-mrd-tiny text-mrd-mute">
                     {option.confidence === null ? "No usable answer" : band(option.confidence)}
                   </span>
                 </button>
@@ -288,7 +288,7 @@ export function RecommendationCard({
                * two changes agree, and together they read as pressed rather
                * than as tinted.
                */
-              className={`h-7 rounded-mrd-ctl px-2.5 text-[12.5px] font-medium text-mrd-ink transition-[background-color,box-shadow,transform] duration-100 active:scale-[0.96] ${
+              className={`h-7 rounded-mrd-ctl px-2.5 text-mrd-label font-medium text-mrd-ink transition-[background-color,box-shadow,transform] duration-100 active:scale-[0.96] ${
                 open ? "bg-mrd-select" : "bg-mrd-lift hover:bg-mrd-lift-hover"
               }`}
               style={{ boxShadow: open ? "none" : "var(--mrd-shadow-card)" }}
@@ -303,7 +303,7 @@ export function RecommendationCard({
               setAccepted(true);
               onAccept?.(active);
             }}
-            className="flex h-7 items-center rounded-mrd-ctl px-3 text-[12.5px] font-medium transition-[background-color,color,transform] duration-150 active:scale-[0.96]"
+            className="flex h-7 items-center rounded-mrd-ctl px-3 text-mrd-label font-medium transition-[background-color,color,transform] duration-150 active:scale-[0.96]"
             style={{
               /*
                * The one accent on this card. It is the pending human action,

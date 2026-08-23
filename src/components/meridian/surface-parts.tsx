@@ -108,7 +108,7 @@ export function Eyebrow({ children }: { children: React.ReactNode }) {
 export function PageHeading({ title, sub }: { title: React.ReactNode; sub?: React.ReactNode }) {
   return (
     <header data-mrd="">
-      <h1 className="text-[25px] leading-tight font-medium text-mrd-ink">{title}</h1>
+      <h1 className="text-mrd-h2 leading-tight font-medium text-mrd-ink">{title}</h1>
       {sub ? (
         <p className="mt-mrd-3 max-w-[74ch] mrd-copy">{sub}</p>
       ) : null}
@@ -367,7 +367,7 @@ export function Region({
 
       {sub ? (
         <div
-          className={`${head ? "mt-mrd-3" : ""} max-w-[68ch] text-[12.5px] leading-relaxed text-mrd-mute`}
+          className={`${head ? "mt-mrd-3" : ""} max-w-[68ch] text-mrd-label leading-relaxed text-mrd-mute`}
         >
           {sub}
         </div>
@@ -400,7 +400,7 @@ const CONTROL_DEAD = "disabled:cursor-default disabled:opacity-45";
  *  the listener. That rule is why every caller passes this as a prop. */
 function Keycap({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="font-mrd-mono rounded-mrd-xs border border-current px-1 text-[11px] opacity-60">
+    <kbd className="font-mrd-mono rounded-mrd-xs border border-current px-1 text-mrd-tiny opacity-60">
       {children}
     </kbd>
   );
@@ -733,7 +733,7 @@ export function Picker({ className = "", ...rest }: React.SelectHTMLAttributes<H
     <select
       {...rest}
       data-mrd=""
-      className={`h-8 max-w-full rounded-mrd-ctl border border-mrd-field bg-mrd-lift px-2 text-[12.5px] text-mrd-ink transition-colors disabled:cursor-default disabled:opacity-45 ${className}`}
+      className={`h-8 max-w-full rounded-mrd-ctl border border-mrd-field bg-mrd-lift px-2 text-mrd-label text-mrd-ink transition-colors disabled:cursor-default disabled:opacity-45 ${className}`}
       style={{ transitionDuration: "var(--mrd-d-press)" }}
     />
   );
@@ -816,7 +816,7 @@ export function Toggle({
  */
 export function Reading({ children = "Reading." }: { children?: React.ReactNode }) {
   return (
-    <p data-mrd="" role="status" aria-live="polite" className="text-[13px] text-mrd-mute">
+    <p data-mrd="" role="status" aria-live="polite" className="text-mrd-base text-mrd-mute">
       {children}
     </p>
   );
@@ -985,7 +985,7 @@ export function ReadFailedLine({
       data-mrd=""
       role="status"
       aria-live="polite"
-      className="max-w-[68ch] text-[13px] leading-relaxed"
+      className="max-w-[68ch] text-mrd-base leading-relaxed"
     >
       <span className="text-mrd-fail">{children}</span>
       {onRetry ? (
@@ -1152,7 +1152,7 @@ export function Diffstat({
   return (
     <span
       data-mrd=""
-      className="font-mrd-mono inline-flex items-center gap-1 text-[11.5px] tabular-nums"
+      className="font-mrd-mono inline-flex items-center gap-1 text-mrd-data tabular-nums"
       aria-label={`${added} ${unit} added, ${removed} ${unit} removed`}
     >
       {added > 0 || both ? (
@@ -1209,7 +1209,7 @@ export function RecordSpeaks({
   return (
     <div data-mrd="" className="border-l-2 border-mrd-edge pl-mrd-5">
       <p className="max-w-[62ch] mrd-copy">{children}</p>
-      {evidence ? <p className="mt-mrd-2 text-[12px] text-mrd-faint">{evidence}</p> : null}
+      {evidence ? <p className="mt-mrd-2 text-mrd-small text-mrd-faint">{evidence}</p> : null}
     </div>
   );
 }
@@ -1312,7 +1312,7 @@ export function Value({
      system". A component that encodes its meaning ONLY in a colour class has
      put the meaning back in the paint. */
   return (
-    <span data-tone={tone} className={`text-[12.5px] ${paint}`}>
+    <span data-tone={tone} className={`text-mrd-label ${paint}`}>
       {children}
     </span>
   );
@@ -1602,11 +1602,11 @@ export function Cell({
     <>
       {mark ? <span className="flex shrink-0 items-center">{mark}</span> : null}
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[14px] leading-[1.4] font-medium text-mrd-ink">
+        <span className="block truncate text-mrd-prose leading-[1.4] font-medium text-mrd-ink">
           {lead}
         </span>
         {sub ? (
-          <span className="mt-0.5 block truncate text-[13px] leading-[1.4] text-mrd-mute">
+          <span className="mt-0.5 block truncate text-mrd-base leading-[1.4] text-mrd-mute">
             {sub}
           </span>
         ) : null}

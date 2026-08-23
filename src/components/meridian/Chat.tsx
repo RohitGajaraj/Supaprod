@@ -94,7 +94,7 @@ function Step({ step }: { step: ChatStep }) {
         animation: "mrd-fade-up var(--mrd-d-move) var(--mrd-ease) both",
       }}
     >
-      <div className="flex items-center gap-1.5 text-[12px] leading-[1.4]">
+      <div className="flex items-center gap-1.5 text-mrd-small leading-[1.4]">
         {step.running && (
           <span
             aria-hidden
@@ -105,12 +105,12 @@ function Step({ step }: { step: ChatStep }) {
         <span className="font-medium text-mrd-ink">{step.title}</span>
         {step.source && <span className="text-mrd-prose text-mrd-body">{step.source}</span>}
         {step.duration && (
-          <span className="font-mrd-mono text-[11px] text-mrd-mute tabular-nums">
+          <span className="font-mrd-mono text-mrd-tiny text-mrd-mute tabular-nums">
             {step.duration}
           </span>
         )}
       </div>
-      <p className="text-[13px] leading-[1.4] text-mrd-ink">{step.body}</p>
+      <p className="text-mrd-base leading-[1.4] text-mrd-ink">{step.body}</p>
     </div>
   );
 }
@@ -204,7 +204,7 @@ export function Chat({
                   type="button"
                   aria-pressed={on}
                   onClick={() => onTabChange?.(tab)}
-                  className={`rounded-mrd-xs px-2 py-[3px] text-[13px] text-mrd-ink transition-[background-color,opacity] duration-100 ${
+                  className={`rounded-mrd-xs px-2 py-[3px] text-mrd-base text-mrd-ink transition-[background-color,opacity] duration-100 ${
                     on ? "bg-mrd-lift" : "opacity-50 hover:opacity-75"
                   }`}
                 >
@@ -245,7 +245,7 @@ export function Chat({
         {turns.length === 0 && !busy && (
           <div className="my-auto py-6">
             <p className="text-mrd-base font-medium text-mrd-body">{emptyLabel}</p>
-            <p className="mt-1 text-[13px] leading-[1.65] text-mrd-mute">{emptyHint}</p>
+            <p className="mt-1 text-mrd-base leading-[1.65] text-mrd-mute">{emptyHint}</p>
           </div>
         )}
 
@@ -253,7 +253,7 @@ export function Chat({
           <div key={turn.id} className="flex flex-col gap-2.5">
             <div className="flex justify-end pl-10">
               <div
-                className="rounded-mrd-card bg-mrd-lift px-3 py-1.5 text-[13px] leading-[1.4] text-mrd-ink"
+                className="rounded-mrd-card bg-mrd-lift px-3 py-1.5 text-mrd-base leading-[1.4] text-mrd-ink"
                 style={{ animation: "mrd-fade-up var(--mrd-d-move) var(--mrd-ease) both" }}
               >
                 {turn.you}
@@ -327,7 +327,7 @@ export function Chat({
             }}
             placeholder={placeholder}
             aria-label="Ask a question"
-            className="min-h-[18px] w-full resize-none bg-transparent text-[13px] leading-[1.5] text-mrd-ink outline-none [overflow-wrap:anywhere] placeholder:text-mrd-mute"
+            className="min-h-[18px] w-full resize-none bg-transparent text-mrd-base leading-[1.5] text-mrd-ink outline-none [overflow-wrap:anywhere] placeholder:text-mrd-mute"
             style={{ maxHeight: COMPOSER_MAX_H }}
           />
           <div className="flex items-center justify-end">

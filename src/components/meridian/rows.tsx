@@ -111,15 +111,15 @@ export function Row({
     <>
       <span className="flex w-[34px] flex-none items-center">{marks}</span>
       <span className="min-w-0 flex-1">
-        <span className={`block text-[14px] leading-[1.4] text-mrd-ink ${clamp}`}>{lead}</span>
+        <span className={`block text-mrd-prose leading-[1.4] text-mrd-ink ${clamp}`}>{lead}</span>
         {sub ? (
-          <span className={`mt-0.5 block text-[13px] leading-[1.4] text-mrd-mute ${clamp}`}>
+          <span className={`mt-0.5 block text-mrd-base leading-[1.4] text-mrd-mute ${clamp}`}>
             {sub}
           </span>
         ) : null}
       </span>
       {time ? (
-        <span className="font-mrd-mono flex-none text-[12px] tabular-nums text-mrd-mute">
+        <span className="font-mrd-mono flex-none text-mrd-small tabular-nums text-mrd-mute">
           {time}
         </span>
       ) : null}
@@ -252,7 +252,7 @@ export function Line({
     <>
       {label}
       {sub ? (
-        <span className="mt-0.5 block max-w-[56ch] text-[12.5px] text-mrd-mute">{sub}</span>
+        <span className="mt-0.5 block max-w-[56ch] text-mrd-label text-mrd-mute">{sub}</span>
       ) : null}
     </>
   );

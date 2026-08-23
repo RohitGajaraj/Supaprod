@@ -664,17 +664,17 @@ export function SidebarNav({
           name={workspaceName}
           focusRing={FOCUS_RING}
         >
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-[8px] bg-mrd-solid text-[13px] font-semibold text-mrd-on-solid">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-[8px] bg-mrd-solid text-mrd-base font-semibold text-mrd-on-solid">
             {workspaceName.slice(0, 1).toUpperCase()}
           </span>
           {!isCollapsed && (
             <>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-[13px] font-medium leading-tight text-mrd-ink">
+                <span className="block truncate text-mrd-base font-medium leading-tight text-mrd-ink">
                   {workspaceName}
                 </span>
                 {workspaceDetail && (
-                  <span className="block truncate text-[11px] leading-tight text-mrd-mute">
+                  <span className="block truncate text-mrd-tiny leading-tight text-mrd-mute">
                     {workspaceDetail}
                   </span>
                 )}
@@ -789,11 +789,11 @@ export function SidebarNav({
             }}
             placeholder="Search"
             aria-label="Search"
-            className="min-w-0 flex-1 bg-transparent text-[12.5px] text-mrd-ink outline-none placeholder:text-mrd-mute"
+            className="min-w-0 flex-1 bg-transparent text-mrd-label text-mrd-ink outline-none placeholder:text-mrd-mute"
           />
           {/* Drawn only because the key is bound above. A keycap is a promise in
               exactly the way a chevron is, and this one went unkept until 2026-08-17. */}
-          <kbd className="flex size-4.5 items-center justify-center rounded-[5px] border border-mrd-line bg-mrd-lift text-[10px] text-mrd-mute">
+          <kbd className="flex size-4.5 items-center justify-center rounded-[5px] border border-mrd-line bg-mrd-lift text-mrd-nano text-mrd-mute">
             /
           </kbd>
         </label>
@@ -816,7 +816,7 @@ export function SidebarNav({
           onFocus={() => openTip("__primary")}
           onBlur={closeTip}
           aria-label={isCollapsed ? primaryAction.label : undefined}
-          className={`relative flex w-full items-center gap-2 rounded-mrd-ctl bg-mrd-solid px-2 py-1.5 text-[13px] font-medium text-mrd-on-solid transition-[filter,transform] duration-100 hover:brightness-110 active:scale-[0.96] ${isCollapsed ? "justify-center" : ""} ${FOCUS_RING}`}
+          className={`relative flex w-full items-center gap-2 rounded-mrd-ctl bg-mrd-solid px-2 py-1.5 text-mrd-base font-medium text-mrd-on-solid transition-[filter,transform] duration-100 hover:brightness-110 active:scale-[0.96] ${isCollapsed ? "justify-center" : ""} ${FOCUS_RING}`}
           style={{
             marginBottom: "var(--mrd-s2)",
             /*
@@ -958,7 +958,7 @@ export function SidebarNav({
                  * difference between a heading that sits behind its rows and one
                  * that competes with them.
                  */
-                <div className="px-2 pt-1 pb-1 text-[10.5px] font-medium tracking-[0.08em] text-mrd-mute uppercase">
+                <div className="px-2 pt-1 pb-1 text-mrd-micro font-medium tracking-[0.08em] text-mrd-mute uppercase">
                   {section}
                 </div>
               ))}
@@ -1271,7 +1271,7 @@ function Tooltip({ children }: { children: ReactNode }) {
     <span
       aria-hidden
       role="presentation"
-      className="pointer-events-none absolute top-1/2 left-full z-20 ml-2 -translate-y-1/2 rounded-mrd-chip border border-mrd-line bg-mrd-float px-2 py-1 text-[12px] whitespace-nowrap text-mrd-ink"
+      className="pointer-events-none absolute top-1/2 left-full z-20 ml-2 -translate-y-1/2 rounded-mrd-chip border border-mrd-line bg-mrd-float px-2 py-1 text-mrd-small whitespace-nowrap text-mrd-ink"
       style={{
         boxShadow: "var(--mrd-shadow-float)",
         animation: "mrd-fade-in var(--mrd-d-press) linear both",

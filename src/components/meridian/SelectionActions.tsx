@@ -527,7 +527,7 @@ export function SelectionActions({
                 )}
               </>
             ) : working ? (
-              <span className="inline-flex h-7 items-center gap-1.5 px-2.5 text-[12.5px] whitespace-nowrap">
+              <span className="inline-flex h-7 items-center gap-1.5 px-2.5 text-mrd-label whitespace-nowrap">
                 <span
                   aria-hidden
                   className="size-3 shrink-0 rounded-full border-[1.5px] border-mrd-edge border-t-mrd-agent"
@@ -627,7 +627,7 @@ export function SelectionActions({
                       }}
                       aria-label="Describe the edit"
                       placeholder={placeholder}
-                      className="h-7 w-full bg-transparent pr-2.5 pl-3 text-[12.5px] text-mrd-ink outline-none placeholder:text-mrd-mute"
+                      className="h-7 w-full bg-transparent pr-2.5 pl-3 text-mrd-label text-mrd-ink outline-none placeholder:text-mrd-mute"
                     />
                   </form>
                 )}

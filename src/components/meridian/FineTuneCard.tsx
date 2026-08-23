@@ -181,10 +181,10 @@ function ScrubField({
           }
         }}
         aria-label={`${field.label} value`}
-        className="min-w-0 flex-1 bg-transparent font-mrd-mono text-[12px] text-mrd-ink outline-none tabular-nums"
+        className="min-w-0 flex-1 bg-transparent font-mrd-mono text-mrd-small text-mrd-ink outline-none tabular-nums"
       />
       {field.suffix && (
-        <span aria-hidden className="shrink-0 pr-0.5 text-[11.5px] text-mrd-mute">
+        <span aria-hidden className="shrink-0 pr-0.5 text-mrd-data text-mrd-mute">
           {field.suffix}
         </span>
       )}
@@ -334,7 +334,7 @@ export function FineTuneCard({
     >
       {/* header */}
       <div className="flex items-center justify-between gap-2 border-b border-mrd-line px-[var(--mrd-s4)] py-[var(--mrd-s3)]">
-        <span className="truncate text-[13px] font-medium text-mrd-ink">{title}</span>
+        <span className="truncate text-mrd-base font-medium text-mrd-ink">{title}</span>
 
         {edited ? (
           <span
@@ -347,7 +347,7 @@ export function FineTuneCard({
              * pop-in exists for, and the reference animates the same swap the
              * same way.
              */
-            className="flex shrink-0 items-center gap-1.5 text-[12px] font-medium text-mrd-you"
+            className="flex shrink-0 items-center gap-1.5 text-mrd-small font-medium text-mrd-you"
             style={{
               animation: "mrd-pop-in var(--mrd-d-move) var(--mrd-ease) both",
             }}
@@ -380,7 +380,7 @@ export function FineTuneCard({
              * the numbers beside it.
              */}
             <span
-              className="bg-clip-text text-[12px] font-medium text-transparent"
+              className="bg-clip-text text-mrd-small font-medium text-transparent"
               style={{
                 backgroundImage:
                   "linear-gradient(90deg, var(--mrd-agent-dim) 35%, var(--mrd-agent) 50%, var(--mrd-agent-dim) 65%)",
@@ -396,7 +396,7 @@ export function FineTuneCard({
 
       {/* layout */}
       <div className="flex flex-col gap-[var(--mrd-s3)] border-b border-mrd-line p-[var(--mrd-s4)]">
-        <p className="text-[12.5px] font-medium text-mrd-ink">Layout</p>
+        <p className="text-mrd-label font-medium text-mrd-ink">Layout</p>
         <div
           role="group"
           aria-label="Layout"
@@ -477,7 +477,7 @@ export function FineTuneCard({
               }}
             >
               <span
-                className={`truncate text-[12px] ${currentChoice ? "text-mrd-ink" : "text-mrd-mute"}`}
+                className={`truncate text-mrd-small ${currentChoice ? "text-mrd-ink" : "text-mrd-mute"}`}
               >
                 {currentChoice ?? choicePlaceholder}
               </span>
@@ -561,7 +561,7 @@ export function FineTuneCard({
                      * at all. Both states are classes now, so the cascade works
                      * the way the rest of the file assumes it does.
                      */
-                    className={`flex h-6.5 w-full items-center rounded-mrd-xs px-2 text-left text-[12.5px] text-mrd-ink transition-colors duration-150 ${
+                    className={`flex h-6.5 w-full items-center rounded-mrd-xs px-2 text-left text-mrd-label text-mrd-ink transition-colors duration-150 ${
                       option === currentChoice ? "bg-mrd-select" : "hover:bg-mrd-hover"
                     } ${FOCUS_RING}`}
                   >

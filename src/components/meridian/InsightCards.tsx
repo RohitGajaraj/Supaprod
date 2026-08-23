@@ -692,7 +692,7 @@ function TrendBody({ insight }: { insight: TrendInsight }) {
   return (
     <div className="rounded-mrd-card border border-mrd-line bg-mrd-sheet p-[var(--mrd-s4)]">
       <div className="flex items-center justify-between gap-2">
-        <span className="truncate text-[13px] font-medium text-mrd-ink">{insight.title}</span>
+        <span className="truncate text-mrd-base font-medium text-mrd-ink">{insight.title}</span>
         {insight.views && insight.views.length > 1 && (
           <span className="flex shrink-0 rounded-full bg-mrd-sink p-0.5">
             {insight.views.map((option, i) => (
@@ -745,7 +745,7 @@ function TrendBody({ insight }: { insight: TrendInsight }) {
                 <span className="truncate">{line.label}</span>
               </span>
               <span
-                className="mt-0.5 block font-mrd-mono text-[17px] font-semibold tracking-[-0.01em] tabular-nums"
+                className="mt-0.5 block font-mrd-mono text-mrd-lead font-semibold tracking-[-0.01em] tabular-nums"
                 style={{ color: tone }}
               >
                 {last === undefined ? "—" : format(last)}
@@ -762,7 +762,7 @@ function TrendBody({ insight }: { insight: TrendInsight }) {
                * wrong.
                */}
               {first !== undefined && (
-                <span className="block text-[11.5px] text-mrd-mute tabular-nums">
+                <span className="block text-mrd-data text-mrd-mute tabular-nums">
                   from {format(first)}
                 </span>
               )}
@@ -780,7 +780,7 @@ function TrendBody({ insight }: { insight: TrendInsight }) {
          * anything yet.
          */}
         <div className="flex items-center justify-between gap-2 border-b border-mrd-line px-2.5 py-1.5">
-          <span className="truncate text-[11px] text-mrd-mute">{frameLabel}</span>
+          <span className="truncate text-mrd-tiny text-mrd-mute">{frameLabel}</span>
           <span className="shrink-0 rounded-full bg-mrd-lift px-2 py-0.5 text-mrd-micro font-medium text-mrd-body">
             {insight.verdict === "open" || insight.verdict === undefined ? "Open" : "Settled"}
           </span>
@@ -796,7 +796,7 @@ function TrendBody({ insight }: { insight: TrendInsight }) {
         <dl className="mt-[var(--mrd-s4)] flex flex-wrap gap-x-6 gap-y-2">
           {insight.figures.map((figure) => (
             <div key={figure.label}>
-              <dt className="text-[11px] text-mrd-mute">{figure.label}</dt>
+              <dt className="text-mrd-tiny text-mrd-mute">{figure.label}</dt>
               <dd
                 className={`font-mrd-mono text-mrd-lead font-semibold tabular-nums ${
                   figure.tone === "pass"
@@ -852,7 +852,7 @@ function SplitBody({ insight }: { insight: SplitInsight }) {
 
   return (
     <div className="rounded-mrd-card border border-mrd-line bg-mrd-sheet p-[var(--mrd-s4)]">
-      <span className="flex items-center gap-1.5 text-[13px] font-medium text-mrd-ink">
+      <span className="flex items-center gap-1.5 text-mrd-base font-medium text-mrd-ink">
         {/*
          * The monogram disc, which the port had dropped. It takes the ACTIVE
          * segment's tone, so the card's identity mark moves with the selection
@@ -878,7 +878,7 @@ function SplitBody({ insight }: { insight: SplitInsight }) {
        */}
       <span
         aria-live="polite"
-        className="mt-1 block text-[20px] font-semibold tracking-[-0.01em] text-mrd-ink tabular-nums"
+        className="mt-1 block text-mrd-h3 font-semibold tracking-[-0.01em] text-mrd-ink tabular-nums"
       >
         {active?.amount ?? insight.headline}
       </span>
@@ -961,7 +961,7 @@ function SplitBody({ insight }: { insight: SplitInsight }) {
         <div className="mt-[var(--mrd-s4)] min-h-16 rounded-mrd-ctl border border-mrd-line bg-mrd-sink px-2.5 py-2">
           {/* Named, and in its own tone, so the panel and the bar agree. */}
           <span
-            className="block text-[11.5px] font-medium"
+            className="block text-mrd-data font-medium"
             style={{ color: segmentLabel(activeIndex, active.tone) }}
           >
             {active.label}
@@ -1018,7 +1018,7 @@ function ThresholdBody({ insight }: { insight: ThresholdInsight }) {
               </svg>
             </span>
           )}
-          <span className="truncate text-[13px] font-medium text-mrd-ink">{insight.title}</span>
+          <span className="truncate text-mrd-base font-medium text-mrd-ink">{insight.title}</span>
         </span>
 
         {insight.views.length > 1 && (
@@ -1049,10 +1049,10 @@ function ThresholdBody({ insight }: { insight: ThresholdInsight }) {
          * second moving target in a frame that already has one.
          */}
         <div className="flex items-center justify-between gap-2 border-b border-mrd-line px-2.5 py-1.5">
-          <span className="truncate font-mrd-mono text-[11px] text-mrd-mute tabular-nums">
+          <span className="truncate font-mrd-mono text-mrd-tiny text-mrd-mute tabular-nums">
             {insight.limitLabel}
           </span>
-          <span className="shrink-0 text-[11px] text-mrd-mute">
+          <span className="shrink-0 text-mrd-tiny text-mrd-mute">
             {breached ? "Crossed" : "Within"}
           </span>
         </div>
@@ -1074,16 +1074,16 @@ function ThresholdBody({ insight }: { insight: ThresholdInsight }) {
       </div>
 
       <div className="mt-[var(--mrd-s4)] flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <span className="font-mrd-mono text-[20px] font-semibold tracking-[-0.01em] text-mrd-ink tabular-nums">
+        <span className="font-mrd-mono text-mrd-h3 font-semibold tracking-[-0.01em] text-mrd-ink tabular-nums">
           {insight.figure.value}
         </span>
         {insight.figure.over && (
-          <span className="font-mrd-mono text-[12px] text-mrd-fail tabular-nums">
+          <span className="font-mrd-mono text-mrd-small text-mrd-fail tabular-nums">
             {insight.figure.over}
           </span>
         )}
         {insight.figure.note && (
-          <span className="text-[11px] text-mrd-mute">{insight.figure.note}</span>
+          <span className="text-mrd-tiny text-mrd-mute">{insight.figure.note}</span>
         )}
       </div>
     </div>
@@ -1121,15 +1121,15 @@ function NothingSettledYet({
 
       <dl className="mt-[var(--mrd-s5)] flex flex-wrap gap-x-8 gap-y-3 border-t border-mrd-line-soft pt-[var(--mrd-s4)]">
         <div>
-          <dt className="text-[11px] text-mrd-mute">Settled outcomes</dt>
-          <dd className="font-mrd-mono text-[20px] font-semibold text-mrd-ink tabular-nums">
+          <dt className="text-mrd-tiny text-mrd-mute">Settled outcomes</dt>
+          <dd className="font-mrd-mono text-mrd-h3 font-semibold text-mrd-ink tabular-nums">
             {settledOutcomes}
           </dd>
         </div>
         {awaitingVerdict !== undefined && (
           <div>
-            <dt className="text-[11px] text-mrd-mute">Awaiting a verdict</dt>
-            <dd className="font-mrd-mono text-[20px] font-semibold text-mrd-ink tabular-nums">
+            <dt className="text-mrd-tiny text-mrd-mute">Awaiting a verdict</dt>
+            <dd className="font-mrd-mono text-mrd-h3 font-semibold text-mrd-ink tabular-nums">
               {awaitingVerdict}
             </dd>
           </div>
@@ -1176,7 +1176,7 @@ function CouldNotRead({ reason, onRetry }: { reason: string; onRetry?: () => voi
         <button
           type="button"
           onClick={onRetry}
-          className={`mt-[var(--mrd-s4)] rounded-mrd-ctl bg-mrd-solid px-3 py-1.5 text-[13px] font-medium text-mrd-on-solid transition-[filter,transform] duration-100 hover:brightness-110 active:scale-[0.97] ${FOCUS_RING}`}
+          className={`mt-[var(--mrd-s4)] rounded-mrd-ctl bg-mrd-solid px-3 py-1.5 text-mrd-base font-medium text-mrd-on-solid transition-[filter,transform] duration-100 hover:brightness-110 active:scale-[0.97] ${FOCUS_RING}`}
         >
           Try again
         </button>
@@ -1207,7 +1207,7 @@ export function Entity({ name, by }: { name: string; by: "you" | "agent" }) {
 export function Delta({ children, tone }: { children: ReactNode; tone: "pass" | "fail" }) {
   return (
     <code
-      className={`font-mrd-mono text-[11.5px] ${tone === "pass" ? "text-mrd-pass" : "text-mrd-fail"}`}
+      className={`font-mrd-mono text-mrd-data ${tone === "pass" ? "text-mrd-pass" : "text-mrd-fail"}`}
     >
       {children}
     </code>
@@ -1262,7 +1262,7 @@ export function InsightCards({
       style={{ minHeight: 528 }}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[13px] font-semibold text-mrd-ink">Insights</span>
+        <span className="text-mrd-base font-semibold text-mrd-ink">Insights</span>
 
         {insights.length > 0 && (
           <span className="flex items-center gap-1">
@@ -1272,7 +1272,7 @@ export function InsightCards({
              * Insights reads as proof that something was learnt, and that is
              * the shape this product does not use.
              */}
-            <span aria-live="polite" className="text-[11.5px] text-mrd-mute tabular-nums">
+            <span aria-live="polite" className="text-mrd-data text-mrd-mute tabular-nums">
               Insight {page + 1} of {insights.length}
             </span>
             {(
@@ -1333,7 +1333,7 @@ export function InsightCards({
               <button
                 type="button"
                 onClick={() => onFollowUp?.(current.followUp as string)}
-                className={`mt-[var(--mrd-s4)] rounded-full border border-mrd-line bg-mrd-sheet px-3 py-1.5 text-left text-[12px] text-mrd-ink transition-colors duration-100 hover:bg-mrd-hover ${FOCUS_RING}`}
+                className={`mt-[var(--mrd-s4)] rounded-full border border-mrd-line bg-mrd-sheet px-3 py-1.5 text-left text-mrd-small text-mrd-ink transition-colors duration-100 hover:bg-mrd-hover ${FOCUS_RING}`}
               >
                 {current.followUp}
               </button>

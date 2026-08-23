@@ -340,7 +340,7 @@ export function AgentPulse({
           part of this indicator that changes meaning rather than merely
           proving life. */}
       {startedAt != null ? (
-        <span className="font-mrd-mono shrink-0 text-[12px] tabular-nums text-mrd-mute">
+        <span className="font-mrd-mono shrink-0 text-mrd-small tabular-nums text-mrd-mute">
           {elapsed}
         </span>
       ) : null}

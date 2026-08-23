@@ -173,7 +173,7 @@ export function Textarea({ className = "", ...rest }: React.ComponentPropsWithRe
     <textarea
       {...rest}
       data-mrd=""
-      className={`${FIELD_BASE} min-h-20 resize-y px-2.5 py-2 text-[13px] leading-relaxed ${className}`}
+      className={`${FIELD_BASE} min-h-20 resize-y px-2.5 py-2 text-mrd-base leading-relaxed ${className}`}
       style={{ transitionDuration: "var(--mrd-d-press)", ...rest.style }}
     />
   );

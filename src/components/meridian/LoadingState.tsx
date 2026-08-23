@@ -94,7 +94,7 @@ export function LoadingState({
        * vision and stays quiet when looked at directly.
        */}
       <span
-        className="bg-clip-text text-[13px] font-medium text-transparent"
+        className="bg-clip-text text-mrd-base font-medium text-transparent"
         style={{
           backgroundImage:
             "linear-gradient(90deg, var(--mrd-mute) 35%, var(--mrd-ink) 50%, var(--mrd-mute) 65%)",

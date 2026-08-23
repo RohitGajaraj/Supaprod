@@ -320,10 +320,10 @@ export function CodeBlock({
        */}
       <div className="flex min-h-9 items-center justify-between gap-2 border-b border-mrd-line px-2.5 py-1.5">
         <span className="flex min-w-0 items-baseline gap-2">
-          <span className="truncate font-mrd-mono text-[12px] font-medium text-mrd-ink">
+          <span className="truncate font-mrd-mono text-mrd-small font-medium text-mrd-ink">
             {filename}
           </span>
-          {language && <span className="shrink-0 text-[11.5px] text-mrd-mute">{language}</span>}
+          {language && <span className="shrink-0 text-mrd-data text-mrd-mute">{language}</span>}
         </span>
 
         {/*
@@ -351,7 +351,7 @@ export function CodeBlock({
                   : "Copy code"
             }
             onClick={copy}
-            className={`flex h-6 shrink-0 items-center gap-1 rounded-mrd-chip px-1.5 text-[11.5px] font-medium transition-colors duration-100 hover:bg-mrd-hover ${
+            className={`flex h-6 shrink-0 items-center gap-1 rounded-mrd-chip px-1.5 text-mrd-data font-medium transition-colors duration-100 hover:bg-mrd-hover ${
               copied === "yes"
                 ? "text-mrd-pass"
                 : copied === "failed"
@@ -417,7 +417,7 @@ export function CodeBlock({
        */}
       <pre
         ref={scroller}
-        className="mrd-focus-inset overflow-auto bg-mrd-sink px-3 py-2.5 font-mrd-mono text-[12px] leading-[1.7]"
+        className="mrd-focus-inset overflow-auto bg-mrd-sink px-3 py-2.5 font-mrd-mono text-mrd-small leading-[1.7]"
         style={{
           maxHeight,
           minHeight: reveal ? Math.min(maxHeight, lines.length * LINE_H + PAD_Y) : undefined,
@@ -459,7 +459,7 @@ export function CodeBlock({
                * value, not a rhythm one.
                */}
               <span
-                className="w-5 shrink-0 text-right text-[10.5px] text-mrd-faint select-none"
+                className="w-5 shrink-0 text-right text-mrd-micro text-mrd-faint select-none"
                 style={{ lineHeight: `${LINE_H}px` }}
               >
                 {i + 1}

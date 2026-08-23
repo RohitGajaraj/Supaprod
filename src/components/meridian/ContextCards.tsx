@@ -410,7 +410,7 @@ function Relevance({ value }: { value: number }) {
           />
         ))}
       </span>
-      <span className="font-mrd-mono text-[11px] text-mrd-mute tabular-nums">{pct}%</span>
+      <span className="font-mrd-mono text-mrd-tiny text-mrd-mute tabular-nums">{pct}%</span>
     </span>
   );
 }
@@ -536,7 +536,7 @@ export function ContextCards({
           className="flex flex-col items-center gap-2 rounded-mrd-card border border-mrd-line bg-mrd-sheet px-4 py-8 text-center shadow-mrd-card"
           style={{ animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }}
         >
-          <span className="text-[13px] font-medium" style={{ color: "var(--mrd-fail)" }}>
+          <span className="text-mrd-base font-medium" style={{ color: "var(--mrd-fail)" }}>
             {failure.message}
           </span>
           <span className="mrd-meta">
@@ -546,7 +546,7 @@ export function ContextCards({
             <button
               type="button"
               onClick={failure.onRetry}
-              className={`mt-1 rounded-mrd-ctl bg-mrd-solid px-2.5 py-1 text-[12.5px] font-medium text-mrd-on-solid transition-opacity hover:opacity-90 ${FOCUS}`}
+              className={`mt-1 rounded-mrd-ctl bg-mrd-solid px-2.5 py-1 text-mrd-label font-medium text-mrd-on-solid transition-opacity hover:opacity-90 ${FOCUS}`}
               style={{
                 transitionDuration: "var(--mrd-d-press)",
                 /* The specular top edge every filled control in this system
@@ -564,7 +564,7 @@ export function ContextCards({
           className="flex flex-col items-center gap-1.5 rounded-mrd-card border border-mrd-line bg-mrd-sheet px-4 py-8 text-center shadow-mrd-card"
           style={{ animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }}
         >
-          <span className="text-[13px] font-medium text-mrd-ink">
+          <span className="text-mrd-base font-medium text-mrd-ink">
             No excerpt matches this filter
           </span>
           <span className="mrd-meta">
@@ -588,7 +588,7 @@ export function ContextCards({
           className="flex flex-col items-center gap-1.5 rounded-mrd-card border border-mrd-line bg-mrd-sheet px-4 py-8 text-center shadow-mrd-card"
           style={{ animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }}
         >
-          <span className="text-[13px] font-medium text-mrd-ink">{emptyTitle}</span>
+          <span className="text-mrd-base font-medium text-mrd-ink">{emptyTitle}</span>
           {emptyDetail && <span className="mrd-meta">{emptyDetail}</span>}
         </div>
       ) : (
@@ -626,7 +626,7 @@ export function ContextCards({
                * at all, so the title and the excerpt ran together as one block.
                */}
               <div className="flex items-center gap-2.5 border-b border-mrd-line px-3 py-2">
-                <span className="flex min-w-0 items-center gap-1.5 text-[13px] font-medium text-mrd-ink">
+                <span className="flex min-w-0 items-center gap-1.5 text-mrd-base font-medium text-mrd-ink">
                   <span className="shrink-0 text-mrd-mute">
                     <LinesIcon />
                   </span>

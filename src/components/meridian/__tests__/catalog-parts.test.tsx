@@ -340,15 +340,29 @@ describe("a cell and a row are one rhythm, because they are one information mode
      * no argument anywhere for either. `rows.tsx` sets 14px ink over 13px mute at
      * `leading-[1.4]`; this reads the same figures off the cell so the two cannot
      * drift apart again silently.
+     *
+     * REWRITTEN 2026-08-23, AND THE INVARIANT IS UNCHANGED. This asserted the
+     * literal strings `text-[14px]` and `text-[13px]`, so it broke the moment the
+     * same two stops were written as `text-mrd-prose` and `text-mrd-base`, which
+     * are those exact sizes with a name on them. It was pinning a SPELLING while
+     * believing it pinned a rhythm, so it would equally have passed on a cell
+     * that kept the literals and drifted its colour or its leading.
+     *
+     * Either form is accepted now, and the STOP is what is checked. The pairing
+     * is the claim: whatever the lead is on, the sub is one step quieter, and the
+     * two components agree.
      */
     render(<Cell lead="Linear" sub="Read issues and cycles" />);
+    const onStop = (cls: string, px: string, named: string) =>
+      cls.includes(`text-[${px}px]`) || cls.includes(named);
+
     const lead = screen.getByText("Linear").className;
-    expect(lead).toContain("text-[14px]");
+    expect(onStop(lead, "14", "text-mrd-prose")).toBe(true);
     expect(lead).toContain("leading-[1.4]");
     expect(lead).toContain("text-mrd-ink");
 
     const sub = screen.getByText("Read issues and cycles").className;
-    expect(sub).toContain("text-[13px]");
+    expect(onStop(sub, "13", "text-mrd-base")).toBe(true);
     expect(sub).toContain("leading-[1.4]");
     expect(sub).toContain("text-mrd-mute");
   });

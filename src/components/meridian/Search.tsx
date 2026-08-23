@@ -225,7 +225,7 @@ export function Search<Item>({
    */
   const panel = failure ? (
     <div key="failure" className="flex flex-col items-center gap-2 px-4 py-8 text-center">
-      <span className="text-[13px] font-medium" style={{ color: "var(--mrd-fail)" }}>
+      <span className="text-mrd-base font-medium" style={{ color: "var(--mrd-fail)" }}>
         {failure.message}
       </span>
       <span className="mrd-meta">
@@ -235,7 +235,7 @@ export function Search<Item>({
         <button
           type="button"
           onClick={failure.onRetry}
-          className={`mt-1 rounded-mrd-ctl bg-mrd-solid px-2.5 py-1 text-[12.5px] font-medium text-mrd-on-solid transition-opacity hover:opacity-90 ${FOCUS}`}
+          className={`mt-1 rounded-mrd-ctl bg-mrd-solid px-2.5 py-1 text-mrd-label font-medium text-mrd-on-solid transition-opacity hover:opacity-90 ${FOCUS}`}
           style={{
             transitionDuration: "var(--mrd-d-press)",
             /* The specular top edge a filled control carries in this system.
@@ -261,7 +261,7 @@ export function Search<Item>({
       >
         <MagnifierIcon size={15} />
       </span>
-      <span className="text-[13px] font-medium text-mrd-ink">{emptyTitle}</span>
+      <span className="text-mrd-base font-medium text-mrd-ink">{emptyTitle}</span>
       {emptyDetail && <span className="mrd-meta">{emptyDetail}</span>}
     </div>
   ) : resting ? (
@@ -275,7 +275,7 @@ export function Search<Item>({
       className="px-3 py-4 text-center"
       style={{ animation: "mrd-fade-in var(--mrd-d-move) var(--mrd-ease) both" }}
     >
-      <span className="text-[12.5px] text-mrd-mute">
+      <span className="text-mrd-label text-mrd-mute">
         Type to search {items.length === 1 ? `the 1 ${noun}` : `all ${items.length} ${many}`}.
       </span>
     </div>
@@ -290,7 +290,7 @@ export function Search<Item>({
       className="flex flex-col items-center gap-1.5 px-4 py-8 text-center"
       style={{ animation: "mrd-fade-in var(--mrd-d-enter) var(--mrd-ease) both" }}
     >
-      <span className="text-[13px] font-medium text-mrd-ink">No matches</span>
+      <span className="text-mrd-base font-medium text-mrd-ink">No matches</span>
       <span className="mrd-meta">
         None of the {items.length} {items.length === 1 ? noun : many} contain that.
       </span>
@@ -380,7 +380,7 @@ export function Search<Item>({
           placeholder={placeholder}
           aria-label={label}
           disabled={Boolean(failure)}
-          className="min-w-0 flex-1 bg-transparent text-[13px] text-mrd-ink outline-none placeholder:text-mrd-faint disabled:cursor-not-allowed"
+          className="min-w-0 flex-1 bg-transparent text-mrd-base text-mrd-ink outline-none placeholder:text-mrd-faint disabled:cursor-not-allowed"
         />
         {query && (
           <button

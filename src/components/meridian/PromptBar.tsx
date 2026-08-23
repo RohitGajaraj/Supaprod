@@ -551,7 +551,7 @@ export function PromptBar({
                         {source.icon}
                       </span>
                     )}
-                    <span className="shrink-0 text-[12.5px] font-medium text-mrd-ink">
+                    <span className="shrink-0 text-mrd-label font-medium text-mrd-ink">
                       {row.name}
                     </span>
                     {row.desc && (
@@ -574,7 +574,7 @@ export function PromptBar({
                           event.stopPropagation();
                           onConnect?.(source);
                         }}
-                        className={`ml-auto shrink-0 text-[12px] font-medium transition-colors duration-100 ${
+                        className={`ml-auto shrink-0 text-mrd-small font-medium transition-colors duration-100 ${
                           source.connect === "done"
                             ? "text-mrd-pass"
                             : "text-mrd-you hover:underline"
@@ -606,7 +606,7 @@ export function PromptBar({
               </div>
             )}
 
-            <div className="mt-1 border-t border-mrd-line px-2 pt-1.5 pb-1 text-[11px] text-mrd-mute">
+            <div className="mt-1 border-t border-mrd-line px-2 pt-1.5 pb-1 text-mrd-tiny text-mrd-mute">
               {menu === "at" ? "Type to search sources and files" : "Type to search commands"}
             </div>
           </div>
@@ -658,10 +658,10 @@ export function PromptBar({
                 }}
                 className="relative z-10 flex h-7.5 w-full items-center gap-2 rounded-mrd-xs px-2 text-left"
               >
-                <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-mrd-ink">
+                <span className="min-w-0 flex-1 truncate text-mrd-label font-medium text-mrd-ink">
                   {m.name}
                 </span>
-                {m.tag && <span className="shrink-0 text-[11px] text-mrd-mute">{m.tag}</span>}
+                {m.tag && <span className="shrink-0 text-mrd-tiny text-mrd-mute">{m.tag}</span>}
                 <span
                   className={`shrink-0 text-mrd-ink ${m.key === model?.key ? "" : "invisible"}`}
                 >
@@ -681,7 +681,7 @@ export function PromptBar({
           <span
             ref={measureRef}
             aria-hidden
-            className="pointer-events-none invisible absolute whitespace-pre text-[13px] leading-[18px]"
+            className="pointer-events-none invisible absolute whitespace-pre text-mrd-base leading-[18px]"
           >
             {draft}
           </span>
@@ -804,7 +804,7 @@ export function PromptBar({
               aria-controls={menu ? listId : undefined}
               aria-activedescendant={menu && rows.length > 0 ? rowId(active) : undefined}
               aria-autocomplete="list"
-              className={`min-h-7 min-w-0 resize-none bg-transparent px-1 py-[5px] text-[13px] leading-[18px] text-mrd-ink outline-none [overflow-wrap:anywhere] placeholder:text-mrd-mute ${
+              className={`min-h-7 min-w-0 resize-none bg-transparent px-1 py-[5px] text-mrd-base leading-[18px] text-mrd-ink outline-none [overflow-wrap:anywhere] placeholder:text-mrd-mute ${
                 expanded ? "order-1 w-full" : "order-2 w-full flex-1"
               }`}
             />

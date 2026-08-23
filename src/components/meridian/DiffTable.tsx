@@ -156,19 +156,19 @@ export function DiffTable({
         style={{ boxShadow: "var(--mrd-shadow-card)" }}
       >
         <div className="flex items-center justify-between gap-2 border-b border-mrd-line px-2.5 py-1.5">
-          <span className="min-w-0 truncate text-[12px] font-medium text-mrd-ink">{title}</span>
+          <span className="min-w-0 truncate text-mrd-small font-medium text-mrd-ink">{title}</span>
 
           {status === "proposed" ? (
             /*
              * The only `--mrd-you` on the surface. It says the single thing a
              * reader of a proposal needs before reading any of it.
              */
-            <span className="flex shrink-0 items-center gap-1.5 text-[11px] font-medium text-mrd-you">
+            <span className="flex shrink-0 items-center gap-1.5 text-mrd-tiny font-medium text-mrd-you">
               <span aria-hidden className="size-1.5 rounded-full bg-mrd-you" />
               Waiting on you
             </span>
           ) : (
-            <span className="shrink-0 text-[11px] text-mrd-mute">{RESOLVED_NOTE[status]}</span>
+            <span className="shrink-0 text-mrd-tiny text-mrd-mute">{RESOLVED_NOTE[status]}</span>
           )}
         </div>
 
@@ -192,7 +192,7 @@ export function DiffTable({
                   <th
                     key={h}
                     title={h}
-                    className="truncate px-2.5 py-1.5 text-[12px] font-medium whitespace-nowrap text-mrd-mute"
+                    className="truncate px-2.5 py-1.5 text-mrd-small font-medium whitespace-nowrap text-mrd-mute"
                   >
                     {h}
                   </th>
@@ -238,7 +238,7 @@ export function DiffTable({
                           <td
                             key={i}
                             title={value}
-                            className="px-2.5 py-1.5 align-top text-[13px] font-medium tabular-nums transition-colors duration-[400ms]"
+                            className="px-2.5 py-1.5 align-top text-mrd-base font-medium tabular-nums transition-colors duration-[400ms]"
                             style={{
                               color: out ? "var(--mrd-fail)" : "var(--mrd-ink)",
                             }}
@@ -251,7 +251,7 @@ export function DiffTable({
                         <td
                           key={i}
                           title={value}
-                          className="px-2.5 py-1.5 align-top text-[12px] transition-colors duration-[400ms]"
+                          className="px-2.5 py-1.5 align-top text-mrd-small transition-colors duration-[400ms]"
                           style={{
                             color: out ? "var(--mrd-fail)" : "var(--mrd-body)",
                             textDecorationLine: out ? "line-through" : "none",
@@ -328,7 +328,7 @@ export function DiffTable({
                                   key={i}
                                   title={value}
                                   className={`min-w-0 px-2.5 py-1.5 text-mrd-pass ${CLAMP} ${
-                                    i === 0 ? "text-[13px] font-medium tabular-nums" : "text-[12px]"
+                                    i === 0 ? "text-mrd-base font-medium tabular-nums" : "text-mrd-small"
                                   }`}
                                 >
                                   {value}

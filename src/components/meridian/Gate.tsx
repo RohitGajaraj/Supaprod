@@ -72,7 +72,7 @@ export function Gate({
     >
       <span className="flex min-w-0 items-center gap-1.5">
         <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-mrd-you" />
-        <span className="shrink-0 text-[11px] font-medium text-mrd-you">Waiting on you</span>
+        <span className="shrink-0 text-mrd-tiny font-medium text-mrd-you">Waiting on you</span>
       </span>
 
       <h2 className="mt-mrd-4 mrd-title">{question}</h2>
@@ -80,7 +80,7 @@ export function Gate({
       {lines?.length ? (
         <div className="mt-mrd-5 rounded-mrd-card bg-mrd-sink px-mrd-5 py-mrd-4">
           {linesLabel ? (
-            <p className="mb-mrd-3 text-[10px] font-[650] tracking-mrd-label text-mrd-mute uppercase">
+            <p className="mb-mrd-3 text-mrd-nano font-[650] tracking-mrd-label text-mrd-mute uppercase">
               {linesLabel}
             </p>
           ) : null}

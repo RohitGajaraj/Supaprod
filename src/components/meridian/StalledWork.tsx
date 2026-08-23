@@ -166,7 +166,7 @@ function Item({ item, now }: { item: StalledItem; now: number }) {
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-          <span className="text-[13px] font-medium text-mrd-ink">{item.asking}</span>
+          <span className="text-mrd-base font-medium text-mrd-ink">{item.asking}</span>
           {/*
            * The age is the point of the row, so it sits beside the subject
            * rather than being exiled to a right rail where it reads as
@@ -191,7 +191,7 @@ function Item({ item, now }: { item: StalledItem; now: number }) {
            * The headline above still wraps its duration alone in mono, which
            * is correct: there the mono span contains only "3 days".
            */}
-          <span className={`text-[12px] tabular-nums ${ageTone} ${ageWeight}`}>
+          <span className={`text-mrd-small tabular-nums ${ageTone} ${ageWeight}`}>
             {needsPerson ? "stopped " : "waiting "}
             {stoppedFor(item.since, now)}
           </span>
@@ -210,7 +210,7 @@ function Item({ item, now }: { item: StalledItem; now: number }) {
         ) : null}
 
         {!needsPerson ? (
-          <p className="mt-1 text-[12.5px] leading-snug text-mrd-mute">
+          <p className="mt-1 text-mrd-label leading-snug text-mrd-mute">
             No source is connected, so there is nothing for this to read. Connecting one starts it.
           </p>
         ) : null}
@@ -231,7 +231,7 @@ function Item({ item, now }: { item: StalledItem; now: number }) {
           <button
             type="button"
             onClick={item.onAllow}
-            className="rounded-mrd-ctl bg-mrd-solid px-2.5 py-1 text-[12.5px] font-medium text-mrd-on-solid transition-opacity hover:opacity-90"
+            className="rounded-mrd-ctl bg-mrd-solid px-2.5 py-1 text-mrd-label font-medium text-mrd-on-solid transition-opacity hover:opacity-90"
             style={{ transitionDuration: "var(--mrd-d-press)" }}
           >
             {item.allowLabel ?? "Let it run"}
@@ -261,7 +261,7 @@ export function StalledWork({
      * exclamation mark, or a call to action. It gets one sentence and silence.
      */
     return (
-      <p data-mrd="" className="text-[13px] text-mrd-mute">
+      <p data-mrd="" className="text-mrd-base text-mrd-mute">
         Nothing is stopped, and nothing is waiting on you.
       </p>
     );

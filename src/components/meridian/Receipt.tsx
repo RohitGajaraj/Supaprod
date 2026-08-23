@@ -105,7 +105,7 @@ export function Receipt({
       ) : null}
 
       {time ? (
-        <span className="font-mrd-mono shrink-0 text-[11.5px] tabular-nums text-mrd-faint">
+        <span className="font-mrd-mono shrink-0 text-mrd-data tabular-nums text-mrd-faint">
           {time}
         </span>
       ) : null}

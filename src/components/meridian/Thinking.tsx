@@ -283,7 +283,7 @@ export function Thinking({
            * going" in peripheral vision and goes quiet when looked at.
            */
           <span
-            className="bg-clip-text text-[13px] font-medium whitespace-nowrap text-transparent"
+            className="bg-clip-text text-mrd-base font-medium whitespace-nowrap text-transparent"
             style={{
               backgroundImage:
                 "linear-gradient(90deg, var(--mrd-mute) 35%, var(--mrd-ink) 50%, var(--mrd-mute) 65%)",
@@ -378,7 +378,7 @@ export function Thinking({
               )}
 
               {showZero && (
-                <p className="px-1.5 py-0.5 text-[12.5px] text-mrd-mute">{ZERO_LINE[variant]}</p>
+                <p className="px-1.5 py-0.5 text-mrd-label text-mrd-mute">{ZERO_LINE[variant]}</p>
               )}
 
               {rows.map((row, i) => {
@@ -423,7 +423,7 @@ export function Thinking({
 
                     {row.secondary && (
                       <span
-                        className={`shrink-0 text-[11.5px] text-mrd-mute ${
+                        className={`shrink-0 text-mrd-data text-mrd-mute ${
                           row.mono ? "font-mrd-mono" : ""
                         }`}
                       >
@@ -437,7 +437,7 @@ export function Thinking({
                      * a literal "undefined" beside a minus.
                      */}
                     {(row.add !== undefined || row.del !== undefined) && (
-                      <span className="shrink-0 font-mrd-mono text-[11px] tabular-nums">
+                      <span className="shrink-0 font-mrd-mono text-mrd-tiny tabular-nums">
                         {row.add !== undefined && <span className="text-mrd-pass">+{row.add}</span>}
                         {row.add !== undefined && row.del !== undefined && " "}
                         {row.del !== undefined && <span className="text-mrd-fail">-{row.del}</span>}
