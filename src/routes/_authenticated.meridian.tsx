@@ -262,17 +262,16 @@ function Stack({ children }: { children: ReactNode }) {
 }
 
 /* A neutral control for the states that carry one. Never the accent: setup is
- * not a decision, and a suggestion sitting on screen is not asking for anyone. */
+ * not a decision, and a suggestion sitting on screen is not asking for anyone.
+ *
+ * WAS a local part painting `bg-mrd-solid` by hand, which is Action's PRIMARY
+ * face: the strongest face in the system, on setup doors, in the very file
+ * meant to teach the vocabulary. The comment above it already said these
+ * states are not decisions; the paint had just been written before the tiers
+ * existed. Now it IS Action's default face, and the gallery demonstrates the
+ * real primitive instead of a private restatement of one. */
 function Button({ label }: { label: string }) {
-  return (
-    <button
-      type="button"
-      className="rounded-mrd-ctl bg-mrd-solid px-3 py-1.5 text-mrd-base font-medium text-mrd-on-solid transition-opacity hover:opacity-90"
-      style={{ transitionDuration: "var(--mrd-d-press)" }}
-    >
-      {label}
-    </button>
-  );
+  return <Action>{label}</Action>;
 }
 
 const noop = () => {};

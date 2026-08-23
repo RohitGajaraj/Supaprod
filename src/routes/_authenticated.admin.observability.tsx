@@ -114,6 +114,7 @@ import { getLivenessReport } from "@/lib/liveness.functions";
 import { getEmailHealth, sendTestEmail } from "@/lib/email-health.functions";
 import type { CapabilityReport, IntegrityReport, VocabularyReport } from "@/lib/liveness/report";
 import {
+  Action,
   NothingHere,
   ReadFailedLine,
   Reading,
@@ -781,13 +782,13 @@ function EmailHealth() {
           className="input"
           style={{ flex: "1 1 240px", minWidth: 0 }}
         />
-        <button
-          className="btn btn-secondary btn-sm"
+        <Action
           disabled={test.isPending || !to.trim()}
+          busy={test.isPending}
           onClick={() => test.mutate(to.trim())}
         >
           {test.isPending ? "Sending" : "Send test"}
-        </button>
+        </Action>
       </div>
       <p style={{ fontSize: 11, color: "var(--mrd-mute)", margin: "8px 0 0", lineHeight: 1.5 }}>
         A real send, not a validation call: only a message arriving in an inbox answers the

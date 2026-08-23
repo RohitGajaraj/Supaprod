@@ -1,6 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Action } from "@/components/meridian/surface-parts";
 
 // Minimal typed wrapper for the beta supabase.auth.oauth namespace.
 type AuthorizationDetails = {
@@ -57,24 +58,24 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
 function Consent() {
   const details = Route.useLoaderData();
   const { authorization_id } = Route.useSearch();
-  const [busy, setBusy] = useState(false);
+  const [pending, setPending] = useState<"approve" | "deny" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function decide(approve: boolean) {
-    setBusy(true);
+    setPending(approve ? "approve" : "deny");
     setError(null);
     const api = oauthApi();
     const { data, error } = approve
       ? await api.approveAuthorization(authorization_id)
       : await api.denyAuthorization(authorization_id);
     if (error) {
-      setBusy(false);
+      setPending(null);
       setError(error.message);
       return;
     }
     const target = data?.redirect_url ?? data?.redirect_to;
     if (!target) {
-      setBusy(false);
+      setPending(null);
       setError("No redirect returned by the authorization server.");
       return;
     }
@@ -95,20 +96,25 @@ function Consent() {
         </p>
       ) : null}
       <div className="flex gap-2">
-        <button
-          disabled={busy}
+        {/* Both controls lock while either decision runs, as before. The one
+            that was pressed also announces itself as the one working, which
+            the single shared `busy` flag could not say. */}
+        <Action
+          variant="primary"
+          busy={pending === "approve"}
+          disabled={pending !== null}
           onClick={() => decide(true)}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
         >
           Approve
-        </button>
-        <button
-          disabled={busy}
+        </Action>
+        <Action
+          variant="default"
+          busy={pending === "deny"}
+          disabled={pending !== null}
           onClick={() => decide(false)}
-          className="rounded-md border px-4 py-2 text-sm font-medium disabled:opacity-50"
         >
           Deny
-        </button>
+        </Action>
       </div>
     </main>
   );
