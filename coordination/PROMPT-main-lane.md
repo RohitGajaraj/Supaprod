@@ -252,3 +252,84 @@ guard rather than removing it**, so the decision stays enforced in its new direc
 - **The health signal is lying about the critic**: 42 runs report `completed_with_failures` while
   3 tool calls actually failed, and the critic's "failed" runs contain correct verdicts. See
   `answers/M11`. Do not let anyone "fix" the critic.
+
+## THE STANDING LOOP — founder instruction, 2026-08-23 17:0x
+
+Four duties. They run continuously, not once. Each exists because the failure it
+prevents has already happened in this repo.
+
+### 1. Anything that lands on `main` from a lane gets verified before it counts
+
+`git fetch origin` on a cadence. For every unit that arrives: **re-run the gates
+yourself on the merged tree**, never accept the numbers from the unit. A lane
+verifies against a tree missing the other lane's work, so its green is not the
+product's green. Each gate its own command — a pipe reports the exit code of its
+last stage, and `main` has shipped red that way.
+
+Verify the claim that would be **expensive to be wrong about**, not the easiest
+one. On `L0-005` that was the 25 deleted film masters, not the ratchet count.
+
+**A verification you did not write down did not happen.** Three units were
+audited in conversation and had no answer file; the next reader finds a green
+unit with no reviewer and either re-does the work or trusts it.
+
+### 2. Accept it or push it back — and push back through git, with state
+
+An accepted unit gets an `answers/` file naming what you measured. A defective one
+gets the finding **and a row in `STATUS.md` → PENDING CORRECTIONS**, because
+`answers/` carries no open/closed state and a lane reading twenty files cannot
+tell an acceptance from an outstanding correction.
+`answers/000-OPEN-CORRECTIONS-READ-FIRST.md` is the pointer; the state lives on
+the board only, so there is nothing to drift.
+
+Separate a **defect** from a **decision**. "This announces work it is not doing"
+is a defect. "Back stays live during a write" is a call the lane owes, and a
+reasoned refusal closes it as well as a fix does.
+
+### 3. Migrations: check the ledger every time, and apply them yourself
+
+**Lovable loses `schema_migrations` rows. This is recurring, not a one-off.**
+Found 2026-08-23: seven migrations written through `20260823010000` while the
+ledger stopped at `20260820110000`. Every effect was already live in production —
+it was the ledger that lost them. Two earlier rows carry
+`created_by: "claude-lane: applied out of band via SQL, effect verified..."`, so a
+previous session hit the same thing.
+
+The check, every session:
+
+```sql
+SELECT version FROM supabase_migrations.schema_migrations ORDER BY version DESC LIMIT 5;
+-- compare against: ls supabase/migrations/ | tail -5
+```
+
+When they disagree, **do not bulk-apply**. For each missing migration, in order:
+
+1. Read it. Confirm it is idempotent — `add column if not exists`,
+   `create or replace`, `create index if not exists`, guarded `DO $$` constraints.
+   Everything in this repo has been.
+2. **Query for its target objects before doing anything.** A migration recorded as
+   applied when it only half-ran is never applied again, and that is the one
+   failure worse than the missing row.
+3. Apply, then record with `created_by` saying it was an out-of-band repair and
+   what you verified. Then re-query to confirm.
+
+**`query_database` cancels on multi-statement `BEGIN; ... COMMIT;` blocks.** Two
+attempts returned `499 request_cancelled`; the transaction rolled back clean and
+nothing partial landed. Single statements work. Verify state after any cancel
+rather than assuming it failed.
+
+### 4. Deploy, publish, and commit at logical intervals
+
+Lovable is the only deploy path and its GitHub sync has stalled 24 minutes;
+`read_file` the changed file before measuring, and an empty commit unsticks the
+webhook. `pending` is not a deployment and the published host redirects, so every
+live check needs a negative control. See `answers/M06`.
+
+Commit each finished unit and push it. Unpushed work does not exist to the other
+lanes, and a session that dies on storage takes it with it — which is exactly how
+this run lost a completed port for four hours.
+
+**Commit explicit pathspecs.** `git add -- <one file>` still commits everything
+already in the index; a worktree holding 25 deleted film masters as disk
+reclamation will sweep them into a commit that claims to be a component port.
+Read `git diff-index --cached HEAD`, not `git diff-index HEAD`.
