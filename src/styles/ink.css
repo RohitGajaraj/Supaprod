@@ -114,7 +114,6 @@
    * secondary text rather than a heading ladder. See the OPEN QUESTION
    * note at the foot of this block. 12px floor on anything a person
    * reads; the two values below it carry data, not prose. */
-  --sp-text-title: 25px; /* page title (h1) */
   --sp-text-gate: 19px; /* the gate question, biggest thing on a surface */
   --sp-text-body: 14px; /* base. rows, nav, agent names, inputs */
   --sp-text-prose: 13.5px; /* secondary reading. live line, gate lines, ask */
@@ -122,7 +121,6 @@
   --sp-text-label: 12.5px; /* field labels, context headings */
   --sp-text-data: 12px; /* mono. timestamps, counts, durations */
   --sp-text-data-sm: 11.5px; /* mono. rail counts, stage numbers */
-  --sp-text-kbd: 11px; /* keycaps */
 
   /* ---- Leading ---- */
   --sp-leading-title: 1.24;
@@ -135,7 +133,6 @@
   /* ---- Tracking ---- (negative as size grows, positive on small caps) */
   --sp-track-title: -0.028em;
   --sp-track-gate: -0.019em;
-  --sp-track-num: -0.01em;
 
   /* ---- Weight ----
    * Mona Sans is installed as four STATIC instances (400/500/600/700),
@@ -161,7 +158,6 @@
   --sp-space-5: 20px;
   --sp-space-6: 24px;
   --sp-space-7: 28px; /* the rule's breathing room, below a block edge */
-  --sp-space-8: 32px; /* THE LAW: between groups */
 
   /* ---- Shell geometry ---- (step 2 builds against these) */
   --sp-header-h: 56px;
@@ -223,7 +219,6 @@
    * literal values are NOT aliases and stay until their call sites port; note
    * that `--sp-radius-ctl` is 8px while the Meridian stop it sits next to,
    * `--mrd-r-ctl`, is 9px, so they are not each other. */
-  --sp-radius-xs: var(--mrd-r-xs); /* keycap */
   --sp-radius-sm: 5px; /* diffstat cell */
   --sp-radius-ctl: 8px; /* buttons, inputs, live line */
   --sp-radius-card: 10px; /* agent card, ask composer */
@@ -251,8 +246,6 @@
    * blindness. Deliberately desaturated: worn as tints, never as fills.
    * STATE IS NEVER A HUE, which is what keeps thirteen agent colours
    * from competing with the four status colours below. */
-  --sp-stage-discover: #6fa9a0;
-  --sp-stage-decide: #c39a5e;
   --sp-stage-build: #6d97c2;
   --sp-stage-learn: #a89f66;
 
@@ -368,7 +361,6 @@
    * rest in both themes, in each theme's own direction. */
   --sp-field-edge-focus: #a8a8b2;
   --sp-line-soft: rgba(255, 255, 255, 0.055); /* a rule between sections */
-  --sp-hover: rgba(255, 255, 255, 0.045);
   --sp-shadow: 0 14px 34px -6px rgba(0, 0, 0, 0.7), 0 4px 10px -3px rgba(0, 0, 0, 0.5);
   /* THE SCRIM, and it is the one overlay token that genuinely did not exist.
    *
@@ -491,7 +483,6 @@
    * `--sp-eviq-inferred` and `--sp-eviq-borrowed` were read by nothing, so the
    * component this describes was never built. Only the invariant weight below
    * survives, and it survives because something reads it. */
-  --sp-eviq-rule: 2px; /* the left rule's weight. invariant */
 
   /* ---- Tint ----
    * Status chips converged hard on a 8-18% fill of their own hue across
@@ -602,7 +593,6 @@
   --sp-field-edge: #7a6f5d;
   --sp-field-edge-focus: #554c3c;
   --sp-line-soft: rgba(70, 55, 30, 0.065);
-  --sp-hover: rgba(70, 55, 30, 0.04);
   --sp-shadow: 0 10px 26px -10px rgba(80, 60, 25, 0.16), 0 2px 5px -2px rgba(80, 60, 25, 0.09);
   /* Warm and lighter, so a dimmed page still reads as paper under glass rather
    * than as a hole cut in it. Same family as the shadow directly above. */
@@ -612,8 +602,6 @@
 
   /* The stage families that are still read, taken down for a warm ground. Plan,
    * design and ship left on 2026-08-20 in both themes: nothing read them. */
-  --sp-stage-discover: #3d7a70;
-  --sp-stage-decide: #8f6a26;
   --sp-stage-build: #3f648a;
   --sp-stage-learn: #756d33;
 
@@ -631,8 +619,8 @@
    * The provenance colours were absent on purpose, because they resolved
    * through --sp-gate, --sp-stage-build and --sp-mute, which are restated
    * above. They were deleted outright on 2026-08-20, in the dark block, having
-   * been read by nothing; only --sp-eviq-rule survives and it is a weight, not
-   * a colour, so it has no paper value either. */
+   * been read by nothing; --sp-eviq-rule went the same way on 2026-08-23 once
+   * its last reader was ported to Meridian. */
 
   /* Shadows on paper are a warm brown at low opacity, never black -- the same
    * argument the scrim makes a few lines up: pure black over a warm ground
