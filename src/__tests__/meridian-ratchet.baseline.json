@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 2565,
-  "fileCount": 201,
+  "totalOccurrences": 2537,
+  "fileCount": 199,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "--text-": 16,
@@ -40,10 +40,6 @@
     "src/components/ask/AskDock.tsx": {
       "class:sp-": 7
     },
-    "src/components/ask/AskGateCard.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 3
-    },
     "src/components/ask/AskLanding.tsx": {
       "--sp-": 3,
       "class:sp-": 1
@@ -51,18 +47,15 @@
     "src/components/ask/AskPane.tsx": {
       "--sp-": 22,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 6
+      "usage:shell/primitives": 2
     },
     "src/components/ask/AskRunCard.tsx": {
       "class:sp-": 4,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 5
+      "usage:shell/primitives": 2
     },
     "src/components/ask/AskSwitcher.tsx": {
-      "--sp-": 3,
-      "class:sp-": 1,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 1
+      "--sp-": 3
     },
     "src/components/ask/AskTurn.tsx": {
       "--sp-": 4,
@@ -114,7 +107,6 @@
     },
     "src/components/connections/BindingPicker.tsx": {
       "--madder": 1,
-      "class:sp-": 1,
       "import:components/ui": 2,
       "usage:components/ui": 9
     },
@@ -124,16 +116,16 @@
     },
     "src/components/connections/ProductBindingsSection.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 8
+      "usage:shell/primitives": 4
     },
     "src/components/connections/ProviderLogo.tsx": {
       "--text-": 2,
       "--hairline": 1
     },
     "src/components/connections/WorkspaceBindingsSection.tsx": {
-      "class:sp-": 2,
+      "class:sp-": 1,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 2
+      "usage:shell/primitives": 1
     },
     "src/components/decisions/RewindButton.tsx": {
       "import:components/ui": 1,
@@ -610,10 +602,6 @@
       "import:shell/primitives": 1,
       "usage:shell/primitives": 2
     },
-    "src/components/today/PushedInsights.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 2
-    },
     "src/components/trust/MissionChain.tsx": {
       "import:shell/primitives": 1,
       "usage:shell/primitives": 5
@@ -621,7 +609,7 @@
     "src/components/trust/ReceiptDetailSheet.tsx": {
       "class:sp-": 1,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 17
+      "usage:shell/primitives": 13
     },
     "src/components/ui/alert-dialog.tsx": {
       "--ds-": 6,

@@ -113,7 +113,7 @@
 
 import * as React from "react";
 import { Row } from "@/components/meridian/rows";
-import { Actions, ReadFailedLine } from "@/components/meridian/surface-parts";
+import { Action, Actions, ReadFailedLine } from "@/components/meridian/surface-parts";
 import { LoadingState } from "@/components/meridian/LoadingState";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -135,7 +135,7 @@ import {
   contextualStarters,
   type Starter,
 } from "@/lib/ask-starters";
-import { Button, Choices, Textarea } from "@/components/shell/primitives";
+import { Choices, Textarea } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 import { AgentPulse } from "@/components/meridian/AgentPulse";
 import { IconMic } from "@/components/shell/icons";
@@ -633,16 +633,24 @@ function AskPaneOpen() {
           {/* THE DOOR, and there is only one of it. Not ghost while open: the
               switcher has taken the body, and the control that did it has to
               look pressed without borrowing a colour to say so. */}
-          <Button
-            variant={browsing ? "default" : "ghost"}
+          {/* TIER: clause 3, disclosure only, nothing written */}
+          <button
+            type="button"
+            className={browsing ? "rounded-mrd-chip border border-mrd-line bg-mrd-lift px-mrd-3 py-mrd-2 font-mrd text-mrd-label font-medium text-mrd-ink transition-colors duration-100 hover:bg-mrd-lift-hover hover:text-mrd-ink" : "rounded-mrd-chip px-mrd-3 py-mrd-2 font-mrd text-mrd-label font-medium text-mrd-mute transition-colors duration-100 hover:bg-mrd-hover hover:text-mrd-body"}
             aria-expanded={browsing}
             onClick={() => setBrowsing((v) => !v)}
           >
             Conversations
-          </Button>
-          <Button variant="ghost" aria-label="Close Ask" onClick={ask.close}>
+          </button>
+          {/* TIER: clause 3, dismissal only */}
+          <button
+            type="button"
+            className="rounded-mrd-chip px-mrd-3 py-mrd-2 font-mrd text-mrd-label font-medium text-mrd-mute transition-colors duration-100 hover:bg-mrd-hover hover:text-mrd-body"
+            aria-label="Close Ask"
+            onClick={ask.close}
+          >
             Close
-          </Button>
+          </button>
         </span>
       </header>
 
@@ -924,25 +932,28 @@ function AskPaneOpen() {
                 you already are, and the pressed state is drawn rather than
                 spelled, so it still survives greyscale. */}
             {dictation.supported ? (
-              <Button
-                variant="ghost"
-                icon
+              /* TIER: clause 3, toggles local dictation, nothing written */
+              <button
+                type="button"
+                className="rounded-mrd-chip px-mrd-3 py-mrd-2 font-mrd text-mrd-label font-medium text-mrd-mute transition-colors duration-100 hover:bg-mrd-hover hover:text-mrd-body"
+                data-icon="true"
                 aria-label={dictation.listening ? "Stop dictation" : "Start dictation"}
                 aria-pressed={dictation.listening}
                 disabled={stream.streaming}
                 onClick={() => (dictation.listening ? dictation.stop() : dictation.start())}
               >
                 <IconMic />
-              </Button>
+              </button>
             ) : null}
-            <Button
+            {/* TIER: clause 1, dispatches the message; streaming blocks as a bystander, not busy */}
+            <Action
               variant="primary"
+              shortcut="Enter"
               disabled={!draft.trim() || stream.streaming}
               onClick={send}
-              shortcut="Enter"
             >
               {intent === "instruction" ? "Hand it over" : "Ask"}
-            </Button>
+            </Action>
           </span>
         </div>
       </footer>

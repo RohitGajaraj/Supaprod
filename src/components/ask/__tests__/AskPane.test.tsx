@@ -396,10 +396,14 @@ describe("AskPane: the fork is visible before you commit", () => {
     await open();
     // Nothing typed: the pane offers the safe one and does not spend anything.
     // The word appears twice on the surface (the pane is called Ask), so this
-    // asserts the CONTROL, which is the thing that commits.
+    // asserts the CONTROL, which is the thing that commits. The control moved
+    // onto Meridian's Action, which carries no data-variant attribute; the
+    // locator now keys on the Meridian marker plus the verb itself.
     const send = screen
       .getAllByRole("button")
-      .find((b) => b.getAttribute("data-variant") === "primary");
+      .filter((b) => b.getAttribute("data-mrd") !== null)
+      .find((b) => (b.textContent ?? "").includes("Ask"));
+    expect(send).toBeTruthy();
     expect(send?.textContent).toContain("Ask");
     expect(send?.textContent).not.toContain("Hand it over");
   });

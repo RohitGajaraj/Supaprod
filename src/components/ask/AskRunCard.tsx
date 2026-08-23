@@ -20,7 +20,13 @@
  */
 
 import * as React from "react";
-import { Num, Actions, ReadFailedLine } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Approve,
+  Num,
+  Actions,
+  ReadFailedLine,
+} from "@/components/meridian/surface-parts";
 import { LoadingState } from "@/components/meridian/LoadingState";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
@@ -30,7 +36,7 @@ import { decideApproval } from "@/lib/agent_loop.functions";
 import { ACTION_LABEL } from "@/lib/agent-vocabulary";
 import type { LoopStep } from "@/lib/ai/loop.server";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Button, Record, Textarea } from "@/components/shell/primitives";
+import { Record, Textarea } from "@/components/shell/primitives";
 
 const POLL_MS = 4000;
 
@@ -224,10 +230,10 @@ export function AskRunCard({ missionId, initials }: { missionId: string; initial
           </div>
           {a.rationale ? <div className="sp-ctx-sub">{a.rationale}</div> : null}
           <Actions>
-            <Button variant="primary" onClick={() => void settle(a.id, "approve", a.tool_name)}>
-              Allow it
-            </Button>
-            <Button onClick={() => void settle(a.id, "reject", a.tool_name)}>Not this one</Button>
+            {/* TIER: clause 2, releases the held gate */}
+            <Approve onClick={() => void settle(a.id, "approve", a.tool_name)}>Allow it</Approve>
+            {/* TIER: clause 1, writes the reject verdict */}
+            <Action onClick={() => void settle(a.id, "reject", a.tool_name)}>Not this one</Action>
           </Actions>
         </div>
       ))}
@@ -248,9 +254,10 @@ export function AskRunCard({ missionId, initials }: { missionId: string; initial
             }}
           />
           <Actions>
-            <Button disabled={!steerDraft.trim() || steering} onClick={() => void sendSteer()}>
+            {/* TIER: clause 1, sends the steer row; busy is its own write, the empty draft stays disabled */}
+            <Action busy={steering} disabled={!steerDraft.trim()} onClick={() => void sendSteer()}>
               Steer it
-            </Button>
+            </Action>
           </Actions>
         </div>
       ) : null}

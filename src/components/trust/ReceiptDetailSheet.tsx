@@ -44,12 +44,12 @@
 
 import * as React from "react";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num, Actions, ReadFailedLine } from "@/components/meridian/surface-parts";
+import { Action, Num, Actions, ReadFailedLine } from "@/components/meridian/surface-parts";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-import { Block, Button, Record as RecordSays, Value } from "@/components/shell/primitives";
+import { Block, Record as RecordSays, Value } from "@/components/shell/primitives";
 import { Prose } from "@/components/meridian/Prose";
 import { traceRef } from "@/components/discover/format";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
@@ -101,7 +101,10 @@ export function ShareControl({ decisionId }: { decisionId: string }) {
 
   if (link) {
     return (
-      <Button
+      /* TIER: clause 3, copies to the clipboard; nothing in the record changes. */
+      <button
+        type="button"
+        className="rounded-mrd-chip border border-mrd-line bg-mrd-lift px-mrd-3 py-mrd-2 font-mrd text-mrd-label font-medium text-mrd-ink transition-colors duration-100 hover:bg-mrd-lift-hover hover:text-mrd-ink"
         title={link}
         onClick={async () => {
           try {
@@ -114,7 +117,7 @@ export function ShareControl({ decisionId }: { decisionId: string }) {
         }}
       >
         {copied ? "Link copied" : "Copy the public link"}
-      </Button>
+      </button>
     );
   }
   if (m.data && m.data.available === false) {
@@ -122,9 +125,11 @@ export function ShareControl({ decisionId }: { decisionId: string }) {
   }
   return (
     <>
-      <Button disabled={m.isPending} onClick={() => m.mutate()}>
+      {/* TIER: Action, default face - the click writes the decision public
+          through setDecisionShared, and publishing is this control's whole job. */}
+      <Action busy={m.isPending} onClick={() => m.mutate()}>
         {m.isPending ? "Publishing" : m.isError ? "Try publishing again" : "Publish it"}
-      </Button>
+      </Action>
       {m.isError ? <ReadFailedLine>{(m.error as Error).message}</ReadFailedLine> : null}
     </>
   );
@@ -372,13 +377,22 @@ export function ReceiptDetail({
         <Actions
           trailing={
             onClose ? (
-              <Button variant="ghost" onClick={onClose}>
+              /* TIER: clause 3, closes the detail; nothing is written. */
+              <button
+                type="button"
+                className="rounded-mrd-chip px-mrd-3 py-mrd-2 font-mrd text-mrd-label font-medium text-mrd-mute transition-colors duration-100 hover:bg-mrd-hover hover:text-mrd-body"
+                onClick={onClose}
+              >
                 Back to the record
-              </Button>
+              </button>
             ) : undefined
           }
         >
-          <Button
+          {/* TIER: clause 3, copies the trace id to the clipboard; nothing in
+              the record changes. */}
+          <button
+            type="button"
+            className="rounded-mrd-chip border border-mrd-line bg-mrd-lift px-mrd-3 py-mrd-2 font-mrd text-mrd-label font-medium text-mrd-ink transition-colors duration-100 hover:bg-mrd-lift-hover hover:text-mrd-ink"
             title="Copy the full trace id"
             onClick={async () => {
               try {
@@ -391,7 +405,7 @@ export function ReceiptDetail({
             }}
           >
             {copied ? "Trace id copied" : "Copy the trace id"}
-          </Button>
+          </button>
           {r.kind === "decision" ? <ShareControl decisionId={r.id} /> : null}
         </Actions>
       </Block>

@@ -1,9 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Num, ReadFailedLine } from "@/components/meridian/surface-parts";
+import { Action, Num, ReadFailedLine } from "@/components/meridian/surface-parts";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Button } from "@/components/shell/primitives";
 import { useWorkspace } from "@/hooks/use-workspace";
 import {
   getPushedInsights,
@@ -109,23 +108,28 @@ export function PushedInsights() {
                 <p>{i.body}</p>
               </div>
               <div className="today-notice-actions">
-                <Button
-                  disabled={settle.isPending}
+                {/* TIER: Action, default face - the click writes outcome=acted
+                    before navigating, so it is a mutation and not a plain
+                    button; navigation shares the step, so not primary. */}
+                <Action
+                  busy={settle.isPending}
                   onClick={() => {
                     navigate({ to: targetRoute(i.action.kind) });
                     settle.mutate({ id: i.id, outcome: "acted" });
                   }}
                 >
                   {i.action.label}
-                </Button>
-                <Button
-                  variant="ghost"
-                  disabled={settle.isPending}
+                </Action>
+                {/* TIER: Action, quiet face - the click writes outcome=dismissed;
+                    the secondary settle beside the act. */}
+                <Action
+                  variant="quiet"
+                  busy={settle.isPending}
                   onClick={() => settle.mutate({ id: i.id, outcome: "dismissed" })}
                   title="Dismiss this update. It remains part of the record."
                 >
                   Dismiss
-                </Button>
+                </Action>
               </div>
             </article>
           );

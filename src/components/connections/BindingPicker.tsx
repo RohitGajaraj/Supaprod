@@ -85,7 +85,7 @@ export function BindingPicker({
         {/* The system's own button, so a picker trigger and a Save button are
             the same object. It used to carry its own tailwind geometry and a
             token (`hairline`) that no longer exists. */}
-        <button type="button" className="sp-btn" disabled={mBind.isPending}>
+        <button type="button" className="rounded-mrd-chip border border-mrd-line bg-mrd-lift px-mrd-3 py-mrd-2 font-mrd text-mrd-label font-medium text-mrd-ink transition-colors duration-100 hover:bg-mrd-lift-hover hover:text-mrd-ink" disabled={mBind.isPending}>
           {mBind.isPending ? (
             <Loader2 size={15} className="animate-spin" />
           ) : (

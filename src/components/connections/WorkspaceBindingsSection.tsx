@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Line } from "@/components/meridian/rows";
-import { Num, ReadFailedLine } from "@/components/meridian/surface-parts";
+import { Action, Num, ReadFailedLine } from "@/components/meridian/surface-parts";
 import { EmptyRegion } from "@/components/meridian/EmptyRegion";
 import { LoadingState } from "@/components/meridian/LoadingState";
 import { useServerFn } from "@tanstack/react-start";
@@ -17,7 +17,7 @@ import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
 import { BindingPicker } from "@/components/connections/BindingPicker";
 import { ProviderName, UnderMark } from "@/components/meridian/source-marks";
 import { latestIso, relTimeCaps } from "@/components/discover/format";
-import { Block, Button } from "@/components/shell/primitives";
+import { Block } from "@/components/shell/primitives";
 
 /**
  * WORKSPACE BINDINGS. What each connected source is actually pointed at.
@@ -163,13 +163,15 @@ export function WorkspaceBindingsSection() {
                 sub={<UnderMark>{sub}</UnderMark>}
               >
                 {binding ? (
-                  <Button
-                    variant="ghost"
-                    disabled={mUnbind.isPending}
+                  /* TIER: Action, destructive face - unbinds the resource the
+                    crew acts through, a removal on the credential chain. */
+                  <Action
+                    variant="destructive"
+                    busy={mUnbind.isPending}
                     onClick={() => mUnbind.mutate(binding.id)}
                   >
                     Unbind
-                  </Button>
+                  </Action>
                 ) : connection ? (
                   <BindingPicker
                     connectionId={connection.id}
@@ -180,8 +182,8 @@ export function WorkspaceBindingsSection() {
                   <Link
                     to="/settings"
                     search={{ section: "connections", connector: spec.id }}
-                    className="sp-btn"
-                    data-variant="ghost"
+                    className="rounded-mrd-chip px-mrd-3 py-mrd-2 font-mrd text-mrd-label font-medium text-mrd-mute transition-colors duration-100 hover:bg-mrd-hover hover:text-mrd-body"
+                    style={{ textDecoration: "none" }}
                   >
                     Connect it
                   </Link>

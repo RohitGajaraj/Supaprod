@@ -37,7 +37,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listThreads, type ThreadSummary } from "@/lib/threads.functions";
 import { relativeTime } from "@/lib/memory-view";
-import { Button } from "@/components/shell/primitives";
 import { EmptyRegion } from "@/components/meridian/EmptyRegion";
 import { LoadingState } from "@/components/meridian/LoadingState";
 import { AgentMark, YouMark } from "@/components/meridian/marks";
@@ -92,9 +91,10 @@ export function AskSwitcher({
             the same words as six rows under it, meaning something else.
             Not `primary` either. The send control in the footer is the one
             primary on this surface, and a second would make neither mean it. */}
-        <Button onClick={onNew} disabled={busy}>
+        {/* TIER: clause 3, resets the pane view in place; no write, so it stays a plain button */}
+        <button type="button" className="rounded-mrd-chip px-mrd-3 py-mrd-2 font-mrd text-mrd-label font-medium text-mrd-mute transition-colors duration-100 hover:bg-mrd-hover hover:text-mrd-body" onClick={onNew} disabled={busy}>
           Start fresh
-        </Button>
+        </button>
       </Actions>
 
       <div style={{ marginTop: "var(--sp-space-5)" }}>
@@ -148,8 +148,7 @@ export function AskSwitcher({
         <Link
           to="/threads"
           onClick={onLeave}
-          className="sp-btn"
-          data-variant="ghost"
+          className="rounded-mrd-chip px-mrd-3 py-mrd-2 font-mrd text-mrd-label font-medium text-mrd-mute transition-colors duration-100 hover:bg-mrd-hover hover:text-mrd-body"
           style={{ textDecoration: "none" }}
         >
           All conversations

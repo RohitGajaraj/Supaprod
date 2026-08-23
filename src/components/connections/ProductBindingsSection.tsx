@@ -26,7 +26,7 @@
  */
 import { useState } from "react";
 import { Line } from "@/components/meridian/rows";
-import { Actions, ReadFailedLine } from "@/components/meridian/surface-parts";
+import { Action, Actions, ReadFailedLine } from "@/components/meridian/surface-parts";
 import { EmptyRegion } from "@/components/meridian/EmptyRegion";
 import { LoadingState } from "@/components/meridian/LoadingState";
 import { useServerFn } from "@tanstack/react-start";
@@ -43,7 +43,7 @@ import {
   type ConnectionRow,
 } from "@/lib/connections.functions";
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
-import { Block, Button, Select } from "@/components/shell/primitives";
+import { Block, Select } from "@/components/shell/primitives";
 
 type Props = {
   projectId: string;
@@ -186,13 +186,15 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
               sub={<UnderMark>{sub}</UnderMark>}
             >
               {binding ? (
-                <Button
-                  variant="ghost"
-                  disabled={mRemove.isPending}
+                /* TIER: Action, destructive face - unlinks the override so the
+                    product falls back to the workspace default. */
+                <Action
+                  variant="destructive"
+                  busy={mRemove.isPending}
                   onClick={() => mRemove.mutate(binding.id)}
                 >
                   {mRemove.isPending ? "Removing" : "Use the workspace one"}
-                </Button>
+                </Action>
               ) : picking === pickKey ? (
                 <>
                   <Select
@@ -220,14 +222,24 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
                       </option>
                     ))}
                   </Select>
-                  <Button variant="ghost" onClick={() => setPicking(null)}>
+                  {/* TIER: clause 3, dismisses the picker; nothing is written. */}
+                  <button
+                    type="button"
+                    className="rounded-mrd-chip px-mrd-3 py-mrd-2 font-mrd text-mrd-label font-medium text-mrd-mute transition-colors duration-100 hover:bg-mrd-hover hover:text-mrd-body"
+                    onClick={() => setPicking(null)}
+                  >
                     Cancel
-                  </Button>
+                  </button>
                 </>
               ) : connected.length > 0 ? (
-                <Button variant="ghost" onClick={() => setPicking(pickKey)}>
+                /* TIER: clause 3, reveals the picker; nothing is written. */
+                <button
+                  type="button"
+                  className="rounded-mrd-chip px-mrd-3 py-mrd-2 font-mrd text-mrd-label font-medium text-mrd-mute transition-colors duration-100 hover:bg-mrd-hover hover:text-mrd-body"
+                  onClick={() => setPicking(pickKey)}
+                >
                   Override it
-                </Button>
+                </button>
               ) : null}
             </Line>
           );
@@ -242,7 +254,14 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
 
       {hasGithub ? (
         <Actions>
-          <Button onClick={() => setShowCreateModal(true)}>Create a new GitHub repo</Button>
+          {/* TIER: clause 3, opens the repo-creation modal; nothing is written here. */}
+          <button
+            type="button"
+            className="rounded-mrd-chip border border-mrd-line bg-mrd-lift px-mrd-3 py-mrd-2 font-mrd text-mrd-label font-medium text-mrd-ink transition-colors duration-100 hover:bg-mrd-lift-hover hover:text-mrd-ink"
+            onClick={() => setShowCreateModal(true)}
+          >
+            Create a new GitHub repo
+          </button>
         </Actions>
       ) : null}
 

@@ -21,7 +21,7 @@
  */
 
 import * as React from "react";
-import { Actions } from "@/components/meridian/surface-parts";
+import { Action, Approve, Actions } from "@/components/meridian/surface-parts";
 import { APPROVALS_QUEUE_PREFIX, invalidateShellReads } from "@/lib/query-keys";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
@@ -31,7 +31,6 @@ import {
   type ApprovalQueueItem,
 } from "@/lib/approvals-queue.functions";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Button } from "@/components/shell/primitives";
 import { Gate } from "@/components/meridian/Gate";
 
 type Settled = { verdict: "approve" | "reject" | "snooze"; consequence: string; failed?: boolean };
@@ -150,17 +149,29 @@ export function AskGateCard({
     <Gate question={question} lines={lines}>
       <Actions
         trailing={
-          <Button variant="ghost" disabled={!!pending} onClick={() => void defer()}>
+          // TIER: clause 1, writes the snooze; quiet as the secondary move, disabled blocks bystanders
+          <Action
+            variant="quiet"
+            busy={pending === "snooze"}
+            disabled={!!pending}
+            onClick={() => void defer()}
+          >
             Not now
-          </Button>
+          </Action>
         }
       >
-        <Button variant="primary" disabled={!!pending} onClick={() => void act("approve")}>
+        {/* TIER: clause 2, releases the held gate */}
+        <Approve
+          busy={pending === "approve"}
+          disabled={!!pending}
+          onClick={() => void act("approve")}
+        >
           {asPolicy ? "Let it run alone" : "Approve"}
-        </Button>
-        <Button disabled={!!pending} onClick={() => void act("reject")}>
+        </Approve>
+        {/* TIER: clause 1, writes the reject verdict */}
+        <Action busy={pending === "reject"} disabled={!!pending} onClick={() => void act("reject")}>
           {asPolicy ? "Keep asking me" : "Send it back"}
-        </Button>
+        </Action>
       </Actions>
     </Gate>
   );
