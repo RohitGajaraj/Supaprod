@@ -340,7 +340,7 @@ function GatePanel({
               style={{
                 color: "var(--mrd-ink)",
                 margin: "6px 0 12px",
-                lineHeight: 1.5,
+                lineHeight: "var(--mrd-lh-snug)",
               }}
             >
               {agentName ?? "The agent"} wants{" "}
@@ -410,7 +410,7 @@ const preStyle: CSSProperties = {
   border: "1px solid var(--mrd-edge)",
   borderRadius: 8,
   padding: 10,
-  lineHeight: 1.6,
+  lineHeight: "var(--mrd-lh-mono)",
   whiteSpace: "pre-wrap",
   wordBreak: "break-word",
   maxHeight: 200,
@@ -555,7 +555,7 @@ function TraceHop({
             className="mono-label"
             style={{
               ...rail,
-              lineHeight: 1.8,
+              lineHeight: "var(--mrd-lh-mono)",
               display: "flex",
               alignItems: "center",
               gap: "var(--geist-space-2x)",
@@ -600,7 +600,7 @@ function TraceHop({
                       key={mi}
                       style={{
                         color: "var(--mrd-mute)",
-                        lineHeight: 1.7,
+                        lineHeight: "var(--mrd-lh-mono)",
                       }}
                     >
                       · {mem}
@@ -612,13 +612,13 @@ function TraceHop({
           ) : null}
           {h.steps.length === 0 ? (
             <div
-              style={{ ...rail, lineHeight: 1.8, color: "var(--mrd-mute)", fontStyle: "italic" }}
+              style={{ ...rail, lineHeight: "var(--mrd-lh-mono)", color: "var(--mrd-mute)", fontStyle: "italic" }}
             >
               {live ? "waiting for the first checkpoint" : "no recorded steps"}
             </div>
           ) : (
             h.steps.map((st, j) => (
-              <div key={j} style={{ ...rail, lineHeight: 1.8, ...tint(st) }}>
+              <div key={j} style={{ ...rail, lineHeight: "var(--mrd-lh-mono)", ...tint(st) }}>
                 {st.kind === "tool_call"
                   ? `called ${st.name}${st.status !== "executed" ? ` · ${st.status}` : ""}`
                   : st.kind === "thought"
@@ -762,7 +762,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
         )}
       </div>
       {n === 0 ? (
-        <p style={{ color: "var(--mrd-ink)", lineHeight: 1.5 }}>
+        <p style={{ color: "var(--mrd-ink)", lineHeight: "var(--mrd-lh-snug)" }}>
           This mission started fresh. As the loop runs it draws on what it has already learned, and
           that compounds here. The next mission on this product will not start cold.
         </p>
@@ -799,7 +799,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
             >
               {n}
             </span>
-            <span style={{ color: "var(--mrd-ink)", lineHeight: 1.4 }}>
+            <span style={{ color: "var(--mrd-ink)", lineHeight: "var(--mrd-lh-snug)" }}>
               earlier {n === 1 ? "lesson" : "lessons"} guided this mission, instead of starting cold
             </span>
           </div>
@@ -814,7 +814,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
                   borderTop: i === 0 ? "none" : "1px solid var(--mrd-edge)",
                 }}
               >
-                <span style={{ color: "var(--mrd-ink)", flex: 1, lineHeight: 1.45 }}>
+                <span style={{ color: "var(--mrd-ink)", flex: 1, lineHeight: "var(--mrd-lh-snug)" }}>
                   {mem.summary}
                 </span>
                 {mem.agents.size > 0 && (
@@ -1155,7 +1155,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                 */}
             <h1
               className="text-mrd-h2 font-semibold text-mrd-ink"
-              style={{ margin: "8px 0 6px", letterSpacing: "-0.028em", lineHeight: 1.24, maxWidth: "34ch" }}
+              style={{ margin: "8px 0 6px", letterSpacing: "-0.028em", lineHeight: "var(--mrd-lh-tight)", maxWidth: "34ch" }}
             >
               {stripAutoPrefix(data.mission.title)}
             </h1>
@@ -1685,7 +1685,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                       style={{
                         display: "block",
                         color: "var(--mrd-ink)",
-                        lineHeight: 1.5,
+                        lineHeight: "var(--mrd-lh-snug)",
                         marginTop: 2,
                       }}
                     >
