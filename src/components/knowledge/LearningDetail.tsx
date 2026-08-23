@@ -48,7 +48,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { listLearnings } from "@/lib/outcome.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { Prose } from "@/components/shell/primitives";
+import { Prose } from "@/components/meridian/Prose";
 import { whenOf } from "./CompoundingPanel";
 
 type LearningRow = {

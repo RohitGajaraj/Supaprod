@@ -53,7 +53,7 @@ import {
   type SupportClusterRow,
 } from "@/lib/support-triage.functions";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Prose } from "@/components/shell/primitives";
+import { Prose } from "@/components/meridian/Prose";
 
 /** Plain-words relative time. Mono is applied by the receipt, not here. */
 function ago(iso: string): string | null {

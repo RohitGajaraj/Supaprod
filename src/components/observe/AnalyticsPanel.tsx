@@ -88,7 +88,8 @@ import {
 } from "@/lib/analytics.functions";
 import { getBudgetSummary } from "@/lib/budgets.functions";
 import { relTime } from "@/components/product/format";
-import { Cell, Grid, Pre, Prose } from "@/components/shell/primitives";
+import { Cell, Grid, Pre } from "@/components/shell/primitives";
+import { Prose } from "@/components/meridian/Prose";
 import { AgentMark } from "@/components/meridian/marks";
 
 function fmtUsd(n: number) {

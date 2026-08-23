@@ -70,7 +70,7 @@ import { getLineage } from "@/lib/lineage.functions";
 import { StageTimeline } from "@/components/shared/StageTimeline";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Prose } from "@/components/shell/primitives";
+import { Prose } from "@/components/meridian/Prose";
 import { SourceLink } from "./DecisionsPanel";
 import { ageOf, displayWho, hasSource, OUTCOME_WORD, SOURCE_LABEL } from "./decisions-shared";
 import { ContradictionAuditSection } from "./ContradictionAuditSection";

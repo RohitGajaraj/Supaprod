@@ -70,7 +70,7 @@ import { importGoogleDoc } from "@/lib/gdocs.functions";
 import { importNotionPage, searchNotionPages } from "@/lib/notion.functions";
 import { createSignal } from "@/lib/discovery.functions";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Prose } from "@/components/shell/primitives";
+import { Prose } from "@/components/meridian/Prose";
 
 type DocNode = {
   id: string;

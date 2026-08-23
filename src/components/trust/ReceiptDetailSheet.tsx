@@ -49,7 +49,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-import { Block, Button, Prose, Record as RecordSays, Value } from "@/components/shell/primitives";
+import { Block, Button, Record as RecordSays, Value } from "@/components/shell/primitives";
+import { Prose } from "@/components/meridian/Prose";
 import { traceRef } from "@/components/discover/format";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
 import { artifactWord, relationWord } from "@/lib/artifact-words";

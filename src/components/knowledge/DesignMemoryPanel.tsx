@@ -59,7 +59,7 @@ import {
   type DesignMemoryCategory,
 } from "@/lib/design-memory.functions";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Prose } from "@/components/shell/primitives";
+import { Prose } from "@/components/meridian/Prose";
 import { ageOf } from "./decisions-shared";
 import { CATEGORY_LABEL, SOURCE_LABEL } from "./design-memory-shared";
 

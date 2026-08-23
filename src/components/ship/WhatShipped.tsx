@@ -144,7 +144,7 @@ import { Receipt } from "@/components/meridian/Receipt";
  * and is blocked harder -- it renders arbitrary model Markdown, so it loses
  * headings, code, links and blockquotes as well as lists.
  */
-import { Prose } from "@/components/shell/primitives";
+import { Prose } from "@/components/meridian/Prose";
 
 /* ------------------------------------------------------------------ *
  * The fact: a sentence and the row it came from

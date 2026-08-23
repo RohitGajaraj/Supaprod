@@ -42,7 +42,7 @@
 
 import * as React from "react";
 import Markdown from "react-markdown";
-import { Prose } from "@/components/shell/primitives";
+import { Prose } from "@/components/meridian/Prose";
 
 /**
  * A link the model wrote, which is a link we did not verify.
