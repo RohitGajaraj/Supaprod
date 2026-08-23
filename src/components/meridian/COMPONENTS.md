@@ -227,3 +227,38 @@ which matches on the deep import path. Import from the file named here.
 | `ToolStreamState` | `ToolStream.tsx` | type |
 | `TrendInsight` | `InsightCards.tsx` | type |
 | `useElapsed` | `use-elapsed.ts` | function |
+
+## Porting off the retired layer
+
+**Keyed on the RETIRED name, because that is the name in front of you.** Three of
+these were renamed on the way into Meridian -- `Select` is `Picker`,
+`SelectionBar` is `BulkBar`, `Record` is `RecordSpeaks` -- and those three
+are exactly the ones that got filed as gaps that did not exist.
+
+**Every target here is verified to exist at the path shown; `bun run meridian:exports`
+fails if one does not.** "Left" counts files still importing the retired symbol,
+counted from the codebase at generation time.
+
+> Every retired symbol still imported has a verified destination. **Nothing on the retired layer needs a component built.**
+
+| Retired | Left | Use | From | What the port has to decide |
+| --- | --- | --- | --- | --- |
+| `Block` | 12 | `Region` | `@/components/meridian/surface-parts` | Strict superset. `more`/`onMore` SPLITS THREE WAYS -- `goTo` (leaves), `toggle`+`toggled` (reveals, drives aria-expanded), `act`+`acting` (acts on the subject). Judge each site; a blind `more -> goTo` recreates the aria defect C-01 fixed. |
+| `Failed` | 5 | `ReadFailed` | `@/components/meridian/surface-parts` | Superset: same `{children, onRetry?, retryLabel?}` plus `detail?`. |
+| `Loading` | 5 | `Reading` | `@/components/meridian/surface-parts` | NOT A SUPERSET, and the one entry here that is not a straight swap. Retired `Loading` took `{children?, working?, agent?, detail?}` and `Reading` takes `{children?}`. ALL FIVE remaining call sites pass children only, so it is a drop-in for every one of them. A site that wants the AGENT-IS-WORKING fact takes `LoadingState` from `meridian/LoadingState` (`{label, variant, startedAt}`), which is where the rest of the product already went -- conflating the two was the thing the retired component's own header refused to do. |
+| `Pre` | 5 | `Pre` | `@/components/meridian/surface-parts` | Drop-in, and it CAPS HEIGHT at 320px which the retired `.sp-pre` did not. It sets no outer margin: a site that relied on `.sp-pre`'s baked-in margin-top writes `mt-mrd-3`. |
+| `Record` | 5 | `RecordSpeaks` | `@/components/brain/record-parts` | WHEN THE RECORD IS LIT AND OPENS SOMETHING. Carries all four props including `onClick`/`title`, plus the diamond and the lamp. This is the one for DiscoverSurface and ReceiptDetailSheet. |
+|  |  | `RecordSpeaks` | `@/components/meridian/surface-parts` | WHEN IT IS A PLAIN CLAIM. `{children, evidence}` only: no lamp, no door. This is the one for a citation rendered in a LIST -- a lamp per row is what the scarcity rule exists to prevent. |
+| `Cell` | 4 | `Cell` | `@/components/meridian/surface-parts` | Identical, `tone` union included (`raised | recessed`). |
+| `Button` | 3 | `Action` | `@/components/meridian/surface-parts` | Tiered variants. `busy` is TRUE ONLY WHILE THIS CONTROL'S OWN WORK RUNS -- a synchronous handler takes `disabled`, never `busy`. |
+|  |  | `Approve` | `@/components/meridian/surface-parts` | Where a click UNBLOCKS something. |
+| `Select` | 3 | `Picker` | `@/components/meridian/surface-parts` | Drop-in: same `SelectHTMLAttributes` passthrough, and `id`/`aria-label`/`disabled` all forward. Native `<select>` on purpose -- keyboard-native, type-ahead, platform sheet on a phone. |
+| `Value` | 3 | `Value` | `@/components/meridian/surface-parts` | Same name, DIFFERENT tone vocabulary: `warn` -> `hold`, `live` -> `agent`. Both live tone maps (`RECEIPT_VALUE_TONE`, MissionChain's `STATUS_TONE`) declare `warn` in their TYPE but no member uses it, so this is a type-union edit, not a behaviour change. |
+| `Empty` | 2 | `NothingHere` | `@/components/meridian/surface-parts` | Identical `{children, action?}`. |
+| `Grid` | 2 | `Grid` | `@/components/meridian/surface-parts` | Superset: adds `cellMin?` and `columns?`. |
+| `Input` | 2 | `Input` | `@/components/meridian/forms` | Attribute passthrough on both sides; Meridian's also merges `className`. |
+| `SelectionBar` | 2 | `BulkBar` | `@/components/meridian/surface-parts` | IDENTICAL signature `{selection, total, noun, children}`, Escape-to-clear carried. Height moves 38px -> 44px to match Meridian's row floor. NOT `SelectionActions`, which is an unrelated text-selection toolbar. |
+| `CtxBody` | 1 | `CtxBody` | `@/components/meridian/ContextColumn` | Identical `{children}`. |
+| `CtxHead` | 1 | `CtxHead` | `@/components/meridian/ContextColumn` | Identical `{children}`. |
+| `CtxRow` | 1 | `CtxRow` | `@/components/meridian/ContextColumn` | Superset of `{mark?, name, sub?}`: adds `title`, `source`, `lead`, `onClick`, `href`. |
+| `Field` | 1 | `Field` | `@/components/meridian/forms` | `htmlFor` IS REQUIRED HERE and was optional on the retired one, so the single consumer (`hooks/use-confirm.tsx`) must give its control an id. `label` widens to ReactNode and `hint?` is new. |

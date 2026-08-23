@@ -164,17 +164,46 @@ alone exports 28 things including `Region`, `Pre`, `Action` and `Approve`, so th
 shows no `Block.tsx` and no `Pre.tsx` and the reasonable conclusion is that those
 components do not exist. They do.
 
-This cost two rulings in one evening, one from each side of the review:
+This cost THREE rulings in one evening, and the third one proved the first fix was
+half a fix:
 
 - `REQ-L0-005` asked MAIN LANE to **build** `Block` and `Pre` equivalents. Both already
   existed, and `Pre` had been written specifically to replace the retired `.sp-pre`.
 - `RL0-004` ruled Meridian had **no touch-target rule**, from grepping `min-height` in
   `meridian.css`. The rule is a Tailwind utility inside `CONTROL_SHAPE`, in a `.tsx` file.
   Same mistake, made by the reviewer rather than the lane.
+- `REQ-L0-005`'s addenda then asked for **four more** to be built. All four existed too,
+  and **three had been RENAMED on the way into Meridian** -- `Select` is `Picker`,
+  `SelectionBar` is `BulkBar`, `Record` is `RecordSpeaks`. A table keyed on the Meridian
+  name cannot answer "what replaced `Select`", because `Select` is not in it.
 
-**`src/components/meridian/COMPONENTS.md`** is the generated answer: every export, 105
-components and 103 types, with the file each one lives in. Regenerate with
-`bun run meridian:exports`.
+**A WARNING WRITTEN INSIDE THE DESTINATION IS UNREACHABLE.** `BulkBar`'s own header
+predicted its miss exactly -- *"an agent scanning this folder's exports for the retired
+`SelectionBar` finds `SelectionActions` and takes it as the answer, and that has already
+happened once on the record"* -- and the lane still could not find it, because nobody
+opens a file they have concluded does not contain what they need. Comments cannot fix a
+lookup failure. Only an index keyed on the name you actually hold can.
+
+**`src/components/meridian/COMPONENTS.md`** is the generated answer, and it has TWO
+tables. The first lists every export by Meridian name (105 components, 103 types) with
+its file. **The second is keyed on the RETIRED name** -- the one in front of you when you
+are porting -- and gives the destination, the import path, and what the port has to
+decide. Regenerate both with `bun run meridian:exports`.
+
+**The map is checked, not written down.** The generator verifies every destination is
+still exported from the file named and **exits non-zero if one is not**, and it counts
+live consumers from the codebase rather than from memory. A hand-maintained porting
+table would rot the first time a component moved.
+
+**As of 2026-08-23: 17 retired symbols are still imported across 46 files, and every one
+of them already has a home. Nothing on the retired layer needs a component built.** If
+your census says otherwise, it has found a rename, not a gap.
+
+**A name match is not a contract match, so compare the signatures.** Three of the 17 are
+not straight swaps: `Loading` -> `Reading` **drops `working`/`agent`** (all five live
+sites pass children only, so it is still a drop-in for them; the agent-is-working fact
+belongs to `LoadingState`), **`Field`'s `htmlFor` is required** where the retired one's
+was optional, and `Block` -> `Region` splits `more` three ways.
 
 There is deliberately **no `index.ts` barrel.** It is the obvious fix and it would break
 `scripts/meridian-adoption.ts`, which counts adoption by matching the import source
