@@ -15,7 +15,7 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 2537,
+  "totalOccurrences": 2530,
   "fileCount": 199,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
@@ -45,14 +45,12 @@
       "class:sp-": 1
     },
     "src/components/ask/AskPane.tsx": {
-      "--sp-": 22,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 2
+      "--sp-": 22
     },
     "src/components/ask/AskRunCard.tsx": {
       "class:sp-": 4,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 2
+      "usage:shell/primitives": 1
     },
     "src/components/ask/AskSwitcher.tsx": {
       "--sp-": 3
@@ -61,7 +59,7 @@
       "--sp-": 4,
       "class:sp-": 2,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 3
+      "usage:shell/primitives": 1
     },
     "src/components/ask/AskWorkLine.tsx": {
       "--sp-": 7
@@ -600,7 +598,7 @@
     },
     "src/components/today/DecisionQueue.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 2
+      "usage:shell/primitives": 1
     },
     "src/components/trust/MissionChain.tsx": {
       "import:shell/primitives": 1,

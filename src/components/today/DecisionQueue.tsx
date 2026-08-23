@@ -4,7 +4,8 @@ import { Action, Approve, Door, Num } from "@/components/meridian/surface-parts"
 
 import { canSendBack } from "@/components/approvals/SendBack";
 import { stripAutoPrefix } from "@/components/plan/format";
-import { Checkbox, SelectionBar } from "@/components/shell/primitives";
+import { SelectionBar } from "@/components/shell/primitives";
+import { Checkbox } from "@/components/meridian/forms";
 import { Gate } from "@/components/meridian/Gate";
 import { AgentMark } from "@/components/meridian/marks";
 import type { Selection } from "@/components/shell/use-selection";

@@ -36,7 +36,8 @@ import { decideApproval } from "@/lib/agent_loop.functions";
 import { ACTION_LABEL } from "@/lib/agent-vocabulary";
 import type { LoopStep } from "@/lib/ai/loop.server";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Record, Textarea } from "@/components/shell/primitives";
+import { Record } from "@/components/shell/primitives";
+import { Textarea } from "@/components/meridian/forms";
 
 const POLL_MS = 4000;
 

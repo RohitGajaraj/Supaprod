@@ -135,7 +135,7 @@ import {
   contextualStarters,
   type Starter,
 } from "@/lib/ask-starters";
-import { Choices, Textarea } from "@/components/shell/primitives";
+import { Choices, Textarea } from "@/components/meridian/forms";
 import { AgentMark } from "@/components/meridian/marks";
 import { AgentPulse } from "@/components/meridian/AgentPulse";
 import { IconMic } from "@/components/shell/icons";
@@ -828,9 +828,10 @@ function AskPaneOpen() {
           // does, and can flip it.
           <div style={{ marginBottom: "var(--sp-space-2)" }}>
             <Choices
+              mode="one"
               label="What should happen when you send this"
               value={intent}
-              onPick={(id) => setIntentOverride(id)}
+              onChange={(id) => setIntentOverride(id)}
               options={[
                 { id: "question", label: "Ask", title: "Answer it from the record" },
                 {
