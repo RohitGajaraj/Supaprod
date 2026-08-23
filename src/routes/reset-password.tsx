@@ -4,7 +4,7 @@ import { Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { authErrorMessage } from "@/lib/auth-errors";
-import { Action } from "@/components/meridian/surface-parts";
+import { ACTION_LINK_FACE, Action } from "@/components/meridian/surface-parts";
 import { AuthScaffold, fieldLabelStyle, fieldErrorStyle } from "@/components/supaprod/AuthScaffold";
 
 // Recovery-link landing on the shared dark auth scaffold (auth_surfaces pass).
@@ -97,8 +97,7 @@ function ResetPasswordPage() {
           </p>
           <Link
             to="/"
-            className="btn btn-primary"
-            style={{ width: "100%", justifyContent: "center" }}
+            className={`${ACTION_LINK_FACE.primary} w-full justify-center`}
           >
             Continue · opens your workspace
           </Link>
@@ -144,8 +143,7 @@ function ResetPasswordPage() {
           </p>
           <Link
             to="/forgot-password"
-            className="btn btn-ghost"
-            style={{ width: "100%", justifyContent: "center" }}
+            className={`${ACTION_LINK_FACE.quiet} w-full justify-center`}
           >
             Request a new link · takes a minute
           </Link>

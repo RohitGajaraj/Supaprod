@@ -82,9 +82,9 @@
 import { useEffect, useState } from "react";
 import { Row, Line } from "@/components/meridian/rows";
 import {
+  ACTION_LINK_FACE,
   Action,
   Actions,
-  CONTROL_SHAPE,
   NothingYet,
   Num,
   PageHeading,
@@ -95,7 +95,6 @@ import {
 } from "@/components/meridian/surface-parts";
 import { Gate } from "@/components/meridian/Gate";
 import { Surface } from "@/components/meridian/Surface";
-import { LINK_AS_CONTROL } from "@/components/runs/run-parts";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -112,28 +111,12 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { latestIso, relTimeCaps } from "@/components/discover/format";
 
 /**
- * AN ADDRESS WEARING A QUIET CONTROL'S FACE, and the second copy of this string
- * in the product rather than the first.
- *
- * "Read both first" is an OUTBOUND address, so the element stays an `<a>`: a
- * `<button>` that opens a window loses the middle click, the modifier click and
- * the status bar, and `Action` renders `<button type="button">`, so adopting it
- * would drop `href`, `target` and `rel` and turn a real document link into a
- * dead box.
- *
- * `hover:` and NOT `enabled:hover:`, which is the trap `CONTROL_SHAPE` records
- * for `active:`: `:enabled` matches form controls only, so an anchor wearing the
- * prefixed utilities would have no hover state at all. That is why this cannot
- * simply borrow `Action`'s `quiet` face, which is written with the prefix.
- *
- * THE GAP THIS RECORDS. `AccountConnectionsSection.tsx` already declares this
- * exact string, and its own note says what is missing: a shared QUIET variant of
- * `run-parts.tsx`'s `LINK_AS_CONTROL`, in Meridian, beside the default one. Two
- * copies is the point at which that stops being a nice-to-have, and the reason
- * it is not fixed here is ownership rather than judgement -- `surface-parts.tsx`
- * belongs to another item.
+ * THE QUIET LINK FACE lived here as a local constant, the second copy in the
+ * product beside AccountConnectionsSection.tsx. Both collapsed into
+ * ACTION_LINK_FACE.quiet in meridian/surface-parts.tsx (R005, 2026-08-23),
+ * whose default face is byte-identical to run-parts' LINK_AS_CONTROL, so the
+ * door at the foot of this page moved to it unchanged.
  */
-const LINK_AS_QUIET_CONTROL = `${CONTROL_SHAPE} text-mrd-mute hover:bg-mrd-hover hover:text-mrd-body`;
 
 export const Route = createFileRoute("/_authenticated/sync")({
   component: SyncPage,
@@ -352,7 +335,7 @@ function SyncPage() {
                  dropped. */
                 <a
                   data-mrd=""
-                  className={LINK_AS_QUIET_CONTROL}
+                  className={ACTION_LINK_FACE.quiet}
                   href={m.external_url}
                   target="_blank"
                   rel="noreferrer"
@@ -380,14 +363,15 @@ function SyncPage() {
           A router `<Link>` renders its own anchor, so this takes the shared face
           rather than becoming a `<button>` that navigates: a middle click, a
           modifier click and the status bar all have to keep working. The default
-          face, because that is what it wore, and `runs.index` already points the
-          mirror-image door here with the same constant. */}
+          face, because that is what it wore, and `runs.index` points the
+          mirror-image door here wearing run-parts' `LINK_AS_CONTROL`, which
+          holds the same string. */}
         <Actions>
           <Link
             data-mrd=""
             to="/settings"
             search={{ section: "connections" }}
-            className={LINK_AS_CONTROL}
+            className={ACTION_LINK_FACE.default}
           >
             Connect another source
           </Link>

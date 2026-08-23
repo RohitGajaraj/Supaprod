@@ -25,7 +25,8 @@ import { useState, type CSSProperties } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
-import { Action } from "@/components/meridian/surface-parts";
+import { Choices } from "@/components/meridian/forms";
+import { Action, Cell } from "@/components/meridian/surface-parts";
 import { planPresentation, includedCreditsFor, type PlanTier } from "@/lib/entitlements";
 import { priceForCredits } from "@/lib/billing-tier";
 import { paymentsConfigured } from "@/lib/stripe";
@@ -143,34 +144,24 @@ function CheckoutPage() {
         {/* 1 — plan, switchable here so a buyer who changed their mind does not go back */}
         <section style={{ marginBottom: 22 }}>
           <span style={label}>PLAN</span>
+          {/* R005 §2: these are CARDS (name + price), so the pick is `Cell
+              selected` -- it carries the chosen ring and the toggle aria. The
+              tier state and click wiring are untouched. */}
           <div style={{ display: "flex", gap: 8 }}>
-            {BUYABLE.map((t) => {
-              const on = t === tier;
-              return (
-                <button
-                  key={t}
-                  type="button"
+            {BUYABLE.map((t) => (
+              <div key={t} style={{ flex: 1, minWidth: 0 }}>
+                <Cell
+                  lead={planPresentation(t).name}
+                  sub={
+                    <>
+                      ${priceForCredits(t, 0, "monthly")}/mo{t === "team" ? " per seat" : ""}
+                    </>
+                  }
+                  selected={t === tier}
                   onClick={() => setTier(t)}
-                  style={{
-                    flex: 1,
-                    padding: "12px 14px",
-                    borderRadius: 9,
-                    textAlign: "left",
-                    cursor: "pointer",
-                    // Chosen is told by the select wash and a heavier edge, so it
-                    // survives greyscale. Ember never doubles as an interaction state.
-                    border: on ? "1.5px solid var(--mrd-edge)" : "1px solid var(--mrd-line)",
-                    background: on ? "var(--mrd-select)" : "transparent",
-                    color: "var(--mrd-ink)",
-                  }}
-                >
-                  <div style={{ fontSize: 14, fontWeight: 500 }}>{planPresentation(t).name}</div>
-                  <div style={{ fontSize: 11.5, color: "var(--mrd-mute)" }}>
-                    ${priceForCredits(t, 0, "monthly")}/mo{t === "team" ? " per seat" : ""}
-                  </div>
-                </button>
-              );
-            })}
+                />
+              </div>
+            ))}
           </div>
         </section>
 
@@ -228,30 +219,19 @@ function CheckoutPage() {
         {/* 4 — billing period */}
         <section style={{ marginBottom: 22 }}>
           <span style={label}>BILLING</span>
-          <div style={{ display: "flex", gap: 8 }}>
-            {[
-              { on: !annual, text: "Monthly", set: () => setAnnual(false) },
-              { on: annual, text: "Annual · save around 17%", set: () => setAnnual(true) },
-            ].map((o) => (
-              <button
-                key={o.text}
-                type="button"
-                onClick={o.set}
-                style={{
-                  flex: 1,
-                  padding: "10px 12px",
-                  borderRadius: 9,
-                  fontSize: 13,
-                  cursor: "pointer",
-                  border: o.on ? "1.5px solid var(--mrd-edge)" : "1px solid var(--mrd-line)",
-                  background: o.on ? "var(--mrd-select)" : "transparent",
-                  color: "var(--mrd-ink)",
-                }}
-              >
-                {o.text}
-              </button>
-            ))}
-          </div>
+          {/* R005 §2: monthly vs annual is one decision in words, so it rides
+              the `Choices` radiogroup (one tab stop, arrows move). The `annual`
+              boolean and both option texts are unchanged. */}
+          <Choices
+            mode="one"
+            label="Billing"
+            value={annual ? "annual" : "monthly"}
+            onChange={(v) => setAnnual(v === "annual")}
+            options={[
+              { id: "monthly", label: "Monthly" },
+              { id: "annual", label: "Annual · save around 17%" },
+            ]}
+          />
         </section>
 
         {/* 5 — the arithmetic, shown rather than asserted */}

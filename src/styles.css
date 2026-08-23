@@ -139,11 +139,11 @@
    * utilities keep resolving. The old guardrail here forbade exactly the two
    * faces Meridian ships (Inter, JetBrains Mono), so it was the losing system
    * arguing with its replacement and no longer binds anything (founder ruling
-   * 2026-08-18: change the retired file). Two faces remain declared locally
-   * pending a ruling recorded in coordination/requests/006: --font-display
-   * keeps the self-hosted Geist stack, and --font-pixel now aliases
-   * --mrd-face-brand (ruled in answers/R004), brand moments only. */
-  --font-display: "Geist", ui-sans-serif, system-ui, sans-serif;
+   * 2026-08-18: change the retired file). Both remaining declarations are
+   * ruled aliases now: answers/R006 keeps Geist as the display voice through
+   * --mrd-face-display (byte-identical stack, no pixels move), and R004 put
+   * the pixel face away as --mrd-face-brand, brand moments only. */
+  --font-display: var(--mrd-face-display);
   --font-sans: var(--mrd-font);
   --font-mono: var(--mrd-mono);
   --font-pixel: var(--mrd-face-brand);

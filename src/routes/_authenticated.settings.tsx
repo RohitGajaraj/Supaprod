@@ -172,6 +172,7 @@ import { Row, Line } from "@/components/meridian/rows";
 import {
   Action,
   Actions,
+  Cell,
   NothingHere,
   NothingYet,
   Num,
@@ -2745,8 +2746,9 @@ function CreditsSection() {
             {/* A grid, for the same reason the source catalog is one: a ladder
                 of prices is scanned across, not read down. Token-built rather
                 than borrowing the crew roster's classes, which mean something
-                else. Selection is a ring, never a fill: ember marks the human
-                and a chosen bundle is not one. */}
+                else. R005 §2: these are CARDS you pick from, so each is a `Cell`
+                with `selected` -- the chosen ring and the toggle aria are the
+                primitive's, and the disabled/title wiring below is unchanged. */}
             <div
               style={{
                 display: "grid",
@@ -2760,49 +2762,21 @@ function CreditsSection() {
                 const isBest = Math.abs(perCredit - bestPerCredit) < 1e-9;
                 const selected = selectedBundle?.key === b.key;
                 return (
-                  <button
+                  <Cell
                     key={b.key}
-                    type="button"
+                    lead={
+                      <>
+                        <Num>{b.credits.toLocaleString()}</Num> credits
+                      </>
+                    }
+                    sub={`${fmtPrice(b.priceCents)} · ${(perCredit / 100).toFixed(3)} each${
+                      isBest ? " · best rate" : ""
+                    }`}
+                    selected={selected}
                     disabled={wouldExceed}
-                    aria-pressed={selected}
                     title={wouldExceed ? "Past your per-cycle top-up limit." : undefined}
                     onClick={() => setSelectedKey(b.key)}
-                    style={{
-                      display: "block",
-                      width: "100%",
-                      font: "inherit",
-                      textAlign: "left",
-                      border: 0,
-                      padding: "10px 12px",
-                      borderRadius: "var(--mrd-r-card)",
-                      boxShadow: selected ? "inset 0 0 0 1px var(--mrd-ink)" : undefined,
-                      background: "var(--mrd-lift)",
-                      color: "var(--mrd-ink)",
-                      cursor: wouldExceed ? "not-allowed" : "pointer",
-                      opacity: wouldExceed ? 0.45 : 1,
-                    }}
-                  >
-                    <span
-                      style={{
-                        display: "block",
-                        fontSize: "var(--mrd-t-prose)",
-                        fontWeight: "var(--mrd-w-medium)",
-                      }}
-                    >
-                      <Num>{b.credits.toLocaleString()}</Num> credits
-                    </span>
-                    <span
-                      style={{
-                        display: "block",
-                        marginTop: 1,
-                        fontSize: "var(--mrd-t-label)",
-                        color: "var(--mrd-mute)",
-                      }}
-                    >
-                      {fmtPrice(b.priceCents)} · {(perCredit / 100).toFixed(3)} each
-                      {isBest ? " · best rate" : ""}
-                    </span>
-                  </button>
+                  />
                 );
               })}
             </div>

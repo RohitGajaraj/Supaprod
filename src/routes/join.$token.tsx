@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { acceptInvitation } from "@/lib/workspaces.functions";
 import { authErrorMessage } from "@/lib/auth-errors";
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
-import { Action } from "@/components/meridian/surface-parts";
+import { ACTION_LINK_FACE, Action } from "@/components/meridian/surface-parts";
 import { useObsidianAuthSurface } from "@/components/supaprod/AuthScaffold";
 
 // WM-F5 accept side: the join landing for a workspace invitation link. A standalone
@@ -154,14 +154,14 @@ function JoinPage() {
               <Link
                 to="/login"
                 search={{ next: `/join/${token}` }}
-                className="btn btn-primary btn-sm"
+                className={ACTION_LINK_FACE.primary}
               >
                 Log in
               </Link>
               <Link
                 to="/signup"
                 search={{ next: `/join/${token}` }}
-                className="btn btn-ghost btn-sm"
+                className={ACTION_LINK_FACE.quiet}
               >
                 Sign up
               </Link>
@@ -219,7 +219,7 @@ function JoinPage() {
             >
               {state.message}
             </p>
-            <Link to="/" className="btn btn-ghost btn-sm">
+            <Link to="/" className={ACTION_LINK_FACE.quiet}>
               Go to Supaprod
             </Link>
           </div>

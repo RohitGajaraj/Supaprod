@@ -5,7 +5,7 @@ import { toast } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { authErrorMessage } from "@/lib/auth-errors";
-import { Action } from "@/components/meridian/surface-parts";
+import { Action, ActionLink } from "@/components/meridian/surface-parts";
 import { AuthScaffold, fieldLabelStyle, fieldErrorStyle } from "@/components/supaprod/AuthScaffold";
 import { recordAuthEvent } from "@/lib/observability/auth.functions";
 import { claimLandingSession } from "@/lib/landing.functions";
@@ -631,13 +631,13 @@ function SignupPage() {
                 explaining our reasoning to someone who did not ask for it. */}
             Not a no, a not yet. Leave your name and your code arrives the moment a place opens.
           </p>
-          <a
+          <ActionLink
             href={REQUEST_ACCESS_HREF}
-            className="btn btn-primary"
-            style={{ width: "100%", justifyContent: "center", textDecoration: "none" }}
+            variant="primary"
+            className="w-full justify-center"
           >
             Join the waitlist
-          </a>
+          </ActionLink>
           <p
             style={{
               fontSize: 11.5,

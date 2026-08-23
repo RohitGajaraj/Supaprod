@@ -7,6 +7,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Zap, User, Users, Building2, Star } from "lucide-react";
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
+import { Choices } from "@/components/meridian/forms";
 import { Action } from "@/components/meridian/surface-parts";
 import { planPresentation, type PlanTier, includedCreditsFor } from "@/lib/entitlements";
 import { priceForCredits } from "@/lib/billing-tier";
@@ -252,44 +253,23 @@ const TIER_ICONS: Record<PlanTier, LucideIcon> = {
   enterprise: Building2,
 };
 
-// Global billing toggle shown above the card grid.
+// Global billing toggle shown above the card grid. R005 §2: monthly/annual is
+// one decision in two words, so it is a `Choices` radiogroup, not hand-painted
+// pills. The boolean state and the Save badge are unchanged.
 function BillingToggle({ annual, onChange }: { annual: boolean; onChange: (v: boolean) => void }) {
   return (
-    <div
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        borderRadius: 99,
-        padding: 4,
-        background: "var(--mrd-sink)",
-        gap: 2,
-      }}
-    >
-      {(["monthly", "annual"] as const).map((mode) => {
-        const active = mode === (annual ? "annual" : "monthly");
-        return (
-          <button
-            key={mode}
-            type="button"
-            onClick={() => onChange(mode === "annual")}
-            style={{
-              padding: "7px 20px",
-              borderRadius: 99,
-              border: "none",
-              cursor: "pointer",
-              fontSize: 13,
-              fontWeight: active ? 600 : 500,
-              background: active ? "var(--mrd-lift)" : "transparent",
-              color: active ? "var(--mrd-ink)" : "var(--mrd-mute)",
-              boxShadow: active ? "var(--mrd-shadow-card)" : "none",
-              transition: "all 0.15s",
-              display: "flex",
-              alignItems: "center",
-              gap: 7,
-            }}
-          >
-            {mode === "monthly" ? "Monthly" : "Annual"}
-            {mode === "annual" && (
+    <Choices
+      mode="one"
+      label="Billing period"
+      value={annual ? "annual" : "monthly"}
+      onChange={(mode) => onChange(mode === "annual")}
+      options={[
+        { id: "monthly", label: "Monthly" },
+        {
+          id: "annual",
+          label: (
+            <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
+              Annual
               <span
                 style={{
                   fontSize: 10.5,
@@ -303,11 +283,11 @@ function BillingToggle({ annual, onChange }: { annual: boolean; onChange: (v: bo
               >
                 Save 17%
               </span>
-            )}
-          </button>
-        );
-      })}
-    </div>
+            </span>
+          ),
+        },
+      ]}
+    />
   );
 }
 
