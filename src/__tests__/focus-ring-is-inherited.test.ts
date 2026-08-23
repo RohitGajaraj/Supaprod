@@ -119,8 +119,11 @@ const CARRIES_ATTRIBUTE = /data-mrd\s*=/;
  *   THE REST ARE OWNED ELSEWHERE. Nine of them are the retired Obsidian v3 and
  *   Tempo v5 (shadcn) component trees, whose end state is deletion rather than a
  *   port, so tagging them would spend work on markup that is scheduled to go.
- *   Four are live surfaces that a different queue item owns. Neither is a
- *   defence of the code: all thirteen have broken rings in production today.
+ *   Three are live surfaces that a different queue item owns (a fourth,
+ *   MissionOrchestratorDetail.tsx, was fixed on 2026-08-23 when its controls
+ *   moved onto Meridian's tiers under a `data-mrd` root, and left this
+ *   register). Neither is a defence of the code: all twelve have broken rings
+ *   in production today.
  */
 const EXEMPT: ReadonlyArray<{ path: string; why: string }> = [
   // The retired component layers. `meridian-ratchet-scan.ts` counts imports from
@@ -171,10 +174,6 @@ const EXEMPT: ReadonlyArray<{ path: string; why: string }> = [
   },
   {
     path: "src/components/connections/CreateRepoModal.tsx",
-    why: "Live, ring broken. Outside this item's owned files.",
-  },
-  {
-    path: "src/components/missions/MissionOrchestratorDetail.tsx",
     why: "Live, ring broken. Outside this item's owned files.",
   },
   {

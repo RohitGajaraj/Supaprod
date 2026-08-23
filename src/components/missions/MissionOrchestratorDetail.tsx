@@ -15,16 +15,15 @@
 // `MissionSlideOver` — whose "Open full view" link the old header credited —
 // was deleted by the runs-board rewrite and survives only in comments.
 //
-// THE BUTTONS ARE NO LONGER EMBER-EDITORIAL. Five controls here composed the
-// retired palette's `.btn` family, and styles.css paints
-// `.btn-primary` as an ember GRADIENT FILL with an inset white highlight. The
-// standing colour ruling (docs/design/DESIGN-SYSTEM.md, "The founder's live
-// rulings") is that ember is rare and "explicitly not the default for approval
-// buttons, actions or tasks", and ink.css:236 declares it the mark that "marks
-// the human, and nothing else" — every legitimate use in the system is a colour
-// or an edge, never a fill. Those five are now `<Button>` / `.sp-btn` from
-// @/components/shell/primitives, which resolves through the retired Cadence
-// layer. Those five remain the last retired thing in this file.
+// THE CONTROLS SPEAK MERIDIAN'S TIERS NOW, 2026-08-23. This paragraph used to
+// say five controls here composed the retired palette's `.btn` family and that
+// those five were "the last retired thing in this file". They are gone: the
+// governance gate's approve wears Meridian's `Approve` (a click that unblocks a
+// held tool call), its reject wears `Action variant="destructive"` (a click
+// that stops something), the retry and replay wear `Action`, and the launch
+// control -- which releases a mission held on a person -- wears `Approve` too.
+// Every `.sp-btn` / `sp-title` class string and the `shell/primitives` import
+// left with them, which takes this file off the ratchet ledger entirely.
 //
 // THE COLOUR LAYER IS MERIDIAN NOW, ported 2026-08-22. This paragraph used to
 // say the rest of the file still ran on legacy tokens and that the port was a
@@ -107,7 +106,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "@/lib/notify";
-import { Button } from "@/components/shell/primitives";
+import { Action, Approve, Actions } from "@/components/meridian/surface-parts";
 import { MonoLabel, StepDot, StatusBadge, VerdictChip } from "@/components/supaprod/Primitives";
 import { toolConsequence, REVERSIBILITY_LABEL } from "@/lib/tool-consequences";
 import { MissionGraph, type MissionGraphStep } from "@/components/supaprod/MissionGraph";
@@ -140,14 +139,13 @@ import { supabase } from "@/integrations/supabase/client";
 type Hop = MissionDetail["hops"][number];
 type Handoff = MissionDetail["messages"][number];
 
-/* Shared interaction affordances (state audit 2026-07-12): the token-traced
-   focus-visible ring, never removed, on every BESPOKE pressable in this file:
-   the mono-label chips and the outline pills built out of raw <button>s.
-   The five `<Button>`/`.sp-btn` controls do not carry it and do not need it:
-   `[data-obsidian] :focus-visible` in styles.css paints the same `--focus-ring`
-   on them at (0,2,0), so the utility here would only be a second copy. */
-const FOCUS =
-  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]";
+/* THE RING IS INHERITED, NOT DECLARED. Every root this file returns carries
+   `data-mrd=""`, so each pressable inside it takes Meridian's unlayered
+   `[data-mrd][data-mrd] :focus-visible` ring outright; a focus-visible utility
+   declared here would lose the cascade to `[data-obsidian] :focus-visible` and
+   paint nothing, which is the exact defect that kept this file on the
+   focus-ring guard's exemption register. See that test's header for the
+   mechanism. */
 /* Hover for the quiet outline pills: background in the class (never inline)
    so the hover can actually resolve; Tailwind preflight already gives
    buttons a transparent base. */
@@ -243,30 +241,27 @@ function CaptureMissionDecision({
     onError: (e: Error) => toast.error(e.message),
   });
   return (
-    <button
-      type="button"
+    /* TIER: `Action`, default face. The test from answers/M10: clicking this
+       DOES something to the work (it files a decision row) and unblocks
+       nothing, so it is an Action and never an Approve. Default rather than
+       quiet because capture-as-decision is this surface's one persistent
+       ask of the reader, and a ghost pill was exactly the undifferentiated
+       control the founder flagged. */
+    <Action
+      variant="default"
       onClick={() => cap.mutate()}
-      disabled={cap.isPending}
-      className={`mono-label loom-press ${HOVER_BG} ${FOCUS}`}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 5,
-        border: "1px solid var(--mrd-edge)",
-        borderRadius: 99,
-        padding: "3px 10px",
-        opacity: cap.isPending ? 0.5 : 1,
-      }}
+      busy={cap.isPending}
     >
-      <Gavel size={16} strokeWidth={1.5} />
+      <Gavel size={14} strokeWidth={1.5} />
       {cap.isPending ? "Capturing…" : "Capture · files this as a decision"}
-    </button>
+    </Action>
   );
 }
 
 /* Inline governance gate — same contract as screen 3 (chat InlineApprovalsPanel):
-   ember-tinted panel, consequence-first approve/reject. Renders nothing while
-   no approval is pending; polls so a landing gate appears without a reload. */
+   a "person required" panel in Meridian's `you` hue, consequence-first
+   approve/reject. Renders nothing while no approval is pending; polls so a
+   landing gate appears without a reload. */
 function GatePanel({
   traceId,
   agentName,
@@ -312,22 +307,28 @@ function GatePanel({
 
   return (
     <section style={{ marginBottom: 16 }}>
+      {/* THE GATE WEARS THE SYSTEM'S "A PERSON IS REQUIRED" HUE, not ember.
+          Meridian assigns `--mrd-you` to exactly this fact (ApprovalCard's
+          waiting marker, `Approve`'s face), and this panel states the same
+          fact. Ember stays on the brand mark and nowhere near an interaction
+          state; the wash and edge here are color-mixes of `you`, the same
+          construction FineTuneCard uses for its accent ground. */}
       <div
         className="fade-up"
         style={{
           padding: "14px 16px",
           borderRadius: 10,
-          background: "var(--ember-tint)",
-          border: "1px solid var(--ember-line)",
+          background: "color-mix(in oklab, var(--mrd-you) 9%, transparent)",
+          border: "1px solid color-mix(in oklab, var(--mrd-you) 35%, transparent)",
         }}
       >
         <div
           className="mono-label"
           style={{
-            color: "var(--ember-text)",
+            color: "var(--mrd-you)",
             display: "flex",
             alignItems: "center",
-            gap: 6,
+            gap: "var(--mrd-s3)",
             fontWeight: 700,
           }}
         >
@@ -354,56 +355,37 @@ function GatePanel({
               </span>
               {appr.rationale ? `. ${appr.rationale}` : "."}
             </p>
-            {/* NEITHER OF THESE IS `variant="primary"`, AND THE REASON IS ON
-                THE SAME SCREEN. The host route already renders its own <Gate>
-                for these approvals — `getStudioSession` selects every
-                `agent_approvals` row on the mission and runs.$missionId.tsx
-                hands the pending one it picks to `<Button variant="primary">`.
-                This panel re-queries the same table by the live hop's
-                `trace_id`, so
-                a pending call on the live hop draws a gate in BOTH places at
-                once. primitives.css states the rule this file has to keep —
-                "one primary per screen" — so the echo takes the raised default
-                and the page Gate keeps the ember edge.
-                WHAT WAS HERE BEFORE: an ember GRADIENT FILL with `--cta-ink`
-                text (Approve) next to `.btn-reject`, an ember-outlined pill.
-                Both spent the colour reserved for "this one is yours" on the
-                quieter of two copies of one decision.
-                THE PAIR IS SYMMETRIC ON PURPOSE. `variant="ghost"` was the
-                obvious home for Reject and it is wrong here: sp's ghost carries
-                no resting border, so it reads as text, and a reject that is
-                quieter than its approve nudges the click on the one surface in
-                the product where the click authorises a tool to run. Both stay
-                raised controls; the icon and the consequence in the label do
-                the distinguishing, which is this file's grammar already.
-                `className` is passed deliberately, and it repeats `sp-btn`
-                because it has to: `Button` sets `className="sp-btn"` BEFORE
-                spreading its rest props, so a className given here replaces it
-                rather than adding to it. `loom-press` is kept for its one real
-                job — `[data-obsidian] .loom-press` gives a 44px minimum touch
-                target at 768px and below, which `.sp-btn` (a flat 38px, no
-                media query) does not, and dropping it would shrink a governance
-                control on a phone. */}
-            <div style={{ display: "flex", gap: "var(--geist-space-2x)", flexWrap: "wrap" }}>
-              <Button
-                className="sp-btn loom-press"
-                disabled={decide.isPending}
-                style={{ gap: 6, whiteSpace: "nowrap" }}
-                onClick={() => decide.mutate({ id: appr.id, decision: "approve" })}
-              >
-                <Check size={16} />
+            {/* TIER SPLIT ON ONE DECISION, and it is the file's most important
+                one. BOTH clicks release the held run -- that is what a gate is,
+                so neither can be louder than its twin into a nudge. But they do
+                opposite things to the tool call, and each gets the face Meridian
+                built for its half: `Approve` because approving UNBLOCKS work
+                that is held (and Approve is the only component allowed to spend
+                the orchid that means a person was required); `Action
+                variant="destructive"` because rejecting STOPS the pending tool
+                call, and destructive is the tier for stopping things.
+                NEITHER IS A PRIMARY FILL, on purpose: the host route renders
+                its own `<Gate>` for these same approvals and hands the pending
+                one a primary there, so this panel re-querying the same table by
+                trace_id would draw two primaries on one screen. The faces plus
+                the consequence-first labels carry the distinction instead --
+                which is also the greyscale-safe axis.
+                `Actions` lays the pair out because it is the container that
+                exists for a row of controls; no bespoke gap value. */}
+            <Actions>
+              <Approve busy={decide.isPending} onClick={() => decide.mutate({ id: appr.id, decision: "approve" })}>
+                <Check size={14} />
                 Approve · runs the tool
-              </Button>
-              <Button
-                className="sp-btn loom-press"
-                disabled={decide.isPending}
-                style={{ gap: 6, whiteSpace: "nowrap" }}
+              </Approve>
+              <Action
+                variant="destructive"
+                busy={decide.isPending}
                 onClick={() => decide.mutate({ id: appr.id, decision: "reject" })}
               >
-                <X size={16} />
+                <X size={14} />
                 Reject · nothing runs
-              </Button>
-            </div>
+              </Action>
+            </Actions>
           </div>
         ))}
       </div>
@@ -438,7 +420,8 @@ const preStyle: CSSProperties = {
 const handoffChip: CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
-  gap: 5,
+  // gap-mrd-inline's step: a mark and the word it belongs to.
+  gap: "var(--mrd-s3)",
   color: "var(--mrd-mute)",
   border: "1px solid var(--mrd-edge)",
   background: "var(--mrd-lift)",
@@ -451,7 +434,7 @@ const handoffChip: CSSProperties = {
 const handoffChipBtn: CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
-  gap: 5,
+  gap: "var(--mrd-s3)",
   border: "1px solid var(--mrd-edge)",
   borderRadius: 99,
   padding: "2px 8px",
@@ -492,7 +475,7 @@ function TraceHop({
           <button
             onClick={() => setShowPayload(!showPayload)}
             aria-expanded={showPayload}
-            className={`mono-label loom-press ${CHIP_BTN} ${FOCUS}`}
+            className={`mono-label loom-press ${CHIP_BTN}`}
             style={handoffChipBtn}
           >
             {showPayload ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -510,7 +493,7 @@ function TraceHop({
       <button
         onClick={() => setOpen(!open)}
         aria-expanded={open}
-        className={`loom-press ${HOVER_BG} ${FOCUS}`}
+        className={`loom-press ${HOVER_BG}`}
         style={{
           display: "flex",
           alignItems: "center",
@@ -597,11 +580,11 @@ function TraceHop({
               <button
                 onClick={() => setShowMemories(!showMemories)}
                 aria-expanded={showMemories}
-                className={`mono-label loom-press ${HOVER_TEXT} ${HOVER_BG} ${FOCUS}`}
+                className={`mono-label loom-press ${HOVER_TEXT} ${HOVER_BG}`}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: 5,
+                  gap: "var(--mrd-s3)",
                   border: "1px solid var(--mrd-edge)",
                   borderRadius: 99,
                   padding: "2px 8px",
@@ -657,11 +640,11 @@ function TraceHop({
             <button
               onClick={() => setShowInput(!showInput)}
               aria-expanded={showInput}
-              className={`mono-label loom-press ${HOVER_TEXT} ${FOCUS}`}
+              className={`mono-label loom-press ${HOVER_TEXT}`}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 4,
+                gap: "var(--mrd-s3)",
               }}
             >
               {showInput ? <ChevronDown size={14} /> : <ChevronRight size={14} />} input
@@ -670,11 +653,11 @@ function TraceHop({
               <button
                 onClick={() => setShowOutput(!showOutput)}
                 aria-expanded={showOutput}
-                className={`mono-label loom-press ${HOVER_TEXT} ${FOCUS}`}
+                className={`mono-label loom-press ${HOVER_TEXT}`}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: 4,
+                  gap: "var(--mrd-s3)",
                 }}
               >
                 {showOutput ? <ChevronDown size={14} /> : <ChevronRight size={14} />} output
@@ -773,7 +756,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
       >
         <MonoLabel icon={Layers}>Compounding · the moat at work</MonoLabel>
         {n > 0 && (
-          <button onClick={copySnapshot} className={`mono-label loom-press ${HOVER_TEXT} ${FOCUS}`}>
+          <button onClick={copySnapshot} className={`mono-label loom-press ${HOVER_TEXT}`}>
             Copy snapshot
           </button>
         )}
@@ -1089,27 +1072,21 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
   // skeleton forever when the query failed. Name the cause, offer retry.
   if (m.isError) {
     return (
-      <div style={{ maxWidth: 980, margin: "0 auto" }}>
+      <div data-mrd="" style={{ maxWidth: 980, margin: "0 auto" }}>
         <div style={{ ...LOOM_CARD, padding: "var(--geist-gap)", maxWidth: 560 }}>
           <MonoLabel style={{ color: "var(--mrd-fail)" }}>Couldn't load this mission</MonoLabel>
           <p style={{ color: "var(--mrd-mute)", marginTop: 8 }}>
             {(m.error as Error)?.message?.slice(0, 160)}
           </p>
-          {/* The raised default, not `variant="primary"`: this branch replaces
-              the whole body, so the retry is the only control on it and needs
-              no ember edge to be found. It was `.btn btn-ghost btn-sm`, a
-              bordered pill from the retired palette; the raised `.sp-btn` is
-              the same shape one step more visible, which is the direction the
-              ratchet allows. `sp-btn` is repeated in `className` because
-              `Button` spreads rest props after its own `className`, and
-              `loom-press` is what keeps the 44px phone touch target. */}
-          <Button
-            className="sp-btn loom-press"
-            style={{ marginTop: 14, whiteSpace: "nowrap" }}
-            onClick={() => m.refetch()}
-          >
+          {/* TIER: `Action`, default face. Re-reading is not unblocking
+              anything held, so it is never an Approve; and this branch replaces
+              the whole body, so the retry is the only control on it and takes
+              the raised default rather than a primary fill. It was `.btn
+              btn-ghost btn-sm`, then `.sp-btn`; both retired layers are gone
+              from here now. */}
+          <Action variant="default" onClick={() => m.refetch()} className="mt-3">
             Retry · reloads the mission
-          </Button>
+          </Action>
         </div>
       </div>
     );
@@ -1129,7 +1106,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
   }
 
   return (
-    <div style={{ maxWidth: 980, margin: "0 auto" }}>
+    <div data-mrd="" style={{ maxWidth: 980, margin: "0 auto" }}>
       <header
         style={{
           ...LOOM_CARD,
@@ -1156,25 +1133,27 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                 a uuid is a database key wearing a label. */}
               Mission · {traceRef(data.mission.id)}
             </MonoLabel>
-            {/* `.sp-title`, because the inline rules here set family, weight,
-                tracking and colour and NEVER a font-size. An h1 that declares
-                no size falls through to styles.css's base layer, which sizes
-                every h1 at `clamp(2.25rem, 4vw, 3.75rem)` — 36px at the narrow
-                end, ~58px on a 1440px window. That is two to three times the
-                page title sitting directly above it: runs.$missionId.tsx
-                renders `<PageHead title={title} />`, whose body is
-                `<h1 className="sp-title">` at 25px, printing
-                `stripAutoPrefix(mission.title)` — the SAME string this line
-                prints. So the hierarchy was inverted AND the title was doubled.
-                Sizing is fixed here; the DUPLICATE IS NOT, because deleting one
-                of the two is a call about this page's information architecture
-                and not a styling fix, and the copy carrying the trace ref, the
-                maker's mark and the goal is this one. Left for a decision.
-                The margin stays
-                inline: Tailwind's preflight zeroes heading margins and
-                `.sp-title` sets none, so dropping it would close the gap above
-                the maker's-mark thread below. */}
-            <h1 className="sp-title" style={{ margin: "8px 0 6px" }}>
+            {/* THE TITLE IS COMPOSED FROM LADDER STOPS NOW, and it computes
+                identically to the `.sp-title` class it replaces: 25px
+                (`text-mrd-h2`), weight 600, ink, -0.028em tracking, 1.24
+                leading, 34ch measure -- those were that class's own values,
+                read off primitives.css before deleting its last use here. A
+                page title is a heading, not a block role, so M08's roles do
+                not apply; size, weight and colour are named explicitly.
+                The margin stays inline: Tailwind's preflight zeroes heading
+                margins, so dropping it would close the gap above the
+                maker's-mark thread below.
+                THE DUPLICATE TITLE IS STILL NOT FIXED, on purpose: the host
+                route renders `<PageHead>` with this same string at the same
+                25px directly above, and removing one of the two is an
+                information-architecture call about /runs/$missionId (a route
+                file this lane does not own), not a styling fix. Raised as a
+                note in units/L0-001 for whichever lane owns that decision.
+                */}
+            <h1
+              className="text-mrd-h2 font-semibold text-mrd-ink"
+              style={{ margin: "8px 0 6px", letterSpacing: "-0.028em", lineHeight: 1.24, maxWidth: "34ch" }}
+            >
               {stripAutoPrefix(data.mission.title)}
             </h1>
             {/* §6: the maker's mark — a static 24px thread under the title. */}
@@ -1227,38 +1206,38 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
              * show Cancel alone, which meant the only way out of "never started"
              * was to kill it. */}
             {missionLaunchable ? (
-              <button
-                onClick={() => promote.mutate()}
-                disabled={promote.isPending}
-                // Ember-tinted hover (the gate CTA hue), background via class
-                // so it resolves over the transparent base.
-                className={`mono-label loom-press transition-colors hover:enabled:[background:var(--ember-tint)] ${FOCUS}`}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 5,
-                  padding: "3px 10px",
-                  borderRadius: 5,
-                  border: "1px solid var(--ember-line)",
-                  color: "var(--ember-text)",
-                  opacity: promote.isPending ? 0.5 : 1,
-                }}
-                title={
-                  missionQueued
-                    ? "This mission was enqueued but never started · launch it now"
-                    : "A trigger proposed this goal · nothing runs until you launch it"
-                }
-              >
-                <Check style={{ width: 11, height: 11 }} />
+              /* TIER: `Approve`, and it is not a near-miss. A proposed or
+                 stranded mission is work HELD on a person -- the trigger-tick's
+                 own HITL gate, per the mutation comment above -- and this click
+                 releases it. That is the Approve test exactly ("does clicking
+                 UNBLOCK something held?"), and it is why the control now wears
+                 the orchid that means a person is required instead of an
+                 ember-tinted outline. It is also the ONE accent in the header,
+                 and only in the states where attention is genuinely owed. */
+              <Approve busy={promote.isPending} title={
+                missionQueued
+                  ? "This mission was enqueued but never started · launch it now"
+                  : "A trigger proposed this goal · nothing runs until you launch it"
+              } onClick={() => promote.mutate()}>
+                <Check size={14} />
                 {promote.isPending
                   ? "Launching…"
                   : missionQueued
                     ? "Never started · launch it"
                     : "Review & launch"}
-              </button>
+              </Approve>
             ) : null}
             {missionActive ? (
-              <button
+              /* TIER: `Action variant="destructive"`. Cancelling STOPS a live
+                 mission; the confirm() below is what protects it, and the
+                 destructive face is deliberately the quietest tier because
+                 distance plus confirm -- never volume -- is what guards a
+                 destructive act. The old inline stop-wash hand-rolled the same
+                 construction with unmeasured percentages. */
+              <Action
+                variant="destructive"
+                busy={cancel.isPending}
+                title="Stop this mission so it will not advance further"
                 onClick={async () => {
                   const ok = await confirm({
                     title: "Cancel this mission?",
@@ -1268,24 +1247,10 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   });
                   if (ok) cancel.mutate();
                 }}
-                disabled={cancel.isPending}
-                // Destructive hover: a whisper of the madder it warns about.
-                className={`mono-label loom-press transition-colors hover:enabled:[background:color-mix(in_oklab,var(--mrd-stop)_10%,transparent)] ${FOCUS}`}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 5,
-                  padding: "3px 10px",
-                  borderRadius: 5,
-                  border: "1px solid color-mix(in oklab, var(--mrd-stop) 35%, transparent)",
-                  color: "var(--mrd-stop)",
-                  opacity: cancel.isPending ? 0.5 : 1,
-                }}
-                title="Stop this mission so it will not advance further"
               >
-                <Ban style={{ width: 11, height: 11 }} />
+                <Ban size={14} />
                 {cancel.isPending ? "Cancelling…" : "Cancel mission"}
-              </button>
+              </Action>
             ) : !missionLaunchable && !missionFailed ? (
               // D4-REPLAY: re-run a finished mission with a chosen model.
               // (Failed/halted missions keep the contextual retry below.)
@@ -1293,12 +1258,12 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               // the missions it always did: splitting Launch out of this chain
               // means a 'proposed' mission now falls through to here, and it must
               // not be offered a replay of work that has not run once.
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "var(--mrd-s3)" }}>
                 <select
                   aria-label="Replay model"
                   value={replayModel}
                   onChange={(e) => setReplayModel(e.target.value)}
-                  className={`mono-label ${FOCUS}`}
+                  className="mono-label"
                   style={{
                     padding: "3px 6px",
                     borderRadius: 5,
@@ -1315,25 +1280,17 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                     </option>
                   ))}
                 </select>
-                <button
-                  onClick={() => replay.mutate()}
-                  disabled={replay.isPending}
-                  className={`mono-label loom-press ${HOVER_BG} ${FOCUS}`}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 5,
-                    padding: "3px 10px",
-                    borderRadius: 5,
-                    border: "1px solid color-mix(in oklab, var(--mrd-ink) 35%, transparent)",
-                    color: "var(--mrd-ink)",
-                    opacity: replay.isPending ? 0.5 : 1,
-                  }}
+                {/* TIER: `Action`, default face. Replaying starts new work; it
+                    releases nothing held. */}
+                <Action
+                  variant="default"
+                  busy={replay.isPending}
                   title="Re-run this goal as a new mission, optionally with a different model"
+                  onClick={() => replay.mutate()}
                 >
-                  <RotateCcw style={{ width: 11, height: 11 }} />
+                  <RotateCcw size={14} />
                   {replay.isPending ? "Replaying…" : "Replay"}
-                </button>
+                </Action>
               </div>
             ) : null}
           </div>
@@ -1442,9 +1399,11 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
       {/* D4b · side-by-side checkpoint-diff vs the original (replay missions only). */}
       {data.mission.replayed_from_mission_id ? (
         <div style={{ marginBottom: 16 }}>
+          {/* Reveal-only, so it stays a plain button by the tier test: no
+              work is done and nothing is unblocked; a comparison is shown. */}
           <button
             onClick={() => setShowDiff((v) => !v)}
-            className={`mono-label loom-press ${HOVER_BG} ${FOCUS}`}
+            className={`mono-label loom-press ${HOVER_BG}`}
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -1496,20 +1455,16 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           </MonoLabel>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {canAdvance ? (
-              <button
+              /* TIER: `Action`, default face. Advancing dispatches ready steps
+                 -- it does something to the work and unblocks nothing that a
+                 person is holding (the gate for that lives in GatePanel). */
+              <Action
+                variant="default"
+                busy={advance.isPending}
                 onClick={() => advance.mutate()}
-                disabled={advance.isPending}
-                className={`mono-label loom-press ${HOVER_BG} ${FOCUS}`}
-                style={{
-                  padding: "3px 10px",
-                  borderRadius: 5,
-                  border: "1px solid var(--mrd-edge)",
-                  color: "var(--mrd-ink)",
-                  opacity: advance.isPending ? 0.5 : 1,
-                }}
               >
                 {advance.isPending ? "Advancing…" : "Advance · dispatches ready steps"}
-              </button>
+              </Action>
             ) : null}
             <div
               style={{
@@ -1536,7 +1491,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   key={id}
                   onClick={() => setView(id)}
                   aria-pressed={view === id}
-                  className={`mono-label loom-press transition-colors hover:[background:var(--mrd-lift-hover)] ${FOCUS}`}
+                  className={`mono-label loom-press transition-colors hover:[background:var(--mrd-lift-hover)]`}
                   style={{
                     padding: "3px 10px",
                     borderRadius: 5,
@@ -1598,7 +1553,10 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                     <div
                       style={{
                         color: "var(--mrd-ink)",
-                        marginTop: 3,
+                        // gap-mrd-pair's step: the agent line and this row's
+                        // substance sit close but not touching. Was 3px, an
+                        // off-ladder number nobody chose.
+                        marginTop: "var(--mrd-s1)",
                         display: "-webkit-box",
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: "vertical",
@@ -1608,7 +1566,9 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                       {s.goal}
                     </div>
                     {s.note ? (
-                      <div style={{ color: "var(--mrd-fail)", marginTop: 2 }}>{s.note}</div>
+                      <div style={{ color: "var(--mrd-fail)", marginTop: "var(--mrd-s1)" }}>
+                        {s.note}
+                      </div>
                     ) : null}
                   </div>
                 </div>
@@ -1822,31 +1782,33 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               The mission stopped before completing. The execution trace above carries the details.
             </p>
           )}
-          <div style={{ display: "flex", gap: "var(--geist-space-2x)", flexWrap: "wrap" }}>
-            {/* THE ONE PRIMARY THIS FILE ASKS FOR. `.btn-primary` painted it as
-                an ember gradient fill with an inset white highlight — the exact
-                shape the ruling forbids. `.sp-btn[data-variant="primary"]` says
-                the same "this one is yours" with the Gate's ember EDGE on a
-                raised control, so the recovery action stays the loudest thing
-                in this section without inventing a fill. */}
-            <Button
+          <div style={{ display: "flex", gap: "var(--mrd-s3)", flexWrap: "wrap" }}>
+            {/* TIER: `Action variant="primary"` -- THE ONE PRIMARY THIS FILE
+                ASKS FOR. `.btn-primary` painted it as an ember gradient fill
+                with an inset white highlight, the exact shape the ruling
+                forbids; the primary face says "this one is yours" with the
+                system's own solid ground and specular edge instead, so recovery
+                stays the loudest thing in this section without inventing a
+                fill. Replay does work (it starts a new mission); it unblocks
+                nothing held, which is why it is an Action and not an Approve
+                even in a failure state. */}
+            <Action
               variant="primary"
-              disabled={replay.isPending}
-              style={{ gap: 6, whiteSpace: "nowrap" }}
+              busy={replay.isPending}
               onClick={() => replay.mutate()}
             >
-              <RotateCcw size={16} />
+              <RotateCcw size={14} />
               {replay.isPending ? "Replaying…" : "Replay · same goal, new mission"}
-            </Button>
-            {/* A <Link>, not a <Button>: `Button` renders a <button>, and this
-                one navigates, so it has to stay an <a> to keep middle-click,
-                copy-link and the router's prefetch. It wears the primitive's
-                class directly instead — `.sp-btn` is written against the class,
-                not the element, so an anchor gets the same control. */}
+            </Action>
+            {/* A <Link>, not a control: this one navigates, so it stays an <a>
+                to keep middle-click, copy-link and the router's prefetch. The
+                face is Door's paint -- dotted underline that firms on hover --
+                because navigation is the quiet end of the affordance scale and
+                must not borrow a tier from the recovery action beside it. */}
             <Link
               to="/engine-room"
               search={{ room: "safety", view: "rules" }}
-              className="sp-btn"
+              className="inline-flex items-center text-mrd-label font-medium text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
               style={{ whiteSpace: "nowrap" }}
             >
               View guardrails
