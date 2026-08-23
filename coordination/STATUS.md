@@ -5,7 +5,7 @@ LANE 1 reads this and never writes it. See [`README.md`](./README.md).
 **Session opened:** 2026-08-23 · overnight run
 **MAIN LANE:** Claude Code (database, deploys, Mobbin, verification)
 **LANE 1:** opencode / OX Alpha (building)
-**Last updated:** 2026-08-23 13:30 IST
+**Last updated:** 2026-08-23 14:10 IST
 
 ## Where things stand
 
@@ -178,6 +178,7 @@ files. Read them like any other answer.
 | [`M05`](./answers/M05-the-founders-test-run-against-the-live-site.md) | The founder's test measured on the deployed site. `/pricing` renders 107 pieces of text in 23 treatments; `/demo` manages 16 in 7 and is your reference. Carries the re-runnable measurement. |
 | [`M06`](./answers/M06-the-deploy-path-is-proven-and-here-is-how.md) | Deploy exercised end to end on a docs-only change. `pending` is not a deployment, the published host redirects, and every live check needs a negative control. **Read before filing your first `deploy` request.** |
 | [`M10`](./answers/M10-the-untiered-controls-are-yours-and-here-is-the-real-number.md) | **Corrects M07's 451 to 337.** A raw `<button>` inside Meridian is usually the primitive's own implementation and should not have been counted. The real gap is 337 on your surfaces, ranked by file. |
+| [`002`](./answers/002-styles-css-verified-and-your-open-question-answered.md) | **LANE 1's unit 002 ACCEPTED.** Deletion of 12 dead classes independently confirmed safe, ratchet down 9 with no count risen, ember alias checked against the founder's brand ruling and it holds. Its open question is answered: ember and you **cannot** diverge. |
 | [`M13`](./answers/M13-leading-snug-is-not-meridians-snug.md) | **BOTH LANES, BEFORE YOUR NEXT PORT.** `leading-snug` is Tailwind's 1.375, not Meridian's 1.5, and `leading-tight` is 1.25 not 1.15. **138 bare Tailwind leadings sit in your directories** and are in no guard. Convert as you port, same commit. |
 | [`M12`](./answers/M12-the-retrieval-index-can-return-one-row.md) | **`match_rag_chunks` can return at most ONE row, database-wide.** 16 of 17 `rag_chunks` have a NULL embedding and the reader excludes those; nothing written since 2026-08-09. Also corrects two columns that lie about loop health. **Neither lane's job — do not stop porting for it.** |
 | [`M08`](./answers/M08-meridian-has-text-roles-now-use-them.md) | **READ BEFORE PORTING ANY SURFACE.** Meridian has five TEXT ROLES now: eyebrow, title, subtitle, copy, meta. Stop assembling size + weight + colour by hand. |
@@ -218,6 +219,56 @@ Gates on the merged tree: `tsc` 0 · **10,637 pass / 0 fail** · `lint` 0 · `do
 untouched at 2,868 (none of this is a retired marker, so the ratchet is correctly blind to it,
 which is the same blindness [`M04`](./answers/M04-the-ratchet-cannot-see-the-founders-pain-point.md)
 recorded).
+
+## LANE 1'S UNIT 002 IS VERIFIED AND ACCEPTED, 14:05
+
+`ba0dbecec` deleted ~150 lines of dead paint from `src/styles.css` and aliased every `--ember`
+definition to Meridian's `--mrd-you`. Checked on the merged tree, against reality:
+
+| what the unit claimed | what I measured |
+| --- | --- |
+| 12 classes have zero consumers | **confirmed**, 0 live across 1,138 non-test files, plus no dynamic construction |
+| ratchet 2,868 to 2,859 | **confirmed**, and no count anywhere rose |
+| ember is value-identical to you | **confirmed, and more thorough than claimed**: all FOUR definitions aliased, no literal left |
+| gates green | **confirmed on the merge**: `tsc` 0, 10,637 pass / 0 fail, `docs:check` 0 |
+
+**The founder's brand ruling was the one that needed checking rather than accepting**, since
+aliasing `--ember` to the interaction hue sounds like brand and accent sharing a token. It holds:
+`--brand-mark-ember` and `--brand-mark-gold` are theme-invariant literals declared once, no mark
+token reads `--ember`, and the file carries its own instruction not to couple them.
+
+**A scan of mine said fifteen classes were still referenced and it was wrong**, six of them in
+`.tsx`. Every hit was inside a comment describing that surface's own history. Recorded in the
+answer because a token match cannot tell a class attribute from a sentence about a class, and the
+next person to verify a deletion here will reach for exactly that scan.
+
+## DEPLOY LANDED AND IS VERIFIED LIVE, 14:02
+
+The Meridian leading work is on `supaprod.ai`, confirmed with three controls rather than one:
+`leading-mrd-snug` present, `leading-[1.625]` gone, and a control string proving the fetch and
+search work at all.
+
+**It took two deploy calls and the first one reported success while serving stale assets.**
+`latest_commit_sha` matched my commit AND the call returned `ready`, and the bundle being served
+was still older than that commit. So the rule in [`M06`](./answers/M06-the-deploy-path-is-proven-and-here-is-how.md)
+needs strengthening: *matching the sha and reading `ready` are both necessary and neither is
+sufficient.* The only test that settled it was a string that had to **disappear**, anchored to a
+commit with `git grep` rather than to memory. An "is the new thing there?" check cannot tell a
+stale deploy from a broken change, and it reads as the latter, which is how a correct change gets
+reverted.
+
+**Measured on the live bundle, before and after:**
+
+| | before | after |
+| --- | --- | --- |
+| distinct `.leading-*` rules shipped | 24 | 25 |
+| of those, resolving through a Meridian token | **0** | **4** |
+| arbitrary ratio values | 16 | 13 |
+
+The rule count went UP by one, and that is the honest number: four named rules arrived while three
+arbitrary values died. What changed is not the count but that four of them now resolve through the
+scale. The remaining 13 arbitrary values are the **138 sites on the lanes' paths**, and they do not
+move until the lanes move them. See [`M13`](./answers/M13-leading-snug-is-not-meridians-snug.md).
 
 ## Open requests
 
