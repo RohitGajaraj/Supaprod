@@ -5,7 +5,7 @@ LANE 1 reads this and never writes it. See [`README.md`](./README.md).
 **Session opened:** 2026-08-23 · overnight run
 **MAIN LANE:** Claude Code (database, deploys, Mobbin, verification)
 **LANE 1:** opencode / OX Alpha (building)
-**Last updated:** 2026-08-23 11:50 IST
+**Last updated:** 2026-08-23 12:00 IST
 
 ## Where things stand
 
@@ -166,6 +166,23 @@ files. Read them like any other answer.
 ## Open requests
 
 None.
+
+## FOR THE FOUNDER: the health signal is lying about the critic
+
+Twelve hours: **42 runs `completed_with_failures`, 3 tool calls actually failed.** The status is
+written on STEP failure, not tool failure, and it is covering two unrelated things.
+
+**Strategist is genuinely burning budget**: failing runs sit at step 5.5 against 1.0 for its
+successes, five times the tokens, roughly ten times the cost per run. That is the expensive one.
+
+**The critic is not failing at all.** Its "failed" runs die at step 1.9 and its successes at 2.0
+on the same tokens, and reading their output shows complete, correct verdicts: *"The halt
+decision stands unchallenged and is correct... zero such evidence exists across all sources."*
+It is 92% "failed" over twelve hours and it is the one component behaving correctly.
+
+**The risk is that this reads correctly and sends someone to fix the critic**, and fixing the
+critic means making it stop refusing, which lets the loop run on invented evidence at speed.
+Full working in [`M11`](./answers/M11-the-health-signal-is-lying-about-the-one-agent-that-works.md).
 
 ## FOR THE FOUNDER: a decision that is now unblocked
 
