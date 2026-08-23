@@ -26,10 +26,11 @@
  *     duplicated the spec link the "Where it points" section already carried
  *     (hard ban 10, the same door twice).
  *
- * UNCHANGED: listLearnings and the ["learnings"] cache CompoundingPanel fills,
- * so the feed and this detail cannot drift; the ?learning= drill contract; the
- * graph recentre and the spec deep link. Real columns only: an absent metric or
- * ICE pair renders nothing rather than a fabricated field.
+ * UNCHANGED: listLearnings and the ["learnings", activeWorkspaceId] cache
+ * CompoundingPanel fills, so the feed and this detail cannot drift; the
+ * ?learning= drill contract; the graph recentre and the spec deep link. Real
+ * columns only: an absent metric or ICE pair renders nothing rather than a
+ * fabricated field.
  */
 import { useServerFn } from "@tanstack/react-start";
 import { Line } from "@/components/meridian/rows";
@@ -46,6 +47,7 @@ import {
 } from "@/components/meridian/surface-parts";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import { useWorkspace } from "@/hooks/use-workspace";
 import { listLearnings } from "@/lib/outcome.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { Prose } from "@/components/meridian/Prose";
@@ -88,7 +90,13 @@ function iceNum(v: number | string | null): number | null {
 export function LearningDetail({ id }: { id: string }) {
   const navigate = useNavigate();
   const fLearnings = useServerFn(listLearnings);
-  const learnings = useQuery({ queryKey: ["learnings"], queryFn: () => fLearnings() });
+  const { activeWorkspaceId } = useWorkspace();
+  // Same key and same fetch as CompoundingPanel, character for character, so
+  // the drill reads the feed's cache entry instead of issuing a second read.
+  const learnings = useQuery({
+    queryKey: ["learnings", activeWorkspaceId],
+    queryFn: () => fLearnings({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
+  });
 
   const onBack = () => navigate({ to: "/brain", search: { tab: "learnings" } });
 

@@ -15,7 +15,7 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 2249,
+  "totalOccurrences": 2246,
   "fileCount": 180,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
@@ -107,7 +107,7 @@
       "usage:components/ui": 8
     },
     "src/components/discover/DetailKit.tsx": {
-      "class:sp-": 6
+      "class:sp-": 5
     },
     "src/components/discover/OpportunityDetailSheet.tsx": {
       "import:components/ui": 1,
@@ -305,8 +305,7 @@
       "class:sp-": 3
     },
     "src/components/observe/EvalScoreChips.tsx": {
-      "--sp-": 2,
-      "class:sp-": 1
+      "--sp-": 1
     },
     "src/components/obsidian/ask-canvas.tsx": {
       "--text-": 8,

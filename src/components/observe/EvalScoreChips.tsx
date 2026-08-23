@@ -13,8 +13,7 @@
 // `EvalScoreChips` component below has no call site. It is ported rather than
 // deleted because the pure function and the shape it implies belong together,
 // and because deleting it is a scope call, not a styling one.
-import * as React from "react";
-import { Cell, Num } from "@/components/meridian/surface-parts";
+import { Cell, Grid, Num } from "@/components/meridian/surface-parts";
 
 export type ScoreVerdict = "pass" | "watch" | "fail";
 
@@ -63,8 +62,9 @@ export function EvalScoreChips({ scores }: { scores: EvalScore[] }) {
   return (
     // An eval metric is two short words, so the catalog's 196px cell floor
     // would leave half of every cell empty. The floor is the primitive's own
-    // knob, set here rather than worked around.
-    <div className="sp-grid" style={{ "--sp-cell-min": "132px" } as React.CSSProperties}>
+    // knob, set here rather than worked around. Grid gaps 10px (gap-mrd-4)
+    // where .sp-grid gapped 8px: deliberate, the system's one grid rhythm.
+    <Grid cellMin={132}>
       {present.map((s) => {
         const verdict = evalScoreVerdict(s.value, s.higherIsBetter);
         return (
@@ -82,6 +82,6 @@ export function EvalScoreChips({ scores }: { scores: EvalScore[] }) {
           />
         );
       })}
-    </div>
+    </Grid>
   );
 }

@@ -1116,7 +1116,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
         style={{
           ...LOOM_CARD,
           background: "var(--surface-card-deep)",
-          padding: "28px 32px",
+          padding: "var(--mrd-s6) var(--mrd-s6)",
           marginBottom: "var(--mrd-s5)",
         }}
       >

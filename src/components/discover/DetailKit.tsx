@@ -59,8 +59,8 @@
  *   `goTo`/`toggle`/`act` as STRINGS, so it cannot carry the arbitrary control
  *   three callers pass as `action` -- the identical objection this file already
  *   records against `Block`. (`Cell` has since moved to Meridian's, 2026-08-23,
- *   once surface-parts grew one; `Grid`'s fixed-columns prop is why `StatStrip`
- *   may yet follow.)
+ *   once surface-parts grew one; `StatStrip` followed onto `Grid`, 2026-08-24,
+ *   once its fixed-columns prop landed.)
  *
  *   And the blast radius is not this file. `DetailSection` renders inside
  *   `shared/StageTimeline`, which mounts on `knowledge/DecisionDetail` and the
@@ -71,7 +71,7 @@
  */
 
 import { Children, type CSSProperties, type ReactNode } from "react";
-import { Cell, Num } from "@/components/meridian/surface-parts";
+import { Cell, Grid, Num } from "@/components/meridian/surface-parts";
 
 /** The semantic tones a stat cell can carry. */
 export type StatTone = "moss" | "glacier" | "madder" | "amber" | "muted" | "neutral";
@@ -195,19 +195,17 @@ export interface StatStripProps {
  * The glanceable summary row of a detail: a short, fixed run of stats read
  * across rather than down.
  *
- * Uses the `Grid` primitive's own class, with the column count written
- * explicitly rather than left to the auto-fill. That is a real difference: the
- * primitive's `auto-fill, minmax(196px, 1fr)` is right for a catalog of unknown
- * length, and wrong here, where the caller knows there are exactly three stats
- * and three stats reading 2 + 1 is a worse fact than three across.
+ * Rendered by the `Grid` primitive on its `columns` prop, which exists because
+ * this strip wanted a FIXED number of equal columns and could not say so over
+ * the auto-fill. Fixed count stays the point: the auto-fill default is right
+ * for a catalog of unknown length and wrong here, where three stats reading
+ * 2 + 1 is a worse fact than three across. One disclosed change: the primitive
+ * gaps 10px (`gap-mrd-4`) where `.sp-grid` gapped 8px -- deliberate rhythm
+ * alignment to the system's one grid.
  */
 export function StatStrip({ children, columns }: StatStripProps) {
   const count = Math.max(columns ?? Children.toArray(children).length, 1);
-  return (
-    <div className="sp-grid" style={{ gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))` }}>
-      {children}
-    </div>
-  );
+  return <Grid columns={count}>{children}</Grid>;
 }
 
 export interface DetailSectionProps {
