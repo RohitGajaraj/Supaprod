@@ -83,8 +83,8 @@ function Shell({ children }: { children: React.ReactNode }) {
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
-        background: "var(--paper, #f6f2ea)",
-        color: "var(--ink, #1f1b16)",
+        background: "var(--paper)",
+        color: "var(--ink)",
         isolation: "isolate",
         ...PUBLIC_INK_THEME,
       }}
@@ -118,7 +118,7 @@ function Shell({ children }: { children: React.ReactNode }) {
             Supaprod
           </span>
         </Link>
-        <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)" }}>
+        <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint)" }}>
           shared teardown
         </span>
       </header>
@@ -135,7 +135,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           alignItems: "center",
           justifyContent: "space-between",
           fontSize: 11,
-          color: "var(--ink-subtle, #6b6457)",
+          color: "var(--ink-subtle)",
         }}
       >
         <span className="mono-label" style={{ fontSize: 9 }}>
@@ -158,20 +158,20 @@ function Section({ title, items, empty }: { title: string; items: string[]; empt
           fontSize: 10,
           textTransform: "uppercase",
           letterSpacing: "0.16em",
-          color: "var(--ink-muted, #4a4438)",
+          color: "var(--ink-muted)",
           marginBottom: 6,
         }}
       >
         {title}
       </div>
       {items.length === 0 ? (
-        <p style={{ fontSize: 12.5, color: "var(--ink-muted, #4a4438)", margin: 0 }}>{empty}</p>
+        <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: 0 }}>{empty}</p>
       ) : (
         <ul
           style={{ display: "flex", flexDirection: "column", gap: 6, paddingLeft: 16, margin: 0 }}
         >
           {items.map((it, i) => (
-            <li key={i} style={{ fontSize: 13.5, lineHeight: 1.5, color: "var(--ink, #1f1b16)" }}>
+            <li key={i} style={{ fontSize: 13.5, lineHeight: 1.5, color: "var(--ink)" }}>
               {it}
             </li>
           ))}
@@ -191,7 +191,7 @@ function PublicTeardownPage() {
           <div className="font-display" style={{ fontSize: 20, marginBottom: 6 }}>
             Not available
           </div>
-          <p style={{ fontSize: 13, color: "var(--ink-muted, #4a4438)", margin: 0 }}>
+          <p style={{ fontSize: 13, color: "var(--ink-muted)", margin: 0 }}>
             This teardown is private, or the link is no longer valid.
           </p>
         </div>
@@ -210,7 +210,7 @@ function PublicTeardownPage() {
     <Shell>
       <div
         className="mono-label"
-        style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)", marginBottom: 10 }}
+        style={{ fontSize: 9, color: "var(--ink-faint)", marginBottom: 10 }}
       >
         Critic teardown · {date}
       </div>
@@ -230,7 +230,7 @@ function PublicTeardownPage() {
         <VerdictChip tone={v.tone} style={{ fontSize: 11 }}>
           {v.label}
         </VerdictChip>
-        <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)" }}>
+        <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint)" }}>
           confidence {(teardown.confidence * 100).toFixed(0)}%
         </span>
       </div>
@@ -238,7 +238,7 @@ function PublicTeardownPage() {
       <div className="bento" style={{ padding: "var(--card-pad, 18px)" }}>
         <div
           className="mono-label"
-          style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)", marginBottom: 8 }}
+          style={{ fontSize: 9, color: "var(--ink-faint)", marginBottom: 8 }}
         >
           The verdict
         </div>
@@ -246,7 +246,7 @@ function PublicTeardownPage() {
           style={{
             fontSize: 14,
             lineHeight: 1.65,
-            color: "var(--ink-muted, #4a4438)",
+            color: "var(--ink-muted)",
             margin: 0,
             whiteSpace: "pre-wrap",
           }}
@@ -270,7 +270,7 @@ function PublicTeardownPage() {
       <p
         style={{
           fontSize: 11.5,
-          color: "var(--ink-subtle, #6b6457)",
+          color: "var(--ink-subtle)",
           marginTop: 22,
           lineHeight: 1.5,
         }}

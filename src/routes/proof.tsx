@@ -58,8 +58,8 @@ function Shell({ children }: { children: React.ReactNode }) {
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
-        background: "var(--paper, #f6f2ea)",
-        color: "var(--ink, #1f1b16)",
+        background: "var(--paper)",
+        color: "var(--ink)",
         isolation: "isolate",
         ...PUBLIC_INK_THEME,
       }}
@@ -90,7 +90,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         >
           <SupaprodWordmark tier="public" />
         </Link>
-        <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)" }}>
+        <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint)" }}>
           the track record
         </span>
       </header>
@@ -107,7 +107,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           alignItems: "center",
           justifyContent: "space-between",
           fontSize: 11,
-          color: "var(--ink-subtle, #6b6457)",
+          color: "var(--ink-subtle)",
         }}
       >
         <span className="mono-label" style={{ fontSize: 9 }}>
@@ -139,7 +139,7 @@ function CalibrationHero({
     <div className="bento rise-2" style={{ padding: "26px 24px", marginBottom: 22 }}>
       <div
         className="mono-label"
-        style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)", marginBottom: 10 }}
+        style={{ fontSize: 9, color: "var(--ink-faint)", marginBottom: 10 }}
       >
         Calibration · updated live
       </div>
@@ -155,7 +155,7 @@ function CalibrationHero({
             style={{
               fontSize: 13.5,
               lineHeight: 1.6,
-              color: "var(--ink-muted, #4a4438)",
+              color: "var(--ink-muted)",
               margin: 0,
             }}
           >
@@ -175,7 +175,7 @@ function CalibrationHero({
             style={{
               fontSize: 13.5,
               lineHeight: 1.6,
-              color: "var(--ink-muted, #4a4438)",
+              color: "var(--ink-muted)",
               margin: 0,
             }}
           >
@@ -191,7 +191,7 @@ function CalibrationHero({
           paddingTop: 14,
           borderTop: "1px solid var(--mrd-edge)",
           fontSize: 10,
-          color: "var(--ink-subtle, #6b6457)",
+          color: "var(--ink-subtle)",
         }}
       >
         {supersessions} decision{supersessions === 1 ? "" : "s"} caught and corrected by a later
@@ -237,7 +237,7 @@ function ProofPage() {
       {decisions.length === 0 ? (
         <div className="bento" style={{ padding: 24, textAlign: "center" }}>
           <p
-            style={{ fontSize: 13, color: "var(--ink-muted, #4a4438)", margin: 0, lineHeight: 1.6 }}
+            style={{ fontSize: 13, color: "var(--ink-muted)", margin: 0, lineHeight: 1.6 }}
           >
             No public decisions yet. Every one of these is a real call from Supaprod's own build,
             shared by its owner, receipt and all, never seeded or staged. That is why this section
@@ -269,7 +269,7 @@ function ProofPage() {
               </div>
               <div
                 className="mono-label"
-                style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)" }}
+                style={{ fontSize: 9, color: "var(--ink-faint)" }}
               >
                 {agentDisplayName(d.decided_by_agent_slug)} ·{" "}
                 {new Date(d.created_at).toLocaleDateString(undefined, {
