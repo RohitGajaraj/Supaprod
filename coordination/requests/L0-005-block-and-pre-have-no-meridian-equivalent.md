@@ -99,3 +99,22 @@ symbols still consumed on my paths, with their contracts:
 
 Everything else the original census listed has migrated across units
 L0-008..L0-014.
+
+## ADDENDUM 3 (2026-08-24T03:00+05:30): sub-nano sizes need a ruling, and one recorded set-rationale was honoured over a sweep rule
+
+Two unrelated closes on the size front:
+
+1. **Below-ladder captions.** 9px appears at twelve sites (chat meta,
+   product FlowDiagram/LaunchPlanPanel/OutcomeContractPanel chips) plus
+   9.5px x2 and 8px x1, all below nano(10). No Meridian stop exists under
+   nano. Ruling needed: does Meridian want a sub-nano stop, or do these
+   adopt nano(10) - which makes every one of them visibly larger?
+
+2. **prds/RewindButton.tsx** carries an in-code record that its dialog's
+   stops are deliberate as a SET (19px title / 1.32 / 600 tracking over
+   13.5px body / 1.55): "rounding 19 to 20... would make the dialog worse."
+   A sweep agent snapped the title to text-mrd-h3 anyway; REVERTED in
+   favour of the local record. Note the comment's premise is stale - it
+   claims Meridian bridges no type scale, which stopped being true when
+   h3 landed - so MAIN LANE may want to re-judge the whole dialog as a
+   set rather than leave the retired literals standing.

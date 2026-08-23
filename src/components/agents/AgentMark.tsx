@@ -6,10 +6,9 @@
  * from the same hue. That is four decorations on a 22px square, and it is the
  * reason an agent looked like one thing on Today and another thing on Crew.
  *
- * It draws nothing now. It is an ADAPTER over `shell/primitives`, which owns the
- * one mark in the system, so the four surfaces that still import from here
- * (Today's receipts strip and judgment lane, the Engine Room scorecard, the
- * presence chip) inherit the ported mark without being edited by this lane.
+ * It draws nothing now. It re-exports Meridian's mark (`meridian/marks` owns
+ * the one mark in the system), so the surfaces that still import from here
+ * inherit the ported mark without being edited by this lane.
  *
  * What the primitive changed, and why each one is a fix rather than a loss:
  *   · The hue is the agent's STAGE, not the agent, so a colour means something
@@ -86,7 +85,7 @@ export function AgentBadge({
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: "var(--sp-space-2)",
+        gap: "var(--mrd-s3)",
         minWidth: 0,
       }}
     >

@@ -119,7 +119,7 @@ export function RewindButton({ prdId, hasSnapshot, onCommit, onReverted }: Rewin
             port tidier would make the dialog worse. */}
         <AlertDialog.Content className="fixed top-1/2 left-1/2 z-50 w-[440px] max-w-[92vw] -translate-x-1/2 -translate-y-1/2 rounded-mrd-pane border border-mrd-line bg-mrd-float p-mrd-6 shadow-mrd-pane outline-none">
           <AlertDialog.Title
-            className="m-0 text-mrd-h3 leading-[1.32] font-[600] text-mrd-ink"
+            className="m-0 text-[19px] leading-[1.32] font-[600] text-mrd-ink"
             style={{ letterSpacing: "-0.019em" }}
           >
             Take the crew's edit back?
