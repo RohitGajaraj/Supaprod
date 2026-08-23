@@ -391,8 +391,38 @@ export function Region({
  * form controls only, so a link wearing this shape would otherwise lose its
  * press. A disabled button never matches `:active` in the first place.
  */
+/*
+ * THE MOBILE FLOOR, ADDED 2026-08-23, AND THE REASON IT WAS MISSING.
+ *
+ * `h-8` is 32px and it is a FIXED height, so until now every tiered control in
+ * this system was a 32px tap target on a phone. Meridian argues the opposite
+ * case against itself 1300 lines below, where the decision bar's height moved to
+ * 44px: "a row carrying a decision earns the height, and 44px is the smallest
+ * square a finger reliably hits". Rows got that floor. The controls you actually
+ * press did not.
+ *
+ * IT WAS FOUND BY A PORT GOING THE WRONG WAY. The retired Obsidian layer's
+ * `.loom-press` carries `min-height: 44px; min-width: 44px` under 768px, which is
+ * the WCAG 2.1 AAA target size. `data-obsidian` is still mounted on <html> for
+ * the whole authenticated tree (`_authenticated.tsx`), so that rule is LIVE. A
+ * native `<button className="loom-press">` was therefore 44px on a phone, and
+ * moving it onto `<Action>` took it to 32px. Both lanes are porting controls onto
+ * these tiers right now on MAIN LANE's own instruction (M07/M10), so every such
+ * port was quietly shrinking a tap target. Measured on LANE 0's unit L0-002:
+ * nine controls moved that way in one file.
+ *
+ * `max-md:` and not a `@media` block because the floor belongs to the shape, and
+ * a caller composing CONTROL_SHAPE should not have to remember a second rule.
+ * `min-height` beats `height` in the cascade, so `h-8` stays the desktop figure
+ * and nothing about the desktop control moves.
+ *
+ * The press transform below is deliberate duplication with `.loom-press` and not
+ * an oversight: `active:scale-[0.98]` is the same 0.98, so a control that stops
+ * being a loom-press keeps its press. The touch floor was the only thing the
+ * retired class was still giving that Meridian was not.
+ */
 export const CONTROL_SHAPE =
-  "inline-flex h-8 items-center gap-2 rounded-mrd-ctl px-3 text-[12.5px] font-medium whitespace-nowrap transition-[background-color,color,opacity,transform] active:scale-[0.98]";
+  "inline-flex h-8 max-md:min-h-11 max-md:min-w-11 items-center gap-2 rounded-mrd-ctl px-3 text-[12.5px] font-medium whitespace-nowrap transition-[background-color,color,opacity,transform] active:scale-[0.98]";
 
 const CONTROL_DEAD = "disabled:cursor-default disabled:opacity-45";
 
