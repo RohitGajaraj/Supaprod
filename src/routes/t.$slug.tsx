@@ -79,6 +79,7 @@ export const Route = createFileRoute("/t/$slug")({
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div
+      data-mrd-pinned-dark
       style={{
         minHeight: "100vh",
         display: "flex",
@@ -118,7 +119,7 @@ function Shell({ children }: { children: React.ReactNode }) {
             Supaprod
           </span>
         </Link>
-        <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint)" }}>
+        <span className="mrd-eyebrow whitespace-nowrap" style={{ color: "var(--ink-faint)" }}>
           shared teardown
         </span>
       </header>
@@ -138,9 +139,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           color: "var(--ink-subtle)",
         }}
       >
-        <span className="mono-label" style={{ fontSize: 9 }}>
-          Made with Supaprod
-        </span>
+        <span className="mrd-eyebrow whitespace-nowrap">Made with Supaprod</span>
         <Link to="/" className="btn btn-ghost btn-sm">
           Tear down your own idea →
         </Link>
@@ -153,7 +152,7 @@ function Section({ title, items, empty }: { title: string; items: string[]; empt
   return (
     <div style={{ marginTop: 18 }}>
       <div
-        className="mono-label text-mrd-nano"
+        className="mrd-eyebrow whitespace-nowrap text-mrd-nano"
         style={{
           textTransform: "uppercase",
           letterSpacing: "0.16em",
@@ -208,8 +207,8 @@ function PublicTeardownPage() {
   return (
     <Shell>
       <div
-        className="mono-label"
-        style={{ fontSize: 9, color: "var(--ink-faint)", marginBottom: 10 }}
+        className="mrd-eyebrow whitespace-nowrap"
+        style={{ color: "var(--ink-faint)", marginBottom: 10 }}
       >
         Critic teardown · {date}
       </div>
@@ -229,15 +228,15 @@ function PublicTeardownPage() {
         <VerdictChip tone={v.tone} style={{ fontSize: 11 }}>
           {v.label}
         </VerdictChip>
-        <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint)" }}>
+        <span className="mrd-eyebrow whitespace-nowrap" style={{ color: "var(--ink-faint)" }}>
           confidence {(teardown.confidence * 100).toFixed(0)}%
         </span>
       </div>
 
       <div className="bento" style={{ padding: "var(--card-pad, 18px)" }}>
         <div
-          className="mono-label"
-          style={{ fontSize: 9, color: "var(--ink-faint)", marginBottom: 8 }}
+          className="mrd-eyebrow whitespace-nowrap"
+          style={{ color: "var(--ink-faint)", marginBottom: 8 }}
         >
           The verdict
         </div>

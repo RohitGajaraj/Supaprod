@@ -657,7 +657,7 @@ function SignupPage() {
           had not scrolled to yet. A gate has to be visible before the thing it
           gates. */}
       <div style={{ marginBottom: 16 }}>
-        <label htmlFor="signup-invite" className="mono-label" style={fieldLabelStyle}>
+        <label htmlFor="signup-invite" className="mrd-eyebrow whitespace-nowrap" style={fieldLabelStyle}>
           Invite code
         </label>
         <input
@@ -734,13 +734,13 @@ function SignupPage() {
       </Action>
       <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "16px 0" }}>
         <span style={{ flex: 1, height: 1, background: "var(--mrd-edge)" }}></span>
-        <span className="mono-label" style={{ fontSize: 8.5 }}>
+        <span className="mrd-eyebrow whitespace-nowrap">
           or
         </span>
         <span style={{ flex: 1, height: 1, background: "var(--mrd-edge)" }}></span>
       </div>
       <form onSubmit={signup}>
-        <label htmlFor="signup-email" className="mono-label" style={fieldLabelStyle}>
+        <label htmlFor="signup-email" className="mrd-eyebrow whitespace-nowrap" style={fieldLabelStyle}>
           Work email
         </label>
         <input
@@ -759,7 +759,7 @@ function SignupPage() {
           aria-describedby={formError ? "signup-error" : undefined}
           style={{ marginBottom: 10, width: "100%" }}
         />
-        <label htmlFor="signup-password" className="mono-label" style={fieldLabelStyle}>
+        <label htmlFor="signup-password" className="mrd-eyebrow whitespace-nowrap" style={fieldLabelStyle}>
           Password
         </label>
         <div style={{ position: "relative", marginBottom: formError ? 8 : 10 }}>

@@ -148,15 +148,11 @@ function AdminRouting() {
   const [draft, setDraft] = useState("");
   // Which surface's pin is in flight, so only the row the user pressed
   // announces itself as working while the whole board stays locked.
-  const [pinningSurface, setPinningSurface] = useState<string | null>(null);
-  function pinRow(surface: string, modelId: string | null) {
-    // The read types surface loosely, but every row originates from
-    // ROUTING_SURFACES; narrow here so the mutation sees the union.
-    if (!ROUTING_SURFACES.includes(surface as RoutingSurface)) return;
-    const known = surface as RoutingSurface;
-    setPinningSurface(known);
+  const [pinningSurface, setPinningSurface] = useState<RoutingSurface | null>(null);
+  function pinRow(surface: RoutingSurface, modelId: string | null) {
+    setPinningSurface(surface);
     pin.mutate(
-      { surface: known, modelId },
+      { surface, modelId },
       { onSettled: () => setPinningSurface(null) },
     );
   }

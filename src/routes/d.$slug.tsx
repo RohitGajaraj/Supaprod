@@ -50,10 +50,9 @@ export const Route = createFileRoute("/d/$slug")({
 // shown as evidence. Every one renders its own word beside the dot, so the meaning
 // survives greyscale and never rests on hue.
 //
-// Known residue, recorded in requests/007: these three mrd status hues flip
-// light-tuned under data-theme="light" while this page pins dark, so a light
-// user sees muted status colour. Every NEUTRAL on the page reads
-// spread-pinned ink-family vars so nothing else flips with them.
+// Resolved: this page stamps data-mrd-pinned-dark, which pins --mrd-pass,
+// --mrd-fail and --mrd-hold dark per answers/M14 production notes and guarded by
+// pinned-dark-matches-root.test.ts.
 const STATUS: Record<string, { label: string; color: string }> = {
   approved: { label: "Approved", color: "var(--mrd-pass)" },
   rejected: { label: "Rejected", color: "var(--mrd-fail)" },
@@ -63,6 +62,7 @@ const STATUS: Record<string, { label: string; color: string }> = {
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div
+      data-mrd-pinned-dark
       style={{
         minHeight: "100vh",
         display: "flex",
@@ -107,7 +107,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           <SupaprodMark />
           <span className="font-display text-mrd-prose">Supaprod</span>
         </Link>
-        <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint)" }}>
+        <span className="mrd-eyebrow whitespace-nowrap" style={{ color: "var(--ink-faint)" }}>
           shared decision
         </span>
       </header>
@@ -127,9 +127,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           color: "var(--ink-subtle)",
         }}
       >
-        <span className="mono-label" style={{ fontSize: 9 }}>
-          Made with Supaprod
-        </span>
+        <span className="mrd-eyebrow whitespace-nowrap">Made with Supaprod</span>
         <Link to="/" className="btn btn-ghost btn-sm">
           Make your own calls →
         </Link>
@@ -172,8 +170,8 @@ function PublicDecisionPage() {
   return (
     <Shell>
       <div
-        className="mono-label"
-        style={{ fontSize: 9, color: "var(--ink-faint)", marginBottom: 10 }}
+        className="mrd-eyebrow whitespace-nowrap"
+        style={{ color: "var(--ink-faint)", marginBottom: 10 }}
       >
         Decision · {who} · {date}
       </div>
@@ -190,7 +188,7 @@ function PublicDecisionPage() {
         }}
       >
         <span
-          className="mono-label text-mrd-nano"
+          className="mrd-eyebrow whitespace-nowrap text-mrd-nano"
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -211,7 +209,7 @@ function PublicDecisionPage() {
         </span>
         {/* TRUST-SHARE: the honest provenance outcome — does this call still stand? */}
         <span
-          className="mono-label text-mrd-nano"
+          className="mrd-eyebrow whitespace-nowrap text-mrd-nano"
           title={
             decision.outcome === "superseded"
               ? "A later decision superseded this one, shown for honest history."
@@ -232,8 +230,8 @@ function PublicDecisionPage() {
       </div>
       <div className="bento" style={{ padding: "var(--card-pad, 18px)" }}>
         <div
-          className="mono-label"
-          style={{ fontSize: 9, color: "var(--ink-faint)", marginBottom: 8 }}
+          className="mrd-eyebrow whitespace-nowrap"
+          style={{ color: "var(--ink-faint)", marginBottom: 8 }}
         >
           Why
         </div>

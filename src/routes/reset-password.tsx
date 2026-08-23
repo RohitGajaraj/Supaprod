@@ -150,7 +150,7 @@ function ResetPasswordPage() {
         </div>
       ) : (
         <form onSubmit={updatePassword}>
-          <label htmlFor="reset-password-new" className="mono-label" style={fieldLabelStyle}>
+          <label htmlFor="reset-password-new" className="mrd-eyebrow whitespace-nowrap" style={fieldLabelStyle}>
             New password
           </label>
           <div style={{ position: "relative", marginBottom: 10 }}>
@@ -189,7 +189,7 @@ function ResetPasswordPage() {
               {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
             </button>
           </div>
-          <label htmlFor="reset-password-confirm" className="mono-label" style={fieldLabelStyle}>
+          <label htmlFor="reset-password-confirm" className="mrd-eyebrow whitespace-nowrap" style={fieldLabelStyle}>
             Retype new password
           </label>
           <input

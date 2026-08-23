@@ -91,7 +91,7 @@ function ForgotPasswordPage() {
         </div>
       ) : (
         <form onSubmit={sendResetLink}>
-          <label htmlFor="forgot-email" className="mono-label" style={fieldLabelStyle}>
+          <label htmlFor="forgot-email" className="mrd-eyebrow whitespace-nowrap" style={fieldLabelStyle}>
             Work email
           </label>
           <input

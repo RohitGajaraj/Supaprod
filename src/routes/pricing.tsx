@@ -376,9 +376,8 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
         </span>
         {isBusiness && (
           <span
-            className="mono-label"
+            className="mrd-eyebrow"
             style={{
-              fontSize: 8.5,
               color: "var(--mrd-ink)",
               border: "1px solid var(--mrd-edge)",
               borderRadius: 99,
@@ -866,9 +865,7 @@ function PricingPage() {
             color: "var(--mrd-mute)",
           }}
         >
-          <span className="mono-label" style={{ fontSize: 9 }}>
-            Made with Supaprod
-          </span>
+          <span className="mrd-eyebrow">Made with Supaprod</span>
           <a
             href="/#join"
             className="text-mrd-tiny"

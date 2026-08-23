@@ -54,6 +54,7 @@ export const Route = createFileRoute("/proof")({
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div
+      data-mrd-pinned-dark
       style={{
         minHeight: "100vh",
         display: "flex",
@@ -90,7 +91,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         >
           <SupaprodWordmark tier="public" />
         </Link>
-        <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint)" }}>
+        <span className="mrd-eyebrow whitespace-nowrap" style={{ color: "var(--ink-faint)" }}>
           the track record
         </span>
       </header>
@@ -110,9 +111,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           color: "var(--ink-subtle)",
         }}
       >
-        <span className="mono-label" style={{ fontSize: 9 }}>
-          Made with Supaprod
-        </span>
+        <span className="mrd-eyebrow whitespace-nowrap">Made with Supaprod</span>
         <Link to="/" className="btn btn-ghost btn-sm">
           Make your own calls →
         </Link>
@@ -138,8 +137,8 @@ function CalibrationHero({
   return (
     <div className="bento rise-2" style={{ padding: "26px 24px", marginBottom: 22 }}>
       <div
-        className="mono-label"
-        style={{ fontSize: 9, color: "var(--ink-faint)", marginBottom: 10 }}
+        className="mrd-eyebrow whitespace-nowrap"
+        style={{ color: "var(--ink-faint)", marginBottom: 10 }}
       >
         Calibration · updated live
       </div>
@@ -185,7 +184,7 @@ function CalibrationHero({
         </>
       )}
       <div
-        className="mono-label text-mrd-nano"
+        className="mrd-eyebrow whitespace-nowrap text-mrd-nano"
         style={{
           marginTop: 16,
           paddingTop: 14,
@@ -222,9 +221,8 @@ function ProofPage() {
        * and fails even the 3:1 large-text floor, let alone the 4.5:1 this 9px
        * text needs. --text-subtle is 4.51:1 and was already defined. */}
       <h2
-        className="mono-label"
+        className="mrd-eyebrow whitespace-nowrap"
         style={{
-          fontSize: 9,
           color: "var(--mrd-mute)",
           margin: "0 0 12px",
           fontWeight: 500,
@@ -268,8 +266,8 @@ function ProofPage() {
                 {stripAutoPrefix(d.title)}
               </div>
               <div
-                className="mono-label"
-                style={{ fontSize: 9, color: "var(--ink-faint)" }}
+                className="mrd-eyebrow whitespace-nowrap"
+                style={{ color: "var(--ink-faint)" }}
               >
                 {agentDisplayName(d.decided_by_agent_slug)} ·{" "}
                 {new Date(d.created_at).toLocaleDateString(undefined, {

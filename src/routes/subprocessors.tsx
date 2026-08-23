@@ -57,7 +57,7 @@ function ProcessorRow({ s, first }: { s: SubProcessor; first: boolean }) {
         }}
       >
         <span style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>{s.name}</span>
-        <span className="mono-label text-mrd-nano" style={{ color: "var(--ink-faint)" }}>
+        <span className="mrd-eyebrow whitespace-nowrap text-mrd-nano" style={{ color: "var(--ink-faint)" }}>
           {CATEGORY_LABEL[s.category]}
         </span>
       </div>
@@ -105,6 +105,7 @@ function SubprocessorsPage() {
   return (
     <div
       className="min-h-screen"
+      data-mrd-pinned-dark
       style={{ ...PUBLIC_INK_THEME, background: "var(--paper)", color: "var(--ink)" }}
     >
       {/* This page has no ground mechanism of its own, so without the pinned ink
@@ -121,7 +122,7 @@ function SubprocessorsPage() {
         <a href="/" className="font-display text-sm" style={{ color: "var(--ink)" }}>
           Supaprod
         </a>
-        <span className="mono-label text-mrd-nano" style={{ color: "var(--ink-faint)" }}>
+        <span className="mrd-eyebrow whitespace-nowrap text-mrd-nano" style={{ color: "var(--ink-faint)" }}>
           Trust
         </span>
       </header>
