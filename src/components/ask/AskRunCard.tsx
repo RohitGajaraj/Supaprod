@@ -26,6 +26,7 @@ import {
   Num,
   Actions,
   ReadFailedLine,
+  RecordSpeaks,
 } from "@/components/meridian/surface-parts";
 import { LoadingState } from "@/components/meridian/LoadingState";
 import { useServerFn } from "@tanstack/react-start";
@@ -36,7 +37,6 @@ import { decideApproval } from "@/lib/agent_loop.functions";
 import { ACTION_LABEL } from "@/lib/agent-vocabulary";
 import type { LoopStep } from "@/lib/ai/loop.server";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Record } from "@/components/shell/primitives";
 import { Textarea } from "@/components/meridian/forms";
 
 const POLL_MS = 4000;
@@ -213,9 +213,9 @@ export function AskRunCard({ missionId, initials }: { missionId: string; initial
       {/* What it read before it acted. Real rows out of memory_recall_log, so
           the one lit surface in the product is carrying a fact, not a flourish. */}
       {data.memoryRecalls.slice(0, 2).map((m) => (
-        <Record key={m.id} evidence={m.kind}>
+        <RecordSpeaks key={m.id} evidence={m.kind}>
           {m.content}
-        </Record>
+        </RecordSpeaks>
       ))}
 
       {critic ? (

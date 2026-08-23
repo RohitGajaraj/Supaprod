@@ -50,7 +50,7 @@ export function receiptStatusTone(status: string): ReceiptTone {
  * variables from the retired palette. A receipt asks for a tone now and never
  * for a hue, so the stylesheet owns every mix and the detail view owns none.
  */
-export const RECEIPT_VALUE_TONE: Record<ReceiptTone, "quiet" | "pass" | "warn" | "fail"> = {
+export const RECEIPT_VALUE_TONE: Record<ReceiptTone, "quiet" | "pass" | "fail"> = {
   moss: "pass",
   madder: "fail",
   muted: "quiet",

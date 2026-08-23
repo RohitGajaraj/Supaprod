@@ -43,14 +43,17 @@
  */
 
 import * as React from "react";
-import { Num, ReadFailedLine } from "@/components/meridian/surface-parts";
+import {
+  Num,
+  ReadFailedLine,
+  RecordSpeaks,
+} from "@/components/meridian/surface-parts";
 import type { AskStreamMsg } from "@/lib/ask-stream-core";
 import type { ApprovalQueueItem } from "@/lib/approvals-queue.functions";
 import { recordCitationFor } from "@/lib/ask-record";
 import { gatesForAnswer, policyProposal } from "@/lib/ask-actions";
 import type { ResearchStatus } from "@/components/chat/ResearchActivity";
 import { modelLabel, spendLabel } from "@/lib/model-label";
-import { Record } from "@/components/shell/primitives";
 import { MoreItem, MoreMenu } from "@/components/meridian/MoreMenu";
 import { Answer } from "./Answer";
 import { AskGateCard } from "./AskGateCard";
@@ -405,7 +408,7 @@ export function AskTurn({
 
       {citation ? (
         <Register name="From the record">
-          <Record evidence={citation.evidence}>
+          <RecordSpeaks evidence={citation.evidence}>
             {citation.href ? (
               <a href={citation.href} style={{ color: "inherit" }}>
                 {citation.text}
@@ -413,7 +416,7 @@ export function AskTurn({
             ) : (
               citation.text
             )}
-          </Record>
+          </RecordSpeaks>
         </Register>
       ) : recordWasEmpty ? (
         <div

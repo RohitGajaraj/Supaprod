@@ -39,7 +39,7 @@ const STATUS_LABEL: Record<ChainLinkStatus, string> = {
 
 /** A real gap is a failure of the record. A skip and a not-yet are neither good
  *  nor bad, so they stay quiet: colour carries outcomes, never categories. */
-const STATUS_TONE: Record<ChainLinkStatus, "quiet" | "pass" | "warn" | "fail"> = {
+const STATUS_TONE: Record<ChainLinkStatus, "quiet" | "pass" | "fail"> = {
   present: "quiet",
   missing: "fail",
   skipped: "quiet",

@@ -295,7 +295,8 @@ import {
  * Both are reported rather than forced. Everything else on this surface is
  * Meridian.
  */
-import { Record, SelectionBar } from "@/components/shell/primitives";
+import { RecordSpeaks } from "@/components/brain/record-parts";
+import { BulkBar } from "@/components/meridian/surface-parts";
 import { AgentMark, type MarkState } from "@/components/meridian/marks";
 // Meridian design system: surface components replace retired shell/primitives
 import {
@@ -2751,14 +2752,14 @@ export function DiscoverSurface({
               a text-selection component. Reported instead. Its verb is a
               Meridian `Action` regardless, because a control that paints itself
               does not care what container it sits in. */}
-          <SelectionBar selection={picked} total={ranked.length} noun="cluster">
+          <BulkBar selection={picked} total={ranked.length} noun="cluster">
             <Action
               disabled={busy || declineMany.isPending}
               onClick={() => declineMany.mutate([...picked.ids])}
             >
               {declineMany.isPending ? "Declining them" : "Not patterns"}
             </Action>
-          </SelectionBar>
+          </BulkBar>
 
           {(showAllClusters ? ranked : ranked.slice(0, VISIBLE_CLUSTERS)).map((entry, i) => {
             /**
@@ -3091,7 +3092,7 @@ export function DiscoverSurface({
         loses a door and a light to gain a shorter import is not a port. */}
       {focused && !picking && seenBefore.length > 0
         ? seenBefore.slice(0, 2).map((p) => (
-            <Record
+            <RecordSpeaks
               key={p.id}
               evidence={
                 <>
@@ -3139,7 +3140,7 @@ export function DiscoverSurface({
               ) : (
                 p.summary
               )}
-            </Record>
+            </RecordSpeaks>
           ))
         : null}
 
@@ -3155,7 +3156,7 @@ export function DiscoverSurface({
         door too, onto the earlier cluster, and only when that cluster is still
         in the ranking. */}
       {focused && !picking && seenBefore.length === 0 && priorTheme ? (
-        <Record
+        <RecordSpeaks
           evidence={<>clustered separately</>}
           title={
             ranked.some((r) => r.theme.id === priorTheme.id)
@@ -3169,7 +3170,7 @@ export function DiscoverSurface({
           }
         >
           This closely repeats an earlier cluster, {priorTheme.title}.
-        </Record>
+        </RecordSpeaks>
       ) : null}
 
       {/* Capture is the way in when no connector covers what you just heard.

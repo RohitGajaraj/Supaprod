@@ -1,10 +1,10 @@
 import * as React from "react";
 import { Row } from "@/components/meridian/rows";
-import { Action, Approve, Door, Num } from "@/components/meridian/surface-parts";
+import { Action, Approve, BulkBar, Door, Num } from "@/components/meridian/surface-parts";
 
 import { canSendBack } from "@/components/approvals/SendBack";
 import { stripAutoPrefix } from "@/components/plan/format";
-import { SelectionBar } from "@/components/shell/primitives";
+
 import { Checkbox } from "@/components/meridian/forms";
 import { Gate } from "@/components/meridian/Gate";
 import { AgentMark } from "@/components/meridian/marks";
@@ -389,7 +389,7 @@ export function DecisionQueue({
         ) : null}
       </div>
 
-      <SelectionBar selection={selection} total={items.length} noun="decision">
+      <BulkBar selection={selection} total={items.length} noun="decision">
         {/* TIER: Approve. Bulk-releases every selected decision. */}
         <Approve busy={verbs.busy} onClick={bulk.approve}>
           Approve
@@ -402,7 +402,7 @@ export function DecisionQueue({
         <Action busy={verbs.busy} onClick={bulk.decline}>
           Decline
         </Action>
-      </SelectionBar>
+      </BulkBar>
 
       <div className="today-queue">
         {items.map((item, i) =>

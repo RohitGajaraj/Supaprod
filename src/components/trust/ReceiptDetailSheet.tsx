@@ -44,12 +44,12 @@
 
 import * as React from "react";
 import { Row, Line } from "@/components/meridian/rows";
-import { Action, Num, Actions, ReadFailedLine } from "@/components/meridian/surface-parts";
+import { Action, Num, Actions, ReadFailedLine, Value } from "@/components/meridian/surface-parts";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-import { Record as RecordSays, Value } from "@/components/shell/primitives";
+import { RecordSpeaks as RecordSays } from "@/components/brain/record-parts";
 import { Region } from "@/components/meridian/surface-parts";
 import { Prose } from "@/components/meridian/Prose";
 import { traceRef } from "@/components/discover/format";
