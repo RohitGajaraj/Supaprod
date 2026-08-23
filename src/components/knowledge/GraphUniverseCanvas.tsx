@@ -1092,9 +1092,9 @@ export function GraphUniverseCanvas({
         height: "clamp(420px, 58vh, 640px)",
         // The ONE bordered container in this region. The recess reads as a
         // window cut into the page rather than a card sitting on it.
-        background: "var(--sp-sink)",
-        border: "1px solid var(--sp-line)",
-        borderRadius: "var(--sp-radius-panel)",
+        background: "var(--mrd-sink)",
+        border: "1px solid var(--mrd-line)",
+        borderRadius: "var(--mrd-r-card)",
         overflow: "hidden",
       }}
     >
@@ -1117,9 +1117,9 @@ export function GraphUniverseCanvas({
             // genuinely float (anti-slop ban 2), and a label read against a
             // moving constellation is the one place it costs contrast rather
             // than buying depth.
-            background: "var(--sp-float)",
-            border: "1px solid var(--sp-line)",
-            borderRadius: "var(--sp-radius-panel)",
+            background: "var(--mrd-float)",
+            border: "1px solid var(--mrd-line)",
+            borderRadius: "var(--mrd-r-card)",
             boxShadow: "var(--sp-shadow)",
             padding: "10px 12px",
             zIndex: 5,
@@ -1136,7 +1136,7 @@ export function GraphUniverseCanvas({
                 flexShrink: 0,
               }}
             />
-            <span style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
+            <span style={{ fontSize: "var(--mrd-t-base)", color: "var(--mrd-mute)" }}>
               {kindLabel(hoverNode.kind)}
             </span>
             {/* How it turned out, where the record actually knows. Green and red
@@ -1145,7 +1145,7 @@ export function GraphUniverseCanvas({
             {outcomeLabel(hoverNode.outcome) ? (
               <span
                 className={hoverNode.outcome === "missed" ? "sp-fail" : "sp-pass"}
-                style={{ fontSize: "var(--sp-text-meta)" }}
+                style={{ fontSize: "var(--mrd-t-base)" }}
               >
                 {outcomeLabel(hoverNode.outcome)}
               </span>
@@ -1153,7 +1153,7 @@ export function GraphUniverseCanvas({
           </div>
           <div
             style={{
-              color: "var(--sp-ink)",
+              color: "var(--mrd-ink)",
               lineHeight: "var(--sp-leading-row)",
               marginBottom: 6,
               overflow: "hidden",
@@ -1164,7 +1164,7 @@ export function GraphUniverseCanvas({
           >
             {truncateTitle(hoverNode.title, 60) || "Untitled"}
           </div>
-          <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
+          <div style={{ fontSize: "var(--mrd-t-base)", color: "var(--mrd-mute)" }}>
             <Num>{hoverNode.influence}</Num> {hoverNode.influence === 1 ? "link" : "links"}
             {(() => {
               const deg = degreeByKey.get(hoverNode.key);
@@ -1175,7 +1175,7 @@ export function GraphUniverseCanvas({
               return ` · ${parts.join(", ")}`;
             })()}
           </div>
-          <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)", marginTop: 5 }}>
+          <div style={{ fontSize: "var(--mrd-t-base)", color: "var(--mrd-mute)", marginTop: 5 }}>
             Hover lights its connections, click to focus, double-click for the story
           </div>
         </div>

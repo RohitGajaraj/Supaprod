@@ -88,7 +88,7 @@ function FullRelay({ missionId }: { missionId: string }) {
     <Block title="The relay" sub="Who is working, and who picks it up next.">
       {groups.map((g) => (
         <div key={g.station}>
-          <div className="sp-block-sub" style={{ margin: "var(--sp-space-4) 0 0" }}>
+          <div className="sp-block-sub" style={{ margin: "var(--mrd-s5) 0 0" }}>
             {g.name}
           </div>
           {g.steps.map((s) => (
@@ -130,7 +130,7 @@ function MiniRelayLine({ workspaceId }: { workspaceId: string | null }) {
   const r = miniRelay(q.data);
 
   if (!r.active) {
-    return <div style={{ color: "var(--sp-mute)" }}>All quiet. Nothing needs you right now.</div>;
+    return <div style={{ color: "var(--mrd-mute)" }}>All quiet. Nothing needs you right now.</div>;
   }
 
   const body = (
@@ -145,7 +145,7 @@ function MiniRelayLine({ workspaceId }: { workspaceId: string | null }) {
       <MarkStack agents={r.agentSlugs.slice(0, 4).map((slug) => ({ slug }))} state="running" />
       <span
         style={{
-          color: "var(--sp-ink)",
+          color: "var(--mrd-ink)",
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
@@ -217,7 +217,7 @@ function StationRelayLine({
         }}
       >
         <span className="sp-row-who">{run.name}</span>
-        <span style={{ color: "var(--sp-mute)" }}>
+        <span style={{ color: "var(--mrd-mute)" }}>
           {" "}
           {run.isGate ? "is waiting on you" : `${run.verb}...`}
         </span>

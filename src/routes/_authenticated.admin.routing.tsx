@@ -215,7 +215,7 @@ function AdminRouting() {
               tight
               lead={
                 <>
-                  <span style={{ fontFamily: "var(--sp-font-mono)" }}>{row.surface}</span>
+                  <span style={{ fontFamily: "var(--mrd-mono)" }}>{row.surface}</span>
                   {" · "}
                   {settingText(row, liveModels)}
                 </>
@@ -247,7 +247,7 @@ function AdminRouting() {
               }
             />
             {isOpen ? (
-              <div style={{ paddingLeft: "var(--sp-space-6)" }}>
+              <div style={{ paddingLeft: "var(--mrd-s6)" }}>
                 <Line
                   label="Model for this surface"
                   sub={

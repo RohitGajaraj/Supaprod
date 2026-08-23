@@ -135,7 +135,7 @@ export function CriticBadge({ review, target, invalidateKey }: Props) {
       </button>
 
       {open ? (
-        <div style={{ marginTop: "var(--sp-space-4)" }}>
+        <div style={{ marginTop: "var(--mrd-s5)" }}>
           <CtxBody>{review.summary || "It recorded a verdict and wrote no summary."}</CtxBody>
 
           <Section title={labels.risks.title} items={review.risks} empty={labels.risks.empty} />

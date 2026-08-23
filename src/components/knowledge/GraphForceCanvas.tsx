@@ -865,9 +865,9 @@ export function GraphForceCanvas({
         // The ONE bordered container in this region. The recess reads as a
         // window cut into the page rather than a card sitting on it, which is
         // what a map wants.
-        background: "var(--sp-sink)",
-        border: "1px solid var(--sp-line)",
-        borderRadius: "var(--sp-radius-panel)",
+        background: "var(--mrd-sink)",
+        border: "1px solid var(--mrd-line)",
+        borderRadius: "var(--mrd-r-card)",
         overflow: "hidden",
       }}
     >
@@ -967,9 +967,9 @@ function GraphHoverCard({
         // moving constellation is the one place it costs contrast rather than
         // buying depth. This floats, so it takes the float surface and the
         // system shadow.
-        background: "var(--sp-float)",
-        border: "1px solid var(--sp-line)",
-        borderRadius: "var(--sp-radius-panel)",
+        background: "var(--mrd-float)",
+        border: "1px solid var(--mrd-line)",
+        borderRadius: "var(--mrd-r-card)",
         boxShadow: "var(--sp-shadow)",
         padding: "10px 12px",
         zIndex: 5,
@@ -986,20 +986,20 @@ function GraphHoverCard({
             flexShrink: 0,
           }}
         />
-        <span style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
+        <span style={{ fontSize: "var(--mrd-t-base)", color: "var(--mrd-mute)" }}>
           {kindLabel(node.kind)}
         </span>
         {/* The verdict, where the record has one. Green and red carry outcomes,
             and an outcome is the one thing on this canvas that IS one. */}
         {verdict ? (
           <span className={OUTCOME_TONE[node.outcome!] === "fail" ? "sp-fail" : "sp-pass"}>
-            <span style={{ fontSize: "var(--sp-text-meta)" }}>{verdict}</span>
+            <span style={{ fontSize: "var(--mrd-t-base)" }}>{verdict}</span>
           </span>
         ) : null}
       </div>
       <div
         style={{
-          color: "var(--sp-ink)",
+          color: "var(--mrd-ink)",
           lineHeight: "var(--sp-leading-row)",
           marginBottom: 6,
           overflow: "hidden",
@@ -1015,8 +1015,8 @@ function GraphHoverCard({
       {why ? (
         <div
           style={{
-            fontSize: "var(--sp-text-meta)",
-            color: "var(--sp-mute)",
+            fontSize: "var(--mrd-t-base)",
+            color: "var(--mrd-mute)",
             lineHeight: "var(--sp-leading-row)",
             marginBottom: 6,
           }}
@@ -1041,7 +1041,7 @@ function GraphHoverCard({
           ) : null}
         </div>
       ) : null}
-      <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
+      <div style={{ fontSize: "var(--mrd-t-base)", color: "var(--mrd-mute)" }}>
         <Num>{node.influence}</Num> {node.influence === 1 ? "link" : "links"}
         {cameFrom !== null && ledTo !== null ? (
           <>
@@ -1052,7 +1052,7 @@ function GraphHoverCard({
           </>
         ) : null}
       </div>
-      <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)", marginTop: 5 }}>
+      <div style={{ fontSize: "var(--mrd-t-base)", color: "var(--mrd-mute)", marginTop: 5 }}>
         Click to open it
       </div>
     </div>

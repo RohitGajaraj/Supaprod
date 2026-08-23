@@ -292,7 +292,7 @@ function DesignMemoryRowView({
         time={ageOf(row.created_at)}
       />
       {expanded ? (
-        <div style={{ padding: "0 0 var(--sp-space-4)" }}>
+        <div style={{ padding: "0 0 var(--mrd-s5)" }}>
           <Prose>
             <p>{row.content}</p>
             {row.rationale ? <p>Why: {row.rationale}</p> : null}

@@ -402,7 +402,7 @@
  * It costs nothing on screen: ink.css declares `--sp-gate: var(--mrd-you)`, so
  * this IS the orchid, read through one alias. */
 .sp-live-dot[data-state="gate"] {
-  background: var(--sp-gate);
+  background: var(--mrd-you);
 }
 .sp-live-lead {
   color: var(--mrd-ink);

@@ -99,9 +99,9 @@ export function AgentBadge({
       <span style={{ display: "inline-flex", flexDirection: "column", minWidth: 0 }}>
         <span
           style={{
-            fontWeight: "var(--sp-weight-medium)",
-            color: "var(--sp-ink)",
-            lineHeight: "var(--sp-leading-tight)",
+            fontWeight: "var(--mrd-w-medium)",
+            color: "var(--mrd-ink)",
+            lineHeight: "var(--mrd-lh-snug)",
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -112,9 +112,9 @@ export function AgentBadge({
         {v ? (
           <span
             style={{
-              fontSize: "var(--sp-text-meta)",
-              color: "var(--sp-mute)",
-              lineHeight: "var(--sp-leading-tight)",
+              fontSize: "var(--mrd-t-base)",
+              color: "var(--mrd-mute)",
+              lineHeight: "var(--mrd-lh-snug)",
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",

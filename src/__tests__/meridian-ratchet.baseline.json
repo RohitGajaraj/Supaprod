@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 3018,
-  "fileCount": 222,
+  "totalOccurrences": 2881,
+  "fileCount": 221,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "--text-": 16,
@@ -26,10 +26,10 @@
       "usage:components/ui": 4
     },
     "src/components/agents/AgentMark.tsx": {
-      "--sp-": 7
+      "--sp-": 1
     },
     "src/components/agents/AgentRelay.tsx": {
-      "--sp-": 7,
+      "--sp-": 3,
       "class:sp-": 2,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 1
@@ -49,34 +49,33 @@
       "usage:shell/primitives": 5
     },
     "src/components/ask/AskLanding.tsx": {
-      "--sp-": 15,
+      "--sp-": 3,
       "class:sp-": 1
     },
     "src/components/ask/AskPane.tsx": {
-      "--sp-": 44,
+      "--sp-": 22,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 8
     },
     "src/components/ask/AskRunCard.tsx": {
-      "--sp-": 2,
       "class:sp-": 4,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 8
     },
     "src/components/ask/AskSwitcher.tsx": {
-      "--sp-": 5,
+      "--sp-": 3,
       "class:sp-": 1,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 4
     },
     "src/components/ask/AskTurn.tsx": {
-      "--sp-": 11,
+      "--sp-": 4,
       "class:sp-": 2,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 4
     },
     "src/components/ask/AskWorkLine.tsx": {
-      "--sp-": 19
+      "--sp-": 7
     },
     "src/components/ask/SuggestionRail.tsx": {
       "--sp-": 1,
@@ -132,7 +131,7 @@
       "usage:shell/primitives": 11
     },
     "src/components/connections/provider-marks.tsx": {
-      "--sp-": 2,
+      "--sp-": 1,
       "raw-colour": 12
     },
     "src/components/connections/ProviderLogo.tsx": {
@@ -188,13 +187,12 @@
       "usage:shell/primitives": 2
     },
     "src/components/governance/ControlsPanel.tsx": {
-      "--sp-": 9,
+      "--sp-": 4,
       "class:sp-": 7,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 2
     },
     "src/components/governance/CriticBadge.tsx": {
-      "--sp-": 1,
       "class:sp-": 1,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 9
@@ -212,7 +210,6 @@
       "class:sp-": 1
     },
     "src/components/governance/GuardrailsPanel.tsx": {
-      "--sp-": 2,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 2
     },
@@ -221,7 +218,7 @@
       "usage:shell/primitives": 2
     },
     "src/components/governance/PromptsPanel.tsx": {
-      "--sp-": 2,
+      "--sp-": 1,
       "class:sp-": 2,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 3
@@ -235,12 +232,11 @@
       "usage:shell/primitives": 2
     },
     "src/components/knowledge/BriefPanel.tsx": {
-      "--sp-": 17,
+      "--sp-": 8,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 1
     },
     "src/components/knowledge/CompoundingPanel.tsx": {
-      "--sp-": 1,
       "class:sp-": 2
     },
     "src/components/knowledge/ContradictionAuditSection.tsx": {
@@ -265,7 +261,7 @@
       "class:sp-": 2
     },
     "src/components/knowledge/DesignMemoryPanel.tsx": {
-      "--sp-": 2,
+      "--sp-": 1,
       "class:sp-": 2,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 3
@@ -281,14 +277,14 @@
       "raw-colour": 17
     },
     "src/components/knowledge/GraphCanvasView.tsx": {
-      "--sp-": 13,
+      "--sp-": 5,
       "class:sp-": 6
     },
     "src/components/knowledge/GraphCompoundingStrip.tsx": {
       "--sp-": 1
     },
     "src/components/knowledge/GraphForceCanvas.tsx": {
-      "--sp-": 19,
+      "--sp-": 3,
       "--text-": 4,
       "--madder": 1,
       "class:sp-": 3,
@@ -312,7 +308,7 @@
       "class:sp-": 1
     },
     "src/components/knowledge/GraphUniverseCanvas.tsx": {
-      "--sp-": 17,
+      "--sp-": 3,
       "--text-": 1,
       "--madder": 1,
       "class:sp-": 2,
@@ -385,7 +381,7 @@
       "raw-colour": 9
     },
     "src/components/memory/MemoryList.tsx": {
-      "--sp-": 3,
+      "--sp-": 1,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 2
     },
@@ -430,7 +426,7 @@
       "usage:shell/primitives": 1
     },
     "src/components/observe/EvalScoreChips.tsx": {
-      "--sp-": 4,
+      "--sp-": 2,
       "class:sp-": 1,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 1
@@ -623,10 +619,6 @@
       "--madder": 3,
       "raw-colour": 2
     },
-    "src/components/supaprod/BrandWait.tsx": {
-      "--sp-": 1,
-      "raw-colour": 1
-    },
     "src/components/supaprod/BriefDeck.tsx": {
       "raw-colour": 15
     },
@@ -754,7 +746,6 @@
       "usage:shell/primitives": 6
     },
     "src/routes/_authenticated.admin.routing.tsx": {
-      "--sp-": 2,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 7
     },
@@ -911,7 +902,7 @@
       "--sp-": 1
     },
     "src/styles/ink.css": {
-      "--sp-": 89,
+      "--sp-": 87,
       "raw-colour": 83
     },
     "src/styles/meridian.css": {
@@ -924,7 +915,7 @@
       "class:sp-": 8
     },
     "src/styles/shell.css": {
-      "--sp-": 24,
+      "--sp-": 23,
       "--hairline": 1,
       "class:sp-": 10
     }

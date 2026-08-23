@@ -585,11 +585,11 @@ function AskPaneOpen() {
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        background: "var(--sp-float)",
-        borderRadius: "var(--sp-radius-pane)",
+        background: "var(--mrd-float)",
+        borderRadius: "var(--mrd-r-pane)",
         boxShadow: "var(--sp-shadow)",
         transform: shown ? "none" : "translateX(calc(100% + 30px))",
-        transition: "transform var(--sp-dur-slow, 300ms) var(--sp-ease)",
+        transition: "transform var(--sp-dur-slow, 300ms) var(--mrd-ease)",
       }}
     >
       <header
@@ -600,7 +600,7 @@ function AskPaneOpen() {
           alignItems: "center",
           justifyContent: "space-between",
           gap: "var(--sp-space-2)",
-          padding: "0 var(--sp-space-4)",
+          padding: "0 var(--mrd-s5)",
           // Longhand: a shorthand carrying a custom property is parsed
           // inconsistently outside a real browser, and this rule is load bearing.
           borderBottomWidth: 1,
@@ -612,14 +612,14 @@ function AskPaneOpen() {
           style={{ display: "flex", alignItems: "center", gap: "var(--sp-space-2)", minWidth: 0 }}
         >
           <AgentMark slug={ANSWERED_BY} state={stream.streaming ? "running" : "quiet"} />
-          <span style={{ fontSize: "var(--sp-text-body)", fontWeight: 600 }}>Ask</span>
+          <span style={{ fontSize: "var(--mrd-t-prose)", fontWeight: 600 }}>Ask</span>
           {/* THE SCOPE CHIP. It names the thing you are looking at, and it
               changes with the surface, or it is decoration. */}
           <span
             title="What this conversation is scoped to"
             style={{
-              fontSize: "var(--sp-text-label)",
-              color: "var(--sp-mute)",
+              fontSize: "var(--mrd-t-label)",
+              color: "var(--mrd-mute)",
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -675,7 +675,7 @@ function AskPaneOpen() {
         </div>
       ) : null}
 
-      <div ref={bodyRef} style={{ flex: 1, overflowY: "auto", padding: "var(--sp-space-4)" }}>
+      <div ref={bodyRef} style={{ flex: 1, overflowY: "auto", padding: "var(--mrd-s5)" }}>
         {browsing ? (
           <AskSwitcher
             answeredBy={ANSWERED_BY}
@@ -782,7 +782,7 @@ function AskPaneOpen() {
       <footer
         style={{
           flex: "none",
-          padding: "var(--sp-space-3) var(--sp-space-4) var(--sp-space-4)",
+          padding: "var(--sp-space-3) var(--mrd-s5) var(--mrd-s5)",
           borderTopWidth: 1,
           borderTopStyle: "solid",
           borderTopColor: "var(--sp-line-soft)",
@@ -860,8 +860,8 @@ function AskPaneOpen() {
           <div
             style={{
               marginTop: "var(--sp-space-2)",
-              fontSize: "var(--sp-text-meta)",
-              color: "var(--sp-mute)",
+              fontSize: "var(--mrd-t-base)",
+              color: "var(--mrd-mute)",
               overflowWrap: "anywhere",
             }}
           >
@@ -878,7 +878,7 @@ function AskPaneOpen() {
             marginTop: "var(--sp-space-2)",
           }}
         >
-          <span style={{ fontSize: "var(--sp-text-data)", color: "var(--sp-mute)", minWidth: 0 }}>
+          <span style={{ fontSize: "var(--mrd-t-small)", color: "var(--mrd-mute)", minWidth: 0 }}>
             {stream.streaming
               ? // THE PANE'S OWN IN-FLIGHT LINE, and an agent is genuinely behind
                 // it: `sendIntent` posts to /api/chat, which classifies through
@@ -1062,7 +1062,7 @@ function Opening({
       <div
         style={{
           fontSize: "var(--sp-text-prose)",
-          color: "var(--sp-body)",
+          color: "var(--mrd-body)",
           lineHeight: "var(--sp-leading-body)",
         }}
       >
@@ -1073,7 +1073,7 @@ function Opening({
             OUTCOME, a run you watch here, rather than the dispatch that causes
             it, and the footer still says what it costs at the moment you
             commit. */}
-        Ask about <b style={{ color: "var(--sp-ink)" }}>{scopeLabel}</b>. The crew answers from this
+        Ask about <b style={{ color: "var(--mrd-ink)" }}>{scopeLabel}</b>. The crew answers from this
         workspace's own record, and cites what it read. Or hand the work over rather than ask about
         it, and it becomes a run you watch from here.
       </div>
@@ -1092,13 +1092,13 @@ function Opening({
       {failed ? (
         // Never silently. A generic suggestion here would be indistinguishable
         // from a grounded one, so the honest move is to say the read broke.
-        <div style={{ marginTop: "var(--sp-space-4)" }}>
+        <div style={{ marginTop: "var(--mrd-s5)" }}>
           <Failed onRetry={onRetry}>
             We could not read what is running, so the suggestions below are general ones.
           </Failed>
         </div>
       ) : loading ? (
-        <div style={{ marginTop: "var(--sp-space-4)" }}>
+        <div style={{ marginTop: "var(--mrd-s5)" }}>
           <Loading>Reading what is running.</Loading>
         </div>
       ) : null}
@@ -1119,8 +1119,8 @@ function Opening({
         <div
           style={{
             marginTop: "var(--sp-space-3)",
-            fontSize: "var(--sp-text-data)",
-            color: "var(--sp-mute)",
+            fontSize: "var(--mrd-t-small)",
+            color: "var(--mrd-mute)",
           }}
         >
           Nothing has run in this workspace yet.
@@ -1134,8 +1134,8 @@ function Opening({
       <div
         style={{
           marginTop: "var(--sp-space-5)",
-          fontSize: "var(--sp-text-data)",
-          color: "var(--sp-mute)",
+          fontSize: "var(--mrd-t-small)",
+          color: "var(--mrd-mute)",
         }}
       >
         Every conversation here is kept. Conversations, above, reopens one or starts a new one.

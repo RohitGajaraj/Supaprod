@@ -355,7 +355,7 @@ const BRAND: Partial<Record<ProviderId, string>> = {
  *  palette to keep in step. */
 function inkedBrand(provider: ProviderId): string | undefined {
   const hue = BRAND[provider];
-  return hue ? `color-mix(in oklab, ${hue} 76%, var(--sp-ink))` : undefined;
+  return hue ? `color-mix(in oklab, ${hue} 76%, var(--mrd-ink))` : undefined;
 }
 
 /* ------------------------------------------------------------------ *

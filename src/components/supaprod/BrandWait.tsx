@@ -88,7 +88,7 @@ export function BrandWait({
               // The app's own ground, not a scrim: a translucent grey wash over a
               // half-drawn page reads as a failure. At near-full opacity this reads
               // as the product composing itself, which is what is happening.
-              background: "var(--sp-bg, var(--bg, #0a0a0a))",
+              background: "var(--mrd-bg, var(--bg, #0a0a0a))",
               // Above the shell, below any dialog. The router's threshold keeps
               // this off screen for the first full second of any navigation, so
               // by the time it mounts there is a real wait to explain rather

@@ -88,10 +88,10 @@ function Register({ name, children }: { name: string; children: React.ReactNode 
     <div style={{ marginBottom: "var(--sp-space-5)" }}>
       <div
         style={{
-          fontSize: "var(--sp-text-label)",
-          color: "var(--sp-mute)",
+          fontSize: "var(--mrd-t-label)",
+          color: "var(--mrd-mute)",
           fontWeight: 500,
-          marginBottom: "var(--sp-space-1)",
+          marginBottom: "var(--mrd-s2)",
         }}
       >
         {name}
@@ -116,7 +116,7 @@ function Said({ children }: { children: React.ReactNode }) {
     <div
       style={{
         fontSize: "var(--sp-text-prose)",
-        color: "var(--sp-ink)",
+        color: "var(--mrd-ink)",
         lineHeight: "var(--sp-leading-body)",
         whiteSpace: "pre-wrap",
         // A pasted path or a code fragment breaks inside the column rather than
@@ -303,7 +303,7 @@ export function AskTurn({
   const policy = policyProposal(gates);
 
   return (
-    <article style={{ marginBottom: "var(--sp-space-6)" }}>
+    <article style={{ marginBottom: "var(--mrd-s6)" }}>
       {turn.question ? (
         <Register name="You">
           <Said>{turn.question.content}</Said>
@@ -418,8 +418,8 @@ export function AskTurn({
         <div
           style={{
             marginBottom: "var(--sp-space-5)",
-            fontSize: "var(--sp-text-meta)",
-            color: "var(--sp-mute)",
+            fontSize: "var(--mrd-t-base)",
+            color: "var(--mrd-mute)",
           }}
         >
           The record has nothing on this yet. That answer stands on the model alone.

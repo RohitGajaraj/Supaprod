@@ -216,7 +216,7 @@ export function AskRunCard({ missionId, initials }: { missionId: string; initial
       ) : null}
 
       {pending.map((a) => (
-        <div key={a.id} style={{ marginTop: "var(--sp-space-4)" }}>
+        <div key={a.id} style={{ marginTop: "var(--mrd-s5)" }}>
           <div className="sp-ctx-name">
             It is waiting on you to allow {ACTION_LABEL[a.tool_name] ?? "this action"}.
           </div>
@@ -231,7 +231,7 @@ export function AskRunCard({ missionId, initials }: { missionId: string; initial
       ))}
 
       {running ? (
-        <div style={{ marginTop: "var(--sp-space-4)" }}>
+        <div style={{ marginTop: "var(--mrd-s5)" }}>
           <Textarea
             rows={2}
             value={steerDraft}

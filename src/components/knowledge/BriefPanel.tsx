@@ -90,9 +90,9 @@ function Standing({ item }: { item: BriefItem }) {
     <>
       <p
         style={{
-          fontSize: "var(--sp-text-body)",
-          fontWeight: "var(--sp-weight-strong)",
-          color: "var(--sp-ink)",
+          fontSize: "var(--mrd-t-prose)",
+          fontWeight: "var(--mrd-w-semi)",
+          color: "var(--mrd-ink)",
         }}
       >
         {item.title}
@@ -100,9 +100,9 @@ function Standing({ item }: { item: BriefItem }) {
       <p
         style={{
           fontSize: "var(--sp-text-prose)",
-          color: "var(--sp-body)",
+          color: "var(--mrd-body)",
           lineHeight: "var(--sp-leading-body)",
-          marginTop: "var(--sp-space-1)",
+          marginTop: "var(--mrd-s2)",
         }}
       >
         {item.body}
@@ -110,8 +110,8 @@ function Standing({ item }: { item: BriefItem }) {
       {/* The provenance the record actually holds. Never an author it does not. */}
       <p
         style={{
-          fontSize: "var(--sp-text-label)",
-          color: "var(--sp-mute)",
+          fontSize: "var(--mrd-t-label)",
+          color: "var(--mrd-mute)",
           marginTop: "var(--sp-space-2)",
         }}
       >
@@ -318,7 +318,7 @@ export function BriefPanel() {
 
       {/* Different information from the four heads below, not a restatement:
           every call is versioned, and the table keeps no author. */}
-      <p style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)", maxWidth: "62ch" }}>
+      <p style={{ fontSize: "var(--mrd-t-base)", color: "var(--mrd-mute)", maxWidth: "62ch" }}>
         The crew reads these before it acts. Each call keeps its version history; who wrote it is
         not on the record.
       </p>

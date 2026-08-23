@@ -45,8 +45,8 @@ import { AgentMark, YouMark } from "@/components/meridian/marks";
 const RECENT = 8;
 
 const sectionLabel: React.CSSProperties = {
-  fontSize: "var(--sp-text-label)",
-  color: "var(--sp-mute)",
+  fontSize: "var(--mrd-t-label)",
+  color: "var(--mrd-mute)",
   fontWeight: 500,
   marginBottom: "var(--sp-space-2)",
 };

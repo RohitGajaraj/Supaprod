@@ -230,8 +230,8 @@ export function MemoryList() {
           in there, of what, from how many sources, and how fresh it is. */}
       <p
         style={{
-          fontSize: "var(--sp-text-meta)",
-          color: "var(--sp-mute)",
+          fontSize: "var(--mrd-t-base)",
+          color: "var(--mrd-mute)",
           marginBottom: "var(--sp-space-3)",
         }}
       >

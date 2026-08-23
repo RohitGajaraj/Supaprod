@@ -133,8 +133,8 @@ function ruleSentence(action: string, kind: string, applies: string): string {
 
 /** A quiet fact on the right of a Line where a control would otherwise sit. */
 const CONTROL_WORD = {
-  fontSize: "var(--sp-text-label)",
-  color: "var(--sp-mute)",
+  fontSize: "var(--mrd-t-label)",
+  color: "var(--mrd-mute)",
 };
 
 /**

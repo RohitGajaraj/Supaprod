@@ -190,7 +190,7 @@ export function CompoundingPanel() {
         </RecordSpeaks>
       ) : null}
 
-      <div style={{ marginTop: "var(--sp-space-4)" }}>
+      <div style={{ marginTop: "var(--mrd-s5)" }}>
         {learnings.map((l) => {
           const delta = deltaOf(l);
           const outcome = OUTCOME[l.verdict];

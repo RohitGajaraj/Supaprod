@@ -68,7 +68,7 @@ const wrap: React.CSSProperties = {
   gap: "var(--sp-space-2)",
   // Tinted, never bordered: the ground changes so this reads as its own
   // region without adding a second bordered box to a pane that already has one.
-  background: "var(--sp-lift)",
+  background: "var(--mrd-lift)",
   borderRadius: "var(--sp-radius-card)",
   padding: "var(--sp-space-3)",
 };
@@ -80,7 +80,7 @@ const rail: React.CSSProperties = {
   // which is the exact trade `shell.css` rejected for the full-width strip.
   flexWrap: "wrap",
   columnGap: "var(--sp-space-3)",
-  rowGap: "var(--sp-space-1)",
+  rowGap: "var(--mrd-s2)",
   listStyle: "none",
   margin: 0,
   padding: 0,
@@ -88,13 +88,13 @@ const rail: React.CSSProperties = {
 
 const chip: React.CSSProperties = {
   fontSize: "var(--sp-text-prose)",
-  lineHeight: "var(--sp-leading-tight)",
+  lineHeight: "var(--mrd-lh-snug)",
   // The bar is drawn on every chip and only coloured on the lit one, so the
   // rail's height does not change as the work moves and the pane never nudges
   // under someone who is reading it.
   borderBottom: "2px solid transparent",
   paddingBottom: "2px",
-  transition: "color var(--sp-dur-fast) var(--sp-ease)",
+  transition: "color var(--mrd-d-move) var(--mrd-ease)",
 };
 
 const say: React.CSSProperties = {
@@ -102,9 +102,9 @@ const say: React.CSSProperties = {
   alignItems: "center",
   gap: "var(--sp-space-2)",
   margin: 0,
-  fontSize: "var(--sp-text-meta)",
-  lineHeight: "var(--sp-leading-tight)",
-  color: "var(--sp-body)",
+  fontSize: "var(--mrd-t-base)",
+  lineHeight: "var(--mrd-lh-snug)",
+  color: "var(--mrd-body)",
 };
 
 const dot: React.CSSProperties = {
@@ -148,8 +148,8 @@ export function AskWorkLine({
                 ...chip,
                 // Colour is never the only signal: the lit chip also takes the
                 // weight and the bar, so the rail survives greyscale.
-                color: lit ? "var(--sp-ink)" : "var(--sp-mute)",
-                fontWeight: lit ? "var(--sp-weight-medium)" : "var(--sp-weight-regular)",
+                color: lit ? "var(--mrd-ink)" : "var(--mrd-mute)",
+                fontWeight: lit ? "var(--mrd-w-medium)" : "var(--mrd-w-regular)",
                 borderBottomColor: lit ? stageHueForStation(id) : "transparent",
               }}
               aria-current={lit ? "step" : undefined}

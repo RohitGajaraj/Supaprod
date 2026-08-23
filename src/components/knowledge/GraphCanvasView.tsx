@@ -423,7 +423,7 @@ export function GraphCanvasView({
 
       <div
         className="flex flex-wrap items-center"
-        style={{ gap: "var(--sp-space-4)", marginBottom: "var(--sp-space-3)" }}
+        style={{ gap: "var(--mrd-s5)", marginBottom: "var(--sp-space-3)" }}
       >
         <div className="sp-tabs" role="tablist" aria-label="How to draw the graph">
           {VIEWS.map((o) => (
@@ -448,7 +448,7 @@ export function GraphCanvasView({
                 aria-hidden="true"
                 style={{ width: 8, height: 8, borderRadius: 2.5, background: kindCssColor(kind) }}
               />
-              <span style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
+              <span style={{ fontSize: "var(--mrd-t-base)", color: "var(--mrd-mute)" }}>
                 {kindLabel(kind)}
               </span>
             </span>
@@ -469,7 +469,7 @@ export function GraphCanvasView({
             ) : null}
             <label
               htmlFor="graph-as-of"
-              style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}
+              style={{ fontSize: "var(--mrd-t-base)", color: "var(--mrd-mute)" }}
             >
               As of
             </label>
@@ -507,8 +507,8 @@ export function GraphCanvasView({
           style={{
             gap: "var(--sp-space-3)",
             marginBottom: "var(--sp-space-3)",
-            color: "var(--sp-mute)",
-            fontSize: "var(--sp-text-meta)",
+            color: "var(--mrd-mute)",
+            fontSize: "var(--mrd-t-base)",
           }}
         >
           {(["flow", "evidence", "outcome", "revision"] as RelationGroup[]).map((group) => {
@@ -545,7 +545,7 @@ export function GraphCanvasView({
         </Region>
       ) : null}
 
-      <div className="flex flex-wrap items-start" style={{ gap: "var(--sp-space-4)" }}>
+      <div className="flex flex-wrap items-start" style={{ gap: "var(--mrd-s5)" }}>
         <div style={{ flex: 1, minWidth: 320 }}>
           {view === "3D" ? (
             <GraphUniverseCanvas

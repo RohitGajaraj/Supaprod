@@ -34,9 +34,9 @@ export function evalScoreVerdict(value: number, higherIsBetter: boolean): ScoreV
 // The three outcome colours, and only those three. A verdict IS an outcome, so
 // this is the one case where colour carries the fact rather than dressing it.
 const VERDICT_INK: Record<ScoreVerdict, string> = {
-  pass: "var(--sp-pass)",
+  pass: "var(--mrd-pass)",
   watch: "var(--sp-warn)",
-  fail: "var(--sp-fail)",
+  fail: "var(--mrd-fail)",
 };
 
 export interface EvalScore {

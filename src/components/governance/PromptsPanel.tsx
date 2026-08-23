@@ -743,7 +743,7 @@ function AssignmentBlock({
             max={100}
             value={split}
             onChange={(e) => setSplit(Number(e.target.value))}
-            style={{ width: 160, accentColor: "var(--sp-ink)" }}
+            style={{ width: 160, accentColor: "var(--mrd-ink)" }}
           />
           <Value>
             <Num>{split}%</Num>

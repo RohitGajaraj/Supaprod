@@ -154,9 +154,9 @@ export function AskLanding({ kind, id, station }: LandedArtifact) {
         flexWrap: "wrap",
         alignItems: "flex-start",
         gap: "var(--sp-space-3)",
-        background: "var(--sp-sink)",
+        background: "var(--mrd-sink)",
         border: "1px solid var(--sp-line-soft)",
-        borderRadius: "var(--sp-radius-panel)",
+        borderRadius: "var(--mrd-r-card)",
         padding: "14px 16px",
         marginTop: "4px",
       }}
@@ -173,7 +173,7 @@ export function AskLanding({ kind, id, station }: LandedArtifact) {
           borderRadius: "50%",
           flex: "none",
           marginTop: "6px",
-          background: at ? stageHueForStation(at) : "var(--sp-mute)",
+          background: at ? stageHueForStation(at) : "var(--mrd-mute)",
         }}
       />
 
@@ -185,14 +185,14 @@ export function AskLanding({ kind, id, station }: LandedArtifact) {
           minWidth: 0,
           display: "flex",
           flexDirection: "column",
-          gap: "var(--sp-space-1)",
+          gap: "var(--mrd-s2)",
         }}
       >
         <div
           style={{
             fontSize: "var(--sp-text-prose)",
-            lineHeight: "var(--sp-leading-tight)",
-            color: "var(--sp-ink)",
+            lineHeight: "var(--mrd-lh-snug)",
+            color: "var(--mrd-ink)",
           }}
         >
           {lead}
@@ -202,9 +202,9 @@ export function AskLanding({ kind, id, station }: LandedArtifact) {
             shortened into something that cannot be used. */}
         <div
           style={{
-            fontFamily: "var(--sp-font-mono)",
-            fontSize: "var(--sp-text-data-sm)",
-            color: "var(--sp-mute)",
+            fontFamily: "var(--mrd-mono)",
+            fontSize: "var(--mrd-t-data)",
+            color: "var(--mrd-mute)",
             overflowWrap: "anywhere",
           }}
         >
@@ -213,9 +213,9 @@ export function AskLanding({ kind, id, station }: LandedArtifact) {
         {!known ? (
           <div
             style={{
-              fontSize: "var(--sp-text-meta)",
-              lineHeight: "var(--sp-leading-tight)",
-              color: "var(--sp-mute)",
+              fontSize: "var(--mrd-t-base)",
+              lineHeight: "var(--mrd-lh-snug)",
+              color: "var(--mrd-mute)",
             }}
           >
             {`This pane has no place to open a ${noun} yet.`}

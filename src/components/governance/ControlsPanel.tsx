@@ -169,16 +169,16 @@ type Committed = {
 
 /** A quiet fact that hangs off a control rather than sitting on its own line. */
 const NOTE = {
-  fontSize: "var(--sp-text-label)",
-  color: "var(--sp-mute)",
+  fontSize: "var(--mrd-t-label)",
+  color: "var(--mrd-mute)",
   marginTop: "var(--sp-space-2)",
   maxWidth: "56ch",
 };
 
 /** The right-hand word in a Line: a status, a posture, a mode. */
 const CONTROL_WORD = {
-  fontSize: "var(--sp-text-label)",
-  color: "var(--sp-mute)",
+  fontSize: "var(--mrd-t-label)",
+  color: "var(--mrd-mute)",
 };
 
 /** What a reactor event is about, taken from its own payload. A payload with no
@@ -542,7 +542,7 @@ export function ControlsPanel({
               }
             >
               {/* Ember marks the one thing waiting on you, and only when something is. */}
-              <span style={{ color: stuck > 0 ? "var(--sp-gate)" : undefined }}>
+              <span style={{ color: stuck > 0 ? "var(--mrd-you)" : undefined }}>
                 <Num>{stuck}</Num>
               </span>
               {onOpenQueue ? (

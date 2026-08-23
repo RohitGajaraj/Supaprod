@@ -642,10 +642,13 @@
  * rule, not a component. Everything else the prototype draws is a
  * primitive and lands in step 3. */
 .sp-num {
-  font-family: var(--sp-font-mono);
+  font-family: var(--mrd-mono);
   font-variant-numeric: tabular-nums;
   font-size: 0.92em;
-  letter-spacing: var(--sp-track-num);
+  /* Meridian's label track, -0.14px fixed, in place of the retired em-based
+   * --sp-track-num (-0.01em): at this class's 0.92em size on 12-13px mono
+   * digits the two differ by under three hundredths of a pixel. */
+  letter-spacing: var(--mrd-track);
 }
 
 /* ===================================================================
