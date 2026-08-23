@@ -37,6 +37,41 @@ had not merely failed to gain the air; they had gone backwards past the starting
 That is a fair description of a 1.375 row, and no author chose it. A name resolved to the wrong
 system.
 
+## THE NUMBER, MEASURED FROM THE SHIPPED CSS RATHER THAN FROM SOURCE
+
+Source counts can be argued with. This is what a user's browser actually downloaded at 13:45
+today, read out of the two production bundles on `supaprod.ai`:
+
+**24 distinct `.leading-*` rules ship. Meridian defines four line heights. Three of the 24 are on
+that scale.**
+
+The ratios in production, in order:
+
+```
+1.06  1.14  1.15  1.16  1.24  1.3  1.32  1.35  1.4  1.5  1.55  1.6  1.625  1.65  1.7  1.75
+```
+
+Sixteen values across a range where the system defines four steps, plus `18px`, `1`, three
+spacing-derived ones and the four Tailwind names. That is a near-continuous ramp, which is another
+way of saying there is no ladder at all: no two components need agree, and measurably they do not.
+
+This is the leading twin of what [`M04`](./M04-the-ratchet-cannot-see-the-founders-pain-point.md)
+found for type, where 457 of 480 hard-coded sizes re-typed a step that already existed. Same
+shape, same cause, and the ratchet is blind to both.
+
+Re-run it against any deploy:
+
+```bash
+curl -sSL https://supaprod.ai/ -o /tmp/p.html
+css=$(grep -o '/assets/styles-[A-Za-z0-9_-]*\.css' /tmp/p.html | head -1)
+curl -sSL "https://supaprod.ai$css" -o /tmp/p.css
+grep -o '\.leading-[^{]*{--tw-leading:[^;}]*' /tmp/p.css | sort -u
+```
+
+**That reading is the BEFORE.** It was taken from the bundle live at 13:45, which predates
+`b7d2c4021`. The Meridian half of it moves when that deploy lands. The other 138 sites are yours
+and will not move until you move them.
+
 ## What now exists, and what you write instead
 
 `leading-mrd-tight` · `leading-mrd-snug` · `leading-mrd-prose` · `leading-mrd-mono`.
