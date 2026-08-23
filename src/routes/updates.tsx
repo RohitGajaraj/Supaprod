@@ -123,7 +123,7 @@ function UpdatesPage() {
               style={{
                 fontFamily: "Geist Mono, monospace",
                 fontSize: 11.5,
-                color: "#a1a1aa",
+                color: "var(--ink-subtle)",
                 paddingTop: 2,
               }}
             >
@@ -134,13 +134,13 @@ function UpdatesPage() {
                 style={{
                   fontSize: 15,
                   fontWeight: 600,
-                  color: "#f4f4f5",
+                  color: "var(--ink)",
                   margin: "0 0 6px",
                 }}
               >
                 {e.title}
               </h3>
-              <p style={{ fontSize: 13.5, color: "#a1a1aa", margin: 0, lineHeight: 1.6 }}>
+              <p style={{ fontSize: 13.5, color: "var(--ink-subtle)", margin: 0, lineHeight: 1.6 }}>
                 {e.body}
               </p>
             </div>
@@ -150,25 +150,25 @@ function UpdatesPage() {
 
       {/* PC-15: fed by shipped rows tagged fromPulse above. Honest empty
           state until a real one exists post-beta, never a fabricated one. */}
-      <div style={{ marginTop: 48, paddingTop: 28, borderTop: "1px solid #18181b" }}>
-        <h2 style={{ fontSize: 16, fontWeight: 600, color: "#f4f4f5", margin: "0 0 6px" }}>
+      <div style={{ marginTop: 48, paddingTop: 28, borderTop: "1px solid var(--soft-stone)" }}>
+        <h2 style={{ fontSize: 16, fontWeight: 600, color: "var(--ink)", margin: "0 0 6px" }}>
           You said, we changed
         </h2>
         {ENTRIES.some((e) => e.fromPulse) ? (
           <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 20 }}>
             {ENTRIES.filter((e) => e.fromPulse).map((e) => (
               <div key={e.title}>
-                <h3 style={{ fontSize: 14, fontWeight: 600, color: "#f4f4f5", margin: "0 0 4px" }}>
+                <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", margin: "0 0 4px" }}>
                   {e.title}
                 </h3>
-                <p style={{ fontSize: 13, color: "#a1a1aa", margin: 0, lineHeight: 1.6 }}>
+                <p style={{ fontSize: 13, color: "var(--ink-subtle)", margin: 0, lineHeight: 1.6 }}>
                   {e.body}
                 </p>
               </div>
             ))}
           </div>
         ) : (
-          <p style={{ fontSize: 13, color: "#565c66", margin: 0 }}>
+          <p style={{ fontSize: 13, color: "var(--ink-faint)", margin: 0 }}>
             Nothing here yet. Every thumbs-up or thumbs-down in the product becomes a real signal,
             and this section fills in with real shipped changes once one drives a decision.
           </p>

@@ -10,6 +10,7 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
+import { PUBLIC_INK_THEME } from "@/components/landing/inkTheme";
 import { LandingNav } from "@/components/landing/LandingNav";
 import { SectionAlternate } from "@/components/landing/SectionAlternate";
 import { FramedVisual } from "@/components/landing/FramedVisual";
@@ -101,7 +102,7 @@ function ProductPage() {
   ];
 
   return (
-    <div className="bg-[#0a0a0a] min-h-screen" data-obsidian>
+    <div className="bg-[#0a0a0a] min-h-screen" style={{ ...PUBLIC_INK_THEME }} data-obsidian>
       {/* Backdrop: grid + starfield (inherited from landing) */}
       <LandingBackdrop />
 
@@ -136,7 +137,7 @@ function ProductPage() {
               fontWeight: 500,
               letterSpacing: "0.12em",
               textTransform: "uppercase",
-              color: "#71717a",
+              color: "var(--ink-muted)",
             }}
           >
             How it works
@@ -148,7 +149,7 @@ function ProductPage() {
               fontSize: "64px",
               fontWeight: 400,
               lineHeight: 1.1,
-              color: "#f4f4f5",
+              color: "var(--ink)",
               whiteSpace: "balance",
             }}
           >
@@ -160,7 +161,7 @@ function ProductPage() {
               fontFamily: "var(--font-sans)",
               fontSize: "16px",
               lineHeight: 1.6,
-              color: "#a1a1aa",
+              color: "var(--ink-subtle)",
               maxWidth: "480px",
               marginLeft: "auto",
               marginRight: "auto",
@@ -206,7 +207,7 @@ function ProductPage() {
               fontSize: "48px",
               fontWeight: 400,
               lineHeight: 1.1,
-              color: "#f4f4f5",
+              color: "var(--ink)",
             }}
           >
             Ready to run your loop?
@@ -217,7 +218,7 @@ function ProductPage() {
               fontFamily: "var(--font-sans)",
               fontSize: "16px",
               lineHeight: 1.6,
-              color: "#a1a1aa",
+              color: "var(--ink-subtle)",
             }}
           >
             {/* "Join 100+ design partners" WAS NOT TRUE, and it sat one line above
@@ -253,16 +254,16 @@ function ProductPage() {
               padding: "12px 24px",
               borderRadius: "6px",
               border: "none",
-              backgroundColor: "#FF6B2C",
-              color: "#0a0a0a",
+              backgroundColor: "var(--ember)",
+              color: "var(--paper)",
               cursor: "pointer",
               transition: "background-color 0.2s ease",
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#ff8344";
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#ff8344"; /* hover tint: no token exists and inkTheme is not mine to extend */
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#FF6B2C";
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--ember)";
             }}
             // Was "Start free" at "/?signup=true", and neither half held up.
             // Signup is invite only from 2026-08-07, and nothing in the app
