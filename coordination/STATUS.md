@@ -401,8 +401,12 @@ all inside `agent-first-reimagining-plan.md`, none requiring a rebuild:
 
 Product code, so it waits on the protocol rather than racing LANE 1 for the file:
 
-- `src/lib/sources/sink.server.ts:275` claims `restated_count` does not exist and the counter
-  is inert. Both are false now; the column, the RPC and seven non-zero counts are live.
+- ~~`src/lib/sources/sink.server.ts:275` claims `restated_count` does not exist and the counter
+  is inert.~~ **FIXED 2026-08-23 16:4x, main lane.** Both claims were false and the comment now
+  carries the query that proves it. Re-verified against production before editing: `column_exists`
+  1, `rpc_exists` 1, `rows_nonzero` **30** (max 10, of 1,435 signals). **The "seven non-zero
+  counts" written here was stale** - it is 30, and the SQL is in the file so the next reader
+  re-runs it rather than trusting a sentence.
 - `agent_runs.attempt` is set on 6 rows of 2,225 and nothing has written it in two days.
   Either it gets a writer or it should stop being offered to readers.
 - 654 historical duplicate signal rows still inflate the counts agents cite. Folding them is

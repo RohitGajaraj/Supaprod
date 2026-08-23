@@ -272,12 +272,29 @@ async function screenRestatements<T extends EmbeddedRow>(
  * rows, either a byte-identical copy or a 120-character truncation. That is not worth
  * re-opening the hole for.
  *
- * FAIL-OPEN, AND CURRENTLY INERT. `restated_count` does not exist on `public.signals`
- * yet; the migration adding it is written but deliberately unapplied. Until it is,
- * every call here fails and is swallowed, and the sink's behaviour is unchanged -
- * the fold itself needs no schema at all, because it works by not inserting a row.
- * This is the same posture `recordStageEvent` and `attachEmbeddings` already take in
- * this file: bookkeeping never breaks intake.
+ * FAIL-OPEN, AND LIVE SINCE 2026-08-23. This paragraph used to say `restated_count`
+ * did not exist on `public.signals` and that every call here failed and was swallowed.
+ * Both halves are false now, and they were checked against production rather than
+ * assumed, because a comment asserting a column is missing is exactly the kind of
+ * claim that outlives the migration that fixed it:
+ *
+ *   SELECT (SELECT count(*) FROM information_schema.columns
+ *             WHERE table_schema='public' AND table_name='signals'
+ *               AND column_name='restated_count')             AS column_exists,
+ *          (SELECT count(*) FROM pg_proc
+ *             WHERE proname='bump_signal_restatement')        AS rpc_exists,
+ *          (SELECT count(*) FROM public.signals
+ *             WHERE restated_count > 0)                       AS rows_nonzero;
+ *
+ *   -> column_exists 1, rpc_exists 1, rows_nonzero 30 (max 10, of 1,435 signals)
+ *
+ * The column and the RPC are both applied and the counter is accruing. The query is
+ * written down so the next reader re-runs it instead of trusting this sentence.
+ *
+ * THE FAIL-OPEN POSTURE IS UNCHANGED and is not a workaround for the missing column.
+ * An error here is logged and swallowed because the fold itself needs no schema at
+ * all: it works by not inserting a row. This is the same posture `recordStageEvent`
+ * and `attachEmbeddings` already take in this file: bookkeeping never breaks intake.
  */
 async function recordRestatements(restated: FoldedRow[]): Promise<void> {
   if (restated.length === 0) return;
