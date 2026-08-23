@@ -95,7 +95,7 @@ export function Figure({ children }: { children: React.ReactNode }) {
  */
 export function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <span className="block text-[10px] font-[650] tracking-mrd-label text-mrd-mute uppercase">
+    <span className="block mrd-eyebrow">
       {children}
     </span>
   );
