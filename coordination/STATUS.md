@@ -5,7 +5,7 @@ LANE 1 reads this and never writes it. See [`README.md`](./README.md).
 **Session opened:** 2026-08-23 · overnight run
 **MAIN LANE:** Claude Code (database, deploys, Mobbin, verification)
 **LANE 1:** opencode / OX Alpha (building)
-**Last updated:** 2026-08-23 14:10 IST
+**Last updated:** 2026-08-23 14:45 IST
 
 ## Where things stand
 
@@ -178,6 +178,9 @@ files. Read them like any other answer.
 | [`M05`](./answers/M05-the-founders-test-run-against-the-live-site.md) | The founder's test measured on the deployed site. `/pricing` renders 107 pieces of text in 23 treatments; `/demo` manages 16 in 7 and is your reference. Carries the re-runnable measurement. |
 | [`M06`](./answers/M06-the-deploy-path-is-proven-and-here-is-how.md) | Deploy exercised end to end on a docs-only change. `pending` is not a deployment, the published host redirects, and every live check needs a negative control. **Read before filing your first `deploy` request.** |
 | [`M10`](./answers/M10-the-untiered-controls-are-yours-and-here-is-the-real-number.md) | **Corrects M07's 451 to 337.** A raw `<button>` inside Meridian is usually the primitive's own implementation and should not have been counted. The real gap is 337 on your surfaces, ranked by file. |
+| [`UL0-002`](./answers/UL0-002-accepted-and-do-not-delete-loom-press.md) | **LANE 0 accepted, and a RULING it must read.** `loom-press` is LIVE, not inert: `data-obsidian` is on `<html>` for the whole authenticated tree and the class carries a 44px WCAG AAA touch minimum. **Do not delete it.** Also: Meridian's own controls were 32px, so every port was shrinking a tap target. Fixed. |
+| [`R002`](./answers/R002-route-the-definition-layer-lane-0-half.md) | **ROUTED to LANE 0.** Census re-measured and exact: 114 ds-uses, 43 ember readers, 27 material classes, all on LANE 0 paths, zero on LANE 1's consumer surfaces. Unlocks ~380 markers, the largest Wave 1 win left. |
+| [`U003`](./answers/U003-ink-css-verified-and-the-guard-got-stronger.md) | LANE 1 unit 003 accepted. 44 tokens deleted, zero live `var()` reads. Its guard change is **strictly stronger**, not weakened. |
 | [`002`](./answers/002-styles-css-verified-and-your-open-question-answered.md) | **LANE 1's unit 002 ACCEPTED.** Deletion of 12 dead classes independently confirmed safe, ratchet down 9 with no count risen, ember alias checked against the founder's brand ruling and it holds. Its open question is answered: ember and you **cannot** diverge. |
 | [`M13`](./answers/M13-leading-snug-is-not-meridians-snug.md) | **BOTH LANES, BEFORE YOUR NEXT PORT.** `leading-snug` is Tailwind's 1.375, not Meridian's 1.5, and `leading-tight` is 1.25 not 1.15. **138 bare Tailwind leadings sit in your directories** and are in no guard. Convert as you port, same commit. |
 | [`M12`](./answers/M12-the-retrieval-index-can-return-one-row.md) | **`match_rag_chunks` can return at most ONE row, database-wide.** 16 of 17 `rag_chunks` have a NULL embedding and the reader excludes those; nothing written since 2026-08-09. Also corrects two columns that lie about loop health. **Neither lane's job — do not stop porting for it.** |
@@ -269,6 +272,39 @@ The rule count went UP by one, and that is the honest number: four named rules a
 arbitrary values died. What changed is not the count but that four of them now resolve through the
 scale. The remaining 13 arbitrary values are the **138 sites on the lanes' paths**, and they do not
 move until the lanes move them. See [`M13`](./answers/M13-leading-snug-is-not-meridians-snug.md).
+
+## THE RATCHET IS FALLING, AND ALL THREE LANES ARE PRODUCING
+
+```
+2868  start of day
+ -9   LANE 1 unit 002    styles.css dead rules + ember alias
+-10   LANE 0 unit L0-002 MissionOrchestratorDetail onto Meridian tiers
+-49   LANE 1 unit 003    ink.css collapses onto Meridian
+====
+2800  merged tree, 219 files
+```
+
+Gates on the merged tree with all three lanes in it: `tsc` **0** · `bun test` **10,643 pass /
+0 fail** across 630 files · `docs:check` **0**.
+
+## A DEFECT IN MERIDIAN THAT ONLY A LANE'S CORRECT WORK COULD EXPOSE
+
+`CONTROL_SHAPE` was `inline-flex h-8`, a fixed **32px with no mobile branch**, so every tiered
+control was a 32px tap target on a phone. The retired `.loom-press` gives native buttons **44px**
+under 768px, the WCAG 2.1 AAA target size, and it is still live because `data-obsidian` sits on
+`<html>` for the whole authenticated tree.
+
+**So moving a control onto Meridian's tiers was shrinking its tap target** — and both lanes are
+doing that right now on MAIN LANE's own instruction (M07, M10). LANE 0 moved nine controls that
+way in one file, correctly, against a design system that was wrong underneath them.
+
+Meridian had already argued the case against itself: it defends the decision bar's 44px in its own
+words, *"44px is the smallest square a finger reliably hits"*. Rows got the floor. **The things a
+finger lands on did not.** Fixed in `17130d7c2`, desktop untouched, guarded and proven by
+injection.
+
+This is the founder's instruction working exactly as he framed it: a flaw in the system becomes
+platform-wide the moment lanes port onto it faithfully.
 
 ## Open requests
 
