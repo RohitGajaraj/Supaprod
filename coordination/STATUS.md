@@ -323,16 +323,21 @@ already answered at 11:43 once its worktree was read directly. Nothing is waitin
 **Nothing is waiting on MAIN LANE as of 19:5x.** Both lanes' open requests are ruled and
 the one token a ruling depended on is shipped.
 
-### MAIN LANE owes itself (not lane work, do not pick these up)
+### MAIN LANE's own list — ALL THREE CLOSED 2026-08-23 20:0x
 
-- **`src/components/meridian/` has no barrel index.** `surface-parts.tsx` alone exports
-  `Region`, `Pre`, `Action`, `Approve`, `Actions` and more, so `ls meridian/` shows no
-  `Block.tsx` or `Pre.tsx` and a reasonable reader concludes the components do not exist.
-  That is exactly what happened in `REQ-L0-005`, and a near-identical file-not-system
-  lookup is what put the wrong premise in `RL0-004`. **Two rulings in one evening turned
-  on the same discoverability hole.**
-- **Re-publish.** The live deploy predates the `C-01` fix.
-- Units `011`, `012`, `L0-006`, `L0-009`..`L0-012`, `014` pushed and not yet audited.
+- ~~`meridian/` has no index~~ **DONE.** `src/components/meridian/COMPONENTS.md`, generated
+  by `bun run meridian:exports`: 105 components and 103 types, each with its file. No
+  `index.ts` barrel deliberately — it would break `meridian-adoption.ts`, which counts
+  adoption by matching the deep import path, so components would report UNADOPTED as
+  adoption rose. The lookup rule is in `README.md` → The protocol, where the lanes read it.
+- ~~Re-publish~~ **DONE.** Deployed 20:0x. Verified rather than assumed:
+  `git merge-base --is-ancestor 8775d41e1 c2ec9071e` passes, so the `C-01` fix is in the
+  deployed commit; live site returns 200. The aria-busy regression is off production.
+- ~~Eight units unaudited~~ **DONE.** All accepted, no corrections —
+  [`V2`](./answers/V2-2026-08-23-eight-units-swept-and-the-duplicates-dismissed.md).
+  Baseline 2695 → **2537**, nothing rose, 11 files cleared. The duplicate commit pairs
+  were checked tree-to-tree and dismissed: they differ only in the lanes' own unit
+  markdown, no product code duplicated.
 
 ## PENDING CORRECTIONS -- open work MAIN LANE is routing TO a lane
 
