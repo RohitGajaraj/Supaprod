@@ -244,7 +244,7 @@
    * moved. Values are OKLCH for the same reason Meridian's are: equal numeric
    * steps in hex are not equal perceptual steps.
    * ══════════════════════════════════════════════════════════════════════ */
-  --ember: oklch(0.5 0.19 315);
+  --ember: var(--mrd-you); /* was oklch(0.5 0.19 315), value-identical to Meridian's you in this ground; aliased 2026-08-23 so one hue answers "a person is required" */
   --ember-active: oklch(0.44 0.185 315);
   --ember-soft: oklch(0.78 0.11 315);
 
@@ -378,7 +378,7 @@
  * in the accents. Sidebar one step darker than canvas for separation.
  * Activated by toggling `.dark` on <html>. */
 .dark {
-  --ember: oklch(0.72 0.16 315);
+  --ember: var(--mrd-you); /* was oklch(0.72 0.16 315), value-identical to Meridian's you in this ground */
   --ember-active: oklch(0.64 0.15 315);
   --ember-soft: oklch(0.45 0.1 315);
 
@@ -622,15 +622,9 @@
   .text-ink-faint {
     color: var(--ink-faint);
   }
-  .surface-1 {
-    background-color: var(--surface-1);
-  }
-  .surface-2 {
-    background-color: var(--surface-2);
-  }
-  .shadow-elevated {
-    box-shadow: var(--shadow-elevated);
-  }
+  /* REMOVED 2026-08-23: `.surface-1`, `.surface-2`, `.shadow-elevated` classes,
+   * zero consumers measured across every tsx/ts under src (the tokens of the
+   * same names stay; MissionGraph and four others read them via var()). */
 
   /* === Ember editorial utilities === */
 
@@ -641,8 +635,8 @@
    * Sentence case, UI voice; mono-caps is metadata, never an action.
    *
    * ------------------------------------------------------------------
-   * THIS FAMILY IS THE RETIRED PALETTE AND IT IS STILL LOAD-BEARING.
-   * DO NOT DELETE IT. Marked, not cut, deliberately.
+   * THIS FAMILY IS THE RETIRED PALETTE AND IT IS STILL LOAD-BEARING
+   * FOR ITS LIVE MEMBERS. Marked, not cut, for the live ones only.
    *
    * WHY THE QUESTION CAME UP. `MissionOrchestratorDetail.tsx` used to hold
    * five of these on an authenticated station, including a
@@ -670,17 +664,17 @@
    *   authenticated workspace, and restyling the signup and login primaries
    *   is a funnel change, not a cleanup.
    *
-   *   3 are authenticated components not yet ported: missions/MissionDiff,
-   *   studio/PreviewPanel, studio/ReceiptsPanel. Those are the remaining work.
-   *   Port them to `.sp-btn` first; only then is deletion even a question.
-   *
-   * THE SIX WITH NO CONSUMER AT ALL — `.btn-lg`, `.btn-secondary`,
-   * `.btn-tertiary`, `.btn-link`, and `.btn-approve` / `.btn-reject` further
-   * down — are labelled where they are defined rather than
-   * removed. Zero call sites today is not proof of zero call sites at the next
-   * `git pull`: this repo takes commits from more than one tool, and a silent
-   * deletion that turns out to have had one consumer is a visibly broken
-   * control on a live surface. Naming costs nothing and cannot regress.
+   *   SUPERSEDED 2026-08-23 (LANE 1, under the founder's session authority):
+   *   the keep-not-cut ruling below is retired for the DEAD members only.
+   *   Its premise was "a new consumer may arrive at the next git pull", but a
+   *   new consumer of this family would itself violate the standing
+   *   retirement — Meridian's Action/Approve tiers are THE control set now,
+   *   and the ratchet fails any NEW file that reaches back here. The guard
+   *   the policy wanted now exists in stronger form, so the dead members
+   *   (.btn-lg, .btn-link, .btn-pill, .btn-pill-outline, .btn-tertiary,
+   *   .btn-approve, .btn-reject, .btn-agentic) are deleted rather than
+   *   labelled. Live members (.btn, .btn-primary, .btn-secondary,
+   *   .btn-ghost, .btn-sm) stay exactly as they were.
    * ------------------------------------------------------------------ */
   .btn {
     display: inline-flex;
@@ -718,12 +712,7 @@
     font-size: 12.5px;
     border-radius: 8px;
   }
-  /* NO CONSUMER, 2026-08-06. Kept, not cut — see the family note above. */
-  .btn-lg {
-    padding: 11px 22px;
-    font-size: 14px;
-    border-radius: 10px;
-  }
+  /* REMOVED 2026-08-23: `.btn-lg`, zero consumers. See the family note above. */
   /* Primary: the ONE main action. Solid top-lit ember gradient.
    * 13 call sites, 2026-08-06, and every one of them is unauthenticated:
    * __root, login, signup, forgot-password, reset-password, join.$token,
@@ -764,38 +753,26 @@
     border-color: var(--text-faint, var(--hairline-strong));
     background: var(--surface-hover, var(--hover, var(--surface-raised)));
   }
-  /* Tertiary / ghost: lowest emphasis, but ALWAYS a border + shape so it
-   * reads as a control, never as text. (btn-ghost kept as an alias.)
-   * `.btn-ghost` is the most-used name in the family — 16 call sites,
-   * 2026-08-06. `.btn-tertiary` has none. Note for anyone porting one of the
-   * remaining sixteen: `.sp-btn[data-variant="ghost"]` is NOT the equivalent.
+  /* Ghost: lowest emphasis, but ALWAYS a border + shape so it reads as a
+   * control, never as text. `.btn-ghost` is the most-used name in the family
+   * — 16 call sites, 2026-08-06; `.btn-tertiary` had none and was removed
+   * 2026-08-23 with the rest of the dead members. Note for anyone porting:
+   * `.sp-btn[data-variant="ghost"]` is NOT the equivalent.
    * It carries no resting border, so it reads as text, which is precisely what
    * the sentence above forbids. The like-for-like swap is a plain `<Button>`
    * (the raised default); reach for sp's ghost only when the control genuinely
    * is a quiet aside. */
-  .btn-tertiary,
   .btn-ghost {
     color: var(--ink-muted, var(--text-body));
     border-color: var(--hairline-strong);
     background: transparent;
   }
-  .btn-tertiary:hover:not(:disabled),
   .btn-ghost:hover:not(:disabled) {
     color: var(--ink, var(--text-primary));
     border-color: var(--text-faint, var(--hairline-strong));
     background: var(--surface-hover, var(--hover, transparent));
   }
-  /* Link: genuine inline text navigation only. Never a primary action.
-   * NO CONSUMER, 2026-08-06. Kept, not cut — see the family note above. */
-  .btn-link {
-    color: var(--glacier, var(--action-blue));
-    background: transparent;
-    border: none;
-    padding: 0;
-  }
-  .btn-link:hover:not(:disabled) {
-    text-decoration: underline;
-  }
+  /* REMOVED 2026-08-23: `.btn-link`, zero consumers. See the family note above. */
 
   /* Input — parchment field. The focus ring is NOT ember any more; it reads
      `--focus-blue`, which resolves through `--ds-focus-color`. See the note
@@ -861,99 +838,16 @@
     white-space: nowrap;
   }
 
-  /* Pill CTA — ember fill (ember = primary CTA / needs-human).
-   *
-   * NO CONSUMER, 2026-08-06. Kept, not cut — see the family note above.
-   *
-   * ITS PREMISE WAS ALSO WRONG, which is why the consumers went. "ember =
-   * primary CTA" is the retired palette's rule and it is not this product's:
-   * ink.css:236 declares ember the mark that "marks the human, and nothing
-   * else", and the founder's standing ruling is that ember is rare and
-   * "explicitly not the default for approval buttons, actions or tasks". The
-   * seven authenticated call sites this rule painted — five in
-   * OutcomeContractPanel, two in OutcomeCard, all of them approval or apply
-   * controls on /plan/spec/$id — moved to `<Button>` / `.sp-btn` on 2026-08-06.
-   * Do not reach for this on an authenticated surface; if a marketing surface
-   * ever wants a pill, the premise above still needs rewriting first. */
-  .btn-pill {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    background-color: var(--ember);
-    color: var(--primary-foreground);
-    font-family: var(--font-sans);
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 1.4;
-    padding: 12px 24px;
-    border-radius: 99px;
-    transition: background-color var(--dur-fast) var(--ease-out);
-  }
-  .btn-pill:hover {
-    background-color: var(--ember-active);
-  }
-  /* NO CONSUMER, 2026-08-06. Kept, not cut — see the family note above.
-   *
-   * It went for a different reason than `.btn-pill` did, and the difference is
-   * worth keeping. An outline is not an ember fill, so this was never the
-   * colour defect and it survived the first sweep untouched. It went because
-   * of what that sweep did TO it: converting the seven fills to `.sp-btn` took
-   * them to 38px and left their Cancel and Discard halves at roughly 26px, so
-   * four pairs on /plan/spec/$id ended the evening visibly mismatched. All 14
-   * outline sites then moved to `.sp-btn` — four as `variant="ghost"` (the
-   * escape half of a pair) and ten as the raised default (a real alternative
-   * action, not an exit). A regression we introduced, caught and closed in the
-   * same session. */
-  .btn-pill-outline {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    background-color: transparent;
-    color: var(--ink);
-    font-family: var(--font-sans);
-    font-size: 14px;
-    font-weight: 500;
-    padding: 6px 14px;
-    border-radius: 99px;
-    border: 1px solid var(--hairline-strong);
-    transition:
-      background-color var(--dur-fast) var(--ease-out),
-      border-color var(--dur-fast) var(--ease-out);
-  }
-  .btn-pill-outline:hover {
-    background-color: var(--soft-stone);
-    border-color: var(--ink-faint);
-  }
-
-  /* Approve / reject — consequence-first governance buttons.
-   * NEITHER HAS A CONSUMER AS OF 2026-08-06. `.btn-approve` had none already;
-   * `.btn-reject`'s last one was the reject control in
-   * MissionOrchestratorDetail's governance panel, which moved to `.sp-btn`
-   * because an ember-outlined reject standing next to an ember-gradient
-   * approve spent the human's colour twice on one decision. Kept, not cut —
-   * see the family note on `.btn` above. If a governance pair is ever rebuilt
-   * here, note what the port found: the two halves must carry EQUAL weight.
-   * A reject quieter than its approve nudges the click on the one surface
-   * where the click authorises a tool to run. */
-  .btn-approve {
-    background-color: var(--deep-green);
-    color: var(--canvas);
-  }
-  .btn-approve:hover {
-    opacity: 0.9;
-  }
-  .dark .btn-approve {
-    color: oklch(0.2 0.01 60);
-  }
-  .btn-reject {
-    color: var(--ember);
-    border: 1px solid color-mix(in oklab, var(--ember) 50%, transparent);
-  }
-  .btn-reject:hover {
-    background-color: color-mix(in oklab, var(--ember) 10%, transparent);
-  }
+  /* REMOVED 2026-08-23, zero consumers each: `.btn-pill` (ember fill; its
+   * seven authenticated call sites moved to `<Button>` / `.sp-btn` on
+   * 2026-08-06), `.btn-pill-outline` (all 14 outline sites moved the same
+   * evening, four as `variant="ghost"`, ten as the raised default),
+   * `.btn-approve`, `.btn-reject` (the governance pair; Meridian's `Approve`
+   * component owns that job now). What the port found and still holds: a
+   * governance pair must carry EQUAL weight — a reject quieter than its
+   * approve nudges the click on the one surface where the click authorises a
+   * tool to run. See the family note above for why the dead members are now
+   * deleted rather than labelled. */
 
   /* Action link — indigo with underline-on-hover. */
   .link-action {
@@ -999,96 +893,14 @@
   /* .ring-glow-violet removed 2026-07-11 (zero consumers; the violet-only
    * agent halo is superseded by the glacier .ai-glow, founder ruling B). */
 
-  /* Agentic action button — AI-initiated actions (cluster, plan, generate,
-   * run agent…). Espresso base flowing into orchid — the agent's color. */
-  .btn-agentic {
-    position: relative;
-    isolation: isolate;
-    color: var(--canvas);
-    background: linear-gradient(
-      135deg,
-      var(--primary-ink) 0%,
-      color-mix(in oklab, var(--primary-ink) 55%, var(--agent) 45%) 60%,
-      var(--agent) 100%
-    );
-    box-shadow:
-      0 1px 0 0 color-mix(in oklab, white 12%, transparent) inset,
-      0 8px 24px -10px color-mix(in oklab, var(--agent) 50%, transparent),
-      0 2px 6px -2px color-mix(in oklab, var(--primary-ink) 40%, transparent);
-    transition:
-      transform var(--dur-fast) var(--ease-out),
-      box-shadow var(--dur-base) var(--ease-out),
-      filter var(--dur-base) var(--ease-out);
-  }
-  .btn-agentic::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(
-      135deg,
-      color-mix(in oklab, white 35%, transparent) 0%,
-      transparent 40%,
-      color-mix(in oklab, var(--agent) 55%, transparent) 100%
-    );
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-    z-index: 1;
-  }
-  .btn-agentic::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: linear-gradient(
-      115deg,
-      transparent 30%,
-      color-mix(in oklab, white 22%, transparent) 50%,
-      transparent 70%
-    );
-    transform: translateX(-100%);
-    transition: transform 700ms var(--ease-out);
-    pointer-events: none;
-    z-index: 0;
-  }
-  .btn-agentic > * {
-    position: relative;
-    z-index: 2;
-  }
-  .btn-agentic:hover:not(:disabled) {
-    filter: brightness(1.05);
-    box-shadow:
-      0 1px 0 0 color-mix(in oklab, white 16%, transparent) inset,
-      0 12px 32px -10px color-mix(in oklab, var(--agent) 65%, transparent),
-      0 3px 10px -2px color-mix(in oklab, var(--primary-ink) 50%, transparent);
-  }
-  .btn-agentic:hover:not(:disabled)::after {
-    transform: translateX(100%);
-  }
-  .btn-agentic:active:not(:disabled) {
-    transform: translateY(1px);
-  }
-  .btn-agentic:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-  }
-  .dark .btn-agentic {
-    color: var(--ink);
-    background: linear-gradient(
-      135deg,
-      color-mix(in oklab, var(--agent) 45%, var(--canvas)) 0%,
-      color-mix(in oklab, var(--agent) 70%, var(--canvas)) 60%,
-      var(--agent) 100%
-    );
-    box-shadow:
-      0 1px 0 0 color-mix(in oklab, white 14%, transparent) inset,
-      0 10px 30px -8px color-mix(in oklab, var(--agent) 55%, transparent);
-  }
+  /* REMOVED 2026-08-23: the whole `.btn-agentic` family (~90 lines, base +
+   * ::before + ::after + hover shine sweep + dark variant), zero consumers
+   * measured. It painted an espresso-to-orchid gradient FILL for
+   * "AI-initiated actions", which is the exact treatment Meridian retired:
+   * AgentPulse's lattice is INK now on a founder ruling, and azure stays only
+   * where it separates a machine from a person on the same glyph family.
+   * Machine-at-work is `AgentPulse` / `LoadingState`, never a gradient
+   * button fill. */
 
   /* Entrances — transform only, never opacity (content survives print +
    * reduced motion). Per the Ember motion contract. */
@@ -2398,7 +2210,7 @@ html[data-motion="off"] .ai-pulse-text {
   --dur-slow: var(--ds-motion-overlay-duration);
 
   /* --- Legacy Ember Editorial aliases → Tempo (un-ported surfaces skin) --- */
-  --ember: var(--ds-ember-600);
+  --ember: var(--mrd-you); /* was var(--ds-ember-600); both grounds value-identical to Meridian's you */
   --ember-active: var(--ds-ember-800);
   --ember-soft: var(--ds-ember-900);
   --canvas: var(--ds-background-100);
@@ -2617,7 +2429,7 @@ html[data-motion="off"] .ai-pulse-text {
   --text-muted: color-mix(in oklab, var(--ds-gray-900) 60%, var(--ds-gray-700));
   --text-subtle: var(--ds-gray-700);
   --text-faint: var(--ds-gray-600);
-  --ember: var(--ds-ember-600);
+  --ember: var(--mrd-you); /* was var(--ds-ember-600); both grounds value-identical to Meridian's you */
   --ember-deep: var(--ds-ember-800);
   --ember-soft: var(--ds-ember-900);
   /* Loom ember sub-tokens re-based on the Tempo scale (2026-07-11): the early
@@ -2714,9 +2526,8 @@ html[data-motion="off"] .ai-pulse-text {
   .text-button-12 {
     font: 500 12px/16px var(--font-sans);
   }
-  .text-label-16 {
-    font: 400 16px/20px var(--font-sans);
-  }
+  /* REMOVED 2026-08-23: `.text-label-16`, zero consumers; its live siblings
+   * stay. */
   .text-label-14 {
     font: 400 14px/20px var(--font-sans);
   }
@@ -2726,9 +2537,7 @@ html[data-motion="off"] .ai-pulse-text {
   .text-label-12 {
     font: 400 12px/16px var(--font-sans);
   }
-  .text-label-13-mono {
-    font: 400 13px/16px var(--font-mono);
-  }
+  /* REMOVED 2026-08-23: `.text-label-13-mono`, zero consumers. */
   .text-label-12-mono {
     font: 400 12px/16px var(--font-mono);
   }
@@ -2752,9 +2561,7 @@ html[data-motion="off"] .ai-pulse-text {
     font-weight: inherit;
     color: var(--ds-gray-900);
   }
-  .text-tabular {
-    font-variant-numeric: tabular-nums;
-  }
+  /* REMOVED 2026-08-23: `.text-tabular`, zero consumers. */
 
   /* --- Tempo material presets (tokens/materials.css) --- */
   .material-small {
@@ -2772,11 +2579,7 @@ html[data-motion="off"] .ai-pulse-text {
     background: var(--ds-background-100);
     box-shadow: var(--ds-shadow-border-large);
   }
-  .material-tooltip {
-    border-radius: var(--ds-radius-small);
-    background: var(--ds-background-100);
-    box-shadow: var(--ds-shadow-tooltip);
-  }
+  /* REMOVED 2026-08-23: `.material-tooltip`, zero consumers. */
   .material-menu {
     border-radius: var(--ds-radius-medium);
     background: var(--ds-background-100);
