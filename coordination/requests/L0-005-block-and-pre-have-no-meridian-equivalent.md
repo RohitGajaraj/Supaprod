@@ -75,3 +75,27 @@ FINAL census of shell/primitives consumers on LANE 0 paths, all awaiting
 this one ruling: Block x7, Pre x5, Select x2, Record x4, Value x3,
 SelectionBar x2 = 23 sites across ~14 files. Everything else migrated in
 units L0-008 through L0-014.
+
+## ADDENDUM 2 (2026-08-24T01:45+05:30): the census is final - three more symbols need rulings
+
+With units L0-008..L0-014 landed, the complete list of shell/primitives
+symbols still consumed on my paths, with their contracts:
+
+1. **Block x7, Pre x5, Select x2** - already detailed above.
+2. **Record x4** (DiscoverSurface, AskRunCard, AskTurn,
+   ReceiptDetailSheet) - a claim card: `{children, evidence?, onClick?,
+   title?}` where children is a citation that contradicts or confirms.
+   Meridian's RecordsTable is a table component; RecordStatus/RecordTag are
+   chips. Nothing composes a standalone claim card.
+3. **Value x3** (AgentInspector, ReceiptDetailSheet, MissionChain) -
+   `{children, tone?: "quiet"|"pass"|"warn"|"fail"|"live"}` rendering a
+   mono value span. Closest Meridian part is StatusChip, but its statuses
+   are the five status words plus quiet - no warn, no live. Mapping warn
+   and live into the five-word law is a design call, not an import swap.
+4. **SelectionBar x2** (DiscoverSurface, DecisionQueue) -
+   `{selection: Selection, total, noun, children}` - the bulk-action bar
+   over selectable rows. Meridian's SelectionActions is unrelated (a
+   text-selection edit toolbar).
+
+Everything else the original census listed has migrated across units
+L0-008..L0-014.
