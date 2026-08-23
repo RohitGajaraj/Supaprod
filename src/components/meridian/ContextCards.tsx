@@ -515,7 +515,7 @@ export function ContextCards({
         className="flex items-center gap-2 px-0.5"
         style={{ animation: "mrd-fade-in var(--mrd-d-enter) var(--mrd-ease) both" }}
       >
-        <h2 className="text-[13px] font-semibold text-mrd-ink">{title}</h2>
+        <h2 className="mrd-subtitle">{title}</h2>
         {/* The count is what is on screen over what exists, never a fixed figure. */}
         {!failure && chunks.length > 0 && (
           <span className="inline-flex h-5 items-center rounded-mrd-xs border border-mrd-line bg-mrd-sink px-1.5 font-mrd-mono text-mrd-data font-medium text-mrd-body tabular-nums">

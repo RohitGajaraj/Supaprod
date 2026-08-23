@@ -242,7 +242,7 @@ export function PlanGate({
     >
       <header>
         <div className="flex flex-wrap items-center gap-mrd-3">
-          <h3 className="text-mrd-base font-medium text-mrd-ink">{title}</h3>
+          <h3 className="mrd-subtitle">{title}</h3>
           {/* The status is a chip and the answers carry no colour at all. */}
           <StatusChip status="you">Needs you</StatusChip>
         </div>
@@ -283,7 +283,7 @@ export function PlanGate({
            * scale as the plan card's own title, so the two read as two sections of
            * one decision rather than two components that happen to be stacked.
            */}
-          <h4 className="text-mrd-base font-medium text-mrd-ink">Where it goes</h4>
+          <h4 className="mrd-subtitle">Where it goes</h4>
           <RunMap
             stops={route}
             mode="editable"

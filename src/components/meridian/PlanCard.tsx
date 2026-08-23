@@ -605,7 +605,7 @@ export function PlanCard({
        * the thing that has it.
        */}
       <header className="mb-mrd-5">
-        <h3 className="text-mrd-base font-medium text-mrd-ink">{title}</h3>
+        <h3 className="mrd-subtitle">{title}</h3>
         <p className="mt-0.5 text-mrd-data text-mrd-mute">
           <span className="tabular-nums">{steps.length}</span>
           {steps.length === 1 ? " step" : " steps"}

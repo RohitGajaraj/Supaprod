@@ -270,7 +270,7 @@ export function Dialog({
           animation: "mrd-pop-in 180ms var(--mrd-ease) both",
         }}
       >
-        <h2 id={titleId} className="shrink-0 text-[14px] font-medium text-mrd-ink">
+        <h2 id={titleId} className="shrink-0 mrd-title">
           {title}
         </h2>
 

@@ -502,7 +502,7 @@ export function AgentInbox({
                * number a person wants is how many are waiting, and repeating a
                * total per row is how a list starts shouting.
                */}
-              <h3 className="mb-mrd-2 flex items-baseline gap-2 px-mrd-3 text-mrd-data font-medium text-mrd-mute">
+              <h3 className="mb-mrd-2 flex items-baseline gap-2 px-mrd-3 mrd-eyebrow">
                 {GROUP_TITLE[group.need]}
                 <span className="font-mrd-mono tabular-nums text-mrd-faint">
                   {group.rows.length + group.over.length + group.idle.length}

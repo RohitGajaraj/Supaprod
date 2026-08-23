@@ -11,7 +11,7 @@ export interface CtxHeadProps {
 export function CtxHead({ children }: CtxHeadProps) {
   return (
     <h3
-      className="text-[10px] font-[650] uppercase tracking-mrd-label text-mrd-mute"
+      className="mrd-eyebrow"
       data-mrd=""
     >
       {children}

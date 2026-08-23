@@ -949,7 +949,7 @@ export function ReadFailed({
       aria-live="polite"
       className="rounded-mrd-card border border-mrd-line bg-mrd-sink px-mrd-6 py-mrd-5"
     >
-      <h2 className="flex items-start gap-mrd-3 text-[13px] leading-snug font-medium text-mrd-ink">
+      <h2 className="flex items-start gap-mrd-3 mrd-subtitle">
         <FailMark />
         <span>{children}</span>
       </h2>
@@ -1105,7 +1105,7 @@ export function Refused({
       aria-live="polite"
       className="rounded-mrd-card border border-mrd-line bg-mrd-sink px-mrd-6 py-mrd-5"
     >
-      <h2 className="flex items-start gap-mrd-3 text-[13px] leading-snug font-medium text-mrd-ink">
+      <h2 className="flex items-start gap-mrd-3 mrd-subtitle">
         <RefusedMark />
         <span>{children}</span>
       </h2>
