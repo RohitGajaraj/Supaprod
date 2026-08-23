@@ -573,6 +573,57 @@
   --mrd-stop: oklch(0.68 0.105 12);
 
   /*
+   * ── THIRD-PARTY BRAND HUES, ADDED 2026-08-23 ──────────────────────────
+   *
+   * NOT PART OF THE PALETTE, and the separation is the point. Every other colour
+   * in this file is ours and means something in our system. These twelve mean
+   * "this is Slack" and nothing else. They are here rather than in a component
+   * because a brand hue has to answer the ground, exactly like a semantic does,
+   * and this is the only file that knows which ground is under it.
+   *
+   * FOUNDER RULING, this session, reversing his own 2026-07-13 monotone ruling
+   * after seeing the redrawn set: "why don't we still go ahead and use the
+   * original one rather than trying to invent something? What are the colors
+   * they have? What is the logo they expose?" And on the risk: "I don't think
+   * the high pay would be violated because that would be their public logo,
+   * which they allow us to use."
+   *
+   * THE VALUES ARE VERIFIED, NOT REMEMBERED. Every one was read from
+   * simple-icons on 2026-08-23 rather than recalled, and two of the twelve the
+   * product was already shipping were WRONG: Slack was 36c5f0, a light blue it
+   * has not used as its brand colour in years, against the real 4A154B; and
+   * Intercom was 1f8ded, the pre-rebrand blue, against the real 6AFDEF. One was
+   * corrected the other way: simple-icons lists Stripe as 008CDD, and Stripe's
+   * own palette is 635BFF "Stripe Indigo", so the published number lost to the
+   * brand's own. A single source is not authority.
+   *
+   * WHY SOME OF THEM ARE `--mrd-ink` ON ONE GROUND AND A HUE ON THE OTHER, and
+   * this is the part that is NOT a compromise. Measured in OKLCH lightness,
+   * four of the twelve cannot be read on our dark canvas (github 0.21, notion
+   * 0.00, zendesk 0.31, slack 0.31) and one cannot be read on paper (intercom
+   * 0.91). That is not our problem to solve with a tint: GitHub, Notion and
+   * Slack each PUBLISH a monochrome mark for use on a contrasting ground, so
+   * `currentColor` there IS the official treatment and not a fallback from it.
+   * Where a hue works, it is used exactly as published, unmixed. The previous
+   * implementation mixed 24% of our ink into every brand colour, which is why
+   * the founder could see that "linear's color is changed".
+   */
+  --mrd-brand-github: var(--mrd-ink); /* 181717 unreadable on the dark canvas; GitHub's own dark mark is white */
+  --mrd-brand-notion: var(--mrd-ink); /* 000000, same, and Notion publishes a white mark */
+  --mrd-brand-zendesk: var(--mrd-ink); /* 03363D, lightness 0.31 */
+  --mrd-brand-slack: var(--mrd-ink); /* 4A154B aubergine, lightness 0.31 */
+  --mrd-brand-intercom: oklch(0.911 0.127 186.6); /* 6AFDEF */
+  --mrd-brand-stripe: oklch(0.578 0.235 278.3); /* 635BFF, Stripe Indigo */
+  --mrd-brand-linear: oklch(0.567 0.159 275.2); /* 5E6AD2 */
+  --mrd-brand-jira: oklch(0.480 0.201 260.5); /* 0052CC */
+  --mrd-brand-figma: oklch(0.648 0.208 35.7); /* F24E1E */
+  --mrd-brand-gmail: oklch(0.626 0.206 29.1); /* EA4335 */
+  --mrd-brand-google: oklch(0.630 0.180 260.0); /* 4285F4 */
+  --mrd-brand-hubspot: oklch(0.729 0.170 35.1); /* FF7A59 */
+  --mrd-brand-salesforce: oklch(0.670 0.143 235.4); /* 00A1E0 */
+  --mrd-brand-microsoft: oklch(0.526 0.149 251.6); /* 0F6CBD */
+
+  /*
    * ── DATA VISUALISATION, WHICH IS NOT THE STATUS PALETTE ───────────────
    *
    * Founder ruling 2026-08-15, and it resolves a tension this file had been
@@ -1275,6 +1326,17 @@
      Measured worst case 5.67 against `sink` plain and 4.71 on its own 13% wash.
      Reasoning for the token itself is on the dark declaration. */
   --mrd-stop: oklch(0.48 0.105 12);
+
+  /* Brand hues on paper. The four that were ink on the dark canvas get their
+     real colour back here, because on a light ground the published hue is both
+     legible and correct. Intercom goes the other way: 6AFDEF at lightness 0.91
+     disappears on paper, so it is darkened along its own hue rather than
+     replaced, which keeps it recognisably Intercom cyan. */
+  --mrd-brand-github: oklch(0.206 0.002 17.3); /* 181717 */
+  --mrd-brand-notion: oklch(0.15 0 0); /* 000000, lifted off pure black to match the ink */
+  --mrd-brand-zendesk: oklch(0.306 0.051 209.3); /* 03363D */
+  --mrd-brand-slack: oklch(0.306 0.108 327.1); /* 4A154B */
+  --mrd-brand-intercom: oklch(0.62 0.115 186.6); /* 6AFDEF, darkened to hold on paper */
 
   /* The reference's own light-theme data palette. Each is darker and more
      saturated than its dark-theme twin, which is what keeps a 2px series

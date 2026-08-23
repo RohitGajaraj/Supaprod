@@ -354,27 +354,46 @@ const MARKS: Record<ProviderId, () => ReactElement> = {
  *  with a reserved system colour. Everything absent stays in ink, on purpose;
  *  the reasons are in the file header. */
 const BRAND: Partial<Record<ProviderId, string>> = {
-  intercom: "oklch(0.634 0.171 250.8)", /* brand spec 1f8ded */
-  stripe: "oklch(0.578 0.235 278.3)", /* brand spec 635bff */
-  slack: "oklch(0.768 0.130 223.2)", /* brand spec 36c5f0 */
-  salesforce: "oklch(0.670 0.143 235.4)", /* brand spec 00a1e0 */
-  linear: "oklch(0.567 0.159 275.2)", /* brand spec 5e6ad2 */
-  jira: "oklch(0.628 0.202 257.4)", /* brand spec 2684ff */
-  google_docs: "oklch(0.630 0.180 260.0)", /* brand spec 4285f4 */
-  google_calendar: "oklch(0.630 0.180 260.0)", /* brand spec 4285f4 */
-  gmail: "oklch(0.626 0.206 29.1)", /* brand spec ea4335 */
-  google_tasks: "oklch(0.574 0.195 257.9)", /* brand spec 1a73e8 */
-  microsoft_outlook: "oklch(0.526 0.149 251.6)", /* brand spec 0f6cbd */
-  microsoft_mail: "oklch(0.526 0.149 251.6)", /* brand spec 0f6cbd */
+  /*
+   * EVERY VALUE IS A MERIDIAN TOKEN, NOT A LITERAL, and that is what lets a
+   * brand hue answer the ground. `meridian.css` declares each one twice, so
+   * GitHub is white on the dark canvas and 181717 on paper, which is GitHub's
+   * own published pair rather than a tint we invented. Reasoning and the
+   * verification trail live there under THIRD-PARTY BRAND HUES.
+   */
+  github: "var(--mrd-brand-github)",
+  notion: "var(--mrd-brand-notion)",
+  zendesk: "var(--mrd-brand-zendesk)",
+  slack: "var(--mrd-brand-slack)",
+  intercom: "var(--mrd-brand-intercom)",
+  stripe: "var(--mrd-brand-stripe)",
+  linear: "var(--mrd-brand-linear)",
+  jira: "var(--mrd-brand-jira)",
+  figma: "var(--mrd-brand-figma)",
+  gmail: "var(--mrd-brand-gmail)",
+  google_docs: "var(--mrd-brand-google)",
+  google_calendar: "var(--mrd-brand-google)",
+  google_tasks: "var(--mrd-brand-google)",
+  hubspot: "var(--mrd-brand-hubspot)",
+  salesforce: "var(--mrd-brand-salesforce)",
+  microsoft_outlook: "var(--mrd-brand-microsoft)",
+  microsoft_mail: "var(--mrd-brand-microsoft)",
+  /* canny, productboard and firecrawl have no verified published hue, so they
+     stay on currentColor rather than wearing a colour somebody guessed. */
 };
 
-/** The brand hue, carried toward the current theme's ink so it holds on the
- *  warm light sheet as well as the dark canvas. `.sp-cell` mixes ink into its
- *  ground for its hover for the same reason: one rule, both themes, no second
- *  palette to keep in step. */
-function inkedBrand(provider: ProviderId): string | undefined {
-  const hue = BRAND[provider];
-  return hue ? `color-mix(in oklab, ${hue} 76%, var(--mrd-ink))` : undefined;
+/**
+ * The brand's own colour, unmixed.
+ *
+ * IT USED TO MIX 24% OF OUR INK INTO EVERY HUE, and the founder could see it:
+ * "linear's color is changed... why don't we still go ahead and use the
+ * original one rather than trying to invent something?" He was right. A tint
+ * applied to a trademark makes it not that trademark, and the legibility
+ * problem the tint was solving is solved properly in `meridian.css` instead, by
+ * declaring the hue per ground the way every Meridian colour already is.
+ */
+function brandColour(provider: ProviderId): string | undefined {
+  return BRAND[provider];
 }
 
 /* ------------------------------------------------------------------ *
@@ -398,7 +417,21 @@ export type MarkTone = "mono" | "brand";
 export function ProviderMark({
   provider,
   size = 16,
-  tone = "mono",
+  /*
+   * BRAND BY DEFAULT SINCE 2026-08-23, reversed from `mono` on a founder ruling.
+   *
+   * The default is the ruling, which is why it moved rather than being passed at
+   * more call sites. Half the call sites already asked for `brand` and half did
+   * not, so the same provider wore two different colours on two surfaces of one
+   * product, which is the inconsistency a design system exists to remove. A
+   * caller that genuinely wants the silhouette can still ask for `mono`; nothing
+   * about the mark set changed, only which answer you get when you say nothing.
+   *
+   * It is safe to default now in a way it was not before: the hues are declared
+   * per ground in `meridian.css`, so the four that cannot be read on the dark
+   * canvas resolve to ink there and to their real colour on paper.
+   */
+  tone = "brand",
 }: {
   provider: ProviderId | string;
   size?: number;
@@ -421,7 +454,7 @@ export function ProviderMark({
         justifyContent: "flex-start",
         width: box,
         height: box,
-        color: tone === "brand" ? inkedBrand(provider as ProviderId) : undefined,
+        color: tone === "brand" ? brandColour(provider as ProviderId) : undefined,
       }}
     >
       <span style={{ display: "block", width: size, height: size }}>
