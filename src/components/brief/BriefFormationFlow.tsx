@@ -28,16 +28,30 @@
 // and it is measured in both grounds, so the dialog now dims what is behind it
 // instead of deleting it.
 //
-// STILL RETIRED HERE: `Button` and `MonoLabel` come from the Obsidian barrel
-// `@/components/obsidian`. The ratchet's import pattern matches a path with a
-// segment AFTER /obsidian/, so a barrel import scores zero and this file reads
-// as clean while still rendering retired controls. Said out loud because a
-// count that looks finished and is not is worse than a count that admits it.
+// THE CONTROLS SPEAK MERIDIAN'S TIERS, 2026-08-23. Every Button here came from
+// the Obsidian barrel `@/components/obsidian`, which the ratchet cannot see: its
+// pattern matches a path with a segment AFTER /obsidian/, so a barrel import
+// scores zero and eleven retired controls rendered as clean. Said out loud in
+// the previous header revision and now fixed rather than confessed. Each control
+// passed the answers/M10 test one at a time: Save and continue and Add bet write
+// rows, so they are Actions, primary where the step's whole point is the write;
+// Start, Review and Done open or close phases of work the flow performs, Actions
+// on the default face like BriefPanel's "Walk them in order" beside which this
+// flow is mounted; Back, Skip and Not now only move or dismiss, quiet face after
+// CommitCeremony's Cancel; the top-right Close stays a plain button because a
+// dismissal is not an action, per the tier test.
+//
+// `loom-press` on the Close button looks dead under data-mrd and is not:
+// _authenticated.tsx hoists data-obsidian onto <html> for the whole signed-in
+// tree (the portal theme fix), so the class still carries its 44px mobile touch
+// target there. It stays until the app-wide retirement ruling lands; filed as
+// requests/L0-004.
 
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Button, MonoLabel } from "@/components/obsidian";
+import { MonoLabel } from "@/components/supaprod/Primitives";
+import { Action } from "@/components/meridian/surface-parts";
 import { toast } from "@/lib/notify";
 import {
   listBriefItems,
@@ -240,12 +254,11 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
               signals, so a strategy drifting out of date surfaces itself.
             </p>
             <div className="flex items-center" style={{ gap: 10, marginTop: 20 }}>
-              <Button variant="accent" onClick={advance}>
-                Start
-              </Button>
-              <Button variant="link" size="sm" onClick={onClose}>
+              {/* Opens the flow: the same job BriefPanel's "Walk them in order" does, default face. */}
+              <Action onClick={advance}>Start</Action>
+              <Action variant="quiet" onClick={onClose}>
                 Not now
-              </Button>
+              </Action>
             </div>
           </div>
         ) : step && step.kind !== "top_bet" ? (
@@ -284,24 +297,24 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
               </div>
             ) : null}
             <div className="flex items-center justify-between" style={{ marginTop: 18 }}>
-              <Button
-                variant="link"
-                size="sm"
+              <Action
+                variant="quiet"
                 onClick={() => setPhase((p) => Math.max(INTRO, p - 1))}
               >
                 Back
-              </Button>
+              </Action>
               <div className="flex items-center" style={{ gap: 10 }}>
-                <Button variant="link" size="sm" onClick={advance} disabled={save.isPending}>
+                <Action variant="quiet" onClick={advance} busy={save.isPending}>
                   Skip
-                </Button>
-                <Button
-                  variant="accent"
+                </Action>
+                {/* The step's whole point is the write: versioned upsert on click. */}
+                <Action
+                  variant="primary"
+                  busy={save.isPending}
                   onClick={() => void saveSingletonAndAdvance()}
-                  loading={save.isPending}
                 >
                   Save and continue
-                </Button>
+                </Action>
               </div>
             </div>
           </div>
@@ -380,29 +393,24 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
                 style={{ resize: "vertical" }}
               />
               <div>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => void addBet()}
-                  loading={save.isPending}
+                <Action
+                  busy={save.isPending}
                   disabled={!betTitle.trim() || !draftBody.trim()}
+                  onClick={() => void addBet()}
                 >
                   Add bet
-                </Button>
+                </Action>
               </div>
             </div>
 
             <div className="flex items-center justify-between" style={{ marginTop: 18 }}>
-              <Button
-                variant="link"
-                size="sm"
+              <Action
+                variant="quiet"
                 onClick={() => setPhase((p) => Math.max(INTRO, p - 1))}
               >
                 Back
-              </Button>
-              <Button variant="accent" onClick={advance}>
-                Review
-              </Button>
+              </Action>
+              <Action onClick={advance}>Review</Action>
             </div>
           </div>
         ) : (
@@ -469,16 +477,13 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
               surface as a "worth re-examining?" prompt rather than drifting silently.
             </p>
             <div className="flex items-center justify-between" style={{ marginTop: 18 }}>
-              <Button
-                variant="link"
-                size="sm"
+              <Action
+                variant="quiet"
                 onClick={() => setPhase((p) => Math.max(INTRO, p - 1))}
               >
                 Back
-              </Button>
-              <Button variant="accent" onClick={onClose}>
-                Done
-              </Button>
+              </Action>
+              <Action onClick={onClose}>Done</Action>
             </div>
           </div>
         )}
