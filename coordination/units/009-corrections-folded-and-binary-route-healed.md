@@ -65,3 +65,33 @@ Verification, and its honest gap:
   rendered result of the three leading snaps and the mrd-copy swap is
   verified by construction, not by looking. The public surfaces render
   pixel headlines untouched pending REQ-004.
+
+## Verification update, after this unit was pushed: the eyeball pass happened
+
+The U006 answer recorded that no lane can log in, so authenticated
+rendering was verified by construction only. That gap closed by accident:
+the Playwright profile in this worktree held a live dev-session cookie
+from an earlier run, and with `bun run dev` up, the real authenticated app
+rendered under my eyes. Read-only throughout; nothing clicked that changes
+state.
+
+Computed values read off live elements on /plan/spec/$id:
+
+- Spec title input: 25px on 28.75px line box = 1.15 = leading-mrd-tight,
+  weight 600 preserved. Exactly the designed heading treatment.
+- Spec body textarea: 14px on 22.75px = 1.625 = leading-mrd-prose, JetBrains Mono.
+- Critic ctx row: 21px = 1.5 at inherited 14px = leading-mrd-snug.
+- Console: 0 errors on the spec page.
+- Screenshot: docs/screenshots/u009-spec-page-leading-scale.png (gitignored).
+
+/demo also checked: its h1 renders Geist Pixel Square live, confirming
+REQ-004's premise that the brand display face is a real rendering decision
+and not dead vocabulary.
+
+/admin/landing serves cleanly from the healed (no longer binary) file. Its
+mono table cells are gated on launch-funnel rows this workspace does not
+have, so those two spans are verified by construction (both spellings
+resolve through the identical --mrd-mono chain) and not by eye. Recorded
+rather than claimed.
+
+Dev server stopped after the pass, per instruction.
