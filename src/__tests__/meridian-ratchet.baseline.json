@@ -15,7 +15,7 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 2311,
+  "totalOccurrences": 2310,
   "fileCount": 180,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
@@ -96,7 +96,7 @@
       "usage:components/ui": 13
     },
     "src/components/connections/ProviderLogo.tsx": {
-      "--text-": 2,
+      "--text-": 1,
       "--hairline": 1
     },
     "src/components/connections/WorkspaceBindingsSection.tsx": {

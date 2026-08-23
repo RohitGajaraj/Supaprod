@@ -305,6 +305,7 @@ import {
   Action,
   Actions,
   Approve,
+  Chevron,
   Figure,
   NothingYet,
   Num,
@@ -608,6 +609,9 @@ export function DiscoverSurface({
   const [fileNote, setFileNote] = React.useState<{ text: string; failed: boolean } | null>(null);
   const [fileReading, setFileReading] = React.useState(false);
   const fileInput = React.useRef<HTMLInputElement | null>(null);
+  // Scroll target for the comprehension strip's cluster segment; focus follows
+  // the jump so a keyboard reader is not left above where they landed.
+  const rankingAnchor = React.useRef<HTMLDivElement | null>(null);
   /** The merge picker, opened IN PLACE rather than in a pane. primitives.tsx
    *  bans the slide-over and says a lane that wanted one built its detail view
    *  in place instead, "and that is the better surface". */
@@ -1026,6 +1030,16 @@ export function DiscoverSurface({
    */
   const themeWindow = themes.data?.themes.length ?? 0;
   const themeTotal = themes.data?.total ?? themeWindow;
+
+  /** Clusters this station already turned into bets, counted off rows in hand.
+   *  It feeds the comprehension strip's last segment; nothing here is fetched
+   *  or derived beyond what the themes read above already returned. */
+  const promotedCount = React.useMemo(
+    () =>
+      (themes.data?.themes ?? []).filter((t) => ((t.status ?? "new") as string) === "promoted")
+        .length,
+    [themes.data],
+  );
 
   /**
    * WHAT THE WHOLE RANKING LOOKS LIKE, counted before it is listed.
@@ -1785,6 +1799,24 @@ export function DiscoverSurface({
   const hasContext =
     !!watcher || fleetFailed || coverageFailed || hasCoverage || hasWatching || hasEvidence;
 
+  /* The comprehension strip renders only over landed reads, so every number on
+     it is one the page can actually show; a segment whose region is absent
+     renders as plain text rather than a control that does nothing. */
+  const rankingShown = !picking && ranked.length > 1;
+  const stripSources = !coverageFailed && hasCoverage;
+  const showStrip = !loading && !loadError && !signalsEmpty && (stripSources || ranked.length > 0);
+  const clustersFacts = (
+    <>
+      <Num>{rows.length}</Num> signal{plural(rows.length)} in, <Num>{ranked.length}</Num>{" "}
+      cluster{plural(ranked.length)} open
+      {unclustered > 0 ? (
+        <>
+          , <Num>{unclustered}</Num> loose
+        </>
+      ) : null}
+    </>
+  );
+
   return (
     <Surface
       context={
@@ -2217,6 +2249,71 @@ export function DiscoverSurface({
             : undefined
         }
       />
+
+      {/* THE STATION IN ONE ROW: what flows in, what it groups into, where the
+          work goes next. Each segment opens the region it names; a segment
+          whose region is not on screen renders as plain text instead. */}
+      {showStrip ? (
+        <div className="mt-mrd-4 flex flex-wrap items-center gap-x-mrd-3 gap-y-mrd-1 text-mrd-small text-mrd-mute">
+          {stripSources && cov ? (
+            <>
+              <button
+                type="button"
+                onClick={() => navigate({ to: "/settings", search: { section: "connections" } })}
+                title="Open Connections in Settings"
+                className="flex items-center gap-mrd-2 rounded-mrd-xs transition-colors hover:text-mrd-ink"
+              >
+                {cov.sources.slice(0, 3).map((s) => (
+                  <SourceMark key={s.source} source={s.source} size={14} />
+                ))}
+                <span>
+                  <Num>{cov.sources.length}</Num> source{plural(cov.sources.length)} feeding this
+                  desk
+                </span>
+              </button>
+              <Chevron />
+            </>
+          ) : null}
+
+          {ranked.length > 0 ? (
+            <>
+              {rankingShown ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const el = rankingAnchor.current;
+                    if (!el) return;
+                    el.scrollIntoView({ block: "start" });
+                    el.focus({ preventScroll: true });
+                  }}
+                  title="Show the ranking"
+                  className="rounded-mrd-xs text-left transition-colors hover:text-mrd-ink"
+                >
+                  {clustersFacts}
+                </button>
+              ) : (
+                <span>{clustersFacts}</span>
+              )}
+              <Chevron />
+            </>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/decide" })}
+            title="Open Decide"
+            className="rounded-mrd-xs transition-colors hover:text-mrd-ink"
+          >
+            {promotedCount > 0 ? (
+              <>
+                <Num>{promotedCount}</Num> became bet{plural(promotedCount)}
+              </>
+            ) : (
+              "none became bets yet"
+            )}
+          </button>
+        </div>
+      ) : null}
 
       {/* The live line, present only while Sense actually has a run going.
         It renders nothing when the stage is quiet. */}
@@ -2774,6 +2871,7 @@ export function DiscoverSurface({
         workspace with thirty clusters was thirty rows of scroll, which is the
         scatter complaint one step later. Six, then ask. */}
       {!picking && ranked.length > 1 ? (
+        <div ref={rankingAnchor} tabIndex={-1}>
         <Region
           title="The ranking"
           /* j AND k WERE BOUND AND DRAWN NOWHERE, which is the same defect as
@@ -3080,6 +3178,7 @@ export function DiscoverSurface({
             </CtxBody>
           ) : null}
         </Region>
+        </div>
       ) : null}
 
       {/* WHAT YOU ALREADY DECIDED, which the station could not show at all.
