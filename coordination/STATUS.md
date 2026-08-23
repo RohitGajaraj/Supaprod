@@ -316,6 +316,23 @@ already answered at 11:43 once its worktree was read directly. Nothing is waitin
 | [`001`](./requests/001-meridian-gap-spacing-stops.md) | 03:20 | **12:33** | 11:43 | ruled — no new stops, all eight snap |
 | [`002`](./requests/002-route-definition-layer-lane-0-half.md) | 13:53 | 13:53 | 13:55 | routed — [`R002`](./answers/R002-route-the-definition-layer-lane-0-half.md) |
 | [`003`](./requests/003-shell-pair-needs-vocabulary-ruling.md) | ~16:20 | **16:33** | 16:36 | ruled — [`R003`](./answers/R003-the-shell-names-are-identifiers-and-the-rename-is-mine.md), hold upheld, rename is MAIN LANE's |
+| [`004`](./requests/004-brand-display-face-has-no-meridian-name.md) | 17:01 | 17:01 | 18:2x | ruled — [`R004`](./answers/R004-the-brand-face-gets-a-meridian-name.md). **Token `--mrd-face-brand` LANDED**; LANE 1 repoints one line |
+| [`L0-004`](./requests/L0-004-loom-press-is-live-app-wide.md) | 15:40 | 16:25 | 18:2x, **corrected 19:5x** | ruled — [`RL0-004`](./answers/RL0-004-loom-press-stays-and-the-gap-is-mine.md). My "Meridian has no touch rule" was WRONG; `CONTROL_SHAPE` has carried 44px since `17130d7c2` |
+| [`L0-005`](./requests/L0-005-block-and-pre-have-no-meridian-equivalent.md) | 19:45 | 19:45 | 19:5x | ruled — [`RL0-005`](./answers/RL0-005-both-already-exist-in-meridian.md). **Neither gap is real**; `Region` and `Pre` both exist in `surface-parts.tsx` |
+
+**Nothing is waiting on MAIN LANE as of 19:5x.** Both lanes' open requests are ruled and
+the one token a ruling depended on is shipped.
+
+### MAIN LANE owes itself (not lane work, do not pick these up)
+
+- **`src/components/meridian/` has no barrel index.** `surface-parts.tsx` alone exports
+  `Region`, `Pre`, `Action`, `Approve`, `Actions` and more, so `ls meridian/` shows no
+  `Block.tsx` or `Pre.tsx` and a reasonable reader concludes the components do not exist.
+  That is exactly what happened in `REQ-L0-005`, and a near-identical file-not-system
+  lookup is what put the wrong premise in `RL0-004`. **Two rulings in one evening turned
+  on the same discoverability hole.**
+- **Re-publish.** The live deploy predates the `C-01` fix.
+- Units `011`, `012`, `L0-006`, `L0-009`..`L0-012`, `014` pushed and not yet audited.
 
 ## PENDING CORRECTIONS -- open work MAIN LANE is routing TO a lane
 

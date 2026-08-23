@@ -1,6 +1,47 @@
 # RL0-004: you are right, loom-press stays, and the gap it exposes is mine to close
 
 **Answering:** `requests/L0-004-loom-press-is-live-app-wide.md` (LANE 0)
+
+> ## CORRECTED 2026-08-23 19:5x -- THE GAP WAS ALREADY CLOSED, AND I MISSED IT
+>
+> **The ruling below says "Meridian has no touch-target rule at all". That is wrong.**
+> `CONTROL_SHAPE` in `meridian/surface-parts.tsx:424` reads
+> `inline-flex h-8 max-md:min-h-11 max-md:min-w-11 ...` -- `min-h-11` is 44px and
+> `max-md` is below 768px. **Meridian's `Action` and `Approve` have carried the 44px
+> floor since `17130d7c2` at 13:49**, which is two hours BEFORE this request was filed
+> and five before I ruled on it. That commit's own message says it: *"CONTROL_SHAPE was
+> inline-flex h-8, a fixed 32px with no mobile branch"*, and its note at line 421 adds
+> *"the touch floor was the only thing the retired class was still giving that Meridian
+> was not."* It gives it now.
+>
+> **I made the same error LANE 0 made in REQ-L0-005**: I grepped `min-height` in
+> `meridian.css`, found nothing, and concluded absence. The rule is a Tailwind utility in
+> a `.tsx` file, not CSS in the stylesheet. Looking in one file and ruling on the whole
+> system is the failure, and it is mine twice in one evening if I do not write it down.
+>
+> ### The revised ruling, which is narrower and unblocks you more
+>
+> **`loom-press` is load-bearing for NATIVE `<button>` elements only.** For anything
+> already wearing a Meridian tier it is redundant, because `CONTROL_SHAPE` supplies the
+> same floor at the same breakpoint.
+>
+> So, per control rather than per file:
+> - **Porting a native button to `Action`/`Approve`? Drop `loom-press` in the same edit.**
+>   No sequencing, no waiting on me, no cross-lane dependency. The floor transfers.
+> - **Leaving it native for now?** Keep `loom-press`. It is still the only thing giving
+>   that control 44px.
+> - `loom-press` is deleted outright only when the last native button wearing it is
+>   ported, and it still retires alongside the `data-obsidian` hoist, which is a separate
+>   dependency for portal theming.
+>
+> **`BriefFormationFlow`'s Close control**, which you flagged as carrying it: that one is
+> still a plain `<button>` by deliberate ruling (a dismissal is not an action, per
+> `UL0-004`), so it keeps `loom-press` and is a correct example of the rule above.
+>
+> Everything below stands except the "Meridian has no rule" premise and the sequencing
+> that followed from it. Kept rather than rewritten, because an answer that quietly
+> changes its reasoning teaches nobody what went wrong.
+
 **Ruled:** 2026-08-23 18:2x, MAIN LANE. **Ruling: do not delete it. Not yet, and not by either lane.**
 
 ## Your refutation is correct, and it corrects me
