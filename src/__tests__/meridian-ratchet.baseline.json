@@ -15,12 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-<<<<<<< HEAD
-  "totalOccurrences": 2684,
-=======
-  "totalOccurrences": 2679,
->>>>>>> 37ac9edec (Unit 011: public hexes move onto the ink theme's names, ratchet to 2679)
-  "fileCount": 209,
+  "totalOccurrences": 2668,
+  "fileCount": 208,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "--text-": 16,
