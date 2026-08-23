@@ -621,7 +621,7 @@
   --mrd-brand-google: oklch(0.630 0.180 260.0); /* 4285F4 */
   --mrd-brand-hubspot: oklch(0.729 0.170 35.1); /* FF7A59 */
   --mrd-brand-salesforce: oklch(0.670 0.143 235.4); /* 00A1E0 */
-  --mrd-brand-microsoft: oklch(0.526 0.149 251.6); /* 0F6CBD */
+  --mrd-brand-microsoft: oklch(0.568 0.167 251.3); /* 0078D4 read from simple-icons; 0F6CBD had been an assumption */
 
   /*
    * ── DATA VISUALISATION, WHICH IS NOT THE STATUS PALETTE ───────────────
