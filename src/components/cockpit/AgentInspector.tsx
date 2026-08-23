@@ -19,7 +19,7 @@
 
 import { useState } from "react";
 import { Row, Line } from "@/components/meridian/rows";
-import { Num, ReadFailedLine } from "@/components/meridian/surface-parts";
+import { Num, Picker, ReadFailedLine, Region, Value } from "@/components/meridian/surface-parts";
 import { EmptyRegion } from "@/components/meridian/EmptyRegion";
 import { LoadingState } from "@/components/meridian/LoadingState";
 import { useQuery } from "@tanstack/react-query";
@@ -32,8 +32,6 @@ import {
   type AgentMemory,
 } from "@/lib/agent-runs.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { Select, Value } from "@/components/shell/primitives";
-import { Region } from "@/components/meridian/surface-parts";
 import { AgentMark, type MarkState } from "@/components/meridian/marks";
 
 type AgentLite = { agent_id: string; slug: string; name: string; role: string };
@@ -116,7 +114,7 @@ export function AgentInspector({ agents }: { agents: AgentLite[] }) {
           sub="Its last runs, and what it draws on, both read live."
           htmlFor="agent-inspector-pick"
         >
-          <Select
+          <Picker
             id="agent-inspector-pick"
             value={selected}
             onChange={(e) => setSelected(e.target.value)}
@@ -126,7 +124,7 @@ export function AgentInspector({ agents }: { agents: AgentLite[] }) {
                 {agentDisplayName(a.slug, a.name)}
               </option>
             ))}
-          </Select>
+          </Picker>
         </Line>
 
         {runsQ.isLoading ? (

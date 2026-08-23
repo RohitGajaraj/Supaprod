@@ -43,8 +43,7 @@ import {
   type ConnectionRow,
 } from "@/lib/connections.functions";
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
-import { Select } from "@/components/shell/primitives";
-import { Region } from "@/components/meridian/surface-parts";
+import { Picker, Region } from "@/components/meridian/surface-parts";
 
 type Props = {
   projectId: string;
@@ -198,7 +197,7 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
                 </Action>
               ) : picking === pickKey ? (
                 <>
-                  <Select
+                  <Picker
                     aria-label={`Pick the account for ${spec.label}`}
                     defaultValue=""
                     disabled={mAdd.isPending}
@@ -222,7 +221,7 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
                         {c.account_label ?? c.id.slice(0, 8)}
                       </option>
                     ))}
-                  </Select>
+                  </Picker>
                   {/* TIER: clause 3, dismisses the picker; nothing is written. */}
                   <button
                     type="button"

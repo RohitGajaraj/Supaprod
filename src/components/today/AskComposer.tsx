@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Input } from "@/components/shell/primitives";
+import { Input } from "@/components/meridian/forms";
 import { openAsk } from "@/lib/ask-open";
 
 /**

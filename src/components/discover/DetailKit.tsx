@@ -50,15 +50,17 @@
  * WHAT DELIBERATELY DID NOT MOVE, and it is named rather than left looking like
  * an oversight:
  *
- *   `.sp-block` / `.sp-block-head` / `.sp-block-title` on `DetailSection`, and
- *   `Cell` from shell/primitives on `StatCell`. Meridian's `Region` is the
+ *   `.sp-block` / `.sp-block-head` / `.sp-block-title` on `DetailSection`.
+ *   Meridian's `Region` is the
  *   equivalent COMPONENT and it is not an equivalent SHAPE: `.sp-block` is a
  *   rule plus 36px above and 28px below it, which is the "a new section starts
  *   here" mark this file's own header cites as the reason the 2px accent bar
  *   could be deleted, and `Region` draws no rule at all. `Region` also takes
  *   `goTo`/`toggle`/`act` as STRINGS, so it cannot carry the arbitrary control
  *   three callers pass as `action` -- the identical objection this file already
- *   records against `Block`. Meridian has no `Grid`/`Cell` either.
+ *   records against `Block`. (`Cell` has since moved to Meridian's, 2026-08-23,
+ *   once surface-parts grew one; `Grid`'s fixed-columns prop is why `StatStrip`
+ *   may yet follow.)
  *
  *   And the blast radius is not this file. `DetailSection` renders inside
  *   `shared/StageTimeline`, which mounts on `knowledge/DecisionDetail` and the
@@ -69,8 +71,7 @@
  */
 
 import { Children, type CSSProperties, type ReactNode } from "react";
-import { Num } from "@/components/meridian/surface-parts";
-import { Cell } from "@/components/shell/primitives";
+import { Cell, Num } from "@/components/meridian/surface-parts";
 
 /** The semantic tones a stat cell can carry. */
 export type StatTone = "moss" | "glacier" | "madder" | "amber" | "muted" | "neutral";

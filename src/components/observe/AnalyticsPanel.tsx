@@ -66,6 +66,8 @@ import { Row, Line } from "@/components/meridian/rows";
 import {
   Action,
   Actions,
+  Cell,
+  Grid,
   NothingYet,
   Num,
   ReadFailedLine,
@@ -88,7 +90,6 @@ import {
 } from "@/lib/analytics.functions";
 import { getBudgetSummary } from "@/lib/budgets.functions";
 import { relTime } from "@/components/product/format";
-import { Cell, Grid } from "@/components/shell/primitives";
 import { Pre } from "@/components/meridian/surface-parts";
 import { Prose } from "@/components/meridian/Prose";
 import { AgentMark } from "@/components/meridian/marks";

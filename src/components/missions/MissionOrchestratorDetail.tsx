@@ -306,7 +306,7 @@ function GatePanel({
   if (!pendingApprovals || pendingApprovals.length === 0) return null;
 
   return (
-    <section style={{ marginBottom: 16 }}>
+    <section style={{ marginBottom: "var(--mrd-s5)" }}>
       {/* THE GATE WEARS THE SYSTEM'S "A PERSON IS REQUIRED" HUE, not ember.
           Meridian assigns `--mrd-you` to exactly this fact (ApprovalCard's
           waiting marker, `Approve`'s face), and this panel states the same
@@ -405,7 +405,7 @@ const rail: CSSProperties = {
   marginLeft: 5,
 };
 const preStyle: CSSProperties = {
-  marginTop: 6,
+  marginTop: "var(--mrd-s3)",
   background: "var(--mrd-sink)",
   border: "1px solid var(--mrd-edge)",
   borderRadius: 8,
@@ -469,9 +469,9 @@ function TraceHop({
     return { color: "var(--mrd-pass)" };
   };
   return (
-    <div style={{ fontFamily: "var(--font-mono)", marginBottom: 10 }}>
+    <div style={{ fontFamily: "var(--font-mono)", marginBottom: "var(--mrd-s4)" }}>
       {inbound ? (
-        <div style={{ marginBottom: 4 }}>
+        <div style={{ marginBottom: "var(--mrd-s2)" }}>
           <button
             onClick={() => setShowPayload(!showPayload)}
             aria-expanded={showPayload}
@@ -594,7 +594,7 @@ function TraceHop({
                 what guided it · {h.recalled_memories.length}
               </button>
               {showMemories ? (
-                <div className="fade-up" style={{ marginTop: 4 }}>
+                <div className="fade-up" style={{ marginTop: "var(--mrd-s2)" }}>
                   {h.recalled_memories.map((mem, mi) => (
                     <div
                       key={mi}
@@ -677,7 +677,7 @@ function TraceHop({
         </div>
       ) : null}
       {outbound ? (
-        <div style={{ marginTop: 4 }}>
+        <div style={{ marginTop: "var(--mrd-s2)" }}>
           <span className="mono-label" style={handoffChip}>
             handoff → {agentDisplayName(outbound.to_agent_slug)}
             {outbound.consumed_by_run_id ? "" : " · queued, awaiting receiver"}
@@ -745,7 +745,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
   };
 
   return (
-    <section style={{ ...LOOM_CARD, padding: "var(--card-pad)", marginBottom: 16 }}>
+    <section style={{ ...LOOM_CARD, padding: "var(--card-pad)", marginBottom: "var(--mrd-s5)" }}>
       <div
         style={{
           display: "flex",
@@ -768,7 +768,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
         </p>
       ) : (
         <>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 12 }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: "var(--mrd-s4)", marginBottom: 12 }}>
             {/* THIS WAS `font-pixel`, AND PIXEL IS RETIRED FROM THE APP.
                 Founder ruling 2026-08-05, recorded in
                 docs/design/DESIGN-SYSTEM.md under "The founder's live rulings":
@@ -803,13 +803,13 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
               earlier {n === 1 ? "lesson" : "lessons"} guided this mission, instead of starting cold
             </span>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--mrd-s3)" }}>
             {shown.map((mem, i) => (
               <div
                 key={i}
                 style={{
                   display: "flex",
-                  gap: 10,
+                  gap: "var(--mrd-s4)",
                   paddingTop: i === 0 ? 0 : 6,
                   borderTop: i === 0 ? "none" : "1px solid var(--mrd-edge)",
                 }}
@@ -828,7 +828,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
               </div>
             ))}
             {moreCount > 0 && (
-              <span className="mono-label" style={{ color: "var(--mrd-mute)", marginTop: 4 }}>
+              <span className="mono-label" style={{ color: "var(--mrd-mute)", marginTop: "var(--mrd-s2)" }}>
                 +{moreCount} more in the snapshot
               </span>
             )}
@@ -1101,8 +1101,8 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
     return (
       <div aria-hidden="true" style={{ maxWidth: 980, margin: "0 auto" }}>
         <SkeletonBlock height={140} style={{ marginBottom: 20 }} />
-        <SkeletonBlock height={56} style={{ marginBottom: 16 }} />
-        <SkeletonBlock height={120} style={{ marginBottom: 16 }} />
+        <SkeletonBlock height={56} style={{ marginBottom: "var(--mrd-s5)" }} />
+        <SkeletonBlock height={120} style={{ marginBottom: "var(--mrd-s5)" }} />
         <SkeletonBlock height={220} />
       </div>
     );
@@ -1199,7 +1199,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               </Link>
             ) : null}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--mrd-s4)" }}>
             <StatusBadge status={badgeStatus(data.mission.status)} />
             {/* Launch, for the two states that have not started: 'proposed' (a
              * trigger raised it and is waiting on a person) and 'queued' (it was
@@ -1370,7 +1370,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           alignItems: "center",
           justifyContent: "space-between",
           gap: "var(--geist-space-3x)",
-          marginBottom: 16,
+          marginBottom: "var(--mrd-s5)",
         }}
       >
         {missionRunning ? (
@@ -1379,7 +1379,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: 6,
+              gap: "var(--mrd-s3)",
               color: "var(--mrd-agent)",
             }}
           >
@@ -1401,7 +1401,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
 
       {/* D4b · side-by-side checkpoint-diff vs the original (replay missions only). */}
       {data.mission.replayed_from_mission_id ? (
-        <div style={{ marginBottom: 16 }}>
+        <div style={{ marginBottom: "var(--mrd-s5)" }}>
           {/* Reveal-only, so it stays a plain button by the tier test: no
               work is done and nothing is unblocked; a comparison is shown. */}
           <button
@@ -1434,7 +1434,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
       ) : null}
 
       {/* Steps — plan list or live graph */}
-      <section style={{ ...LOOM_CARD, padding: "var(--card-pad)", marginBottom: 16 }}>
+      <section style={{ ...LOOM_CARD, padding: "var(--card-pad)", marginBottom: "var(--mrd-s5)" }}>
         <div
           style={{
             display: "flex",
@@ -1472,7 +1472,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             <div
               style={{
                 display: "flex",
-                gap: 2,
+                gap: "var(--mrd-s1)",
                 border: "1px solid var(--mrd-edge)",
                 borderRadius: 7,
                 padding: 2,
@@ -1543,15 +1543,15 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                 >
                   <span
                     className="mono-label tabular-nums"
-                    style={{ width: 18, textAlign: "right", marginTop: 2 }}
+                    style={{ width: 18, textAlign: "right", marginTop: "var(--mrd-s1)" }}
                   >
                     {i + 1}
                   </span>
-                  <span style={{ marginTop: 6 }}>
+                  <span style={{ marginTop: "var(--mrd-s3)" }}>
                     <StepDot status={stepDotStatus(s.status)} />
                   </span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "var(--mrd-s4)" }}>
                       <span className="mono-label" style={{ color: "var(--mrd-ink)" }}>
                         {s.agent}
                       </span>
@@ -1633,13 +1633,13 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           no gate because the agent's trust arc had earned auto. The counterpart to
           the gate above: that's what needs you; this is what already ran. */}
       {unattended.length > 0 ? (
-        <section style={{ ...LOOM_CARD, padding: "var(--card-pad)", marginBottom: 16 }}>
+        <section style={{ ...LOOM_CARD, padding: "var(--card-pad)", marginBottom: "var(--mrd-s5)" }}>
           <div
             style={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              marginBottom: 10,
+              marginBottom: "var(--mrd-s4)",
             }}
           >
             <MonoLabel icon={Bot}>Ran on its own</MonoLabel>
@@ -1686,7 +1686,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                         display: "block",
                         color: "var(--mrd-ink)",
                         lineHeight: "var(--mrd-lh-snug)",
-                        marginTop: 2,
+                        marginTop: "var(--mrd-s1)",
                       }}
                     >
                       {c.effect}
@@ -1754,8 +1754,8 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           style={{
             padding: "14px 16px",
             borderRadius: 10,
-            marginTop: 16,
-            marginBottom: 16,
+            marginTop: "var(--mrd-s5)",
+            marginBottom: "var(--mrd-s5)",
             background: "color-mix(in oklab, var(--mrd-fail) 7%, transparent)",
             border: "1px solid color-mix(in oklab, var(--mrd-fail) 35%, transparent)",
           }}
@@ -1766,7 +1766,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               color: "var(--mrd-fail)",
               display: "flex",
               alignItems: "center",
-              gap: 6,
+              gap: "var(--mrd-s3)",
               fontWeight: 700,
               whiteSpace: "normal",
             }}

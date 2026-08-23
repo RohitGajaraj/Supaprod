@@ -19,9 +19,7 @@
 
 import { traceRef } from "@/components/discover/format";
 import { Row } from "@/components/meridian/rows";
-import { Num } from "@/components/meridian/surface-parts";
-import { Value } from "@/components/shell/primitives";
-import { Region } from "@/components/meridian/surface-parts";
+import { Num, Region, Value } from "@/components/meridian/surface-parts";
 import type {
   ChainStep,
   ChainLinkStatus,

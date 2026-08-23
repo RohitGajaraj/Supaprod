@@ -28,17 +28,21 @@
  */
 
 import { Fragment } from "react";
-import { Num, Actions } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  Num,
+  ReadFailed,
+  Reading,
+  RecordSpeaks,
+  Region,
+} from "@/components/meridian/surface-parts";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { getAllAgentTrust, type AgentTrust } from "@/lib/trust.functions";
 import { ladderIndex, ladderLabel } from "@/lib/trust-ladder";
-import { Block, Button, Failed, Loading, // Aliased, as `_authenticated.crew.tsx` aliases it: the primitive is a value
-  // and the TypeScript utility type of the same name is used in this file, and
-  // one shadowing the other is a bug waiting to be written.
-  Record as RecordSays } from "@/components/shell/primitives";
 
 /** What each rung actually lets an agent do, in the words a person would use.
  *  One fact, said once. The ladder's own labels say WHICH rung; this says what
@@ -71,9 +75,9 @@ export function TrustDial({ infoById }: { infoById: Map<string, Info> }) {
 
   if (trustQ.isLoading && trust.length === 0) {
     return (
-      <Block title="What the record says">
-        <Loading>Reading what each one has earned.</Loading>
-      </Block>
+      <Region title="What the record says">
+        <Reading>Reading what each one has earned.</Reading>
+      </Region>
     );
   }
 
@@ -82,11 +86,11 @@ export function TrustDial({ infoById }: { infoById: Map<string, Info> }) {
   // it could not read the record at all.
   if (trustQ.isError) {
     return (
-      <Block title="What the record says">
-        <Failed onRetry={() => trustQ.refetch()}>
+      <Region title="What the record says">
+        <ReadFailed onRetry={() => trustQ.refetch()}>
           The record did not load, so nothing here can tell you whether a boundary is wrong.
-        </Failed>
-      </Block>
+        </ReadFailed>
+      </Region>
     );
   }
 
@@ -110,7 +114,7 @@ export function TrustDial({ infoById }: { infoById: Map<string, Info> }) {
   if (disagreements.length === 0) return null;
 
   return (
-    <Block
+    <Region
       title="What the record says"
       // What qualifies a row for this section, said once. The ladder itself is
       // NOT named here: each line below already says which rung it belongs at
@@ -125,7 +129,7 @@ export function TrustDial({ infoById }: { infoById: Map<string, Info> }) {
         const slug = d.info?.slug ?? null;
         return (
           <Fragment key={t.agent_id}>
-            <RecordSays
+            <RecordSpeaks
               evidence={
                 <>
                   <Num>{t.score}</Num> out of <Num>100</Num>, from <Num>{b.samples}</Num> signals
@@ -147,20 +151,20 @@ export function TrustDial({ infoById }: { infoById: Map<string, Info> }) {
               {d.direction === "up"
                 ? `${name} has earned more room than you have given it. On what it has actually done, it belongs at ${ladderLabel(t.suggested_arc)}, where ${ARC_MEANING[t.suggested_arc] ?? "it runs under that boundary"}.`
                 : `${name} has more room than its record backs. On what it has actually done, it belongs at ${ladderLabel(t.suggested_arc)}, where ${ARC_MEANING[t.suggested_arc] ?? "it runs under that boundary"}.`}
-            </RecordSays>
+            </RecordSpeaks>
             {slug ? (
               <Actions>
-                <Button
-                  variant="ghost"
+                <Action
+                  variant="quiet"
                   onClick={() => void navigate({ to: "/crew", search: { agent: slug } })}
                 >
                   {d.direction === "up" ? `Give ${name} that room` : `Pull ${name} back`}
-                </Button>
+                </Action>
               </Actions>
             ) : null}
           </Fragment>
         );
       })}
-    </Block>
+    </Region>
   );
 }

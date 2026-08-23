@@ -30,6 +30,8 @@ import { Row, Line } from "@/components/meridian/rows";
 import {
   Action,
   Actions,
+  Cell,
+  Grid,
   NothingYet,
   Num,
   Picker,
@@ -49,7 +51,6 @@ import {
   getEvalScoreTrends,
   getEvalCoverage,
 } from "@/lib/evals.functions";
-import { Cell, Grid } from "@/components/shell/primitives";
 // One source of truth for the canonical surface x prompt targets (shared with the EVAL-COVERAGE
 // scorer), so the "new suite" picker and the coverage map can never drift.
 import { EVAL_COVERAGE_TARGETS as SURFACE_KEYS } from "@/lib/evals/coverage";
