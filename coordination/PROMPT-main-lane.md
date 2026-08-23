@@ -255,6 +255,12 @@ guard rather than removing it**, so the decision stays enforced in its new direc
 
 ## THE STANDING LOOP — founder instruction, 2026-08-23 17:0x
 
+> **The half of this that the LANES must act on now lives in
+> `coordination/README.md` -> "The protocol", under CORRECTIONS, THREE FAILURES and
+> MIGRATIONS.** It was here first and that was wrong: neither lane reads this file, so a
+> rule written only here reaches nobody. Corrected on founder instruction 2026-08-23 18:0x.
+> What stays below is MAIN LANE's own duty list. Do not fork the shared rules back into it.
+
 Four duties. They run continuously, not once. Each exists because the failure it
 prevents has already happened in this repo.
 

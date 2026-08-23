@@ -108,6 +108,74 @@ others' handoff, because they all edited one file. One file per message cannot c
   answers. That is the whole linkage; there is no index to keep in sync.
 - Unit: `coordination/units/<NNN>-<slug>.md`, its own counter.
 
+### CORRECTIONS: how MAIN LANE routes work back to you, and how you close it
+
+Added 2026-08-23 on founder instruction, after the first correction cycle ran. It was
+written into `PROMPT-main-lane.md` first, which was wrong -- **that file is MAIN LANE's
+own prompt and neither lane reads it**, so a correction sitting there reaches nobody. It
+lives here because this is the protocol both lanes follow.
+
+**`coordination/answers/` carries no open/closed state.** Twenty-odd files sit there and
+no filename tells you whether one is an acceptance you can forget or a correction still
+waiting on you. So:
+
+- **The state is `coordination/STATUS.md` -> "PENDING CORRECTIONS".** One row per open
+  item: the file, what is wrong, what specifically closes it, and whether it is a defect
+  or a decision. That table is the only status; do not keep a second copy anywhere.
+- **`answers/000-OPEN-CORRECTIONS-READ-FIRST.md`** sorts to the top of the directory you
+  already check each unit, and points here. It holds no detail on purpose.
+- **Check it at the start of every unit**, in the same breath as `git pull`.
+
+**Closing a row:** push the fix, then name in your unit **which commit closed which `C-`
+number**. MAIN LANE verifies and moves the row. You do not edit `STATUS.md` -- it is
+MAIN LANE's file, and two writers on one board is the 08-22 failure.
+
+**A correction you think is wrong is a request, not a silent skip.** File it in
+`coordination/requests/`. Some rows are explicitly decisions rather than defects, and a
+reasoned refusal closes those as well as a fix does.
+
+**Fixing it better than the correction asked is correct and welcome.** `C-02` asked for
+one consumer's import to be dropped; LANE 0 instead fixed `MonoLabel` at its source, which
+cleared all 58 consumers at once. Say so in the unit so the reviewer checks the right
+thing.
+
+### THREE FAILURES THAT COST THIS RUN HOURS. They apply to both lanes.
+
+**1. `git add <file>` still commits whatever was already staged.** A worktree holding 25
+deleted video renders as disk cleanup will sweep them into a commit that claims to be a
+component port. `git diff-index HEAD` collapses "already staged" and "modified" into one
+column and cannot warn you. Read **`git diff-index --cached HEAD`** before committing, and
+prefer **`git commit -- <paths>`**, which commits only the paths you name whatever else is
+in the index.
+
+**2. Deletions that exist to free disk must never be committed.** Every worktree carries
+its own copy of `videos/` (~2GB). The blobs live in the shared object store, so any
+worktree can `git checkout` them back. Removing shared assets from the repo is a founder
+ruling, never a lane call.
+
+**3. Verify on the merged tree, not your own.** Your worktree is missing the other lane's
+work, so your green is not the product's green. And each gate gets its own command -- a
+pipe reports the exit code of its LAST stage, and `main` has shipped red exactly that way.
+
+### MIGRATIONS: the ledger loses rows, so check it before you write one
+
+**Lovable drops rows from `supabase_migrations.schema_migrations` while the schema change
+itself lands.** Found 2026-08-23: the repo held migrations through `20260823010000` while
+the ledger stopped at `20260820110000`. All seven missing migrations' effects were already
+live in production -- the schema was correct and current, and the ledger had lost them. Two
+older rows already read `created_by: "claude-lane: applied out of band via SQL, effect
+verified"`, so an earlier session hit the identical thing. It recurs.
+
+```sql
+SELECT version FROM supabase_migrations.schema_migrations ORDER BY version DESC LIMIT 5;
+-- compare against:  ls supabase/migrations/ | tail -5
+```
+
+**MAIN LANE applies them, one at a time, and only after querying for each migration's
+target objects.** Recording a half-applied migration as applied means it is never applied
+again, which is worse than the missing row. If you write a migration, say so in your unit
+so it gets checked rather than assumed.
+
 ### Request format
 
 ```markdown

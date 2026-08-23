@@ -319,6 +319,12 @@ already answered at 11:43 once its worktree was read directly. Nothing is waitin
 
 ## PENDING CORRECTIONS -- open work MAIN LANE is routing TO a lane
 
+> **ALL THREE ROWS CLOSED 2026-08-23 18:0x**, verified on the merged tree. `C-01` `Skip`
+> is `disabled` again; `C-02` was fixed **at source** -- `MonoLabel` now renders
+> `mrd-eyebrow` and `supaprod/Primitives.tsx` no longer imports obsidian at all, clearing
+> all 58 consumers rather than the one asked for; `C-03` decided in the safe direction.
+> Kept rather than deleted, because a correction cycle that leaves no trace teaches nobody.
+
 **This table is the open/closed state. `coordination/answers/` has no status in it**,
 so a lane reading 22 answer files cannot tell an acceptance from an outstanding
 correction. Read this before you pick up a unit. A row leaves this table only when
@@ -331,9 +337,9 @@ the lane that owns it pushes the fix and says which commit closed it.
 
 | # | Lane | File | What is wrong | What closes it | Status |
 | --- | --- | --- | --- | --- | --- |
-| **C-01** | LANE 0 | `src/components/brief/BriefFormationFlow.tsx:307` | `Skip` carries `busy={save.isPending}`, but its handler `advance()` is a synchronous `setPhase`. `Action` sets `aria-busy` from that prop, so a screen reader is told Skip is working while it is idle. Pre-port it was `disabled` and that was right. | Change `busy={save.isPending}` to `disabled={save.isPending}`. `busy` stays only on `Save and continue` and `Add bet`, which run the mutation. One word. | **OPEN** |
-| **C-02** | LANE 0 | `src/components/brief/BriefFormationFlow.tsx` + `src/styles.css:814` | `MonoLabel` moved from the Obsidian barrel to `@/components/supaprod/Primitives`, which is itself `import { FlashlightTabs } from "@/components/obsidian/flashlight-tabs"` and carries 17 `--ds-` of its own. It still renders `.mono-label`, painted with hard-coded `font-size: 10px` and `var(--text-subtle, #7d786f)` -- a retired token with a raw hex fallback. This file has **no ratchet baseline entry**, so no gate can see any of it. | Port onto `--mrd-t-nano` (10px uppercase micro-label) + `--mrd-mute`, and drop the `supaprod/Primitives` import so this file stops reaching Obsidian by proxy. **Take weight 650, not the class's 500** -- 10px uppercase does not hold at 500. Contrast improves: `--mrd-mute` is 5.36:1 against the class's 4.51:1. | **OPEN** |
-| **C-03** | LANE 0 | `BriefFormationFlow.tsx:300, 407, 480` | `Back` carries no `disabled`, so an in-flight save blocks `Skip`, which merely advances and is harmless, and leaves `Back` live, which abandons a versioned upsert mid-write. The harmless control is blocked and the destructive one is not. **Pre-existing, not a regression.** | A decision, not a fix. Either `disabled={save.isPending}` on all three, or a request saying why not. Do not leave it as an omission. | **OPEN — decision** |
+| **C-01** | LANE 0 | `src/components/brief/BriefFormationFlow.tsx:307` | `Skip` carries `busy={save.isPending}`, but its handler `advance()` is a synchronous `setPhase`. `Action` sets `aria-busy` from that prop, so a screen reader is told Skip is working while it is idle. Pre-port it was `disabled` and that was right. | Change `busy={save.isPending}` to `disabled={save.isPending}`. `busy` stays only on `Save and continue` and `Add bet`, which run the mutation. One word. | **CLOSED** 18:0x by `8775d41e1` / `f135f612c`, verified by MAIN LANE |
+| **C-02** | LANE 0 | `src/components/brief/BriefFormationFlow.tsx` + `src/styles.css:814` | `MonoLabel` moved from the Obsidian barrel to `@/components/supaprod/Primitives`, which is itself `import { FlashlightTabs } from "@/components/obsidian/flashlight-tabs"` and carries 17 `--ds-` of its own. It still renders `.mono-label`, painted with hard-coded `font-size: 10px` and `var(--text-subtle, #7d786f)` -- a retired token with a raw hex fallback. This file has **no ratchet baseline entry**, so no gate can see any of it. | Port onto `--mrd-t-nano` (10px uppercase micro-label) + `--mrd-mute`, and drop the `supaprod/Primitives` import so this file stops reaching Obsidian by proxy. **Take weight 650, not the class's 500** -- 10px uppercase does not hold at 500. Contrast improves: `--mrd-mute` is 5.36:1 against the class's 4.51:1. | **CLOSED** 18:0x by `8775d41e1` / `f135f612c`, verified by MAIN LANE |
+| **C-03** | LANE 0 | `BriefFormationFlow.tsx:300, 407, 480` | `Back` carries no `disabled`, so an in-flight save blocks `Skip`, which merely advances and is harmless, and leaves `Back` live, which abandons a versioned upsert mid-write. The harmless control is blocked and the destructive one is not. **Pre-existing, not a regression.** | A decision, not a fix. Either `disabled={save.isPending}` on all three, or a request saying why not. Do not leave it as an omission. | **CLOSED** 18:0x by `8775d41e1`, decision made: `Back` now blocks during a write |
 
 **Attribution on C-02:** MAIN LANE measured `--mrd-mute` at 5.36:1 for this exact
 question earlier today and never sent the ruling, so LANE 0 ported into a silence.
