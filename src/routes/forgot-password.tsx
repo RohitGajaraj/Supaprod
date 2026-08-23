@@ -56,7 +56,7 @@ function ForgotPasswordPage() {
           <Link
             to="/login"
             style={{
-              color: "var(--text-body)",
+              color: "var(--mrd-body)",
               textDecoration: "underline",
               textUnderlineOffset: 3,
             }}
@@ -71,13 +71,13 @@ function ForgotPasswordPage() {
           <p
             style={{
               fontSize: 12.5,
-              color: "var(--text-muted)",
+              color: "var(--mrd-mute)",
               margin: "4px 0 14px",
-              lineHeight: 1.55,
+              lineHeight: "var(--mrd-lh-prose)",
             }}
           >
             If an account exists for{" "}
-            <strong style={{ color: "var(--text-primary)" }}>{email}</strong>, the reset link is on
+            <strong style={{ color: "var(--mrd-ink)" }}>{email}</strong>, the reset link is on
             its way.
           </p>
           <button

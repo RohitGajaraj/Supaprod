@@ -504,9 +504,9 @@ function SignupPage() {
           <p
             style={{
               fontSize: 12,
-              color: "var(--text-subtle)",
+              color: "var(--mrd-mute)",
               marginTop: 10,
-              lineHeight: 1.5,
+              lineHeight: "var(--mrd-lh-snug)",
               maxWidth: 290,
             }}
           >
@@ -517,9 +517,9 @@ function SignupPage() {
             <p
               style={{
                 fontSize: 11.5,
-                color: "var(--text-muted)",
+                color: "var(--mrd-mute)",
                 marginTop: 8,
-                lineHeight: 1.5,
+                lineHeight: "var(--mrd-lh-snug)",
                 maxWidth: 290,
               }}
             >
@@ -535,7 +535,7 @@ function SignupPage() {
           <Link
             to="/login"
             style={{
-              color: "var(--text-body)",
+              color: "var(--mrd-body)",
               textDecoration: "underline",
               textUnderlineOffset: 3,
             }}
@@ -578,14 +578,14 @@ function SignupPage() {
       {hasCode ? (
         <div
           style={{
-            border: "1px solid var(--hairline)",
+            border: "1px solid var(--mrd-edge)",
             borderRadius: "var(--radius-card)",
-            background: "var(--raised)",
+            background: "var(--mrd-lift)",
             padding: "10px 12px",
             marginBottom: 14,
             fontSize: 12,
-            lineHeight: 1.5,
-            color: "var(--text-body)",
+            lineHeight: "var(--mrd-lh-snug)",
+            color: "var(--mrd-body)",
           }}
         >
           {/* Confirms the LINK WORKED and claims nothing beyond that. It has not
@@ -596,9 +596,9 @@ function SignupPage() {
       ) : (
         <div
           style={{
-            border: "1px solid var(--hairline)",
+            border: "1px solid var(--mrd-edge)",
             borderRadius: "var(--radius-card)",
-            background: "var(--raised)",
+            background: "var(--mrd-lift)",
             padding: "14px 14px 12px",
             marginBottom: 16,
           }}
@@ -606,9 +606,9 @@ function SignupPage() {
           <p
             style={{
               fontSize: 13.5,
-              color: "var(--text-primary)",
+              color: "var(--mrd-ink)",
               margin: "0 0 6px",
-              lineHeight: 1.45,
+              lineHeight: "var(--mrd-lh-snug)",
             }}
           >
             Invite only, for now
@@ -616,9 +616,9 @@ function SignupPage() {
           <p
             style={{
               fontSize: 12,
-              color: "var(--text-body)",
+              color: "var(--mrd-body)",
               margin: "0 0 12px",
-              lineHeight: 1.55,
+              lineHeight: "var(--mrd-lh-prose)",
             }}
           >
             {/* 45 words down to 21, founder 2026-08-07: "it looks like a paragraph".
@@ -640,9 +640,9 @@ function SignupPage() {
           <p
             style={{
               fontSize: 11.5,
-              color: "var(--text-subtle)",
+              color: "var(--mrd-mute)",
               margin: "10px 0 0",
-              lineHeight: 1.5,
+              lineHeight: "var(--mrd-lh-snug)",
             }}
           >
             Already have one? Paste it below. The whole invite link works too.
@@ -691,7 +691,7 @@ function SignupPage() {
             <a
               href={REQUEST_ACCESS_HREF}
               style={{
-                color: "var(--text-body)",
+                color: "var(--mrd-body)",
                 textDecoration: "underline",
                 textUnderlineOffset: 3,
               }}
@@ -707,7 +707,7 @@ function SignupPage() {
           // moment it is worth the most.
           <p
             id="signup-invite-help"
-            style={{ fontSize: 11.5, color: "var(--text-subtle)", margin: 0, lineHeight: 1.5 }}
+            style={{ fontSize: 11.5, color: "var(--mrd-mute)", margin: 0, lineHeight: "var(--mrd-lh-snug)" }}
           >
             Codes are not case sensitive, and pasting the whole invite link is fine.
           </p>
@@ -732,11 +732,11 @@ function SignupPage() {
         )}
       </button>
       <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "16px 0" }}>
-        <span style={{ flex: 1, height: 1, background: "var(--hairline)" }}></span>
+        <span style={{ flex: 1, height: 1, background: "var(--mrd-edge)" }}></span>
         <span className="mono-label" style={{ fontSize: 8.5 }}>
           or
         </span>
-        <span style={{ flex: 1, height: 1, background: "var(--hairline)" }}></span>
+        <span style={{ flex: 1, height: 1, background: "var(--mrd-edge)" }}></span>
       </div>
       <form onSubmit={signup}>
         <label htmlFor="signup-email" className="mono-label" style={fieldLabelStyle}>
@@ -784,13 +784,13 @@ function SignupPage() {
             onClick={() => setShowPassword((s) => !s)}
             aria-label={showPassword ? "Hide password" : "Show password"}
             aria-pressed={showPassword}
-            className="loom-press transition-colors hover:[color:var(--text-primary)]"
+            className="loom-press transition-colors hover:[color:var(--mrd-ink)]"
             style={{
               position: "absolute",
               right: 10,
               top: "50%",
               transform: "translateY(-50%)",
-              color: "var(--text-subtle)",
+              color: "var(--mrd-mute)",
               display: "flex",
             }}
           >

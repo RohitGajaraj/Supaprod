@@ -87,9 +87,9 @@ function ResetPasswordPage() {
           <p
             style={{
               fontSize: 12.5,
-              color: "var(--text-muted)",
+              color: "var(--mrd-mute)",
               margin: "4px 0 14px",
-              lineHeight: 1.55,
+              lineHeight: "var(--mrd-lh-prose)",
             }}
           >
             Your password is updated. You are signed in with it now.
@@ -116,14 +116,14 @@ function ResetPasswordPage() {
             size={16}
             className="animate-spin"
             aria-hidden="true"
-            style={{ color: "var(--text-subtle)" }}
+            style={{ color: "var(--mrd-mute)" }}
           />
           <p
             style={{
               fontSize: 12.5,
-              color: "var(--text-muted)",
+              color: "var(--mrd-mute)",
               margin: "4px 0",
-              lineHeight: 1.55,
+              lineHeight: "var(--mrd-lh-prose)",
             }}
           >
             Checking your reset link.
@@ -134,9 +134,9 @@ function ResetPasswordPage() {
           <p
             style={{
               fontSize: 12.5,
-              color: "var(--text-muted)",
+              color: "var(--mrd-mute)",
               margin: "4px 0 14px",
-              lineHeight: 1.55,
+              lineHeight: "var(--mrd-lh-prose)",
             }}
           >
             This reset link is invalid or has expired.
@@ -177,13 +177,13 @@ function ResetPasswordPage() {
               onClick={() => setShowPassword((s) => !s)}
               aria-label={showPassword ? "Hide password" : "Show password"}
               aria-pressed={showPassword}
-              className="loom-press transition-colors hover:[color:var(--text-primary)]"
+              className="loom-press transition-colors hover:[color:var(--mrd-ink)]"
               style={{
                 position: "absolute",
                 right: 10,
                 top: "50%",
                 transform: "translateY(-50%)",
-                color: "var(--text-subtle)",
+                color: "var(--mrd-mute)",
                 display: "flex",
               }}
             >

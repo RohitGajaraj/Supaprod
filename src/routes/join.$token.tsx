@@ -38,12 +38,12 @@ const surface: CSSProperties = {
   justifyContent: "center",
   padding: 24,
   background: "var(--canvas)",
-  color: "var(--text-primary)",
+  color: "var(--mrd-ink)",
 };
 
 const card: CSSProperties = {
   background: "var(--card)",
-  border: "1px solid var(--hairline)",
+  border: "1px solid var(--mrd-edge)",
   borderRadius: "var(--radius-card, 12px)",
   boxShadow: "var(--shadow-elevated)",
   padding: 32,
@@ -99,8 +99,8 @@ function JoinPage() {
 
         {(state.kind === "checking" || state.kind === "accepting") && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
-            <Loader2 size={20} className="animate-spin" style={{ color: "var(--text-subtle)" }} />
-            <p style={{ fontSize: 14, color: "var(--text-muted)" }}>
+            <Loader2 size={20} className="animate-spin" style={{ color: "var(--mrd-mute)" }} />
+            <p style={{ fontSize: 14, color: "var(--mrd-mute)" }}>
               {state.kind === "checking" ? "Checking your invitation" : "Joining the workspace"}
             </p>
           </div>
@@ -110,16 +110,16 @@ function JoinPage() {
           <div>
             <h1
               className="font-display"
-              style={{ fontSize: 20, color: "var(--text-primary)", marginBottom: 8 }}
+              style={{ fontSize: 20, color: "var(--mrd-ink)", marginBottom: 8 }}
             >
               You have a workspace invitation
             </h1>
             <p
               style={{
                 fontSize: 13,
-                color: "var(--text-muted)",
+                color: "var(--mrd-mute)",
                 marginBottom: 18,
-                lineHeight: 1.55,
+                lineHeight: "var(--mrd-lh-prose)",
               }}
             >
               Log in or sign up with the email it was sent to. You will land right back here to
@@ -141,9 +141,9 @@ function JoinPage() {
             <p
               style={{
                 fontSize: 12,
-                color: "var(--text-subtle)",
+                color: "var(--mrd-mute)",
                 marginBottom: 18,
-                lineHeight: 1.55,
+                lineHeight: "var(--mrd-lh-prose)",
               }}
             >
               If you do not have a Supaprod account yet, you will need a beta invite code as well.
@@ -187,11 +187,11 @@ function JoinPage() {
             </div>
             <h1
               className="font-display"
-              style={{ fontSize: 20, color: "var(--text-primary)", marginBottom: 8 }}
+              style={{ fontSize: 20, color: "var(--mrd-ink)", marginBottom: 8 }}
             >
               You are in
             </h1>
-            <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 18 }}>
+            <p style={{ fontSize: 13, color: "var(--mrd-mute)", marginBottom: 18 }}>
               You have joined the workspace.
             </p>
             <button
@@ -208,16 +208,16 @@ function JoinPage() {
           <div>
             <h1
               className="font-display"
-              style={{ fontSize: 20, color: "var(--text-primary)", marginBottom: 8 }}
+              style={{ fontSize: 20, color: "var(--mrd-ink)", marginBottom: 8 }}
             >
               This invitation could not be accepted
             </h1>
             <p
               style={{
                 fontSize: 13,
-                color: "var(--text-muted)",
+                color: "var(--mrd-mute)",
                 marginBottom: 18,
-                lineHeight: 1.55,
+                lineHeight: "var(--mrd-lh-prose)",
               }}
             >
               {state.message}

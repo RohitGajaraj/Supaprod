@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 2800,
-  "fileCount": 219,
+  "totalOccurrences": 2756,
+  "fileCount": 214,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "--text-": 16,
@@ -820,20 +820,9 @@
       "--font-pixel": 1,
       "raw-colour": 2
     },
-    "src/routes/forgot-password.tsx": {
-      "--text-": 3
-    },
     "src/routes/index.tsx": {
       "data-obsidian": 1,
       "raw-colour": 7
-    },
-    "src/routes/join.$token.tsx": {
-      "--text-": 10,
-      "--hairline": 1
-    },
-    "src/routes/login.tsx": {
-      "--text-": 5,
-      "--hairline": 2
     },
     "src/routes/pricing.tsx": {
       "raw-colour": 5
@@ -851,16 +840,8 @@
       "--hairline": 3,
       "raw-colour": 14
     },
-    "src/routes/reset-password.tsx": {
-      "--text-": 6
-    },
     "src/routes/security.tsx": {
       "raw-colour": 4
-    },
-    "src/routes/signup.tsx": {
-      "--text-": 11,
-      "--hairline": 4,
-      "--raised": 2
     },
     "src/routes/subprocessors.tsx": {
       "--hairline": 2

@@ -169,9 +169,9 @@ function LoginPage() {
         <p
           style={{
             fontSize: 12,
-            color: "var(--text-subtle)",
+            color: "var(--mrd-mute)",
             marginTop: 10,
-            lineHeight: 1.5,
+            lineHeight: "var(--mrd-lh-snug)",
             maxWidth: 290,
           }}
         >
@@ -205,7 +205,7 @@ function LoginPage() {
           <Link
             to="/signup"
             style={{
-              color: "var(--text-body)",
+              color: "var(--mrd-body)",
               textDecoration: "underline",
               textUnderlineOffset: 3,
             }}
@@ -216,7 +216,7 @@ function LoginPage() {
           <Link
             to="/forgot-password"
             style={{
-              color: "var(--text-body)",
+              color: "var(--mrd-body)",
               textDecoration: "underline",
               textUnderlineOffset: 3,
             }}
@@ -247,11 +247,11 @@ function LoginPage() {
         )}
       </button>
       <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "16px 0" }}>
-        <span style={{ flex: 1, height: 1, background: "var(--hairline)" }}></span>
+        <span style={{ flex: 1, height: 1, background: "var(--mrd-edge)" }}></span>
         <span className="mono-label" style={{ fontSize: 8.5 }}>
           or
         </span>
-        <span style={{ flex: 1, height: 1, background: "var(--hairline)" }}></span>
+        <span style={{ flex: 1, height: 1, background: "var(--mrd-edge)" }}></span>
       </div>
       <form onSubmit={signInEmail}>
         <label htmlFor="login-email" className="mono-label" style={fieldLabelStyle}>
@@ -298,13 +298,13 @@ function LoginPage() {
             onClick={() => setShowPassword((s) => !s)}
             aria-label={showPassword ? "Hide password" : "Show password"}
             aria-pressed={showPassword}
-            className="loom-press transition-colors hover:[color:var(--text-primary)]"
+            className="loom-press transition-colors hover:[color:var(--mrd-ink)]"
             style={{
               position: "absolute",
               right: 10,
               top: "50%",
               transform: "translateY(-50%)",
-              color: "var(--text-subtle)",
+              color: "var(--mrd-mute)",
               display: "flex",
             }}
           >
