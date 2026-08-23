@@ -1541,10 +1541,14 @@ function SpecEditorPage() {
                 the day that exists, not before.
 
                 `.sp-ctx-row` IS GONE AND ITS GEOMETRY IS NOT: flex, 10px gap,
-                start-aligned, 8px of vertical padding, row leading at 1.4. The
-                class was doing the work; the numbers are the design, so they are
-                written out rather than rounded onto a nearby Meridian stop. */}
-              <div className="flex w-full items-start gap-2.5 py-2 leading-[1.4]">
+                start-aligned, 8px of vertical padding. The class was doing the
+                work; the numbers are the design, so they are written out rather
+                than rounded onto a nearby Meridian stop. Its row leading was
+                also written out as 1.4, until the scale gained `--mrd-lh-snug`
+                at 1.5, raised from 1.4 on purpose because rows read stuck
+                together there. This row now says the token rather than the
+                number it superseded. */}
+              <div className="flex w-full items-start gap-2.5 py-2 leading-mrd-snug">
                 <AgentMark slug="critic" state="quiet" />
                 <span>
                   <CriticBadge
@@ -1597,17 +1601,19 @@ function SpecEditorPage() {
               page-title stops and keeps a resting rule to say it can be typed
               in.
 
-              `.sp-title` IS GONE AND ITS TYPE IS NOT: 25px on 1.24 at -0.028em
-              in 600, which is the page-title rung. Meridian bridges neither the
+              `.sp-title` IS GONE AND ITS TYPE IS NOT: 25px at -0.028em in
+              600, which is the page-title rung. Meridian bridges neither the
               type scale nor the weight scale, so those are written as the values
               they already rendered at rather than rounded to make the port
-              tidier. The 56ch here beat `.sp-title`'s own 34ch max and still
-              does. */}
+              tidier. Its leading of 1.24 has no such excuse any more: the
+              scale's heading stop is `--mrd-lh-tight`, and this input now says
+              that token instead of the number it was preserving. The 56ch here
+              beat `.sp-title`'s own 34ch max and still does. */}
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             aria-label="Spec title"
-            className="w-full max-w-[56ch] rounded-none border-0 border-b border-mrd-line-soft bg-transparent px-0 pt-0 pb-1.5 text-mrd-h2 leading-[1.24] font-[600] text-mrd-ink outline-none focus:border-mrd-mute"
+            className="w-full max-w-[56ch] rounded-none border-0 border-b border-mrd-line-soft bg-transparent px-0 pt-0 pb-1.5 text-mrd-h2 leading-mrd-tight font-[600] text-mrd-ink outline-none focus:border-mrd-mute"
             style={{ letterSpacing: "-0.028em" }}
           />
           {/* Two facts, never the same one twice: what state it is in, and when
@@ -1915,7 +1921,7 @@ function SpecEditorPage() {
                   aria-label="Spec body, markdown"
                   spellCheck={false}
                   rows={26}
-                  className="w-full min-h-20 resize-y rounded-mrd-ctl border border-mrd-field bg-mrd-sink px-3 py-2.5 text-mrd-prose leading-[1.55] text-mrd-ink transition-colors placeholder:text-mrd-faint focus:border-mrd-field-focus focus:outline-none"
+                  className="w-full min-h-20 resize-y rounded-mrd-ctl border border-mrd-field bg-mrd-sink px-3 py-2.5 text-mrd-prose leading-mrd-prose text-mrd-ink transition-colors placeholder:text-mrd-faint focus:border-mrd-field-focus focus:outline-none"
                   style={{
                     fontFamily: "var(--mrd-mono)",
                     maxWidth: PROSE_MEASURE,

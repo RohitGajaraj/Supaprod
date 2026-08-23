@@ -102,10 +102,10 @@
      when this layer does.
      `--sp-font-sans` is GONE, 2026-08-20: its last seven readers were the seven
      `font-family` declarations in `primitives.css` and `today.css`, and all
-     seven now say `var(--mrd-font)` outright. `--sp-font-mono` stays because
-     `.sp-num` below still reads it, and so do five files under `src/` that this
-     item does not own. */
-  --sp-font-mono: var(--mrd-mono);
+     seven now say `var(--mrd-font)` outright. `--sp-font-mono` is GONE with it,
+     2026-08-23: its last two readers were the mono cells on the admin landing
+     table, now on `var(--font-mono)`, which resolves through Meridian's
+     `--mrd-mono` exactly as this alias did. */
 
   /* ---- Type scale ----
    * ALIASED ONTO MERIDIAN, 2026-08-23, per ANS-001 (coordination/answers/

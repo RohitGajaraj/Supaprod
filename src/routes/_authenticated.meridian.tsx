@@ -1055,7 +1055,7 @@ function SelectionCase({ phase, error }: { phase: SelectionPhase; error?: string
 
   return (
     <div ref={host} className="relative pb-14">
-      <p className="text-mrd-base leading-[1.75] text-mrd-prose text-mrd-body" style={{ maxWidth: "46ch" }}>
+      <p className="mrd-copy" style={{ maxWidth: "46ch" }}>
         The banner appears when the panel reports a reboot and disappears on its own once the panel
         answers again.{" "}
         <span ref={mark}>

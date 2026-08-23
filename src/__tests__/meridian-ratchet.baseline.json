@@ -15,7 +15,7 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 2721,
+  "totalOccurrences": 2718,
   "fileCount": 212,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
@@ -723,7 +723,6 @@
       "usage:shell/primitives": 6
     },
     "src/routes/_authenticated.admin.landing.tsx": {
-      "--sp-": 2,
       "import:shell/primitives": 1,
       "usage:shell/primitives": 10
     },
@@ -862,7 +861,7 @@
       "--sp-": 1
     },
     "src/styles/ink.css": {
-      "--sp-": 69,
+      "--sp-": 68,
       "raw-colour": 52
     },
     "src/styles/meridian.css": {

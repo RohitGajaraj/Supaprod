@@ -272,7 +272,7 @@ function AdminLanding() {
         ) : (
           f.referrers.map((r) => (
             <Row
-              key={r.host ?? " missing"}
+              key={r.host ?? "\0missing"}
               tight
               lead={
                 r.host === null ? (
@@ -280,7 +280,7 @@ function AdminLanding() {
                 ) : r.host === "" ? (
                   "No referrer sent"
                 ) : (
-                  <span style={{ fontFamily: "var(--sp-font-mono)" }}>{r.host}</span>
+                  <span style={{ fontFamily: "var(--font-mono)" }}>{r.host}</span>
                 )
               }
               // Only the two ambiguous buckets get a sub-line. A named hostname
@@ -315,13 +315,13 @@ function AdminLanding() {
         ) : (
           f.sources.map((s) => (
             <Row
-              key={s.source ?? " missing"}
+              key={s.source ?? "\0missing"}
               tight
               lead={
                 s.source === null ? (
                   "No source recorded"
                 ) : (
-                  <span style={{ fontFamily: "var(--sp-font-mono)" }}>{s.source}</span>
+                  <span style={{ fontFamily: "var(--font-mono)" }}>{s.source}</span>
                 )
               }
               sub={
