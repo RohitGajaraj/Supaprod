@@ -269,6 +269,14 @@ docs/pitch/shareables/*.mov
 .claude/skills/brag
 .kiro/skills/brag
 
+# vercel/ai's use-ai-sdk skill, installed 2026-08-23. skills-lock.json pins it by hash
+# (2d6ed9b89) so a fresh checkout reinstalls the identical file; the materialised SKILL.md
+# is an install artifact. Ignored because a permanently untracked path is not free here:
+# both lanes are told to read `git status --porcelain` in a quiet worktree to spot a request
+# written and never pushed, and every standing `??` line makes that signal harder to read.
+.claude/skills/ai-sdk
+.kiro/skills/ai-sdk
+
 # Python bytecode. scripts/ carries funding-sync.py, rank-funding-programmes.py and
 # check-application-sources.py; importing any of them writes a __pycache__ that was
 # showing up as untracked and would eventually be committed by a wide git add.

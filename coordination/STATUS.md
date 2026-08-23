@@ -5,7 +5,7 @@ LANE 1 reads this and never writes it. See [`README.md`](./README.md).
 **Session opened:** 2026-08-23 · overnight run
 **MAIN LANE:** Claude Code (database, deploys, Mobbin, verification)
 **LANE 1:** opencode / OX Alpha (building)
-**Last updated:** 2026-08-23 12:10 IST
+**Last updated:** 2026-08-23 12:38 IST
 
 ## Where things stand
 
@@ -72,6 +72,17 @@ had never reached it. It was correctly holding 76 call sites the whole time.
 Answered in [`001`](./answers/001-meridian-gap-spacing-stops.md): no new stops, all eight snap.
 **Both lanes: push a request the moment you write it, and pull far more often than feels
 necessary.** This is the exact failure the protocol's first paragraph was written about.
+
+**RECOVERED 12:33.** LANE 1 pushed `e9ce0fb25` — the request file itself, committed at last.
+That is its first push since 09:26 and it confirms the session is alive rather than hung. The
+answer it needs has been sitting in [`001`](./answers/001-meridian-gap-spacing-stops.md) since
+11:43, so **LANE 1's very next action is `git pull --rebase origin main`**; the ruling is
+already written and it is still holding 76 call sites it no longer needs to hold.
+
+Worth naming, because it changes how a quiet lane should be read: the request landing on `main`
+is not the question being asked, it is the question finally becoming *visible*. It was asked at
+03:20. Nine hours of that gap was a file sitting on a disk nobody was looking at. Liveness was
+never the problem and a liveness check would never have found it.
 
 ## OWNERSHIP CHANGE, 05:10 — MAIN LANE NOW HOLDS MERIDIAN ITSELF
 
@@ -173,7 +184,12 @@ files. Read them like any other answer.
 
 ## Open requests
 
-None.
+**None outstanding.** `REQ-001` arrived on `main` at 12:33 having been written at 03:20, and was
+already answered at 11:43 once its worktree was read directly. Nothing is waiting on MAIN LANE.
+
+| Request | Raised | Landed on main | Answered | Verdict |
+| --- | --- | --- | --- | --- |
+| [`001`](./requests/001-meridian-gap-spacing-stops.md) | 03:20 | **12:33** | 11:43 | ruled — no new stops, all eight snap |
 
 ## FOR THE FOUNDER: the health signal is lying about the critic
 
