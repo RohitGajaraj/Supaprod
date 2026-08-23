@@ -5,7 +5,7 @@ LANE 1 reads this and never writes it. See [`README.md`](./README.md).
 **Session opened:** 2026-08-23 · overnight run
 **MAIN LANE:** Claude Code (database, deploys, Mobbin, verification)
 **LANE 1:** opencode / OX Alpha (building)
-**Last updated:** 2026-08-23 12:55 IST
+**Last updated:** 2026-08-23 13:30 IST
 
 ## Where things stand
 
@@ -178,10 +178,46 @@ files. Read them like any other answer.
 | [`M05`](./answers/M05-the-founders-test-run-against-the-live-site.md) | The founder's test measured on the deployed site. `/pricing` renders 107 pieces of text in 23 treatments; `/demo` manages 16 in 7 and is your reference. Carries the re-runnable measurement. |
 | [`M06`](./answers/M06-the-deploy-path-is-proven-and-here-is-how.md) | Deploy exercised end to end on a docs-only change. `pending` is not a deployment, the published host redirects, and every live check needs a negative control. **Read before filing your first `deploy` request.** |
 | [`M10`](./answers/M10-the-untiered-controls-are-yours-and-here-is-the-real-number.md) | **Corrects M07's 451 to 337.** A raw `<button>` inside Meridian is usually the primitive's own implementation and should not have been counted. The real gap is 337 on your surfaces, ranked by file. |
+| [`M13`](./answers/M13-leading-snug-is-not-meridians-snug.md) | **BOTH LANES, BEFORE YOUR NEXT PORT.** `leading-snug` is Tailwind's 1.375, not Meridian's 1.5, and `leading-tight` is 1.25 not 1.15. **138 bare Tailwind leadings sit in your directories** and are in no guard. Convert as you port, same commit. |
 | [`M12`](./answers/M12-the-retrieval-index-can-return-one-row.md) | **`match_rag_chunks` can return at most ONE row, database-wide.** 16 of 17 `rag_chunks` have a NULL embedding and the reader excludes those; nothing written since 2026-08-09. Also corrects two columns that lie about loop health. **Neither lane's job — do not stop porting for it.** |
 | [`M08`](./answers/M08-meridian-has-text-roles-now-use-them.md) | **READ BEFORE PORTING ANY SURFACE.** Meridian has five TEXT ROLES now: eyebrow, title, subtitle, copy, meta. Stop assembling size + weight + colour by hand. |
 | [`U000`](./answers/U000-reading-notes-and-plan.md) | Verifies unit 000. Accepted. Corrects "14 steps" to **13**, "113 tokens" to **107**, and flags a route count with no query. |
 | [`M07`](./answers/M07-tiered-buttons-already-exist-and-are-half-adopted.md) | **REFUTES ranked win #2.** Tiered buttons already exist: `ActionVariant = default \| primary \| quiet \| destructive`, plus `Approve` as its own component. **Do not build a `Button`.** The defect is that **451 of 954 controls bypass them**. |
+
+## MERIDIAN, 13:30 — THE LEADING FAMILY THAT WAS DOCUMENTED AND NEVER BUILT
+
+`meridian.css` has told authors since before this run that
+*"`text-mrd-base leading-mrd-body` composes and neither surprises the other"*. **No
+`leading-mrd-*` utility had ever existed**, and `--mrd-lh-body` is not in the family either, which
+is tight / snug / prose / mono. An author who read the rule and obeyed it emitted no rule at all
+and silently inherited the parent's leading.
+
+**The reason it had to exist is a name collision that was costing air.** Tailwind's `leading-snug`
+is **1.375**; Meridian's `--mrd-lh-snug` is **1.5**. Tailwind's `leading-tight` is **1.25**;
+Meridian's is **1.15**. Six components sat on the first and four on the second, all reading as
+though they were on scale.
+
+**The snug half is the founder's complaint with a number on it.** `--mrd-lh-snug` carries its own
+reason: *"was 1.4; the reference's air lives here"*. It was raised deliberately to stop rows
+reading as stuck together, and those six components were rendering at **1.375, tighter than the
+1.4 that ruling replaced**. They had gone backwards past the starting point.
+
+| what landed | commit |
+| --- | --- |
+| `leading-mrd-tight / snug / prose / mono` built, stale comment corrected | `b7d2c4021` |
+| 31 sites moved onto the scale, 6 hand-written literals snapped to their token | `b7d2c4021` |
+| A guard that resolves each class through `meridian.css` to its number, proven by injection | `b7d2c4021` |
+| `Line`'s wrapped `sub` stops inheriting a leading measured for the row's box | `45af3ef12` |
+
+**Three leadings stay off scale on purpose**, each listed in the guard with its reason.
+`leading-[1.4]` on `Line`'s container is measured (46.9px down to 40.9px) and is **not to be
+rounded**. `leading-[18px]` keeps a textarea's caret on its text. `leading-none` has one caller and
+does not earn a token, under the same second-caller rule that answered `REQ-001`.
+
+Gates on the merged tree: `tsc` 0 · **10,637 pass / 0 fail** · `lint` 0 · `docs:check` 0 · ratchet
+untouched at 2,868 (none of this is a retired marker, so the ratchet is correctly blind to it,
+which is the same blindness [`M04`](./answers/M04-the-ratchet-cannot-see-the-founders-pain-point.md)
+recorded).
 
 ## Open requests
 
