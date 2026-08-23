@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { glyphForSlug } from "@/components/shell/agent-glyphs";
-import { Action, CONTROL_SHAPE, Eyebrow } from "@/components/meridian/surface-parts";
+import { Action, ACTION_LINK_FACE, CONTROL_SHAPE, Eyebrow } from "@/components/meridian/surface-parts";
 import { agentBlurb, agentDisplayName } from "@/lib/agent-vocabulary";
 import type { RunState } from "./run-state";
 
@@ -251,8 +251,11 @@ export function PersonMark({ initials, mine = false }: { initials: string; mine?
  * `react-refresh/only-export-components` runs with `allowConstantExport`, so a
  * module that exports components may also export a constant and may not export a
  * helper.
+ *
+ * Aliases `ACTION_LINK_FACE.default`, verified byte-identical at the 2026-08-23
+ * swap, so the string is owned in one place.
  */
-export const LINK_AS_CONTROL = `${CONTROL_SHAPE} border border-mrd-line bg-mrd-lift text-mrd-body hover:bg-mrd-lift-hover hover:text-mrd-ink`;
+export const LINK_AS_CONTROL = ACTION_LINK_FACE.default;
 
 /**
  * MERIDIAN'S `Action` UNDER THE NAME A GUARD READS, and nothing else.

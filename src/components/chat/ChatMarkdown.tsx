@@ -104,7 +104,7 @@ const components: Components = {
   li: ({ children }) => <li className="leading-mrd-prose">{children}</li>,
   h1: ({ children }) => <h1 className="mb-2 mt-4 text-heading-16 text-foreground">{children}</h1>,
   h2: ({ children }) => (
-    <h2 className="mb-1.5 mt-4 text-[15px] font-semibold text-foreground">{children}</h2>
+    <h2 className="mb-1.5 mt-4 text-mrd-prose font-semibold text-foreground">{children}</h2>
   ),
   h3: ({ children }) => <h3 className="mb-1 mt-3 text-heading-14 text-foreground">{children}</h3>,
   h4: ({ children }) => <h4 className="mb-1 mt-3 text-heading-14 text-foreground">{children}</h4>,

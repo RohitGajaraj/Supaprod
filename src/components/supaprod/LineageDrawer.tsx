@@ -374,7 +374,7 @@ export function LineageDrawer({
         className="sm:max-w-md overflow-y-auto bg-mrd-sheet font-mrd text-mrd-prose text-mrd-body"
       >
         <SheetHeader>
-          <SheetTitle className="flex items-center gap-2 text-[15px] font-medium text-mrd-ink">
+          <SheetTitle className="flex items-center gap-2 text-mrd-prose font-medium text-mrd-ink">
             <GitBranch className="h-4 w-4 text-mrd-mute" /> Lineage
           </SheetTitle>
           <SheetDescription className="text-mrd-label leading-mrd-prose text-mrd-mute">

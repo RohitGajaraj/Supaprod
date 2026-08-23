@@ -224,7 +224,7 @@ export function FigureCard({
       className="rounded-mrd-card border border-mrd-line bg-mrd-sheet px-mrd-5 py-mrd-4"
     >
       <Eyebrow>{label}</Eyebrow>
-      <p className={`font-mrd-mono mt-mrd-2 text-[25px] leading-mrd-tight tabular-nums ${ink}`}>
+      <p className={`font-mrd-mono mt-mrd-2 text-mrd-h2 leading-mrd-tight tabular-nums ${ink}`}>
         {value}
       </p>
       {note ? <p className="mt-mrd-1 text-mrd-small text-mrd-mute">{note}</p> : null}

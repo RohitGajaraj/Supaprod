@@ -89,12 +89,12 @@ export function MissionOnboarding() {
           Step one of one
         </p>
         <h1
-          className="mt-3 text-[26px] font-medium leading-mrd-tight"
+          className="mt-3 text-mrd-h2 font-medium leading-mrd-tight"
           style={{ color: "var(--ink-text)" }}
         >
           What are you building?
         </h1>
-        <p className="mt-2 text-[13.5px] leading-[1.55]" style={{ color: "var(--ink-subtle)" }}>
+        <p className="mt-2 text-mrd-prose leading-[1.55]" style={{ color: "var(--ink-subtle)" }}>
           Tell me in a sentence and your agents open on your world instead of a blank page. No clean
           answer yet? Walk in and tell me later. You're already inside.
         </p>
@@ -109,7 +109,7 @@ export function MissionOnboarding() {
           rows={3}
           maxLength={2000}
           placeholder="A money app that helps people save without thinking about it."
-          className="ink-focus mt-5 w-full resize-none rounded-xl border bg-[var(--ink-panel)] px-4 py-3 text-[15px] leading-[1.5]"
+          className="ink-focus mt-5 w-full resize-none rounded-xl border bg-[var(--ink-panel)] px-4 py-3 text-mrd-prose leading-[1.5]"
           style={{ borderColor: "var(--ink-hairline)", color: "var(--ink-text)" }}
         />
 
@@ -119,7 +119,7 @@ export function MissionOnboarding() {
             type="button"
             disabled={busy}
             onClick={() => enter.mutate()}
-            className="ink-focus inline-flex h-10 items-center rounded-lg px-4 text-[13.5px] font-medium transition-opacity disabled:opacity-40"
+            className="ink-focus inline-flex h-10 items-center rounded-lg px-4 text-mrd-base font-medium transition-opacity disabled:opacity-40"
             style={{ background: "var(--voice-human)", color: "#0a0a0a" }}
           >
             {enter.isPending ? "Opening…" : hasAnswer ? "Continue" : "Walk me in"}

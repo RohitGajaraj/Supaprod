@@ -316,7 +316,7 @@ function GatePanel({
       <div
         className="fade-up"
         style={{
-          padding: "14px 16px",
+          padding: "var(--mrd-s5)",
           borderRadius: 10,
           background: "color-mix(in oklab, var(--mrd-you) 9%, transparent)",
           border: "1px solid color-mix(in oklab, var(--mrd-you) 35%, transparent)",
@@ -339,7 +339,7 @@ function GatePanel({
             <p
               style={{
                 color: "var(--mrd-ink)",
-                margin: "6px 0 12px",
+                margin: "var(--mrd-s3) 0 var(--mrd-s4)",
                 lineHeight: "var(--mrd-lh-snug)",
               }}
             >
@@ -400,6 +400,8 @@ function GatePanel({
    cornflower to literal status chips and links, and a hop handoff is
    structural metadata, not a live-status signal). */
 const rail: CSSProperties = {
+  // 22px aligns the rail's text with the chevron-plus-label column above;
+  // it is geometry, not rhythm, so it stays a literal.
   paddingLeft: 22,
   borderLeft: "1px solid var(--mrd-edge)",
   marginLeft: 5,
@@ -409,7 +411,7 @@ const preStyle: CSSProperties = {
   background: "var(--mrd-sink)",
   border: "1px solid var(--mrd-edge)",
   borderRadius: 8,
-  padding: 10,
+  padding: "var(--mrd-s4)",
   lineHeight: "var(--mrd-lh-mono)",
   whiteSpace: "pre-wrap",
   wordBreak: "break-word",
@@ -426,7 +428,7 @@ const handoffChip: CSSProperties = {
   border: "1px solid var(--mrd-edge)",
   background: "var(--mrd-lift)",
   borderRadius: 99,
-  padding: "2px 8px",
+  padding: "var(--mrd-s1) var(--mrd-s3)",
 };
 /* The pressable variant of the chip: color + background move into the class
    (CHIP_BTN) so hover states can resolve — inline always beats a stylesheet
@@ -437,7 +439,7 @@ const handoffChipBtn: CSSProperties = {
   gap: "var(--mrd-s3)",
   border: "1px solid var(--mrd-edge)",
   borderRadius: 99,
-  padding: "2px 8px",
+  padding: "var(--mrd-s1) var(--mrd-s3)",
 };
 const CHIP_BTN =
   "[background:var(--mrd-lift)] [color:var(--mrd-mute)] transition-colors hover:[background:var(--mrd-lift-hover)] hover:[color:var(--mrd-ink)]";
@@ -501,7 +503,7 @@ function TraceHop({
           width: "100%",
           textAlign: "left",
           // x-padding stays 0 so the chevron keeps the rail's left alignment.
-          padding: "4px 0",
+          padding: "var(--mrd-s2) 0",
           borderRadius: 6,
         }}
       >
@@ -576,7 +578,7 @@ function TraceHop({
           </div>
           {/* Production: recalled-memory context chip. */}
           {h.recalled_memories.length > 0 ? (
-            <div style={{ ...rail, paddingTop: 4, paddingBottom: 4 }}>
+            <div style={{ ...rail, paddingTop: "var(--mrd-s2)", paddingBottom: "var(--mrd-s2)" }}>
               <button
                 onClick={() => setShowMemories(!showMemories)}
                 aria-expanded={showMemories}
@@ -587,7 +589,7 @@ function TraceHop({
                   gap: "var(--mrd-s3)",
                   border: "1px solid var(--mrd-edge)",
                   borderRadius: 99,
-                  padding: "2px 8px",
+                  padding: "var(--mrd-s1) var(--mrd-s3)",
                 }}
               >
                 {showMemories ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -631,7 +633,7 @@ function TraceHop({
           <div
             style={{
               ...rail,
-              paddingTop: 4,
+              paddingTop: "var(--mrd-s2)",
               display: "flex",
               gap: "var(--geist-space-3x)",
               alignItems: "center",
@@ -751,7 +753,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: 12,
+          marginBottom: "var(--mrd-s4)",
         }}
       >
         <MonoLabel icon={Layers}>Compounding · the moat at work</MonoLabel>
@@ -768,7 +770,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
         </p>
       ) : (
         <>
-          <div style={{ display: "flex", alignItems: "baseline", gap: "var(--mrd-s4)", marginBottom: 12 }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: "var(--mrd-s4)", marginBottom: "var(--mrd-s4)" }}>
             {/* THIS WAS `font-pixel`, AND PIXEL IS RETIRED FROM THE APP.
                 Founder ruling 2026-08-05, recorded in
                 docs/design/DESIGN-SYSTEM.md under "The founder's live rulings":
@@ -810,7 +812,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
                 style={{
                   display: "flex",
                   gap: "var(--mrd-s4)",
-                  paddingTop: i === 0 ? 0 : 6,
+                  paddingTop: i === 0 ? 0 : "var(--mrd-s3)",
                   borderTop: i === 0 ? "none" : "1px solid var(--mrd-edge)",
                 }}
               >
@@ -1078,7 +1080,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
       <div data-mrd="" style={{ maxWidth: 980, margin: "0 auto" }}>
         <div style={{ ...LOOM_CARD, padding: "var(--geist-gap)", maxWidth: 560 }}>
           <MonoLabel style={{ color: "var(--mrd-fail)" }}>Couldn't load this mission</MonoLabel>
-          <p style={{ color: "var(--mrd-mute)", marginTop: 8 }}>
+          <p style={{ color: "var(--mrd-mute)", marginTop: "var(--mrd-s3)" }}>
             {(m.error as Error)?.message?.slice(0, 160)}
           </p>
           {/* TIER: `Action`, default face. Re-reading is not unblocking
@@ -1100,7 +1102,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
     // (DESIGN-LOOM §9 — never a lone spinner for primary content).
     return (
       <div aria-hidden="true" style={{ maxWidth: 980, margin: "0 auto" }}>
-        <SkeletonBlock height={140} style={{ marginBottom: 20 }} />
+        <SkeletonBlock height={140} style={{ marginBottom: "var(--mrd-s5)" }} />
         <SkeletonBlock height={56} style={{ marginBottom: "var(--mrd-s5)" }} />
         <SkeletonBlock height={120} style={{ marginBottom: "var(--mrd-s5)" }} />
         <SkeletonBlock height={220} />
@@ -1115,7 +1117,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           ...LOOM_CARD,
           background: "var(--surface-card-deep)",
           padding: "28px 32px",
-          marginBottom: 20,
+          marginBottom: "var(--mrd-s5)",
         }}
       >
         <div
@@ -1155,7 +1157,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                 */}
             <h1
               className="text-mrd-h2 font-semibold text-mrd-ink"
-              style={{ margin: "8px 0 6px", letterSpacing: "-0.028em", lineHeight: "var(--mrd-lh-tight)", maxWidth: "34ch" }}
+              style={{ margin: "var(--mrd-s3) 0 var(--mrd-s3)", letterSpacing: "-0.028em", lineHeight: "var(--mrd-lh-tight)", maxWidth: "34ch" }}
             >
               {stripAutoPrefix(data.mission.title)}
             </h1>
@@ -1167,7 +1169,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                 height: 1,
                 background: "var(--thread-gradient)",
                 opacity: 0.4,
-                margin: "2px 0 8px",
+                margin: "var(--mrd-s1) 0 var(--mrd-s3)",
               }}
             />
             <p
@@ -1189,8 +1191,8 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: 5,
-                  marginTop: 8,
+                  gap: "var(--mrd-s2)",
+                  marginTop: "var(--mrd-s3)",
                   color: "color-mix(in oklab, var(--mrd-ink) 65%, transparent)",
                 }}
                 title="Open the mission this one was replayed from"
@@ -1268,7 +1270,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   onChange={(e) => setReplayModel(e.target.value)}
                   className="mono-label"
                   style={{
-                    padding: "3px 6px",
+                    padding: "3px var(--mrd-s3)",
                     borderRadius: 5,
                     border: "1px solid color-mix(in oklab, var(--mrd-ink) 35%, transparent)",
                     background: "transparent",
@@ -1301,8 +1303,8 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
         <div
           style={{
             display: "flex",
-            gap: 22,
-            marginTop: 20,
+            gap: "var(--mrd-s6)",
+            marginTop: "var(--mrd-s5)",
             position: "relative",
             zIndex: 1,
             flexWrap: "wrap",
@@ -1410,12 +1412,12 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: 5,
-              padding: "3px 10px",
+              gap: "var(--mrd-s2)",
+              padding: "3px var(--mrd-s4)",
               borderRadius: 5,
               border: "1px solid color-mix(in oklab, var(--mrd-mute) 45%, transparent)",
               color: "var(--mrd-ink)",
-              marginBottom: showDiff ? 10 : 0,
+              marginBottom: showDiff ? "var(--mrd-s4)" : 0,
             }}
             title="Compare this replay with the mission it was replayed from"
             aria-expanded={showDiff}
@@ -1440,7 +1442,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: 14,
+            marginBottom: "var(--mrd-s5)",
           }}
         >
           {/* STEPS, not specialists. `planRows` is one row per mission STEP, or
@@ -1456,7 +1458,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           <MonoLabel icon={GitBranch}>
             Plan · {planRows.length} {planRows.length === 1 ? "step" : "steps"}
           </MonoLabel>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--mrd-s3)" }}>
             {canAdvance ? (
               /* TIER: `Action`, default face. Advancing dispatches ready steps
                  -- it does something to the work and unblocks nothing that a
@@ -1475,7 +1477,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                 gap: "var(--mrd-s1)",
                 border: "1px solid var(--mrd-edge)",
                 borderRadius: 7,
-                padding: 2,
+                padding: "var(--mrd-s1)",
               }}
             >
               {(
@@ -1496,7 +1498,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   aria-pressed={view === id}
                   className={`mono-label loom-press transition-colors hover:[background:var(--mrd-lift-hover)]`}
                   style={{
-                    padding: "3px 10px",
+                    padding: "3px var(--mrd-s4)",
                     borderRadius: 5,
                     // Inline background only on the active pill so hover resolves.
                     background: view === id ? "var(--mrd-lift)" : undefined,
@@ -1535,9 +1537,9 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   key={i}
                   style={{
                     display: "flex",
-                    gap: 14,
+                    gap: "var(--mrd-s5)",
                     alignItems: "flex-start",
-                    padding: "10px 0",
+                    padding: "var(--mrd-s4) 0",
                     borderBottom: i < planRows.length - 1 ? "1px solid var(--mrd-edge)" : "none",
                   }}
                 >
@@ -1588,7 +1590,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             )}
           </div>
         ) : view === "when" ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--mrd-s4)" }}>
             <RunTimeline
               events={timeline}
               now={axisNow}
@@ -1650,7 +1652,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           <p
             style={{
               color: "var(--mrd-mute)",
-              marginBottom: 12,
+              marginBottom: "var(--mrd-s4)",
             }}
           >
             {/* RPT-09 (amplifier voice): the operator set the trust bar these ran under
@@ -1668,7 +1670,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                     display: "flex",
                     gap: "var(--geist-space-3x)",
                     alignItems: "flex-start",
-                    padding: "10px 0",
+                    padding: "var(--mrd-s4) 0",
                     borderBottom: i < unattended.length - 1 ? "1px solid var(--mrd-edge)" : "none",
                   }}
                 >
@@ -1708,7 +1710,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
 
       {/* Hops trace — per-hop expand/collapse, tinted tool calls, timing bars */}
       <section style={{ ...LOOM_CARD, padding: "var(--card-pad)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--mrd-s4)" }}>
           <MonoLabel icon={Activity}>Execution trace</MonoLabel>
           <span className="mono-label">
             {hops.length} hops
@@ -1752,7 +1754,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
         <section
           className="fade-up"
           style={{
-            padding: "14px 16px",
+            padding: "var(--mrd-s5)",
             borderRadius: 10,
             marginTop: "var(--mrd-s5)",
             marginBottom: "var(--mrd-s5)",
@@ -1778,7 +1780,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             <p
               style={{
                 color: "var(--mrd-ink)",
-                margin: "6px 0 10px",
+                margin: "var(--mrd-s3) 0 var(--mrd-s4)",
               }}
             >
               {agentDisplayName(failedStep.agent_slug)} could not finish "{failedStep.sub_goal}"
@@ -1788,7 +1790,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             <p
               style={{
                 color: "var(--mrd-ink)",
-                margin: "6px 0 10px",
+                margin: "var(--mrd-s3) 0 var(--mrd-s4)",
               }}
             >
               The mission stopped before completing. The execution trace above carries the details.

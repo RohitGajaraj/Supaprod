@@ -102,7 +102,7 @@ export function ApprovalCard({
         ) : null}
       </header>
 
-      <h3 className="mt-2.5 text-[15px] font-medium leading-6 text-[var(--ink-text)]">
+      <h3 className="mt-2.5 text-mrd-prose font-medium leading-6 text-[var(--ink-text)]">
         {onOpen ? (
           <button
             type="button"
