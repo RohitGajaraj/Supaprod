@@ -37,3 +37,11 @@ does not exist yet" shaped.
 
 No urgency on any of the three; nothing downstream blocks. REQ-003 and
 REQ-004 remain open alongside this one.
+
+Addendum, after RL0-005 taught the export-census lesson: both claims were
+re-verified against `grep "^export function|^export const"
+src/components/meridian/*.tsx` before this went out rather than filenames.
+Action (:548) spreads rest onto a button and accepts no href; Toggle (:789)
+is an independent labelled switch, which is not the contract a
+select-one-from-N card or a segmented billing pair needs. The link face and
+the selection control remain real gaps under the corrected lookup method.

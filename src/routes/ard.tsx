@@ -5,6 +5,7 @@
 // tokens (parchment) per the design contract; the authenticated app's
 // Obsidian tokens do not apply here.
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { PUBLIC_INK_THEME } from "@/components/landing/inkTheme";
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { ARD_SCHEMA_PATH, ARD_SCHEMA_VERSION } from "@/lib/ard-schema";
 
@@ -32,7 +33,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section style={{ marginTop: 28 }}>
       <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{title}</h2>
-      <div style={{ color: "var(--ink-muted, #4a443c)", lineHeight: 1.6, fontSize: 14 }}>
+      <div style={{ color: "var(--ink-muted)", lineHeight: 1.6, fontSize: 14 }}>
         {children}
       </div>
     </section>
@@ -72,13 +73,19 @@ function ArdPage() {
     <div
       style={{
         minHeight: "100vh",
-        background: "var(--paper, #f6f2ea)",
-        color: "var(--ink, #1f1b16)",
+        // Pinned dark via this element's own spread (custom properties serve
+        // their own element): without a ground the page re-themes light for
+        // light-theme users while every other public page pins dark. Same
+        // pattern as subprocessors and checkout.return. No data-obsidian:
+        // nothing here needs that scope and it is counted debt.
+        ...PUBLIC_INK_THEME,
+        background: "var(--paper)",
+        color: "var(--ink)",
       }}
     >
       <header
         style={{
-          borderBottom: "1px solid var(--mrd-edge)",
+          borderBottom: "1px solid var(--soft-stone)",
           padding: "12px 18px",
           display: "flex",
           alignItems: "center",
@@ -117,7 +124,7 @@ function ArdPage() {
             fontSize: 11,
             letterSpacing: "0.12em",
             textTransform: "uppercase",
-            color: "var(--ink-muted, #6b6258)",
+            color: "var(--ink-muted)",
           }}
         >
           Interop standard · v{ARD_SCHEMA_VERSION}
@@ -132,7 +139,7 @@ function ArdPage() {
         >
           The Agent Requirements Document (ARD)
         </h1>
-        <p style={{ color: "var(--ink-muted, #4a443c)", lineHeight: 1.6, fontSize: 15 }}>
+        <p style={{ color: "var(--ink-muted)", lineHeight: 1.6, fontSize: 15 }}>
           Every spec inside Supaprod carries an Outcome Contract: a typed, structured statement of
           what it is trying to achieve, how success is proven, and what is explicitly out of scope.
           The ARD is that same contract published as an open standard, so a coding agent Supaprod
@@ -198,7 +205,7 @@ function ArdPage() {
           <pre
             style={{
               background: "rgba(0,0,0,0.04)",
-              border: "1px solid var(--mrd-edge)",
+              border: "1px solid var(--soft-stone)",
               borderRadius: 8,
               padding: "14px 16px",
               fontSize: 12,
@@ -215,10 +222,10 @@ function ArdPage() {
         <p
           style={{
             fontSize: 12.5,
-            color: "var(--ink-muted, #6b6258)",
+            color: "var(--ink-muted)",
             margin: "40px 0 0",
             lineHeight: 1.6,
-            borderTop: "1px solid var(--mrd-edge)",
+            borderTop: "1px solid var(--soft-stone)",
             paddingTop: 20,
           }}
         >
