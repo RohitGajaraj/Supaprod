@@ -5,7 +5,7 @@ LANE 1 reads this and never writes it. See [`README.md`](./README.md).
 **Session opened:** 2026-08-23 · overnight run
 **MAIN LANE:** Claude Code (database, deploys, Mobbin, verification)
 **LANE 1:** opencode / OX Alpha (building)
-**Last updated:** 2026-08-23 05:10 IST
+**Last updated:** 2026-08-23 05:45 IST
 
 ## Where things stand
 
@@ -71,7 +71,24 @@ is how main broke on 2026-08-22.
 3. `AgentStatusIndicator` is the component `LoadingState` was written to replace and still ships:
    `animate-pulse` (a Tailwind default, not a Meridian motion token), hard-coded 12px and 10px,
    and no elapsed figure, which is the precise failure `LoadingState`'s docstring names.
-4. Dialog and promotion-bar alignment, under audit.
+4. Dialog's title was `text-[14px]` sitting above a 14px body. Weight was the only thing
+   separating a dialog's title from its message.
+
+**All four are fixed, plus the systemic cause behind them.** Landed in `0e267390b`,
+`971645bf2`, `6521b2cf0`, each with gates green on the merged tree:
+
+| measure, across the 47 Meridian components | before | after |
+| --- | --- | --- |
+| hard-coded `text-[Npx]` | 259 | **157** |
+| elements declaring `font-size` twice | 57 | **0** |
+| headings at or below body size | 9 of 16 | **0** |
+| Tailwind default animations | 1 | **0** |
+
+**The finding that explains the founder's complaint mechanically:** every `@utility text-mrd-*`
+rule is emitted AFTER every arbitrary `text-[Npx]` rule, so on an element carrying both, the
+utility wins and the typed size is thrown away. 35 deliberate sizes were never reaching the
+screen; a 10.5px mono label, an 11px figure and a 12.5px control label all rendered at a flat
+14px. That is hierarchy the authors wrote and the system deleted.
 
 ## A SECOND WRITER TOUCHED MAIN LANE'S FILES AT 04:28
 
@@ -113,6 +130,7 @@ files. Read them like any other answer.
 | [`M04`](./answers/M04-the-ratchet-cannot-see-the-founders-pain-point.md) | **The most useful file here.** The ratchet is blind to Tailwind type sizes, so it cannot see the founder's number one pain point. 480 hard-coded sizes exist and 457 of them re-type a step that already exists. Corrects three numbers in the brief. **Read before WAVE 1.** |
 | [`M05`](./answers/M05-the-founders-test-run-against-the-live-site.md) | The founder's test measured on the deployed site. `/pricing` renders 107 pieces of text in 23 treatments; `/demo` manages 16 in 7 and is your reference. Carries the re-runnable measurement. |
 | [`M06`](./answers/M06-the-deploy-path-is-proven-and-here-is-how.md) | Deploy exercised end to end on a docs-only change. `pending` is not a deployment, the published host redirects, and every live check needs a negative control. **Read before filing your first `deploy` request.** |
+| [`M08`](./answers/M08-meridian-has-text-roles-now-use-them.md) | **READ BEFORE PORTING ANY SURFACE.** Meridian has five TEXT ROLES now: eyebrow, title, subtitle, copy, meta. Stop assembling size + weight + colour by hand. |
 | [`U000`](./answers/U000-reading-notes-and-plan.md) | Verifies unit 000. Accepted. Corrects "14 steps" to **13**, "113 tokens" to **107**, and flags a route count with no query. |
 | [`M07`](./answers/M07-tiered-buttons-already-exist-and-are-half-adopted.md) | **REFUTES ranked win #2.** Tiered buttons already exist: `ActionVariant = default \| primary \| quiet \| destructive`, plus `Approve` as its own component. **Do not build a `Button`.** The defect is that **451 of 954 controls bypass them**. |
 
