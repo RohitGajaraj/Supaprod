@@ -65,6 +65,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
   getRoutingTable,
+  ROUTING_SURFACES,
   setSurfacePin,
   type RoutingRow,
   type RoutingSurface,
@@ -149,9 +150,13 @@ function AdminRouting() {
   // announces itself as working while the whole board stays locked.
   const [pinningSurface, setPinningSurface] = useState<string | null>(null);
   function pinRow(surface: string, modelId: string | null) {
-    setPinningSurface(surface);
+    // The read types surface loosely, but every row originates from
+    // ROUTING_SURFACES; narrow here so the mutation sees the union.
+    if (!ROUTING_SURFACES.includes(surface as RoutingSurface)) return;
+    const known = surface as RoutingSurface;
+    setPinningSurface(known);
     pin.mutate(
-      { surface, modelId },
+      { surface: known, modelId },
       { onSettled: () => setPinningSurface(null) },
     );
   }
