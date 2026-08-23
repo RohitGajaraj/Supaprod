@@ -11,7 +11,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
-import { Button, MonoLabel } from "@/components/obsidian";
+import { MonoLabel } from "@/components/supaprod/Primitives";
+import { Action } from "@/components/meridian/surface-parts";
 import { CONNECTOR_REGISTRY, type ProviderId, type ProviderSpec } from "@/lib/connectors/registry";
 import {
   listConnections,
@@ -562,9 +563,11 @@ function ProductStep({
           style={{ ...INPUT_STYLE, marginTop: 8 }}
         />
         <div style={{ marginTop: 16 }}>
-          <Button type="submit" variant="accent" disabled={saving || busy} loading={saving || busy}>
+          {/* TIER: Action, primary face. Submitting writes the profile and names
+              the product - the whole point of this step. */}
+          <Action type="submit" variant="primary" busy={saving || busy}>
             {saving || busy ? "Saving…" : "Continue"}
-          </Button>
+          </Action>
         </div>
       </form>
     </Screen>
@@ -600,8 +603,10 @@ function Screen({ children }: { children: React.ReactNode }) {
 function CopyTeardown({ review }: { review: Parameters<typeof criticReviewAsShareable>[0] }) {
   const [state, setState] = useState<"idle" | "copied" | "failed">("idle");
   return (
-    <Button
-      variant="tertiary"
+    // TIER: Action, quiet face. Performs the clipboard write with its own
+    // failure state - not a reveal or a navigation.
+    <Action
+      variant="quiet"
       style={{ width: "100%" }}
       // Reports what the press DID, not what the button is.
       aria-live="polite"
@@ -627,7 +632,7 @@ function CopyTeardown({ review }: { review: Parameters<typeof criticReviewAsShar
         : state === "failed"
           ? "Your browser blocked the clipboard"
           : "Copy this teardown"}
-    </Button>
+    </Action>
   );
 }
 
@@ -1330,7 +1335,7 @@ export function ObsidianOnboarding() {
           {pasteNote ? (
             <p
               className="text-label-12"
-              style={{ color: "var(--ds-gray-700)", margin: "0 0 10px", lineHeight: 1.5 }}
+              style={{ color: "var(--ds-gray-700)", margin: "0 0 10px", lineHeight: "var(--mrd-lh-snug)" }}
             >
               {pasteNote}
             </p>
@@ -1434,9 +1439,13 @@ export function ObsidianOnboarding() {
             </p>
           )}
           <div style={{ marginTop: 16 }}>
-            <Button
-              variant="accent"
-              disabled={running || beliefTooShort}
+            {/* TIER: Action, primary face. Dispatches the Critic run - the whole
+                point of this screen. busy carries the run; disabled keeps the
+                too-short guard, so the explanation below stays truthful. */}
+            <Action
+              variant="primary"
+              busy={running}
+              disabled={beliefTooShort}
               // Disabled pairs with an explanation, always.
               title={
                 !running && beliefTooShort ? "Write the bet you want challenged first" : undefined
@@ -1445,7 +1454,7 @@ export function ObsidianOnboarding() {
               style={{ width: "100%" }}
             >
               {running ? "Analyzing…" : "Get the Critic's take"}
-            </Button>
+            </Action>
           </div>
           {/* THE WAY OUT. See `mLeaveEarly`: without this the only control on
               this screen disables itself on an empty box, and onboarding is
@@ -1453,17 +1462,18 @@ export function ObsidianOnboarding() {
               here. Hidden while the run is live so it cannot race it. */}
           {!running ? (
             <div style={{ marginTop: 10 }}>
-              <Button
-                variant="tertiary"
-                disabled={mLeaveEarly.isPending}
-                loading={mLeaveEarly.isPending}
+              {/* TIER: Action, quiet face. Completes onboarding and leaves - the
+                  secondary door, not the screen's point. */}
+              <Action
+                variant="quiet"
+                busy={mLeaveEarly.isPending}
                 onClick={() => mLeaveEarly.mutate()}
                 style={{ width: "100%" }}
               >
                 {mLeaveEarly.isPending
                   ? "Opening your workspace…"
                   : "Skip this and go to your workspace"}
-              </Button>
+              </Action>
               <p
                 className="text-label-12"
                 style={{ color: "var(--ds-gray-700)", marginTop: 8, marginBottom: 0 }}
@@ -1579,7 +1589,7 @@ export function ObsidianOnboarding() {
                       <div
                         key={i}
                         className="text-label-12"
-                        style={{ color: "var(--ds-gray-900)", lineHeight: 1.5 }}
+                        style={{ color: "var(--ds-gray-900)", lineHeight: "var(--mrd-lh-snug)" }}
                       >
                         • {risk}
                       </div>
@@ -1623,9 +1633,15 @@ export function ObsidianOnboarding() {
                   gap: "var(--geist-space-2x)",
                 }}
               >
-                <Button variant="accent" onClick={leave} style={{ width: "100%" }}>
+                {/* TIER: stays plain. Navigation only - leave() changes nothing
+                    in the record, it moves you to /today. */}
+                <button
+                  type="button"
+                  onClick={leave}
+                  className="w-full rounded-mrd-ctl border border-mrd-line bg-mrd-sheet px-3 py-2 font-mrd text-mrd-label font-medium text-mrd-ink transition-colors duration-100 hover:bg-mrd-hover"
+                >
                   Go to your workspace
-                </Button>
+                </button>
                 {/* THE MOST SHAREABLE THING A REAL USER EVER GETS FROM US, AND
                     IT HAD NO WAY OUT OF THIS SCREEN.
                     A verdict on the user's own bet, about a minute after signup,
@@ -1667,21 +1683,29 @@ export function ObsidianOnboarding() {
                   flexWrap: "wrap",
                 }}
               >
-                <Button
-                  variant="accent"
-                  disabled={mFinish.isPending}
+                {/* TIER: Action, primary face. Re-dispatches the failed Critic
+                    run - the forward path this screen offers. */}
+                <Action
+                  variant="primary"
+                  busy={mFinish.isPending}
                   onClick={() => {
                     setPhase("critic");
                     mFinish.mutate();
                   }}
                 >
                   Try again
-                </Button>
-                <Button variant="tertiary" onClick={leave}>
+                </Action>
+                {/* TIER: stays plain. Navigation only - it leaves for /today and
+                    writes nothing. */}
+                <button
+                  type="button"
+                  onClick={leave}
+                  className="rounded-mrd-ctl border border-mrd-line bg-mrd-sheet px-3 py-2 font-mrd text-mrd-label font-medium text-mrd-ink transition-colors duration-100 hover:bg-mrd-hover"
+                >
                   {beliefIsOnRecord
                     ? "Continue - your belief is saved as an opportunity"
                     : "Continue to your workspace"}
-                </Button>
+                </button>
               </div>
             </div>
           )}

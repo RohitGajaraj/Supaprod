@@ -105,7 +105,7 @@ export function IntentVsBuiltReceipt({ prdId }: { prdId: string }) {
       ) : (
         <>
           {checkable > 0 ? (
-            <p className="text-sm leading-relaxed mb-4">
+            <p className="text-sm leading-mrd-prose mb-4">
               {evidenced} of {checkable} checkable intent point{checkable === 1 ? "" : "s"} show up
               in the release notes
               <span className="text-muted-foreground"> ({pct}% by text)</span>.
@@ -118,7 +118,7 @@ export function IntentVsBuiltReceipt({ prdId }: { prdId: string }) {
 
           <ul className="space-y-2">
             {receipt.points.map((p, i) => (
-              <li key={i} className="flex items-start gap-2.5 text-sm leading-relaxed">
+              <li key={i} className="flex items-start gap-2.5 text-sm leading-mrd-prose">
                 {!p.checkable ? (
                   <CircleDashed className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0 mt-0.5" />
                 ) : p.evidenced ? (
@@ -155,7 +155,7 @@ export function IntentVsBuiltReceipt({ prdId }: { prdId: string }) {
         </>
       )}
 
-      <p className="mt-5 text-[11px] text-muted-foreground leading-relaxed">
+      <p className="mt-5 text-[11px] text-muted-foreground leading-mrd-prose">
         This is a text-evidence projection ({receipt.evidence_basis}): it checks whether the words
         of each intent point appear in what shipped. It is a signal that a point was addressed, not
         a guarantee the behavior is correct.

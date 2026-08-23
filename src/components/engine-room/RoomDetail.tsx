@@ -98,7 +98,7 @@ export function Row({ subject, value, statusWord, tone, onOpen }: RowProps) {
 /** NOTHING EXISTS in this view, which is not a failed read and not a filter. */
 export function EmptyRow({ message }: { message: string }) {
   return (
-    <p data-mrd="" className="py-mrd-5 text-[13px] leading-relaxed text-mrd-mute">
+    <p data-mrd="" className="py-mrd-5 text-[13px] leading-mrd-prose text-mrd-mute">
       {message}
     </p>
   );
@@ -130,7 +130,7 @@ export function PanelPending({ children }: { children?: React.ReactNode }) {
 
 export function VerdictSentence({ children }: { children: React.ReactNode }) {
   return (
-    <p className="mb-mrd-5 max-w-[74ch] text-[13px] leading-relaxed text-mrd-prose text-mrd-body">{children}</p>
+    <p className="mb-mrd-5 max-w-[74ch] leading-mrd-prose text-mrd-prose text-mrd-body">{children}</p>
   );
 }
 
@@ -215,10 +215,10 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
     <div data-mrd="" className="flex flex-col gap-mrd-6">
       <div className="flex flex-wrap items-start justify-between gap-mrd-4">
         <div className="min-w-0 flex-1">
-          <h2 className="text-[20px] leading-tight font-medium text-mrd-ink">
+          <h2 className="text-[20px] leading-mrd-tight font-medium text-mrd-ink">
             {ROOM_QUESTIONS[room]}
           </h2>
-          <p className="mt-mrd-2 text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">
+          <p className="mt-mrd-2 leading-mrd-prose text-mrd-prose text-mrd-body">
             {status?.error
               ? "This room's summary did not load."
               : (status?.glance?.verdict ?? "\u00A0")}
@@ -227,7 +227,7 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
               Guidance text, not a status control, so it carries no accent: it
               is derived from the same real state as the verdict. */}
           {status?.glance?.action ? (
-            <p className="mt-mrd-3 border-l-2 border-mrd-edge pl-mrd-4 text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">
+            <p className="mt-mrd-3 border-l-2 border-mrd-edge pl-mrd-4 leading-mrd-prose text-mrd-prose text-mrd-body">
               <span className="mr-mrd-3 text-[10px] font-[650] tracking-mrd-label text-mrd-mute uppercase">
                 Next
               </span>
@@ -271,7 +271,7 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
 
       {/* Descriptor strip: the one plain line that says what this view answers,
           so a click never lands on a bare table with no context. */}
-      <p className="max-w-[74ch] text-[12.5px] leading-relaxed text-mrd-mute">
+      <p className="max-w-[74ch] text-[12.5px] leading-mrd-prose text-mrd-mute">
         {activeMeta.descriptor}
       </p>
 

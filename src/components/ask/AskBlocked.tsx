@@ -86,7 +86,7 @@ export function AskBlocked({ reason }: { reason: DispatchBlock }) {
        */}
       <span aria-hidden="true" className="mt-1.5 size-2 shrink-0 rounded-full bg-mrd-mute" />
 
-      <p className="min-w-0 flex-[1_1_180px] text-mrd-prose leading-snug text-mrd-ink">
+      <p className="min-w-0 flex-[1_1_180px] text-mrd-prose leading-mrd-snug text-mrd-ink">
         {dispatchBlockedMessage(reason)}
       </p>
 

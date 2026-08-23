@@ -395,7 +395,7 @@ export function TheGap() {
                 >
                   {row.craft}
                 </span>
-                <span className="text-[12px] leading-snug text-zinc-300">
+                <span className="text-[12px] leading-mrd-snug text-zinc-300">
                   {missing ? (
                     // The hole, and its answer typed into it.
                     //
@@ -485,7 +485,7 @@ export function TheGap() {
             ink theme does not define, so the token would fall back and lose
             the hue. */}
         <p
-          className={revealCls("mb-9 text-lg leading-snug text-zinc-400 md:text-xl")}
+          className={revealCls("mb-9 text-lg leading-mrd-snug text-zinc-400 md:text-xl")}
           style={{ transitionDelay: revealDelay(160) }}
         >
           So teams build on gut.
@@ -499,7 +499,7 @@ export function TheGap() {
             <span className={EXHIBIT_LABEL} style={EXHIBIT_LABEL_STYLE}>
               What teams say
             </span>
-            <p className="text-lg leading-snug text-zinc-300 md:text-2xl">
+            <p className="text-lg leading-mrd-snug text-zinc-300 md:text-2xl">
               &ldquo;So why did we decide on X? Cue hours of finding that Slack conversation from
               months ago.&rdquo;
             </p>
@@ -550,7 +550,7 @@ export function TheGap() {
                   color: "#6cb0f5",
                 }}
               />
-              <p className="text-lg leading-snug text-zinc-300 md:text-2xl">
+              <p className="text-lg leading-mrd-snug text-zinc-300 md:text-2xl">
                 of shipped features are rarely or never used.
               </p>
             </div>
@@ -581,7 +581,7 @@ export function TheGap() {
                 so only the payoff takes the face. It sets at 0.94em because
                 Pixel runs optically wider than Sans at the same nominal size
                 and would otherwise outweigh the clause above it. */}
-            <p className="mt-3.5 text-[15px] leading-snug text-zinc-500 md:text-[17px]">
+            <p className="mt-3.5 text-[15px] leading-mrd-snug text-zinc-500 md:text-[17px]">
               The building was never the problem.{" "}
               <span
                 className="gap-turn"

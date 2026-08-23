@@ -94,7 +94,7 @@ function ToolApprovalChips({ tools }: { tools: ToolRecord[] }) {
         <span
           key={t.tool_name}
           title={`${t.tool_name}: approved ${t.approved} of ${t.total}`}
-          className="inline-flex items-center gap-mrd-3 rounded-mrd-chip border border-mrd-line bg-mrd-sink px-2 py-0.5 text-[12px] text-mrd-prose text-mrd-body"
+          className="inline-flex items-center gap-mrd-3 rounded-mrd-chip border border-mrd-line bg-mrd-sink px-2 py-0.5 text-mrd-prose text-mrd-body"
         >
           <span className="text-mrd-mute">{t.tool_name}</span>
           <span className="font-mrd-mono tabular-nums">
@@ -170,7 +170,7 @@ export function AgentScorecardPanel() {
       className="rounded-mrd-card border border-mrd-line bg-mrd-sheet px-mrd-5 py-mrd-5 shadow-mrd-card"
     >
       <Eyebrow>Track record, by agent and task type</Eyebrow>
-      <p className="mt-mrd-3 max-w-[62ch] text-[12.5px] leading-relaxed text-mrd-mute">
+      <p className="mt-mrd-3 max-w-[62ch] text-[12.5px] leading-mrd-prose text-mrd-mute">
         The tier list, kept for you: how often each agent&rsquo;s work is approved and how often it
         turns out right, per task type. Only decided history counts, so a fresh agent shows nothing
         rather than a hollow score.
@@ -189,7 +189,7 @@ export function AgentScorecardPanel() {
           <Action onClick={() => void query.refetch()}>Try again</Action>
         </div>
       ) : cards.length === 0 ? (
-        <p className="mt-mrd-5 max-w-[62ch] text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
+        <p className="mt-mrd-5 max-w-[62ch] leading-mrd-prose text-mrd-prose text-mrd-body">
           No decided history yet. Track records appear here as you approve, reject, or rewind what
           the agents do.
         </p>
@@ -201,7 +201,7 @@ export function AgentScorecardPanel() {
         </div>
       )}
 
-      <p className="mt-mrd-5 max-w-[68ch] border-t border-mrd-line-soft pt-mrd-4 text-[12px] leading-relaxed text-mrd-mute">
+      <p className="mt-mrd-5 max-w-[68ch] border-t border-mrd-line-soft pt-mrd-4 text-[12px] leading-mrd-prose text-mrd-mute">
         Grades reuse the same decided-judgment record shown in the trust dial above, so the numbers
         agree. Per-vendor grading (native vs a BYO model) is not shown yet: the call-level vendor
         signal is not joined to an agent in the data today, so claiming it would be a guess.

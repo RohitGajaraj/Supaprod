@@ -118,7 +118,7 @@ export function CallGate({
         )}
       </div>
 
-      <h2 className="mt-mrd-4 text-[20px] leading-tight font-medium text-mrd-ink">{question}</h2>
+      <h2 className="mt-mrd-4 text-[20px] leading-mrd-tight font-medium text-mrd-ink">{question}</h2>
 
       {lines.length > 0 || consequence ? (
         /*
@@ -129,7 +129,7 @@ export function CallGate({
         <div className="mt-mrd-5 rounded-mrd-card bg-mrd-sink px-mrd-5 py-mrd-4">
           <ul className="flex flex-col gap-mrd-3">
             {lines.map((line, i) => (
-              <li key={i} className="text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
+              <li key={i} className="leading-mrd-prose text-mrd-prose text-mrd-body">
                 {line}
               </li>
             ))}
@@ -149,7 +149,7 @@ export function CallGate({
           ) : null}
 
           {consequence ? (
-            <p className="mt-mrd-4 border-t border-mrd-line-soft pt-mrd-4 text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
+            <p className="mt-mrd-4 border-t border-mrd-line-soft pt-mrd-4 leading-mrd-prose text-mrd-prose text-mrd-body">
               {consequence}
             </p>
           ) : null}

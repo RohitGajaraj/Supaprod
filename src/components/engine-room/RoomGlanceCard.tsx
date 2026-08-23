@@ -91,11 +91,11 @@ function ago(iso: string | null | undefined): string | null {
 function GlanceFigure({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
     <span className="block min-w-0">
-      <span className="block truncate text-[13px] leading-snug text-mrd-ink" title={value}>
+      <span className="block truncate text-[13px] leading-mrd-snug text-mrd-ink" title={value}>
         <Figure>{value}</Figure>
       </span>
-      <span className="block text-[12px] leading-snug text-mrd-prose text-mrd-body">{label}</span>
-      {note ? <span className="block text-[11.5px] leading-snug text-mrd-mute">{note}</span> : null}
+      <span className="block leading-mrd-snug text-mrd-prose text-mrd-body">{label}</span>
+      {note ? <span className="block text-[11.5px] leading-mrd-snug text-mrd-mute">{note}</span> : null}
     </span>
   );
 }
@@ -159,7 +159,7 @@ export function RoomGlanceCard({ glance, onOpen }: { glance: RoomGlance; onOpen:
         room={glance.key}
         trailing={
           <>
-            <span className="min-w-0 text-[12.5px] text-mrd-prose text-mrd-body">{glance.verdict}</span>
+            <span className="min-w-0 text-mrd-prose text-mrd-body">{glance.verdict}</span>
             <StateWord state={glance.state} />
           </>
         }
@@ -196,7 +196,7 @@ export function RoomGlanceCard({ glance, onOpen }: { glance: RoomGlance; onOpen:
 
       {/* The next step, on the surface where the door is chosen. */}
       {glance.action ? (
-        <span className="text-[12px] leading-snug text-mrd-prose text-mrd-body">{glance.action}</span>
+        <span className="leading-mrd-snug text-mrd-prose text-mrd-body">{glance.action}</span>
       ) : null}
     </CardShell>
   );
@@ -234,7 +234,7 @@ export function RoomGlanceCardFailed({
   return (
     <CardShell>
       <Head room={room} trailing={<StateWord state="failed" />} />
-      <span className="text-[12px] leading-snug text-mrd-mute">{message}</span>
+      <span className="text-[12px] leading-mrd-snug text-mrd-mute">{message}</span>
       <span>
         {/*
          * A control inside the shell rather than the shell itself. The card is

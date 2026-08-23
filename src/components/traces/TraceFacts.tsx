@@ -51,7 +51,7 @@ export function Fact({ label, children }: { label: string; children: React.React
       <FactLabel>{label}</FactLabel>
       {/* Wraps. It used to truncate, and a truncated model name is a wrong
           answer rendered confidently. */}
-      <div className="text-[13px] leading-snug break-words text-mrd-ink">{children}</div>
+      <div className="text-[13px] leading-mrd-snug break-words text-mrd-ink">{children}</div>
     </div>
   );
 }

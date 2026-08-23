@@ -100,7 +100,7 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
               Meridian has no negative tracking token at any size, and its own
               `PageHeading` sets none at 25px, so tightening this by hand would
               be inventing a value outside the system to keep a retired one. */}
-          <DialogPrimitive.Title className="m-0 text-[20px] leading-tight font-semibold text-mrd-ink">
+          <DialogPrimitive.Title className="m-0 text-[20px] leading-mrd-tight font-semibold text-mrd-ink">
             {hasBoth ? "Commit this to Now" : "Name the promise first"}
           </DialogPrimitive.Title>
 
@@ -113,7 +113,7 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
 
           <div className="mt-mrd-5">
             {hasBoth ? (
-              <p className="m-0 text-[14px] leading-relaxed text-mrd-prose text-mrd-body">
+              <p className="m-0 leading-mrd-prose text-mrd-prose text-mrd-body">
                 You are promising: {bet.outcome}. Measured by {bet.measure}.
               </p>
             ) : (

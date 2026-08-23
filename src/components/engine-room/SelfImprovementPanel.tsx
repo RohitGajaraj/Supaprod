@@ -143,13 +143,13 @@ function ProposalEnricher({
        the ground rather than on top of it. */
     <div className="mt-mrd-4 rounded-mrd-card bg-mrd-sink px-mrd-5 py-mrd-4">
       <Eyebrow>Why this is happening</Eyebrow>
-      <p className="mt-mrd-2 text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">{data.explanation}</p>
+      <p className="mt-mrd-2 leading-mrd-prose text-mrd-prose text-mrd-body">{data.explanation}</p>
       {data.suggested_fix ? (
         <>
           <div className="mt-mrd-4">
             <Eyebrow>Suggested fix</Eyebrow>
           </div>
-          <p className="mt-mrd-2 text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">
+          <p className="mt-mrd-2 leading-mrd-prose text-mrd-prose text-mrd-body">
             {data.suggested_fix}
           </p>
         </>
@@ -177,7 +177,7 @@ function ProposalEnricher({
       {data.suggested_fix ? (
         <div className="mt-mrd-4 border-t border-mrd-line-soft pt-mrd-4">
           {applied ? (
-            <p className="text-[12.5px] leading-relaxed text-mrd-pass">
+            <p className="text-[12.5px] leading-mrd-prose text-mrd-pass">
               {/* The claim is narrowed to what applyFixCore GUARANTEES. Its own
                   comment calls the decision stamp best-effort, and a supabase
                   insert returns its error instead of throwing, so an ordinary
@@ -213,7 +213,7 @@ function ProposalEnricher({
                 </button>
               )}
               {apply.data && !apply.data.applied && apply.data.reason ? (
-                <p className="mt-mrd-3 text-[12px] leading-snug text-mrd-mute">
+                <p className="mt-mrd-3 text-[12px] leading-mrd-snug text-mrd-mute">
                   {apply.data.reason}
                 </p>
               ) : null}
@@ -286,7 +286,7 @@ function SelfImproveModeControl({ workspaceId }: { workspaceId: string }) {
            below and touching it moves the thing. That is the whole definition
            of `--mrd-you`. A rule and text rather than a fill, because a filled
            accent block is a hero and this is a standing advisory. */
-        <p className="mb-mrd-5 border-l-2 border-mrd-you pl-mrd-4 text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">
+        <p className="mb-mrd-5 border-l-2 border-mrd-you pl-mrd-4 leading-mrd-prose text-mrd-prose text-mrd-body">
           {nudge.message}
         </p>
       ) : null}
@@ -336,7 +336,7 @@ function SelfImproveModeControl({ workspaceId }: { workspaceId: string }) {
               } ${
                 selected
                   ? "bg-mrd-select font-medium text-mrd-ink"
-                  : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-prose text-mrd-body"
+                  : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-ink text-mrd-body"
               }`}
               style={{ transitionDuration: "var(--mrd-d-press)" }}
             >
@@ -346,10 +346,10 @@ function SelfImproveModeControl({ workspaceId }: { workspaceId: string }) {
         })}
       </div>
 
-      <p className="mt-mrd-4 max-w-[68ch] text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">
+      <p className="mt-mrd-4 max-w-[68ch] leading-mrd-prose text-mrd-prose text-mrd-body">
         {copy.outcome}
       </p>
-      <p className="mt-mrd-2 max-w-[68ch] text-[12px] leading-relaxed text-mrd-mute">
+      <p className="mt-mrd-2 max-w-[68ch] text-[12px] leading-mrd-prose text-mrd-mute">
         Trade-off: {copy.con}
       </p>
     </div>
@@ -386,7 +386,7 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
         <Eyebrow>What Supaprod would improve about itself</Eyebrow>
         {/* The honesty caption, plain-spoken: these are rule-fired flags, not AI
             guesses. It stays true whether the list is full or empty. */}
-        <p className="mt-mrd-3 max-w-[74ch] text-[12.5px] leading-relaxed text-mrd-mute">
+        <p className="mt-mrd-3 max-w-[74ch] text-[12.5px] leading-mrd-prose text-mrd-mute">
           Deterministic flags from Supaprod&rsquo;s own quality signals: failing eval suites,
           over-corrected agents, and losing playbooks. Each one fired on a real number over a real
           sample. Nothing here is an AI guess.
@@ -396,7 +396,7 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
       {wsId ? <SelfImproveModeControl workspaceId={wsId} /> : null}
 
       {proposals.length === 0 ? (
-        <div className="rounded-mrd-card border border-mrd-line bg-mrd-sink px-mrd-6 py-mrd-5 text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
+        <div className="rounded-mrd-card border border-mrd-line bg-mrd-sink px-mrd-6 py-mrd-5 leading-mrd-prose text-mrd-prose text-mrd-body">
           No quality issues flagged. Signals are healthy or still gathering data.
         </div>
       ) : (
@@ -416,7 +416,7 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
                       <h3 className="text-[13px] font-medium text-mrd-ink">{p.title}</h3>
                       <span className={`shrink-0 text-[11.5px] ${meta.ink}`}>{meta.word}</span>
                     </div>
-                    <p className="mt-mrd-3 text-[12.5px] leading-relaxed text-mrd-mute">
+                    <p className="mt-mrd-3 text-[12.5px] leading-mrd-prose text-mrd-mute">
                       {p.detail}
                     </p>
                     <div className="mt-mrd-3 flex flex-wrap items-center gap-mrd-3">

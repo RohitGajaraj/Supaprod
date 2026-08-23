@@ -39,7 +39,7 @@ export function TheFilm() {
           See the whole thing work.
         </h2>
         <p
-          className="mt-5 mb-10 text-lg leading-relaxed text-zinc-400"
+          className="mt-5 mb-10 text-lg leading-mrd-prose text-zinc-400"
           style={{ maxWidth: "58ch" }}
         >
           One signal, all seven stations, and an outcome scored against the call that caused it.

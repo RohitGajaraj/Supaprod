@@ -76,7 +76,7 @@ export function Setting({
     <>
       <span className="block text-[13px] text-mrd-ink">{label}</span>
       {sub ? (
-        <span className="mt-0.5 block max-w-[62ch] text-[12px] leading-snug text-mrd-mute">
+        <span className="mt-0.5 block max-w-[62ch] text-[12px] leading-mrd-snug text-mrd-mute">
           {sub}
         </span>
       ) : null}
@@ -141,7 +141,7 @@ export function DoorRow({
           {time}
         </span>
       ) : null}
-      <Chevron className="text-mrd-faint group-hover:text-mrd-prose text-mrd-body" />
+      <Chevron className="text-mrd-faint group-hover:text-mrd-ink text-mrd-body" />
     </button>
   );
 }
@@ -169,9 +169,9 @@ export function ListRow({
     >
       {marks ? <span className="shrink-0">{marks}</span> : null}
       <span className="min-w-0 flex-1">
-        <span className="block text-[13px] leading-snug text-mrd-ink">{lead}</span>
+        <span className="block text-[13px] leading-mrd-snug text-mrd-ink">{lead}</span>
         {sub ? (
-          <span className="mt-0.5 block text-[12px] leading-snug text-mrd-mute">{sub}</span>
+          <span className="mt-0.5 block text-[12px] leading-mrd-snug text-mrd-mute">{sub}</span>
         ) : null}
       </span>
       {time ? (
@@ -349,13 +349,13 @@ export function Gate({
         <span className="text-[11px] font-medium text-mrd-you">Waiting on you</span>
       </span>
 
-      <h2 className="mt-mrd-4 text-[20px] leading-tight font-medium text-mrd-ink">{question}</h2>
+      <h2 className="mt-mrd-4 text-[20px] leading-mrd-tight font-medium text-mrd-ink">{question}</h2>
 
       {lines?.length ? (
         <div className="mt-mrd-5 rounded-mrd-card bg-mrd-sink px-mrd-5 py-mrd-4">
           <ul className="flex flex-col gap-mrd-3">
             {lines.map((line, i) => (
-              <li key={i} className="text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
+              <li key={i} className="leading-mrd-prose text-mrd-prose text-mrd-body">
                 {line}
               </li>
             ))}
@@ -409,7 +409,7 @@ export function Settled({
       <span className={`text-[13px] font-medium ${failed ? "text-mrd-fail" : "text-mrd-ink"}`}>
         {verb}
       </span>
-      <span className="min-w-0 text-[12.5px] leading-snug text-mrd-prose text-mrd-body">{consequence}</span>
+      <span className="min-w-0 leading-mrd-snug text-mrd-prose text-mrd-body">{consequence}</span>
       {time ? (
         <span className="font-mrd-mono ml-auto shrink-0 text-[12px] text-mrd-faint tabular-nums">
           {time}
@@ -432,7 +432,7 @@ export function CtxHead({ children }: { children: React.ReactNode }) {
 
 /** A paragraph in the context column. */
 export function CtxBody({ children }: { children: React.ReactNode }) {
-  return <p className="mt-mrd-3 text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">{children}</p>;
+  return <p className="mt-mrd-3 leading-mrd-prose text-mrd-prose text-mrd-body">{children}</p>;
 }
 
 /** A named fact in the context column, with one different fact under it. */

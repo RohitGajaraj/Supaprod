@@ -333,7 +333,7 @@ function RecordedOutcome({ outcome }: { outcome: PrdOutcome }) {
           recorded
         </span>
       )}
-      {outcome.summary && <p className="text-sm leading-relaxed">{outcome.summary}</p>}
+      {outcome.summary && <p className="text-sm leading-mrd-prose">{outcome.summary}</p>}
       {(outcome.metric_label || outcome.metric_value) && (
         <p className="text-xs text-muted-foreground">
           {outcome.metric_label ?? "Metric"}
@@ -385,7 +385,7 @@ function OutcomeSuggestionBanner({
         </span>
         <VerdictChip tone={VERDICT_TONES[suggestion.verdict]}>{suggestion.verdict}</VerdictChip>
       </div>
-      <p className="text-xs text-muted-foreground leading-relaxed">{suggestion.summary}</p>
+      <p className="text-xs text-muted-foreground leading-mrd-prose">{suggestion.summary}</p>
       {(suggestion.metric_label || suggestion.metric_value) && (
         <p className="text-xs text-muted-foreground">
           {suggestion.metric_label ?? "Metric"}

@@ -371,7 +371,7 @@ export function AskTurn({
        */}
       {proposal && planDecision?.status === "sent-back" ? (
         <Register name="Sent back">
-          <p className="max-w-[62ch] text-mrd-small leading-relaxed text-mrd-mute">
+          <p className="max-w-[62ch] text-mrd-small leading-mrd-prose text-mrd-mute">
             Nothing started and nothing was charged. The crew has your note and comes back with a
             new plan.
           </p>
@@ -390,7 +390,7 @@ export function AskTurn({
               they had already taken.
            */}
           {planDecision?.status === "failed" ? (
-            <p className="mb-2 max-w-[62ch] text-mrd-small leading-relaxed text-mrd-mute">
+            <p className="mb-2 max-w-[62ch] text-mrd-small leading-mrd-prose text-mrd-mute">
               {planDecision.message} Nothing started, so the plan still stands as it was.
             </p>
           ) : null}

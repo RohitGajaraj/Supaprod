@@ -234,7 +234,7 @@ function VerifiabilityVerdict({ contract }: { contract: OutcomeContract }) {
             <p className="text-xs font-medium text-destructive">
               Cannot be approved: no success metric can be checked.
             </p>
-            <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+            <p className="text-[11px] text-muted-foreground mt-0.5 leading-mrd-prose">
               {grade.reason}
             </p>
             {grade.unverifiableClauses.length > 0 ? (
@@ -268,7 +268,7 @@ function VerifiabilityVerdict({ contract }: { contract: OutcomeContract }) {
         <ShieldAlert className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
         <div className="min-w-0">
           <p className="text-xs font-medium">Verification is hazy</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{grade.reason}</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5 leading-mrd-prose">{grade.reason}</p>
         </div>
       </div>
     );
@@ -284,7 +284,7 @@ function VerifiabilityVerdict({ contract }: { contract: OutcomeContract }) {
       />
       <div className="min-w-0">
         <p className="text-xs font-medium">{label}</p>
-        <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{grade.reason}</p>
+        <p className="text-[11px] text-muted-foreground mt-0.5 leading-mrd-prose">{grade.reason}</p>
       </div>
     </div>
   );
@@ -490,7 +490,7 @@ function ContractBody({
     <div className="space-y-5">
       <div>
         <div className="mono-label text-[10px] text-muted-foreground mb-1.5">Intent</div>
-        <p className="text-sm leading-relaxed">{contract.intent}</p>
+        <p className="text-sm leading-mrd-prose">{contract.intent}</p>
       </div>
 
       <ClauseList
@@ -516,7 +516,7 @@ function ContractBody({
           {contract.budget.estimate ? (
             <div>
               <div className="mono-label text-[10px] text-muted-foreground mb-1.5">Budget</div>
-              <p className="text-xs leading-relaxed">{contract.budget.estimate}</p>
+              <p className="text-xs leading-mrd-prose">{contract.budget.estimate}</p>
             </div>
           ) : null}
           {contract.budget.blast_radius ? (
@@ -524,7 +524,7 @@ function ContractBody({
               <div className="mono-label text-[10px] text-muted-foreground mb-1.5">
                 Blast radius
               </div>
-              <p className="text-xs leading-relaxed">{contract.budget.blast_radius}</p>
+              <p className="text-xs leading-mrd-prose">{contract.budget.blast_radius}</p>
             </div>
           ) : null}
         </div>
@@ -535,7 +535,7 @@ function ContractBody({
           <div className="mono-label text-[10px] text-muted-foreground mb-1.5">
             Ambiguity policy
           </div>
-          <p className="text-xs leading-relaxed">{contract.ambiguity_policy}</p>
+          <p className="text-xs leading-mrd-prose">{contract.ambiguity_policy}</p>
         </div>
       ) : null}
     </div>
@@ -859,7 +859,7 @@ function ClauseList({
            is the draft-review pass, where there is no saved row to write to
            yet, so it states the gap and the Apply step below handles the rest. */
         <div className="rounded-md border border-dashed hairline px-3 py-2.5">
-          <p className="text-xs text-muted-foreground leading-relaxed">
+          <p className="text-xs text-muted-foreground leading-mrd-prose">
             {section === "success_metrics"
               ? "No success metric yet. Nothing on this contract can be checked on outcome day until one exists."
               : "No non-goal yet. Nothing is written down as out of scope, so anything is fair game to build."}
@@ -978,7 +978,7 @@ function ClauseRow({
   }
 
   return (
-    <li className="text-sm leading-relaxed flex items-start gap-2 group">
+    <li className="text-sm leading-mrd-prose flex items-start gap-2 group">
       {showOracle && clause.oracle_kind === "uat" ? (
         <button
           onClick={() => toggleUat.mutate(!clause.uat_checked)}

@@ -222,7 +222,7 @@ export function WaitlistForm({ waitlistCount }: { waitlistCount: number | null }
 
       {/* The offer, stated once, in the metadata voice: what the first hundred
           get, not how few are left. Mono, 11px, zinc-600 (founder 2026-07-25). */}
-      <p className="text-[11px] leading-relaxed text-zinc-400 font-mono">
+      <p className="text-[11px] leading-mrd-prose text-zinc-400 font-mono">
         First 100 get the Critic: our red-team agent tears your riskiest bet apart before you spend
         a sprint on it.
       </p>

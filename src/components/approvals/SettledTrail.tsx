@@ -76,7 +76,7 @@ export function SettledTrail({ lines }: { lines: SettledLine[] }) {
             >
               {line.verb}
             </span>
-            <span className="min-w-0 text-[12.5px] leading-snug text-mrd-prose text-mrd-body">
+            <span className="min-w-0 leading-mrd-snug text-mrd-prose text-mrd-body">
               {line.consequence}
             </span>
             <span className="font-mrd-mono ml-auto shrink-0 text-[12px] tabular-nums text-mrd-faint">

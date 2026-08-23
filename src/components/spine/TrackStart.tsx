@@ -358,7 +358,7 @@ export function TrackStart() {
             produced a `for` pointing at nothing. */}
           <div className="flex flex-col gap-1.5">
             <span
-              className="text-[12.5px] font-medium text-mrd-prose text-mrd-body"
+              className="font-medium text-mrd-prose text-mrd-body"
               style={{ letterSpacing: "var(--mrd-track-label)" }}
             >
               What kind of work is it

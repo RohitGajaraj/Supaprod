@@ -15,6 +15,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { BarChart2, Link2, RefreshCw, Loader2, CheckCircle, X } from "lucide-react";
 import { GraphSlider } from "@/components/obsidian";
+import { Action } from "@/components/meridian/surface-parts";
 import {
   getProductAnalytics,
   linkOpportunityEvent,
@@ -94,28 +95,28 @@ export function ProductAnalyticsPanel({
         </div>
         <div className="flex items-center gap-1.5">
           {d.featureEvent && !d.ingestGated && (
-            <button
+            // TIER: Action, quiet face. Pulls fresh PostHog data - a dispatch,
+            // not a reveal.
+            <Action
+              variant="quiet"
               onClick={() => mIngest.mutate()}
-              disabled={mIngest.isPending}
+              busy={mIngest.isPending}
               title="Pull latest PostHog data"
-              className="p-1 rounded text-muted-foreground hover:text-muted-foreground hover:bg-muted disabled:opacity-40"
             >
               {mIngest.isPending ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
               ) : (
                 <RefreshCw className="h-3 w-3" />
               )}
-            </button>
+            </Action>
           )}
           {d.featureEvent && hasData && (
-            <button
-              onClick={() => mAdjust.mutate()}
-              disabled={mAdjust.isPending}
-              className="inline-flex items-center gap-1 rounded border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-foreground hover:bg-accent disabled:opacity-50"
-            >
+            // TIER: Action, default face. Rewrites ICE scores from live data -
+            // a write with visible weight.
+            <Action onClick={() => mAdjust.mutate()} busy={mAdjust.isPending}>
               {mAdjust.isPending ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : null}
               Auto-adjust ICE
-            </button>
+            </Action>
           )}
         </div>
       </div>
@@ -131,13 +132,15 @@ export function ProductAnalyticsPanel({
               placeholder="e.g. decision_made"
               className="flex-1 text-xs border border-border rounded px-2 py-1 outline-none focus:border-foreground"
             />
-            <button
+            {/* TIER: Action, primary face. Writes the event link - confirming
+                the edit is the step's point. */}
+            <Action
+              variant="primary"
               onClick={() => mLink.mutate(eventDraft.trim() || null)}
-              disabled={mLink.isPending}
-              className="text-xs px-2 py-1 bg-primary text-primary-foreground rounded hover:bg-primary/90 disabled:opacity-50"
+              busy={mLink.isPending}
             >
               {mLink.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Link"}
-            </button>
+            </Action>
             <button onClick={() => setEditingEvent(false)}>
               <X className="h-3.5 w-3.5 text-muted-foreground hover:text-muted-foreground" />
             </button>
@@ -156,13 +159,15 @@ export function ProductAnalyticsPanel({
               change
             </button>
             {d.featureEvent && (
-              <button
+              // TIER: Action, destructive face. Removes the PostHog link - a
+              // delete of the binding.
+              <Action
+                variant="destructive"
                 onClick={() => mLink.mutate(null)}
-                disabled={mLink.isPending}
-                className="text-[10px] text-muted-foreground hover:text-[var(--rose)]"
+                busy={mLink.isPending}
               >
                 unlink
-              </button>
+              </Action>
             )}
           </div>
         ) : (
@@ -221,7 +226,7 @@ export function ProductAnalyticsPanel({
               <div key={i} className="flex items-start gap-2 py-1">
                 <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-[var(--action-blue)] shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <div className="text-[11px] text-foreground leading-snug">
+                  <div className="text-[11px] text-foreground leading-mrd-snug">
                     Impact {adj.old_impact}→{adj.new_impact} · Confidence {adj.old_confidence}→
                     {adj.new_confidence}
                     <span className="text-muted-foreground ml-1">· {adj.sample_users} users</span>
@@ -234,7 +239,7 @@ export function ProductAnalyticsPanel({
         )}
 
         {latestAdj && (
-          <p className="text-[10px] text-muted-foreground leading-relaxed">{latestAdj.reason}</p>
+          <p className="text-[10px] text-muted-foreground leading-mrd-prose">{latestAdj.reason}</p>
         )}
       </div>
     </div>

@@ -191,7 +191,7 @@ export function Receipts() {
                 An explicit px value sidesteps the collision. See the note in
                 styles.css. */}
             <p
-              className="mt-12 md:mt-auto md:pt-16 text-[17px] leading-relaxed text-zinc-300"
+              className="mt-12 md:mt-auto md:pt-16 text-[17px] leading-mrd-prose text-zinc-300"
               style={{ maxWidth: "52ch" }}
             >
               {/* CORRECTED 2026-08-10. This sentence used to assert that the
@@ -237,7 +237,7 @@ export function Receipts() {
             }}
           />
           <p
-            className="text-2xl md:text-[34px] text-white text-center leading-snug mx-auto py-16"
+            className="text-2xl md:text-[34px] text-white text-center leading-mrd-snug mx-auto py-16"
             style={{ maxWidth: "26ch", fontFamily: "var(--font-pixel)", fontWeight: 400 }}
           >
             <span style={{ color: "#FF6B2C" }}>Agents</span> do the work. You answer for it.{" "}

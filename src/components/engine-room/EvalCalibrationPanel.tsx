@@ -136,7 +136,7 @@ export function EvalCalibrationPanel() {
 
   if (calibrations.length === 0) {
     return (
-      <p className="py-mrd-5 text-[13px] leading-relaxed text-mrd-mute">
+      <p className="py-mrd-5 text-[13px] leading-mrd-prose text-mrd-mute">
         No AI surfaces are registered for calibration yet. Add an eval suite under Quality, then its
         surface appears here with a coverage verdict.
       </p>
@@ -201,7 +201,7 @@ export function EvalCalibrationPanel() {
                   size={15}
                   strokeWidth={1.8}
                   aria-hidden
-                  className="flex-none text-mrd-faint transition-colors group-hover:text-mrd-prose text-mrd-body"
+                  className="flex-none text-mrd-faint transition-colors group-hover:text-mrd-ink text-mrd-body"
                 />
               </span>
             </button>

@@ -25,6 +25,7 @@ import {
   type ScaffoldDesignCriticResult,
 } from "@/lib/design-scaffold.functions";
 import { recordDesignScaffoldFeedback } from "@/lib/design-memory.functions";
+import { Action, Approve } from "@/components/meridian/surface-parts";
 import { toast } from "@/lib/notify";
 
 export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBody: string }) {
@@ -131,47 +132,43 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
   // The gate decision row and the owner's stage switch: rendered wherever the
   // stage is on, independent of whether a mockup exists yet, so the controls
   // that unblock dispatch can never be out of reach (mission 3.4 review).
+  // The gate decision row and the owner's stage switch: rendered wherever the
+  // stage is on, independent of whether a mockup exists yet, so the controls
+  // that unblock dispatch can never be out of reach (mission 3.4 review).
+  const approvedMark = { color: "var(--moss)" };
+  const rejectedMark = { color: "var(--mrd-fail)" };
   const gateActions = gate?.stageEnabled ? (
     <div className="flex items-center gap-1.5">
-      <button
-        type="button"
-        onClick={() => decideGate.mutate(true)}
-        disabled={decideGate.isPending}
-        className="loom-press inline-flex items-center gap-1 rounded-md border hairline px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
-      >
+      {/* TIER: Approve. Releases the design gate - dispatch stays blocked
+          server-side until this lands. */}
+      <Approve busy={decideGate.isPending} onClick={() => decideGate.mutate(true)}>
         <ThumbsUp
           className="h-3 w-3"
-          style={gate.status === "approved" ? { color: "var(--moss)" } : undefined}
+          style={gate.status === "approved" ? approvedMark : undefined}
         />
         Approve design
-      </button>
-      <button
-        type="button"
-        onClick={() => decideGate.mutate(false)}
-        disabled={decideGate.isPending}
-        className="loom-press inline-flex items-center gap-1 rounded-md border hairline px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
-      >
+      </Approve>
+      {/* TIER: Action, default face. The negative gate verdict; the release
+          control stays orchid alone. */}
+      <Action busy={decideGate.isPending} onClick={() => decideGate.mutate(false)}>
         <ThumbsDown
           className="h-3 w-3"
-          style={gate.status === "rejected" ? { color: "var(--madder)" } : undefined}
+          style={gate.status === "rejected" ? rejectedMark : undefined}
         />
         Request changes
-      </button>
+      </Action>
     </div>
   ) : null;
 
   const ownerToggle = gate?.isOwner ? (
     <div className="flex justify-end border-t hairline px-4 py-2">
-      <button
-        type="button"
-        onClick={() => toggleStage.mutate(!gate.stageEnabled)}
-        disabled={toggleStage.isPending}
-        className="text-xs text-muted-foreground underline-offset-2 hover:underline disabled:opacity-50"
-      >
+      {/* TIER: Action, quiet face. Flips a workspace setting - a secondary owner
+          move, nothing held waits on it. */}
+      <Action variant="quiet" busy={toggleStage.isPending} onClick={() => toggleStage.mutate(!gate.stageEnabled)}>
         {gate.stageEnabled
           ? "Turn the design stage off for this workspace"
           : "Turn the design stage on for this workspace"}
-      </button>
+      </Action>
     </div>
   ) : null;
 
@@ -183,7 +180,7 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
           gate.status === "approved"
             ? "var(--moss)"
             : gate.status === "rejected"
-              ? "var(--madder)"
+              ? "var(--mrd-fail)"
               : "var(--ember-text)",
       }}
     >
@@ -227,11 +224,9 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
             </span>
           )}
         </div>
-        <button
-          onClick={() => mutation.mutate()}
-          disabled={mutation.isPending}
-          className="loom-press inline-flex items-center gap-1.5 rounded-md border hairline px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
-        >
+        {/* TIER: Action, default face. Generates the mockup draft - real work,
+            but not the control that releases anything. */}
+        <Action busy={mutation.isPending} onClick={() => mutation.mutate()}>
           {mutation.isPending ? (
             <Loader2 className="h-3 w-3 animate-spin" />
           ) : scaffold ? (
@@ -240,13 +235,13 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
             <Sparkles className="h-3 w-3" />
           )}
           {mutation.isPending ? "Generating…" : scaffold ? "Regenerate" : "Generate mockup"}
-        </button>
+        </Action>
       </div>
 
       {mutation.isError && (
         <div
           className="flex items-center gap-2 border-b hairline px-4 py-3 text-xs"
-          style={{ color: "var(--madder)" }}
+          style={{ color: "var(--mrd-fail)" }}
         >
           <AlertCircle className="h-3.5 w-3.5 shrink-0" />
           <span>
@@ -279,63 +274,74 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
           />
           <div className="mt-2 flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() =>
-                  gate?.stageEnabled ? decideGate.mutate(true) : feedback.mutate(true)
-                }
-                disabled={
-                  gate?.stageEnabled
-                    ? decideGate.isPending
-                    : feedback.isPending || feedbackGiven !== null
-                }
-                className="loom-press inline-flex items-center gap-1 rounded-md border hairline px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
-              >
-                <ThumbsUp
-                  className="h-3 w-3"
-                  style={
-                    feedbackGiven === "approved" || gate?.status === "approved"
-                      ? { color: "var(--moss)" }
-                      : undefined
-                  }
-                />
-                {gate?.stageEnabled ? "Approve design" : "Good fit"}
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  gate?.stageEnabled ? decideGate.mutate(false) : feedback.mutate(false)
-                }
-                disabled={
-                  gate?.stageEnabled
-                    ? decideGate.isPending
-                    : feedback.isPending || feedbackGiven !== null
-                }
-                className="loom-press inline-flex items-center gap-1 rounded-md border hairline px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
-              >
-                <ThumbsDown
-                  className="h-3 w-3"
-                  style={
-                    feedbackGiven === "rejected" || gate?.status === "rejected"
-                      ? { color: "var(--madder)" }
-                      : undefined
-                  }
-                />
-                {gate?.stageEnabled ? "Request changes" : "Not a fit"}
-              </button>
-              <button
-                type="button"
-                onClick={() => designCritic.mutate()}
-                disabled={designCritic.isPending}
-                className="loom-press inline-flex items-center gap-1 rounded-md border hairline px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
-              >
+              {gate?.stageEnabled ? (
+                // TIER: Approve. Same design gate as above, rendered under the
+                // mockup - dispatch waits on this click.
+                <Approve busy={decideGate.isPending} onClick={() => decideGate.mutate(true)}>
+                  <ThumbsUp
+                    className="h-3 w-3"
+                    style={
+                      feedbackGiven === "approved" || gate?.status === "approved"
+                        ? approvedMark
+                        : undefined
+                    }
+                  />
+                  Approve design
+                </Approve>
+              ) : (
+                // TIER: Action, quiet face. Records a design-memory preference;
+                // nothing is held and nothing unblocks.
+                <Action
+                  variant="quiet"
+                  busy={feedback.isPending}
+                  disabled={feedbackGiven !== null}
+                  onClick={() => feedback.mutate(true)}
+                >
+                  <ThumbsUp
+                    className="h-3 w-3"
+                    style={feedbackGiven === "approved" ? approvedMark : undefined}
+                  />
+                  Good fit
+                </Action>
+              )}
+              {gate?.stageEnabled ? (
+                // TIER: Action, default face. Negative gate verdict under the mockup.
+                <Action busy={decideGate.isPending} onClick={() => decideGate.mutate(false)}>
+                  <ThumbsDown
+                    className="h-3 w-3"
+                    style={
+                      feedbackGiven === "rejected" || gate?.status === "rejected"
+                        ? rejectedMark
+                        : undefined
+                    }
+                  />
+                  Request changes
+                </Action>
+              ) : (
+                // TIER: Action, quiet face. Records the preference; nothing settles.
+                <Action
+                  variant="quiet"
+                  busy={feedback.isPending}
+                  disabled={feedbackGiven !== null}
+                  onClick={() => feedback.mutate(false)}
+                >
+                  <ThumbsDown
+                    className="h-3 w-3"
+                    style={feedbackGiven === "rejected" ? rejectedMark : undefined}
+                  />
+                  Not a fit
+                </Action>
+              )}
+              {/* TIER: Action, default face. Dispatches the design-lens run - it
+                  produces findings and releases nothing. */}
+              <Action busy={designCritic.isPending} onClick={() => designCritic.mutate()}>
                 {designCritic.isPending ? (
                   <Loader2 className="h-3 w-3 animate-spin" />
                 ) : (
                   <ShieldCheck className="h-3 w-3" />
                 )}
                 {designCritic.isPending ? "Checking…" : "Check design consistency"}
-              </button>
+              </Action>
             </div>
             <p className="text-xs text-muted-foreground">
               Generated {new Date(scaffold.generatedAt).toLocaleTimeString()} · AI-drafted, review
@@ -355,7 +361,7 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
               ) : (
                 <ul className="space-y-2">
                   {designReview.findings.map((f, i) => (
-                    <li key={i} className="text-xs leading-snug text-foreground">
+                    <li key={i} className="text-xs leading-mrd-snug text-foreground">
                       {f.issue}
                       <span className="block text-muted-foreground">
                         {f.principle}

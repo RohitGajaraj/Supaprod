@@ -86,7 +86,7 @@ export function LaunchPlanPanel({ prdId }: Props) {
         <div className="flex flex-col gap-5">
           <div>
             <div className="mono-label text-[9px] text-muted-foreground mb-1.5">POSITIONING</div>
-            <p className="text-sm leading-relaxed">{plan.positioning}</p>
+            <p className="text-sm leading-mrd-prose">{plan.positioning}</p>
           </div>
 
           <div>

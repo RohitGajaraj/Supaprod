@@ -54,7 +54,7 @@ function RoutineRowView({ routine }: { routine: RoutineRow }) {
           <span className="text-[13px] font-medium text-mrd-ink">{routine.name}</span>
           <span className="text-[12px] text-mrd-faint">{routine.castOwner}</span>
         </div>
-        <p className="mt-mrd-1 text-[12.5px] leading-snug text-mrd-mute">{routine.whatItDoes}</p>
+        <p className="mt-mrd-1 text-[12.5px] leading-mrd-snug text-mrd-mute">{routine.whatItDoes}</p>
         {/* Mono, and it earns it: both halves of this line are timestamps. */}
         <p className="font-mrd-mono mt-mrd-2 text-[11.5px] text-mrd-faint tabular-nums">
           Last run {relativeTime(routine.lastRunAt, () => "not yet tracked")} · Next run{" "}

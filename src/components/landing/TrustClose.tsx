@@ -74,7 +74,7 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
                 aria-hidden
               />
               <p className="text-sm text-zinc-200 font-medium mb-1.5">{p.label}</p>
-              <p className="text-xs text-zinc-500 leading-relaxed">{p.detail}</p>
+              <p className="text-xs text-zinc-500 leading-mrd-prose">{p.detail}</p>
             </div>
           ))}
         </div>
@@ -127,7 +127,7 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
             <br />
             Answerable to you.
           </h2>
-          <p className="text-lg text-zinc-400 mb-10 leading-relaxed" style={{ maxWidth: "44ch" }}>
+          <p className="text-lg text-zinc-400 mb-10 leading-mrd-prose" style={{ maxWidth: "44ch" }}>
             It starts learning your product from the first call you grade.
           </p>
 

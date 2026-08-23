@@ -70,14 +70,14 @@ export function CallContext({
       {impact ? (
         <Section>
           <Head>Before you decide</Head>
-          <p className="mt-mrd-4 text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">{impact}</p>
+          <p className="mt-mrd-4 leading-mrd-prose text-mrd-prose text-mrd-body">{impact}</p>
         </Section>
       ) : null}
 
       {keys ? (
         <Section>
           <Head>Moving through</Head>
-          <p className="mt-mrd-4 text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">{keys}</p>
+          <p className="mt-mrd-4 leading-mrd-prose text-mrd-prose text-mrd-body">{keys}</p>
         </Section>
       ) : null}
     </div>

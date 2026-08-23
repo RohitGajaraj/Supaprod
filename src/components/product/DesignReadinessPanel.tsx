@@ -54,7 +54,7 @@ export function DesignReadinessPanel({ body }: { body: string }) {
           </p>
           <ul className="flex flex-col gap-1.5">
             {gaps.map((c) => (
-              <li key={c.key} className="flex items-start gap-2 text-xs leading-relaxed">
+              <li key={c.key} className="flex items-start gap-2 text-xs leading-mrd-prose">
                 <ArrowRight
                   className="mt-0.5 h-3 w-3 shrink-0 text-muted-foreground"
                   strokeWidth={1.5}

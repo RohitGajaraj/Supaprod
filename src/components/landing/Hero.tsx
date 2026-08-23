@@ -372,7 +372,7 @@ export function Hero() {
                 here; below lg it is what keeps the sentence wrapping sanely on
                 a phone, where none of the rest of this applies. */}
             <p
-              className="hero-sub hero-rise mb-14 text-base leading-relaxed text-zinc-300 md:text-lg lg:whitespace-nowrap lg:text-[17px]"
+              className="hero-sub hero-rise mb-14 text-base leading-mrd-prose text-zinc-300 md:text-lg lg:whitespace-nowrap lg:text-[17px]"
               style={{ animationDelay: "120ms", maxWidth: "48ch" }}
             >
               {/*
@@ -644,7 +644,7 @@ export function Hero() {
               it was the one phrase too wide to hold its line. */}
           <div
             className="hero-spec hero-rise hidden pl-5 font-mono text-[12px] uppercase text-zinc-400 lg:grid lg:grid-cols-[auto_1fr] lg:gap-x-3 lg:gap-y-3.5"
-            style={{ animationDelay: "120ms", letterSpacing: "0.14em", lineHeight: 1.5 }}
+            style={{ animationDelay: "120ms", letterSpacing: "0.14em", lineHeight: "var(--mrd-lh-snug)" }}
           >
             <span>to decide</span>
             <span className="hero-spec-key whitespace-nowrap">what to build</span>

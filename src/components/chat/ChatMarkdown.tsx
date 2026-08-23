@@ -29,7 +29,7 @@ function CodeBlock({ children }: { children?: ReactNode }) {
 
   return (
     <div className="group/code relative my-3">
-      <pre className="material-small overflow-x-auto p-3 font-mono text-[12.5px] leading-relaxed [&_code]:bg-transparent [&_code]:p-0">
+      <pre className="material-small overflow-x-auto p-3 font-mono text-[12.5px] leading-mrd-prose [&_code]:bg-transparent [&_code]:p-0">
         {children}
       </pre>
       <button
@@ -98,10 +98,10 @@ function withCitations(node: ReactNode, valid: ReadonlySet<number>): ReactNode {
 // The typography plugin isn't loaded in this repo (no @plugin in styles.css),
 // so each markdown element is styled explicitly here.
 const components: Components = {
-  p: ({ children }) => <p className="my-2 leading-relaxed">{children}</p>,
+  p: ({ children }) => <p className="my-2 leading-mrd-prose">{children}</p>,
   ul: ({ children }) => <ul className="my-2 list-disc space-y-1 pl-5">{children}</ul>,
   ol: ({ children }) => <ol className="my-2 list-decimal space-y-1 pl-5">{children}</ol>,
-  li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+  li: ({ children }) => <li className="leading-mrd-prose">{children}</li>,
   h1: ({ children }) => <h1 className="mb-2 mt-4 text-heading-16 text-foreground">{children}</h1>,
   h2: ({ children }) => (
     <h2 className="mb-1.5 mt-4 text-[15px] font-semibold text-foreground">{children}</h2>
@@ -161,8 +161,8 @@ function citedComponents(valid: ReadonlySet<number>): Components {
   const c = (children: ReactNode) => withCitations(children, valid);
   return {
     ...components,
-    p: ({ children }) => <p className="my-2 leading-relaxed">{c(children)}</p>,
-    li: ({ children }) => <li className="leading-relaxed">{c(children)}</li>,
+    p: ({ children }) => <p className="my-2 leading-mrd-prose">{c(children)}</p>,
+    li: ({ children }) => <li className="leading-mrd-prose">{c(children)}</li>,
     td: ({ children }) => (
       <td className="border-b border-border/50 py-1 pr-4 align-top">{c(children)}</td>
     ),

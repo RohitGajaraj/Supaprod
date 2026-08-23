@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 2695,
-  "fileCount": 210,
+  "totalOccurrences": 2684,
+  "fileCount": 209,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "--text-": 16,
@@ -505,9 +505,6 @@
     "src/components/plg/PreSignupCTA.tsx": {
       "raw-colour": 4
     },
-    "src/components/product/DesignScaffoldPanel.tsx": {
-      "--madder": 4
-    },
     "src/components/product/FlowDiagram.tsx": {
       "class:sp-": 1
     },
@@ -669,7 +666,7 @@
     },
     "src/components/today/DecisionQueue.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 10
+      "usage:shell/primitives": 3
     },
     "src/components/today/PushedInsights.tsx": {
       "import:shell/primitives": 1,

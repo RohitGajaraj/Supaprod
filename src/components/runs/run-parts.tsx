@@ -309,9 +309,9 @@ export function RunRow({
     <>
       <span className="flex w-4 shrink-0 justify-center">{mark}</span>
       <span className="min-w-0 flex-1">
-        <span className={`block text-[12.5px] leading-snug text-mrd-ink ${clamp}`}>{lead}</span>
+        <span className={`block text-[12.5px] leading-mrd-snug text-mrd-ink ${clamp}`}>{lead}</span>
         {sub ? (
-          <span className={`mt-0.5 block text-[12px] leading-snug text-mrd-mute ${clamp}`}>
+          <span className={`mt-0.5 block text-[12px] leading-mrd-snug text-mrd-mute ${clamp}`}>
             {sub}
           </span>
         ) : null}
@@ -361,7 +361,7 @@ export function ContextNote({ head, children }: { head: string; children: React.
   return (
     <section data-mrd="" className="mt-mrd-5 first:mt-0">
       <h2 className="text-[10px] font-[650] tracking-mrd-label text-mrd-faint uppercase">{head}</h2>
-      <div className="mt-mrd-3 text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">{children}</div>
+      <div className="mt-mrd-3 leading-mrd-prose text-mrd-prose text-mrd-body">{children}</div>
     </section>
   );
 }
@@ -388,8 +388,8 @@ export function ContextLine({
     <div data-mrd="" className="flex items-start gap-mrd-3 py-mrd-2">
       {mark ? <span className="mt-px flex w-4 shrink-0 justify-center">{mark}</span> : null}
       <span className="min-w-0">
-        <span className="block text-[12.5px] leading-snug text-mrd-prose text-mrd-body">{name}</span>
-        <span className="mt-0.5 block text-[12px] leading-snug text-mrd-faint">{sub}</span>
+        <span className="block leading-mrd-snug text-mrd-prose text-mrd-body">{name}</span>
+        <span className="mt-0.5 block text-[12px] leading-mrd-snug text-mrd-faint">{sub}</span>
       </span>
     </div>
   );
@@ -474,7 +474,7 @@ export function RunGate({
        * shrinks to what only a mark can add -- a colour and a shape that survive
        * a glance -- and the words are dropped rather than repeated.
        */}
-      <h2 className="flex items-baseline gap-mrd-3 text-[20px] leading-tight font-medium text-mrd-ink">
+      <h2 className="flex items-baseline gap-mrd-3 text-[20px] leading-mrd-tight font-medium text-mrd-ink">
         {standing === "failed" ? (
           <span aria-hidden className="mt-1.5 size-1.5 shrink-0 rounded-full bg-mrd-fail" />
         ) : null}
@@ -496,7 +496,7 @@ export function RunGate({
          */
         <ul className="mt-mrd-5 flex flex-col gap-mrd-3 rounded-mrd-card bg-mrd-sink px-mrd-5 py-mrd-4">
           {lines.map((line, i) => (
-            <li key={i} className="text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
+            <li key={i} className="leading-mrd-prose text-mrd-prose text-mrd-body">
               {line}
             </li>
           ))}
@@ -558,7 +558,7 @@ export function Commit({
       data-mrd=""
       role="status"
       aria-live="polite"
-      className="flex items-baseline gap-mrd-3 border-b border-mrd-line-soft py-mrd-3 text-[12.5px] leading-snug last:border-0"
+      className="flex items-baseline gap-mrd-3 border-b border-mrd-line-soft py-mrd-3 text-[12.5px] leading-mrd-snug last:border-0"
     >
       {initials ? (
         <span className="self-start">
@@ -636,7 +636,7 @@ export function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement
     <textarea
       data-mrd=""
       {...props}
-      className={`${FIELD_FACE} resize-y leading-relaxed`}
+      className={`${FIELD_FACE} resize-y leading-mrd-prose`}
       style={{ transitionDuration: "var(--mrd-d-press)" }}
     />
   );
@@ -697,7 +697,7 @@ export function Fact({
   return (
     <div
       data-mrd=""
-      className="flex items-center justify-between gap-mrd-5 border-b border-mrd-line-soft py-mrd-3 text-[12.5px] leading-snug last:border-0"
+      className="flex items-center justify-between gap-mrd-5 border-b border-mrd-line-soft py-mrd-3 text-[12.5px] leading-mrd-snug last:border-0"
     >
       {htmlFor ? (
         <label className="min-w-0 text-mrd-prose text-mrd-body" htmlFor={htmlFor}>
@@ -828,9 +828,9 @@ export function RunCard({
     <>
       {mark}
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[12.5px] leading-snug text-mrd-ink">{lead}</span>
+        <span className="block truncate text-[12.5px] leading-mrd-snug text-mrd-ink">{lead}</span>
         {sub ? (
-          <span className="mt-0.5 block truncate text-[12px] leading-snug text-mrd-mute">
+          <span className="mt-0.5 block truncate text-[12px] leading-mrd-snug text-mrd-mute">
             {sub}
           </span>
         ) : null}
@@ -898,7 +898,7 @@ export function Recess({
     <>
       <span aria-hidden className="mt-1.5 size-2.5 shrink-0 rotate-45 bg-mrd-ink" />
       <span className="min-w-0">
-        <span className="block text-[17px] leading-tight text-mrd-ink">{children}</span>
+        <span className="block text-[17px] leading-mrd-tight text-mrd-ink">{children}</span>
         {evidence ? (
           <span className="font-mrd-mono mt-mrd-3 block text-[11.5px] tabular-nums text-mrd-mute">
             {evidence}

@@ -89,7 +89,7 @@ export function MissionOnboarding() {
           Step one of one
         </p>
         <h1
-          className="mt-3 text-[26px] font-medium leading-tight"
+          className="mt-3 text-[26px] font-medium leading-mrd-tight"
           style={{ color: "var(--ink-text)" }}
         >
           What are you building?

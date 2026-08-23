@@ -224,7 +224,7 @@ export function FigureCard({
       className="rounded-mrd-card border border-mrd-line bg-mrd-sheet px-mrd-5 py-mrd-4"
     >
       <Eyebrow>{label}</Eyebrow>
-      <p className={`font-mrd-mono mt-mrd-2 text-[25px] leading-tight tabular-nums ${ink}`}>
+      <p className={`font-mrd-mono mt-mrd-2 text-[25px] leading-mrd-tight tabular-nums ${ink}`}>
         {value}
       </p>
       {note ? <p className="mt-mrd-1 text-[12px] text-mrd-mute">{note}</p> : null}
@@ -328,7 +328,7 @@ export function ViewSwitch<T extends string>({
             className={`inline-flex h-8 items-center rounded-mrd-chip px-3 text-[12.5px] transition-colors ${
               on
                 ? "bg-mrd-select font-medium text-mrd-ink"
-                : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-prose text-mrd-body"
+                : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-ink text-mrd-body"
             }`}
             style={{ transitionDuration: "var(--mrd-d-press)" }}
           >
@@ -373,7 +373,7 @@ export function SegmentedFilter<T extends string>({
             className={`inline-flex h-8 items-center rounded-mrd-chip px-3 text-[12.5px] transition-colors ${
               on
                 ? "bg-mrd-select font-medium text-mrd-ink"
-                : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-prose text-mrd-body"
+                : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-ink text-mrd-body"
             }`}
             style={{ transitionDuration: "var(--mrd-d-press)" }}
           >

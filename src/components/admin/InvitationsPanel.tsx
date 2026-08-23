@@ -34,7 +34,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
-import { MonoLabel, Button } from "@/components/obsidian";
+import { MonoLabel } from "@/components/supaprod/Primitives";
+import { Action, Approve } from "@/components/meridian/surface-parts";
 import { AdminErrorCard, AdminSkeleton, inBandError } from "@/components/admin/admin-ui";
 import {
   adminListInvitations,
@@ -132,13 +133,15 @@ function InviteCreator() {
           <option value="admin">admin</option>
           <option value="owner">owner</option>
         </select>
-        <Button
-          variant="secondary"
-          disabled={!email || single.isPending}
+        {/* TIER: Action, primary face. Creates the invitation - the card's whole point. */}
+        <Action
+          variant="primary"
+          disabled={!email}
+          busy={single.isPending}
           onClick={() => single.mutate()}
         >
           {single.isPending ? "Sending…" : "Create invitation · emails link"}
-        </Button>
+        </Action>
       </div>
       <MonoLabel style={{ marginTop: 6 }}>Bulk CSV (one email per line)</MonoLabel>
       <textarea
@@ -150,14 +153,17 @@ function InviteCreator() {
         className={`${FOCUS_RING} placeholder:[color:var(--mrd-mute)]`}
         style={{ ...input(), width: "100%", fontFamily: "var(--font-mono)" }}
       />
-      <Button
-        variant="secondary"
-        disabled={!csv.trim() || bulk.isPending}
+      {/* TIER: Action, default face. Bulk write - a secondary path beside the
+          single create above. */}
+      <Action
+        variant="default"
+        disabled={!csv.trim()}
+        busy={bulk.isPending}
         style={{ justifySelf: "start" }}
         onClick={() => bulk.mutate()}
       >
         {bulk.isPending ? "Creating…" : "Create from CSV"}
-      </Button>
+      </Action>
     </div>
   );
 }
@@ -211,9 +217,10 @@ function InviteList() {
                   <td style={td()}>{r.expires_at?.slice(0, 10)}</td>
                   <td style={td()}>
                     {r.state === "pending" ? (
-                      <Button
-                        variant="secondary"
-                        disabled={revoke.isPending}
+                      // TIER: Action, destructive face. Revokes the link - a removal.
+                      <Action
+                        variant="destructive"
+                        busy={revoke.isPending}
                         style={{ padding: "6px 10px" }}
                         onClick={async () => {
                           const ok = await confirm({
@@ -226,7 +233,7 @@ function InviteList() {
                         }}
                       >
                         Revoke
-                      </Button>
+                      </Action>
                     ) : null}
                   </td>
                 </tr>
@@ -310,13 +317,16 @@ function DomainList() {
           <option value="member">member</option>
           <option value="admin">admin</option>
         </select>
-        <Button
-          variant="secondary"
-          disabled={!domain || upsert.isPending}
+        {/* TIER: Action, primary face. Upserts the auto-approve rule - the card's
+            whole point. */}
+        <Action
+          variant="primary"
+          disabled={!domain}
+          busy={upsert.isPending}
           onClick={() => upsert.mutate()}
         >
           {upsert.isPending ? "Saving…" : "Add domain · auto-accepts signups"}
-        </Button>
+        </Action>
       </div>
       {list.isLoading ? (
         <AdminSkeleton rows={2} height={30} />
@@ -353,9 +363,10 @@ function DomainList() {
                 {d.domain}
               </code>{" "}
               · {d.default_role}
-              <Button
-                variant="secondary"
-                disabled={del.isPending}
+              {/* TIER: Action, destructive face. Deletes the domain rule. */}
+              <Action
+                variant="destructive"
+                busy={del.isPending}
                 style={{ marginLeft: "auto", padding: "6px 10px" }}
                 onClick={async () => {
                   const ok = await confirm({
@@ -368,7 +379,7 @@ function DomainList() {
                 }}
               >
                 Remove
-              </Button>
+              </Action>
             </li>
           ))}
         </ul>
@@ -430,22 +441,24 @@ function SignupApprovalsList() {
               }}
             >
               {s.email} · {new Date(s.created_at).toLocaleDateString()}
-              <Button
-                variant="secondary"
-                disabled={review.isPending}
+              {/* TIER: Approve. Releases a signup held in review - access stays
+                  blocked until it lands. */}
+              <Approve
+                busy={review.isPending}
                 style={{ marginLeft: "auto", padding: "6px 10px" }}
                 onClick={() => review.mutate({ id: s.id, approve: true })}
               >
                 Approve · grants access
-              </Button>
-              <Button
-                variant="secondary"
-                disabled={review.isPending}
+              </Approve>
+              {/* TIER: Action, default face. The negative verdict settles the
+                  request; one release control per row stays orchid. */}
+              <Action
+                busy={review.isPending}
                 style={{ padding: "6px 10px", color: "var(--mrd-mute)" }}
                 onClick={() => review.mutate({ id: s.id, approve: false })}
               >
                 Reject
-              </Button>
+              </Action>
             </li>
           ))}
         </ul>

@@ -350,7 +350,7 @@ function MethodCard({ ranking }: { ranking: PlaybookRanking }) {
         </span>
       </div>
 
-      <p className="mt-mrd-2 max-w-[68ch] text-[12.5px] leading-relaxed text-mrd-mute">
+      <p className="mt-mrd-2 max-w-[68ch] text-[12.5px] leading-mrd-prose text-mrd-mute">
         {p.summary}
       </p>
 
@@ -360,7 +360,7 @@ function MethodCard({ ranking }: { ranking: PlaybookRanking }) {
           because they are numbers; the steps are not. */}
       <ol className="mt-mrd-4 flex list-none flex-col gap-mrd-2 rounded-mrd-card bg-mrd-sink px-mrd-5 py-mrd-4">
         {p.steps.map((step, i) => (
-          <li key={step} className="flex gap-mrd-4 text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">
+          <li key={step} className="flex gap-mrd-4 leading-mrd-prose text-mrd-prose text-mrd-body">
             <span className="font-mrd-mono shrink-0 text-[11px] text-mrd-faint tabular-nums">
               {i + 1}
             </span>
@@ -369,7 +369,7 @@ function MethodCard({ ranking }: { ranking: PlaybookRanking }) {
         ))}
       </ol>
 
-      <p className="mt-mrd-3 text-[12px] leading-relaxed text-mrd-mute">
+      <p className="mt-mrd-3 text-[12px] leading-mrd-prose text-mrd-mute">
         What counts as this one working: {p.rankingSignal}.
       </p>
     </article>
@@ -460,7 +460,7 @@ export function CrewMethods({ onBack }: { onBack: () => void }) {
             stamping, because a surface may not promise a mechanism the wiring
             does not yet have. */}
         <Region title="How one of these earns its place">
-          <div className="flex max-w-[68ch] flex-col gap-mrd-4 text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
+          <div className="flex max-w-[68ch] flex-col gap-mrd-4 leading-mrd-prose text-mrd-prose text-mrd-body">
             <p>
               The moment a method has a result on the record, it moves ahead of every method that
               has none, and the crew reaches for it first at that step. That is the whole ranking,

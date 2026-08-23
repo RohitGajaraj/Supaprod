@@ -1,10 +1,10 @@
 import * as React from "react";
 import { Row } from "@/components/meridian/rows";
-import { Num, Door } from "@/components/meridian/surface-parts";
+import { Action, Approve, Door, Num } from "@/components/meridian/surface-parts";
 
 import { canSendBack } from "@/components/approvals/SendBack";
 import { stripAutoPrefix } from "@/components/plan/format";
-import { Button, Checkbox, Gate, SelectionBar } from "@/components/shell/primitives";
+import { Checkbox, Gate, SelectionBar } from "@/components/shell/primitives";
 import { AgentMark } from "@/components/meridian/marks";
 import type { Selection } from "@/components/shell/use-selection";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
@@ -175,38 +175,35 @@ function OpenCall({
           <span key="consequence">{item.approveConsequence}</span>,
         ]}
       >
-        <Button
-          variant="primary"
-          shortcut="a"
-          disabled={verbs.busy}
-          onClick={() => verbs.approve(item)}
-        >
+        {/* TIER: Approve. The click releases a decision held for you - the work
+            is stopped until it lands. */}
+        <Approve shortcut="a" busy={verbs.busy} onClick={() => verbs.approve(item)}>
           Approve
-        </Button>
+        </Approve>
         {/* ABSENT, NEVER DISABLED. Only `spec` and `design_gate` can be revised;
             every other kind throws on the server. A disabled control with no
             path forward is worse than no control, so the verb simply is not
             drawn — the rule `canSendBack` exists to enforce. */}
         {canSendBack(item.kindKey) ? (
-          <Button
-            disabled={verbs.busy}
+          // TIER: Action, default face. Settles the held call by returning it -
+          // the negative verdict, not the release.
+          <Action
+            busy={verbs.busy}
             onClick={() => verbs.sendBack(item)}
             title="Return it to the agent with a note saying what to fix"
           >
             Send back
-          </Button>
+          </Action>
         ) : null}
-        <Button shortcut="d" disabled={verbs.busy} onClick={() => verbs.decline(item)}>
+        {/* TIER: Action, default face. Declines the held call - a verdict, not
+            the affirmative release. */}
+        <Action shortcut="d" busy={verbs.busy} onClick={() => verbs.decline(item)}>
           Decline
-        </Button>
-        <Button
-          variant="ghost"
-          shortcut="z"
-          disabled={verbs.busy}
-          onClick={() => verbs.snooze(item)}
-        >
+        </Action>
+        {/* TIER: Action, quiet face. Defers the call; nothing is settled. */}
+        <Action variant="quiet" shortcut="z" busy={verbs.busy} onClick={() => verbs.snooze(item)}>
           Snooze
-        </Button>
+        </Action>
       </Gate>
     </div>
   );
@@ -391,15 +388,18 @@ export function DecisionQueue({
       </div>
 
       <SelectionBar selection={selection} total={items.length} noun="decision">
-        <Button disabled={verbs.busy} onClick={bulk.approve}>
+        {/* TIER: Approve. Bulk-releases every selected decision. */}
+        <Approve busy={verbs.busy} onClick={bulk.approve}>
           Approve
-        </Button>
-        <Button disabled={verbs.busy} onClick={bulk.snooze}>
+        </Approve>
+        {/* TIER: Action, quiet face. Defers the selection; nothing settles. */}
+        <Action variant="quiet" busy={verbs.busy} onClick={bulk.snooze}>
           Snooze
-        </Button>
-        <Button disabled={verbs.busy} onClick={bulk.decline}>
+        </Action>
+        {/* TIER: Action, default face. Declines the selection - a verdict. */}
+        <Action busy={verbs.busy} onClick={bulk.decline}>
           Decline
-        </Button>
+        </Action>
       </SelectionBar>
 
       <div className="today-queue">

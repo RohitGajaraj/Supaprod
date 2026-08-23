@@ -124,7 +124,7 @@ export function RewindButton({ prdId, hasSnapshot, onCommit, onReverted }: Rewin
           >
             Take the crew's edit back?
           </AlertDialog.Title>
-          <AlertDialog.Description className="mt-[12px] mb-0 text-[13.5px] leading-[1.55] text-mrd-prose text-mrd-body">
+          <AlertDialog.Description className="mt-[12px] mb-0 leading-[1.55] text-mrd-prose text-mrd-body">
             This restores what the spec said before the last agent edit. The version on screen is
             kept too, so this is itself reversible.
           </AlertDialog.Description>

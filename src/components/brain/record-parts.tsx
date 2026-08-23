@@ -161,9 +161,9 @@ export function RecordLine({
     <>
       {mark ? <span className="flex w-4 shrink-0 justify-center">{mark}</span> : null}
       <span className="min-w-0 flex-1">
-        <span className="block text-[13px] leading-snug text-mrd-ink">{lead}</span>
+        <span className="block text-[13px] leading-mrd-snug text-mrd-ink">{lead}</span>
         {sub ? (
-          <span className="mt-0.5 block text-[12.5px] leading-snug text-mrd-mute">{sub}</span>
+          <span className="mt-0.5 block text-[12.5px] leading-mrd-snug text-mrd-mute">{sub}</span>
         ) : null}
       </span>
       {time ? (
@@ -265,7 +265,7 @@ export function RecordSpeaks({
     <>
       <span aria-hidden className="relative z-[1] mt-1.5 size-2.5 shrink-0 rotate-45 bg-mrd-ink" />
       <span className="relative z-[1] min-w-0">
-        <span className="block text-[17px] leading-tight text-mrd-ink">{children}</span>
+        <span className="block text-[17px] leading-mrd-tight text-mrd-ink">{children}</span>
         {evidence ? (
           <span className="font-mrd-mono mt-mrd-3 block text-[11.5px] tabular-nums text-mrd-mute">
             {evidence}
