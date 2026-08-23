@@ -15,7 +15,7 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 2310,
+  "totalOccurrences": 2249,
   "fileCount": 180,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
@@ -668,15 +668,15 @@
       "raw-colour": 8
     },
     "src/styles.css": {
-      "--ds-": 326,
-      "--text-": 38,
-      "--hairline": 36,
+      "--ds-": 289,
+      "--text-": 33,
+      "--hairline": 30,
       "--madder": 3,
       "--glacier": 9,
       "--font-pixel": 2,
-      "--raised": 9,
+      "--raised": 6,
       "data-obsidian": 33,
-      "raw-colour": 156
+      "raw-colour": 146
     },
     "src/styles/decide.css": {
       "--sp-": 1

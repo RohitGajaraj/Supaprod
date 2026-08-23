@@ -63,7 +63,7 @@
  * token the corrected :root block already uses for that name. (--primary-ink
  * had the same fix applied then; every scope's copy was pruned 2026-08-24
  * after its last consumer went.) The broader
- * "working palette" data-viz hexes (--tangerine/--cornflower/
+ * "working palette" data-viz hexes (--cornflower/
  * --mauve/--teal/--pearl/etc.) and the retired pencil-annotation vars are
  * intentionally left as-is — no unambiguous 1:1 Tempo target exists for
  * that bespoke chart palette; do not guess-alias them without a design call.
@@ -87,9 +87,6 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -103,19 +100,8 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
-  --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
-  --color-paper: var(--paper);
-  --color-paper-elevated: var(--paper-elevated);
-  --color-surface-1: var(--surface-1);
-  --color-surface-2: var(--surface-2);
-  --color-surface-3: var(--surface-3);
   --color-hairline: var(--hairline);
-  --color-violet: var(--violet);
-  --color-cyan: var(--cyan);
-  --color-emerald: var(--emerald);
-  --color-amber: var(--amber);
-  --color-rose: var(--rose);
   /* Retired Tempo v5 type block. Body and mono faces are Meridian's now,
    * declared in styles/meridian.css; this file only aliases them so Tailwind
    * utilities keep resolving. The old guardrail here forbade exactly the two
@@ -130,35 +116,16 @@
   --font-mono: var(--mrd-mono);
   --font-pixel: var(--mrd-face-brand);
 
-  /* Ember Editorial color tokens. Available as bg-canvas, text-ink,
-   * bg-ember, text-agent, etc. Legacy names (coral, violet, cyan) stay
-   * registered and resolve to their Ember role equivalents. */
+  /* Ember Editorial color tokens still demanded by src (bg-canvas,
+   * text-deep-green utilities; ink-muted and hairline read via var()). The
+   * rest of this bridge was pruned 2026-08-24 with its unused utilities —
+   * re-add a key here only when a utility class for it actually ships in src. */
   --color-canvas: var(--canvas);
-  --color-soft-stone: var(--soft-stone);
-  --color-pale-green: var(--pale-green);
-  --color-pale-blue: var(--pale-blue);
   --color-deep-green: var(--deep-green);
-  --color-dark-navy: var(--dark-navy);
-  --color-coral: var(--coral);
-  --color-action-blue: var(--action-blue);
-  --color-ember: var(--ember);
-  --color-ember-soft: var(--ember-soft);
-  --color-agent: var(--agent);
-  --color-saffron: var(--saffron);
-
-  /* Density tokens (PC-37) — compact spacing scale */
-  --spacing-page-gutter: var(--page-gutter);
-  --spacing-card-pad: var(--card-pad);
-  --spacing-section-gap: var(--section-gap);
-  --spacing-control-h: var(--control-h);
-  --spacing-row-h: var(--row-h);
 
   /* Responsive page insets — replaces hardcoded "36px 32px 64px" patterns */
   --page-inset-v: 36px;
   --page-inset-h: 32px;
-
-  /* Bottom nav safe-area for iOS home indicator */
-  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 :root {
@@ -234,10 +201,7 @@
   /* Surfaces — warm parchment ramp */
   --canvas: oklch(0.977 0.007 85);
   --soft-stone: oklch(0.938 0.013 82);
-  --pale-green: oklch(0.95 0.025 150);
-  --pale-blue: oklch(0.95 0.015 230);
   --paper: var(--canvas);
-  --paper-elevated: var(--canvas);
   --surface-1: oklch(0.962 0.009 85);
   --surface-2: var(--soft-stone);
   --surface-3: oklch(0.922 0.014 80);
@@ -267,32 +231,21 @@
 
   /* Legacy accent names — remapped to Ember roles so existing pages stay
    * coherent without per-component edits. */
-  --violet: var(--agent);
   --violet-soft: oklch(0.65 0.09 310);
   --amber: var(--saffron);
-  --cyan: var(--action-blue);
   --emerald: oklch(0.55 0.09 145); /* moss · success */
   --rose: oklch(0.52 0.16 25); /* madder · alert */
 
   /* Hero / dark product band — deep plum-umber, lifted by the aurora. */
   --hero-bg: oklch(0.27 0.03 40);
-  --dark-navy: var(--hero-bg);
 
   /* PC-37 density pass (2026-07-12): compact spacing for world-class density
      (Linear/Raycast-grade). 12px readability floor maintained. */
-  --page-gutter: 24px; /* page/section horizontal margins */
   --card-pad: 16px; /* card content padding (was 18px) */
-  --section-gap: 16px; /* gap between major sections (was 24px) */
-  --control-h: var(
-    --ds-size-small
-  ); /* button/input height, 32px — alias of the Tempo v5 scale, not a second one */
-  --row-h: 38px; /* table/list row height (was 48px) */
 
   --background: var(--paper);
   --foreground: var(--ink);
   --card: var(--canvas);
-  --card-foreground: var(--ink);
-  --popover: var(--canvas);
   --popover-foreground: var(--ink);
   --primary: var(--ember);
   --primary-foreground: oklch(0.99 0.005 85);
@@ -300,26 +253,9 @@
   --secondary-foreground: var(--ink);
   --muted: var(--surface-1);
   --muted-foreground: var(--ink-muted);
-  --accent: var(--surface-2);
-  --accent-foreground: var(--ink);
   --destructive: var(--rose);
   --destructive-foreground: oklch(0.99 0.005 85);
   --border: var(--hairline);
-  --input: var(--hairline);
-  --ring: var(--focus-blue);
-  --chart-1: var(--ember);
-  --chart-2: var(--action-blue);
-  --chart-3: var(--emerald);
-  --chart-4: var(--saffron);
-  --chart-5: var(--agent);
-  --sidebar: var(--canvas); /* per shell.jsx — aside sits on the canvas */
-  --sidebar-foreground: var(--ink);
-  --sidebar-primary: var(--ink);
-  --sidebar-primary-foreground: var(--canvas);
-  --sidebar-accent: var(--surface-2);
-  --sidebar-accent-foreground: var(--ink);
-  --sidebar-border: var(--hairline);
-  --sidebar-ring: var(--focus-blue);
 
   --shadow-elevated: 0 1px 0 0 var(--hairline) inset, 0 8px 24px -12px oklch(0.2 0.02 60 / 16%);
 
@@ -329,7 +265,7 @@
 
 /* === Ember Editorial — "Char night" dark theme ===
  * Near-black floors (hue 60, chroma ≤ 0.01 — never brown); warmth lives only
- * in the accents. Sidebar one step darker than canvas for separation.
+ * in the accents.
  * Activated by toggling `.dark` on <html>. */
 .dark {
   --ember: var(--mrd-you); /* was oklch(0.72 0.16 315), value-identical to Meridian's you in this ground */
@@ -338,10 +274,7 @@
 
   --canvas: oklch(0.148 0.005 60);
   --soft-stone: oklch(0.21 0.008 58);
-  --pale-green: oklch(0.24 0.035 160);
-  --pale-blue: oklch(0.24 0.03 220);
   --paper: oklch(0.148 0.005 60);
-  --paper-elevated: oklch(0.178 0.006 58);
   --surface-1: oklch(0.178 0.006 58);
   --surface-2: oklch(0.21 0.008 58);
   --surface-3: oklch(0.245 0.009 58);
@@ -361,22 +294,17 @@
   --saffron: oklch(0.84 0.11 88);
   --agent: var(--ds-blue-600); /* machine blue; orchid retired (2026-07-11) */
 
-  --violet: var(--agent);
   --violet-soft: oklch(0.62 0.1 308);
   --amber: var(--saffron);
-  --cyan: var(--action-blue);
   --emerald: oklch(0.72 0.11 148);
   --rose: oklch(0.68 0.15 28);
 
   /* dark hero — deeper than the floor, ember bloom in one corner */
   --hero-bg: oklch(0.115 0.005 55);
-  --dark-navy: var(--hero-bg);
 
   --background: var(--paper);
   --foreground: var(--ink);
   --card: var(--surface-1);
-  --card-foreground: var(--ink);
-  --popover: var(--surface-2);
   --popover-foreground: var(--ink);
   --primary: var(--ember);
   --primary-foreground: oklch(0.16 0.01 55);
@@ -384,26 +312,9 @@
   --secondary-foreground: var(--ink);
   --muted: var(--surface-1);
   --muted-foreground: var(--ink-muted);
-  --accent: var(--surface-3);
-  --accent-foreground: var(--ink);
   --destructive: var(--rose);
   --destructive-foreground: oklch(0.16 0.01 55);
   --border: var(--hairline);
-  --input: var(--hairline);
-  --ring: var(--focus-blue);
-  --chart-1: var(--ember);
-  --chart-2: var(--action-blue);
-  --chart-3: var(--emerald);
-  --chart-4: var(--saffron);
-  --chart-5: var(--agent);
-  --sidebar: oklch(0.128 0.004 60); /* one step darker than the floor */
-  --sidebar-foreground: var(--ink);
-  --sidebar-primary: var(--ink);
-  --sidebar-primary-foreground: var(--paper);
-  --sidebar-accent: var(--surface-2);
-  --sidebar-accent-foreground: var(--ink);
-  --sidebar-border: var(--hairline);
-  --sidebar-ring: var(--focus-blue);
 
   --shadow-elevated:
     0 1px 0 0 oklch(0.95 0.015 85 / 5%) inset, 0 24px 60px -20px oklch(0 0 0 / 70%);
@@ -1167,9 +1078,6 @@ html[data-motion="off"] .agent-live {
   --blossom: #e5bddf;
 
   /* === Working palette · data only; role colors never plot data === */
-  /* Spend and cost */
-  --tangerine: #f97316;
-  --marigold-data: #e8a33d;
   /* User-behavior data */
   --flamingo: #f26b8a;
   --rose: var(
@@ -1237,8 +1145,6 @@ html[data-motion="off"] .agent-live {
    * element, so aliases inherit these values automatically. */
   --background: var(--canvas);
   --foreground: var(--text-primary);
-  --card-foreground: var(--text-primary);
-  --popover: var(--raised);
   --popover-foreground: var(--text-primary);
   --primary: var(--ember);
   --primary-foreground: var(--cta-ink);
@@ -1246,24 +1152,9 @@ html[data-motion="off"] .agent-live {
   --secondary-foreground: var(--text-primary);
   --muted: var(--raised);
   --muted-foreground: var(--text-muted);
-  --accent: var(--hover);
-  --accent-foreground: var(--text-primary);
   --destructive: var(--madder);
   --destructive-foreground: var(--cta-ink);
   --border: var(--hairline);
-  --input: var(--hairline);
-  --ring: var(--focus-ring);
-  --chart-3: var(--flamingo);
-  --chart-4: var(--marigold-data);
-  --chart-5: var(--mauve);
-  --sidebar: var(--rail);
-  --sidebar-foreground: var(--text-body);
-  --sidebar-primary: var(--text-primary);
-  --sidebar-primary-foreground: var(--rail);
-  --sidebar-accent: var(--hover);
-  --sidebar-accent-foreground: var(--text-primary);
-  --sidebar-border: var(--hairline);
-  --sidebar-ring: var(--focus-ring);
 
   /* Parchment legacy names, remapped so unported content stays readable. */
   --ink: var(--text-primary);
@@ -1271,13 +1162,10 @@ html[data-motion="off"] .agent-live {
   --ink-subtle: var(--text-subtle);
   --ink-faint: var(--text-faint);
   --paper: var(--canvas);
-  --paper-elevated: var(--card);
   --surface-1: var(--card);
   --surface-2: var(--raised);
   --surface-3: var(--hover);
   --soft-stone: var(--raised);
-  --pale-green: var(--raised);
-  --pale-blue: var(--raised);
   --deep-green: var(
     --ds-green-800
   ); /* aliased to Tempo (2026-07-11 fix): was var(--pearl) — wrong scale entirely (the approve-button role needs green, not the pearl axis color); now matches the corrected :root block */
@@ -1291,7 +1179,6 @@ html[data-motion="off"] .agent-live {
   ); /* machine blue (refined ruling 2026-07-11): orchid/violet retired from agent presence */
   --emerald: var(--moss);
   --hero-bg: var(--surface-card-deep);
-  --dark-navy: var(--surface-card-deep);
 }
 
 /* Obsidian base: jet-black cockpit, working voice, glacier focus, ember
@@ -1926,7 +1813,6 @@ html[data-motion="off"] .ai-pulse-text {
      (--glacier, --link, --action-blue, --cyan, --chart-1, focus
      outlines) resolves to this family. Stock Geist #0090ff stays retired,
      and violet is retired from every AI treatment. */
-  --ds-blue-100: #0d1726;
   --ds-blue-600: #5c9bf0;
   --ds-blue-700: #4a83d6;
   --ds-blue-800: #3a6fc2;
@@ -1950,10 +1836,7 @@ html[data-motion="off"] .ai-pulse-text {
   --ds-green-700: #00ab3e;
   --ds-green-800: #009335;
   --ds-green-900: #00ca52;
-  --ds-teal-600: #009885;
-  --ds-purple-600: #9440d5;
   --ds-purple-900: #c472fb;
-  --ds-pink-700: #f12b82;
   --ds-pink-900: #ff518d;
   --ds-contrast-fg: #fff;
 
@@ -2056,10 +1939,7 @@ html[data-motion="off"] .ai-pulse-text {
   --ember-soft: var(--ds-ember-900);
   --canvas: var(--ds-background-100);
   --soft-stone: var(--ds-gray-100);
-  --pale-green: var(--ds-green-100);
-  --pale-blue: var(--ds-blue-100);
   --paper: var(--ds-background-100);
-  --paper-elevated: var(--ds-gray-100);
   --surface-1: var(--ds-gray-100);
   --surface-2: var(--ds-gray-200);
   --surface-3: var(--ds-gray-300);
@@ -2075,22 +1955,17 @@ html[data-motion="off"] .ai-pulse-text {
   --coral: var(--ds-ember-600);
   --saffron: var(--ds-amber-600);
   --agent: var(--ds-blue-600); /* machine blue; orchid retired (2026-07-11) */
-  --violet: var(--ds-purple-600);
   --violet-soft: var(--ds-purple-900);
   --amber: var(--ds-amber-600);
-  --cyan: var(--ds-blue-600);
   --emerald: var(--ds-green-700);
   --rose: var(--ds-red-600);
   --hero-bg: var(--ds-background-200);
-  --dark-navy: var(--ds-background-200);
   --shadow-elevated: var(--ds-shadow-border-medium);
 
   /* --- shadcn semantic vars → Tempo dark --- */
   --background: var(--ds-background-100);
   --foreground: var(--ds-gray-1000);
   --card: var(--ds-background-100);
-  --card-foreground: var(--ds-gray-1000);
-  --popover: var(--ds-background-100);
   --popover-foreground: var(--ds-gray-1000);
   /* default button = neutral high-contrast invert (contract §2 ember-on-forms ruling) */
   --primary: var(--ds-gray-1000);
@@ -2099,26 +1974,9 @@ html[data-motion="off"] .ai-pulse-text {
   --secondary-foreground: var(--ds-gray-1000);
   --muted: var(--ds-gray-100);
   --muted-foreground: var(--ds-gray-900);
-  --accent: var(--ds-gray-100);
-  --accent-foreground: var(--ds-gray-1000);
   --destructive: var(--ds-red-700);
   --destructive-foreground: var(--ds-contrast-fg);
   --border: var(--ds-gray-400);
-  --input: var(--ds-gray-400);
-  --ring: var(--ds-focus-color);
-  --chart-1: var(--ds-blue-600);
-  --chart-2: var(--ds-teal-600);
-  --chart-3: var(--ds-purple-600);
-  --chart-4: var(--ds-pink-700);
-  --chart-5: var(--ds-amber-600);
-  --sidebar: var(--ds-background-200);
-  --sidebar-foreground: var(--ds-gray-1000);
-  --sidebar-primary: var(--ds-gray-1000);
-  --sidebar-primary-foreground: var(--ds-background-100);
-  --sidebar-accent: var(--ds-gray-100);
-  --sidebar-accent-foreground: var(--ds-gray-1000);
-  --sidebar-border: var(--ds-gray-alpha-400);
-  --sidebar-ring: var(--ds-focus-color);
 }
 
 /* Light theme — same token names, secondary theme (contract §1) */
@@ -2157,7 +2015,6 @@ html[data-motion="off"] .ai-pulse-text {
      (founder ruling 2026-07-11). 700+ verified >= 4.5:1 on white. */
   /* Light theme: the same rich hue ~215 family, deepened for AA on white
      (600 is the link/accent step: 4.5+ contrast on #fff). */
-  --ds-blue-100: #f0f6fe;
   --ds-blue-600: #2e6ed6;
   --ds-blue-700: #2560c4;
   --ds-blue-800: #1d51ad;
@@ -2181,10 +2038,7 @@ html[data-motion="off"] .ai-pulse-text {
   --ds-green-700: #28a948;
   --ds-green-800: #279141;
   --ds-green-900: #107d32;
-  --ds-teal-600: #00e2c4;
-  --ds-purple-600: #c77dff;
   --ds-purple-900: #7c00c9;
-  --ds-pink-700: #f22782;
   --ds-pink-900: #c41562;
   --ds-shadow-border-base: 0 0 0 1px #00000014;
   --ds-shadow-small: 0px 2px 2px #0000000a;
@@ -2212,7 +2066,6 @@ html[data-motion="off"] .ai-pulse-text {
  * [data-obsidian] block would otherwise keep feeding retired values.) */
 [data-obsidian] {
   --canvas: var(--ds-background-100);
-  --rail: var(--ds-background-200);
   --card: var(--ds-gray-100);
   --raised: var(--ds-gray-200);
   --hover: var(--ds-gray-200);
@@ -2285,15 +2138,10 @@ html[data-motion="off"] .ai-pulse-text {
   --link: var(--glacier);
   --focus-ring: var(--ds-focus-color);
   --selection: color-mix(in srgb, var(--text-primary) 20%, transparent);
-  /* Chart tokens unified with the Tempo :root assignments (2026-07-11) so
-     both scopes agree on the first two series. */
-  --chart-1: var(--ds-blue-600);
-  --chart-2: var(--ds-teal-600);
   /* Fonts resolve through the Tempo trio per this file's header invariant:
      never a literal font-family string in a corrective block. --font-mono is
      intentionally NOT redeclared - the @theme definition is the single
      source of truth (see the guardrail note in the early block). */
-  --font-serif: var(--font-sans);
   /* Pencil annotations are the app's one sanctioned personality touch
      (PencilLabel in obsidian/pencil-mark.tsx, the insight/scale labels in
      supaprod/Sketch.tsx) - they need Pixel to actually read as different from
