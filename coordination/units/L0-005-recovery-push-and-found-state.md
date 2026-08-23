@@ -1,54 +1,77 @@
-# UNIT L0-005: The fallen session's last work verified, gated and pushed
+# UNIT L0-005: Recovery of the fallen session's work
 
-**Lane:** LANE 0
-**Completed:** 2026-08-23T16:50+05:30
+## Context
 
-## What was waiting uncommitted when this session resumed
+This session stopped mid-run twice (storage/RAM pressure, then an interrupted
+rebase). This unit records what was found, verified, and pushed on resume.
 
-Three things, left by the session that stopped mid-run on storage:
+## Found uncommitted on resume
 
-1. **REQ-L0-004 written but never pushed.** The loom-press finding (it resolves
-   under the html-level data-obsidian hoist and carries a live 44px touch
-   target) sat invisible to MAIN LANE exactly the way the protocol warns.
-   Committed and pushed first thing as cd4c4607f, later rebased to 7d6c7f55a.
-   UL0-002 had already ruled the same conclusion independently; the request's
-   cascade evidence corroborates rather than contradicts it. loom-press stays
-   until data-obsidian comes off html AND the floor exists elsewhere.
-2. **BriefFormationFlow.tsx fully ported but ungated and unpersisted.**
-   Eleven Obsidian-barrel Buttons onto Meridian Action tiers, per-control
-   reasoning already written in its header. I verified both new imports exist
-   (MonoLabel in supaprod/Primitives, Action.busy implying disabled in
-   surface-parts), confirmed zero retired references remain in the file, ran
-   both gates, and committed d95b8ad3e, later dc3c54b14. Attribution: the
-   fallen session authored it; verification and push are mine.
-3. **25 video renders deleted in the working tree**, storage cleanup from the
-   crash. NOT committed: those are shared marketing assets and removing them
-   from the repo permanently is not a lane call. They were restored during
-   rebase recovery; the ~2GB sits back on disk. If the founder wants them out
-   of git, that is an explicit ruling, then one deletion commit.
+| Item | State | Action taken |
+| --- | --- | --- |
+| `coordination/requests/L0-004-loom-press-is-live-app-wide.md` | Written, never committed | Committed and pushed first |
+| `src/components/brief/BriefFormationFlow.tsx` | Fully ported, ungated | Verified, gated, committed |
+| `videos/supaprod-film/renders/*.mp4` (25 deletions) | Local disk cleanup | NOT committed; restored to disk |
 
-## Recovery mechanics worth recording
+## Why each decision
 
-Two interrupted runs left duplicate stashes of the same deletions and a
-transient index.lock under Supaprod/.git/worktrees/Supaprod-lane-0/ (the
-worktrees share one .git, so another session's git operation can hold our
-lock). Verified the stashes were identical 25-file copies, dropped both once
-the tree held the same content, removed nothing unique, and rebased clean.
-A rebase killed mid-flight restores stashed files via checkout; expect that.
+1. **REQ-L0-004**: unpushed coordination does not exist. It reached main even
+   though late. Note: `UL0-002` had already ruled loom-press live before this
+   request was written; the request stands as corroborating cascade evidence,
+   not a new question. No action changes: loom-press stays until
+   `data-obsidian` leaves `<html>` AND its 44px floor has a replacement.
+2. **BriefFormationFlow**: the port itself looked complete and reasoned
+   (eleven Obsidian-barrel Buttons onto Meridian tiers, per-control rationale
+   in the header comment). Verification performed rather than assumed:
+   - `MonoLabel` exists in `supaprod/Primitives`
+   - `Action.busy` exists in `surface-parts.tsx:580` and implies disabled
+   - Zero remaining `@/components/obsidian` imports, zero `<Button` in file
+   - Gates: tsc exit 0, bun test 10,650 pass / 0 fail / 631 files
+   - loom-press deliberately retained on the Close button per the UL0-002
+     ruling (44px mobile target still live through the html hoist)
+3. **Video deletions**: these are tracked repo assets (~2 GB of marketing
+   renders). Deleting them from git permanently is a destructive action on
+   shared state outside this lane's product mandate. They were restored via
+   stash dance during rebase recovery. Flagged for the founder to decide
+   separately whether the repo should shed them.
 
-## Measured on resume
+## Recovery mechanics worth keeping
+
+Two interrupted runs created duplicate stashes of identical content and one
+stale-looking `index.lock` under the shared `.git/worktrees/Supaprod-lane-0/`.
+Verified both stashes held byte-identical 25-file deletions, dropped both once
+the working tree held the same state, removed the stale lock, rebased clean.
+Lesson: after any killed rebase, expect stashed deletions to reappear in the
+tree (checkout restores them) and dedupe stashes before re-stashing.
+
+## Measured state at close of this unit
 
 | Metric | Value | Query |
 | --- | --- | --- |
-| Ratchet | 2721 / 212 | bun run design:ratchet |
-| tsc | exit 0 | bunx tsc --noEmit |
-| bun test | 10650 pass, 0 fail / 631 files | bun test |
-| Native buttons left in MissionOrchestratorDetail | 8 | grep '<button' |
+| Ratchet total | 2,721 / 212 files | `bun run design:ratchet` |
+| tsc | exit 0 | `bunx tsc --noEmit` |
+| bun test | 10,650 pass, 23 skip, 0 fail | `bun test` |
+| Native buttons left in MissionOrchestratorDetail | 8 | `grep -c "<button"` |
+| Bare Tailwind leadings in that file | 0 | grep |
+| Double-size shapes in that file | 0 | grep |
 
-## Next
+## Judgement calls recorded
 
-MissionOrchestratorDetail deep pass: judge each remaining native button
-through the answers/M10 test, sweep the file for the U005/U006 defect shapes
-(text-[Npx] beside a size-bearing role; bare leading-*), hierarchy audit,
-then empty/loading/error states. 37 instances of the double-size shape exist
-across my tree; the file-level fix lands with the file's port.
+All eight native buttons in MissionOrchestratorDetail were tested against the
+answers/M10 question individually. Seven are reveal/dismiss/navigate controls
+(disclosure chevrons with aria-expanded, view-switcher pills, the documented
+reveal-only comparison toggle at line 1407); plain `<button>` is correct for
+these and converting them would put a control tier on something that does not
+act. The eighth is a copy-to-clipboard control at line 759; house convention
+(TraceFacts CopyButton) keeps copy as a plain guarded button, so it stays.
+
+## Open items handed forward
+
+1. The double-size shape (`text-[Npx]` beside a size-bearing `text-mrd-*`)
+   measured at 37 occurrences across my tree; next units fix file-by-file
+   worst-first with the answers/U006 mechanical re-sweep after each.
+2. Bare `leading-snug/tight/relaxed` conversions ride along with every file
+   touched, per answers/M13.
+3. Untiered-control concentrations remaining on my side of the split after
+   BriefFormationFlow landed: ObsidianOnboarding (8), DecisionQueue (7),
+   InvitationsPanel (7), DesignScaffoldPanel (7), ProductAnalyticsPanel (7).
