@@ -113,8 +113,8 @@
  * A surface that needs a genuinely dominant region says so with
  * `--sp-text-gate`, which the scale already reserves for exactly that. */
 .sp-block-title {
-  font-size: var(--sp-text-body);
-  font-weight: var(--sp-weight-strong);
+  font-size: var(--mrd-t-prose);
+  font-weight: var(--mrd-w-semi);
   color: var(--mrd-ink);
 }
 /* The 19px rung the scale already reserves, taken by the regions that carry a
@@ -167,8 +167,8 @@
  * Meridian value, read through one alias. */
 .sp-block-more {
   font: inherit;
-  font-size: var(--sp-text-meta);
-  color: var(--sp-body);
+  font-size: var(--mrd-t-base);
+  color: var(--mrd-body);
   background: none;
   border: 0;
   padding: 0;
@@ -177,10 +177,10 @@
   text-decoration-style: dotted;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
-  text-decoration-color: color-mix(in oklab, var(--sp-body) 26%, transparent);
+  text-decoration-color: color-mix(in oklab, var(--mrd-body) 26%, transparent);
   transition:
-    color var(--sp-dur-fast) var(--sp-ease),
-    text-decoration-color var(--sp-dur-fast) var(--sp-ease);
+    color var(--mrd-d-move) var(--mrd-ease),
+    text-decoration-color var(--mrd-d-move) var(--mrd-ease);
 }
 .sp-block-more:hover {
   color: var(--mrd-ink);
@@ -232,10 +232,10 @@
   border: 0;
   color: inherit;
   font: inherit;
-  transition: background var(--sp-dur-fast) var(--sp-ease);
+  transition: background var(--mrd-d-move) var(--mrd-ease);
 }
 .sp-row:hover {
-  background: var(--sp-hover);
+  background: var(--mrd-hover);
 }
 /* A row that does not go anywhere must not look like it does. Reported from
  * Settings, where read-only receipt rows wore a pointer and invited a click
@@ -266,12 +266,12 @@
  * column had. Grepped for the pattern rather than fixing one instance. */
 .sp-row-lead {
   display: block;
-  font-size: var(--sp-text-body);
+  font-size: var(--mrd-t-prose);
   color: var(--mrd-ink);
   line-height: var(--sp-leading-row);
 }
 .sp-row-who {
-  font-weight: var(--sp-weight-strong);
+  font-weight: var(--mrd-w-semi);
 }
 /* `--sp-mute` stays here for the same reason `.sp-block-more` keeps `--sp-body`:
  * the same test reads this body and asserts the literal name, because the pair is
@@ -279,15 +279,15 @@
  * same colour and is not read by any guard, so it ports. */
 .sp-row-sub {
   display: block;
-  font-size: var(--sp-text-meta);
-  color: var(--sp-mute);
+  font-size: var(--mrd-t-base);
+  color: var(--mrd-mute);
   margin-top: 2px;
   line-height: var(--sp-leading-row);
 }
 .sp-row-time {
   font-family: var(--mrd-mono);
   font-variant-numeric: tabular-nums;
-  font-size: var(--sp-text-data);
+  font-size: var(--mrd-t-small);
   color: var(--mrd-mute);
   flex: none;
 }
@@ -312,16 +312,16 @@
  * resolve straight through: `--sp-pass: var(--mrd-pass)`, `--sp-fail:
  * var(--mrd-fail)`, `--sp-gate: var(--mrd-you)`. */
 .sp-pass {
-  color: var(--sp-pass);
+  color: var(--mrd-pass);
 }
 .sp-fail {
-  color: var(--sp-fail);
+  color: var(--mrd-fail);
 }
 .sp-warn {
   color: var(--sp-warn);
 }
 .sp-gate {
-  color: var(--sp-gate);
+  color: var(--mrd-you);
 }
 
 /* ---------- diffstat ----------
@@ -334,13 +334,13 @@
   gap: 4px;
   font-family: var(--mrd-mono);
   font-variant-numeric: tabular-nums;
-  font-size: var(--sp-text-label);
-  font-weight: var(--sp-weight-medium);
+  font-size: var(--mrd-t-label);
+  font-weight: var(--mrd-w-medium);
   margin-right: 4px;
   vertical-align: -2px;
 }
 .sp-diff b {
-  font-weight: var(--sp-weight-medium);
+  font-weight: var(--mrd-w-medium);
   padding: 3px 7px;
   border-radius: var(--sp-radius-sm);
 }
@@ -348,12 +348,12 @@
  * read by a guard, but added and removed are one object on screen and spelling
  * them differently would read as a defect rather than as a port in progress. */
 .sp-diff .sp-pass {
-  background: color-mix(in oklab, var(--sp-pass) 16%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sp-pass) 26%, transparent);
+  background: color-mix(in oklab, var(--mrd-pass) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--mrd-pass) 26%, transparent);
 }
 .sp-diff .sp-fail {
-  background: color-mix(in oklab, var(--sp-fail) 16%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sp-fail) 26%, transparent);
+  background: color-mix(in oklab, var(--mrd-fail) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--mrd-fail) 26%, transparent);
 }
 
 /* ---------- the gate ----------
@@ -377,7 +377,7 @@
    * so a person learns one shape rather than two. Requires the Gate to be keyed
    * on its subject at each call site, or React updates it in place and no
    * entrance runs. */
-  animation: sp-gate-in var(--sp-dur-slow) var(--sp-ease);
+  animation: sp-gate-in var(--sp-dur-slow) var(--mrd-ease);
 }
 @keyframes sp-gate-in {
   from {
@@ -396,7 +396,7 @@
 }
 .sp-gate-q {
   font-size: var(--sp-text-gate);
-  font-weight: var(--sp-weight-strong);
+  font-weight: var(--mrd-w-semi);
   letter-spacing: var(--sp-track-gate);
   line-height: var(--sp-leading-gate);
   max-width: var(--sp-gate-max);
@@ -410,7 +410,7 @@
   margin-top: 14px;
   background: var(--mrd-sink);
   border-radius: var(--mrd-r-card);
-  padding: var(--sp-space-4) 18px;
+  padding: var(--mrd-s5) 18px;
 }
 /* Names where the facts below came from, so the crew's reasoning is attributed
  * without being moved away from the question it answers. The machine voice,
@@ -421,7 +421,7 @@
 .sp-gate-what-label {
   margin: 0 0 8px;
   font-family: var(--mrd-mono);
-  font-size: var(--sp-text-data-sm);
+  font-size: var(--mrd-t-data);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--mrd-mute);
@@ -445,13 +445,13 @@
 }
 .sp-gate-line b {
   color: var(--mrd-ink);
-  font-weight: var(--sp-weight-strong);
+  font-weight: var(--mrd-w-semi);
 }
 .sp-acts {
   display: flex;
   align-items: center;
   gap: 9px;
-  margin-top: var(--sp-space-4);
+  margin-top: var(--mrd-s5);
   flex-wrap: wrap;
 }
 /* A column of SENTENCES, not a row of verbs. The default above assumes a label
@@ -482,9 +482,9 @@
 .sp-btn {
   font: inherit;
   font-size: var(--sp-text-prose);
-  font-weight: var(--sp-weight-medium);
+  font-weight: var(--mrd-w-medium);
   height: var(--sp-ctl-md);
-  padding: 0 var(--sp-space-4);
+  padding: 0 var(--mrd-s5);
   border-radius: var(--sp-radius-ctl);
   border: 1px solid var(--mrd-line);
   background: var(--mrd-lift);
@@ -493,8 +493,8 @@
   display: inline-flex;
   align-items: center;
   transition:
-    background var(--sp-dur-fast) var(--sp-ease),
-    transform var(--sp-dur-press) var(--sp-ease);
+    background var(--mrd-d-move) var(--mrd-ease),
+    transform var(--sp-dur-press) var(--mrd-ease);
 }
 .sp-btn:hover {
   background: var(--mrd-float);
@@ -503,7 +503,7 @@
   transform: translateY(1px);
 }
 /* THE PRIMARY BUTTON WAS A RAW INK INVERSION, AND ON THIS THEME THAT IS A WHITE
- * SLAB. It read `background: var(--sp-ink); color: var(--sp-bg)`, which is a
+ * SLAB. It read `background: var(--mrd-ink); color: var(--mrd-bg)`, which is a
  * dark button on paper and a near-white one (#f4f4f7) on the dark canvas the
  * system calls its design target. Seen on /today 2026-08-06: "Take it to
  * Discover" and two "Open the decision" controls sat as solid white blocks on
@@ -545,7 +545,7 @@
   background: var(--mrd-solid);
   color: var(--mrd-on-solid);
   border-color: var(--mrd-sheen);
-  font-weight: var(--sp-weight-strong);
+  font-weight: var(--mrd-w-semi);
 }
 .sp-btn[data-variant="primary"]:hover {
   background: var(--mrd-solid-hover);
@@ -557,7 +557,7 @@
 }
 .sp-btn[data-variant="ghost"]:hover {
   color: var(--mrd-ink);
-  background: var(--sp-hover);
+  background: var(--mrd-hover);
 }
 /* An icon-only control. The horizontal padding exists to give a WORD room; on a
  * glyph it draws a lozenge around a 17px mark and makes it read as a chip. So
@@ -607,13 +607,13 @@
 /* The shortcut rides its own control. It was a stranded line before. */
 .sp-btn kbd {
   font-family: var(--mrd-mono);
-  font-size: var(--sp-text-kbd);
+  font-size: var(--mrd-t-tiny);
   margin-left: 7px;
   padding: 1px 4px;
   border-radius: var(--mrd-r-xs);
   background: color-mix(in oklab, currentColor 13%, transparent);
   opacity: 0.72;
-  font-weight: var(--sp-weight-regular);
+  font-weight: var(--mrd-w-regular);
 }
 /* No primary-specific rule any more. The chip was overridden to a 22% --sp-bg
  * wash because the primary used to be a white slab and `currentColor` there was
@@ -698,12 +698,12 @@ button.sp-record:focus-visible {
 .sp-record-text {
   font-size: var(--sp-text-prose);
   color: var(--mrd-ink);
-  line-height: var(--sp-leading-tight);
+  line-height: var(--mrd-lh-snug);
   display: block;
 }
 .sp-record-evidence {
   font-family: var(--mrd-mono);
-  font-size: var(--sp-text-data);
+  font-size: var(--mrd-t-small);
   color: var(--mrd-mute);
   margin-top: 6px;
   display: block;
@@ -711,8 +711,8 @@ button.sp-record:focus-visible {
 
 /* ---------- page head ---------- */
 .sp-title {
-  font-size: var(--sp-text-title);
-  font-weight: var(--sp-weight-strong);
+  font-size: var(--mrd-t-h2);
+  font-weight: var(--mrd-w-semi);
   letter-spacing: var(--sp-track-title);
   line-height: var(--sp-leading-title);
   max-width: var(--sp-title-max);
@@ -739,8 +739,8 @@ button.sp-record:focus-visible {
 
 /* ---------- context column pieces ---------- quiet, never a second nav */
 .sp-ctx-head {
-  font-size: var(--sp-text-label);
-  font-weight: var(--sp-weight-strong);
+  font-size: var(--mrd-t-label);
+  font-weight: var(--mrd-w-semi);
   color: var(--mrd-mute);
   margin-bottom: 11px;
 }
@@ -751,7 +751,7 @@ button.sp-record:focus-visible {
   border-top: 1px solid var(--sp-line-soft);
 }
 .sp-ctx-body {
-  font-size: var(--sp-text-meta);
+  font-size: var(--mrd-t-base);
   color: var(--mrd-body);
   line-height: var(--sp-leading-body);
 }
@@ -790,12 +790,12 @@ button.sp-ctx-row:focus-visible {
  * once real data is in front of it. */
 .sp-ctx-name {
   display: block;
-  font-size: var(--sp-text-meta);
+  font-size: var(--mrd-t-base);
   color: var(--mrd-ink);
 }
 .sp-ctx-sub {
   display: block;
-  font-size: var(--sp-text-label);
+  font-size: var(--mrd-t-label);
   color: var(--mrd-mute);
   margin-top: 1px;
 }
@@ -828,7 +828,7 @@ button.sp-ctx-row:focus-visible {
   /* Row leading, not document leading. See the note on .sp-line. */
   line-height: var(--sp-leading-row);
   color: var(--mrd-body);
-  animation: sp-receipt-in var(--sp-dur-slow) var(--sp-ease);
+  animation: sp-receipt-in var(--sp-dur-slow) var(--mrd-ease);
 }
 .sp-receipt + .sp-receipt {
   border-top: 1px solid var(--sp-line-soft);
@@ -844,7 +844,7 @@ button.sp-ctx-row:focus-visible {
 }
 .sp-receipt-verb {
   color: var(--mrd-ink);
-  font-weight: var(--sp-weight-medium);
+  font-weight: var(--mrd-w-medium);
 }
 /* The handoff arrow. It is drawn ONLY when something real picks the work up.
  * Never an arrow to nowhere: where nothing follows, the line says what changed
@@ -856,7 +856,7 @@ button.sp-ctx-row:focus-visible {
 .sp-receipt-time {
   font-family: var(--mrd-mono);
   font-variant-numeric: tabular-nums;
-  font-size: var(--sp-text-data);
+  font-size: var(--mrd-t-small);
   color: var(--mrd-mute);
   flex: none;
 }
@@ -891,8 +891,8 @@ button.sp-ctx-row:focus-visible {
   height: var(--sp-ctl-lg);
   outline: none;
   transition:
-    border-color var(--sp-dur-fast) var(--sp-ease),
-    background var(--sp-dur-fast) var(--sp-ease);
+    border-color var(--mrd-d-move) var(--mrd-ease),
+    background var(--mrd-d-move) var(--mrd-ease);
 }
 .sp-textarea {
   height: auto;
@@ -965,8 +965,8 @@ button.sp-ctx-row:focus-visible {
  * never a restatement (hard ban 10). */
 .sp-field-label {
   display: block;
-  font-size: var(--sp-text-label);
-  font-weight: var(--sp-weight-medium);
+  font-size: var(--mrd-t-label);
+  font-weight: var(--mrd-w-medium);
   color: var(--mrd-mute);
   margin-bottom: 6px;
 }
@@ -1016,7 +1016,7 @@ button.sp-ctx-row:focus-visible {
  * lets through. Never a restatement of the label (hard ban 10). */
 .sp-line-sub {
   display: block;
-  font-size: var(--sp-text-label);
+  font-size: var(--mrd-t-label);
   color: var(--mrd-mute);
   margin-top: 2px;
   max-width: 56ch;
@@ -1041,7 +1041,7 @@ button.sp-ctx-row:focus-visible {
   cursor: pointer;
   border: 0;
   padding: 0;
-  transition: background var(--sp-dur-mid) var(--sp-ease);
+  transition: background var(--sp-dur-mid) var(--mrd-ease);
 }
 .sp-switch::after {
   content: "";
@@ -1052,7 +1052,7 @@ button.sp-ctx-row:focus-visible {
   height: 17px;
   border-radius: 50%;
   background: var(--mrd-ink);
-  transition: transform var(--sp-dur-mid) var(--sp-ease);
+  transition: transform var(--sp-dur-mid) var(--mrd-ease);
 }
 .sp-switch[aria-checked="true"] {
   background: var(--mrd-pass);
@@ -1097,7 +1097,7 @@ button.sp-ctx-row:focus-visible {
   color: var(--mrd-body);
   background: var(--mrd-sink);
   border-radius: var(--mrd-r-card);
-  padding: var(--sp-space-4) 18px;
+  padding: var(--mrd-s5) 18px;
   margin-top: var(--sp-space-3);
   max-width: 68ch;
   white-space: pre-wrap;
@@ -1141,9 +1141,9 @@ button.sp-ctx-row:focus-visible {
  * floating over. */
 .sp-prose h3 {
   color: var(--mrd-ink);
-  font-weight: var(--sp-weight-strong);
-  font-size: var(--sp-text-body);
-  line-height: var(--sp-leading-tight);
+  font-weight: var(--mrd-w-semi);
+  font-size: var(--mrd-t-prose);
+  line-height: var(--mrd-lh-snug);
   margin-top: var(--sp-space-5);
 }
 .sp-prose h3[data-level="1"] {
@@ -1152,7 +1152,7 @@ button.sp-ctx-row:focus-visible {
   line-height: var(--sp-leading-gate);
 }
 .sp-prose h3[data-level="2"] {
-  font-size: var(--sp-text-body);
+  font-size: var(--mrd-t-prose);
 }
 .sp-prose h3[data-level="3"] {
   font-size: var(--sp-text-prose);
@@ -1165,7 +1165,7 @@ button.sp-ctx-row:focus-visible {
 .sp-prose strong,
 .sp-prose b {
   color: var(--mrd-ink);
-  font-weight: var(--sp-weight-strong);
+  font-weight: var(--mrd-w-semi);
 }
 .sp-prose em,
 .sp-prose i {
@@ -1187,21 +1187,21 @@ button.sp-ctx-row:focus-visible {
  * writing eight bullets at 12px of separation each would push the answer's
  * conclusion off the bottom of the pane. */
 .sp-prose li {
-  margin-top: var(--sp-space-1);
+  margin-top: var(--mrd-s2);
 }
 .sp-prose li::marker {
   color: var(--mrd-mute);
 }
 .sp-prose li > ul,
 .sp-prose li > ol {
-  margin-top: var(--sp-space-1);
+  margin-top: var(--mrd-s2);
 }
 
 /* Inline code is a TOKEN, not a box: a column name, a flag, a file. Just enough
  * ground under it to separate it from the sentence. */
 .sp-prose code {
   font-family: var(--mrd-mono);
-  font-size: var(--sp-text-data);
+  font-size: var(--mrd-t-small);
   color: var(--mrd-ink);
   background: color-mix(in oklab, var(--mrd-ink) 8%, transparent);
   border-radius: var(--mrd-r-xs);
@@ -1252,7 +1252,7 @@ button.sp-ctx-row:focus-visible {
 .sp-prose hr {
   border: 0;
   border-top: 1px solid var(--sp-line-soft);
-  margin-top: var(--sp-space-4);
+  margin-top: var(--mrd-s5);
 }
 
 /* ---------- something is happening, and it is not finished ----------
@@ -1301,7 +1301,7 @@ button.sp-ctx-row:focus-visible {
   flex: none;
   font-family: var(--mrd-mono);
   font-variant-numeric: tabular-nums;
-  font-size: var(--sp-text-data-sm);
+  font-size: var(--mrd-t-data);
   color: var(--mrd-mute);
 }
 .sp-working-say {
@@ -1359,12 +1359,12 @@ button.sp-ctx-row:focus-visible {
   background: none;
   color: var(--mrd-mute);
   cursor: pointer;
-  transition: color var(--sp-dur-fast) var(--sp-ease);
+  transition: color var(--mrd-d-move) var(--mrd-ease);
 }
 .sp-more-btn:hover,
 .sp-more-btn[aria-expanded="true"] {
   color: var(--mrd-ink);
-  background: var(--sp-hover);
+  background: var(--mrd-hover);
 }
 .sp-more-btn svg {
   width: var(--sp-icon-sm);
@@ -1394,12 +1394,12 @@ button.sp-ctx-row:focus-visible {
   background: none;
   color: var(--mrd-body);
   font: inherit;
-  font-size: var(--sp-text-meta);
+  font-size: var(--mrd-t-base);
   white-space: nowrap;
   cursor: pointer;
 }
 .sp-more-item:hover {
-  background: var(--sp-hover);
+  background: var(--mrd-hover);
   color: var(--mrd-ink);
 }
 
@@ -1436,12 +1436,12 @@ button.sp-ctx-row:focus-visible {
  * pain point, and a document is the one place it is unavoidable. */
 .sp-pre {
   font-family: var(--mrd-mono);
-  font-size: var(--sp-text-data);
+  font-size: var(--mrd-t-small);
   line-height: var(--sp-leading-body);
   color: var(--mrd-body);
   background: var(--mrd-sink);
   border-radius: var(--mrd-r-card);
-  padding: var(--sp-space-4) 18px;
+  padding: var(--mrd-s5) 18px;
   overflow-x: auto;
   white-space: pre;
   margin-top: var(--sp-space-3);
@@ -1467,7 +1467,7 @@ button.sp-ctx-row:focus-visible {
 
 /* A block's second line: what this section is for, said once. */
 .sp-block-sub {
-  font-size: var(--sp-text-meta);
+  font-size: var(--mrd-t-base);
   color: var(--mrd-mute);
   margin: -6px 0 var(--sp-space-3);
   max-width: 68ch;
@@ -1480,12 +1480,12 @@ button.sp-ctx-row:focus-visible {
   display: flex;
   align-items: center;
   gap: 2px;
-  margin-top: var(--sp-space-4);
+  margin-top: var(--mrd-s5);
   flex-wrap: wrap;
 }
 .sp-tab {
   font: inherit;
-  font-size: var(--sp-text-meta);
+  font-size: var(--mrd-t-base);
   color: var(--mrd-mute);
   background: none;
   border: 0;
@@ -1493,22 +1493,22 @@ button.sp-ctx-row:focus-visible {
   border-radius: var(--mrd-r-chip);
   cursor: pointer;
   transition:
-    background var(--sp-dur-fast) var(--sp-ease),
-    color var(--sp-dur-fast) var(--sp-ease);
+    background var(--mrd-d-move) var(--mrd-ease),
+    color var(--mrd-d-move) var(--mrd-ease);
 }
 .sp-tab:hover {
-  background: var(--sp-hover);
+  background: var(--mrd-hover);
   color: var(--mrd-ink);
 }
 .sp-tab[aria-selected="true"] {
   background: var(--mrd-lift);
   color: var(--mrd-ink);
-  font-weight: var(--sp-weight-medium);
+  font-weight: var(--mrd-w-medium);
 }
 .sp-tab-count {
   font-family: var(--mrd-mono);
   font-variant-numeric: tabular-nums;
-  font-size: var(--sp-text-data-sm);
+  font-size: var(--mrd-t-data);
   margin-left: 5px;
   opacity: 0.7;
 }
@@ -1516,7 +1516,7 @@ button.sp-ctx-row:focus-visible {
 /* The row currently holding the keyboard's attention. A ring, because it is
  * focus and not a state of the work. */
 .sp-row[data-focused="true"] {
-  background: var(--sp-hover);
+  background: var(--mrd-hover);
   box-shadow: inset 0 0 0 1px var(--mrd-line);
 }
 
@@ -1581,8 +1581,8 @@ button.sp-ctx-row:focus-visible {
   font: inherit;
   text-align: left;
   transition:
-    background var(--sp-dur-fast) var(--sp-ease),
-    box-shadow var(--sp-dur-fast) var(--sp-ease);
+    background var(--mrd-d-move) var(--mrd-ease),
+    box-shadow var(--mrd-d-move) var(--mrd-ease);
 }
 .sp-cell[data-tone="recessed"] {
   --sp-cell-bg: var(--mrd-sink);
@@ -1633,13 +1633,13 @@ button.sp-cell:disabled {
   white-space: nowrap;
 }
 .sp-cell-lead {
-  font-size: var(--sp-text-body);
-  font-weight: var(--sp-weight-medium);
+  font-size: var(--mrd-t-prose);
+  font-weight: var(--mrd-w-medium);
   color: var(--mrd-ink);
 }
 .sp-cell-sub {
   margin-top: 1px;
-  font-size: var(--sp-text-label);
+  font-size: var(--mrd-t-label);
   color: var(--mrd-mute);
 }
 
@@ -1652,7 +1652,7 @@ button.sp-cell:disabled {
  * Quiet by default. A tone appears only where the value IS an outcome, which is
  * the one case where the colour is carrying the fact rather than dressing it. */
 .sp-value {
-  font-size: var(--sp-text-meta);
+  font-size: var(--mrd-t-base);
   color: var(--mrd-mute);
 }
 .sp-value[data-tone="pass"] {
@@ -1734,8 +1734,8 @@ button.sp-cell:disabled {
   cursor: pointer;
   position: relative;
   transition:
-    background var(--sp-dur-fast) var(--sp-ease),
-    border-color var(--sp-dur-fast) var(--sp-ease);
+    background var(--mrd-d-move) var(--mrd-ease),
+    border-color var(--mrd-d-move) var(--mrd-ease);
 }
 .sp-check:hover:not(:disabled) {
   border-color: var(--mrd-mute);
@@ -1776,7 +1776,7 @@ button.sp-cell:disabled {
 .sp-choices {
   display: inline-flex;
   align-items: center;
-  gap: var(--sp-space-1);
+  gap: var(--mrd-s2);
   flex-wrap: wrap;
 }
 
@@ -1804,11 +1804,11 @@ button.sp-cell:disabled {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  margin-top: var(--sp-space-1);
+  margin-top: var(--mrd-s2);
 }
 .sp-turn-cost {
-  margin-top: var(--sp-space-1);
-  font-size: var(--sp-text-data);
+  margin-top: var(--mrd-s2);
+  font-size: var(--mrd-t-small);
   color: var(--mrd-mute);
   text-align: right;
 }
@@ -1826,7 +1826,7 @@ button.sp-cell:disabled {
  * existed only because capsules were travelling through it and was the thing
  * cutting sentences mid-word. Nothing travels now, so nothing needs hiding. */
 .sp-suggest {
-  margin-top: var(--sp-space-4);
+  margin-top: var(--mrd-s5);
   padding: var(--sp-space-2);
   display: flex;
   flex-direction: column;
@@ -1852,17 +1852,17 @@ button.sp-cell:disabled {
   flex-wrap: wrap;
   align-items: baseline;
   gap: var(--sp-space-2);
-  padding: 0 var(--sp-space-2) var(--sp-space-1);
+  padding: 0 var(--sp-space-2) var(--mrd-s2);
 }
 .sp-suggest-label {
-  font-size: var(--sp-text-label);
-  font-weight: var(--sp-weight-medium);
+  font-size: var(--mrd-t-label);
+  font-weight: var(--mrd-w-medium);
   color: var(--mrd-mute);
 }
 /* The consequence, beside the heading rather than under the rows. A row that
  * spends money says so BEFORE it is pressed. */
 .sp-suggest-note {
-  font-size: var(--sp-text-data);
+  font-size: var(--mrd-t-small);
   color: var(--mrd-mute);
   opacity: 0.85;
 }
@@ -1881,13 +1881,13 @@ button.sp-cell:disabled {
   background: transparent;
   color: var(--mrd-body);
   font: inherit;
-  font-size: var(--sp-text-meta);
+  font-size: var(--mrd-t-base);
   line-height: var(--sp-leading-row);
   text-align: left;
   cursor: pointer;
   transition:
-    background var(--sp-dur-fast) var(--sp-ease),
-    color var(--sp-dur-fast) var(--sp-ease);
+    background var(--mrd-d-move) var(--mrd-ease),
+    color var(--mrd-d-move) var(--mrd-ease);
 }
 .sp-suggest-row:hover {
   background: var(--mrd-lift);
@@ -1910,7 +1910,7 @@ button.sp-cell:disabled {
   align-items: center;
   gap: 7px;
   color: var(--mrd-ink);
-  font-weight: var(--sp-weight-medium);
+  font-weight: var(--mrd-w-medium);
   overflow-wrap: anywhere;
 }
 .sp-suggest-q {
@@ -1951,7 +1951,7 @@ button.sp-cell:disabled {
   border-radius: var(--mrd-r-chip);
   background: color-mix(in srgb, var(--sp-suggest-hue) 12%, transparent);
   color: color-mix(in srgb, var(--sp-suggest-hue) 78%, var(--mrd-ink));
-  font-size: var(--sp-text-data-sm);
+  font-size: var(--mrd-t-data);
   line-height: 1.5;
   white-space: nowrap;
 }
@@ -1994,18 +1994,18 @@ button.sp-cell:disabled {
 .sp-selbar {
   display: flex;
   align-items: center;
-  gap: var(--sp-space-4);
+  gap: var(--mrd-s5);
   min-height: var(--sp-row-scan);
-  padding: 0 var(--sp-space-4);
+  padding: 0 var(--mrd-s5);
   background: var(--mrd-lift);
   border-radius: var(--mrd-r-ctl);
-  font-size: var(--sp-text-meta);
+  font-size: var(--mrd-t-base);
   color: var(--mrd-body);
 }
 
 .sp-selbar-count {
   color: var(--mrd-ink);
-  font-weight: var(--sp-weight-medium);
+  font-weight: var(--mrd-w-medium);
   white-space: nowrap;
 }
 
@@ -2036,7 +2036,7 @@ button.sp-cell:disabled {
   z-index: 60;
   display: grid;
   place-items: center;
-  padding: var(--sp-space-6);
+  padding: var(--mrd-s6);
 }
 
 .sp-sendback-scrim {
@@ -2053,8 +2053,8 @@ button.sp-cell:disabled {
   width: min(640px, 100%);
   display: flex;
   flex-direction: column;
-  gap: var(--sp-space-4);
-  padding: var(--sp-space-6);
+  gap: var(--mrd-s5);
+  padding: var(--mrd-s6);
   background: var(--mrd-sheet);
   border: 1px solid var(--mrd-line);
   border-radius: var(--mrd-r-pane);
@@ -2071,13 +2071,13 @@ button.sp-cell:disabled {
   font-size: var(--sp-text-gate);
   line-height: var(--sp-leading-gate);
   letter-spacing: var(--sp-track-gate);
-  font-weight: var(--sp-weight-strong);
+  font-weight: var(--mrd-w-semi);
   color: var(--mrd-ink);
 }
 
 .sp-sendback-label {
-  font-size: var(--sp-text-label);
-  font-weight: var(--sp-weight-medium);
+  font-size: var(--mrd-t-label);
+  font-weight: var(--mrd-w-medium);
   color: var(--mrd-body);
 }
 
@@ -2088,13 +2088,13 @@ button.sp-cell:disabled {
   width: 100%;
   min-height: 148px;
   resize: vertical;
-  padding: var(--sp-space-4);
+  padding: var(--mrd-s5);
   background: var(--mrd-sink);
   color: var(--mrd-ink);
   border: 1px solid var(--sp-field-edge);
   border-radius: var(--sp-radius-ctl);
   font-family: var(--mrd-font);
-  font-size: var(--sp-text-body);
+  font-size: var(--mrd-t-prose);
   line-height: var(--sp-leading-body);
 }
 
@@ -2110,12 +2110,12 @@ button.sp-cell:disabled {
 .sp-sendback-foot {
   display: flex;
   align-items: center;
-  gap: var(--sp-space-4);
+  gap: var(--mrd-s5);
   flex-wrap: wrap;
 }
 
 .sp-sendback-hint {
-  font-size: var(--sp-text-meta);
+  font-size: var(--mrd-t-base);
   color: var(--mrd-mute);
 }
 

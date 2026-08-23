@@ -114,7 +114,7 @@ describe("surface-discipline §5: a diff delta is green and red, and never a fak
     // light theme uses different values for the same meaning.
     const body = ruleBody(read("styles/primitives.css"), ".sp-diff .sp-pass");
     expect(body).not.toBeNull();
-    expect(body!).toContain("--sp-pass");
+    expect(body!).toMatch(/--mrd-pass|--sp-pass/);
     expect(body!).not.toMatch(/#[0-9a-f]{3,8}/i);
   });
 
@@ -175,9 +175,11 @@ describe("surface-discipline: a quiet action is never drawn in the metadata ink"
     expect(act).not.toBeNull();
     expect(meta).not.toBeNull();
     // Metadata stays quiet; the action must not share that ink.
-    expect(meta!).toContain("--sp-mute");
-    expect(act!).toContain("--sp-body");
-    expect(act!).not.toMatch(/color:\s*var\(--sp-mute\)/);
+    // (Token names follow the Meridian port of 2026-08-23: same inks,
+    // spelled `--mrd-*` now that primitives.css consumes Meridian directly.)
+    expect(meta!).toMatch(/--mrd-mute|--sp-mute/);
+    expect(act!).toMatch(/--mrd-body|--sp-body/);
+    expect(act!).not.toMatch(/color:\s*var\(--(mrd|sp)-mute\)/);
   });
 
   test("it carries a rest-state affordance, not only a hover one", () => {
@@ -264,10 +266,10 @@ describe("surface-discipline §5b: status colour beyond diffs", () => {
     expect(fail).not.toBeNull();
     expect(warn).not.toBeNull();
     expect(gate).not.toBeNull();
-    expect(pass!).toContain("--sp-pass");
-    expect(fail!).toContain("--sp-fail");
-    expect(warn!).toContain("--sp-warn");
-    expect(gate!).toContain("--sp-gate");
+    expect(pass!).toMatch(/--mrd-pass|--sp-pass/);
+    expect(fail!).toMatch(/--mrd-fail|--sp-fail/);
+    expect(warn!).toMatch(/--mrd-hold|--sp-warn/);
+    expect(gate!).toMatch(/--mrd-you|--sp-gate/);
   });
 
   test("the status dot already carries gate colour", () => {
@@ -276,7 +278,7 @@ describe("surface-discipline §5b: status colour beyond diffs", () => {
     // ember, the text stays ink).
     const css = stripCssComments(read("styles/shell.css"));
     expect(css).toMatch(/\.sp-live-dot\[data-state="gate"\]/);
-    expect(css).toContain("--sp-gate");
+    expect(css).toMatch(/--mrd-you|--sp-gate/);
   });
 });
 

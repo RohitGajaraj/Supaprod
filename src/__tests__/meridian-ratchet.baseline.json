@@ -15,7 +15,7 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 3176,
+  "totalOccurrences": 3036,
   "fileCount": 222,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
@@ -919,7 +919,7 @@
       "raw-colour": 8
     },
     "src/styles/primitives.css": {
-      "--sp-": 268,
+      "--sp-": 134,
       "data-obsidian": 3,
       "class:sp-": 8
     },
