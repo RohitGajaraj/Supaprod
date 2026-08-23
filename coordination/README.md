@@ -157,6 +157,30 @@ ruling, never a lane call.
 work, so your green is not the product's green. And each gate gets its own command -- a
 pipe reports the exit code of its LAST stage, and `main` has shipped red exactly that way.
 
+### BEFORE FILING A `meridian-gap` REQUEST: search the exports, not the filenames
+
+**`ls src/components/meridian/` does not tell you what Meridian has.** `surface-parts.tsx`
+alone exports 28 things including `Region`, `Pre`, `Action` and `Approve`, so the listing
+shows no `Block.tsx` and no `Pre.tsx` and the reasonable conclusion is that those
+components do not exist. They do.
+
+This cost two rulings in one evening, one from each side of the review:
+
+- `REQ-L0-005` asked MAIN LANE to **build** `Block` and `Pre` equivalents. Both already
+  existed, and `Pre` had been written specifically to replace the retired `.sp-pre`.
+- `RL0-004` ruled Meridian had **no touch-target rule**, from grepping `min-height` in
+  `meridian.css`. The rule is a Tailwind utility inside `CONTROL_SHAPE`, in a `.tsx` file.
+  Same mistake, made by the reviewer rather than the lane.
+
+**`src/components/meridian/COMPONENTS.md`** is the generated answer: every export, 105
+components and 103 types, with the file each one lives in. Regenerate with
+`bun run meridian:exports`.
+
+There is deliberately **no `index.ts` barrel.** It is the obvious fix and it would break
+`scripts/meridian-adoption.ts`, which counts adoption by matching the import source
+`from "@/components/meridian/<Component>"`. Barrel imports do not match, so components
+would report UNADOPTED as adoption actually rose. Import from the file named in the table.
+
 ### MIGRATIONS: the ledger loses rows, so check it before you write one
 
 **Lovable drops rows from `supabase_migrations.schema_migrations` while the schema change

@@ -26,6 +26,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "design:ratchet": "bun run scripts/update-meridian-baseline.ts",
+    "meridian:exports": "bun run scripts/meridian-exports.ts",
     "design:adoption": "bun run scripts/meridian-adoption.ts",
     "design:surfaces": "bun run scripts/meridian-surfaces.ts",
     "lane:sync": "bash scripts/lane-sync.sh",
