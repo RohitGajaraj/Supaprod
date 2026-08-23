@@ -374,6 +374,107 @@ describe("rankOpportunities", () => {
   });
 });
 
+// --- Terms: the comparator's reasoning as structured data -------------------
+// Every ranked entry carries `terms`, ordered most-decisive-first along the
+// comparator's own tie-break chain. These tests pin that the terms restate
+// fields already computed (never invent weights), that they never reorder
+// anything, and that `rationale` stays their prose projection.
+
+import type { Term } from "./ranking";
+
+describe("rankOpportunities terms", () => {
+  test("clear winner: ICE leads with its value, then endorsement, then signal backing", () => {
+    const opps = [
+      mk({ id: "top", ice_score: 9, critic_review: critic("ship"), status: "backlog" }),
+      mk({ id: "mid", ice_score: 4 }),
+    ];
+    const corr = (o: RankableOpportunity) => (o.id === "top" ? 7 : 0);
+    const ranked = rankOpportunities(opps, corr);
+    // Most-decisive-first follows the tie-break chain: ICE, verdict, then corroboration.
+    expect(ranked[0].terms).toEqual([
+      { label: "ICE", detail: "9.0 - highest in queue" },
+      { label: `${REVIEWER} endorsed`, detail: "critic run, no kill" },
+      { label: "Signal backing", detail: "7 backing signals" },
+    ] satisfies Term[]);
+    // A plain lower bet carries only its ICE term (pending, uncorroborated).
+    const mid = ranked.find((r) => r.opp.id === "mid")!;
+    expect(mid.terms).toEqual([{ label: "ICE", detail: "4.0" }] satisfies Term[]);
+  });
+
+  test("an ICE tie carries identical ICE terms; the secondary term names what separated them", () => {
+    const endorsed = mk({ id: "a", critic_review: critic("ship") });
+    const pending = mk({ id: "b", critic_review: null });
+    const ranked = rankOpportunities([pending, endorsed], noCorr);
+    // Order unchanged from the pinned chain behaviour...
+    expect(ranked.map((r) => r.opp.id)).toEqual(["a", "b"]);
+    // ...and both bets agree on the primary term (they tied on it).
+    expect(ranked[0].terms[0]).toEqual({ label: "ICE", detail: "5.0 - highest in queue" });
+    expect(ranked[1].terms[0]).toEqual({ label: "ICE", detail: "5.0" });
+    // The endorsement is the term that broke the tie, present on exactly one.
+    expect(ranked[0].terms[1]?.label).toBe(`${REVIEWER} endorsed`);
+    expect(ranked[1].terms).toHaveLength(1);
+  });
+
+  test("terms follow the comparator chain when outcome support breaks the tie", () => {
+    const ranked = rankOpportunities(
+      [mk({ id: "a", theme_id: "t-proven" }), mk({ id: "b", theme_id: "t-burned" })],
+      () => 0,
+      (o) => (o.theme_id === "t-proven" ? 2 : -1),
+    );
+    expect(ranked[0].terms).toEqual([
+      { label: "ICE", detail: "5.0 - highest in queue" },
+      { label: "Theme track record", detail: "outcomes on this theme run proven" },
+    ] satisfies Term[]);
+    expect(ranked[1].terms).toEqual([
+      { label: "ICE", detail: "5.0" },
+      { label: "Theme track record", detail: "outcomes on this theme have missed" },
+    ] satisfies Term[]);
+  });
+
+  test("degenerate inputs: empty list, single bet, and an unscored best bet", () => {
+    expect(rankOpportunities([], noCorr)).toEqual([]);
+    // One bet: just the ICE term, still marked highest in queue.
+    const solo = rankOpportunities([mk({ id: "only", ice_score: 2 })], noCorr);
+    expect(solo[0].terms).toEqual([
+      { label: "ICE", detail: "2.0 - highest in queue" },
+    ] satisfies Term[]);
+    // A null-scored best bet says so instead of quoting a fabricated number.
+    const unscored = rankOpportunities(
+      [mk({ id: "plain", ice_score: null, critic_review: null })],
+      () => 0,
+    );
+    expect(unscored[0].terms).toEqual([
+      { label: "ICE", detail: "no score yet - highest in queue" },
+    ] satisfies Term[]);
+  });
+
+  test("rationale stays the prose projection of the same factors", () => {
+    // Every non-ICE term label must appear verbatim in the entry's rationale,
+    // so a surface rendering chips beside the sentence can never contradict it.
+    const ranked = rankOpportunities(
+      [mk({ id: "top", ice_score: 9, critic_review: critic("ship") })],
+      () => 7,
+      () => 2,
+      () => 1,
+    );
+    // Every non-ICE term must have its clause in the rationale - same factors,
+    // same order, so a surface rendering chips beside the sentence can never
+    // contradict it. Wording matches clause-by-clause where the prose names it.
+    const entry = ranked[0];
+    expect(entry.rationale).toContain(`${REVIEWER} endorsed`);
+    expect(entry.rationale.toLowerCase()).toContain("standing top bet");
+    expect(entry.rationale).toContain("run proven");
+    expect(entry.rationale).toContain("backed by 7 signals");
+    expect(entry.terms.map((t) => t.label)).toEqual([
+      "ICE",
+      `${REVIEWER} endorsed`,
+      "On a standing top bet",
+      "Theme track record",
+      "Signal backing",
+    ]);
+  });
+});
+
 describe("deriveDesignation", () => {
   test("rank 1 is always 'best bet', even when a lower rule would also match", () => {
     // A rank-1 bet that is also needs-validation (not endorsed, high impact)

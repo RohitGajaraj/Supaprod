@@ -39,17 +39,31 @@ export interface RankableOpportunity extends OpportunityVerdictInput {
 export type Designation =
   "best bet" | "needs validation" | "quick win" | "heavy lift" | "watch this week" | null;
 
+/** One named factor behind a bet's position: what counted (label) and its
+ * concrete value or tier for THIS bet (detail). Terms carry no weights and
+ * introduce no new computation - each one restates a field the decorate step
+ * already computed, so the explanation can never disagree with the order. */
+export interface Term {
+  label: string;
+  detail: string;
+}
+
 /** One ranked bet: the source opportunity, its 1-based position, the single
- * best-bet flag, its system-derived designation, and the human-and-agent
- * readable rationale plus the recommended next action. `outcomeSupport` is
- * the recorded-outcome signal that informed the order (0 when the theme has
- * no decisive history yet, or no support callback was wired). */
+ * best-bet flag, its system-derived designation, the human-and-agent
+ * readable rationale plus the recommended next action, and `terms`: the same
+ * reasoning as structured data, ordered most-decisive-first (the comparator's
+ * own tie-break chain). `rationale` is the prose projection of `terms`, so a
+ * surface can show "why it ranks here" as chips without parsing sentences.
+ * `outcomeSupport` is the recorded-outcome signal that informed the order (0
+ * when the theme has no decisive history yet, or no support callback was
+ * wired). */
 export interface RankedOpportunity<T> {
   opp: T;
   rank: number;
   isBestBet: boolean;
   designation: Designation;
   rationale: string;
+  terms: Term[];
   nextAction: string;
   outcomeSupport: number;
   // RPT-47: the brief-alignment signal that informed the order (+1 on a standing
@@ -214,6 +228,64 @@ function rationaleFor(
   return clauses.length > 0 ? `Ranked #${rank}: ${clauses.join(", ")}` : `Ranked #${rank}`;
 }
 
+/**
+ * The structured twin of rationaleFor: the same discriminators, as ordered
+ * terms instead of prose. Order is most-decisive-first by construction - it
+ * follows the comparator's tie-break chain (ICE, then verdict, then brief
+ * alignment, then outcome support, then corroboration), so the first term is
+ * the earliest factor in that chain that says anything about this bet. A term
+ * appears only when its factor is true or nonzero, exactly like a rationale
+ * clause; two bets tied on every named factor carry byte-identical terms and
+ * the id finalizer is what separated them. Reads only fields the decorate step
+ * already computed (plus iceNum on the raw score, as rationaleFor does).
+ */
+function termsFor(
+  opp: RankableOpportunity,
+  rank: number,
+  verdict: VerdictWord,
+  corroboration: number,
+  outcomeSupport: number = 0,
+  briefAlignment: number = 0,
+): Term[] {
+  const reviewer = agentDisplayName("critic");
+  const terms: Term[] = [];
+  // Same coercion as rationaleFor: PostgREST serializes the numeric column as
+  // a string, iceNum normalizes it so .toFixed never throws.
+  const ice = iceNum(opp.ice_score);
+
+  // ICE always leads: it is the primary signal even when it is absent, and at
+  // rank 1 it names the concrete value rather than the prose "top ICE score",
+  // because a chip can show a number without reading like a boast.
+  if (rank === 1) {
+    terms.push({
+      label: "ICE",
+      detail: `${ice != null ? ice.toFixed(1) : "no score yet"} - highest in queue`,
+    });
+  } else {
+    terms.push({ label: "ICE", detail: ice != null ? ice.toFixed(1) : "no score yet" });
+  }
+
+  if (verdict === "SHIP") terms.push({ label: `${reviewer} endorsed`, detail: "critic run, no kill" });
+  else if (verdict === "WATCH") terms.push({ label: "Flagged to watch", detail: "held for more evidence" });
+  else if (verdict === "REVISE") terms.push({ label: `${reviewer} says revise`, detail: "fixable concerns, ranked above kill" });
+  else if (verdict === "KILL") terms.push({ label: `${reviewer} says kill`, detail: "rejected on review" });
+
+  if (briefAlignment > 0) terms.push({ label: "On a standing top bet", detail: "tied to the strategic top bet under watch" });
+  else if (briefAlignment < 0) terms.push({ label: "Linked bet challenged", detail: "the linked bet's assumption is challenged" });
+
+  if (outcomeSupport > 0) terms.push({ label: "Theme track record", detail: "outcomes on this theme run proven" });
+  else if (outcomeSupport < 0) terms.push({ label: "Theme track record", detail: "outcomes on this theme have missed" });
+
+  if (corroboration > 0) {
+    terms.push({
+      label: "Signal backing",
+      detail: `${corroboration} backing signal${corroboration === 1 ? "" : "s"}`,
+    });
+  }
+
+  return terms;
+}
+
 /** The recommended next action, derived from the bet's state. */
 export function nextActionFor(opp: RankableOpportunity): string {
   // Status takes precedence: shipped opps always review outcomes.
@@ -347,6 +419,14 @@ export function rankOpportunities<T extends RankableOpportunity>(
       rationale: rationaleFor(
         decorated.opp,
         rank,
+        decorated.corroboration,
+        decorated.outcomeSupport,
+        decorated.briefAlignment,
+      ),
+      terms: termsFor(
+        decorated.opp,
+        rank,
+        decorated.verdict,
         decorated.corroboration,
         decorated.outcomeSupport,
         decorated.briefAlignment,

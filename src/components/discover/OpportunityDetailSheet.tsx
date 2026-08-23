@@ -118,6 +118,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { listBriefItems } from "@/lib/briefs.functions";
 import { setOpportunityBriefLink } from "@/lib/brief-opportunity.functions";
 import { getOpportunityJudgment } from "@/lib/decision-judgment.functions";
+import { listLearnings } from "@/lib/outcome.functions";
 import {
   Sheet,
   SheetContent,
@@ -126,7 +127,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { toast } from "@/lib/notify";
-import { iceNum } from "@/lib/moat-vis";
+import { iceNum, rescoreNoteOf } from "@/lib/moat-vis";
 import { formatAuditId } from "@/lib/audit-id";
 import { submitPulse } from "@/lib/pulse.functions";
 import { startOrchestratedMission } from "@/lib/orchestrator.functions";
@@ -135,6 +136,7 @@ import type { CriticReview } from "@/lib/discovery.functions";
 import { getTeardownShareState, setTeardownShared } from "@/lib/opportunities-share.functions";
 import { StageTimeline } from "@/components/shared/StageTimeline";
 import { ProductAnalyticsPanel } from "@/components/product/ProductAnalyticsPanel";
+import { CriticBadge } from "@/components/governance/CriticBadge";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import {
@@ -996,6 +998,53 @@ function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string })
 }
 
 /**
+ * Every outcome recorded on THIS bet, newest first, read out of the shared
+ * ["learnings"] cache the hosting surface already fills -- no second read of
+ * the table. Same anatomy as the Precedent rows above: the verdict word in
+ * its outcome tone and the signed ICE delta as evidence, the recorded summary
+ * as the body. The delta is `rescoreNoteOf`, the same helper the route uses,
+ * so a sub-0.1 drift renders nothing rather than "+0.0 after ...".
+ *
+ * QUIET UNTIL THERE IS SOMETHING TO SAY: no matched rows renders null, never
+ * an empty shell. A failed read stays quiet here too, deliberately unlike the
+ * Precedent region above it -- that one REPLACES its whole subject on failure,
+ * while this block is additive depth whose host surface already owns
+ * reporting a refused learnings read.
+ */
+function OutcomeHistoryBlock({ opportunityId }: { opportunityId: string }) {
+  const fLearnings = useServerFn(listLearnings);
+  const q = useQuery({
+    queryKey: ["learnings"],
+    queryFn: () => fLearnings({ data: {} }),
+    select: (d) => (d?.learnings ?? []).filter((l) => l.opportunity_id === opportunityId),
+  });
+
+  const rows = q.data ?? [];
+  if (rows.length === 0) return null;
+
+  return (
+    <Region title="Outcomes on this bet" sub="What came back once it was live, newest first.">
+      {rows.map((l) => {
+        const note = rescoreNoteOf(l);
+        return (
+          <RecordSpeaks
+            key={l.id}
+            evidence={
+              <>
+                <span style={{ color: OUTCOME_TONE[l.verdict] }}>{l.verdict}</span>
+                {note ? ` · ${note}` : ""}
+              </>
+            }
+          >
+            {l.summary}
+          </RecordSpeaks>
+        );
+      })}
+    </Region>
+  );
+}
+
+/**
  * RPT-47: tie this opportunity to a strategic top bet, the human action that
  * lets a watched assumption feed the ranking. A standing bet lifts the
  * opportunity in the queue; if that bet's assumption is later challenged, the
@@ -1400,6 +1449,25 @@ export function OpportunityDetailSheet({
                   "Challenge it and the teardown lands on the record, with its evidence attached."
                 }
               />
+              {/* THE FULL CASE, under the sentence that signs it. The Row keeps
+                  the attribution and the visible summary; the badge's face adds
+                  the risk count and opens the risks, kill criteria, missing
+                  evidence and review board in place -- the part of the teardown
+                  nothing here used to reach. Mounted only when a review exists:
+                  with none, the badge would offer its own "Ask the Critic"
+                  write beside this sheet's "Challenge it", two controls doing
+                  one verb. The opened disclosure restating the summary is the
+                  review reading as a document, the same on every surface that
+                  mounts it, so the Row's summary stays. */}
+              {opportunity.critic_review ? (
+                <div className="mt-mrd-4">
+                  <CriticBadge
+                    review={opportunity.critic_review}
+                    target={{ kind: "opportunity", id: opportunity.id }}
+                    invalidateKey={["opportunities"]}
+                  />
+                </div>
+              ) : null}
               {opportunity.critic_review?.summary ? (
                 <TeardownPulse targetId={opportunity.id} />
               ) : null}
@@ -1413,6 +1481,10 @@ export function OpportunityDetailSheet({
             {/* SW-7 step 3: the bet's judgment. Precedent recall in the record
                 recess, then the queue it was ranked against. */}
             <OpportunityJudgmentBlocks opportunityId={opportunity.id} />
+
+            {/* What actually came back on THIS bet, in the same recess. Quiet
+                until an outcome exists. */}
+            <OutcomeHistoryBlock opportunityId={opportunity.id} />
 
             {/* Stage history: real per-transition rows; renders nothing until
                 the first transition lands. */}

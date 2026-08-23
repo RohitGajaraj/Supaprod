@@ -298,6 +298,7 @@ import {
 import { RecordSpeaks } from "@/components/brain/record-parts";
 import { BulkBar } from "@/components/meridian/surface-parts";
 import { AgentMark, type MarkState } from "@/components/meridian/marks";
+import { SourceMark } from "@/components/meridian/source-marks";
 // Meridian design system: surface components replace retired shell/primitives
 import {
   Action,
@@ -339,7 +340,9 @@ import { stillWaiting } from "@/lib/query-state";
 const SENSE_AGENTS = ["discovery-scout", "researcher"];
 
 /** How much evidence the ONE cluster in focus shows before it says "and N
- * more". Four quotes is enough to see the pattern; twelve is a wall. */
+ *  more". Four quotes is enough to see the pattern; twelve is a wall. The cap
+ *  belongs to this rail alone: the full member list for the focused cluster
+ *  renders in the Gate, which carries every signal this desk holds. */
 const QUOTES_IN_FOCUS = 4;
 
 /** How many sources the coverage line names before it counts the rest. */
@@ -862,6 +865,13 @@ export function DiscoverSurface({
     return [members[at], ...members.slice(0, at), ...members.slice(at + 1)];
   }, [focused, focus]);
   const focusedSources: string[] = [...new Set(focusedMembers.map((s) => s.source))];
+
+  /** True when the cluster claims more members than this desk actually holds.
+   *  `listSignals` returns the newest 200 signals in the workspace and no total,
+   *  so the theme's own server-side `frequency` is the only count the client can
+   *  be measured against -- the same honesty the ranking owes when its read is
+   *  one page of a larger record. */
+  const memberShortfall = !!focused && focused.theme.frequency > focusedMembers.length;
 
   /**
    * What the record already knows about the cluster in focus.
@@ -2362,6 +2372,79 @@ export function DiscoverSurface({
                 {claim && precedentNamed ? ", named below" : ""}.
               </span>,
               focused.theme.summary ? <span key="sum">{focused.theme.summary}</span> : null,
+              /* THE FULL MEMBER LIST FOR THE ONE CLUSTER IN FOCUS, not just the
+                 four quotes the rail keeps. The rail stays capped on purpose --
+                 it is the glance while you scan the ranking -- and this is the
+                 read once you have stopped: every signal this desk holds for
+                 the theme, each marked with where it came from and when.
+
+                 IT LIVES BETWEEN THE QUESTION AND THE BUTTONS because Gate's
+                 own contract fixes that order: evidence pulled out below the
+                 Approve is the exact regression that component was rebuilt to
+                 prevent. A scroll region here costs the page no height past its
+                 cap, so the ranking underneath does not move to make room.
+
+                 Rows are Meridian Row rather than CtxRow: the rail's row
+                 truncates its name to one line by contract, and a member list
+                 whose whole job is showing what the signal says cannot be one
+                 line deep. */
+              focusedMembers.length > 0 || memberShortfall ? (
+                <div key="members">
+                  <div className="flex flex-wrap items-baseline justify-between gap-mrd-inline">
+                    <CtxHead>Every signal in this cluster</CtxHead>
+                    {/* THE CLAIM STOPS WHERE THE READ STOPS. `listSignals`
+                        returns the newest 200 signals in the workspace and says
+                        nothing about what it dropped, so a loud cluster can hold
+                        more members than this desk was handed. When it does, the
+                        header names the slice, the way the ranking admits its
+                        own page further down. */}
+                    {memberShortfall ? (
+                      <span className="text-mrd-tiny text-mrd-mute">
+                        Showing the newest <Num>{focusedMembers.length}</Num> of{" "}
+                        <Num>{focused.theme.frequency}</Num> signals.
+                      </span>
+                    ) : null}
+                  </div>
+                  {focusedMembers.length > 0 ? (
+                    <div className="mt-mrd-3 max-h-[320px] overflow-y-auto pr-mrd-1">
+                      {focusedMembers.map((s) => (
+                        <Row
+                          key={s.id}
+                          marks={<SourceMark source={s.source} size={16} />}
+                          lead={signalPreview(s.content, 320)}
+                          sub={
+                            <>
+                              {s.is_sample ? (
+                                <>
+                                  <b>Example</b>
+                                  {" · "}
+                                </>
+                              ) : null}
+                              {sourceLabel(s.source, s.source_kind)}
+                              {s.is_sample || capturedByHand(s.source, s.source_kind)
+                                ? ""
+                                : ", sensed"}
+                            </>
+                          }
+                          time={since(s.created_at)}
+                          /* The same door the rail's quotes carry: the url is
+                             the ticket, thread or review this sentence was
+                             lifted out of, opened in a new tab because the
+                             address belongs to somebody else's product. A hand
+                             capture with nowhere to go keeps no door. */
+                          onClick={
+                            s.url
+                              ? () => {
+                                  window.open(s.url as string, "_blank", "noopener,noreferrer");
+                                }
+                              : undefined
+                          }
+                        />
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null,
             ].filter(Boolean) as React.ReactNode[]
           }
         >
