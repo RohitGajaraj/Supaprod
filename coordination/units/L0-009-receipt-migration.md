@@ -1,4 +1,4 @@
-# UNIT L0-009: Twenty-three files read receipts from Meridian
+# UNIT L0-009: Receipts read Meridian directly
 
 **Lane:** LANE 0
 **Completed:** 2026-08-23T22:00+05:30
@@ -6,29 +6,33 @@
 
 ## What this unit was
 
-The largest single symbol still reaching shell/primitives on my paths:
-Receipt, at 23 importing files. Meridian's own Receipt carries an identical
-prop contract ({verb, consequence, handoff?, time?, failed?, initials?}),
-verified side by side before any edit, so the migration is an import-path
-change per file with zero call-site edits. Nine of the twenty-three files
-imported nothing else retired, so their shell import line died entirely;
-fourteen keep other symbols for later tranches.
+The biggest single count of retired-layer reach on my paths: 23 files
+importing Receipt from shell/primitives. Governance panels (8), knowledge
+panels (6), memory (2), ask cards (2), observe drift (2), learn, and
+Discover's audit section.
 
-Coverage: governance (9 panels), knowledge (6), memory (2), observe (2),
-ask (2), learn (1), plus ContradictionAuditSection already counted.
+## Why it was mechanical where the state trio was not
+
+Meridian's Receipt carries an identical prop contract: verb, consequence,
+handoff, time, failed, initials - verified side by side before editing
+rather than trusted from the name. So the migration is an import-path swap
+per file; zero call sites changed.
+
+Nine files imported nothing else from the retired layer and their shell
+import line is gone entirely; fourteen keep Block/Button/Record/Prose and
+friends for the remaining tranches.
 
 ## Measured
 
 | Metric | Before | After | Query |
 | --- | --- | --- | --- |
 | Ratchet total | 2,641 / 208 | **2,605 / 207** | design:ratchet over merged disk |
-| Receipt imports from shell/primitives | 23 files | 0 | grep |
+| Receipt imports from shell/primitives | 23 files | **0** | grep |
 | tsc / bun test | - | exit 0 / 10,650 pass, 0 fail | full suite |
 
 ## Handed forward
 
-Remaining shell/primitives consumers by count: Button x8, Gate x7,
-Block x7, Prose x10, Pre x5, Select x2 and singletons (Choices, Textarea,
-MoreMenu/MoreItem, Checkbox, CtxRow/CtxHead/CtxBody re-exports). The Gate
-count overlaps approvals surfaces where meridian/Gate.tsx exists; contract
-check next tranche.
+Remaining shell/primitives consumers on my paths by symbol count:
+Button x8 (tier work per M10), Gate x7 (meridian Gate.tsx exists, contract
+check needed), Block x7, Prose x10, Pre x5, plus long tail. AskPane.tsx:140
+carries an unused AgentPulse import at HEAD, noted not deleted.
