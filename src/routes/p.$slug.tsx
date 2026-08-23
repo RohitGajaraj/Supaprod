@@ -84,16 +84,16 @@ function PublicPage() {
 
   if (err)
     return (
-      <div className="min-h-screen grid place-items-center bg-background text-foreground p-8 text-center">
+      <div className="min-h-screen grid place-items-center bg-mrd-bg text-mrd-body p-8 text-center">
         <div>
           <div className="font-display text-xl">Unavailable</div>
-          <p className="text-sm text-muted-foreground mt-2">{err}</p>
+          <p className="text-sm text-mrd-mute mt-2">{err}</p>
         </div>
       </div>
     );
   if (!state)
     return (
-      <div className="min-h-screen grid place-items-center bg-background text-muted-foreground text-sm">
+      <div className="min-h-screen grid place-items-center bg-mrd-bg text-mrd-mute text-sm">
         Loading…
       </div>
     );
@@ -102,17 +102,17 @@ function PublicPage() {
     const { title, bodyLines, publishedAt } = state.view;
     const dateLabel = publishedAt ? formatPublishedDate(publishedAt) : "";
     return (
-      <div className="min-h-screen flex flex-col bg-background text-foreground">
-        <header className="border-b hairline px-4 py-2.5 flex items-center justify-between bg-background/60 backdrop-blur">
+      <div className="min-h-screen flex flex-col bg-mrd-bg text-mrd-body">
+        <header className="border-b hairline px-4 py-2.5 flex items-center justify-between bg-mrd-bg/60 backdrop-blur">
           <div className="font-display text-sm">{title}</div>
-          <div className="text-mrd-nano uppercase tracking-[0.16em] text-muted-foreground">
+          <div className="text-mrd-nano uppercase tracking-[0.16em] text-mrd-mute">
             Made with Supaprod
           </div>
         </header>
         <main className="flex-1 w-full">
           <article className="mx-auto max-w-2xl px-6 py-12">
             <h1 className="font-display text-2xl">{title}</h1>
-            {dateLabel && <p className="text-xs text-muted-foreground mt-1.5">{dateLabel}</p>}
+            {dateLabel && <p className="text-xs text-mrd-mute mt-1.5">{dateLabel}</p>}
             <div className="mt-6 space-y-3 text-sm leading-mrd-prose">
               {bodyLines.map((line, i) =>
                 line.trim() === "" ? (
@@ -129,10 +129,10 @@ function PublicPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground">
-      <header className="border-b hairline px-4 py-2.5 flex items-center justify-between bg-background/60 backdrop-blur">
+    <div className="min-h-screen flex flex-col bg-mrd-bg text-mrd-body">
+      <header className="border-b hairline px-4 py-2.5 flex items-center justify-between bg-mrd-bg/60 backdrop-blur">
         <div className="font-display text-sm">{state.name}</div>
-        <div className="text-mrd-nano uppercase tracking-[0.16em] text-muted-foreground">
+        <div className="text-mrd-nano uppercase tracking-[0.16em] text-mrd-mute">
           Made with Supaprod
         </div>
       </header>

@@ -50,7 +50,7 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
   errorComponent: ({ error }) => (
     <main className="mx-auto max-w-md p-8">
       <h1 className="mb-2 text-lg font-semibold">Could not load this authorization request</h1>
-      <p className="text-sm text-muted-foreground">{String((error as Error)?.message ?? error)}</p>
+      <p className="text-sm text-mrd-mute">{String((error as Error)?.message ?? error)}</p>
     </main>
   ),
 });
@@ -87,11 +87,11 @@ function Consent() {
   return (
     <main className="mx-auto max-w-md p-8">
       <h1 className="mb-3 text-xl font-semibold">Connect {clientName} to your Supaprod account</h1>
-      <p className="mb-6 text-sm text-muted-foreground">
+      <p className="mb-6 text-sm text-mrd-mute">
         {clientName} will read data as you, using your workspace access.
       </p>
       {error ? (
-        <p role="alert" className="mb-4 text-sm text-destructive">
+        <p role="alert" className="mb-4 text-sm text-mrd-fail">
           {error}
         </p>
       ) : null}
