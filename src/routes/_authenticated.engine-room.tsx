@@ -328,7 +328,7 @@ function EngineRoomPage() {
             <h2 className="text-[11px] font-medium tracking-wide text-mrd-mute uppercase">
               The engine calls this
             </h2>
-            <p className="text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">{meta.technical}</p>
+            <p className="text-[12.5px] leading-mrd-prose text-mrd-prose text-mrd-body">{meta.technical}</p>
           </div>
         }
       >

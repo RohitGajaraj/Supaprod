@@ -411,7 +411,7 @@ function SpanDetail({
             // and they must never share a treatment. Quoted, in prose, in the
             // judge's own words rather than paraphrased into a fact.
             <div
-              className={`max-w-[var(--mrd-measure)] text-[13px] leading-relaxed text-mrd-prose text-mrd-body ${
+              className={`max-w-[var(--mrd-measure)] text-[13px] leading-mrd-prose text-mrd-prose text-mrd-body ${
                 scores.length > 0 ? "mt-mrd-5" : ""
               }`}
             >

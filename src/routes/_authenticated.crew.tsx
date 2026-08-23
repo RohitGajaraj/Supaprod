@@ -596,7 +596,7 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
                         <span className="block truncate text-[13px] font-medium text-mrd-ink">
                           {e.name}
                         </span>
-                        <span className="mt-0.5 block text-[12px] leading-snug text-mrd-mute">
+                        <span className="mt-0.5 block text-[12px] leading-mrd-snug text-mrd-mute">
                           {/* The blurb says what it does, which is what the roster
                               teaches. The two exceptions are facts that
                               contradict the blurb: it is switched off, or this

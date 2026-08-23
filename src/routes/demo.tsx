@@ -201,7 +201,7 @@ function DemoPage() {
                 is what the loop does with a settled forecast, which is wired
                 and proven. */}
             <p
-              className="text-lg text-zinc-400 leading-relaxed mt-5 mb-0"
+              className="text-lg text-zinc-400 leading-mrd-prose mt-5 mb-0"
               style={{ maxWidth: "58ch" }}
             >
               Supaprod tells you what to build, builds it, and ships it. Then it grades the call

@@ -257,7 +257,7 @@ function Said({
           <Who>{who}</Who>
         </span>
         <div
-          className="mt-mrd-2 text-[14px] leading-relaxed text-mrd-prose text-mrd-body"
+          className="mt-mrd-2 text-[14px] leading-mrd-prose text-mrd-prose text-mrd-body"
           style={{
             whiteSpace: plain ? "pre-wrap" : undefined,
             overflowWrap: "anywhere",

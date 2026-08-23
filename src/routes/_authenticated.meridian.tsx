@@ -223,8 +223,8 @@ function Panel({ title, note, children }: { title: string; note: string; childre
   return (
     <section className="border-t border-mrd-line py-10">
       <header className="mb-6">
-        <h2 className="text-[20px] leading-tight font-medium text-mrd-ink">{title}</h2>
-        <p className="mt-1 max-w-[68ch] text-[13px] leading-relaxed text-mrd-prose text-mrd-body">{note}</p>
+        <h2 className="text-[20px] leading-mrd-tight font-medium text-mrd-ink">{title}</h2>
+        <p className="mt-1 max-w-[68ch] text-[13px] leading-mrd-prose text-mrd-prose text-mrd-body">{note}</p>
       </header>
       {children}
     </section>
@@ -1151,7 +1151,7 @@ function FormsDemo() {
 
       <div className="flex flex-wrap items-start gap-6">
         <Case label="Checkbox, three states">
-          <div className="flex flex-col gap-3 text-[13px] text-mrd-prose text-mrd-body">
+          <div className="flex flex-col gap-3 text-mrd-prose text-mrd-body">
             <label className="flex cursor-pointer items-center gap-2.5">
               <Checkbox
                 id={`${uid}-c1`}
@@ -1226,8 +1226,8 @@ function MeridianGallery() {
     <div className="min-h-screen bg-mrd-sink">
       <div className="mx-auto max-w-[1180px] px-8 py-12">
         <header>
-          <h1 className="text-[32px] leading-tight font-semibold text-mrd-ink">Meridian</h1>
-          <p className="mt-2 max-w-[68ch] text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
+          <h1 className="text-[32px] leading-mrd-tight font-semibold text-mrd-ink">Meridian</h1>
+          <p className="mt-2 max-w-[68ch] text-[13px] leading-mrd-prose text-mrd-prose text-mrd-body">
             Every component, in both grounds, before it is wired to anything. One accent, and it
             says exactly one thing: a person is required. Green and red are outcome, never need.
           </p>
@@ -2337,7 +2337,7 @@ function PlanGateCases() {
       </Case>
 
       <Case label="What came back, so an answer is not a dead end">
-        <p className="text-mrd-data leading-relaxed text-mrd-mute">
+        <p className="text-mrd-data leading-mrd-prose text-mrd-mute">
           {last ?? "Press an answer above and what the gate handed back appears here."}
         </p>
       </Case>

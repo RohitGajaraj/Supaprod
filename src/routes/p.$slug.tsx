@@ -113,7 +113,7 @@ function PublicPage() {
           <article className="mx-auto max-w-2xl px-6 py-12">
             <h1 className="font-display text-2xl">{title}</h1>
             {dateLabel && <p className="text-xs text-muted-foreground mt-1.5">{dateLabel}</p>}
-            <div className="mt-6 space-y-3 text-sm leading-relaxed">
+            <div className="mt-6 space-y-3 text-sm leading-mrd-prose">
               {bodyLines.map((line, i) =>
                 line.trim() === "" ? (
                   <div key={i} className="h-2" aria-hidden="true" />

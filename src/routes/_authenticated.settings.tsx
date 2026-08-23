@@ -1762,7 +1762,7 @@ function AgentDetail({
       <div className="text-[10.5px] font-medium tracking-[0.08em] text-mrd-mute uppercase">
         {label}
       </div>
-      <div className="text-[12.5px] leading-relaxed text-mrd-prose text-mrd-body">{children}</div>
+      <div className="text-[12.5px] leading-mrd-prose text-mrd-prose text-mrd-body">{children}</div>
     </div>
   );
 

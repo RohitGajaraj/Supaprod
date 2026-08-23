@@ -546,7 +546,7 @@ function ApprovalsSurface() {
     >
       <div className="flex flex-col gap-mrd-7">
         <header>
-          <h1 className="text-[25px] leading-tight font-medium text-mrd-ink">{headline}</h1>
+          <h1 className="text-[25px] leading-mrd-tight font-medium text-mrd-ink">{headline}</h1>
           {/* THE SECOND CLAUSE EARNS ITS WORDS, and it is not decoration. The
               headline counts the WHOLE queue and the section below the gate
               counts the queue MINUS the call in the gate, so on twelve pending
@@ -554,7 +554,7 @@ function ApprovalsSurface() {
               the split is what makes those two numbers one fact instead of a
               contradiction. Do not shorten this back to one sentence. */}
           {n > 0 ? (
-            <p className="mt-mrd-3 text-[13px] leading-relaxed text-mrd-prose text-mrd-body">
+            <p className="mt-mrd-3 text-[13px] leading-mrd-prose text-mrd-prose text-mrd-body">
               Settled in order, oldest first. The one in front of you is the one that moves, and the
               rest are listed under it.
             </p>

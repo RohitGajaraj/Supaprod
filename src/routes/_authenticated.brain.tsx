@@ -543,8 +543,8 @@ function TabSkeleton() {
 function RecordHead({ title, sub }: { title: ReactNode; sub?: ReactNode }) {
   return (
     <header data-mrd="">
-      <h1 className="text-[25px] leading-tight font-medium text-mrd-ink">{title}</h1>
-      {sub ? <p className="mt-mrd-3 text-[13px] leading-relaxed text-mrd-prose text-mrd-body">{sub}</p> : null}
+      <h1 className="text-[25px] leading-mrd-tight font-medium text-mrd-ink">{title}</h1>
+      {sub ? <p className="mt-mrd-3 text-[13px] leading-mrd-prose text-mrd-prose text-mrd-body">{sub}</p> : null}
     </header>
   );
 }
@@ -1761,7 +1761,7 @@ function MemoryPage() {
                   {substrateShown.map((s) => {
                     const body = (
                       <>
-                        <span className="block text-[17px] leading-tight text-mrd-ink">
+                        <span className="block text-[17px] leading-mrd-tight text-mrd-ink">
                           <Figure>{s.value}</Figure>
                         </span>
                         <span className="mt-0.5 block text-[12px] text-mrd-mute">{s.label}</span>
