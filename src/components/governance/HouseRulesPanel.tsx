@@ -62,7 +62,7 @@ import { humanWriteError } from "@/lib/roles.functions";
 import { useGovernedWrite } from "@/hooks/use-workspace-role";
 import { GovernedWriteNote } from "./GovernedWriteNote";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Gate } from "@/components/shell/primitives";
+import { Gate } from "@/components/meridian/Gate";
 import { AgentMark } from "@/components/meridian/marks";
 
 /** Plain-words relative time. Mono is applied by the row, not here. */

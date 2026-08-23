@@ -71,7 +71,8 @@ import {
 } from "@/lib/agent-track-record";
 import { rejectionCountFor } from "@/lib/rejection-learning";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Gate, Pre } from "@/components/shell/primitives";
+import { Pre } from "@/components/shell/primitives";
+import { Gate } from "@/components/meridian/Gate";
 import { AgentMark } from "@/components/meridian/marks";
 import { TrustGraduationsBlock } from "./TrustGraduations";
 import {

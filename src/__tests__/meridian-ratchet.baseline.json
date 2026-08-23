@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 2605,
-  "fileCount": 207,
+  "totalOccurrences": 2594,
+  "fileCount": 204,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "--text-": 16,
@@ -46,7 +46,7 @@
     },
     "src/components/ask/AskGateCard.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 4
+      "usage:shell/primitives": 3
     },
     "src/components/ask/AskLanding.tsx": {
       "--sp-": 3,
@@ -174,7 +174,7 @@
     "src/components/governance/ApprovalsPanel.tsx": {
       "class:sp-": 1,
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 2
+      "usage:shell/primitives": 1
     },
     "src/components/governance/BudgetsPanel.tsx": {
       "--sp-": 2,
@@ -182,9 +182,7 @@
     },
     "src/components/governance/ControlsPanel.tsx": {
       "--sp-": 4,
-      "class:sp-": 7,
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 1
+      "class:sp-": 7
     },
     "src/components/governance/CriticBadge.tsx": {
       "class:sp-": 1,
@@ -207,10 +205,6 @@
       "import:shell/primitives": 1,
       "usage:shell/primitives": 1
     },
-    "src/components/governance/HouseRulesPanel.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 1
-    },
     "src/components/governance/PromptsPanel.tsx": {
       "--sp-": 1,
       "class:sp-": 2,
@@ -218,10 +212,6 @@
       "usage:shell/primitives": 1
     },
     "src/components/governance/SupportSignalsPanel.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 1
-    },
-    "src/components/governance/TrustGraduations.tsx": {
       "import:shell/primitives": 1,
       "usage:shell/primitives": 1
     },
@@ -364,10 +354,6 @@
     },
     "src/components/memory/MemoryList.tsx": {
       "--sp-": 1
-    },
-    "src/components/memory/MemoryReviewQueue.tsx": {
-      "import:shell/primitives": 1,
-      "usage:shell/primitives": 1
     },
     "src/components/meridian/Surface.tsx": {
       "class:sp-": 4
@@ -644,7 +630,7 @@
     },
     "src/components/today/DecisionQueue.tsx": {
       "import:shell/primitives": 1,
-      "usage:shell/primitives": 3
+      "usage:shell/primitives": 2
     },
     "src/components/today/PushedInsights.tsx": {
       "import:shell/primitives": 1,

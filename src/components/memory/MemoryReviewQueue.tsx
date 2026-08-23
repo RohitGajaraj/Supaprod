@@ -60,7 +60,7 @@ import { sourceLabel, supersedesPreview, willSupersede } from "@/lib/memory-cand
 import { relativeTime } from "@/lib/memory-view";
 import { initialsFrom } from "@/lib/initials";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Gate } from "@/components/shell/primitives";
+import { Gate } from "@/components/meridian/Gate";
 import { AgentMark, YouMark } from "@/components/meridian/marks";
 
 /** Who put this in front of you. The table has a source_kind and nothing else,

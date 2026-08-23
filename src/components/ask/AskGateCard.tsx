@@ -31,7 +31,8 @@ import {
   type ApprovalQueueItem,
 } from "@/lib/approvals-queue.functions";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Button, Gate } from "@/components/shell/primitives";
+import { Button } from "@/components/shell/primitives";
+import { Gate } from "@/components/meridian/Gate";
 
 type Settled = { verdict: "approve" | "reject" | "snooze"; consequence: string; failed?: boolean };
 

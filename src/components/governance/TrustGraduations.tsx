@@ -31,7 +31,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Gate } from "@/components/shell/primitives";
+import { Gate } from "@/components/meridian/Gate";
 import { AgentMark } from "@/components/meridian/marks";
 import {
   listTrustGraduationProposals,

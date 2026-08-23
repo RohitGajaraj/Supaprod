@@ -124,7 +124,7 @@ import { relTime, fmtUsd } from "@/components/product/format";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { CONSENT_PHILOSOPHY, groupToolsByConsequenceClass } from "@/lib/consent-classes";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Gate } from "@/components/shell/primitives";
+import { Gate } from "@/components/meridian/Gate";
 import { AgentMark } from "@/components/meridian/marks";
 
 type EventType =
