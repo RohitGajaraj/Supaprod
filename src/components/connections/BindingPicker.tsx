@@ -108,7 +108,7 @@ export function BindingPicker({
               </div>
             )}
             {q.isError && (
-              <div className="px-3 py-2 text-xs text-[color:var(--madder)]">
+              <div className="px-3 py-2 text-xs text-[color:var(--mrd-fail)]">
                 {q.error instanceof Error ? q.error.message : "Could not list resources"}
               </div>
             )}

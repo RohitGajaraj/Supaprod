@@ -283,7 +283,7 @@ function buildSketchBarChart({
           {
             style: {
               fontFamily: "var(--font-pencil)",
-              color: "var(--text-body)",
+              color: "var(--mrd-body)",
               lineHeight: 1.3,
               marginBottom: 8,
             },
@@ -298,7 +298,7 @@ function buildSketchBarChart({
           display: "flex",
           justifyContent: "flex-end",
           fontFamily: "var(--font-pencil)",
-          color: "var(--text-faint)",
+          color: "var(--mrd-faint)",
           marginBottom: 6,
         },
       },
@@ -342,7 +342,7 @@ function buildSketchBarChart({
             onFocus: () => {},
             onBlur: () => {},
             className:
-              "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]",
+              "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--mrd-agent)]",
             style: {
               flex: 1,
               minWidth: 0,
@@ -382,7 +382,7 @@ function buildSketchBarChart({
             lineHeight: 1.15,
             textAlign: "center",
             color,
-            background: "var(--raised)",
+            background: "var(--mrd-lift)",
             border: "1px solid var(--mrd-edge)",
             borderRadius: 6,
             padding: "3px 8px",
@@ -397,7 +397,7 @@ function buildSketchBarChart({
         React.createElement("span", { style: { display: "block" } }, formatValue(active.value)),
         React.createElement(
           "span",
-          { style: { display: "block", color: "var(--text-subtle)" } },
+          { style: { display: "block", color: "var(--mrd-mute)" } },
           active.label,
         ),
       ),
@@ -411,7 +411,7 @@ function buildSketchBarChart({
           justifyContent: "space-between",
           gap: "var(--geist-space-2x)",
           marginTop: 6,
-          color: "var(--text-faint)",
+          color: "var(--mrd-faint)",
         },
       },
       React.createElement("span", null, baselineLabel ?? "0"),
@@ -853,11 +853,11 @@ describe("SketchBar JSX structure", () => {
 
     it("should apply the color prop to both paths", () => {
       const [hatch, outline] = findAllByType(
-        buildSketchBar({ pct: 75, seed: 3, color: "var(--glacier)" }),
+        buildSketchBar({ pct: 75, seed: 3, color: "var(--mrd-agent)" }),
         "path",
       );
-      expect(hatch.props.stroke).toBe("var(--glacier)");
-      expect(outline.props.stroke).toBe("var(--glacier)");
+      expect(hatch.props.stroke).toBe("var(--mrd-agent)");
+      expect(outline.props.stroke).toBe("var(--mrd-agent)");
     });
 
     it("should default stroke color to var(--mrd-you)", () => {
@@ -1226,12 +1226,12 @@ describe("SketchBarChart JSX structure", () => {
     });
 
     it("should propagate a custom color to the active tooltip div", () => {
-      const all = flatten(buildSketchBarChart({ data: SAMPLE, color: "var(--glacier)" }));
+      const all = flatten(buildSketchBarChart({ data: SAMPLE, color: "var(--mrd-agent)" }));
       expect(
         all.some(
           (n) =>
             n.type === "div" &&
-            n.props?.style?.color === "var(--glacier)" &&
+            n.props?.style?.color === "var(--mrd-agent)" &&
             n.props?.style?.zIndex === 2,
         ),
       ).toBe(true);

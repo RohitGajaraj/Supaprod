@@ -179,8 +179,8 @@ function JoinPage() {
                 width: 36,
                 height: 36,
                 borderRadius: 999,
-                background: "color-mix(in srgb, var(--moss) 16%, transparent)",
-                color: "var(--moss)",
+                background: "color-mix(in srgb, var(--mrd-pass) 16%, transparent)",
+                color: "var(--mrd-pass)",
                 marginBottom: 12,
               }}
             >

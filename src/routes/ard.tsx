@@ -33,7 +33,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section style={{ marginTop: 28 }}>
       <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{title}</h2>
-      <div className="text-mrd-prose" style={{ color: "var(--ink-muted)", lineHeight: 1.6 }}>
+      <div className="text-mrd-prose" style={{ color: "var(--mrd-mute)", lineHeight: 1.6 }}>
         {children}
       </div>
     </section>
@@ -79,7 +79,7 @@ function ArdPage() {
         // pattern as subprocessors and checkout.return. No data-obsidian:
         // nothing here needs that scope and it is counted debt.
         ...PUBLIC_INK_THEME,
-        background: "var(--paper)",
+        background: "var(--mrd-bg)",
         color: "var(--ink)",
       }}
     >
@@ -124,7 +124,7 @@ function ArdPage() {
           style={{
             letterSpacing: "0.12em",
             textTransform: "uppercase",
-            color: "var(--ink-muted)",
+            color: "var(--mrd-mute)",
           }}
         >
           Interop standard · v{ARD_SCHEMA_VERSION}
@@ -140,7 +140,7 @@ function ArdPage() {
         >
           The Agent Requirements Document (ARD)
         </h1>
-        <p className="text-mrd-prose" style={{ color: "var(--ink-muted)", lineHeight: 1.6 }}>
+        <p className="text-mrd-prose" style={{ color: "var(--mrd-mute)", lineHeight: 1.6 }}>
           Every spec inside Supaprod carries an Outcome Contract: a typed, structured statement of
           what it is trying to achieve, how success is proven, and what is explicitly out of scope.
           The ARD is that same contract published as an open standard, so a coding agent Supaprod
@@ -213,7 +213,7 @@ function ArdPage() {
               lineHeight: 1.55,
               overflowX: "auto",
               fontFamily:
-                "var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace)",
+                "var(--mrd-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace)",
             }}
           >
             {EXAMPLE}
@@ -223,7 +223,7 @@ function ArdPage() {
         <p
           className="text-mrd-label"
           style={{
-            color: "var(--ink-muted)",
+            color: "var(--mrd-mute)",
             margin: "40px 0 0",
             lineHeight: 1.6,
             borderTop: "1px solid var(--soft-stone)",

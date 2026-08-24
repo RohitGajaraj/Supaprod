@@ -285,7 +285,7 @@ const INPUT_STYLE: React.CSSProperties = {
   borderRadius: "var(--ds-radius-small)",
   padding: "0 12px",
   color: "var(--ds-gray-1000)",
-  fontFamily: "var(--font-sans)",
+  fontFamily: "var(--mrd-font)",
   boxSizing: "border-box",
 };
 

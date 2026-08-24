@@ -57,16 +57,16 @@ function ProcessorRow({ s, first }: { s: SubProcessor; first: boolean }) {
         }}
       >
         <span style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>{s.name}</span>
-        <span className="mrd-eyebrow whitespace-nowrap text-mrd-nano" style={{ color: "var(--ink-faint)" }}>
+        <span className="mrd-eyebrow whitespace-nowrap text-mrd-nano" style={{ color: "var(--mrd-faint)" }}>
           {CATEGORY_LABEL[s.category]}
         </span>
       </div>
-      <p className="text-mrd-prose" style={{ color: "var(--ink-muted)", margin: "5px 0 0", lineHeight: 1.5 }}>
+      <p className="text-mrd-prose" style={{ color: "var(--mrd-mute)", margin: "5px 0 0", lineHeight: 1.5 }}>
         {s.purpose}
       </p>
       <p
         className="text-mrd-label"
-        style={{ color: "var(--ink-faint)", margin: "5px 0 0", lineHeight: 1.5 }}
+        style={{ color: "var(--mrd-faint)", margin: "5px 0 0", lineHeight: 1.5 }}
       >
         Receives: {s.dataCategories.join(", ")}
         {s.region ? ` · Processed in ${s.region}` : ""}
@@ -83,7 +83,7 @@ function Section({ title, note, items }: { title: string; note?: string; items: 
       {note && (
         <p
           className="text-mrd-base"
-          style={{ color: "var(--ink-faint)", margin: "6px 0 0", lineHeight: 1.5 }}
+          style={{ color: "var(--mrd-faint)", margin: "6px 0 0", lineHeight: 1.5 }}
         >
           {note}
         </p>
@@ -106,7 +106,7 @@ function SubprocessorsPage() {
     <div
       className="min-h-screen"
       data-mrd-pinned-dark
-      style={{ ...PUBLIC_INK_THEME, background: "var(--paper)", color: "var(--ink)" }}
+      style={{ ...PUBLIC_INK_THEME, background: "var(--mrd-bg)", color: "var(--ink)" }}
     >
       {/* This page has no ground mechanism of its own, so without the pinned ink
           set above it silently re-themed light for light-theme users while every
@@ -116,13 +116,13 @@ function SubprocessorsPage() {
       <header
         className="border-b hairline px-5 py-3 flex items-center justify-between backdrop-blur"
         style={{
-          background: "color-mix(in srgb, var(--paper) 60%, transparent)",
+          background: "color-mix(in srgb, var(--mrd-bg) 60%, transparent)",
         }}
       >
         <a href="/" className="font-display text-sm" style={{ color: "var(--ink)" }}>
           Supaprod
         </a>
-        <span className="mrd-eyebrow whitespace-nowrap text-mrd-nano" style={{ color: "var(--ink-faint)" }}>
+        <span className="mrd-eyebrow whitespace-nowrap text-mrd-nano" style={{ color: "var(--mrd-faint)" }}>
           Trust
         </span>
       </header>
@@ -136,7 +136,7 @@ function SubprocessorsPage() {
         <p
           className="text-mrd-prose"
           style={{
-            color: "var(--ink-muted)",
+            color: "var(--mrd-mute)",
             margin: "12px 0 0",
             lineHeight: 1.6,
             maxWidth: 600,
@@ -157,7 +157,7 @@ function SubprocessorsPage() {
         <p
           className="text-mrd-label"
           style={{
-            color: "var(--ink-faint)",
+            color: "var(--mrd-faint)",
             margin: "40px 0 0",
             lineHeight: 1.6,
             borderTop: "1px solid var(--mrd-edge)",
@@ -167,7 +167,7 @@ function SubprocessorsPage() {
           For a data-processing agreement (DPA) or details on processing regions, email{" "}
           <a
             href="mailto:privacy@supaprod.ai"
-            style={{ color: "var(--ink-faint)", textDecoration: "underline" }}
+            style={{ color: "var(--mrd-faint)", textDecoration: "underline" }}
           >
             privacy@supaprod.ai
           </a>

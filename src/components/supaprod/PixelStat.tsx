@@ -10,12 +10,12 @@ import * as React from "react";
 export type PixelTone = "neutral" | "primary" | "ember" | "moss" | "blue" | "madder";
 
 const TONE_COLOR: Record<PixelTone, string> = {
-  neutral: "var(--text-faint)",
-  primary: "var(--text-primary)",
+  neutral: "var(--mrd-faint)",
+  primary: "var(--mrd-ink)",
   ember: "var(--mrd-you)",
-  moss: "var(--moss)",
+  moss: "var(--mrd-pass)",
   blue: "var(--action-blue)",
-  madder: "var(--madder)",
+  madder: "var(--mrd-fail)",
 };
 
 export function PixelStat({

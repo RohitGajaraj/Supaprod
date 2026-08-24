@@ -87,7 +87,7 @@ export function VouchersPanel() {
                   <tr key={v.id} style={{ borderTop: "1px solid var(--mrd-edge)" }}>
                     <td style={td()}>
                       <code
-                        style={{ fontFamily: "var(--font-mono)", color: "var(--text-primary)" }}
+                        style={{ fontFamily: "var(--mrd-mono)", color: "var(--mrd-ink)" }}
                       >
                         {v.code}
                       </code>
@@ -140,8 +140,8 @@ export function VouchersPanel() {
                       style={{
                         padding: "var(--space-3)",
                         textAlign: "center",
-                        fontFamily: "var(--font-sans)",
-                        color: "var(--text-subtle)",
+                        fontFamily: "var(--mrd-font)",
+                        color: "var(--mrd-mute)",
                       }}
                     >
                       No vouchers yet. Create one above to run a campaign.
@@ -210,7 +210,7 @@ function VoucherCreator() {
           onChange={(e) => setCode(e.target.value.toUpperCase())}
           placeholder="LAUNCH50"
           aria-label="Voucher code"
-          className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
+          className={`${FOCUS_RING} placeholder:[color:var(--mrd-mute)]`}
           style={input(140)}
         />
         <select
@@ -229,7 +229,7 @@ function VoucherCreator() {
           onChange={(e) => setPlanTier(e.target.value)}
           placeholder="plan tier"
           aria-label="Plan tier"
-          className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
+          className={`${FOCUS_RING} placeholder:[color:var(--mrd-mute)]`}
           style={input(120)}
         />
         <input
@@ -238,7 +238,7 @@ function VoucherCreator() {
           onChange={(e) => setCredits(e.target.value === "" ? "" : Number(e.target.value))}
           placeholder="credits"
           aria-label="Credits"
-          className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
+          className={`${FOCUS_RING} placeholder:[color:var(--mrd-mute)]`}
           style={input(100)}
         />
         <input
@@ -247,7 +247,7 @@ function VoucherCreator() {
           onChange={(e) => setMaxRedemptions(e.target.value === "" ? "" : Number(e.target.value))}
           placeholder="max uses"
           aria-label="Maximum redemptions"
-          className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
+          className={`${FOCUS_RING} placeholder:[color:var(--mrd-mute)]`}
           style={input(100)}
         />
         <input
@@ -256,7 +256,7 @@ function VoucherCreator() {
           onChange={(e) => setDays(e.target.value === "" ? "" : Number(e.target.value))}
           placeholder="days"
           aria-label="Expires in days"
-          className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
+          className={`${FOCUS_RING} placeholder:[color:var(--mrd-mute)]`}
           style={input(80)}
         />
         <input
@@ -264,7 +264,7 @@ function VoucherCreator() {
           onChange={(e) => setTag(e.target.value)}
           placeholder="campaign tag"
           aria-label="Campaign tag"
-          className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
+          className={`${FOCUS_RING} placeholder:[color:var(--mrd-mute)]`}
           style={input(140)}
         />
         <label
@@ -272,8 +272,8 @@ function VoucherCreator() {
             display: "flex",
             alignItems: "center",
             gap: 6,
-            fontFamily: "var(--font-sans)",
-            color: "var(--text-body)",
+            fontFamily: "var(--mrd-font)",
+            color: "var(--mrd-body)",
           }}
         >
           <input
@@ -281,7 +281,7 @@ function VoucherCreator() {
             checked={autoLogin}
             onChange={(e) => setAutoLogin(e.target.checked)}
             className={FOCUS_RING}
-            style={{ width: 14, height: 14, accentColor: "var(--text-primary)", cursor: "pointer" }}
+            style={{ width: 14, height: 14, accentColor: "var(--mrd-ink)", cursor: "pointer" }}
           />{" "}
           auto-login (signup)
         </label>
@@ -345,12 +345,12 @@ function RedemptionsDrawer({
               listStyle: "none",
               display: "grid",
               gap: 6,
-              fontFamily: "var(--font-sans)",
-              color: "var(--text-body)",
+              fontFamily: "var(--mrd-font)",
+              color: "var(--mrd-body)",
             }}
           >
             {rows.length === 0 ? (
-              <li style={{ color: "var(--text-subtle)" }}>No redemptions yet.</li>
+              <li style={{ color: "var(--mrd-mute)" }}>No redemptions yet.</li>
             ) : null}
             {rows.map((r) => (
               <li key={r.id}>
@@ -378,21 +378,21 @@ function input(width?: number): React.CSSProperties {
     padding: "8px 10px",
     border: "1px solid var(--mrd-edge)",
     borderRadius: "var(--radius-control)",
-    background: "var(--raised)",
-    color: "var(--text-primary)",
-    fontFamily: "var(--font-sans)",
+    background: "var(--mrd-lift)",
+    color: "var(--mrd-ink)",
+    fontFamily: "var(--mrd-font)",
     width,
   };
 }
 function th(): React.CSSProperties {
   return {
     padding: "8px 10px",
-    fontFamily: "var(--font-mono)",
+    fontFamily: "var(--mrd-mono)",
     letterSpacing: "0.11em",
     textTransform: "uppercase",
     textAlign: "left",
     fontWeight: 400,
-    color: "var(--text-subtle)",
+    color: "var(--mrd-mute)",
     borderBottom: "1px solid var(--mrd-edge)",
   };
 }
@@ -400,7 +400,7 @@ function td(): React.CSSProperties {
   return {
     padding: "10px",
     verticalAlign: "middle",
-    fontFamily: "var(--font-sans)",
-    color: "var(--text-body)",
+    fontFamily: "var(--mrd-font)",
+    color: "var(--mrd-body)",
   };
 }

@@ -129,7 +129,7 @@ export function BillingBanner() {
           style={{
             borderBottom: "1px solid color-mix(in oklab, var(--rose) 35%, transparent)",
             background: "color-mix(in oklab, var(--rose) 10%, transparent)",
-            color: "var(--text-body)",
+            color: "var(--mrd-body)",
           }}
         >
           <span>Your last renewal payment failed. Update your card to keep your plan active.</span>
@@ -151,7 +151,7 @@ export function BillingBanner() {
           style={{
             borderBottom: "1px solid var(--mrd-edge)",
             background: "color-mix(in oklab, var(--mrd-you) 10%, transparent)",
-            color: "var(--text-body)",
+            color: "var(--mrd-body)",
           }}
         >
           <span>
@@ -169,7 +169,7 @@ export function BillingBanner() {
           <button
             type="button"
             onClick={dismissLow}
-            className="cursor-pointer [color:var(--text-subtle)] hover:underline hover:[color:var(--text-primary)]"
+            className="cursor-pointer [color:var(--mrd-mute)] hover:underline hover:[color:var(--mrd-ink)]"
             style={{ background: "transparent", border: "none" }}
           >
             Later

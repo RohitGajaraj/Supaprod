@@ -20,8 +20,8 @@ export function PaymentTestModeBanner() {
         className="rounded-[10px] border px-3 py-2 text-mrd-tiny"
         style={{
           borderColor: "var(--mrd-edge, rgba(0,0,0,0.12))",
-          background: "var(--raised, rgba(0,0,0,0.04))",
-          color: "var(--text-muted, #4a4438)",
+          background: "var(--mrd-lift, rgba(0,0,0,0.04))",
+          color: "var(--mrd-mute, #4a4438)",
         }}
       >
         Checkout is in preview. Prices and plans are live; payment processing turns on once we go
@@ -34,9 +34,9 @@ export function PaymentTestModeBanner() {
       <div
         className="rounded-[10px] border px-3 py-2 text-mrd-tiny"
         style={{
-          borderColor: "var(--ember-line, rgba(194,96,46,0.30))",
+          borderColor: "var(--mrd-edge, rgba(194,96,46,0.30))",
           background: "var(--ember-tint, rgba(194,96,46,0.08))",
-          color: "var(--text-body, #1d1a14)",
+          color: "var(--mrd-body, #1d1a14)",
         }}
       >
         Test mode &middot; use card <span className="font-mono">4242 4242 4242 4242</span>, any

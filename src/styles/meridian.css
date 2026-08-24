@@ -1306,6 +1306,13 @@
      three labels on one low-traffic page, and the sixth token was a muted text
      colour on a surface nobody had connected to the same defect. */
   --mrd-mute: oklch(0.7 0.006 70);
+  /* Unit 050 repointed the public routes' last parchment reads onto Meridian,
+     and t.$slug/d.$slug/proof/subprocessors arrived reading faint on their
+     pinned ground the same way REQ-007's surfaces arrived reading mute. */
+  --mrd-faint: oklch(0.61 0.006 70);
+  /* demo and product draw ember reads on a pinned ground; you is value-
+     identical to what --ember resolved to here before the port. */
+  --mrd-you: oklch(0.72 0.16 315);
   --mrd-pass: oklch(0.74 0.15 152);
   --mrd-fail: oklch(0.66 0.19 27);
   --mrd-hold: oklch(0.79 0.125 78);

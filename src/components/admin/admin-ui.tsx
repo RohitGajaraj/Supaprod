@@ -110,7 +110,7 @@ export function AdminErrorCard({
     >
       <span
         style={{
-          fontFamily: "var(--font-mono)",
+          fontFamily: "var(--mrd-mono)",
           letterSpacing: "0.11em",
           textTransform: "uppercase",
           color: "var(--mrd-fail)",
@@ -122,7 +122,7 @@ export function AdminErrorCard({
         <p
           style={{
             margin: 0,
-            fontFamily: "var(--font-sans)",
+            fontFamily: "var(--mrd-font)",
             color: "var(--mrd-mute)",
             maxWidth: 520,
           }}
@@ -135,7 +135,7 @@ export function AdminErrorCard({
         onClick={onRetry}
         className="cursor-pointer outline-none hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
-          fontFamily: "var(--font-mono)",
+          fontFamily: "var(--mrd-mono)",
           letterSpacing: "0.11em",
           textTransform: "uppercase",
           color: "var(--mrd-ink)",

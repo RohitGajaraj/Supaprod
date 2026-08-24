@@ -214,7 +214,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
             onClick={onClose}
             aria-label="Close"
             style={{
-              fontFamily: "var(--font-mono)",
+              fontFamily: "var(--mrd-mono)",
               color: "var(--mrd-mute)",
               background: "transparent",
               border: "none",

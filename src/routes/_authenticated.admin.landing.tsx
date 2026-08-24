@@ -279,7 +279,7 @@ function AdminLanding() {
                 ) : r.host === "" ? (
                   "No referrer sent"
                 ) : (
-                  <span style={{ fontFamily: "var(--font-mono)" }}>{r.host}</span>
+                  <span style={{ fontFamily: "var(--mrd-mono)" }}>{r.host}</span>
                 )
               }
               // Only the two ambiguous buckets get a sub-line. A named hostname
@@ -320,7 +320,7 @@ function AdminLanding() {
                 s.source === null ? (
                   "No source recorded"
                 ) : (
-                  <span style={{ fontFamily: "var(--font-mono)" }}>{s.source}</span>
+                  <span style={{ fontFamily: "var(--mrd-mono)" }}>{s.source}</span>
                 )
               }
               sub={

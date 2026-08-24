@@ -14,11 +14,11 @@ export function AutoChip({ label = "Auto" }: { label?: string }) {
     <span
       title="Raised automatically by the loop"
       style={{
-        fontFamily: "var(--font-mono)",
+        fontFamily: "var(--mrd-mono)",
         letterSpacing: "0.08em",
         textTransform: "uppercase",
-        color: "var(--text-muted)",
-        border: "1px solid color-mix(in srgb, var(--text-muted) 30%, transparent)",
+        color: "var(--mrd-mute)",
+        border: "1px solid color-mix(in srgb, var(--mrd-mute) 30%, transparent)",
         borderRadius: "var(--radius-pill)",
         padding: "1px 6px",
         whiteSpace: "nowrap",

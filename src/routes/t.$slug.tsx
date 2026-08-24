@@ -84,7 +84,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
-        background: "var(--paper)",
+        background: "var(--mrd-bg)",
         color: "var(--ink)",
         isolation: "isolate",
         ...PUBLIC_INK_THEME,
@@ -119,7 +119,7 @@ function Shell({ children }: { children: React.ReactNode }) {
             Supaprod
           </span>
         </Link>
-        <span className="mrd-eyebrow whitespace-nowrap" style={{ color: "var(--ink-faint)" }}>
+        <span className="mrd-eyebrow whitespace-nowrap" style={{ color: "var(--mrd-faint)" }}>
           shared teardown
         </span>
       </header>
@@ -136,7 +136,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          color: "var(--ink-subtle)",
+          color: "var(--mrd-mute)",
         }}
       >
         <span className="mrd-eyebrow whitespace-nowrap">Made with Supaprod</span>
@@ -156,14 +156,14 @@ function Section({ title, items, empty }: { title: string; items: string[]; empt
         style={{
           textTransform: "uppercase",
           letterSpacing: "0.16em",
-          color: "var(--ink-muted)",
+          color: "var(--mrd-mute)",
           marginBottom: 6,
         }}
       >
         {title}
       </div>
       {items.length === 0 ? (
-        <p className="text-mrd-label" style={{ color: "var(--ink-muted)", margin: 0 }}>{empty}</p>
+        <p className="text-mrd-label" style={{ color: "var(--mrd-mute)", margin: 0 }}>{empty}</p>
       ) : (
         <ul
           style={{ display: "flex", flexDirection: "column", gap: 6, paddingLeft: 16, margin: 0 }}
@@ -189,7 +189,7 @@ function PublicTeardownPage() {
           <div className="font-display text-mrd-h3" style={{ marginBottom: 6 }}>
             Not available
           </div>
-          <p className="text-mrd-base" style={{ color: "var(--ink-muted)", margin: 0 }}>
+          <p className="text-mrd-base" style={{ color: "var(--mrd-mute)", margin: 0 }}>
             This teardown is private, or the link is no longer valid.
           </p>
         </div>
@@ -208,7 +208,7 @@ function PublicTeardownPage() {
     <Shell>
       <div
         className="mrd-eyebrow whitespace-nowrap"
-        style={{ color: "var(--ink-faint)", marginBottom: 10 }}
+        style={{ color: "var(--mrd-faint)", marginBottom: 10 }}
       >
         Critic teardown · {date}
       </div>
@@ -230,7 +230,7 @@ function PublicTeardownPage() {
         <VerdictChip tone={v.tone} style={{ fontSize: 11 }}>
           {v.label}
         </VerdictChip>
-        <span className="mrd-eyebrow whitespace-nowrap" style={{ color: "var(--ink-faint)" }}>
+        <span className="mrd-eyebrow whitespace-nowrap" style={{ color: "var(--mrd-faint)" }}>
           confidence {(teardown.confidence * 100).toFixed(0)}%
         </span>
       </div>
@@ -238,7 +238,7 @@ function PublicTeardownPage() {
       <div className="bento" style={{ padding: "var(--card-pad, 18px)" }}>
         <div
           className="mrd-eyebrow whitespace-nowrap"
-          style={{ color: "var(--ink-faint)", marginBottom: 8 }}
+          style={{ color: "var(--mrd-faint)", marginBottom: 8 }}
         >
           The verdict
         </div>
@@ -246,7 +246,7 @@ function PublicTeardownPage() {
           className="text-mrd-prose"
           style={{
             lineHeight: 1.65,
-            color: "var(--ink-muted)",
+            color: "var(--mrd-mute)",
             margin: 0,
             whiteSpace: "pre-wrap",
           }}
@@ -270,7 +270,7 @@ function PublicTeardownPage() {
       <p
         className="text-mrd-data"
         style={{
-          color: "var(--ink-subtle)",
+          color: "var(--mrd-mute)",
           marginTop: 22,
           lineHeight: 1.5,
         }}

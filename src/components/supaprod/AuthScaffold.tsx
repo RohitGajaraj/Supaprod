@@ -30,7 +30,7 @@ export const fieldLabelStyle: CSSProperties = {
 };
 
 export const fieldErrorStyle: CSSProperties = {
-  color: "var(--madder)",
+  color: "var(--mrd-fail)",
   textAlign: "left",
   lineHeight: 1.5,
   margin: "0 0 10px",
@@ -43,7 +43,7 @@ const surface: CSSProperties = {
   alignItems: "center",
   justifyContent: "center",
   background: "var(--ds-background-100)",
-  color: "var(--text-primary)",
+  color: "var(--mrd-ink)",
   overflow: "hidden",
   padding: "var(--geist-gap)",
 };
@@ -52,7 +52,7 @@ const watermark: CSSProperties = {
   position: "absolute",
   right: -120,
   bottom: -130,
-  color: "var(--text-primary)",
+  color: "var(--mrd-ink)",
   opacity: 0.08,
   transform: "rotate(-12deg)",
   pointerEvents: "none",
@@ -75,7 +75,7 @@ const card: CSSProperties = {
 };
 
 const footerStyle: CSSProperties = {
-  color: "var(--text-subtle)",
+  color: "var(--mrd-mute)",
   textAlign: "center",
   marginTop: 16,
   lineHeight: 1.5,
@@ -148,7 +148,7 @@ export function AuthScaffold({
       >
         <div style={header}>
           {intro ? (
-            <div className="mono-label" style={{ color: "var(--text-subtle)", marginBottom: 12 }}>
+            <div className="mono-label" style={{ color: "var(--mrd-mute)", marginBottom: 12 }}>
               {intro}
             </div>
           ) : null}
@@ -156,7 +156,7 @@ export function AuthScaffold({
           {/* Geist Pixel brand moment (DESIGN-TEMPO.md §3/§8): the auth
               headline is a genuine hero moment, one short line, shown once
               per screen, no other Pixel use on this surface. */}
-          <h1 className="font-pixel" style={{ marginTop: 14, color: "var(--text-primary)" }}>
+          <h1 className="font-pixel" style={{ marginTop: 14, color: "var(--mrd-ink)" }}>
             {title}
           </h1>
           <div className="mono-label" style={{ marginTop: 6 }}>

@@ -101,7 +101,7 @@ export function ResearchSummaryRow({ meta }: { meta: ChatMeta }) {
           key={seg}
           className="inline-flex items-center rounded-full border hairline"
           style={{
-            fontFamily: "var(--font-mono)",
+            fontFamily: "var(--mrd-mono)",
             letterSpacing: "0.06em",
             textTransform: "uppercase",
             color: "var(--mrd-mute)",

@@ -151,7 +151,7 @@ function InviteCreator() {
         placeholder={"alice@co.com\nbob@co.com"}
         aria-label="Email addresses, one per line"
         className={`${FOCUS_RING} placeholder:[color:var(--mrd-mute)]`}
-        style={{ ...input(), width: "100%", fontFamily: "var(--font-mono)" }}
+        style={{ ...input(), width: "100%", fontFamily: "var(--mrd-mono)" }}
       />
       {/* TIER: Action, default face. Bulk write - a secondary path beside the
           single create above. */}
@@ -245,7 +245,7 @@ function InviteList() {
                     style={{
                       padding: "var(--space-3)",
                       textAlign: "center",
-                      fontFamily: "var(--font-sans)",
+                      fontFamily: "var(--mrd-font)",
                       color: "var(--mrd-mute)",
                     }}
                   >
@@ -339,7 +339,7 @@ function DomainList() {
       ) : rows.length === 0 ? (
         <p
           style={{
-            fontFamily: "var(--font-sans)",
+            fontFamily: "var(--mrd-font)",
             color: "var(--mrd-mute)",
             margin: 0,
           }}
@@ -352,14 +352,14 @@ function DomainList() {
             <li
               key={d.id}
               style={{
-                fontFamily: "var(--font-sans)",
+                fontFamily: "var(--mrd-font)",
                 color: "var(--mrd-ink)",
                 display: "flex",
                 gap: "var(--space-2)",
                 alignItems: "center",
               }}
             >
-              <code style={{ fontFamily: "var(--font-mono)", color: "var(--mrd-ink)" }}>
+              <code style={{ fontFamily: "var(--mrd-mono)", color: "var(--mrd-ink)" }}>
                 {d.domain}
               </code>{" "}
               · {d.default_role}
@@ -420,7 +420,7 @@ function SignupApprovalsList() {
       ) : rows.length === 0 ? (
         <p
           style={{
-            fontFamily: "var(--font-sans)",
+            fontFamily: "var(--mrd-font)",
             color: "var(--mrd-mute)",
             margin: 0,
           }}
@@ -436,7 +436,7 @@ function SignupApprovalsList() {
                 display: "flex",
                 gap: "var(--space-2)",
                 alignItems: "center",
-                fontFamily: "var(--font-sans)",
+                fontFamily: "var(--mrd-font)",
                 color: "var(--mrd-ink)",
               }}
             >
@@ -483,14 +483,14 @@ function input(width?: number): React.CSSProperties {
     borderRadius: "var(--radius-control)",
     background: "var(--mrd-lift)",
     color: "var(--mrd-ink)",
-    fontFamily: "var(--font-sans)",
+    fontFamily: "var(--mrd-font)",
     width,
   };
 }
 function th(): React.CSSProperties {
   return {
     padding: "8px 10px",
-    fontFamily: "var(--font-mono)",
+    fontFamily: "var(--mrd-mono)",
     letterSpacing: "0.11em",
     textTransform: "uppercase",
     textAlign: "left",
@@ -503,7 +503,7 @@ function td(): React.CSSProperties {
   return {
     padding: "10px",
     verticalAlign: "middle",
-    fontFamily: "var(--font-sans)",
+    fontFamily: "var(--mrd-font)",
     color: "var(--mrd-ink)",
   };
 }

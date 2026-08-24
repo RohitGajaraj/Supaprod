@@ -92,11 +92,11 @@ export function AuditTag({
         }}
         title={title ?? defaultTitle}
         aria-label={`Trace audit id ${tag}`}
-        className="loom-press transition-colors hover:[color:var(--text-primary)] hover:[border-color:var(--mrd-edge)]"
+        className="loom-press transition-colors hover:[color:var(--mrd-ink)] hover:[border-color:var(--mrd-edge)]"
         style={{
-          fontFamily: "var(--font-mono)",
+          fontFamily: "var(--mrd-mono)",
           letterSpacing: "0.06em",
-          color: "var(--text-faint)",
+          color: "var(--mrd-faint)",
           background: "transparent",
           border: "1px solid transparent",
           borderRadius: 5,
@@ -124,7 +124,7 @@ export function AuditTag({
           }}
           aria-label="Copy the full trace id"
           title="Copy the full trace id"
-          className="loom-press inline-flex items-center transition-colors [color:var(--text-faint)] hover:[color:var(--text-subtle)]"
+          className="loom-press inline-flex items-center transition-colors [color:var(--mrd-faint)] hover:[color:var(--mrd-mute)]"
           style={{ cursor: "pointer" }}
         >
           {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}

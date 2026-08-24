@@ -86,7 +86,7 @@ export function SectionAlternate({
         {/* Body copy */}
         <p
           style={{
-            fontFamily: "var(--font-sans, system-ui)",
+            fontFamily: "var(--mrd-font, system-ui)",
             lineHeight: 1.6,
             color: "#a1a1aa", // zinc-400
             maxWidth: "340px",
@@ -109,7 +109,7 @@ export function SectionAlternate({
               key={cap}
               className="cap-item"
               style={{
-                fontFamily: "var(--font-mono, monospace)",
+                fontFamily: "var(--mrd-mono, monospace)",
                 fontWeight: 500,
                 letterSpacing: "0.12em",
                 textTransform: "uppercase",

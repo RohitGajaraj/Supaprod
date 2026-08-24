@@ -68,7 +68,7 @@ export function sketchPath(
    double stroke, hand-set dot on the last point. */
 export function SketchLine({
   data,
-  color = "var(--text-muted)",
+  color = "var(--mrd-mute)",
   w = 210,
   h = 42,
   baseline,
@@ -348,7 +348,7 @@ export function SketchBarChart({
         <div
           style={{
             fontFamily: "var(--font-pencil)",
-            color: "var(--text-body)",
+            color: "var(--mrd-body)",
             lineHeight: 1.3,
             marginBottom: 8,
           }}
@@ -363,7 +363,7 @@ export function SketchBarChart({
           display: "flex",
           justifyContent: "flex-end",
           fontFamily: "var(--font-pencil)",
-          color: "var(--text-faint)",
+          color: "var(--mrd-faint)",
           marginBottom: 6,
         }}
       >
@@ -447,7 +447,7 @@ export function SketchBarChart({
             lineHeight: 1.15,
             textAlign: "center",
             color,
-            background: "var(--raised)",
+            background: "var(--mrd-lift)",
             border: "1px solid var(--mrd-edge)",
             borderRadius: 6,
             padding: "3px 8px",
@@ -460,7 +460,7 @@ export function SketchBarChart({
           }}
         >
           <span style={{ display: "block" }}>{formatValue(active.value)}</span>
-          <span style={{ display: "block", color: "var(--text-subtle)" }}>{active.label}</span>
+          <span style={{ display: "block", color: "var(--mrd-mute)" }}>{active.label}</span>
         </div>
       </div>
 
@@ -472,7 +472,7 @@ export function SketchBarChart({
           justifyContent: "space-between",
           gap: "var(--geist-space-2x)",
           marginTop: 6,
-          color: "var(--text-faint)",
+          color: "var(--mrd-faint)",
         }}
       >
         <span>{baselineLabel ?? "0"}</span>

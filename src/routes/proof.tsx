@@ -59,7 +59,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
-        background: "var(--paper)",
+        background: "var(--mrd-bg)",
         color: "var(--ink)",
         isolation: "isolate",
         ...PUBLIC_INK_THEME,
@@ -91,7 +91,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         >
           <SupaprodWordmark tier="public" />
         </Link>
-        <span className="mrd-eyebrow whitespace-nowrap" style={{ color: "var(--ink-faint)" }}>
+        <span className="mrd-eyebrow whitespace-nowrap" style={{ color: "var(--mrd-faint)" }}>
           the track record
         </span>
       </header>
@@ -108,7 +108,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          color: "var(--ink-subtle)",
+          color: "var(--mrd-mute)",
         }}
       >
         <span className="mrd-eyebrow whitespace-nowrap">Made with Supaprod</span>
@@ -138,7 +138,7 @@ function CalibrationHero({
     <div className="bento rise-2" style={{ padding: "26px 24px", marginBottom: 22 }}>
       <div
         className="mrd-eyebrow whitespace-nowrap"
-        style={{ color: "var(--ink-faint)", marginBottom: 10 }}
+        style={{ color: "var(--mrd-faint)", marginBottom: 10 }}
       >
         Calibration · updated live
       </div>
@@ -155,7 +155,7 @@ function CalibrationHero({
             className="text-mrd-prose"
             style={{
               lineHeight: 1.6,
-              color: "var(--ink-muted)",
+              color: "var(--mrd-mute)",
               margin: 0,
             }}
           >
@@ -176,7 +176,7 @@ function CalibrationHero({
             className="text-mrd-prose"
             style={{
               lineHeight: 1.6,
-              color: "var(--ink-muted)",
+              color: "var(--mrd-mute)",
               margin: 0,
             }}
           >
@@ -191,7 +191,7 @@ function CalibrationHero({
           marginTop: 16,
           paddingTop: 14,
           borderTop: "1px solid var(--mrd-edge)",
-          color: "var(--ink-subtle)",
+          color: "var(--mrd-mute)",
         }}
       >
         {supersessions} decision{supersessions === 1 ? "" : "s"} caught and corrected by a later
@@ -237,7 +237,7 @@ function ProofPage() {
         <div className="bento" style={{ padding: 24, textAlign: "center" }}>
           <p
             className="text-mrd-base"
-            style={{ color: "var(--ink-muted)", margin: 0, lineHeight: 1.6 }}
+            style={{ color: "var(--mrd-mute)", margin: 0, lineHeight: 1.6 }}
           >
             No public decisions yet. Every one of these is a real call from Supaprod's own build,
             shared by its owner, receipt and all, never seeded or staged. That is why this section
@@ -269,7 +269,7 @@ function ProofPage() {
               </div>
               <div
                 className="mrd-eyebrow whitespace-nowrap"
-                style={{ color: "var(--ink-faint)" }}
+                style={{ color: "var(--mrd-faint)" }}
               >
                 {agentDisplayName(d.decided_by_agent_slug)} ·{" "}
                 {new Date(d.created_at).toLocaleDateString(undefined, {

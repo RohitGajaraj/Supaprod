@@ -61,7 +61,7 @@ export function SupaprodWordmark({
       <SupaprodMark size={markSize} />
       <span
         style={{
-          fontFamily: 'var(--font-sans, "Geist", ui-sans-serif, system-ui, sans-serif)',
+          fontFamily: 'var(--mrd-font, "Geist", ui-sans-serif, system-ui, sans-serif)',
           fontWeight: 600,
           fontSize: wordSize,
           letterSpacing: "-0.01em",

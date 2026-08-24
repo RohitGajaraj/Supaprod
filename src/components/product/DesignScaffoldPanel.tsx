@@ -135,7 +135,7 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
   // The gate decision row and the owner's stage switch: rendered wherever the
   // stage is on, independent of whether a mockup exists yet, so the controls
   // that unblock dispatch can never be out of reach (mission 3.4 review).
-  const approvedMark = { color: "var(--moss)" };
+  const approvedMark = { color: "var(--mrd-pass)" };
   const rejectedMark = { color: "var(--mrd-fail)" };
   const gateActions = gate?.stageEnabled ? (
     <div className="flex items-center gap-1.5">
@@ -178,7 +178,7 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
       style={{
         color:
           gate.status === "approved"
-            ? "var(--moss)"
+            ? "var(--mrd-pass)"
             : gate.status === "rejected"
               ? "var(--mrd-fail)"
               : "var(--ember-text)",

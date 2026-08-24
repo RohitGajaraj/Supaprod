@@ -74,7 +74,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         // element's spread (custom properties serve their own element), so it
         // pins dark with no raw colour. The public-pages fleet is dark-pinned
         // by convention.
-        background: "var(--paper)",
+        background: "var(--mrd-bg)",
         color: "var(--ink)",
         isolation: "isolate",
         ...PUBLIC_INK_THEME,
@@ -107,7 +107,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           <SupaprodMark />
           <span className="font-display text-mrd-prose">Supaprod</span>
         </Link>
-        <span className="mrd-eyebrow whitespace-nowrap" style={{ color: "var(--ink-faint)" }}>
+        <span className="mrd-eyebrow whitespace-nowrap" style={{ color: "var(--mrd-faint)" }}>
           shared decision
         </span>
       </header>
@@ -124,7 +124,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          color: "var(--ink-subtle)",
+          color: "var(--mrd-mute)",
         }}
       >
         <span className="mrd-eyebrow whitespace-nowrap">Made with Supaprod</span>
@@ -146,7 +146,7 @@ function PublicDecisionPage() {
           <div className="font-display text-mrd-h3" style={{ marginBottom: 6 }}>
             Not available
           </div>
-          <p className="text-mrd-base" style={{ color: "var(--ink-muted)", margin: 0 }}>
+          <p className="text-mrd-base" style={{ color: "var(--mrd-mute)", margin: 0 }}>
             This decision is private, or the link is no longer valid.
           </p>
         </div>
@@ -159,7 +159,7 @@ function PublicDecisionPage() {
   // status hue: a word we cannot place must not claim an outcome.
   const st = STATUS[decision.status] ?? {
     label: decision.status,
-    color: "var(--ink-faint)",
+    color: "var(--mrd-faint)",
   };
   const date = new Date(decision.created_at).toLocaleDateString(undefined, {
     year: "numeric",
@@ -171,7 +171,7 @@ function PublicDecisionPage() {
     <Shell>
       <div
         className="mrd-eyebrow whitespace-nowrap"
-        style={{ color: "var(--ink-faint)", marginBottom: 10 }}
+        style={{ color: "var(--mrd-faint)", marginBottom: 10 }}
       >
         Decision · {who} · {date}
       </div>
@@ -222,7 +222,7 @@ function PublicDecisionPage() {
             gap: 5,
             padding: "2px 8px",
             borderRadius: 99,
-            color: decision.outcome === "superseded" ? "var(--ink-subtle)" : "var(--mrd-pass)",
+            color: decision.outcome === "superseded" ? "var(--mrd-mute)" : "var(--mrd-pass)",
             border: `1px solid ${decision.outcome === "superseded" ? "var(--soft-stone)" : "color-mix(in srgb, var(--mrd-pass) 35%, transparent)"}`,
           }}
         >
@@ -232,7 +232,7 @@ function PublicDecisionPage() {
       <div className="bento" style={{ padding: "var(--card-pad, 18px)" }}>
         <div
           className="mrd-eyebrow whitespace-nowrap"
-          style={{ color: "var(--ink-faint)", marginBottom: 8 }}
+          style={{ color: "var(--mrd-faint)", marginBottom: 8 }}
         >
           Why
         </div>
@@ -240,7 +240,7 @@ function PublicDecisionPage() {
           className="text-mrd-prose"
           style={{
             lineHeight: 1.65,
-            color: "var(--ink-muted)",
+            color: "var(--mrd-mute)",
             margin: 0,
             whiteSpace: "pre-wrap",
           }}
@@ -251,7 +251,7 @@ function PublicDecisionPage() {
       <p
         className="text-mrd-data"
         style={{
-          color: "var(--ink-subtle)",
+          color: "var(--mrd-mute)",
           marginTop: 18,
           lineHeight: 1.5,
         }}

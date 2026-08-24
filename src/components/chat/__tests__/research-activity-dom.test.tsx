@@ -324,7 +324,7 @@ describe("ResearchSummaryRow — DOM Rendering & Chip Layout", () => {
     expect(chip?.className).toContain("hairline");
 
     // Check computed style for mono font and uppercase
-    expect(chip?.style.fontFamily).toBe("var(--font-mono)");
+    expect(chip?.style.fontFamily).toBe("var(--mrd-mono)");
     expect(chip?.style.textTransform).toBe("uppercase");
   });
 

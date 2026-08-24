@@ -471,7 +471,7 @@ function TraceHop({
     return { color: "var(--mrd-pass)" };
   };
   return (
-    <div style={{ fontFamily: "var(--font-mono)", marginBottom: "var(--mrd-s4)" }}>
+    <div style={{ fontFamily: "var(--mrd-mono)", marginBottom: "var(--mrd-s4)" }}>
       {inbound ? (
         <div style={{ marginBottom: "var(--mrd-s2)" }}>
           <button
@@ -791,7 +791,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
             <span
               className="tabular-nums"
               style={{
-                fontFamily: "var(--font-sans)",
+                fontFamily: "var(--mrd-font)",
                 fontSize: "var(--mrd-t-h3)",
                 fontWeight: 600,
                 letterSpacing: "-0.02em",

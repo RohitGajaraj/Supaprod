@@ -412,7 +412,7 @@ describe("ResearchActivity", () => {
         ? result?.props.children
         : [result?.props.children];
       const firstChip = children[0];
-      expect(firstChip?.props.style.fontFamily).toBe("var(--font-mono)");
+      expect(firstChip?.props.style.fontFamily).toBe("var(--mrd-mono)");
       expect(firstChip?.props.style.letterSpacing).toBe("0.06em");
       expect(firstChip?.props.style.textTransform).toBe("uppercase");
     });
@@ -1112,7 +1112,7 @@ describe("ResearchActivity", () => {
         workspace_chunks: 0,
       };
       render(React.createElement(ResearchSummaryRow, { meta }));
-      const chips = document.querySelectorAll('[style*="font-mono"], [class*="mono"]');
+      const chips = document.querySelectorAll('[style*="mrd-mono"], [class*="mono"]');
       expect(chips.length).toBeGreaterThan(0);
     });
 

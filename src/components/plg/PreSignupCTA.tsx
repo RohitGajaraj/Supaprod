@@ -24,7 +24,7 @@ export function PreSignupCTA({ sourceType }: { sourceType: "teardown" | "decisio
 
   return (
     <div className="bento" style={{ marginTop: 28, padding: "22px 22px", textAlign: "center" }}>
-      <div className="mono-label" style={{ color: "var(--ink-faint, #8a8377)", marginBottom: 8 }}>
+      <div className="mono-label" style={{ color: "var(--mrd-faint, #8a8377)", marginBottom: 8 }}>
         Made with Supaprod
       </div>
       <h2
@@ -36,7 +36,7 @@ export function PreSignupCTA({ sourceType }: { sourceType: "teardown" | "decisio
       <p
         style={{
           lineHeight: 1.6,
-          color: "var(--ink-muted, #4a4438)",
+          color: "var(--mrd-mute, #4a4438)",
           margin: "0 auto 16px",
           maxWidth: 430,
         }}
@@ -58,7 +58,7 @@ export function PreSignupCTA({ sourceType }: { sourceType: "teardown" | "decisio
       <p
         style={{
           lineHeight: 1.6,
-          color: "var(--ink-faint, #8a8377)",
+          color: "var(--mrd-faint, #8a8377)",
           margin: "0 auto 16px",
           maxWidth: 430,
         }}

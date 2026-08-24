@@ -142,7 +142,7 @@ function FaqPage() {
           ))}
           {entry.more ? (
             <p>
-              <a href={entry.more.href} style={{ color: "var(--ember)" }}>
+              <a href={entry.more.href} style={{ color: "var(--mrd-you)" }}>
                 {entry.more.label}
               </a>
             </p>

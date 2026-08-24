@@ -25,20 +25,20 @@ describe("changesetColor", () => {
   // outcome success, cornflower = live, text-subtle = neutral); the first
   // draft of this suite asserted a token family the app does not use.
   test("merged -> moss (outcome: shipped)", () => {
-    expect(changesetColor("merged")).toBe("var(--moss)");
+    expect(changesetColor("merged")).toBe("var(--mrd-pass)");
   });
   test("pr_open -> cornflower (live: under review)", () => {
     expect(changesetColor("pr_open")).toBe("var(--cornflower)");
   });
   test("abandoned -> text-subtle", () => {
-    expect(changesetColor("abandoned")).toBe("var(--text-subtle)");
+    expect(changesetColor("abandoned")).toBe("var(--mrd-mute)");
   });
   test("staged and committed fall back to the neutral text-subtle ladder color", () => {
-    expect(changesetColor("staged")).toBe("var(--text-subtle)");
-    expect(changesetColor("committed")).toBe("var(--text-subtle)");
+    expect(changesetColor("staged")).toBe("var(--mrd-mute)");
+    expect(changesetColor("committed")).toBe("var(--mrd-mute)");
   });
   test("an unrecognized status also falls back to text-subtle, not undefined", () => {
-    expect(changesetColor("some_future_state")).toBe("var(--text-subtle)");
+    expect(changesetColor("some_future_state")).toBe("var(--mrd-mute)");
   });
 });
 

@@ -62,9 +62,9 @@ export function PageHeader({
           {eyebrow ? (
             <div
               style={{
-                fontFamily: "var(--font-mono)",
+                fontFamily: "var(--mrd-mono)",
                 letterSpacing: "0.14em",
-                color: "var(--text-subtle)",
+                color: "var(--mrd-mute)",
                 textTransform: "uppercase",
                 marginBottom: 10,
               }}
@@ -80,7 +80,7 @@ export function PageHeader({
               fontSize: "clamp(21px, 2.5vw, 29px)",
               lineHeight: 1.18,
               letterSpacing: "0.005em",
-              color: "var(--text-primary)",
+              color: "var(--mrd-ink)",
               margin: "0 0 10px",
             }}
           >
@@ -99,7 +99,7 @@ export function PageHeader({
           {subtitle ? (
             <p
               style={{
-                color: "var(--text-body)",
+                color: "var(--mrd-body)",
                 margin: 0,
                 maxWidth: "60ch",
               }}
@@ -143,7 +143,7 @@ export function PageHeader({
           />
           <span
             style={{
-              color: "var(--text-body)",
+              color: "var(--mrd-body)",
               lineHeight: 1.35,
             }}
           >

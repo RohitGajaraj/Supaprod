@@ -86,7 +86,7 @@ export function EmptyState({
       {/* Body: Sans 14px, gray-700 */}
       <p
         style={{
-          fontFamily: "var(--font-sans)",
+          fontFamily: "var(--mrd-font)",
           fontWeight: 400,
           lineHeight: 1.5,
           color: "var(--ds-gray-700)",

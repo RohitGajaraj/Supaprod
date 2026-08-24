@@ -26,7 +26,7 @@ export function ProviderLogo({ provider, size = 34 }: { provider: ProviderId; si
         background: "var(--surface-raised)",
         boxShadow: "inset 0 0 0 1px var(--mrd-edge)",
         // Ink for the drawn fallbacks; official geometry ignores it.
-        color: "var(--text-body)",
+        color: "var(--mrd-body)",
       }}
     >
       <ProviderMark provider={provider} size={glyph} />

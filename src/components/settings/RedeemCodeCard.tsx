@@ -44,7 +44,7 @@ export function RedeemCodeCard() {
   return (
     <div className="material-medium" style={{ padding: "var(--card-pad, 18px)" }}>
       <MonoLabel icon={Gift}>Redeem a code</MonoLabel>
-      <p style={{ margin: "6px 0 10px", color: "var(--ink-muted, #6b6457)" }}>
+      <p style={{ margin: "6px 0 10px", color: "var(--mrd-mute, #6b6457)" }}>
         Have a promo or credit code? Enter it to add credits or unlock a plan.
       </p>
       <div style={{ display: "flex", gap: "var(--geist-space-2x)", flexWrap: "wrap" }}>

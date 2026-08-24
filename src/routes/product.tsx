@@ -133,11 +133,11 @@ function ProductPage() {
           <p
             className="text-mrd-small"
             style={{
-              fontFamily: "var(--font-mono)",
+              fontFamily: "var(--mrd-mono)",
               fontWeight: 500,
               letterSpacing: "0.12em",
               textTransform: "uppercase",
-              color: "var(--ink-muted)",
+              color: "var(--mrd-mute)",
             }}
           >
             How it works
@@ -161,9 +161,9 @@ function ProductPage() {
           <p
             className="text-mrd-prose"
             style={{
-              fontFamily: "var(--font-sans)",
+              fontFamily: "var(--mrd-font)",
               lineHeight: 1.6,
-              color: "var(--ink-subtle)",
+              color: "var(--mrd-mute)",
               maxWidth: "480px",
               marginLeft: "auto",
               marginRight: "auto",
@@ -220,9 +220,9 @@ function ProductPage() {
           <p
             className="text-mrd-prose"
             style={{
-              fontFamily: "var(--font-sans)",
+              fontFamily: "var(--mrd-font)",
               lineHeight: 1.6,
-              color: "var(--ink-subtle)",
+              color: "var(--mrd-mute)",
             }}
           >
             {/* "Join 100+ design partners" WAS NOT TRUE, and it sat one line above
@@ -253,13 +253,13 @@ function ProductPage() {
           <button
             className="text-mrd-prose"
             style={{
-              fontFamily: "var(--font-sans)",
+              fontFamily: "var(--mrd-font)",
               fontWeight: 500,
               padding: "12px 24px",
               borderRadius: "6px",
               border: "none",
-              backgroundColor: "var(--ember)",
-              color: "var(--paper)",
+              backgroundColor: "var(--mrd-you)",
+              color: "var(--mrd-bg)",
               cursor: "pointer",
               transition: "background-color 0.2s ease",
             }}
@@ -267,7 +267,7 @@ function ProductPage() {
               (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#ff8344"; /* hover tint: no token exists and inkTheme is not mine to extend */
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--ember)";
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--mrd-you)";
             }}
             // Was "Start free" at "/?signup=true", and neither half held up.
             // Signup is invite only from 2026-08-07, and nothing in the app

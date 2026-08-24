@@ -123,7 +123,7 @@ function UpdatesPage() {
               className="text-mrd-data"
               style={{
                 fontFamily: "Geist Mono, monospace",
-                color: "var(--ink-subtle)",
+                color: "var(--mrd-mute)",
                 paddingTop: 2,
               }}
             >
@@ -140,7 +140,7 @@ function UpdatesPage() {
               >
                 {e.title}
               </h3>
-              <p className="text-mrd-prose" style={{ color: "var(--ink-subtle)", margin: 0, lineHeight: 1.6 }}>
+              <p className="text-mrd-prose" style={{ color: "var(--mrd-mute)", margin: 0, lineHeight: 1.6 }}>
                 {e.body}
               </p>
             </div>
@@ -166,7 +166,7 @@ function UpdatesPage() {
                 </h3>
                 <p
                   className="text-mrd-base"
-                  style={{ color: "var(--ink-subtle)", margin: 0, lineHeight: 1.6 }}
+                  style={{ color: "var(--mrd-mute)", margin: 0, lineHeight: 1.6 }}
                 >
                   {e.body}
                 </p>
@@ -174,7 +174,7 @@ function UpdatesPage() {
             ))}
           </div>
         ) : (
-          <p className="text-mrd-base" style={{ color: "var(--ink-faint)", margin: 0 }}>
+          <p className="text-mrd-base" style={{ color: "var(--mrd-faint)", margin: 0 }}>
             Nothing here yet. Every thumbs-up or thumbs-down in the product becomes a real signal,
             and this section fills in with real shipped changes once one drives a decision.
           </p>

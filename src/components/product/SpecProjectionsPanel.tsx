@@ -103,7 +103,7 @@ export function SpecProjectionsPanel({
   const stamp = (
     <div className="flex items-center" style={{ gap: 10, flexWrap: "wrap" }}>
       <VerdictChip tone={DRIFT_TONE[set.drift.state]}>{set.drift.label}</VerdictChip>
-      <span style={{ color: "var(--text-muted)" }}>Generated {set.generatedOn}</span>
+      <span style={{ color: "var(--mrd-mute)" }}>Generated {set.generatedOn}</span>
     </div>
   );
 
@@ -121,10 +121,10 @@ export function SpecProjectionsPanel({
           boxShadow: "var(--top-light)",
         }}
       >
-        <p style={{ color: "var(--text-body)", margin: "0 0 8px" }}>
+        <p style={{ color: "var(--mrd-body)", margin: "0 0 8px" }}>
           No Outcome Contract yet, so there is nothing to project.
         </p>
-        <p style={{ color: "var(--text-muted)", margin: 0, lineHeight: 1.6 }}>
+        <p style={{ color: "var(--mrd-mute)", margin: 0, lineHeight: 1.6 }}>
           Draft one on the Contract tab. The PRD, FRD, status, and one-pager then generate from that
           typed spine automatically, so no document is ever hand-maintained.
         </p>
@@ -136,7 +136,7 @@ export function SpecProjectionsPanel({
     <div>
       <p
         style={{
-          color: "var(--text-muted)",
+          color: "var(--mrd-mute)",
           lineHeight: 1.6,
           margin: "0 0 16px",
           maxWidth: "68ch",
@@ -160,15 +160,15 @@ export function SpecProjectionsPanel({
                 role="tab"
                 aria-selected={activeTab}
                 onClick={() => setActive(kind)}
-                className={`loom-press ${activeTab ? "" : "hover:[color:var(--text-body)]"}`}
+                className={`loom-press ${activeTab ? "" : "hover:[color:var(--mrd-body)]"}`}
                 style={{
-                  fontFamily: "var(--font-mono)",
+                  fontFamily: "var(--mrd-mono)",
                   letterSpacing: "0.1em",
                   textTransform: "uppercase",
-                  color: activeTab ? "var(--text-primary)" : "var(--text-subtle)",
+                  color: activeTab ? "var(--mrd-ink)" : "var(--mrd-mute)",
                   paddingBottom: 8,
                   borderBottom: activeTab
-                    ? "2px solid var(--text-primary)"
+                    ? "2px solid var(--mrd-ink)"
                     : "2px solid transparent",
                   background: "none",
                   border: "none",
@@ -203,7 +203,7 @@ export function SpecProjectionsPanel({
       </div>
 
       <div style={{ marginBottom: 16 }}>{stamp}</div>
-      <p style={{ color: "var(--text-muted)", lineHeight: 1.6, margin: "0 0 18px" }}>
+      <p style={{ color: "var(--mrd-mute)", lineHeight: 1.6, margin: "0 0 18px" }}>
         {set.drift.detail}
       </p>
 
@@ -213,9 +213,9 @@ export function SpecProjectionsPanel({
             <div key={i} style={{ marginBottom: 16 }}>
               <div
                 style={{
-                  fontFamily: "var(--font-sans)",
+                  fontFamily: "var(--mrd-font)",
                   fontWeight: 600,
-                  color: "var(--text-primary)",
+                  color: "var(--mrd-ink)",
                   marginBottom: 4,
                 }}
               >
@@ -224,7 +224,7 @@ export function SpecProjectionsPanel({
               <div
                 style={{
                   lineHeight: 1.6,
-                  color: "var(--text-body)",
+                  color: "var(--mrd-body)",
                   whiteSpace: "pre-wrap",
                 }}
               >
@@ -236,15 +236,15 @@ export function SpecProjectionsPanel({
             <div style={{ marginBottom: 16 }}>
               <div
                 style={{
-                  fontFamily: "var(--font-sans)",
+                  fontFamily: "var(--mrd-font)",
                   fontWeight: 600,
-                  color: "var(--text-primary)",
+                  color: "var(--mrd-ink)",
                   marginBottom: 4,
                 }}
               >
                 Sources
               </div>
-              <ol style={{ margin: 0, paddingLeft: 18, color: "var(--text-body)" }}>
+              <ol style={{ margin: 0, paddingLeft: 18, color: "var(--mrd-body)" }}>
                 {current.sources.map((c, i) => (
                   <li key={i}>{c.label}</li>
                 ))}
@@ -253,7 +253,7 @@ export function SpecProjectionsPanel({
           ) : null}
           <div
             style={{
-              color: "var(--text-faint)",
+              color: "var(--mrd-faint)",
               borderTop: "1px solid var(--mrd-edge)",
               paddingTop: 10,
             }}

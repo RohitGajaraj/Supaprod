@@ -17,10 +17,10 @@ export function statusLabel(s: string): string {
 
 // studio_changesets: staged | committed | pr_open | merged | abandoned
 export function changesetColor(s: string): string {
-  if (s === "merged") return "var(--moss)"; // outcome: shipped
+  if (s === "merged") return "var(--mrd-pass)"; // outcome: shipped
   if (s === "pr_open") return "var(--cornflower)"; // live: under review
-  if (s === "abandoned") return "var(--text-subtle)";
-  return "var(--text-subtle)"; // staged · committed — neutral ladder states
+  if (s === "abandoned") return "var(--mrd-mute)";
+  return "var(--mrd-mute)"; // staged · committed — neutral ladder states
 }
 
 export function changesetLabel(s: string): string {

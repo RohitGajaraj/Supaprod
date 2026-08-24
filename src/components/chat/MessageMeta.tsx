@@ -332,7 +332,7 @@ export function MessageMetaFooter({
           flexWrap: "wrap",
           gap: 14,
           marginTop: 10,
-          fontFamily: "var(--font-mono)",
+          fontFamily: "var(--mrd-mono)",
           color: "var(--mrd-faint)",
           letterSpacing: "0.02em",
         }}
@@ -421,7 +421,7 @@ export function MessageMetaFooter({
                   style={{
                     minHeight: 36,
                     padding: "6px 8px",
-                    fontFamily: "var(--font-mono)",
+                    fontFamily: "var(--mrd-mono)",
                   }}
                   onClick={() => {
                     setReplayOpen(false);

@@ -51,7 +51,7 @@ export function LegalPageShell({
         display: "flex",
         flexDirection: "column",
         position: "relative",
-        fontFamily: 'var(--font-sans, "Geist", ui-sans-serif, system-ui, sans-serif)',
+        fontFamily: 'var(--mrd-font, "Geist", ui-sans-serif, system-ui, sans-serif)',
         // Page content below uses var(--ink-*) and var(--text-*) with parchment
         // era fallbacks. Without this the fallbacks win and the body text reads
         // light on light. /demo and /proof already spread this; this shell did

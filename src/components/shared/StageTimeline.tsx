@@ -10,7 +10,7 @@
 // PORTED TO MERIDIAN 2026-08-18. `--text-body`, `--text-subtle`, `--text-faint`
 // and `--hairline` are gone; the rows read `--mrd-body`, `--mrd-mute`,
 // `--mrd-faint` and `--mrd-line-soft`, and the timestamp goes through `Num`
-// rather than a hand-written `font-family: var(--font-mono)`, so it carries
+// rather than a hand-written `font-family: var(--mrd-mono)`, so it carries
 // `data-num` and tabular figures like every other number in the product.
 //
 // WHAT IS STILL LEGACY HERE, AND WHOSE IT IS. `MonoLabel`

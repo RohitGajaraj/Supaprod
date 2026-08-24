@@ -110,7 +110,7 @@ function CheckoutReturn() {
       className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center gap-6 px-6 text-center"
       // Nothing on this public route defines --paper/--ink, so without the
       // spread they flip light when the user prefers light, mid-payment-flow.
-      style={{ ...PUBLIC_INK_THEME, background: "var(--paper)", color: "var(--ink)" }}
+      style={{ ...PUBLIC_INK_THEME, background: "var(--mrd-bg)", color: "var(--ink)" }}
     >
       <div className="font-display text-3xl font-medium">{heading}</div>
       <p className="text-sm text-[var(--color-ink-muted)]">{body}</p>

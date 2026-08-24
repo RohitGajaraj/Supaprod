@@ -70,9 +70,9 @@ export function SupaprodMark({
       >
         <defs>
           <linearGradient id={`pet-${id}`} x1="15%" y1="0%" x2="85%" y2="100%">
-            <stop offset="0%" stopColor="var(--text-primary, #f2f0ed)" />
-            <stop offset="52%" stopColor="var(--text-subtle, #7d786f)" />
-            <stop offset="100%" stopColor="var(--text-primary, #f2f0ed)" />
+            <stop offset="0%" stopColor="var(--mrd-ink, #f2f0ed)" />
+            <stop offset="52%" stopColor="var(--mrd-mute, #7d786f)" />
+            <stop offset="100%" stopColor="var(--mrd-ink, #f2f0ed)" />
           </linearGradient>
           <radialGradient id={`core-${id}`} cx="42%" cy="36%" r="72%">
             <stop
@@ -107,7 +107,7 @@ export function SupaprodMark({
           {animated ? (
             <path
               d={PATH}
-              stroke="var(--text-subtle, #7d786f)"
+              stroke="var(--mrd-mute, #7d786f)"
               strokeWidth={strokeWidth}
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -133,7 +133,7 @@ export function SupaprodMark({
           ) : null}
           <path
             d={PATH}
-            stroke="var(--text-primary, #f2f0ed)"
+            stroke="var(--mrd-ink, #f2f0ed)"
             strokeWidth={strokeWidth}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -144,7 +144,7 @@ export function SupaprodMark({
         {/* Core = Brain + Pulse: an ember centre with a small GOLD bead (the
             tilak / diya). Mono renders it in the metallic instead (watermark). */}
         {mono ? (
-          <circle cx="50" cy="50" r="6.2" fill="var(--text-subtle, #7d786f)" />
+          <circle cx="50" cy="50" r="6.2" fill="var(--mrd-mute, #7d786f)" />
         ) : (
           <g
             className={animated ? "supaprod-core" : undefined}

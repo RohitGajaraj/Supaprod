@@ -59,11 +59,11 @@ export function UsageIndicator({ used, allowance, compact = false }: UsageIndica
           }}
         />
       </div>
-      <span className="mono-label" style={{ color: "var(--text-subtle)", letterSpacing: "0.02em" }}>
+      <span className="mono-label" style={{ color: "var(--mrd-mute)", letterSpacing: "0.02em" }}>
         {used} of {allowance} this month
       </span>
       {!compact && (
-        <span style={{ color: "var(--text-subtle)" }}>
+        <span style={{ color: "var(--mrd-mute)" }}>
           Everyday actions are free. Only missions and builds draw from this.
         </span>
       )}

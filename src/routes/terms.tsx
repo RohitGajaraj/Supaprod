@@ -90,7 +90,7 @@ function TermsPage() {
       <LegalSection title="Termination">
         <p>
           You can close your account at any time from Settings; your data is deleted per the{" "}
-          <a href="/privacy" style={{ color: "var(--ember)" }}>
+          <a href="/privacy" style={{ color: "var(--mrd-you)" }}>
             privacy policy
           </a>
           . We may suspend accounts that violate acceptable use, with notice where practical.
