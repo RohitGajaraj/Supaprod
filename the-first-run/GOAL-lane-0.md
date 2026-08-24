@@ -13,7 +13,10 @@ re-read the acceptance list in §7 and find which criterion is not yet true.
 git pull --rebase origin main
 ```
 
-1. Read **`the-first-run/BUILD-QUEUE.md` — THIS IS YOUR WORK SOURCE.** It is ONE ordered
+1. Read **`the-first-run/START-HERE.md` FIRST.** It says what we are doing and why in one page:
+   this is a transformation, not a feature sprint, and the dominant defect is UNWIRED work, so
+   the default move is always to wire what exists rather than build new.
+3. Read **`the-first-run/BUILD-QUEUE.md` — THIS IS YOUR WORK SOURCE.** It is ONE ordered
    backlog, not a list per lane. **Take the topmost item you OWN that is not `BLOCKED` or
    `WIP`** — the `Own` column decides ownership by PATH. Scan past blocked items rather than
    stopping at one. **Never cross into another lane's path.** Claim by writing one line into
@@ -24,16 +27,16 @@ git pull --rebase origin main
 2. Read **`the-first-run/RULINGS.md`** FIRST of the design files. **It is the tiebreaker: if any
    two documents in this repo disagree, RULINGS.md wins.** It also lists what is still OPEN, and
    an open question is one you file a request about rather than decide yourself.
-3. Read **`the-first-run/DESIGN-DIRECTION.md`** — the design ruling, and the reference IMAGES it
+4. Read **`the-first-run/DESIGN-DIRECTION.md`** — the design ruling, and the reference IMAGES it
    names in `design-reference/mobbin-2026-08/`. **Open the .webp files.** You have no Mobbin access,
    so those images are the only way to see what is being asked for.
-4. Read `the-first-run/MISSION.md` — the objective, and it governs every unit you write.
-5. Read `the-first-run/EVIDENCE.md` — the production numbers behind every item in the queue.
-6. Read `the-first-run/DIAGNOSIS.md` — why this mission exists, measured.
-7. Read `coordination/STATUS.md` — MAIN LANE's current picture.
-8. Read every file in `coordination/answers/` whose name starts `L0-` or `RL0-` that you have not
+5. Read `the-first-run/MISSION.md` — the objective, and it governs every unit you write.
+6. Read `the-first-run/EVIDENCE.md` — the production numbers behind every item in the queue.
+7. Read `the-first-run/DIAGNOSIS.md` — why this mission exists, measured.
+8. Read `coordination/STATUS.md` — MAIN LANE's current picture.
+9. Read every file in `coordination/answers/` whose name starts `L0-` or `RL0-` that you have not
    acted on. Those are rulings addressed to you.
-9. Read the last 5 files in `coordination/units/` — both lanes' recent work, so you do not repeat it.
+10. Read the last 5 files in `coordination/units/` — both lanes' recent work, so you do not repeat it.
 10. Run `git status`.
 
 **IF WORK IS HALF-DONE OR UNCOMMITTED, FINISH AND COMMIT IT BEFORE STARTING ANYTHING NEW.** A
