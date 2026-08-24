@@ -820,3 +820,47 @@ export function resumeSeatFrom(saved: number | null | undefined, crewLength: num
   if (!Number.isFinite(n) || n <= 0) return 0;
   return n < crewLength ? n : 0;
 }
+
+/**
+ * Did this station produce anything on this visit, when the clock split its crew
+ * across two ticks?
+ *
+ * THE SEAT CURSOR FIXED THE SPENDING AND LEFT THE VERDICT BROKEN. Resuming at the
+ * owed seat stopped the crew repeating itself, and then the tick that FINISHED
+ * the crew judged the station on its own harvest alone. A crew whose producing
+ * seat ran in the earlier tick and whose checking seat runs in the later one
+ * therefore reads as "ran cleanly, filed nothing" -- `produced-nothing`, an
+ * attempt counted -- while the artifact it filed sits on the record, attributed
+ * to this station, from this same attempt.
+ *
+ * MEASURED 2026-08-24, track `f9e41393`, workspace `0b792d52`, at Decide, crew
+ * `strategist` then `critic`. Three strategist runs (53.7s, 42.7s, 41.6s, each
+ * over the 45s deadline on its own) filed three decisions; the three critic ticks
+ * that followed each harvested nothing, each counted an attempt, and the third
+ * took the track to `given-up`. The station did its job three times and the
+ * driver called it empty three times. **A slow first seat made this structural,
+ * not unlucky** -- that crew could never have advanced.
+ *
+ * WHY THE RECORD IS ONLY CONSULTED ON THE RESUMED PATH. On an ordinary tick the
+ * two questions cannot disagree, so asking costs a query to learn nothing. And
+ * scoping the read to THIS VISIT is what keeps the rule honest: the track's whole
+ * record would let a station advance on an artifact an earlier visit produced,
+ * which is exactly the progress-the-work-did-not-buy that `produced-nothing`
+ * exists to refuse.
+ */
+export function didStationProduce(input: {
+  /** Artifacts harvested from the seats that ran in THIS tick. */
+  attachedCount: number;
+  /** The seat this tick began at. Non-zero means the crew was resumed. */
+  startSeat: number;
+  /**
+   * Has this station filed anything since the track arrived at it? Only ever
+   * consulted when the crew was resumed, so `null` is the honest value on the
+   * ordinary path and is never read as a yes.
+   */
+  filedAtStationSinceArrival: boolean | null;
+}): boolean {
+  if (input.attachedCount > 0) return true;
+  if (input.startSeat <= 0) return false;
+  return input.filedAtStationSinceArrival === true;
+}

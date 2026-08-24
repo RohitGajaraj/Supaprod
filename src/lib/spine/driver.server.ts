@@ -37,6 +37,7 @@ import {
   decideDrive,
   holdLine,
   HOLD_LINE,
+  didStationProduce,
   resumeSeatFrom,
   newestSpecId,
   stationCrew,
@@ -144,6 +145,12 @@ type DriveRow = {
    * before the column existed.
    */
   seat_cursor?: number | null;
+  /**
+   * When this track was opened. Read on one path only: a crew resumed mid-station
+   * needs to know when it ARRIVED at that station, and a track that has never
+   * left the station it was created at has no `stage_events` row to say so.
+   */
+  created_at?: string | null;
 };
 
 /** Is everything switched off for this workspace? Checked first, always. */
@@ -814,6 +821,82 @@ async function loadUpstream(
 }
 
 /**
+ * What has THIS station filed since the track arrived at it?
+ *
+ * THE QUESTION `attached` CANNOT ANSWER, and the gap between the two killed the
+ * first end-to-end run this product ever attempted.
+ *
+ * `attached` is what the seats that ran IN THIS TICK filed. That is the same
+ * thing as "what this station produced" only while a crew fits inside one tick.
+ * When the Worker's clock cuts a crew short, `seat_cursor` parks the remaining
+ * seats and the next tick resumes at one of them -- so the producing seat and
+ * the checking seat land in DIFFERENT ticks, and the tick that finishes the crew
+ * sees `attached.length === 0` while the station's artifact is sitting on the
+ * record, filed by this station, during this same attempt.
+ *
+ * MEASURED 2026-08-24 on `f9e41393` in workspace `0b792d52`, at Decide, whose
+ * crew is `strategist` then `critic`:
+ *
+ *   20:40:31  strategist  53.7s  -> decision eec7780d filed 20:41:28
+ *   20:50:35  critic      21.0s  -> attached 0, held `produced-nothing`, attempt 1
+ *   21:00:31  strategist  42.7s  -> decision e67ae002 filed 21:01:18
+ *   21:10:01  critic      15.6s  -> attached 0, held `produced-nothing`, attempt 2
+ *   21:20:01  strategist  41.6s  -> decision 7b43fd8e filed 21:20:46
+ *   21:30:04  critic      18.9s  -> attached 0, held `produced-nothing`, attempt 3
+ *   21:40     attempts >= MAX_STATION_ATTEMPTS -> `given-up`
+ *
+ * The station did its job three times, filed three decisions, and the driver
+ * called it empty three times and gave up on it. Every strategist run exceeded
+ * the 45s deadline on its own, so this track could NEVER have advanced: the
+ * split was not bad luck, it was structural for any crew with a slow first seat.
+ *
+ * Scoped to the arrival rather than to the whole record on purpose. `filed`
+ * already answers "what does this track hold", and using it here would let a
+ * station advance on the strength of an artifact a PREVIOUS visit produced --
+ * which is precisely the "reporting progress the work did not buy" that the
+ * `produced-nothing` rule exists to prevent. The arrival timestamp is read from
+ * the track's own `stage_events` trail, and a track that has never left the
+ * station it was created at has no such row, so creation is the fallback.
+ *
+ * Costs one query and is asked ONLY on the resumed path, which is the only path
+ * where the two questions can disagree.
+ */
+async function stationFiledSinceArrival(
+  supabase: SupabaseClient,
+  trackId: string,
+  station: AgentStation,
+  createdAt: string | null,
+): Promise<boolean> {
+  const { data: arrival } = await supabase
+    .from("stage_events" as never)
+    .select("at")
+    .eq("entity_type", "spine_track")
+    .eq("entity_id", trackId)
+    .eq("to_stage", station)
+    .order("at", { ascending: false })
+    .limit(1);
+
+  const since =
+    (arrival as unknown as Array<{ at: string }> | null)?.[0]?.at ??
+    createdAt ??
+    // Unreadable trail and no creation stamp: fall back to answering "no", which
+    // leaves the old behaviour in place. A guard that cannot read its evidence
+    // must not be the thing that advances work.
+    null;
+  if (!since) return false;
+
+  const { data: members } = await supabase
+    .from("spine_track_members" as never)
+    .select("artifact_id")
+    .eq("track_id", trackId)
+    .eq("station", station)
+    .gte("created_at", since)
+    .limit(1);
+
+  return ((members as unknown as Array<unknown> | null)?.length ?? 0) > 0;
+}
+
+/**
  * Is the one precondition the loop cannot produce for itself satisfied?
  *
  * Only Discover has one: evidence has to enter the workspace from outside before
@@ -1176,6 +1259,13 @@ export async function driveTrackOnce(
   let ranLong = false;
   /** The seat the clock stopped us before reaching, so the next tick starts there. */
   let ranLongAtSeat = 0;
+  /**
+   * The seat this tick began at. Non-zero means the previous tick's clock cut
+   * this same station's crew short and the seats before this index already ran,
+   * in this same attempt, with whatever they filed already on the record.
+   * Hoisted out of the loop because the verdict below has to know it.
+   */
+  let startSeat = 0;
   /** What the crew filed, accumulated seat by seat as each one runs. */
   const made: Attachment[] = [];
   try {
@@ -1217,7 +1307,7 @@ export async function driveTrackOnce(
      * entirely, which is the one outcome worse than repeating it, so an
      * out-of-range cursor restarts the crew.
      */
-    const startSeat = resumeSeatFrom(row.seat_cursor, crew.length);
+    startSeat = resumeSeatFrom(row.seat_cursor, crew.length);
     for (let seatIndex = startSeat; seatIndex < crew.length; seatIndex++) {
       const seat = crew[seatIndex];
       // THE CEILING WHERE THE AUTONOMY IS. Checked before each seat rather than
@@ -1491,7 +1581,25 @@ export async function driveTrackOnce(
   // NOT a failure, and named separately from `stalled` for that reason: the run
   // worked, its output went nowhere. That distinction is the whole diagnosis, so
   // the record keeps it rather than flattening both into "stalled".
-  if (attached.length === 0) {
+  //
+  // UNLESS THE CLOCK SPLIT THE CREW, which is a different sentence wearing the
+  // same clothes. `attached` is this TICK's output; on a resumed crew the seats
+  // that produced ran in the previous tick and their rows are already on the
+  // record. Asking the record directly is the only way to tell "the station
+  // filed nothing" from "the station filed something and then we came back for
+  // the rest of its crew". See `stationFiledSinceArrival` for the six live ticks
+  // that made this necessary. Asked only when resumed, so the ordinary path
+  // costs nothing and behaves exactly as it did.
+  const producedThisVisit = didStationProduce({
+    attachedCount: attached.length,
+    startSeat,
+    filedAtStationSinceArrival:
+      attached.length === 0 && startSeat > 0
+        ? await stationFiledSinceArrival(supabase, row.id, station, row.created_at ?? null)
+        : null,
+  });
+
+  if (!producedThisVisit) {
     await supabase
       .from("spine_tracks" as never)
       .update({
@@ -1652,6 +1760,9 @@ export const DRIVE_SELECT =
   // indistinguishable from a broken one. It belongs in the shared constant for
   // the same reason the budget columns do.
   "driven_at," +
+  // When the track was opened. The fallback arrival stamp for a crew resumed at
+  // a station the track has never left, which has no `stage_events` row to read.
+  "created_at," +
   // The budget columns. A DriveRow missing these reads them as null, which
   // resolves to "spent nothing" and silently removes the ceiling, so they
   // belong in the shared constant rather than in whichever caller remembers.
