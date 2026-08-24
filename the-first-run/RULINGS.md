@@ -634,6 +634,50 @@ in a census three weeks later.
 
 ---
 
+## R-24 · A mission happens INSIDE a track. They were never alternatives — 2026-08-25
+
+**`chat.ts:1130` has deferred `startTrackCore` pending "the mission/track question — whether a chat
+dispatch creates a mission, a track, or both, and which id the SSE `mission_id` frame returns."
+Item 16 is blocked on it, and it is an architecture call, so it is mine (R-09).**
+
+**The question contains a false choice, and the code already answers it.**
+
+- A **track** is *"the one object that walks all seven stations"*: identity, intent, and route. Its
+  own header says what it owns — *"this is one piece of work, and here is its address."*
+- A **mission** is Build's container. `driveTrackOnce` opens one **at Build and nowhere else**,
+  because *"Build is the one station whose tool refuses without a mission"*, and six of the seven
+  stations dispatch with `missionId = null`. `spine_track_members` then files the mission as a member
+  **at the `build` station**, exactly like a prototype at `design` or a decision at `decide`.
+
+**So a mission is an artifact of one station of a track.** Asking whether a dispatch creates "a
+mission or a track" is asking whether writing a document creates a paragraph or a document.
+
+### The ruling
+
+1. **A chat dispatch that is a piece of work creates a TRACK.** Through `startTrackCore`, with the
+   route the plan gate already had a person confirm.
+2. **The mission is not created by the dispatch.** It is opened by the Build station if and when the
+   work reaches Build, which is what already happens for every driver-run track.
+3. **The SSE frame returns the TRACK id as the work's identity.** `mission_id` stays on the frame and
+   keeps meaning what it has always meant — the Build container — and is null until Build opens one.
+   A surface that wants to follow the work follows the track.
+4. **A dispatch that is NOT a piece of work — a question, a lookup, a one-shot — creates neither.**
+   That is a chat turn, and turning every question into a track is how 59 tracks become 5,000.
+
+**Why this is the answer and not a preference.** The alternative — dispatch creates a mission and a
+track is promoted from it later — is the shape the product has today, and it is what F-04 measures:
+the app-wide box says *"What should we build?"*, files a mission, and the run workbench cannot see
+it. **The mission/track question is not open; it was answered by whoever wrote the Build ternary and
+never written down.**
+
+### Until item 16 is built
+
+The interim in the queue stands and is now unambiguous: **`AskDock` must stop saying "What should we
+build?" while it opens a chat.** That copy promises the loop and delivers a conversation. Its file is
+`src/components/**`, so the change is LANE 0's; the ruling is mine.
+
+---
+
 ## Open, and I have not ruled yet
 
 | Question | Why it is still open |
