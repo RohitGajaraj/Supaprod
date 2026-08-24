@@ -1234,6 +1234,40 @@ function Today() {
           <FocusNext workspaceId={workspaceId} />
         </div>
 
+        {/* THE GLANCE STRIP. A dashboard earns its name by answering "how much
+            is waiting on me" before the scroll, with each number a door into
+            the section that carries the detail. */}
+        {!loading && !queue.isError && !missions.isError ? (
+          <div className="today-glance">
+            <button
+              type="button"
+              className="today-glance-tile"
+              onClick={() => navigate({ to: "/decide" })}
+            >
+              <span className="today-glance-num">{items.length}</span>
+              <span className="today-glance-label">
+                {items.length === 1 ? "call needs you" : "calls need you"}
+              </span>
+            </button>
+            <button
+              type="button"
+              className="today-glance-tile"
+              onClick={() => navigate({ to: "/runs" })}
+            >
+              <span className="today-glance-num">{running.length + stuck.length}</span>
+              <span className="today-glance-label">
+                {running.length + stuck.length === 1 ? "run live or held" : "runs live or held"}
+              </span>
+            </button>
+            <div className="today-glance-tile today-glance-still">
+              <span className="today-glance-num">{shipped.length}</span>
+              <span className="today-glance-label">
+                {shipped.length === 1 ? "thing finished since yesterday" : "things finished since yesterday"}
+              </span>
+            </div>
+          </div>
+        ) : null}
+
         <div className="today-lanes">
           <Lane
             name="Ready for your review"

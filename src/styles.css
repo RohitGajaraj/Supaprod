@@ -2273,3 +2273,39 @@ html[data-motion="off"] .ai-pulse-text {
   margin-left: auto;
   margin-right: auto;
 }
+
+/* The glance strip: three live numbers above the lanes, the first two doors.
+   Numbers carry the weight, labels stay small, and a zero reads as a zero
+   rather than hiding. */
+.today-glance {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  max-width: 920px;
+  margin: 0 auto 28px;
+}
+.today-glance-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 18px 10px;
+  border: 1px solid var(--mrd-edge);
+  background: var(--mrd-raised);
+  font: inherit;
+  color: inherit;
+  text-align: center;
+}
+button.today-glance-tile {
+  cursor: pointer;
+}
+.today-glance-num {
+  font-size: var(--text-mrd-h2);
+  line-height: 1.1;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.today-glance-label {
+  color: var(--mrd-mute);
+  font-size: var(--text-mrd-label);
+}
