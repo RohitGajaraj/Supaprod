@@ -109,6 +109,7 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhook'
 import { Route as ApiPublicIngestSignalsRouteImport } from './routes/api/public/ingest-signals'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
+import { Route as AuthenticatedTrackTrackIdRouteImport } from './routes/_authenticated.track.$trackId'
 import { Route as AuthenticatedTracesTraceIdRouteImport } from './routes/_authenticated.traces.$traceId'
 import { Route as AuthenticatedStudioMissionIdRouteImport } from './routes/_authenticated.studio.$missionId'
 import { Route as AuthenticatedRunsMissionIdRouteImport } from './routes/_authenticated.runs.$missionId'
@@ -703,6 +704,12 @@ const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
   path: '/api/public/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedTrackTrackIdRoute =
+  AuthenticatedTrackTrackIdRouteImport.update({
+    id: '/track/$trackId',
+    path: '/track/$trackId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedTracesTraceIdRoute =
   AuthenticatedTracesTraceIdRouteImport.update({
     id: '/$traceId',
@@ -1300,6 +1307,7 @@ export interface FileRoutesByFullPath {
   '/runs/$missionId': typeof AuthenticatedRunsMissionIdRoute
   '/studio/$missionId': typeof AuthenticatedStudioMissionIdRoute
   '/traces/$traceId': typeof AuthenticatedTracesTraceIdRoute
+  '/track/$trackId': typeof AuthenticatedTrackTrackIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ingest-signals': typeof ApiPublicIngestSignalsRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
@@ -1483,6 +1491,7 @@ export interface FileRoutesByTo {
   '/runs/$missionId': typeof AuthenticatedRunsMissionIdRoute
   '/studio/$missionId': typeof AuthenticatedStudioMissionIdRoute
   '/traces/$traceId': typeof AuthenticatedTracesTraceIdRoute
+  '/track/$trackId': typeof AuthenticatedTrackTrackIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ingest-signals': typeof ApiPublicIngestSignalsRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
@@ -1670,6 +1679,7 @@ export interface FileRoutesById {
   '/_authenticated/runs/$missionId': typeof AuthenticatedRunsMissionIdRoute
   '/_authenticated/studio/$missionId': typeof AuthenticatedStudioMissionIdRoute
   '/_authenticated/traces/$traceId': typeof AuthenticatedTracesTraceIdRoute
+  '/_authenticated/track/$trackId': typeof AuthenticatedTrackTrackIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ingest-signals': typeof ApiPublicIngestSignalsRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
@@ -1857,6 +1867,7 @@ export interface FileRouteTypes {
     | '/runs/$missionId'
     | '/studio/$missionId'
     | '/traces/$traceId'
+    | '/track/$trackId'
     | '/api/public/health'
     | '/api/public/ingest-signals'
     | '/api/stripe/webhook'
@@ -2040,6 +2051,7 @@ export interface FileRouteTypes {
     | '/runs/$missionId'
     | '/studio/$missionId'
     | '/traces/$traceId'
+    | '/track/$trackId'
     | '/api/public/health'
     | '/api/public/ingest-signals'
     | '/api/stripe/webhook'
@@ -2226,6 +2238,7 @@ export interface FileRouteTypes {
     | '/_authenticated/runs/$missionId'
     | '/_authenticated/studio/$missionId'
     | '/_authenticated/traces/$traceId'
+    | '/_authenticated/track/$trackId'
     | '/api/public/health'
     | '/api/public/ingest-signals'
     | '/api/stripe/webhook'
@@ -3107,6 +3120,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/track/$trackId': {
+      id: '/_authenticated/track/$trackId'
+      path: '/track/$trackId'
+      fullPath: '/track/$trackId'
+      preLoaderRoute: typeof AuthenticatedTrackTrackIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/traces/$traceId': {
       id: '/_authenticated/traces/$traceId'
       path: '/$traceId'
@@ -3828,6 +3848,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMissionsMissionIdRoute: typeof AuthenticatedMissionsMissionIdRoute
   AuthenticatedRunsMissionIdRoute: typeof AuthenticatedRunsMissionIdRoute
   AuthenticatedStudioMissionIdRoute: typeof AuthenticatedStudioMissionIdRoute
+  AuthenticatedTrackTrackIdRoute: typeof AuthenticatedTrackTrackIdRoute
   AuthenticatedBuildIndexRoute: typeof AuthenticatedBuildIndexRoute
   AuthenticatedMIndexRoute: typeof AuthenticatedMIndexRoute
   AuthenticatedMissionsIndexRoute: typeof AuthenticatedMissionsIndexRoute
@@ -3900,6 +3921,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMissionsMissionIdRoute: AuthenticatedMissionsMissionIdRoute,
   AuthenticatedRunsMissionIdRoute: AuthenticatedRunsMissionIdRoute,
   AuthenticatedStudioMissionIdRoute: AuthenticatedStudioMissionIdRoute,
+  AuthenticatedTrackTrackIdRoute: AuthenticatedTrackTrackIdRoute,
   AuthenticatedBuildIndexRoute: AuthenticatedBuildIndexRoute,
   AuthenticatedMIndexRoute: AuthenticatedMIndexRoute,
   AuthenticatedMissionsIndexRoute: AuthenticatedMissionsIndexRoute,
