@@ -87,6 +87,50 @@ accelerators declined a pitch led by the one claim a single SQL query falsifies 
 **Ruled:** a claim goes on a customer surface only when a route renders it and someone who is not the
 founder has reached it. **Until one real forecast is graded, layer 03 is future tense everywhere.**
 
+## R-07 · One ordered backlog. Pull by path, never idle — 2026-08-25
+
+**The question.** Should the queue assign work per lane, or should whichever lane is free take the
+next pending item off the top?
+
+**Ruled: one ordered backlog, and a lane pulls the topmost unblocked item WHOSE PATH IT OWNS.**
+
+**Why not pure pull.** The lanes are separated by path ownership and that split is load-bearing: two
+writers on one prefix is what broke `main` on 2026-08-22. A free LANE 0 taking "collapse the
+duplicate routes" would be writing `src/routes/**`, which is LANE 1's. Pure pull produces exactly the
+failure the split exists to prevent.
+
+**Why not fixed assignment either.** A lane that finishes its list and waits is pure waste.
+
+**The property that makes this work:** path ownership is **disjoint**, so **no two lanes can ever
+contend for the same item.** The path tag decides the owner uniquely. Claiming is therefore
+ADVISORY — it tells MAIN what is in flight — and never a lock. There is no race to lose.
+
+### The rules that follow
+
+1. **The queue is ONE ordered list, most valuable first.** Each item carries the path it touches; that
+   tag names its owner.
+2. **A lane takes the topmost item it owns that is not `BLOCKED` or `WIP`.** It scans past blocked
+   items rather than stopping at one.
+3. **A lane never idles and never crosses a path.** Owning nothing unblocked means STANDING WORK
+   (below) plus `coordination/requests/<n>-starved.md`. **A starved lane is MAIN's failure.**
+4. **MAIN keeps at least three unblocked items per path stocked ahead**, in priority order.
+5. **MAIN never writes an item that spans two paths.** It splits it and names the seam — the way the
+   `TrackRun` stub was split from the route that mounts it, so both lanes work in parallel from the
+   first minute. **A cross-path item is a MAIN bug.**
+6. **Claiming is a push, not a reservation.** One line into `coordination/units/`, pushed before
+   starting. Nothing waits on it and nothing breaks if it is late.
+
+### Standing work, so no lane is ever blocked on me
+
+**LANE 0**: find components with zero importers and either mount them or delete them with the reason
+recorded — this repo's dominant defect, and there is always more of it. Then retired-token sweeps and
+empty states that lie.
+
+**LANE 1**: the route census. 84 authenticated routes, 48 pure redirects. Open one, decide keep /
+redirect / delete, one commit each with the evidence. A month of honest work that never blocks.
+
+**Neither lane invents product scope while starved.** Standing work is cleanup and wiring only.
+
 ---
 
 ## Open, and I have not ruled yet

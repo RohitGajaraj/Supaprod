@@ -23,82 +23,29 @@ that rebuilds any of them has wasted a night.**
 
 ---
 
-## LANE 0 — writes `src/components/**` EXCEPT `meridian/` and `shell/`
+## THE BACKLOG — one ordered list, most valuable first
 
-### L0-1 · READY · **Inline consent. Build this first.**
-When a run needs a person, the ask must appear **inside the run**, at the station that raised it.
+**How to take work (R-07):** take the **topmost item you own that is not `BLOCKED` or `WIP`.** Scan
+past blocked items. **Never cross into another lane's path.** Owning nothing unblocked means STANDING
+WORK plus a `starved` request, never idling.
 
-**Why, measured:** 90 `cluster.trigger` approvals were raised since July into `/approvals` — a queue
-detached from the work it blocked. **42 cancelled, 38 expired, 10 still pending, zero ever approved.**
-A question that has to be found does not get answered. This single defect is most of the three months.
+**The `Own` column decides ownership by PATH.** `L0` = `src/components/**` except `meridian/`+`shell/`.
+`L1` = `src/routes/**` except `api/`, plus `src/components/shell/**` and `src/styles/**` except
+`meridian.css`. `M` = `src/lib/**`, `src/routes/api/**`, `src/components/meridian/**`, `supabase/**`.
 
-**Build:** a card in `TrackRun` that reads the track's `pending_gates` and renders, per gate: which
-station asked, what the tool will do (use `gateHeadline`/`toolConsequence` in `src/lib/tool-consequences.ts`,
-which already writes this copy), what happens if you decline, and **two controls**. Reference shape:
-ChatPRD's *"Scan Website? · Not Now · Scan Now"*.
-
-**Acceptance:** (1) a track holding `waiting-on-a-person` shows the ask on `/track/:id` without
-navigating away; (2) the consequence sentence comes from `tool-consequences.ts`, never a literal;
-(3) declining records a reason; (4) Playwright screenshot proves it renders, not that it mounts.
-**"Approve" only where the click UNBLOCKS. "Review" where it only shows.**
-
-### L0-2 · READY · **The artifact pane — the founder's "live preview".**
-The right-hand pane that shows **the thing being made**, not a list of what was made.
-
-**Why:** `TrackChain` lists "1 spec filed". Nobody relates to that. They relate to the spec. This is
-what moves a person from spectator to operator.
-
-**Build:** a pane that renders the current station's artifact as itself — signals at `sense`, the
-decision at `decide`, the spec at `define`, the PRD at `design` — with its version and a save state.
-Read-only is acceptable for v1 **if** the unit file says which artifacts will become editable and why
-not yet. Use `STATION_ARTIFACT` in `src/lib/spine/attach.ts` for what each station produces.
-
-**Acceptance:** (1) walking a track changes what the pane shows, without a page refresh; (2) a station
-that produces nothing says so plainly rather than rendering blank; (3) no invented status — every line
-derives from a row the run wrote.
-
-### L0-3 · BLOCKED → L0-2 · **Two panes, not stacked.**
-Recompose `TrackRun`: left = `TrackActivity` (the transcript), right = L0-2's artifact pane. Keep
-`TrackChain` reachable but demote it. **Acceptance:** both panes visible at 1440px without horizontal
-scroll; the layout degrades to stacked below the Meridian breakpoint.
-
-### L0-4 · READY · **Tool calls become cards you can act on.**
-`ToolStream` renders rows you can only read. A call that produced an artifact must link to it.
-**Acceptance:** clicking a tool row that filed something reveals that artifact in the L0-2 pane.
-
-### L0-5 · BLOCKED → L0-2 · **The forecast card and the Learn verdict card.**
-Before Build: what the run expects, recorded, timestamped, as a commitment. After Ship:
-*predicted X · actually Y · what we now believe.* **Acceptance:** both read real columns on
-`decisions` (`forecast_claim`, `forecast_how_we_will_know`, `forecast_horizon_date`,
-`forecast_resolution`). **14 real forecasts exist and 0 are graded — so the verdict card must have an
-honest empty state, not a fabricated one.**
-
-## LANE 1 — writes `src/routes/**` EXCEPT `api/`, `src/components/shell/**`, `src/styles/**` EXCEPT `meridian.css`
-
-### L1-1 · READY · **The landing becomes three job cards. Build this first.**
-**Why:** 84 authenticated routes IS the learning curve, stated as a number. ChatPRD's blank state is
-one question and four cards, each a whole job, no configuration.
-
-**Build:** replace the authenticated landing with 3–4 cards in **the user's words, not our station
-names**. Proposed, and you may argue better: *"I have a problem and don't know what to build"* →
-starts a track at `sense`; *"I know what to build — get it specified"* → starts at `define`;
-*"Something shipped — tell me if it worked"* → opens Learn. `suggestRoute` in
-`src/lib/spine/route.ts` already maps a work shape to an entry station; use it.
-
-**Acceptance:** (1) a new user reaches a running track in **one click and zero configuration**;
-(2) no station vocabulary on the card faces; (3) count the clicks in your unit file, before and after.
-
-### L1-2 · READY · **Starting a track lands you on it.**
-`TrackStart` is mounted at `/plan` and already creates tracks — and does not take you to the run.
-**Acceptance:** creating a track navigates to `/track/:id`; the back path still works.
-
-### L1-3 · READY · **Collapse the duplicate doors.**
-`_authenticated.discover.tsx` vs `_authenticated.discovery.tsx` — two doors, one station. Read both,
-keep one, redirect the other. Then find the rest. **One at a time, one commit each, never a mass
-rename. Open every route before you touch it** — some of the 84 hold real work.
-
-### L1-4 · READY · **The rail leads to a run.** `AppFrame.tsx` and `run-strip.tsx` are yours.
-**Acceptance:** from any surface, a live run is one click away.
+| # | Own | Status | Item | Acceptance |
+| --- | --- | --- | --- | --- |
+| **1** | L0 | **READY** | **Inline consent card.** A run needing a person asks INSIDE the run, at the station that raised it. Ref `design-reference/mobbin-2026-08/cofounder-inline-question.webp`. Data from `spine_tracks.pending_gates` (`[{id,station}]`); **`agent_approvals` has NO track back-reference**. Copy from `gateHeadline`/`toolConsequence`, never a literal | Ask shows without navigating away; consequence derives from `tool-consequences.ts`; declining records a reason; **a person can answer the CLASS, not only the instance** (90 dead gates were one question); screenshot, not a mount assertion |
+| **2** | L1 | **READY** | **Landing becomes 3–4 job cards** in the user's words. **No station names** (R-01). Each maps to a `WorkShape` `suggestRoute` understands | New user reaches a running track in **one click, zero configuration**; click count recorded before and after |
+| **3** | L0 | **READY** | **The artifact pane** — renders the thing being made, not a list of what was made. Build `decide` first, from `decisions` | Pane changes as the track walks, no refresh; a station that produced nothing says so; every line from a row the run wrote |
+| **4** | L1 | **READY** | **Starting a track lands you on it.** `TrackStart` (`_authenticated.plan.index.tsx:893`) creates and does not navigate | Creating a track lands on `/track/:id`; back path intact |
+| **5** | L0 | **READY** | **The run's step list.** Stations as progress display (R-01), drawn like `emergent-live-steps.webp`. Compose `RunMap` `mode="live"` | Five states render honestly; **display names come from one map — a raw station slug on screen is a bug**; active step's clock ticks |
+| **6** | L1 | **READY** | **Collapse duplicate doors.** `discover.tsx` vs `discovery.tsx` first. **48 of 84 routes are pure redirects** | One at a time, one commit each; **open every route before touching it** |
+| **7** | L0 | BLOCKED → 3 | **Tool calls become actionable cards** | Clicking a row that filed something reveals it in the pane |
+| **8** | L1 | BLOCKED → 3,5 | **Two-pane layout** on `/track/$trackId` | Both panes at 1440px, no horizontal scroll; stacks below the Meridian breakpoint |
+| **9** | L0 | BLOCKED → 3 | **Forecast card and Learn verdict card** | Reads real `forecast_*` columns; **0 are graded, so the verdict card needs an honest empty state** |
+| **10** | L1 | **READY** | **The rail leads to a run.** `AppFrame.tsx`, `run-strip.tsx` | A live run is one click from any surface |
+| **11** | L0 | BLOCKED → 5 | **Motion.** pending → running → done reads as movement | Meridian `--ease`/`--d-*` tokens; **a raw duration is a bug** |
 
 ## MAIN LANE — decides, models, verifies. No product code.
 
