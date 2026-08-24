@@ -180,30 +180,39 @@ describe("listDueForecastsForAgent", () => {
       forecast_resolution_suggestion: { verdict: "hit", confidence: 0.81 },
     },
   ];
-  const db = (captured: { limit?: number }) =>
+  const db = (captured: { limit?: number; workspace?: unknown[] }) =>
     ({
       from: () => ({
         select: () => ({
-          not: () => ({
-            is: () => ({
-              lte: () => ({
-                or: () => ({
-                  order: () => ({
-                    limit: async (n: number) => {
-                      captured.limit = n;
-                      return { data: rows, error: null };
-                    },
+          // THE TENANT FILTER. This used to run with no workspace predicate at
+          // all, which on the service-role route meant one token read every
+          // workspace's ungraded bets. The eq below is what closes that, and
+          // capturing its arguments here is how the closure stays pinned.
+          eq: (col: string, val: string) => {
+            captured.workspace = [col, val];
+            return {
+              not: () => ({
+                is: () => ({
+                  lte: () => ({
+                    or: () => ({
+                      order: () => ({
+                        limit: async (n: number) => {
+                          captured.limit = n;
+                          return { data: rows, error: null };
+                        },
+                      }),
+                    }),
                   }),
                 }),
               }),
-            }),
-          }),
+            };
+          },
         }),
       }),
     }) as never;
 
   test("returns the queue in the machine-readable shape a settle call needs", async () => {
-    const c: { limit?: number } = {};
+    const c: { limit?: number; workspace?: unknown[] } = {};
     const out = await listDueForecastsForAgent(db(c), "w1", {});
     expect(out).toHaveLength(1);
     expect(out[0].decision_id).toBe("d1");
@@ -213,6 +222,12 @@ describe("listDueForecastsForAgent", () => {
     expect(out[0].drafted_verdict).toBe("hit");
     expect(out[0].drafted_confidence).toBeCloseTo(0.81, 5);
     expect(out[0].days_late).toBeGreaterThan(0);
+  });
+
+  test("scopes the queue to the caller's workspace rather than the whole table", async () => {
+    const c: { limit?: number; workspace?: unknown[] } = {};
+    await listDueForecastsForAgent(db(c), "w1", {});
+    expect(c.workspace).toEqual(["workspace_id", "w1"]);
   });
 
   test("clamps a caller-supplied limit rather than trusting it", async () => {

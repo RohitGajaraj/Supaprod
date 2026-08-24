@@ -122,6 +122,14 @@ export const TOOL_DEFAULTS: Readonly<
   // 02 Decide
   "decision.record": { mode: "confirm", enabled: true, label: "Record a decision" },
   "decision.revise": { mode: "confirm", enabled: true, label: "Revise a decision" },
+  // THE CREW'S READ DOOR INTO THE RECORD. Auto like every other read: an agent
+  // that must ask permission to consult past verdicts will decide from memory
+  // instead, and the loop stops compounding at exactly that click.
+  "brain.search_decisions": { mode: "auto", enabled: true, label: "Search past decisions" },
+  "brain.outcome_history": { mode: "auto", enabled: true, label: "Graded outcomes" },
+  "brain.get_decision": { mode: "auto", enabled: true, label: "Read a decision" },
+  "brain.contradictions": { mode: "auto", enabled: true, label: "Open contradictions" },
+  "brain.due_forecasts": { mode: "auto", enabled: true, label: "Forecasts due for grading" },
   // 03 Plan
   "prd.draft": { mode: "auto", enabled: true, label: "Draft a spec" },
   "prd.revise": { mode: "confirm", enabled: true, label: "Revise a spec" },

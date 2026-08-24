@@ -1458,7 +1458,7 @@ export async function settleForecastViaMcp(
 
 export async function listDueForecastsForAgent(
   supabaseClient: any,
-  _workspace_id: string,
+  workspace_id: string,
   args: unknown,
 ): Promise<
   Array<{
@@ -1485,6 +1485,20 @@ export async function listDueForecastsForAgent(
       "id,title,forecast_claim,forecast_how_we_will_know,forecast_horizon_date," +
         "forecast_resolution,forecast_next_check_at,forecast_resolution_suggestion",
     )
+    /*
+     * THE TENANT FILTER THE PARAMETER ALWAYS IMPLIED. The argument used to be
+     * spelled `_workspace_id` -- unused on purpose, per the header comment that
+     * no longer exists -- and this query ran with NO workspace predicate at all.
+     * On the MCP route that is the service-role client, so `list_due_forecasts`
+     * answered an external token with the DUE FORECASTS OF EVERY WORKSPACE ON
+     * THE PLATFORM: every ungraded bet any team ever made, readable by anyone
+     * holding any token. Every sibling helper in this file scopes
+     * `.eq("workspace_id", ...)` for exactly this reason. Found while wiring the
+     * same read for the internal crew tools (registry.server.ts brain.*), which
+     * must not see past their own workspace either; the internal path also has
+     * RLS underneath it, this one does not.
+     */
+    .eq("workspace_id", workspace_id)
     .not("forecast_claim", "is", null)
     .is("forecast_resolution", null)
     .lte("forecast_horizon_date", nowIso)

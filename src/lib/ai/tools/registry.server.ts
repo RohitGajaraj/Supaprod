@@ -22,6 +22,23 @@ import { extractArrayField, wrapBareArrayField } from "@/lib/ai/json-shape";
    of "what makes a forecast valid" is how the agent door and the person door come
    to disagree about it. The reasoning for both rules is in that function. */
 import { forecastRefusal } from "@/lib/decisions.functions";
+/* The brain reads, lifted from the MCP door rather than re-derived, so an
+   internal agent mid-run and an external agent over the API get byte-identical
+   answers to the same question. mcp.functions.ts carries no import edge back
+   into this file (checked), so this adds no cycle; see brain.* below. */
+import {
+  listDueForecastsForAgent,
+  outcomeHistory,
+  searchDecisions,
+} from "@/lib/mcp.functions";
+import {
+  activeContradictions,
+  resolvedChildIds,
+} from "@/lib/brain-insights.functions";
+import {
+  supersededChildIds,
+  type LineageEdgeLite,
+} from "@/lib/trust-ledger.functions";
 import { enqueueHandoff, resolveAgent, type HandoffPayload } from "@/lib/ai/handoff.server";
 import { enqueueFanout, fanoutEnabled } from "@/lib/ai/fanout.server";
 import {
@@ -3659,6 +3676,204 @@ const decisionRevise = def({
   },
 });
 
+// ── brain.* · the crew's read door into the shared record ────────────────
+//
+// THE LOOP ONLY COMPOUNDS IF THE NEXT AGENT ACTUALLY READS IT. The crew writes
+// this workspace's whole history (decision.record, learning.record) and could
+// read almost none of it back mid-run: an agent about to make a call had no way
+// to ask "was something like this decided before, what happened to it, and is
+// that belief still current?" The external MCP surface has answered exactly
+// those questions for months (search_decisions, outcome_history,
+// get_governing_decision, get_contradiction_history, list_due_forecasts). These
+// five give the internal crew the same access.
+//
+// HOW THEY ARE BUILT, and what that buys:
+//
+//   · THEY ARE THE MCP READS, NOT A SECOND COPY. search_decisions,
+//     outcomeHistory and listDueForecastsForAgent are imported from
+//     mcp.functions.ts -- the same functions the /api/mcp route dispatches --
+//     so the two doors cannot drift apart. The contradiction lens reuses the
+//     Brain panel's own pure rules (activeContradictions + resolvedChildIds),
+//     so a tool and the human surface can never disagree about what counts as
+//     open. brain.get_decision has no MCP counterpart (the external surface
+//     fetches by topic, not id) and queries directly, shaped like its siblings.
+//
+//   · TENANCY IS CONTEXT-RESOLVED, NEVER CALLER-SUPPLIED. Every tool takes
+//     `workspaceId` from ToolCtx -- resolved server-side by the loop before any
+//     tool runs -- and refuses without one, because a brain read with no
+//     workspace is not a narrower answer, it is the wrong workspace's answer.
+//     The user's authenticated client adds RLS on top; the shared helpers'
+//     explicit `.eq("workspace_id", ...)` is the same boundary the external
+//     route relies on at service-role.
+//
+//   · READS, AND SHAPED LIKE READS. No insert, update or delete anywhere in
+//     this section; category "read" on every entry; defaults auto, because
+//     consulting the past must never cost a permission click -- a gate on
+//     looking is how agents end up deciding from memory instead of the record.
+
+const brainSearchDecisions = def({
+  name: "brain.search_decisions",
+  description:
+    "Search the workspace's recorded decisions by keyword before you decide anything. Answers \"was something like this decided before, why, and does it still stand?\" Each result carries outcome: standing means cite it as current belief; superseded means a later decision replaced it, so follow the replacement rather than the hit. Query matches titles and rationale.",
+  category: "read",
+  argsSchema: z.object({
+    query: z.string().min(1).max(200),
+    limit: z.number().int().min(1).max(50).optional(),
+  }),
+  preview: (a) => `Search past decisions: "${a.query}"`,
+  run: async (a, { supabase, workspaceId }) => {
+    if (!workspaceId)
+      throw new Error("brain.search_decisions runs inside a workspace, and this run has none.");
+    // The exact function the MCP route calls for search_decisions, tenant scope
+    // included. RLS underneath is belt-and-braces: the client here is the run's
+    // own authenticated user, not service role.
+    return searchDecisions(supabase, workspaceId, a.query, a.limit ?? 20);
+  },
+});
+
+const brainOutcomeHistory = def({
+  name: "brain.outcome_history",
+  description:
+    "Recent graded outcomes -- what shipped work actually taught us, verdict validated/missed/mixed, newest first -- plus a verdict split over the returned set. Before betting the same way twice, check how this workspace's recent bets actually came back.",
+  category: "read",
+  argsSchema: z.object({
+    limit: z.number().int().min(1).max(50).optional(),
+  }),
+  preview: (a) => `Recent graded outcomes (${a.limit ?? 20})`,
+  run: async (a, { supabase, workspaceId }) => {
+    if (!workspaceId)
+      throw new Error("brain.outcome_history runs inside a workspace, and this run has none.");
+    const outcomes = await outcomeHistory(supabase, workspaceId, "", a.limit ?? 20);
+    // TALLIED OVER THE RETURNED PAGE, and named that way rather than dressed up
+    // as a whole-workspace split: these are the outcomes the caller actually
+    // holds, so the numbers can be checked against the list above them.
+    const split = { validated: 0, missed: 0, mixed: 0 };
+    for (const o of outcomes) {
+      const v = String((o as { verdict?: unknown }).verdict ?? "");
+      if (v === "validated") split.validated += 1;
+      else if (v === "missed") split.missed += 1;
+      else if (v === "mixed") split.mixed += 1;
+    }
+    return { outcomes, verdict_split: split };
+  },
+});
+
+const brainGetDecision = def({
+  name: "brain.get_decision",
+  description:
+    "Read ONE decision in full by id: the call, the rationale, the alternatives weighed against it, and its forecast -- what was predicted, the observable that will settle it, when it came due, and the graded resolution if one exists. Use after brain.search_decisions to read the full bet behind a promising hit.",
+  category: "read",
+  argsSchema: z.object({
+    id: z.string().uuid(),
+  }),
+  preview: (a) => `Read decision ${a.id.slice(0, 8)}`,
+  run: async (a, { supabase, userId, workspaceId }) => {
+    if (!workspaceId)
+      throw new Error("brain.get_decision runs inside a workspace, and this run has none.");
+    let q = supabase
+      .from("decisions")
+      // One literal, not concatenated: the generated row types narrow on the
+      // literal and widen to an error union on a computed string.
+      .select(
+        "id,title,rationale,alternatives_considered,status,source_kind,decided_by_agent_slug,mission_id,prd_id,created_at,forecast_claim,forecast_how_we_will_know,forecast_horizon_date,forecast_resolution,forecast_resolution_rationale,forecast_resolved_at",
+      )
+      .eq("id", a.id)
+      .eq("user_id", userId);
+    q = q.eq("workspace_id", workspaceId);
+    const { data, error } = await q.maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) throw new Error("No decision with that id is visible in this workspace.");
+
+    // The honest lineage tag, by the SAME bitemporal rule the Trust Ledger and
+    // the MCP search_decisions tail use: an active supersedes/contradicts edge
+    // whose child is this decision means it no longer governs. Tolerant of the
+    // pre-migration missing valid_to exactly as searchDecisions is.
+    let supersededBy: string | null = null;
+    const { data: edges } = await supabase
+      .from("artifact_lineage")
+      .select("parent_id,child_id,relation,valid_to")
+      .eq("workspace_id", workspaceId)
+      .in("child_id", [data.id])
+      .in("relation", ["supersedes", "contradicts"]);
+    if (edges?.length) {
+      supersededBy = supersededChildIds(edges as unknown as LineageEdgeLite[]).get(data.id) ?? null;
+    }
+    return {
+      ...data,
+      outcome: supersededBy ? ("superseded" as const) : ("standing" as const),
+      superseded_by: supersededBy,
+    };
+  },
+});
+
+const brainContradictions = def({
+  name: "brain.contradictions",
+  description:
+    "List this workspace's OPEN contradictions: pairs of recorded decisions flagged as conflicting that no later supersession has settled. Check these before citing either side as the current belief -- until reconciled, one of the pair is not safe to build on.",
+  category: "read",
+  argsSchema: z.object({}),
+  preview: () => "List open contradictions",
+  run: async (_a, { supabase, workspaceId }) => {
+    if (!workspaceId)
+      throw new Error("brain.contradictions runs inside a workspace, and this run has none.");
+    // Same tolerant edge load the Brain panel's unresolved lens uses, including
+    // the pre-migration valid_to fallback, so a tool and the panel read the
+    // same graph the same way.
+    const loadEdges = (sel: string) =>
+      supabase.from("artifact_lineage").select(sel).eq("workspace_id", workspaceId).limit(2000);
+    let res = await loadEdges("parent_kind,parent_id,child_kind,child_id,relation,valid_to");
+    const m = (res.error?.message ?? "").toLowerCase();
+    if (res.error && m.includes("does not exist") && m.includes("valid_to")) {
+      res = await loadEdges("parent_kind,parent_id,child_kind,child_id,relation");
+    }
+    if (res.error) throw new Error(res.error.message);
+    const edges = (res.data ?? []) as unknown as LineageEdgeLite[];
+
+    // The panel's own rules, not a second copy: active `contradicts` pairs minus
+    // those settled by a real supersession on either endpoint.
+    const resolved = resolvedChildIds(edges);
+    const open = activeContradictions(edges).filter(
+      (c) => !resolved.has(c.aId) && !resolved.has(c.bId),
+    );
+    if (!open.length) return { open_count: 0, contradictions: [] };
+
+    const ids = Array.from(new Set(open.flatMap((c) => [c.aId, c.bId])));
+    const { data: rows, error: dErr } = await supabase
+      .from("decisions")
+      .select("id,title")
+      .eq("workspace_id", workspaceId)
+      .in("id", ids);
+    if (dErr) throw new Error(dErr.message);
+    const titles = new Map(((rows ?? []) as Array<{ id: string; title: string }>).map((r) => [r.id, r.title]));
+    return {
+      open_count: open.length,
+      contradictions: open.map((c) => ({
+        a_decision_id: c.aId,
+        a_title: titles.get(c.aId) ?? null,
+        b_decision_id: c.bId,
+        b_title: titles.get(c.bId) ?? null,
+      })),
+    };
+  },
+});
+
+const brainDueForecasts = def({
+  name: "brain.due_forecasts",
+  description:
+    "Forecasts whose horizon has passed with no graded resolution yet -- oldest first, each carrying the claim, the observable that was chosen to settle it, days overdue, and the drafted verdict awaiting agreement. Use to see which predictions are waiting to be judged before relying on them or repeating them; grading a forecast stays a person's call.",
+  category: "read",
+  argsSchema: z.object({}),
+  preview: () => "List forecasts due for grading",
+  run: async (_a, { supabase, workspaceId }) => {
+    if (!workspaceId)
+      throw new Error("brain.due_forecasts runs inside a workspace, and this run has none.");
+    // The MCP list_due_forecasts read itself, which now scopes to this
+    // workspace_id (see mcp.functions.ts): due-check filter, deferral clause,
+    // clamp and drafted-verdict fields all owned there.
+    return listDueForecastsForAgent(supabase, workspaceId, {});
+  },
+});
+
 /* ------------------------------------------------------------------ *
  * The four stations that had no hands
  *
@@ -5087,6 +5302,11 @@ export const TOOL_REGISTRY: Record<string, ToolDef> = Object.fromEntries(
     prdDraft,
     prdRevise,
     decisionRevise,
+    brainSearchDecisions,
+    brainOutcomeHistory,
+    brainGetDecision,
+    brainContradictions,
+    brainDueForecasts,
     decisionRecord,
     designDraft,
     learningRecord,

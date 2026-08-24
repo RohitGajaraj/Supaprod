@@ -368,11 +368,47 @@ const CONSEQUENCES: Record<string, ToolConsequence> = {
     reversible: "reversible",
     undo: "Nothing to undo; read-only.",
   },
-  "themes.list": {
-    effect: "Lists the workspace's grouped signal themes.",
+   "themes.list": {
+     effect: "Lists the workspace's grouped signal themes.",
+     reversible: "reversible",
+     undo: "Nothing to undo; read-only.",
+   },
+  /*
+   * ── THE BRAIN READS, CATALOGUED WITH THE TOOLS THAT NEED THEM ────────────
+   *
+   * Registered without these rows they would score `high` on `toolRisk` and be
+   * silently demoted from their declared `auto` default to `confirm` -- the
+   * exact mechanism that put `cluster.trigger` back in the queue after it had
+   * been fixed. A permission click on CONSULTING THE RECORD is worse than an
+   * ordinary mis-gate: the loop compounds only if the agent making the next
+   * call actually looks at past verdicts, so gating a look teaches agents to
+   * decide from memory instead.
+   */
+  "brain.search_decisions": {
+    effect: "Searches this workspace's recorded decisions and reports whether each still stands.",
     reversible: "reversible",
     undo: "Nothing to undo; read-only.",
   },
+  "brain.outcome_history": {
+    effect: "Lists what this workspace's shipped work actually taught, with verdicts.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
+  "brain.get_decision": {
+    effect: "Reads one decision in full, including its forecast and how it was graded.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
+  "brain.contradictions": {
+    effect: "Lists pairs of recorded decisions still flagged as conflicting.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
+  "brain.due_forecasts": {
+    effect: "Lists predictions whose deadline passed without a graded outcome yet.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+   },
   "sources.status": {
     effect: "Reports which sources have been sending signals, and how many.",
     reversible: "reversible",
@@ -502,6 +538,13 @@ const READ_ONLY_TOOLS = new Set<string>([
   "web.map",
   "web.crawl",
   "mission.observe",
+  // The brain reads (registry.server.ts brain.*): database reads inside the
+  // workspace, nothing outlives the call.
+  "brain.search_decisions",
+  "brain.outcome_history",
+  "brain.get_decision",
+  "brain.contradictions",
+  "brain.due_forecasts",
 ]);
 
 /** The mirror above as a list, exported for the drift guard only. The guard has
@@ -1214,6 +1257,38 @@ const RISK_PROFILE: Record<string, ToolRiskProfile> = {
     changeSurface: "narrow",
   },
   "mission.observe": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  // The brain reads: internal workspace reads that hand back exactly what is
+  // on the record, so `verified` like their sibling reads above.
+  "brain.search_decisions": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  "brain.outcome_history": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  "brain.get_decision": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  "brain.contradictions": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  "brain.due_forecasts": {
     dataExposure: "internal",
     opsImpact: "none",
     verificationGap: "verified",
