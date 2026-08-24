@@ -2069,12 +2069,44 @@ export const deleteOpportunity = createServerFn({ method: "POST" })
  * answers 400 / 42703. Regenerating the types is still worth doing -- it is the
  * thing that WOULD have caught a bad column -- but it never blocked this read.
  */
+/**
+ * ONE SELECT, TWO READERS. Answering REQ-L0-015 item 3.
+ *
+ * LANE 0's census found `listPrds` and `listSpecs` reading the same table with
+ * different column lists and asked for them to be consolidated "before they
+ * drift further apart". They already had: `listSpecs` carried
+ * `critic_review`, `citations`, `project_id` and `design_gate_status` that
+ * `listPrds` did not, and the narrower one survives on a single surface.
+ *
+ * THE DRIFT IS CLOSED HERE; THE SECOND EXPORT IS NOT DELETED HERE. Collapsing
+ * to one function means repointing `_authenticated.runs.index.tsx`, which is a
+ * ROUTE FILE and another lane's hand. Deleting the export from under it would
+ * break `main` for however long the two commits are apart. So the shared select
+ * lands now -- the two reads can no longer disagree about columns -- and the
+ * export goes when its one consumer moves.
+ */
+const PRD_LIST_SELECT =
+  "id,title,status,updated_at,opportunity_id,github_issue_url,critic_review,citations,project_id,design_gate_status,is_sample";
+
+/**
+ * `listPrds` NOW READS THE SAME COLUMNS AS `listSpecs`, and it is deliberately
+ * NOT capped where `listSpecs` caps at 300.
+ *
+ * Measured 2026-08-24: `prds` holds 101 rows, so the cap changes nothing today
+ * for either reader. It is kept different on purpose rather than unified into a
+ * third behaviour nobody asked for: /runs' picker is a complete list of what
+ * exists and silently truncating it at some future 301st row is the kind of
+ * quiet cut that is only noticed once it matters.
+ *
+ * ONE CONSUMER: `_authenticated.runs.index.tsx`. When it moves to `listSpecs`,
+ * delete this.
+ */
 export const listPrds = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("prds")
-      .select("id,title,status,updated_at,opportunity_id,github_issue_url,is_sample")
+      .select(PRD_LIST_SELECT)
       .order("updated_at", { ascending: false });
     if (error) throw new Error(error.message);
     return { prds: data ?? [] };
@@ -2095,9 +2127,7 @@ export const listSpecs = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("prds")
-      .select(
-        "id,title,status,updated_at,opportunity_id,github_issue_url,critic_review,citations,project_id,design_gate_status,is_sample",
-      )
+      .select(PRD_LIST_SELECT)
       .order("updated_at", { ascending: false })
       .limit(300);
     if (error) throw new Error(error.message);

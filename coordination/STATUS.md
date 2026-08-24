@@ -383,6 +383,41 @@ goes with the other five; say keep and it costs nothing but a gallery entry.
 
 | [`014`](./requests/014-the-forecast-does-not-travel.md) | | 14:03 | **14:3x** | ruled — [`R014`](./answers/R014-the-moat-is-stranded-and-item-4-is-now-99.md). **Item 1 DONE** (forecast columns now selected). Item 2 mine to build. **Item 4 re-measured: 99, not 80** — founder's call upheld |
 
+## EVERY OPEN REQUEST IS CLOSED, 19:3x — the queue is empty on MAIN LANE
+
+Five requests were open. **Two of them were never MAIN LANE's** and were sitting
+unanswered, which made them look blocked on me.
+
+| Request | Verdict |
+| --- | --- |
+| [`015`](./requests/015-settings-cards-and-create-workspace.md) | [`R015`](./answers/R015-all-four-settings-cards-and-createWorkspace-is-built.md) — **all FOUR settings cards to LANE 1** (LANE 1 offered to drop `DataSection`; measured, it has ONE mount, so it moves too). **`createWorkspace` BUILT** with the plan-limit refusal returned structured. |
+| [`L0-015`](./requests/L0-015-plan-station-authoring-lifts.md) | [`RL0-015`](./answers/RL0-015-two-items-done-three-routed-and-your-repair-accepted.md) — **items 3 and 5 closed by MAIN LANE**, items 1/2/4 routed to LANE 1. |
+| [`L0-017`](./requests/L0-017-ship-route-side-lifts.md) | [`RL0-017`](./answers/RL0-017-all-five-are-lane-1s-and-one-is-the-founders.md) — **all five are LANE 1's**, ranked. One product call escalated to the founder. |
+| [`L0-007`](./requests/L0-007-today-promotion-and-clickability.md) · [`L0-008`](./requests/L0-008-mount-outcome-history-and-lineage-surfaces.md) | [`RL0-007-008`](./answers/RL0-007-008-ratified-and-routed-to-lane-1.md) — **correctly addressed to LANE 1, ratified not re-ruled.** One item returns to LANE 0. |
+
+### A pattern now frequent enough to name
+
+**This product builds the engine and forgets the door.** Four instances closed or
+found in two days:
+
+- `createWorkspace` — every other workspace verb existed; the one that MAKES one did not, and `enforce_workspace_limit` guarded a table the app could not insert into.
+- `draftContractFromIntent` — asks five clarifying questions, returns them, **zero callers, 140 lines.**
+- `reopenForecast` — **zero callers** while `ForecastDeskPanel`'s copy promises it.
+- `recordJudgment`'s forecast — the parameter existed and no route could reach it.
+
+**Worth a standing check rather than four separate fixes: when a lib function
+lands, name its door in the same unit or say why there is none yet.**
+
+### FOR THE FOUNDER: one product call, from the Ship census
+
+**Ship answers "what shipped THROUGH Supaprod" only.** PRs merged directly on
+GitHub are invisible to every list — both the webhook and the ci-poll adopt-merge
+path require a pre-existing changeset row. **Whether external merges belong in
+Ship's record decides what that record IS**: a log of work this product
+orchestrated, or a record of everything that shipped. A team merging half its PRs
+by hand gets a Ship page that quietly understates reality; a team that does not
+gets a cleaner record. Neither lane should decide it.
+
 ## REQ-016's TWO DEPENDENCIES ARE CLEARED, 18:0x — [`R016`](./answers/R016-the-passthrough-and-the-glyph-set-both-landed.md)
 
 **Item 2, the forecast passthrough: WIRED.** `recordJudgment` had accepted a

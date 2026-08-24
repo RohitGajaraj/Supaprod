@@ -6,6 +6,94 @@ import { sendInviteEmail, absoluteUrl } from "@/lib/email.server";
 // Workspace management server functions.
 // RLS already gates: only the owner can update workspaces and manage members.
 
+/**
+ * CREATE A WORKSPACE. Answering REQ-015 ask 2.
+ *
+ * ── WHY THIS DID NOT EXIST, WHICH IS THE PART WORTH KNOWING ─────────────
+ * Every other verb in this file has existed for weeks -- rename, delete, leave,
+ * transfer, invite -- and the one that makes a workspace never did. Onboarding
+ * creates one inline (`onboarding.functions.ts:74-79`) as a side effect of
+ * signing up, so the product could produce your FIRST workspace and never a
+ * second. `enforce_workspace_limit` guards a table nothing could insert into
+ * from the app, which is a rule enforced against a door that was not built.
+ *
+ * ── THE REFUSAL IS THE FEATURE, NOT THE ERROR PATH ──────────────────────
+ * `trg_enforce_workspace_limit` raises
+ *   "Workspace limit reached for this plan (N allowed). Upgrade your plan for
+ *    pooled workspaces."
+ * That sentence is already written for a person, and shipping it as a raw
+ * Postgres error would waste it: a `PGRST` payload in a toast reads as a
+ * malfunction, and the reader concludes the product broke rather than that they
+ * hit a plan boundary. So the refusal comes back STRUCTURED --
+ * `{ ok: false, reason: "plan-limit", limit, message }` -- and the caller
+ * renders guidance with a door to Billing.
+ *
+ * It is detected by the raised text rather than a Postgres error code, and that
+ * is a real weakness stated rather than hidden: the code for a trigger
+ * `raise exception` is `P0001`, which every other guarded insert in this schema
+ * also raises, so the code cannot tell WHICH rule refused. The message is the
+ * only thing that can. If a second workspace rule ever raises, this match gets
+ * narrower -- it does not get deleted.
+ *
+ * ── A FRESH WORKSPACE IS NOT BORN EMPTY ─────────────────────────────────
+ * `ensureDefaultProduct` has had zero callers since AppShell died, so a
+ * workspace created here would open onto nothing. It is called on the way out
+ * and its failure does NOT fail the creation: the workspace exists and is
+ * usable, and reporting the whole thing as failed would understate what landed
+ * and invite a retry that hits the limit for real. Same fail-soft law
+ * `recordJudgment` follows.
+ */
+export const createWorkspace = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ name: z.string().trim().min(1).max(120) }).parse(input),
+  )
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    const { data: created, error } = await supabase
+      .from("workspaces")
+      // `account_id` is auto-filled by the trg_set_workspace_account trigger,
+      // and RLS already permits an owner insert. Same shape as onboarding's.
+      .insert([{ owner_id: userId, name: data.name } as never])
+      .select("id, name")
+      .single();
+
+    if (error) {
+      const raised = error.message ?? "";
+      if (/workspace limit reached/i.test(raised)) {
+        const limit = Number(raised.match(/\((\d+) allowed\)/)?.[1] ?? 0) || null;
+        return {
+          ok: false as const,
+          reason: "plan-limit" as const,
+          limit,
+          // The trigger's own sentence, forwarded rather than paraphrased. It
+          // was written for a person and a second wording here would be two
+          // sources for one rule.
+          message: raised,
+        };
+      }
+      // Anything else is a genuine failure and says so. Swallowing it into the
+      // same shape as the plan limit would tell a person to upgrade over a
+      // transport error.
+      return { ok: false as const, reason: "failed" as const, limit: null, message: raised };
+    }
+
+    const workspace = created as unknown as { id: string; name: string };
+
+    /* Fail-soft, and never blocking. See the header. */
+    try {
+      await ensureDefaultProduct({ data: { workspaceId: workspace.id } });
+    } catch (e) {
+      console.error(
+        `[workspaces] created ${workspace.id} but its default product was not made: ${
+          e instanceof Error ? e.message : String(e)
+        }`,
+      );
+    }
+
+    return { ok: true as const, workspace };
+  });
+
 export const renameWorkspace = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
