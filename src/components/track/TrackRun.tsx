@@ -38,14 +38,24 @@
  * guesses, and a status display that guesses removes that ability entirely.
  */
 import * as React from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { TrackChain } from "@/components/spine/TrackChain";
 import { TrackActivity } from "@/components/spine/TrackActivity";
 import { Action, Region } from "@/components/meridian/surface-parts";
-import { Row, Line } from "@/components/meridian/rows";
-import { driveTrackNow, type DriveNowResult } from "@/lib/spine/track.functions";
+import { Row } from "@/components/meridian/rows";
+import { StatusChip } from "@/components/meridian/StatusChip";
+import { Receipt } from "@/components/meridian/Receipt";
+import {
+  driveTrackNow,
+  getTrack,
+  retryStation,
+  type DriveNowResult,
+} from "@/lib/spine/track.functions";
+import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
+import { holdTone } from "@/lib/spine/driver";
+import { relativeTime } from "@/lib/memory-view";
 
 /**
  * What the walk did, said plainly.
@@ -64,7 +74,30 @@ const STOPPED_LINE: Record<DriveNowResult["stopped"], string> = {
 
 export function TrackRun({ trackId }: { trackId: string }) {
   const drive = useServerFn(driveTrackNow);
+  const fetchTrack = useServerFn(getTrack);
+  const fRetry = useServerFn(retryStation);
   const qc = useQueryClient();
+
+  /*
+   * THE TRACK ITSELF, not only the walk's receipts. `getTrack` existed with
+   * zero callers while 57 of 59 production tracks carried a hold reason this
+   * surface never read, so a run that stopped sat here looking identical to one
+   * that was simply slow. Polled on the same ten-second beat as the transcript
+   * below: when the sweep or another tab clears a hold, the reason leaves this
+   * screen without a refresh.
+   */
+  const trackQ = useQuery({
+    queryKey: ["spine-track", trackId],
+    queryFn: () => fetchTrack({ data: { trackId } }),
+    refetchInterval: 10_000,
+  });
+  const track = trackQ.data ?? null;
+  /** What a release did, rendered as a Receipt and cleared by nothing else. */
+  const [releaseNote, setReleaseNote] = React.useState<{
+    verb: string;
+    consequence: string;
+    failed?: boolean;
+  } | null>(null);
 
   const run = useMutation({
     mutationFn: () => drive({ data: { trackId } }),
@@ -79,13 +112,105 @@ export function TrackRun({ trackId }: { trackId: string }) {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["track-activity", trackId] });
       void qc.invalidateQueries({ queryKey: ["spine-track-chain", trackId] });
+      void qc.invalidateQueries({ queryKey: ["spine-track", trackId] });
     },
+  });
+
+  /*
+   * RELEASE THE STATION THAT STOPPED, without skipping it.
+   *
+   * The server refuses honestly on anything it will not do (not held, closed,
+   * workspace paused), so the control is offered wherever there is a hold at
+   * all -- except `waiting-on-a-person`, where releasing buys nothing: the
+   * pending call stays queued and the driver holds again at the gate. There the
+   * unblock IS the call, so the row says that instead of carrying a button.
+   */
+  const release = useMutation({
+    mutationFn: () => fRetry({ data: { trackId } }),
+    onSuccess: (res) => {
+      void qc.invalidateQueries({ queryKey: ["spine-track", trackId] });
+      void qc.invalidateQueries({ queryKey: ["spine-tracks"] });
+      if (res.refused) {
+        setReleaseNote({ verb: "Nothing was released", consequence: res.refused, failed: true });
+        return;
+      }
+      setReleaseNote({
+        verb: "You released it",
+        consequence:
+          "The station runs again on its next turn. Press Run it now to walk it immediately.",
+      });
+    },
+    onError: (e: Error) =>
+      setReleaseNote({
+        verb: "Nothing was released",
+        consequence: e.message,
+        failed: true,
+      }),
   });
 
   const result = run.data as DriveNowResult | undefined;
 
+  /*
+   * WHY IT STOPPED, in the driver's own words.
+   *
+   * `hold` is the sentence built from the raw reason by `holdLine`, which names
+   * the station where the reason is about one; `holdTone` reads the RAW reason,
+   * never the prose, because branching on wording is how every hold once painted
+   * amber. `waiting-on-a-person` gets no retry control on purpose -- answering
+   * the call is the move -- and every other hold does, because eleven of these
+   * reasons clear from outside the product (a source connected, an account topped
+   * up, a spec written) and the driver never looks again until someone says so.
+   */
+  const tone = track ? holdTone(track.holdReason) : null;
+  const held = track?.status === "open" && tone !== null;
+  const answerTheCall = track?.holdReason === "waiting-on-a-person";
+  const nowMs = Date.now();
+
   return (
     <div className="flex flex-col gap-mrd-6">
+      {held && track ? (
+        <Region title="Why it stopped" sub="This work is not moving until this clears.">
+          <div className="flex flex-col gap-mrd-4">
+            <Row
+              lead={track.hold ?? undefined}
+              sub={
+                track.drivenAt
+                  ? `It last moved ${relativeTime(track.drivenAt, nowMs)}.`
+                  : "It has never been driven."
+              }
+              action={
+                <StatusChip status={tone} pulse={tone === "you"}>
+                  {tone === "you" ? "Waiting on you" : "On hold"}
+                </StatusChip>
+              }
+            />
+            {answerTheCall ? null : (
+              <div>
+                <Action busy={release.isPending} onClick={() => release.mutate()}>
+                  {release.isPending
+                    ? "Releasing it"
+                    : `Let ${AGENT_STATIONS[track.station].name} try again`}
+                </Action>
+              </div>
+            )}
+          </div>
+        </Region>
+      ) : null}
+
+      {/*
+       * OUTSIDE THE REGION ON PURPOSE. A successful release clears the hold,
+       * the region above unmounts on the refetch, and a receipt living inside
+       * it would vanish in the same breath as the click. Here it survives long
+       * enough to be read, and sits where the region was.
+       */}
+      {releaseNote ? (
+        <Receipt
+          verb={releaseNote.verb}
+          consequence={releaseNote.consequence}
+          failed={releaseNote.failed}
+        />
+      ) : null}
+
       <Region
         title="Run it"
         sub="Walks this work through its route now, station by station, and stops the moment something needs you."
@@ -94,9 +219,7 @@ export function TrackRun({ trackId }: { trackId: string }) {
           {run.isPending ? "Walking the route" : "Run it now"}
         </Action>
 
-        {run.isError ? (
-          <Row lead="The walk could not start. Nothing was moved." />
-        ) : null}
+        {run.isError ? <Row lead="The walk could not start. Nothing was moved." /> : null}
 
         {result ? (
           <>

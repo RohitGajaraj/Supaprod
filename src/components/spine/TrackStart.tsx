@@ -463,7 +463,18 @@ export function TrackStart() {
            * retry control on the same grounds.
            */
           const tone = holdTone(t.holdReason);
-          const waitingOnAPerson = tone === "you";
+          /**
+           * THE ONE HOLD WHERE THE MENU HIDES, AND IT IS ONE HOLD, NOT FOUR.
+           *
+           * This used to read `tone === "you"`, so hiding the menu for a call
+           * waiting on the reader also hid it on `station-cannot-finish`,
+           * `corrections-spent` and `given-up` -- three of the four holds the
+           * release control exists for, since no code path clears them. Only
+           * `waiting-on-a-person` has the property the argument below describes:
+           * the pending call is scoped to the PERSON, so handing past it reports
+           * progress it did not buy. The other three keep both controls.
+           */
+          const waitingOnAPerson = t.holdReason === "waiting-on-a-person";
 
           const open = showing === t.id;
 
