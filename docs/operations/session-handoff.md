@@ -3960,3 +3960,88 @@ diff stashed; runs green in isolation) - everything on main. Waiting on
 MAIN LANE: REQ-010 (obsidian pin reader census), REQ-015 (settings cards
 ownership + createWorkspace fn), R014 items 2-3 and 5-6, the 14.5px word.
 Waiting on LANE 0: ui/* port gating teardown steps 4-6.
+
+---
+
+## MAIN LANE · 2026-08-24 ~20:1x IST · session close — the retired layer is gone and the queue is empty
+
+**Appended, not replacing.** Three lanes write this file.
+
+### State at close
+
+`tsc` **0** · `bun test` **10,814 pass / 0 fail** across 637 files · `docs:check`
+**0** · ratchet **2,015 / 175 files** · `meridian:exports` **0 retired symbols
+still imported**. Migration ledger head `20260823010000` **= repo head, in sync**.
+Tree clean, `0 0` against origin.
+
+### What closed today
+
+**The retired component layer is gone.** `shell/primitives.tsx` deleted — 1,350
+lines, 35 exports, 92 ratchet markers. Ratchet fell 2,426 → **2,015** across the
+day.
+
+**Every request from both lanes is ruled.** `R010b`, `R011`–`R016`, `RL0-015`,
+`RL0-017`, `RL0-007-008`, `R015`, plus both founder calls (`F01`).
+
+**Two founder calls decided and shipped.** The forecast is **offered, never
+mandated** — the codebase had already argued it (*"the moment we make the field
+mandatory people write 'it will go well'"*), and the real defect was that people
+were UNABLE, not unforced: the immutability trigger meant every human gate press
+minted a decision structurally incapable of carrying a forecast. And the 99
+invisible design gates are visible — `.is(..., null)` was unsatisfiable by schema.
+
+### The pattern worth carrying into the next session
+
+**This product builds the engine and forgets the door.** Five instances found in
+two days: `createWorkspace` (every other workspace verb existed; the one that
+MAKES one did not, while `enforce_workspace_limit` guarded a table the app could
+not insert into), `draftContractFromIntent` (zero callers, 140 lines),
+`reopenForecast` (zero callers while the panel copy promises it),
+`recordJudgment`'s forecast parameter (no route could reach it), and
+`ensureDefaultProduct` (zero callers since AppShell died).
+
+**Suggested standing check: when a lib function lands, name its door in the same
+unit or say why there is none yet.**
+
+### Four things I got wrong, recorded so they are not inherited
+
+1. **`RL0-005c` prescribed `font-mrd-semi`, which does not exist.** No
+   `--mrd-w-*` is bridged to a Tailwind utility; `font-[600]` was already honest.
+   **The `@utility` namespace and the custom-property namespace are different and
+   `meridian.css` uses both** — this bit twice in two days.
+2. **`M14` was wrong on two of eleven names.** I took them from
+   `design:adoption`, which counts COMPONENTS; `run-rows` is a constants module
+   with no component to count. **A metric's blind spot reads exactly like a
+   finding.**
+3. **Deleting `shell/primitives.tsx` broke a test I did not find.** I repointed
+   three guards and missed `dialogs-keep-their-promises.test.tsx`, which read the
+   file as text. LANE 0 repaired it.
+4. **A guard bounded by character count, not structure.** Three assertions failed
+   because they moved past character 4000. **A window sized to yesterday's
+   function cannot tell growth from removal.** Fixed by slicing to the closing
+   brace — the same fix a Meridian guard needed the day before.
+
+### What is open, and whose
+
+- **LANE 0 — 26 component files** reading parchment aliases. They are the finish
+  line for pinning the shared alias block (`R010b`). Plus
+  `knowledge/LearningDetail.tsx:91`: a bare `["learnings"]` cache key where
+  `CompoundingPanel` scopes by workspace — **an unscoped key can serve one
+  workspace's learnings to another.**
+- **LANE 1 — routed work only**, nothing blocked: Plan authoring items 1/2/4
+  (start with `draftContractFromIntent`), all five Ship lifts (`?release=` first),
+  Today clickability, three mounts.
+- **FOR THE FOUNDER — one product call.** Ship answers *"what shipped THROUGH
+  Supaprod"* only; PRs merged directly on GitHub are invisible to every list.
+  That decides what the Ship record IS. Neither lane should decide it.
+
+### Outward-facing, closed today
+
+**Hub71 rejected 2026-08-24**, seven days after filing. Recorded in Notion and in
+`docs/pitch/applications/hub71/OUTCOME.md`. **The first of three rejections that
+states criteria**, read as their selection checklist and NOT as feedback on us —
+the letter never says which we missed. The reusable correction:
+**a published "no minimum traction" is about ELIGIBILITY, never SELECTION.**
+`pitch:check` warns the answer bank and baseline are ~600 commits and 18
+migrations stale — **re-derive before the next filing**, which is exactly the
+evidence exposure that rejection points at.

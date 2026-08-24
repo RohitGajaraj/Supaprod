@@ -10,7 +10,7 @@ filing a `meridian-gap` request.
 There is deliberately **no `index.ts` barrel** -- it would break the adoption metric,
 which matches on the deep import path. Import from the file named here.
 
-## Components (102)
+## Components (103)
 
 | Export | File | |
 | --- | --- | --- |
@@ -95,6 +95,7 @@ which matches on the deep import path. Import from the file named here.
 | `RunTimeline` | `RunTimeline.tsx` | function |
 | `RunTook` | `run-rows.tsx` | function |
 | `Search` | `Search.tsx` | function |
+| `SelectionActions` | `SelectionActions.tsx` | function |
 | `ShellReadFailed` | `boundary-states.tsx` | function |
 | `ShellRouteMissing` | `boundary-states.tsx` | function |
 | `SidebarNav` | `SidebarNav.tsx` | function |
@@ -117,7 +118,7 @@ which matches on the deep import path. Import from the file named here.
 | `WorkGlyph` | `work-glyphs.tsx` | function |
 | `YouMark` | `marks.tsx` | function |
 
-## Types, constants and helpers (96)
+## Types, constants and helpers (102)
 
 | Export | File | Kind |
 | --- | --- | --- |
@@ -162,6 +163,7 @@ which matches on the deep import path. Import from the file named here.
 | `LoadingVariant` | `LoadingState.tsx` | type |
 | `MarkState` | `marks.tsx` | type |
 | `MarkTone` | `source-marks.tsx` | type |
+| `measureSelectionRects` | `SelectionActions.tsx` | function |
 | `PlanGateDecision` | `PlanGate.tsx` | type |
 | `PlanStep` | `PlanCard.tsx` | type |
 | `PlanStepState` | `PlanCard.tsx` | type |
@@ -170,6 +172,7 @@ which matches on the deep import path. Import from the file named here.
 | `RailIconKind` | `SidebarNav.tsx` | type |
 | `RailItem` | `SidebarNav.tsx` | type |
 | `railTypeahead` | `SidebarNav.tsx` | function |
+| `rangeToRects` | `SelectionActions.tsx` | function |
 | `RecordColumn` | `RecordsTable.tsx` | type |
 | `RecordsTableProps` | `RecordsTable.tsx` | type |
 | `RecordTone` | `RecordsTable.tsx` | type |
@@ -183,6 +186,10 @@ which matches on the deep import path. Import from the file named here.
 | `RunMapStation` | `RunMap.tsx` | type |
 | `SearchProps` | `Search.tsx` | type |
 | `SegmentTone` | `InsightCards.tsx` | type |
+| `SelectionAction` | `SelectionActions.tsx` | type |
+| `SelectionPhase` | `SelectionActions.tsx` | type |
+| `SelectionProposal` | `SelectionActions.tsx` | type |
+| `SelectionRect` | `SelectionActions.tsx` | type |
 | `SetupKind` | `NeedsSetup.tsx` | type |
 | `SourceKind` | `source-marks.tsx` | type |
 | `sourceKindFor` | `source-marks.tsx` | function |
