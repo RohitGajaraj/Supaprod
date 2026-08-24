@@ -1096,15 +1096,24 @@ export function recordIsBlank(args: {
   rescoreCount: number | null;
   /** null while the graph read is unresolved; true when it holds no nodes. */
   graphEmpty: boolean | null;
+  /** null while calibration is unresolved; graded forecasts are a record. */
+  forecastResolved: number | null;
   drilling: boolean;
 }): boolean {
-  const { emptyRecord, standing, rescoreCount, graphEmpty, drilling } = args;
+  const { emptyRecord, standing, rescoreCount, graphEmpty, forecastResolved, drilling } = args;
   if (drilling) return false;
   if (!emptyRecord) return false;
-  if (standing === null || rescoreCount === null || graphEmpty === null) return false;
+  if (
+    standing === null ||
+    rescoreCount === null ||
+    graphEmpty === null ||
+    forecastResolved === null
+  )
+    return false;
   return (
     graphEmpty &&
     rescoreCount === 0 &&
+    forecastResolved === 0 &&
     standing.rules === 0 &&
     standing.pendingRules === 0 &&
     standing.memoriesTotal === 0
@@ -1358,6 +1367,12 @@ function MemoryPage() {
    * the reader happened to be behind.
    */
   const graphEmpty: boolean | null = graphQ.data ? graphQ.data.nodes.length === 0 : null;
+  // A graded forecast is a record: hits or misses, the workspace has put
+  // beliefs on the line and had them judged, which is the opposite of blank.
+  // Unresolved reads hold the collapse the same way the other four do.
+  const forecastResolved: number | null = calibrationQ.data
+    ? calibrationQ.data.prediction.resolved
+    : null;
   const blank = recordIsBlank({
     emptyRecord,
     standing: standing.data
@@ -1369,6 +1384,7 @@ function MemoryPage() {
       : null,
     rescoreCount: summary ? summary.rescoreCount : null,
     graphEmpty,
+    forecastResolved,
     drilling,
   });
 

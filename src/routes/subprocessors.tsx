@@ -131,9 +131,11 @@ function SubprocessorsPage() {
         <h1 style={{ fontSize: 28, fontWeight: 700, color: "var(--ink)", margin: 0 }}>
           Sub-processors
         </h1>
+        {/* 14.5 snapped to prose per answers/R011 cluster 2 logic - a reading
+            surface, half a pixel below perception. */}
         <p
+          className="text-mrd-prose"
           style={{
-            fontSize: 14.5,
             color: "var(--ink-muted)",
             margin: "12px 0 0",
             lineHeight: 1.6,

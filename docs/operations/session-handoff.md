@@ -3911,3 +3911,52 @@ commit to unstick the GitHub webhook — that worked on 2026-08-23 when the sync
 stalled 24 minutes — and confirm with a string that must APPEAR and one that must
 DISAPPEAR, anchored with `git grep` to a commit. `M06`: matching the sha and
 reading `ready` are each necessary and neither is sufficient.
+
+---
+
+## LANE 1 handoff, 2026-08-24 ~20:4x
+
+### What closed since the last entry here
+
+Units 025-030 pushed through `851bc56b5`: REQ-007 closed by applying
+`data-mrd-pinned-dark` on all four pinned public pages plus the ruled
+mono-label port (verified dark under a FORCED light theme); five rulings
+executed (R011 snaps with cluster-4 taking `mrd-subtitle`, R012's five
+component deletions and gallery prune at -3,043 lines, R013's PersonMark
+collapse onto YouMark size="row", R014 item 1 render attempted); Decide
+gained j/k/z and Approvals gained z/send-back/SendBackSheet; Brain's
+headline now states the forecast track record; Design gained Send-it-to-
+Build; settings gained workspace rename/leave/delete/create, password
+change, timezone datalist; the account menu says who you are; the run room
+gained Stop the run. Ratchet 3,170 -> 2,211 across the run.
+
+### The one thing worth inheriting
+
+**REQ-014 is the file to read before any forecast work.** Agents must
+carry forecasts; the human Gate now accepts them optionally (F01), but
+the fields die at three lib drops before any surface can render them:
+`DecisionRow`'s type omits them, approvals' assembly loop reads only
+rationale+source_label, `ApprovalQueueItem` has no slot. One passthrough
+at `discovery.functions.ts:1628` unlocks BOTH the Decide offer UI I have
+staged designs for and the approvals evidence render. Render sites are
+mine and waiting; vocabulary is Learn's (validated/missed,
+hit/miss/inconclusive).
+
+### Two things I got wrong tonight, do not inherit them
+
+One: I pushed unit 023 with a tsc error because my busy-semantics fix
+landed after that commit's last typecheck - caught by a builder two units
+later, fixed immediately, and the lesson is to re-run tsc after ANY manual
+follow-up edit inside an already-gated cycle. Two: my first obsidian-pin
+attempt used literal hex grounds and my first forecast-trace script
+mangled JSX - both were caught by guards or gates, but the pattern is the
+same: when a mechanical edit gets clever, stop and do it by hand.
+
+### State at close
+
+tsc 0 - bun test 10,797 pass / 0 fail (+ one PROVEN pre-existing
+load-order flake in a public-hooks auth test: passes identically with my
+diff stashed; runs green in isolation) - everything on main. Waiting on
+MAIN LANE: REQ-010 (obsidian pin reader census), REQ-015 (settings cards
+ownership + createWorkspace fn), R014 items 2-3 and 5-6, the 14.5px word.
+Waiting on LANE 0: ui/* port gating teardown steps 4-6.

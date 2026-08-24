@@ -499,6 +499,7 @@ describe("Brain collapses its zero state, and only when it knows it is one", () 
     standing: { rules: 0, pendingRules: 0, memoriesTotal: 0 },
     rescoreCount: 0,
     graphEmpty: true,
+    forecastResolved: 0,
     drilling: false,
   };
 
@@ -513,6 +514,7 @@ describe("Brain collapses its zero state, and only when it knows it is one", () 
     expect(recordIsBlank({ ...known, standing: null })).toBe(false);
     expect(recordIsBlank({ ...known, rescoreCount: null })).toBe(false);
     expect(recordIsBlank({ ...known, graphEmpty: null })).toBe(false);
+    expect(recordIsBlank({ ...known, forecastResolved: null })).toBe(false);
     expect(recordIsBlank({ ...known, emptyRecord: false })).toBe(false);
   });
 
