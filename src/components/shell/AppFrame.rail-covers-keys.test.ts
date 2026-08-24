@@ -99,7 +99,7 @@ describe("every bound key lands somewhere the rail can light", () => {
     expect(dark).toEqual([]);
     // A sanity floor, so a nav-model that silently emptied would not pass by
     // having nothing left to check.
-    expect(BOUND.length).toBe(13);
+    expect(BOUND.length).toBe(15);
   });
 
   it("covers the standing `g` alias too, which no door declares", () => {
@@ -120,11 +120,12 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     // NEIGHBOUR is the same bug seen from the other side - that row could
     // never light at all. Both are caught by the same assertion.
     const rows = [...railBlock().matchAll(/to:\s*"([^"]+)"/g)].map((m) => m[1]);
-    // FOUR since 2026-08-15: Today, Runs, Brain, Guardrails. Crew was the
-    // fifth and moved into Settings; the count is asserted rather than left
-    // open because an empty or halved rail is exactly the failure this file
-    // exists to catch, and a `>= 1` would sail past it.
-    expect(rows.length).toBe(4);
+    // SIX since 2026-08-24: Today, Approvals, Runs, Brain, Threads,
+    // Guardrails. Crew left for Settings on 2026-08-15 and Approvals and
+    // Threads arrived with doors of their own; the count is asserted rather
+    // than left open because an empty or halved rail is exactly the failure
+    // this file exists to catch, and a `>= 1` would sail past it.
+    expect(rows.length).toBe(6);
     for (const r of rows) expect(railOwnerOf(r)).toBe(r);
   });
 
@@ -146,7 +147,7 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     expect(block).not.toMatch(/owns:\s*\[/);
     const owns = [...block.matchAll(/owns:\s*([A-Z][A-Z_]*)\b/g)].map((m) => m[1]);
     // One per row, so a row cannot drop the field and quietly go dark.
-    expect(owns.length).toBe(4);
+    expect(owns.length).toBe(6);
   });
 
   it("owns exactly the seven stations the strip navigates to", () => {
@@ -183,7 +184,7 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     // Previously, Approvals, Boundary, and Threads were unreachable dead zones.
     // Now each is owned: Today owns Approvals, Brain owns Threads, and the
     // Settings door owns Boundary since Agents moved behind it on 2026-08-15.
-    expect(railOwnerOf("/approvals")).toBe("/today");
+    expect(railOwnerOf("/approvals")).toBe("/approvals");
     expect(railOwnerOf("/threads")).toBe("/brain");
 
     // Settings is a special case: it's not a row, it's a foot icon, so

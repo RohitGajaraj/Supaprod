@@ -27,6 +27,25 @@ export function IconToday({ className }: IconProps) {
   );
 }
 
+/** Approvals: a gate. Two posts and a bar that is waiting to lift. */
+export function IconApprovals({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} strokeLinecap="round">
+      <path d="M6 4v16M18 4v16M6 9h12M6 15h12" />
+    </svg>
+  );
+}
+
+/** Threads: two voices. A bubble and the reply beside it. */
+export function IconThreads({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 5h12v8H8l-4 3V5Z" />
+      <path d="M20 9v10l-3-2h-6" />
+    </svg>
+  );
+}
+
 /** Runs: a trace, with the spike where the work happened. */
 export function IconRuns({ className }: IconProps) {
   return (

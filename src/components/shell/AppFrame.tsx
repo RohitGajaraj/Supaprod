@@ -154,6 +154,7 @@ import { ShortcutSheet, useShortcutSheetKey } from "./ShortcutSheet";
 import { AccountMenu, ScopeMenu } from "./ScopeMenu";
 import { AuditLineageSheet } from "@/components/supaprod/AuditLineageSheet";
 import {
+  IconApprovals,
   IconAsk,
   IconBrain,
   IconCrew,
@@ -168,6 +169,7 @@ import {
   IconRailExpand,
   IconSun,
   IconRuns,
+  IconThreads,
   IconToday,
 } from "./icons";
 
@@ -194,6 +196,9 @@ const APPROVALS_PATHS: readonly string[] = ["/approvals"];
  *  whichever control Agents belongs to. Since 2026-08-15 that is the Settings
  *  door in the rail foot rather than a row. */
 const BOUNDARY_PATHS: readonly string[] = ["/boundary"];
+
+const TODAY_PATHS: readonly string[] = ["/today"];
+const BRAIN_PATHS: readonly string[] = ["/brain"];
 
 /** Paths that live behind the Settings door but are not under /settings.
  *  Agents is the roster at /crew, which Settings now holds. */
@@ -316,6 +321,19 @@ const RAIL = [
     to: "/today",
     label: "Today",
     Icon: IconToday,
+    count: null,
+    owns: TODAY_PATHS,
+    tier: "primary",
+  },
+  // APPROVALS, ITS OWN ROW, 2026-08-24. The gates count rode on Today since
+  // the rail existed; the founder asked for a door of its own and the
+  // reasoning holds - a person-required surface was a chip on somebody
+  // else's row. Today keeps the feed; Approvals carries the count and the
+  // orchid treatment the count earns.
+  {
+    to: "/approvals",
+    label: "Approvals",
+    Icon: IconApprovals,
     count: "gates",
     owns: APPROVALS_PATHS,
     tier: "primary",
@@ -338,6 +356,18 @@ const RAIL = [
     to: "/brain",
     label: "Brain",
     Icon: IconBrain,
+    count: null,
+    owns: BRAIN_PATHS,
+    tier: "primary",
+  },
+  // THREADS, ITS OWN ROW, same ruling as Approvals above: the conversations
+  // archive was one cell on Brain's substrate grid, a whole surface with no
+  // front door. No keycap - every letter of its label is taken, and the law
+  // drops a door rather than invents a letter.
+  {
+    to: "/threads",
+    label: "Threads",
+    Icon: IconThreads,
     count: null,
     owns: THREADS_PATHS,
     tier: "primary",

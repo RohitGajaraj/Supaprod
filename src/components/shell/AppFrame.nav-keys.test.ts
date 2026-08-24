@@ -87,9 +87,17 @@ describe("which rail doors the keyboard reaches", () => {
   it("keys every rail row, and leaves none unreachable", () => {
     const keyed = RAIL_DOORS.filter((r) => r.key !== "").map((r) => r.to);
     const unkeyed = RAIL_DOORS.filter((r) => r.key === "").map((r) => r.to);
-    // FOUR since 2026-08-15. /crew left the rail for Settings; its key did not
-    // move, and where it lands is now held by AppFrame.rail-covers-keys.test.
-    expect(keyed).toEqual(["/today", "/runs", "/brain", "/engine-room"]);
+    // SIX since 2026-08-24. Approvals and Threads arrived with doors of
+    // their own; Today gave its `t` to Threads and took `o` - g o, the word
+    // the chord acts.
+    expect(keyed).toEqual([
+      "/today",
+      "/approvals",
+      "/runs",
+      "/brain",
+      "/threads",
+      "/engine-room",
+    ]);
     expect(unkeyed).toEqual([]);
   });
 

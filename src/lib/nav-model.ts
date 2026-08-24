@@ -126,6 +126,20 @@ export const PRIMARY_NAV: readonly NavItemDef[] = [
     tagline: "What needs you now.",
   },
   {
+    // APPROVALS GETS ITS OWN DOOR, 2026-08-24. The gates count rode on
+    // Today's row since the rail existed, which made a person-required
+    // surface a chip on somebody else's door - the exact "no home for key
+    // items" the founder named when he asked for this row. The chord is
+    // `g v`: every stronger letter of the label is taken (a Agents, p Plan,
+    // r Runs, l Learn, s Settings), and v is the one free letter the label
+    // still contains.
+    to: "/approvals",
+    label: "Approvals",
+    index: "",
+    zone: "home",
+    tagline: "The gates waiting on your verdict.",
+  },
+  {
     to: "/discover",
     label: "Discover",
     index: "01",
@@ -217,6 +231,20 @@ export const PRIMARY_NAV: readonly NavItemDef[] = [
     // accrues on first real use. This says what the crew does with the record,
     // which is true on day one and stays true as the record fills.
     tagline: "What the crew reads before it acts.",
+  },
+  {
+    // THREADS GETS ITS OWN DOOR, same ruling as Approvals above. The
+    // conversations archive was reachable only through Brain's substrate
+    // grid, one cell among many - a whole surface with no front door. It
+    // draws NO keycap on purpose: every letter of its label is taken
+    // (t Today, h Ship, r Runs, e Decide, a Agents, d Discover, s Settings),
+    // and the law drops a door rather than invents a letter. Rail and
+    // palette carry it; the keyboard waits for a letter to free.
+    to: "/threads",
+    label: "Threads",
+    index: "",
+    zone: "intelligence",
+    tagline: "Every conversation, searchable.",
   },
   {
     to: "/engine-room",
@@ -322,7 +350,14 @@ export const NAV_CHORD_PREFIX = "g";
 export function navKeyHint(item: NavItemDef): string {
   switch (item.to) {
     case "/today":
+      // `o`, NOT `t`, SINCE 2026-08-24: Threads joined the rail and every
+      // letter of its label was taken, so Today gave up the one it could
+      // spare - and `g o` reads as the word it acts: go.
+      return "o";
+    case "/threads":
       return "t";
+    case "/approvals":
+      return "v"; // approVals; a Agents, p Plan, r Runs, l Learn, s Settings
     case "/discover":
       return "d";
     case "/decide":
