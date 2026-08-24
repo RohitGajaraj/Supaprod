@@ -38,7 +38,6 @@ import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as DSlugRouteImport } from './routes/d.$slug'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
-import { Route as ApiTracksRouteImport } from './routes/api/tracks'
 import { Route as ApiPlanGateRouteImport } from './routes/api/plan-gate'
 import { Route as ApiMcpRouteImport } from './routes/api/mcp'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
@@ -131,8 +130,6 @@ import { Route as AuthenticatedAdminAiCostsRouteImport } from './routes/_authent
 import { Route as AuthenticatedWorkspaceSlugProductSlugRouteImport } from './routes/_authenticated.$workspaceSlug.$productSlug'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
-import { Route as ApiTracksTrackIdStreamRouteImport } from './routes/api/tracks/$trackId.stream'
-import { Route as ApiTracksTrackIdDriveRouteImport } from './routes/api/tracks/$trackId.drive'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksUptimeTickRouteImport } from './routes/api/public/hooks/uptime-tick'
 import { Route as ApiPublicHooksTriggerTickRouteImport } from './routes/api/public/hooks/trigger-tick'
@@ -340,11 +337,6 @@ const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
   id: '/return',
   path: '/return',
   getParentRoute: () => CheckoutRoute,
-} as any)
-const ApiTracksRoute = ApiTracksRouteImport.update({
-  id: '/api/tracks',
-  path: '/api/tracks',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPlanGateRoute = ApiPlanGateRouteImport.update({
   id: '/api/plan-gate',
@@ -832,16 +824,6 @@ const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
   path: '/.lovable/oauth/consent',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiTracksTrackIdStreamRoute = ApiTracksTrackIdStreamRouteImport.update({
-  id: '/$trackId/stream',
-  path: '/$trackId/stream',
-  getParentRoute: () => ApiTracksRoute,
-} as any)
-const ApiTracksTrackIdDriveRoute = ApiTracksTrackIdDriveRouteImport.update({
-  id: '/$trackId/drive',
-  path: '/$trackId/drive',
-  getParentRoute: () => ApiTracksRoute,
-} as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -1291,7 +1273,6 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/api/mcp': typeof ApiMcpRoute
   '/api/plan-gate': typeof ApiPlanGateRoute
-  '/api/tracks': typeof ApiTracksRouteWithChildren
   '/checkout/return': typeof CheckoutReturnRoute
   '/d/$slug': typeof DSlugRoute
   '/join/$token': typeof JoinTokenRoute
@@ -1372,8 +1353,6 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/trigger-tick': typeof ApiPublicHooksTriggerTickRoute
   '/api/public/hooks/uptime-tick': typeof ApiPublicHooksUptimeTickRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
-  '/api/tracks/$trackId/drive': typeof ApiTracksTrackIdDriveRoute
-  '/api/tracks/$trackId/stream': typeof ApiTracksTrackIdStreamRoute
   '/api/public/a2a/message/send': typeof ApiPublicA2aMessageSendRoute
   '/api/public/a2a/message/stream': typeof ApiPublicA2aMessageStreamRoute
   '/api/public/connect/figma/callback': typeof ApiPublicConnectFigmaCallbackRoute
@@ -1477,7 +1456,6 @@ export interface FileRoutesByTo {
   '/api/chat': typeof ApiChatRoute
   '/api/mcp': typeof ApiMcpRoute
   '/api/plan-gate': typeof ApiPlanGateRoute
-  '/api/tracks': typeof ApiTracksRouteWithChildren
   '/checkout/return': typeof CheckoutReturnRoute
   '/d/$slug': typeof DSlugRoute
   '/join/$token': typeof JoinTokenRoute
@@ -1558,8 +1536,6 @@ export interface FileRoutesByTo {
   '/api/public/hooks/trigger-tick': typeof ApiPublicHooksTriggerTickRoute
   '/api/public/hooks/uptime-tick': typeof ApiPublicHooksUptimeTickRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
-  '/api/tracks/$trackId/drive': typeof ApiTracksTrackIdDriveRoute
-  '/api/tracks/$trackId/stream': typeof ApiTracksTrackIdStreamRoute
   '/api/public/a2a/message/send': typeof ApiPublicA2aMessageSendRoute
   '/api/public/a2a/message/stream': typeof ApiPublicA2aMessageStreamRoute
   '/api/public/connect/figma/callback': typeof ApiPublicConnectFigmaCallbackRoute
@@ -1667,7 +1643,6 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/api/mcp': typeof ApiMcpRoute
   '/api/plan-gate': typeof ApiPlanGateRoute
-  '/api/tracks': typeof ApiTracksRouteWithChildren
   '/checkout/return': typeof CheckoutReturnRoute
   '/d/$slug': typeof DSlugRoute
   '/join/$token': typeof JoinTokenRoute
@@ -1748,8 +1723,6 @@ export interface FileRoutesById {
   '/api/public/hooks/trigger-tick': typeof ApiPublicHooksTriggerTickRoute
   '/api/public/hooks/uptime-tick': typeof ApiPublicHooksUptimeTickRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
-  '/api/tracks/$trackId/drive': typeof ApiTracksTrackIdDriveRoute
-  '/api/tracks/$trackId/stream': typeof ApiTracksTrackIdStreamRoute
   '/api/public/a2a/message/send': typeof ApiPublicA2aMessageSendRoute
   '/api/public/a2a/message/stream': typeof ApiPublicA2aMessageStreamRoute
   '/api/public/connect/figma/callback': typeof ApiPublicConnectFigmaCallbackRoute
@@ -1857,7 +1830,6 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/mcp'
     | '/api/plan-gate'
-    | '/api/tracks'
     | '/checkout/return'
     | '/d/$slug'
     | '/join/$token'
@@ -1938,8 +1910,6 @@ export interface FileRouteTypes {
     | '/api/public/hooks/trigger-tick'
     | '/api/public/hooks/uptime-tick'
     | '/api/public/payments/webhook'
-    | '/api/tracks/$trackId/drive'
-    | '/api/tracks/$trackId/stream'
     | '/api/public/a2a/message/send'
     | '/api/public/a2a/message/stream'
     | '/api/public/connect/figma/callback'
@@ -2043,7 +2013,6 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/mcp'
     | '/api/plan-gate'
-    | '/api/tracks'
     | '/checkout/return'
     | '/d/$slug'
     | '/join/$token'
@@ -2124,8 +2093,6 @@ export interface FileRouteTypes {
     | '/api/public/hooks/trigger-tick'
     | '/api/public/hooks/uptime-tick'
     | '/api/public/payments/webhook'
-    | '/api/tracks/$trackId/drive'
-    | '/api/tracks/$trackId/stream'
     | '/api/public/a2a/message/send'
     | '/api/public/a2a/message/stream'
     | '/api/public/connect/figma/callback'
@@ -2232,7 +2199,6 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/mcp'
     | '/api/plan-gate'
-    | '/api/tracks'
     | '/checkout/return'
     | '/d/$slug'
     | '/join/$token'
@@ -2313,8 +2279,6 @@ export interface FileRouteTypes {
     | '/api/public/hooks/trigger-tick'
     | '/api/public/hooks/uptime-tick'
     | '/api/public/payments/webhook'
-    | '/api/tracks/$trackId/drive'
-    | '/api/tracks/$trackId/stream'
     | '/api/public/a2a/message/send'
     | '/api/public/a2a/message/stream'
     | '/api/public/connect/figma/callback'
@@ -2367,7 +2331,6 @@ export interface RootRouteChildren {
   ApiChatRoute: typeof ApiChatRoute
   ApiMcpRoute: typeof ApiMcpRoute
   ApiPlanGateRoute: typeof ApiPlanGateRoute
-  ApiTracksRoute: typeof ApiTracksRouteWithChildren
   DSlugRoute: typeof DSlugRoute
   JoinTokenRoute: typeof JoinTokenRoute
   PSlugRoute: typeof PSlugRoute
@@ -2646,13 +2609,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/checkout/return'
       preLoaderRoute: typeof CheckoutReturnRouteImport
       parentRoute: typeof CheckoutRoute
-    }
-    '/api/tracks': {
-      id: '/api/tracks'
-      path: '/api/tracks'
-      fullPath: '/api/tracks'
-      preLoaderRoute: typeof ApiTracksRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/api/plan-gate': {
       id: '/api/plan-gate'
@@ -3297,20 +3253,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/.lovable/oauth/consent'
       preLoaderRoute: typeof DotlovableOauthConsentRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/api/tracks/$trackId/stream': {
-      id: '/api/tracks/$trackId/stream'
-      path: '/$trackId/stream'
-      fullPath: '/api/tracks/$trackId/stream'
-      preLoaderRoute: typeof ApiTracksTrackIdStreamRouteImport
-      parentRoute: typeof ApiTracksRoute
-    }
-    '/api/tracks/$trackId/drive': {
-      id: '/api/tracks/$trackId/drive'
-      path: '/$trackId/drive'
-      fullPath: '/api/tracks/$trackId/drive'
-      preLoaderRoute: typeof ApiTracksTrackIdDriveRouteImport
-      parentRoute: typeof ApiTracksRoute
     }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
@@ -3983,20 +3925,6 @@ const CheckoutRouteWithChildren = CheckoutRoute._addFileChildren(
   CheckoutRouteChildren,
 )
 
-interface ApiTracksRouteChildren {
-  ApiTracksTrackIdDriveRoute: typeof ApiTracksTrackIdDriveRoute
-  ApiTracksTrackIdStreamRoute: typeof ApiTracksTrackIdStreamRoute
-}
-
-const ApiTracksRouteChildren: ApiTracksRouteChildren = {
-  ApiTracksTrackIdDriveRoute: ApiTracksTrackIdDriveRoute,
-  ApiTracksTrackIdStreamRoute: ApiTracksTrackIdStreamRoute,
-}
-
-const ApiTracksRouteWithChildren = ApiTracksRoute._addFileChildren(
-  ApiTracksRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
@@ -4027,7 +3955,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatRoute: ApiChatRoute,
   ApiMcpRoute: ApiMcpRoute,
   ApiPlanGateRoute: ApiPlanGateRoute,
-  ApiTracksRoute: ApiTracksRouteWithChildren,
   DSlugRoute: DSlugRoute,
   JoinTokenRoute: JoinTokenRoute,
   PSlugRoute: PSlugRoute,
