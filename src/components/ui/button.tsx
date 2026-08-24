@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 // Neutral/tertiary interaction ramp: transparent at rest, tinted on hover/active
 // (contract §2 role model: 100-300 = component background default/hover/active).
 const neutralInteractive =
-  "bg-transparent text-foreground hover:bg-[var(--ds-gray-100)] active:bg-[var(--ds-gray-200)]";
+  "bg-transparent text-mrd-ink hover:bg-mrd-hover active:bg-mrd-lift";
 
 // UNIFIED TEMPO GRAMMAR (DESIGN-TEMPO.md §2 + obsidian compat layer)
 // Maps legacy obsidian variants to Tempo semantics with deprecation warnings.
@@ -54,7 +54,7 @@ function mapLegacyVariant(variant: string | undefined): TempoVariant | undefined
 }
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md cursor-pointer select-none transition-[background-color,color,border-color,opacity,box-shadow,transform] duration-150 ease-[var(--ds-motion-timing-swift)] active:scale-[0.97] focus-visible:outline-none focus-visible:shadow-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md cursor-pointer select-none transition-[background-color,color,border-color,opacity,box-shadow,transform] duration-150 ease-(--mrd-ease) active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--mrd-focus) disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     // COLOR GRAMMAR (contract §2 · founder ruling 2026-07-14) — a button's
     // color states its role, one rule platform-wide:
@@ -73,23 +73,23 @@ const buttonVariants = cva(
         // inline ember styles so the brand action is consistent everywhere.
         accent: "bg-[var(--ember)] text-white hover:brightness-110 active:brightness-95",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-[var(--ds-gray-200)] active:bg-[var(--ds-gray-300)]",
+          "bg-mrd-lift text-mrd-ink hover:bg-mrd-hover active:bg-mrd-lift-hover",
         // tertiary is the spec name (button.md); ghost is the existing API name for the
         // same treatment — kept as an alias so call sites using either keep working.
         tertiary: neutralInteractive,
         ghost: neutralInteractive,
         outline:
-          "border border-[var(--ds-gray-400)] bg-transparent text-foreground hover:border-[var(--ds-gray-500)] hover:bg-[var(--ds-gray-100)] active:bg-[var(--ds-gray-200)]",
+          "border border-mrd-edge bg-transparent text-mrd-ink hover:border-mrd-field-focus hover:bg-mrd-hover active:bg-mrd-lift",
         // error, per spec naming, exposed under the existing `destructive` key
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/80",
         warning:
-          "bg-[var(--ds-amber-700)] text-[var(--ds-black)] hover:bg-[var(--ds-amber-600)] active:bg-[var(--ds-amber-800)]",
+          "bg-mrd-hold text-mrd-bg hover:bg-mrd-hold active:bg-(--mrd-hold-dim)",
         link: "bg-transparent text-[var(--ds-blue-700)] underline-offset-4 hover:underline hover:text-[var(--ds-blue-800)]",
       },
       size: {
         default: "h-[var(--ds-size-medium)] px-4 text-button-14",
-        sm: "h-[var(--ds-size-small)] px-3 text-button-12",
+        sm: "h-8 px-3 text-button-12",
         lg: "h-[var(--ds-size-large)] px-5 text-button-16",
         icon: "h-[var(--ds-size-medium)] w-[var(--ds-size-medium)] text-button-14",
       },

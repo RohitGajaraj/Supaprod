@@ -21,7 +21,7 @@ const SheetOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Overlay
     className={cn(
-      "fixed inset-0 z-(--ds-z-drawer) bg-(--ds-overlay-backdrop-color)/80 duration-300 ease-(--ds-motion-timing-swift) motion-reduce:duration-150 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-(--ds-z-drawer) bg-mrd-scrim duration-300 ease-(--mrd-ease) motion-reduce:duration-150 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className,
     )}
     {...props}
@@ -31,7 +31,7 @@ const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName;
 
 const sheetVariants = cva(
-  "material-large fixed z-(--ds-z-drawer) flex flex-col gap-4 p-6 ease-(--ds-motion-timing-swift) data-[state=closed]:duration-300 data-[state=open]:duration-300 motion-reduce:data-[state=closed]:duration-150 motion-reduce:data-[state=open]:duration-150 data-[state=open]:animate-in data-[state=closed]:animate-out",
+  "material-large fixed z-(--ds-z-drawer) flex flex-col gap-4 p-6 ease-(--mrd-ease) data-[state=closed]:duration-300 data-[state=open]:duration-300 motion-reduce:data-[state=closed]:duration-150 motion-reduce:data-[state=open]:duration-150 data-[state=open]:animate-in data-[state=closed]:animate-out",
   {
     variants: {
       side: {
@@ -61,7 +61,7 @@ const SheetContent = React.forwardRef<
   <SheetPortal>
     <SheetOverlay />
     <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({ side }), className)} {...props}>
-      <SheetPrimitive.Close className="absolute right-4 top-4 inline-flex size-7 cursor-pointer items-center justify-center rounded-(--ds-radius-small) text-(--ds-gray-900) transition-colors hover:bg-(--ds-gray-100) hover:text-(--ds-gray-1000) active:bg-(--ds-gray-200) focus-visible:outline-none focus-visible:[outline:var(--ds-focus-ring-outline)] focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=open]:bg-(--ds-gray-100) data-[state=open]:text-(--ds-gray-1000)">
+      <SheetPrimitive.Close className="absolute right-4 top-4 inline-flex size-7 cursor-pointer items-center justify-center rounded-mrd-chip text-mrd-mute transition-colors hover:bg-mrd-hover hover:text-mrd-ink active:bg-mrd-lift focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--mrd-focus) disabled:pointer-events-none disabled:opacity-50 data-[state=open]:bg-mrd-hover data-[state=open]:text-mrd-ink">
         <X className="size-4" />
         <span className="sr-only">Close</span>
       </SheetPrimitive.Close>
@@ -101,7 +101,7 @@ const SheetDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Description
     ref={ref}
-    className={cn("text-copy-14 text-(--ds-gray-900)", className)}
+    className={cn("text-copy-14 text-mrd-body", className)}
     {...props}
   />
 ));

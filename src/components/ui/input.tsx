@@ -7,11 +7,16 @@ import { cn } from "@/lib/utils";
 // selectTriggerVariants in select.tsx (32/36/40px), medium default, with the
 // horizontal padding stepping alongside the height.
 const inputVariants = cva(
-  "flex w-full min-w-0 rounded-(--ds-radius-small) border border-(--ds-gray-400) bg-(--ds-background-100) text-label-14 text-(--ds-gray-1000) outline-none transition-[border-color,box-shadow] duration-150 ease-(--ds-motion-timing-swift) motion-reduce:transition-none placeholder:text-(--ds-gray-700) file:border-0 file:bg-transparent file:text-label-14 file:font-medium file:text-(--ds-gray-1000) hover:border-(--ds-gray-500) focus-visible:border-(--ds-gray-1000) focus-visible:shadow-(--ds-focus-ring) disabled:cursor-not-allowed disabled:border-(--ds-gray-400) disabled:bg-(--ds-gray-100) disabled:text-(--ds-gray-700) disabled:placeholder:text-(--ds-gray-700) disabled:opacity-100 disabled:hover:border-(--ds-gray-400) aria-invalid:border-(--ds-red-700) aria-invalid:hover:border-(--ds-red-700) aria-invalid:focus-visible:border-(--ds-red-700) aria-invalid:focus-visible:shadow-(--ds-focus-ring)",
+  // Focus draws NO ring: meridian.css suppresses focus-visible outlines on text
+  // entry by design (the caret plus the border step to --mrd-field-focus answer
+  // "where is the keyboard"), and the focus-ring-is-inherited guard fails any
+  // non-exempt file that declares its own ring. The border steps carry focus,
+  // including under aria-invalid.
+  "flex w-full min-w-0 rounded-mrd-chip border border-mrd-field bg-mrd-bg text-mrd-base text-mrd-ink outline-none transition-[border-color,box-shadow] duration-150 ease-(--mrd-ease) motion-reduce:transition-none placeholder:text-mrd-faint file:border-0 file:bg-transparent file:text-mrd-base file:font-medium file:text-mrd-ink hover:border-mrd-field-focus focus-visible:border-mrd-field-focus disabled:cursor-not-allowed disabled:border-mrd-field disabled:bg-mrd-sink disabled:text-mrd-faint disabled:placeholder:text-mrd-faint disabled:opacity-100 disabled:hover:border-mrd-field aria-invalid:border-mrd-fail aria-invalid:hover:border-mrd-fail aria-invalid:focus-visible:border-mrd-fail",
   {
     variants: {
       size: {
-        sm: "h-(--ds-size-small) px-2.5",
+        sm: "h-8 px-2.5",
         default: "h-(--ds-size-medium) px-3",
         lg: "h-(--ds-size-large) px-3.5",
       },

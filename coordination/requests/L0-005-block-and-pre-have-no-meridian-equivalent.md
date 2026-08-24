@@ -141,3 +141,25 @@ the honest spelling; its comment now states both unbridged facts (no 19px
 type stop, no weight utility). Filing back so the ruling's mechanic gets
 corrected in place: either bridge --mrd-w-* to utilities, or RL0-005c
 section 2's prescription should read "keep font-[600]".
+
+## ADDENDUM 6 (2026-08-24T07:05+05:30): four Meridian gaps block the last 25 --ds survivors in ui/**
+
+The R013 item 2 port took ui/** from 109 to 25 var(--ds-) references.
+Everything that mapped is gone; the 25 survivors are exactly the gaps,
+left resolving through styles.css rather than invented:
+
+1. LINK HUE - button's link variant reads --ds-blue-700/-800. Meridian's
+   only blue is --mrd-agent (status: machine working); using it for links
+   violates colour-carries-status. Requesting a link token in meridian.css.
+2. Z-INDEX SCALE - --ds-z-modal(300)/-menu(2001)/-drawer(200) across
+   dialog/alert-dialog/sheet/popover/dropdown. Meridian declares no
+   elevation stops. Requesting z tokens or a ruling that literals are fine.
+3. CONTROL HEIGHTS - --ds-size-medium(36px)/-large(40px) on button/input;
+   --ds-popover-row-height(36px) on command/dropdown rows. Meridian sizes
+   by convention h-8 only. Requesting height stops or the convention.
+4. (context) --ds-popover-row-radius and -padding already mapped to
+   mrd-chip / p-mrd-3; no gap there.
+
+Until these land, styles.css's Tempo scale cannot fully delete. The
+dangling overlay-backdrop pair is already fixed (bg-mrd-scrim - overlays
+were rendering transparent, a real bug the port surfaced).

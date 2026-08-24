@@ -163,7 +163,7 @@ describe("Button component variant consolidation", () => {
 
     test("generates correct class string for secondary variant", () => {
       const classes = buttonVariants({ variant: "secondary" });
-      expect(classes).toContain("bg-secondary");
+      expect(classes).toContain("bg-mrd-lift");
     });
 
     test("generates correct class string for tertiary variant", () => {
@@ -179,7 +179,7 @@ describe("Button component variant consolidation", () => {
 
     test("generates correct class string for warning variant", () => {
       const classes = buttonVariants({ variant: "warning" });
-      expect(classes).toContain("bg-[var(--ds-amber-700)]");
+      expect(classes).toContain("bg-mrd-hold");
     });
 
     test("generates correct class string for link variant", () => {

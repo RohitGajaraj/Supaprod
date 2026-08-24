@@ -21,9 +21,10 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      // Backdrop = --ds-overlay-backdrop-color at --ds-overlay-backdrop-opacity; the
-      // opacity utility is the animated endpoint of fade-in-0/fade-out-0.
-      "fixed inset-0 z-(--ds-z-modal) bg-(--ds-overlay-backdrop-color) opacity-(--ds-overlay-backdrop-opacity) duration-300 ease-(--ds-motion-timing-swift) motion-reduce:duration-150 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      // Backdrop = --mrd-scrim, which carries its own alpha; the old
+      // --ds-overlay-backdrop-* pair was undefined anywhere, so backdrops
+      // rendered transparent until this port.
+      "fixed inset-0 z-(--ds-z-modal) bg-mrd-scrim duration-300 ease-(--mrd-ease) motion-reduce:duration-150 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className,
     )}
     {...props}
@@ -45,7 +46,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "material-modal fixed left-[50%] top-[50%] z-(--ds-z-modal) grid w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 p-6 duration-300 ease-(--ds-motion-timing-swift) motion-reduce:duration-150 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.96] data-[state=open]:zoom-in-[0.96] motion-reduce:data-[state=open]:zoom-in-100 motion-reduce:data-[state=closed]:zoom-out-100",
+        "material-modal fixed left-[50%] top-[50%] z-(--ds-z-modal) grid w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 p-6 duration-300 ease-(--mrd-ease) motion-reduce:duration-150 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.96] data-[state=open]:zoom-in-[0.96] motion-reduce:data-[state=open]:zoom-in-100 motion-reduce:data-[state=closed]:zoom-out-100",
         size === "compact" ? "max-w-[480px]" : "max-w-[560px]",
         className,
       )}
@@ -53,7 +54,7 @@ const DialogContent = React.forwardRef<
     >
       {children}
       {/* size-8 = the 32px small control step; the icon stays 16px. */}
-      <DialogPrimitive.Close className="absolute right-4 top-4 inline-flex size-8 cursor-pointer items-center justify-center rounded-(--ds-radius-small) text-(--ds-gray-900) transition-colors hover:bg-(--ds-gray-100) hover:text-(--ds-gray-1000) active:bg-(--ds-gray-200) focus-visible:outline-none focus-visible:[outline:var(--ds-focus-ring-outline)] focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=open]:bg-(--ds-gray-100) data-[state=open]:text-(--ds-gray-1000)">
+      <DialogPrimitive.Close className="absolute right-4 top-4 inline-flex size-8 cursor-pointer items-center justify-center rounded-mrd-chip text-mrd-mute transition-colors hover:bg-mrd-hover hover:text-mrd-ink active:bg-mrd-lift focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--mrd-focus) disabled:pointer-events-none disabled:opacity-50 data-[state=open]:bg-mrd-hover data-[state=open]:text-mrd-ink">
         <X className="size-4" />
         <span className="sr-only">Close</span>
       </DialogPrimitive.Close>
@@ -89,7 +90,7 @@ const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn("text-copy-14 text-(--ds-gray-900)", className)}
+    className={cn("text-copy-14 text-mrd-body", className)}
     {...props}
   />
 ));

@@ -101,8 +101,8 @@ describe("Button consolidation: obsidian re-exports unified Tempo Button", () =>
       const el = ObsidianButton.render({ variant: "warning", children: "Careful" }, null);
       expect(el).toBeTruthy();
       expect(el.type).toBe("button");
-      // warning should render with amber color
-      expect(el.props.className).toContain("bg-[var(--ds-amber-");
+      // warning should render with the hold face (R013 item 2: Tempo amber left)
+      expect(el.props.className).toContain("bg-mrd-hold");
     });
   });
 
