@@ -1,87 +1,123 @@
-# BUILD QUEUE — the live board
+# BUILD QUEUE — the director's instruction set
 
-> _MAIN LANE is the only writer of this file._ Lanes do **not** edit it — that would make it a
-> multi-writer file, which is exactly what broke `main` on 2026-08-22. **A lane reports completion by
-> writing its own file into `coordination/units/`**, and MAIN moves the row here. One writer per file,
-> always.
->
-> _Last updated: 2026-08-25 00:1x IST by MAIN LANE. Items are added continuously — a lane that
-> finishes its list re-pulls and reads further down. **Never wait for this file to grow; pull.**_
+> **MAIN LANE writes this file and nothing else in `src/`.** MAIN decides what gets built, models it,
+> rules on requests, verifies against the database, and audits. **Execution is LANE 0 and LANE 1.**
+> A lane reports completion by writing its own file into `coordination/units/`; MAIN moves the rows.
+> _Last updated 2026-08-25 01:2x by MAIN LANE._
 
-**Status keys:** `READY` = start now, nothing blocks it · `BLOCKED` = waiting, dependency named ·
-`WIP` = a lane claimed it in `units/` · `DONE` = verified by MAIN, not merely reported.
-
-**PARALLEL BY DESIGN.** Every lane has `READY` work at all times below. If your next numbered item is
-`BLOCKED`, **skip it and take the next `READY` one in your lane.** Do not idle and do not build
-another lane's item.
+**Status keys:** `READY` start now · `BLOCKED` dependency named · `SHIPPED` in main, verified.
 
 ---
 
-## THE CORRECTION THAT RESHAPED THIS QUEUE (2026-08-25)
+## Already in main. Extend these; do not rebuild them.
 
-**Most of what this mission needed was already built and mounted nowhere.** Verified today:
+MAIN built these before the role split was drawn. They are pushed, typechecked, and green. **A lane
+that rebuilds any of them has wasted a night.**
 
-| Thing | State found | Consequence |
+| Thing | Where | What it does |
 | --- | --- | --- |
-| `startTrack` (server fn) + `TrackStart` mounted at `/plan` | **Already works** | **M-1 is cancelled.** There was never a missing create-a-track door |
-| `TrackChain.tsx`, `TrackActivity.tsx` | Built 2026-08-01, **0 importers** | They ARE the run view. `TrackActivity` was built to the founder ruling asking for exactly this, then never mounted |
-| `TrackActivity` polls every 10s | Already live | **M-3 (SSE) is cancelled.** Polling is sufficient; revisit only if measured insufficient |
-| `driveTrackOnce` | One caller, the cron | **The one genuine gap.** Now closed by `driveTrackNow` |
-
-**Three endpoint drafts were reverted** (`ba23bafbe`): they broke `main`, duplicated `startTrack`, read
-a `users` table that does not exist, and decided when to stop by string-matching prose.
-
-## LANE 0 — `src/components/**` except `meridian/` and `shell/`
-
-| # | Status | Item |
-| --- | --- | --- |
-| L0-1/L0-2 | **DONE (MAIN)** | `src/components/track/TrackRun.tsx` — composes `TrackChain` + `TrackActivity` + the drive control. **Built by MAIN to unblock the path. Do not rebuild it; extend it.** |
-| **L0-3** | **READY** | **The "waiting on you" card inside `TrackRun`.** 9 tracks sit held `waiting-on-a-person` with 0 attempts. **MAIN traced the exact mechanism 2026-08-25 — build against this, do not re-derive it:** the hold fires when `pendingApprovals > 0`, which is `stillOpen` from `spine_tracks.pending_gates` (jsonb, shape `[{id, station}]`) cross-checked against `agent_approvals`. **`agent_approvals` has NO back-reference to a track** — its own migration says *"the table carries user_id, run_id, mission_id and workspace_id, and none of those identify a spine track."* So `/approvals` can show the call but **cannot say it is blocking a seven-station journey**, and the track side had no surface at all until `/track/:id`. Read `pending_gates` on the track, name the call, and put the control that answers it on the run. "Approve" only where the click UNBLOCKS. |
-| **L0-4** | **READY** | **The two payoff cards inside `TrackRun`.** The **forecast card** (before Build: what it expects, recorded, timestamped — a commitment, not a note) and the **Learn verdict card** (*predicted X · actually Y · what we now believe*). **14 real forecasts exist and 0 have ever been graded** — this is the moat and no user has seen it close. |
-| **L0-5** | **READY** | **Movement.** The founder's ask: the work must look alive while it happens. A station going from waiting → running → done should read as motion, not a repaint. Use Meridian's existing transition tokens; if none fit, file a request — never a raw duration. |
-
-## LANE 1 — `src/routes/**` except `api/`, `src/components/shell/**`, `src/styles/**` except `meridian.css`
-
-| # | Status | Item |
-| --- | --- | --- |
-| L1-1 | **DONE (MAIN)** | `src/routes/_authenticated.track.$trackId.tsx` — the one linkable address. **Built by MAIN. Extend, do not rebuild.** |
-| **L1-2** | **READY** | **Close the loop from start to watch.** `TrackStart` is mounted at `/plan` and already creates tracks — but after creating one it does **not** take you to it. Make starting a track land the person on `/track/:id` watching it walk. This is the single highest-leverage item in the queue. |
-| **L1-3** | **READY** | **Collapse the duplicate doors.** `_authenticated.discover.tsx` vs `_authenticated.discovery.tsx` — two doors, one station. Read both, keep one, redirect. Then find the rest. One at a time, one commit each, never a mass rename. |
-| **L1-4** | **READY** | **The rail leads to a run.** 84 authenticated routes IS the learning curve. A person landing here should reach a live run in one click. `AppFrame.tsx` and `run-strip.tsx` are yours. **Open every route before redirecting or closing it.** |
-
-## MAIN LANE — `src/lib/**`, `src/routes/api/**`, `src/components/meridian/**`, `meridian.css`, `supabase/**`, DB, deploys
-
-| # | Status | Item |
-| --- | --- | --- |
-| M-1 | **CANCELLED** | `POST /api/tracks` — `startTrack` already exists and is mounted. Building it was duplication |
-| M-2 | **DONE** | **`driveTrackNow`** (`track.functions.ts`) — the foreground walk. Fresh clock per seat, stops on structure not prose, bounded twice and reports which bound it hit |
-| M-3 | **CANCELLED** | SSE — `TrackActivity` polls at 10s. Revisit only on measured evidence |
-| M-4 | **DIAGNOSED, reshaped** | **`needs-evidence` and `waiting-on-a-person` are ONE bug at two stages.** `STATION_NEEDS.sense` already documents it: *"Discover reads the world; if nothing has been ingested there is nothing to read, and three more attempts will find the same nothing. This is precisely what froze the nine live tracks."* The correction layer already escalates `needs-evidence` → an ask to a person. **It works.** The failure is downstream: the ask reaches nobody. So the fix is L0-3, not a driver change. **Remaining MAIN half:** confirm with SQL whether those 9 tracks still hold non-empty `pending_gates`, or whether the gate resolved and the hold went stale — a track waiting on a person who has nothing left to answer. **Blocked on Lovable re-auth** |
-| **M-5** | **READY** | **Close the moat once.** Grade one real forecast end to end, proven with SQL. 14 real, 0 graded, ever |
-| **M-6** | **READY** | **Prove the walk.** Drive a real track with `driveTrackNow` and show a track that entered at `sense` reaching `learn`. **No track has ever done this.** It is the mission |
-| M-7 | ongoing | Audit both lanes, answer every request, keep this queue true |
+| `driveTrackNow` | `src/lib/spine/track.functions.ts` | Foreground walk. Loops `driveTrackOnce` with a fresh clock per seat, so a watched run is not rationed by the cron's shared 45s deadline. Stops on `moved`/`hold`/`arrivedAt`, never on prose. Returns `{track, steps, stopped, more}` |
+| `/track/$trackId` | `src/routes/_authenticated.track.$trackId.tsx` | The one linkable address for a piece of work |
+| `TrackRun` | `src/components/track/TrackRun.tsx` | Stacked: drive control + `TrackChain` + `TrackActivity`. **L0-3 replaces the layout, keeps the parts** |
+| the agent's clock | `src/lib/ai/loop.server.ts` | Injects today's date into every system prompt. Without it agents burned 68k tokens guessing the year and every station died at `MAX_STATION_ATTEMPTS` |
 
 ---
 
-## The parallel start order
+## LANE 0 — writes `src/components/**` EXCEPT `meridian/` and `shell/`
 
-```
-NOW ─┬─ LANE 0 takes L0-1 (20 min), then L0-2, L0-3
-     ├─ LANE 1 takes L1-3 and L1-4 immediately (neither is blocked)
-     └─ MAIN   takes M-1, M-3 (unblocks both lanes), then M-2, M-4, M-5
+### L0-1 · READY · **Inline consent. Build this first.**
+When a run needs a person, the ask must appear **inside the run**, at the station that raised it.
 
-as soon as L0-1 lands  → LANE 1 picks up L1-1
-as soon as M-1 lands   → LANE 1 picks up L1-2
-as soon as M-3 lands   → LANE 0 wires L0-2 to the real stream
-```
+**Why, measured:** 90 `cluster.trigger` approvals were raised since July into `/approvals` — a queue
+detached from the work it blocked. **42 cancelled, 38 expired, 10 still pending, zero ever approved.**
+A question that has to be found does not get answered. This single defect is most of the three months.
 
-**No lane ever has zero `READY` work.** That is the property this ordering exists to guarantee.
+**Build:** a card in `TrackRun` that reads the track's `pending_gates` and renders, per gate: which
+station asked, what the tool will do (use `gateHeadline`/`toolConsequence` in `src/lib/tool-consequences.ts`,
+which already writes this copy), what happens if you decline, and **two controls**. Reference shape:
+ChatPRD's *"Scan Website? · Not Now · Scan Now"*.
 
-## Acceptance — the mission is not done while any of these is false
+**Acceptance:** (1) a track holding `waiting-on-a-person` shows the ask on `/track/:id` without
+navigating away; (2) the consequence sentence comes from `tool-consequences.ts`, never a literal;
+(3) declining records a reason; (4) Playwright screenshot proves it renders, not that it mounts.
+**"Approve" only where the click UNBLOCKS. "Review" where it only shows.**
 
-1. A route at `/track/:trackId` shows one track's seven stations.
-2. **It moves without a page refresh** while the run walks.
-3. A person starts a run in one action, **with no configuration**.
-4. Seven stations complete in **minutes, not weeks**.
-5. A forecast is recorded **before** Build and **graded after** Ship, on a real workspace, both visible.
-6. **A track that entered at `sense` reaches `learn`.** No track has ever done this. It is the whole mission.
+### L0-2 · READY · **The artifact pane — the founder's "live preview".**
+The right-hand pane that shows **the thing being made**, not a list of what was made.
+
+**Why:** `TrackChain` lists "1 spec filed". Nobody relates to that. They relate to the spec. This is
+what moves a person from spectator to operator.
+
+**Build:** a pane that renders the current station's artifact as itself — signals at `sense`, the
+decision at `decide`, the spec at `define`, the PRD at `design` — with its version and a save state.
+Read-only is acceptable for v1 **if** the unit file says which artifacts will become editable and why
+not yet. Use `STATION_ARTIFACT` in `src/lib/spine/attach.ts` for what each station produces.
+
+**Acceptance:** (1) walking a track changes what the pane shows, without a page refresh; (2) a station
+that produces nothing says so plainly rather than rendering blank; (3) no invented status — every line
+derives from a row the run wrote.
+
+### L0-3 · BLOCKED → L0-2 · **Two panes, not stacked.**
+Recompose `TrackRun`: left = `TrackActivity` (the transcript), right = L0-2's artifact pane. Keep
+`TrackChain` reachable but demote it. **Acceptance:** both panes visible at 1440px without horizontal
+scroll; the layout degrades to stacked below the Meridian breakpoint.
+
+### L0-4 · READY · **Tool calls become cards you can act on.**
+`ToolStream` renders rows you can only read. A call that produced an artifact must link to it.
+**Acceptance:** clicking a tool row that filed something reveals that artifact in the L0-2 pane.
+
+### L0-5 · BLOCKED → L0-2 · **The forecast card and the Learn verdict card.**
+Before Build: what the run expects, recorded, timestamped, as a commitment. After Ship:
+*predicted X · actually Y · what we now believe.* **Acceptance:** both read real columns on
+`decisions` (`forecast_claim`, `forecast_how_we_will_know`, `forecast_horizon_date`,
+`forecast_resolution`). **14 real forecasts exist and 0 are graded — so the verdict card must have an
+honest empty state, not a fabricated one.**
+
+## LANE 1 — writes `src/routes/**` EXCEPT `api/`, `src/components/shell/**`, `src/styles/**` EXCEPT `meridian.css`
+
+### L1-1 · READY · **The landing becomes three job cards. Build this first.**
+**Why:** 84 authenticated routes IS the learning curve, stated as a number. ChatPRD's blank state is
+one question and four cards, each a whole job, no configuration.
+
+**Build:** replace the authenticated landing with 3–4 cards in **the user's words, not our station
+names**. Proposed, and you may argue better: *"I have a problem and don't know what to build"* →
+starts a track at `sense`; *"I know what to build — get it specified"* → starts at `define`;
+*"Something shipped — tell me if it worked"* → opens Learn. `suggestRoute` in
+`src/lib/spine/route.ts` already maps a work shape to an entry station; use it.
+
+**Acceptance:** (1) a new user reaches a running track in **one click and zero configuration**;
+(2) no station vocabulary on the card faces; (3) count the clicks in your unit file, before and after.
+
+### L1-2 · READY · **Starting a track lands you on it.**
+`TrackStart` is mounted at `/plan` and already creates tracks — and does not take you to the run.
+**Acceptance:** creating a track navigates to `/track/:id`; the back path still works.
+
+### L1-3 · READY · **Collapse the duplicate doors.**
+`_authenticated.discover.tsx` vs `_authenticated.discovery.tsx` — two doors, one station. Read both,
+keep one, redirect the other. Then find the rest. **One at a time, one commit each, never a mass
+rename. Open every route before you touch it** — some of the 84 hold real work.
+
+### L1-4 · READY · **The rail leads to a run.** `AppFrame.tsx` and `run-strip.tsx` are yours.
+**Acceptance:** from any surface, a live run is one click away.
+
+## MAIN LANE — decides, models, verifies. No product code.
+
+| # | Item |
+| --- | --- |
+| M-1 | Answer every `coordination/requests/` file. I hold the database, deploys and Mobbin; a blocked lane is my cost. **Ask me for SQL — turnaround is minutes.** |
+| M-2 | Prove a track that entered at `sense` reaches `learn`. Never happened in 59 tracks. Needs the date fix deployed, then the 5 `given-up` tracks reset. |
+| M-3 | Grade one real forecast. 14 exist, 0 graded, `forecast_resolution_log` has never written a row. |
+| M-4 | The 12 pre-existing test failures on main; 7 share one cause in the nav model. |
+| M-5 | Positioning and architecture rulings, and this queue. |
+
+---
+
+## Acceptance that governs every item
+
+1. **A mount is not a render.** Prove with a screenshot or a text assertion, never with "it's in the tree".
+2. **A number without its query is not evidence.** Three metrics that proved this product worked were seed data.
+3. **Gates before every push:** `bunx tsc --noEmit`, `bun test`, `bun run lint`. **Never pipe a gate into `tail`** — it hides the exit code and main shipped red that way. **12 failures are pre-existing; do not claim them and do not fix them silently.**
+4. **Meridian only.** No `--sp-*`, `--ds-*`, `--text-*`, `--hairline`, `--raised`, `data-obsidian`, no raw colours. No `--mrd-*` fits → file a request; never widen the baseline.
+5. **The dev server stays off** unless a browser check needs it, and **stops the moment it is done.**
+6. **Commit after every logical piece and push.** `git commit -F`, never `-m`. Never `git add -A`.
+7. **Work continuously until the founder says stop.** Out of work → re-read this file.
