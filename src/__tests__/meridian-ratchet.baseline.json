@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 2246,
-  "fileCount": 180,
+  "totalOccurrences": 2211,
+  "fileCount": 177,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "--text-": 16,
@@ -112,21 +112,6 @@
     "src/components/discover/OpportunityDetailSheet.tsx": {
       "import:components/ui": 1,
       "usage:components/ui": 5
-    },
-    "src/components/engine-room/ConnectionStrip.tsx": {
-      "--ds-": 6,
-      "--text-": 8,
-      "--madder": 1
-    },
-    "src/components/engine-room/EngineRoomSurface.tsx": {
-      "--text-": 5,
-      "--hairline": 1
-    },
-    "src/components/engine-room/RoomCard.tsx": {
-      "--ds-": 3,
-      "--text-": 8,
-      "--hairline": 1,
-      "--madder": 2
     },
     "src/components/governance/ApprovalsPanel.tsx": {
       "class:sp-": 1

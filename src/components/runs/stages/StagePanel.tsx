@@ -139,6 +139,7 @@ import {
   Stat,
 } from "@/components/runs/run-parts";
 import {
+  Door,
   Figure,
   NothingYet,
   ReadFailedLine,
@@ -607,22 +608,28 @@ function deployTone(status: string): "pass" | "fail" | "hold" | "quiet" {
   return "quiet";
 }
 
-function Ship({ e }: { e: ShipEvidence }) {
+function Ship({ e, onOpen }: { e: ShipEvidence; onOpen: () => void }) {
   const production = e.deployments.filter((d) => d.environment === "production");
   const liveOne = production.find((d) => d.status === "success") ?? null;
+  const shipWords = liveOne
+    ? "It is live in production."
+    : e.status === "merged"
+      ? "Merged, and nothing has promoted it yet."
+      : null;
 
   return (
     <Region
       title={STAGE_LABEL.ship}
-      sub={
-        liveOne
-          ? "It is live in production."
-          : e.status === "merged"
-            ? "Merged, and nothing has promoted it yet."
-            : undefined
-      }
+      // The external PR keeps the heading door; /ship is the deployment's own
+      // in-app address (graph-doors.ts), so it rides beside it.
       goTo={e.prUrl ? "Open the pull request" : undefined}
       onGoTo={() => window.open(e.prUrl as string, "_blank", "noopener,noreferrer")}
+      sub={
+        <>
+          {shipWords ? `${shipWords} ` : null}
+          <Door onClick={onOpen}>Open what shipped</Door>
+        </>
+      }
     >
       <Fact label="Pull request" sub={e.repo || undefined}>
         <Stat>
@@ -885,7 +892,7 @@ export function StagePanel({
     );
   }
   if (station === "ship" && evidence.ship) {
-    return <Ship e={evidence.ship} />;
+    return <Ship e={evidence.ship} onOpen={open("/ship")} />;
   }
   if (station === "learn" && evidence.learn) {
     return <Learn e={evidence.learn} initials={initials} onOpen={open("/learn")} />;

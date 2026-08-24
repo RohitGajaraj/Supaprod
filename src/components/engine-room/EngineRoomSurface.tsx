@@ -1,7 +1,3 @@
-import * as React from "react";
-import { useNavigate } from "@tanstack/react-router";
-import { PageHeader } from "@/components/supaprod/PageHeader";
-import { PixelStat } from "@/components/supaprod/PixelStat";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { getBudgetOverview } from "@/lib/budgets.functions";
@@ -23,36 +19,6 @@ import {
   type RoomGlance,
   type RoomKey,
 } from "@/lib/engine-room-glance";
-import { RoomCard, RoomCardSkeleton, RoomCardError } from "./RoomCard";
-import { ConnectionStrip } from "./ConnectionStrip";
-
-/** LOOM §4b: the Engine Room is a work surface - fluid to --container-work
- * (1520px), not the 1060px standard cap. Local to this folder because the
- * shared Surface component is other lanes' dependency. */
-export function EngineRoomContainer({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      style={{
-        // width:100% matters: the shell's <main> is a column flexbox, and a
-        // flex item with cross-axis auto margins gives up stretch and
-        // shrink-wraps its content. Without it the room grid rendered ~650px
-        // wide at 1440 - the exact "floats like a phone layout" defect §4b
-        // exists to kill.
-        width: "100%",
-        maxWidth: "var(--container-work)",
-        margin: "0 auto",
-        padding: "var(--page-inset-v) var(--page-inset-h) 64px",
-        animation: "cadRise 260ms var(--ease) both",
-        // Loom §2b: anchors + clips the glance's glow field (harmless for
-        // RoomDetail, which renders no glow).
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {children}
-    </div>
-  );
-}
 
 /** One room's glance, honestly staged: loading | error | ready. */
 export interface RoomStatus {
@@ -88,8 +54,8 @@ function roomStatus(
   return { key, loading: false, error: null, glance: build(), retry };
 }
 
-/** Shared glance data source: EngineRoomSurface (the grid) and RoomDetail
- * (a single room's header) both need the same four verdicts, so the read
+/** Shared glance data source: the engine-room route and RoomDetail (a single
+ * room's header) both need the same four verdicts, so the read
  * queries live in one hook rather than being wired twice. TanStack Query
  * dedupes by key regardless of which mounts first.
  *
@@ -219,142 +185,4 @@ export function useEngineRoomGlance(): {
       prsShipped: receiptsQ.data?.prsShipped ?? 0,
     },
   };
-}
-
-/** The glance: hero, 2x2 room grid, connection strip. Every number is a
- * read-only consumer of an existing query (OBS-09 §3 no-feature-work
- * boundary). Nothing here writes. The four doors are always visible (LOOM
- * §0: nothing hidden); an all-healthy day earns one quiet line, never a
- * banner that swallows the grid.
- *
- * IA 2026-07-11: renders bare (no container) so the route can seat it in the
- * content column beside the persistent RoomRail switcher. */
-export function EngineRoomGlance() {
-  const navigate = useNavigate({ from: "/engine-room" });
-  const { rooms, throughput } = useEngineRoomGlance();
-  const showThroughput =
-    throughput.totalRuns > 0 || throughput.decisionsClosed > 0 || throughput.prsShipped > 0;
-  // "healthy" is now one of THREE states, so this has to test for it by name
-  // rather than by "not watch". Before the unconfigured state existed the two
-  // were the same test; they are not any more, and a room nobody has switched
-  // on must not light the moss glow or print the all-healthy line.
-  const allHealthy =
-    rooms.length > 0 && rooms.every((r) => r.glance !== null && r.glance.state === "healthy");
-  // Loom §2b glow tone: moss on an all-healthy day, ember when any room asks
-  // for attention, no tone (glacier default) while the verdicts are loading.
-  const anyAttention = rooms.some((r) => r.glance !== null && r.glance.state !== "healthy");
-  const glowTone = allHealthy ? "moss" : anyAttention ? "ember" : undefined;
-  const openRoom = (key: RoomKey) => navigate({ search: { room: key } });
-
-  return (
-    <div>
-      {/* Loom §2b glow field: the one ambient wash behind the hero (absolute,
-          anchored + clipped by EngineRoomContainer, which the route still
-          renders as this column's ancestor). */}
-      <div aria-hidden="true" className="loom-glow-field" data-tone={glowTone} />
-      <PageHeader
-        title="The engine, at a"
-        accent="glance."
-        subtitle="Four rooms, one verdict each. Approvals find you on Today; the rooms keep the record."
-        usp="Full observability for autonomous work: spend, quality, safety, and evidence for every action the machine takes."
-      />
-
-      {/* RPT-09: the "While you worked" amplifier strip. Real counts only (this
-          week's AI actions from the already-fetched analytics read + RPT-33's honest
-          decisions-closed / PRs-shipped, no fabricated hours). Renders only when there
-          is something to show, so a brand-new workspace never sees an empty shell. */}
-      {showThroughput ? (
-        <div
-          style={{
-            marginBottom: allHealthy ? "10px" : "18px",
-            padding: "13px 16px",
-            borderRadius: "var(--radius-card)",
-            border: "1px solid var(--hairline)",
-            background: "var(--surface-recessed)",
-          }}
-        >
-          <div
-            className="uppercase"
-            style={{
-              fontFamily: "var(--font-mono)",
-              letterSpacing: "0.1em",
-              color: "var(--text-subtle)",
-              marginBottom: 6,
-            }}
-          >
-            While you worked
-          </div>
-          {/* Lead with this week's actions when there are any; a flat "ran 0 actions
-              this week" would undercut the amplifier framing, so a quiet week leads
-              with the to-date stats below instead. */}
-          {throughput.totalRuns > 0 ? (
-            <p style={{ color: "var(--text-primary)", margin: 0 }}>
-              Supaprod ran <PixelStat value={throughput.totalRuns} tone="blue" size={16} glow />{" "}
-              {throughput.totalRuns === 1 ? "action" : "actions"} for you this week.
-            </p>
-          ) : null}
-          {throughput.decisionsClosed > 0 || throughput.prsShipped > 0 ? (
-            <p
-              style={{
-                fontSize: throughput.totalRuns > 0 ? 12.5 : "var(--tempo-text-base)",
-                color: throughput.totalRuns > 0 ? "var(--text-subtle)" : "var(--text-primary)",
-                margin: throughput.totalRuns > 0 ? "4px 0 0" : 0,
-              }}
-            >
-              {throughput.decisionsClosed}{" "}
-              {throughput.decisionsClosed === 1 ? "decision" : "decisions"} closed to date ·{" "}
-              {throughput.prsShipped} {throughput.prsShipped === 1 ? "PR" : "PRs"} shipped to date
-            </p>
-          ) : null}
-          <p
-            style={{
-              fontFamily: "var(--font-sans)",
-              color: "var(--text-muted)",
-              margin: "8px 0 0",
-            }}
-          >
-            Your judgment, amplified and compounding.
-          </p>
-        </div>
-      ) : null}
-
-      {allHealthy ? (
-        <p
-          className="uppercase"
-          style={{
-            fontFamily: "var(--font-mono)",
-            letterSpacing: "0.1em",
-            color: "var(--moss-bright)",
-            margin: "0 0 18px",
-          }}
-        >
-          All four rooms are healthy
-        </p>
-      ) : null}
-
-      <div
-        className="grid grid-cols-1 md:grid-cols-2"
-        style={{ gap: "14px", marginBottom: "20px" }}
-      >
-        {rooms.map((room) => {
-          if (room.error !== null) {
-            return (
-              <RoomCardError
-                key={room.key}
-                room={room.key}
-                message={room.error}
-                onRetry={room.retry}
-              />
-            );
-          }
-          if (room.loading || room.glance === null) {
-            return <RoomCardSkeleton key={room.key} room={room.key} />;
-          }
-          return <RoomCard key={room.key} glance={room.glance} onOpen={() => openRoom(room.key)} />;
-        })}
-      </div>
-
-      <ConnectionStrip />
-    </div>
-  );
 }

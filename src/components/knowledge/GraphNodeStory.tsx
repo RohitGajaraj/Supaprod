@@ -39,6 +39,7 @@
  * supersession story derivation, the recentre callback, and the retired-edge
  * de-emphasis that keeps a reversed assertion visible as history.
  */
+import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Row } from "@/components/meridian/rows";
 import {
@@ -69,6 +70,10 @@ import { nodeDoor } from "./graph-doors";
 import { GraphNodeActions } from "./GraphNodeActions";
 
 type StoryRow = { id: string; relation: string; peer_title?: string | null };
+
+// Eight is the density choice, not the defect; the defect was the tail being
+// unreachable. Same reveal contract as DocsPanel.
+const VISIBLE_ROWS = 8;
 
 export function GraphNodeStory({
   node,
@@ -233,6 +238,7 @@ function WhySection({
   edges?: GraphEdge[];
   titleOf?: Map<string, string>;
 }) {
+  const [showAll, setShowAll] = useState(false);
   const incident = (edges ?? []).filter((e) => e.source === node.key || e.target === node.key);
   if (incident.length === 0) return null;
 
@@ -260,7 +266,7 @@ function WhySection({
         )
       }
     >
-      {ordered.slice(0, 8).map((e) => {
+      {(showAll ? ordered : ordered.slice(0, VISIBLE_ROWS)).map((e) => {
         const side = e.source === node.key ? "source" : "target";
         const peerKey = side === "source" ? e.target : e.source;
         const peerTitle = titleOf?.get(peerKey) || "something no longer in view";
@@ -295,6 +301,20 @@ function WhySection({
           />
         );
       })}
+
+      {ordered.length > VISIBLE_ROWS ? (
+        <Actions>
+          <Action variant="quiet" onClick={() => setShowAll((v) => !v)}>
+            {showAll ? (
+              "Show fewer"
+            ) : (
+              <>
+                Show <Num>{ordered.length - VISIBLE_ROWS}</Num> more
+              </>
+            )}
+          </Action>
+        </Actions>
+      ) : null}
     </Region>
   );
 }
@@ -308,14 +328,31 @@ function StorySection({
   rows: StoryRow[];
   emptyText: string;
 }) {
+  const [showAll, setShowAll] = useState(false);
   return (
     <Region title={title}>
       {rows.length === 0 ? (
         <NothingYet>{emptyText}</NothingYet>
       ) : (
-        rows
-          .slice(0, 8)
-          .map((r) => <Row key={r.id} tight lead={r.peer_title || "Untitled"} sub={r.relation} />)
+        <>
+          {(showAll ? rows : rows.slice(0, VISIBLE_ROWS)).map(
+            (r) => <Row key={r.id} tight lead={r.peer_title || "Untitled"} sub={r.relation} />,
+          )}
+
+          {rows.length > VISIBLE_ROWS ? (
+            <Actions>
+              <Action variant="quiet" onClick={() => setShowAll((v) => !v)}>
+                {showAll ? (
+                  "Show fewer"
+                ) : (
+                  <>
+                    Show <Num>{rows.length - VISIBLE_ROWS}</Num> more
+                  </>
+                )}
+              </Action>
+            </Actions>
+          ) : null}
+        </>
       )}
     </Region>
   );
@@ -333,6 +370,7 @@ function SupersessionSection({
   story: SupersessionStory;
   onFocus: (kind: string, id: string) => void;
 }) {
+  const [showAll, setShowAll] = useState(false);
   if (story.links.length === 0) return null;
   return (
     <Region
@@ -345,7 +383,7 @@ function SupersessionSection({
         ) : undefined
       }
     >
-      {story.links.slice(0, 8).map((l) => {
+      {(showAll ? story.links : story.links.slice(0, VISIBLE_ROWS)).map((l) => {
         const canFocus = !!l.peerKind && !!l.peerId;
         // Guard the date so a malformed valid_to can never render "Invalid Date".
         const retiredOn =
@@ -374,6 +412,20 @@ function SupersessionSection({
           />
         );
       })}
+
+      {story.links.length > VISIBLE_ROWS ? (
+        <Actions>
+          <Action variant="quiet" onClick={() => setShowAll((v) => !v)}>
+            {showAll ? (
+              "Show fewer"
+            ) : (
+              <>
+                Show <Num>{story.links.length - VISIBLE_ROWS}</Num> more
+              </>
+            )}
+          </Action>
+        </Actions>
+      ) : null}
     </Region>
   );
 }

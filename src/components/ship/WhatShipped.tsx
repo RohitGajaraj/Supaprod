@@ -95,6 +95,7 @@
 
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
 import type { ChangelogEntry } from "@/lib/changelog.functions";
@@ -105,6 +106,7 @@ import { listDeployments } from "@/lib/deployments.functions";
 import { DESIGN_SKIPPED_ON_PURPOSE } from "@/lib/trust-chain.functions";
 import { Answer } from "@/components/ask/Answer";
 import {
+  Door,
   NothingYet,
   Num,
   ReadFailed,
@@ -166,6 +168,9 @@ export type ReleaseFact = {
   source: string;
   /** Set only when the fact has an address of its own. */
   href?: string | null;
+  /** The row's own address inside this product, set only where the sources
+   *  genuinely hold the id to aim it with. Never inferred from a neighbour. */
+  to?: string | null;
   /** The DIFFERENT second fact on the row, never the first one continued. */
   detail?: string | null;
 };
@@ -173,11 +178,17 @@ export type ReleaseFact = {
 function fact(
   text: string | null | undefined,
   source: string,
-  extra?: { href?: string | null; detail?: string | null },
+  extra?: { href?: string | null; to?: string | null; detail?: string | null },
 ): ReleaseFact | null {
   const t = (text ?? "").trim();
   if (!t) return null;
-  return { text: t, source, href: extra?.href ?? null, detail: extra?.detail ?? null };
+  return {
+    text: t,
+    source,
+    href: extra?.href ?? null,
+    to: extra?.to ?? null,
+    detail: extra?.detail ?? null,
+  };
 }
 
 function kept(facts: (ReleaseFact | null)[]): ReleaseFact[] {
@@ -277,6 +288,9 @@ export type PrdSource = {
   design_gate_status: string | null;
   design_decided_at: string | null;
   design_decided_by: string | null;
+  /** The armed outcome window's check-back day, written at promote. Optional
+   *  because rows read before the column existed carry nothing here. */
+  outcome_check_by?: string | null;
 };
 
 export type DeploySource = {
@@ -441,6 +455,10 @@ export type ReleaseDoc = {
   outOfScope: ReleaseFact[];
   /** The settled outcome, or null. Never a placeholder. */
   outcome: { verdict: string | null; claim: ReleaseFact; evidence: ReleaseFact[] } | null;
+  /** The armed window before anything settles it: the day Learn comes back to
+   *  ask whether this worked, read off prds.outcome_check_by. Null once an
+   *  outcome exists, because a settled verdict already carries its own date. */
+  checkBack: string | null;
   /** A human judgment that genuinely happened, drawn as a Receipt. */
   approval: { verb: string; consequence: string; at: string | null; source: string } | null;
   /** Spec, change, pull request, files, deployment. */
@@ -471,6 +489,10 @@ export function assembleReleaseDoc(s: ReleaseSources): ReleaseDoc {
   const contract = readContract(prd?.contract);
   const outcome = readOutcome(prd?.outcome);
   const live = pickProductionDeploy(deployments);
+  /** Only where the spec row actually resolved: a door aimed at an id nobody
+   *  read would promise a page that cannot open it. */
+  const specTo = prd?.id ? `/plan/spec/${prd.id}` : null;
+  const checkBack = !outcome && prd ? onDay(prd.outcome_check_by) : null;
 
   const title =
     fact(entry.title, "changelog_entries.title") ??
@@ -493,7 +515,7 @@ export function assembleReleaseDoc(s: ReleaseSources): ReleaseDoc {
     entry.opportunity_title
       ? fact(entry.opportunity_title, "opportunities.title", { detail: "The bet it came from" })
       : null,
-    fact(contract.intent, "prds.contract.intent"),
+    fact(contract.intent, "prds.contract.intent", { to: specTo }),
   ]);
 
   const promised = kept(
@@ -548,7 +570,12 @@ export function assembleReleaseDoc(s: ReleaseSources): ReleaseDoc {
       : null;
 
   const receipts = kept([
-    prd ? fact(prd.title, "prds.title", { detail: `Spec · ${prd.status ?? "no status"}` }) : null,
+    prd
+      ? fact(prd.title, "prds.title", {
+          detail: `Spec · ${prd.status ?? "no status"}`,
+          to: specTo,
+        })
+      : null,
     // THE SKIP, AS A RECEIPT. It sits here rather than in "Not on the record"
     // because it is a row that EXISTS: somebody decided, the product wrote it
     // down, and this is the document that reads the product's rows back. Naming
@@ -726,6 +753,7 @@ export function assembleReleaseDoc(s: ReleaseSources): ReleaseDoc {
     promised,
     outOfScope,
     outcome: outcomeBlock,
+    checkBack,
     approval,
     receipts,
     gaps,
@@ -741,12 +769,27 @@ function openUrl(url: string) {
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
-function FactRow({ f, onOpen }: { f: ReleaseFact; onOpen: (url: string) => void }) {
+function FactRow({
+  f,
+  onOpen,
+  onNavigate,
+}: {
+  f: ReleaseFact;
+  onOpen: (url: string) => void;
+  onNavigate?: (to: string) => void;
+}) {
   return (
     <Row
       lead={f.text}
       sub={f.detail}
       onClick={f.href ? () => onOpen(f.href as string) : undefined}
+      /* Row's action slot sits outside the clickable region, so the in-app door
+         is never a control inside the row's own. */
+      action={
+        f.to && onNavigate ? (
+          <Door onClick={() => onNavigate(f.to as string)}>Open the spec</Door>
+        ) : undefined
+      }
     />
   );
 }
@@ -779,10 +822,14 @@ function Clauses({ facts }: { facts: ReleaseFact[] }) {
 export function ReleaseDocument({
   doc,
   onOpen = openUrl,
+  onNavigate,
 }: {
   doc: ReleaseDoc;
   /** Injected so the test can watch what a click promises without a browser. */
   onOpen?: (url: string) => void;
+  /** The same seam for in-app addresses. Absent, the doors do not render --
+   *  a door that cannot open is worse than none (graph-doors.ts's own rule). */
+  onNavigate?: (to: string) => void;
 }) {
   const datelineText = doc.dateline.map((f) => f.text).join(" · ");
 
@@ -799,6 +846,14 @@ export function ReleaseDocument({
     <div className="flex flex-col gap-mrd-7">
       <Region title={doc.title.text} sub={datelineText || null}>
         {doc.body ? <Answer>{doc.body.text}</Answer> : null}
+        {doc.checkBack ? (
+          /* One sentence and one door, not a banner: the window is armed and
+             nothing has settled it yet, so this is what happens next. */
+          <p className="max-w-[68ch] text-mrd-label leading-mrd-prose text-mrd-mute">
+            Learn checks this on {doc.checkBack}.{" "}
+            {onNavigate ? <Door onClick={() => onNavigate("/learn")}>Open Learn</Door> : null}
+          </p>
+        ) : null}
         {doc.outcome ? (
           <RecordSpeaks
             evidence={
@@ -821,7 +876,7 @@ export function ReleaseDocument({
       {doc.why.length ? (
         <Region title="Why it was built" sub="Read from the bet and the spec's outcome contract.">
           {doc.why.map((f, i) => (
-            <FactRow key={`why-${i}`} f={f} onOpen={onOpen} />
+            <FactRow key={`why-${i}`} f={f} onOpen={onOpen} onNavigate={onNavigate} />
           ))}
         </Region>
       ) : null}
@@ -857,7 +912,7 @@ export function ReleaseDocument({
       {doc.receipts.length ? (
         <Region title="The evidence" sub="Every line above traces to one of these rows.">
           {doc.receipts.map((f, i) => (
-            <FactRow key={`receipt-${i}`} f={f} onOpen={onOpen} />
+            <FactRow key={`receipt-${i}`} f={f} onOpen={onOpen} onNavigate={onNavigate} />
           ))}
         </Region>
       ) : null}
@@ -950,6 +1005,7 @@ export function AssembledRelease({
   workspaceId = null,
   reads,
   onOpen = openUrl,
+  onNavigate,
 }: {
   /** One row from `listChangelog`, which Ship already holds. */
   entry: ChangelogEntry;
@@ -958,6 +1014,7 @@ export function AssembledRelease({
   workspaceId?: string | null;
   reads: ReleaseReads;
   onOpen?: (url: string) => void;
+  onNavigate?: (to: string) => void;
 }) {
   const prdQ = useQuery({
     queryKey: ["what-shipped-prd", entry.prd_id],
@@ -1072,6 +1129,7 @@ export function AssembledRelease({
         design_gate_status: str((prdRow as Bag).design_gate_status),
         design_decided_at: str((prdRow as Bag).design_decided_at),
         design_decided_by: str((prdRow as Bag).design_decided_by),
+        outcome_check_by: str((prdRow as Bag).outcome_check_by),
       } as PrdSource)
     : null;
 
@@ -1092,7 +1150,7 @@ export function AssembledRelease({
   const designRoute = routeQ.isSuccess ? (routeQ.data?.chosen ?? null) : undefined;
 
   const doc = assembleReleaseDoc({ entry, prd, applied, deployments, designRoute });
-  return <ReleaseDocument doc={doc} onOpen={onOpen} />;
+  return <ReleaseDocument doc={doc} onOpen={onOpen} onNavigate={onNavigate} />;
 }
 
 /**
@@ -1119,6 +1177,7 @@ export function WhatShipped({
   // design_skipped / design_requested row" is how two surfaces quietly start
   // disagreeing about one decision.
   const fRoute = useServerFn(getSpecDesignRoute);
+  const navigate = useNavigate();
 
   const reads = React.useMemo<ReleaseReads>(
     () => ({
@@ -1136,7 +1195,15 @@ export function WhatShipped({
     [fPrd, fApplied, fDeploys, fRoute],
   );
 
-  return <AssembledRelease entry={entry} workspaceId={workspaceId} reads={reads} onOpen={onOpen} />;
+  return (
+    <AssembledRelease
+      entry={entry}
+      workspaceId={workspaceId}
+      reads={reads}
+      onOpen={onOpen}
+      onNavigate={(to) => void navigate({ to })}
+    />
+  );
 }
 
 /** Nothing has shipped, so there is no document. Named here rather than left to
