@@ -4037,21 +4037,76 @@ ICE — Impact:${opp.impact} Confidence:${opp.confidence} Ease:${opp.ease}`;
     return { prd, existing: false, placement };
   });
 
-/** AI: rewrite/expand/critique a selection within a PRD. */
+/**
+ * prdAssist input. One object, two modes, and the shared fields declared once
+ * so instruct can never drift from rewrite on what a selection is. The four
+ * fixed verbs are the original payload and stay byte-compatible: `mode` is
+ * optional, and its absence means verb mode.
+ */
+export const prdAssistInput = z
+  .object({
+    mode: z.enum(["instruct"]).optional(),
+    action: z.enum(["rewrite", "expand", "critique", "shorten"]).optional(),
+    selection: z.string().min(2).max(8000),
+    context: z.string().max(8000).optional(),
+    instruction: z.string().optional(),
+  })
+  .superRefine((v, ctx) => {
+    if (v.mode === "instruct") {
+      // Measured on the trimmed value: padding must not rescue an empty
+      // instruction, and it must not sink one that is in range without it.
+      const t = v.instruction?.trim() ?? "";
+      if (t.length < 1 || t.length > 2000) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["instruction"],
+          message: "instruction is required in instruct mode (1-2000 characters)",
+        });
+      }
+    } else if (!v.action) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["action"],
+        message: "action is required unless mode is instruct",
+      });
+    }
+  });
+
+/** System prompt for `mode: "instruct"` -- the user's own edit, bounded to their selection. */
+export const prdAssistInstructPrompt = [
+  "You are a senior PM editor editing one selection of a product spec.",
+  "Return Markdown only.",
+  "",
+  "Rules:",
+  "- Change ONLY what the instruction requires, inside the provided selection.",
+  "- Preserve the selection's markdown structure: headings, lists, and citation markers like [1] must survive exactly as written when present.",
+  "- Return ONLY the edited selection text. No preamble, no commentary, no code fence unless the selection itself had one.",
+  "- If the instruction cannot be satisfied from the selection alone, make the smallest reasonable improvement and note nothing extra.",
+].join("\n");
+
+/** AI: rewrite/expand/critique/shorten a selection, or apply a free-form instruction to it (`mode: "instruct"`). */
 export const prdAssist = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) =>
-    z
-      .object({
-        action: z.enum(["rewrite", "expand", "critique", "shorten"]),
-        selection: z.string().min(2).max(8000),
-        context: z.string().max(8000).optional(),
-      })
-      .parse(i),
-  )
+  .inputValidator((i: unknown) => prdAssistInput.parse(i))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    const verb: Record<typeof data.action, string> = {
+    if (data.mode === "instruct") {
+      // prdAssistInput guarantees a trimmable 1-2000 character instruction here.
+      const result = await callModel(supabase, userId, {
+        surface: "prd",
+        surface_ref: "assist:instruct",
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: prdAssistInstructPrompt },
+          {
+            role: "user",
+            content: `Instruction: ${data.instruction!.trim()}\n\n---\n${data.selection}\n---\n\nSurrounding context (optional):\n${data.context ?? ""}`,
+          },
+        ],
+      });
+      return { text: result.output };
+    }
+    const verb: Record<"rewrite" | "expand" | "critique" | "shorten", string> = {
       rewrite:
         "Rewrite the selection to be sharper, more concrete, and easier to scan. Keep meaning.",
       expand: "Expand the selection with helpful detail, examples, and edge cases. Stay terse.",
@@ -4067,7 +4122,7 @@ export const prdAssist = createServerFn({ method: "POST" })
         { role: "system", content: "You are a senior PM editor. Return Markdown only." },
         {
           role: "user",
-          content: `${verb[data.action]}\n\n---\n${data.selection}\n---\n\nSurrounding context (optional):\n${data.context ?? ""}`,
+          content: `${verb[data.action!]}\n\n---\n${data.selection}\n---\n\nSurrounding context (optional):\n${data.context ?? ""}`,
         },
       ],
     });

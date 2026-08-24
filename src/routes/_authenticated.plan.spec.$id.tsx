@@ -18,7 +18,8 @@
  *    nowhere else does it become work.
  *
  * 3. KEEP / MOVE / KILL, on what pass one left standing:
- *    KEEP  the editable title, the textarea, the four assist actions, the six
+ *    KEEP  the editable title, the textarea, the assist verbs on the selection
+ *          bar, the six
  *          views, Save, Send to Build with its repo gate, Create GitHub issue,
  *          Capture as decision. Every one of these is where a decision about
  *          this spec is actually made.
@@ -96,7 +97,7 @@
  *    system prompt). The Critic's mark and verdict sit in the context column
  *    with the rewind that undoes what the crew wrote. Every consequential act
  *    leaves a receipt saying what it caused. What is deliberately NOT claimed:
- *    the four assist actions run one model call and are not a named agent, so
+ *    the assist verbs run one model call and are not a named agent, so
  *    they say "the crew" and no mark; prds carry no author column
  *    (FINAL-agent-presence C9) so the spec gets no byline rather than a
  *    guessed one; and Send to Build draws no arrow, because success navigates
@@ -301,6 +302,15 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { Row, Line } from "@/components/meridian/rows";
 import { Num, Door, Actions } from "@/components/meridian/surface-parts";
+// The bar that anchors to a passage selection and hands the words to the crew.
+// Replaced the always-visible four-verb row; see the assist block below.
+import {
+  SelectionActions,
+  measureSelectionRects,
+  type SelectionRect,
+  type SelectionPhase,
+  type SelectionProposal,
+} from "@/components/meridian/SelectionActions";
 import { useServerFn } from "@tanstack/react-start";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -471,13 +481,22 @@ const paneFor = (tab: ModeTab | undefined): Pane => (tab === "preview" ? "read" 
 const lensFor = (tab: ModeTab | undefined): Lens =>
   tab && (LENS_TABS as readonly string[]).includes(tab) ? (tab as Lens) : "contract";
 
+/** The four verbs the selection bar offers, in the order a writer reaches for them. */
 const ASSIST_ACTIONS = ["rewrite", "expand", "shorten", "critique"] as const;
-const ASSIST_LABEL: Record<(typeof ASSIST_ACTIONS)[number], string> = {
+type AssistAction = (typeof ASSIST_ACTIONS)[number];
+const ASSIST_LABEL: Record<AssistAction, string> = {
   rewrite: "Rewrite",
   expand: "Expand",
   shorten: "Shorten",
   critique: "Critique",
 };
+
+/** One handoff to the crew: a fixed verb, or the writer's own instruction. */
+type SelJob = { kind: "verb"; action: AssistAction } | { kind: "instruct"; instruction: string };
+
+/** A job carrying the passage it was captured against: words, offsets, and the
+ *  document snapshot Keep checks before it splices. */
+type SelRun = SelJob & { text: string; start: number; end: number; base: string };
 
 /* The rendered-markdown component map that stood here has moved to
  * src/components/prds/SpecProse.tsx, and it did not move unchanged: the version
@@ -1263,47 +1282,107 @@ function SpecEditorPage() {
   }, [save]);
 
   /**
-   * What the in-flight rewrite is actually working on, captured at dispatch.
+   * THE PASSAGE LOOP, in the four phases SelectionActions names: idle (nothing
+   * handed), working (handed over, the crew is on it), ready (it came back --
+   * keep or discard), error (it came back broken, said in place).
    *
-   * IT HAS TO BE CAPTURED RATHER THAN DERIVED, and that is not a shortcut. The
-   * textarea loses its selection the moment a button takes focus, so by the time
-   * the indicator renders, `taRef.current.selectionStart === selectionEnd` and
-   * the scope is unrecoverable. Reading it later would report "the whole spec"
-   * for every call, including the ones that were a two-line selection.
+   * THE SELECTION IS CAPTURED WHEN IT IS MADE, NOT WHEN IT IS DISPATCHED, and
+   * that is the defect this replaces rather than a style choice. The old flow
+   * read `taRef.current.selectionStart` inside the mutation, but the textarea
+   * loses its native selection the moment one of the bar's buttons takes
+   * focus, so a late read reported "the whole spec" for every call, including
+   * the ones that were a two-line selection. Capture stores the words AND
+   * their offsets together; Keep splices from the stored offsets, guarded by
+   * the document snapshot taken at dispatch (see `keepProposal`).
    *
-   * It matters because selecting nothing SILENTLY means the whole document, so
-   * this is the one control on the surface where a person can be wrong about
-   * what they just asked for.
+   * It matters because selecting nothing SILENTLY meant the whole document in
+   * the old bar. The anchored bar cannot appear without a selection, so the
+   * whole-document case is now explicit: select all first.
    */
+  const [phase, setPhase] = useState<SelectionPhase>("idle");
+  const [proposal, setProposal] = useState<SelectionProposal | null>(null);
+  const [assistError, setAssistError] = useState<string | null>(null);
   const [assistScope, setAssistScope] = useState("");
+  const [selRects, setSelRects] = useState<Array<SelectionRect> | null>(null);
+  const [picked, setPicked] = useState<{ start: number; end: number; text: string } | null>(null);
+  /** Bumped whenever a loop ends or is abandoned, so a slow response from an
+   *  abandoned run can never land its result into a newer one. */
+  const loopEpoch = useRef(0);
+  const lastRun = useRef<(SelRun & { epoch: number }) | null>(null);
+
+  const settle = () => {
+    loopEpoch.current += 1;
+    setPhase("idle");
+    setProposal(null);
+    setAssistError(null);
+  };
+
+  /** Bound to the field's onSelect / onKeyUp / onMouseUp. Measures the passage
+   *  into client rects for the bar and records the words with their offsets. */
+  const captureSelection = () => {
+    const ta = taRef.current;
+    if (!ta) return;
+    setSelRects(measureSelectionRects(ta));
+    const start = ta.selectionStart ?? 0;
+    const end = ta.selectionEnd ?? 0;
+    setPicked(end > start ? { start, end, text: body.slice(start, end) } : null);
+    if (phase !== "idle") settle();
+  };
+
+  const runJob = (job: SelJob) => {
+    if (!picked || !picked.text.trim()) return;
+    const words = picked.text.trim().split(/\s+/).length;
+    setAssistScope(`${words} ${words === 1 ? "word" : "words"} selected`);
+    assist.mutate({ ...job, ...picked, base: body, epoch: ++loopEpoch.current });
+  };
 
   const assist = useMutation({
-    mutationFn: (action: "rewrite" | "expand" | "critique" | "shorten") => {
-      const ta = taRef.current;
-      const whole = !(ta && ta.selectionStart !== ta.selectionEnd);
-      const sel = whole ? body : body.slice(ta!.selectionStart, ta!.selectionEnd);
-      if (!sel.trim()) throw new Error("Select some text first (or have content to work on)");
-      const words = sel.trim().split(/\s+/).length;
-      setAssistScope(
-        whole
-          ? `the whole spec, ${words} words`
-          : `${words} ${words === 1 ? "word" : "words"} selected`,
-      );
-      return mAssist({ data: { action, selection: sel, context: body.slice(0, 4000) } });
+    mutationFn: (v: SelRun & { epoch: number }) => {
+      lastRun.current = v;
+      const shared = { selection: v.text, context: v.base.slice(0, 4000) };
+      return v.kind === "verb"
+        ? mAssist({ data: { action: v.action, ...shared } })
+        : mAssist({ data: { mode: "instruct", instruction: v.instruction, ...shared } });
     },
-    onSuccess: (r) => {
-      const ta = taRef.current;
-      if (!ta) return;
-      const start = ta.selectionStart,
-        end = ta.selectionEnd;
-      const next =
-        start !== end ? body.slice(0, start) + r.text + body.slice(end) : body + "\n\n" + r.text;
-      // The rewritten text lands in the editor in front of you. That IS the
-      // confirmation, so there is nothing left for a toast to say.
-      setBody(next);
+    onMutate: () => {
+      setAssistError(null);
+      setPhase("working");
     },
-    onError: (e: Error) => commit("The rewrite did not land", e.message, true),
+    onSuccess: (r, v) => {
+      if (loopEpoch.current !== v.epoch) return;
+      setProposal({ before: v.text, after: r.text });
+      setPhase("ready");
+    },
+    onError: (e: Error) => {
+      if (loopEpoch.current !== (lastRun.current?.epoch ?? NaN)) return;
+      setAssistError(e.message || "The crew could not reach the model. Nothing was changed.");
+      setPhase("error");
+    },
   });
+
+  /**
+   * Keep applies the returned passage at the captured offsets. GUARDED BY THE
+   * DOCUMENT SNAPSHOT: if the writer kept typing while the crew worked, the
+   * stored offsets no longer name the same words and a blind splice would land
+   * the edit somewhere else entirely. Rather than guess, say what happened and
+   * ask for a fresh selection.
+   */
+  const keepProposal = () => {
+    if (!proposal || !lastRun.current) return;
+    const { start, end, base } = lastRun.current;
+    if (body !== base) {
+      setProposal(null);
+      setAssistError(
+        "You kept writing while the crew worked, so the edit has nowhere safe to land. Select the passage again.",
+      );
+      setPhase("error");
+      return;
+    }
+    // The edit lands in the editor in front of you. Save stays explicit, as it
+    // has always been on this surface.
+    setBody(body.slice(0, start) + proposal.after + body.slice(end));
+    settle();
+  };
 
   /**
    * State one of four: reading.
@@ -1778,28 +1857,20 @@ function SpecEditorPage() {
             sub={
               assist.isPending ? (
                 // `prdAssist` is a chokepoint call, so the indicator is honest.
-                // The detail is the ACTION the person chose plus how much text is
-                // under it, which is the pair that answers "is it working on the
-                // paragraph I meant, or the whole document" - the one real
-                // ambiguity in this control, since selecting nothing silently
-                // means the whole spec.
-                // No mark, because the four assist actions are one model call and
-                // not a named agent, and a mark here would claim a worker that is
-                // not there.
+                // The detail says how much text is under the handoff, which
+                // answers "is it working on the paragraph I meant". The verb or
+                // instruction itself shows in the anchored bar, so it is not
+                // repeated here.
+                // No mark, because this is one model call and not a named agent,
+                // and a mark here would claim a worker that is not there.
                 <AgentPulse
-                  label="The crew is rewriting your selection"
-                  seed={`assist-${assist.variables ?? ""}`}
+                  label="The crew is editing your selection"
+                  seed={`assist-${assist.variables?.kind ?? ""}`}
                   compact
-                  detail={
-                    <>
-                      {assist.variables ? ASSIST_LABEL[assist.variables].toLowerCase() : "editing"}
-                      {" · "}
-                      {assistScope}
-                    </>
-                  }
+                  detail={assistScope}
                 />
               ) : pane === "write" ? (
-                "The crew rewrites what you select. Select nothing and it works on the whole spec."
+                "Select a passage and the crew works on those words. Select all for the whole spec."
               ) : (
                 "The spec as it reads, with what it cites."
               )
@@ -1908,8 +1979,8 @@ function SpecEditorPage() {
             {pane === "write" ? (
               <>
                 {/* STILL A RAW CONTROL, AND THE REASON SURVIVED THE PORT INTACT.
-                  The assist mutation reads the SELECTION out of this element, so
-                  it needs a ref, and Meridian's `Textarea` types its props as
+                  The passage capture measures THIS element's selection, so it
+                  needs a ref, and Meridian's `Textarea` types its props as
                   `TextareaHTMLAttributes`, which does not include one — passing
                   a ref would not typecheck even though React 19 would forward
                   it. So this wears the field paint rather than the component.
@@ -1928,6 +1999,9 @@ function SpecEditorPage() {
                   ref={taRef}
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
+                  onSelect={captureSelection}
+                  onKeyUp={captureSelection}
+                  onMouseUp={captureSelection}
                   aria-label="Spec body, markdown"
                   spellCheck={false}
                   rows={26}
@@ -1938,24 +2012,34 @@ function SpecEditorPage() {
                     transitionDuration: "var(--mrd-d-press)",
                   }}
                 />
-                {/* `Actions` SETS NO OUTER MARGIN, deliberately: the retired
-                    `.sp-acts` baked `margin-top: 16px` into the component, so a
-                    caller who wanted it elsewhere could not say so. 16px is what
-                    both of this file's mid-content action rows already stood at,
-                    and `mrd-5` is that number, so the space is preserved and now
-                    has an owner. */}
-                <Actions className="mt-mrd-5">
-                  {ASSIST_ACTIONS.map((a) => (
-                    <Action
-                      key={a}
-                      variant="quiet"
-                      busy={assist.isPending}
-                      onClick={() => assist.mutate(a)}
-                    >
-                      {ASSIST_LABEL[a]}
-                    </Action>
-                  ))}
-                </Actions>
+                {/* THE PASSAGE BAR, anchored over the words themselves. It
+                    replaces the always-visible four-verb row: verbs now live
+                    beside the words they act on, appear only when there is
+                    something selected, and carry their own working, ready and
+                    error states. `taRef` is the clamp container -- fixed
+                    positioning against client rects means no offset-parent
+                    arithmetic. Escape leaves the mode, like every mode here. */}
+                <SelectionActions
+                  rects={selRects}
+                  containerRef={taRef}
+                  phase={phase}
+                  workingLabel="The crew is on your words."
+                  error={assistError}
+                  proposal={proposal}
+                  actions={ASSIST_ACTIONS.map((a) => ({
+                    key: a,
+                    label: ASSIST_LABEL[a],
+                    onRun: () => runJob({ kind: "verb", action: a }),
+                  }))}
+                  onInstruct={(instruction) => runJob({ kind: "instruct", instruction })}
+                  onKeep={keepProposal}
+                  onDiscard={settle}
+                  onDismissError={settle}
+                  onRetry={() => {
+                    if (lastRun.current) assist.mutate(lastRun.current);
+                  }}
+                  onDismiss={settle}
+                />
                 {/* Advice about the words while you are writing them, so it stays
                   with the state that can act on it. It reads the contract
                   alongside the body (see `readinessText`), so a dimension
