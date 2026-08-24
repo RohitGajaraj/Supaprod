@@ -11,7 +11,7 @@ import {
   Region,
   Value,
 } from "@/components/meridian/surface-parts";
-import { WorkGlyph } from "@/components/meridian/work-glyphs";
+import { WorkGlyph, type WorkGlyphKind } from "@/components/meridian/work-glyphs";
 import { getForecastCalibration } from "@/lib/brain-insights.functions";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -485,8 +485,19 @@ function feedInstant(iso: string | null | undefined, fallback: string): number {
 /** A section heading: the name that says whose move it is, with the real count
  *  beside it. Same grammar as every eyebrow in the system. */
 function FeedHead({ name, count }: { name: string; count: number }) {
+  const kind: WorkGlyphKind | null =
+    name === FEED_CALLS
+      ? "call"
+      : name === FEED_REPLY
+        ? "reply"
+        : name === FEED_LIVE
+          ? "run"
+          : name === FEED_OPEN
+            ? "finished"
+            : null;
   return (
-    <div className="flex items-baseline gap-2">
+    <div className="flex items-center gap-2">
+      {kind ? <WorkGlyph kind={kind} /> : null}
       <h3 className="mrd-eyebrow">{name}</h3>
       <span className="font-mrd-mono tabular-nums text-mrd-faint">{count}</span>
     </div>
