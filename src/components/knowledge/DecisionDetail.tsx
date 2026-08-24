@@ -70,6 +70,9 @@ import {
   forecastRefusal,
   type DecisionSource,
 } from "@/lib/decisions.functions";
+import { getForecastHistory } from "@/lib/forecast.functions";
+import { FORECAST_SAYS } from "@/components/learn/forecast-words";
+import type { ForecastResolution } from "@/lib/brain/forecast-resolution";
 import { getDecisionShareState, setDecisionShared } from "@/lib/decisions-share.functions";
 import { getDecisionJudgment } from "@/lib/decision-judgment.functions";
 import { getLineage } from "@/lib/lineage.functions";
@@ -222,6 +225,7 @@ function ForecastBlock({
   onChanged: () => void;
 }) {
   const fForecast = useServerFn(setDecisionForecast);
+  const fHistory = useServerFn(getForecastHistory);
   const [open, setOpen] = useState(false);
   const [claim, setClaim] = useState("");
   const [know, setKnow] = useState("");
@@ -252,6 +256,15 @@ function ForecastBlock({
     },
     onError: (e: Error) => setProblem(e.message),
   });
+
+  // THE TRAIL, read per opened detail and failing soft server-side. A verdict
+  // that was graded, reopened and re-graded reads as history here; a first
+  // verdict reads as nothing, which is the honest shape of "no history".
+  const history = useQuery({
+    queryKey: ["forecast-history", d.id],
+    queryFn: () => fHistory({ data: { decisionId: d.id } }),
+  });
+  const trail = history.data?.history ?? [];
 
   const recorded = d.forecast_claim != null;
   const resolutionWord =
@@ -300,6 +313,23 @@ function ForecastBlock({
                 })
               : "an unset date"}
           </p>
+          {trail.length > 0 ? (
+            <div className="mt-mrd-2">
+              {/* REVERSED HISTORY, oldest first: what was graded before, who
+                  reopened it and why. Each entry is one filed verdict - the
+                  log lands before the clear, by the write's own safety order. */}
+              <p className="text-mrd-base text-mrd-faint">Earlier verdicts on this call</p>
+              {trail.map((h, i) => (
+                <p key={i} className="text-mrd-base text-mrd-mute">
+                  {h.resolution ? FORECAST_SAYS[h.resolution as ForecastResolution] : "A verdict"}
+                  {h.rationale ? `, ${h.rationale}` : ""}
+                  {h.resolvedByAgentSlug ? ` (settled by ${displayWho(h.resolvedByAgentSlug)})` : ""}
+                  {h.reopenedAt ? `, reopened ${ageOf(h.reopenedAt)}` : ""}
+                  {h.reason ? `: ${h.reason}` : ""}
+                </p>
+              ))}
+            </div>
+          ) : null}
         </>
       ) : d.status === "pending" && !open ? (
         <>

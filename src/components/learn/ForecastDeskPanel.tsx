@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Row, Line } from "@/components/meridian/rows";
 import { Action, Actions, ReadFailedLine, Region } from "@/components/meridian/surface-parts";
-import { Field, Textarea } from "@/components/meridian/forms";
+import { Field, Input, Textarea } from "@/components/meridian/forms";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -11,11 +11,117 @@ import {
   deferForecastCheck,
   listAgentSettledForecasts,
   getForecastCallRate,
+  reopenForecast,
   type DueForecast,
 } from "@/lib/forecast.functions";
+import { toast } from "@/lib/notify";
 import { FORECAST_SAYS } from "@/components/learn/forecast-words";
 import type { ForecastResolution } from "@/lib/brain/forecast-resolution";
 import { forecastGroupLabel, lateness, deferredNote } from "@/components/learn/forecast-desk-words";
+
+/**
+ * THE OVERSIGHT DOOR, not just the oversight list. "Settle one again by hand
+ * if you disagree" promised a way to disagree and the desk never shipped one:
+ * reopenForecast existed with no caller, so an agent verdict you rejected was
+ * a fact you could only stare at. Reopening demands a reason (the server
+ * enforces three characters minimum, and the reason IS the new history row),
+ * so the door opens into a one-line form rather than firing on a click.
+ */
+function AgentSettledRow({
+  r,
+  onReopened,
+}: {
+  r: {
+    id: string;
+    title: string | null;
+    forecast_claim: string | null;
+    forecast_resolution: string | null;
+    forecast_resolution_rationale: string | null;
+  };
+  onReopened: () => void;
+}) {
+  const fReopen = useServerFn(reopenForecast);
+  const [opening, setOpening] = React.useState(false);
+  const [reason, setReason] = React.useState("");
+  const [problem, setProblem] = React.useState<string | null>(null);
+
+  const reopen = useMutation({
+    mutationFn: () => fReopen({ data: { decisionId: r.id, reason: reason.trim() } }),
+    onSuccess: () => {
+      setOpening(false);
+      setReason("");
+      toast("The verdict is back on the desk. What the agent settled is filed in the trail.");
+      onReopened();
+    },
+    onError: (e: Error) => setProblem(e.message),
+  });
+
+  const canReopen = reason.trim().length >= 3 && !reopen.isPending;
+
+  return (
+    <div>
+      <Row
+        tight
+        lead={r.forecast_claim ?? r.title ?? ""}
+        sub={[
+          r.forecast_resolution
+            ? FORECAST_SAYS[r.forecast_resolution as ForecastResolution]
+            : null,
+          r.forecast_resolution_rationale,
+        ]
+          .filter(Boolean)
+          .join(" · ")}
+        action={
+          !opening ? (
+            <Action
+              variant="quiet"
+              onClick={() => {
+                setProblem(null);
+                setOpening(true);
+              }}
+            >
+              Disagree
+            </Action>
+          ) : undefined
+        }
+      />
+      {opening ? (
+        <form
+          className="mb-mrd-2 flex flex-col gap-mrd-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (canReopen) reopen.mutate();
+          }}
+        >
+          <Field label="Why is this verdict wrong?" htmlFor={`reopen-${r.id}`}>
+            <Input
+              id={`reopen-${r.id}`}
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              maxLength={1000}
+              placeholder="The reason becomes part of the trail"
+            />
+          </Field>
+          {problem ? <p className="text-mrd-fail text-mrd-base">{problem}</p> : null}
+          <Actions>
+            <Action type="submit" disabled={!canReopen}>
+              {reopen.isPending ? "Reopening" : "Reopen it"}
+            </Action>
+            <Action
+              variant="quiet"
+              onClick={() => {
+                setOpening(false);
+                setProblem(null);
+              }}
+            >
+              Keep the verdict
+            </Action>
+          </Actions>
+        </form>
+      ) : null}
+    </div>
+  );
+}
 
 /**
  * FC-01, the grading half: the surface where a due forecast is settled.
@@ -207,18 +313,13 @@ export function ForecastDeskPanel() {
           sub="Read these. Settle one again by hand if you disagree."
         >
           {agentSettled.map((r) => (
-            <Row
+            <AgentSettledRow
               key={r.id}
-              tight
-              lead={r.forecast_claim ?? r.title ?? ""}
-              sub={[
-                r.forecast_resolution
-                  ? FORECAST_SAYS[r.forecast_resolution as ForecastResolution]
-                  : null,
-                r.forecast_resolution_rationale,
-              ]
-                .filter(Boolean)
-                .join(" · ")}
+              r={r}
+              onReopened={() => {
+                qc.invalidateQueries({ queryKey: ["forecast-agent-settled"] });
+                qc.invalidateQueries({ queryKey: ["forecast-due"] });
+              }}
             />
           ))}
         </Region>
