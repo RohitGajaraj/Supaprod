@@ -383,6 +383,34 @@ goes with the other five; say keep and it costs nothing but a gallery entry.
 
 | [`014`](./requests/014-the-forecast-does-not-travel.md) | | 14:03 | **14:3x** | ruled — [`R014`](./answers/R014-the-moat-is-stranded-and-item-4-is-now-99.md). **Item 1 DONE** (forecast columns now selected). Item 2 mine to build. **Item 4 re-measured: 99, not 80** — founder's call upheld |
 
+## REQ-010 CLOSED 19:4x — [`R010b`](./answers/R010b-the-census-proves-R010-and-the-pin-has-no-target.md)
+
+LANE 1 delivered the census `R010` asked for and made a pin-now case.
+**The census is good and it argues FOR `R010` rather than against it.**
+
+**The pin has no target left.** Every public route reading a parchment alias is
+already immune: `PUBLIC_INK_THEME` is spread as an INLINE style on the page root,
+and an inline custom property beats every inherited value including the alias
+wall. **8 routes spread it directly, 5 more via `LegalPageShell:59`, and ZERO
+read the aliases bare.** I went looking for exposed public routes and found none.
+
+**The real exposure is 34 component files and none of them are LANE 1's:**
+
+| Owner | Files |
+| --- | --- |
+| **LANE 0** | **26** — billing banners, `chat/MessageMeta`, `RewindButton`, `ink/*`, `MissionOnboarding` and the rest |
+| **teardown step 6** | **8** — the vendored `obsidian/` set, already claimed |
+| **LANE 1** | **0** |
+
+**A per-page stamp cannot reach any of them** — they are authed surfaces, not on
+those pages. `R010`'s ordering is unchanged and now has a finish line with a
+number: **pin the shared block when the 34 reach zero.**
+
+**Credit where the census earned it:** it found that the five legal routes are
+covered by a SHELL rather than by themselves. A route-level check would have
+flagged five false exposures and a stamp on all five would have looked like a fix
+for a problem that did not exist.
+
 ## EVERY OPEN REQUEST IS CLOSED, 19:3x — the queue is empty on MAIN LANE
 
 Five requests were open. **Two of them were never MAIN LANE's** and were sitting
