@@ -252,13 +252,13 @@ import {
   Commit,
   ContextLine,
   ContextNote,
-  PersonMark,
   RunGate,
   RunMark,
   RunRow,
   Textarea,
   type RunMarkState,
 } from "@/components/runs/run-parts";
+import { YouMark } from "@/components/meridian/marks";
 import {
   Actions,
   Approve,
@@ -1042,7 +1042,7 @@ function BuildRun() {
         <RunRow
           key="asked"
           tight
-          mark={<PersonMark initials={initials} mine />}
+          mark={<YouMark initials={initials} mine size="row" />}
           lead="You asked for it"
           sub={clip(mission.goal, 150)}
           time={ago(mission.created_at)}
@@ -1274,7 +1274,7 @@ function BuildRun() {
         <ContextNote head="What happens next">
           {call ? (
             <ContextLine
-              mark={<PersonMark initials={initials} mine />}
+              mark={<YouMark initials={initials} mine size="row" />}
               name="You decide, now"
               sub="the call at the top of this page"
             />
@@ -1287,7 +1287,7 @@ function BuildRun() {
           ) : null}
           {mergeStillYours ? (
             <ContextLine
-              mark={<PersonMark initials={initials} />}
+              mark={<YouMark initials={initials} size="row" />}
               name="Then you merge it"
               sub="nothing merges itself"
             />
@@ -1608,7 +1608,7 @@ function BuildRun() {
                 <RunRow
                   key={s.id}
                   tight
-                  mark={<PersonMark initials={initials} mine />}
+                  mark={<YouMark initials={initials} mine size="row" />}
                   lead={s.message}
                   sub={s.consumed ? "It read this" : "Not read yet"}
                   time={ago(s.created_at)}

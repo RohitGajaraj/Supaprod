@@ -2,6 +2,7 @@ import * as React from "react";
 
 import { glyphForSlug } from "@/components/shell/agent-glyphs";
 import { Action, ACTION_LINK_FACE, CONTROL_SHAPE, Eyebrow } from "@/components/meridian/surface-parts";
+import { YouMark } from "@/components/meridian/marks";
 import { agentBlurb, agentDisplayName } from "@/lib/agent-vocabulary";
 import type { RunState } from "./run-state";
 
@@ -198,35 +199,6 @@ export function RunMark({
  *  so the crew reads as the subject of the sentence rather than as more of it. */
 export function Actor({ children }: { children: React.ReactNode }) {
   return <span className="font-medium text-mrd-ink">{children}</span>;
-}
-
-/**
- * YOU. A filled disc carrying your initials, so a person is a different KIND of
- * object in the ledger from an agent rather than a different colour of the same
- * one. The agents are outlined glyphs; you are solid.
- *
- * `mine` lights it orchid, and ONLY when the moment is genuinely yours -- the
- * thing you just did, or the call now waiting on you. A steer you sent last week
- * is history, not a summons, so it wears the neutral face. Spending the accent
- * on every appearance of your own initials is how the accent stops meaning "a
- * person is required" and starts meaning "a person exists".
- */
-export function PersonMark({ initials, mine = false }: { initials: string; mine?: boolean }) {
-  return (
-    <span
-      data-mrd=""
-      role="img"
-      aria-label="You"
-      // 8px is a monogram fitted to a 16px circle, not a type stop: a screen
-      // reader reads "You", never these initials. Consolidation with Meridian's
-      // YouMark (size prop or deletion) filed in REQ-L0-005 addendum 3 follow-up.
-      className={`flex size-4 shrink-0 items-center justify-center rounded-full text-[8px] font-[650] ${
-        mine ? "bg-mrd-you text-mrd-on-you" : "bg-mrd-lift text-mrd-mute"
-      }`}
-    >
-      {initials}
-    </span>
-  );
 }
 
 /* ------------------------------------------------------------------ *
@@ -568,7 +540,7 @@ export function Commit({
     >
       {initials ? (
         <span className="self-start">
-          <PersonMark initials={initials} mine />
+          <YouMark initials={initials} mine size="row" />
         </span>
       ) : null}
       <span className="min-w-0 flex-1">

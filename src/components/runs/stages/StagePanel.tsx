@@ -131,7 +131,6 @@ import {
   Button,
   Cards,
   Fact,
-  PersonMark,
   Recess,
   RunCard,
   RunMark,
@@ -146,6 +145,7 @@ import {
   Reading,
   Region,
 } from "@/components/meridian/surface-parts";
+import { YouMark } from "@/components/meridian/marks";
 
 /* ------------------------------------------------------------------ *
  * Formatting. Local on purpose, the same reason the run surface keeps
@@ -239,7 +239,7 @@ function actorName(actor: string): string {
  *  its own, and "system" gets nothing: a cron is machinery, and machinery
  *  stays behind the Engine Room door. */
 function ActorMark({ actor, initials }: { actor: string; initials: string }) {
-  if (actor === "human") return <PersonMark initials={initials} />;
+  if (actor === "human") return <YouMark initials={initials} size="row" />;
   if (actor === "system") return null;
   return <RunMark slug={actor} state="done" />;
 }
@@ -385,7 +385,7 @@ function Decide({
           e.decidedByAgentSlug ? (
             <RunMark slug={e.decidedByAgentSlug} state="done" />
           ) : (
-            <PersonMark initials={initials} />
+            <YouMark initials={initials} size="row" />
           )
         }
         lead={`${who} made the call`}
@@ -517,12 +517,12 @@ function Design({
       onGoTo={onOpen}
     >
       {/* THE ONE ORCHID IN THE WHOLE SET, and only when a human really is the
-          thing standing between this drawing and the build. `PersonMark mine`
+          thing standing between this drawing and the build. `YouMark mine`
           is the accent, and it is spent here because this is the definition of
           the case it exists for: the moment is yours, and touching it moves it. */}
       {waiting ? (
         <RunRow
-          mark={<PersonMark initials={initials} mine />}
+          mark={<YouMark initials={initials} mine size="row" />}
           lead="Waiting on your call"
           sub="nothing builds from this drawing until you decide"
         />
@@ -770,7 +770,7 @@ function Learn({
       ) : (
         <RunRow
           tight
-          mark={<PersonMark initials={initials} />}
+          mark={<YouMark initials={initials} size="row" />}
           lead="You recorded it"
           sub={e.viaMission ? "against this run" : "against the spec"}
           time={ago(e.at)}
