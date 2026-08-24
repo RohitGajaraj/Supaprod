@@ -179,6 +179,12 @@ export const TOOL_DEFAULTS: Readonly<
   "release.publish": { mode: "review", enabled: true, label: "Publish a release" },
   "studio.pr.merge": { mode: "review", enabled: true, label: "Merge a PR" },
   "studio.revert": { mode: "review", enabled: true, label: "Revert a change" },
+  // SHIP'S READ DOOR. Auto like every other read: release.publish was the
+  // station's only tool for months, so an agent could ship but not ask "what
+  // already shipped?" -- and a crew that cannot look re-proposes shipped work.
+  "ship.list_releases": { mode: "auto", enabled: true, label: "List shipped releases" },
+  "ship.get_release": { mode: "auto", enabled: true, label: "Read a release" },
+  "ship.in_production": { mode: "auto", enabled: true, label: "What is live in production" },
   // 07 Learn
   "learning.record": { mode: "confirm", enabled: true, label: "Record a learning" },
 

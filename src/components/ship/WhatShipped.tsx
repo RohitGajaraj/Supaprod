@@ -287,7 +287,6 @@ export type PrdSource = {
   outcome: unknown;
   design_gate_status: string | null;
   design_decided_at: string | null;
-  design_decided_by: string | null;
   /** The armed outcome window's check-back day, written at promote. Optional
    *  because rows read before the column existed carry nothing here. */
   outcome_check_by?: string | null;
@@ -1128,7 +1127,6 @@ export function AssembledRelease({
         outcome: (prdRow as Bag).outcome,
         design_gate_status: str((prdRow as Bag).design_gate_status),
         design_decided_at: str((prdRow as Bag).design_decided_at),
-        design_decided_by: str((prdRow as Bag).design_decided_by),
         outcome_check_by: str((prdRow as Bag).outcome_check_by),
       } as PrdSource)
     : null;

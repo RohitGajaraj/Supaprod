@@ -146,6 +146,33 @@ const CONSEQUENCES: Record<string, ToolConsequence> = {
     reversible: "irreversible",
     undo: "It is live. Undoing means shipping a revert.",
   },
+  /*
+   * ── THE SHIP READS, CATALOGUED WITH THE TOOLS THAT NEED THEM ─────────────
+   * release.publish was Ship's only tool, so the crew could ship but not ask
+   * "what already shipped?" -- and an agent that cannot look re-proposes
+   * shipped work. Registered as reads beside their brain.* and prd.* siblings;
+   * without these rows they score `high` on toolRisk and are silently demoted
+   * from auto to confirm, which is a permission click on CHECKING WHETHER
+   * SOMETHING ALREADY SHIPPED -- exactly the click that makes an agent skip
+   * the check.
+   */
+  "ship.list_releases": {
+    effect:
+      "Lists this workspace's merged releases, newest first, with production state.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
+  "ship.get_release": {
+    effect:
+      "Reads one release in full: summary, pull request, specs shipped, deploys and changelog entry.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
+  "ship.in_production": {
+    effect: "Lists what is currently live in production, newest deploy first.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
   "prd.link_issue": {
     effect: "Links the spec to a tracker issue.",
     reversible: "reversible",
@@ -570,6 +597,11 @@ const READ_ONLY_TOOLS = new Set<string>([
   // database read inside the workspace, nothing outlives the call.
   "prd.search",
   "prd.get",
+  // The ship reads (registry.server.ts ship.*): merged releases, one release,
+  // and live production state -- all database reads inside the workspace.
+  "ship.list_releases",
+  "ship.get_release",
+  "ship.in_production",
 ]);
 
 /** The mirror above as a list, exported for the drift guard only. The guard has
@@ -1328,6 +1360,27 @@ const RISK_PROFILE: Record<string, ToolRiskProfile> = {
     changeSurface: "narrow",
   },
   "prd.get": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  // The ship reads: internal workspace reads that hand back exactly what is
+  // stored (merged releases, one release, live production), `verified` like
+  // their brain.* and prd.* siblings above.
+  "ship.list_releases": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  "ship.get_release": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  "ship.in_production": {
     dataExposure: "internal",
     opsImpact: "none",
     verificationGap: "verified",

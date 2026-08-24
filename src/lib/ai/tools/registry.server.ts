@@ -4863,6 +4863,331 @@ const releasePublish = def({
   },
 });
 
+// ── ship.list_releases / ship.get_release / ship.in_production ────────────
+// · the crew's read door into SHIPPED WORK
+//
+// SHIP HAD A HAND AND NO EYES. release.publish writes the merge and the
+// production deploy, and until these three existed the crew could not ask the
+// station a single question back: "what already shipped?", "is there a merged
+// change for this?", "what is live right now?" were unanswerable mid-run. The
+// cost is concrete -- an agent proposing work with nothing warning it that the
+// same work shipped last week re-proposes it, and nothing downstream catches
+// the duplicate before a person reviews it.
+//
+// HOW THEY ARE BUILT, and what that buys:
+//
+//   · FRESH QUERIES, SHAPED LIKE THE HUMAN PATH'S OWN. Unlike brain.* and
+//     prd.*, there is no external MCP twin to lift -- the API surface has no
+//     ship reads either -- so each query follows the shape the person-facing
+//     code already uses: merged list = studio_changesets filtered
+//     status='merged', ordered updated_at desc (listAppliedChanges,
+//     studio.functions.ts); production state = deployments filtered
+//     environment='production', status='success' (listChangelog,
+//     changelog.functions.ts). When the human path changes shape, these change
+//     with it rather than drifting behind a second definition.
+//
+//   · TENANCY IS THE WORKSPACE, NOT THE USER. studio_changesets, deployments
+//     and changelog_entries are WORKSPACE artifacts: their SELECT policies are
+//     `is_workspace_member(workspace_id)` and the human ship paths scope them
+//     by workspace alone -- a member can see the release another member
+//     shipped, which is correct, because Ship belongs to the workspace. So
+//     every query here carries the explicit `.eq("workspace_id",
+//     ctx.workspaceId")` belt over that same RLS, and none filters user_id:
+//     filtering by user would hide half the workspace's shipped record from an
+//     agent standing inside it. Refusal without a context workspace matches
+//     the brain.* sentence exactly.
+//
+//   · LINKED SPECS CANNOT RELY ON prd_id ALONE. The column is stamped once at
+//     changeset creation and is null on most real rows (live, nine of nine
+//     real merged changesets carry null), while a mission can be dispatched
+//     from several specs. ship.get_release therefore walks the same valid-now
+//     prd->mission lineage edges closeOutSpecOnPromote walks. The helper that
+//     owns that walk (specsShippedByChangeset, deployments.functions.ts) is
+//     module-private and out of this change's edit scope, so the read is
+//     mirrored here rather than imported; if it is ever exported, replace this
+//     copy with the import so the two cannot drift.
+//
+//   · READS, AND SHAPED LIKE READS. No insert, update or delete anywhere in
+//     this section; category "read"; defaults auto -- consulting what already
+//     shipped must never cost a permission click, for the same reason the
+//     brain reads are auto: gate a look and agents decide from memory instead.
+
+const shipListReleases = def({
+  name: "ship.list_releases",
+  description:
+    'List what has already shipped in this workspace: merged releases, newest first, each carrying title, pull request, release date when a changelog entry exists, the spec it shipped for, and whether it is live in production right now. Before proposing or building anything, look here -- work proposed twice usually shipped once.',
+  category: "read",
+  argsSchema: z.object({
+    limit: z.number().int().min(1).max(50).optional(),
+  }),
+  preview: (a) => `List shipped releases (${a.limit ?? 20})`,
+  run: async (a, { supabase, workspaceId }) => {
+    if (!workspaceId)
+      throw new Error("ship.list_releases runs inside a workspace, and this run has none.");
+    const { data, error } = await supabase
+      .from("studio_changesets")
+      // One literal, not concatenated: the generated row types narrow on the
+      // literal and widen to an error union on a computed string.
+      .select("id,title,pr_url,pr_number,prd_id,updated_at")
+      .eq("workspace_id", workspaceId)
+      .eq("status", "merged")
+      .order("updated_at", { ascending: false })
+      .limit(a.limit ?? 20);
+    if (error) throw new Error(error.message);
+    const csRows = (data ?? []) as Array<{
+      id: string;
+      title: string;
+      pr_url: string | null;
+      pr_number: number | null;
+      prd_id: string | null;
+      updated_at: string;
+    }>;
+    if (!csRows.length) return { releases: [] };
+
+    const ids = csRows.map((r) => r.id);
+    // Both enrichments checked, never swallowed: an error read as absence would
+    // tell the crew a release is undated or not in production when the question
+    // was never answered.
+    const [{ data: chg, error: chgErr }, { data: deps, error: depErr }] = await Promise.all([
+      supabase
+        .from("changelog_entries")
+        .select("changeset_id,released_at")
+        .eq("workspace_id", workspaceId)
+        .in("changeset_id", ids),
+      supabase
+        .from("deployments")
+        .select("changeset_id")
+        .eq("workspace_id", workspaceId)
+        .eq("environment", "production")
+        .eq("status", "success")
+        .in("changeset_id", ids),
+    ]);
+    if (chgErr) throw new Error(chgErr.message);
+    if (depErr) throw new Error(depErr.message);
+
+    const releasedAt = new Map(
+      ((chg ?? []) as Array<{ changeset_id: string | null; released_at: string }>)
+        .filter((r) => r.changeset_id)
+        .map((r) => [r.changeset_id as string, r.released_at]),
+    );
+    const inProd = new Set(
+      ((deps ?? []) as Array<{ changeset_id: string | null }>)
+        .map((r) => r.changeset_id)
+        .filter((id): id is string => !!id),
+    );
+
+    return {
+      releases: csRows.map((r) => ({
+        id: r.id,
+        title: r.title,
+        pr_url: r.pr_url,
+        pr_number: r.pr_number,
+        released_at: releasedAt.get(r.id) ?? null,
+        spec_id: r.prd_id,
+        in_production: inProd.has(r.id),
+      })),
+    };
+  },
+});
+
+const shipGetRelease = def({
+  name: "ship.get_release",
+  description:
+    "Read ONE release in full by its changeset id: summary, pull request, the written release notes, the specs it shipped, every recorded deploy by environment with status and address, and its changelog entry. Use after ship.list_releases to see everything about one release before building something similar to it.",
+  category: "read",
+  argsSchema: z.object({
+    changeset_id: z.string().uuid(),
+  }),
+  preview: (a) => `Read release ${a.changeset_id.slice(0, 8)}`,
+  run: async (a, { supabase, workspaceId }) => {
+    if (!workspaceId)
+      throw new Error("ship.get_release runs inside a workspace, and this run has none.");
+    const { data, error } = await supabase
+      .from("studio_changesets")
+      .select(
+        "id,status,title,summary,repo,branch,pr_number,pr_url,release_notes,prd_id,mission_id,created_at,updated_at",
+      )
+      .eq("id", a.changeset_id)
+      .eq("workspace_id", workspaceId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) throw new Error("No release with that id is visible in this workspace.");
+    const cs = data as {
+      id: string;
+      status: string;
+      title: string;
+      summary: string | null;
+      repo: string;
+      branch: string | null;
+      pr_number: number | null;
+      pr_url: string | null;
+      release_notes: string | null;
+      prd_id: string | null;
+      mission_id: string | null;
+      created_at: string;
+      updated_at: string;
+    };
+
+    // EVERY spec this changeset shipped: the prd_id column plus the mission's
+    // still-valid prd edges, the same walk closeOutSpecOnPromote makes (see the
+    // section header for why it is mirrored here rather than imported).
+    type LineageRow = { parent_id: string | null; created_at: string | null };
+    let specIds = cs.prd_id ? [cs.prd_id] : [];
+    let lineageRead: "ok" | "skipped" | "failed" = "skipped";
+    if (cs.mission_id) {
+      const lin = await supabase
+        .from("artifact_lineage")
+        .select("parent_id,created_at")
+        .eq("parent_kind", "prd")
+        .eq("child_kind", "mission")
+        .eq("child_id", cs.mission_id)
+        .is("valid_to", null)
+        .order("created_at", { ascending: true })
+        .limit(20);
+      if (lin.error) {
+        lineageRead = "failed";
+      } else {
+        lineageRead = "ok";
+        for (const r of (lin.data ?? []) as LineageRow[]) {
+          if (r.parent_id && !specIds.includes(r.parent_id)) specIds.push(r.parent_id);
+        }
+      }
+    }
+    let specs: Array<{
+      id: string;
+      title: string | null;
+      status: string | null;
+      shipped_at: string | null;
+    }> = [];
+    if (specIds.length) {
+      const { data: prdRows, error: prdErr } = await supabase
+        .from("prds")
+        .select("id,title,status,shipped_at")
+        .eq("workspace_id", workspaceId)
+        .in("id", specIds);
+      if (prdErr) throw new Error(prdErr.message);
+      specs = ((prdRows ?? []) as typeof specs).sort(
+        (x, y) => specIds.indexOf(x.id) - specIds.indexOf(y.id),
+      );
+    }
+
+    const [{ data: depRows, error: depErr }, { data: chgRows, error: chgErr }] = await Promise.all([
+      supabase
+        .from("deployments")
+        .select("environment,status,deploy_url,deployed_at")
+        .eq("workspace_id", workspaceId)
+        .eq("changeset_id", cs.id)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("changelog_entries")
+        .select("title,body,released_at")
+        .eq("workspace_id", workspaceId)
+        .eq("changeset_id", cs.id)
+        .order("released_at", { ascending: false })
+        .limit(1),
+    ]);
+    if (depErr) throw new Error(depErr.message);
+    if (chgErr) throw new Error(chgErr.message);
+
+    const entry = ((chgRows ?? []) as Array<{ title: string; body: string | null; released_at: string }>)[0];
+
+    return {
+      id: cs.id,
+      status: cs.status,
+      title: cs.title,
+      summary: cs.summary,
+      repo: cs.repo,
+      branch: cs.branch,
+      pr_number: cs.pr_number,
+      pr_url: cs.pr_url,
+      release_notes: cs.release_notes,
+      linked_specs: specs,
+      lineage_read: lineageRead,
+      deployments: ((depRows ?? []) as Array<{
+        environment: string;
+        status: string;
+        deploy_url: string | null;
+        deployed_at: string | null;
+      }>),
+      changelog_entry: entry
+        ? {
+            title: entry.title,
+            body_excerpt: (entry.body ?? "").slice(0, 1500),
+            released_at: entry.released_at,
+          }
+        : null,
+    };
+  },
+});
+
+const shipInProduction = def({
+  name: "ship.in_production",
+  description:
+    'List what is live in production right now: each changeset\'s newest successful production deployment, newest first, with its title, address and when it went out. Check here before claiming anything is deployed and before proposing work that assumes something else went live.',
+  category: "read",
+  argsSchema: z.object({}),
+  preview: () => "List what is live in production",
+  run: async (_a, { supabase, workspaceId }) => {
+    if (!workspaceId)
+      throw new Error("ship.in_production runs inside a workspace, and this run has none.");
+    // Newest first, then de-duplicated to ONE row per changeset: a re-promote
+    // appends another success row for the same release, and listing both would
+    // answer "how many deploys" when the crew asked "what is live".
+    const { data, error } = await supabase
+      .from("deployments")
+      .select("changeset_id,deploy_url,deployed_at")
+      .eq("workspace_id", workspaceId)
+      .eq("environment", "production")
+      .eq("status", "success")
+      .not("changeset_id", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error) throw new Error(error.message);
+
+    const seen = new Set<string>();
+    const newestPerChangeset: Array<{
+      changeset_id: string;
+      deploy_url: string | null;
+      deployed_at: string | null;
+    }> = [];
+    for (const r of (data ?? []) as Array<{
+      changeset_id: string | null;
+      deploy_url: string | null;
+      deployed_at: string | null;
+    }>) {
+      if (!r.changeset_id || seen.has(r.changeset_id)) continue;
+      seen.add(r.changeset_id);
+      newestPerChangeset.push({
+        changeset_id: r.changeset_id,
+        deploy_url: r.deploy_url,
+        deployed_at: r.deployed_at,
+      });
+    }
+    if (!newestPerChangeset.length) return { live_count: 0, live: [] };
+
+    const { data: csRows, error: csErr } = await supabase
+      .from("studio_changesets")
+      .select("id,title")
+      .eq("workspace_id", workspaceId)
+      .in(
+        "id",
+        newestPerChangeset.map((r) => r.changeset_id),
+      );
+    if (csErr) throw new Error(csErr.message);
+    const titleById = new Map(
+      ((csRows ?? []) as Array<{ id: string; title: string }>).map((r) => [r.id, r.title]),
+    );
+
+    return {
+      live_count: newestPerChangeset.length,
+      live: newestPerChangeset.map((r) => ({
+        ...r,
+        title: titleById.get(r.changeset_id) ?? null,
+      })),
+    };
+  },
+});
+
 /**
  * roadmap.move — Plan stage.
  * Moves an opportunity to a Now/Next/Later roadmap bucket (or back to backlog),
@@ -5483,6 +5808,9 @@ export const TOOL_REGISTRY: Record<string, ToolDef> = Object.fromEntries(
     designDraft,
     learningRecord,
     releasePublish,
+    shipListReleases,
+    shipGetRelease,
+    shipInProduction,
     roadmapMove,
     backlogPrioritize,
     agentHandoff,
