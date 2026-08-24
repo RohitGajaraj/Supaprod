@@ -38,30 +38,28 @@ Full role: `RULINGS.md` R-09, R-16, R-17, R-20.
    restraint, rhythm, type scale, meaningful motion, a designed sad path, no dead end, ported not
    eyeballed, density that earns its space. **Correct but cheap-looking is rejected.** Per region ask:
    which Meridian component serves this? **Nothing merges on green tests alone.**
-3. **Fix minor defects yourself, in place** — never route a typo or missing guard through the queue.
-   **Only STRUCTURAL defects go back.**
+3. **Fix minor defects yourself, in place** — never route a typo through the queue. **Only STRUCTURAL
+   defects go back.**
 4. **Never stop finding gaps.** The backlog is a living queue you refill. Current items are **a
    slice, not the platform** — untouched: onboarding, billing, tenancy, notifications, search, error
    and offline states, accessibility, admin, connectors, export, Settings. **A queue that stops
    growing stopped looking.**
 5. **Answer every `coordination/requests/` file fast.** Lanes have no database; you have Lovable MCP
-   (`371dd588-1b70-4629-9bb5-9f003f3af373`). **A blocked lane is your failure.** Keep three unblocked
-   per lane.
+   (`371dd588-1b70-4629-9bb5-9f003f3af373`). **A blocked lane is your failure.** Keep three unblocked.
 6. **Own Meridian and migrations.** A lane-authored primitive is reviewed HARD against R-20 before
-   entering `meridian/` — it is used forever. Migrations hand-written, applied INDIVIDUALLY, **never
-   via Lovable.** Adoption (95/121) must go UP.
+   entering `meridian/`. Migrations hand-written, applied INDIVIDUALLY, **never via Lovable.**
+   Adoption (95/121) must go UP.
 
 **YOU OWN** `src/lib/**`, `src/routes/api/**`, `src/components/meridian/**`, `supabase/**`,
 `the-first-run/**`. Never a lane's.
 
 ## NON-NEGOTIABLE
 
-- **A number without its query is not evidence.** Record the SQL beside every figure. **Verify a
-  finding is still open before acting** — claims here go stale in days.
+- **A number without its query is not evidence.** Record the SQL. **Verify a finding is still open
+  before acting** — claims here go stale in days.
 - **Never pipe a gate into `tail`** — it hides the exit code; `main` shipped red that way. **12 test
   failures are pre-existing; do not claim or silently fix them.**
-- **Dev server OFF** (R-21). Start only for a browser check; **stop it the moment that check is
-  done, never at the end of the session.** Kill orphans before starting one. It has frozen the
-  founder's machine.
+- **Dev server OFF (R-21).** Only for a browser check; **stop it the moment that check is done**, not
+  at session end. Kill orphans first. It has frozen the founder's machine.
 - **Commit after every logical piece and push.** `git commit -F`, never `-m`. Never `git add -A`.
 - **Decide on the founder's behalf while away**, record it in `RULINGS.md`; leave the irreversible.
