@@ -2,19 +2,17 @@
  * THE BAR A PASSAGE SELECTION PUTS OVER ITS OWN WORDS.
  *
  * ── WHAT IT IS ──────────────────────────────────────────────────────────
- * A reader selects a passage of prose -- in a textarea today, in rendered text
- * tomorrow -- and this bar appears anchored to those words and hands them to an
- * agent. It lands on the spec editor first, then the PRD and the release
- * document. It shares three quarters of its name with `BulkBar` (the row-count
- * strip) and none of its job; the two were named apart on purpose, see
- * `surface-parts.tsx` around BulkBar's header for the collision record.
+ * A reader selects a passage of prose -- in a textarea, or in rendered text --
+ * and this bar appears anchored to those words and hands them to an agent. It
+ * serves two hosts: the spec editor's markdown textarea through
+ * `measureSelectionRects`, and rendered document prose through `rangeToRects`.
  *
  * NOT the same component as Discover's local `SelectionBar`, which takes a
  * `Selection` of ROW IDS, a total and a noun. Nothing on that API can hold a
  * passage, and nothing here can hold rows. The near-name is reported in both
  * headers rather than merged away.
  *
- * ── THE FOUR PHASES, IN THE FOUNDER'S WORDS ─────────────────────────────
+ * ── THE FOUR PHASES ─────────────────────────────────────────────────────
  *
  *   idle     Nothing handed. The verbs wait beside your words.
  *   working  Handed over, and the crew is on it.
@@ -23,35 +21,47 @@
  *
  * The bar renders whenever the loop is anywhere other than fully at rest:
  * hidden ONLY when `rects` is null AND phase is idle. A selection that has been
- * handed off keeps its highlight and its bar even after the textarea itself
- * drops the native selection to button focus -- the reader must still be able
- * to see WHAT is being worked on.
+ * handed off keeps its highlight and its bar even after the host drops the
+ * native selection -- the reader must still be able to see WHAT is being worked
+ * on.
  *
  * ── WHY RECTS, NOT A RANGE ───────────────────────────────────────────────
  * The component takes `rects: Array<{x,y,width,height}> | null` rather than a
- * live DOM `Range`. A textarea's selection is two integers (`selectionStart` /
- * `selectionEnd`) with no Range object and no client geometry at all -- the
- * most common prose host here cannot feed a Range-based API. Rects are the
- * common denominator both hosts can produce: a textarea via the mirror-div
- * measurement below (`measureSelectionRects`), rendered prose by walking a
+ * live DOM `Range`. Rects are the common denominator both hosts produce: a
+ * textarea via the mirror-div measurement below, rendered prose by walking a
  * real Range's `getClientRects()` (`rangeToRects`). Coordinates are CLIENT
  * coordinates, because that is what both producers yield natively and what
  * fixed positioning consumes without offset-parent arithmetic.
  *
- * ── MEASUREMENT: THE MIRROR DIV ──────────────────────────────────────────
+ * ── MEASUREMENT: THE MIRROR DIV, AND THE PITCH IT MEASURES ──────────────
  * `measureSelectionRects(textarea)` clones the field's typography into an
  * off-screen mirror div, replays the value up to `selectionEnd` with invisible
  * marker spans dropped at `selectionStart`, and reads the markers' offsets
- * back as geometry. One rect when the selection sits on one visual line;
- * first-line / middle-band / last-line approximation across a wrapped or
- * multi-line span -- good enough to anchor a toolbar and wash the passage,
- * which is all v1 claims. Empty selection returns null; callers treat null as
- * "nothing to attach to".
+ * back as geometry.
+ *
+ * THE DEFECT THIS VERSION FIXES, reproduced in a live browser 2026-08-24: the
+ * old code classified a selection as single-line or multi-line by comparing
+ * the two markers' TOPS against HALF A GUESSED line height -- guessed as
+ * `parseFloat(computedLineHeight)` or, when that reads "normal", as
+ * fontSize x 1.5. On a field whose computed line-height is `normal`, a
+ * SINGLE-line selection whose markers sat one visual row apart (the end marker
+ * after wrapped text) measured a delta far above half the guess, took the
+ * multi-line path, and sprouted PHANTOM BANDS below the real row. The washes
+ * painted over lines the reader never selected and the bar anchored against a
+ * fiction, so it landed ON the words. Under scroll the drift grew.
+ *
+ * The fix is to stop guessing the row pitch and MEASURE it from the mirror
+ * itself: a probe span one forced break below the end marker returns the true
+ * distance from one row's top to the next, whatever the field's line-height
+ * resolves to. Same-row classification and every band height read from that
+ * one number.
+ *
+ * Empty selection returns null; callers treat null as "nothing to attach to".
  */
 
 import * as React from "react";
-import { Action, Actions } from "./surface-parts";
 import { Input } from "./forms";
+import { Action } from "./surface-parts";
 
 /** One measured band of a selection, in client coordinates. */
 export type SelectionRect = { x: number; y: number; width: number; height: number };
@@ -65,7 +75,9 @@ export type SelectionAction = { key: string; label: string; onRun: () => void };
 /** What came back from the agent, held as a pair until Keep or Discard settles it. */
 export type SelectionProposal = { before: string; after: string };
 
-const BAR_GAP = 8;
+/** Space between the bar and the passage it anchors to. */
+const BAR_GAP = 6;
+/** Minimum distance between the bar and its clamp container's edges. */
 const EDGE_PAD = 8;
 
 /* ------------------------------------------------------------------ *
@@ -74,9 +86,8 @@ const EDGE_PAD = 8;
 
 /**
  * Flatten a DOM Range into per-client-rect bands, for prose consumers that
- * hold a real Range. Provided so the next consumer (rendered markdown, not a
- * textarea) converts rather than reinvents; the spec editor's textarea path
- * uses `measureSelectionRects` instead.
+ * hold a real Range. The rendered-document host converts with this; the
+ * textarea host uses `measureSelectionRects` instead.
  */
 export function rangeToRects(range: Range): Array<SelectionRect> {
   return Array.from(range.getClientRects()).map((r) => ({
@@ -126,21 +137,15 @@ function mirrorStyleFor(ta: HTMLTextAreaElement): Record<string, string> {
   return picked;
 }
 
-/** Where a zero-width marker span landed, relative to the mirror's content box. */
-function markerOffset(mark: HTMLElement): { top: number; left: number } {
-  return { top: mark.offsetTop, left: mark.offsetLeft };
-}
-
 /**
  * Measure a textarea's current selection into client-coordinate rects, using
- * the mirror-div technique: clone the field's typography, replay the value up
- * to the selection end with markers at the start, and read the markers back.
- * Returns null for an empty (or degenerate) selection.
+ * the mirror-div technique described in the header. Returns null for an empty
+ * (or degenerate) selection.
  *
- * Multi-line spans come back as three bands -- the first line from the start
- * marker to the line's end, the full-width middle band, and the last line up
- * to the end marker. An honest v1 approximation; refine per-line when a
- * consumer actually needs pixel-exact multi-line washes.
+ * One rect when the selection sits on one visual line. Across a wrapped or
+ * multi-line span: first row, full-width middle band, last row. The row pitch
+ * every one of those heights reads is MEASURED off this mirror with a probe
+ * mark, not derived from a style string that may say "normal".
  */
 export function measureSelectionRects(ta: HTMLTextAreaElement): Array<SelectionRect> | null {
   if (typeof document === "undefined") return null;
@@ -162,25 +167,34 @@ export function measureSelectionRects(ta: HTMLTextAreaElement): Array<SelectionR
   s.left = "-9999px";
 
   const tr = ta.getBoundingClientRect();
+  const cs = getComputedStyle(ta);
+  const fallbackPitch =
+    Number.isFinite(parseFloat(cs.lineHeight)) && parseFloat(cs.lineHeight) > 0
+      ? parseFloat(cs.lineHeight)
+      : parseFloat(cs.fontSize) * 1.6;
   const openAt = (mark: string) => `<span data-mark="${mark}"></span>`;
+  // The pitch probe sits ONE FORCED BREAK below the end marker, so
+  // probe.top - end.top is the mirror's true distance from one row's top to
+  // the next. It only shifts content AFTER itself, which nothing reads.
   mirror.innerHTML =
     openAt("start") +
     value.slice(0, end).replace(/\n/g, "<br>") +
     openAt("end") +
+    "<br>" +
+    openAt("pitch") +
     value.slice(end).replace(/\n/g, "<br>");
   document.body.appendChild(mirror);
 
   try {
     const startMark = mirror.querySelector<HTMLElement>('[data-mark="start"]');
     const endMark = mirror.querySelector<HTMLElement>('[data-mark="end"]');
-    if (!startMark || !endMark) return null;
-    const a = markerOffset(startMark);
-    const b = markerOffset(endMark);
+    const pitchMark = mirror.querySelector<HTMLElement>('[data-mark="pitch"]');
+    if (!startMark || !endMark || !pitchMark) return null;
+    const a = { top: startMark.offsetTop, left: startMark.offsetLeft };
+    const b = { top: endMark.offsetTop, left: endMark.offsetLeft };
+    const measuredPitch = pitchMark.offsetTop - b.top;
+    const rowH = Math.max(Number.isFinite(measuredPitch) && measuredPitch > 0 ? measuredPitch : 0, fallbackPitch);
 
-    const cs = getComputedStyle(ta);
-    const declaredLine = parseFloat(cs.lineHeight);
-    const lineH =
-      Number.isFinite(declaredLine) && declaredLine > 0 ? declaredLine : parseFloat(cs.fontSize) * 1.5;
     // Marker offsets are read from the mirror's border edge and already carry
     // its padding, so the client origin is the FIELD's border edge shifted by
     // whatever the field itself has scrolled away. `clientLeft`/`clientTop`
@@ -190,26 +204,24 @@ export function measureSelectionRects(ta: HTMLTextAreaElement): Array<SelectionR
     const originY = tr.top + ta.clientTop - ta.scrollTop;
     const contentW = mirror.clientWidth;
 
-    const toClient = (o: { top: number; left: number }) => ({
-      x: originX + o.left,
-      y: originY + o.top,
-    });
-    const p0 = toClient(a);
-    const p1 = toClient(b);
-
-    if (Math.abs(b.top - a.top) < lineH / 2) {
-      const width = Math.max(p1.x - p0.x, 2);
-      return [{ x: p0.x, y: p0.y, width, height: lineH }];
+    if (Math.abs(b.top - a.top) < rowH / 2) {
+      const width = Math.max(b.left - a.left, 2);
+      return [{ x: originX + a.left, y: originY + a.top, width, height: rowH }];
     }
 
     const rects: Array<SelectionRect> = [];
-    rects.push({ x: p0.x, y: p0.y, width: Math.max(contentW - a.left, 8), height: lineH });
-    const midTop = p0.y + lineH;
-    const midBottom = p1.y;
+    rects.push({
+      x: originX + a.left,
+      y: originY + a.top,
+      width: Math.max(contentW - a.left, 8),
+      height: rowH,
+    });
+    const midTop = originY + a.top + rowH;
+    const midBottom = originY + b.top;
     if (midBottom - midTop > 1) {
-      rects.push({ x: p0.x - a.left, y: midTop, width: contentW, height: midBottom - midTop });
+      rects.push({ x: originX, y: midTop, width: contentW, height: midBottom - midTop });
     }
-    rects.push({ x: p0.x - a.left, y: p1.y, width: Math.max(p1.x - (p0.x - a.left), 8), height: lineH });
+    rects.push({ x: originX, y: midBottom, width: Math.max(b.left, 8), height: rowH });
     return rects;
   } finally {
     mirror.remove();
@@ -217,8 +229,85 @@ export function measureSelectionRects(ta: HTMLTextAreaElement): Array<SelectionR
 }
 
 /* ------------------------------------------------------------------ *
+ * Placement
+ * ------------------------------------------------------------------ */
+
+/**
+ * WHERE THE BAR GOES, decided once as arithmetic so tests can hold it without
+ * a layout engine. Above the TOPMOST band by `BAR_GAP`; flipped BELOW the
+ * BOTTOM-most band when the above position clips the container's top edge;
+ * clamped horizontally inside the container by `EDGE_PAD` either side. The
+ * anchor column is the topmost band's left edge, so the bar points at where
+ * the reader started selecting.
+ */
+export function placeSelectionBar(
+  bands: Array<SelectionRect>,
+  container: { left: number; top: number; right: number; bottom: number },
+  barWidth: number,
+  barHeight: number,
+): { left: number; top: number } {
+  const first = bands.reduce((acc, r) => (r.y < acc.y ? r : acc), bands[0]);
+  const last = bands.reduce((acc, r) => (r.y + r.height > acc.y + acc.height ? r : acc), bands[0]);
+
+  let top = first.y - barHeight - BAR_GAP;
+  if (top < container.top + EDGE_PAD) {
+    top = last.y + last.height + BAR_GAP;
+    // No room below either (the passage fills the container): sit on the
+    // container floor rather than drifting outside the document the reader
+    // is looking at.
+    if (top + barHeight > container.bottom - EDGE_PAD) {
+      top = Math.max(container.bottom - EDGE_PAD - barHeight, first.y + first.height + BAR_GAP);
+    }
+  }
+
+  const minLeft = container.left + EDGE_PAD;
+  const maxLeft = Math.max(minLeft, container.right - EDGE_PAD - barWidth);
+  const left = Math.min(Math.max(first.x, minLeft), maxLeft);
+  return { left, top };
+}
+
+/* ------------------------------------------------------------------ *
  * The component
  * ------------------------------------------------------------------ */
+
+/**
+ * One line of the float menu, carried over from `MoreMenu`'s `MoreItem` so the
+ * two floating surfaces wear the same face: rounded control, nine-by-seven
+ * padding, body text stepping to ink over the hover wash.
+ */
+function MenuItem({
+  children,
+  onClick,
+  emphasized = false,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  /** Slight weight, for the one affirmative verb in a group (Keep, Ask). */
+  emphasized?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-mrd-ctl px-[9px] py-[7px] text-left text-mrd-base whitespace-nowrap transition-colors hover:bg-mrd-hover hover:text-mrd-ink ${
+        emphasized ? "font-medium text-mrd-ink" : "text-mrd-body"
+      }`}
+      style={{ transitionDuration: "var(--mrd-d-press)" }}
+    >
+      {children}
+    </button>
+  );
+}
+
+/**
+ * A hairline between groups of menu items. `MoreMenu` stacks one flat list, so
+ * it draws none of these; this bar carries whole phases (a verdict beside its
+ * verbs), and a rule between phases is the system's own separator token doing
+ * its job.
+ */
+function MenuDivider() {
+  return <div aria-hidden="true" className="mx-[3px] border-t border-mrd-line" />;
+}
 
 /**
  * The anchored toolbar itself. Renders nothing while nothing is handed off
@@ -258,17 +347,16 @@ export function SelectionActions({
   onDismissError?: () => void;
   onRetry?: () => void;
   /**
-   * Fired by Escape. DEVIATION FROM THE DOCUMENTED ASPIRATION, recorded
-   * because it is load-bearing: surface-parts.tsx described a component that
-   * hides itself on Escape with no callback. Hiding internally would desync
-   * the caller, which still holds the captured selection and the loop state --
-   * the parent owns the mode, so the parent must be told it ended. Same rule
-   * BulkBar follows: every mode in this product leaves by Escape, audibly.
+   * Fired by Escape OUTSIDE the ask field. Inside the field, Escape belongs to
+   * the field: it collapses back to the verbs and the handoff stays. Same
+   * deviation record as before -- surface-parts.tsx described internal hiding,
+   * but the parent owns the mode, so the parent is told instead.
    */
   onDismiss?: () => void;
 }) {
   const resting = !rects && phase === "idle";
   const barRef = React.useRef<HTMLDivElement | null>(null);
+  const inputRef = React.useRef<HTMLInputElement | null>(null);
   const [pos, setPos] = React.useState<{ left: number; top: number } | null>(null);
   const [askOpen, setAskOpen] = React.useState(false);
   const [draft, setDraft] = React.useState("");
@@ -277,6 +365,12 @@ export function SelectionActions({
     if (resting) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
+      // The ask field handles its own Escape (collapse the field) and stops
+      // the event before it reaches here; this gate is the belt to those
+      // braces, covering the case where focus sits in the field but the event
+      // was retargeted.
+      const t = e.target as HTMLElement | null;
+      if (t && barRef.current?.contains(t) && t.tagName === "INPUT") return;
       e.stopPropagation();
       onDismiss?.();
     };
@@ -294,44 +388,50 @@ export function SelectionActions({
   }, [resting]);
 
   /*
+   * FOCUS, SET IMPERATIVELY RATHER THAN TRUSTED TO `autoFocus`. autoFocus
+   * fires once at mount and loses every race: anything else that claims focus
+   * in the same commit window leaves the field permanently dead to the
+   * keyboard, which reads exactly as "this affordance does not accept typing".
+   * An effect that reclaims focus whenever the field OPENS cannot lose that
+   * race, because it runs after the whole commit settles.
+   */
+  React.useEffect(() => {
+    if (askOpen) inputRef.current?.focus();
+  }, [askOpen]);
+
+  /*
    * Two-pass positioning: render, then measure the bar's real box against the
-   * container's real box, then place. Above the topmost band by default;
-   * below the last band when there is no room above; clamped inside the
-   * container horizontally. Re-runs when phase changes because the bar's own
-   * height changes with what it carries.
+   * container's real box, then place. The arithmetic lives in
+   * `placeSelectionBar` so tests can hold it without a browser.
    */
   React.useLayoutEffect(() => {
     const c = containerRef.current;
     const bar = barRef.current;
-    if (!c || !bar || resting) {
+    if (!c || !bar || resting || !rects?.length) {
       setPos(null);
       return;
     }
     const cr = c.getBoundingClientRect();
-    const bw = bar.offsetWidth;
-    const bh = bar.offsetHeight;
-    const anchor = rects?.[0];
-    let top: number;
-    if (anchor) {
-      top = anchor.y - bh - BAR_GAP;
-      if (top < cr.top + EDGE_PAD) {
-        const lastBand = rects![rects!.length - 1];
-        top = lastBand.y + lastBand.height + BAR_GAP;
-      }
-    } else {
-      top = cr.top + EDGE_PAD;
-    }
-    let left = anchor ? anchor.x : cr.left;
-    left = Math.min(Math.max(left, cr.left + EDGE_PAD), Math.max(cr.left + EDGE_PAD, cr.right - bw - EDGE_PAD));
+    const placed = placeSelectionBar(rects, cr, bar.offsetWidth, bar.offsetHeight);
     // Same answer, same object: this effect intentionally runs on every render
     // (the bar's own size changes with what it carries), so it must not hand
     // back a fresh tuple each time or it renders itself forever.
-    setPos((prev) => (prev && prev.left === left && prev.top === top ? prev : { left, top }));
+    setPos((prev) =>
+      prev && prev.left === placed.left && prev.top === placed.top ? prev : placed,
+    );
   });
 
   if (resting) return null;
 
   const positioned = pos !== null;
+
+  const submitInstruction = () => {
+    const t = draft.trim();
+    if (!t) return;
+    onInstruct?.(t);
+    setDraft("");
+    setAskOpen(false);
+  };
 
   return (
     <>
@@ -350,49 +450,51 @@ export function SelectionActions({
           }}
         />
       ))}
+      {/* THE FLOAT MENU SURFACE, CARRIED OVER FROM `MoreMenu`: the card radius,
+          the hairline border, the float ground, one small padding all round,
+          the floating shadow, and the pop-in entrance. z-index matches the
+          reference's z-[5]. */}
       <div
         ref={barRef}
         role="toolbar"
         aria-label="Edit the selected passage"
         data-mrd=""
-        className={`fixed z-50 flex max-w-[min(92vw,34rem)] flex-col gap-mrd-2 rounded-mrd-ctl border border-mrd-edge bg-mrd-float p-mrd-2 shadow-lg`}
+        className="fixed z-[5] flex min-w-[168px] max-w-[min(92vw,34rem)] flex-col rounded-mrd-card border border-mrd-line bg-mrd-float p-1 shadow-mrd-float"
         style={{
           left: pos?.left ?? 0,
           top: pos?.top ?? 0,
           visibility: positioned ? "visible" : "hidden",
+          animation: "mrd-pop-in var(--mrd-d-move) var(--mrd-ease)",
         }}
       >
         {phase === "working" ? (
-          <p className="px-mrd-1 py-mrd-1 text-[13px] text-mrd-mute" aria-live="polite">
+          <p className="px-[9px] py-[7px] text-mrd-base text-mrd-mute" aria-live="polite">
             {workingLabel}
           </p>
         ) : null}
 
         {phase === "error" && error ? (
-          <div className="flex flex-col gap-mrd-2">
-            <p role="alert" className="px-mrd-1 text-[13px] leading-mrd-prose text-mrd-body">
+          <>
+            <p role="alert" className="max-w-[36ch] px-[9px] py-[7px] text-mrd-base leading-mrd-prose text-mrd-body">
               {error}
             </p>
-            <Actions>
-              {onRetry ? (
-                <Action variant="primary" onClick={onRetry}>
-                  Try again
-                </Action>
-              ) : null}
-              <Action variant="quiet" onClick={onDismissError}>
-                Dismiss
-              </Action>
-            </Actions>
-          </div>
+            <MenuDivider />
+            {onRetry ? (
+              <MenuItem onClick={onRetry} emphasized>
+                Try again
+              </MenuItem>
+            ) : null}
+            <MenuItem onClick={() => onDismissError?.()}>Dismiss</MenuItem>
+          </>
         ) : null}
 
         {phase === "ready" && proposal ? (
-          <div className="flex flex-col gap-mrd-2">
-            <div className="grid grid-cols-2 gap-mrd-2">
+          <>
+            <div className="flex gap-mrd-3 px-mrd-1 py-mrd-1">
               {/* Typographic contrast only: before reads muted, after reads
                   normal. No strikethrough, no syntax colouring -- this is a
                   pair of passages, not a compiler diagnostic. */}
-              <figure className="min-w-0">
+              <figure className="min-w-0 flex-1">
                 <figcaption className="mb-mrd-1 text-[11px] tracking-wide text-mrd-faint uppercase">
                   Before
                 </figcaption>
@@ -400,7 +502,7 @@ export function SelectionActions({
                   {proposal.before}
                 </p>
               </figure>
-              <figure className="min-w-0">
+              <figure className="min-w-0 flex-1">
                 <figcaption className="mb-mrd-1 text-[11px] tracking-wide text-mrd-faint uppercase">
                   After
                 </figcaption>
@@ -409,63 +511,71 @@ export function SelectionActions({
                 </p>
               </figure>
             </div>
-            <Actions>
-              {onKeep ? (
-                <Action variant="primary" onClick={onKeep}>
-                  Keep
-                </Action>
-              ) : null}
-              {onDiscard ? (
-                <Action variant="quiet" onClick={onDiscard}>
-                  Discard
-                </Action>
-              ) : null}
-            </Actions>
-          </div>
+            <MenuDivider />
+            {onKeep ? (
+              <MenuItem onClick={onKeep} emphasized>
+                Keep
+              </MenuItem>
+            ) : null}
+            {onDiscard ? <MenuItem onClick={onDiscard}>Discard</MenuItem> : null}
+          </>
         ) : null}
 
         {phase === "idle" ? (
           <>
-            {actions.length > 0 ? (
-              <div className="flex flex-wrap items-center gap-mrd-2">
-                {actions.map((a) => (
-                  <Action key={a.key} variant="quiet" onClick={a.onRun}>
-                    {a.label}
-                  </Action>
-                ))}
-              </div>
-            ) : null}
+            {actions.map((a) => (
+              <MenuItem key={a.key} onClick={a.onRun}>
+                {a.label}
+              </MenuItem>
+            ))}
             {onInstruct ? (
-              askOpen ? (
-                <form
-                  className="flex items-center gap-mrd-2"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    const t = draft.trim();
-                    if (!t) return;
-                    onInstruct(t);
-                    setDraft("");
-                    setAskOpen(false);
-                  }}
-                >
-                  <Input
-                    autoFocus
-                    aria-label="Instruction for the selected passage"
-                    placeholder={'Try "Make this tighter" or "Turn into bullets"'}
-                    value={draft}
-                    onChange={(e) => setDraft(e.target.value)}
-                  />
-                  <Action type="submit" variant="default">
-                    Ask
-                  </Action>
-                </form>
-              ) : (
-                <div>
-                  <Action variant="quiet" onClick={() => setAskOpen(true)}>
-                    Ask AI to edit
-                  </Action>
-                </div>
-              )
+              <>
+                {actions.length > 0 ? <MenuDivider /> : null}
+                {askOpen ? (
+                  <form
+                    className="flex items-center gap-mrd-2 px-mrd-1 py-mrd-1"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      submitInstruction();
+                    }}
+                  >
+                    {/* A REAL MERIDIAN FIELD, per forms.tsx: the sink ground,
+                        the field border that steps up on focus (focus:, not
+                        focus-visible:, because a text control is focused by
+                        clicking into it as often as by tabbing), h-8, the
+                        control radius. Focus lands through the ref effect
+                        above, so no mount-order race can leave it dead. */}
+                    <div className="w-52">
+                      <Input
+                        ref={inputRef}
+                        aria-label="Instruction for the selected passage"
+                        placeholder={'Try "Make this tighter"'}
+                        value={draft}
+                        onChange={(e) => setDraft(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            submitInstruction();
+                          } else if (e.key === "Escape") {
+                            // ESCAPE COLLAPSES THE FIELD, NOT THE HANDOFF.
+                            // Stopping propagation keeps the window-level
+                            // dismissal from hearing the key.
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setDraft("");
+                            setAskOpen(false);
+                          }
+                        }}
+                      />
+                    </div>
+                    <Action type="submit" variant="default" disabled={!draft.trim()}>
+                      Ask
+                    </Action>
+                  </form>
+                ) : (
+                  <MenuItem onClick={() => setAskOpen(true)}>Ask AI to edit</MenuItem>
+                )}
+              </>
             ) : null}
           </>
         ) : null}

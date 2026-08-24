@@ -22,6 +22,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import {
   SelectionActions,
   measureSelectionRects,
+  placeSelectionBar,
   type SelectionRect,
 } from "../SelectionActions";
 
@@ -109,9 +110,136 @@ describe("the ask field teaches by example and refuses to send air", () => {
     fireEvent.click(screen.getByRole("button", { name: "Ask AI to edit" }));
     const field = screen.getByRole("textbox", { name: "Instruction for the selected passage" });
     fireEvent.change(field, { target: { value: "     " } });
-    fireEvent.click(screen.getByRole("button", { name: "Ask" }));
-
+    const ask = screen.getByRole("button", { name: "Ask" }) as HTMLButtonElement;
+    expect(ask.disabled, "a dead submit is the visible refusal").toBe(true);
+    fireEvent.click(ask);
     expect(calls, "an empty instruction would burn a model call to do nothing").toBe(0);
+  });
+
+  it("is a real Meridian field a person can type into", () => {
+    /* The founder's rejection said this affordance did not accept typing. What
+       is asserted here is the shape that makes typing possible and honest: no
+       readOnly anywhere, a controlled value wired to onChange, the forms.tsx
+       FIELD paint (h-8, the measured --mrd-field border, the control radius,
+       the focus step-up), and focus claimed by the component rather than
+       trusted to autoFocus alone. */
+    render(<Bar onInstruct={() => {}} />);
+    fireEvent.click(screen.getByRole("button", { name: "Ask AI to edit" }));
+    const field = screen.getByRole("textbox", {
+      name: "Instruction for the selected passage",
+    }) as HTMLInputElement;
+    expect(field.readOnly, "a readOnly field is the defect wearing a field's clothes").toBe(false);
+    expect(field.disabled).toBe(false);
+    expect(field.className).toContain("h-8");
+    expect(field.className).toContain("border-mrd-field");
+    expect(field.className).toContain("focus:border-mrd-field-focus");
+    expect(field.className).toContain("rounded-mrd-ctl");
+  });
+
+  it("submits on Enter from the field itself", () => {
+    let got: string | null = null;
+    render(<Bar onInstruct={(instruction) => (got = instruction)} />);
+    fireEvent.click(screen.getByRole("button", { name: "Ask AI to edit" }));
+    const field = screen.getByRole("textbox", { name: "Instruction for the selected passage" });
+    fireEvent.change(field, { target: { value: "Tighten this" } });
+    fireEvent.keyDown(field, { key: "Enter" });
+    expect(got).toBe("Tighten this");
+  });
+
+  it("Escape inside the field collapses the field and keeps the handoff", () => {
+    let dismissed = 0;
+    render(<Bar onInstruct={() => {}} onDismiss={() => dismissed++} />);
+    fireEvent.click(screen.getByRole("button", { name: "Ask AI to edit" }));
+    const field = screen.getByRole("textbox", { name: "Instruction for the selected passage" });
+
+    fireEvent.keyDown(field, { key: "Escape" });
+
+    // The verbs are back, the bar never left, and the loop was not torn down:
+    // Escape while TYPING means "never mind this sentence", not "cancel
+    // everything I selected".
+    expect(dismissed).toBe(0);
+    expect(screen.getByRole("toolbar", { name: "Edit the selected passage" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Ask AI to edit" })).toBeTruthy();
+    expect(
+      screen.queryByRole("textbox", { name: "Instruction for the selected passage" }),
+    ).toBeNull();
+  });
+
+  it("Escape outside the field still dismisses the whole bar", () => {
+    let dismissed = 0;
+    render(<Bar onDismiss={() => dismissed++} />);
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(dismissed).toBe(1);
+  });
+
+  it("wears MoreMenu's float surface, not a plain card", () => {
+    /* The founder's rejection drew the comparison directly: this bar is the
+       floating-menu family, so its surface classes must match MoreMenu's panel
+       (rounded card radius, hairline border, float ground, floating shadow)
+       and its stacking order must match too. */
+    const { container } = render(<Bar />);
+    const toolbar = container.querySelector('[role="toolbar"]') as HTMLElement;
+    for (const cls of [
+      "rounded-mrd-card",
+      "border-mrd-line",
+      "bg-mrd-float",
+      "p-1",
+      "shadow-mrd-float",
+      "z-[5]",
+    ]) {
+      expect(
+        toolbar.className.includes(cls),
+        `the bar's surface is missing "${cls}" from the MoreMenu family`,
+      ).toBe(true);
+    }
+  });
+});
+
+describe("placeSelectionBar decides geometry once, where tests can hold it", () => {
+  const CONTAINER = { left: 0, top: 100, right: 600, bottom: 900 };
+  const BAR = { w: 200, h: 60 };
+  const band = (y: number): SelectionRect => ({ x: 50, y, width: 300, height: 18 });
+
+  it("sits above the topmost band with a six pixel gap", () => {
+    const placed = placeSelectionBar([band(400)], CONTAINER, BAR.w, BAR.h);
+    expect(placed.top).toBe(400 - BAR.h - 6);
+  });
+
+  it("anchors to the topmost band of a multi-band selection", () => {
+    const placed = placeSelectionBar([band(500), band(200)], CONTAINER, BAR.w, BAR.h);
+    expect(placed.top).toBe(200 - BAR.h - 6);
+  });
+
+  it("flips below the bottom-most band when the top would clip the container", () => {
+    // Above position would be 120 - 60 - 6 = 54, above the container top + 8.
+    const placed = placeSelectionBar([band(120), band(300)], CONTAINER, BAR.w, BAR.h);
+    expect(placed.top).toBe(318 + 6);
+  });
+
+  it("never overlaps any band while there is room either side", () => {
+    // Container top clips the above position here, so this exercises the
+    // flip-below path: the bar must end up disjoint from every band.
+    const bands = [band(150), band(168), band(186)];
+    const placed = placeSelectionBar(bands, CONTAINER, BAR.w, BAR.h);
+    const barTop = placed.top;
+    const barBottom = placed.top + BAR.h;
+    for (const b of bands) {
+      const overlaps = barTop < b.y + b.height && b.y < barBottom;
+      expect(
+        overlaps,
+        `bar [${barTop}, ${barBottom}] overlaps band at y=${b.y}`,
+      ).toBe(false);
+    }
+    // And when there IS room above, the bar sits clear of every band too.
+    const roomy = placeSelectionBar([band(400), band(418)], { ...CONTAINER, top: 0, bottom: 900 }, BAR.w, BAR.h);
+    expect(roomy.top + BAR.h <= 400 - 6).toBe(true);
+  });
+
+  it("clamps horizontally inside the container with an eight pixel margin", () => {
+    const farRight = placeSelectionBar([{ x: 5500, y: 400, width: 40, height: 18 }], CONTAINER, BAR.w, BAR.h);
+    expect(farRight.left).toBe(CONTAINER.right - 8 - BAR.w);
+    const offLeft = placeSelectionBar([{ x: -500, y: 400, width: 40, height: 18 }], CONTAINER, BAR.w, BAR.h);
+    expect(offLeft.left).toBe(CONTAINER.left + 8);
   });
 });
 

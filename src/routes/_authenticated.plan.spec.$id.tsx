@@ -307,6 +307,7 @@ import { Num, Door, Actions } from "@/components/meridian/surface-parts";
 import {
   SelectionActions,
   measureSelectionRects,
+  rangeToRects,
   type SelectionRect,
   type SelectionPhase,
   type SelectionProposal,
@@ -470,10 +471,11 @@ const LENS_DISPLAY: { id: Lens; label: string; title: string; sub: string }[] = 
   },
 ];
 
-/** A link's `?tab=` resolved onto the two things it can now mean. Only
- *  `preview` opens the document in its read state; every other value leaves the
- *  body where a person who came to write would want it, which is writable. */
-const paneFor = (tab: ModeTab | undefined): Pane => (tab === "preview" ? "read" : "write");
+/** A link's `?tab=` resolved onto the two things it can now mean. The document
+ *  is the default state of the body (founder ruling, 2026-08-24: the spec opens
+ *  as a document, and the markdown source is the mode you switch to); only
+ *  `edit` asks for the writable source by name. */
+const paneFor = (tab: ModeTab | undefined): Pane => (tab === "edit" ? "write" : "read");
 
 /** Four of the six values name a reading. The other two say nothing about which
  *  reading to open, so the default one opens, exactly as it did when `contract`
@@ -494,9 +496,11 @@ const ASSIST_LABEL: Record<AssistAction, string> = {
 /** One handoff to the crew: a fixed verb, or the writer's own instruction. */
 type SelJob = { kind: "verb"; action: AssistAction } | { kind: "instruct"; instruction: string };
 
-/** A job carrying the passage it was captured against: words, offsets, and the
- *  document snapshot Keep checks before it splices. */
-type SelRun = SelJob & { text: string; start: number; end: number; base: string };
+/** A job carrying the passage it was captured against: words and the document
+ *  snapshot Keep checks before it splices. `start`/`end` exist only when the
+ *  host could name offsets (the markdown textarea can; rendered prose cannot,
+ *  so a prose Keep locates its words in the source by match instead). */
+type SelRun = SelJob & { text: string; base: string; start?: number; end?: number };
 
 /* The rendered-markdown component map that stood here has moved to
  * src/components/prds/SpecProse.tsx, and it did not move unchanged: the version
@@ -1305,6 +1309,20 @@ function SpecEditorPage() {
   const [assistScope, setAssistScope] = useState("");
   const [selRects, setSelRects] = useState<Array<SelectionRect> | null>(null);
   const [picked, setPicked] = useState<{ start: number; end: number; text: string } | null>(null);
+  /**
+   * THE SECOND HOST. The document state renders the same body through
+   * SpecProse, and a selection made THERE has no textarea offsets: it is a
+   * DOM Range over rendered elements. The bar takes client rects either way
+   * (`rangeToRects` flattens the Range), so the loop is shared; what differs
+   * is how Keep finds the words again in the markdown source (see
+   * `keepProposal`). Only the passage's words are kept, never the Range:
+   * React re-renders the prose on every keystroke elsewhere, so a held Range
+   * would go stale against detached nodes.
+   */
+  const proseRef = useRef<HTMLDivElement>(null);
+  const [proseSel, setProseSel] = useState<{ rects: Array<SelectionRect>; text: string } | null>(
+    null,
+  );
   /** Bumped whenever a loop ends or is abandoned, so a slow response from an
    *  abandoned run can never land its result into a newer one. */
   const loopEpoch = useRef(0);
@@ -1318,10 +1336,13 @@ function SpecEditorPage() {
   };
 
   /** Bound to the field's onSelect / onKeyUp / onMouseUp. Measures the passage
-   *  into client rects for the bar and records the words with their offsets. */
+   *  into client rects for the bar and records the words with their offsets.
+   *  Also stands the prose host's bar down: two hosts, one loop, one bar at a
+   *  time. */
   const captureSelection = () => {
     const ta = taRef.current;
     if (!ta) return;
+    setProseSel(null);
     setSelRects(measureSelectionRects(ta));
     const start = ta.selectionStart ?? 0;
     const end = ta.selectionEnd ?? 0;
@@ -1329,12 +1350,46 @@ function SpecEditorPage() {
     if (phase !== "idle") settle();
   };
 
-  const runJob = (job: SelJob) => {
-    if (!picked || !picked.text.trim()) return;
-    const words = picked.text.trim().split(/\s+/).length;
-    setAssistScope(`${words} ${words === 1 ? "word" : "words"} selected`);
-    assist.mutate({ ...job, ...picked, base: body, epoch: ++loopEpoch.current });
+  /** Bound to the rendered document's onMouseUp / onKeyUp. Flattens the live
+   *  Range into client rects and keeps the selected WORDS. A collapsed
+   *  selection clears the bar unless a handoff is already in flight, exactly
+   *  like the field's own capture above. */
+  const captureProseSelection = () => {
+    const host = proseRef.current;
+    const sel = window.getSelection();
+    if (!host || !sel || sel.rangeCount === 0 || sel.isCollapsed) {
+      setProseSel(null);
+      return;
+    }
+    const range = sel.getRangeAt(0);
+    if (!host.contains(range.commonAncestorContainer)) return;
+    const text = range.toString();
+    if (!text.trim()) {
+      setProseSel(null);
+      return;
+    }
+    setSelRects(null);
+    setPicked(null);
+    setProseSel({ rects: rangeToRects(range), text });
+    if (phase !== "idle") settle();
   };
+
+  /** One dispatch shape for both hosts: the caller hands the words (and, on
+   *  the field host, their offsets); the snapshot taken here is what Keep
+   *  checks its splice against. */
+  const runJobFrom = (
+    job: SelJob,
+    passage: { text: string; start?: number; end?: number } | null,
+  ) => {
+    if (!passage || !passage.text.trim()) return;
+    const words = passage.text.trim().split(/\s+/).length;
+    setAssistScope(`${words} ${words === 1 ? "word" : "words"} selected`);
+    assist.mutate({ ...job, ...passage, base: body, epoch: ++loopEpoch.current });
+  };
+
+  const runJob = (job: SelJob) => runJobFrom(job, picked);
+  const runProseJob = (job: SelJob) =>
+    proseSel && runJobFrom(job, { text: proseSel.text });
 
   const assist = useMutation({
     mutationFn: (v: SelRun & { epoch: number }) => {
@@ -1361,15 +1416,44 @@ function SpecEditorPage() {
   });
 
   /**
-   * Keep applies the returned passage at the captured offsets. GUARDED BY THE
-   * DOCUMENT SNAPSHOT: if the writer kept typing while the crew worked, the
-   * stored offsets no longer name the same words and a blind splice would land
-   * the edit somewhere else entirely. Rather than guess, say what happened and
-   * ask for a fresh selection.
+   * Keep applies the returned passage to `body`, the same draft state the
+   * markdown field binds, so Cmd-S saves exactly what was kept. Two ways in,
+   * one per host:
+   *
+   * MARKDOWN HOST. GUARDED BY THE DOCUMENT SNAPSHOT: if the writer kept typing
+   * while the crew worked, the stored offsets no longer name the same words
+   * and a blind splice would land the edit somewhere else entirely. Rather
+   * than guess, say what happened and ask for a fresh selection.
+   *
+   * DOCUMENT HOST. Rendered prose carries no offsets into the source, so Keep
+   * LOCATES the passage: an exact match that appears exactly once splices in
+   * place; zero matches or several refuse honestly, because guessing between
+   * two candidates is how an edit lands in a sentence nobody selected. The
+   * way out is named: select more surrounding context, or make the change
+   * from Markdown mode where the words are addressable.
    */
   const keepProposal = () => {
     if (!proposal || !lastRun.current) return;
-    const { start, end, base } = lastRun.current;
+    const run = lastRun.current;
+    const { start, end, base } = run;
+    if (start === undefined || end === undefined) {
+      const needle = run.text;
+      const first = body.indexOf(needle);
+      const unique = needle.trim() !== "" && first !== -1 && body.indexOf(needle, first + 1) === -1;
+      if (body !== base || !unique) {
+        setProposal(null);
+        setAssistError(
+          body !== base
+            ? "You kept writing while the crew worked, so this edit has nowhere safe to land. Select the passage again."
+            : "The selected words do not name one place in the markdown source, so there is no single spot to splice the edit into. Select more surrounding context and hand it over again, or switch to Markdown and edit the words directly.",
+        );
+        setPhase("error");
+        return;
+      }
+      setBody(body.slice(0, first) + proposal.after + body.slice(first + needle.length));
+      settle();
+      return;
+    }
     if (body !== base) {
       setProposal(null);
       setAssistError(
@@ -1870,9 +1954,9 @@ function SpecEditorPage() {
                   detail={assistScope}
                 />
               ) : pane === "write" ? (
-                "Select a passage and the crew works on those words. Select all for the whole spec."
+                "The markdown source. Select a passage and the crew works on those words; select all for the whole spec."
               ) : (
-                "The spec as it reads, with what it cites."
+                "The spec as it reads, with what it cites. Select a passage and the crew works on those words."
               )
             }
           >
@@ -1883,22 +1967,38 @@ function SpecEditorPage() {
                 // stop and arrow keys inside it, where the retired default put
                 // `aria-pressed` on both buttons and announced two independent
                 // toggles that never said picking one unpicks the other.
+                //
+                // THE SEGMENTED CONTROL THE FOUNDER ASKED FOR, 2026-08-24: the
+                // body opens as DOCUMENT, the rendered spec, because a person
+                // arriving here came to read their own document first. MARKDOWN
+                // is the writable source behind it. The internal ids stay
+                // write/read (they are this file's Pane contract and its links
+                // resolve through them); only the labels changed.
                 mode="one"
                 label="How to work on the spec"
                 value={pane}
                 options={[
                   {
-                    id: "write",
-                    label: "Write",
-                    title: "The words, and what they still have to say before design",
-                  },
-                  {
                     id: "read",
-                    label: "Read",
+                    label: "Document",
                     title: "The spec as it reads, with what it cites",
                   },
+                  {
+                    id: "write",
+                    label: "Markdown",
+                    title: "The words as written, editable in place",
+                  },
                 ]}
-                onChange={setPane}
+                onChange={(next) => {
+                  // Switching states stands any anchored bar down with the
+                  // host that spawned it: rects are client coordinates of the
+                  // OLD surface, and painting them over the new one anchors
+                  // the bar to words that are no longer on screen.
+                  setPane(next);
+                  setSelRects(null);
+                  setProseSel(null);
+                  if (phase !== "idle") settle();
+                }}
               />
             </Actions>
 
@@ -2075,9 +2175,39 @@ function SpecEditorPage() {
                   plain text rather than as a chip that promises an excerpt it
                   does not have. */}
                 {body.trim() ? (
-                  <SpecProse body={body} citations={citations} />
+                  /* THE DOCUMENT HOST. Selecting prose here is a first-class
+                     handoff now, same verbs and ask field as the markdown
+                     state: the wrapper captures the live Range on mouseup and
+                     keyup (shift+arrows included), flattens it with
+                     `rangeToRects`, and Keep maps the words back onto the
+                     markdown source by exact unique match (see
+                     `keepProposal` for the two honest refusals). */
+                  <div ref={proseRef} onMouseUp={captureProseSelection} onKeyUp={captureProseSelection}>
+                    <SpecProse body={body} citations={citations} />
+                    <SelectionActions
+                      rects={proseSel?.rects ?? null}
+                      containerRef={proseRef}
+                      phase={phase}
+                      workingLabel="The crew is on your words."
+                      error={assistError}
+                      proposal={proposal}
+                      actions={ASSIST_ACTIONS.map((a) => ({
+                        key: a,
+                        label: ASSIST_LABEL[a],
+                        onRun: () => runProseJob({ kind: "verb", action: a }),
+                      }))}
+                      onInstruct={(instruction) => runProseJob({ kind: "instruct", instruction })}
+                      onKeep={keepProposal}
+                      onDiscard={settle}
+                      onDismissError={settle}
+                      onRetry={() => {
+                        if (lastRun.current) assist.mutate(lastRun.current);
+                      }}
+                      onDismiss={settle}
+                    />
+                  </div>
                 ) : (
-                  <NothingYet>Nothing is written yet. Switch to Write and start it.</NothingYet>
+                  <NothingYet>Nothing is written yet. Switch to Markdown and start it.</NothingYet>
                 )}
                 {/* A document carries its own references, so they read with it. */}
                 {citations && citations.length > 0 ? (

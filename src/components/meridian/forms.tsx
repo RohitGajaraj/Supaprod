@@ -145,7 +145,16 @@ export function Field({
  * The text controls
  * ------------------------------------------------------------------ */
 
-export function Input({ className = "", ...rest }: React.InputHTMLAttributes<HTMLInputElement>) {
+/**
+ * TAKES A `ref` (2026-08-24), for the same reason `Textarea` below took one
+ * three days earlier: a caller that opens this field on demand has to land
+ * focus in it after the commit settles, and an input that cannot be reached by
+ * ref gets focused with `autoFocus` alone, which loses every focus race. React
+ * 19 passes `ref` through the spread below with no `forwardRef`, which is why
+ * there is none anywhere in Meridian. The first caller is SelectionActions'
+ * ask field.
+ */
+export function Input({ className = "", ...rest }: React.ComponentPropsWithRef<"input">) {
   return (
     <input
       {...rest}
