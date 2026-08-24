@@ -1,24 +1,15 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { ApprovalCard, type ApprovalQuestion } from "@/components/meridian/ApprovalCard";
-import { Chat, type ChatTurn } from "@/components/meridian/Chat";
 import { CodeBlock, type CodeToken } from "@/components/meridian/CodeBlock";
 import { ContextCards, type ContextChunk } from "@/components/meridian/ContextCards";
-import { DiffTable, type DiffTableRow } from "@/components/meridian/DiffTable";
 import { FilterTable, type Facet } from "@/components/meridian/FilterTable";
 import { FineTuneCard, type FineTuneField } from "@/components/meridian/FineTuneCard";
 import { Delta, Entity, InsightCards, type Insight } from "@/components/meridian/InsightCards";
 import { LoadingState } from "@/components/meridian/LoadingState";
 import { AgentPulse } from "@/components/meridian/AgentPulse";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";
-import {
-  PromptBar,
-  type PromptCommand,
-  type PromptModel,
-  type PromptSource,
-} from "@/components/meridian/PromptBar";
-import { RecommendationCard, type Recommendation } from "@/components/meridian/RecommendationCard";
 import { NoPromotions, PromotionCard } from "@/components/meridian/PromotionCard";
 import { RunTimeline, type TimelineEvent } from "@/components/meridian/RunTimeline";
 import { ToolStream, type ToolStreamRow } from "@/components/meridian/ToolStream";
@@ -55,7 +46,6 @@ import {
   type RecordTone,
 } from "@/components/meridian/RecordsTable";
 import { Search } from "@/components/meridian/Search";
-import { SelectionActions, type SelectionPhase } from "@/components/meridian/SelectionActions";
 import { SidebarNav, type RailItem } from "@/components/meridian/SidebarNav";
 import { StalledWork, type StalledItem } from "@/components/meridian/StalledWork";
 import { TaskRows, type Task } from "@/components/meridian/TaskRows";
@@ -465,66 +455,6 @@ const APPROVAL_QUESTIONS: ApprovalQuestion[] = [
   },
 ];
 
-/* ── recommendations ───────────────────────────────────────────────────── */
-
-const REC_SURE: Recommendation[] = [
-  {
-    key: "r-sure",
-    short: "Group the three outage reports under one work item",
-    body: (
-      <>
-        All three describe the same failure from different ends: a homeowner sees a dead app, an
-        installer sees a reboot, and neither can tell which happened. Grouping them puts one spec in
-        front of one person instead of three.
-      </>
-    ),
-    confidence: 0.86,
-  },
-];
-
-const REC_UNSURE: Recommendation[] = [
-  {
-    key: "r-unsure",
-    short: "Send the install drop-off to Plan without a decision",
-    body: (
-      <>
-        The install telemetry group is larger than the inbox group, which usually means the drop-off
-        is reaching people who never write in. It could also mean the telemetry double-counts a
-        retry, and there is no way to settle that from here.
-      </>
-    ),
-    confidence: 0.41,
-  },
-];
-
-const REC_NULL: Recommendation[] = [
-  {
-    key: "r-null",
-    short: "Checkout and notification friction in the homeowner app",
-    confidence: null,
-  },
-];
-
-const REC_RANKED: Recommendation[] = [
-  {
-    key: "r1",
-    short: "Group the three outage reports under one work item",
-    body: (
-      <>
-        All three describe the same failure from different ends. Grouping them puts one spec in
-        front of one person instead of three.
-      </>
-    ),
-    confidence: 0.86,
-  },
-  {
-    key: "r2",
-    short: "Group two and leave the install report on its own",
-    confidence: 0.52,
-  },
-  { key: "r3", short: "Leave all three separate and revisit on Monday", confidence: 0.19 },
-];
-
 /* ── tasks ─────────────────────────────────────────────────────────────── */
 
 const TASKS: Task[] = [
@@ -737,94 +667,6 @@ const CHUNKS: ContextChunk[] = [
   },
 ];
 
-/* ── the proposed edit ─────────────────────────────────────────────────── */
-
-/*
- * THE LAST THREE ROWS ARE THE OVERFLOW CASES, and they are here on purpose.
- *
- * The founder's report on 2026-08-15 was that long source names and two-line
- * text did not sit cleanly inside this container, and the reason the defect
- * survived a rendered review is that every fixture row was short enough to fit.
- * A table only proves it handles overflow if something in it overflows, so:
- *
- *   d5  a source name far past the pill's width. The pill is a fixed height, so
- *       this is the row that used to push a second line out through the bottom
- *       of the capsule.
- *   d6  a value that needs two lines in the widest column, which is the common
- *       real case rather than the pathological one.
- *   d7  an unbroken token with no spaces in it. This is the one a line clamp
- *       alone does NOT fix: with nothing to break on it runs straight out of
- *       the cell sideways, and only `break-words` stops it. Production ids and
- *       slugs look exactly like this.
- */
-const DIFF_ROWS: DiffTableRow[] = [
-  { id: "d1", cells: ["128", "Support inbox", "Homeowners cannot tell a real outage"] },
-  { id: "d2", cells: ["46", "App store reviews", "Checkout and notification friction"] },
-  {
-    id: "d3",
-    cells: ["31", "Field notes", "Checklist steps vanish in a basement"],
-    change: "removed",
-  },
-  {
-    id: "d4",
-    cells: ["77", "Install telemetry", "SDK install is a drop-off cliff"],
-    change: "added",
-  },
-  {
-    id: "d5",
-    cells: [
-      "19",
-      "Northfield Creamery field engineering escalations",
-      "Install cannot be finished",
-    ],
-  },
-  {
-    id: "d6",
-    cells: [
-      "8",
-      "Call recordings",
-      "Installers abandon the checklist when a step needs a second person on site",
-    ],
-  },
-  {
-    id: "d7",
-    cells: ["4", "Webhook replay", "signal_cluster_promotion_backfill_2026_08_outage_group"],
-    change: "added",
-  },
-];
-
-/* ── chat ──────────────────────────────────────────────────────────────── */
-
-const CHAT_TURNS: ChatTurn[] = [
-  {
-    id: "turn-1",
-    you: "Why has nothing moved past Discover this week?",
-    steps: [
-      {
-        title: "Counted the work items",
-        source: "43 items",
-        duration: "0.4s",
-        body: "Thirty-nine are standing at Discover. Four have moved past it, and three of those four are now held at Decide.",
-      },
-      {
-        title: "Checked what each one is waiting for",
-        source: "39 items",
-        duration: "1.2s",
-        body: "Every one of the thirty-nine is waiting on the same thing: no source is connected to the workspace, so there is nothing for the crew to read.",
-      },
-      {
-        title: "Looking for the shortest way out",
-        running: true,
-        body: "Comparing which single source would release the most items.",
-      },
-    ],
-  },
-];
-
-const CHAT_BUSY: ChatTurn[] = [
-  { id: "turn-2", you: "Which gate should I answer first this morning?" },
-];
-
 /* ── traces ────────────────────────────────────────────────────────────── */
 
 const STEP_ROWS: ThinkingRow[] = [
@@ -988,27 +830,6 @@ const CODE_LINES: CodeToken[][] = [
   [plain("}")],
 ];
 
-/* ── the composer ──────────────────────────────────────────────────────── */
-
-const PROMPT_SOURCES: PromptSource[] = [
-  { key: "inbox", name: "Support inbox", desc: "128 unread since Friday", connect: "done" },
-  { key: "reviews", name: "App store reviews", desc: "homeowner app", connect: "done" },
-  { key: "telemetry", name: "Install telemetry", desc: "not linked", connect: "needed" },
-  { key: "notes", name: "Field notes", desc: "week 32" },
-  { key: "attach", name: "Attach a file", attach: true },
-];
-
-const PROMPT_COMMANDS: PromptCommand[] = [
-  { key: "spec", name: "/spec", desc: "draft the spec for a work item" },
-  { key: "forecast", name: "/forecast", desc: "record what you expect to happen" },
-  { key: "verdict", name: "/verdict", desc: "settle an outcome at Learn" },
-];
-
-const PROMPT_MODELS: PromptModel[] = [
-  { key: "fast", name: "Fast", tag: "default" },
-  { key: "deep", name: "Deep", tag: "slower" },
-];
-
 /* ── the rail ──────────────────────────────────────────────────────────── */
 
 const RAIL: RailItem[] = [
@@ -1031,52 +852,6 @@ const FINE_FIELDS: FineTuneField[] = [
   { key: "pad", label: "Pad", value: 16, min: 0, max: 48, suffix: "px" },
   { key: "radius", label: "Rad", value: 12, min: 0, max: 32, suffix: "px" },
 ];
-
-/*
- * SELECTION ACTIONS needs a live DOM `Range` over real prose, which is the one
- * thing a fixture array cannot be. So the passage is rendered here and the range
- * is taken off it after paint, which is exactly what a prose surface does with
- * the reader's own selection. Nothing about the component is stubbed; only the
- * gesture that would normally produce the range is.
- */
-function SelectionCase({ phase, error }: { phase: SelectionPhase; error?: string | null }) {
-  const host = useRef<HTMLDivElement>(null);
-  const mark = useRef<HTMLSpanElement>(null);
-  const [range, setRange] = useState<Range | null>(null);
-
-  useEffect(() => {
-    const node = mark.current;
-    if (!node) return;
-    const picked = document.createRange();
-    picked.selectNodeContents(node);
-    setRange(picked);
-  }, []);
-
-  return (
-    <div ref={host} className="relative pb-14">
-      <p className="mrd-copy" style={{ maxWidth: "46ch" }}>
-        The banner appears when the panel reports a reboot and disappears on its own once the panel
-        answers again.{" "}
-        <span ref={mark}>
-          A homeowner should never have to work out whether a dark app means an outage or an update,
-          because the device already knows which one it is.
-        </span>{" "}
-        The notice is emitted today and nothing subscribes to it.
-      </p>
-      <SelectionActions
-        range={range}
-        containerRef={host}
-        phase={phase}
-        error={error ?? null}
-        onAction={noop}
-        onInstruction={noop}
-        onKeep={noop}
-        onDiscard={noop}
-        onRetry={noop}
-      />
-    </div>
-  );
-}
 
 /* ------------------------------------------------------------------ *
  * Forms: the vocabulary Settings, Boundary and governance had nowhere
@@ -1376,43 +1151,6 @@ function MeridianGallery() {
         </Panel>
 
         <Panel
-          title="Recommendation card, and the three confidence states"
-          note="Production writes an unreadable model response as confidence zero, and a zero renders exactly like a considered judgment that scored low. The three cards below are the proof that is fixed: a meter means a reading was taken, the hollow ring means none exists, and the third card says so in words and offers Review rather than Approve, because there is nothing there to approve. The meter is azure on purpose, since it is the machine reporting on its own answer and not an outcome."
-        >
-          <Pair>
-            <Stack>
-              <Case label="Nothing proposed">
-                <RecommendationCard question="Group these three signals?" options={[]} />
-              </Case>
-              <Case label="A reading was taken, and it is high">
-                <RecommendationCard
-                  question="Group the three outage reports under one work item?"
-                  options={REC_SURE}
-                />
-              </Case>
-              <Case label="A reading was taken, and it is low">
-                <RecommendationCard
-                  question="Send the install drop-off straight to Plan?"
-                  options={REC_UNSURE}
-                />
-              </Case>
-              <Case label="No reading exists">
-                <RecommendationCard
-                  question="What should happen to the checkout friction report?"
-                  options={REC_NULL}
-                />
-              </Case>
-              <Case label="Ranked, with alternatives to open">
-                <RecommendationCard
-                  question="How should the three outage reports be filed?"
-                  options={REC_RANKED}
-                />
-              </Case>
-            </Stack>
-          </Pair>
-        </Panel>
-
-        <Panel
           title="Task rows, all four states adjacent"
           note="Running and blocked are the pair that matters, because both read as unfinished in a list and they demand opposite responses. They are separated twice over: by hue and by motion. Only the running ring turns, and the blocked ring is a closed circle rather than an arc, because an arc is a progress reading and there is no progress to report on work that has stopped. Check that the blocked row never reads as a failed one on either ground."
         >
@@ -1608,69 +1346,6 @@ function MeridianGallery() {
         </Panel>
 
         <Panel
-          title="Diff table"
-          note="A proposed edit shown as what it moves, rather than as the after state with the before left to memory. Two colours are doing two different jobs and they must not be confused: the row tints report what the edit does to each row, and the mark in the header reports that the proposal is waiting on a person. The sweep is switched off here so both grounds are comparable in a still image; every fact it carries is in the tint and the strikethrough once it lands."
-        >
-          <Pair>
-            <Stack>
-              <Case label="Nothing proposed">
-                <DiffTable
-                  title="Proposed change to what Discover reads"
-                  columns={["Signals", "Source", "Groups into"]}
-                  widths={["21%", "31%", "48%"]}
-                  rows={[]}
-                  animate={false}
-                />
-              </Case>
-              <Case label="Proposed, and waiting on you">
-                <DiffTable
-                  title="Proposed change to what Discover reads"
-                  columns={["Signals", "Source", "Groups into"]}
-                  widths={["21%", "31%", "48%"]}
-                  rows={DIFF_ROWS}
-                  animate={false}
-                />
-              </Case>
-              <Case label="Applied, so the mark is gone">
-                <DiffTable
-                  title="Proposed change to what Discover reads"
-                  columns={["Signals", "Source", "Groups into"]}
-                  widths={["21%", "31%", "48%"]}
-                  rows={DIFF_ROWS}
-                  status="applied"
-                  animate={false}
-                />
-              </Case>
-            </Stack>
-          </Pair>
-        </Panel>
-
-        <Panel
-          title="Chat"
-          note="The Ask pane opens on an empty thread every single time it is opened fresh, so that is the case composed hardest. The value over a plain transcript is that a reply is not one blob: each step names what it read and how long it took, so a person can see where an answer came from before deciding whether to believe it. One hue appears in the whole component, on the step still running, and nothing here asks for a person."
-        >
-          <Pair>
-            <Stack>
-              <Case label="Nothing asked yet">
-                <div className="h-[280px] overflow-hidden rounded-mrd-card border border-mrd-line">
-                  <Chat onSend={noop} onNewThread={noop} />
-                </div>
-              </Case>
-              <Case label="Sent, nothing back yet">
-                <div className="h-[280px] overflow-hidden rounded-mrd-card border border-mrd-line">
-                  <Chat turns={CHAT_BUSY} onSend={noop} onNewThread={noop} />
-                </div>
-              </Case>
-              <Case label="Three steps, the last one running">
-                <div className="h-[360px] overflow-hidden rounded-mrd-card border border-mrd-line">
-                  <Chat turns={CHAT_TURNS} onSend={noop} onNewThread={noop} />
-                </div>
-              </Case>
-            </Stack>
-          </Pair>
-        </Panel>
-
-        <Panel
           title="Thinking, four variants"
           note="A trace that opens while the agent runs and shuts once it settles, which is the ordering the whole component argues for: the detail is worth watching while it happens and worth hiding the moment it is not. The settled label quotes a number only where one was measured. Only the last step of a running checklist carries the spinner, so where it has got to is one glance rather than a read."
         >
@@ -1744,69 +1419,6 @@ function MeridianGallery() {
                   lines={CODE_LINES}
                   maxHeight={200}
                 />
-              </Case>
-            </Stack>
-          </Pair>
-        </Panel>
-
-        <Panel
-          title="Prompt bar"
-          note="Asking about this workspace usually means naming what to look at, and pointing at a source beats describing it. Three states earn a hue and nothing else does: Connect, because linking a source is a job only a person can do; Connected, because that is an outcome; and the mic while it is live. Send stays neutral, since a saturated primary was tried twice here and rejected twice for spending the accent on chrome. Type an @ or a slash to open the menus, which cannot be forced from a prop."
-        >
-          <Pair>
-            <Stack>
-              <Case label="Rounded, nothing typed">
-                <PromptBar
-                  sources={PROMPT_SOURCES}
-                  commands={PROMPT_COMMANDS}
-                  models={PROMPT_MODELS}
-                  modelKey="fast"
-                  onModelChange={noop}
-                  onAttach={noop}
-                  onSend={noop}
-                  onConnect={noop}
-                  menuPlacement="below"
-                />
-              </Case>
-              <Case label="Pill, with a file attached">
-                <PromptBar
-                  variant="pill"
-                  sources={PROMPT_SOURCES}
-                  commands={PROMPT_COMMANDS}
-                  models={PROMPT_MODELS}
-                  modelKey="deep"
-                  attachments={["homeowner-outage-tickets-week-32.csv"]}
-                  onRemoveAttachment={noop}
-                  onAttach={noop}
-                  onSend={noop}
-                  onConnect={noop}
-                  menuPlacement="below"
-                />
-              </Case>
-              <Case label="No sources, no commands, no model picker">
-                <PromptBar onSend={noop} placeholder="Ask about this workspace" />
-              </Case>
-            </Stack>
-          </Pair>
-        </Panel>
-
-        <Panel
-          title="Selection actions"
-          note="Selecting a paragraph is the reference, which is why the bar attaches to the selection instead of living in a toolbar at the top of the page. The passage stays neutral while it is only selected, because selecting is not a status, and takes the agent hue once a machine has been handed it, so the words in flight are identifiable without reading the bar. A broken edit states the outcome and offers the way back rather than falling silently to the idle bar."
-        >
-          <Pair>
-            <Stack>
-              <Case label="Selected, nothing asked">
-                <SelectionCase phase="idle" />
-              </Case>
-              <Case label="Handed to an agent">
-                <SelectionCase phase="working" />
-              </Case>
-              <Case label="A result to keep or discard">
-                <SelectionCase phase="result" />
-              </Case>
-              <Case label="The edit came back broken">
-                <SelectionCase phase="idle" error="That edit did not come back." />
               </Case>
             </Stack>
           </Pair>
