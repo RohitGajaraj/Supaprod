@@ -23,6 +23,17 @@ that rebuilds any of them has wasted a night.**
 
 ---
 
+## The specs. Read the one for your item before you start it.
+
+| Spec | Governs | The correction in it you must not miss |
+| --- | --- | --- |
+| [`SPEC-ARTIFACTS.md`](./SPEC-ARTIFACTS.md) | items 3, 7, 9 | **"Four stations have no registered tool" is STALE.** `STATION_ARTIFACT` (`attach.ts:222`) now has a non-null `createdBy` for all seven and `NOTHING_LANDS_HERE` is `{}`. **A lane writing a "nothing lands here" branch is writing dead code.** Separately: `ship` has never had a single `spine_track_members` row while `deployments` holds 42 successful ones — **shipping happens outside the spine** |
+| [`SPEC-LAYOUT.md`](./SPEC-LAYOUT.md) | items 5, 8, 11 | Split ratios, breakpoints, the finished-run inversion, and every Meridian token by name |
+| [`SPEC-CONSENT.md`](./SPEC-CONSENT.md) | item 1 | Where the pending question actually comes from, and what `Decide all` may and may not widen |
+| [`SPEC-ONRAMP.md`](./SPEC-ONRAMP.md) | items 2, 4 | The real click and decision count today, and which `WorkShape` each job card maps to |
+
+**MAIN owes one thing before item 3 can finish:** `getTrackArtifacts` in `src/lib/spine/track.functions.ts`. `getTrackChain` answers *what was filed*; the pane needs *the thing itself*, and `ChainMember` carries no body. Building it tonight. **Item 3 can start now** against `decisions` without waiting.
+
 ## THE BACKLOG — one ordered list, most valuable first
 
 **How to take work (R-07):** take the **topmost item you own that is not `BLOCKED` or `WIP`.** Scan
