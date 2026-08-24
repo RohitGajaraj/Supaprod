@@ -1,7 +1,22 @@
+/*
+ * `PencilNote` ASSERTIONS REMOVED 2026-08-24, AND THE GUARANTEE GOT STRONGER.
+ *
+ * Four assertions here read `expect(containsType(el, PencilNote)).toBe(false)`
+ * -- the row must not render the retired component. The ui/obsidian teardown
+ * then deleted `PencilNote` and the `@/components/obsidian` barrel outright, so
+ * the import stopped resolving and this file could not load at all.
+ *
+ * The assertions are dropped rather than repointed because THERE IS NOTHING LEFT
+ * TO POINT AT, and that is the stronger outcome: a component that no longer
+ * exists cannot be rendered by anything, which is a guarantee no test needs to
+ * make. The same shape as `surface-discipline` §7, where a flippable default
+ * became a component you cannot reach by accident.
+ *
+ * Everything a reader can actually see is still asserted against the DOM below.
+ */
 import { describe, expect, test } from "bun:test";
 import type { ReactElement } from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { PencilNote } from "@/components/obsidian";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import {
   BestBetStamp,
@@ -47,7 +62,7 @@ const BASE_PROPS = {
 };
 
 describe("OpportunityRow designation marker", () => {
-  test("designation 'best bet' renders the stamp's words, never the retired PencilNote", () => {
+  test("designation 'best bet' renders the stamp's words", () => {
     const { unmount } = render(<OpportunityRowExport {...BASE_PROPS} designation="best bet" />);
     // The reader's promise: the one chosen bet says so, in words.
     expect(screen.getByText("Best bet")).toBeDefined();
@@ -59,7 +74,6 @@ describe("OpportunityRow designation marker", () => {
     // It has no rendered output of its own to look for, so this one stays an
     // element-identity guard.
     const el = OpportunityRow({ ...BASE_PROPS, designation: "best bet" });
-    expect(containsType(el, PencilNote)).toBe(false);
     expect(containsType(el, DesignationTag)).toBe(false);
   });
 
@@ -72,19 +86,16 @@ describe("OpportunityRow designation marker", () => {
     unmount();
 
     const el = OpportunityRow({ ...BASE_PROPS, designation: "needs validation" });
-    expect(containsType(el, PencilNote)).toBe(false);
     expect(containsType(el, BestBetStamp)).toBe(false);
   });
 
   test("no designation renders neither a stamp nor a tag", () => {
     const el = OpportunityRow({ ...BASE_PROPS, designation: null });
     expect(containsType(el, BestBetStamp)).toBe(false);
-    expect(containsType(el, PencilNote)).toBe(false);
     expect(containsType(el, DesignationTag)).toBe(false);
     // Same when the prop is omitted entirely.
     const bare = OpportunityRow({ ...BASE_PROPS });
     expect(containsType(bare, BestBetStamp)).toBe(false);
-    expect(containsType(bare, PencilNote)).toBe(false);
     expect(containsType(bare, DesignationTag)).toBe(false);
   });
 });

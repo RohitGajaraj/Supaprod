@@ -1,3 +1,10 @@
+/*
+ * REPOINTED 2026-08-24. `obsidian/graph-slider` was deleted in the ui/obsidian
+ * teardown and its maths SURVIVED into `meridian/graph-slider.tsx` -- graphX,
+ * graphY, graphPoints, smoothLinePath and nearestIndex are all exported there.
+ * The claim outlived the file, so this guard follows the component rather than
+ * dying with its old address. Same call R013 made for `Diffstat` and `Receipt`.
+ */
 import { describe, it, expect } from "bun:test";
 import {
   graphX,
@@ -6,7 +13,7 @@ import {
   smoothLinePath,
   nearestIndex,
   indexOfExtreme,
-} from "./graph-slider";
+} from "@/components/meridian/graph-slider";
 
 describe("graphX", () => {
   it("calculates x position for first point (n > 1)", () => {

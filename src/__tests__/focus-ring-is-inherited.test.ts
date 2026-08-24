@@ -130,22 +130,6 @@ const EXEMPT: ReadonlyArray<{ path: string; why: string }> = [
   // both trees as debt; the end state is deletion, so a ring here is not worth
   // porting.
   {
-    path: "src/components/obsidian/callcard.tsx",
-    why: "Retired Obsidian v3 component layer, scheduled for deletion rather than a port.",
-  },
-  {
-    path: "src/components/obsidian/citation.tsx",
-    why: "Retired Obsidian v3 component layer, scheduled for deletion rather than a port.",
-  },
-  {
-    path: "src/components/obsidian/flashlight-tabs.tsx",
-    why: "Retired Obsidian v3 component layer, scheduled for deletion rather than a port.",
-  },
-  {
-    path: "src/components/obsidian/missionrow.tsx",
-    why: "Retired Obsidian v3 component layer, scheduled for deletion rather than a port.",
-  },
-  {
     path: "src/components/ui/button.tsx",
     why: "Retired Tempo v5 (shadcn) component layer, scheduled for deletion rather than a port.",
   },
