@@ -197,6 +197,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { cancelMission } from "@/lib/missions.functions";
 import { stepLabel } from "@/lib/agent-vocabulary";
 import { REVERSIBILITY_LABEL, gateHeadline, toolConsequence } from "@/lib/tool-consequences";
 import { stripAutoPrefix } from "@/components/plan/format";
@@ -258,6 +259,7 @@ import {
   Textarea,
   type RunMarkState,
 } from "@/components/runs/run-parts";
+import { useConfirm } from "@/hooks/use-confirm";
 import { YouMark } from "@/components/meridian/marks";
 import {
   Actions,
@@ -638,9 +640,27 @@ function BuildRun() {
   const { missionId } = Route.useParams();
   const navigate = useNavigate({ from: "/runs/$missionId" });
   const qc = useQueryClient();
+  const confirm = useConfirm();
 
   const fGet = useServerFn(getStudioSession);
   const fSteer = useServerFn(steerStudioSession);
+  const fCancelMission = useServerFn(cancelMission);
+  /* The brake pedal, moved into the room where the work is watched. Today
+     held the only stop in the product; watching here and stopping there made
+     the two facts different rooms. Same mutation, same honest consequences:
+     it stops now, pending approvals clear, held build claims release, and
+     completed work is kept. Feedback rides the page's own polling - once the
+     write lands, the closed-run state renders instead of this control. */
+  const stopRun = useMutation({
+    mutationFn: (missionId: string) => fCancelMission({ data: { missionId } }),
+    onSuccess: (result) => {
+      if (!result.alreadyTerminal) {
+        void qc.invalidateQueries({ queryKey: ["studio-session", missionId] });
+        void qc.invalidateQueries({ queryKey: ["run-stages", missionId] });
+        void qc.invalidateQueries({ queryKey: ["today"] });
+      }
+    },
+  });
   const fDecide = useServerFn(decideApproval);
   const fDeployments = useServerFn(listDeployments);
   const fParity = useServerFn(getDesignParity);
@@ -1601,6 +1621,25 @@ function BuildRun() {
                     >
                       Send the note
                     </Button>
+                    {isLive ? (
+                      <Button
+                        variant="quiet"
+                        disabled={stopRun.isPending}
+                        busy={stopRun.isPending}
+                        onClick={() => {
+                          void confirm({
+                            title: "Stop this run?",
+                            body: "It stops now and will not advance further. Its pending approvals clear and any held build claims release. Work already done is kept. This cannot be undone.",
+                            confirmLabel: "Stop the run",
+                            destructive: true,
+                          }).then((ok) => {
+                            if (ok) stopRun.mutate(missionId);
+                          });
+                        }}
+                      >
+                        {stopRun.isPending ? "Stopping" : "Stop the run"}
+                      </Button>
+                    ) : null}
                   </Actions>
                 </div>
               )}
