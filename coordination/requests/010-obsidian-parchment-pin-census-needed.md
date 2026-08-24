@@ -1,7 +1,7 @@
 
 ## Census delivered by LANE 1, 2026-08-24 (unit 035 era)
 
-The reader count you asked for, from git grep at current main: 20
+The reader count you asked for, from git grep at current main: 38
 component files outside meridian/ read the aliases (--ink-faint,
 --paper, --ember), tests excluded. Families: billing banners and usage
 (3), brain retention line, chat MessageMeta, cockpit inspector,
