@@ -440,6 +440,54 @@ once, so the next lane finds it instead of building a fourth copy.
 **The one hard line:** a lane never EDITS an existing file in `src/components/meridian/`. Editing a
 shared primitive changes every surface using it, and only MAIN can see all of them.
 
+## R-18 · The acceptance criterion, stated strictly — 2026-08-25
+
+**Founder, and this replaces every looser phrasing anywhere in this repo:**
+
+> **One piece of work enters at the first station and completes ALL SEVEN — sense, decide, define,
+> design, build, ship, learn — driven entirely by agents, with NO human touching it mid-run, and a
+> person can WATCH it happen on one screen.**
+
+**Met only when all six are true, each proven rather than asserted:**
+
+1. A track that entered at `sense` reaches `learn`, **proven with SQL**. Never happened: 59 tracks,
+   58 entered at `sense`, zero reached `learn`.
+2. **No human intervention mid-run** — no unsticking, no database edit, no re-drive by hand. **A
+   stall is a failure of this goal, not a step in it.**
+3. **Visible while it happens** — one screen shows each station act, what it produced, and the
+   handoff, without navigating anywhere.
+4. **Starts from one sentence**, zero configuration.
+5. **Ends with a verdict** — what was predicted, what actually happened.
+6. **Evidence recorded** — SQL, track id and a screenshot in `EXPERIMENT-first-finish.md`.
+
+**Anything short of all six is NOT done.** A run needing a nudge, a stall nobody sees, or a station
+silently producing nothing each fail it. **Progress is never reported as completion.**
+
+**Note on clause 2 and the consent moment.** R-04 requires the run to ask a person in place when it
+genuinely needs one. That is not a contradiction: the acceptance run must complete **without needing
+one** — the mandate (R-16 §4, `FRONTIER-BRIEF.md` §4) is what makes reversible work proceed on its
+own. **If the acceptance run pauses for consent, the gate is mis-set**, and `release.publish` — the
+one irreversible act, correctly gated, which has never once fired — is the only place a pause is
+legitimate. Everything else pausing is the inverted gate, not governance.
+
+## R-19 · Mobile is deferred. Accessibility is not — 2026-08-25
+
+**Founder:** *"I'm not willing to launch a mobile application at this point. Ignore the items
+relevant to that for now."*
+
+**Ruled, and the distinction is deliberate because the gap audit covers both:**
+
+- **DEFERRED: small-screen and responsive work.** Anything whose only justification is a phone or a
+  narrow viewport is dropped from the queue. Do not build it, do not test for it.
+- **NOT DEFERRED: accessibility.** Keyboard reachability, focus management, `aria-live` on anything
+  that updates asynchronously, and not using colour as the only signal. **This is an enterprise
+  procurement blocker, not a mobile concern** — a buyer's security and accessibility review will ask,
+  and a run transcript that streams without announcing is unusable to a screen-reader user on a
+  desktop. It stays in scope at full weight.
+
+The layout must still not *break* below the Meridian breakpoint — `SPEC-LAYOUT.md`'s stacking rule
+stands, because that is one line of CSS, not a mobile product.
+
 ---
 
 ## Open, and I have not ruled yet
