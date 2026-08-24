@@ -547,6 +547,35 @@ hard against all eight above, and tweaks or rebuilds it before it enters `src/co
 A primitive is used by every future surface, so a mediocre one is a debt charged forever. **Promotion
 is where the standard is set, and it is the one review MAIN never rushes.**
 
+## R-21 · The dev server stays off, and you stop the one you started — 2026-08-25
+
+**Founder, repeated across sessions and now binding on all three lanes:** *"Use the dev server only
+when required. Once the job is done, END it, so it does not put load on RAM and processing power and
+get the system frozen or restarted."*
+
+**This is not housekeeping. The machine has actually been driven to a restart by it**, and three
+agents each leaving one running is three times the cost, on the founder's own laptop, while he is
+asleep.
+
+### The rule
+
+1. **Do not start it to "check something".** `bunx tsc --noEmit`, `bun test` and reading the source
+   answer almost everything. A dev server answers exactly one question: *what does this look like
+   when rendered.*
+2. **Start it only when a change genuinely must be seen in a browser** — a Playwright verification
+   (R-11 pass 2), or a screenshot the acceptance requires.
+3. **STOP IT THE MOMENT THAT CHECK IS DONE.** Not at the end of the unit, not at the end of the
+   session — the moment the screenshot is taken. **A server left running "in case" is the failure.**
+4. **Before starting one, check nothing is already listening.** Another lane may have one up, and
+   three servers on one laptop is what causes the freeze. Reuse it or wait.
+5. **Never background it and walk away.** If you start it in the background you own killing it, in
+   the same unit, before you commit. **A unit is not finished while a server it started is alive.**
+6. **If a session ends unexpectedly, the next one kills orphans first.** Check for a listening port
+   before anything else and stop what you find.
+
+**The check that makes this real:** a lane's unit file records whether it started a server and that
+it stopped it. **A unit claiming a browser verification without that line is rejected on review.**
+
 ---
 
 ## Open, and I have not ruled yet

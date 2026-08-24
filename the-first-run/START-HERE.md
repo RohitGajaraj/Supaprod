@@ -88,6 +88,14 @@ answers in minutes. **Never work around a blocker by reaching into another lane'
 `coordination/requests/verify-<item>.md` naming the route, the thing to look for, and **what would
 prove it false**. The other lane verifies with Playwright and reports separately.
 
+## One operational rule that has actually broken things
+
+**THE DEV SERVER STAYS OFF** (R-21). Start it only when a change must be seen in a browser, and
+**stop it the moment that check is done** — not at the end of the unit, not at the end of the
+session. Check nothing is already listening before you start one; three servers on one laptop is
+what freezes it. **A unit is not finished while a server it started is still alive**, and a unit
+claiming a browser check without recording that it stopped the server is rejected on review.
+
 ## Done, for the whole mission
 
 **A person types one sentence and, without navigating anywhere, watches the work carried from the
