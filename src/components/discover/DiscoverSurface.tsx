@@ -3309,7 +3309,7 @@ export function DiscoverSurface({
                              accepted by the server and read by no one; the row
                              is where the judgment lives, so this is where the
                              words for it render. */}
-                          {t.status_reason ? ` — ${t.status_reason}` : ""} ·{" "}
+                          {t.status_reason ? `, because ${t.status_reason}` : ""}{" "}·{" "}
                           {t.frequency} signal{plural(t.frequency)}
                           {heard ? ` · last heard ${heard}` : ""}
                         </>
