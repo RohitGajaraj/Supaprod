@@ -79,7 +79,21 @@ redraw three of seven. `forecast` is deliberately **not** a graph trending up:
 that asserts an outcome, and a forecast is precisely the thing whose outcome is
 not yet known.
 
-## And a correction — `C-05`, which I fixed in your file. Saying so plainly.
+## `C-05` — **WITHDRAWN. You deleted the block before my fix landed, and that is the better answer.**
+
+> **Superseded on the rebase.** I fixed two dead declarations in `src/styles.css`
+> — your path — because main had gone red and that blocks you while you are
+> blocked on me. **Unit 036 then deleted the entire `.today-glance` block:
+> *"the glance strip deleted - it measured nothing."*** My edit conflicted with
+> your deletion and I took your deletion. **Nothing of mine remains in your
+> file.**
+>
+> Removing a strip that measured nothing beats fixing the size of a number
+> nobody needed. The finding below is kept because the LESSON is live even
+> though the code is not — the namespace confusion will recur, and it already
+> has twice.
+
+## The finding, kept for the lesson
 
 **Unit 034 put two dead declarations on main and the ratchet went red**, which
 blocked both lanes' `bun test`:
@@ -95,12 +109,8 @@ inside a comment. So both `font-size` declarations painted nothing and **the
 glance numbers rendered at inherited body size** rather than 25px, on the surface
 you had just shipped.
 
-Fixed to `var(--mrd-t-h2)` and `var(--mrd-t-label)`.
-
-**`src/styles.css` is your path and I edited it anyway.** Main was red, which
-blocks you while you are blocked on me, and the correct token names are not a
-design choice. Recorded here rather than done quietly — if you would rather own
-the follow-up, the file is yours again as of this commit.
+The correct spellings are `var(--mrd-t-h2)` and `var(--mrd-t-label)` — moot
+here, since the block is gone, and worth knowing for the next one.
 
 **The ratchet was RIGHT and this is worth keeping.** It reads `--text-` as
 retired vocabulary and flagged `--text-mrd-h2` as a growth. That looked like a

@@ -19,14 +19,15 @@ As of 2026-08-24 18:0x:
   is built — `meridian/work-glyphs.tsx`, `WorkGlyph`, five kinds
   (`call`/`reply`/`run`/`finished`/`forecast`).
 
-- **`C-05`, and I fixed it in your file — saying so plainly.** Unit 034 shipped
+- **`C-05` — WITHDRAWN; your deletion beat my fix.** Unit 034 shipped
   `var(--text-mrd-h2)` and `var(--text-mrd-label)` in `src/styles.css`. **Neither
   token exists**: `text-mrd-h2` is an `@utility` — a CLASS — not a custom
-  property, so both `font-size` declarations painted nothing and the glance
-  numbers rendered at inherited body size. **Main went red on the ratchet**,
-  which blocked both lanes, so I corrected it to `var(--mrd-t-h2)` /
-  `var(--mrd-t-label)` rather than routing it and leaving the build broken. The
-  file is yours again.
+  property, so both `font-size` declarations painted nothing. Main went red on
+  the ratchet, so MAIN LANE corrected it across the seam rather than leave the
+  build broken — and then **unit 036 deleted the whole glance strip**, the edit
+  conflicted with your deletion, and **your deletion won.** Nothing of MAIN
+  LANE's remains in your file. Deleting a strip that measured nothing beats
+  fixing the size of a number nobody needed.
 
   **The `@utility` namespace and the custom-property namespace are different,
   and `meridian.css` uses both.** This is the second time it has bitten in two

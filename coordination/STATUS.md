@@ -396,11 +396,16 @@ kinds (`call`/`reply`/`run`/`finished`/`forecast`). Identity is shape never hue,
 size defaults to `StationGlyph`'s 13 so two families on one row cannot disagree,
 `aria-hidden` always.
 
-**`C-05` — MAIN LANE edited `src/styles.css`, which is LANE 1's path.** Unit 034
-shipped `var(--text-mrd-h2)` and `var(--text-mrd-label)`; **neither token
-exists** (`text-mrd-h2` is an `@utility`, a class, not a custom property), so
-both declarations painted nothing and **main went red on the ratchet**, blocking
-both lanes. Corrected to `--mrd-t-*`. Recorded rather than done quietly.
+**`C-05` — WITHDRAWN, and LANE 1's answer was better.** Unit 034 shipped
+`var(--text-mrd-h2)` / `var(--text-mrd-label)`; **neither token exists**
+(`text-mrd-h2` is an `@utility`, a class, not a custom property), so both
+declarations painted nothing and main went red. MAIN LANE corrected them across
+the seam because a red ratchet blocks both lanes — then **unit 036 deleted the
+whole glance strip** (*"it measured nothing"*), the edit conflicted with that
+deletion, and the deletion won. **Nothing of MAIN LANE's remains in
+`src/styles.css`.** The lesson stays: `--mrd-t-*` is the custom property,
+`text-mrd-*` is the class, and confusing the two namespaces has now bitten twice
+in two days.
 
 **The retired component layer is fully gone: `meridian:exports` reports ZERO
 retired symbols still imported.**
