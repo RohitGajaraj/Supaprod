@@ -578,6 +578,62 @@ it stopped it. **A unit claiming a browser verification without that line is rej
 
 ---
 
+## R-22 · An unset ceiling is the default, never "unlimited" — 2026-08-25
+
+**Decided by MAIN on the founder's behalf while he was away, because it is reversible and leaving it
+open meant leaving the guard off for another night.** R-09 allows this; the irreversible calls stay
+with him.
+
+**The finding.** `workspaces.default_track_spend_cap_usd` shipped with no column default and was
+never backfilled, so it was null in **all 21 workspaces**, and `resolveTrackSpendCap` read that null
+as a workspace that had *deliberately cleared its ceiling*. **Nobody had made that decision and
+nobody could: there is no surface anywhere in the product that clears it.** So the one guard that
+makes the unattended story sayable has been off everywhere, for as long as the column has existed.
+
+### The rule
+
+**At the WORKSPACE level, an unset ceiling means the product default. It never means unlimited.**
+A workspace that genuinely wants no ceiling has to say so with a number, not with an absence.
+
+**At the TRACK level, an explicit `null` still means "no ceiling on this one".** That is a person
+acting on one piece of work, in one place, and it stays. The distinction the parameter already drew
+between `undefined` (nobody said) and `null` (somebody said none) was right; the column was the half
+that could not tell them apart.
+
+**This generalises, and that is why it is a ruling and not a bug fix.** Whenever an absent value and
+a chosen value share one representation, **the absent one must resolve to the SAFE reading.** The
+file that got this wrong had the correct principle written three paragraphs above the line that
+broke it: *"failing to `null` would let a database hiccup silently remove the limit."* An unset
+column is the same hazard as an unreadable one.
+
+**Reversal costs one migration** if the founder wants workspace-level opt-out. Applied as
+`20260824230000`, verified 21 of 21.
+
+---
+
+## R-23 · A function that lands without a door is not finished — 2026-08-25
+
+**Six instances in three days**, which is enough to stop calling it a coincidence: `createWorkspace`,
+`draftContractFromIntent` (140 lines, zero callers), `reopenForecast` (zero callers while the copy
+promises it), `recordJudgment`'s unreachable forecast parameter, `ensureDefaultProduct`, and now
+`decideApprovalItems` — built, tested, and referenced by **nothing but its own test**, while the
+governance doctrine's headline policy offer has never had a surface.
+
+**This repo's dominant defect is work that exists and nothing reaches.** `TrackActivity` sat unread
+for 24 days. `run-rows.tsx` is 22.8KB nobody imports.
+
+### The rule
+
+**When a function lands, its unit file names the surface that calls it, or states why there is
+none.** Not a plan to build one later. Either a caller in the same unit, or one sentence saying the
+door is deliberately deferred and what carries it.
+
+**A unit that adds an exported function and names no door is sent back on review.** This is cheap to
+comply with and it is the only check that catches the defect at the moment it is created rather than
+in a census three weeks later.
+
+---
+
 ## Open, and I have not ruled yet
 
 | Question | Why it is still open |
