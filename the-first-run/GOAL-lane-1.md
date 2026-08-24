@@ -13,10 +13,14 @@ re-read the acceptance list in §7 and find which criterion is not yet true.
 git pull --rebase origin main
 ```
 
-1. Read **`the-first-run/BUILD-QUEUE.md` — THIS IS YOUR WORK SOURCE.** Take the next `READY`
-   item in your lane. If your next numbered item says `BLOCKED`, **skip it and take the next
-   `READY` one.** Never idle, and never build another lane's item. MAIN LANE adds to this file
-   continuously, so **re-pull it rather than waiting for it to grow.**
+1. Read **`the-first-run/BUILD-QUEUE.md` — THIS IS YOUR WORK SOURCE.** It is ONE ordered
+   backlog, not a list per lane. **Take the topmost item you OWN that is not `BLOCKED` or
+   `WIP`** — the `Own` column decides ownership by PATH. Scan past blocked items rather than
+   stopping at one. **Never cross into another lane's path.** Claim by writing one line into
+   `coordination/units/` and pushing BEFORE you start; that is advisory, not a lock. If you
+   own nothing unblocked, do STANDING WORK (RULINGS.md R-07) and file
+   `coordination/requests/<n>-starved.md`. **Never idle.** MAIN stacks this file continuously,
+   so re-pull rather than wait.
 2. Read **`the-first-run/RULINGS.md`** FIRST of the design files. **It is the tiebreaker: if any
    two documents in this repo disagree, RULINGS.md wins.** It also lists what is still OPEN, and
    an open question is one you file a request about rather than decide yourself.
