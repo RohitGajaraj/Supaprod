@@ -143,6 +143,7 @@ function ProductPage() {
             How it works
           </p>
 
+          {/* Pixel brand face carries no type stop by design (R006), so the literal size is the only correct spelling. Kept as declared per answers/R011 cluster 5. */}
           <h1
             style={{
               fontFamily: "var(--font-pixel, 'Geist Pixel Square')",
@@ -156,10 +157,11 @@ function ProductPage() {
             The six-station loop
           </h1>
 
+          {/* Judged paragraph body, not a subheading: three sentences of copy at 1.6 measure, so it takes prose per answers/R011 cluster 3. */}
           <p
+            className="text-mrd-prose"
             style={{
               fontFamily: "var(--font-sans)",
-              fontSize: "16px",
               lineHeight: 1.6,
               color: "var(--ink-subtle)",
               maxWidth: "480px",
@@ -201,6 +203,7 @@ function ProductPage() {
             paddingBottom: "120px",
           }}
         >
+          {/* Pixel brand face carries no type stop by design (R006), so the literal size is the only correct spelling. Kept as declared per answers/R011 cluster 5. */}
           <h2
             style={{
               fontFamily: "var(--font-pixel, 'Geist Pixel Square')",
@@ -213,10 +216,11 @@ function ProductPage() {
             Ready to run your loop?
           </h2>
 
+          {/* Judged paragraph body, not a subheading: plain supporting copy under the CTA heading, so it takes prose per answers/R011 cluster 3. */}
           <p
+            className="text-mrd-prose"
             style={{
               fontFamily: "var(--font-sans)",
-              fontSize: "16px",
               lineHeight: 1.6,
               color: "var(--ink-subtle)",
             }}

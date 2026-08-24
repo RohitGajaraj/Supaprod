@@ -175,6 +175,7 @@ function PublicDecisionPage() {
       >
         Decision · {who} · {date}
       </div>
+      {/* Declared display voice for this shared decision title per answers/R011 cluster 5: kept as declared, tuned against its own ground, not a stop. */}
       <h1 className="font-display" style={{ fontSize: 30, lineHeight: 1.2, margin: "0 0 14px" }}>
         {stripAutoPrefix(decision.title)}
       </h1>

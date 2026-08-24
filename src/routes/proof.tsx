@@ -144,6 +144,7 @@ function CalibrationHero({
       </div>
       {hasData ? (
         <>
+          {/* Declared display voice for this page's hero verdict per answers/R011 cluster 5: tuned against its own ground, not a stop. */}
           <h1
             className="font-display"
             style={{ fontSize: 28, lineHeight: 1.25, margin: "0 0 8px" }}
@@ -151,8 +152,8 @@ function CalibrationHero({
             Supaprod called {hits} of the last {total} calls right.
           </h1>
           <p
+            className="text-mrd-prose"
             style={{
-              fontSize: 13.5,
               lineHeight: 1.6,
               color: "var(--ink-muted)",
               margin: 0,
@@ -164,6 +165,7 @@ function CalibrationHero({
         </>
       ) : (
         <>
+          {/* Declared display voice for the empty-state hero fallback per answers/R011 cluster 5: kept as declared, judged against its own ground. */}
           <h1
             className="font-display"
             style={{ fontSize: 24, lineHeight: 1.25, margin: "0 0 8px" }}
@@ -171,8 +173,8 @@ function CalibrationHero({
             Not enough recorded outcomes yet.
           </h1>
           <p
+            className="text-mrd-prose"
             style={{
-              fontSize: 13.5,
               lineHeight: 1.6,
               color: "var(--ink-muted)",
               margin: 0,

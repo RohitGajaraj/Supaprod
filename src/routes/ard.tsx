@@ -129,6 +129,7 @@ function ArdPage() {
         >
           Interop standard · v{ARD_SCHEMA_VERSION}
         </p>
+        {/* Declared display voice for this page title per answers/R011 cluster 5: the page's single largest voice, tuned against its own ground, not a stop. */}
         <h1
           style={{
             fontSize: 34,
@@ -139,7 +140,7 @@ function ArdPage() {
         >
           The Agent Requirements Document (ARD)
         </h1>
-        <p style={{ color: "var(--ink-muted)", lineHeight: 1.6, fontSize: 15 }}>
+        <p className="text-mrd-prose" style={{ color: "var(--ink-muted)", lineHeight: 1.6 }}>
           Every spec inside Supaprod carries an Outcome Contract: a typed, structured statement of
           what it is trying to achieve, how success is proven, and what is explicitly out of scope.
           The ARD is that same contract published as an open standard, so a coding agent Supaprod

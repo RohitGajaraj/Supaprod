@@ -605,8 +605,8 @@ function SignupPage() {
           }}
         >
           <p
+            className="text-mrd-prose"
             style={{
-              fontSize: 13.5,
               color: "var(--mrd-ink)",
               margin: "0 0 6px",
               lineHeight: "var(--mrd-lh-snug)",

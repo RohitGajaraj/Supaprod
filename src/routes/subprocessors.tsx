@@ -61,7 +61,7 @@ function ProcessorRow({ s, first }: { s: SubProcessor; first: boolean }) {
           {CATEGORY_LABEL[s.category]}
         </span>
       </div>
-      <p style={{ fontSize: 13.5, color: "var(--ink-muted)", margin: "5px 0 0", lineHeight: 1.5 }}>
+      <p className="text-mrd-prose" style={{ color: "var(--ink-muted)", margin: "5px 0 0", lineHeight: 1.5 }}>
         {s.purpose}
       </p>
       <p
@@ -79,7 +79,7 @@ function Section({ title, note, items }: { title: string; note?: string; items: 
   if (items.length === 0) return null;
   return (
     <section style={{ marginTop: 36 }}>
-      <h2 style={{ fontSize: 16, fontWeight: 600, color: "var(--ink)", margin: 0 }}>{title}</h2>
+      <h2 className="mrd-subtitle" style={{ fontWeight: 600, color: "var(--ink)", margin: 0 }}>{title}</h2>
       {note && (
         <p
           className="text-mrd-base"

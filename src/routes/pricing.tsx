@@ -443,6 +443,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
       {/* Price zone */}
       {isEnterprise ? (
         <div style={{ marginBottom: 16 }}>
+          {/* Declared figure voice for the Enterprise card per answers/R011 cluster 5: a figure worth reading before the words, kept as declared. */}
           <span
             className="font-display"
             style={{ fontSize: 26, fontWeight: 460, lineHeight: 1.2, display: "block" }}
@@ -553,12 +554,12 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
       {isEnterprise ? (
         <a
           href="mailto:sales@supaprod.ai?subject=Enterprise enquiry"
+          className="text-mrd-prose"
           style={{
             display: "block",
             textAlign: "center",
             padding: "11px 0",
             borderRadius: 8,
-            fontSize: 13.5,
             fontWeight: 500,
             border: "1px solid var(--mrd-line)",
             background: "transparent",
@@ -593,12 +594,12 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
                 // named here rather than silently decided by an agent.
                 `/checkout?plan=${tier}&billing=${annual ? "annual" : "monthly"}`
           }
+          className="text-mrd-prose"
           style={{
             display: "block",
             textAlign: "center",
             padding: "11px 0",
             borderRadius: 8,
-            fontSize: 13.5,
             fontWeight: 600,
             background: isBusiness ? "var(--mrd-solid)" : "transparent",
             border: isBusiness ? "1.5px solid var(--mrd-solid)" : "1px solid var(--mrd-line)",
@@ -756,6 +757,7 @@ function PricingPage() {
               >
                 Pricing
               </p>
+              {/* Declared responsive display voice for this page headline per answers/R011 cluster 5: the clamp is this page's own ground, kept as declared rather than snapped to a stop. */}
               <h1
                 style={{
                   fontFamily: '"Geist Pixel Square", ui-monospace, monospace',

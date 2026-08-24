@@ -137,6 +137,7 @@ function CheckoutPage() {
           Back to plans
         </Link>
 
+        {/* Declared display voice for this page title per answers/R011 cluster 5: the page's largest voice, tuned against its own ground, not a stop. */}
         <h1 style={{ fontSize: 26, marginBottom: 6 }}>Start with {p.name}</h1>
         <p className="text-mrd-prose" style={{ color: "var(--mrd-mute)", marginBottom: 26 }}>{p.tagline}</p>
 
@@ -177,6 +178,7 @@ function CheckoutPage() {
               >
                 -
               </Action>
+              {/* Declared figure voice at 18px per answers/R011 cluster 5: a number worth reading before the words around it, kept as declared. */}
               <span style={{ fontSize: 18, fontWeight: 500, minWidth: 24, textAlign: "center" }}>
                 {seats}
               </span>
@@ -244,7 +246,10 @@ function CheckoutPage() {
             marginBottom: 20,
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13.5 }}>
+          <div
+            className="text-mrd-prose"
+            style={{ display: "flex", justifyContent: "space-between" }}
+          >
             <span>
               {p.name}
               {isBusiness ? ` · ${seats} seats × $${unit}` : ""}

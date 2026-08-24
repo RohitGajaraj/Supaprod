@@ -169,7 +169,7 @@ function Section({ title, items, empty }: { title: string; items: string[]; empt
           style={{ display: "flex", flexDirection: "column", gap: 6, paddingLeft: 16, margin: 0 }}
         >
           {items.map((it, i) => (
-            <li key={i} style={{ fontSize: 13.5, lineHeight: 1.5, color: "var(--ink)" }}>
+            <li key={i} className="text-mrd-prose" style={{ lineHeight: 1.5, color: "var(--ink)" }}>
               {it}
             </li>
           ))}
@@ -212,6 +212,8 @@ function PublicTeardownPage() {
       >
         Critic teardown · {date}
       </div>
+      {/* Declared display voice for this page per answers/R011 cluster 5 -
+          tuned against its own ground, not a stop. */}
       <h1 className="font-display" style={{ fontSize: 30, lineHeight: 1.2, margin: "0 0 14px" }}>
         {stripAutoPrefix(teardown.title)}
       </h1>

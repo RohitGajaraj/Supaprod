@@ -140,7 +140,7 @@ function UpdatesPage() {
               >
                 {e.title}
               </h3>
-              <p style={{ fontSize: 13.5, color: "var(--ink-subtle)", margin: 0, lineHeight: 1.6 }}>
+              <p className="text-mrd-prose" style={{ color: "var(--ink-subtle)", margin: 0, lineHeight: 1.6 }}>
                 {e.body}
               </p>
             </div>
@@ -151,7 +151,7 @@ function UpdatesPage() {
       {/* PC-15: fed by shipped rows tagged fromPulse above. Honest empty
           state until a real one exists post-beta, never a fabricated one. */}
       <div style={{ marginTop: 48, paddingTop: 28, borderTop: "1px solid var(--soft-stone)" }}>
-        <h2 style={{ fontSize: 16, fontWeight: 600, color: "var(--ink)", margin: "0 0 6px" }}>
+        <h2 className="mrd-subtitle" style={{ fontWeight: 600, color: "var(--ink)", margin: "0 0 6px" }}>
           You said, we changed
         </h2>
         {ENTRIES.some((e) => e.fromPulse) ? (
