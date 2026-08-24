@@ -17,34 +17,49 @@ another lane's item.
 
 ---
 
+## THE CORRECTION THAT RESHAPED THIS QUEUE (2026-08-25)
+
+**Most of what this mission needed was already built and mounted nowhere.** Verified today:
+
+| Thing | State found | Consequence |
+| --- | --- | --- |
+| `startTrack` (server fn) + `TrackStart` mounted at `/plan` | **Already works** | **M-1 is cancelled.** There was never a missing create-a-track door |
+| `TrackChain.tsx`, `TrackActivity.tsx` | Built 2026-08-01, **0 importers** | They ARE the run view. `TrackActivity` was built to the founder ruling asking for exactly this, then never mounted |
+| `TrackActivity` polls every 10s | Already live | **M-3 (SSE) is cancelled.** Polling is sufficient; revisit only if measured insufficient |
+| `driveTrackOnce` | One caller, the cron | **The one genuine gap.** Now closed by `driveTrackNow` |
+
+**Three endpoint drafts were reverted** (`ba23bafbe`): they broke `main`, duplicated `startTrack`, read
+a `users` table that does not exist, and decided when to stop by string-matching prose.
+
 ## LANE 0 — `src/components/**` except `meridian/` and `shell/`
 
-| # | Status | Item | Why it matters to a user |
-| --- | --- | --- | --- |
-| **L0-1** | **READY** | **`src/components/track/TrackRun.tsx` stub.** Export `TrackRun({ trackId }: { trackId: string })`. Render the id + the seven names from `AGENT_STATION_ORDER`. **Push within 20 min — LANE 1 is blocked on the import target existing.** | Nothing yet. This is the unblocker that lets three lanes work at once. |
-| **L0-2** | **READY** | **The live seven-station view.** Fill `TrackRun` in. **Do not design this — `RunMap` already has `mode="live"` and already takes `RunMapStation[]`.** Copy the shape-builder pattern from `stopsForRoute()` in `src/components/ask/AskPlanGate.tsx`. Feed it from `GET /api/tracks/:id/stream` (MAIN, M-3). Add `RunTimeline` for history and `ToolStream` for what the agent is doing this second. | **This is the screen that does not exist.** 59 tracks have run and no human has ever watched one move. |
-| **L0-3** | **READY** | **The "waiting on you" card.** 9 tracks are held `waiting-on-a-person` with 0 attempts — **the product has been waiting on the founder in total silence.** Build the card that says which work is waiting, what it needs, and the one control that unblocks it. Compose `AgentInbox`. **"Approve" only where the click UNBLOCKS; "review" where it only shows.** | The single sharpest instance of the complaint: the system was waiting on him and could not say so. |
-| **L0-4** | BLOCKED → L0-2 | **The two payoff cards.** The **forecast card** (before Build: what it expects, recorded, timestamped — a commitment, not a note) and the **Learn verdict card** (*predicted X · actually Y · what we now believe*). Give these the most visual weight on the page. | **14 real forecasts exist and 0 have ever been graded.** This is the moat, and no user has seen it close. |
+| # | Status | Item |
+| --- | --- | --- |
+| L0-1/L0-2 | **DONE (MAIN)** | `src/components/track/TrackRun.tsx` — composes `TrackChain` + `TrackActivity` + the drive control. **Built by MAIN to unblock the path. Do not rebuild it; extend it.** |
+| **L0-3** | **READY** | **The "waiting on you" surface.** 9 tracks sit held `waiting-on-a-person` with 0 attempts and **nothing anywhere tells a person.** Build the card that names what is waiting, what it needs, and the one control that unblocks it. Compose `AgentInbox`. "Approve" only where the click UNBLOCKS. |
+| **L0-4** | **READY** | **The two payoff cards inside `TrackRun`.** The **forecast card** (before Build: what it expects, recorded, timestamped — a commitment, not a note) and the **Learn verdict card** (*predicted X · actually Y · what we now believe*). **14 real forecasts exist and 0 have ever been graded** — this is the moat and no user has seen it close. |
+| **L0-5** | **READY** | **Movement.** The founder's ask: the work must look alive while it happens. A station going from waiting → running → done should read as motion, not a repaint. Use Meridian's existing transition tokens; if none fit, file a request — never a raw duration. |
 
 ## LANE 1 — `src/routes/**` except `api/`, `src/components/shell/**`, `src/styles/**` except `meridian.css`
 
-| # | Status | Item | Why it matters to a user |
-| --- | --- | --- | --- |
-| **L1-1** | BLOCKED → L0-1 | **Mount `src/routes/_authenticated.track.$trackId.tsx`**, importing `TrackRun` from `@/components/track/TrackRun`, passing the param as `trackId`. Pull until L0-1 lands; **take L1-3 meanwhile, do not idle and do not create the component yourself.** | The one URL the mission is about. It must be linkable and shareable. |
-| **L1-2** | BLOCKED → M-1 | **The on-ramp.** One box, one sentence, one action, **zero configuration** → `POST /api/tracks` → land on `/track/:id` watching it walk. No workspace / product / station picker in the path; default them and disclose after. Read `src/components/ask/__tests__/one-prompt-per-screen.test.ts` first — there is a standing one-composer rule you will trip. | **A user who must configure before anything happens does not come back.** This is the difference between a demo and a product. |
-| **L1-3** | **READY** | **Collapse the duplicate doors.** `_authenticated.discover.tsx` and `_authenticated.discovery.tsx` are two doors to one station — read both, keep one, redirect the other. Then find the rest of the near-duplicates. One at a time, one commit each, never a mass rename. | 84 authenticated routes **is** the learning curve. |
-| **L1-4** | **READY** | **The rail leads to a run.** `AppFrame.tsx` and `run-strip.tsx` are yours. A person landing in this product should reach a live run in **one click**, not assemble the journey by navigating. **Open every route before redirecting or closing it** — some of the 84 hold real work. | Today the person walks and the system waits. It must be the other way round. |
+| # | Status | Item |
+| --- | --- | --- |
+| L1-1 | **DONE (MAIN)** | `src/routes/_authenticated.track.$trackId.tsx` — the one linkable address. **Built by MAIN. Extend, do not rebuild.** |
+| **L1-2** | **READY** | **Close the loop from start to watch.** `TrackStart` is mounted at `/plan` and already creates tracks — but after creating one it does **not** take you to it. Make starting a track land the person on `/track/:id` watching it walk. This is the single highest-leverage item in the queue. |
+| **L1-3** | **READY** | **Collapse the duplicate doors.** `_authenticated.discover.tsx` vs `_authenticated.discovery.tsx` — two doors, one station. Read both, keep one, redirect. Then find the rest. One at a time, one commit each, never a mass rename. |
+| **L1-4** | **READY** | **The rail leads to a run.** 84 authenticated routes IS the learning curve. A person landing here should reach a live run in one click. `AppFrame.tsx` and `run-strip.tsx` are yours. **Open every route before redirecting or closing it.** |
 
 ## MAIN LANE — `src/lib/**`, `src/routes/api/**`, `src/components/meridian/**`, `meridian.css`, `supabase/**`, DB, deploys
 
-| # | Status | Item | Why |
-| --- | --- | --- | --- |
-| **M-1** | **READY** | **`POST /api/tracks`** — create a track from one sentence. Wrap `startTrackCore` (`src/lib/spine/track.functions.ts:238`). Default workspace + product, return what was defaulted. **LANE 1's L1-2 is blocked on this.** | The way in. |
-| **M-2** | **READY** | **`POST /api/tracks/:id/drive`** — foreground walk. Loop `driveTrackOnce` until the route finishes or a gate blocks, **without** the tick's shared 45s fair-share deadline. **Do not change the tick.** | The tick moved **5 tracks in 24 hours**. A watched run cannot be rationed. |
-| **M-3** | **READY** | **`GET /api/tracks/:id/stream`** — SSE of station transitions, on the `src/lib/ask-sse.ts` conventions. **Publish the exact event type into `MISSION.md` so both lanes can code against it.** | Both lanes need the contract; L0-2 is waiting on it. |
-| **M-4** | **READY** | **Kill the `needs-evidence` thrash.** 17 tracks, **51 attempts**, retrying a precondition they can never satisfy and spending real money. `MAX_STATION_ATTEMPTS` has never fired. Find the unsatisfiable condition and make the failure terminal + visible. | Money burning on a loop that cannot win, invisibly. |
-| **M-5** | **READY** | **Close the moat once.** Grade one real forecast end to end and prove it with SQL. 14 real forecasts, **0 graded, ever.** | Until this happens the moat is a claim, not a product. |
-| **M-6** | ongoing | **Audit, answer, verify.** Every `coordination/requests/` file is mine; a blocked lane is my cost. Neither lane has DB, deploy, Mobbin or founder access. | Two lanes stall without me. |
+| # | Status | Item |
+| --- | --- | --- |
+| M-1 | **CANCELLED** | `POST /api/tracks` — `startTrack` already exists and is mounted. Building it was duplication |
+| M-2 | **DONE** | **`driveTrackNow`** (`track.functions.ts`) — the foreground walk. Fresh clock per seat, stops on structure not prose, bounded twice and reports which bound it hit |
+| M-3 | **CANCELLED** | SSE — `TrackActivity` polls at 10s. Revisit only on measured evidence |
+| **M-4** | **READY** | **Kill the `needs-evidence` thrash.** 17 tracks, **51 attempts**, retrying a precondition they can never satisfy on real money. `MAX_STATION_ATTEMPTS` has never fired |
+| **M-5** | **READY** | **Close the moat once.** Grade one real forecast end to end, proven with SQL. 14 real, 0 graded, ever |
+| **M-6** | **READY** | **Prove the walk.** Drive a real track with `driveTrackNow` and show a track that entered at `sense` reaching `learn`. **No track has ever done this.** It is the mission |
+| M-7 | ongoing | Audit both lanes, answer every request, keep this queue true |
 
 ---
 
