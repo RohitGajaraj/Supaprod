@@ -73,7 +73,7 @@ export function StripeEmbeddedCheckout({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl p-0">
-        <DialogHeader className="border-b border-[var(--hairline,rgba(0,0,0,0.08))] px-5 py-3">
+        <DialogHeader className="border-b border-[var(--mrd-edge,rgba(0,0,0,0.08))] px-5 py-3">
           <DialogTitle className="text-heading-16">{title || "Checkout"}</DialogTitle>
         </DialogHeader>
         <div className="max-h-[80vh] overflow-y-auto">

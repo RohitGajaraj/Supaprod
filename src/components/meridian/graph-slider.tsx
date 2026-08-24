@@ -121,7 +121,7 @@ function Readout({
         x={cx + cw / 2}
         y={sub ? 13 : 14}
         textAnchor="middle"
-        fontFamily="var(--font-mono)"
+        fontFamily="var(--mrd-mono)"
         fontSize={11}
         fontWeight={600}
         fill={color}
@@ -133,7 +133,7 @@ function Readout({
           x={cx + cw / 2}
           y={25}
           textAnchor="middle"
-          fontFamily="var(--font-mono)"
+          fontFamily="var(--mrd-mono)"
           fontSize={8.5}
           letterSpacing="0.08em"
           fill="var(--mrd-mute)"
@@ -173,7 +173,7 @@ export function GraphSlider({
     return (
       <div
         style={{
-          fontFamily: "var(--font-mono)",
+          fontFamily: "var(--mrd-mono)",
           color: "var(--mrd-mute)",
           padding: "8px 0",
         }}
@@ -285,7 +285,7 @@ export function GraphSlider({
               x={w - PAD_X}
               y={baseY - 4}
               textAnchor="end"
-              fontFamily="var(--font-mono)"
+              fontFamily="var(--mrd-mono)"
               fontSize={8.5}
               letterSpacing="0.08em"
               fill="var(--cornflower)"
@@ -333,7 +333,7 @@ export function GraphSlider({
               x={Math.max(14, Math.min(w - 14, p[0]))}
               y={isMax ? p[1] - 6 : p[1] + 13}
               textAnchor="middle"
-              fontFamily="var(--font-mono)"
+              fontFamily="var(--mrd-mono)"
               fontSize={8.5}
               letterSpacing="0.06em"
               fill="var(--mrd-faint)"

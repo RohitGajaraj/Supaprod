@@ -181,7 +181,7 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
             ? "var(--mrd-pass)"
             : gate.status === "rejected"
               ? "var(--mrd-fail)"
-              : "var(--ember-text)",
+              : "var(--mrd-you-text)",
       }}
     >
       Gate · {gate.status ?? "pending"}

@@ -24,8 +24,8 @@ export interface RowProps {
    * WHAT THE STATUS WORD MEANS, not what colour it should be.
    *
    * This was `statusColor: string` and every caller passed a raw CSS variable
-   * off the Obsidian layer — `var(--madder-bright)`, `var(--moss-bright)`,
-   * `var(--text-muted)`. That is the exact shape meridian.css bans: a colour
+   * off the Obsidian layer — `var(--mrd-fail-bright)`, `var(--mrd-pass-bright)`,
+   * `var(--mrd-mute)`. That is the exact shape meridian.css bans: a colour
    * chosen at the call site is a colour nobody can audit, and it is how a
    * product ends up with three greens that mean three different things. The
    * tone is a MEANING now, and `RecordStatus` owns which token draws it.

@@ -10,7 +10,7 @@
 // 2026-08-15: PORTED TO MERIDIAN, and one real defect went with it.
 //
 // THE SELECTED MODE WAS DRAWN AS A HOVER. The three-segment mode control filled
-// the chosen segment with `var(--raised)`, which is the ground a row takes when
+// the chosen segment with `var(--mrd-lift)`, which is the ground a row takes when
 // a pointer is merely passing over it. On a dark canvas that is a whisper: the
 // panel could not tell you whether the engine was on Auto or Off from across a
 // desk, on the one control that decides whether the product spends money on its

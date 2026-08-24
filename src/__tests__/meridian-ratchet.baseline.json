@@ -15,7 +15,7 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1751,
+  "totalOccurrences": 1749,
   "fileCount": 142,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
@@ -60,10 +60,8 @@
       "class:sp-": 4
     },
     "src/components/billing/StripeEmbeddedCheckout.tsx": {
-      "--hairline": 1,
       "import:components/ui": 1,
-      "usage:components/ui": 4,
-      "raw-colour": 1
+      "usage:components/ui": 4
     },
     "src/components/billing/UsageIndicator.tsx": {
       "raw-colour": 1
