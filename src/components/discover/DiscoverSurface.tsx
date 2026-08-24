@@ -659,6 +659,11 @@ export function DiscoverSurface({
   /** What the person typed to find the bet they mean. Kept out of the URL: it
    *  is a way of looking at the list, not a place in the product. */
   const [betFilter, setBetFilter] = React.useState("");
+  /** The ranking's own find field. The list is fully client-side (listThemes
+   *  caps at 300), so the filter is a substring over title and summary - the
+   *  same shape the merge picker's betFilter uses, so the two find fields
+   *  cannot grow different behaviours. */
+  const [clusterFilter, setClusterFilter] = React.useState("");
   /** Whether the whole set of candidate bets is on screen, or the first twelve. */
   const [showAllBets, setShowAllBets] = React.useState(false);
   /** Whether the whole ranking is on screen, or the first six of it. */
@@ -1091,12 +1096,22 @@ export function DiscoverSurface({
    * `novelty` is a different fact from one that resembles the record, and
    * folding the two would make the other three counts lies.
    */
+  const rankedVisible = React.useMemo(() => {
+    const q = clusterFilter.trim().toLowerCase();
+    if (!q) return ranked;
+    return ranked.filter(
+      (r) =>
+        r.theme.title.toLowerCase().includes(q) ||
+        (r.theme.summary ?? "").toLowerCase().includes(q),
+    );
+  }, [ranked, clusterFilter]);
+
   const spread = React.useMemo(() => {
     let fresh = 0;
     let partial = 0;
     let seen = 0;
     let unscored = 0;
-    for (const r of ranked) {
+    for (const r of rankedVisible) {
       const bucket = noveltyBucket(r.theme.novelty);
       if (bucket === "new") fresh += 1;
       else if (bucket === "partial") partial += 1;
@@ -2925,15 +2940,42 @@ export function DiscoverSurface({
              pair /approvals uses for the same job. */
           sub="j and k move the focus. The one in focus is the one the keys act on. Tick rows to decline a batch of them at once."
           toggle={
-            ranked.length > VISIBLE_CLUSTERS
+            rankedVisible.length > VISIBLE_CLUSTERS
               ? showAllClusters
                 ? "Show fewer"
-                : `Show all ${ranked.length}`
+                : `Show all ${rankedVisible.length}`
               : undefined
           }
           onToggle={() => setShowAllClusters((v) => !v)}
           toggled={showAllClusters}
         >
+          {/* THE FIND FIELD, exactly when the list outgrows one screen - the
+              same threshold that summons "Show all". Searching three clusters
+              is noise; finding one of thirty by its name is the job. Mirrors
+              the merge picker's field: same component, same Escape-stands-down
+              behaviour, substring over title and summary. */}
+          {ranked.length > VISIBLE_CLUSTERS ? (
+            <Field label="Find a cluster" htmlFor="ranking-filter">
+              <Input
+                id="ranking-filter"
+                value={clusterFilter}
+                onChange={(e) => setClusterFilter(e.target.value)}
+                placeholder="Type any part of its name"
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    e.preventDefault();
+                    setClusterFilter("");
+                  }
+                }}
+              />
+            </Field>
+          ) : null}
+          {clusterFilter && rankedVisible.length === 0 ? (
+            <CtxBody>
+              Nothing named that. The find matches titles and summaries; the cluster may be
+              settled, under Settled below.
+            </CtxBody>
+          ) : null}
           {/* WHAT THE READER IS ABOUT TO SCAN, before they scan it. The counts
               are the three novelty buckets the rows themselves use plus the
               clusters carrying no novelty at all, so the header and the rows can
@@ -2942,8 +2984,8 @@ export function DiscoverSurface({
           <BatchHeader
             facts={[
               {
-                n: ranked.length,
-                label: ranked.length === 1 ? "cluster open" : "clusters open",
+                n: rankedVisible.length,
+                label: rankedVisible.length === 1 ? "cluster open" : "clusters open",
                 always: true,
                 title:
                   "Still waiting on a judgment. Declined, merged and promoted ones are under Settled.",
@@ -3046,7 +3088,7 @@ export function DiscoverSurface({
             </Action>
           </BulkBar>
 
-          {(showAllClusters ? ranked : ranked.slice(0, VISIBLE_CLUSTERS)).map((entry, i) => {
+          {(showAllClusters ? rankedVisible : rankedVisible.slice(0, VISIBLE_CLUSTERS)).map((entry, i) => {
             /**
              * WHERE ITS EVIDENCE CAME FROM, IN WORDS, and this row printed our
              * column values at a person: `${count} from ${source}` rendered "3
@@ -3203,9 +3245,9 @@ export function DiscoverSurface({
               />
             );
           })}
-          {!showAllClusters && ranked.length > VISIBLE_CLUSTERS ? (
+          {!showAllClusters && rankedVisible.length > VISIBLE_CLUSTERS ? (
             <CtxBody>
-              <Num>{ranked.length - VISIBLE_CLUSTERS}</Num> more below the fold.
+              <Num>{rankedVisible.length - VISIBLE_CLUSTERS}</Num> more below the fold.
             </CtxBody>
           ) : null}
           {/* THE READ IS A PAGE, AND IT SAYS SO. `listThemes` returns the newest

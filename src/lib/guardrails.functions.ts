@@ -28,7 +28,10 @@ const BUILTIN_SEED = [
   {
     name: "Phone number",
     kind: "pii",
-    pattern: "\\+?\\d[\\d\\s().-]{7,}\\d",
+    // The lookarounds keep hex ids and UUID fragments from reading as phone
+    // numbers - the same fix the floor rule took when the PII redactor was
+    // shredding UUIDs (17b75df9a); the seed had been left on the old pattern.
+    pattern: "(?<![0-9A-Fa-f-])\\+?\\d[\\d\\s().-]{7,}\\d(?![0-9A-Fa-f-])",
     action: "redact",
     applies_to: "both",
   },
