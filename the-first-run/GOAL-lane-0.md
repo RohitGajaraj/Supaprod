@@ -130,56 +130,45 @@ touched one file — fix the ownership, not just the conflict.
 
 Need a change in a path you do not own? **File a request. Do not edit it and do not work around it.**
 
-## 5. Your units, in order
+## 5. Your work comes from the backlog, not from this file
 
-### L0-A — DO THIS FIRST. It unblocks LANE 1. Push it within 20 minutes.
+**`the-first-run/BUILD-QUEUE.md` is the single ordered backlog.** Take the topmost item you own that
+is not `BLOCKED` or `WIP` (R-07). This section used to list units; it no longer does, because a
+second list is a second source of truth and they drift. **If this file and the backlog disagree, the
+backlog wins; if the backlog and `RULINGS.md` disagree, RULINGS wins.**
 
-Create `src/components/track/TrackRun.tsx`:
+## 5b. THE SIX THINGS THAT GET A UNIT REJECTED ON REVIEW
 
-```tsx
-export function TrackRun({ trackId }: { trackId: string }) { ... }
-```
+**1. STATIONS ARE A PROGRESS DISPLAY, NEVER A MENU** (R-01). Never in the rail, never a route a
+person browses to, never a station name on a card face. Inside ONE run they ARE the step list, drawn
+like `design-reference/mobbin-2026-08/emergent-live-steps.webp`. **A raw station slug on screen is a
+bug** — display names come from one map.
 
-A stub is correct and wanted here: render the `trackId` and the seven station names from
-`AGENT_STATION_ORDER`. Pass `bunx tsc --noEmit` and `bun run lint`, commit, **push immediately.**
+**2. CAN THE PERSON DO SOMETHING HERE, or are they only being told something?** (R-03) A surface that
+only tells is a status panel and does not ship. This test rejected an artifact whose best moment was
+a region reading *"The crew is idle, and that is fine."*
 
-**Why first:** LANE 1's first unit mounts this at `src/routes/_authenticated.track.$trackId.tsx` and
-is blocked until the import target exists. A route importing a missing file breaks `tsc` for
-everyone. Your stub is what lets three lanes work in parallel.
+**3. READ THE SPEC FOR YOUR ITEM BEFORE STARTING IT.** `the-first-run/SPEC-ARTIFACTS.md` (what
+previews per station, exact tables and columns), `SPEC-LAYOUT.md` (split ratios, breakpoints, every
+Meridian token by name), `SPEC-CONSENT.md` (where the pending question comes from, what `Decide all`
+may widen), `SPEC-ONRAMP.md` (the real click count, which `WorkShape` each card maps to). They carry
+`file:line` on every claim and they correct earlier briefs in three places.
 
-### L0-B — Make it live
+**4. GREP MERIDIAN BEFORE BUILDING A COMPONENT.** `the-first-run/MERIDIAN-ADOPTION.md` — 121
+components, 95 adopted, **17 real components built with no door**, including `run-rows.tsx`: 22.8KB
+of run vocabulary ported from beautifui.dev with **zero importers**. **Your unit file must name which
+Meridian component you checked first and why it did not serve.** A unit that cannot answer that is
+rejected. **Lanes never add to `src/components/meridian/`** — file a request; MAIN builds it.
 
-Fill `TrackRun` in so it shows one track walking seven stations, updating **without a page refresh.**
+**5. YOU DO NOT SIGN OFF YOUR OWN WORK** (R-11). Finishing an item means filing
+`coordination/requests/verify-<item>.md` naming the route to open, the exact thing to look for, and
+**what would prove it false**. The OTHER lane verifies with Playwright and reports separately. A
+verify request addressed to you is standing work — take it. **A verifier that only confirms is not
+verifying: say what you tried that should have broken it.**
 
-- Compose `RunMap` in `mode="live"`. Build `RunMapStation[]` for the track's route.
-- Subscribe to `GET /api/tracks/:id/stream` (Server-Sent Events, built by MAIN LANE). **MAIN publishes
-  the exact event shape into `MISSION.md` — read it there.** If it is not published yet, file a
-  request, code against your best reading of `src/lib/ask-sse.ts` (which already carries a station
-  field), and keep going.
-- Add `RunTimeline` beneath it for the event history, and `ToolStream` for what the agent is doing
-  right now. A person should be able to tell, at a glance: which station is running, what it just
-  produced, and what it is doing this second.
-- Handle the three real states honestly: **waiting** (nothing has happened yet — a normal first
-  second, not an error), **held** (a station is stuck and the reason must be visible), and **done**.
-
-### L0-C — The two moments that make this product worth paying for
-
-Give these the most visual weight on the page. Everything else is scaffolding around them.
-
-1. **The forecast card.** Before Build, the run states what it expects to happen. Draw it as a
-   **recorded commitment with its timestamp** — not as a note, not as a tooltip. This is the only
-   thing in this market that cannot be reconstructed after the fact, and it must look like it.
-2. **The Learn verdict card.** After Ship: *predicted X · actually Y · what we now believe.* This is
-   the payoff of the entire loop and the founder has never seen it happen once.
-
-**Copy rules, non-negotiable, from the locked positioning canon:** never *receipts, ledger, company
-brain, decision layer, unattended, first run, provenance*. "Audit trail" and "shared brain" are fine.
-Never use *remembers*, *stores* or *logs* as verbs of the brain. **Never claim accumulated learning in
-the present tense** — the honest form is *the loop is wired and proven, and it begins accruing on
-first real use*. "Approve" only where a click UNBLOCKS something; "review" where it only shows you
-something. Full canon: `docs/strategy/positioning-locked-2026-08.md`.
-
-### L0-D — Then take whatever acceptance criterion in §7 is not yet true and is yours by path.
+**6. 12 TEST FAILURES ARE PRE-EXISTING ON `main`** — 7 share one cause in the nav model. **Do not
+claim them, do not silently fix them, do not let them stop your push.** If the set changes, move your
+own files aside and re-run before blaming yourself.
 
 ## 6. Standing rules. All of these are non-negotiable and all were paid for.
 

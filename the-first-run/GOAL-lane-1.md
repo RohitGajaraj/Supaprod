@@ -99,53 +99,45 @@ touched one file — fix the ownership, not just the conflict.
 
 Need a change in a path you do not own? **File a request. Do not edit it and do not work around it.**
 
-## 5. Your units, in order
+## 5. Your work comes from the backlog, not from this file
 
-### L1-A — DO THIS FIRST
+**`the-first-run/BUILD-QUEUE.md` is the single ordered backlog.** Take the topmost item you own that
+is not `BLOCKED` or `WIP` (R-07). This section used to list units; it no longer does, because a
+second list is a second source of truth and they drift. **If this file and the backlog disagree, the
+backlog wins; if the backlog and `RULINGS.md` disagree, RULINGS wins.**
 
-Mount `src/routes/_authenticated.track.$trackId.tsx`, importing `TrackRun` from
-`@/components/track/TrackRun` and passing the route param through as `trackId`.
+## 5b. THE SIX THINGS THAT GET A UNIT REJECTED ON REVIEW
 
-**LANE 0 pushes that stub component as its own first unit.** Pull until you see it. **If it is not
-there yet, do not idle and do not create it yourself — it is LANE 0's path.** Start L1-C instead and
-come back.
+**1. STATIONS ARE A PROGRESS DISPLAY, NEVER A MENU** (R-01). Never in the rail, never a route a
+person browses to, never a station name on a card face. Inside ONE run they ARE the step list, drawn
+like `design-reference/mobbin-2026-08/emergent-live-steps.webp`. **A raw station slug on screen is a
+bug** — display names come from one map.
 
-**This is the one URL the entire mission is about.** It must be linkable, revisitable, and shareable —
-the founder's test is that he can send someone the link to a finished run.
+**2. CAN THE PERSON DO SOMETHING HERE, or are they only being told something?** (R-03) A surface that
+only tells is a status panel and does not ship. This test rejected an artifact whose best moment was
+a region reading *"The crew is idle, and that is fine."*
 
-### L1-B — The on-ramp. This is the difference between a demo and a product.
+**3. READ THE SPEC FOR YOUR ITEM BEFORE STARTING IT.** `the-first-run/SPEC-ARTIFACTS.md` (what
+previews per station, exact tables and columns), `SPEC-LAYOUT.md` (split ratios, breakpoints, every
+Meridian token by name), `SPEC-CONSENT.md` (where the pending question comes from, what `Decide all`
+may widen), `SPEC-ONRAMP.md` (the real click count, which `WorkShape` each card maps to). They carry
+`file:line` on every claim and they correct earlier briefs in three places.
 
-**One box. One sentence of intent. One action. ZERO configuration.** A person types what they want,
-and lands on `/track/:id` watching it walk.
+**4. GREP MERIDIAN BEFORE BUILDING A COMPONENT.** `the-first-run/MERIDIAN-ADOPTION.md` — 121
+components, 95 adopted, **17 real components built with no door**, including `run-rows.tsx`: 22.8KB
+of run vocabulary ported from beautifui.dev with **zero importers**. **Your unit file must name which
+Meridian component you checked first and why it did not serve.** A unit that cannot answer that is
+rejected. **Lanes never add to `src/components/meridian/`** — file a request; MAIN builds it.
 
-- Call `POST /api/tracks` (MAIN LANE builds it; the contract is in `the-first-run/MISSION.md`). It returns
-  a track id. Navigate to `/track/:id`.
-- **No workspace picker, no product picker, no station picker in the path.** If something is genuinely
-  required, default it and disclose it afterwards. MAIN's endpoint defaults the workspace and product
-  and reports what it defaulted — surface that as a line the user can change later, never as a gate
-  before anything happens.
-- **A user who must configure before anything happens is a user who does not come back.** This is the
-  single highest-leverage line in this brief.
-- The composer components are LANE 0's path. **Wire at the route level** (`_authenticated.tsx` is
-  yours), or file a request if the composer itself must change.
+**5. YOU DO NOT SIGN OFF YOUR OWN WORK** (R-11). Finishing an item means filing
+`coordination/requests/verify-<item>.md` naming the route to open, the exact thing to look for, and
+**what would prove it false**. The OTHER lane verifies with Playwright and reports separately. A
+verify request addressed to you is standing work — take it. **A verifier that only confirms is not
+verifying: say what you tried that should have broken it.**
 
-### L1-C — The doors. 84 authenticated routes, and that count IS the learning curve.
-
-Do these **one at a time, each its own commit, each with its own unit file. Never a mass rename.**
-
-- **`_authenticated.discover.tsx` and `_authenticated.discovery.tsx` are two doors to one station.**
-  Read both, keep one, redirect the other.
-- **Close routes that promise what the destination cannot deliver.** The precedent and the standard:
-  the landing hero's tertiary link read *"Watch a real run"* and pointed at `/demo`, which is live
-  seeded data where nothing moves. It was **removed entirely**, not relabelled, because it read as an
-  orphaned third door. Apply that standard.
-- **The rail should lead to a run.** A person landing in this product should reach a live run in one
-  click, not assemble the journey themselves by navigating. `AppFrame.tsx` and `run-strip.tsx` are
-  yours; the rail is already Today · Runs · Brain · Guardrails.
-- **Before deleting or redirecting anything, open it.** Some of the 84 are real and load real work.
-  A README describes what a surface was meant to be; the rendered page wins.
-
-### L1-D — Then take whatever acceptance criterion in §7 is not yet true and is yours by path.
+**6. 12 TEST FAILURES ARE PRE-EXISTING ON `main`** — 7 share one cause in the nav model. **Do not
+claim them, do not silently fix them, do not let them stop your push.** If the set changes, move your
+own files aside and re-run before blaming yourself.
 
 ## 6. Standing rules. All non-negotiable, all paid for.
 
