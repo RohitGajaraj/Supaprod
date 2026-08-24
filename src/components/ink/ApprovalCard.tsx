@@ -24,6 +24,14 @@ export type ApprovalItem = {
   evidence: string[];
   /** Cost / impact line ("~120 credits · touches checkout flow only"). */
   impact?: string;
+  /** The belief this decision carries, read straight off the decision row.
+   *  A person approving an agent's bet should see the bet, not just its name. */
+  forecast?: {
+    claim: string;
+    howWeWillKnow?: string | null;
+    horizonDate?: string | null;
+    resolution?: string | null;
+  };
   /** Consequence phrases (button helper text). */
   approveConsequence: string;
   rejectConsequence: string;
@@ -129,6 +137,31 @@ export function ApprovalCard({
 
       {item.impact ? (
         <p className="ink-mono mt-2.5 text-mrd-tiny text-[var(--ink-subtle)]">{item.impact}</p>
+      ) : null}
+
+      {item.forecast ? (
+        <div
+          data-mrd=""
+          className="mt-2.5 border-l-2 border-[var(--ink-hairline)] pl-3"
+        >
+          <p className="ink-mono text-mrd-tiny uppercase tracking-wide text-[var(--ink-subtle)]">
+            What it believed
+            {item.forecast.resolution
+              ? ` · ${item.forecast.resolution === "validated" ? "came true" : "missed"}`
+              : ""}
+          </p>
+          <p className="mt-1 text-mrd-base leading-5 text-[var(--ink-body)]">
+            {item.forecast.claim}
+          </p>
+          {item.forecast.howWeWillKnow ? (
+            <p className="mt-1 text-mrd-small leading-5 text-[var(--ink-subtle)]">
+              How we will know: {item.forecast.howWeWillKnow}
+              {item.forecast.horizonDate
+                ? ` · by ${item.forecast.horizonDate.slice(0, 10)}`
+                : ""}
+            </p>
+          ) : null}
+        </div>
       ) : null}
 
       {error ? (

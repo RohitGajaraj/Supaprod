@@ -566,6 +566,14 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
         project: proj?.name,
         title: cleanTitle(d.title),
         evidence,
+        forecast: d.forecast_claim
+          ? {
+              claim: d.forecast_claim,
+              howWeWillKnow: d.forecast_how_we_will_know,
+              horizonDate: d.forecast_horizon_date,
+              resolution: d.forecast_resolution,
+            }
+          : undefined,
         impact: d.source_kind === "mission" ? "raised during a pass" : undefined,
         approveConsequence: "Approve · decision recorded",
         rejectConsequence: "Reject · noted for next time",
