@@ -11,6 +11,8 @@ import {
   Region,
   Value,
 } from "@/components/meridian/surface-parts";
+import { WorkGlyph } from "@/components/meridian/work-glyphs";
+import { getForecastCalibration } from "@/lib/brain-insights.functions";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -609,6 +611,16 @@ function Today() {
     [rows],
   );
   const running = React.useMemo(() => rows.filter((m) => WORKING.has(m.status)), [rows]);
+
+  // The track record read. CHARACTER-IDENTICAL KEY to Brain's, so the two
+  // surfaces are two consumers of ONE request and the tab opens on a cache hit.
+  const fCalibration = useServerFn(getForecastCalibration);
+  const calibrationQ = useQuery({
+    queryKey: ["forecast-calibration", workspaceId],
+    queryFn: () => fCalibration(),
+    enabled: Boolean(workspaceId),
+  });
+  const calibration = calibrationQ.data;
 
   /* THE BRAKE PEDAL A RUNNING ROW CAN HONESTLY OFFER. `cancelMission` stops
      advancement, cancels the run's in-flight steps, releases held build claims
@@ -1395,6 +1407,25 @@ function Today() {
         <div className="today-hero">
           <FocusNext workspaceId={workspaceId} />
         </div>
+
+        {/* THE TRACK RECORD LINE. Insight, not a boxed count: the page states
+            what came true and opens the record, and only once a forecast has
+            actually been graded - a zero never renders as a finding. */}
+        {calibration?.prediction.resolved ? (
+          <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+            <WorkGlyph kind="forecast" />
+            <RecordSpeaks
+              evidence={
+                <Door onClick={() => navigate({ to: "/brain" })}>
+                  See which held and which missed
+                </Door>
+              }
+            >
+              Your forecasts came true {calibration.prediction.hits} of{" "}
+              {calibration.prediction.resolved} times.
+            </RecordSpeaks>
+          </div>
+        ) : null}
 
         <div className="today-lanes">
           <Region
