@@ -53,14 +53,14 @@ WORK plus a `starved` request, never idling.
 | ~~5~~ | — | **CANCELLED (R-13)** | **The seven-row station widget is not built.** Anthropic shipped this display, measured it, and disabled it; no frontier agentic product renders a lifecycle coordinate. **The left pane is a transcript instead** — `TrackActivity` already builds it and already carries the handoff. `run-rows.tsx` remains the vocabulary. See `RULINGS.md` R-13 |
 | **6** | L1 | **BLOCKED → 1,2,3,4 (R-15)** | **Deletion happens LAST, after a run has finished end to end.** Collapse duplicate doors. `discover.tsx` vs `discovery.tsx` first. **48 of 84 routes are pure redirects** | One at a time, one commit each; **open every route before touching it** |
 | **7** | L0 | BLOCKED → 3 | **Tool calls become actionable cards** | Clicking a row that filed something reveals it in the pane |
-| **8** | L1 | BLOCKED → 3,5 | **Two-pane layout** on `/track/$trackId` | Both panes at 1440px, no horizontal scroll; stacks below the Meridian breakpoint |
+| **8** | L1 | BLOCKED → 3 | **Two-pane layout** on `/track/$trackId` | Both panes at 1440px, no horizontal scroll; stacks below the Meridian breakpoint |
 | **9** | L0 | BLOCKED → 3 | **Forecast card and Learn verdict card** | Reads real `forecast_*` columns; **0 are graded, so the verdict card needs an honest empty state** |
 | **10** | L1 | **READY** | **The rail leads to a run.** `AppFrame.tsx`, `run-strip.tsx` | A live run is one click from any surface |
 | **12** | L1 | **READY** | **Design review: Today** (`_authenticated.today.tsx`). Answer the five questions in R-12 in the unit file BEFORE changing anything. It is the post-auth landing and item 2 replaces it, so this review governs that replacement | Five questions answered in writing; every region named with the Meridian component it uses; regions nobody can name a job for are killed with the reason |
 | **13** | L1 | **READY** | **Design review: Engine Room** — guardrails and approvals (`_authenticated.engine-room.tsx`, `govern.tsx`, `boundary.tsx`, `approvals.tsx`). **Four routes for one concept**; the review decides how many survive | As above, plus: which of the four routes remain and where the others redirect |
 | **14** | L1 | BLOCKED → 12,13 | **Design review: Brain** (`_authenticated.brain.tsx`) and **Settings** | As above. **Brain must not claim accumulated learning in the present tense** (R-06) — 0 forecasts graded |
 | **15** | L0 | **READY** | **Adopt what is already built.** From `MERIDIAN-ADOPTION.md`: evaluate `InsightCards`/`Entity` for the `sense` pane, `PromotionCard` for `decide`, `PairMark` for the handoff. **`Flowchart` is HELD — do not adopt** | Each either adopted with the surface named, or rejected in the unit file with the reason. Never adopted for adoption's sake |
-| **11** | L0 | BLOCKED → 5 | **Motion.** pending → running → done reads as movement | Meridian `--ease`/`--d-*` tokens; **a raw duration is a bug** |
+| **11** | L0 | **READY** | **Motion on the transcript.** A new entry landing, and the live entry's clock ticking, must read as movement rather than a repaint. Item 5 was cancelled (R-13) so this applies to the TRANSCRIPT and the artifact pane, not to a station widget. Compose `run-rows.tsx` | Meridian `--ease`/`--d-*` tokens; **a raw duration is a bug** |
 
 ## MAIN LANE — decides, models, verifies. No product code.
 
