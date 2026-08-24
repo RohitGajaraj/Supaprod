@@ -352,6 +352,28 @@
  * and it is not a token or a paint. `CrewWorking` stays for the same reason and
  * because src/routes/__tests__/autonomous-work-is-visible.test.ts requires this
  * exact import.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * THE FORECAST RUNG, 2026-08-24. THE MOAT METRIC GETS ITS SENTENCE ON PAGE ONE.
+ *
+ * "How often did our forecasts come true" was computed by getForecastCalibration
+ * and rendered only three doors deep, inside GraphCompoundingStrip above the
+ * Graph tab's canvas. Nobody landing on Brain ever met it. This pass moves
+ * nothing in that strip and adds no server fn: the page joins the read
+ * GraphCompoundingStrip already pays for, under the character-identical key, so
+ * strip and page are two consumers of ONE request and opening the tab that
+ * carries the strip is a cache hit.
+ *
+ * WHERE IT SITS. The headline ladder gains one rung, between the re-scored call
+ * and the recall claim, because the ladder orders by strength of claim: an
+ * outcome that moved a ranking still leads, and a forecast an outcome later
+ * graded true says more than the process fact of having been read back. A miss
+ * takes no rung here. The guidance region states the FULL score, 0 of N
+ * included, beside the act that ends an empty one, which is the same place
+ * "none has re-scored" was moved to and for the same reason: an admission
+ * belongs beside its mechanism, not in the largest sentence on the page.
+ *
+ * The payload carries no due-count, so none is claimed anywhere below.
  */
 import { lazy, Suspense, useState, type ReactNode } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -362,6 +384,7 @@ import { getBrainStatus, getCompanyBrainStats } from "@/lib/brain.functions";
 import { getCompounding } from "@/lib/today.functions";
 import type { CompoundingSummary } from "@/lib/moat-vis";
 import { getStandingRecord, type RecallRecord } from "@/lib/brain-standing.functions";
+import { getForecastCalibration, type ForecastCalibration } from "@/lib/brain-insights.functions";
 import { getKnowledgeGraph } from "@/lib/knowledge-graph-view.functions";
 import type { GraphNodeKind, KnowledgeGraph } from "@/lib/knowledge-graph-view";
 import { RetentionLine } from "@/components/brain/RetentionLine";
@@ -622,10 +645,11 @@ export const Route = createFileRoute("/_authenticated/brain")({
  * the record is real and useful, so it moves to the second line, where a size
  * belongs.
  *
- * Priority is by strength of claim: an outcome that moved a ranking beats the
- * record being read back, and being read back beats a count of anything. A
- * young workspace that has not compounded yet falls back to the honest manifest
- * rather than to a claim it has not earned.
+ * Priority is by strength of claim: an outcome that moved a ranking beats a
+ * forecast an outcome later graded true, which beats being read back, and being
+ * read back beats a count of anything. A young workspace that has not
+ * compounded yet falls back to the honest manifest rather than to a claim it
+ * has not earned.
  *
  * THE MIDDLE RUNG, ADDED 2026-08-05, AND WHY IT IS NOT A SECOND MANIFEST. It
  * counts recall EVENTS, not rows: memory_recall_log gets a row when a memory is
@@ -646,12 +670,32 @@ export function recordHeadline(
   calls: number | null,
   learnings: number | null,
   loading: boolean,
+  /** The graded-forecast summary for this workspace; absent or null while the
+   *  calibration read is unresolved or failed, which draws no rung at all. */
+  forecast?: ForecastCalibration["prediction"] | null,
 ): string {
   const rescored = summary?.rescoreCount ?? 0;
   if (rescored > 0) {
     return rescored === 1
       ? "A real outcome has re-scored one call."
       : `Real outcomes have re-scored ${rescored} calls.`;
+  }
+  /**
+   * THE FORECAST RUNG, ADDED 2026-08-24. Between the re-scored call and the
+   * recall claim, because the ladder orders by strength of claim: an outcome
+   * that moved a ranking still leads, and a forecast an outcome later graded
+   * true is the record being CHECKED rather than only consulted. A miss takes
+   * no rung here -- the guidance region carries the whole score including
+   * 0 of N, which is where an admission belongs, the same move that brought
+   * "none has re-scored" down off this head.
+   *
+   * The read is shared, not added: the key is character-identical to
+   * GraphCompoundingStrip's consumer usage, so this rung costs no request.
+   */
+  if (forecast && forecast.resolved > 0 && forecast.hits > 0) {
+    return forecast.resolved === 1
+      ? "One graded forecast, and it came true."
+      : `${forecast.hits} of ${forecast.resolved} graded forecasts came true lately.`;
   }
   /**
    * `memoriesReached` comes from last_used_at and is true whether or not the
@@ -807,8 +851,11 @@ export function guidanceLines(args: {
   /** True on the Outcomes tab, where CrewCarries states the recall fact
    *  directly above the list it is about, which is the better place for it. */
   recallSaidBelow: boolean;
+  /** The graded-forecast summary; absent or null while the calibration read is
+   *  unresolved or failed, which draws nothing rather than a zero. */
+  forecast?: ForecastCalibration["prediction"] | null;
 }): GuidanceLine[] {
-  const { recall, rescoreCount, recallSaidBelow } = args;
+  const { recall, rescoreCount, recallSaidBelow, forecast } = args;
   const out: GuidanceLine[] = [];
   const showRecall = recall !== null && !recallSaidBelow;
 
@@ -901,6 +948,41 @@ export function guidanceLines(args: {
       sub: "Record what a shipped bet actually did, and the ranking it came from moves with it.",
       door: "outcomes",
     });
+  }
+
+  /**
+   * 4. GRADED, added 2026-08-24. How often the record's own forecasts came
+   *    true, scored against what actually happened once the date each one
+   *    named had passed. This is the moat metric and it lived three doors deep
+   *    in the Graph tab's strip; the read is shared with that strip under the
+   *    same key, so surfacing it costs no request.
+   *
+   *    The full score draws, 0 of N included: a settled miss is an outcome,
+   *    and this region reports outcomes. Zero GRADED is a different fact --
+   *    the known absence -- so its line names the wired consequence that ends
+   *    it: a forecast on the record passing its date gets marked true or
+   *    false, on its own. Unresolved or failed draws nothing at all, never a
+   *    zero standing in for an unreadable read.
+   */
+  if (forecast) {
+    out.push(
+      forecast.resolved > 0
+        ? {
+            key: "forecast",
+            lead: (
+              <>
+                <Figure>{forecast.hits}</Figure> of <Figure>{forecast.resolved}</Figure>{" "}
+                graded forecasts came true lately.
+              </>
+            ),
+            sub: "Each was written down before it could be checked, then marked against what actually happened.",
+          }
+        : {
+            key: "forecast",
+            lead: "No forecast has been graded yet.",
+            sub: "When a forecast on the record passes its date, the outcome marks it true or false, and the score starts here.",
+          },
+    );
   }
 
   return out;
@@ -1106,6 +1188,18 @@ function MemoryPage() {
     queryKey: ["brain-standing", activeWorkspaceId],
     queryFn: () => fStanding({ data: { workspaceId: activeWorkspaceId } }),
   });
+  // HOW OFTEN THE RECORD'S OWN FORECASTS CAME TRUE. THE KEY IS CHARACTER-
+  // IDENTICAL TO GraphCompoundingStrip's consumer usage, so this page and the
+  // strip above the Graph canvas are two readers of ONE request rather than a
+  // second one, and opening the tab that carries the strip is a cache hit.
+  // The server fn resolves the workspace itself, so the call takes no argument,
+  // exactly as the strip calls it; a drifted key here would silently double
+  // the read and could show two different scores on one screen.
+  const fCalibration = useServerFn(getForecastCalibration);
+  const calibrationQ = useQuery({
+    queryKey: ["forecast-calibration", activeWorkspaceId],
+    queryFn: () => fCalibration(),
+  });
   // The record DRAWN. THE KEY IS CHARACTER-IDENTICAL TO GraphCanvasView's, so
   // this page and the Graph tab are two consumers of ONE request: the preview
   // costs nothing extra on any visit that opens the tab, and the tab it hands
@@ -1147,6 +1241,9 @@ function MemoryPage() {
   const learningCount = stats.data?.learnings ?? null;
   const summary = compounding.data?.summary ?? null;
   const recall = standing.data?.recall ?? null;
+  // Undefined (in flight or failed) reads as null, which both pure consumers
+  // treat as "draw nothing", never as a zero.
+  const forecast = calibrationQ.data ? calibrationQ.data.prediction : null;
   const countsLoading = brain.isLoading || stats.isLoading;
   // A HALF-DEAD READ IS STILL A DEAD READ, AND USED TO BE SILENT (2026-08-10).
   // This was `(brain.isError || stats.isError) && !counts && learningCount ===
@@ -1161,13 +1258,15 @@ function MemoryPage() {
   // `standing.isLoading` joins the loading flag so the head holds on "Brain"
   // until the recall rung is decidable. Without it the title would settle on
   // the manifest and then jump to the recall claim a moment later, which reads
-  // as the page correcting itself.
+  // as the page correcting itself. `calibrationQ.isLoading` joins for the same
+  // reason: the forecast rung must not flash on a beat after the page settled.
   const headline = recordHeadline(
     summary,
     recall,
     counts?.decisions ?? null,
     learningCount,
-    countsLoading || compounding.isLoading || standing.isLoading,
+    countsLoading || compounding.isLoading || standing.isLoading || calibrationQ.isLoading,
+    forecast,
   );
   const lastAdded = day(brain.data?.latest);
   const emptyRecord =
@@ -1237,6 +1336,8 @@ function MemoryPage() {
     recall,
     rescoreCount: summary ? summary.rescoreCount : null,
     recallSaidBelow: tab === "learnings" && !learning,
+    // Survives every tab: nothing else on this surface states it.
+    forecast,
   });
 
   // Whether the record is drawn on this screen, and in what state. See the

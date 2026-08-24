@@ -168,6 +168,13 @@ import {
   type DesignFidelity,
 } from "@/lib/design-scaffold.functions";
 import { publishPrototypeFromPrd, togglePrototypeShare } from "@/lib/prototypes.functions";
+// The dispatch chain, imported exactly where the spec page imports it from. An
+// approved drawing had no forward verb on this station; see the send mounted
+// beside skipDesign below.
+import { dispatchStudioSession } from "@/lib/studio.functions";
+import { canDispatchToRepo } from "@/lib/new-build.functions";
+import { gateDispatch, isRepoNotConnectedError } from "@/lib/build/repo-gate";
+import { RepoGateDialog } from "@/components/studio/RepoGateDialog";
 import { isModalOpen } from "@/lib/overlay";
 import type { DesignCriticFinding } from "@/lib/ai/design-critic";
 import { CATEGORY_LABEL, SOURCE_LABEL } from "@/components/knowledge/design-memory-shared";
@@ -406,6 +413,8 @@ function Design() {
   const chooseRoute = useServerFn(chooseDesignRoute);
   const publish = useServerFn(publishPrototypeFromPrd);
   const share = useServerFn(togglePrototypeShare);
+  const dispatchBuild = useServerFn(dispatchStudioSession);
+  const checkRepo = useServerFn(canDispatchToRepo);
 
   const rules = useQuery({
     queryKey: ["design-memory", ALL_RULES],
@@ -814,6 +823,45 @@ function Design() {
       note("focus", ctx?.prdId ?? null, "The skip was not recorded", e.message, true),
   });
 
+  /**
+   * THE FORWARD VERB AFTER AN APPROVAL. Once a drawing's gate reads approved,
+   * this bar's only remaining gate action was "Send it back"; the way forward
+   * lived one station away on the spec page. This is that page's send, mounted
+   * unchanged: `canDispatchToRepo` first, the repo gate dialog when the
+   * workspace has no repo to build in, then `dispatchStudioSession`. Success
+   * navigates to the run and so writes nothing here, the same rule the spec
+   * page states over its own send; any other failure lands as a focus receipt.
+   */
+  const [repoGate, setRepoGate] = React.useState<{ reason: string | null } | null>(null);
+  const [checkingRepo, setCheckingRepo] = React.useState(false);
+  const sendToStudio = useMutation({
+    mutationFn: () => {
+      if (!focus) throw new Error("Nothing is in focus.");
+      return dispatchBuild({ data: { prdId: focus.prdId } });
+    },
+    onMutate: actedOn,
+    onSuccess: (r) => {
+      void navigate({ to: "/build/$missionId", params: { missionId: r.missionId } });
+    },
+    onError: (e: Error, _v, ctx) => {
+      if (isRepoNotConnectedError(e.message)) setRepoGate({ reason: e.message });
+      else note("focus", ctx?.prdId ?? null, "Nothing was sent", e.message, true);
+    },
+  });
+  const sendToBuild = async () => {
+    if (!focus) return;
+    setCheckingRepo(true);
+    try {
+      await gateDispatch({
+        check: () => checkRepo({ data: { prdId: focus.prdId } }),
+        dispatch: () => sendToStudio.mutate(),
+        openGate: (reason) => setRepoGate({ reason }),
+      });
+    } finally {
+      setCheckingRepo(false);
+    }
+  };
+
   /** The gate off means there is no gate to move, so the verdict has nowhere to
    *  land except the taste loop. Saying "Approve the design" when nothing is
    *  being approved would claim a capability the wiring does not have (R12), so
@@ -1135,7 +1183,8 @@ function Design() {
   );
 
   return (
-    <Surface context={hasContext ? context : undefined}>
+    <>
+      <Surface context={hasContext ? context : undefined}>
       {/* THE RHYTHM BETWEEN REGIONS IS STATED HERE, and it used to be baked
           into the region itself. `.sp-block` carried `margin-top: 36px`, a
           28px `padding-top` and a hairline `border-top`, so every section on
@@ -1756,6 +1805,20 @@ function Design() {
                   {focus.drawing ? (
                     focus.stageEnabled ? (
                       <>
+                        {/* THE FORWARD VERB AFTER AN APPROVAL, and it leads the
+                          bar because once the gate reads approved it is the only
+                          control here that moves this spec anywhere. See
+                          `sendToBuild` above for the chain behind the click. */}
+                        {focus.gateStatus === "approved" ? (
+                          <Action
+                            variant="primary"
+                            busy={checkingRepo || sendToStudio.isPending}
+                            onClick={() => void sendToBuild()}
+                            title="Hand the spec to Build and open the run"
+                          >
+                            {checkingRepo || sendToStudio.isPending ? "Sending" : "Send it to Build"}
+                          </Action>
+                        ) : null}
                         {/* Approve is drawn only while approving would do
                           something. Pressing it on an approved gate wrote the
                           same status back and taught the taste loop a second
@@ -1800,28 +1863,28 @@ function Design() {
                         <Action busy={busy} onClick={() => taste.mutate(false)}>
                           Not a fit
                         </Action>
-                      </>
-                    )
-                  ) : focus.route?.route === "direct" ? null : (
-                    /* Already recorded direct renders nothing rather than a second
-                     button: the skip is on the record, the Line above says so
-                     and says how to undo it, and re-pressing would be a click
-                     the trail cannot tell from a decision. */
-                    /* AN `Action`, DELIBERATELY, AND THIS IS THE ONE THAT MATTERS
-                     MOST ON THIS STATION. Plan straight to Build, skipping
-                     Design, is a first-class route rather than an escape
-                     hatch, and this control records that a spec takes it. It
-                     is not an `Approve`: with nothing drawn the gate holds
-                     nothing up -- the consequence panel three lines above says
-                     exactly that -- so there is no block for this click to
-                     release. Dressing it in the gate's orchid would frame a
-                     deliberate skip as a stuck row being freed, which is the
-                     opposite of what it records. */
-                    <Action busy={busy} onClick={() => skipDesign.mutate()}>
-                      Record that this needs no screen
-                    </Action>
-                  )}
-                  {focus.drawing ? (
+                       </>
+                      )
+                    ) : focus.route?.route === "direct" ? null : (
+                     /* Already recorded direct renders nothing rather than a second
+                      button: the skip is on the record, the Line above says so
+                      and says how to undo it, and re-pressing would be a click
+                      the trail cannot tell from a decision. */
+                     /* AN `Action`, DELIBERATELY, AND THIS IS THE ONE THAT MATTERS
+                      MOST ON THIS STATION. Plan straight to Build, skipping
+                      Design, is a first-class route rather than an escape
+                      hatch, and this control records that a spec takes it. It
+                      is not an `Approve`: with nothing drawn the gate holds
+                      nothing up -- the consequence panel three lines above says
+                      exactly that -- so there is no block for this click to
+                      release. Dressing it in the gate's orchid would frame a
+                      deliberate skip as a stuck row being freed, which is the
+                      opposite of what it records. */
+                     <Action busy={busy} onClick={() => skipDesign.mutate()}>
+                       Record that this needs no screen
+                     </Action>
+                   )}
+                   {focus.drawing ? (
                     <Action busy={busy} onClick={() => critic.mutate()}>
                       {critic.isPending ? "The Critic is reading" : "Ask the Critic"}
                     </Action>
@@ -2049,6 +2112,21 @@ function Design() {
         ) : null}
       </div>
     </Surface>
+    {/* Mounted outside the surface, the way the spec page mounts it, so an
+      open dialog is not a child of the region whose write opened it. Only the
+      dispatch can open this gate on this station, so there is no act to
+      distinguish and the retry re-runs the send. */}
+    <RepoGateDialog
+      open={repoGate !== null}
+      prdId={focusId}
+      reason={repoGate?.reason ?? null}
+      onOpenChange={(o) => {
+        if (!o) setRepoGate(null);
+      }}
+      onRetry={() => sendToStudio.mutate()}
+      act="dispatch"
+    />
+    </>
   );
 }
 

@@ -30,6 +30,7 @@ import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { RecallRecord } from "@/lib/brain-standing.functions";
 import type { CompoundingSummary } from "@/lib/moat-vis";
+import type { ForecastCalibration } from "@/lib/brain-insights.functions";
 import { guidanceLines, recordHeadline, recordIsBlank } from "../_authenticated.brain";
 
 /** The rendered words of a line, with the markup and React's entity escaping
@@ -68,6 +69,21 @@ function summary(over: Partial<CompoundingSummary> = {}): CompoundingSummary {
     missedCount: 0,
     mixedCount: 0,
     latest: null,
+    ...over,
+  };
+}
+
+/** The graded-forecast half of the calibration read. The payload the server fn
+ *  returns carries no due-count, so no test builds one and no line claims one. */
+function forecast(
+  over: Partial<ForecastCalibration["prediction"]> = {},
+): ForecastCalibration["prediction"] {
+  return {
+    kind: "prediction",
+    resolved: 15,
+    hits: 12,
+    hitRate: 0.8,
+    recentLabel: "",
     ...over,
   };
 }
@@ -150,7 +166,12 @@ describe("Brain headline: guidance outranks the manifest", () => {
 });
 
 describe("Brain guidance: what is firing", () => {
-  const lines = guidanceLines({ recall: recall(), rescoreCount: 0, recallSaidBelow: false });
+  const lines = guidanceLines({
+    recall: recall(),
+    rescoreCount: 0,
+    recallSaidBelow: false,
+    forecast: forecast(),
+  });
 
   it("shows how much of what was learned has gone back into a run", () => {
     const read = lineByKey(lines, "read-back");
@@ -299,6 +320,150 @@ describe("Brain guidance: the re-score admission", () => {
   it("stands down once a re-score exists, because the head and the recess say it", () => {
     const lines = guidanceLines({ recall: recall(), rescoreCount: 2, recallSaidBelow: false });
     expect(lineByKey(lines, "rescored")).toBeUndefined();
+  });
+});
+
+describe("Brain headline: the forecast rung", () => {
+  it("leads with what came true once a forecast has been graded", () => {
+    const head = recordHeadline(summary(), recall(), 49, 8, false, forecast());
+    expect(head).toBe("12 of 15 graded forecasts came true lately.");
+    // It outranks being read back but never the re-scored call.
+    expect(head).not.toBe("The crew has read this record before acting.");
+  });
+
+  it("still steps aside for the re-scored call, which leads the ladder", () => {
+    const head = recordHeadline(
+      summary({ rescoreCount: 2 }),
+      recall(),
+      49,
+      8,
+      false,
+      forecast(),
+    );
+    expect(head).toBe("Real outcomes have re-scored 2 calls.");
+  });
+
+  it("steps down to the recall claim on a miss, and lets guidance carry the miss", () => {
+    // An admission belongs beside its mechanism, not in the largest sentence
+    // on the page; the same move that brought "none has re-scored" down.
+    const head = recordHeadline(
+      summary(),
+      recall(),
+      49,
+      8,
+      false,
+      forecast({ resolved: 3, hits: 0 }),
+    );
+    expect(head).toBe("The crew has read this record before acting.");
+  });
+
+  it("draws no rung while the calibration read is unresolved or failed", () => {
+    const loading = recordHeadline(summary(), recall(), 49, 8, true, null);
+    const failed = recordHeadline(summary(), recall(), 49, 8, false, null);
+    expect(loading).toBe("The crew has read this record before acting.");
+    expect(failed).toBe("The crew has read this record before acting.");
+    // And nothing is invented from an absent payload.
+    expect(loading).not.toMatch(/forecast/i);
+    expect(failed).not.toMatch(/forecast/i);
+  });
+
+  it("does not grade zero as a score, because nothing graded is not 0 percent", () => {
+    const head = recordHeadline(
+      summary(),
+      recall(),
+      49,
+      8,
+      false,
+      forecast({ resolved: 0, hits: 0, hitRate: null }),
+    );
+    expect(head).toBe("The crew has read this record before acting.");
+    expect(head).not.toMatch(/\d+ of 0/);
+  });
+
+  it("keeps its numbers honest about a small sample without dressing one up", () => {
+    const single = recordHeadline(
+      summary(),
+      recall(),
+      null,
+      null,
+      false,
+      forecast({ resolved: 1, hits: 1 }),
+    );
+    expect(single).toBe("One graded forecast, and it came true.");
+    const perfect = recordHeadline(summary(), recall(), null, null, false, forecast({ resolved: 4, hits: 4 }));
+    expect(perfect).toBe("4 of 4 graded forecasts came true lately.");
+  });
+});
+
+describe("Brain guidance: the graded forecast line", () => {
+  it("states the full score and what makes it mean anything", () => {
+    const lines = guidanceLines({
+      recall: recall(),
+      rescoreCount: 0,
+      recallSaidBelow: false,
+      forecast: forecast(),
+    });
+    const line = lineByKey(lines, "forecast")!;
+    expect(text(line.lead)).toBe("12 of 15 graded forecasts came true lately.");
+    // The moat is that the expectation went on the record BEFORE the outcome
+    // was known; the sub says that and nothing else.
+    expect(text(line.sub)).toMatch(/^Each was written down before/);
+    expect(text(line.sub)).toContain("marked against what actually happened");
+  });
+
+  it("reports a settled miss in the same sentence, because a miss is an outcome", () => {
+    const lines = guidanceLines({
+      recall: recall(),
+      rescoreCount: 0,
+      recallSaidBelow: false,
+      forecast: forecast({ resolved: 3, hits: 0 }),
+    });
+    expect(text(lineByKey(lines, "forecast")!.lead)).toBe(
+      "0 of 3 graded forecasts came true lately.",
+    );
+  });
+
+  it("names the wired consequence that ends a zero-graded absence", () => {
+    const lines = guidanceLines({
+      recall: recall(),
+      rescoreCount: 0,
+      recallSaidBelow: false,
+      forecast: forecast({ resolved: 0, hits: 0, hitRate: null }),
+    });
+    const line = lineByKey(lines, "forecast")!;
+    expect(text(line.lead)).toBe("No forecast has been graded yet.");
+    expect(text(line.sub)).toMatch(/^When a forecast on the record passes its date/);
+    // Not a failure word anywhere.
+    expect(allCopy(lines).toLowerCase()).not.toMatch(/broken|unavailable|error|failed|disabled/);
+  });
+
+  it("draws nothing while the calibration read is unresolved or failed", () => {
+    const unresolved = guidanceLines({
+      recall: recall(),
+      rescoreCount: 0,
+      recallSaidBelow: false,
+    });
+    const failed = guidanceLines({
+      recall: recall(),
+      rescoreCount: 0,
+      recallSaidBelow: false,
+      forecast: null,
+    });
+    expect(lineByKey(unresolved, "forecast")).toBeUndefined();
+    expect(lineByKey(failed, "forecast")).toBeUndefined();
+  });
+
+  it("survives on every tab, because nothing else on this surface says it", () => {
+    const lines = guidanceLines({
+      recall: recall(),
+      rescoreCount: 0,
+      recallSaidBelow: true,
+      forecast: forecast(),
+    });
+    expect(lineByKey(lines, "forecast")).toBeDefined();
+    // While the recall lines stand down where CrewCarries repeats them.
+    expect(lineByKey(lines, "read-back")).toBeUndefined();
+    expect(lineByKey(lines, "rated")).toBeUndefined();
   });
 });
 
