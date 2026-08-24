@@ -409,6 +409,27 @@ const CONSEQUENCES: Record<string, ToolConsequence> = {
     reversible: "reversible",
     undo: "Nothing to undo; read-only.",
    },
+  /*
+   * ── THE SPEC READS, CATALOGUED WITH THE TOOLS THAT NEED THEM ─────────────
+   * Registered as reads beside their brain.* siblings; without these rows they
+   * score `high` on toolRisk and are silently demoted from auto to confirm --
+   * the mechanism that put cluster.trigger back in the queue after it had been
+   * fixed. A permission click on CHECKING WHETHER A SPEC ALREADY SERVES A BET is
+   * worse than an ordinary mis-gate, because the click is exactly what makes an
+   * agent skip the check and mint a duplicate.
+   */
+  "prd.search": {
+    effect:
+      "Searches this workspace's specs and reports each one's title, status and bet.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
+  "prd.get": {
+    effect:
+      "Reads one spec: body opening, Outcome Contract summary, Critic verdict and gate status.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
   "sources.status": {
     effect: "Reports which sources have been sending signals, and how many.",
     reversible: "reversible",
@@ -545,6 +566,10 @@ const READ_ONLY_TOOLS = new Set<string>([
   "brain.get_decision",
   "brain.contradictions",
   "brain.due_forecasts",
+  // The spec reads (registry.server.ts prd.search/prd.get): the same kind of
+  // database read inside the workspace, nothing outlives the call.
+  "prd.search",
+  "prd.get",
 ]);
 
 /** The mirror above as a list, exported for the drift guard only. The guard has
@@ -1289,6 +1314,20 @@ const RISK_PROFILE: Record<string, ToolRiskProfile> = {
     changeSurface: "narrow",
   },
   "brain.due_forecasts": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  // The spec reads: internal workspace reads that hand back exactly what is
+  // stored, `verified` like their brain.* siblings above.
+  "prd.search": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  "prd.get": {
     dataExposure: "internal",
     opsImpact: "none",
     verificationGap: "verified",

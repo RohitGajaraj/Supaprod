@@ -14,6 +14,7 @@ import {
 } from "@/lib/exec/e2b.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { retrieve } from "@/lib/rag/retriever.server";
+import { SPEC_SECTION_ORDER } from "@/lib/spec-sections";
 import { embedOne } from "@/lib/rag/embed.server";
 import { withIdempotency } from "@/lib/runtime/idempotency.server";
 import { callModel } from "@/lib/ai/runtime.server";
@@ -22,7 +23,7 @@ import { extractArrayField, wrapBareArrayField } from "@/lib/ai/json-shape";
    of "what makes a forecast valid" is how the agent door and the person door come
    to disagree about it. The reasoning for both rules is in that function. */
 import { forecastRefusal } from "@/lib/decisions.functions";
-/* The brain reads, lifted from the MCP door rather than re-derived, so an
+/* The brain + spec reads, lifted from the MCP door rather than re-derived, so an
    internal agent mid-run and an external agent over the API get byte-identical
    answers to the same question. mcp.functions.ts carries no import edge back
    into this file (checked), so this adds no cycle; see brain.* below. */
@@ -30,6 +31,7 @@ import {
   listDueForecastsForAgent,
   outcomeHistory,
   searchDecisions,
+  searchPRDs,
 } from "@/lib/mcp.functions";
 import {
   activeContradictions,
@@ -3300,7 +3302,7 @@ const researchSynthesize = def({
 const prdDraft = def({
   name: "prd.draft",
   description:
-    "Draft a spec, from an opportunity or from a brief. Pass opportunity_id when a bet already exists: it reads the opportunity, its theme, and supporting signals. Pass brief instead when this work entered mid-lifecycle and no bet was ever filed — say what the work is and why it exists, in the words of the job you were given. At least one of the two is required, and if you pass both the opportunity is used and the brief is ignored. Nothing in this toolset creates an opportunity, so do not stall waiting for one, never pass an id of another kind in its place, and never invent a uuid to fill the field — pass brief instead. Writes a draft spec with problem, goals, non-goals, user stories, success metrics, and risks.",
+    "Draft a spec, from an opportunity or from a brief. Pass opportunity_id when a bet already exists: it reads the opportunity, its theme, and supporting signals. Pass brief instead when this work entered mid-lifecycle and no bet was ever filed — say what the work is and why it exists, in the words of the job you were given. At least one of the two is required, and if you pass both the opportunity is used and the brief is ignored. Nothing in this toolset creates an opportunity, so do not stall waiting for one, never pass an id of another kind in its place, and never invent a uuid to fill the field — pass brief instead. Writes a draft spec with problem, goals, non-goals, user stories, success metrics, and risks. If the bet already carries a spec, that existing spec is returned (`existing: true`) instead of a second draft being minted — read it with prd.get and build on it rather than drafting again.",
   category: "write",
   /**
    * Both fields are optional here and the either/or is enforced in `run`, which
@@ -3336,13 +3338,14 @@ const prdDraft = def({
       theme_id: string | null;
       workspace_id: string | null;
       product_id: string | null;
+      is_sample: boolean;
     };
     let opp: OppRow | null = null;
     if (a.opportunity_id) {
       const { data, error: oErr } = await supabase
         .from("opportunities")
         .select(
-          "id,title,problem,target_user,hypothesis,impact,confidence,ease,theme_id,workspace_id,product_id",
+          "id,title,problem,target_user,hypothesis,impact,confidence,ease,theme_id,workspace_id,product_id,is_sample",
         )
         .eq("id", a.opportunity_id)
         .eq("user_id", userId)
@@ -3360,6 +3363,49 @@ const prdDraft = def({
           `No opportunity ${a.opportunity_id} exists for this user. Do not retry with a different id: if you were not handed a real bet id, you cannot invent one and nothing in this toolset creates one. Call prd.draft again with \`brief\` instead — what the work is and why it exists — and leave opportunity_id out.`,
         );
       opp = data;
+    }
+
+    /**
+     * DUPLICATE GUARD — the agent-side twin of generatePrd's
+     * (src/lib/discovery.functions.ts:3612-3631), which measured NINE bets
+     * carrying two competing specs each and closed its own door against it. This
+     * door had the same hole with an agent holding the pen: two runs against one
+     * bet each minted a spec, both reading "serves <same bet>" on /plan, and only
+     * one of them was ever going to be read. The check sits BEFORE the model call,
+     * so the second run costs one query instead of two model calls plus a Critic.
+     *
+     * Same answer as the human path: the second draft lands on the artifact the
+     * first one made. NOT AN ERROR — the crew gets the existing spec back with
+     * `existing: true` and its id in `prd_id`, the same field spine/attach.ts
+     * files a fresh draft under, so a run that raced another still attaches to the
+     * spec that serves this bet instead of filing nothing. And fail-OPEN toward
+     * generation when the check itself cannot be read, for the reason that file
+     * states: a duplicate spec is recoverable, a Define station that refuses to do
+     * anything on an unreadable check is not.
+     */
+    if (opp) {
+      const { data: existingSpec, error: existingErr } = await supabase
+        .from("prds")
+        .select("id,title,status")
+        .eq("opportunity_id", opp.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (existingErr) {
+        console.error(
+          `[prd.draft] could not check for an existing spec on ${opp.id}: ${existingErr.message}`,
+        );
+      } else if (existingSpec) {
+        return {
+          existing: true as const,
+          prd_id: existingSpec.id,
+          title: existingSpec.title,
+          status: existingSpec.status,
+          message:
+            `A spec already serves this bet: "${existingSpec.title}" (${existingSpec.id}, status ${existingSpec.status}). ` +
+            "A second draft would put two competing specs in front of the same bet. Read it with prd.get or revise it with prd.revise instead of drafting again; do not call prd.draft again with this opportunity_id.",
+        };
+      }
     }
 
     let themeCtx = "";
@@ -3404,7 +3450,7 @@ const prdDraft = def({
         {
           role: "system",
           content:
-            "You are a senior product manager. Write a concise, decision-ready spec in Markdown with these sections: ## Problem, ## Target user, ## Goals, ## Non-goals, ## User stories, ## Solution sketch, ## Success metrics, ## Risks & open questions. Be specific and grounded in the provided context. Do not invent metrics.",
+            `You are a senior product manager. Write a concise, decision-ready spec in Markdown with these sections: ${SPEC_SECTION_ORDER.map((sec) => `## ${sec}`).join(", ")}. Be specific and grounded in the provided context. Do not invent metrics.`,
         },
         {
           role: "user",
@@ -3497,6 +3543,15 @@ const prdDraft = def({
         body_md: body,
         status: "draft",
         model: DRAFT_MODEL,
+        /*
+         * A SPEC DESCENDED FROM AN EXAMPLE IS AN EXAMPLE. generatePrd carries
+         * `bet.is_sample` across this exact seam (discovery.functions.ts:3906)
+         * and this tool dropped it — the open item that file records at :3827.
+         * Written only when true, for the same reason it is there: the column
+         * defaults to false, so naming it on every real spec would be redundant,
+         * and a seeded bet is the one case the flag exists for.
+         */
+        ...(opp?.is_sample ? { is_sample: true } : {}),
       })
       // `workspace_id` is read back rather than assumed: the stage event below has
       // to describe the row Postgres actually wrote. stage_events is read with a
@@ -3871,6 +3926,121 @@ const brainDueForecasts = def({
     // workspace_id (see mcp.functions.ts): due-check filter, deferral clause,
     // clamp and drafted-verdict fields all owned there.
     return listDueForecastsForAgent(supabase, workspaceId, {});
+  },
+});
+
+// ── prd.search / prd.get · the crew's read door into the SPECS ────────────
+//
+// SPECS WERE THE ONE ARTIFACT THE CREW COULD NOT READ. decision.record and
+// learning.record write the record, brain.* reads decisions back, and
+// workspace.search returns fuzzy RAG snippets of specs — never structure. Meanwhile the
+// external MCP surface has answered exactly these questions for months
+// (search_prds, get_prd), so a peer agent over the API could ask "what specs
+// exist, what does one say" and the crew working the loop could not. The cost is
+// concrete: prd.draft minted duplicate specs partly because checking whether a
+// spec already serves a bet meant guessing at snippet fragments. These two give
+// the internal crew the same access, built like their brain.* siblings:
+//
+//   · prd.search IS THE MCP READ, NOT A SECOND COPY — searchPRDs is imported
+//     from mcp.functions.ts, the same function the /api/mcp route dispatches,
+//     so the two doors cannot drift apart.
+//
+//   · prd.get HAS NO MCP TWIN with this shape (get_prd predates contracts and
+//     gates), so it queries directly like brain.get_decision does, scoped by
+//     user AND workspace, returning what the crew actually asks about a spec:
+//     status, contract summary, Critic verdict, design gate, settled outcome.
+//
+//   · TENANCY FROM CONTEXT, NEVER A CALLER-SUPPLIED ARGUMENT; READS, AND SHAPED
+//     LIKE READS; defaults auto — same rules as brain.* above.
+
+const prdSearch = def({
+  name: "prd.search",
+  description:
+    'Search the workspace\'s specs by keyword before you draft one — answers "does a spec already serve this bet?" Each hit carries id, title, lifecycle status (draft/review/approved/shipped), the opportunity it serves, and whether it shipped. Check here before calling prd.draft on a bet: drafting against a bet that already has a spec returns the old one instead of writing a new draft.',
+  category: "read",
+  argsSchema: z.object({
+    query: z.string().max(200).optional(),
+    limit: z.number().int().min(1).max(50).optional(),
+  }),
+  preview: (a) => `Search specs${a.query ? `: "${a.query}"` : ""}`,
+  run: async (a, { supabase, workspaceId }) => {
+    if (!workspaceId)
+      throw new Error("prd.search runs inside a workspace, and this run has none.");
+    // The exact function the MCP route calls for search_prds, tenant scope
+    // included. An empty query lists the newest specs, so "what specs exist?"
+    // needs no special path.
+    return searchPRDs(supabase, workspaceId, a.query ?? "", "", a.limit ?? 20);
+  },
+});
+
+const prdGet = def({
+  name: "prd.get",
+  description:
+    "Read ONE spec structurally by id: lifecycle status, the body's opening, its Outcome Contract summary (the intent promised and how many success metrics carry it), the Critic verdict if one was filed, design-gate status, and whether an outcome has been settled on it. Use after prd.search to read the full spec behind a hit, and before revising a spec so you build on what is actually written rather than on a snippet.",
+  category: "read",
+  argsSchema: z.object({
+    id: z.string().uuid(),
+  }),
+  preview: (a) => `Read spec ${a.id.slice(0, 8)}`,
+  run: async (a, { supabase, userId, workspaceId }) => {
+    if (!workspaceId)
+      throw new Error("prd.get runs inside a workspace, and this run has none.");
+    const { data, error } = await supabase
+      .from("prds")
+      // One literal, not concatenated: the generated row types narrow on the
+      // literal and widen to an error union on a computed string.
+      .select(
+        "id,title,status,body_md,opportunity_id,contract,critic_review,design_gate_status,outcome,shipped_at,is_sample,created_at",
+      )
+      .eq("id", a.id)
+      .eq("user_id", userId)
+      .eq("workspace_id", workspaceId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) throw new Error("No spec with that id is visible in this workspace.");
+
+    /** critic_review is untyped model-written jsonb. Read it tolerantly, the way
+     *  today.functions.ts's private parseCriticReview does (jsonb object, or a
+     *  stringified copy), taking only the verdict the crew asks about. */
+    const criticVerdictOf = (raw: unknown): string | null => {
+      if (!raw) return null;
+      let v: unknown = raw;
+      if (typeof raw === "string") {
+        try {
+          v = JSON.parse(raw);
+        } catch {
+          return null;
+        }
+      }
+      const verdict = (v as { verdict?: unknown } | null)?.verdict;
+      return typeof verdict === "string" ? verdict : null;
+    };
+
+    const contract = (data.contract ?? {}) as { intent?: unknown; success_metrics?: unknown };
+    return {
+      id: data.id,
+      title: data.title,
+      status: data.status,
+      opportunity_id: data.opportunity_id,
+      // Enough to read the problem and goals sections without hauling a whole
+      // body through context; prd.revise hands the full body when editing.
+      body_excerpt: (data.body_md ?? "").slice(0, 1500),
+      contract_summary: {
+        intent:
+          typeof contract.intent === "string" && contract.intent.trim()
+            ? contract.intent.slice(0, 600)
+            : null,
+        success_metric_count: Array.isArray(contract.success_metrics)
+          ? contract.success_metrics.length
+          : 0,
+      },
+      critic_verdict: criticVerdictOf(data.critic_review),
+      design_gate_status: data.design_gate_status,
+      outcome_settled: data.outcome != null,
+      shipped_at: data.shipped_at,
+      is_sample: data.is_sample,
+      created_at: data.created_at,
+    };
   },
 });
 
@@ -5307,6 +5477,8 @@ export const TOOL_REGISTRY: Record<string, ToolDef> = Object.fromEntries(
     brainGetDecision,
     brainContradictions,
     brainDueForecasts,
+    prdSearch,
+    prdGet,
     decisionRecord,
     designDraft,
     learningRecord,

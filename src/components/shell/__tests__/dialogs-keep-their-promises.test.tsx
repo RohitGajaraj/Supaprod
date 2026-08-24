@@ -143,22 +143,21 @@ describe("both hand-rolled dialogs actually use the trap", () => {
 /* ------------------------------------------------------ decisions are spoken */
 
 describe("a decision committed by keyboard is announced", () => {
-  const PRIMITIVES = read(join("src", "components", "shell", "primitives.tsx"));
+  // Repointed 2026-08-24: shell/primitives.tsx was deleted (R013 item 1) and
+  // Receipt survived into Meridian at components/meridian/Receipt.tsx:85.
+  const RECEIPT = read(join("src", "components", "meridian", "Receipt.tsx"));
 
   test("Receipt is a live region, so every gate announces without six edits", () => {
     // Six surfaces committed irreversible decisions in total silence: Today,
     // Approvals, Decide, Design, Crew and Discover. Every one of those
     // mutations ends in a Receipt, so this primitive is the one place that
     // covers all of them and every gate built after tonight.
-    const receipt = PRIMITIVES.slice(PRIMITIVES.indexOf("export function Receipt("));
-    const openingTag = receipt.slice(receipt.indexOf('<div className="sp-receipt"'));
-    expect(openingTag.slice(0, 200)).toContain('role="status"');
-    expect(openingTag.slice(0, 200)).toContain('aria-live="polite"');
+    expect(RECEIPT).toContain('role="status"');
+    expect(RECEIPT).toContain('aria-live="polite"');
   });
 
   test("polite, not assertive: it answers a keypress rather than interrupting", () => {
-    const receipt = PRIMITIVES.slice(PRIMITIVES.indexOf("export function Receipt("));
-    expect(receipt.slice(0, 3000)).not.toContain('aria-live="assertive"');
+    expect(RECEIPT).not.toContain('aria-live="assertive"');
   });
 });
 

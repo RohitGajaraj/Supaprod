@@ -130,6 +130,12 @@ export const TOOL_DEFAULTS: Readonly<
   "brain.get_decision": { mode: "auto", enabled: true, label: "Read a decision" },
   "brain.contradictions": { mode: "auto", enabled: true, label: "Open contradictions" },
   "brain.due_forecasts": { mode: "auto", enabled: true, label: "Forecasts due for grading" },
+  // THE CREW'S READ DOOR INTO THE SPECS. Auto like the brain reads above: specs
+  // were the one artifact the crew could not open structurally (only fuzzy RAG
+  // snippets) while external agents got search_prds/get_prd all along, and a
+  // crew that cannot look drafts duplicates instead.
+  "prd.search": { mode: "auto", enabled: true, label: "Search specs" },
+  "prd.get": { mode: "auto", enabled: true, label: "Read a spec" },
   // 03 Plan
   "prd.draft": { mode: "auto", enabled: true, label: "Draft a spec" },
   "prd.revise": { mode: "confirm", enabled: true, label: "Revise a spec" },

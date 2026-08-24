@@ -27,6 +27,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 /* The SAME refusal the agent doors use, so the human gate and `decision.record`
    cannot drift into two definitions of a well-formed forecast. */
 import { forecastRefusal } from "@/lib/decisions.functions";
+/* The SAME section sequence every spec-writing prompt enumerates, so the three
+   prompts cannot drift into three different shapes for one artifact. */
+import { SPEC_SECTION_ORDER } from "@/lib/spec-sections";
+
+export { SPEC_SECTION_ORDER };
 
 // ---------- CRITIC (DEC-02 opportunities · DEF-03 specs) ----------
 // DEC-02-LOOP: runCritic + CriticReview now live in src/lib/ai/critic.server.ts
@@ -2313,7 +2318,7 @@ async function dropSampleSpecChunks(
   );
 }
 
-const CONTRACT_FROM_INTENT_SYSTEM = `You are the Supaprod contract author. Given a one-line product intent plus standing workspace context and precedent (prior specs, docs, notes, meetings — numbered chunks you may draw from), draft a full Outcome Contract in seconds so the human edits deltas instead of writing from a blank page.
+export const CONTRACT_FROM_INTENT_SYSTEM = `You are the Supaprod contract author. Given a one-line product intent plus standing workspace context and precedent (prior specs, docs, notes, meetings — numbered chunks you may draw from), draft a full Outcome Contract in seconds so the human edits deltas instead of writing from a blank page.
 Rules:
 - intent: restate the bet as one tight, sharpened paragraph (not the one-liner verbatim).
 - success_metrics: up to 6 falsifiable acceptance criteria / success metrics, most load-bearing first.
@@ -2322,7 +2327,7 @@ Rules:
 - blast_radius: what breaks or is at risk if this goes wrong. Null if genuinely unclear.
 - ambiguity_policy: one sentence on how to resolve ambiguity while building this — default to the reversible interpretation, log the assumption, escalate only if irreversible or over budget.
 - clarifying_questions: at most 5 questions, ONLY the ones that are genuinely load-bearing and cannot be inferred from the intent or context. Empty array if there is nothing that actually blocks starting.
-- narrative: a short Markdown body (## Problem, ## Approach, ## Success Metrics, ## Non-Goals, ## Budget & Risk), under 400 words, restating the same content for human reading. Cite context chunks inline as [n] where you draw from them.
+- narrative: a short Markdown body (${SPEC_SECTION_ORDER.map((section) => `## ${section}`).join(", ")}), under 400 words, restating the same content for human reading. Cite context chunks inline as [n] where you draw from them.
 - Ground everything you can in the provided context. Where nothing supports a field, still fill intent/success_metrics/non_goals from the intent alone, but leave budget_estimate/blast_radius/ambiguity_policy null rather than inventing specifics.
 - Signal-first: state each item directly, no hedging.
 - No em dashes, no en dashes, no AI cliches (delve, leverage, unlock, game-changer, crucial).
@@ -3511,6 +3516,27 @@ async function placeKeptBetInNext(
 }
 
 /** AI: generate a PRD from an opportunity (or from a freeform brief). */
+/**
+ * generatePrd's system prompt, with its section enumeration drawn from
+ * SPEC_SECTION_ORDER so every spec-writing prompt shares one shape. Pure and
+ * exported so tests can pin the built text.
+ */
+export function buildPrdSystemPrompt(priorTeardown: boolean): string {
+  return `You are a senior product manager writing a crisp, opinionated spec in Markdown.
+Sections (use ## headings, in this exact order):
+${SPEC_SECTION_ORDER.map((section) => `## ${section}`).join("\n")}
+
+Be concrete, terse, and useful. Use tight bullets. No filler.
+
+When the user message contains a CONTEXT block with numbered chunks (e.g. [1], [2]), cite them inline using those numbers wherever you draw from them. Do not invent citation numbers.${
+    priorTeardown
+      ? `
+
+The user message contains a PRIOR REVIEW block: the Critic's teardown of the bet this spec comes from, which the person has already read. Carry it forward. Every risk, kill criterion and piece of missing evidence it names must appear in "## Risks & Open Questions" (or be answered outright in "## Scope (MVP)" or "## Out of Scope"). Do not restate it as new, and do not contradict it without saying why.`
+      : ""
+  }`;
+}
+
 export const generatePrd = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>
@@ -3662,26 +3688,7 @@ ICE — Impact:${opp.impact} Confidence:${opp.confidence} Ease:${opp.ease}`;
       }
     }
 
-    const system = `You are a senior product manager writing a crisp, opinionated spec in Markdown.
-Sections (use ## headings, in this exact order):
-## Problem
-## Target Users
-## Hypothesis
-## Success Metrics
-## Scope (MVP)
-## Out of Scope
-## Risks & Open Questions
-## Milestones
-
-Be concrete, terse, and useful. Use tight bullets. No filler.
-
-When the user message contains a CONTEXT block with numbered chunks (e.g. [1], [2]), cite them inline using those numbers wherever you draw from them. Do not invent citation numbers.${
-      priorTeardown
-        ? `
-
-The user message contains a PRIOR REVIEW block: the Critic's teardown of the bet this spec comes from, which the person has already read. Carry it forward. Every risk, kill criterion and piece of missing evidence it names must appear in "## Risks & Open Questions" (or be answered outright in "## Scope (MVP)" or "## Out of Scope"). Do not restate it as new, and do not contradict it without saying why.`
-        : ""
-    }`;
+    const system = buildPrdSystemPrompt(priorTeardown.length > 0);
 
     // RAG: retrieve workspace evidence (signals, docs, meetings, notes) and
     // expose it as numbered chunks the model can cite as [n]. Citations are
