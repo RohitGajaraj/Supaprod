@@ -2,7 +2,7 @@ import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { GraphSlider } from "@/components/obsidian";
+import { GraphSlider } from "@/components/meridian/graph-slider";
 import { getAnalyticsOverview, getAgentSpendBreakdown } from "@/lib/analytics.functions";
 import { zeroFillDaily } from "@/lib/engine-room-glance";
 import { Row, EmptyRow, ErrorRetry, PanelPending, type RoomBodyProps } from "../RoomDetail";

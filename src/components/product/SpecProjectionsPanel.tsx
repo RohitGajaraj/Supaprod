@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { Copy, Check, Download } from "lucide-react";
-import { Button, VerdictChip } from "@/components/obsidian";
-import type { VerdictTone } from "@/components/obsidian";
+import { Action } from "@/components/meridian/surface-parts";
+import { VerdictChip } from "@/components/ink/chips";
+import type { VerdictTone } from "@/components/ink/chips";
 import type { OutcomeContract } from "@/lib/discovery.functions";
 import {
   composeSpecProjections,
@@ -22,9 +23,9 @@ type Props = {
 };
 
 const DRIFT_TONE: Record<DriftState, VerdictTone> = {
-  current: "VALIDATED",
-  stale: "WATCH",
-  "no-contract": "PENDING",
+  current: "pass",
+  stale: "human",
+  "no-contract": "neutral",
 };
 
 const TAB_ORDER: readonly SpecProjectionKind[] = ["prd", "frd", "status", "onepager"];
@@ -180,26 +181,24 @@ export function SpecProjectionsPanel({
           })}
         </div>
         <div className="flex items-center" style={{ gap: 6, paddingBottom: 8 }}>
-          <Button
-            variant="tertiary"
-            size="sm"
+          <Action
+            variant="quiet"
             onClick={copy}
             aria-label={copied ? "Copied" : "Copy to clipboard"}
             title={copied ? "Copied" : "Copy to clipboard"}
             style={{ padding: "6px 9px" }}
           >
             {copied ? <Check size={14} /> : <Copy size={14} />}
-          </Button>
-          <Button
-            variant="tertiary"
-            size="sm"
+          </Action>
+          <Action
+            variant="quiet"
+            style={{ padding: "6px 9px" }}
             onClick={download}
             aria-label="Download as Markdown"
             title="Download as Markdown"
-            style={{ padding: "6px 9px" }}
           >
             <Download size={14} />
-          </Button>
+          </Action>
         </div>
       </div>
 

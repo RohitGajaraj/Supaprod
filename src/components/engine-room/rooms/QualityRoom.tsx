@@ -3,7 +3,7 @@ import { DiagnosticsSection } from "@/components/settings/DiagnosticsSection";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { GraphSlider } from "@/components/obsidian";
+import { GraphSlider } from "@/components/meridian/graph-slider";
 import { getEvalHealth } from "@/lib/eval-health.functions";
 import { getGuardrailHitCount } from "@/lib/guardrails.functions";
 import { EVAL_COVERAGE_TARGETS } from "@/lib/evals/coverage";

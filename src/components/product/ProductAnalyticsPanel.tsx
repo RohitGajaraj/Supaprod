@@ -14,7 +14,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { BarChart2, Link2, RefreshCw, Loader2, CheckCircle, X } from "lucide-react";
-import { GraphSlider } from "@/components/obsidian";
+import { GraphSlider } from "@/components/meridian/graph-slider";
 import { Action } from "@/components/meridian/surface-parts";
 import {
   getProductAnalytics,

@@ -15,11 +15,11 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1972,
-  "fileCount": 167,
+  "totalOccurrences": 1910,
+  "fileCount": 156,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
-      "--text-": 16,
+      "--text-": 15,
       "--hairline": 3,
       "--raised": 1,
       "import:components/ui": 1,
@@ -292,60 +292,12 @@
     "src/components/observe/EvalScoreChips.tsx": {
       "--sp-": 1
     },
-    "src/components/obsidian/ask-canvas.tsx": {
-      "--text-": 8,
-      "--hairline": 3,
-      "--glacier": 1
-    },
-    "src/components/obsidian/aurora.tsx": {
-      "--text-": 1,
-      "--hairline": 1,
-      "--madder": 1,
-      "raw-colour": 1
-    },
-    "src/components/obsidian/callcard.tsx": {
-      "--text-": 5
-    },
-    "src/components/obsidian/chart.tsx": {
-      "--text-": 1,
-      "--hairline": 1,
-      "--raised": 1,
-      "raw-colour": 1
-    },
-    "src/components/obsidian/citation.tsx": {
-      "--text-": 2,
-      "--hairline": 1,
-      "--raised": 1
-    },
-    "src/components/obsidian/flashlight-tabs.tsx": {
-      "--text-": 3,
-      "--hairline": 2
-    },
-    "src/components/obsidian/graph-slider.tsx": {
-      "--text-": 4,
-      "--hairline": 2,
-      "--raised": 1
-    },
-    "src/components/obsidian/missionrow.tsx": {
-      "--text-": 4,
-      "--hairline": 1
-    },
     "src/components/obsidian/primitives.tsx": {
       "--text-": 3,
       "--madder": 1,
       "--glacier": 1,
       "import:components/ui": 1,
       "raw-colour": 2
-    },
-    "src/components/obsidian/slideover.tsx": {
-      "--ds-": 1,
-      "--text-": 2,
-      "--hairline": 2
-    },
-    "src/components/obsidian/spotlight.tsx": {
-      "--text-": 2,
-      "--hairline": 1,
-      "raw-colour": 5
     },
     "src/components/obsidian/status.tsx": {
       "--text-": 1,
@@ -354,10 +306,6 @@
     },
     "src/components/obsidian/TestStationPanel.tsx": {
       "--text-": 6
-    },
-    "src/components/obsidian/toast.tsx": {
-      "--text-": 1,
-      "--raised": 1
     },
     "src/components/obsidian/verdict.tsx": {
       "--text-": 1,

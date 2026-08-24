@@ -114,8 +114,8 @@ function Readout({
         width={cw}
         height={ch}
         rx={6}
-        fill="var(--raised)"
-        stroke="var(--hairline)"
+        fill="var(--mrd-lift)"
+        stroke="var(--mrd-edge)"
       />
       <text
         x={cx + cw / 2}
@@ -136,7 +136,7 @@ function Readout({
           fontFamily="var(--font-mono)"
           fontSize={8.5}
           letterSpacing="0.08em"
-          fill="var(--text-subtle)"
+          fill="var(--mrd-mute)"
         >
           {sub}
         </text>
@@ -174,7 +174,7 @@ export function GraphSlider({
       <div
         style={{
           fontFamily: "var(--font-mono)",
-          color: "var(--text-subtle)",
+          color: "var(--mrd-mute)",
           padding: "8px 0",
         }}
       >
@@ -233,7 +233,7 @@ export function GraphSlider({
         maxWidth: "100%",
         touchAction: "none",
         cursor: "ew-resize",
-        // No outline:none: the global [data-obsidian] :focus-visible ring is
+        // No outline:none: the global focus-visible ring is
         // this slider's keyboard focus indicator (Tempo: never removed).
         borderRadius: "var(--radius-control)",
       }}
@@ -328,7 +328,7 @@ export function GraphSlider({
         if (idx === cursor) return null;
         return (
           <g key={isMax ? "max" : "min"} aria-hidden="true">
-            <circle cx={p[0]} cy={p[1]} r={2.5} fill="var(--text-subtle)" />
+            <circle cx={p[0]} cy={p[1]} r={2.5} fill="var(--mrd-mute)" />
             <text
               x={Math.max(14, Math.min(w - 14, p[0]))}
               y={isMax ? p[1] - 6 : p[1] + 13}
@@ -336,7 +336,7 @@ export function GraphSlider({
               fontFamily="var(--font-mono)"
               fontSize={8.5}
               letterSpacing="0.06em"
-              fill="var(--text-faint)"
+              fill="var(--mrd-faint)"
             >
               {formatValue(data[idx]!)}
             </text>
@@ -350,7 +350,7 @@ export function GraphSlider({
         y1={PAD_TOP - 4}
         x2={cur[0]}
         y2={floor}
-        stroke="var(--hairline-strong)"
+        stroke="var(--mrd-edge)"
         strokeWidth={1}
         aria-hidden="true"
       />

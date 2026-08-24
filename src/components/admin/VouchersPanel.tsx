@@ -15,7 +15,7 @@ import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
-import { MonoLabel, Button } from "@/components/obsidian";
+import { Action } from "@/components/meridian/surface-parts";
 import { AdminErrorCard, AdminSkeleton, inBandError } from "@/components/admin/admin-ui";
 import {
   adminListVouchers,
@@ -62,7 +62,7 @@ export function VouchersPanel() {
     <div style={{ display: "grid", gap: "var(--space-4)" }}>
       <VoucherCreator />
       <div className="material-medium" style={card()}>
-        <MonoLabel>Vouchers · {list.isLoading ? "…" : rows.length}</MonoLabel>
+        <span className="mrd-eyebrow">Vouchers · {list.isLoading ? "…" : rows.length}</span>
         {list.isLoading ? (
           <AdminSkeleton rows={3} height={38} />
         ) : listError ? (
@@ -102,20 +102,19 @@ export function VouchersPanel() {
                     <td style={td()}>{v.active ? "yes" : "no"}</td>
                     <td style={td()}>
                       <div style={{ display: "flex", gap: "var(--space-1)" }}>
-                        <Button
-                          variant="secondary"
+                        <Action
                           style={{ padding: "6px 10px" }}
                           onClick={() => setOpenId(v.id)}
                         >
                           Redemptions
-                        </Button>
+                        </Action>
                         {v.active ? (
-                          <Button
-                            variant="secondary"
+                          <Action
+                            variant="destructive"
                             disabled={deactivate.isPending}
+                            busy={deactivate.isPending}
                             style={{
                               padding: "6px 10px",
-                              color: "var(--text-subtle)",
                             }}
                             onClick={async () => {
                               const ok = await confirm({
@@ -128,7 +127,7 @@ export function VouchersPanel() {
                             }}
                           >
                             Deactivate
-                          </Button>
+                          </Action>
                         ) : null}
                       </div>
                     </td>
@@ -204,7 +203,7 @@ function VoucherCreator() {
 
   return (
     <div className="material-medium" style={card()}>
-      <MonoLabel>New voucher</MonoLabel>
+      <span className="mrd-eyebrow">New voucher</span>
       <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
         <input
           value={code}
@@ -286,13 +285,13 @@ function VoucherCreator() {
           />{" "}
           auto-login (signup)
         </label>
-        <Button
-          variant="secondary"
+        <Action
           disabled={!code || create.isPending}
+          busy={create.isPending}
           onClick={() => create.mutate()}
         >
           {create.isPending ? "Creating…" : "Create voucher"}
-        </Button>
+        </Action>
       </div>
     </div>
   );
