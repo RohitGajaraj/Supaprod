@@ -92,7 +92,24 @@ component (`RecordSpeaks`) that three surfaces needed and could not find.
 sweep it: size-snapping `PersonMark` onto a stop would have preserved a duplicate
 instead of removing one.
 
-### 5. Ten Meridian components are exhibited rather than adopted
+### 5. NINE Meridian components are exhibited rather than adopted
+
+> **CORRECTED 2026-08-24 by [`R012`](./R012-five-deleted-one-held-for-the-founder-and-M14-corrected.md).
+> Two of the eleven names below were wrong, and LANE 1 caught both.**
+>
+> **`Flowchart` is NOT gallery-only** — `meridian/RunMap.tsx:6` imports it and it
+> reaches production through `PlanGate` → `AskPlanGate` → `AskTurn`.
+> **`run-rows` is NOT "used nowhere at all"** — six production consumers
+> (`AgentInbox`, `ToolStream`, `PlanCard`, `RunTimeline`, `source-marks`,
+> `missions/mission-timeline`).
+>
+> **I took both claims from `design:adoption`'s own output, and the cause will
+> bite again.** That script counts COMPONENTS; `run-rows` is a constants module
+> (`RUN_GRID`, `RUN_ROW`, `RunGlyph`). It has no component to count, so it
+> answered a question nobody meant to ask, and I repeated the answer as a
+> finding. **A metric's blind spot reads exactly like a finding.**
+>
+> Ruled since: five deleted, `FineTuneCard` held for the founder, two parked.
 
 `Chat`, `DiffTable`, `FineTuneCard`, `Flowchart`, `InsightCards`,
 `PromotionCard`, `PromptBar`, `RecommendationCard`, `SelectionActions` are

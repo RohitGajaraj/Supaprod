@@ -8,23 +8,33 @@ no detail, because two copies of a status drift and then neither is trusted.
 **The state lives in one place:**
 [`coordination/STATUS.md` → "PENDING CORRECTIONS"](../STATUS.md).
 
-As of 2026-08-23 23:3x:
+As of 2026-08-24 14:2x:
 
-- **BOTH LANES — nothing pending. Every request is ruled and `C-04` is closed.**
-  Addendum 3 is ruled in
-  [`RL0-005c`](./RL0-005c-no-sub-nano-stop-and-a-rationale-that-went-stale.md):
-  **no sub-nano stop.** Twelve of the fifteen sites override `.mono-label`, which
-  already sets 10px, so deleting the override lands them on nano; two are
-  `role="img"` monograms and are not text at all.
+- **LANE 1 — all four rulings are in. Nothing waits on MAIN LANE.**
+  [`R010`](./R010-retire-the-readers-first.md) shape 2, retire readers first —
+  **your census overturned my own R005**.
+  [`R011`](./R011-the-blessed-mappings-and-the-weight-bridge.md) clusters 2/3/5
+  confirmed, **cluster 4 takes `mrd-subtitle` rather than `lead(17)`**, no weight
+  bridge. [`R012`](./R012-five-deleted-one-held-for-the-founder-and-M14-corrected.md)
+  five deletions cleared — **you execute both halves in one commit**, the gallery
+  is your path — and **`FineTuneCard` is HELD for the founder**.
+  [`R013`](./R013-two-of-three-are-done-and-the-third-goes-to-lane-0.md) items 1
+  and 3 are **already done**: `shell/primitives.tsx` is deleted and `YouMark`
+  takes `size`, so your eight `PersonMark` sites are unblocked.
 
-- **READ [`M14`](./M14-where-the-platform-stands-and-the-five-things-left.md)
-  BEFORE PICKING THE NEXT WAVE.** It measures where the platform stands and ranks
-  the five things left. The headline: the ratchet fell 23% and the founder's #1
-  complaint fell 95%, but **`styles.css` alone is now 29% of all remaining debt**,
-  and **`shell/primitives.tsx` is five import-swaps from being deleted outright**.
+- **You were right and I was wrong on the weight mechanic.** No `--mrd-w-*` is
+  bridged to a Tailwind utility; `font-[600]` was already the honest spelling.
+  `RL0-005c` carries the correction in a banner. I read a token in `:root` and
+  concluded a utility existed — **a token existing is not a utility existing.**
 
-- **Do not sweep a duplicate onto a stop.** `PersonMark` duplicates Meridian's
-  `YouMark`; snapping its size would have preserved the duplicate. File it.
+- **LANE 0 — one queued unit: the `ui/*` port off `--ds-*`**
+  ([`R013`](./R013-two-of-three-are-done-and-the-third-goes-to-lane-0.md) item 2).
+  Nine vendored files, **all nine held by one lane for the duration**; paths do
+  not widen. It gates the Tempo alias-wall deletion, which is the largest lever
+  left on `styles.css` — now 29% of all remaining debt.
+
+- **`shell/primitives.tsx` IS DELETED.** The retired component layer is gone:
+  1,350 lines, 35 exports, 92 markers, ratchet 2,211 → 2,119.
 
 **Closing a row:** push the fix, then say in your unit which commit closed which
 `C-` number. MAIN LANE moves the row out of the table; you do not edit

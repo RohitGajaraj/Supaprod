@@ -149,7 +149,11 @@ describe("surface-discipline §5: a diff delta is green and red, and never a fak
   test("Diffstat draws no zero side", () => {
     // THE DEFECT: a created file rendered "+10 -0", presenting a zero as a finding
     // when nothing was removed because there was nothing there to remove.
-    const src = read("components/shell/primitives.tsx");
+    // REPOINTED 2026-08-24: `shell/primitives.tsx` was DELETED once its last
+    // importer left. `Diffstat` survived the retirement into Meridian, so the
+    // claim outlived the file and this guard follows the component rather than
+    // dying with its old address.
+    const src = read("components/meridian/surface-parts.tsx");
     // Slice from the declaration to the next top-level `export`, rather than to the
     // first `\n}`: that one closes the destructured props, not the function.
     const start = src.indexOf("export function Diffstat(");
@@ -284,10 +288,28 @@ describe("surface-discipline §5b: status colour beyond diffs", () => {
 
 describe("surface-discipline §7: an indicator means an agent is running", () => {
   test("Loading only wears the agent's clothes when told to", () => {
-    // `working` must stay opt-in and default off, so a plain fetch can never
-    // accidentally claim an agent is reasoning about it.
-    const src = read("components/shell/primitives.tsx");
-    expect(src).toMatch(/working\s*=\s*false/);
+    // REPOINTED 2026-08-24, AND THE CLAIM GOT STRONGER RATHER THAN WEAKER.
+    // This used to assert `working = false` on the retired `Loading`, i.e. that
+    // the agent costume was opt-in. `shell/primitives.tsx` is deleted, and its
+    // replacement does not have the prop AT ALL: Meridian split the two facts
+    // into separate components, so `Reading` is us reading rows and
+    // `LoadingState` is an agent working. A default that could be flipped is
+    // now a component you cannot reach by accident.
+    //
+    // So the guard asserts the SPLIT holds, which is what made the defect
+    // impossible, rather than a default that no longer exists.
+    const reading = read("components/meridian/surface-parts.tsx");
+    const start = reading.indexOf("export function Reading(");
+    expect(start).toBeGreaterThan(-1);
+    // To the first top-level `\n}`, which closes the FUNCTION. Slicing to the
+    // next `export` instead swallows the following component's doc comment, and
+    // that comment says "agent marks" -- so the guard would fail on prose about
+    // a different component. Measured: it did, on the first run.
+    const fn = reading.slice(start, reading.indexOf("\n}", start) + 2);
+    expect(fn).not.toMatch(/\bworking\b/);
+    expect(fn).not.toMatch(/\bagent\b/);
+    // And the agent-is-working fact still has its own home to live in.
+    expect(read("components/meridian/LoadingState.tsx")).toMatch(/export function LoadingState/);
   });
 
   test("the per-action detail is passed through rather than invented", () => {

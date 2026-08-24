@@ -359,7 +359,29 @@ already mapped. (3) **`src/hooks/**` is in no lane's set** and blocks (2).
 `YouMark`; the map needs widening, which is MAIN LANE's. (5) ten Meridian
 components are exhibited rather than adopted, `run-rows` used nowhere at all.
 
-**Nothing is waiting on MAIN LANE as of 23:3x.** Every request from both lanes is
+| [`010`](./requests/010-obsidian-pin-needs-a-reader-census.md) | | 14:03 | **14:1x** | ruled — [`R010`](./answers/R010-retire-the-readers-first.md). **Shape 2.** Your census overturned my own `R005`: pinning would put dark ink on nine authed families' light grounds |
+| [`011`](./requests/011-blessed-mappings-for-offscale-sizes.md) | | 14:03 | **14:1x** | ruled — [`R011`](./answers/R011-the-blessed-mappings-and-the-weight-bridge.md). Clusters 2/3/5 confirmed; **cluster 4 takes `mrd-subtitle`, not `lead(17)`**. No weight bridge |
+| [`012`](./requests/012-exhibited-component-verdicts.md) | | 14:03 | **14:1x** | ruled — [`R012`](./answers/R012-five-deleted-one-held-for-the-founder-and-M14-corrected.md). **Five deleted (LANE 1 executes both halves), `FineTuneCard` HELD for the founder**, two parked. M14 corrected on two names |
+| [`013`](./requests/013-convergence-bundle-three-onehand-actions.md) | | 14:03 | **14:1x** | ruled — [`R013`](./answers/R013-two-of-three-are-done-and-the-third-goes-to-lane-0.md). **Items 1 and 3 DONE by MAIN LANE**; item 2 (`ui/*` off `--ds-*`) routed to LANE 0 as one unit |
+| [`L0-005` **addendum 5**](./requests/L0-005-block-and-pre-have-no-meridian-equivalent.md) | 05:40 | 14:03 | **14:1x** | **LANE 1 WAS RIGHT, I WAS WRONG.** No `--mrd-w-*` is bridged to a utility; `font-[600]` was already honest. `RL0-005c` corrected in place |
+
+## THE RETIRED COMPONENT LAYER IS GONE — `shell/primitives.tsx` DELETED 14:1x
+
+1,350 lines, 35 exports, **92 ratchet markers**. Ratchet **2,211 → 2,119**, one
+file dropped. Three guards moved rather than died: `Diffstat` repointed to
+Meridian, the `Loading`/`working` guard **repointed and strengthened** (the prop
+does not exist any more, so it asserts the split holds), ratchet re-frozen.
+
+## FOR THE FOUNDER: one decision, and it is cheap either way
+
+**`FineTuneCard` is held for your word.** LANE 1 measured it dead alongside five
+others and recorded a reservation: its interaction model — agent-proposed numbers
+with per-field override — is a genuine future interaction with no equivalent
+anywhere, and the gallery is where you LOOK at the design system. **A rejected
+model that exists only in git history is one you cannot open.** Say delete and it
+goes with the other five; say keep and it costs nothing but a gallery entry.
+
+**Nothing is waiting on MAIN LANE as of 14:2x.** Every request from both lanes is
 ruled, and everything a ruling depended on is shipped rather than promised:
 `--mrd-face-display`, `ActionLink`, `[data-mrd-pinned-dark]` and its guard.
 

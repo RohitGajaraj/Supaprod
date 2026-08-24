@@ -236,15 +236,45 @@ export function MarkStack({
  * your own initials is how it stops meaning "a person is required" and starts
  * meaning "a person exists".
  */
-export function YouMark({ initials, mine = false }: { initials: string; mine?: boolean }) {
+/**
+ * `size` EXISTS SO `run-parts`' `PersonMark` CAN COLLAPSE INTO THIS (REQ-013).
+ *
+ * That component is this one at a different diameter: same `role="img"`, same
+ * `aria-label="You"`, same tokens, same 650 weight. Two discs drawn twice is
+ * the four-copies-of-one-component pattern Meridian exists to end, and the only
+ * thing keeping them apart was that this one hard-coded 22px.
+ *
+ * ── THE TWO NAMES ARE THE CONTEXTS, NOT THE PIXELS ──────────────────────
+ * `row` is 16px, the diameter that fits a run row's line box without pushing it
+ * open. `standalone` is 22px, the disc in a header or a byline. A caller says
+ * WHERE it sits and the size follows; a caller passing `18` would be inventing
+ * a stop, which is the same refusal `RL0-005c` made on the type ladder.
+ *
+ * THE GLYPH SIZE IS FITTED, NOT A TYPE STOP, and that is why these literals are
+ * correct where a `text-mrd-*` would not be. `RL0-005c` ruled it: this is
+ * `role="img"` with an accessible name of "You", so a screen reader never reads
+ * the initials. They are a monogram fitted to a circle, like an icon, and the
+ * reading ladder does not govern them.
+ */
+export function YouMark({
+  initials,
+  mine = false,
+  size = "standalone",
+}: {
+  initials: string;
+  mine?: boolean;
+  size?: "row" | "standalone";
+}) {
+  const disc = size === "row" ? "size-4 text-[8px]" : "size-[22px] text-[9.5px]";
   return (
     <span
       data-mrd=""
       role="img"
       aria-label="You"
       className={[
-        "flex size-[22px] shrink-0 items-center justify-center rounded-full",
-        "text-[9.5px] font-[650] tracking-mrd-label",
+        "flex shrink-0 items-center justify-center rounded-full",
+        disc,
+        "font-[650] tracking-mrd-label",
         mine ? "bg-mrd-you text-mrd-on-you" : "bg-mrd-lift text-mrd-mute",
       ].join(" ")}
     >

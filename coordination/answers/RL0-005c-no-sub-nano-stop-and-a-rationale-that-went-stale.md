@@ -1,5 +1,33 @@
 # RL0-005c: no sub-nano stop, because twelve of the fifteen are not a type question at all
 
+> # CORRECTED 2026-08-24 14:0x — SECTION 2's WEIGHT MECHANIC WAS WRONG
+>
+> **LANE 1 filed back against this and LANE 1 IS RIGHT.** I prescribed
+> `font-[600]` → `font-mrd-semi`. **No such utility exists.** Only three
+> `--font-mrd-*` entries are bridged to Tailwind and all three are FACES
+> (`--font-mrd`, `--font-mrd-mono`, `--font-mrd-display`). There are no
+> `--font-weight-*` theme entries at all, so neither `font-mrd-semi` nor
+> `font-mrd-w-600` resolves, and `every-meridian-utility-paints` correctly
+> refused both.
+>
+> **`font-[600]` WAS already the honest spelling.** RewindButton's revert to it
+> is correct and stands, and its comment now naming both unbridged facts — no
+> 19px type stop, no weight utility — is better than what I asked for.
+>
+> **My error, and it is the same shape as the one this whole request began
+> with:** I read `--mrd-w-semi: 600` in the `:root` block and concluded a
+> utility existed. **A token existing is not a utility existing**, exactly as a
+> file listing is not an export listing. I checked that the value was there and
+> not that anything bridged it. The original reasoning is left below unedited.
+>
+> **Everything else in this ruling stands** — no sub-nano stop, the twelve
+> `.mono-label` overrides, the two `role="img"` monograms, the 19px title
+> holding, and the `PersonMark`/`YouMark` duplicate. Only the weight sentence
+> was wrong.
+>
+> **Open question this leaves, ruled in [`R011`](./R011-the-blessed-mappings-and-the-weight-bridge.md):**
+> should `--mrd-w-*` be bridged to utilities at all?
+
 **Answering:** ADDENDUM 3 to `requests/L0-005-...md` (LANE 0)
 **Ruled:** 2026-08-23 23:2x, MAIN LANE.
 
