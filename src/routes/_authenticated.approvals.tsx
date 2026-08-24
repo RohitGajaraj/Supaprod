@@ -115,6 +115,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   getApprovalsQueue,
   decideApprovalItem,
+  snoozeApprovalItem,
   type ApprovalFilter,
   type ApprovalQueueItem,
 } from "@/lib/approvals-queue.functions";
@@ -133,6 +134,7 @@ import { CallContext, Key } from "@/components/approvals/CallContext";
 import { FilterExcludedEverything, QueueFilters } from "@/components/approvals/QueueFilters";
 import { SettledTrail, type SettledLine } from "@/components/approvals/SettledTrail";
 import { UndatedCalls, type UndatedCall } from "@/components/approvals/UndatedCalls";
+import { SendBackSheet, canSendBack } from "@/components/approvals/SendBack";
 import { waitingSince } from "@/components/approvals/stopped-for";
 
 export const Route = createFileRoute("/_authenticated/approvals")({
@@ -203,6 +205,7 @@ function ApprovalsSurface() {
   const fetchQueue = useServerFn(getApprovalsQueue);
   const fetchLiveActivity = useServerFn(getLiveActivity);
   const mDecide = useServerFn(decideApprovalItem);
+  const mSnooze = useServerFn(snoozeApprovalItem);
 
   const [filter, setFilter] = useState<ApprovalFilter>("all");
   const [focusedId, setFocusedId] = useState<string | null>(null);
@@ -213,6 +216,11 @@ function ApprovalsSurface() {
   // record is the trust audit trail, and duplicating it here would be a second
   // source of the same truth.
   const [settled, setSettled] = useState<SettledLine[]>([]);
+
+  // The call being sent back. The sheet owns its own mutation and cache
+  // invalidation; this surface only holds which item is open and writes the
+  // settled line on a landed send.
+  const [sendBack, setSendBack] = useState<ApprovalQueueItem | null>(null);
 
   // One clock for one paint, so the gate's age and the queue's ages can never
   // disagree by a tick inside the same render.
@@ -383,6 +391,55 @@ function ApprovalsSurface() {
     },
   });
 
+  /* Snooze, the third verb on a gate, mounted here so the queue stops offering
+   * only approve/decline. Same shape as `decide` above on purpose: same cache
+   * key (the helper, never a literal), same optimistic drop, same rollback, and
+   * the settled line instead of a toast, because a deferred call is also a call
+   * that left the list at your hand. The write is snoozeApprovalItem's
+   * (kind, source_id) upsert, which getApprovalsQueue filters on until it
+   * lapses; Today's z runs exactly this resolver against this same cache. */
+  const snooze = useMutation({
+    mutationFn: (item: ApprovalQueueItem) =>
+      mSnooze({ data: { id: item.sourceId, kind: item.kindKey } }),
+    onMutate: async (item) => {
+      await qc.cancelQueries({ queryKey: queueKey });
+      const prev = qc.getQueryData<{ items: ApprovalQueueItem[] }>(queueKey);
+      qc.setQueryData<{ items: ApprovalQueueItem[] } | undefined>(queueKey, (old) =>
+        old ? { items: old.items.filter((i) => i.id !== item.id) } : old,
+      );
+      return { prev };
+    },
+    onSuccess: (_res, item) => {
+      setSettled((r) => [
+        {
+          id: item.id,
+          verb: "You snoozed it",
+          consequence: "It returns with tomorrow's brief.",
+          at: new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }),
+        },
+        ...r,
+      ]);
+    },
+    onError: (e: Error, item, ctx) => {
+      if (ctx?.prev) qc.setQueryData(queueKey, ctx.prev);
+      setSettled((r) => [
+        {
+          id: item.id,
+          verb: "Nothing was recorded",
+          consequence: e.message,
+          at: new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }),
+          failed: true,
+        },
+        ...r,
+      ]);
+    },
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: APPROVALS_QUEUE_PREFIX });
+      invalidateShellReads(qc);
+      void qc.invalidateQueries({ queryKey: ["today"] });
+    },
+  });
+
   /* j/k move focus, a/d settle the focused call. Both guards run before any of
    * them, and the order is the whole point.
    *
@@ -469,11 +526,23 @@ function ApprovalsSurface() {
           e.preventDefault();
           decide.mutate({ item: current, verdict: e.key === "a" ? "approve" : "reject" });
         }
+      } else if (e.key === "z") {
+        /* z SNOOZES, the same letter and the same resolver as the gate on
+         * Today. It defers rather than settles, so it is not destructive, but
+         * it still stands down under every guard above: it removes the call
+         * from this queue for a day, and the same overlay argument holds.
+         * Declared in lib/key-model.ts beside j/k/a/d so the sheet cannot
+         * drift from this binding. */
+        const current = visibleItems[idx];
+        if (current && !snooze.isPending) {
+          e.preventDefault();
+          snooze.mutate(current);
+        }
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [visibleItems, focusedId, decide]);
+  }, [visibleItems, focusedId, decide, snooze]);
 
   const activity = liveActivity.data;
   const quietLine =
@@ -537,7 +606,8 @@ function ApprovalsSurface() {
                  sentence opted out of by hand-writing the letter. */
               <>
                 <Key>j</Key> and <Key>k</Key> walk the queue, oldest first. <Key>a</Key> approves
-                the one in front of you, <Key>d</Key> declines it.
+                the one in front of you, <Key>d</Key> declines it, <Key>z</Key> snoozes it until
+                tomorrow.
               </>
             }
           />
@@ -621,6 +691,24 @@ function ApprovalsSurface() {
             >
               Decline
             </Action>
+            {/* The two quiet verbs, mounted so this queue stops offering only a
+                verdict pair. Snooze defers; nothing is settled. Send back opens
+                the note sheet and only exists on the kinds the server accepts,
+                drawn as absence rather than as a disabled control (the rule
+                canSendBack enforces for every caller). */}
+            <Action
+              variant="quiet"
+              shortcut="z"
+              busy={snooze.isPending}
+              onClick={() => snooze.mutate(focused)}
+            >
+              Snooze
+            </Action>
+            {canSendBack(focused.kindKey) ? (
+              <Action variant="quiet" onClick={() => setSendBack(focused)}>
+                Send back
+              </Action>
+            ) : null}
           </CallGate>
         ) : allItems.length === 0 ? (
           /* NOTHING IS WAITING, which is good news and is drawn as such: no
@@ -653,6 +741,37 @@ function ApprovalsSurface() {
           </p>
         ) : null}
       </div>
+
+      {/* The send-back sheet, mounted over the call it belongs to, the way Today
+          mounts it: same component, same item shape, same cache work done
+          inside the sheet. onSent writes this surface's settled line, because
+          here a sent-back call is also a judgment made at the gate and every
+          judgment on this page leaves its line. */}
+      <SendBackSheet
+        open={sendBack !== null}
+        item={
+          sendBack
+            ? {
+                id: sendBack.id,
+                sourceId: sendBack.sourceId,
+                kindKey: sendBack.kindKey,
+                title: stripAuto(sendBack.title),
+              }
+            : null
+        }
+        onClose={() => setSendBack(null)}
+        onSent={() =>
+          setSettled((r) => [
+            {
+              id: sendBack?.id ?? "sent-back",
+              verb: "You sent it back",
+              consequence: "It returns to the agent with your note.",
+              at: new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }),
+            },
+            ...r,
+          ])
+        }
+      />
     </Surface>
   );
 }

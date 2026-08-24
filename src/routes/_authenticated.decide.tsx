@@ -2138,9 +2138,63 @@ function DecideSurface() {
        * dangerous on the other.
        *
        * `c` for Challenge stays. It is the only verb of the three that is not
-       * an accept or a decline, its letter is the first letter of the word, and
-       * it collides with nothing now the chord owns navigation.
+        * an accept or a decline, its letter is the first letter of the word, and
+        * it collides with nothing now the chord owns navigation.
+        */
+      /**
+       * j AND k WALK THE RANKING THE WAY /approvals WALKS ITS QUEUE, and z
+       * places from the keyboard, so triage no longer needs a mouse.
+       *
+       * They step over `visibleOthers`, the rows the ranking actually draws,
+       * rather than over the whole lensed queue: a Gate that follows focus onto
+       * a row that is not rendered reads as a glitch -- the question changed
+       * and nothing on screen says to what. The walk wraps at both ends,
+       * because a cursor that dead-ends at the first row, or at the capped
+       * fifth when "All 31" is closed, makes one direction of it useless from
+       * there on. The Gate follows through `setSelectedId`, the one setter
+       * `active` already reads, so the fallback rules that pick a bet keep
+       * their single home.
+       *
+       * THE GUARDS ARE INHERITED, NOT REPEATED. This handler already stands
+       * down under a modifier, under an open overlay (`openId`, `lineageId`,
+       * and everything `isModalOpen()` recognises) and while focus sits in a
+       * field -- which covers the ICE editor in the context column, a
+       * contenteditable. Binding inside this effect rather than beside it means
+       * a second copy of those lines can never drift from the first, and j, k
+       * and z can never shadow a, c or d because all six share one dispatch.
        */
+      if (e.key === "j" || e.key === "k") {
+        e.preventDefault();
+        const shown = showAll ? ordered : ordered.slice(0, VISIBLE_OTHERS);
+        if (shown.length > 0) {
+          const step = e.key === "j" ? 1 : -1;
+          // A bet narrowed out of view by the lens or the search leaves no
+          // index to step from: j starts the walk at the top of what is drawn
+          // and k at its foot, instead of landing off by one through the
+          // modulo.
+          const idx = shown.findIndex((r) => r.opp.id === id);
+          const at = idx === -1 ? (step === 1 ? -1 : 0) : idx;
+          const next = shown[(at + step + shown.length) % shown.length];
+          if (next) setSelectedId(next.opp.id);
+        }
+        return;
+      }
+      /**
+       * z IS THE LANE PICKER'S BACKLOG PRESS, ON THE KEYBOARD. It calls the
+       * same mutation object the picker's `onCommit` reaches, so the lifecycle
+       * write, the roadmap write, the sequence token that keeps interleaved
+       * press pairs from splitting across columns, and the receipt wording are
+       * all the picker's own rather than a re-typed copy of them. And like
+       * picking Backlog on a bet already sitting there, it commits nothing:
+       * the picker's equality guard declines a no-op placement, so the key
+       * declines too.
+       */
+      if (e.key === "z") {
+        if (activeOpp.status === "backlog") return;
+        setStatus.mutate({ id, status: "backlog" });
+        e.preventDefault();
+        return;
+      }
       // `a` GOES THROUGH THE CONFIRM, and that is the one behaviour change to
       // this handler. It used to fire three model calls off a bare letter with
       // nothing between the press and the spend; see `keepBet`. `void`, because
@@ -2156,7 +2210,7 @@ function DecideSurface() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [activeOpp, busy, openId, lineageId, keepBet, challenge, dropBet]);
+  }, [activeOpp, busy, openId, lineageId, keepBet, challenge, dropBet, ordered, showAll, setStatus]);
 
   const loading = stillWaiting(opps);
 
@@ -3051,7 +3105,7 @@ function DecideSurface() {
             /* WHAT A ROW DOES, SAID ONCE, IN THE ONE PLACE A PERSON IS ABOUT TO
              DO IT. The rows carry two different verbs now, and an affordance
              nobody can name is an affordance nobody uses. */
-            sub="Press a bet to open its whole record. Decide it puts that bet under the question above. Tick rows to drop a batch of them."
+            sub="Press a bet to open its whole record. Decide it puts that bet under the question above. Tick rows to drop a batch of them. j and k walk these rows, and z sends the bet under the question to Backlog."
             /* `toggle`, NOT `goTo` AND NOT `act`, and the three are not
              interchangeable. `goTo` leaves this region for a named destination
              and this goes nowhere; `act` dispatches work and this starts
