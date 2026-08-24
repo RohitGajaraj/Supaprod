@@ -209,6 +209,70 @@ around a blocker by reaching into another lane's path.** That is the failure tha
 **What follows for MAIN:** two lanes stall without me, so requests are answered before new work is
 started. A starved lane is my failure.
 
+## R-11 · Verification: a lane never signs off its own work — 2026-08-25
+
+**Ruled: the lane that built it does not get to certify it. The OTHER lane does.**
+
+A builder cannot see its own blind spot. Every "it works" claim in this repo that later turned out
+false was made by whoever wrote the thing: nine features found doing nothing in production had unit
+tests asserting the defect as the contract; two sessions reported a palette working that was never
+mounted; an agent committed *"M-phase complete, both lanes unblocked"* over three endpoints that
+could not compile.
+
+### The three passes, and nothing ships without all three
+
+**Pass 1 — the builder's own gate, before push.** `bunx tsc --noEmit`, `bun test`, `bun run lint`.
+**Never pipe a gate into `tail`** — it reports `tail`'s status and `main` shipped red exactly that
+way. **12 test failures are pre-existing; do not claim them and do not silently fix them.**
+
+**Pass 2 — CROSS-VERIFICATION by the other lane.** When a lane finishes an item it files
+`coordination/requests/verify-<item>.md` naming: the route to open, the exact thing to look for, and
+what would prove it FALSE. The other lane picks it up as a standing-work item, drives it with
+Playwright, and writes `coordination/units/verified-<item>.md` with a screenshot path and a verdict.
+**A verifier that only confirms is not verifying — it must state what it tried that should have
+broken it.**
+
+**Pass 3 — MAIN against production.** Only MAIN has the database and the deploy. MAIN checks the
+write actually landed, in the right table, on the right workspace, with the query recorded. **A
+number without its query is not evidence** — three metrics that proved this product worked were all
+seed data and nobody could re-check them.
+
+### The end-to-end pass, when the backlog's top ten are done
+
+One person, one sentence, one run, no navigation: type intent → watch the run walk → answer the one
+consent moment → see the artifact appear → reach the verdict. **Both lanes walk it independently with
+Playwright and report separately.** If the two reports disagree, that disagreement is the finding.
+
+**A mount is not a render.** An element in the tree proves the element is reached, never that the
+feature exists. Screenshot it, or assert on real text.
+
+## R-12 · The neglected surfaces get a design review before more is added to them — 2026-08-25
+
+**Founder:** *"Settings, Brain, Engine Room, Today feel like content was dumped, or no real thought
+given to why, how, what needs to be there: which colour, which components, which icon. That design
+review was not done."*
+
+**Accepted. Ruled: no surface gets more content until it has answered the five questions**, and the
+answers live in the unit file, not in someone's head:
+
+1. **Who is here, and what did they come to do?** One sentence. If it needs two, it is two surfaces.
+2. **The ONE thing this surface exists for.** Everything else on it is that thing's evidence, or a
+   door out of it.
+3. **Keep / move / kill**, per region, with the reason. A region nobody can name a job for is killed.
+4. **Which Meridian component**, by name, for each region — and which one was checked first and did
+   not serve (`MERIDIAN-ADOPTION.md`). **No new component without that sentence.**
+5. **Can a person DO something here** (R-03), or does it only tell them things?
+
+**Colour, icon and mark are ruled, not chosen per surface:** one colour carries the one fact the
+person came for — what is live now. Everything settled is quiet. **The brand ember stays in the logo
+and never in an interaction state.** Icons come from the existing glyph sets
+(`station-glyphs.tsx`, `work-glyphs.tsx`, `agent-glyphs.tsx`, `marks.tsx`) — **two of which are
+themselves unadopted**, so the answer is usually "use the one that exists".
+
+**Order, by how many people hit it:** Today → Engine Room (guardrails + approvals) → Brain →
+Settings. **Today is first because it is the post-auth landing**, and backlog item 2 replaces it with
+job cards anyway — so the review must happen before that, not after.
+
 ---
 
 ## Open, and I have not ruled yet

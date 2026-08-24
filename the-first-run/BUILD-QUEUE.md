@@ -56,6 +56,10 @@ WORK plus a `starved` request, never idling.
 | **8** | L1 | BLOCKED → 3,5 | **Two-pane layout** on `/track/$trackId` | Both panes at 1440px, no horizontal scroll; stacks below the Meridian breakpoint |
 | **9** | L0 | BLOCKED → 3 | **Forecast card and Learn verdict card** | Reads real `forecast_*` columns; **0 are graded, so the verdict card needs an honest empty state** |
 | **10** | L1 | **READY** | **The rail leads to a run.** `AppFrame.tsx`, `run-strip.tsx` | A live run is one click from any surface |
+| **12** | L1 | **READY** | **Design review: Today** (`_authenticated.today.tsx`). Answer the five questions in R-12 in the unit file BEFORE changing anything. It is the post-auth landing and item 2 replaces it, so this review governs that replacement | Five questions answered in writing; every region named with the Meridian component it uses; regions nobody can name a job for are killed with the reason |
+| **13** | L1 | **READY** | **Design review: Engine Room** — guardrails and approvals (`_authenticated.engine-room.tsx`, `govern.tsx`, `boundary.tsx`, `approvals.tsx`). **Four routes for one concept**; the review decides how many survive | As above, plus: which of the four routes remain and where the others redirect |
+| **14** | L1 | BLOCKED → 12,13 | **Design review: Brain** (`_authenticated.brain.tsx`) and **Settings** | As above. **Brain must not claim accumulated learning in the present tense** (R-06) — 0 forecasts graded |
+| **15** | L0 | **READY** | **Adopt what is already built.** From `MERIDIAN-ADOPTION.md`: evaluate `InsightCards`/`Entity` for the `sense` pane, `PromotionCard` for `decide`, `PairMark` for the handoff. **`Flowchart` is HELD — do not adopt** | Each either adopted with the surface named, or rejected in the unit file with the reason. Never adopted for adoption's sake |
 | **11** | L0 | BLOCKED → 5 | **Motion.** pending → running → done reads as movement | Meridian `--ease`/`--d-*` tokens; **a raw duration is a bug** |
 
 ## MAIN LANE — decides, models, verifies. No product code.
