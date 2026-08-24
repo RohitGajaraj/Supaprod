@@ -53,7 +53,7 @@ export function PageHeader({
   actions,
   children,
 }: PageHeaderProps) {
-  const accentSpan = accent ? <span style={{ color: "var(--ember)" }}>{accent}</span> : null;
+  const accentSpan = accent ? <span style={{ color: "var(--mrd-you)" }}>{accent}</span> : null;
 
   return (
     <header style={{ marginBottom: 24 }}>
@@ -125,7 +125,7 @@ export function PageHeader({
             width: "fit-content",
             maxWidth: "100%",
             background: "var(--card)",
-            border: "1px solid var(--hairline)",
+            border: "1px solid var(--mrd-edge)",
             borderRadius: 999,
             boxShadow: "var(--top-light)",
           }}
@@ -137,8 +137,8 @@ export function PageHeader({
               width: 6,
               height: 6,
               borderRadius: "50%",
-              background: "var(--ember)",
-              boxShadow: "0 0 8px color-mix(in srgb, var(--ember) 55%, transparent)",
+              background: "var(--mrd-you)",
+              boxShadow: "0 0 8px color-mix(in srgb, var(--mrd-you) 55%, transparent)",
             }}
           />
           <span

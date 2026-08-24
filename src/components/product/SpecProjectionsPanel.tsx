@@ -116,7 +116,7 @@ export function SpecProjectionsPanel({
           padding: "var(--geist-gap-section)",
           textAlign: "center",
           background: "var(--surface-card)",
-          border: "1px solid var(--hairline)",
+          border: "1px solid var(--mrd-edge)",
           borderRadius: "var(--radius-panel)",
           boxShadow: "var(--top-light)",
         }}
@@ -148,7 +148,7 @@ export function SpecProjectionsPanel({
 
       <div
         className="flex items-center justify-between"
-        style={{ marginBottom: 16, borderBottom: "1px solid var(--hairline)", flexWrap: "wrap" }}
+        style={{ marginBottom: 16, borderBottom: "1px solid var(--mrd-edge)", flexWrap: "wrap" }}
       >
         <div role="tablist" aria-label="Projection views" className="flex" style={{ gap: 18 }}>
           {TAB_ORDER.map((kind) => {
@@ -254,7 +254,7 @@ export function SpecProjectionsPanel({
           <div
             style={{
               color: "var(--text-faint)",
-              borderTop: "1px solid var(--hairline)",
+              borderTop: "1px solid var(--mrd-edge)",
               paddingTop: 10,
             }}
           >

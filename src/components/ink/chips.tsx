@@ -14,7 +14,7 @@ const VERDICT_COLOR: Record<VerdictTone, string> = {
   fail: "var(--verdict-fail)",
   human: "var(--voice-human)",
   machine: "var(--voice-machine)",
-  neutral: "var(--ink-subtle)",
+  neutral: "var(--mrd-mute)",
 };
 
 export function VerdictChip({
@@ -44,10 +44,10 @@ export type LiveState = "running" | "queued" | "gate" | "paused" | "idle";
 
 const STATE_META: Record<LiveState, { color: string; word: string; pulse?: boolean }> = {
   running: { color: "var(--voice-machine)", word: "running", pulse: true },
-  queued: { color: "var(--ink-subtle)", word: "queued" },
+  queued: { color: "var(--mrd-mute)", word: "queued" },
   gate: { color: "var(--voice-human)", word: "needs you" },
   paused: { color: "var(--voice-machine-dim)", word: "paused" },
-  idle: { color: "var(--ink-faint)", word: "idle" },
+  idle: { color: "var(--mrd-faint)", word: "idle" },
 };
 
 export function StatusGlyph({

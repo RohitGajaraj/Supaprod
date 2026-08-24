@@ -101,7 +101,7 @@ export function SketchLine({
           x2={w - 5}
           y1={baseY}
           y2={baseY}
-          stroke="var(--hairline-strong)"
+          stroke="var(--mrd-edge)"
           strokeDasharray="3 3"
         />
       )}
@@ -145,7 +145,7 @@ export function SketchLine({
    bar stretches. */
 export function SketchBar({
   pct,
-  color = "var(--ember)",
+  color = "var(--mrd-you)",
   seed,
   trackH = 72,
 }: {
@@ -302,7 +302,7 @@ export function barInsight(data: SketchBarDatum[], fmt: (v: number) => string): 
    rule: line/area TRENDS use the exact GraphSlider, bars stay pencil here. */
 export function SketchBarChart({
   data,
-  color = "var(--ember)",
+  color = "var(--mrd-you)",
   formatValue = (v: number) => String(Math.round(v)),
   baseline,
   baselineLabel,
@@ -389,7 +389,7 @@ export function SketchBarChart({
               left: 0,
               right: 0,
               bottom: `${baselinePct}%`,
-              borderTop: "1px dashed var(--hairline-strong)",
+              borderTop: "1px dashed var(--mrd-edge)",
             }}
           />
         ) : null}
@@ -448,7 +448,7 @@ export function SketchBarChart({
             textAlign: "center",
             color,
             background: "var(--raised)",
-            border: "1px solid var(--hairline)",
+            border: "1px solid var(--mrd-edge)",
             borderRadius: 6,
             padding: "3px 8px",
             whiteSpace: "nowrap",

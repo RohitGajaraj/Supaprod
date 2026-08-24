@@ -8,8 +8,8 @@ import { analyzeDesignReadiness, readinessGaps, type ReadinessLevel } from "@/li
 
 const LEVEL: Record<ReadinessLevel, { label: string; color: string }> = {
   ready: { label: "Design-ready", color: "var(--emerald)" },
-  developing: { label: "Developing", color: "var(--ember)" },
-  early: { label: "Early", color: "var(--ink-subtle)" },
+  developing: { label: "Developing", color: "var(--mrd-you)" },
+  early: { label: "Early", color: "var(--mrd-mute)" },
 };
 
 export function DesignReadinessPanel({ body }: { body: string }) {

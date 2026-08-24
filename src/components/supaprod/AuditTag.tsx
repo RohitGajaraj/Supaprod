@@ -92,7 +92,7 @@ export function AuditTag({
         }}
         title={title ?? defaultTitle}
         aria-label={`Trace audit id ${tag}`}
-        className="loom-press transition-colors hover:[color:var(--text-primary)] hover:[border-color:var(--hairline-strong)]"
+        className="loom-press transition-colors hover:[color:var(--text-primary)] hover:[border-color:var(--mrd-edge)]"
         style={{
           fontFamily: "var(--font-mono)",
           letterSpacing: "0.06em",

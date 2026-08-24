@@ -33,7 +33,7 @@ export function UsageIndicator({ used, allowance, compact = false }: UsageIndica
   if (!Number.isFinite(allowance) || allowance <= 0) return null;
   const fraction = usageRemainingFraction(used, allowance);
   const low = used <= LOW_CREDITS_WARN;
-  const barColor = low ? "var(--ember)" : "var(--action-blue, var(--ember))";
+  const barColor = low ? "var(--mrd-you)" : "var(--action-blue, var(--mrd-you))";
 
   return (
     <div

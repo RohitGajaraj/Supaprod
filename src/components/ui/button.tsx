@@ -71,7 +71,7 @@ const buttonVariants = cva(
         default: "bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80",
         // accent = the one ember primary CTA per view. Prefer this over ad-hoc
         // inline ember styles so the brand action is consistent everywhere.
-        accent: "bg-[var(--ember)] text-white hover:brightness-110 active:brightness-95",
+        accent: "bg-[var(--mrd-you)] text-white hover:brightness-110 active:brightness-95",
         secondary:
           "bg-mrd-lift text-mrd-ink hover:bg-mrd-hover active:bg-mrd-lift-hover",
         // tertiary is the spec name (button.md); ghost is the existing API name for the

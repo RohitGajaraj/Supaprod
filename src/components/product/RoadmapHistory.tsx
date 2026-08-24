@@ -49,13 +49,13 @@ export function RoadmapHistory({ opportunityId }: { opportunityId: string }) {
         <button
           type="button"
           className="mono-label"
-          style={{ color: "var(--ink-faint)", marginLeft: 8 }}
+          style={{ color: "var(--mrd-faint)", marginLeft: 8 }}
         >
           why
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" style={{ width: 280, padding: "12px 14px" }}>
-        <p className="mono-label" style={{ color: "var(--ink-subtle)", marginBottom: 8 }}>
+        <p className="mono-label" style={{ color: "var(--mrd-mute)", marginBottom: 8 }}>
           Why this is here
         </p>
 
@@ -63,14 +63,14 @@ export function RoadmapHistory({ opportunityId }: { opportunityId: string }) {
           <p style={{ color: "var(--ink)", lineHeight: 1.45, marginBottom: 10 }}>
             Committed for {summary.currentOutcome}
             {summary.currentMeasure ? (
-              <span style={{ color: "var(--ink-faint)" }}>
+              <span style={{ color: "var(--mrd-faint)" }}>
                 , measured by {summary.currentMeasure}
               </span>
             ) : null}
             {summary.lastCommittedAt ? (
               <span
                 className="mono-label"
-                style={{ color: "var(--ink-faint)", display: "block", marginTop: 3 }}
+                style={{ color: "var(--mrd-faint)", display: "block", marginTop: 3 }}
               >
                 {fmtWhen(summary.lastCommittedAt)}
               </span>
@@ -79,30 +79,30 @@ export function RoadmapHistory({ opportunityId }: { opportunityId: string }) {
         ) : null}
 
         {q.isLoading ? (
-          <p style={{ color: "var(--ink-faint)" }}>Loading</p>
+          <p style={{ color: "var(--mrd-faint)" }}>Loading</p>
         ) : events.length === 0 ? (
-          <p style={{ color: "var(--ink-faint)", lineHeight: 1.4 }}>
+          <p style={{ color: "var(--mrd-faint)", lineHeight: 1.4 }}>
             No roadmap history yet. Committing this with an outcome records the why.
           </p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
             {events.map((e) => (
-              <div key={e.id} style={{ borderTop: "1px solid var(--hairline)", paddingTop: 6 }}>
-                <p className="mono-label" style={{ color: "var(--ink-subtle)" }}>
+              <div key={e.id} style={{ borderTop: "1px solid var(--mrd-edge)", paddingTop: 6 }}>
+                <p className="mono-label" style={{ color: "var(--mrd-mute)" }}>
                   {e.action === "commit" ? "committed" : "moved"} · {eventBuckets(e)} ·{" "}
                   {fmtWhen(e.created_at)}
                 </p>
                 {e.action === "commit" && e.outcome ? (
                   <p
                     style={{
-                      color: "var(--ink-subtle)",
+                      color: "var(--mrd-mute)",
                       lineHeight: 1.4,
                       marginTop: 2,
                     }}
                   >
                     {e.outcome}
                     {e.measure ? (
-                      <span style={{ color: "var(--ink-faint)" }}> · {e.measure}</span>
+                      <span style={{ color: "var(--mrd-faint)" }}> · {e.measure}</span>
                     ) : null}
                   </p>
                 ) : null}

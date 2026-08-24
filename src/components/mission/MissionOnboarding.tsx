@@ -79,12 +79,12 @@ export function MissionOnboarding() {
   return (
     <div
       className="flex min-h-dvh flex-col items-center justify-center px-6"
-      style={{ background: "var(--ink-bg)", color: "var(--ink-body)" }}
+      style={{ background: "var(--ink-bg)", color: "var(--mrd-body)" }}
     >
       <div className="w-full max-w-xl">
         <p
           className="font-mono text-mrd-tiny uppercase tracking-[0.14em]"
-          style={{ color: "var(--ink-subtle)" }}
+          style={{ color: "var(--mrd-mute)" }}
         >
           Step one of one
         </p>
@@ -94,7 +94,7 @@ export function MissionOnboarding() {
         >
           What are you building?
         </h1>
-        <p className="mt-2 text-mrd-prose leading-[1.55]" style={{ color: "var(--ink-subtle)" }}>
+        <p className="mt-2 text-mrd-prose leading-[1.55]" style={{ color: "var(--mrd-mute)" }}>
           Tell me in a sentence and your agents open on your world instead of a blank page. No clean
           answer yet? Walk in and tell me later. You're already inside.
         </p>
@@ -110,7 +110,7 @@ export function MissionOnboarding() {
           maxLength={2000}
           placeholder="A money app that helps people save without thinking about it."
           className="ink-focus mt-5 w-full resize-none rounded-xl border bg-[var(--ink-panel)] px-4 py-3 text-mrd-prose leading-[1.5]"
-          style={{ borderColor: "var(--ink-hairline)", color: "var(--ink-text)" }}
+          style={{ borderColor: "var(--mrd-edge)", color: "var(--ink-text)" }}
         />
 
         <div className="mt-5 flex flex-wrap items-center gap-3">
@@ -139,14 +139,14 @@ export function MissionOnboarding() {
               disabled={busy}
               onClick={() => explore.mutate()}
               className="ink-focus inline-flex h-10 items-center rounded-lg px-3 text-mrd-base transition-colors hover:bg-[var(--ink-raised)] disabled:opacity-40"
-              style={{ color: "var(--ink-subtle)" }}
+              style={{ color: "var(--mrd-mute)" }}
             >
               {explore.isPending ? "Opening…" : "Or tour a workspace we already filled"}
             </button>
           ) : null}
         </div>
 
-        <p className="mt-6 text-mrd-small" style={{ color: "var(--ink-faint)" }}>
+        <p className="mt-6 text-mrd-small" style={{ color: "var(--mrd-faint)" }}>
           This isn't a form. Reword it, or ignore it, whenever, in Settings.
         </p>
       </div>

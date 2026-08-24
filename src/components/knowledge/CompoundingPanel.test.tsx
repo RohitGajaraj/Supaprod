@@ -386,7 +386,7 @@ describe("CompoundingPanel component states", () => {
 
   test.skip("renders borders between rows (except last)", () => {
     // TODO: Implement mock.module pattern for useQuery
-    // Expected: borderTop: i === 0 ? "none" : "1px solid var(--hairline)"
+    // Expected: borderTop: i === 0 ? "none" : "1px solid var(--mrd-edge)"
   });
 
   test.skip("calls refetch when Retry button is clicked in error state", () => {

@@ -51,7 +51,7 @@ export function ResearchActivityLine({ statuses }: { statuses: ResearchStatus[] 
         alignItems: "center",
         columnGap: 8,
         rowGap: 4,
-        color: "var(--ink-subtle)",
+        color: "var(--mrd-mute)",
       }}
     >
       <span className="spinner" />
@@ -104,7 +104,7 @@ export function ResearchSummaryRow({ meta }: { meta: ChatMeta }) {
             fontFamily: "var(--font-mono)",
             letterSpacing: "0.06em",
             textTransform: "uppercase",
-            color: "var(--ink-subtle)",
+            color: "var(--mrd-mute)",
             padding: "2px 8px",
           }}
         >

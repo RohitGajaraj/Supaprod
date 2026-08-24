@@ -15,12 +15,11 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1874,
+  "totalOccurrences": 1853,
   "fileCount": 150,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "--text-": 15,
-      "--hairline": 3,
       "--raised": 1,
       "import:components/ui": 1,
       "usage:components/ui": 4
@@ -63,8 +62,7 @@
       "class:sp-": 4
     },
     "src/components/billing/BillingBanner.tsx": {
-      "--text-": 4,
-      "--hairline": 1
+      "--text-": 4
     },
     "src/components/billing/PaymentTestModeBanner.tsx": {
       "--text-": 2,
@@ -96,8 +94,7 @@
       "usage:components/ui": 13
     },
     "src/components/connections/ProviderLogo.tsx": {
-      "--text-": 1,
-      "--hairline": 1
+      "--text-": 1
     },
     "src/components/connections/WorkspaceBindingsSection.tsx": {
       "class:sp-": 1
@@ -313,13 +310,11 @@
       "class:sp-": 5
     },
     "src/components/product/RoadmapHistory.tsx": {
-      "--hairline": 1,
       "import:components/ui": 1,
       "usage:components/ui": 3
     },
     "src/components/product/SpecProjectionsPanel.tsx": {
-      "--text-": 14,
-      "--hairline": 3
+      "--text-": 14
     },
     "src/components/runs/RunBoard.tsx": {
       "class:sp-": 1
@@ -364,8 +359,7 @@
       "class:sp-": 1
     },
     "src/components/supaprod/AuditTag.tsx": {
-      "--text-": 4,
-      "--hairline": 1
+      "--text-": 4
     },
     "src/components/supaprod/AuthScaffold.tsx": {
       "--ds-": 1,
@@ -379,7 +373,6 @@
     },
     "src/components/supaprod/Avatar.tsx": {
       "--text-": 1,
-      "--hairline": 1,
       "--madder": 3,
       "raw-colour": 2
     },
@@ -405,12 +398,10 @@
       "raw-colour": 4
     },
     "src/components/supaprod/MissionGraph.tsx": {
-      "--ds-": 6,
-      "--hairline": 6
+      "--ds-": 6
     },
     "src/components/supaprod/PageHeader.tsx": {
       "--text-": 4,
-      "--hairline": 1,
       "--font-pixel": 1
     },
     "src/components/supaprod/PixelStat.tsx": {
@@ -428,7 +419,6 @@
     "src/components/supaprod/Sketch.tsx": {
       "--ds-": 3,
       "--text-": 5,
-      "--hairline": 3,
       "--raised": 1
     },
     "src/components/supaprod/SupaprodMark.tsx": {

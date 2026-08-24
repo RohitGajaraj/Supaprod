@@ -66,7 +66,7 @@ export function Avatar({
         width: size,
         height: size,
         background: orbBackground(idx),
-        border: "1px solid var(--hairline-strong)",
+        border: "1px solid var(--mrd-edge)",
         color: "var(--text-primary)",
         fontFamily: "var(--font-mono)",
         fontWeight: 600,

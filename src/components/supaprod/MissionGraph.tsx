@@ -32,7 +32,7 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
       : st === "running"
         ? "var(--action-blue)"
         : st === "gate"
-          ? "var(--ember)"
+          ? "var(--mrd-you)"
           : st === "failed"
             ? "var(--rose)"
             : "var(--ds-gray-700)";
@@ -55,7 +55,7 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
                 key={"d" + i}
                 d={`M ${hubX} ${hubY + 16} C ${hubX} ${hubY + 50}, ${nx} ${nodeY - 40}, ${nx} ${nodeY - 6}`}
                 fill="none"
-                stroke="var(--hairline-strong)"
+                stroke="var(--mrd-edge)"
                 strokeWidth="1"
                 strokeDasharray="3 4"
                 opacity="0.7"
@@ -74,13 +74,13 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
                   y1={nodeY + NH / 2}
                   x2={x2}
                   y2={nodeY + NH / 2}
-                  stroke={done ? "var(--emerald)" : "var(--hairline-strong)"}
+                  stroke={done ? "var(--emerald)" : "var(--mrd-edge)"}
                   strokeWidth="1.4"
                 ></line>
                 <path
                   d={`M ${x2 - 5} ${nodeY + NH / 2 - 3.5} L ${x2} ${nodeY + NH / 2} L ${x2 - 5} ${nodeY + NH / 2 + 3.5}`}
                   fill="none"
-                  stroke={done ? "var(--emerald)" : "var(--hairline-strong)"}
+                  stroke={done ? "var(--emerald)" : "var(--mrd-edge)"}
                   strokeWidth="1.4"
                 ></path>
               </g>
@@ -89,7 +89,7 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
           {/* orchestrator hub */}
           <g>
             <circle cx={hubX} cy={hubY} r="15" fill="var(--hero-bg)"></circle>
-            <circle cx={hubX} cy={hubY} r="4" fill="var(--ember)" className="gnode-live"></circle>
+            <circle cx={hubX} cy={hubY} r="4" fill="var(--mrd-you)" className="gnode-live"></circle>
             <text
               x={hubX}
               y={hubY - 22}
@@ -132,7 +132,7 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
                   height={NH}
                   rx="10"
                   fill={active ? "var(--surface-2)" : "var(--ds-background-100)"}
-                  stroke={active ? "var(--hairline-strong)" : "var(--hairline)"}
+                  stroke={active ? "var(--mrd-edge)" : "var(--mrd-edge)"}
                   strokeWidth="1"
                 ></rect>
                 <rect x={x} y={nodeY} width="3" height={NH} rx="1.5" fill={c} opacity="0.9"></rect>
@@ -177,7 +177,7 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
             padding: "12px 14px",
             borderRadius: 10,
             background: "var(--surface-1)",
-            border: "1px solid var(--hairline)",
+            border: "1px solid var(--mrd-edge)",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

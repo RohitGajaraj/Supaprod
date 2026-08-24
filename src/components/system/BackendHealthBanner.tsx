@@ -23,7 +23,7 @@ function Banner({
   children: React.ReactNode;
   trailing?: React.ReactNode;
 }) {
-  const accent = tone === "warn" ? "var(--amber)" : "var(--ink-faint)";
+  const accent = tone === "warn" ? "var(--amber)" : "var(--mrd-faint)";
   return (
     <div
       role="alert"
@@ -50,7 +50,7 @@ function Banner({
       <AlertTriangle size={16} style={{ color: accent, flexShrink: 0 }} />
       <span>{children}</span>
       {trailing != null && (
-        <span className="mono-label" style={{ marginLeft: "auto", color: "var(--ink-faint)" }}>
+        <span className="mono-label" style={{ marginLeft: "auto", color: "var(--mrd-faint)" }}>
           {trailing}
         </span>
       )}

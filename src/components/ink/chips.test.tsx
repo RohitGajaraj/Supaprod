@@ -35,7 +35,7 @@ describe("VerdictChip tone mapping", () => {
       fail: "var(--verdict-fail)",
       human: "var(--voice-human)",
       machine: "var(--voice-machine)",
-      neutral: "var(--ink-subtle)",
+      neutral: "var(--mrd-mute)",
     };
 
     Object.entries(expectedMapping).forEach(([tone, expectedVar]) => {
@@ -54,7 +54,7 @@ describe("VerdictChip tone mapping", () => {
       "var(--verdict-fail)",
       "var(--voice-human)",
       "var(--voice-machine)",
-      "var(--ink-subtle)",
+      "var(--mrd-mute)",
     ];
 
     // All color vars should be unique (no accidental duplication)
@@ -74,10 +74,10 @@ describe("StatusGlyph state mapping", () => {
   test("each state has a color and word assigned", () => {
     const expectedStates = {
       running: { color: "var(--voice-machine)", word: "running", pulse: true },
-      queued: { color: "var(--ink-subtle)", word: "queued" },
+      queued: { color: "var(--mrd-mute)", word: "queued" },
       gate: { color: "var(--voice-human)", word: "needs you" },
       paused: { color: "var(--voice-machine-dim)", word: "paused" },
-      idle: { color: "var(--ink-faint)", word: "idle" },
+      idle: { color: "var(--mrd-faint)", word: "idle" },
     };
 
     Object.entries(expectedStates).forEach(([state, meta]) => {
@@ -268,9 +268,9 @@ describe("Chips integration: shared patterns and consistency", () => {
       "var(--verdict-fail)",
       "var(--voice-human)",
       "var(--voice-machine)",
-      "var(--ink-subtle)",
+      "var(--mrd-mute)",
       "var(--verdict-working)",
-      "var(--ink-faint)",
+      "var(--mrd-faint)",
     ];
 
     colorPatterns.forEach((pattern) => {
@@ -297,7 +297,7 @@ describe("Chips integration: shared patterns and consistency", () => {
   test("chips follow the ink-subtle / ink-faint semantic scale for muted states", () => {
     // Neutral verdict and queued state both use the subtle/faint scale
     // to indicate low emphasis or in-progress states
-    const mutedTokens = ["var(--ink-subtle)", "var(--ink-faint)"];
+    const mutedTokens = ["var(--mrd-mute)", "var(--mrd-faint)"];
     mutedTokens.forEach((token) => {
       expect(token).toContain("ink-");
     });
@@ -333,7 +333,7 @@ describe("VerdictChip render output", () => {
       { tone: "fail" as const, expectedColor: "var(--verdict-fail)" },
       { tone: "human" as const, expectedColor: "var(--voice-human)" },
       { tone: "machine" as const, expectedColor: "var(--voice-machine)" },
-      { tone: "neutral" as const, expectedColor: "var(--ink-subtle)" },
+      { tone: "neutral" as const, expectedColor: "var(--mrd-mute)" },
     ];
 
     tones.forEach(({ tone, expectedColor }) => {

@@ -151,7 +151,7 @@ describe("Button component variant consolidation", () => {
   describe("buttonVariants CVA function", () => {
     test("generates correct class string for accent variant", () => {
       const classes = buttonVariants({ variant: "accent" });
-      expect(classes).toContain("bg-[var(--ember)]");
+      expect(classes).toContain("bg-[var(--mrd-you)]");
       expect(classes).toContain("text-white");
     });
 

@@ -12,7 +12,7 @@ export type PixelTone = "neutral" | "primary" | "ember" | "moss" | "blue" | "mad
 const TONE_COLOR: Record<PixelTone, string> = {
   neutral: "var(--text-faint)",
   primary: "var(--text-primary)",
-  ember: "var(--ember)",
+  ember: "var(--mrd-you)",
   moss: "var(--moss)",
   blue: "var(--action-blue)",
   madder: "var(--madder)",

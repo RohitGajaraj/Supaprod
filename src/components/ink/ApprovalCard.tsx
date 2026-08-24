@@ -90,12 +90,12 @@ export function ApprovalCard({
         <div className="flex min-w-0 items-center gap-2">
           <VerdictChip tone={item.kindTone ?? "human"}>{item.kind}</VerdictChip>
           {item.agentSlug ? (
-            <span className="ink-mono shrink-0 rounded border border-[var(--ink-hairline)] px-1.5 text-mrd-nano uppercase tracking-[0.04em] text-[var(--ink-subtle)]">
+            <span className="ink-mono shrink-0 rounded border border-[var(--mrd-edge)] px-1.5 text-mrd-nano uppercase tracking-[0.04em] text-[var(--mrd-mute)]">
               {agentDisplayName(item.agentSlug)}
             </span>
           ) : null}
           {item.project ? (
-            <span className="ink-mono truncate text-mrd-tiny text-[var(--ink-subtle)]">
+            <span className="ink-mono truncate text-mrd-tiny text-[var(--mrd-mute)]">
               {item.project}
             </span>
           ) : null}
@@ -103,7 +103,7 @@ export function ApprovalCard({
         {item.timestamp ? (
           <time
             dateTime={item.timestamp}
-            className="ink-mono shrink-0 text-mrd-tiny text-[var(--ink-faint)]"
+            className="ink-mono shrink-0 text-mrd-tiny text-[var(--mrd-faint)]"
           >
             {shortTime(item.timestamp)}
           </time>
@@ -127,8 +127,8 @@ export function ApprovalCard({
       {item.evidence.length > 0 && (
         <ul className="mt-2 space-y-1">
           {item.evidence.map((line, i) => (
-            <li key={i} className="flex gap-2 text-mrd-base leading-5 text-[var(--ink-body)]">
-              <span aria-hidden className="mt-[9px] h-px w-3 shrink-0 bg-[var(--ink-hairline)]" />
+            <li key={i} className="flex gap-2 text-mrd-base leading-5 text-[var(--mrd-body)]">
+              <span aria-hidden className="mt-[9px] h-px w-3 shrink-0 bg-[var(--mrd-edge)]" />
               {line}
             </li>
           ))}
@@ -136,25 +136,25 @@ export function ApprovalCard({
       )}
 
       {item.impact ? (
-        <p className="ink-mono mt-2.5 text-mrd-tiny text-[var(--ink-subtle)]">{item.impact}</p>
+        <p className="ink-mono mt-2.5 text-mrd-tiny text-[var(--mrd-mute)]">{item.impact}</p>
       ) : null}
 
       {item.forecast ? (
         <div
           data-mrd=""
-          className="mt-2.5 border-l-2 border-[var(--ink-hairline)] pl-3"
+          className="mt-2.5 border-l-2 border-[var(--mrd-edge)] pl-3"
         >
-          <p className="ink-mono text-mrd-tiny uppercase tracking-wide text-[var(--ink-subtle)]">
+          <p className="ink-mono text-mrd-tiny uppercase tracking-wide text-[var(--mrd-mute)]">
             What it believed
             {item.forecast.resolution
               ? ` · ${item.forecast.resolution === "validated" ? "came true" : "missed"}`
               : ""}
           </p>
-          <p className="mt-1 text-mrd-base leading-5 text-[var(--ink-body)]">
+          <p className="mt-1 text-mrd-base leading-5 text-[var(--mrd-body)]">
             {item.forecast.claim}
           </p>
           {item.forecast.howWeWillKnow ? (
-            <p className="mt-1 text-mrd-small leading-5 text-[var(--ink-subtle)]">
+            <p className="mt-1 text-mrd-small leading-5 text-[var(--mrd-mute)]">
               How we will know: {item.forecast.howWeWillKnow}
               {item.forecast.horizonDate
                 ? ` · by ${item.forecast.horizonDate.slice(0, 10)}`
@@ -184,7 +184,7 @@ export function ApprovalCard({
             >
               {pending === "approve" ? "Approving" : "Approve"}
             </button>
-            <span className="ink-mono text-mrd-nano text-[var(--ink-faint)]">
+            <span className="ink-mono text-mrd-nano text-[var(--mrd-faint)]">
               {item.approveConsequence}
             </span>
           </div>
@@ -194,13 +194,13 @@ export function ApprovalCard({
               disabled={pending !== null}
               onClick={() => void act("reject")}
               className={cn(
-                "ink-focus self-start rounded-md border border-[var(--ink-hairline)] px-3.5 py-1.5 text-sm font-medium text-[var(--ink-body)] transition-colors duration-150 hover:border-[var(--ink-subtle)] hover:text-[var(--ink-text)]",
+                "ink-focus self-start rounded-md border border-[var(--mrd-edge)] px-3.5 py-1.5 text-sm font-medium text-[var(--mrd-body)] transition-colors duration-150 hover:border-[var(--mrd-mute)] hover:text-[var(--ink-text)]",
                 pending && "opacity-60",
               )}
             >
               {pending === "reject" ? "Rejecting" : "Reject"}
             </button>
-            <span className="ink-mono text-mrd-nano text-[var(--ink-faint)]">
+            <span className="ink-mono text-mrd-nano text-[var(--mrd-faint)]">
               {item.rejectConsequence}
             </span>
           </div>
@@ -209,7 +209,7 @@ export function ApprovalCard({
           <button
             type="button"
             onClick={() => onOpen(item.id)}
-            className="ink-focus rounded-sm text-mrd-base text-[var(--ink-subtle)] transition-colors hover:text-[var(--ink-text)]"
+            className="ink-focus rounded-sm text-mrd-base text-[var(--mrd-mute)] transition-colors hover:text-[var(--ink-text)]"
           >
             Open
           </button>

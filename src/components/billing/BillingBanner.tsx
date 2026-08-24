@@ -149,8 +149,8 @@ export function BillingBanner() {
           data-mrd=""
           className="flex w-full items-center justify-center gap-3 px-4 py-1.5 text-xs"
           style={{
-            borderBottom: "1px solid var(--hairline)",
-            background: "color-mix(in oklab, var(--ember) 10%, transparent)",
+            borderBottom: "1px solid var(--mrd-edge)",
+            background: "color-mix(in oklab, var(--mrd-you) 10%, transparent)",
             color: "var(--text-body)",
           }}
         >

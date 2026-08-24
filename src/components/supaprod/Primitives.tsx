@@ -58,25 +58,25 @@ export function StepDot({ status }: { status: StepStatus | string }) {
 export function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; fg: string; pulse?: boolean }> = {
     running: { label: "running", fg: "var(--action-blue)", pulse: true },
-    queued: { label: "queued", fg: "var(--ink-subtle)" },
+    queued: { label: "queued", fg: "var(--mrd-mute)" },
     awaiting_review: { label: "needs you", fg: "var(--coral)", pulse: true },
     gate: { label: "at gate", fg: "var(--coral)", pulse: true },
     completed: { label: "completed", fg: "var(--emerald)" },
     failed: { label: "failed", fg: "var(--rose)" },
-    cancelled: { label: "cancelled", fg: "var(--ink-subtle)" },
-    planned: { label: "planned", fg: "var(--ink-faint)" },
+    cancelled: { label: "cancelled", fg: "var(--mrd-mute)" },
+    planned: { label: "planned", fg: "var(--mrd-faint)" },
     waiting: { label: "waiting", fg: "var(--coral)" },
-    idle: { label: "idle", fg: "var(--ink-faint)" },
+    idle: { label: "idle", fg: "var(--mrd-faint)" },
   };
   const v = map[status] || map.planned;
   // Migrate Loom tokens to Tempo
   const colorMap: Record<string, string> = {
-    "var(--ink-subtle)": "var(--ds-gray-900)",
+    "var(--mrd-mute)": "var(--ds-gray-900)",
     "var(--action-blue)": "var(--ds-blue-600)",
     "var(--coral)": "var(--ds-red-600)",
     "var(--emerald)": "var(--ds-green-600)",
     "var(--rose)": "var(--ds-red-600)",
-    "var(--ink-faint)": "var(--ds-gray-700)",
+    "var(--mrd-faint)": "var(--ds-gray-700)",
   };
   const mappedColor = colorMap[v.fg] || v.fg;
   return (
@@ -129,7 +129,7 @@ export type VerdictTone = "moss" | "ember" | "indigo" | "machine" | "saffron" | 
 // only holds if the color actually reads as different from plain copy.
 const VERDICT_TONES: Record<VerdictTone, string> = {
   moss: "var(--emerald)",
-  ember: "var(--ember)",
+  ember: "var(--mrd-you)",
   indigo: "var(--text-subtle)",
   machine: "var(--agent)",
   saffron: "var(--saffron)",
@@ -274,7 +274,7 @@ export function EmptyState({
 export function RiskTag({ risk }: { risk: string }) {
   const map: Record<string, [string, string]> = {
     low: ["var(--emerald)", "low risk"],
-    medium: ["var(--ember)", "medium risk"],
+    medium: ["var(--mrd-you)", "medium risk"],
     high: ["var(--rose)", "high risk"],
   };
   const [c, label] = map[risk] || map.medium;

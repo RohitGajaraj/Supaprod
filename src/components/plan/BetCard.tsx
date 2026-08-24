@@ -92,7 +92,7 @@
  *      so this file never draws either.
  *
  *   4. THE CHECKBOX IS THE REAL ONE. It was a raw `<input>` with an inline
- *      `accentColor: var(--ember)`, which spent the human's colour on a value
+ *      `accentColor: var(--mrd-you)`, which spent the human's colour on a value
  *      that is not a gate. The `Checkbox` primitive is the instrument for a value
  *      that sits there until something else acts on it, it is monochrome for
  *      exactly that reason, and it is keyboard-native: Space toggles, Tab

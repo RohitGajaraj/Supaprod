@@ -261,7 +261,7 @@ function FeedbackButtons({ refId }: { refId: string }) {
         title={vote !== null ? "Already rated" : "Good response"}
         disabled={vote !== null || m.isPending}
         onClick={() => m.mutate(1)}
-        className="inline-flex items-center transition-colors [color:var(--ink-faint)] hover:[color:var(--ink-muted)] disabled:pointer-events-none disabled:opacity-45"
+        className="inline-flex items-center transition-colors [color:var(--mrd-faint)] hover:[color:var(--mrd-mute)] disabled:pointer-events-none disabled:opacity-45"
         style={vote === 1 ? { color: "var(--deep-green)", opacity: 1 } : undefined}
       >
         <ThumbsUp size={16} />
@@ -272,7 +272,7 @@ function FeedbackButtons({ refId }: { refId: string }) {
         title={vote !== null ? "Already rated" : "Bad response"}
         disabled={vote !== null || m.isPending}
         onClick={() => m.mutate(-1)}
-        className="inline-flex items-center transition-colors [color:var(--ink-faint)] hover:[color:var(--ink-muted)] disabled:pointer-events-none disabled:opacity-45"
+        className="inline-flex items-center transition-colors [color:var(--mrd-faint)] hover:[color:var(--mrd-mute)] disabled:pointer-events-none disabled:opacity-45"
         style={vote === -1 ? { color: "var(--rose)", opacity: 1 } : undefined}
       >
         <ThumbsDown size={16} />
@@ -333,7 +333,7 @@ export function MessageMetaFooter({
           gap: 14,
           marginTop: 10,
           fontFamily: "var(--font-mono)",
-          color: "var(--ink-faint)",
+          color: "var(--mrd-faint)",
           letterSpacing: "0.02em",
         }}
       >
@@ -396,7 +396,7 @@ export function MessageMetaFooter({
               <button
                 type="button"
                 aria-expanded={replayOpen}
-                className="transition-colors [color:var(--ink-subtle)] hover:[color:var(--ink-muted)]"
+                className="transition-colors [color:var(--mrd-mute)] hover:[color:var(--mrd-mute)]"
                 style={item}
               >
                 <RotateCcw size={16} />

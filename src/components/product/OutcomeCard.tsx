@@ -272,7 +272,7 @@ export function OutcomeCard({ prd, invalidateKey }: Props) {
           </div>
           {/* THE SYSTEM'S BUTTON, AND NOT AN EMBER FILL. This and "Confirm
               outcome" below wore `.btn-pill`, a SOLID EMBER FACE
-              (styles.css: `background-color: var(--ember)`). Inside the
+              (styles.css: `background-color: var(--mrd-you)`). Inside the
               authenticated product ember is a colour or an edge and never a
               fill: ink.css:236 declares it the mark that "marks the human, and
               nothing else", and the standing ruling in

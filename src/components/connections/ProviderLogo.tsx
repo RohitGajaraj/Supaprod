@@ -24,7 +24,7 @@ export function ProviderLogo({ provider, size = 34 }: { provider: ProviderId; si
         // Monotone tile, kept: the ground stays quiet so the official mark
         // carries the recognition.
         background: "var(--surface-raised)",
-        boxShadow: "inset 0 0 0 1px var(--hairline)",
+        boxShadow: "inset 0 0 0 1px var(--mrd-edge)",
         // Ink for the drawn fallbacks; official geometry ignores it.
         color: "var(--text-body)",
       }}

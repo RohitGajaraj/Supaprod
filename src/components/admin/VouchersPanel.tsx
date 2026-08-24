@@ -84,7 +84,7 @@ export function VouchersPanel() {
               </thead>
               <tbody>
                 {rows.map((v) => (
-                  <tr key={v.id} style={{ borderTop: "1px solid var(--hairline)" }}>
+                  <tr key={v.id} style={{ borderTop: "1px solid var(--mrd-edge)" }}>
                     <td style={td()}>
                       <code
                         style={{ fontFamily: "var(--font-mono)", color: "var(--text-primary)" }}
@@ -376,7 +376,7 @@ function card(): React.CSSProperties {
 function input(width?: number): React.CSSProperties {
   return {
     padding: "8px 10px",
-    border: "1px solid var(--hairline-strong)",
+    border: "1px solid var(--mrd-edge)",
     borderRadius: "var(--radius-control)",
     background: "var(--raised)",
     color: "var(--text-primary)",
@@ -393,7 +393,7 @@ function th(): React.CSSProperties {
     textAlign: "left",
     fontWeight: 400,
     color: "var(--text-subtle)",
-    borderBottom: "1px solid var(--hairline-strong)",
+    borderBottom: "1px solid var(--mrd-edge)",
   };
 }
 function td(): React.CSSProperties {

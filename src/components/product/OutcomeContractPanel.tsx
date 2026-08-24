@@ -144,7 +144,7 @@ function ArdImportControl({
       <div className="mt-2 flex items-center gap-2">
         {/* THE SYSTEM'S BUTTON, AND NOT AN EMBER FILL. This control and the four
             others in this file wore `.btn-pill`, which paints a SOLID EMBER FACE
-            (styles.css: `background-color: var(--ember)`). Ember is declared the
+            (styles.css: `background-color: var(--mrd-you)`). Ember is declared the
             mark that "marks the human, and nothing else" (ink.css:236), every
             legitimate use of it in the --sp-* system is a COLOUR or an EDGE, and
             the standing ruling in docs/design/DESIGN-SYSTEM.md is that it is
