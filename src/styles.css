@@ -1359,8 +1359,6 @@ html[data-motion="off"] .agent-live {
   --tempo-text-base: 14px;
 
   /* §3 ember, layered (saturation scales inversely with area) */
-  --ember-text: oklch(0.78 0.13 315);
-  --ember-tint: color-mix(in oklab, var(--ember) 13%, transparent);
   --ember-line: color-mix(in oklab, var(--ember) 45%, transparent);
   --cta-grad-top: #ff7a3d;
   --cta-grad-bottom: #f25e1f;
@@ -2103,8 +2101,6 @@ html[data-motion="off"] .ai-pulse-text {
   /* Loom ember sub-tokens re-based on the Tempo scale (2026-07-11): the early
      Loom block held retired literals (#ff8a50, rgba(255,107,44,...), #ff7a3d,
      #f25e1f) that leaked through when only --ember itself was corrected. */
-  --ember-text: var(--ds-ember-900);
-  --ember-tint: color-mix(in srgb, var(--ds-ember-600) 13%, transparent);
   --ember-line: color-mix(in srgb, var(--ds-ember-600) 45%, transparent);
   --cta-grad-top: var(--ds-ember-600);
   --cta-grad-bottom: var(--ds-ember-700);
@@ -2120,9 +2116,7 @@ html[data-motion="off"] .ai-pulse-text {
   --pencil-blossom: var(--ds-pink-900);
   --pencil-apricot: var(--ds-amber-900);
   --moss: var(--ds-green-700);
-  --moss-bright: var(--ds-green-900);
   --madder: var(--ds-red-600);
-  --madder-bright: var(--ds-red-900);
   --marigold: var(--ds-amber-600);
   --cta-ink: var(--ds-background-100);
   --link: var(--glacier);

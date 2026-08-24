@@ -35,7 +35,7 @@ export function PaymentTestModeBanner() {
         className="rounded-[10px] border px-3 py-2 text-mrd-tiny"
         style={{
           borderColor: "var(--mrd-edge, rgba(194,96,46,0.30))",
-          background: "var(--ember-tint, rgba(194,96,46,0.08))",
+          background: "color-mix(in srgb, var(--mrd-you) 13%, transparent)",
           color: "var(--mrd-body, #1d1a14)",
         }}
       >

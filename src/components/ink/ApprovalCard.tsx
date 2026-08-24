@@ -165,12 +165,12 @@ export function ApprovalCard({
       ) : null}
 
       {error ? (
-        <p className="ink-mono mt-2.5 text-mrd-tiny text-[var(--ink-madder)]" role="alert">
+        <p className="ink-mono mt-2.5 text-mrd-tiny text-[var(--mrd-fail)]" role="alert">
           {error}
         </p>
       ) : null}
 
-      <footer className="mt-3.5 flex items-end justify-between gap-3 border-t border-[var(--ink-hairline-soft)] pt-3">
+      <footer className="mt-3.5 flex items-end justify-between gap-3 border-t border-[var(--mrd-edge)] pt-3">
         <div className="flex gap-6">
           <div className="flex flex-col gap-1">
             <button

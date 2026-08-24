@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1757,
-  "fileCount": 143,
+  "totalOccurrences": 1751,
+  "fileCount": 142,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "import:components/ui": 1,
@@ -58,9 +58,6 @@
     },
     "src/components/ask/Working.tsx": {
       "class:sp-": 4
-    },
-    "src/components/billing/PaymentTestModeBanner.tsx": {
-      "raw-colour": 1
     },
     "src/components/billing/StripeEmbeddedCheckout.tsx": {
       "--hairline": 1,
@@ -488,10 +485,10 @@
       "raw-colour": 8
     },
     "src/styles.css": {
-      "--ds-": 279,
+      "--ds-": 275,
       "--text-": 33,
       "--hairline": 30,
-      "--madder": 3,
+      "--madder": 2,
       "--glacier": 9,
       "--font-pixel": 2,
       "--raised": 6,
