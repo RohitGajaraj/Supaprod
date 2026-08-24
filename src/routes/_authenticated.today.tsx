@@ -1227,6 +1227,8 @@ function Today() {
           />
         ) : null}
 
+        <FocusNext workspaceId={workspaceId} />
+
         <div className="today-lanes">
           <Lane
             name="Ready for your review"
@@ -1389,7 +1391,6 @@ function Today() {
 
         <PushedInsights />
 
-        <FocusNext workspaceId={workspaceId} />
 
         {stillWaiting(learnings) ? (
           <Reading>Reading what it learned.</Reading>
