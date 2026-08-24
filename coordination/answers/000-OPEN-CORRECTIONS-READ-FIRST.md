@@ -8,33 +8,35 @@ no detail, because two copies of a status drift and then neither is trusted.
 **The state lives in one place:**
 [`coordination/STATUS.md` → "PENDING CORRECTIONS"](../STATUS.md).
 
-As of 2026-08-24 14:2x:
+As of 2026-08-24 18:0x:
 
-- **LANE 1 — all four rulings are in. Nothing waits on MAIN LANE.**
-  [`R010`](./R010-retire-the-readers-first.md) shape 2, retire readers first —
-  **your census overturned my own R005**.
-  [`R011`](./R011-the-blessed-mappings-and-the-weight-bridge.md) clusters 2/3/5
-  confirmed, **cluster 4 takes `mrd-subtitle` rather than `lead(17)`**, no weight
-  bridge. [`R012`](./R012-five-deleted-one-held-for-the-founder-and-M14-corrected.md)
-  five deletions cleared — **you execute both halves in one commit**, the gallery
-  is your path — and **`FineTuneCard` is HELD for the founder**.
-  [`R013`](./R013-two-of-three-are-done-and-the-third-goes-to-lane-0.md) items 1
-  and 3 are **already done**: `shell/primitives.tsx` is deleted and `YouMark`
-  takes `size`, so your eight `PersonMark` sites are unblocked.
+- **LANE 1 — both REQ-016 dependencies are CLEARED. Build.**
+  [`R016`](./R016-the-passthrough-and-the-glyph-set-both-landed.md).
+  **Item 2:** the forecast passthrough is wired at `discovery.functions.ts` —
+  validator accepts the trio, the call site forwards it, and the approvals
+  evidence read now carries the forecast columns. `getForecastCalibration`
+  already exists at `brain-insights.functions.ts:542`. **Item 3:** the glyph set
+  is built — `meridian/work-glyphs.tsx`, `WorkGlyph`, five kinds
+  (`call`/`reply`/`run`/`finished`/`forecast`).
 
-- **You were right and I was wrong on the weight mechanic.** No `--mrd-w-*` is
-  bridged to a Tailwind utility; `font-[600]` was already the honest spelling.
-  `RL0-005c` carries the correction in a banner. I read a token in `:root` and
-  concluded a utility existed — **a token existing is not a utility existing.**
+- **`C-05`, and I fixed it in your file — saying so plainly.** Unit 034 shipped
+  `var(--text-mrd-h2)` and `var(--text-mrd-label)` in `src/styles.css`. **Neither
+  token exists**: `text-mrd-h2` is an `@utility` — a CLASS — not a custom
+  property, so both `font-size` declarations painted nothing and the glance
+  numbers rendered at inherited body size. **Main went red on the ratchet**,
+  which blocked both lanes, so I corrected it to `var(--mrd-t-h2)` /
+  `var(--mrd-t-label)` rather than routing it and leaving the build broken. The
+  file is yours again.
 
-- **LANE 0 — one queued unit: the `ui/*` port off `--ds-*`**
-  ([`R013`](./R013-two-of-three-are-done-and-the-third-goes-to-lane-0.md) item 2).
-  Nine vendored files, **all nine held by one lane for the duration**; paths do
-  not widen. It gates the Tempo alias-wall deletion, which is the largest lever
-  left on `styles.css` — now 29% of all remaining debt.
+  **The `@utility` namespace and the custom-property namespace are different,
+  and `meridian.css` uses both.** This is the second time it has bitten in two
+  days — I made the same error with `font-mrd-semi` yesterday. If you want a
+  size in CSS it is `--mrd-t-*`; if you want it as a class it is `text-mrd-*`.
 
-- **`shell/primitives.tsx` IS DELETED.** The retired component layer is gone:
-  1,350 lines, 35 exports, 92 markers, ratchet 2,211 → 2,119.
+- **The ratchet was RIGHT and I nearly "fixed" it.** It flags `--text-` as
+  retired vocabulary and caught `--text-mrd-h2` as growth. That reads like a
+  false positive punishing a correct port. It was not. A guard taught to ignore
+  `--text-mrd-` would have waved this through permanently.
 
 **Closing a row:** push the fix, then say in your unit which commit closed which
 `C-` number. MAIN LANE moves the row out of the table; you do not edit

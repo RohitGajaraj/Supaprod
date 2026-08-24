@@ -10,7 +10,7 @@ filing a `meridian-gap` request.
 There is deliberately **no `index.ts` barrel** -- it would break the adoption metric,
 which matches on the deep import path. Import from the file named here.
 
-## Components (106)
+## Components (102)
 
 | Export | File | |
 | --- | --- | --- |
@@ -25,7 +25,6 @@ which matches on the deep import path. Import from the file named here.
 | `Approve` | `surface-parts.tsx` | function |
 | `BulkBar` | `surface-parts.tsx` | function |
 | `Cell` | `surface-parts.tsx` | function |
-| `Chat` | `Chat.tsx` | function |
 | `Checkbox` | `forms.tsx` | function |
 | `Chevron` | `surface-parts.tsx` | function |
 | `Choices` | `forms.tsx` | function |
@@ -37,7 +36,6 @@ which matches on the deep import path. Import from the file named here.
 | `Delta` | `InsightCards.tsx` | function |
 | `Dialog` | `Dialog.tsx` | function |
 | `Diffstat` | `surface-parts.tsx` | function |
-| `DiffTable` | `DiffTable.tsx` | function |
 | `Door` | `surface-parts.tsx` | function |
 | `EmptyRegion` | `EmptyRegion.tsx` | function |
 | `Entity` | `InsightCards.tsx` | function |
@@ -70,7 +68,6 @@ which matches on the deep import path. Import from the file named here.
 | `PlanGate` | `PlanGate.tsx` | function |
 | `Pre` | `surface-parts.tsx` | function |
 | `PromotionCard` | `PromotionCard.tsx` | function |
-| `PromptBar` | `PromptBar.tsx` | function |
 | `Prose` | `Prose.tsx` | function |
 | `ProviderMark` | `source-marks.tsx` | function |
 | `ProviderName` | `source-marks.tsx` | function |
@@ -79,7 +76,6 @@ which matches on the deep import path. Import from the file named here.
 | `Reading` | `surface-parts.tsx` | function |
 | `ReasonField` | `forms.tsx` | function |
 | `Receipt` | `Receipt.tsx` | function |
-| `RecommendationCard` | `RecommendationCard.tsx` | function |
 | `RecordSpeaks` | `surface-parts.tsx` | function |
 | `RecordsTable` | `RecordsTable.tsx` | function |
 | `RecordStatus` | `RecordsTable.tsx` | function |
@@ -99,7 +95,6 @@ which matches on the deep import path. Import from the file named here.
 | `RunTimeline` | `RunTimeline.tsx` | function |
 | `RunTook` | `run-rows.tsx` | function |
 | `Search` | `Search.tsx` | function |
-| `SelectionActions` | `SelectionActions.tsx` | function |
 | `ShellReadFailed` | `boundary-states.tsx` | function |
 | `ShellRouteMissing` | `boundary-states.tsx` | function |
 | `SidebarNav` | `SidebarNav.tsx` | function |
@@ -119,9 +114,10 @@ which matches on the deep import path. Import from the file named here.
 | `UnderMark` | `source-marks.tsx` | function |
 | `Value` | `surface-parts.tsx` | function |
 | `Who` | `rows.tsx` | function |
+| `WorkGlyph` | `work-glyphs.tsx` | function |
 | `YouMark` | `marks.tsx` | function |
 
-## Types, constants and helpers (105)
+## Types, constants and helpers (96)
 
 | Export | File | Kind |
 | --- | --- | --- |
@@ -137,8 +133,6 @@ which matches on the deep import path. Import from the file named here.
 | `BRAND_GLYPHS` | `brand-glyphs.gen.ts` | const |
 | `BrandGlyph` | `brand-glyphs.gen.ts` | type |
 | `CellTone` | `surface-parts.tsx` | type |
-| `ChatStep` | `Chat.tsx` | type |
-| `ChatTurn` | `Chat.tsx` | type |
 | `ChoiceOption` | `forms.tsx` | type |
 | `CodeToken` | `CodeBlock.tsx` | type |
 | `CodeTone` | `CodeBlock.tsx` | type |
@@ -149,9 +143,6 @@ which matches on the deep import path. Import from the file named here.
 | `CtxBodyProps` | `ContextColumn.tsx` | interface |
 | `CtxHeadProps` | `ContextColumn.tsx` | interface |
 | `CtxRowProps` | `ContextColumn.tsx` | interface |
-| `DiffChange` | `DiffTable.tsx` | type |
-| `DiffStatus` | `DiffTable.tsx` | type |
-| `DiffTableRow` | `DiffTable.tsx` | type |
 | `edgeMask` | `SidebarNav.tsx` | function |
 | `Facet` | `FilterTable.tsx` | type |
 | `FilterTableProps` | `FilterTable.tsx` | type |
@@ -176,13 +167,9 @@ which matches on the deep import path. Import from the file named here.
 | `PlanStepState` | `PlanCard.tsx` | type |
 | `PromotionEvidence` | `PromotionCard.tsx` | type |
 | `PromotionOutcome` | `PromotionCard.tsx` | type |
-| `PromptCommand` | `PromptBar.tsx` | type |
-| `PromptModel` | `PromptBar.tsx` | type |
-| `PromptSource` | `PromptBar.tsx` | type |
 | `RailIconKind` | `SidebarNav.tsx` | type |
 | `RailItem` | `SidebarNav.tsx` | type |
 | `railTypeahead` | `SidebarNav.tsx` | function |
-| `Recommendation` | `RecommendationCard.tsx` | type |
 | `RecordColumn` | `RecordsTable.tsx` | type |
 | `RecordsTableProps` | `RecordsTable.tsx` | type |
 | `RecordTone` | `RecordsTable.tsx` | type |
@@ -196,8 +183,6 @@ which matches on the deep import path. Import from the file named here.
 | `RunMapStation` | `RunMap.tsx` | type |
 | `SearchProps` | `Search.tsx` | type |
 | `SegmentTone` | `InsightCards.tsx` | type |
-| `SelectionAction` | `SelectionActions.tsx` | type |
-| `SelectionPhase` | `SelectionActions.tsx` | type |
 | `SetupKind` | `NeedsSetup.tsx` | type |
 | `SourceKind` | `source-marks.tsx` | type |
 | `sourceKindFor` | `source-marks.tsx` | function |
@@ -230,6 +215,8 @@ which matches on the deep import path. Import from the file named here.
 | `ToolStreamState` | `ToolStream.tsx` | type |
 | `TrendInsight` | `InsightCards.tsx` | type |
 | `useElapsed` | `use-elapsed.ts` | function |
+| `WORK_GLYPHS` | `work-glyphs.tsx` | const |
+| `WorkGlyphKind` | `work-glyphs.tsx` | type |
 
 ## Porting off the retired layer
 
@@ -246,15 +233,4 @@ counted from the codebase at generation time.
 
 | Retired | Left | Use | From | What the port has to decide |
 | --- | --- | --- | --- | --- |
-| `Block` | 4 | `Region` | `@/components/meridian/surface-parts` | Strict superset. `more`/`onMore` SPLITS THREE WAYS -- `goTo` (leaves), `toggle`+`toggled` (reveals, drives aria-expanded), `act`+`acting` (acts on the subject). Judge each site; a blind `more -> goTo` recreates the aria defect C-01 fixed. |
-| `Failed` | 4 | `ReadFailed` | `@/components/meridian/surface-parts` | Superset: same `{children, onRetry?, retryLabel?}` plus `detail?`. |
-| `Loading` | 4 | `Reading` | `@/components/meridian/surface-parts` | NOT A SUPERSET, and the one entry here that is not a straight swap. Retired `Loading` took `{children?, working?, agent?, detail?}` and `Reading` takes `{children?}`. ALL FIVE remaining call sites pass children only, so it is a drop-in for every one of them. A site that wants the AGENT-IS-WORKING fact takes `LoadingState` from `meridian/LoadingState` (`{label, variant, startedAt}`), which is where the rest of the product already went -- conflating the two was the thing the retired component's own header refused to do. |
-| `Button` | 2 | `Action` | `@/components/meridian/surface-parts` | Tiered variants. `busy` is TRUE ONLY WHILE THIS CONTROL'S OWN WORK RUNS -- a synchronous handler takes `disabled`, never `busy`. |
-|  |  | `Approve` | `@/components/meridian/surface-parts` | Where a click UNBLOCKS something. |
-| `Empty` | 2 | `NothingHere` | `@/components/meridian/surface-parts` | Identical `{children, action?}`. |
-| `CtxBody` | 1 | `CtxBody` | `@/components/meridian/ContextColumn` | Identical `{children}`. |
-| `CtxHead` | 1 | `CtxHead` | `@/components/meridian/ContextColumn` | Identical `{children}`. |
-| `CtxRow` | 1 | `CtxRow` | `@/components/meridian/ContextColumn` | Superset of `{mark?, name, sub?}`: adds `title`, `source`, `lead`, `onClick`, `href`. |
-| `Field` | 1 | `Field` | `@/components/meridian/forms` | `htmlFor` IS REQUIRED HERE and was optional on the retired one, so the single consumer (`hooks/use-confirm.tsx`) must give its control an id. `label` widens to ReactNode and `hint?` is new. |
-| `Input` | 1 | `Input` | `@/components/meridian/forms` | Attribute passthrough on both sides; Meridian's also merges `className`. |
-| `Select` | 1 | `Picker` | `@/components/meridian/surface-parts` | Drop-in: same `SelectHTMLAttributes` passthrough, and `id`/`aria-label`/`disabled` all forward. Native `<select>` on purpose -- keyboard-native, type-ahead, platform sheet on a phone. |
+

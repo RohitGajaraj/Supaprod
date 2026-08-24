@@ -1563,11 +1563,51 @@ export const updateOpportunity = createServerFn({ method: "POST" })
         confidence: z.number().int().min(1).max(10).optional(),
         ease: z.number().int().min(1).max(10).optional(),
         status: z.enum(["backlog", "now", "next", "later", "shipped", "dropped"]).optional(),
+
+        /*
+         * FC-01, THE PASSTHROUGH (REQ-014 items 2-3, REQ-016 item 2).
+         *
+         * `recordJudgment` has accepted a forecast since the founder's call on
+         * 2026-08-24, and nothing could reach it: this validator did not admit
+         * the fields, so the door was open on a function no route could hand
+         * anything to. That is the shape of half a feature, and the decisions
+         * minted meanwhile can never carry a forecast -- the immutability
+         * trigger freezes those columns at insert, so the only moment is the
+         * moment the settle happens.
+         *
+         * OPTIONAL, and deliberately not defaulted. The founder's call was
+         * OFFERED RATHER THAN MANDATED, and a default here would be the derive
+         * that ruling refused: a forecast is something a person asserted, not
+         * something a validator supplied. Shape is checked by the same
+         * `forecastRefusal` the agent doors use, inside `recordJudgment`, so
+         * there is exactly one definition of a well-formed forecast.
+         */
+        forecast_claim: z.string().min(1).max(500).optional(),
+        forecast_how_we_will_know: z.string().min(1).max(500).optional(),
+        forecast_horizon_date: z.string().datetime({ offset: true }).optional(),
       })
       .parse(i),
   )
   .handler(async ({ context, data }) => {
-    const { id, ...rest } = data;
+    /*
+     * The forecast is pulled OUT of `rest` before the update, because `rest` is
+     * spread straight onto `opportunities` and these three columns live on
+     * `decisions`. Leaving them in would send unknown columns to the wrong
+     * table, which PostgREST answers with a refusal that supabase-js RESOLVES
+     * rather than throws -- the house trap, and it would have failed the settle
+     * itself rather than just the forecast.
+     */
+    const {
+      id,
+      forecast_claim,
+      forecast_how_we_will_know,
+      forecast_horizon_date,
+      ...rest
+    } = data;
+    const forecast =
+      forecast_claim || forecast_how_we_will_know || forecast_horizon_date
+        ? { forecast_claim, forecast_how_we_will_know, forecast_horizon_date }
+        : null;
 
     // SEAM-1: capture the prior stage before a status-bearing update.
     let prior: { status: string | null; workspace_id: string | null; user_id: string } | null =
@@ -1636,6 +1676,7 @@ export const updateOpportunity = createServerFn({ method: "POST" })
         from: prior?.status ?? null,
         to: rest.status,
         workspaceId: prior?.workspace_id ?? null,
+        forecast,
       });
     }
     return { opportunity: row, judgment };

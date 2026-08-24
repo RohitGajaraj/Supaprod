@@ -383,6 +383,28 @@ goes with the other five; say keep and it costs nothing but a gallery entry.
 
 | [`014`](./requests/014-the-forecast-does-not-travel.md) | | 14:03 | **14:3x** | ruled — [`R014`](./answers/R014-the-moat-is-stranded-and-item-4-is-now-99.md). **Item 1 DONE** (forecast columns now selected). Item 2 mine to build. **Item 4 re-measured: 99, not 80** — founder's call upheld |
 
+## REQ-016's TWO DEPENDENCIES ARE CLEARED, 18:0x — [`R016`](./answers/R016-the-passthrough-and-the-glyph-set-both-landed.md)
+
+**Item 2, the forecast passthrough: WIRED.** `recordJudgment` had accepted a
+forecast since the founder's call and nothing could reach it — the validator did
+not admit the fields, so the door was open on a function no route could hand
+anything to. Validator, destructure and call site all landed; the approvals
+evidence read now carries the forecast columns too.
+
+**Item 3, the glyph set: BUILT.** `meridian/work-glyphs.tsx` — `WorkGlyph`, five
+kinds (`call`/`reply`/`run`/`finished`/`forecast`). Identity is shape never hue,
+size defaults to `StationGlyph`'s 13 so two families on one row cannot disagree,
+`aria-hidden` always.
+
+**`C-05` — MAIN LANE edited `src/styles.css`, which is LANE 1's path.** Unit 034
+shipped `var(--text-mrd-h2)` and `var(--text-mrd-label)`; **neither token
+exists** (`text-mrd-h2` is an `@utility`, a class, not a custom property), so
+both declarations painted nothing and **main went red on the ratchet**, blocking
+both lanes. Corrected to `--mrd-t-*`. Recorded rather than done quietly.
+
+**The retired component layer is fully gone: `meridian:exports` reports ZERO
+retired symbols still imported.**
+
 ## BOTH FOUNDER CALLS ARE DECIDED AND SHIPPED — [`F01`](./answers/F01-the-two-founder-calls-decided-and-shipped.md)
 
 Delegated to MAIN LANE 2026-08-24 14:5x and closed at 15:0x.

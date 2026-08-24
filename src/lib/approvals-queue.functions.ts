@@ -750,7 +750,24 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
       ];
       const [decisionRows, prdRows] = await Promise.all([
         decisionIds.length
-          ? supabase.from("decisions").select("id,title").in("id", decisionIds)
+          ? /*
+             * THE FORECAST TRAVELS WITH THE DECISION (REQ-014 item 1).
+             *
+             * This read backs the evidence lines under a focused gate, and it
+             * selected `id,title` -- so a person approving an agent's bet saw
+             * its NAME and never the belief it was taken under, while both
+             * agent doors REFUSE to record that bet without one. The columns
+             * carry the `forecast_` prefix; `forecast_how_we_will_know` and
+             * `forecast_horizon_date` do not look like they should, and a
+             * select naming them without it throws at runtime while `tsc`
+             * stays green.
+             */
+            supabase
+              .from("decisions")
+              .select(
+                "id,title,forecast_claim,forecast_how_we_will_know,forecast_horizon_date,forecast_resolution",
+              )
+              .in("id", decisionIds)
           : Promise.resolve({ data: [] as { id: string; title: string }[] }),
         prdIds.length
           ? supabase.from("prds").select("id,title").in("id", prdIds)
