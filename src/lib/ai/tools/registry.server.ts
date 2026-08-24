@@ -5135,6 +5135,365 @@ const shipInProduction = def({
   },
 });
 
+// ── build.list_sessions / build.get_run / build.changeset_history ──────────
+// · the crew's read door into BUILD'S OWN PAST
+//
+// BUILD HAD HANDS AND NO MEMORY OF ITSELF. The station carries eleven write
+// tools (studio.stage through studio.pr.merge) and until these three existed
+// not one read onto its own record: mid-run, an agent could not ask "what did
+// previous builds change?", "did they merge?", "why did they fail?" The cost
+// is the same one the ship reads closed -- an agent planning new work with
+// nothing telling it the same work was attempted last week, succeeded,
+// failed and why.
+//
+// HOW THEY ARE BUILT, same rules as the ship reads above:
+//
+//   · FRESH QUERIES SHAPED LIKE THE HUMAN PATH'S OWN. list_sessions follows
+//     listStudioSessions (studio.functions.ts): missions joined to their
+//     latest non-abandoned changeset, archived hidden by default, newest
+//     first. changeset_history follows listAppliedChanges: merged means
+//     status='merged', ordered updated_at desc. When the human path changes
+//     shape, these change with it rather than drifting behind a second
+//     definition.
+//
+//   · TENANCY IS THE WORKSPACE, NOT THE USER. missions carries a NOT NULL
+//     workspace_id and its row is the tenant gate: both list tools filter it
+//     by ctx.workspaceId outright, and get_run refuses any id whose mission
+//     row does not match the context workspace BEFORE reading anything keyed
+//     by mission. The child reads (agent_runs, checkpoints, lineage) key off
+//     that proven mission id rather than carrying their own belt -- the same
+//     structure ship.get_release uses after proving its changeset, because
+//     agent_runs.workspace_id predates workspaces on legacy rows and a belt
+//     over a nullable column would silently undercount real history.
+//
+//   · EVIDENCE IS THE TRUST LEDGER'S OWN RECEIPT SOURCES. A run's evidence
+//     count sums decisions + approvals + learnings carrying this mission_id,
+//     exactly the rows loadReceipts (trust-ledger.functions.ts) surfaces --
+//     not an invented counter. Counted exact server-side so a long run is
+//     never truncated into a smaller number than happened.
+//
+//   · READS, AND SHAPED LIKE READS. category "read", defaults auto, no write
+//     verb anywhere in this section -- consulting what previous builds did
+//     must never cost a permission click, for the same reason the brain and
+//     ship reads are auto.
+
+const buildListSessions = def({
+  name: "build.list_sessions",
+  description:
+    'List this workspace\'s recent build runs, newest first: each mission\'s goal, status and start time beside its latest changeset state and pull request. Before planning new work, check here for what previous builds changed, whether they merged, and which ones are still open.',
+  category: "read",
+  argsSchema: z.object({
+    limit: z.number().int().min(1).max(50).optional(),
+  }),
+  preview: (a) => `List recent build runs (${a.limit ?? 20})`,
+  run: async (a, { supabase, workspaceId }) => {
+    if (!workspaceId)
+      throw new Error("build.list_sessions runs inside a workspace, and this run has none.");
+    const { data, error } = await supabase
+      .from("missions")
+      // One literal, not concatenated: the generated row types narrow on the
+      // literal and widen to an error union on a computed string.
+      .select("id,title,goal,status,created_at")
+      .eq("workspace_id", workspaceId)
+      .is("archived_at", null)
+      .order("created_at", { ascending: false })
+      .limit(a.limit ?? 20);
+    if (error) throw new Error(error.message);
+    const missionRows = (data ?? []) as Array<{
+      id: string;
+      title: string;
+      goal: string;
+      status: string;
+      created_at: string;
+    }>;
+    if (!missionRows.length) return { sessions: [] };
+
+    const ids = missionRows.map((m) => m.id);
+    const { data: csRows, error: csErr } = await supabase
+      .from("studio_changesets")
+      .select("id,mission_id,status,title,pr_url,pr_number")
+      .in("mission_id", ids)
+      .neq("status", "abandoned")
+      .order("created_at", { ascending: false });
+    if (csErr) throw new Error(csErr.message);
+
+    // Latest non-abandoned changeset per mission, the way listStudioSessions
+    // folds them: the query already arrives newest-created-first, so the first
+    // row seen per mission wins.
+    type CsRow = {
+      id: string;
+      mission_id: string | null;
+      status: string;
+      title: string | null;
+      pr_url: string | null;
+      pr_number: number | null;
+    };
+    const latestByMission = new Map<string, CsRow>();
+    for (const cs of (csRows ?? []) as CsRow[]) {
+      if (cs.mission_id && !latestByMission.has(cs.mission_id)) {
+        latestByMission.set(cs.mission_id, cs);
+      }
+    }
+
+    return {
+      sessions: missionRows.map((m) => {
+        const cs = latestByMission.get(m.id);
+        return {
+          id: m.id,
+          goal: m.goal,
+          status: m.status,
+          created_at: m.created_at,
+          latest_changeset: cs
+            ? {
+                id: cs.id,
+                status: cs.status,
+                title: cs.title,
+                pr_url: cs.pr_url,
+                pr_number: cs.pr_number,
+              }
+            : null,
+        };
+      }),
+    };
+  },
+});
+
+const buildGetRun = def({
+  name: "build.get_run",
+  description:
+    "Read ONE build run in full by its mission id: goal and status, the agent that acted last, every changeset it produced with summary and pull request, its latest checkpoint, the evidence recorded against it, and the specs it came from. Use after build.list_sessions to see why a previous build failed or what it actually changed before repeating it.",
+  category: "read",
+  argsSchema: z.object({
+    mission_id: z.string().uuid(),
+  }),
+  preview: (a) => `Read build run ${a.mission_id.slice(0, 8)}`,
+  run: async (a, { supabase, workspaceId }) => {
+    if (!workspaceId)
+      throw new Error("build.get_run runs inside a workspace, and this run has none.");
+    const { data, error } = await supabase
+      .from("missions")
+      .select("id,title,goal,status,completed_at,current_agent_id,created_at,updated_at")
+      .eq("id", a.mission_id)
+      .eq("workspace_id", workspaceId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) throw new Error("No run with that id is visible in this workspace.");
+    const mission = data as {
+      id: string;
+      title: string;
+      goal: string;
+      status: string;
+      completed_at: string | null;
+      current_agent_id: string | null;
+      created_at: string;
+      updated_at: string;
+    };
+
+    // Runs newest-first; the top row is who acted last, which is how the human
+    // board derives a mission's station too. A mission that has not run yet
+    // (status 'proposed') honestly reports no current agent rather than a guess.
+    const { data: runRows, error: runErr } = await supabase
+      .from("agent_runs")
+      .select("id,status,agent_slug,failure_kind,created_at")
+      .eq("mission_id", mission.id)
+      .order("created_at", { ascending: false })
+      .limit(10);
+    if (runErr) throw new Error(runErr.message);
+    const runs = (runRows ?? []) as Array<{
+      id: string;
+      status: string;
+      agent_slug: string;
+      failure_kind: string | null;
+      created_at: string;
+    }>;
+    const latestRun = runs[0] ?? null;
+
+    const [{ data: cpRows, error: cpErr }, { data: csRows, error: csErr }] = await Promise.all([
+      latestRun
+        ? supabase
+            .from("agent_run_checkpoints")
+            .select("run_id,step_index,created_at,trace:state->>traceId")
+            .eq("run_id", latestRun.id)
+            .order("created_at", { ascending: false })
+            .limit(1)
+        : Promise.resolve({ data: [], error: null }),
+      supabase
+        .from("studio_changesets")
+        .select(
+          "id,status,title,summary,repo,branch,pr_number,pr_url,created_at,updated_at",
+        )
+        .eq("mission_id", mission.id)
+        .neq("status", "abandoned")
+        .order("created_at", { ascending: false }),
+    ]);
+    if (cpErr) throw new Error(cpErr.message);
+    if (csErr) throw new Error(csErr.message);
+
+    const checkpointRow = ((cpRows ?? []) as Array<{
+      run_id: string;
+      step_index: number;
+      created_at: string;
+      trace: string | null;
+    }>)[0];
+
+    // EVERY spec this run came from: the still-valid prd->mission lineage edges,
+    // the same walk listStudioSessions and closeOutSpecOnPromote make.
+    type LineageRow = { parent_id: string | null };
+    let specIds: string[] = [];
+    let lineageRead: "ok" | "skipped" | "failed" = "skipped";
+    const lin = await supabase
+      .from("artifact_lineage")
+      .select("parent_id")
+      .eq("parent_kind", "prd")
+      .eq("child_kind", "mission")
+      .eq("child_id", mission.id)
+      .is("valid_to", null)
+      .limit(20);
+    if (lin.error) {
+      lineageRead = "failed";
+    } else {
+      lineageRead = "ok";
+      for (const r of (lin.data ?? []) as LineageRow[]) {
+        if (r.parent_id && !specIds.includes(r.parent_id)) specIds.push(r.parent_id);
+      }
+    }
+    let linkedSpecs: Array<{ id: string; title: string | null; status: string | null }> = [];
+    if (specIds.length) {
+      const { data: prdRows, error: prdErr } = await supabase
+        .from("prds")
+        .select("id,title,status")
+        .eq("workspace_id", workspaceId)
+        .in("id", specIds);
+      if (prdErr) throw new Error(prdErr.message);
+      linkedSpecs = ((prdRows ?? []) as typeof linkedSpecs).sort(
+        (x, y) => specIds.indexOf(x.id) - specIds.indexOf(y.id),
+      );
+    }
+
+    // Evidence = the Trust Ledger receipt sources carrying this mission:
+    // decisions, approvals, learnings. Counted EXACT server-side (head:true),
+    // never length-of-a-page, so a busy run cannot be reported smaller than it
+    // was. decisions carries a NOT NULL workspace_id, so it takes the belt;
+    // learnings and agent_approvals predate workspaces on some rows and a belt
+    // over their nullable column would report less evidence than exists -- the
+    // proven mission id is the tenant guarantee for those two.
+    const [dec, apr, lrn] = await Promise.all([
+      supabase.from("decisions").select("id", { count: "exact", head: true })
+        .eq("workspace_id", workspaceId)
+        .eq("mission_id", mission.id),
+      supabase.from("agent_approvals").select("id", { count: "exact", head: true })
+        .eq("mission_id", mission.id),
+      supabase.from("learnings").select("id", { count: "exact", head: true })
+        .eq("mission_id", mission.id),
+    ]);
+    if (dec.error) throw new Error(dec.error.message);
+    if (apr.error) throw new Error(apr.error.message);
+    if (lrn.error) throw new Error(lrn.error.message);
+
+    return {
+      id: mission.id,
+      title: mission.title,
+      goal: mission.goal,
+      status: mission.status,
+      created_at: mission.created_at,
+      updated_at: mission.updated_at,
+      completed_at: mission.completed_at,
+      current_agent_slug: latestRun?.agent_slug ?? null,
+      runs: runs.map((r) => ({
+        id: r.id,
+        status: r.status,
+        agent_slug: r.agent_slug,
+        failure_kind: r.failure_kind,
+      })),
+      latest_checkpoint: checkpointRow
+        ? {
+            run_id: checkpointRow.run_id,
+            step_index: checkpointRow.step_index,
+            created_at: checkpointRow.created_at,
+            trace_id: checkpointRow.trace,
+          }
+        : null,
+      changesets: ((csRows ?? []) as Array<{
+        id: string;
+        status: string;
+        title: string | null;
+        summary: string | null;
+        repo: string;
+        branch: string | null;
+        pr_number: number | null;
+        pr_url: string | null;
+        created_at: string;
+        updated_at: string;
+      }>),
+      evidence_count:
+        (dec.count ?? 0) + (apr.count ?? 0) + (lrn.count ?? 0),
+      linked_specs: linkedSpecs,
+      lineage_read: lineageRead,
+    };
+  },
+});
+
+const buildChangesetHistory = def({
+  name: "build.changeset_history",
+  description:
+    'List this workspace\'s MERGED changesets, newest first: what each changed, its pull request, when it merged, and the spec it shipped for. Check here before proposing anything similar, so work that already merged is built on rather than rebuilt.',
+  category: "read",
+  argsSchema: z.object({
+    limit: z.number().int().min(1).max(50).optional(),
+  }),
+  preview: (a) => `List merged changesets (${a.limit ?? 20})`,
+  run: async (a, { supabase, workspaceId }) => {
+    if (!workspaceId)
+      throw new Error("build.changeset_history runs inside a workspace, and this run has none.");
+    const { data, error } = await supabase
+      .from("studio_changesets")
+      .select("id,title,summary,pr_url,pr_number,prd_id,updated_at")
+      .eq("workspace_id", workspaceId)
+      .eq("status", "merged")
+      .order("updated_at", { ascending: false })
+      .limit(a.limit ?? 20);
+    if (error) throw new Error(error.message);
+    const csRows = (data ?? []) as Array<{
+      id: string;
+      title: string;
+      summary: string | null;
+      pr_url: string | null;
+      pr_number: number | null;
+      prd_id: string | null;
+      updated_at: string;
+    }>;
+    if (!csRows.length) return { merged: [] };
+
+    // Spec titles enriched, errors never swallowed: a failed read would render
+    // every merge as shipping for nothing.
+    const prdIds = [...new Set(csRows.map((r) => r.prd_id).filter((p): p is string => !!p))];
+    const specTitle = new Map<string, string>();
+    if (prdIds.length) {
+      const { data: prdRows, error: prdErr } = await supabase
+        .from("prds")
+        .select("id,title")
+        .eq("workspace_id", workspaceId)
+        .in("id", prdIds);
+      if (prdErr) throw new Error(prdErr.message);
+      for (const p of (prdRows ?? []) as Array<{ id: string; title: string }>) {
+        specTitle.set(p.id, p.title);
+      }
+    }
+
+    return {
+      merged: csRows.map((r) => ({
+        id: r.id,
+        title: r.title,
+        summary: r.summary,
+        pr_url: r.pr_url,
+        pr_number: r.pr_number,
+        merged_at: r.updated_at,
+        spec: r.prd_id ? { id: r.prd_id, title: specTitle.get(r.prd_id) ?? null } : null,
+      })),
+    };
+  },
+});
+
 /**
  * roadmap.move — Plan stage.
  * Moves an opportunity to a Now/Next/Later roadmap bucket (or back to backlog),
@@ -5759,6 +6118,9 @@ export const TOOL_REGISTRY: Record<string, ToolDef> = Object.fromEntries(
     shipListReleases,
     shipGetRelease,
     shipInProduction,
+    buildListSessions,
+    buildGetRun,
+    buildChangesetHistory,
     roadmapMove,
     backlogPrioritize,
     agentHandoff,

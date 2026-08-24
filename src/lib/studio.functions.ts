@@ -124,7 +124,6 @@ export type StudioSessionListItem = {
 export type StudioRunDetail = {
   run_id: string;
   status: string;
-  model: string | null;
   created_at: string;
   last_checkpoint_at: string | null;
   step_index: number | null;
@@ -2525,63 +2524,6 @@ export const enforceTouchList = createServerFn({ method: "POST" })
     return { ok: true, removed };
   });
 
-/** Re-read CI for the session's PR (manual refresh from the PR & CI tab). */
-export const refreshStudioCi = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => z.object({ missionId: z.string().uuid() }).parse(i))
-  .handler(async ({ context, data }) => {
-    const { supabase, userId } = context;
-    const db = supabase as unknown as SupabaseClient;
-    const { data: csRow } = await db
-      .from("studio_changesets")
-      .select("id,pr_number,workspace_id")
-      .eq("mission_id", data.missionId)
-      .neq("status", "abandoned")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    const prNumber = (csRow as { pr_number?: number | null } | null)?.pr_number;
-    if (!prNumber) throw new Error("No PR on this session yet");
-    const ciRead = TOOL_REGISTRY["github.ci.read"];
-    // Read once and reuse: the tool ctx and the trail row must agree on which
-    // tenant this refresh belongs to, and deriving it twice invites them to drift.
-    const changesetWorkspaceId =
-      (csRow as { workspace_id?: string | null } | null)?.workspace_id ?? null;
-    const result = (await ciRead.run(
-      { pr_number: prNumber },
-      {
-        supabase,
-        userId,
-        missionId: data.missionId,
-        workspaceId: changesetWorkspaceId,
-      },
-    )) as { [k: string]: StudioJson };
-    // Persist so getStudioSession's snapshot reflects manual refreshes too.
-    //
-    // Stamped explicitly rather than left to the column default. The default is
-    // `current_user_default_workspace()`, which answers "this person's default
-    // workspace" — not "the workspace this changeset is in". Those are the same
-    // value for a single-workspace account and different for anyone else, so the
-    // default files one tenant's CI trail under another tenant the moment a
-    // person works outside their default. The changeset already knows the right
-    // answer and it is two lines above.
-    //
-    // This path survived the tenancy retrofit only because it runs behind
-    // `requireSupabaseAuth`, so `auth.uid()` resolves and the default returns
-    // something. The agent loop has no end-user JWT, so the same omission there
-    // returned NULL against a NOT NULL column and silently discarded every row —
-    // see the note at ai/loop.server.ts:1596.
-    await db.from("tool_calls").insert({
-      user_id: userId,
-      workspace_id: changesetWorkspaceId,
-      tool_name: "github.ci.read",
-      args: { pr_number: prNumber },
-      result,
-      ok: true,
-      latency_ms: 0,
-    });
-    return { ci: result };
-  });
 
 // SANDBOX: previewable file types + a payload cap for the $0 self-contained preview.
 const PREVIEWABLE_HTML = /\.html?$/i;

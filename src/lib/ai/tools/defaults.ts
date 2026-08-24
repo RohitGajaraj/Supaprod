@@ -168,6 +168,14 @@ export const TOOL_DEFAULTS: Readonly<
   // -of-automation the canon rejects. The consequences it protects against
   // (studio.commit, pr.open, pr.merge) keep their gates one line below.
   "studio.checks.run": { mode: "auto", enabled: true, label: "Run the checks in a sandbox" },
+  // BUILD'S READ DOOR. Auto like every other read: the station carried eleven
+  // write tools and zero reads, so an agent could commit, open PRs and merge
+  // but could not ask "what did previous builds change?", "did they merge?",
+  // "why did they fail?" -- and a crew that cannot look at past runs repeats
+  // them.
+  "build.list_sessions": { mode: "auto", enabled: true, label: "List recent build runs" },
+  "build.get_run": { mode: "auto", enabled: true, label: "Read a build run" },
+  "build.changeset_history": { mode: "auto", enabled: true, label: "List merged changesets" },
   "studio.commit": { mode: "confirm", enabled: true, label: "Commit a change" },
   "studio.fix.commit": { mode: "auto", enabled: true, label: "Commit a fix" },
   "studio.sync_branch": { mode: "auto", enabled: true, label: "Sync a branch" },

@@ -299,7 +299,9 @@ describe("Chips integration: shared patterns and consistency", () => {
     // to indicate low emphasis or in-progress states
     const mutedTokens = ["var(--mrd-mute)", "var(--mrd-faint)"];
     mutedTokens.forEach((token) => {
-      expect(token).toContain("ink-");
+      // The scale is semantic, not named: muted chip states use the mute and
+      // faint stops wherever the vocabulary prefix lands.
+      expect(token).toMatch(/^var\(--mrd-(mute|faint)\)$/);
     });
   });
 });

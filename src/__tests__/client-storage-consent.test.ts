@@ -164,8 +164,15 @@ function storageWrites(): { store: "local" | "session"; key: string; where: stri
   const writes: { store: "local" | "session"; key: string; where: string }[] = [];
   for (const file of clientSources()) {
     const source = readFileSync(file, "utf8");
-    const code = stripComments(source);
     const where = relative(REPO, file);
+    let code = stripComments(source);
+    // The preview auth adapter FORWARDS the SDK's own storage calls
+    // (localStorage.setItem(key, value) with a runtime key); its contents are
+    // the Supabase auth token, asserted at the configuration site below, not
+    // a product key this policy classifies.
+    if (where.endsWith("integrations/supabase/previewAuthStorage.ts")) {
+      code = code.replace("localStorage.setItem(key, value);", "");
+    }
     // The first argument runs to the comma that closes it. Keys here are literals,
     // identifiers or short templates, none of which contain a comma.
     for (const match of code.matchAll(/([A-Za-z_$][\w$.]*)\s*\.\s*setItem\(\s*([^,]+),/g)) {

@@ -173,6 +173,33 @@ const CONSEQUENCES: Record<string, ToolConsequence> = {
     reversible: "reversible",
     undo: "Nothing to undo; read-only.",
   },
+  /*
+   * ── THE BUILD READS, CATALOGUED WITH THE TOOLS THAT NEED THEM ────────────
+   * Build carried eleven write tools and zero reads onto its own record: the
+   * crew could commit and merge but not ask "what did previous builds change,
+   * did they merge, why did they fail?" Registered as reads beside their
+   * brain.*, prd.* and ship.* siblings; without these rows they score `high`
+   * on toolRisk and are silently demoted from auto to confirm -- a permission
+   * click on CHECKING WHAT WAS ALREADY BUILT is exactly the click that makes an
+   * agent re-propose failed work.
+   */
+  "build.list_sessions": {
+    effect:
+      "Lists this workspace's recent build runs with their status and latest changeset state.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
+  "build.get_run": {
+    effect:
+      "Reads one build run in full: goal, agent, changesets, checkpoint and recorded evidence.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
+  "build.changeset_history": {
+    effect: "Lists this workspace's merged changesets, newest first, with their pull requests.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
   "prd.link_issue": {
     effect: "Links the spec to a tracker issue.",
     reversible: "reversible",
@@ -608,6 +635,11 @@ const READ_ONLY_TOOLS = new Set<string>([
   "ship.list_releases",
   "ship.get_release",
   "ship.in_production",
+  // The build reads (registry.server.ts build.*): recent runs, one run, merged
+  // changesets -- all database reads inside the workspace.
+  "build.list_sessions",
+  "build.get_run",
+  "build.changeset_history",
 ]);
 
 /** The mirror above as a list, exported for the drift guard only. The guard has
@@ -1393,6 +1425,27 @@ const RISK_PROFILE: Record<string, ToolRiskProfile> = {
     changeSurface: "narrow",
   },
   "ship.in_production": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  // The build reads: internal workspace reads that hand back exactly what is
+  // stored (recent runs, one run, merged changesets), `verified` like their
+  // brain.*, prd.* and ship.* siblings above.
+  "build.list_sessions": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  "build.get_run": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  "build.changeset_history": {
     dataExposure: "internal",
     opsImpact: "none",
     verificationGap: "verified",
