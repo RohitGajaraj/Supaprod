@@ -1814,8 +1814,6 @@ html[data-motion="off"] .ai-pulse-text {
      outlines) resolves to this family. Stock Geist #0090ff stays retired,
      and violet is retired from every AI treatment. */
   --ds-blue-600: #5c9bf0;
-  --ds-blue-700: #4a83d6;
-  --ds-blue-800: #3a6fc2;
   --ds-blue-900: #9dc4fa;
   --ds-blue-1000: #e0eefe;
   --ds-red-100: #330a11;
@@ -1864,14 +1862,8 @@ html[data-motion="off"] .ai-pulse-text {
   --ds-motion-overlay-duration: 0.3s;
   --ds-motion-popover-duration: 0.2s;
   --ds-size-small: 32px;
-  --ds-size-medium: 36px;
-  --ds-size-large: 40px;
   --ds-popover-padding: 6px;
-  --ds-popover-row-height: 36px;
   --ds-popover-row-radius: 6px;
-  --ds-z-drawer: 200;
-  --ds-z-modal: 300;
-  --ds-z-menu: 2001;
   /* THE FOCUS RING IS NOT THE BRAND ACCENT. Founder ruling 2026-08-15, and it
      reverses DESIGN-TEMPO.md §2, which put the ember accent here. Two reasons
      the reversal is right rather than a taste swap:
@@ -2016,8 +2008,6 @@ html[data-motion="off"] .ai-pulse-text {
   /* Light theme: the same rich hue ~215 family, deepened for AA on white
      (600 is the link/accent step: 4.5+ contrast on #fff). */
   --ds-blue-600: #2e6ed6;
-  --ds-blue-700: #2560c4;
-  --ds-blue-800: #1d51ad;
   --ds-blue-900: #1a478f;
   --ds-blue-1000: #143463;
   --ds-red-100: #ffeef0;

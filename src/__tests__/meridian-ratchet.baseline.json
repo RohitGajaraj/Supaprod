@@ -15,7 +15,7 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1987,
+  "totalOccurrences": 1972,
   "fileCount": 167,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
@@ -370,7 +370,7 @@
       "--font-pixel": 1
     },
     "src/components/onboarding/ObsidianOnboarding.tsx": {
-      "--ds-": 48,
+      "--ds-": 47,
       "--font-pixel": 1,
       "import:components/obsidian": 1,
       "usage:components/obsidian": 1
@@ -620,7 +620,7 @@
       "raw-colour": 8
     },
     "src/styles.css": {
-      "--ds-": 289,
+      "--ds-": 279,
       "--text-": 33,
       "--hairline": 30,
       "--madder": 3,
@@ -628,7 +628,7 @@
       "--font-pixel": 2,
       "--raised": 6,
       "data-obsidian": 33,
-      "raw-colour": 146
+      "raw-colour": 142
     },
     "src/styles/decide.css": {
       "--sp-": 1

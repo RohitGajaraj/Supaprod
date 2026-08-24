@@ -279,7 +279,7 @@ const CRITIC_LABEL = "Reading your belief";
 const INPUT_STYLE: React.CSSProperties = {
   width: "100%",
   minWidth: 0,
-  height: "var(--ds-size-medium)",
+  height: 36,
   background: "var(--ds-background-100)",
   border: "1px solid var(--ds-gray-400)",
   borderRadius: "var(--ds-radius-small)",
