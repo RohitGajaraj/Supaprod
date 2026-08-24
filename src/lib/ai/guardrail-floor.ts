@@ -67,11 +67,38 @@ export const GUARDRAIL_FLOOR: GuardrailRule[] = [
     "redact",
     "both",
   ),
+  /*
+   * THE UUID EXCLUSION, AND IT IS NOT COSMETIC.
+   *
+   * MEASURED 2026-08-25 in the live workspace. This rule redacted the leading
+   * run of any UUID whose first segment is digits and hyphens, because a UUID
+   * is literally "a digit, then eight-or-more of [digit space ( ) . -], then a
+   * digit". Two of the four PRDs in that workspace matched. What a station
+   * downstream then received was:
+   *
+   *   PRD id [REDACTED:pii]e-4f49-b5b2-12f21e858042
+   *
+   * and `ux-architect` answered, correctly and uselessly: "the PRD ID is
+   * redacted and could not be located. design.draft requires a valid,
+   * unredacted UUID to proceed - no fallback or inference is permitted."
+   *
+   * So the guardrail meant to protect a person from leaked phone numbers was
+   * silently severing the handoff between stations, which is the one thing this
+   * product exists to do. The station ran, filed nothing, and held
+   * `produced-nothing` - a failure that looks like an agent being unhelpful and
+   * is actually us shredding its input.
+   *
+   * The boundaries are the whole fix: a phone number is never immediately
+   * flanked by a hex character or a hyphen, and a UUID's interior always is.
+   * Verified against the five real UUIDs in that workspace (zero now redacted)
+   * and five phone shapes including E.164 and bare digits (all five still
+   * caught).
+   */
   floorRule(
     "floor-pii-phone",
     "Phone number",
     "pii",
-    "\\+?\\d[\\d\\s().-]{7,}\\d",
+    "(?<![0-9A-Fa-f-])\\+?\\d[\\d\\s().-]{7,}\\d(?![0-9A-Fa-f-])",
     "redact",
     "both",
   ),
