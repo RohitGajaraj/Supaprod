@@ -4045,3 +4045,38 @@ the letter never says which we missed. The reusable correction:
 `pitch:check` warns the answer bank and baseline are ~600 commits and 18
 migrations stale — **re-derive before the next filing**, which is exactly the
 evidence exposure that rejection points at.
+
+### Addendum, 2026-08-24 ~23:0x — main went red on the obsidian teardown, and the repair had its own error
+
+**Unit 045 deleted nine obsidian components and touched none of their tests**, so
+seven test files imported modules that no longer existed: **9 failures and 8
+errors on main**, blocking both lanes. The unit message reported a green full
+suite; **that was not measured on the tree that was pushed.**
+
+**Every component deletion was deliberate and correct** — checked per exported
+symbol, not by directory. Unit 044 had already retracted a file-by-file attempt
+when `tsc` caught the barrel coupling, and unit 046 finished the directory off
+properly, relocating `TestStationPanel` and its status map into `engine-room/`.
+**Nothing needed recovering.**
+
+**The repair applied `R013`'s distinction:** repoint when the claim outlived the
+file, delete when the subject is gone. `graph-slider` had been relocated into
+`meridian/` deliberately, so its tests repointed; `ask-canvas`, `chart` and
+`pencil-mark` had no successor anywhere, so their tests died with them.
+
+**MY OWN ERROR, and it is the one worth carrying:** the first pass deleted
+`primitives.test.tsx` outright because it imported four dead modules. **It also
+covered three that were alive** — `rgba`, the status word/style map, and
+`VerdictChip`'s tone map — including a humanized-output assertion and
+token-traced colour checks. **Eight tests would have gone silently.**
+
+> **A test file is not one subject.** Deleting it because SOME of its imports died
+> throws away coverage of the ones that did not, and nothing says so.
+
+It was restored and trimmed. Unit 046 then deleted the whole directory, so the
+rescue was superseded — **but the rule stands and the next teardown will hit it
+again.**
+
+**Worth checking next session:** `rgba` is gone entirely, and the humanized-output
+law on status words no longer appears to be asserted anywhere. If that guard
+mattered, it needs a home in `meridian/` or `engine-room/`.
