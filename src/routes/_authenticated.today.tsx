@@ -1396,63 +1396,6 @@ function Today() {
           <FocusNext workspaceId={workspaceId} />
         </div>
 
-        {/* THE GLANCE STRIP. A dashboard earns its name by answering "how much
-            is waiting on me" before the scroll, with each number a door into
-            the section that carries the detail.
-
-            EACH TILE WAITS ON ITS OWN READ, and the strip was the one region on
-            this surface keyed off the union of both. A tile held for the slower
-            read is latency a person pays and gets nothing for -- the same
-            defect this file's own headline note bans for every lane below --
-            so the calls tile stands as soon as the queue has answered and the
-            two run tiles stand on the run record alone. */}
-        <div className="today-glance">
-          {!stillWaiting(queue) && !queue.isError ? (
-            <button
-              type="button"
-              className="today-glance-tile"
-              onClick={() => navigate({ to: "/decide" })}
-            >
-              <span className="today-glance-num">{items.length}</span>
-              <span className="today-glance-label">
-                {items.length === 1 ? "call needs you" : "calls need you"}
-              </span>
-            </button>
-          ) : null}
-          {!stillWaiting(missions) && !missions.isError ? (
-            <>
-              <button
-                type="button"
-                className="today-glance-tile"
-                onClick={() => navigate({ to: "/runs" })}
-              >
-                <span className="today-glance-num">{running.length + stuck.length}</span>
-                <span className="today-glance-label">
-                  {running.length + stuck.length === 1 ? "run live or held" : "runs live or held"}
-                </span>
-              </button>
-              <div className="today-glance-tile today-glance-still">
-                <span className="today-glance-num">{shipped.length}</span>
-                <span className="today-glance-label">
-                  {shipped.length === 1 ? "thing finished since yesterday" : "things finished since yesterday"}
-                </span>
-              </div>
-            </>
-          ) : null}
-        </div>
-
-        {/* THE TRIAGE CARD. One region, four sections, read in the order of
-            what each row costs to undo. See the note on the feed above, where
-            the section list and what each carried over are written out.
-            
-            THE SUB-LINE IS SAID ONLY WHEN BOTH READS HAVE ANSWERED, and it is
-            null while either is in flight: the body already says what is
-            happening, and a summary repeating it is hard ban 10 -- label,
-            sublabel and helper all saying the same thing. This line and that
-            body used to contradict each other on every cold load (a summary
-            that asked two questions over a body asking three); merging the
-            cards merged the rule too -- one read may not answer before it has
-            read. */}
         <div className="today-lanes">
           <Region
             title={FEED_TITLE}
