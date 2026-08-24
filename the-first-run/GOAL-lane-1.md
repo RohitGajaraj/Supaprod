@@ -17,13 +17,16 @@ git pull --rebase origin main
    item in your lane. If your next numbered item says `BLOCKED`, **skip it and take the next
    `READY` one.** Never idle, and never build another lane's item. MAIN LANE adds to this file
    continuously, so **re-pull it rather than waiting for it to grow.**
-2. Read `the-first-run/MISSION.md` — the objective, and it governs every unit you write.
-3. Read `the-first-run/EVIDENCE.md` — the production numbers behind every item in the queue.
-4. Read `the-first-run/DIAGNOSIS.md` — why this mission exists, measured.
-5. Read `coordination/STATUS.md` — MAIN LANE's current picture.
-6. Read every file in `coordination/answers/` you have not acted on. Those are rulings for you.
-7. Read the last 5 files in `coordination/units/` — both lanes' recent work, so you do not repeat it.
-8. Run `git status`.
+2. Read **`the-first-run/DESIGN-DIRECTION.md`** — the design ruling, and the reference IMAGES it
+   names in `design-reference/mobbin-2026-08/`. **Open the .webp files.** You have no Mobbin access,
+   so those images are the only way to see what is being asked for.
+3. Read `the-first-run/MISSION.md` — the objective, and it governs every unit you write.
+4. Read `the-first-run/EVIDENCE.md` — the production numbers behind every item in the queue.
+5. Read `the-first-run/DIAGNOSIS.md` — why this mission exists, measured.
+6. Read `coordination/STATUS.md` — MAIN LANE's current picture.
+7. Read every file in `coordination/answers/` you have not acted on. Those are rulings for you.
+8. Read the last 5 files in `coordination/units/` — both lanes' recent work, so you do not repeat it.
+9. Run `git status`.
 
 **IF WORK IS HALF-DONE OR UNCOMMITTED, FINISH AND COMMIT IT BEFORE STARTING ANYTHING NEW.** A session
 that died mid-unit leaves a dirty tree; that is your first signal, not a nuisance. Never restart the
