@@ -89,9 +89,38 @@ export async function resolveTrackSpendCap(
     const raw = (data as { default_track_spend_cap_usd: number | string | null })
       .default_track_spend_cap_usd;
 
-    // A workspace that deliberately cleared its ceiling gets none. That is a
-    // human decision on the record, not an accident, so it is obeyed.
-    if (raw === null) return null;
+    /*
+     * A WORKSPACE-LEVEL NULL IS AN OMISSION, NOT A DECISION, and reading it as a
+     * decision left the ceiling off everywhere.
+     *
+     * This line used to return `null` -- no ceiling -- on the reasoning that "a
+     * workspace that deliberately cleared its ceiling gets none. That is a human
+     * decision on the record, not an accident, so it is obeyed." Nobody had ever
+     * made that decision. The column shipped without a default and was never
+     * backfilled, so measured on 2026-08-24 it was null in **all 21 workspaces**
+     * and the track spend ceiling had been off in every one of them since the
+     * column existed. There is no surface anywhere in the product that clears it,
+     * so the human decision it was obeying could not be made.
+     *
+     * It also contradicted this file's own stated fail direction, written three
+     * paragraphs above it: "An unreadable workspace gets the conservative
+     * built-in number, never `null`: `null` means 'no ceiling', so failing to
+     * `null` would let a database hiccup silently remove the limit." An unset
+     * column is the same hazard as an unreadable one and now gets the same
+     * answer.
+     *
+     * Migration `20260824230000` backfilled the 21 rows and gave the column a
+     * default, so this branch should now be unreachable in production. It is
+     * kept, and inverted, because "should be unreachable" is what the old
+     * reasoning was resting on too.
+     *
+     * WHAT THIS DOES NOT CHANGE: the `explicit` parameter above still honours a
+     * per-track `null` as "no ceiling on this one". That one really is a human
+     * act, on a single piece of work, and `driveTrackOnce` passes
+     * `row.spend_cap_usd ?? undefined`, so a null COLUMN can never arrive here
+     * wearing that meaning.
+     */
+    if (raw === null) return DEFAULT_TRACK_SPEND_CAP_USD;
 
     const n = Number(raw);
     return Number.isFinite(n) && n > 0 ? n : DEFAULT_TRACK_SPEND_CAP_USD;

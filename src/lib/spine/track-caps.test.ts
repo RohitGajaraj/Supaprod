@@ -52,8 +52,35 @@ describe("the track spend ceiling", () => {
       "w1",
       undefined,
     );
-    // A workspace row with NULL is "no ceiling", a deliberate decision, so it is
-    // obeyed rather than replaced by the built-in.
+    /*
+     * A WORKSPACE-LEVEL NULL IS AN OMISSION, so it gets the built-in number.
+     *
+     * This assertion used to read `toBeNull()`, on the reasoning that a null
+     * workspace column is a deliberate "no ceiling". **The test's own name has
+     * always said the opposite** -- "falls back to the built-in when the
+     * workspace has NOT SET one" -- and the name was the half that was right.
+     * Measured 2026-08-24: null in all 21 workspaces, a column with no default
+     * that was never backfilled, and no surface anywhere that clears it. So the
+     * decision it claimed to obey had never been made and could not be made, and
+     * the effect was that the track spend ceiling was off everywhere.
+     *
+     * Migration `20260824230000` backfilled the rows and set the default.
+     */
+    expect(cap).toBe(DEFAULT_TRACK_SPEND_CAP_USD);
+  });
+
+  /**
+   * The per-track escape hatch is untouched, and this is what says so. An
+   * explicit `null` ARGUMENT is a person saying "no ceiling on this one piece of
+   * work", which is a real decision made in one place about one thing. Only the
+   * COLUMN changed meaning.
+   */
+  it("still honours an explicit per-track null as no ceiling", async () => {
+    const cap = await resolveTrackSpendCap(
+      ws({ data: { default_track_spend_cap_usd: 3 } }),
+      "w1",
+      null,
+    );
     expect(cap).toBeNull();
   });
 
