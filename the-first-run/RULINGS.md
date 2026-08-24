@@ -273,6 +273,60 @@ themselves unadopted**, so the answer is usually "use the one that exists".
 Settings. **Today is first because it is the post-auth landing**, and backlog item 2 replaces it with
 job cards anyway — so the review must happen before that, not after.
 
+## R-13 · R-01 REVISED. The left pane is a transcript, not a station map — 2026-08-25
+
+**This supersedes the second half of R-01. The first half stands: stations are never navigation.**
+
+**The evidence that changed it.** Anthropic shipped the ticking checklist, measured it, and **turned
+it off**: `TodoWrite` is *"Disabled by default"*, and *"Claude keeps track of multi-step work without
+a written checklist, and Claude Code doesn't provide the tools that fill this list, so it stays
+empty."* Across Claude Code, Codex/Symphony, Jules, Antigravity, Devin and Wispr Flow, **not one
+renders a lifecycle coordinate.** Full argument: `FRONTIER-BRIEF.md` §1.
+
+**The distinction that settles it, and it is not "steps are bad".**
+
+| Shape | What it is | Verdict |
+| --- | --- | --- |
+| **A coordinate** — "step 3 of 7", a seven-row map that is always on screen | The machine's model of itself, imposed on the person. Tells you where you are in OUR process | **Killed.** This is what Anthropic removed |
+| **A transcript** — an append-only stream of what the agent did, each entry carrying what it produced, the live one still moving | What actually happened, newest last. Tells you what you now HAVE | **This is what we build** |
+
+**Why the Emergent reference does not overturn this.** Emergent draws a *deploy*: fixed length, known
+in advance, every step mandatory, no branch. A seven-station product lifecycle is none of those — it
+waives stations, reopens them, and skips whole stretches when work enters at Plan. **A progress bar
+over a route that changes is a lie with a clock on it.**
+
+**So, ruled:**
+
+- **No persistent seven-row station widget.** Backlog item 5 as originally written is **cancelled**.
+- **The left pane is the transcript.** `TrackActivity` already builds exactly this and already carries
+  the handoff — the moment one agent gives the work to the next — which is the product's whole claim
+  and is strictly more informative than a coordinate.
+- **A station is named in passing, at the moment it changes**, as one line in the stream: *"Plan →
+  Design. The spec is written."* It is a marker inside the transcript, never a widget beside it.
+- **The footer carries MODE, not position** — what the agent is allowed to do right now, and the one
+  control that changes it. Claude Code's footer says `⏵⏵ accept edits on`; it never says step 3 of 7.
+- **`run-rows.tsx` is still the vocabulary** (`MERIDIAN-ADOPTION.md`) — `RunGlyph`, `RunClock`,
+  `RunSubject`, `RunRail`. Those draw transcript entries perfectly. Only the seven-row map dies.
+
+**What the person can still answer at a glance** — the question a coordinate was meant to serve:
+*"what is happening now, and what do I have?"* The transcript answers both better, because it carries
+the artifacts. *"How far through am I?"* is a question about our process, and it is not theirs.
+
+## R-14 · No outreach until the loop runs. Founder's call, and it is right — 2026-08-25
+
+**Founder, holding the design-partner kit deliberately:** *"if a product is not solid and I myself
+could not see the real outcome, how would I reach out to a user... it does not make any value. Once
+you get this, act and show me the real outcome."*
+
+**Ruled, and MAIN stops recommending otherwise.** The 0-of-25 figure in `FRONTIER-BRIEF.md` §2 and
+`market-validation-2026-08.md` §7.1 is **not a failure of follow-through**. Sending 25 people to a
+product where no journey has ever finished spends the one asset a pre-launch company cannot rebuy —
+**the first impression of 25 named people who were willing to look.**
+
+**The gate:** outreach opens when a person can watch a run go from the first station to the last and
+be told whether it worked. Not before. **`docs/pitch/design-partner-kit.md` is HELD, not late**, and
+any document counting it as overdue is corrected to say so.
+
 ---
 
 ## Open, and I have not ruled yet
