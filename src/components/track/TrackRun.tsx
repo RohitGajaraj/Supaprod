@@ -95,33 +95,30 @@ export function TrackRun({ trackId }: { trackId: string }) {
         </Action>
 
         {run.isError ? (
-          <Row>
-            <Line>The walk could not start. Nothing was moved.</Line>
-          </Row>
+          <Row lead="The walk could not start. Nothing was moved." />
         ) : null}
 
         {result ? (
           <>
-            <Row>
-              <Line>
-                {STOPPED_LINE[result.stopped]}
-                {result.more ? " Run it again to continue." : ""}
-              </Line>
-            </Row>
+            <Row
+              lead={STOPPED_LINE[result.stopped]}
+              sub={result.more ? "Run it again to continue." : undefined}
+            />
             {/*
              * EVERY SEAT, INCLUDING THE ONES THAT FILED NOTHING. A seat that
              * produced no artifact is a real event and the most useful one to
              * see, because it is where a route quietly stops paying off.
              */}
             {result.steps.map((step, i) => (
-              <Row key={`${step.station ?? "none"}-${i}`}>
-                <Line>
-                  {step.line}
-                  {step.produced > 0
-                    ? ` It filed ${step.produced} ${step.produced === 1 ? "thing" : "things"}.`
-                    : ""}
-                </Line>
-              </Row>
+              <Row
+                key={`${step.station ?? "none"}-${i}`}
+                lead={step.line}
+                sub={
+                  step.produced > 0
+                    ? `Filed ${step.produced} ${step.produced === 1 ? "thing" : "things"}.`
+                    : undefined
+                }
+              />
             ))}
           </>
         ) : null}

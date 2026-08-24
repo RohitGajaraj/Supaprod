@@ -15,7 +15,7 @@ const routinesDb = supabaseAdmin as unknown as SupabaseClient;
  * Runs daily at 09:00 UTC (see migration 20260626200000_workspace_steward.sql).
  * Scans every workspace for two staleness signals:
  *
- *   1. Decisions older than 30 days with no supersession recorded (still 'active').
+ *   1. Decisions older than 30 days with no supersession recorded (still pending).
  *      These are candidates for revisit: the Steward asks "is this still the call?"
  *
  *   2. Workspace briefs (current_focus) that haven't been updated in 14+ days.
@@ -119,12 +119,16 @@ export const Route = createFileRoute("/api/public/hooks/steward-tick")({
                 continue;
               }
 
-              // Check 1: stale active decisions (no supersession, older than 30 days)
+              // Check 1: stale unsettled decisions (no supersession, older than
+              // 30 days). THE VALUE IS "pending", NOT "active": the decisions
+              // status vocabulary is pending/approved/rejected, so this check
+              // matched nothing for its whole life and the nudge never fired.
+              // Found by the Decide census's dead-code sweep.
               const { data: staleDecisions } = await supabaseAdmin
                 .from("decisions")
                 .select("id, title, created_at")
                 .eq("workspace_id", ws.id)
-                .eq("status", "active")
+                .eq("status", "pending")
                 .lte("created_at", staleDecisionCutoff)
                 .order("created_at", { ascending: true })
                 .limit(3);
