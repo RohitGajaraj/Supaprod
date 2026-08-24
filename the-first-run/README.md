@@ -29,6 +29,8 @@ context makes them build closer to the mark.
 
 | File | What it is | Who writes it after today |
 | --- | --- | --- |
+| [`BUILD-QUEUE.md`](./BUILD-QUEUE.md) | **The live board.** Every lane's next item, with status. MAIN is the only writer; lanes report by writing into `coordination/units/` | MAIN LANE |
+| [`EVIDENCE.md`](./EVIDENCE.md) | **The production numbers, each with its SQL.** 59 tracks, 58 entered at `sense`, zero reached `learn` | MAIN LANE |
 | [`DIAGNOSIS.md`](./DIAGNOSIS.md) | Why no journey has ever finished, every claim carrying its measurement | MAIN LANE |
 | [`MISSION.md`](./MISSION.md) | The shared reference all three lanes read: objective, lane ownership by path, the wiring order, acceptance | MAIN LANE |
 | `GOAL-*.md` | The three paste-ready goals | MAIN LANE |
@@ -51,6 +53,23 @@ M-D   moat    forecast captured at Decide, graded at Learn, on a REAL workspace,
 L0-C  payoff  the forecast card, and the Learn verdict card
 L1-C  doors   collapse the duplicates and the dead ends; the rail leads to a run
 ```
+
+## What the database said, once I could finally ask it
+
+**59 tracks have ever existed. 58 entered at `sense`. Zero have ever reached `learn`.** The one row
+sitting at `learn/done` is a seeded tenant that entered at `define`, skipping the first two stations.
+
+**45 of 59 are stuck at station one.** 17 thrashing on `needs-evidence` across 51 attempts, burning
+money on a precondition they cannot satisfy. 18 timed out. **And 9 held `waiting-on-a-person` with
+zero attempts — the product decided it needed you, stopped, and never told you.** That is the finding
+that turns your visual-presence instinct from a nice-to-have into the fix: the system has been waiting
+on you nine times over, in silence, for three months.
+
+The cron is not dead — it ran four minutes before I measured. It moved **5 tracks in 24 hours** out of
+59. A journey needs ~21 agent seats, so at that rate one run takes weeks, which for a watching human
+is the same as never.
+
+**And the moat has never closed: 14 real forecasts, 0 ever graded.** Full queries: [`EVIDENCE.md`](./EVIDENCE.md).
 
 ## How you will know it worked
 

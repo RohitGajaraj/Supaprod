@@ -13,13 +13,18 @@ re-read the acceptance list in §7 and find which criterion is not yet true.
 git pull --rebase origin main
 ```
 
-1. Read `the-first-run/MISSION.md` — the objective, and it governs every unit you write.
-2. Read `the-first-run/DIAGNOSIS.md` — why this mission exists, measured.
-3. Read `coordination/STATUS.md` — MAIN LANE's current picture.
-4. Read every file in `coordination/answers/` whose name starts `L0-` or `RL0-` that you have not
+1. Read **`the-first-run/BUILD-QUEUE.md` — THIS IS YOUR WORK SOURCE.** Take the next `READY`
+   item in your lane. If your next numbered item says `BLOCKED`, **skip it and take the next
+   `READY` one.** Never idle, and never build another lane's item. MAIN LANE adds to this file
+   continuously, so **re-pull it rather than waiting for it to grow.**
+2. Read `the-first-run/MISSION.md` — the objective, and it governs every unit you write.
+3. Read `the-first-run/EVIDENCE.md` — the production numbers behind every item in the queue.
+4. Read `the-first-run/DIAGNOSIS.md` — why this mission exists, measured.
+5. Read `coordination/STATUS.md` — MAIN LANE's current picture.
+6. Read every file in `coordination/answers/` whose name starts `L0-` or `RL0-` that you have not
    acted on. Those are rulings addressed to you.
-5. Read the last 5 files in `coordination/units/` — both lanes' recent work, so you do not repeat it.
-6. Run `git status`.
+7. Read the last 5 files in `coordination/units/` — both lanes' recent work, so you do not repeat it.
+8. Run `git status`.
 
 **IF WORK IS HALF-DONE OR UNCOMMITTED, FINISH AND COMMIT IT BEFORE STARTING ANYTHING NEW.** A
 session that died mid-unit leaves a dirty tree; that is your first signal, not a nuisance. Never
@@ -190,7 +195,8 @@ git push origin main
   sweeping the tree picks up another lane's half-finished edits. That is exactly how `main` broke.
 - **Never `git checkout --` anything.** It has destroyed uncommitted work in this repo.
 
-**One file per finished unit** in `coordination/units/`, prefixed `L0-`. Say what you changed, the
+**You do NOT edit BUILD-QUEUE.md — MAIN owns it.** Report a finished item by writing
+**one file per finished unit** in `coordination/units/`, prefixed `L0-`. Say what you changed, the
 actual gate output, and — this matters most — **anything you could not verify.**
 
 **You have no database, no deploy, no Mobbin and no founder access.** Need one? File

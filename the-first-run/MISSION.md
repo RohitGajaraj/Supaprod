@@ -79,3 +79,47 @@ After that the three lanes are independent and pull each other's work in.
   that is a gap in Meridian — file a request, never widen the baseline to pass.
 - **Gates:** `bunx tsc --noEmit`, `bun test`, `bun run lint`. Never pipe a gate into `tail` and trust
   the exit code — the pipe hides it and `main` shipped red that way.
+
+---
+
+## M-C: SSE Event Shape
+
+The `GET /api/tracks/:id/stream` endpoint emits server-sent events using the ask-sse.ts contract format. Event types emitted during track walk:
+
+### Station transition event
+```json
+{
+  "kind": "station",
+  "station": "sense" | "decide" | "define" | "design" | "build" | "ship" | "learn"
+}
+```
+Emitted when the track transitions to a new station during the walk.
+
+### Completion event
+```json
+{
+  "kind": "complete",
+  "reason": "gate" | "paused" | "route-complete",
+  "station": "sense" | "decide" | ... (current station when completed)
+}
+```
+Emitted when the drive completes due to a blocking gate, workspace pause, or route completion.
+
+### Error event
+```json
+{
+  "kind": "error",
+  "error": "error message"
+}
+```
+Emitted if an error occurs during the stream.
+
+### Done event
+```json
+{
+  "kind": "done"
+}
+```
+Emitted at stream end.
+
+Both building lanes consume this stream to render live station transitions and completion status on the run view.
