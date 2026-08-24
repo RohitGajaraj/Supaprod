@@ -225,3 +225,82 @@ they are not alternatives.
 
 The run to prove: one sentence in, zero configuration, `/track/:id`, seven stations, a verdict at
 `learn` naming what was predicted against what happened. Track id, SQL and screenshot land here.
+
+---
+
+## Round 2 — running. Track `cf1ba785-5a1e-4a0e-b9c7-5093bafc9249`
+
+**One sentence: _"Add dark mode and a system-preference theme."_** Entered at `sense`, full
+seven-station path, nothing waived, in the live workspace `0b792d52`. Chosen because a real customer
+asked for it — a Canny signal from 2026-07-09 — so it is concrete enough for Design to design and
+Learn to grade, and it does not depend on telemetry this workspace does not have.
+
+```sql
+INSERT INTO spine_tracks (user_id, workspace_id, title, origin, entry_station, station, path, waived)
+VALUES ('22a73000-ec30-4014-8fa7-a60363241350', '0b792d52-82e2-43e2-adc5-8a26e5c800b4',
+        'Add dark mode and a system-preference theme',
+        'Add dark mode and a system-preference theme, because a customer asked for it in Canny on
+         2026-07-09 and the product ships light only.',
+        'sense', 'sense',
+        '["sense","decide","define","design","build","ship","learn"]'::jsonb, '[]'::jsonb);
+-- cf1ba785-5a1e-4a0e-b9c7-5093bafc9249, created 2026-08-24 23:30:39 UTC
+```
+
+**It has already earned two findings, and neither could have been found by reading code.**
+
+### 23:40 — the first tick, and the wall it hit
+
+The crew ran all three seats inside one tick (23:40:01 scout, :26 researcher, :44
+customer-insights), filed nothing, and held `produced-nothing` for $0.017. The scout's own words:
+
+> *"No signals exist for 'Add dark mode and a system-preference theme'. Verified via
+> `signals.list(tag='dark_mode')` → [] and `workspace.search('dark mode OR system preference OR theme
+> OR canny')` → []."*
+
+**That signal exists.** `Add Dark Mode & System Preference theme in addition to the light theme.`,
+source `canny`, in that workspace, since 2026-07-09. So the question was: why can the search not see
+it?
+
+**Because the index has never held a single signal.** `rag_chunks` holds **17 rows, one embedded, and
+every one of them is a question somebody typed** — *"sso"*, *"what happened with DEC·6416AD?"*, *"can
+we add the dark mode to the app?"*. **The index stores the prompts, never the answers.** Ledger
+**F-19**, fixed in `388900039`.
+
+**This is the answer to the whole pathology.** 72 signals sit in that workspace and **52 of them are
+the agents' own notes recording that they found nothing** — the loop has been indexing its own
+emptiness back into itself, and 18 tracks are stalled at Discover because of it. **Every agent was
+right every time. The tool was blind.**
+
+### 23:50 — the second tick, which did not happen
+
+The track was not driven. The sweep takes the five least-recently-driven open tracks; the workspace
+held **five `given-up` tracks and this one**, all five slots went to work that can never move, and
+the live track sorted sixth. **The tick reported `ok` in 500ms.** Ledger **F-20**, fixed in
+`c61aa55fc`: the sweep now skips the two holds nothing clears.
+
+Not a freeze — a refused track is still stamped, so it sorts to the back and the live one comes round
+next tick — **a halving of throughput, and an invisible one.** Nothing anywhere reports *"this tick
+drove nothing because everything it picked was already dead."*
+
+### What this run is, and what it is not
+
+**It is a diagnostic vehicle, and an unusually productive one.** It is **NOT** the acceptance run,
+and it must not be reported as one: its `sense` attempts were spent against code that has since been
+replaced, and the deploy of those fixes lands mid-run.
+
+**The acceptance run is a FRESH track started after every fix is live**, so that every attempt it
+spends is spent against the code being judged. Anything else is measuring one build with another
+build's failures on its record.
+
+### The one thing that cannot be settled here
+
+Traced end to end tonight: with the default arc, **every** station's filing tool resolves to `auto` —
+`signals.log`, `cluster.trigger`, `decision.record`, `prd.draft`, `design.draft`, `studio.stage`,
+`studio.commit`, `studio.pr.open`, `learning.record`. All are reversible and catalogued low risk.
+
+**`release.publish` is the single exception**, and it is pinned to `review` by founder ruling, can
+never graduate, and is queued as an approval rather than run. **So a run can reach Ship unattended
+and cannot pass it.** The acceptance says *no human touching it mid-run*; the governance floor says a
+human decides the irreversible step. **Both are the founder's and they contradict each other.** Three
+options are on the OPEN list in `RULINGS.md`. Until he picks one, **six of seven stations are
+provable tonight and the seventh is not.**
