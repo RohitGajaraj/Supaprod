@@ -1140,15 +1140,35 @@ export const driveTrackNow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }): Promise<DriveNowResult> => {
-    const { supabase } = context;
+    const { supabase, userId } = context;
     const steps: DriveStep[] = [];
     const startedAt = Date.now();
 
+    /*
+     * OWNERSHIP IS FILTERED HERE AND NOT LEFT TO RLS ALONE, and the reason is
+     * not that RLS is missing. `spine_tracks` carries
+     * `FOR ALL USING (auth.uid() = user_id)`, and every read below goes through
+     * the caller's own token, so today a stranger's track simply does not come
+     * back and this walk answers `not-found`.
+     *
+     * The filter is here because `driveTrackOnce` ENFORCES NOTHING ITSELF. Its
+     * other caller, the sweep in `routes/api/public/hooks/track-tick.ts`, hands
+     * it `supabaseAdmin`, which is correct there and which means the driver has
+     * never had to care who owns a row. So the ONLY thing standing between this
+     * endpoint and driving somebody else's work is which client fetched the
+     * row, and this endpoint SPENDS MONEY on every seat it drives.
+     *
+     * A future refactor that swaps this client for the admin one to fix some
+     * unrelated permission error would remove that gate silently and leave no
+     * failing test behind. Naming the owner in the query costs nothing and
+     * changes no behaviour today, because RLS already returns the same set.
+     */
     const readTrack = async (): Promise<Track | null> => {
       const { data: row } = await supabase
         .from("spine_tracks" as never)
         .select(SELECT)
         .eq("id", data.trackId)
+        .eq("user_id", userId)
         .maybeSingle();
       return row ? rowToTrack(row as unknown as TrackRow) : null;
     };
@@ -1168,7 +1188,11 @@ export const driveTrackNow = createServerFn({ method: "POST" })
         .from("spine_tracks" as never)
         .select(DRIVE_SELECT)
         .eq("id", data.trackId)
+        .eq("user_id", userId)
         .maybeSingle();
+      // Re-checked on EVERY seat, not only on the way in. A walk can span a
+      // minute, and a row that stops being readable partway through must stop
+      // the walk rather than let the loop carry on against a stale copy.
       if (!driveRow) {
         stopped = "not-found";
         break;
