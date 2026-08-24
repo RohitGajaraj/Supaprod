@@ -10,6 +10,31 @@ For what the product is and where every other document lives, read [`README.md`]
 
 ---
 
+---
+
+## ⇢ THE ACTIVE MISSION LIVES IN [`the-first-run/`](./the-first-run/README.md)
+
+**Read [`the-first-run/START-HERE.md`](./the-first-run/START-HERE.md) before doing anything on this
+repo.** Since 2026-08-25 the platform is being **transformed, not extended**, and three lanes are
+building against one backlog. Anything below that predates it is still true about the product; it is
+not the current plan.
+
+| File | What it settles |
+| --- | --- |
+| [`START-HERE.md`](./the-first-run/START-HERE.md) | What we are doing and why, in one page |
+| [`RULINGS.md`](./the-first-run/RULINGS.md) | **THE TIEBREAKER — R-01…R-20. If any two documents in this repo disagree, it wins.** Its OPEN list is what nobody may decide alone |
+| [`BUILD-QUEUE.md`](./the-first-run/BUILD-QUEUE.md) | The single ordered backlog. A lane takes the topmost item **it owns by path** |
+| [`FINDINGS-LEDGER.md`](./the-first-run/FINDINGS-LEDGER.md) | **What was found, FIXED, still OPEN, or investigated and proved FALSE. Read it before re-investigating anything** |
+| [`THE-ONE-SCREEN.md`](./the-first-run/THE-ONE-SCREEN.md) | The target architecture, station by station |
+| [`GOAL-main-lane.md`](./the-first-run/GOAL-main-lane.md) · [`GOAL-lane-0.md`](./the-first-run/GOAL-lane-0.md) · [`GOAL-lane-1.md`](./the-first-run/GOAL-lane-1.md) | The three paste-ready session goals |
+
+**The acceptance, and nothing else counts as done:** one piece of work enters at the first station and
+completes all seven, driven entirely by agents, with no human touching it mid-run, and a person can
+watch it happen on one screen. **In three months this has never happened once** — 59 tracks, 58
+entered at `sense`, zero reached `learn`.
+
+---
+
 ## What you are building
 
 **Supaprod is where product decisions live when agents do the work. It tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call instead of waiting to be asked.**

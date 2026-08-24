@@ -31,6 +31,14 @@ context makes them build closer to the mark.
 | --- | --- | --- |
 | [`BUILD-QUEUE.md`](./BUILD-QUEUE.md) | **The live board.** Every lane's next item, with status. MAIN is the only writer; lanes report by writing into `coordination/units/` | MAIN LANE |
 | [`EVIDENCE.md`](./EVIDENCE.md) | **The production numbers, each with its SQL.** 59 tracks, 58 entered at `sense`, zero reached `learn` | MAIN LANE |
+| [`START-HERE.md`](./START-HERE.md) | **Read first.** What we are doing and why, in one page |
+| [`RULINGS.md`](./RULINGS.md) | **The tiebreaker, R-01…R-20** |
+| [`FINDINGS-LEDGER.md`](./FINDINGS-LEDGER.md) | What was found, FIXED, OPEN, DEFERRED or proved FALSE |
+| [`GAP-AUDIT.md`](./GAP-AUDIT.md) | The 40-finding platform sweep |
+| [`FRONTIER-BRIEF.md`](./FRONTIER-BRIEF.md) | How the labs ship, and the strategic angle |
+| [`THE-ONE-SCREEN.md`](./THE-ONE-SCREEN.md) | The target architecture |
+| [`DESIGN-DIRECTION.md`](./DESIGN-DIRECTION.md) · [`MERIDIAN-ADOPTION.md`](./MERIDIAN-ADOPTION.md) | The design ruling and the component census |
+| [`SPEC-ARTIFACTS.md`](./SPEC-ARTIFACTS.md) · [`SPEC-LAYOUT.md`](./SPEC-LAYOUT.md) · [`SPEC-CONSENT.md`](./SPEC-CONSENT.md) · [`SPEC-ONRAMP.md`](./SPEC-ONRAMP.md) | Build specs, `file:line` on every claim |
 | [`DIAGNOSIS.md`](./DIAGNOSIS.md) | Why no journey has ever finished, every claim carrying its measurement | MAIN LANE |
 | [`MISSION.md`](./MISSION.md) | The shared reference all three lanes read: objective, lane ownership by path, the wiring order, acceptance | MAIN LANE |
 | `GOAL-*.md` | The three paste-ready goals | MAIN LANE |

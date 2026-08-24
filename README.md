@@ -14,6 +14,31 @@
 
 > _Last updated: 2026-08-10_
 
+---
+
+## ⇢ THE ACTIVE MISSION LIVES IN [`the-first-run/`](./the-first-run/README.md)
+
+**Read [`the-first-run/START-HERE.md`](./the-first-run/START-HERE.md) before doing anything on this
+repo.** Since 2026-08-25 the platform is being **transformed, not extended**, and three lanes are
+building against one backlog. Anything below that predates it is still true about the product; it is
+not the current plan.
+
+| File | What it settles |
+| --- | --- |
+| [`START-HERE.md`](./the-first-run/START-HERE.md) | What we are doing and why, in one page |
+| [`RULINGS.md`](./the-first-run/RULINGS.md) | **THE TIEBREAKER — R-01…R-20. If any two documents in this repo disagree, it wins.** Its OPEN list is what nobody may decide alone |
+| [`BUILD-QUEUE.md`](./the-first-run/BUILD-QUEUE.md) | The single ordered backlog. A lane takes the topmost item **it owns by path** |
+| [`FINDINGS-LEDGER.md`](./the-first-run/FINDINGS-LEDGER.md) | **What was found, FIXED, still OPEN, or investigated and proved FALSE. Read it before re-investigating anything** |
+| [`THE-ONE-SCREEN.md`](./the-first-run/THE-ONE-SCREEN.md) | The target architecture, station by station |
+| [`GOAL-main-lane.md`](./the-first-run/GOAL-main-lane.md) · [`GOAL-lane-0.md`](./the-first-run/GOAL-lane-0.md) · [`GOAL-lane-1.md`](./the-first-run/GOAL-lane-1.md) | The three paste-ready session goals |
+
+**The acceptance, and nothing else counts as done:** one piece of work enters at the first station and
+completes all seven, driven entirely by agents, with no human touching it mid-run, and a person can
+watch it happen on one screen. **In three months this has never happened once** — 59 tracks, 58
+entered at `sense`, zero reached `learn`.
+
+---
+
 **Market read complete, 2026-08-11.** The full archive was read, all 679 documents and 5,935,025 words, and then tested a second time against funding, hiring, analyst and engineering evidence from entirely outside it. **Three things changed and they are already applied below:** the moat narrowed from *the record compounds* to **the forecast captured at decision time**, because the record turned out to be backfillable and has been backfilled twice on the record; the words changed to the ones practitioners actually use, because *receipts*, *ledger* and *unattended* score at or near zero in this market's own writing; and the front door stayed the **individual PM or founding PM**, which an earlier cycle had briefly widened.
 
 Evidence: [`docs/research/lennys-corpus-sweep-2026-08.md`](./docs/research/lennys-corpus-sweep-2026-08.md) · outside test [`docs/research/market-validation-2026-08.md`](./docs/research/market-validation-2026-08.md) · the pain in customers' own words [`docs/research/customer-voice.md`](./docs/research/customer-voice.md). Canon: [`docs/strategy/positioning-locked-2026-08.md`](./docs/strategy/positioning-locked-2026-08.md). **What is in flight is not here** — status lives in [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) and nowhere else.
