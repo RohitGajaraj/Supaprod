@@ -60,6 +60,6 @@ Full role: `RULINGS.md` R-09, R-16, R-17, R-20.
   finding is still open before acting** — claims here go stale in days.
 - **Never pipe a gate into `tail`** — it hides the exit code; `main` shipped red that way. **12 test
   failures are pre-existing; do not claim or silently fix them.**
-- **Dev server off** unless a browser check needs it; stop it immediately after.
+- **Dev server off** unless a browser check needs it; stop it after.
 - **Commit after every logical piece and push.** `git commit -F`, never `-m`. Never `git add -A`.
 - **Decide on the founder's behalf while away**, record it in `RULINGS.md`; leave the irreversible.
