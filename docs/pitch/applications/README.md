@@ -1,6 +1,24 @@
 # Accelerator, incubator, residency and grant applications — the master tracker
 
-> ### ❌ Three outcomes are in, all noes — and the third one finally states criteria
+> ### ❌ Four outcomes, all noes — and the fourth is the first with a cause we wrote down BEFORE filing
+>
+> **Campus Founders CF Accelerator Batch #9: REJECTED 2026-08-24.** Filed 2026-08-16. Full record: [`campus-founders/OUTCOME.md`](./campus-founders/OUTCOME.md). Notion card updated.
+>
+> **Their words name no criterion:** *"while your application demonstrated strong potential, we have decided to move forward with teams that more closely match the specific criteria and objectives of the program."* A fit statement with no specifics, so **no reason may be recorded** — the rule below holds. **And do not read "teams" as a comment on solo founding**; it is ordinary usage for companies and treating a plural noun as a verdict is the exact over-read this rule prevents.
+>
+> **Two facts are OURS and were on file before we sent it.**
+>
+> **One — they publish a structural bar we did not meet, and we recorded it as decisive.** CF's criterion 3 is *"Team composition (technical + business founders)"*, with a published exception for exceptional solo founders. This was a solo application, and [`APPLICATION-FINAL.md:213`](./campus-founders/APPLICATION-FINAL.md) says of the team answer, verbatim: ***"This is the answer that decides this application."*** **We applied for a published exception and did not get it — a fact about what we knew going in, NOT a claim about what they decided.** The letter never names a criterion, and it may have been market or stage.
+>
+> **Two — we were cut at the written screen and never reached a pitch.** Pitch presentations ran 08-24 to 08-26 and the decision date was 08-28; the rejection arrived 08-24. **The live form carries no problem, market, defensibility or competitor questions at all — they live in the required deck**, so the DECK was screened. Rewriting form answers in response to this would optimise against a document nobody weighed, which is the lesson EF already taught with *"progress to the next stage"*.
+>
+> ### 🚪 NEW RULE — mark an EXCEPTION APPLICATION as one, before filing
+>
+> **When a programme publishes a structural bar we do not meet and we file against a stated exception, that goes on the tracker card with its own expectation.** Otherwise a no is read as a signal about the product, when the programme told us the odds before we started.
+>
+> **Three of the four rejections carry no product signal at all. This one has a known structural cause that was written down before filing, and the card did not say so.** The `Solo founder` field has `Yes` and `BLOCKED`; **CF is the in-between case neither covers** — a bar with a published exception.
+>
+> ### ❌ Third outcome: Hub71 said no on 2026-08-24, and it finally states criteria
 >
 > **Hub71 Cohort 20: REJECTED 2026-08-24 at 18:19 IST.** Filed 2026-08-17, four days early, so the turnaround was **seven days**. Full record with the verbatim email and the checklist it produced: [`hub71/OUTCOME.md`](./hub71/OUTCOME.md). Notion card updated to `Rejected`.
 >

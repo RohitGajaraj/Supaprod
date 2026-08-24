@@ -504,6 +504,34 @@ Our own pre-filing research recorded that Hub71 *"explicitly sets no minimum tra
 
 ---
 
+## Part 1e — What the Campus Founders REJECTION taught, 2026-08-24
+
+Filed 2026-08-16, rejected 2026-08-24 **before the pitch stage**. Full record: [`campus-founders/OUTCOME.md`](./campus-founders/OUTCOME.md).
+
+**Their letter names no criterion** — *"teams that more closely match the specific criteria and objectives"* — so **no reason is recorded**. And **"teams" is not a comment on solo founding**: it is ordinary usage for companies, and treating a plural noun as a verdict is the over-read the no-invented-reason rule exists to prevent.
+
+### The rule: mark an EXCEPTION APPLICATION before filing, not after
+
+CF publishes criterion 3, *"Team composition (technical + business founders)"*, with a stated exception for exceptional solo founders. **This was a solo application, and we knew it was decisive** — `APPLICATION-FINAL.md:213` says of the team answer, verbatim, *"This is the answer that decides this application."*
+
+> **When a programme publishes a structural bar we do not meet and we file against a stated exception, that goes on the tracker card with its own expectation, before filing.**
+
+Without it, a no reads as a signal about the product when the programme told us the odds before we started. **Three of four rejections carry no product signal at all; this one has a known structural cause written down before filing, and the card did not say so.**
+
+The board's `Solo founder` field has `Yes` and `BLOCKED`. **CF is the in-between case neither covers** — a bar with a published exception. Worth a third value.
+
+### The second lesson: know WHICH artifact is being screened
+
+We were cut on **2026-08-24** while pitch presentations ran 08-24 to 08-26 and the decision date was 08-28. **No pitch slot — the screen ran on the written application and the deck.**
+
+And the live form carries **no problem, market, defensibility or competitor questions at all**; the fill sheet recorded that discovery — *"None of those questions exist. They live in the required pitch deck."*
+
+> **So the DECK was screened, not the answers.** Rewriting form answers in response to this outcome would optimise against a document nobody weighed.
+
+**This is the second time the same lesson has arrived.** EF taught it with *"progress to the next stage"* — a staged process where the filed answers were very likely never the thing being judged. **Before reacting to any rejection, establish which artifact the screen actually read.**
+
+---
+
 ## Part 2 — What worked, and should be repeated
 
 **Read every question off the live form. Never draft against guessed questions.** [`application.md`](./berkeley-skydeck/application.md) was drafted blind and is kept only for comparison; every answer had to be rewritten once the real form was open. **The form is the spec.**
