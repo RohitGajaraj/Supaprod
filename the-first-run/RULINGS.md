@@ -327,6 +327,52 @@ product where no journey has ever finished spends the one asset a pre-launch com
 be told whether it worked. Not before. **`docs/pitch/design-partner-kit.md` is HELD, not late**, and
 any document counting it as overdue is corrected to say so.
 
+## R-15 · Build beside, not underneath. No `/v2` prefix — 2026-08-25
+
+**Founder's concern, and it is the right one:** *"instead of directly going and building, can you use
+a URL... we are not disturbing the main work that is sitting there. Once I verify and I am okay, we
+can move to main."*
+
+**Ruled: the safety he wants is correct, and a parallel route tree is the expensive way to buy it.**
+Three different mechanisms, chosen by what the item actually is.
+
+### 1. A NEW surface that collides with nothing → ship at its FINAL url
+
+`/track/:trackId` is new. It does not touch `/discover`, `/plan`, `/decide` or anything else — those
+files were never opened. **Nothing is being disturbed and there is nothing to protect it from.**
+Putting it at `/v2/track/:id` would buy no safety and cost a rename of every link at promotion time.
+
+### 2. A REPLACEMENT → build it at its own new url, promote with ONE redirect
+
+The landing is the only genuinely risky item, because item 2 replaces the post-auth home.
+
+**So: do not modify `_authenticated.today.tsx`.** Build the new landing at **`/start`**, a new route
+that costs nothing and breaks nothing. `today.tsx` stays exactly as it is, reachable, unchanged.
+
+**Promotion is one line**, and the seam already exists: `src/routes/_authenticated.tsx` already has a
+`beforeLoad` that redirects (`/login`, `/onboarding`). Point it at `/start` instead of `/today`.
+**Reverting is the same line.** The founder can open `/start` any time and compare it against `/today`
+side by side before anything becomes the default — which is exactly what he asked for, and it also
+satisfies the standing rule that a rejected design must remain something he can look at.
+
+### 3. A DELETION → last, and only after the new path is proven
+
+Collapsing the duplicate doors and the 48 redirect routes is the only irreversible move here.
+**It happens after a run has finished end to end, never before.** Backlog item 6 moves behind items
+1-4. Everything else can be undone with a revert; a deleted route with an unknown inbound link cannot.
+
+### Why not the prefix, stated plainly
+
+- It **doubles a route tree that already has 84 entries**, and route count IS the learning curve.
+- Every internal link has to know which world it is in. Links are where this breaks silently.
+- Auth and layout wrappers get duplicated, then **drift** — and drift between two copies of one
+  surface is exactly the arbitrariness failure `run-rows.tsx` was written to end.
+- **Promotion becomes a rewrite of every path.** Under mechanism 2 it is one redirect.
+- Two live code paths mean every future fix must be made twice, and one of them will be forgotten.
+
+**The founder's underlying requirement is fully met:** nothing existing is modified, he verifies at a
+real URL before anything switches, and switching is one reversible line.
+
 ---
 
 ## Open, and I have not ruled yet
