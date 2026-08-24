@@ -53,7 +53,11 @@
 import * as React from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 
+import { Avatar } from "@/components/supaprod/Avatar";
+import { useAvatarChoice } from "@/hooks/use-avatar-choice";
+import { useConfirm } from "@/hooks/use-confirm";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { initialsFrom } from "@/lib/initials";
 import { supabase } from "@/integrations/supabase/client";
 import { IconChevron } from "./icons";
 
@@ -193,11 +197,36 @@ export function AccountMenu({ initials }: { initials: string }) {
   const close = React.useCallback(() => setOpen(false), []);
   const ref = useDismiss(open, close);
   const navigate = useNavigate();
+  const confirm = useConfirm();
+  const [avatarChoice] = useAvatarChoice();
 
-  const signOut = async () => {
+  // AppFrame already holds { email, name } but passes only the derived
+  // initials down, and this file is not free to widen that contract, so the
+  // menu reads the same session itself. Same call, same shape, one extra
+  // cached auth read rather than a second source of truth.
+  const [who, setWho] = React.useState<{ email: string | null; name: string | null }>({
+    email: null,
+    name: null,
+  });
+  React.useEffect(() => {
+    let alive = true;
+    void supabase.auth.getUser().then(({ data }) => {
+      if (!alive) return;
+      const u = data.user;
+      setWho({
+        email: u?.email ?? null,
+        name: (u?.user_metadata?.full_name as string | undefined) ?? null,
+      });
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const signOut = async (scope: "local" | "global") => {
     setLeaving(true);
     try {
-      await supabase.auth.signOut();
+      await supabase.auth.signOut({ scope });
       // A hard navigation, not a router push: signing out has to leave no
       // cached workspace, query or provider state behind in memory. The next
       // person at this machine gets the login page and nothing else.
@@ -208,6 +237,23 @@ export function AccountMenu({ initials }: { initials: string }) {
       setLeaving(false);
     }
   };
+
+  // Signing out everywhere kills live sessions on every device at once, which
+  // is irreversible from where the reader sits, so it gets the same confirm
+  // every destructive action here gets before it runs.
+  const signOutOfEveryDevice = async () => {
+    close();
+    const ok = await confirm({
+      title: "Sign out of every device?",
+      body: "This signs your account out on this device and on every other device where it is signed in. Unsaved work on open pages is not kept.",
+      confirmLabel: "Sign out everywhere",
+      destructive: true,
+    });
+    if (!ok) return;
+    await signOut("global");
+  };
+
+  const displayName = who.name?.trim() || null;
 
   return (
     <div className="sp-scopewrap" ref={ref}>
@@ -223,6 +269,58 @@ export function AccountMenu({ initials }: { initials: string }) {
       </button>
       {open ? (
         <div className="sp-menu" data-align="end" role="menu" aria-label="Your account">
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "6px 10px 10px",
+              marginBottom: 2,
+              borderBottom: "1px solid var(--mrd-line-soft)",
+            }}
+          >
+            {/* The mark chosen in Settings, at the size its preview draws it,
+              with the initials disc as the fallback when nothing is picked.
+              Until now the choice rendered nowhere outside that picker. */}
+            <Avatar
+              seed={displayName ?? who.email ?? ""}
+              initials={initialsFrom(who.email, displayName)}
+              size={34}
+              variant={avatarChoice}
+              title="Your mark"
+            />
+            <span style={{ minWidth: 0 }}>
+              <span
+                style={{
+                  display: "block",
+                  maxWidth: 190,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  fontSize: "var(--mrd-t-base)",
+                  fontWeight: "var(--mrd-w-medium)",
+                  color: "var(--mrd-ink)",
+                }}
+              >
+                {displayName ?? who.email ?? ""}
+              </span>
+              {displayName && who.email ? (
+                <span
+                  style={{
+                    display: "block",
+                    maxWidth: 190,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    fontSize: "var(--mrd-t-label)",
+                    color: "var(--mrd-mute)",
+                  }}
+                >
+                  {who.email}
+                </span>
+              ) : null}
+            </span>
+          </div>
           <button
             type="button"
             role="menuitem"
@@ -234,16 +332,27 @@ export function AccountMenu({ initials }: { initials: string }) {
           >
             Settings
           </button>
-          <div className="sp-menu-rule" />
+          <div style={{ borderTop: "1px solid var(--mrd-line-soft)", margin: "4px 10px" }} />
           <button
             type="button"
             role="menuitem"
             className="sp-menu-item"
             data-danger="true"
             disabled={leaving}
-            onClick={() => void signOut()}
+            onClick={() => void signOut("local")}
           >
             {leaving ? "Signing out" : "Sign out"}
+          </button>
+          <div style={{ borderTop: "1px solid var(--mrd-line-soft)", margin: "4px 10px" }} />
+          <button
+            type="button"
+            role="menuitem"
+            className="sp-menu-item"
+            data-danger="true"
+            disabled={leaving}
+            onClick={() => void signOutOfEveryDevice()}
+          >
+            Sign out of every device
           </button>
         </div>
       ) : null}

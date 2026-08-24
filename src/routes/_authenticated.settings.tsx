@@ -173,6 +173,7 @@ import {
   Action,
   Actions,
   Cell,
+  Door,
   NothingHere,
   NothingYet,
   Num,
@@ -197,6 +198,7 @@ import {
   SPECIALIST_CATALOG,
 } from "@/lib/agent-vocabulary";
 import { toast } from "@/lib/notify";
+import { authErrorMessage } from "@/lib/auth-errors";
 import { supabase } from "@/integrations/supabase/client";
 import { useDensity } from "@/hooks/use-density";
 import { useTheme, type Theme } from "@/hooks/use-theme";
@@ -206,6 +208,13 @@ import { useAvatarChoice } from "@/hooks/use-avatar-choice";
 import { orbBackground, AVATAR_VARIANTS, defaultAvatarVariant } from "@/components/supaprod/Avatar";
 
 import { getProfile, updateProfile } from "@/lib/profile.functions";
+import {
+  deleteWorkspace,
+  ensureDefaultProduct,
+  leaveWorkspace,
+  listWorkspaceMembers,
+  renameWorkspace,
+} from "@/lib/workspaces.functions";
 import { MODELS, AUTO_MODEL } from "@/lib/ai/models";
 import {
   listApiKeys,
@@ -591,7 +600,15 @@ function SettingsPage() {
            drawn only for keyboard focus, so a mouse click still shows nothing. */
         style={{ flex: "1 1 460px", maxWidth: "none" }}
       >
-        {active === "profile" && <ProfileSection />}
+        {active === "profile" && (
+          <>
+            <ProfileSection />
+            {/* A sibling form, not one nested inside ProfileSection's: a form
+                inside a form is invalid HTML and React warns on it. Both
+                flatten into the pane's own 40px column. */}
+            <PasswordRegion />
+          </>
+        )}
         {active === "notifications" && <NotificationsSection />}
 
         {active === "workspace" && <WorkspaceSection scrollToBrief={rawSection === "brief"} />}
@@ -606,7 +623,16 @@ function SettingsPage() {
         )}
         {active === "products" && (
           <>
-            <PageHeading title="Products" sub="What this workspace ships. Missions attach to one." />
+            {/*
+             * SCOPE STATED TRUTHFULLY, 2026-08-24. The old sub claimed missions
+             * attach to a product; the missions table carries no product column
+             * (types.ts Row). What does carry product_id: signals, opportunities,
+             * specs (prds), decisions, docs and tasks.
+             */}
+            <PageHeading
+              title="Products"
+              sub="What this workspace ships. Signals, opportunities and specs are scoped to a product; missions stay workspace-wide."
+            />
             <ProductsTab />
           </>
         )}
@@ -700,6 +726,32 @@ const THEME_CHOICES: { id: Theme; label: string }[] = [
 const DENSITY_CHOICES = [
   { id: "comfortable" as const, label: "Comfortable" },
   { id: "compact" as const, label: "Compact" },
+];
+
+/*
+ * Suggestions for the timezone field, not a gate: free typing still wins, so a
+ * zone outside this list keeps working. The list exists because a free-text
+ * field alone invites garbage ("PST", "GMT+2") that every consumer then has
+ * to parse.
+ */
+const COMMON_TIMEZONES = [
+  "UTC",
+  "America/Los_Angeles",
+  "America/Denver",
+  "America/Chicago",
+  "America/New_York",
+  "America/Sao_Paulo",
+  "Europe/London",
+  "Europe/Berlin",
+  "Europe/Paris",
+  "Africa/Lagos",
+  "Africa/Johannesburg",
+  "Asia/Dubai",
+  "Asia/Kolkata",
+  "Asia/Singapore",
+  "Asia/Tokyo",
+  "Australia/Sydney",
+  "Pacific/Auckland",
 ];
 
 /** A choice made of two or three named options. */
@@ -875,13 +927,22 @@ function ProfileSection() {
          * decision; removing stored data is a migration and a separate one.
          */}
         <Line label="Timezone" sub="Every time on every surface is read in it.">
-          <Input
-            aria-label="Timezone"
-            style={{ width: 240 }}
-            value={timezone}
-            onChange={(e) => setTimezone(e.target.value)}
-            placeholder="America/New_York"
-          />
+          <span style={{ display: "flex", width: 240 }}>
+            <Input
+              aria-label="Timezone"
+              list="tz-list"
+              style={{ width: 240 }}
+              value={timezone}
+              onChange={(e) => setTimezone(e.target.value)}
+              placeholder="America/New_York"
+            />
+            {/* Invisible suggestions; the binding above is unchanged. */}
+            <datalist id="tz-list">
+              {COMMON_TIMEZONES.map((tz) => (
+                <option key={tz} value={tz} />
+              ))}
+            </datalist>
+          </span>
         </Line>
         {/*
          * THE CHOSEN MARK IS DRAWN AT SIZE, which is the bug the founder reported:
@@ -994,6 +1055,147 @@ function ProfileSection() {
 }
 
 /* ================================================================== *
+ * Password
+ *
+ * Changed while signed in, which this product had nowhere to do. Supabase
+ * will set a new password for ANY live session, so the current one is
+ * proven with a fresh sign-in before updateUser runs; without that step,
+ * whoever holds an open tab owns the account. All client-side auth calls,
+ * the same APIs login.tsx and reset-password.tsx use.
+ * ================================================================== */
+function PasswordRegion() {
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const mismatch = confirm.length > 0 && next !== confirm;
+  const tooShort = next.length > 0 && next.length < 8;
+  const canSubmit =
+    current.length > 0 && next.length >= 8 && !mismatch && !tooShort;
+
+  const changePassword = useMutation({
+    mutationFn: async () => {
+      // The signed-in user's email comes from the session, the way login.tsx
+      // and the create-workspace flow in this file already read it.
+      // (`getCurrentUser` does not exist on the installed auth-js; `getUser`
+      // is its equivalent here.)
+      const { data: auth, error: whoError } = await supabase.auth.getUser();
+      const email = whoError ? null : (auth.user?.email ?? null);
+      if (!email) throw new Error("Your session ended. Sign in again, then retry.");
+      // Re-authentication first. A wrong current password surfaces through
+      // the signin mapping, which says so plainly.
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password: current,
+      });
+      if (signInError) throw new Error(authErrorMessage(signInError, "signin"));
+      const { error: updateError } = await supabase.auth.updateUser({ password: next });
+      if (updateError) throw new Error(authErrorMessage(updateError, "reset-update"));
+    },
+    onSuccess: () => {
+      setCurrent("");
+      setNext("");
+      setConfirm("");
+      setError(null);
+      toast.success("Password changed");
+    },
+    onError: (e: Error) => setError(e.message),
+  });
+
+  return (
+    <Region title="Password">
+      <form
+        className="flex flex-col gap-mrd-5"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (canSubmit && !changePassword.isPending) changePassword.mutate();
+        }}
+      >
+        <Field label="Current password" htmlFor="pw-current">
+          <Input
+            id="pw-current"
+            type="password"
+            autoComplete="current-password"
+            value={current}
+            disabled={changePassword.isPending}
+            onChange={(e) => {
+              setCurrent(e.target.value);
+              setError(null);
+            }}
+          />
+        </Field>
+        <Field label="New password" hint="At least 8 characters." htmlFor="pw-new">
+          <Input
+            id="pw-new"
+            type="password"
+            autoComplete="new-password"
+            minLength={8}
+            value={next}
+            aria-invalid={tooShort || undefined}
+            disabled={changePassword.isPending}
+            onChange={(e) => {
+              setNext(e.target.value);
+              setError(null);
+            }}
+          />
+        </Field>
+        <Field label="Confirm new password" htmlFor="pw-confirm">
+          <Input
+            id="pw-confirm"
+            type="password"
+            autoComplete="new-password"
+            value={confirm}
+            aria-invalid={mismatch || undefined}
+            aria-describedby={mismatch ? "pw-mismatch" : undefined}
+            disabled={changePassword.isPending}
+            onChange={(e) => {
+              setConfirm(e.target.value);
+              setError(null);
+            }}
+          />
+        </Field>
+
+        {tooShort ? (
+          <p role="alert" style={{ fontSize: "var(--mrd-t-small)", color: "var(--mrd-fail)" }}>
+            The new password needs at least 8 characters.
+          </p>
+        ) : null}
+        {mismatch ? (
+          <p
+            id="pw-mismatch"
+            role="alert"
+            style={{ fontSize: "var(--mrd-t-small)", color: "var(--mrd-fail)" }}
+          >
+            The two new passwords do not match.
+          </p>
+        ) : null}
+        {error ? (
+          <p
+            id="pw-error"
+            role="alert"
+            style={{ fontSize: "var(--mrd-t-small)", color: "var(--mrd-fail)" }}
+          >
+            {error}
+          </p>
+        ) : null}
+
+        <Actions>
+          <Action
+            variant="primary"
+            type="submit"
+            busy={changePassword.isPending}
+            disabled={!canSubmit || changePassword.isPending}
+          >
+            {changePassword.isPending ? "Changing" : "Change password"}
+          </Action>
+        </Actions>
+      </form>
+    </Region>
+  );
+}
+
+/* ================================================================== *
  * Workspace - the brief, the voice, the people
  * ================================================================== */
 
@@ -1050,6 +1252,292 @@ const EMPTY_BRIEF: Record<BriefFieldKey, string> = {
   anti_goals: "",
   notes: "",
 };
+
+/* ================================================================== *
+ * This workspace
+ *
+ * The management verbs the ScopeMenu link "Manage this workspace" promises
+ * and this pane never delivered. Rename, leave, delete and create, each one
+ * wired end to end: rename refreshes the workspaces list every surface
+ * reads, leave hands resolution back to the provider, delete ends the
+ * session when nothing remains (the sign-out precedent from ScopeMenu),
+ * create inserts against the same table the provider reads and switches to
+ * what it made.
+ * ================================================================== */
+function ThisWorkspaceRegion() {
+  const navigate = useNavigate({ from: "/settings" });
+  const confirm = useConfirm();
+  const { activeWorkspaceId, activeWorkspace, setActiveWorkspaceId, refreshWorkspaces } =
+    useWorkspace();
+
+  const fRename = useServerFn(renameWorkspace);
+  const fLeave = useServerFn(leaveWorkspace);
+  const fDelete = useServerFn(deleteWorkspace);
+  const fEnsureProduct = useServerFn(ensureDefaultProduct);
+  const fMembers = useServerFn(listWorkspaceMembers);
+
+  // Leave renders only once membership has loaded and says this user is not
+  // the owner; guessing while it loads would offer an action that fails.
+  // Same query key MembersCard uses, so both share one read.
+  const membersQ = useQuery({
+    queryKey: ["workspace-members", activeWorkspaceId],
+    queryFn: () => fMembers({ data: { id: activeWorkspaceId! } }),
+    enabled: !!activeWorkspaceId,
+  });
+  const selfRole = membersQ.data?.selfRole ?? null;
+  const canLeave = !!activeWorkspaceId && selfRole !== null && selfRole !== "owner";
+
+  // Rename is seeded from the live name; empty or unchanged stays disabled,
+  // so a stray click cannot write the name it already has.
+  const [nameDraft, setNameDraft] = useState("");
+  const [nameDirty, setNameDirty] = useState(false);
+  useEffect(() => {
+    if (!nameDirty) setNameDraft(activeWorkspace?.name ?? "");
+  }, [activeWorkspace?.name, nameDirty]);
+  const trimmedName = nameDraft.trim();
+  const renameChanged =
+    !!activeWorkspace && trimmedName.length > 0 && trimmedName !== activeWorkspace.name;
+
+  const mRename = useMutation({
+    mutationFn: () => fRename({ data: { id: activeWorkspaceId!, name: trimmedName } }),
+    onSuccess: () => {
+      setNameDirty(false);
+      void refreshWorkspaces();
+      toast.success("Renamed.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const mLeave = useMutation({
+    mutationFn: () => fLeave({ data: { id: activeWorkspaceId! } }),
+    onSuccess: async () => {
+      setActiveWorkspaceId(null);
+      await refreshWorkspaces();
+      navigate({ to: "/today" });
+      toast.success(`You left ${activeWorkspace?.name ?? "the workspace"}.`);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const askLeave = async () => {
+    if (!activeWorkspace) return;
+    const ok = await confirm({
+      title: `Leave ${activeWorkspace.name}?`,
+      body: "You lose access immediately, including everything in it. Coming back needs an invitation from someone still inside.",
+      confirmLabel: "Leave workspace",
+      cancelLabel: "Stay",
+      destructive: true,
+    });
+    if (ok) mLeave.mutate();
+  };
+
+  // Delete is a hard delete on the server and the cascade takes everything,
+  // so neither the copy nor the typed confirm softens that. When no workspace
+  // remains the session ends the way sign-out does: a hard navigation leaves
+  // no cached workspace state behind for the next person.
+  const mDelete = useMutation({
+    mutationFn: () => fDelete({ data: { id: activeWorkspaceId! } }),
+    onSuccess: async () => {
+      setActiveWorkspaceId(null);
+      void refreshWorkspaces();
+      // The provider types its refresh as void, so what remains is read
+      // straight from the table the provider itself reads.
+      const { data: remaining } = await supabase.from("workspaces").select("id");
+      const next = remaining?.[0]?.id;
+      if (next) {
+        setActiveWorkspaceId(next);
+        navigate({ to: "/today" });
+        toast.success(`${activeWorkspace?.name ?? "The workspace"} was deleted.`);
+      } else {
+        await supabase.auth.signOut();
+        window.location.href = "/login";
+      }
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const askDelete = async () => {
+    if (!activeWorkspace) return;
+    const ok = await confirm({
+      title: `Delete ${activeWorkspace.name}?`,
+      body: `${activeWorkspace.name} and everything in it will be permanently deleted: products, missions, decisions and history. Nothing is kept and this cannot be undone.`,
+      typedConfirm: activeWorkspace.name,
+      confirmLabel: "Delete forever",
+      cancelLabel: "Keep it",
+      destructive: true,
+    });
+    if (ok) mDelete.mutate();
+  };
+
+  // Create inserts client-side in the shape onboarding uses, adds the owner
+  // membership row RLS keys on, then seeds the default product so the new
+  // workspace opens somewhere workable. The plan cap arrives as a Postgres
+  // error whose message names the upgrade; that becomes the billing door
+  // instead of raw SQL text.
+  const [createOpen, setCreateOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [planBlocked, setPlanBlocked] = useState(false);
+
+  const openCreate = () => {
+    setPlanBlocked(false);
+    setNewName("");
+    setCreateOpen(true);
+  };
+  const closeCreate = () => {
+    setCreateOpen(false);
+    setPlanBlocked(false);
+  };
+
+  const mCreate = useMutation({
+    mutationFn: async () => {
+      const createdName = newName.trim();
+      const { data: auth } = await supabase.auth.getUser();
+      const userId = auth.user?.id;
+      if (!userId) throw new Error("Your session ended. Sign in again to create a workspace.");
+      const { data: created, error: wsError } = await supabase
+        .from("workspaces")
+        .insert([{ owner_id: userId, name: createdName } as never])
+        .select("id")
+        .single();
+      if (wsError) throw new Error(wsError.message);
+      if (!created) throw new Error("The workspace was created but returned no id.");
+      const { error: memberError } = await supabase
+        .from("workspace_members")
+        .upsert(
+          [{ workspace_id: created.id, user_id: userId, role: "owner" } as never],
+          {
+            onConflict: "workspace_id,user_id",
+            ignoreDuplicates: true,
+          },
+        );
+      if (memberError) throw new Error(memberError.message);
+      return { id: created.id as string, name: createdName };
+    },
+    onSuccess: async ({ id, name }) => {
+      let productFailed: string | null = null;
+      try {
+        await fEnsureProduct({ data: { workspaceId: id } });
+      } catch (e) {
+        productFailed = (e as Error).message;
+      }
+      closeCreate();
+      await refreshWorkspaces();
+      setActiveWorkspaceId(id);
+      if (productFailed) {
+        toast.error(`Created ${name}, but its default product did not. ${productFailed}`);
+      } else {
+        toast.success(`${name} is ready.`);
+      }
+    },
+    onError: (e: Error) => {
+      if (e.message.includes("Upgrade your plan")) {
+        setPlanBlocked(true);
+      } else {
+        toast.error(e.message);
+      }
+    },
+  });
+
+  if (!activeWorkspace || !activeWorkspaceId) return null;
+
+  return (
+    <Region title="This workspace">
+      <div className="flex flex-col gap-mrd-5">
+        <Field label="Name" htmlFor="workspace-rename">
+          <Input
+            id="workspace-rename"
+            value={nameDraft}
+            disabled={mRename.isPending}
+            onChange={(e) => {
+              setNameDraft(e.target.value);
+              setNameDirty(true);
+            }}
+          />
+        </Field>
+        <Actions>
+          <Action
+            variant="primary"
+            busy={mRename.isPending}
+            disabled={!renameChanged || mRename.isPending}
+            onClick={() => mRename.mutate()}
+          >
+            {mRename.isPending ? "Saving" : "Save name"}
+          </Action>
+        </Actions>
+
+        {canLeave && (
+          <Line
+            label="Leave this workspace"
+            sub="You keep no access here until someone invites you back."
+          >
+            <Action variant="quiet" disabled={mLeave.isPending} busy={mLeave.isPending} onClick={() => void askLeave()}>
+              {mLeave.isPending ? "Leaving" : "Leave"}
+            </Action>
+          </Line>
+        )}
+
+        <div className="flex flex-col gap-2 rounded-mrd-xs border border-mrd-line bg-mrd-sink p-3.5">
+          <p style={{ fontSize: "var(--mrd-t-base)", color: "var(--mrd-ink)" }}>
+            Delete this workspace
+          </p>
+          <p style={{ fontSize: "var(--mrd-t-small)", color: "var(--mrd-mute)" }}>
+            Deleting {activeWorkspace.name} permanently removes it and everything in it:
+            products, missions, decisions and history. Nothing is kept.
+          </p>
+          <Actions>
+            <Action
+              variant="destructive"
+              disabled={mDelete.isPending}
+              busy={mDelete.isPending}
+              onClick={() => void askDelete()}
+            >
+              {mDelete.isPending ? "Deleting" : "Delete workspace"}
+            </Action>
+          </Actions>
+        </div>
+
+        {!createOpen ? (
+          <Line label="Another workspace" sub="Keep a second product line separate from this one.">
+            <Action onClick={openCreate}>Start another workspace</Action>
+          </Line>
+        ) : (
+          <div className="flex items-end gap-2">
+            <Field label="New workspace name" htmlFor="workspace-create-name">
+              <Input
+                id="workspace-create-name"
+                value={newName}
+                autoFocus
+                placeholder="Name it after the product line"
+                onChange={(e) => setNewName(e.target.value)}
+              />
+            </Field>
+            <Actions>
+              <Action
+                variant="primary"
+                disabled={!newName.trim() || mCreate.isPending}
+                onClick={() => mCreate.mutate()}
+              >
+                {mCreate.isPending ? "Creating" : "Create"}
+              </Action>
+              <Action variant="quiet" disabled={mCreate.isPending} busy={mCreate.isPending} onClick={closeCreate}>
+                Cancel
+              </Action>
+            </Actions>
+          </div>
+        )}
+        {planBlocked && (
+          <p style={{ fontSize: "var(--mrd-t-small)", color: "var(--mrd-mute)" }}>
+            Your current plan does not cover another workspace. A plan change happens on the
+            Billing page.{" "}
+            <Door onClick={() => navigate({ search: { section: "billing" } })}>
+              Open billing
+            </Door>
+          </p>
+        )}
+      </div>
+    </Region>
+  );
+}
 
 function WorkspaceSection({ scrollToBrief }: { scrollToBrief: boolean }) {
   const briefRef = useRef<HTMLDivElement | null>(null);
@@ -1130,8 +1618,12 @@ function WorkspaceSection({ scrollToBrief }: { scrollToBrief: boolean }) {
 
   return (
     /* One flex child of the pane, like `ProfileSection`'s form, so it restates the
-       40px column. See that comment for why the other panes do not have to. */
-    <div ref={briefRef} className="flex flex-col gap-mrd-7">
+       40px column. See that comment for why the other panes do not have to.
+       The management region leads; the ref stays on the Brief block so the
+       ?section=brief deep link still lands there and not on this new top. */
+    <div className="flex flex-col gap-mrd-7">
+      <ThisWorkspaceRegion />
+      <div ref={briefRef} className="flex flex-col gap-mrd-7">
       <PageHeading
         title="Brief and voice"
         sub={
@@ -1270,6 +1762,7 @@ function WorkspaceSection({ scrollToBrief }: { scrollToBrief: boolean }) {
       <TeamCard />
 
       <AdminDoor />
+      </div>
     </div>
   );
 }
