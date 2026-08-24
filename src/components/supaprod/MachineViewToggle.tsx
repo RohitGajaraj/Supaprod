@@ -28,7 +28,7 @@ export function MachineViewToggle() {
     >
       <span
         style={{
-          color: isMachineView ? "var(--ink-faint, #a0998c)" : "var(--ember, #e8642c)",
+          color: isMachineView ? "var(--mrd-faint, #a0998c)" : "var(--mrd-you, #e8642c)",
           fontWeight: isMachineView ? 400 : 600,
         }}
       >
@@ -36,7 +36,7 @@ export function MachineViewToggle() {
       </span>
       <span
         style={{
-          color: isMachineView ? "var(--ember, #e8642c)" : "var(--ink-faint, #a0998c)",
+          color: isMachineView ? "var(--mrd-you, #e8642c)" : "var(--mrd-faint, #a0998c)",
           fontWeight: isMachineView ? 600 : 400,
         }}
       >

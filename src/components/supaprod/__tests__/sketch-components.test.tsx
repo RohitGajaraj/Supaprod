@@ -157,7 +157,7 @@ function buildSketchLine({
           x2: w - 5,
           y1: baseY,
           y2: baseY,
-          stroke: "var(--hairline-strong)",
+          stroke: "var(--mrd-edge)",
           strokeDasharray: "3 3",
         })
       : null,
@@ -196,7 +196,7 @@ function buildSketchLine({
 
 function buildSketchBar({
   pct,
-  color = "var(--ember)",
+  color = "var(--mrd-you)",
   seed,
   trackH = 72,
 }: {
@@ -241,7 +241,7 @@ function buildSketchBar({
 
 function buildSketchBarChart({
   data,
-  color = "var(--ember)",
+  color = "var(--mrd-you)",
   formatValue = (v: number) => String(Math.round(v)),
   baseline,
   baselineLabel,
@@ -325,7 +325,7 @@ function buildSketchBarChart({
               left: 0,
               right: 0,
               bottom: `${baselinePct}%`,
-              borderTop: "1px dashed var(--hairline-strong)",
+              borderTop: "1px dashed var(--mrd-edge)",
             },
           })
         : null,
@@ -383,7 +383,7 @@ function buildSketchBarChart({
             textAlign: "center",
             color,
             background: "var(--raised)",
-            border: "1px solid var(--hairline)",
+            border: "1px solid var(--mrd-edge)",
             borderRadius: 6,
             padding: "3px 8px",
             whiteSpace: "nowrap",
@@ -703,9 +703,9 @@ describe("SketchLine JSX structure", () => {
       expect(line.props.strokeDasharray).toBe("3 3");
     });
 
-    it("should use var(--hairline-strong) for the baseline stroke color", () => {
+    it("should use var(--mrd-edge) for the baseline stroke color", () => {
       const line = findByType(buildSketchLine({ data: [10, 20, 30], baseline: 20 }), "line") as any;
-      expect(line.props.stroke).toBe("var(--hairline-strong)");
+      expect(line.props.stroke).toBe("var(--mrd-edge)");
     });
   });
 
@@ -860,10 +860,10 @@ describe("SketchBar JSX structure", () => {
       expect(outline.props.stroke).toBe("var(--glacier)");
     });
 
-    it("should default stroke color to var(--ember)", () => {
+    it("should default stroke color to var(--mrd-you)", () => {
       const [hatch, outline] = findAllByType(buildSketchBar({ pct: 50, seed: 1 }), "path");
-      expect(hatch.props.stroke).toBe("var(--ember)");
-      expect(outline.props.stroke).toBe("var(--ember)");
+      expect(hatch.props.stroke).toBe("var(--mrd-you)");
+      expect(outline.props.stroke).toBe("var(--mrd-you)");
     });
 
     it("should set vectorEffect='non-scaling-stroke' on both paths (uniform stroke at any scale)", () => {
@@ -1213,13 +1213,13 @@ describe("SketchBarChart JSX structure", () => {
   });
 
   describe("color prop", () => {
-    it("should apply var(--ember) to the tooltip div by default", () => {
+    it("should apply var(--mrd-you) to the tooltip div by default", () => {
       const all = flatten(buildSketchBarChart({ data: SAMPLE }));
       expect(
         all.some(
           (n) =>
             n.type === "div" &&
-            n.props?.style?.color === "var(--ember)" &&
+            n.props?.style?.color === "var(--mrd-you)" &&
             n.props?.style?.zIndex === 2,
         ),
       ).toBe(true);

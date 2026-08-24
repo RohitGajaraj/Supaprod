@@ -90,7 +90,7 @@ export function MissionOnboarding() {
         </p>
         <h1
           className="mt-3 text-mrd-h2 font-medium leading-mrd-tight"
-          style={{ color: "var(--ink-text)" }}
+          style={{ color: "var(--mrd-ink)" }}
         >
           What are you building?
         </h1>
@@ -109,8 +109,8 @@ export function MissionOnboarding() {
           rows={3}
           maxLength={2000}
           placeholder="A money app that helps people save without thinking about it."
-          className="ink-focus mt-5 w-full resize-none rounded-xl border bg-[var(--ink-panel)] px-4 py-3 text-mrd-prose leading-[1.5]"
-          style={{ borderColor: "var(--mrd-edge)", color: "var(--ink-text)" }}
+          className="ink-focus mt-5 w-full resize-none rounded-xl border bg-[var(--mrd-raised)] px-4 py-3 text-mrd-prose leading-[1.5]"
+          style={{ borderColor: "var(--mrd-edge)", color: "var(--mrd-ink)" }}
         />
 
         <div className="mt-5 flex flex-wrap items-center gap-3">
@@ -138,7 +138,7 @@ export function MissionOnboarding() {
               type="button"
               disabled={busy}
               onClick={() => explore.mutate()}
-              className="ink-focus inline-flex h-10 items-center rounded-lg px-3 text-mrd-base transition-colors hover:bg-[var(--ink-raised)] disabled:opacity-40"
+              className="ink-focus inline-flex h-10 items-center rounded-lg px-3 text-mrd-base transition-colors hover:bg-[var(--mrd-raised)] disabled:opacity-40"
               style={{ color: "var(--mrd-mute)" }}
             >
               {explore.isPending ? "Opening…" : "Or tour a workspace we already filled"}

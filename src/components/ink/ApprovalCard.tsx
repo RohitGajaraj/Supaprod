@@ -110,7 +110,7 @@ export function ApprovalCard({
         ) : null}
       </header>
 
-      <h3 className="mt-2.5 text-mrd-prose font-medium leading-6 text-[var(--ink-text)]">
+      <h3 className="mt-2.5 text-mrd-prose font-medium leading-6 text-[var(--mrd-ink)]">
         {onOpen ? (
           <button
             type="button"
@@ -194,7 +194,7 @@ export function ApprovalCard({
               disabled={pending !== null}
               onClick={() => void act("reject")}
               className={cn(
-                "ink-focus self-start rounded-md border border-[var(--mrd-edge)] px-3.5 py-1.5 text-sm font-medium text-[var(--mrd-body)] transition-colors duration-150 hover:border-[var(--mrd-mute)] hover:text-[var(--ink-text)]",
+                "ink-focus self-start rounded-md border border-[var(--mrd-edge)] px-3.5 py-1.5 text-sm font-medium text-[var(--mrd-body)] transition-colors duration-150 hover:border-[var(--mrd-mute)] hover:text-[var(--mrd-ink)]",
                 pending && "opacity-60",
               )}
             >
@@ -209,7 +209,7 @@ export function ApprovalCard({
           <button
             type="button"
             onClick={() => onOpen(item.id)}
-            className="ink-focus rounded-sm text-mrd-base text-[var(--mrd-mute)] transition-colors hover:text-[var(--ink-text)]"
+            className="ink-focus rounded-sm text-mrd-base text-[var(--mrd-mute)] transition-colors hover:text-[var(--mrd-ink)]"
           >
             Open
           </button>

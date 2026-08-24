@@ -19,7 +19,7 @@ export function PaymentTestModeBanner() {
       <div
         className="rounded-[10px] border px-3 py-2 text-mrd-tiny"
         style={{
-          borderColor: "var(--hairline, rgba(0,0,0,0.12))",
+          borderColor: "var(--mrd-edge, rgba(0,0,0,0.12))",
           background: "var(--raised, rgba(0,0,0,0.04))",
           color: "var(--text-muted, #4a4438)",
         }}
