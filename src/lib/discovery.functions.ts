@@ -662,6 +662,40 @@ export type SetThemeStatusResult = {
  * to tell the difference between stored and discarded. Hence `reasonRecorded`
  * in the result: from here on the caller is told which one happened.
  */
+/**
+ * RENAME A CLUSTER, because a bad label propagates: promotion copies the
+ * theme title verbatim into the bet, so a cluster named by whatever words the
+ * clusterer happened to reach for becomes a bet's name and then a decision's
+ * name. The person who can see the label is wrong gets one edit before that.
+ * Summary is optional and same-shaped; both are the cluster's own words, not
+ * status, so no gate signal fires and the Settled trail is untouched.
+ */
+export const renameTheme = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z
+      .object({
+        theme_id: z.string().uuid(),
+        title: z.string().trim().min(1).max(200),
+        summary: z.string().trim().max(4000).optional(),
+      })
+      .parse(i),
+  )
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    const patch: Record<string, string> = { title: data.title };
+    if (data.summary != null) patch.summary = data.summary;
+    const { data: row, error } = await supabase
+      .from("themes")
+      .update(patch)
+      .eq("id", data.theme_id)
+      .eq("user_id", userId)
+      .select("id,title,summary")
+      .single();
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
 export const setThemeStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>

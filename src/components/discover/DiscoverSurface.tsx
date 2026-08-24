@@ -265,6 +265,7 @@ import {
   promoteThemeToOpportunity,
   setThemeStatus,
   toggleAutoCluster,
+  renameTheme,
 } from "@/lib/discovery.functions";
 import { getAgentFleet } from "@/lib/agent-fleet.functions";
 import { getLineage } from "@/lib/lineage.functions";
@@ -387,6 +388,74 @@ function settledWord(status: string): string {
   if (status === "promoted") return "It became a bet";
   if (status === "merged") return "It was merged into a bet you already had";
   return "You said it was not a pattern";
+}
+
+/**
+ * THE LABEL, EDITABLE BEFORE IT PROPAGATES. Promotion copies the theme title
+ * verbatim into the bet, so this is the one edit that happens before a
+ * cluster's words become a bet's words and then a decision's words. Title
+ * required, summary optional - both are the cluster's own words, so no gate
+ * signal fires.
+ */
+function RenameClusterForm({
+  theme,
+  onDone,
+}: {
+  theme: { id: string; title: string; summary: string | null };
+  onDone: () => void;
+}) {
+  const fRename = useServerFn(renameTheme);
+  const [title, setTitle] = React.useState(theme.title);
+  const [summary, setSummary] = React.useState(theme.summary ?? "");
+  const save = useMutation({
+    mutationFn: () =>
+      fRename({
+        data: {
+          theme_id: theme.id,
+          title: title.trim(),
+          summary: summary.trim() === (theme.summary ?? "").trim() ? undefined : summary.trim(),
+        },
+      }),
+    onSuccess: onDone,
+  });
+  const canSave = title.trim().length > 0 && title.trim() !== theme.title && !save.isPending;
+  return (
+    <form
+      className="mb-mrd-2 flex flex-col gap-mrd-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (canSave) save.mutate();
+      }}
+    >
+      <Field label="Name it what it is" htmlFor={`rename-${theme.id}`}>
+        <Input
+          id={`rename-${theme.id}`}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          maxLength={200}
+        />
+      </Field>
+      <Field label="One-line summary (optional)" htmlFor={`rename-sum-${theme.id}`}>
+        <Input
+          id={`rename-sum-${theme.id}`}
+          value={summary}
+          onChange={(e) => setSummary(e.target.value)}
+          maxLength={4000}
+        />
+      </Field>
+      {save.isError ? (
+        <p className="text-mrd-fail text-mrd-base">{(save.error as Error).message}</p>
+      ) : null}
+      <Actions>
+        <Action type="submit" disabled={!canSave}>
+          {save.isPending ? "Renaming" : "Rename"}
+        </Action>
+        <Action variant="quiet" onClick={onDone}>
+          Keep the old words
+        </Action>
+      </Actions>
+    </form>
+  );
 }
 
 /**
@@ -664,6 +733,10 @@ export function DiscoverSurface({
    *  same shape the merge picker's betFilter uses, so the two find fields
    *  cannot grow different behaviours. */
   const [clusterFilter, setClusterFilter] = React.useState("");
+  /** Rename-in-place for the focused cluster: closed until More for... names
+   *  it. A bad label propagates - promotion copies the title verbatim - so
+   *  the edit sits one menu item before that door. */
+  const [renaming, setRenaming] = React.useState(false);
   /** Whether the whole set of candidate bets is on screen, or the first twelve. */
   const [showAllBets, setShowAllBets] = React.useState(false);
   /** Whether the whole ranking is on screen, or the first six of it. */
@@ -2685,7 +2758,27 @@ export function DiscoverSurface({
           <Action busy={busy} shortcut="d" onClick={() => decline.mutate({ themeId: focused.theme.id })}>
             Not a pattern
           </Action>
+          {renaming ? (
+            <RenameClusterForm
+              theme={{
+                id: focused.theme.id,
+                title: focused.theme.title,
+                summary: (focused.theme.summary as string | null) ?? null,
+              }}
+              onDone={() => {
+                setRenaming(false);
+                invalidate();
+              }}
+            />
+          ) : null}
           <MoreMenu label={`More for ${focused.theme.title}`}>
+            <MoreItem
+              onClick={() => {
+                setRenaming(true);
+              }}
+            >
+              Rename it
+            </MoreItem>
             <MoreItem onClick={() => draftSpec.mutate(focused.theme.id)}>
               {draftSpec.isPending ? "Drafting the spec" : "Draft the spec directly"}
             </MoreItem>
