@@ -129,3 +129,15 @@ YouMark (meridian/marks.tsx:241) so PersonMark's 16px-circle usage ports,
 or rule deletion. PersonMark meanwhile carries a fitted-monogram comment
 per the ruling. Twelve mono-label text-[9px] overrides also landed on
 mrd-eyebrow/nano per this ruling (separate commit).
+
+## ADDENDUM 5 (2026-08-24T05:40+05:30): RL0-005c's weight mechanic does not exist - font-[600] was already the honest spelling
+
+RL0-005c section 2 prescribed taking the 600 weight via Meridian. Two
+spellings tried, both refused by every-meridian-utility-paints: neither
+font-mrd-semi nor font-mrd-w-600 is bridged (the paints test's own doc:
+weight tokens "were never exposed to Tailwind - use font-medium /
+font-[650]"). RewindButton reverted to its original font-[600], which WAS
+the honest spelling; its comment now states both unbridged facts (no 19px
+type stop, no weight utility). Filing back so the ruling's mechanic gets
+corrected in place: either bridge --mrd-w-* to utilities, or RL0-005c
+section 2's prescription should read "keep font-[600]".
