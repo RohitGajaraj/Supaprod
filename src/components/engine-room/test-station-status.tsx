@@ -29,35 +29,35 @@ export const STATUS_STYLES: Record<StatusState, StatusStyle> = {
   // Glows are color-mix over the same role tokens as the dot (2026-07-11
   // audit: the old rgba literals froze the retired hexes and were dark-only).
   working: {
-    color: "var(--glacier)",
-    glow: "0 0 8px 1px color-mix(in srgb, var(--glacier) 60%, transparent)",
+    color: "var(--mrd-agent)",
+    glow: "0 0 8px 1px color-mix(in srgb, var(--mrd-agent) 60%, transparent)",
     animation: "cadPulse 2s ease-in-out infinite",
   },
   gate: {
-    color: "var(--ember)",
-    glow: "0 0 10px 2px color-mix(in srgb, var(--ember) 55%, transparent)",
+    color: "var(--mrd-you)",
+    glow: "0 0 10px 2px color-mix(in srgb, var(--mrd-you) 55%, transparent)",
     animation: "cadGlow 1.8s ease-in-out infinite",
   },
   waiting: {
-    color: "var(--ember)",
-    glow: "0 0 10px 2px color-mix(in srgb, var(--ember) 55%, transparent)",
+    color: "var(--mrd-you)",
+    glow: "0 0 10px 2px color-mix(in srgb, var(--mrd-you) 55%, transparent)",
     animation: "cadGlow 1.8s ease-in-out infinite",
   },
   done: {
-    color: "var(--moss)",
-    glow: "0 0 8px 1px color-mix(in srgb, var(--moss) 50%, transparent)",
+    color: "var(--mrd-pass)",
+    glow: "0 0 8px 1px color-mix(in srgb, var(--mrd-pass) 50%, transparent)",
     animation: null,
   },
   shipped: {
-    color: "var(--moss)",
-    glow: "0 0 8px 1px color-mix(in srgb, var(--moss) 50%, transparent)",
+    color: "var(--mrd-pass)",
+    glow: "0 0 8px 1px color-mix(in srgb, var(--mrd-pass) 50%, transparent)",
     animation: null,
   },
   // Spec literal (OBS-03.md line 71): "queued #55524C flat" — that hex is
-  // --text-faint, not --slate (#6E6A64, a different token from the same
+  // --mrd-faint, not --slate (#6E6A64, a different token from the same
   // family). Adversarial review caught this drift; fixed to the exact hex.
   queued: {
-    color: "var(--text-faint)",
+    color: "var(--mrd-faint)",
     glow: null,
     animation: null,
   },
@@ -69,17 +69,17 @@ export const STATUS_STYLES: Record<StatusState, StatusStyle> = {
   // "thinking" state speaks the blue machine voice, never the magenta band
   // (violet/blossom retired from every machine/AI treatment).
   thinking: {
-    color: "var(--glacier)",
+    color: "var(--mrd-agent)",
     glow: null,
     animation: "cadGlow 1.8s ease-in-out infinite",
   },
   "in-review": {
-    color: "var(--marigold)",
+    color: "var(--mrd-hold)",
     glow: null,
     animation: null,
   },
   blocked: {
-    color: "var(--madder)",
+    color: "var(--mrd-fail)",
     glow: null,
     animation: null,
   },
@@ -88,18 +88,18 @@ export const STATUS_STYLES: Record<StatusState, StatusStyle> = {
   // above — every one of the three carries a glow per the card anatomy spec
   // ("glowing status word"), unlike queued/blocked/in-review which don't.
   live: {
-    color: "var(--moss)",
-    glow: "0 0 10px color-mix(in srgb, var(--moss) 55%, transparent)",
+    color: "var(--mrd-pass)",
+    glow: "0 0 10px color-mix(in srgb, var(--mrd-pass) 55%, transparent)",
     animation: null,
   },
   stale: {
-    color: "var(--marigold)",
-    glow: "0 0 10px color-mix(in srgb, var(--marigold) 55%, transparent)",
+    color: "var(--mrd-hold)",
+    glow: "0 0 10px color-mix(in srgb, var(--mrd-hold) 55%, transparent)",
     animation: null,
   },
   failing: {
-    color: "var(--madder)",
-    glow: "0 0 10px color-mix(in srgb, var(--madder) 55%, transparent)",
+    color: "var(--mrd-fail)",
+    glow: "0 0 10px color-mix(in srgb, var(--mrd-fail) 55%, transparent)",
     animation: null,
   },
 };

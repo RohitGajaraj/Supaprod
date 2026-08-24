@@ -47,7 +47,7 @@ import { titleFromBody, MAX_BODY_CHARS } from "@/lib/sources/manual";
 import { markOnboarded } from "@/lib/onboarding-gate";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { ArrivalMark } from "@/components/onboarding/ArrivalButterfly";
-import { AiPulse } from "@/components/obsidian/AiPulse";
+import { AiPulse } from "@/components/meridian/AiPulse";
 // The results screen's copy action reuses the receipt formatter the public
 // /p/teardown page already ships. One formatter, two surfaces, no drift.
 import { asPlainText } from "@/components/public/TeardownReceipt";

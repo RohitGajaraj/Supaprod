@@ -22,7 +22,7 @@
  */
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { StatusDot } from "./status";
+import { StatusDot } from "./test-station-status";
 import { Region } from "@/components/meridian/surface-parts";
 import { toast } from "@/lib/notify";
 import {
@@ -114,7 +114,7 @@ export function TestStationPanel({ missionId }: { missionId: string }) {
             plan.alreadyRecorded ? (
               <span
                 className="ml-auto"
-                style={{ fontFamily: "var(--font-mono)", color: "var(--text-faint)" }}
+                style={{ fontFamily: "var(--mrd-face-brand)", color: "var(--mrd-faint)" }}
               >
                 Recorded on the decision
               </span>
@@ -123,11 +123,11 @@ export function TestStationPanel({ missionId }: { missionId: string }) {
                 type="button"
                 onClick={() => record.mutate()}
                 disabled={record.isPending}
-                className="loom-press ml-auto transition-colors hover:[color:var(--text-primary)]"
+                className="loom-press ml-auto transition-colors hover:[color:var(--mrd-ink)]"
                 style={{
-                  fontFamily: "var(--font-mono)",
+                  fontFamily: "var(--mrd-face-brand)",
                   letterSpacing: "0.08em",
-                  color: "var(--text-subtle)",
+                  color: "var(--mrd-mute)",
                   background: "none",
                   border: "none",
                   cursor: "pointer",
@@ -191,7 +191,7 @@ export function TestStationPanel({ missionId }: { missionId: string }) {
                 />
                 <span
                   className="min-w-0 flex-1 truncate"
-                  style={{ fontFamily: "var(--font-sans)", color: "var(--text-body)" }}
+                  style={{ fontFamily: "var(--mrd-face-display)", color: "var(--mrd-body)" }}
                 >
                   {item.text}
                 </span>
@@ -209,9 +209,9 @@ function TestItemGroup({ label, children }: { label: string; children: React.Rea
     <div className="flex flex-col gap-1.5">
       <span
         style={{
-          fontFamily: "var(--font-mono)",
+          fontFamily: "var(--mrd-face-brand)",
           letterSpacing: "0.1em",
-          color: "var(--text-faint)",
+          color: "var(--mrd-faint)",
           textTransform: "uppercase",
         }}
       >
@@ -234,7 +234,7 @@ function TestItemRow({
       <StatusDot state={meta.state} word={meta.word} style={{ width: 84, flexShrink: 0 }} />
       <span
         className="min-w-0 flex-1 truncate"
-        style={{ fontFamily: "var(--font-sans)", color: "var(--text-body)" }}
+        style={{ fontFamily: "var(--mrd-face-display)", color: "var(--mrd-body)" }}
       >
         {text}
       </span>

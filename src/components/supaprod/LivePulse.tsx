@@ -8,7 +8,7 @@ import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getLiveActivity, type LiveActivity } from "@/lib/agents.functions";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
-import { AiPulse } from "@/components/obsidian/AiPulse";
+import { AiPulse } from "@/components/meridian/AiPulse";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { approvalsQueueKey } from "@/lib/query-keys";
 

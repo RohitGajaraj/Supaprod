@@ -230,7 +230,7 @@ import {
   type StepLike,
 } from "@/components/studio/run-return";
 import { MissionOrchestratorDetail } from "@/components/missions/MissionOrchestratorDetail";
-import { TestStationPanel } from "@/components/obsidian/TestStationPanel";
+import { TestStationPanel } from "@/components/engine-room/TestStationPanel";
 import { fmtCost, summarizeArgs } from "@/components/studio/studio-format";
 import { traceRef } from "@/components/discover/format";
 /*
