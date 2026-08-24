@@ -3832,6 +3832,50 @@ const brainDueForecasts = def({
   },
 });
 
+const approvalsQueue = def({
+  name: "approvals.queue",
+  description:
+    "This run's own gates that are stuck waiting on a person: each pending approval the crew has raised in this workspace, with the tool that raised it, the rationale it gave, and how long it has waited. Check this before raising another gate for the same thing, and before assuming your earlier work was acted on - a gate nobody answered is not a gate that vanished.",
+  category: "read",
+  argsSchema: z.object({
+    include_decided: z.boolean().optional(),
+  }),
+  preview: (a) => (a.include_decided ? "List gates incl. decided" : "List pending gates"),
+  run: async (a, { supabase, userId, workspaceId }) => {
+    if (!workspaceId)
+      throw new Error("approvals.queue runs inside a workspace, and this run has none.");
+    let q = supabase
+      .from("agent_approvals")
+      .select(
+        "id, tool_name, rationale, decision_reason, status, created_at, decided_at, mission_id",
+      )
+      .eq("workspace_id", workspaceId)
+      .order("created_at", { ascending: true })
+      .limit(50);
+    if (!a.include_decided) q = q.eq("status", "pending");
+    const { data, error } = await q;
+    if (error) throw new Error(error.message);
+    const rows = data ?? [];
+    return {
+      pending: rows.filter((r) => r.status === "pending").length,
+      gates: rows.map((r) => ({
+        id: r.id,
+        tool: r.tool_name,
+        rationale: r.rationale,
+        decided_reason: r.decision_reason ?? null,
+        status: r.status,
+        waited: r.status === "pending" ? sinceIso(r.created_at) : null,
+        decided_at: r.decided_at ?? null,
+      })),
+    };
+  },
+});
+
+/** Whole days a pending gate has sat unanswered, said as a number the crew can reason over. */
+function sinceIso(iso: string): number {
+  return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000));
+}
+
 // ── prd.search / prd.get · the crew's read door into the SPECS ────────────
 //
 // SPECS WERE THE ONE ARTIFACT THE CREW COULD NOT READ. decision.record and
@@ -5705,6 +5749,7 @@ export const TOOL_REGISTRY: Record<string, ToolDef> = Object.fromEntries(
     brainGetDecision,
     brainContradictions,
     brainDueForecasts,
+    approvalsQueue,
     prdSearch,
     prdGet,
     decisionRecord,

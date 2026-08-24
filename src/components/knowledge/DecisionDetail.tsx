@@ -58,12 +58,18 @@ import {
   NothingHere,
   Value,
 } from "@/components/meridian/surface-parts";
-import { Choices } from "@/components/meridian/forms";
+import { Choices, Field, Input, Textarea } from "@/components/meridian/forms";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "@/lib/notify";
-import { listDecisions, updateDecision, type DecisionSource } from "@/lib/decisions.functions";
+import {
+  listDecisions,
+  updateDecision,
+  setDecisionForecast,
+  forecastRefusal,
+  type DecisionSource,
+} from "@/lib/decisions.functions";
 import { getDecisionShareState, setDecisionShared } from "@/lib/decisions-share.functions";
 import { getDecisionJudgment } from "@/lib/decision-judgment.functions";
 import { getLineage } from "@/lib/lineage.functions";
@@ -190,6 +196,181 @@ const VERDICT_OPTIONS: { id: Status; label: string; title: string }[] = [
   { id: "rejected", label: "Drop it", title: "On the record as the path not taken" },
   { id: "pending", label: "Not settled", title: "Send it back to nobody having decided" },
 ];
+
+/**
+ * THE FORECAST, IN THE DRILL-DOWN. Three states, honestly:
+ *  recorded   claim, observable, horizon, and the resolution when it exists.
+ *  attachable The call is still pending and no forecast exists - the set-once
+ *             door, so "a person who wants to record what they expect" finally
+ *             has the surface the server was written for.
+ *  absent     decided without one. Said as a fact, not an error: the practice
+ *             is newer than most of the record.
+ */
+function ForecastBlock({
+  d,
+  onChanged,
+}: {
+  d: {
+    id: string;
+    status: string;
+    forecast_claim?: string | null;
+    forecast_how_we_will_know?: string | null;
+    forecast_horizon_date?: string | null;
+    forecast_resolution?: string | null;
+    forecast_resolved_at?: string | null;
+  };
+  onChanged: () => void;
+}) {
+  const fForecast = useServerFn(setDecisionForecast);
+  const [open, setOpen] = useState(false);
+  const [claim, setClaim] = useState("");
+  const [know, setKnow] = useState("");
+  const [horizon, setHorizon] = useState("");
+  const [problem, setProblem] = useState<string | null>(null);
+
+  const save = useMutation({
+    mutationFn: () => {
+      const iso = new Date(`${horizon}T12:00:00Z`).toISOString();
+      const refusal = forecastRefusal({
+        forecast_claim: claim,
+        forecast_how_we_will_know: know,
+        forecast_horizon_date: iso,
+      });
+      if (refusal) throw new Error(refusal.message);
+      return fForecast({
+        data: {
+          decisionId: d.id,
+          forecast_claim: claim.trim(),
+          forecast_how_we_will_know: know.trim(),
+          forecast_horizon_date: iso,
+        },
+      });
+    },
+    onSuccess: () => {
+      setOpen(false);
+      onChanged();
+    },
+    onError: (e: Error) => setProblem(e.message),
+  });
+
+  const recorded = d.forecast_claim != null;
+  const resolutionWord =
+    d.forecast_resolution === "hit"
+      ? "It held"
+      : d.forecast_resolution === "miss"
+        ? "It did not hold"
+        : d.forecast_resolution === "inconclusive"
+          ? "It could not be graded"
+          : null;
+
+  return (
+    <Region title="What we expected to happen">
+      {recorded ? (
+        <>
+          <Prose>
+            <p>{d.forecast_claim}</p>
+          </Prose>
+          {d.forecast_how_we_will_know ? (
+            <p className="text-mrd-base text-mrd-mute">How we will know: {d.forecast_how_we_will_know}</p>
+          ) : null}
+          <p className="text-mrd-base text-mrd-mute">
+            {resolutionWord ? (
+              <>
+                <span
+                  className={
+                    d.forecast_resolution === "hit"
+                      ? "text-mrd-pass"
+                      : d.forecast_resolution === "miss"
+                        ? "text-mrd-fail"
+                        : undefined
+                  }
+                >
+                  {resolutionWord}
+                </span>
+                {d.forecast_resolved_at ? `, graded ${ageOf(d.forecast_resolved_at)}` : ""}
+                {" · "}
+              </>
+            ) : null}
+            By{" "}
+            {d.forecast_horizon_date
+              ? new Date(d.forecast_horizon_date).toLocaleDateString(undefined, {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })
+              : "an unset date"}
+          </p>
+        </>
+      ) : d.status === "pending" && !open ? (
+        <>
+          <p className="text-mrd-base text-mrd-mute">
+            Nothing is written down yet about what this call expects to happen.
+          </p>
+          <Actions>
+            <Action variant="quiet" onClick={() => setOpen(true)}>
+              Record the forecast
+            </Action>
+          </Actions>
+        </>
+      ) : d.status === "pending" ? (
+        <form
+          className="flex flex-col gap-mrd-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setProblem(null);
+            save.mutate();
+          }}
+        >
+          <Field label="What do you expect to happen?" htmlFor="fc-claim">
+            <Textarea
+              id="fc-claim"
+              value={claim}
+              onChange={(e) => setClaim(e.target.value)}
+              rows={2}
+              maxLength={500}
+            />
+          </Field>
+          <Field label="How will we know?" htmlFor="fc-know">
+            <Input
+              id="fc-know"
+              value={know}
+              onChange={(e) => setKnow(e.target.value)}
+              maxLength={500}
+            />
+          </Field>
+          <Field label="Check back by" htmlFor="fc-horizon">
+            <Input
+              id="fc-horizon"
+              type="date"
+              value={horizon}
+              onChange={(e) => setHorizon(e.target.value)}
+            />
+          </Field>
+          {problem ? <p className="text-mrd-fail text-mrd-base">{problem}</p> : null}
+          <Actions>
+            <Action type="submit" disabled={save.isPending || !claim.trim() || !know.trim() || !horizon}>
+              {save.isPending ? "Recording" : "Record it"}
+            </Action>
+            <Action
+              variant="quiet"
+              onClick={() => {
+                setOpen(false);
+                setProblem(null);
+              }}
+            >
+              Cancel
+            </Action>
+          </Actions>
+        </form>
+      ) : (
+        <p className="text-mrd-base text-mrd-mute">
+          No forecast was recorded. The practice is newer than this call, so the record carries the
+          decision and its outcome without the belief that came first.
+        </p>
+      )}
+    </Region>
+  );
+}
 
 export function DecisionDetail({ id }: { id: string }) {
   const navigate = useNavigate();
@@ -340,6 +521,12 @@ export function DecisionDetail({ id }: { id: string }) {
           </NothingHere>
         )}
       </Region>
+
+      {/* WHAT WE EXPECTED TO HAPPEN, recorded before the outcome was known.
+          The columns have been selected since the moat round; this is the
+          drill-down that renders them, and the set-once door for the calls
+          that never got one. */}
+      <ForecastBlock d={d} onChanged={() => qc.invalidateQueries({ queryKey: ["decisions"] })} />
 
       {/* The paths not taken, rendered only when the row actually recorded any
           (decisions.alternatives_considered). */}

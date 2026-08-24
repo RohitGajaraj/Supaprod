@@ -436,6 +436,11 @@ const CONSEQUENCES: Record<string, ToolConsequence> = {
     reversible: "reversible",
     undo: "Nothing to undo; read-only.",
    },
+  "approvals.queue": {
+    effect: "Lists the crew's own pending gates and how long each has waited.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
   /*
    * ── THE SPEC READS, CATALOGUED WITH THE TOOLS THAT NEED THEM ─────────────
    * Registered as reads beside their brain.* siblings; without these rows they
@@ -593,6 +598,7 @@ const READ_ONLY_TOOLS = new Set<string>([
   "brain.get_decision",
   "brain.contradictions",
   "brain.due_forecasts",
+  "approvals.queue",
   // The spec reads (registry.server.ts prd.search/prd.get): the same kind of
   // database read inside the workspace, nothing outlives the call.
   "prd.search",
@@ -1346,6 +1352,12 @@ const RISK_PROFILE: Record<string, ToolRiskProfile> = {
     changeSurface: "narrow",
   },
   "brain.due_forecasts": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  "approvals.queue": {
     dataExposure: "internal",
     opsImpact: "none",
     verificationGap: "verified",

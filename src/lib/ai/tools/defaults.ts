@@ -130,6 +130,7 @@ export const TOOL_DEFAULTS: Readonly<
   "brain.get_decision": { mode: "auto", enabled: true, label: "Read a decision" },
   "brain.contradictions": { mode: "auto", enabled: true, label: "Open contradictions" },
   "brain.due_forecasts": { mode: "auto", enabled: true, label: "Forecasts due for grading" },
+  "approvals.queue": { mode: "auto", enabled: true, label: "Gates waiting on a person" },
   // THE CREW'S READ DOOR INTO THE SPECS. Auto like the brain reads above: specs
   // were the one artifact the crew could not open structurally (only fuzzy RAG
   // snippets) while external agents got search_prds/get_prd all along, and a
