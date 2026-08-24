@@ -33,6 +33,8 @@ export const CANONICAL_PATHS = [
   "/ship",
   "/learn",
   "/brain",
+  "/approvals",
+  "/threads",
   "/engine-room",
 ] as const;
 

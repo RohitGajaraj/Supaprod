@@ -26,11 +26,12 @@ import { CANONICAL_PATHS } from "./legacy-redirects";
  * not lifecycle stations, plus Engine Room's standing `g` alias.
  */
 
-describe("nav-model - the twelve primary destinations (the Loop)", () => {
-  it("is one flat ordered list of exactly twelve destinations", () => {
-    expect(PRIMARY_NAV.length).toBe(12);
+describe("nav-model - the fourteen primary destinations (the Loop)", () => {
+  it("is one flat ordered list of exactly fourteen destinations", () => {
+    expect(PRIMARY_NAV.length).toBe(14);
     expect(PRIMARY_NAV.map((n) => n.label)).toEqual([
       "Today",
+      "Approvals",
       "Discover",
       "Decide",
       "Plan",
@@ -41,10 +42,12 @@ describe("nav-model - the twelve primary destinations (the Loop)", () => {
       "Runs",
       "Agents",
       "Brain",
+      "Threads",
       "Guardrails",
     ]);
     expect(PRIMARY_NAV.map((n) => n.to)).toEqual([
       "/today",
+      "/approvals",
       "/discover",
       "/decide",
       "/plan",
@@ -55,6 +58,7 @@ describe("nav-model - the twelve primary destinations (the Loop)", () => {
       "/runs",
       "/crew",
       "/brain",
+      "/threads",
       "/engine-room",
     ]);
   });
@@ -63,7 +67,7 @@ describe("nav-model - the twelve primary destinations (the Loop)", () => {
     expect(PRIMARY_NAV[0].to).toBe("/today");
     expect(PRIMARY_NAV[0].index).toBe("");
     expect(PRIMARY_NAV[0].zone).toBe("home");
-    expect(HOME_NAV.map((n) => n.to)).toEqual(["/today"]);
+    expect(HOME_NAV.map((n) => n.to)).toEqual(["/today", "/approvals"]);
   });
 
   it("THE LOOP is the seven lifecycle stages with mono indexes 01-07", () => {
@@ -101,8 +105,8 @@ describe("nav-model - the twelve primary destinations (the Loop)", () => {
   });
 
   it("INTELLIGENCE is Brain and Guardrails (always-on layers, unnumbered on the rail body)", () => {
-    expect(INTELLIGENCE_NAV.map((n) => n.label)).toEqual(["Brain", "Guardrails"]);
-    expect(INTELLIGENCE_NAV.map((n) => n.to)).toEqual(["/brain", "/engine-room"]);
+    expect(INTELLIGENCE_NAV.map((n) => n.label)).toEqual(["Brain", "Threads", "Guardrails"]);
+    expect(INTELLIGENCE_NAV.map((n) => n.to)).toEqual(["/brain", "/threads", "/engine-room"]);
     for (const n of INTELLIGENCE_NAV) expect(n.index).toBe("");
   });
 
@@ -162,7 +166,8 @@ describe("nav-model - the twelve primary destinations (the Loop)", () => {
 
   it("navKeyHint is the second key of the chord, one letter per destination", () => {
     expect(PRIMARY_NAV.map((n) => navKeyHint(n))).toEqual([
-      "t", // Today
+      "o", // Today, since 2026-08-24: g o, the word the chord acts; t went to Threads
+      "v", // approVals, same day; a p r l s were taken
       "d", // Discover
       "e", // dEcide
       "p", // Plan
@@ -173,6 +178,7 @@ describe("nav-model - the twelve primary destinations (the Loop)", () => {
       "r", // Runs
       "a", // Agents, renamed from Crew 2026-08-15; there is no `c` in it
       "k", // Brain, what the product Knows
+      "t", // Threads, since 2026-08-24
       "u", // gUardrails, renamed from Pulse the same day; the letter survived
     ]);
   });
@@ -238,7 +244,7 @@ describe("nav-model - one key, one door, across the WHOLE nav model", () => {
     // deliberate blank, though no longer because of the Approve collision --
     // the chord ends that. It is blank because AppFrame renders no admin
     // control at all, so a key there would go where the rail cannot follow.
-    expect(bound.length).toBe(13);
+    expect(bound.length).toBe(15);
   });
 
   it("never binds the prefix itself, which would eat every chord", () => {

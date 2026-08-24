@@ -185,7 +185,7 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     // Now each is owned: Today owns Approvals, Brain owns Threads, and the
     // Settings door owns Boundary since Agents moved behind it on 2026-08-15.
     expect(railOwnerOf("/approvals")).toBe("/approvals");
-    expect(railOwnerOf("/threads")).toBe("/brain");
+    expect(railOwnerOf("/threads")).toBe("/threads");
 
     // Settings is a special case: it's not a row, it's a foot icon, so
     // `railOwnerOf` is silent about it and its own territory by design.

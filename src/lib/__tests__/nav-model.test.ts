@@ -28,7 +28,7 @@ describe("derivation law - palette JUMP mirrors PRIMARY_NAV exactly", () => {
 });
 
 describe("derivation law - the shortcut range", () => {
-  it("has twelve destinations, each on one letter, and not a digit among them", () => {
+  it("has fourteen destinations, each on one letter, and not a digit among them", () => {
     /**
      * THE LAW INVERTED, founder ruling 2026-08-05.
      *
@@ -39,7 +39,7 @@ describe("derivation law - the shortcut range", () => {
      * `g` then a letter, so a digit on a row can only ever mean identity.
      */
     const n = PRIMARY_NAV.length;
-    expect(n).toBe(12);
+    expect(n).toBe(14);
     expect(PRIMARY_NAV[n]).toBeUndefined();
 
     const hints = PRIMARY_NAV.map((d) => navKeyHint(d));

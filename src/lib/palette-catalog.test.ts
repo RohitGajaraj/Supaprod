@@ -48,7 +48,7 @@ describe("palette-sections", () => {
     // Ten lifecycle destinations plus the two operations doors, Runs and Crew,
     // which joined PRIMARY_NAV on 2026-08-05 so the keyboard could reach the
     // rail rows the shell was already drawing.
-    expect(JUMP_DESTINATIONS.length).toBe(12);
+    expect(JUMP_DESTINATIONS.length).toBe(14);
   });
 
   it("every JUMP destination's run.to is a canonical path or a keyed rail door", () => {
