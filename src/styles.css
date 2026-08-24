@@ -2257,3 +2257,19 @@ html[data-motion="off"] .ai-pulse-text {
  * needs a per-block visual pass before it is safe. The one documented
  * intentional case is the [data-obsidian] :focus-visible rule earlier in the
  * file - see its FOOTGUN comment. */
+
+/* Today, the authenticated landing page. Landing rhythm: masthead, one
+   featured moment with air and rules, then sections. Scoped to this page
+   so no other surface inherits the spacing. */
+.today-hero {
+  margin: 24px 0 8px;
+  padding: 26px 22px;
+  border-top: 1px solid var(--mrd-edge);
+  border-bottom: 1px solid var(--mrd-edge);
+  background: var(--mrd-raised);
+}
+.today-hero > * {
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+}

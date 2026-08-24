@@ -1227,7 +1227,12 @@ function Today() {
           />
         ) : null}
 
-        <FocusNext workspaceId={workspaceId} />
+        {/* THE HERO BAND. Landing pages are read as masthead, one featured
+            moment, then sections; this is the featured moment, so it gets the
+            air and the rules that make hierarchy legible before any list. */}
+        <div className="today-hero">
+          <FocusNext workspaceId={workspaceId} />
+        </div>
 
         <div className="today-lanes">
           <Lane
