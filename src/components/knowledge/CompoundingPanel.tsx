@@ -109,6 +109,56 @@ export function deltaOf(l: {
   return d === 0 ? null : d;
 }
 
+/**
+ * The month strip: verdict counts for this month and the two before it,
+ * oldest first, computed from the outcomes already on screen.
+ *
+ * WHY NOT buildTimeline from brain-insights.functions.ts: that module imports
+ * runtime.server and calibrate-insights.server at its top level, so reaching
+ * into it from a client component would drag the AI chokepoint into the
+ * browser bundle to borrow twenty lines of arithmetic. The bucketing here is
+ * the learnings-only slice of it (ISO month key, fixed window) and nothing
+ * more; if the two ever need to agree on more than that, the shared half
+ * moves to a client-safe module rather than this file growing an import.
+ *
+ * Month keys are UTC slices of the ISO timestamp, matching monthKey there.
+ */
+export type MonthTally = { key: string; label: string; validated: number; missed: number; mixed: number };
+
+export function monthStrip(
+  learnings: { verdict?: string | null; created_at: string }[],
+  now: Date = new Date(),
+): MonthTally[] {
+  const keys: string[] = [];
+  for (let i = 2; i >= 0; i--) {
+    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
+    keys.push(`${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`);
+  }
+  const tally = new Map<string, MonthTally>(
+    keys.map((k) => [
+      k,
+      {
+        key: k,
+        label: new Date(`${k}-01T00:00:00Z`).toLocaleDateString([], {
+          month: "short",
+          timeZone: "UTC",
+        }),
+        validated: 0,
+        missed: 0,
+        mixed: 0,
+      },
+    ]),
+  );
+  for (const l of Array.isArray(learnings) ? learnings : []) {
+    const b = typeof l.created_at === "string" ? tally.get(l.created_at.slice(0, 7)) : undefined;
+    if (!b) continue;
+    if (l.verdict === "validated") b.validated++;
+    else if (l.verdict === "missed") b.missed++;
+    else if (l.verdict === "mixed") b.mixed++;
+  }
+  return keys.map((k) => tally.get(k)!);
+}
+
 /** Who wrote this down. The column is nullable, so an unsigned row says so. */
 function recordedBy(slug: string | null): string {
   return slug ? `${agentDisplayName(slug)} recorded it` : "unattributed";
@@ -135,6 +185,11 @@ export function CompoundingPanel() {
   const headline = summary ? describeCompounding(summary) : null;
   const learnings = lq.data?.learnings ?? [];
   const rescoreCount = learnings.filter((l) => deltaOf(l) != null).length;
+  const strip = monthStrip(learnings);
+  // A window with nothing in it is not a fact worth three empty cells: if every
+  // outcome on screen is older than two months, the strip stays silent rather
+  // than performing recency that is not there.
+  const stripHasSignal = strip.some((m) => m.validated + m.missed + m.mixed > 0);
 
   /**
    * A COLD LOAD MUST NOT PAINT AN EMPTY BOX WITH A HEADING ON IT.
@@ -188,6 +243,42 @@ export function CompoundingPanel() {
         >
           {headline}
         </RecordSpeaks>
+      ) : null}
+
+      {/* What the last three months taught, oldest first. One line, computed
+          from the outcomes already fetched above; no second read. Monochrome
+          on purpose: the per-row words below carry colour, and an aggregate
+          wearing it would outshout the rows it summarises. */}
+      {stripHasSignal ? (
+        <div className="text-mrd-small text-mrd-mute" style={{ marginTop: "var(--mrd-s5)" }}>
+          {strip.map((m, i) => {
+            const counts: [number, string][] = [
+              [m.validated, "worked"],
+              [m.missed, "missed"],
+              [m.mixed, "mixed"],
+            ];
+            return (
+              <span key={m.key}>
+                {i > 0 ? " · " : ""}
+                {m.label}:{" "}
+                {counts.some(([n]) => n > 0) ? (
+                  <>
+                    {counts
+                      .filter(([n]) => n > 0)
+                      .map(([n, word], j) => (
+                        <span key={word}>
+                          {j > 0 ? ", " : ""}
+                          <Num>{n}</Num> {word}
+                        </span>
+                      ))}
+                  </>
+                ) : (
+                  "nothing recorded"
+                )}
+              </span>
+            );
+          })}
+        </div>
       ) : null}
 
       <div style={{ marginTop: "var(--mrd-s5)" }}>

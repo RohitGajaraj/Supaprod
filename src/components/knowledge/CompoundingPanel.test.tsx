@@ -1,6 +1,8 @@
 import { describe, expect, test, beforeEach, afterEach, skip } from "bun:test";
 import type { ReactElement } from "react";
-import { whenOf, deltaOf } from "./CompoundingPanel";
+import { whenOf, deltaOf, monthStrip } from "./CompoundingPanel";
+import { learningMarkdown, overturnedCalls } from "./LearningDetail";
+import type { OutcomeOverturn } from "@/lib/outcome.functions";
 
 describe("whenOf — learning timestamp formatting", () => {
   let now: Date;
@@ -390,5 +392,204 @@ describe("CompoundingPanel component states", () => {
   test.skip("calls refetch when Retry button is clicked in error state", () => {
     // TODO: Implement mock.module pattern for useQuery + mock event simulation
     // Expected: q.refetch() and lq.refetch() invoked
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// monthStrip - "what did we learn this month?"
+//
+// Three fixed buckets (current month + the two before it), oldest first,
+// tallied from the outcomes the feed already holds. No server call, and no
+// import of brain-insights.functions.ts, whose top-level imports would drag
+// runtime.server into the client bundle for twenty lines of arithmetic.
+// ─────────────────────────────────────────────────────────────────────────────
+describe("monthStrip — verdict counts over the last three months", () => {
+  // Fixed "now" so bucket keys are deterministic regardless of run date.
+  const now = new Date("2026-08-24T12:00:00Z");
+
+  test("returns exactly three buckets, oldest first (current + previous two)", () => {
+    const strip = monthStrip([], now);
+    expect(strip.map((m) => m.key)).toEqual(["2026-06", "2026-07", "2026-08"]);
+  });
+
+  test("tallies verdicts into their ISO month", () => {
+    const strip = monthStrip(
+      [
+        { verdict: "validated", created_at: "2026-08-02T10:00:00Z" },
+        { verdict: "validated", created_at: "2026-08-20T10:00:00Z" },
+        { verdict: "missed", created_at: "2026-08-21T10:00:00Z" },
+        { verdict: "mixed", created_at: "2026-07-15T10:00:00Z" },
+      ],
+      now,
+    );
+    expect(strip.find((m) => m.key === "2026-08")).toMatchObject({
+      validated: 2,
+      missed: 1,
+      mixed: 0,
+    });
+    expect(strip.find((m) => m.key === "2026-07")).toMatchObject({
+      validated: 0,
+      missed: 0,
+      mixed: 1,
+    });
+    expect(strip.find((m) => m.key === "2026-06")).toMatchObject({
+      validated: 0,
+      missed: 0,
+      mixed: 0,
+    });
+  });
+
+  test("ignores outcomes older than the window instead of inventing buckets", () => {
+    const strip = monthStrip([{ verdict: "validated", created_at: "2025-01-01T00:00:00Z" }], now);
+    expect(strip.every((m) => m.validated + m.missed + m.mixed === 0)).toBe(true);
+    expect(strip).toHaveLength(3);
+  });
+
+  test("labels are short month names in UTC", () => {
+    const strip = monthStrip([], now);
+    expect(strip.map((m) => m.label)).toEqual(["Jun", "Jul", "Aug"]);
+  });
+
+  test("tolerates malformed timestamps and unknown verdicts without throwing", () => {
+    const strip = monthStrip(
+      [
+        { verdict: "validated", created_at: "garbage" },
+        { verdict: "something-else", created_at: "2026-08-10T00:00:00Z" },
+      ] as { verdict?: string | null; created_at: string }[],
+      now,
+    );
+    expect(strip).toHaveLength(3);
+    expect(strip.find((m) => m.key === "2026-08")!.validated).toBe(0);
+  });
+
+  test("defaults `now` to the real clock (smoke)", () => {
+    const strip = monthStrip([]);
+    expect(strip).toHaveLength(3);
+    const thisMonth = `${new Date().getUTCFullYear()}-${String(new Date().getUTCMonth() + 1).padStart(2, "0")}`;
+    expect(strip[2].key).toBe(thisMonth);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LearningDetail helpers - which decision did this grade, was it overturned,
+// and what does the whole thing look like as markdown.
+//
+// LearningDetail has no colocated test file; these live here because this is
+// the nearest existing learnings-domain test file.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const overturnFixture = {
+  from_verdict: "validated",
+  from_settled_by: "agent",
+  from_agent_slug: "historian",
+  from_confidence: 0.8,
+  from_summary: "Activation will double within a week.",
+  from_reason: "metric observed with enough evidence",
+  from_evidence: [],
+  to_verdict: "missed",
+  at: "2026-08-01T10:00:00Z",
+  note: "Activation stayed flat.",
+} satisfies OutcomeOverturn;
+
+describe("overturnedCalls — reversed history sentences", () => {
+  test("returns [] for null, undefined or empty input", () => {
+    expect(overturnedCalls(null)).toEqual([]);
+    expect(overturnedCalls(undefined)).toEqual([]);
+    expect(overturnedCalls([])).toEqual([]);
+  });
+
+  test("names the agent whose earlier call was replaced, quoting what it said", () => {
+    const [only] = overturnedCalls([overturnFixture]);
+    expect(only.line).toBe(
+      `This verdict replaced Measure's earlier call: "Activation will double within a week."`,
+    );
+  });
+
+  test("a human-settled earlier call reads as yours", () => {
+    const [only] = overturnedCalls([
+      { ...overturnFixture, from_settled_by: "human", from_agent_slug: null },
+    ]);
+    expect(only.line).toContain("replaced your earlier call");
+  });
+
+  test("carries the person's note alongside, never instead of the original", () => {
+    const [only] = overturnedCalls([overturnFixture]);
+    expect(only.note).toBe("Activation stayed flat.");
+  });
+
+  test("falls back to the settle reason when no summary was written, and drops empty notes", () => {
+    const [only] = overturnedCalls([
+      {
+        ...overturnFixture,
+        from_summary: null,
+        note: "   ",
+      },
+    ]);
+    expect(only.line).toContain('"metric observed with enough evidence"');
+    expect(only.note).toBeNull();
+  });
+
+  test("preserves record order: oldest pair first, newest last", () => {
+    const pairs = overturnedCalls([
+      overturnFixture,
+      { ...overturnFixture, at: "2026-08-20T10:00:00Z", from_summary: "Second reversal." },
+    ]);
+    expect(pairs).toHaveLength(2);
+    expect(pairs[0].line).toContain("Activation will double within a week.");
+    expect(pairs[1].line).toContain("Second reversal.");
+  });
+});
+
+describe("learningMarkdown — per-verdict export", () => {
+  const base = {
+    verdict: "missed" as const,
+    summary: "The bet did not move activation.",
+    prior_ice: 4.2,
+    new_ice: 3.1,
+    metric_label: "Activation rate",
+    metric_value: "31%",
+    opportunity_title: "Alert fatigue cluster",
+  };
+
+  test("leads with the title and the verdict word", () => {
+    const md = learningMarkdown(base);
+    expect(md.startsWith("# Alert fatigue cluster")).toBe(true);
+    expect(md).toContain("Verdict: It missed");
+  });
+
+  test("renders the metric move as prior -> new ICE", () => {
+    const md = learningMarkdown(base);
+    expect(md).toContain("Priority moved: 4.2 -> 3.1 ICE");
+    expect(md).toContain("Activation rate: 31%");
+  });
+
+  test("omits sections for absent facts rather than stubbing them", () => {
+    const md = learningMarkdown({
+      verdict: "mixed",
+      summary: "",
+      prior_ice: null,
+      new_ice: null,
+      metric_label: null,
+      metric_value: null,
+    });
+    expect(md).not.toContain("Priority moved");
+    expect(md).toContain("Verdict: Mixed");
+    expect(md).not.toContain("Overturn history");
+    expect(md).not.toContain("Graded the decision");
+  });
+
+  test("links the decision it graded when one is given", () => {
+    const md = learningMarkdown(base, {
+      decision: { id: "d-123", title: "Ship digest v2" },
+    });
+    expect(md).toContain(`Graded the decision: ["Ship digest v2"](/brain?tab=decisions&decision=d-123)`);
+  });
+
+  test("includes the overturn history as bullets", () => {
+    const md = learningMarkdown(base, { overturns: [overturnFixture] });
+    expect(md).toContain("Overturn history:");
+    expect(md).toContain(
+      `- This verdict replaced Measure's earlier call: "Activation will double within a week." You wrote instead: "Activation stayed flat."`,
+    );
   });
 });

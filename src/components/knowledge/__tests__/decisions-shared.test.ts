@@ -5,6 +5,8 @@ import {
   ageOf,
   hasSource,
   displayWho,
+  forecastChip,
+  forecastTitle,
   type DecisionRow,
 } from "../decisions-shared";
 import { DECISION_SOURCES } from "@/lib/decisions.functions";
@@ -314,5 +316,100 @@ describe("displayWho", () => {
   test("handles unknown agent slug (fallback behavior)", () => {
     const result = displayWho("unknown-agent-slug");
     expect(typeof result).toBe("string");
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// forecastChip - the forecast on a list row, and its colour rule
+//
+// Green and red carry outcomes; a hit and a miss ARE outcomes. Inconclusive
+// did not settle and an unresolved forecast is waiting, so both stay
+// monochrome (the system's "hold") rather than borrowing a colour.
+// ─────────────────────────────────────────────────────────────────────────────
+describe("forecastChip", () => {
+  test("returns null when the decision carries no forecast claim", () => {
+    expect(forecastChip({})).toBeNull();
+    expect(forecastChip({ forecast_claim: null })).toBeNull();
+    expect(forecastChip({ forecast_claim: "   " })).toBeNull();
+  });
+
+  test("a resolved hit reads in FORECAST_SAYS words, carried by green", () => {
+    const chip = forecastChip({ forecast_claim: "Activation doubles.", forecast_resolution: "hit" });
+    expect(chip?.word).toBe("you called it");
+    expect(chip?.tone).toBe("sp-pass");
+    expect(chip?.claim).toBe("Activation doubles.");
+  });
+
+  test("a resolved miss reads in FORECAST_SAYS words, carried by red", () => {
+    const chip = forecastChip({
+      forecast_claim: "Churn stays under 2%.",
+      forecast_resolution: "miss",
+    });
+    expect(chip?.word).toBe("it went the other way");
+    expect(chip?.tone).toBe("sp-fail");
+  });
+
+  test("inconclusive is muted, never a colour", () => {
+    const chip = forecastChip({
+      forecast_claim: "Trials convert.",
+      forecast_resolution: "inconclusive",
+    });
+    expect(chip?.word).toBe("the evidence did not settle it");
+    expect(chip?.tone).toBe("");
+  });
+
+  test("no resolution yet reads as a muted hold", () => {
+    const chip = forecastChip({ forecast_claim: "Signups rise.", forecast_resolution: null });
+    expect(chip?.word).toBe("hold");
+    expect(chip?.tone).toBe("");
+    // Also when the resolution key is absent entirely (pre-forecast rows).
+    expect(forecastChip({ forecast_claim: "Signups rise." })?.tone).toBe("");
+  });
+
+  test("colour is spent on settled outcomes only, and every tone is an sp- class or empty", () => {
+    const chips = ["hit", "miss", "inconclusive", null].map((r) =>
+      forecastChip({ forecast_claim: "x", forecast_resolution: r }),
+    );
+    for (const chip of chips) {
+      expect(chip!.tone === "" || chip!.tone.startsWith("sp-")).toBe(true);
+    }
+    expect(chips.filter((c) => c!.tone !== "")).toHaveLength(2);
+  });
+
+  test("trims the claim it returns", () => {
+    expect(forecastChip({ forecast_claim: "  padded claim  " })?.claim).toBe("padded claim");
+  });
+});
+
+describe("forecastTitle", () => {
+  test("is undefined when there is nothing to say", () => {
+    expect(forecastTitle({})).toBeUndefined();
+    expect(forecastTitle({ forecast_how_we_will_know: null })).toBeUndefined();
+    expect(forecastTitle({ forecast_how_we_will_know: "   " })).toBeUndefined();
+  });
+
+  test("carries the observable", () => {
+    expect(forecastTitle({ forecast_how_we_will_know: "Weekly actives cross 40" })).toContain(
+      "How you will know: Weekly actives cross 40",
+    );
+  });
+
+  test("carries the horizon date", () => {
+    const t = forecastTitle({ forecast_horizon_date: "2026-09-15T23:59:59Z" }) ?? "";
+    expect(t).toMatch(/^By Sep 1[45], 2026$/); // local-tz day shift tolerated
+    expect(t).toContain("By ");
+  });
+
+  test("joins both parts with the separator", () => {
+    const t = forecastTitle({
+      forecast_how_we_will_know: "Churn under 2%",
+      forecast_horizon_date: "2026-10-01T00:00:00Z",
+    })!;
+    expect(t).toContain(" · ");
+    expect(t.startsWith("How you will know:")).toBe(true);
+  });
+
+  test("ignores a malformed horizon rather than printing Invalid Date", () => {
+    expect(forecastTitle({ forecast_horizon_date: "not-a-date" })).toBeUndefined();
   });
 });

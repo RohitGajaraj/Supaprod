@@ -88,7 +88,7 @@ import {
 } from "@/lib/decisions.functions";
 import { initialsFrom } from "@/lib/initials";
 import { AgentMark, YouMark } from "@/components/meridian/marks";
-import { ageOf, displayWho, OUTCOME_WORD, SOURCE_LABEL } from "./decisions-shared";
+import { ageOf, displayWho, forecastChip, forecastTitle, OUTCOME_WORD, SOURCE_LABEL } from "./decisions-shared";
 import { stripAutoPrefix } from "@/components/plan/format";
 import { Receipt } from "@/components/meridian/Receipt";
 
@@ -395,33 +395,67 @@ export function DecisionsPanel() {
           </NothingYet>
         )
       ) : (
-        shown.map((d) => (
-          <Row
-            key={d.id}
-            tight
-            marks={
-              d.decided_by_agent_slug ? (
-                <AgentMark slug={d.decided_by_agent_slug} state="quiet" />
-              ) : (
-                <YouMark initials={initials} />
-              )
-            }
-            lead={stripAutoPrefix(d.title)}
-            // The second line is a DIFFERENT fact, never more of the first:
-            // where the call stands, and who put it there.
-            sub={
-              <>
-                <span className={OUTCOME_WORD[d.status].tone || undefined}>
-                  {OUTCOME_WORD[d.status].word}
-                </span>
-                {" · "}
-                {whoLine(d)}
-              </>
-            }
-            time={ageOf(d.created_at)}
-            onClick={() => navigate({ to: "/brain", search: { tab: "decisions", decision: d.id } })}
-          />
-        ))
+        shown.map((d) => {
+          // FC-01 read side: the forecast rides the same row, one truncated
+          // line with its resolution word. The words come from FORECAST_SAYS
+          // (via forecastChip) so this list and the Forecast Desk cannot drift;
+          // colour only on a settled hit or miss, muted hold otherwise.
+          const fc = forecastChip(d);
+          return (
+            <Row
+              key={d.id}
+              tight
+              marks={
+                d.decided_by_agent_slug ? (
+                  <AgentMark slug={d.decided_by_agent_slug} state="quiet" />
+                ) : (
+                  <YouMark initials={initials} />
+                )
+              }
+              lead={stripAutoPrefix(d.title)}
+              // The second line is a DIFFERENT fact, never more of the first:
+              // where the call stands, and who put it there. The forecast chip,
+              // when the row carries one, is the third: what was believed
+              // beforehand and whether it came true.
+              sub={
+                <>
+                  <span className={OUTCOME_WORD[d.status].tone || undefined}>
+                    {OUTCOME_WORD[d.status].word}
+                  </span>
+                  {" · "}
+                  {whoLine(d)}
+                  {fc ? (
+                    <>
+                      {" · "}
+                      {/* Truncates ITSELF so the resolution word survives the
+                          row's own truncate on narrow widths; the full claim is
+                          one click away in DecisionDetail. */}
+                      <span
+                        title={forecastTitle(d)}
+                        style={{
+                          display: "inline-block",
+                          maxWidth: 240,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          verticalAlign: "bottom",
+                        }}
+                      >
+                        Forecast: {fc.claim}
+                      </span>
+                      {" · "}
+                      <span className={fc.tone || undefined}>{fc.word}</span>
+                    </>
+                  ) : null}
+                </>
+              }
+              time={ageOf(d.created_at)}
+              onClick={() =>
+                navigate({ to: "/brain", search: { tab: "decisions", decision: d.id } })
+              }
+            />
+          );
+        })
       )}
 
       {rows.length > VISIBLE_DECISIONS || waiting > 0 ? (

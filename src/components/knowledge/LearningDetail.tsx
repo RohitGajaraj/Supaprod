@@ -31,6 +31,11 @@
  * ?learning= drill contract; the graph recentre and the spec deep link. Real
  * columns only: an absent metric or ICE pair renders nothing rather than a
  * fabricated field.
+ *
+ * ADDED 2026-08-24, closing three questions this screen could not answer: which
+ * decision did this grade (getLearningGradeContext, one keyed fetch, rendered
+ * under "Where it points"), where a verdict was overturned (the prds.outcome
+ * overturn pairs, as "Reversed history"), and a per-outcome copy-as-markdown.
  */
 import { useServerFn } from "@tanstack/react-start";
 import { Line } from "@/components/meridian/rows";
@@ -48,8 +53,10 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { listLearnings } from "@/lib/outcome.functions";
+import { listLearnings, type OutcomeOverturn } from "@/lib/outcome.functions";
+import { getLearningGradeContext } from "@/lib/decisions.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
+import { toast } from "@/lib/notify";
 import { Prose } from "@/components/meridian/Prose";
 import { whenOf } from "./CompoundingPanel";
 
@@ -87,6 +94,91 @@ function iceNum(v: number | string | null): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+/**
+ * The overturn pairs as sentences, in record order. applyOutcome APPENDS each
+ * overturn, so array order is oldest first and rendering in order puts the
+ * newest call last: the block reads forward through the argument.
+ *
+ * The earlier call quotes what the first settler SAID (its summary), falling
+ * back to why it was allowed to settle at all; the person's note rides along
+ * rather than replacing it, because deleting the agent's words to show the
+ * correction would delete the training pair this row exists to keep.
+ *
+ * PURE AND EXPORTED for the colocated tests.
+ */
+export function overturnedCalls(
+  overturns: OutcomeOverturn[] | null | undefined,
+): { line: string; note: string | null }[] {
+  const rows = Array.isArray(overturns) ? overturns : [];
+  return rows.map((o) => {
+    const earlier =
+      (typeof o.from_summary === "string" && o.from_summary.trim()) ||
+      (typeof o.from_reason === "string" && o.from_reason.trim()) ||
+      "the earlier call";
+    const byAgent =
+      o.from_settled_by === "agent" &&
+      typeof o.from_agent_slug === "string" &&
+      o.from_agent_slug.trim() !== "";
+    // Possessives differ by settler: an agent gets "Name's", a person gets
+    // "your" — "you's" is not a sentence.
+    const line = byAgent
+      ? `This verdict replaced ${agentDisplayName(o.from_agent_slug!.trim())}'s earlier call: "${earlier}"`
+      : `This verdict replaced your earlier call: "${earlier}"`;
+    const note = typeof o.note === "string" && o.note.trim() ? o.note.trim() : null;
+    return { line, note };
+  });
+}
+
+/**
+ * One outcome as markdown, for pasting where the record cannot follow:
+ * verdict, summary, what it moved, the decision it graded, every reversal.
+ * Absent pieces are omitted rather than stubbed, mirroring the screen.
+ *
+ * PURE AND EXPORTED for the colocated tests.
+ */
+export function learningMarkdown(
+  l: {
+    verdict: LearningRow["verdict"];
+    summary: string;
+    prior_ice: number | string | null;
+    new_ice: number | string | null;
+    metric_label: string | null;
+    metric_value: string | null;
+    opportunity_title?: string | null;
+  },
+  extras: {
+    decision?: { id: string; title: string } | null;
+    overturns?: OutcomeOverturn[];
+  } = {},
+): string {
+  const blocks: string[] = [];
+  const title = l.opportunity_title ?? "Recorded outcome";
+  blocks.push(`# ${title}\n\nVerdict: ${OUTCOME[l.verdict].word}`);
+  if (l.summary?.trim()) blocks.push(l.summary.trim());
+
+  const priorIce = iceNum(l.prior_ice);
+  const newIce = iceNum(l.new_ice);
+  const facts: string[] = [];
+  if (priorIce != null && newIce != null)
+    facts.push(`Priority moved: ${priorIce.toFixed(1)} -> ${newIce.toFixed(1)} ICE`);
+  if (l.metric_label && l.metric_value) facts.push(`${l.metric_label}: ${l.metric_value}`);
+  if (facts.length) blocks.push(facts.join("\n"));
+
+  if (extras.decision)
+    blocks.push(
+      `Graded the decision: ["${extras.decision.title}"](/brain?tab=decisions&decision=${extras.decision.id})`,
+    );
+
+  const reversals = overturnedCalls(extras.overturns);
+  if (reversals.length)
+    blocks.push(
+      `Overturn history:\n${reversals
+        .map((r) => `- ${r.line}${r.note ? ` You wrote instead: "${r.note}"` : ""}`)
+        .join("\n")}`,
+    );
+  return blocks.join("\n\n");
+}
+
 export function LearningDetail({ id }: { id: string }) {
   const navigate = useNavigate();
   const fLearnings = useServerFn(listLearnings);
@@ -97,6 +189,27 @@ export function LearningDetail({ id }: { id: string }) {
     queryKey: ["learnings", activeWorkspaceId],
     queryFn: () => fLearnings({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
   });
+
+  // Found before the hooks below so their input can depend on it; hooks stay
+  // unconditional across every render.
+  const l = ((learnings.data?.learnings ?? []) as LearningRow[]).find((x) => x.id === id);
+
+  /**
+   * What this outcome graded, and what it replaced. One keyed fetch per opened
+   * detail (getLearningGradeContext); the feed never pays for it, and neither
+   * does a drill whose learning carries neither fact. A failed enrichment must
+   * not fail the screen, which is why this query renders nothing on error
+   * rather than swapping the whole read for ReadFailed.
+   */
+  const fGradeContext = useServerFn(getLearningGradeContext);
+  const gradeCtx = useQuery({
+    queryKey: ["learning-grade-context", id],
+    queryFn: () =>
+      fGradeContext({ data: { learningId: id, prdId: l?.prd_id ?? undefined } }),
+    enabled: Boolean(l),
+  });
+  const gradedDecision = gradeCtx.data?.decision ?? null;
+  const overturns = gradeCtx.data?.overturns ?? [];
 
   const onBack = () => navigate({ to: "/brain", search: { tab: "learnings" } });
 
@@ -111,7 +224,6 @@ export function LearningDetail({ id }: { id: string }) {
     );
   }
 
-  const l = ((learnings.data?.learnings ?? []) as LearningRow[]).find((x) => x.id === id);
   if (!l) {
     return (
       <NothingHere action={<Action onClick={onBack}>Back to all outcomes</Action>}>
@@ -131,11 +243,31 @@ export function LearningDetail({ id }: { id: string }) {
     ? `${agentDisplayName(l.recorded_by_agent_slug)} recorded it`
     : "unattributed";
 
+  // Copying is not a write (same ruling as DecisionDetail's share link), so a
+  // toast is the honest instrument, and the markdown itself is the failure
+  // fallback: if the clipboard refuses, the reader gets the text to take.
+  const copyMarkdown = () => {
+    const md = learningMarkdown(l, { decision: gradedDecision, overturns });
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(md).then(
+        () => toast.success("Outcome copied as markdown"),
+        () => toast.message(md),
+      );
+    } else {
+      toast.message(md);
+    }
+  };
+
   return (
     <div>
       <Actions>
         <Action variant="quiet" onClick={onBack}>
           All outcomes
+        </Action>
+        {/* Per-verdict export: the memo, the move it made and the calls it
+            replaced, in a shape that survives leaving this screen. */}
+        <Action variant="quiet" onClick={copyMarkdown} title="Copy this outcome as markdown">
+          Copy as markdown
         </Action>
       </Actions>
 
@@ -182,6 +314,20 @@ export function LearningDetail({ id }: { id: string }) {
         )}
       </Region>
 
+      {/* Reversed history: the overturn pairs this verdict carries, oldest
+          first so the newest call reads last. Both sides stay on the record —
+          that is the whole value of the pair. */}
+      {overturnedCalls(overturns).length ? (
+        <Region
+          title="Reversed history"
+          sub="A person looked again and said otherwise. Nothing was deleted."
+        >
+          {overturnedCalls(overturns).map((r, i) => (
+            <Line key={i} label={r.line} sub={r.note ? `You wrote instead: "${r.note}"` : undefined} />
+          ))}
+        </Region>
+      ) : null}
+
       {/* Rendered only when the outcome actually carried a measurement or a
           scored before-and-after pair. Never a fabricated field. */}
       {(l.metric_label && l.metric_value) || delta != null ? (
@@ -215,9 +361,30 @@ export function LearningDetail({ id }: { id: string }) {
       ) : null}
 
       {/* Link back up the loop. The priority recentres the graph (reuse the
-          lineage view, never orphan); the spec opens in Plan. */}
-      {l.opportunity_id || l.prd_id ? (
+          lineage view, never orphan); the spec opens in Plan; the decision it
+          graded opens in Decide. */}
+      {l.opportunity_id || l.prd_id || gradedDecision ? (
         <Region title="Where it points">
+          {gradedDecision ? (
+            <Line
+              // The wording names the relationship, not the mechanism: this
+              // outcome is the grade on that call.
+              label={`Graded the decision "${gradedDecision.title}"`}
+              sub="The call this outcome was measured against"
+            >
+              <Action
+                variant="quiet"
+                onClick={() =>
+                  navigate({
+                    to: "/brain",
+                    search: { tab: "decisions", decision: gradedDecision.id },
+                  })
+                }
+              >
+                Open the decision
+              </Action>
+            </Line>
+          ) : null}
           {l.opportunity_id ? (
             <Line
               label={l.opportunity_title ? `"${l.opportunity_title}"` : "The priority it re-ranked"}

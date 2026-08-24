@@ -4,6 +4,10 @@
 // must export only components). SourceLink stays in DecisionsPanel.
 import type { DecisionRow, DecisionSource } from "@/lib/decisions.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
+// The product's three forecast words, already single-sourced for the Forecast
+// Desk. Imported, never restated: two surfaces must not call one outcome two
+// things. The module is type-only in its own imports, so this stays client-safe.
+import { FORECAST_SAYS } from "@/components/learn/forecast-words";
 
 /**
  * Where the call came from, in the words a practitioner would use.
@@ -78,4 +82,56 @@ export function hasSource(d: DecisionRow): boolean {
 export function displayWho(slug: string | null): string {
   if (!slug) return "You";
   return agentDisplayName(slug);
+}
+
+/** The forecast chip on a list row, or null when the row carries no forecast.
+ *
+ *  Colour rule matches OUTCOME_WORD: green and red carry outcomes and own those
+ *  two. A hit and a miss ARE outcomes (the horizon passed, the answer is in);
+ *  an inconclusive one did not settle, and a forecast still waiting on its
+ *  horizon is not an outcome at all — both stay monochrome, which reads as the
+ *  system's "hold". "hold" is deliberately not in FORECAST_SAYS: that map holds
+ *  verdicts, and "waiting" is a state, so it is named here once.
+ *
+ *  The tone strings are READ from OUTCOME_WORD rather than written again:
+ *  pass/fail classes are owned there, and a second copy would grow this file's
+ *  retired-vocabulary count, which the Meridian ratchet refuses.
+ *
+ *  PURE AND EXPORTED so the panel and its test read one definition. */
+const PASS_TONE = OUTCOME_WORD.approved.tone;
+const FAIL_TONE = OUTCOME_WORD.rejected.tone;
+
+export function forecastChip(d: {
+  forecast_claim?: string | null;
+  forecast_resolution?: string | null;
+}): { claim: string; word: string; tone: string } | null {
+  const claim = d.forecast_claim?.trim();
+  if (!claim) return null;
+  if (d.forecast_resolution === "hit")
+    return { claim, word: FORECAST_SAYS.hit, tone: PASS_TONE };
+  if (d.forecast_resolution === "miss")
+    return { claim, word: FORECAST_SAYS.miss, tone: FAIL_TONE };
+  if (d.forecast_resolution === "inconclusive")
+    return { claim, word: FORECAST_SAYS.inconclusive, tone: "" };
+  // No resolution yet: the horizon has not come due, or nobody has graded it.
+  return { claim, word: "hold", tone: "" };
+}
+
+/** The chip's title attribute: the observable and the date, since neither fits
+ *  a compact claim line and both are the half a reader would ask for next.
+ *  Undefined when there is nothing to say, so no empty tooltip ever mounts. */
+export function forecastTitle(d: {
+  forecast_how_we_will_know?: string | null;
+  forecast_horizon_date?: string | null;
+}): string | undefined {
+  const know = d.forecast_how_we_will_know?.trim();
+  const raw = d.forecast_horizon_date;
+  const due = raw ? new Date(raw) : null;
+  const dueWord =
+    due && !Number.isNaN(due.getTime())
+      ? `By ${due.toLocaleDateString([], { year: "numeric", month: "short", day: "numeric" })}`
+      : null;
+  return (
+    [know ? `How you will know: ${know}` : null, dueWord].filter(Boolean).join(" · ") || undefined
+  );
 }
