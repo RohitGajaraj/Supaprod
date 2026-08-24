@@ -14,6 +14,7 @@ import {
 } from "@/lib/exec/e2b.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { retrieve } from "@/lib/rag/retriever.server";
+import { searchWorkspaceRecords } from "@/lib/rag/workspace-records.server";
 import { SPEC_SECTION_ORDER } from "@/lib/spec-sections";
 import { embedOne } from "@/lib/rag/embed.server";
 import { withIdempotency } from "@/lib/runtime/idempotency.server";
@@ -209,15 +210,44 @@ const workspaceSearch = def({
     k: z.number().int().min(1).max(10).optional(),
   }),
   preview: (a) => `Search workspace: "${a.query}"`,
-  run: async ({ query, k }, { supabase, userId }) => {
-    const chunks = await retrieve(supabase, userId, { query, k: k ?? 5, mmr: true });
-    return chunks.map((c) => ({
+  run: async ({ query, k }, { supabase, userId, workspaceId }) => {
+    const want = k ?? 5;
+    const chunks = await retrieve(supabase, userId, { query, k: want, mmr: true });
+    const indexed = chunks.map((c) => ({
       kind: c.source_kind,
       id: c.source_id,
       title: c.title,
       snippet: c.content.slice(0, 280),
       score: Number(c.similarity?.toFixed(3)),
     }));
+
+    /*
+     * THE INDEX IS A CACHE AND THE TABLES ARE THE TRUTH.
+     *
+     * This tool's description promises signals, PRDs and notes. It delivered
+     * `rag_chunks`, which on the live database holds SEVENTEEN rows, all of kind
+     * `finding`, one with an embedding, and every one of them is a QUESTION
+     * somebody typed rather than any content: "sso", "can we add the dark mode to
+     * the app?". Not one signal has ever been indexed, so this tool could not
+     * return one -- and every Discover agent that called it was told the
+     * workspace was empty and correctly refused to invent evidence.
+     *
+     * Measured the night this was written: 72 signals in the live workspace, 52
+     * of them the agents' own notes recording that they had found nothing. See
+     * `workspace-records.server.ts` for the full account.
+     *
+     * The index still runs first and still wins on ranking. This is what happens
+     * when it comes back short, and it is scoped to the caller's workspace so it
+     * cannot widen what an agent can see.
+     */
+    const seen = new Set(indexed.map((r) => `${r.kind}:${r.id}`));
+    const records = await searchWorkspaceRecords(supabase, workspaceId, query, want);
+    for (const r of records) {
+      if (seen.has(`${r.kind}:${r.id}`)) continue;
+      indexed.push(r);
+    }
+
+    return indexed.slice(0, want);
   },
 });
 
