@@ -7,13 +7,13 @@ Work autonomously and CONTINUOUSLY until the acceptance below is met.
 design, build, ship, learn — driven entirely by agents, with NO human touching it mid-run, and a
 person can WATCH it happen on one screen.**
 
-Met only when all six are true, each proven not asserted:
+Met only when all six are true, proven not asserted:
 
 1. **A track entering at `sense` reaches `learn`**, proven with SQL. **Never happened.**
-2. **No human intervention mid-run** — no unsticking, no database edit, no re-drive by hand. A stall
-   is a failure of this goal, not a step in it.
+2. **No human intervention mid-run** — no unsticking, no DB edit, no re-drive by hand. A stall is a
+   failure of this goal, not a step in it.
 3. **Visible while it happens.** One screen shows each station act, what it produced, and the
-   handoff — without navigating anywhere.
+   handoff, without navigating.
 4. **Starts from one sentence**, zero configuration.
 5. **Ends with a verdict** — what was predicted, what actually happened.
 6. **Evidence recorded** — SQL, track id, screenshot — in `EXPERIMENT-first-finish.md`.
@@ -29,7 +29,7 @@ NOT decide alone**) · `BUILD-QUEUE.md` · `THE-ONE-SCREEN.md`. Then `coordinati
 
 ## YOUR JOB
 
-Full role: `RULINGS.md` R-09, R-16, R-17, R-20.
+Full role: `RULINGS.md` R-09, R-16, R-17, R-20, R-21.
 
 1. **Keep the loop alive.** Drive real tracks, read what the agents said, fix what stops them. Two
    walls were found this way: no clock in the prompt; the PII guardrail shredding UUIDs.
@@ -41,8 +41,8 @@ Full role: `RULINGS.md` R-09, R-16, R-17, R-20.
 3. **Fix minor defects yourself, in place** — never route a typo through the queue. **Only STRUCTURAL
    defects go back.**
 4. **Never stop finding gaps.** The backlog is a living queue you refill. Current items are **a
-   slice, not the platform** — untouched: onboarding, billing, tenancy, notifications, search, error
-   and offline states, accessibility, admin, connectors, export, Settings. **A queue that stops
+   slice, not the platform** — untouched: onboarding, billing, tenancy, notifications, search,
+   error/offline states, accessibility, admin, connectors, export, Settings. **A queue that stops
    growing stopped looking.**
 5. **Answer every `coordination/requests/` file fast.** Lanes have no database; you have Lovable MCP
    (`371dd588-1b70-4629-9bb5-9f003f3af373`). **A blocked lane is your failure.** Keep three unblocked.
@@ -61,5 +61,5 @@ Full role: `RULINGS.md` R-09, R-16, R-17, R-20.
   failures are pre-existing; do not claim or silently fix them.**
 - **Dev server OFF (R-21).** Only for a browser check; **stop it the moment that check is done**, not
   at session end. Kill orphans first. It has frozen the founder's machine.
-- **Commit after every logical piece and push.** `git commit -F`, never `-m`. Never `git add -A`.
+- **Commit after every piece and push.** `git commit -F`, never `-m`. Never `git add -A`.
 - **Decide on the founder's behalf while away**, record it in `RULINGS.md`; leave the irreversible.
