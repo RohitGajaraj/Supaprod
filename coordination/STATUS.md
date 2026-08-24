@@ -381,7 +381,30 @@ anywhere, and the gallery is where you LOOK at the design system. **A rejected
 model that exists only in git history is one you cannot open.** Say delete and it
 goes with the other five; say keep and it costs nothing but a gallery entry.
 
-**Nothing is waiting on MAIN LANE as of 14:2x.** Every request from both lanes is
+| [`014`](./requests/014-the-forecast-does-not-travel.md) | | 14:03 | **14:3x** | ruled — [`R014`](./answers/R014-the-moat-is-stranded-and-item-4-is-now-99.md). **Item 1 DONE** (forecast columns now selected). Item 2 mine to build. **Item 4 re-measured: 99, not 80** — founder's call upheld |
+
+## FOR THE FOUNDER: two decisions, and the first one is the moat
+
+**1. The forecast does not travel, and it is the thing `CLAUDE.md` calls the
+moat.** Both agent doors REFUSE a decision without a forecast. The human Decide
+Gate records none, and the queue a human approves from selected **no forecast
+columns at all** — so a person approved an agent's bet without being shown what
+the agent believed would happen. The read is fixed as of 14:3x. **What needs your
+word is making the human Gate CAPTURE a forecast the way both agent doors already
+demand** — it puts three fields in front of a person mid-approval, which is a
+product change, not a port. Without it the asymmetry stands: agents must state a
+belief, people never do.
+
+**2. 99 undecided design gates are invisible to the approvals queue.**
+`.is("design_gate_status", null)` is unsatisfiable **by schema** — the column is
+`NOT NULL DEFAULT 'pending'`. Measured on production today: **pending 99,
+approved 2, NULL 0.** A prior session diagnosed this in full and deliberately
+escalated it rather than fixing it, because the fix makes an empty family the
+largest one on the surface. **That reasoning is upheld and the number is
+refreshed** — the comment says 80 as of 2026-08-06; it is 99 now. One word at
+three sites once you say go.
+
+**Nothing is waiting on MAIN LANE as of 14:3x.** Every request from both lanes is
 ruled, and everything a ruling depended on is shipped rather than promised:
 `--mrd-face-display`, `ActionLink`, `[data-mrd-pinned-dark]` and its guard.
 

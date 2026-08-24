@@ -160,8 +160,31 @@ export const listDecisions = createServerFn({ method: "GET" })
     const { supabase } = context;
     let q = supabase
       .from("decisions")
+      /*
+       * THE FORECAST COLUMNS ARE HERE BECAUSE THE MOAT IS THE FORECAST.
+       *
+       * Added 2026-08-24 answering REQ-014. Both agent doors REFUSE a decision
+       * without all three parts -- `registry.server.ts` and MCP's
+       * `record_decision` both reject an incomplete forecast -- and this read,
+       * which is what a human sees when approving that same decision, selected
+       * none of them. So a person could approve an agent's bet without ever
+       * being shown what the agent believed would happen.
+       *
+       * Selecting them is inert until a surface renders them, and that is the
+       * point: the reader could not have been built while the read carried no
+       * fields. This is the half that unblocks the other half.
+       *
+       * EVERY NAME HERE CARRIES THE `forecast_` PREFIX, and two of them do not
+       * look like they should. `forecast_how_we_will_know` and
+       * `forecast_horizon_date` are the real columns; REQ-014 asked for them as
+       * `how_we_will_know` and `horizon_date`, and a first draft of this select
+       * used those. Neither exists. Verified against `information_schema` on
+       * 2026-08-24 rather than inferred from the request, because a select with
+       * a wrong column name throws at RUNTIME on a surface nobody was watching.
+       */
       .select(
-        "id,title,rationale,status,source_kind,meeting_id,mission_id,prd_id,decided_by_agent_slug,snapshot_before,created_at,auto_origin",
+        "id,title,rationale,status,source_kind,meeting_id,mission_id,prd_id,decided_by_agent_slug,snapshot_before,created_at,auto_origin," +
+          "forecast_claim,forecast_how_we_will_know,forecast_horizon_date,forecast_resolution,forecast_resolved_at",
       )
       .order("created_at", { ascending: false })
       .limit(data?.limit ?? 100);
