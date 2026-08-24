@@ -7,6 +7,9 @@ import { track } from "@/lib/observability";
 import { recordDecisionOrigins } from "@/lib/lineage.functions";
 import { extractAssumptions } from "@/lib/ai/assumptions.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
+// The pure parser for prds.outcome, so this file never grows a second
+// definition of "what counts as an overturn". Type-only for OutcomeOverturn.
+import { priorSettlement, type OutcomeOverturn } from "@/lib/outcome.functions";
 // Pure string helpers, zero imports of their own, so they are safe on the server.
 import { stripAutoPrefix } from "@/components/plan/format";
 
@@ -79,6 +82,16 @@ export type DecisionRow = {
    * runs at the read boundary anyway, so isAutoTitle(title) returns false for
    * every row and the "Auto" chip would have silently vanished. Read this. */
   auto_origin?: boolean | null;
+  /* FC-01 read side: what was believed beforehand and how the belief settled.
+   * Optional (like source_label) because DecisionRow is a cast over the select
+   * result, and every fixture and caller that predates the forecast keeps
+   * compiling. An absent claim is ordinary; nothing may infer one. */
+  forecast_claim?: string | null;
+  forecast_how_we_will_know?: string | null;
+  forecast_horizon_date?: string | null;
+  /** "hit" | "miss" | "inconclusive", or null while waiting on its horizon. */
+  forecast_resolution?: string | null;
+  forecast_resolved_at?: string | null;
 };
 
 /**
@@ -183,8 +196,7 @@ export const listDecisions = createServerFn({ method: "GET" })
        * a wrong column name throws at RUNTIME on a surface nobody was watching.
        */
       .select(
-        "id,title,rationale,status,source_kind,meeting_id,mission_id,prd_id,decided_by_agent_slug,snapshot_before,created_at,auto_origin," +
-          "forecast_claim,forecast_how_we_will_know,forecast_horizon_date,forecast_resolution,forecast_resolved_at",
+        "id,title,rationale,status,source_kind,meeting_id,mission_id,prd_id,decided_by_agent_slug,snapshot_before,created_at,auto_origin,forecast_claim,forecast_how_we_will_know,forecast_horizon_date,forecast_resolution,forecast_resolved_at",
       )
       .order("created_at", { ascending: false })
       .limit(data?.limit ?? 100);
@@ -251,6 +263,73 @@ export const listDecisions = createServerFn({ method: "GET" })
       d.source_label = label ? stripAutoPrefix(label) : null;
     }
     return { decisions };
+  });
+
+/**
+ * WHAT ONE OUTCOME GRADED, AND WHAT IT REPLACED, in a single keyed read.
+ *
+ * `learnings.decision_id` is written by applyOutcome and was read by no
+ * surface; `prds.outcome.overturns[]` rendered only transiently inside the
+ * settle flow. Both facts live one drill away from LearningDetail and neither
+ * rides listLearnings' select, so this is the one small door that carries them:
+ * the decision's title (the learning row itself already has prd_id), and the
+ * overturn pairs off the outcome jsonb.
+ *
+ * Deliberately NOT folded into listLearnings: every feed caller would pay for
+ * two extra reads per page to render nothing, when only an opened detail can
+ * use the answer. One fetch per opened outcome, keyed by its id.
+ */
+export const getLearningGradeContext = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        learningId: z.string().uuid(),
+        prdId: z.string().uuid().nullish(),
+      })
+      .parse(input ?? {}),
+  )
+  .handler(async ({ context, data }): Promise<{
+    decision: { id: string; title: string } | null;
+    overturns: OutcomeOverturn[];
+  }> => {
+    const { supabase } = context;
+    const { data: lr, error: lrError } = await supabase
+      .from("learnings")
+      .select("decision_id")
+      .eq("id", data.learningId)
+      .maybeSingle();
+    if (lrError) throw new Error(lrError.message);
+    const decisionId = (lr as { decision_id: string | null } | null)?.decision_id ?? null;
+
+    // Absent pieces are ordinary here: most outcomes grade a spec, not a
+    // decision, and most verdicts were never overturned. Null and [] are the
+    // honest shapes for both, never placeholders.
+    let decision: { id: string; title: string } | null = null;
+    if (decisionId) {
+      const { data: d, error } = await supabase
+        .from("decisions")
+        .select("id,title")
+        .eq("id", decisionId)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      decision = (d as { id: string; title: string } | null) ?? null;
+    }
+
+    let overturns: OutcomeOverturn[] = [];
+    if (data.prdId) {
+      const { data: p, error } = await supabase
+        .from("prds")
+        .select("outcome")
+        .eq("id", data.prdId)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      // priorSettlement is the one parser for prds.outcome; reusing it keeps
+      // "what counts as an overturn" single-sourced with SettlePanel.
+      overturns = priorSettlement((p as { outcome: unknown } | null)?.outcome)?.overturns ?? [];
+    }
+
+    return { decision, overturns };
   });
 
 export const createDecision = createServerFn({ method: "POST" })
