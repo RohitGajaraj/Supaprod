@@ -127,9 +127,9 @@ const SRC = readFileSync(join(import.meta.dir, "discovery.functions.ts"), "utf8"
 function prdAssistSource(): string {
   const start = SRC.indexOf("export const prdAssistInput");
   expect(start).toBeGreaterThan(-1);
-  const end = SRC.indexOf("export const promoteSignalToOpportunity", start);
-  expect(end).toBeGreaterThan(start);
-  return SRC.slice(start, end);
+  // Boundary was the deleted promoteSignalToOpportunity export; prdAssist is
+  // now the file's last export, so the block runs to end of source.
+  return SRC.slice(start);
 }
 
 describe("prdAssist input — instruct mode bounds", () => {

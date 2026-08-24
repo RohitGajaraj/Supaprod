@@ -494,7 +494,7 @@ const listSignals = def({
 const listThemes = def({
   name: "themes.list",
   description:
-    "List the current workspace's clustered signal themes (insight clusters). Each theme has a title, summary, severity, confidence, and member count.",
+    "List the current workspace's clustered signal themes (insight clusters), WITH each theme's triage state: status (open/declined/merged/promoted), the person's reason when declined, and whether it re-opened after a decline. Check this before proposing work from a theme - a declined theme is a decision, not a gap.",
   category: "read",
   argsSchema: z.object({
     min_severity: z.number().int().min(1).max(5).default(1),
@@ -529,7 +529,7 @@ const listThemes = def({
     let q = supabase
       .from("themes")
       .select(
-        "id, title, summary, severity, confidence, member_count:frequency, last_signal_at, created_at",
+        "id, title, summary, severity, confidence, member_count:frequency, last_signal_at, created_at, status, status_reason, escalated_at",
       )
       .eq("user_id", userId)
       .gte("severity", a.min_severity)
@@ -3110,121 +3110,24 @@ function safeJson<T = unknown>(s: string): T | null {
 const researchSynthesize = def({
   name: "research.synthesize",
   description:
-    "Cluster recent user-research signals into themes. Reads signals (optionally filtered by tag/sentiment), uses AI to group them, writes themes and links signals. Use at the start of Discover→Plan to turn raw feedback into themes.",
+    "Cluster a workspace's unclustered signals into themes, through the canonical clusterer (novelty scoring, dedup against existing clusters, reopen-after-decline, lineage edges). Same engine as cluster.trigger. Use at the start of Discover→Plan to turn raw feedback into themes.",
   category: "write",
   argsSchema: z.object({
-    lookback_days: z.number().int().min(1).max(180).optional(),
-    max_signals: z.number().int().min(5).max(200).optional(),
-    tag: z.string().max(40).optional(),
-    sentiment: z.enum(["positive", "neutral", "negative"]).optional(),
-    only_unclustered: z.boolean().optional(),
+    project_id: z.string().uuid().optional(),
   }),
-  preview: (a) =>
-    `Synthesize themes from last ${a.lookback_days ?? 30}d of signals${a.tag ? ` · #${a.tag}` : ""}`,
-  run: async (a, { supabase, userId, traceId, runId, agentSlug }) => {
-    const days = a.lookback_days ?? 30;
-    const since = new Date(Date.now() - days * 86400_000).toISOString();
-    let q = supabase
-      .from("signals")
-      .select("id,title,content,source,sentiment,tags,theme_id,workspace_id")
-      .eq("user_id", userId)
-      .gte("created_at", since)
-      .order("created_at", { ascending: false })
-      .limit(a.max_signals ?? 60);
-    if (a.sentiment) q = q.eq("sentiment", a.sentiment);
-    if (a.tag) q = q.contains("tags", [a.tag]);
-    if (a.only_unclustered !== false) q = q.is("theme_id", null);
-    const { data: signals, error } = await q;
-    if (error) throw new Error(error.message);
-    if (!signals || signals.length < 2)
-      return { themes_created: 0, signals_linked: 0, reason: "not enough signals to cluster" };
-
-    const corpus = signals
-      .map(
-        (s, i) =>
-          `[${i}] (${s.sentiment ?? "n/a"}) ${s.title ? s.title + " — " : ""}${(s.content ?? "").slice(0, 400)}`,
-      )
-      .join("\n");
-    const res = await callModel(supabase, userId, {
-      surface: "discovery",
-      surface_ref: "research.synthesize",
-      model: DRAFT_MODEL,
-      traceId: traceId ?? null,
-      runId: runId ?? null,
-      responseFormat: "json_object",
-      messages: [
-        {
-          role: "system",
-          content:
-            'You cluster product-research signals into THEMES. Return strict JSON: {"themes":[{"title":string,"summary":string,"severity":1-5,"confidence":0..1,"signal_indices":number[]}]}. Aim for 2-6 cohesive themes. Each signal_indices references the [n] tag in the input. Never invent indices.',
-        },
-        { role: "user", content: corpus },
-      ],
-    });
-    const rawJson = res.json ?? safeJson(res.output);
-    const themes =
-      extractArrayField<{
-        title: string;
-        summary: string;
-        severity?: number;
-        confidence?: number;
-        signal_indices?: number[];
-      }>(rawJson, "themes") ?? [];
-    if (!themes.length)
-      return { themes_created: 0, signals_linked: 0, reason: "model returned no themes" };
-
-    const themeIds: string[] = [];
-    let created = 0,
-      linked = 0;
-    for (const t of themes) {
-      const idxs = (t.signal_indices ?? []).filter(
-        (i) => Number.isInteger(i) && i >= 0 && i < signals.length,
-      );
-      if (!idxs.length) continue;
-      const ws = signals[idxs[0]].workspace_id;
-      const { data: themeRow, error: tErr } = await supabase
-        .from("themes")
-        .insert({
-          user_id: userId,
-          workspace_id: ws,
-          title: t.title.slice(0, 200),
-          summary: (t.summary ?? "").slice(0, 4000),
-          severity: Math.min(5, Math.max(1, Math.round(t.severity ?? 3))),
-          confidence: Math.min(1, Math.max(0, Number(t.confidence ?? 0.6))),
-          frequency: idxs.length,
-        })
-        .select("id")
-        .single();
-      if (tErr || !themeRow) continue;
-      created++;
-      // SEAM-1: theme creation event, attributed to the acting agent.
-      await recordStageEvent(supabase, {
-        entityType: "theme",
-        entityId: themeRow.id,
-        to: "new",
-        actor: agentSlug ?? "system",
-        workspaceId: ws,
-        userId,
-      });
-      const sigIds = idxs.map((i) => signals[i].id);
-      const { error: uErr, count } = await supabase
-        .from("signals")
-        .update({ theme_id: themeRow.id }, { count: "exact" })
-        .in("id", sigIds)
-        .eq("user_id", userId);
-      if (!uErr) linked += count ?? sigIds.length;
-      // Carried out with the count so the spine driver can file these themes
-      // against the track that asked for them. It reads a tool's own reported
-      // return value, never a query for what appeared lately, so a tool that
-      // returns only a count is invisible to it (src/lib/spine/attach.ts).
-      themeIds.push(themeRow.id as string);
-    }
-    return {
-      themes_created: created,
-      theme_ids: themeIds,
-      signals_linked: linked,
-      model: DRAFT_MODEL,
-    };
+  preview: (a) => `Synthesize themes from unclustered signals${a.project_id ? " · one product" : ""}`,
+  /*
+   * THE SECOND CLUSTERER IS GONE (2026-08-24). This tool used to run its own
+   * AI grouping and write themes rows directly - no novelty scoring, no dedup
+   * against existing clusters, no reopen logic, no lineage edges - a parallel
+   * dumber writer drifting from clusterSignalsCore, the exact shape AGENTS.md
+   * §6 bans. It now delegates to the canonical engine and maps the return so
+   * the spine driver keeps filing these themes (it reads themes_created +
+   * theme_ids off this result; src/lib/spine/attach.ts).
+   */
+  run: async (a, { supabase, userId, workspaceId }) => {
+    const r = await clusterSignalsCore(supabase, userId, workspaceId ?? null, a.project_id ?? null);
+    return { themes_created: r.themes, theme_ids: r.theme_ids, message: r.message };
   },
 });
 

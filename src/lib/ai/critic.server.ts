@@ -172,7 +172,7 @@ export type CriticReview = {
 /**
  * Run the Critic agent against an opportunity or PRD. Persists the verdict
  * on the row's `critic_review jsonb` column. Called inline from
- * `promoteThemeToOpportunity` / `promoteSignalToOpportunity` / `generatePrd`
+ * `promoteThemeToOpportunity` / `generatePrd`
  * so the verdict is present the first time the operator sees the row.
  * Failures are swallowed: a missing Critic must never block the upstream
  * write.

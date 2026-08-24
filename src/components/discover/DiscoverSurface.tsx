@@ -389,6 +389,46 @@ function settledWord(status: string): string {
   return "You said it was not a pattern";
 }
 
+/**
+ * SAY WHY, OR DON'T. The one-line reason a person can attach AFTER declining -
+ * the keyboard verb stays instant, so the common case never grows a modal, and
+ * the words arrive whenever they arrive. Optional by construction: skipping it
+ * is legal and the row simply carries no reason. status_reason was accepted by
+ * the server since the column landed and no UI ever sent one; this is the
+ * sender.
+ */
+function DeclineReasonLine({ themeId, title }: { themeId: string; title: string }) {
+  const fSetStatus = useServerFn(setThemeStatus);
+  const [why, setWhy] = React.useState("");
+  const save = useMutation({
+    mutationFn: () =>
+      fSetStatus({ data: { theme_id: themeId, status: "dismissed", reason: why.trim() } }),
+  });
+  const canSave = why.trim().length > 0 && !save.isPending;
+  if (save.isSuccess) return null;
+  return (
+    <form
+      className="mt-mrd-2 flex items-center gap-mrd-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (canSave) save.mutate();
+      }}
+    >
+      <div className="min-w-0 flex-1">
+        <Input
+          aria-label={`Why is ${title} not a pattern?`}
+          placeholder="Say why, so future-you remembers (optional)"
+          value={why}
+          onChange={(e) => setWhy(e.target.value)}
+        />
+      </div>
+      <Action type="submit" variant="default" disabled={!canSave}>
+        {save.isPending ? "Saving" : "Save reason"}
+      </Action>
+    </form>
+  );
+}
+
 /** Plain-words relative time, whole phrase, so it never reads "now ago". */
 function since(iso: string | null | undefined): string | null {
   if (!iso) return null;
@@ -1146,9 +1186,12 @@ export function DiscoverSurface({
    *      needs it most is the one who just pressed `d` by mistake.
    */
   const decline = useMutation({
-    mutationFn: (themeId: string) =>
-      fSetStatus({ data: { theme_id: themeId, status: "dismissed" } }),
-    onSuccess: (_r, themeId) => {
+    mutationFn: (v: { themeId: string; reason?: string }) =>
+      fSetStatus({
+        data: { theme_id: v.themeId, status: "dismissed", reason: v.reason || undefined },
+      }),
+    onSuccess: (_r, v) => {
+      const themeId = v.themeId;
       const entry = ranked.find((r) => r.theme.id === themeId);
       const title = entry?.theme.title ?? "the cluster";
       const at = entry?.theme.frequency ?? 0;
@@ -1160,6 +1203,7 @@ export function DiscoverSurface({
             declined it at <Num>{at}</Num> signal{plural(at)}, so it comes back on its own once it
             reaches <Num>{Math.max(at * ESCALATION_MULTIPLE, at + ESCALATION_ABSOLUTE)}</Num>. It is
             under Settled below until then, and you can put it back yourself.
+            <DeclineReasonLine themeId={themeId} title={title} />
           </>
         ),
       });
@@ -1672,7 +1716,7 @@ export function DiscoverSurface({
         setPicking(true);
       } else if (e.key === "d") {
         e.preventDefault();
-        decline.mutate(focused.theme.id);
+        decline.mutate({ themeId: focused.theme.id });
       }
     }
     document.addEventListener("keydown", onKey);
@@ -2623,7 +2667,7 @@ export function DiscoverSurface({
           <Action busy={busy} shortcut="m" onClick={() => setPicking(true)}>
             Add to an existing bet
           </Action>
-          <Action busy={busy} shortcut="d" onClick={() => decline.mutate(focused.theme.id)}>
+          <Action busy={busy} shortcut="d" onClick={() => decline.mutate({ themeId: focused.theme.id })}>
             Not a pattern
           </Action>
           <MoreMenu label={`More for ${focused.theme.title}`}>
@@ -3135,6 +3179,13 @@ export function DiscoverSurface({
                     {entry.theme.frequency} signal{plural(entry.theme.frequency)}
                     {sourceList ? ` · ${sourceList}` : ""}
                     {rowClaim ? ` · ${rowClaim.claim}` : ""}
+                    {/* THE CLUSTER CAME BACK ON ITS OWN. escalated_at is written
+                       by the clusterer's reopen path and was read by nothing -
+                       a re-opened declined cluster silently rejoined the
+                       ranking with no memory of the earlier no. */}
+                    {entry.theme.escalated_at ? (
+                      <> · returned after declining {since(entry.theme.escalated_at)}</>
+                    ) : null}
                   </>
                 }
                 time={since(entry.lastAt)}
@@ -3253,7 +3304,13 @@ export function DiscoverSurface({
                       lead={t.title}
                       sub={
                         <>
-                          {settledWord(status)} · {t.frequency} signal{plural(t.frequency)}
+                          {settledWord(status)}
+                          {/* THE REASON OUTLIVES THE RECEIPT. status_reason was
+                             accepted by the server and read by no one; the row
+                             is where the judgment lives, so this is where the
+                             words for it render. */}
+                          {t.status_reason ? ` — ${t.status_reason}` : ""} ·{" "}
+                          {t.frequency} signal{plural(t.frequency)}
                           {heard ? ` · last heard ${heard}` : ""}
                         </>
                       }
