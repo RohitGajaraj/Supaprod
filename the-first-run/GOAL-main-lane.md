@@ -7,7 +7,7 @@ Work autonomously and CONTINUOUSLY until the acceptance below is met.
 design, build, ship, learn — driven entirely by agents, with NO human touching it mid-run, and a
 person can WATCH it happen on one screen.**
 
-It is met only when every one of these is true, each proven, not asserted:
+Met only when all six are true, each proven not asserted:
 
 1. **A track entering at `sense` reaches `learn`**, proven with SQL. **Never happened.**
 2. **No human intervention mid-run** — no unsticking, no database edit, no re-drive by hand. A stall
