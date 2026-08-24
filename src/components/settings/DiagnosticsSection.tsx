@@ -31,6 +31,7 @@ import {
   Region,
 } from "@/components/meridian/surface-parts";
 import { Link } from "@tanstack/react-router";
+import { ACTION_LINK_FACE } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getReliabilitySlo, getRunawayMissions } from "@/lib/reliability.functions";
@@ -61,11 +62,13 @@ export function DiagnosticsSection() {
   const metrics = sloQ.data?.metrics;
   const evaluated = metrics?.evaluated ?? 0;
   const budget = metrics?.budget;
-  const budgetClass =
+  // The old sp-fail/sp-warn classes had no definitions - dead names. Status
+  // colour now rides the tokens directly: fail for exhausted, hold for warning.
+  const budgetColour =
     budget?.status === "exhausted"
-      ? "sp-fail"
+      ? "var(--mrd-fail)"
       : budget?.status === "warning"
-        ? "sp-warn"
+        ? "var(--mrd-hold)"
         : undefined;
 
   const spinning = runawayQ.data?.flagged.filter((f) => f.severity === "runaway").length ?? 0;
@@ -154,7 +157,7 @@ export function DiagnosticsSection() {
               label="Error budget left"
               sub={`The target is ${budget.targetAvailabilityPct}% of calls coming back. Spend the budget and the next failure is a real outage rather than an allowance.`}
             >
-              <span className={budgetClass}>
+              <span style={budgetColour ? { color: budgetColour } : undefined}>
                 <Num>{budget.remainingPct}%</Num>
               </span>
             </Line>
@@ -180,7 +183,7 @@ export function DiagnosticsSection() {
                 label="Going in circles right now"
                 sub="Still active, and past the step count its work should have needed."
               >
-                <span className="sp-fail">
+                <span style={{ color: "var(--mrd-fail)" }}>
                   <Num>{spinning}</Num>
                 </span>
               </Line>
@@ -197,8 +200,7 @@ export function DiagnosticsSection() {
               <Link
                 to="/engine-room"
                 search={{ room: "quality" }}
-                className="sp-btn"
-                data-variant="ghost"
+                className={ACTION_LINK_FACE.quiet}
               >
                 Open quality
               </Link>

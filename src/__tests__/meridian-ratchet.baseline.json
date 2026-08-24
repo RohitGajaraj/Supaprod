@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 2015,
-  "fileCount": 175,
+  "totalOccurrences": 2010,
+  "fileCount": 173,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "--text-": 16,
@@ -398,12 +398,6 @@
     },
     "src/components/runs/RunBoard.tsx": {
       "class:sp-": 1
-    },
-    "src/components/settings/DataSection.tsx": {
-      "class:sp-": 1
-    },
-    "src/components/settings/DiagnosticsSection.tsx": {
-      "class:sp-": 4
     },
     "src/components/settings/MembersCard.tsx": {
       "class:sp-": 1

@@ -28,6 +28,11 @@
  *     line, which is also the only reason they belong on this surface at all.
  *   - The Database and FileCode icons. Ban 8, and neither told you anything the
  *     label did not.
+ *
+ * MOUNTED BY _authenticated.settings.tsx ONLY (the data section at :683). An
+ * older revision of this header claimed a second mount in Engine Room Quality;
+ * R015 measured it and the second mount exists in no file. Owned by LANE 1
+ * since R015.
  */
 import { useState } from "react";
 import { Row, Line } from "@/components/meridian/rows";
@@ -41,6 +46,7 @@ import {
   Region,
 } from "@/components/meridian/surface-parts";
 import { Link } from "@tanstack/react-router";
+import { ACTION_LINK_FACE } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
@@ -201,8 +207,7 @@ export function DataSection({ workspaceId }: { workspaceId?: string }) {
             <Link
               to="/engine-room"
               search={{ room: "record" }}
-              className="sp-btn"
-              data-variant="ghost"
+              className={ACTION_LINK_FACE.quiet}
             >
               Open the record
             </Link>
