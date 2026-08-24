@@ -421,3 +421,90 @@ describe("no station renders nothing while it reads", () => {
     expect(STATIONS.length).toBe(8);
   });
 });
+
+/**
+ * THE TRIAGE CARD, GUARDED LIKE THE SURFACE IT REPLACED.
+ *
+ * REQ-016 item 1 merged "Ready for your review" and "What the crew has been
+ * doing" into ONE prioritized feed under the glance strip. This block is what
+ * made deleting both lanes in the same change safe: the card is singular, its
+ * section order is the reversibility rule (calls needing you, runs blocked on
+ * you, live runs, finished), every run row states its verb beside its state,
+ * the reply stays scoped and composed, a stop still goes through the confirm,
+ * and the wait-and-refusal rule this whole file exists for holds inside the
+ * merged body too.
+ *
+ * Same proxy as everywhere above: source text, comments stripped, positions
+ * read off the rendered JSX region of the component.
+ */
+describe("Today's triage feed", () => {
+  const at = (marker: string) => jsx.indexOf(marker);
+
+  it("is one card, not two lanes", () => {
+    // Both old bodies are gone from the route, the Lane wrapper included.
+    // AgentInbox itself stays mounted by its gallery page; only Today stopped
+    // rendering it, so absence here means the merge happened, not a deletion.
+    expect(offenders(src, /<AgentInbox\b/)).toEqual([]);
+    expect(offenders(src, /<Lane\b/)).toEqual([]);
+    expect(at("FEED_TITLE"), "the merged card has no title of its own").toBeGreaterThan(-1);
+  });
+
+  it("reads calls first, then blocked-on-you, then live, then finished", () => {
+    const order = ["FEED_CALLS", "FEED_REPLY", "FEED_LIVE", "FEED_OPEN"].map(at);
+    expect(order.every((i) => i > -1), "a section marker is never rendered").toBe(true);
+    expect(
+      [...order].sort((a, b) => a - b),
+      "the sections drifted out of the priority order",
+    ).toEqual(order);
+  });
+
+  it("reaches the review act through the queue, inside the calls section", () => {
+    const queueAt = at("<DecisionQueue");
+    expect(queueAt).toBeGreaterThan(-1);
+    expect(queueAt).toBeGreaterThan(at("FEED_CALLS"));
+    expect(queueAt).toBeLessThan(at("FEED_REPLY"));
+  });
+
+  it("states the verb beside the state on every run row, in its own section", () => {
+    const replyVerbAt = jsx.search(/Reply\s*<\/Action>/);
+    const stopVerbAt = jsx.search(/Stop\s*<\/Action>/);
+    const openVerbAt = jsx.search(/Open\s*<\/Door>/);
+    for (const found of [replyVerbAt, stopVerbAt, openVerbAt]) {
+      expect(found, "a run row lost its verb").toBeGreaterThan(-1);
+    }
+    expect(replyVerbAt, "Reply escaped the Waiting-on-you section").toBeLessThan(at("FEED_LIVE"));
+    const stopWithinLive = stopVerbAt > at("FEED_LIVE") && stopVerbAt < at("FEED_OPEN");
+    expect(stopWithinLive, "Stop escaped the Running section").toBe(true);
+    const openWithinFinished = openVerbAt > at("FEED_OPEN");
+    expect(openWithinFinished, "Open escaped the Finished section").toBe(true);
+  });
+
+  it("keeps the answer scoped to the run that asked, composed before it is sent", () => {
+    // Exactly one place composes the scoped prefix, and `openAsk` SENDS its
+    // argument as the conversation's first turn -- which is why the compose
+    // step may never be skipped on the way there.
+    expect((src.match(/About the run "/g) ?? []).length).toBe(1);
+    const composeAt = jsx.indexOf('About the run "');
+    expect(composeAt).toBeGreaterThan(-1);
+    expect(composeAt).toBeGreaterThan(at("FEED_REPLY"));
+    expect(composeAt).toBeLessThan(at("FEED_LIVE"));
+  });
+
+  it("stops a live run only through the app's own confirm", () => {
+    const wiredAt = jsx.indexOf("cancelRunAt(row.id)");
+    expect(wiredAt, "Stop is no longer wired to the confirmed mutation").toBeGreaterThan(-1);
+    expect(wiredAt).toBeGreaterThan(at("FEED_LIVE"));
+    expect(wiredAt).toBeLessThan(at("FEED_OPEN"));
+  });
+
+  it("admits the run record's wait and refusal inside the merged body", () => {
+    // The guard extension REQ-016 asks for: the missions read still names its
+    // own wait AND its own refusal, now inside the one card rather than in a
+    // lane of its own.
+    const queueMountedAt = at("<DecisionQueue");
+    const runWaitAt = jsx.indexOf("<Reading>Reading the run record.</Reading>");
+    const runRefusalAt = jsx.indexOf("missions.refetch()");
+    expect(runWaitAt).toBeGreaterThan(queueMountedAt);
+    expect(runRefusalAt).toBeGreaterThan(runWaitAt);
+  });
+});
