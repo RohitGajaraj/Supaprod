@@ -2741,3 +2741,42 @@ Obsidian: [You all say the graph is useless, let me show you how to use it](http
 [The power of the local graph](https://thesweetsetup.com/the-power-of-obsidians-local-graph/).
 
 Content was rephrased for compliance with licensing restrictions.
+
+## ChatPRD full-feature walkthrough (Claire Vo, youtube.com/watch?v=-V6bzSwYUZY)
+
+> _Added: 2026-08-24 · Source: full transcript scraped via yt-dlp subtitles_
+
+Competitor named by the founder for the Plan/authoring station. Its whole
+model, from the transcript:
+
+**Setup as context.** Profile (name/company/role + AI-drafted bio and
+"instructions about you") is always-on context for every generation.
+Preferences include feedback personality - "I like it to be mean to me"
+ships as professional-and-strict. Templates are first-class: out-of-box
+plus import (PDF/paste/manual), team-shareable so an org generates
+against one structure.
+
+**The core loop.** Projects hold shared instructions + files; "every
+chat in your project populates the knowledge base ... every chat gets
+smarter." The help-me-write-a-document flow asks clarifying questions
+when context is thin and drafts straight when rich ("it knows so much
+about me"), streams outline then document into a split view, follows the
+chosen template exactly, and stops at "85 or 90 percent of what you
+need" by design. A Google-Docs-style live editor takes AI edits and
+chat-driven revisions that stay aware of the document.
+
+**Handoff is the payoff.** One click turns a finished doc into an
+optimized prompt sent WITH its supporting documentation to v0 (deepest),
+Lovable, Bolt, Magic Patterns. Slack and Linear bots, Drive/Notion/
+Confluence export-import, and an MCP client close the ecosystem.
+
+**What validates us:** their "every chat gets smarter" is marketed
+exactly where our Brain sits - but their record has no forecast captured
+at decision time and no verdict written back against the decision that
+caused it. They compound context; we compound graded judgment.
+
+**What to lift:** (1) adaptive interrogation - ask when thin, draft when
+rich; (2) the honest 85-90% framing of generated output; (3) per-target
+optimized handoff prompts rather than raw links; (4) template sharing
+for org-consistent generation. Already ours in stronger form: decision-
+time forecasts, verdict write-back, agent-read tools on the record.
