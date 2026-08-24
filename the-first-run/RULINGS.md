@@ -488,6 +488,65 @@ relevant to that for now."*
 The layout must still not *break* below the Meridian breakpoint — `SPEC-LAYOUT.md`'s stacking rule
 stands, because that is one line of CSS, not a mobile product.
 
+## R-20 · The design review is a gate, and "premium" is defined so it can be failed — 2026-08-25
+
+**Founder:** *"Along with enterprise review you need to do the DESIGN review — absolutely delivering a
+premium platform. How modern, how premium, how ultra-premium. Stickiness high. And all the Meridian
+components should in some form be utilised across the surfaces, because Meridian is built on
+beautifui.dev."*
+
+**Ruled: every lane push passes an ENTERPRISE review and a DESIGN review. Both are gates. Neither is
+advisory.** A push that is correct and cheap-looking is rejected, exactly as one that is beautiful
+and leaks tenants is rejected.
+
+**"Premium" is not a mood. It is these eight, and a reviewer must be able to point at the failing
+one.** If MAIN can fix it in place it fixes it (R-16 §2); if it is structural it goes back.
+
+1. **RESTRAINT.** One colour carries the one fact the person came for — what is live now. Everything
+   settled is quiet. **Count the accents on the surface: more than one live signal is a fail.** The
+   brand ember stays in the logo and never in an interaction state.
+2. **RHYTHM.** One spacing scale, one grid, optical edges aligned down the column. `run-rows.tsx`
+   exists because three views of one run shipped with three mark sizes, three gutters and three
+   subject sizes — **every one passing typecheck, tests and the ratchet.** Automated checks cannot
+   see this; a reviewer must.
+3. **TYPE.** The Meridian scale only. **A hardcoded size or weight is a fail**, not a nit — this repo
+   drove hardcoded sizes 259 → 157 and the count must keep falling.
+4. **MOTION THAT MEANS SOMETHING.** Enter instantly, exit gently, and only where state actually
+   changed. **A raw duration is a fail**; use `--ease` / `--d-*`. Movement that decorates rather than
+   reports is worse than none.
+5. **THE SAD PATH IS DESIGNED.** Empty, loading, failed, held and permission-denied get the same care
+   as the happy path. **An empty state that does not say what to do next is a fail.** This is where
+   cheap products are exposed, and ours has four of seven stations commonly producing nothing.
+6. **NO DEAD END.** Every surface offers the next action (R-03). A screen that only tells is a fail.
+7. **PORTED, NOT EYEBALLED.** beautifui.dev is the **floor**, and mechanics come from its real source,
+   never from a screenshot. A value chosen because it "looked right" is a fail; a value with a reason
+   is not.
+8. **DENSITY EARNS ITS SPACE.** Premium is not empty. Every region either carries a fact the person
+   came for or is removed.
+
+### The Meridian utilisation duty
+
+**Target: every Meridian component is used somewhere real, or is deleted.** Measured 2026-08-25: 121
+components, 95 adopted, **17 real components built with no importer** — including `run-rows.tsx`,
+22.8KB of run vocabulary ported from beautifui.dev that nothing reached for while three surfaces each
+invented their own.
+
+- **Every design review asks, per region: which Meridian component serves this?** A region using a
+  bespoke div where a primitive exists is a fail.
+- **Adoption is a number MAIN tracks and it must go UP.** Report it in `MERIDIAN-ADOPTION.md` as items
+  land. A component still unadopted after its natural surface ships gets **deleted with the reason**,
+  because inventory nobody reaches for is the defect this whole mission is about.
+- **This is not decoration.** Meridian is where the premium already lives — it was ported from
+  beautifui.dev deliberately. **Using it IS the shortest path to the look the founder wants**, and
+  reinventing beside it is how the product got three gutters for one row.
+
+### When a lane authors a Meridian component (with R-17)
+
+A lane builds locally and files `mrd-<name>.md`. **MAIN does not merely promote it — MAIN reviews it
+hard against all eight above, and tweaks or rebuilds it before it enters `src/components/meridian/`.**
+A primitive is used by every future surface, so a mediocre one is a debt charged forever. **Promotion
+is where the standard is set, and it is the one review MAIN never rushes.**
+
 ---
 
 ## Open, and I have not ruled yet
