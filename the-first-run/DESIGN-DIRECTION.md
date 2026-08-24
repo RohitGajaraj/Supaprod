@@ -93,6 +93,25 @@ and costs exactly the trust we need most. **The distinctiveness budget goes into
 step changing state, a timer ticking, a question appearing where the work is. Reasoning in
 [`../design-reference/mobbin-2026-08/README.md`](../design-reference/mobbin-2026-08/README.md).
 
+## 2c. The Mistral set — structure, not styling
+
+`design-reference/mobbin-2026-08/mistral-*.webp`, five screens, and it answers three things we were
+still guessing at. Full notes in that folder's README.
+
+- **The preview pane is always present and labelled, even when empty** (*"Preview your agent here"*).
+  It never collapses. Our right pane does the same: a station that has produced nothing shows the
+  pane with an honest line, never a hole.
+- **The empty state IS the input.** `Add guardrails` and `Adjust tone` are dotted-underline
+  placeholders you click to fill. **This is the answer for the four stations where "produced nothing"
+  is the common case** — the empty state becomes the invitation to supply what was missing, instead
+  of an apology.
+- **Versioning is present before anyone asks** — `v2 · Latest`, `Save` / `Reset` / `Restore this
+  version`, a green `Saved`. **That is the chrome for our forecast card**, where the versioned thing
+  is a decision rather than a document, which is the one version history a competitor cannot copy.
+- **And the rail is grouped by VERB** — Create · Improve · Context · Code — not by object. Ours is
+  Today · Approvals · Runs · Brain · Threads · Guardrails, which is our object model shown to a
+  customer: the same mistake as the station menu R-01 killed. **This is how 84 routes become nine.**
+
 ## 3. What this means against Meridian and beautifui.dev
 
 - **Meridian is the only system and it is not negotiable.** Tokens only: `--mrd-*`. No raw colour, no

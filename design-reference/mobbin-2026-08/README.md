@@ -35,3 +35,29 @@ is also the single hardest thing to remove later.
 changing state, a timer ticking, text landing in place, a question appearing where the work is. That
 is the thing no competitor screenshot in this folder actually does well, and it is memorable because
 it is the product working, not a drawing of it.
+
+## The Mistral set — the founder's pointer, and the sharpest structural reference we have
+
+Six screens of Mistral's AI Studio. **Take more from this app than from any other in this folder**,
+because it solves the problems we are actually stuck on rather than the ones we find easy.
+
+| File | What to take |
+| --- | --- |
+| `mistral-capabilities-version-preview.webp` | **The preview pane is ALWAYS there, even empty, and it is labelled** — *"Preview your agent here"* / *"Start a new chat"*. It never collapses and never leaves a hole. Also: config progressively discloses — `Capabilities  Add +` collapsed, expanding into tool chips and a function list |
+| `mistral-version-save-restore.webp` | **`v2 · Latest` in the header with `Save Agent Changes` · `Reset changes` · `Restore this version`, and a green `Saved`.** Versioning is present before anyone asks, which is what makes editing safe enough to try. **This is our forecast card's chrome** — a decision with versions, not a document with versions |
+| `mistral-dotted-affordances.webp` | **The empty state IS the input.** `Add guardrails`, `Adjust tone`, `Knowledge` sit as dotted-underline placeholders you click to fill. No empty panel, no "nothing here yet", no separate add button. **This is the answer for four of our seven stations, where "produced nothing" is the common case** — the station's empty state becomes the invitation to supply what it lacked |
+| `mistral-tools-connectors.webp` | **Tools and Connectors side by side, each row a checkbox, with `Reset`** — and a floating composer pinned over the preview carrying the agent's name and `Type / for quick access`. Our connectors are reached at the moment they are needed (R-20 / THE-ONE-SCREEN); this shows what that panel looks like when it is |
+| `mistral-agent-identity-picker.webp` | An identity picker that is a glyph plus a colour swatch row, and nothing else. **The restrained way to let something be recognisable without a mascot** (R-05) |
+
+### The one to steal hardest: the rail is grouped by VERB, not by object
+
+Mistral's left rail reads **Create** (Playground · Agents · Batches · Document AI · Workflows · Audio)
+· **Improve** (Fine-tune) · **Context** (Files · Connectors) · **Code** (Vibe CLI · Codestral).
+
+**It is grouped by what you are trying to do.** Ours is grouped by what things ARE — Today, Approvals,
+Runs, Brain, Threads, Guardrails — which is our object model shown to a customer, and it is the same
+mistake as the seven-station menu that R-01 killed.
+
+**This is the pattern for collapsing 84 routes into nine.** A person does not arrive wanting "Brain".
+They arrive wanting to start something, watch something, or find out whether something worked.
+**Group the survivors by that, and most of the 48 redirects stop having anywhere to point.**
