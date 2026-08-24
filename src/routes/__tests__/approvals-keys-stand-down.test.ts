@@ -102,11 +102,13 @@ describe("/approvals stands its bare keys down under a modifier", () => {
     expect(BODY.indexOf(TYPING_GUARD)).toBeLessThan(BODY.indexOf("e.key"));
   });
 
-  it("keeps every key it draws bound: j, k, a and d", () => {
+  it("keeps every key it draws bound: j, k, a, d and z", () => {
     // `r` became `d`: one alphabet across every gate, so decline is the same
     // letter here as on Today, where this surface's own copy sends people from.
     // `j`/`k` still MOVE, and no key that moves anywhere commits anywhere else.
-    for (const key of ["j", "k", "a", "d"]) {
+    // `z` joined 2026-08-24: the snooze verb, the same letter Today's gate
+    // binds to the same resolver.
+    for (const key of ["j", "k", "a", "d", "z"]) {
       expect(BODY).toContain(`e.key === "${key}"`);
     }
   });
