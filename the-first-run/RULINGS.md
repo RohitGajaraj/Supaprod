@@ -131,6 +131,84 @@ redirect / delete, one commit each with the evidence. A month of honest work tha
 
 **Neither lane invents product scope while starved.** Standing work is cleanup and wiring only.
 
+## R-08 · What "agent-first" means here, and where stickiness actually comes from — 2026-08-25
+
+**Founder, restating the objective:** *"How do we make a platform truly agent-first from a user lens?
+How do I create more stickiness and make him feel we are solving the real pain? A user would not
+appreciate a founder saying 'I have so many features' if a simple outcome is not seen."*
+
+**Ruled, because these are two different problems and conflating them is how we got here.**
+
+**Agent-first is a property of who does the walking.** Today the person walks and the system waits:
+84 doors, and the user assembles the journey by navigating. Agent-first means **the person states an
+outcome and the system carries it, consulting them only when it must.** The test is not how many
+agents exist. It is: *after the first sentence, how many more times must the person act before
+something useful exists?* Today that number is unbounded, because the run stops and cannot say so.
+**Target: exactly one — the consent moment, asked in place.**
+
+**Stickiness is a different property, and the honest version does NOT come from accumulation.**
+The tempting answer is "the record compounds, so leaving costs you history." That answer is
+contradicted by our own numbers: 14 forecasts, all agent-authored, **zero due for another twelve
+days**, so nothing has compounded and nothing can for a quarter. A product that only pays after a
+year of data cannot be sticky in week one, and week one is where we are.
+
+**So stickiness has to pay on the FIRST run.** The transaction is: *you said this change would do X.
+Something that did not write the change checked, and it did / did not.* That is useful the first time
+it happens, needs no history, and is the one thing a coding agent structurally cannot do for itself
+because it wrote the diff and cannot be its own counterparty.
+
+**What this rejects, concretely:**
+
+- **Feature breadth as an argument.** Connectors, agent counts and station diagrams are our org chart.
+  A user does not care, and the founder is right that saying it out loud reads as a product that has
+  not seen its own outcome.
+- **Value that requires waiting.** Anything whose payoff needs a quarter of data does not ship as the
+  headline. It can be true later; it is not the reason to start.
+- **Polishing surfaces before one run finishes.** In three months no track has walked from the first
+  station to the last. **Until that happens, no design work is the priority**, and any lane item that
+  does not move one piece of work one step forward is deferred.
+
+**The measure that governs the next ten days:** a person types one sentence, and without navigating
+anywhere, sees the work carried to a finish and is told whether it did what it was supposed to.
+
+## R-09 · Overnight operating rules while the founder is asleep — 2026-08-25
+
+**In force 2026-08-25 ~02:00 until the founder returns (~8 hours).**
+
+1. **MAIN decides on the founder's behalf**, taking the long-term platform view. A call that would
+   have gone to him is made, recorded in this file with its reasoning, and flagged for review rather
+   than blocking the night.
+2. **Anything genuinely irreversible waits.** Deleting customer data, changing prices, sending
+   anything outward, or a schema change that cannot be rolled back is documented and left.
+3. **MAIN owns migrations, end to end.** Written by hand, applied **individually**, verified after
+   each one. **Never handed to Lovable to apply** — it concatenates them and drops rows; the
+   migration ledger has already fallen days behind the real schema more than once.
+4. **MAIN builds, verifies and deploys.** Lanes do not deploy and have no database.
+5. **Minor defects in lane output are MAIN's to fix, not to bounce.** A typo, a wrong token, a broken
+   import, a missing null guard — fix it, note it in the unit file, move on. Round-tripping a
+   five-minute fix through a lane costs an hour. **Anything structural still goes back**, because a
+   lane that never sees its own defect repeats it.
+6. **The night's single objective is the run that finishes.** Everything else yields to it.
+
+## R-10 · The three lanes, and what each must know about the others — 2026-08-25
+
+**Every lane is told this, because a lane that does not know the others exist writes as if it owns
+the repo.**
+
+| | Runs on | Does | Has | Does NOT have |
+| --- | --- | --- | --- | --- |
+| **MAIN LANE** | Claude Code | Directs, architects, rules, verifies, audits, owns the database, migrations and deploys, and fixes minor defects in lane output | Lovable MCP (DB), Mobbin, deploy, the founder | — |
+| **LANE 0** | OX Alpha / opencode | Builds `src/components/**` except `meridian/` and `shell/` | Playwright, its skills, the repo | No DB, no Mobbin, no deploy, no founder |
+| **LANE 1** | OX Alpha / opencode | Builds `src/routes/**` except `api/`, `src/components/shell/**`, `src/styles/**` except `meridian.css` | Playwright, its skills, the repo | No DB, no Mobbin, no deploy, no founder |
+
+**What follows for a building lane:** you are not alone in this repo and you never write outside your
+prefix. Anything needing the database, a deploy, a design reference you cannot see, or a founder
+decision is a `coordination/requests/` file — MAIN answers in minutes, not hours. **Do not work
+around a blocker by reaching into another lane's path.** That is the failure that broke `main`.
+
+**What follows for MAIN:** two lanes stall without me, so requests are answered before new work is
+started. A starved lane is my failure.
+
 ---
 
 ## Open, and I have not ruled yet
