@@ -214,6 +214,7 @@ import {
   leaveWorkspace,
   listWorkspaceMembers,
   renameWorkspace,
+  createWorkspace,
 } from "@/lib/workspaces.functions";
 import { MODELS, AUTO_MODEL } from "@/lib/ai/models";
 import {
@@ -1390,47 +1391,29 @@ function ThisWorkspaceRegion() {
 
   const mCreate = useMutation({
     mutationFn: async () => {
-      const createdName = newName.trim();
-      const { data: auth } = await supabase.auth.getUser();
-      const userId = auth.user?.id;
-      if (!userId) throw new Error("Your session ended. Sign in again to create a workspace.");
-      const { data: created, error: wsError } = await supabase
-        .from("workspaces")
-        .insert([{ owner_id: userId, name: createdName } as never])
-        .select("id")
-        .single();
-      if (wsError) throw new Error(wsError.message);
-      if (!created) throw new Error("The workspace was created but returned no id.");
-      const { error: memberError } = await supabase
-        .from("workspace_members")
-        .upsert(
-          [{ workspace_id: created.id, user_id: userId, role: "owner" } as never],
-          {
-            onConflict: "workspace_id,user_id",
-            ignoreDuplicates: true,
-          },
-        );
-      if (memberError) throw new Error(memberError.message);
-      return { id: created.id as string, name: createdName };
-    },
-    onSuccess: async ({ id, name }) => {
-      let productFailed: string | null = null;
-      try {
-        await fEnsureProduct({ data: { workspaceId: id } });
-      } catch (e) {
-        productFailed = (e as Error).message;
+      // Through the chokepoint, not a raw insert: the structured refusal is
+      // the point - a plan boundary is guidance, not a malfunction string.
+      const result = await createWorkspace({ data: { name: newName.trim() } });
+      if (!result.ok) {
+        const err = new Error(result.message) as Error & {
+          reason?: string;
+          limit?: number;
+        };
+        err.reason = result.reason;
+        err.limit = result.limit ?? undefined;
+        throw err;
       }
+      return result.workspace;
+    },
+    onSuccess: async (workspace) => {
       closeCreate();
+      setNewName("");
       await refreshWorkspaces();
-      setActiveWorkspaceId(id);
-      if (productFailed) {
-        toast.error(`Created ${name}, but its default product did not. ${productFailed}`);
-      } else {
-        toast.success(`${name} is ready.`);
-      }
+      setActiveWorkspaceId(workspace.id);
+      toast.success(`${workspace.name} is ready.`);
     },
-    onError: (e: Error) => {
-      if (e.message.includes("Upgrade your plan")) {
+    onError: (e: Error & { reason?: string }) => {
+      if (e.reason === "plan-limit") {
         setPlanBlocked(true);
       } else {
         toast.error(e.message);
