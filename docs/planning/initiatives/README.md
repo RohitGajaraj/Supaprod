@@ -19,6 +19,12 @@ sections mapped to what was delivered, the five things a new reader gets wrong, 
 [`agent-first-reimagining-plan.md`](./agent-first-reimagining-plan.md) — the wave order, the Meridian
 extensions argued, and the acceptance criteria per surface.
 
+**The mission executing right now (2026-08-24):** [`../../../the-first-run/README.md`](../../../the-first-run/README.md)
+— *why no journey has ever run end to end, and the three-lane plan that fixes it.* The diagnosis is
+measured: `spine_tracks` walks all seven stations and has **0 routes out of 84**, `driveTrackOnce` has
+exactly one caller (the background cron), and the forecast has never fired on a real workspace.
+**It also corrects a stale claim below** — the run primitives are no longer gallery-only.
+
 ## Start here: is your question already answered?
 
 | If you are about to ask… | It is answered in | Dated |
