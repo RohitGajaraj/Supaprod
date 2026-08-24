@@ -1,6 +1,24 @@
 # Accelerator, incubator, residency and grant applications — the master tracker
 
-> ### ❌ Two outcomes are in, and both are noes. EF The Bridge said no on 2026-08-21, three days after we filed
+> ### ❌ Three outcomes are in, all noes — and the third one finally states criteria
+>
+> **Hub71 Cohort 20: REJECTED 2026-08-24 at 18:19 IST.** Filed 2026-08-17, four days early, so the turnaround was **seven days**. Full record with the verbatim email and the checklist it produced: [`hub71/OUTCOME.md`](./hub71/OUTCOME.md). Notion card updated to `Rejected`.
+>
+> **This is the first of the three that says anything about criteria**, and it changes what a rejection is worth here. South Park Commons said *"not the right fit"*; EF said *"highly competitive"*; both were volume statements. Hub71 lists **five things the shortlisted startups had** — a critical and widely prevalent problem; compelling evidence of an implemented solution's effectiveness **and scalability**; founders with genuine problem connection and **"collective expertise and diverse skill sets"**; a stage showing **"demonstrated remarkable progress"**; and a specific, strategised reason for Hub71 and Abu Dhabi.
+>
+> **The rule below still binds and the bullets do not suspend it.** Those five describe the SHORTLISTED startups. **They are not an assessment of us**, the letter never says which we missed, and it is a template. Writing "we lost on traction" into this file would be exactly the invented reason banned after South Park Commons. **A checklist is worth more than a reason anyway** — a reason applies to one filing, a checklist can be held against every future one.
+>
+> **The one structural finding that IS safe to act on, and it corrects how this board reads programme pages:** bullets 2 and 4 select on demonstrated traction and an implemented solution, while our own pre-filing research on this programme recorded that Hub71 *"explicitly sets no minimum traction, revenue or MVP requirement."* Both are true.
+>
+> > **A published "no minimum traction" is a statement about ELIGIBILITY, never about SELECTION.** It tells you the form will accept you. It says nothing about who gets shortlisted out of an oversubscribed pool — and an oversubscribed pool is selected on evidence.
+>
+> The same shape applies to bullet 3: the programme publishes no two-founder rule (this card's `Solo founder` reads `Yes`), and the letter still credits *"(co-)founders"* and *"diverse skill sets"*. **No published gate is not the same as no weight in selection.**
+>
+> **A live door that does not depend on the programme:** they offer ADGM company setup separately, at `bd@adgm.com`. The Abu Dhabi leg of that thesis — the AI-native government strategy, the FSRA sandbox — is reachable without the cohort. Founder call.
+>
+> **Three noes is still not a pattern in the thesis.** Three programmes, three filters, one decided in seven days. The discipline written here after the second rejection stands unchanged: fix what we can prove is wrong, leave the thesis alone until something actually says it is wrong. **Nothing in this letter says it.**
+>
+> ### ❌ Second outcome: EF The Bridge said no on 2026-08-21, three days after we filed
 >
 > **EF The Bridge Residency SF: REJECTED 2026-08-21.** Applied 2026-08-18, so the turnaround was **three days** against South Park Commons' eleven. **Their exact words are now on the Notion card**, and they give **no reason** — *"Selection for The Bridge is highly competitive, and only a small group can progress to the next stage."* That is a volume statement, not an assessment of the company, the market or the founder. **No reason may be written down for this one either**, per the rule immediately below, learned the hard way on the first rejection.
 >

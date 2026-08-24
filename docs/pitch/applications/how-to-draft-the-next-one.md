@@ -466,6 +466,44 @@ ffprobe -v error -show_entries stream=codec_type,codec_name -of csv=p=0 <file>
 
 ---
 
+## Part 1d — What the Hub71 REJECTION taught, 2026-08-24
+
+Filed 2026-08-17, rejected 2026-08-24 in seven days. Full record: [`hub71/OUTCOME.md`](./hub71/OUTCOME.md).
+
+**This is the first of three rejections that states criteria**, so it is the first one that can change how we draft. South Park Commons and EF The Bridge both gave volume statements.
+
+**Read the five bullets correctly or they become the invented reason this folder banned.** They describe what the SHORTLISTED startups had. They are not an assessment of us, the letter never says which we missed, and it is a template. **A checklist is worth more than a reason anyway** — a reason applies to one filing; a checklist holds against every future one.
+
+### Correction: a published "no minimum traction" is about ELIGIBILITY, never SELECTION
+
+Our own pre-filing research recorded that Hub71 *"explicitly sets no minimum traction, revenue or MVP requirement."* Their rejection then credits shortlisted startups with *"compelling evidence showcasing the effectiveness and scalability of their implemented solution"* and *"demonstrated remarkable progress."*
+
+**Both are true, and the gap is the lesson.** A stated no-minimum tells you the form will accept you. It says nothing about who is shortlisted out of an oversubscribed pool — and an oversubscribed pool is selected on evidence.
+
+**The same shape applies to team.** The programme publishes no two-founder rule, and the letter still credits *"(co-)founders"* and *"collective expertise and diverse skill sets"*. **No published gate is not the same as no weight in selection.**
+
+**So stop reading eligibility copy as if it were selection criteria.** Both readings appear in this folder's own research fields and they are different questions.
+
+### The evidence question, which is now part of the procedure
+
+> **For every claim in an application, answer two things in one line each: what is the evidence, and can a stranger check it?**
+>
+> A claim that fails the second half is exposure against criteria 2 and 4. **Fix the evidence, or file knowing the gap — never fix it by writing the claim more confidently**, which is precisely what an application form invites.
+
+### What to have collectable before the next filing
+
+| Their criterion | What we must be able to SHOW | State |
+| --- | --- | --- |
+| A critical, widely prevalent problem | The problem in one sentence, plus prevalence with a source that is not our own assertion | Sentence yes, source no |
+| Evidence the solution works **and scales** | A working product a stranger can use, plus before/after with the query behind it | **The gap** |
+| Founder connection **and team breadth** | The regulated-finance decade as qualification; an honest team answer | Founder strong, breadth open |
+| Stage and **demonstrated progress** | What shipped, dated, and what it changed | Record exists, never assembled into a narrative |
+| Why THIS programme and THIS city | A named institution, regulation, customer or person | **Our strongest answer, and not enough alone** |
+
+**That last row matters most.** The Abu Dhabi case we filed was specific and verifiable — the AI-native government strategy, the ADGM/FSRA sandbox leg — and it did not carry the application on its own. Consistent with a pool selected on evidence first.
+
+---
+
 ## Part 2 — What worked, and should be repeated
 
 **Read every question off the live form. Never draft against guessed questions.** [`application.md`](./berkeley-skydeck/application.md) was drafted blind and is kept only for comparison; every answer had to be rewritten once the real form was open. **The form is the spec.**
@@ -543,6 +581,8 @@ Until all three pass: padlock, no Submit button, and **nothing typed is saved**.
 3. **Check the seven rules in [`positioning-doctrine.md`](./positioning-doctrine.md)**, then this file.
 4. **Draft door → body → brain.** Cut any block that already appears in another field.
 5. **Read every answer aloud. Delete any sentence that stays true with a competitor's name swapped in.**
+
+   **5b. Then run the evidence pass, added after the Hub71 rejection (Part 1d).** For every claim, answer in one line: **what is the evidence, and can a stranger check it?** A claim failing the second half is exposure against the two criteria Hub71 shortlists on — effectiveness at scale, and demonstrated progress. **Fix the evidence or file knowing the gap. Never fix it by writing the claim more confidently.**
 6. **Verify each answer persisted** by reloading, then record the filed text.
 7. **The founder submits.** Never submit an application.
 8. **Log it**: the programme folder, [`README.md`](./README.md), and the [Notion Application Board](https://app.notion.com/p/4014ff9cb1c240c9a3b761e790852970) with status, dates and outcome detail.
