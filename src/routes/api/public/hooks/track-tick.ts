@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { withJobRun } from "@/lib/observability";
 import { driveTrackOnce, DRIVE_SELECT, type DriveRow } from "@/lib/spine/driver.server";
+import { TERMINAL_HOLDS } from "@/lib/spine/correction";
 import { notInList, sampleWorkspaceIds } from "@/lib/ticks/real-workspaces.server";
 // The sweep and the driver now stop on the SAME clock. Sharing the predicate
 // rather than re-deriving one is what keeps them from drifting apart.
@@ -91,6 +92,33 @@ export const Route = createFileRoute("/api/public/hooks/track-tick")({
             .select(DRIVE_SELECT)
             .eq("status", "open");
           if (excluded) trackQuery = trackQuery.not("workspace_id", "in", excluded) as never;
+
+          /*
+           * WORK THAT CAN NEVER MOVE DOES NOT GET A SLOT.
+           *
+           * `given-up` and `station-cannot-finish` are the two holds no code path
+           * clears; `RESUMABLE_HOLDS` excludes them for the same reason, because
+           * "neither asked for anything, so nothing can arrive that would make a
+           * retry justified." `decideDrive` refuses them every time, so every
+           * slot one occupies is a slot spent proving that again.
+           *
+           * MEASURED 2026-08-24 23:50 UTC: the live workspace held five
+           * `given-up` tracks and one live one. All five slots went to the dead
+           * work, the live track sorted sixth and was not driven, and the tick
+           * reported `ok` in 500ms. A refused track is still stamped so it sorts
+           * to the back and the live one comes round next time, which makes this
+           * a HALVING of throughput rather than a freeze -- and an invisible one.
+           *
+           * THE NULL BRANCH IS LOAD-BEARING AND IS NOT DEFENSIVE PADDING. A
+           * healthy track carries `last_hold = NULL`, and in SQL `NULL <> 'x'`
+           * is NULL, not true -- so a bare `not.eq` or `not.in` filter drops
+           * every healthy track from the sweep and leaves it driving only work
+           * that has already failed once. Written the plain way first, and it
+           * had exactly that bug. The `is.null` arm is what keeps normal work in.
+           */
+          const notTerminal = TERMINAL_HOLDS.map((h) => `last_hold.neq.${h}`).join(",");
+          trackQuery = trackQuery.or(`last_hold.is.null,and(${notTerminal})`) as never;
+
           const { data: tracks, error } = await trackQuery
             .order("driven_at", { ascending: true, nullsFirst: true })
             .limit(MAX_TRACKS_PER_TICK);

@@ -212,6 +212,37 @@ export const RESUMABLE_HOLDS: ReadonlySet<HoldReason> = new Set<HoldReason>([
   "corrections-spent",
 ]);
 
+/**
+ * The holds NOTHING will ever clear on its own, so the sweep stops picking them
+ * up.
+ *
+ * THE TWO ABOVE, SEEN FROM THE SWEEP'S SIDE. `RESUMABLE_HOLDS`'s own paragraph
+ * says why these two are absent from it: *"neither asked for anything, so
+ * nothing can arrive that would make a retry justified."* A track carrying one
+ * is finished until a person does something, and `decideDrive` correctly refuses
+ * to act on it every time.
+ *
+ * WHAT THAT COST, MEASURED 2026-08-24 23:50 UTC. The tick takes the five oldest
+ * open tracks by `driven_at`. The live workspace held **five `given-up` tracks
+ * and one live one**, so all five slots went to work that could not move, the
+ * live track was pushed to sixth, and it was **not driven at all that tick**.
+ * The rotation does eventually come round -- a refused track still gets stamped,
+ * so it sorts to the back -- which makes this a **halving of throughput rather
+ * than a freeze**, and it is invisible: every one of those ticks reported `ok`
+ * in 500ms having done nothing.
+ *
+ * That is the same shape as the frozen rotation `track-tick`'s own header
+ * describes, one layer out. There it was a track the tick could not SERVE
+ * holding its place; here it is a track the tick can never serve at all.
+ *
+ * **Excluding them is safe because the exclusion is on the HOLD, not on the
+ * track.** Every route back into the sweep clears the hold first: the retry
+ * control writes `last_hold = null`, and so does a correction. So a revived
+ * track re-enters on the next tick with no further change, and nothing has to
+ * remember it was ever excluded.
+ */
+export const TERMINAL_HOLDS: readonly HoldReason[] = ["given-up", "station-cannot-finish"];
+
 export type CorrectionInputs = {
   /** Why the driver stopped. Only `stalled` and `produced-nothing` are ours. */
   hold: HoldReason;
