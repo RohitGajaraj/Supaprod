@@ -64,7 +64,7 @@ function CitationBadge({ n }: { n: number }) {
       type="button"
       onClick={onClick}
       aria-label={`Source ${n}`}
-      className="mx-0.5 inline-flex h-3.5 min-w-3.5 -translate-y-[3px] cursor-pointer items-center justify-center rounded border hairline bg-secondary/70 px-0.5 align-baseline font-mono text-[9px] leading-none text-muted-foreground transition-colors duration-150 hover:border-primary/40 hover:text-foreground"
+      className="mx-0.5 inline-flex h-3.5 min-w-3.5 -translate-y-[3px] cursor-pointer items-center justify-center rounded border hairline bg-secondary/70 px-0.5 align-baseline font-mono text-mrd-nano leading-none text-muted-foreground transition-colors duration-150 hover:border-primary/40 hover:text-foreground"
     >
       {n}
     </button>

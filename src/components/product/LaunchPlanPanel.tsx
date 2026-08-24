@@ -85,12 +85,12 @@ export function LaunchPlanPanel({ prdId }: Props) {
       ) : (
         <div className="flex flex-col gap-5">
           <div>
-            <div className="mono-label text-[9px] text-muted-foreground mb-1.5">POSITIONING</div>
+            <div className="mrd-eyebrow mb-1.5">POSITIONING</div>
             <p className="text-sm leading-mrd-prose">{plan.positioning}</p>
           </div>
 
           <div>
-            <div className="mono-label text-[9px] text-muted-foreground mb-1.5">CHECKLIST</div>
+            <div className="mrd-eyebrow mb-1.5">CHECKLIST</div>
             <div className="flex flex-col gap-1.5">
               {plan.checklist.map((item, i) => (
                 <button
@@ -114,7 +114,7 @@ export function LaunchPlanPanel({ prdId }: Props) {
           </div>
 
           <div>
-            <div className="mono-label text-[9px] text-muted-foreground mb-1.5">SUCCESS METRIC</div>
+            <div className="mrd-eyebrow mb-1.5">SUCCESS METRIC</div>
             <p className="text-sm">
               {plan.success_metric ?? (
                 <span className="text-muted-foreground">
@@ -125,7 +125,7 @@ export function LaunchPlanPanel({ prdId }: Props) {
           </div>
 
           <div>
-            <div className="mono-label text-[9px] text-muted-foreground mb-1.5">
+            <div className="mrd-eyebrow mb-1.5">
               OUTCOME CHECK ARMED
             </div>
             <div className="flex items-center gap-2 flex-wrap">

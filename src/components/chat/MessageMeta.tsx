@@ -196,7 +196,7 @@ function SourceChip({ s }: { s: ChatSource }) {
         title={s.title || safeUrl}
         className={chipClass}
       >
-        <span className="font-mono text-[9px] text-muted-foreground/70">{s.n}</span>
+        <span className="font-mono text-mrd-nano text-muted-foreground/70">{s.n}</span>
         <span className="truncate">{s.sub || domainOf(safeUrl)}</span>
       </a>
     );
@@ -204,7 +204,7 @@ function SourceChip({ s }: { s: ChatSource }) {
   const Icon = s.kind === "web" ? FileText : KIND_ICONS[s.kind];
   const inner = (
     <>
-      <span className="font-mono text-[9px] text-muted-foreground/70">{s.n}</span>
+      <span className="font-mono text-mrd-nano text-muted-foreground/70">{s.n}</span>
       <Icon className="h-2.5 w-2.5 shrink-0" />
       <span className="truncate">{s.title || s.sub || s.kind}</span>
     </>

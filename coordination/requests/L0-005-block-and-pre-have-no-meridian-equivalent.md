@@ -118,3 +118,14 @@ Two unrelated closes on the size front:
    claims Meridian bridges no type scale, which stopped being true when
    h3 landed - so MAIN LANE may want to re-judge the whole dialog as a
    set rather than leave the retired literals standing.
+
+## ADDENDUM 4 (2026-08-24T05:15+05:30): PersonMark consolidation, per RL0-005c's finding
+
+RL0-005c found runs/run-parts.tsx PersonMark duplicates Meridian's YouMark
+(role/aria/colours identical; circle size differs). Ruling: become YouMark
+with a size prop, or be deleted - filed rather than swept. run-parts.tsx
+is mine; marks.tsx is MAIN LANE's. Requesting: either add a size prop to
+YouMark (meridian/marks.tsx:241) so PersonMark's 16px-circle usage ports,
+or rule deletion. PersonMark meanwhile carries a fitted-monogram comment
+per the ruling. Twelve mono-label text-[9px] overrides also landed on
+mrd-eyebrow/nano per this ruling (separate commit).

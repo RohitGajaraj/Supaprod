@@ -137,7 +137,7 @@ export function IntentVsBuiltReceipt({ prdId }: { prdId: string }) {
                       {p.matched_terms.map((t) => (
                         <span
                           key={t}
-                          className="mono-label text-[9px] px-1.5 py-0.5 rounded border hairline text-muted-foreground"
+                          className="mrd-eyebrow px-1.5 py-0.5 rounded border hairline text-muted-foreground"
                         >
                           {t}
                         </span>

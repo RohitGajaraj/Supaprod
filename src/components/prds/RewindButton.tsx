@@ -110,16 +110,17 @@ export function RewindButton({ prdId, hasSnapshot, onCommit, onReverted }: Rewin
       <AlertDialog.Portal>
         {/* Dimmed, not blurred. The glass ban is this surface's own ruling. */}
         <AlertDialog.Overlay className="fixed inset-0 z-40 bg-mrd-scrim" />
-        {/* THE STOPS ARE THE RETIRED ONES, TO THE PIXEL. 19px on 1.32 with the
-            gate's tracking, 600 weight, 13.5px on 1.55 underneath, 24px of pad,
-            440px wide. They are written as explicit values wherever Meridian
-            bridges no equivalent — it bridges neither the type scale nor the
-            weight scale — because the ratchet law makes today's design the
-            floor, and rounding 19 to 20 or 600 to `font-medium` to make the
-            port tidier would make the dialog worse. */}
+        {/* THE TITLE STOP IS THE RETIRED ONE, DELIBERATELY. 19px on 1.32 with
+            the gate's tracking over 14px prose underneath, 24px of pad, 440px
+            wide. Meridian bridges the weight exactly (--mrd-w-semi is 600 -
+            nothing rounds) but has no 19px type stop, and this dialog's title
+            was tuned as part of a set; the ratchet law makes today's design
+            the floor, so the one unbridged literal stays until someone
+            re-tunes the set on purpose. */}
+
         <AlertDialog.Content className="fixed top-1/2 left-1/2 z-50 w-[440px] max-w-[92vw] -translate-x-1/2 -translate-y-1/2 rounded-mrd-pane border border-mrd-line bg-mrd-float p-mrd-6 shadow-mrd-pane outline-none">
           <AlertDialog.Title
-            className="m-0 text-[19px] leading-[1.32] font-[600] text-mrd-ink"
+            className="m-0 text-[19px] leading-[1.32] font-mrd-semi text-mrd-ink"
             style={{ letterSpacing: "-0.019em" }}
           >
             Take the crew's edit back?

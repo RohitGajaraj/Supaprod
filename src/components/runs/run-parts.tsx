@@ -217,6 +217,9 @@ export function PersonMark({ initials, mine = false }: { initials: string; mine?
       data-mrd=""
       role="img"
       aria-label="You"
+      // 8px is a monogram fitted to a 16px circle, not a type stop: a screen
+      // reader reads "You", never these initials. Consolidation with Meridian's
+      // YouMark (size prop or deletion) filed in REQ-L0-005 addendum 3 follow-up.
       className={`flex size-4 shrink-0 items-center justify-center rounded-full text-[8px] font-[650] ${
         mine ? "bg-mrd-you text-mrd-on-you" : "bg-mrd-lift text-mrd-mute"
       }`}

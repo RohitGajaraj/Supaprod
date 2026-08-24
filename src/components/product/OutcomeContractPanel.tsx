@@ -244,7 +244,7 @@ function VerifiabilityVerdict({ contract }: { contract: OutcomeContract }) {
                     key={c.id}
                     className="text-mrd-tiny text-muted-foreground flex items-start gap-1.5"
                   >
-                    <span className="mono-label text-[9px] mt-0.5 shrink-0 opacity-70">
+                    <span className="mrd-eyebrow mt-0.5 shrink-0 opacity-70">
                       {c.pending ? "uncompiled" : "watched"}
                     </span>
                     <span className="min-w-0">{c.text}</span>

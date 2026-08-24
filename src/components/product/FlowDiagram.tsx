@@ -92,7 +92,7 @@ export function FlowDiagram({ prdId }: Props) {
                   <span
                     className={`inline-block h-3 w-3 border hairline flex-shrink-0 ${KIND_SHAPE[s.kind]}`}
                   />
-                  <span className="mono-label text-[9px] text-muted-foreground">
+                  <span className="mrd-eyebrow">
                     {KIND_LABEL[s.kind]}
                   </span>
                   <span className="text-sm">{s.label}</span>
@@ -108,7 +108,7 @@ export function FlowDiagram({ prdId }: Props) {
                         >
                           <GitBranch className="h-3 w-3 flex-shrink-0" />
                           {e.label ? (
-                            <span className="mono-label text-[9px]">{e.label}</span>
+                            <span className="mrd-eyebrow">{e.label}</span>
                           ) : null}
                           <span>{target ? target.label : e.to}</span>
                         </div>
