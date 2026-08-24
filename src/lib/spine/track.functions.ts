@@ -269,7 +269,31 @@ export async function startTrackCore(
         waived: route.waived,
         product_id: data.productId ?? null,
         project_id: data.projectId ?? null,
-        workspace_id: data.workspaceId ?? null,
+        /*
+         * OMITTED WHEN UNKNOWN, NEVER SENT AS NULL, and the difference is the
+         * whole reason no track has ever been started from the product.
+         *
+         * `spine_tracks.workspace_id` is NOT NULL with default
+         * `current_user_default_workspace()`. A default fires only when the
+         * column is ABSENT from the insert. This wrote `?? null`, PostgREST sent
+         * `"workspace_id": null`, and Postgres refused the row outright -- so
+         * `startTrack` did not create a track with the wrong workspace, it
+         * created no track at all.
+         *
+         * MEASURED 2026-08-24 on the live database: 58 of 59 tracks carry a
+         * `theme_id`, which only the promotion sweep sets, and the 59th is the
+         * 2026-08-01 seed row in workspace `60000000-...`. **Not one track in
+         * this product's history came through this function.** There are no
+         * triggers on the table, so the column default is the only filler and
+         * omission is the only way to reach it.
+         *
+         * Worth stating because the earlier reading of this line (F-05) was that
+         * a null-workspace track would be silently dropped from every sweep by
+         * `NULL NOT IN (...)`. That consequence is real in the abstract and
+         * could never happen here: the constraint refuses the row first. The
+         * defect was one layer earlier and one order of magnitude worse.
+         */
+        ...(data.workspaceId ? { workspace_id: data.workspaceId } : {}),
         theme_id: data.themeId ?? null,
       } as never)
       .select(SELECT)
@@ -280,6 +304,22 @@ export async function startTrackCore(
       // sometimes, so it is reported as a plain refusal rather than thrown.
       const code = (error as { code?: string } | null)?.code;
       if (code === "23505") return { track: null, problems: ["already promoted"] };
+      /*
+       * 23502 is the NOT NULL on `workspace_id`, and it reaches here by exactly
+       * one route now that the key is omitted rather than nulled: the column
+       * default `current_user_default_workspace()` itself returned null, which
+       * means this account belongs to no workspace. That is a setup gap a person
+       * can close in one action, and the raw Postgres sentence names a column
+       * instead of naming it. R-16: a failure has to say what failed.
+       */
+      if (code === "23502") {
+        return {
+          track: null,
+          problems: [
+            "This account is not in a workspace yet, so there is nowhere to put the work. Create or join a workspace and start it again.",
+          ],
+        };
+      }
       return { track: null, problems: [error?.message ?? "The track could not be started."] };
     }
     const track = rowToTrack(row as unknown as TrackRow);
@@ -288,6 +328,34 @@ export async function startTrackCore(
   } catch (e) {
     return { track: null, problems: [(e as Error).message] };
   }
+}
+
+/**
+ * Which workspace this track belongs to, proven rather than trusted.
+ *
+ * THE GATE IS HERE AND NOT IN `startTrackCore`, deliberately. Core is also
+ * called by the promotion sweep with a SERVICE-ROLE client, where a membership
+ * read returns nothing and would refuse every promoted track. This runs on the
+ * caller's RLS-scoped client, which can only see the caller's own membership
+ * rows, so the read itself IS the proof. Same shape as `audio.functions.ts:78`.
+ *
+ * Null means "let the column default decide", which is the zero-configuration
+ * path and the one the on-ramp uses: a person types a sentence and does not pick
+ * a workspace.
+ */
+async function resolveStartWorkspace(
+  supabase: import("@supabase/supabase-js").SupabaseClient,
+  explicit: string | null | undefined,
+): Promise<string | null> {
+  if (!explicit) return null;
+  const { data: member } = await supabase
+    .from("workspace_members")
+    .select("workspace_id")
+    .eq("workspace_id", explicit)
+    .limit(1)
+    .maybeSingle();
+  if (!member) throw new Error("Forbidden: not a member of this workspace");
+  return explicit;
 }
 
 export const startTrack = createServerFn({ method: "POST" })
@@ -300,16 +368,24 @@ export const startTrack = createServerFn({ method: "POST" })
         origin: z.string().trim().max(2000).optional(),
         productId: z.string().uuid().optional(),
         projectId: z.string().uuid().optional(),
+        /**
+         * Optional, and gated. A caller that names a workspace must be a member
+         * of it; a caller that names none gets their default. Neither path can
+         * reach another tenant's data.
+         */
+        workspaceId: z.string().uuid().optional(),
       })
       .parse(d),
   )
   .handler(async ({ context, data }): Promise<{ track: Track | null; problems: string[] }> => {
+    const workspaceId = await resolveStartWorkspace(context.supabase, data.workspaceId ?? null);
     return startTrackCore(context.supabase, context.userId, {
       title: data.title,
       shape: data.shape as WorkShape,
       origin: data.origin,
       productId: data.productId ?? null,
       projectId: data.projectId ?? null,
+      workspaceId,
     });
   });
 
