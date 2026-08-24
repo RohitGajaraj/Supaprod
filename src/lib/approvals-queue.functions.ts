@@ -321,30 +321,34 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
     // stage on. A dependent read (the workspace ids aren't known until
     // designWsRows lands above).
     //
-    // THIS READ RETURNS NOTHING AND CANNOT EVER RETURN ANYTHING. Read the
-    // predicate below as what it is: `prds.design_gate_status` is
+    // THIS READ WAS UNSATISFIABLE BY SCHEMA UNTIL 2026-08-24, AND THE FIX WAS
+    // A FOUNDER CALL RATHER THAN A TYPO.
+    //
+    // The predicate was `.is("design_gate_status", null)`. The column is
     // `text NOT NULL DEFAULT 'pending'` with `CHECK (design_gate_status in
     // ('pending','approved','rejected'))` -- migrations 20260707203117:133-134
-    // and 20260708170000_sw4_design_station.sql:16-17 -- so `.is(..., null)` is
-    // unsatisfiable BY SCHEMA, not merely unmatched by today's data. The
-    // undecided sentinel is 'pending' (design-scaffold.functions.ts types the
-    // column as "pending" | "approved" | "rejected" and coalesces a null read
-    // to "pending"; no line cite, that file is moving), and on 2026-08-06 the
-    // live column reads
-    // pending 80, approved 1, NULL 0, with all 80 sitting in the 21 workspaces
-    // that have design_stage_enabled. So one of the ten families this module's
-    // header promises it federates sources nothing, and 80 undecided design
-    // gates are invisible to the single pull point.
+    // and 20260708170000_sw4_design_station.sql:16-17 -- so it could never match
+    // a row, not merely today's rows. One of the ten families this module's
+    // header promises it federates sourced nothing, and every undecided design
+    // gate was invisible to the single pull point.
     //
-    // NOT FIXED HERE, ON PURPOSE, AND NOT BECAUSE IT IS DORMANT. The identical
-    // predicate lives at today.functions.ts:291 and :511. Correcting one of the
-    // three sites would be the first thing in this repo to actually break the
-    // ONE COUNT, ONE SOURCE law the header claims: the approvals pill would
-    // read 80 while the Today hero read 0. The fix is `.eq("design_gate_status",
-    // "pending")` at all three sites in one change, and it is a real behaviour
-    // change (an empty family becomes the largest one on the queue), so it is a
-    // founder call in launch week rather than a comment fix. Escalated, not
-    // buried.
+    // WHY IT SAT UNFIXED, AND WHY THAT WAS RIGHT. An earlier session diagnosed
+    // it in full and deliberately escalated instead of correcting it: the fix
+    // turns an empty family into the largest one on the queue, which is a
+    // product change and not a comment fix. It also had to move at all three
+    // sites at once -- here and today.functions.ts:291 and :511 -- or the
+    // approvals pill and the Today hero would disagree and break the
+    // one-count-one-source law the header claims.
+    //
+    // MEASURED AGAIN ON THE DAY OF THE FIX, because the escalation carried a
+    // number and numbers go stale: the recorded count was 80 on 2026-08-06,
+    // and production read `pending 99, approved 2, NULL 0`. The gap grew by 19
+    // while the read said zero.
+    //
+    // Fixed at all three sites in one change under the founder's ruling. The
+    // surfaces already bound what they show -- `.limit(100)` here, `.limit(5)`
+    // and a count on Today -- so this restores a real family rather than
+    // flooding a queue.
     noteReadError("design-stage workspace lookup", designWsRows.error);
     noteReadError("specs in review", specRows.error);
     noteReadError("critic'd opportunities", oppRows.error);
@@ -356,7 +360,7 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
           .from("prds")
           .select("id,title,updated_at,project_id")
           .in("workspace_id", designWsIds)
-          .is("design_gate_status", null)
+          .eq("design_gate_status", "pending")
           .order("updated_at", { ascending: false })
           .limit(100)
       : {

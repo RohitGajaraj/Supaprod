@@ -288,7 +288,7 @@ export async function countNeedsYouCalls(
           .from("prds")
           .select("id", { count: "exact", head: true })
           .eq("workspace_id", wsId)
-          .is("design_gate_status", null)
+          .eq("design_gate_status", "pending")
       : Promise.resolve({ count: 0 }),
     // The pinned first teardown: the earliest undecided opportunity that has
     // a Critic verdict, ANY verdict. Revise/kill rows are already in the
@@ -508,7 +508,7 @@ export const getNeedsYou = createServerFn({ method: "GET" })
             .from("prds")
             .select("id,title,updated_at")
             .eq("workspace_id", workspaceId)
-            .is("design_gate_status", null)
+            .eq("design_gate_status", "pending")
             .order("updated_at", { ascending: false })
             .limit(5)
         : Promise.resolve({ data: [] as unknown[] }),

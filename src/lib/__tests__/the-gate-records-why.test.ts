@@ -97,13 +97,29 @@ describe("the reasoning is assembled from the row, never typed and never invente
 });
 
 describe("the write is wired the way this repo has learned to wire writes", () => {
-  const fn = SRC.slice(SRC.indexOf("async function recordJudgment("));
+  /*
+   * BOUNDED BY THE FUNCTION, NOT BY A CHARACTER COUNT.
+   *
+   * Every assertion below used to read `fn`. On 2026-08-24
+   * `recordJudgment` grew a forecast branch (FC-01's human half) and three of
+   * those assertions failed at once -- not because the guard, the lineage edge
+   * or the catch had gone anywhere, but because they had moved past character
+   * 4000. A window sized to yesterday's function is a guard that fails on
+   * growth and cannot tell growth from removal, which is the one distinction it
+   * exists to make.
+   *
+   * So the slice runs to the function's own closing brace. `\n}` at column zero
+   * is the end of a top-level function in this file's formatting, and nothing
+   * inside is indented that far left.
+   */
+  const fnStart = SRC.indexOf("async function recordJudgment(");
+  const fn = SRC.slice(fnStart, SRC.indexOf("\n}", fnStart) + 2);
 
   it("passes the workspace explicitly rather than letting the default guess", () => {
     // `decisions.workspace_id` is NOT NULL with a default of
     // current_user_default_workspace(). That exact trap put two bets in a
     // workspace that never saw their evidence, earlier the same night.
-    expect(fn.slice(0, 4000)).toContain("workspace_id: input.workspaceId");
+    expect(fn).toContain("workspace_id: input.workspaceId");
   });
 
   it("checks the error, because a refused write RESOLVES rather than throws", () => {
@@ -117,9 +133,9 @@ describe("the write is wired the way this repo has learned to wire writes", () =
     // from a driver error, and silently returning told the next reader neither.
     // The guard is what matters; a bare `return` was never the requirement, and
     // pinning it would keep punishing every improvement to it.
-    const guard = fn.slice(0, 4000).replace(/\s+/g, " ");
+    const guard = fn.replace(/\s+/g, " ");
     expect(guard).toMatch(/if \(error \|\| !decision\)/);
-    expect(fn.slice(0, 4000)).toContain('.select("id")');
+    expect(fn).toContain('.select("id")');
     // And it must not fall through into the lineage write on a refusal, which is
     // the actual defect this test exists to prevent: an orphan decision edge
     // pointing at a row that was never inserted.
@@ -136,14 +152,14 @@ describe("the write is wired the way this repo has learned to wire writes", () =
   });
 
   it("writes the lineage edge, or Learn can never walk back to the call", () => {
-    expect(fn.slice(0, 4000)).toContain('parent_kind: "opportunity"');
-    expect(fn.slice(0, 4000)).toContain('child_kind: "decision"');
+    expect(fn).toContain('parent_kind: "opportunity"');
+    expect(fn).toContain('child_kind: "decision"');
   });
 
   it("never blocks the settle", () => {
     // The person's judgment is the fact; the record of it is a consequence. A
     // failure to file must not stop a bet being settled.
-    expect(fn.slice(0, 4000)).toMatch(/catch \{/);
+    expect(fn).toMatch(/catch \{/);
   });
 
   it("is actually called from the status update, not merely defined", () => {

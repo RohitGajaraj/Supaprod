@@ -383,7 +383,37 @@ goes with the other five; say keep and it costs nothing but a gallery entry.
 
 | [`014`](./requests/014-the-forecast-does-not-travel.md) | | 14:03 | **14:3x** | ruled — [`R014`](./answers/R014-the-moat-is-stranded-and-item-4-is-now-99.md). **Item 1 DONE** (forecast columns now selected). Item 2 mine to build. **Item 4 re-measured: 99, not 80** — founder's call upheld |
 
-## FOR THE FOUNDER: two decisions, and the first one is the moat
+## BOTH FOUNDER CALLS ARE DECIDED AND SHIPPED — [`F01`](./answers/F01-the-two-founder-calls-decided-and-shipped.md)
+
+Delegated to MAIN LANE 2026-08-24 14:5x and closed at 15:0x.
+
+**1. The forecast is OFFERED, never mandated.** Mandating was refused, and the
+argument was already in the repo: *"the moment we make the field mandatory people
+write 'it will go well' to get past it, which is a forecast-shaped object that
+settles nothing."* A mandate makes the moat WORSE, because that text enters
+calibration as signal and absence is at least honest.
+
+**The real defect was narrower and worse than "unforced": people were UNABLE.**
+`recordJudgment` inserted decisions with the forecast columns permanently null,
+and the immutability trigger freezes those columns once set — so **every human
+gate press minted a decision structurally incapable of ever carrying a
+forecast.** It now accepts the trio, optional, through the same `forecastRefusal`
+the agent doors use. **Nothing is ever derived** — an opportunity's `hypothesis`
+may be SUGGESTED as editable prefill, never written on a person's behalf, because
+a fabricated moat looks full and is worthless.
+
+**LANE 1 holds the render half:** show the agent's forecast under the focused
+gate, and offer the three fields on the human keep path.
+
+**2. The 99 design gates are visible.** `.is("design_gate_status", null)` was
+unsatisfiable by schema. Fixed at all three sites in one change. Measured at the
+moment of the fix: old predicate **0**, new predicate **99**, all 99 on
+design-enabled workspaces. The surfaces already bound what they show
+(`.limit(100)`, `.limit(5)`, a count), so this restores a silently-empty family
+rather than flooding a queue. The recorded 80 from 2026-08-06 had grown to 99
+while the read said zero.
+
+## (superseded) FOR THE FOUNDER: two decisions, and the first one is the moat
 
 **1. The forecast does not travel, and it is the thing `CLAUDE.md` calls the
 moat.** Both agent doors REFUSE a decision without a forecast. The human Decide

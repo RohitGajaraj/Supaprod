@@ -24,6 +24,9 @@ import {
 import type { SignalCandidate, SinkResult } from "@/lib/sources/kinds";
 import type { Database } from "@/integrations/supabase/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
+/* The SAME refusal the agent doors use, so the human gate and `decision.record`
+   cannot drift into two definitions of a well-formed forecast. */
+import { forecastRefusal } from "@/lib/decisions.functions";
 
 // ---------- CRITIC (DEC-02 opportunities · DEF-03 specs) ----------
 // DEC-02-LOOP: runCritic + CriticReview now live in src/lib/ai/critic.server.ts
@@ -1798,6 +1801,50 @@ export function judgmentFor(input: {
  */
 export type GateJudgment = { recorded: true; decisionId: string } | { recorded: false };
 
+/**
+ * FC-01, THE HUMAN HALF: the gate can now carry a forecast, and it is OFFERED
+ * RATHER THAN DEMANDED.
+ *
+ * ── THE ASYMMETRY THIS CLOSES (REQ-014, founder's call 2026-08-24) ───────
+ * Both agent doors REFUSE a decision without all three forecast parts --
+ * `registry.server.ts`'s `decision.record` and MCP's `record_decision`. This
+ * function, which is what a PERSON pressing the gate writes, accepted none of
+ * them. So the product demanded a stated belief from every machine and never
+ * once asked the human, and `CLAUDE.md` calls that belief the moat.
+ *
+ * ── WHY THE FIX IS NOT "MANDATE IT LIKE THE AGENTS" ──────────────────────
+ * The obvious symmetry is the wrong move and this codebase already argued it.
+ * `forecastRefusal`'s own header: "a decision with no forecast is ordinary, and
+ * the moment we make the field mandatory people write 'it will go well' to get
+ * past it, which is a forecast-shaped object that settles nothing."
+ *
+ * That is the whole case. A mandated forecast does not produce more beliefs, it
+ * produces forecast-SHAPED text that enters calibration as signal -- which is
+ * worse than absence, because absence is honest and noise is not. An agent can
+ * always afford three real parts; a person triaging a queue cannot, and forcing
+ * them degrades the artifact the mandate was meant to protect.
+ *
+ * ── WHAT WAS ACTUALLY BROKEN, WHICH IS NARROWER AND WORSE ────────────────
+ * Not that people were unforced. That people were UNABLE. The insert below
+ * minted a decision row with the forecast columns permanently null, and
+ * migration 20260810180000 puts an IMMUTABILITY TRIGGER on those columns that
+ * freezes them once set. A forecast recorded later is a retrospective, so the
+ * trigger is right -- but it means every press of this gate created a decision
+ * STRUCTURALLY INCAPABLE of ever carrying a forecast. The moment was the only
+ * moment, and it passed with the door shut.
+ *
+ * So the forecast is accepted here, at the insert, under the same
+ * `forecastRefusal` rules the agent doors use: all three or none, and a horizon
+ * that has not already passed. Passing nothing stays completely ordinary.
+ *
+ * ── AND IT IS NEVER DERIVED FROM AN ADJACENT FIELD ───────────────────────
+ * An opportunity carries a `hypothesis`, and promoting it automatically into a
+ * forecast claim was considered and REFUSED. A forecast is something a person
+ * asserted knowing the outcome was unknown. Lifting a nearby sentence into that
+ * slot puts words in their mouth and is the same sin as mandating, only harder
+ * to see afterwards. A surface may SUGGEST the hypothesis as prefilled text a
+ * person edits or clears; nothing may write it on their behalf.
+ */
 async function recordJudgment(
   supabase: SupabaseClient,
   userId: string,
@@ -1807,12 +1854,47 @@ async function recordJudgment(
     from: string | null;
     to: string;
     workspaceId: string | null;
+    /** All three or none. Refused by `forecastRefusal`, never invented here. */
+    forecast?: {
+      forecast_claim?: string | null;
+      forecast_how_we_will_know?: string | null;
+      forecast_horizon_date?: string | null;
+    } | null;
   },
 ): Promise<GateJudgment | null> {
   const judged = judgmentFor({ row: input.row, from: input.from, to: input.to });
   if (!judged) return null;
   const { verdict, title, rationale } = judged;
   const r = input.row ?? {};
+
+  /*
+   * A MALFORMED FORECAST DROPS THE FORECAST AND NEVER THE DECISION.
+   *
+   * This function's own header rule is that it never blocks the settle -- the
+   * bet moving is the user's action and the decision row is bookkeeping that
+   * follows it. Refusing the whole write because three optional fields were
+   * badly shaped would invert that. So a refusal is logged and the decision is
+   * written without a forecast, which is the ordinary shape anyway.
+   */
+  let forecastForInsert: Record<string, string> | null = null;
+  if (input.forecast) {
+    const bad = forecastRefusal(input.forecast);
+    if (bad) {
+      console.error(
+        `[judgment] opportunity ${input.id} recorded WITHOUT its forecast: ${bad.message}`,
+      );
+    } else if (
+      input.forecast.forecast_claim &&
+      input.forecast.forecast_how_we_will_know &&
+      input.forecast.forecast_horizon_date
+    ) {
+      forecastForInsert = {
+        forecast_claim: input.forecast.forecast_claim,
+        forecast_how_we_will_know: input.forecast.forecast_how_we_will_know,
+        forecast_horizon_date: input.forecast.forecast_horizon_date,
+      };
+    }
+  }
 
   try {
     const { data: decision, error } = await supabase
@@ -1843,6 +1925,16 @@ async function recordJudgment(
             : {}),
         ...(typeof r.project_id === "string" ? { project_id: r.project_id } : {}),
         ...(typeof r.product_id === "string" ? { product_id: r.product_id } : {}),
+        /*
+         * Spread only when all three survived the refusal. A partial forecast is
+         * not a smaller forecast: a claim with no observable resolves as an
+         * argument, and a claim with no horizon is never due, so the
+         * calibrator's partial index never surfaces it and it settles nothing
+         * while counting as something. `forecastRefusal` is the same gate the
+         * agent doors pass through, so the two halves of the product cannot
+         * drift into two definitions of a well-formed forecast.
+         */
+        ...(forecastForInsert ?? {}),
       } as never)
       .select("id")
       .single();
