@@ -22,9 +22,9 @@ const DialogOverlay = React.forwardRef<
     ref={ref}
     className={cn(
       // Backdrop = --mrd-scrim, which carries its own alpha; the old
-      // --ds-overlay-backdrop-* pair was undefined anywhere, so backdrops
+      // the old backdrop pair was undefined anywhere, so backdrops
       // rendered transparent until this port.
-      "fixed inset-0 z-(--ds-z-modal) bg-mrd-scrim duration-300 ease-(--mrd-ease) motion-reduce:duration-150 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-[300] bg-mrd-scrim duration-300 ease-(--mrd-ease) motion-reduce:duration-150 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className,
     )}
     {...props}
@@ -46,7 +46,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "material-modal fixed left-[50%] top-[50%] z-(--ds-z-modal) grid w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 p-6 duration-300 ease-(--mrd-ease) motion-reduce:duration-150 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.96] data-[state=open]:zoom-in-[0.96] motion-reduce:data-[state=open]:zoom-in-100 motion-reduce:data-[state=closed]:zoom-out-100",
+        "material-modal fixed left-[50%] top-[50%] z-[300] grid w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 p-6 duration-300 ease-(--mrd-ease) motion-reduce:duration-150 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.96] data-[state=open]:zoom-in-[0.96] motion-reduce:data-[state=open]:zoom-in-100 motion-reduce:data-[state=closed]:zoom-out-100",
         size === "compact" ? "max-w-[480px]" : "max-w-[560px]",
         className,
       )}

@@ -85,13 +85,13 @@ const buttonVariants = cva(
           "bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/80",
         warning:
           "bg-mrd-hold text-mrd-bg hover:bg-mrd-hold active:bg-(--mrd-hold-dim)",
-        link: "bg-transparent text-[var(--ds-blue-700)] underline-offset-4 hover:underline hover:text-[var(--ds-blue-800)]",
+        link: "bg-transparent text-mrd-body underline-offset-4 hover:underline hover:text-mrd-ink",
       },
       size: {
-        default: "h-[var(--ds-size-medium)] px-4 text-button-14",
+        default: "h-9 px-4 text-button-14",
         sm: "h-8 px-3 text-button-12",
-        lg: "h-[var(--ds-size-large)] px-5 text-button-16",
-        icon: "h-[var(--ds-size-medium)] w-[var(--ds-size-medium)] text-button-14",
+        lg: "h-10 px-5 text-button-16",
+        icon: "h-9 w-9 text-button-14",
       },
     },
     defaultVariants: {

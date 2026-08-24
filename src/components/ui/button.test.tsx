@@ -185,7 +185,7 @@ describe("Button component variant consolidation", () => {
     test("generates correct class string for link variant", () => {
       const classes = buttonVariants({ variant: "link" });
       expect(classes).toContain("bg-transparent");
-      expect(classes).toContain("text-[var(--ds-blue-700)]");
+      expect(classes).toContain("text-mrd-body");
     });
 
     test("size variants render correctly", () => {

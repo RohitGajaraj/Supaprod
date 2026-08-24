@@ -31,7 +31,7 @@ const DropdownMenuSubTrigger = React.forwardRef<
   <DropdownMenuPrimitive.SubTrigger
     ref={ref}
     className={cn(
-      "flex h-(--ds-popover-row-height) cursor-default select-none items-center gap-2 rounded-mrd-chip px-2 text-mrd-label text-mrd-ink outline-none transition-colors duration-150 motion-reduce:transition-none data-[highlighted]:bg-mrd-hover data-[state=open]:bg-mrd-hover",
+      "flex h-9 cursor-default select-none items-center gap-2 rounded-mrd-chip px-2 text-mrd-label text-mrd-ink outline-none transition-colors duration-150 motion-reduce:transition-none data-[highlighted]:bg-mrd-hover data-[state=open]:bg-mrd-hover",
       inset && "pl-8",
       className,
     )}
@@ -50,7 +50,7 @@ const DropdownMenuSubContent = React.forwardRef<
   <DropdownMenuPrimitive.SubContent
     ref={ref}
     className={cn(
-      "material-menu z-(--ds-z-menu) min-w-[8rem] overflow-hidden p-mrd-3 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 duration-200 ease-(--mrd-ease) origin-(--radix-dropdown-menu-content-transform-origin)",
+      "material-menu z-[2001] min-w-[8rem] overflow-hidden p-mrd-3 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 duration-200 ease-(--mrd-ease) origin-(--radix-dropdown-menu-content-transform-origin)",
       // Reduced motion: neutralize zoom and slide offsets (fade only, shorter).
       "motion-reduce:duration-150 motion-reduce:data-[state=open]:zoom-in-100 motion-reduce:data-[state=closed]:zoom-out-100 motion-reduce:data-[side=bottom]:slide-in-from-top-0 motion-reduce:data-[side=left]:slide-in-from-right-0 motion-reduce:data-[side=right]:slide-in-from-left-0 motion-reduce:data-[side=top]:slide-in-from-bottom-0",
       className,
@@ -69,7 +69,7 @@ const DropdownMenuContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        "material-menu z-(--ds-z-menu) max-h-[var(--radix-dropdown-menu-content-available-height)] min-w-[8rem] overflow-y-auto overflow-x-hidden p-mrd-3",
+        "material-menu z-[2001] max-h-[var(--radix-dropdown-menu-content-available-height)] min-w-[8rem] overflow-y-auto overflow-x-hidden p-mrd-3",
         "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 duration-200 ease-(--mrd-ease) origin-(--radix-dropdown-menu-content-transform-origin)",
         // Reduced motion: neutralize zoom and slide offsets (fade only, shorter).
         "motion-reduce:duration-150 motion-reduce:data-[state=open]:zoom-in-100 motion-reduce:data-[state=closed]:zoom-out-100 motion-reduce:data-[side=bottom]:slide-in-from-top-0 motion-reduce:data-[side=left]:slide-in-from-right-0 motion-reduce:data-[side=right]:slide-in-from-left-0 motion-reduce:data-[side=top]:slide-in-from-bottom-0",
@@ -93,7 +93,7 @@ const DropdownMenuItem = React.forwardRef<
     ref={ref}
     data-variant={variant}
     className={cn(
-      "relative flex h-(--ds-popover-row-height) cursor-default select-none items-center gap-2 rounded-mrd-chip px-2 text-mrd-label text-mrd-ink outline-none transition-colors duration-150 motion-reduce:transition-none data-[highlighted]:bg-mrd-hover data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[variant=destructive]:text-mrd-fail data-[variant=destructive]:data-[highlighted]:bg-mrd-fail-chip [&>svg]:size-4 [&>svg]:shrink-0",
+      "relative flex h-9 cursor-default select-none items-center gap-2 rounded-mrd-chip px-2 text-mrd-label text-mrd-ink outline-none transition-colors duration-150 motion-reduce:transition-none data-[highlighted]:bg-mrd-hover data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[variant=destructive]:text-mrd-fail data-[variant=destructive]:data-[highlighted]:bg-mrd-fail-chip [&>svg]:size-4 [&>svg]:shrink-0",
       inset && "pl-8",
       className,
     )}
@@ -109,7 +109,7 @@ const DropdownMenuCheckboxItem = React.forwardRef<
   <DropdownMenuPrimitive.CheckboxItem
     ref={ref}
     className={cn(
-      "relative flex h-(--ds-popover-row-height) cursor-default select-none items-center rounded-mrd-chip py-1.5 pl-8 pr-2 text-mrd-label text-mrd-ink outline-none transition-colors duration-150 motion-reduce:transition-none data-[highlighted]:bg-mrd-hover data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex h-9 cursor-default select-none items-center rounded-mrd-chip py-1.5 pl-8 pr-2 text-mrd-label text-mrd-ink outline-none transition-colors duration-150 motion-reduce:transition-none data-[highlighted]:bg-mrd-hover data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className,
     )}
     checked={checked}
@@ -132,7 +132,7 @@ const DropdownMenuRadioItem = React.forwardRef<
   <DropdownMenuPrimitive.RadioItem
     ref={ref}
     className={cn(
-      "relative flex h-(--ds-popover-row-height) cursor-default select-none items-center rounded-mrd-chip py-1.5 pl-8 pr-2 text-mrd-label text-mrd-ink outline-none transition-colors duration-150 motion-reduce:transition-none data-[highlighted]:bg-mrd-hover data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex h-9 cursor-default select-none items-center rounded-mrd-chip py-1.5 pl-8 pr-2 text-mrd-label text-mrd-ink outline-none transition-colors duration-150 motion-reduce:transition-none data-[highlighted]:bg-mrd-hover data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className,
     )}
     {...props}

@@ -46,7 +46,7 @@ const CommandInput = React.forwardRef<
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
-        "flex h-(--ds-size-large) w-full rounded-md bg-transparent py-3 text-mrd-base outline-none placeholder:text-mrd-faint disabled:cursor-not-allowed disabled:opacity-50",
+        "flex h-10 w-full rounded-md bg-transparent py-3 text-mrd-base outline-none placeholder:text-mrd-faint disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
       {...props}
@@ -130,7 +130,7 @@ const CommandItem = React.forwardRef<
       // context-menu/menubar/select (tempo-v5/research/command-menu.md is the same
       // "menu row" pattern): 36px row height, chip radius, and the same hover-wash
       // highlight step so the palette reads as a sibling of those menus.
-      "relative flex h-(--ds-popover-row-height) cursor-default gap-2 select-none items-center rounded-mrd-chip px-2 text-mrd-label text-mrd-ink outline-none data-[disabled=true]:pointer-events-none data-[selected=true]:bg-mrd-hover data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+      "relative flex h-9 cursor-default gap-2 select-none items-center rounded-mrd-chip px-2 text-mrd-label text-mrd-ink outline-none data-[disabled=true]:pointer-events-none data-[selected=true]:bg-mrd-hover data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
       className,
     )}
     {...props}
