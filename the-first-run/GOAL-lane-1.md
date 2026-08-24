@@ -130,7 +130,12 @@ may widen), `SPEC-ONRAMP.md` (the real click count, which `WorkShape` each card 
 components, 95 adopted, **17 real components built with no door**, including `run-rows.tsx`: 22.8KB
 of run vocabulary ported from beautifui.dev with **zero importers**. **Your unit file must name which
 Meridian component you checked first and why it did not serve.** A unit that cannot answer that is
-rejected. **Lanes never add to `src/components/meridian/`** — file a request; MAIN builds it.
+rejected. **You are never blocked on Meridian (R-17).** Build what you need LOCALLY in your own path and
+ship it, and in the SAME commit file `coordination/requests/mrd-<name>.md` saying what you needed,
+which Meridian component you checked first, why it did not serve, and the props you used. MAIN
+promotes it into `src/components/meridian/` generalised and documented, then you swap and delete
+yours. **The one hard line: never EDIT an existing file in `src/components/meridian/`** — a shared
+primitive changes every surface using it and only MAIN can see them all.
 
 **5. YOU DO NOT SIGN OFF YOUR OWN WORK** (R-11). Finishing an item means filing
 `coordination/requests/verify-<item>.md` naming the route to open, the exact thing to look for, and

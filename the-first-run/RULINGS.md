@@ -373,6 +373,73 @@ Collapsing the duplicate doors and the 48 redirect routes is the only irreversib
 **The founder's underlying requirement is fully met:** nothing existing is modified, he verifies at a
 real URL before anything switches, and switching is one reversible line.
 
+## R-16 · MAIN's full role: reviewer, approver, and the one who never stops finding gaps — 2026-08-25
+
+**Founder, correcting my description of the job.** MAIN is not only direction, database and deploy.
+Adding, and these are duties not options:
+
+**1. REVIEW TO AN ENTERPRISE B2B STANDARD, then approve or reject.** Every lane push is reviewed
+against three things, in this order: **does it serve the product goal** (a person watches the work
+finish and is told whether it worked); **would it survive an enterprise buyer** — multi-tenant
+isolation, an audit trail, permissions, no data crossing a workspace, a failure that says what
+failed; and **does it meet the design contract**. A push that passes tests and fails any of these is
+rejected with the reason. **Nothing merges on green tests alone.**
+
+**2. FIX MINOR DEFECTS DIRECTLY. Do not route them through the queue.** A typo, a wrong token, a bad
+import, a missing null guard, a copy slip — MAIN fixes it in place and notes it on the unit. **Putting
+a five-minute fix in the build log costs an hour of round trip and teaches nobody anything.** Only a
+*structural* defect goes back, because a lane that never sees its own structural mistake repeats it.
+
+**3. NEVER STOP FINDING GAPS.** This is the duty most likely to be dropped, so it is stated hardest.
+**The backlog is not a fixed list to burn down. It is a living queue MAIN refills continuously**,
+from: driving real tracks and reading what the agents actually said; querying production for what is
+written but never read; auditing surfaces against R-12's five questions; the unadopted-component
+census; and every audit document in the corpus that was never actioned.
+
+**MAIN's own honest assessment, 2026-08-25:** the 15 items in the backlog cover the run workbench and
+four surfaces. **That is a slice of the platform, not the platform.** Untouched so far: onboarding and
+the empty-state path, billing and plan limits, multi-tenancy and permissions, notifications, search,
+error and offline states, mobile, accessibility, the admin surfaces, connector setup and failure,
+data export and deletion, and the whole of Settings. **A queue that never grows is a queue that has
+stopped looking.**
+
+**The standard MAIN measures against:** the platform must be lightweight, low-friction, low
+learning-curve, and worth returning to. **Every gap found is measured against "does this move one
+piece of work one step forward" and dropped if it does not.**
+
+## R-17 · Meridian: a lane is never blocked, and Meridian keeps one author — 2026-08-25
+
+**Founder's question:** *"You say only MAIN can add to Meridian. Why? What if a lane needs one — does
+it come back to you and you design it and pass it on?"*
+
+**Yes, and the lane does not wait. Both halves matter.**
+
+**Why Meridian keeps one author.** `run-rows.tsx` exists because `PlanCard`, `RunTimeline` and
+`ToolStream` were three views of one run built by three hands, ending in three mark sizes, three
+gutters, three subject sizes, and two with no time column — every one of which passed typecheck,
+tests and the ratchet. **A design system with three authors becomes three design systems**, and the
+drift is invisible to every automated check we have. MAIN also holds the two references a lane cannot
+see: Mobbin, and beautifui.dev as the floor to port from.
+
+**Why a lane is still never blocked.** The flow:
+
+1. **The lane builds what it needs in ITS OWN path, immediately.** A local component in
+   `src/components/track/` or `src/components/shell/`. It ships, the item is not held.
+2. **Same commit, it files `coordination/requests/mrd-<name>.md`** — what it needed, what Meridian
+   component it checked first, why that did not serve, and the props it used.
+3. **MAIN reviews within the hour**, and does one of three things: names an existing Meridian
+   component the lane missed; **promotes the lane's component into `src/components/meridian/`**,
+   generalised, tokenised and documented in `docs/design/DESIGN-SYSTEM.md`; or designs a better one
+   against beautifui.dev and Mobbin and hands it back.
+4. **The lane swaps its local component for the Meridian one** in a follow-up unit and deletes its own.
+
+**So the answer to "does it come back to you" is yes — but never as a blocker.** The lane keeps
+moving; Meridian gains a considered primitive instead of a hurried one; and the documentation happens
+once, so the next lane finds it instead of building a fourth copy.
+
+**The one hard line:** a lane never EDITS an existing file in `src/components/meridian/`. Editing a
+shared primitive changes every surface using it, and only MAIN can see all of them.
+
 ---
 
 ## Open, and I have not ruled yet
