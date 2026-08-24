@@ -126,7 +126,6 @@ export type StudioRunDetail = {
   status: string;
   created_at: string;
   last_checkpoint_at: string | null;
-  step_index: number | null;
   output: string | null;
   steps: LoopStep[];
   cost_usd: number;
@@ -877,17 +876,15 @@ export const getStudioSession = createServerFn({ method: "GET" })
 
     const { data: runs } = await db
       .from("agent_runs")
-      .select("id,status,created_at,last_checkpoint_at,step_index,output")
+      .select("id,status,created_at,last_checkpoint_at,output")
       .eq("mission_id", data.missionId)
       .eq("agent_slug", "builder")
       .order("created_at", { ascending: true });
     const runRows = (runs ?? []) as Array<{
       id: string;
       status: string;
-      model: string | null;
       created_at: string;
       last_checkpoint_at: string | null;
-      step_index: number | null;
       output: string | null;
     }>;
     const runIds = runRows.map((r) => r.id);
@@ -1023,7 +1020,7 @@ export const getStudioSession = createServerFn({ method: "GET" })
     const { data: csRow } = await db
       .from("studio_changesets")
       .select(
-        "id,product_id,status,repo,branch,base_sha,pr_url,pr_number,title,summary,release_notes,release_notes_at,updated_at",
+        "id,product_id,status,repo,branch,pr_url,pr_number,title,summary,release_notes,release_notes_at,updated_at",
       )
       .eq("mission_id", data.missionId)
       .neq("status", "abandoned")
@@ -1163,10 +1160,8 @@ export const getStudioSession = createServerFn({ method: "GET" })
       return {
         run_id: r.id,
         status: r.status,
-        model: r.model,
         created_at: r.created_at,
         last_checkpoint_at: r.last_checkpoint_at,
-        step_index: r.step_index,
         output: r.output,
         steps: stepsByRun.get(r.id) ?? [],
         cost_usd: Number(usage.cost.toFixed(4)),
@@ -1442,7 +1437,6 @@ export type ChangesetByPrd = {
   status: string;
   repo: string | null;
   branch: string | null;
-  base_sha: string | null;
   pr_url: string | null;
   pr_number: number | null;
   title: string | null;
@@ -1460,7 +1454,7 @@ export const getChangesetByPrd = createServerFn({ method: "GET" })
   .handler(async ({ context, data }): Promise<{ changeset: ChangesetByPrd | null }> => {
     const db = context.supabase as unknown as SupabaseClient;
     const cols =
-      "id,product_id,status,repo,branch,base_sha,pr_url,pr_number,title,summary,release_notes,release_notes_at,prd_id,mission_id,updated_at";
+      "id,product_id,status,repo,branch,pr_url,pr_number,title,summary,release_notes,release_notes_at,prd_id,mission_id,updated_at";
 
     const { data: direct, error: dErr } = await db
       .from("studio_changesets")

@@ -1114,7 +1114,6 @@ export const getSenseCoverage = createServerFn({ method: "GET" })
 
     type Bucket = { source: string; recent: number; prior: number; lastAt: string | null };
     const bySource = new Map<string, Bucket>();
-    let unclustered = 0;
 
     for (const r of rows ?? []) {
       const row = r as {
@@ -1130,7 +1129,6 @@ export const getSenseCoverage = createServerFn({ method: "GET" })
       else b.prior += 1;
       if (!b.lastAt || row.created_at > b.lastAt) b.lastAt = row.created_at;
       bySource.set(key, b);
-      if (!row.theme_id) unclustered += 1;
     }
 
     const sources = [...bySource.values()]
@@ -1224,7 +1222,10 @@ export const getSenseCoverage = createServerFn({ method: "GET" })
       sources,
       total7d: sources.reduce((n, s) => n + s.recent, 0),
       totalPrior7d: sources.reduce((n, s) => n + s.prior, 0),
-      unclustered,
+      /* unclustered was computed here and read by no one: the surface counts
+         it locally with stricter semantics (a signal whose theme vanished
+         counts as loose there; here it did not). Removed per data
+         minimalism - a field with no consumer is a claim nobody audited. */
       quietCount: sources.filter((s) => s.quiet).length,
       watching: {
         /** Sources you asked us to watch. Zero means nothing is expected. */
