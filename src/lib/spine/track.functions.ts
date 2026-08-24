@@ -41,6 +41,7 @@ import {
   type WorkShape,
 } from "@/lib/spine/route";
 import { holdLine } from "@/lib/spine/driver";
+import { driveTrackOnce, DRIVE_SELECT } from "@/lib/spine/driver.server";
 import {
   ARTIFACT_SOURCE,
   buildChain,
@@ -1054,4 +1055,160 @@ export const steerTrack = createServerFn({ method: "POST" })
       const msg = e instanceof Error ? e.message : String(e);
       return { steered: false, problems: [msg] };
     }
+  });
+
+/* ------------------------------------------------------------------------- */
+
+/**
+ * WALK ONE TRACK NOW, IN THE FOREGROUND, WHILE A PERSON WATCHES.
+ *
+ * WHY THIS EXISTS, measured 2026-08-25 against production. `driveTrackOnce` had
+ * exactly one caller in the whole product: the background cron in
+ * `routes/api/public/hooks/track-tick.ts`. That sweep serves up to five tracks
+ * under ONE shared 45s deadline at up to three seats a station, and it is right
+ * to: it is protecting the Worker's request budget across every track at once.
+ *
+ * The consequence is that nothing a person does can make their own work move.
+ * 59 tracks have existed, 58 entered at `sense`, and NOT ONE has ever reached
+ * `learn`. The sweep drove five tracks in twenty-four hours; a seven-station
+ * route is roughly twenty-one seats. At that rate one journey takes weeks,
+ * which for somebody watching is the same as never.
+ *
+ * THE WHOLE FIX IS THE THIRD ARGUMENT, and the driver already anticipated it:
+ *
+ *     tickStartedAtMs: number = Date.now(),
+ *     // "Defaults to now, so a caller driving one track by hand gets the full
+ *     //  window."
+ *
+ * Passing a FRESH `Date.now()` on every seat gives each seat the full window
+ * instead of a shrinking slice of one shared one. Passing the loop's start time
+ * instead — which is the obvious-looking thing to do, and which a draft of this
+ * endpoint did on 2026-08-25 — reproduces the exact starvation this exists to
+ * escape, while looking correct.
+ *
+ * WHAT THIS DELIBERATELY DOES NOT DO. It does not touch the tick, and it must
+ * not: the sweep's shared deadline is load-bearing for every track it serves.
+ * This is a second door onto the same driver, not a change to the first.
+ *
+ * IT STOPS ON STRUCTURE, NEVER ON PROSE. `DriveOutcome` carries `moved`,
+ * `hold` and `arrivedAt`, so the loop reads state. A draft of this decided when
+ * to stop with `outcome.line.includes("gate")`, which is a guard on a sentence:
+ * it breaks the day the copy improves and passes the day the meaning breaks.
+ *
+ * IT IS BOUNDED TWICE, and reports which bound it hit. A Worker request cannot
+ * run forever, so a walk that is still going when the window closes returns
+ * `more: true` and the caller drives again. That is honest, and it keeps a long
+ * route from being silently truncated into something that looks finished.
+ */
+export type DriveStep = {
+  /** The station that ran, or the one the track is held at. */
+  station: AgentStation | null;
+  moved: boolean;
+  arrivedAt: AgentStation | null;
+  hold: string | null;
+  /** The sentence a person reads. Always populated. */
+  line: string;
+  /** How many artifacts this seat actually filed. Rows that landed, not intent. */
+  produced: number;
+};
+
+export type DriveNowResult = {
+  track: Track | null;
+  steps: DriveStep[];
+  /**
+   * Why the walk stopped. `finished` means the route has no next station, which
+   * is the only one of these that means the journey is complete.
+   */
+  stopped: "finished" | "held" | "stalled" | "out-of-window" | "not-found";
+  /** The route has more to walk; call again to continue it. */
+  more: boolean;
+};
+
+/** Seats one foreground call will spend. Seven stations at three seats, plus slack. */
+const FOREGROUND_MAX_SEATS = 24;
+
+/**
+ * How long one foreground call may run before handing control back.
+ *
+ * Under the platform's request ceiling on purpose: a walk that is cut here
+ * returns `more: true` and loses nothing, whereas one killed by the runtime
+ * returns nothing at all and looks like a crash.
+ */
+const FOREGROUND_WINDOW_MS = 50_000;
+
+export const driveTrackNow = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }): Promise<DriveNowResult> => {
+    const { supabase } = context;
+    const steps: DriveStep[] = [];
+    const startedAt = Date.now();
+
+    const readTrack = async (): Promise<Track | null> => {
+      const { data: row } = await supabase
+        .from("spine_tracks" as never)
+        .select(SELECT)
+        .eq("id", data.trackId)
+        .maybeSingle();
+      return row ? rowToTrack(row as unknown as TrackRow) : null;
+    };
+
+    const opening = await readTrack();
+    if (!opening) return { track: null, steps, stopped: "not-found", more: false };
+
+    let stopped: DriveNowResult["stopped"] = "stalled";
+
+    for (let seat = 0; seat < FOREGROUND_MAX_SEATS; seat += 1) {
+      if (Date.now() - startedAt > FOREGROUND_WINDOW_MS) {
+        stopped = "out-of-window";
+        break;
+      }
+
+      const { data: driveRow } = await supabase
+        .from("spine_tracks" as never)
+        .select(DRIVE_SELECT)
+        .eq("id", data.trackId)
+        .maybeSingle();
+      if (!driveRow) {
+        stopped = "not-found";
+        break;
+      }
+
+      // A FRESH CLOCK PER SEAT. This single argument is what separates a watched
+      // run from the sweep's rationed one. See the header.
+      const outcome = await driveTrackOnce(supabase, driveRow as never, Date.now());
+
+      steps.push({
+        station: outcome.station,
+        moved: outcome.moved,
+        arrivedAt: outcome.arrivedAt,
+        hold: outcome.hold,
+        line: outcome.line,
+        produced: outcome.attached.length,
+      });
+
+      // A hold is a real answer, not a failure to report. Something is waiting on
+      // a person or on evidence, and the surface has to be able to say which.
+      if (outcome.hold) {
+        stopped = "held";
+        break;
+      }
+
+      if (!outcome.moved) {
+        stopped = "stalled";
+        break;
+      }
+
+      if (outcome.arrivedAt && nextStation(opening.route, outcome.arrivedAt) === null) {
+        stopped = "finished";
+        break;
+      }
+    }
+
+    const track = await readTrack();
+    const more =
+      stopped === "out-of-window" ||
+      (stopped === "stalled" && steps.length === FOREGROUND_MAX_SEATS);
+
+    return { track, steps, stopped, more };
   });
