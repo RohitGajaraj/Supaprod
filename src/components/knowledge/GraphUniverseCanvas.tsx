@@ -75,9 +75,42 @@ const AUTO_ROTATE = 0.0016; // radians per frame - a slow, calm drift
 const SPHERE_SEGMENTS = 18;
 const HALO_SCALE = 3.4;
 const RING_SCALE = 3.0;
-const NEUTRAL_THREAD = "#c6c0b8";
-/** Fallback ground for a dimmed thread when no token resolves: the dark canvas. */
-const NEUTRAL_GROUND = "#0b0b0c";
+
+/**
+ * OKLab -> linear sRGB (Björn Ottosson's matrices) plus the sRGB transfer,
+ * because three.js parses hex, rgb() and hsl() and NOTHING else: handed an
+ * oklch string its setStyle warns "unknown color model" and leaves the colour
+ * untouched -- which for a fresh THREE.Color means white. Every Meridian token
+ * computes to oklch, so a resolved value must land here before setStyle sees
+ * it or a rekeyed colour silently paints white on the whole constellation.
+ */
+function oklchToRgb(css: string): string {
+  const m = /^oklch\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)/.exec(css);
+  if (!m) return css;
+  const L = parseFloat(m[1]);
+  const C = parseFloat(m[2]);
+  const hDeg = parseFloat(m[3]);
+  const h = (hDeg * Math.PI) / 180;
+  const A = C * Math.cos(h);
+  const B = C * Math.sin(h);
+  const l_ = L + 0.3963377774 * A + 0.2158037573 * B;
+  const m_ = L - 0.1055613458 * A - 0.0638541728 * B;
+  const s_ = L - 0.0894841775 * A - 1.291485548 * B;
+  const L3 = l_ * l_ * l_;
+  const M3 = m_ * m_ * m_;
+  const S3 = s_ * s_ * s_;
+  const gam = (x: number) => {
+    x = Math.min(1, Math.max(0, x));
+    return x <= 0.0031308 ? 12.92 * x : 1.055 * Math.pow(x, 1 / 2.4) - 0.055;
+  };
+  const r = gam(4.0767416621 * L3 - 3.3077115913 * M3 + 0.2309699292 * S3);
+  const g = gam(-1.2684380046 * L3 + 2.6097574011 * M3 - 0.3413193965 * S3);
+  const b = gam(-0.0041960863 * L3 - 0.7034186147 * M3 + 1.707614701 * S3);
+  // Hex is the one colour spelling every parser here accepts, and it is built
+  // from the converted channels rather than frozen in source.
+  const hx = (x: number) => Math.round(x * 255).toString(16).padStart(2, "0");
+  return `#${hx(r)}${hx(g)}${hx(b)}`;
+}
 
 /** Deterministic z seed so a rebuild reads as growth, not a relayout (no Math.random). */
 function seedZ(key: string): number {
@@ -133,8 +166,9 @@ function makeRingTexture(): THREE.Texture {
 
 function toThreeColor(css: string, fallback: string): THREE.Color {
   const color = new THREE.Color();
+  const v = (css || "").trim();
   try {
-    color.setStyle((css || "").trim() || fallback);
+    color.setStyle(v.startsWith("oklch(") ? oklchToRgb(v) : v || fallback);
   } catch {
     color.set(fallback);
   }
@@ -201,13 +235,19 @@ export function GraphUniverseCanvas({
   const rafId = useRef<number | null>(null);
   const sizeRef = useRef({ w: 800, h: 520 });
 
+  /**
+   * Chrome colours, resolved off the live Meridian tokens by the init effect
+   * below before anything paints. Empty until then, and never painted empty:
+   * the effect that fills them is declared first and runs to completion in the
+   * same mount pass.
+   */
   const chromeRef = useRef({
-    thread: toThreeColor(NEUTRAL_THREAD, NEUTRAL_THREAD),
-    ground: toThreeColor(NEUTRAL_GROUND, NEUTRAL_GROUND),
-    madder: toThreeColor("#e06557", "#e06557"),
-    marigold: toThreeColor("#e8b44c", "#e8b44c"),
-    selection: toThreeColor("#f2f0ed", "#f2f0ed"),
-    pearl: toThreeColor("#edeae4", "#edeae4"),
+    thread: toThreeColor("", ""),
+    ground: toThreeColor("", ""),
+    madder: toThreeColor("", ""),
+    marigold: toThreeColor("", ""),
+    selection: toThreeColor("", ""),
+    pearl: toThreeColor("", ""),
   });
   const colorsRef = useRef<Map<string, string>>(new Map());
 
@@ -278,21 +318,33 @@ export function GraphUniverseCanvas({
 
     // Resolve token colors off the live DOM (so 3D matches the 2D canvas exactly).
     colorsRef.current = resolveKindColors(wrapper);
+    /**
+     * Meridian reads, 2026-08-25. The retired reads moved: --ash to --mrd-mute
+     * (the de-emphasised neutral is the same role on Meridian's ladder),
+     * --sp-sink to --mrd-sink so a dimmed thread fades into exactly the recess
+     * the wrapper paints, --madder to --mrd-fail, --marigold to --mrd-hold,
+     * and --text-primary/--pearl to --mrd-ink -- selection and focus separate
+     * by OPACITY and ring size, which needs no second hue.
+     *
+     * No literal fallbacks any more: every --mrd-* token is declared on :root
+     * in meridian.css for both grounds. toThreeColor runs each resolved value
+     * through the oklch converter above, because three.js cannot parse what
+     * Meridian computes.
+     */
     const styles = window.getComputedStyle(wrapper);
-    const read = (token: string, fallback: string) =>
-      styles.getPropertyValue(token).trim() || fallback;
+    const read = (token: string) => styles.getPropertyValue(token).trim();
     chromeRef.current = {
-      thread: toThreeColor(read("--ash", NEUTRAL_THREAD), NEUTRAL_THREAD),
+      thread: toThreeColor(read("--mrd-mute"), ""),
       /**
        * The colour a dimmed thread fades INTO, read off the panel the canvas sits
-       * in so it follows the theme instead of assuming one. `--sp-sink` is the
+       * in so it follows the theme instead of assuming one. `--mrd-sink` is the
        * surface this wrapper already paints itself with (see the style below).
        */
-      ground: toThreeColor(read("--sp-sink", NEUTRAL_GROUND), NEUTRAL_GROUND),
-      madder: toThreeColor(read("--madder", "#e06557"), "#e06557"),
-      marigold: toThreeColor(read("--marigold", "#e8b44c"), "#e8b44c"),
-      selection: toThreeColor(read("--text-primary", "#f2f0ed"), "#f2f0ed"),
-      pearl: toThreeColor(read("--pearl", "#edeae4"), "#edeae4"),
+      ground: toThreeColor(read("--mrd-sink"), ""),
+      madder: toThreeColor(read("--mrd-fail"), ""),
+      marigold: toThreeColor(read("--mrd-hold"), ""),
+      selection: toThreeColor(read("--mrd-ink"), ""),
+      pearl: toThreeColor(read("--mrd-ink"), ""),
     };
 
     const rect = wrapper.getBoundingClientRect();
@@ -851,7 +903,8 @@ export function GraphUniverseCanvas({
 
     const isFirstBuild = nodesRef.current.length === 0;
     const colors = colorsRef.current;
-    const unknown = colors.get("__unknown") ?? "#a8a29a";
+    // __unknown is always present in the map resolveKindColors builds.
+    const unknown = colors.get("__unknown") ?? "";
 
     const nodes: SimNode3D[] = graph.nodes.map((n) => {
       const prior = posMemory.current.get(n.key);
@@ -1120,7 +1173,7 @@ export function GraphUniverseCanvas({
             background: "var(--mrd-float)",
             border: "1px solid var(--mrd-line)",
             borderRadius: "var(--mrd-r-card)",
-            boxShadow: "var(--sp-shadow)",
+            boxShadow: "var(--mrd-shadow-float)",
             padding: "10px 12px",
             zIndex: 5,
           }}
@@ -1141,11 +1194,18 @@ export function GraphUniverseCanvas({
             </span>
             {/* How it turned out, where the record actually knows. Green and red
                 carry outcomes, and a recorded outcome is the one node on this
-                canvas that IS one. Absent, never guessed, when unread. */}
+                canvas that IS one. Absent, never guessed, when unread. The
+                retired sp-classes became their tokens: fail to --mrd-fail,
+                pass to --mrd-pass. */}
             {outcomeLabel(hoverNode.outcome) ? (
               <span
-                className={hoverNode.outcome === "missed" ? "sp-fail" : "sp-pass"}
-                style={{ fontSize: "var(--mrd-t-base)" }}
+                style={{
+                  fontSize: "var(--mrd-t-base)",
+                  color:
+                    hoverNode.outcome === "missed"
+                      ? "var(--mrd-fail)"
+                      : "var(--mrd-pass)",
+                }}
               >
                 {outcomeLabel(hoverNode.outcome)}
               </span>
@@ -1154,7 +1214,7 @@ export function GraphUniverseCanvas({
           <div
             style={{
               color: "var(--mrd-ink)",
-              lineHeight: "var(--sp-leading-row)",
+              lineHeight: "var(--mrd-lh-snug)",
               marginBottom: 6,
               overflow: "hidden",
               display: "-webkit-box",

@@ -129,7 +129,9 @@ function makeGlowSprite(color: string, r: number): HTMLCanvasElement {
   const g1 = ctx.createRadialGradient(cx, cx, inner * 0.4, cx, cx, outer);
   g1.addColorStop(0, color);
   g1.addColorStop(0.35, color);
-  g1.addColorStop(1, "rgba(0,0,0,0)");
+  // `transparent` is rgba(0,0,0,0) exactly; the keyword says so without a
+  // frozen literal.
+  g1.addColorStop(1, "transparent");
   ctx.globalAlpha = 0.14;
   ctx.fillStyle = g1;
   ctx.beginPath();
@@ -137,7 +139,7 @@ function makeGlowSprite(color: string, r: number): HTMLCanvasElement {
   ctx.fill();
   const g2 = ctx.createRadialGradient(cx, cx, inner * 0.3, cx, cx, inner * 1.6);
   g2.addColorStop(0, color);
-  g2.addColorStop(1, "rgba(0,0,0,0)");
+  g2.addColorStop(1, "transparent");
   ctx.globalAlpha = 0.22;
   ctx.fillStyle = g2;
   ctx.beginPath();
@@ -174,21 +176,27 @@ export function GraphForceCanvas({
   const posMemory = useRef(new Map<string, { x: number; y: number }>());
   const spriteCache = useRef(new Map<string, HTMLCanvasElement>());
   const colorsRef = useRef<Map<string, string>>(new Map());
+  /**
+   * Chrome colours, resolved off the live Meridian tokens in the effect below.
+   * Empty until then, and every draw runs after that effect has filled them:
+   * it is declared before the build effect whose wake() first calls draw().
+   *
+   * The selection highlight is NEUTRAL, 2026-08-15. It read ember on the
+   * argument that a selected element deserves an accent; the argument is
+   * wrong, and it is the same one that put ember on every focus ring, caret
+   * and active row in the app. Selecting a node is the reader pointing at
+   * something, not the product asking them to decide anything, and a bright
+   * neutral against kind-coloured nodes separates better than a hue that has
+   * to compete with them.
+   */
   const chromeColors = useRef({
-    // The selection highlight is NEUTRAL, 2026-08-15. It read ember on the
-    // argument that a selected element deserves an accent; the argument is
-    // wrong, and it is the same one that put ember on every focus ring, caret
-    // and active row in the app. Selecting a node is the reader pointing at
-    // something, not the product asking them to decide anything, and a bright
-    // neutral against kind-coloured nodes separates better than a hue that has
-    // to compete with them.
-    selected: "#f2f0ed",
-    madder: "#e06557",
-    marigold: "#e8b44c",
-    label: "#9c978f",
-    labelBright: "#f2f0ed",
-    pearl: "#edeae4",
-    thread: "#c6c0b8",
+    selected: "",
+    madder: "",
+    marigold: "",
+    label: "",
+    labelBright: "",
+    pearl: "",
+    thread: "",
   });
   const pulseStarts = useRef(new Map<string, number>());
   const userMovedCam = useRef(false);
@@ -388,7 +396,8 @@ export function GraphForceCanvas({
     for (const n of nodes) {
       const litNode = isLit(n.key);
       ctx.globalAlpha = litNode ? 1 : 0.2;
-      const color = colors.get(n.kind) ?? colors.get("__unknown") ?? "#a8a29a";
+      // __unknown is always present in the map resolveKindColors builds.
+      const color = colors.get(n.kind) ?? colors.get("__unknown") ?? "";
       const spriteKey = `${color}|${n.r}`;
       let sprite = spriteCache.current.get(spriteKey);
       if (!sprite) {
@@ -512,17 +521,29 @@ export function GraphForceCanvas({
     const el = wrapperRef.current;
     if (!el) return;
     colorsRef.current = resolveKindColors(el);
+    /**
+     * Meridian reads, 2026-08-25. The retired reads moved: --text-primary and
+     * --pearl to --mrd-ink, --madder to --mrd-fail, --marigold to --mrd-hold,
+     * --text-muted to --mrd-mute, --text-faint to --mrd-faint. Pearl's ring is
+     * the focus marker and takes ink deliberately: selection and focus already
+     * separate by OPACITY (1.0 against 0.55) and ring width, which is the same
+     * mechanism the Universe canvas documents, so both rings share one neutral.
+     *
+     * No literal fallbacks any more. Every --mrd-* token is declared on :root
+     * in meridian.css for both grounds, so a resolved empty means the whole
+     * stylesheet is absent rather than one name missing, and a hex frozen here
+     * could not answer the paper ground anyway.
+     */
     const styles = window.getComputedStyle(el);
-    const read = (token: string, fallback: string) =>
-      styles.getPropertyValue(token).trim() || fallback;
+    const read = (token: string) => styles.getPropertyValue(token).trim();
     chromeColors.current = {
-      selected: read("--text-primary", "#f2f0ed"),
-      madder: read("--madder", "#e06557"),
-      marigold: read("--marigold", "#e8b44c"),
-      label: read("--text-muted", "#9c978f"),
-      labelBright: read("--text-primary", "#f2f0ed"),
-      pearl: read("--pearl", "#edeae4"),
-      thread: read("--text-faint", "#c6c0b8"),
+      selected: read("--mrd-ink"),
+      madder: read("--mrd-fail"),
+      marigold: read("--mrd-hold"),
+      label: read("--mrd-mute"),
+      labelBright: read("--mrd-ink"),
+      pearl: read("--mrd-ink"),
+      thread: read("--mrd-faint"),
     };
     spriteCache.current.clear();
     wake();
@@ -970,7 +991,7 @@ function GraphHoverCard({
         background: "var(--mrd-float)",
         border: "1px solid var(--mrd-line)",
         borderRadius: "var(--mrd-r-card)",
-        boxShadow: "var(--sp-shadow)",
+        boxShadow: "var(--mrd-shadow-float)",
         padding: "10px 12px",
         zIndex: 5,
       }}
@@ -990,9 +1011,18 @@ function GraphHoverCard({
           {kindLabel(node.kind)}
         </span>
         {/* The verdict, where the record has one. Green and red carry outcomes,
-            and an outcome is the one thing on this canvas that IS one. */}
+            and an outcome is the one thing on this canvas that IS one. The
+            retired sp-classes became their tokens: fail to --mrd-fail, pass to
+            --mrd-pass. */}
         {verdict ? (
-          <span className={OUTCOME_TONE[node.outcome!] === "fail" ? "sp-fail" : "sp-pass"}>
+          <span
+            style={{
+              color:
+                OUTCOME_TONE[node.outcome!] === "fail"
+                  ? "var(--mrd-fail)"
+                  : "var(--mrd-pass)",
+            }}
+          >
             <span style={{ fontSize: "var(--mrd-t-base)" }}>{verdict}</span>
           </span>
         ) : null}
@@ -1000,7 +1030,7 @@ function GraphHoverCard({
       <div
         style={{
           color: "var(--mrd-ink)",
-          lineHeight: "var(--sp-leading-row)",
+          lineHeight: "var(--mrd-lh-snug)",
           marginBottom: 6,
           overflow: "hidden",
           display: "-webkit-box",
@@ -1017,11 +1047,11 @@ function GraphHoverCard({
           style={{
             fontSize: "var(--mrd-t-base)",
             color: "var(--mrd-mute)",
-            lineHeight: "var(--sp-leading-row)",
+            lineHeight: "var(--mrd-lh-snug)",
             marginBottom: 6,
           }}
         >
-          <span className={why.revises ? "sp-fail" : undefined}>{why.phrase}</span>
+          <span style={why.revises ? { color: "var(--mrd-fail)" } : undefined}>{why.phrase}</span>
           {why.peerTitle ? ` ${truncateTitle(why.peerTitle, 34)}` : ""}
           {why.rationale ? (
             <span

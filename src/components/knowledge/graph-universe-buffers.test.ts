@@ -76,6 +76,8 @@ describe("the Universe canvas edge buffers", () => {
     // dark. On the light theme it made a dim thread darker, so LOUDER, than a
     // lit one. Lerping to the ground is identical on dark and correct on light.
     expect(SOURCE).toContain("lerp(chrome.ground");
-    expect(SOURCE).toContain('read("--sp-sink"');
+    // The ground token was rekeyed to Meridian on 2026-08-25; the property the
+    // test guards is that the fade target is the recess the wrapper paints.
+    expect(SOURCE).toContain('read("--mrd-sink"');
   });
 });

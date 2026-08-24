@@ -273,18 +273,18 @@ type Phase = "critic" | "results";
  */
 const CRITIC_LABEL = "Reading your belief";
 
-// Tempo v5 input chrome: 36px medium control, 6px everyday radius, gray-400
-// border, token-traced text. Focus ring comes from the global
-// [data-obsidian] :focus-visible rule; never removed here.
+// Meridian input chrome: 36px control, the everyday r-ctl radius, the
+// field-at-rest edge, token-traced text. The focus ring comes from the global
+// :focus-visible rule; never removed here.
 const INPUT_STYLE: React.CSSProperties = {
   width: "100%",
   minWidth: 0,
   height: 36,
-  background: "var(--ds-background-100)",
-  border: "1px solid var(--ds-gray-400)",
-  borderRadius: "var(--ds-radius-small)",
+  background: "var(--mrd-bg)",
+  border: "1px solid var(--mrd-field)",
+  borderRadius: "var(--mrd-r-ctl)",
   padding: "0 12px",
-  color: "var(--ds-gray-1000)",
+  color: "var(--mrd-ink)",
   fontFamily: "var(--mrd-font)",
   boxSizing: "border-box",
 };
@@ -305,20 +305,20 @@ function Frame({
       style={{
         width: 600,
         maxWidth: "calc(100vw - 48px)",
-        animation: "cadRise 0.3s var(--ds-motion-timing-swift) both",
+        animation: "cadRise 0.3s var(--mrd-ease) both",
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
         <div>
           {eyebrow ? <MonoLabel style={{ marginBottom: 10 }}>{eyebrow}</MonoLabel> : null}
-          <h1 className="text-heading-24" style={{ color: "var(--ds-gray-1000)", margin: 0 }}>
+          <h1 className="text-heading-24" style={{ color: "var(--mrd-ink)", margin: 0 }}>
             {heading}
           </h1>
         </div>
         {showTimer ? (
           <div
             className="text-label-12-mono"
-            style={{ color: "var(--ds-gray-900)", textAlign: "right" }}
+            style={{ color: "var(--mrd-body)", textAlign: "right" }}
           >
             {showTimer}
           </div>
@@ -330,9 +330,10 @@ function Frame({
 }
 
 // A full-width clickable card row (the data step's source/paste/demo
-// choices). Tempo chrome: gray 100/200/300 for default/hover/active, 6px
-// radius, alpha borders; the global focus-visible ring applies. All state
-// (hover, active, focus-visible) is CSS-driven for keyboard accessibility.
+// choices). Meridian chrome: the lift ground for rest, lift-hover on hover,
+// and the ground ladder's next stop on active; line edges, edge on hover.
+// All state (hover, active, focus-visible) is CSS-driven for keyboard
+// accessibility.
 function ChoiceCard({
   onClick,
   disabled,
@@ -360,15 +361,15 @@ function ChoiceCard({
       <style>
         {`
           .choice-card-interactive {
-            background-color: var(--ds-gray-100);
-            border-color: var(--ds-gray-alpha-400);
+            background-color: var(--mrd-lift);
+            border-color: var(--mrd-line);
           }
           .choice-card-interactive:hover {
-            background-color: var(--ds-gray-200);
-            border-color: var(--ds-gray-alpha-500);
+            background-color: var(--mrd-lift-hover);
+            border-color: var(--mrd-edge);
           }
           .choice-card-interactive:active {
-            background-color: var(--ds-gray-300);
+            background-color: var(--mrd-float);
           }
         `}
       </style>
@@ -384,9 +385,9 @@ function ChoiceCard({
           textAlign: "left",
           width: "100%",
           padding: "13px 14px",
-          borderRadius: "var(--ds-radius-small)",
-          background: "var(--ds-gray-100)",
-          border: "1px solid var(--ds-gray-alpha-400)",
+          borderRadius: "var(--mrd-r-ctl)",
+          background: "var(--mrd-lift)",
+          border: "1px solid var(--mrd-line)",
           opacity: dimmed ? 0.45 : 1,
           display: "flex",
           alignItems: "center",
@@ -394,7 +395,7 @@ function ChoiceCard({
           gap: "var(--geist-space-3x)",
           cursor: interactive ? "pointer" : "default",
           transition:
-            "background-color 0.2s var(--ds-motion-timing-swift), border-color 0.2s var(--ds-motion-timing-swift)",
+            "background-color 0.2s var(--mrd-ease), border-color 0.2s var(--mrd-ease)",
         }}
       >
         {children}
@@ -404,7 +405,7 @@ function ChoiceCard({
 }
 
 // The Critic's confidence, animating in from zero when the verdict lands.
-// Glacier fill: confidence is the machine's own number. The global
+// Agent fill: confidence is the machine's own number. The global
 // prefers-reduced-motion override collapses the transition.
 function ConfidenceBar({ value }: { value: number }) {
   const [width, setWidth] = useState(0);
@@ -424,7 +425,7 @@ function ConfidenceBar({ value }: { value: number }) {
       style={{
         height: 4,
         borderRadius: 2,
-        background: "var(--ds-gray-alpha-400)",
+        background: "var(--mrd-edge)",
         overflow: "hidden",
       }}
     >
@@ -432,8 +433,8 @@ function ConfidenceBar({ value }: { value: number }) {
         style={{
           height: "100%",
           width: `${width * 100}%`,
-          background: "var(--ds-blue-600)",
-          transition: "width 0.6s var(--ds-motion-timing-swift)",
+          background: "var(--mrd-agent)",
+          transition: "width 0.6s var(--mrd-ease)",
         }}
       />
     </div>
@@ -502,7 +503,7 @@ function ProductStep({
   }
 
   const helpStyle: React.CSSProperties = {
-    color: "var(--ds-gray-900)",
+    color: "var(--mrd-body)",
     marginTop: 20,
     marginBottom: 0,
     lineHeight: 1.55,
@@ -512,7 +513,7 @@ function ProductStep({
     <Screen>
       <form onSubmit={save} style={{ width: 420, maxWidth: "calc(100vw - 48px)" }}>
         <MonoLabel style={{ marginBottom: 10 }}>OPTIONAL</MonoLabel>
-        <h1 className="text-heading-24" style={{ color: "var(--ds-gray-1000)", margin: 0 }}>
+        <h1 className="text-heading-24" style={{ color: "var(--mrd-ink)", margin: 0 }}>
           What are you building?
         </h1>
         <p className="text-copy-13" style={{ ...helpStyle, marginTop: 10 }}>
@@ -583,7 +584,7 @@ function Screen({ children }: { children: React.ReactNode }) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "var(--ds-background-100)",
+        background: "var(--mrd-bg)",
         padding: "var(--geist-gap)",
       }}
     >
@@ -1304,7 +1305,7 @@ export function ObsidianOnboarding() {
   if (profileQ.isLoading)
     return (
       <Screen>
-        <p className="text-label-13" style={{ color: "var(--ds-gray-900)" }}>
+        <p className="text-label-13" style={{ color: "var(--mrd-body)" }}>
           Waking your workspace…
         </p>
       </Screen>
@@ -1325,7 +1326,7 @@ export function ObsidianOnboarding() {
         >
           <p
             className="text-copy-13"
-            style={{ color: "var(--ds-gray-900)", margin: "0 0 10px", lineHeight: 1.55 }}
+            style={{ color: "var(--mrd-body)", margin: "0 0 10px", lineHeight: 1.55 }}
           >
             {beliefGuidance(beliefSource)}
           </p>
@@ -1335,7 +1336,7 @@ export function ObsidianOnboarding() {
           {pasteNote ? (
             <p
               className="text-label-12"
-              style={{ color: "var(--ds-gray-700)", margin: "0 0 10px", lineHeight: "var(--mrd-lh-snug)" }}
+              style={{ color: "var(--mrd-mute)", margin: "0 0 10px", lineHeight: "var(--mrd-lh-snug)" }}
             >
               {pasteNote}
             </p>
@@ -1430,7 +1431,7 @@ export function ObsidianOnboarding() {
             <p
               className="text-label-12"
               style={{
-                color: "var(--ds-gray-700)",
+                color: "var(--mrd-mute)",
                 marginTop: 12,
                 marginBottom: 0,
               }}
@@ -1476,7 +1477,7 @@ export function ObsidianOnboarding() {
               </Action>
               <p
                 className="text-label-12"
-                style={{ color: "var(--ds-gray-700)", marginTop: 8, marginBottom: 0 }}
+                style={{ color: "var(--mrd-mute)", marginTop: 8, marginBottom: 0 }}
               >
                 No verdict yet. Everything you set up is kept, and the Critic is on every bet
                 inside.
@@ -1491,26 +1492,30 @@ export function ObsidianOnboarding() {
   // phase === "results" - show Critic findings + brain warming signals
   if (phase === "results") {
     const verdict: string = criticReview?.verdict ?? VERDICT_WHEN_UNSTATED;
+    /* The verdict stamp speaks Meridian's status law: pass, fail, hold. The
+     * pale Tempo washes (ds-*-100) became the chip grounds, which are the one
+     * tinted-block pair Meridian measures in both grounds; the stamp word takes
+     * the hue itself, which is its own drawn edge on the chip. */
     const verdictColor =
       verdict === "ship"
-        ? "var(--ds-green-900)"
+        ? "var(--mrd-pass)"
         : verdict === "kill"
-          ? "var(--ds-red-900)"
-          : "var(--ds-amber-900)";
+          ? "var(--mrd-fail)"
+          : "var(--mrd-hold)";
     const verdictBg =
       verdict === "ship"
-        ? "var(--ds-green-100)"
+        ? "var(--mrd-pass-chip)"
         : verdict === "kill"
-          ? "var(--ds-red-100)"
-          : "var(--ds-amber-100)";
+          ? "var(--mrd-fail-chip)"
+          : "var(--mrd-hold-chip)";
     const verdictBorder =
       verdict === "ship"
-        ? "var(--ds-green-400)"
+        ? "var(--mrd-pass)"
         : verdict === "kill"
-          ? "var(--ds-red-400)"
-          : "var(--ds-amber-400)";
+          ? "var(--mrd-fail)"
+          : "var(--mrd-hold)";
     const sectionLabel: React.CSSProperties = {
-      color: "var(--ds-gray-900)",
+      color: "var(--mrd-body)",
       margin: 0,
       marginBottom: 8,
       textTransform: "uppercase",
@@ -1549,10 +1554,10 @@ export function ObsidianOnboarding() {
               <div
                 style={{
                   padding: "12px 14px",
-                  borderRadius: "var(--ds-radius-small)",
+                  borderRadius: "var(--mrd-r-ctl)",
                   background: verdictBg,
                   border: `1px solid ${verdictBorder}`,
-                  animation: "cadRise 0.4s var(--ds-motion-timing-swift) both",
+                  animation: "cadRise 0.4s var(--mrd-ease) both",
                   transform: "scale(1)",
                   transformOrigin: "center",
                 }}
@@ -1560,7 +1565,7 @@ export function ObsidianOnboarding() {
                 <p
                   style={{
                     margin: 0,
-                    fontFamily: "var(--font-pixel)",
+                    fontFamily: "var(--mrd-face-brand)",
                     fontSize: "30px",
                     lineHeight: 1.2,
                     textTransform: "uppercase",
@@ -1573,7 +1578,7 @@ export function ObsidianOnboarding() {
                 {shown.summary ? (
                   <p
                     className="text-copy-13"
-                    style={{ color: "var(--ds-gray-900)", margin: "6px 0 0" }}
+                    style={{ color: "var(--mrd-body)", margin: "6px 0 0" }}
                   >
                     {shown.summary}
                   </p>
@@ -1589,7 +1594,7 @@ export function ObsidianOnboarding() {
                       <div
                         key={i}
                         className="text-label-12"
-                        style={{ color: "var(--ds-gray-900)", lineHeight: "var(--mrd-lh-snug)" }}
+                        style={{ color: "var(--mrd-body)", lineHeight: "var(--mrd-lh-snug)" }}
                       >
                         • {risk}
                       </div>
@@ -1604,7 +1609,7 @@ export function ObsidianOnboarding() {
                   <p style={sectionLabel}>What you need to test</p>
                   <div
                     className="text-label-12"
-                    style={{ color: "var(--ds-gray-900)", lineHeight: 1.5 }}
+                    style={{ color: "var(--mrd-body)", lineHeight: 1.5 }}
                   >
                     {shown.missing_evidence[0]}
                   </div>
@@ -1615,9 +1620,9 @@ export function ObsidianOnboarding() {
               <div
                 style={{
                   padding: "10px 12px",
-                  borderRadius: "var(--ds-radius-small)",
-                  background: "var(--ds-gray-100)",
-                  animation: "cadRise 0.5s var(--ds-motion-timing-swift) 0.1s both",
+                  borderRadius: "var(--mrd-r-ctl)",
+                  background: "var(--mrd-lift)",
+                  animation: "cadRise 0.5s var(--mrd-ease) 0.1s both",
                   opacity: 0,
                 }}
               >
@@ -1666,7 +1671,7 @@ export function ObsidianOnboarding() {
             <div>
               <p
                 className="text-copy-13"
-                style={{ color: "var(--ds-gray-900)", margin: 0, maxWidth: 460 }}
+                style={{ color: "var(--mrd-body)", margin: 0, maxWidth: 460 }}
               >
                 {criticReview
                   ? "The run finished but returned no findings, so there is nothing worth stamping a verdict on."

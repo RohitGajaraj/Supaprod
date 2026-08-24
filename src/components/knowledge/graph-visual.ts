@@ -11,17 +11,23 @@ import type { GraphNode } from "@/lib/knowledge-graph-view";
 export type KindVisual = { token: string; fallback: string; label: string };
 
 /**
- * Node language, kept from the v4 assignment: decision ember-soft, signal
- * blossom, theme violet-soft, spec pearl, mission cornflower, meeting rose,
- * task slate, opportunity teal, roadmap cobalt, design memory mauve.
- * Blue harmony (founder ruling A, 2026-07-11): only glacier reads as "the
- * blue"; --cornflower and --cobalt were retuned in styles.css into the same
- * hue 215 family but stepped apart in lightness so mission/roadmap stay
- * distinguishable without competing with glacier. Fallbacks mirror the
- * retuned token values verbatim.
+ * Node language, kept from the v4 assignment: signal blossom, theme
+ * violet-soft, spec pearl, mission cornflower, meeting rose, task slate,
+ * opportunity teal, roadmap cobalt, design memory mauve. Blue harmony (founder
+ * ruling A, 2026-07-11): only glacier reads as "the blue"; --cornflower and
+ * --cobalt were retuned in styles.css into the same hue 215 family but stepped
+ * apart in lightness so mission/roadmap stay distinguishable without competing
+ * with glacier. Fallbacks mirror the retuned token values verbatim.
+ *
+ * Meridian port, 2026-08-25: `decision` wore the ember accent and now wears its
+ * Meridian successor --mrd-you. The rest of the row is a CATEGORICAL palette
+ * (DESIGN-SYSTEM.md: --mrd-viz-* and the status five are the only sanctioned
+ * hues, and neither can give sixteen node kinds a distinguishable ramp), so its
+ * tokens stay until Meridian grows the stops; their hex fallbacks carry the
+ * paint wherever the old scope does not reach.
  */
 export const KIND_VISUAL: Record<string, KindVisual> = {
-  decision: { token: "--ember-soft", fallback: "#ffa477", label: "Decision" },
+  decision: { token: "--mrd-you", fallback: "#ffa477", label: "Decision" },
   signal: { token: "--blossom", fallback: "#e5bddf", label: "Signal" },
   theme: { token: "--violet-soft", fallback: "#a67fc9", label: "Theme" },
   opportunity: { token: "--teal", fallback: "#2e9e8f", label: "Opportunity" },
@@ -32,22 +38,29 @@ export const KIND_VISUAL: Record<string, KindVisual> = {
   mission: { token: "--cornflower", fallback: "#5c88c9", label: "Mission" },
   design_memory: { token: "--mauve", fallback: "#b78bc7", label: "Design" },
   /**
-   * The six kinds a live census found stored and undeclared (2026-08-02). Until
-   * this pass they resolved through UNKNOWN_VISUAL, which paints ash and labels
-   * the node with its raw column value, so 146 recorded outcomes rendered grey
-   * and captioned "learning" on a surface whose entire claim is that it remembers
-   * how things turned out.
-   *
-   * THEY TAKE THE LIFECYCLE TOKENS, not new hues. `--sp-stage-*` is the one
-   * palette in this shell that already resolves in both themes, and it says
-   * something true that an arbitrary colour could not: where in the loop the
-   * thing was made. `learning` wearing the LEARN stage colour is the loop closing
-   * on the canvas. The ten kinds above keep their existing assignment so nothing
-   * a reader already recognises moves.
-   */
+   * THE SIX KINDS A LIVE CENSUS FOUND STORED AND UNDECLARED (2026-08-02). Until
+    * this pass they resolved through UNKNOWN_VISUAL, which paints ash and labels
+    * the node with its raw column value, so 146 recorded outcomes rendered grey
+    * and captioned "learning" on a surface whose entire claim is that it remembers
+    * how things turned out.
+    *
+    * THEY TOOK THE LIFECYCLE TOKENS, not new hues. `learning` wearing the LEARN
+    * stage colour says something true that an arbitrary colour could not: where
+    * in the loop the thing was made.
+    *
+    * MERIDIAN PORT, 2026-08-25. `changeset` moves first, on the recorded
+    * precedent in queue-instruments.tsx: --sp-stage-build became --mrd-agent,
+    * azure being a machine working, present tense. The other five stay on their
+    * retired stage names for now -- three of them (--sp-stage-ship/-design/-plan)
+    * were already deleted from ink.css and resolve empty, so their hex
+    * fallbacks carry the paint -- because Meridian has no second stage hue to
+    * give them, and pointing five kinds at one status colour would collapse the
+    * distinctions the palette exists to keep. That is a gap for --mrd-viz to
+    * grow into, not a licence to invent a hue here.
+    */
   learning: { token: "--sp-stage-learn", fallback: "#a89f66", label: "Outcome" },
   deployment: { token: "--sp-stage-ship", fallback: "#bd8092", label: "Deploy" },
-  changeset: { token: "--sp-stage-build", fallback: "#6d97c2", label: "Changeset" },
+  changeset: { token: "--mrd-agent", fallback: "#6d97c2", label: "Changeset" },
   // "Mockup": one static screen, no script. See ArtifactsView for the full note.
   prototype: { token: "--sp-stage-design", fallback: "#ab7fa0", label: "Mockup" },
   // Both are parts OF a spec rather than things of their own, so they share the
