@@ -745,6 +745,165 @@ function ReopenControl({ decisionId }: { decisionId: string }) {
 }
 
 /*
+ * ── THE BUILD CARD, WITH ITS REVIEW ────────────────────────────────────────
+ * The change the run wrote, and the verdict `studio.review` filed against it
+ * (queue item 23: the review used to live in a column nothing selected).
+ *
+ * THE HONEST EMPTY IS THE COMMON CASE AND IT SAYS SOMETHING TRUE:
+ * studio.review has never once run successfully (0 of 45 changesets carry a
+ * review), so "its reviewer has not reported yet" is the sentence a person
+ * will see first — not an apology, and never a fabricated verdict.
+ *
+ * Findings render facts before opinions (`deterministic` marks which), capped
+ * at 25 with a printed remainder, because the deterministic loops are unbounded
+ * by the writer and a list without a cap is a wall.
+ */
+type ReviewFindingView = {
+  severity?: string;
+  category?: string;
+  path?: string | null;
+  line?: number | null;
+  issue?: string;
+  fix?: string | null;
+  deterministic?: boolean;
+};
+
+type ChangesetReviewView = {
+  verdict?: string;
+  summary?: string;
+  findings?: ReviewFindingView[];
+  files_reviewed?: number;
+  reviewer_model?: string | null;
+  reviewed_at?: string;
+};
+
+function parseReview(raw: unknown): ChangesetReviewView | null {
+  if (raw == null) return null;
+  if (typeof raw === "string") {
+    try {
+      return JSON.parse(raw) as ChangesetReviewView;
+    } catch {
+      return null;
+    }
+  }
+  if (typeof raw === "object") return raw as ChangesetReviewView;
+  return null;
+}
+
+function ChangesetCard({ item }: { item: ArtifactView }) {
+  const f = item.fields;
+  const summary = str(f.summary);
+  const status = str(f.status);
+  const repo = str(f.repo);
+  const branch = str(f.branch);
+  const prUrl = str(f.pr_url);
+  const review = parseReview(f.code_review);
+
+  return (
+    <div className="flex flex-col gap-mrd-4">
+      <div className="flex flex-wrap items-center gap-mrd-3">
+        <span className="text-mrd-label font-medium text-mrd-ink">{item.title ?? item.word}</span>
+        <span className="mrd-meta">{relativeTime(item.createdAt, Date.now())}</span>
+      </div>
+      {summary ? <Prose markdown={false}>{summary}</Prose> : null}
+      <span className="mrd-meta">
+        {[repo, branch ? `branch ${branch}` : "", prUrl ? "pull request open" : ""]
+          .filter(Boolean)
+          .join(" · ")}
+      </span>
+      {prUrl ? (
+        <a
+          href={prUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="text-mrd-small font-medium text-mrd-you underline underline-offset-2"
+        >
+          Open the pull request
+        </a>
+      ) : null}
+
+      {/* THE REVIEW, OR THE TRUTH ABOUT ITS ABSENCE. */}
+      <div className="flex flex-col gap-mrd-2 rounded-mrd-chip bg-mrd-sink p-mrd-4">
+        <span className="mrd-eyebrow">What the reviewer found</span>
+        {!review || !review.verdict || review.verdict === "unreviewed" ? (
+          <RecordSpeaks>
+            The reviewer has not reported on this change yet. It runs as part of Build, before
+            anything is proposed to merge.
+          </RecordSpeaks>
+        ) : (
+          <>
+            <span className="flex items-center gap-mrd-3">
+              <StatusChip
+                status={
+                  review.verdict === "approve"
+                    ? "pass"
+                    : review.verdict === "block"
+                      ? "fail"
+                      : "hold"
+                }
+              >
+                {review.verdict === "approve"
+                  ? "Nothing blocking"
+                  : review.verdict === "block"
+                    ? "Blocked"
+                    : "Revise"}
+              </StatusChip>
+              {review.summary ? (
+                <span className="min-w-0 text-mrd-small text-mrd-mute">{review.summary}</span>
+              ) : null}
+            </span>
+
+            {(review.findings ?? []).length > 0 ? (
+              <div className="flex flex-col gap-mrd-2">
+                {(review.findings ?? []).slice(0, 25).map((fd, i) => (
+                  <div
+                    key={i}
+                    className="flex flex-col gap-0.5 border-b border-mrd-line-soft pb-mrd-2 last:border-0"
+                  >
+                    <span className="text-mrd-small font-medium text-mrd-body">
+                      {[fd.severity, fd.category, fd.deterministic ? "checked" : "judged"]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
+                    {fd.issue ? <RunNote>{fd.issue}</RunNote> : null}
+                    {fd.fix ? (
+                      <span className="text-mrd-small text-mrd-mute">Fix: {fd.fix}</span>
+                    ) : null}
+                    {fd.path ? (
+                      <span className="font-mrd-mono text-mrd-data text-mrd-faint">
+                        {fd.path}
+                        {fd.line ? `:${fd.line}` : ""}
+                      </span>
+                    ) : null}
+                  </div>
+                ))}
+                {(review.findings ?? []).length > 25 ? (
+                  <p className="font-mrd-mono text-mrd-small tabular-nums text-mrd-faint">
+                    {(review.findings ?? []).length - 25} further findings not shown here.
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+
+            <span className="mrd-meta">
+              {[
+                review.files_reviewed != null
+                  ? `${review.files_reviewed} ${review.files_reviewed === 1 ? "file" : "files"} reviewed`
+                  : "",
+                review.reviewer_model ? `reviewer ${review.reviewer_model}` : "",
+                review.reviewed_at ? relativeTime(review.reviewed_at, Date.now()) : "",
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            </span>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/*
  * One station's panel. Four states, derived per SPEC-ARTIFACTS §2, branching on
  * rows and counts only -- never on hold prose (§11.5).
  */
@@ -812,6 +971,8 @@ function StationPanel({
         return <ThemeCard item={item} />;
       case "learning":
         return <LearningCard item={item} decisions={decisions} />;
+      case "changeset":
+        return <ChangesetCard item={item} />;
       case "prd":
         return <PlanSpec prdId={item.artifactId} />;
       default:
