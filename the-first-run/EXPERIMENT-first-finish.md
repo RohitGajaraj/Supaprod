@@ -1279,3 +1279,23 @@ station ran but filed nothing... It will try again."* **It should not try again.
 
 **Round 4 is therefore not finished so much as circling.** 5 of 7 remains its high-water mark, and
 zero of six acceptance criteria are met.
+
+### 04:41 · F-41's cost, measured rather than argued
+
+The track circled exactly as the finding predicted. `define` re-ran, produced a fresh spec and a
+fresh set of tasks, and handed on to `design` again:
+
+```sql
+SELECT station, attempts, (SELECT count(*) FROM spine_track_members m WHERE m.track_id=t.id)
+  FROM spine_tracks t WHERE t.id = '8391835f-...';
+-- design | 0 | 19          (it was 12 at 04:30)
+```
+
+**Seven new artifacts to rebuild work that was already correct**, and the rebuilt work will meet the
+same 401 at Build. That is the concrete price of a hold vocabulary that could not say "the door was
+locked": not a crash, not a stall anybody would notice, just a loop confidently redoing good work
+until its correction budget runs out.
+
+**R-26 fixes it** — `tools-refused` costs no attempt, triggers no correction, names the tool and its
+message, and is terminal for the sweep. It is committed and awaiting deploy; **the next Build failure
+on this track is the test of it.**
