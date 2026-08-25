@@ -72,3 +72,16 @@ filed to LANE 0). Recorded honestly rather than claimed.
   ("parked Phase-5 alternative…") is now stale — the file lives in `src/lib/**`,
   not my path. MAIN may want to update the wording; the entry itself must stay
   while promotion is pending.
+
+## CORRECTION, 2026-08-25 (per `R017-019`) — the known gap was misstated
+
+This file said tracks started from /start would carry `workspace_id = null`
+"exactly like every door before it" — a degraded run. **Wrong, and wrong in the
+dangerous direction: `spine_tracks.workspace_id` is NOT NULL with default
+`current_user_default_workspace()`, so an unscoped insert would have been
+REFUSED outright — /start would have created no tracks at all, every click
+returning a constraint error.** Not one track in this product's history ever
+came through `startTrack`; all 58 sweep-born rows plus one seed row explain the
+table. A caveat was recorded where the truth was a blocker; the difference is
+F-15 in the ledger. Fixed same day: unit 063 passes `workspaceId` through
+`resolveStartWorkspace`.
