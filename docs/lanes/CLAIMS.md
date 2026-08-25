@@ -25,6 +25,7 @@
 | A | — | (Queue 64, F-57, F-59, F-63 item 2 and the Learn honest-wait claims RELEASED: all shipped, gated and pushed by `ac333b2c8`; deploy `c3c6489a` carries the last two) | 2026-08-25 13:5x |
 | L1 | — | (Queue 54 claim removed: shipped as unit 076, verification filed `requests/076-verify-queue54.md`) | 2026-08-25 12:0x |
 | L1 | — | (Queue 70 claim released: shipped as unit 084, route-side region live; per-card open affordance filed to INBOX) | 2026-08-25 16:1x |
+| L1 | `src/routes/_authenticated.boundary.tsx`, `src/routes/_authenticated.crew.tsx` (one link) | Item 22: fold /boundary into /engine-room (L0's 022 lift landed `214cfffd5`) | 2026-08-25 16:3x |
 | L0 | — | (Queue 65 claim released: shipped `7fa621e8f`, unit L0-080) | 2026-08-25 12:5x |
 | B | `src/lib/spine/driver.ts` (builder brief), `src/lib/ai/tools/registry.server.ts` (`repo.search` description) | F-58: an empty `repo.search` is not evidence the code is absent | 2026-08-25 18:0x |
 | L0 | — | (All five audit adoptions CLOSED: 1/2/5 landed, 3 refused on evidence, 4 investigated and found already-reasoned — outcomes recorded in docs/design/MERIDIAN-INVENTORY.md) | 2026-08-25 |
