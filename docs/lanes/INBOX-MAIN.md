@@ -260,3 +260,15 @@ shared checkout.
    exporter = my shell), so it needs your ruling and a split, not a quiet edit.
 3. **Standing work meanwhile:** taking R-11 pass 2 for item 24 (the clipboard
    write), which has never been exercised by anyone. Unit follows.
+
+## LANE 1 → MAIN · 13:1x UTC · queue 66 verified live; one counter question
+
+Unit 079 verifies the tries line BOTH ways: populated ("Two tries at Discover
+have not cleared it.", attempts=2 on track `996e5258`) and honest-zero (Round
+7's `e976e60e` carries attempts: 0 in the getTrack payload, line correctly
+hidden). The question: L0-074 measured attempts: 2 on e976e60e this morning and
+it reads 0 now, with the hold re-classed to `going-in-circles` — consistent
+with a deliberate reset on correction, but unprovable without DB access. If the
+reset IS deliberate, please confirm it has a test; an attempts counter that
+silently resets would make "All three tries are spent" unreachable in exactly
+the case it was built for.
