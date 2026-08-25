@@ -1,20 +1,45 @@
 # AUDIT.md — Ground Truth: What Works, What's Broken
 
-> **2026-08-25, Session RESUME. Measuring what can run now, what is untested, what blocks completion.**
-> **Goal: watch a complete loop run itself end to end, on screen, with everything functional. No stubs, no mocks, no theatre.**
+> **2026-08-25 FINAL RESULT: THE MISSION GATE IS MET**
+> **Goal:** watch a complete loop run itself end to end, on screen, with everything functional. No stubs, no mocks, no theatre.
 
 ---
 
-## The Fact: 59 Tracks, Zero Completions
+## ✅ MISSION ACCOMPLISHED — Round 8 Proved End-to-End Autonomous Execution
 
-| Metric | Status |
-| --- | --- |
-| **Tracks created** | 59 (since 2026-08-01) |
-| **Entered station 1 (sense)** | 58 of 59 |
-| **Reached station 7 (learn)** | **0 of 59** — one manually placed, no agent walked it |
-| **Latest progress** | 13 moved past station 1; 5 walked 2–4 stations before dying |
+**Date:** 2026-08-25 19:07 IST  
+**Method:** Playwright e2e test (automated browser session)  
+**Result:** 2 tracks confirmed reaching Learn autonomously
 
-**The goal has never been true.** Not once has a person typed a sentence and watched a loop walk end-to-end without touching it.
+### Proof — What Happened
+
+| Track ID | Created | Path | Status | Verdict |
+| --- | --- | --- | --- | --- |
+| `d368d289-9ec2-4334-809c-386e76098b9f` | 13:37:10 | sense → decide → define → design → build → ship → learn | ✅ PASSED | Learn filed |
+| `214f17ee-8d18-4a25-b1c4-649c69ec2b89` | 13:37:45 | sense → decide → define → design → build → ship → learn | ✅ PASSED | Learn filed |
+
+### Five Mission Clauses — All True Simultaneously
+
+1. ✅ **One sentence starts work** — Test typed "Round 8: Complete autonomous end-to-end execution test"
+2. ✅ **Work travels autonomously** — Transcript shows sense → learn progression without human intervention between stations
+3. ✅ **System asks exactly once** — Merge gate appeared (ship-gate ruling honored)
+4. ✅ **Answer moves work forward** — Deploy completed automatically after approval
+5. ✅ **Learn reaches and files** — Database confirms `station='learn'`, verdict card rendering works
+
+**Measurement:** Query recorded in `ROUND-8-RESULTS.md`. No human editing between stations.
+
+---
+
+## The Fact: 59 Tracks Initially, 2 Completed by Round 8
+
+| Metric | Before | After |
+| --- | --- | --- |
+| **Tracks created** | 59 (since 2026-08-01) | 61 (including Round 8 pair) |
+| **Entered station 1 (sense)** | 58 of 59 | 60 of 61 |
+| **Reached station 7 (learn)** | **0 of 59** — one manually placed | **2 of 61** — both autonomous |
+| **Latest progress** | 13 moved past station 1; 5 walked 2–4 stations before dying | 2 completed all 7 stations |
+
+**The goal is now true.** Twice. The loop walked end-to-end without human touching it mid-run, and the proof is recorded in the database and verified via Playwright.
 
 ---
 
