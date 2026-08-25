@@ -179,6 +179,7 @@ import {
   IconRuns,
   IconThreads,
   IconToday,
+  IconWork,
 } from "./icons";
 
 /**
@@ -206,6 +207,12 @@ const APPROVALS_PATHS: readonly string[] = ["/approvals"];
 const BOUNDARY_PATHS: readonly string[] = ["/boundary"];
 
 const TODAY_PATHS: readonly string[] = ["/today"];
+/** The Work row's territory: where work is handed over (/start) and every run
+ *  screen under /track/:id. `under()` needs the base only, and "/track" the
+ *  prefix does NOT capture /track-record — no slash follows. Before this row,
+ *  a person standing on a run screen lit NO rail row at all: the product's
+ *  primary surface was un-owned, not merely unlinked. */
+const START_PATHS: readonly string[] = ["/start", "/track"];
 const BRAIN_PATHS: readonly string[] = ["/brain"];
 
 /** Paths that live behind the Settings door but are not under /settings.
@@ -344,6 +351,19 @@ const RAIL = [
     Icon: IconApprovals,
     count: "gates",
     owns: APPROVALS_PATHS,
+    tier: "primary",
+  },
+  // WORK, ITS OWN ROW, 2026-08-25 — the founder's "no home or entry door"
+  // ruling, third instance of the Approvals/Threads shape. /start is where a
+  // sentence becomes a run; /track/:id is where the run is watched; neither
+  // had a named door and the run screen lit no row. Label and key derive from
+  // nav-model.ts like every other row.
+  {
+    to: "/start",
+    label: "Work",
+    Icon: IconWork,
+    count: null,
+    owns: START_PATHS,
     tier: "primary",
   },
   // Runs points at /runs, NOT at /m. /m is Mission Control, the one surface the

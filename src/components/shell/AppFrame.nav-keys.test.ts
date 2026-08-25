@@ -87,12 +87,15 @@ describe("which rail doors the keyboard reaches", () => {
   it("keys every rail row, and leaves none unreachable", () => {
     const keyed = RAIL_DOORS.filter((r) => r.key !== "").map((r) => r.to);
     const unkeyed = RAIL_DOORS.filter((r) => r.key === "").map((r) => r.to);
-    // SIX since 2026-08-24. Approvals and Threads arrived with doors of
-    // their own; Today gave its `t` to Threads and took `o` - g o, the word
-    // the chord acts.
+    // SEVEN since 2026-08-25. Approvals and Threads arrived 2026-08-24 with
+    // doors of their own (Today gave its `t` to Threads and took `o` - g o,
+    // the word the chord acts). Work arrived 2026-08-25: the /start composer
+    // and every /track/:id run screen finally have a named, keyed door - the
+    // founder's "no home or entry door" ruling, `g w`.
     expect(keyed).toEqual([
       "/today",
       "/approvals",
+      "/start",
       "/runs",
       "/brain",
       "/threads",

@@ -36,6 +36,15 @@ export function IconApprovals({ className }: IconProps) {
   );
 }
 
+/** Work: the handover. A sentence leaves your side and keeps going. */
+export function IconWork({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 12h15M14 7l5 5-5 5" />
+    </svg>
+  );
+}
+
 /** Threads: two voices. A bubble and the reply beside it. */
 export function IconThreads({ className }: IconProps) {
   return (

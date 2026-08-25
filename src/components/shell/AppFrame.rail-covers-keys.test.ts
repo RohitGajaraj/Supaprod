@@ -98,8 +98,9 @@ describe("every bound key lands somewhere the rail can light", () => {
     // enough to fix it without opening a browser.
     expect(dark).toEqual([]);
     // A sanity floor, so a nav-model that silently emptied would not pass by
-    // having nothing left to check.
-    expect(BOUND.length).toBe(15);
+    // having nothing left to check. Sixteen since 2026-08-25: Work (/start,
+    // `g w`) joined the bound doors.
+    expect(BOUND.length).toBe(16);
   });
 
   it("covers the standing `g` alias too, which no door declares", () => {
@@ -120,12 +121,13 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     // NEIGHBOUR is the same bug seen from the other side - that row could
     // never light at all. Both are caught by the same assertion.
     const rows = [...railBlock().matchAll(/to:\s*"([^"]+)"/g)].map((m) => m[1]);
-    // SIX since 2026-08-24: Today, Approvals, Runs, Brain, Threads,
-    // Guardrails. Crew left for Settings on 2026-08-15 and Approvals and
-    // Threads arrived with doors of their own; the count is asserted rather
-    // than left open because an empty or halved rail is exactly the failure
-    // this file exists to catch, and a `>= 1` would sail past it.
-    expect(rows.length).toBe(6);
+    // SEVEN since 2026-08-25: Today, Approvals, Work, Runs, Brain, Threads,
+    // Guardrails. Crew left for Settings on 2026-08-15, Approvals and
+    // Threads arrived 2026-08-24, and Work arrived 2026-08-25 owning /start
+    // and the /track/:id run screens; the count is asserted rather than left
+    // open because an empty or halved rail is exactly the failure this file
+    // exists to catch, and a `>= 1` would sail past it.
+    expect(rows.length).toBe(7);
     for (const r of rows) expect(railOwnerOf(r)).toBe(r);
   });
 
@@ -147,7 +149,7 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     expect(block).not.toMatch(/owns:\s*\[/);
     const owns = [...block.matchAll(/owns:\s*([A-Z][A-Z_]*)\b/g)].map((m) => m[1]);
     // One per row, so a row cannot drop the field and quietly go dark.
-    expect(owns.length).toBe(6);
+    expect(owns.length).toBe(7);
   });
 
   it("owns exactly the seven stations the strip navigates to", () => {

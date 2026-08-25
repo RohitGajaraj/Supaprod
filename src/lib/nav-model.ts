@@ -140,6 +140,25 @@ export const PRIMARY_NAV: readonly NavItemDef[] = [
     tagline: "The gates waiting on your verdict.",
   },
   {
+    // WORK GETS ITS OWN DOOR, 2026-08-25, same ruling as Approvals below it
+    // and Threads further down: a key surface with no named entry is the
+    // "no home for key items" failure. The transformed product's primary
+    // surfaces — the composer at /start and the run screen at /track/:id —
+    // were reachable only through the live strip's DERIVED sentence (which
+    // names /track only while exactly one run is moving) or by typing the
+    // URL. The founder named it live: whatever is being built renders under
+    // /track/:id and has no home. The ROUTE stays /start because R-15
+    // compares that page against /today side by side; the label is "Work"
+    // because that is the page's own word ("Your open work") and every
+    // letter of "Start" is bound elsewhere (s Settings, t Threads, a Agents,
+    // r Runs) while Work's own first letter was free.
+    to: "/start",
+    label: "Work",
+    index: "",
+    zone: "home",
+    tagline: "Hand work over, watch it run.",
+  },
+  {
     to: "/discover",
     label: "Discover",
     index: "01",
@@ -358,6 +377,8 @@ export function navKeyHint(item: NavItemDef): string {
       return "t";
     case "/approvals":
       return "v"; // approVals; a Agents, p Plan, r Runs, l Learn, s Settings
+    case "/start":
+      return "w"; // Work's own first letter, free — the label, not the route
     case "/discover":
       return "d";
     case "/decide":
