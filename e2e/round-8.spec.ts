@@ -57,9 +57,9 @@ test.describe("Round 8: Autonomous End-to-End Execution", () => {
     // Step 3: Type the test sentence
     console.log("[ROUND 8] Typing test sentence...");
     const sentence = "Round 8: Complete autonomous end-to-end execution test";
-    
+
     // Find the composer field - try multiple selectors
-    const composerField = page.locator('textarea').first();
+    const composerField = page.locator("textarea").first();
     await composerField.click({ timeout: 5000 });
     await composerField.fill(sentence);
     await takeScreenshot(page, "round8-02-sentence-typed", "round8");
@@ -67,9 +67,9 @@ test.describe("Round 8: Autonomous End-to-End Execution", () => {
     // Step 4: Submit the form
     console.log("[ROUND 8] Submitting track...");
     // Find submit button - look for any visible button that might submit
-    const buttons = await page.locator('button').all();
+    const buttons = await page.locator("button").all();
     let submitted = false;
-    
+
     for (const btn of buttons) {
       const text = await btn.textContent();
       if (text && (text.includes("Submit") || text.includes("Send") || text.includes("Start"))) {
@@ -78,7 +78,7 @@ test.describe("Round 8: Autonomous End-to-End Execution", () => {
         break;
       }
     }
-    
+
     if (!submitted) {
       // Try pressing Enter if there's a composer field
       await composerField.press("Enter");
@@ -99,7 +99,7 @@ test.describe("Round 8: Autonomous End-to-End Execution", () => {
 
     // Step 5: Monitor station progression
     console.log("\n[ROUND 8] Monitoring station progression...\n");
-    
+
     const stations = ["sense", "decide", "define", "design", "build", "ship", "learn"];
     const visited = new Set<string>();
     let currentStation = "sense";
@@ -119,7 +119,7 @@ test.describe("Round 8: Autonomous End-to-End Execution", () => {
             const elapsed = Math.round((Date.now() - startTime) / 1000);
             const idx = stations.indexOf(station) + 1;
             console.log(`✓ Station ${idx}/7: ${station.toUpperCase()} [${elapsed}s]`);
-            
+
             // Take a screenshot at each station
             await takeScreenshot(page, `round8-station-${idx}-${station}`, "round8");
             foundStation = true;
@@ -131,7 +131,9 @@ test.describe("Round 8: Autonomous End-to-End Execution", () => {
       // Check for gate/approval buttons
       if (!gateApproved && pageContent.toLowerCase().includes("merge")) {
         console.log("[ROUND 8] Merge gate detected - approving...");
-        const mergeBtn = page.locator('button:has-text("Merge"), button:has-text("Approve")').first();
+        const mergeBtn = page
+          .locator('button:has-text("Merge"), button:has-text("Approve")')
+          .first();
         if (await mergeBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
           await mergeBtn.click();
           gateApproved = true;

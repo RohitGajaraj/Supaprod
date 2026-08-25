@@ -489,10 +489,13 @@ export function TrackRunLeft({
         <Region title="Learning to come" sub="This forecast is on hold until the date arrives.">
           <div className="flex flex-col gap-mrd-4">
             <Row
-              lead={`The forecast comes due ${new Date(forecastHorizonDate).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-              })}; Learn returns then.`}
+              lead={`The forecast comes due ${new Date(forecastHorizonDate).toLocaleDateString(
+                "en-US",
+                {
+                  month: "short",
+                  day: "numeric",
+                },
+              )}; Learn returns then.`}
               sub={
                 track.drivenAt
                   ? `It last moved ${relativeTime(track.drivenAt, nowMs)}.`
