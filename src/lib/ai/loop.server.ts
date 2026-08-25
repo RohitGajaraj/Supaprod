@@ -106,8 +106,28 @@ const PAUSE_ON_APPROVAL_TOOLS = new Set([
 const AUTO_SHIP_ENABLED = process.env.STUDIO_AUTO_SHIP === "1";
 
 /**
- * R-27. The two tools a workspace's STANDING decision may release, and the one
- * it may not.
+ * R-27. The two tools the PROOF PRECONDITIONS release, and the one they may not.
+ *
+ * REVISED 2026-08-25 on the founder's instruction, and he was right for a reason
+ * already written in this repo's own rulings. The first version of R-27 gated
+ * these behind a per-workspace `autonomous_ship_enabled`, default false. It was
+ * false in 21 of 21 workspaces, its only enablement was a hand-written UPDATE by
+ * MAIN, and **no surface in the product could ever set it**.
+ *
+ * That is R-22's defect exactly — *"a decision nobody had made and no surface in
+ * the product can make"* — and R-23's — *"a function that lands without a door is
+ * not finished."* A capability that ships off everywhere, reachable only by SQL,
+ * is not a feature; it is the eighth instance this week of a mechanism built and
+ * a trigger never wired. **The founder's rule is the correct one: a feature is
+ * live at platform level, and a workspace created tomorrow carries it forward.**
+ *
+ * SO THE GATE IS THE PROOF, AND THE ARC IS THE PACE. These tools now behave like
+ * every other tool in the product: `resolveApprovalMode` puts a new workspace's
+ * agents at `confirm` and they earn `auto` through the trust ramp, exactly as
+ * `github.pr.open` and the rest do. Nothing is granted by a flag; it is earned,
+ * and it is earned everywhere. The four preconditions in `promoteChangeset` and
+ * `unattendedShipIsGradable` are unconditional and apply to every workspace that
+ * has ever existed or will.
  *
  * `release.publish` is the act the founder pinned, with his reason written at
  * the line: a production deploy is irreversible from inside the product and
@@ -211,19 +231,6 @@ export function resolveToolMode(
   rawToolMode: ToolMode,
   arc: Arc,
   contractApproved: boolean,
-  /**
-   * R-27. This workspace's standing decision that the ship pair may run
-   * unattended (`workspaces.autonomous_ship_enabled`).
-   *
-   * OPTIONAL AND DEFAULTED FALSE, which is the fail-closed direction and is the
-   * whole reason it is a parameter rather than a lookup inside here. Every
-   * caller that does not know the workspace — `crew.functions.ts` resolving what
-   * a mode picker may offer, and the tests — keeps today's behaviour by not
-   * passing it, and a future caller that forgets gets the floor rather than the
-   * exemption. R-22: when an absent value and a chosen value share one
-   * representation, the absent one resolves to the safe reading.
-   */
-  shipAutonomy = false,
 ): ToolMode {
   const dialedMode = resolveApprovalMode(rawToolMode, arc);
   let mode: ToolMode = dialedMode;
@@ -232,16 +239,16 @@ export function resolveToolMode(
     // version: the trust-graduated single ship decision for studio.pr.merge.
     const mergeReleased = toolName === "studio.pr.merge" && AUTO_SHIP_ENABLED;
     /*
-     * R-27. THE STANDING DECISION, AND WHY IT LANDS ON `confirm` RATHER THAN
-     * `auto`.
+     * R-27. WHY THIS LANDS ON `confirm` RATHER THAN `auto`, which is what makes
+     * a platform-level default safe rather than reckless.
      *
      * It hands the pair to `resolveApprovalMode("confirm", arc)` — the SAME
      * shape `AUTO_SHIP_ENABLED` already uses for the merge, deliberately, so
      * there is one pattern here rather than two. That means the standing
-     * decision does not grant autonomy; it grants ELIGIBILITY, and the trust
-     * arc still decides. A workspace early in its arc keeps a gate on the
-     * publish even with the flag on, and earns its way off it the way every
-     * other tool does.
+     * ramp — not a flag — decides. **A workspace created tomorrow starts at
+     * `confirm` and earns `auto` the way every other tool does**, which is
+     * precisely how the feature can be on for everyone without being loose for
+     * anyone. Nothing is granted; it is earned, and it is earned everywhere.
      *
      * The four proof preconditions are NOT enforced here, and that separation
      * is on purpose. This function is pure and is unit-tested for its ORDERING;
@@ -249,7 +256,7 @@ export function resolveToolMode(
      * so they live in `promoteChangeset`, which is the one place that can read
      * them and the one place a human-initiated publish goes through too.
      */
-    const shipReleased = shipAutonomy && SHIP_AUTONOMY_TOOLS.has(toolName);
+    const shipReleased = SHIP_AUTONOMY_TOOLS.has(toolName);
     /*
      * THE RELEASE MAY LOWER THE FLOOR. IT MAY NEVER OVERRIDE WHAT WAS ASKED FOR.
      *
@@ -1144,42 +1151,6 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
     }
   }
 
-  /*
-   * R-27. THIS WORKSPACE'S STANDING DECISION ABOUT SHIPPING.
-   *
-   * Read ONCE per run rather than per tool call: it changes about as often as a
-   * workspace changes its mind about governance, and a per-call read would put a
-   * query in front of every step of every agent for a column that is false in 21
-   * of 21 workspaces.
-   *
-   * FAILS CLOSED THREE WAYS, and each one is deliberate. No workspace on the run
-   * leaves it false; an unreadable row leaves it false; and a thrown query leaves
-   * it false, because the `catch` never assigns. R-22's rule generalised: a guard
-   * that cannot read its evidence must not be the thing that lets work through.
-   * The cost of failing closed is one approval a person has to answer; the cost
-   * of failing open is an unattended production deploy nobody decided on.
-   *
-   * NOT CACHED, unlike `workspaceContextCache` a few hundred lines up. That cache
-   * exists because house rules are read O(n) times across a mission; this is read
-   * once per `executeLoop`. A stale cache here would mean a workspace that
-   * REVOKED the decision kept shipping for the cache's lifetime, and "reversing
-   * it costs one UPDATE" is a promise this ruling makes explicitly.
-   */
-  let shipAutonomy = false;
-  if (ctx.workspaceId) {
-    try {
-      const { data: ws } = await supabase
-        .from("workspaces")
-        .select("autonomous_ship_enabled")
-        .eq("id", ctx.workspaceId)
-        .maybeSingle();
-      shipAutonomy =
-        (ws as { autonomous_ship_enabled?: boolean } | null)?.autonomous_ship_enabled === true;
-    } catch (e) {
-      console.error("R-27 ship-autonomy lookup failed, holding the floor:", e);
-    }
-  }
-
   const checkpoint = async (stepIndex: number) => {
     if (!runId) return;
     try {
@@ -1692,13 +1663,7 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
     // -> HIGH_RISK_MIN_CONFIRM/isHighRiskTool -> low-risk auto-clear -> AGT-02
     // contract-approved reversible auto-clear.
     const rawToolMode = (modeOf.get(call.name) ?? "confirm") as ToolMode;
-    let mode: ToolMode = resolveToolMode(
-      call.name,
-      rawToolMode,
-      arc,
-      contractApproved,
-      shipAutonomy,
-    );
+    let mode: ToolMode = resolveToolMode(call.name, rawToolMode, arc, contractApproved);
 
     /*
      * R-27 CLAUSE 2, THE FOURTH PRECONDITION, AND CLAUSE 6, WHICH SAYS WHAT
@@ -1728,13 +1693,14 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
      * the LOOP does on its own and not what somebody decides about their own
      * product.
      *
-     * ASKED ONLY WHERE IT CAN CHANGE THE ANSWER: this tool, in a workspace that
-     * took the standing decision, on a call the arc actually released. In the 21
-     * of 21 workspaces where the flag is false, `shipAutonomy` is false and this
-     * costs nothing at all.
+     * ASKED ONLY WHERE IT CAN CHANGE THE ANSWER: this tool, on a call the arc
+     * actually released to `auto`. Every other tool, and every gated call, skips
+     * it for nothing. **It is unconditional across workspaces** — the founder's
+     * rule that a feature is live at platform level, and that a workspace created
+     * tomorrow carries it forward.
      */
     let heldForYou: string | null = null;
-    if (shipAutonomy && call.name === "release.publish" && mode === "auto") {
+    if (call.name === "release.publish" && mode === "auto") {
       const changesetId = (parseRes.data as { changeset_id?: unknown } | null)?.changeset_id;
       if (typeof changesetId !== "string") {
         // The argument the check needs is not there to read. Same rule as every

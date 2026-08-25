@@ -29,89 +29,67 @@ import { resolveToolMode } from "./loop.server";
 
 const ARCS = ["proving", "ambient", "trusted"] as const;
 
-describe("without the standing decision, nothing has changed", () => {
+describe("the ship pair is live at platform level, and the arc sets the pace", () => {
   /**
-   * THE REGRESSION TEST FOR 21 OF 21 WORKSPACES. `autonomous_ship_enabled` is
-   * `NOT NULL DEFAULT false` and no workspace has turned it on, so this is the
-   * behaviour every real workspace gets today and must keep getting.
+   * REVISED THE DAY IT SHIPPED, on the founder's instruction: *"Whatever features
+   * we are building should be live at a platform level, no matter whether a new
+   * user onboards tomorrow or a new workspace gets created."*
+   *
+   * The first version of R-27 gated these behind `workspaces.autonomous_ship_enabled`,
+   * default false. Measured two hours later: **false in 21 of 21 workspaces, one
+   * enablement — a hand-written UPDATE by MAIN — and no surface in the product
+   * that could ever set it.** That is R-22's own defect (*"a decision nobody had
+   * made and no surface in the product can make"*) and R-23's (*"a function that
+   * lands without a door is not finished"*), and this time it was self-inflicted.
+   *
+   * **What replaces it is not "on for everyone".** The gate is the PROOF and the
+   * pace is the ARC.
    */
-  it.each(ARCS)("keeps release.publish pinned to review on the %s arc", (arc) => {
-    expect(resolveToolMode("release.publish", "auto", arc, false, false)).toBe("review");
-    expect(resolveToolMode("release.publish", "confirm", arc, true, false)).toBe("review");
-  });
-
-  it.each(ARCS)("keeps studio.revert pinned to review on the %s arc", (arc) => {
-    expect(resolveToolMode("studio.revert", "auto", arc, true, false)).toBe("review");
-  });
-
-  /**
-   * FAIL CLOSED WHEN THE CALLER DOES NOT KNOW. `crew.functions.ts` resolves what
-   * a mode picker may offer and has no workspace in hand; it passes four
-   * arguments. The default must be the floor, not the exemption — R-22, applied
-   * to a parameter instead of a column.
-   */
-  it("omitting the argument entirely is the same as refusing it", () => {
-    expect(resolveToolMode("release.publish", "auto", "trusted", true)).toBe(
-      resolveToolMode("release.publish", "auto", "trusted", true, false),
-    );
-    expect(resolveToolMode("release.publish", "auto", "trusted", true)).toBe("review");
-  });
-});
-
-describe("with the standing decision, the arc decides rather than a click", () => {
-  /**
-   * IT GRANTS ELIGIBILITY, NOT AUTONOMY, and that distinction is the reason it
-   * lands on `resolveApprovalMode("confirm", arc)` — the same shape
-   * `AUTO_SHIP_ENABLED` already uses for the merge, so there is one pattern here
-   * and not two. A workspace early in its arc keeps a gate on the publish even
-   * with the flag on, and earns its way off it like every other tool.
-   */
-  it("releases release.publish to the trust arc", () => {
-    expect(resolveToolMode("release.publish", "auto", "trusted", false, true)).not.toBe("review");
+  it("does not hand out `auto` on its own — a new workspace starts gated", () => {
     // "proving" is the arc where resolveApprovalMode leaves confirm as confirm,
-    // so the standing decision visibly does NOT hand out `auto` on its own.
-    expect(resolveToolMode("release.publish", "auto", "proving", false, true)).toBe("confirm");
+    // so this is exactly what a workspace created tomorrow gets.
+    expect(resolveToolMode("release.publish", "auto", "proving", false)).toBe("confirm");
+    expect(resolveToolMode("studio.revert", "auto", "proving", false)).toBe("confirm");
+  });
+
+  it("releases the pair to the trust ramp once an arc has been earned", () => {
+    expect(resolveToolMode("release.publish", "auto", "trusted", false)).not.toBe("review");
+    expect(resolveToolMode("studio.revert", "auto", "trusted", false)).not.toBe("review");
   });
 
   /**
-   * THE UNDO IS FREED WITH THE DO, and leaving it out would have built a trap.
-   * `AUTO_SHIP_ENABLED` un-pins the merge and not the revert, so before this
-   * ruling the product could merge to a default branch by itself and could not
-   * roll back by itself — the undo gated harder than the do. When something goes
-   * wrong the loop then cannot fix it and must page a person, which is the exact
-   * failure the gate exists to prevent.
+   * NO FIFTH ARGUMENT. The signature must not grow a per-workspace escape hatch
+   * back: that is the shape that shipped off in 21 of 21 and reachable only by
+   * SQL, and a test is the cheapest way to stop it returning.
    */
-  it("frees studio.revert on the same decision", () => {
-    expect(resolveToolMode("studio.revert", "auto", "trusted", false, true)).not.toBe("review");
+  it("takes no per-workspace flag", () => {
+    expect(resolveToolMode.length).toBe(4);
   });
 
   /**
-   * THE DELIBERATE EXCLUSION, and it is the one that keeps this a ruling rather
-   * than a blanket un-pinning. Handing work to a third-party agent is a
-   * different act from deploying our own reviewed change: none of the four
-   * preconditions says anything about what somebody else's agent will do, so the
-   * standing decision cannot speak for it.
+   * THE DELIBERATE EXCLUSION, and the one that keeps this a ruling rather than a
+   * blanket un-pinning. Handing work to a third-party agent is a different act
+   * from deploying our own reviewed change: none of the four preconditions says
+   * anything about what somebody else's agent will do.
    */
   it.each(ARCS)("still refuses delegate.openhands on the %s arc", (arc) => {
-    expect(resolveToolMode("delegate.openhands", "auto", arc, true, true)).toBe("review");
+    expect(resolveToolMode("delegate.openhands", "auto", arc, true)).toBe("review");
   });
 
   /**
-   * The merge keeps its own switch. Two flags governing one tool would be two
-   * places to look when somebody asks why a PR merged itself.
-   */
-  it("does not take over the merge gate, which has its own flag", () => {
-    const withDecision = resolveToolMode("studio.pr.merge", "auto", "trusted", false, true);
-    const withoutDecision = resolveToolMode("studio.pr.merge", "auto", "trusted", false, false);
-    expect(withDecision).toBe(withoutDecision);
-  });
-
-  /**
-   * A seeded `review` is sticky before this chain runs at all
-   * (`resolveApprovalMode`), so the standing decision cannot reach past an
-   * explicit per-tool review a person set.
+   * A seeded `review` is sticky before this chain runs at all, so nothing here
+   * can reach past an explicit per-tool review a person set. This is the
+   * assertion that caught my own loosening the first time: both branches were
+   * substituting the released mode for the dialed one outright, so a tool
+   * somebody had pinned came back `auto` on a trusted arc.
    */
   it("cannot override a tool a person explicitly set to review", () => {
-    expect(resolveToolMode("release.publish", "review", "trusted", true, true)).toBe("review");
+    expect(resolveToolMode("release.publish", "review", "trusted", true)).toBe("review");
+  });
+
+  it("does not take over the merge gate, which has its own switch", () => {
+    expect(resolveToolMode("studio.pr.merge", "auto", "trusted", false)).toBe(
+      resolveToolMode("studio.pr.merge", "auto", "trusted", true),
+    );
   });
 });

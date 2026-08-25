@@ -28,10 +28,41 @@ describe("resolveToolMode - AGT-02 plan-level consent, safety floors preserved",
     expect(resolveToolMode("calendar.create", "confirm", "proving", true)).toBe("confirm");
   });
 
-  it("NEVER auto-clears a HIGH_RISK_FORCE_REVIEW tool regardless of contract approval - review stays sticky", () => {
+  /**
+   * AMENDED BY R-27 (2026-08-25), and narrowed rather than dropped.
+   *
+   * The invariant this test protects — **contract approval never reaches a
+   * force-review tool** — is intact and is what the assertions below still say.
+   * What changed is which tools the FLOOR itself pins.
+   *
+   * `release.publish` and `studio.revert` now resolve through the trust ramp
+   * instead of being pinned, gated by four preconditions the loop must PROVE:
+   * merged, CI green at that head sha, a live preview at that same commit, and
+   * the work carries a forecast. **That is strictly stronger than the click it
+   * replaces** — a click proves nothing about the change — and the measurement
+   * behind it is that the click was never answered: 90 `cluster.trigger`
+   * approvals since July, 42 cancelled, 38 expired, 10 pending, **0 approved**.
+   *
+   * `studio.revert` moved WITH `release.publish` deliberately: `AUTO_SHIP_ENABLED`
+   * had freed the merge and not the rollback, so the product could merge to a
+   * default branch by itself and could not roll back by itself. The undo gated
+   * harder than the do.
+   *
+   * `delegate.openhands` did NOT move, and that is the assertion still doing the
+   * original job: none of the four preconditions says anything about what
+   * somebody else's agent will do.
+   */
+  it("NEVER auto-clears a force-review tool regardless of contract approval - review stays sticky", () => {
     expect(resolveToolMode("studio.pr.merge", "confirm", "proving", true)).toBe("review");
-    expect(resolveToolMode("studio.revert", "confirm", "proving", true)).toBe("review");
     expect(resolveToolMode("delegate.openhands", "confirm", "proving", true)).toBe("review");
+  });
+
+  it("contract approval does not reach the R-27 pair either - the arc does, and it starts gated", () => {
+    // Not "review", because R-27 released these to the ramp. Not "auto" either:
+    // on the proving arc a workspace has earned nothing yet, which is what a
+    // workspace created tomorrow gets.
+    expect(resolveToolMode("release.publish", "confirm", "proving", true)).toBe("confirm");
+    expect(resolveToolMode("studio.revert", "confirm", "proving", true)).toBe("confirm");
   });
 
   it("never touches a tool whose seeded mode is review, contract approved or not (review is sticky through resolveApprovalMode before this chain even runs)", () => {

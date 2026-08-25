@@ -81,16 +81,43 @@ describe("Build verification tools: they run, without a gate in front of them", 
 });
 
 describe("Build verification tools: nothing they added lowered an existing floor", () => {
-  it("keeps the four irreversible tools pinned exactly where they were", () => {
+  it("keeps the irreversible tools' SEEDED mode at review, and nothing here lowered it", () => {
     // Verification is what makes autonomy defensible, never a reason to relax
     // the gate it feeds. A clean review verdict is evidence for a human, not a
-    // substitute for one.
+    // substitute for one. That still holds: none of these tools' seeded defaults
+    // moved, and their membership of the force-review set is unchanged.
     for (const tool of ["release.publish", "studio.pr.merge", "studio.revert"]) {
       expect(TOOL_DEFAULTS[tool].mode, `${tool} must stay at review`).toBe("review");
       expect(HIGH_RISK_FORCE_REVIEW.has(tool), `${tool} must stay force-review`).toBe(true);
-      expect(resolveToolMode(tool, "auto", "trusted", true), `${tool} floor`).toBe("review");
     }
     expect(TOOL_DEFAULTS["delegate.openhands"].mode).toBe("review");
+  });
+
+  /**
+   * R-27 (2026-08-25) SEPARATED TWO THINGS THIS TEST HAD TREATED AS ONE: what a
+   * tool's SEEDED default is, and what the resolver does with it. The assertions
+   * above still guard the first and are untouched.
+   *
+   * `release.publish` and `studio.revert` now resolve through the trust ramp,
+   * gated by four preconditions the loop must PROVE rather than by a click —
+   * merged, CI green at that sha, a live preview at that commit, and a recorded
+   * forecast, so a change nobody can grade cannot ship itself. `studio.pr.merge`
+   * keeps its own separate switch and `delegate.openhands` is untouched.
+   *
+   * **A seeded `review` is still sticky through `resolveApprovalMode` before this
+   * chain runs**, which is why the pair only moves when its seeded mode does —
+   * asserted below so a future change that reaches past a person's explicit pin
+   * fails here.
+   */
+  it("R-27: the ship pair resolves through the ramp, and a person's pin still wins", () => {
+    for (const tool of ["release.publish", "studio.revert"]) {
+      expect(resolveToolMode(tool, "auto", "proving", true), `${tool} starts gated`).toBe(
+        "confirm",
+      );
+      expect(resolveToolMode(tool, "review", "trusted", true), `${tool} pin holds`).toBe("review");
+    }
+    expect(resolveToolMode("studio.pr.merge", "auto", "trusted", true)).toBe("review");
+    expect(resolveToolMode("delegate.openhands", "auto", "trusted", true)).toBe("review");
   });
 
   it("leaves the build lane's own autonomy set untouched", () => {
