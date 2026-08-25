@@ -1,32 +1,104 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { GitBranch, RefreshCw, Workflow } from "lucide-react";
+import { RefreshCw, Workflow } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { Action } from "@/components/meridian/surface-parts";
-import { getFlowForPrd, generateFlow, type FlowStep } from "@/lib/flows.functions";
+import {
+  Flowchart,
+  type FlowEdge as CanvasEdge,
+  type FlowNode,
+} from "@/components/meridian/Flowchart";
+import { getFlowForPrd, generateFlow, type FlowEdge, type FlowStep } from "@/lib/flows.functions";
 
 type Props = {
   prdId: string;
 };
 
-const KIND_SHAPE: Record<FlowStep["kind"], string> = {
-  step: "rounded-lg",
-  decision: "rounded-lg rotate-0",
-  state: "rounded-full",
-};
-
 const KIND_LABEL: Record<FlowStep["kind"], string> = {
-  step: "STEP",
-  decision: "DECISION",
-  state: "STATE",
+  step: "Step",
+  decision: "Decision",
+  state: "State",
 };
 
 /**
- * DSN-03 — the artifact designers actually start with: a typed step/decision
- * /state graph generated from the PRD's own body, rendered as a simple
- * vertical timeline (a full graph-layout engine is out of scope; each node
- * lists its own outgoing branches, which is enough to catch the "beautiful
- * screen, broken journey" failure without inventing a diagramming library).
+ * Layers the extracted graph onto the canvas: rows by longest path from a root
+ * step, one ordering pass so a branch sits under where it comes FROM, then
+ * columns spread within each row. The forced assignment on the last pass is
+ * reached only if the stored graph carries a cycle, which parseGeneratedFlow
+ * does not rule out; a debatable row still beats no drawing at all.
+ */
+function layoutFlow(
+  steps: FlowStep[],
+  edges: FlowEdge[],
+): { nodes: FlowNode[]; edges: CanvasEdge[] } {
+  const known = new Set(steps.map((s) => s.id));
+  const live = edges.filter((e) => e.from !== e.to && known.has(e.from) && known.has(e.to));
+
+  const preds = new Map<string, string[]>();
+  for (const e of live) preds.set(e.to, [...(preds.get(e.to) ?? []), e.from]);
+
+  const rowOf = new Map<string, number>();
+  let pending = steps.map((s) => s.id);
+  for (let pass = 0; pass < steps.length && pending.length > 0; pass += 1) {
+    const waiting: string[] = [];
+    const forced = pass === steps.length - 1;
+    for (const id of pending) {
+      const above = (preds.get(id) ?? []).filter((p) => p !== id);
+      if (!forced && above.some((p) => !rowOf.has(p))) {
+        waiting.push(id);
+        continue;
+      }
+      rowOf.set(id, above.length ? Math.max(...above.map((p) => rowOf.get(p) ?? -1)) + 1 : 0);
+    }
+    pending = waiting;
+  }
+
+  const byRow = new Map<number, string[]>();
+  for (const s of steps) {
+    const row = rowOf.get(s.id) ?? 0;
+    byRow.set(row, [...(byRow.get(row) ?? []), s.id]);
+  }
+
+  const xOf = new Map<string, number>();
+  for (const row of [...byRow.keys()].sort((a, b) => a - b)) {
+    const members = byRow.get(row) ?? [];
+    const centreFrom = (id: string) => {
+      const above = (preds.get(id) ?? [])
+        .map((p) => xOf.get(p))
+        .filter((x): x is number => x !== undefined);
+      return above.length
+        ? above.reduce((sum, x) => sum + x, 0) / above.length
+        : Number.POSITIVE_INFINITY;
+    };
+    const ordered = members
+      .map((id, i) => ({ id, i, key: centreFrom(id) }))
+      .sort((a, b) => (a.key === b.key ? a.i - b.i : a.key - b.key));
+    ordered.forEach(({ id }, i) => xOf.set(id, (i + 1) / (members.length + 1)));
+  }
+
+  return {
+    nodes: steps.map((s) => {
+      const row = rowOf.get(s.id) ?? 0;
+      return {
+        id: s.id,
+        row,
+        x: xOf.get(s.id) ?? 0.5,
+        w: (byRow.get(row)?.length ?? 1) > 1 ? 200 : undefined,
+        kind: KIND_LABEL[s.kind],
+        title: s.label,
+      };
+    }),
+    edges: live.map((e) => ({ from: e.from, to: e.to, label: e.label || undefined })),
+  };
+}
+
+/**
+ * DSN-03, drawn. The step/decision/state graph generated from this spec's own
+ * body sat on a vertical timeline because nothing here could lay out a graph;
+ * Meridian's Flowchart canvas can, so a decision's branches are now real edges
+ * with their labels on them, landing on the steps they lead to. That drawn fork
+ * is the check against the beautiful screen with a broken journey. No selection
+ * is wired: this host never selected a step, so the cards stay plain facts.
  */
 export function FlowDiagram({ prdId }: Props) {
   const qc = useQueryClient();
@@ -49,13 +121,13 @@ export function FlowDiagram({ prdId }: Props) {
   });
 
   const flow = flowQ.data;
-  const stepsById = new Map((flow?.steps ?? []).map((s) => [s.id, s]));
 
   return (
-    <div className="rounded-lg border hairline bg-card p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="mono-label flex items-center gap-2">
-          <Workflow className="h-3.5 w-3.5" /> User flow
+    <div className="rounded-mrd-card border border-mrd-line bg-mrd-sink px-mrd-6 py-mrd-5 font-mrd">
+      <div className="mb-mrd-4 flex items-center justify-between">
+        <div className="flex items-center gap-2 text-mrd-data text-mrd-body">
+          <Workflow className="size-3.5" />
+          User flow
         </div>
         {/* The panel's one action, and not an escape, so it takes the raised
             default. `gap-1.5` is passed because it has to be: `.btn-pill-outline`
@@ -69,57 +141,24 @@ export function FlowDiagram({ prdId }: Props) {
           busy={generate.isPending}
           className="sp-btn gap-1.5"
         >
-          <RefreshCw className="h-3.5 w-3.5" />
+          <RefreshCw className="size-3.5" />
           {generate.isPending ? "Generating…" : flow ? "Regenerate" : "Generate flow"}
         </Action>
       </div>
 
       {flowQ.isLoading ? (
-        <p className="text-xs text-muted-foreground">Loading…</p>
+        <p className="text-mrd-small text-mrd-mute">Loading…</p>
       ) : !flow || flow.steps.length === 0 ? (
-        <p className="text-xs text-muted-foreground">
+        <p className="max-w-[62ch] text-mrd-small leading-mrd-prose text-mrd-mute">
           No flow generated yet. This reads the spec's own body and extracts the steps, decision
           points, and states a user moves through, the artifact designers start with before a
           screen.
         </p>
       ) : (
-        <div className="flex flex-col gap-3">
-          {flow.steps.map((s) => {
-            const outgoing = flow.edges.filter((e) => e.from === s.id);
-            return (
-              <div key={s.id} className="flex flex-col gap-1.5">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`inline-block h-3 w-3 border hairline flex-shrink-0 ${KIND_SHAPE[s.kind]}`}
-                  />
-                  <span className="mrd-eyebrow">
-                    {KIND_LABEL[s.kind]}
-                  </span>
-                  <span className="text-sm">{s.label}</span>
-                </div>
-                {outgoing.length > 0 ? (
-                  <div className="ml-5 flex flex-col gap-1">
-                    {outgoing.map((e, i) => {
-                      const target = stepsById.get(e.to);
-                      return (
-                        <div
-                          key={i}
-                          className="text-xs text-muted-foreground flex items-center gap-1.5"
-                        >
-                          <GitBranch className="h-3 w-3 flex-shrink-0" />
-                          {e.label ? (
-                            <span className="mrd-eyebrow">{e.label}</span>
-                          ) : null}
-                          <span>{target ? target.label : e.to}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : null}
-              </div>
-            );
-          })}
-        </div>
+        <Flowchart
+          label="The journey through this spec, and every place it forks"
+          {...layoutFlow(flow.steps, flow.edges)}
+        />
       )}
     </div>
   );
