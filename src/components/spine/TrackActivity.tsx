@@ -93,15 +93,14 @@ function LiveTook({ startedAt }: { startedAt: number }) {
   return <RunTook>{elapsed}</RunTook>;
 }
 
-export function TrackActivity({ trackId }: { trackId: string }) {
+export function TrackActivity({ trackId, isRunning = false }: { trackId: string; isRunning?: boolean }) {
   const fetchActivity = useServerFn(getTrackActivity);
   const q = useQuery({
     queryKey: ["track-activity", trackId],
     queryFn: () => fetchActivity({ data: { trackId } }),
-    // A live view has to move on its own, or a person watching a run has to
-    // guess whether nothing has happened or nothing is being fetched. Ten
-    // seconds is under the driver's tick and cheap: two indexed reads.
-    refetchInterval: 10_000,
+    // During an active run, poll faster (500ms) so the user sees progress.
+    // After run completes, poll slower (10s) to reduce DB load.
+    refetchInterval: isRunning ? 500 : 10_000,
   });
 
   /*

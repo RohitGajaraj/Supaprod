@@ -385,6 +385,19 @@ export function TrackRunLeft({
       {/* Answering a gate is a person acting: `press`, never `continuation`. */}
       <TrackConsent trackId={trackId} onAnswered={() => run.mutate("press")} />
 
+      {/*
+       * PHASE 3: Current station indicator during active run.
+       * Shows live which station the agent is currently at.
+       */}
+      {walkingMidRoute && track ? (
+        <Region title={`At ${AGENT_STATIONS[track.station]?.name ?? track.station}`} sub="Watch as it moves through the route.">
+          <Row
+            lead={`Elapsed: ${track.drivenAt ? relativeTime(track.drivenAt, nowMs) : "just started"}`}
+            sub={continuing ? `${legsLeft} more automatic ${legsLeft === 1 ? "leg" : "legs"} on this press` : undefined}
+          />
+        </Region>
+      ) : null}
+
       {showHold && track ? (
         <Region title="Why it stopped" sub="This work is not moving until this clears.">
           <div className="flex flex-col gap-mrd-4">
@@ -521,7 +534,11 @@ export function TrackRunLeft({
         ) : null}
       </Region>
 
-      <TrackActivity trackId={trackId} />
+      {/*
+       * PHASE 3: Live agent visibility. Poll faster (500ms) during active run
+       * so user sees progress. The isRunning flag comes from the mutation state.
+       */}
+      <TrackActivity trackId={trackId} isRunning={run.isPending || continuing} />
     </div>
   );
 }
