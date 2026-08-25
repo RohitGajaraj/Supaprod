@@ -172,7 +172,7 @@ type Committed = {
 const NOTE = {
   fontSize: "var(--mrd-t-label)",
   color: "var(--mrd-mute)",
-  marginTop: "var(--sp-space-2)",
+  marginTop: "var(--mrd-s3)",
   maxWidth: "56ch",
 };
 
@@ -604,7 +604,7 @@ export function ControlsPanel({
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
-                      gap: "var(--sp-space-2)",
+                      gap: "var(--mrd-s3)",
                     }}
                   >
                     <AgentMark slug={s.target_agent_slug} state={s.enabled ? "idle" : "quiet"} />
@@ -666,7 +666,7 @@ export function ControlsPanel({
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-                gap: "var(--sp-space-3)",
+                gap: "var(--mrd-s4)",
               }}
             >
               <Field label="Event" htmlFor="pipeline-event">
@@ -909,7 +909,7 @@ export function ControlsPanel({
                       style={{
                         display: "inline-flex",
                         alignItems: "center",
-                        gap: "var(--sp-space-2)",
+                        gap: "var(--mrd-s3)",
                       }}
                     >
                       {/* Ember without the blink for the ones queued behind:

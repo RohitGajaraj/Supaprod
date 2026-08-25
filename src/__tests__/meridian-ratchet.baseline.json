@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1616,
-  "fileCount": 137,
+  "totalOccurrences": 1602,
+  "fileCount": 136,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "import:components/ui": 1,
@@ -97,7 +97,6 @@
       "class:sp-": 1
     },
     "src/components/governance/ControlsPanel.tsx": {
-      "--sp-": 4,
       "class:sp-": 7
     },
     "src/components/governance/CriticBadge.tsx": {
@@ -327,10 +326,6 @@
     "src/components/supaprod/DocEditor.tsx": {
       "--ds-": 1
     },
-    "src/components/supaprod/EmptyState.tsx": {
-      "--ds-": 4,
-      "--font-pixel": 1
-    },
     "src/components/supaprod/LegalPageShell.tsx": {
       "data-obsidian": 1,
       "raw-colour": 8
@@ -346,10 +341,8 @@
       "--font-pixel": 1
     },
     "src/components/supaprod/Primitives.tsx": {
-      "--ds-": 16,
-      "--font-pixel": 1,
-      "import:components/ui": 1,
-      "usage:components/ui": 1
+      "--ds-": 13,
+      "import:components/ui": 1
     },
     "src/components/supaprod/Sketch.tsx": {
       "--ds-": 3
