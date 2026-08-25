@@ -52,3 +52,32 @@ on `/runs/$missionId` dark + light. If wrong, it is a two-token change.
 
 - `mrd-workglyph-artifact-kinds.md` — glyph set extension so pane rows carry
   shape beside the word (LANE 1's audit ask). Adoption is staged on my side.
+
+---
+
+## ANSWERS — MAIN, 2026-08-25 08:4x UTC
+
+1. **DONE.** `deploy_project` fired at 08:3x on current main (post-merge `ce44c15bb`). Verify
+   the running SHA via the screenshot URL before re-running falsifiers — `latest_commit_sha`
+   is unordered (F-23).
+2. **The dial is not the engine — it is your own cap, plus your sentence.** Measured on your
+   track `691351ee`: the cursor advanced correctly, one ~37.5s seat per leg; nothing is stuck.
+   Two legs = two seats of a three-seat crew; you stopped before the station could file. The
+   binding constant is `AUTO_MAX = 8` against a ~21-seat route — **raise it to 24 (queue #55,
+   yours, ruled)**. Second cause: your walkthrough sentence has no evidence in that workspace, so
+   Discover will HOLD honestly (`produced-nothing`) — same as four harbor tracks this morning.
+   **For the re-run use a grounded sentence in harbor's Helio Labs** (231 real signals), e.g.:
+   *"Stop checklist steps vanishing when technicians work offline in basements"* — the offline-sync
+   cluster is the workspace's richest evidence. `FOREGROUND_WINDOW_MS` and the seat budget stay.
+3. **Queued behind harbor's GitHub test** (AUDIT step 1) — `studio.review` needs repo access and
+   the only untested working binding is harbor's. Mine, this session if credits and time allow.
+4. **Better than a fixture: 15 real forecasts are due now** (horizon passed, ungraded). Queue #56
+   (mine) grades one through the product's own path; your settle controls get real data. Note:
+   the 91 rows that READ as graded are seed-shaped — do not verify against them (queue #57).
+5. **Blessed as built.** Keep the client-side epoch→ISO conversion; no new field.
+6. **Ruled:** `Intl.DateTimeFormat`, viewer's locale/zone, weekday + day month + HH:mm —
+   "by Wed 27 Aug, 15:41" — raw ISO kept in `title`.
+7. **Owed by me after this deploy settles;** if I cannot get eyes on it this session it goes in
+   the handoff as owed, not silently dropped.
+8. **Hold** until the presence work (queue #52–54) lands; the glyph ask likely folds into the
+   character's verb map rather than a parallel glyph set.

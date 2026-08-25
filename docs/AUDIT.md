@@ -65,8 +65,14 @@ what is in git.**
    the fact. No live "who is working, on what, right now", no character, no motion that reads as
    agency. **The founder named this today as the reason the product does not feel agentic — it is
    the Phase 3 build and the core product bet.**
-2. **A graded forecast.** The moat is *forecast captured at decision time*; 348 decisions exist and
-   the grading tick has never settled one on a real workspace (M-3).
+2. **A graded forecast.** The moat is *forecast captured at decision time*; 348 decisions exist,
+   167 carry claims, and the product has never graded one itself. **Sharpened after first
+   writing:** 91 rows READ as graded, but all 91 are seed-shaped — midnight-exact
+   `forecast_resolved_at`, `forecast_resolved_by_agent_slug` NULL on every one
+   (`GROUP BY is_sample, forecast_resolved_by_agent_slug`) — and **12 of them sit in non-sample
+   workspaces**, poisoning any future calibration read (queued 57). Meanwhile **15 forecasts are
+   genuinely due right now** (horizon passed, resolution NULL) — the first honest grading has
+   material today (queued 56).
 3. **Attribution.** `activation_events`: 38 rows, 0 with a user (F-40). The funnel cannot answer
    who did what.
 4. **A track that finished.** 68 tracks, 0 have walked `sense → learn`. Unchanged headline.
