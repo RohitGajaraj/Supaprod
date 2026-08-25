@@ -149,6 +149,16 @@ export const TOOL_DEFAULTS: Readonly<
   "design.draft": { mode: "confirm", enabled: true, label: "Draft a design" },
   // 05 Build
   "studio.stage": { mode: "auto", enabled: true, label: "Stage a change" },
+  // F-67. `auto`, at the same level as the tool it undoes, and the symmetry is
+  // the argument: if staging a file needs no permission, removing one the loop
+  // is not allowed to commit cannot need more. It touches no repo and no
+  // credential — one delete against `studio_changes`, the platform's own table
+  // — and its whole reason for existing is that a changeset carrying a
+  // forbidden path had become permanently unshippable with a human's browser
+  // session the only thing that could clear it. A gate here would put the
+  // approval queue back in front of the escape hatch from the approval-free
+  // dead end, which is the queue-instead-of-automation the canon rejects.
+  "studio.unstage": { mode: "auto", enabled: true, label: "Unstage a change" },
   // BUILD VERIFICATION. Four read-only checks on the staged diff, and all four
   // are `auto` on purpose. A gate you have to ask permission to run is not a
   // gate: put any of these behind an approval and the loop's cheapest path

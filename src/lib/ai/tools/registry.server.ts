@@ -1565,8 +1565,19 @@ export const STUDIO_FORBIDDEN_PREFIXES = [
   "jest.config",
 ];
 
+/**
+ * The predicate, extracted so the STAGE floor and the COMMIT floor ask it in
+ * the same words rather than each carrying its own `.some(...)`. Two copies of
+ * a matching rule is how `prd_scaffolds` and `prototypes` came to disagree
+ * about what a drawing is (F-29); here they would come to disagree about what
+ * a check is, and the disagreement would only surface on the file that matters.
+ */
+function isStudioPathForbidden(path: string): boolean {
+  return STUDIO_FORBIDDEN_PREFIXES.some((p) => path === p || path.startsWith(p));
+}
+
 function assertStudioPathAllowed(path: string) {
-  if (STUDIO_FORBIDDEN_PREFIXES.some((p) => path === p || path.startsWith(p))) {
+  if (isStudioPathForbidden(path)) {
     throw new Error(
       // Names the alternative, not just the refusal. F-24: a prohibition whose
       // escape hatch the agent cannot see gets the same behaviour under a new
@@ -1685,6 +1696,67 @@ async function getActiveChangeset(
     .limit(1)
     .maybeSingle();
   return (data as ChangesetRow | null) ?? null;
+}
+
+/** `https://github.com/owner/name/pull/12` → `owner/name`, else null. */
+function repoOfPrUrl(prUrl: string): string | null {
+  const m = /^https?:\/\/(?:www\.)?github\.com\/([\w.-]+\/[\w.-]+)\/pull\/\d+/i.exec(prUrl.trim());
+  return m ? m[1] : null;
+}
+
+/**
+ * ── F-66. A CACHED PULL-REQUEST POINTER OUTLIVES THE BINDING THAT MADE IT ───
+ *
+ * MEASURED 2026-08-25 AT 15:01:22, on the first build after the workspace was
+ * re-bound. `studio.pr.open` answered, with `ok: true`:
+ *
+ *   {"cached": true, "changeset_id": "f9354439-…", "pr_number": 5,
+ *    "pr_url": "https://github.com/RohitGajaraj/relay-homeowner-app/pull/5"}
+ *
+ * The workspace was bound to `Supaprod/relay-homeowner-app`, which had ZERO
+ * pull requests and one branch — `gh pr list --state all` and
+ * `gh api …/branches`, both empty. **The PR was on the OLD repo.** The cache
+ * keys on the CHANGESET and never asked whether the pull request it points at
+ * still lives on the repo the binding now resolves to, so re-binding a
+ * workspace — which the product supports, and which Ship's own refusal at
+ * 14:30 handled correctly — silently invalidated every cached PR pointer and
+ * nothing noticed. A downstream session read `ok: true` and reported "a PR is
+ * open on Supaprod/relay-homeowner-app" (F-68, and this is the half that was
+ * the platform's fault rather than the agent's).
+ *
+ * IT REFUSES RATHER THAN RE-OPENING, and that is the decision worth writing
+ * down because the other option was live.
+ *
+ *   · **The commits are not here.** The branch that backs PR #5 was pushed to
+ *     the OLD repo. Re-opening blindly asks GitHub to open a PR from a head
+ *     that does not exist on `${repo}`, which returns a 422 the agent cannot
+ *     read. A refusal can NAME both repositories; a 422 cannot.
+ *   · **Re-opening overwrites `pr_url`, and that row is the only pointer to a
+ *     pull request that really exists.** PR #5 is F-63's evidence. A cache that
+ *     is wrong about the world is a defect; destroying the record of what the
+ *     loop actually did to fix it is a worse one.
+ *   · **Re-binding is a human act whose intent this tool cannot read.** Porting
+ *     the work to the new repository is one reading of it; correcting a
+ *     mis-binding is another. Choosing silently, with a write to a customer's
+ *     repository, is the same asymmetry F-63's whole-file block settled: a
+ *     wrong refusal costs one honest sentence, a wrong allow ships.
+ *
+ * The message names BOTH repositories and what to do instead, because a
+ * prohibition whose alternative the agent cannot see gets the same behaviour
+ * under a new name (F-24).
+ *
+ * Compared case-insensitively: GitHub owner and repo names are, and a refusal
+ * over `Supaprod` vs `supaprod` would be a false alarm on the one path whose
+ * whole purpose is to stop false answers.
+ */
+function stalePrPointerRefusal(changeset: ChangesetRow, repo: string): Error | null {
+  if (!changeset.pr_url) return null;
+  const on = repoOfPrUrl(changeset.pr_url);
+  if (on && on.toLowerCase() === repo.toLowerCase()) return null;
+  const named = on ?? `a repository this URL does not name (${changeset.pr_url})`;
+  return new Error(
+    `Refused: this changeset's pull request is #${changeset.pr_number ?? "?"} on ${named}, and this workspace is bound to ${repo}. A pull request on one repository is not evidence about another, so the stored pointer is not returned and no pull request is opened here. The work is not lost — the branch and the pull request are still on ${named}. Say exactly that: this changeset was opened against ${named} and the workspace now names ${repo}, so a person has to settle which repository the work belongs to. Do not open, commit or report a pull request on ${repo} until they have.`,
+  );
 }
 
 /**
@@ -2184,6 +2256,172 @@ const studioStage = def({
   },
 });
 
+/**
+ * ── F-67. THE LOOP NEEDED A WAY OUT, AND IT IS ITS OWN TOOL ─────────────────
+ *
+ * A changeset that ever carried a forbidden staged path was unshippable
+ * forever: `studio.commit` refuses over the whole staged set, no tool removed a
+ * staged path, and the operator's curation — `rejectStagedFile` and
+ * `enforceTouchList` in studio.functions.ts — are TanStack server functions
+ * behind `requireSupabaseAuth`, reachable from a browser session and from
+ * nowhere an agent stands. Measured at 15:00 on 2026-08-25: two clean stages
+ * succeeded and the commit carrying them was refused because of a file staged
+ * two hours earlier, on a track running unattended with no browser in it.
+ *
+ * WHY A TOOL AND NOT `op: "unstage"` ON `studio.stage`. Three reasons, and the
+ * first is the one that decided it.
+ *
+ *   1. **The F-63 floor would have had to move.** `studio.stage` runs
+ *      `assertStudioPathAllowed` over every change FIRST, unconditionally,
+ *      before a mission or a database is even needed — and the path this tool
+ *      exists to remove is `package.json`, which that floor refuses. Riding
+ *      inside `studio.stage` means teaching the floor to skip a check when a
+ *      caller-supplied field says so, which is precisely the invariant F-63
+ *      bought: *whether a path may be written is a property of the PATH, not of
+ *      how the call was dispatched.* Here the floor is not touched at all,
+ *      because this tool writes no file.
+ *   2. **The record has to be readable.** F-68 is a station reporting
+ *      "committed" over a visible `ok: false`, and the fix named there is that
+ *      a claim should be checkable against `tool_calls` without reading prose.
+ *      An operation that DELETES staged work, filed under the name "stage",
+ *      is not checkable. Under its own name it is.
+ *   3. `studio.stage` resolves a GitHub credential and reads base contents from
+ *      the repo. Removing a row needs neither, and a second control path
+ *      through the most-called write tool in the product is a cost paid on
+ *      every stage forever.
+ *
+ * WHAT IT DELIBERATELY IS NOT. It is not a revert. On a changeset that has
+ * already committed, un-staging a path stops the NEXT commit re-writing it and
+ * does nothing to the commit already on the branch — git carries the parent
+ * tree forward. Saying so is the whole of the `note` below, because an agent
+ * that believes this undid a pushed commit will report exactly that, which is
+ * F-68 again from a new direction.
+ *
+ * WHY (c) — LETTING `studio.commit` SKIP FORBIDDEN PATHS AND REPORT THEM — WAS
+ * REJECTED, since it is the smaller diff and it looks reasonable. It makes the
+ * PLATFORM manufacture the F-68 defect instead of the agent: the tool would
+ * answer `ok: true` for a commit that silently carried fewer files than the
+ * agent staged, and the mitigation ("it reports what it skipped") is the exact
+ * thing the day's evidence says does not work — an agent asserted "committed"
+ * over an `ok: false` in the same turn. A skip is also not always benign: a
+ * staged `delete` dropped from the tree changes what the commit means rather
+ * than merely shrinking it. Refusing loudly and handing over a named remedy
+ * costs one extra tool call and never lies.
+ */
+const studioUnstage = def({
+  name: "studio.unstage",
+  description:
+    "Studio: remove one or more paths from this mission's staged changeset, so studio.commit stops trying to write them. THIS IS THE WAY OUT when studio.commit refuses a staged path it is not allowed to write (CI config, migrations, env, lockfiles, or a manifest that defines what the checks run): unstage that path, then commit the rest — the rest of the changeset is untouched. It removes the staged INTENT only. It does not revert a commit already pushed to the branch, it does not change the file on the repo, and it is not an undo for work that has merged.",
+  category: "write",
+  /*
+   * Shape-drift, on studio.stage's precedent: the two ways a model gets a
+   * single-path call wrong are a bare string and the singular `path`, which it
+   * reaches for because every studio.stage change object has one. Both
+   * self-correct on retry and both cost a step; normalize instead.
+   *
+   * NO `STUDIO_PATH_REGEX` HERE, deliberately, and it is the one place in this
+   * file that omission is right: this tool is the escape hatch, and an escape
+   * hatch that can itself refuse an input is a second dead end. Whatever is in
+   * the row is what has to come out of it.
+   */
+  argsSchema: z.preprocess(
+    (raw) => {
+      if (typeof raw === "string") return { paths: [raw] };
+      if (raw !== null && typeof raw === "object" && !Array.isArray(raw)) {
+        const obj = raw as Record<string, unknown>;
+        if (typeof obj.paths === "string") return { ...obj, paths: [obj.paths] };
+        if (obj.paths === undefined && typeof obj.path === "string") return { paths: [obj.path] };
+      }
+      return raw;
+    },
+    z.object({
+      paths: z.array(z.string().min(1).max(400)).min(1).max(20),
+    }),
+  ),
+  preview: (a) =>
+    `Unstage ${a.paths.length} path(s) from the changeset: ${a.paths.slice(0, 3).join(", ")}${
+      a.paths.length > 3 ? "…" : ""
+    }`,
+  run: async (a, ctx) => {
+    const { supabase, missionId } = ctx;
+    if (!missionId) throw new Error("studio.unstage requires a mission (dispatch via Studio)");
+    const changeset = await getActiveChangeset(supabase, missionId);
+    if (!changeset) throw new Error("no active changeset — nothing is staged to remove");
+
+    /*
+     * A merged changeset is finished, and pulling a row out of it would change
+     * the record of what shipped without changing what shipped. `studio.revert`
+     * is the tool that undoes a merged release, through the same commit → PR →
+     * CI → merge rails; it is named here rather than merely alluded to.
+     */
+    if (changeset.status === "merged") {
+      throw new Error(
+        `Refused: changeset ${changeset.id.slice(0, 8)} has already merged, so un-staging a path would only edit the record of what shipped. To undo merged work call studio.revert with this changeset id and a reason.`,
+      );
+    }
+
+    const wanted = [...new Set(a.paths.map((p) => p.trim()).filter(Boolean))];
+    const { data: stagedRows } = await supabase
+      .from("studio_changes")
+      .select("path")
+      .eq("changeset_id", changeset.id)
+      .order("path");
+    const stagedNow = ((stagedRows ?? []) as Array<{ path: string }>).map((r) => r.path);
+    const present = wanted.filter((p) => stagedNow.includes(p));
+    const notStaged = wanted.filter((p) => !stagedNow.includes(p));
+
+    /*
+     * NOTHING MATCHED IS AN ERROR, NOT AN EMPTY SUCCESS. An `ok: true` carrying
+     * `unstaged: []` is an invitation to write "I removed package.json" — the
+     * F-68 shape, where a seat asserts over a tool answer that says otherwise.
+     * The refusal lists what IS staged, so the next call is a copy of a name
+     * rather than another guess.
+     */
+    if (present.length === 0) {
+      throw new Error(
+        `Refused: none of ${wanted.join(", ")} is staged on changeset ${changeset.id.slice(0, 8)}, so nothing was removed. Staged right now: ${stagedNow.length ? stagedNow.join(", ") : "(nothing)"}. Call studio.unstage again with a path from that list, or stage the work you meant to stage.`,
+      );
+    }
+
+    const { error } = await supabase
+      .from("studio_changes")
+      .delete()
+      .eq("changeset_id", changeset.id)
+      .in("path", present);
+    if (error) throw new Error(`unstage failed: ${error.message}`);
+
+    const remaining = stagedNow.filter((p) => !present.includes(p));
+    const notes: string[] = [];
+    if (changeset.branch) {
+      // The honest half. This changeset has already pushed at least one commit,
+      // and that commit still contains these paths.
+      notes.push(
+        `This does NOT undo what is already committed on ${changeset.branch}; it only stops the next studio.commit re-writing ${present.length === 1 ? "this path" : "these paths"}. To put the branch back, stage the original contents (repo.read them from the default branch) and commit that.`,
+      );
+    } else {
+      notes.push(
+        "This changeset has never been committed, so nothing of these paths reached the repo.",
+      );
+    }
+    notes.push(
+      remaining.length === 0
+        ? "The changeset now has no staged changes; studio.commit will refuse until something is staged."
+        : `${remaining.length} path${remaining.length === 1 ? "" : "s"} still staged — call studio.commit to push ${remaining.length === 1 ? "it" : "them"}.`,
+    );
+
+    return {
+      changeset_id: changeset.id,
+      unstaged: present,
+      // Reported rather than swallowed: a path the caller named and this tool
+      // did not find is the caller's model of the changeset being wrong, and
+      // that is worth one line now instead of a surprise at commit.
+      not_staged: notStaged,
+      remaining_staged_paths: remaining,
+      note: notes.join(" "),
+    };
+  },
+});
+
 const studioCommit = def({
   name: "studio.commit",
   description:
@@ -2210,7 +2448,47 @@ const studioCommit = def({
       .eq("changeset_id", changeset.id)
       .order("path");
     if (!changes?.length) throw new Error("changeset has no staged changes");
-    for (const c of changes as { path: string }[]) assertStudioPathAllowed(c.path);
+
+    /*
+     * ── F-67. THE COMMIT FLOOR WAS RIGHT, AND IT WAS ALSO A DEAD END ────────
+     *
+     * This loop used to call `assertStudioPathAllowed` per path and re-use the
+     * STAGING refusal. It refused correctly and it refused FOREVER, because the
+     * staging refusal's alternative — say the spec cannot be built with what is
+     * present — is the right sentence at stage time, when nothing is staged
+     * yet, and useless at commit time, when the file is already in the row and
+     * nothing the agent can call will take it out.
+     *
+     * MEASURED, and it is the state the acceptance run stalled in. Changeset
+     * `f9354439` was staged at 13:01 carrying the `package.json` the builder
+     * edited to disable the type check (F-63). The floor arrived afterwards, so
+     * it is exactly the defence-in-depth case it was written for — the staging
+     * guard did not exist when that file was staged. But at 15:00 two clean
+     * stages landed (`AddressStep.tsx`, `AddressStep.test.ts`) and the commit
+     * carrying them was refused because of a file staged two hours earlier.
+     * **Every future commit on that changeset fails identically, and the crew's
+     * own good work is trapped behind it.**
+     *
+     * So the refusal is written for the seam it fires at: it names the offending
+     * paths, and it names `studio.unstage`, which is the tool that removes them.
+     * A prohibition whose escape hatch the agent cannot see gets the same
+     * behaviour under a new name (F-24), and here the agent could not see one
+     * because there was not one.
+     *
+     * THE FLOOR ITSELF DOES NOT MOVE. It still refuses whole, it still refuses
+     * unattended, and unstaging is not a way past it: the path leaves the
+     * changeset, and the file on the repo is untouched. What changed is that
+     * refusing now has a next step other than abandoning the track.
+     */
+    const forbidden = (changes as { path: string }[])
+      .map((c) => c.path)
+      .filter(isStudioPathForbidden);
+    if (forbidden.length > 0) {
+      const one = forbidden.length === 1;
+      throw new Error(
+        `Refused: ${forbidden.join(", ")} ${one ? "is" : "are"} staged on this changeset, and Studio may not commit ${one ? "it" : "them"} — CI, migrations, env, lockfiles and the manifests that define what the checks run are out of scope. This does not have to end the run: call studio.unstage with ${one ? "that path" : "those paths"} and commit the rest. Unstaging removes the staged edit only; the file on the repo stays exactly as it is. Do not re-stage ${one ? "it" : "them"} to get past this — if a check is stopping the work, say the spec cannot be built with what is present.`,
+      );
+    }
 
     // THE SECRET FLOOR, and it sits here for one reason: this line is the last
     // point at which a credential is still only in our database. Everything
@@ -2896,15 +3174,31 @@ const studioPrOpen = def({
     const changeset = await getActiveChangeset(supabase, missionId);
     if (!changeset) throw new Error("no active changeset — stage and commit first");
     if (!changeset.branch) throw new Error("changeset has no branch — call studio.commit first");
+    /*
+     * F-66. THE BINDING RESOLVES BEFORE THE CACHE IS TRUSTED, and the order is
+     * the fix. This used to return the stored pointer and only THEN ask GitHub
+     * who we are talking to, so the one question that would have caught a
+     * re-bound workspace — is this pull request even on the repo we are bound
+     * to? — was asked strictly after the wrong answer had already been handed
+     * back. Resolution is per-run cached (ctx.authCache), so the happy path
+     * pays a map lookup rather than a round trip.
+     */
+    const { token, repo, actorLabel, source } = await requireGithub(ctx);
     if (changeset.pr_number && changeset.pr_url) {
+      const stale = stalePrPointerRefusal(changeset, repo);
+      if (stale) throw stale;
       return {
         changeset_id: changeset.id,
+        // NAMED, not implied. The fresh branch below has always returned `repo`
+        // and the cached branch never did, so the one answer a reader could not
+        // check was the one they had no reason to doubt. That asymmetry is how
+        // "a PR is open on Supaprod/relay-homeowner-app" got written down.
+        repo,
         pr_number: changeset.pr_number,
         pr_url: changeset.pr_url,
         cached: true,
       };
     }
-    const { token, repo, actorLabel, source } = await requireGithub(ctx);
     const headers = ghHeaders(token);
     const outcome = await withIdempotency(
       supabase,
@@ -2970,6 +3264,17 @@ const studioPrMerge = def({
     const changeset = await getActiveChangeset(supabase, missionId);
     if (!changeset?.pr_number) throw new Error("no open Studio PR on this mission");
     const { token, repo } = await requireGithub(ctx);
+    /*
+     * F-66, and it is worse here than at pr.open. This tool takes a NUMBER off
+     * the changeset and merges `/repos/{bound repo}/pulls/{that number}`. After
+     * a re-bind the number still resolves — against a different repository. On
+     * `Supaprod/relay-homeowner-app` #5 does not exist yet and GitHub answers
+     * 404, which is luck: the moment that repo has five pull requests, this
+     * merges a STRANGER'S PULL REQUEST, unattended, on the strength of an
+     * integer. The same guard, at the seam where being wrong is irreversible.
+     */
+    const stalePr = stalePrPointerRefusal(changeset, repo);
+    if (stalePr) throw stalePr;
     const headers = ghHeaders(token);
 
     // J2 — CI-green merge gate. studio.pr.merge is review-gated, but we also
@@ -6394,6 +6699,7 @@ export const TOOL_REGISTRY: Record<string, ToolDef> = Object.fromEntries(
     repoRead,
     repoSearch,
     studioStage,
+    studioUnstage,
     studioCommit,
     studioFixCommit,
     studioSecretsScan,

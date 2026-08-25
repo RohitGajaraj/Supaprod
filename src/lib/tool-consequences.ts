@@ -102,6 +102,15 @@ const CONSEQUENCES: Record<string, ToolConsequence> = {
     reversible: "reversible",
     undo: "Unstage before the commit lands.",
   },
+  // F-67. An entry is REQUIRED, not decorative: `toolRisk` returns "high" for
+  // any tool it has never heard of, `resolveToolMode` demotes high-risk auto
+  // tools to `confirm`, and this one exists to unblock an UNATTENDED loop. Left
+  // uncatalogued it would queue an approval on the way out of a dead end.
+  "studio.unstage": {
+    effect: "Removes a path from the staged changeset. Nothing on the repo changes.",
+    reversible: "reversible",
+    undo: "Stage the path again with the same contents.",
+  },
   "calendar.create": {
     effect: "Creates a calendar event.",
     reversible: "reversible",
@@ -157,8 +166,7 @@ const CONSEQUENCES: Record<string, ToolConsequence> = {
    * the check.
    */
   "ship.list_releases": {
-    effect:
-      "Lists this workspace's merged releases, newest first, with production state.",
+    effect: "Lists this workspace's merged releases, newest first, with production state.",
     reversible: "reversible",
     undo: "Nothing to undo; read-only.",
   },
@@ -422,11 +430,11 @@ const CONSEQUENCES: Record<string, ToolConsequence> = {
     reversible: "reversible",
     undo: "Nothing to undo; read-only.",
   },
-   "themes.list": {
-     effect: "Lists the workspace's grouped signal themes.",
-     reversible: "reversible",
-     undo: "Nothing to undo; read-only.",
-   },
+  "themes.list": {
+    effect: "Lists the workspace's grouped signal themes.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
   /*
    * ── THE BRAIN READS, CATALOGUED WITH THE TOOLS THAT NEED THEM ────────────
    *
@@ -462,7 +470,7 @@ const CONSEQUENCES: Record<string, ToolConsequence> = {
     effect: "Lists predictions whose deadline passed without a graded outcome yet.",
     reversible: "reversible",
     undo: "Nothing to undo; read-only.",
-   },
+  },
   "approvals.queue": {
     effect: "Lists the crew's own pending gates and how long each has waited.",
     reversible: "reversible",
@@ -478,8 +486,7 @@ const CONSEQUENCES: Record<string, ToolConsequence> = {
    * agent skip the check and mint a duplicate.
    */
   "prd.search": {
-    effect:
-      "Searches this workspace's specs and reports each one's title, status and bet.",
+    effect: "Searches this workspace's specs and reports each one's title, status and bet.",
     reversible: "reversible",
     undo: "Nothing to undo; read-only.",
   },
@@ -1017,6 +1024,15 @@ const RISK_PROFILE: Record<string, ToolRiskProfile> = {
   },
   // Stages the local index only. Nothing leaves until `studio.commit`.
   "studio.stage": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+  // Strictly less exposed than the tool above: it removes a staged intent and
+  // reaches no repo at all. `checkable` because the changeset's remaining
+  // staged paths are returned by the call itself.
+  "studio.unstage": {
     dataExposure: "internal",
     opsImpact: "none",
     verificationGap: "checkable",

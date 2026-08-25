@@ -1504,6 +1504,16 @@ export async function driveTrackOnce(
    * See `HALT_HOLD`.
    */
   let haltedAs: HoldReason | null = null;
+  /**
+   * F-68 — the first seat this tick that reported an outcome its own calls
+   * refuse to support, or null when every seat's account holds up.
+   *
+   * Declared beside `haltedAs` and outside the try for the same reason: every
+   * path out of this function below the crew loop has to be able to say it.
+   * First one only. A second sentence about the same tick adds nothing a person
+   * can act on, and the fix for one is the fix for both.
+   */
+  let overclaim: Overclaim | null = null;
   /** What the crew filed, accumulated seat by seat as each one runs. */
   const made: Attachment[] = [];
   try {
@@ -1622,6 +1632,29 @@ export async function driveTrackOnce(
       queued += result.approvals_queued ?? 0;
 
       /*
+       * F-68 — CHECK THE SEAT'S ACCOUNT AGAINST THE SEAT'S OWN CALLS.
+       *
+       * Here, inside the loop, because this is the only point where one seat's
+       * sentence and one seat's trace are both in hand. Out at the verdict the
+       * steps are already merged across the crew and the seat that spoke can no
+       * longer be told from the seat that acted, which would turn a provable
+       * contradiction into an inference about which agent meant what.
+       *
+       * Costs nothing on the ordinary path: `outcomeClaims` is a regular
+       * expression over one string and returns empty for every seat that did
+       * not claim a commit, a merge or a pull request, and the query never runs.
+       */
+      if (!overclaim) {
+        overclaim = await overclaimedBySeat(supabase, seat.slug, result);
+        if (overclaim) {
+          // Loud, and once. The sentence added below travels only as far as
+          // whoever reads this drive, and a run nobody watched still wrote the
+          // claim, so it has to reach the Worker log too.
+          console.warn(`[driver] ${row.id} ${station}: ${overclaimLine(overclaim)}`);
+        }
+      }
+
+      /*
        * A RUN THE LOOP HALTED IS NOT A STATION THAT FAILED.
        *
        * The `if (failed)` branch below has the right rule for an empty account
@@ -1687,9 +1720,19 @@ export async function driveTrackOnce(
   // and belongs to this work whether or not the track gets to move, and dropping
   // it would lose the record of the only thing the station achieved.
   const attached = [...harvested, ...made];
+  /**
+   * F-68 — every sentence about this tick says so when a seat overclaimed.
+   *
+   * Wrapped around the line rather than folded into one hold, because the
+   * contradiction is orthogonal to why the track stopped: a station can
+   * overclaim and then move, or overclaim and then run out of time, and a
+   * person reading either one needs the same warning. It NEVER replaces the
+   * reason and never changes the hold.
+   */
+  const flagged = (line: string) => (overclaim ? `${line} ${overclaimLine(overclaim)}` : line);
   const say = (line: string) => {
     const made = describeAttachments(attached);
-    return made ? `${line} ${made}` : line;
+    return flagged(made ? `${line} ${made}` : line);
   };
 
   // Remember every gate this run opened, so whatever the person approves is
@@ -1758,7 +1801,7 @@ export async function driveTrackOnce(
       moved: false,
       arrivedAt: null,
       hold: haltedAs,
-      line: holdLine(haltedAs, { station }) ?? HOLD_LINE[haltedAs],
+      line: flagged(holdLine(haltedAs, { station }) ?? HOLD_LINE[haltedAs]),
       attached,
     };
   }
@@ -1850,9 +1893,11 @@ export async function driveTrackOnce(
       moved: false,
       arrivedAt: null,
       hold,
-      line: outside
-        ? (holdLine(hold, { station }) ?? HOLD_LINE[hold])
-        : `${station} did not complete: ${failed}`,
+      line: flagged(
+        outside
+          ? (holdLine(hold, { station }) ?? HOLD_LINE[hold])
+          : `${station} did not complete: ${failed}`,
+      ),
       // A dispatch that threw returned no steps, so there is nothing to file.
       // Kept explicit rather than inlined so the invariant is visible.
       attached,
@@ -1929,7 +1974,9 @@ export async function driveTrackOnce(
       moved: false,
       arrivedAt: null,
       hold: "tools-refused",
-      line: `${holdLine("tools-refused", { station }) ?? HOLD_LINE["tools-refused"]} It was ${refusal.tool}, which said: ${refusal.error}`,
+      line: flagged(
+        `${holdLine("tools-refused", { station }) ?? HOLD_LINE["tools-refused"]} It was ${refusal.tool}, which said: ${refusal.error}`,
+      ),
       attached,
     };
   }
@@ -1987,7 +2034,7 @@ export async function driveTrackOnce(
       moved: false,
       arrivedAt: null,
       hold: "produced-nothing",
-      line: HOLD_LINE["produced-nothing"],
+      line: flagged(HOLD_LINE["produced-nothing"]),
       attached,
     };
   }
@@ -2049,7 +2096,9 @@ export async function driveTrackOnce(
         hold: "nothing-to-hand-on",
         // Says what the NEXT station is short of, because that is the thing a
         // person can act on. The stray artifact is not the problem.
-        line: `${station} filed something, but ${arrivedAt} still has no ${STATION_NEEDS[arrivedAt].missing}.`,
+        line: flagged(
+          `${station} filed something, but ${arrivedAt} still has no ${STATION_NEEDS[arrivedAt].missing}.`,
+        ),
         attached,
       };
     }
@@ -2126,7 +2175,9 @@ export async function driveTrackOnce(
       // moved the work, so this drive simply has nothing left to do.
       hold: null,
       attached: harvested,
-      line: "Another driver moved this work while this run was mid-station, so this run stopped rather than moving it twice.",
+      line: flagged(
+        "Another driver moved this work while this run was mid-station, so this run stopped rather than moving it twice.",
+      ),
     };
   }
 
@@ -2253,4 +2304,267 @@ async function refusedToolInTraces(
   } catch {
     return null;
   }
+}
+
+/**
+ * F-68 — A STATION THAT SAYS "COMMITTED" OVER ITS OWN `ok: false`.
+ *
+ * ── WHAT HAPPENED, MEASURED 2026-08-25 AT 15:00:03 ─────────────────────
+ * Build's builder seat filed this, verbatim, into `agent_runs.output`:
+ *
+ *   "These changes were staged and committed to a pull request (#5) at
+ *    https://github.com/RohitGajaraj/relay-homeowner-app/pull/5."
+ *
+ * Its own calls, same run, in order:
+ *
+ *   studio.stage    ok: true
+ *   studio.stage    ok: true
+ *   studio.commit   ok: FALSE   (refused by F-63's secret floor)
+ *   studio.pr.open  ok: true
+ *
+ * Staged is true. Committed is false, and the seat was told so in the same
+ * turn. The fault splits and only half of it is the agent's: the PR URL was
+ * handed over by a tool that answered `ok: true`, so it was repeated rather
+ * than invented. "Committed" was asserted over a visible refusal, and that is
+ * the thing this driver has spent a week building guards against.
+ *
+ * ── WHY THIS IS CHECKABLE WITHOUT UNDERSTANDING A WORD OF PROSE ────────
+ * The contradiction is between two records the driver already holds: the
+ * seat's own sentence (`LoopResult.final`, which is what `finalize` writes to
+ * `agent_runs.output`) and the seat's own calls. It needs no judgement about
+ * what the seat meant, only whether the tool it names came back refused.
+ *
+ * ── THE JOIN, AND WHY IT IS RELIABLE HERE AND NOWHERE ELSE ─────────────
+ * `agent_runs` has NO `trace_id` and `tool_calls` has NO `run_id`, so the two
+ * TABLES cannot be joined at all — an audit run later over the record would
+ * have nothing but timestamp proximity, which is a guess and is not used here.
+ * The driver does not have that problem: `runAgentLoop` mints one `traceId` per
+ * dispatch and stamps it on every `tool_calls` row that run writes, and returns
+ * it as `LoopResult.trace_id` beside `final`. So claim and calls are joined
+ * exactly, per seat, in memory, at the only moment both are in one hand. This
+ * is the same key F-41's `refusedToolInTraces` already relies on.
+ *
+ * ── WHAT IT DOES ON A HIT, AND WHAT IT DELIBERATELY DOES NOT DO ────────
+ * It adds a sentence. It does not downgrade the run, it does not withhold
+ * `producedThisVisit`, and it does not stop the track.
+ *
+ *   Downgrading the run buys NOTHING: `anyToolStepFailed` in loop.server.ts
+ *   already wrote `completed_with_failures` on this exact run, because the
+ *   commit threw. The status was already honest. The sentence was not.
+ *
+ *   Withholding `producedThisVisit` would DESTROY REAL WORK. That run genuinely
+ *   staged two files and genuinely holds a PR row; `producedThisVisit` is
+ *   computed from rows that actually landed, and discarding them because a
+ *   sentence matched a regular expression is the one outcome worse than a
+ *   missed overclaim.
+ *
+ *   And the blast radius of the overclaim is a PERSON, not the machine: a
+ *   seat's prose never reaches the next station. The brief is rebuilt from
+ *   `loadUpstream`, which reads filed artifacts, so nothing downstream has ever
+ *   read this sentence. The only reader who can be misled by it is the one
+ *   reading the run, which is exactly where the note goes.
+ */
+
+/** One call, reduced to the two facts this check needs. */
+export type ToolOutcomeLike = { tool: string; ok: boolean };
+
+/** A seat's claim that the seat's own call contradicts. */
+export type Overclaim = {
+  /** The agent that said it. */
+  seat: string;
+  /** What it said it had done, in the words this check recognises. */
+  claimed: string;
+  /** The call that was refused while it said so. */
+  tool: string;
+};
+
+/**
+ * THE WHOLE VOCABULARY OF THE CHECK, and it is deliberately three entries long.
+ *
+ * Each row is a claim about a WRITE THAT REACHES A REAL REPOSITORY and the
+ * tools that are the only way to make it. Nothing here tries to understand a
+ * sentence: it matches a past-participle claim and then asks the record whether
+ * the corresponding call came back refused. A claim with no matching call is
+ * NOT flagged — "it never tried" is a different fault with a different fix, and
+ * flagging it would need judgement this check does not have.
+ *
+ * Present tense and infinitives are excluded on purpose. "I will commit" and
+ * "the next step is to commit" are plans, not claims, and a rule that fired on
+ * them would flag a seat for describing its own intentions correctly.
+ */
+const OUTCOME_CLAIMS: readonly {
+  /** The words a seat uses when it says it did the thing. */
+  claim: RegExp;
+  /** How the note reads it back. */
+  said: string;
+  /** Every tool that can actually do it. */
+  tools: readonly string[];
+}[] = [
+  {
+    claim: /\bcommitt?ed\b/i,
+    said: "committed",
+    tools: ["studio.commit", "studio.fix.commit", "github.commit.append"],
+  },
+  {
+    claim: /\bmerged\b/i,
+    said: "merged",
+    tools: ["studio.pr.merge"],
+  },
+  {
+    // The verb is required. A bare "pull request" is a noun a seat may name for
+    // a dozen honest reasons, including reading one it did not open. Both
+    // voices, because "I opened a PR" and "PR #18 was created" are the same
+    // claim and a rule that only read the active one would miss half of them —
+    // measured against the record, where the passive form is the commoner.
+    claim:
+      /\b(?:opened|raised|created|submitted)\b[^.]{0,40}?\b(?:pull requests?|PR)\b|\b(?:pull requests?|PR)\b[^.]{0,40}?\b(?:was|were|is|are|has|have)\s+(?:been\s+)?(?:opened|raised|created|submitted)\b/i,
+    said: "opened a pull request",
+    tools: ["studio.pr.open", "github.pr.open"],
+  },
+];
+
+/**
+ * EVERY WORD THAT TURNS A CLAIM INTO AN HONEST REPORT OF FAILURE.
+ *
+ * Generous on purpose, and the asymmetry is the safety property: a negator can
+ * only ever SUPPRESS a flag, never cause one. A seat writing "the commit was
+ * refused, so nothing was committed" is doing exactly what the brief asks of
+ * it, and must never be marked for saying so.
+ */
+const CLAIM_NEGATORS =
+  /\b(?:not|never|cannot|can't|couldn't|won't|wasn't|weren't|isn't|aren't|hasn't|haven't|didn't|don't|doesn't|unable|fail(?:ed|s|ing|ure)?|refus\w*|reject\w*|block\w*|denied|declin\w*|error|unsuccessful|abort\w*|revert\w*|skip\w*|halt\w*|pending|attempted|tried|would|should|must|need|no|nothing|none|neither|nor|without|yet)\b/i;
+
+/**
+ * The sentence-ish chunks a claim is judged within.
+ *
+ * Scoped to one clause rather than the whole answer because a seat that says
+ * "the commit was refused" in its first line and "committed" in its fourth is
+ * two different statements, and judging the whole text at once would let either
+ * one hide the other. Chunking on terminal punctuation and line breaks costs
+ * nothing and does not need a parser.
+ */
+function claimClauses(text: string): string[] {
+  return (text.match(/[^.!?;\n\r]+/g) ?? []).map((s) => s.trim()).filter(Boolean);
+}
+
+/**
+ * Which outcomes this text ASSERTS, negations removed. Pure, and free — this is
+ * what keeps the query below off every run that never claimed anything.
+ */
+export function outcomeClaims(final: string | null | undefined): readonly string[] {
+  const text = (final ?? "").trim();
+  if (!text) return [];
+  const clauses = claimClauses(text);
+  const said: string[] = [];
+  for (const rule of OUTCOME_CLAIMS) {
+    const asserted = clauses.some((c) => rule.claim.test(c) && !CLAIM_NEGATORS.test(c));
+    if (asserted) said.push(rule.said);
+  }
+  return said;
+}
+
+/**
+ * The claim the record contradicts, or null when every claim stands.
+ *
+ * THE TWO CONJUNCTS ARE WHAT MAKE THIS SAFE TO SHIP.
+ *
+ *   The seat must have CALLED the tool. Silence is not evidence: a station
+ *   resumed mid-crew, a claim about work an earlier tick did, or a seat
+ *   summarising the brief it was given all look like this, and none of them is
+ *   a lie the driver can prove.
+ *
+ *   And NO call to that tool may have succeeded. A seat that was refused once,
+ *   fixed the file and committed on the second try DID commit, and saying so is
+ *   the truth. Only "tried, was told no, and said yes anyway" is flagged.
+ */
+export function contradictedClaim(
+  seat: string,
+  claimed: readonly string[],
+  calls: readonly ToolOutcomeLike[],
+): Overclaim | null {
+  for (const rule of OUTCOME_CLAIMS) {
+    if (!claimed.includes(rule.said)) continue;
+    const mine = calls.filter((c) => rule.tools.includes(c.tool));
+    if (!mine.length) continue;
+    if (mine.some((c) => c.ok)) continue;
+    return { seat, claimed: rule.said, tool: mine[0].tool };
+  }
+  return null;
+}
+
+/** What a person reads beside the station's own account of the tick. */
+export function overclaimLine(o: Overclaim): string {
+  return `${o.seat} reported that it ${o.claimed}, and its own ${o.tool} call was refused in the same turn. Read the repository rather than that summary.`;
+}
+
+/**
+ * The seat's calls as the run itself accounted for them. Free, and incomplete
+ * often enough that it is never trusted alone — see `refusedToolInTraces` for
+ * the two live ticks where this account came back empty and the record did not.
+ *
+ * `queued` and `denied` are neither a success nor a refusal and are dropped. A
+ * call waiting on a person has not happened, and a person declining one is the
+ * boundary working; counting either as a refusal would flag a seat for a
+ * decision that was never its to make.
+ */
+function toolOutcomesInSteps(steps: readonly ToolStepLike[]): ToolOutcomeLike[] {
+  const out: ToolOutcomeLike[] = [];
+  for (const s of steps) {
+    if (s.kind !== "tool_call" || !s.name) continue;
+    if (s.status === "executed") out.push({ tool: s.name, ok: true });
+    else if (s.status === "error") out.push({ tool: s.name, ok: false });
+  }
+  return out;
+}
+
+/**
+ * The seat's calls as the TOOL LAYER wrote them, joined on the run's own trace.
+ *
+ * Costs one small indexed query, and only for a seat that actually claimed one
+ * of three outcomes, which is why it is gated behind `outcomeClaims` at the
+ * call site rather than run on every dispatch.
+ *
+ * A read that failed proves nothing, so it claims nothing: an empty list means
+ * no contradiction can be shown, which is the direction this check must fail in.
+ */
+async function toolOutcomesInTrace(
+  supabase: SupabaseClient,
+  traceId: string | null | undefined,
+): Promise<ToolOutcomeLike[]> {
+  if (!traceId) return [];
+  try {
+    const { data, error } = await supabase
+      .from("tool_calls")
+      .select("tool_name,ok")
+      .eq("trace_id", traceId)
+      .limit(200);
+    if (error || !data) return [];
+    return (data as { tool_name?: string | null; ok?: boolean | null }[])
+      .filter((r) => !!r.tool_name)
+      .map((r) => ({ tool: r.tool_name as string, ok: r.ok === true }));
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Did this seat report an outcome its own calls refuse to support?
+ *
+ * Both sources are UNIONED rather than one chosen, and the direction matters: a
+ * success seen in either account clears the claim, so the wider the view the
+ * fewer the flags. The record is the authority for what failed; the run's own
+ * account can only ever exonerate.
+ */
+async function overclaimedBySeat(
+  supabase: SupabaseClient,
+  seat: string,
+  result: { final?: string | null; trace_id?: string | null; steps?: ToolStepLike[] },
+): Promise<Overclaim | null> {
+  const claimed = outcomeClaims(result.final);
+  if (!claimed.length) return null;
+  const calls = [
+    ...toolOutcomesInSteps(result.steps ?? []),
+    ...(await toolOutcomesInTrace(supabase, result.trace_id)),
+  ];
+  return contradictedClaim(seat, claimed, calls);
 }
