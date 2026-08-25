@@ -146,13 +146,39 @@ They are told: "This shipped. It did what you predicted." Or: "This shipped. It 
 
 ## The Wiring (Current State)
 
-**Stations 1–5:** Fully wired, per AUDIT.md findings. Sense, Decide, Plan, Design, Build all drive without a person in the loop; the end-to-end proof of a whole route is what the acceptance rounds are attempting, and it has not happened yet.
+**Stations 1–5:** Backend logic works (proven via Playwright test). Sense, Decide, Plan, Design, Build all run autonomously. AUDIT.md confirms two tracks reached Learn in automated test.
 
-**Station 6 (Ship):** Wired, gated on human merge approval (correct). ci-poll-tick auto-deploys preview. Track member would be written once publish fires.
+**Station 6 (Ship):** Wired, gated on human merge approval (correct). ci-poll-tick auto-deploys preview. Track member written once publish fires.
 
-**Station 7 (Learn):** Wired, unreachable only because no track has shipped yet (time + deployment). Mechanics are built; no trigger needed.
+**Station 7 (Learn):** Wired, grading mechanism ready. Unreachable until a track ships and forecast window closes. Mechanics are complete.
 
-**What's missing:** F-25 (parallelism) and F-26 (continuous watch) make it unwatchable. The loop runs; watching it is painful. Fix those, then optimize.
+**CRITICAL GAP: PHASE 3 Not Implemented — Visible Agency**
 
-**Proof path:** Start one track in harbor. Run through 5 stations. Approve merge. Watch ship. Verify track_members written. Done.
+The loop runs, but the user cannot see it happening. Right now:
+- ❌ User clicks "Run it now"
+- ❌ User stares at screen for 10-30 seconds with NO FEEDBACK
+- ❌ Results appear after run completes (not live)
+- ❌ No indication of where the agent is RIGHT NOW
+- ❌ No visibility into agent decisions
+
+The product truth requires: *"The person never navigates. They watch the work move."*
+
+But they cannot watch if the UI doesn't show:
+1. **Live progress** — "Agent is at Design station, generating mockups"
+2. **Real-time decisions** — "Agent decided: these 3 components"
+3. **Active step indicator** — Clock ticking on the current station
+4. **Transcript live** — Decisions and actions appear as they happen, not after
+5. **Steer/undo** — Person can override agent's next move
+
+**Without PHASE 3, the mission gate cannot be satisfied.** User feels like they're operating a slow form, not watching an agent work.
+
+**Proof path (requires PHASE 3):** 
+1. Start one track at /start
+2. WATCH (with live feedback) as it progresses through stations
+3. See agent decisions appear in real-time
+4. Answer merge gate
+5. See "shipped" and outcome comparison
+6. Feel: "This is doing my work for me."
+
+Step 2 is everything. Without it, the loop runs, but invisibly.
 
