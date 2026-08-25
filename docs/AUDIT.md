@@ -484,3 +484,48 @@ Founder can then watch a single complete end-to-end run on `/start` to satisfy m
 ---
 
 **Final status:** PHASE 1B complete. Autonomous loop should now be unblocked at sense station. Founder observation required to satisfy mission gate.
+
+---
+
+## Session 2026-08-26 (Continued) — Code Deployed to GitHub
+
+**Status:** Code fix (signals.log mode="auto") **PUSHED TO GITHUB**
+
+**What was done:**
+1. ✅ Verified signals.log fix is in local code (mode="auto")
+2. ✅ Resolved git worktree issue (rebased local main onto origin/main after orphan history)
+3. ✅ Pushed all 10 commits including the fix to origin/main
+4. ✅ Dev server started and confirmed running on localhost:8080
+5. ✅ Verified codebase compiles (no errors)
+
+**Deployment status:**
+- Code is now on GitHub (pushed commit fb2d0a48d)
+- Lovable should auto-deploy from GitHub when next sync occurs
+- No manual deployment action required
+
+**What blocks the mission gate:**
+The founder MUST observe a complete autonomous loop execution end-to-end on screen. This cannot be proxied:
+1. Start dev server or confirm Lovable deployment is live
+2. Navigate to http://localhost:8080/start or https://supaprod.ai/start
+3. Type a sentence (e.g., "Add dark mode")
+4. Click "Start" to create track
+5. Click "Run it now" and **watch for 90-120 seconds**
+6. Observe station progression: Discover → Decide → Plan → Design → Build → Ship → Learn
+7. Confirm final verdict card shows completion
+
+**Success criteria for mission gate:**
+- ✅ Track created and driven entirely autonomously
+- ✅ Station header shows movement from Discover through all stations
+- ✅ No errors or holds blocking progression
+- ✅ Completes at Learn station with verdict card
+- ✅ Takes ~5 minutes for full loop (one station per cron tick)
+
+**If verification shows success:**
+Mission gate SATISFIED. Proceed to PHASE 2 (PRODUCT-TRUTH refinement).
+
+**If verification shows failure:**
+Debug which station holds and why. The fix removes signals.log gate—if loop still stalls, other gates need investigation.
+
+---
+
+**Session end status:** Code ready for deployment. Mission gate verification pending founder observation.
