@@ -289,6 +289,7 @@ function RunRouteHeader({
 export function TrackRunLeft({
   trackId,
   autoStart = false,
+  onCrewLive,
 }: {
   trackId: string;
   /**
@@ -300,6 +301,9 @@ export function TrackRunLeft({
    * double-spend, so the mutation stays behind this component's control.
    */
   autoStart?: boolean;
+  /** QUEUE 71: the transcript's answer to "is a crew here right now", lifted
+   * so the composition can share it with the right pane. */
+  onCrewLive?: (live: boolean) => void;
 }) {
   const drive = useServerFn(driveTrackNow);
   const fetchTrack = useServerFn(getTrack);
@@ -762,10 +766,14 @@ export function TrackRunLeft({
       </Region>
 
       {/*
-       * PHASE 3: Live agent visibility. Poll faster (500ms) during active run
-       * so user sees progress. The isRunning flag comes from the mutation state.
+       * QUEUE 71: THE PANE POLLS AT VISIT SPEED WHENEVER A CREW IS HERE, not
+       * only while this screen's own press is walking. The sweep serves tracks
+       * with nothing pressed anywhere, and its running rows are the one honest
+       * signal of that; the transcript reports them upward and both panes
+       * follow. When no row says running or queued, nothing speeds up and
+       * nothing pulses -- an idle track reads idle.
        */}
-      <TrackActivity trackId={trackId} isRunning={run.isPending || continuing} />
+      <TrackActivity trackId={trackId} onLiveChange={onCrewLive} />
     </div>
   );
 }
@@ -798,13 +806,18 @@ export function TrackPaneRight({
 
 /** Today's stacked column, composed from the two panes. Unchanged callers. */
 export function TrackRun({ trackId, autoStart = false }: { trackId: string; autoStart?: boolean }) {
-  // PHASE 3: Detect if a run is active by checking if TrackRunLeft has state
-  // For now, we'll pass isRunning=false since we don't have that state here.
-  // In a full refactor, this would come from TrackRunLeft's run state.
+  /*
+   * QUEUE 71: one crew-live fact for the whole screen, read off the
+   * transcript's run rows and shared with both panes, so a sweep-driven visit
+   * polls at visit speed on the artifact side too. The old wiring hardcoded
+   * this pane's flag to false, which is why tonight's watch watched real crews
+   * work behind a ten-second silence.
+   */
+  const [crewLive, setCrewLive] = React.useState(false);
   return (
     <div className="flex flex-col gap-mrd-6">
-      <TrackRunLeft trackId={trackId} autoStart={autoStart} />
-      <TrackPaneRight trackId={trackId} isRunning={false} />
+      <TrackRunLeft trackId={trackId} autoStart={autoStart} onCrewLive={setCrewLive} />
+      <TrackPaneRight trackId={trackId} isRunning={crewLive} />
     </div>
   );
 }

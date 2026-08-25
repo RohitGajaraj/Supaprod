@@ -171,6 +171,19 @@ function LiveTook({ startedAt }: { startedAt: number }) {
 }
 
 /**
+ * Whether a crew is genuinely mid-visit, read only off run rows (queue 71).
+ *
+ * A seat whose row says `running` or `queued` is the record claiming work is
+ * open RIGHT NOW, and nothing else in the payload may stand in for it: an open
+ * unheld track is also what an idle track looks like between sweeps, so
+ * deriving "at work" from anything less would pulse at silence. Exported for
+ * the guard, like headline and chipOf above.
+ */
+export function hasLiveVisit(turns: Array<Pick<Turn, "outcome">>): boolean {
+  return turns.some((t) => t.outcome === "working" || t.outcome === "waiting");
+}
+
+/**
  * Every figure and every artifact this turn amounted to, in one line.
  *
  * ONE PLACE FOR A DURATION ON A ROW, live or finished. The elapsed figure used
@@ -218,19 +231,44 @@ export function rollupOf(t: Turn, titles: TitleBook): React.ReactNode[] {
 export function TrackActivity({
   trackId,
   isRunning = false,
+  onLiveChange,
 }: {
   trackId: string;
   isRunning?: boolean;
+  /**
+   * QUEUE 71: tells the host whether a crew is genuinely here, so the WHOLE
+   * pane can poll at visit speed. The sweep serves tracks with no local
+   * mutation to watch -- nothing on this screen was pressed -- so the
+   * payload's own running rows are the only honest "someone is working"
+   * signal there is. When they are absent this reports false and nothing
+   * pulses, which is the correct answer for an idle track.
+   */
+  onLiveChange?: (live: boolean) => void;
 }) {
   const fetchActivity = useServerFn(getTrackActivity);
   const fetchChain = useServerFn(getTrackChain);
   const q = useQuery({
     queryKey: ["track-activity", trackId],
     queryFn: () => fetchActivity({ data: { trackId } }),
-    // During an active run, poll faster (500ms) so the user sees progress.
-    // After run completes, poll slower (10s) to reduce DB load.
-    refetchInterval: isRunning ? 500 : 10_000,
+    refetchInterval: (query) => {
+      // Visit speed while a crew is here -- from THIS payload's running rows
+      // (queue 71), not only from a press this screen made. The sweep serves
+      // tracks nobody has touched, and its work deserves the same liveness.
+      const turns = (query.state.data?.turns ?? []) as Array<Pick<Turn, "outcome">>;
+      return isRunning || hasLiveVisit(turns) ? 500 : 10_000;
+    },
   });
+
+  /*
+   * QUEUE 71: the live fact, read once and used three ways -- this
+   * component's own poll speed, the chain query beside it, and lifted to the
+   * host so panes that cannot see run rows can follow. The transcript is
+   * where "is a crew here" is provable: only run rows may say so.
+   */
+  const live = React.useMemo(() => hasLiveVisit(q.data?.turns ?? []), [q.data]);
+  React.useEffect(() => {
+    onLiveChange?.(live);
+  }, [live, onLiveChange]);
 
   /*
    * WHAT THE ARTIFACTS ARE CALLED, AND WHY THIS COSTS NOTHING EXTRA.
@@ -253,7 +291,7 @@ export function TrackActivity({
   const chainQ = useQuery({
     queryKey: ["spine-track-chain", trackId],
     queryFn: () => fetchChain({ data: { trackId } }),
-    refetchInterval: isRunning ? 500 : 10_000,
+    refetchInterval: isRunning || live ? 500 : 10_000,
   });
 
   const titles = React.useMemo<TitleBook>(() => {
