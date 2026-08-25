@@ -22,7 +22,9 @@ WARN=0
 # CLAUDE/GEMINI = per-tool specifics, thin because they auto-load every session.
 # Adding a fifth is how the last three cleanups started. Do not widen this list.
 ROOT_WHITELIST=" AGENTS.md CLAUDE.md GEMINI.md README.md "
-DOCS_TOP_WHITELIST=" README.md "
+# AUDIT.md and PRODUCT-TRUTH.md sit at docs/ top level by the founder's direct
+# instruction (2026-08-25, the /goal mission named those exact paths).
+DOCS_TOP_WHITELIST=" README.md AUDIT.md PRODUCT-TRUTH.md "
 
 echo "== docs-doctor =="
 
