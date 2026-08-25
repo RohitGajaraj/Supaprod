@@ -41,6 +41,29 @@
 - **Acceptance:** BUILDLOG rows updated with what was SEEN, screenshots filed in your unit;
   anything that did not render as specced becomes a filed finding, not a silent pass.
 
+## 1c · Queue #69 — the finished count must tell the truth (READY; the F-61 guard)
+
+- **Goal:** any surface you own that answers "has a piece of work finished end to end?" — a
+  done badge, a board tile, a finished count — derives it from the track row itself:
+  `entry_station === "sense" && station === "learn" && waived.length === 0`. Never from
+  `workspace.is_sample`: F-42 repurposed that flag to mean "the sweep may drive here", so the
+  obvious join counts track `3fbf73c9` — entered at `define` with `sense`+`decide` waived, no
+  forecast written — and reads as the loop having completed when it has not (F-61). The honest
+  form returns 0 today, and the first screen that ever shows 1 must be believable.
+- **User value:** when a screen finally says "finished", it is true.
+- **Files:** swept at `37a9c0776`: no surface in your path derives completion via `is_sample`
+  today, so this is the guard rail, not a repair. Wherever a done/finished state renders now or
+  next (`src/components/track/TrackRun.tsx`'s end state, any status tile you add), read the
+  three fields off the already-fetched track row.
+- **Acceptance:** every current done/finished render traced to the three fields, recorded in
+  your unit file; a shape test in the style of
+  `src/__tests__/ticks-do-not-run-on-sample-workspaces.test.ts` that fails when a `src/`
+  surface derives completion from `is_sample` — `src/__tests__/` sits outside your path, so
+  route the test through [`INBOX-MAIN.md`](./INBOX-MAIN.md) if MAIN should land it.
+- **Skills:** none; F-61 in
+  [`../../the-first-run/FINDINGS-LEDGER.md`](../../the-first-run/FINDINGS-LEDGER.md) is the
+  rubric.
+
 ## Done · Queue #65 — the transcript says who caused each leg (SHIPPED `7fa621e8f`, unit L0-080)
 
 - **Goal:** `stage_events.driven_via` distinguishes `sweep` / `press` / `continuation`

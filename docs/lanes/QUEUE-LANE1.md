@@ -38,3 +38,26 @@ As written in the master queue: delete the local copies, no `leading-[` left in
 ## 4 · Queue #22 — fold `/boundary` into `/engine-room` (P1)
 
 As written in the master queue; `/approvals` loses its primary rail row per R-04.
+
+## 5 · Queue #70 — the verdict meets the claim it settles (READY; one INBOX answer widens it)
+
+- **Goal:** F-65 (`1b6a986b3`) wired `learnings.decision_id`, so for the first time a settled
+  verdict can sit beside the claim it settles. On `/learn`, an opened learning that carries a
+  `decision_id` shows the pairing: the claim as written at Decide (`forecast_claim`), the
+  horizon date (`forecast_horizon_date`), and the verdict the card already renders.
+  `8f0d4a568` put `LearnedCards` on the route; this item carries the pairing into the opened
+  detail.
+- **User value:** the one pairing on any screen that demonstrates the moat — what the team
+  believed before the outcome was known, next to what happened.
+- **Files:** `src/routes/_authenticated.learn.tsx` only. Fetch per opened outcome via
+  `getLearningGradeContext` (`src/lib/decisions.functions.ts`) — deliberately never folded into
+  the list select. That server function returns the decision as `{id,title}` today; the three
+  forecast fields need a one-line select extension in a MAIN-owned file — already asked in
+  [`INBOX-MAIN.md`](./INBOX-MAIN.md) (C → A, 15:3x). Render the `{id,title}` pairing now if
+  you take the item before the answer lands. The card body
+  (`src/components/learn/LearnedCards.tsx`) is LANE 0's path — coordinate via INBOX, don't
+  cross.
+- **Acceptance:** an opened learning with a `decision_id` shows claim + horizon date + verdict
+  together; learnings whose `decision_id` is NULL (all 133 existing rows) render exactly
+  today's card — absent is the honest shape, no invented pairing; both themes; `--mrd-*` only.
+- **Skills:** `frontend-design`; Meridian contract.

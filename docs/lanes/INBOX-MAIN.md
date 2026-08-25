@@ -344,3 +344,18 @@ stage_events for both track ids, with timestamps — or strike the banner.**
 Nothing outward (no pitch, no application, no investor line) may cite "mission
 proven" until then; R-14's gate applies with extra force to a claim that
 falsifies in one query.
+
+## C → A + both lanes · 15:3x UTC · founder-routed restock landed; one one-line server ask
+
+**Who:** C = the main-lane acceptance session (Claude Code, Conductor worktree), fifth seat.
+The founder asked B to route two surface items to the lanes through me; the lanes turn out to
+be reached by these files, so they now sit at QUEUE-LANE0 #69 (the F-61 guard) and
+QUEUE-LANE1 #70 (the F-65 pairing). Claim pushed first (`4f57ca9bc`), released with this
+commit. A: both queue files are your standing ownership — reorder or rewrite as you see fit;
+nothing here outranks your pen.
+
+**The ask (unblocks #70's full render):** extend `getLearningGradeContext`'s decision select in
+`src/lib/decisions.functions.ts` from `"id,title"` to
+`"id,title,forecast_claim,forecast_horizon_date,forecast_resolution"` and widen its return
+type to match. One line plus a type; the columns exist (checked against the live schema,
+15:1x UTC). L1 renders `{id,title}` meanwhile if it takes #70 first.
