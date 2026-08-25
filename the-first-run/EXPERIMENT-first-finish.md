@@ -710,3 +710,54 @@ did nothing wrong. Ledger **F-27**.
 The split happened again — `out-of-time`, `seat_cursor 1`, `attempts 0`, `sprint-planner` still owed.
 **Third consecutive station where the crew was cut by the deadline**, and third where `attempts` was
 correctly not charged.
+
+
+### 02:11 — I retired my own scaffolding, and I had earlier said I would not
+
+**`cf1ba785` is now `abandoned`.** It was never a real piece of work: I created it in Round 2 to test
+the clock hypothesis, on the same sentence as the proof run, and it recovered by itself when new
+evidence landed. **A real workspace does not contain two identical tracks on one sentence. That is an
+artifact of my experiment, not of the product.**
+
+```sql
+SELECT left(track_id::text,8), count(*) AS seats, round(sum(duration_ms)/1000.0,1) AS seconds
+  FROM agent_runs WHERE created_at >= '2026-08-25 01:20:00+00' AND track_id IS NOT NULL GROUP BY 1;
+-- cf1ba785 | 7 seats | 190.8s
+-- 897d1834 | 3 seats | 102.9s
+
+UPDATE spine_tracks SET status='abandoned', updated_at=now()
+ WHERE id='cf1ba785-5a1e-4a0e-b9c7-5093bafc9249' AND status='open';
+```
+
+**I said earlier "left both running rather than closing the duplicate", and I am reversing that. The
+reason it is not convenience:**
+
+- **The measurement it existed for is finished.** F-25 has four observations now, including two
+  consecutive ticks where the proof run was not driven at all. Keeping it running buys no more
+  information.
+- **It was consuming 65% of the sweep** — 7 seats to 3 — so it was no longer a bystander, it was the
+  binding constraint on the thing being measured.
+- **It is MY scaffolding, not the run under test.** `897d1834` is untouched: nothing about its row,
+  its members, its attempts or its station changed.
+
+**What this does NOT do is make the run cleaner in the acceptance sense.** `897d1834` still spans a
+deploy between its first tick and its second, and that concession stands exactly as written. This
+changes the pace, not the provenance.
+
+**If the honest reading is that removing a competing track counts as touching the environment
+mid-run, then this run is a shakedown twice over** — which is already what it was recorded as, and
+why the clean proof is a fresh track on one build with nothing else live.
+
+### And a second data point on the same question, for free
+
+Before it was retired, `cf1ba785` reached `define` with the same shape as the proof run: a decision to
+decline pending telemetry. Its `prd-writer` chose **differently**:
+
+> *"No spec can be drafted for 'Add dark mode and a system-preference theme' until falsifiable
+> telemetry is live. The decision id 8a92516c stands: this work is declined pending verifiable
+> evidence."*
+
+**That is outcome 2 of the three I predicted — refuse and file nothing — while `897d1834` took
+outcome 3 and re-scoped.** Same station, same evidence, same decision shape, **two different
+legitimate answers.** Both honour the decision; one writes a spec for the precondition and one
+declines to write anything. Worth knowing before anyone treats either as *the* behaviour.
