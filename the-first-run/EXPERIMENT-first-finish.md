@@ -1185,3 +1185,54 @@ explanation after it. So:
 
 **If Build produces a merged changeset and a successful `deployments` row, I am wrong about F-36**
 and that is the outcome worth watching for. Nothing in the code I have read says it can.
+
+### 04:00 · Build FAILED, and my prediction was wrong on its first point
+
+I wrote at 03:51: *"Build will complete. Its filing instruction is `studio.stage`, and staging is
+something the builder seat can actually do."* **It is not, and I had not found why.**
+
+The Build station filed a mission (`4031c6d3`) rather than staging directly — R-24's shape, a
+mission inside a track — and both its seats failed on **GitHub 401**:
+
+> **builder:** *"I cannot proceed with building the notification preference standardization because
+> I lack access to the repository. The GitHub authentication failed when trying to explore the
+> codebase, and I cannot safely make changes..."*
+>
+> **qa:** *"I cannot verify the implementation against the spec because GitHub repository access is
+> unavailable (401 authentication errors)."*
+
+`produced-nothing`, attempts 1, $0.013 spent to be told no.
+
+**So F-36's fix is correct and insufficient.** Briefing Build through `studio.commit` and
+`studio.pr.open` cannot help while the credential itself is refused. **F-39 fires first**, and I only
+found it because the run reached a station that needed it — reading the code had not shown it, twice.
+
+#### What the connection row claims
+
+```sql
+SELECT provider, auth_kind, status, (secret_id IS NOT NULL) AS has_secret, last_verified_at
+  FROM connections WHERE provider ILIKE '%github%';
+-- github | github_app | connected | false | 2026-07-25
+-- github | github_app | connected | false | 2026-07-08
+```
+
+**`status = connected`, no secret, unverified for a month.**
+
+#### The pattern, which is worth more than any single finding here
+
+Three surfaces tonight report healthy while dead: the scout returns `ok: true` when dormant (F-38),
+this row says `connected` with no secret (F-39), and `latest_commit_sha` went backwards. **This
+product's health signals are optimistic by construction**, which is why a month of total ingestion
+failure and a month of broken repository access both went unnoticed by anything except a live run
+walking into them.
+
+**And `last_verified_at` 2026-07-25 is the same day `scout_runs` stopped.** One event plausibly took
+both, and nobody was told.
+
+#### Grading the rest of the prediction
+
+Points 2 and 3 are now **untestable on this run** — the track never reached Ship, so neither the
+F-18 approval gate nor F-36's merged-changeset refusal was exercised. **I do not get to claim those
+were right.** They stand as unverified predictions for the next run.
+
+**Round 4 final standing: 5 of 7 stations, held at Build. Zero of six acceptance criteria.**
