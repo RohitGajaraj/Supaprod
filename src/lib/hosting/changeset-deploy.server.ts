@@ -102,17 +102,52 @@ function ghHeaders(token: string): Record<string, string> {
   };
 }
 
-/** supaprod.json at the repo root marks a Supaprod-managed (template) app. */
+/**
+ * The marker files at the repo root that mark a Supaprod-managed (template) app.
+ *
+ * TWO NAMES, AND THE SECOND ONE IS A SCAR (F-49). `c5d479fd6` — *"Rename product
+ * Cadence -> Supaprod across code, docs, and public surfaces"* — renamed this
+ * marker in OUR code. It could not rename it in anybody's repository, and a
+ * marker file is a contract with a repo we do not own.
+ *
+ * WHAT THAT COST, MEASURED. `RohitGajaraj/Test-Project-Cadence` is the only repo
+ * that has ever completed this product's ship chain: thirteen successful Deno
+ * previews and one production promote between 2026-07-08 and 2026-07-10
+ * (`SELECT ... FROM deployments WHERE provider='deno'`). Its root today holds
+ * `cadence.json`, `main.ts`, `index.html` — it IS the template family — and
+ * `GET /contents/supaprod.json` returns **404**. So from the rename onward the
+ * tick stopped recognising it, stopped building its preview, and
+ * `release.publish` began refusing every promote with *"No successful preview
+ * deploy exists for this changeset yet"* — a sentence about a missing artifact,
+ * for a repo whose artifact we had simply stopped looking for.
+ *
+ * Nothing reported it. This is the seventh instance of the pattern this week —
+ * the mechanism exists and the trigger was quietly unwired — and the first where
+ * a rename did the unwiring rather than an omission.
+ *
+ * ORDERED, NOT A SET. The current name is checked first so the common path is
+ * one request and unchanged; the legacy name costs a second request only on a
+ * repo that has already missed, which `canHost` has already narrowed to merged
+ * changesets under a retry backoff. New repos are scaffolded with the current
+ * name only (`renderStarterTemplate`); this list is for repos that were marked
+ * before we changed our mind about our own name.
+ */
+const MANAGED_MARKERS = ["supaprod.json", "cadence.json"] as const;
+
+/** A marker file at the repo root marks a Supaprod-managed (template) app. */
 export async function isSupaprodManaged(args: {
   token: string;
   repo: string;
   ref: string;
 }): Promise<boolean> {
-  const res = await fetch(
-    `https://api.github.com/repos/${args.repo}/contents/supaprod.json?ref=${encodeURIComponent(args.ref)}`,
-    { headers: ghHeaders(args.token) },
-  );
-  return res.ok;
+  for (const marker of MANAGED_MARKERS) {
+    const res = await fetch(
+      `https://api.github.com/repos/${args.repo}/contents/${marker}?ref=${encodeURIComponent(args.ref)}`,
+      { headers: ghHeaders(args.token) },
+    );
+    if (res.ok) return true;
+  }
+  return false;
 }
 
 /**
