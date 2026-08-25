@@ -48,7 +48,8 @@ describe("palette-sections", () => {
     // Ten lifecycle destinations plus the two operations doors, Runs and Crew,
     // which joined PRIMARY_NAV on 2026-08-05 so the keyboard could reach the
     // rail rows the shell was already drawing.
-    expect(JUMP_DESTINATIONS.length).toBe(14);
+    // 15 since 2026-08-25: Work (/start) joined PRIMARY_NAV.
+    expect(JUMP_DESTINATIONS.length).toBe(15);
   });
 
   it("every JUMP destination's run.to is a canonical path or a keyed rail door", () => {
@@ -56,7 +57,8 @@ describe("palette-sections", () => {
     // may land on), pinned at ten by legacy-redirects.test.ts. /runs and /crew
     // are rail doors, never redirect targets, so they are named here rather
     // than smuggled into that list.
-    const OPERATIONS_DOORS = ["/runs", "/crew"];
+    // /start joined 2026-08-25: the Work rail door, same standing as the two.
+    const OPERATIONS_DOORS = ["/runs", "/crew", "/start"];
     for (const dest of JUMP_DESTINATIONS) {
       const known =
         (CANONICAL_PATHS as readonly string[]).includes(dest.run.to) ||

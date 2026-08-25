@@ -100,7 +100,8 @@ describe("the sheet cannot invent a door", () => {
     // /admin is keyless on purpose: the shell renders no admin control, so a
     // key there would go somewhere the rail cannot follow.
     expect(navChords().map((c) => c.to)).not.toContain("/admin");
-    expect(navChords().length).toBe(15);
+    // 16 since 2026-08-25: Work (/start, g w) joined the chords.
+    expect(navChords().length).toBe(16);
   });
 });
 
