@@ -33,8 +33,16 @@ not the current plan.
 
 **The acceptance, and nothing else counts as done:** one piece of work enters at the first station and
 completes all seven, driven entirely by agents, with no human touching it mid-run, and a person can
-watch it happen on one screen. **In three months this has never happened once** — 59 tracks, 58
-entered at `sense`, zero reached `learn`.
+watch it happen on one screen. **In three months this has never happened once** — 73 tracks, 71
+entered at `sense`, and **zero have gone `sense` → `learn`**.
+
+> **Do not shorten that to "zero reached `learn`", which is what this line used to say and is false.**
+> One track has: `3fbf73c9`, on 2026-08-01. It entered at `define` with `sense` and `decide`
+> **waived**, so it walked five stations, and because the forecast is written at Decide and nowhere
+> else it **carries no forecast** — it cannot show the one thing the product claims. The measured
+> query is `entry_station = 'sense' AND station = 'learn' AND waived = '[]'`, which returns **0**.
+> **Never ask this with `workspaces.is_sample`**: F-42 repurposed that flag to mean "the sweep may
+> drive here", so the obvious form returns **1** and reads as the acceptance being met (F-61).
 
 ---
 
