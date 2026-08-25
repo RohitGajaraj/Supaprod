@@ -1768,8 +1768,45 @@ const repoRead = def({
 
 const repoSearch = def({
   name: "repo.search",
+  /*
+   * F-58. AN EMPTY RESULT HERE IS NOT EVIDENCE THE CODE IS ABSENT, AND TWO
+   * SEATS READ IT AS EXACTLY THAT.
+   *
+   * This is GitHub's CODE SEARCH API -- an index, not the repository. Private
+   * repositories are frequently never indexed at all, and the API answers a
+   * query against an unindexed repo the same way it answers one with no
+   * matches: `total_count: 0`. The caller cannot tell the two apart.
+   *
+   * MEASURED ON THE BOUND REPO, 2026-08-25 at 11:52:
+   *
+   *   search/code?q=address+repo:RohitGajaraj/relay-homeowner-app
+   *   -> total_count: 0
+   *   git/trees/main?recursive=1
+   *   -> src/checkout/AddressStep.tsx
+   *
+   * **The file the work order was about is right there in the git tree**, and
+   * the station's primary way of finding code could not see it. `builder` then
+   * filed *"All searches for 'address', 'checkout', and related terms returned
+   * no results, suggesting either the files are not present in this repository
+   * or they are named/structured differently"*, and `qa` agreed that the
+   * implementation *"does not exist in the codebase yet"*. Both agents reasoned
+   * correctly from a false premise, so this is a tool defect and not an agent
+   * one, and Build produced nothing on the one round that reached it.
+   *
+   * THE CORRECTION GOES IN THE DESCRIPTION, not in this comment, because the
+   * description is the half the model reads (F-24's lesson, learned on
+   * `signals.log` a few hundred lines up). And it names `repo.tree` rather than
+   * only forbidding the inference, because a prohibition with no alternative
+   * gets the same behaviour under a new name. `repo.tree` is the git trees API:
+   * no index, nothing to miss, current by construction.
+   *
+   * NOT A REASON TO DELETE THIS TOOL. On an indexed public repo it is the
+   * cheapest way to find a symbol, and the fragments it returns are worth more
+   * than a path list. It is only the ABSENCE reading that was never sound.
+   */
   description:
-    "Studio: GitHub code search scoped to the connected repo. Returns matching paths with text fragments. Read-only. Use to locate the code relevant to the work order.",
+    "Studio: GitHub code search scoped to the connected repo. Returns matching paths with text fragments. Read-only. Use to locate the code relevant to the work order. " +
+    "ZERO HITS IS NOT EVIDENCE THE CODE IS ABSENT. This is GitHub's code search index rather than the repository itself, and private repositories are frequently not indexed at all — an unindexed repo returns total 0 exactly as a repo with no match does, and you cannot tell them apart from here. Before you conclude that anything is missing, call repo.tree, which reads the git tree itself and has no index to miss it, then repo.read the paths it shows. Never report code as absent on the strength of an empty search.",
   category: "read",
   argsSchema: z.object({
     query: z.string().min(1).max(200),

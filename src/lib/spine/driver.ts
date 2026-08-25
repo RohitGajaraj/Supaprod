@@ -194,7 +194,42 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
      * dependencies", on `specId`'s precedent: an agent told to go and find
      * something spends steps finding it.
      */
-    job: "Build to the spec and the design above, using only what this repository already has. Read its manifest — package.json, deno.json or the equivalent — and its existing tests before you write any, and match the libraries and the test runner already in use. You cannot add a dependency: nothing installs one for you, and an import the repository cannot resolve fails its checks in seconds and stops the work here, however good the code is. If the spec genuinely cannot be built with what is present, say that plainly instead of importing something that is not. Stop at anything your boundary does not let you do alone.",
+    /*
+     * F-58. THE STATION'S PRIMARY WAY OF FINDING CODE IS BLIND ON A PRIVATE
+     * REPOSITORY, AND FINDING THE CODE IS THE FIRST THING BUILD DOES.
+     *
+     * `repo.search` is GitHub's code search API, which is an INDEX, and private
+     * repositories are frequently not in it. MEASURED ON THE BOUND REPO,
+     * 2026-08-25 at 11:52:
+     *
+     *   search/code?q=address+repo:RohitGajaraj/relay-homeowner-app
+     *   -> total_count: 0
+     *   git/trees/main?recursive=1
+     *   -> src/checkout/AddressStep.tsx
+     *
+     * So this seat filed *"All searches for 'address', 'checkout', and related
+     * terms returned no results, suggesting either the files are not present in
+     * this repository or they are named/structured differently"* — every word a
+     * correct inference from what the tool told it, and the file it was sent to
+     * change was sitting in the tree the whole time. Build produced nothing on
+     * the one round that reached it.
+     *
+     * WHY THE TOOL'S OWN DESCRIPTION IS NOT ENOUGH ON ITS OWN. It carries the
+     * warning now, but it is read at the moment of CALLING `repo.search`, and by
+     * then the seat has already chosen search over the tree. The brief is where
+     * the ORDER of work is set, so the redirection has to be here too — the same
+     * both-places correction F-32 was found half-missing.
+     *
+     * IN THE JOB, NOT IN `file`, on F-56's precedent directly above: this decides
+     * how the work is found before any of it is written, and by the time the
+     * filing instruction is read the conclusion has already been drawn. It names
+     * `repo.tree` rather than only forbidding the inference, because a
+     * prohibition with no alternative gets the same behaviour under a new name
+     * (F-24), and it gives the seat the honest third answer — say the repository
+     * does not contain it — so "I could not find it" and "it is not there" stay
+     * different sentences.
+     */
+    job: "Build to the spec and the design above, using only what this repository already has. Establish the file layout for yourself with repo.tree and read what it names with repo.read before you conclude that anything is missing: repo.search is GitHub's code search index, it does not reliably reach a private repository, and it has returned zero hits on a repo whose tree plainly held the very file the work was about. An empty repo.search is not evidence the code is absent, and you may never report code as missing on the strength of one — if the tree genuinely does not hold it, say the repository does not contain it and say which tree you read. Read the repository's manifest — package.json, deno.json or the equivalent — and its existing tests before you write any, and match the libraries and the test runner already in use. You cannot add a dependency: nothing installs one for you, and an import the repository cannot resolve fails its checks in seconds and stops the work here, however good the code is. If the spec genuinely cannot be built with what is present, say that plainly instead of importing something that is not. Stop at anything your boundary does not let you do alone.",
     // F-36. This said `studio.stage` and stopped there, and staging is one step
     // of six. `studio.commit` puts the work on an isolated `studio/*` branch and
     // is EXPLICITLY autonomous by founder ruling 2026-07-08 —
@@ -204,7 +239,21 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
     file: "Call studio.stage with the change you made, then studio.commit to put it on its own branch. Work that is staged and never committed stays in the workspace and cannot be shipped, so stopping at stage leaves the job half done.",
   },
   qa: {
-    job: "Check the change against the spec before it goes anywhere. Say plainly what does not meet it.",
+    /*
+     * F-58, and this seat is the more expensive half of it. `builder` reporting
+     * "I cannot find it" costs a station attempt; `qa` reporting it is a VERDICT,
+     * and it was filed as one: *"The implementation for pre-populating address
+     * fields ... does not exist in the codebase yet"* — on 2026-08-25, against a
+     * repository whose git tree held `src/checkout/AddressStep.tsx`.
+     *
+     * The same shape as F-54 one finding earlier, and worth naming as a pair:
+     * both times the checking seat was confident, articulate and wrong about the
+     * world because a read tool answered a narrower question than the one it was
+     * asked. F-54 was the wrong BRANCH; this is the wrong INSTRUMENT. A wrong
+     * verdict is worse than an error, because an error stops the run and this
+     * reads as diligence.
+     */
+    job: "Check the change against the spec before it goes anywhere. Say plainly what does not meet it. Establish what the repository actually holds with repo.tree, and read the files it names with repo.read, before you judge anything to be missing: repo.search is GitHub's code search index, it does not reliably reach a private repository, and a seat that read its zero hits as proof has already reported finished work as never written.",
     // The PR is opened HERE rather than by the builder, because a pull request
     // is the sign-off made visible and the checking seat is the one that signs.
     // `studio.pr.open` is autonomous under the 2026-07-08 ruling.

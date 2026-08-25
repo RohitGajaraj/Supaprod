@@ -601,9 +601,36 @@ export const advanceTrack = createServerFn({ method: "POST" })
         const { data: updated, error: upErr } = await supabase
           .from("spine_tracks" as never)
           .update(
+            /*
+             * F-55. `last_driven_via: "press"` GOES IN THIS WRITE, not a second one.
+             *
+             * THE BUG THIS CLOSES IS A STALE POSITIVE CLAIM, WHICH IS WORSE THAN
+             * A NULL. `driveTrackOnce` stamps `last_driven_via` on entry, and
+             * this handler never touched it — so a track the sweep drove at
+             * 10:00 and a PERSON hand-advanced at 10:05 still read `'sweep'`.
+             * Not "does not know": a surviving assertion that the unattended
+             * loop was the last thing to move work a human moved by hand. The
+             * column's own comment says "how this track was last driven", and
+             * for this path it was not.
+             *
+             * Same write as the station move, for queue 63's reason: two columns
+             * that must agree, written in two places, is how they disagree.
+             */
             (next
-              ? { station: next, attempts: 0, last_hold: null, updated_at: now }
-              : { status: "done", attempts: 0, last_hold: null, updated_at: now }) as never,
+              ? {
+                  station: next,
+                  attempts: 0,
+                  last_hold: null,
+                  last_driven_via: "press",
+                  updated_at: now,
+                }
+              : {
+                  status: "done",
+                  attempts: 0,
+                  last_hold: null,
+                  last_driven_via: "press",
+                  updated_at: now,
+                }) as never,
           )
           .eq("id", data.trackId)
           .select(SELECT)
@@ -628,6 +655,29 @@ export const advanceTrack = createServerFn({ method: "POST" })
           from: track.station,
           to: next ?? track.station,
           actor: "human",
+          /*
+           * F-55. `"press"` and NOT threaded from a caller, deliberately.
+           *
+           * Queue 64 made `via` a required parameter on `driveTrackOnce` because
+           * it has two callers with two different honest answers. This handler
+           * has exactly one caller — a person clicking "hand it on" in
+           * `TrackStart.tsx` — so there is no second answer to get wrong, and a
+           * parameter would be ceremony around a constant.
+           *
+           * WITHOUT THIS, criterion 2 was only provable by a three-way
+           * disjunction nobody would remember to write: this path recorded
+           * `actor: "human"` with `driven_via` NULL, while `driveTrackOnce`
+           * records `actor: "system"` with `driven_via: 'press'` even when a
+           * person pressed it. So a query on `driven_via` alone missed every
+           * hand-advance, and a query on `actor` alone is the exact read that
+           * produced the false "unattended" report on track 48eee889.
+           *
+           * `press` may eventually be too coarse: a person nudging the loop and
+           * a person doing the station's job by hand are different acts, and
+           * both disqualify a run. A fourth value would need a CHECK migration,
+           * so it is a deliberate choice rather than an accident of this fix.
+           */
+          drivenVia: "press",
           workspaceId: raw.workspace_id,
           userId: raw.user_id,
         });

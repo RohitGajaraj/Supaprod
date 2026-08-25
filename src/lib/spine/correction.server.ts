@@ -168,7 +168,7 @@ export async function applyCorrection(
 ): Promise<boolean> {
   try {
     const now = new Date().toISOString();
-    const { error } = await supabase
+    const { data: moved, error } = await supabase
       .from("spine_tracks" as never)
       .update({
         station: move.to,
@@ -177,11 +177,34 @@ export async function applyCorrection(
         driven_at: now,
         updated_at: now,
       } as never)
-      .eq("id", track.id);
+      .eq("id", track.id)
+      /*
+       * F-60. The same compare-and-swap the driver's forward move now carries,
+       * and this is the site where the race is EXPENSIVE rather than merely
+       * untidy.
+       *
+       * This module's own comment two lines below says a row must never "claim
+       * a transition the table did not take". That was true of ordering and
+       * false of concurrency: two drivers reading the same `station` both wrote
+       * their move, and `readCorrections` counts BACKWARD transitions.
+       * `MAX_TRACK_CORRECTIONS` is 2, so **a single duplicated correction spends
+       * the whole budget in one move**, `decideDrive` answers
+       * `corrections-spent`, and the track stops and asks for a person — from a
+       * double-counted row rather than from anything that happened.
+       *
+       * `.eq("station", move.from)` means only the driver that found the track
+       * where it thought it was may move it. The loser matches nothing, returns
+       * false, and writes no trail row.
+       */
+      .eq("station", move.from)
+      .select("id");
     if (error) {
       console.error(`spine correction move failed for track ${track.id}: ${error.message}`);
       return false;
     }
+    // Lost the race: another driver already moved this track. Not an error and
+    // not a correction — nothing happened, so nothing is recorded.
+    if (!moved?.length) return false;
   } catch (e) {
     console.error(
       `spine correction move threw for track ${track.id}: ${e instanceof Error ? e.message : String(e)}`,

@@ -1923,7 +1923,7 @@ export async function driveTrackOnce(
 
   // attempts resets on every move, in the same write, so a counter can never
   // leak across stations and strand work that was making progress.
-  await supabase
+  const moveResult = await supabase
     .from("spine_tracks" as never)
     .update(
       (arrivedAt
@@ -1944,7 +1944,57 @@ export async function driveTrackOnce(
             updated_at: new Date().toISOString(),
           }) as never,
     )
-    .eq("id", row.id);
+    .eq("id", row.id)
+    /*
+     * F-60. COMPARE-AND-SWAP, because this product now has TWO drivers and
+     * nothing else coordinates them.
+     *
+     * Until 2026-08-25 `driveTrackOnce` had one caller and concurrency was
+     * structurally impossible. `driveTrackNow` and item 34's auto-continuation
+     * landed the same day, and there is no lock, no lease and no claim column on
+     * `spine_tracks`. MEASURED on Round 7 at 11:20: the cron sweep started at
+     * 11:20:01 and ran 49.6s while the watched walk was mid-station; both read
+     * `station = 'sense'`, both dispatched `researcher` 276ms apart, and both
+     * wrote `sense -> decide` — 11:20:50.935 and 11:21:25.245. **Six trail rows
+     * for five moves, and two paid dispatches for one seat.**
+     *
+     * `.eq("station", station)` makes the write conditional on the row still
+     * being where this drive found it. The loser updates nothing, so it cannot
+     * write a duplicate trail row below, and — the sharper risk — **cannot roll
+     * the station BACKWARDS while resetting `attempts`, `station_drives` and
+     * `last_hold` from its stale snapshot.**
+     *
+     * THE HAZARD THIS REALLY CLOSES IS IN THE CORRECTION COUNTER.
+     * `readCorrections` counts backward transitions and `MAX_TRACK_CORRECTIONS`
+     * is 2, so **one duplicated correction spends the entire budget in a single
+     * move**, `decideDrive` returns `corrections-spent`, and the track halts
+     * asking for a person. That is acceptance criterion 2 failing from a
+     * bookkeeping artefact rather than from anything the loop did.
+     *
+     * Not a lease: a lease also stops the wasted dispatch, but it must be
+     * released on all eight paths that write `driven_at` or a killed Worker
+     * strands the track until the TTL expires. This is the safe half — it cannot
+     * strand anything, because a lost race simply writes nothing.
+     */
+    .eq("station", station)
+    .select("id");
+
+  // The trail row is written ONLY by the driver that actually moved the row.
+  // A loser that wrote one would be claiming a transition the table did not
+  // take — which is the same rule `applyCorrection` states for itself.
+  if (!moveResult.data?.length) {
+    return {
+      trackId: row.id,
+      station,
+      moved: false,
+      arrivedAt: null,
+      // Not a hold: nothing is wrong and nobody needs to look. The other driver
+      // moved the work, so this drive simply has nothing left to do.
+      hold: null,
+      attached: harvested,
+      line: "Another driver moved this work while this run was mid-station, so this run stopped rather than moving it twice.",
+    };
+  }
 
   await recordStageEvent(supabase, {
     entityType: "spine_track",
