@@ -110,6 +110,13 @@ export type Track = {
   holdReason: string | null;
   /** When the driver last touched it. Null means it has never been driven. */
   drivenAt: string | null;
+  /**
+   * Real failures the current station has burned against
+   * `MAX_STATION_ATTEMPTS` (3). Queue 66: a held track on its last try looked
+   * identical to one on its first, and the difference is whether the person
+   * reading it should expect the loop to recover or to give up next tick.
+   */
+  attempts: number;
 };
 
 type TrackRow = {
@@ -126,6 +133,7 @@ type TrackRow = {
   updated_at: string;
   last_hold: string | null;
   driven_at: string | null;
+  attempts: number | null;
 };
 
 /** Rebuild the route from its two stored columns, tolerating anything odd in them. */
@@ -159,11 +167,12 @@ function rowToTrack(r: TrackRow): Track {
     hold: holdLine(r.last_hold, { station: r.station as AgentStation }),
     holdReason: r.last_hold,
     drivenAt: r.driven_at ?? null,
+    attempts: r.attempts ?? 0,
   };
 }
 
 const SELECT =
-  "id,user_id,workspace_id,title,origin,entry_station,station,status,path,waived,updated_at,last_hold,driven_at," +
+  "id,user_id,workspace_id,title,origin,entry_station,station,status,path,waived,updated_at,last_hold,driven_at,attempts," +
   // The ONLY edge from a track to the questions it is waiting on.
   // `agent_approvals` has no track back-reference — see SPEC-CONSENT §1.1 and
   // the migration that created this column, which rejects every correlational
@@ -1819,36 +1828,74 @@ export const getTrackChain = createServerFn({ method: "GET" })
  * and a track whose activity cannot be read still has a chain, a route and a
  * position worth showing.
  */
+/**
+ * One station-to-station move, with WHO ASKED FOR IT carried to the surface.
+ *
+ * Queue 65's server half. `drivenVia` is the F-55/queue-64 record: `sweep` is
+ * the loop moving on its own, `press` is a person acting, `continuation` is the
+ * client walking on from a window-closed leg. `foreground` appears only on rows
+ * written before the split and NULL on rows older than the question — a surface
+ * must claim nothing about a person for either.
+ */
+export type TrackTransition = {
+  from: string | null;
+  to: string;
+  at: string;
+  drivenVia: "sweep" | "press" | "continuation" | "foreground" | null;
+};
+
 export const getTrackActivity = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))
-  .handler(async ({ context, data }): Promise<{ turns: Turn[] }> => {
-    const { supabase } = context;
-    try {
-      const [runsRes, membersRes] = await Promise.all([
-        supabase
-          .from("agent_runs")
-          .select("id,agent_slug,agent_name,status,output,created_at,spend_used_usd")
-          .eq("track_id", data.trackId)
-          .order("created_at", { ascending: true })
-          .limit(200),
-        supabase
-          .from("spine_track_members" as never)
-          .select("artifact_kind,artifact_id,station,created_at")
-          .eq("track_id", data.trackId)
-          .order("created_at", { ascending: true }),
-      ]);
+  .handler(
+    async ({ context, data }): Promise<{ turns: Turn[]; transitions: TrackTransition[] }> => {
+      const { supabase } = context;
+      try {
+        const [runsRes, membersRes, eventsRes] = await Promise.all([
+          supabase
+            .from("agent_runs")
+            .select("id,agent_slug,agent_name,status,output,created_at,spend_used_usd")
+            .eq("track_id", data.trackId)
+            .order("created_at", { ascending: true })
+            .limit(200),
+          supabase
+            .from("spine_track_members" as never)
+            .select("artifact_kind,artifact_id,station,created_at")
+            .eq("track_id", data.trackId)
+            .order("created_at", { ascending: true }),
+          supabase
+            .from("stage_events" as never)
+            .select("from_stage,to_stage,at,driven_via")
+            .eq("entity_type", "spine_track")
+            .eq("entity_id", data.trackId)
+            .order("at", { ascending: true })
+            .limit(200),
+        ]);
 
-      return {
-        turns: buildActivity({
-          runs: (runsRes.data ?? []) as unknown as RunRow[],
-          members: (membersRes.data ?? []) as unknown as ActivityMemberRow[],
-        }),
-      };
-    } catch {
-      return { turns: [] };
-    }
-  });
+        return {
+          turns: buildActivity({
+            runs: (runsRes.data ?? []) as unknown as RunRow[],
+            members: (membersRes.data ?? []) as unknown as ActivityMemberRow[],
+          }),
+          transitions: (
+            (eventsRes.data ?? []) as unknown as Array<{
+              from_stage: string | null;
+              to_stage: string;
+              at: string;
+              driven_via: TrackTransition["drivenVia"];
+            }>
+          ).map((e) => ({
+            from: e.from_stage,
+            to: e.to_stage,
+            at: e.at,
+            drivenVia: e.driven_via ?? null,
+          })),
+        };
+      } catch {
+        return { turns: [], transitions: [] };
+      }
+    },
+  );
 
 /**
  * ── STEER A TRACK ─────────────────────────────────────────────────────────────
