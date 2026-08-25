@@ -295,7 +295,7 @@ export function TrackRun({
    * control returns to the person. And "Stop" cancels the remaining legs at any
    * moment, which makes the walking theirs rather than automatic.
    */
-  const AUTO_MAX = 8;
+  const AUTO_MAX = 24;
   const [legsLeft, setLegsLeft] = React.useState(0);
 
   React.useEffect(() => {
