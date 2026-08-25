@@ -4167,3 +4167,96 @@ again.**
 **Worth checking next session:** `rgba` is gone entirely, and the humanized-output
 law on status words no longer appears to be asserted anywhere. If that guard
 mattered, it needs a home in `meridian/` or `engine-room/`.
+
+---
+---
+
+# SESSION HANDOFF 2026-08-25 ~06:0x IST (00:3x UTC) · MAIN LANE · five defects, and a hard stop
+
+> **APPENDED, not replacing.** Three lanes write this file and two of them were pushing while I
+> wrote this. Everything above is somebody else's session.
+
+**Gates at close:** `tsc` 0 · `bun test` **10,779 pass / 0 fail** / 634 files · `docs:check` clean ·
+eslint clean on every file I touched.
+
+## TWO THINGS NEED THE FOUNDER, AND NOTHING ELSE IS BLOCKED
+
+**1. Credits. The run is stopped and I cannot restart it.**
+Account `164e0692` (behind the only live workspace) is at **balance 0, topup 11**. Every agent seat
+halts before it starts. Where the 750-credit monthly grant went, since the 2026-08-22 anchor:
+**302 runs, 7.65M tokens, $1.97 in three days, and not one track finished.** Almost all of it was
+spent on tracks searching an index that held no evidence and being judged by a driver that called a
+working station empty. **Both are fixed now, so the next credits buy a materially different run.**
+
+**2. One approval at Ship — your acceptance and your governance floor contradict each other.**
+Traced end to end: with the default arc **every** station's filing tool resolves to `auto`.
+`release.publish` is the single exception, pinned to `review`, and `nextRampMode` returns null for it
+so it can never graduate. Your own comment says why: *"the only gate in the seven-station loop, which
+is what makes the autonomy of the other six defensible instead of reckless."* The acceptance says
+*no human touching it mid-run*. **Six of seven stations are provable; the seventh is not** until you
+pick one of three options, written out on the OPEN list in `RULINGS.md`. Ledger **F-18**.
+
+## The five defects, and how they were found
+
+**Three of the five came from watching a live run, not from reading code — and reading the code had
+already missed all three, repeatedly, for weeks.**
+
+- **F-14 · the clock split the crew and the driver called the station empty.** `5d0780bdb`. Decide
+  filed three decisions on 2026-08-24 and was given up on for filing nothing: its producing seat ran
+  in one tick, its checking seat in the next, and the finishing tick judged the station on its own
+  harvest. **Every strategist run exceeded the 45s deadline by itself, so that crew could never once
+  have advanced.** 23 of 59 tracks sat on `out-of-time`.
+- **F-19 · the search index stored the QUESTIONS, never the answers.** `388900039`. `rag_chunks`
+  holds **17 rows, one embedded**, and every one is a prompt somebody typed — *"sso"*, *"can we add
+  the dark mode to the app?"*. **Zero signals, ever.** So Discover's first tool could not return
+  evidence sitting in the table. 72 signals exist in that workspace and **52 are the agents' own
+  notes saying they found nothing** — the loop indexing its own emptiness back into itself. **The
+  agents were right every time; the tool was blind.**
+- **F-20 · dead work held every slot in the sweep.** `c61aa55fc`. Five `given-up` tracks took all
+  five slots; the one live track was not driven at all and the tick reported `ok` in 500ms.
+- **F-21 · a halted run was charged as a station that failed.** `ea69d62e4`. A 2026-08-02 fix that
+  rotted: the loop stopped throwing on credit exhaustion and started halting, and the driver never
+  read the new channel.
+- **F-15 · starting a track from one sentence had never once worked.** `3eb8d0f48`. `workspace_id`
+  is NOT NULL with a default; the code sent an explicit null, so **Postgres refused the row**. 58 of
+  59 tracks came from the promotion sweep and the 59th is the seed row. **This corrects F-05 rather
+  than confirming it** — the sweep-drop consequence F-05 described was unreachable.
+
+Also: **F-16** the track spend ceiling was off in all 21 workspaces (backfilled, 21/21 at 5.00);
+**F-17** a migration sat in the repo, absent from the ledger, never applied.
+
+## Rulings I took on your behalf, all reversible
+
+**R-22** an unset ceiling is the default, never "unlimited" — generalised, because the file that got
+it wrong had the correct principle written three paragraphs above the line that broke it.
+**R-23** a function that lands without a door is not finished (six instances in three days).
+**R-24** a mission happens INSIDE a track; the mission/track question contained a false choice and
+was answered by whoever wrote the Build ternary and never written down. **Unblocks item 16.**
+**R-25** the forecast is written at Decide, so a route without Decide has no moat. Landed on two
+shapes; refused on `interface-change`, where it would have broken the shape outright.
+
+## Both lanes
+
+**Every request answered, nothing waiting on me.** LANE 1's REQ-1 was already shipped 40 minutes
+before they filed it — **and their unit file records a known gap that is actually a blocker**, so
+that needs correcting. REQ-2 granted on principle and refused as written (three lines would have been
+inert: `validateRoute` requires the entry to be on the path, not first). Both Meridian primitives
+promoted as `PickCard` / `Composer`; **the review caught a real regression** — `leading-[1.4]` is the
+value Meridian deliberately replaced, on the post-auth landing.
+
+## What is NOT done, stated plainly
+
+**The acceptance is not met and no part of it is met.** Zero of seven stations completed on the
+Round 2 track (`cf1ba785`). It reached `needs-evidence` at attempts 3 and stopped. Nothing in this
+session should be read as partial credit toward the six criteria.
+
+## For whoever picks this up
+
+- **Read `the-first-run/EXPERIMENT-first-finish.md` first.** Both rounds, with the SQL behind every
+  number.
+- **The database is UTC and this box is IST.** It nearly reversed the Round 1 finding: `driven_at
+  22:50` looked like yesterday and was four minutes ago. **Stamp `now()` into every query.**
+- **The "12 pre-existing test failures" is a dead number.** main is 0 fail. Anyone quoting the 12 is
+  quoting something that was repaired and outlived its repair.
+- **Lovable deploys itself from GitHub** and moved through eight commits tonight unattended. It runs
+  a few minutes behind. **Read the sha back before believing a fix is live.**
