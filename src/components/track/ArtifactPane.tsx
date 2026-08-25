@@ -4,12 +4,9 @@
  * WHY THIS IS NOT `TrackChain` IN ANOTHER HAT. The chain answers *what was
  * filed*; this answers *what the work is*. The distinction is the whole right
  * pane of the design ruling (DESIGN-DIRECTION §1): a spec rendered as a spec,
- * not as a row saying a spec exists. It is built per SPEC-ARTIFACTS.md, whose
- * §0.2 is blunt that the chain alone cannot serve it -- and whose §5 names the
- * one read that makes a body possible today: `getPrd` is id-keyed and returns
- * the whole row. Every other station's body waits on MAIN's `getTrackArtifacts`
- * (filed as requests/L0-021); until it lands those stations render their honest
- * state and their filed titles, and claim nothing about a body they cannot read.
+ * not as a row saying a spec exists. Bodies come from `getTrackArtifacts`
+ * (SPEC-ARTIFACTS §1, in main as of RL0-021); Plan keeps `getPrd`, whose full
+ * row is what its edit action writes back.
  *
  * THE FOUR STATES ARE DERIVED, NEVER GUESSED (SPEC-ARTIFACTS §2). Not-run,
  * ran-and-filed-nothing, produced, and waived each come from chain rows --
@@ -26,12 +23,19 @@ import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { getTrackChain } from "@/lib/spine/track.functions";
+import {
+  getTrackArtifacts,
+  getTrackChain,
+  type ArtifactView,
+  type StationArtifactView,
+} from "@/lib/spine/track.functions";
 import { getPrd, savePrd } from "@/lib/discovery.functions";
+import { setDecisionForecast, updateDecision } from "@/lib/decisions.functions";
 import type { ChainMember, ChainStop } from "@/lib/spine/chain";
 import { wordFor } from "@/lib/spine/chain";
 import { STATION_ARTIFACT } from "@/lib/spine/attach";
 import { relativeTime } from "@/lib/memory-view";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
 import {
   Action,
   Reading,
@@ -42,6 +46,7 @@ import {
 } from "@/components/meridian/surface-parts";
 import { Row } from "@/components/meridian/rows";
 import { Prose } from "@/components/meridian/Prose";
+import { RunNote } from "@/components/meridian/run-rows";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { Field, Input, Textarea } from "@/components/meridian/forms";
 import { TabPanel, Tabs } from "@/components/meridian/Tabs";
@@ -190,22 +195,324 @@ function PlanSpec({ prdId }: { prdId: string }) {
 }
 
 /*
+ * ── THE DECIDE CARD ────────────────────────────────────────────────────────
+ * The call, what it rejected, and what it expects to happen (SPEC-ARTIFACTS
+ * §4). The forecast block is the moat rendered: what was believed, how we will
+ * know, when it falls due -- and, while nothing has graded it, the honest word
+ * for that state instead of a placeholder. "Who believed it" always renders,
+ * because every live forecast so far is agent-authored and a person reading
+ * "what we believed" is entitled to know which of us did.
+ */
+function str(v: unknown): string | null {
+  return typeof v === "string" && v.length > 0 ? v : null;
+}
+
+function num(v: unknown): number | null {
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
+function DecisionCard({ item }: { item: ArtifactView }) {
+  const f = item.fields;
+  const status = str(f.status);
+  const rationale = str(f.rationale);
+  const alternatives = Array.isArray(f.alternatives_considered)
+    ? f.alternatives_considered.filter((a): a is string => typeof a === "string")
+    : [];
+  const claim = str(f.forecast_claim);
+  const know = str(f.forecast_how_we_will_know);
+  const horizon = str(f.forecast_horizon_date);
+  const resolution = str(f.forecast_resolution);
+  const resolutionRationale = str(f.forecast_resolution_rationale);
+  const bySlug = str(f.decided_by_agent_slug);
+  const deferred = num(f.forecast_deferred_count);
+
+  // The horizon as a calendar day; the schema wants an instant, the reader
+  // wants a day.
+  const horizonDay = horizon ? horizon.slice(0, 10) : null;
+  const horizonPast = horizon ? Date.parse(horizon) < Date.now() : false;
+  const daysPast =
+    horizonPast && horizon
+      ? Math.max(1, Math.round((Date.now() - Date.parse(horizon)) / 86_400_000))
+      : 0;
+
+  return (
+    <div className="flex flex-col gap-mrd-4">
+      <div className="flex flex-wrap items-center gap-mrd-3">
+        {status === "pending" ? (
+          <StatusChip status="you">Waiting on you</StatusChip>
+        ) : status === "approved" ? (
+          <StatusChip status="pass">Approved</StatusChip>
+        ) : status === "rejected" ? (
+          <StatusChip status="fail">Rejected</StatusChip>
+        ) : null}
+        <span className="mrd-meta">{relativeTime(item.createdAt, Date.now())}</span>
+      </div>
+
+      {rationale ? <Prose markdown={false}>{rationale}</Prose> : null}
+
+      {/* The field that makes a decision a decision. Rendered only from an
+          array of strings; anything else in the Json column renders nothing
+          rather than being coerced (SPEC-ARTIFACTS §4(2)). */}
+      {alternatives.length > 0 ? (
+        <div className="flex flex-col gap-mrd-2">
+          <span className="mrd-eyebrow">Rejected</span>
+          {alternatives.map((a) => (
+            <Row key={a} tight lead={a} />
+          ))}
+        </div>
+      ) : null}
+
+      <div className="flex flex-col gap-mrd-2 rounded-mrd-chip bg-mrd-sink p-mrd-4">
+        <span className="mrd-eyebrow">What we expect to happen</span>
+        {claim ? (
+          <>
+            <RunNote>{claim}</RunNote>
+            {know ? (
+              <span className="text-mrd-small text-mrd-mute">How we will know: {know}</span>
+            ) : null}
+            {horizonDay ? (
+              <span className="text-mrd-small text-mrd-mute">Due {horizonDay}</span>
+            ) : null}
+            {/* THE UNGRADED STATE IS THE DESIGN, NOT A GAP. Which nothing it
+                is depends on the clock, and both are said plainly. */}
+            {!resolution && horizon ? (
+              horizonPast ? (
+                <span className="font-medium text-mrd-body">
+                  Due {daysPast} {daysPast === 1 ? "day" : "days"} ago, not graded.
+                </span>
+              ) : (
+                <span className="text-mrd-small text-mrd-mute">Not due yet.</span>
+              )
+            ) : null}
+            {resolution ? (
+              <span className="flex items-center gap-mrd-3">
+                <StatusChip
+                  status={resolution === "hit" ? "pass" : resolution === "miss" ? "fail" : "hold"}
+                >
+                  {resolution}
+                </StatusChip>
+                {resolutionRationale ? (
+                  <span className="min-w-0 text-mrd-small text-mrd-mute">
+                    {resolutionRationale}
+                  </span>
+                ) : null}
+              </span>
+            ) : null}
+            {deferred !== null && deferred > 0 ? (
+              <span className="text-mrd-small text-mrd-mute">
+                Check pushed back {deferred} {deferred === 1 ? "time" : "times"}.
+              </span>
+            ) : null}
+            <span className="mrd-meta">
+              {bySlug ? `Recorded by the ${agentDisplayName(bySlug)} agent` : "Recorded by you"}
+            </span>
+          </>
+        ) : (
+          <ForecastForm decisionId={item.artifactId} />
+        )}
+      </div>
+
+      {/* The gate action on the call itself: unblocking it is a real approval,
+          refusing it is a real rejection. Nothing here merely shows. */}
+      {status === "pending" ? <DecisionVerdict decisionId={item.artifactId} /> : null}
+    </div>
+  );
+}
+
+/*
+ * SAY WHAT YOU EXPECT. Write-once, enforced by the server and the database;
+ * the form says so BEFORE the press, because a field you cannot edit later is
+ * exactly the thing to know going in. This control is the only thing that can
+ * move the human-authored forecast count off zero.
+ */
+function ForecastForm({ decisionId }: { decisionId: string }) {
+  const fSet = useServerFn(setDecisionForecast);
+  const qc = useQueryClient();
+  const [claim, setClaim] = React.useState("");
+  const [know, setKnow] = React.useState("");
+  const [day, setDay] = React.useState("");
+  const [problem, setProblem] = React.useState<string | null>(null);
+
+  const save = useMutation({
+    mutationFn: () =>
+      fSet({
+        data: {
+          decisionId,
+          forecast_claim: claim.trim(),
+          forecast_how_we_will_know: know.trim(),
+          // A date input gives a day, not an instant; midday UTC is the
+          // stated convention, not a fabricated precision.
+          forecast_horizon_date: `${day}T12:00:00Z`,
+        },
+      }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["track-artifacts"] });
+      setProblem(null);
+    },
+    onError: (e: Error) => setProblem(e.message),
+  });
+
+  const ready =
+    claim.trim().length > 0 && know.trim().length > 0 && /^\d{4}-\d{2}-\d{2}$/.test(day);
+
+  return (
+    <div className="flex flex-col gap-mrd-3">
+      <Field label="What do you expect to happen?" htmlFor={`fc-claim-${decisionId}`}>
+        <Textarea
+          id={`fc-claim-${decisionId}`}
+          rows={2}
+          value={claim}
+          onChange={(e) => setClaim(e.currentTarget.value)}
+          placeholder="Supports answer questions on their first try without escalation"
+        />
+      </Field>
+      <Field label="How will we know?" htmlFor={`fc-know-${decisionId}`}>
+        <Input
+          id={`fc-know-${decisionId}`}
+          value={know}
+          onChange={(e) => setKnow(e.currentTarget.value)}
+          placeholder="Escalation rate for this intent drops below 10%"
+        />
+      </Field>
+      <Field label="Due by" htmlFor={`fc-day-${decisionId}`}>
+        <Input
+          id={`fc-day-${decisionId}`}
+          type="date"
+          value={day}
+          onChange={(e) => setDay(e.currentTarget.value)}
+        />
+      </Field>
+      <span className="mrd-meta">Once recorded this cannot be edited.</span>
+      <div>
+        <Action
+          variant="primary"
+          busy={save.isPending}
+          disabled={!ready || save.isPending}
+          onClick={() => save.mutate()}
+        >
+          {save.isPending ? "Recording" : "Record the forecast"}
+        </Action>
+      </div>
+      {problem ? <RecordSpeaks>{problem}</RecordSpeaks> : null}
+    </div>
+  );
+}
+
+/** Approve or refuse the call itself. Both write; neither merely shows. */
+function DecisionVerdict({ decisionId }: { decisionId: string }) {
+  const fUpdate = useServerFn(updateDecision);
+  const qc = useQueryClient();
+  const save = useMutation({
+    mutationFn: (status: "approved" | "rejected") => fUpdate({ data: { id: decisionId, status } }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["track-artifacts"] }),
+  });
+
+  return (
+    <div className="flex items-center gap-mrd-3">
+      <Action variant="primary" busy={save.isPending} onClick={() => save.mutate("approved")}>
+        Approve the call
+      </Action>
+      <Action busy={save.isPending} onClick={() => save.mutate("rejected")}>
+        Reject it
+      </Action>
+    </div>
+  );
+}
+
+/*
+ * ── DISCOVER'S TWO ARTIFACTS ────────────────────────────────────────────────
+ * Signals as they landed, clusters as they formed. Read-only in this slice:
+ * their inline actions are the next unit, so nothing here pretends at a
+ * control it does not have yet.
+ */
+function SignalCard({ item, now }: { item: ArtifactView; now: number }) {
+  const f = item.fields;
+  const content = str(f.content);
+  const source = str(f.source);
+  const sourceKind = str(f.source_kind);
+  const url = str(f.url);
+  const themeId = str(f.theme_id);
+
+  return (
+    <div className="flex flex-col gap-mrd-2 border-b border-mrd-line-soft pb-mrd-3 last:border-0">
+      <span className="text-mrd-label font-medium leading-mrd-snug text-mrd-ink">
+        {item.title ?? (content ? content.slice(0, 120) : item.word)}
+      </span>
+      {content ? <Prose markdown={false}>{content}</Prose> : null}
+      <span className="mrd-meta">
+        {[
+          source,
+          sourceKind ?? "unknown",
+          relativeTime(item.createdAt, now),
+          themeId ? "clustered" : "",
+        ]
+          .filter(Boolean)
+          .join(" · ")}
+      </span>
+      {url ? (
+        <a
+          href={url}
+          target="_blank"
+          rel="noreferrer"
+          className="text-mrd-small font-medium text-mrd-you underline underline-offset-2"
+        >
+          Open the source
+        </a>
+      ) : null}
+    </div>
+  );
+}
+
+function ThemeCard({ item }: { item: ArtifactView }) {
+  const f = item.fields;
+  const summary = str(f.summary);
+  const status = str(f.status);
+  const statusReason = str(f.status_reason);
+  const frequency = num(f.frequency);
+  const severity = num(f.severity);
+  const confidence = num(f.confidence);
+
+  return (
+    <div className="flex flex-col gap-mrd-2 border-b border-mrd-line-soft pb-mrd-3 last:border-0">
+      <span className="text-mrd-label font-medium leading-mrd-snug text-mrd-ink">
+        {item.title ?? item.word}
+      </span>
+      {summary ? <Prose markdown={false}>{summary}</Prose> : null}
+      <span className="mrd-meta">
+        {[
+          frequency !== null ? `${frequency} signals` : "",
+          severity !== null ? `severity ${severity}` : "",
+          confidence !== null ? `confidence ${confidence}` : "",
+        ]
+          .filter(Boolean)
+          .join(" · ")}
+      </span>
+      {status === "dismissed" ? (
+        <span className="text-mrd-small text-mrd-mute">
+          Dismissed{statusReason ? `: ${statusReason}` : ""}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+/*
  * One station's panel. Four states, derived per SPEC-ARTIFACTS §2, branching on
  * rows and counts only -- never on hold prose (§11.5).
  */
 function StationPanel({
   stop,
+  view,
   everDriven,
   hold,
   now,
 }: {
   stop: ChainStop;
+  view?: StationArtifactView;
   everDriven: boolean;
   hold: string | null;
   now: number;
 }) {
-  const primary = stop.members.find((m) => m.kind === "prd") ?? stop.members[0];
-
   if (stop.state === "waived") {
     // The person's own words for why this station is off the route. Never an
     // empty pane (SPEC-ARTIFACTS §2).
@@ -233,22 +540,77 @@ function StationPanel({
     );
   }
 
+  /*
+   * BODIES WHERE THE READ EXISTS. The artifacts read and the chain derive
+   * position from the same builder, so they cannot disagree about what exists.
+   * While the artifacts read is in flight the member titles render; a kind
+   * with no body renderer keeps its title line rather than pretending.
+   */
+  const items = view?.items;
+  const primaryItem =
+    items?.find((it) => it.kind === view?.expects.kind && !it.missing) ??
+    items?.find((it) => !it.missing);
+
+  const bodyFor = (item: ArtifactView) => {
+    switch (item.kind) {
+      case "decision":
+        return <DecisionCard item={item} />;
+      case "signal":
+        return <SignalCard item={item} now={now} />;
+      case "theme":
+        return <ThemeCard item={item} />;
+      case "prd":
+        return <PlanSpec prdId={item.artifactId} />;
+      default:
+        return null;
+    }
+  };
+
+  if (items) {
+    return (
+      <div className="flex flex-col gap-mrd-4">
+        {primaryItem ? bodyFor(primaryItem) : null}
+        {items.map((item) => {
+          if (primaryItem && item.artifactId === primaryItem.artifactId && bodyFor(primaryItem)) {
+            return null;
+          }
+          if (!primaryItem && item.kind === "prd" && !item.missing) {
+            return null;
+          }
+          return (
+            <MemberLine key={`${item.kind}:${item.artifactId}`} m={toMemberLine(item)} now={now} />
+          );
+        })}
+      </div>
+    );
+  }
+
+  // Artifacts read not back yet: titles only, from the chain.
+  const primaryMember = stop.members.find((m) => m.kind === "prd" && !m.missing);
+
   return (
     <div className="flex flex-col gap-mrd-3">
-      {primary?.kind === "prd" && !primary.missing ? <PlanSpec prdId={primary.artifactId} /> : null}
-      {/*
-       * EVERY MEMBER, INCLUDING BESIDES THE PRIMARY BODY. Until MAIN's
-       * `getTrackArtifacts` lands, kinds without an id-keyed body read render
-       * their titles honestly rather than pretending at a preview. A missing
-       * row keeps its settled-negative line (chain.ts:34-38).
-       */}
+      {primaryMember ? <PlanSpec prdId={primaryMember.artifactId} /> : null}
       {stop.members.map((m) =>
-        m.kind === "prd" && !m.missing ? null : (
+        m === primaryMember || (m.kind === "prd" && !m.missing) ? null : (
           <MemberLine key={`${m.kind}:${m.artifactId}`} m={m} now={now} />
         ),
       )}
     </div>
   );
+}
+
+/** Same shape, one field fewer -- enough for the title line. */
+function toMemberLine(item: ArtifactView): ChainMember {
+  return {
+    kind: item.kind,
+    word: item.word,
+    artifactId: item.artifactId,
+    station: "",
+    createdAt: item.createdAt,
+    title: item.title,
+    missing: item.missing,
+  };
 }
 
 function MemberLine({ m, now }: { m: ChainMember; now: number }) {
@@ -267,12 +629,18 @@ function MemberLine({ m, now }: { m: ChainMember; now: number }) {
 
 export function ArtifactPane({ trackId }: { trackId: string }) {
   const fChain = useServerFn(getTrackChain);
+  const fArtifacts = useServerFn(getTrackArtifacts);
   const q = useQuery({
     queryKey: ["spine-track-chain", trackId],
     queryFn: () => fChain({ data: { trackId } }),
     // Same beat as the transcript, on the SAME cache entry TrackChain reads:
     // one poll drives both views, and a walk that files something changes the
     // pane within ten seconds without a refresh.
+    refetchInterval: 10_000,
+  });
+  const bodies = useQuery({
+    queryKey: ["track-artifacts", trackId],
+    queryFn: () => fArtifacts({ data: { trackId } }),
     refetchInterval: 10_000,
   });
 
@@ -320,6 +688,7 @@ export function ArtifactPane({ trackId }: { trackId: string }) {
       <TabPanel group={`artifact-pane-${trackId}`} active={current}>
         <StationPanel
           stop={shown}
+          view={bodies.data?.stops.find((s) => s.station === shown.station)}
           everDriven={track.drivenAt !== null}
           hold={track.hold}
           now={now}
