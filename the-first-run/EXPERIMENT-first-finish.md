@@ -647,3 +647,28 @@ because the resuming seat happened to file; this one does, because it did not.
 | `define` | running | — |
 
 $0.0496 spent. **No human has touched this track since it was created at 00:47:14.**
+
+
+### A prediction recorded before the next tick, because that is the discipline this product sells
+
+**Decide's answer was DEFER** — *"Defer dark mode until telemetry is restored"* — and the route sends
+the work straight on to `define`, whose job is to write the spec. **Nothing in the route model reads
+the CONTENT of a decision.** `STATION_NEEDS.define` asks only that a `decision` row exists; it cannot
+ask whether the decision said yes.
+
+**So Plan is about to be told to write a spec for work that Decide just declined to do.** I do not
+know which way it goes, so here is the forecast, before the tick, with the observable:
+
+| Outcome | What it would mean |
+| --- | --- |
+| It writes a spec anyway | **The loop does not honour its own decisions.** A route that marches past a "no" is recording a decision it then ignores, which is worse than not deciding |
+| It refuses and files nothing | Honest, and the track holds `produced-nothing` → `needs-…`. **The stall is correct and the ROUTE is what is wrong** |
+| It writes a spec for *restoring telemetry* | The agent quietly re-scopes the work to what the decision actually implied. Reasonable, and it means the track's title now lies about what it is |
+
+**How we will know:** `spine_track_members` gains a `prd` at `define` or it does not, and if it does,
+`prds.body_md` either specs dark mode or specs telemetry.
+
+**This was flagged in Round 1 and never fixed:** *"the spine has no representation for 'the decision
+was NO'."* `f9e41393` declined three times and the driver treated each decline as a failure to
+advance. This run reaches the same question from the other side — a decision that landed cleanly and
+said "not yet".
