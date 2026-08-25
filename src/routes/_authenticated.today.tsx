@@ -1598,6 +1598,19 @@ function Today() {
                 )}
               </div>
             ) : null}
+
+            {/* THE INBOX DOOR. This card shows three rows per section and opens
+                the rest in place; the inbox is the same triage with no cap and
+                nothing but the triage on it. Until 2026-08-25 the route answered
+                and nothing pointed at it - a surface with no door, this repo's
+                most common defect. The door rides under the feed it extends,
+                where the reader who needs it already is. */}
+            <Door
+              title="The full list of what needs you, uncapped"
+              onClick={() => navigate({ to: "/inbox" })}
+            >
+              Open the inbox
+            </Door>
           </Region>
         </div>
 

@@ -178,7 +178,10 @@ export const LEGACY_REDIRECTS: Record<string, RedirectTarget> = {
 
   // -- Today --
   "/tasks": { to: "/today" },
-  "/inbox": { to: "/today" },
+  // /inbox left this map on 2026-08-25: it is a real route now
+  // (_authenticated.inbox.tsx, AgentInbox on real reads), so a redirect here
+  // would bounce a live surface. This file's map is also imported by nothing
+  // at runtime; the tests pin it as documentation.
   "/chat": { to: "/today" }, // Ask is the Cmd+J panel now (OBS-12), not a page.
 
   // -- Engine Room (canonical /engine-room; /govern folded 2026-07-04, LOOM W2) --
