@@ -28,3 +28,4 @@
 | L1 | — | (Queue 54 claim removed: shipped as unit 076, verification filed `requests/076-verify-queue54.md`) | 2026-08-25 12:0x |
 | L0 | — | (Queue 65 claim released: shipped `7fa621e8f`, unit L0-080) | 2026-08-25 12:5x |
 | B | `src/lib/spine/driver.ts` (builder brief), `src/lib/ai/tools/registry.server.ts` (`repo.search` description) | F-58: an empty `repo.search` is not evidence the code is absent | 2026-08-25 18:0x |
+| L0 | `src/components/spine/TrackStart.tsx` | Item 4's split half: optional `onCreated` so the HOST route decides landing; /plan's inline reveal stays default | 2026-08-25 13:3x |
