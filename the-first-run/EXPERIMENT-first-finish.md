@@ -952,3 +952,42 @@ nothing to build, ship or grade. Round 4 uses work this workspace holds real evi
 **What is NOT being done to help it:** no seeding, no priming, no second attempt at a station, no
 deploy mid-flight, and no reset if it stalls. **If it stops, that is the result**, exactly as Round 3
 stopping at Design was the result.
+
+
+### The run
+
+```sql
+INSERT INTO spine_tracks (user_id, workspace_id, title, origin, entry_station, station, path, waived)
+VALUES ('22a73000-…', '0b792d52-…',
+        'Make an unopened notification setting mean one thing instead of four',
+        'An internal audit on 2026-08-22 found that sixteen users hold one notification preferences
+         row between them, and an absent row reads as all channels on to the settings pane, as on to
+         the in-app feed and instant mail, and as not scanned at all to the digest job. Fifteen
+         people are told four things can interrupt them while none can.',
+        'sense', 'sense', '["sense","decide","define","design","build","ship","learn"]', '[]');
+-- 8391835f-0999-472e-8886-0e82fee06a02 · created 2026-08-25 02:42:30 UTC · driven_at NULL
+```
+
+**Verified before starting, because "one build" is a claim and not a hope:**
+
+```
+latest_screenshot_url -> id-preview-31dd14bd--…      the BUILT commit
+latest_commit_sha     -> 31dd14bdbc1e55c3843…       agrees for once
+```
+
+Both signals name the commit carrying the F-30 fix. `latest_commit_sha` went **backwards** earlier
+tonight and is not ordered, so the screenshot's embedded commit is the one that was waited on.
+
+**And the sweep is this track's alone:**
+
+```sql
+SELECT left(id::text,8), station, last_hold, attempts FROM spine_tracks
+ WHERE status='open' AND workspace_id NOT IN (SELECT id FROM workspaces WHERE is_sample);
+-- c9b1aeb9 decide given-up 3 · b8a36b6f decide given-up 3 · ad8c2a5d design given-up 3
+-- c4b12e7c design given-up 3 · f9e41393 decide given-up 3
+```
+
+All five are `given-up`, which **F-20 excludes from the sweep** — so a fix from earlier tonight is
+what makes this round's isolation real rather than asserted.
+
+**From here nothing is touched.**
