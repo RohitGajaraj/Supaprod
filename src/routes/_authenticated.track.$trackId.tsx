@@ -128,7 +128,13 @@ function RunHeader({ track }: { track: Track }) {
           Now: {stationName}.{" "}
           {nextName ? <>Next: {nextName}.</> : <>Nothing further on this route.</>}
         </p>
-        {track.origin ? <p className="mrd-meta mt-mrd-1 text-mrd-faint">{track.origin}</p> : null}
+        {/* Clamped to two lines: some origins are whole paragraphs (a
+            clustered brief with counts), and an unbounded mono block under the
+            title competed with the status for first read. The full text lives
+            on the row; the header only says where this came from. */}
+        {track.origin ? (
+          <p className="mrd-meta mt-mrd-1 line-clamp-2 text-mrd-faint">{track.origin}</p>
+        ) : null}
       </div>
       <div className="flex flex-col items-end gap-mrd-1">
         {/* The override word rides as children: StatusChip's contract is "more
