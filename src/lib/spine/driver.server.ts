@@ -634,6 +634,57 @@ async function linkSpecToMissionOrThrow(
 }
 
 /**
+ * The branch this track's work is on, or null. F-54.
+ *
+ * MEASURED LIVE ON `48eee889` AT 09:32:44 UTC, which is the only reason this
+ * exists. `builder` committed 449 lines to `studio/01306607-acd0f5b0c46f` and
+ * opened PR #3. `qa` then ran `repo.tree` and `repo.search` and reported:
+ *
+ *   "No notification digest implementation was found in the repository. The repo
+ *    tree shows only checkout-related files in the src directory."
+ *
+ * True about the branch it read; false about the work. `repo.tree`'s `ref` is
+ * optional and falls back to `getDefaultBranch(repo, headers)` — right for "what
+ * is in this project", wrong for "check what was just built" — and nothing told
+ * the seat a branch existed. **The checking seat has never once been able to see
+ * the work it exists to check.**
+ *
+ * READ THROUGH THE MISSION, because that is the link that exists. `studio.stage`
+ * writes the changeset against `mission_id`, and the driver already holds that id
+ * at Build. Newest first, since `studio.commit` may append to a changeset across
+ * several ticks and the branch is the same either way — but a superseded
+ * changeset on the same mission would carry an older one.
+ *
+ * NULL IS THE ORDINARY CASE, not a failure: on the first Build tick nothing has
+ * been staged yet, so there is no branch to name and the brief simply does not
+ * mention one. Only when a branch exists does the instruction appear.
+ */
+async function openBranchForTrack(
+  supabase: SupabaseClient,
+  missionId: string | null,
+): Promise<string | null> {
+  if (!missionId) return null;
+  try {
+    const { data } = await supabase
+      .from("studio_changesets")
+      .select("branch")
+      .eq("mission_id", missionId)
+      .not("branch", "is", null)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    return (data as { branch?: string | null } | null)?.branch ?? null;
+  } catch (e) {
+    // Reported, never guessed. A missing branch costs the seat the ref and it
+    // reads the default — today's behaviour — rather than being handed a wrong one.
+    console.error(
+      `spine branch for mission ${missionId} failed: ${e instanceof Error ? e.message : String(e)}`,
+    );
+    return null;
+  }
+}
+
+/**
  * The mission this track builds under, created once and then reused.
  *
  * WHY BUILD NEEDS ONE AT ALL. `studio.stage` is the only registered tool that
@@ -1395,6 +1446,8 @@ export async function driveTrackOnce(
       // being shown, so the brief can never name a spec the agent was not given,
       // and it grows as the crew files.
       const specId = newestSpecId(brief);
+      // F-54. Only Build reads a repo tree, so only Build is asked.
+      const workBranch = station === "build" ? await openBranchForTrack(supabase, missionId) : null;
 
       const result = await runAgentLoop(supabase, row.user_id, {
         agentSlug: seat.slug,
@@ -1405,6 +1458,7 @@ export async function driveTrackOnce(
           seat,
           backNote,
           specId,
+          workBranch,
         ),
         workspaceId: row.workspace_id,
         missionId,

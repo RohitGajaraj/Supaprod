@@ -643,6 +643,35 @@ export function stationGoal(
    * calls it — and so a caller that knows better can name a different spec.
    */
   specId: string | null = null,
+  /**
+   * The branch this track's work is actually on, named so the checking seat can
+   * read it.
+   *
+   * F-54, MEASURED LIVE ON `48eee889` AT 09:32:44 UTC. `builder` committed 449
+   * lines to `studio/01306607-acd0f5b0c46f` and opened PR #3. `qa` then ran
+   * `repo.tree` and `repo.search` and reported, in its own words:
+   *
+   *   "No notification digest implementation was found in the repository. The
+   *    repo tree shows only checkout-related files in the src directory... there
+   *    is no code to verify against the spec at this time."
+   *
+   * **Every word of that is true about the branch it read and false about the
+   * work.** `repo.tree` takes an optional `ref` and defaults to
+   * `getDefaultBranch(repo, headers)`, which is correct for the general question
+   * "what is in this project" and exactly wrong for "check what was just built".
+   * Nothing anywhere told the seat that a branch existed, so the checking seat
+   * structurally could not see the work it exists to check — **on any track, on
+   * any repo, ever.**
+   *
+   * NAMED RATHER THAN DESCRIBED, on `specId`'s precedent three lines up: an agent
+   * told to go and find an argument is an agent that spends steps finding it.
+   *
+   * BUILD ONLY, deliberately. Sense through Design have no repo to read, and Ship
+   * works from the changeset and the merge rather than from a tree. A branch named
+   * where it is not needed is one more sentence competing with the instruction
+   * that matters.
+   */
+  branch: string | null = null,
 ): string {
   const { subject, note: reScoped } = stationSubject(track, upstream);
   /**
@@ -676,7 +705,15 @@ export function stationGoal(
       ? `\n\nThe spec this work was written against is ${specId}. Pass exactly that as \`prd_id\`.`
       : "";
 
-  return `${stationJob(station, subject)}${reScoped}${mine}${prior}${back}\n\n${file}${named}`;
+  // F-54. Sits with the filing instruction because it is an instruction about
+  // HOW to do the work rather than context for it: without the ref, every read
+  // this station makes answers a question about the default branch.
+  const onBranch =
+    station === "build" && branch
+      ? `\n\nThe work on this track is on branch \`${branch}\`, not on the default branch. Pass \`ref: "${branch}"\` to repo.tree, repo.read and repo.search, or you will be reading a copy of the project that does not contain it.`
+      : "";
+
+  return `${stationJob(station, subject)}${reScoped}${mine}${prior}${back}\n\n${file}${named}${onBranch}`;
 }
 
 const FILE_IT: Record<AgentStation, string> = {
