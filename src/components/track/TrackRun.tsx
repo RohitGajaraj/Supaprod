@@ -84,7 +84,7 @@ function summaryText(input: {
   url: string;
 }): string {
   const lines: string[] = [];
-  lines.push(`${input.title} — a Supaprod run`);
+  lines.push(`${input.title} (a Supaprod run)`);
   lines.push(`Where it is: ${input.stationName}`);
   if (input.hold) lines.push(`Why it is stopped: ${input.hold}`);
   const walked = input.stops.filter((s) => s.nouns.length > 0);
