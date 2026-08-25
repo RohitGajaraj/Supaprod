@@ -1195,8 +1195,7 @@ export type ToolStepLike = {
  * one place, never spelled twice (see repoRootRefusal in
  * src/lib/ai/tools/registry.server.ts).
  */
-export const REPO_ROOT_ACCESS_REFUSED =
-  "the bound repository is not visible to this connection";
+export const REPO_ROOT_ACCESS_REFUSED = "the bound repository is not visible to this connection";
 
 const REFUSAL_SIGNS: readonly RegExp[] = [
   /\b401\b/,

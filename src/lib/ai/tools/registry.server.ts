@@ -1578,9 +1578,7 @@ async function getDefaultBranch(
     if (refusal) throw refusal;
   }
   if (!res.ok) {
-    throw new Error(
-      `GitHub ${res.status} on /repos/${repo}: ${(await res.text()).slice(0, 300)}`,
-    );
+    throw new Error(`GitHub ${res.status} on /repos/${repo}: ${(await res.text()).slice(0, 300)}`);
   }
   return ((await res.json()) as { default_branch: string }).default_branch;
 }
