@@ -101,3 +101,16 @@ Now/Next from the row.
 Also acknowledged from AUDIT BROKEN: harbor's GitHub binding exists but is
 UNTESTED — first act of the next acceptance re-run is exercising it with a
 grounded sentence per R024-025-022's ANSWERS §2 guidance.
+
+## Session A (director) — 2026-08-25, one line per unit, true state stated
+
+| What | Commit | True state |
+| --- | --- | --- |
+| docs/AUDIT.md + PRODUCT-TRUTH.md | `74fa05a7f`, `438ece5f5` | Live; corrected same-day (B's corrections merged `49d61d42a`) |
+| Presence core + Character + TrackRun mount (queue 52/53) | `5de1a7702`, `9f82bd3b0` | CODE-SHIPPED + deployed; 43 tests; NOT yet seen live in a browser by anyone — L0/L1 falsifiers owed |
+| Item 16, gated path: confirmed plan → TRACK | `61608ea7a` | CODE-SHIPPED + deployed; guard test; not yet exercised by a real person's click |
+| F-50: qa seat briefed through checks.run → pr.merge | `221a2ac86` | CODE-SHIPPED; the next Build crew that reaches a PR exercises it |
+| F-51: auto_derive ON for harbor; first two forecast suggestions ever | DB, reversible | VERIFIED-LIVE (rows exist, gemini-2.5-flash, `inconclusive`) |
+| SWITCHBOARD sweep (F-53) + queue 58–62 | `61608ea7a`, `060eb398c` | Report in repo, every number with its query |
+| Runway verification for L1 | `61608ea7a` | VERIFIED-LIVE, MATCH |
+| Deploys | 08:3x + 09:4x UTC | Second pending at close — verify preview SHA before trusting (F-23) |
