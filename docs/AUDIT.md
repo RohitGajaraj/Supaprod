@@ -30,7 +30,27 @@ Build now briefs `studio.commit` + `studio.pr.open` + `studio.pr.merge` (F-50 FI
 
 **Reachable IF:** Human approves merge at Build's gate. `ci-poll-tick` auto-deploys preview after merge. Track can write to ship station.
 
-**Gate:** `release.publish` is pinned to `review` by founder ruling (correct — production deploy is irreversible). **NO STATION BRIEFS IT.** So publish cannot fire, even if auto is decided later.
+**Gate:** ~~`release.publish` is pinned to `review` by founder ruling (correct — production deploy is irreversible). **NO STATION BRIEFS IT.** So publish cannot fire, even if auto is decided later.~~
+
+> **BOTH HALVES OF THAT ARE FALSE, corrected 2026-08-25 21:5x after verification against the code.**
+> This was the one uncorrected load-bearing error left in this file, and it would have sent someone
+> to fix a problem that does not exist.
+>
+> **"No station briefs it" is wrong, and has been since 2026-08-01.** The Ship brief says
+> *"Call release.publish. A release that is only in your answer did not happen."* — `driver.ts:314`
+> (the release seat) and `driver.ts:907` (the `FILE_IT.ship` fallback). Both were present when this
+> line was written.
+>
+> **"Pinned to review" is wrong as of this morning.** R-27 moved it:
+> `defaults.ts:223` now seeds `release.publish` at **`confirm`**, and `loop.server.ts:156` releases it
+> through the trust arc rather than pinning it. The gate is no longer a click — it is **five
+> preconditions the loop must PROVE**: the changeset is merged, CI was green at that head sha, a
+> live preview exists at that exact commit, the work carries a forecast, and (added today, F-63) the
+> changeset did not edit what CI runs.
+>
+> **Why the error was expensive rather than cosmetic.** It concluded *"publish cannot fire, even if
+> auto is decided later"*, which reads as *brief Ship first*. That is a non-problem. The real open
+> question is F-18 — **who answers the approval when it does fire** — and it is still unmade.
 
 ### Station 7: Learn — Unreachable
 
