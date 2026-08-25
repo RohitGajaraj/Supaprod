@@ -90,7 +90,12 @@ export const TOOL_DEFAULTS: Readonly<
   // THE SEVEN STATIONS' OWN HANDS. Every one of these writes the artifact its
   // station hands to the next, so a tool missing here stops the loop dead.
   // 01 Discover
-  "signals.log": { mode: "confirm", enabled: true, label: "Log a signal" },
+  // F-AUTONOMOUS: signals.log changed to AUTO 2026-08-26. Rationale: logging a
+  // signal is internal record-keeping (not customer-visible), reversible (signals
+  // can be deleted), requires no judgment (agent found the evidence, records it),
+  // and spends no money past the model call the mission cap already bounds.
+  // Blocking it with "confirm" gates the autonomous loop at the first station.
+  "signals.log": { mode: "auto", enabled: true, label: "Log a signal" },
   // GRADUATED TO AUTO 2026-08-03, on evidence rather than taste. Each of these had a
   // PERFECT live record at the time (7 approvals, 0 rejections, 0 expiries) and each
   // passes all four of the governance canon's tests for whether a gate belongs:
