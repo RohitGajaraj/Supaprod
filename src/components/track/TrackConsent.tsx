@@ -48,6 +48,7 @@ import {
 import { expiryDefaultFor, expiryNote } from "@/lib/ai/approval-expiry";
 import { stoppedFor } from "@/components/approvals/stopped-for";
 import { CallGate } from "@/components/approvals/CallGate";
+import { formatExpiryDeadline } from "@/components/track/expiry-deadline";
 import { Action, ReadFailedLine, RecordSpeaks } from "@/components/meridian/surface-parts";
 import { ReasonField } from "@/components/meridian/forms";
 
@@ -199,9 +200,11 @@ export function TrackConsent({
         const c = toolConsequence(g.toolName);
         const drivenBy = assessTool(g.toolName).drivenBy;
         const declared = g.expiryDefault ?? expiryDefaultFor(g.toolName);
-        // expiryNote wants an instant; the epoch ms we hold IS the instant, so
-        // its ISO spelling is a conversion rather than a reconstruction.
         const expiresAtIso = g.expiresAtMs !== null ? new Date(g.expiresAtMs).toISOString() : null;
+        // MAIN's ruling (INBOX answer 6): the sentence carries the friendly
+        // form; the exact instant rides in the title attribute, where
+        // CallGate's own age line already puts it.
+        const expiresAtShown = formatExpiryDeadline(g.expiresAtMs);
         const classCount = g.classPendingElsewhere + 1;
         const approveAllAllowed = declared === "proceed";
         const busy = answeringId === g.approvalId;
@@ -221,7 +224,8 @@ export function TrackConsent({
                 ? ["You set this aside earlier. The run is still stopped."]
                 : []),
             ]}
-            consequence={expiryNote(g.toolName, declared, expiresAtIso)}
+            consequence={expiryNote(g.toolName, declared, expiresAtShown ?? expiresAtIso)}
+            consequenceTitle={expiresAtIso ?? undefined}
           >
             <div className="flex w-full flex-col gap-mrd-3">
               {/* Two verdicts, drawn PlanGate's way: borderless rows, hover

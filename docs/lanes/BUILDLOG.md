@@ -46,9 +46,9 @@
 5. **Graph canvas visual check owed both themes** (L0-061).
 6. **Transcript motion never observed** (L0-041).
 7. **Copy control clipboard permissions untested** (L0-052).
-8. **TrackConsent expiry line prints a raw ISO instant**
-   (`by 2026-08-27T10:11:04.084Z`) — honest but ugly; flagged as polish debt,
-   needs MAIN's preferred date rendering.
+8. **TrackConsent expiry line** — FIXED (L0-076): friendly `Intl.DateTimeFormat`
+   form in the sentence per MAIN's ruling, raw ISO in a `title` attribute.
+   Formatter asserted by test; the rendered sentence itself not re-seen live.
 9. **`expiresAtIso` deviation** (L0-043 §Deviations): I convert epoch→ISO
    client-side rather than adding the field MAIN specified. Unobjected so far;
    still open.

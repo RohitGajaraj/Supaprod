@@ -61,6 +61,7 @@ export function CallGate({
   lines,
   hiddenLineCount = 0,
   consequence,
+  consequenceTitle,
   children,
 }: {
   /** What is being asked, in plain words. Never a mechanism word. */
@@ -77,6 +78,12 @@ export function CallGate({
   hiddenLineCount?: number;
   /** What settling it in the affirmative causes. */
   consequence?: string;
+  /**
+   * The exact record behind the consequence sentence, on hover only -- the
+   * same rule the age line follows: the phrase is what changes behaviour,
+   * the precise instant rides along for anyone who needs it.
+   */
+  consequenceTitle?: string;
   /** The controls. One primary, and only one. */
   children?: ReactNode;
 }) {
@@ -149,7 +156,10 @@ export function CallGate({
           ) : null}
 
           {consequence ? (
-            <p className="mt-mrd-4 border-t border-mrd-line-soft pt-mrd-4 leading-mrd-prose text-mrd-prose text-mrd-body">
+            <p
+              title={consequenceTitle}
+              className="mt-mrd-4 border-t border-mrd-line-soft pt-mrd-4 leading-mrd-prose text-mrd-prose text-mrd-body"
+            >
               {consequence}
             </p>
           ) : null}
