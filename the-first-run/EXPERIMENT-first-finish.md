@@ -558,3 +558,48 @@ it**, because the foreground path is where watching was always going to live.
 This is worth saying plainly: **the loop advancing on real evidence, which happened tonight for the
 first time, is necessary and not sufficient.** The acceptance asks for a run somebody can sit and
 watch without touching, and that is a property of the two bounds above rather than of the stations.
+
+
+### 01:30 — DECIDE RECORDED A FORECAST. This is the moat artifact, produced by the loop.
+
+```sql
+SELECT title, forecast_claim, forecast_how_we_will_know, forecast_horizon_date, forecast_resolution
+  FROM decisions WHERE id = 'ff4d1ec7-e6e6-469c-b11b-081ef86b7e60';
+```
+
+| | |
+| --- | --- |
+| title | **Defer dark mode until telemetry is restored** |
+| claim | *"Within 7 days of restoring Canny telemetry (active scout targets > 0 and ≥10 Canny signals ingested in past 7 days), we will observe ≥3 verbatim dark mode requests in the workspace."* |
+| how we will know | *"`signals.list` with `source_kind='canny'` and `tag='dark-mode'` returns ≥3 signals with non-empty quote field, ingested in last 7 days."* |
+| horizon | **2026-09-01** |
+| resolution | `null` — not yet graded, which is correct: the horizon has not arrived |
+
+**The positioning canon says the moat is the forecast captured at decision time — what a team believed
+would happen, recorded before the outcome was known. That is that artifact, and no human wrote it.**
+
+Two things about it are better than they had to be. **The observable is a QUERY**, not a sentiment:
+"≥3 signals with a non-empty quote field, ingested in the last 7 days" can be checked mechanically on
+2026-09-01 by something that is not an agent. And **the decision is a DEFER**, not a yes — the
+strategist judged one manually-entered request insufficient without corroborating telemetry, said so,
+and bounded the judgment with a date. A loop that only records forecasts when it says yes would be
+recording optimism.
+
+### And immediately, F-14's exact test case, unarranged
+
+```sql
+SELECT station, last_hold, attempts, seat_cursor FROM spine_tracks WHERE id = '897d1834-…';
+-- decide | out-of-time | 0 | 1
+```
+
+The strategist ran **47.2s**, filed the decision, and the tick's deadline closed before `critic`.
+`attempts` stayed 0 — `out-of-time` is ours, not the station's. **`seat_cursor: 1`, so the next tick
+runs `critic`, and `critic` files nothing because checking is its job.**
+
+**That is `f9e41393` exactly**: a decision on the record, a resuming tick that will harvest nothing.
+Under the old code it becomes `produced-nothing`, spends an attempt, and three rounds of it is
+`given-up` — which is how that track died with three decisions filed. Under `didStationProduce` the
+station is judged on what it filed since it arrived, and the track should hand on to `define`.
+
+**Nothing was arranged to produce this. It is the same crew, the same deadline and the same seat
+split that killed the last one.**
