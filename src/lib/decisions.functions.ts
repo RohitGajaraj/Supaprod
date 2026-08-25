@@ -289,48 +289,96 @@ export const getLearningGradeContext = createServerFn({ method: "GET" })
       })
       .parse(input ?? {}),
   )
-  .handler(async ({ context, data }): Promise<{
-    decision: { id: string; title: string } | null;
-    overturns: OutcomeOverturn[];
-  }> => {
-    const { supabase } = context;
-    const { data: lr, error: lrError } = await supabase
-      .from("learnings")
-      .select("decision_id")
-      .eq("id", data.learningId)
-      .maybeSingle();
-    if (lrError) throw new Error(lrError.message);
-    const decisionId = (lr as { decision_id: string | null } | null)?.decision_id ?? null;
-
-    // Absent pieces are ordinary here: most outcomes grade a spec, not a
-    // decision, and most verdicts were never overturned. Null and [] are the
-    // honest shapes for both, never placeholders.
-    let decision: { id: string; title: string } | null = null;
-    if (decisionId) {
-      const { data: d, error } = await supabase
-        .from("decisions")
-        .select("id,title")
-        .eq("id", decisionId)
+  .handler(
+    async ({
+      context,
+      data,
+    }): Promise<{
+      /**
+       * F-65. The bet this verdict settles — now including the FORECAST ITSELF.
+       *
+       * `title` alone answers "which decision", which is a pointer. The three
+       * forecast fields answer "were we right", which is the only question the
+       * brain exists for: the claim as it was written **before the outcome was
+       * known**, the date it comes due, and how it settled.
+       *
+       * Added because `learnings.decision_id` only started being written today
+       * (F-65) — 133 production learnings carry NULL — so until now there was
+       * nothing on the far side of this join to render, and no reason to select
+       * more than a title.
+       */
+      decision: {
+        id: string;
+        title: string;
+        forecastClaim: string | null;
+        forecastHorizonDate: string | null;
+        forecastResolution: string | null;
+      } | null;
+      overturns: OutcomeOverturn[];
+    }> => {
+      const { supabase } = context;
+      const { data: lr, error: lrError } = await supabase
+        .from("learnings")
+        .select("decision_id")
+        .eq("id", data.learningId)
         .maybeSingle();
-      if (error) throw new Error(error.message);
-      decision = (d as { id: string; title: string } | null) ?? null;
-    }
+      if (lrError) throw new Error(lrError.message);
+      const decisionId = (lr as { decision_id: string | null } | null)?.decision_id ?? null;
 
-    let overturns: OutcomeOverturn[] = [];
-    if (data.prdId) {
-      const { data: p, error } = await supabase
-        .from("prds")
-        .select("outcome")
-        .eq("id", data.prdId)
-        .maybeSingle();
-      if (error) throw new Error(error.message);
-      // priorSettlement is the one parser for prds.outcome; reusing it keeps
-      // "what counts as an overturn" single-sourced with SettlePanel.
-      overturns = priorSettlement((p as { outcome: unknown } | null)?.outcome)?.overturns ?? [];
-    }
+      // Absent pieces are ordinary here: most outcomes grade a spec, not a
+      // decision, and most verdicts were never overturned. Null and [] are the
+      // honest shapes for both, never placeholders.
+      let decision: {
+        id: string;
+        title: string;
+        forecastClaim: string | null;
+        forecastHorizonDate: string | null;
+        forecastResolution: string | null;
+      } | null = null;
+      if (decisionId) {
+        const { data: d, error } = await supabase
+          .from("decisions")
+          .select("id,title,forecast_claim,forecast_horizon_date,forecast_resolution")
+          .eq("id", decisionId)
+          .maybeSingle();
+        if (error) throw new Error(error.message);
+        const row = d as {
+          id: string;
+          title: string;
+          forecast_claim?: string | null;
+          forecast_horizon_date?: string | null;
+          forecast_resolution?: string | null;
+        } | null;
+        // Mapped rather than spread, so a surface reads camelCase like every other
+        // server fn here, and an unresolved forecast stays NULL rather than
+        // becoming an empty string that renders as a settled blank.
+        decision = row
+          ? {
+              id: row.id,
+              title: row.title,
+              forecastClaim: row.forecast_claim ?? null,
+              forecastHorizonDate: row.forecast_horizon_date ?? null,
+              forecastResolution: row.forecast_resolution ?? null,
+            }
+          : null;
+      }
 
-    return { decision, overturns };
-  });
+      let overturns: OutcomeOverturn[] = [];
+      if (data.prdId) {
+        const { data: p, error } = await supabase
+          .from("prds")
+          .select("outcome")
+          .eq("id", data.prdId)
+          .maybeSingle();
+        if (error) throw new Error(error.message);
+        // priorSettlement is the one parser for prds.outcome; reusing it keeps
+        // "what counts as an overturn" single-sourced with SettlePanel.
+        overturns = priorSettlement((p as { outcome: unknown } | null)?.outcome)?.overturns ?? [];
+      }
+
+      return { decision, overturns };
+    },
+  );
 
 export const createDecision = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
