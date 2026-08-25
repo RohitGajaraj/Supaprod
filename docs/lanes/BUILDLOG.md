@@ -15,6 +15,8 @@
 | F-57: root-404-behind-a-binding classifies as tools-refused (`deea8d727` + threading + tests) | Round 7 burned two Build attempts on a permission answer GitHub delivers as 404 | **CODE-SHIPPED, adversarially verified** — two independent refuters failed; 87 targeted tests green; full gate running | Deploy with B's F-58 for Round 8 |
 | F-59: deploy verification doc + method (`e57011590`) | The 12:07 publish completed while production served a pre-push build | Landed; ledger row handed to B | Use the script on every publish |
 | Redeploy 409f6cdd verified SERVING (index `CDXF-MLc`, both markers) | Queue 63+64 had to be live for Round 8, provably | **VERIFIED-LIVE by chunk content** | — |
+| F-63 item 2: package.json stages only when the work order names it exactly (`f7a063390` + guard commit) | The loop disabled its own type-check to pass CI; prefix scopes and the unbounded default must not admit the gate | **CODE-SHIPPED**, 5 tests incl. near-misses; adversarial event recorded by B as F-63 | Deploy `c3c6489a` carries it |
+| Learn honest-wait: pre-horizon learn holds `needs-evidence`, dated, attempts unchanged, repeat passes free (`ac333b2c8` window) | `learning.record` forbids pre-horizon verdicts, so honesty burned three attempts while guessing sailed through | **CODE-SHIPPED**, 7 tests; B concurred with the dated-line amendment | Watch Round 7's track demonstrate it if Ship clears |
 
 ## Session 2026-08-25 (units L0-068 → L0-081)
 
