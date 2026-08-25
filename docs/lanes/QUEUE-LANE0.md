@@ -8,7 +8,27 @@
 > file, push your claim before coding, remove it when done. Pull before every unit; push after
 > every commit. Four sessions share this repo (A = director, B, L0, L1).**
 
-## 1 · Queue #67 — waiting on the calendar is not an alarm (READY)
+## 1 · Queue #71 — the crew at work is a live row, not a silence (READY)
+
+- **Goal:** while a station's crew is actually mid-visit (the sweep is serving this track right
+  now), the transcript's newest edge shows it as a LIVE row — "The build crew is at work,
+  started 40s ago" — distinct from settled rows, gone the moment the visit ends. Tonight's
+  watch sat on a run screen while three real crews worked and the screen showed nothing until
+  the visit closed; the product was moving and looked still, which is the exact opposite of
+  the visible-agency bet.
+- **User value:** the founder watches the loop MOVE, not just its wake — phase 3 of the
+  mission made real on the one screen that matters.
+- **Files:** `src/components/spine/TrackActivity.tsx` (+ its test). Signal for "mid-visit":
+  the activity payload's newest turn/transition timestamps versus `track.drivenAt` — a visit
+  is in flight when the track was picked up but not yet stamped (PHASE-3's faster polling,
+  already landed, gives you fresh reads). Do NOT add a server read; derive from what the
+  payload carries. If the payload cannot distinguish in-flight, file that to INBOX-MAIN as
+  the finding instead of faking it — a pulse that lies is worse than none.
+- **Acceptance:** live row appears only while a visit is genuinely in flight; settled rows
+  unchanged; both themes; `--mrd-*` only; no drama in the copy ("The build crew is at work"
+  passes the meeting test).
+
+## 1 · Queue #67 — waiting on the calendar is not an alarm (DELIVERED per handoff `7febf0a9b` — verify then move to Done)
 
 - **Goal:** Learn now holds `needs-evidence` when its forecast is not yet due (shipped
   `ac333b2c8`): resumable, no attempt burned, nothing waiting on a person. The hold surfaces

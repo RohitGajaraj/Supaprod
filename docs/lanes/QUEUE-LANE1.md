@@ -41,6 +41,23 @@ As written in the master queue; `/approvals` loses its primary rail row per R-04
 
 ## 5 · Queue #70 — the verdict meets the claim it settles (READY; one INBOX answer widens it)
 
+## 6 · Queue #72 — the front door's open-work rows say where each run stands (READY)
+
+- **Goal:** `/start` is now the signed-in home (`SIGNED_IN_HOME` flipped `c4ce719d7`), so its
+  "Your open work" rows are the first live thing a person sees — and today each row carries
+  only title + hold text. Enrich each row: the station word ("At Build"), when it last moved
+  ("moved 4 minutes ago"), and a calm tone for resumable holds (out-of-time, needs-evidence)
+  versus the ordinary tone for stuck ones. A person scanning the home tells moving from stuck
+  without opening anything.
+- **User value:** the first screen answers the first question — "is my work moving?" — in one
+  glance, which is the 60-second bar the mission sets for the whole product.
+- **Files:** `src/routes/_authenticated.start.tsx` (the open-work section renders inline
+  there). The track rows from `listTracks` already carry `station`, `hold`, and `drivenAt`-
+  shaped fields — read what the payload has; add NO server round-trip. Station display names:
+  the display map the shell uses (`sense`→Discover etc.), never raw ids on screen.
+- **Acceptance:** station + relative time render on each row; resumable holds read calm;
+  raw station ids never visible; both themes; `--mrd-*` only.
+
 - **Goal:** F-65 (`1b6a986b3`) wired `learnings.decision_id`, so for the first time a settled
   verdict can sit beside the claim it settles. On `/learn`, an opened learning that carries a
   `decision_id` shows the pairing: the claim as written at Decide (`forecast_claim`), the
