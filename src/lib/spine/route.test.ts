@@ -251,11 +251,29 @@ describe("suggestRoute", () => {
     }
   });
 
-  it("lets an existing product enter at Plan rather than marching it through discovery", () => {
+  /**
+   * ENTERS AT DECIDE SINCE REQ-2 (2026-08-25), AND STILL SKIPS DISCOVERY, which
+   * is the part this test was really protecting.
+   *
+   * The name said "enter at Plan" and the point was "do not march a known problem
+   * through discovery". Those came apart when Decide was un-waived: the forecast
+   * -- the product's whole moat -- is written by `decision.record` and by nothing
+   * else, so a route without Decide cannot capture one. Four of five shapes
+   * waived it, which left the moat reachable from one card in five.
+   *
+   * Discovery is still skipped, because the problem really is already known.
+   * What changed is that the call now gets a stated expectation attached to it.
+   */
+  it("lets an existing product skip discovery but still record the call", () => {
     const r = suggestRoute("existing-feature", "Two accounts asked for SSO");
-    expect(r.entry).toBe("define");
+    expect(r.entry).toBe("decide");
     expect(r.path).not.toContain("sense");
+    expect(r.path).toContain("decide");
     expect(r.path).toContain("define");
+    // The entry is the FIRST station on the path, not merely on it. Un-waiving a
+    // station without moving the entry leaves it behind the start, where
+    // `nextStation` never looks. See the header on this shape.
+    expect(r.path[0]).toBe(r.entry);
   });
 
   it("routes an incident straight to Build and still ships and grades it", () => {
@@ -288,6 +306,10 @@ describe("describeRoute", () => {
       expect(said).not.toContain(`${station},`);
     }
     expect(said).toContain("Discover");
-    expect(said).toContain("Plan");
+    // Was "Plan", which this sentence only ever carried because `under-the-hood`
+    // used to START there. Since REQ-2 it starts at Decide. The assertion is
+    // about display names never being internal ids, so it follows the words the
+    // sentence actually has rather than pinning a station that moved.
+    expect(said).toContain("Decide");
   });
 });

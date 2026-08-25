@@ -192,16 +192,36 @@ const SHAPES: Record<WorkShape, ShapeSpec> = {
   // settled, and forcing it through discovery would be theatre. It still needs
   // a spec, because a feature with no written intent cannot be graded later.
   "existing-feature": {
-    entry: "define",
+    /*
+     * ENTERS AT DECIDE, AND DECIDE IS NO LONGER WAIVED (REQ-2, 2026-08-25).
+     *
+     * THE MOAT IS THE FORECAST CAPTURED AT DECISION TIME, and the forecast is
+     * written by `decision.record`, which refuses a decision that has none. So a
+     * route that waives Decide is a route that structurally CANNOT capture the
+     * one thing this product claims as its moat. Four of the five shapes waived
+     * it, which left the moat reachable from one card in five.
+     *
+     * A contradiction between the route model and the positioning canon is not a
+     * preference to be balanced. One of them is wrong, and it is the route model.
+     *
+     * THE ENTRY HAD TO MOVE WITH THE WAIVER, and dropping the waiver alone would
+     * have done nothing at all. `validateRoute` requires the entry to be ON the
+     * path; it does NOT require it to be FIRST. Un-waiving Decide while entering
+     * at Plan gives `path: [decide, define, ...]` with the track starting at
+     * `define` -- and `nextStation` only ever looks forward, so Decide would sit
+     * behind the entry and never run, except as a correction target, which is the
+     * opposite of capturing a forecast up front.
+     *
+     * WHAT DECIDE IS FOR HERE, since the old waiver reason was not wrong: the
+     * call to build it really is already made. The station's job on this shape is
+     * not to re-litigate that. It is to say what we expect this to do and when we
+     * will know -- which is the forecast, and the only station that writes one.
+     */
+    entry: "decide",
     waive: [
       {
         station: "sense",
         reason: "The problem is already known, so there is nothing to discover",
-        reopensWhen: "outcome-contested",
-      },
-      {
-        station: "decide",
-        reason: "The call to build it is already made",
         reopensWhen: "outcome-contested",
       },
     ],
@@ -209,6 +229,28 @@ const SHAPES: Record<WorkShape, ShapeSpec> = {
 
   // Design leads. There is no new problem and no new spec, there is a surface
   // that should be better.
+  /*
+   * DECIDE STAYS WAIVED HERE, AND IT IS THE ONE SHAPE THAT CANNOT TAKE REQ-2.
+   *
+   * REQ-2 asked for Decide on all three shapes that waive it, and the argument
+   * is right in general. This shape is the exception, and the reason is a
+   * handoff rather than a preference.
+   *
+   * `define` is waived here, so with Decide on the path the route would be
+   * `[decide, design, build, ship, learn]` and the first handoff would be Decide
+   * to Design. `STATION_NEEDS.design` wants a **prd**, from Plan. Decide files a
+   * **decision**. So every `interface-change` track would file a perfectly good
+   * decision, fail `needIsMet` at the very next step, hold `nothing-to-hand-on`
+   * three times, and then escalate `needs-a-waived-station` because the station
+   * that files the missing spec is waived off its own route. **It would break
+   * this shape outright rather than improve it.**
+   *
+   * The only way to give this shape a forecast is to un-waive Plan as well,
+   * which contradicts that waiver's own reason ("the change is small enough to
+   * describe in the design itself") and turns the shortest route in the product
+   * into a six-station one. That is a bigger call than REQ-2 asked for, so it is
+   * not being made in passing.
+   */
   "interface-change": {
     entry: "design",
     waive: [
@@ -245,14 +287,17 @@ const SHAPES: Record<WorkShape, ShapeSpec> = {
   // (Corrected twice: this first asserted the reopen happened, then asserted a
   // person could do it by hand.)
   "under-the-hood": {
-    entry: "define",
+    // Decide un-waived and the entry moved with it, for the reason given on
+    // `existing-feature` above: the forecast is written at Decide and nowhere
+    // else. Invisible work is if anything MORE in need of a stated expectation,
+    // because nobody will see it and disagree.
+    entry: "decide",
     waive: [
       {
         station: "sense",
         reason: "The problem is already known",
         reopensWhen: "outcome-contested",
       },
-      { station: "decide", reason: "The call is already made", reopensWhen: "outcome-contested" },
       {
         station: "design",
         reason: "Nothing a user sees changes",

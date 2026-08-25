@@ -179,24 +179,44 @@ describe("go back to where the fix lives", () => {
 });
 
 describe("a waiver is not a defect", () => {
-  it("never sends existing-feature work back to a station its route waived", () => {
-    // `existing-feature` enters at Plan with Discover and Decide waived, so it
-    // will never have a recorded decision and must never be sent back to get
-    // one. Reading the waiver as a missing artifact would march every real
-    // customer's work through a discovery it explicitly opted out of.
-    const route = suggestRoute("existing-feature", "Two enterprise deals are blocked on SSO");
-    const d = decideCorrection(at("define", { route }));
+  /**
+   * THE FIXTURE MOVED, THE INVARIANT DID NOT. This used `existing-feature`,
+   * which waived Decide until REQ-2 (2026-08-25) un-waived it so the route could
+   * capture a forecast. `interface-change` still waives Plan, so it carries the
+   * same rule: work must never be sent back to a station its own route took off
+   * the path, because nobody is going to file the thing it is short of.
+   */
+  it("never sends work back to a station its route waived", () => {
+    const route = suggestRoute("interface-change", "The picker is unreadable on a narrow screen");
+    const d = decideCorrection(at("design", { route }));
     expect(d.action).toBe("escalate");
     if (d.action !== "escalate") return;
     expect(d.reason).toBe("needs-a-waived-station");
     // Actionable: it names the station to put back and offers the alternative.
-    expect(d.because).toContain("Decide");
+    expect(d.because).toContain("Plan");
     expect(d.because.toLowerCase()).toContain("route");
   });
 
+  /**
+   * THE OTHER HALF OF REQ-2, and the reason un-waiving Decide is an improvement
+   * rather than a cost. `existing-feature` work that reaches Plan with no
+   * decision behind it can now be SENT BACK to get one, by an agent, instead of
+   * stopping and asking a person to edit the route. A correction an agent can
+   * make is always better than an escalation a person has to.
+   */
+  it("sends existing-feature work back to Decide now that Decide is on its route", () => {
+    const route = suggestRoute("existing-feature", "Two enterprise deals are blocked on SSO");
+    const d = decideCorrection(at("define", { route }));
+    expect(d.action).toBe("go-back");
+    if (d.action !== "go-back") return;
+    expect(d.station).toBe("decide");
+  });
+
   it("correctableTo refuses a waived owner, an off-path owner, and a later one", () => {
-    const waived = suggestRoute("existing-feature", "why");
-    expect(correctableTo(STATION_NEEDS.define, waived, "define")).toBeNull();
+    // `interface-change` waives Plan; `existing-feature` no longer waives Decide
+    // (REQ-2), so it is not the shape that demonstrates a waived owner any more.
+    const waived = suggestRoute("interface-change", "why");
+    expect(correctableTo(STATION_NEEDS.design, waived, "design")).toBeNull();
 
     const offPath: SpineRoute = { ...fullRoute(), path: ["build", "ship", "learn"] };
     expect(correctableTo(STATION_NEEDS.build, offPath, "build")).toBeNull();
@@ -447,7 +467,9 @@ describe("every escalation reaches a person as a sentence, never a status word",
     const stopping = [
       decideCorrection(at("sense")),
       decideCorrection(at("sense", { externalMet: true })),
-      decideCorrection(at("define", { route: suggestRoute("existing-feature", "why") })),
+      // A waived owner, which since REQ-2 is `interface-change` at Design rather
+      // than `existing-feature` at Plan. Still an escalation, still a sentence.
+      decideCorrection(at("design", { route: suggestRoute("interface-change", "why") })),
       decideCorrection(at("build", { corrections: MAX_TRACK_CORRECTIONS })),
       decideCorrection(at("build", { filed: ["prd"], corrections: MAX_TRACK_CORRECTIONS })),
     ];
@@ -654,7 +676,9 @@ describe("isEnvironmentFailure recognises the refusal in every form it arrives i
   test("a genuine station failure is NOT environmental", () => {
     expect(isEnvironmentFailure("prd.draft returned no id")).toBe(false);
     expect(isEnvironmentFailure(new Error("the model returned invalid JSON"))).toBe(false);
-    expect(isEnvironmentFailure(Object.assign(new Error("x"), { code: "TOOL_FAILED" }))).toBe(false);
+    expect(isEnvironmentFailure(Object.assign(new Error("x"), { code: "TOOL_FAILED" }))).toBe(
+      false,
+    );
     expect(isEnvironmentFailure(null)).toBe(false);
     expect(isEnvironmentFailure(undefined)).toBe(false);
     expect(isEnvironmentFailure("")).toBe(false);
@@ -689,7 +713,11 @@ describe("the attempt ceiling does not apply to an account that could not pay", 
   });
 
   test("a station that genuinely failed still stalls at the ceiling", () => {
-    const d = decideDrive({ ...base, attempts: MAX_STATION_ATTEMPTS, lastHold: "produced-nothing" });
+    const d = decideDrive({
+      ...base,
+      attempts: MAX_STATION_ATTEMPTS,
+      lastHold: "produced-nothing",
+    });
     expect(d.act).toBe(false);
     expect(d.hold).toBe("stalled");
   });
