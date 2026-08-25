@@ -18,6 +18,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment, paymentsConfigured } from "@/lib/stripe";
 import { createPortalSession, getMyCreditsView } from "@/lib/payments.functions";
+import { getCreditRunway } from "@/lib/billing.functions";
+import { useWorkspace } from "@/hooks/use-workspace";
 import { LOW_CREDITS_WARN } from "@/lib/entitlements";
 
 const LOW_DISMISS_KEY = "supaprod.credits.low-dismissed";
@@ -42,6 +44,7 @@ export function BillingBanner() {
   const [opening, setOpening] = useState(false);
   const fPortal = useServerFn(createPortalSession);
   const fGetCredits = useServerFn(getMyCreditsView);
+  const fRunway = useServerFn(getCreditRunway);
 
   // Same env-fallback idiom as Settings' Credits tab: a missing Stripe client
   // token must never block the balance read itself.
@@ -76,41 +79,26 @@ export function BillingBanner() {
     !!credits.data?.enabled && balance !== null && balance <= 0 && !credits.isLoading;
 
   /*
-   * RUNWAY IN RUNS, NOT MINUTES (RL0-024-025-024). A run is a near-uniform unit
-   * of cost -- mean over median spend per run is 1.11 -- while burn-per-minute
-   * swung 22x across windows and read Infinity mid-spend. MAIN's
-   * `credit_runway` RPC does the scoped arithmetic server-side; NULL
-   * `runs_left` means the window holds no spend yet, and that unknown is
-   * rendered as words, never as a fabricated number.
+   * RUNWAY IN RUNS, NOT MINUTES (RL0-024). MAIN's typed wrapper resolves the
+   * account through the caller's own client and does the scoped arithmetic in
+   * the definer RPC. `runsLeft: null` means the window holds no runs yet, and
+   * that unknown renders as words -- never Infinity, never a fabricated zero.
    */
-  const accountId = credits.data?.accountId ?? null;
-  const [runway, setRunway] = useState<number | null | "unknown">(null);
-  useEffect(() => {
-    if (!accountId) return;
-    let cancelled = false;
-    (async () => {
-      // The generated RPC union predates the migration, so the call goes
-      // through a structural cast -- the same house idiom the generated-types
-      // lag forces elsewhere. The definer body re-checks membership.
-      const rpc = supabase.rpc as unknown as (
-        fn: string,
-        args: Record<string, unknown>,
-      ) => PromiseLike<{ data: unknown; error: { message: string } | null }>;
-      const { data, error } = await rpc("credit_runway", {
-        for_account: accountId,
-        window_days: 7,
-      });
-      if (cancelled || error) {
-        if (!cancelled) setRunway("unknown");
-        return;
-      }
-      const row = (data as Array<{ runs_left: number | null }> | null)?.[0] ?? null;
-      setRunway(row ? (row.runs_left ?? "unknown") : "unknown");
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [accountId]);
+  const { activeWorkspace } = useWorkspace();
+  const workspaceId = activeWorkspace?.id ?? null;
+  const runwayQ = useQuery({
+    queryKey: ["credit-runway", workspaceId],
+    queryFn: () => fRunway({ data: { workspaceId: workspaceId! } }),
+    enabled: !!workspaceId,
+    staleTime: 60_000,
+  });
+  const runwayRaw = runwayQ.data;
+  const runway: number | "unknown" | null =
+    !workspaceId || !runwayQ.isSuccess || runwayRaw === undefined
+      ? null
+      : runwayRaw === null || runwayRaw.runsLeft === null
+        ? "unknown"
+        : runwayRaw.runsLeft;
 
   useEffect(() => {
     // Dormant payments = no subscriptions to dun. Skip entirely rather than
