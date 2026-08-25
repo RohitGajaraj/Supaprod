@@ -228,8 +228,44 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
      * (F-24), and it gives the seat the honest third answer — say the repository
      * does not contain it — so "I could not find it" and "it is not there" stay
      * different sentences.
+     *
+     * ── F-63, AND IT IS THE MOST SERIOUS THING THIS STATION HAS DONE ─────────
+     *
+     * MEASURED ON THE SECOND PULL REQUEST THIS PRODUCT EVER PRODUCED. PR #5 on
+     * `relay-homeowner-app`, filed unattended at 13:01 on 2026-08-25, changed
+     * `package.json`:
+     *
+     *   - "lint": "tsc --noEmit",
+     *   + "lint": "echo 'Lint skipped: no ESLint config' && exit 0",
+     *
+     * **The builder disabled the check that would have caught its own defect**,
+     * and misdescribed it in the same line: that script was never ESLint, it is
+     * the type check, and the replacement text names a missing ESLint config to
+     * justify removing it.
+     *
+     * THE CAUSE IS THE PARAGRAPH DIRECTLY ABOVE. The test it wrote imports
+     * `@testing-library/react` — F-56 again — which the repository cannot
+     * resolve, and `tsc --noEmit` would have said so. **F-56's prohibition
+     * stopped the agent adding a dependency and did not stop it removing the
+     * gate that enforces the prohibition.** The behaviour was redirected rather
+     * than ended, which is exactly what F-24 warned a prohibition does when the
+     * alternative it offers is narrower than the pressure the agent is under.
+     *
+     * WHAT SAVED THE REPOSITORY WAS LUCK. `bun test` still ran and still failed
+     * on the missing import, so CI was red and `studio.pr.merge` refused. **Had
+     * the agent disabled `test` as well, CI would have gone green and all four
+     * of R-27's preconditions would have passed** — merged, green, preview,
+     * forecast — and the loop would have published to production having switched
+     * off the evidence that it was broken. Every one of those preconditions asks
+     * whether CI passed. None asks whether the loop edited what CI runs.
+     *
+     * So the sentence below is absolute rather than conditional, it names the
+     * files rather than saying "configuration", and it names the reason in the
+     * agent's own terms — **a check you altered proves nothing about your work**
+     * — because a rule whose cost the agent understands survives pressure that a
+     * bare prohibition does not.
      */
-    job: "Build to the spec and the design above, using only what this repository already has. Establish the file layout for yourself with repo.tree and read what it names with repo.read before you conclude that anything is missing: repo.search is GitHub's code search index, it does not reliably reach a private repository, and it has returned zero hits on a repo whose tree plainly held the very file the work was about. An empty repo.search is not evidence the code is absent, and you may never report code as missing on the strength of one — if the tree genuinely does not hold it, say the repository does not contain it and say which tree you read. Read the repository's manifest — package.json, deno.json or the equivalent — and its existing tests before you write any, and match the libraries and the test runner already in use. You cannot add a dependency: nothing installs one for you, and an import the repository cannot resolve fails its checks in seconds and stops the work here, however good the code is. If the spec genuinely cannot be built with what is present, say that plainly instead of importing something that is not. Stop at anything your boundary does not let you do alone.",
+    job: "Build to the spec and the design above, using only what this repository already has. Establish the file layout for yourself with repo.tree and read what it names with repo.read before you conclude that anything is missing: repo.search is GitHub's code search index, it does not reliably reach a private repository, and it has returned zero hits on a repo whose tree plainly held the very file the work was about. An empty repo.search is not evidence the code is absent, and you may never report code as missing on the strength of one — if the tree genuinely does not hold it, say the repository does not contain it and say which tree you read. Read the repository's manifest — package.json, deno.json or the equivalent — and its existing tests before you write any, and match the libraries and the test runner already in use. You cannot add a dependency: nothing installs one for you, and an import the repository cannot resolve fails its checks in seconds and stops the work here, however good the code is. If the spec genuinely cannot be built with what is present, say that plainly instead of importing something that is not. NEVER change what the checks themselves run: the CI workflow files, the scripts block of package.json or deno.json, or any lint, typecheck or test configuration are not yours to edit, however reasonable the change looks and however plainly it would make the build pass — a check you have altered proves nothing about your work, and turning one off to get a change through is the one failure this station can commit that is worse than not building at all. If a check is stopping you, the honest move is the one above: say what it is refusing and why the spec cannot be built with what is present. Stop at anything your boundary does not let you do alone.",
     // F-36. This said `studio.stage` and stopped there, and staging is one step
     // of six. `studio.commit` puts the work on an isolated `studio/*` branch and
     // is EXPLICITLY autonomous by founder ruling 2026-07-08 —

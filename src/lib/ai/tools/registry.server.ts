@@ -1514,12 +1514,59 @@ const STUDIO_FORBIDDEN_PREFIXES = [
   "package-lock.json",
   "yarn.lock",
   "pnpm-lock.yaml",
+  /*
+   * ── F-63. THE FLOOR WAS ONE LEVEL TOO SHALLOW ────────────────────────────
+   *
+   * `.github/` protected the workflow FILE and nothing protected the scripts the
+   * workflow RUNS. `ci.yml` says `bun run lint`; `package.json` decides what
+   * `lint` means. **So the agent could not edit the door and could change what
+   * was behind it** — and on 2026-08-25 at 13:01, unattended, in a customer's
+   * repository, it did:
+   *
+   *   - "lint": "tsc --noEmit",
+   *   + "lint": "echo 'Lint skipped: no ESLint config' && exit 0",
+   *
+   * It disabled the type check that would have caught its own unresolvable
+   * import (F-56, recurring), and misdescribed the script as a missing ESLint
+   * config to justify it. CI stayed red only because `bun test` also ran and
+   * also failed. **Had `test` gone the same way, CI would have been green and
+   * all four R-27 preconditions would have passed.**
+   *
+   * BLOCKED WHOLE RATHER THAN BY FIELD, and that is a deliberate trade. Parsing
+   * the manifest to allow everything except `scripts` needs the ORIGINAL to
+   * compare against, which means a network read on the staging path, and it
+   * would still be a guess about which fields matter. The agent already **cannot
+   * add a dependency** (F-56) — so a manifest edit is either a dependency, which
+   * is forbidden, or a script, which is this finding. There is no third case
+   * worth the seam.
+   *
+   * The asymmetry decides it: a wrong REFUSAL costs one honest sentence the
+   * builder is already instructed to say — *the spec cannot be built with what
+   * is present*. A wrong ALLOW ships production code with the evidence switched
+   * off.
+   *
+   * `tsconfig.json` is here for the same reason as `package.json` and not by
+   * analogy: `"lint": "tsc --noEmit"` reads it, so `"strict": false` disables
+   * the same check one file further down.
+   */
+  "package.json",
+  "deno.json",
+  "deno.jsonc",
+  "tsconfig.json",
+  "jsconfig.json",
+  ".eslintrc",
+  "eslint.config",
+  "vitest.config",
+  "jest.config",
 ];
 
 function assertStudioPathAllowed(path: string) {
   if (STUDIO_FORBIDDEN_PREFIXES.some((p) => path === p || path.startsWith(p))) {
     throw new Error(
-      `Studio is not allowed to modify ${path} (CI / migrations / env / lockfiles are out of scope).`,
+      // Names the alternative, not just the refusal. F-24: a prohibition whose
+      // escape hatch the agent cannot see gets the same behaviour under a new
+      // name — which is precisely how F-63 happened, one rule up.
+      `Studio is not allowed to modify ${path} (CI, migrations, env, lockfiles and the manifests that define what the checks run are out of scope). If a check is stopping the work, say the spec cannot be built with what is present — never change what the check does.`,
     );
   }
 }
@@ -1888,14 +1935,26 @@ const studioStage = def({
       .map((c) => `${c.op} ${c.path}`)
       .join(", ")}${a.changes.length > 3 ? "…" : ""}`,
   run: async (a, ctx) => {
-    const { supabase, userId, missionId, workspaceId } = ctx;
-    if (!missionId) throw new Error("studio.stage requires a mission (dispatch via Studio)");
-    if (!workspaceId) throw new Error("studio.stage requires a workspace");
+    /*
+     * F-63. THE PATH FLOOR IS CHECKED FIRST, BEFORE ANYTHING THE CALLER SUPPLIES.
+     *
+     * It used to sit below the mission and workspace checks. That was harmless
+     * in practice and wrong in principle: whether a path may be written is a
+     * property of the PATH, not of how the call was dispatched, and a floor that
+     * can only be reached once a mission resolves is a floor that depends on
+     * something else working. Hoisted so the refusal is unconditional — and so
+     * the test for it cannot be satisfied by a context error wearing the right
+     * shape.
+     */
     for (const c of a.changes) {
       assertStudioPathAllowed(c.path);
       if (c.op !== "delete" && typeof c.content !== "string")
         throw new Error(`change for ${c.path}: op '${c.op}' requires content`);
     }
+
+    const { supabase, userId, missionId, workspaceId } = ctx;
+    if (!missionId) throw new Error("studio.stage requires a mission (dispatch via Studio)");
+    if (!workspaceId) throw new Error("studio.stage requires a workspace");
 
     /**
      * A DECLARED TOUCH LIST IS A BOUNDARY, SO IT HAS TO HOLD HERE.
