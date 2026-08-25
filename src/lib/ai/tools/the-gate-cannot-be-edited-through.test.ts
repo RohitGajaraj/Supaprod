@@ -35,9 +35,11 @@ describe("what CI runs is not the crew's to edit", () => {
     // After: it consults allowedPaths, which loads above it.
     expect(stageBody).toContain("const definesCi");
     expect(stageBody).toContain("namedExactly");
-    // Before: the changeset insert happens strictly later in the file.
+    // Before: the stage tool's changeset insert happens strictly later.
+    // (Searched FROM the guard, because earlier tools also read that table —
+    // an unanchored indexOf matched a read 75k chars above the seam.)
     const guardAt = REGISTRY.indexOf("defines what CI runs");
-    const insertAt = REGISTRY.indexOf('from("studio_changesets")');
+    const insertAt = REGISTRY.indexOf('from("studio_changesets")', guardAt);
     expect(guardAt).toBeGreaterThan(-1);
     expect(insertAt).toBeGreaterThan(guardAt);
   });
