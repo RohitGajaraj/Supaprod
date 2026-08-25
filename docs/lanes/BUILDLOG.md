@@ -17,7 +17,7 @@
 | Redeploy 409f6cdd verified SERVING (index `CDXF-MLc`, both markers) | Queue 63+64 had to be live for Round 8, provably | **VERIFIED-LIVE by chunk content** | — |
 | F-63 item 2: package.json stages only when the work order names it exactly (`f7a063390` + guard commit) | The loop disabled its own type-check to pass CI; prefix scopes and the unbounded default must not admit the gate | **CODE-SHIPPED**, 5 tests incl. near-misses; adversarial event recorded by B as F-63 | Deploy `c3c6489a` carries it |
 | Learn honest-wait: pre-horizon learn holds `needs-evidence`, dated, attempts unchanged, repeat passes free (`ac333b2c8` window) | `learning.record` forbids pre-horizon verdicts, so honesty burned three attempts while guessing sailed through | **CODE-SHIPPED**, 7 tests; B concurred with the dated-line amendment | Watch Round 7's track demonstrate it if Ship clears |
-| The Work door: `/start` + every `/track/:id` get a named rail row, keyed `g w` (`ee532b628`, `d59afc301`, `d850538ce`) | Founder named it live: everything built today renders under /track/:id with no entry — the strip's derived sentence and typed URLs were the only ways in, and a person ON a run screen lit no rail row at all | **CODE-SHIPPED** — tsc, lint, full suite 11,193/0 fail; 8 guard suites updated to pin the new shape (7 rail rows, 15 primary destinations, 16 chords); deploy fired, serving-bundle scan pending (F-59) | The `SIGNED_IN_HOME` flip to `/start` (R-15's one-liner) stays the founder's call — proposed in the session report, untouched in code |
+| The Work door: `/start` + every `/track/:id` get a named rail row, keyed `g w` (`ee532b628`, `d59afc301`, `d850538ce`) | Founder named it live: everything built today renders under /track/:id with no entry — the strip's derived sentence and typed URLs were the only ways in, and a person ON a run screen lit no rail row at all | **VERIFIED-SERVING by chunk content (F-59)** — tsc, lint, full suite 11,193/0 fail; 8 guard suites pin the new shape (7 rail rows, 15 primary destinations, 16 chords); third deploy flipped entry to `BWmVObAf`, marker found in `_authenticated-DnYtlf2u.js` at 16:0x UTC (deploys one and two built pre-sync snapshots — the F-59 scan caught both) | The `SIGNED_IN_HOME` flip to `/start` (R-15's one-liner) stays the founder's call — proposed in the session report, untouched in code |
 
 ## Session 2026-08-25 (units L0-068 → L0-083)
 
@@ -34,6 +34,19 @@
 | Item 24 clipboard end-to-end | L0-077 | Read 2,345 chars back off the real clipboard on production; no JSON; status-region feedback | **VERIFIED-LIVE**; found the ×5 title wart → fixed in L0-079 |
 | Items 29/7/21 on one page | L0-078 | Exhausted banner live (account truly at zero); chain-row click moved pane Build→Design; log + polite regions in prod DOM | **VERIFIED-LIVE** ×3 |
 | Summary dedupe | L0-079 | Identical titles collapse with tally; leaked bodies bounded at 120ch; moved to own module | **CODE-SHIPPED**, 4 tests; filed chain.ts plural to MAIN |
+
+## Session 2026-08-26 MAIN (director, opus) — Mission gate blocker removed
+
+| What | Why | True state | Next |
+| --- | --- | --- | --- |
+| PHASE 1 GROUND TRUTH: Queried live database (ysszyrczxanuzhiohygx) | Previous handoff claimed "59 tracks, mission proven" — required verification against actual state | **Database confirmed EMPTY:** 0 workspaces, 0 tracks, 0 production data. Product untested in real usage. Technology ready, founder observation not yet occurred. | Founder must watch to satisfy mission gate |
+| Identified blocker: `/start` gated behind onboarding redirect | New users redirected to `/onboarding` by `_authenticated.tsx:beforeLoad`, preventing access to entry point | **BLOCKER FOUND**, BUILD-QUEUE item 2 | Remove gate to unblock |
+| UNBLOCK: Exempted `/start` from onboarding gate (`d5d6bc638`) | Gate was preventing founder from reaching entry point | **GATE REMOVED** — `/start` now accessible, gates green (11,184 pass / 0 fail), no regressions | Door open for founder observation |
+| Created founder-ready observation guide (`26a14264e`) | Mission gate requires founder watching — needed clear step-by-step instructions | **GUIDE CREATED:** START-HERE-MISSION-GATE.md with exact steps: start server → navigate → submit sentence → watch 60-90s → confirm mission gate | Waiting for founder action |
+| PHASE 2 verified: PRODUCT-TRUTH.md complete | Required one-page product thesis per MISSION PHASE 2 | **Already complete and excellent** — documents user, painful job, what SupaProd does, why 10x, what gets deleted | No work needed |
+| PHASE 4 lanes verified ready | Mission requires 2+ items queued per lane | **Lanes prepared:** LANE 0 has 3+ items (67, 68, 69); LANE 1 has 5+ items (12, 54, 32, 22, 70); coordination files exist; CLAIMS tracking active | Lanes ready to start when approved |
+
+---
 
 ## Session 2026-08-25 (units L0-038 → L0-067)
 
