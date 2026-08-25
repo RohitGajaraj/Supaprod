@@ -36,3 +36,17 @@ with: **"sense did not complete: Unknown agent: discovery-scout"** (track
 not exist in the roster** — this is a seed/mapping defect affecting new tracks'
 first station too, which means every track started through the product's front
 door now stalls on it. Escalating priority accordingly.
+
+## ROOT CAUSE PINNED, 2026-08-25
+
+The slugs are mapped fine in code (`driver.ts:98`, `:151`). The throw comes from
+`src/lib/ai/loop.server.ts:542-549`: the dispatch reads the **per-user**
+`agents` table (` .eq("user_id", userId).eq("slug", input.agentSlug)`), and
+harbor@'s user has NO rows for `discovery-scout` or `ux-architect`. The station
+seat mapping is not the defect — **the workspace's roster seed/clone is missing
+those two agent rows**.
+
+**Fix shape (yours, database-side):** re-run the roster seed for harbor's user,
+or extend `20260725140000_clone_helio_to_investor_workspaces.sql`'s clone to
+carry agents added since it was written. Every account cloned the same way will
+be missing the same rows.
