@@ -1148,7 +1148,7 @@ async function correctIfPossible(
  * Fail-soft to null on any read error: an unreachable table must degrade to
  * today's behaviour, never invent a wait.
  */
-async function forecastDueDate(supabase: AdminClient, trackId: string): Promise<string | null> {
+async function forecastDueDate(supabase: SupabaseClient, trackId: string): Promise<string | null> {
   try {
     const { data: member } = await supabase
       .from("spine_track_members" as never)
