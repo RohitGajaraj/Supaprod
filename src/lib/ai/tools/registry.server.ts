@@ -1908,7 +1908,7 @@ const studioStage = def({
         );
       }
     }
-    const { token, repo } = await requireGithub(ctx);
+    const { token, repo, source } = await requireGithub(ctx);
     const headers = ghHeaders(token);
 
     let changeset = await getActiveChangeset(supabase, missionId);
@@ -1977,7 +1977,7 @@ const studioStage = def({
     // Snapshot base from the branch the commit will build on: the changeset's
     // own branch once it exists (it carries earlier Studio commits), else the
     // default branch head.
-    const baseRef = changeset.branch ?? (await getDefaultBranch(repo, headers));
+    const baseRef = changeset.branch ?? (await getDefaultBranch(repo, headers, source));
 
     const { data: existingRows } = await supabase
       .from("studio_changes")
@@ -2101,7 +2101,7 @@ const studioCommit = def({
     const secretScan = scanStagedChangesForSecrets(changes as StagedChangeContent[]);
     if (secretScan.blocked) throw new Error(describeStagedSecrets(secretScan));
 
-    const { token, repo } = await requireGithub(ctx);
+    const { token, repo, source } = await requireGithub(ctx);
     const headers = ghHeaders(token);
     const branch = changeset.branch ?? studioBranchName(missionId, changeset.id);
     const paths = (changes as { path: string }[]).map((c) => c.path);
@@ -2163,7 +2163,7 @@ const studioCommit = def({
       userId,
       runId ?? null,
       async () => {
-        const defaultBranch = await getDefaultBranch(repo, headers);
+        const defaultBranch = await getDefaultBranch(repo, headers, source);
         // Parent = the studio branch head if it exists, else default-branch head
         // (and we create the branch from it).
         let parentSha: string;
@@ -2777,7 +2777,7 @@ const studioPrOpen = def({
         cached: true,
       };
     }
-    const { token, repo, actorLabel } = await requireGithub(ctx);
+    const { token, repo, actorLabel, source } = await requireGithub(ctx);
     const headers = ghHeaders(token);
     const outcome = await withIdempotency(
       supabase,
@@ -2786,7 +2786,7 @@ const studioPrOpen = def({
       userId,
       runId ?? null,
       async () => {
-        const defaultBranch = await getDefaultBranch(repo, headers);
+        const defaultBranch = await getDefaultBranch(repo, headers, source);
         const { count } = await supabase
           .from("studio_changes")
           .select("id", { count: "exact", head: true })
@@ -3085,9 +3085,9 @@ const studioSyncBranch = def({
     if (!changeset) throw new Error("no active changeset, call studio.stage first");
     if (!changeset.branch) throw new Error("changeset has no branch, call studio.commit first");
 
-    const { token, repo } = await requireGithub(ctx);
+    const { token, repo, source } = await requireGithub(ctx);
     const headers = ghHeaders(token);
-    const defaultBranch = await getDefaultBranch(repo, headers);
+    const defaultBranch = await getDefaultBranch(repo, headers, source);
 
     const res = await fetch(`https://api.github.com/repos/${repo}/merges`, {
       method: "POST",
