@@ -29,7 +29,7 @@
 | L0 | — | (Queue 65 claim released: shipped `7fa621e8f`, unit L0-080) | 2026-08-25 12:5x |
 | B | `src/lib/spine/driver.ts` (builder brief), `src/lib/ai/tools/registry.server.ts` (`repo.search` description) | F-58: an empty `repo.search` is not evidence the code is absent | 2026-08-25 18:0x |
 | L0 | — | (All five audit adoptions CLOSED: 1/2/5 landed, 3 refused on evidence, 4 investigated and found already-reasoned — outcomes recorded in docs/design/MERIDIAN-INVENTORY.md) | 2026-08-25 |
-| L0 | — | (Adoptions 1/2/5 landed `639678be7`/`dcc70e819`/`5ff3ee5a3`; 3 refused on evidence — zero tunables on /design, see MERIDIAN-INVENTORY; 4 sweep in progress) | 2026-08-25 |
+| L0 | — | (Adoptions 1/2/5 landed `639678be7`/`dcc70e819`/`5ff3ee5a3`; 3 refused on evidence, 4 sweep CLOSED as investigated-and-converts-nothing — see MERIDIAN-INVENTORY outcomes. This session also: queue 71 live-visit rows `b60fa7a47`, queue 69 guard handed to MAIN via INBOX 18) | 2026-08-25 |
 | L0 | — | (Item 4 split half shipped `9242664aa`; request 022 lift shipped `214cfffd5`, unit L0-083) | 2026-08-25 14:0x |
 | A | — | (The `/start` door claim RELEASED: shipped `ee532b628`+`d59afc301`+`d850538ce`, pushed `0193b313c` window — Work row on the rail, `g w`, owns /start and /track/:id) | 2026-08-25 15:4x |
 | C | — | (Founder-routed restock released: #69 → QUEUE-LANE0, #70 → QUEUE-LANE1, one select ask in INBOX-MAIN. C = the main-lane acceptance session, Claude Code, Conductor worktree, fifth seat) | 2026-08-25 15:3x |
