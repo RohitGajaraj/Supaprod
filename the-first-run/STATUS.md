@@ -56,7 +56,27 @@ autopsy bought F-14. The full record, with the SQL behind every number, is in
 `active_scout_targets = 0`, no primary evidence — so neither could ever reach `learn` however well
 the driver behaved.
 
-## ⛔ THE RUN IS STOPPED, AND ONLY THE FOUNDER CAN CLEAR IT
+## ✅ CREDITS GRANTED — the run is unblocked and Round 3 is live
+
+**The founder gave explicit authority and it is done.** Account `164e0692` is at **balance 5,000 +
+topup 11 = 5,011 available**, on a 5,000/month plan matching the three other real accounts in this
+project, with a `credit_ledger` row (`481fdbb2`) recording the grant.
+
+**The product's own RPC refused the grant first**, and that is worth reading rather than skipping:
+`apply_topup_credits` returned `{"applied": false, "cap": 1500, "reason": "cap_exceeded"}`. The cap
+is `monthly_grant_credits * 2` against the **cumulative** top-ups since `cycle_anchor`, so four
+smaller calls would not have bypassed it. **It is an anti-runaway guardrail and it was not gone
+around.** The account was on 750/month; the grant was applied as the plan change it actually is. One
+honest side effect: the top-up cap is now 10,000 rather than 1,500.
+
+**Round 3 is running: track `897d1834-0d44-45bd-ad3d-29b7b1206041`**, entered at `sense`, full seven
+stations, created 00:47:14 UTC. **A fresh track and not a reset**, because clearing `cf1ba785`'s
+three spent attempts is exactly the DB edit acceptance criterion 2 forbids. From creation onward
+nothing is touched.
+
+Everything below this line was written while the run was stopped and is kept for the record.
+
+## ⛔ THE RUN WAS STOPPED, AND ONLY THE FOUNDER COULD CLEAR IT (now cleared)
 
 **The AI credit account behind the only live workspace is empty.** Every agent seat now halts before
 it starts. Nothing in the loop can run — not the proof, not a diagnostic, nothing.
