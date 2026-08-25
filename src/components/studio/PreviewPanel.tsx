@@ -106,7 +106,15 @@ export function PreviewPanel({
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+    /* THE PREVIEW UPDATES ITSELF WHILE BUILD WRITES, which for a screen
+       reader is otherwise invisible: the 4s poll mutates this subtree and
+       nothing says so. Polite, additions-and-changes only, and idle builds
+       poll never -- so a finished page does not chatter. */
+    <div
+      role="status"
+      aria-live="polite"
+      style={{ display: "flex", flexDirection: "column", gap: 10 }}
+    >
       <div style={{ ...LOOM_CARD, padding: "var(--mrd-s5)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           {/* "Standalone page", not "Live preview". What is in the frame is one

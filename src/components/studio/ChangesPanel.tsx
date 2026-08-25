@@ -1129,7 +1129,15 @@ export function ChangesPanel({
              Each pane scrolls independently, which is what actually kills the
              long scroll: the list stays put while the diff moves. */
           <div className="cp-split">
-            <div className="cp-list" role="tablist" aria-label="Files this run changed">
+            {/* POLITE, NOT SILENT: Build stages files while a person watches,
+                and the 30s poll that brings them otherwise mutates this list
+                without a word. Additions announce; identical polls do not. */}
+            <div
+              className="cp-list"
+              role="tablist"
+              aria-live="polite"
+              aria-label="Files this run changed"
+            >
               {changes.map((c) => {
                 const active = c.path === activePath;
                 return (
