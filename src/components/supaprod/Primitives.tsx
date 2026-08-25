@@ -69,16 +69,11 @@ export function StatusBadge({ status }: { status: string }) {
     idle: { label: "idle", fg: "var(--mrd-faint)" },
   };
   const v = map[status] || map.planned;
-  // Migrate Loom tokens to Tempo
-  const colorMap: Record<string, string> = {
-    "var(--mrd-mute)": "var(--ds-gray-900)",
-    "var(--action-blue)": "var(--ds-blue-600)",
-    "var(--coral)": "var(--ds-red-600)",
-    "var(--emerald)": "var(--ds-green-600)",
-    "var(--rose)": "var(--ds-red-600)",
-    "var(--mrd-faint)": "var(--ds-gray-700)",
-  };
-  const mappedColor = colorMap[v.fg] || v.fg;
+  // The old Loom->Tempo override map is gone: its keys were Meridian and
+  // legacy semantic tokens that still resolve themed, and its values sent
+  // them into the retired ds scale. The status word paints with the token
+  // that names it.
+  const mappedColor = v.fg;
   return (
     <span
       style={{
@@ -193,7 +188,7 @@ export function SurfaceHeader({
       <h1 className="text-heading-24" style={{ marginTop: 7 }}>
         {title}
       </h1>
-      <p style={{ color: "var(--ds-gray-900)", marginTop: 3, maxWidth: 520 }}>{sub}</p>
+      <p style={{ color: "var(--mrd-mute)", marginTop: 3, maxWidth: 520 }}>{sub}</p>
     </header>
   );
 }
@@ -245,7 +240,7 @@ export function DrillHeader({
     <div style={{ marginBottom: 16 }}>
       <button
         className="mrd-eyebrow"
-        style={{ color: "var(--ds-gray-900)", marginBottom: 10 }}
+        style={{ color: "var(--mrd-body)", marginBottom: 10 }}
         onClick={onBack}
       >
         ← {backLabel}
@@ -293,9 +288,9 @@ export function SubTabs({
           style={{
             padding: "5px 11px",
             borderRadius: 99,
-            color: t === active ? "var(--ds-background-100)" : "var(--ds-gray-900)",
-            background: t === active ? "var(--ds-gray-1000)" : "transparent",
-            border: `1px solid ${t === active ? "transparent" : "var(--ds-gray-500)"}`,
+            color: t === active ? "var(--mrd-bg)" : "var(--mrd-body)",
+            background: t === active ? "var(--mrd-ink)" : "transparent",
+            border: `1px solid ${t === active ? "transparent" : "var(--mrd-line)"}`,
             transition: "background var(--dur-fast), color var(--dur-fast)",
           }}
         >
@@ -314,7 +309,7 @@ export function Cite({ n, source, body }: { n: number | string; source?: string;
       [{n}]
       {source ? (
         <span className="cite-pop">
-          <strong style={{ color: "var(--ds-gray-1000)", display: "block", marginBottom: 2 }}>
+          <strong style={{ color: "var(--mrd-ink)", display: "block", marginBottom: 2 }}>
             {source}
           </strong>
           {body}

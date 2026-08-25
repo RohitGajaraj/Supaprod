@@ -15,7 +15,7 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1602,
+  "totalOccurrences": 1589,
   "fileCount": 136,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
@@ -341,7 +341,6 @@
       "--font-pixel": 1
     },
     "src/components/supaprod/Primitives.tsx": {
-      "--ds-": 13,
       "import:components/ui": 1
     },
     "src/components/supaprod/Sketch.tsx": {
