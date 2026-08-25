@@ -54,6 +54,7 @@ import {
   driveTrackNow,
   getTrack,
   getTrackChain,
+  getTrackArtifacts,
   retryStation,
   type DriveNowResult,
 } from "@/lib/spine/track.functions";
@@ -196,6 +197,15 @@ export function TrackRunLeft({
     refetchInterval: 10_000,
   });
   const track = trackQ.data ?? null;
+
+  const fArtifacts = useServerFn(getTrackArtifacts);
+  const artifactsQ = useQuery({
+    queryKey: ["spine-track-artifacts", trackId],
+    queryFn: () => fArtifacts({ data: { trackId } }),
+    staleTime: 10_000,
+    enabled: !!track,
+  });
+
   /** What a release did, rendered as a Receipt and cleared by nothing else. */
   const [releaseNote, setReleaseNote] = React.useState<{
     verb: string;
@@ -341,6 +351,40 @@ export function TrackRunLeft({
   const answerTheCall = track?.holdReason === "waiting-on-a-person";
   const nowMs = Date.now();
 
+  // QUEUE 67: Calm hold tone for "needs-evidence" when forecast not yet due.
+  // Extract the forecast_horizon_date from the decision artifact.
+  const forecastHorizonDate = React.useMemo(() => {
+    if (!artifactsQ.data?.stops) return null;
+    for (const stop of artifactsQ.data.stops) {
+      if (stop.station === "decide") {
+        for (const item of stop.items) {
+          if (
+            item.kind === "decision" &&
+            item.fields &&
+            typeof item.fields === "object" &&
+            "forecast_horizon_date" in item.fields
+          ) {
+            return item.fields.forecast_horizon_date as string | null;
+          }
+        }
+      }
+    }
+    return null;
+  }, [artifactsQ.data?.stops]);
+
+  // Check if this is a calm hold: needs-evidence at learn with future horizon.
+  const isCalmHold = React.useMemo(() => {
+    if (
+      track?.holdReason === "needs-evidence" &&
+      track.station === "learn" &&
+      forecastHorizonDate
+    ) {
+      const horizonDate = new Date(forecastHorizonDate);
+      return horizonDate > new Date(nowMs);
+    }
+    return false;
+  }, [track?.holdReason, track?.station, forecastHorizonDate, nowMs]);
+
   /*
    * OUT-OF-TIME IS THE LOOP'S CLOCK, NOT A STOP (F-46/R027). While this press
    * still has automatic legs, the row may carry `out-of-time` between them --
@@ -349,7 +393,8 @@ export function TrackRunLeft({
    * control back for real.
    */
   const walkingMidRoute = Boolean(continuing || run.isPending);
-  const showHold = held && !walkingMidRoute;
+  const showHold = held && !walkingMidRoute && !isCalmHold;
+  const showCalmHold = isCalmHold && !walkingMidRoute;
 
   return (
     <div className="flex flex-col gap-mrd-6">
@@ -435,6 +480,30 @@ export function TrackRunLeft({
                 </Action>
               </div>
             )}
+          </div>
+        </Region>
+      ) : null}
+
+      {/* QUEUE 67: Calm hold tone when forecast not yet due. No alarm, no nudge. */}
+      {showCalmHold && track && forecastHorizonDate ? (
+        <Region title="Learning to come" sub="This forecast is on hold until the date arrives.">
+          <div className="flex flex-col gap-mrd-4">
+            <Row
+              lead={`The forecast comes due ${new Date(forecastHorizonDate).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+              })}; Learn returns then.`}
+              sub={
+                track.drivenAt
+                  ? `It last moved ${relativeTime(track.drivenAt, nowMs)}.`
+                  : "It has never been driven."
+              }
+              action={
+                <StatusChip status="hold" pulse={false}>
+                  Waiting for evidence
+                </StatusChip>
+              }
+            />
           </div>
         </Region>
       ) : null}
