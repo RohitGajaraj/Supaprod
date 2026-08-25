@@ -12,6 +12,9 @@
 | Queues 65/66 server halves: `Track.attempts` + `transitions` (with `drivenVia`) on the activity payload (`8dc50c963`) | The screen could not say "last try" or "who caused this leg" | **CODE-SHIPPED** | L0 owns both component halves (queue restocked) |
 | PRODUCT-TRUTH vocabulary: "receipts"/"unattended" out, stations 1–5 claim made honest (`4bcd6c8d3`) | A 16:53 Haiku-session rewrite broke the register canon in the shop window | Landed | Watch for the same session repeating it |
 | **Tree-reset hazard, live:** an uncommitted edit set was destroyed mid-typecheck by another session resetting this shared worktree (~11:4x UTC) | Multiple writers, one directory | Recovered from context, re-applied, committed at once | Every edit commits immediately; long gates run against committed trees |
+| F-57: root-404-behind-a-binding classifies as tools-refused (`deea8d727` + threading + tests) | Round 7 burned two Build attempts on a permission answer GitHub delivers as 404 | **CODE-SHIPPED, adversarially verified** — two independent refuters failed; 87 targeted tests green; full gate running | Deploy with B's F-58 for Round 8 |
+| F-59: deploy verification doc + method (`e57011590`) | The 12:07 publish completed while production served a pre-push build | Landed; ledger row handed to B | Use the script on every publish |
+| Redeploy 409f6cdd verified SERVING (index `CDXF-MLc`, both markers) | Queue 63+64 had to be live for Round 8, provably | **VERIFIED-LIVE by chunk content** | — |
 
 ## Session 2026-08-25 (units L0-068 → L0-081)
 
