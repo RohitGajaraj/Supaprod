@@ -184,3 +184,57 @@ describe("the track-level stamp, which is the half about intervention", () => {
     expect([...DRIVER.matchAll(/last_driven_via: via/g)].length).toBe(1);
   });
 });
+
+describe("the correction path, which queue 63 missed and Round 7 caught", () => {
+  const CORRECTION = readFileSync(
+    fileURLToPath(new URL("./correction.server.ts", import.meta.url)),
+    "utf8",
+  );
+
+  /**
+   * A SEND-BACK IS A TRANSITION AND WAS WRITING NULL.
+   *
+   * Queue 63 stamped `driveTrackOnce`'s forward arrival and stopped there.
+   * `applyCorrection` writes its own `stage_events` row — the trail a correction
+   * leaves — and it carried no `drivenVia`. So **every corrected track wrote
+   * NULL**, and NULL by queue 63's own rule can never be read as unattended:
+   * one correction made a track permanently unprovable.
+   *
+   * That is worse than not having the column, because it looks like evidence.
+   * Caught at 12:10 on 2026-08-25 by Round 7 taking a `build -> define`
+   * correction four hours after the column shipped.
+   */
+  it("stamps the send-back, so one correction does not sink the whole run", () => {
+    const write = CORRECTION.slice(
+      CORRECTION.indexOf("await recordStageEvent(supabase, {"),
+      CORRECTION.indexOf("await rememberCorrection("),
+    );
+    expect(write).toContain("drivenVia: via");
+  });
+
+  it("requires it rather than defaulting, for the reason the omission proves", () => {
+    const sig = CORRECTION.slice(
+      CORRECTION.indexOf("export async function applyCorrection("),
+      CORRECTION.indexOf("): Promise<boolean> {"),
+    );
+    expect(sig).toContain("via: DrivenVia,");
+    expect(sig).not.toContain("via: DrivenVia =");
+    expect(sig).not.toContain("via?: DrivenVia");
+  });
+
+  /**
+   * FORWARDED, NOT RE-DERIVED. If the correction path decided for itself how the
+   * tick was driven it could disagree with the transition written seconds
+   * earlier by the same drive — two rows about one tick, giving two answers.
+   */
+  it("forwards the drive's own answer rather than deciding again", () => {
+    const DRIVER = readFileSync(
+      fileURLToPath(new URL("./driver.server.ts", import.meta.url)),
+      "utf8",
+    );
+    const body = DRIVER.slice(DRIVER.indexOf("async function correctIfPossible("));
+    expect(body.slice(0, 400)).toContain("via: DrivenVia");
+    // The call site hands over the drive's `via`, not a literal.
+    expect(DRIVER).toMatch(/correctIfPossible\([\s\S]{0,220}\n\s+via,\n\s+\);/);
+  });
+});

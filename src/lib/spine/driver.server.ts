@@ -1041,6 +1041,8 @@ async function correctIfPossible(
     corrections: number;
     filed: string[];
   },
+  /** F-55. Forwarded, not re-derived: a send-back was driven by whoever drove this tick. */
+  via: DrivenVia,
 ): Promise<CorrectionOutcome | null> {
   if (!CORRECTABLE_HOLDS.has(at.hold)) return null;
 
@@ -1099,6 +1101,7 @@ async function correctIfPossible(
         missing: decision.missing,
         kind: decision.kind,
       },
+      via,
     );
     if (!moved) return null;
     return {
@@ -1262,13 +1265,18 @@ export async function driveTrackOnce(
     // sitting at the ceiling today is corrected on the next tick, with no
     // backfill and nothing to run by hand. It also spends nothing extra: this
     // path already runs, and the decision itself is two small reads.
-    const corrected = await correctIfPossible(supabase, row, {
-      hold: decision.hold,
-      station,
-      route,
-      corrections: history.count,
-      filed,
-    });
+    const corrected = await correctIfPossible(
+      supabase,
+      row,
+      {
+        hold: decision.hold,
+        station,
+        route,
+        corrections: history.count,
+        filed,
+      },
+      via,
+    );
     if (corrected) {
       return {
         ...corrected,

@@ -28,6 +28,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
 import { embedOne } from "@/lib/rag/embed.server";
+import type { DrivenVia } from "@/lib/spine/driver";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import {
   CORRECTION_MEMORY_IMPORTANCE,
@@ -145,6 +146,25 @@ export async function applyCorrection(
     missing: string;
     kind: "absent" | "not-enough";
   },
+  /**
+   * F-55 / queue 63, COMPLETED HERE — this path was missed and the miss was mine.
+   *
+   * Queue 63 stamped `driveTrackOnce`'s forward arrival and stopped there. A
+   * correction is a transition like any other: it writes a real `stage_events`
+   * row, it moves the work, and **it is exactly the kind of move criterion 2
+   * cares about** — a station that could not finish sending work backwards.
+   * Leaving it unstamped meant every corrected track wrote `driven_via NULL`,
+   * and NULL by queue 63's own rule can never be counted as unattended. **So a
+   * track that took one correction was permanently unprovable**, which is worse
+   * than not having the column: it looks like evidence and is not.
+   *
+   * Caught on 2026-08-25 at 12:10 by Round 7 taking a `build -> define`
+   * correction and writing a NULL row, four hours after I shipped the column.
+   *
+   * REQUIRED, not defaulted, for the reason queue 63 gave and this omission
+   * proves: a default answers for a caller that never considered the question.
+   */
+  via: DrivenVia,
 ): Promise<boolean> {
   try {
     const now = new Date().toISOString();
@@ -177,6 +197,7 @@ export async function applyCorrection(
     from: move.from,
     to: move.to,
     actor: "system",
+    drivenVia: via,
     workspaceId: track.workspace_id,
     userId: track.user_id,
   });
