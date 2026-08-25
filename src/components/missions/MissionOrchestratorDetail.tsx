@@ -1611,7 +1611,12 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             ) : null}
           </div>
         ) : (
-          <MissionGraph steps={graphSteps} />
+          /* The graph is the tracked fact on this page: node transitions
+             (planned → running → done) are said politely, and identical polls
+             render identical SVG text so nothing chatters. */
+          <div aria-live="polite">
+            <MissionGraph steps={graphSteps} />
+          </div>
         )}
       </section>
 
