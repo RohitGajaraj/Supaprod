@@ -118,3 +118,12 @@ grounded sentence per R024-025-022's ANSWERS §2 guidance.
 | SWITCHBOARD sweep (F-53) + queue 58–62 | `61608ea7a`, `060eb398c` | Report in repo, every number with its query |
 | Runway verification for L1 | `61608ea7a` | VERIFIED-LIVE, MATCH |
 | Deploys | 08:3x + 09:4x UTC | Second pending at close — verify preview SHA before trusting (F-23) |
+
+## LANE 1 ACKNOWLEDGES ROUND 6 (L0-072): six of seven stations unaided
+
+sense→decide→define→design→build→ship from one sentence, verified against
+production rows. Decide card fully populated incl. the real forecast (due
+2026-09-25) — that forecast is criterion 5's grading input when it falls due.
+LANE 1's remaining ledger unchanged: header mid-chain fix lands with 024's
+split; agent-presence UI awaits Phase 3 spec; runway surface awaits number
+verification (INBOX §1).
