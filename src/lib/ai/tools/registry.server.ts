@@ -469,8 +469,24 @@ const logSignal = def({
      * would make the driver see a station that filed nothing, which is the exact
      * freeze this whole pass has been closing. The sink is therefore asked for the
      * id it just wrote rather than being trusted to imply one.
+     *
+     * AND THE FOLD SURVIVOR COUNTS (2026-08-25). When the restatement screen folds
+     * this log onto evidence the workspace already holds, the sink used to answer
+     * `ids: []` and this tool returned `id: null` — so the SECOND track in any
+     * evidenced workspace could never attach a signal honestly, and sense read a
+     * working crew as produced-nothing (the shape of every dead-at-sense track).
+     * Evidence this crew gathered that already exists is still evidence this work
+     * rests on: the surviving row's id is returned, the member row files, and the
+     * station completes without anyone rewording a fact to evade a filter.
+     * `restated` is passed through so the agent can SEE the fold instead of
+     * guessing the tool is broken — it is the sink working, not failing.
      */
-    return { inserted: result.inserted, skipped: result.skipped, id: result.ids[0] ?? null };
+    return {
+      inserted: result.inserted,
+      skipped: result.skipped,
+      restated: result.restated,
+      id: result.ids[0] ?? result.restatedOnto[0] ?? null,
+    };
   },
 });
 

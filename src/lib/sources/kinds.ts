@@ -86,6 +86,23 @@ export type SinkResult = {
    */
   restated: number;
   /**
+   * The ids of the ALREADY-STORED rows the folded items were recognised as
+   * restating, deduplicated, empty when nothing folded.
+   *
+   * ADDED 2026-08-25, the third instance of this file's own pattern: the sink
+   * decided something and then discarded it. A fold that answers only a COUNT
+   * makes the surviving evidence unattachable — `signals.log` returns `id: null`,
+   * `collectAttachments` files no member row, and the driver reads a working
+   * sense crew as `produced-nothing`. That is how the SECOND track in any
+   * evidenced workspace dies at sense: every honest log folds, and only
+   * rewording (or citing the loop's own artifacts) evades the screen — a rule
+   * that punishes honesty and rewards theatre. Evidence this station gathered
+   * that the workspace already holds is still evidence this work rests on, so
+   * the caller is handed the row to point at. Folds onto rows pending insert in
+   * the same batch carry `ofId: null` and are excluded here.
+   */
+  restatedOnto: string[];
+  /**
    * Rows that were stored carrying the review tag, because the injection screen
    * called the text borderline rather than clean.
    *

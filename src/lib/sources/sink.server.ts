@@ -101,6 +101,13 @@ const db = supabaseAdmin as unknown as SupabaseClient;
 /** A row that reached the sink already stored under a different wording. */
 type FoldedRow = { ofId: string | null; rule: "text" | "vector"; similarity: number };
 
+/** The stored rows a batch was folded onto, deduplicated; pending-insert folds
+ *  (`ofId: null`, see PENDING_INSERT) are excluded because there is no row to
+ *  point at. This is what `SinkResult.restatedOnto` carries. */
+export function foldTargets(restated: FoldedRow[]): string[] {
+  return [...new Set(restated.map((r) => r.ofId).filter((id): id is string => Boolean(id)))];
+}
+
 /**
  * Stand-in id for a row accepted earlier in this batch but not yet inserted.
  *
@@ -330,7 +337,15 @@ export async function writeSignals(
   opts?: { productId?: string | null },
 ): Promise<SinkResult> {
   if (candidates.length === 0)
-    return { inserted: 0, skipped: 0, quarantined: 0, restated: 0, flagged: 0, ids: [] };
+    return {
+      inserted: 0,
+      skipped: 0,
+      quarantined: 0,
+      restated: 0,
+      restatedOnto: [],
+      flagged: 0,
+      ids: [],
+    };
 
   // Fetch already-seen external_ids for this workspace to skip them cheaply.
   const extIds = candidates.map((c) => c.externalId).filter((id): id is string => Boolean(id));
@@ -354,7 +369,15 @@ export async function writeSignals(
   );
 
   if (rows.length === 0)
-    return { inserted: 0, skipped, quarantined, restated: 0, flagged: 0, ids: [] };
+    return {
+      inserted: 0,
+      skipped,
+      quarantined,
+      restated: 0,
+      restatedOnto: [],
+      flagged: 0,
+      ids: [],
+    };
 
   // Stamp the comparison vector on the way in so a freshly sensed signal is
   // dedupable and clusterable immediately rather than at the next sweep. This is a
@@ -377,7 +400,15 @@ export async function writeSignals(
     // `flagged: 0` and not "how many of the folded rows the screen had flagged".
     // Nothing was stored, so there is no flagged row to review, and reporting one
     // would send a caller looking for a row that does not exist.
-    return { inserted: 0, skipped, quarantined, restated: restated.length, flagged: 0, ids: [] };
+    return {
+      inserted: 0,
+      skipped,
+      quarantined,
+      restated: restated.length,
+      restatedOnto: foldTargets(restated),
+      flagged: 0,
+      ids: [],
+    };
   }
 
   // .select("id") so each sensed signal can write its stage_events trail row.
@@ -415,6 +446,7 @@ export async function writeSignals(
     skipped,
     quarantined,
     restated: restated.length,
+    restatedOnto: foldTargets(restated),
     flagged: keep.filter((r) => r.tags.includes(INGEST_REVIEW_TAG)).length,
     ids: ((inserted ?? []) as Array<{ id: string }>).map((r) => r.id),
   };
