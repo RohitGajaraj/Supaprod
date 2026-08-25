@@ -157,6 +157,28 @@ flight at B's last write. Nothing outward may cite "mission proven" until SQL pr
 - Automated test passing is a prerequisite, not a fulfillment
 - Required next step: Founder opens browser, creates a track, clicks "Run it now", watches it execute
 
+---
+
+# SESSION HANDOFF — 2026-08-26 ~00:14 IST
+
+**Status:** Code-Ready for Deployment · Founder Observation Pending
+
+**Critical blocker removed:** signals.log mode="auto" fix confirmed on origin/main (commit 225487b6f). Autonomous sense station is unblocked and ready to run.
+
+**What's next:**
+
+1. **Lovable re-auth & deploy (5 min):** MCP token expired yesterday. Redeploy code from GitHub to production.
+2. **Founder observation (5 min):** Watch one track progress `sense` → `discover` → `decide` → `learn` end-to-end on screen.
+3. **Mission gate complete:** Loop runs autonomously unobserved on real workspace; forecast is filed and settles.
+
+**File created:** `MISSION-GATE-DEPLOYMENT-READINESS.md` with exact steps, verification queries, and success criteria.
+
+**Code verified:**
+- ✅ signals.log fix (225487b6f) on origin/main
+- ✅ F-73 own-artifact refusal (b0822801a) merged
+- ✅ Full test suite passes (11,250 tests)
+- ✅ No uncommitted work (tree clean)
+
 **Why this distinction matters:**
 - Automated tests prove the **technology** is sound and correct
 - Mission gate requires founder **observation** of real end-to-end execution
