@@ -761,3 +761,30 @@ decline pending telemetry. Its `prd-writer` chose **differently**:
 outcome 3 and re-scoped.** Same station, same evidence, same decision shape, **two different
 legitimate answers.** Both honour the decision; one writes a spec for the precondition and one
 declines to write anything. Worth knowing before anyone treats either as *the* behaviour.
+
+
+### 02:20 — DEFINE → DESIGN. 4 of 7, and the next station is the one that killed Round 1.
+
+```sql
+SELECT from_stage, to_stage, actor, at FROM stage_events WHERE entity_id = '897d1834-…';
+-- sense  | decide | system | 01:10:34.254004+00
+-- decide | define | system | 01:41:05.939582+00
+-- define | design | system | 02:20:30.267695+00
+
+SELECT station, last_hold, attempts, spend_used_usd FROM spine_tracks WHERE id = '897d1834-…';
+-- design | null | 0 | 0.070219
+```
+
+`sprint-planner` filed the tasks the spec implies — **11 members now**, up from 8 — and `define`
+handed on. **$0.070 for four stations.**
+
+**`design` is where both Round 1 tracks died**, and not from anything the station did: the PII
+guardrail was shredding the leading segment of any digit-led UUID, so `ux-architect` received
+`PRD id [REDACTED:pii]e-4f49-b5b2-12f21e858042` and answered, correctly and uselessly, that it could
+not proceed without a resolvable id. That is ledger **F-02**, fixed and deployed — but it has never
+been exercised by a live run that actually reached this station with a real PRD to hand over.
+
+**It is about to be.** `bf198482-9d57-421b-8ae2-d6f35a6c81ad` is the id that has to survive the
+handoff intact. **No digits lead it**, which is worth saying: the fix should hold regardless, and this
+particular id would not have tripped the old bug either. So a clean pass here is evidence the station
+works, **not** proof F-02 is fixed — that claim still rests on the boundary test, not on this run.
