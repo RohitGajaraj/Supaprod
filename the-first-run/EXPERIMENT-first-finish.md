@@ -498,3 +498,24 @@ files a decision and the critic files nothing, because checking is its job. Ever
 measured last night exceeded the 45s deadline on its own, so the split is near-certain and the
 resuming tick will harvest nothing. That is the exact shape that took `f9e41393` to `given-up` with
 three decisions on its record.
+
+
+### A ruling about this run, made before it can be spun either way
+
+**No further deploys while `897d1834` is walking.** The window fix (F-22), items 25 and 27 and
+REQ-021 are all in `main` and none of them is deployed; they can wait. Changing the code under a
+running proof is not touching the track, but it is changing the thing being measured, and a result
+that needed the build to move mid-flight is not a clean result.
+
+**AND THIS RUN IS ALREADY NOT CLEAN, which has to be said plainly rather than discovered later.** It
+started at 00:47 on one build, found nothing at 00:50 because the search fix was not in that build,
+and found the evidence at 01:00 on a different one. **A deploy happened between its first tick and
+its second.** So whatever `897d1834` reaches, it is a **shakedown**, not the proof:
+
+- It **does** show, with SQL, that the loop advances a station on real evidence it found itself.
+- It **does not** satisfy a reading of acceptance criterion 2 that treats a mid-run deploy as
+  intervention, and that reading is defensible.
+
+**The clean proof is a run that starts and finishes on ONE build with nothing deployed mid-flight.**
+That is the next track, and it is cheap now that credits are funded. Recording this here, while the
+run is still moving, so nobody has to decide after the fact whether it counted.
