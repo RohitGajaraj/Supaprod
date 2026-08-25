@@ -55,6 +55,19 @@
 
 ---
 
+## Session 2026-08-26 (units MAIN PHASE 1) — Deployment Complete + Ground Truth Audit
+
+| What | Why | True state | Next |
+| --- | --- | --- | --- |
+| Lovable MCP re-authorized, deployment completed | Token expired ~17:30 UTC previous day, blocking deploy | **Deployment successful:** code live at https://supaprod.lovable.app, commit 95704541d, status: completed | Founder observation test pending |
+| Signals.log fix verified deployed | Mode="auto" fix required to unblock autonomous sense station | **Verified ancestral to deployed commit 95704541d** — F-72, fold fix, F-73 all included | Core fix live; learning loop still broken |
+| PHASE 1 GROUND TRUTH audit complete | Detailed agent audit (60+ verification agents) identified actual blockers vs documented claims | **AUDIT FINDING:** Core learning loop structurally broken. /decide never writes decisions (0 of 304 in table). decision.record tool exists but no mechanism calls it from UI. Forecasts never attached. precedent pool (`agent_memory.kind='outcome'`) completely empty — 0 rows ever written | Decide station must be implemented to record decisions |
+| Narrowest autonomous loop identified | Query: what subset actually works? | **sense → discover: ✅ Works.** Agents identify work, signals cluster into themes. decide → learn: ❌ Blocked.** Decisions not recorded, so nothing to resolve. | Build sense→discover proof-of-concept; defer full loop until Decide records |
+| Documented findings in docs/AUDIT.md and docs/AUDIT.md | Ground truth must be tracked against claims | **Updated AUDIT.md with all findings:** Working/Broken/Fake/Missing tiers, Tier-1 blocker clearly marked (Decide not recording), all sources cited with database queries or code references | Lanes can now see exact blockers before starting |
+| Committed: 09d5d0122 (PHASE 1 audit) + 47a1c1f18 (deployment status) | Work must be timestamped and tracked | **Two commits, linked to DEPLOYMENT-COMPLETE and AUDIT findings** — both explain what changed and why next steps are needed | No work for LANE 0/1 until Decide is fixed |
+
+---
+
 ## Session 2026-08-25 (units L0-038 → L0-067)
 
 | Item | Unit | What shipped | True state |
