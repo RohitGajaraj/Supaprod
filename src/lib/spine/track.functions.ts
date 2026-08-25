@@ -2092,8 +2092,38 @@ export const driveTrackNow = createServerFn({ method: "POST" })
         produced: outcome.attached.length,
       });
 
-      // A hold is a real answer, not a failure to report. Something is waiting on
-      // a person or on evidence, and the surface has to be able to say which.
+      /*
+       * `out-of-time` IS THIS LOOP'S OWN CLOCK, NOT A HOLD (F-46, REQ-027).
+       *
+       * Two bounds look like one. `FOREGROUND_WINDOW_MS` (50s) belongs to the
+       * watched walk; `TICK_DEADLINE_MS` (45s) belongs INSIDE `driveTrackOnce`
+       * and stops the crew between seats. A crew that exceeds 45s returns
+       * `hold: "out-of-time"` — and nothing is waiting on anybody. **The loop
+       * ran out of its own turn.**
+       *
+       * Treating it as a hold broke the watched path outright: `stopped` became
+       * `"held"`, `more` computed `false`, and item 34's auto-continue never
+       * fired, because the driver never emitted the one value it waits for.
+       *
+       * AND IT IS NOT AN EDGE CASE. Measured over 167 track-attached runs in
+       * 48h (mean seat 25.4s, max 89.3s, 9.6% over 45s), the per-crew sums are
+       * sense **69.6s**, decide **73.3s**, plan **56.3s** — against design 40.0s
+       * and build 28.0s. **Three of the five populated stations structurally
+       * cannot finish a crew inside the inner deadline**, so `out-of-window` was
+       * close to unreachable on the watched path and the continue was dead code.
+       *
+       * `holdTone("out-of-time")` returns `"hold"`, so the surface still says
+       * something honest if this ever reaches it; what it must not do is stop
+       * the walk and claim a person is needed.
+       */
+      if (outcome.hold === "out-of-time") {
+        stopped = "out-of-window";
+        break;
+      }
+
+      // Every OTHER hold is a real answer, not a failure to report. Something is
+      // waiting on a person or on evidence, and the surface has to be able to
+      // say which.
       if (outcome.hold) {
         stopped = "held";
         break;
