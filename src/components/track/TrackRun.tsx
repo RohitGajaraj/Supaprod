@@ -44,6 +44,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { TrackChain } from "@/components/spine/TrackChain";
 import { TrackActivity } from "@/components/spine/TrackActivity";
 import { ArtifactPane } from "@/components/track/ArtifactPane";
+import { TrackConsent } from "@/components/track/TrackConsent";
 import { Action, Region } from "@/components/meridian/surface-parts";
 import { Row } from "@/components/meridian/rows";
 import { StatusChip } from "@/components/meridian/StatusChip";
@@ -114,6 +115,9 @@ export function TrackRun({ trackId }: { trackId: string }) {
       void qc.invalidateQueries({ queryKey: ["track-activity", trackId] });
       void qc.invalidateQueries({ queryKey: ["spine-track-chain", trackId] });
       void qc.invalidateQueries({ queryKey: ["spine-track", trackId] });
+      // A walk that opens a gate must make the question appear in the same
+      // tick the drive result does (SPEC-CONSENT §1.4).
+      void qc.invalidateQueries({ queryKey: ["track-gates", trackId] });
     },
   });
 
@@ -169,6 +173,16 @@ export function TrackRun({ trackId }: { trackId: string }) {
 
   return (
     <div className="flex flex-col gap-mrd-6">
+      {/*
+       * THE QUESTION, ABOVE EVERYTHING. When the run needs a person it asks
+       * here, in place, with the consequence named (R-04) -- not in a queue
+       * somebody has to remember to visit. `onAnswered` hands the parent's
+       * drive mutation down, so an answer that releases the run picks the work
+       * straight back up; that chain IS the item, and a card without it is the
+       * approvals queue again.
+       */}
+      <TrackConsent trackId={trackId} onAnswered={() => run.mutate()} />
+
       {held && track ? (
         <Region title="Why it stopped" sub="This work is not moving until this clears.">
           <div className="flex flex-col gap-mrd-4">
