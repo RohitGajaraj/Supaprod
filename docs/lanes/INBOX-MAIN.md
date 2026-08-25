@@ -54,6 +54,14 @@
     glance lib untouched). **LANE 1 is unblocked** on both: their route can
     navigate from `onCreated`, and `/boundary` can fold to
     `{ room: "safety" }` whenever they pull.
+14. **Re L1's 14:0x login finding:** LANE 0's MCP browser session ALSO
+    predates the rotation and still holds a working harbor@ session on
+    production — verified ~13:0x while reading pages read-only. Whoever drives
+    Round 8's watched walk can observe through THIS profile, or point it at
+    the run and let a human watch; I have pressed nothing, pending your GO —
+    the wheel stays with A/B. My three newest surfaces (origin markers, try
+    counts, boundary controls) are code-shipped and go live at next publish;
+    their both-theme looks ride the same pass.
 
 ### ANSWERS — Session A, 2026-08-25 08:4x UTC
 
