@@ -458,6 +458,87 @@ export function describeUpstream(
  * tool; `specId` names the one value the Learn agent cannot derive on this route
  * and that decides whether its verdict attaches to anything. See `newestSpecId`.
  */
+
+/**
+ * The newest spec's own title, when this track has filed one.
+ *
+ * Sibling of `newestSpecId` and read off the same already-loaded handoff, so it
+ * costs no query and can only ever name a spec the station can actually open.
+ */
+export function newestSpecTitle(upstream: UpstreamArtifact[]): string | null {
+  for (let i = upstream.length - 1; i >= 0; i -= 1) {
+    if (upstream[i].kind === "prd") return upstream[i].title?.trim() || null;
+  }
+  return null;
+}
+
+/** Loose comparison, so punctuation or case alone is not a re-scope. */
+function sameWork(a: string, b: string): boolean {
+  const norm = (v: string) =>
+    v
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+  return norm(a) === norm(b);
+}
+
+/**
+ * WHAT THIS STATION IS ACTUALLY WORKING ON, which is the SPEC once one exists.
+ *
+ * ── THE DEFECT THIS CLOSES STOPPED A LIVE RUN AT ITS FIFTH STATION ─────────
+ *
+ * Every station's job used to be phrased against `track.title` alone. That is
+ * correct right up until a station legitimately RE-SCOPES the work, which is a
+ * normal outcome of deciding, and then every station after it receives two
+ * contradictory instructions.
+ *
+ * MEASURED 2026-08-25 02:30 on track `897d1834`, unarranged:
+ *
+ *   Decide  deferred "Add dark mode and a system-preference theme" pending
+ *           telemetry, and recorded a forecast.
+ *   Plan    honoured that and specced THE TELEMETRY WORK, marking
+ *           "Dark Mode UI development" explicitly out of scope.
+ *   Design  was told "Design the surface for 'Add dark mode and a
+ *           system-preference theme'" -- and BOTH SEATS REFUSED:
+ *           *"No surface design exists, and none should. The PRD explicitly
+ *           excludes dark mode UI development from scope."*
+ *
+ * **The agents were right.** They were handed the spec (`describeUpstream`
+ * inlines the two newest bodies), read that it contradicted their instruction,
+ * and declined to invent. The run held `produced-nothing` at four of seven
+ * stations with nothing wrong anywhere except the sentence at the top of the
+ * brief.
+ *
+ * ── WHY THE FIX IS NOT "RENAME THE TRACK" ─────────────────────────────────
+ *
+ * The opening sentence is what a person recognises their own work by, so
+ * silently replacing it loses the thread from the thing they asked for to the
+ * thing being built. Instead the SPEC becomes the subject and the original
+ * sentence is kept and NAMED as the opening intent, so the agent is told which
+ * one governs rather than left to infer it -- which is exactly what these two
+ * seats had to do, correctly, at their own expense.
+ *
+ * Falls back to the title whenever no spec has been filed, which is every
+ * station up to and including the one that writes it.
+ */
+export function stationSubject(
+  track: { title: string; origin: string | null },
+  upstream: UpstreamArtifact[],
+): { subject: string; note: string } {
+  const why = track.origin ? ` It exists because: ${track.origin}` : "";
+  const spec = newestSpecTitle(upstream);
+  if (!spec || sameWork(spec, track.title)) {
+    return { subject: `"${track.title}".${why}`, note: "" };
+  }
+  return {
+    subject: `"${spec}".${why}`,
+    note:
+      `\n\nThis work opened as "${track.title}" and the spec above re-scoped it. ` +
+      `**Work to the spec.** If the spec puts part of the original request out of scope, that part ` +
+      `is out of scope here too, and saying so is the right answer rather than a refusal.`,
+  };
+}
+
 export function stationGoal(
   station: AgentStation,
   track: { title: string; origin: string | null },
@@ -489,8 +570,7 @@ export function stationGoal(
    */
   specId: string | null = null,
 ): string {
-  const why = track.origin ? ` It exists because: ${track.origin}` : "";
-  const subject = `"${track.title}".${why}`;
+  const { subject, note: reScoped } = stationSubject(track, upstream);
   /**
    * WHAT THIS STATION IS MEASURED AGAINST, which must arrive whole however old it
    * is. See `describeUpstream`'s second argument.
@@ -522,7 +602,7 @@ export function stationGoal(
       ? `\n\nThe spec this work was written against is ${specId}. Pass exactly that as \`prd_id\`.`
       : "";
 
-  return `${stationJob(station, subject)}${mine}${prior}${back}\n\n${file}${named}`;
+  return `${stationJob(station, subject)}${reScoped}${mine}${prior}${back}\n\n${file}${named}`;
 }
 
 const FILE_IT: Record<AgentStation, string> = {
