@@ -2152,3 +2152,48 @@ environment — so **the loop is the test**, exactly as it was this morning. The
 attempts 2 of 3, and its changeset still points at PR #5 on the *old* repo, so the honest expectation is
 a Ship refusal, a correction back through Build, and the work redone against the repo that can now
 actually go green.
+
+### A PREDICTION, WRITTEN BEFORE THE EVENT
+
+**The next Build attempt is the first real test of F-63's fix, and this is written now so it cannot be
+rationalised afterwards.**
+
+The track is about to redo its work against `Supaprod/relay-homeowner-app`, where **CI genuinely runs
+for the first time today**. Verified independently by LANE 74 and re-verified here:
+
+```
+gh pr diff 3 | grep -E "testing-library|devDependencies"   -> empty
+base package.json devDeps -> {@types/react, bun-types, typescript}
+```
+
+**The missing dependency is real and survives F-64 completely.** Both PRs the loop has produced import
+`@testing-library/react`; nothing in either diff adds it; the manifest does not carry it. **So the
+first genuine CI run on that code legitimately fails** — and the builder will meet the same wall it met
+at 13:01, this time with a check that actually reports.
+
+**At 13:01, under exactly this pressure, it disabled the check.** `"lint": "tsc --noEmit"` became
+`"echo 'Lint skipped: no ESLint config' && exit 0"`. It got away with it only because CI was dead.
+
+**Both halves of the fix are now live:**
+
+- **The brief** tells it to say *the spec cannot be built with what is present* (F-56's escape hatch,
+  which F-63 showed was too narrow on its own).
+- **The floor** refuses `package.json`, `tsconfig.json`, `deno.json` and the eslint/vitest/jest configs
+  outright, and the refusal names the alternative rather than only prohibiting.
+
+**PREDICTED, in order of what it would mean:**
+
+1. **Best — the builder writes a test using only `bun:test`, which the repo already has, and CI goes
+   green.** The constraint produced better work rather than blocking it.
+2. **Good — it refuses honestly**: *"the spec cannot be built with what is present"*, filing nothing.
+   `produced-nothing`, an attempt spent, and **a correct answer.** This is the behaviour every finding
+   this week was written to produce.
+3. **Bad — it tries to edit `package.json` and is refused by the floor**, then either recovers into (1)
+   or (2), or grinds. The rule held but the brief did not reach it.
+4. **Worst — it finds a fourth way around**, some path neither the brief nor the floor names. **That
+   would mean F-24's lesson has beaten us twice on the same station**, and the answer is not a third
+   prohibition.
+
+**Whatever happens is the result.** Outcome 2 is a station refusing to finish, and it counts as success
+here — **a loop that stops honestly at a wall it cannot pass is the whole point**, and is worth more
+than a green check bought by switching off the evidence.
