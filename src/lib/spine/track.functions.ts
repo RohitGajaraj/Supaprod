@@ -1017,7 +1017,9 @@ const FIELDS: Readonly<Record<string, readonly string[]>> = {
     "forecast_deferred_at",
   ],
   prd: ["body_md", "status", "design_gate_status", "github_issue_url", "shipped_at"],
-  task: ["detail", "status", "priority"],
+  // Widened for the pane's step list: `seq`/`depends_on` give the plan its
+  // order, `estimate_hours` and `risk` are what a person scans a breakdown for.
+  task: ["detail", "status", "priority", "seq", "depends_on", "estimate_hours", "risk"],
   // `name` is the title column here; there is no `title` and no body worth a card.
   prototype: ["description", "entry_path", "share_slug", "prd_id"],
   // `code_review` carries `studio.review`'s verdict — approve / revise / block
@@ -1038,7 +1040,10 @@ const FIELDS: Readonly<Record<string, readonly string[]>> = {
     "prd_id",
     "code_review",
   ],
-  mission: ["status"],
+  // The machine the Build crew runs: its goal, how many hops it took, and
+  // whether the verify loop ever cycled — the card that answers "what did the
+  // crew actually set out to do" instead of a bare title line.
+  mission: ["goal", "status", "hop_count", "build_driver", "verify_cycles", "completed_at"],
   deployment: ["commit_sha", "deploy_url", "environment", "provider", "status", "deployed_at"],
   learning: [
     "summary",

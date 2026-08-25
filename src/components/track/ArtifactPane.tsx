@@ -993,6 +993,111 @@ function ChangesetCard({ item }: { item: ArtifactView }) {
  * One station's panel. Four states, derived per SPEC-ARTIFACTS §2, branching on
  * rows and counts only -- never on hold prose (§11.5).
  */
+/**
+ * ── THE PLAN'S STEPS, AS STEPS ─────────────────────────────────────────────
+ *
+ * 118 filed tasks — the third most common artifact the spine files — rendered
+ * as bare title lines, because `bodyFor` serves only the station's PRIMARY
+ * artifact and a task is never primary. A plan read as "the spec, then six
+ * opaque rows" hides exactly the thing a person scans a breakdown for: the
+ * order, what each step is, and whether it is done.
+ *
+ * One block for all of them, ordered by `seq` (filing order when `seq` is
+ * absent), each row carrying its number, title, status word, and the risk if
+ * one was recorded. Exported for its test.
+ */
+export function TaskSteps({ items }: { items: ArtifactView[] }) {
+  const ordered = [...items].sort((a, b) => {
+    const sa = num(a.fields.seq);
+    const sb = num(b.fields.seq);
+    if (sa !== null && sb !== null) return sa - sb;
+    if (sa !== null) return -1;
+    if (sb !== null) return 1;
+    return a.createdAt.localeCompare(b.createdAt);
+  });
+  return (
+    <div className="flex flex-col gap-mrd-2 border-b border-mrd-line-soft pb-mrd-3 last:border-0">
+      <span className="mrd-meta">
+        {ordered.length === 1 ? "The one step of this plan" : `The ${ordered.length} steps of this plan`}
+      </span>
+      <ol className="flex flex-col gap-mrd-2">
+        {ordered.map((t, i) => {
+          const status = str(t.fields.status);
+          const risk = str(t.fields.risk);
+          const estimate = num(t.fields.estimate_hours);
+          const detail = str(t.fields.detail);
+          const done = status === "done" || status === "completed";
+          return (
+            <li key={t.artifactId} className="flex flex-col gap-mrd-1">
+              <span className="flex items-baseline gap-mrd-2">
+                <span className="mrd-meta tabular-nums">{num(t.fields.seq) ?? i + 1}</span>
+                <span
+                  className={
+                    done
+                      ? "text-mrd-label leading-mrd-snug text-mrd-mute line-through"
+                      : "text-mrd-label leading-mrd-snug text-mrd-ink"
+                  }
+                >
+                  {t.title ?? t.word}
+                </span>
+                {done ? <StatusChip status="pass">Done</StatusChip> : null}
+                {!done && status ? <span className="mrd-meta">{status}</span> : null}
+              </span>
+              {detail ? <Prose markdown={false}>{detail}</Prose> : null}
+              {risk || estimate !== null ? (
+                <span className="mrd-meta">
+                  {[risk ? `risk: ${risk}` : "", estimate !== null ? `~${estimate}h` : ""]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </span>
+              ) : null}
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+}
+
+/**
+ * ── THE MACHINE THE BUILD CREW RAN ─────────────────────────────────────────
+ *
+ * A mission member said only its title. The row carries the goal the crew was
+ * given, how many hops it took, and whether the verify loop cycled — the three
+ * facts that answer "what did the crew set out to do, and did it check its own
+ * work". Exported for its test.
+ */
+export function MissionCard({ item }: { item: ArtifactView }) {
+  const f = item.fields;
+  const goal = str(f.goal);
+  const status = str(f.status);
+  const hops = num(f.hop_count);
+  const verifyCycles = num(f.verify_cycles);
+  const completedAt = str(f.completed_at);
+  return (
+    <div className="flex flex-col gap-mrd-2 border-b border-mrd-line-soft pb-mrd-3 last:border-0">
+      <span className="flex items-baseline gap-mrd-2">
+        <span className="text-mrd-label font-medium leading-mrd-snug text-mrd-ink">
+          {item.title ?? item.word}
+        </span>
+        {completedAt ? <StatusChip status="pass">Completed</StatusChip> : null}
+        {!completedAt && status ? <span className="mrd-meta">{status}</span> : null}
+      </span>
+      {goal ? <Prose markdown={false}>{goal}</Prose> : null}
+      <span className="mrd-meta">
+        {[
+          hops !== null ? `${hops} ${hops === 1 ? "hop" : "hops"}` : "",
+          verifyCycles !== null && verifyCycles > 0
+            ? `checked its own work ${verifyCycles} ${verifyCycles === 1 ? "time" : "times"}`
+            : "",
+        ]
+          .filter(Boolean)
+          .join(" · ")}
+      </span>
+    </div>
+  );
+}
+
 function StationPanel({
   stop,
   view,
@@ -1069,14 +1174,30 @@ function StationPanel({
   };
 
   if (items) {
+    /*
+     * TASKS AND MISSIONS NEVER GET TO BE PRIMARY — no station expects them —
+     * so under the primary-plus-lines rule they rendered as bare titles
+     * forever: the plan's whole breakdown as opaque rows. They render as
+     * themselves instead: the tasks as ONE ordered step list, each mission as
+     * its card. Everything else keeps the title line it had.
+     */
+    const stepItems = items.filter((it) => it.kind === "task" && !it.missing);
+    const missionItems = items.filter((it) => it.kind === "mission" && !it.missing);
     return (
       <div className="flex flex-col gap-mrd-4">
         {primaryItem ? bodyFor(primaryItem) : null}
+        {stepItems.length > 0 ? <TaskSteps items={stepItems} /> : null}
+        {missionItems.map((m) => (
+          <MissionCard key={`mission:${m.artifactId}`} item={m} />
+        ))}
         {items.map((item) => {
           if (primaryItem && item.artifactId === primaryItem.artifactId && bodyFor(primaryItem)) {
             return null;
           }
           if (!primaryItem && item.kind === "prd" && !item.missing) {
+            return null;
+          }
+          if ((item.kind === "task" || item.kind === "mission") && !item.missing) {
             return null;
           }
           return (
