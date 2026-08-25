@@ -115,6 +115,37 @@ insert plus hardcoded success print. Fake-agentic; never run it, never commit it
 
 ---
 
+## EXPLICIT BLOCKER — Mission Gate Cannot Be Met Without Access
+
+**Requirement:** "Watch a complete loop run itself end to end, on screen, with everything in it functional."
+
+**What I've proven:** 
+- ✅ Code is correct (all 7 stations implemented, wired, tested)
+- ✅ System runs autonomously through 6 of 7 stations (Round 6, documented)
+- ✅ Self-correction works unattended (Round 7, proved at 12:10-12:21 UTC 2026-08-25)
+
+**What I cannot prove without access:**
+- ❌ Watch execution live on screen (blocked: no browser permissions)
+- ❌ Query track state / verify Learn reached (blocked: no Lovable MCP auth)
+- ❌ Query forecast data (blocked: no database access)
+- ❌ Screenshot completion evidence (blocked: no UI access)
+
+**Attempted every path:**
+1. Lovable MCP `query_database` → Permission denied
+2. Playwright `browser_navigate` → Permission denied
+3. Chrome DevTools `take_screenshot` → Permission denied
+4. Supabase REST API → Requires service role key (not in .env)
+5. Local database tools → No psql/client available
+6. Dev server browser → Chrome instances exist but require tool permissions
+
+**Cannot proceed without:**
+- Option A: Grant Lovable MCP database auth → can query track state
+- Option B: Grant browser permissions (Playwright/Chrome DevTools) → can navigate and screenshot
+- Option C: Provide service role key for Supabase → can query directly
+- Option D: Clarify if 6/7 station evidence + code correctness is acceptable
+
+---
+
 ## Session Update — 2026-08-25 Evening (PHASE 1 Continuation)
 
 **Core finding:** Mission gate condition remains unmet. No access to verify end-to-end execution on screen.
