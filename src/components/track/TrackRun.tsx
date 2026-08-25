@@ -52,6 +52,7 @@ import { Receipt } from "@/components/meridian/Receipt";
 import {
   driveTrackNow,
   getTrack,
+  getTrackChain,
   retryStation,
   type DriveNowResult,
 } from "@/lib/spine/track.functions";
@@ -74,7 +75,104 @@ const STOPPED_LINE: Record<DriveNowResult["stopped"], string> = {
   "not-found": "That track could not be read.",
 };
 
-export function TrackRun({ trackId }: { trackId: string }) {
+/** What a run says when it is handed to somebody, in words a PR thread can read. */
+function summaryText(input: {
+  title: string;
+  stationName: string;
+  hold: string | null;
+  stops: Array<{ label: string; state: string; nouns: string[] }>;
+  url: string;
+}): string {
+  const lines: string[] = [];
+  lines.push(`${input.title} — a Supaprod run`);
+  lines.push(`Where it is: ${input.stationName}`);
+  if (input.hold) lines.push(`Why it is stopped: ${input.hold}`);
+  const walked = input.stops.filter((s) => s.nouns.length > 0);
+  if (walked.length > 0) {
+    lines.push("What each step filed:");
+    for (const s of walked) lines.push(`- ${s.label}: ${s.nouns.join(", ")}`);
+  }
+  lines.push(input.url);
+  return lines.join("\n");
+}
+
+/*
+ * ITEM 24: THE RUN CAN BE HANDED TO SOMEBODY. The record of this work is the
+ * thing you most want in front of a reviewer, and until now the only way to
+ * share it was a link with no context or a screenshot of a table. The text is
+ * built from rows the run wrote -- route, states, filed nouns, the hold
+ * sentence -- never a JSON dump; the control SAYS what it copied; and it is a
+ * real button, so the keyboard reaches it and the live region announces it.
+ */
+function CopyRunSummary({ trackId }: { trackId: string }) {
+  const fChain = useServerFn(getTrackChain);
+  const chain = useQuery({
+    queryKey: ["spine-track-chain", trackId],
+    queryFn: () => fChain({ data: { trackId } }),
+    // Same cache entry the pane polls; no second fetch, no extra poll.
+    staleTime: 10_000,
+  });
+  const [copied, setCopied] = React.useState<string | null>(null);
+
+  const copy = async () => {
+    const data = chain.data;
+    if (!data?.track || !data.chain) {
+      setCopied(null);
+      return;
+    }
+    const now = Date.now();
+    const stops = data.chain.stops.map((s) => ({
+      label: s.label,
+      state: s.state,
+      nouns: s.members.map((m) => `${m.missing ? "gone: " : ""}${m.title ?? m.word}`),
+    }));
+    const text = summaryText({
+      title: data.track.title,
+      stationName:
+        AGENT_STATIONS[data.track.station]?.name ?? String(data.track.station ?? "unknown"),
+      hold: data.track.hold,
+      stops,
+      url: `${window.location.origin}/track/${trackId}`,
+    });
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied("Copied. Paste it wherever the review happens.");
+    } catch {
+      setCopied("The copy did not go through, so nothing is on the clipboard.");
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-mrd-2">
+      <div>
+        <Action variant="quiet" busy={chain.isLoading} onClick={() => void copy()}>
+          Copy a summary of this run
+        </Action>
+      </div>
+      {copied ? (
+        <p role="status" aria-live="polite" className="mrd-meta">
+          {copied}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+export function TrackRun({
+  trackId,
+  autoStart = false,
+}: {
+  trackId: string;
+  /**
+   * Start walking the moment the page opens, with no click (queue item 28).
+   * FIRES ONCE PER MOUNT and ONLY on work that has never been driven
+   * (`drivenAt === null`) -- revisiting a finished or in-flight run must never
+   * re-spend money on work somebody is only looking at. The route may pass the
+   * flag; the ROUTE must not call the walk itself: two writers on one walk
+   * double-spend, so the mutation stays behind this component's control.
+   */
+  autoStart?: boolean;
+}) {
   const drive = useServerFn(driveTrackNow);
   const fetchTrack = useServerFn(getTrack);
   const fRetry = useServerFn(retryStation);
@@ -161,6 +259,22 @@ export function TrackRun({ trackId }: { trackId: string }) {
   });
 
   const result = run.data as DriveNowResult | undefined;
+
+  /*
+   * THE AUTO-START, AND ITS ONE GUARD THAT IS THE WHOLE POINT. Fires at most
+   * once per mount, and only when the track has never been driven: a person
+   * landing from the composer watches work begin with no click, while a person
+   * reopening a finished run reads it instead of re-spending on it.
+   */
+  const autoStartedRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!autoStart || autoStartedRef.current) return;
+    if (trackQ.isLoading || !track) return;
+    if (track.drivenAt !== null) return;
+    autoStartedRef.current = true;
+    setLegsLeft(AUTO_MAX);
+    run.mutate();
+  }, [autoStart, track, trackQ.isLoading, run]);
 
   /*
    * THE WALK CONTINUES ITSELF, WITHIN STATED BOUNDS (queue item 34).
@@ -313,6 +427,8 @@ export function TrackRun({ trackId }: { trackId: string }) {
         )}
 
         {run.isError ? <Row lead="The walk could not start. Nothing was moved." /> : null}
+
+        <CopyRunSummary trackId={trackId} />
 
         {/*
          * THE WALK RESULT IS A LIVE REGION. These rows do not exist until a
