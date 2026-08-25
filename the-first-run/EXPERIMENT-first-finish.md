@@ -1970,3 +1970,51 @@ deploy at that exact commit — cannot be met on this repo as it stands.
 **Fixing it is not a code change.** It is `node_modules` committed to a repository, which drops the
 count under the cap in one commit, plus the marker file. Both are changes to the founder's own
 application repo and neither was made unilaterally.
+
+### 11:40–11:52 — what the disqualified half taught, which is more than the clean half did
+
+Round 7's scorecard closed at 11:36. Everything below is engineering value from a run that was no
+longer an acceptance attempt, and it is worth more than the walk was.
+
+**Two further walls, both hit, both named, neither guessed:**
+
+**11:40 — `out-of-credit`.** `Halted: AI credits exhausted: account credit balance (0) is below the
+projected cost (22).` Real, and independently confirmed by LANE 0 watching the banner render live on
+harbor's zero. The founder authorised a grant in session; balance is now 10,000 by
+`grant_subscription_credits`, which writes an auditable `+10000 / grant` ledger row.
+**`apply_topup_credits` was deliberately NOT used** — it writes a `credit_topups` row implying a
+completed Stripe payment, and a fabricated payment record to unblock a test is not a thing worth
+writing. `out-of-credit` is deliberately absent from `TERMINAL_HOLDS`, so the sweep recovered the
+track without anyone resetting it — a 2026-08-14 fix, made after 26 of 43 tracks froze against a zero
+balance, working exactly as intended.
+
+**11:50 — the builder finally ran with a readable repo and enough credit, and could not find the
+code.** That is **F-58**, and it is the real answer to why Build has never produced anything:
+
+```
+search/code?q=address+repo:RohitGajaraj/relay-homeowner-app   -> total_count 0
+git/trees/main?recursive=1                                    -> src/checkout/AddressStep.tsx
+```
+
+`repo.search` is GitHub's **code search API**, which does not reliably index private repositories.
+**The file the work is about is right there, and the station's primary way of finding code is blind
+to it.** The builder reasoned correctly from a false premise — *"no results, suggesting either the
+files are not present in this repository"* — and QA independently agreed. **Both agents were right
+about what they were told and wrong about the world.**
+
+### The thing to take away, which is not the score
+
+**Round 7 walked five stations and then hit three separate walls in twenty minutes — a repository
+permission, an empty account, and a blind search tool.** None was a failure of the loop's reasoning.
+**At every single wall, the agents stopped and said what was wrong**: *"Halting as required by
+protocol"* · *"This requires operator intervention"* · *"suggesting either the files are not present
+or they are named differently"*. Eleven agent runs across the walk. **Not one fabricated a file tree,
+invented a diff, claimed a merge, or reported work it had not done.**
+
+That is the property every finding this week was written to protect, and it held under three
+consecutive failures it had never seen before. **The stations work. What does not work yet is what we
+hand them** — a binding pointing at a repo the credential cannot see, an account at zero, and a
+search tool that answers "nothing here" about a file that is there.
+
+**And the attempt ceiling is why the walk ended rather than the walls themselves.** `MAX_STATION_ATTEMPTS`
+is 3; two went on the 404 that R-26 exists to make free. **Build got one honest attempt, not three.**
