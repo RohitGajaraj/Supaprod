@@ -1539,3 +1539,146 @@ the Deno preview (needs a hostable repo — `relay-homeowner-app` carries no mar
 **The character was present the whole time**: `Supa: awake → thinking` with first-person lines,
 the live "Studio is working · 42.6s" clock, twelve artifacts in the pane. Screenshots:
 `docs/screenshots/round6-supa-awake.png`, `round6-ship-honest-refusal.png` (local, gitignored).
+
+---
+
+## Round 6 reached BUILD — 5 of 7 — and the prediction below was written while the seat was running
+
+**Track `48eee889-cc0a-43fe-aa78-7130b4e2852e`**, harbor's Helio Labs workspace, all seven stations,
+nothing waived. **This is the first round ever run in a workspace with a live GitHub binding.**
+
+```sql
+SELECT from_stage, to_stage, actor, at FROM stage_events WHERE entity_id='48eee889-…' ORDER BY at;
+-- sense  | decide | system | 2026-08-25 07:10:22.524337+00
+-- decide | define | system | 2026-08-25 07:41:37.103951+00
+-- define | design | system | 2026-08-25 08:50:58.968389+00
+-- design | build  | system | 2026-08-25 09:11:50.458898+00
+
+SELECT station, last_hold, attempts, spend_used_usd FROM spine_tracks WHERE id='48eee889-…';
+-- build | NULL | 0 | 0.089576        <- read at 2026-08-25 09:30:22 UTC
+```
+
+**Four stations walked, $0.0896, and it matched Round 4's high-water mark on a route with a
+`proceed` decision rather than a deferral** — Decide filed *"Ship grouped in-app notification digest
+to reduce alert fatigue-driven muting"* with a forecast due 2026-09-25, so unlike Rounds 3–4 there is
+real work for Design and Build to do, and something for Learn to grade.
+
+**It is compromised for criterion 2 and that is not being re-argued** — I stopped 40 runaway tracks
+around it at 06:45. Its own run is untouched; the world around it was not.
+
+### The prediction, written at 09:30 UTC with `builder` mid-flight
+
+`agent_runs` shows `builder` at `status: running`, started 09:28:51, no output yet. **This is the
+first `repo.*` call ever made as `harbor@supaprod.ai`** — every one of the previous nine 401s carries
+`user_id = 22a73000` (demo2), whose workspace has no binding and falls through to a legacy env var.
+
+| # | Prediction | How we will know |
+| --- | --- | --- |
+| 1 | **Build reaches the repo.** Harbor's connection `41d2e039` was re-verified **2026-08-25 05:40:18** — today — and is bound to `RohitGajaraj/relay-homeowner-app` | a `tool_calls` row with `tool_name='repo.tree'`, `ok=true`, which has **never existed** |
+| 2 | **If it 401s instead, R-26 fires for the first time** — `tools-refused` shipped and has never once been the hold on any track | `spine_tracks.last_hold = 'tools-refused'`, `attempts` still 0 |
+| 3 | **Ship will NOT complete, and F-49 is the reason rather than the gates** | `release.publish` refuses: *"No successful preview deploy exists for this changeset yet"* |
+
+**Point 3 is the one worth stating hardest, because everything else about Ship is now open and this
+is not.** The founder set `STUDIO_AUTO_SHIP=1`, R-27 releases `release.publish` and `studio.revert`
+on a standing decision, and F-50 briefed the merge. **None of that matters here**: `promoteChangeset`
+requires a `provider='deno'` preview at the exact commit, `ci-poll-tick` builds one only for a repo
+carrying `supaprod.json` or `cadence.json`, and **`relay-homeowner-app` carries neither** — its root
+is `.github · README.md · bun.lock · node_modules · package.json · src · tsconfig.json`, and it is a
+Bun/React app rather than a `Deno.serve` program, so it could not be hosted under either name.
+
+**So the honest ceiling for Round 6 is 6 of 7, held at Ship on a missing preview.** Said before the
+tick rather than discovered at the station, so nobody has to decide afterwards whether it counted.
+
+**What would falsify point 3:** a `deployments` row with `provider='deno'` and
+`changeset_id` pointing at this track's changeset. Nothing in the code I have read can produce one
+for this repo.
+
+### What that makes the next move, whichever way point 1 goes
+
+**Not a code fix — a repo.** `provisionRepoForSpec` (`src/lib/new-build.functions.ts:102`) creates a
+private repo from `renderStarterTemplate`, which emits `supaprod.json` and a `Deno.serve` `main.ts`,
+and binds it to the workspace. It is the product's own door and it is already built. **Pointing the
+proof workspace at a repo the hosting path recognises is account setup done before a run, the same
+class as connecting GitHub** — recorded here in advance so it is not adjudicated after the fact.
+
+### 09:29–09:32 · THE LOOP WROTE CODE AND OPENED A PULL REQUEST. First time, ever.
+
+**Prediction 1 confirmed, and by more than it claimed.** I predicted Build would *reach* the repo. It
+reached it and then walked the entire build chain in one tick.
+
+```sql
+SELECT created_at, tool_name, ok, coalesce(error,'(ok)') FROM tool_calls
+ WHERE created_at > '2026-08-25 09:25:00+00' ORDER BY created_at;
+-- 09:29:06 repo.tree         ok=true
+-- 09:29:13 repo.search       ok=true
+-- 09:29:20 repo.search       ok=true
+-- 09:29:28 repo.tree         ok=true
+-- 09:29:37 repo.read         ok=true
+-- 09:30:08 studio.stage      ok=true
+-- 09:30:17 studio.tests.plan ok=true
+-- 09:31:15 studio.stage      ok=true
+-- 09:31:44 studio.commit     ok=true
+-- 09:32:01 studio.pr.open    ok=true
+```
+
+**`repo.tree ok=true` at 09:29:06 is the first successful repository call this product has ever
+made through the loop.** Every previous one — nine of them, across two days — was
+`GitHub 401 on /repos/RohitGajaraj/Test-Project-Cadence`, carrying `user_id = 22a73000` (demo2),
+whose workspace has no binding and fell through to a legacy env var. **F-39 was never an expired
+credential. It was the wrong account, and harbor's has worked from its first call.**
+
+### The pull request, verified on GitHub rather than believed from a row
+
+A `studio_changesets` row saying `pr_open` is not a pull request, so it was read back off GitHub:
+
+```
+gh pr view 3 --repo RohitGajaraj/relay-homeowner-app
+  number 3 · state OPEN · mergeable MERGEABLE
+  title  "feat(notifications): implement grouped in-app notification digest"
+  author app/supaprod-connector (bot) · createdAt 2026-08-25T09:32:00Z
+  head   studio/01306607-acd0f5b0c46f
+  449 additions · 0 deletions · 6 files
+```
+
+| File | + |
+| --- | --- |
+| `src/notifications/DigestCard.test.tsx` | 131 |
+| `src/notifications/NotificationList.test.tsx` | 114 |
+| `src/notifications/types.test.ts` | 71 |
+| `src/notifications/DigestCard.tsx` | 64 |
+| `src/notifications/NotificationList.tsx` | 43 |
+| `src/notifications/types.ts` | 26 |
+
+**316 of the 449 lines are tests, and the tests cite the spec's acceptance criteria by number:**
+
+> `// Criterion 1: Digest card displays content-specific summary headline and timestamp`
+> `// Criterion 3: Tap-to-expand reveals grouped notifications with visual hierarchy`
+
+Nobody told it to do that. `sprint-planner` filed five tasks *"each with explicit verification
+criteria tied to the PRD's success metrics"* and the builder wrote the tests against them.
+
+### What this closes
+
+- **F-39 is answered and it was diagnosed wrong twice.** Not an expired token, not a revoked
+  installation — the loop had only ever been allowed to run in a suspended account's workspace
+  (F-42), and that account has no GitHub. Harbor's credential worked on its first call, having never
+  been exercised in a month of it being blamed.
+- **F-36's fix fired for the first time.** `studio.commit` and `studio.pr.open` have been in
+  `BUILD_LANE_AUTONOMOUS` by founder ruling since **2026-07-08** and no station brief named them for
+  seven weeks. `09:31:44` and `09:32:01` are that grant being used, forty-nine days late.
+- **R-26 is still unfired.** Prediction 2 was never exercised, because nothing was refused. It stays
+  an untested fix and is not claimed as anything else.
+
+### The chain, from one sentence to a pull request
+
+> *"Homeowners are muting notifications because too many alerts arrive that do not need action."*
+> → 2 signals → a decision **with a forecast due 2026-09-25** → a spec → 5 tasks → a prototype, twice
+> (design-critic rejected the first) → 449 lines of code and tests → **PR #3**
+
+**$0.0896 and no human touched the run.** Six stations' worth of work; `sense` through `build`.
+
+**Still not the acceptance.** `learn` has not been reached, criterion 2 is compromised for this round
+by my 06:45 intervention, and prediction 3 stands: `relay-homeowner-app` carries neither
+`supaprod.json` nor `cadence.json`, so `ci-poll-tick` will not build a preview and `release.publish`
+will refuse. **Zero of six criteria are met. This is the furthest any track has gone and that is not
+the same thing.**
