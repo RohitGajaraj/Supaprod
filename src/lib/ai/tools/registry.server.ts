@@ -20,6 +20,7 @@ import { embedOne } from "@/lib/rag/embed.server";
 import { withIdempotency } from "@/lib/runtime/idempotency.server";
 import { callModel } from "@/lib/ai/runtime.server";
 import { extractArrayField, wrapBareArrayField } from "@/lib/ai/json-shape";
+import { namesOwnArtifact, ownArtifactRefusal } from "@/lib/ai/tools/own-artifact-source";
 /* The human path's forecast validation, reused rather than re-derived. Two copies
    of "what makes a forecast valid" is how the agent door and the person door come
    to disagree about it. The reasoning for both rules is in that function. */
@@ -371,7 +372,8 @@ const logSignal = def({
    */
   description:
     "Log a discovery signal: evidence that EXISTS, in the words of the source (user feedback, a support ticket, an interview quote). " +
-    "NEVER log the absence of evidence. 'No signals found', 'zero results', 'no data for X' are not signals — they are the answer to your final message, and filing them puts your own failure into the evidence every later run reads. Finding nothing and filing nothing is a correct, expected outcome; say so in your answer instead.",
+    "NEVER log the absence of evidence. 'No signals found', 'zero results', 'no data for X' are not signals — they are the answer to your final message, and filing them puts your own failure into the evidence every later run reads. Finding nothing and filing nothing is a correct, expected outcome; say so in your answer instead. " +
+    "NEVER cite this product's own work as a source. A PRD, spec, decision, changeset, mission, forecast or workspace brief is something the loop wrote, not something a person outside it said — the tool refuses those and the refusal is not a bug to work around.",
   category: "write",
   argsSchema: z.object({
     content: z.string().min(1).max(4000),
@@ -447,6 +449,19 @@ const logSignal = def({
         "No workspace is in context, so there is nowhere to file this signal. This is a wiring fault, not something to retry.",
       );
     }
+    /*
+     * F-73, and it is a REFUSAL rather than another line of advice because the
+     * boundary is one the loop cannot be trusted to hold under pressure to
+     * produce: evidence about the world may not originate inside the product.
+     * Track `d1168015` cleared Discover citing another track's PRD as a source
+     * (`PRD b401ccd4-…`, `Decision f9ac68cb`, `workspace.brief`), which the
+     * absence guard above could never catch — that one screens text that reads
+     * EMPTY, and a spec reads substantive. See own-artifact-source.ts for the
+     * three patterns and for why "post-decision interview" is deliberately
+     * left alone.
+     */
+    const ownKind = namesOwnArtifact(a.source);
+    if (ownKind) throw new Error(ownArtifactRefusal(a.source ?? "", ownKind));
     const { writeSignals } = await import("@/lib/sources/sink.server");
     const result = await writeSignals(userId, workspaceId, [
       {
