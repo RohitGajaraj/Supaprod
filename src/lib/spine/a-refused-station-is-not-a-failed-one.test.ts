@@ -32,6 +32,9 @@
  * deliberately excluded, because that is the governance floor working and it
  * already has `waiting-on-a-person`.
  */
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
 import { describe, expect, it } from "bun:test";
 
 import { refusedTool, HOLD_LINE, holdLine, type ToolStepLike } from "./driver";
@@ -144,5 +147,66 @@ describe("the hold stops the loop spending on a locked door", () => {
 
   it("is named after the station it happened at, like the other station holds", () => {
     expect(holdLine("tools-refused", { station: "build" })).not.toContain("This station");
+  });
+});
+
+/**
+ * THE FIRST VERSION OF THIS FIX SHIPPED, DEPLOYED, AND DID NOT FIRE.
+ *
+ * It read only the in-memory `LoopStep[]` the dispatch returned. On 2026-08-25
+ * it was live for the 05:20 tick on track `8391835f` and the station still held
+ * `produced-nothing`, while `tool_calls` carried the proof — twice, at 05:10:12
+ * and 05:20:12:
+ *
+ *   repo.tree | ok=false | "GitHub 401 on /repos/RohitGajaraj/Test-Project-Cadence"
+ *
+ * The step plumbing between the dispatch and the verdict is not something the
+ * driver can observe from where the verdict is made, and **a fix that depends on
+ * something it cannot check is a fix that cannot be trusted**. So the record is
+ * now the authority: `tool_calls` is written by the tool layer itself, which is
+ * the same evidence a person would use to answer the question.
+ *
+ * `trace_id` is the only key the two tables share — `agent_runs` has no
+ * `trace_id` column (confirmed: the join errors with 42703) — which is why the
+ * ids are carried down from each `runAgentLoop` result rather than looked up.
+ */
+describe("the refusal is proved against the record, not only the run's own account", () => {
+  const SERVER = readFileSync(
+    fileURLToPath(new URL("./driver.server.ts", import.meta.url)),
+    "utf8",
+  );
+  const SERVER_CODE = SERVER.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+
+  it("collects the trace of every seat it dispatches", () => {
+    expect(SERVER_CODE).toContain("if (result.trace_id) traceIds.push(result.trace_id);");
+  });
+
+  it("falls back to tool_calls when the steps did not carry it", () => {
+    expect(SERVER_CODE).toContain("refusedToolInTraces");
+    expect(SERVER_CODE).toMatch(/refusedTool\(steps\) \?\? \(await refusedToolInTraces/);
+  });
+
+  /** Cheap path first: no query at all when the steps already answer. */
+  it("only queries when the in-memory account came up empty", () => {
+    expect(SERVER_CODE).toMatch(/refusedTool\(steps\) \?\?/);
+  });
+
+  /** And only on the path where the station already filed nothing. */
+  it("never runs on a station that produced", () => {
+    expect(SERVER_CODE).toMatch(/producedThisVisit\s*\n?\s*\?\s*null/);
+  });
+
+  it("joins on trace_id, the only key the two tables share", () => {
+    expect(SERVER_CODE).toContain('.in("trace_id", traceIds)');
+    expect(SERVER_CODE).toContain('.eq("ok", false)');
+  });
+
+  /**
+   * A read that failed proves nothing, so it claims nothing — the same rule
+   * `getTrackArtifacts` follows for `missing`. Reporting "refused" because the
+   * query broke would be the same class of lie in the other direction.
+   */
+  it("claims nothing when its own read fails", () => {
+    expect(SERVER_CODE).toContain("if (error || !data) return null;");
   });
 });

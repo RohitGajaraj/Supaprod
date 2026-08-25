@@ -1224,6 +1224,12 @@ export async function driveTrackOnce(
   /** The thrown value, kept so its code survives the reduction to a message. */
   let failedError: unknown = null;
   let steps: ToolStepLike[] = [];
+  // F-41. The trace is how a refusal is PROVED rather than inferred: it is the
+  // join key on `tool_calls`, where a failed tool records the message the
+  // provider actually returned. `refusedTool(steps)` reads the in-memory account
+  // of the same run and is tried first because it is free; this is the fallback
+  // that does not depend on step plumbing surviving the dispatch.
+  const traceIds: string[] = [];
   const crew = stationCrew(station);
   const brief = [...upstream];
 
@@ -1387,6 +1393,7 @@ export async function driveTrackOnce(
       // an artifact to THIS track rather than to whatever happened to be created
       // around the same time; the full argument is in the header of ./attach.ts.
       steps = [...steps, ...(result.steps ?? [])];
+      if (result.trace_id) traceIds.push(result.trace_id);
       queued += result.approvals_queued ?? 0;
 
       /*
@@ -1678,7 +1685,9 @@ export async function driveTrackOnce(
    * the tool and the refusal — which is what R-16 asks for and what
    * "this station filed nothing" could never give.
    */
-  const refusal = producedThisVisit ? null : refusedTool(steps);
+  const refusal = producedThisVisit
+    ? null
+    : (refusedTool(steps) ?? (await refusedToolInTraces(supabase, traceIds)));
 
   if (refusal) {
     await supabase
@@ -1875,3 +1884,52 @@ export const DRIVE_SELECT =
   "seat_cursor";
 
 export type { DriveRow };
+
+/**
+ * F-41 — read the refusal off the RECORD rather than off the run's own account.
+ *
+ * WHY THIS EXISTS AND `refusedTool(steps)` WAS NOT ENOUGH. The first version of
+ * this fix read only the in-memory `LoopStep[]` the dispatch returned, shipped,
+ * deployed, and then did not fire on a live 401 — twice, at 05:10 and 05:20 on
+ * track `8391835f`, while `tool_calls` held the proof both times:
+ *
+ *   repo.tree | ok=false | "GitHub 401 on /repos/RohitGajaraj/Test-Project-Cadence:
+ *                           {\"message\": \"Bad credentials\"}"
+ *
+ * The step plumbing between the dispatch and this verdict is not something this
+ * function can see, and a fix that depends on it is a fix that cannot be checked.
+ * `tool_calls` is written by the tool layer itself, so it is the same evidence a
+ * person would use. `trace_id` is the only join key the two tables share —
+ * `agent_runs` has no `trace_id` column, which is why the ids are carried down
+ * from each `runAgentLoop` result rather than looked up.
+ *
+ * Costs one query, and only on the path where a station already filed nothing.
+ */
+async function refusedToolInTraces(
+  supabase: SupabaseClient,
+  traceIds: string[],
+): Promise<{ tool: string; error: string } | null> {
+  if (!traceIds.length) return null;
+  try {
+    const { data, error } = await supabase
+      .from("tool_calls")
+      .select("tool_name,error,created_at")
+      .in("trace_id", traceIds)
+      .eq("ok", false)
+      .order("created_at", { ascending: true })
+      .limit(50);
+    // A read that failed proves nothing, so it claims nothing — the same rule
+    // `getTrackArtifacts` follows for `missing`.
+    if (error || !data) return null;
+    return refusedTool(
+      data.map((r) => ({
+        kind: "tool_call",
+        name: (r as { tool_name?: string }).tool_name ?? "a tool",
+        status: "error",
+        error: (r as { error?: string | null }).error ?? null,
+      })),
+    );
+  } catch {
+    return null;
+  }
+}
