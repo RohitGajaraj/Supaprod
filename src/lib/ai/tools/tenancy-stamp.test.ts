@@ -208,11 +208,14 @@ describe("agent tool writes stamp the tenant", () => {
      */
     const at = SOURCE.indexOf('name: "signals.log"');
     expect(at, "signals.log has left the registry").toBeGreaterThan(-1);
-    // 7,000 rather than a tighter window: the tool carries a long header
-    // explaining why it files through the sink, and the call itself sits 4,300
-    // characters past its own name. A window that clipped it would fail for the
-    // wrong reason and read as a missing tenant stamp.
-    const body = SOURCE.slice(at, at + 7000);
+    // ANCHORED TO THE NEXT TOOL, NOT A CHARACTER COUNT (2026-08-25). This read
+    // `at + 7000`, chosen because the call sat 4,300 characters past its own
+    // name — and then F-73 added a comment and a refusal above the call, pushed
+    // it past 7,000, and this test failed claiming the tenant stamp was missing
+    // when the stamp was untouched. Exactly the wrong-reason failure the old
+    // comment warned about, arriving through the window it chose. The next
+    // definition is the tool's real end, so prose can grow without lying.
+    const body = SOURCE.slice(at, SOURCE.indexOf("const listSignals", at));
     expect(body).toContain("writeSignals(userId, workspaceId");
     // And it still refuses loudly rather than guessing a tenant.
     expect(body).toContain("if (!workspaceId)");
