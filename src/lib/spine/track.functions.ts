@@ -1011,7 +1011,24 @@ const FIELDS: Readonly<Record<string, readonly string[]>> = {
   task: ["detail", "status", "priority"],
   // `name` is the title column here; there is no `title` and no body worth a card.
   prototype: ["description", "entry_path", "share_slug", "prd_id"],
-  changeset: ["summary", "status", "repo", "branch", "pr_url", "pr_number", "prd_id"],
+  // `code_review` carries `studio.review`'s verdict — approve / revise / block
+  // with per-line findings — and it was fetched by nothing. Queue item 23 is
+  // "the review verdict is filed where nobody looks", and this is the half that
+  // makes it readable: the column has existed since migration
+  // `20260802180000_changeset_code_review.sql` and 0 of 45 changesets carry one,
+  // because the tool that writes it has never successfully run. **The empty
+  // state is the honest state and the pane must say so rather than hide the
+  // field** — same rule as the Learn verdict card.
+  changeset: [
+    "summary",
+    "status",
+    "repo",
+    "branch",
+    "pr_url",
+    "pr_number",
+    "prd_id",
+    "code_review",
+  ],
   mission: ["status"],
   deployment: ["commit_sha", "deploy_url", "environment", "provider", "status", "deployed_at"],
   learning: [

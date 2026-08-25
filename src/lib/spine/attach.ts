@@ -159,6 +159,29 @@ export const TOOL_PRODUCTS: Readonly<Record<string, ToolProduct>> = {
   // code changes into it, which is what makes it part of this work. Membership
   // is "part of this piece of work", not "created by this dispatch".
   "studio.stage": { kind: "changeset", table: "studio_changesets", idField: "changeset_id" },
+  /*
+   * THE OTHER TWO STEPS OF THE BUILD CHAIN, added 2026-08-25 with F-36.
+   *
+   * `studio.stage` was the only changeset sink, which was right when Build was
+   * briefed to call only `studio.stage`. F-36 corrected that brief — Build now
+   * stages, commits, and opens a pull request, because founder ruling
+   * 2026-07-08 made all three autonomous and no station had ever been told —
+   * and a station that commits or opens a PR was filing NOTHING to the track.
+   *
+   * MEASURED 2026-08-25: `spine_track_members` holds 1104 signals, 177 themes,
+   * 110 tasks, 27 decisions, 21 prds, 13 prototypes, 5 missions, 2 learnings
+   * and **not one changeset**, while `studio_changesets` holds 45 rows — one of
+   * which (`f847d98a`, status `staged`) belongs to a mission that IS a member
+   * of track `c4b12e7c` at `build`. The work reached the record and the record
+   * never reached the track.
+   *
+   * Both return `changeset_id`, and membership is "part of this piece of work"
+   * rather than "created by this dispatch" — the same rule already written
+   * above for `studio.stage`, so re-attaching the same changeset across the
+   * three steps is expected and idempotent.
+   */
+  "studio.commit": { kind: "changeset", table: "studio_changesets", idField: "changeset_id" },
+  "studio.pr.open": { kind: "changeset", table: "studio_changesets", idField: "changeset_id" },
   // Both create SEVERAL themes in one call and now hand back every id. They
   // used to return a bare count, which made a clustering pass invisible here
   // and left a Sense run with no member row at all; the ids were always in hand
