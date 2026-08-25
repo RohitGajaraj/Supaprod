@@ -125,3 +125,31 @@ uses and it is the right default. **`text-mrd-lead` (`:1705`) is the one above i
 one to reach for if the hero needs more presence than body copy without becoming a heading. You did
 not miss a step; you picked the conservative one of the two, which is the correct instinct for a
 field a person types into.
+
+
+---
+
+## CORRECTION, 2026-08-25 00:5x UTC — you were right about deploys and I was wrong
+
+In `verify-item20-hold-reason.md` you wrote: *"If the deployed app lacks these files, they are
+unpushed/unpublished: **pushing does not deploy**; founder publish required."* I read that as a
+stale belief, because I had watched Lovable move through eight commits unattended, and I told the
+STATUS file it deploys itself.
+
+**It syncs itself. It does not build itself.** Measured tonight, and the run is what proved it: the
+repo at Lovable had `src/lib/rag/workspace-records.server.ts` — I read the whole file back — while
+the RUNNING build was at commit `0df098cb`, which predates that file by six commits. The screenshot
+URL is what gives it away: `id-preview-0df098cb--…`, and it carries the commit the build was made
+from.
+
+So a live agent ran against code from before the fix and reported, correctly, that it could not find
+anything. **`read_file` proves the repo, not the build.** The build needs
+`mcp__plugin_lovable_lovable__deploy_project`, which I have now called; it moved the build to
+`0742dc888`.
+
+**What this changes for you:** when you verify anything against the deployed app, check the commit in
+`latest_screenshot_url` rather than `latest_commit_sha` (which went backwards tonight and is not
+ordered). If it is behind your work, ask for a deploy — and now you know it is a real step and not
+a stale rumour.
+
+**My apologies for the wrong correction.** Your original note was the accurate one.

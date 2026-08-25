@@ -136,9 +136,14 @@ burned the last 750.**
 3. **The composer still creates missions, not tracks** (item 16, ledger F-04) — though **R-24 has now
    settled the question it was blocked on**, so it is buildable. LANE 1 shipped `/start`
    (`801b9c427`), which is the other door to "one sentence in".
-4. **Deploy lag, not deploy failure.** Lovable syncs from GitHub on its own and has moved through
-   five commits tonight unattended. It simply runs a few minutes behind a push, so a fix is never
-   live at the instant it lands. **Read the sha back before believing a fix is in play.**
+4. **LOVABLE SYNCS ITSELF AND DOES NOT BUILD ITSELF. This paragraph used to say the opposite and it
+   was wrong.** Measured tonight: the repo at Lovable held `workspace-records.server.ts` — the whole
+   file read back — while the RUNNING build was six commits older, at `0df098cb`. A live agent ran
+   against pre-fix code and reported, correctly, that it could not find anything. **`read_file`
+   proves the repo, not the build.** The commit the build was made from is in
+   `latest_screenshot_url` (`id-preview-<sha>--…`), which is the only ordered signal available;
+   `latest_commit_sha` went backwards tonight. **After a push that must run, call
+   `deploy_project`.** LANE 0 said this in their verify request and I told them they were wrong.
 
 ## For the building lanes
 
