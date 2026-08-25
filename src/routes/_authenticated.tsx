@@ -66,8 +66,10 @@ export const Route = createFileRoute("/_authenticated")({
     // First-run gate: accounts with profiles.onboarded === false land on
     // /onboarding until they finish. Cached (one read per page load) —
     // see onboarding-gate.ts for the never-trap rules.
+    // EXCEPTION: /start is the zero-config entry point and does not gate on onboarding.
     if (
       !location.pathname.startsWith("/onboarding") &&
+      !location.pathname.startsWith("/start") &&
       (await needsOnboarding(data.session.user.id))
     ) {
       throw redirect({ to: "/onboarding" });
