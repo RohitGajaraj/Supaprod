@@ -863,3 +863,53 @@ agree with it.
 Not simply "rename the track": that loses the sentence a person recognises their work by (F-27's
 constraint). The subject a station is given should be **derived from the current spec when one
 exists**, and fall back to the title only when nothing has been filed yet.
+
+
+### 02:36 — Round 3 closed at 4 of 7, and NOT revived
+
+```sql
+UPDATE spine_tracks SET status='abandoned' WHERE id='897d1834-…' AND status='open';
+-- design | produced-nothing | attempts 1 | $0.082516
+```
+
+**Retired rather than allowed to retry**, and the timing is the point: the fix for F-30 was in `main`
+and about to deploy, so the 02:40 tick would have handed that stalled station a corrected brief and
+it would very likely have advanced. **A track that reached `learn` because I repaired the driver
+underneath it mid-stall is not evidence of anything**, and it would have contaminated the one record
+this file exists to keep.
+
+### What Round 3 actually settled
+
+| | |
+| --- | --- |
+| Stations completed | **4 of 7** — `sense`, `decide`, `define`, and stopped inside `design` |
+| Cost | **$0.0825** |
+| Human touches mid-run | **none**, from creation at 00:47:14 to the stall |
+| Acceptance criteria met | **zero of six** |
+
+**Proven by behaviour, not by test:**
+
+- **F-19** — Discover found the Canny signal by name and filed it. First real evidence this workspace
+  has ever produced.
+- **F-14** — `decide` filed a decision, the tick split the crew, the resuming seat filed **nothing**,
+  and the track **advanced anyway**. The exact point `f9e41393` died.
+- **The moat artifact** — a forecast with a claim, a machine-checkable observable and a 2026-09-01
+  horizon, written by an agent, ungraded because the date has not come.
+
+**Found only because it ran:** F-25 (the tick serves one track, not five), F-26 (the watched path
+stops every 50s), F-27/F-30 (the brief follows the title, not the spec — which halted it), F-29 (the
+design gate cannot see agent work).
+
+### Round 4 — what changes, and the one thing that does not
+
+Fresh track, **one build, nothing deployed mid-flight, and no second track competing**. The subject
+changes too, and the reason is worth stating rather than hiding: *"add dark mode"* had **no
+corroborating evidence in this workspace**, so Decide correctly deferred it and every later station
+inherited a deferral. That is a true and useful path — it is how F-30 surfaced — but it cannot reach
+`learn`, because there is nothing to build, ship or grade.
+
+Round 4 uses a subject the workspace **does** hold evidence for: one of the ten `internal-audit`
+signals filed 2026-08-22. **That is not stacking the deck** — it is giving the loop work its own
+evidence supports, which is the ordinary case. A run that must reach `learn` on evidence that does
+not exist is testing the agents' honesty, and that has already been answered: they refuse, correctly,
+every time.
