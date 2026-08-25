@@ -339,3 +339,81 @@ This query is the **mission gate criterion** as documented in:
 **Verified by:** Session A (Claude Code director)  
 **Date:** 2026-08-26 · ~21:30 UTC  
 **Status:** PHASE 1 complete. Awaiting founder observation for PHASE 2 start.
+
+---
+
+## Session 2026-08-26 (Continued) — Root Cause of Stall Identified
+
+**Investigation:** Test track d1168015-05fb-4d6e-82b2-d80bdf7f5ff8 created with real workspace (Helio Labs, 246 signals available). Agents dispatched by track-tick and executed but did not advance the track.
+
+### Core Blocker: Agents Not Calling Filing Tools
+
+**Discovery-scout agent behavior:**
+- Status: completed normally
+- Input: Found real signals (checkout abandonment 41%, alert fatigue 22%, offline-sync issues)
+- Output: Prose describing findings, stating "cannot be newly logged as they already exist"
+- Tool calls made: **ZERO** — did not call `signals.log` despite finding evidence
+- Track progression: Stayed at sense station (no artifacts filed)
+
+**Researcher agent behavior:**
+- Status: completed_with_failures
+- Output: Reached step limit before finishing, attempted to call `research.synthesize` but failed
+- Result: Did not file any artifacts
+- Track progression: Stayed at sense station
+
+**Driver response to zero artifacts:**
+- From driver.server.ts line 1697: `const filed = await attachProducts(supabase, row.id, station, result.steps ?? []);`
+- Result: `filed.length === 0`
+- Hold assigned: `produced-nothing`
+- Attempt counter incremented
+- After 3 attempts (MAX_STATION_ATTEMPTS): track marked `given-up` and stalls indefinitely
+
+### Why This Happens
+
+The agent execution loop is working correctly. The problem is **agent behavior**, not agent execution:
+
+1. **Agents have access to the tools:** `signals.log` and `research.synthesize` are in TOOL_REGISTRY, passed via ToolCtx
+2. **Agents understand the brief:** CREW_ROLE explicitly states "File each piece by calling signals.log"
+3. **But agents don't use them:** Instead of calling tools, agents report findings in prose
+
+**Root cause hypothesis:**
+- Agent's system prompt or model behavior does not strongly compel tool usage
+- Agent may be "satisficing" by describing findings rather than being forced to file them
+- Or agent is encountering tool errors that cause retry loops leading to step exhaustion
+
+### Evidence the System Is Wired Correctly
+
+✅ Driver dispatches agents with correct workspaceId (line 1619, driver.server.ts)  
+✅ ToolCtx receives workspaceId (line 926, loop.server.ts)  
+✅ Tools check workspaceId and reject if missing (line 445, registry.server.ts)  
+✅ Agent briefs name the tools explicitly (CREW_ROLE in driver.ts)  
+✅ Tools appear in prompt (line 865, loop.server.ts: `describeToolsForPrompt`)  
+✅ Test workspace has data (246 signals in Helio Labs)  
+✅ Agents execute and complete (steps are recorded)  
+
+### What Must Be Fixed
+
+**Priority 1:** Ensure agents MUST call filing tools, not just SHOULD
+
+Options:
+1. Strengthen agent system prompt to mandate tool usage for certain tasks
+2. Add validation to agent briefs that rejects prose-only responses without filed artifacts
+3. Debug why `research.synthesize` enters a retry loop (step budget issue)
+4. Verify tool call success/failure error handling
+
+**Priority 2:** Verify fix works
+
+1. Create new test track
+2. Ensure all Sense agents call `signals.log` 
+3. Verify Decide agent calls `decision.record`
+4. Proceed through all stations confirming tool calls land
+
+**Priority 3:** Demonstrate mission gate satisfaction
+
+Once tool-calling is fixed, founder can watch a single complete loop on `/start`, confirming end-to-end execution.
+
+---
+
+**Status after this session:** PHASE 1 root cause identified. Ready for PHASE 1B: Fix agent tool-calling defect.  
+**Blocker:** Agent behavior (tool non-usage), not architecture or wiring.  
+**Fixes needed:** 3-4 hours investigation + implementation of agent instruction strengthening.
