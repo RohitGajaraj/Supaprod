@@ -1,3 +1,55 @@
+# SESSION HANDOFF — LANE 1 CLOSE · 2026-08-25 ~17:2x UTC
+
+**Lane:** LANE 1 (OX Alpha / opencode) · worktree `cadence-lane-1` · branch pushed to `main`
+(`HEAD` == `origin/main` at close, tree clean, no dev server running).
+**Gates at close:** full `bun test` 11,331 pass / 0 fail · `tsc` clean.
+Full unit detail in `coordination/units/` (076–085) and `docs/lanes/BUILDLOG.md`; the
+per-worktree remember file (`.remember/remember.md`, this worktree) carries the same close
+note — the previous session's content in that file is preserved below mine.
+
+## Closed this session
+
+| Item | Unit | True state |
+| --- | --- | --- |
+| Queue 54 — the character mounted (rail miniature everywhere + /start introduction) | 076 | VERIFIED-LIVE (4 surfaces + dark theme); falsifier filed for L0 |
+| Item 24 — clipboard write cross-verified | 077 | VERIFIED-LIVE (write path, keyboard, announcement; read-back blocked by browser perms, recorded) |
+| R-15 promotion seam — one `SIGNED_IN_HOME` constant replaces ten `"/today"` literals | 078 | CODE-SHIPPED, behaviour identical; the founder's /start promotion is now genuinely one line |
+| Queue 66 — tries line cross-verified both ways | 079 | VERIFIED-LIVE (populated + honest-zero); counter-reset question to MAIN |
+| Dead-CSS sweep (ink/styles/primitives/today) | 080–081b | VERIFIED; ratchet 1536 → 1507; two lying comments corrected |
+| Route census refresh | 082 | 84 routes: 43 redirects, 41 surfaces; five-door distance measured |
+| **Item 4** — creating a track lands you on it | 083 | CODE-SHIPPED (seam `9242664aa` + my navigate); live proof credential-blocked, falsifier pre-written |
+| **Queue 70** — the claim beside the verdict on /learn | 084 | CODE-SHIPPED; renders nothing while all 133 decision_ids are NULL (required today-shape); falsifier pre-written |
+| **Item 22** — /boundary folded into /engine-room | 085 | CLOSED; 1131 lines → redirect, region-by-region proof nothing stranded; two src/lib guards retargeted (deliberate crossing, disclosed in INBOX) |
+
+## The record correction this session is responsible for
+
+The "Round 8 mission proven / 2 tracks reached learn" claim (Haiku-co-authored commit
+`09931e125` + `ROUND-8-RESULTS.md` + the AUDIT.md banner) is **false**, falsified on five
+cited grounds in `INBOX-MAIN.md` (15:2x): the claimed tracks sit inside the duplicate burst
+quarantined at 14:15; the results file records Time (s): 0; F-61 already proved the
+learn-count query a false yes; F-64 meant Ship could not run at the claimed hour; no SQL was
+offered. The upstream PHASE-1 audit (`82fe38384`) independently landed "MISSION GATE STATUS:
+NOT MET". **The honest position: Round 7 walked six of seven unaided; `7977dc06` was in
+flight at B's last write. Nothing outward may cite "mission proven" until SQL proves it.**
+
+## What the next session needs to know first
+
+1. **The demo credential is stale.** `E2E_DEMO_PASSWORD` fails for harbor@ on production AND
+   localhost (same Supabase project). Every lane's scripted browser verification is blocked
+   until it is refreshed — this is the single highest-leverage unblock, and only the
+   founder/MAIN holds it.
+2. **Pending, none executable from LANE 1:** per-card pairing affordance (needs MAIN's
+   `InsightCards` + L0's `LearnedCards`, INBOX 16:1x); AppFrame `BOUNDARY_PATHS` cleanup
+   (A's RAIL claim, INBOX 17:0x); verify request `076-verify-queue54.md` (L0's queue).
+3. **PHASE 3** is mostly L0's path; LANE 1 takes the route-side mounts when the director
+   restocks. Another session's handoff below says lane work waits on the founder's PHASE 3
+   observation — that instruction governs intake.
+4. **Queue state for LANE 1 at close:** every item in `QUEUE-LANE1.md` is now done (12, 54,
+   32, 70, 22, plus items 2/8/10/13/14/26/32 from the master list). The lane is empty and
+   hungry; MAIN's restock is the next event.
+
+---
+
 # SESSION HANDOFF 2026-08-26 · PHASE 1B FIX DEPLOYED
 
 **Build status:** ✅ Clean, all gates pass  
