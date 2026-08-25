@@ -67,13 +67,20 @@ export const Route = createFileRoute("/_authenticated")({
     // /onboarding until they finish. Cached (one read per page load) —
     // see onboarding-gate.ts for the never-trap rules.
     // EXCEPTION: /start is the zero-config entry point and does not gate on onboarding.
+    const firstRun = await needsOnboarding(data.session.user.id);
     if (
       !location.pathname.startsWith("/onboarding") &&
       !location.pathname.startsWith("/start") &&
-      (await needsOnboarding(data.session.user.id))
+      firstRun
     ) {
       throw redirect({ to: "/onboarding" });
     }
+    /*
+     * RETURNED, not just branched on, because `/start` is now the HOME and the
+     * shell decision below needs the same answer. The read is cached
+     * (`onboarding-gate.ts`, one per page load), so surfacing it costs nothing.
+     */
+    return { firstRun };
   },
   component: AuthedLayout,
   /*
@@ -124,7 +131,27 @@ function AuthedLayout() {
   // /start (front-end reimagining Phase 5) is the same kind of moment, so it
   // gets the same clean, chromeless full-viewport treatment (no shell, no
   // shortcuts, no composer, no focus dock, no sample banner).
-  const isOnboarding = pathname.startsWith("/onboarding") || pathname === "/start";
+  /*
+   * ── FIXED 2026-08-25, AND IT IS A BUG THE FRONT-DOOR FLIP CAUSED ──────────
+   *
+   * This read `|| pathname === "/start"` unconditionally, which was right while
+   * `/start` was a side door reached once: a first-run moment deserves a clean
+   * full-viewport screen with no rail and no shortcuts.
+   *
+   * **Then I made `/start` the home** (`post-auth-home.ts`), and the same line
+   * meant every signed-in person landed on a page **with no rail at all** — no
+   * navigation, no way to reach Approvals or Brain, the shell torn down by the
+   * very door that contains it. A home with no chrome is not a home.
+   *
+   * So the treatment now follows the PERSON rather than the PATH. Somebody who
+   * has not finished onboarding still gets the chromeless introduction; somebody
+   * who has gets their home inside the shell, with their open runs and the rail.
+   * `/start` stays exempt from the onboarding REDIRECT above — that exemption is
+   * deliberate and unchanged — so a first-run visitor can still reach it, and
+   * now gets the right frame when they do.
+   */
+  const firstRun = Route.useRouteContext().firstRun === true;
+  const isOnboarding = pathname.startsWith("/onboarding") || (pathname === "/start" && firstRun);
   // Mission Control (front-end reimagining Phase 1): the room carries its own
   // five-region shell (TopBar, Spine, Thread, Canvas, Composer), so the old
   // AppShell must not wrap it. GotoShortcuts also stays off there: it binds
