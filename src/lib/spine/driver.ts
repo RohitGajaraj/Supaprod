@@ -109,7 +109,12 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
   },
   // 02 Decide
   strategist: {
-    job: "Weigh this against what else could be done, and say what the evidence supports. If the evidence does not support it, say so plainly rather than finding a reason.",
+    // F-32, same correction as the `decide` arm of `stationJob` — and it has
+    // to be made in both places, because `stationGoal` composes the station's
+    // job AND this seat's job into one brief. Removing the sentence from one
+    // of them leaves the agent reading it from the other, which is how this
+    // was found: the test asserted on the whole module and failed.
+    job: 'Weigh this against what else could be done, and say what the evidence supports, without finding a reason. Then make the call: a "no" is a decision and you file it exactly as you would a yes, naming what you would need to see to change it.',
     /*
      * NAME THE ARGUMENTS THE TOOL ACTUALLY HAS, the same correction the
      * `prd-writer` seat needed. `decision.record` began REFUSING a decision with
@@ -656,7 +661,20 @@ function stationJob(station: AgentStation, subject: string): string {
     case "sense":
       return `Gather and cluster the evidence for ${subject} Surface what the sources actually say, and do not invent a signal that is not there.`;
     case "decide":
-      return `Decide whether ${subject} is worth doing, and say what the evidence supports. If the evidence does not support it, say so plainly rather than finding a reason.`;
+      // F-32. This line used to end "If the evidence does not support it, say
+      // so plainly rather than finding a reason." That is the right instinct
+      // against rationalising, and in a workspace with no ingestion source
+      // configured it reads as a standing order to decline — which is what it
+      // became. See the ledger: 37 recalled prohibitions were built out of
+      // runs that took it that way.
+      //
+      // The correction is NOT a lower evidence bar. It is that a "no" is a
+      // decision and has to be FILED as one. A refusal writes no `decisions`
+      // row, so it writes no forecast, so nothing about it can ever be
+      // checked — and the forecast captured at decision time is the whole
+      // point of this station. Thin evidence belongs in the confidence and in
+      // what would settle it, not in a refusal to make the call.
+      return `Decide whether ${subject} is worth doing. Someone asked for this work, which obliges you to make a call on it — it is not on its own a reason to do it. Weigh what the evidence supports and say so plainly, without finding a reason. **A "no" is a decision and you file it the same way as a yes**, with what you would need to see to change it. What you must not do is decline to decide: thin or absent evidence is a fact about your confidence and about what would settle it, and both of those go in the forecast.`;
     case "define":
       return `Write the spec for ${subject} It must state the outcome it is trying to move and how anyone would know it worked, because that is what the outcome is graded against later.`;
     case "design":

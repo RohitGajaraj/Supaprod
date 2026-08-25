@@ -118,10 +118,23 @@ describe("stationGoal", () => {
     }
   });
 
-  it("tells Decide it may say no", () => {
+  it("tells Decide it may say no, and that a no is filed", () => {
     // A decide station that can only say yes is theatre, and the whole
     // decision record downstream would be worthless.
-    expect(stationGoal("decide", track)).toContain("does not support it");
+    //
+    // This assertion used to read `toContain("does not support it")`, which
+    // pinned the SPELLING of one clause. F-32 rewrote the brief and the claim
+    // survived while the literal did not, so the test failed on improved copy
+    // — pin the claim.
+    //
+    // The claim has two halves and the second is the one that was missing in
+    // practice: a station that says no and files nothing leaves no `decisions`
+    // row, so no forecast, so nothing that can ever be resolved. On
+    // 2026-08-25 that is exactly where the live track stopped.
+    const goal = stationGoal("decide", track);
+    expect(goal).toContain('"no"');
+    expect(goal).toContain("file it the same way as a yes");
+    expect(goal).toContain("must not do is decline to decide");
   });
 
   it("tells Learn to record a miss", () => {
@@ -281,9 +294,7 @@ describe("the roster does not drift from the code that dispatches it", () => {
     );
 
     const unknown = [...dispatched].filter((s) => !bySlug.has(s)).sort();
-    const stale = [...dispatched]
-      .filter((s) => bySlug.get(s)?.status === "deprecated")
-      .sort();
+    const stale = [...dispatched].filter((s) => bySlug.get(s)?.status === "deprecated").sort();
 
     expect({ unknown, stale }).toEqual({ unknown: [], stale: [] });
   });
@@ -322,7 +333,10 @@ describe("the roster does not drift from the code that dispatches it", () => {
     expect(crewOnStation, "an engine-only agent is being dispatched as a station seat").toEqual([]);
 
     // And the tier is actually populated, so neither assertion passes on nothing.
-    expect(active.some((e) => e.tier === "crew"), "no active crew agent to check").toBe(true);
+    expect(
+      active.some((e) => e.tier === "crew"),
+      "no active crew agent to check",
+    ).toBe(true);
   });
 
   it("keeps every agent the catalogue ever named, so a historical run still reads", () => {

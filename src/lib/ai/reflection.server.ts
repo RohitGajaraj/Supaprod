@@ -10,6 +10,60 @@
  * The auto path is invoked from `loop.server.ts` (no LLM tool call
  * required). The `memory.reflect` tool is a thin wrapper around the same
  * helper so an agent can also reflect explicitly mid-run if it wants to.
+ *
+ * ---
+ *
+ * F-31, 2026-08-25 — WHY A LESSON HAS A SHELF LIFE NOW.
+ *
+ * This mechanism spent three weeks teaching one workspace to refuse work.
+ *
+ * The chain is short and every link is doing its job. Workspace `0b792d52`
+ * has **no ingestion source and never has** — `scout_targets` is 0 rows — so
+ * an agent asked to justify a piece of work correctly reports that no
+ * primary evidence exists. It declines. The run **completes**, because
+ * declining is a clean outcome and not a halt, so this function fires and
+ * distils the decline into a lesson written in the second person. What comes
+ * back is not "the workspace had no sources today". It is:
+ *
+ *   "You must decline workstreams when primary evidence is absent and
+ *    telemetry infrastructure is broken."
+ *
+ * That sentence is then recalled on the next run, and the next.
+ *
+ *   SELECT count(*), count(*) FILTER (WHERE content ILIKE 'you must not%'
+ *                                        OR content ILIKE 'you must decline%')
+ *     FROM agent_memory WHERE workspace_id = '0b792d52-...';
+ *   -- 308 | 53
+ *
+ * **53 standing prohibitions, and the loop was reading them back.** At
+ * 03:10:01 the `strategist` recalled four memories before it ran, three of
+ * which ordered it to decline; it declined, and wrote a fifth. The `critic`
+ * did the same 26 seconds later. `memory_recall_log` joined to `agent_memory`
+ * has both. The prohibitions had also **crossed subjects** — a track about
+ * notification settings was declined using lessons written about dark mode
+ * and EU timezones, because recall is semantic and "no evidence" matches
+ * everything.
+ *
+ * So the product's central claim — that it learns and then guides the next
+ * call — was working exactly as designed, and what it had learned from a
+ * workspace where nothing ever finished was to refuse.
+ *
+ * TWO THINGS WERE WRONG AND ONLY ONE OF THEM IS HERE:
+ *
+ *  1. `agent_memory.expires_at` already existed, and `match_agent_memory`
+ *     already honoured it. `recent_agent_reflections` — the path that selects
+ *     `kind='reflection'`, i.e. exactly these rows — did not. **The memories
+ *     with the shortest shelf life were the only ones exempt from shelf
+ *     life.** Fixed in migration `20260825033000`.
+ *  2. Nothing ever set the column. That is the code below.
+ *
+ * The 37 of 53 prohibitions that cite the transient state were retired by
+ * setting `expires_at = now()`, which is reversible — the rows survive and
+ * carry `metadata.retired_reason`.
+ *
+ * THE RULE THIS LEAVES BEHIND: a condition an agent met once is a fact about
+ * that day. It becomes a rule only by continuing to be true, which a
+ * seven-day shelf life tests and a permanent memory never does.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { callModel } from "./runtime.server";
@@ -148,9 +202,20 @@ export async function autoReflect(
           role: "system",
           content:
             "You distil a one-paragraph LESSON the agent should remember for next time. " +
-            'Return strict JSON: {"lesson":string, "what_worked":string, "what_to_change":string, "importance":1|2|3|4|5}. ' +
+            'Return strict JSON: {"lesson":string, "what_worked":string, "what_to_change":string, ' +
+            '"importance":1|2|3|4|5, "depends_on_current_state":boolean}. ' +
             'lesson <= 240 chars, written in second person ("You"). importance: 1 = trivial, 5 = pivotal. ' +
-            "Skip vague platitudes — if there is nothing specific, set importance=1.",
+            "Skip vague platitudes — if there is nothing specific, set importance=1. " +
+            // A lesson is about HOW YOU WORK. The run that prompted it happened
+            // in a workspace with a particular thing broken or missing that
+            // day, and that condition will be repaired while the lesson keeps
+            // being recalled. See the file header for what this cost.
+            "A lesson is about HOW YOU WORK, not about what this workspace currently contains. " +
+            "If it only holds while some present condition holds — an integration that is down, a " +
+            "table that is empty, a source nobody has configured yet — set depends_on_current_state " +
+            "true and it will be given a shelf life. " +
+            "Never write a standing prohibition on work you may not do: a condition you met today " +
+            "is a fact about today, and stating it as a rule makes it outlive the thing it described.",
         },
         { role: "user", content: trace },
       ],
@@ -161,11 +226,33 @@ export async function autoReflect(
       what_worked?: string;
       what_to_change?: string;
       importance?: number;
+      depends_on_current_state?: boolean;
     }>(res.output);
     const lesson = parsed?.lesson?.trim();
     if (!lesson) return null;
 
     const importance = Math.max(1, Math.min(5, Math.round(parsed?.importance ?? 3)));
+
+    /**
+     * A lesson that only holds while the workspace is in its present condition
+     * gets a shelf life; one about method does not.
+     *
+     * SEVEN DAYS is deliberately short. This is not an archival policy — it is
+     * how long a broken integration is allowed to keep speaking for the
+     * product. If the condition is still true in a week the agent will meet it
+     * again and write it again, which is the correct way for a fact to persist:
+     * by continuing to be true, not by having been said once.
+     *
+     * The model's own claim is trusted here because it is the only thing that
+     * read the trace, but the FAILURE IS ONE-SIDED ON PURPOSE — a missing or
+     * malformed flag expires the lesson rather than keeping it forever. A
+     * lesson wrongly expired is re-learned on the next run; a transient one
+     * wrongly kept is what this whole file's header is about.
+     */
+    const expiresAt =
+      parsed?.depends_on_current_state === false
+        ? null
+        : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
     let emb: number[] | null = null;
     try {
@@ -185,12 +272,14 @@ export async function autoReflect(
         kind: "reflection",
         content: lesson,
         importance,
+        expires_at: expiresAt,
         embedding: emb as unknown as string | null,
         metadata: {
           run_id: input.runId,
           trace_id: input.traceId,
           what_worked: parsed?.what_worked ?? null,
           what_to_change: parsed?.what_to_change ?? null,
+          depends_on_current_state: parsed?.depends_on_current_state ?? null,
           goal: input.goal.slice(0, 400),
         },
       })
