@@ -157,7 +157,7 @@ import { NoPromotions } from "@/components/meridian/PromotionCard";
 import { CtxHead, CtxRow } from "@/components/meridian/ContextColumn";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueries } from "@tanstack/react-query";
 
 import {
   getOutcomeData,
@@ -166,6 +166,7 @@ import {
   listPendingOutcomes,
 } from "@/lib/outcome.functions";
 import { getImpactLedger } from "@/lib/pm-impact.functions";
+import { getLearningGradeContext } from "@/lib/decisions.functions";
 import { SettlePanel } from "@/components/learn/SettlePanel";
 import { ForecastDeskPanel } from "@/components/learn/ForecastDeskPanel";
 import { LearnedCards } from "@/components/learn/LearnedCards";
@@ -254,6 +255,69 @@ function iceShiftOf(prior: number | string | null, next: number | string | null)
   const b = next === null ? NaN : Number(next);
   if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
   return Math.round((b - a) * 10) / 10;
+}
+
+/**
+ * THE ONE PAIRING THAT DEMONSTRATES THE MOAT (queue 70, F-65's read half).
+ *
+ * A verdict alone reads as a fact. Beside the claim it was graded against —
+ * written before the outcome was known — it reads as an answer. The join is
+ * resolved server-side by `getLearningGradeContext`: a learning with no linked
+ * decision returns null and renders nothing, so the 133 rows that predate
+ * F-65 wear exactly today's card and no invented pairing appears beside them.
+ *
+ * Bounded at the newest eight reads on purpose: this region serves the
+ * freshest verdicts a person came here to check, not a background sweep of
+ * the table. It renders NOTHING at all until at least one pairing exists —
+ * absent is the honest shape for a join that has never yet been written.
+ * A context read that fails simply drops out of the list; the page's primary
+ * reads own the failure states.
+ */
+const GRADE_CONTEXT_BOUND = 8;
+
+function ClaimBesideVerdict({
+  learnings,
+  enabled,
+}: {
+  learnings: ReadonlyArray<{ id: string; verdict: string }>;
+  enabled: boolean;
+}) {
+  const fGrade = useServerFn(getLearningGradeContext);
+  const slice = learnings.slice(0, GRADE_CONTEXT_BOUND);
+  const contexts = useQueries({
+    queries: slice.map((l) => ({
+      queryKey: ["learning-grade-context", l.id],
+      queryFn: () => fGrade({ data: { learningId: l.id } }),
+      enabled,
+      staleTime: 60_000,
+    })),
+  });
+
+  const pairings = contexts
+    .map((q, i) => ({ q, learning: slice[i] }))
+    .filter(({ q }) => q.data?.decision != null);
+
+  if (!enabled || pairings.length === 0) return null;
+
+  return (
+    <Region
+      title="The claim beside the verdict"
+      sub="What was believed before the outcome was known, next to how it settled."
+    >
+      <div className="flex flex-col gap-mrd-3">
+        {pairings.map(({ q, learning }) => {
+          const d = q.data!.decision;
+          const said = VERDICT_SAYS[learning.verdict as keyof typeof VERDICT_SAYS] ?? "settled";
+          const parts = [
+            d!.forecastClaim,
+            d!.forecastHorizonDate ? `Due ${day(d!.forecastHorizonDate)}` : null,
+            d!.forecastResolution ?? `The outcome: ${said}.`,
+          ].filter(Boolean);
+          return <Row key={d!.id} lead={d!.title} sub={parts.join(" · ")} />;
+        })}
+      </div>
+    </Region>
+  );
 }
 
 function Learn() {
@@ -791,6 +855,22 @@ function Learn() {
             onRetry={() => void lastQ.refetch()}
           />
         ) : null}
+
+        {/* THE CLAIM BESIDE THE VERDICT (queue 70, F-65's read half). Everything
+            this product says about itself lives in one join: what the team
+            believed BEFORE the outcome was known, next to what actually
+            happened. The verdict alone reads as a fact; beside the claim it
+            was graded against, it reads as an answer. Fetched per learning
+            through `getLearningGradeContext`, which resolves the decision
+            server-side — a learning with no linked decision returns null and
+            renders nothing, so the 133 rows that predate the link wear
+            exactly today's card and no invented pairing appears beside them.
+            Bounded at the newest eight reads: the region is for the freshest
+            verdicts a person came here to check, not a background sweep of
+            the whole table. Renders NOTHING at all until at least one
+            pairing exists — absent is the honest shape for a join that has
+            never yet been written. */}
+        <ClaimBesideVerdict learnings={lastQ.data?.learnings ?? []} enabled={!!recordWorkspaceId} />
 
         {/* LESSONS PUT FORWARD TO HOLD EVERYWHERE, and why it is the empty state
             today rather than a queue. The one real resolver in this shape,

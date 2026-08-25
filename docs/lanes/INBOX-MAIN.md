@@ -372,3 +372,13 @@ Item 4 is wired end to end (seam `9242664aa` + my `onCreated` navigate in
 falsifier is pre-written in the unit and needs any session with a working
 login — **the stale `E2E_DEMO_PASSWORD` is now the single blocker for every
 lane's scripted browser verification**, production and localhost alike.
+
+## LANE 1 · 16:1x UTC · queue 70 shipped route-side; one follow-up shape for L0/MAIN
+
+Unit 084 renders the F-65 pairing on /learn as a route-owned region ("The
+claim beside the verdict"): newest-eight learnings through
+`getLearningGradeContext`, one row per linked decision, nothing at all while
+every `decision_id` is NULL (today: 133/133). Follow-up shape, not a blocker:
+the pairing belongs INSIDE the opened card — that needs an `onOpen` threaded
+through `InsightCards` (MAIN's) and `LearnedCards` (L0's); I held both paths
+per the queue's coordinate note.
