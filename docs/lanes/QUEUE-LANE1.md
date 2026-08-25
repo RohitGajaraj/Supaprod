@@ -3,6 +3,10 @@
 > _Written by MAIN 2026-08-25. Fully-specified items, topmost first. The ordered master backlog
 > stays [`../../the-first-run/BUILD-QUEUE.md`](../../the-first-run/BUILD-QUEUE.md)._
 
+> **⚠ [`CLAIMS.md`](./CLAIMS.md) exists (founder, 2026-08-25). Check it before touching any
+> file, push your claim before coding, remove it when done. Pull before every unit; push after
+> every commit. Four sessions share this repo (A = director, B, L0, L1).**
+
 ## 1 · Queue #12 — design review: Today (READY, unblocks item 2's replacement)
 
 - **Goal:** answer R-12's five questions about `_authenticated.today.tsx` in your unit file

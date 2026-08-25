@@ -4,6 +4,10 @@
 > stays [`../../the-first-run/BUILD-QUEUE.md`](../../the-first-run/BUILD-QUEUE.md); this file is
 > your paste-ready view of the rows you own. Take the top item that is not BLOCKED._
 
+> **⚠ [`CLAIMS.md`](./CLAIMS.md) exists (founder, 2026-08-25). Check it before touching any
+> file, push your claim before coding, remove it when done. Pull before every unit; push after
+> every commit. Four sessions share this repo (A = director, B, L0, L1).**
+
 ## 1 · Queue #55 — `AUTO_MAX` 8 → 24 (do first; it is one constant)
 
 - **Goal:** one press walks a whole route. Your own unit L0-050 built the legs; the cap stops
