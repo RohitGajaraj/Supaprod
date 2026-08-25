@@ -4,11 +4,14 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { Surface } from "@/components/meridian/Surface";
 import { PageHeading } from "@/components/meridian/surface-parts";
+import { StatusChip } from "@/components/meridian/StatusChip";
 import { Row } from "@/components/meridian/rows";
 import { TrackRun } from "@/components/track/TrackRun";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { getTrack } from "@/lib/spine/track.functions";
-import { waiverFor } from "@/lib/spine/route";
+import { getTrack, type Track } from "@/lib/spine/track.functions";
+import { nextStation, waiverFor, type SpineRoute } from "@/lib/spine/route";
+import { holdTone } from "@/lib/spine/driver";
+import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
 
 /**
  * /track/$trackId -- the one address a piece of work has.
@@ -30,15 +33,18 @@ import { waiverFor } from "@/lib/spine/route";
  * test this surface was built against is that a finished run can be sent to
  * somebody, and a tab inside another page cannot be sent to anybody.
  *
- * THE DISCLOSURE LINE (SPEC-ONRAMP §2.6) answers the two questions a person
- * has the moment they land: whose ground is this running on, and is anything
- * being skipped. Both are read from the row -- workspace and product from the
- * session, the skip sentence only when `waiverFor` says the route actually
- * waived Decide. Nothing here is disclosed before the run starts; the landing
- * navigates first and this page says what it landed on. No control sits on the
- * line, because there is no working door to change either fact yet -- a control
- * that reported success and wrote nothing is the exact defect this codebase
- * keeps deleting.
+ * THE HEADER (SPEC-LAYOUT §2) names the work by its own title -- the opening
+ * sentence a person recognises -- and answers the two questions they have on
+ * arrival: where is it now, and who is it waiting on. Station names come from
+ * the one display map and appear only as facts about this run in passing
+ * (R-13), never as a menu. The status chip is derived from `holdTone` -- the
+ * same set answer the driver enforces -- because TrackStart was once found
+ * painting every hold amber by testing the sentence. No clock yet: whether
+ * `driven_at` stamps seat-start or seat-end is UNVERIFIED (SPEC-LAYOUT G10),
+ * and a clock measuring the wrong interval is worse than none.
+ *
+ * THE DISCLOSURE LINE (SPEC-ONRAMP §2.6) answers whose ground this runs on and
+ * whether anything is being skipped, read entirely from rows.
  */
 export const Route = createFileRoute("/_authenticated/track/$trackId")({
   validateSearch: (search: Record<string, unknown>): { start?: boolean } => ({
@@ -64,6 +70,78 @@ export const Route = createFileRoute("/_authenticated/track/$trackId")({
   },
 });
 
+/**
+ * The status chip's three inputs, derived once so the header cannot drift from
+ * the driver's own vocabulary. `Finished` overrides StatusChip's default word
+ * for pass because reaching the end of a route is a completion, not a graded
+ * outcome -- the product has never graded a forecast, and "Passed" would claim
+ * one.
+ */
+function runStatus(track: Track): {
+  status: "you" | "agent" | "pass" | "hold";
+  word: string;
+  pulse: boolean;
+  second: string | undefined;
+} {
+  if (track.status === "done") {
+    return {
+      status: "pass",
+      word: "Finished",
+      pulse: false,
+      second: "It reached the end of its route.",
+    };
+  }
+  if (track.status === "abandoned") {
+    return { status: "hold", word: "Abandoned", pulse: false, second: undefined };
+  }
+  const tone = holdTone(track.holdReason);
+  if (tone === "you") {
+    return {
+      status: "you",
+      word: "Waiting on you",
+      pulse: true,
+      second: track.hold ?? undefined,
+    };
+  }
+  if (tone === "hold") {
+    return {
+      status: "hold",
+      word: "On hold",
+      pulse: false,
+      second: track.hold ?? undefined,
+    };
+  }
+  return { status: "agent", word: "Running", pulse: true, second: undefined };
+}
+
+function RunHeader({ track }: { track: Track }) {
+  const stationName = AGENT_STATIONS[track.station]?.name ?? track.station;
+  const next = nextStation(track.route as SpineRoute, track.station);
+  const nextName = next ? (AGENT_STATIONS[next]?.name ?? next) : null;
+  const s = runStatus(track);
+
+  return (
+    <header className="flex flex-wrap items-start justify-between gap-mrd-4">
+      <div className="min-w-0 flex-1">
+        <h1 className="mrd-title">{track.title}</h1>
+        <p className="mrd-meta mt-mrd-1">
+          Now: {stationName}.{" "}
+          {nextName ? <>Next: {nextName}.</> : <>Nothing further on this route.</>}
+        </p>
+        {track.origin ? <p className="mrd-meta mt-mrd-1 text-mrd-faint">{track.origin}</p> : null}
+      </div>
+      <div className="flex flex-col items-end gap-mrd-1">
+        {/* The override word rides as children: StatusChip's contract is "more
+            specific about the same state, never different". */}
+        <StatusChip status={s.status} pulse={s.pulse}>
+          {s.word}
+        </StatusChip>
+        {s.second ? <span className="mrd-meta max-w-[36ch] text-right">{s.second}</span> : null}
+      </div>
+    </header>
+  );
+}
+
 function TrackPage() {
   const { trackId } = Route.useParams();
   const { start } = Route.useSearch();
@@ -80,23 +158,31 @@ function TrackPage() {
   return (
     <Surface>
       <div className="flex flex-col gap-mrd-7">
-        <PageHeading
-          title="This piece of work"
-          sub="Where it sits on its route, what each station produced, and who is working on it now."
-        />
         {track ? (
-          <Row
-            tight
-            lead={`Running in ${activeWorkspace?.name ?? "your workspace"}${
-              productsVisible && activeProduct ? ` · on ${activeProduct.name}` : ""
-            }`}
+          <>
+            <RunHeader track={track} />
+            <Row
+              tight
+              lead={`Running in ${activeWorkspace?.name ?? "your workspace"}${
+                productsVisible && activeProduct ? ` · on ${activeProduct.name}` : ""
+              }`}
+              sub={
+                decideWaived
+                  ? "This one skips the decision, so nothing is being forecast on it."
+                  : undefined
+              }
+            />
+          </>
+        ) : (
+          <PageHeading
+            title={trackQ.isLoading ? "This piece of work" : "That work could not be found."}
             sub={
-              decideWaived
-                ? "This one skips the decision, so nothing is being forecast on it."
-                : undefined
+              trackQ.isLoading
+                ? "Reading the run."
+                : "The address may be out of date, or the work belongs to another workspace. Nothing you were working on is affected."
             }
           />
-        ) : null}
+        )}
         <TrackRun trackId={trackId} autoStart={start === true} />
       </div>
     </Surface>
