@@ -47,6 +47,8 @@ For the rules a change must satisfy, read [`../../AGENTS.md`](../../AGENTS.md). 
 
 ## Connectors and integrations
 
+**Start here if the demo has to work in front of somebody:** [`github-and-demo-account-setup.md`](./github-and-demo-account-setup.md) — which account to demo from and why (`demo@`/`demo2@` are **suspended**; six of the seven `@supaprod.ai` accounts have **no integrations at all**), the four-step GitHub App path, and the workspace binding that is easy to miss and is why the live loop was pointed at a repo nobody uses.
+
 [`connector-setup.md`](./connector-setup.md) is the front door, with per-provider detail in [`connectors/`](./connectors/README.md) (GitHub, Slack, Linear, Intercom, Salesforce, Google, Microsoft). Two specific playbooks: [`signal-fabric-connector-setup.md`](./signal-fabric-connector-setup.md) and [`signal-fabric-live-test-playbook.md`](./signal-fabric-live-test-playbook.md). OAuth for calendars: [`archive/calendar-oauth-credentials-retired.md`](./archive/calendar-oauth-credentials-retired.md).
 
 ## Runbooks, for when something is wrong
