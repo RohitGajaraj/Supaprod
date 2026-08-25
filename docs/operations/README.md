@@ -89,4 +89,5 @@ Both were separate top-level folders until 2026-08-04. They are operational conc
 | [`security/audit-findings-july.md`](./security/audit-findings-july.md) | Superseded by [`../security/`](./security/README.md), which owns audit state now. |
 | [`archive/session-handoff-2026-08-05-evening.md`](./archive/session-handoff-2026-08-05-evening.md) | **A single evening's handoff, rotated out of the live one.** Archived because a dated filename marks a record of one event, not a living doc. [`session-handoff.md`](./session-handoff.md) is the live pair-half and carries the current cursor; this is the snapshot it replaced. Read it only when a question reaches past what the live one still says. |
 - [Round 8 status](./status-round-8.md) — the live Round 8 readiness board (moved from repo root 2026-08-25 for placement only; content untouched, author's to edit)
+- [Round 8 results](./round-8-results.md) — moved from repo root 2026-08-25 for placement only; content untouched, author's to edit
 

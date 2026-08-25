@@ -2073,3 +2073,82 @@ grinding unnecessary.
 It is still going to hit **F-58** when it re-enters Build, because `repo.search` is still blind and
 the fix is not deployed. **That is a known wall in front of a loop that has now demonstrated it can
 route around the ones behind it.**
+
+---
+
+## 13:32–14:15 — the field was cleared while the track walked, and that must be said plainly
+
+**Verified, not taken on report:** `23 abandoned · 1 open · last write 14:15:00.569`. `7977dc06` is now
+the only open track in harbor and takes every sweep pass.
+
+**What was cleared and why.** A session with no verification access created **eleven identical tracks**
+titled *"Round 8: Complete autonomous end-to-end execution test"* between **13:32:04 and 13:36:20** — a
+four-minute retry burst, the signature of an actor that creates, cannot check, and creates again. They
+began taking sweep slots immediately; `7977dc06` went from every pass to roughly one in twelve, and the
+credits granted an hour earlier were being spent on duplicates. Session A escalated a named quarantine
+question to the founder, acted on his answer, and abandoned 18 tracks: the 11 duplicates, the rogue
+`prove-loop.ts` track `7b91f9b5`, the surface check `996e5258`, and 5 already terminal-held.
+
+**That was a defensible operational call and it is not mine to second-guess.** It is recorded here for
+one reason: **the conditions around the run were arranged at 14:15, while the run was walking.**
+
+**Round 7's scorecard closed at 11:36 and is unchanged.** But it means a seven-station finish from here
+is **a different claim from the acceptance, and has to be written as one**: a track that completed with
+a cleared field and a repointed binding is evidence the loop *works*, not evidence it *ran unattended
+through the conditions it will meet in the world*. **Those are both worth having. They are not the same
+sentence, and the second is the one the acceptance asks for.**
+
+### And the finish being predicted is not available at all
+
+Session A's expected trajectory ends *"…the builder fixes the failing test, **CI greens**, R-27's
+preconditions pass…"*. **CI cannot green.** F-64: GitHub Actions is blocked on billing account-wide,
+nine of nine runs since 09:32 failing in 1–3 seconds with **zero steps executed**, last green run
+**2026-07-25**. `studio.pr.merge` proves CI green in-tool and refuses red, so **Ship is unreachable on
+that repo regardless of what the builder writes.** The two Ship attempts remaining will be spent
+against a check that cannot pass.
+
+**The way through is built and free.** `Supaprod/relay-homeowner-app` now holds the fixed tree —
+`node_modules` untracked (693 files → 12), marker and entrypoint present — and **its CI ran green, 10
+of 10 steps**, on the org's own free Actions allowance. The single remaining blocker is that
+`supaprod-connector` is not installed on the org (`orgs/Supaprod/installations` → `total_count: 0`),
+which is a permission grant only the founder can make. **The binding has deliberately NOT been
+repointed**, because moving it before the App exists would reproduce F-57's 404 exactly.
+
+### 14:2x — the billing wall is gone, and it cost nothing
+
+**F-64 is resolved without a paid plan.** The founder's personal GitHub account has Actions blocked on a
+failed payment; a **free organisation carries its own 2,000 Actions minutes a month**, billed separately.
+So the repo moved rather than the plan changing.
+
+| | `RohitGajaraj/relay-homeowner-app` | `Supaprod/relay-homeowner-app` |
+| --- | --- | --- |
+| CI | **blocked** — 9/9 runs, 1–3s, **zero steps executed** | **GREEN — 10 of 10 steps** |
+| cost | requires a paid plan | **free** |
+| App | installed | **installed 14:2x**, `156492672`, scoped to this repo only |
+
+Done in this order, deliberately: repo created and the fixed tree pushed → **CI proven green there before
+anything was repointed** → App installed by the founder (2FA, his to complete) → **then** the binding
+moved. Moving first would have reproduced F-57's 404 exactly, which is what cost Round 7 two Build
+attempts this morning.
+
+```sql
+SELECT b.resource_id, c.external_handle, c.account_label FROM connection_bindings b
+  JOIN connections c ON c.id = b.connection_id WHERE b.workspace_id = '60000000-…';
+-- Supaprod/relay-homeowner-app | 156492672 | Supaprod
+```
+
+Both rows changed, not one: the binding names the repo, and `connections.external_handle` is the
+**installation id `mintInstallationToken` calls** (`resolve.server.ts:145`). Repointing the binding alone
+would have left the loop minting a token for an installation that cannot see the repo — the same 404
+wearing different clothes.
+
+**The App is scoped to `Only select repositories` → this repo alone**, confirmed on GitHub's own
+settings page, rather than the `All repositories` default. The loop gets the one repo it needs and
+nothing else in the organisation.
+
+**Still unproven, and it is the only thing left:** whether the Worker's minted token can actually read
+it. That cannot be checked from a developer machine — the App's private key lives in the Worker's
+environment — so **the loop is the test**, exactly as it was this morning. The track is at `ship`,
+attempts 2 of 3, and its changeset still points at PR #5 on the *old* repo, so the honest expectation is
+a Ship refusal, a correction back through Build, and the work redone against the repo that can now
+actually go green.
