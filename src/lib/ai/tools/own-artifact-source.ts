@@ -89,7 +89,11 @@ export function namesOwnArtifact(source: string | null | undefined): string | nu
   // 3 — an internal dotted namespace ("workspace.brief"). Both halves must be
   //     ours: a customer source is not spelled `noun.noun` in lower case.
   const dotted = trimmed.toLowerCase().split(".");
-  if (dotted.length === 2 && INTERNAL_NAMESPACES.includes(dotted[0]) && /^[a-z]+$/.test(dotted[1])) {
+  if (
+    dotted.length === 2 &&
+    INTERNAL_NAMESPACES.includes(dotted[0]) &&
+    /^[a-z]+$/.test(dotted[1])
+  ) {
     return `${dotted[0]}.${dotted[1]}`;
   }
 
