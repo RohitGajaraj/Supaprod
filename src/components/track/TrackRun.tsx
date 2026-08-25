@@ -61,6 +61,7 @@ import {
 import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
 import { holdTone } from "@/lib/spine/driver";
 import { relativeTime } from "@/lib/memory-view";
+import { formatDeadlineDate } from "@/components/track/expiry-deadline";
 import { summaryText } from "@/components/track/run-summary";
 import { triesLine } from "@/components/track/hold-tries";
 
@@ -200,7 +201,10 @@ export function TrackRunLeft({
 
   const fArtifacts = useServerFn(getTrackArtifacts);
   const artifactsQ = useQuery({
-    queryKey: ["spine-track-artifacts", trackId],
+    // The artifacts pane's own entry, not a second one: the pane polls this
+    // read every ten seconds already, and a private key here would run the
+    // same server fn twice on every track a person opens.
+    queryKey: ["track-artifacts", trackId],
     queryFn: () => fArtifacts({ data: { trackId } }),
     staleTime: 10_000,
     enabled: !!track,
@@ -489,13 +493,10 @@ export function TrackRunLeft({
         <Region title="Learning to come" sub="This forecast is on hold until the date arrives.">
           <div className="flex flex-col gap-mrd-4">
             <Row
-              lead={`The forecast comes due ${new Date(forecastHorizonDate).toLocaleDateString(
-                "en-US",
-                {
-                  month: "short",
-                  day: "numeric",
-                },
-              )}; Learn returns then.`}
+              // The viewer's locale spells the day, and the weekday rides along,
+              // the same rule the consent expiry line runs on. A horizon date is
+              // a calendar day, so no time is put on it.
+              lead={`The forecast comes due ${formatDeadlineDate(Date.parse(forecastHorizonDate))}; Learn returns then.`}
               sub={
                 track.drivenAt
                   ? `It last moved ${relativeTime(track.drivenAt, nowMs)}.`
