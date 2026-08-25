@@ -16,6 +16,35 @@
  * That link exists so the founder can compare the two landings side by side
  * (R-15); it names `/today` on purpose and must survive the flip.
  *
- * Nothing observable changes until the value below changes.
+ * Nothing observable changes until the value below changes — and on
+ * 2026-08-25 it changed.
  */
-export const SIGNED_IN_HOME = "/today" as const;
+/*
+ * ── FLIPPED 2026-08-25 ────────────────────────────────────────────────────
+ *
+ * `/start` is the home. `/today` is a page you can still reach.
+ *
+ * THE MEASUREMENT THAT DECIDED IT. An audit of the real first sixty seconds
+ * found that a new account lands on `/today`, and an empty workspace opens with
+ * **five negations in the first viewport**: *"Nothing is ready for your review.
+ * Nothing is stuck." · "Nothing is waiting on you. Nothing stopped, no agent is
+ * working and nothing went live."* Every word of that is true and well written,
+ * and the dominant message of a person's first minute was **idleness**. The
+ * hero band returns `null` with no data, so the featured moment of the page is
+ * literally absent on day one. **No control on that screen starts a run.**
+ *
+ * Meanwhile `/start` — *"What needs doing? One sentence starts a run. You watch
+ * it happen here, and it asks you nothing unless it must."* — is real, live,
+ * auto-drives with no click, polls the transcript at 500ms, and carries the
+ * character. **We built the right first screen and made it the side door**,
+ * behind a rail label a new user has no reason to press.
+ *
+ * The comparison the mission asks for settles it: OpenAI, Anthropic, Perplexity
+ * and Wispr Flow all open on ONE COMPOSER and produce visible work within
+ * seconds of the first keystroke. We had that screen and hid it.
+ *
+ * REVERSIBLE IN ONE LINE, which is the whole point of this seam: set the value
+ * back to `"/today"` and every door that means "the app's home" returns
+ * together. Nothing else needs touching.
+ */
+export const SIGNED_IN_HOME = "/start" as const;

@@ -18,8 +18,32 @@ const read = (p: string) => readFileSync(join(ROOT, p), "utf8");
  * the constant, not re-type a literal that promotion will then miss.
  */
 describe("the signed-in home is one value in one place", () => {
-  it("is /today until the founder flips it", () => {
-    expect(SIGNED_IN_HOME).toBe("/today");
+  /**
+   * FLIPPED 2026-08-25. This assertion tracks the VALUE; the invariant this file
+   * actually protects is the one in the header — **the home has one definition**
+   * — and that is untouched by the flip. The three assertions below, which are
+   * the anti-drift guard, are unchanged and still do all the work.
+   *
+   * WHY IT MOVED, in one line: an audit of the real first sixty seconds found a
+   * new account lands on `/today`, whose empty state opens with **five
+   * negations** and offers **no control that starts a run**, while `/start` —
+   * live, auto-driving, 500ms transcript, character present — sat behind a rail
+   * label a new user has no reason to press. We built the right first screen and
+   * made it the side door.
+   *
+   * Reversing is still one line, which is the promise this seam exists to keep.
+   */
+  it("is /start — the flip R-15 built this seam for", () => {
+    expect(SIGNED_IN_HOME).toBe("/start");
+  });
+
+  /**
+   * The compare link must survive the flip in BOTH directions. R-15 put it on
+   * `/start` so the two landings can be seen side by side; now that `/start` is
+   * the home, that link is how anyone reaches the old one to compare.
+   */
+  it("keeps the deliberate compare link to the other landing", () => {
+    expect(read("routes/_authenticated.start.tsx")).toContain("/today");
   });
 
   it("login and signup import it instead of defining their own", () => {

@@ -91,4 +91,11 @@ Both were separate top-level folders until 2026-08-04. They are operational conc
 - [Round 8 status](./status-round-8.md) — the live Round 8 readiness board (moved from repo root 2026-08-25 for placement only; content untouched, author's to edit)
 - [Round 8 results](./round-8-results.md) — moved from repo root 2026-08-25 for placement only; content untouched, author's to edit
 - [Phase 3: visible agency](./phase-3-visible-agency.md) — moved from `docs/` root 2026-08-25 for placement only; content untouched, author's to edit
+- [Buildlog](./buildlog.md) — **The build record** — what changed, why, what is next. One entry per logical unit, newest first
+
+- [Mission gate status](./mission-gate-status.md) — Mission gate status (moved from repo root 2026-08-25 for placement only; content untouched)
+
+- [Start here mission gate](./start-here-mission-gate.md) — Mission gate entry note (moved from repo root 2026-08-25 for placement only; content untouched)
+
+- [Mission gate observation](./mission-gate-observation.md) — Mission gate observation (moved from `docs/` root 2026-08-25 for placement only; content untouched)
 
