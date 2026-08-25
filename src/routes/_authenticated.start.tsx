@@ -7,6 +7,8 @@ import { Action, Eyebrow, PageHeading } from "@/components/meridian/surface-part
 import { Row } from "@/components/meridian/rows";
 import { Receipt } from "@/components/meridian/Receipt";
 import { Composer, PickCard } from "@/components/meridian/onramp-parts";
+import { CharacterMark } from "@/components/presence/Character";
+import { CHARACTER_NAME } from "@/lib/presence/character";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { listTracks, startTrack } from "@/lib/spine/track.functions";
 import type { WorkShape } from "@/lib/spine/route";
@@ -163,6 +165,18 @@ function StartLanding() {
     ? (JOBS.find((j) => j.shape === selected)?.placeholder ?? OPEN_PLACEHOLDER)
     : OPEN_PLACEHOLDER;
 
+  /*
+   * THE INTRODUCTION MOMENT (SPEC-PRESENCE.md §Anatomy #3). The character is
+   * on the first screen by name and is already picking the sentence up while
+   * the run is being filed — Ferndesk names its agent on the first screen;
+   * Gemini starts before the modal closes. Both states here are facts this
+   * page holds: idle is simply true, and the pickup state IS `go.isPending`,
+   * the create call in flight. Nothing is staged, so the iron law holds; when
+   * the track exists this page hands the person to /track/:id?start=true,
+   * where the same character is already mounted at the top of the transcript.
+   */
+  const pickedUp = go.isPending;
+
   return (
     <div className="flex min-h-dvh flex-col items-center px-6 py-16">
       <div className="flex w-full max-w-2xl flex-col gap-mrd-7">
@@ -179,6 +193,21 @@ function StartLanding() {
           title="What needs doing?"
           sub="One sentence starts a run. You watch it happen here, and it asks you nothing unless it must."
         />
+
+        {/* The one worker, present at first paint. aria-live so the handover
+            from introduction to pickup is heard, not only seen (R-19). */}
+        <div
+          data-mrd=""
+          data-presence-state={pickedUp ? "thinking" : "awake"}
+          className="flex items-center gap-3"
+        >
+          <CharacterMark size={28} state={pickedUp ? "thinking" : "awake"} />
+          <p aria-live="polite" className="text-mrd-body text-mrd-ink">
+            {pickedUp
+              ? "Picking that up now. I'll open the run the moment it's filed."
+              : `I'm ${CHARACTER_NAME}. Say what needs doing in one sentence, then you can leave it with me.`}
+          </p>
+        </div>
 
         {activeWorkspaceId ? (
           <Composer

@@ -1,7 +1,6 @@
 # BUILDLOG — LANE 0
 
-> _Honest ledger, written for the auditor, not for credit. Last updated 2026-08-25._
-> **Legend:** VERIFIED-LIVE (seen rendering/behaving on production or a dev
+> _Honest ledger, written for the auditor, not for credit. Last updated 2026-08-25._> **Legend:** VERIFIED-LIVE (seen rendering/behaving on production or a dev
 > server by me or another lane) · CODE-SHIPPED (gates green, wired to real
 > reads/writes, never seen rendered) · BLOCKED (waiting on MAIN/L1).
 
@@ -73,6 +72,7 @@ Written under the context shift. No past work is protected; corrections included
 ## Completed and verified (proof: unit files in `coordination/units/`, live Playwright sessions on harbor@)
 
 - **Item 2 · `/start` landing** — gate removed; composer + 4 WorkShape job cards + live open-runs. Core flow proven live twice: sentence → Enter → track created → landed on `/track/:id`. Unit 055, corrected 063, proven 068.
+- **Queue #54 presence mounted** (unit 076) — rail miniature in the shell header (true state from the shell's own reads; roster stack retired per PRODUCT-TRUTH) + `/start` introduction moment with the pickup on `go.isPending`. Proven live on four surfaces incl. dark theme; idle-fallback→`/start` branch code-proven only (harbor never idles); verification filed as `requests/076-verify-queue54.md`.
 - **Item 28 route half** — `?start=true` → TrackRun `autoStart`; revisit guard verified live on an already-driven track. Unit 069. (TrackRun's mutation side is LANE 0's, L0-052.)
 - **Item 10** — header sees mission-less walks via `driven_at` freshness; live line opens `/track/:id`. Units 056/064.
 - **Items 12/13/14 design reviews** — written rulings incl. the four held lifts placed (unit 065).

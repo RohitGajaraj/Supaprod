@@ -49,6 +49,12 @@
  *          and that ordering is the point: WHO first, count second.
  *          This is the founder's complaint, and it is the only thing
  *          the chrome was genuinely missing.
+ *          AMENDED 2026-08-25, by a later founder direction: the crew
+ *          reads as ONE character (SPEC-PRESENCE.md), so the roster of
+ *          seat silhouettes left this header — an org chart, ruled out
+ *          of the experience. The who-slot now draws that worker's own
+ *          face in the state the shell's rows prove; the lead sentence
+ *          keeps saying WHO is working, in words.
  *    KILL  the run chip the prototype's run screen carries ("Run 41").
  *          Three reasons, and any one of them is enough. The run's
  *          identity is already the page headline AND the seven-stage
@@ -130,7 +136,8 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { MarkStack } from "@/components/meridian/marks";
+import { CharacterMark } from "@/components/presence/Character";
+import { deriveRailPresence } from "./rail-presence";
 import { GLYPH_FOR_STATION, StationGlyph } from "@/components/meridian/station-glyphs";
 import { RunStripProvider, STAGE_LABEL, STATION_ROUTE, type RunStripSpec } from "./run-strip";
 import { agentDisplayName, agentStation, type AgentStation } from "@/lib/agent-vocabulary";
@@ -1250,22 +1257,29 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     return only ?? null;
   }, [workers, unnamedRuns]);
 
-  // Who is waiting on YOU. The queue names its own owner (a real slug on a
-  // tool-call gate, else the owning station's specialist), which is the same
-  // attribution Today and /approvals draw, so the header cannot disagree with
-  // the surface you land on.
-  const waiting = React.useMemo(() => {
-    const seen = new Set<string>();
-    const list: Worker[] = [];
-    for (const item of queue.data?.items ?? []) {
-      const slug = item.agentSlug ?? null;
-      const key = slug ?? CREW;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      list.push(slug ? { slug } : { slug: null, name: CREW });
-    }
-    return list;
-  }, [queue.data]);
+  /*
+   * THE ONE CHARACTER, IN THE CHROME (founder direction + SPEC-PRESENCE.md,
+   * 2026-08-25). The header used to draw a stack of seat silhouettes — an org
+   * chart — beside the count of them. The ruling that built the presence work
+   * replaced that: the crew reads as ONE named worker whose hands are the
+   * seats, so the chrome shows the worker's own face in the state the shell's
+   * rows prove. The lead sentence keeps naming WHO is working; the mark
+   * stopped duplicating it as a roster.
+   *
+   * Every input is a read this file already polls: the queue's items are the
+   * decisions waiting on a person, the missions' working statuses and the
+   * freshness window on `spine_tracks.driven_at` are the proof something
+   * moves. `deriveRailPresence` holds the precedence; nothing here stages a
+   * state. While the reads have not answered, NO mark renders — a face drawn
+   * before its facts would be smiling on a dead feed (F-38/F-39).
+   */
+  const railPresence = deriveRailPresence({
+    loading: missions.isLoading || openTracks.isLoading,
+    feedDead: missions.isError || openTracks.isError,
+    waitingOnYou: gateCount,
+    missionsWorking: running.length,
+    tracksMoving: movingRuns.length,
+  });
 
   // The most recently touched finished run, for the live line's second fact.
   const lastDone = React.useMemo(() => {
@@ -1454,41 +1468,6 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     return out;
   }, [missions.isError, missions.isLoading, running, gateCount, queue.data, lastDone]);
 
-  // The marks, and the colour law in three lines: a working agent wears its
-  // stage hue, an agent waiting on you wears ember without blinking, and a
-  // chrome with nothing happening wears a grey dot and no colour at all.
-  /**
-   * WHO IS ON IT, and the one case where this header may blink.
-   *
-   * Founder, 2026-07-30: "if something is waiting for me it should be blinking.
-   * If you just keep it that way, how would a user even know that something he
-   * needs to act on?" Fair, and the answer is not simply to turn the blink on,
-   * because SYSTEM.md rations it: "`gate` blinks and is the only blink in the
-   * system, so exactly one mark on a screen may wear it: THE ONE THING ACTUALLY
-   * ASKING."
-   *
-   * Read that rule literally and it decides this. On Today and Approvals the
-   * real gate card is on screen, it is the thing actually asking, and it owns
-   * the blink; a second one in the header beside it would be the dozen-blinking
-   * -marks failure the rule was written after. Everywhere else, this header is
-   * the ONLY thing on screen that knows a call is waiting, so it IS the thing
-   * asking, and blanket-suppressing it was me applying the letter of the rule
-   * against its purpose.
-   *
-   * So the blink follows the rule rather than a surface list: it lands on
-   * whichever mark is genuinely the only one asking, and there is never more
-   * than one, on any screen.
-   */
-  const gateSurfaceOnScreen = pathname.startsWith("/today") || pathname.startsWith("/approvals");
-  const liveMarks =
-    running.length > 0 && workers.length > 0 ? (
-      <MarkStack agents={workers} state="running" />
-    ) : running.length === 0 && waiting.length > 0 ? (
-      <MarkStack agents={waiting} state={gateSurfaceOnScreen ? "waiting" : "gate"} />
-    ) : null;
-
-  const liveState = running.length ? "running" : gateCount ? "gate" : "idle";
-
   /**
    * WHERE THE LINE TAKES YOU, and it follows what the line SAYS.
    *
@@ -1548,7 +1527,12 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
         title: "Open the last run that finished",
       };
     }
-    return { go: go("/runs"), title: "See every run" };
+    /* TRULY NOTHING — no working run, no moving track, nothing even finished
+     * recently. The old door was the runs list, which in this state shows an
+     * empty board: a surface that only tells (R-03). The character beside
+     * these words is awake, and SPEC-PRESENCE §Anatomy #2 rules that an idle
+     * one is the door to where work starts. */
+    return { go: go("/start"), title: "Start a piece of work" };
   }, [gateCount, running, movingRuns, lastDone, navigate]);
 
   /* THE ONE THING ON THE STRIP THAT MOVES.
@@ -1675,11 +1659,20 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                   title: liveTarget.title,
                 },
             <>
-              {/* WHO, before how many. A fixed-height slot, so swapping the
-                  quiet dot for a mark stack cannot move the line, and the
-                  header stays 56px in every state. */}
+              {/* THE CHARACTER'S FACE, in the fixed slot the marks used to
+                  share. One worker fronts the crew (SPEC-PRESENCE §Anatomy #2):
+                  its state is derived from this file's own reads, and while
+                  those reads have not answered, no face renders — the quiet
+                  dot holds the box rather than a smile claiming a feed it has
+                  not seen (F-38/F-39). The mark carries its own accessible
+                  name, so a screen reader hears "Supa: working" where it used
+                  to hear nothing from an unnamed glyph stack. */}
               <span className="sp-live-who">
-                {liveMarks ?? <span className="sp-live-dot" data-state={liveState} />}
+                {missions.isLoading || openTracks.isLoading ? (
+                  <span className="sp-live-dot" data-state="idle" />
+                ) : (
+                  <CharacterMark state={railPresence} size={24} />
+                )}
               </span>
               <span className="sp-live-lead">{liveLead}</span>
               {liveFacts.map((fact, i) => {
