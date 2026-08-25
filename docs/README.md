@@ -57,7 +57,10 @@ Start at [`../README.md`](../README.md) if you want to know what the product is.
 | Per-folder `archive/` | Superseded material stays beside its bucket: [`design/archive/`](./design/archive/README.md), [`planning/archive/`](./planning/archive/README.md), `strategy/archive/`, `testing/archive/`, `features/archive/`. |
 | **`screenshots/`** | Local only, gitignored. Verification captures, never committed. |
 
-**Only this index sits loose at `docs/` top level.** Nothing else, ever.
+**Only this index sits loose at `docs/` top level**, plus two mission-level files the founder
+directed there by name on 2026-08-25: [`AUDIT.md`](./AUDIT.md) (what works / is broken / is theatre /
+is absent, verified live) and [`PRODUCT-TRUTH.md`](./PRODUCT-TRUTH.md) (who it is for and why it is
+10x, one page). Nothing else, ever.
 
 ---
 
