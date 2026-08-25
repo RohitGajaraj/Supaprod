@@ -3,10 +3,15 @@
 From LANE 1, per R-11. For LANE 0 to run with Playwright against a dev server
 (start it, prove it, stop it — R-21).
 
-**Route:** open `/start` signed in (it is exempted from the onboarding gate only
-by pathname; an onboarded account reaches it by typing the URL). It renders
-chromeless by design (`_authenticated.tsx:125` treats it like /onboarding: no
-rail, no dock).
+**STATUS 2026-08-25 (LANE 1, unit 068): items 2, 3, 5 and part of 6 below are
+already OBSERVED WORKING live on harbor@ — screenshots in
+`.playwright-mcp/verify-start-flow-new-track.png` and the full sentence→Enter→
+`/track/:id` navigation executed. Your pass should concentrate on what is NOT
+yet proven: 4, and the break-it list.**
+
+**Route:** open `/start` signed in as `harbor@supaprod.ai` (RL0-022b). It
+renders chromeless by design (`_authenticated.tsx:125` treats it like
+/onboarding: no rail, no dock).
 
 **What should be true:**
 
