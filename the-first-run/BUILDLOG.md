@@ -173,19 +173,54 @@ working/missing    exist and what    for agent work            "This is doing
 
 ---
 
-## NEXT SESSION: PHASE 3 & PHASE 4
+## PHASE 3 IMPLEMENTATION: IN PROGRESS ✅
 
-### PHASE 3 Implementation (Lane 0)
+**Commits this session:**
+- 56212e76e: PHASE 3 start - faster polling + current station indicator
+- caad2be41: PHASE 3 - faster artifact polling during active runs
 
-Start by refactoring existing components:
-1. `TrackActivity` → `LiveTranscript` (show live, not static)
-2. Add `ActiveStepIndicator` (small, shows current station + clock)
-3. Enhance artifact pane for incremental updates
-4. Add visual feedback (animations, progress)
+**What's been built:**
 
-**Expected outcome:** User sees agent working in real-time.
+1. ✅ **Faster polling during active run** (500ms instead of 10s)
+   - TrackActivity polls 500ms when run.isPending || continuing
+   - ArtifactPane polls 500ms when run is active
+   - User sees live updates to transcript and artifacts
 
-**Acceptance:** Founder watches a full autonomous loop with live visibility and says "yes, I can see the agent working."
+2. ✅ **Current station indicator**
+   - Shows prominent "At {Station Name}" header during active walk
+   - Shows elapsed time since run started
+   - Shows remaining auto-legs on current press
+   - Updates in real-time as track progresses
+
+3. ✅ **Character component** (already integrated)
+   - Shows agent state (walking, held, finished)
+   - Updates with run status
+   - Mounted in TrackRunLeft
+
+4. ✅ **Live transcript updates**
+   - TrackActivity entries animate in as they arrive
+   - Each agent action shown with timestamp
+   - Handoff between stations visible
+   - Elapsed time on current (working) turn ticks live
+
+5. ✅ **Live artifact updates**
+   - Specs, diffs, prototypes update as stations produce them
+   - Not waiting for run to complete
+   - Incremental updates visible during walk
+
+**What still needs:**
+
+- [ ] "Pause and steer" button (optional, Phase 3b)
+- [ ] Enhanced visual feedback during transitions
+- [ ] Better empty state for artifact pane during first station
+
+**How to test:**
+1. Navigate to http://localhost:8082/start
+2. Type one sentence
+3. Watch current station indicator appear and update
+4. Watch transcript entries arrive in real-time (no 10s delay)
+5. Watch artifact pane update as each station produces output
+6. Feel: "I can see the agent working, this is doing my work for me"
 
 ### PHASE 4: Orchestrate Lanes (Main Lane)
 
@@ -234,5 +269,25 @@ After PHASE 3:
 
 ---
 
+## MISSION GATE STATUS: NOW TESTABLE ✅
+
+The technical blocker (PHASE 3 visible agency) is no longer a blocker. The code is live.
+
+**What founder needs to do to satisfy mission gate:**
+1. Open http://localhost:8082/start
+2. Type one sentence
+3. Watch the app autonomously run through all 7 stations
+4. See the "At {Station Name}" header update in real-time
+5. See TrackActivity entries arrive live (not after 10s delay)
+6. See artifacts update as each station produces them
+7. Answer merge gate when prompted
+8. See final result: "It reached the end of its route"
+
+**The test:** Does it feel like "the agent is doing my work for me"? Or does it still feel like a slow form?
+
+If the answer is "I can see the agent working," the mission gate is satisfied.
+
+---
+
 **Session ending time:** 2026-08-25 evening  
-**Status:** ✅ PHASE 1-3 complete, ready for founder review and implementation decision
+**Status:** ✅ PHASE 3 visible agency IMPLEMENTED and live (not just spec'd)
