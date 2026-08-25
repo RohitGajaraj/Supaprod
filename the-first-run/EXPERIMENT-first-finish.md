@@ -2018,3 +2018,58 @@ search tool that answers "nothing here" about a file that is there.
 
 **And the attempt ceiling is why the walk ended rather than the walls themselves.** `MAX_STATION_ATTEMPTS`
 is 3; two went on the 404 that R-26 exists to make free. **Build got one honest attempt, not three.**
+
+---
+
+## 12:10–12:21 — the track came back, and the correction loop turned out to work
+
+Round 7's scorecard is closed and stays closed. **This is not a re-scoring. It is the most important
+behaviour observed all day and it happened after the run stopped being an acceptance attempt.**
+
+At 12:10 `7977dc06` had exhausted Build — three attempts, `MAX_STATION_ATTEMPTS`, nothing produced.
+It did not stall and it did not need a person. **`decideCorrection` sent the work back to `define`**,
+and the record reads:
+
+```sql
+SELECT from_stage, to_stage, driven_via, at FROM stage_events WHERE entity_id='7977dc06-…';
+-- build  -> define | NULL   | 12:10:00     <- the correction (the gap I fixed at 12:2x)
+-- define -> design | sweep  | 12:21:13     <- walked forward again, UNATTENDED
+```
+
+```sql
+-- spine_tracks: station design | last_hold NULL | attempts 0 | station_drives 0 | last_driven_via sweep
+```
+
+**Attempts reset, hold cleared, and it moved forward on the sweep with nobody watching.** That is the
+first transition in this product's history that can *prove* it was unattended — `driven_via = 'sweep'`
+— and it happened on a track that had just failed.
+
+### The correction did not retry. It wrote a better spec.
+
+Two PRDs now exist on this track:
+
+| | filed | title |
+| --- | --- | --- |
+| `b401ccd4` | 11:23:29 | *"Homeowners abandon checkout on the address screen because we ask them…"* |
+| `b61974e2` | 12:20:24 | *"Homeowners abandon **Relay** checkout on the address screen because we ask…"* |
+
+The second one names the product, and the `prd-writer`'s own output says what changed:
+
+> *"Outcome: Reduce address-screen-specific abandonment rate from **41% to ≤5%**. How anyone would
+> know it worked: Telemetry must show the address-…"*
+
+**A measurable outcome and an explicit test for it, written on the second pass, because the first
+pass failed downstream.** Then `sprint-planner` cut three fresh tasks against it. **Fourteen
+artifacts now sit on this track** — 3 signals, 1 decision, 2 specs, 6 tasks, 1 prototype, 1 mission.
+
+### Why this matters more than the score
+
+Every previous round asked *"can it get through?"* This is the first evidence of the thing underneath
+that question: **when a station fails, the loop goes back, rewrites the work, and tries again —
+without a person, and it comes back with something sharper than it had.** F-43's `going-in-circles`
+ceiling exists because the loop used to grind; this shows the other half working, the part that makes
+grinding unnecessary.
+
+It is still going to hit **F-58** when it re-enters Build, because `repo.search` is still blind and
+the fix is not deployed. **That is a known wall in front of a loop that has now demonstrated it can
+route around the ones behind it.**
