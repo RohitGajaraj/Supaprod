@@ -423,7 +423,7 @@ export function GraphCanvasView({
 
       <div
         className="flex flex-wrap items-center"
-        style={{ gap: "var(--mrd-s5)", marginBottom: "var(--sp-space-3)" }}
+        style={{ gap: "var(--mrd-s5)", marginBottom: "var(--mrd-s4)" }}
       >
         <div className="sp-tabs" role="tablist" aria-label="How to draw the graph">
           {VIEWS.map((o) => (
@@ -441,7 +441,7 @@ export function GraphCanvasView({
         </div>
 
         {/* The legend. A dot and its name, at the size of its label. */}
-        <div className="flex flex-wrap items-center" style={{ gap: "var(--sp-space-3)" }}>
+        <div className="flex flex-wrap items-center" style={{ gap: "var(--mrd-s4)" }}>
           {presentKinds.map((kind) => (
             <span key={kind} className="flex items-center" style={{ gap: 5 }}>
               <span
@@ -458,7 +458,7 @@ export function GraphCanvasView({
         <span style={{ flex: 1 }} />
 
         {timeline.length > 1 && (
-          <span className="flex items-center" style={{ gap: "var(--sp-space-2)" }}>
+          <span className="flex items-center" style={{ gap: "var(--mrd-s3)" }}>
             {!reducedMotion ? (
               <Action
                 variant={replaying ? "default" : "quiet"}
@@ -505,8 +505,8 @@ export function GraphCanvasView({
         <div
           className="flex flex-wrap items-center"
           style={{
-            gap: "var(--sp-space-3)",
-            marginBottom: "var(--sp-space-3)",
+            gap: "var(--mrd-s4)",
+            marginBottom: "var(--mrd-s4)",
             color: "var(--mrd-mute)",
             fontSize: "var(--mrd-t-base)",
           }}

@@ -35,7 +35,7 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
           ? "var(--mrd-you)"
           : st === "failed"
             ? "var(--rose)"
-            : "var(--ds-gray-700)";
+            : "var(--mrd-mute)";
   const sel = selStep == null ? null : steps[selStep];
   return (
     <div>
@@ -95,7 +95,7 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
               y={hubY - 22}
               textAnchor="middle"
               style={{
-                fill: "var(--ds-gray-900)",
+                fill: "var(--mrd-ink)",
                 fontFamily: "'Geist Mono', monospace",
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
@@ -131,7 +131,7 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
                   width={NW}
                   height={NH}
                   rx="10"
-                  fill={active ? "var(--surface-2)" : "var(--ds-background-100)"}
+                  fill={active ? "var(--mrd-lift)" : "var(--mrd-sink)"}
                   stroke={active ? "var(--mrd-edge)" : "var(--mrd-edge)"}
                   strokeWidth="1"
                 ></rect>
@@ -158,7 +158,7 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
                   x={x + 13}
                   y={nodeY + 40}
                   style={{
-                    fill: "var(--ds-gray-900)",
+                    fill: "var(--mrd-ink)",
                     fontFamily: "'Geist Mono', monospace",
                   }}
                 >
@@ -188,13 +188,13 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
             <span style={{ flex: 1 }}></span>
             <button
               className="mono-label"
-              style={{ color: "var(--ds-gray-700)" }}
+              style={{ color: "var(--mrd-mute)" }}
               onClick={() => onSelect(null)}
             >
               close
             </button>
           </div>
-          <div style={{ color: "var(--ds-gray-800)", marginTop: 5 }}>{sel.goal}</div>
+          <div style={{ color: "var(--mrd-body)", marginTop: 5 }}>{sel.goal}</div>
           {sel.note ? <div style={{ color: "var(--rose)", marginTop: 3 }}>{sel.note}</div> : null}
         </div>
       ) : (

@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1556,
-  "fileCount": 130,
+  "totalOccurrences": 1545,
+  "fileCount": 129,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "import:components/ui": 1,
@@ -130,7 +130,6 @@
       "raw-colour": 17
     },
     "src/components/knowledge/GraphCanvasView.tsx": {
-      "--sp-": 5,
       "class:sp-": 6
     },
     "src/components/knowledge/GraphNodeStory.tsx": {
@@ -306,9 +305,6 @@
     "src/components/supaprod/LineageDrawer.tsx": {
       "import:components/ui": 1,
       "usage:components/ui": 5
-    },
-    "src/components/supaprod/MissionGraph.tsx": {
-      "--ds-": 6
     },
     "src/components/supaprod/PixelStat.tsx": {
       "--font-pixel": 1
