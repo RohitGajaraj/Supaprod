@@ -92,7 +92,7 @@ The system does the rest:
 | **Learning compound** | Lessons live in Slack, die with the person | Lessons live on the record, wired into the next decision |
 | **Code review** | 3 days, committee, blame avoidance | 30 min, agent, evidence-driven (diffs, checks, spec match) |
 | **Authority cost** | Founder runs all five gates (bottleneck) | Founder runs one gate (merge approval) |
-| **Replicability** | Decisions are oral history, reconstructed on every boot | Decisions are receipts, traceable end-to-end |
+| **Replicability** | Decisions are oral history, reconstructed on every boot | Decisions sit on an audit trail, traceable end-to-end |
 
 ---
 
@@ -146,7 +146,7 @@ They are told: "This shipped. It did what you predicted." Or: "This shipped. It 
 
 ## The Wiring (Current State)
 
-**Stations 1–5:** Fully wired, fully autonomous, proven by AUDIT.md findings. Sense, Decide, Plan, Design, Build all run unattended.
+**Stations 1–5:** Fully wired, per AUDIT.md findings. Sense, Decide, Plan, Design, Build all drive without a person in the loop; the end-to-end proof of a whole route is what the acceptance rounds are attempting, and it has not happened yet.
 
 **Station 6 (Ship):** Wired, gated on human merge approval (correct). ci-poll-tick auto-deploys preview. Track member would be written once publish fires.
 
