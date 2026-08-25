@@ -1,3 +1,50 @@
+# SESSION HANDOFF — LANE 0 CLOSE · 2026-08-25 late evening
+
+**Lane:** LANE 0 (OX Alpha / opencode) · worktree `cadence-lane-0` · branch pushed to `main`
+(`git cherry origin/main HEAD` = 0 unique at close, tree clean, no dev server, tsc 0 errors,
+full suite ~11,400 pass / 0 fail at last full run). Unit detail in `coordination/units/L0-083…087`
+and `docs/lanes/BUILDLOG.md` (session table "units L0-068 → L0-087"); the per-worktree
+`.remember/remember.md` carries this close note PREPENDED above the preserved 2026-08-19 entry.
+
+## Closed this session
+
+| Item | Unit | True state |
+| --- | --- | --- |
+| Request 022 — boundary controls lifted into SafetyRoom's front tab; BoundaryStatement link-out removed | L0-083 (`214cfffd5`) | CODE-SHIPPED; L1's /boundary fold landed later the same day on top of it |
+| Item 4 split half — TrackStart optional `onCreated`, host route decides landing | L0-079b (`9242664aa`) | CODE-SHIPPED; L1 wired their navigate (their handoff 083) |
+| Meridian audit → adoption-candidate map (STUDY, NOT DOCTRINE) | L0-084 (`93356df93`) | In `docs/design/MERIDIAN-INVENTORY.md`; outcomes recorded beside proposals |
+| Adoption 1: AgentInbox → /inbox on real reads + door under Today's triage feed; dead legacy bounce removed | L0-084a (`639678be7`, `a2c13dbfb`) | CODE-SHIPPED; door verified |
+| Adoption 2: InsightCards → /learn (adapter over listLearnings); PromotionCard honest empty state | L0-084 (`dcc70e819`) | CODE-SHIPPED; filled card waits on real promotion-kind records |
+| Adoption 3: FineTuneCard | — | REFUSED ON EVIDENCE: zero housable tunables on /design (survey in inventory) |
+| Adoption 4: StatusChip sweep | — | CLOSED: investigated all 82 occurrences, converts nothing; decomposition recorded so nobody re-proposes it |
+| Adoption 5: Flowchart → spec-page Flow reading via FlowDiagram rewrite | L0-084 (`5ff3ee5a3`) | CODE-SHIPPED; other candidates surveyed and linear |
+| Queue 67 calm learn hold | L0-084b (`098361b9f`) | CODE-SHIPPED; upstream's copy adopted, two seams closed (shared cache key, viewer-locale date); TrackStart chip says "Waiting on time" |
+| Queue 71 live visit rows | L0-087 (`b60fa7a47`) | CODE-SHIPPED; transcript polls at visit speed whenever ITS payload carries running rows, right pane follows |
+| Queue 69 finished-count truth | L0-086 (`5e351064a`) | GUARD WRITTEN, handed to MAIN for `src/__tests__/` (INBOX 18); trace found nothing to repair |
+| Queue 68 observation session | L0-085 | NOT DONE, honestly: no browser surface in-session, credentials rotated; production serves both probed routes 200 |
+
+## Left open, and on whom
+
+1. **Founder publish** gates every live look owed: inbox surface+door, learn cards, flow branches,
+   calm hold, live-visit rows, boundary controls. Production last deployed 08:3x UTC — none of today
+   is visible yet.
+2. **MAIN**: land `coordination/is-sample-never-means-done.test.ts` verbatim at
+   `src/__tests__/is-sample-never-means-done.test.ts`; rule on the seven-hue station ramp (consumers
+   `ask/SuggestionRail`, `ask/AskLanding` are LANE 0's when ruled).
+3. **Whoever holds a browser profile**: #68 observation session (six-plus rows owe eyes), #21 SR pass,
+   character states. Credentials are rotated; one MCP profile predating rotation still reads as
+   harbor@ (INBOX 14).
+4. **#23** review card waits on one successful studio.review anywhere.
+
+## Incidents met, resolved, worth remembering
+
+Main went red twice today from split-brain commits (turn-rollup rendering before its lib fields;
+calm-hold built twice in parallel). Both resolved by adopting upstream's half and landing only the
+non-duplicated remainder — rebase conflicts were resolved `--ours` for upstream-owned files after
+verifying equivalence, never by force.
+
+---
+
 # SESSION HANDOFF — LANE 1 CLOSE · 2026-08-25 ~17:2x UTC
 
 **Lane:** LANE 1 (OX Alpha / opencode) · worktree `cadence-lane-1` · branch pushed to `main`
