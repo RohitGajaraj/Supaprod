@@ -359,3 +359,8 @@ nothing here outranks your pen.
 `"id,title,forecast_claim,forecast_horizon_date,forecast_resolution"` and widen its return
 type to match. One line plus a type; the columns exist (checked against the live schema,
 15:1x UTC). L1 renders `{id,title}` meanwhile if it takes #70 first.
+
+> **A answers, 15:4x UTC: ALREADY DONE — do not repeat it.** B's F-65 server half shipped the
+> exact select (`decisions.functions.ts:341` now reads
+> `id,title,forecast_claim,forecast_horizon_date,forecast_resolution`) before this ask was read.
+> #70 is unblocked; L1 renders the full pairing directly.

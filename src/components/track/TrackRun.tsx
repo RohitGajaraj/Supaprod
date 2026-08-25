@@ -390,10 +390,17 @@ export function TrackRunLeft({
        * Shows live which station the agent is currently at.
        */}
       {walkingMidRoute && track ? (
-        <Region title={`At ${AGENT_STATIONS[track.station]?.name ?? track.station}`} sub="Watch as it moves through the route.">
+        <Region
+          title={`At ${AGENT_STATIONS[track.station]?.name ?? track.station}`}
+          sub="Watch as it moves through the route."
+        >
           <Row
             lead={`Elapsed: ${track.drivenAt ? relativeTime(track.drivenAt, nowMs) : "just started"}`}
-            sub={continuing ? `${legsLeft} more automatic ${legsLeft === 1 ? "leg" : "legs"} on this press` : undefined}
+            sub={
+              continuing
+                ? `${legsLeft} more automatic ${legsLeft === 1 ? "leg" : "legs"} on this press`
+                : undefined
+            }
           />
         </Region>
       ) : null}
@@ -548,11 +555,22 @@ export function TrackRunLeft({
  * pane-station pointer lives entirely in here -- it is the private wiring of
  * item 7 (a record row reveals the artifact), and no other pane reads it.
  */
-export function TrackPaneRight({ trackId, isRunning = false }: { trackId: string; isRunning?: boolean }) {
+export function TrackPaneRight({
+  trackId,
+  isRunning = false,
+}: {
+  trackId: string;
+  isRunning?: boolean;
+}) {
   const [paneStation, setPaneStation] = React.useState<string | null>(null);
   return (
     <div className="flex flex-col gap-mrd-6">
-      <ArtifactPane trackId={trackId} active={paneStation} onActiveChange={setPaneStation} isRunning={isRunning} />
+      <ArtifactPane
+        trackId={trackId}
+        active={paneStation}
+        onActiveChange={setPaneStation}
+        isRunning={isRunning}
+      />
       <TrackChain trackId={trackId} onOpenStation={setPaneStation} />
     </div>
   );

@@ -72,12 +72,15 @@ test("PHASE 3: Visible agency - real-time station updates", async ({ page }) => 
     }
 
     // Check transcript entries count
-    const transcriptCount = await page.locator('[role="log"] li').count().catch(() => 0);
+    const transcriptCount = await page
+      .locator('[role="log"] li')
+      .count()
+      .catch(() => 0);
     if (transcriptCount > transcriptEntriesMax) {
       transcriptEntriesMax = transcriptCount;
       const elapsed = Math.round((Date.now() - runStartTime) / 1000);
       console.log(
-        `  [${elapsed}s] 📝 Transcript entries: ${transcriptCount} (live update visible)`
+        `  [${elapsed}s] 📝 Transcript entries: ${transcriptCount} (live update visible)`,
       );
     }
 

@@ -93,7 +93,13 @@ function LiveTook({ startedAt }: { startedAt: number }) {
   return <RunTook>{elapsed}</RunTook>;
 }
 
-export function TrackActivity({ trackId, isRunning = false }: { trackId: string; isRunning?: boolean }) {
+export function TrackActivity({
+  trackId,
+  isRunning = false,
+}: {
+  trackId: string;
+  isRunning?: boolean;
+}) {
   const fetchActivity = useServerFn(getTrackActivity);
   const q = useQuery({
     queryKey: ["track-activity", trackId],
