@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { publicAnnouncementView, type PublicAnnouncementView } from "@/lib/announcements";
+import { buildSrcDoc } from "@/lib/prototype-srcdoc";
 
 export const Route = createFileRoute("/p/$slug")({ component: PublicPage });
 
@@ -18,21 +19,6 @@ function formatPublishedDate(iso: string): string {
 type PublicState =
   | { kind: "prototype"; name: string; src: string }
   | { kind: "announcement"; view: PublicAnnouncementView };
-
-function buildSrcDoc(files: FileRow[], entry: string): string {
-  const html = files.find((f) => f.path === entry) ?? files.find((f) => f.path.endsWith(".html"));
-  if (!html) return "<html><body><p>No HTML file</p></body></html>";
-  let out = html.content;
-  out = out.replace(/<link[^>]*href=["']([^"']+\.css)["'][^>]*>/g, (_m, href) => {
-    const css = files.find((f) => f.path === href);
-    return css ? `<style>${css.content}</style>` : _m;
-  });
-  out = out.replace(/<script[^>]*src=["']([^"']+\.js)["'][^>]*><\/script>/g, (_m, src) => {
-    const js = files.find((f) => f.path === src);
-    return js ? `<script>\n${js.content}\n</script>` : _m;
-  });
-  return out;
-}
 
 function PublicPage() {
   const { slug } = Route.useParams();

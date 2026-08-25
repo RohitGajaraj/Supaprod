@@ -175,9 +175,26 @@ export async function watchAssumptions(
     await supabase.from("assumptions").update({ last_watched_at: nowIso }).in("id", watchedIds);
   }
 
-  // Batch insert challenges; ignore conflicts (uq_assumption_challenges_open already flagged).
+  // Batch insert challenges, and the write error MUST surface. This line used
+  // to discard the result under a comment claiming conflicts were ignored --
+  // but a plain insert does not ignore a conflict, it fails the WHOLE batch,
+  // and every other failure (missing column, RLS refusal) failed the same
+  // silent way. Production wrote ZERO challenge rows ever while the tick
+  // reported ok. Thrown, same idiom as forecast-audit.server.ts's
+  // due-forecasts read, so the tick's per-workspace catch records it against
+  // this workspace without stopping the other workspaces' sweep. The throw
+  // also skips the status='challenged' update below on purpose: an assumption
+  // must not be marked challenged when no challenge row exists for it, and
+  // staying 'standing' means the next tick retries it.
   if (challengeInserts.length > 0) {
-    await supabase.from("assumption_challenges").insert(challengeInserts);
+    const { error: challengeWriteError } = await supabase
+      .from("assumption_challenges")
+      .insert(challengeInserts);
+    if (challengeWriteError) {
+      throw new Error(
+        `assumption watch could not insert challenges: ${challengeWriteError.message}`,
+      );
+    }
   }
 
   // Update challenged assumptions to status='challenged'.

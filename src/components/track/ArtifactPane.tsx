@@ -37,6 +37,8 @@ import { wordFor } from "@/lib/spine/chain";
 import { STATION_ARTIFACT } from "@/lib/spine/attach";
 import { relativeTime } from "@/lib/memory-view";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
+import { supabase } from "@/integrations/supabase/client";
+import { buildSrcDoc, type PrototypeFileRow } from "@/lib/prototype-srcdoc";
 import {
   Action,
   Reading,
@@ -790,6 +792,90 @@ function parseReview(raw: unknown): ChangesetReviewView | null {
   return null;
 }
 
+/*
+ * THE DRAWING, SHOWN AS A DRAWING (founder, 2026-08-25: "what is happening
+ * under each station... needs to be seen").
+ *
+ * Design's station files real prototypes with real files, `/p/$slug` has
+ * rendered them in a sandboxed iframe for weeks — and this pane showed a
+ * one-line TITLE, because `prototype` fell through the kind switch to null.
+ * The most visual station in the product was the least visible one here.
+ *
+ * The read is the caller's own RLS-scoped client, the exact pattern the
+ * public page uses minus the share gate: a member sees the workspace's
+ * prototype, a stranger reads nothing and the card says the read came back
+ * empty rather than pretending. The srcdoc builder is SHARED with `/p`
+ * (`@/lib/prototype-srcdoc`) so the two previews cannot drift.
+ *
+ * The sandbox carries no `allow-same-origin` — scripts run isolated, and a
+ * prototype cannot read the app's storage or cookies from inside the frame.
+ */
+function PrototypeCard({ item }: { item: ArtifactView }) {
+  const proto = useQuery({
+    queryKey: ["pane-prototype", item.artifactId],
+    queryFn: async () => {
+      const { data: row, error } = await supabase
+        .from("prototypes")
+        .select("id,name,entry_path,share_slug,is_public,created_at")
+        .eq("id", item.artifactId)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      if (!row) return null;
+      const { data: files, error: fErr } = await supabase
+        .from("prototype_files")
+        .select("path,content,language")
+        .eq("prototype_id", row.id);
+      if (fErr) throw new Error(fErr.message);
+      return { row, files: (files ?? []) as PrototypeFileRow[] };
+    },
+    staleTime: 60_000,
+  });
+
+  if (proto.isLoading) {
+    return <span className="mrd-meta">Opening the drawing…</span>;
+  }
+  // A failed read is said, never dressed as an empty state (R-16).
+  if (proto.isError) {
+    return <RecordSpeaks>The drawing could not be read just now.</RecordSpeaks>;
+  }
+  if (!proto.data) {
+    return <RecordSpeaks>This drawing is not visible from here.</RecordSpeaks>;
+  }
+
+  const { row, files } = proto.data;
+  return (
+    <div className="flex flex-col gap-mrd-3">
+      <div className="flex flex-wrap items-center gap-mrd-3">
+        <span className="font-medium text-mrd-ink">{row.name}</span>
+        <span className="mrd-meta">{relativeTime(item.createdAt, Date.now())}</span>
+        {row.is_public && row.share_slug ? (
+          <a
+            className="text-mrd-small text-mrd-mute underline underline-offset-2"
+            href={`/p/${row.share_slug}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Open full size
+          </a>
+        ) : null}
+      </div>
+      {files.length > 0 ? (
+        <iframe
+          title={`Prototype: ${row.name}`}
+          sandbox="allow-scripts allow-forms allow-modals"
+          srcDoc={buildSrcDoc(files, row.entry_path)}
+          className="h-[420px] w-full rounded-mrd-card border border-mrd-line bg-canvas"
+        />
+      ) : (
+        <RecordSpeaks>The drawing has no files on the record.</RecordSpeaks>
+      )}
+      <span className="mrd-meta">
+        {files.length} {files.length === 1 ? "file" : "files"}, rendered exactly as filed.
+      </span>
+    </div>
+  );
+}
+
 function ChangesetCard({ item }: { item: ArtifactView }) {
   const f = item.fields;
   const summary = str(f.summary);
@@ -975,6 +1061,8 @@ function StationPanel({
         return <ChangesetCard item={item} />;
       case "prd":
         return <PlanSpec prdId={item.artifactId} />;
+      case "prototype":
+        return <PrototypeCard item={item} />;
       default:
         return null;
     }

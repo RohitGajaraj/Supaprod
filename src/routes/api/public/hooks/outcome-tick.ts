@@ -23,8 +23,10 @@ import { recordStageEvent } from "@/lib/stage-events.server";
  *
  * F-CONN Phase 1: GitHub auth resolves per workspace via resolveGitHub
  * (workspace binding → env fallback; admin path, no user session). Workspaces
- * with no resolvable GitHub connection are skipped silently — this tick never
- * throws for config absence.
+ * with no resolvable GitHub connection are skipped — this tick never throws
+ * for config absence — and every skip is NAMED in the response's
+ * `skippedNoGithub` list, because a skip the response cannot show is how this
+ * tick ran green for a month while nothing shipped.
  *
  * RF-01: a second pass, same tick — for PRDs already shipped with no
  * recorded outcome yet, draft/refresh a confidence-tiered outcome suggestion
@@ -96,6 +98,15 @@ export const Route = createFileRoute("/api/public/hooks/outcome-tick")({
 
             let checked = 0;
             let shipped = 0;
+            // A skipped workspace must be visible in the tick's own answer, not
+            // only in error_events rows nobody watches. The skip below is
+            // CORRECT -- a workspace with no resolvable GitHub must not stop
+            // the sweep -- but it was silent in the one place a person looks:
+            // the response said ok:true 163 times in a week while
+            // max(prds.shipped_at) sat frozen at 2026-07-25 with 36 approved
+            // PRDs waiting, every one of them in a skipped group. `null` is
+            // the group of PRDs with no workspace_id (env-fallback auth).
+            const skippedNoGithub: Array<string | null> = [];
             for (const [workspaceId, group] of groups) {
               if (workspaceId && disabledWorkspaceIds.has(workspaceId)) {
                 continue;
@@ -117,6 +128,7 @@ export const Route = createFileRoute("/api/public/hooks/outcome-tick")({
                 // must not stop the other workspaces' sweep, but the reason is on
                 // the record now.
                 await note(e, "connector_error", workspaceId);
+                skippedNoGithub.push(workspaceId);
                 continue;
               }
               for (const prd of group) {
@@ -272,7 +284,15 @@ export const Route = createFileRoute("/api/public/hooks/outcome-tick")({
             }
 
             return new Response(
-              JSON.stringify({ ok: true, checked, shipped, suggested, reviews, compound }),
+              JSON.stringify({
+                ok: true,
+                checked,
+                shipped,
+                skippedNoGithub,
+                suggested,
+                reviews,
+                compound,
+              }),
               {
                 headers: { "Content-Type": "application/json" },
               },
