@@ -102,38 +102,41 @@
 
 **Timeline:** Once founder completes this observation, report confirmation and proceed to PHASE 4.
 
-## Next for LANE 0
+## LANE 0: Current Status
 
-1. **Queue #68** (READY NOW, time-boxed): Observation session
-   - Sign in as `harbor@` (credentials in `docs/operations/demo-credentials.md`)
-   - Sit on live track `7977dc06` at ship station
-   - Observe and screenshot: transcript motion, character states, queue-65/66 live markers
-   - File findings for any CODE-SHIPPED items that don't render as specced
-   - **This is a verification unit, not code work**
+**Completed this session:** Queue #67 (calm hold), Queue #69 (finished count guard)
 
-2. **Owed verifications** (after production redeployed 08:3x UTC):
-   - Items 24, 28, 34, 29, 23 from their unit files
-   - Run pre-written falsifiers; record each in `coordination/units/`
+**Ready next:**
+- **Queue #68** (verification, time-boxed): Observation session at `7977dc06`
+  - Sit on live track, observe transcript motion + character states + queue-65/66 markers
+  - Screenshot findings; file if CODE-SHIPPED items don't render
+  
+- **Owed verifications** (need dev server + live data):
+  - Items 24, 28, 34, 29, 23 falsifiers from unit files
+  - Run after production redeploy (08:3x UTC)
 
-3. **Queue #68** is time-boxed and valuable — prioritize it
+## LANE 1: Current Status
 
-## Next for LANE 1
+**Completed this session:** Queue #32 (verified already shipped), Queue #12 (design review complete)
 
-1. **Queue #12** (READY): Design review of Today page
-   - Answer five questions about `_authenticated.today.tsx` in unit file
-   - Name every region with its Meridian component
-   - Kill unnamed regions with reasons
-
-2. **Queue #54** (BLOCKED → #53): Mount character
-   - Blocked on MAIN's #53 (character component)
-   - Spec-read now in `SPEC-PRESENCE.md` §Anatomy
-
-3. **Queue #32** (READY): Swap JobCards onto Meridian
+**Ready next:**
+- **Queue #70** (verdict meets claim pairing): Server half DONE by Session A
+  - Requires investigation: UI detail-view flow for opened learnings
+  - When `decision_id` present: show claim + horizon + verdict together
+  - When NULL: render as today's card (no invented pairing)
+  - Acceptance: both themes, --mrd-* only, absent is honest shape
+  
+- **Queue #54** (BLOCKED → MAIN's #53): Mount character on rail + `/start`
+  - Pending character component completion
+  - Spec ready in `SPEC-PRESENCE.md`
+  
+- **Queue #22** (P1, blocked → request 022): Fold `/boundary` into `/engine-room`
+  - Wait for controls to land in SafetyRoom (already in progress)
 
 ## For MAIN
 
-- Item 53 (character component) is P0, MAIN-held
-- INBOX has one select widening for L1's queue 70 (decision pairing)
+- Item #53 (character component) — P0, MAIN-held, unblocks L1's #54
+- All cross-path coordination answers in INBOX-MAIN are settled (F-65 server half shipped)
 
 ### Next (P1 — After mission gate satisfied)
 
