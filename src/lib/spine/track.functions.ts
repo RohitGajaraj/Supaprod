@@ -52,7 +52,11 @@ import {
   type MemberRow,
   type StopState,
 } from "@/lib/spine/chain";
-import { KIND_WORD, STATION_ARTIFACT } from "@/lib/spine/attach";
+import { KIND_WORD, STATION_ARTIFACT, type PendingGate } from "@/lib/spine/attach";
+import { claimApprovalDecision, executeApproval } from "@/lib/ai/loop.server";
+import { recordGateSignalCore } from "@/lib/gate-signals.functions";
+import { expiryDefaultFor } from "@/lib/ai/approval-expiry";
+import { MAX_BULK_DECISIONS } from "@/lib/approvals-queue.functions";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -159,7 +163,13 @@ function rowToTrack(r: TrackRow): Track {
 }
 
 const SELECT =
-  "id,user_id,workspace_id,title,origin,entry_station,station,status,path,waived,updated_at,last_hold,driven_at";
+  "id,user_id,workspace_id,title,origin,entry_station,station,status,path,waived,updated_at,last_hold,driven_at," +
+  // The ONLY edge from a track to the questions it is waiting on.
+  // `agent_approvals` has no track back-reference — see SPEC-CONSENT §1.1 and
+  // the migration that created this column, which rejects every correlational
+  // alternative by name. Absent from this select, `getTrack` could not serve
+  // the hold check and the consent card had nothing to read.
+  "pending_gates";
 
 /**
  * Start a piece of work and give it a route.
@@ -1120,6 +1130,553 @@ export const getTrackArtifacts = createServerFn({ method: "GET" })
       };
     } catch {
       return { stops: [] };
+    }
+  });
+
+/**
+ * `spine_tracks.pending_gates`, read defensively.
+ *
+ * A jsonb column reaches here as whatever was written. `rememberGates` writes
+ * `[{id, station}]`, and a row that predates it, or one a future deploy shapes
+ * differently, must degrade to "no gates" rather than throw inside a read a
+ * surface polls every few seconds.
+ */
+function readPendingGates(raw: unknown): PendingGate[] {
+  if (!Array.isArray(raw)) return [];
+  const out: PendingGate[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const id = (item as { id?: unknown }).id;
+    const station = (item as { station?: unknown }).station;
+    if (typeof id !== "string" || typeof station !== "string") continue;
+    if (!AGENT_STATION_ORDER.includes(station as AgentStation)) continue;
+    out.push({ id, station: station as AgentStation });
+  }
+  return out;
+}
+
+/* ------------------------------------------------------------------------- *
+ * THE GATES INSIDE ONE RUN (SPEC-CONSENT §1.3, §5.2, §3.3)
+ * ------------------------------------------------------------------------- */
+
+/**
+ * One question waiting inside one run.
+ *
+ * THE LINK IS ONE-WAY AND THAT IS THE WHOLE DESIGN. `agent_approvals` carries
+ * `user_id`, `run_id`, `mission_id` and `workspace_id`, and **none of those
+ * identifies a spine track**. The migration that created `pending_gates` rejects
+ * every correlational alternative in its own words: matching on user and time
+ * "would be the same time-window guess the attachment pass already rejected for
+ * lying". So `spine_tracks.pending_gates` is the membership statement, and a
+ * pending approval absent from it belongs to some other run.
+ */
+export type TrackGate = {
+  approvalId: string;
+  /** From `pending_gates`, NOT re-derived: the station that actually asked. */
+  station: AgentStation;
+  /** Keys the consequence catalogue only. NEVER rendered — SPEC-CONSENT §2.4. */
+  toolName: string | null;
+  agentSlug: string | null;
+  /** The agent's own words for why it asked. */
+  rationale: string | null;
+  status: "pending" | "approved" | "executed" | "rejected" | "failed" | "cancelled" | "expired";
+  askedAtMs: number;
+  expiresAtMs: number | null;
+  /** NULL means the row predates the column, not that the default is unknown. */
+  expiryDefault: "proceed" | "cancel" | null;
+  /** A snoozed gate still holds the run. */
+  snoozedUntilMs: number | null;
+  /**
+   * How many OTHER pending gates in this workspace share this `tool_name`.
+   * **Server-counted, never client-inferred**: it is printed on a button that
+   * states its own reach, and a count a client guessed would be a claim about
+   * rows the client cannot see.
+   */
+  classPendingElsewhere: number;
+};
+
+export type TrackGatesResult = {
+  /** Answerable now. Only `pending` rows. */
+  open: TrackGate[];
+  /** Answered or expired, newest first — what happened, not what is waiting. */
+  settled: TrackGate[];
+  /** The track's own hold sentence, so the card can say why the run stopped. */
+  holdReason: string | null;
+  /**
+   * True when the approvals read FAILED. Distinct from "no gates": a card that
+   * renders "nothing is waiting on you" over an unreadable table is telling a
+   * person their run is fine when nobody looked.
+   */
+  unreadable: boolean;
+};
+
+const GATE_STATUSES = [
+  "pending",
+  "approved",
+  "executed",
+  "rejected",
+  "failed",
+  "cancelled",
+  "expired",
+] as const;
+
+function gateStatus(raw: unknown): TrackGate["status"] {
+  const v = String(raw ?? "").toLowerCase();
+  return (GATE_STATUSES as readonly string[]).includes(v) ? (v as TrackGate["status"]) : "pending";
+}
+
+function epochOrNull(v: unknown): number | null {
+  if (!v) return null;
+  const n = Date.parse(String(v));
+  return Number.isFinite(n) ? n : null;
+}
+
+/**
+ * The questions this run is waiting on, and the ones it already answered.
+ *
+ * Its own read with its own cadence rather than a field on `Track`: a gate
+ * changes when a person answers it, and the track changes when the driver moves
+ * it. Putting them on one query would make the cheaper one wait for the dearer.
+ */
+export const getTrackGates = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }): Promise<TrackGatesResult> => {
+    const { supabase, userId } = context;
+    const empty: TrackGatesResult = {
+      open: [],
+      settled: [],
+      holdReason: null,
+      unreadable: false,
+    };
+    try {
+      const { data: row } = await supabase
+        .from("spine_tracks" as never)
+        .select(SELECT)
+        .eq("id", data.trackId)
+        .maybeSingle();
+      if (!row) return empty;
+      const track = rowToTrack(row as unknown as TrackRow);
+      const workspaceId = (row as unknown as TrackRow).workspace_id ?? null;
+
+      const listed = readPendingGates(
+        (row as unknown as { pending_gates?: unknown }).pending_gates,
+      );
+      if (listed.length === 0) return { ...empty, holdReason: track.holdReason };
+
+      const { data: rows, error } = await supabase
+        .from("agent_approvals")
+        .select(
+          "id,tool_name,agent_slug,rationale,status,created_at,expires_at,expiry_default,snoozed_until",
+        )
+        .in(
+          "id",
+          listed.map((g) => g.id),
+        )
+        .eq("user_id", userId);
+
+      // WE DID NOT LOOK, SO WE CLAIM NOTHING. An unreadable approvals table must
+      // not render as "nothing is waiting on you".
+      if (error) return { ...empty, holdReason: track.holdReason, unreadable: true };
+
+      const byId = new Map(
+        ((rows ?? []) as unknown as Array<Record<string, unknown>>).map((r) => [String(r.id), r]),
+      );
+
+      /*
+       * THE CLASS COUNT IS ONE QUERY, NOT ONE PER GATE. It answers "how many
+       * OTHER pending calls in this workspace share this tool", which is what
+       * the Decide-all button prints. Scoped to workspace AND caller, because a
+       * count that crossed either boundary would be a number about rows this
+       * person may not act on.
+       */
+      const classCount = new Map<string, number>();
+      const tools = [
+        ...new Set(
+          listed
+            .map((g) => (byId.get(g.id)?.tool_name as string | null) ?? null)
+            .filter((t): t is string => !!t),
+        ),
+      ];
+      if (tools.length > 0 && workspaceId) {
+        const { data: peers } = await supabase
+          .from("agent_approvals")
+          .select("id,tool_name")
+          .eq("user_id", userId)
+          .eq("workspace_id", workspaceId)
+          .eq("status", "pending")
+          .in("tool_name", tools);
+        for (const p of (peers ?? []) as unknown as Array<{ id: string; tool_name: string }>) {
+          classCount.set(p.tool_name, (classCount.get(p.tool_name) ?? 0) + 1);
+        }
+      }
+
+      const gates: TrackGate[] = listed.map((g) => {
+        const r = byId.get(g.id);
+        const toolName = (r?.tool_name as string | null) ?? null;
+        // This gate excluded from its own class count.
+        const peers = toolName ? Math.max(0, (classCount.get(toolName) ?? 0) - 1) : 0;
+        return {
+          approvalId: g.id,
+          station: g.station,
+          toolName,
+          agentSlug: (r?.agent_slug as string | null) ?? null,
+          rationale: (r?.rationale as string | null) ?? null,
+          status: gateStatus(r?.status),
+          askedAtMs: epochOrNull(r?.created_at) ?? 0,
+          expiresAtMs: epochOrNull(r?.expires_at),
+          expiryDefault: ((r?.expiry_default as string | null) ?? null) as
+            "proceed" | "cancel" | null,
+          snoozedUntilMs: epochOrNull(r?.snoozed_until),
+          classPendingElsewhere: peers,
+        };
+      });
+
+      return {
+        open: gates.filter((g) => g.status === "pending"),
+        settled: gates
+          .filter((g) => g.status !== "pending")
+          .sort((a, b) => b.askedAtMs - a.askedAtMs),
+        holdReason: track.holdReason,
+        // A gate this track lists whose approval row did not come back is not
+        // "settled" and not "open": we could not read it. Same rule as above.
+        unreadable: gates.some((g) => !byId.has(g.approvalId)),
+      };
+    } catch {
+      return { ...empty, unreadable: true };
+    }
+  });
+
+/**
+ * Answer ONE question inside one run, in a single call.
+ *
+ * ── WHY THIS IS ONE FUNCTION AND NOT THREE CALLS FROM THE CARD ─────────────
+ *
+ * Three doors existed and each one lost something (SPEC-CONSENT §5.2):
+ * `decideApprovalItem` writes the gate signal and **loses the reason**;
+ * `resolveApproval` writes the reason and **writes no gate signal**;
+ * `sendBackApprovalItem` writes both and **refuses `tool_call` outright**.
+ *
+ * A card that called two of them in sequence could half-write — reason stored,
+ * signal missing, or the reverse — and a half-written decision is worse than a
+ * refused one, because it looks complete. So the four writes happen here and
+ * **each is reported independently**: a partial write is reported as partial.
+ *
+ * ── THE OWNERSHIP CHECK IS THE FIRST THING AND IT IS NOT A FORMALITY ───────
+ *
+ * `approvalId` must be in THIS track's `pending_gates`. Without it this becomes
+ * an unscoped write door onto every approval the caller holds, reachable from a
+ * run page by changing one id in a request. `pending_gates` is the only edge
+ * that exists (§1.1), so it is also the only honest scope.
+ *
+ * ── A REJECT WITH NO REASON IS REFUSED BY THE SERVER, NOT BY THE FORM ──────
+ *
+ * `sendBackApprovalItem` set the precedent: *"a note-less send-back is a
+ * decline."* Here the entire point of the item is that declining records a
+ * reason, so the floor belongs on the server where a second client cannot skip
+ * it.
+ */
+export type DecideTrackGateResult = {
+  ok: boolean;
+  /** What the row actually holds afterwards, read back rather than assumed. */
+  status: string;
+  /** Somebody else answered first. Ordinary, never an error. */
+  alreadyDecided: boolean;
+  reasonRecorded: boolean;
+  signalRecorded: boolean;
+  steered: boolean;
+  problems: string[];
+};
+
+const DecideGateSchema = z
+  .object({
+    trackId: z.string().uuid(),
+    approvalId: z.string().uuid(),
+    verdict: z.enum(["approve", "reject"]),
+    reason: z.string().trim().max(2000).optional(),
+    steer: z.boolean().optional(),
+  })
+  .refine((d) => d.verdict !== "reject" || !!d.reason?.trim(), {
+    message: "Declining records why. Say what was wrong with it.",
+    path: ["reason"],
+  });
+
+export const decideTrackGate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => DecideGateSchema.parse(d))
+  .handler(async ({ context, data }): Promise<DecideTrackGateResult> => {
+    const { supabase, userId } = context;
+    const out: DecideTrackGateResult = {
+      ok: false,
+      status: "unknown",
+      alreadyDecided: false,
+      reasonRecorded: false,
+      signalRecorded: false,
+      steered: false,
+      problems: [],
+    };
+    try {
+      const { data: row } = await supabase
+        .from("spine_tracks" as never)
+        .select(SELECT)
+        .eq("id", data.trackId)
+        .maybeSingle();
+      if (!row) return { ...out, problems: ["That track could not be found."] };
+      const raw = row as unknown as TrackRow;
+
+      // THE SCOPE. See the header: this is the only edge, so it is the only gate.
+      const listed = readPendingGates(
+        (row as unknown as { pending_gates?: unknown }).pending_gates,
+      );
+      if (!listed.some((g) => g.id === data.approvalId)) {
+        return {
+          ...out,
+          problems: ["That question does not belong to this run, so it was not answered here."],
+        };
+      }
+
+      const { data: before } = await supabase
+        .from("agent_approvals")
+        .select("id,tool_name,agent_slug,status")
+        .eq("id", data.approvalId)
+        .eq("user_id", userId)
+        .maybeSingle();
+      const toolName = (before as { tool_name?: string | null } | null)?.tool_name ?? null;
+      const agentSlug = (before as { agent_slug?: string | null } | null)?.agent_slug ?? null;
+
+      const decision = data.verdict === "approve" ? "approved" : "rejected";
+      const reason = data.reason?.trim() ?? "";
+
+      // 1. THE CLAIM. Losing this race is ordinary: two tabs answering the same
+      //    call must not run the tool twice.
+      const claim = await claimApprovalDecision(supabase, userId, data.approvalId, decision);
+      if (!claim.claimed) {
+        const { data: now } = await supabase
+          .from("agent_approvals")
+          .select("status")
+          .eq("id", data.approvalId)
+          .maybeSingle();
+        return {
+          ...out,
+          ok: true,
+          alreadyDecided: true,
+          status: String((now as { status?: string } | null)?.status ?? "unknown"),
+          problems: ["That call had already been answered."],
+        };
+      }
+
+      // 2. THE REASON LANDS BEFORE ANYTHING ELSE MOVES. Provenance first, the
+      //    same order `decideOneApprovalItem` uses.
+      if (reason) {
+        try {
+          const { error } = await supabase
+            .from("agent_approvals")
+            .update({ decision_reason: reason.slice(0, 2000) } as never)
+            .eq("id", data.approvalId)
+            .eq("user_id", userId);
+          out.reasonRecorded = !error;
+          if (error) out.problems.push("The decision stands; your note was not stored.");
+        } catch {
+          out.problems.push("The decision stands; your note was not stored.");
+        }
+      }
+
+      // 3. THE GATE SIGNAL. Best-effort by contract: telemetry must never break
+      //    the gate it observes.
+      const signal = await recordGateSignalCore(supabase, userId, {
+        gateType: data.verdict === "approve" ? "approval" : "rejection",
+        subjectType: "tool_call",
+        subjectRef: data.approvalId,
+        agentSlug,
+        toolName,
+        verdict: decision,
+        diffSummary: reason || null,
+        workspaceId: raw.workspace_id ?? null,
+      });
+      out.signalRecorded = signal.ok;
+
+      // 4. APPROVING ALSO EXECUTES, which is the semantics every other approval
+      //    surface has. An approve that does not execute leaves the run paused
+      //    forever waiting for a status it will never reach.
+      if (data.verdict === "approve") {
+        try {
+          await executeApproval(supabase, userId, data.approvalId);
+        } catch (e) {
+          out.problems.push(
+            `The approval is recorded and the tool did not run: ${e instanceof Error ? e.message : "it failed"}`,
+          );
+        }
+      }
+
+      // 5. THE OPTIONAL STEER, so a decline can tell the run what to do instead.
+      if (data.steer && reason) {
+        try {
+          const { error } = await supabase.from("agent_messages").insert({
+            user_id: userId,
+            workspace_id: raw.workspace_id ?? null,
+            track_id: data.trackId,
+            kind: "steer",
+            payload: { message: reason },
+          });
+          out.steered = !error;
+          if (error) out.problems.push("Your note was not passed on to the run.");
+        } catch {
+          out.problems.push("Your note was not passed on to the run.");
+        }
+      }
+
+      const { data: after } = await supabase
+        .from("agent_approvals")
+        .select("status")
+        .eq("id", data.approvalId)
+        .maybeSingle();
+
+      return {
+        ...out,
+        ok: true,
+        status: String((after as { status?: string } | null)?.status ?? decision),
+      };
+    } catch (e) {
+      return { ...out, problems: [e instanceof Error ? e.message : String(e)] };
+    }
+  });
+
+/**
+ * Answer every pending question of this KIND in this workspace.
+ *
+ * ── THE CONTROL THE WHOLE ITEM EXISTS FOR ─────────────────────────────────
+ *
+ * 90 `cluster.trigger` approvals were raised since July: 42 cancelled, 38
+ * expired, 10 pending, **zero ever approved**. They are not ninety questions.
+ * They are one question asked ninety times, and a queue that can only be
+ * answered one row at a time is how a person ends up answering none of them.
+ *
+ * ── THE CLASS KEY IS `tool_name` AND NOTHING ELSE ─────────────────────────
+ *
+ * Not `args` — the ninety differ only by workspace and time. Not `agent_slug` —
+ * the same tool is raised by more than one seat.
+ *
+ * ── APPROVE-ALL IS OFFERED ONLY WHERE SILENCE WOULD ALREADY SAY YES ────────
+ *
+ * `expiryDefaultFor(toolName) === "proceed"` means the call is reversible AND
+ * internal, so its declared outcome on silence is already "run it". Saying yes
+ * to all of them at once therefore grants **nothing that waiting would not**.
+ * Where the declared default is `cancel` — anything irreversible or external —
+ * approve-all is refused, and `studio.pr.merge` never merges five PRs on one
+ * click. **Decline-all is always allowed**: declining N calls can never be worse
+ * than each of them expiring.
+ */
+export type DecideClassResult = {
+  decided: Array<{ approvalId: string }>;
+  refused: Array<{ approvalId: string; reason: string }>;
+  /** Pending members the cap left untouched. Never silently dropped. */
+  remaining: number;
+  /** The caller asked to approve a class whose declared default is `cancel`. */
+  refusedAsUnsafeClass: boolean;
+};
+
+const DecideClassSchema = z
+  .object({
+    trackId: z.string().uuid(),
+    toolName: z.string().min(1).max(100),
+    verdict: z.enum(["approve", "reject"]),
+    reason: z.string().trim().max(2000).optional(),
+  })
+  .refine((d) => d.verdict !== "reject" || !!d.reason?.trim(), {
+    message: "Declining records why. Say what was wrong with them.",
+    path: ["reason"],
+  });
+
+export const decideTrackGateClass = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => DecideClassSchema.parse(d))
+  .handler(async ({ context, data }): Promise<DecideClassResult> => {
+    const { supabase, userId } = context;
+    const out: DecideClassResult = {
+      decided: [],
+      refused: [],
+      remaining: 0,
+      refusedAsUnsafeClass: false,
+    };
+    try {
+      // APPROVE-ALL IS GATED ON THE CALL'S OWN DECLARED DEFAULT, before any read.
+      if (data.verdict === "approve" && expiryDefaultFor(data.toolName) !== "proceed") {
+        return { ...out, refusedAsUnsafeClass: true };
+      }
+
+      const { data: row } = await supabase
+        .from("spine_tracks" as never)
+        .select(SELECT)
+        .eq("id", data.trackId)
+        .maybeSingle();
+      if (!row) return out;
+      const workspaceId = (row as unknown as TrackRow).workspace_id ?? null;
+      // No workspace, no class: the scope printed on the button is the scope
+      // enforced here, and an unscoped bulk write is never the safe default.
+      if (!workspaceId) return out;
+
+      const { data: peers, error } = await supabase
+        .from("agent_approvals")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("workspace_id", workspaceId)
+        .eq("status", "pending")
+        .eq("tool_name", data.toolName)
+        .order("created_at", { ascending: true });
+      if (error) return out;
+
+      const all = ((peers ?? []) as unknown as Array<{ id: string }>).map((r) => r.id);
+      const batch = all.slice(0, MAX_BULK_DECISIONS);
+      // NEVER A SILENT CAP. What was not attempted is counted and returned.
+      out.remaining = Math.max(0, all.length - batch.length);
+
+      const decision = data.verdict === "approve" ? "approved" : "rejected";
+      const reason = data.reason?.trim() ?? "";
+
+      for (const approvalId of batch) {
+        const claim = await claimApprovalDecision(supabase, userId, approvalId, decision);
+        if (!claim.claimed) {
+          out.refused.push({ approvalId, reason: "It had already been answered." });
+          continue;
+        }
+        if (reason) {
+          try {
+            await supabase
+              .from("agent_approvals")
+              .update({ decision_reason: reason.slice(0, 2000) } as never)
+              .eq("id", approvalId)
+              .eq("user_id", userId);
+          } catch {
+            // The decision stands without the note; reported per-item would be
+            // noise at this scale, and the note is not what gates the run.
+          }
+        }
+        await recordGateSignalCore(supabase, userId, {
+          gateType: data.verdict === "approve" ? "approval" : "rejection",
+          subjectType: "tool_call",
+          subjectRef: approvalId,
+          agentSlug: null,
+          toolName: data.toolName,
+          verdict: decision,
+          diffSummary: reason || null,
+          workspaceId,
+        });
+        if (data.verdict === "approve") {
+          try {
+            await executeApproval(supabase, userId, approvalId);
+          } catch (e) {
+            out.refused.push({
+              approvalId,
+              reason: `Approved, and it did not run: ${e instanceof Error ? e.message : "failed"}`,
+            });
+            continue;
+          }
+        }
+        out.decided.push({ approvalId });
+      }
+      return out;
+    } catch {
+      return out;
     }
   });
 
