@@ -1027,6 +1027,42 @@ export const getStudioSession = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
+    /*
+     * EVERY EARLIER ATTEMPT, NOT ONLY THE LIVE ONE.
+     *
+     * The read above is `.limit(1).maybeSingle()`, so a mission that was built
+     * more than once shows its newest changeset and **the earlier ones are
+     * unreachable from anywhere in the product**. That is the wrong default for
+     * this surface: a build that was superseded is the most interesting thing on
+     * a mission that took three goes, and "what did we try before" is precisely
+     * the question somebody opens a session to answer.
+     *
+     * Reported by LANE 0's Build census (REQ-L0-019 item 5) and routed to MAIN
+     * as queue item 27 because the server function is the half that cannot
+     * answer.
+     *
+     * SEPARATE FIELD, NOT A WIDENED `changeset`. Every caller of this handler
+     * reads `changeset` as "the one being worked on", and turning it into a list
+     * would move that meaning underneath them. The active one stays exactly
+     * where it was; the history arrives beside it.
+     *
+     * DELIBERATELY THIN. Ids, titles and status only — no file counts, no diffs.
+     * A superseded changeset is a door, and loading its body for every session
+     * read would pay for something almost nobody opens. `getStudioChanges`
+     * already answers the body when somebody asks for one.
+     */
+    const { data: priorRows } = await db
+      .from("studio_changesets")
+      .select("id,status,title,branch,pr_url,pr_number,created_at,updated_at")
+      .eq("mission_id", data.missionId)
+      .neq("status", "abandoned")
+      .order("created_at", { ascending: false })
+      .limit(20);
+    const activeId = (csRow as { id?: string } | null)?.id ?? null;
+    const superseded = ((priorRows ?? []) as Array<{ id: string }>).filter(
+      (r) => r.id !== activeId,
+    );
+
     let changes: Array<{
       id: string;
       path: string;
@@ -1211,6 +1247,8 @@ export const getStudioSession = createServerFn({ method: "GET" })
       changeset: csRow
         ? { ...(csRow as Record<string, unknown>), file_count: changes.length }
         : null,
+      /** Earlier attempts on this mission, newest first. Empty on a first build. */
+      superseded,
       changes,
       constraints,
       fileSetPolicy,
