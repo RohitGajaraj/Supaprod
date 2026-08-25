@@ -102,7 +102,17 @@ describe("Build verification tools: nothing they added lowered an existing floor
       expect(TOOL_DEFAULTS[tool].mode, `${tool} must never default to auto`).not.toBe("auto");
       expect(HIGH_RISK_FORCE_REVIEW.has(tool), `${tool} must stay force-review`).toBe(true);
     }
-    expect(TOOL_DEFAULTS["studio.pr.merge"].mode, "the merge keeps its own switch").toBe("review");
+    // F-75: the merge moved to `confirm` so its own switch can actually work.
+    // "The merge keeps its own switch" was the sentence I wrote here this
+    // morning, and the switch was already broken when I wrote it: a seeded
+    // `review` short-circuits resolveApprovalMode BEFORE STUDIO_AUTO_SHIP is
+    // read, so the opt-in could never fire. The floor is unchanged and asserted
+    // by resolved mode below - flag off still pins the merge to review.
+    expect(TOOL_DEFAULTS["studio.pr.merge"].mode, "never auto").not.toBe("auto");
+    expect(
+      resolveToolMode("studio.pr.merge", TOOL_DEFAULTS["studio.pr.merge"].mode, "trusted", true),
+      "the merge is gated while the ship flag is off",
+    ).toBe("review");
     expect(TOOL_DEFAULTS["delegate.openhands"].mode).toBe("review");
   });
 
