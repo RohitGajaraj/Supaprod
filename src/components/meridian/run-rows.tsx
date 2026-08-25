@@ -1,8 +1,9 @@
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 
 import { ProviderMark } from "@/components/meridian/source-marks";
 
 import { STATION_GLYPHS, type StationGlyphKind } from "./station-glyphs";
+import { WorkGlyph, glyphForArtifactKind } from "./work-glyphs";
 
 /*
  * ONE RHYTHM FOR THE THREE VIEWS OF A RUN.
@@ -171,14 +172,7 @@ const GLYPH_SLOT = "mt-[4px] flex size-[14px] shrink-0 items-center justify-cent
  *   note      a filled dot. Something happened and it has no shape of its own.
  */
 export type RunGlyphKind =
-  | "station"
-  | "tool"
-  | "fetch"
-  | "repo"
-  | "check"
-  | "handoff"
-  | "gate"
-  | "note";
+  "station" | "tool" | "fetch" | "repo" | "check" | "handoff" | "gate" | "note";
 
 const STROKE = {
   fill: "none",
@@ -414,6 +408,136 @@ export function RunMeta({ children }: { children: ReactNode }) {
 export function RunNote({ children }: { children: ReactNode }) {
   return (
     <span className="mt-0.5 block text-mrd-data leading-mrd-prose text-mrd-body">{children}</span>
+  );
+}
+
+/**
+ * THE TURN'S ROLLUP: the figures that close a turn, on one line, separated once.
+ *
+ * ── THE REFERENCE, NAMED BEFORE BUILDING ────────────────────────────────
+ * Devin closes every turn with a collapsed rollup reading *"Worked for 11s ·
+ * Thought for 9s · 7/7 Test the app end-to-end"*, and Relevance AI puts the same
+ * facts in a details rail: Status, Actions used, Credits used, Run time. What is
+ * borrowed is the INFORMATION MODEL -- a turn is a unit of work with a cost and a
+ * result, and the cost is stated rather than implied -- not the disclosure
+ * triangle, which hides the one fact the whole surface exists to show.
+ *
+ * ── IT TAKES ITEMS, NOT A STRING, AND THAT IS THE ARBITRARINESS FIX ─────
+ * The obvious signature is `children`, and it is the one that lets the third
+ * caller separate its facts with a comma, the fourth with a slash, and the fifth
+ * with two spaces. This file already carries the scar: the same run was drawn
+ * three ways across three views because each one composed its own spacing. So
+ * the separator lives HERE, once, and a caller cannot reach it.
+ *
+ * ── AN EMPTY ITEM IS DROPPED, NOT DRAWN AS A GAP ────────────────────────
+ * Every figure a turn can carry is missing on real rows -- `duration_ms` is null
+ * or a placeholder zero on 917 of 2,272 track-linked runs -- so the common case
+ * is a rollup with holes in it. Falsy items are filtered rather than rendered,
+ * which is what stops a missing figure printing as a stray separator, and it
+ * means a caller writes `took ? <RunTook>...</RunTook> : null` and nothing else.
+ *
+ * `text-mrd-mute` and `--mrd-t-data`, which is `RunMeta`'s treatment: this line
+ * is the same rank of information as the seat's name, and giving it its own stop
+ * would be a fourth type size on a row that already has three.
+ *
+ * ── `mt-1` AND NOT `mt-0.5`, WHICH IS THE ONE VALUE HERE THAT DIFFERS ───
+ * `RunMeta` and `RunNote` both open 2px, and copying them was the reflex. They
+ * are TEXT lines, so their 2px sits on top of their own leading and reads as
+ * more. This line can hold `RunArtifact`, which is a 20px bordered box with no
+ * leading at all, and 2px would put that box hard against the words above it.
+ * `mt-1` is `RUN_STACK`'s own `gap-1`, which is the gap this file already uses
+ * between OBJECTS rather than between text lines, so the value is read off the
+ * file rather than picked.
+ */
+export function RunRollup({ items }: { items: ReactNode[] }) {
+  const shown = items.filter(Boolean);
+  if (shown.length === 0) return null;
+  return (
+    <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-mrd-data text-mrd-mute">
+      {shown.map((item, i) => (
+        <Fragment key={i}>
+          {/* Hidden from assistive tech: it is punctuation between facts that
+              are each read out in full, and "middle dot" between every one of
+              them is three extra words a listener has to discard. */}
+          {i > 0 ? (
+            <span aria-hidden className="text-mrd-faint">
+              ·
+            </span>
+          ) : null}
+          {item}
+        </Fragment>
+      ))}
+    </span>
+  );
+}
+
+/**
+ * WHAT A TURN ACTUALLY FILED, named, in the transcript, beside the claim.
+ *
+ * ── THE GAP THIS CLOSES ─────────────────────────────────────────────────
+ * A transcript row saying *"Draft filed a spec"* is the agent's account of
+ * itself. This is the record's: the kind's own mark, the product's word for the
+ * kind, and the artifact's real title read off its own table. The distance
+ * between *"it says it filed a spec"* and *"here is the spec"* is the distance
+ * this product keeps filing findings about, and one chip closes it without
+ * leaving the row.
+ *
+ * ── IT IS `RecordTag`'S GEOMETRY, DELIBERATELY, NOT `StatusChip`'S ──────
+ * `border-mrd-line bg-mrd-sink rounded-mrd-xs px-1.5` at `--mrd-t-data` is the
+ * system's CATEGORICAL chip, to the class name. An artifact kind is a category,
+ * never a status: `StatusChip` is a round pill carrying one of five hues and
+ * putting a spec in one would say a spec is an outcome. The system already made
+ * that split (a pill is round and carries status, a tag is square and carries a
+ * category) and this obeys it rather than reinterpreting it.
+ *
+ * `min-h-5` rather than `RecordTag`'s flat `h-5`: a real spec title on this
+ * track is 108 characters and a fixed height would clip it. Growing is the
+ * direction the ratchet allows; truncating a name is not, and there is no
+ * hover-only escape hatch here that a keyboard could not reach.
+ *
+ * ── THE MARK TAKES ITS DEFAULT SIZE, AND THAT IS THE WHOLE ARGUMENT ────
+ * A first draft passed `size={11}` because 11 looked right against 11.5px text.
+ * That is a number chosen against nothing, which is the exact failure this
+ * file's header is a monument to: three views of one run arrived with three mark
+ * sizes, every one defensible alone. `WorkGlyph` defaults to 13 because
+ * `StationGlyph` does, every other caller in the product takes that default, and
+ * a fourteenth size invented for one chip would be the same defect one drawing
+ * further on.
+ *
+ * ── A KIND WITH NO MARK RENDERS ITS WORD ALONE ──────────────────────────
+ * `glyphForArtifactKind` returns null for a kind this build has never heard of,
+ * and that null is designed rather than accidental: reaching for a nearby shape
+ * would tell a reader an unknown kind is a prototype.
+ *
+ * ── `missing` IS A THIRD STATE AND IT IS NOT "NO TITLE" ─────────────────
+ * The chain read separates *we looked and the row is gone* from *we did not
+ * look*. A gone artifact says so, because a chip naming a spec that no longer
+ * resolves is a worse lie than a chip with no name on it.
+ */
+export function RunArtifact({
+  kind,
+  word,
+  title,
+  missing = false,
+}: {
+  /** The raw `spine_track_members.artifact_kind`, for the mark. */
+  kind: string;
+  /** The product's word for that kind, from the one vocabulary the driver uses. */
+  word: string;
+  title: string | null;
+  missing?: boolean;
+}) {
+  const glyph = glyphForArtifactKind(kind);
+  return (
+    <span className="inline-flex min-h-5 max-w-full items-center gap-1 rounded-mrd-xs border border-mrd-line bg-mrd-sink px-1.5 py-0.5 text-mrd-data text-mrd-body">
+      {glyph ? <WorkGlyph kind={glyph} className="shrink-0 text-mrd-mute" /> : null}
+      <span className="shrink-0 text-mrd-mute">{word}</span>
+      {missing ? (
+        <span className="text-mrd-faint">no longer on file</span>
+      ) : title ? (
+        <span className="min-w-0">{title}</span>
+      ) : null}
+    </span>
   );
 }
 

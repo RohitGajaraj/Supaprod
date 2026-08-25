@@ -2,9 +2,9 @@
  * Who is working on this right now, who worked on it before, and what came out.
  *
  * FOUNDER RULING 2026-08-01: "if some agents are working, there should be some
- * scope for showing visually that this agent is what, after this particular agent
- * it switched to next agent, this is the outcome. Something like Claude Code or
- * Copilot or Codex... so the user knows what is happening."
+ * scope for showing visually that this agent is what, after this particular
+ * agent it switched to next agent, this is the outcome. Something like Claude
+ * Code or Copilot or Codex... so the user knows what is happening."
  *
  * THE REFERENCE, named before building. Claude Code's transcript: a flat
  * chronological stream, one actor per entry, each stamped with what it touched
@@ -22,6 +22,24 @@
  * a turn that filed nothing says so plainly rather than being dressed up as
  * progress.
  *
+ * ── A TURN IS A UNIT OF WORK WITH A COST AND A RESULT (2026-08-25) ───────
+ * It listed what happened and it did not make a turn LEGIBLE as a piece of work.
+ * Three things were missing and each one is now on the row:
+ *
+ *   THE ROLLUP. Devin closes every turn with *"Worked for 11s · Thought for 9s ·
+ *   7/7 Test the app end-to-end"*; Relevance AI puts the same facts in a details
+ *   rail. `RunRollup` is that line, and every figure in it is a column:
+ *   `agent_runs.duration_ms` and `agent_runs.tokens_used`, both refused when
+ *   they are zero, because a zero on either is a finalizer that did not write
+ *   rather than a turn that cost nothing. `Turn.tookMs` carries the counts.
+ *
+ *   THE PROOF. A row saying *"Draft filed a spec"* is the agent's account of
+ *   itself. `RunArtifact` is the record's: the kind's mark, the product's word,
+ *   and the artifact's own title, read off its own table by the chain query this
+ *   subscribes to alongside the pane.
+ *
+ *   THE REFUSAL, AND IT IS THE ONE THAT MATTERS. See `chipOf`.
+ *
  * DRAWN IN THE ONE RUN VOCABULARY (2026-08-25, item 11). `run-rows.tsx` was
  * ported from beautifui.dev and reached by nothing while three surfaces drew
  * three transcripts; this now composes it -- glyph, rail, subject, clock --
@@ -34,7 +52,7 @@ import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { getTrackActivity } from "@/lib/spine/track.functions";
+import { getTrackActivity, getTrackChain } from "@/lib/spine/track.functions";
 import { countKinds, type Turn } from "@/lib/spine/activity";
 import { mergeActivityRows } from "@/components/spine/activity-rows";
 import type { AgentStation } from "@/lib/agent-vocabulary";
@@ -43,13 +61,16 @@ import {
   RUN_LINE,
   RUN_ROW,
   RUN_STACK,
+  RunArtifact,
   RunClock,
   RunGlyph,
   RunMeta,
   RunNote,
   RunRail,
+  RunRollup,
   RunSubject,
   RunTook,
+  formatElapsed,
 } from "@/components/meridian/run-rows";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { useElapsed } from "@/components/meridian/use-elapsed";
@@ -60,13 +81,42 @@ function glyphForStation(s: AgentStation | null): StationGlyphKind | undefined {
   return s ? GLYPH_FOR_STATION[s] : undefined;
 }
 
-/** How a finished turn reads, in verbs rather than status words. */
-function headline(t: Turn): string {
+/** What a turn's artifacts are actually called, keyed by id. */
+export type TitleBook = Map<string, { title: string | null; missing: boolean }>;
+
+/*
+ * ── THE THREE BELOW ARE EXPORTED FOR THE GUARD, AND ONLY FOR IT ─────────
+ * Each one is the whole verdict of a row -- what it says, whether it wears a
+ * chip, what it cost -- and each is pure, taking a `Turn` and returning words or
+ * markup. Reaching them through the component would mean standing up a query
+ * client and two mocked server functions to assert a sentence, which is how a
+ * guard ends up testing its own scaffolding. `ArtifactPane` exports `TaskSteps`
+ * and `MissionCard` for the same reason and set the precedent.
+ */
+/**
+ * How a finished turn reads, in verbs rather than status words.
+ *
+ * ── THE OUTCOME COMES FIRST WHEN THE OUTCOME IS BAD ─────────────────────
+ * This used to test `made.length` before it tested `stopped`, so a run that
+ * filed something and was then stopped read as *"Studio filed a code change"*
+ * and the stop survived only in a chip. Both facts are true and they are not
+ * equally urgent, so the sentence carries both in the order a reader needs
+ * them, and nothing is left for a chip alone to say.
+ *
+ * "Filed nothing" is its own ending rather than a clause tacked to a status
+ * word, because it is the single fact the record is surest about: it is a join
+ * against `spine_track_members`, and no agent can write it.
+ */
+export function headline(t: Turn): string {
   if (t.outcome === "working") return `${t.agentName} is working`;
   if (t.outcome === "waiting") return `${t.agentName} is queued`;
+  if (t.outcome === "stopped") {
+    return t.made.length
+      ? `${t.agentName} was stopped after filing ${countKinds(t.made)}`
+      : `${t.agentName} was stopped, filing nothing`;
+  }
   if (t.made.length) return `${t.agentName} filed ${countKinds(t.made)}`;
-  if (t.outcome === "stopped") return `${t.agentName} stopped, filing nothing`;
-  return `${t.agentName} finished, filing nothing`;
+  return `${t.agentName} filed nothing`;
 }
 
 /*
@@ -74,8 +124,33 @@ function headline(t: Turn): string {
  * done, and a column of chips saying so buries the one row that is not -- the
  * same argument ToolStream states for its own stream. Green is never used for
  * "still working": azure (`agent`) is the only tone that means now.
+ *
+ * ── THE ROW THAT USED TO CARRY NO CHIP AT ALL, AND HAD TO ───────────────
+ * `completed_with_failures` maps to `partly`, and `partly` fell through to
+ * `null`. So a seat that hit a locked door -- ran, admitted failures on its own
+ * row, and filed nothing -- rendered as a plain grey line, indistinguishable
+ * from a station that had simply had nothing to add. Live on track
+ * `7977dc06`: the Build seat came back with *"Repository access failed: GitHub
+ * 404. I cannot proceed"* and the transcript drew a neutral entry.
+ *
+ * The chip is `fail` and the discriminator is TWO INDEPENDENT RECORDS AGREEING:
+ * the run's own status says something inside it failed, AND the members join
+ * says nothing came out. Either alone is the common healthy case and would make
+ * the chip noise rather than signal, which is not a hypothetical --
+ * `completed_with_failures` is 810 of the 2,272 track-linked runs on production
+ * and most of them filed their work, while a clean `completed` that files
+ * nothing is the Critique and Verify seats doing their job, which is a verdict
+ * and not a failure. Chipping either would bury the row this exists to surface.
+ *
+ * ── WHAT IS DELIBERATELY NOT READ ───────────────────────────────────────
+ * The agent's own sentence. F-54 is why: a seat's narrative disagreed with its
+ * own tool calls on every track since the checking seat existed, and a
+ * transcript that graded turns by their prose would inherit every one of those
+ * lies and re-publish it as a verdict. The prose is still shown, verbatim, one
+ * line down, next to the record -- so a reader can see the disagreement rather
+ * than be handed this file's opinion of it.
  */
-function chipOf(t: Turn) {
+export function chipOf(t: Turn) {
   if (t.outcome === "working")
     return (
       <StatusChip status="agent" pulse>
@@ -84,13 +159,60 @@ function chipOf(t: Turn) {
     );
   if (t.outcome === "waiting") return <StatusChip status="hold">Queued</StatusChip>;
   if (t.outcome === "stopped") return <StatusChip status="fail">Stopped</StatusChip>;
+  if (t.outcome === "partly" && t.made.length === 0)
+    return <StatusChip status="fail">Nothing filed</StatusChip>;
   return null;
 }
 
 /** The live turn's age, ticking. Reports the WORK, not the component. */
 function LiveTook({ startedAt }: { startedAt: number }) {
   const elapsed = useElapsed(startedAt);
-  return <RunTook>{elapsed}</RunTook>;
+  return <RunTook>{`Working for ${elapsed}`}</RunTook>;
+}
+
+/**
+ * Every figure and every artifact this turn amounted to, in one line.
+ *
+ * ONE PLACE FOR A DURATION ON A ROW, live or finished. The elapsed figure used
+ * to sit up on the subject line while a settled duration had nowhere to go at
+ * all, which is the same defect `run-rows.tsx` records against `RunTimeline`:
+ * one idea rendered in two slots depending on which branch a row took.
+ *
+ * A missing figure contributes NOTHING rather than a placeholder, and that is
+ * the honest half. `duration_ms` is null or a hardcoded zero on 917 of the
+ * 2,272 track-linked runs and `tokens_used` is zero on 570, so an incomplete
+ * rollup is the normal case, not the edge one. `RunRollup` drops falsy items so
+ * a hole never prints as a stray separator.
+ */
+export function rollupOf(t: Turn, titles: TitleBook): React.ReactNode[] {
+  const took =
+    t.outcome === "working" ? (
+      <LiveTook key="took" startedAt={Date.parse(t.at)} />
+    ) : t.tookMs != null ? (
+      <RunTook key="took">{`Worked for ${formatElapsed(t.tookMs / 1000)}`}</RunTook>
+    ) : null;
+
+  // `toLocaleString` rather than a hand-built grouping: 65732 is unreadable and
+  // `65,732` is wrong in every locale that groups with a space or a full stop.
+  const tokens =
+    t.tokens != null ? (
+      <RunTook key="tokens">{`${t.tokens.toLocaleString()} tokens`}</RunTook>
+    ) : null;
+
+  const made = t.made.map((m) => {
+    const known = titles.get(m.id);
+    return (
+      <RunArtifact
+        key={m.id}
+        kind={m.kind}
+        word={m.word}
+        title={known?.title ?? null}
+        missing={known?.missing ?? false}
+      />
+    );
+  });
+
+  return [took, tokens, ...made];
 }
 
 export function TrackActivity({
@@ -101,6 +223,7 @@ export function TrackActivity({
   isRunning?: boolean;
 }) {
   const fetchActivity = useServerFn(getTrackActivity);
+  const fetchChain = useServerFn(getTrackChain);
   const q = useQuery({
     queryKey: ["track-activity", trackId],
     queryFn: () => fetchActivity({ data: { trackId } }),
@@ -108,6 +231,43 @@ export function TrackActivity({
     // After run completes, poll slower (10s) to reduce DB load.
     refetchInterval: isRunning ? 500 : 10_000,
   });
+
+  /*
+   * WHAT THE ARTIFACTS ARE CALLED, AND WHY THIS COSTS NOTHING EXTRA.
+   *
+   * `spine_track_members` records a kind and an id and no name, so the title
+   * has to come from the artifact's own table, and the column it lives in is
+   * different for every kind (a prototype has `name`, a learning has `summary`).
+   * `getTrackChain` already does exactly that resolution, including the part
+   * that matters most here: it separates *we looked and the row is gone* from
+   * *we did not look*, so a chip can say "no longer on file" without ever
+   * saying it because a query happened to error.
+   *
+   * THE KEY AND THE OPTIONS ARE `ArtifactPane`'S, TO THE CHARACTER, and that is
+   * the point rather than a coincidence. Both panes are on `/track/:id` at
+   * once, so an identical `queryKey` and an identical `refetchInterval` mean
+   * TanStack serves both from one cache entry and one request. A key of this
+   * component's own would have doubled the read on a 500ms poll during a live
+   * run, which is the cost this transcript is least entitled to add.
+   */
+  const chainQ = useQuery({
+    queryKey: ["spine-track-chain", trackId],
+    queryFn: () => fetchChain({ data: { trackId } }),
+    refetchInterval: isRunning ? 500 : 10_000,
+  });
+
+  const titles = React.useMemo<TitleBook>(() => {
+    const book: TitleBook = new Map();
+    const chain = chainQ.data?.chain;
+    if (!chain) return book;
+    for (const stop of chain.stops) {
+      for (const m of stop.members) book.set(m.artifactId, { title: m.title, missing: m.missing });
+    }
+    // Orphans are members whose station this build does not know. They are still
+    // things this track filed, so they keep their names.
+    for (const m of chain.orphans) book.set(m.artifactId, { title: m.title, missing: m.missing });
+    return book;
+  }, [chainQ.data]);
 
   /*
    * ARRIVALS ANIMATE, THE FIRST PAINT DOES NOT. Every run id present when the
@@ -250,7 +410,6 @@ export function TrackActivity({
                 <span className={RUN_LINE}>
                   <RunSubject>{headline(t)}</RunSubject>
                   {chipOf(t)}
-                  {t.outcome === "working" ? <LiveTook startedAt={Date.parse(t.at)} /> : null}
                 </span>
 
                 <RunMeta>
@@ -262,6 +421,16 @@ export function TrackActivity({
                     .filter(Boolean)
                     .join(" · ")}
                 </RunMeta>
+
+                <RunRollup items={rollupOf(t, titles)} />
+
+                {/* THE PLATFORM'S REASON, ABOVE THE AGENT'S. `halted_reason` and
+                    `failure_kind` are written by the runtime rather than by the
+                    seat, so when both are present the unfakeable one is read
+                    first. It was on the row all along and no surface drew it:
+                    a Build seat halted `out_of_credit` on this very track and
+                    the transcript said only "Stopped". */}
+                {t.stopLine ? <RunNote>{t.stopLine}</RunNote> : null}
 
                 {/* The agent's own last line, trimmed and never rewritten. One
                     line is enough to tell whether it understood the job; the
