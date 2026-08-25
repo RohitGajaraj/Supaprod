@@ -263,6 +263,10 @@ export const TERMINAL_HOLDS: readonly HoldReason[] = [
   "given-up",
   "station-cannot-finish",
   "tools-refused",
+  // F-43. A station dispatched twelve times without moving is not going to move
+  // on the thirteenth, and every further slot it takes is one a live track does
+  // not get. This is the hold that would have stopped 316 runs at 12.
+  "going-in-circles",
 ];
 
 /**

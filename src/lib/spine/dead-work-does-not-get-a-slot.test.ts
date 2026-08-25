@@ -47,9 +47,20 @@ describe("which holds are terminal", () => {
    * cannot tell when it clears"**, and a person restarting the work is the
    * honest contract. `HOLD_LINE["tools-refused"]` says exactly that and is
    * asserted not to promise a retry.
+   *
+   * `going-in-circles` joined 2026-08-25 (F-43) for a third reason again: it CAN
+   * be re-tested cheaply, and re-testing it is precisely the waste. A station
+   * dispatched twelve times without moving is not going to move on the
+   * thirteenth, and 316 dispatches on one track is what the absence of this
+   * hold cost.
    */
-  it("is the two that nothing clears, plus the one the sweep cannot re-test", () => {
-    expect([...TERMINAL_HOLDS]).toEqual(["given-up", "station-cannot-finish", "tools-refused"]);
+  it("is the two that nothing clears, plus the two the loop must stop paying for", () => {
+    expect([...TERMINAL_HOLDS]).toEqual([
+      "given-up",
+      "station-cannot-finish",
+      "tools-refused",
+      "going-in-circles",
+    ]);
   });
 
   /**

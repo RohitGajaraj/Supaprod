@@ -1120,6 +1120,7 @@ export async function driveTrackOnce(
 
   const decision = decideDrive({
     upstream,
+    stationDrives: (row as { station_drives?: number | null }).station_drives ?? 0,
     paused: await isPaused(supabase, row.workspace_id),
     station,
     title: row.title,
@@ -1220,6 +1221,30 @@ export async function driveTrackOnce(
   // wrote, and Design's critic reads the design it is being asked to check. This
   // is the same handoff that runs between stations, applied within one.
   let queued = 0;
+  /*
+   * F-43 — COUNT THE DISPATCH BEFORE IT HAPPENS, not after it succeeds.
+   *
+   * Written here rather than on the way out because every path out of this
+   * function is a path this station was dispatched on, and the two most
+   * expensive ones — `out-of-time` and a thrown seat — are exactly the paths
+   * that used to leave no trace. A counter incremented only on the tidy exits
+   * would have missed all 316 of the dispatches that prompted this.
+   *
+   * Best-effort: a counter that fails to write must never stop real work. It
+   * costs one small update on a path that is about to spend dollars on model
+   * calls.
+   */
+  try {
+    await supabase
+      .from("spine_tracks" as never)
+      .update({
+        station_drives: ((row as { station_drives?: number | null }).station_drives ?? 0) + 1,
+      } as never)
+      .eq("id", row.id);
+  } catch {
+    /* a missed count is cheaper than a refused dispatch */
+  }
+
   let failed: string | null = null;
   /** The thrown value, kept so its code survives the reduction to a message. */
   let failedError: unknown = null;
@@ -1801,6 +1826,8 @@ export async function driveTrackOnce(
         ? {
             station: arrivedAt,
             attempts: 0,
+            // F-43: the work moved, so the convergence counter starts again.
+            station_drives: 0,
             last_hold: null,
             driven_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -1863,6 +1890,8 @@ export async function driveTrackOnce(
 /** The columns driveTrackOnce needs. Exported so the tick and the driver agree. */
 export const DRIVE_SELECT =
   "id,user_id,workspace_id,title,origin,entry_station,station,path,waived,attempts,last_hold," +
+  // F-43: the counter that catches a station which never converges.
+  "station_drives," +
   "pending_gates," +
   // The watermark `externalEvidence` measures new arrivals against. Absent, it
   // reads as null, which makes the check fall back to "has this workspace ever

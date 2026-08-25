@@ -78,6 +78,11 @@ const ENDS_OR_WAITS: HoldReason[] = [
   // never let in. Rerouting it threw away a correct spec, six good tasks and a
   // real prototype, and rebuilt them against the same GitHub 401.
   "tools-refused",
+  // F-43. Same reasoning one step further out: the correction loop reroutes a
+  // station that RAN AND COULD NOT DO ITS JOB. A station that is merely being
+  // dispatched forever has not failed at anything the loop can name, so there is
+  // no upstream fix to send it to — it needs a person, not a rewrite.
+  "going-in-circles",
 ];
 
 describe("what the rule refuses to touch", () => {

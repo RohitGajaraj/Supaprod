@@ -309,6 +309,23 @@ export type HoldReason =
    * failed; `produced-nothing` names the station, and this names the door.
    */
   | "tools-refused"
+  /**
+   * F-43. THE STATION IS BEING DISPATCHED FOREVER AND NEVER MOVING.
+   *
+   * `attempts` bounds a station that FILES NOTHING, and is deliberately not
+   * incremented by `out-of-time` — F-14 established that a crew cut short by the
+   * tick deadline has not failed. Correct, and it left a hole: **nothing else
+   * counted either.** A station that runs out of time on every pass holds
+   * `out-of-time` forever, keeps `attempts` at 0 forever, and is dispatched
+   * forever.
+   *
+   * MEASURED 2026-08-25 06:1x on open tracks with 10+ runs: **316 runs on one
+   * track since 2026-08-01, reporting `attempts: 0`**, plus 174, 90, 77, 63 and
+   * 56 on five more. **776 runs, roughly $2.70, and not one advanced a
+   * station.** `attempts` was answering its own question honestly the whole
+   * time; the question nobody asked was "is this converging?".
+   */
+  | "going-in-circles"
   /* ---------------------------------------------------------------------- *
    * THE CORRECTION LOOP'S OWN HOLDS (founder ruling 2026-08-02).
    *
@@ -343,6 +360,22 @@ export type DriveDecision =
  * person the same working day.
  */
 export const MAX_STATION_ATTEMPTS = 3;
+
+/**
+ * How many times one station may be DISPATCHED before the loop stops paying.
+ *
+ * Not the same question as `MAX_STATION_ATTEMPTS`, and the difference is the
+ * whole of F-43: that one counts stations that filed nothing, this one counts
+ * dispatches of any outcome. A station cut short by the tick deadline is not
+ * failing and must not spend an attempt — but it must still be bounded, or it
+ * runs for 24 days.
+ *
+ * TWELVE, and the number is chosen from the record rather than from feel. A
+ * station is two or three seats, so twelve dispatches is roughly four to six
+ * full passes of the crew — comfortably more than a healthy station has ever
+ * needed, and two orders of magnitude below the 316 that prompted this.
+ */
+export const MAX_STATION_DRIVES = 12;
 
 /**
  * What an earlier station on this track already produced.
@@ -738,6 +771,12 @@ export function decideDrive(input: {
   pendingApprovals: number;
   attempts: number;
   /**
+   * F-43. Dispatches at this station, any outcome. Optional so every existing
+   * caller and test keeps working: absent behaves exactly as before, which is
+   * the behaviour that ran a station 316 times.
+   */
+  stationDrives?: number;
+  /**
    * Why the driver stopped last time. Read ONLY to tell a station that failed
    * from an account that could not pay, which are not the same fact and must not
    * share a ceiling.
@@ -769,6 +808,22 @@ export function decideDrive(input: {
   const blockedOnMoney = input.lastHold === "out-of-credit" || input.lastHold === "over-budget";
   if (!blockedOnMoney && input.attempts >= MAX_STATION_ATTEMPTS) {
     return { act: false, hold: "stalled" };
+  }
+
+  /*
+   * F-43 — THE CEILING THAT COUNTS EVERY DISPATCH.
+   *
+   * Checked AFTER `stalled` so a station that is failing keeps the sharper
+   * diagnosis, and after the money holds so a wallet event is never reported as
+   * a loop that will not converge. This is the last net, and it catches the one
+   * case the other two cannot see: a station that never fails, never produces,
+   * and is dispatched forever because `out-of-time` costs it nothing.
+   *
+   * Not gated on `blockedOnMoney`: a track that has been dispatched twelve times
+   * has spent real money whatever its last hold said.
+   */
+  if ((input.stationDrives ?? 0) >= MAX_STATION_DRIVES) {
+    return { act: false, hold: "going-in-circles" };
   }
 
   const agentSlug = leadAgentFor(input.station);
@@ -812,6 +867,11 @@ export const HOLD_LINE: Record<HoldReason, string> = {
   // Names the tool and the refusal, because "something went wrong" is what this
   // hold exists to stop being the answer. The line is deliberately NOT "it will
   // try again": retrying a refused credential spends money to be told no.
+  // Names the number, because "this is stuck" is what a person already knows by
+  // the time they are reading it. The count is what tells them it was never one
+  // bad run.
+  "going-in-circles":
+    "This station has been run many times over and the work has not moved on once. That is the loop rather than any single run, so nothing further will be spent on it until you look.",
   "tools-refused":
     "This station could not use a tool it needs, so nothing it filed would have been the work. That is the connection rather than the work, and retrying it would only spend more to be told the same. Reconnect it and start this work again.",
   "needs-evidence":
@@ -894,6 +954,8 @@ const HOLD_NEEDS_PERSON: ReadonlySet<HoldReason> = new Set<HoldReason>([
   // F-41: a refused tool is a person's job by definition — no station can mint
   // a credential, so nothing the loop does on its own will clear it.
   "tools-refused",
+  // F-43: a loop that will not converge is not going to converge on the next try.
+  "going-in-circles",
 ]);
 
 /**
@@ -921,6 +983,7 @@ const STATION_SPECIFIC: ReadonlySet<HoldReason> = new Set<HoldReason>([
   "station-cannot-finish",
   "given-up",
   "tools-refused",
+  "going-in-circles",
 ]);
 
 /** Station display names, read from the one vocabulary the whole product uses. */

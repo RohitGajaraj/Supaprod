@@ -37,7 +37,7 @@ const CODE = SOURCE.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
 const EVERY_REASON = Object.keys(HOLD_LINE) as HoldReason[];
 
 /**
- * The five where a PERSON is what stands in the way.
+ * The six where a PERSON is what stands in the way.
  *
  * This used to read "a judgement about THIS work", which was true of the first
  * four and is not true of the fifth. `tools-refused` (F-41, 2026-08-25) needs
@@ -54,6 +54,7 @@ const ORCHID: HoldReason[] = [
   "corrections-spent",
   "given-up",
   "tools-refused",
+  "going-in-circles",
 ];
 
 /** The ten where a condition elsewhere has to change, or it resolves itself. */
@@ -71,18 +72,18 @@ const AMBER: HoldReason[] = [
 ];
 
 describe("every hold reason is classified, and the set is closed", () => {
-  it("covers all sixteen with no reason in two lists and none in neither", () => {
+  it("covers all seventeen with no reason in two lists and none in neither", () => {
     // THE GUARD ON THE GUARD. Both lists above are hand-written, so a reason
     // added to `HoldReason` could land in neither and silently take a default
     // colour. `HOLD_LINE` has to name every hold a person can hit, which is what
     // makes it the register to check against.
-    expect(EVERY_REASON.length).toBe(16);
+    expect(EVERY_REASON.length).toBe(17);
     const listed = [...ORCHID, ...AMBER, "done" as HoldReason];
     expect(new Set(listed).size).toBe(listed.length);
     expect([...listed].sort()).toEqual([...EVERY_REASON].sort());
   });
 
-  it("gives orchid to exactly the five a person releases", () => {
+  it("gives orchid to exactly the six a person releases", () => {
     for (const reason of ORCHID) {
       expect(holdTone(reason), `${reason} is not waiting on a person`).toBe("you");
     }
