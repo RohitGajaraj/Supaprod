@@ -991,3 +991,27 @@ All five are `given-up`, which **F-20 excludes from the sweep** — so a fix fro
 what makes this round's isolation real rather than asserted.
 
 **From here nothing is touched.**
+
+
+### 02:50 → 03:00 · `sense` → `decide`, and F-14 confirmed a second time
+
+| Tick | Seat | Filed | Result |
+| --- | --- | --- | --- |
+| 02:50 | `discovery-scout` 19.3s | signal `57606b34`, the audit finding verbatim | — |
+| 02:50 | `researcher` 38.8s | confirmed it as the only source-level evidence | `out-of-time`, seat_cursor 2, **attempts 0** |
+| 03:00 | `customer-insights` | **nothing** | **advanced** |
+
+```sql
+SELECT count(*) FROM spine_track_members WHERE track_id = '8391835f-…';  -- 2, unchanged
+SELECT from_stage, to_stage, actor, at FROM stage_events WHERE entity_id = '8391835f-…';
+-- sense | decide | system | 2026-08-25 03:00:19.674477+00
+```
+
+**Cleaner evidence than Round 3's.** There the resuming seat happened to file, so only the `decide`
+split proved the fix. Here `sense` split, the resuming seat filed **nothing**, the member count did
+not move, and the station handed on regardless. **Two stations, two crews, two confirmations.**
+
+Also worth noting against Round 2: **the scout found the evidence on its FIRST attempt**, with no
+deploy in between. F-19 working from a cold start rather than after a repair.
+
+**2 of 7. $0.0209.**
