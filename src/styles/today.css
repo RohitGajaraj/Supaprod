@@ -299,25 +299,10 @@
   flex: none;
 }
 
-/* THE BAR WRAPS RATHER THAN CLIPPING. `.sp-selbar` is a single flex line, which
-   is right for the two-verb queues it was drawn against; this one carries three
-   and a "select all", and at a 560px work region the last verb was cut off by
-   the edge of the region. A bulk control a person cannot reach is worse than no
-   bulk control. Scoped to this surface, because the primitive is correct for
-   every caller that fits. */
-.today-page .sp-selbar {
-  flex-wrap: wrap;
-  padding: var(--mrd-s4) var(--mrd-s5);
-  row-gap: var(--mrd-s4);
-}
-
-/* Wrapped, `margin-left: auto` would shove the verbs onto a line of their own
-   with the count stranded above them. They follow the escapes instead. */
-@media (max-width: 720px) {
-  .today-page .sp-selbar-acts {
-    margin-left: 0;
-  }
-}
+/* REMOVED 2026-08-25 (unit 081): the .sp-selbar wrap fix and the selbar-acts
+ * media rule died with the family -- no element applies those classes
+ * anywhere (see primitives.css's removal note).
+ */
 
 /* ---- walking the queue -------------------------------------------- */
 

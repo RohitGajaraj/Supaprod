@@ -249,18 +249,6 @@
 .sp-row + .sp-row {
   border-top: 1px solid var(--sp-line-soft);
 }
-/* A fixed slot, so a row carrying two marks starts its text on the same line
- * as a row carrying one. Ragged text starts were the real defect here. */
-.sp-row-marks {
-  flex: none;
-  display: flex;
-  align-items: center;
-  width: 34px;
-}
-.sp-row-body {
-  flex: 1;
-  min-width: 0;
-}
 /* Lead and sub are each their own line. As inline spans they ran together
  * ("...every weekThe primary success metric..."), the same defect the context
  * column had. Grepped for the pattern rather than fixing one instance. */
@@ -275,23 +263,14 @@
 }
 /* `--sp-mute` stays here for the same reason `.sp-block-more` keeps `--sp-body`:
  * the same test reads this body and asserts the literal name, because the pair is
- * what proves a verb and a label are not the same ink. `.sp-row-time` below is the
- * same colour and is not read by any guard, so it ports. */
+ * what proves a verb and a label are not the same ink. */
 .sp-row-sub {
   display: block;
   font-size: var(--mrd-t-base);
   color: var(--mrd-mute);
   margin-top: 2px;
   line-height: var(--sp-leading-row);
-}
-.sp-row-time {
-  font-family: var(--mrd-mono);
-  font-variant-numeric: tabular-nums;
-  font-size: var(--mrd-t-small);
-  color: var(--mrd-mute);
-  flex: none;
-}
-/* A row in a LIST is one line, and its second line is a different fact, not
+}/* A row in a LIST is one line, and its second line is a different fact, not
  * more of the first. Founder ruling 2026-07-29: "Why do we need so bigger
  * things to display? If a user wants to know, he will click deeper and
  * understand the context, rather than we showcase everything on the cards."
@@ -426,29 +405,7 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--mrd-mute);
-}
-.sp-gate-line {
-  display: flex;
-  gap: 11px;
-  padding: 5px 0;
-  font-size: var(--sp-text-prose);
-  color: var(--mrd-body);
-  align-items: baseline;
-}
-.sp-gate-line::before {
-  content: "";
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--mrd-mute);
-  flex: none;
-  transform: translateY(-2px);
-}
-.sp-gate-line b {
-  color: var(--mrd-ink);
-  font-weight: var(--mrd-w-semi);
-}
-.sp-acts {
+}.sp-acts {
   display: flex;
   align-items: center;
   gap: 9px;
@@ -621,96 +578,7 @@
  * near-black; the base rule's `currentColor` is now light on the primary in
  * both themes, exactly as it is on every other button. One rule is correct. */
 
-/* ---------- the record speaking ----------
- * This is the moat, so it gets the one spotlight in the product. Not an edge,
- * not a stripe, not a hue: actual light, falling on the mark and dying off
- * fast, the way a lamp does. It is the only lit surface anywhere, which is
- * what makes it register. Recorded as a deliberate override of the
- * no-glow-on-dark rule in anti-slop.md. */
-.sp-record {
-  position: relative;
-  overflow: hidden;
-  background: var(--mrd-sink);
-  border-radius: var(--mrd-r-card);
-  padding: 17px 19px;
-  display: flex;
-  gap: 14px;
-  margin-top: 4px;
-  /* Neutralised on the base rule so the div and the button are pixel identical
-   * and a record does not reflow the moment the decision it cites becomes
-   * openable. */
-  width: 100%;
-  border: 0;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-}
-/* Only a button lights up, same law as button.sp-cell. The record already
- * carries a slow lamp gradient, so the hover is a quiet lift of the ground
- * underneath it rather than a second moving thing competing with the lamp. */
-button.sp-record {
-  cursor: pointer;
-}
-button.sp-record:hover,
-button.sp-record:focus-visible {
-  background: color-mix(in oklab, var(--mrd-sink) 92%, var(--mrd-ink));
-}
-/* It breathes once every eight seconds. Slow enough to be felt, not watched. */
-@keyframes sp-lamp {
-  0%,
-  100% {
-    opacity: 0.72;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-.sp-record::before {
-  content: "";
-  position: absolute;
-  left: -40px;
-  top: -70px;
-  width: 280px;
-  height: 210px;
-  pointer-events: none;
-  background: radial-gradient(closest-side, var(--sp-spot), transparent 72%);
-  animation: sp-lamp var(--sp-dur-lamp) var(--sp-ease-breath) infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .sp-record::before {
-    animation: none;
-  }
-}
-.sp-record-mark {
-  width: 10px;
-  height: 10px;
-  background: var(--mrd-ink);
-  transform: rotate(45deg);
-  flex: none;
-  margin-top: 6px;
-  position: relative;
-  z-index: 1;
-}
-.sp-record-body {
-  position: relative;
-  z-index: 1;
-  min-width: 0;
-}
-.sp-record-text {
-  font-size: var(--sp-text-prose);
-  color: var(--mrd-ink);
-  line-height: var(--mrd-lh-snug);
-  display: block;
-}
-.sp-record-evidence {
-  font-family: var(--mrd-mono);
-  font-size: var(--mrd-t-small);
-  color: var(--mrd-mute);
-  margin-top: 6px;
-  display: block;
-}
 
-/* ---------- page head ---------- */
 .sp-title {
   font-size: var(--mrd-t-h2);
   font-weight: var(--mrd-w-semi);
@@ -723,19 +591,6 @@ button.sp-record:focus-visible {
   font-size: var(--sp-text-prose);
   color: var(--mrd-mute);
   margin-top: var(--sp-space-2);
-}
-
-/* An action that undoes or destroys sits apart from the ones that proceed,
- * pushed to the trailing edge. Reported from Decide, where five controls sat at
- * equal weight and "Drop it" needed to read as the kill. The separation is
- * POSITIONAL, not chromatic: the interface is monochrome by default, red
- * carries status rather than intent, and ember marks the human. Distance is the
- * one emphasis that costs no colour. */
-.sp-acts-trailing {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 9px;
 }
 
 /* ---------- context column pieces ---------- quiet, never a second nav */
@@ -839,34 +694,6 @@ button.sp-ctx-row:focus-visible {
     animation: none;
   }
 }
-.sp-receipt-what {
-  min-width: 0;
-  flex: 1;
-}
-.sp-receipt-verb {
-  color: var(--mrd-ink);
-  font-weight: var(--mrd-w-medium);
-}
-/* The handoff arrow. It is drawn ONLY when something real picks the work up.
- * Never an arrow to nowhere: where nothing follows, the line says what changed
- * instead, which is the honest version of the same fact. */
-.sp-receipt-arrow {
-  color: var(--mrd-mute);
-  flex: none;
-}
-.sp-receipt-time {
-  font-family: var(--mrd-mono);
-  font-variant-numeric: tabular-nums;
-  font-size: var(--mrd-t-small);
-  color: var(--mrd-mute);
-  flex: none;
-}
-/* A write that failed still writes a receipt, and the receipt goes honest
- * immediately. Never a success animation over a failed write: that is the one
- * thing that makes the successful animation trustworthy. */
-.sp-receipt[data-failed="true"] .sp-receipt-verb {
-  color: var(--mrd-fail);
-}
 
 /* ---------- form controls ----------
  * Added 2026-07-29 after the first parallel port pass: six surfaces each
@@ -962,15 +789,6 @@ button.sp-ctx-row:focus-visible {
   display: block;
   margin-top: var(--sp-space-3);
 }
-/* ONE label. If there is a second line it carries different information,
- * never a restatement (hard ban 10). */
-.sp-field-label {
-  display: block;
-  font-size: var(--mrd-t-label);
-  font-weight: var(--mrd-w-medium);
-  color: var(--mrd-mute);
-  margin-bottom: 6px;
-}
 
 /* ---------- the setting line ----------
  * Label left, control right, one per line, divided. Reported from Settings as
@@ -1007,13 +825,7 @@ button.sp-ctx-row:focus-visible {
 }
 .sp-line + .sp-line {
   border-top: 1px solid var(--sp-line-soft);
-}
-.sp-line-label {
-  min-width: 0;
-  font-size: var(--sp-text-prose);
-  color: var(--mrd-ink);
-}
-/* The second line carries WHY this boundary matters, or what it currently
+}/* The second line carries WHY this boundary matters, or what it currently
  * lets through. Never a restatement of the label (hard ban 10). */
 .sp-line-sub {
   display: block;
@@ -1021,56 +833,6 @@ button.sp-ctx-row:focus-visible {
   color: var(--mrd-mute);
   margin-top: 2px;
   max-width: 56ch;
-}
-.sp-line-control {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: var(--sp-space-2);
-}
-
-/* ---------- switch ----------
- * A boundary is on or it is off. Monochrome when off; green when on, because
- * green carries status and a live boundary is a status. */
-.sp-switch {
-  width: 36px;
-  height: 21px;
-  border-radius: 11px;
-  background: var(--mrd-line);
-  position: relative;
-  flex: none;
-  cursor: pointer;
-  border: 0;
-  padding: 0;
-  transition: background var(--sp-dur-mid) var(--mrd-ease);
-}
-.sp-switch::after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 17px;
-  height: 17px;
-  border-radius: 50%;
-  background: var(--mrd-ink);
-  transition: transform var(--sp-dur-mid) var(--mrd-ease);
-}
-.sp-switch[aria-checked="true"] {
-  background: var(--mrd-pass);
-}
-.sp-switch[aria-checked="true"]::after {
-  transform: translateX(15px);
-  background: var(--mrd-bg);
-}
-.sp-switch:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-@media (prefers-reduced-motion: reduce) {
-  .sp-switch,
-  .sp-switch::after {
-    transition: none;
-  }
 }
 
 /* ---------- a read still in flight ----------
@@ -1341,96 +1103,11 @@ button.sp-ctx-row:focus-visible {
   }
 }
 
-/* ---------- more ----------
- * The secondary facts about one thing, behind one press. See MoreMenu.
- * Anchored, not portalled: it opens inside the column it belongs to, so it
- * travels with the row when the thread scrolls. */
-.sp-more {
-  position: relative;
-  display: inline-flex;
-}
-.sp-more-btn {
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  padding: 0;
-  border: 0;
-  border-radius: var(--sp-radius-ctl);
-  background: none;
-  color: var(--mrd-mute);
-  cursor: pointer;
-  transition: color var(--mrd-d-move) var(--mrd-ease);
-}
-.sp-more-btn:hover,
-.sp-more-btn[aria-expanded="true"] {
-  color: var(--mrd-ink);
-  background: var(--mrd-hover);
-}
-.sp-more-btn svg {
-  width: var(--sp-icon-sm);
-  height: var(--sp-icon-sm);
-}
-.sp-more-menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  /* Right-anchored: the control sits at the trailing edge of a 392px pane, so
-   * a left-anchored menu would open off the edge of it. */
-  right: 0;
-  z-index: 5;
-  min-width: 168px;
-  padding: 4px;
-  display: flex;
-  flex-direction: column;
-  background: var(--mrd-float);
-  border: 1px solid var(--mrd-line);
-  border-radius: var(--mrd-r-card);
-  box-shadow: var(--sp-shadow);
-}
-.sp-more-item {
-  text-align: left;
-  padding: 7px 9px;
-  border: 0;
-  border-radius: var(--sp-radius-ctl);
-  background: none;
-  color: var(--mrd-body);
-  font: inherit;
-  font-size: var(--mrd-t-base);
-  white-space: nowrap;
-  cursor: pointer;
-}
-.sp-more-item:hover {
-  background: var(--mrd-hover);
-  color: var(--mrd-ink);
-}
 
-/* A row that carries its own control. The control sits at the trailing edge,
- * outside the row's clickable region, because a button inside a button is
- * invalid and a 38px control would double the row height. */
-.sp-row-action {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: var(--sp-space-2);
-}
+
 .sp-row[data-has-action="true"] {
   cursor: default;
 }
-.sp-row-open {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  text-align: left;
-  background: none;
-  border: 0;
-  padding: 0;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-}
-
 /* ---------- preformatted ----------
  * Logs, diffs, exported markdown. It scrolls inside its own box rather than
  * making the page scroll sideways: horizontal scrolling was named twice as a
@@ -1620,29 +1297,6 @@ button.sp-cell:focus-visible:not(:disabled) {
 button.sp-cell:disabled {
   cursor: not-allowed;
 }
-/* Both lines are their own line, and neither wraps. Founder ruling: one or two
- * lines, and depth is a click away rather than showcased on the cell. */
-.sp-cell-body {
-  flex: 1;
-  min-width: 0;
-}
-.sp-cell-lead,
-.sp-cell-sub {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.sp-cell-lead {
-  font-size: var(--mrd-t-prose);
-  font-weight: var(--mrd-w-medium);
-  color: var(--mrd-ink);
-}
-.sp-cell-sub {
-  margin-top: 1px;
-  font-size: var(--mrd-t-label);
-  color: var(--mrd-mute);
-}
 
 /* ---------- a value you can read and cannot set ----------
  * The right-hand side of a Line that has no control, because the boundary is
@@ -1712,61 +1366,6 @@ button.sp-cell:disabled {
   }
 }
 
-/* ---------- checkbox ----------
- * A value you tick, as part of something you will submit. The switch above is
- * the other instrument and the difference is WHEN IT TAKES EFFECT: a switch
- * goes live the moment you touch it, which earns it green; a checkbox waits for
- * something else to act on it, so it stays monochrome and reads on shape alone
- * in greyscale.
- *
- * Drawn on the real <input>, never on a div wearing a role, so Space works, the
- * form sees it, and the app-wide focus ring lands on the box a person is
- * looking at. */
-.sp-check {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 17px;
-  height: 17px;
-  flex: none;
-  margin: 0;
-  border: 1px solid var(--mrd-line);
-  border-radius: var(--mrd-r-xs);
-  background: var(--mrd-lift);
-  cursor: pointer;
-  position: relative;
-  transition:
-    background var(--mrd-d-move) var(--mrd-ease),
-    border-color var(--mrd-d-move) var(--mrd-ease);
-}
-.sp-check:hover:not(:disabled) {
-  border-color: var(--mrd-mute);
-}
-.sp-check:checked {
-  background: var(--mrd-ink);
-  border-color: var(--mrd-ink);
-}
-/* The tick is two borders turned on their corner. No icon file for a shape
- * this small: at 17px an imported glyph is heavier than the mark it draws. */
-.sp-check:checked::after {
-  content: "";
-  position: absolute;
-  left: 5px;
-  top: 2px;
-  width: 4px;
-  height: 8px;
-  border: solid var(--mrd-bg);
-  border-width: 0 1.6px 1.6px 0;
-  transform: rotate(43deg);
-}
-.sp-check:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-@media (prefers-reduced-motion: reduce) {
-  .sp-check {
-    transition: none;
-  }
-}
 
 /* ---------- a short set of named options ----------
  * Deliberately NOT a look of its own. The options are .sp-btn, exactly as the
@@ -1979,45 +1578,13 @@ button.sp-cell:disabled {
   border: 0;
 }
 
-/* ------------------------------------------------------------------ *
- * Selection bar. Sits in a list's own header slot, never floating.
- *
- * The reasoning for inline-over-floating is recorded above `useSelection` in
- * primitives.tsx: every queue in this product carries a paginator or a
- * "Show all N" beneath it, and a floating bar lands on exactly the control a
- * person needs to leave the list.
- *
- * Height is --sp-row-scan so the bar occupies one scan row and the list below
- * it does not shift when a selection begins. Colour is the ordinary raised
- * surface: a selection is a state, not a status, and spending a status hue on
- * it would break the rule that colour carries status only.
- * ------------------------------------------------------------------ */
-.sp-selbar {
-  display: flex;
-  align-items: center;
-  gap: var(--mrd-s5);
-  min-height: var(--sp-row-scan);
-  padding: 0 var(--mrd-s5);
-  background: var(--mrd-lift);
-  border-radius: var(--mrd-r-ctl);
-  font-size: var(--mrd-t-base);
-  color: var(--mrd-body);
-}
-
-.sp-selbar-count {
-  color: var(--mrd-ink);
-  font-weight: var(--mrd-w-medium);
-  white-space: nowrap;
-}
-
-/* The verbs push to the trailing edge, so the count and the escapes stay
-   together on the left where the eye lands first. */
-.sp-selbar-acts {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-space-3);
-  margin-left: auto;
-}
+/* REMOVED 2026-08-25 (unit 081): the selection bar family -- .sp-selbar,
+ * .sp-selbar-count, .sp-selbar-acts -- had no element applying it anywhere in
+ * src (today.css's overrides died with it). The reasoning it carried is kept
+ * in the record: a selection bar sits in a list's own header slot, never
+ * floating, because a floating bar lands on the paginator or the "Show all N"
+ * a person needs to leave the list (see use-selection.ts).
+ */
 
 /* ------------------------------------------------------------------ *
  * Send back. The note is the screen.
