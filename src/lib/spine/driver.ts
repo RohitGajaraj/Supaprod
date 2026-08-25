@@ -171,9 +171,17 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
     job: "Check the change against the spec before it goes anywhere. Say plainly what does not meet it.",
     // The PR is opened HERE rather than by the builder, because a pull request
     // is the sign-off made visible and the checking seat is the one that signs.
-    // `studio.pr.open` is autonomous under the same 2026-07-08 ruling; the merge
-    // is NOT, and stays with a person on purpose.
-    file: "If it does not meet the spec, call studio.stage with the fix and studio.commit to append it to the same branch. When it does meet the spec, call studio.pr.open so there is a pull request for Ship to point at. Do not pass work you would not sign off, and do not merge it yourself.",
+    // `studio.pr.open` is autonomous under the 2026-07-08 ruling.
+    //
+    // F-50. This used to end "do not merge it yourself", and that sentence was
+    // measured as the reason the loop parks at an open PR forever: the merge
+    // GATE lives in the tool, not in this brief. `studio.pr.merge` proves CI
+    // green at the head sha fresh, in-tool, and refuses red; where governance
+    // wants a person (`HIGH_RISK_FORCE_REVIEW`, or confirm under
+    // `AUTO_SHIP_ENABLED`), the CALL files the question instead of running.
+    // A seat that never calls it never even raises the question, so the gate
+    // nobody could answer was a gate nobody was ever shown (R-27's evidence).
+    file: "If it does not meet the spec, call studio.stage with the fix and studio.commit to append it to the same branch. When it does meet the spec, call studio.pr.open so there is a pull request for Ship to point at, then studio.checks.run to learn whether CI is green at that head. When the checks are green, call studio.pr.merge — it re-proves CI fresh and refuses red, and where the workspace's governance wants a person it files that question rather than running, which is the gate working: stop there and say so. Do not pass work you would not sign off.",
   },
   // 06 Ship
   "release-verifier": {
@@ -689,7 +697,7 @@ const FILE_IT: Record<AgentStation, string> = {
   // entry, and a fallback that stops one step short is the same defect wearing
   // a different key. (Exactly how F-32 was found to be half-fixed.)
   build:
-    "Finish by calling studio.stage with the change you made, then studio.commit to put it on its own branch, then studio.pr.open so there is a pull request Ship can point at. Work that is only in your answer is not on the record, and work that is staged but never committed cannot be shipped either. Do not merge it yourself; that one is a person's.",
+    "Finish by calling studio.stage with the change you made, then studio.commit to put it on its own branch, then studio.pr.open so there is a pull request Ship can point at, then studio.checks.run for the CI verdict, and when it is green call studio.pr.merge. The merge re-proves CI fresh and refuses red, and where governance wants a person it files that question instead of running — that is the gate working, so stop there and say so. Work that is only in your answer is not on the record, and a pull request nobody moves toward the merge gate sits open forever.",
   ship: "Finish by calling release.publish so the release can be pointed at. A release that is only in your answer did not happen.",
   learn:
     "Finish by calling learning.record with the verdict, and pass `prd_id` — the spec this work was graded against — so the grade attaches to it. A grade that is only in your answer is not on the record and never reaches the next piece of work.",

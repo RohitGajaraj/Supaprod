@@ -58,44 +58,76 @@ describe("Build is briefed through the steps it is allowed to take", () => {
   });
 });
 
-describe("the gate is intact, and is left to a person on purpose", () => {
-  it("never tells a station to merge", () => {
-    expect(briefs).not.toContain("studio.pr.merge");
-    expect(stationGoal("build", track)).not.toContain("studio.pr.merge");
+/*
+ * THE DOCTRINE MOVED ON 2026-08-25 (F-50, R-27), AND THIS BLOCK MOVED WITH IT.
+ *
+ * The block above this comment used to be called "the gate is intact, and is
+ * left to a person on purpose", and it asserted the OPPOSITE of what stands
+ * now: briefs must never name `studio.pr.merge`, and must say "do not merge it
+ * yourself" in words. That rule was right when the merge gate lived in a
+ * detached approvals queue nobody answered (90 raised, 0 approved). It became
+ * the defect the day the gate moved into the tool: `studio.pr.merge` proves CI
+ * green fresh in-tool and refuses red, `AUTO_SHIP_ENABLED` is live in
+ * production by the founder's own hand, and the consent card answers a
+ * governance question INSIDE the run. F-50's measurement was exactly this
+ * file's old rule doing its work: the gate stood open and no station was ever
+ * told to walk up to it, so every PR sat at `pr_open` forever.
+ *
+ * What the gate MEANS is unchanged and still asserted: the floor stands, and a
+ * brief that names the merge must also say that a governance question is the
+ * STOPPING point, never something to work around.
+ */
+describe("the gate lives in the tool, and the station walks up to it", () => {
+  it("tells the checking seat to run the checks and call the merge", () => {
+    // In `briefs` (all seats), not in `stationGoal` — the goal composes the
+    // LEAD seat, the builder, whose job ends at the commit. The chain's tail
+    // belongs to the qa seat that signs the PR, which is exactly the split the
+    // comment on that seat argues for.
+    expect(briefs).toContain("studio.checks.run");
+    expect(briefs).toContain("studio.pr.merge");
   });
 
-  it("says so in words rather than only by omission", () => {
-    expect(briefs.toLowerCase()).toContain("do not merge it yourself");
+  it("says in words that a governance question is the stopping point", () => {
+    expect(briefs.toLowerCase()).toContain("the gate working");
   });
 
-  it("keeps the merge and the publish pinned to a human", () => {
+  it("keeps the floor under the merge and the publish", () => {
     expect(HIGH_RISK_FORCE_REVIEW.has("studio.pr.merge")).toBe(true);
     expect(HIGH_RISK_FORCE_REVIEW.has("release.publish")).toBe(true);
   });
+
+  it("never names the publish in a Build brief — Ship's act stays Ship's", () => {
+    expect(briefs).not.toContain("release.publish");
+    expect(stationGoal("build", track)).not.toContain("release.publish");
+  });
 });
 
-describe("THE RULE: brief only what the station may actually run", () => {
+describe("THE RULE: brief only what the station may run or lawfully ask for", () => {
   /**
-   * The generalisation, and the reason this file is not just three string
-   * assertions. If a later change adds a tool to a Build brief, this fails
-   * unless that tool is also autonomous — which is the question whoever adds it
-   * should have to answer.
+   * The generalisation, updated with the doctrine. A studio tool named in a
+   * Build brief must be one of exactly three things: autonomous by the
+   * 2026-07-08 ruling; a floor-free read/trigger (the checks family writes
+   * nothing); or THE named gate itself, whose call files the governance
+   * question in place. Anything else added later still fails here, which is
+   * the question whoever adds it should have to answer.
    */
-  it("every studio tool named in a Build brief is autonomous", () => {
+  const READ_CLASS = new Set(["studio.checks.run"]);
+  const THE_GATE = new Set(["studio.pr.merge"]);
+
+  it("every studio tool named in a Build brief is autonomous, a read, or the gate", () => {
     const named = [...briefs.matchAll(/studio\.[a-z_.]+/g)].map((m) => m[0].replace(/\.$/, ""));
     expect(named.length).toBeGreaterThan(0);
     for (const tool of named) {
-      expect({ tool, autonomous: BUILD_LANE_AUTONOMOUS.has(tool) }).toEqual({
-        tool,
-        autonomous: true,
-      });
+      const allowed = BUILD_LANE_AUTONOMOUS.has(tool) || READ_CLASS.has(tool) || THE_GATE.has(tool);
+      expect({ tool, allowed }).toEqual({ tool, allowed: true });
     }
   });
 
-  it("and no force-review tool is named in one", () => {
+  it("and the only force-review tool ever named is the gate itself", () => {
     const named = [...briefs.matchAll(/studio\.[a-z_.]+/g)].map((m) => m[0].replace(/\.$/, ""));
     for (const tool of named) {
-      expect({ tool, forced: HIGH_RISK_FORCE_REVIEW.has(tool) }).toEqual({ tool, forced: false });
+      const lawful = !HIGH_RISK_FORCE_REVIEW.has(tool) || THE_GATE.has(tool);
+      expect({ tool, lawful }).toEqual({ tool, lawful: true });
     }
   });
 });
