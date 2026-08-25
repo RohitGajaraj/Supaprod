@@ -34,14 +34,8 @@ import {
   searchDecisions,
   searchPRDs,
 } from "@/lib/mcp.functions";
-import {
-  activeContradictions,
-  resolvedChildIds,
-} from "@/lib/brain-insights.functions";
-import {
-  supersededChildIds,
-  type LineageEdgeLite,
-} from "@/lib/trust-ledger.functions";
+import { activeContradictions, resolvedChildIds } from "@/lib/brain-insights.functions";
+import { supersededChildIds, type LineageEdgeLite } from "@/lib/trust-ledger.functions";
 import { enqueueHandoff, resolveAgent, type HandoffPayload } from "@/lib/ai/handoff.server";
 import { enqueueFanout, fanoutEnabled } from "@/lib/ai/fanout.server";
 import {
@@ -458,19 +452,38 @@ const listSignals = def({
     source_kind: z.string().max(60).optional(),
     tag: z.string().max(60).optional(),
     sentiment: z.enum(["positive", "neutral", "negative"]).optional(),
-    // 30, not 7. THIS DEFAULT IS WHY NOTHING HAD EVER LEFT DISCOVER.
+    // 90, not 30, not 7. THIS DEFAULT IS WHY NOTHING HAD EVER LEFT DISCOVER,
+    // and it has now been the reason twice.
     //
     // Measured on the live database 2026-08-02: 308 signals exist, 144 of them
     // inside 30 days, and SIX inside 7. So this tool answered "empty" for almost
     // every workspace on almost every call, the Discover station filed nothing,
     // its track burned three attempts and froze. 42 open tracks, every one of
     // them standing at `sense`, exactly one track in the product's history has
-    // ever reached `done`.
+    // ever reached `done`. That is what moved it from 7 to 30.
     //
-    // A pattern-finding station needs enough history to contain a pattern. Seven
-    // days is a status-update window, not an evidence window, and it does not
-    // match the scout's own 30 day horizon or the clustering horizon either.
-    lookback_days: z.number().int().min(1).max(90).default(30),
+    // MEASURED AGAIN 2026-08-25, ON A LIVE RUN, AND 30 WAS STILL TOO NARROW.
+    // A track was started on "add dark mode and a system-preference theme". The
+    // workspace holds exactly the evidence for it -- a Canny request titled "Add
+    // Dark Mode & System Preference theme in addition to the light theme" -- and
+    // `customer-insights` reported: *"among the 55 manual signals, none mention
+    // dark mode or theme preferences."* It was reading a true list and drawing a
+    // false conclusion, because **the Canny signal is 47 days old and the window
+    // was 30**.
+    //
+    // WHAT MADE IT WORSE IS WHAT WAS INSIDE THE WINDOW. 52 of that workspace's
+    // 72 signals are the agents' OWN notes recording that they found nothing,
+    // all written in the last three days. So the recent window was almost purely
+    // the loop's own exhaust, and the one real customer voice sat just outside
+    // it. A recency window does not merely hide old evidence; it preferentially
+    // surfaces whatever the system most recently generated about itself.
+    //
+    // 90 is the schema ceiling, so this is as wide as the argument can go
+    // without changing the shape of the tool. The deeper point stands and is
+    // queued: **an evidence-gathering station should look at what the workspace
+    // HAS, not at what arrived lately.** Recency is the right lens for "what is
+    // new" and the wrong one for "what is true", and Discover asks the second.
+    lookback_days: z.number().int().min(1).max(90).default(90),
     limit: z.number().int().min(1).max(50).default(20),
   }),
   preview: (a) =>
@@ -3145,7 +3158,8 @@ const researchSynthesize = def({
   argsSchema: z.object({
     project_id: z.string().uuid().optional(),
   }),
-  preview: (a) => `Synthesize themes from unclustered signals${a.project_id ? " · one product" : ""}`,
+  preview: (a) =>
+    `Synthesize themes from unclustered signals${a.project_id ? " · one product" : ""}`,
   /*
    * THE SECOND CLUSTERER IS GONE (2026-08-24). This tool used to run its own
    * AI grouping and write themes rows directly - no novelty scoring, no dedup
@@ -3382,8 +3396,7 @@ const prdDraft = def({
       messages: [
         {
           role: "system",
-          content:
-            `You are a senior product manager. Write a concise, decision-ready spec in Markdown with these sections: ${SPEC_SECTION_ORDER.map((sec) => `## ${sec}`).join(", ")}. Be specific and grounded in the provided context. Do not invent metrics.`,
+          content: `You are a senior product manager. Write a concise, decision-ready spec in Markdown with these sections: ${SPEC_SECTION_ORDER.map((sec) => `## ${sec}`).join(", ")}. Be specific and grounded in the provided context. Do not invent metrics.`,
         },
         {
           role: "user",
@@ -3702,7 +3715,7 @@ const decisionRevise = def({
 const brainSearchDecisions = def({
   name: "brain.search_decisions",
   description:
-    "Search the workspace's recorded decisions by keyword before you decide anything. Answers \"was something like this decided before, why, and does it still stand?\" Each result carries outcome: standing means cite it as current belief; superseded means a later decision replaced it, so follow the replacement rather than the hit. Query matches titles and rationale.",
+    'Search the workspace\'s recorded decisions by keyword before you decide anything. Answers "was something like this decided before, why, and does it still stand?" Each result carries outcome: standing means cite it as current belief; superseded means a later decision replaced it, so follow the replacement rather than the hit. Query matches titles and rationale.',
   category: "read",
   argsSchema: z.object({
     query: z.string().min(1).max(200),
@@ -3832,7 +3845,9 @@ const brainContradictions = def({
       .eq("workspace_id", workspaceId)
       .in("id", ids);
     if (dErr) throw new Error(dErr.message);
-    const titles = new Map(((rows ?? []) as Array<{ id: string; title: string }>).map((r) => [r.id, r.title]));
+    const titles = new Map(
+      ((rows ?? []) as Array<{ id: string; title: string }>).map((r) => [r.id, r.title]),
+    );
     return {
       open_count: open.length,
       contradictions: open.map((c) => ({
@@ -3941,8 +3956,7 @@ const prdSearch = def({
   }),
   preview: (a) => `Search specs${a.query ? `: "${a.query}"` : ""}`,
   run: async (a, { supabase, workspaceId }) => {
-    if (!workspaceId)
-      throw new Error("prd.search runs inside a workspace, and this run has none.");
+    if (!workspaceId) throw new Error("prd.search runs inside a workspace, and this run has none.");
     // The exact function the MCP route calls for search_prds, tenant scope
     // included. An empty query lists the newest specs, so "what specs exist?"
     // needs no special path.
@@ -3960,8 +3974,7 @@ const prdGet = def({
   }),
   preview: (a) => `Read spec ${a.id.slice(0, 8)}`,
   run: async (a, { supabase, userId, workspaceId }) => {
-    if (!workspaceId)
-      throw new Error("prd.get runs inside a workspace, and this run has none.");
+    if (!workspaceId) throw new Error("prd.get runs inside a workspace, and this run has none.");
     const { data, error } = await supabase
       .from("prds")
       // One literal, not concatenated: the generated row types narrow on the
@@ -4892,7 +4905,7 @@ const releasePublish = def({
 const shipListReleases = def({
   name: "ship.list_releases",
   description:
-    'List what has already shipped in this workspace: merged releases, newest first, each carrying title, pull request, release date when a changelog entry exists, the spec it shipped for, and whether it is live in production right now. Before proposing or building anything, look here -- work proposed twice usually shipped once.',
+    "List what has already shipped in this workspace: merged releases, newest first, each carrying title, pull request, release date when a changelog entry exists, the spec it shipped for, and whether it is live in production right now. Before proposing or building anything, look here -- work proposed twice usually shipped once.",
   category: "read",
   argsSchema: z.object({
     limit: z.number().int().min(1).max(50).optional(),
@@ -5066,7 +5079,9 @@ const shipGetRelease = def({
     if (depErr) throw new Error(depErr.message);
     if (chgErr) throw new Error(chgErr.message);
 
-    const entry = ((chgRows ?? []) as Array<{ title: string; body: string | null; released_at: string }>)[0];
+    const entry = (
+      (chgRows ?? []) as Array<{ title: string; body: string | null; released_at: string }>
+    )[0];
 
     return {
       id: cs.id,
@@ -5080,12 +5095,12 @@ const shipGetRelease = def({
       release_notes: cs.release_notes,
       linked_specs: specs,
       lineage_read: lineageRead,
-      deployments: ((depRows ?? []) as Array<{
+      deployments: (depRows ?? []) as Array<{
         environment: string;
         status: string;
         deploy_url: string | null;
         deployed_at: string | null;
-      }>),
+      }>,
       changelog_entry: entry
         ? {
             title: entry.title,
@@ -5100,7 +5115,7 @@ const shipGetRelease = def({
 const shipInProduction = def({
   name: "ship.in_production",
   description:
-    'List what is live in production right now: each changeset\'s newest successful production deployment, newest first, with its title, address and when it went out. Check here before claiming anything is deployed and before proposing work that assumes something else went live.',
+    "List what is live in production right now: each changeset's newest successful production deployment, newest first, with its title, address and when it went out. Check here before claiming anything is deployed and before proposing work that assumes something else went live.",
   category: "read",
   argsSchema: z.object({}),
   preview: () => "List what is live in production",
@@ -5210,7 +5225,7 @@ const shipInProduction = def({
 const buildListSessions = def({
   name: "build.list_sessions",
   description:
-    'List this workspace\'s recent build runs, newest first: each mission\'s goal, status and start time beside its latest changeset state and pull request. Before planning new work, check here for what previous builds changed, whether they merged, and which ones are still open.',
+    "List this workspace's recent build runs, newest first: each mission's goal, status and start time beside its latest changeset state and pull request. Before planning new work, check here for what previous builds changed, whether they merged, and which ones are still open.",
   category: "read",
   argsSchema: z.object({
     limit: z.number().int().min(1).max(50).optional(),
@@ -5349,9 +5364,7 @@ const buildGetRun = def({
         : Promise.resolve({ data: [], error: null }),
       supabase
         .from("studio_changesets")
-        .select(
-          "id,status,title,summary,repo,branch,pr_number,pr_url,created_at,updated_at",
-        )
+        .select("id,status,title,summary,repo,branch,pr_number,pr_url,created_at,updated_at")
         .eq("mission_id", mission.id)
         .neq("status", "abandoned")
         .order("created_at", { ascending: false }),
@@ -5359,12 +5372,14 @@ const buildGetRun = def({
     if (cpErr) throw new Error(cpErr.message);
     if (csErr) throw new Error(csErr.message);
 
-    const checkpointRow = ((cpRows ?? []) as Array<{
-      run_id: string;
-      step_index: number;
-      created_at: string;
-      trace: string | null;
-    }>)[0];
+    const checkpointRow = (
+      (cpRows ?? []) as Array<{
+        run_id: string;
+        step_index: number;
+        created_at: string;
+        trace: string | null;
+      }>
+    )[0];
 
     // EVERY spec this run came from: the still-valid prd->mission lineage edges,
     // the same walk listStudioSessions and closeOutSpecOnPromote make.
@@ -5408,12 +5423,18 @@ const buildGetRun = def({
     // over their nullable column would report less evidence than exists -- the
     // proven mission id is the tenant guarantee for those two.
     const [dec, apr, lrn] = await Promise.all([
-      supabase.from("decisions").select("id", { count: "exact", head: true })
+      supabase
+        .from("decisions")
+        .select("id", { count: "exact", head: true })
         .eq("workspace_id", workspaceId)
         .eq("mission_id", mission.id),
-      supabase.from("agent_approvals").select("id", { count: "exact", head: true })
+      supabase
+        .from("agent_approvals")
+        .select("id", { count: "exact", head: true })
         .eq("mission_id", mission.id),
-      supabase.from("learnings").select("id", { count: "exact", head: true })
+      supabase
+        .from("learnings")
+        .select("id", { count: "exact", head: true })
         .eq("mission_id", mission.id),
     ]);
     if (dec.error) throw new Error(dec.error.message);
@@ -5443,7 +5464,7 @@ const buildGetRun = def({
             trace_id: checkpointRow.trace,
           }
         : null,
-      changesets: ((csRows ?? []) as Array<{
+      changesets: (csRows ?? []) as Array<{
         id: string;
         status: string;
         title: string | null;
@@ -5454,9 +5475,8 @@ const buildGetRun = def({
         pr_url: string | null;
         created_at: string;
         updated_at: string;
-      }>),
-      evidence_count:
-        (dec.count ?? 0) + (apr.count ?? 0) + (lrn.count ?? 0),
+      }>,
+      evidence_count: (dec.count ?? 0) + (apr.count ?? 0) + (lrn.count ?? 0),
       linked_specs: linkedSpecs,
       lineage_read: lineageRead,
     };
@@ -5466,7 +5486,7 @@ const buildGetRun = def({
 const buildChangesetHistory = def({
   name: "build.changeset_history",
   description:
-    'List this workspace\'s MERGED changesets, newest first: what each changed, its pull request, when it merged, and the spec it shipped for. Check here before proposing anything similar, so work that already merged is built on rather than rebuilt.',
+    "List this workspace's MERGED changesets, newest first: what each changed, its pull request, when it merged, and the spec it shipped for. Check here before proposing anything similar, so work that already merged is built on rather than rebuilt.",
   category: "read",
   argsSchema: z.object({
     limit: z.number().int().min(1).max(50).optional(),
