@@ -1,4 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 
 // v6 Phase 0 / W1: the product-tab Tasks kanban was deleted as human-PM-legacy
 // UI. Keep the route file so routeTree.gen.ts stays in sync; redirect bookmarks
@@ -17,6 +18,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 // inherit the claim. Re-pointing it is a live option and a deliberate call.
 export const Route = createFileRoute("/_authenticated/tasks")({
   beforeLoad: () => {
-    throw redirect({ to: "/today" });
+    throw redirect({ to: SIGNED_IN_HOME });
   },
 });

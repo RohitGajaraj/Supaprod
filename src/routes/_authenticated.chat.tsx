@@ -1,4 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 
 // /chat folds into the Ask (Cmd+J) summonable panel per OBS-12 - Ask is a
 // panel over any screen now, never a full-page destination. The streaming
@@ -9,6 +10,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 // OUT / §8). The old parchment implementation lives in git history.
 export const Route = createFileRoute("/_authenticated/chat")({
   beforeLoad: () => {
-    throw redirect({ to: "/today" });
+    throw redirect({ to: SIGNED_IN_HOME });
   },
 });

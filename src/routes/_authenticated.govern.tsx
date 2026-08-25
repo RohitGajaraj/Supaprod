@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import type { RoomKey } from "@/lib/engine-room-glance";
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 
 // LOOM W2 - /govern folded into /engine-room (the audit's #1 IA insight: ONE
 // Engine Room, not two differently-themed surfaces sharing the name). Every
@@ -43,7 +44,7 @@ export const Route = createFileRoute("/_authenticated/govern")({
     // Attention was a second "what needs you" feed; Today owns the one
     // queue (v3 inherited law), so the old tab lands there.
     if (search.tab === "attention") {
-      throw redirect({ to: "/today" });
+      throw redirect({ to: SIGNED_IN_HOME });
     }
     const target = search.tab ? TAB_TARGET[search.tab] : undefined;
     if (target) {

@@ -1,4 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 
 /**
  * /m retired. It resolved your newest product and opened the room.
@@ -26,6 +27,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
  */
 export const Route = createFileRoute("/_authenticated/m/")({
   beforeLoad: () => {
-    throw redirect({ to: "/today" });
+    throw redirect({ to: SIGNED_IN_HOME });
   },
 });

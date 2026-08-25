@@ -1,4 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 
 /**
  * The room's canonical URL, /helio-labs/relay. Retired, and the URL kept alive.
@@ -29,6 +30,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
  */
 export const Route = createFileRoute("/_authenticated/$workspaceSlug/$productSlug")({
   beforeLoad: () => {
-    throw redirect({ to: "/today" });
+    throw redirect({ to: SIGNED_IN_HOME });
   },
 });

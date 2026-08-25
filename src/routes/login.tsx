@@ -8,6 +8,7 @@ import { authErrorMessage } from "@/lib/auth-errors";
 import { Action } from "@/components/meridian/surface-parts";
 import { AuthScaffold, fieldLabelStyle, fieldErrorStyle } from "@/components/supaprod/AuthScaffold";
 import { recordAuthEvent } from "@/lib/observability/auth.functions";
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 
 // Sign-in on the shared dark auth scaffold (auth_surfaces pass). The REAL auth
 // flow is unchanged (Supabase password + Lovable Google OAuth); this pass is
@@ -23,7 +24,6 @@ import { recordAuthEvent } from "@/lib/observability/auth.functions";
 // first rail row and the workspace's own home; the _authenticated gate still runs
 // on arrival and sends an unfinished first-run account to /onboarding. Nothing
 // about "/" changes: someone typing the domain still gets the landing page.
-const SIGNED_IN_HOME = "/today" as const;
 
 // Only allow an internal absolute path as a post-login destination, never an
 // external or protocol-relative URL (open-redirect guard). Used by the invite

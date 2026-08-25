@@ -17,6 +17,7 @@ import {
   tokenFromNextPath,
 } from "@/lib/invites.functions";
 import { clearLandingSessionKey, peekLandingSessionKey } from "@/lib/landing-session";
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import {
   planPresentation,
   CREDIT_DROPDOWN_TIERS,
@@ -44,7 +45,6 @@ import {
 // beforeLoad reads the session from localStorage, needsOnboarding() sees the
 // onboarded:false row written below, and redirects to /onboarding in-router.
 // Nothing about "/" changes — someone typing the domain still gets the landing page.
-const SIGNED_IN_HOME = "/today" as const;
 
 // Only allow an internal absolute path as a post-signup destination, never an
 // external or protocol-relative URL (open-redirect guard). Mirrors login.tsx; used

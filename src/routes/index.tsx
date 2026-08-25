@@ -41,6 +41,7 @@ import { TrustClose } from "@/components/landing/TrustClose";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 import { getWaitlistCount, trackLandingEvent } from "@/lib/landing.functions";
 import { getLandingSessionKey } from "@/lib/landing-session";
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 
 const SITE = "https://supaprod.ai";
 
@@ -227,7 +228,7 @@ function LandingPage() {
         // this line was landing every returning user in the legacy design
         // before they clicked anything, which is the founder's own complaint
         // arriving one step earlier than the nav.
-        if (!cancelled && data.user) window.location.replace("/today");
+        if (!cancelled && data.user) window.location.replace(SIGNED_IN_HOME);
       })
       .catch(() => {});
     return () => {

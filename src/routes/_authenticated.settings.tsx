@@ -276,6 +276,7 @@ import { stationCrew } from "@/lib/spine/driver";
 import { listCrew, type CrewMember } from "@/lib/crew.functions";
 
 import { AgentMark } from "@/components/meridian/marks";
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 
 /* ================================================================== *
  * The index
@@ -1315,7 +1316,7 @@ function ThisWorkspaceRegion() {
     onSuccess: async () => {
       setActiveWorkspaceId(null);
       await refreshWorkspaces();
-      navigate({ to: "/today" });
+      navigate({ to: SIGNED_IN_HOME });
       toast.success(`You left ${activeWorkspace?.name ?? "the workspace"}.`);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -1348,7 +1349,7 @@ function ThisWorkspaceRegion() {
       const next = remaining?.[0]?.id;
       if (next) {
         setActiveWorkspaceId(next);
-        navigate({ to: "/today" });
+        navigate({ to: SIGNED_IN_HOME });
         toast.success(`${activeWorkspace?.name ?? "The workspace"} was deleted.`);
       } else {
         await supabase.auth.signOut();
