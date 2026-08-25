@@ -36,6 +36,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { getTrackActivity } from "@/lib/spine/track.functions";
 import { countKinds, type Turn } from "@/lib/spine/activity";
+import { mergeActivityRows } from "@/components/spine/activity-rows";
 import type { AgentStation } from "@/lib/agent-vocabulary";
 import { GLYPH_FOR_STATION, type StationGlyphKind } from "@/components/meridian/station-glyphs";
 import {
@@ -112,20 +113,23 @@ export function TrackActivity({ trackId }: { trackId: string }) {
    */
   const seen = React.useRef<Set<string>>(new Set());
   const primed = React.useRef(false);
+  const rows = React.useMemo(
+    () => mergeActivityRows(q.data?.turns ?? [], q.data?.transitions ?? []),
+    [q.data],
+  );
   React.useEffect(() => {
-    const turns = q.data?.turns;
-    if (!turns) return;
+    if (!q.data) return;
     if (!primed.current) {
-      for (const t of turns) seen.current.add(t.runId);
+      for (const r of rows) seen.current.add(r.key);
       primed.current = true;
       return;
     }
-    const ids = turns.map((t) => t.runId);
+    const keys = rows.map((r) => r.key);
     const timer = window.setTimeout(() => {
-      for (const id of ids) seen.current.add(id);
+      for (const k of keys) seen.current.add(k);
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [q.data]);
+  }, [q.data, rows]);
 
   if (q.isLoading) return <Reading>Reading what happened.</Reading>;
   if (q.isError)
@@ -153,11 +157,9 @@ export function TrackActivity({ trackId }: { trackId: string }) {
     );
   }
 
-  // Newest first: a person opening this wants to know what is happening NOW,
-  // and reading the whole history to reach the present is backwards for the
-  // question they actually arrived with.
-  const ordered = [...turns].reverse();
-  const last = ordered.length - 1;
+  // Newest first, turns and station moves in one stream: a marker sits
+  // between the rows it belongs between (activity-rows.ts).
+  const last = rows.length - 1;
 
   return (
     /*
@@ -169,18 +171,56 @@ export function TrackActivity({ trackId }: { trackId: string }) {
      */
     <div role="log" aria-label="What the agents did, newest first">
       <ol className={RUN_STACK}>
-        {ordered.map((t, i) => {
-          // The handoff. Marked when the station changes from the turn that ran
-          // BEFORE this one, which in this reversed list is the next element.
-          const previous = ordered[i + 1];
-          const handedOver =
-            Boolean(t.stationName) && Boolean(previous) && previous.stationName !== t.stationName;
+        {rows.map((row, i) => {
+          if (row.kind === "move") {
+            // WHO CAUSED THIS LEG (queue 65). press names the person, sweep
+            // names the loop, continuation says it carried on alone. Rows
+            // with no provable driver never reach this list at all.
+            const arrived = primed.current && !seen.current.has(row.key);
+            return (
+              <li
+                key={row.key}
+                className={RUN_ROW}
+                style={
+                  arrived
+                    ? { animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }
+                    : undefined
+                }
+              >
+                <RunClock at={row.at} />
+                <span className="flex flex-col items-center self-stretch">
+                  <RunGlyph kind="station" station={glyphForStation(row.to as AgentStation)} />
+                  {i === last ? null : <RunRail />}
+                </span>
+                <span className="min-w-0 pb-1">
+                  <span className={RUN_LINE}>
+                    <RunSubject>{`Moved to ${row.toName}`}</RunSubject>
+                  </span>
+                  <RunMeta>{row.line}</RunMeta>
+                </span>
+              </li>
+            );
+          }
 
-          const arrived = primed.current && !seen.current.has(t.runId);
+          const t = row.turn;
+          // The handoff. Marked when the station changes from the TURN that ran
+          // before this one -- skipping move markers, which are not seats.
+          let previous: Turn | undefined;
+          for (let j = i + 1; j < rows.length; j++) {
+            const r = rows[j];
+            if (r.kind === "turn") {
+              previous = r.turn;
+              break;
+            }
+          }
+          const handedOver =
+            Boolean(t.stationName) && previous != null && previous.stationName !== t.stationName;
+
+          const arrived = primed.current && !seen.current.has(row.key);
 
           return (
             <li
-              key={t.runId}
+              key={row.key}
               className={RUN_ROW}
               style={
                 arrived
