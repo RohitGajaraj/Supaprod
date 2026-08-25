@@ -40,12 +40,13 @@ import type { WorkShape } from "@/lib/spine/route";
  * paraphrases its WorkShape's own waiver reason, and no station name appears on
  * any face (R-01).
  *
- * KNOWN GAP, NOT HIDDEN. `startTrack` cannot carry a workspace yet
- * (`coordination/requests/017-workspaceid-through-starttrack.md`), so tracks
- * started here carry null until MAIN lands REQ-1. The composer already reads
- * `activeWorkspaceId`, refuses to submit without one, and passes
- * `workspaceId` the day the validator accepts it -- not before, because an
- * unknown key trips Zod.
+ * THE WORKSPACE TRAVELS WITH THE RUN. `startTrack` accepts `workspaceId`
+ * gated through the caller's own membership (`resolveStartWorkspace`), and the
+ * column is NOT NULL with a default — so passing it when known scopes the run,
+ * omitting it is the zero-configuration path, and there was never a
+ * silent-null state to guard against (R017 corrected this file's first draft,
+ * which claimed a degraded run where Postgres would actually have refused the
+ * row outright).
  */
 
 type Job = {
@@ -126,6 +127,12 @@ function StartLanding() {
           shape,
           origin: shape !== "new-capability" ? s : undefined,
           productId: activeProductId ?? undefined,
+          // Passed only when known; omitted is the zero-configuration path --
+          // the column default resolves the caller's own default workspace
+          // server-side (`resolveStartWorkspace`, R017). The column is NOT
+          // NULL, so there was never a silent-null failure mode to guard: an
+          // unscoped insert would have been refused outright.
+          workspaceId: activeWorkspaceId ?? undefined,
         },
       });
     },
