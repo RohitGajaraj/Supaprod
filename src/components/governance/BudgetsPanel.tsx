@@ -486,7 +486,7 @@ export function BudgetsPanel() {
             >
               {editing ? (
                 <form
-                  style={{ display: "flex", alignItems: "center", gap: "var(--sp-space-2)" }}
+                  style={{ display: "flex", alignItems: "center", gap: "var(--mrd-s3)" }}
                   onSubmit={(e) => {
                     e.preventDefault();
                     const v = parseFloat(capDraft);
@@ -568,7 +568,7 @@ export function BudgetsPanel() {
             </>
           ) : (
             <form
-              style={{ display: "flex", alignItems: "center", gap: "var(--sp-space-2)" }}
+              style={{ display: "flex", alignItems: "center", gap: "var(--mrd-s3)" }}
               onSubmit={(e) => {
                 e.preventDefault();
                 const v = Math.round(Number(pctDraft));

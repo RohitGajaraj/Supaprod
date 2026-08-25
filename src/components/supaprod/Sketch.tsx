@@ -420,7 +420,7 @@ export function SketchBarChart({
                   ? `drop-shadow(0 0 7px color-mix(in srgb, ${color} 60%, transparent))`
                   : "none",
                 transition:
-                  "opacity 160ms var(--ds-motion-timing-swift), filter 160ms var(--ds-motion-timing-swift)",
+                  "opacity var(--mrd-d-move) var(--mrd-ease), filter var(--mrd-d-move) var(--mrd-ease)",
               }}
             >
               <SketchBar
@@ -455,7 +455,7 @@ export function SketchBarChart({
             boxShadow: `0 0 10px color-mix(in srgb, ${color} 32%, transparent)`,
             transitionProperty: "left, bottom",
             transitionDuration: "160ms",
-            transitionTimingFunction: "var(--ds-motion-timing-swift)",
+            transitionTimingFunction: "var(--mrd-ease)",
             zIndex: 2,
           }}
         >

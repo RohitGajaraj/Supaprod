@@ -14,8 +14,8 @@ export function ArrivalMark({ size = 56 }: { size?: number }) {
         fontWeight: 400,
         fontSize: size,
         lineHeight: 1,
-        color: "var(--ds-gray-1000)",
-        animation: "cadRise 0.3s var(--ds-motion-timing-swift) both",
+        color: "var(--mrd-ink)",
+        animation: "cadRise var(--mrd-d-enter) var(--mrd-ease) both",
         display: "inline-block",
       }}
     >

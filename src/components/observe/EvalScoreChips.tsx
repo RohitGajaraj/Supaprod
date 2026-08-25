@@ -33,7 +33,7 @@ export function evalScoreVerdict(value: number, higherIsBetter: boolean): ScoreV
 // this is the one case where colour carries the fact rather than dressing it.
 const VERDICT_INK: Record<ScoreVerdict, string> = {
   pass: "var(--mrd-pass)",
-  watch: "var(--sp-warn)",
+  watch: "var(--mrd-hold)",
   fail: "var(--mrd-fail)",
 };
 

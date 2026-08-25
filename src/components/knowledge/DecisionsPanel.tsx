@@ -269,8 +269,8 @@ export function DecisionsPanel() {
             display: "flex",
             flexWrap: "wrap",
             alignItems: "center",
-            gap: "var(--sp-space-2)",
-            marginBottom: "var(--sp-space-3)",
+            gap: "var(--mrd-s3)",
+            marginBottom: "var(--mrd-s4)",
           }}
         >
           <span style={{ flex: "none", width: 152 }}>

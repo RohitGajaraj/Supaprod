@@ -42,7 +42,7 @@ const surface: CSSProperties = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  background: "var(--ds-background-100)",
+  background: "var(--mrd-bg)",
   color: "var(--mrd-ink)",
   overflow: "hidden",
   padding: "var(--geist-gap)",
