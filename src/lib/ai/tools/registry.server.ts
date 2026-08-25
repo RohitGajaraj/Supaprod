@@ -1995,6 +1995,91 @@ const repoSearch = def({
   },
 });
 
+/**
+ * F-74. AN IMPORT THE REPOSITORY CANNOT RESOLVE, REFUSED AT THE SEAM.
+ *
+ * F-56 has told the builder *"You cannot add a dependency: nothing installs one
+ * for you"* since 2026-08-25, in prose, and **today gave one clean trial of that
+ * brief in each direction on the same station.** At 15:00 it produced a test
+ * importing `bun:test`, correctly. At 18:11 it produced one importing
+ * `@testing-library/react` and calling `jest.mock`, and CI failed on typecheck —
+ * the first genuine code verdict the loop has ever received.
+ *
+ * **The brief is probabilistic. This is the deterministic twin**, and the same
+ * shape as F-63's floor: whether a file may be staged is a property of the FILE,
+ * not of how convincing the instruction was.
+ *
+ * NARROW ON PURPOSE, because a wrong refusal here blocks real work:
+ *  - **Relative and absolute paths are never checked.** `./x`, `../x`, `/x` and
+ *    alias prefixes are the repo's own code, and resolving them properly needs a
+ *    module graph this seam has no business building.
+ *  - **Node and Bun builtins pass.** `node:fs`, `bun:test` and the bare legacy
+ *    builtins are always available.
+ *  - **Type-only imports pass.** `import type { X } from "y"` is erased before
+ *    runtime and a missing `@types` package is a lint problem, not a broken
+ *    build.
+ *  - **If the manifest cannot be read, EVERYTHING passes.** A network hiccup must
+ *    never look like a forbidden import; this refuses only on positive evidence
+ *    that a package is absent.
+ */
+const IMPORT_RE =
+  /(?:^|\n)\s*import\s+(?:type\s+)?[^;'"]*?from\s*["']([^"']+)["']|(?:^|\n)\s*import\s*["']([^"']+)["']/g;
+const TYPE_ONLY_RE = /(?:^|\n)\s*import\s+type\s/;
+const NODE_BUILTINS = new Set([
+  "fs",
+  "path",
+  "url",
+  "util",
+  "crypto",
+  "os",
+  "http",
+  "https",
+  "stream",
+  "events",
+  "buffer",
+  "child_process",
+  "assert",
+  "zlib",
+  "net",
+  "tls",
+  "dns",
+  "readline",
+  "worker_threads",
+]);
+
+/** The bare package name of a specifier: `@scope/pkg/sub` -> `@scope/pkg`, `pkg/sub` -> `pkg`. */
+function packageOfSpecifier(spec: string): string | null {
+  if (
+    spec.startsWith(".") ||
+    spec.startsWith("/") ||
+    spec.startsWith("@/") ||
+    spec.startsWith("~")
+  ) {
+    return null;
+  }
+  if (spec.startsWith("node:") || spec.startsWith("bun:")) return null;
+  const parts = spec.split("/");
+  const name = spec.startsWith("@") ? parts.slice(0, 2).join("/") : parts[0];
+  if (!name || NODE_BUILTINS.has(name)) return null;
+  return name;
+}
+
+/** Every bare package a file's non-type imports name. */
+export function importedPackages(content: string): string[] {
+  const out = new Set<string>();
+  for (const m of content.matchAll(IMPORT_RE)) {
+    const spec = m[1] ?? m[2];
+    if (!spec) continue;
+    // `import type` is erased before runtime, so a missing package cannot break
+    // the build the way a value import does.
+    const line = m[0];
+    if (TYPE_ONLY_RE.test(line)) continue;
+    const pkg = packageOfSpecifier(spec);
+    if (pkg) out.add(pkg);
+  }
+  return [...out];
+}
+
 const studioStage = def({
   name: "studio.stage",
   description:
@@ -2063,6 +2148,52 @@ const studioStage = def({
     const { supabase, userId, missionId, workspaceId } = ctx;
     if (!missionId) throw new Error("studio.stage requires a mission (dispatch via Studio)");
     if (!workspaceId) throw new Error("studio.stage requires a workspace");
+
+    /*
+     * F-74. Refuse an import the repository cannot resolve.
+     *
+     * Read the manifest ONCE per stage call, and only when something is actually
+     * being written — a delete-only stage pays nothing. Failure to read it is
+     * treated as "no evidence", so a network hiccup can never look like a
+     * forbidden import.
+     */
+    const wanted = [
+      ...new Set(
+        a.changes.flatMap((c) =>
+          typeof c.content === "string" ? importedPackages(c.content) : [],
+        ),
+      ),
+    ];
+    if (wanted.length > 0) {
+      let known: Set<string> | null = null;
+      try {
+        const { token, repo } = await requireGithub(ctx);
+        const res = await fetch(`https://api.github.com/repos/${repo}/contents/package.json`, {
+          headers: ghHeaders(token),
+        });
+        if (res.ok) {
+          const body = (await res.json()) as { content?: string };
+          const raw = Buffer.from(body.content ?? "", "base64").toString("utf8");
+          const pkg = JSON.parse(raw) as Record<string, Record<string, string> | undefined>;
+          known = new Set([
+            ...Object.keys(pkg.dependencies ?? {}),
+            ...Object.keys(pkg.devDependencies ?? {}),
+            ...Object.keys(pkg.peerDependencies ?? {}),
+            ...Object.keys(pkg.optionalDependencies ?? {}),
+          ]);
+        }
+      } catch {
+        known = null;
+      }
+      if (known) {
+        const missing = wanted.filter((w) => !known.has(w));
+        if (missing.length > 0) {
+          throw new Error(
+            `Refused: ${missing.join(", ")} ${missing.length === 1 ? "is" : "are"} imported by this change and ${missing.length === 1 ? "is" : "are"} not in the repository's package.json, so the checks cannot resolve ${missing.length === 1 ? "it" : "them"} and this would fail in seconds. You cannot add a dependency — nothing installs one for you. Use what the repository already has (read package.json and the existing tests to see what that is), or say plainly that the spec cannot be built with what is present.`,
+          );
+        }
+      }
+    }
 
     /**
      * A DECLARED TOUCH LIST IS A BOUNDARY, SO IT HAS TO HOLD HERE.
