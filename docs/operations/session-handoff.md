@@ -4540,3 +4540,32 @@ caveat (harbor's `relay-homeowner-app` can never host — the proof needs a repo
 A pipe swallowed a failing gate's exit code TWICE (docs:check once, bun test once — the second
 shipped a red suite claim in a commit message that said green until re-checked). The memory
 existed; the habit did not. `cmd > /tmp/out 2>&1; echo $?` — never `| tail`.
+
+## Session A, second act (15:0x–15:4x IST) — appended
+
+**Round 6 walked SIX of seven on screen** (watched path, one press): Build committed real code
+and opened **PR #3** on `relay-homeowner-app` — the first autonomous commit and PR ever — CI
+failed for real, and Ship REFUSED honestly, filing GitHub issue #4. Full record in
+`EXPERIMENT-first-finish.md` ("Round 6, second act"). Character (Supa) verified live on
+production during the walk.
+
+**Queue 58 DONE:** harbor binds `RohitGajaraj/helio-prism-build` (scaffolded byte-exact from
+`template.ts`, marker verified, B-verified by SQL). Old binding row kept verbatim in
+BUILD-QUEUE row 58 for one-statement reversal. Residual: App-installation coverage of the new
+repo — Round 7's first Build tick answers it under `tools-refused`.
+
+**Cross-session findings settled in real time with Session B** (SendMessage, not just git):
+F-54 (QA could not see the branch — B fixed), F-55 (criterion 2 unprovable — A ruled
+`driven_via`, B building as queue 63), F-56 (builder imports deps the repo lacks — B fixed,
+verified in the deployed build's evidence chain). Deploys: F-54 live; F-56 published 10:05:46Z
+after sync (screenshot artifact lags — see the GO message in this session's record).
+
+**Supa character concepts exist:** `design-reference/supa-character-2026-08/` — four
+directions + state sheet + icon, committed; founder holds the images. Recommendation: A
+(the logo come alive).
+
+**Disk hit 100% mid-session.** npm + bun caches cleared (~2.2GB back, ~3.5GB free). Founder
+decides on `~/Library/Caches/Google` (3.2GB) and stale `conductor/workspaces/supaprod-v2/dalat`
+(937MB). Queues 60–62 PARKED by the founder until disk is comfortable.
+
+**Round 7 is Session B's.** A watches the DB only and stays out of the track.
