@@ -8,16 +8,41 @@
 > file, push your claim before coding, remove it when done. Pull before every unit; push after
 > every commit. Four sessions share this repo (A = director, B, L0, L1).**
 
-## 1 · Queue #55 — `AUTO_MAX` 8 → 24 (do first; it is one constant)
+## 1 · Queue #65 — the transcript says who caused each leg (READY — server half landed `8dc50c963`)
 
-- **Goal:** one press walks a whole route. Your own unit L0-050 built the legs; the cap stops
-  them before halfway (a route is ~21 seats, a leg buys ~1 — MAIN's arithmetic from the live DB,
-  in `AUDIT.md`).
-- **User value:** the founder can WATCH a run end to end — the acceptance itself.
-- **Files:** `src/components/track/TrackRun.tsx` (`AUTO_MAX`).
-- **Acceptance:** a grounded track walks multiple stations from one press; cap message unchanged
-  and still reachable. MAIN supplies the grounded sentence (INBOX answer 2).
+- **Goal:** `stage_events.driven_via` distinguishes `sweep` / `press` / `continuation`
+  (queue 64). The run transcript should SHOW it: a row a person caused carries a quiet
+  "you pressed run here" marker; a sweep row reads as the product moving on its own;
+  `continuation`, `foreground` and NULL rows claim nothing about a person.
+- **User value:** watching a run, you can SEE the loop moving itself versus being nudged —
+  acceptance criterion 2 made visible on the screen instead of living only in a SQL query.
+- **Files:** `src/components/spine/TrackActivity.tsx` (+ a test). The server half is DONE:
+  `getTrackActivity` now returns `{ turns, transitions }`; `transitions` is
+  `TrackTransition[]` (`from`, `to`, `at`, `drivenVia`) exported from
+  `src/lib/spine/track.functions.ts`.
+- **Acceptance:** the three origins render distinctly; a NULL/`foreground` row never claims a
+  person acted; both themes pass; no raw colour, `--mrd-*` only.
 - **Skills:** none needed; gates as always.
+
+## 1b · Queue #66 — a hold says which try this was (READY — server half landed `8dc50c963`)
+
+- **Goal:** `spine_tracks.attempts` counts real failures against `MAX_STATION_ATTEMPTS = 3`
+  (`driver.ts:424`), and the "Why it stopped" region hides it. Round 7's live track sat at
+  `build` on `attempts: 2`, hold `produced-nothing`, and the screen could not say "the next
+  failure is the last".
+- **User value:** a person reading a held run knows how close it is to giving up, without SQL.
+- **Files:** `src/components/track/TrackRun.tsx` (hold region only — MAIN also holds edits
+  there for queue 64, landed; pull first). `Track.attempts` is now on the payload (0 when the
+  row predates the counter).
+- **Acceptance:** a held track with `attempts > 0` names the try ("second of three"); a moving
+  track shows nothing; copy passes the say-it-in-a-meeting test, no drama.
+- **Skills:** none needed; gates as always.
+
+## Done this cycle
+
+- **#55 `AUTO_MAX` 8 → 24** — shipped; the constant is live in `TrackRun.tsx` and Round 7
+  walked `sense → build` in 13 minutes on it.
+- **INBOX #6 expiry copy** — shipped, claim released (`9c7b6b904`).
 
 ## 2 · Queue #53 is MAIN-held — do not take it
 
