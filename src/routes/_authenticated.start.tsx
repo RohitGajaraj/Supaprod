@@ -111,7 +111,14 @@ function StartLanding() {
    * emptiness -- the cards ARE the onboarding. `hold ?? summary`: silence and
    * "still going" look identical, and only one of them is true.
    */
-  const runs = useQuery({ queryKey: ["start-open-runs"], queryFn: () => listRuns() });
+  const runs = useQuery({
+    queryKey: ["start-open-runs"],
+    queryFn: () => listRuns(),
+    // The section claims to be the person's live work, so it keeps itself
+    // current at the shell's idle cadence -- a run that finishes while somebody
+    // sits here moves on this page, not only after a reload.
+    refetchInterval: 20_000,
+  });
   const openRuns = runs.data ?? [];
 
   const go = useMutation({
