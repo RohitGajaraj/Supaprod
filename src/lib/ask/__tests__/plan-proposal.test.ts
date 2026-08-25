@@ -318,10 +318,15 @@ describe("the answer outlives the stream, and is recorded", () => {
   });
 
   it("recomputes the route rather than accepting a plan from the client", () => {
+    // The dispatch changed identity on 2026-08-25 (R-24 / item 16): a confirmed
+    // plan creates a TRACK through `startTrackCore`, not a mission. The
+    // invariant this test holds is unchanged — the route is derived server-side
+    // BEFORE anything is created — so the anchor moved with the dispatch.
     const routeAt = GATE.indexOf("const routed = routeIntent({");
-    const missionAt = GATE.indexOf("await createMission(");
+    const trackAt = GATE.indexOf("await startTrackCore(");
     expect(routeAt).toBeGreaterThan(-1);
-    expect(routeAt).toBeLessThan(missionAt);
+    expect(trackAt).toBeGreaterThan(-1);
+    expect(routeAt).toBeLessThan(trackAt);
   });
 
   it("refuses a second answer to one plan", () => {

@@ -58,7 +58,7 @@ what is in git.**
 | What | The tell |
 | --- | --- |
 | **The one track at `learn`** | Placed there by hand on 2026-08-01, 0 agent runs (X-08). Anyone counting stations reached will be fooled. **Still true today** (`at_learn = 1`) |
-| **The front door** | `AskDock` says *"What should we build?"* app-wide and files a **mission** the run workbench cannot see. `startTrackCore` exists in `chat.ts` **only inside a comment** (line 1130). Item 16, still open, P0 |
+| **The front door** | ~~files a mission the run workbench cannot see~~ **FIXED for the confirmed path, 2026-08-25 (Session A):** answering the plan gate now creates a **track** with the confirmed route and hands back `/track/:id?start=true` (R-24, item 16). A mention still dispatches a mission (a person chose an agent), and a question stays a chat turn — both by the ruling |
 | **Health surfaces** | Scout returns `ok:true` when dormant; `connections.status` said `connected` for a month with a NULL secret; `latest_commit_sha` is unordered. Optimism by construction — F-38/F-39/F-23 |
 | **11 of 21 workspaces are samples** | Every investor-facing account shows a workspace where the loop is excluded from running (F-42, partly fixed: both Helio workspaces now run) |
 

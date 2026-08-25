@@ -187,7 +187,9 @@ function writeScopedConversationId(scopeKey: string, id: string | null): void {
  */
 export type PlanDecisionState =
   | { status: "deciding" }
-  | { status: "started"; missionId: string }
+  // `trackId` is the work's identity since R-24 folded gated dispatches into
+  // tracks; `missionId` remains for the SSE mission path and stays null here.
+  | { status: "started"; trackId?: string | null; missionId?: string | null }
   | { status: "sent-back" }
   | { status: "failed"; message: string };
 
@@ -858,22 +860,33 @@ export function useAskStream(options: UseAskStreamOptions = {}): AskStreamState 
           });
           const payload = (await res.json().catch(() => null)) as {
             missionId?: string | null;
+            trackId?: string | null;
             message?: string;
             error?: string;
           } | null;
           if (!res.ok) {
             throw new Error(payload?.error || "I could not send that answer just now. Try again.");
           }
+          /*
+           * A confirmed piece of work now comes back as a TRACK (R-24, item
+           * 16): the gate's answer creates it with the route the person just
+           * confirmed, and the persisted assistant message carries the
+           * `/track/:id?start=true` door. `missionId` stays in the payload and
+           * stays null until the Build station opens one, so it is read second,
+           * not deleted — the SSE mission path still uses that field.
+           */
+          const trackId = payload?.trackId ?? null;
           const missionId = payload?.missionId ?? null;
-          if (missionId) {
-            setPlanDecisionByMsg((m) => ({ ...m, [msgId]: { status: "started", missionId } }));
-            /*
-             * THE RUN IS ATTACHED TO THE ANSWER THAT PROPOSED IT, which is what
-             * makes `AskRunCard` appear under this turn instead of the person
-             * having to go and find the mission. Same field the ungated dispatch
-             * sets from its `mission_id` delta; it just arrives one request later.
-             */
-            setMessages((prev) => patchMessage(prev, msgId, { mission_id: missionId }));
+          if (trackId || missionId) {
+            setPlanDecisionByMsg((m) => ({
+              ...m,
+              [msgId]: { status: "started", trackId, missionId },
+            }));
+            if (missionId) {
+              // The mission attach only when one truly exists — patching a null
+              // in would light AskRunCard for a run that is not a mission.
+              setMessages((prev) => patchMessage(prev, msgId, { mission_id: missionId }));
+            }
           } else {
             setPlanDecisionByMsg((m) => ({ ...m, [msgId]: { status: "sent-back" } }));
           }

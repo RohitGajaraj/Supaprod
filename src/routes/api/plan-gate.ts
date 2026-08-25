@@ -2,8 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
-import { createMission } from "@/lib/ai/handoff.server";
-import { runAgentLoop } from "@/lib/ai/loop.server";
+import { startTrackCore } from "@/lib/spine/track.functions";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { checkUserAiRateLimit } from "@/lib/ai-ratelimit.server";
 import { routeIntent } from "@/lib/ask/route-intent";
@@ -360,7 +359,7 @@ export const Route = createFileRoute("/api/plan-gate")({
         });
         const leadSeat = routed.crew[0]?.slug ?? null;
 
-        let missionId: string | null = null;
+        let trackId: string | null = null;
         let blocked: DispatchBlock | null = null;
 
         /**
@@ -379,45 +378,37 @@ export const Route = createFileRoute("/api/plan-gate")({
           if (!workspaceId) {
             blocked = "no-workspace";
           } else {
-            // The conductor was already seeded and checked by the pre-flight in
-            // `api/chat.ts` — a proposal is only ever emitted after it passed —
-            // so this is a read rather than a second seeding. It can still come
-            // back empty if the roster changed in between, and that is a real
-            // state with a sentence of its own rather than a 500.
-            const { data: agent } = await supabase
-              .from("agents")
-              .select("id")
-              .eq("user_id", userId)
-              .eq("slug", "orchestrator")
-              .maybeSingle();
-            if (!agent) {
-              blocked = "conductor-unavailable";
+            /*
+             * A CONFIRMED PIECE OF WORK CREATES A TRACK, NOT A MISSION (R-24,
+             * queue item 16). This used to open a mission and hand it to the
+             * orchestrator, which is F-04's whole measurement: the front door
+             * filed an object the run workbench cannot see, and only 59 tracks
+             * ever existed. The ruling settled it — a mission is Build's
+             * container, opened by the Build station if and when the work
+             * reaches it; the TRACK is the work's identity, and the route it
+             * walks is the one the person just confirmed on this very gate.
+             *
+             * No dispatch is fired here on purpose. The track's first walk
+             * belongs to `driveTrackNow` behind TrackRun's ONE-writer rule
+             * (item 28: `?start=true` fires it exactly once on a never-driven
+             * track), and the sweep serves it unattended either way. Kicking a
+             * loop from this handler would be a second writer racing the first.
+             */
+            const { track, problems } = await startTrackCore(supabase, userId, {
+              title: proposal.title.slice(0, 200),
+              shape: proposal.shape,
+              origin: proposal.origin,
+              workspaceId,
+            });
+            if (track) {
+              trackId = track.id;
             } else {
-              try {
-                const mission = await createMission(supabase, userId, workspaceId, {
-                  title: proposal.title.slice(0, 200),
-                  goal: proposal.goal,
-                  starting_agent_id: (agent as { id: string }).id,
-                });
-                missionId = mission.id;
-                // Dispatched to the conductor, exactly as an ungated handover
-                // is. The person answered how much rope the work gets; they did
-                // not choose who takes it, and the orchestrator still plans its
-                // own DAG. See the routing paragraph in `api/chat.ts`.
-                keepAliveAfterResponse(
-                  request,
-                  runAgentLoop(supabase, userId, {
-                    agentSlug: "orchestrator",
-                    goal: proposal.goal,
-                    missionId: mission.id,
-                    workspaceId,
-                  }),
-                  "runAgentLoop",
-                );
-              } catch (e) {
-                console.error("[plan-gate] failed to start mission:", e);
-                blocked = "dispatch-failed";
-              }
+              // `validateRoute`'s sentences are real reasons, not noise; they
+              // are logged in full because "dispatch-failed" is the honest
+              // summary a person gets and this line is the diagnosis a session
+              // gets.
+              console.error("[plan-gate] startTrackCore refused the route:", problems);
+              blocked = "dispatch-failed";
             }
           }
         }
@@ -457,9 +448,18 @@ export const Route = createFileRoute("/api/plan-gate")({
           }
         }
 
+        /*
+         * THE ANSWER NAMES WHERE THE WORK NOW LIVES. `/track/:id?start=true`
+         * is item 28's door: the guard in TrackRun fires the first walk exactly
+         * once on a never-driven track, so this link both shows the run and
+         * starts it, and a revisit re-spends nothing. Written into the
+         * persisted message so it survives a reload, which a proposal does not.
+         */
         const said = blocked
           ? dispatchBlockedMessage(blocked)
-          : answeredMessage(autonomy, proposal.title, reason);
+          : trackId
+            ? `${answeredMessage(autonomy, proposal.title, reason)}\n\nWatch it move: [/track/${trackId}](/track/${trackId}?start=true)`
+            : answeredMessage(autonomy, proposal.title, reason);
 
         const msgInsert = supabase.from("messages") as unknown as {
           insert: (p: Record<string, unknown>) => Promise<{ error: unknown }>;
@@ -469,12 +469,18 @@ export const Route = createFileRoute("/api/plan-gate")({
           user_id: userId,
           role: "assistant",
           content: said,
-          ...(missionId ? { mission_id: missionId } : {}),
         });
 
         return json(
           {
-            missionId,
+            /*
+             * `missionId` stays on the wire and stays NULL, and both halves are
+             * deliberate (R-24 §3): the field keeps meaning what it has always
+             * meant — Build's container — and it is null until the Build
+             * station opens one. The work's identity is `trackId`.
+             */
+            missionId: null,
+            trackId,
             autonomy,
             station: routed.station,
             message: said,
