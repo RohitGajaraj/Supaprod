@@ -63,3 +63,22 @@ Prompt: app icon design, the same tiny luminous sprite from the reference curled
 - Loop counts are approximate: the model renders 7 to 8 loops depending on the run. A
   production vector pass should redraw the line to exactly seven.
 - Not committed to git (screenshots/design references stay out of commits by default).
+
+## v2 — the founder's feedback round (2026-08-25 15:4x IST)
+
+Brief: all-positive expressions (happy-working, never angry), Thinking with visible motion
+("moving through the highs" — orbiting spark trails), the Celebrating jitter kept, body anchored
+tighter on the real mark (reference: public/apple-touch-icon.png; vector truth
+public/favicon-adaptive.svg), and the SAME sheet proven on both grounds the way the logo itself
+flips (white line on dark, ink on light, ember core constant).
+
+| File | Idea | Note |
+| --- | --- | --- |
+| v2-state-sheet-dark.png | Four states (Awake, Thinking, Happy-Working, Celebrating) on dark — azure-iridescent line, ember face | Verified 2048x2048, intact |
+| v2-state-sheet-light.png | The same four states pose-for-pose on near-white — deep ink/azure-violet line, ember constant | The light-theme proof the founder asked for |
+| v2-hero.png | Single character, neutral-friendly, dark ground | Verified intact |
+
+The generating agent was lost to a network drop after saving all three files; its exact prompt
+strings went with its transcript. The brief above is the faithful record; the files are the
+evidence. (Files prefixed free- belong to the parallel no-logo-constraint track and are
+catalogued by that agent.)
