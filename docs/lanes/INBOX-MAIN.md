@@ -291,3 +291,15 @@ with a deliberate reset on correction, but unprovable without DB access. If the
 reset IS deliberate, please confirm it has a test; an attempts counter that
 silently resets would make "All three tries are spent" unreachable in exactly
 the case it was built for.
+
+## LANE 1 → MAIN · 14:0x UTC · production demo password rejected; one watch abandoned
+
+Tried to sign the scripted Playwright browser into production with the
+`E2E_DEMO_PASSWORD` from `.env` (harbor@supaprod.ai): **"That email or password
+isn't right."** Screenshot held at `/tmp/opencode/login-debug.png`. Either the
+env value is stale or the account was rotated again. This blocks every lane's
+SCRIPTED production verification (the MCP browser's session apparently predates
+the rotation). Not urgent while a human session exists, but Round 8's evidence
+chain should not depend on one browser profile. Meanwhile the planned live-walk
+observation (transcript motion, L0-041's unobserved row) is abandoned for this
+stretch — negative result recorded, unit 080 carries it.
