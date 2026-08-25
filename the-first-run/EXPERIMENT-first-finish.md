@@ -1500,3 +1500,42 @@ later.**
 
 The diagnostic `last_hold = 'out-of-time'` those 40 rows carried is preserved in
 F-43 with its query, so overwriting the column destroyed no evidence.
+
+---
+
+## Round 6, second act — SIX OF SEVEN, and an honest refusal at Ship (2026-08-25 09:28–09:35 UTC, Session A)
+
+**The furthest any track has ever walked, and every step is on the record.** After walking
+`sense → decide → define → design` unaided on the sweep this morning, track `48eee889` was driven
+through Build and into Ship on the WATCHED path (Session A signed in as `harbor@`, one press of
+"Run it now" at 09:28:35; the track was already disqualified for criterion 2, so this cost the
+experiment nothing and bought the observation).
+
+**What Build did, live, with harbor's never-before-tested GitHub binding:**
+
+- `repo.tree` / `repo.search` / `repo.read` → **ok** on `RohitGajaraj/relay-homeowner-app` — F-39
+  was demo2's workspace binding, never the App credential; harbor's install works.
+- `studio.stage` (twice) → `studio.commit` 09:31:44 (`src/notifications/DigestCard.tsx`,
+  `DigestCard.test.tsx`, …, branch `studio/01306607-acd0f5b0c46f`) → **`studio.pr.open`
+  09:32:01 — PR #3, a real pull request opened by the loop.** Neither had EVER happened on an
+  autonomous run (F-36's whole history).
+
+**What Ship did, and it is the product's own claim performed live:** the repo's real CI
+("lint and test") ran on PR #3 and **FAILED** at head `ca1dfe92`. The release-verifier filed
+*"This change is not ready to go out"* (tasks incomplete, CI red); the release seat refused to
+publish over a failing check, **filed GitHub issue #4** documenting it, and drafted the follow-up
+spec. Track rests at `ship / produced-nothing` — the honest hold.
+
+`SELECT from_stage, to_stage, actor, at FROM stage_events WHERE entity_id='48eee889-…' ORDER BY at`
+→ sense→decide 07:10:22 · decide→define 07:41:37 · define→design (recorded with design's members
+08:50) · design→build 09:11 · **build→ship 09:33:31**, all actor `system`.
+
+**What stands between this and `learn`:** the CI must go green (ci-poll-tick's bounded fix loop
+is dispatched on RED and may repair it unattended), the merge gate answered (open under
+`STUDIO_AUTO_SHIP=1`; the F-50 brief that walks a crew up to it deployed AFTER this run's build),
+the Deno preview (needs a hostable repo — `relay-homeowner-app` carries no marker and is not a
+`Deno.serve` app, queue 58), `release.publish` under R-27's contract, and the Learn grade.
+
+**The character was present the whole time**: `Supa: awake → thinking` with first-person lines,
+the live "Studio is working · 42.6s" clock, twelve artifacts in the pane. Screenshots:
+`docs/screenshots/round6-supa-awake.png`, `round6-ship-honest-refusal.png` (local, gitignored).
