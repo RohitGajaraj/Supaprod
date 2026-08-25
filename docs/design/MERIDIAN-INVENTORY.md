@@ -148,6 +148,12 @@ was already there — the same honesty rule this file runs on.
 evidence; one remains open. This is the map working as intended — a study that surface owners act on or
 push back on, never an order.
 
+**Every landed surface has a named door, verified** (`a2c13dbfb`): `/inbox` opens from a door under
+Today's triage feed — the card whose three-rows-per-section mechanic the inbox uncaps — and the legacy
+map no longer documents it as a bounce; `/learn` is one of the seven station doors in
+`nav-model.ts`; the flow branches read under the spec page's own **Flow** tab. A mount without a door is
+this repo's most common defect; none of the three ships that way.
+
 1. **AgentInbox → `/inbox` — LANDED** (`639678be7`). The stub door now renders the component fed by two
    real reads (`getApprovalsQueue`, `listMissions`) under Today's own cache keys.
 2. **InsightCards + PromotionCard → `/learn` — PARTLY LANDED** (`dcc70e819`). InsightCards renders real
