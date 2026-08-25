@@ -8,7 +8,40 @@
 > file, push your claim before coding, remove it when done. Pull before every unit; push after
 > every commit. Four sessions share this repo (A = director, B, L0, L1).**
 
-## 1 · Queue #65 — the transcript says who caused each leg (READY — server half landed `8dc50c963`)
+## 1 · Queue #67 — waiting on the calendar is not an alarm (READY)
+
+- **Goal:** Learn now holds `needs-evidence` when its forecast is not yet due (shipped
+  `ac333b2c8`): resumable, no attempt burned, nothing waiting on a person. The hold surfaces
+  still paint every hold as a stoppage. A learn track waiting on time must read CALM — "the
+  forecast comes due 8 Sep; Learn returns then" — with the date, never an amber alarm and never
+  a Run-it-now nudge (pressing run on it would only spend money asking a question whose answer
+  is a date).
+- **User value:** a person scanning a stalled board tells "waiting on time" from "waiting on
+  me" without opening anything — B's amendment, carried to the screen.
+- **Files:** `src/components/track/TrackRun.tsx` (hold region: `holdReason === "needs-evidence"
+  && track.station === "learn"` → calm tone, date, no release control), and the same case in
+  `TrackStart`'s row chips if it paints holds. The date: the decide member's
+  `forecast_horizon_date` is already in `getTrackArtifacts`' decision fields — read it from the
+  pane's existing query, do not add a server read.
+- **Acceptance:** dated calm sentence on a pre-horizon learn hold; ordinary needs-evidence
+  (sense, no signals) keeps today's rendering; both themes; `--mrd-*` only.
+
+## 1b · Queue #68 — one track owns the sweep: the observation session (READY NOW, time-boxed)
+
+- **Goal:** harbor holds exactly ONE open track (`7977dc06`, at ship) and the sweep serves it
+  every ~10 minutes — the most predictable live-walk window this product has ever had. Spend it:
+  sign in as `harbor@` (`docs/operations/demo-credentials.md`), sit on `/track/7977dc06…`, and
+  OBSERVE everything your ledger owes eyes: transcript motion (L0-041), character
+  Thinking/Working/Resting (L0-069b), queue-65 origin markers live, queue-66 try-count copy,
+  the expiry sentence rendered. Screenshot each, both themes where feasible.
+- **User value:** six CODE-SHIPPED rows become VERIFIED-LIVE or honestly fail; the founder gets
+  the film of his product moving.
+- **Files:** none (verification unit). READ-ONLY: never press Run it now, never answer a gate —
+  a `press` row would land in the record B keeps.
+- **Acceptance:** BUILDLOG rows updated with what was SEEN, screenshots filed in your unit;
+  anything that did not render as specced becomes a filed finding, not a silent pass.
+
+## Done · Queue #65 — the transcript says who caused each leg (SHIPPED `7fa621e8f`, unit L0-080)
 
 - **Goal:** `stage_events.driven_via` distinguishes `sweep` / `press` / `continuation`
   (queue 64). The run transcript should SHOW it: a row a person caused carries a quiet
@@ -24,7 +57,7 @@
   person acted; both themes pass; no raw colour, `--mrd-*` only.
 - **Skills:** none needed; gates as always.
 
-## 1b · Queue #66 — a hold says which try this was (READY — server half landed `8dc50c963`)
+## Done · Queue #66 — a hold says which try this was (SHIPPED `17c060f4c`, unit L0-081)
 
 - **Goal:** `spine_tracks.attempts` counts real failures against `MAX_STATION_ATTEMPTS = 3`
   (`driver.ts:424`), and the "Why it stopped" region hides it. Round 7's live track sat at
