@@ -135,19 +135,69 @@ insert plus hardcoded success print. Fake-agentic; never run it, never commit it
 
 ---
 
-## EXPLICIT BLOCKER — Mission Gate Cannot Be Met Without Access
+## 2026-08-26 UPDATE: Root Cause Found — Decide Station Writes No Decision Row
 
-**Requirement:** "Watch a complete loop run itself end to end, on screen, with everything in it functional."
+**The real blocker:** This session's detailed agent audit (60+ verification agents, verified against live production) found the core loop is **structurally broken at the database level.**
 
-**What I've proven:** 
-- ✅ Code is correct (all 7 stations implemented, wired, tested)
-- ✅ System runs autonomously through 6 of 7 stations (Round 6, documented)
-- ✅ Self-correction works unattended (Round 7, proved at 12:10-12:21 UTC 2026-08-25)
+### Tier 1: Cannot meet mission gate (core loop failure)
 
-**What I cannot prove without access:**
-- ❌ Watch execution live on screen (blocked: no browser permissions)
-- ❌ Query track state / verify Learn reached (blocked: no Lovable MCP auth)
-- ❌ Query forecast data (blocked: no database access)
+**The Learn → Guide loop is broken:**
+
+1. **`/decide` never writes a `decisions` row**
+   - Station exists; decision table stays empty
+   - 304 agent-recorded decisions → 0 in `decisions` table
+   - **Impact:** No forecast can attach; Learn cannot resolve anything
+
+2. **`learnings.decision_id` column exists but nothing writes it**
+   - Migrations added it 2026-08-19
+   - JavaScript rebuilds the edge, not SQL
+   - **Impact:** 40% of learnings attributed by arbitrary row order
+
+3. **Forecasts are never resolved**
+   - 0 of 304 decisions carry a resolved forecast
+   - No feedback loop writes `forecast_resolution`
+   - **Impact:** Product's core claim non-functional
+
+4. **`agent_memory.kind='outcome'` never wrote a row**
+   - Precedent pool is completely empty
+   - `applyOutcome` unexercised in production
+   - **Impact:** No learned outcomes to guide next decision
+
+### Tier 2: Agent execution (61% failure rate)
+
+- 1,037 of 1,703 agent runs failed or degraded
+- Rate limit causing 30% loss on sense surface
+- Ask system works by accident via hardcoded `@cos` prefix
+
+### Production blocker for mission gate
+
+| Requirement | Status | Blocker |
+| --- | --- | --- |
+| Signals file autonomously | ✅ Done (signals.log mode="auto" deployed 2026-08-26) | None |
+| Themes cluster autonomously | ✅ Done | None |
+| Decisions record | ❌ Missing | **/decide writes no decision row** |
+| Forecasts attach | ❌ Missing | Decisions must exist first |
+| Outcomes settle forecasts | ❌ Missing | No decision→outcome edge |
+| Loop guides next decision | ❌ Missing | Forecasts never written/resolved |
+
+**The gate cannot be met until /decide writes to the decisions table.** This is not a deployment issue (code is live, signals.log fix deployed), not a tool issue (all working), not a schema issue (columns added). **It is a feature gap: Decide station does not implement recording decisions.**
+
+---
+
+## Full Audit Results
+
+See `docs/planning/initiatives/audit-reports/agent-audit-2026-08.md` for complete findings (verification against production, 2026-08-26):
+
+- 60+ verification agents run across codebase and live database
+- 59 findings registered: Tier 1–4 criticality, State (OPEN/QUEUED/CLOSED/STALE-DOC)
+- Working: deployment, data ingestion, sense→discover, retry policy
+- Broken: decide (no decision rows), learn (no outcome edges), steering (6/7 stations unsteerable)
+- Fake: mission completion rates, decision recording, learning loop, Jira read connector
+- Missing: decision writing, forecast→learning linkage, per-run stop control, outcome memory writes
+
+**Narrowest autonomous loop that works:** sense → discover → [stop]  
+**What it proves:** Agents identify work and synthesize patterns autonomously  
+**What blocks full mission gate:** Decide station must write decision rows
 - ❌ Screenshot completion evidence (blocked: no UI access)
 
 **Attempted every path:**
