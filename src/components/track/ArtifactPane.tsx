@@ -49,8 +49,7 @@ import { Row } from "@/components/meridian/rows";
 import { Prose } from "@/components/meridian/Prose";
 import { RunNote } from "@/components/meridian/run-rows";
 import { StatusChip } from "@/components/meridian/StatusChip";
-import { Field, Input, Textarea } from "@/components/meridian/forms";
-import { ReasonField } from "@/components/meridian/forms";
+import { Field, Input, ReasonField, Textarea } from "@/components/meridian/forms";
 import { TabPanel, Tabs } from "@/components/meridian/Tabs";
 
 /** What each station exists to do, for the not-run sentence. Display labels only. */
@@ -507,8 +506,27 @@ function ThemeCard({ item }: { item: ArtifactView }) {
  * been graded on a real workspace, and the card names WHICH nothing it is
  * rather than drawing a placeholder verdict.
  */
-function LearningCard({ item, decision }: { item: ArtifactView; decision?: ArtifactView }) {
+function LearningCard({
+  item,
+  decisions,
+}: {
+  item: ArtifactView;
+  /** Every decision the track filed, so the join can be BY KEY. */
+  decisions?: ArtifactView[];
+}) {
   const f = item.fields;
+  /*
+   * THE JOIN IS BY KEY, NEVER BY POSITION (D-9.8). The learning carries
+   * `decision_id` -- it names the one call its verdict grades. Matching "the
+   * first decision on the decide stop" put a verdict beside whatever forecast
+   * happened to sit first, and on a track that decided twice that was a
+   * confidently wrong pairing of predicted and actual. No match renders no
+   * forecast half at all, which is honest; a wrong half never is.
+   */
+  const decisionId = str(f.decision_id);
+  const decision = decisionId
+    ? decisions?.find((x) => x.artifactId === decisionId && !x.missing)
+    : undefined;
   const summary = str(f.summary);
   const verdict = str(f.verdict);
   const metricLabel = str(f.metric_label);
@@ -522,6 +540,9 @@ function LearningCard({ item, decision }: { item: ArtifactView; decision?: Artif
   const resolution = d ? str(d.forecast_resolution) : null;
   const rationale = d ? str(d.forecast_resolution_rationale) : null;
   const resolvedBy = d ? str(d.forecast_resolved_by_agent_slug) : null;
+  // What a deferral writes (D-9.9): rendered, so pressing the control has a
+  // visible effect instead of landing a write nothing on screen reflects.
+  const nextCheck = d ? str(d.forecast_next_check_at) : null;
 
   const horizonDay = horizon ? horizon.slice(0, 10) : null;
   const horizonPast = horizon ? Date.parse(horizon) < Date.now() : false;
@@ -572,6 +593,9 @@ function LearningCard({ item, decision }: { item: ArtifactView; decision?: Artif
             Nothing was recorded as expected, so there is nothing to check against.
           </span>
         )}
+        {!resolution && nextCheck ? (
+          <span className="mrd-meta">Next look: {nextCheck.slice(0, 10)}.</span>
+        ) : null}
       </div>
 
       {summary ? (
@@ -727,14 +751,15 @@ function ReopenControl({ decisionId }: { decisionId: string }) {
 function StationPanel({
   stop,
   view,
-  decisionItem,
+  decisions,
   everDriven,
   hold,
   now,
 }: {
   stop: ChainStop;
   view?: StationArtifactView;
-  decisionItem?: ArtifactView;
+  /** Every decision this track filed, for the by-key learning join. */
+  decisions?: ArtifactView[];
   everDriven: boolean;
   hold: string | null;
   now: number;
@@ -786,7 +811,7 @@ function StationPanel({
       case "theme":
         return <ThemeCard item={item} />;
       case "learning":
-        return <LearningCard item={item} decision={decisionItem} />;
+        return <LearningCard item={item} decisions={decisions} />;
       case "prd":
         return <PlanSpec prdId={item.artifactId} />;
       default:
@@ -883,10 +908,28 @@ export function ArtifactPane({
 
   const [activeState, setActiveState] = React.useState<string | null>(null);
   const active = activeProp ?? activeState;
+  /** Marks selections that ORIGINATED inside the pane, so an external one
+   *  (a chain-row click) can be told apart and given the focus move. */
+  const lastInternal = React.useRef<string | null>(null);
   const onSelect = (id: string) => {
+    lastInternal.current = id;
     setActiveState(id);
     onActiveChange?.(id);
   };
+
+  /*
+   * A TAB CHANGE FROM ELSEWHERE IS A CONTEXT CHANGE (D-7.2), so focus moves
+   * with it -- R-19's keyboard clause. A selection made by clicking a tab
+   * already holds focus where the person put it and is skipped.
+   */
+  React.useEffect(() => {
+    if (activeProp == null) return;
+    if (activeProp === lastInternal.current) {
+      lastInternal.current = null;
+      return;
+    }
+    document.getElementById(`artifact-pane-${trackId}-tab-${activeProp}`)?.focus();
+  }, [activeProp, trackId]);
 
   if (q.isLoading) return <Reading>Reading what this work has made.</Reading>;
   if (q.isError) {
@@ -931,9 +974,9 @@ export function ArtifactPane({
         <StationPanel
           stop={shown}
           view={bodies.data?.stops.find((s) => s.station === shown.station)}
-          decisionItem={bodies.data?.stops
+          decisions={bodies.data?.stops
             .find((s) => s.station === "decide")
-            ?.items.find((it) => it.kind === "decision" && !it.missing)}
+            ?.items.filter((it) => it.kind === "decision" && !it.missing)}
           everDriven={track.drivenAt !== null}
           hold={track.hold}
           now={now}

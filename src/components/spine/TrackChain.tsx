@@ -105,10 +105,8 @@ function Stop({
               // exception for exactly this case.
               <Value tone="fail">not found</Value>
             ) : m.title ? (
-              <Value>{onOpen ? "Show it" : m.word}</Value>
-            ) : (
-              <Value tone="quiet">{m.word}</Value>
-            )
+              <Value>{m.word}</Value>
+            ) : null
           }
         />
       ))}
