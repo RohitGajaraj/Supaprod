@@ -304,13 +304,14 @@
 }
 /* THE FOUR STATUS UTILITIES KEEP THEIR `--sp-*` SPELLING, all four together.
  * `surface-discipline.test.ts` §5b reads each of these bodies by selector and
- * asserts its own token name appears, which is the guard that status colour comes
+ * asserts its own token family appears, which is the guard that status colour comes
  * from a semantic token and never from a hex a theme cannot follow.
- * `--sp-warn` is not an alias at all -- it is a literal in `ink.css` with no
- * Meridian counterpart -- so porting the other three would leave one of a set of
- * four spelled differently for no reason a reader could work out. Three of them
- * resolve straight through: `--sp-pass: var(--mrd-pass)`, `--sp-fail:
- * var(--mrd-fail)`, `--sp-gate: var(--mrd-you)`. */
+ * CORRECTED 2026-08-25 (unit 080): this comment used to say three of them
+ * "resolve straight through" custom properties (`--sp-pass/fail/gate`) declared
+ * here. Those declarations did not exist any more -- the census found zero
+ * definitions and zero readers -- and the class bodies already read Meridian
+ * directly. `--sp-warn` is the one real literal (ink.css, no Meridian
+ * counterpart), which is why it alone still reads through a token. */
 .sp-pass {
   color: var(--mrd-pass);
 }

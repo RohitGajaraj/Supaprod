@@ -118,18 +118,12 @@
    * so. --sp-leading-title/gate/note keep literal values: no exact Meridian
    * stop and no ruling. */
   --sp-text-gate: var(--mrd-t-h3); /* was 19px; ANS-001: up, not down. A gate heading is a heading. */
-  --sp-text-body: var(--mrd-t-prose); /* was 14px, value-identical */
   --sp-text-prose: var(--mrd-t-prose); /* was 13.5px; ANS-001: named prose, takes the prose stop */
-  --sp-text-meta: var(--mrd-t-base); /* was 13px, value-identical */
-  --sp-text-label: var(--mrd-t-label); /* was 12.5px, value-identical */
-  --sp-text-data: var(--mrd-t-small); /* was 12px, value-identical to small, not data's 11.5 */
-  --sp-text-data-sm: var(--mrd-t-data); /* was 11.5px, value-identical */
 
   /* ---- Leading ---- */
   --sp-leading-title: 1.24;
   --sp-leading-gate: 1.32;
   --sp-leading-row: var(--mrd-lh-snug); /* was 1.4; ANS-001: 0.1 of leading on 13px is invisible, and snug is the considered stop */
-  --sp-leading-tight: var(--mrd-lh-snug); /* was 1.5, value-identical to snug (Meridian's tight is 1.15, a different job) */
   --sp-leading-body: var(--mrd-lh-prose); /* was 1.55; ANS-001: same argument as row */
   --sp-leading-note: 1.6;
 
@@ -138,14 +132,11 @@
   --sp-track-gate: var(--mrd-track); /* was -0.019em; same ruling */
 
   /* ---- Weight ----
-   * Aliased 2026-08-23: all three values identical to Meridian's weight
-   * tokens. Mona Sans history kept in the record: installed as four STATIC
+   * The three --sp-weight-* aliases died 2026-08-25 (unit 080: zero readers
+   * anywhere). Mona Sans history kept in the record: installed as four STATIC
    * instances (400/500/600/700), not a variable font; the prototype's 550/650
    * snap up in CSS font matching, so the system as built was four weights.
-   * Meridian's faces hold these cleanly. */
-  --sp-weight-regular: var(--mrd-w-regular);
-  --sp-weight-medium: var(--mrd-w-medium); /* labels, quiet emphasis */
-  --sp-weight-strong: var(--mrd-w-semi); /* headings, active nav, names */
+   * Meridian's faces hold these cleanly; authors read --mrd-w-* directly. */
 
   /* ---- Density ----
    * The law (anti-slop.md §3): tight inside a group, generous between

@@ -391,16 +391,19 @@
 .sp-live-dot[data-state="running"] {
   background: var(--mrd-agent);
 }
-/* THE ONE `--sp-*` COLOUR LEFT IN THIS FILE, and it is left on purpose.
+/* THE GATE DOT'S SPELLING, held for the guard that reads it.
  * `surface-discipline.test.ts` §5b reads this stylesheet as text, strips its
  * comments, and asserts that `.sp-live-dot[data-state="gate"]` exists AND that
- * the literal token name `--sp-gate` appears. That guard is about a shipped
+ * the file still matches `--mrd-you|--sp-gate`. That guard is about a shipped
  * defect -- the founder's ruling that the dot carries the gate colour so the
  * headline does not have to -- and rewriting the spelling here would make it
  * pass over a file that no longer says what it is checking, or fail for a
  * reason that has nothing to do with the defect.
- * It costs nothing on screen: ink.css declares `--sp-gate: var(--mrd-you)`, so
- * this IS the orchid, read through one alias. */
+ * CORRECTED 2026-08-25 (unit 080): the old comment claimed ink.css declared
+ * `--sp-gate: var(--mrd-you)` behind this rule. It never did by then -- the
+ * declaration was already gone and the rule reads `var(--mrd-you)` directly,
+ * which is also what satisfies the guard. One alias fewer, same colour,
+ * same test. */
 .sp-live-dot[data-state="gate"] {
   background: var(--mrd-you);
 }
