@@ -134,3 +134,104 @@ export const getBillingState = createServerFn({ method: "GET" })
       planTierUnknown,
     };
   });
+
+/**
+ * How much runway is left, denominated in RUNS.
+ *
+ * BUILD-QUEUE item 29 asked for a low-credit warning that a person can actually
+ * see, and LANE 0 asked for the figure. **The unit is runs, and the reason is
+ * measured rather than argued.** At one instant on 2026-08-25 06:46:19 UTC one
+ * account read 0.000 credits/min over 15 minutes, 0.100 over an hour, 2.085 over
+ * a day and 1.299 over a week, while a second account read 6.133 / 11.350 /
+ * 0.547 / 0.510 — **a 22x spread on one account at one moment** — and
+ * `runwayMinutes()` returns Infinity whenever the last debit is an hour old.
+ *
+ * A run, by contrast, is a near-uniform unit of cost: over 360 runs in seven
+ * days, mean `0.006662` against a median of `0.006022`, a ratio of **1.11**.
+ *
+ * WHY THIS GOES THROUGH AN RPC. The three tables disagree about scope —
+ * `credit_ledger` and `account_credits` are `is_account_member(account_id)`,
+ * while `agent_runs` is `(auth.uid() = user_id) AND is_workspace_member(...)`.
+ * A caller joining them client-side sees only its OWN runs against the WHOLE
+ * account's spend, which **understates runway** and warns early. It is also
+ * 1,827 debit rows in seven days on one account, which is not a payload for a
+ * browser. `credit_runway` is SECURITY DEFINER and re-checks `is_account_member`
+ * itself, so tenancy is unchanged.
+ *
+ * NULL IS THE HONEST ANSWER AND MUST BE RENDERED AS ONE. No runs in the window
+ * means no rate, so `runsLeft` comes back null rather than Infinity or an
+ * invented number. A surface shows "not known yet" — never a zero, which reads
+ * as "you are out".
+ */
+export type CreditRunway = {
+  spendableCredits: number;
+  creditsSpentInWindow: number;
+  runsInWindow: number;
+  /** Null when the window holds no runs — no rate can be derived. */
+  creditsPerRun: number | null;
+  /** Null when there is no rate or no spend. Never Infinity, never a fake 0. */
+  runsLeft: number | null;
+  windowDays: number;
+};
+
+export const getCreditRunway = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { workspaceId: string; windowDays?: number } | undefined) =>
+    z
+      .object({
+        workspaceId: z.string().uuid(),
+        windowDays: z.number().int().min(1).max(90).optional(),
+      })
+      .parse(d ?? {}),
+  )
+  .handler(async ({ context, data }): Promise<CreditRunway | null> => {
+    const supabase = context.supabase as SupabaseClient;
+    const windowDays = data.windowDays ?? 7;
+    try {
+      // The workspace read runs on the CALLER's client on purpose: it is what
+      // proves they may see this account at all, before the definer function is
+      // asked anything. `credit_runway` re-checks membership too, so this is a
+      // belt-and-braces rather than the only gate.
+      const { data: ws, error: wsErr } = await supabase
+        .from("workspaces")
+        .select("account_id")
+        .eq("id", data.workspaceId)
+        .maybeSingle();
+      const accountId = (ws as { account_id?: string | null } | null)?.account_id ?? null;
+      // A read that failed proves nothing, so it claims nothing — the same rule
+      // `getTrackArtifacts` follows for `missing`.
+      if (wsErr || !accountId) return null;
+
+      const { data: rows, error } = await supabase.rpc("credit_runway", {
+        for_account: accountId,
+        window_days: windowDays,
+      });
+      if (error) return null;
+      const r = (Array.isArray(rows) ? rows[0] : rows) as
+        | {
+            spendable_credits?: number | string | null;
+            credits_spent_in_window?: number | string | null;
+            runs_in_window?: number | null;
+            credits_per_run?: number | string | null;
+            runs_left?: number | null;
+          }
+        | undefined;
+      // No row means the definer refused, which is a permissions answer and not
+      // a runway of zero. Zero would read as "you are out" and be a lie.
+      if (!r) return null;
+
+      const num = (v: number | string | null | undefined): number | null =>
+        v === null || v === undefined ? null : Number(v);
+
+      return {
+        spendableCredits: num(r.spendable_credits) ?? 0,
+        creditsSpentInWindow: num(r.credits_spent_in_window) ?? 0,
+        runsInWindow: r.runs_in_window ?? 0,
+        creditsPerRun: num(r.credits_per_run),
+        runsLeft: r.runs_left ?? null,
+        windowDays,
+      };
+    } catch {
+      return null;
+    }
+  });
