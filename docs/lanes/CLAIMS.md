@@ -20,3 +20,4 @@
 | A | `docs/AUDIT.md`, `docs/PRODUCT-TRUTH.md`, `docs/lanes/QUEUE-*.md`, `the-first-run/BUILD-QUEUE.md` | Standing director ownership | standing |
 | B | `the-first-run/EXPERIMENT-first-finish.md`, `the-first-run/RULINGS.md`, `the-first-run/FINDINGS-LEDGER.md` | The live acceptance run — driving Round 6/7, the database, and the record of both | 2026-08-25 09:3x |
 | B | `src/lib/ai/loop.server.ts`, `src/lib/deployments.functions.ts`, `src/lib/hosting/**` | R-27 (ship autonomy) — SHIPPED; claim held while Round 7's ship path is proven | 2026-08-25 09:3x |
+| B | `src/lib/spine/driver.ts` (stationGoal / the Build brief only) | F-54: the checking seat reads the default branch, so it cannot see the work it verifies — measured live on 48eee889 | 2026-08-25 09:4x |
