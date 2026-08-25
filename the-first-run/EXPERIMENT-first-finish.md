@@ -1236,3 +1236,28 @@ F-18 approval gate nor F-36's merged-changeset refusal was exercised. **I do not
 were right.** They stand as unverified predictions for the next run.
 
 **Round 4 final standing: 5 of 7 stations, held at Build. Zero of six acceptance criteria.**
+
+### 04:16 · F-31 verified by behaviour, not by test
+
+The first reflection written after the 04:08 deploy:
+
+```sql
+SELECT agent_slug, expires_at, metadata->>'depends_on_current_state' AS claim, content
+  FROM agent_memory WHERE kind='reflection' AND created_at > '2026-08-25 04:10:35+00';
+```
+
+> `prd-writer` | `expires_at` NULL | claim **false** |
+> *"You should prioritize defining clear success metrics and system-specific suppression logic
+> early when drafting complex PRDs to ensure cross-system consistency."*
+
+**Three things at once.** The new field is present, so the code path ran. The claim is `false`, so
+the classification was exercised and the lesson was kept permanent deliberately rather than by
+default. And the register changed: **"You should"**, a lesson about method — where every reflection
+written before the fix read *"You must decline..."*, *"You must not proceed..."*, *"You must verify
+repository access..."*.
+
+**What is NOT yet proven.** This sample took the DURABLE path. The transient path — where an expiry
+is actually stamped on a lesson about a broken integration — has not been observed, and the earlier
+04:10 reflections predate the rollout rather than disprove it. **One sample is one sample.**
+
+**This is the first fix tonight proven by live behaviour rather than by a passing test.**
