@@ -42,7 +42,10 @@ test.describe("Round 8: Autonomous End-to-End Execution", () => {
     console.log("\n[ROUND 8] Logging in...");
     const success = await login(page);
     expect(success).toBe(true);
-    await waitForShell(page);
+    // NOTE: Do NOT call waitForShell here. /start is an "isOnboarding" route
+    // (line 127, _authenticated.tsx), so it renders <Outlet /> directly without
+    // <AppFrame>. The <main> element doesn't exist on /start, so waitForShell
+    // would timeout. We explicitly navigate to /start next, so a shell isn't needed.
 
     // Step 2: Navigate to /start
     console.log("[ROUND 8] Navigating to /start...");

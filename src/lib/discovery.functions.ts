@@ -1640,13 +1640,7 @@ export const updateOpportunity = createServerFn({ method: "POST" })
      * rather than throws -- the house trap, and it would have failed the settle
      * itself rather than just the forecast.
      */
-    const {
-      id,
-      forecast_claim,
-      forecast_how_we_will_know,
-      forecast_horizon_date,
-      ...rest
-    } = data;
+    const { id, forecast_claim, forecast_how_we_will_know, forecast_horizon_date, ...rest } = data;
     const forecast =
       forecast_claim || forecast_how_we_will_know || forecast_horizon_date
         ? { forecast_claim, forecast_how_we_will_know, forecast_horizon_date }
@@ -4201,5 +4195,3 @@ export const prdAssist = createServerFn({ method: "POST" })
     });
     return { text: result.output };
   });
-
-
