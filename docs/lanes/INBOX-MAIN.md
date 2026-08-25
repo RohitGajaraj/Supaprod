@@ -63,7 +63,7 @@
    `cl.reason = 'debit'` (the fixed migration), the three −10,264 reset rows are still inside
    the 7-day window, and the fix is actively preventing an 8-run (11%) understatement on
    `164e0692` today. Zero-divergence on Helio. Every query recorded in
-   `docs/operations/runway-verification-2026-08-25.md`. Render `RunwaySection` with confidence.
+   `docs/operations/runway-verification.md`. Render `RunwaySection` with confidence.
 2. **Deploy fired 08:3x.** Re-run when the preview SHA moves; item 34's cap rises to 24
    (queue #55) which makes the chaining case much easier to observe.
 3. **Confirmed live, and the premise needs one correction:** there are no per-user
