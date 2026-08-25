@@ -127,7 +127,17 @@ export function TrackActivity({ trackId }: { trackId: string }) {
   const ordered = [...turns].reverse();
 
   return (
-    <>
+    /*
+     * THE TRANSCRIPT IS A LOG, and that is a role rather than a decoration.
+     * This file polls every ten seconds, so without it every arrival was silent
+     * to a screen reader: 22 files in this repo poll or stream and none of the
+     * run surfaces carried a live region -- a screen-reader user could not use
+     * the one thing this product exists for. `role="log"` rather than a bare
+     * `aria-live` region for the reason ToolStream already argued: a log
+     * announces ADDITIONS only, so a transcript that grows long does not read
+     * the whole column out each time one entry lands.
+     */
+    <div role="log" aria-label="What the agents did, newest first">
       {ordered.map((t, i) => {
         // The handoff. Marked when the station changes from the turn that ran
         // BEFORE this one, which in this reversed list is the next element.
@@ -173,6 +183,6 @@ export function TrackActivity({ trackId }: { trackId: string }) {
           />
         );
       })}
-    </>
+    </div>
   );
 }

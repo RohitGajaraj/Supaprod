@@ -221,8 +221,15 @@ export function TrackRun({ trackId }: { trackId: string }) {
 
         {run.isError ? <Row lead="The walk could not start. Nothing was moved." /> : null}
 
+        {/*
+         * THE WALK RESULT IS A LIVE REGION. These rows do not exist until a
+         * mutation that can run for fifty seconds returns, which is the exact
+         * case a polite status region exists for: the person pressed a button,
+         * and what came back -- including "it stopped and is waiting on
+         * something" -- is said, not shown only.
+         */}
         {result ? (
-          <>
+          <div role="status" aria-live="polite">
             <Row
               lead={STOPPED_LINE[result.stopped]}
               sub={result.more ? "Run it again to continue." : undefined}
@@ -243,7 +250,7 @@ export function TrackRun({ trackId }: { trackId: string }) {
                 }
               />
             ))}
-          </>
+          </div>
         ) : null}
       </Region>
 
