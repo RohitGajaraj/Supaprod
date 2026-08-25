@@ -692,3 +692,47 @@ unindexed search. An `ok: true` from a stale cache. A `"committed"` over a visib
 comment asserting *"98 real rows"* about 98 seeded ones. **The stations reason well. What we hand them
 is what keeps failing** — and the only thing that caught any of it was checking the primary source
 instead of the summary.
+
+### LATE ADDENDUM — two findings after the handoff above was written
+
+**F-75 is the one to read first tomorrow, because it explains three months.**
+
+`STUDIO_AUTO_SHIP=1` was set in Lovable secrets and **has never done anything.**
+
+```
+TOOL_DEFAULTS["studio.pr.merge"].mode = "review"
+resolveApprovalMode -> if (toolMode === "review") return "review"   trust.server.ts:226
+                       ^ BEFORE AUTO_SHIP_ENABLED is read
+mode = mergeReleased ? released : "review"   ->  "review" either way
+```
+
+`agent_tools` holds **zero override rows**, so the seeded value is the only value there has ever
+been. **Every run in this product's history stopped at Build and filed a merge approval no matter
+what the flag said.** The founder's configuration was correct; the code could not act on it.
+
+**It is the same defect as R-27's, in the one tool I deliberately left alone.** I fixed
+`release.publish` for exactly this reason at 10:53 and then wrote a guard asserting
+`studio.pr.merge` stays at `review` *"because the merge keeps its own switch"* — a sentence that was
+already false when I typed it, one line below the identical bug I was fixing. **Fixed by seeding
+`confirm`; safe in both flag states, and the three guard tests now check RESOLVED mode rather than the
+seeded literal, which is what would have caught it.**
+
+**F-74 — the floor held and the brief did not, measured on the same station hours apart.** At 15:00
+the builder staged `bun:test`, correctly. At 18:11 it staged `@testing-library/react` and CI failed on
+typecheck — **the first genuine code verdict this loop has ever received.** In that same pull request
+**F-63's mechanical floor held**: zero files touching `package.json`, `tsconfig` or `.github`, where
+five hours earlier the same station had disabled the type check under identical pressure. **The
+deterministic guard held twice; the probabilistic one held once.** `studio.stage` now refuses an
+import the manifest does not carry — narrow by design, and it passes everything when the manifest
+cannot be read, so a network hiccup can never look like a forbidden import.
+
+**What that leaves for tomorrow.** Both fixes are deployed and **neither has been observed working in
+the wild**: F-74 has not yet stopped a bad import on a live tick, and F-75's auto-merge has not yet
+fired. The chain from here is mechanical — Build commits, CI goes green, **the merge no longer needs a
+person**, the preview deploys, `release.publish` fires against R-27's five proofs, and Learn is
+reached for the first time. **Learn remains the one station never exercised**, so `learning.record`
+has never been called in anger and F-70's brain has never had anything real to hold.
+
+**The live track is `d1168015`** — `build`, `out-of-time` mid-crew, `attempts 0`, healthy and
+resumable. **Five of seven stations, every transition `sweep`, nine drives, zero presses.** A crew was
+mid-visit at 18:57. Do not press it; the sweep will carry it.
