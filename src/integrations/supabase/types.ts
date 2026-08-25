@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -7458,6 +7458,7 @@ export type Database = {
           driven_at: string | null
           entry_station: string
           id: string
+          last_driven_via: string | null
           last_hold: string | null
           origin: string | null
           path: Json
@@ -7468,6 +7469,7 @@ export type Database = {
           spend_cap_usd: number | null
           spend_used_usd: number
           station: string
+          station_drives: number
           status: string
           theme_id: string | null
           title: string
@@ -7482,6 +7484,7 @@ export type Database = {
           driven_at?: string | null
           entry_station?: string
           id?: string
+          last_driven_via?: string | null
           last_hold?: string | null
           origin?: string | null
           path?: Json
@@ -7492,6 +7495,7 @@ export type Database = {
           spend_cap_usd?: number | null
           spend_used_usd?: number
           station?: string
+          station_drives?: number
           status?: string
           theme_id?: string | null
           title: string
@@ -7506,6 +7510,7 @@ export type Database = {
           driven_at?: string | null
           entry_station?: string
           id?: string
+          last_driven_via?: string | null
           last_hold?: string | null
           origin?: string | null
           path?: Json
@@ -7516,6 +7521,7 @@ export type Database = {
           spend_cap_usd?: number | null
           spend_used_usd?: number
           station?: string
+          station_drives?: number
           status?: string
           theme_id?: string | null
           title?: string
@@ -7538,6 +7544,7 @@ export type Database = {
         Row: {
           actor: string
           at: string
+          driven_via: string | null
           entity_id: string
           entity_type: string
           from_stage: string | null
@@ -7549,6 +7556,7 @@ export type Database = {
         Insert: {
           actor?: string
           at?: string
+          driven_via?: string | null
           entity_id: string
           entity_type: string
           from_stage?: string | null
@@ -7560,6 +7568,7 @@ export type Database = {
         Update: {
           actor?: string
           at?: string
+          driven_via?: string | null
           entity_id?: string
           entity_type?: string
           from_stage?: string | null
@@ -8347,6 +8356,41 @@ export type Database = {
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      track_drives: {
+        Row: {
+          at: string
+          driven_via: string
+          entry_hold: string | null
+          id: string
+          station: string
+          track_id: string
+        }
+        Insert: {
+          at?: string
+          driven_via: string
+          entry_hold?: string | null
+          id?: string
+          station: string
+          track_id: string
+        }
+        Update: {
+          at?: string
+          driven_via?: string
+          entry_hold?: string | null
+          id?: string
+          station?: string
+          track_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "track_drives_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "spine_tracks"
             referencedColumns: ["id"]
           },
         ]
@@ -9725,6 +9769,16 @@ export type Database = {
         Returns: {
           id: string
           token: string
+        }[]
+      }
+      credit_runway: {
+        Args: { for_account: string; window_days?: number }
+        Returns: {
+          credits_per_run: number
+          credits_spent_in_window: number
+          runs_in_window: number
+          runs_left: number
+          spendable_credits: number
         }[]
       }
       credits_enabled: { Args: never; Returns: boolean }
