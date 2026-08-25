@@ -84,3 +84,20 @@ Written under the context shift. No past work is protected; corrections included
 
 - `026` Unknown-agent holds → ROOT CAUSE was an RLS policy hiding null-workspace agent rows from their owners (R026, FIXED by MAIN); my front-door re-test confirmed stations run past Discover.
 - `027` out-of-time mutes auto-continue (above).
+
+---
+
+## LANE 1 STATUS AFTER AUDIT.md / PRODUCT-TRUTH.md (2026-08-25)
+
+Both files read. Acknowledged: loop walked sense→decide→define unaided on
+`48eee889`; the deciding variable is grounded evidence, not code.
+
+**LANE 1's next build = AUDIT MISSING #1, agent presence** (live who-is-working-
+on-what, in Meridian) — awaiting the Phase 3 spec line in the rewritten queue.
+Existing halves I own and will extend: AppFrame live-line/`liveTarget` (units
+056/064) already surfaces moving runs one click away; the workbench header shows
+Now/Next from the row.
+
+Also acknowledged from AUDIT BROKEN: harbor's GitHub binding exists but is
+UNTESTED — first act of the next acceptance re-run is exercising it with a
+grounded sentence per R024-025-022's ANSWERS §2 guidance.

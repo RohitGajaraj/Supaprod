@@ -92,7 +92,8 @@ while IFS= read -r mdfile; do
   # output is excluded for the same reason: it is rewritten on every build.
 done < <(find . \( -path ./node_modules -o -path ./.git -o -path ./dist -o -path ./.venv \
                    -o -path ./.agents -o -path ./.claude -o -path ./.kiro -o -path ./.gemini \
-                   -o -path ./.conductor -o -path ./graphify-out -o -path ./.remember \) -prune \
+                   -o -path ./.conductor -o -path ./.context \
+                   -o -path ./graphify-out -o -path ./.remember \) -prune \
                 -o -name '*.md' -print 2>/dev/null)
 if [ -n "$BROKEN_LIST" ]; then
   LIVE="$(printf '%s' "$BROKEN_LIST" | grep -v '/archive/' || true)"
@@ -114,12 +115,18 @@ fi
 # served by banning them on a DATED RECORD of a specific event, where the date is
 # the file's identity and removing it causes collisions: a founder verdict given on
 # one day, an applied design record in a series, an archived session report.
+# `.context/` joins that prune list 2026-08-25: it is Conductor's per-workspace
+# agent scratch directory, gitignored (`.git/info/exclude`), and it holds the plan
+# file the harness writes for every session. It is plugin state by the paragraph
+# above, and leaving it in scope failed this gate for every agent in a Conductor
+# workspace over a file none of them chose the name of.
 # So: generated output and plugin state are out of scope, dated records are allowed
 # by folder or by name, and everything else must carry its date in the header only.
 echo "-- [6] dates in the filenames of LIVING docs (the date belongs in the header) --"
 DATED="$(find . \
   \( -path ./node_modules -o -path ./.git -o -path ./dist -o -path ./.venv \
      -o -path ./.remember -o -path ./graphify-out -o -path ./.claude \
+     -o -path ./.conductor -o -path ./.context \
      -o -path '*/archive/*' -o -path '*/applied/*' \) -prune \
   -o -name '*[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]*.md' -print 2>/dev/null \
   | grep -v -E 'FOUNDER-VERDICT-|/docs/pitch/repositioning-' || true)"

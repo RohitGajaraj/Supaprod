@@ -755,11 +755,140 @@ waiver.** REQ-2 asked for three lines; it was six, in three files, plus five tes
 
 ---
 
+## R-27 · The production deploy is gated by PROOF, not by a click — 2026-08-25
+
+**Delegated by the founder, 13:5x IST, answering my ask on F-18:** *"On item number three, you make
+the right decision and the right call on what needs to be done. It should not be a shortcut-taking
+mechanism just to solve today's problem. It should be to build the right thing from a platform
+perspective. That is what I wanted you to do. You decide what it is."*
+
+**So the first thing this ruling does is REFUSE option (b) as it was written on the OPEN list** — *"a
+flag like `AUTO_SHIP_ENABLED` lets `release.publish` run unattended in a named proof workspace only"*.
+That is a backdoor with a demo's name on it. It is the first thing an enterprise security review
+finds, and it would make the acceptance run prove something no customer could ever reproduce. **A
+proof that requires an exemption is not a proof of the product.**
+
+### What the original ruling was actually protecting
+
+Not *"a human must click."* It was: **an irreversible, customer-visible act must not happen on an
+agent's judgement alone.** A click is one way to satisfy that and it is the weakest one available.
+This product has already measured what its own approval gates are worth:
+
+> **90 `cluster.trigger` approvals raised since July — 42 cancelled, 38 expired, 10 pending, ZERO
+> ever approved** (R-04's evidence).
+
+**A gate nobody answers is not governance. It is a stall wearing governance as a costume**, and it is
+exactly how a run reaches Ship, holds `waiting-on-a-person`, and dies there while the product's whole
+claim is that it runs while nobody watches.
+
+### The precedent that makes a different answer available, and it is the founder's own
+
+`studio.pr.merge` **already refuses on mechanical proof, with no human involved.**
+`registry.server.ts:2810` — *"J2 — CI-green merge gate. `studio.pr.merge` is review-gated, but we
+also enforce it in-tool... Read fresh so we never merge on a stale green."* With `STUDIO_AUTO_SHIP=1`
+set — **which the founder confirmed is live today** — the loop merges to a default branch unattended
+after proving CI is green at that exact head sha.
+
+Now count what `release.publish` has to prove: the changeset is **merged**, *and* a **successful Deno
+preview exists at that same commit** (`deployments.functions.ts:808-895`).
+
+**The act with the WEAKER proof runs unattended. The act with the STRONGER proof waits for a person
+who answers 0% of the time.** That asymmetry is not defensible on the facts, and it is the whole
+argument.
+
+### The governance inversion nobody had named, and it is live right now
+
+`HIGH_RISK_FORCE_REVIEW` holds `studio.pr.merge`, `studio.revert`, `delegate.openhands`,
+`release.publish`. `AUTO_SHIP_ENABLED` un-pins **only the merge**. So **as of today, with the flag on,
+the product can merge to a default branch by itself and cannot revert by itself.**
+
+**The undo is gated harder than the do.** When something goes wrong at 3am the loop cannot fix it and
+must page a person — the exact failure the gate exists to prevent. **Any deploy autonomy that does
+not also free the rollback is strictly worse than no autonomy at all**, and that is true of the
+configuration running today, before this ruling changes anything.
+
+### THE RULING
+
+**`release.publish` stops being pinned to a click and becomes the one tool whose autonomy is decided
+by a standing human decision plus preconditions the loop must PROVE. Default OFF everywhere. Nothing
+changes for any workspace that does not turn it on.**
+
+1. **The person decides ONCE, per workspace, in advance, explicitly** — never once per deploy.
+   `workspaces.autonomous_ship_enabled`, `NOT NULL DEFAULT false`. Per **R-22**, an absent value
+   resolves to the SAFE reading, and here that is *off*. The decision is stored with **who made it
+   and when**, because a standing permission with no audit row is not an enterprise control — it is
+   a setting.
+
+2. **When it is on, the loop must still PROVE the deploy before it may make it.** Three of these are
+   already enforced and are being named as one contract instead of scattered preconditions; the
+   fourth is new and is the point of the ruling:
+   - the changeset is **merged** *(enforced today)*
+   - **CI was green at that head sha**, read fresh *(enforced today, at the merge)*
+   - a **successful preview deploy exists at that exact commit**, with a URL a person can open
+     *(enforced today)*
+   - **the work carries a forecast** — a claim and a horizon, recorded at Decide before the outcome
+     was known **(NEW)**
+
+3. **The fourth condition is ours and nobody else's, and it is why this is a platform answer rather
+   than a loosened gate.** `decision.record` already refuses a decision with no forecast, so every
+   track that walks the route carries one. Making it a **precondition of shipping** says: *the loop
+   may ship on its own only work it can be graded on later.* **A change nobody can grade cannot ship
+   itself.** That is a strictly stronger gate than a click — a click proves nothing about the change,
+   and this proves the change is answerable. It is also the product's own moat artifact doing safety
+   work, which no competitor's deploy gate can copy without first capturing forecasts at decision
+   time.
+
+4. **The undo is freed with the do, and that is what makes it defensible.** `studio.revert` follows
+   the same standing decision. A rollback to a known-good commit is the definition of a reversible
+   act, and a product that can ship by itself and not roll back by itself has built a trap.
+
+5. **It says what it did, on the run, in one place** — the commit, the preview URL that was proven,
+   the production URL, **the forecast it is now on the hook for and when that comes due**, and the
+   revert control. Not an email. Item 29's lesson is exactly this: `gate_credit_low_runway` fired
+   three hours before the account emptied, went to `ai_events` and an email, and the product stopped
+   dead with nobody having seen it coming.
+
+6. **A precondition that fails queues an approval exactly as today, NAMING WHICH ONE FAILED.** Per
+   **R-16**, a failure that does not say what failed is not a failure report. So the gate never
+   silently disappears — it converts from *always* to *when the proof is missing*.
+
+7. **Fail closed on an unreadable link.** If the chain from changeset to decision cannot be read, the
+   forecast is treated as ABSENT and the publish queues. R-22's generalisation: when an absent value
+   and a chosen value share one representation, the absent one resolves to the safe reading. A guard
+   that cannot read its evidence must not be the thing that lets work through — the same sentence
+   `didStationProduce` is built on.
+
+### What this is honestly WEAKER at, stated before anyone finds it
+
+- **It trusts CI more.** If a repo's checks are thin, "green" means less than it sounds. That is
+  already true of the merge the founder automated, so this does not add the exposure — but it
+  concentrates it at the irreversible step.
+- **The first autonomous production deploy is a real one.** Not a rehearsal. Bounded by the preview
+  being proven at the same commit and by the revert being free, and still real.
+- **`delegate.openhands` stays pinned.** Handing work to a third-party agent is a different act from
+  deploying our own reviewed change, and nothing here touches it.
+- **It does not make Ship reachable on its own.** F-50 — no station brief names `studio.checks.run`
+  or `studio.pr.merge`, and Build is told *"do not merge it yourself"* — still has to be fixed, and
+  harbor's workspace still has to point at a repo the hosting path recognises (F-49).
+
+### Reversing it costs one line
+
+`UPDATE workspaces SET autonomous_ship_enabled = false`, or delete the branch in `resolveToolMode`.
+The floor returns to exactly today's behaviour everywhere. **That is the whole trade and it is the
+only thing this ruling decides.**
+
+**Enabled on harbor's rehearsal workspace only** — `60000000-…`, throwaway account, throwaway repo,
+no customer — and on nothing else. Flagged for the founder's review: if he disagrees with any of the
+seven clauses, the clause changes rather than the question re-opening.
+
+
+---
+
 ## Open, and I have not ruled yet
 
 | Question | Why it is still open |
 | --- | --- |
-| **Does the acceptance permit ONE human approval at Ship?** **This is the biggest open question in the mission and nothing else names it.** The acceptance says *no human touching it mid-run*. `release.publish` is pinned to `review`, can never graduate (`nextRampMode` returns null), and is queued as an approval instead of run — **by your own ruling, whose stated reason is that it is "the only gate in the seven-station loop, which is what makes the autonomy of the other six defensible instead of reckless."** Both positions are yours and they cannot both hold. **Three options, and I will not pick between them:** (a) the acceptance becomes *no human except one approval at the irreversible step*, and the run pauses once at Ship — the honest enterprise story, and arguably a stronger one; (b) a flag like the existing `AUTO_SHIP_ENABLED` lets `release.publish` run unattended in a named proof workspace only, keeping the floor everywhere else; (c) the proof run waives Ship, which is weaker because it is no longer seven stations. **CORRECTED 2026-08-25 03:3x UTC — that last sentence was wrong when I wrote it.** I said this decision blocks exactly one station and nothing else. **Answering it does not make Ship reachable**, because `release.publish` refuses on a precondition before the approval gate is even the binding constraint: `if ((cs.status) !== "merged") throw new Error("Only a merged changeset can promote. Merge the PR first.")`, and then it needs a `deployments` row with `status='success'` and `provider='deno'`. **The loop can produce neither.** Build's only filing instruction is `Call studio.stage`; `studio.commit` appears **0 times in `driver.ts`**. **CORRECTED — I first wrote "nothing merges a PR" and that was wrong**: the full chain exists (`studio.stage` -> `studio.commit` -> `studio.pr.open` -> `studio.checks.run` -> `studio.pr.merge` -> `release.publish`) and **Build is briefed on step one of six**. **The part that changes YOUR decision:** `studio.pr.merge` is also in `HIGH_RISK_FORCE_REVIEW`, so the reason you gave for pinning `release.publish` — that it is *"the only gate in the seven-station loop"* — **holds only because the loop cannot reach the other gate.** Wiring Build through to Ship puts **two** human gates in the path, not one. Workspace `0b792d52` holds **0 deployments and 0 merged changesets**. **So there are three missing steps between Build and Ship — a commit, a merge, and a recorded preview deploy — and no station is crewed for any of them.** That is ledger **F-36**, it is mine, and it is queued as 41. **Your F-18 decision is still needed and is still yours; it is just no longer sufficient on its own.** See ledger F-18 and F-36 |
+| ~~**Does the acceptance permit ONE human approval at Ship?**~~ **ANSWERED 2026-08-25 — the founder delegated it to MAIN and it is ruled as R-27 above, which REFUSES the option (b) this row proposed.** Kept for the reasoning, which R-27 argues against directly. Original text follows. **Does the acceptance permit ONE human approval at Ship?** **This is the biggest open question in the mission and nothing else names it.** The acceptance says *no human touching it mid-run*. `release.publish` is pinned to `review`, can never graduate (`nextRampMode` returns null), and is queued as an approval instead of run — **by your own ruling, whose stated reason is that it is "the only gate in the seven-station loop, which is what makes the autonomy of the other six defensible instead of reckless."** Both positions are yours and they cannot both hold. **Three options, and I will not pick between them:** (a) the acceptance becomes *no human except one approval at the irreversible step*, and the run pauses once at Ship — the honest enterprise story, and arguably a stronger one; (b) a flag like the existing `AUTO_SHIP_ENABLED` lets `release.publish` run unattended in a named proof workspace only, keeping the floor everywhere else; (c) the proof run waives Ship, which is weaker because it is no longer seven stations. **CORRECTED 2026-08-25 03:3x UTC — that last sentence was wrong when I wrote it.** I said this decision blocks exactly one station and nothing else. **Answering it does not make Ship reachable**, because `release.publish` refuses on a precondition before the approval gate is even the binding constraint: `if ((cs.status) !== "merged") throw new Error("Only a merged changeset can promote. Merge the PR first.")`, and then it needs a `deployments` row with `status='success'` and `provider='deno'`. **The loop can produce neither.** Build's only filing instruction is `Call studio.stage`; `studio.commit` appears **0 times in `driver.ts`**. **CORRECTED — I first wrote "nothing merges a PR" and that was wrong**: the full chain exists (`studio.stage` -> `studio.commit` -> `studio.pr.open` -> `studio.checks.run` -> `studio.pr.merge` -> `release.publish`) and **Build is briefed on step one of six**. **The part that changes YOUR decision:** `studio.pr.merge` is also in `HIGH_RISK_FORCE_REVIEW`, so the reason you gave for pinning `release.publish` — that it is *"the only gate in the seven-station loop"* — **holds only because the loop cannot reach the other gate.** Wiring Build through to Ship puts **two** human gates in the path, not one. Workspace `0b792d52` holds **0 deployments and 0 merged changesets**. **So there are three missing steps between Build and Ship — a commit, a merge, and a recorded preview deploy — and no station is crewed for any of them.** That is ledger **F-36**, it is mine, and it is queued as 41. **Your F-18 decision is still needed and is still yours; it is just no longer sufficient on its own.** See ledger F-18 and F-36 |
 | **Do we switch evidence ingestion on at all?** **The product's first station has never once worked in production, and nobody knew.** `scout_targets` is **0 in 21 of 21 workspaces**, `scout_snapshots` is **0 rows ever**, and `scout_runs` stopped on **2026-07-25** after 98 runs that captured nothing. It is off three times over, each sufficient alone: `FIRECRAWL_API_KEY` is absent, so `scout-tick.ts:78` returns `{ok: true, skipped: true}` — **a dormant pipeline reporting SUCCESS to pg_cron, which is why a month passed unnoticed**; `auto_scout_enabled` is **false in all 21 workspaces**; and `workspace_briefs` is empty in 13 of 21, so even seeding would no-op. **This is the root of every decline tonight.** Agents were told to gather evidence from a pipeline that has never delivered any, correctly reported there was none, and their honest reports hardened into 144 standing prohibitions (F-31). **I am not switching it on**: a Firecrawl key plus `auto_scout_enabled` starts paid crawling against real sites, which is a billing and external-calls decision and squarely the class you said to leave. **What I need from you is one of:** (a) provide a key and enable it for the one proof workspace; (b) accept that the acceptance run is fed by hand-filed signals and say so in the record, which makes *"starts from one sentence, zero configuration"* false as written; (c) rule that Decide may proceed on the founder's sentence alone when ingestion is dormant — which F-32 already half-does and which deserves your name on it rather than mine. See ledger F-38 and F-37 **UPDATE 2026-08-25 13:3x — option (b) is not hypothetical.** `AUTO_SHIP_ENABLED` exists and is wired: `loop.server.ts:175` resolves `studio.pr.merge` to `confirm` rather than `review` when it is set. So the named-proof-workspace flag you were offered as a hypothetical is **already the mechanism for the merge gate**, and extending the same shape to `release.publish` is a smaller change than option (b) was described as. Found while correcting my own claim that `updateToolMode` was a governance bypass — it was not; the runtime re-applies every floor. See ledger F-48. |
 | **Does the forecast become a required field on the human decision path?** | All 14 forecasts are agent-authored; **zero human-authored decisions carry one**, while the positioning says *what a team believed*. Either it becomes required server-side, or the claim is restated as *what the agent predicted* — a weaker, different product. **This is a founder call, not mine.** |
 | **How are we different from Cloverpop?** | Eleven years, $12.6M, selling "capture every decision, track how results compare with expectations". Not named anywhere in our corpus. No answer exists yet. |
