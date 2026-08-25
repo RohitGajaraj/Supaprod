@@ -393,6 +393,23 @@ export type WorkspaceExport = {
   tasks: JsonObject[];
   learnings: JsonObject[];
   memory: JsonObject[];
+  /**
+   * The decision record, with all eleven `forecast_*` columns.
+   *
+   * WITHOUT IT `learnings` ABOVE IS A VERDICT ON A PREDICTION NOBODY CAN READ.
+   * This export shipped for months carrying the outcome and not the forecast it
+   * graded, so the one question the product exists to answer — *what did we
+   * expect, and what actually happened* — could not be answered from a person's
+   * own exported data.
+   */
+  decisions: JsonObject[];
+  /** The piece of work itself, and what each station produced, in order. */
+  tracks: JsonObject[];
+  track_members: JsonObject[];
+  themes: JsonObject[];
+  prototypes: JsonObject[];
+  changesets: JsonObject[];
+  deployments: JsonObject[];
 };
 
 export const exportWorkspace = createServerFn({ method: "GET" })
@@ -432,6 +449,13 @@ export const exportWorkspace = createServerFn({ method: "GET" })
         tasks: [],
         learnings: [],
         memory: [],
+        decisions: [],
+        tracks: [],
+        track_members: [],
+        themes: [],
+        prototypes: [],
+        changesets: [],
+        deployments: [],
       };
     }
 
@@ -474,6 +498,64 @@ export const exportWorkspace = createServerFn({ method: "GET" })
     const lrn = learnings.data ?? [];
     const mem = memory.data ?? [];
 
+    /*
+     * THE DECISION RECORD AND THE WORK, WHICH THIS EXPORT LEFT OUT ENTIRELY.
+     *
+     * Measured 2026-08-25: this handler read eight tables and `decisions` was
+     * not one of them, while `learnings` WAS. So a customer taking their data
+     * out received **the verdict without the forecast it graded** -- and the
+     * export could not reconstruct *what was predicted against what actually
+     * happened*, which is the sentence this product sells. `decisions` carries
+     * all eleven `forecast_*` columns; nothing else does.
+     *
+     * The WORK was missing too. `spine_tracks` is the object that walks the
+     * seven stations and `spine_track_members` is the only record of what each
+     * station produced, so an export without them hands somebody a pile of
+     * artifacts with no account of which piece of work they belong to or in what
+     * order they were made.
+     *
+     * `themes`, `prototypes`, `studio_changesets` and `deployments` complete the
+     * chain: the cluster the work came from, the surface designed, the change
+     * staged, and where it went.
+     *
+     * WORKSPACE-SCOPED, NOT USER-SCOPED, because that is how these tables are
+     * tenanted -- and `spine_track_members` has no `workspace_id` of its own, so
+     * it is fetched by the track ids already resolved rather than by a guess.
+     *
+     * `security.tsx` and `privacy.tsx` both promise export in open formats. The
+     * promise was kept and the contents were not.
+     */
+    const [decisions, tracks, themes, prototypes, changesets, deployments] = await Promise.all([
+      supabase.from("decisions").select("*").eq("workspace_id", workspaceId),
+      supabase.from("spine_tracks").select("*").eq("workspace_id", workspaceId),
+      supabase.from("themes").select("*").eq("workspace_id", workspaceId),
+      supabase.from("prototypes").select("*").eq("workspace_id", workspaceId),
+      supabase.from("studio_changesets").select("*").eq("user_id", userId),
+      supabase.from("deployments").select("*").eq("user_id", userId),
+    ]);
+    /*
+     * A TABLE THIS DEPLOYMENT DOES NOT HAVE MUST NOT EMPTY THE WHOLE EXPORT.
+     * The reads above throw on error because those tables are load-bearing and
+     * older than the spine; these are newer, and a person asking for their data
+     * during a migration window should get everything that exists rather than a
+     * failure. Each falls back to [] and the count says what actually came back.
+     */
+    const dec = decisions.data ?? [];
+    const trk2 = tracks.data ?? [];
+    const thm = themes.data ?? [];
+    const pro = prototypes.data ?? [];
+    const chg = changesets.data ?? [];
+    const dep = deployments.data ?? [];
+
+    // Members are keyed by track, and the table carries no workspace column.
+    const trackIds = (trk2 as Array<{ id?: string }>)
+      .map((t) => t.id)
+      .filter((i): i is string => !!i);
+    const members = trackIds.length
+      ? await supabase.from("spine_track_members").select("*").in("track_id", trackIds)
+      : { data: [], error: null };
+    const mem2 = members.data ?? [];
+
     // U6 selective export: when `sections` is given, include only those; an
     // empty or absent list means everything (the unchanged default).
     const want = (s: string) =>
@@ -486,6 +568,13 @@ export const exportWorkspace = createServerFn({ method: "GET" })
     if (want("tasks")) counts.tasks = tsk.length;
     if (want("learnings")) counts.learnings = lrn.length;
     if (want("memory")) counts.memory = mem.length;
+    if (want("decisions")) counts.decisions = dec.length;
+    if (want("tracks")) counts.tracks = trk2.length;
+    if (want("track_members")) counts.track_members = mem2.length;
+    if (want("themes")) counts.themes = thm.length;
+    if (want("prototypes")) counts.prototypes = pro.length;
+    if (want("changesets")) counts.changesets = chg.length;
+    if (want("deployments")) counts.deployments = dep.length;
 
     await recordExport(supabase as unknown as SupabaseClient, {
       workspace_id: workspaceId,
@@ -507,6 +596,16 @@ export const exportWorkspace = createServerFn({ method: "GET" })
       tasks: want("tasks") ? tsk : [],
       learnings: want("learnings") ? lrn : [],
       memory: want("memory") ? mem : [],
+      // The decision record. Carries every `forecast_*` column, and without it
+      // `learnings` above is a verdict on a prediction nobody can read.
+      decisions: want("decisions") ? dec : [],
+      // The work itself, and what each station produced, in order.
+      tracks: want("tracks") ? trk2 : [],
+      track_members: want("track_members") ? mem2 : [],
+      themes: want("themes") ? thm : [],
+      prototypes: want("prototypes") ? pro : [],
+      changesets: want("changesets") ? chg : [],
+      deployments: want("deployments") ? dep : [],
     };
   });
 
