@@ -1708,3 +1708,83 @@ by my 06:45 intervention, and prediction 3 stands: `relay-homeowner-app` carries
 `supaprod.json` nor `cadence.json`, so `ci-poll-tick` will not build a preview and `release.publish`
 will refuse. **Zero of six criteria are met. This is the furthest any track has gone and that is not
 the same thing.**
+
+---
+
+## Round 7 — the setup, the subject and the ceiling, all recorded BEFORE it starts
+
+**Nothing is running yet.** This section exists so that no part of Round 7's result has to be
+adjudicated after the fact. Everything below was written while the track did not exist.
+
+### What changed since Round 6, and who did it
+
+| | Round 6 | Round 7 |
+| --- | --- | --- |
+| Bound repo | `relay-homeowner-app` — no marker file, a Bun/React app | **`helio-prism-build`** — scaffolded from `renderStarterTemplate`, `supaprod.json` at root, `Deno.serve` main.ts (Session A, queue 58) |
+| Preview deploy | impossible (F-49) | **possible** — `isSupaprodManaged` returns true on the first GET |
+| Ship gate | `release.publish` pinned to `review` | **R-27**: standing per-workspace decision + four proof preconditions |
+| Build brief | wrote against libraries the repo did not have (F-56) | told to match the repo's manifest and that it cannot add a dependency |
+| Checking seat | read the default branch, could not see the work (F-54) | told the branch and which argument to pass it as |
+| Criterion 2 | **unprovable** (F-55) | `driven_via` on every transition, `last_driven_via` on the track |
+
+**Setup performed before the run, and it is setup rather than intervention** — the same class as
+connecting GitHub, done while no track existed:
+
+```sql
+UPDATE public.workspaces SET autonomous_ship_enabled = true, autonomous_ship_enabled_at = now()
+ WHERE id = '60000000-0000-4000-8000-000000000000';
+-- Helio Labs | true | 2026-08-25 10:16:11.75235+00 | _by NULL
+
+SELECT count(*), count(*) FILTER (WHERE autonomous_ship_enabled) FROM workspaces;  -- 21 | 1
+```
+
+`autonomous_ship_enabled_by` is deliberately **NULL**, and the column's own comment says what that
+means: *"a direct database write rather than a decision made in the product."* There is no surface
+for this yet, and the decision was the founder's delegated to MAIN rather than harbor's own. **The
+record should say so rather than name a user who did not decide it.**
+
+### The subject, chosen against the workspace's evidence and not against the repo
+
+**Round 5's mistake, in its own words, was choosing a sentence to suit the repo rather than the
+evidence.** So:
+
+```sql
+SELECT s.source, s.created_at::date, left(s.content, 90) FROM signals s
+ WHERE s.workspace_id = '60000000-…' AND s.source <> 'agent' AND s.theme_id IN (…);
+-- analytics dashboard    | 2026-08-11 | "41 percent of abandonments happened on the
+--                                        redundant address re-confirm screen."
+-- session replay archive | 2026-08-11 | "Session replays showed people re-typing an
+--                                        address they had entered two screens earlier."
+```
+
+> **"Homeowners abandon checkout on the address screen because we ask them to type an address they
+> already gave us."**
+
+**Four non-agent signals, quantified, source-attributed, 14 days old.** It has a number Learn can
+grade against (41%), a surface Design can draw, and it builds standalone into a Deno starter — which
+matters under F-56, because `deno.json` and `main_test.ts` give the builder a real toolchain to match
+rather than a blank slate to guess at.
+
+### THE CEILING, DECLARED NOW
+
+**Six of the four gates that stopped Round 6 are closed. What is left, honestly:**
+
+1. **Whether App installation `142608030` covers `helio-prism-build` is UNKNOWN.** Neither session
+   could verify it — `gh api /user/installations/…/repositories` returns 403 without app auth, and
+   **neither of us will run `gh auth refresh` to widen the founder's token scopes without asking
+   him.** If the installation is scoped to selected repositories, Build 401s. **R-26 then fires for
+   the first time ever** — `tools-refused`, no attempt burned, terminal for the sweep — which is a
+   clean result rather than a stall, and is itself worth the round.
+2. **CI must go green on generated code**, in a repo whose CI the loop has never run against.
+   F-56 makes that possible; it does not make it certain.
+3. **`release.publish` must clear all four R-27 preconditions**, including the fourth — the work must
+   carry a forecast. Decide writes one, so this should hold; it has never been exercised.
+
+**So the honest ceiling is 7 of 7 for the first time — and the probability is not high.** What is
+different is that every remaining wall is now a wall we can name in advance rather than one the run
+discovers. **Zero of six acceptance criteria are met as this is written.**
+
+### What would disqualify it, stated in advance
+
+Any deploy while it walks · any DB edit to the track · any hand-stopping of competing tracks · any
+re-drive by hand. **If it stalls, that is the result**, exactly as Round 3's stall was the result.
