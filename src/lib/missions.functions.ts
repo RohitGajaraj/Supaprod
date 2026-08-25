@@ -139,6 +139,20 @@ export type MissionListRow = {
    */
   current_agent_slug: string | null;
   /**
+   * The track this mission's work belongs to, when a run recorded one.
+   *
+   * REQ-023. `missions` has NO `track_id` column — asking for one there returns
+   * 42703 and takes the whole read down — so the link lives on the run and is
+   * carried up here, because the shell-facing type IS the contract and AppFrame
+   * cannot read a column this row does not name.
+   *
+   * THREE HONEST STATES, and the null is not a failure: a live line opens
+   * `/track/:trackId` when the run knew its track, falls back to the mission
+   * door when it did not (runs that predate the loop), and falls back again to
+   * `driven_at` freshness when the mission has never run at all.
+   */
+  trackId: string | null;
+  /**
    * WHAT THIS MISSION IS ACTUALLY DOING: the `sub_goal` of its in-flight step —
    * the sentence the planner wrote when it cut the goal into steps, e.g.
    * "Implement a /health JSON endpoint and a plain landing page in the starter
@@ -260,6 +274,10 @@ export const listMissions = createServerFn({ method: "GET" })
      * strip: the fact existed, the reader was looking in the wrong place.
      */
     const slugByMission = new Map<string, string>();
+    // REQ-023. Declared out here beside the slug rather than beside `missionByRun`,
+    // because the row map below is outside that block — the first attempt put it
+    // in the inner scope and tsc caught it at the read site.
+    const trackByMission = new Map<string, string>();
     /**
      * The sentence the mission is on, keyed by mission. Two maps rather than
      * one, because `running` must beat `dispatched` no matter which arrives
@@ -331,6 +349,19 @@ export const listMissions = createServerFn({ method: "GET" })
         // the last write per mission is its latest run. Reversing the order
         // here would silently pin every mission to its FIRST agent.
         if (r.agent_slug) slugByMission.set(r.mission_id, r.agent_slug);
+        /*
+         * REQ-023. Same last-non-null-wins rule as the slug directly above, and
+         * for the same reason: the runs arrive ascending by `created_at`, so the
+         * final write per mission is its most recent run that knew its track.
+         *
+         * NON-NULL rather than simply latest, deliberately. A mission's runs all
+         * serve one piece of work, so an older run that recorded the track is
+         * still telling the truth about which work this is, whereas a newer run
+         * that recorded none is only telling us it predates the link. Taking the
+         * newest value unconditionally would let a pre-loop run erase a good
+         * answer and send the reader back to the mission door for no gain.
+         */
+        if (r.track_id) trackByMission.set(r.mission_id, r.track_id);
       }
       const runIds = [...missionByRun.keys()];
       if (runIds.length) {
@@ -374,6 +405,7 @@ export const listMissions = createServerFn({ method: "GET" })
         steps: stepsByMission.get(m.id) ?? runsByMission.get(m.id) ?? [],
         cost_usd: costByMission.has(m.id) ? costByMission.get(m.id)! : null,
         current_agent_slug: slugByMission.get(m.id) ?? null,
+        trackId: trackByMission.get(m.id) ?? null,
         // `running` first, then `dispatched`, then nothing. Never a done step:
         // a finished sentence presented in the present tense is the same defect
         // as a fabricated one.
