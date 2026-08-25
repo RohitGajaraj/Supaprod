@@ -43,6 +43,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { TrackChain } from "@/components/spine/TrackChain";
 import { TrackActivity } from "@/components/spine/TrackActivity";
+import { Character } from "@/components/presence/Character";
 import { ArtifactPane } from "@/components/track/ArtifactPane";
 import { TrackConsent } from "@/components/track/TrackConsent";
 import { Action, Region } from "@/components/meridian/surface-parts";
@@ -348,12 +349,33 @@ export function TrackRun({
   return (
     <div className="flex flex-col gap-mrd-6">
       {/*
-       * THE QUESTION, ABOVE EVERYTHING. When the run needs a person it asks
-       * here, in place, with the consequence named (R-04) -- not in a queue
-       * somebody has to remember to visit. `onAnswered` hands the parent's
-       * drive mutation down, so an answer that releases the run picks the work
-       * straight back up; that chain IS the item, and a card without it is the
-       * approvals queue again.
+       * THE CHARACTER, FIRST (SPEC-PRESENCE.md §Anatomy). One worker fronts
+       * the crew; this block is where the person meets it. Every input below
+       * is a read this surface already holds -- the track row, the newest walk
+       * result, the mutation's own in-flight flag -- so the state is derived,
+       * never staged. When the run asks, the consent card directly below IS
+       * this character's voice; when a tool refuses, it says the door is
+       * locked rather than promising a retry (R-26).
+       */}
+      <Character
+        input={{
+          track: track
+            ? { status: track.status, holdReason: track.holdReason, drivenAt: track.drivenAt }
+            : null,
+          result: result ? { stopped: result.stopped, more: result.more } : null,
+          walking: run.isPending,
+          continuing,
+          feedDead: trackQ.isError,
+        }}
+      />
+
+      {/*
+       * THE QUESTION, ABOVE EVERYTHING ELSE. When the run needs a person it
+       * asks here, in place, with the consequence named (R-04) -- not in a
+       * queue somebody has to remember to visit. `onAnswered` hands the
+       * parent's drive mutation down, so an answer that releases the run picks
+       * the work straight back up; that chain IS the item, and a card without
+       * it is the approvals queue again.
        */}
       <TrackConsent trackId={trackId} onAnswered={() => run.mutate()} />
 

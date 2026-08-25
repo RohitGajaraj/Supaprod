@@ -88,19 +88,24 @@ preconditions at once: real evidence (231 signals), an unsuspended owner, a GitH
 **Track:** one sentence grounded in the evidence the workspace holds — Round 6
 ("notification fatigue") already proves `sense → define` advances on exactly this shape.
 
-**What stands between `define` and `learn`, in order:**
+**What stands between `define` and `learn` — CORRECTED the same day (ledger F-50), and it is
+shorter than first written:**
 
-1. **Test harbor's GitHub binding** — one `repo.tree` call. Cheap, decisive, never been done. (MAIN)
-2. **Brief Build through its own six-step chain** — `studio.commit → pr.open → checks.run →
-   pr.merge` (item 41). The tools all exist; no station brief names them. (MAIN, code)
-3. **The merge gate** — `AUTO_SHIP_ENABLED` already resolves `studio.pr.merge` to `confirm`; this
-   is founder option (b) **already built**. Needs the founder to say yes to setting it for the
-   proof workspace. (FOUNDER)
+1. **Test harbor's GitHub binding** — Round 6 walking into Build answers it for free; it is the
+   only untested link. (WATCH)
+2. ~~Brief Build through the chain~~ — **already done** (`45401fb2f`): Build is briefed
+   `studio.stage → commit → pr.open`. And ~~record a preview deploy~~ — **already automated**:
+   `ci-poll-tick` (active, every 2 min) polls CI, adopts merges made anywhere, and auto-deploys
+   the Deno preview for Supaprod-managed repos. First writing of this audit missed both.
+3. **The merge gate** — `AUTO_SHIP_ENABLED` already resolves `studio.pr.merge` to `confirm`;
+   founder option (b) **already built**. One word from the founder. (FOUNDER)
 4. **The Ship gate** — F-18's three options; option (b) is now the smallest step. (FOUNDER)
-5. **Record a preview deploy** on the merged changeset — the one genuinely missing mechanism
-   (`deployments` row with `provider='deno'`). Scope: smallest honest implementation. (MAIN)
-6. **Learn grades the forecast** — the calibrate-insights tick exists; wire `forecast_resolution`
-   for this track's decision (M-3). (MAIN)
+5. **One caveat to verify**: the preview auto-deploy covers Supaprod-managed repos only
+   (`supaprod.json` at root); whether harbor's `relay-homeowner-app` qualifies is untested. (MAIN)
+6. **Learn grades the forecast** — the grader existed all along and had NEVER processed a
+   workspace: `auto_derive_enabled` was false in 21 of 21 (ledger **F-49**, the seventh
+   built-but-switched-off). Flipped ON for harbor only, reversibly, 2026-08-25 09:2x; the tick
+   was fired through its own cron command. (DONE — verify the grade lands)
 
 **Evidence intake (F-38) is NOT on this critical path.** Harbor already holds real signals; the
 proof run reads them. Switching the scout on is a separate, founder-owned spend decision.

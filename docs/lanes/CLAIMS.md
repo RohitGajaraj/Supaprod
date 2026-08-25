@@ -15,5 +15,6 @@
 
 | Session | Files / area | What | Claimed (UTC) |
 | --- | --- | --- | --- |
-| A | `src/lib/presence/**`, `src/components/presence/**` | Queue 52–53, the character (SPEC-PRESENCE) | 2026-08-25 09:0x |
+| A | `src/lib/presence/**`, `src/components/presence/**` | Queue 52–53, the character (SPEC-PRESENCE) — CORE + COMPONENT SHIPPED, claim held for iteration | 2026-08-25 09:0x |
+| A | `src/components/track/TrackRun.tsx` (mount block only) | Character mounted at the top of the run — L0: your #55 `AUTO_MAX` edit is a different hunk, no conflict expected; pull first | 2026-08-25 09:3x |
 | A | `docs/AUDIT.md`, `docs/PRODUCT-TRUTH.md`, `docs/lanes/QUEUE-*.md`, `the-first-run/BUILD-QUEUE.md` | Standing director ownership | standing |
