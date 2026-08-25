@@ -62,6 +62,18 @@ export function BillingBanner() {
   );
   const balance = credits.data?.balanceCredits ?? null;
   const runningLow = shouldWarnLowCredits(!!credits.data?.enabled, balance, lowDismissed);
+  /*
+   * EXHAUSTED IS A DIFFERENT FACT FROM LOW, AND IT GETS ITS OWN LINE (queue
+   * item 29). The measured failure this closes: `gate_credit_low_runway` fired
+   * at 20:50 and by 23:4x the pool was empty and every run was blocked -- and
+   * nothing in the product said so, because the only line treated zero as
+   * "running low", sat under a session dismiss, and vanished exactly when it
+   * mattered. At zero there is nothing left to spend, so there is nothing to
+   * defer: this one is not dismissable, and it says what happened and what
+   * undoes it.
+   */
+  const exhausted =
+    !!credits.data?.enabled && balance !== null && balance <= 0 && !credits.isLoading;
 
   useEffect(() => {
     // Dormant payments = no subscriptions to dun. Skip entirely rather than
@@ -144,7 +156,31 @@ export function BillingBanner() {
           </button>
         </div>
       ) : null}
-      {!pastDue && runningLow ? (
+      {exhausted ? (
+        <div
+          data-mrd=""
+          className="flex w-full items-center justify-center gap-3 px-4 py-2 text-xs"
+          style={{
+            borderBottom: "1px solid color-mix(in oklab, var(--rose) 35%, transparent)",
+            background: "color-mix(in oklab, var(--rose) 10%, transparent)",
+            color: "var(--mrd-body)",
+          }}
+        >
+          <span>
+            The AI credits ran out, so agent runs have stopped. Top up and they start again from
+            where each one stopped.
+          </span>
+          <Link
+            to="/settings"
+            search={{ section: "credits" }}
+            className="rounded-[8px] px-2.5 py-1 font-medium hover:opacity-90"
+            style={{ background: "var(--rose)", color: "var(--destructive-foreground)" }}
+          >
+            Add credits
+          </Link>
+        </div>
+      ) : null}
+      {!exhausted && !pastDue && runningLow ? (
         <div
           data-mrd=""
           className="flex w-full items-center justify-center gap-3 px-4 py-1.5 text-xs"
