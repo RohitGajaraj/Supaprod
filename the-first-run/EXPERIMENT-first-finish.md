@@ -1299,3 +1299,53 @@ until its correction budget runs out.
 **R-26 fixes it** — `tools-refused` costs no attempt, triggers no correction, names the tool and its
 message, and is terminal for the sweep. It is committed and awaiting deploy; **the next Build failure
 on this track is the test of it.**
+
+---
+
+## Round 5 — a different workspace, because the last four were run in a suspended account's
+
+**Track `f558bc61-97ec-486f-9ce4-50c558c4bed8`**, started 2026-08-25 05:36:31 UTC.
+
+> *"Show the homeowner's phone number on the job card so crews stop opening two screens to find it."*
+
+`entry_station: sense` · `path: [sense, decide, define, design, build, ship, learn]` · `waived: []`.
+**All seven stations, nothing waived** — the first round run on a route that can satisfy the
+acceptance as written.
+
+### What changed, and it is not a code fix
+
+Rounds 1 to 4 all ran in workspace `0b792d52` ("My workspace"), owned by
+**`demo2@redcadence.app`, which is `suspended = true` and has ZERO GitHub connections.** That is the
+whole of F-39: `resolveGitHub` resolves *workspace binding → user connection → env*, and with neither
+of the first two it fell to the legacy `GITHUB_REPO` env var pointing at a repo nobody uses. **All
+nine 401s carry `user_id = 22a73000`.**
+
+This round runs in `60000000-0000-4000-8000-000000000000`, owned by **`harbor@supaprod.ai`** — the
+only unsuspended account with a GitHub connection AND a workspace binding, to
+`RohitGajaraj/relay-homeowner-app`. **Not one repo call has ever been made as harbor**, so this is
+also the first real test of whether that credential works.
+
+### THE PREDICTION, written before the first tick
+
+1. **Sense through Design should behave as they did in Round 4**, which walked those four stations
+   cleanly. Nothing about the workspace change touches them.
+2. **Build is the fork, and it is a genuine unknown.** If harbor's binding resolves and the App
+   installation `142608030` is still live, `repo.tree` returns `ok = true` and Build can stage — the
+   first time any station has reached the repo. If the installation was removed, harbor 401s exactly
+   as demo2 did, and **R-26 should now catch it and hold `tools-refused` rather than
+   `produced-nothing`** — which is itself the test of the fix that shipped and did not fire twice.
+3. **Ship still cannot complete** (F-36 + F-18): `release.publish` needs a merged changeset and a
+   recorded preview deploy, and both `studio.pr.merge` and `release.publish` are force-review.
+
+**So the honest ceiling for this round is 6 of 7**, and the thing worth watching is which of the two
+Build outcomes happens.
+
+### WHAT THIS ROUND CANNOT PROVE, stated before it runs rather than after
+
+The track was created with a SQL insert, not through `/start`. Every column came from the table's own
+defaults — the seven-station path is the schema default — so the ROUTE is honest, but **criterion 4
+("starts from one sentence, zero configuration") is NOT proven by this round.** It proves the loop,
+not the door. The door is LANE 1's `/start` and needs its own evidence.
+
+Criterion 2 is intact so far: nothing has been touched since the insert, and the intent is that
+nothing will be.
