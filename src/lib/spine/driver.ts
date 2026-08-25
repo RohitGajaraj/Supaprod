@@ -158,7 +158,43 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
   },
   // 05 Build
   builder: {
-    job: "Build to the spec and the design above. Stop at anything your boundary does not let you do alone.",
+    /*
+     * F-56. THE DEPENDENCY SENTENCE, AND IT IS NOT STYLE ADVICE.
+     *
+     * MEASURED ON PR #3, `RohitGajaraj/relay-homeowner-app`, 2026-08-25. The
+     * builder wrote 449 good lines — 316 of them tests, citing the spec's
+     * acceptance criteria by number — and opened the first pull request this
+     * product has ever produced. CI failed in **two seconds**, twice, and the
+     * release seat correctly refused to ship on it.
+     *
+     * The reason is one import:
+     *
+     *   import { render, screen, fireEvent } from '@testing-library/react';
+     *
+     *   gh api repos/…/contents/node_modules --jq '.[].name'
+     *   -> .bin  @types  bun-types  csstype  react  typescript  undici-types
+     *
+     * **Neither testing-library package is in `node_modules` or in
+     * `package.json`.** The workflow's lint step is literally `tsc --noEmit`, so
+     * it cannot resolve the module, and `bun install` will not fetch a package
+     * the manifest does not name. **An agent working in somebody else's
+     * repository cannot add a dependency**: nothing runs an install for it, and
+     * the merge gate proves CI green in-tool and refuses red — so a single
+     * unavailable import is the difference between a mergeable pull request and
+     * a station that can never hand on.
+     *
+     * IT COMPOUNDS RATHER THAN REPAIRS. `ci-poll-tick`'s bounded fix loop DID
+     * fire here (commit `bca88e8f`) and spent its budget repairing an unrelated
+     * pre-existing file, because a missing package is not something an appended
+     * patch can fix. The self-repair loop cannot reach this class at all.
+     *
+     * NAMED IN THE JOB, NOT IN `file`. This is a constraint on HOW the work is
+     * written, and by the time the filing instruction is read the code already
+     * exists. It also names the manifest by file rather than saying "check the
+     * dependencies", on `specId`'s precedent: an agent told to go and find
+     * something spends steps finding it.
+     */
+    job: "Build to the spec and the design above, using only what this repository already has. Read its manifest — package.json, deno.json or the equivalent — and its existing tests before you write any, and match the libraries and the test runner already in use. You cannot add a dependency: nothing installs one for you, and an import the repository cannot resolve fails its checks in seconds and stops the work here, however good the code is. If the spec genuinely cannot be built with what is present, say that plainly instead of importing something that is not. Stop at anything your boundary does not let you do alone.",
     // F-36. This said `studio.stage` and stopped there, and staging is one step
     // of six. `studio.commit` puts the work on an isolated `studio/*` branch and
     // is EXPLICITLY autonomous by founder ruling 2026-07-08 —
