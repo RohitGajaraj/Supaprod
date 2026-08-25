@@ -288,3 +288,54 @@ all in the observation workspace), which starved the sweep's 45s window and stal
 genuinely loop-driven track (`7977dc06`). This file was restored from `cf0f80086`; what
 remains true in the PHASE version — the live-visibility gap — is already the mission's own
 phase list and PRODUCT-TRUTH.md carries it.
+
+---
+
+## Session 2026-08-26 — PHASE 1 Verification Complete
+
+**Finding:** The claim in `docs/operations/session-handoff.md` line 73-74 ("Two tracks reached Learn station in prior session") is **FALSE**.
+
+**Verified query result:**
+```sql
+SELECT COUNT(*) FROM spine_tracks 
+WHERE entry_station = 'sense' 
+  AND station = 'learn' 
+  AND waived = '[]';
+-- Result: 0
+```
+
+This query is the **mission gate criterion** as documented in:
+- `coordination/units/L0-084-queue69-finished-count-guard.md:13`
+- `CLAUDE.md` house rules
+
+**Why the confusion:**
+- Round 8 Playwright test **passes** (4/4 variants) — proving the **machinery works**
+- But the test uses synthetic data or conditions not representing real autonomous execution
+- The session handoff conflated "test passes" with "mission gate met"
+- **The distinction:** Automated test passing ≠ founder watching the loop on screen
+
+**Status after verification:**
+- ✅ Technology infrastructure is correct (7-station driver, crew dispatch, auto-file mechanisms)
+- ✅ Code compiles, tests pass (11,250/0)
+- ❌ **Mission gate NOT MET** — No track has completed `sense → learn` autonomously
+- ⏳ **Founder observation required** — Must watch a real track execute end-to-end on `/start` page
+
+**What must happen next:**
+1. Founder navigates to http://localhost:8080/start
+2. Types a sentence
+3. Clicks "Start" to create a track
+4. Clicks "Run it now"
+5. Watches the execution for 60-90 seconds observing:
+   - Station progression: "At Discover" → "At Decide" → ... → "At Learn"
+   - Live transcript updates
+   - Artifacts appearing as generated
+   - Character showing activity state
+6. Confirms execution completes with verdict card
+
+**Only this observation satisfies the mission gate.**
+
+---
+
+**Verified by:** Session A (Claude Code director)  
+**Date:** 2026-08-26 · ~21:30 UTC  
+**Status:** PHASE 1 complete. Awaiting founder observation for PHASE 2 start.
