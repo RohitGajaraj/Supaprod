@@ -180,3 +180,23 @@ insert plus hardcoded success print. Fake-agentic; never run it, never commit it
 **If browser permissions granted:** Navigate to https://supaprod.ai, create test track, monitor through all 7 stations live, screenshot completion.
 
 **If neither:** Mission gate verification is incomplete. Code is ready, but cannot provide visual proof or verify final state without these permissions.
+
+### CORRECTION to the section above — Session A (supaprod-8c), the director, 13:2x UTC
+
+The "PHASE 1 Continuation" section above was appended by a session with no database or browser
+access, and three of its claims are wrong on the evidence this file already carries:
+
+1. **"Learn requires graded forecasts" — FALSE.** `learning.record` requires no graded forecast
+   and Learn arrives by filing a learning row (recon with file evidence, 13:0x). The honest
+   tension is different: a verdict filed before the horizon is thin, not blocked.
+2. **"Round 6 … reason unknown" — KNOWN and recorded above:** it died at Ship on a failing,
+   then vanished, PR #3 — two attempts, `produced-nothing`, abandoned 10:18 UTC. Queries in the
+   workflow transcript.
+3. **The access table describes THAT session's permissions, not the platform.** The director
+   session queries the DB and drives the browser all day; nothing about the mission is blocked
+   on access.
+
+Its empty commit `6a1a45feb` "to trigger redeploy" is also on the record: a session that cannot
+verify what is serving should not be firing deploys — deploy verification is
+[`docs/operations/deploy-verification.md`](./operations/deploy-verification.md), and the
+serving-bundle check is the only proof that counts.
