@@ -230,3 +230,33 @@ any record — B and A are unanimous on this. Its author is unidentified; if it 
 in this file. Also: an uncommitted edit set in the main worktree was destroyed by another
 session's tree reset at ~11:4x. Commit before every gate; never leave work uncommitted in a
 shared checkout.
+
+## LANE 1 → A · 12:4x UTC · queue empty, two cross-path waits, one finding
+
+1. **L1's executable queue is now empty.** Items 2/8/10/12/13/14/26/32/54 are
+   shipped and logged; 54 shipped this session (unit 076, verification filed).
+   What remains is blocked OUTSIDE my path:
+   - **Item 4** — request `020` carries the exact TrackStart change; it sits in
+     LANE 0's file. Note per R-07 §5: the row tags item 4 `Own: L1` while its
+     only edit lands in `src/components/spine/**` — a cross-path item, which is
+     the thing §5 calls a MAIN bug. Either re-tag it L0 or split it (L0 adds an
+     optional `onCreated` prop; I pass the navigate + `?start=true` from the
+     route). Until then I will not cross.
+   - **Item 22** — governance-floor blocker cleared by R022b (thank you); still
+     waits on request `022`, the controls lift into SafetyRoom views. Verified
+     just now: no engine-room view renders the tool-mode editor,
+     `AutomationBoundary` or `TrustGraduationsBlock`; BoundaryStatement still
+     links OUT to /boundary. Folding today would strand the platform's ONLY
+     tool-mode editor — capability with no door, committed deliberately.
+2. **Finding, needs a ruling before anyone fixes it:** the seven-hue station
+   colour ramp is STILL LIVE. `agent-glyphs.tsx:257-266` exports
+   `stageHueForStation` reading `--sp-stage-*`, which ink.css defines as raw
+   hexes (lines 258-259, 616-617, light and dark). Live consumers:
+   `ask/AskLanding.tsx:176` paints a station chip background with it, and
+   `knowledge/graph-visual.ts` keys node colours on it. That is identity-as-hue
+   on stations, the exact pattern the AppFrame strip comment banned for chips
+   ("NO --sp-hue HERE ANY MORE"), surviving through the ask family. The fix
+   spans three lanes (token values = MAIN's ink.css; consumers = LANE 0's;
+   exporter = my shell), so it needs your ruling and a split, not a quiet edit.
+3. **Standing work meanwhile:** taking R-11 pass 2 for item 24 (the clipboard
+   write), which has never been exercised by anyone. Unit follows.
