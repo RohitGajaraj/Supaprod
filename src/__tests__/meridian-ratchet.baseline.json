@@ -15,7 +15,7 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1630,
+  "totalOccurrences": 1616,
   "fileCount": 137,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
@@ -37,7 +37,7 @@
       "class:sp-": 1
     },
     "src/components/ask/AskPane.tsx": {
-      "--sp-": 22
+      "--sp-": 8
     },
     "src/components/ask/AskRunCard.tsx": {
       "class:sp-": 4

@@ -600,18 +600,16 @@ function AskPaneOpen() {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          gap: "var(--sp-space-2)",
+          gap: "var(--mrd-s3)",
           padding: "0 var(--mrd-s5)",
           // Longhand: a shorthand carrying a custom property is parsed
           // inconsistently outside a real browser, and this rule is load bearing.
           borderBottomWidth: 1,
           borderBottomStyle: "solid",
-          borderBottomColor: "var(--sp-line-soft)",
+          borderBottomColor: "var(--mrd-line-soft)",
         }}
       >
-        <span
-          style={{ display: "flex", alignItems: "center", gap: "var(--sp-space-2)", minWidth: 0 }}
-        >
+        <span style={{ display: "flex", alignItems: "center", gap: "var(--mrd-s3)", minWidth: 0 }}>
           <AgentMark slug={ANSWERED_BY} state={stream.streaming ? "running" : "quiet"} />
           <span style={{ fontSize: "var(--mrd-t-prose)", fontWeight: 600 }}>Ask</span>
           {/* THE SCOPE CHIP. It names the thing you are looking at, and it
@@ -636,7 +634,11 @@ function AskPaneOpen() {
           {/* TIER: clause 3, disclosure only, nothing written */}
           <button
             type="button"
-            className={browsing ? "rounded-mrd-chip border border-mrd-line bg-mrd-lift px-mrd-3 py-mrd-2 font-mrd text-mrd-label font-medium text-mrd-ink transition-colors duration-100 hover:bg-mrd-lift-hover hover:text-mrd-ink" : "rounded-mrd-chip px-mrd-3 py-mrd-2 font-mrd text-mrd-label font-medium text-mrd-mute transition-colors duration-100 hover:bg-mrd-hover hover:text-mrd-body"}
+            className={
+              browsing
+                ? "rounded-mrd-chip border border-mrd-line bg-mrd-lift px-mrd-3 py-mrd-2 font-mrd text-mrd-label font-medium text-mrd-ink transition-colors duration-100 hover:bg-mrd-lift-hover hover:text-mrd-ink"
+                : "rounded-mrd-chip px-mrd-3 py-mrd-2 font-mrd text-mrd-label font-medium text-mrd-mute transition-colors duration-100 hover:bg-mrd-hover hover:text-mrd-body"
+            }
             aria-expanded={browsing}
             onClick={() => setBrowsing((v) => !v)}
           >
@@ -791,10 +793,10 @@ function AskPaneOpen() {
       <footer
         style={{
           flex: "none",
-          padding: "var(--sp-space-3) var(--mrd-s5) var(--mrd-s5)",
+          padding: "var(--mrd-s4) var(--mrd-s5) var(--mrd-s5)",
           borderTopWidth: 1,
           borderTopStyle: "solid",
-          borderTopColor: "var(--sp-line-soft)",
+          borderTopColor: "var(--mrd-line-soft)",
         }}
       >
         {reference ? (
@@ -803,7 +805,7 @@ function AskPaneOpen() {
           // should happen to a sentence, and this already knows what the line
           // IS. No ember: the lineage pane is the record, already settled, and
           // ember means one thing in this system and it is "waiting on you".
-          <div style={{ marginBottom: "var(--sp-space-2)" }}>
+          <div style={{ marginBottom: "var(--mrd-s3)" }}>
             <Row
               tight
               lead={
@@ -826,7 +828,7 @@ function AskPaneOpen() {
           // THE FORK, VISIBLE BEFORE YOU COMMIT. One box used to do two very
           // different things and only the server knew which. Now the person
           // does, and can flip it.
-          <div style={{ marginBottom: "var(--sp-space-2)" }}>
+          <div style={{ marginBottom: "var(--mrd-s3)" }}>
             <Choices
               mode="one"
               label="What should happen when you send this"
@@ -869,7 +871,7 @@ function AskPaneOpen() {
           // that the mic is live than any amount of motion.
           <div
             style={{
-              marginTop: "var(--sp-space-2)",
+              marginTop: "var(--mrd-s3)",
               fontSize: "var(--mrd-t-base)",
               color: "var(--mrd-mute)",
               overflowWrap: "anywhere",
@@ -884,8 +886,8 @@ function AskPaneOpen() {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: "var(--sp-space-3)",
-            marginTop: "var(--sp-space-2)",
+            gap: "var(--mrd-s4)",
+            marginTop: "var(--mrd-s3)",
           }}
         >
           <span style={{ fontSize: "var(--mrd-t-small)", color: "var(--mrd-mute)", minWidth: 0 }}>
@@ -1074,9 +1076,9 @@ function Opening({
     <>
       <div
         style={{
-          fontSize: "var(--sp-text-prose)",
+          fontSize: "var(--mrd-t-prose)",
           color: "var(--mrd-body)",
-          lineHeight: "var(--sp-leading-body)",
+          lineHeight: "var(--mrd-lh-prose)",
         }}
       >
         {/* BOTH HALVES OF THE BOX, BEFORE ANYTHING IS TYPED. The second sentence
@@ -1086,9 +1088,9 @@ function Opening({
             OUTCOME, a run you watch here, rather than the dispatch that causes
             it, and the footer still says what it costs at the moment you
             commit. */}
-        Ask about <b style={{ color: "var(--mrd-ink)" }}>{scopeLabel}</b>. The crew answers from this
-        workspace's own record, and cites what it read. Or hand the work over rather than ask about
-        it, and it becomes a run you watch from here.
+        Ask about <b style={{ color: "var(--mrd-ink)" }}>{scopeLabel}</b>. The crew answers from
+        this workspace's own record, and cites what it read. Or hand the work over rather than ask
+        about it, and it becomes a run you watch from here.
       </div>
 
       {/* THE FORK IS SAID ONCE, WHERE IT IS ACTIONABLE, AND THE DEAD PREVIEW IS
@@ -1131,7 +1133,7 @@ function Opening({
       {knownEmpty ? (
         <div
           style={{
-            marginTop: "var(--sp-space-3)",
+            marginTop: "var(--mrd-s4)",
             fontSize: "var(--mrd-t-small)",
             color: "var(--mrd-mute)",
           }}
@@ -1146,7 +1148,7 @@ function Opening({
           header now; this only has to say where the words go, once. */}
       <div
         style={{
-          marginTop: "var(--sp-space-5)",
+          marginTop: "var(--mrd-s6)",
           fontSize: "var(--mrd-t-small)",
           color: "var(--mrd-mute)",
         }}
