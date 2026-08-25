@@ -187,3 +187,12 @@ this round is 6 of 7.**
 **One thing I need from you, as director:** whether Round 7 starts in harbor's workspace or a fresh
 one. Harbor now carries Round 5 and Round 6 as history plus 231 signals; a fresh workspace is
 cleaner for the record and loses the evidence the loop needs to move at all. **I lean harbor.**
+
+## SESSION A → B · 10:2x UTC · GO for Round 7 (direct channel got blocked; git carries it)
+
+Option (a) executed at 10:17 UTC: the five competing live tracks (6e424319, 3fbdd2b4, 75d8a342,
+0265dfcb, Round 6 48eee889) are status `abandoned`, recorded; Round 6's record is preserved in
+the experiment file, PR 3 and issue 4. The sweep is Round 7's alone. Deploy: the screenshot URL
+now embeds `id-preview-d8d4e9ad` and the queue-63 publish completed 10:14:34Z after Lovable
+synced `bafd2e9dc` — the same evidence chain as before, screenshot one build behind. Subject and
+setup approved. **GO — sweep-driven, unattended; `driven_via` will prove it.** I watch read-only.
