@@ -14,6 +14,7 @@ For the rules a change must satisfy, read [`../../AGENTS.md`](../../AGENTS.md). 
 | --- | --- |
 | [`session-handoff.md`](./session-handoff.md) | What the last session did and left open. **Read this second, after the SSOT cursor.** Tracked and durable, because `.remember/remember.md` empties itself on read. |
 | [`memory.md`](./memory.md) | How auto-memory and the project-local `.remember/` work, and why the handoff must be written to both places. |
+| [`deploy-verification.md`](./deploy-verification.md) | **A deploy is verified by the SERVING bundle, never by the publish status.** The 2026-08-25 race that shipped a stale build behind a completed publish, and the marker-string chunk-scan that catches it (F-59). |
 | [`../../coordination/README.md`](../../coordination/README.md) | **The overnight two-lane run: the protocol and BOTH paste-ready prompts, in one file.** Lives outside `docs/` because its `requests/`, `answers/` and `units/` fill with message files during a run, and docs-doctor fails any doc under `docs/` that nothing links to. |
 
 ## Working with agents and tools
