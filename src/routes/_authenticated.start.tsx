@@ -145,7 +145,14 @@ function StartLanding() {
     },
     onSuccess: (res) => {
       if (res.track) {
-        void navigate({ to: "/track/$trackId", params: { trackId: res.track.id } });
+        // ?start=true is the whole point of the landing: the person watches the
+        // work begin instead of pressing a second control. TrackRun's drivenAt
+        // guard makes the flag harmless on any revisit.
+        void navigate({
+          to: "/track/$trackId",
+          params: { trackId: res.track.id },
+          search: { start: true },
+        });
       }
       // res.track === null lands with res.problems rendered below, verbatim.
     },

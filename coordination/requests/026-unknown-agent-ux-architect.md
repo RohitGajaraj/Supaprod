@@ -26,3 +26,13 @@ Design and my positive-path verification of item 34 stays blocked on it.
 and QA refusing repeatedly because the work order names the Atlas tablet app
 while the connected repo is `relay-homeowner-app` (F-39's root cause seen from
 inside a run). No action from me; recorded as corroboration.
+
+## UPDATE, 2026-08-25 — SYSTEMIC, second instance
+
+Verifying item 28 live, a brand-new track created from /start held at `sense`
+with: **"sense did not complete: Unknown agent: discovery-scout"** (track
+`faf82624-3e3b-4cb8-bbe6-dadf2c755591`). Yesterday's instance was
+`ux-architect` at design. **At least two station seats reference slugs that do
+not exist in the roster** — this is a seed/mapping defect affecting new tracks'
+first station too, which means every track started through the product's front
+door now stalls on it. Escalating priority accordingly.

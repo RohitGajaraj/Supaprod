@@ -41,6 +41,14 @@ import { waiverFor } from "@/lib/spine/route";
  * keeps deleting.
  */
 export const Route = createFileRoute("/_authenticated/track/$trackId")({
+  validateSearch: (search: Record<string, unknown>): { start?: boolean } => ({
+    // The composer lands here with ?start=true so the run begins itself
+    // (SPEC-ONRAMP §2.7). Anything else -- absent, false, garbage -- means
+    // plain landing; a track that has already been driven never re-drives on
+    // this flag no matter what it carries, because TrackRun's own drivenAt
+    // guard owns that.
+    start: search.start === "true" || search.start === true ? true : undefined,
+  }),
   component: TrackPage,
   head: () => ({ meta: [{ title: "Run · Supaprod" }] }),
   errorComponent: ({ error }) => {
@@ -58,6 +66,7 @@ export const Route = createFileRoute("/_authenticated/track/$trackId")({
 
 function TrackPage() {
   const { trackId } = Route.useParams();
+  const { start } = Route.useSearch();
   const { activeWorkspace, activeProduct, productsVisible } = useWorkspace();
 
   const get = useServerFn(getTrack);
@@ -88,7 +97,7 @@ function TrackPage() {
             }
           />
         ) : null}
-        <TrackRun trackId={trackId} />
+        <TrackRun trackId={trackId} autoStart={start === true} />
       </div>
     </Surface>
   );
