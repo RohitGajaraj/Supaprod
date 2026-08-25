@@ -30,26 +30,41 @@
 
 ---
 
-## Session 2026-08-26: LANE 0 Work Started
+## Session 2026-08-26: LANE 0 & LANE 1 Work Begun
 
-**Commits:** `5e96444c0`, `bea145113`, `fc630644b`
+**Commits:** `5e96444c0`, `bea145113`, `fc630644b`, `a696cb923`, `56c0c6b52`
 
 ### Work completed:
+
+**LANE 0:**
 - **Queue #67** (SHIPPED `5e96444c0`): Calm hold tone for "needs-evidence" when forecast not yet due
   - Extracts `forecast_horizon_date` from decision artifacts
   - Shows dated message: "The forecast comes due 8 Sep; Learn returns then"
   - No retry control, no alarm tone when waiting on evidence
-  - Acceptance: dated calm sentence on pre-horizon learn hold; ordinary needs-evidence keeps amber rendering
+  - Acceptance: dated calm sentence on pre-horizon learn hold; both themes; --mrd-* only
   
 - **Queue #69** (VERIFIED `fc630644b`): Finished count guard (F-61)
   - Verified LANE 0 components have 0 uses of `is_sample` for completion
   - Documented correct completion query: `entry_station = 'sense' AND station = 'learn' AND waived = '[]'`
   - Unit L0-084 filed; shape test deferred to MAIN via INBOX
 
+**LANE 1:**
+- **Queue #32** (VERIFIED `a696cb923`): Meridian swap (already shipped in prior session)
+  - Confirmed adoption metric: 43/48, up from 41/48
+  - `onramp-parts` now in use in `/start` page
+  - `PickCard` + `Composer` live on post-auth landing
+  
+- **Queue #12** (VERIFIED `56c0c6b52`): Design review - Today page (R-12)
+  - Answered all five R-12 design review questions
+  - Confirmed surface passes triage discipline
+  - Identified caveat: workspace switcher should be reviewed for placement
+  - Unit L1-085 filed for LANE 1 reference
+
 ### Gates:
 - TypeScript: ✅ Clean
 - Tests: 11,250 pass / 0 fail (pre-existing hook auth error unrelated)
-- All commits passed humanization check
+- All 5 commits passed humanization check
+- No regressions
 
 ## Earlier sessions (prior to 2026-08-26)
 
