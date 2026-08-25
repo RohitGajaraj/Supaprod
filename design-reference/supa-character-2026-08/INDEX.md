@@ -152,3 +152,12 @@ or some cookery show — I do not resonate with it." The register is ENTERPRISE 
 geometry — never costumes, props, or mascot cuteness. The approved direction remains the
 v2 line-being (the logo alive); v3 iterates it under the corrected register. Files stay on disk
 as the record of what was explored and declined.
+
+## PARKED — founder, 2026-08-25 16:00 IST
+
+Image generation is parked to return to the session's core objective (the end-to-end loop).
+**The founder's standing pick: `concept-a-state-sheet.png`** (the v1 four-state sheet of the
+logo-alive line-being) — colors approved, direction approved; the v2 pair proved both themes.
+When this reopens: iterate depth under the enterprise-abstract register (see the rejection note
+above), then the vector redraw pinned to the real seven-loop path per SPEC-PRESENCE §Embodiment.
+The v3 run was stopped mid-generation; any v3 files on disk are un-catalogued strays.
