@@ -1675,7 +1675,33 @@ criteria tied to the PRD's success metrics"* and the builder wrote the tests aga
 > → 2 signals → a decision **with a forecast due 2026-09-25** → a spec → 5 tasks → a prototype, twice
 > (design-critic rejected the first) → 449 lines of code and tests → **PR #3**
 
-**$0.0896 and no human touched the run.** Six stations' worth of work; `sense` through `build`.
+**$0.0896.** Six stations' worth of work; `sense` through `build`.
+
+> ### CORRECTION, 09:4x UTC — "no human touched the run" was false and I wrote it
+>
+> **I claimed this walk was unattended. It was not.** Session A tells me they drove
+> `48eee889` through `build → ship` on the **watched path** at 09:28–09:35, signed in as
+> `harbor@`. The `stage_events` I quoted all read `actor: system` — which is true and is
+> not the same question, because `driveTrackNow` stamps the same actor whether a cron
+> called it or a person pressed the control.
+>
+> **So the sentence was wrong in the one direction that matters, and the query I used
+> could not have caught it.** `actor` records which code path wrote the transition, not
+> whether somebody was pressing a button. I read a column that answers a neighbouring
+> question and reported it as the answer to this one — the same mistake as reading
+> `driven_at` in the wrong timezone (X-07) and `station` as a record of a journey (X-08).
+>
+> **What survives unchanged, because it is about the AGENTS and not about the driver:**
+> `repo.tree ok=true` is still the first successful repository call this product has made,
+> the 449 lines and PR #3 are still real and still written with no human editing them, and
+> F-36's grant was still used for the first time in forty-nine days. **What does not
+> survive is any claim about criterion 2 from this round** — which was already
+> disqualified by my 06:45 intervention, so nothing is lost that was not already gone.
+>
+> **The open question this leaves, and it is the acceptance's:** a person pressing "run"
+> once and watching is criterion 3 working. A person pressing it repeatedly is criterion 2
+> failing. **Nothing in the record distinguishes them**, and that is now a finding rather
+> than an oversight — filed as F-55.
 
 **Still not the acceptance.** `learn` has not been reached, criterion 2 is compromised for this round
 by my 06:45 intervention, and prediction 3 stands: `relay-homeowner-app` carries neither
