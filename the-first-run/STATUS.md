@@ -74,6 +74,31 @@ stations, created 00:47:14 UTC. **A fresh track and not a reset**, because clear
 three spent attempts is exactly the DB edit acceptance criterion 2 forbids. From creation onward
 nothing is touched.
 
+### Where it has got to · 1 of 7 stations
+
+```sql
+SELECT from_stage, to_stage, actor, at FROM stage_events WHERE entity_id = '897d1834-…';
+-- sense | decide | system | 2026-08-25 01:10:34.254004+00
+```
+
+**Discover found real evidence and handed it on.** The scout logged the Canny request *"Add Dark Mode
+& System Preference theme in addition to the light theme"* by name, the researcher clustered it, six
+artifacts landed at `sense`, and the driver advanced to `decide` with `attempts` reset to 0. **$0.04
+spent.** It is the first time Discover has filed real evidence in this workspace and the first
+station advance of the run.
+
+**Read the two cautions with it, both recorded in
+[`EXPERIMENT-first-finish.md`](./EXPERIMENT-first-finish.md):**
+
+1. **That advance is not evidence for F-14.** The resuming seat happened to file, so the track went
+   down the ordinary path. `decide` is where the crew-split fix gets tested, because the critic files
+   nothing by design.
+2. **This run is a SHAKEDOWN, not the proof.** A deploy landed between its first tick and its second
+   — which is why it found nothing at 00:50 and everything at 01:00. A reading of criterion 2 that
+   counts a mid-run deploy as intervention is defensible, and it is conceded in advance rather than
+   argued about afterwards. **The clean proof is a run that starts and finishes on one build**, and
+   that is the next track.
+
 Everything below this line was written while the run was stopped and is kept for the record.
 
 ## ⛔ THE RUN WAS STOPPED, AND ONLY THE FOUNDER COULD CLEAR IT (now cleared)
