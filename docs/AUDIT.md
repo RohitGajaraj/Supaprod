@@ -1,6 +1,9 @@
 # AUDIT — where the platform actually stands
 
-> _Written 2026-08-25 13:5x IST (08:2x UTC) by MAIN (Fable). Every claim below was verified today
+> _Written 2026-08-25 13:5x IST (08:2x UTC) by MAIN (Fable). **Corrected 14:2x IST by MAIN
+> (Claude Code) in six places, all in the critical-path section: two rows were stale within hours
+> of being written, and one would have had a working, live-proven mechanism rebuilt from scratch.
+> Corrections are marked inline rather than silently applied.** Every claim below was verified today
 > against the live database, the running build, or the file on disk — nothing is carried testimony.
 > Findings history and fix commits live in [`../the-first-run/FINDINGS-LEDGER.md`](../the-first-run/FINDINGS-LEDGER.md);
 > this file is the consolidated answer to "what works, what is broken, what is theatre, what is absent"._
@@ -45,7 +48,7 @@ what is in git.**
 | What | Measurement (today) | Root |
 | --- | --- | --- |
 | **GitHub is refused in the only workspace the loop ran in for weeks** | 11 of 11 `repo.tree`/`repo.search` calls failed in 8h, **all** in `0b792d52` (`tool_calls WHERE ok=false GROUP BY workspace_id`) | F-39: workspace owned by a **suspended** demo account with no GitHub binding. Harbor's binding exists and is **untested** |
-| **Ship is unreachable by construction** | 0 deployments and 0 merged changesets in any proof workspace (42 / 16 exist globally, all from outside the spine) | F-36: Build is briefed on `studio.stage` only; `studio.commit` appears 0 times in `driver.ts`; merge + preview never happen on the loop |
+| **Ship is unreachable by construction** | 0 deployments and 0 merged changesets in any proof workspace (42 / 16 exist globally). **NOT "all from outside the spine" in the sense that matters: 13 deno previews and 1 production promote in July prove the mechanism works — see F-49** | ~~F-36: `studio.commit` appears 0 times in `driver.ts`~~ **STALE — it appears 4 times.** What survives is **F-50** (`studio.checks.run` and `studio.pr.merge` briefed by nobody, and Build told *"do not merge it yourself"*), **F-49** (the marker rename, fixed) and the workspace's repo not being hostable |
 | **Evidence intake has never run in production** | `scout_targets` 0 · `scout_snapshots` 0 ever · last `scout_runs` row **2026-07-25** (re-verified today) | F-38: no Firecrawl key (dormant reports `ok:true`), `auto_scout_enabled` 0/21, briefs missing 13/21. **Founder call, on the RULINGS open list** |
 | **Unattended pace is ~20 min/station** | F-25 measurements stand; 5 fresh tracks alternating one seat per tick | Items 33 (sweep) — sequential under one 45s deadline is deliberate; the fix is a design call, not a constant |
 | **40 of 88 runs failed in 8h** | `agent_runs` 8h window | Dominated by the 401 workspace + honest evidence declines — both above; not a new defect class |
@@ -91,14 +94,36 @@ preconditions at once: real evidence (231 signals), an unsuspended owner, a GitH
 **What stands between `define` and `learn`, in order:**
 
 1. **Test harbor's GitHub binding** — one `repo.tree` call. Cheap, decisive, never been done. (MAIN)
-2. **Brief Build through its own six-step chain** — `studio.commit → pr.open → checks.run →
-   pr.merge` (item 41). The tools all exist; no station brief names them. (MAIN, code)
-3. **The merge gate** — `AUTO_SHIP_ENABLED` already resolves `studio.pr.merge` to `confirm`; this
-   is founder option (b) **already built**. Needs the founder to say yes to setting it for the
-   proof workspace. (FOUNDER)
-4. **The Ship gate** — F-18's three options; option (b) is now the smallest step. (FOUNDER)
-5. **Record a preview deploy** on the merged changeset — the one genuinely missing mechanism
-   (`deployments` row with `provider='deno'`). Scope: smallest honest implementation. (MAIN)
+2. **Brief Build through the REST of its six-step chain.** ~~No station brief names them.~~
+   **Half of this is already done and was done last night:** `studio.commit` appears **4 times** in
+   `driver.ts` and `studio.pr.open` 3, in both Build seats and the fallback. What is genuinely
+   unbriefed is **`studio.checks.run` (0) and `studio.pr.merge` (0)** — F-50. (MAIN, code)
+3. ~~**The merge gate** — needs the founder to say yes.~~ **CLOSED 13:5x IST: the founder confirmed
+   `STUDIO_AUTO_SHIP=1` is already set in Lovable**, so `studio.pr.merge` follows the trust arc
+   today. He also confirmed `DENO_DEPLOY_TOKEN` is still set, which step 5's July rows corroborate
+   independently. **AND THAT OPENS F-50, WHICH IS WORSE THAN THE GATE WAS:** the gate is open and
+   **no station is told to walk through it.** `grep -c` in `driver.ts` — `studio.stage` 4,
+   `studio.commit` 4, `studio.pr.open` 3, **`studio.checks.run` 0, `studio.pr.merge` 0** — and
+   Build's own brief ends *"Do not merge it yourself; that one is a person's."* So the PR opens and
+   sits forever. (MAIN, code)
+4. **The Ship gate** — **DELEGATED TO MAIN by the founder, 13:5x IST**: *"you make the right
+   decision and the right call... It should not be a shortcut-taking mechanism just to solve
+   today's problem. It should be to build the right thing from a platform perspective."* Ruled as
+   **R-27**, which REFUSES option (b) as written — a per-workspace exemption for the one
+   irreversible act is a backdoor with a demo's name on it. See `RULINGS.md` R-27. (MAIN)
+5. ~~**Record a preview deploy** — the one genuinely missing mechanism.~~ **CORRECTED 14:1x IST,
+   and this row was one step from having a working mechanism rebuilt beside itself.** It is not
+   missing. `ci-poll-tick` calls `deployChangesetApp` for any merged changeset on a repo it
+   recognises and writes the `provider='deno'` row itself. `SELECT ... FROM deployments WHERE
+   provider='deno'` returns **13 successful previews and one `environment='production'` promote**,
+   2026-07-08 to 2026-07-10, on `Test-Project-Cadence`, changesets `merged`, PRs 5-19. **The whole
+   chain ran end to end seven weeks ago.** What broke it is **F-49**: `c5d479fd6` renamed the marker
+   file `cadence.json` -> `supaprod.json` in our code, and a marker file lives in a repo we do not
+   own, so `isSupaprodManaged` stopped recognising the one repo that had ever shipped. **Fixed,
+   `ebaa795a0`.** What remains here is not code: harbor is bound to `relay-homeowner-app`, which
+   carries neither marker and is a Bun/React app rather than a `Deno.serve` program. **Point the
+   proof workspace at a repo `renderStarterTemplate` scaffolds**, via `provisionRepoForSpec` — also
+   already built. (MAIN)
 6. **Learn grades the forecast** — the calibrate-insights tick exists; wire `forecast_resolution`
    for this track's decision (M-3). (MAIN)
 
@@ -107,8 +132,8 @@ proof run reads them. Switching the scout on is a separate, founder-owned spend 
 
 ## What only the founder can decide (unchanged, sharpened)
 
-1. **F-18/F-36 — the Ship gates.** `AUTO_SHIP_ENABLED` for the proof workspace is the smallest
-   move and already exists. Saying yes unblocks steps 3–4 above in one word.
+1. ~~**F-18/F-36 — the Ship gates.**~~ **BOTH ANSWERED 13:5x IST.** The merge gate was already set
+   (`STUDIO_AUTO_SHIP=1`); the Ship gate was delegated to MAIN and is ruled as **R-27**.
 2. **F-38 — evidence intake on or off.** Not blocking the proof; blocking the *product* claim
    "starts from one sentence, zero configuration".
 3. **F-39 — GitHub for the demo accounts** — steps written in
