@@ -1500,3 +1500,64 @@ later.**
 
 The diagnostic `last_hold = 'out-of-time'` those 40 rows carried is preserved in
 F-43 with its query, so overwriting the column destroyed no evidence.
+
+---
+
+## Round 6 reached BUILD — 5 of 7 — and the prediction below was written while the seat was running
+
+**Track `48eee889-cc0a-43fe-aa78-7130b4e2852e`**, harbor's Helio Labs workspace, all seven stations,
+nothing waived. **This is the first round ever run in a workspace with a live GitHub binding.**
+
+```sql
+SELECT from_stage, to_stage, actor, at FROM stage_events WHERE entity_id='48eee889-…' ORDER BY at;
+-- sense  | decide | system | 2026-08-25 07:10:22.524337+00
+-- decide | define | system | 2026-08-25 07:41:37.103951+00
+-- define | design | system | 2026-08-25 08:50:58.968389+00
+-- design | build  | system | 2026-08-25 09:11:50.458898+00
+
+SELECT station, last_hold, attempts, spend_used_usd FROM spine_tracks WHERE id='48eee889-…';
+-- build | NULL | 0 | 0.089576        <- read at 2026-08-25 09:30:22 UTC
+```
+
+**Four stations walked, $0.0896, and it matched Round 4's high-water mark on a route with a
+`proceed` decision rather than a deferral** — Decide filed *"Ship grouped in-app notification digest
+to reduce alert fatigue-driven muting"* with a forecast due 2026-09-25, so unlike Rounds 3–4 there is
+real work for Design and Build to do, and something for Learn to grade.
+
+**It is compromised for criterion 2 and that is not being re-argued** — I stopped 40 runaway tracks
+around it at 06:45. Its own run is untouched; the world around it was not.
+
+### The prediction, written at 09:30 UTC with `builder` mid-flight
+
+`agent_runs` shows `builder` at `status: running`, started 09:28:51, no output yet. **This is the
+first `repo.*` call ever made as `harbor@supaprod.ai`** — every one of the previous nine 401s carries
+`user_id = 22a73000` (demo2), whose workspace has no binding and falls through to a legacy env var.
+
+| # | Prediction | How we will know |
+| --- | --- | --- |
+| 1 | **Build reaches the repo.** Harbor's connection `41d2e039` was re-verified **2026-08-25 05:40:18** — today — and is bound to `RohitGajaraj/relay-homeowner-app` | a `tool_calls` row with `tool_name='repo.tree'`, `ok=true`, which has **never existed** |
+| 2 | **If it 401s instead, R-26 fires for the first time** — `tools-refused` shipped and has never once been the hold on any track | `spine_tracks.last_hold = 'tools-refused'`, `attempts` still 0 |
+| 3 | **Ship will NOT complete, and F-49 is the reason rather than the gates** | `release.publish` refuses: *"No successful preview deploy exists for this changeset yet"* |
+
+**Point 3 is the one worth stating hardest, because everything else about Ship is now open and this
+is not.** The founder set `STUDIO_AUTO_SHIP=1`, R-27 releases `release.publish` and `studio.revert`
+on a standing decision, and F-50 briefed the merge. **None of that matters here**: `promoteChangeset`
+requires a `provider='deno'` preview at the exact commit, `ci-poll-tick` builds one only for a repo
+carrying `supaprod.json` or `cadence.json`, and **`relay-homeowner-app` carries neither** — its root
+is `.github · README.md · bun.lock · node_modules · package.json · src · tsconfig.json`, and it is a
+Bun/React app rather than a `Deno.serve` program, so it could not be hosted under either name.
+
+**So the honest ceiling for Round 6 is 6 of 7, held at Ship on a missing preview.** Said before the
+tick rather than discovered at the station, so nobody has to decide afterwards whether it counted.
+
+**What would falsify point 3:** a `deployments` row with `provider='deno'` and
+`changeset_id` pointing at this track's changeset. Nothing in the code I have read can produce one
+for this repo.
+
+### What that makes the next move, whichever way point 1 goes
+
+**Not a code fix — a repo.** `provisionRepoForSpec` (`src/lib/new-build.functions.ts:102`) creates a
+private repo from `renderStarterTemplate`, which emits `supaprod.json` and a `Deno.serve` `main.ts`,
+and binds it to the workspace. It is the product's own door and it is already built. **Pointing the
+proof workspace at a repo the hosting path recognises is account setup done before a run, the same
+class as connecting GitHub** — recorded here in advance so it is not adjudicated after the fact.
