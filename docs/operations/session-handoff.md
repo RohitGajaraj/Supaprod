@@ -4260,3 +4260,98 @@ session should be read as partial credit toward the six criteria.
   quoting something that was repaired and outlived its repair.
 - **Lovable deploys itself from GitHub** and moved through eight commits tonight unattended. It runs
   a few minutes behind. **Read the sha back before believing a fix is live.**
+
+---
+---
+
+# SESSION HANDOFF 2026-08-25 ~09:4x IST (04:1x UTC) · MAIN LANE · the loop had learned to refuse
+
+> **APPENDED, not replacing.** Three lanes write this file and one was pushing while I wrote this —
+> I lost two push races and rebased both times. Everything above is somebody else's session.
+
+**Gates at close:** `tsc` 0 · `bun test` **10,881 across 644 files, 0 fail** · `docs:check` clean ·
+eslint clean. Verified on the MERGED tree after rebasing onto two other lanes, not just on mine.
+
+## ROUND 4 GOT TO 5 OF 7 — THE FURTHEST ANY TRACK HAS GONE — AND IT PROVES NOTHING
+
+Track `8391835f`. `sense` → `decide` → `define` → `design` → **held at `build`**. Decide filed a real
+decision **with a full forecast** (claim, observable, horizon 2026-09-25) — the first moat artifact
+on any track. Define filed a spec and six faithful tasks. Design filed a prototype and cleared the
+station that killed Round 1 and Round 3.
+
+**It is disqualified as proof of acceptance criterion 2 and I will not argue otherwise later.** I
+changed the workspace's memory substrate underneath it at 03:19:23, **71 seconds before** Decide
+filed. I cannot separate my intervention from retry nondeterminism, so I claim neither.
+
+**Zero of six acceptance criteria are met.**
+
+## THE FINDING OF THE NIGHT: THE PRODUCT TAUGHT ITSELF TO REFUSE
+
+**F-31.** Declining is a CLEAN completion, so `autoReflect` distilled every honest *"no evidence
+exists"* into a permanent second-person prohibition, and recall fed them back. At 03:10:01 the
+`strategist` recalled four memories, **three ordering it to decline**, declined, and wrote a fifth.
+`memory_recall_log` joined to `agent_memory` has it. They had **crossed subjects** — a notification
+track declined on lessons about dark mode.
+
+`agent_memory.expires_at` already existed and `match_agent_memory` already honoured it.
+**`recent_agent_reflections` — the path selecting `kind='reflection'`, i.e. exactly these rows — did
+not.** The memories with the shortest shelf life were the only ones exempt from shelf life.
+
+**I under-reported it first.** I said 53, pinning two spellings. The real count: **69 forbid, 75
+demand a precondition, 144 of 303 gate work, and 277 of 303 mention evidence.** Fixed in
+`b97e10c8a` + migration `20260825033000`; **128 memories retired reversibly.**
+
+## WHY IT LEARNED THAT — AND IT IS NOT THE AGENTS' FAULT
+
+**F-38.** Evidence ingestion **has never worked in production**. `scout_targets` **0 in 21 of 21
+workspaces**, `scout_snapshots` **0 ever**, `scout_runs` stopped **2026-07-25**. Off three ways, each
+sufficient: no `FIRECRAWL_API_KEY` (the dormant path returns **`ok: true`**), `auto_scout_enabled`
+false everywhere, no workspace briefs. **Every agent was told to gather evidence from a pipeline that
+has never delivered any, correctly said so, and was punished for it by its own memory.**
+
+## THE FOUR THINGS THAT NEED YOU, IN ORDER OF WHAT UNBLOCKS MOST
+
+1. **F-39 · GitHub is 401 and the row says `connected`.** Both Build seats failed live. `connections`
+   holds two `github_app` rows, **`status=connected`, `secret_id` NULL, `last_verified_at`
+   2026-07-25**. A GitHub App token is minted from the app private key at call time, so this is a
+   **missing or revoked credential in the environment**. **Nothing reaches Build until this is fixed.**
+2. **F-38 · switch ingestion on, or rule that Decide may proceed without it.** Three options on the
+   RULINGS OPEN list. I did not switch it on: it starts paid crawling.
+3. **F-18 · the Ship approval** — still yours, **and I corrected the premise you were given.**
+   Answering it does not make Ship reachable on its own (F-36), and **`studio.pr.merge` is ALSO
+   force-review**, so the stated reason (*"the only gate in the seven-station loop"*) holds only
+   because the loop cannot reach the other gate.
+4. **`2026-07-25` took both the scout and the GitHub credential.** One event, two dead subsystems,
+   nothing said so. Worth knowing what happened that day.
+
+## THE PATTERN THAT IS WORTH MORE THAN ANY SINGLE FINDING
+
+**Three surfaces report healthy while dead:** the scout returns `ok: true` when dormant, the GitHub
+connection says `connected` with no secret, and `latest_commit_sha` went backwards. **This product's
+health signals are optimistic by construction**, which is why a month of total ingestion failure and
+a month of broken repository access were both found by a live run walking into them rather than by
+anything watching.
+
+## WHAT I FIXED
+
+- **F-31** shelf life for reflections, one-sided failure on purpose (a malformed flag EXPIRES).
+- **F-32** a "no" is a decision and gets FILED; what Decide may not do is decline to decide. **The new
+  test caught my own half-fix** — the retired sentence also lived in `CREW_ROLE.strategist.job`.
+- **F-36 (half)** Build was briefed on **step one of six**. Founder ruling **2026-07-08** already put
+  `studio.commit` / `studio.pr.open` in `BUILD_LANE_AUTONOMOUS`; **the grant sat unused for seven
+  weeks** because no brief named the tools and `studio.commit`'s description still said
+  *"Operator-gated"* — which is the sentence that fooled me too, and which I cited as evidence before
+  reading the ruling three lines away.
+
+## FOR WHOEVER PICKS THIS UP
+
+- **I got the same class of thing wrong THREE times tonight, always the same way: a narrow pattern
+  read as a clean result.** `you must not|decline` missed `reject|require|verify` (53 vs 144).
+  `[a-z_]*\.[a-z_]*` cannot match `studio.pr.merge`. **Widen the pattern before believing a count.**
+- **Read past the paragraph that agrees with you.** I escalated F-36 to the founder, and the ruling
+  granting exactly what I was asking for was already in the file I was quoting.
+- **A prediction written before the tick is worth writing.** Mine was **wrong on its first point** and
+  that is why it was worth writing down: Build did not complete, and the reason (F-39) was something
+  reading the code had missed twice.
+- **X-08:** one track sits at `learn` and it was PLACED there — sample workspace "Helio Labs",
+  **`agent_runs` = 0**. The `station` column is not a record of a journey.
