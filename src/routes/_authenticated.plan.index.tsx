@@ -889,8 +889,25 @@ function PlanPage() {
         track object there was nothing in the product that could even name it.
         It enters here, and it arrives carrying which stations it will visit and
         which it waives. Above the roadmap because starting work precedes
-        scheduling it. */}
-        <TrackStart />
+        scheduling it.
+
+        ITEM 4'S HALF (request 020, seam landed by LANE 0 in `9242664aa`):
+        creating a track now LANDS the person on it at the watchable address,
+        with `?start=true` so the first walk fires on arrival exactly as /start
+        does: one action, and what you watched begin is one click back. The
+        inline reveal still runs first (the component sets its state before
+        calling onCreated), so a browser Back returns to /plan with the started
+        track expanded in place; the flag is harmless on any revisit
+        (TrackRun's drivenAt guard). */}
+        <TrackStart
+          onCreated={(track) => {
+            void navigate({
+              to: "/track/$trackId",
+              params: { trackId: track.id },
+              search: { start: true },
+            });
+          }}
+        />
 
         {/* THE DOOR FOR THE COUNT IN THE HEAD IS INSIDE THIS BLOCK, NOT BESIDE THE
         HEAD, AND THAT IS DELIBERATE.

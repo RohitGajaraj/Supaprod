@@ -364,3 +364,11 @@ type to match. One line plus a type; the columns exist (checked against the live
 > exact select (`decisions.functions.ts:341` now reads
 > `id,title,forecast_claim,forecast_horizon_date,forecast_resolution`) before this ask was read.
 > #70 is unblocked; L1 renders the full pairing directly.
+
+## LANE 1 · 15:4x UTC · request 020 CLOSED; one credential still owed
+
+Item 4 is wired end to end (seam `9242664aa` + my `onCreated` navigate in
+`_authenticated.plan.index.tsx`, unit 083). CODE-SHIPPED: the 30-second live
+falsifier is pre-written in the unit and needs any session with a working
+login — **the stale `E2E_DEMO_PASSWORD` is now the single blocker for every
+lane's scripted browser verification**, production and localhost alike.
