@@ -2,11 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Surface } from "@/components/meridian/Surface";
+import "../styles/workbench.css";
 import { PageHeading } from "@/components/meridian/surface-parts";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { Row } from "@/components/meridian/rows";
-import { TrackRun } from "@/components/track/TrackRun";
+import { TrackRunLeft, TrackPaneRight } from "@/components/track/TrackRun";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { getTrack, type Track } from "@/lib/spine/track.functions";
 import { nextStation, waiverFor, type SpineRoute } from "@/lib/spine/route";
@@ -60,12 +60,14 @@ export const Route = createFileRoute("/_authenticated/track/$trackId")({
   errorComponent: ({ error }) => {
     console.error("[Track] route crashed:", error);
     return (
-      <Surface>
-        <PageHeading
-          title="This run did not load."
-          sub="Reload the page. Nothing about the run itself is lost -- every station writes its own row as it goes."
-        />
-      </Surface>
+      <div className="mrd-workbench">
+        <header className="mrd-workbench-header">
+          <PageHeading
+            title="This run did not load."
+            sub="Reload the page. Nothing about the run itself is lost -- every station writes its own row as it goes."
+          />
+        </header>
+      </div>
     );
   },
 });
@@ -166,9 +168,18 @@ function TrackPage() {
   const track = trackQ.data ?? null;
   const decideWaived = track ? waiverFor(track.route, "decide") !== null : false;
 
+  const settled = track?.status === "done";
+
   return (
-    <Surface>
-      <div className="flex flex-col gap-mrd-7">
+    /*
+     * THE WORKBENCH, NOT SURFACE: a document column with a metadata sidebar is
+     * the wrong geometry for watching work happen (SPEC-LAYOUT §1). The header
+     * spans both panes; the walking pane and the artifact pane split at the
+     * 760px container width, scroll independently, and invert proportions --
+     * never sides -- when the run settles.
+     */
+    <div className="mrd-workbench" data-page-composer>
+      <header className="mrd-workbench-header">
         {track ? (
           <>
             <RunHeader track={track} />
@@ -194,8 +205,15 @@ function TrackPage() {
             }
           />
         )}
-        <TrackRun trackId={trackId} autoStart={start === true} />
+      </header>
+      <div className="mrd-workbench-panes" data-settled={settled ? "true" : undefined}>
+        <div className="mrd-workbench-pane">
+          <TrackRunLeft trackId={trackId} autoStart={start === true} />
+        </div>
+        <div className="mrd-workbench-pane mrd-workbench-pane--artifact">
+          <TrackPaneRight trackId={trackId} />
+        </div>
       </div>
-    </Surface>
+    </div>
   );
 }

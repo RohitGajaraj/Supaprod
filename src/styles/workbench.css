@@ -1,0 +1,71 @@
+/* ═══════════════════════════════════════════════════════════════════════
+ * THE WORKBENCH — the two-pane frame of /track/$trackId (SPEC-LAYOUT §1).
+ *
+ * Geometry rules, ported not eyeballed:
+ *  - The container is `.sp-work`, which already declares container-type.
+ *    Declaring it here would measure the wrong box, so this file never sets
+ *    a container on its own root.
+ *  - The left pane is a rail between 300px and 440px; the right pane absorbs
+ *    every additional pixel. clamp() is proportional; minmax(300px,440px)
+ *    would resolve to 440 before the 1fr sibling grows and starve the preview
+ *    at 1024px. That trap is written down because it looks right.
+ *  - Below the 760px container width the panes stack in DOM order: walking
+ *    first, artifact second. No `order` property ever -- visual order and tab
+ *    order must not diverge.
+ *  - Two-column widths scroll each pane independently; stacked widths let the
+ *    page scroll and the panes do not.
+ *  - The settled inversion (§5) narrows the rail to 24% with --mrd-d-move:
+ *    proportions invert, sides do not -- continuity beats symmetry.
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+.mrd-workbench {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: var(--mrd-s5);
+  padding: var(--mrd-s6);
+  min-height: 0;
+}
+
+.mrd-workbench-header {
+  background: var(--mrd-sheet);
+  border: 1px solid var(--mrd-line);
+  border-radius: var(--mrd-r-pane);
+  padding: var(--mrd-s5) var(--mrd-s6);
+}
+
+.mrd-workbench-panes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--mrd-s6);
+  min-height: 0;
+}
+
+@container (min-width: 760px) {
+  .mrd-workbench-panes {
+    grid-template-columns: clamp(300px, 38%, 440px) minmax(0, 1fr);
+  }
+}
+
+.mrd-workbench-pane {
+  background: var(--mrd-sheet);
+  border: 1px solid var(--mrd-line);
+  border-radius: var(--mrd-r-pane);
+  padding: var(--mrd-s5);
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.mrd-workbench-pane--artifact {
+  background: var(--mrd-bg);
+}
+
+/* THE FINISHED-RUN INVERSION: the artifact takes the page, the transcript
+   becomes a rail. Triggered by an attribute the route owns, from a state --
+   track.status === "done" or the walk's own finished result -- never prose. */
+@container (min-width: 760px) {
+  .mrd-workbench-panes[data-settled="true"] {
+    grid-template-columns: clamp(240px, 24%, 300px) minmax(0, 1fr);
+    transition: grid-template-columns var(--mrd-d-move) var(--mrd-ease);
+  }
+}
