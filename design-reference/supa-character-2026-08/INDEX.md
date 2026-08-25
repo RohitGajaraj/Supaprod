@@ -143,3 +143,12 @@ Prompt: using the reference character exactly, a character state sheet of the sa
   captain, wizard, party. `free-a` renders exactly seven mittens. Verified by eye at full
   size; a production vector pass should pin both counts.
 - Not committed to git (design references stay out of commits by default).
+
+## VERDICT on the free family — REJECTED by the founder, 2026-08-25 16:0x IST
+
+All five free-* files rejected in his words: "looks like a kid's platform or some childish show
+or some cookery show — I do not resonate with it." The register is ENTERPRISE PREMIUM
+(Anthropic/Linear/Vercel): abstract, minimal, personality through material, light and eye
+geometry — never costumes, props, or mascot cuteness. The approved direction remains the
+v2 line-being (the logo alive); v3 iterates it under the corrected register. Files stay on disk
+as the record of what was explored and declined.
