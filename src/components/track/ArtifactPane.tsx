@@ -31,6 +31,7 @@ import {
 } from "@/lib/spine/track.functions";
 import { getPrd, savePrd } from "@/lib/discovery.functions";
 import { setDecisionForecast, updateDecision } from "@/lib/decisions.functions";
+import { deferForecastCheck, reopenForecast, settleForecast } from "@/lib/forecast.functions";
 import type { ChainMember, ChainStop } from "@/lib/spine/chain";
 import { wordFor } from "@/lib/spine/chain";
 import { STATION_ARTIFACT } from "@/lib/spine/attach";
@@ -49,6 +50,7 @@ import { Prose } from "@/components/meridian/Prose";
 import { RunNote } from "@/components/meridian/run-rows";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { Field, Input, Textarea } from "@/components/meridian/forms";
+import { ReasonField } from "@/components/meridian/forms";
 import { TabPanel, Tabs } from "@/components/meridian/Tabs";
 
 /** What each station exists to do, for the not-run sentence. Display labels only. */
@@ -497,18 +499,242 @@ function ThemeCard({ item }: { item: ArtifactView }) {
 }
 
 /*
+ * ── THE LEARN VERDICT ──────────────────────────────────────────────────────
+ * PREDICTED · ACTUALLY · WHAT WE NOW BELIEVE (SPEC-ARTIFACTS §9). The predicted
+ * half lives on the track's DECISION, so this card joins the learning member to
+ * the decide member — the one station whose artifact is a join of two rows.
+ * The ungraded state is the design, not a fallback: zero forecasts have ever
+ * been graded on a real workspace, and the card names WHICH nothing it is
+ * rather than drawing a placeholder verdict.
+ */
+function LearningCard({ item, decision }: { item: ArtifactView; decision?: ArtifactView }) {
+  const f = item.fields;
+  const summary = str(f.summary);
+  const verdict = str(f.verdict);
+  const metricLabel = str(f.metric_label);
+  const metricValue = str(f.metric_value);
+  const bySlug = str(f.recorded_by_agent_slug);
+
+  const d = decision?.fields;
+  const claim = d ? str(d.forecast_claim) : null;
+  const know = d ? str(d.forecast_how_we_will_know) : null;
+  const horizon = d ? str(d.forecast_horizon_date) : null;
+  const resolution = d ? str(d.forecast_resolution) : null;
+  const rationale = d ? str(d.forecast_resolution_rationale) : null;
+  const resolvedBy = d ? str(d.forecast_resolved_by_agent_slug) : null;
+
+  const horizonDay = horizon ? horizon.slice(0, 10) : null;
+  const horizonPast = horizon ? Date.parse(horizon) < Date.now() : false;
+  const daysPast =
+    horizonPast && horizon
+      ? Math.max(1, Math.round((Date.now() - Date.parse(horizon)) / 86_400_000))
+      : 0;
+
+  return (
+    <div className="flex flex-col gap-mrd-4">
+      {claim ? (
+        <div className="flex flex-col gap-mrd-2">
+          <span className="mrd-eyebrow">Predicted</span>
+          <RunNote>{claim}</RunNote>
+          {know ? (
+            <span className="text-mrd-small text-mrd-mute">How we will know: {know}</span>
+          ) : null}
+          {horizonDay ? (
+            <span className="text-mrd-small text-mrd-mute">Due {horizonDay}</span>
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className="flex flex-col gap-mrd-2">
+        <span className="mrd-eyebrow">Actually</span>
+        {resolution ? (
+          <>
+            <span className="flex items-center gap-mrd-3">
+              <StatusChip
+                status={resolution === "hit" ? "pass" : resolution === "miss" ? "fail" : "hold"}
+              >
+                {resolution}
+              </StatusChip>
+              <span className="min-w-0 text-mrd-small text-mrd-mute">{rationale}</span>
+            </span>
+            <span className="mrd-meta">
+              {resolvedBy ? `Graded by the ${agentDisplayName(resolvedBy)} agent` : "Graded by you"}
+            </span>
+          </>
+        ) : horizonPast ? (
+          <span className="font-medium text-mrd-body">
+            Due {daysPast} {daysPast === 1 ? "day" : "days"} ago and not graded.
+          </span>
+        ) : horizonDay ? (
+          <span className="text-mrd-small text-mrd-mute">Not due until {horizonDay}.</span>
+        ) : (
+          <span className="text-mrd-small text-mrd-mute">
+            Nothing was recorded as expected, so there is nothing to check against.
+          </span>
+        )}
+      </div>
+
+      {summary ? (
+        <div className="flex flex-col gap-mrd-2 rounded-mrd-chip bg-mrd-sink p-mrd-4">
+          <span className="mrd-eyebrow">What we now believe</span>
+          <Prose markdown={false}>{summary}</Prose>
+          <span className="flex flex-wrap items-center gap-mrd-3">
+            {verdict === "validated" ? (
+              <StatusChip status="pass">Held up</StatusChip>
+            ) : verdict === "missed" ? (
+              <StatusChip status="fail">Did not hold</StatusChip>
+            ) : verdict === "mixed" ? (
+              <StatusChip status="hold">Mixed</StatusChip>
+            ) : null}
+            {metricLabel && metricValue ? (
+              <span className="font-mrd-mono text-mrd-data tabular-nums text-mrd-mute">
+                {metricLabel}: {metricValue}
+              </span>
+            ) : null}
+          </span>
+          <span className="mrd-meta">
+            {bySlug ? `Recorded by the ${agentDisplayName(bySlug)} agent` : "Recorded by you"}
+          </span>
+        </div>
+      ) : null}
+
+      {decision && !resolution ? (
+        <SettleControls decisionId={decision.artifactId} due={horizonPast} />
+      ) : null}
+      {decision && resolution ? <ReopenControl decisionId={decision.artifactId} /> : null}
+    </div>
+  );
+}
+
+/** Grade the forecast, or push its check back. The closing move of the loop. */
+function SettleControls({ decisionId, due }: { decisionId: string; due: boolean }) {
+  const fSettle = useServerFn(settleForecast);
+  const fDefer = useServerFn(deferForecastCheck);
+  const qc = useQueryClient();
+  const [choice, setChoice] = React.useState<"hit" | "miss" | "inconclusive" | null>(null);
+  const [rationale, setRationale] = React.useState("");
+  const [problem, setProblem] = React.useState<string | null>(null);
+
+  const settle = useMutation({
+    mutationFn: () =>
+      fSettle({ data: { decisionId, resolution: choice ?? "hit", rationale: rationale.trim() } }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["track-artifacts"] });
+      void qc.invalidateQueries({ queryKey: ["spine-track", decisionId] });
+      setProblem(null);
+    },
+    onError: (e: Error) => setProblem(e.message),
+  });
+  const defer = useMutation({
+    mutationFn: () => fDefer({ data: { decisionId, days: 14 } }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["track-artifacts"] });
+      setProblem(null);
+    },
+    onError: (e: Error) => setProblem(e.message),
+  });
+
+  if (!due) {
+    return (
+      <div>
+        <Action variant="quiet" busy={defer.isPending} onClick={() => defer.mutate()}>
+          Not due yet — check back in two weeks
+        </Action>
+        {problem ? <RecordSpeaks>{problem}</RecordSpeaks> : null}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-mrd-3">
+      <div role="group" aria-label="What actually happened" className="flex flex-wrap gap-mrd-3">
+        {(["hit", "miss", "inconclusive"] as const).map((r) => (
+          <button
+            key={r}
+            type="button"
+            data-mrd=""
+            onClick={() => setChoice(r)}
+            className={`rounded-mrd-ctl px-mrd-4 py-mrd-2 text-mrd-small font-medium transition-colors ${
+              choice === r ? "bg-mrd-ink text-mrd-bg" : "text-mrd-body enabled:hover:bg-mrd-hover"
+            }`}
+            style={{ transitionDuration: "var(--mrd-d-press)" }}
+          >
+            {r === "hit" ? "It held up" : r === "miss" ? "It did not" : "Cannot tell"}
+          </button>
+        ))}
+      </div>
+      <Field label="What actually happened, in one line" htmlFor={`settle-${decisionId}`}>
+        <Input
+          id={`settle-${decisionId}`}
+          value={rationale}
+          onChange={(e) => setRationale(e.currentTarget.value)}
+          placeholder="Escalations fell from 18% to 6% over the fortnight"
+        />
+      </Field>
+      <div>
+        <Action
+          variant="primary"
+          busy={settle.isPending}
+          disabled={!choice || rationale.trim().length === 0 || settle.isPending}
+          onClick={() => settle.mutate()}
+        >
+          {settle.isPending ? "Recording the grade" : "Grade it"}
+        </Action>
+      </div>
+      {problem ? <RecordSpeaks>{problem}</RecordSpeaks> : null}
+    </div>
+  );
+}
+
+/** A wrong verdict nobody can correct is also a false entry. Reopening argues. */
+function ReopenControl({ decisionId }: { decisionId: string }) {
+  const fReopen = useServerFn(reopenForecast);
+  const qc = useQueryClient();
+  const [open, setOpen] = React.useState(false);
+  const reopen = useMutation({
+    mutationFn: (reason: string) => fReopen({ data: { decisionId, reason } }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["track-artifacts"] });
+      setOpen(false);
+    },
+  });
+
+  return open ? (
+    <ReasonField
+      id={`reopen-${decisionId}`}
+      label="Why is this verdict wrong?"
+      hint="It becomes the newest entry in the forecast's history, beside the verdict it corrects."
+      placeholder="The horizon measure was never instrumented, so inconclusive was recorded without checking"
+      commitLabel="Reopen the forecast"
+      cancelLabel="Keep the verdict"
+      busy={reopen.isPending}
+      onCommit={(reason) => reopen.mutate(reason)}
+      onCancel={() => setOpen(false)}
+    />
+  ) : (
+    <div>
+      <Action variant="quiet" onClick={() => setOpen(true)}>
+        Disagree with this verdict
+      </Action>
+    </div>
+  );
+}
+
+/*
  * One station's panel. Four states, derived per SPEC-ARTIFACTS §2, branching on
  * rows and counts only -- never on hold prose (§11.5).
  */
 function StationPanel({
   stop,
   view,
+  decisionItem,
   everDriven,
   hold,
   now,
 }: {
   stop: ChainStop;
   view?: StationArtifactView;
+  decisionItem?: ArtifactView;
   everDriven: boolean;
   hold: string | null;
   now: number;
@@ -559,6 +785,8 @@ function StationPanel({
         return <SignalCard item={item} now={now} />;
       case "theme":
         return <ThemeCard item={item} />;
+      case "learning":
+        return <LearningCard item={item} decision={decisionItem} />;
       case "prd":
         return <PlanSpec prdId={item.artifactId} />;
       default:
@@ -689,6 +917,9 @@ export function ArtifactPane({ trackId }: { trackId: string }) {
         <StationPanel
           stop={shown}
           view={bodies.data?.stops.find((s) => s.station === shown.station)}
+          decisionItem={bodies.data?.stops
+            .find((s) => s.station === "decide")
+            ?.items.find((it) => it.kind === "decision" && !it.missing)}
           everDriven={track.drivenAt !== null}
           hold={track.hold}
           now={now}
