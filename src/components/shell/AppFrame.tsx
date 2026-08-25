@@ -140,6 +140,7 @@ import { listMissions } from "@/lib/missions.functions";
 import { listAgents } from "@/lib/agents.functions";
 import { listCrew } from "@/lib/crew.functions";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
+import { listTracks } from "@/lib/spine/track.functions";
 import { initialsFrom } from "@/lib/initials";
 import { useTheme } from "@/hooks/use-theme";
 import {
@@ -1096,6 +1097,35 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     placeholderData: keepPreviousData,
   });
 
+  /* THE WALK THE HEADER COULD NOT SEE.
+   *
+   * The live line above reads missions, and a spine track only becomes a
+   * mission at Build (`driver.server.ts:674`). A run moving through Discover,
+   * Decide or Plan wrote `spine_tracks.driven_at` and station activity while
+   * this header went on saying "Nothing running" -- the exact invisibility the
+   * mission exists to end (EVIDENCE.md §2: nine tracks sat waiting on a person
+   * with nothing anywhere saying so). This read is the header's second ear: an
+   * open track driven within the last five minutes IS a run that moved, said by
+   * its own row and never inferred from anything else. Five minutes, because
+   * the foreground walk updates per seat and the cron's round-robin can leave
+   * gaps shorter than that; a track idle longer than it is a stopped one and
+   * stays silent here rather than wearing a live dot it did not earn.
+   */
+  const fetchOpenTracks = useServerFn(listTracks);
+  const openTracks = useQuery({
+    queryKey: ["shell", "open-tracks"],
+    queryFn: () => fetchOpenTracks(),
+    staleTime: 30_000,
+    refetchInterval: () => livePoll(false),
+    placeholderData: keepPreviousData,
+  });
+  const movingRuns = React.useMemo(() => {
+    const cutoff = Date.now() - 5 * 60_000;
+    return (openTracks.data ?? [])
+      .filter((t) => t.drivenAt !== null && new Date(t.drivenAt).getTime() >= cutoff)
+      .sort((a, b) => (b.drivenAt ?? "").localeCompare(a.drivenAt ?? ""));
+  }, [openTracks.data]);
+
   const rows = React.useMemo(() => missions.data?.missions ?? [], [missions.data]);
   const running = React.useMemo(() => rows.filter((m) => WORKING.has(m.status)), [rows]);
   const gateCount = queue.data?.items.length ?? 0;
@@ -1281,22 +1311,33 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     if (missions.isError) return "Cannot see what is running";
     if (missions.isLoading) return null;
     if (running.length === 0) {
-      if (gateCount === 0) return "Nothing running";
-      /* "DECISIONS", NOT "CALLS", and the two surfaces now agree.
-       *
-       * The shell said "83 calls need you" while /today, one inch below it,
-       * said "83 decisions are ready for your review". Same number, same
-       * things, two nouns — which reads as two different counts until you work
-       * out that it isn't.
-       *
-       * "Decision" is also the word the market uses and "call" is not: measured
-       * across 5.72M words of operator conversation, "decisions" is the single
-       * most common substantive term at 562.8 per million, while "call" in this
-       * sense barely registers and is ambiguous with a phone call in the same
-       * breath as agents and runs. */
-      return gateCount === 1
-        ? "1 decision is ready for you"
-        : `${gateCount} decisions are ready for you`;
+      if (gateCount > 0) {
+        /* "DECISIONS", NOT "CALLS", and the two surfaces now agree.
+         *
+         * The shell said "83 calls need you" while /today, one inch below it,
+         * said "83 decisions are ready for your review". Same number, same
+         * things, two nouns -- which reads as two different counts until you
+         * work out that it isn't.
+         *
+         * "Decision" is also the word the market uses and "call" is not:
+         * measured across 5.72M words of operator conversation, "decisions" is
+         * the single most common substantive term at 562.8 per million, while
+         * "call" in this sense barely registers and is ambiguous with a phone
+         * call in the same breath as agents and runs. */
+        return gateCount === 1
+          ? "1 decision is ready for you"
+          : `${gateCount} decisions are ready for you`;
+      }
+      /* A walk with no mission yet lands here, said from its own row. The
+       * station is named the way the transcript names one in passing, which is
+       * where this vocabulary is allowed to appear (R-13); it is a fact about
+       * the work, never a menu. */
+      if (movingRuns.length === 1) {
+        const label = STAGE_LABEL[movingRuns[0].station];
+        return label ? `The crew is moving · ${label}` : "The crew is moving";
+      }
+      if (movingRuns.length > 1) return `${movingRuns.length} runs are moving`;
+      return "Nothing running";
     }
     // Every running run resolved to a named worker, so the agents are
     // countable and the count is the thing worth saying.
@@ -1338,6 +1379,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     unnamedRuns,
     workingStation,
     strip,
+    movingRuns,
   ]);
 
   // The two trailing facts, in importance order: the first survives to 860px,
@@ -1479,6 +1521,17 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       };
     }
     if (running.length > 1) return { go: go("/runs"), title: "See every run" };
+    /* Nothing in the mission world is working, but a spine run moved moments
+     * ago -- so the door opens THE address of that run, not a list. The track
+     * is named by its own row; this mapping is read, not guessed (the
+     * proven mission-to-track version waits on request 021). */
+    if (movingRuns.length > 0) {
+      return {
+        go: go("/track/$trackId", { trackId: movingRuns[0].id }),
+        title:
+          movingRuns.length === 1 ? "Open the run that is moving" : "Open the run that moved last",
+      };
+    }
     if (lastDone) {
       return {
         go: go("/runs/$missionId", { missionId: lastDone.id }),
@@ -1486,7 +1539,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       };
     }
     return { go: go("/runs"), title: "See every run" };
-  }, [gateCount, running, lastDone, navigate]);
+  }, [gateCount, running, movingRuns, lastDone, navigate]);
 
   /* THE ONE THING ON THE STRIP THAT MOVES.
    * A gate outranks a run in progress, because the gate is the one asking for a
