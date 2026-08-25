@@ -8,7 +8,7 @@
 > file, push your claim before coding, remove it when done. Pull before every unit; push after
 > every commit. Four sessions share this repo (A = director, B, L0, L1).**
 
-## 1 · Queue #71 — the crew at work is a live row, not a silence (READY)
+## Done · Queue #71 — the crew at work is a live row (SHIPPED `b60fa7a47`, unit in BUILDLOG)
 
 - **Goal:** while a station's crew is actually mid-visit (the sweep is serving this track right
   now), the transcript's newest edge shows it as a LIVE row — "The build crew is at work,
@@ -61,7 +61,7 @@
 - **Acceptance:** BUILDLOG rows updated with what was SEEN, screenshots filed in your unit;
   anything that did not render as specced becomes a filed finding, not a silent pass.
 
-## 1c · Queue #69 — the finished count must tell the truth (READY; the F-61 guard)
+## Done · Queue #69 — the finished count tells the truth (GUARD WRITTEN, unit L0-086, test handed to MAIN via INBOX 18)
 
 - **Goal:** any surface you own that answers "has a piece of work finished end to end?" — a
   done badge, a board tile, a finished count — derives it from the track row itself:
