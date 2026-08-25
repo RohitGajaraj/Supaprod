@@ -913,3 +913,42 @@ signals filed 2026-08-22. **That is not stacking the deck** — it is giving the
 evidence supports, which is the ordinary case. A run that must reach `learn` on evidence that does
 not exist is testing the agents' honesty, and that has already been answered: they refuse, correctly,
 every time.
+
+
+---
+
+## Round 4 — the clean run. One build, one track, nothing touched.
+
+**The conditions this round holds that no earlier round did:**
+
+| | Round 3 | Round 4 |
+| --- | --- | --- |
+| Builds spanned | **two** — a deploy landed between tick 1 and tick 2 | **one**, and nothing deploys while it walks |
+| Other live tracks | one, competing for the same 45s tick | **none** |
+| The brief | followed the track title, contradicting the spec (F-30) | follows the spec once one exists |
+| Subject | no corroborating evidence in the workspace | evidence filed 2026-08-22 |
+
+**The subject, and why it changed.** *"Add dark mode"* had no supporting evidence here, so Decide
+correctly deferred it and every later station inherited a deferral. That is a true path and a useful
+one — it is how F-30 surfaced — but it **cannot reach `learn`**, because a deferred piece of work has
+nothing to build, ship or grade. Round 4 uses work this workspace holds real evidence for:
+
+> **`b009cf02` · internal-audit · 2026-08-22** — *"A notification setting nobody opened means four
+> different things. Sixteen users hold one notification preferences row between them. An absent row
+> reads as all channels on to the settings pane, as on to the in-app feed and instant mail, and as
+> not scanned at all to the digest job. **Fifteen people are told four things can interrupt them
+> while none can.**"*
+
+**Chosen for three reasons, all of them about whether seven stations are reachable:**
+
+1. **The evidence exists and is specific** — a counted defect, not a wish, so Decide can say yes
+   without inventing anything.
+2. **It has a user-visible surface** — a settings pane — so `design` has something to design. The
+   scheduler and telemetry signals are better defects and would have stalled Design with nothing to
+   draw, which is the same wall from a different direction.
+3. **The outcome is gradable** — "an absent row means one thing" is checkable, so `learn` has a real
+   verdict rather than a shrug.
+
+**What is NOT being done to help it:** no seeding, no priming, no second attempt at a station, no
+deploy mid-flight, and no reset if it stalls. **If it stops, that is the result**, exactly as Round 3
+stopping at Design was the result.
