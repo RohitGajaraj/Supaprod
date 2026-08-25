@@ -603,3 +603,47 @@ station is judged on what it filed since it arrived, and the track should hand o
 
 **Nothing was arranged to produce this. It is the same crew, the same deadline and the same seat
 split that killed the last one.**
+
+
+### 01:41 — F-14 PROVEN ON A LIVE RUN. The station that killed the last track handed on.
+
+**The proof is that NOTHING was filed on the resuming tick.**
+
+```sql
+SELECT artifact_kind, station, created_at FROM spine_track_members
+ WHERE track_id = '897d1834-0d44-45bd-ad3d-29b7b1206041' ORDER BY created_at;
+-- signal/sense 01:00:27 · theme/sense 01:01:13 · signal/sense 01:01:13
+-- theme/sense  01:01:13 · signal/sense 01:10:34 · theme/sense  01:10:34
+-- decision/decide 01:30:53          <- the last row. Nothing at 01:40.
+
+SELECT agent_slug, status, duration_ms, created_at FROM agent_runs
+ WHERE track_id = '897d1834-…' AND created_at > '01:40:00';
+-- critic | completed_with_failures | 12717 | 2026-08-25 01:40:49.930039+00
+
+SELECT from_stage, to_stage, actor, at FROM stage_events WHERE entity_id = '897d1834-…';
+-- sense  | decide | system | 01:10:34.254004+00
+-- decide | define | system | 01:41:05.939582+00
+```
+
+**Read those three together.** The critic ran for 12.7 seconds, filed **nothing** — checking is its
+job — and the track **advanced to `define` anyway**, with `attempts` reset to 0 and no hold.
+
+`attached.length` was **zero** on that tick. Under the old rule that is `produced-nothing`, an
+attempt spent, and three rounds of it is `given-up`. **That is precisely how `f9e41393` died on
+2026-08-24 with three decisions sitting on its record.** Same station, same crew, same 45s deadline,
+same empty harvest — and this time `didStationProduce` looked at what `decide` had filed since it
+arrived and handed the work on.
+
+**This is the fix verified by behaviour rather than by test, on a live autonomous run, and nothing
+was arranged to produce it.** The earlier `sense → decide` advance explicitly did NOT prove this,
+because the resuming seat happened to file; this one does, because it did not.
+
+### 2 of 7 · `sense → decide → define`
+
+| Station | Filed | Advanced |
+| --- | --- | --- |
+| `sense` | 3 signals, 3 themes | 01:10:34 |
+| `decide` | 1 decision, **with a forecast due 2026-09-01** | 01:41:05 |
+| `define` | running | — |
+
+$0.0496 spent. **No human has touched this track since it was created at 00:47:14.**
