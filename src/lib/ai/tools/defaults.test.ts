@@ -48,20 +48,48 @@ describe("platform tool defaults", () => {
     expect(extra).toEqual([]);
   });
 
-  it("keeps every irreversible tool at review", () => {
-    // The four a person cannot undo from inside the product: a live release, a
-    // merge to the default branch, a revert of shipped code, and handing work to
-    // an outside agent. `trust-ramp.ts` floors these independently, so this is
-    // defence in depth; but a default that shipped one of them at `auto` would
-    // be a boundary lowered by a code change nobody reads as a policy change.
+  /**
+   * AMENDED BY R-27, 2026-08-25, and the original comment is the reason this is
+   * written carefully rather than edited quietly. It said: *"a default that
+   * shipped one of them at `auto` would be a boundary lowered by a code change
+   * nobody reads as a policy change."* **That warning is correct and it is about
+   * exactly this edit.**
+   *
+   * So: none of them ships at `auto`, and that assertion is unchanged and is the
+   * floor. What moved is `release.publish` and `studio.revert`, from `review` to
+   * `confirm` — a policy change, read as one, ruled as R-27, and made on the
+   * founder's instruction that a feature must be live at platform level.
+   *
+   * IT HAD TO MOVE HERE OR NOWHERE. `resolveApprovalMode` opens
+   * `if (toolMode === "review") return "review"`, so a seeded `review` is sticky
+   * before any floor logic runs — R-27 was **inert** while these read `review`,
+   * in every workspace, and `agent_tools` holds zero override rows for them. The
+   * gate is now the four preconditions the loop must prove, plus the arc:
+   * `observing` review · `proving` confirm · `trusted` auto · `ambient` auto.
+   */
+  it("never ships an irreversible tool at auto - the floor that does not move", () => {
     for (const tool of [
       "release.publish",
       "studio.pr.merge",
       "studio.revert",
       "delegate.openhands",
     ]) {
-      expect(TOOL_DEFAULTS[tool]?.mode, `${tool} must default to review`).toBe("review");
+      expect(TOOL_DEFAULTS[tool]?.mode, `${tool} must never default to auto`).not.toBe("auto");
     }
+  });
+
+  it("keeps the two R-27 did NOT touch pinned at review", () => {
+    // The merge has its own switch (`AUTO_SHIP_ENABLED`) and delegating to an
+    // outside agent is a different act from deploying our own reviewed change:
+    // none of R-27's four preconditions says anything about what somebody else's
+    // agent will do.
+    expect(TOOL_DEFAULTS["studio.pr.merge"]?.mode).toBe("review");
+    expect(TOOL_DEFAULTS["delegate.openhands"]?.mode).toBe("review");
+  });
+
+  it("seeds the R-27 pair at confirm, which is where the ruling actually lives", () => {
+    expect(TOOL_DEFAULTS["release.publish"]?.mode).toBe("confirm");
+    expect(TOOL_DEFAULTS["studio.revert"]?.mode).toBe("confirm");
   });
 
   it("gives every station's own hands to an account with no rows at all", () => {

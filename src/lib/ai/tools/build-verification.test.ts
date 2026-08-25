@@ -81,15 +81,28 @@ describe("Build verification tools: they run, without a gate in front of them", 
 });
 
 describe("Build verification tools: nothing they added lowered an existing floor", () => {
-  it("keeps the irreversible tools' SEEDED mode at review, and nothing here lowered it", () => {
+  it("never lets an irreversible tool default to auto - the floor that does not move", () => {
     // Verification is what makes autonomy defensible, never a reason to relax
     // the gate it feeds. A clean review verdict is evidence for a human, not a
-    // substitute for one. That still holds: none of these tools' seeded defaults
-    // moved, and their membership of the force-review set is unchanged.
+    // substitute for one.
+    //
+    // AMENDED TWICE IN ONE DAY, and the second time changed a seeded default,
+    // so it is written out rather than edited quietly. `release.publish` and
+    // `studio.revert` moved review -> confirm under R-27, which is a POLICY
+    // change made on the founder's instruction that a feature must be live at
+    // platform level. It had to move here or nowhere: `resolveApprovalMode`
+    // opens `if (toolMode === "review") return "review"`, so a seeded review is
+    // sticky before any floor logic runs and R-27 was inert while these read
+    // review, in every workspace, with zero override rows anywhere.
+    //
+    // What did NOT move is the floor: none of them defaults to `auto`, and all
+    // three keep force-review membership, which is what keeps AGT-02's
+    // reversible auto-clear off them.
     for (const tool of ["release.publish", "studio.pr.merge", "studio.revert"]) {
-      expect(TOOL_DEFAULTS[tool].mode, `${tool} must stay at review`).toBe("review");
+      expect(TOOL_DEFAULTS[tool].mode, `${tool} must never default to auto`).not.toBe("auto");
       expect(HIGH_RISK_FORCE_REVIEW.has(tool), `${tool} must stay force-review`).toBe(true);
     }
+    expect(TOOL_DEFAULTS["studio.pr.merge"].mode, "the merge keeps its own switch").toBe("review");
     expect(TOOL_DEFAULTS["delegate.openhands"].mode).toBe("review");
   });
 
@@ -111,9 +124,16 @@ describe("Build verification tools: nothing they added lowered an existing floor
    */
   it("R-27: the ship pair resolves through the ramp, and a person's pin still wins", () => {
     for (const tool of ["release.publish", "studio.revert"]) {
-      expect(resolveToolMode(tool, "auto", "proving", true), `${tool} starts gated`).toBe(
+      // Resolved from the tool's OWN seeded default, which is what a real run
+      // passes - never a literal chosen to make the test pass. THIS is the
+      // assertion that would have caught R-27 shipping inert: with the old
+      // `review` default it resolves to `review` on every arc, and the ruling
+      // does nothing.
+      const seeded = TOOL_DEFAULTS[tool].mode;
+      expect(resolveToolMode(tool, seeded, "proving", true), `${tool} starts gated`).toBe(
         "confirm",
       );
+      expect(resolveToolMode(tool, seeded, "trusted", true), `${tool} graduates`).toBe("auto");
       expect(resolveToolMode(tool, "review", "trusted", true), `${tool} pin holds`).toBe("review");
     }
     expect(resolveToolMode("studio.pr.merge", "auto", "trusted", true)).toBe("review");

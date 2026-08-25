@@ -185,9 +185,40 @@ export const TOOL_DEFAULTS: Readonly<
   "github.commit.append": { mode: "confirm", enabled: true, label: "Append a commit" },
   // 06 Ship. Everything irreversible sits at review, and trust-ramp.ts floors
   // these independently so an agent cannot earn its way past them.
-  "release.publish": { mode: "review", enabled: true, label: "Publish a release" },
+  /*
+   * R-27, AND THE SEEDED MODE IS WHERE THE RULING ACTUALLY LIVES.
+   *
+   * This read `review`, and that made the whole of R-27 INERT — caught by
+   * reading my own change back rather than by any test. `resolveApprovalMode`
+   * opens `if (toolMode === "review") return "review"`, so a seeded `review` is
+   * sticky BEFORE the force-review branch runs; `strictestOf` then correctly
+   * refuses to reach past it, and the tool resolved to `review` in every
+   * workspace no matter what the ruling said. `agent_tools` holds **zero rows**
+   * for this tool, so the seeded value was the only value there has ever been.
+   *
+   * R-22 AGAIN, THIRD TIME TODAY AND SECOND TIME IN MY OWN CODE: the product's
+   * shipped default and a person's explicit choice shared one representation, so
+   * protecting the choice killed the default. `confirm` separates them — an
+   * override row still wins, because `resolveToolAccess` reads
+   * `over?.mode ?? base.mode`.
+   *
+   * WHAT `confirm` MEANS HERE, arc by arc: `observing` review · `proving`
+   * confirm · `trusted` auto · `ambient` auto. So a workspace is gated until
+   * somebody deliberately dials its autonomy up, and even then the four
+   * preconditions in `promoteChangeset` and `unattendedShipIsGradable` still
+   * have to be proven — merged, CI green at that head sha, a live preview at
+   * that exact commit, and a recorded forecast. **The gate moved from a click
+   * nobody answered to proof the loop must produce.**
+   */
+  "release.publish": { mode: "confirm", enabled: true, label: "Publish a release" },
   "studio.pr.merge": { mode: "review", enabled: true, label: "Merge a PR" },
-  "studio.revert": { mode: "review", enabled: true, label: "Revert a change" },
+  // R-27. Moves WITH `release.publish`, and would be wrong to leave behind:
+  // `AUTO_SHIP_ENABLED` had already freed the merge and not the rollback, so the
+  // product could merge to a default branch by itself and could not roll back by
+  // itself. An undo gated harder than the do means that when something breaks at
+  // 3am the loop must page a person — the exact failure the gate exists to
+  // prevent. A rollback to a known-good commit is the definition of reversible.
+  "studio.revert": { mode: "confirm", enabled: true, label: "Revert a change" },
   // SHIP'S READ DOOR. Auto like every other read: release.publish was the
   // station's only tool for months, so an agent could ship but not ask "what
   // already shipped?" -- and a crew that cannot look re-proposes shipped work.
