@@ -471,3 +471,30 @@ sitting on the record. Under `didStationProduce` it should see what `sense` file
 and hand on to Decide.
 
 **The next tick is F-14's live test, and nothing has been touched to arrange it.**
+
+
+### 01:10 — SENSE → DECIDE. The first station advance of this run.
+
+```sql
+SELECT from_stage, to_stage, actor, at FROM stage_events
+ WHERE entity_id = '897d1834-0d44-45bd-ad3d-29b7b1206041';
+-- sense | decide | system | 2026-08-25 01:10:34.254004+00
+
+SELECT station, last_hold, attempts, seat_cursor FROM spine_tracks WHERE id = '897d1834-…';
+-- decide | null | 0 | 0
+```
+
+Six artifacts filed at `sense` — three signals, three themes — and `attempts` reset to 0 on the move,
+which is the driver doing exactly what it says it does.
+
+**WHAT THIS DOES NOT PROVE, and it would be easy to claim it does.** The resuming tick ran
+`customer-insights`, and that seat **did** file: members went 4 → 6 at 01:10:34. So `attached` was
+non-empty and the track advanced down the ORDINARY path. **`didStationProduce`'s resumed branch was
+not what carried it.** F-14 is still fixed and still tested, but this advance is not the evidence for
+it.
+
+**Decide is where that gets tested properly.** Its crew is `strategist` then `critic`; the strategist
+files a decision and the critic files nothing, because checking is its job. Every strategist run
+measured last night exceeded the 45s deadline on its own, so the split is near-certain and the
+resuming tick will harvest nothing. That is the exact shape that took `f9e41393` to `given-up` with
+three decisions on its record.
