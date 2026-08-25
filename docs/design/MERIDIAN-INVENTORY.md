@@ -159,7 +159,15 @@ push back on, never an order.
    fires an irreversible regeneration with per-option tooltips FineTuneCard cannot render. Housing
    anything would have been re-typing controls, not inspecting properties. The card stays gallery-only
    until a surface grows numeric tunables.
-4. **StatusChip sweep — OPEN**, deliberately last.
+4. **StatusChip sweep — INVESTIGATED 2026-08-25, CONVERTS NOTHING, and that is the finding.** The
+   proposal assumed raw coloured status text was unadopted chip work. All 82 occurrences outside
+   Meridian decompose into three kinds, and every one is deliberate: (a) documented refusals with the
+   reasoning written in place — `RunState`'s "why a word and not a chip" lane argument, the trace
+   `Outcome`'s three-states-two-colours note, `StateWord`'s dot-and-word inline; (b) mark and glyph hue
+   maps (`RunMark`, `ReceiptsPanel`'s `MARK_INK`), which colour identity objects, not status words; (c)
+   fail-coloured fragments inside prose sentences, kept inline so a port cannot shrink them. The chip's
+   salience argument was already applied through the tree case by case. **There is no sweep backlog**;
+   `StatusChip` keeps growing the normal way, one convinced caller at a time.
 5. **Flowchart → branch previews — LANDED** (`5ff3ee5a3`) on the spec page's flow reading
    (`FlowDiagram`), the one candidate structure that genuinely branches; spec projections, launch plan
    and the track path were surveyed and are linear.

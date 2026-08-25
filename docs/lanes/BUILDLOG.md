@@ -22,6 +22,9 @@
 
 | Item | Unit | What shipped | True state |
 | --- | --- | --- | --- |
+| Meridian adoption audit + 5 adoptions (founder-directed) | L0-084 (`93356df93`, `639678be7`, `dcc70e819`, `5ff3ee5a3`) | Audit map into MERIDIAN-INVENTORY (study, not doctrine); AgentInbox → /inbox on real reads; InsightCards → /learn; Flowchart → spec flow branches | **CODE-SHIPPED** (suite 11,186 pass); FineTuneCard refused on evidence (zero tunables on /design); StatusChip sweep investigated, found already-reasoned, converts nothing. Live looks owed next publish |
+
+| Item | Unit | What shipped | True state |
 | Request 022 boundary controls | L0-083 (`214cfffd5`) | `BoundaryControls` in governance, mounted on SafetyRoom front tab; statement's link-out removed; no new tab ids needed | **CODE-SHIPPED** (suite 11,161 pass); live look owed next deploy; L1's redirect fold now unblocked |
 | Item 4 split half | L0-079b (`9242664aa`) | `TrackStart` optional `onCreated`; host route decides landing; /plan reveal stays default | **CODE-SHIPPED**; L1 passes navigate + `?start=true` from the route |
 | Queue #65 origin markers | L0-080 (`7fa621e8f`) | Transcript interleaves `driven_via` markers: press/sweep/continuation named distinctly; foreground+NULL drawn never; station words via AGENT_STATIONS | **CODE-SHIPPED** (6 helper tests, gates green); both-theme eyes owed next deploy |
