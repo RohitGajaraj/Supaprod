@@ -43,6 +43,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { TrackChain } from "@/components/spine/TrackChain";
 import { TrackActivity } from "@/components/spine/TrackActivity";
+import { ArtifactPane } from "@/components/track/ArtifactPane";
 import { Action, Region } from "@/components/meridian/surface-parts";
 import { Row } from "@/components/meridian/rows";
 import { StatusChip } from "@/components/meridian/StatusChip";
@@ -210,6 +211,14 @@ export function TrackRun({ trackId }: { trackId: string }) {
           failed={releaseNote.failed}
         />
       ) : null}
+
+      {/*
+       * THE PREVIEW PANE, above the control that moves the work. The ruling
+       * puts the thing being made where the eye lands and the transcript
+       * beside it (DESIGN-DIRECTION §1); until the two-column frame lands this
+       * single column leads with what the work has made.
+       */}
+      <ArtifactPane trackId={trackId} />
 
       <Region
         title="Run it"
