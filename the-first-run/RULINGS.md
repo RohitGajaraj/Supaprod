@@ -678,6 +678,45 @@ build?" while it opens a chat.** That copy promises the loop and delivers a conv
 
 ---
 
+## R-26 · A station that was REFUSED is not a station that failed — 2026-08-25
+
+**Taken on the founder's behalf while away. Reversible: delete the hold and the two set entries.**
+
+**The rule.** When a station files nothing *because a tool refused it*, that is a different fact from
+a station that ran and did its job badly, and the two may not share a hold. A refusal costs no
+attempt, triggers no correction, names the tool and the message, and stops the sweep from
+re-dispatching it.
+
+**Why it needed deciding rather than queueing.** All eight hold reasons described the WORK — filed
+nothing, filed the wrong thing, ran long, ran out of money. **None could say the tools are down.** So
+on 2026-08-25 a GitHub 401 was filed as `produced-nothing`, whose line to a person reads *"This
+station ran but filed nothing... **It will try again.**"* It tried three times, and at the ceiling
+`decideCorrection` did exactly what it is built to do — *"the fix may live at an earlier station"* —
+and sent track `8391835f` from `build` back to `define`. **The work it discarded was correct**: a
+faithful spec, six well-scoped tasks and a real prototype. Rewriting them could not have opened
+GitHub. This is R-16's *"a failure that names what failed"* applied to the one place it was missing.
+
+**The one judgement inside it, which is the part worth your eye.** `tools-refused` is **terminal for
+the sweep**, alongside `given-up` and `station-cannot-finish` — but for a different reason than
+either. Those two are terminal because neither asked for anything. This one asks loudly, for a
+working credential. It is terminal because `RESUMABLE_HOLDS` resumes by re-checking whether an ask
+has been met, and *"is GitHub reachable again"* can only be answered by dispatching a paid run. **A
+resumable version would spend an agent every tick to be told no.** So a person reconnects it and
+starts the work again, and the hold line says that in those words rather than promising a retry.
+
+**Reverse it if** you would rather burn a run per tick to get automatic recovery. That is the whole
+trade and it is the only thing this ruling decides.
+
+**Deliberately narrow.** Only errors that mean the door was locked count — 401, 403, unauthorised,
+forbidden, bad credentials, permission denied, expired token, not set, not configured, setup pending.
+A validation error, a not-found or a bad argument is still the station's problem. **And an approval a
+person DENIED is not a refusal**: that is the governance floor working, and it already has
+`waiting-on-a-person`. Widening this list would let a real defect hide behind a hold that says "not
+your fault", and the attempts ceiling would stop protecting anything.
+
+Ledger **F-41**. Code: `refusedTool` in `driver.ts`, the branch in `driver.server.ts`,
+`TERMINAL_HOLDS` in `correction.ts`, guarded by `a-refused-station-is-not-a-failed-one.test.ts`.
+
 ## R-25 · The forecast is written at Decide, so a route without Decide has no moat — 2026-08-25
 
 **Asked by LANE 1 as REQ-2. Granted on the principle, refused as written, and landed on two of the

@@ -71,6 +71,13 @@ const ENDS_OR_WAITS: HoldReason[] = [
   "needs-a-waived-station",
   "corrections-spent",
   "station-cannot-finish",
+  // F-41, 2026-08-25. This one belongs here rather than in CORRECTABLE_HOLDS,
+  // and the distinction is the whole finding: the correction loop reroutes a
+  // station that RAN AND COULD NOT DO ITS JOB, on the theory that the fix lives
+  // upstream. A station whose tool was refused did not do its job badly — it was
+  // never let in. Rerouting it threw away a correct spec, six good tasks and a
+  // real prototype, and rebuilt them against the same GitHub 401.
+  "tools-refused",
 ];
 
 describe("what the rule refuses to touch", () => {

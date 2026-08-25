@@ -291,6 +291,24 @@ export type HoldReason =
    * attempt, and resumed by topping the account up.
    */
   | "out-of-credit"
+  /**
+   * F-41. THE STATION WAS REFUSED BY SOMETHING OUTSIDE THE WORK.
+   *
+   * Every other reason on this list describes the WORK — it filed nothing, it
+   * filed the wrong thing, it ran long, it ran out of money. **None of them can
+   * say the tools are down**, so on 2026-08-25 a GitHub 401 was recorded as
+   * `produced-nothing`, whose line to a person reads *"This station ran but
+   * filed nothing... It will try again."* It tried three times, and at the
+   * ceiling `decideCorrection` sent a correct spec, six good tasks and a real
+   * prototype back to Plan to be rewritten. **None of that was wrong, and
+   * rewriting it could not have helped.**
+   *
+   * This is the same rule as the halt branch in `driver.server.ts` one level
+   * out: a run the loop HALTED is not a station that failed, and neither is a
+   * run whose tools were REFUSED. R-16 asks for a failure that names what
+   * failed; `produced-nothing` names the station, and this names the door.
+   */
+  | "tools-refused"
   /* ---------------------------------------------------------------------- *
    * THE CORRECTION LOOP'S OWN HOLDS (founder ruling 2026-08-02).
    *
@@ -791,6 +809,11 @@ export const HOLD_LINE: Record<HoldReason, string> = {
   "out-of-time": "This run of the loop ran long, so the rest of the work carries on next time.",
   "out-of-credit":
     "The account ran out of credit before this station could run, so nothing was tried and nothing was charged against this work. Top the account up and it carries on from here.",
+  // Names the tool and the refusal, because "something went wrong" is what this
+  // hold exists to stop being the answer. The line is deliberately NOT "it will
+  // try again": retrying a refused credential spends money to be told no.
+  "tools-refused":
+    "This station could not use a tool it needs, so nothing it filed would have been the work. That is the connection rather than the work, and retrying it would only spend more to be told the same. Reconnect it and start this work again.",
   "needs-evidence":
     "This station has nothing to work from, and no other station can make it. Connect a source, or file the missing input by hand, and this starts again on its own.",
   "needs-a-waived-station":
@@ -868,6 +891,9 @@ const HOLD_NEEDS_PERSON: ReadonlySet<HoldReason> = new Set<HoldReason>([
   "station-cannot-finish",
   "corrections-spent",
   "given-up",
+  // F-41: a refused tool is a person's job by definition — no station can mint
+  // a credential, so nothing the loop does on its own will clear it.
+  "tools-refused",
 ]);
 
 /**
@@ -894,6 +920,7 @@ const STATION_SPECIFIC: ReadonlySet<HoldReason> = new Set<HoldReason>([
   "needs-a-waived-station",
   "station-cannot-finish",
   "given-up",
+  "tools-refused",
 ]);
 
 /** Station display names, read from the one vocabulary the whole product uses. */
@@ -975,4 +1002,65 @@ export function didStationProduce(input: {
   if (input.attachedCount > 0) return true;
   if (input.startSeat <= 0) return false;
   return input.filedAtStationSinceArrival === true;
+}
+
+/**
+ * The shape this needs from a loop step.
+ *
+ * Structural on purpose: `driver.ts` is the pure half and is tested without a
+ * database or a model, so it must not import `LoopStep` from `loop.server`.
+ * The fields below are the ones `loop.server.ts:228` actually carries.
+ */
+export type ToolStepLike = {
+  kind: string;
+  name?: string;
+  status?: string;
+  error?: string | null;
+};
+
+/**
+ * Errors that mean THE DOOR WAS LOCKED rather than THE WORK WAS WRONG.
+ *
+ * Deliberately narrow. A tool that returned a validation error, a not-found, or
+ * a bad argument is the agent's problem and should still count as the station
+ * failing — widening this list would let real defects hide behind a hold that
+ * says "not your fault".
+ */
+const REFUSAL_SIGNS: readonly RegExp[] = [
+  /\b401\b/,
+  /\b403\b/,
+  /unauthori[sz]ed/i,
+  /forbidden/i,
+  /authentication (failed|error|required)/i,
+  /bad credentials/i,
+  /permission denied/i,
+  /token (has )?expired/i,
+  /is not set\b/i,
+  /not configured/i,
+  /setup pending/i,
+];
+
+/**
+ * F-41 — did a tool refuse this run, as opposed to the run doing badly?
+ *
+ * Returns the first refusal so the hold can NAME it. R-16 asks for a failure
+ * that names what failed, and "this station filed nothing" names only where we
+ * were standing when it happened.
+ *
+ * `status: "denied"` is deliberately NOT a refusal: that is a person declining
+ * an approval, which is the governance floor working, and it already has
+ * `waiting-on-a-person` to describe it. Only `status: "error"` is considered.
+ */
+export function refusedTool(
+  steps: readonly ToolStepLike[],
+): { tool: string; error: string } | null {
+  for (const s of steps) {
+    if (s.kind !== "tool_call" || s.status !== "error") continue;
+    const err = (s.error ?? "").trim();
+    if (!err) continue;
+    if (REFUSAL_SIGNS.some((re) => re.test(err))) {
+      return { tool: s.name ?? "a tool", error: err.slice(0, 300) };
+    }
+  }
+  return null;
 }

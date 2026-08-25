@@ -241,7 +241,29 @@ export const RESUMABLE_HOLDS: ReadonlySet<HoldReason> = new Set<HoldReason>([
  * track re-enters on the next tick with no further change, and nothing has to
  * remember it was ever excluded.
  */
-export const TERMINAL_HOLDS: readonly HoldReason[] = ["given-up", "station-cannot-finish"];
+/**
+ * `tools-refused` joins these (F-41, 2026-08-25).
+ *
+ * The other two are here because neither asked for anything. This one asks for
+ * something loudly — a working credential — and is still terminal for the
+ * SWEEP, because there is no cheap way to test whether the ask has been met.
+ * `RESUMABLE_HOLDS` works by re-checking a condition; "is GitHub reachable
+ * again" can only be answered by dispatching a paid run, so a resumable
+ * `tools-refused` would spend an agent every tick to be told no.
+ *
+ * WHAT THIS COST BEFORE THE HOLD EXISTED: a GitHub 401 was filed as
+ * `produced-nothing`, retried three times, and then `decideCorrection` sent a
+ * correct spec, six good tasks and a real prototype back to Plan to be
+ * rewritten against the same locked door.
+ *
+ * A person clears it and starts the work again, which the hold line says in
+ * those words rather than promising it will try again.
+ */
+export const TERMINAL_HOLDS: readonly HoldReason[] = [
+  "given-up",
+  "station-cannot-finish",
+  "tools-refused",
+];
 
 /**
  * A run the loop HALTED, mapped to the hold that describes why.

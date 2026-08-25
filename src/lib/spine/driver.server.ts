@@ -38,6 +38,7 @@ import {
   holdLine,
   HOLD_LINE,
   didStationProduce,
+  refusedTool,
   resumeSeatFrom,
   newestSpecId,
   stationCrew,
@@ -1661,6 +1662,43 @@ export async function driveTrackOnce(
         ? await stationFiledSinceArrival(supabase, row.id, station, row.created_at ?? null)
         : null,
   });
+
+  /*
+   * F-41 — A STATION THAT WAS REFUSED IS NOT A STATION THAT FAILED.
+   *
+   * Same rule as the halt branch above, one level out. A run whose TOOL was
+   * refused filed nothing for a reason that has nothing to do with the work,
+   * and the two must not share a hold: `produced-nothing` counts an attempt,
+   * and three of those hand the work to `decideCorrection`, which sends it
+   * upstream to be rewritten. On 2026-08-25 that took a correct spec, six good
+   * tasks and a real prototype and threw them back at Plan because GitHub
+   * returned 401 three times.
+   *
+   * So: no attempt is counted, no correction is triggered, and the hold NAMES
+   * the tool and the refusal — which is what R-16 asks for and what
+   * "this station filed nothing" could never give.
+   */
+  const refusal = producedThisVisit ? null : refusedTool(steps);
+
+  if (refusal) {
+    await supabase
+      .from("spine_tracks" as never)
+      .update({
+        // attempts deliberately UNCHANGED.
+        last_hold: "tools-refused",
+        driven_at: new Date().toISOString(),
+      } as never)
+      .eq("id", row.id);
+    return {
+      trackId: row.id,
+      station,
+      moved: false,
+      arrivedAt: null,
+      hold: "tools-refused",
+      line: `${holdLine("tools-refused", { station }) ?? HOLD_LINE["tools-refused"]} It was ${refusal.tool}, which said: ${refusal.error}`,
+      attached,
+    };
+  }
 
   if (!producedThisVisit) {
     await supabase

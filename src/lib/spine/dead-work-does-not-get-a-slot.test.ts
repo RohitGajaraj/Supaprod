@@ -33,8 +33,23 @@ const TICK_SRC = readFileSync(
 );
 
 describe("which holds are terminal", () => {
-  it("is exactly the two that nothing clears", () => {
-    expect([...TERMINAL_HOLDS]).toEqual(["given-up", "station-cannot-finish"]);
+  /**
+   * `tools-refused` joined on 2026-08-25 (F-41) and is the odd one of the three.
+   *
+   * The first two are terminal because **neither asked for anything**, so
+   * nothing can arrive that would justify a retry. This one asks loudly — for a
+   * working credential — and is still terminal for the SWEEP, because
+   * `RESUMABLE_HOLDS` resumes by re-checking whether an ask has been met, and
+   * *"is GitHub reachable again"* can only be answered by dispatching a paid
+   * run. A resumable version would spend an agent every tick to be told no.
+   *
+   * So the rule this list encodes is not "nothing clears it" but **"the sweep
+   * cannot tell when it clears"**, and a person restarting the work is the
+   * honest contract. `HOLD_LINE["tools-refused"]` says exactly that and is
+   * asserted not to promise a retry.
+   */
+  it("is the two that nothing clears, plus the one the sweep cannot re-test", () => {
+    expect([...TERMINAL_HOLDS]).toEqual(["given-up", "station-cannot-finish", "tools-refused"]);
   });
 
   /**
