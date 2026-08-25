@@ -6,8 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Action, Eyebrow, PageHeading } from "@/components/meridian/surface-parts";
 import { Row } from "@/components/meridian/rows";
 import { Receipt } from "@/components/meridian/Receipt";
-import { RunComposer } from "@/components/shell/RunComposer";
-import { JOBS, JobCards, OPEN_PLACEHOLDER } from "@/components/shell/JobCards";
+import { Composer, PickCard } from "@/components/meridian/onramp-parts";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { listTracks, startTrack } from "@/lib/spine/track.functions";
 import type { WorkShape } from "@/lib/spine/route";
@@ -32,6 +31,15 @@ import type { WorkShape } from "@/lib/spine/route";
  * picker, no product picker, no shape picker, no advanced disclosure: those are
  * configuration, and configuration is what this surface exists to end.
  *
+ * THE CARDS AND THE FIELD ARE MERIDIAN'S NOW. `PickCard` and `Composer` were
+ * promoted from this surface's local builds (R-17; see
+ * `coordination/answers/Rmrd-jobcard-composer-both-promoted-with-one-real-correction.md`
+ * -- which also caught this file's first draft carrying a superseded 1.4 leading,
+ * the value Meridian raised to 1.5 on purpose). The job data stays here because
+ * it is this page's copy, ruled verbatim by SPEC-ONRAMP §1.3: each sub
+ * paraphrases its WorkShape's own waiver reason, and no station name appears on
+ * any face (R-01).
+ *
  * KNOWN GAP, NOT HIDDEN. `startTrack` cannot carry a workspace yet
  * (`coordination/requests/017-workspaceid-through-starttrack.md`), so tracks
  * started here carry null until MAIN lands REQ-1. The composer already reads
@@ -39,6 +47,45 @@ import type { WorkShape } from "@/lib/spine/route";
  * `workspaceId` the day the validator accepts it -- not before, because an
  * unknown key trips Zod.
  */
+
+type Job = {
+  shape: WorkShape;
+  lead: string;
+  sub: string;
+  /** What the composer asks once this job is picked. */
+  placeholder: string;
+};
+
+const JOBS: Job[] = [
+  {
+    shape: "new-capability",
+    lead: "I have a problem and I do not know what to build",
+    sub: "It reads your sources first and comes back with what the pattern actually is.",
+    placeholder: "What is going wrong?",
+  },
+  {
+    shape: "existing-feature",
+    lead: "I know what to build. Write it up.",
+    sub: "The call is already made, so it starts on the written spec.",
+    placeholder: "What are you building, and what should it do?",
+  },
+  {
+    shape: "interface-change",
+    lead: "Change something people see",
+    sub: "It starts on the screen itself, not on the problem behind it.",
+    placeholder: "What should change on the screen, and what should it do?",
+  },
+  {
+    shape: "incident-fix",
+    lead: "Something is broken right now",
+    sub: "It goes straight to the fix. Nothing gets decided first.",
+    placeholder: "What is broken?",
+  },
+];
+
+/** Placeholder for the un-picked state, ruled at SPEC-ONRAMP §2.1. */
+const OPEN_PLACEHOLDER = "What are you changing, and what should it do?";
+
 export const Route = createFileRoute("/_authenticated/start")({
   component: StartLanding,
   head: () => ({ meta: [{ title: "Get started · Supaprod" }] }),
@@ -113,12 +160,13 @@ function StartLanding() {
         />
 
         {activeWorkspaceId ? (
-          <RunComposer
+          <Composer
             value={sentence}
             onChange={setSentence}
             onSubmit={() => go.mutate()}
             busy={go.isPending}
             placeholder={placeholder}
+            label="Describe the work in one sentence"
             fieldRef={fieldRef}
           />
         ) : (
@@ -156,13 +204,24 @@ function StartLanding() {
           </section>
         ) : null}
 
-        <JobCards
-          selected={selected}
-          onSelect={(shape) => {
-            setSelected(shape);
-            if (shape) fieldRef.current?.focus();
-          }}
-        />
+        <div data-mrd="" className="flex flex-col gap-mrd-3">
+          <p className="mrd-meta">Pick one if it fits. Not picking is fine.</p>
+          <div className="grid grid-cols-1 gap-mrd-3 md:grid-cols-2">
+            {JOBS.map((job) => (
+              <PickCard
+                key={job.shape}
+                lead={job.lead}
+                sub={job.sub}
+                selected={selected === job.shape}
+                onSelect={() => {
+                  const next = selected === job.shape ? null : job.shape;
+                  setSelected(next);
+                  if (next) fieldRef.current?.focus();
+                }}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
