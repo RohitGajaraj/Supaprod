@@ -243,6 +243,64 @@ export const RESUMABLE_HOLDS: ReadonlySet<HoldReason> = new Set<HoldReason>([
  */
 export const TERMINAL_HOLDS: readonly HoldReason[] = ["given-up", "station-cannot-finish"];
 
+/**
+ * A run the loop HALTED, mapped to the hold that describes why.
+ *
+ * ── THE DEFECT THIS CLOSES, WHICH IS A 2026-08-02 FIX THAT ROTTED ─────────
+ *
+ * `driveTrackOnce` has a careful branch for an empty account: a station that
+ * could not run because there was no credit must NOT count an attempt, because
+ * "attempts exist to stop a station that cannot do its job, and this one was
+ * never given the chance." Its comment records what happened without it --
+ * three of nine tracks frozen on 2026-08-02 with `spend_used_usd = 0` and
+ * nothing behind them but credit refusals.
+ *
+ * **That branch only fires when the dispatch THROWS.** The loop stopped
+ * throwing. `CreditExhaustedError` is now caught inside `executeLoop`, which
+ * marks the run `halted`, refunds it, and RETURNS normally with
+ * `halted: { kind: "out_of_credit" }` -- deliberately, so a wallet event stays
+ * out of the failure counts. The driver never read that field, saw a run that
+ * returned cleanly and filed nothing, and recorded `produced-nothing`.
+ *
+ * MEASURED 2026-08-25 00:00 UTC on the live run: all three Discover seats
+ * halted with *"account credit balance (13) is below the projected cost (16)"*,
+ * and the track went from `attempts 1` to `attempts 2` for it. Three of those
+ * and it is `given-up` -- the exact failure the 2026-08-02 fix was written to
+ * prevent, arriving through the one door left open to it.
+ *
+ * ── WHY EVERY HALT IS A NON-ATTEMPT ───────────────────────────────────────
+ *
+ * The loop's own words for why it models these as halts rather than failures:
+ * *"a run stopped by a boundary rather than by a fault, marked halted, refunded,
+ * and kept out of the failure counts."* A boundary stopping a station says
+ * nothing about whether that station can do its job. Every hold below is one the
+ * driver already declines to count.
+ *
+ * Deliberately NOT exhaustive over every halt kind. `stopped` (another actor
+ * ended the run) is left out because it is a race rather than a boundary, and
+ * mapping it here would put a sentence in front of a person that is not true of
+ * their workspace. An unmapped halt keeps today's behaviour exactly.
+ */
+export const HALT_HOLD: Readonly<Record<string, HoldReason>> = {
+  // The wallet. The one measured above.
+  out_of_credit: "out-of-credit",
+  // A kill switch is on. `paused` is the reason the driver checks first anyway.
+  kill_switch: "paused",
+  // A ceiling bit. Not a failure and not a refusal: the work is fine, the money
+  // is finished, and raising it resumes exactly where it stopped.
+  mission_spend_cap: "over-budget",
+  mission_token_cap: "over-budget",
+  // The agent was switched off mid-flight. Nobody can be dispatched, which is
+  // precisely what `no-agent` says.
+  "agent-disabled": "no-agent",
+};
+
+/** The hold a halted run should record, or null to leave behaviour unchanged. */
+export function holdForHalt(kind: string | null | undefined): HoldReason | null {
+  if (!kind) return null;
+  return HALT_HOLD[kind] ?? null;
+}
+
 export type CorrectionInputs = {
   /** Why the driver stopped. Only `stalled` and `produced-nothing` are ours. */
   hold: HoldReason;

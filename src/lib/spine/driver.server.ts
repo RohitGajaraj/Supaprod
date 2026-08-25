@@ -50,6 +50,7 @@ import {
   correctionNote,
   decideCorrection,
   holdForCorrection,
+  holdForHalt,
   isEnvironmentFailure,
   needIsMet,
   STATION_NEEDS,
@@ -1266,6 +1267,14 @@ export async function driveTrackOnce(
    * Hoisted out of the loop because the verdict below has to know it.
    */
   let startSeat = 0;
+  /**
+   * The hold a halted seat asks for, or null if no seat halted.
+   *
+   * A halt is a boundary stopping the work, never the station failing at it, so
+   * every hold this can carry is one the driver declines to count as an attempt.
+   * See `HALT_HOLD`.
+   */
+  let haltedAs: HoldReason | null = null;
   /** What the crew filed, accumulated seat by seat as each one runs. */
   const made: Attachment[] = [];
   try {
@@ -1379,6 +1388,32 @@ export async function driveTrackOnce(
       steps = [...steps, ...(result.steps ?? [])];
       queued += result.approvals_queued ?? 0;
 
+      /*
+       * A RUN THE LOOP HALTED IS NOT A STATION THAT FAILED.
+       *
+       * The `if (failed)` branch below has the right rule for an empty account
+       * and can no longer reach it: it fires on a THROWN dispatch, and
+       * `executeLoop` stopped throwing. `CreditExhaustedError` is caught in
+       * there, the run is marked `halted` and refunded, and the call RETURNS
+       * normally carrying `halted: { kind: "out_of_credit" }` -- on purpose, so
+       * a wallet event stays out of the failure counts. From out here that is
+       * indistinguishable from a clean run that filed nothing, so it recorded
+       * `produced-nothing` and spent one of the station's three attempts.
+       *
+       * MEASURED 2026-08-25 00:00 UTC: all three Discover seats halted on
+       * "balance (13) is below the projected cost (16)" and the live track went
+       * from attempts 1 to attempts 2 for it. Three of those is `given-up`,
+       * which is the 2026-08-02 freeze this driver already fixed once.
+       *
+       * Breaks the CREW, not just the seat: the seats after this one are briefed
+       * on what it filed, and an account that cannot pay for seat one cannot pay
+       * for seat two either.
+       */
+      if (result.halted) {
+        haltedAs = holdForHalt(result.halted.kind);
+        if (haltedAs) break;
+      }
+
       // Charged from the run's OWN row, not estimated. Accrued before the gate
       // check below, because a seat that spent real money and then stopped at a
       // boundary still spent it.
@@ -1463,6 +1498,34 @@ export async function driveTrackOnce(
       arrivedAt: null,
       hold: "out-of-time",
       line: say(HOLD_LINE["out-of-time"]),
+      attached,
+    };
+  }
+
+  /*
+   * A BOUNDARY STOPPED THE RUN. Reported, never counted as an attempt.
+   *
+   * Sits here, beside `out-of-time` and `over-budget`, because it is the same
+   * kind of fact: the station was never given its chance, so spending one of its
+   * three attempts on this would be counting our problem against its record.
+   * `HALT_HOLD` carries the whole argument and the measurement behind it.
+   *
+   * Before the `failed` branch on purpose: a halted run did not throw, so that
+   * branch would not fire, and if it ever did it would record `stalled` and
+   * count an attempt for a run that never started.
+   */
+  if (haltedAs) {
+    await supabase
+      .from("spine_tracks" as never)
+      .update({ last_hold: haltedAs, driven_at: new Date().toISOString() } as never)
+      .eq("id", row.id);
+    return {
+      trackId: row.id,
+      station,
+      moved: false,
+      arrivedAt: null,
+      hold: haltedAs,
+      line: holdLine(haltedAs, { station }) ?? HOLD_LINE[haltedAs],
       attached,
     };
   }
