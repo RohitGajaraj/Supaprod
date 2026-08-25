@@ -92,6 +92,71 @@ export type ReflectionRow = {
   importance: number;
 };
 
+/**
+ * Does this lesson name a condition that is true TODAY rather than always?
+ *
+ * ── WHY THE MODEL'S OWN ANSWER IS NOT ENOUGH ────────────────────────────
+ *
+ * The `depends_on_current_state` flag was added the same day and measured the
+ * same hour. In the first FIVE reflections written after it shipped, the model
+ * answered `false` — durable — **every single time**, including twice for
+ * lessons that exist only because GitHub was returning 401 that afternoon:
+ *
+ *   "You must halt immediately and report GitHub authentication failure..."
+ *   "You must verify authentication and repository access before..."
+ *
+ * Those readings are defensible as method, which is exactly the problem: asked
+ * "is this about how you work?", a model will nearly always say yes, because
+ * almost any lesson can be phrased that way. **A self-report that is never
+ * negative is not a classifier.**
+ *
+ * So the flag is kept and no longer trusted alone. If the TEXT names a specific
+ * system, integration or outage, the lesson gets a shelf life whatever the flag
+ * said. This preserves the one-sided failure the file already commits to: a
+ * lesson wrongly expired is re-learned on the next run, and a transient one
+ * wrongly kept is what F-31 was.
+ *
+ * Deliberately about NAMED THINGS, not about sentiment. "verify your inputs" is
+ * durable and stays; "verify GitHub access" names a system and expires.
+ */
+const CURRENT_CONDITION = new RegExp(
+  [
+    // Named integrations and the surfaces that break.
+    "github",
+    "firecrawl",
+    "supabase",
+    "stripe",
+    "lovable",
+    "canny",
+    "slack",
+    // Words that only appear when something is down right now.
+    "telemetry",
+    "ingestion",
+    "scout",
+    "\\b401\\b",
+    "\\b403\\b",
+    "unauthori[sz]ed",
+    // Bare rather than "authentication failed": the live miss was "verify
+    // authentication AND REPOSITORY ACCESS before...", which names the same
+    // outage in a sentence that reads like method. Expiring an occasional
+    // genuine auth-design lesson is the cheap side of this trade.
+    "authentication",
+    "repository access",
+    "credential",
+    "not configured",
+    "is not set",
+    "unavailable",
+    "is broken",
+    "is down",
+    "outage",
+  ].join("|"),
+  "i",
+);
+
+export function namesACurrentCondition(lesson: string): boolean {
+  return CURRENT_CONDITION.test(lesson);
+}
+
 function safeJson<T = unknown>(s: string): T | null {
   try {
     return JSON.parse(s) as T;
@@ -250,7 +315,7 @@ export async function autoReflect(
      * wrongly kept is what this whole file's header is about.
      */
     const expiresAt =
-      parsed?.depends_on_current_state === false
+      parsed?.depends_on_current_state === false && !namesACurrentCondition(lesson)
         ? null
         : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 

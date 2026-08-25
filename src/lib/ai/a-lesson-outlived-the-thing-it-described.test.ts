@@ -35,6 +35,8 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "bun:test";
 
+import { namesACurrentCondition } from "./reflection.server";
+
 const SRC = readFileSync(fileURLToPath(new URL("./reflection.server.ts", import.meta.url)), "utf8");
 
 /**
@@ -62,8 +64,13 @@ describe("a lesson that depends on today gets a shelf life", () => {
    * permanent memory, which is exactly the bug.
    */
   it("expires the lesson unless the model explicitly said it was durable", () => {
+    // The shape changed the same hour it shipped: the flag alone was not enough
+    // (see the second describe below), so keeping a lesson forever now needs the
+    // flag AND a text that names no system. The claim is unchanged — only an
+    // explicit, well-formed durable answer earns permanence — so this assertion
+    // moved with it rather than being deleted.
     expect(CODE).toContain("parsed?.depends_on_current_state === false");
-    expect(CODE).toMatch(/=== false\s*\?\s*null/);
+    expect(CODE).toMatch(/=== false && !namesACurrentCondition\(lesson\)\s*\n?\s*\?\s*null/);
   });
 
   it("keeps the window short enough that a repaired condition stops speaking", () => {
@@ -107,5 +114,70 @@ describe("the reasoning stays with the mechanism", () => {
     expect(prose).toContain("2026-08-25");
     expect(prose).toContain("53");
     expect(prose).toContain("scout_targets");
+  });
+});
+
+/**
+ * THE FLAG WAS MEASURED THE SAME HOUR AND FOUND TO BE ONE-SIDED.
+ *
+ * In the first five reflections written after `depends_on_current_state`
+ * shipped, the model answered `false` — durable — **every time**, including
+ * twice for lessons that existed only because GitHub was returning 401 that
+ * afternoon. Asked "is this about how you work?", a model will nearly always
+ * say yes, because almost any lesson can be phrased that way. **A self-report
+ * that is never negative is not a classifier**, so the flag is kept and no
+ * longer trusted alone.
+ */
+describe("a lesson that names a system does not get to be permanent", () => {
+  it("expires the two real lessons that a 401 produced", () => {
+    for (const lesson of [
+      "You must halt immediately and report GitHub authentication failure instead of attempting partial work.",
+      "You must verify authentication and repository access before attempting spec validation.",
+    ]) {
+      expect({ lesson, transient: namesACurrentCondition(lesson) }).toEqual({
+        lesson,
+        transient: true,
+      });
+    }
+  });
+
+  it("expires the lessons that taught the workspace to refuse", () => {
+    for (const lesson of [
+      "You must decline workstreams when primary evidence is absent and telemetry infrastructure is broken.",
+      "You must verify customer demand with falsifiable evidence such as ingested Canny signals or active scout targets.",
+    ]) {
+      expect(namesACurrentCondition(lesson)).toBe(true);
+    }
+  });
+
+  /**
+   * THE OTHER HALF, and the one that keeps this from being a blanket expiry.
+   * A lesson about method names no system and stays permanent.
+   */
+  it("leaves a lesson about method alone", () => {
+    for (const lesson of [
+      "You should prioritize defining clear success metrics early when drafting complex PRDs.",
+      "You must derive concrete, executable tasks from the spec's explicit requirements.",
+      "You must distinguish between internal audit findings and verbatim customer quotes.",
+    ]) {
+      expect({ lesson, transient: namesACurrentCondition(lesson) }).toEqual({
+        lesson,
+        transient: false,
+      });
+    }
+  });
+
+  it("is wired into the expiry, not merely exported", () => {
+    expect(CODE).toContain("!namesACurrentCondition(lesson)");
+  });
+
+  /**
+   * The failure stays one-sided in BOTH mechanisms: a missing flag expires, and
+   * a flag that says durable is overridden when the text names a system. A
+   * lesson wrongly expired is re-learned next run; a transient one wrongly kept
+   * is what this file's header is about.
+   */
+  it("requires BOTH the flag and the text to keep a lesson forever", () => {
+    expect(CODE).toMatch(/=== false && !namesACurrentCondition\(lesson\)/);
   });
 });
