@@ -10,7 +10,7 @@ filing a `meridian-gap` request.
 There is deliberately **no `index.ts` barrel** -- it would break the adoption metric,
 which matches on the deep import path. Import from the file named here.
 
-## Components (103)
+## Components (107)
 
 | Export | File | |
 | --- | --- | --- |
@@ -21,6 +21,7 @@ which matches on the deep import path. Import from the file named here.
 | `AgentInbox` | `AgentInbox.tsx` | function |
 | `AgentMark` | `marks.tsx` | function |
 | `AgentPulse` | `AgentPulse.tsx` | function |
+| `AiPulse` | `AiPulse.tsx` | function |
 | `ApprovalCard` | `ApprovalCard.tsx` | function |
 | `Approve` | `surface-parts.tsx` | function |
 | `BulkBar` | `surface-parts.tsx` | function |
@@ -29,6 +30,7 @@ which matches on the deep import path. Import from the file named here.
 | `Chevron` | `surface-parts.tsx` | function |
 | `Choices` | `forms.tsx` | function |
 | `CodeBlock` | `CodeBlock.tsx` | function |
+| `Composer` | `onramp-parts.tsx` | function |
 | `ContextCards` | `ContextCards.tsx` | function |
 | `CtxBody` | `ContextColumn.tsx` | function |
 | `CtxHead` | `ContextColumn.tsx` | function |
@@ -46,6 +48,7 @@ which matches on the deep import path. Import from the file named here.
 | `FineTuneCard` | `FineTuneCard.tsx` | function |
 | `Flowchart` | `Flowchart.tsx` | function |
 | `Gate` | `Gate.tsx` | function |
+| `GraphSlider` | `graph-slider.tsx` | function |
 | `Grid` | `surface-parts.tsx` | function |
 | `Input` | `forms.tsx` | function |
 | `InsightCards` | `InsightCards.tsx` | function |
@@ -63,6 +66,7 @@ which matches on the deep import path. Import from the file named here.
 | `PageReadFailed` | `boundary-states.tsx` | function |
 | `PageRouteMissing` | `boundary-states.tsx` | function |
 | `PairMark` | `marks.tsx` | function |
+| `PickCard` | `onramp-parts.tsx` | function |
 | `Picker` | `surface-parts.tsx` | function |
 | `PlanCard` | `PlanCard.tsx` | function |
 | `PlanGate` | `PlanGate.tsx` | function |
@@ -118,7 +122,7 @@ which matches on the deep import path. Import from the file named here.
 | `WorkGlyph` | `work-glyphs.tsx` | function |
 | `YouMark` | `marks.tsx` | function |
 
-## Types, constants and helpers (102)
+## Types, constants and helpers (114)
 
 | Export | File | Kind |
 | --- | --- | --- |
@@ -137,6 +141,8 @@ which matches on the deep import path. Import from the file named here.
 | `ChoiceOption` | `forms.tsx` | type |
 | `CodeToken` | `CodeBlock.tsx` | type |
 | `CodeTone` | `CodeBlock.tsx` | type |
+| `COMPOSER_MAX_LINES` | `composer-height.ts` | const |
+| `composerMaxHeight` | `composer-height.ts` | function |
 | `ContextCardsProps` | `ContextCards.tsx` | type |
 | `ContextChunk` | `ContextCards.tsx` | type |
 | `ContextSource` | `ContextCards.tsx` | type |
@@ -153,10 +159,17 @@ which matches on the deep import path. Import from the file named here.
 | `flowFromSteps` | `Flowchart.tsx` | function |
 | `FlowNode` | `Flowchart.tsx` | type |
 | `formatElapsed` | `run-rows.tsx` | function |
+| `GLYPH_FOR_ARTIFACT_KIND` | `work-glyphs.tsx` | const |
 | `GLYPH_FOR_STATION` | `station-glyphs.tsx` | const |
+| `glyphForArtifactKind` | `work-glyphs.tsx` | function |
+| `graphPoints` | `graph-slider.tsx` | function |
+| `GraphSliderProps` | `graph-slider.tsx` | interface |
+| `graphX` | `graph-slider.tsx` | function |
+| `graphY` | `graph-slider.tsx` | function |
 | `IDLE_AFTER_MS` | `AgentInbox.tsx` | const |
 | `IDLE_COLLAPSE_AT` | `AgentInbox.tsx` | const |
 | `InboxNeed` | `AgentInbox.tsx` | type |
+| `indexOfExtreme` | `graph-slider.tsx` | function |
 | `Insight` | `InsightCards.tsx` | type |
 | `InsightSeries` | `InsightCards.tsx` | type |
 | `isRailKey` | `SidebarNav.tsx` | function |
@@ -164,6 +177,8 @@ which matches on the deep import path. Import from the file named here.
 | `MarkState` | `marks.tsx` | type |
 | `MarkTone` | `source-marks.tsx` | type |
 | `measureSelectionRects` | `SelectionActions.tsx` | function |
+| `nearestIndex` | `graph-slider.tsx` | function |
+| `placeSelectionBar` | `SelectionActions.tsx` | function |
 | `PlanGateDecision` | `PlanGate.tsx` | type |
 | `PlanStep` | `PlanCard.tsx` | type |
 | `PlanStepState` | `PlanCard.tsx` | type |
@@ -191,6 +206,7 @@ which matches on the deep import path. Import from the file named here.
 | `SelectionProposal` | `SelectionActions.tsx` | type |
 | `SelectionRect` | `SelectionActions.tsx` | type |
 | `SetupKind` | `NeedsSetup.tsx` | type |
+| `smoothLinePath` | `graph-slider.tsx` | function |
 | `SourceKind` | `source-marks.tsx` | type |
 | `sourceKindFor` | `source-marks.tsx` | function |
 | `sourceMark` | `ContextCards.tsx` | function |
