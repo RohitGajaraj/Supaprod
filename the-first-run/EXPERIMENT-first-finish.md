@@ -788,3 +788,78 @@ been exercised by a live run that actually reached this station with a real PRD 
 handoff intact. **No digits lead it**, which is worth saying: the fix should hold regardless, and this
 particular id would not have tripped the old bug either. So a clean pass here is evidence the station
 works, **not** proof F-02 is fixed — that claim still rests on the boundary test, not on this run.
+
+
+### 02:30 — THE RUN STOPPED AT DESIGN, AND THE STATION WAS RIGHT TO STOP IT
+
+**This is the finding the run existed to produce, and it is architectural.**
+
+Both Design seats refused, in agreement, for the same reason:
+
+> **ux-architect:** *"I cannot design the dark mode surface at this time. The workspace contains an
+> active, standing decision ('Defer dark mode until telemetry is restored', id `ff4d1ec7`) that
+> explicitly blocks dark mode development until Canny telemetry is restored and validated. **The PRD
+> (id `bf198482`) confirms this: its 'Out of Scope' section states 'Dark Mode UI development'.**"*
+
+> **design-critic:** *"No surface design exists — **and none should.** The PRD explicitly excludes
+> dark mode UI development from scope."*
+
+```sql
+SELECT station, last_hold, attempts, spend_used_usd FROM spine_tracks WHERE id = '897d1834-…';
+-- design | produced-nothing | 1 | 0.082516
+```
+
+### The chain is perfectly coherent, and that is the problem
+
+1. **Decide** deferred dark mode pending telemetry, with a forecast.
+2. **Plan** honoured that and specced **the telemetry work**, marking *Dark Mode UI development* out
+   of scope — the behaviour I graded as outcome 3 and called good.
+3. **Design** was told to *"Design the surface for **"Add dark mode and a system-preference theme"**"*
+   — and refused, because the spec it was handed says that is out of scope.
+
+**Every station is briefed on the TRACK TITLE, not on what the previous station filed.**
+`driver.ts:493`:
+
+```ts
+const why = track.origin ? ` It exists because: ${track.origin}` : "";
+const subject = `"${track.title}".${why}`;
+// stationJob("design", subject) -> `Design the surface for ${subject} ...`
+```
+
+So once Plan legitimately re-scopes the work, **every station after it receives two contradictory
+instructions**: do the thing in the title, against a spec that says do not. The agents read both,
+noticed the contradiction, and refused rather than inventing. **That is the correct behaviour and it
+is why the run is stopped.**
+
+### This is F-27 with teeth, and I under-called it
+
+At 02:12 I predicted the re-scope would leave *"the track's title lying about what it is"* and filed
+it as a **listing** problem — a person scanning a list would be misled. **It is not a display
+problem. The title IS the brief, so a stale title does not mislead a reader, it stops the run.**
+Recorded as **F-30**, and F-27 is its cosmetic half.
+
+### I am letting it stall, and not patching it mid-flight
+
+`attempts` is 1 of 3. I could fix `stationGoal`, deploy, and let the run carry on — and I am not
+going to, for three reasons:
+
+1. **The acceptance says so.** *"A stall is a failure of this goal, not a step in it."* A run that
+   reached `learn` because I hot-patched the driver underneath it would not be evidence of anything.
+2. **I ruled no deploys while this run walks**, before knowing it would become inconvenient. Reversing
+   that the moment it costs me something is exactly how a rule stops meaning anything.
+3. **The wall IS the result.** This run was always a shakedown; it has now done the job a shakedown
+   does, which is to find the thing that only a real run could find.
+
+**So: 4 of 7 stations, stopped at the fifth, and the acceptance is NOT met.** Nothing here is partial
+credit.
+
+### What the fix has to be, so the next run is not a guess
+
+**The brief must lead with what the last station filed, not with the opening sentence.** The spec is
+already in the handoff (`describeUpstream` inlines the two newest bodies), which is exactly how these
+agents spotted the contradiction — they had both and believed the spec. The instruction needs to
+agree with it.
+
+Not simply "rename the track": that loses the sentence a person recognises their work by (F-27's
+constraint). The subject a station is given should be **derived from the current spec when one
+exists**, and fall back to the title only when nothing has been filed yet.
