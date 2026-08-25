@@ -27,11 +27,14 @@ import { CANONICAL_PATHS } from "./legacy-redirects";
  */
 
 describe("nav-model - the fourteen primary destinations (the Loop)", () => {
-  it("is one flat ordered list of exactly fourteen destinations", () => {
-    expect(PRIMARY_NAV.length).toBe(14);
+  it("is one flat ordered list of exactly fifteen destinations", () => {
+    // FIFTEEN since 2026-08-25: Work (/start) joined the home zone — the
+    // founder's "no home or entry door" ruling for the run surfaces.
+    expect(PRIMARY_NAV.length).toBe(15);
     expect(PRIMARY_NAV.map((n) => n.label)).toEqual([
       "Today",
       "Approvals",
+      "Work",
       "Discover",
       "Decide",
       "Plan",
@@ -48,6 +51,7 @@ describe("nav-model - the fourteen primary destinations (the Loop)", () => {
     expect(PRIMARY_NAV.map((n) => n.to)).toEqual([
       "/today",
       "/approvals",
+      "/start",
       "/discover",
       "/decide",
       "/plan",
@@ -67,7 +71,7 @@ describe("nav-model - the fourteen primary destinations (the Loop)", () => {
     expect(PRIMARY_NAV[0].to).toBe("/today");
     expect(PRIMARY_NAV[0].index).toBe("");
     expect(PRIMARY_NAV[0].zone).toBe("home");
-    expect(HOME_NAV.map((n) => n.to)).toEqual(["/today", "/approvals"]);
+    expect(HOME_NAV.map((n) => n.to)).toEqual(["/today", "/approvals", "/start"]);
   });
 
   it("THE LOOP is the seven lifecycle stages with mono indexes 01-07", () => {
@@ -146,7 +150,9 @@ describe("nav-model - the fourteen primary destinations (the Loop)", () => {
       // list at ten - so they are exempt HERE and proven real below, which is
       // the stronger check anyway (a key bound to a route that does not exist
       // is worse than a key bound to a non-canonical one).
-      if (t === "/runs" || t === "/crew") continue;
+      // /start joined the exemption 2026-08-25: it is a rail door (Work),
+      // not a legacy-redirect target, proven real on disk below like the two.
+      if (t === "/runs" || t === "/crew" || t === "/start") continue;
       expect(CANONICAL_PATHS as readonly string[]).toContain(t);
     }
     expect(targets).not.toContain("/chat");
@@ -158,6 +164,7 @@ describe("nav-model - the fourteen primary destinations (the Loop)", () => {
     for (const [path, file] of [
       ["/runs", "_authenticated.runs.index.tsx"],
       ["/crew", "_authenticated.crew.tsx"],
+      ["/start", "_authenticated.start.tsx"],
     ] as const) {
       expect(PRIMARY_NAV.map((n) => n.to)).toContain(path);
       expect(existsSync(join(routes, file))).toBe(true);
@@ -168,6 +175,7 @@ describe("nav-model - the fourteen primary destinations (the Loop)", () => {
     expect(PRIMARY_NAV.map((n) => navKeyHint(n))).toEqual([
       "o", // Today, since 2026-08-24: g o, the word the chord acts; t went to Threads
       "v", // approVals, same day; a p r l s were taken
+      "w", // Work, since 2026-08-25; its own first letter, free
       "d", // Discover
       "e", // dEcide
       "p", // Plan
@@ -244,7 +252,8 @@ describe("nav-model - one key, one door, across the WHOLE nav model", () => {
     // deliberate blank, though no longer because of the Approve collision --
     // the chord ends that. It is blank because AppFrame renders no admin
     // control at all, so a key there would go where the rail cannot follow.
-    expect(bound.length).toBe(15);
+    // 16 since 2026-08-25: Work (/start, `w`) joined.
+    expect(bound.length).toBe(16);
   });
 
   it("never binds the prefix itself, which would eat every chord", () => {
