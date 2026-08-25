@@ -86,6 +86,26 @@ export type BuildWorkItem = {
    * outranks something that stopped before it.
    */
   stopped: boolean;
+  /**
+   * When the run behind this actually died, for a stopped row.
+   *
+   * SEPARATE FROM `updatedAt`, AND THAT SEPARATION IS THE FIX. `updatedAt` is
+   * the CHANGESET's last touch -- the right key to sort "most recently touched"
+   * by, and the wrong answer to "how long has this been stopped". They agree
+   * only when the last thing that happened to a changeset was the run dying,
+   * which is exactly the case where a build stops and someone then edits or
+   * retries something on it: the row then reports a fresh age for a run that has
+   * been dead for days.
+   *
+   * A surface reading a column no writer sets for the event it is describing is
+   * the same class of defect as the three wrong numbers of 2026-08-22. This is
+   * the field the writer actually sets.
+   *
+   * Null when the row is not stopped, and null when the runs read failed -- in
+   * which case the surface must fall back to saying nothing rather than to
+   * `updatedAt`, because that is the wrong number wearing a confident face.
+   */
+  stoppedAt: string | null;
 };
 
 /**
@@ -99,6 +119,48 @@ export type BuildWorkItem = {
  * `studio_changes` read zeroed every file count in silence. That is
  * absence-as-evidence sitting directly under a headline asserted as fact.
  */
+/**
+ * When a run that is no longer alive actually ended.
+ *
+ * THREE COLUMNS BECAUSE THE QUESTION HAS NO SINGLE WRITER, and picking one and
+ * hoping is how a surface ends up reading a column nobody sets for the event it
+ * describes.
+ *
+ *   `halted_at`  set by the loop when it stops a run at a boundary. Exact.
+ *   created_at + duration_ms   a run that FAILED rather than halted leaves no
+ *                              end stamp, but it does leave how long it ran.
+ *   `created_at` alone         last resort: a run with neither is at least
+ *                              known to have died no earlier than it began.
+ *
+ * Null only when the row has no `created_at` at all, which should not happen and
+ * is treated as "unknown" rather than as "now" -- a made-up recent timestamp on
+ * a build that died last week is worse than an absent one.
+ */
+export function runEndedAt(run: {
+  halted_at?: string | null;
+  created_at?: string | null;
+  duration_ms?: number | null;
+}): string | null {
+  if (run.halted_at) return run.halted_at;
+  if (!run.created_at) return null;
+  const ms = Number(run.duration_ms);
+  if (Number.isFinite(ms) && ms > 0) {
+    const started = Date.parse(run.created_at);
+    if (Number.isFinite(started)) return new Date(started + ms).toISOString();
+  }
+  return run.created_at;
+}
+
+/** The columns `listBuildWork` needs from a run, named so the short-circuit
+ *  branch below stays a short-circuit instead of a type declaration. */
+type RunRow = {
+  mission_id: string | null;
+  status: string;
+  halted_at: string | null;
+  created_at: string | null;
+  duration_ms: number | null;
+};
+
 export type BuildWorkUnread = {
   /** Per-changeset file counts. Every count on the surface reads 0 without it. */
   files: string | null;
@@ -240,13 +302,14 @@ export const listBuildWork = createServerFn({ method: "GET" })
       missionIds.length
         ? db
             .from("agent_runs")
-            .select("mission_id,status")
+            // `halted_at` is set by the loop when it stops a run; `created_at`
+            // and `duration_ms` reconstruct the end for a run that failed
+            // without being halted. Three columns rather than one because the
+            // question "when did this die" has no single writer.
+            .select("mission_id,status,halted_at,created_at,duration_ms")
             .in("mission_id", missionIds)
             .in("status", [...RUN_LIVE, ...RUN_STOPPED])
-        : Promise.resolve({
-            data: [] as { mission_id: string | null; status: string }[],
-            error: null,
-          }),
+        : Promise.resolve({ data: [] as RunRow[], error: null }),
       missionIds.length
         ? db
             .from("agent_approvals")
@@ -284,7 +347,9 @@ export const listBuildWork = createServerFn({ method: "GET" })
       if (MISSION_STOPPED.has(m.status)) stoppedSet.add(m.id);
       else if (MISSION_DONE.has(m.status)) doneSet.add(m.id);
     }
-    for (const r of (runRows ?? []) as { mission_id: string | null; status: string }[]) {
+    /** Per mission, the latest moment a run on it actually stopped. */
+    const stoppedAtOf = new Map<string, string>();
+    for (const r of (runRows ?? []) as RunRow[]) {
       if (!r.mission_id) continue;
       if (RUN_LIVE.includes(r.status)) liveSet.add(r.mission_id);
       // A dead run on a mission that FINISHED is history, not a call to act.
@@ -292,6 +357,17 @@ export const listBuildWork = createServerFn({ method: "GET" })
       // `doneSet` is empty and the run's own word still stands, which keeps the
       // fail direction on the side of saying something rather than nothing.
       else if (!doneSet.has(r.mission_id)) stoppedSet.add(r.mission_id);
+
+      // WHEN it died, recorded separately from WHETHER it counts as stopped.
+      // Kept out of the branch above so the two questions cannot drift: a run on
+      // a finished mission is not a call to act, and it still has an end time.
+      // LATEST WINS -- a mission with several dead runs stopped when the last
+      // one did, not when the first one did.
+      if (!RUN_LIVE.includes(r.status)) {
+        const at = runEndedAt(r);
+        const prior = stoppedAtOf.get(r.mission_id);
+        if (at && (!prior || prior < at)) stoppedAtOf.set(r.mission_id, at);
+      }
     }
     const gateSet = new Set(
       ((gates ?? []) as { mission_id: string | null }[])
@@ -322,6 +398,10 @@ export const listBuildWork = createServerFn({ method: "GET" })
           // and was then resumed is being written, and saying otherwise would
           // put a working build under "Stopped".
           stopped: !!r.mission_id && stoppedSet.has(r.mission_id) && !liveSet.has(r.mission_id),
+          stoppedAt:
+            r.mission_id && stoppedSet.has(r.mission_id) && !liveSet.has(r.mission_id)
+              ? (stoppedAtOf.get(r.mission_id) ?? null)
+              : null,
         };
       }),
       more,
