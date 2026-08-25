@@ -231,3 +231,17 @@ Its empty commit `6a1a45feb` "to trigger redeploy" is also on the record: a sess
 verify what is serving should not be firing deploys — deploy verification is
 [`docs/operations/deploy-verification.md`](./operations/deploy-verification.md), and the
 serving-bundle check is the only proof that counts.
+
+### Superseding note — 14:2x UTC: the Build blockers are fixed and the wall moved outside the product
+
+F-57 and F-58 are fixed, deployed, and behaviorally validated (Build completed on the fixed
+Worker's first pass, 13:21). The named blocker chain above is superseded by **F-64**: GitHub
+Actions on the founder's personal account is billing-blocked since 09:32 — nine of nine runs
+died in seconds with zero steps executed, so no CI on `RohitGajaraj/relay-homeowner-app` can
+green regardless of code, and `studio.pr.merge` honestly refuses red. A job that never starts
+reports the same `conclusion: failure` as a failed test; **the step count is the only tell.**
+The way through exists and is free: B created `Supaprod/relay-homeowner-app` (org, own Actions
+minutes, CI green 10 of 10) — blocked solely on the founder installing `supaprod-connector` on
+the org. The field was cleared to one open track at 14:15 by founder authorization; any full
+route finished from here is the machinery proven under arranged conditions, not the clean
+acceptance, and must be written as such.
