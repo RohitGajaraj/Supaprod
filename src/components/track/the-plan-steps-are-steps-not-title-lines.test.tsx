@@ -54,7 +54,10 @@ describe("the step list", () => {
   it("says how many steps the plan has", () => {
     const { getByText } = render(
       <TaskSteps
-        items={[task({ artifactId: "a", fields: { seq: 1 } }), task({ artifactId: "b", fields: { seq: 2 } })]}
+        items={[
+          task({ artifactId: "a", fields: { seq: 1 } }),
+          task({ artifactId: "b", fields: { seq: 2 } }),
+        ]}
       />,
     );
     expect(getByText("The 2 steps of this plan")).toBeTruthy();

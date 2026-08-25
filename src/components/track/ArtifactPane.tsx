@@ -1018,7 +1018,9 @@ export function TaskSteps({ items }: { items: ArtifactView[] }) {
   return (
     <div className="flex flex-col gap-mrd-2 border-b border-mrd-line-soft pb-mrd-3 last:border-0">
       <span className="mrd-meta">
-        {ordered.length === 1 ? "The one step of this plan" : `The ${ordered.length} steps of this plan`}
+        {ordered.length === 1
+          ? "The one step of this plan"
+          : `The ${ordered.length} steps of this plan`}
       </span>
       <ol className="flex flex-col gap-mrd-2">
         {ordered.map((t, i) => {
