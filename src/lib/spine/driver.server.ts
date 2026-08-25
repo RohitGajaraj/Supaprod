@@ -1137,6 +1137,42 @@ async function correctIfPossible(
   };
 }
 
+/**
+ * When the forecast this track is graded against comes due, or null when the
+ * track carries none. Reads the track's own decision member — the forecast is
+ * written at Decide and nowhere else (F-61's lesson: a route that waived
+ * Decide has nothing here, and this returns null rather than inventing a
+ * date, so a forecastless track never gets the honest wait and falls through
+ * to `produced-nothing`, which is the true reading of its state).
+ *
+ * Fail-soft to null on any read error: an unreachable table must degrade to
+ * today's behaviour, never invent a wait.
+ */
+async function forecastDueDate(supabase: AdminClient, trackId: string): Promise<string | null> {
+  try {
+    const { data: member } = await supabase
+      .from("spine_track_members" as never)
+      .select("artifact_id")
+      .eq("track_id", trackId)
+      .eq("artifact_kind", "decision")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const decisionId = (member as { artifact_id?: string } | null)?.artifact_id;
+    if (!decisionId) return null;
+    const { data: decision } = await supabase
+      .from("decisions" as never)
+      .select("forecast_horizon_date")
+      .eq("id", decisionId)
+      .maybeSingle();
+    const iso = (decision as { forecast_horizon_date?: string | null } | null)
+      ?.forecast_horizon_date;
+    return iso ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function driveTrackOnce(
   supabase: SupabaseClient,
   row: DriveRow,
@@ -1305,6 +1341,37 @@ export async function driveTrackOnce(
         : HOLD_LINE[decision.hold],
       attached: harvested,
     };
+  }
+
+  /*
+   * LEARN'S HONEST WAIT (ruled by A, concurred by B, 2026-08-25). A learn
+   * crew whose forecast is not yet due cannot file a verdict without
+   * guessing — `learning.record`'s own description forbids the call — so a
+   * track already holding `needs-evidence` here is waiting on TIME, and
+   * re-dispatching its crew every tick until the horizon would spend money
+   * asking a question whose answer is a date. The FIRST learn visit still
+   * dispatches (the crew says what is already observable, on the record, in
+   * its own words); every pass after that returns the same dated hold for
+   * free until the forecast comes due, and the sweep picks it up the tick
+   * after.
+   */
+  if (station === "learn" && row.last_hold === "needs-evidence") {
+    const dueIso = await forecastDueDate(supabase, row.id);
+    if (dueIso && Date.parse(dueIso) > Date.now()) {
+      await supabase
+        .from("spine_tracks" as never)
+        .update({ driven_at: new Date().toISOString() } as never)
+        .eq("id", row.id);
+      return {
+        trackId: row.id,
+        station,
+        moved: false,
+        arrivedAt: null,
+        hold: "needs-evidence",
+        line: `The forecast this work is graded against comes due on ${dueIso.slice(0, 10)}. Learn returns when it does; nothing here is waiting on a person.`,
+        attached: harvested,
+      };
+    }
   }
 
   // THE STATION'S WHOLE CREW, in order, through the pinned chokepoint. Every
@@ -1836,6 +1903,44 @@ export async function driveTrackOnce(
       line: `${holdLine("tools-refused", { station }) ?? HOLD_LINE["tools-refused"]} It was ${refusal.tool}, which said: ${refusal.error}`,
       attached,
     };
+  }
+
+  /*
+   * LEARN THAT FILED NOTHING BEFORE ITS HORIZON IS WAITING, NOT FAILING.
+   * `learning.record` is Learn's only arrival path and its own description
+   * forbids a pre-horizon verdict, so an honest crew here files nothing by
+   * DESIGN. Counting that as `produced-nothing` burned three attempts on
+   * obedience and handed the track to the correction loop for doing the right
+   * thing. `needs-evidence` is the product's own word for it — resumable, no
+   * attempt — and the line carries the date so a person reading a stalled
+   * board can tell "waiting on time" from "waiting on me" without opening
+   * anything. Past the horizon this branch declines and the ordinary
+   * `produced-nothing` below applies in full: evidence in, nothing filed IS a
+   * failure then.
+   */
+  if (!producedThisVisit && station === "learn") {
+    const dueIso = await forecastDueDate(supabase, row.id);
+    if (dueIso && Date.parse(dueIso) > Date.now()) {
+      await supabase
+        .from("spine_tracks" as never)
+        .update({
+          // attempts deliberately UNCHANGED: honesty must not cost the station.
+          last_hold: "needs-evidence",
+          driven_at: new Date().toISOString(),
+        } as never)
+        .eq("id", row.id);
+      return {
+        trackId: row.id,
+        station,
+        moved: false,
+        arrivedAt: null,
+        hold: "needs-evidence",
+        line: say(
+          `The forecast this work is graded against comes due on ${dueIso.slice(0, 10)}. Learn returns when it does; nothing here is waiting on a person.`,
+        ),
+        attached,
+      };
+    }
   }
 
   if (!producedThisVisit) {
