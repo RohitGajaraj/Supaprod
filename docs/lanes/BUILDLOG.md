@@ -13,6 +13,17 @@
 | PRODUCT-TRUTH vocabulary: "receipts"/"unattended" out, stations 1–5 claim made honest (`4bcd6c8d3`) | A 16:53 Haiku-session rewrite broke the register canon in the shop window | Landed | Watch for the same session repeating it |
 | **Tree-reset hazard, live:** an uncommitted edit set was destroyed mid-typecheck by another session resetting this shared worktree (~11:4x UTC) | Multiple writers, one directory | Recovered from context, re-applied, committed at once | Every edit commits immediately; long gates run against committed trees |
 
+## Session 2026-08-25 (units L0-068 → L0-081)
+
+| Item | Unit | What shipped | True state |
+| --- | --- | --- | --- |
+| Queue #65 origin markers | L0-080 (`7fa621e8f`) | Transcript interleaves `driven_via` markers: press/sweep/continuation named distinctly; foreground+NULL drawn never; station words via AGENT_STATIONS | **CODE-SHIPPED** (6 helper tests, gates green); both-theme eyes owed next deploy |
+| Queue #66 hold tries | L0-081 (`17c060f4c`) | Hold region names the try count ("Two tries at Design have not cleared it"); ceiling imported from driver.ts; zero claims nothing | **CODE-SHIPPED** (4 tests); live look owed next deploy |
+| Ruled expiry copy (INBOX #6) | L0-076 | Friendly deadline sentence, ISO in `title`; additive `consequenceTitle` on CallGate | **VERIFIED-LIVE formatter only**; rendered sentence owed next deploy |
+| Item 24 clipboard end-to-end | L0-077 | Read 2,345 chars back off the real clipboard on production; no JSON; status-region feedback | **VERIFIED-LIVE**; found the ×5 title wart → fixed in L0-079 |
+| Items 29/7/21 on one page | L0-078 | Exhausted banner live (account truly at zero); chain-row click moved pane Build→Design; log + polite regions in prod DOM | **VERIFIED-LIVE** ×3 |
+| Summary dedupe | L0-079 | Identical titles collapse with tally; leaked bodies bounded at 120ch; moved to own module | **CODE-SHIPPED**, 4 tests; filed chain.ts plural to MAIN |
+
 ## Session 2026-08-25 (units L0-038 → L0-067)
 
 | Item | Unit | What shipped | True state |

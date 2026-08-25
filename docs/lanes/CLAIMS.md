@@ -26,5 +26,5 @@
 | A | F-57: hold-classification code in `driver.server.ts` (NOT the brief text — B holds that for F-58), `correction.ts` TERMINAL_HOLDS neighbourhood, GitHub tool error mapping | 404 on the repository ROOT where the workspace holds a binding naming that repo = permission answer → classify as refusal, burn no attempt. Assigned by B over the socket. | 2026-08-25 12:3x |
 | A | F-59 (new): `docs/operations/deploy-verification.md` + one FINDINGS-LEDGER row (B invited the entry) | Publish-after-push must verify the SERVING BUNDLE, not the publish status; chunk-scan method recorded | 2026-08-25 12:3x |
 | L1 | — | (Queue 54 claim removed: shipped as unit 076, verification filed `requests/076-verify-queue54.md`) | 2026-08-25 12:0x |
-| L0 | `src/components/spine/TrackActivity.tsx`, `src/components/spine/activity-rows.*` | Queue 65 component half: origin markers on the transcript from `transitions` (press/sweep/continuation distinct; foreground+NULL silent) | 2026-08-25 12:3x |
+| L0 | — | (Queue 65 claim released: shipped `7fa621e8f`, unit L0-080) | 2026-08-25 12:5x |
 | B | `src/lib/spine/driver.ts` (builder brief), `src/lib/ai/tools/registry.server.ts` (`repo.search` description) | F-58: an empty `repo.search` is not evidence the code is absent | 2026-08-25 18:0x |
