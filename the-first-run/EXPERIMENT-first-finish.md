@@ -1828,3 +1828,145 @@ SELECT a.slug, aa.arc FROM agents a
 loop and a finished track is no longer a pinned gate but four things it must prove: the changeset is
 merged, CI was green at that head sha, a Deno preview exists at that exact commit, and the work
 carries a forecast. **Every one of those is a fact about the work rather than a person's attention.**
+
+---
+
+## Round 7 — THE RESULT: five of seven stations, and the wall was the one declared in advance
+
+**Started 11:18:08 UTC by the founder's own instruction, through `/start` in his browser, from one
+sentence and no configuration.** Track `7977dc06-4a4e-4083-bb6a-07c83791ace7`.
+
+> *"Homeowners abandon checkout on the address screen because we ask them to type an address they
+> already gave us."*
+
+### What happened, from `stage_events`
+
+```sql
+SELECT from_stage, to_stage, at FROM stage_events
+ WHERE entity_id = '7977dc06-…' ORDER BY at;
+-- sense  -> decide  11:20:50
+-- sense  -> decide  11:21:25   <- DUPLICATE, see below
+-- decide -> define  11:23:01
+-- define -> design  11:24:40
+-- design -> build   11:26:16
+```
+
+**Five stations in eight minutes.** For three months, 59 tracks, **58 of them never left `sense`**.
+This one cleared it in under three minutes and reached Build — the station every previous attempt
+died at — in eight.
+
+**And it did real work at each.** Discover filed **2 signals** quoted verbatim from the workspace
+brief, and three further seats then filed **nothing**, each saying why: *"No additional verbatim
+evidence exists beyond the two confirmed signals already on record."* Decide filed **1 decision,
+approved, carrying a forecast** — *"Ramp checkout_single_address to 100%, fix tablet address layout…
+Forecast due 2026-09-08"*. That forecast is the thing the whole product is for, and it was written
+before the outcome was known, by an agent, unprompted.
+
+### Where it stopped, and it is the wall the ceiling named
+
+```sql
+SELECT agent_slug, status, left(output, 120) FROM agent_runs
+ WHERE track_id = '7977dc06-…' ORDER BY created_at DESC;
+-- qa      | completed_with_failures | "Repository access failed: GitHub 404 on
+--                                      /repos/RohitGajaraj/helio-prism-build. Cannot validate…"
+-- builder | completed_with_failures | "Repository access failed: GitHub 404 …"
+-- qa      | completed_with_failures | "…the repository returned 404, so I cannot verify…"
+-- builder | completed_with_failures | "…the repository tree could not be retrieved…"
+```
+
+**This was declared BEFORE the run, as residual risk 1 of 3:** *"Whether App installation `142608030`
+covers `helio-prism-build` is UNKNOWN. Neither session could verify it."* It does not. The repo
+exists — a user token reads it in full — but **the App installation was never granted it**, and the
+loop cannot grant itself access to somebody's repository.
+
+**THE AGENTS BEHAVED CORRECTLY AND THAT IS THE SECOND RESULT.** Four runs, four honest halts:
+*"Halting as required by protocol"*, *"This requires operator intervention"*, *"I must halt work
+rather than proceed without concrete code validation."* **Not one fabricated a file tree, invented a
+diff, or claimed work it had not done.** Against a wall it could not pass, the loop said so and
+stopped — which is the behaviour every one of this week's findings was written to protect.
+
+### NEW FINDING — R-26 catches `401` and GitHub answers `404`
+
+R-26 gives `tools-refused` a terminal hold so a credential failure costs no attempts. **It did not
+fire**, because GitHub does not return `401` for a repository an installation cannot see — **it
+returns `404`, deliberately, so that private repositories do not leak their existence.** So the run
+burned **two Build drives, four agent runs and ~82,000 tokens** re-discovering the same access
+failure, and `produced-nothing` consumed an attempt each time.
+
+`404` is not always terminal — a genuinely missing path is a different thing — so the fix is not
+"treat every 404 as refusal". It is: **a 404 on the repository ROOT, from a repo the workspace has a
+binding for, is a permission answer and belongs with `tools-refused`.** Filed as **F-57**.
+
+### Scored honestly
+
+| # | criterion | verdict |
+| --- | --- | --- |
+| 1 | seven stations end to end | **NO — five of seven.** Build is the ceiling |
+| 2 | no human intervention mid-run | **UNPROVABLE, and not because it did not hold.** See below |
+| 3 | visible while it happens | **YES** — watched live, station by station, on one screen |
+| 4 | starts from one sentence, zero configuration | **YES** — the founder typed it into `/start` |
+| 5 | the work is real | **PARTLY** — 2 signals, 1 approved decision with a forecast; no changeset |
+| 6 | a person can see what happened afterwards | **YES** — the whole walk is on the record |
+
+**Criterion 2 is unprovable and the reason is my own fix not being live.** Queue 63 shipped
+`driven_via`, and all five transitions carry **NULL**:
+
+```sql
+SELECT count(*), count(driven_via) FROM stage_events WHERE at > '2026-08-25 10:53';  -- 3 | 0
+```
+
+The code is on `main` and the running Worker predates it. **I did not deploy mid-run to fix it**,
+because a deploy while a track walks is precisely what disqualified Round 3, and rescuing the
+measurement would have destroyed the thing being measured. So the honest statement is: *observed*
+one press with auto-continuation and no hand-driving, *proven* nothing. **Round 8 can prove it.**
+
+### What Round 8 needs, and it is one action nobody in this repo can take
+
+**Grant the Supaprod GitHub App access to `RohitGajaraj/helio-prism-build`.** That is a permission on
+the founder's own GitHub account. No session may do it and none tried.
+
+### 11:36 — the run was INTERVENED WITH, on the founder's instruction, and that is recorded not buried
+
+**The founder, seeing the 404:** *"I think you are connecting to the wrong repo… You should have
+something like home relay owners. That is the repo that is being connected to the harbor account."*
+
+He is right on the fact that matters: **`relay-homeowner-app` is the repo the App can actually
+reach** — it opened PR #3 there this morning, and `repo.tree` succeeded against it. Queue 58 had
+repointed harbor at `helio-prism-build` to solve a *different* problem (F-49: no marker file, so no
+preview deploy could ever build), and in solving it took the binding somewhere the App had never been
+granted. **Both repos were half-right and the binding could only be one of them.**
+
+```sql
+UPDATE connection_bindings SET resource_id = 'RohitGajaraj/relay-homeowner-app'
+ WHERE workspace_id = '60000000-…' AND provider ILIKE '%github%';
+-- github | RohitGajaraj/relay-homeowner-app | 41d2e039
+```
+
+**THIS DISQUALIFIES ROUND 7 AS A CLEAN ACCEPTANCE ATTEMPT.** A binding changed while the track was
+open at Build is exactly the class of act that disqualified Rounds 4 and 6, and it does not become
+something else because a founder asked for it or because it was the right call. **What Round 7
+proved, it proved before 11:36**, and the scorecard above stands as written: five of seven, Build the
+ceiling, criterion 2 unprovable.
+
+Everything after 11:36 is a **different and lesser question** — *"can Build work at all against a
+readable repo"* — and its answer is worth having, but it is not the acceptance and will not be
+reported as one.
+
+### The wall after this one, already visible and not yet hit
+
+`relay-homeowner-app` **cannot use the managed deploy path**, so Ship is the next ceiling:
+
+```
+gh api repos/RohitGajaraj/relay-homeowner-app/git/trees/main?recursive=1
+  -> 693 blobs      MAX_FILES = 200      node_modules is committed
+gh api repos/.../contents/supaprod.json  -> 404   (no marker, F-49)
+```
+
+Two independent refusals: no marker means `isSupaprodManaged` returns false and Supaprod never builds
+a preview; and even with a marker, `collectRepoFiles` refuses **693 files against a cap of 200**
+rather than deploy a truncated app. So `release.publish`'s third precondition — a successful preview
+deploy at that exact commit — cannot be met on this repo as it stands.
+
+**Fixing it is not a code change.** It is `node_modules` committed to a repository, which drops the
+count under the cap in one commit, plus the marker file. Both are changes to the founder's own
+application repo and neither was made unilaterally.
