@@ -61,6 +61,7 @@ import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
 import { holdTone } from "@/lib/spine/driver";
 import { relativeTime } from "@/lib/memory-view";
 import { summaryText } from "@/components/track/run-summary";
+import { triesLine } from "@/components/track/hold-tries";
 
 /**
  * What the walk did, said plainly.
@@ -389,11 +390,16 @@ export function TrackRunLeft({
           <div className="flex flex-col gap-mrd-4">
             <Row
               lead={track.hold ?? undefined}
-              sub={
+              sub={[
                 track.drivenAt
                   ? `It last moved ${relativeTime(track.drivenAt, nowMs)}.`
-                  : "It has never been driven."
-              }
+                  : "It has never been driven.",
+                // WHICH TRY THIS IS (queue 66): a person reading a hold
+                // knows how close this is to stopping without SQL.
+                triesLine(track.attempts, AGENT_STATIONS[track.station].name),
+              ]
+                .filter(Boolean)
+                .join(" ")}
               action={
                 <StatusChip status={tone} pulse={tone === "you"}>
                   {tone === "you" ? "Waiting on you" : "On hold"}
