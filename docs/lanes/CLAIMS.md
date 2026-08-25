@@ -32,6 +32,7 @@
 | L0 | — | (Item 4 split half shipped `9242664aa`; request 022 lift shipped `214cfffd5`, unit L0-083) | 2026-08-25 14:0x |
 | A | — | (The `/start` door claim RELEASED: shipped `ee532b628`+`d59afc301`+`d850538ce`, pushed `0193b313c` window — Work row on the rail, `g w`, owns /start and /track/:id) | 2026-08-25 15:4x |
 | C | — | (Founder-routed restock released: #69 → QUEUE-LANE0, #70 → QUEUE-LANE1, one select ask in INBOX-MAIN. C = the main-lane acceptance session, Claude Code, Conductor worktree, fifth seat) | 2026-08-25 15:3x |
+| A | `src/lib/sources/sink.server.ts`, `src/lib/sources/kinds.ts`, `src/lib/ai/tools/registry.server.ts` (signals.log handler only — NOT B's repo.search region) | The fold reports the surviving row: restatement returns the folded-onto id so second-track sense can attach existing evidence and complete honestly (root cause of the 46-track sense graveyard, investigated 17:0x) | 2026-08-25 17:1x |
 | L0 | — | (Queue 67 SHIPPED `5e96444c0`: Calm hold tone for needs-evidence when forecast not yet due — claim released) | 2026-08-26 00:1x |
 | L0 | — | (Queue 69 VERIFIED L0-084: Finished count guard — no is_sample patterns in LANE 0, guard rail complete — claim released) | 2026-08-26 00:3x |
 | L1 | — | (Queue 32 VERIFIED: Already shipped in prior session (unit 066) — adoption metric confirms onramp-parts now in use, 43/48) | 2026-08-26 01:0x |
