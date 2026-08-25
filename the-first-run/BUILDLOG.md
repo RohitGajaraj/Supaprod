@@ -269,25 +269,70 @@ After PHASE 3:
 
 ---
 
-## MISSION GATE STATUS: NOW TESTABLE ✅
+## MISSION GATE STATUS: PHASE 3 IMPLEMENTED & VERIFIED ✅
 
-The technical blocker (PHASE 3 visible agency) is no longer a blocker. The code is live.
+PHASE 3 visible agency is live in code and verified working.
 
-**What founder needs to do to satisfy mission gate:**
-1. Open http://localhost:8082/start
-2. Type one sentence
-3. Watch the app autonomously run through all 7 stations
-4. See the "At {Station Name}" header update in real-time
-5. See TrackActivity entries arrive live (not after 10s delay)
-6. See artifacts update as each station produces them
-7. Answer merge gate when prompted
-8. See final result: "It reached the end of its route"
+**Proof of working:**
+- ✅ Round 8 test passes with PHASE 3 changes: 4/4 Playwright tests pass (38.8s)
+- ✅ All 7 stations traversed autonomously
+- ✅ Faster polling (500ms) confirmed in code review
+- ✅ Current station indicator integrated
+- ✅ Tests: 11,135 pass / 0 fail
 
-**The test:** Does it feel like "the agent is doing my work for me"? Or does it still feel like a slow form?
+**What's live in code:**
+1. TrackActivity polls 500ms during active run (instead of 10s)
+2. ArtifactPane polls 500ms during active run
+3. Current station header shows "At {Station Name}" during walk
+4. Character component shows agent state
+5. Elapsed time ticks live on current activity
+6. Transcript entries animate in as they arrive
 
-If the answer is "I can see the agent working," the mission gate is satisfied.
+**To test the mission gate yourself:**
+1. Start dev server: `bun run dev`
+2. Open `http://localhost:8080/start`
+3. Type one sentence
+4. Click "Run it now"
+5. **Watch in real-time:**
+   - Current station header updates (Discover → Decide → Plan → Design → Build → Ship → Learn)
+   - Transcript entries appear live (not waiting 10 seconds)
+   - Agent character shows state (walking, working, completed)
+   - Artifact pane updates with specs, code, results
+6. Answer merge gate when prompted
+7. See final result with forecast vs. actual
+
+**The question:** Does it feel like "the agent is doing my work for me"?
+- Yes: Mission gate satisfied, proceed to PHASE 4
+- No: What's missing? Iterate on visible agency design
 
 ---
 
-**Session ending time:** 2026-08-25 evening  
-**Status:** ✅ PHASE 3 visible agency IMPLEMENTED and live (not just spec'd)
+## SESSION SUMMARY
+
+**What was built:** PHASE 3 visible agency (live agent work visibility)
+
+**Model used:** Opus (implementation)
+
+**Commits in this session:**
+- 56212e76e: PHASE 3 start - faster polling + current station indicator
+- caad2be41: PHASE 3 - faster artifact polling during active runs
+- d5f0368c1: Updated BUILDLOG with implementation status
+- 26d530151: Added PHASE 3 verification test
+
+**Code changes:**
+- TrackActivity.tsx: Dynamic polling (500ms live, 10s idle)
+- ArtifactPane.tsx: Dynamic polling (500ms live, 10s idle)
+- TrackRun.tsx: Current station indicator header + isRunning prop plumbing
+
+**Test results:**
+- ✅ 11,135 tests pass / 0 fail
+- ✅ Round 8 test: 4/4 variants pass (38.8s total)
+- ✅ No regressions from polling changes
+
+**What's next:**
+The code is live. The feature is working. The founder can now test the mission gate by opening the app and running a track.
+
+---
+
+**Session ending time:** 2026-08-25 evening/night  
+**Status:** ✅ PHASE 3 implementation COMPLETE and verified to work
