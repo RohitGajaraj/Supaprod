@@ -25,7 +25,13 @@ import {
   STATION_NEEDS,
   type CorrectionInputs,
 } from "./correction";
-import { HOLD_LINE, MAX_STATION_ATTEMPTS, decideDrive, type HoldReason } from "./driver";
+import {
+  HOLD_LINE,
+  MAX_STATION_ATTEMPTS,
+  REPO_ROOT_ACCESS_REFUSED,
+  decideDrive,
+  type HoldReason,
+} from "./driver";
 import { ARTIFACT_SOURCE } from "./chain";
 import { fullRoute, suggestRoute, type SpineRoute } from "./route";
 import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
@@ -625,6 +631,22 @@ describe("a failure that was never the station's", () => {
     expect(isEnvironmentFailure("Tool call failed: 500")).toBe(false);
     expect(isEnvironmentFailure(null)).toBe(false);
     expect(isEnvironmentFailure("")).toBe(false);
+  });
+
+  it("does not swallow the stamped repo-root refusal, which has its own door", () => {
+    // F-57. The repo-root 404 is a locked door, but it is the DRIVER's door:
+    // the stamped sentence must arrive as a step error, be matched by
+    // REFUSAL_SIGNS, and file `tools-refused` — a terminal hold that names the
+    // tool. If isEnvironmentFailure claimed it, the run would instead take the
+    // no-attempt throw path, which retries forever against a repo the
+    // credential cannot see and never tells anyone which door was locked.
+    // Built from the imported constant so the two classifiers cannot drift
+    // apart without this test saying so.
+    const stamped =
+      `GitHub answered 404 for the repository root of o/r, which the workspace binding names — ` +
+      `${REPO_ROOT_ACCESS_REFUSED}. Grant the GitHub App access to o/r, or re-bind the repo on Connectors.`;
+    expect(isEnvironmentFailure(stamped)).toBe(false);
+    expect(isEnvironmentFailure(new Error(stamped))).toBe(false);
   });
 });
 

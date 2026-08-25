@@ -37,7 +37,13 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "bun:test";
 
-import { refusedTool, HOLD_LINE, holdLine, type ToolStepLike } from "./driver";
+import {
+  refusedTool,
+  HOLD_LINE,
+  holdLine,
+  REPO_ROOT_ACCESS_REFUSED,
+  type ToolStepLike,
+} from "./driver";
 import { TERMINAL_HOLDS } from "./correction";
 
 const call = (over: Partial<ToolStepLike> = {}): ToolStepLike => ({
@@ -71,6 +77,24 @@ describe("what counts as being refused", () => {
     }
   });
 
+  /**
+   * F-57 — GitHub answers 404, not 401, for a repo an App installation cannot
+   * see, on purpose, so private repos do not leak their existence. A bare 404
+   * can never be a refusal sign (see the negatives below), so the tool layer
+   * stamps ONE pinned sentence when — and only when — the 404 was on the
+   * repository ROOT of a repo a workspace binding names. The error here is
+   * built FROM the imported constant, never retyped: if the stamp and the sign
+   * ever drift apart, this test is the one that says so.
+   */
+  it("catches the stamped repo-root 404, which is a locked door wearing a 404", () => {
+    const stamped =
+      `GitHub answered 404 for the repository root of o/r, which the workspace binding names — ` +
+      `${REPO_ROOT_ACCESS_REFUSED}. Grant the GitHub App access to o/r, or re-bind the repo on Connectors.`;
+    const hit = refusedTool([call({ name: "repo.tree", error: stamped })]);
+    expect(hit).not.toBeNull();
+    expect(hit?.tool).toBe("repo.tree");
+  });
+
   /** R-16 asks for a failure that NAMES what failed. */
   it("returns the tool and the message, so the hold can say which door", () => {
     const hit = refusedTool([call({ name: "studio.commit", error: "401 Bad credentials" })]);
@@ -92,6 +116,25 @@ describe("what must NOT count, which is what keeps the hold honest", () => {
       "prd.draft requires either opportunity_id or brief",
       "rate limited, try again",
       "unexpected end of JSON input",
+    ]) {
+      expect({ error, refused: refusedTool([call({ error })]) !== null }).toEqual({
+        error,
+        refused: false,
+      });
+    }
+  });
+
+  /**
+   * The narrowness F-57 depends on. Only the ROOT of a bound repo earns the
+   * stamp, and only the stamp is a sign — a 404 on a deeper path is a wrong
+   * file name, and a bare root 404 with no binding proves nothing about
+   * access. If either of these ever counted, every typo'd path would file
+   * `tools-refused` and stop the attempts ceiling from protecting anything.
+   */
+  it("ignores plain GitHub 404s, which are the station's own problem", () => {
+    for (const error of [
+      'GitHub 404 on /repos/o/r/contents/src/x.ts: {"message":"Not Found"}',
+      "GitHub 404 on /repos/o/r: Not Found",
     ]) {
       expect({ error, refused: refusedTool([call({ error })]) !== null }).toEqual({
         error,
