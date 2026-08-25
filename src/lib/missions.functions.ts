@@ -286,7 +286,20 @@ export const listMissions = createServerFn({ method: "GET" })
           .order("idx", { ascending: true }),
         supabase
           .from("agent_runs")
-          .select("id,mission_id,status,created_at,agent_slug")
+          /*
+           * `track_id` SO A WORKING MISSION CAN NAME THE WORK IT SERVES.
+           *
+           * The loop writes it on every run (`loop.server.ts:610`), and this
+           * select dropped it, so the rail's live line could never prove WHICH
+           * piece of work was moving and fell back to the mission row. The
+           * watchable address is `/track/:id`; a mission id is a container id.
+           *
+           * ON THE RUN AND NOT ON THE MISSION, deliberately: `missions` has no
+           * `track_id` column at all (checked, not assumed), so asking for one
+           * there returns 42703 and takes the whole read with it. The run is
+           * where the link is written and therefore where it can be read.
+           */
+          .select("id,mission_id,status,created_at,agent_slug,track_id")
           .in("mission_id", ids)
           .order("created_at", { ascending: true }),
       ]);
