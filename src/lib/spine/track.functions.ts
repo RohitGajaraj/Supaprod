@@ -40,8 +40,9 @@ import {
   type StationWaiver,
   type WorkShape,
 } from "@/lib/spine/route";
-import { holdLine } from "@/lib/spine/driver";
+import { holdLine, type HoldReason } from "@/lib/spine/driver";
 import { driveTrackOnce, DRIVE_SELECT } from "@/lib/spine/driver.server";
+import { recordTrackDrive } from "@/lib/spine/track-drives.server";
 import {
   ARTIFACT_SOURCE,
   buildChain,
@@ -542,6 +543,31 @@ export const advanceTrack = createServerFn({ method: "POST" })
         const raw = row as unknown as TrackRow;
         const track = rowToTrack(raw);
 
+        /*
+         * F-62. A HAND-ADVANCE IS A DRIVE, AND IT NEVER TOUCHES `driveTrackOnce`.
+         *
+         * This handler moves a station by itself, so nothing in `track_drives`
+         * would know about it — and a criterion-2 query over that table alone
+         * would then miss the most literal *re-drive by hand* the product has.
+         * A log with a hole in it is worse than no log, because it reads clean.
+         *
+         * LOGGED AS SOON AS THE TRACK IS KNOWN TO EXIST, which is
+         * `driveTrackOnce`'s entry rule and for its reason: the press happened
+         * whether or not the kill switch, the route or the write let it land,
+         * and a record that only keeps successful interventions is a record that
+         * hides the ones that were stopped. Earlier is not possible — the row is
+         * a foreign key.
+         *
+         * `entry_hold` is the hold this press is moving PAST. A hand-advance off
+         * a non-null hold is unsticking, in one column, with no join.
+         */
+        await recordTrackDrive(supabase, {
+          trackId: track.id,
+          station: track.station,
+          via: "press",
+          entryHold: (raw.last_hold ?? null) as HoldReason | null,
+        });
+
         // Fails closed: a kill switch that cannot be read counts as on, the same
         // direction driver.server.ts chose for the same control.
         if (raw.workspace_id) {
@@ -758,6 +784,34 @@ export const retryStation = createServerFn({ method: "POST" })
 
       const raw = row as unknown as TrackRow;
       const track = rowToTrack(raw);
+
+      /*
+       * F-62. THIS CONTROL IS THE WORD "UNSTICKING", AND IT RECORDED NOTHING.
+       *
+       * `retryStation` clears `last_hold` and resets `attempts` so a stalled
+       * station runs again. That is acceptance criterion 2's forbidden act
+       * stated literally — *no unsticking* — and until this line the only thing
+       * it wrote about the person was the `recordStageEvent` call below, **which
+       * never inserts**: it passes the same station as both `from` and `to`, and
+       * `recordStageEvent` opens with `if (ev.from != null && ev.from === ev.to)
+       * return;`. The comment there says "THE TRAIL SAYS A PERSON DID IT". The
+       * guard drops it on the floor, silently, and has since the control
+       * shipped. (Left in place rather than removed: whether that guard or that
+       * call site is the thing to change is the session owner's call, not this
+       * fix's.)
+       *
+       * It is also the standing proof that a same-station `stage_events` row is
+       * not the cheap answer it looks like — a call site already tried it.
+       *
+       * `entry_hold` here is the hold being CLEARED, which is the whole event:
+       * "somebody released `station-cannot-finish` at build" is one row.
+       */
+      await recordTrackDrive(supabase, {
+        trackId: track.id,
+        station: track.station,
+        via: "press",
+        entryHold: (raw.last_hold ?? null) as HoldReason | null,
+      });
 
       if (raw.status !== "open") {
         return { track, refused: "This work is closed, so there is no station to run." };

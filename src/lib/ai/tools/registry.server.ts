@@ -1506,7 +1506,12 @@ const githubCommitAppend = def({
 // gated commit → PR → merge. Display name "Studio"; agent slug stays
 // 'builder' (legacy equivalence). See docs/features/studio.md.
 
-const STUDIO_FORBIDDEN_PREFIXES = [
+// EXPORTED so R-27's fifth ship precondition (`unattendedShipIsGradable` in
+// deployments.functions.ts) can ask the SAME question at the gate that this
+// asks at write time. One list, two enforcement points: a second copy is how
+// `prd_scaffolds` and `prototypes` came to disagree about what a drawing is
+// (F-29), and here the two copies would disagree about what a check is.
+export const STUDIO_FORBIDDEN_PREFIXES = [
   ".github/",
   "supabase/migrations/",
   ".env",

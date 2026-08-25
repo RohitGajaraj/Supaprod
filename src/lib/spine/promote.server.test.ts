@@ -479,12 +479,8 @@ describe("the cluster a promoted track came from reaches the station that must w
     });
     await promoteClustersOnce(db, "user-1");
 
-    const promoted = new Set(
-      db.__members.map((m) => `${m.track_id}:${String(m.artifact_id)}`),
-    );
-    expect(promoted).toEqual(
-      new Set(["track-for-theme-1:theme-1", "track-for-theme-2:theme-2"]),
-    );
+    const promoted = new Set(db.__members.map((m) => `${m.track_id}:${String(m.artifact_id)}`));
+    expect(promoted).toEqual(new Set(["track-for-theme-1:theme-1", "track-for-theme-2:theme-2"]));
   });
 });
 

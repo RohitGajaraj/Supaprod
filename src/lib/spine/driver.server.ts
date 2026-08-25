@@ -31,6 +31,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { runAgentLoop } from "@/lib/ai/loop.server";
 import { createMission } from "@/lib/ai/handoff.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
+import { recordTrackDrive } from "@/lib/spine/track-drives.server";
 import { recordLineage } from "@/lib/lineage.functions";
 import { nextStation, waiverFor, type SpineRoute } from "@/lib/spine/route";
 import {
@@ -1224,7 +1225,35 @@ export async function driveTrackOnce(
    * Unchecked on purpose: a failed write leaves NULL, which reads as "does not
    * know" and can never be counted as evidence of an unattended run. The
    * expensive direction is a false claim of autonomy, and this fails away from it.
+   *
+   * ── F-62. THE SLOT IS NOT ENOUGH, AND THE LOG GOES FIRST ──────────────────
+   *
+   * Everything above is true and it is still one column, last-write-wins. A
+   * person presses run on a stalled track at 10:05, the sweep drives it at
+   * 10:15, and this column now reads `sweep`: **the next tick erases the
+   * evidence of the intervention it should disqualify.** Measured, that is the
+   * common case rather than the corner — 2,199 `agent_runs` carry a `track_id`
+   * against 127 `spine_track` transitions, so ~94% of drives never write a
+   * transition row and this slot is all they ever had.
+   *
+   * `track_drives` is the same fact APPENDED. The log is written BEFORE the
+   * slot, deliberately: if only one of the two survives a crash between them,
+   * the one worth keeping is the one that cannot be overwritten.
+   *
+   * THE SLOT STAYS, and is not being replaced. A missing log row reads as "no
+   * drive happened", which is the unsafe direction, so the column beside it is
+   * the second witness: disagree with the newest `track_drives` row and the log
+   * lost something, and the run is not provable.
    */
+  await recordTrackDrive(supabase, {
+    trackId: row.id,
+    station,
+    via,
+    // Known here and nowhere later. A press against a non-null hold is a person
+    // reaching for a stalled track, which is the sentence criterion 2 forbids.
+    entryHold: (row.last_hold ?? null) as HoldReason | null,
+  });
+
   await supabase
     .from("spine_tracks" as never)
     .update({ last_driven_via: via } as never)

@@ -70,10 +70,16 @@ function db(script: Record<string, Reply[]>): SupabaseClient {
 
 const CHANGESET = "11111111-1111-4111-8111-111111111111";
 
-/** The four hops of an intact chain, in the order the guard walks them. */
+/** The hops of an intact chain, in the order the guard walks them. */
 function chain(over: Partial<Record<string, Reply[]>> = {}): Record<string, Reply[]> {
   return {
     studio_changesets: [{ data: { id: CHANGESET, mission_id: "m1" }, error: null }],
+    /* R-27's FIFTH precondition (F-63) reads the changeset's own file list
+     * before the mission hop and refuses anything that edited what the checks
+     * run. These tests are about the FOURTH precondition, so the file list here
+     * is ordinary product code and stays out of their way; the fifth is proved
+     * in a-change-that-edited-the-checks-cannot-ship-itself.test.ts. */
+    studio_changes: [{ data: [{ path: "src/lib/inbox.ts" }], error: null }],
     spine_track_members: [
       { data: { track_id: "t1" }, error: null },
       { data: [{ artifact_id: "d1" }], error: null },

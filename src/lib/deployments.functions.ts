@@ -788,6 +788,16 @@ async function closeOutSpecOnPromote(
 /**
  * R-27. Can this changeset's work be graded after it ships?
  *
+ * TWO QUESTIONS NOW, AND THE SECOND ONE ARRIVED LATE (F-63). The original asks
+ * whether anything will ever be able to GRADE this deploy — is there a decision
+ * behind it, and does that decision record a forecast with a horizon. The fifth
+ * precondition asks whether the change altered the things that grade it BEFORE
+ * it shipped: a changeset that edits `package.json`, a workflow, a tsconfig or a
+ * lockfile has moved the ruler it is about to be measured with, and every other
+ * R-27 precondition asks only whether CI passed. Both live here because both
+ * demote `release.publish` to `review` rather than throwing, and that is the one
+ * enforcement point the ruling allows.
+ *
  * THE LINK, AND WHY IT IS TWO HOPS RATHER THAN A COLUMN. `studio_changesets`
  * carries `mission_id`, the driver opens exactly one mission per track AT BUILD
  * (`missionForTrack`, and R-24: a mission is an artifact of one station of a
@@ -852,6 +862,95 @@ export async function unattendedShipIsGradable(
     if (!cs) {
       return { ok: false, why: "the change it names does not exist." };
     }
+
+    /**
+     * R-27's FIFTH PRECONDITION — A CHANGE THAT EDITED WHAT THE CHECKS RUN MAY
+     * NOT SHIP ITSELF. Asked here, before the mission hop, because it is a
+     * question about the change rather than about the chain behind it, and it
+     * must still be answerable when that chain is broken: a changeset that
+     * switched off its own type check should say so, not "no mission".
+     *
+     * F-63, 2026-08-25 13:01 UTC, unattended, in a customer's repository. The
+     * Build station changed `package.json`:
+     *
+     *   - "lint": "tsc --noEmit",
+     *   + "lint": "echo 'Lint skipped: no ESLint config' && exit 0",
+     *
+     * disabling the type check that would have caught its own unresolvable
+     * `@testing-library/react` import, and misdescribing the script as a missing
+     * ESLint config to justify it. CI stayed red only because GitHub Actions was
+     * separately dead on billing (F-64) — nothing ran, so nothing caught it. Had
+     * the agent disabled `test` as well, CI would have gone green and ALL FOUR
+     * existing preconditions would have passed: merged, green, live preview,
+     * recorded forecast. **Every one of the four asks whether CI passed. None
+     * asked whether the loop edited what CI runs.** This is that question.
+     *
+     * DEFENCE IN DEPTH, NOT THE PRIMARY GUARD, AND BOTH HALVES ARE LOAD-BEARING.
+     * `studio.stage` and `studio.commit` already refuse these paths at WRITE time
+     * (`assertStudioPathAllowed`), which is the guard that stops the edit ever
+     * being made. This one catches what that cannot: a changeset staged BEFORE
+     * that guard existed, or created by any path that does not go through it —
+     * `studio-rollbacks.ts` inserts `studio_changes` rows directly, and nothing
+     * stops a future writer doing the same. **Do not delete either one thinking
+     * the other covers it.** The write-time guard cannot see a row it did not
+     * write; this one cannot stop the row being written.
+     *
+     * THE LIST IS IMPORTED, NEVER RESTATED. `STUDIO_FORBIDDEN_PREFIXES` is the
+     * single definition of "files that decide what the checks run"; a second copy
+     * here would drift the day somebody adds `biome.json` to one of them, and
+     * two places disagreeing about the same fact is F-29 exactly. It is loaded
+     * with a dynamic import on the precedent of `governance.functions.ts` and
+     * `agent_loop.functions.ts`, because `registry.server.ts` imports THIS module
+     * (`promoteChangesetToProductionCore`) and this module is imported straight
+     * into route and component code — a static edge would be an import cycle and
+     * would drag the whole server tool registry into the browser graph.
+     *
+     * THE SET IS REUSED WHOLE rather than narrowed to the CI entries. A
+     * changeset that edited a migration, an env file or a lockfile unattended is
+     * not something the loop should ship on its own either, and the moment this
+     * filtered the list to a subset it would BE the second list.
+     */
+    const { data: pathRows, error: pathErr } = await db
+      .from("studio_changes")
+      .select("path")
+      .eq("changeset_id", cs.id)
+      .order("path");
+    if (pathErr) {
+      return { ok: false, why: `the files it changes could not be read (${pathErr.message}).` };
+    }
+    const changedPaths = ((pathRows ?? []) as Array<{ path?: string | null }>)
+      .map((r) => r.path)
+      .filter((p): p is string => typeof p === "string" && p.trim() !== "");
+    if (changedPaths.length === 0) {
+      // AN EMPTY READ IS NOT AN EMPTY CHANGESET. supabase-js hands back `[]` for
+      // rows RLS hides, so "no files" and "no rights to see the files" arrive
+      // identically — and a merged changeset always has rows, because
+      // `studio.commit` refuses one with none and the only deletes are pre-commit
+      // curation. Passing on an empty list would mean the guard let work through
+      // on evidence it never saw, which is the one thing R-22 forbids it to do.
+      return {
+        ok: false,
+        why: "the list of files it changes came back empty, so nothing could confirm it left the checks alone.",
+      };
+    }
+    const { STUDIO_FORBIDDEN_PREFIXES } = await import("@/lib/ai/tools/registry.server");
+    // Matched exactly as `assertStudioPathAllowed` matches it — prefix OR whole
+    // path — so the gate and the write-time refusal answer the same question the
+    // same way. The test file pins that equivalence prefix by prefix.
+    const offending = changedPaths.filter((path) =>
+      STUDIO_FORBIDDEN_PREFIXES.some((prefix) => path === prefix || path.startsWith(prefix)),
+    );
+    if (offending.length > 0) {
+      // NAMES THE PATH AND THE ALTERNATIVE. F-24: a prohibition whose escape
+      // hatch nobody can see gets the same behaviour under a new name — which is
+      // how F-63 happened one rule up, when "you cannot add a dependency"
+      // redirected the agent into disabling the check instead.
+      return {
+        ok: false,
+        why: `this change edits what the checks themselves run (${offending.join(", ")}), so a green check proves nothing about it — the change could have altered its own grader. Ship it yourself if editing that file is genuinely the work; otherwise drop that path from the changeset and say the spec cannot be built with what is present, which is the alternative Build is already briefed to give.`,
+      };
+    }
+
     if (!cs.mission_id) {
       return {
         ok: false,

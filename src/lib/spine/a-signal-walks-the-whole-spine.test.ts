@@ -36,13 +36,7 @@ import {
   type HoldReason,
   type UpstreamArtifact,
 } from "./driver";
-import {
-  nextStation,
-  suggestRoute,
-  validateRoute,
-  type SpineRoute,
-  type WorkShape,
-} from "./route";
+import { nextStation, suggestRoute, validateRoute, type SpineRoute, type WorkShape } from "./route";
 import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
 
 /**

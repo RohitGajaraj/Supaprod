@@ -33,7 +33,12 @@ import {
   STATION_NEEDS,
   type CorrectionInputs,
 } from "./correction";
-import { decideDrive, MAX_STATION_ATTEMPTS, type HoldReason, type UpstreamArtifact } from "./driver";
+import {
+  decideDrive,
+  MAX_STATION_ATTEMPTS,
+  type HoldReason,
+  type UpstreamArtifact,
+} from "./driver";
 import { STATION_ARTIFACT } from "./attach";
 import { nextStation, suggestRoute, type SpineRoute } from "./route";
 import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
@@ -160,7 +165,12 @@ function recover(
     }
 
     if (fix.action === "escalate") {
-      return { ending: { kind: "escalated", reason: fix.reason, at: standing }, path, goBacks, ticks: tick };
+      return {
+        ending: { kind: "escalated", reason: fix.reason, at: standing },
+        path,
+        goBacks,
+        ticks: tick,
+      };
     }
     return { ending: { kind: "gave-up", at: standing }, path, goBacks, ticks: tick };
   }
@@ -206,8 +216,10 @@ describe("a station that can never finish", () => {
   it("never sends the work backwards past the start of its route", () => {
     const order = new Map(AGENT_STATION_ORDER.map((s, i) => [s, i]));
     for (const g of trace.goBacks) {
-      expect(order.get(g.to)!, `sent back to ${g.to}, which is not earlier than ${g.from}`)
-        .toBeLessThan(order.get(g.from)!);
+      expect(
+        order.get(g.to)!,
+        `sent back to ${g.to}, which is not earlier than ${g.from}`,
+      ).toBeLessThan(order.get(g.from)!);
       expect(fullRoute().path).toContain(g.to);
     }
   });
@@ -317,7 +329,11 @@ describe("every station, one at a time, cannot hang the loop", () => {
   }
 
   it("finishes when nothing is broken, so the sweep above is measuring failure", () => {
-    const trace = recover(fullRoute(), { seed: [originTheme], canFinish: always, externalMet: true });
+    const trace = recover(fullRoute(), {
+      seed: [originTheme],
+      canFinish: always,
+      externalMet: true,
+    });
     expect(trace.ending.kind).toBe("finished");
   });
 });

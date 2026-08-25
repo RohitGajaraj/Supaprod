@@ -74,9 +74,10 @@ describe("the briefs name tools that exist and can be reached", () => {
   it("every seat is told to file something, in words naming a real tool", () => {
     for (const station of AGENT_STATION_ORDER) {
       for (const seat of stationCrew(station)) {
-        expect(seat.file.length, `${station}/${seat.slug} has no filing instruction`).toBeGreaterThan(
-          0,
-        );
+        expect(
+          seat.file.length,
+          `${station}/${seat.slug} has no filing instruction`,
+        ).toBeGreaterThan(0);
         const named = toolsNamedIn(seat.file, KNOWN_TOOLS);
         expect(
           named.length,
@@ -193,9 +194,12 @@ describe("a brief must name the arguments its tool actually refuses without", ()
 
   /** Does the live schema refuse a decision that carries no forecast? */
   function forecastIsRequired(): boolean {
-    const def = (TOOL_REGISTRY as Record<string, { argsSchema?: { safeParse: (v: unknown) => { success: boolean } } }>)[
-      DECISION_RECORD
-    ];
+    const def = (
+      TOOL_REGISTRY as Record<
+        string,
+        { argsSchema?: { safeParse: (v: unknown) => { success: boolean } } }
+      >
+    )[DECISION_RECORD];
     if (!def?.argsSchema) return false;
     // Satisfies every OTHER rule the tool has, and carries no forecast.
     return !def.argsSchema.safeParse({
@@ -244,7 +248,10 @@ describe("the four lists cannot drift apart quietly", () => {
     // TOOL_PRODUCTS naming a tool that no longer exists would make the driver
     // wait for output that can never arrive.
     for (const tool of FILING_TOOLS) {
-      expect(TOOL_DEFAULTS[tool], `${tool} is in TOOL_PRODUCTS with no default policy`).toBeTruthy();
+      expect(
+        TOOL_DEFAULTS[tool],
+        `${tool} is in TOOL_PRODUCTS with no default policy`,
+      ).toBeTruthy();
     }
   });
 
@@ -292,7 +299,10 @@ describe("a filing tool hands back the id the driver reads", () => {
    * needs a database, a workspace and a live model. What it proves is narrow and
    * worth having: the field name the map reads appears in what the tool returns.
    */
-  const REGISTRY = readFileSync(join(import.meta.dir, "..", "ai", "tools", "registry.server.ts"), "utf8");
+  const REGISTRY = readFileSync(
+    join(import.meta.dir, "..", "ai", "tools", "registry.server.ts"),
+    "utf8",
+  );
 
   /** The `run` body of one tool, from its `name:` to the next tool's `def(`. */
   function toolBody(tool: string): string | null {

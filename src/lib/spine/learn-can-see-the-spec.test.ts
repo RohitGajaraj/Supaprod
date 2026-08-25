@@ -40,7 +40,11 @@ function historyAtLearn(): UpstreamArtifact[] {
     // that line satisfy the assertion below and the test would prove nothing.
     artifact("theme", "Saved address drops at checkout", "THEME BODY: nine reports, four sources."),
     artifact("decision", "Fix the address step", "We will rebuild the re-confirm step."),
-    artifact("prd", "Address re-confirm", "SUCCESS METRIC: cart completion up 4 points in 30 days."),
+    artifact(
+      "prd",
+      "Address re-confirm",
+      "SUCCESS METRIC: cart completion up 4 points in 30 days.",
+    ),
     artifact("prototype", "Re-confirm screen", "Two fields, one confirm."),
     artifact("changeset", "address-reconfirm", "Rewrote the address form."),
     artifact("deployment", "v41", "Live at app.example.com."),
@@ -139,7 +143,10 @@ describe("describeUpstream's own contract", () => {
   });
 
   it("does not duplicate a yardstick that is already one of the newest two", () => {
-    const history = [artifact("prd", "The spec", "THE MEASURE"), artifact("changeset", "c", "did it")];
+    const history = [
+      artifact("prd", "The spec", "THE MEASURE"),
+      artifact("changeset", "c", "did it"),
+    ];
     const out = describeUpstream(history, ["prd"]);
     expect(out.split("THE MEASURE").length - 1).toBe(1);
   });
