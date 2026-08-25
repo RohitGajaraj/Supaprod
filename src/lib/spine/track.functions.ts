@@ -675,96 +675,94 @@ export const advanceTrack = createServerFn({ method: "POST" })
 export const retryStation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))
-  .handler(
-    async ({ context, data }): Promise<{ track: Track | null; refused: string | null }> => {
-      const { supabase } = context;
-      try {
-        const { data: row } = await supabase
-          .from("spine_tracks" as never)
-          .select(SELECT)
-          .eq("id", data.trackId)
-          .maybeSingle();
-        if (!row) return { track: null, refused: "That work could not be found." };
+  .handler(async ({ context, data }): Promise<{ track: Track | null; refused: string | null }> => {
+    const { supabase } = context;
+    try {
+      const { data: row } = await supabase
+        .from("spine_tracks" as never)
+        .select(SELECT)
+        .eq("id", data.trackId)
+        .maybeSingle();
+      if (!row) return { track: null, refused: "That work could not be found." };
 
-        const raw = row as unknown as TrackRow;
-        const track = rowToTrack(raw);
+      const raw = row as unknown as TrackRow;
+      const track = rowToTrack(raw);
 
-        if (raw.status !== "open") {
-          return { track, refused: "This work is closed, so there is no station to run." };
+      if (raw.status !== "open") {
+        return { track, refused: "This work is closed, so there is no station to run." };
+      }
+
+      // Fails closed, the same direction driver.server.ts takes for the same
+      // control.
+      if (raw.workspace_id) {
+        let paused = true;
+        try {
+          const { data: sw } = await supabase
+            .from("kill_switches")
+            .select("paused")
+            .eq("scope", "workspace")
+            .eq("workspace_id", raw.workspace_id)
+            .maybeSingle();
+          paused = Boolean((sw as { paused?: boolean } | null)?.paused);
+        } catch {
+          paused = true;
         }
-
-        // Fails closed, the same direction driver.server.ts takes for the same
-        // control.
-        if (raw.workspace_id) {
-          let paused = true;
-          try {
-            const { data: sw } = await supabase
-              .from("kill_switches")
-              .select("paused")
-              .eq("scope", "workspace")
-              .eq("workspace_id", raw.workspace_id)
-              .maybeSingle();
-            paused = Boolean((sw as { paused?: boolean } | null)?.paused);
-          } catch {
-            paused = true;
-          }
-          if (paused) {
-            return {
-              track,
-              refused: "Everything is paused for this workspace, so nothing was released.",
-            };
-          }
-        }
-
-        // Nothing to retry on work the driver has not stopped. Read off the raw
-        // column rather than the rendered sentence, because `rowToTrack` maps
-        // `last_hold` through `holdLine` into prose for the surface and prose is
-        // not a state.
-        if (!raw.last_hold) {
+        if (paused) {
           return {
             track,
-            refused: "This work is not held, so there is nothing waiting to be released.",
+            refused: "Everything is paused for this workspace, so nothing was released.",
           };
         }
+      }
 
-        const now = new Date().toISOString();
-        const { data: updated, error } = await supabase
-          .from("spine_tracks" as never)
-          .update({ attempts: 0, last_hold: null, driven_at: now, updated_at: now } as never)
-          .eq("id", data.trackId)
-          .select(SELECT)
-          .single();
-
-        // An UPDATE that came back unconfirmed did not necessarily fail to
-        // commit, so this reports what it knows and refuses to narrate a cause.
-        if (error || !updated) {
-          return {
-            track,
-            refused: "The release did not come back confirmed, so nothing here is certain.",
-          };
-        }
-
-        await recordStageEvent(supabase, {
-          entityType: "spine_track",
-          entityId: track.id,
-          // Both ends are the same station on purpose: the work did not move.
-          from: track.station,
-          to: track.station,
-          actor: "human",
-          workspaceId: raw.workspace_id,
-          userId: raw.user_id,
-        });
-
-        return { track: rowToTrack(updated as unknown as TrackRow), refused: null };
-      } catch (e) {
-        console.error("retryStation failed:", e);
+      // Nothing to retry on work the driver has not stopped. Read off the raw
+      // column rather than the rendered sentence, because `rowToTrack` maps
+      // `last_hold` through `holdLine` into prose for the surface and prose is
+      // not a state.
+      if (!raw.last_hold) {
         return {
-          track: null,
-          refused: "The release failed. Nothing on screen can be trusted until this list reloads.",
+          track,
+          refused: "This work is not held, so there is nothing waiting to be released.",
         };
       }
-    },
-  );
+
+      const now = new Date().toISOString();
+      const { data: updated, error } = await supabase
+        .from("spine_tracks" as never)
+        .update({ attempts: 0, last_hold: null, driven_at: now, updated_at: now } as never)
+        .eq("id", data.trackId)
+        .select(SELECT)
+        .single();
+
+      // An UPDATE that came back unconfirmed did not necessarily fail to
+      // commit, so this reports what it knows and refuses to narrate a cause.
+      if (error || !updated) {
+        return {
+          track,
+          refused: "The release did not come back confirmed, so nothing here is certain.",
+        };
+      }
+
+      await recordStageEvent(supabase, {
+        entityType: "spine_track",
+        entityId: track.id,
+        // Both ends are the same station on purpose: the work did not move.
+        from: track.station,
+        to: track.station,
+        actor: "human",
+        workspaceId: raw.workspace_id,
+        userId: raw.user_id,
+      });
+
+      return { track: rowToTrack(updated as unknown as TrackRow), refused: null };
+    } catch (e) {
+      console.error("retryStation failed:", e);
+      return {
+        track: null,
+        refused: "The release failed. Nothing on screen can be trusted until this list reloads.",
+      };
+    }
+  });
 
 export const setStationWaiver = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -892,6 +890,132 @@ export const attachToTrack = createServerFn({ method: "POST" })
  * Degrades to an empty chain rather than throwing, the same pre-migration
  * tolerance every other handler in this module uses.
  */
+/**
+ * What each station of this track actually PRODUCED, with the thing itself.
+ *
+ * ── WHY THIS IS NOT `getTrackChain` ───────────────────────────────────────
+ *
+ * `getTrackChain` answers *what was filed*: a stop per station, and per member a
+ * kind, an id, a title and whether it still resolves. That is the right shape
+ * for a trail somebody scans, and `ChainMember` deliberately carries **no body**
+ * — putting a few thousand characters of spec into every row of a chain panel
+ * would make the panel unreadable and the query expensive for a reader who only
+ * wanted to see that a spec exists.
+ *
+ * The artifact pane asks a different question: *show me the thing*. A pane
+ * rendering "prd (id 5568…)" has told the reader nothing they could not see in
+ * the chain, and the acceptance this repo is built around says a person watching
+ * a run sees **what each station produced**, not a list of nouns.
+ *
+ * So: same members, same resolution rules, one extra column per kind.
+ *
+ * ── THE FAIL DIRECTION IS COPIED FROM `getTrackChain` ON PURPOSE ───────────
+ *
+ * `missing` means the lookup SUCCEEDED and the row was not in it, so the product
+ * can honestly say the artifact is gone. A query that errored, or a kind with no
+ * table mapped, leaves `missing` false and the body null: we did not look, so we
+ * claim nothing. Collapsing the two would let a transient error report a shelf
+ * of healthy artifacts as destroyed, which is a worse lie than a row with no
+ * body. The two functions must not disagree about this, so the rule is stated
+ * the same way in both.
+ *
+ * ── WHAT IT DOES NOT DO ───────────────────────────────────────────────────
+ *
+ * It does not truncate. `HANDOFF_BODY_CHARS` bounds what goes into a PROMPT,
+ * where a long spec costs money on every station; a person looking at their own
+ * spec should see their own spec. The pane decides how much to show.
+ *
+ * One query per KIND, never per row, for the reason `getTrackChain` gives: a
+ * track that ran a full loop holds a few dozen members and a per-row lookup
+ * would put that many round trips behind one pane.
+ */
+export type TrackArtifact = {
+  kind: string;
+  artifactId: string;
+  station: string;
+  createdAt: string;
+  title: string | null;
+  /** The artifact's own text, whole. Null when it has none or was not read. */
+  body: string | null;
+  /** True only when the lookup ran and the row was not there. */
+  missing: boolean;
+};
+
+export const getTrackArtifacts = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }): Promise<{ artifacts: TrackArtifact[] }> => {
+    const { supabase } = context;
+    try {
+      const { data: rows, error } = await supabase
+        .from("spine_track_members" as never)
+        .select("artifact_kind, artifact_id, station, created_at")
+        .eq("track_id", data.trackId)
+        .order("created_at", { ascending: true });
+      // Pre-migration, or a refused read: an empty pane, never a thrown page.
+      if (error || !rows) return { artifacts: [] };
+
+      const members = rows as unknown as Array<{
+        artifact_kind: string;
+        artifact_id: string;
+        station: string;
+        created_at: string;
+      }>;
+      if (members.length === 0) return { artifacts: [] };
+
+      const byKind = new Map<string, string[]>();
+      for (const m of members) {
+        if (!ARTIFACT_SOURCE[m.artifact_kind]) continue;
+        byKind.set(m.artifact_kind, [...(byKind.get(m.artifact_kind) ?? []), m.artifact_id]);
+      }
+
+      /** kind:id -> the row, when the lookup for that kind actually ran. */
+      const found = new Map<string, { title: string | null; body: string | null }>();
+      /** Kinds whose lookup ran cleanly. Only these may report `missing`. */
+      const looked = new Set<string>();
+
+      await Promise.all(
+        [...byKind.entries()].map(async ([kind, ids]) => {
+          const source = ARTIFACT_SOURCE[kind];
+          const cols = ["id", `title:${source.title}`];
+          if (source.body) cols.push(`body:${source.body}`);
+          const { data: got, error: readErr } = await supabase
+            .from(source.table)
+            .select(cols.join(","))
+            .in("id", ids);
+          // WE DID NOT LOOK, SO WE CLAIM NOTHING. See the header.
+          if (readErr) return;
+          looked.add(kind);
+          for (const r of (got ?? []) as unknown as Array<{
+            id: string;
+            title: string | null;
+            body?: string | null;
+          }>) {
+            found.set(`${kind}:${r.id}`, { title: r.title ?? null, body: r.body ?? null });
+          }
+        }),
+      );
+
+      return {
+        artifacts: members.map((m) => {
+          const hit = found.get(`${m.artifact_kind}:${m.artifact_id}`);
+          return {
+            kind: m.artifact_kind,
+            artifactId: m.artifact_id,
+            station: m.station,
+            createdAt: m.created_at,
+            title: hit?.title ?? null,
+            body: hit?.body ?? null,
+            // Only a kind we successfully READ can honestly be called missing.
+            missing: !hit && looked.has(m.artifact_kind),
+          };
+        }),
+      };
+    } catch {
+      return { artifacts: [] };
+    }
+  });
+
 export const getTrackChain = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))

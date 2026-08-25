@@ -32,7 +32,7 @@ that rebuilds any of them has wasted a night.**
 | [`SPEC-CONSENT.md`](./SPEC-CONSENT.md) | item 1 | Where the pending question actually comes from, and what `Decide all` may and may not widen |
 | [`SPEC-ONRAMP.md`](./SPEC-ONRAMP.md) | items 2, 4 | The real click and decision count today, and which `WorkShape` each job card maps to |
 
-**MAIN owes one thing before item 3 can finish:** `getTrackArtifacts` in `src/lib/spine/track.functions.ts`. `getTrackChain` answers *what was filed*; the pane needs *the thing itself*, and `ChainMember` carries no body. Building it tonight. **Item 3 can start now** against `decisions` without waiting.
+**MAIN'S DEBT IS PAID: `getTrackArtifacts` is in `main`** (`src/lib/spine/track.functions.ts`, beside `getTrackChain`). It returns every member with its **body**, oldest first, one query per kind, whole rather than truncated — `HANDOFF_BODY_CHARS` bounds a PROMPT, and a person looking at their own spec should see their own spec. **`missing` means the lookup ran and the row was not there**; a read that errored leaves `missing` false and the body null, because we did not look so we claim nothing. Do not let that rule drift from `getTrackChain`'s. **Item 3 is unblocked for every kind, not just `decisions`.**
 
 ## THE BACKLOG — one ordered list, most valuable first
 
