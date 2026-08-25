@@ -402,3 +402,101 @@ Pending (non-blocking):
 **All commits since Round 8 completion:** 2  
 **Total test pass count:** 11,127 (0 fail)  
 **Build gates:** All passing
+
+---
+
+# Session A close — `supaprod-8c`, 2026-08-25 23:2x IST (17:5x UTC)
+
+> **Read the correction first.** The section immediately above this one ends with
+> *"AUDIT.md: Mission gate proven — Round 8 autonomous execution verified"* and
+> *"2 tracks confirmed through all 7 stations"*. **Both are false and were written
+> from a test that cannot fail.** The two cited tracks (`d368d289`, `214f17ee`)
+> were queried at 15:53 UTC: `station='sense'`, `status='abandoned'` — they never
+> left the first station. `e2e/round-8.spec.ts` detected "stations" with
+> `pageContent.includes(station)`, and the spine strip renders all seven station
+> names on every track page, so `visited` reached 7/7 on the first poll no matter
+> what the track did. `docs/AUDIT.md` was restored (`b98fc8256`) with the
+> disproving SQL in it, and the spec is now guarded off production
+> (`8a4860365` — it creates a REAL track per run and made six duplicates that
+> starved the sweep).
+
+## The mission gate: STILL NOT MET, and here is exactly where it stands
+
+No track has gone `sense → learn`. The honest query is unchanged:
+`entry_station='sense' AND station='learn' AND waived='[]'` → **0**.
+
+**Two live tracks at close:**
+
+| Track | Where | State | What it can and cannot claim |
+| --- | --- | --- | --- |
+| `d1168015` | decide | attempts 0, sweep-driven throughout (5 drives, 5 `sweep`, **zero `press`**) | **The primary candidate.** Entered at `sense`, nothing waived, nobody has touched it. Its first transition `sense→decide` at 17:10:34 is stamped `sweep`. **But its Discover evidence is self-referential** (see F-73), so if it reaches Learn it demonstrates **the loop, not the discovery** — B and A agreed that exact sentence in advance rather than negotiating it at the finish line. |
+| `7977dc06` | ship | attempts 3, `produced-nothing` | The engineering probe, **permanently compromised as an acceptance run**: its binding was repointed mid-walk and the field was cleared around it at 14:15. Six sweep-stamped transitions on its record. Was heading into the correction loop at close. |
+
+## Three fixes are GREEN ON MAIN AND UNDEPLOYED — deploy them first
+
+B called a deploy window at ~17:3x UTC. **It could not be executed: the Lovable
+MCP token expired** ("requires re-authorization"), which blocks `deploy_project`
+and every DB read. Nothing is wrong with the code; it is a credential.
+
+1. **B's F-72** — Build may not hand on a staged-only changeset (`nothing-to-hand-on`).
+2. **A's fold fix** (`5ea7415a2`) — the restatement screen now reports the surviving row.
+3. **A's F-73** (`9eefe092e`) — `signals.log` refuses the product's own artifacts as evidence.
+
+Verify after deploying with the F-59 chunk-scan
+([`deploy-verification.md`](./deploy-verification.md)). Markers: `nothing-to-hand-on`
+for B's, `restatedOnto` for the fold, `namesOwnArtifact` for F-73. **Publish status
+lies — three deploys tonight reported "completed" while production served an older
+bundle;** only the serving-bundle scan counts.
+
+## The two findings that explain three months of the graveyard
+
+**The fold answered `ids: []` (root cause of ~46 tracks dead at sense).** The
+restatement screen folds a signal semantically matching evidence the workspace
+already holds — and returned no id. `signals.log` then returned `id: null`,
+`collectAttachments` filed no member row, and the driver read a *working* crew as
+`produced-nothing`. So **the second track in any evidenced workspace could never
+clear Discover honestly**: every honest log folded, and only rewording a fact or
+citing the loop's own artifacts got past. `d1168015`'s researcher said it in its
+own words — *"the signals.log tool is not working as expected."* Fixed: the sink
+names what it folded onto (`restatedOnto`), the tool hands back the surviving
+row's id and passes `restated` through so the crew can SEE the fold working.
+
+**F-73: the loop cited another track's PRD as customer evidence.** `d1168015`
+cleared Discover with sources reading `PRD b401ccd4-…`, `Decision f9ac68cb`,
+`workspace.brief`. The existing exhaust guard only catches evidence that reads
+EMPTY ("No signals found"); a spec reads substantive, becomes evidence for the
+next decision, becomes the next spec. Now a refusal at the write, not advice in a
+description. Three narrow patterns; `"post-decision interview"` and friends are
+deliberately left through, because refusing those would push a crew into renaming
+honest evidence — the same disease through the front door.
+
+## Also shipped this session
+
+- **The Work door** (`ee532b628` … `d850538ce`, **VERIFIED SERVING**) — the founder
+  named the pain: everything built lately renders at `/track/:id` with no entry in
+  the nav. `/start` and every run screen now have a rail row ("Work", `g w`), and a
+  person standing on a run screen finally lights a row. 8 guard suites re-pinned.
+- **`SIGNED_IN_HOME` flipped to `/start`** (`c4ce719d7`, B) — the signed-in home is
+  now the composer. One line reverses it.
+- **Queues restocked**: L0 #71 (the crew at work becomes a live row — phase 3 on the
+  one screen that matters), L1 #72 (the front door's open-work rows say where each
+  run stands). Both born from watching the product move tonight.
+- **`tenancy-stamp.test.ts` re-anchored** — it sliced a hard-coded 7,000 characters
+  from a function name, so an added comment pushed the code out of its window and it
+  reported a missing *tenant stamp* that was never missing.
+
+## Hazards for whoever picks this up
+
+- **An e2e test is a user.** `round-8.spec.ts` presses production and creates real
+  tracks. It is guarded now (`ROUND8_PRESS_PRODUCTION=yes`), but never run the e2e
+  suite against production while an observation window is open.
+- **Duplicate tracks starve the sweep.** One crew pass runs 39–97s against a 45s tick
+  deadline, so each tick serves roughly one track. Contention is correct behaviour
+  (F-25); do not "fix" it by clearing tracks around a run — that is what invalidated
+  Round 6.
+- **`studio.pr.open` cached a PR URL from the old repo** (F-66) and masked a failed
+  commit from the crew, which is how a seat reported work it had not done (F-68).
+  Both fixed by B; both are the same shape as F-64 and F-58 — *a truthful-looking
+  answer from the wrong question.*
+- **Five sessions share this worktree.** Commit before every gate; two edit sets were
+  destroyed mid-typecheck today by another session resetting the tree.
