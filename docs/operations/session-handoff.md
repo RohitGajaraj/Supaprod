@@ -4665,3 +4665,49 @@ Commits f326faeb0 and 96fc5c8c2 pushed to origin/main. Lovable will auto-deploy 
 **Commits waiting verification**: f326faeb0 (fix), 96fc5c8c2 (handoff), 84c0aa047 (verification plan)
 
 **Next session must**: Immediately test the fix by creating a real track and monitoring completion. Do not proceed to other work until mission gate is verified.
+
+---
+
+# APPENDED · 2026-08-25 ~20:30+05:30 · SESSION A CLOSE (supaprod-8c)
+
+**Tree:** clean, even with origin at `063eb5ab4`. Every unit gated (`bun test` 11,168+ pass, 0
+fail at last full run) and deployed through `c3c6489a` (serving `index-Cofw2KFX`, verified by
+chunk content per F-59's method).
+
+## The mission's honest position at close
+- **Not attained:** no track has completed all seven stations. **Attained:** `7977dc06` walked
+  six of seven with every leg from 17:51 IST stamped `driven_via='sweep'` — the first provably
+  loop-driven walk in the product's history — and at 20:20 IST the correction loop sent it
+  Ship → Build on its own after three honest Ship refusals. It closed this session at `build`,
+  attempts 0, hold clear.
+- **What decides the finish (nobody's code, just ticks):** Build's next drive is the FIRST
+  touch of `Supaprod/relay-homeowner-app` (org repo, CI genuinely green 10/10, App installation
+  `156492672`, binding + `external_handle` both repointed and verified in the DB). **Watch that
+  tick for an F-57-stamped 404** — it would mean the Worker's minted token cannot read the org
+  repo; tell B, do not let attempts burn. If it reads: Build rework → green CI → R-27 merge →
+  Ship → Learn arrives and holds the dated honest wait (forecast due 2026-09-08). That state —
+  learn, `needs-evidence`, dated — is "loop delivered, waiting on time", and per B's ruling any
+  write-up must call this run "machinery proven under arranged conditions", never the clean
+  acceptance (field cleared 19:45 IST by founder authorization; two binding repoints).
+- **One open anomaly:** the 20:10 IST tick skipped the sole open track (20:20 served it).
+  Single occurrence; if skips recur with one open track, that is a sweep-serving finding.
+
+## Shipped this session (A), all pushed and deployed
+Queue 64 (`press`/`continuation`, migration applied+verified in DB) · F-57 (root-404-behind-a-
+binding = tools-refused; adversarially verified by two refuters, 87 tests) · F-59
+(`docs/operations/deploy-verification.md`, the serving-bundle rule) · F-63 item 2 (package.json
+stages only when the work order names it exactly; 5 tests) · Learn honest-wait (`needs-evidence`
+dated, attempts unchanged, repeat passes free; 7 tests) · queues 65/66 server halves ·
+step-list/mission cards in the pane (verified live) · PRODUCT-TRUTH/AUDIT register repairs ·
+harbor field cleared to one track (18 abandoned, founder-authorized, RETURNING list in session
+transcript).
+
+## Standing hazards for the next session
+- **The no-access actor** (Haiku-co-authored commits): flooded harbor with 11 duplicate tracks
+  (19:02–19:06 IST), committed `prove-loop.ts` + two stray docs (all three deleted `63abf65d1`),
+  appended wrong claims to AUDIT (corrected in place), fired blind deploys. It holds harbor or
+  service-role credentials; founder may want the `harbor@` password rotated.
+- **The shared main worktree** destroyed uncommitted edits twice: commit BEFORE every gate.
+- B (monrovia-b8) holds: the run record, F-63 item 3 (R-27's fifth precondition, last open),
+  the org-repo watch. L0 queue: #67 (calm calendar hold) + #68 (single-track observation
+  window). L1: items 12/32/22.
