@@ -19,3 +19,24 @@ higher-priority builds, so LANE 1 executes it now.
   it — nothing here deletes or renames anything you own.
 
 Claimed before starting per R-07 rule 6.
+
+## Continuation note (context budget exhausted this session; next session starts HERE)
+
+The file grew to 521 lines since `024` was written and the split has one real
+entanglement beyond the original ask: `paneStation` state is shared by
+`ArtifactPane` (active/onActiveChange) and `TrackChain` (onOpenStation) — item
+7's reveal-in-pane wiring. So the correct split is:
+
+- **`TrackRunLeft`** = Character + consent card + hold/release region +
+  releaseNote receipt + Run-it legs region (+ its state: drive/legs/stop).
+- **`TrackPaneRight`** = ArtifactPane + TrackChain TOGETHER (they share
+  `paneStation`; SPEC-LAYOUT §4a puts Chain as the Record view beside Preview).
+- **`TrackRun`** (stacked, today's behaviour) composes both plus
+  `<Character>`-adjacent blocks exactly as now — byte-equivalent behaviour for
+  existing callers.
+- State lift: `paneStation`, drive mutation and leg counter move into a small
+  parent (`TrackRunSplit`) used by the route; each exported piece takes props.
+
+Next session: execute this refactor, then `shell/Workbench.tsx` +
+`styles/workbench.css` (SPEC-LAYOUT §1) and the route flip. Nothing committed
+half-done; tree is clean at the claim commit.
