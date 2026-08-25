@@ -300,8 +300,36 @@ export async function recordDecisionOrigins(
  * learning was cited as PRECEDENT while a decision was being made
  * (`decision-judgment.functions.ts`, `cited_by: "decision-precedent"`,
  * `trace_id: "decision:<id>"`). That is forward in time and forward in meaning:
- * the learning already existed, then it shaped a later call. 98 real rows, one
- * live writer. `informs` is a registered relation family, so the graph reads
+ * the learning already existed, then it shaped a later call.
+ *
+ * ── CORRECTED 2026-08-25: THIS SAID "98 REAL ROWS, ONE LIVE WRITER" ────────
+ *
+ * **The writer is real. Not one of the 98 rows came from it.** Measured:
+ *
+ *   SELECT count(*), count(DISTINCT date_part('microsecond', created_at)),
+ *          count(DISTINCT created_at::date) FROM learning_citations;
+ *   -- 98 rows | 1 distinct microsecond | 7 distinct days
+ *
+ * **Ninety-eight rows spread across seven days share exactly one microsecond
+ * value.** That cannot happen organically; it is one `INSERT`
+ * (`20260725130000_helio_demo_seed_rich.sql`) wearing seven dates. The live
+ * writer at `decision-judgment.functions.ts` (`cited_by: "decision-precedent"`)
+ * has produced **zero rows in the product's lifetime**, and the four brain tools
+ * — `learning.record`, `brain.due_forecasts`, `brain.outcome_history`,
+ * `brain.contradictions` — have **zero calls across 2,638 agent runs**.
+ *
+ * The old sentence was true about its own bookkeeping (a writer does exist) and
+ * false about the world (nothing it wrote is in there). That is the same shape
+ * as F-64's `conclusion: failure` on a job that never started, F-58's
+ * `total_count: 0` from an unindexed search, and F-66's `ok: true` from a stale
+ * cache — **the fourth instance this week, and the first one found in a comment
+ * rather than in a signal.** A comment is a signal a future reader trusts
+ * without being able to check it, so it is corrected in place rather than
+ * quietly deleted.
+ *
+ * **Nothing about the CODE below is wrong** — the relation, the direction and
+ * the trap-avoidance are all still right. What was wrong was the claim that the
+ * data is real. `informs` is a registered relation family, so the graph reads
  * "informed" from the learning and "was informed by" from the decision rather
  * than falling through to the generic "links to".
  *
