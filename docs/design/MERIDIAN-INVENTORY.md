@@ -143,3 +143,23 @@ component finished), InsightCards + PromotionCard → `/learn` second (Learn is 
 FineTuneCard → `/design` third, the StatusChip sweep fourth (broadest blast radius, goes last),
 Flowchart → branch previews fifth. Each adoption states in its commit which capability moved and which
 was already there — the same honesty rule this file runs on.
+
+**Adoption outcomes, 2026-08-25.** Three of the five proposals landed the same day; one was refused on
+evidence; one remains open. This is the map working as intended — a study that surface owners act on or
+push back on, never an order.
+
+1. **AgentInbox → `/inbox` — LANDED** (`639678be7`). The stub door now renders the component fed by two
+   real reads (`getApprovalsQueue`, `listMissions`) under Today's own cache keys.
+2. **InsightCards + PromotionCard → `/learn` — PARTLY LANDED** (`dcc70e819`). InsightCards renders real
+   `listLearnings` rows through a new adapter; PromotionCard renders its honest `NoPromotions` empty
+   state with a door to `/brain`, because no real record carries a promotion `kind` yet. The filled card
+   lands when such records exist.
+3. **FineTuneCard → `/design` — REFUSED ON EVIDENCE.** A full survey of the design surface found zero
+   housable tunables: its two settings are booleans already served by Toggle, and the fidelity picker
+   fires an irreversible regeneration with per-option tooltips FineTuneCard cannot render. Housing
+   anything would have been re-typing controls, not inspecting properties. The card stays gallery-only
+   until a surface grows numeric tunables.
+4. **StatusChip sweep — OPEN**, deliberately last.
+5. **Flowchart → branch previews — LANDED** (`5ff3ee5a3`) on the spec page's flow reading
+   (`FlowDiagram`), the one candidate structure that genuinely branches; spec projections, launch plan
+   and the track path were surveyed and are linear.

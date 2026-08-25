@@ -26,9 +26,6 @@
 | L1 | — | (Queue 54 claim removed: shipped as unit 076, verification filed `requests/076-verify-queue54.md`) | 2026-08-25 12:0x |
 | L0 | — | (Queue 65 claim released: shipped `7fa621e8f`, unit L0-080) | 2026-08-25 12:5x |
 | B | `src/lib/spine/driver.ts` (builder brief), `src/lib/ai/tools/registry.server.ts` (`repo.search` description) | F-58: an empty `repo.search` is not evidence the code is absent | 2026-08-25 18:0x |
-| L0 | `src/routes/_authenticated.inbox.tsx`, new `src/components/inbox/**` | Founder-directed adoption 1: mount Meridian's `AgentInbox` on /inbox (door is a stub today) | 2026-08-25 |
-| L0 | `src/routes/_authenticated.learn.tsx`, new `src/components/learn/**` | Adoption 2: `InsightCards` + `PromotionCard` into Learn (port, not swap) | 2026-08-25 |
-| L0 | `src/routes/_authenticated.design.tsx`, `src/components/design/**` | Adoption 3: `FineTuneCard` as design tunables inspector | 2026-08-25 |
+| L0 | — | (Adoptions 1/2/5 landed `639678be7`/`dcc70e819`/`5ff3ee5a3`; 3 refused on evidence — zero tunables on /design, see MERIDIAN-INVENTORY; 4 sweep in progress) | 2026-08-25 |
 | L0 | broad sweep, surfaces NOT claimed above | Adoption 4 (last): raw coloured status text → `StatusChip` | 2026-08-25 |
-| L0 | spec projection area (`plan.spec.$id` components) | Adoption 5: `Flowchart` branch preview | 2026-08-25 |
 | L0 | — | (Item 4 split half shipped `9242664aa`; request 022 lift shipped `214cfffd5`, unit L0-083) | 2026-08-25 14:0x |
