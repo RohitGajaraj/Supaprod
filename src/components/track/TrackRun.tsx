@@ -163,6 +163,49 @@ export function TrackRun({ trackId }: { trackId: string }) {
   const result = run.data as DriveNowResult | undefined;
 
   /*
+   * THE WALK CONTINUES ITSELF, WITHIN STATED BOUNDS (queue item 34).
+   *
+   * One foreground call is a 50-second window, which bought about two stations;
+   * a seven-station route needed ten presses, and a run that needs ten nudges
+   * is a run a human is touching mid-run -- acceptance criterion 2 failed by
+   * arithmetic. So one press now buys the whole route: while the walk came back
+   * ONLY because its window closed (`out-of-window` with `more`), the next leg
+   * starts itself.
+   *
+   * THE GUARDS ARE THE FEATURE. It never continues past `held`, `stalled` or
+   * `finished`: a hold is exactly where a person IS wanted, and auto-continuing
+   * past one would be the product deciding on somebody's behalf. The legs are
+   * capped at AUTO_MAX so a pathological route cannot spend silently forever --
+   * when the cap lands with route still ahead, that number is SAID and the
+   * control returns to the person. And "Stop" cancels the remaining legs at any
+   * moment, which makes the walking theirs rather than automatic.
+   */
+  const AUTO_MAX = 8;
+  const [legsLeft, setLegsLeft] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!result || run.isPending) return;
+    const canContinue = result.stopped === "out-of-window" && result.more && legsLeft > 0;
+    if (!canContinue) return;
+    const t = window.setTimeout(() => {
+      setLegsLeft((n) => n - 1);
+      run.mutate();
+    }, 500);
+    return () => window.clearTimeout(t);
+    // `result` changes identity on every settle, which is what walks the chain
+    // of legs; `isPending` guards against firing while a leg is in flight.
+  }, [result, run, legsLeft]);
+
+  /** True while this press still has automatic legs and the route is not done. */
+  const continuing =
+    legsLeft > 0 && Boolean(result) && result?.stopped === "out-of-window" && result.more === true;
+  const capReached =
+    Boolean(result) &&
+    result?.stopped === "out-of-window" &&
+    result.more === true &&
+    legsLeft === 0;
+
+  /*
    * WHY IT STOPPED, in the driver's own words.
    *
    * `hold` is the sentence built from the raw reason by `holdLine`, which names
@@ -245,9 +288,29 @@ export function TrackRun({ trackId }: { trackId: string }) {
         title="Run it"
         sub="Walks this work through its route now, station by station, and stops the moment something needs you."
       >
-        <Action variant="primary" busy={run.isPending} onClick={() => run.mutate()}>
-          {run.isPending ? "Walking the route" : "Run it now"}
-        </Action>
+        {continuing ? (
+          <div className="flex flex-wrap items-center gap-mrd-3">
+            <Action variant="primary" busy onClick={() => undefined}>
+              Walking the route
+            </Action>
+            {/* Stoppable at any moment: this cancels the LEGS THIS PRESS bought,
+                never the leg in flight -- a server walk cannot be un-walked. */}
+            <Action variant="quiet" onClick={() => setLegsLeft(0)}>
+              Stop after this leg
+            </Action>
+          </div>
+        ) : (
+          <Action
+            variant="primary"
+            busy={run.isPending}
+            onClick={() => {
+              setLegsLeft(AUTO_MAX);
+              run.mutate();
+            }}
+          >
+            {run.isPending ? "Walking the route" : "Run it now"}
+          </Action>
+        )}
 
         {run.isError ? <Row lead="The walk could not start. Nothing was moved." /> : null}
 
@@ -261,9 +324,26 @@ export function TrackRun({ trackId }: { trackId: string }) {
         {result ? (
           <div role="status" aria-live="polite">
             <Row
-              lead={STOPPED_LINE[result.stopped]}
-              sub={result.more ? "Run it again to continue." : undefined}
+              lead={
+                continuing
+                  ? `It is still walking. ${legsLeft} automatic ${legsLeft === 1 ? "leg" : "legs"} left on this press.`
+                  : STOPPED_LINE[result.stopped]
+              }
+              sub={
+                continuing
+                  ? "Press Stop after this leg to take over."
+                  : result.more && !capReached
+                    ? "Run it again to continue."
+                    : undefined
+              }
             />
+            {capReached ? (
+              <Row
+                tight
+                lead={`It walked every automatic leg (${AUTO_MAX}) and still has route ahead.`}
+                sub="Nothing was stopped silently: press Run it now to buy another set of legs."
+              />
+            ) : null}
             {/*
              * EVERY SEAT, INCLUDING THE ONES THAT FILED NOTHING. A seat that
              * produced no artifact is a real event and the most useful one to
