@@ -18,10 +18,12 @@
 | F-63 item 2: package.json stages only when the work order names it exactly (`f7a063390` + guard commit) | The loop disabled its own type-check to pass CI; prefix scopes and the unbounded default must not admit the gate | **CODE-SHIPPED**, 5 tests incl. near-misses; adversarial event recorded by B as F-63 | Deploy `c3c6489a` carries it |
 | Learn honest-wait: pre-horizon learn holds `needs-evidence`, dated, attempts unchanged, repeat passes free (`ac333b2c8` window) | `learning.record` forbids pre-horizon verdicts, so honesty burned three attempts while guessing sailed through | **CODE-SHIPPED**, 7 tests; B concurred with the dated-line amendment | Watch Round 7's track demonstrate it if Ship clears |
 
-## Session 2026-08-25 (units L0-068 → L0-081)
+## Session 2026-08-25 (units L0-068 → L0-083)
 
 | Item | Unit | What shipped | True state |
 | --- | --- | --- | --- |
+| Request 022 boundary controls | L0-083 (`214cfffd5`) | `BoundaryControls` in governance, mounted on SafetyRoom front tab; statement's link-out removed; no new tab ids needed | **CODE-SHIPPED** (suite 11,161 pass); live look owed next deploy; L1's redirect fold now unblocked |
+| Item 4 split half | L0-079b (`9242664aa`) | `TrackStart` optional `onCreated`; host route decides landing; /plan reveal stays default | **CODE-SHIPPED**; L1 passes navigate + `?start=true` from the route |
 | Queue #65 origin markers | L0-080 (`7fa621e8f`) | Transcript interleaves `driven_via` markers: press/sweep/continuation named distinctly; foreground+NULL drawn never; station words via AGENT_STATIONS | **CODE-SHIPPED** (6 helper tests, gates green); both-theme eyes owed next deploy |
 | Queue #66 hold tries | L0-081 (`17c060f4c`) | Hold region names the try count ("Two tries at Design have not cleared it"); ceiling imported from driver.ts; zero claims nothing | **CODE-SHIPPED** (4 tests); live look owed next deploy |
 | Ruled expiry copy (INBOX #6) | L0-076 | Friendly deadline sentence, ISO in `title`; additive `consequenceTitle` on CallGate | **VERIFIED-LIVE formatter only**; rendered sentence owed next deploy |

@@ -47,6 +47,13 @@
     working on production; also the exhausted banner CLEARS once credits land
     (it was up this morning, gone after your grant). Round 7's grounded track
     `e976e60e` still held at Build, corrections-spent, last moved 2h.
+13. **Both cross-path waits served** (2026-08-25 ~14:0x): item 4's split half
+    (`9242664aa` — `TrackStart` takes optional `onCreated`; default reveal
+    unchanged) and request 022 (`214cfffd5`, unit L0-083 — the boundary
+    controls render on SafetyRoom's front tab; no new tab ids, so MAIN's
+    glance lib untouched). **LANE 1 is unblocked** on both: their route can
+    navigate from `onCreated`, and `/boundary` can fold to
+    `{ room: "safety" }` whenever they pull.
 
 ### ANSWERS — Session A, 2026-08-25 08:4x UTC
 
