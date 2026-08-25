@@ -2022,7 +2022,13 @@ const studioStage = def({
 const studioCommit = def({
   name: "studio.commit",
   description:
-    "Studio: commit ALL staged changes to an isolated studio/* branch via the Git Data API (creates the branch off the default-branch head on first commit). Operator-gated. Call again after staging CI fixes to append to the same branch.",
+    // "Operator-gated" was stale and actively misleading: founder ruling
+    // 2026-07-08 put this tool in BUILD_LANE_AUTONOMOUS, so it runs unattended,
+    // and `loop.server.ts:193` has enforced that since. The old wording is why
+    // this tool went unbriefed for seven weeks — a reader checking whether the
+    // loop was ALLOWED to commit found a description saying no, and stopped
+    // there. Ledger F-36.
+    "Studio: commit ALL staged changes to an isolated studio/* branch via the Git Data API (creates the branch off the default-branch head on first commit). Runs unattended: the branch is isolated and reversible, and nothing lands until the review-pinned studio.pr.merge gate. Call again after staging CI fixes to append to the same branch.",
   category: "write",
   argsSchema: z.object({
     message: z.string().min(4).max(280),
@@ -5053,7 +5059,7 @@ const shipGetRelease = def({
     // still-valid prd edges, the same walk closeOutSpecOnPromote makes (see the
     // section header for why it is mirrored here rather than imported).
     type LineageRow = { parent_id: string | null; created_at: string | null };
-    let specIds = cs.prd_id ? [cs.prd_id] : [];
+    const specIds = cs.prd_id ? [cs.prd_id] : [];
     let lineageRead: "ok" | "skipped" | "failed" = "skipped";
     if (cs.mission_id) {
       const lin = await supabase
@@ -5415,7 +5421,7 @@ const buildGetRun = def({
     // EVERY spec this run came from: the still-valid prd->mission lineage edges,
     // the same walk listStudioSessions and closeOutSpecOnPromote make.
     type LineageRow = { parent_id: string | null };
-    let specIds: string[] = [];
+    const specIds: string[] = [];
     let lineageRead: "ok" | "skipped" | "failed" = "skipped";
     const lin = await supabase
       .from("artifact_lineage")

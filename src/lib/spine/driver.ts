@@ -159,11 +159,21 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
   // 05 Build
   builder: {
     job: "Build to the spec and the design above. Stop at anything your boundary does not let you do alone.",
-    file: "Call studio.stage with the change you made. Work that is only in your answer is not on the record and cannot be shipped.",
+    // F-36. This said `studio.stage` and stopped there, and staging is one step
+    // of six. `studio.commit` puts the work on an isolated `studio/*` branch and
+    // is EXPLICITLY autonomous by founder ruling 2026-07-08 —
+    // `BUILD_LANE_AUTONOMOUS` in `trust-ramp.ts`, enforced at
+    // `loop.server.ts:193`. The permission has existed since July and no station
+    // was ever told the tool was there.
+    file: "Call studio.stage with the change you made, then studio.commit to put it on its own branch. Work that is staged and never committed stays in the workspace and cannot be shipped, so stopping at stage leaves the job half done.",
   },
   qa: {
     job: "Check the change against the spec before it goes anywhere. Say plainly what does not meet it.",
-    file: "If it does not meet the spec, call studio.stage with the fix. Do not pass work you would not sign off.",
+    // The PR is opened HERE rather than by the builder, because a pull request
+    // is the sign-off made visible and the checking seat is the one that signs.
+    // `studio.pr.open` is autonomous under the same 2026-07-08 ruling; the merge
+    // is NOT, and stays with a person on purpose.
+    file: "If it does not meet the spec, call studio.stage with the fix and studio.commit to append it to the same branch. When it does meet the spec, call studio.pr.open so there is a pull request for Ship to point at. Do not pass work you would not sign off, and do not merge it yourself.",
   },
   // 06 Ship
   "release-verifier": {
@@ -623,8 +633,12 @@ const FILE_IT: Record<AgentStation, string> = {
     "Finish by calling prd.draft with `opportunity_id`, the bet this work belongs to — or with `brief`, what the work is and why it exists, when Decide was waived and no bet was ever filed. It writes the spec body itself. Then call tasks.create for the work the spec implies. A spec that is only in your answer is not on the record and the next station cannot read it.",
   design:
     "Finish by calling design.draft with the surface you designed. A design that is only in your answer is not on the record and the next station cannot read it.",
+  // F-36, and the same correction as the two Build seats above — it has to be
+  // made here too, because this is the fallback used when a station has no crew
+  // entry, and a fallback that stops one step short is the same defect wearing
+  // a different key. (Exactly how F-32 was found to be half-fixed.)
   build:
-    "Finish by calling studio.stage with the change you made. Work that is only in your answer is not on the record and cannot be shipped.",
+    "Finish by calling studio.stage with the change you made, then studio.commit to put it on its own branch, then studio.pr.open so there is a pull request Ship can point at. Work that is only in your answer is not on the record, and work that is staged but never committed cannot be shipped either. Do not merge it yourself; that one is a person's.",
   ship: "Finish by calling release.publish so the release can be pointed at. A release that is only in your answer did not happen.",
   learn:
     "Finish by calling learning.record with the verdict, and pass `prd_id` — the spec this work was graded against — so the grade attaches to it. A grade that is only in your answer is not on the record and never reaches the next piece of work.",
