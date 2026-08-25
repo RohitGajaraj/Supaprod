@@ -39,3 +39,4 @@
 | L1 | — | (Queue 32 VERIFIED: Already shipped in prior session (unit 066) — adoption metric confirms onramp-parts now in use, 43/48) | 2026-08-26 01:0x |
 | L1 | — | (Queue 12 VERIFIED L1-085: Design review - Today passes R-12; triage discipline confirmed; workspace switcher noted for review — claim released) | 2026-08-26 01:2x |
 | L1 | — | (Queue 70 needs investigation: server half DONE by Session A; needs UI detail view for opened learnings — not claimed, pending clarification of detail-view mechanism) | 2026-08-26 01:4x |
+| L1 | — | (Queue 70 CORRECTION: the route-side half SHIPPED as unit 084 — `ClaimBesideVerdict` on /learn, renders nothing while decision_ids are NULL; only the per-card open affordance remains, filed INBOX 16:1x. Do not rebuild the region.) | 2026-08-25 17:4x |
