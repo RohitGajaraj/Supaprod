@@ -148,9 +148,14 @@ function TrackPage() {
   const { activeWorkspace, activeProduct, productsVisible } = useWorkspace();
 
   const get = useServerFn(getTrack);
+  // THE HEADER READS THE SAME CACHE ENTRY TRACKRUN POLLS -- same key, same
+  // ten-second beat. This used to be its own unpolled key, and the drift was
+  // caught live: the walk below announced a hold while this header still said
+  // "Running". One fact about one run must not have two freshesses.
   const trackQ = useQuery({
-    queryKey: ["track", trackId],
+    queryKey: ["spine-track", trackId],
     queryFn: () => get({ data: { trackId } }),
+    refetchInterval: 10_000,
   });
   const track = trackQ.data ?? null;
   const decideWaived = track ? waiverFor(track.route, "decide") !== null : false;
