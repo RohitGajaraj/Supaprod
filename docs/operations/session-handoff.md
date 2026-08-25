@@ -4600,3 +4600,12 @@ widening applied to the DB and verified via `pg_constraint`.
 ## Queues
 - L0: 65 (transcript origin markers) + 66 (attempts on holds) — server halves landed, specs in
   `QUEUE-LANE0.md`. L1: items 12/32/22; queue 54 (character rail) shipped.
+
+## 17:48 | main (current session)
+Diagnosed and fixed "produced-nothing" blocker in define station. Root cause: FILE_IT[define] and prd-writer CREW_ROLE instructions incorrectly stated that `brief` parameter should only be used "when Decide was waived". For tracks created via plan-gate.ts from proposals (which is how live tracks are created), there is NO opportunity_id regardless of Decide status. The agent would attempt to call prd.draft with opportunity_id that was null, causing the tool to throw or fail.
+
+Fix: Updated instructions in driver.ts to clearly state prd-writer should "pass opportunity_id if available, otherwise pass brief". Removed the artificial restriction tying brief-usage to Decide-waived status. This unblocks all tracks moving through define → design → build → ship → learn.
+
+Commit: 2399996dc
+
+Next steps: Deploy and run end-to-end test track to verify loop completion.
