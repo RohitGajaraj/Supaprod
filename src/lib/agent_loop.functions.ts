@@ -344,6 +344,42 @@ export const updateToolMode = createServerFn({ method: "POST" })
       "move a tool boundary",
     );
 
+    /*
+     * F-48 — A SETTINGS SCREEN THAT LIED ABOUT ITS OWN GOVERNANCE.
+     *
+     * This function had no floor check at all, while its sibling
+     * `setCrewToolMode` has one. **It was never a security bypass**, and that is
+     * worth stating precisely because the first read of it was wrong: the
+     * runtime re-applies the floor at dispatch — `loop.server.ts:175` forces
+     * `review` for anything in `HIGH_RISK_FORCE_REVIEW` whatever the stored row
+     * says — so `release.publish` could never actually have run unattended.
+     *
+     * What it WAS is worse in its own way. A person could set `release.publish`
+     * to `auto`, the row would save, the screen would read `auto`, and the
+     * runtime would quietly enforce `review` forever. **The write succeeded and
+     * did nothing**, and the operator was told their governance was one thing
+     * while it was another. R-16 asks for a failure that names what failed; a
+     * silent success that means the opposite is the same defect wearing better
+     * clothes.
+     *
+     * Refused rather than clamped. Clamping to the floor would also be honest,
+     * but it would answer a question the person did not ask — they asked for
+     * `auto` and the truthful reply is that this tool cannot have it, and why.
+     */
+    if (patch.mode) {
+      const { HIGH_RISK_FORCE_REVIEW, HIGH_RISK_MIN_CONFIRM } = await import("@/lib/ai/trust-ramp");
+      if (HIGH_RISK_FORCE_REVIEW.has(data.toolName) && patch.mode !== "review") {
+        throw new Error(
+          `${data.toolName} is pinned to review and cannot be set to ${patch.mode}. It is irreversible from inside the product and customers see it, so it always goes to a person. This is a governance floor, not a default.`,
+        );
+      }
+      if (HIGH_RISK_MIN_CONFIRM.has(data.toolName) && patch.mode === "auto") {
+        throw new Error(
+          `${data.toolName} needs at least a confirm and cannot be set to auto. Choose confirm or review.`,
+        );
+      }
+    }
+
     // UPSERT, because the row is created the moment this account first deviates
     // from the platform default and not before. `agent_tools_user_id_tool_name_key`
     // is the conflict target.
