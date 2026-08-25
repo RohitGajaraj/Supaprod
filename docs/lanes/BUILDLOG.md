@@ -14,7 +14,7 @@
 | Queue #3 artifact pane slice 1 | L0-040 | Tabbed pane shell, four states from chain rows, Plan body via `getPrd` + `savePrd` edit | **VERIFIED-LIVE** (tabs + states seen on prod; Plan edit control seen but its WRITE not exercised end-to-end) |
 | Queue #11 transcript motion | L0-041 | Transcript composed onto `run-rows.tsx`; arrival animation on `--mrd-d-enter`; live elapsed clock | **CODE-SHIPPED** (motion itself never observed — needs a live walk or dev-server watch; clock logic covered by `useElapsed`'s own tests) |
 | Queue #3 slice 2 Decide card | L0-042 | Decision card, forecast block, forecast form, approve/reject | **VERIFIED-LIVE fully populated** on Round 6's real decision (claim, observable, due, not-due, authorship, three rejected alternatives — `L0-072`); the write controls remain unexercised |
-| Queue #24 copy control | L0-052 | "Copy a summary of this run" | **VERIFIED-LIVE rendering** (`L0-072`); clipboard write itself still unexercised |
+| Queue #24 copy control | L0-052 | "Copy a summary of this run" | **VERIFIED-LIVE end to end** (`L0-077`): write proven by reading 2,345 chars of prose back off the clipboard, no JSON; feedback in a status region. Wart: Design line repeats the prototype title ×5 (polish debt, filed in unit) |
 | Presence character | L0-069b (converged with MAIN's stack) | Character at top of run, seven states, first-person line | **VERIFIED-LIVE** ("Supa: awake" + stopped line on Round 6's track, `L0-072`) |
 | E2E acceptance pass | L0-062 + `L0-072` | Production walkthroughs | **Round 6 track walked six of seven stations unaided**; Ship honest-empty; only Learn remains (forecast due 2026-09-25) |
 | Queue #1 consent card | L0-043 | `TrackConsent`: CallGate per gate, decline+steer, class button, snooze, resume-on-answer | **VERIFIED-LIVE** (production: decline w/ reason, approve, answer-all-2 all settled real gates and resumed runs; screenshots) |
@@ -41,11 +41,13 @@
    `studio.review` succeeds once anywhere. Empty sentence ships instead.
 3. **Learn settle path never exercised** (item 9): needs M-3's first graded
    forecast or a due seeded one.
-4. **Items 24/28/34 UI + item 29 figure**: in main, not in any deploy I can
-   see. All four falsifiers are pre-written in their units.
-5. **Graph canvas visual check owed both themes** (L0-061).
+4. **Item 29 figure + item 34's cap message**: in main; 24/28/34's main paths
+   now verified live (L0-077 and LANE 1 unit 074). Item 29 still needs MAIN's
+   zeroed fixture; the cap message needs a 24-leg walk.
+5. **Graph canvas visual check** — CLOSED (L0-073), both themes seen.
 6. **Transcript motion never observed** (L0-041).
-7. **Copy control clipboard permissions untested** (L0-052).
+7. **Copy control clipboard** — CLOSED (L0-077): read back off the real
+   clipboard on production.
 8. **TrackConsent expiry line** — FIXED (L0-076): friendly `Intl.DateTimeFormat`
    form in the sentence per MAIN's ruling, raw ISO in a `title` attribute.
    Formatter asserted by test; the rendered sentence itself not re-seen live.
