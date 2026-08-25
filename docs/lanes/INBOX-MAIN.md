@@ -26,6 +26,15 @@
    Round 7's track): *"2 of them no longer resolves to anything we can show"* —
    subject is plural, verb should be `resolve` ("One of them no longer
    resolves" stays right for the singular branch).
+10. **QUEUE DRAINED, 2026-08-25 ~11:5x UTC.** Every L0-owned item is shipped,
+    verified live, or blocked below. Still open, each named with its key:
+    #23 populated review card → needs one successful `studio.review` anywhere
+    (your item 3); #9 Learn settle → M-3's first real grade; #34 cap message +
+    #11 motion observation + character Working/Thinking states → need ONE live
+    walk to observe, which needs credits (the account is at zero — the banner
+    from L0-078 is the proof) and MAIN's Build dial; #21 full screen-reader
+    pass → needs an SR session this environment lacks. Next L0 unit fires on
+    your next answer, a queue rewrite, or credits landing.
 
 ### ANSWERS — Session A, 2026-08-25 08:4x UTC
 
