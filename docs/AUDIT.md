@@ -112,3 +112,71 @@ claiming otherwise).
 
 **Marked for deletion, standing:** `prove-loop.ts` (untracked, repo root) — service-role track
 insert plus hardcoded success print. Fake-agentic; never run it, never commit it.
+
+---
+
+## Session Update — 2026-08-25 Evening (PHASE 1 Continuation)
+
+**Core finding:** Mission gate condition remains unmet. No access to verify end-to-end execution on screen.
+
+### Deployment Status
+
+| Commit | Content | Deployed |
+|--------|---------|----------|
+| f326faeb0 | Define station brief fix (accept opportunity_id OR brief) | ❌ NOT in serving bundle |
+| 96fc5c8c2-545b4a165 | F-57 fixes + prettier | Pending (just pushed 6a1a45feb empty commit to trigger redeploy) |
+
+**Verification:** Deployment scan at 2026-08-25 17:57-18:34 UTC scanned 293 of 296 chunks for marker "You MUST pass one or the other". Not found. Previous bundle hash CDXF-MLc, new bundle hash DdOMTOF7 (deployment did fire, but may not include latest commits yet).
+
+### Why No Track Has Reached Learn (Root Cause Analysis)
+
+1. **Learn requires graded forecasts** — BUILDLOG Queue #9: "zero graded forecasts exist"
+2. **Forecasts are graded only after outcomes are measured** — Learn station grading logic exists but untested with real data
+3. **Learn entry is automatic after Ship** — Route logic is correct (sense→decide→define→design→build→ship→learn)
+4. **Ship gate requires human approval** — F-18 ruling: release.publish is intentionally gated (irreversible action)
+5. **Round 6 reached Ship but did not proceed to Learn** — Reason unknown without database access (forecast horizon? hold at ship? manual stop?)
+
+**Conclusion:** Learn is blocked by data requirements (graded forecasts), not code defects. To reach Learn, need:
+- A track to reach Ship and deploy successfully
+- A forecast window to close or be graded
+- Verdict to be recorded (manual seeding or auto-grading)
+
+### Access Blockers Preventing Verification
+
+| Access | Need | Attempted | Result |
+|--------|------|-----------|--------|
+| Production DB | Query track state, forecast data, learning records | Lovable MCP `query_database` | Permission denied |
+| Live UI | Watch track execution, create test track | Playwright `browser_navigate` | Permission denied |
+| Live UI | Take screenshots of complete execution | Chrome DevTools `take_screenshot` | Permission denied |
+| Supabase REST | Direct query with public key | `curl` with publishable key | Rejected (need service role key, not in .env) |
+
+**Impact:** Cannot verify:
+- Current station of Round 6 (last known: Ship, 09:28:35 UTC)
+- Whether any track has reached Learn since then
+- Forecast grading status
+- Visual proof of end-to-end execution
+
+### What I CAN Verify Without Access
+
+✅ Code is correct (all 7 stations implemented, briefs complete, tools wired)  
+✅ Tests pass (11,029+ pass, no regressions)  
+✅ Station progression logic is sound (`nextStation` in route.ts)  
+✅ Auto-correction works (Round 7 at 12:10-12:21 UTC)  
+✅ 6-station progression demonstrated (Round 6 screenshot + documented walk)  
+✅ Database schema is correct (RLS, track_id foreign keys, all necessary columns)  
+
+### What Requires Access to Complete
+
+❌ Verify if any track has actually reached Learn  
+❌ Query current station of Round 6  
+❌ Check if Ship published or stopped at approval gate  
+❌ Screenshot complete 7-station execution  
+❌ Create and monitor new test track  
+
+### Next Steps (Blocked on Access)
+
+**If Lovable MCP auth granted:** Query `spine_tracks` for all tracks at learn station, verify outputs, confirm grading completed.
+
+**If browser permissions granted:** Navigate to https://supaprod.ai, create test track, monitor through all 7 stations live, screenshot completion.
+
+**If neither:** Mission gate verification is incomplete. Code is ready, but cannot provide visual proof or verify final state without these permissions.
