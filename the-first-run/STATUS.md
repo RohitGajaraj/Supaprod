@@ -178,3 +178,45 @@ censuses. Take the topmost row you own by path that is not `BLOCKED` or `WIP`.
 
 **Ask for SQL rather than guessing at the database.** Turnaround is minutes, and three metrics that
 once proved this product worked turned out to be seed data because nobody recorded the query.
+
+---
+
+## 2026-08-25 03:5x UTC · MAIN LANE — what tonight changed, and the two things that stop the acceptance
+
+**Round 4 (`8391835f`) reached `design`, 4 of 7.** Decide filed a real decision with a full forecast
+(claim, observable, horizon 2026-09-25) and Define filed a spec plus six tasks that are faithfully
+the opening sentence. Design filed a prototype. **Zero of six acceptance criteria are met.**
+
+**Round 4 is disqualified as proof of criterion 2.** I changed the workspace's memory substrate
+underneath it at 03:19:23, 71 seconds before Decide filed. Whatever it does from here, it cannot be
+cited as an untouched run.
+
+### Fixed, `b97e10c8a` — gates green (10,815 pass / 0 fail, tsc 0, eslint clean)
+
+- **F-31 · the loop had learned to refuse, and was reading it back.** Declining is a CLEAN
+  completion, so `autoReflect` stored every honest "no evidence exists" as a permanent second-person
+  prohibition. `recent_agent_reflections` was the one recall path that ignored the `expires_at`
+  column `match_agent_memory` already honoured — **the memories with the shortest shelf life were the
+  only ones exempt from shelf life.** Migration `20260825033000`; reflections now carry a shelf life;
+  128 memories retired reversibly. **144 of 303 reflections gate work; 277 of 303 are about
+  evidence.**
+- **F-32 · Decide was told what to SAY and never what to FILE.** A refusal writes no `decisions`
+  row, so no forecast, so nothing to resolve. A "no" is now filed exactly as a yes.
+
+### THE TWO THAT STOP THE ACCEPTANCE, both needing the founder
+
+- **F-36 · the loop cannot reach Ship, and F-18 was never the binding constraint.** `release.publish`
+  needs a **merged** changeset AND a recorded **preview deploy**. Build only stages; `studio.commit`
+  appears **0 times in `driver.ts`** and is operator-gated; nothing merges a PR. **Answering the Ship
+  approval question does not make Ship reachable.** The OPEN list entry has been corrected.
+- **F-38 · the first station has never worked in production.** `scout_targets` **0 in 21 of 21**
+  workspaces, `scout_snapshots` **0 ever**, `scout_runs` stopped **2026-07-25**. Off three ways, each
+  sufficient: no `FIRECRAWL_API_KEY` (returns `ok: true`, which is why a month passed unnoticed),
+  `auto_scout_enabled` false everywhere, no workspace briefs. **Every decline tonight traces here.**
+
+### Also recorded, queued, not fixed
+
+**F-33** critic is crewed at `decide` and its tool needs an artifact that exists only from `define`.
+**F-34 / F-35** both fall out of my own F-30 fix: `sameWork` is too strict, so a spec that merely
+restates the work fires a false "re-scoped" warning; and the spec title is the brief's first sentence
+sliced mid-word at 120 chars, which F-30 promoted into every downstream station's subject.
