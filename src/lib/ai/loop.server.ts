@@ -47,6 +47,7 @@ import { resolveBestAgentModelForUser } from "./platform-keys.server";
 import { buildNativeToolDefs } from "./tool-schemas.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { classifyFailureCode } from "@/lib/observability/gates";
+import { unattendedShipIsGradable } from "@/lib/deployments.functions";
 import {
   countsAsResumption,
   isMissingColumnError,
@@ -104,6 +105,36 @@ const PAUSE_ON_APPROVAL_TOOLS = new Set([
 // NOT graduated — they stay review-pinned regardless of this flag.
 const AUTO_SHIP_ENABLED = process.env.STUDIO_AUTO_SHIP === "1";
 
+/**
+ * R-27. The two tools a workspace's STANDING decision may release, and the one
+ * it may not.
+ *
+ * `release.publish` is the act the founder pinned, with his reason written at
+ * the line: a production deploy is irreversible from inside the product and
+ * customers see it. R-27 does not disagree with that; it disagrees that a CLICK
+ * is what satisfies it. This product has measured what its own gates are worth —
+ * **90 `cluster.trigger` approvals since July, 42 cancelled, 38 expired, 10
+ * pending, ZERO ever approved** — so a gate nobody answers is a stall wearing
+ * governance as a costume. What replaces it is four things the loop must PROVE:
+ * merged, CI green at that head sha, a live preview at that same commit, and a
+ * recorded forecast (`promoteChangeset`). A change nobody can grade cannot ship
+ * itself.
+ *
+ * `studio.revert` is here because leaving it out would build a trap.
+ * `AUTO_SHIP_ENABLED` already un-pins the MERGE and not the revert, so today the
+ * product can merge to a default branch by itself and **cannot roll back by
+ * itself** — the undo gated harder than the do. When something goes wrong the
+ * loop then cannot fix it and must page a person, which is the exact failure the
+ * gate exists to prevent. A rollback to a known-good commit is the definition of
+ * a reversible act.
+ *
+ * `delegate.openhands` is DELIBERATELY ABSENT. Handing work to a third-party
+ * agent is a different act from deploying our own reviewed change: nothing in
+ * the four preconditions says anything about what someone else's agent will do,
+ * so the standing decision cannot speak for it.
+ */
+const SHIP_AUTONOMY_TOOLS = new Set(["release.publish", "studio.revert"]);
+
 // AGT-01 - structured-output protocol upgrade. Default OFF: the JSON-in-text
 // {thought, action} envelope (safeParseAction) stays the loop's universal
 // protocol until this is explicitly turned on. When on, the model is also
@@ -139,6 +170,17 @@ const ORCHESTRATION_CONTROL_FLOW_TOOLS = new Set([
 ]);
 
 /**
+ * The more restrictive of two modes on the `review > confirm > auto` ladder.
+ *
+ * Exists so a floor-lowering flag can only ever lower a FLOOR. See its one
+ * caller for the defect it closes.
+ */
+function strictestOf(a: ToolMode, b: ToolMode): ToolMode {
+  const rank: Record<ToolMode, number> = { review: 2, confirm: 1, auto: 0 };
+  return rank[a] >= rank[b] ? a : b;
+}
+
+/**
  * Resolve a tool call's final approval mode by composing, in strict order:
  * seeded mode -> arc dial -> HIGH_RISK_FORCE_REVIEW floor -> HIGH_RISK_MIN_CONFIRM
  * /isHighRiskTool floor -> low-risk auto-clear -> AGT-02 plan-level consent
@@ -169,16 +211,68 @@ export function resolveToolMode(
   rawToolMode: ToolMode,
   arc: Arc,
   contractApproved: boolean,
+  /**
+   * R-27. This workspace's standing decision that the ship pair may run
+   * unattended (`workspaces.autonomous_ship_enabled`).
+   *
+   * OPTIONAL AND DEFAULTED FALSE, which is the fail-closed direction and is the
+   * whole reason it is a parameter rather than a lookup inside here. Every
+   * caller that does not know the workspace — `crew.functions.ts` resolving what
+   * a mode picker may offer, and the tests — keeps today's behaviour by not
+   * passing it, and a future caller that forgets gets the floor rather than the
+   * exemption. R-22: when an absent value and a chosen value share one
+   * representation, the absent one resolves to the safe reading.
+   */
+  shipAutonomy = false,
 ): ToolMode {
   const dialedMode = resolveApprovalMode(rawToolMode, arc);
   let mode: ToolMode = dialedMode;
   if (HIGH_RISK_FORCE_REVIEW.has(toolName)) {
     // BYO-P3 WI3 - see the identical comment in executeLoop's prior inline
     // version: the trust-graduated single ship decision for studio.pr.merge.
-    mode =
-      toolName === "studio.pr.merge" && AUTO_SHIP_ENABLED
-        ? resolveApprovalMode("confirm", arc)
-        : "review";
+    const mergeReleased = toolName === "studio.pr.merge" && AUTO_SHIP_ENABLED;
+    /*
+     * R-27. THE STANDING DECISION, AND WHY IT LANDS ON `confirm` RATHER THAN
+     * `auto`.
+     *
+     * It hands the pair to `resolveApprovalMode("confirm", arc)` — the SAME
+     * shape `AUTO_SHIP_ENABLED` already uses for the merge, deliberately, so
+     * there is one pattern here rather than two. That means the standing
+     * decision does not grant autonomy; it grants ELIGIBILITY, and the trust
+     * arc still decides. A workspace early in its arc keeps a gate on the
+     * publish even with the flag on, and earns its way off it the way every
+     * other tool does.
+     *
+     * The four proof preconditions are NOT enforced here, and that separation
+     * is on purpose. This function is pure and is unit-tested for its ORDERING;
+     * the preconditions need the changeset, the deploy record and the decision,
+     * so they live in `promoteChangeset`, which is the one place that can read
+     * them and the one place a human-initiated publish goes through too.
+     */
+    const shipReleased = shipAutonomy && SHIP_AUTONOMY_TOOLS.has(toolName);
+    /*
+     * THE RELEASE MAY LOWER THE FLOOR. IT MAY NEVER OVERRIDE WHAT WAS ASKED FOR.
+     *
+     * Caught by R-27's own loosening-direction test, in the branch I had just
+     * written and in the `studio.pr.merge` branch that has been shipping since
+     * BYO-P3. Both substituted `resolveApprovalMode("confirm", arc)` for the
+     * dialed mode outright, so a tool a person had explicitly seeded to `review`
+     * came back `auto` on a trusted arc — **the release upgraded a human's
+     * decision instead of relaxing a floor.** `resolve-tool-mode.test.ts` states
+     * the invariant it broke in as many words: *"never touches a tool whose
+     * seeded mode is review... review is sticky."*
+     *
+     * So the released mode is the STRICTER of the two. Dropping the force-review
+     * floor to `confirm` is what these flags are for; reaching past the seeded
+     * mode is not, and the difference is invisible until someone sets a tool to
+     * review and watches it run anyway.
+     *
+     * Fixed in both branches on purpose. F-32's lesson was that the same retired
+     * sentence lived in two places and fixing one left the seat still reading the
+     * other: a defect is a shape, not a location.
+     */
+    const released = strictestOf(dialedMode, resolveApprovalMode("confirm", arc));
+    mode = mergeReleased || shipReleased ? released : "review";
   } else if (toolName === "studio.fix.commit") {
     // SEAM-2 (mission 3.6): the bounded CI-fix appender runs at its seeded
     // mode (auto). The generic high-risk floor would park the autonomous
@@ -1050,6 +1144,42 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
     }
   }
 
+  /*
+   * R-27. THIS WORKSPACE'S STANDING DECISION ABOUT SHIPPING.
+   *
+   * Read ONCE per run rather than per tool call: it changes about as often as a
+   * workspace changes its mind about governance, and a per-call read would put a
+   * query in front of every step of every agent for a column that is false in 21
+   * of 21 workspaces.
+   *
+   * FAILS CLOSED THREE WAYS, and each one is deliberate. No workspace on the run
+   * leaves it false; an unreadable row leaves it false; and a thrown query leaves
+   * it false, because the `catch` never assigns. R-22's rule generalised: a guard
+   * that cannot read its evidence must not be the thing that lets work through.
+   * The cost of failing closed is one approval a person has to answer; the cost
+   * of failing open is an unattended production deploy nobody decided on.
+   *
+   * NOT CACHED, unlike `workspaceContextCache` a few hundred lines up. That cache
+   * exists because house rules are read O(n) times across a mission; this is read
+   * once per `executeLoop`. A stale cache here would mean a workspace that
+   * REVOKED the decision kept shipping for the cache's lifetime, and "reversing
+   * it costs one UPDATE" is a promise this ruling makes explicitly.
+   */
+  let shipAutonomy = false;
+  if (ctx.workspaceId) {
+    try {
+      const { data: ws } = await supabase
+        .from("workspaces")
+        .select("autonomous_ship_enabled")
+        .eq("id", ctx.workspaceId)
+        .maybeSingle();
+      shipAutonomy =
+        (ws as { autonomous_ship_enabled?: boolean } | null)?.autonomous_ship_enabled === true;
+    } catch (e) {
+      console.error("R-27 ship-autonomy lookup failed, holding the floor:", e);
+    }
+  }
+
   const checkpoint = async (stepIndex: number) => {
     if (!runId) return;
     try {
@@ -1562,7 +1692,61 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
     // -> HIGH_RISK_MIN_CONFIRM/isHighRiskTool -> low-risk auto-clear -> AGT-02
     // contract-approved reversible auto-clear.
     const rawToolMode = (modeOf.get(call.name) ?? "confirm") as ToolMode;
-    const mode: ToolMode = resolveToolMode(call.name, rawToolMode, arc, contractApproved);
+    let mode: ToolMode = resolveToolMode(
+      call.name,
+      rawToolMode,
+      arc,
+      contractApproved,
+      shipAutonomy,
+    );
+
+    /*
+     * R-27 CLAUSE 2, THE FOURTH PRECONDITION, AND CLAUSE 6, WHICH SAYS WHAT
+     * HAPPENS WHEN IT FAILS.
+     *
+     * The standing decision above grants ELIGIBILITY to ship unattended. It does
+     * not grant this deploy. Three of the four preconditions are already
+     * enforced elsewhere and cost nothing here — merged and a live preview at
+     * the same commit are `promoteChangesetToProductionCore`'s own opening
+     * checks, and CI-green-at-that-sha is enforced in-tool at `studio.pr.merge`,
+     * read fresh so we never merge on a stale green.
+     *
+     * The fourth is this one: **the loop may ship on its own only work it can be
+     * graded on later.** `decision.record` already refuses a decision with no
+     * forecast, so requiring it HERE turns the moat artifact into a safety
+     * mechanism — a change nobody can grade cannot ship itself. That is strictly
+     * stronger than the click it replaces, because a click proves nothing about
+     * the change and this proves the change is answerable.
+     *
+     * IT DEMOTES RATHER THAN THROWS, which is clause 6 and is the whole reason
+     * the check is here instead of inside promote. A refusal thrown from the tool
+     * would be a FAILED STATION: the driver files that as `produced-nothing`,
+     * whose line to a person reads "It will try again", against a condition
+     * retrying cannot change — F-41's defect, reintroduced one week after R-26
+     * fixed it. Demoting puts the work in front of a person exactly as it lands
+     * today, and a person may then ship it, because the ruling constrains what
+     * the LOOP does on its own and not what somebody decides about their own
+     * product.
+     *
+     * ASKED ONLY WHERE IT CAN CHANGE THE ANSWER: this tool, in a workspace that
+     * took the standing decision, on a call the arc actually released. In the 21
+     * of 21 workspaces where the flag is false, `shipAutonomy` is false and this
+     * costs nothing at all.
+     */
+    let heldForYou: string | null = null;
+    if (shipAutonomy && call.name === "release.publish" && mode === "auto") {
+      const changesetId = (parseRes.data as { changeset_id?: unknown } | null)?.changeset_id;
+      if (typeof changesetId !== "string") {
+        // The argument the check needs is not there to read. Same rule as every
+        // other unreadable-evidence path in this ruling: hold the floor.
+        heldForYou =
+          "the change it names could not be read, so nothing could confirm this work is gradable.";
+      } else {
+        const gradable = await unattendedShipIsGradable(supabase, changesetId);
+        if (!gradable.ok) heldForYou = gradable.why;
+      }
+      if (heldForYou) mode = "review";
+    }
     const isWrite = def.category === "write" || def.category === "planning";
 
     if (!isControlFlow && isWrite && (mode === "confirm" || mode === "review")) {
@@ -1586,7 +1770,20 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
           trace_id: traceId,
           tool_name: call.name,
           args: parseRes.data,
-          rationale: call.reason ?? null,
+          /* R-27 clause 6: a failure that does not say what failed is not a
+           * failure report. When the standing decision was in force and this
+           * call was held back anyway, the reason lands where a person actually
+           * reads it — on the approval — APPENDED to the agent's own words
+           * rather than replacing them, because the two are different facts and
+           * overwriting one with the other is how a column comes to mean two
+           * things. */
+          rationale:
+            [
+              call.reason ?? null,
+              heldForYou ? `Held for you rather than shipped automatically: ${heldForYou}` : null,
+            ]
+              .filter(Boolean)
+              .join(" — ") || null,
           expires_at: expiry.expiresAt,
           // F-STUDIO: mission context so gated tools can execute post-approval
           // (outside the live loop) and the sweeper can resume the paused run.

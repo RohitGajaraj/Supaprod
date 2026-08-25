@@ -785,6 +785,156 @@ async function closeOutSpecOnPromote(
  * generation does and is filed as a warning like the rest. Which of the two
  * happened is told only by the reason quoted inside the warning's text.
  */
+/**
+ * R-27. Can this changeset's work be graded after it ships?
+ *
+ * THE LINK, AND WHY IT IS TWO HOPS RATHER THAN A COLUMN. `studio_changesets`
+ * carries `mission_id`, the driver opens exactly one mission per track AT BUILD
+ * (`missionForTrack`, and R-24: a mission is an artifact of one station of a
+ * track, never an alternative to one), and files it as a `spine_track_members`
+ * row with `artifact_kind = 'mission'` at station `build`. That row is what
+ * carries the `track_id`. From the track, the decision is the member filed at
+ * `decide` by `decision.record`.
+ *
+ * Verified against production before this was written, rather than assumed:
+ *
+ *   SELECT artifact_kind, station, artifact_id, track_id FROM spine_track_members
+ *    WHERE track_id='8391835f-...' AND artifact_kind='mission';
+ *   -- mission | build | 4031c6d3-... | 8391835f-...
+ *
+ *   SELECT count(*), count(*) FILTER (WHERE forecast_claim IS NOT NULL
+ *          AND btrim(forecast_claim) <> '' AND forecast_horizon_date IS NOT NULL)
+ *     FROM decisions;   -- 348 | 167
+ *
+ * BOTH HALVES OF THE FORECAST, not just the claim. A claim with no horizon can
+ * never come due, so nothing would ever grade it and the precondition would pass
+ * on work that is gradable in principle and never in practice. The 167 above
+ * carry claim and horizon in exactly the same rows, which is `decision.record`
+ * refusing to write one without the other — so this asks for what that tool
+ * already guarantees rather than inventing a new bar.
+ *
+ * EVERY FAILURE PATH RETURNS `ok: false` WITH ITS OWN SENTENCE. A refusal that
+ * says "not gradable" leaves a person to work out which of five links was
+ * missing; these say which — R-16's "a failure that names what failed", applied
+ * to the sentence a person actually reads on the approval.
+ *
+ * ENFORCED AT MODE RESOLUTION, NOT HERE, AND THAT IS R-27 CLAUSE 6. A failed
+ * precondition must QUEUE AN APPROVAL rather than error: `executeLoop` calls this
+ * before `release.publish` runs and demotes the tool back to `review` when it
+ * answers no, so the work lands in front of a person exactly as it does today.
+ * Throwing inside `promoteChangesetToProductionCore` would have made it a failed
+ * station instead — which the driver would file as `produced-nothing`, whose line
+ * reads "It will try again", against a condition retrying cannot change. That is
+ * F-41's defect, and it would have been reintroduced one week after R-26 fixed it.
+ *
+ * ONE ENFORCEMENT POINT ON PURPOSE. `promoteChangesetToProductionCore` is
+ * deliberately left untouched: a person may ship whatever they like, and two
+ * places deciding the same question is how `prd_scaffolds` and `prototypes` came
+ * to disagree about what a drawing is (F-29).
+ */
+export async function unattendedShipIsGradable(
+  db: SupabaseClient,
+  changesetId: string,
+): Promise<{ ok: boolean; why: string }> {
+  try {
+    /* Read here rather than taken as a parameter, because the caller is the
+     * approval gate and all it holds is the argument the agent passed. Reading
+     * the row is also the check that the id names a real change at all. */
+    const { data: csRow, error: csErr } = await db
+      .from("studio_changesets")
+      .select("id,mission_id")
+      .eq("id", changesetId)
+      .maybeSingle();
+    if (csErr) {
+      return { ok: false, why: `the change it names could not be read (${csErr.message}).` };
+    }
+    const cs = csRow as { id: string; mission_id: string | null } | null;
+    if (!cs) {
+      return { ok: false, why: "the change it names does not exist." };
+    }
+    if (!cs.mission_id) {
+      return {
+        ok: false,
+        why: "this changeset is not attached to a mission, so there is no run behind it to trace a decision from.",
+      };
+    }
+
+    const { data: memberRow, error: memberErr } = await db
+      .from("spine_track_members")
+      .select("track_id")
+      .eq("artifact_kind", "mission")
+      .eq("artifact_id", cs.mission_id)
+      .limit(1)
+      .maybeSingle();
+    // A read that FAILED is not a read that found nothing. Saying "no track"
+    // when the query errored would blame the data for our own outage, which is
+    // the exact confusion `promoteChangesetToProductionCore`'s preview reads were
+    // hardened against a few lines below.
+    if (memberErr) {
+      return { ok: false, why: `the run behind it could not be read (${memberErr.message}).` };
+    }
+    const trackId = (memberRow as { track_id?: string | null } | null)?.track_id ?? null;
+    if (!trackId) {
+      return {
+        ok: false,
+        why: "its mission is not filed against any piece of work, so there is no decision to grade it against.",
+      };
+    }
+
+    const { data: decisionRows, error: decisionErr } = await db
+      .from("spine_track_members")
+      .select("artifact_id")
+      .eq("track_id", trackId)
+      .eq("artifact_kind", "decision")
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (decisionErr) {
+      return { ok: false, why: `its decision could not be read (${decisionErr.message}).` };
+    }
+    const decisionId = ((decisionRows ?? []) as Array<{ artifact_id?: string | null }>)[0]
+      ?.artifact_id;
+    if (!decisionId) {
+      return {
+        ok: false,
+        why: "no decision was ever recorded for this work, so nothing states what it was expected to do.",
+      };
+    }
+
+    const { data: decision, error: forecastErr } = await db
+      .from("decisions")
+      .select("forecast_claim,forecast_horizon_date")
+      .eq("id", decisionId)
+      .maybeSingle();
+    if (forecastErr) {
+      return { ok: false, why: `its forecast could not be read (${forecastErr.message}).` };
+    }
+    const row = decision as {
+      forecast_claim?: string | null;
+      forecast_horizon_date?: string | null;
+    } | null;
+    if (!row?.forecast_claim || row.forecast_claim.trim() === "") {
+      return {
+        ok: false,
+        why: "its decision records no forecast, so there is no claim for anything to check afterwards.",
+      };
+    }
+    if (!row.forecast_horizon_date) {
+      return {
+        ok: false,
+        why: "its forecast has no horizon date, so it can never come due and nothing would ever grade it.",
+      };
+    }
+    return { ok: true, why: "" };
+  } catch (e) {
+    // The whole point of the guard is that it refuses when it cannot see. A
+    // thrown query is the least readable state of all.
+    return {
+      ok: false,
+      why: `checking whether this work can be graded failed (${e instanceof Error ? e.message : String(e)}).`,
+    };
+  }
+}
+
 export async function promoteChangesetToProductionCore(
   db: SupabaseClient,
   userId: string,
