@@ -4633,3 +4633,17 @@ Commits f326faeb0 and 96fc5c8c2 pushed to origin/main. Lovable will auto-deploy 
 **Next test**: Create fresh track post-deploy → monitor through all 7 stations → verify Learn completion → mission gate MET.
 
 **Expected timeline**: 2-5 minutes per track with auto-continuation.
+
+## Critical: Mission Gate Not Yet Verified
+
+**FIX DEPLOYED** (f326faeb0): Define station brief-path allows prd-writer to use brief when opportunity_id unavailable.
+
+**NOT YET VERIFIED**: No evidence of actual end-to-end loop completion. Need to:
+1. Confirm Lovable deployed the changes
+2. Create test track in running application
+3. Watch it reach Learn station with screenshot proof
+4. Only then declare mission gate MET
+
+**Commits waiting verification**: f326faeb0 (fix), 96fc5c8c2 (handoff), 84c0aa047 (verification plan)
+
+**Next session must**: Immediately test the fix by creating a real track and monitoring completion. Do not proceed to other work until mission gate is verified.
