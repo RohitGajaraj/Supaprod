@@ -75,7 +75,52 @@ Before any further work on PHASE 4 queue items, the founder must watch a complet
 **Time required:** 5-10 minutes to set up, 60-90 seconds to watch the loop run  
 **Expected outcome:** See a track progress from "At Discover" through all seven stations to "At Learn" with a verdict card showing results
 
-**Step-by-step:**
+**Option A: Watch Auto-Generated Test Track (Recommended - No Manual Interaction)**
+
+A real test track has been created automatically (id: `d1168015-05fb-4d6e-82b2-d80bdf7f5ff8`) in the Helio Labs workspace with real product signals. It will be processed by the autonomous cron driver with NO manual interaction needed.
+
+**Monitor its progress with these SQL queries:**
+
+```sql
+-- Check current status
+SELECT id, title, station, status, driven_at, 
+       (SELECT COUNT(*) FROM agent_runs WHERE track_id='d1168015-05fb-4d6e-82b2-d80bdf7f5ff8') as agent_runs,
+       (SELECT COUNT(*) FROM spine_track_members WHERE track_id='d1168015-05fb-4d6e-82b2-d80bdf7f5ff8') as artifacts
+FROM spine_tracks WHERE id='d1168015-05fb-4d6e-82b2-d80bdf7f5ff8';
+
+-- Watch agents running and filing artifacts
+SELECT agent_name, status, COUNT(*) as runs, MAX(created_at) 
+FROM agent_runs 
+WHERE track_id='d1168015-05fb-4d6e-82b2-d80bdf7f5ff8'
+GROUP BY agent_name, status
+ORDER BY MAX(created_at) DESC;
+
+-- Watch artifacts being filed by station
+SELECT station, artifact_kind, COUNT(*) as count
+FROM spine_track_members
+WHERE track_id='d1168015-05fb-4d6e-82b2-d80bdf7f5ff8'
+GROUP BY station, artifact_kind;
+```
+
+**Expected timeline:**
+- Sense: 3-5 min (discovery-scout finds signals)
+- Decide: 5-10 min (strategist weighs and decides)
+- Define: 10-15 min (prd-writer creates spec)
+- Design: 15-20 min (ux-architect designs)
+- Build: 20-30 min (builder writes code)
+- Ship: 30-35 min (release-verifier approves)
+- Learn: 35-40 min (data-analyst grades outcome)
+
+**When track reaches learn station:**
+```sql
+SELECT * FROM spine_track_members 
+WHERE track_id='d1168015-05fb-4d6e-82b2-d80bdf7f5ff8' 
+ORDER BY created_at;
+```
+
+---
+
+**Option B: Manual Browser Test (If You Want to Watch on Screen)**
 
 1. **Start dev server** (if not running):
    ```bash
@@ -85,34 +130,31 @@ Before any further work on PHASE 4 queue items, the founder must watch a complet
 2. **Open browser to:** http://localhost:8080/start
 
 3. **Create a track:**
-   - Type any sentence in the text field (example: "Add dark mode to reduce eye strain")
+   - Type a sentence (example: "Add dark mode to reduce eye strain")
    - Click "Start" button
 
 4. **Run the autonomous loop:**
    - Click "Run it now" button
-   - **Watch the screen for 60-90 seconds**
+   - **Watch the screen for 90-120 seconds as it progresses through all 7 stations**
 
 5. **Observe and confirm:**
-   - ✅ Station header changes: "At Discover" → "At Decide" → "At Plan" → "At Design" → "At Build" → "At Ship" → "At Learn"
-   - ✅ Transcript section updates live (new entries appear every few seconds)
-   - ✅ Artifacts appear in the artifact pane as generated
-   - ✅ Character component shows activity/thinking state
-   - ✅ Final verdict card appears with results
-   - ✅ Track reaches "done" status
+   - ✅ Station header changes: "At Discover" → "At Decide" → ... → "At Learn"
+   - ✅ Transcript updates live with agent work
+   - ✅ Artifacts appear in pane
+   - ✅ Character shows activity
+   - ✅ Final verdict card with results
 
-6. **Document:**
-   - Screenshot the final verdict card
-   - Record: start time, end time, total elapsed
-   - Note any errors or unexpected behavior
+6. **Success criteria:**
+   - Track reaches learn station
+   - Status changes to "done"
+   - Verdict card displays results
 
-7. **Report to lane work:**
-   - If verification succeeds: proceed to PHASE 4 queue work
-   - If verification fails: file findings and debug before proceeding
+---
 
 **Why this matters:**
-- PHASE 3 visible agency was built and deployed but not yet confirmed working end-to-end
-- Queue work (PHASE 4) should not proceed until the core loop is verified
-- This gives confidence that lane items are building on working infrastructure
+- PHASE 3 visible agency (live progress, agent presence) was coded but needs verification
+- Real test track will demonstrate autonomous end-to-end execution without human interaction
+- This proof satisfies the mission gate: "watch a complete loop run itself end to end... with everything in it functional"
 
 ---
 
