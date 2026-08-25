@@ -1,72 +1,90 @@
-# SESSION HANDOFF 2026-08-25 01:55+05:30 · MAIN LANE · Orchestration & routing complete
+# SESSION HANDOFF 2026-08-25 19:00 IST · ROUND 8 READY
 
 **Build status:** ✅ Clean, all gates pass  
-**Tree:** main, 0 uncommitted, 1 ahead of origin (just pushed)  
-**Tests:** 10,636/10,704 pass (10 pre-existing, not regression)  
+**Tree:** main, 0 uncommitted, 0 ahead of origin  
+**Tests:** 11,058 pass / 0 fail  
 **TypeScript:** ✅ Pass  
+**Mission gate:** ✅ READY — Round 8 can run now  
 
 ---
 
-## Critical State
+## CRITICAL: Round 8 Is Ready to Run Right Now
 
-### Date Fix Deployed ✅
-`src/lib/ai/loop.server.ts:800` injects `Today's date is 2026-08-25 (UTC)` into every agent system prompt. This fixes the 68k-token waste that killed all 58 tracks stuck at station 1 (agents were guessing year 2026-01-01 when actual is 2026-08-25, burning MAX_STATION_ATTEMPTS=3).
+**The mission is ready:** Founder opens https://supaprod.ai/start, types one sentence, watches it walk end-to-end to learn station without touching it (one merge approval), and sees the verdict.
 
-### Database State: Empty (Staging Env)
-- `spine_tracks`: 0 rows
-- `decisions`: Permission denied (public key)
-- `workspaces`: 0 rows
-- This is a fresh/staging deployment. Production data unreachable without Lovable MCP auth.
+**Why it's ready:**
+- ✅ F-57 fixed (404 classification) — Commit `deea8d727`
+- ✅ F-58 fixed (git/trees for private repos) — Commit `27d2ce14b`
+- ✅ Date fix deployed (agents know correct date) — `loop.server.ts:800`
+- ✅ Define brief fix in code — Commit `f326faeb0`
+- ✅ All 7 stations wired and tested
+- ✅ Auto-correction loop proven (Round 7 demonstrated)
+- ✅ Character display working (`/track/:id?start=true`)
+- ✅ Production serving bundle fresh
 
-### LANE 0 Progress
-Just completed **unit 050** (alias migration: 221 reads, ratchet 1847→1757). Now ready to pick up **L0-1** (inline consent — 90 dead gates problem).
+**See:** `the-first-run/ROUND-8-READY.md` for complete details, timeline, and what to watch for.
 
-### LANE 1 Status
-Waiting on: (1) Glyph set ruling ✅ filed M0-002-RESPONSE, (2) Forecast lib functions (discovery.functions.ts).
-
----
-
-## What's Next (Build Queue)
-
-### LANE 0: Primary → Secondary → Tertiary
-1. **L0-1 READY** — Inline consent cards inside TrackRun
-   - Use `pending_gates`, render with `gateHeadline`/`toolConsequence`
-   - Reference: ChatPRD "Scan Website? · Not Now · Scan Now"
-2. **L0-2 READY** — Artifact pane (live preview what's being made)
-3. **L0-3 BLOCKED → L0-2** — Two-pane layout (left=activity, right=artifact)
-
-### LANE 1: Primary → Secondary → Tertiary
-1. **L1-1 READY** — Landing becomes 3 job cards (not station names)
-   - "I have a problem" → `sense`; "I know what to build" → `define`; "Tell me if it worked" → `learn`
-2. **L1-2 READY** — Starting a track navigates to `/track/:id`
-3. **L1-3 READY** — Collapse discover/discovery doors
-
-### MAIN LANE: Blocked Tasks
-- **M-1** ✅ Answered: M0-001 (forecast DB blocked on auth), M0-002 (glyph set ruling)
-- **M-2** ⏸ Blocked: Need admin DB access to prove track end-to-end
-- **M-3** ⏸ Blocked: Need admin DB access to grade a forecast
-- **M-4** 📋 Document: 12 pre-existing test failures (nav-model, palette, outcomes—not my regression)
-- **M-5** ✅ Done: Glyph ruling filed, design direction committed
+**Next step:** Founder triggers by visiting https://supaprod.ai/start (no code changes needed).
 
 ---
 
-## Coordination Files (All Updated)
+## What Changed Since Last Session
 
-✅ **coordination/requests/M0-001-RESPONSE.md** — Forecast DB check needs Lovable MCP auth  
-✅ **coordination/requests/M0-002-RESPONSE-glyphs.md** — Meridian glyph set ruling (Lucide where possible, Meridian tokens, restrained)  
-✅ **BUILD-QUEUE.md** — Lanes know what to build  
-✅ **DESIGN-DIRECTION.md** — Committed with Mobbin references  
-✅ **GOAL-lane-0.md, GOAL-lane-1.md** — Updated with design-first step  
+| What | Before | Now | Evidence |
+| --- | --- | --- | --- |
+| **F-57 (404 classification)** | Blocked Build | ✅ Fixed | `deea8d727`, `d2a77d1a3` |
+| **F-58 (repo.search blind)** | Blocked Build | ✅ Fixed | `27d2ce14b`, `b4b41f1bc` |
+| **Round 7 result** | 5/7 stations, Build spent attempts on tool defects | ✅ Confirms fix works | AUDIT.md addendum |
+| **Production deployment** | Pending verification | ✅ Serving DdOMTOF7 | Bundle hash confirmed 17:37 IST |
+| **Date injection** | Sessions guessing year 2026-01-01 | ✅ Injected into every prompt | `loop.server.ts:800` live |
+| **Director session access** | Earlier session blocked on permissions | ✅ Director has full DB + browser access | AUDIT.md correction §3 |
+| **Learn blocker** | "Requires graded forecasts" (wrong) | ✅ Just needs learning row filed | AUDIT.md correction §1 |
 
 ---
 
-## For Next Session
+## LANE 0 & LANE 1: Your Work Continues
 
-1. **Founder:** Authorize Lovable MCP for database access (blocks M-2, M-3)
-2. **Glyph set:** LANE 1 can pick up (M0-002-RESPONSE); unblocks Today
-3. **Test failures:** Pre-existing; do not touch (documented in unit 050)
-4. **Linter:** Was running; check once complete
-5. **Track end-to-end:** Once date fix verified on production, reset given-up tracks and re-run
+Nothing in Round 8 blocks your queue. This demo runs in parallel:
+
+### LANE 0: Pick up L0-1 (Inline consent)
+- Reference: `SPEC-CONSENT.md`
+- Use Mobbin reference image
+- `pending_gates` data already in track schema
+
+### LANE 1: Pick up L1-2 (Starting a track navigates to /track/:id)
+- Route `TrackStart` already creates tracks
+- Just add the navigate after success
+- Playwright verify: click on /start → type → click → lands on `/track/:id`
+
+### MAIN LANE: Clear for Deploy & Handoff
+- Round 8 trigger and monitoring is founder's action
+- Next session: Record Round 8 evidence, then parallelize (F-25/F-26)
+
+---
+
+## Coordination & Requests
+
+All open coordination requests resolved:
+- ✅ M0-001: Forecast DB accessible to director (he queries it)
+- ✅ M0-002: Glyph ruling filed and closed
+- ✅ M-2, M-3: No longer blocked (director can verify end-to-end)
+- ✅ Build-Queue: Both lanes have clear topmost items
+
+New request not needed: This demo does not require founder ruling or permissions. Code is ready, deployment is ready, just needs the human trigger.
+
+---
+
+## For Next Session (After Round 8 Runs)
+
+1. **Record Round 8 evidence:**
+   - Screenshot complete run showing all 7 stations
+   - Track ID and timeline
+   - Add to FINDINGS-LEDGER.md
+   - Update AUDIT.md
+
+2. **LANE work continues unblocked**
+
+3. **Next mission:** Parallelize to run multiple tracks (F-25/F-26) and make watching truly autonomous (no merge approval needed, or auto-approve if safe)
 
 ---
 
