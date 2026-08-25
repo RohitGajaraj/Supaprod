@@ -177,7 +177,7 @@ export function DesignMemoryPanel() {
           display: "flex",
           alignItems: "center",
           flexWrap: "wrap",
-          gap: "var(--sp-space-3)",
+          gap: "var(--mrd-s4)",
         }}
       >
         <FilterGroup

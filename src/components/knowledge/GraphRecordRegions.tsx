@@ -234,7 +234,7 @@ export function GraphRecordRegions({
               through it; a description of the feature leaves them guessing what
               they would get. It is written as a hypothetical in prose and never
               as a row, so nothing here can be mistaken for a record. */}
-          <span style={{ display: "block", marginTop: "var(--sp-space-3)" }}>
+          <span style={{ display: "block", marginTop: "var(--mrd-s4)" }}>
             Worked through: a bet called &ldquo;Self-serve trial&rdquo; ships, and you record that
             it missed. This view then names every call that led to it, in order, and marks any
             belief that outcome overturned, with the reason and the agent that wrote it.

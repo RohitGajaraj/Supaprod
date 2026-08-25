@@ -184,7 +184,7 @@ function Trend({
       preserveAspectRatio="none"
       role="img"
       aria-label={label}
-      style={{ width: "100%", height: H, display: "block", marginTop: "var(--sp-space-2)" }}
+      style={{ width: "100%", height: H, display: "block", marginTop: "var(--mrd-s3)" }}
     >
       {baseline != null ? (
         <line

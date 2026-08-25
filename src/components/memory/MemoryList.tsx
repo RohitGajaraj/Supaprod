@@ -232,7 +232,7 @@ export function MemoryList() {
         style={{
           fontSize: "var(--mrd-t-base)",
           color: "var(--mrd-mute)",
-          marginBottom: "var(--sp-space-3)",
+          marginBottom: "var(--mrd-s4)",
         }}
       >
         <Num>{totalAll}</Num> learned

@@ -232,7 +232,7 @@ export function AgentSpendDetail({ id }: { id: string }) {
             style={{
               display: "inline-flex",
               alignItems: "flex-start",
-              gap: "var(--sp-space-2)",
+              gap: "var(--mrd-s3)",
             }}
           >
             <AgentMark

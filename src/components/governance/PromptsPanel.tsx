@@ -586,17 +586,17 @@ function DiffBlock({ base, head }: { base: string; head: string }) {
       ) : (
         <div className="mt-mrd-4">
           <Pre>
-          {diff.map((d, i) => (
-            <span
-              key={i}
-              style={{ display: "block" }}
-              className={d.t === "add" ? "sp-pass" : d.t === "del" ? "sp-fail" : undefined}
-            >
-              {d.t === "add" ? "+ " : d.t === "del" ? "- " : "  "}
-              {d.line || " "}
-            </span>
-          ))}
-        </Pre>
+            {diff.map((d, i) => (
+              <span
+                key={i}
+                style={{ display: "block" }}
+                className={d.t === "add" ? "sp-pass" : d.t === "del" ? "sp-fail" : undefined}
+              >
+                {d.t === "add" ? "+ " : d.t === "del" ? "- " : "  "}
+                {d.line || " "}
+              </span>
+            ))}
+          </Pre>
         </div>
       )}
     </Region>
@@ -738,7 +738,7 @@ function AssignmentBlock({
         sub={bId ? undefined : "Pick a second version and this starts to matter."}
         htmlFor="assignment-split"
       >
-        <span style={{ display: "flex", alignItems: "center", gap: "var(--sp-space-3)" }}>
+        <span style={{ display: "flex", alignItems: "center", gap: "var(--mrd-s4)" }}>
           <input
             id="assignment-split"
             type="range"

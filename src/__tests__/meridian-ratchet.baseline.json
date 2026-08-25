@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1563,
-  "fileCount": 132,
+  "totalOccurrences": 1556,
+  "fileCount": 130,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "import:components/ui": 1,
@@ -102,7 +102,6 @@
       "class:sp-": 1
     },
     "src/components/governance/PromptsPanel.tsx": {
-      "--sp-": 1,
       "class:sp-": 2
     },
     "src/components/knowledge/CompoundingPanel.tsx": {
@@ -121,7 +120,6 @@
       "class:sp-": 2
     },
     "src/components/knowledge/DesignMemoryPanel.tsx": {
-      "--sp-": 1,
       "class:sp-": 2
     },
     "src/components/knowledge/DocsPanel.tsx": {
@@ -135,9 +133,6 @@
       "--sp-": 5,
       "class:sp-": 6
     },
-    "src/components/knowledge/GraphCompoundingStrip.tsx": {
-      "--sp-": 1
-    },
     "src/components/knowledge/GraphNodeStory.tsx": {
       "class:sp-": 6
     },
@@ -145,7 +140,6 @@
       "class:sp-": 2
     },
     "src/components/knowledge/GraphRecordRegions.tsx": {
-      "--sp-": 1,
       "class:sp-": 3
     },
     "src/components/knowledge/GraphTreeView.tsx": {
@@ -216,9 +210,6 @@
     "src/components/machine/MachineViewContainer.tsx": {
       "raw-colour": 9
     },
-    "src/components/memory/MemoryList.tsx": {
-      "--sp-": 1
-    },
     "src/components/meridian/Surface.tsx": {
       "class:sp-": 4
     },
@@ -226,7 +217,6 @@
       "raw-colour": 3
     },
     "src/components/observe/AgentSpendDetail.tsx": {
-      "--sp-": 1,
       "class:sp-": 3
     },
     "src/components/observe/AnalyticsPanel.tsx": {
@@ -236,7 +226,6 @@
       "class:sp-": 2
     },
     "src/components/observe/DriftSurfaceDetail.tsx": {
-      "--sp-": 1,
       "class:sp-": 3
     },
     "src/components/onboarding/ArrivalButterfly.tsx": {

@@ -269,7 +269,7 @@ export function GraphCompoundingStrip({
           {grew ? (
             <SketchBarChart
               data={growth.map((count, i) => ({ label: `w${i + 1}`, value: count }))}
-              color="var(--sp-stage-learn)"
+              color="var(--mrd-viz-1)"
               formatValue={(v) => String(Math.round(v))}
               ariaLabel={`New beliefs per week, last ${WEEKS} weeks`}
               trackH={40}
