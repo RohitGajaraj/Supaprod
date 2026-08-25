@@ -1788,3 +1788,43 @@ discovers. **Zero of six acceptance criteria are met as this is written.**
 
 Any deploy while it walks · any DB edit to the track · any hand-stopping of competing tracks · any
 re-drive by hand. **If it stalls, that is the result**, exactly as Round 3's stall was the result.
+
+### The Ship gate, traced end to end before the run rather than hoped at it
+
+**R-27 shipped INERT and was caught by reading it back, not by a test.** The record needs that
+plainly, because it is the third time in one day that a default and a choice sharing one
+representation destroyed the thing built on top of them.
+
+```
+resolveApprovalMode, trust.server.ts:226 -> if (toolMode === "review") return "review";
+```
+
+A seeded `review` is sticky **before** the force-review branch runs. `release.publish` was seeded
+`review`, `agent_tools` holds **zero override rows** for it, so `dialedMode` was `review` on every
+arc in every workspace and `strictestOf` correctly refused to reach past it. **The ruling, the
+migration, the four preconditions and every test resolved to `review`.** Fixed at the seeded mode —
+`confirm` — where the ruling actually lives, in `50de124c1`.
+
+**Traced the rest of the way, so the ceiling above is a measurement rather than a hope:**
+
+```sql
+SELECT a.slug, aa.arc FROM agents a
+  LEFT JOIN agent_autonomy aa ON aa.agent_id=a.id AND aa.user_id=a.user_id
+ WHERE a.user_id='60000000-ffff-…' AND a.slug IN ('release','release-verifier','builder','qa');
+-- builder trusted · qa trusted · release trusted · release-verifier trusted
+```
+
+`loadAgentArc` returns `trusted` for an agent with no row **by the founder's own ruling of
+2026-07-08** — *"autonomous by default"* — and these carry it explicitly. So:
+
+| step | resolves to |
+| --- | --- |
+| seeded mode | `confirm` (R-27, `50de124c1`) |
+| `resolveApprovalMode("confirm", "trusted")` | `auto` |
+| `strictestOf(auto, auto)` | `auto` |
+| **`release.publish`** | **runs — the four preconditions are the only gate left** |
+
+**So for the first time the seventh station is mechanically reachable**, and what stands between the
+loop and a finished track is no longer a pinned gate but four things it must prove: the changeset is
+merged, CI was green at that head sha, a Deno preview exists at that exact commit, and the work
+carries a forecast. **Every one of those is a fact about the work rather than a person's attention.**
