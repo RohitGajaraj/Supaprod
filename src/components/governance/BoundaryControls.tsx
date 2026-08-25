@@ -1,0 +1,886 @@
+/**
+ * THE BOUNDARY CONTROLS, AS A COMPONENT (request 022).
+ *
+ * Lifted verbatim from the /boundary route so the Engine Room's Safety room
+ * can host them and the route can fold without stranding the platform's only
+ * tool-mode editor -- a capability reachable from nowhere being this repo's
+ * dominant defect, committed deliberately rather than by accident.
+ *
+ * Everything here is policy a person decides, not machinery: per-tool modes,
+ * the automation bars, the trust graduations an agent earned, the ceilings,
+ * and the declined ledger that proves the boundary holds. The floors are read
+ * from the real resolver (`getBoundary`), never restated client-side.
+ */
+import { Row, Line } from "@/components/meridian/rows";
+import {
+  NothingHere,
+  Num,
+  PageHeading,
+  ReadFailedLine,
+  Reading,
+  Region,
+  Value,
+} from "@/components/meridian/surface-parts";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import * as React from "react";
+
+import { useConfirm } from "@/hooks/use-confirm";
+import { useWorkspace } from "@/hooks/use-workspace";
+import {
+  getBoundary,
+  getDeclinedLedger,
+  setWorkspaceAutonomyPolicy,
+  setWorkspaceSpendPolicy,
+} from "@/lib/governance.functions";
+import type { BoundaryTool } from "@/lib/governance.functions";
+import {
+  AUTONOMY_BOUNDS,
+  SHIPPED_AUTONOMY_POLICY,
+  type AutonomyField,
+  type AutonomyPolicy,
+} from "@/lib/autonomy-policy";
+import type { BoundaryEvent } from "@/lib/boundary-ledger";
+import { relativeTime } from "@/lib/memory-view";
+import { updateToolMode } from "@/lib/agent_loop.functions";
+import { humanWriteError } from "@/lib/roles.functions";
+import { TrustGraduationsBlock } from "@/components/governance/TrustGraduations";
+import { AutomationBoundary } from "@/components/governance/AutomationBoundary";
+import { Input } from "@/components/meridian/forms";
+import { MoreItem, MoreMenu } from "@/components/meridian/MoreMenu";
+import { Receipt } from "@/components/meridian/Receipt";
+
+/** How many tools a block shows before it counts the rest. A boundary is read,
+ *  not browsed, and forty rows in one block is a settings page again. */
+const VISIBLE = 8;
+
+type BoundaryReceipt = { verb: string; consequence: React.ReactNode; failed?: boolean };
+
+/** What a floor forbids, in plain words. Never the mechanism name. */
+function floorLine(floor: BoundaryTool["floor"]): string | null {
+  if (floor === "review") return "Always yours to approve. This one cannot be handed over.";
+  if (floor === "confirm") return "Can never run silently.";
+  return null;
+}
+
+/**
+ * THE FIVE WORDS A VALUE MAY WEAR, READ OFF THE COMPONENT THAT PAINTS THEM.
+ *
+ * Not restated as a literal union here, deliberately. Deriving it from `Value`
+ * means the next change to Meridian's five status words fails this file at
+ * compile time instead of shipping a tone nothing paints.
+ */
+type ValueTone = NonNullable<React.ComponentProps<typeof Value>["tone"]>;
+
+/**
+ * How a boundary event ended, said as an outcome rather than as a status.
+ *
+ * "Allowed" and not "approved", because the reader's question is what happened
+ * to the work, not what the person clicked. DECLINED AND EXPIRED CARRY NO
+ * COLOUR: both were once `warn`, which Meridian does not have, and `hold`
+ * means WAITING ON A CONDITION while neither of these waits on anything.
+ */
+function outcomeLabel(e: BoundaryEvent): {
+  text: string;
+  tone: ValueTone;
+} {
+  switch (e.outcome) {
+    case "allowed":
+      return { text: "You allowed it", tone: "pass" };
+    case "declined":
+      return { text: "You said no", tone: "quiet" };
+    case "expired":
+      return { text: "Ran out of time", tone: "quiet" };
+    case "blocked":
+      return { text: "Stopped by a rule", tone: "fail" };
+    default:
+      return { text: "Waiting on you", tone: "quiet" };
+  }
+}
+
+/** The subject of a boundary event in a person's words, not the tool's identifier. */
+function readableSubject(e: BoundaryEvent): string {
+  if (e.kind === "refused") return e.subject;
+  return e.subject.replace(/_/g, " ");
+}
+
+type LedgerData = {
+  events: BoundaryEvent[];
+  waiting: number;
+  windowDays: number;
+  truncated: boolean;
+};
+
+/* ------------------------------------------------------------------ *
+ * The declined ledger: every moment an agent reached the boundary and
+ * stopped. Policy first, then the proof; they are one argument.
+ * ------------------------------------------------------------------ */
+
+function DeclinedLedger({
+  q,
+  open,
+  onToggle,
+}: {
+  q: { data?: LedgerData; isLoading: boolean; isError: boolean };
+  open: boolean;
+  onToggle: () => void;
+}) {
+  // A record that fails to load must say so rather than render as "nothing ever
+  // happened". Silence and innocence look identical, and only one is true.
+  if (q.isError) {
+    return (
+      <Region title="What they did not do">
+        <ReadFailedLine>The record could not be read. Your boundary is unchanged.</ReadFailedLine>
+      </Region>
+    );
+  }
+  if (q.isLoading || !q.data) {
+    return (
+      <Region title="What they did not do">
+        <Reading>Reading the record.</Reading>
+      </Region>
+    );
+  }
+
+  const { events, waiting, windowDays, truncated } = q.data;
+  // Decided and blocked only. Waiting is reported as a count below: the moment
+  // this renders a pending item with an action beside it, it becomes the
+  // approval queue it exists to shrink.
+  const settled = events.filter((e) => e.outcome !== "waiting");
+  const shown = open ? settled : settled.slice(0, VISIBLE);
+  // Read once per render so every row in the list ages against the same clock.
+  const now = Date.now();
+
+  return (
+    <Region
+      title="What they did not do"
+      sub={`Every time an agent reached your boundary and stopped, over the last ${windowDays} days. This is what pays for the autonomy.`}
+      toggle={
+        settled.length > VISIBLE ? (open ? "Show fewer" : `All ${settled.length}`) : undefined
+      }
+      onToggle={onToggle}
+      toggled={open}
+    >
+      {settled.length === 0 ? (
+        <NothingHere>
+          Nothing has reached your boundary in {windowDays} days. Either your crew has not run, or
+          everything it did was already inside what you allow.
+        </NothingHere>
+      ) : (
+        shown.map((e) => {
+          const o = outcomeLabel(e);
+          return (
+            <Row
+              key={e.id}
+              tight
+              lead={
+                e.kind === "asked"
+                  ? `${e.agent ?? "An agent"} wanted to ${readableSubject(e)}`
+                  : readableSubject(e)
+              }
+              sub={[relativeTime(e.at, now), e.wanted, e.outcomeReason].filter(Boolean).join(" · ")}
+              action={<Value tone={o.tone}>{o.text}</Value>}
+            />
+          );
+        })
+      )}
+
+      {waiting > 0 ? (
+        <Line
+          label={
+            waiting === 1 ? "One call is waiting on you" : `${waiting} calls are waiting on you`
+          }
+          sub="Each one is an interruption your current boundary is charging. Deciding them happens in Approvals, not here."
+        >
+          <Num>{waiting}</Num>
+        </Line>
+      ) : null}
+
+      {truncated ? (
+        <Line
+          label="This is the most recent part of the record"
+          sub="Older crossings are not shown here. The full record is kept."
+        />
+      ) : null}
+    </Region>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * The two bars the platform crosses on its own
+ * ------------------------------------------------------------------ */
+
+/** A whole percent, for the three numbers stored as a fraction. */
+const pct = (n: number) => Math.round(n * 100);
+
+/**
+ * One number on the policy, as a control you can actually reach.
+ *
+ * Uncontrolled with a `key` on the stored value: after a write lands, the
+ * field remounts from the record rather than still showing what it showed on
+ * first paint. A NULL VALUE IS AN EMPTY FIELD, not a number standing in for
+ * one -- only a real change writes anything.
+ */
+function PolicyNumber({
+  id,
+  label,
+  value,
+  bounds,
+  step,
+  disabled,
+  onCommit,
+}: {
+  id: string;
+  label: string;
+  /** What the field shows, in the unit the reader sees. Null renders empty. */
+  value: number | null;
+  bounds: { min: number; max: number };
+  step: number;
+  disabled?: boolean;
+  /** Null means "clear it": back to the number we ship, or no carve-out. */
+  onCommit: (next: number | null) => void;
+}) {
+  return (
+    <Input
+      key={`${id}:${value ?? "unset"}`}
+      id={id}
+      type="number"
+      min={bounds.min}
+      max={bounds.max}
+      step={step}
+      defaultValue={value ?? ""}
+      aria-label={label}
+      style={{ width: 88, textAlign: "right" }}
+      disabled={disabled}
+      onBlur={(e) => {
+        const raw = e.currentTarget.value.trim();
+        if (raw === "") {
+          if (value !== null) onCommit(null);
+          return;
+        }
+        const next = Number(raw);
+        // A value outside the range is refused rather than pulled to the edge:
+        // silently enforcing a boundary nobody stated is the failure this
+        // surface exists to prevent.
+        if (!Number.isFinite(next) || next < bounds.min || next > bounds.max) return;
+        if (next === value) return;
+        onCommit(next);
+      }}
+    />
+  );
+}
+
+/** What a number that is ours rather than theirs has to say for itself.
+ *  Governance canon, fourth floor: a default the user never set is our choice,
+ *  so the surface names it as ours rather than presenting it as their policy. */
+function oursNote(committed: boolean): string {
+  return committed ? "" : " This is the number we ship, not one you set.";
+}
+
+/** What the move actually causes, in the same words the blocks use. Never
+ *  "Saved": a receipt renders what your click caused, not that it registered. */
+function autonomyConsequence(
+  field: AutonomyField,
+  next: number | null,
+  policy: AutonomyPolicy,
+): string {
+  const shipped = SHIPPED_AUTONOMY_POLICY;
+  switch (field) {
+    case "minFrequency":
+      return next === null
+        ? `Back to ours: a cluster needs ${shipped.minFrequency} signals behind it before it becomes work.`
+        : `A cluster now becomes work once ${next} independent signals say it. Fewer than that and it waits for you.`;
+    case "minSeverity":
+      return next === null
+        ? `Back to ours: only clusters at ${shipped.minSeverity} out of 5 or worse start on their own.`
+        : `Only clusters that hurt at ${next} out of 5 or worse start on their own now.`;
+    case "minConfidence":
+      return next === null
+        ? `Back to ours: the clustering has to be ${pct(shipped.minConfidence)}% sure before work starts.`
+        : `The clustering now has to be ${pct(next)}% sure the signals belong together before work starts.`;
+    case "settleFloor":
+      return next === null
+        ? `Back to ours: a verdict nothing rides on needs ${pct(shipped.settleFloor)}% of the evidence.`
+        : `An agent may now settle a verdict nothing rides on at ${pct(next)}% of the evidence.`;
+    case "settleStakesSpan": {
+      const floor = policy.settleFloor;
+      return next === null
+        ? `Back to ours: a verdict with everything riding on it needs ${pct(floor + shipped.settleStakesSpan)}%.`
+        : `A verdict with everything riding on it now needs ${pct(Math.min(1, floor + next))}% of the evidence.`;
+    }
+    case "neverSettleAboveImpact":
+      return next === null
+        ? "No impact is carved out any more. Every bet is judged on its evidence."
+        : `No agent settles a bet above impact ${next} again, whatever the evidence says.`;
+  }
+}
+
+export function BoundaryControls() {
+  const qc = useQueryClient();
+  const { activeWorkspaceId } = useWorkspace();
+  const fBoundary = useServerFn(getBoundary);
+  const fLedger = useServerFn(getDeclinedLedger);
+  const fSetMode = useServerFn(updateToolMode);
+  const fSetCap = useServerFn(setWorkspaceSpendPolicy);
+  const fSetAutonomy = useServerFn(setWorkspaceAutonomyPolicy);
+
+  const [receipt, setReceipt] = React.useState<BoundaryReceipt | null>(null);
+  const [showAll, setShowAll] = React.useState<Record<string, boolean>>({});
+
+  const b = useQuery({
+    queryKey: ["boundary", activeWorkspaceId],
+    queryFn: () => fBoundary(),
+  });
+
+  // The ledger loads independently of the boundary itself. If the record fails
+  // to read, the policy a person came here to set still renders: the evidence
+  // is what makes the boundary believable, not what makes it usable.
+  const ledger = useQuery({
+    queryKey: ["boundary-ledger", activeWorkspaceId],
+    queryFn: () => fLedger(),
+  });
+
+  /* MOVING A BOUNDARY IS A DECISION, NOT A PREFERENCE. Friction is scaled to
+   * consequence rather than applied evenly: granting autonomy stops you,
+   * revoking confirms but is never styled destructive, and TIGHTENING stays
+   * one click because making a boundary tighter must never be harder than
+   * leaving it loose. */
+  const confirm = useConfirm();
+  const askBeforeMoving = React.useCallback(
+    async (tool: BoundaryTool, mode: "auto" | "confirm" | "off"): Promise<boolean> => {
+      if (mode === "confirm") return true;
+      if (mode === "auto") {
+        return confirm({
+          title: `Let agents run ${tool.label} on their own?`,
+          body: `From now on ${tool.label} runs without stopping to ask you, including while you are away. You can move it back to "Come to me first" at any time, and work already running is not affected.`,
+          confirmLabel: "Let them do it alone",
+        });
+      }
+      return confirm({
+        title: `Turn ${tool.label} off for everyone?`,
+        body: `Nobody may do it, including you, until it is turned back on. Anything already relying on it stops asking and starts failing.`,
+        confirmLabel: "Turn it off",
+      });
+    },
+    [confirm],
+  );
+
+  const move = useMutation({
+    mutationFn: (v: { tool: BoundaryTool; mode: "auto" | "confirm" | "off" }) =>
+      fSetMode({
+        data: {
+          toolName: v.tool.name,
+          mode: v.mode,
+          enabled: v.mode !== "off",
+          // The workspace whose boundary is on screen. Without it the server
+          // falls back to this user's DEFAULT workspace, so the boundary you
+          // moved would not be the boundary that binds the run you are watching.
+          workspaceId: activeWorkspaceId ?? undefined,
+        },
+      }),
+    onSuccess: (_r, v) => {
+      setReceipt({
+        verb: "You moved the boundary",
+        consequence:
+          v.mode === "auto"
+            ? `${v.tool.label} runs without asking you.`
+            : v.mode === "off"
+              ? `${v.tool.label} is off. Nobody may do it, including you.`
+              : `${v.tool.label} comes to you first.`,
+      });
+      void qc.invalidateQueries({ queryKey: ["boundary"] });
+    },
+    onError: (e: Error) =>
+      setReceipt({
+        verb: "The boundary did not move",
+        consequence: humanWriteError(e, "It is still where it was."),
+        failed: true,
+      }),
+  });
+
+  const setTrackCap = useMutation({
+    mutationFn: (cap: number | null) => fSetCap({ data: { track_cap_usd: cap } }),
+    onSuccess: (_r, cap) => {
+      setReceipt({
+        verb: "You moved the ceiling on a piece of work",
+        consequence:
+          cap === null
+            ? "Work now runs through every station until it finishes. Nothing stops it on spend."
+            : `Work that spends $${cap.toFixed(2)} across its stations stops and waits for you.`,
+      });
+      void qc.invalidateQueries({ queryKey: ["boundary"] });
+    },
+    // THIS HANDLER WAS MISSING ENTIRELY once: a refused write produced no
+    // receipt and no change while the old receipt stayed saying it had worked.
+    onError: (e: Error) =>
+      setReceipt({
+        verb: "The ceiling on a piece of work did not move",
+        consequence: humanWriteError(e, "It is still where it was."),
+        failed: true,
+      }),
+  });
+
+  const setCap = useMutation({
+    mutationFn: (cap: number | null) => fSetCap({ data: { cap_usd: cap } }),
+    onSuccess: (_r, cap) => {
+      setReceipt({
+        verb: "You moved the ceiling",
+        consequence:
+          cap === null ? (
+            "A run now continues until it finishes. Nothing stops it on spend."
+          ) : (
+            <>
+              A run now halts at <Num>${cap.toFixed(2)}</Num>.
+            </>
+          ),
+      });
+      void qc.invalidateQueries({ queryKey: ["boundary"] });
+    },
+    onError: (e: Error) =>
+      setReceipt({
+        verb: "The ceiling did not move",
+        consequence: humanWriteError(e, "It is still where it was."),
+        failed: true,
+      }),
+  });
+
+  const data = b.data;
+  // Never null, even before the read lands: the shipped numbers ARE the policy
+  // until a workspace says otherwise, so there is no such thing as "no policy".
+  const autonomy: AutonomyPolicy = data?.autonomy ?? SHIPPED_AUTONOMY_POLICY;
+  const chose = (f: AutonomyField) => autonomy.chosen.includes(f);
+  const total = data ? data.alone.length + data.asks.length + data.never.length : 0;
+
+  /* REPORT THE RUNNING SYSTEM, NOT THE STORED SETTING: the loop demotes a
+   * low-risk `confirm` tool with no floor to auto and runs it inline, so the
+   * buckets alone under-report real reach. The predicate quotes the one branch
+   * of `resolveToolMode` that does this. An under-report is the direction that
+   * gets someone hurt. */
+  const runsAloneDespiteAsking = (t: BoundaryTool) =>
+    t.mode === "confirm" && t.risk === "low" && t.floor === null;
+  const demoted = React.useMemo(
+    () => (data?.asks ?? []).filter(runsAloneDespiteAsking),
+    [data?.asks],
+  );
+  const trulyAlone = React.useMemo(
+    () => [...(data?.alone ?? []), ...demoted],
+    [data?.alone, demoted],
+  );
+  const trulyAsks = React.useMemo(
+    () => (data?.asks ?? []).filter((t) => !runsAloneDespiteAsking(t)),
+    [data?.asks],
+  );
+
+  // One mutation for all six numbers: they are one policy, and six mutations
+  // would be six ways for the surface and the record to disagree.
+  const setAutonomy = useMutation({
+    mutationFn: (v: { field: AutonomyField; next: number | null }) =>
+      fSetAutonomy({ data: { [v.field]: v.next } }),
+    onSuccess: (_r, v) => {
+      setReceipt({
+        verb: "You moved the boundary",
+        consequence: autonomyConsequence(v.field, v.next, autonomy),
+      });
+      void qc.invalidateQueries({ queryKey: ["boundary"] });
+    },
+    onError: (e: Error) =>
+      setReceipt({
+        verb: "The boundary did not move",
+        consequence: humanWriteError(e, "It is still where it was."),
+        failed: true,
+      }),
+  });
+
+  /** One block of the boundary. The menu offers only the moves a floor allows,
+   *  and where a move is forbidden the row says why instead of showing a
+   *  control that does nothing. */
+  const block = (key: string, title: string, sub: string, tools: BoundaryTool[], empty: string) => {
+    const open = showAll[key] ?? false;
+    const shown = open ? tools : tools.slice(0, VISIBLE);
+    return (
+      <Region
+        title={title}
+        sub={sub}
+        toggle={tools.length > VISIBLE ? (open ? "Show fewer" : `All ${tools.length}`) : undefined}
+        onToggle={() => setShowAll((s) => ({ ...s, [key]: !open }))}
+        toggled={open}
+      >
+        {tools.length === 0 ? (
+          <NothingHere>{empty}</NothingHere>
+        ) : (
+          shown.map((t) => (
+            <Row
+              key={t.name}
+              tight
+              lead={t.label}
+              // The different fact: what it does, or what the floor forbids.
+              sub={floorLine(t.floor) ?? t.what ?? t.category}
+              action={
+                /* `hold` AND NOT THE ORCHID: this tool waits on you every
+                   single time and there is deliberately no control beside it,
+                   because the floor forbids the move. Orchid promises a control
+                   that shifts the thing; amber says the condition it is held
+                   on, which is you. */
+                t.floor === "review" ? (
+                  <Value tone="hold">Yours</Value>
+                ) : (
+                  <MoreMenu label={`Move the boundary for ${t.label}`}>
+                    {t.mode !== "auto" && t.floor !== "confirm" ? (
+                      <MoreItem
+                        onClick={() => {
+                          void (async () => {
+                            if (await askBeforeMoving(t, "auto")) {
+                              move.mutate({ tool: t, mode: "auto" });
+                            }
+                          })();
+                        }}
+                      >
+                        Let them do it alone
+                      </MoreItem>
+                    ) : null}
+                    {/* Tightening stays one click. See askBeforeMoving. */}
+                    {t.mode !== "confirm" ? (
+                      <MoreItem onClick={() => move.mutate({ tool: t, mode: "confirm" })}>
+                        Come to me first
+                      </MoreItem>
+                    ) : null}
+                    {t.mode !== "off" ? (
+                      <MoreItem
+                        onClick={() => {
+                          void (async () => {
+                            if (await askBeforeMoving(t, "off")) {
+                              move.mutate({ tool: t, mode: "off" });
+                            }
+                          })();
+                        }}
+                      >
+                        Nobody may do this
+                      </MoreItem>
+                    ) : null}
+                  </MoreMenu>
+                )
+              }
+            />
+          ))
+        )}
+      </Region>
+    );
+  };
+
+  return (
+    <div data-mrd="" className="flex flex-col gap-mrd-6">
+      <PageHeading
+        title={
+          b.isLoading ? (
+            "Boundary"
+          ) : b.isError ? (
+            "The boundary could not be read."
+          ) : total === 0 ? (
+            "No crew has been given anything to do yet."
+          ) : (
+            <>
+              Your crew does <Num>{trulyAlone.length}</Num> of <Num>{total}</Num> things without
+              asking.
+            </>
+          )
+        }
+        sub={
+          total > 0
+            ? "Set once, in advance. Moving a boundary never interrupts work that is already running."
+            : undefined
+        }
+      />
+
+      {/* WORKSPACE-WIDE POLICY, ABOVE THE PER-TOOL EXCEPTIONS, and OUTSIDE the
+          `b` guards deliberately: these switches do not depend on that read and
+          must not disappear because a different query broke. */}
+      <AutomationBoundary workspaceId={activeWorkspaceId ?? null} />
+      {b.isError ? (
+        <ReadFailedLine onRetry={() => void b.refetch()}>
+          {(b.error as Error)?.message ?? "The reason did not come back with the error."}
+        </ReadFailedLine>
+      ) : b.isLoading ? (
+        <Reading>Reading what your crew is allowed to do.</Reading>
+      ) : !data ? null : (
+        <>
+          {receipt ? (
+            <Receipt
+              verb={receipt.verb}
+              consequence={receipt.consequence}
+              failed={receipt.failed}
+            />
+          ) : null}
+
+          {/* THE QUEUE EATING ITSELF: an agent asking for more room is the one
+              thing worth deciding on a surface about what agents may do alone.
+              It leads here exactly as it led on /boundary. */}
+          <TrustGraduationsBlock />
+
+          {block(
+            "alone",
+            "What they do alone",
+            demoted.length > 0
+              ? `No approval, no interruption. This is where the leverage is. ${demoted.length} of these ${demoted.length === 1 ? "is" : "are"} set to ask you first and will not, because the loop clears low-risk tools inline.`
+              : "No approval, no interruption. This is where the leverage is.",
+            trulyAlone,
+            "Nothing runs without you yet. Every one of these is a person in the loop.",
+          )}
+
+          {block(
+            "asks",
+            "What still comes to you",
+            "Each of these costs one interruption every time it happens.",
+            trulyAsks,
+            "Nothing asks. Your crew runs the loop on its own.",
+          )}
+
+          {block(
+            "never",
+            "What nobody may do",
+            "Off for agents and for people. Turning one back on is a decision on the record.",
+            data.never,
+            "Nothing is switched off.",
+          )}
+
+          {/* The ceiling. A spend limit IS a boundary. */}
+          {data.isOwner ? (
+            <Region
+              title="The ceiling"
+              sub="What one run may spend before it stops, whatever else it is allowed to do."
+            >
+              <Line
+                label="Dollars one run may spend"
+                sub={
+                  data.capUsd === null ? (
+                    "No ceiling. A run continues until it finishes or something else stops it."
+                  ) : (
+                    <>
+                      <Num>${data.capUsd.toFixed(2)}</Num>. A run that reaches it halts and says so,
+                      and the halt is on the record.
+                    </>
+                  )
+                }
+              >
+                <Input
+                  type="number"
+                  min={1}
+                  step={1}
+                  defaultValue={data.capUsd ?? undefined}
+                  aria-label="Dollars one run may spend before it stops"
+                  style={{ width: 96, textAlign: "right" }}
+                  disabled={setCap.isPending}
+                  onBlur={(e) => {
+                    const raw = e.currentTarget.value.trim();
+                    const next = raw === "" ? null : Number(raw);
+                    if (next !== null && (!Number.isFinite(next) || next <= 0)) return;
+                    if (next === data.capUsd) return;
+                    setCap.mutate(next);
+                  }}
+                />
+              </Line>
+              {/* THE ONE THAT ACTUALLY BOUNDS UNATTENDED SPEND: the ceiling on
+                  the whole piece of work, across every station and retry. */}
+              <Line
+                label="Dollars one piece of work may spend"
+                sub={
+                  data.trackCapUsd === null ? (
+                    "No ceiling. Work continues through every station until it finishes."
+                  ) : (
+                    <>
+                      <Num>${data.trackCapUsd.toFixed(2)}</Num> across every station, every agent
+                      and every retry. Work that reaches it stops and waits, and raising this
+                      carries on from where it stopped.
+                    </>
+                  )
+                }
+              >
+                <Input
+                  type="number"
+                  min={1}
+                  step={1}
+                  defaultValue={data.trackCapUsd ?? undefined}
+                  aria-label="Dollars one piece of work may spend before it stops"
+                  style={{ width: 96, textAlign: "right" }}
+                  disabled={setTrackCap.isPending}
+                  onBlur={(e) => {
+                    const raw = e.currentTarget.value.trim();
+                    const next = raw === "" ? null : Number(raw);
+                    if (next !== null && (!Number.isFinite(next) || next <= 0)) return;
+                    if (next === data.trackCapUsd) return;
+                    setTrackCap.mutate(next);
+                  }}
+                />
+              </Line>
+              {data.paused ? (
+                <Line
+                  label="Everything is paused"
+                  sub="A kill switch is on for this workspace, so nothing runs whatever the boundary says."
+                >
+                  <Value tone="fail">Paused</Value>
+                </Line>
+              ) : null}
+            </Region>
+          ) : null}
+
+          {/* THE TWO BARS THE PLATFORM CROSSES ON ITS OWN. Both were constants
+              nobody could see; the canon's fourth floor says a default the user
+              never set must be visible and changeable. */}
+          {data.isOwner ? (
+            <>
+              <Region
+                title="What starts without you"
+                sub="A cluster of evidence becomes a piece of work on its own when it clears all three. Nobody clicks, and the work begins spending against the ceiling above. Clear a field to hand it back to us."
+              >
+                <Line
+                  label="Signals that must say it"
+                  htmlFor="bar-frequency"
+                  sub={`${autonomy.minFrequency} or more independent signals. One complaint is not a theme, and below this a cluster waits for you to start it by hand.${oursNote(chose("minFrequency"))}`}
+                >
+                  <PolicyNumber
+                    id="bar-frequency"
+                    label="Signals a cluster needs before it becomes work"
+                    value={autonomy.minFrequency}
+                    bounds={AUTONOMY_BOUNDS.minFrequency}
+                    step={1}
+                    disabled={setAutonomy.isPending}
+                    onCommit={(next) => setAutonomy.mutate({ field: "minFrequency", next })}
+                  />
+                </Line>
+
+                <Line
+                  label="How much it has to hurt"
+                  htmlFor="bar-severity"
+                  sub={`${autonomy.minSeverity} out of 5 or worse for the people who reported it. An annoyance never opens work on its own.${oursNote(chose("minSeverity"))}`}
+                >
+                  <PolicyNumber
+                    id="bar-severity"
+                    label="Severity a cluster needs before it becomes work, 1 to 5"
+                    value={autonomy.minSeverity}
+                    bounds={AUTONOMY_BOUNDS.minSeverity}
+                    step={1}
+                    disabled={setAutonomy.isPending}
+                    onCommit={(next) => setAutonomy.mutate({ field: "minSeverity", next })}
+                  />
+                </Line>
+
+                <Line
+                  label="How sure the grouping has to be"
+                  htmlFor="bar-confidence"
+                  sub={`${pct(autonomy.minConfidence)}% sure these signals belong together. Below it the work would start from a brief that is three unrelated complaints stapled together.${oursNote(chose("minConfidence"))}`}
+                >
+                  <PolicyNumber
+                    id="bar-confidence"
+                    label="Percent sure the grouping has to be before work starts"
+                    value={pct(autonomy.minConfidence)}
+                    bounds={{ min: 0, max: 100 }}
+                    step={5}
+                    disabled={setAutonomy.isPending}
+                    onCommit={(next) =>
+                      setAutonomy.mutate({
+                        field: "minConfidence",
+                        next: next === null ? null : next / 100,
+                      })
+                    }
+                  />
+                </Line>
+
+                <Line
+                  label="What moving these costs you, both ways"
+                  sub="Lower them and work starts on evidence you have not read yet, and it spends before you see it. Raise them and real themes sit in Discover until you notice them and start them by hand. Neither direction is the safe one."
+                />
+              </Region>
+
+              <Region
+                title="What an agent may settle on its own"
+                sub="When a shipped bet's outcome window closes, an agent either puts the verdict on the record or hands the call to you. This is where that line sits."
+              >
+                <Line
+                  label="Evidence a verdict needs when nothing rides on it"
+                  htmlFor="bar-settle-floor"
+                  sub={`${pct(autonomy.settleFloor)}% of the case a full one would carry. Below that the verdict comes to you even when it costs almost nothing to be wrong.${oursNote(chose("settleFloor"))}`}
+                >
+                  <PolicyNumber
+                    id="bar-settle-floor"
+                    label="Percent of the evidence a verdict needs when nothing rides on it"
+                    value={pct(autonomy.settleFloor)}
+                    bounds={{ min: 0, max: 100 }}
+                    step={5}
+                    disabled={setAutonomy.isPending}
+                    onCommit={(next) =>
+                      setAutonomy.mutate({
+                        field: "settleFloor",
+                        next: next === null ? null : next / 100,
+                      })
+                    }
+                  />
+                </Line>
+
+                <Line
+                  label="How much higher the bar climbs when a lot rides on it"
+                  htmlFor="bar-settle-span"
+                  sub={`A big bet whose verdict re-ranks other bets needs ${pct(Math.min(1, autonomy.settleFloor + autonomy.settleStakesSpan))}% instead, which nothing short of a number that was read plus two weeks of usage plus the merged change on file can clear.${oursNote(chose("settleStakesSpan"))}`}
+                >
+                  <PolicyNumber
+                    id="bar-settle-span"
+                    label="Percent the evidence bar climbs by when everything rides on the verdict"
+                    value={pct(autonomy.settleStakesSpan)}
+                    bounds={{ min: 0, max: 100 }}
+                    step={5}
+                    disabled={setAutonomy.isPending}
+                    onCommit={(next) =>
+                      setAutonomy.mutate({
+                        field: "settleStakesSpan",
+                        next: next === null ? null : next / 100,
+                      })
+                    }
+                  />
+                </Line>
+
+                {/* THE CARVE-OUT IS SAID OUT LOUD: a threshold is an argument
+                    about evidence; this is a sentence about what an agent may
+                    never be the one to decide. It only ever takes a call back. */}
+                <Line
+                  label="Never settle a bet above this impact"
+                  htmlFor="bar-carve-out"
+                  sub={
+                    autonomy.neverSettleAboveImpact === null
+                      ? "No carve-out. Every bet is judged on its evidence alone, however big it is. Name an impact here and nothing above it is ever settled by an agent."
+                      : `Nothing scored above ${autonomy.neverSettleAboveImpact} is ever settled by an agent, whatever the evidence says. Bets at ${autonomy.neverSettleAboveImpact} and below still answer to the bar above. Clear the field to drop the carve-out.`
+                  }
+                >
+                  <PolicyNumber
+                    id="bar-carve-out"
+                    label="The impact above which an agent never settles a verdict"
+                    value={autonomy.neverSettleAboveImpact}
+                    bounds={AUTONOMY_BOUNDS.neverSettleAboveImpact}
+                    step={1}
+                    disabled={setAutonomy.isPending}
+                    onCommit={(next) =>
+                      setAutonomy.mutate({ field: "neverSettleAboveImpact", next })
+                    }
+                  />
+                </Line>
+
+                <Line
+                  label="Three calls stay yours whatever these say"
+                  sub="A bet nothing was ever attached to that could check it. A win or a miss with no number actually read. And a miss that would hold another agent's promotion on a soft signal. Those are floors, not settings, so no number here can lower them."
+                />
+
+                <Line
+                  label="What moving these costs you, both ways"
+                  sub="Lower them and verdicts land on your record without you, and a wrong one compounds into every future recommendation. Raise them and every shipped bet waits in Learn for a judgment only you can give, which is the approvals queue coming back under a different name."
+                />
+              </Region>
+            </>
+          ) : null}
+
+          <DeclinedLedger
+            q={ledger}
+            open={showAll.ledger ?? false}
+            onToggle={() => setShowAll((s) => ({ ...s, ledger: !(s.ledger ?? false) }))}
+          />
+        </>
+      )}
+    </div>
+  );
+}

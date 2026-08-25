@@ -30,7 +30,6 @@ import {
   Region,
 } from "@/components/meridian/surface-parts";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
 
 import { useWorkspace } from "@/hooks/use-workspace";
 import { getBoundary } from "@/lib/governance.functions";
@@ -62,7 +61,6 @@ export function runsAloneDespiteAsking(t: BoundaryTool): boolean {
 
 export function BoundaryStatement() {
   const { activeWorkspaceId } = useWorkspace();
-  const navigate = useNavigate();
   const boundaryFn = useServerFn(getBoundary);
 
   /**
@@ -84,9 +82,7 @@ export function BoundaryStatement() {
   return (
     <Region
       title="What your crew may do alone"
-      sub="Set once, on the boundary. Moving one never interrupts work that is already running."
-      goTo="Open the boundary"
-      onGoTo={() => void navigate({ to: "/boundary" })}
+      sub="Set once, in advance. Moving one never interrupts work that is already running."
     >
       {boundaryQ.isLoading ? (
         <Reading>Reading what your crew is allowed to do.</Reading>

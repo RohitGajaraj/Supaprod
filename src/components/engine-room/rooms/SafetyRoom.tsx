@@ -31,6 +31,11 @@ const IncidentsPanel = React.lazy(() =>
 const RoutinesPanel = React.lazy(() =>
   import("./RoutinesPanel").then((m) => ({ default: m.RoutinesPanel })),
 );
+const BoundaryControls = React.lazy(() =>
+  import("@/components/governance/BoundaryControls").then((m) => ({
+    default: m.BoundaryControls,
+  })),
+);
 
 /**
  * EVERY VIEW SAYS WHICH OF SIX THINGS IT IS FETCHING.
@@ -118,6 +123,18 @@ export function SafetyRoom({ view }: RoomBodyProps) {
   return (
     <>
       <BoundaryStatement />
+      {/*
+       * THE CONTROLS BESIDE THE STATEMENT (request 022). Until now the room
+       * answered "what is allowed" with what agents may SAY (guardrails) and a
+       * read-only summary of the boundary, while the only tool-mode editor in
+       * the product lived on /boundary -- reachable from one crew link and a
+       * link out of this very tab. What agents may DO is this room's subject,
+       * so the controls render here, between the statement that says why and
+       * the guardrails that say what may be said.
+       */}
+      <React.Suspense fallback={<PanelReading>Reading what your crew may do alone.</PanelReading>}>
+        <BoundaryControls />
+      </React.Suspense>
       <React.Suspense fallback={<PanelReading>Reading the content screening rules.</PanelReading>}>
         <GuardrailsPanel />
       </React.Suspense>
