@@ -500,3 +500,74 @@ honest evidence — the same disease through the front door.
   answer from the wrong question.*
 - **Five sessions share this worktree.** Commit before every gate; two edit sets were
   destroyed mid-typecheck today by another session resetting the tree.
+## 2026-08-25, late evening — MAIN LANE (Session B) · Opus 5
+
+**READ THIS FIRST: a clean unattended run is walking right now. Do not touch it.**
+
+`d1168015` — *"Improve onboarding flow based on user feedback signals"* — is at **`build`, station 5
+of 7**, entry `sense`, `waived '[]'`, and **nine drives with zero presses**. Every transition carries
+`driven_via = 'sweep'`:
+
+```sql
+-- sense -> decide 17:10:34 | decide -> define 17:30:37
+-- define -> design 17:41:25 | design -> build  18:00:19     all sweep
+SELECT driven_via, count(*) FROM track_drives WHERE track_id = 'd1168015-…';  -- sweep | 9
+```
+
+**Do not drive it, press it, edit it, or abandon it. Do not `deploy_project` while it moves** without
+saying so to whoever else is live. If it stalls, that is the result.
+
+**The honest sentence, agreed between both sessions — write it this way:** it demonstrates **the
+loop**, not **the discovery**. Its Discover cleared by citing another track's spec as evidence
+(F-73), so the walk is genuine and the evidence base is self-referential.
+
+`7977dc06` is `given-up` at `ship` and is finished — a compromised probe whose scorecard closed at
+11:36 when the binding was repointed mid-walk. Read it for engineering history, never as an
+acceptance run.
+
+### The three things most likely to mislead you
+
+1. **A GitHub job that never started reports `conclusion: failure`, identical to a failed test.** The
+   **step count** is the only tell and nothing reads it. It cost three sessions three wrong diagnoses
+   today, two of them mine (F-64).
+2. **`workspaces.is_sample` answers neither question it appears to.** F-42 repurposed it to mean *"the
+   sweep may drive here"*, and harbor is flagged `false` while full of seed. **The acceptance query
+   `WHERE is_sample = false AND station='learn' AND status='done'` returns a false `1`** (F-61/F-71).
+   The honest form is `entry_station='sense' AND station='learn' AND waived='[]'` → **0**.
+3. **`the-first-run/FINDINGS-LEDGER.md` is the most reliable document in the repo.** `docs/AUDIT.md`
+   has been restored once after a false claim; its headline fact table is stale testimony. Read the
+   ledger first.
+
+### Where the work stands
+
+**Shipped and deployed:** F-66 (stale PR cache), F-67 (`studio.unstage`), F-68 (claim-vs-tool-calls
+check, both halves), F-72 (Build cannot hand on a staged-only changeset), R-27's fifth precondition,
+F-62 (`track_drives`), F-65 (the verdict can finally attach to the forecast it grades), F-73 (A's fix
+— `signals.log` refuses the loop's own output as a source). **11,362 tests, 0 fail.**
+
+**Half-built, and the next thing to do:** Phase 3's route header is mounted but incomplete. An agent
+died mid-edit with the useful sentence: *"the stacked route draws `here` and `done` with the same ink,
+so position is invisible on the map."* And **Meridian has no determinate-progress vocabulary at all**
+— no n-of-m, no bar, no ETA. Build those as primitives, not one-off styles.
+
+**Written and unexecuted:** the IA decision — rail from **14 destinations to 5** (Work · Approvals ·
+Brain · Settings). `Work` and `Runs` were the real duplication; `/today` is an inbox whose three jobs
+are already spoken for.
+
+### What only the founder can decide
+
+- **Killing the global seven-station strip** — reverses his own 2026-07-30 ruling.
+- **`Work` versus `Runs`** as the rail label.
+- **F-71** — whether `is_sample` keeps meaning two contradictory things.
+- **F-18** — who answers the publish approval. **This is now live**: R-27 un-pinned `release.publish`
+  and Ship has briefed it since August, so the day a track passes the merge gate, publish fires and
+  files an approval.
+
+### The lesson worth carrying, because it repeated seven times
+
+Every serious finding today has one shape: **a signal that is correct about its own bookkeeping and
+wrong about the world.** A `conclusion: failure` on a job that never ran. A `total_count: 0` from an
+unindexed search. An `ok: true` from a stale cache. A `"committed"` over a visible `ok: false`. A
+comment asserting *"98 real rows"* about 98 seeded ones. **The stations reason well. What we hand them
+is what keeps failing** — and the only thing that caught any of it was checking the primary source
+instead of the summary.

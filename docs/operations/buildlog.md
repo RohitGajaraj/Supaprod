@@ -83,3 +83,77 @@ bar, no ETA — so that gets built as primitives, not one-off styles.
 **What I must decide.** Nothing. **What the founder must decide:** whether `is_sample` keeps meaning
 two contradictory things (F-71), and who answers the publish approval when a track reaches Ship
 (F-18).
+
+---
+
+## 2026-08-25 23:3x IST — session close · MAIN
+
+**The cleanest run this product has ever had is walking right now, unattended.**
+
+```sql
+SELECT from_stage, to_stage, driven_via, at FROM stage_events
+ WHERE entity_id = 'd1168015-…' ORDER BY at;
+-- sense  -> decide  | sweep | 17:10:34
+-- decide -> define  | sweep | 17:30:37
+-- define -> design  | sweep | 17:41:25
+-- design -> build   | sweep | 18:00:19
+
+SELECT driven_via, count(*) FROM track_drives WHERE track_id = 'd1168015-…';
+-- sweep | 9        (zero 'press' — nobody has touched it)
+```
+
+**Five of seven stations, ten artifacts filed** (3 signals · 2 themes · 1 decision · 1 spec · 2 tasks
+· 1 prototype), **entry station `sense`, `waived '[]'`, and not one human drive.** It is the first
+track that can make that claim from its FIRST transition — `7977dc06` cannot, because its opening
+five predate the `driven_via` column.
+
+**The honest bound, agreed with Session A so we both write it the same way:** `d1168015` demonstrates
+**the loop**, not **the discovery**. Its Discover station cleared by citing another track's spec and
+decision as evidence (F-73), so the walk is real and the evidence base is self-referential. F-73's fix
+is what lets the next track claim both.
+
+`7977dc06` reached `given-up` at Ship, as predicted — three attempts against a changeset that never
+committed. It served its purpose as the `studio.unstage` probe and its scorecard closed at 11:36.
+
+### What this session shipped
+
+**Nine findings filed, F-65 through F-73**, and the two that matter most are about the product's own
+story rather than its code:
+
+- **F-70 — the moat has never fired.** Layer 03, *"the only one defensible alone"*, has zero real
+  activity: `learnings` 133 of 133 seed; **98 citations across seven days sharing ONE microsecond
+  value**; the four brain tools at **zero calls in 2,638 runs**. The fix is reachability, not a
+  writer — nothing has reached Learn, so the brain has never been callable in anger.
+- **F-72 — Build handed on changesets that had never left the platform.** Three `studio.stage` calls,
+  no commit, and `build -> ship` four seconds later. **Both existing gates passed it because both ask
+  whether a thing of the right KIND exists; neither asks whether it is FINISHED.** That was the
+  bounce.
+
+**And three corrections against my own claims**, which is the part worth keeping: F-56's cited
+evidence never existed (the CI job never ran), F-63's *"what saved us"* was wrong (nothing ran at
+all), and **F-68 falsified the sentence I had repeated all day** — that no agent had reported work it
+had not done. Eleven runs supported it. The twelfth did not.
+
+### The front door, and the bug it caused
+
+`SIGNED_IN_HOME` is `/start`. The measurement: `/today`'s empty workspace opened with **five
+negations** and **no control that starts a run**, while the surface that shows work was behind a rail
+label. **Then my own flip left the home with no rail at all** — `/start` rendered outside the shell,
+so every signed-in person landed chromeless. Fixed by making the treatment follow the PERSON rather
+than the path. **No test would have caught it: nothing asserts the home renders inside the shell,
+because until today the home always did.**
+
+### Next session picks up here
+
+1. **Phase 3 is half-built.** The route header is mounted; the `here`-versus-`done` ink fix was
+   in flight when the agent died, and **Meridian still has no determinate-progress vocabulary** — no
+   n-of-m, no bar, no ETA. Build those as primitives.
+2. **The IA decision is written and unexecuted** (`14 destinations -> 5`). Two calls are the
+   founder's: killing the global station strip (it reverses his own 2026-07-30 ruling) and `Work`
+   versus `Runs` as the label.
+3. **F-70's reachability.** Learn has still never been reached from `sense`. `d1168015` is two
+   stations away and is the best chance yet.
+
+**What the founder must decide:** the two IA calls above; whether `is_sample` keeps meaning two
+contradictory things (F-71); and who answers the publish approval when a track reaches Ship (F-18) —
+which is now live, because R-27 un-pinned `release.publish` and Ship has briefed it since August.
