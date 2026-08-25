@@ -87,7 +87,7 @@ Needs shipped code + forecast window closed. Mechanically sound, structurally bl
 
 **Round 7 ran and is called.** Founder sentence via `/start` at 16:48 IST, sense → build in 13
 minutes with the sweep doing all of it — the fastest walk in the product's history, and proof the
-watchable pace (AUTO_MAX 24, queue 55) is real. Scorecard closed at 16:36 IST honestly (B
+watchable pace (AUTO_MAX 24, queue 55) is real. Scorecard closed at 17:06 IST (11:36 UTC) honestly (B
 repointed the GitHub binding on the founder's instruction — recorded, not buried). Build then
 spent its three attempts on two tool defects, not on agent failure:
 
