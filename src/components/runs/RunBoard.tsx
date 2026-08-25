@@ -538,6 +538,28 @@ export function RunBoard({
         ) : null}
       </div>
 
+      {/*
+       * THE ONE FACT THE BOARD IS FOR, SAID TO EARS TOO (R-19). The counts sit
+       * in column headings a sighted scan picks up for free; this line makes
+       * the same numbers a polite live region, so a run crossing into gate or
+       * finishing announces without reading the whole board. Identical polls
+       * render identical text and say nothing.
+       */}
+      <p role="status" aria-live="polite" className="sr-only">
+        {(() => {
+          const calling = columns.find((c) => c.state === "gate")?.all.length ?? 0;
+          const working = columns.find((c) => c.state === "working")?.all.length ?? 0;
+          if (calling === 0 && working === 0)
+            return "No runs are building, and none are waiting on you.";
+          return [
+            working > 0 ? `${working} ${working === 1 ? "run is" : "runs are"} building` : "",
+            calling > 0 ? `${calling} ${calling === 1 ? "run needs" : "runs need"} you` : "",
+          ]
+            .filter(Boolean)
+            .join(" · ");
+        })()}
+      </p>
+
       <div className="rb-board" style={{ "--rb-cols": template } as React.CSSProperties}>
         {columns.map((c) => {
           const calling = c.state === "gate" && c.all.length > 0;

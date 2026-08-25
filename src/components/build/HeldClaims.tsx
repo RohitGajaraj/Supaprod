@@ -91,6 +91,11 @@ export function HeldClaims() {
           : "A build holds a path while it writes to it, and another build asking for the same path is refused. Releasing one lets the waiting build proceed."
       }
     >
+      {/* The count is this block's tracked fact, so its changes are said
+          politely; identical polls render identical text and say nothing. */}
+      <p role="status" aria-live="polite" className="sr-only">
+        {`${held.length} ${held.length === 1 ? "path is" : "paths are"} held by a build`}
+      </p>
       {claims.isError ? (
         /* `ReadFailedLine` and not `ReadFailed`: the bordered half draws its own
            box, and this already sits inside a Region under a heading. Two
