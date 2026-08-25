@@ -50,7 +50,9 @@ import {
   type Chain,
   type ChainMember,
   type MemberRow,
+  type StopState,
 } from "@/lib/spine/chain";
+import { KIND_WORD, STATION_ARTIFACT } from "@/lib/spine/attach";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -897,71 +899,147 @@ export const attachToTrack = createServerFn({ method: "POST" })
  *
  * `getTrackChain` answers *what was filed*: a stop per station, and per member a
  * kind, an id, a title and whether it still resolves. That is the right shape
- * for a trail somebody scans, and `ChainMember` deliberately carries **no body**
- * — putting a few thousand characters of spec into every row of a chain panel
- * would make the panel unreadable and the query expensive for a reader who only
- * wanted to see that a spec exists.
+ * for a trail somebody scans, and `ChainMember` deliberately carries **no body**.
  *
  * The artifact pane asks a different question: *show me the thing*. A pane
- * rendering "prd (id 5568…)" has told the reader nothing they could not see in
- * the chain, and the acceptance this repo is built around says a person watching
- * a run sees **what each station produced**, not a list of nouns.
+ * rendering `prd (id 5568…)` has told the reader nothing the chain did not, and
+ * the acceptance this repo is built around says a person watching a run sees
+ * **what each station produced**, not a list of nouns.
  *
- * So: same members, same resolution rules, one extra column per kind.
+ * ── THE SHAPE IS `SPEC-ARTIFACTS.md` §1 VERBATIM, AND THAT IS A CORRECTION ──
+ *
+ * A first version of this returned a flat `TrackArtifact[]` with a single `body`
+ * string. It was written before its own spec was read, which is the mistake
+ * `SPEC-ARTIFACTS` exists to prevent: §1 names the exact return type LANE 0 is
+ * building `ArtifactPane.tsx` against, and a server function that is *nearly*
+ * the contract is worse than one that is missing, because it typechecks.
+ *
+ * So: `{ stops: StationArtifactView[] }`, ordering and state from `buildChain`
+ * so this can never disagree with the chain panel about where the work is, and
+ * the per-kind columns widened to what each station's card actually renders.
+ *
+ * ── THE COLUMN NAMES ARE PER KIND AND THEY ARE NOT GUESSABLE ───────────────
+ *
+ * Three of the seven tables have no `title` at all: a prototype has `name`, a
+ * learning has `summary`, a deployment has no human name whatsoever. **A wrong
+ * column inside a `.select()` string typechecks clean and throws at runtime**,
+ * which is why `ARTIFACT_SOURCE` is reused for the title and body rather than
+ * re-derived, and why `FIELDS` below is written per kind rather than as one list.
  *
  * ── THE FAIL DIRECTION IS COPIED FROM `getTrackChain` ON PURPOSE ───────────
  *
- * `missing` means the lookup SUCCEEDED and the row was not in it, so the product
- * can honestly say the artifact is gone. A query that errored, or a kind with no
- * table mapped, leaves `missing` false and the body null: we did not look, so we
- * claim nothing. Collapsing the two would let a transient error report a shelf
- * of healthy artifacts as destroyed, which is a worse lie than a row with no
- * body. The two functions must not disagree about this, so the rule is stated
- * the same way in both.
- *
- * ── WHAT IT DOES NOT DO ───────────────────────────────────────────────────
- *
- * It does not truncate. `HANDOFF_BODY_CHARS` bounds what goes into a PROMPT,
- * where a long spec costs money on every station; a person looking at their own
- * spec should see their own spec. The pane decides how much to show.
- *
- * One query per KIND, never per row, for the reason `getTrackChain` gives: a
- * track that ran a full loop holds a few dozen members and a per-row lookup
- * would put that many round trips behind one pane.
+ * `missing` means the lookup SUCCEEDED and the row was not in it. A query that
+ * errored leaves `missing` false and `fields` empty: we did not look, so we
+ * claim nothing. Collapsing the two would let one transient error report a shelf
+ * of healthy artifacts as destroyed.
  */
-export type TrackArtifact = {
+/**
+ * A JSON value, spelled out rather than `unknown`.
+ *
+ * `SPEC-ARTIFACTS` §1 writes `fields: Record<string, unknown>`, and `unknown`
+ * does not survive the server-function boundary: TanStack validates the return
+ * type as serializable and rejects it. This is the same contract with the
+ * serialisable half named, which is what the spec meant — every one of these
+ * columns is a Postgres scalar or a `Json`.
+ */
+export type FieldValue =
+  string | number | boolean | null | FieldValue[] | { [k: string]: FieldValue };
+
+export type ArtifactView = {
   kind: string;
+  /** The plain word for the kind, from the one vocabulary the driver uses. */
+  word: string;
   artifactId: string;
-  station: string;
   createdAt: string;
   title: string | null;
-  /** The artifact's own text, whole. Null when it has none or was not read. */
-  body: string | null;
   /** True only when the lookup ran and the row was not there. */
   missing: boolean;
+  /** The exact per-kind columns the station's card renders. */
+  fields: Record<string, FieldValue>;
+};
+
+export type StationArtifactView = {
+  station: AgentStation;
+  label: string;
+  state: StopState;
+  waivedReason: string | null;
+  expects: { kind: string; word: string };
+  everDriven: boolean;
+  hold: string | null;
+  holdReason: string | null;
+  items: ArtifactView[];
+};
+
+/**
+ * The columns each kind's card actually renders, beyond title and body.
+ *
+ * Written per kind and checked against `SPEC-ARTIFACTS` §3-§9 rather than
+ * generated, because these tables do not share a shape and a plausible-looking
+ * column name is a runtime error rather than a compile one.
+ */
+const FIELDS: Readonly<Record<string, readonly string[]>> = {
+  signal: ["content", "source", "source_kind", "url", "tags", "sentiment", "theme_id"],
+  theme: ["summary", "status", "status_reason", "frequency", "severity", "confidence"],
+  decision: [
+    "rationale",
+    "status",
+    "alternatives_considered",
+    "decided_by_agent_slug",
+    "prd_id",
+    "forecast_claim",
+    "forecast_how_we_will_know",
+    "forecast_horizon_date",
+    "forecast_resolution",
+    "forecast_resolution_rationale",
+    "forecast_resolved_at",
+    "forecast_resolved_by_agent_slug",
+    "forecast_next_check_at",
+    "forecast_deferred_count",
+    "forecast_deferred_at",
+  ],
+  prd: ["body_md", "status", "design_gate_status", "github_issue_url", "shipped_at"],
+  task: ["detail", "status", "priority"],
+  // `name` is the title column here; there is no `title` and no body worth a card.
+  prototype: ["description", "entry_path", "share_slug", "prd_id"],
+  changeset: ["summary", "status", "repo", "branch", "pr_url", "pr_number", "prd_id"],
+  mission: ["status"],
+  deployment: ["commit_sha", "deploy_url", "environment", "provider", "status", "deployed_at"],
+  learning: [
+    "summary",
+    "verdict",
+    "decision_id",
+    "prd_id",
+    "metric_label",
+    "metric_value",
+    "recorded_by_agent_slug",
+  ],
 };
 
 export const getTrackArtifacts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))
-  .handler(async ({ context, data }): Promise<{ artifacts: TrackArtifact[] }> => {
+  .handler(async ({ context, data }): Promise<{ stops: StationArtifactView[] }> => {
     const { supabase } = context;
     try {
+      const { data: trackRow } = await supabase
+        .from("spine_tracks" as never)
+        .select(SELECT)
+        .eq("id", data.trackId)
+        .maybeSingle();
+      if (!trackRow) return { stops: [] };
+      const track = rowToTrack(trackRow as unknown as TrackRow);
+
       const { data: rows, error } = await supabase
         .from("spine_track_members" as never)
         .select("artifact_kind, artifact_id, station, created_at")
         .eq("track_id", data.trackId)
         .order("created_at", { ascending: true });
-      // Pre-migration, or a refused read: an empty pane, never a thrown page.
-      if (error || !rows) return { artifacts: [] };
-
-      const members = rows as unknown as Array<{
+      const members = (error || !rows ? [] : rows) as unknown as Array<{
         artifact_kind: string;
         artifact_id: string;
         station: string;
         created_at: string;
       }>;
-      if (members.length === 0) return { artifacts: [] };
 
       const byKind = new Map<string, string[]>();
       for (const m of members) {
@@ -969,50 +1047,79 @@ export const getTrackArtifacts = createServerFn({ method: "GET" })
         byKind.set(m.artifact_kind, [...(byKind.get(m.artifact_kind) ?? []), m.artifact_id]);
       }
 
-      /** kind:id -> the row, when the lookup for that kind actually ran. */
-      const found = new Map<string, { title: string | null; body: string | null }>();
+      const found = new Map<string, { title: string | null; fields: Record<string, FieldValue> }>();
       /** Kinds whose lookup ran cleanly. Only these may report `missing`. */
       const looked = new Set<string>();
 
       await Promise.all(
         [...byKind.entries()].map(async ([kind, ids]) => {
           const source = ARTIFACT_SOURCE[kind];
-          const cols = ["id", `title:${source.title}`];
-          if (source.body) cols.push(`body:${source.body}`);
+          // `title:` is aliased per kind because three tables have no `title`.
+          const cols = new Set<string>(["id", `title:${source.title}`]);
+          for (const c of FIELDS[kind] ?? []) cols.add(c);
           const { data: got, error: readErr } = await supabase
             .from(source.table)
-            .select(cols.join(","))
+            .select([...cols].join(","))
             .in("id", ids);
-          // WE DID NOT LOOK, SO WE CLAIM NOTHING. See the header.
+          // WE DID NOT LOOK, SO WE CLAIM NOTHING.
           if (readErr) return;
           looked.add(kind);
-          for (const r of (got ?? []) as unknown as Array<{
-            id: string;
-            title: string | null;
-            body?: string | null;
-          }>) {
-            found.set(`${kind}:${r.id}`, { title: r.title ?? null, body: r.body ?? null });
+          for (const r of (got ?? []) as unknown as Array<Record<string, FieldValue>>) {
+            const id = String(r.id);
+            const fields: Record<string, FieldValue> = {};
+            for (const c of FIELDS[kind] ?? []) fields[c] = r[c] ?? null;
+            found.set(`${kind}:${id}`, {
+              title: (r.title as string | null) ?? null,
+              fields,
+            });
           }
         }),
       );
 
+      const chain = buildChain({
+        route: track.route,
+        station: track.station,
+        status: track.status,
+        members: members.map((m) => ({
+          kind: m.artifact_kind,
+          word: KIND_WORD[m.artifact_kind]?.one ?? m.artifact_kind,
+          artifactId: m.artifact_id,
+          station: m.station,
+          createdAt: m.created_at,
+          title: found.get(`${m.artifact_kind}:${m.artifact_id}`)?.title ?? null,
+          missing: !found.has(`${m.artifact_kind}:${m.artifact_id}`) && looked.has(m.artifact_kind),
+        })),
+      });
+
       return {
-        artifacts: members.map((m) => {
-          const hit = found.get(`${m.artifact_kind}:${m.artifact_id}`);
-          return {
-            kind: m.artifact_kind,
-            artifactId: m.artifact_id,
-            station: m.station,
-            createdAt: m.created_at,
-            title: hit?.title ?? null,
-            body: hit?.body ?? null,
-            // Only a kind we successfully READ can honestly be called missing.
-            missing: !hit && looked.has(m.artifact_kind),
-          };
-        }),
+        stops: chain.stops.map((stop) => ({
+          station: stop.station,
+          label: stop.label,
+          state: stop.state,
+          waivedReason: stop.waivedReason,
+          expects: {
+            kind: STATION_ARTIFACT[stop.station]?.kind ?? "",
+            word: KIND_WORD[STATION_ARTIFACT[stop.station]?.kind ?? ""]?.one ?? "",
+          },
+          everDriven: track.drivenAt !== null,
+          hold: track.hold,
+          holdReason: track.holdReason,
+          items: stop.members.map((m) => {
+            const hit = found.get(`${m.kind}:${m.artifactId}`);
+            return {
+              kind: m.kind,
+              word: m.word,
+              artifactId: m.artifactId,
+              createdAt: m.createdAt,
+              title: hit?.title ?? null,
+              missing: m.missing,
+              fields: hit?.fields ?? {},
+            };
+          }),
+        })),
       };
     } catch {
-      return { artifacts: [] };
+      return { stops: [] };
     }
   });
 

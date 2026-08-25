@@ -34,13 +34,46 @@ const FN = SRC.slice(
   SRC.indexOf("export const getTrackChain"),
 );
 
-describe("it reads the body, which is the whole reason it exists", () => {
-  it("selects the body column when the kind has one", () => {
-    expect(FN).toContain("if (source.body) cols.push(`body:${source.body}`)");
+describe("it returns the SPEC's shape, which is the whole reason it was rewritten", () => {
+  /**
+   * A first version returned a flat `TrackArtifact[]` with one `body` string. It
+   * was written before its own spec was read. `SPEC-ARTIFACTS` §1 names the exact
+   * type LANE 0 builds `ArtifactPane.tsx` against, and **a server function that
+   * is NEARLY the contract is worse than one that is missing, because it
+   * typechecks.**
+   */
+  it("returns stops, not a flat list", () => {
+    expect(FN).toContain("Promise<{ stops: StationArtifactView[] }>");
+    expect(FN).not.toContain("artifacts: TrackArtifact[]");
   });
 
-  it("returns the body on the artifact", () => {
-    expect(FN).toContain("body: hit?.body ?? null");
+  it("carries every field §1 names on a stop", () => {
+    for (const k of [
+      "station:",
+      "label:",
+      "state:",
+      "waivedReason:",
+      "expects:",
+      "everDriven:",
+      "hold:",
+      "holdReason:",
+      "items:",
+    ]) {
+      expect(FN).toContain(k);
+    }
+  });
+
+  /**
+   * Ordering and state come from `buildChain` so this can never disagree with
+   * the chain panel about where the work is. Two readers of one track that
+   * derive position separately will drift, and the person sees two answers.
+   */
+  it("derives order and state from buildChain rather than re-deriving them", () => {
+    expect(FN).toContain("buildChain({");
+  });
+
+  it("returns the per-kind columns as fields", () => {
+    expect(FN).toContain("fields: hit?.fields ?? {}");
   });
 
   /**
@@ -51,6 +84,38 @@ describe("it reads the body, which is the whole reason it exists", () => {
   it("does not truncate, because that bound is about prompts and not about people", () => {
     expect(FN).not.toContain("HANDOFF_BODY_CHARS");
     expect(FN).not.toContain(".slice(0, 6000)");
+  });
+
+  /**
+   * THE COLUMN NAMES ARE NOT GUESSABLE AND A WRONG ONE TYPECHECKS. Three of the
+   * seven tables have no `title`: a prototype has `name`, a learning has
+   * `summary`, a deployment has no human name at all. So the title is aliased
+   * through `ARTIFACT_SOURCE` per kind, and the extra columns are listed per
+   * kind rather than shared.
+   */
+  it("aliases the title per kind instead of selecting a column that may not exist", () => {
+    expect(FN).toContain("`title:${source.title}`");
+  });
+
+  it("names the forecast columns, which are the reason Decide needed this at all", () => {
+    for (const c of [
+      "forecast_claim",
+      "forecast_how_we_will_know",
+      "forecast_horizon_date",
+      "forecast_resolution",
+    ]) {
+      expect(SRC).toContain(c);
+    }
+  });
+
+  it("does not ask prototypes for a title, which would throw at runtime", () => {
+    const fields = SRC.slice(
+      SRC.indexOf("const FIELDS"),
+      SRC.indexOf("export const getTrackArtifacts"),
+    );
+    const proto = fields.slice(fields.indexOf("prototype:"), fields.indexOf("changeset:"));
+    expect(proto).not.toContain('"title"');
+    expect(proto).toContain("entry_path");
   });
 
   /** Reuses the one map both the handoff and the chain already read from. */
@@ -69,7 +134,9 @@ describe("missing means we looked, and this must not drift from getTrackChain", 
    */
   it("only calls an artifact missing when its own read succeeded", () => {
     expect(FN).toContain("looked.add(kind)");
-    expect(FN).toContain("missing: !hit && looked.has(m.artifact_kind)");
+    expect(FN).toContain(
+      "missing: !found.has(`${m.artifact_kind}:${m.artifact_id}`) && looked.has(m.artifact_kind)",
+    );
   });
 
   it("returns early from a failed read WITHOUT marking that kind looked at", () => {
@@ -89,8 +156,12 @@ describe("missing means we looked, and this must not drift from getTrackChain", 
 
 describe("it fails the way every other handler in this module fails", () => {
   it("degrades to an empty list rather than throwing a page", () => {
-    expect(FN).toContain("if (error || !rows) return { artifacts: [] }");
+    // An unreadable member list yields an empty stop list, never a thrown page,
+    // and a track that cannot be read at all yields no stops rather than a lie.
+    expect(FN).toContain("if (!trackRow) return { stops: [] }");
+    expect(FN).toContain("error || !rows");
     expect(FN).toContain("} catch {");
+    expect(FN).toContain("return { stops: [] };");
   });
 
   it("asks one query per kind, never one per row", () => {
@@ -98,6 +169,18 @@ describe("it fails the way every other handler in this module fails", () => {
     // would put that many round trips behind one pane.
     expect(FN).toContain('.in("id", ids)');
     expect(FN).toContain("byKind");
+  });
+
+  /**
+   * `unknown` does not survive the server-function boundary — TanStack validates
+   * the return type as serializable and rejects it. The spec's
+   * `Record<string, unknown>` is implemented as the same contract with the
+   * serialisable half named, because every one of these columns is a Postgres
+   * scalar or a `Json`.
+   */
+  it("returns a serialisable field map rather than unknown", () => {
+    expect(SRC).toContain("export type FieldValue");
+    expect(FN).toContain("Record<string, FieldValue>");
   });
 
   it("is scoped to the one track it was asked about", () => {
