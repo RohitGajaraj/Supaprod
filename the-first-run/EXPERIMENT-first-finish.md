@@ -672,3 +672,41 @@ know which way it goes, so here is the forecast, before the tick, with the obser
 was NO'."* `f9e41393` declined three times and the driver treated each decline as a failure to
 advance. This run reaches the same question from the other side — a decision that landed cleanly and
 said "not yet".
+
+
+### 02:00 — the prediction resolved, and it was outcome 3
+
+**Predicted before the tick, graded after. That is the product's own discipline applied to me.**
+
+`prd-writer` ran 43s and filed **PRD `bf198482-9d57-421b-8ae2-d6f35a6c81ad`**:
+
+> *"Spec drafted and revised… Outcome is strictly telemetry readiness — one active Canny scout target
+> and one ingested verbatim quote with ticket ID, timestamp, and URL. That is the only measurable,
+> source-anchored, and gradable outcome. **Dark mode UI work remains blocked until this outcome is
+> verified.**"*
+
+That is **outcome 3** of the three I wrote down: *"It writes a spec for restoring telemetry — the
+agent quietly re-scopes the work to what the decision actually implied."*
+
+**The loop honoured its own decision.** It did not march past the defer and it did not refuse and
+stall. Plan read what Decide actually said, understood that the deferral named a precondition, and
+specced **the precondition** — with a gradable outcome, which is what a spec is for. Nobody told it
+to do that; the route model cannot even read a decision's content.
+
+**And the cost I predicted is real, and it is a finding.**
+
+```sql
+SELECT title FROM spine_tracks WHERE id = '897d1834-…';
+-- "Add dark mode and a system-preference theme"
+SELECT title FROM prds WHERE id = 'bf198482-9d57-421b-8ae2-d6f35a6c81ad';
+-- telemetry readiness
+```
+
+**The track is titled for work its own spec says is blocked.** Nothing renames a track when the work
+legitimately re-scopes, so every surface that lists this piece of work will call it "dark mode" while
+the thing being built is Canny ingestion. A person scanning a list would be misled by a track that
+did nothing wrong. Ledger **F-27**.
+
+The split happened again — `out-of-time`, `seat_cursor 1`, `attempts 0`, `sprint-planner` still owed.
+**Third consecutive station where the crew was cut by the deadline**, and third where `attempts` was
+correctly not charged.
