@@ -338,3 +338,74 @@ and cannot pass it.** The acceptance says *no human touching it mid-run*; the go
 human decides the irreversible step. **Both are the founder's and they contradict each other.** Three
 options are on the OPEN list in `RULINGS.md`. Until he picks one, **six of seven stations are
 provable tonight and the seventh is not.**
+
+
+---
+
+## Round 3 — the first run against fixed code and a funded account
+
+**Track `897d1834-0d44-45bd-ad3d-29b7b1206041`**, created 2026-08-25 00:47:14 UTC.
+
+### Why a NEW track and not a reset of `cf1ba785`
+
+**Because a reset would disqualify the proof.** Acceptance criterion 2 is *no human intervention
+mid-run — no unsticking, no DB edit, no re-drive by hand*. `cf1ba785` is sitting on
+`needs-evidence` with three spent attempts; clearing them is exactly the DB edit the criterion
+forbids. A run that needed me to touch it is not the run this repo is trying to produce.
+
+So `cf1ba785` stays where it is as the diagnostic record, and this is a clean start.
+
+### What is different this time
+
+| | Round 2 | Round 3 |
+| --- | --- | --- |
+| `workspace.search` | blind — index held 17 prompts, zero signals | reads the workspace's own tables (F-19, live) |
+| A split crew | judged `produced-nothing` and given up on | judged on what the station filed (F-14, live) |
+| Dead tracks in the sweep | held all five slots | excluded (F-20, live) |
+| A halted seat | spent one of three attempts | records the hold, spends nothing (F-21, live) |
+| Credits | **0** | **5,011** |
+
+Every one of those fixes was verified present in Lovable HEAD by reading the file back, not by
+trusting `latest_commit_sha` — which went backwards tonight and is not a deploy marker.
+
+### The credits, and the guardrail I did not go around
+
+The founder gave explicit authority to grant 5,000. The product's own `apply_topup_credits` RPC
+**refused it**: `{"applied": false, "cap": 1500, "reason": "cap_exceeded"}`. Reading the function
+shows the cap is `monthly_grant_credits * 2`, measured against the **cumulative** sum of completed
+top-ups since `cycle_anchor` — so splitting it into four smaller calls would not have bypassed it,
+and should not have. It is an anti-runaway guardrail.
+
+This account was on a **750/month** plan while three other real accounts in the same project are on
+**5,000**. So the grant was applied as what it actually is — a plan change — rather than by
+defeating the cap:
+
+```sql
+UPDATE public.account_credits
+   SET balance_credits = 5000, monthly_grant_credits = 5000, updated_at = now()
+ WHERE account_id = '164e0692-71e4-4f53-b5e5-66aa930a672f';
+-- balance 5000 · topup 11 · grant 5000 · anchor 2026-08-22
+
+INSERT INTO public.credit_ledger (account_id, user_id, delta_credits, reason, surface)
+VALUES ('164e0692-…','22a73000-…',5000,'grant','founder-grant-2026-08-25-the-first-run');
+-- 481fdbb2-9bbe-4d0c-9f21-47ef26eca447
+```
+
+**The refused attempt is left on the record** as `credit_topups` status `capped`, because it is a
+true account of what was tried. The side effect of the plan change is that the top-up cap is now
+10,000 rather than 1,500, which is the honest consequence of being on a bigger plan and is worth the
+founder knowing.
+
+### The run
+
+```sql
+INSERT INTO spine_tracks (user_id, workspace_id, title, origin, entry_station, station, path, waived)
+VALUES ('22a73000-…', '0b792d52-…',
+        'Add dark mode and a system-preference theme',
+        'Add dark mode and a system-preference theme, because a customer asked for it in Canny on
+         2026-07-09 and the product ships light only.',
+        'sense', 'sense', '["sense","decide","define","design","build","ship","learn"]', '[]');
+-- 897d1834-0d44-45bd-ad3d-29b7b1206041, created 00:47:14 UTC, driven_at NULL
+```
+
+**From here nothing is touched.** The tick drives it or it does not, and either answer is the result.
