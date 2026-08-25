@@ -99,15 +99,39 @@ function Eyes({ state }: { state: CharacterState }) {
     case "resting":
       return (
         <>
-          <path d="M7.2 12 A 2 2 0 0 0 10.8 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none" />
-          <path d="M13.2 12 A 2 2 0 0 0 16.8 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+          <path
+            d="M7.2 12 A 2 2 0 0 0 10.8 12"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            fill="none"
+          />
+          <path
+            d="M13.2 12 A 2 2 0 0 0 16.8 12"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            fill="none"
+          />
         </>
       );
     case "done":
       return (
         <>
-          <path d="M7.2 12.8 A 2 2 0 0 1 10.8 12.8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none" />
-          <path d="M13.2 12.8 A 2 2 0 0 1 16.8 12.8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+          <path
+            d="M7.2 12.8 A 2 2 0 0 1 10.8 12.8"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            fill="none"
+          />
+          <path
+            d="M13.2 12.8 A 2 2 0 0 1 16.8 12.8"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            fill="none"
+          />
         </>
       );
     case "out-of-touch":

@@ -57,14 +57,11 @@ describe("Character derives, it is never handed a state", () => {
 });
 
 describe("motion belongs only to states still moving", () => {
-  test.each(["thinking", "working", "asking", "resting"] as const)(
-    "%s breathes",
-    (state) => {
-      const { container } = render(<CharacterMark state={state} />);
-      const mark = container.querySelector("span[data-presence-state]") as HTMLElement;
-      expect(mark.style.animation).toContain("mrd-attention");
-    },
-  );
+  test.each(["thinking", "working", "asking", "resting"] as const)("%s breathes", (state) => {
+    const { container } = render(<CharacterMark state={state} />);
+    const mark = container.querySelector("span[data-presence-state]") as HTMLElement;
+    expect(mark.style.animation).toContain("mrd-attention");
+  });
 
   test.each(["awake", "blocked", "done", "out-of-touch"] as const)(
     "%s is still — an outcome has nothing left to wait for",
