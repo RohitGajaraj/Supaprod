@@ -65,18 +65,20 @@ describe("buildActivity carries what the transcript's rollup reads", () => {
     expect(turn?.tokens).toBeNull();
   });
 
-  test("the runtime's halt reason becomes the row's stop line, in its own words", () => {
+  test("the runtime's halt reason becomes the row's stop line, spelled out", () => {
     const [halted] = buildActivity({
       runs: [run({ status: "halted", halted_reason: "out_of_credit" })],
       members,
     });
-    expect(halted?.stopLine).toBe("Halted: out_of_credit");
+    expect(halted?.stopLine).toBe("Stopped: out of credit.");
+  });
 
+  test("a reason that is already a sentence is quoted, not rewrapped", () => {
     const [failed] = buildActivity({
-      runs: [run({ status: "failed", failure_kind: "provider_timeout" })],
+      runs: [run({ status: "failed", failure_kind: "provider timeout after 30s" })],
       members,
     });
-    expect(failed?.stopLine).toBe("Failed: provider_timeout");
+    expect(failed?.stopLine).toBe("provider timeout after 30s");
   });
 
   test("a turn that simply finished carries no stop line", () => {
