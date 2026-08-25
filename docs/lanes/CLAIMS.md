@@ -22,3 +22,4 @@
 | B | queue 63 (F-55 driven_via): `driver.server.ts`, `track.functions.ts`, `track-tick.ts`, migration | Building A's ruling | 2026-08-25 09:5x |
 | L0 | `src/components/track/TrackConsent.tsx`, `src/components/approvals/CallGate.tsx`, `src/components/track/expiry-deadline.*` | Ruled INBOX answer 6: friendly expiry deadline (`Intl.DateTimeFormat`), raw ISO rides in `title` via new optional `consequenceTitle` prop | 2026-08-25 11:1x |
 | B | `src/lib/ai/loop.server.ts`, `src/lib/deployments.functions.ts`, `src/lib/hosting/**` | R-27 (ship autonomy) — SHIPPED; claim held while Round 7's ship path is proven | 2026-08-25 09:3x |
+| L1 | `src/components/shell/AppFrame.tsx`, `src/components/shell/rail-presence.ts` (+ test), `src/routes/_authenticated.start.tsx` | Queue 54: character rail miniature on every authed surface + `/start` introduction moment (imports presence, edits nothing in it) | 2026-08-25 11:2x |
