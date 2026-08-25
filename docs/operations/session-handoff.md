@@ -4569,3 +4569,34 @@ decides on `~/Library/Caches/Google` (3.2GB) and stale `conductor/workspaces/sup
 (937MB). Queues 60–62 PARKED by the founder until disk is comfortable.
 
 **Round 7 is Session B's.** A watches the DB only and stays out of the track.
+
+---
+
+# APPENDED · 2026-08-25 ~18:00+05:30 · SESSION A (supaprod-8c, A seat from supaprod-a6)
+
+**Tree:** main, 0 uncommitted, even with origin (`ae906bd1e`). Gates green (tsc, 11,096 tests).
+**Deployed:** publish completed 17:37 IST with queue 63+64 in the Worker; queue-64 constraint
+widening applied to the DB and verified via `pg_constraint`.
+
+## Where the mission stands
+- **Round 7 (7977dc06, harbor): called by B.** sense → build in 13 min, all sweep — then Build
+  spent 3 attempts on tool defects F-57 (404 not classified as refusal) and F-58 (`repo.search`
+  blind on private repos). Scorecard was already closed 17:06 IST (founder-instructed binding
+  repoint, recorded). Full record: `the-first-run/EXPERIMENT-first-finish.md` (B's file).
+- **Round 8 is next**: needs B's F-57/F-58 fixes (B's claimed files). Criterion 2 is now provable
+  on both paths; credits 10,000 (auditable grant).
+- **Watching a run without the founder's browser:** sign in as `harbor@`
+  (`docs/operations/demo-credentials.md`) via Playwright, open `/track/:id`, READ ONLY — never
+  press Run (it writes `press` rows and taints the round).
+
+## Hazards, live
+- `prove-loop.ts` untracked at repo root: fake-agentic proof script. NEVER run/commit. Author
+  unidentified. Marked for deletion in AUDIT; awaiting author or founder.
+- The main worktree is shared: an uncommitted edit set was hard-reset away mid-typecheck at
+  ~17:10 IST. Commit BEFORE every gate.
+- An unidentified Haiku-powered session rewrote PRODUCT-TRUTH (vocab violations, fixed
+  `4bcd6c8d3`) and likely authored prove-loop.ts. Watch for it repeating.
+
+## Queues
+- L0: 65 (transcript origin markers) + 66 (attempts on holds) — server halves landed, specs in
+  `QUEUE-LANE0.md`. L1: items 12/32/22; queue 54 (character rail) shipped.
