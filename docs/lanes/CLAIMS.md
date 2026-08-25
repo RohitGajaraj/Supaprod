@@ -32,3 +32,4 @@
 | L0 | — | (Item 4 split half shipped `9242664aa`; request 022 lift shipped `214cfffd5`, unit L0-083) | 2026-08-25 14:0x |
 | A | — | (The `/start` door claim RELEASED: shipped `ee532b628`+`d59afc301`+`d850538ce`, pushed `0193b313c` window — Work row on the rail, `g w`, owns /start and /track/:id) | 2026-08-25 15:4x |
 | C | — | (Founder-routed restock released: #69 → QUEUE-LANE0, #70 → QUEUE-LANE1, one select ask in INBOX-MAIN. C = the main-lane acceptance session, Claude Code, Conductor worktree, fifth seat) | 2026-08-25 15:3x |
+| L0 | — | (Queue 67 SHIPPED `5e96444c0`: Calm hold tone for needs-evidence when forecast not yet due — claim released) | 2026-08-26 00:1x |
