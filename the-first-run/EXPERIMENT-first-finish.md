@@ -1415,3 +1415,51 @@ a loop switched off for them specifically.** Queued as 48.
 `sense`, `seat_cursor: 2`, `out-of-time`, `attempts: 0`, `members: 0` — two seats
 ran and the tick window closed before the third. `attempts` correctly not
 incremented (F-21/F-14). It resumes at seat 2 on the next tick.
+
+### 05:50 · Round 5's sense seats both refused, and the subject was my mistake
+
+```sql
+SELECT agent_slug, status, left(output,120) FROM agent_runs
+ WHERE track_id='f558bc61-97ec-486f-9ce4-50c558c4bed8' ORDER BY created_at;
+```
+
+> **discovery-scout** (`completed`): *"No verifiable evidence exists in the workspace for 'Show the
+> homeowner's phone number on the job card...'. The brief does not contain any verbatim quote,
+> support ticket excerpt, NPS comment, or behavioral report about..."*
+>
+> **researcher** (`completed`): *"No verbatim evidence exists in the workspace... I searched across
+> workspace documents, all installer-related support tags (checkout-abandon, offline-sync, alert-..."*
+
+**Both were right, and the fault is mine.** I chose the sentence to suit the repo
+(`relay-homeowner-app`) rather than to suit the evidence, and harbor's workspace holds plenty —
+just none of it about phone numbers on job cards:
+
+```sql
+SELECT count(*), count(*) FILTER (WHERE source='agent') FROM signals
+ WHERE workspace_id='60000000-0000-4000-8000-000000000000';
+-- 225 | 83          (142 real signals, all within 90 days)
+```
+
+**This is not F-38 repeating.** Harbor's workspace has real evidence; the subject simply had none
+behind it. A station that refuses a subject nothing supports is the station working.
+
+### 06:01 · Round 6 — a sentence the evidence can actually answer
+
+**Track `48eee889-cc0a-43fe-aa78-7130b4e2852e`**, all seven stations, nothing waived.
+
+> *"Homeowners are muting notifications because too many alerts arrive that do not need action."*
+
+Chosen against the record rather than against the repo:
+
+| Theme in harbor's workspace | Signals | Status |
+| --- | --- | --- |
+| Alert Fatigue Leading to Muted Notifications | 6 | new |
+| Alert Overload Leads to User Disengagement | 6 | new |
+| Misleading Outage Indicator | 4 | new |
+
+`new` rather than `promoted` matters — the promoted one already carries a track (`425e6887`), so
+this subject is not competing with existing work for the same evidence.
+
+**Round 5 is deliberately left running.** It is a useful control: it asks whether `sense` correctly
+refuses a subject nothing supports, which is the opposite failure from the one that has stopped every
+previous round. It is bounded by the attempts ceiling and costs cents.
