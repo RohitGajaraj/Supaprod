@@ -5,6 +5,15 @@
 > server by me or another lane) · CODE-SHIPPED (gates green, wired to real
 > reads/writes, never seen rendered) · BLOCKED (waiting on MAIN/L1).
 
+## MAIN (director, supaprod-8c) — 2026-08-25 late session
+
+| What | Why | True state | Next |
+| --- | --- | --- | --- |
+| Queue 64: `DrivenVia` splits `foreground` into `press`/`continuation`; `driveTrackNow` requires `origin`; migration widens both CHECKs (`89de72c90`) | One press buying a route and ten hand-nudges wrote identical rows; the mid-run-touching half of criterion 2 was unprovable | **CODE-SHIPPED** — gates green (11,087 pass); NOT deployed, Round 7 (`7977dc06`) walking | Deploy only after B calls Round 7 |
+| Queues 65/66 server halves: `Track.attempts` + `transitions` (with `drivenVia`) on the activity payload (`8dc50c963`) | The screen could not say "last try" or "who caused this leg" | **CODE-SHIPPED** | L0 owns both component halves (queue restocked) |
+| PRODUCT-TRUTH vocabulary: "receipts"/"unattended" out, stations 1–5 claim made honest (`4bcd6c8d3`) | A 16:53 Haiku-session rewrite broke the register canon in the shop window | Landed | Watch for the same session repeating it |
+| **Tree-reset hazard, live:** an uncommitted edit set was destroyed mid-typecheck by another session resetting this shared worktree (~11:4x UTC) | Multiple writers, one directory | Recovered from context, re-applied, committed at once | Every edit commits immediately; long gates run against committed trees |
+
 ## Session 2026-08-25 (units L0-038 → L0-067)
 
 | Item | Unit | What shipped | True state |
