@@ -519,3 +519,42 @@ its second.** So whatever `897d1834` reaches, it is a **shakedown**, not the pro
 **The clean proof is a run that starts and finishes on ONE build with nothing deployed mid-flight.**
 That is the next track, and it is cheap now that credits are funded. Recording this here, while the
 run is still moving, so nobody has to decide after the fact whether it counted.
+
+
+### 01:20 — the tick could not serve two tracks, and that is the sharper finding
+
+`cf1ba785` recovered by itself. Its `needs-evidence` hold is resumable, the signals `897d1834` filed
+at 01:00 and 01:10 were new evidence in the workspace, and the correction loop cleared it and put it
+back to work. **That is the loop doing exactly what it was designed to do, unprompted.**
+
+It also meant two live tracks, and the 01:20 tick could only serve one:
+
+```sql
+SELECT agent_slug, duration_ms FROM agent_runs WHERE created_at > '2026-08-25 01:19:30+00';
+-- discovery-scout 25412 · researcher 38438     (both cf1ba785)
+```
+
+**64 seconds against a 45 second deadline, and `897d1834` was not driven at all** — its `driven_at`
+stayed at 01:10:34 through the whole tick. `MAX_TRACKS_PER_TICK` is 5; the real number is about one.
+Ledger **F-25**.
+
+**Left both running rather than closing the duplicate.** Two live tracks is the honest configuration
+of a real workspace, and the slower pace is the product's actual behaviour rather than something to
+tidy away before measuring it.
+
+### And the two paths, read together, are the real state of the acceptance
+
+Putting F-25 beside **F-26** says something sharper than either alone:
+
+| Path | What it is for | Where it stands |
+| --- | --- | --- |
+| The tick, unattended | criterion 2 — *nobody has to watch* | **~20 minutes a station** with two live tracks. Too slow to watch |
+| `driveTrackNow`, foreground | criterion 3 — *a person can watch it* | bounded at 50s, returns `more: true`, and `TrackRun` says *"Run it again to continue."* — **about ten presses** for a seven-station route |
+
+**So today neither path delivers a watchable, untouched run.** One is too slow to watch; the other is
+not untouched. They are the same gap seen from opposite ends, and **item 34 is the one that closes
+it**, because the foreground path is where watching was always going to live.
+
+This is worth saying plainly: **the loop advancing on real evidence, which happened tonight for the
+first time, is necessary and not sufficient.** The acceptance asks for a run somebody can sit and
+watch without touching, and that is a property of the two bounds above rather than of the stations.
