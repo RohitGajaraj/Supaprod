@@ -97,19 +97,20 @@ flight at B's last write. Nothing outward may cite "mission proven" until SQL pr
 
 ---
 
-# SESSION HANDOFF 2026-08-26 · PHASE 1B FIX DEPLOYED
+# SESSION HANDOFF 2026-08-26 · PHASE 1B FIX DEPLOYED TO PRODUCTION ✅
 
 **Build status:** ✅ Clean, all gates pass  
 **Tree:** main, 0 uncommitted, tracking origin/main  
 **Tests:** 11,250 pass / 0 fail (defaults.test.ts: 13 pass)  
 **TypeScript:** ✅ Pass  
-**GitHub:** ✅ Code pushed (commit fb2d0a48d includes signals.log fix)  
+**GitHub:** ✅ Code pushed (commit 95704541d includes signals.log fix + all F-72/F-73 fixes)  
+**Lovable:** ✅ **DEPLOYED** — Production live at https://supaprod.lovable.app (deployment_id: c3bd3208-cd46-44a3-8379-6f634392c153, status: completed)
 **PHASE 1:** ✅ COMPLETE — Root cause identified: signals.log was gated with mode="confirm", blocking sense agents
 **PHASE 1B:** ✅ COMPLETE — Fixed signals.log to mode="auto". Autonomous sense station now unblocked.
 **PHASE 2:** ✅ COMPLETE — PRODUCT-TRUTH.md exists and current  
-**PHASE 3:** ✅ CODE READY, ⏳ AWAITING VERIFICATION — Fix on GitHub, Lovable will deploy. Founder observation required.
-**PHASE 4:** ⏸️ BLOCKED — Do not proceed with lane work until PHASE 3 verified (5 min founder action)
-**Mission gate:** ⏳ PENDING FOUNDER OBSERVATION — Code fix deployed to GitHub. Must watch one autonomous loop end-to-end on screen.
+**PHASE 3:** ✅ **DEPLOYED TO PRODUCTION** — Fix is live. All three fixes (F-72, fold fix 5ea7415a2, F-73 9eefe092e) are ancestral to deployed commit.
+**PHASE 4:** ⏳ AWAITING FOUNDER OBSERVATION — Code is live in production. Founder must watch one autonomous loop end-to-end on screen.
+**Mission gate:** ⏳ PENDING FOUNDER OBSERVATION — Deployment complete. Must watch one autonomous loop sense → discover → decide → learn on https://supaprod.lovable.app
 
 ---
 
