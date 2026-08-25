@@ -159,7 +159,24 @@ function CopyRunSummary({ trackId }: { trackId: string }) {
   );
 }
 
-export function TrackRun({
+/*
+ * THE SPLIT (request 024 / SPEC-LAYOUT §0, executed by LANE 1 under the
+ * founder's parallel order). One column cannot be two panes, so the body is
+ * two exported pieces:
+ *
+ *   `TrackRunLeft`  -- the character, the consent card, holds and their
+ *                      release, the run-it control with its automatic legs,
+ *                      and the transcript. Owns every piece of walk state.
+ *   `TrackPaneRight` -- the artifact pane and the record beside it, sharing
+ *                      the pane-station pointer between themselves (item 7).
+ *
+ * `TrackRun` composes both for any caller that still wants today's stacked
+ * column -- behaviour-preserving for `/plan`'s inline reveal and any other
+ * mount, with one documented delta: the run-it control now sits above the
+ * artifact pane instead of below it, because the control belongs to the
+ * transcript pane and the artifact leads its own.
+ */
+export function TrackRunLeft({
   trackId,
   autoStart = false,
 }: {
@@ -179,12 +196,9 @@ export function TrackRun({
   const fRetry = useServerFn(retryStation);
   const qc = useQueryClient();
   /*
-   * THE RECORD AND THE PANE SHARE ONE POINTER. Clicking a thing in the record
-   * (TrackChain) reveals the thing itself (the pane) -- item 7's door. Held
-   * here because the two surfaces are siblings, and a pointer living in one of
-   * them would make the other unreachable.
+   * (The pane-station pointer moved into TrackPaneRight below -- it is only
+   * read by the artifact pane and the record, which both live there now.)
    */
-  const [paneStation, setPaneStation] = React.useState<string | null>(null);
 
   /*
    * THE TRACK ITSELF, not only the walk's receipts. `getTrack` existed with
@@ -423,12 +437,10 @@ export function TrackRun({
       ) : null}
 
       {/*
-       * THE PREVIEW PANE, above the control that moves the work. The ruling
-       * puts the thing being made where the eye lands and the transcript
-       * beside it (DESIGN-DIRECTION §1); until the two-column frame lands this
-       * single column leads with what the work has made.
+       * THE PREVIEW PANE AND THE RECORD LIVE IN THE RIGHT PANE NOW
+       * (TrackPaneRight). This column keeps the walking: character, consent,
+       * holds, the control, and the transcript.
        */}
-      <ArtifactPane trackId={trackId} active={paneStation} onActiveChange={setPaneStation} />
 
       <Region
         title="Run it"
@@ -512,8 +524,32 @@ export function TrackRun({
         ) : null}
       </Region>
 
-      <TrackChain trackId={trackId} onOpenStation={setPaneStation} />
       <TrackActivity trackId={trackId} />
+    </div>
+  );
+}
+
+/*
+ * THE RIGHT PANE: the thing being made, and the record beside it. The
+ * pane-station pointer lives entirely in here -- it is the private wiring of
+ * item 7 (a record row reveals the artifact), and no other pane reads it.
+ */
+export function TrackPaneRight({ trackId }: { trackId: string }) {
+  const [paneStation, setPaneStation] = React.useState<string | null>(null);
+  return (
+    <div className="flex flex-col gap-mrd-6">
+      <ArtifactPane trackId={trackId} active={paneStation} onActiveChange={setPaneStation} />
+      <TrackChain trackId={trackId} onOpenStation={setPaneStation} />
+    </div>
+  );
+}
+
+/** Today's stacked column, composed from the two panes. Unchanged callers. */
+export function TrackRun({ trackId, autoStart = false }: { trackId: string; autoStart?: boolean }) {
+  return (
+    <div className="flex flex-col gap-mrd-6">
+      <TrackRunLeft trackId={trackId} autoStart={autoStart} />
+      <TrackPaneRight trackId={trackId} />
     </div>
   );
 }
