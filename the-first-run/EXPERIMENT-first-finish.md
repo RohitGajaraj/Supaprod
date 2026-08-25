@@ -1144,3 +1144,44 @@ running code written after it started.
 
 **Standing: 3 of 7 stations. Zero of six acceptance criteria met. No track has ever reached `learn`,
 and this one is already disqualified from proving the criterion it was started to prove.**
+
+### 03:50 · `design` → `build`. **5 of 7, and the furthest any track has gone.**
+
+Design cleared on the resuming tick: `seat_cursor` went 1 → 0, `last_hold` null, `attempts` 0. It
+filed a real prototype — **"Notification Preferences Settings Surface"**, `entry_path index.html` —
+which is also a live instance of **F-29**, since the design gate counts `prd_scaffolds` and will
+never see a prototype.
+
+**Both Round 1 tracks and Round 3 died at this station.** This one passed it.
+
+#### The one row that will fool the next person who counts
+
+`SELECT station, count(*) FROM spine_tracks GROUP BY station` shows **one track at `learn`**. It did
+not get there:
+
+```sql
+SELECT w.name, w.is_sample,
+       (SELECT count(*) FROM agent_runs r WHERE r.track_id='3fbf73c9-...') AS agent_runs
+  FROM workspaces w WHERE w.id='60000000-0000-4000-8000-000000000000';
+-- Helio Labs | true | 0
+```
+
+**Sample workspace, zero agent runs, four members.** It was placed at `learn`, not walked there. The
+`station` column is not a record of a journey. Filed as **X-08** so nobody re-finds it.
+
+### THE PREDICTION, written at 03:51 before the Build tick, so it can be graded
+
+This product's whole claim is that a forecast recorded before the outcome is worth more than an
+explanation after it. So:
+
+1. **Build will complete.** Its filing instruction is `studio.stage`, and staging is something the
+   builder seat can actually do. Expect a `studio_changesets` row and `station` to move to `ship`.
+2. **Ship will NOT complete, for two independent reasons, and the first one hides the second.**
+   `release.publish` is pinned to `review`, so it is queued as an approval and the track holds at
+   `waiting-on-a-person` (**F-18**). If that gate were opened, it would then throw *"Only a merged
+   changeset can promote. Merge the PR first."* (**F-36**) — the changeset Build stages is never
+   committed, never merged, and no preview deploy is recorded.
+3. **So the ceiling for this run is 6 of 7**, reached and held rather than completed.
+
+**If Build produces a merged changeset and a successful `deployments` row, I am wrong about F-36**
+and that is the outcome worth watching for. Nothing in the code I have read says it can.
