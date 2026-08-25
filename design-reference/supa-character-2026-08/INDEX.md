@@ -82,3 +82,64 @@ The generating agent was lost to a network drop after saving all three files; it
 strings went with its transcript. The brief above is the faithful record; the files are the
 evidence. (Files prefixed free- belong to the parallel no-logo-constraint track and are
 catalogued by that agent.)
+
+---
+
+# Free track — logo-independent concepts (2026-08-25, second session)
+
+Divergent exploration, explicitly freed from the knot logo. Same tooling (Higgsfield CLI,
+`nano_banana_2` / Nano Banana Pro, 2k, 1:1, dark ground), run serially per the disk
+constraint. All files prefixed `free-`; nothing from the logo-anchored track was touched.
+
+### free-d-all-the-hats.png — RECOMMENDED (free track)
+**Idea:** A tiny glowing creature proudly wearing all seven hats at once — one worker
+fronting a whole crew, and each hat can mean a station (hard hat = build, detective cap =
+evidence, captain = ship, party = learn/celebrate). Product people say "I wear all the hats"
+unprompted; this is that sentence as a character.
+
+Prompt: character design of a tiny round jelly bean creature beaming with pride while wearing seven different hats stacked impossibly high on its head like a wobbly tower, the stack includes a yellow hard hat a white chef hat a detective cap a painter beret a captains hat a wizard hat and a tiny party hat at the very top, the little body glows soft iridescent blue violet with warm peach highlights, stubby little arms spread slightly in a welcoming pose, two simple dark oval eyes and a big delighted smile with rosy cheeks, deep near black background, soft ambient glow, premium playful mascot, full body neutral friendly standing pose, centered composition, clean unique silhouette readable at tiny sizes, funny and charming, no text
+
+### free-a-seven-hands.png
+**Idea:** A radial plush sun-creature with seven iridescent mitten hands, each a different
+color, several holding tiny tools — seven stations, many hands, clearly not an octopus and
+not a cat. The most distinct silhouette of the four at 24px (circle plus seven nubs reads
+like an asterisk).
+
+Prompt: character design of a small round radiant creature like a friendly plush star, one soft glowing round body at the center with seven stubby mitten hands radiating out evenly around it like rays of an asterisk or a snowflake, each hand shimmers a different iridescent color of the spectrum, a few hands hold tiny tools like a pencil a wrench a paintbrush a magnifying glass and a little flag, calm happy face with two simple dark oval eyes and a tiny content smile, deep near black background, soft ambient glow, iridescent, premium playful mascot, full body neutral pose, centered composition, clean unique silhouette readable at tiny sizes, clearly radial and symmetrical, not an octopus, not a cat, not a robot, no tentacles, no text
+
+### free-b-forecaster.png
+**Idea:** A cloud creature whose glass belly is a little snow globe showing the weather it
+believes is coming, weather-vane antenna on top, pencil ready to write the prediction down —
+the forecast-then-grade loop as anatomy. Sweetest of the four; weakest tiny-size silhouette
+(round blob).
+
+Prompt: character design of a tiny soft cloud creature whose round belly is a clear glass dome like a little snow globe, inside the dome swirls a miniature glowing weather scene with a tiny sun and tiny sparkling rain showing what it believes will happen next, a small golden weather vane arrow sits on top of its head like a charming antenna, rosy blushing cheeks and two simple dark oval eyes with a gentle proud smile, it holds a tiny pencil in one stubby paw ready to write down its prediction, iridescent pastel glow of blue violet and warm gold, deep near black background, soft ambient glow, premium playful mascot, full body neutral friendly pose, centered composition, clean unique silhouette, funny and endearing, no text
+
+### free-c-courier.png
+**Idea:** A tiny courier mid-stride hoisting a glowing parcel bigger than itself, satchel
+and soft cap, trailing a light ribbon dotted with seven station beads — the work walking all
+seven stations end to end. Most animatable; the model added a circular vignette frame
+worth cropping out if this ships.
+
+Prompt: character design of a tiny determined courier sprite with a small round glowing body and short little legs mid stride, proudly carrying a glowing luminous parcel box bigger than itself high above its head with both stubby arms, wearing a tiny messenger satchel strap and a small soft cap, behind it trails a flowing ribbon of light dotted with seven small glowing beads like stations along a delivery route, big simple white eyes full of joyful determination and a happy open smile, iridescent blue violet and warm orange glow, deep near black background, soft ambient glow, premium playful mascot, full body pose, centered composition, clean unique silhouette readable at tiny sizes, adorable and heroic, no text
+
+### free-best-state-sheet.png
+**Idea:** Four states of the hat-stack concept in one sheet — Awake (stack straight),
+Thinking (stack leans, spark trails and an idea bulb orbit), Happy-Working (pencil out, hats
+tipped forward with effort), Celebrating (jumping, all seven hats popped off midair with
+confetti). Character consistency held across all four. Thinking reads pensive rather than
+sad, but its eyes are slightly watery and the mouth is a wavy line — soften both if this
+pose ships.
+
+Prompt: using the reference character exactly, a character state sheet of the same tiny glowing round creature wearing its tall stack of seven hats, four poses arranged in a two by two grid on a deep near black background, top left awake standing calm and bright with the hat stack perfectly straight and both eyes open wide with a small smile, top right thinking with eyes looking upward while the hat stack leans playfully and little spark trails and glowing idea sparkles orbit its head as if it is moving through ideas, bottom left happy working with delighted focused eyes and a big content smile holding a tiny glowing pencil in one stubby arm while the hat stack tilts forward with cheerful effort, bottom right celebrating mid jump with joyful motion lines and confetti sparkles while all seven hats pop slightly up off its head in midair, keep the exact same soft iridescent blue violet glowing body with rosy cheeks and the exact same seven hats in the same order, premium playful mascot, clean grid layout, no text
+
+## Run notes (free track)
+
+- 2026-08-25 second session, 436 credits at start. Five generations, all serial, all
+  succeeded on the first attempt, no disk incidents (2.2Gi free after run).
+- The state sheet used `free-d-all-the-hats.png` as its image reference; the seven-hat
+  order survived the reference pass.
+- `free-d` renders exactly seven hats: hard hat, chef toque, detective cap, beret,
+  captain, wizard, party. `free-a` renders exactly seven mittens. Verified by eye at full
+  size; a production vector pass should pin both counts.
+- Not committed to git (design references stay out of commits by default).
