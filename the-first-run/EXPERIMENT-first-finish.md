@@ -1349,3 +1349,69 @@ not the door. The door is LANE 1's `/start` and needs its own evidence.
 
 Criterion 2 is intact so far: nothing has been touched since the insert, and the intent is that
 nothing will be.
+
+### 05:36 → 05:50 · Round 5 sat still for fourteen minutes, and the reason was not GitHub
+
+The track was created at 05:36:31 and **was not driven at all**:
+
+```sql
+SELECT station, last_hold, attempts, driven_at
+  FROM spine_tracks WHERE id = 'f558bc61-97ec-486f-9ce4-50c558c4bed8';
+-- sense | NULL | 0 | NULL          <- at 05:47, eleven minutes and two ticks later
+```
+
+Meanwhile the sweep was demonstrably alive — other tracks driven at 05:47:07,
+05:41:29, 05:37:10 and 05:35:02.
+
+**Ordering was not the cause**, which was the first thing checked. `track-tick`
+orders `driven_at ascending, nullsFirst: true`, and:
+
+```sql
+SELECT count(*) FILTER (WHERE driven_at IS NULL) AS never_driven, count(*) AS open_total
+  FROM spine_tracks WHERE status='open';
+-- 2 | 60
+```
+
+**Two never-driven tracks in the entire database**, both of which sort first. So a
+filter was dropping it, not a queue.
+
+#### F-42 — the loop is excluded from every workspace a person would be shown
+
+`track-tick.ts:89-94` excludes sample workspaces. And:
+
+```sql
+SELECT id, name, is_sample FROM workspaces WHERE id IN (...);
+-- 60000000-… | Helio Labs        | true     <- harbor's, where Round 5 was started
+-- e375a61c-… | Explore workspace | true     <- the other never-driven track
+-- 0b792d52-… | My workspace      | FALSE    <- the ONLY one
+```
+
+**12 of 21 workspaces are `is_sample = true`, including every investor account and
+the founder's own rehearsal account.** `0b792d52` was the only workspace the loop
+could run in — and it is owned by `demo2@redcadence.app`, which is **suspended**
+and has **zero GitHub connections**.
+
+**That is the origin of F-39, and it answers a question that had been answered
+wrongly:** every round ran in a suspended account's workspace not by choice but
+because it was the only option.
+
+#### The proof, which is unusually clean
+
+`is_sample` flipped to `false` on harbor's workspace at **05:50:41**. The track
+was driven at **05:50:49**.
+
+**Eight seconds, after fourteen minutes of nothing.** One flag, one variable,
+nothing else touched.
+
+**Reversible** — one `UPDATE` restores it. **The finding underneath is not fixed**
+and is a product question rather than a defect: the exclusion is right in intent
+(demo data should not burn real agent spend every tick) and wrong in effect (a
+demo workspace can then never show the loop running, which is the one thing the
+product exists to show). **An accelerator opening any investor account today sees
+a loop switched off for them specifically.** Queued as 48.
+
+#### Where Round 5 stands
+
+`sense`, `seat_cursor: 2`, `out-of-time`, `attempts: 0`, `members: 0` — two seats
+ran and the tick window closed before the third. `attempts` correctly not
+incremented (F-21/F-14). It resumes at seat 2 on the next tick.
