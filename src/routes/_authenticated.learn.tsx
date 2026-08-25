@@ -153,6 +153,7 @@ import {
 import { Field, Input } from "@/components/meridian/forms";
 import { Gate } from "@/components/meridian/Gate";
 import { Surface } from "@/components/meridian/Surface";
+import { NoPromotions } from "@/components/meridian/PromotionCard";
 import { CtxHead, CtxRow } from "@/components/meridian/ContextColumn";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -167,6 +168,7 @@ import {
 import { getImpactLedger } from "@/lib/pm-impact.functions";
 import { SettlePanel } from "@/components/learn/SettlePanel";
 import { ForecastDeskPanel } from "@/components/learn/ForecastDeskPanel";
+import { LearnedCards } from "@/components/learn/LearnedCards";
 import { VERDICT_SAYS } from "@/components/learn/verdict-words";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { CrewWorking } from "@/components/shell/CrewWorking";
@@ -768,6 +770,46 @@ function Learn() {
               a verdict.
             </NothingYet>
           )}
+        </Region>
+
+        {/* WHAT AN OUTCOME TAUGHT, READ THROUGH THE MERIDIAN CARD PAIR (adoption,
+            port not swap). Fed by the same `listLearnings` rows the last-verdict
+            row above reads, already scoped to this workspace, so it costs no
+            second fetch and can never disagree with the counts on this page. A
+            card exists only where the row carries both ends of the priority move
+            and a clean verdict; LearnedCards owns the two exclusions and the
+            case where records exist but none of them is chartable. Gated on the
+            workspace the same way the query itself is, so an unnamed workspace
+            draws nothing rather than someone else's record. */}
+        {recordWorkspaceId ? (
+          <LearnedCards
+            learnings={lastQ.data?.learnings ?? []}
+            settledOnRecord={outcomes?.total ?? null}
+            awaitingVerdict={waiting > 0 ? waiting : undefined}
+            loading={stillWaiting(lastQ)}
+            loadError={lastQ.isError ? (lastQ.error as Error).message : null}
+            onRetry={() => void lastQ.refetch()}
+          />
+        ) : null}
+
+        {/* LESSONS PUT FORWARD TO HOLD EVERYWHERE, and why it is the empty state
+            today rather than a queue. The one real resolver in this shape,
+            `listHouseRules`, holds approval drafts whose rows carry no `kind`
+            and no product reference, and approving one is a single write gate
+            already served by the approvals queue and the Safety room.
+            `PromotionCard` derives what may be put forward from
+            `agent_memory.kind`, so feeding it those rows would mean inventing a
+            kind to force the controls on, which is fabrication, or passing
+            nothing and stranding a decidable draft behind a card that offers no
+            controls. Until a resolver returns rows that answer the scope
+            question, this renders the pair's own empty state, pointed at where
+            standing rules actually live. */}
+        <Region title="Lessons put forward to hold everywhere">
+          <NoPromotions
+            action={
+              <Action onClick={() => navigate({ to: "/brain" })}>See the standing rules</Action>
+            }
+          />
         </Region>
 
         {/* Support notes belong to Discover, which triages them against open bets.

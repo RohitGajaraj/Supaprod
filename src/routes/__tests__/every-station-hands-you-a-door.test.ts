@@ -106,7 +106,7 @@ describe("Learn's empty desk asks a question and answers it with a door", () => 
     const src = learn();
     const targets = [...src.matchAll(/navigate\(\s*\{\s*to:\s*"(\/[a-z-]+)"/g)].map((m) => m[1]);
     expect(targets.length).toBeGreaterThan(0);
-    const known = new Set(["/ship", "/plan", "/discover", "/decide", "/design", "/build", "/learn"]);
+    const known = new Set(["/ship", "/plan", "/discover", "/decide", "/design", "/build", "/learn", "/brain"]);
     for (const t of targets) expect(known.has(t)).toBe(true);
   });
 
