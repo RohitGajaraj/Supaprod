@@ -66,21 +66,30 @@ function fakeDb(opts: Options = {}) {
       reads.push(table);
       if (table === "spine_track_members") {
         // select -> eq(track) -> eq(kind) -> order -> limit -> maybeSingle
+        //
+        // F-65 gave this tool a SECOND read of this table, for the decision the
+        // verdict grades. So the kind is recorded too: the assertion below is
+        // that a spec already in hand is not looked up again, and it must stay
+        // about the SPEC rather than about the table.
         return {
           select: () => ({
             eq: () => ({
-              eq: () => ({
-                order: () => ({
-                  limit: () => ({
-                    maybeSingle: async () => ({
-                      data: opts.trackSpecs?.length
-                        ? { artifact_id: opts.trackSpecs[0] }
-                        : null,
-                      error: null,
+              eq: (_col: string, kind: string) => {
+                reads.push(`spine_track_members:${kind}`);
+                return {
+                  order: () => ({
+                    limit: () => ({
+                      maybeSingle: async () => ({
+                        data:
+                          kind === "prd" && opts.trackSpecs?.length
+                            ? { artifact_id: opts.trackSpecs[0] }
+                            : null,
+                        error: null,
+                      }),
                     }),
                   }),
-                }),
-              }),
+                };
+              },
             }),
           }),
         };
@@ -243,7 +252,11 @@ describe("a verdict recorded by the driver finds its own spec", () => {
 
     await record(client, { trackId: "track-1", prdArg: SPEC_THE_AGENT_NAMED });
 
-    expect(reads).not.toContain("spine_track_members");
+    // Narrowed by F-65, not weakened: this tool now legitimately reads the same
+    // table for the DECISION the verdict grades, which is a different question
+    // from "where is the spec". The property under test is unchanged — a spec
+    // already in hand is never looked up again.
+    expect(reads).not.toContain("spine_track_members:prd");
   });
 
   it("keeps the mission hop ahead of the track, so the human path is unchanged", async () => {

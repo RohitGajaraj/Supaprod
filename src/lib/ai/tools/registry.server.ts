@@ -4701,6 +4701,25 @@ const learningRecord = def({
     metric_label: z.string().min(1).max(120).optional(),
     metric_value: z.string().min(1).max(120).optional(),
     prd_id: z.string().uuid().optional(),
+    /**
+     * F-65. THE DECISION WHOSE FORECAST THIS VERDICT GRADES.
+     *
+     * `learnings.decision_id` has existed as a column and **nothing has ever
+     * written it**: 133 learnings in production, `decision_id` NULL on all 133.
+     * The forecast and its outcome have never once been joined.
+     *
+     * That join is not a nicety. The forecast is written at Decide and nowhere
+     * else; the verdict is written here; and **the whole claim of this product
+     * is that the two connect** — what a team believed would happen, recorded
+     * before the outcome was known, then graded against what did. A verdict that
+     * attaches to a spec but not to the bet it settles cannot answer *"were we
+     * right?"*, which is the only question the brain exists to answer.
+     *
+     * OPTIONAL AND RESOLVED, exactly like `prd_id` above it: an agent that does
+     * not name one gets it derived from the mission, then the track, because an
+     * outcome the agent forgot to attach should be linked rather than orphaned.
+     */
+    decision_id: z.string().uuid().optional(),
   }),
   preview: (a) =>
     `Record learning (${a.verdict}): "${a.summary.slice(0, 60)}${a.summary.length > 60 ? "..." : ""}"`,
@@ -4812,6 +4831,38 @@ const learningRecord = def({
       resolvedPrdId = (fromTrack as { artifact_id?: string | null } | null)?.artifact_id ?? null;
     }
 
+    /*
+     * F-65. Resolve the decision the same way, and in the same order of trust:
+     * what the agent named, then the mission, then the track's own record.
+     *
+     * `spine_track_members` is the honest source at the track level — it is
+     * where Decide filed its decision, so it answers "which bet is this track
+     * about" without guessing. Left NULL when nothing resolves, deliberately: a
+     * verdict attached to the WRONG decision is worse than one attached to none,
+     * because it would re-grade a bet nobody made here.
+     */
+    let resolvedDecisionId: string | null = a.decision_id ?? null;
+    /*
+     * NO MISSION HOP HERE, and that is a considered omission rather than a
+     * shortcut. `prd_id` needs one because a spec can be attached in several
+     * ways; a decision has exactly one place it is ever filed — Decide puts it
+     * on the track's own record — so `spine_track_members` is the single
+     * authoritative source and a second lookup would only add a way to disagree
+     * with it.
+     */
+    if (!resolvedDecisionId && trackId) {
+      const { data: fromTrack } = await supabase
+        .from("spine_track_members" as never)
+        .select("artifact_id")
+        .eq("track_id", trackId)
+        .eq("artifact_kind", "decision")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      resolvedDecisionId =
+        (fromTrack as { artifact_id?: string | null } | null)?.artifact_id ?? null;
+    }
+
     if (resolvedPrdId) {
       const { data: prd } = await supabase
         .from("prds")
@@ -4870,6 +4921,10 @@ const learningRecord = def({
         // The RESOLVED id, not the raw argument: an outcome the agent did not attach
         // is linked through its mission rather than written as an orphan.
         prd_id: resolvedPrdId,
+        // F-65. The bet this verdict settles. NULL when nothing resolved, never
+        // a guess: attaching a grade to the wrong decision re-ranks a bet nobody
+        // made here, and every verdict compounds into later guidance.
+        decision_id: resolvedDecisionId,
         opportunity_id: opportunityId,
         summary: a.summary,
         verdict: a.verdict,

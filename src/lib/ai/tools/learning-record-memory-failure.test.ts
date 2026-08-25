@@ -57,9 +57,11 @@ const learningRecord = TOOL_REGISTRY["learning.record"] as ToolDef;
 
 const PRD_ID = "11111111-1111-4111-8111-111111111111";
 
-/** Minimal Supabase stand-in covering exactly the four reads/writes this tool
- *  makes when it is handed a prd_id: the spec, the bet, the re-score, and the
- *  learnings insert that must survive a memory miss. */
+/** Minimal Supabase stand-in covering exactly the reads/writes this tool makes
+ *  when it is handed a prd_id: the spec, the decision lookup (F-65), the bet,
+ *  the re-score, and the learnings insert that must survive a memory miss.
+ *  It THROWS on any other table on purpose — that is what caught F-65's new
+ *  query rather than letting it pass silently against a permissive fake. */
 function fakeDb() {
   const inserted: Array<Record<string, unknown>> = [];
   const client = {
@@ -75,6 +77,29 @@ function fakeDb() {
                   title: "Inline approvals",
                 },
                 error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      /*
+       * F-65 added a decision lookup: `learning.record` now resolves the bet
+       * whose forecast the verdict settles, so the outcome stops being an orphan
+       * (133 production learnings carried decision_id NULL).
+       *
+       * Returns NO ROW on purpose. This test is about a memory-write failure
+       * being reported rather than swallowed, and the tool must behave
+       * identically whether or not a decision resolves — so the case exercised
+       * here is the one where none does, which is also the honest default.
+       */
+      if (table === "decisions") {
+        return {
+          select: () => ({
+            eq: () => ({
+              order: () => ({
+                limit: () => ({
+                  maybeSingle: async () => ({ data: null, error: null }),
+                }),
               }),
             }),
           }),

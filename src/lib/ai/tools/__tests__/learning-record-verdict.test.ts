@@ -194,12 +194,14 @@ describe("what a verdict is worth downstream", () => {
      * Asserted against the source because `importance` is passed to
      * `rememberOutcome` inside `run`, which needs a database to reach.
      */
-    const source = readFileSync(
-      join(import.meta.dir, "../registry.server.ts"),
-      "utf8",
-    );
+    const source = readFileSync(join(import.meta.dir, "../registry.server.ts"), "utf8");
+    // Bounded by the NEXT tool definition rather than a fixed character count.
+    // The magic number was 20,000 and F-65's comment pushed `importance: 5,`
+    // past it, so the test failed on a change that could not affect what it
+    // asserts. A window that ends where the tool ends cannot rot that way.
     const at = source.indexOf('name: "learning.record"');
-    const body = source.slice(at, at + 20000);
+    const next = source.indexOf('name: "', at + 40);
+    const body = source.slice(at, next > at ? next : source.length);
     expect(body).toContain("importance: 5,");
     expect(body.replace(/\/\*[\s\S]*?\*\//g, "")).not.toContain('=== "uncertain"');
   });
