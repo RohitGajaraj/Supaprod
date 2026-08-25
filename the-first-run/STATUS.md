@@ -95,6 +95,17 @@ buy a materially different run.
 **What is needed:** a top-up on account `164e0692`. Nothing else is blocked on it — the whole backlog
 below is buildable without a single agent run.
 
+**AND THE PLATFORM IS READY FOR THOSE CREDITS.** Every fix from tonight is deployed, verified by
+reading the files back off Lovable rather than by trusting a status field:
+`src/lib/rag/workspace-records.server.ts` and `src/components/meridian/composer-height.ts` are both
+present at Lovable HEAD, and the second is the newest thing I wrote — so everything before it
+(F-14, F-15, F-16, F-19, F-20, F-21) is live. **The next credits meet fixed code, not the code that
+burned the last 750.**
+
+> **`latest_commit_sha` from `get_project` is not a deploy marker and went BACKWARDS tonight** — it
+> reported one commit, then two later ones, then an ancestor of all three, while the files on disk
+> were newer than any of them. It is not merely late, it is not ordered. **Read the file back.**
+
 ## What is actually blocking the acceptance
 
 1. **Credits.** Above. Nothing runs without them.
