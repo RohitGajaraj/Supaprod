@@ -88,6 +88,4 @@ Both were separate top-level folders until 2026-08-04. They are operational conc
 | [`parallel-build.md`](./parallel-build.md) | **Retired 2026-08-03, description only.** The lane mechanics and the atomic claim ledger at `~/.cadence-parallel`. Reviving this means rebuilding the worktrees; do not assume the commands still work. |
 | [`security/audit-findings-july.md`](./security/audit-findings-july.md) | Superseded by [`../security/`](./security/README.md), which owns audit state now. |
 | [`archive/session-handoff-2026-08-05-evening.md`](./archive/session-handoff-2026-08-05-evening.md) | **A single evening's handoff, rotated out of the live one.** Archived because a dated filename marks a record of one event, not a living doc. [`session-handoff.md`](./session-handoff.md) is the live pair-half and carries the current cursor; this is the snapshot it replaced. Read it only when a question reaches past what the live one still says. |
-- [Mission gate verification](./mission-gate-verification.md) — the end-to-end loop checklist (moved from `docs/` root 2026-08-25 for placement only; content untouched)
-- [Proof path](./proof-path.md) — what would have to be true for the loop to be proven (moved from `docs/` root 2026-08-25 for placement only; content untouched)
 
