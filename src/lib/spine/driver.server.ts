@@ -2079,6 +2079,71 @@ export async function driveTrackOnce(
     // `filed` was computed before the crew ran, so using it alone would judge the
     // station on the state it inherited.
     const filedNow = [...filed, ...attached.map((a) => a.artifactKind)];
+
+    /*
+     * F-72. A STAGED CHANGESET IS NOT A BUILT CHANGE, AND SHIP CANNOT WORK FROM ONE.
+     *
+     * MEASURED ON THE LIVE RUN, 2026-08-25 16:40. Build's visit made three
+     * `studio.stage` calls, **no `studio.commit` and no `studio.pr.open`** — and
+     * `build -> ship` fired **four seconds after the last stage**:
+     *
+     *   16:40:40 studio.stage ok · 16:40:55 studio.stage ok · 16:41:16 studio.stage ok
+     *   16:41:21 build -> ship   (sweep)
+     *   16:50    ship: github.ci.read FALSE — no PR exists, produced-nothing
+     *
+     * WHY THE EXISTING GATES BOTH PASS IT, which is the whole defect.
+     * `STATION_ARTIFACT.build` is `createdBy: "studio.stage"`, so **staging alone
+     * files Build's artifact** and `producedThisVisit` is true.
+     * `STATION_NEEDS.ship` asks for a `changeset`, and a staged row **is** a
+     * changeset, so `needIsMet` is true. Both checks ask whether a thing of the
+     * right KIND exists. Neither asks whether it is FINISHED.
+     *
+     * The cost is not a wrong row, it is a cycle: Ship arrives, finds no pull
+     * request and no CI to read, files nothing, burns its attempts, and
+     * `decideCorrection` sends the work back to Build — the 13:21 and 14:50
+     * bounces, repeating, at roughly ninety seconds of real crew work each.
+     *
+     * `staged` is the only status that means "nothing left the platform".
+     * `committed`, `pr_open` and `merged` all mean a branch exists that Ship can
+     * point at. So this refuses on exactly one value rather than allow-listing
+     * the others, which keeps a future status working by default instead of
+     * silently blocking.
+     *
+     * Read fresh rather than from `attached`: the crew may have staged and then
+     * committed within the same visit, and judging it on the row it created
+     * first would hold work that is genuinely finished.
+     */
+    if (station === "build") {
+      const { data: csRows } = await supabase
+        .from("studio_changesets")
+        .select("id,status")
+        .eq("track_id", row.id)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      const csStatus = (csRows?.[0] as { status?: string } | undefined)?.status ?? null;
+      if (csStatus === "staged") {
+        await supabase
+          .from("spine_tracks" as never)
+          .update({
+            attempts: (row.attempts ?? 0) + 1,
+            last_hold: "nothing-to-hand-on",
+            driven_at: new Date().toISOString(),
+          } as never)
+          .eq("id", row.id);
+        return {
+          trackId: row.id,
+          station,
+          moved: false,
+          arrivedAt: null,
+          hold: "nothing-to-hand-on",
+          line: flagged(
+            "The change is staged but not committed, so there is no branch for Ship to point at. Call studio.commit, then studio.pr.open.",
+          ),
+          attached,
+        };
+      }
+    }
+
     if (!needIsMet(STATION_NEEDS[arrivedAt], filedNow)) {
       await supabase
         .from("spine_tracks" as never)
