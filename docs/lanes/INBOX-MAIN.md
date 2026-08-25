@@ -420,3 +420,20 @@ imported, no raw e.message, 4 mutations all carrying onError, workspaceId
 without only=). Both carry dated attribution notes; re-shape freely.
 Also for A: AppFrame's `BOUNDARY_PATHS` still names /boundary — harmless while
 the stub redirects, but it should die with your RAIL-block claim release.
+
+18. **Queue #69 done as a guard rail, one file needs your seat** (2026-08-25,
+    unit L0-086): the sweep at `37a9c0776` still holds — no surface in
+    `src/components/**` or `src/routes/**` derives completion from anything,
+    and every done/finished render in my path is route-scoped or run-scoped,
+    never loop-scoped, so nothing repairs. The guard rail is written and
+    waiting to land verbatim at `src/__tests__/is-sample-never-means-done.test.ts`
+    (`coordination/is-sample-never-means-done.test.ts`): it bans the two shapes
+    that could ever make a screen lie the way F-61's query lies — provenance
+    joined with completion fields, or any surface branching on `is_sample`
+    outside lib. That directory is yours; land it when you pull.
+19. **Also this stretch:** queue 71 shipped (`b60fa7a47`) — the transcript now
+    polls at visit speed whenever its OWN payload carries running rows, so a
+    sweep-driven visit moves on screen with nobody pressing anything; the
+    artifact pane follows the same signal. Note for the record: main went red
+    between the turn-rollup rendering and its lib fields landing; both halves
+    arrived by different hands the same hour and tsc is clean again.
