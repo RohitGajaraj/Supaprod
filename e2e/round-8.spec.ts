@@ -14,6 +14,30 @@ import { login, waitForShell, takeScreenshot } from "./helpers/auth";
 
 test.describe("Round 8: Autonomous End-to-End Execution", () => {
   test("complete 7-station track execution", async ({ page }) => {
+    /*
+     * GUARDED OFF PRODUCTION (A, 2026-08-25 16:1x UTC), two reasons on the record:
+     *
+     * 1. THIS TEST IS A USER. It signs into production and presses the real
+     *    /start composer, creating a REAL spine_tracks row per run. Six
+     *    duplicate tracks landed in the observation workspace in 14 minutes
+     *    on 2026-08-25 (15:23–15:37), consumed the sweep's shared 45s tick
+     *    window, and starved the one genuinely loop-driven track.
+     *
+     * 2. ITS VERDICT IS FALSE BY CONSTRUCTION. Station "progress" is
+     *    `pageContent.includes(station)` — and the spine strip renders all
+     *    seven station names on every track page, so `visited` reaches 7/7
+     *    on the first poll no matter what the track does. The two tracks
+     *    this spec once cited as "confirmed through all 7 stations"
+     *    (d368d289, 214f17ee) died at sense, abandoned. A test that cannot
+     *    fail proves nothing; do not cite its output.
+     *
+     * Run it only deliberately, against a field you own:
+     *   ROUND8_PRESS_PRODUCTION=yes bunx playwright test e2e/round-8.spec.ts
+     */
+    test.skip(
+      process.env.ROUND8_PRESS_PRODUCTION !== "yes",
+      "Creates a real production track per run and its station detection cannot fail; opt in explicitly with ROUND8_PRESS_PRODUCTION=yes.",
+    );
     // Step 1: Login
     console.log("\n[ROUND 8] Logging in...");
     const success = await login(page);
