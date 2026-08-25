@@ -75,6 +75,43 @@ export function BillingBanner() {
   const exhausted =
     !!credits.data?.enabled && balance !== null && balance <= 0 && !credits.isLoading;
 
+  /*
+   * RUNWAY IN RUNS, NOT MINUTES (RL0-024-025-024). A run is a near-uniform unit
+   * of cost -- mean over median spend per run is 1.11 -- while burn-per-minute
+   * swung 22x across windows and read Infinity mid-spend. MAIN's
+   * `credit_runway` RPC does the scoped arithmetic server-side; NULL
+   * `runs_left` means the window holds no spend yet, and that unknown is
+   * rendered as words, never as a fabricated number.
+   */
+  const accountId = credits.data?.accountId ?? null;
+  const [runway, setRunway] = useState<number | null | "unknown">(null);
+  useEffect(() => {
+    if (!accountId) return;
+    let cancelled = false;
+    (async () => {
+      // The generated RPC union predates the migration, so the call goes
+      // through a structural cast -- the same house idiom the generated-types
+      // lag forces elsewhere. The definer body re-checks membership.
+      const rpc = supabase.rpc as unknown as (
+        fn: string,
+        args: Record<string, unknown>,
+      ) => PromiseLike<{ data: unknown; error: { message: string } | null }>;
+      const { data, error } = await rpc("credit_runway", {
+        for_account: accountId,
+        window_days: 7,
+      });
+      if (cancelled || error) {
+        if (!cancelled) setRunway("unknown");
+        return;
+      }
+      const row = (data as Array<{ runs_left: number | null }> | null)?.[0] ?? null;
+      setRunway(row ? (row.runs_left ?? "unknown") : "unknown");
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [accountId]);
+
   useEffect(() => {
     // Dormant payments = no subscriptions to dun. Skip entirely rather than
     // let getStripeEnvironment() throw inside this un-awaited async closure
@@ -191,8 +228,15 @@ export function BillingBanner() {
           }}
         >
           <span>
-            Running low: {balance} AI {balance === 1 ? "credit" : "credits"} left. Top up or upgrade
-            so the loop keeps running.
+            {balance !== null && balance > 0
+              ? `Running low: ${balance} AI ${balance === 1 ? "credit" : "credits"} left. `
+              : ""}
+            {typeof runway === "number"
+              ? `That is about ${runway} more ${runway === 1 ? "run" : "runs"} at the recent rate. `
+              : runway === "unknown"
+                ? "How many runs that buys is not known yet. "
+                : ""}
+            Top up or upgrade so the loop keeps running.
           </span>
           <Link
             to="/settings"
