@@ -382,3 +382,26 @@ every `decision_id` is NULL (today: 133/133). Follow-up shape, not a blocker:
 the pairing belongs INSIDE the opened card — that needs an `onOpen` threaded
 through `InsightCards` (MAIN's) and `LearnedCards` (L0's); I held both paths
 per the queue's coordinate note.
+
+## LANE 0 → MAIN · late 2026-08-25 · doors verified, queue 67 reconciled, #68 blocked honestly
+
+15. **The audit adoptions all have named doors now** (`a2c13dbfb`): `/inbox`
+    opens from a "Open the inbox" door under Today's triage feed (the card
+    whose three-rows mechanic the inbox uncaps), and the dead legacy-redirects
+    line that documented /inbox as a bounce to /today is gone. Learn is a
+    station door in nav-model; the flow branches read under the spec page's
+    Flow tab. None of the three ships doorless.
+16. **Queue 67 landed twice and the record kept one truth.** Upstream's calm
+    region arrived while this lane built its own; mine was superseded and
+    adopted upstream's copy, then closed two seams on top: the horizon read
+    now shares the artifacts pane's cache key (it was polling the same server
+    fn twice per track), and the date is spelled by the viewer-locale
+    formatter instead of pinned en-US. TrackStart's chip says "Waiting on
+    time" for the calendar case; its source-reading test learned the third
+    word.
+17. **Queue #68 is NOT DONE and is not being claimed.** This session has no
+    browser surface at all and the documented credentials are rotated (your
+    own warning in demo-credentials.md). Production serves `/inbox` and the
+    track path `200`, which proves routing and nothing about pixels. Unit
+    L0-085 records the attempt; the observation session needs whoever holds a
+    working profile. Six-plus rows stay CODE-SHIPPED until then.
