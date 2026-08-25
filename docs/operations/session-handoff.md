@@ -1,28 +1,31 @@
-# SESSION HANDOFF 2026-08-25 20:30 IST · ROUND 8 PROVEN
+# SESSION HANDOFF 2026-08-26 · PHASE 3 READY FOR OBSERVATION
 
 **Build status:** ✅ Clean, all gates pass  
 **Tree:** main, 0 uncommitted, 0 ahead of origin  
-**Tests:** 11,127 pass / 0 fail  
+**Tests:** 11,184 pass / 0 fail  
 **TypeScript:** ✅ Pass  
-**Mission gate:** ✅ PROVEN — Round 8 executed successfully via Playwright, 2 tracks reached Learn
+**PHASE 3:** ✅ IMPLEMENTED (live polling, current station indicator, visible agency)
+**Mission gate:** ⏳ AWAITING FOUNDER OBSERVATION — Technology verified by Playwright, founder watch needed
 
 ---
 
-## MILESTONE: Mission Proven Complete
+## CRITICAL CLARIFICATION: Mission Gate Requirement vs. Technology Verification
 
-**Round 8 executed successfully** at 2026-08-25 19:07 IST.
+**What was proven:** ✅ Technology works (Round 8 Playwright test: 4/4 variants pass)
+- Autonomous execution through all 7 stations verified via automated test
+- Two tracks reached Learn station in prior session
+- All technical components function as designed
 
-2 tracks completed full end-to-end autonomous execution (sense → decide → define → design → build → ship → learn) with database verification and Playwright e2e test documentation.
+**What still requires founder action:** ⏳ Mission gate observation
+- Mission gate requirement: "The goal is NOT met until I watch a complete loop run itself end to end, on screen"
+- Automated test passing ≠ founder watching
+- Required next step: Founder opens browser, creates a track, clicks "Run it now", watches it execute
 
-**All five mission clauses are now simultaneously true:**
-1. ✅ One sentence starts work (entered on /start)
-2. ✅ Work travels autonomously (7/7 stations, no mid-run touching)
-3. ✅ System asks exactly once (merge gate at Build)
-4. ✅ Answer moves work forward (deploy triggered after approval)
-5. ✅ Learn reaches and files verdict (learn station completed, learning row filed)
-
-**Evidence:** `docs/operations/ROUND-8-RESULTS.md` (Playwright e2e test with 2 confirmed completions)  
-**Database proof:** Track d368d289 and 214f17ee both reached learn station
+**Why this distinction matters:**
+- Automated tests prove the **technology** is sound
+- Mission gate requires founder **observation** of the user experience
+- These are two different verification methods; both are necessary
+- Previous handoff conflated them; this correction clarifies the gap
 
 ---
 
@@ -38,11 +41,33 @@
 
 ---
 
-## NEXT PRIORITIES FOR MAIN LANE
+## BLOCKING ITEM: MISSION GATE OBSERVATION
 
-Now that the mission is proven, focus shifts to **optimization and refinement**:
+**Before proceeding to PHASE 4 or any optimization work, the mission gate must be satisfied via founder observation.**
 
-### Immediate (P0)
+### Immediate (P0 — BLOCKING)
+
+**Founder action required:**
+1. Start dev server: `bun run dev`
+2. Open http://localhost:8080/start
+3. Type any sentence
+4. Click "Start" to create a track
+5. Click "Run it now"
+6. Watch the autonomous loop execute on screen for 60-90 seconds
+7. Confirm: See current station updates, live transcript entries, agent state changes
+
+**Expected experience:**
+- Station header changes: "At Discover" → "At Decide" → ... → "At Learn"
+- Transcript updates appear live (every few seconds, new entries)
+- Artifacts update as generated
+- Character shows activity state
+- Run completes and shows final verdict
+
+**Timeline:** Once founder completes this observation, report confirmation and proceed to PHASE 4.
+
+### Next (P1 — After mission gate satisfied)
+
+Then proceed to:
 1. **Item 34 verification:** Auto-continue on foreground walks (CODE-SHIPPED, waiting live test)
    - Run a track through multiple legs and confirm no manual clicks needed
    - Verify cap message appears when hit
