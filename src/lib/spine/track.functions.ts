@@ -2019,7 +2019,18 @@ const FOREGROUND_WINDOW_MS = 50_000;
 
 export const driveTrackNow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))
+  .inputValidator(
+    /*
+     * `origin` IS REQUIRED FOR THE SAME REASON `via` IS on `driveTrackOnce`
+     * (queue 64, same argument as F-55): a defaulted origin would answer for a
+     * call site that never considered whether it is a person acting or the
+     * client continuing, and the answer it invented would be the one the record
+     * later has to distrust. One press that walks a whole route and ten manual
+     * nudges wrote identical rows until this parameter existed.
+     */
+    (d: { trackId: string; origin: "press" | "continuation" }) =>
+      z.object({ trackId: z.string().uuid(), origin: z.enum(["press", "continuation"]) }).parse(d),
+  )
   .handler(async ({ context, data }): Promise<DriveNowResult> => {
     const { supabase, userId } = context;
     const steps: DriveStep[] = [];
@@ -2081,12 +2092,14 @@ export const driveTrackNow = createServerFn({ method: "POST" })
 
       // A FRESH CLOCK PER SEAT. This single argument is what separates a watched
       // run from the sweep's rationed one. See the header.
-      // F-55. `"foreground"` because somebody is looking at this. The whole
-      // point of this walk is that a person pressed a control and is watching it
-      // move, so every transition it writes is disqualified from being evidence
-      // of an unattended run — and now says so on the record instead of being
-      // indistinguishable from the sweep.
-      const outcome = await driveTrackOnce(supabase, driveRow as never, "foreground", Date.now());
+      // F-55 / queue 64. The caller's own `origin` — `press` when a person
+      // acted, `continuation` when the client is walking on from a closed
+      // window — because somebody is looking at this either way. Every
+      // transition it writes stays disqualified from being evidence of an
+      // unattended run, and the record now also says whether a HUMAN caused
+      // this specific leg, which is the half of criterion 2 about touching a
+      // run mid-flight rather than about watching it.
+      const outcome = await driveTrackOnce(supabase, driveRow as never, data.origin, Date.now());
 
       steps.push({
         station: outcome.station,

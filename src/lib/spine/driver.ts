@@ -266,12 +266,20 @@ export function stationCrew(station: AgentStation): CrewRole[] {
 /**
  * F-55. How a drive was asked for, which is a different question from who did it.
  *
- * `sweep` is the unattended cron; `foreground` is a person pressing the control
- * on a watched run. Agents do the work on both, so `stage_events.actor` reads
- * `system` either way — and that is why criterion 2 needed its own field rather
- * than a re-reading of an existing one.
+ * `sweep` is the unattended cron. The watched path splits in two (queue 64):
+ * `press` is a person acting — the composer landing, the Run control, a gate
+ * being answered — and `continuation` is the client walking on from a leg that
+ * stopped only because its window closed. Before the split both wrote
+ * `foreground`, so one press that bought a whole route and ten manual nudges
+ * were identical on the record; the half of criterion 2 that allows a single
+ * press but forbids mid-run touching was unprovable. Agents do the work on
+ * every path, so `stage_events.actor` reads `system` either way — which is why
+ * criterion 2 needed its own field rather than a re-reading of an existing one.
+ *
+ * `foreground` survives only in rows written before the split, where it means
+ * "watched, origin unrecorded" — it is not a value any caller may write today.
  */
-export type DrivenVia = "sweep" | "foreground";
+export type DrivenVia = "sweep" | "press" | "continuation";
 
 /** Why the driver did not move a track. Every one is reported, never silent. */
 export type HoldReason =

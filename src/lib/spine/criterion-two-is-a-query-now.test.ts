@@ -41,6 +41,10 @@ const EVENTS = read("../stage-events.server.ts");
 const MIGRATION = read(
   "../../../supabase/migrations/20260825100000_a_transition_records_whether_anyone_was_watching.sql",
 );
+const TRACKRUN = read("../../components/track/TrackRun.tsx");
+const SPLIT_MIGRATION = read(
+  "../../../supabase/migrations/20260825113500_one_press_is_not_ten_presses.sql",
+);
 
 describe("both callers have to say which they are", () => {
   /**
@@ -62,9 +66,30 @@ describe("both callers have to say which they are", () => {
     expect(SWEEP).toContain('driveTrackOnce(client, row, "sweep"');
   });
 
-  it("the watched walk declares itself the foreground", () => {
-    expect(WATCHED).toContain('"foreground"');
-    expect(WATCHED).toContain('driveTrackOnce(supabase, driveRow as never, "foreground"');
+  /**
+   * Queue 64. The watched walk no longer answers for its caller: it FORWARDS
+   * the caller's own answer, and the input schema makes that answer required.
+   * `"foreground"` is retired as a writable value — a watched row now says
+   * whether a person caused it (`press`) or the client was walking on from a
+   * window-closed leg (`continuation`), which is the difference between one
+   * press buying a route and ten nudges pretending to be one.
+   */
+  it("the watched walk forwards its caller's origin, and requires one", () => {
+    expect(WATCHED).toContain('z.enum(["press", "continuation"])');
+    expect(WATCHED).toContain("driveTrackOnce(supabase, driveRow as never, data.origin");
+    // The retired umbrella must never be writable again from this path.
+    expect(WATCHED).not.toContain('driveTrackOnce(supabase, driveRow as never, "foreground"');
+  });
+
+  it("every press site says press, and only the window-closed leg says continuation", () => {
+    // Exactly one continuation: the auto-continue timer. A second one appearing
+    // is a call site claiming nobody acted when the code cannot know that.
+    expect([...TRACKRUN.matchAll(/run\.mutate\("continuation"\)/g)].length).toBe(1);
+    // The three human acts: composer landing (auto-start), the Run control,
+    // and a gate being answered.
+    expect([...TRACKRUN.matchAll(/run\.mutate\("press"\)/g)].length).toBe(3);
+    // No call site left that never considered the question.
+    expect(TRACKRUN).not.toContain("run.mutate()");
   });
 
   /**
@@ -110,6 +135,23 @@ describe("what it must not do", () => {
     expect(MIGRATION).not.toMatch(/update\s+public\.stage_events\s+set/i);
     expect(MIGRATION).not.toContain("not null");
     expect(MIGRATION).toContain("driven_via is null or driven_via in ('sweep', 'foreground')");
+  });
+
+  /**
+   * Queue 64's split obeys the same law. `'foreground'` rows predate the
+   * press/continuation question and honestly cannot answer it; rewriting them
+   * as either value would fabricate the distinction the split exists to record,
+   * so the constraint keeps the old value readable and no row is touched.
+   */
+  it("the split keeps foreground readable and rewrites nothing", () => {
+    expect(SPLIT_MIGRATION).not.toMatch(/update\s+public\.(stage_events|spine_tracks)\s+set/i);
+    expect(SPLIT_MIGRATION).not.toContain("not null");
+    expect(SPLIT_MIGRATION).toContain(
+      "driven_via is null or driven_via in ('sweep', 'foreground', 'press', 'continuation')",
+    );
+    expect(SPLIT_MIGRATION).toContain(
+      "last_driven_via is null or last_driven_via in ('sweep', 'foreground', 'press', 'continuation')",
+    );
   });
 });
 

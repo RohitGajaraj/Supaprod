@@ -222,7 +222,14 @@ export function TrackRunLeft({
   } | null>(null);
 
   const run = useMutation({
-    mutationFn: () => drive({ data: { trackId } }),
+    /*
+     * Queue 64. Every caller says whether a PERSON caused this leg (`press`:
+     * the composer landing, the Run control, a gate being answered) or the
+     * client is walking on from a window-closed leg of that press
+     * (`continuation`). Required by the server fn, so a new call site cannot
+     * quietly write a row the record later has to distrust.
+     */
+    mutationFn: (origin: "press" | "continuation") => drive({ data: { trackId, origin } }),
     /*
      * Both panels read their own tables, so the walk's writes are invisible to
      * them until their queries are told. `TrackActivity` polls every ten
@@ -288,7 +295,9 @@ export function TrackRunLeft({
     if (track.drivenAt !== null) return;
     autoStartedRef.current = true;
     setLegsLeft(AUTO_MAX);
-    run.mutate();
+    // `press`: the person's act was submitting the composer; landing here is
+    // that press arriving, not the client deciding anything on its own.
+    run.mutate("press");
   }, [autoStart, track, trackQ.isLoading, run]);
 
   /*
@@ -318,7 +327,7 @@ export function TrackRunLeft({
     if (!canContinue) return;
     const t = window.setTimeout(() => {
       setLegsLeft((n) => n - 1);
-      run.mutate();
+      run.mutate("continuation");
     }, 500);
     return () => window.clearTimeout(t);
     // `result` changes identity on every settle, which is what walks the chain
@@ -391,7 +400,8 @@ export function TrackRunLeft({
        * the work straight back up; that chain IS the item, and a card without
        * it is the approvals queue again.
        */}
-      <TrackConsent trackId={trackId} onAnswered={() => run.mutate()} />
+      {/* Answering a gate is a person acting: `press`, never `continuation`. */}
+      <TrackConsent trackId={trackId} onAnswered={() => run.mutate("press")} />
 
       {showHold && track ? (
         <Region title="Why it stopped" sub="This work is not moving until this clears.">
@@ -463,7 +473,7 @@ export function TrackRunLeft({
             busy={run.isPending}
             onClick={() => {
               setLegsLeft(AUTO_MAX);
-              run.mutate();
+              run.mutate("press");
             }}
           >
             {run.isPending ? "Walking the route" : "Run it now"}

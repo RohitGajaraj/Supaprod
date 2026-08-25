@@ -47,13 +47,16 @@ export interface StageEventInput {
    * walk as unattended, having read `actor` and got a true answer to the
    * neighbouring question.
    *
-   * `'sweep'` is the unattended cron. `'foreground'` is a person pressing run.
+   * `'sweep'` is the unattended cron. `'press'` is a person acting on a watched
+   * run; `'continuation'` is the client walking on from a window-closed leg of
+   * that press (queue 64 split the old `'foreground'`, which now appears only
+   * in rows written before the split and means "watched, origin unrecorded").
    * **Absent means the writer does not know**, and it stays absent rather than
    * defaulting, because a default would answer for callers that never asked —
    * which is the R-22 hazard pointing the other way round: here the UNSAFE
    * reading is the one that claims autonomy.
    */
-  drivenVia?: "sweep" | "foreground" | null;
+  drivenVia?: "sweep" | "press" | "continuation" | null;
   workspaceId?: string | null;
   userId?: string | null;
 }
