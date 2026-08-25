@@ -4382,3 +4382,88 @@ says `connected` with no secret, and the driver says `produced-nothing` when the
 have surfaced F-38, F-39 and F-41 a month ago.
 
 **Round 4 is circling, not finished.** 5 of 7 stays the high-water mark. Zero of six criteria.
+
+---
+---
+
+# SESSION HANDOFF 2026-08-25 ~13:3x IST (08:0x UTC) · MAIN LANE · eight defects, and the one that hid them
+
+> **APPENDED, not replacing.** Three lanes write this file and I lost four push races
+> tonight. Everything above is somebody else's session.
+
+**Gates at close:** `tsc` 0 · `bun test` **10,947 pass / 0 fail / 650 files** ·
+`docs:check` clean · eslint clean. Verified on the MERGED tree after rebasing onto both
+other lanes, not on mine alone.
+
+## THE ACCEPTANCE IS NOT MET. ZERO OF SIX.
+
+Round 6 (`48eee889-cc0a-43fe-aa78-7130b4e2852e`) reached **`define`, 3 of 7**, on a route
+with **all seven stations and nothing waived** — the first round that could satisfy the
+acceptance as written. It is still walking.
+
+**Two rounds are disqualified for criterion 2 and I will not claim either later.** Round 4
+because I retired 128 memories 71 seconds before Decide filed; Round 6 because I stopped 40
+competing tracks by hand while it was mid-walk. Its own run was untouched — no station
+re-driven, no artifact edited — but I changed the world around it.
+
+## THE ONE PATTERN THAT EXPLAINS MOST OF TONIGHT
+
+**Something was built, and the trigger was never wired.** Six instances:
+
+| Built | Never wired |
+| --- | --- |
+| `agent_memory.expires_at`, honoured by `match_agent_memory` | `recent_agent_reflections` ignored it — the path carrying self-written lessons (**F-31**) |
+| Founder ruling 2026-07-08 putting `studio.commit`/`pr.open` in `BUILD_LANE_AUTONOMOUS` | **no station brief named them, for seven weeks** (**F-36**) |
+| `validateConnection` | no tick calls it, so a dead credential read `connected` for a month (**F-39**) |
+| `autoSeedTargets` | gated behind a brief nobody fills (**F-37**) |
+| `activation_events` + a full funnel | one call site, no `userId` — 38 events, **0 attributable** (**F-40**) |
+| `studio_changesets.code_review` | fetched by nothing until today (**L0-025**) |
+
+**And the reporting failure that let them hide:** four surfaces reported healthy while dead —
+the scout returns `ok: true` when dormant, `connections.status` says `connected` with no
+secret, `latest_commit_sha` went backwards, and the driver filed a 401 as `produced-nothing`.
+
+## THE MONEY, WHICH THE FOUNDER ASKED ABOUT DIRECTLY
+
+- **F-43** · `out-of-time` never counts an attempt, so a station that always runs out of time
+  **is dispatched forever**. **316 runs on one track since 2026-08-01 with `attempts: 0`**;
+  **40 open tracks past any ceiling, ~$10.62.** Fixed: `station_drives` + `MAX_STATION_DRIVES
+  = 12` + the terminal `going-in-circles`. **All 40 backfilled with their true counts.**
+- **F-45** · **38 tables default `workspace_id` to `current_user_default_workspace()`, which
+  is NULL for every cron.** The INSERT dies `23502` and every call site swallows it. **The
+  account spend cap had not metered in ten days** while 8,373 calls went through — it was not
+  set too high, **it could not count.** Fixed and proven: `ai_budgets` 6 → 7 rows, meter moved
+  2026-08-15 → 07:21:11.
+- **Same root cause, still open:** RAG blind since **2026-08-09** (58,874 embeddings bought
+  into a 17-row table), and the $5 track cap undercounting **1.33x**. Queued 50 and 51.
+
+## WHAT NEEDS THE FOUNDER
+
+1. **F-39 · GitHub.** The live workspace had **no binding at all** and its owner
+   (`demo2@`, **suspended**) has zero GitHub connections, so it fell through to a legacy env
+   var. **Harbor is the only account with a connection AND a binding**, and it is untested —
+   no repo call has ever been made as harbor. Steps: `docs/operations/github-and-demo-account-setup.md`.
+2. **F-18 · the Ship gate**, and it moved: **`AUTO_SHIP_ENABLED` is real and wired**,
+   resolving `studio.pr.merge` to `confirm`. Option (b) is already the mechanism for the merge
+   gate, not a hypothetical.
+3. **F-38 · ingestion has never run.** 0 scout targets in 21 of 21 workspaces, 0 snapshots
+   ever, off three independent ways.
+4. **F-42 · every workspace a person would be shown is excluded from the loop.** 12 of 21 are
+   `is_sample`, including every investor account. Flipping harbor's took it from 14 minutes
+   untouched to **driven in 8 seconds**.
+
+## FOR WHOEVER PICKS THIS UP
+
+- **I got the same class of thing wrong four times, always the same way: a narrow pattern read
+  as a clean result.** `you must not|decline` missed `reject|require|verify` (53 vs 144).
+  `[a-z_]*\.[a-z_]*` cannot match `studio.pr.merge`. `delta_credits < 0` swept up a cycle
+  reset. **Widen the pattern before believing a count.**
+- **A fix that shipped and did not fire is not a fix.** R-26 deployed twice and stayed silent
+  because it read in-memory steps the driver cannot observe from where the verdict is made. It
+  now reads `tool_calls`, which is where the 401 provably lives.
+- **My own code predicted one of my bugs in writing.** `credit-runway.server.ts:96-100` warned
+  that widening that filter "would silently turn a monthly cycle correction into a burn rate".
+  I widened it the same day in a different file without reading it.
+- **Every lane answer this session was produced twice** — an author and an adversarial verifier
+  who re-ran the queries. **All of them came back `holds: false` on at least one load-bearing
+  claim**, including one that found following its own draft turns `bun test` red. Do that again.
