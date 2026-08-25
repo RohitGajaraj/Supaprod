@@ -4355,3 +4355,30 @@ anything watching.
   reading the code had missed twice.
 - **X-08:** one track sits at `learn` and it was PLACED there — sample workspace "Helio Labs",
   **`agent_runs` = 0**. The `station` column is not a record of a journey.
+
+## ADDENDUM 04:3x UTC — three more findings after the handoff above was written
+
+**F-31 is VERIFIED LIVE, not just tested.** First post-deploy reflection: `prd-writer`,
+`depends_on_current_state: false`, `expires_at` NULL, and the text reads **"You should prioritize
+defining clear success metrics..."** — a method lesson, phrased as guidance. Every reflection before
+the fix read *"You must decline..."* / *"You must not proceed..."*. **The transient path (an expiry
+actually stamped) is NOT yet observed — one sample is one sample.**
+
+**F-40 · the onboarding funnel cannot attribute a single event.** `SELECT count(*), count(DISTINCT
+user_id) FROM activation_events` → **38 rows, 0 distinct users.** `trackActivation` writes
+`user_id: data.userId ?? null` and no caller passes one; the only call site anywhere is
+`src/routes/demo.tsx:99`. `alreadyInStream` filters on `user_id`, so its dedupe has never fired.
+
+**F-41 · a credential outage is sent back for a rework that cannot fix it.** Build failed 3x on the
+same 401, then at 04:30:02 the track moved **`build` → `define`**, attempts reset. `correction.ts`
+routes a stalled station upstream because *"the fix may live at an earlier station"* — right for bad
+inputs, wrong for a locked door. **All eight hold reasons describe the WORK; none says the tools are
+down**, so a 401 was filed as `produced-nothing`, whose line reads *"It will try again."* It should
+not.
+
+**That is the same defect in a third place.** The scout says `ok: true` when dormant, `connections`
+says `connected` with no secret, and the driver says `produced-nothing` when the door was locked.
+**This system cannot tell "did badly" from "was refused"** — and that one distinction, added, would
+have surfaced F-38, F-39 and F-41 a month ago.
+
+**Round 4 is circling, not finished.** 5 of 7 stays the high-water mark. Zero of six criteria.
