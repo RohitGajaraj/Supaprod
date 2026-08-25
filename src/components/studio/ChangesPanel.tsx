@@ -42,6 +42,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Row, Line, Who } from "@/components/meridian/rows";
 import {
   Action,
+  ActionLink,
   Actions,
   Diffstat,
   Door,
@@ -50,6 +51,7 @@ import {
   ReadFailedLine,
   Reading,
   Region,
+  Value,
 } from "@/components/meridian/surface-parts";
 import { Field, Input, Textarea } from "@/components/meridian/forms";
 import { Prose } from "@/components/meridian/Prose";
@@ -65,6 +67,7 @@ import {
   type LaunchKit,
   getChangesetDiff,
   getChangesetRevisions,
+  getStudioSession,
   rejectStagedFile,
   revertToRevision,
   rollbackRelease,
@@ -78,6 +81,7 @@ import {
   type StudioFileSetPolicy,
 } from "@/lib/studio.functions";
 import { computeHunks } from "@/lib/ai/studio-hunks";
+import { relativeTime } from "@/lib/memory-view";
 import { useConfirm, usePrompt } from "@/hooks/use-confirm";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { AgentMark } from "@/components/meridian/marks";
@@ -300,6 +304,61 @@ const QUIET =
  * part of a file. Depth is one click: a file opens its diff, a diff opens its
  * hunks.
  */
+type SupersededRow = {
+  id: string;
+  title: string | null;
+  status: string | null;
+  pr_url: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+/**
+ * THE BUILDS THIS RUN SUPERSEDED, NEWEST FIRST (queue item 27).
+ *
+ * `getStudioSession` used to return only the latest non-abandoned changeset, so
+ * a mission that took three goes showed one and hid two -- and "what did we try
+ * before" is precisely the question somebody opens a session to answer. MAIN's
+ * read now returns the history, thin on purpose (ids, titles, status, PR); this
+ * renders it as doors: a pull request when one exists, a status word always.
+ *
+ * AN EMPTY ARRAY SAYS NOTHING. It is what a first build looks like, and an
+ * empty region over it would be the briefing-dashboard move the design ruling
+ * rejects.
+ */
+function SupersededBuilds({ missionId }: { missionId?: string }) {
+  const fSession = useServerFn(getStudioSession);
+  const q = useQuery({
+    // The SAME cache entry the session page polls: one read serves both, and an
+    // invalidation after a rollback or a new build updates this list too.
+    queryKey: ["studio-session", missionId],
+    queryFn: () => fSession({ data: { missionId: missionId! } }),
+    enabled: !!missionId,
+    staleTime: 4_000,
+  });
+  const superseded = (q.data?.superseded ?? []) as SupersededRow[];
+  if (!missionId || superseded.length === 0) return null;
+
+  return (
+    <Region title="Earlier builds">
+      {superseded.map((s) => (
+        <Row
+          key={s.id}
+          tight
+          lead={s.title ?? "Untitled change"}
+          time={relativeTime(s.updated_at, Date.now())}
+          action={
+            <>
+              <Value tone="quiet">superseded</Value>
+              {s.pr_url ? <ActionLink href={s.pr_url}>Open its pull request</ActionLink> : null}
+            </>
+          }
+        />
+      ))}
+    </Region>
+  );
+}
+
 export function ChangesPanel({
   changeset,
   changes,
@@ -1033,6 +1092,10 @@ export function ChangesPanel({
           </Action>
         ) : null}
       </Line>
+
+      {/* The builds this run superseded, newest first. Empty on a first build
+          and deliberately silent about it. */}
+      <SupersededBuilds missionId={missionId} />
 
       {/* FILES FIRST, DIRECTLY UNDER THE TAB THAT SELECTS THEM.
 
