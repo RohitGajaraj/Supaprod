@@ -678,6 +678,44 @@ build?" while it opens a chat.** That copy promises the loop and delivers a conv
 
 ---
 
+## R-25 · The forecast is written at Decide, so a route without Decide has no moat — 2026-08-25
+
+**Asked by LANE 1 as REQ-2. Granted on the principle, refused as written, and landed on two of the
+three shapes.**
+
+**The argument.** `decision.record` writes the forecast and refuses a decision that has none. It is
+the only tool that writes one. So a route that waives Decide **structurally cannot capture the thing
+the positioning canon calls the moat** — *what a team believed would happen, recorded before the
+outcome was known*. Four of the five shapes waived it, which left the moat reachable from one card in
+five. A contradiction between the route model and the canon is not a preference to be balanced; one
+of them is wrong, and it is the route model.
+
+### The ruling
+
+1. **`existing-feature` and `under-the-hood` keep Decide, and their entry moves to it.** Discovery
+   stays waived on both: the problem really is already known. What Decide does on these shapes is not
+   re-litigate whether to build — it states what we expect and when we will know.
+2. **`incident-fix` keeps its waiver.** A break does not need a business case. LANE 1 argued this and
+   they are right. It stays the one card that honestly carries "nothing is being forecast on this".
+3. **`interface-change` keeps its waiver, and this is a REFUSAL, not an oversight.** Plan is waived
+   there, so Decide would hand a decision straight to Design, which needs a **spec**.
+   `STATION_NEEDS.design` wants a `prd`; a decision does not satisfy it. Every such track would file
+   a good decision, fail the handoff, hold `nothing-to-hand-on` three times, and escalate
+   `needs-a-waived-station` because the station that files the missing spec is off its own route.
+   **It would break the shape rather than improve it.** Giving that shape a forecast means un-waiving
+   Plan as well, which contradicts that waiver's own reason and turns the shortest route in the
+   product into a six-station one. That is a bigger call and it is not being made in passing.
+
+### The trap in it, worth its own line
+
+**Dropping a station from a `waive` list does nothing on its own.** `validateRoute` requires the
+entry to be ON the path and does **not** require it to be first. Un-waiving Decide on a shape that
+enters at Plan leaves Decide sitting *behind* the entry, where `nextStation` never looks — visible in
+the route, never run, reachable only as a correction target. **The entry has to move with the
+waiver.** REQ-2 asked for three lines; it was six, in three files, plus five tests.
+
+---
+
 ## Open, and I have not ruled yet
 
 | Question | Why it is still open |

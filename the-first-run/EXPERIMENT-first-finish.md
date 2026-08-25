@@ -292,6 +292,40 @@ replaced, and the deploy of those fixes lands mid-run.
 spends is spent against the code being judged. Anything else is measuring one build with another
 build's failures on its record.
 
+### 00:00 — the third tick, and the hard stop
+
+**The AI credit account is empty.** All three seats returned:
+
+> *"Halted: AI credits exhausted: account credit balance (13) is below the projected cost (16)."*
+
+```sql
+SELECT balance_credits, topup_credits, monthly_grant_credits, cycle_anchor
+  FROM account_credits WHERE account_id = '164e0692-71e4-4f53-b5e5-66aa930a672f';
+-- 0 | 11 | 750 | 2026-08-22
+```
+
+**And it cost the station an attempt, which is ledger F-21** — a 2026-08-02 fix that rotted. The
+driver's `out-of-credit` branch fires on a THROWN dispatch; the loop stopped throwing and started
+halting, so an empty account was read as "ran cleanly, filed nothing". Fixed in `ea69d62e4`.
+
+At 00:20 the track reached `attempts 3` and the correction loop escalated it to **`needs-evidence`**,
+not `given-up` — *"this station has nothing to work from, and no other station can make it"*. Given a
+blind search and an empty wallet, **that is the correct diagnosis**, and it is a resumable hold
+rather than a terminal one.
+
+### Where Round 2 ends, stated plainly
+
+**The run is stopped and I cannot restart it.** It needs credits on account `164e0692`, and buying
+credits is the founder's action, not mine. Nothing about that is a workaround away.
+
+**What Round 2 bought, before it stopped:** three defects that could not have been found by reading
+code — the search index (F-19) from one agent sentence, the sweep starvation (F-20) from a tick that
+did nothing, and the halt accounting (F-21) from the account emptying. **Reading the code had already
+missed all three, repeatedly, across weeks.**
+
+**What it did not buy: a finished track.** Zero of seven stations completed on this track. The
+acceptance is not met, no part of it is met, and nothing here should be read as partial credit.
+
 ### The one thing that cannot be settled here
 
 Traced end to end tonight: with the default arc, **every** station's filing tool resolves to `auto` —
