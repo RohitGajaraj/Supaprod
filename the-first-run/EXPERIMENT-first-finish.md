@@ -409,3 +409,65 @@ VALUES ('22a73000-…', '0b792d52-…',
 ```
 
 **From here nothing is touched.** The tick drives it or it does not, and either answer is the result.
+
+
+### 00:50 — the first tick found nothing, and that was MY fault, not the loop's
+
+All three seats ran, all three said no evidence, `produced-nothing`, attempt 1. The scout:
+
+> *"No verifiable signals exist... The workspace search and signals.list returned no results for dark
+> mode, system preference, theme, or Canny-related terms."*
+
+**The search fix was in the repo and not in the running build.** `read_file` returned
+`workspace-records.server.ts` in full from Lovable while the BUILD was at `0df098cb`, six commits
+older — the commit is embedded in `latest_screenshot_url`, which is the only ordered signal, because
+`latest_commit_sha` went backwards tonight.
+
+**LANE 0 told me this and I told them they were wrong.** Their verify request said *"pushing does not
+deploy; founder publish required"*. It does not deploy. `deploy_project` is a real step. Ledger
+**F-23**, and the correction is filed to them.
+
+**It also exposed a SECOND, independent blindness.** `customer-insights` said *"among the 55 manual
+signals, none mention dark mode or theme preferences"* — true about the list, false about the world.
+`signals.list` defaulted to **30 days** and the Canny request is **47 days old**. Worse, **52 of the
+65 rows inside that window were the agents' own notes saying they had found nothing**, written in the
+previous three days. A recency window does not merely hide old evidence; it preferentially surfaces
+whatever the system most recently generated about itself. Ledger **F-22**, default raised to 90.
+
+### 01:00 — DISCOVER FOUND THE EVIDENCE
+
+Deployed, and the same station on the same track:
+
+> **"Gathered and logged one verifiable signal for 'Add dark mode and a system-preference theme':
+> 'Add Dark Mode & System Preference theme in addition to the light theme.'"**
+
+Status `completed`, not `completed_with_failures`. Then `researcher` clustered it. **The first time
+Discover has filed real evidence in this workspace.**
+
+```sql
+SELECT artifact_kind, station, created_at FROM spine_track_members
+ WHERE track_id = '897d1834-0d44-45bd-ad3d-29b7b1206041' ORDER BY created_at;
+-- signal/sense 01:00:27 · signal/sense 01:01:13 · theme/sense 01:01:13 · theme/sense 01:01:13
+```
+
+**F-19 is confirmed fixed by behaviour**, on a live run, not by reading the file back.
+
+### 01:01 — and the crew split, which is F-14's own test case
+
+The tick's 45s deadline landed between `researcher` and `customer-insights`:
+
+```sql
+SELECT station, last_hold, attempts, seat_cursor FROM spine_tracks WHERE id = '897d1834-…';
+-- sense | out-of-time | attempts 1 | seat_cursor 2
+```
+
+**`attempts` did NOT rise** — `out-of-time` is ours, not the station's, and it is correctly not
+counted. The next tick resumes at seat 2, `customer-insights`, which files nothing because reporting
+is its job.
+
+**That is exactly the shape that killed `f9e41393`.** Under the old code the resuming tick would see
+an empty harvest, call the station `produced-nothing`, and spend an attempt — with four artifacts
+sitting on the record. Under `didStationProduce` it should see what `sense` filed since it arrived
+and hand on to Decide.
+
+**The next tick is F-14's live test, and nothing has been touched to arrange it.**
