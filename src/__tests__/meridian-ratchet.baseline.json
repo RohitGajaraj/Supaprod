@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1638,
-  "fileCount": 138,
+  "totalOccurrences": 1630,
+  "fileCount": 137,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "import:components/ui": 1,
@@ -112,9 +112,6 @@
     "src/components/governance/PromptsPanel.tsx": {
       "--sp-": 1,
       "class:sp-": 2
-    },
-    "src/components/knowledge/BriefPanel.tsx": {
-      "--sp-": 8
     },
     "src/components/knowledge/CompoundingPanel.tsx": {
       "class:sp-": 2

@@ -99,9 +99,9 @@ function Standing({ item }: { item: BriefItem }) {
       </p>
       <p
         style={{
-          fontSize: "var(--sp-text-prose)",
+          fontSize: "var(--mrd-t-prose)",
           color: "var(--mrd-body)",
-          lineHeight: "var(--sp-leading-body)",
+          lineHeight: "var(--mrd-lh-prose)",
           marginTop: "var(--mrd-s2)",
         }}
       >
@@ -112,7 +112,7 @@ function Standing({ item }: { item: BriefItem }) {
         style={{
           fontSize: "var(--mrd-t-label)",
           color: "var(--mrd-mute)",
-          marginTop: "var(--sp-space-2)",
+          marginTop: "var(--mrd-s3)",
         }}
       >
         <Num>v{item.version}</Num>
@@ -381,9 +381,9 @@ export function BriefPanel() {
                 i === 0
                   ? undefined
                   : {
-                      marginTop: "var(--sp-space-3)",
-                      paddingTop: "var(--sp-space-3)",
-                      borderTop: "1px solid var(--sp-line-soft)",
+                      marginTop: "var(--mrd-s4)",
+                      paddingTop: "var(--mrd-s4)",
+                      borderTop: "1px solid var(--mrd-line-soft)",
                     }
               }
             >
@@ -427,7 +427,7 @@ export function BriefPanel() {
         })}
 
         {isAddingBet ? (
-          <div style={bets.length === 0 ? undefined : { marginTop: "var(--sp-space-3)" }}>
+          <div style={bets.length === 0 ? undefined : { marginTop: "var(--mrd-s4)" }}>
             <BriefForm
               kind="top_bet"
               titleValue={draftTitle}
@@ -468,7 +468,7 @@ function BriefForm({
   submitLabel: string;
 }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "var(--sp-space-2)" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "var(--mrd-s3)" }}>
       {/* No visible labels: the section head says which call this is and the
           placeholder says what belongs in the box. Saying it a third time is
           the redundant-writing ban. */}
