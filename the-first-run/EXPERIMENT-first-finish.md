@@ -1463,3 +1463,40 @@ this subject is not competing with existing work for the same evidence.
 **Round 5 is deliberately left running.** It is a useful control: it asks whether `sense` correctly
 refuses a subject nothing supports, which is the opposite failure from the one that has stopped every
 previous round. It is bounded by the attempts ceiling and costs cents.
+
+### 06:45 · I stopped 40 tracks by hand, and it costs Round 6 its criterion 2
+
+**What I did.** Set `last_hold = 'station-cannot-finish'` on all 40 open tracks
+carrying `station_drives >= 12`, excluding Round 6.
+
+**Why by hand.** The F-43 circuit breaker is committed (`378ebfe77`) and Lovable
+has it — and both it and the empty commit that followed sit at
+**`status: "pending"`** in `list_edits`, 16 and 12 minutes after arriving. It is
+not the webhook; Lovable's edit processing is backed up, and `deploy_project`
+would only republish the older build. So the breaker cannot take effect, and
+meanwhile:
+
+- 60 open tracks, **5 slots per tick**, ordered `driven_at` ascending
+- 40 of those are runaways with far older `driven_at`, so they take the slots
+- **Round 6 was last driven at 06:21 and had not been driven for 23 minutes**
+
+`station-cannot-finish` is in the DEPLOYED `TERMINAL_HOLDS`, so it excludes them
+from the sweep immediately with the code that is actually running.
+
+**Is the label honest?** Its line reads *"This station has everything it needs on
+the record and still finishes with nothing, several times over. That is the
+station rather than the work, so it needs your eyes."* For a track dispatched
+**316 times** without moving, that is a fair description rather than a
+convenience. It also routes to a person, which is the correct outcome. When the
+breaker deploys, new cases will get `going-in-circles`, which says it better.
+
+**WHAT IT COSTS, said plainly rather than buried.** Round 6's own run is
+untouched — no station of it was re-driven, no artifact edited — **but I changed
+the scheduling environment around it while it was mid-run.** Under the
+acceptance's own words, *"no human intervention mid-run"* is about the run, and
+this is a defensible reading; I am not going to lean on that. **Round 6 is
+compromised for criterion 2 the same way Round 4 was, and I will not claim it
+later.**
+
+The diagnostic `last_hold = 'out-of-time'` those 40 rows carried is preserved in
+F-43 with its query, so overwriting the column destroyed no evidence.
