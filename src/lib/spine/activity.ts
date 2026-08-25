@@ -28,6 +28,22 @@
  * produced nothing says exactly that. A status display that guesses is worse
  * than none, because a person cannot tell the guesses from the facts.
  *
+ * ── A TURN NOW CARRIES ITS COST AND ITS REASON (2026-08-25) ─────────────
+ * `tookMs`, `tokens` and `stopLine` make a turn readable as a unit of work
+ * rather than as an event, and all three are the same argument as the paragraph
+ * above, applied to a column instead of to a status:
+ *
+ *   A ZERO IS NOT A MEASUREMENT. `duration_ms` is a hardcoded 0 on 742 of the
+ *   2,272 track-linked runs and every one of them burned tokens; `tokens_used`
+ *   is NOT NULL so a hole in it can only be spelled 0, and 570 spell it that
+ *   way. Both collapse to `null` and print nothing. See `Turn.tookMs`.
+ *
+ *   A REASON COMES FROM A COLUMN, NEVER FROM THE AGENT'S SENTENCE. The seats
+ *   write "I cannot proceed" onto rows whose status says they completed, and
+ *   F-54 is the standing record of a seat's narrative disagreeing with its own
+ *   tool calls. Only `halted_reason` and `failure_kind` are written by the
+ *   platform, so only they are quoted. See `Turn.stopLine`.
+ *
  * Pure and dependency-free; the server function does the reads and hands the
  * rows in, the same split route.ts, driver.ts, attach.ts and chain.ts use.
  */
@@ -43,6 +59,21 @@ export type RunRow = {
   output: string | null;
   created_at: string;
   spend_used_usd: number | string | null;
+  /**
+   * Milliseconds the run was alive.
+   *
+   * OPTIONAL ON THIS TYPE, like the three below it, for the reason
+   * `run-analytics.ts` states about its own new columns: naming a column a
+   * deploy has not migrated yet fails the WHOLE PostgREST query, and a
+   * transcript that vanishes tells a reader nothing happened. A missing field
+   * degrades one figure; a missing column degrades the screen.
+   */
+  duration_ms?: number | null;
+  tokens_used?: number | null;
+  /** Why the platform stopped the run. `out_of_credit`, or a whole sentence. */
+  halted_reason?: string | null;
+  /** What class of thing broke. `model_error` is the only value on record. */
+  failure_kind?: string | null;
 };
 
 /** An artifact this track collected, with when it landed. */
@@ -73,6 +104,62 @@ export type Turn = {
   made: Array<{ kind: string; word: string; id: string }>;
   /** The agent's own last line. Trimmed, never rewritten. */
   said: string | null;
+  /**
+   * How long the seat worked, in milliseconds, or null when NOTHING MEASURED IT.
+   *
+   * ── ZERO IS NOT A MEASUREMENT ON THIS COLUMN, AND THAT IS THE WHOLE POINT ─
+   * The obvious reading of `duration_ms` is "null means unknown, a number means
+   * measured". It is wrong here, and rendering a `0` as `0s` would be exactly
+   * the class of claim this file exists to refuse. Counted on production,
+   * 2026-08-25, over the 2,272 runs that carry a `track_id`:
+   *
+   *   duration_ms > 0     1,355   a real elapsed time
+   *   duration_ms = 0       742   and EVERY ONE OF THEM burned tokens
+   *   duration_ms IS NULL   175   never written at all
+   *
+   * Every single zero row has `tokens_used > 0`, so not one of them is a run
+   * that genuinely took no time: a model call cannot. `run-analytics.ts` already
+   * carries the cause in its own header, measured independently -- *"`duration_ms`
+   * was a hardcoded 0 in both finalize paths"* -- and refuses the same value on
+   * the same grounds, so this is that rule applied at a second reader rather
+   * than a second rule.
+   *
+   * So a zero and a null collapse to one answer, `null`, and the transcript
+   * prints no figure at all rather than telling a person a 76-second turn was
+   * instant.
+   */
+  tookMs: number | null;
+  /**
+   * Tokens this turn burned, or null when the column carries no count.
+   *
+   * SAME RULE, AND IT HAS TO BE. `tokens_used` is `NOT NULL` so it can only say
+   * "nothing counted this" by saying 0, and 570 of the 2,272 track-linked runs
+   * do -- almost all of them `failed`, 397 of which carry `failure_kind:
+   * model_error`, which means the run REACHED a model and the finalizer never
+   * wrote what it spent. A zero there is a hole, not a bill of zero.
+   */
+  tokens: number | null;
+  /**
+   * WHY THE RECORD SAYS THIS TURN STOPPED, as a finished sentence, or null.
+   *
+   * ── READ FROM A COLUMN, NEVER FROM THE AGENT'S PROSE ────────────────────
+   * This is the narrow half of a wide temptation. The seats on this track write
+   * things like *"I cannot proceed... the repository tree could not be
+   * retrieved"* while their own row says `completed_with_failures`, and the
+   * reflex is to read the sentence and call the turn refused. F-54 is the
+   * standing reason not to: a seat's narrative disagreed with its own tool calls
+   * for as long as the checking seat has existed, and a transcript that grades
+   * turns by their prose would inherit every one of those lies and present it as
+   * a fact. `halted_reason` and `failure_kind` are written by the platform, not
+   * by the agent, so they are the only refusal this view is entitled to assert.
+   *
+   * The turn's own PRODUCE-NOTHING fact is separate and lives in `made`, which
+   * is a join against `spine_track_members` and equally unfakeable. Between the
+   * two, a reader can see the seat's claim and the record side by side and judge
+   * the disagreement themselves, which is the only honest thing this screen can
+   * do about it.
+   */
+  stopLine: string | null;
   usd: number;
 };
 
@@ -136,9 +223,51 @@ export function buildActivity(input: { runs: RunRow[]; members: MemberRow[] }): 
       outcome: OUTCOME[r.status] ?? "stopped",
       made,
       said: r.output?.trim() ? r.output.trim() : null,
+      tookMs: measured(r.duration_ms),
+      tokens: measured(r.tokens_used),
+      stopLine: stopLine(r),
       usd: Number(r.spend_used_usd ?? 0) || 0,
     };
   });
+}
+
+/**
+ * A figure that was actually measured, or null.
+ *
+ * ONE HELPER FOR THE TWO COLUMNS BECAUSE THEY FAIL THE SAME WAY, and writing
+ * the rule twice is how the two readers drift. See `Turn.tookMs` for the counts
+ * behind `<= 0`; the short form is that a zero on either column is a finalizer
+ * that did not write, and admitting it is how a placeholder becomes a statistic.
+ */
+function measured(v: number | null | undefined): number | null {
+  if (typeof v !== "number" || !Number.isFinite(v) || v <= 0) return null;
+  return v;
+}
+
+/**
+ * The platform's own reason this run stopped, spelled for a reader, or null.
+ *
+ * `halted_reason` IS TWO VOCABULARIES IN ONE COLUMN and both are on production:
+ * a slug the halt path writes (`out_of_credit`, 8 rows) and a whole sentence the
+ * stall sweeper writes (*"Stopped automatically: no progress for 4 hours..."*,
+ * 8 rows). Framing the sentence again would stutter, and printing the slug raw
+ * puts an engine word on a screen the Engine-Room doctrine says must not carry
+ * one. Whitespace is the test between them, which is exact rather than clever:
+ * a slug has none.
+ *
+ * `failure_kind` is the fallback and is always a slug (`model_error`). It is
+ * read SECOND because a halt reason is the more specific fact whenever a row
+ * carries both.
+ *
+ * Null when neither column says anything, and that is deliberate: `outcome`
+ * already carries THAT the turn stopped. This carries WHY, and inventing a why
+ * from a status word is the thing being avoided.
+ */
+function stopLine(r: RunRow): string | null {
+  const raw = (r.halted_reason ?? "").trim() || (r.failure_kind ?? "").trim();
+  if (!raw) return null;
+  if (/\s/.test(raw)) return raw;
+  return `Stopped: ${raw.replace(/[_-]+/g, " ")}.`;
 }
 
 function stationOfMember(members: MemberRow[], artifactId: string): string | null {

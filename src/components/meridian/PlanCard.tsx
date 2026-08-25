@@ -63,7 +63,7 @@ import { Action, Actions, Approve } from "./surface-parts";
  * card's subjects 54px left of the timeline's, which is the misalignment this
  * rework exists to remove, reintroduced from the other direction.
  *
- * ── THE SIX STATES, AND WHAT EACH IS ALLOWED TO WEAR ────────────────────
+ * ── THE EIGHT STATES, AND WHAT EACH IS ALLOWED TO WEAR ──────────────────
  *
  *   pending         no chip, hollow mark. Promised, not started. NOT blocked.
  *   active          agent chip. A machine is working on this one, now.
@@ -71,6 +71,11 @@ import { Action, Actions, Approve } from "./surface-parts";
  *   skipped         no chip, struck through, WITH ITS REASON.
  *   failed          fail chip. An outcome, and the only thing red may mean.
  *   needs-approval  you chip. A person is required before this one moves.
+ *   held            hold chip. Stopped, and NOT on a person: a condition has to
+ *                   change, and eleven of them change outside this product.
+ *   here            no chip, inked mark. Where the work stands, and nothing is
+ *                   moving it. A POSITION rather than a status, which is why it
+ *                   wears no hue and no chip. (Both joined 2026-08-25.)
  *
  * The status colour is a CHIP rather than coloured text, which is not a style
  * change: on paper the five status hues collapse into 5.06 to 6.00 against the
@@ -89,8 +94,36 @@ import { Action, Actions, Approve } from "./surface-parts";
  * argument.
  */
 
-/** Six, and the two the task vocabulary is missing are the reason this exists. */
-export type PlanStepState = "pending" | "active" | "done" | "skipped" | "failed" | "needs-approval";
+/**
+ * Eight, and the two the task vocabulary is missing are the reason this exists.
+ *
+ * ── `held` AND `here` JOINED 2026-08-25, CLOSING SPEC-LAYOUT GAP G1 ──────
+ * `RunMap` renders a live route from this vocabulary, and the spec for the run
+ * page found it could not say two things a route says constantly:
+ *
+ *   held  stopped, and NOT on a person. Eleven of the driver's hold reasons
+ *     clear from OUTSIDE the product -- a source connected, an account topped
+ *     up, a spec written -- so "stopped on a condition" is a different sentence
+ *     from `needs-approval` and from `failed`. It was being drawn as `active`,
+ *     which claimed a machine was working on a track that had stopped. The
+ *     tokens existed (`--mrd-hold`, `--mrd-hold-chip`) and `StatusChip` already
+ *     took `status="hold"`; the STATE was the gap.
+ *
+ *   here  where the work stands, and nothing is moving it. This is the most
+ *     common state in the product's history -- 58 of 59 tracks entered at
+ *     Discover and stopped -- and the vocabulary had no way to say it that did
+ *     not also claim something. `pending` says "not started yet", which loses
+ *     the position; `active` says "a machine is working", which is false. It is
+ *     deliberately NOT a status: nothing is wrong, nothing is waiting on
+ *     anybody, the work is simply standing there between turns.
+ *
+ * They are added HERE rather than as a private enum in `RunMap` for the reason
+ * that file's own header gives: `PlanCard` and `RunMap` are read minutes apart
+ * on the same piece of work, and a private six-value enum is how "skipped"
+ * comes to mean two things.
+ */
+export type PlanStepState =
+  "pending" | "active" | "done" | "skipped" | "failed" | "needs-approval" | "held" | "here";
 
 export type PlanStep = {
   id: string;
@@ -153,6 +186,12 @@ export type PlanStep = {
  *   skipped         a hollow ring struck through. Deliberately passed over.
  *   needs-approval  a hollow ring with a solid centre: something is IN it,
  *                   waiting, and the ring has not closed.
+ *   held            a hollow ring with two upright bars. Stopped, and it can
+ *                   start again: the one mark in the set that reads as PAUSED
+ *                   rather than as finished, passed over or broken.
+ *   here            a ring inside a ring. A position marker, and it is the only
+ *                   mark whose meaning is WHERE rather than HOW IT WENT, which
+ *                   is why it draws a target rather than a state.
  *
  * A STEP WITH A STATION DRAWS THE STATION INSTEAD, because that is the more
  * useful identity: which station a step belongs to is what a reader is deciding
@@ -166,6 +205,11 @@ const MARK_HUE: Record<PlanStepState, string> = {
   skipped: "text-mrd-mute",
   failed: "text-mrd-fail",
   "needs-approval": "text-mrd-you",
+  held: "text-mrd-hold",
+  /* Neutral, and it is the colour law rather than a taste. `here` is a
+     POSITION, and hue in this system carries status; the strongest neutral says
+     "this one" without claiming anything has gone right or wrong. */
+  here: "text-mrd-ink",
 };
 
 function Ring({ state }: { state: PlanStepState }) {
@@ -235,6 +279,28 @@ function Ring({ state }: { state: PlanStepState }) {
       ) : null}
 
       {state === "needs-approval" ? <circle cx="12" cy="12" r="3.6" fill="currentColor" /> : null}
+
+      {/* PAUSED, not broken and not passed over. Two upright bars is the one
+          gesture a reader already reads as "it can start again", which is
+          exactly what a hold is: eleven of the driver's reasons clear from
+          outside the product and the work resumes where it stood. */}
+      {state === "held" ? (
+        <path
+          d="M10.2 9.2v5.6M13.8 9.2v5.6"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+        />
+      ) : null}
+
+      {/* A TARGET: a ring inside the ring. Every other mark in this set reports
+          how a step WENT; this one reports where the work IS, so it says "this
+          one" and nothing about an outcome. Hollow throughout on purpose --
+          anything filled would read as settled. */}
+      {state === "here" ? (
+        <circle cx="12" cy="12" r="3.4" fill="none" stroke="currentColor" strokeWidth="1.9" />
+      ) : null}
     </svg>
   );
 }
@@ -287,17 +353,31 @@ function StepMark({ step }: { step: PlanStep }) {
  * screen reader through the mark's accessible name instead, because those two are
  * the states with no chip to say it.
  */
-const CHIP: Partial<Record<PlanStepState, { status: "agent" | "fail" | "you"; word: string }>> = {
+const CHIP: Partial<
+  Record<PlanStepState, { status: "agent" | "fail" | "you" | "hold"; word: string }>
+> = {
   active: { status: "agent", word: "Running" },
   failed: { status: "fail", word: "Failed" },
   "needs-approval": { status: "you", word: "Needs you" },
+  /* `held` earns one on the rule above: it is a step a reader has to WAIT on,
+     and what clears it is usually outside this screen. `hold` is the amber that
+     means "stopped, and not on you", which is the whole of it. */
+  held: { status: "hold", word: "On hold" },
 };
 
-/** Only for the states with no chip. Everything else says it in text already. */
+/**
+ * Only for the states with no chip. Everything else says it in text already.
+ *
+ * `here` is in this list rather than in `CHIP` on purpose. A chip is for a state
+ * a reader has to act on or wait on, and standing at a step is neither -- it is
+ * where the work IS. Giving it one would put a fifth chip on a plan and make the
+ * three that mean something invisible, which is the rule this pair records.
+ */
 const MARK_LABEL: Partial<Record<PlanStepState, string>> = {
   pending: "Not started",
   skipped: "Skipped",
   done: "Done",
+  here: "Where it stands",
 };
 
 /**
@@ -585,8 +665,9 @@ export function PlanCard({
       >
         <p className="text-mrd-base font-medium text-mrd-body">No plan has been filed yet.</p>
         <p className="mt-1 max-w-[62ch] text-mrd-small leading-mrd-prose text-mrd-mute">
-          When the crew commits to one, every step it intends to take appears here first, with who is
-          taking it and where, so the whole thing can be approved once instead of a step at a time.
+          When the crew commits to one, every step it intends to take appears here first, with who
+          is taking it and where, so the whole thing can be approved once instead of a step at a
+          time.
         </p>
       </div>
     );

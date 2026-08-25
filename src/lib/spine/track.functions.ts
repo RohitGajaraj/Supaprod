@@ -1963,7 +1963,19 @@ export const getTrackActivity = createServerFn({ method: "GET" })
         const [runsRes, membersRes, eventsRes] = await Promise.all([
           supabase
             .from("agent_runs")
-            .select("id,agent_slug,agent_name,status,output,created_at,spend_used_usd")
+            /*
+             * THE FOUR EXTRA COLUMNS ARE THE TURN'S ROLLUP, and each one is a
+             * real column rather than something the transcript works out:
+             * `duration_ms` is how long the seat worked, `tokens_used` is what
+             * it burned, and `halted_reason`/`failure_kind` are the only place
+             * on the record where the PLATFORM, rather than the agent's own
+             * prose, says why a turn stopped. `activity.ts` refuses every one of
+             * them when the value is a zero or a blank; see `Turn.tookMs` for
+             * the counts that force that.
+             */
+            .select(
+              "id,agent_slug,agent_name,status,output,created_at,spend_used_usd,duration_ms,tokens_used,halted_reason,failure_kind",
+            )
             .eq("track_id", data.trackId)
             .order("created_at", { ascending: true })
             .limit(200),

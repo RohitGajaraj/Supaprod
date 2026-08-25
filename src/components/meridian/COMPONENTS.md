@@ -10,7 +10,7 @@ filing a `meridian-gap` request.
 There is deliberately **no `index.ts` barrel** -- it would break the adoption metric,
 which matches on the deep import path. Import from the file named here.
 
-## Components (107)
+## Components (110)
 
 | Export | File | |
 | --- | --- | --- |
@@ -87,6 +87,7 @@ which matches on the deep import path. Import from the file named here.
 | `Refused` | `surface-parts.tsx` | function |
 | `Region` | `surface-parts.tsx` | function |
 | `Row` | `rows.tsx` | function |
+| `RunArtifact` | `run-rows.tsx` | function |
 | `RunClock` | `run-rows.tsx` | function |
 | `RunClockEmpty` | `run-rows.tsx` | function |
 | `RunGlyph` | `run-rows.tsx` | function |
@@ -95,6 +96,7 @@ which matches on the deep import path. Import from the file named here.
 | `RunNote` | `run-rows.tsx` | function |
 | `RunRail` | `run-rows.tsx` | function |
 | `RunRailBreak` | `run-rows.tsx` | function |
+| `RunRollup` | `run-rows.tsx` | function |
 | `RunSubject` | `run-rows.tsx` | function |
 | `RunTimeline` | `RunTimeline.tsx` | function |
 | `RunTook` | `run-rows.tsx` | function |
@@ -108,6 +110,7 @@ which matches on the deep import path. Import from the file named here.
 | `StalledWork` | `StalledWork.tsx` | function |
 | `StationGlyph` | `station-glyphs.tsx` | function |
 | `StatusChip` | `StatusChip.tsx` | function |
+| `StepMeter` | `progress.tsx` | function |
 | `Surface` | `Surface.tsx` | function |
 | `TabPanel` | `Tabs.tsx` | function |
 | `Tabs` | `Tabs.tsx` | function |
@@ -122,7 +125,7 @@ which matches on the deep import path. Import from the file named here.
 | `WorkGlyph` | `work-glyphs.tsx` | function |
 | `YouMark` | `marks.tsx` | function |
 
-## Types, constants and helpers (114)
+## Types, constants and helpers (117)
 
 | Export | File | Kind |
 | --- | --- | --- |
@@ -198,6 +201,7 @@ which matches on the deep import path. Import from the file named here.
 | `runGlyphForTool` | `run-rows.tsx` | function |
 | `RunGlyphKind` | `run-rows.tsx` | type |
 | `RunMapMode` | `RunMap.tsx` | type |
+| `RunMapOrientation` | `RunMap.tsx` | type |
 | `RunMapStation` | `RunMap.tsx` | type |
 | `SearchProps` | `Search.tsx` | type |
 | `SegmentTone` | `InsightCards.tsx` | type |
@@ -220,6 +224,8 @@ which matches on the deep import path. Import from the file named here.
 | `StationGlyphKind` | `station-glyphs.tsx` | type |
 | `STATUS_WORD` | `StatusChip.tsx` | const |
 | `StatusWord` | `StatusChip.tsx` | type |
+| `StepMeterState` | `progress.tsx` | type |
+| `StepMeterStep` | `progress.tsx` | type |
 | `stepRail` | `SidebarNav.tsx` | function |
 | `TabDef` | `Tabs.tsx` | type |
 | `Task` | `TaskRows.tsx` | type |

@@ -1,184 +1,148 @@
 # PRODUCT-TRUTH.md — The One Problem We Solve
 
-> **One-page product thesis. Authority: complete.**
->
-> **Updated:** 2026-08-25  
-> **Locked by:** AUDIT.md findings + 59 track autopsy + founder positioning-locked-2026-08.md
+> **One-page product thesis.** Rewritten 2026-08-25 under the founder's Phase 2 mandate, and reshaped
+> by **F-70**: every visible trace of accumulated learning in this product is seed data — re-verified
+> live against production the day this page was written. Canon it obeys:
+> [`docs/strategy/positioning-locked-2026-08.md`](./strategy/positioning-locked-2026-08.md). Evidence:
+> [`the-first-run/FINDINGS-LEDGER.md`](../the-first-run/FINDINGS-LEDGER.md). If this page and
+> [`RULINGS.md`](../the-first-run/RULINGS.md) disagree, RULINGS.md wins.
 
 ---
 
-## Who the User Is
-
-**The founder who ships.**
-
-Not "product teams" or "engineering leads." The person who decides what happens next — who has said the words "we're going to do X" and is now accountable for whether X actually happened, not just claimed to have happened.
-
-They are burned out because they are:
-- **Running code review by committee** — three days to merge, agentic code that is 5.3x longer, and nobody owns the risk. **The PRs stack because humans are the bottleneck.**
-- **Grading outcomes in isolation** — "Did we hit the retention target?" is a question they answer today by reading Slack, checking SQL, maybe a spreadsheet. **No artifact says what they believed would happen, recorded before the outcome was known.** If they got it right, they can't prove it. If they got it wrong, they can't learn it.
-- **Re-coordinating the same decisions** — Notion says the plan. GitHub shows the code. Slack has the debate. No surface says "here's what we chose to do, why we chose it, how we'll know." Decisions are reconstructed on every reboot.
-- **Watching change get lost** — A feature ships. Someone documents it. Documentation becomes stale because the product moved. The change is never traced to the decision that caused it or the outcome it produced.
-
-**They are not confused. They are not lazy. They are running a loop with a broken feedback system.**
-
----
-
-## The One Painful Job (What They Actually Do Every Day)
-
-**Did the change do what we thought it would do?** And if it didn't, **why**, so next time we can be better.
-
-That job has five gates today, and humans block every one:
-
-1. **Approve the PR** — *"Is this what we asked for?"* A person reads 300 lines of code they didn't write, against a spec that may have changed, against a design they never saw. Three days. Code review is not insight; it's blame avoidance.
-
-2. **Track the deployment** — *"Did this actually ship?"* The fact that code merged and CI passed tells them nothing about whether it reached production or what version is live. They check Slack, or a dashboard, or ask the team. Five minutes of their time, every day.
-
-3. **Wait for the outcome** — *"How did users respond?"* If it's a retention feature, they wait three months. If it's a bug fix, they wait a week. They have no way to know during that time whether the hypothesis was right, wrong, or somewhere between. **They cannot steer because they cannot see.**
-
-4. **Grade what happened** — *"Did we win or lose?"* They read the metric. They compare it to what they predicted. If they predicted, they compare. If they didn't, they guess whether they expected it. **There is no artifact. It is an oral history.** Slack archaeology.
-
-5. **Learn the lesson** — *"What does this tell us about how we work?"* They try. They write a retro. Nobody has time. Or they do, and six months later the team makes the same bet again because **nothing that was learned became accessible to the decision-maker at decision time.** The knowledge was burned into muscle memory in one person's head, or written into a doc nobody reads, or lost when that person left.
-
-**That's the job. That loop is broken.**
-
----
-
-## What They Suffer Today Without Us
-
-**Guesswork presented as rigor.**
-
-- **Code review by committee instead of code review by evidence.** Every PR is a gauntlet. No person can hold in their head whether a change is doing what it was supposed to do. So they check for style, they check for obvious bugs, and they hope the author understood the goal. **It takes weeks. It costs confidence. People burn out.**
-
-- **Outcome grading that cannot compound.** Every bet is made in isolation. They ask "will this work?" and at some point get "yes" or "no" back. But "yes" from what evidence? "No" because of what, exactly? **They cannot compare outcomes across bets.** They cannot ask "what kind of change succeeds here?" because the traces of past changes — the record of what was predicted, what was observed, what was learned — **is noise in Slack.**
-
-- **No history of what was believed before the outcome was known.** This is the killer. A competitor could steal every line of code, every design, every workflow. But they cannot steal the record of what this team believed would happen at the moment of the call, because **nothing captured it.** It lives in the decision, it lives in the code, it lives nowhere else. And if they could, that record would be worth more than the code, because it's why the code was written.
-
-- **Authority without recourse.** The founder decides. The team executes. But the founder is the only person who can grind through all five gates at the end to know whether they were right. They are not absent from the work; they are overloaded by it. **They are the bottleneck on their own feedback loop.**
-
----
-
-## What SupaProd Does Instead: The Loop That Closes
-
-**One screen. One sentence. Seven stations. The feedback loop runs.**
-
-A founder types: *"Add dark mode so users on low-light environments don't get headaches."*
-
-The system does the rest:
-
-1. **Sense** — Agent reads signals, clusters them into themes, shows the founder what they know. *"Seventeen users mentioned eye strain. Two asked for dark mode directly."*
-
-2. **Decide** — Founder records the forecast: *"I predict eye strain complaints will drop 40% in markets with less ambient light, and we'll know by October."* This is not filed for later. **It is filed NOW, before the outcome is known. This is the moat.**
-
-3. **Plan** — Agent drafts the spec. Founder edits it once. Non-goals get called out: *"Not supporting custom themes, not persisting across sessions."* This spec is what every later station reads, not the title.
-
-4. **Design** — Agent prototypes. Founder approves or sends back one note: *"Empty state is wrong."* No iteration cycle; design is unblocked the moment it can be.
-
-5. **Build** — Agent writes the code. CI runs. Checks show passing. Diff shows what was written. **This is not a PR review gauntlet; this is the agent showing its work.** Founder approves the diff or stops it. If it matches the spec, it goes forward.
-
-6. **Ship** — The code ships to production. Metrics start flowing in. The deployed commit is recorded.
-
-7. **Learn** — The outcome comes in. *"Eye strain complaints: down 38%. We were right."* This is recorded **against the forecast made in station 2, before the outcome was known.** The system now knows: this founder was right on this kind of change. The calibration can compound. The lesson is wired into the next call.
-
-**No founder touched the code. No person read a 300-line diff. No committee approved anything. No one was waiting to be unblocked. The loop ran in three days, and the result is a decision and its outcome on the same record.**
-
----
-
-## Why This Is 10x
-
-| Factor | Before | With SupaProd |
-| --- | --- | --- |
-| **Time to feedback** | 3–12 weeks (wait for outcome) | 2–3 days (forecast recorded, outcome graded on schedule) |
-| **Gradeability** | "Did we win?" — answered by re-reading metrics | "Did we win?" — answered by comparing forecast to outcome, with confidence and evidence |
-| **Learning compound** | Lessons live in Slack, die with the person | Lessons live on the record, wired into the next decision |
-| **Code review** | 3 days, committee, blame avoidance | 30 min, agent, evidence-driven (diffs, checks, spec match) |
-| **Authority cost** | Founder runs all five gates (bottleneck) | Founder runs one gate (merge approval) |
-| **Replicability** | Decisions are oral history, reconstructed on every boot | Decisions sit on an audit trail, traceable end-to-end |
-
----
-
-## What We Delete (And Why)
-
-**Everything that is not the loop.**
-
-#### Deleted: "Collaboration surfaces"
-
-Chat, comments, threads, @ mentions, reactions. **Collaboration is overhead.** What we need is consent, and consent is asked in place: at the moment a station needs a person's call, not in a side channel where it dies in the backlog. R-01 (founder ruling): *"Consent is asked in place, at the station that raised it, or it does not get answered."* Deleted five UI patterns built to ask approval in threads.
-
-#### Deleted: "Decision library" and "PRD templates"
-
-Every PRD template is an attempt to nail down what a good PRD looks like. But the spec is not the output of SupaProd; it is an input. The agent writes it. The founder edits it. There is no template because there is no decision to be made about form — only about content. Deleted: `decision-library.tsx` (dead code), three template UI patterns, one routing system built to navigate a library that should never exist.
-
-#### Deleted: "Settings and tuning"
-
-SupaProd ships with one config: *"What does this workspace believe?"* That's `workspace_briefs`, and it is filled once at init. Every other "setting" is a disguise for a decision the founder should not be making because it is not theirs to make — it belongs to the loop. *"Auto-publish PRs?"* That is the ship gate deciding, not a toggle. *"How much evidence before proposing?"* That is the sense station deciding. Deleted: 14 toggle patterns, 6 tuning UIs, every "advanced settings" route.
-
-#### Deleted: "Long-form onboarding" and "educational UI"
-
-SupaProd is a closed loop. A founder opens it and they know what to do because every action is the only action that makes sense at that moment. Coach marks are insulting. Feature tours are filler. Help text is what you read when you are lost. Nothing here should make you lost. Deleted: one 14-step onboarding flow, 47 help tooltips, "learn mode" UI (killed), the "demo workspace" that was supposed to teach by example (it taught nothing because the example was fake).
-
----
-
-## The Shape of the Product (Now)
-
-**Left pane:** Transcript of what the agent just did, what it produced, the handoff. Text. Inline artifacts (a spec, a diff, a decision). The one question, in place. Newest entry at the bottom, still ticking. Live.
-
-**Right pane:** The current artifact. Spec — rendered as readable text. Diff — side by side, human-parsable. Decision — the claim and the forecast. Prototype — in a frame, rendered as itself, not as a link. Deployment — steps with clocks, then what actually went out. Outcome — the metric, the forecast, side by side, one number: win or lose.
-
-**Footer:** What the agent may do right now (running) or is waiting on (your approval). One button: Stop.
-
-**One screen. The person never navigates. The artifact is always the current truth.**
-
----
-
-## Acceptance: The Loop Runs (Proof)
-
-A person types one sentence.
-
-Without navigating, they watch the work carried from station 1 to station 6.
-
-They answer one question (merge gate).
-
-They are told: "This shipped. It did what you predicted." Or: "This shipped. It did not."
-
-**That is success. Nothing less.**
-
----
-
-## The Wiring (Current State)
-
-**Stations 1–5:** Backend logic works (proven via Playwright test). Sense, Decide, Plan, Design, Build all run autonomously. AUDIT.md confirms two tracks reached Learn in automated test.
-
-**Station 6 (Ship):** Wired, gated on human merge approval (correct). ci-poll-tick auto-deploys preview. Track member written once publish fires.
-
-**Station 7 (Learn):** Wired, grading mechanism ready. Unreachable until a track ships and forecast window closes. Mechanics are complete.
-
-**CRITICAL GAP: PHASE 3 Not Implemented — Visible Agency**
-
-The loop runs, but the user cannot see it happening. Right now:
-- ❌ User clicks "Run it now"
-- ❌ User stares at screen for 10-30 seconds with NO FEEDBACK
-- ❌ Results appear after run completes (not live)
-- ❌ No indication of where the agent is RIGHT NOW
-- ❌ No visibility into agent decisions
-
-The product truth requires: *"The person never navigates. They watch the work move."*
-
-But they cannot watch if the UI doesn't show:
-1. **Live progress** — "Agent is at Design station, generating mockups"
-2. **Real-time decisions** — "Agent decided: these 3 components"
-3. **Active step indicator** — Clock ticking on the current station
-4. **Transcript live** — Decisions and actions appear as they happen, not after
-5. **Steer/undo** — Person can override agent's next move
-
-**Without PHASE 3, the mission gate cannot be satisfied.** User feels like they're operating a slow form, not watching an agent work.
-
-**Proof path (requires PHASE 3):** 
-1. Start one track at /start
-2. WATCH (with live feedback) as it progresses through stations
-3. See agent decisions appear in real-time
-4. Answer merge gate
-5. See "shipped" and outcome comparison
-6. Feel: "This is doing my work for me."
-
-Step 2 is everything. Without it, the loop runs, but invisibly.
-
+## Who the user is
+
+**The individual PM or founding PM who ships with agents.** Not "product teams" — nobody
+self-identifies as a team, and the land motion is one person who can start without procurement. They
+sit in the Energized or Conflicted 76%: already measurably faster with agents, already tired. So we
+sell relief, never throughput — 82% report the speed already; speed is the thing that is hurting them.
+
+## The one painful job
+
+**Did the change do what we said it would do — and can we defend the call?** A practitioner named
+the pain before we did: *"PMs got faster at shipping but didn't get better at defending why. The
+judgment gap got exposed."* Three parts of the job do not compress into an agent: **deciding what is
+worth doing, defining what good looks like, and catching when the system is confidently wrong.**
+Those are stations decide, define and learn. The rest of the job is reps, and the reps are leaving.
+
+## What they suffer today without us
+
+**Slack archaeology presented as rigor.** The plan is in Notion, the code is in GitHub, the debate is
+in Slack, and no surface says *here is what we chose, why, and how we will know*. Causes can be
+rebuilt afterwards — Vercel's COO reconstructed the true cause of a lost deal from Slack, email and
+call recordings with an agent built in two days, running for about $1,000 a year — so the record is
+not the scarce thing. **The forecast is.** What a team believed would happen, before the outcome was
+known, leaves no trace unless something captured it at the moment of the call. Today nothing does. So
+every "I knew it" is unfalsifiable, every retro is oral history, and the same bet gets made twice
+because nothing learned is standing at the next decision.
+
+## What SupaProd does instead
+
+A person types one sentence. Agents walk the work through the stations — sense · decide · define ·
+design · build · ship · learn — while the person watches one screen: a transcript of what each agent
+did on the left, the current artifact on the right, one Stop control, no navigating. **At decide, the
+forecast goes on the record before the outcome is known** — what we expect, and when we will know. It
+is the only station that writes one, which is why a route without it has no moat (R-25). In an
+ordinary workspace the person holds one gate — the merge approval, a click that unblocks ship — and
+the production deploy is gated by proof, not by a click (R-27), so a run inside boundaries a human
+set in advance completes on its own. At learn, the verdict lands against the forecast — predicted
+beside actual, win or lose — a decision and its outcome on one audit trail.
+
+**What is proven, measured 2026-08-25.** Six of the seven stations have done their jobs for real,
+driven by agents. The honest acceptance query — `entry_station='sense' AND station='learn' AND
+waived='[]'` — returns **0 of 93 tracks, ever** (never ask this via `workspaces.is_sample`, which
+returns a false 1 — F-61/F-71). The furthest genuine run stands at **ship, right now** (track
+`7977dc06`, entered at sense, nothing waived). The one track at `learn` entered at define with sense
+and decide waived: it proves the machinery, not the loop. And every visible trace of the brain is
+seed: 133 of 133 `learnings` rows are `is_sample = true`; the 98 `learning_citations` rows share
+**one distinct microsecond across seven dates** — a single INSERT wearing a week; the four brain
+tools (`learning.record`, `brain.due_forecasts`, `brain.outcome_history`, `brain.contradictions`)
+have **zero calls across 2,652 agent runs**; `decisions.cited_by_count` is 0 on all 355 (F-70). **The
+loop is wired, six of its seven stations are proven in real runs, and it begins accruing on first
+real use. Nothing has accrued yet.** The block is reachability, not the brain's machinery: a station
+never reached cannot call its tools in anger.
+
+## Why this is 10x
+
+- **The forecast cannot be backfilled.** Everything else about a decision has been rebuilt from
+  artifacts — twice, on the record. The forecast at decision time is the one thing a competitor, an
+  agent sweep over Slack, or next quarter's model release cannot reconstruct. We are the surface that
+  captures it at the moment it exists. (Stated because it is honest: every forecast on the record so
+  far is agent-authored; whether one becomes required on the human decision path is an open founder
+  call.)
+- **Agent-governable, not merely agent-writable.** An agent can write into a folder or a Notion page.
+  It cannot write *a decision with its evidence, its author, a verdict slot and a human gate* into
+  either. Our write surface is live and scope-gated (`record_decision`, `draft_spec`,
+  `settle_outcome`, `ingest_signal`), and nothing an agent writes lands finished. DIY folders work
+  for one operator and die at the second person or the first fleet of agents; that transition is
+  where we win.
+- **One gate instead of five.** Today the person runs every gate themselves — read the diff, chase
+  the deploy, wait for the outcome, grade it, extract the lesson. Here they answer one question and
+  the record carries the rest. A design fact, not a measured outcome.
+- **Rework, not speed, is the metric.** First-pass acceptance is live per agent (since 2026-08-10,
+  from `human_gate_events`); review burden is derivable from the same stream; clarification loops are
+  unmeasured and declared, never drawn as zero.
+
+No time-savings number appears on this page because none has been measured: capture began
+2026-08-10, there are zero external users, and a figure produced before real usage is a number about
+demo data. Unproven is unproven.
+
+## What we delete
+
+- **Collaboration surfaces** — chat, threads, mentions. Consent is asked in place, at the station
+  that raised it, or it does not get answered (R-04).
+- **Templates and libraries** — the spec is an input the agent drafts and the person edits once, not
+  a form to fill.
+- **Settings and tuning** — every toggle is a decision that belongs to the loop, not to the person.
+- **Onboarding tours and help text** — in a closed loop every action is the only one that makes
+  sense; a surface that needs explaining is the defect.
+- **The brain's seeded displays — new, forced by F-70.** 133 sample learnings, citations from one
+  INSERT, `playbook_proposals` read by five surfaces and holding 0 rows lifetime. A brain wearing
+  seeded memories fails the only test that matters on day two, when the user notices it learned
+  nothing *from them*. The brain earns its first pixel when the first real learning exists; until
+  then its surfaces show honest emptiness, not theater.
+- **This page's own dead claims.** "Two tracks reached Learn in automated test" — both sat at
+  `station='sense'`, `status='abandoned'`, and the test that "proved" it writes real tracks into
+  production (F-69). "The calibration can compound" — the forecast grader has processed zero
+  workspaces in its life (F-51). The 30-minute code review and 2–3-day feedback figures — invented;
+  nothing was ever measured.
+
+## The architecture call — is seven the right shape?
+
+Made under the founder's grant: *the stations and the brain are hypotheses, not commitments.*
+
+**The count is not the problem. The terminus is.** Keep the stations — as stages of one record,
+never rooms (R-01: a progress display, never a menu; the person sees a transcript). The middle is
+already merged per shape of work: route shapes waive stations with recorded reasons, and
+`incident-fix` honestly carries *"nothing is being forecast on this."* Cutting a station globally is
+a waiver that can never be un-waived. And every wall that stopped a real run sat at a handoff to the
+outside world — the repo the product stopped recognising (F-49), the merge gate no station was
+briefed to approach (F-50), dependencies a customer's repo cannot install (F-56), a CI gate the
+builder disabled (F-63), GitHub billing (F-64). Fewer stations removes none of those walls; they are
+where the product meets reality, not where it meets itself.
+
+**The change the evidence does demand: learn is not station seven of a corridor. It is the return
+edge of a cycle, on its own clock.** Delivery finishes at ship, in days. The verdict cannot exist
+until the window named at decide closes — days to months later. Holding a track un-done until the
+calendar catches up is why learn starves, and why everything downstream of it — the brain, entire —
+starved with it. The data already flows as a cycle: on real lineage, decide's largest inbound source
+is already learn (36 edges against 9 from opportunities), and the founder has ruled the picture a
+cycle with two front doors (canon §5E). So: six delivery stations one walk proves in days, and learn
+as the scheduled return — the due-forecast queue, whose mechanism exists and has processed zero
+workspaces (F-51) — landing its verdict when the window closes. The concrete consequence for the
+acceptance: the run's own forecast must be one that can settle inside the run (a deploy-health
+window, not a quarterly retention bet), or "reach learn" waits on the calendar rather than on the
+product. R-18 stands as written; this is how a run satisfies its verdict clause without waiting for
+October.
+
+**The brain stays — as a hypothesis with a start condition.** Nothing real has ever reached it, so it
+is unfalsified in both directions. Until the first real learning exists it makes no claim on any
+surface, and this page does not call it "defensible alone." What is defensible today is the forecast
+captured at decision time, which is live at decide.
+
+## Acceptance — what counts as done
+
+R-18, strictly: one piece of work enters at sense and completes all seven stations, driven entirely
+by agents, no human touching it mid-run, watchable on one screen, ending with a verdict — predicted
+beside actual — proven with SQL, a track id and a screenshot. In three months it has never happened
+once. The furthest honest run is at ship today. That is the distance left, and this page will not
+describe it as smaller than it is.

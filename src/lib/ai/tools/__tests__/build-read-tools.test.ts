@@ -35,16 +35,9 @@ import { join } from "node:path";
 import { TOOL_REGISTRY } from "@/lib/ai/tools/registry.server";
 import { TOOL_DEFAULTS } from "@/lib/ai/tools/defaults";
 
-const NAMES = [
-  "build.list_sessions",
-  "build.get_run",
-  "build.changeset_history",
-] as const;
+const NAMES = ["build.list_sessions", "build.get_run", "build.changeset_history"] as const;
 
-const REGISTRY_SOURCE = readFileSync(
-  join(import.meta.dir, "..", "registry.server.ts"),
-  "utf8",
-);
+const REGISTRY_SOURCE = readFileSync(join(import.meta.dir, "..", "registry.server.ts"), "utf8");
 
 /** The full source of one tool def: from its `name:` to the next top-level const. */
 function toolSource(name: string): string {
@@ -69,7 +62,9 @@ describe("the three build reads are registered as reads", () => {
     // agent reach for it BEFORE proposing work instead of re-proposing
     // something a previous build already attempted.
     expect(TOOL_REGISTRY["build.list_sessions"]!.description).toMatch(/before.*plan/is);
-    expect(TOOL_REGISTRY["build.list_sessions"]!.description).toMatch(/previous builds|merged|still open/i);
+    expect(TOOL_REGISTRY["build.list_sessions"]!.description).toMatch(
+      /previous builds|merged|still open/i,
+    );
     expect(TOOL_REGISTRY["build.get_run"]!.description).toMatch(/build\.list_sessions/i);
     expect(TOOL_REGISTRY["build.get_run"]!.description).toMatch(/failed|actually changed/i);
     expect(TOOL_REGISTRY["build.changeset_history"]!.description).toMatch(/merged/i);
@@ -166,7 +161,7 @@ describe("tenancy flows from context, never from a caller", () => {
     const refuseAt = src.indexOf("No run with that id is visible in this workspace.");
     expect(gateAt).toBeGreaterThan(-1);
     expect(refuseAt).toBeGreaterThan(gateAt);
-    expect(src.indexOf(".from(\"agent_runs\")")).toBeGreaterThan(refuseAt);
+    expect(src.indexOf('.from("agent_runs")')).toBeGreaterThan(refuseAt);
   });
 
   it("no tool scopes by user, because Build artifacts belong to the workspace", () => {
@@ -301,10 +296,11 @@ describe("build.list_sessions behaviour (fake client)", () => {
         error: null,
       },
     });
-    const out = (await TOOL_REGISTRY["build.list_sessions"]!.run(
-      {},
-      { supabase, userId: "u1", workspaceId: "w1" } as never,
-    )) as { sessions: Array<Record<string, unknown>> };
+    const out = (await TOOL_REGISTRY["build.list_sessions"]!.run({}, {
+      supabase,
+      userId: "u1",
+      workspaceId: "w1",
+    } as never)) as { sessions: Array<Record<string, unknown>> };
 
     expect(out.sessions).toHaveLength(2);
     const [a, b] = out.sessions;
@@ -321,10 +317,11 @@ describe("build.list_sessions behaviour (fake client)", () => {
 
   it("an empty workspace answers an empty list without pretending otherwise", async () => {
     const supabase = fakeSupabase({ missions: { data: [], error: null } });
-    const out = (await TOOL_REGISTRY["build.list_sessions"]!.run(
-      {},
-      { supabase, userId: "u1", workspaceId: "w1" } as never,
-    )) as { sessions: unknown[] };
+    const out = (await TOOL_REGISTRY["build.list_sessions"]!.run({}, {
+      supabase,
+      userId: "u1",
+      workspaceId: "w1",
+    } as never)) as { sessions: unknown[] };
     expect(out.sessions).toEqual([]);
   });
 
@@ -334,20 +331,22 @@ describe("build.list_sessions behaviour (fake client)", () => {
       studio_changesets: { data: null, error: { message: "changesets read failed" } },
     });
     await expect(
-      TOOL_REGISTRY["build.list_sessions"]!.run(
-        {},
-        { supabase, userId: "u1", workspaceId: "w1" } as never,
-      ),
+      TOOL_REGISTRY["build.list_sessions"]!.run({}, {
+        supabase,
+        userId: "u1",
+        workspaceId: "w1",
+      } as never),
     ).rejects.toThrow(/changesets read failed/);
   });
 
   it("refuses to run without a context workspace", async () => {
     const supabase = fakeSupabase({});
     await expect(
-      TOOL_REGISTRY["build.list_sessions"]!.run(
-        {},
-        { supabase, userId: "u1", workspaceId: null } as never,
-      ),
+      TOOL_REGISTRY["build.list_sessions"]!.run({}, {
+        supabase,
+        userId: "u1",
+        workspaceId: null,
+      } as never),
     ).rejects.toThrow(/runs inside a workspace, and this run has none/);
   });
 });
@@ -433,10 +432,11 @@ describe("build.get_run behaviour (fake client)", () => {
 
   it("returns the full record: goal, current agent, changeset, checkpoint, evidence, specs", async () => {
     const supabase = fakeSupabase(tablesFor());
-    const out = (await TOOL_REGISTRY["build.get_run"]!.run(
-      { mission_id: M_A },
-      { supabase, userId: "u1", workspaceId: "w1" } as never,
-    )) as Record<string, any>;
+    const out = (await TOOL_REGISTRY["build.get_run"]!.run({ mission_id: M_A }, {
+      supabase,
+      userId: "u1",
+      workspaceId: "w1",
+    } as never)) as Record<string, any>;
 
     expect(out.goal).toBe("Let returning shoppers reuse a saved address.");
     expect(out.status).toBe("completed");
@@ -455,10 +455,11 @@ describe("build.get_run behaviour (fake client)", () => {
   it("names a run it cannot see instead of reporting success on nothing", async () => {
     const supabase = fakeSupabase(tablesFor({ missions: { data: null, error: null } }));
     await expect(
-      TOOL_REGISTRY["build.get_run"]!.run(
-        { mission_id: M_A },
-        { supabase, userId: "u1", workspaceId: "w1" } as never,
-      ),
+      TOOL_REGISTRY["build.get_run"]!.run({ mission_id: M_A }, {
+        supabase,
+        userId: "u1",
+        workspaceId: "w1",
+      } as never),
     ).rejects.toThrow(/No run with that id/);
   });
 
@@ -471,10 +472,11 @@ describe("build.get_run behaviour (fake client)", () => {
         learnings: { data: null, count: 0, error: null },
       }),
     );
-    const out = (await TOOL_REGISTRY["build.get_run"]!.run(
-      { mission_id: M_A },
-      { supabase, userId: "u1", workspaceId: "w1" } as never,
-    )) as Record<string, any>;
+    const out = (await TOOL_REGISTRY["build.get_run"]!.run({ mission_id: M_A }, {
+      supabase,
+      userId: "u1",
+      workspaceId: "w1",
+    } as never)) as Record<string, any>;
     expect(out.current_agent_slug).toBeNull();
     expect(out.latest_checkpoint).toBeNull();
     expect(out.evidence_count).toBe(0);
@@ -487,10 +489,11 @@ describe("build.get_run behaviour (fake client)", () => {
         prds: { data: [], error: null },
       }),
     );
-    const out = (await TOOL_REGISTRY["build.get_run"]!.run(
-      { mission_id: M_A },
-      { supabase, userId: "u1", workspaceId: "w1" } as never,
-    )) as Record<string, any>;
+    const out = (await TOOL_REGISTRY["build.get_run"]!.run({ mission_id: M_A }, {
+      supabase,
+      userId: "u1",
+      workspaceId: "w1",
+    } as never)) as Record<string, any>;
     expect(out.lineage_read).toBe("failed");
     expect(out.linked_specs).toEqual([]);
   });
@@ -498,10 +501,11 @@ describe("build.get_run behaviour (fake client)", () => {
   it("refuses to run without a context workspace", async () => {
     const supabase = fakeSupabase({});
     await expect(
-      TOOL_REGISTRY["build.get_run"]!.run(
-        { mission_id: M_A },
-        { supabase, userId: "u1", workspaceId: null } as never,
-      ),
+      TOOL_REGISTRY["build.get_run"]!.run({ mission_id: M_A }, {
+        supabase,
+        userId: "u1",
+        workspaceId: null,
+      } as never),
     ).rejects.toThrow(/runs inside a workspace, and this run has none/);
   });
 });
@@ -534,10 +538,11 @@ describe("build.changeset_history behaviour (fake client)", () => {
       },
       prds: { data: [{ id: SPEC_1, title: "Guest checkout" }], error: null },
     });
-    const out = (await TOOL_REGISTRY["build.changeset_history"]!.run(
-      {},
-      { supabase, userId: "u1", workspaceId: "w1" } as never,
-    )) as { merged: Array<Record<string, unknown>> };
+    const out = (await TOOL_REGISTRY["build.changeset_history"]!.run({}, {
+      supabase,
+      userId: "u1",
+      workspaceId: "w1",
+    } as never)) as { merged: Array<Record<string, unknown>> };
 
     expect(out.merged).toHaveLength(2);
     const [first, second] = out.merged;
@@ -550,10 +555,11 @@ describe("build.changeset_history behaviour (fake client)", () => {
 
   it("answers honestly when nothing has merged yet", async () => {
     const supabase = fakeSupabase({ studio_changesets: { data: [], error: null } });
-    const out = (await TOOL_REGISTRY["build.changeset_history"]!.run(
-      {},
-      { supabase, userId: "u1", workspaceId: "w1" } as never,
-    )) as { merged: unknown[] };
+    const out = (await TOOL_REGISTRY["build.changeset_history"]!.run({}, {
+      supabase,
+      userId: "u1",
+      workspaceId: "w1",
+    } as never)) as { merged: unknown[] };
     expect(out.merged).toEqual([]);
   });
 
@@ -576,20 +582,22 @@ describe("build.changeset_history behaviour (fake client)", () => {
       prds: { data: null, error: { message: "prds read failed" } },
     });
     await expect(
-      TOOL_REGISTRY["build.changeset_history"]!.run(
-        {},
-        { supabase, userId: "u1", workspaceId: "w1" } as never,
-      ),
+      TOOL_REGISTRY["build.changeset_history"]!.run({}, {
+        supabase,
+        userId: "u1",
+        workspaceId: "w1",
+      } as never),
     ).rejects.toThrow(/prds read failed/);
   });
 
   it("refuses to run without a context workspace", async () => {
     const supabase = fakeSupabase({});
     await expect(
-      TOOL_REGISTRY["build.changeset_history"]!.run(
-        {},
-        { supabase, userId: "u1", workspaceId: null } as never,
-      ),
+      TOOL_REGISTRY["build.changeset_history"]!.run({}, {
+        supabase,
+        userId: "u1",
+        workspaceId: null,
+      } as never),
     ).rejects.toThrow(/runs inside a workspace, and this run has none/);
   });
 });

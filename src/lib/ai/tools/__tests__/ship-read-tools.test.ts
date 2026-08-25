@@ -37,10 +37,7 @@ import { TOOL_DEFAULTS } from "@/lib/ai/tools/defaults";
 
 const NAMES = ["ship.list_releases", "ship.get_release", "ship.in_production"] as const;
 
-const REGISTRY_SOURCE = readFileSync(
-  join(import.meta.dir, "..", "registry.server.ts"),
-  "utf8",
-);
+const REGISTRY_SOURCE = readFileSync(join(import.meta.dir, "..", "registry.server.ts"), "utf8");
 
 /** The full source of one tool def: from its `name:` to the next top-level const. */
 function toolSource(name: string): string {
@@ -167,7 +164,7 @@ describe("tenancy flows from context, never from a caller", () => {
 
 describe("the human path's own definitions, not invented ones", () => {
   it("list_releases reads merged the way listAppliedChanges does: status=merged, newest updated first", () => {
-    const src = toolSource('ship.list_releases');
+    const src = toolSource("ship.list_releases");
     expect(src).toContain('.from("studio_changesets")');
     expect(src).toContain('.eq("status", "merged")');
     expect(src).toContain('.order("updated_at", { ascending: false })');
@@ -270,10 +267,11 @@ describe("ship.list_releases behaviour (fake client)", () => {
       },
       deployments: { data: [{ changeset_id: CS_B }], error: null },
     });
-    const out = (await TOOL_REGISTRY["ship.list_releases"]!.run(
-      {},
-      { supabase, userId: "u1", workspaceId: "w1" } as never,
-    )) as { releases: Array<Record<string, unknown>> };
+    const out = (await TOOL_REGISTRY["ship.list_releases"]!.run({}, {
+      supabase,
+      userId: "u1",
+      workspaceId: "w1",
+    } as never)) as { releases: Array<Record<string, unknown>> };
 
     expect(out.releases).toHaveLength(2);
     const [a, b] = out.releases;
@@ -293,10 +291,11 @@ describe("ship.list_releases behaviour (fake client)", () => {
       changelog_entries: { data: [], error: null },
       deployments: { data: [], error: null },
     });
-    const out = (await TOOL_REGISTRY["ship.list_releases"]!.run(
-      {},
-      { supabase, userId: "u1", workspaceId: "w1" } as never,
-    )) as { releases: unknown[] };
+    const out = (await TOOL_REGISTRY["ship.list_releases"]!.run({}, {
+      supabase,
+      userId: "u1",
+      workspaceId: "w1",
+    } as never)) as { releases: unknown[] };
     expect(out.releases).toEqual([]);
   });
 
@@ -309,20 +308,22 @@ describe("ship.list_releases behaviour (fake client)", () => {
       deployments: { data: [], error: null },
     });
     await expect(
-      TOOL_REGISTRY["ship.list_releases"]!.run(
-        {},
-        { supabase, userId: "u1", workspaceId: "w1" } as never,
-      ),
+      TOOL_REGISTRY["ship.list_releases"]!.run({}, {
+        supabase,
+        userId: "u1",
+        workspaceId: "w1",
+      } as never),
     ).rejects.toThrow(/changelog read failed/);
   });
 
   it("refuses to run without a context workspace", async () => {
     const supabase = fakeSupabase({});
     await expect(
-      TOOL_REGISTRY["ship.list_releases"]!.run(
-        {},
-        { supabase, userId: "u1", workspaceId: null } as never,
-      ),
+      TOOL_REGISTRY["ship.list_releases"]!.run({}, {
+        supabase,
+        userId: "u1",
+        workspaceId: null,
+      } as never),
     ).rejects.toThrow(/runs inside a workspace, and this run has none/);
   });
 });
@@ -357,8 +358,18 @@ describe("ship.get_release behaviour (fake client)", () => {
       },
       prds: overrides.prds ?? {
         data: [
-          { id: SPEC_2, title: "Guest checkout", status: "shipped", shipped_at: "2026-08-22T02:00:00Z" },
-          { id: SPEC_1, title: "Saved address", status: "shipped", shipped_at: "2026-08-22T02:00:00Z" },
+          {
+            id: SPEC_2,
+            title: "Guest checkout",
+            status: "shipped",
+            shipped_at: "2026-08-22T02:00:00Z",
+          },
+          {
+            id: SPEC_1,
+            title: "Saved address",
+            status: "shipped",
+            shipped_at: "2026-08-22T02:00:00Z",
+          },
         ],
         error: null,
       },
@@ -380,7 +391,13 @@ describe("ship.get_release behaviour (fake client)", () => {
         error: null,
       },
       changelog_entries: overrides.changelog_entries ?? {
-        data: [{ title: "Saved address at checkout", body: "Faster checkout.", released_at: "2026-08-22T01:00:00Z" }],
+        data: [
+          {
+            title: "Saved address at checkout",
+            body: "Faster checkout.",
+            released_at: "2026-08-22T01:00:00Z",
+          },
+        ],
         error: null,
       },
     };
@@ -388,10 +405,11 @@ describe("ship.get_release behaviour (fake client)", () => {
 
   it("returns the full record: notes, both specs, deploys by env, changelog entry", async () => {
     const supabase = fakeSupabase(tablesFor());
-    const out = (await TOOL_REGISTRY["ship.get_release"]!.run(
-      { changeset_id: CS_A },
-      { supabase, userId: "u1", workspaceId: "w1" } as never,
-    )) as Record<string, any>;
+    const out = (await TOOL_REGISTRY["ship.get_release"]!.run({ changeset_id: CS_A }, {
+      supabase,
+      userId: "u1",
+      workspaceId: "w1",
+    } as never)) as Record<string, any>;
 
     expect(out.title).toBe("Saved address at checkout");
     expect(out.release_notes).toBe("Checkout got faster.");
@@ -406,14 +424,13 @@ describe("ship.get_release behaviour (fake client)", () => {
   });
 
   it("names a release it cannot see instead of reporting success on nothing", async () => {
-    const supabase = fakeSupabase(
-      tablesFor({ studio_changesets: { data: null, error: null } }),
-    );
+    const supabase = fakeSupabase(tablesFor({ studio_changesets: { data: null, error: null } }));
     await expect(
-      TOOL_REGISTRY["ship.get_release"]!.run(
-        { changeset_id: CS_A },
-        { supabase, userId: "u1", workspaceId: "w1" } as never,
-      ),
+      TOOL_REGISTRY["ship.get_release"]!.run({ changeset_id: CS_A }, {
+        supabase,
+        userId: "u1",
+        workspaceId: "w1",
+      } as never),
     ).rejects.toThrow(/No release with that id/);
   });
 
@@ -424,15 +441,23 @@ describe("ship.get_release behaviour (fake client)", () => {
         // The fake ignores .in(id) filters, so this row list stands in for the
         // server-side one: with the walk failed, only prd_id is ever asked for.
         prds: {
-          data: [{ id: SPEC_1, title: "Saved address", status: "shipped", shipped_at: "2026-08-22T02:00:00Z" }],
+          data: [
+            {
+              id: SPEC_1,
+              title: "Saved address",
+              status: "shipped",
+              shipped_at: "2026-08-22T02:00:00Z",
+            },
+          ],
           error: null,
         },
       }),
     );
-    const out = (await TOOL_REGISTRY["ship.get_release"]!.run(
-      { changeset_id: CS_A },
-      { supabase, userId: "u1", workspaceId: "w1" } as never,
-    )) as Record<string, any>;
+    const out = (await TOOL_REGISTRY["ship.get_release"]!.run({ changeset_id: CS_A }, {
+      supabase,
+      userId: "u1",
+      workspaceId: "w1",
+    } as never)) as Record<string, any>;
     expect(out.lineage_read).toBe("failed");
     expect(out.linked_specs.map((s: { id: string }) => s.id)).toEqual([SPEC_1]);
   });
@@ -440,14 +465,18 @@ describe("ship.get_release behaviour (fake client)", () => {
   it("tolerates a prompt-only release: no mission means no lineage walk and no specs invented", async () => {
     const supabase = fakeSupabase(
       tablesFor({
-        studio_changesets: { ...tablesFor().studio_changesets, data: { ...csRow, prd_id: null, mission_id: null } },
+        studio_changesets: {
+          ...tablesFor().studio_changesets,
+          data: { ...csRow, prd_id: null, mission_id: null },
+        },
         prds: { data: [], error: null },
       }),
     );
-    const out = (await TOOL_REGISTRY["ship.get_release"]!.run(
-      { changeset_id: CS_A },
-      { supabase, userId: "u1", workspaceId: "w1" } as never,
-    )) as Record<string, any>;
+    const out = (await TOOL_REGISTRY["ship.get_release"]!.run({ changeset_id: CS_A }, {
+      supabase,
+      userId: "u1",
+      workspaceId: "w1",
+    } as never)) as Record<string, any>;
     expect(out.lineage_read).toBe("skipped");
     expect(out.linked_specs).toEqual([]);
     expect(out.changelog_entry).not.toBeNull();
@@ -459,9 +488,21 @@ describe("ship.in_production behaviour (fake client)", () => {
     const supabase = fakeSupabase({
       deployments: {
         data: [
-          { changeset_id: CS_B, deploy_url: "https://b.example", deployed_at: "2026-08-23T09:00:00Z" },
-          { changeset_id: CS_A, deploy_url: "https://a2.example", deployed_at: "2026-08-23T08:00:00Z" },
-          { changeset_id: CS_A, deploy_url: "https://a1.example", deployed_at: "2026-08-22T07:00:00Z" },
+          {
+            changeset_id: CS_B,
+            deploy_url: "https://b.example",
+            deployed_at: "2026-08-23T09:00:00Z",
+          },
+          {
+            changeset_id: CS_A,
+            deploy_url: "https://a2.example",
+            deployed_at: "2026-08-23T08:00:00Z",
+          },
+          {
+            changeset_id: CS_A,
+            deploy_url: "https://a1.example",
+            deployed_at: "2026-08-22T07:00:00Z",
+          },
         ],
         error: null,
       },
@@ -473,10 +514,11 @@ describe("ship.in_production behaviour (fake client)", () => {
         error: null,
       },
     });
-    const out = (await TOOL_REGISTRY["ship.in_production"]!.run(
-      {},
-      { supabase, userId: "u1", workspaceId: "w1" } as never,
-    )) as { live_count: number; live: Array<Record<string, unknown>> };
+    const out = (await TOOL_REGISTRY["ship.in_production"]!.run({}, {
+      supabase,
+      userId: "u1",
+      workspaceId: "w1",
+    } as never)) as { live_count: number; live: Array<Record<string, unknown>> };
 
     // A re-promote appends another success row for the same release; the crew
     // asked what is live, not how many times it was pushed.
@@ -491,10 +533,11 @@ describe("ship.in_production behaviour (fake client)", () => {
       deployments: { data: [], error: null },
       studio_changesets: { data: [], error: null },
     });
-    const out = (await TOOL_REGISTRY["ship.in_production"]!.run(
-      {},
-      { supabase, userId: "u1", workspaceId: "w1" } as never,
-    )) as { live_count: number; live: unknown[] };
+    const out = (await TOOL_REGISTRY["ship.in_production"]!.run({}, {
+      supabase,
+      userId: "u1",
+      workspaceId: "w1",
+    } as never)) as { live_count: number; live: unknown[] };
     expect(out.live_count).toBe(0);
     expect(out.live).toEqual([]);
   });
@@ -505,10 +548,11 @@ describe("ship.in_production behaviour (fake client)", () => {
       studio_changesets: { data: [], error: null },
     });
     await expect(
-      TOOL_REGISTRY["ship.in_production"]!.run(
-        {},
-        { supabase, userId: "u1", workspaceId: "w1" } as never,
-      ),
+      TOOL_REGISTRY["ship.in_production"]!.run({}, {
+        supabase,
+        userId: "u1",
+        workspaceId: "w1",
+      } as never),
     ).rejects.toThrow(/deployments read failed/);
   });
 });

@@ -41,10 +41,7 @@ const NAMES = [
   "brain.due_forecasts",
 ] as const;
 
-const REGISTRY_SOURCE = readFileSync(
-  join(import.meta.dir, "..", "registry.server.ts"),
-  "utf8",
-);
+const REGISTRY_SOURCE = readFileSync(join(import.meta.dir, "..", "registry.server.ts"), "utf8");
 
 /** The full source of one tool def: from its `name:` to the next top-level const. */
 function toolSource(name: string): string {
@@ -169,15 +166,11 @@ describe("tenancy flows from context, never from a caller", () => {
 
 describe("the shared helpers are reused, not re-derived", () => {
   it("search_decisions calls the same function the MCP route dispatches", () => {
-    expect(toolSource("brain.search_decisions")).toContain(
-      "searchDecisions(supabase, workspaceId",
-    );
+    expect(toolSource("brain.search_decisions")).toContain("searchDecisions(supabase, workspaceId");
   });
 
   it("outcome_history calls the same function the MCP route dispatches", () => {
-    expect(toolSource("brain.outcome_history")).toContain(
-      "outcomeHistory(supabase, workspaceId",
-    );
+    expect(toolSource("brain.outcome_history")).toContain("outcomeHistory(supabase, workspaceId");
   });
 
   it("due_forecasts calls listDueForecastsForAgent, which scopes by workspace", () => {
@@ -248,10 +241,11 @@ describe("brain.get_decision behaviour (fake client)", () => {
 
   it("returns the full row including forecast fields and resolution", async () => {
     const tool = TOOL_REGISTRY["brain.get_decision"]!;
-    const out = (await tool.run(
-      { id: DECISION_ID },
-      { supabase: fakeSupabase(row, []), userId: "u1", workspaceId: "w1" } as never,
-    )) as Record<string, unknown>;
+    const out = (await tool.run({ id: DECISION_ID }, {
+      supabase: fakeSupabase(row, []),
+      userId: "u1",
+      workspaceId: "w1",
+    } as never)) as Record<string, unknown>;
     expect(out.title).toBe("Ship inline editor");
     expect(out.forecast_claim).toBe("Editing sessions double");
     expect(out.forecast_resolution).toBe("hit");
@@ -261,42 +255,47 @@ describe("brain.get_decision behaviour (fake client)", () => {
 
   it("tags a decision superseded when an active lineage edge replaces it", async () => {
     const tool = TOOL_REGISTRY["brain.get_decision"]!;
-    const out = (await tool.run(
-      { id: DECISION_ID },
-      {
-        supabase: fakeSupabase(row, [
-          { parent_id: "22222222-2222-2222-2222-222222222222", child_id: DECISION_ID, relation: "supersedes", valid_to: null },
-        ]),
-        userId: "u1",
-        workspaceId: "w1",
-      } as never,
-    )) as Record<string, unknown>;
+    const out = (await tool.run({ id: DECISION_ID }, {
+      supabase: fakeSupabase(row, [
+        {
+          parent_id: "22222222-2222-2222-2222-222222222222",
+          child_id: DECISION_ID,
+          relation: "supersedes",
+          valid_to: null,
+        },
+      ]),
+      userId: "u1",
+      workspaceId: "w1",
+    } as never)) as Record<string, unknown>;
     expect(out.outcome).toBe("superseded");
     expect(out.superseded_by).toBe("22222222-2222-2222-2222-222222222222");
   });
 
   it("a retired (bitemporally reversed) supersession leaves the decision standing", async () => {
     const tool = TOOL_REGISTRY["brain.get_decision"]!;
-    const out = (await tool.run(
-      { id: DECISION_ID },
-      {
-        supabase: fakeSupabase(row, [
-          { parent_id: "33333333-3333-3333-3333-333333333333", child_id: DECISION_ID, relation: "supersedes", valid_to: "2026-08-05T00:00:00Z" },
-        ]),
-        userId: "u1",
-        workspaceId: "w1",
-      } as never,
-    )) as Record<string, unknown>;
+    const out = (await tool.run({ id: DECISION_ID }, {
+      supabase: fakeSupabase(row, [
+        {
+          parent_id: "33333333-3333-3333-3333-333333333333",
+          child_id: DECISION_ID,
+          relation: "supersedes",
+          valid_to: "2026-08-05T00:00:00Z",
+        },
+      ]),
+      userId: "u1",
+      workspaceId: "w1",
+    } as never)) as Record<string, unknown>;
     expect(out.outcome).toBe("standing");
   });
 
   it("names a decision it cannot see instead of reporting success on nothing", async () => {
     const tool = TOOL_REGISTRY["brain.get_decision"]!;
     await expect(
-      tool.run(
-        { id: DECISION_ID },
-        { supabase: fakeSupabase(null, []), userId: "u1", workspaceId: "w1" } as never,
-      ),
+      tool.run({ id: DECISION_ID }, {
+        supabase: fakeSupabase(null, []),
+        userId: "u1",
+        workspaceId: "w1",
+      } as never),
     ).rejects.toThrow(/No decision with that id/);
   });
 });

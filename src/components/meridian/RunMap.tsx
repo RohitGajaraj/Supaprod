@@ -7,6 +7,7 @@ import { Flowchart, flowFromSteps } from "./Flowchart";
 import { ReasonField } from "./forms";
 import type { PlanStep, PlanStepState } from "./PlanCard";
 import { GLYPH_FOR_STATION, StationGlyph } from "./station-glyphs";
+import { RecordTag } from "./RecordsTable";
 import { StatusChip, type StatusWord } from "./StatusChip";
 import { Action, Actions, Chevron } from "./surface-parts";
 
@@ -59,7 +60,9 @@ import { Action, Actions, Chevron } from "./surface-parts";
  * A station's state is `PlanStepState` and its steps are `PlanStep[]`, imported
  * rather than restated. `PlanCard` is the other forward-looking step display in
  * the system and the two are read minutes apart on the same piece of work; a
- * private six-value enum here is how "skipped" comes to mean two things.
+ * private enum here is how "skipped" comes to mean two things. When the live
+ * route needed `held` and `here` on 2026-08-25 they were added to that shared
+ * vocabulary for the same reason, not declared privately in this file.
  *
  * ── AND THE STEP GRAPH IS `Flowchart`, NOT A SECOND GRAPH ───────────────
  * Expanding a station draws its steps through `Flowchart`, which is the ported
@@ -81,6 +84,36 @@ import { Action, Actions, Chevron } from "./surface-parts";
  * editable, which is a route being edited underneath the agent walking it.
  */
 export type RunMapMode = "editable" | "live" | "replay";
+
+/**
+ * WHICH WAY THE ROUTE RUNS, and it is a fit decision rather than a taste one.
+ *
+ * ── SPEC-LAYOUT GAP G3, CLOSED 2026-08-25 ───────────────────────────────
+ * This component shipped drawing stations horizontally: a `flex` row with
+ * `overflow-x-auto` and a fixed 168px per stop. Seven of those plus gaps is
+ * about 1176px, and the run page's walking pane is a rail of `clamp(300px, 38%,
+ * 440px)`. So the flagship surface for a live route could not mount the live
+ * route component at all, and the spec recorded that as the largest gap in it.
+ *
+ * A SECOND ROUTE RENDERER WAS THE OBVIOUS FIX AND IT IS THE WRONG ONE. This
+ * repo keeps finding the same defect in different clothes -- a check watching a
+ * table its writer never writes, a component built and mounted nowhere -- and
+ * two components drawing one route is that shape: the state vocabulary, the
+ * waiver rule, the "no per-station hue" law and the outcome-not-tool rule would
+ * all have to be re-derived, and the second copy is the one that drifts.
+ *
+ * So the route gained a direction and kept everything else.
+ *
+ *   spine  the original. Stations left to right, each 168px, scrolling INSIDE
+ *          its own container. Right for a wide surface reading a whole route.
+ *   stack  one stop per row, full width, no horizontal scroll at any width.
+ *          Right for a rail, and right for a LIVE route besides: the eye reads
+ *          a vertical list in order without being asked to scroll sideways to
+ *          find where the work currently is.
+ *
+ * `spine` stays the default so no existing caller moves.
+ */
+export type RunMapOrientation = "spine" | "stack";
 
 export type RunMapStation = {
   station: AgentStation;
@@ -119,6 +152,11 @@ const CHIP: Partial<Record<PlanStepState, { status: StatusWord; word: string }>>
   active: { status: "agent", word: "Running" },
   failed: { status: "fail", word: "Failed" },
   "needs-approval": { status: "you", word: "Needs you" },
+  /* SPEC-LAYOUT gap G1, closed 2026-08-25. A held station used to arrive here
+     as `active` and wear "Running", which claimed a machine was inside a stop
+     the driver had stopped at. Amber and not red: `stalled` reads "it is being
+     sent for a fix", and red reports a result that has happened. */
+  held: { status: "hold", word: "On hold" },
 };
 
 /** Only for the states with no chip, so a screen reader still gets the word. */
@@ -126,7 +164,33 @@ const SPOKEN: Partial<Record<PlanStepState, string>> = {
   pending: "Not started",
   done: "Done",
   skipped: "Off the route",
+  /* `here` is absent on purpose: it wears a visible TAG instead, and the word
+     is in it. Announcing it here as well would say it twice, which is the rule
+     this pair exists to keep. */
 };
+
+/**
+ * WHERE THE WORK IS STANDING, AND WHY IT IS A TAG RATHER THAN A CHIP.
+ *
+ * `here` means the work is at this stop and nothing is moving it. That is a
+ * POSITION, not a status, and this system already has two shapes for exactly
+ * that split: *"A pill is round and carries status; a tag is square and carries
+ * a category."*
+ *
+ * IT IS NOT DECORATION, IT IS THE FIX FOR A DEFECT THIS ADDITION CREATED. The
+ * mark on every stop is the station's own glyph, and `markTone` paints both
+ * `done` and `here` with `--mrd-ink` -- so on a stacked route a reader could
+ * not tell the stop the work is AT from the four behind it. The alternative was
+ * to mute the done glyphs, which would have made a shipped surface quieter to
+ * make room for a new state, and the ratchet law forbids that in those words.
+ *
+ * COLOURLESS, and that is the colour law rather than a taste: hue in this
+ * system carries status, and painting an idle stop amber would report a hold
+ * nothing is holding.
+ */
+function HereTag() {
+  return <RecordTag label="Here" />;
+}
 
 /**
  * The mark's own ink, and there are only three values it may take.
@@ -137,8 +201,15 @@ const SPOKEN: Partial<Record<PlanStepState, string>> = {
  */
 function markTone(state: PlanStepState): string {
   if (state === "active") return "text-mrd-agent";
+  if (state === "held") return "text-mrd-hold";
+  /* Corrected 2026-08-25 alongside G1. A station waiting on a PERSON was
+     falling through to `text-mrd-faint`, so the one stop on the route that
+     needs somebody was the quietest mark on it. `PlanCard`'s own hue map has
+     always painted this state `--mrd-you`; this file had simply never listed
+     it. */
+  if (state === "needs-approval") return "text-mrd-you";
   if (state === "failed") return "text-mrd-fail";
-  if (state === "done") return "text-mrd-ink";
+  if (state === "done" || state === "here") return "text-mrd-ink";
   return "text-mrd-faint";
 }
 
@@ -187,6 +258,7 @@ function WaiveReason({
 function Stop({
   stop,
   mode,
+  orientation,
   open,
   asking,
   onToggle,
@@ -197,6 +269,7 @@ function Stop({
 }: {
   stop: RunMapStation;
   mode: RunMapMode;
+  orientation: RunMapOrientation;
   open: boolean;
   asking: boolean;
   onToggle: () => void;
@@ -221,9 +294,18 @@ function Stop({
      is history and the replay reads it off the state instead. */
   const hold = mode === "live" ? holdLine(stop.hold, { station: stop.station }) : null;
   const hasSteps = (stop.steps?.length ?? 0) > 0;
+  const stack = orientation === "stack";
 
   return (
-    <li className="flex min-w-0 shrink-0 flex-col" style={{ width: 168 }}>
+    /*
+     * The fixed 168px is the SPINE's geometry and only the spine's. A stacked
+     * stop takes the rail's full width, which is what stops a seven-station
+     * route needing a horizontal scrollbar inside a 300px pane.
+     */
+    <li
+      className={`flex min-w-0 flex-col ${stack ? "w-full" : "shrink-0"}`}
+      style={stack ? undefined : { width: 168 }}
+    >
       {/*
        * The whole stop is one control when it has steps to open, and a plain
        * fact when it does not. A card that looks pressable and does nothing is
@@ -236,14 +318,14 @@ function Stop({
           onClick={onToggle}
           className={`mrd-focus-inset flex w-full items-start gap-2 rounded-mrd-ctl px-2 py-2 text-left transition-colors duration-100 hover:bg-mrd-hover focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]`}
         >
-          <StopFace stop={stop} meta={meta} chip={chip} waived={waived} hold={hold} />
+          <StopFace stop={stop} meta={meta} chip={chip} waived={waived} hold={hold} stack={stack} />
           <span className="mt-[3px] shrink-0 text-mrd-mute">
             <Chevron open={open} />
           </span>
         </button>
       ) : (
         <div className="flex w-full items-start gap-2 px-2 py-2">
-          <StopFace stop={stop} meta={meta} chip={chip} waived={waived} hold={hold} />
+          <StopFace stop={stop} meta={meta} chip={chip} waived={waived} hold={hold} stack={stack} />
         </div>
       )}
 
@@ -274,14 +356,24 @@ function StopFace({
   chip,
   waived,
   hold,
+  stack,
 }: {
   stop: RunMapStation;
   meta: { name: string };
   chip?: { status: StatusWord; word: string };
   waived: boolean;
   hold: string | null;
+  /** Vertical rail. The chip moves onto the name's line; nothing else changes. */
+  stack: boolean;
 }) {
   const spoken = SPOKEN[stop.state];
+  const chipEl = chip ? (
+    <StatusChip status={chip.status} pulse={chip.status === "agent" || chip.status === "you"}>
+      {chip.word}
+    </StatusChip>
+  ) : stop.state === "here" ? (
+    <HereTag />
+  ) : null;
   return (
     <span className="flex min-w-0 flex-1 flex-col gap-1">
       <span className="flex min-w-0 items-center gap-2">
@@ -298,15 +390,16 @@ function StopFace({
         >
           {meta.name}
         </span>
+        {/*
+         * ON A RAIL THE CHIP RIDES THE NAME'S LINE. A 168px spine column has no
+         * room beside the name, so the chip drops below it; a full-width row
+         * has room to spare and stacking it there would spend a whole line of a
+         * seven-row list on a word that fits in the slack.
+         */}
+        {stack && chipEl ? <span className="ml-auto shrink-0">{chipEl}</span> : null}
       </span>
 
-      {chip ? (
-        <span className="flex">
-          <StatusChip status={chip.status} pulse={chip.status !== "fail"}>
-            {chip.word}
-          </StatusChip>
-        </span>
-      ) : null}
+      {!stack && chipEl ? <span className="flex">{chipEl}</span> : null}
 
       {/*
        * WHAT CAME OF IT, in outcome words. Wraps rather than truncates, because
@@ -341,12 +434,15 @@ function StopFace({
 export function RunMap({
   stops,
   mode = "replay",
+  orientation = "spine",
   label = "The route this work takes",
   onWaive,
 }: {
   /** In route order. An empty route is a real state, drawn below. */
   stops: RunMapStation[];
   mode?: RunMapMode;
+  /** Which way the route runs. See `RunMapOrientation`; `spine` is unchanged. */
+  orientation?: RunMapOrientation;
   label?: string;
   /**
    * Take a station off the route, with the reason a person gave.
@@ -397,13 +493,21 @@ export function RunMap({
        */}
       <ol
         aria-label={label}
-        className="mrd-fade-scroll flex list-none items-start gap-1 overflow-x-auto pb-1"
+        className={
+          orientation === "stack"
+            ? /* No `overflow-x` at all, which is the point of this direction:
+                 nothing can scroll sideways because nothing is wider than the
+                 rail. The page's own scroll carries a long route. */
+              "flex list-none flex-col items-stretch"
+            : "mrd-fade-scroll flex list-none items-start gap-1 overflow-x-auto pb-1"
+        }
       >
         {stops.map((stop) => (
           <Stop
             key={stop.station}
             stop={stop}
             mode={mode}
+            orientation={orientation}
             open={openStop === stop.station}
             asking={asking === stop.station}
             onToggle={() => setOpenStop(openStop === stop.station ? null : stop.station)}

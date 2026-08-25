@@ -32,10 +32,7 @@ import { TOOL_DEFAULTS } from "@/lib/ai/tools/defaults";
 
 const NAMES = ["prd.search", "prd.get"] as const;
 
-const REGISTRY_SOURCE = readFileSync(
-  join(import.meta.dir, "..", "registry.server.ts"),
-  "utf8",
-);
+const REGISTRY_SOURCE = readFileSync(join(import.meta.dir, "..", "registry.server.ts"), "utf8");
 
 /** The full source of one tool def: from its `name:` to the next top-level const. */
 function toolSource(name: string): string {
@@ -192,10 +189,11 @@ describe("prd.get behaviour (fake client)", () => {
 
   it("shapes the row into what the crew asked about", async () => {
     const tool = TOOL_REGISTRY["prd.get"]!;
-    const out = (await tool.run(
-      { id: SPEC_ID },
-      { supabase: fakeSupabase(row), userId: "u1", workspaceId: "w1" } as never,
-    )) as Record<string, unknown>;
+    const out = (await tool.run({ id: SPEC_ID }, {
+      supabase: fakeSupabase(row),
+      userId: "u1",
+      workspaceId: "w1",
+    } as never)) as Record<string, unknown>;
     expect(out.title).toBe("Saved address at checkout");
     expect(out.status).toBe("draft");
     expect(out.body_excerpt).toContain("retype their address");
@@ -208,18 +206,15 @@ describe("prd.get behaviour (fake client)", () => {
 
   it("reads outcome presence as settled, not as the raw jsonb", async () => {
     const tool = TOOL_REGISTRY["prd.get"]!;
-    const out = (await tool.run(
-      { id: SPEC_ID },
-      {
-        supabase: fakeSupabase({
-          ...row,
-          outcome: { verdict: "validated" },
-          shipped_at: "2026-08-22T00:00:00Z",
-        }),
-        userId: "u1",
-        workspaceId: "w1",
-      } as never,
-    )) as Record<string, unknown>;
+    const out = (await tool.run({ id: SPEC_ID }, {
+      supabase: fakeSupabase({
+        ...row,
+        outcome: { verdict: "validated" },
+        shipped_at: "2026-08-22T00:00:00Z",
+      }),
+      userId: "u1",
+      workspaceId: "w1",
+    } as never)) as Record<string, unknown>;
     expect(out.outcome_settled).toBe(true);
     expect(out.shipped_at).toBe("2026-08-22T00:00:00Z");
   });
@@ -227,10 +222,11 @@ describe("prd.get behaviour (fake client)", () => {
   it("tolerates jsonb written as models write it: absent, stringified, or verdict-less", async () => {
     const tool = TOOL_REGISTRY["prd.get"]!;
     for (const critic_review of [null, undefined, '{"verdict":"kill"}', '{"risks":["x"]}']) {
-      const out = (await tool.run(
-        { id: SPEC_ID },
-        { supabase: fakeSupabase({ ...row, critic_review }), userId: "u1", workspaceId: "w1" } as never,
-      )) as Record<string, unknown>;
+      const out = (await tool.run({ id: SPEC_ID }, {
+        supabase: fakeSupabase({ ...row, critic_review }),
+        userId: "u1",
+        workspaceId: "w1",
+      } as never)) as Record<string, unknown>;
       const v = out.critic_verdict;
       if (critic_review === '{"verdict":"kill"}') expect(v).toBe("kill");
       else expect(v, `for ${JSON.stringify(critic_review)}`).toBeNull();
@@ -240,10 +236,11 @@ describe("prd.get behaviour (fake client)", () => {
   it("names a spec it cannot see instead of reporting success on nothing", async () => {
     const tool = TOOL_REGISTRY["prd.get"]!;
     await expect(
-      tool.run(
-        { id: SPEC_ID },
-        { supabase: fakeSupabase(null), userId: "u1", workspaceId: "w1" } as never,
-      ),
+      tool.run({ id: SPEC_ID }, {
+        supabase: fakeSupabase(null),
+        userId: "u1",
+        workspaceId: "w1",
+      } as never),
     ).rejects.toThrow(/No spec with that id/);
   });
 

@@ -50,6 +50,9 @@ import { Action, Region } from "@/components/meridian/surface-parts";
 import { Row } from "@/components/meridian/rows";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { Receipt } from "@/components/meridian/Receipt";
+import { RunMap } from "@/components/meridian/RunMap";
+import { StepMeter } from "@/components/meridian/progress";
+import { useElapsed } from "@/components/meridian/use-elapsed";
 import {
   driveTrackNow,
   getTrack,
@@ -57,6 +60,7 @@ import {
   getTrackArtifacts,
   retryStation,
   type DriveNowResult,
+  type Track,
 } from "@/lib/spine/track.functions";
 import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
 import { holdTone } from "@/lib/spine/driver";
@@ -64,6 +68,7 @@ import { relativeTime } from "@/lib/memory-view";
 import { formatDeadlineDate } from "@/components/track/expiry-deadline";
 import { summaryText } from "@/components/track/run-summary";
 import { triesLine } from "@/components/track/hold-tries";
+import { runPosition } from "@/components/track/run-position";
 
 /**
  * What the walk did, said plainly.
@@ -140,6 +145,127 @@ function CopyRunSummary({ trackId }: { trackId: string }) {
         </p>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * THE LIVE ROUTE HEADER: where it is, what it is doing, how far through, how long.
+ *
+ * ── WHAT THIS REPLACES ──────────────────────────────────────────────────
+ * One row, rendered only while a walk was in flight, reading `At Build / Watch
+ * as it moves through the route.` with `Elapsed: just started` under it. It
+ * answered none of the four questions on arrival, because on arrival there is
+ * no walk in flight and the whole block was unmounted -- which is the state a
+ * person actually lands in, 58 tracks out of 59.
+ *
+ * ── THE ROUTE IS `RunMap`, MOUNTED RATHER THAN REBUILT ──────────────────
+ * `RunMap` was built on 2026-08-20, is good, and had exactly one caller: the
+ * component gallery. It could not be mounted here because it drew its seven
+ * stations horizontally at 168px each, about 1176px, inside a rail of
+ * `clamp(300px, 38%, 440px)` -- recorded as SPEC-LAYOUT gap G3. It now takes an
+ * `orientation`, so this is the same component in the same vocabulary rather
+ * than a second route renderer that would drift from it.
+ *
+ * It is deliberately passed NO `outcome` text. What each station FILED is the
+ * question `TrackChain` answers in the pane beside this one, and answering it
+ * twice in two rhythms is how one run comes to have four views. This one
+ * answers position and what is holding it, and stops there.
+ *
+ * ── THE CLOCK IS HONEST ABOUT WHICH INTERVAL IT MEASURES ────────────────
+ * `spine_tracks.driven_at` is written by eleven exit paths in `driver.server.ts`
+ * as `new Date().toISOString()` at the moment the row is written, AFTER a seat
+ * resolves. It is therefore a stamp of when the work last MOVED, not when the
+ * current station started, and a clock counting up from it would report an
+ * interval nobody asked about. That is SPEC-LAYOUT gap G10 and it is still
+ * open, so this draws the two clocks that ARE defensible:
+ *
+ *   while a walk is in flight   the age of THIS WALK, from the moment the
+ *     mutation went pending in this tab. Ticks in tenths through `useElapsed`,
+ *     which is the system's one timer, and it is labelled "Walking for" rather
+ *     than "at this station" because that is what it measures.
+ *   otherwise                   how long ago it last moved, from `driven_at`,
+ *     which is exactly what that column knows.
+ *   never driven                said in those words. A zero on a clock and a
+ *     run that has never started are opposite facts.
+ */
+function RunRouteHeader({
+  track,
+  walking,
+  walkStartedAt,
+  continuing,
+  legsLeft,
+  nowMs,
+}: {
+  track: Track;
+  /**
+   * A drive is in flight from this tab. The one input that is not a row.
+   *
+   * THE WHOLE PRESS, NOT ONE LEG. `run.isPending` drops to false for the 500ms
+   * between automatic legs, so wiring that in alone would flip the live station
+   * from `working` back to `here` and forward again on every leg -- a rail that
+   * flickers eight times during one uninterrupted walk. `walkingMidRoute` is
+   * the flag that spans the press, and it is the one the hold banner already
+   * yields to for the same reason (F-46/R027).
+   */
+  walking: boolean;
+  /** When this press began, or null when nothing is walking. */
+  walkStartedAt: number | null;
+  continuing: boolean;
+  legsLeft: number;
+  nowMs: number;
+}) {
+  const { stops, meter } = runPosition(track, walking);
+  /* `active` follows the walk, so a parked run pays for no interval at all --
+     `useElapsed`'s own contract, and the reason it takes the flag. */
+  const walked = useElapsed(walkStartedAt ?? undefined, walkStartedAt !== null);
+
+  const stationName = AGENT_STATIONS[track.station]?.name ?? track.station;
+  const tone = holdTone(track.holdReason);
+
+  /** How long, in the words of whichever interval is actually known. */
+  const clock =
+    walkStartedAt !== null
+      ? `Walking for ${walked}`
+      : track.drivenAt
+        ? `Last moved ${relativeTime(track.drivenAt, nowMs)}`
+        : "Never driven";
+
+  /**
+   * WHAT IT IS DOING, in one sentence, and every branch is a row or the walk.
+   *
+   * THE HOLD BRANCH IS DELIBERATELY THE SHORT FORM. `holdLine`'s full sentence
+   * is already rendered twice further down this pane -- on the map's own stop,
+   * where it is attached to the station it is about, and in "Why it stopped",
+   * which carries the control that clears it. Printing it a third time in the
+   * heading would spend the first line a person reads on a sentence they are
+   * about to read again, so this says WHICH KIND of stop it is and leaves the
+   * reason to the two places that can act on it. It is never a re-wording:
+   * these are `StatusChip`'s own words for the two tones, which is the one
+   * vocabulary the driver, the map and the banner all share.
+   */
+  const doing = continuing
+    ? `An agent is walking the route. ${legsLeft} more automatic ${legsLeft === 1 ? "leg" : "legs"} on this press.`
+    : walking
+      ? "An agent is working here now."
+      : track.status === "done"
+        ? "It reached the end of its route."
+        : track.status === "abandoned"
+          ? "This work was abandoned here."
+          : tone === "you"
+            ? "It is waiting on you."
+            : tone === "hold"
+              ? "It is on hold."
+              : track.drivenAt
+                ? "Nothing is driving it right now."
+                : "It has not been driven yet.";
+
+  return (
+    <Region title={`At ${stationName}`} sub={doing}>
+      <div className="flex flex-col gap-mrd-4">
+        <StepMeter noun="Station" steps={meter} note={clock} />
+        <RunMap stops={stops} mode="live" orientation="stack" label="The route this work takes" />
+      </div>
+    </Region>
   );
 }
 
@@ -397,6 +523,28 @@ export function TrackRunLeft({
    * control back for real.
    */
   const walkingMidRoute = Boolean(continuing || run.isPending);
+
+  /*
+   * WHEN THIS PRESS STARTED WALKING, which is the only interval this client can
+   * honestly put a ticking clock on.
+   *
+   * `spine_tracks.driven_at` stamps the END of a leg (eleven writes in
+   * `driver.server.ts`, all `new Date().toISOString()` at row-write time), so
+   * counting up from it measures time since the work last MOVED rather than
+   * time at the station -- SPEC-LAYOUT gap G10, still open. `useElapsed`'s own
+   * header is explicit that a timer reporting the age of the COMPONENT instead
+   * of the age of the WORK is "actively misleading", so this records a real
+   * instant instead: the moment this tab's press began.
+   *
+   * IT SPANS THE WHOLE PRESS, not one leg. `run.isPending` drops to false for
+   * the 500ms between automatic legs, and a clock that reset there would report
+   * a two-minute walk as a series of eight-second ones.
+   */
+  const [walkStartedAt, setWalkStartedAt] = React.useState<number | null>(null);
+  React.useEffect(() => {
+    setWalkStartedAt((prev) => (walkingMidRoute ? (prev ?? Date.now()) : null));
+  }, [walkingMidRoute]);
+
   const showHold = held && !walkingMidRoute && !isCalmHold;
   const showCalmHold = isCalmHold && !walkingMidRoute;
 
@@ -435,23 +583,22 @@ export function TrackRunLeft({
       <TrackConsent trackId={trackId} onAnswered={() => run.mutate("press")} />
 
       {/*
-       * PHASE 3: Current station indicator during active run.
-       * Shows live which station the agent is currently at.
+       * THE LIVE ROUTE HEADER (mission: agentic work must be SEEN, not
+       * inferred). It renders whenever there is a track, not only mid-walk:
+       * the block it replaces was mounted behind `walkingMidRoute`, so the
+       * state a person actually lands in -- parked at a station with nobody
+       * driving it, which is 58 of this product's 59 tracks -- showed no
+       * position, no route and no clock at all.
        */}
-      {walkingMidRoute && track ? (
-        <Region
-          title={`At ${AGENT_STATIONS[track.station]?.name ?? track.station}`}
-          sub="Watch as it moves through the route."
-        >
-          <Row
-            lead={`Elapsed: ${track.drivenAt ? relativeTime(track.drivenAt, nowMs) : "just started"}`}
-            sub={
-              continuing
-                ? `${legsLeft} more automatic ${legsLeft === 1 ? "leg" : "legs"} on this press`
-                : undefined
-            }
-          />
-        </Region>
+      {track ? (
+        <RunRouteHeader
+          track={track}
+          walking={walkingMidRoute}
+          walkStartedAt={walkStartedAt}
+          continuing={continuing}
+          legsLeft={legsLeft}
+          nowMs={nowMs}
+        />
       ) : null}
 
       {showHold && track ? (

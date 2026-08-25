@@ -38,11 +38,7 @@ const realRuntime = await import("@/lib/ai/runtime.server");
 const modelCalls: Array<Record<string, unknown>> = [];
 mock.module("@/lib/ai/runtime.server", () => ({
   ...realRuntime,
-  callModel: async (
-    _supabase: unknown,
-    _userId: unknown,
-    req: Record<string, unknown>,
-  ) => {
+  callModel: async (_supabase: unknown, _userId: unknown, req: Record<string, unknown>) => {
     modelCalls.push(req);
     return { output: "## Problem\nSomething worth fixing.\n## Goals\nShip the smallest thing." };
   },
@@ -215,10 +211,10 @@ describe("the duplicate guard lands before anything is spent", () => {
     modelCalls.length = 0;
     const db = makeDb();
 
-    const out = (await tool.run(
-      { brief: "A weekly digest of overdue tasks." },
-      ctx(db),
-    )) as Record<string, unknown>;
+    const out = (await tool.run({ brief: "A weekly digest of overdue tasks." }, ctx(db))) as Record<
+      string,
+      unknown
+    >;
 
     expect(out.existing).toBeUndefined();
     expect(db.guardReads()).toBe(0);

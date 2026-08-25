@@ -9,10 +9,7 @@ import { join } from "node:path";
  * what source assertions cannot prove at runtime is stated here rather than
  * claimed. The blast-radius tables are asserted live (they are plain objects).
  */
-const SRC = readFileSync(
-  join(import.meta.dir, "..", "registry.server.ts"),
-  "utf8",
-);
+const SRC = readFileSync(join(import.meta.dir, "..", "registry.server.ts"), "utf8");
 
 function toolBlock(name: string): string {
   const start = SRC.indexOf(`name: "${name}"`);
@@ -34,14 +31,14 @@ describe("approvals.queue is a read, scoped from context", () => {
   });
 
   test("scopes by workspace from context and refuses without one", () => {
-    expect(block).toContain('if (!workspaceId)');
+    expect(block).toContain("if (!workspaceId)");
     expect(block).toContain('.eq("workspace_id", workspaceId)');
     expect(block).not.toContain('eq("user_id"');
     expect(block).not.toContain("workspace_id: z");
   });
 
   test("pending by default, decided on request", () => {
-    expect(block).toContain('include_decided');
+    expect(block).toContain("include_decided");
     expect(block).toContain('.eq("status", "pending")');
   });
 
