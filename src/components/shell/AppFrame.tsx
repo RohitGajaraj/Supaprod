@@ -1515,6 +1515,16 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     }
     if (running.length === 1) {
       const only = running[0];
+      /* THE RUN KNOWS ITS WORK, so the door opens the watchable address, not
+       * the container id. Null is a real state -- every run started before the
+       * loop wrote the link, and any not started by the driver -- and null
+       * keeps the mission door rather than guessing (R021/R023). */
+      if (only.trackId) {
+        return {
+          go: go("/track/$trackId", { trackId: only.trackId }),
+          title: "Open the piece of work that is moving",
+        };
+      }
       return {
         go: go("/runs/$missionId", { missionId: only.id }),
         title: "Open the run that is working",
