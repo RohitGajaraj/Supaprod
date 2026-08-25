@@ -548,11 +548,11 @@ export function TrackRunLeft({
  * pane-station pointer lives entirely in here -- it is the private wiring of
  * item 7 (a record row reveals the artifact), and no other pane reads it.
  */
-export function TrackPaneRight({ trackId }: { trackId: string }) {
+export function TrackPaneRight({ trackId, isRunning = false }: { trackId: string; isRunning?: boolean }) {
   const [paneStation, setPaneStation] = React.useState<string | null>(null);
   return (
     <div className="flex flex-col gap-mrd-6">
-      <ArtifactPane trackId={trackId} active={paneStation} onActiveChange={setPaneStation} />
+      <ArtifactPane trackId={trackId} active={paneStation} onActiveChange={setPaneStation} isRunning={isRunning} />
       <TrackChain trackId={trackId} onOpenStation={setPaneStation} />
     </div>
   );
@@ -560,10 +560,13 @@ export function TrackPaneRight({ trackId }: { trackId: string }) {
 
 /** Today's stacked column, composed from the two panes. Unchanged callers. */
 export function TrackRun({ trackId, autoStart = false }: { trackId: string; autoStart?: boolean }) {
+  // PHASE 3: Detect if a run is active by checking if TrackRunLeft has state
+  // For now, we'll pass isRunning=false since we don't have that state here.
+  // In a full refactor, this would come from TrackRunLeft's run state.
   return (
     <div className="flex flex-col gap-mrd-6">
       <TrackRunLeft trackId={trackId} autoStart={autoStart} />
-      <TrackPaneRight trackId={trackId} />
+      <TrackPaneRight trackId={trackId} isRunning={false} />
     </div>
   );
 }

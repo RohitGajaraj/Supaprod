@@ -1256,26 +1256,28 @@ export function ArtifactPane({
   trackId,
   active: activeProp,
   onActiveChange,
+  isRunning = false,
 }: {
   trackId: string;
   /** Controlled tab, so another surface (the chain record) can reveal one. */
   active?: string | null;
   onActiveChange?: (station: string) => void;
+  /** PHASE 3: Poll faster during active run to show live updates. */
+  isRunning?: boolean;
 }) {
   const fChain = useServerFn(getTrackChain);
   const fArtifacts = useServerFn(getTrackArtifacts);
   const q = useQuery({
     queryKey: ["spine-track-chain", trackId],
     queryFn: () => fChain({ data: { trackId } }),
-    // Same beat as the transcript, on the SAME cache entry TrackChain reads:
-    // one poll drives both views, and a walk that files something changes the
-    // pane within ten seconds without a refresh.
-    refetchInterval: 10_000,
+    // PHASE 3: During active run, poll faster (500ms) to show live updates.
+    // After run completes, poll slower (10s) to reduce DB load.
+    refetchInterval: isRunning ? 500 : 10_000,
   });
   const bodies = useQuery({
     queryKey: ["track-artifacts", trackId],
     queryFn: () => fArtifacts({ data: { trackId } }),
-    refetchInterval: 10_000,
+    refetchInterval: isRunning ? 500 : 10_000,
   });
 
   const [activeState, setActiveState] = React.useState<string | null>(null);
