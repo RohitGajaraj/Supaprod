@@ -542,7 +542,14 @@ export function TrackStart({
                     */}
                     {tone ? (
                       <StatusChip status={tone} pulse={tone === "you"}>
-                        {tone === "you" ? "Waiting on you" : "On hold"}
+                        {tone === "you"
+                          ? "Waiting on you"
+                          : // A learn hold whose reason is an undated forecast is a
+                            // calendar wait, not a stoppage (queue 67); the pane
+                            // renders the date where the record is open.
+                            t.holdReason === "needs-evidence" && t.station === "learn"
+                            ? "Waiting on time"
+                            : "On hold"}
                       </StatusChip>
                     ) : null}
                     <Value tone="quiet">{AGENT_STATIONS[t.station].name}</Value>

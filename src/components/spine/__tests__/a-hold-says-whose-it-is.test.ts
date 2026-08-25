@@ -155,9 +155,12 @@ describe("the station is a fact and the status is a chip", () => {
   it("carries the state on a StatusChip, which is what may hold a status", () => {
     // Standing law from 2026-08-19: on paper the five status hues collapse to
     // between 5.06 and 6.00 against the ground, so coloured text cannot carry
-    // status and a chip has to.
+    // status and a chip has to. Three words now: you, calendar wait (queue 67),
+    // and the ordinary stop.
     expect(SOURCE).toContain("<StatusChip status={tone}");
-    expect(SOURCE).toContain('{tone === "you" ? "Waiting on you" : "On hold"}');
+    expect(SOURCE).toContain('? "Waiting on you"');
+    expect(SOURCE).toContain('"Waiting on time"');
+    expect(SOURCE).toContain('"On hold"');
   });
 
   it("pulses only where somebody is being waited on", () => {

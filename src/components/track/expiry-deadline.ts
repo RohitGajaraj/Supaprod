@@ -20,3 +20,20 @@ export function formatExpiryDeadline(epochMs: number | null | undefined): string
     hourCycle: "h23",
   }).format(new Date(epochMs));
 }
+
+/**
+ * A horizon DATE, spelled without a time it does not have.
+ *
+ * `forecast_horizon_date` is a calendar day, so rendering it through
+ * `formatExpiryDeadline` would put a midnight on a sentence that never carried
+ * one. Same viewer locale, weekday kept so "8 Sep" also says which day of the
+ * week the wait ends.
+ */
+export function formatDeadlineDate(epochMs: number | null | undefined): string | null {
+  if (epochMs === null || epochMs === undefined || !Number.isFinite(epochMs)) return null;
+  return new Intl.DateTimeFormat(undefined, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  }).format(new Date(epochMs));
+}
