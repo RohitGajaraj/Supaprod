@@ -48,3 +48,39 @@
 9. **`expiresAtIso` deviation** (L0-043 §Deviations): I convert epoch→ISO
    client-side rather than adding the field MAIN specified. Unobjected so far;
    still open.
+
+---
+
+# LANE 1 BUILDLOG — honest status, 2026-08-25
+
+Written under the context shift. No past work is protected; corrections included.
+
+## Completed and verified (proof: unit files in `coordination/units/`, live Playwright sessions on harbor@)
+
+- **Item 2 · `/start` landing** — gate removed; composer + 4 WorkShape job cards + live open-runs. Core flow proven live twice: sentence → Enter → track created → landed on `/track/:id`. Unit 055, corrected 063, proven 068.
+- **Item 28 route half** — `?start=true` → TrackRun `autoStart`; revisit guard verified live on an already-driven track. Unit 069. (TrackRun's mutation side is LANE 0's, L0-052.)
+- **Item 10** — header sees mission-less walks via `driven_at` freshness; live line opens `/track/:id`. Units 056/064.
+- **Items 12/13/14 design reviews** — written rulings incl. the four held lifts placed (unit 065).
+- **Item 32** — swapped to Meridian `PickCard`/`Composer`; locals deleted; adoption 43/48.
+- **Run header (SPEC-LAYOUT §2 slice)** — title, Now/Next, `holdTone`-derived chip. Unit 070. Header drift defect caught live and fixed by sharing TrackRun's polled cache key (unit 071).
+- **Route census** (unit 061 + addendum): prds trio is load-bearing — do not delete.
+
+## Built but NOT verifiable without DB / MAIN
+
+- **Item 26 surface (`RunwaySection` in settings billing pane)** — renders MAIN's `getCreditRunway` RPC with honest nulls. The RPC numbers themselves need MAIN's SQL verification (the RPC had a burn-filter bug my request `025` caught; corrected version shipped after my last test run). **Uncommitted at context shift; committed now with a guard fix** (queryKey reordered — it tripped `settings-has-one-list-of-sections`).
+
+## Half-done / blocked, with the named unblocker
+
+- **Item 8 two-pane layout** — header slice SHIPPED (unit 070); panes wait on LANE 0's TrackRun split (request `024`). Workbench geometry designed in SPEC-LAYOUT §1.
+- **Item 22 boundary fold** — waits on MAIN's governance-floor fix for `updateToolMode` (per R024-025-022) AND LANE 0's controls-into-Safety-room (`022`).
+- **Item 6 deletions** — blocked by ruling until a run finishes end to end. Census done; deletable set currently EMPTY (prds trio is load-bearing).
+- **Item 34 positive path** — blocked on driver semantics: window closes return `out-of-time` (a hold), not `out-of-window + more`, so auto-continue never engages. Filed `027`; MAIN answered R027 "fixed on my side" — **needs a live re-run to confirm legs chain**, which I will do next session.
+
+## Claimed done that is actually stubbed or mocked
+
+**None.** No mocks, no stubs, no fabricated data anywhere in my units. Every surface reads and writes real tables through server functions. The honest gaps are the blocked items above, not fakes.
+
+## Known defects I filed rather than fixed
+
+- `026` Unknown-agent holds → ROOT CAUSE was an RLS policy hiding null-workspace agent rows from their owners (R026, FIXED by MAIN); my front-door re-test confirmed stations run past Discover.
+- `027` out-of-time mutes auto-continue (above).

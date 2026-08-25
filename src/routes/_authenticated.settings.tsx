@@ -225,7 +225,7 @@ import {
   BYO_PROVIDERS,
 } from "@/lib/byokeys.functions";
 import { getActiveBrief, upsertBrief } from "@/lib/briefs.functions";
-import { getBillingState, type BillingState } from "@/lib/billing.functions";
+import { getBillingState, getCreditRunway, type BillingState } from "@/lib/billing.functions";
 import {
   getMySubscription,
   cancelMySubscription,
@@ -698,6 +698,7 @@ function SettingsPage() {
           <>
             <PlanSection checkout={checkout} />
             <CreditsSection />
+            <RunwaySection />
           </>
         )}
         {active === "health" && (
@@ -3061,6 +3062,69 @@ const APPEARANCE_ANCHOR = "settings-appearance";
 const BYO_KEYS_ANCHOR = "settings-byo-keys";
 /** Where "invite", "team" and "member" land on the Brief and voice pane. */
 const PEOPLE_ANCHOR = "settings-people";
+
+/*
+ * SPEND AND RUNWAY (item 26), read from MAIN's `credit_runway` RPC through
+ * `getCreditRunway`. Every number is one the RPC vouched for; the two honest
+ * absences are rendered as sentences, never as zeros -- `runsLeft` is null when
+ * the window holds no runs (no rate can exist), and a failed read claims
+ * nothing rather than showing a confident 0. The window is named beside the
+ * burn so the figure can be argued with.
+ */
+function RunwaySection() {
+  const { activeWorkspaceId } = useWorkspace();
+  const fRunway = useServerFn(getCreditRunway);
+  const q = useQuery({
+    queryKey: ["runway", activeWorkspaceId],
+    queryFn: () => fRunway({ data: { workspaceId: activeWorkspaceId as string } }),
+    enabled: Boolean(activeWorkspaceId),
+    staleTime: 60_000,
+  });
+  if (!activeWorkspaceId) return null;
+  const r = q.data;
+  return (
+    <Region title="Spend and runway">
+      {q.isLoading ? (
+        <Reading>Reading this cycle's spend.</Reading>
+      ) : q.isError || r == null ? (
+        <ReadFailedLine onRetry={() => void q.refetch()}>
+          The runway could not be read just now, so nothing here shows a number. Retry before
+          treating spend as zero.
+        </ReadFailedLine>
+      ) : (
+        <>
+          <Row
+            tight
+            lead={
+              <>
+                Spent <Num>{r.creditsSpentInWindow}</Num> credits in the last{" "}
+                <Num>{r.windowDays}</Num> days.
+              </>
+            }
+            sub={
+              <>
+                {r.runsInWindow} runs · <Num>{r.spendableCredits}</Num> credits available now.
+              </>
+            }
+          />
+          <Row
+            tight
+            lead={
+              r.runsLeft === null ? (
+                "Not enough runs in this window to estimate what is left."
+              ) : (
+                <>
+                  About <Num>{Math.floor(r.runsLeft)}</Num> more runs at this pace.
+                </>
+              )
+            }
+            sub="Estimated from this window's pace; it moves as the work moves."
+          />
+        </>
+      )}
+    </Region>
+  );
+}
 
 function CreditsSection() {
   const fGetCredits = useServerFn(getMyCreditsView);
