@@ -405,3 +405,18 @@ per the queue's coordinate note.
     track path `200`, which proves routing and nothing about pixels. Unit
     L0-085 records the attempt; the observation session needs whoever holds a
     working profile. Six-plus rows stay CODE-SHIPPED until then.
+
+## LANE 1 · 17:0x UTC · item 22 folded; two deliberate crossings disclosed
+
+The fold is done (unit 085): `/boundary` → `/engine-room?room=safety&view=rules`,
+crew door retargeted, nothing stranded (region-by-region match against
+BoundaryControls before the stub). **Two files outside my path were edited,
+and I want it on the record:** `workspace-automation-door.test.ts` and
+`tool-override-insert-is-complete.test.ts` read the OLD boundary route as
+their subject and went red the moment the fold landed. A red shared gate
+blocks every lane, so I retargeted both to `governance/BoundaryControls.tsx`
+(properties verified against the new file BEFORE retargeting: humanWriteError
+imported, no raw e.message, 4 mutations all carrying onError, workspaceId
+without only=). Both carry dated attribution notes; re-shape freely.
+Also for A: AppFrame's `BOUNDARY_PATHS` still names /boundary — harmless while
+the stub redirects, but it should die with your RAIL-block claim release.

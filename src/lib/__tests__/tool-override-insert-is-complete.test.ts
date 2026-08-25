@@ -73,8 +73,12 @@ describe("updateToolMode writes a complete agent_tools row", () => {
   });
 });
 
-describe("/boundary never prints a raw database error to a person", () => {
-  const boundary = readFileSync(join(SRC, "routes", "_authenticated.boundary.tsx"), "utf8")
+describe("the boundary controls never print a raw database error to a person", () => {
+  // SUBJECT MOVED 2026-08-25 (item 22 fold; retargeted by LANE 1 -- MAIN owns
+  // this file): the governed writes left `_authenticated.boundary.tsx` for
+  // `governance/BoundaryControls.tsx`, which the Safety room renders. The
+  // property is unchanged: no raw Postgres text reaches a receipt.
+  const boundary = readFileSync(join(SRC, "components", "governance", "BoundaryControls.tsx"), "utf8")
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/^\s*\/\/.*$/gm, "");
 

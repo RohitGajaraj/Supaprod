@@ -513,7 +513,15 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
           <DoorRow
             lead="The boundary"
             sub="Every tool, across the whole crew. Set once, and it never interrupts work already running."
-            onClick={() => void navigate({ to: "/boundary" })}
+            /* Item 22's fold: /boundary closed, the controls live on the
+               Safety room's front tab. The door names where it goes rather
+               than silently bouncing through a stub. */
+            onClick={() =>
+              void navigate({
+                to: "/engine-room",
+                search: { room: "safety", view: "rules" },
+              })
+            }
           />
           <DoorRow
             lead="The methods"

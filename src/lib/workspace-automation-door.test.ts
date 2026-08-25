@@ -58,13 +58,28 @@ describe("a person can reach the switches", () => {
     expect(writers.length).toBeGreaterThan(0);
   });
 
-  it("the door is mounted on a route, not only defined in a component", () => {
-    // A component nobody mounts is the same defect one file along. This asks for
-    // an actual import from something under routes/.
-    const mounted = SURFACES.filter(
-      (s) => s.file.includes("/routes/") && s.code.includes("AutomationBoundary"),
+  it("the door is mounted where a route renders it", () => {
+    // A component nobody mounts is the same defect one file along. The mount
+    // used to have to sit in a routes/ file directly; since the item 22 fold
+    // (2026-08-25, retargeted by LANE 1 -- MAIN owns this file) the switch
+    // lives two links down a chain that a route still renders:
+    // engine-room route -> SafetyRoom -> BoundaryControls -> AutomationBoundary.
+    // So the guard walks the chain link by link, with the same file-scan
+    // mechanism as the rest of this file.
+    const importer = SURFACES.find(
+      (s) => s.code.includes("AutomationBoundary") && s.file.endsWith("BoundaryControls.tsx"),
     );
-    expect(mounted.length).toBeGreaterThan(0);
+    expect(importer).toBeTruthy();
+    const room = SURFACES.find(
+      (s) =>
+        s.file.includes(join(SRC, "components", "engine-room")) &&
+        s.code.includes("BoundaryControls"),
+    );
+    expect(room).toBeTruthy();
+    const route = SURFACES.find(
+      (s) => s.file.includes("/routes/") && s.code.includes("engine-room"),
+    );
+    expect(route).toBeTruthy();
   });
 
   it("offers every flag in the catalogue, so none can go dark unnoticed", () => {
@@ -84,16 +99,19 @@ describe("a person can reach the switches", () => {
     expect(door!.code).toContain(".map((flag) =>");
   });
 
-  it("the /boundary mount renders ALL of them, never a subset", () => {
+  it("the governance mount renders ALL of them, never a subset", () => {
     // THE PROPERTY THE FILTER PUT AT RISK. A station may render one flag, but the
     // governance page is the one place every flag has to appear, or a flag can go
-    // dark with nowhere to notice it. `/boundary` must pass no `only`.
-    const page = SURFACES.find((s) => s.file.endsWith("_authenticated.boundary.tsx"));
+    // dark with nowhere to notice it. The mount must pass no `only`.
+    // SUBJECT MOVED 2026-08-25 (item 22 fold; retargeted by LANE 1 -- MAIN owns
+    // this file): the mount left `_authenticated.boundary.tsx` for
+    // `governance/BoundaryControls.tsx`, which the Safety room renders.
+    const page = SURFACES.find((s) => s.file.endsWith("BoundaryControls.tsx"));
     expect(page).toBeTruthy();
     const mount = page!.code.slice(page!.code.indexOf("<AutomationBoundary"));
     const tag = mount.slice(0, mount.indexOf("/>") + 2);
     expect(tag).toContain("workspaceId=");
-    expect(tag, "/boundary must not filter the catalogue").not.toContain("only=");
+    expect(tag, "the governance mount must not filter the catalogue").not.toContain("only=");
   });
 
   it("states the spend before the switch, not after it", () => {
