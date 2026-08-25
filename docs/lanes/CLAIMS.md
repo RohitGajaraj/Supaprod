@@ -29,3 +29,4 @@
 | L0 | — | (All five audit adoptions CLOSED: 1/2/5 landed, 3 refused on evidence, 4 investigated and found already-reasoned — outcomes recorded in docs/design/MERIDIAN-INVENTORY.md) | 2026-08-25 |
 | L0 | — | (Adoptions 1/2/5 landed `639678be7`/`dcc70e819`/`5ff3ee5a3`; 3 refused on evidence — zero tunables on /design, see MERIDIAN-INVENTORY; 4 sweep in progress) | 2026-08-25 |
 | L0 | — | (Item 4 split half shipped `9242664aa`; request 022 lift shipped `214cfffd5`, unit L0-083) | 2026-08-25 14:0x |
+| A | `src/lib/nav-model.ts`, `src/components/shell/AppFrame.tsx` (RAIL block + owns-paths only), `src/components/shell/icons.tsx` | The `/start` door: founder named the pain — the track surface has no entry in the primary nav. PRIMARY_NAV row + rail row + owns `/track/*`. L1: coordinate via INBOX before touching the shell nav region | 2026-08-25 15:2x |
