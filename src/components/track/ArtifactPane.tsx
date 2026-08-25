@@ -502,7 +502,7 @@ function ThemeCard({ item }: { item: ArtifactView }) {
  * ── THE LEARN VERDICT ──────────────────────────────────────────────────────
  * PREDICTED · ACTUALLY · WHAT WE NOW BELIEVE (SPEC-ARTIFACTS §9). The predicted
  * half lives on the track's DECISION, so this card joins the learning member to
- * the decide member — the one station whose artifact is a join of two rows.
+ * the decide member: the one station whose artifact is a join of two rows.
  * The ungraded state is the design, not a fallback: zero forecasts have ever
  * been graded on a real workspace, and the card names WHICH nothing it is
  * rather than drawing a placeholder verdict.
@@ -638,7 +638,7 @@ function SettleControls({ decisionId, due }: { decisionId: string; due: boolean 
     return (
       <div>
         <Action variant="quiet" busy={defer.isPending} onClick={() => defer.mutate()}>
-          Not due yet — check back in two weeks
+          Not due yet. Check back in two weeks
         </Action>
         {problem ? <RecordSpeaks>{problem}</RecordSpeaks> : null}
       </div>
