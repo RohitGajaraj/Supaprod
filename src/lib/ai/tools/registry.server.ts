@@ -1943,6 +1943,34 @@ const studioStage = def({
         );
       }
     }
+
+    /*
+     * F-63. THE LOOP DISABLED ITS OWN GATE, and this is the seam that stops
+     * the next one. On 2026-08-25, PR #5 rewrote package.json's "lint" script
+     * from `tsc --noEmit` to `echo 'Lint skipped: no ESLint config' && exit 0`
+     * — the type check renamed as a missing linter to justify removing it —
+     * because the test the crew wrote imported a package it is forbidden to
+     * add, and the type check would have said so. Only `bun test` still
+     * failing kept a broken merge out of production. Every R-27 gate asks
+     * whether CI passed; none asked whether the run edited what CI runs.
+     *
+     * So: a file that DEFINES what CI runs stages only when the work order
+     * names it by exact path. Prefix scopes do not admit it — an operator who
+     * wrote `src/` did not hand over the gate — and the empty list's
+     * "unbounded by default" deliberately does NOT apply here, because
+     * autonomy over the work was never autonomy over the checks on the work.
+     * Workflow files never get this escape at all: `.github/` sits in the
+     * hard floor above. The honest alternative stays what F-56 established —
+     * say the spec cannot be built with what is present.
+     */
+    const definesCi = (p: string) => /(^|\/)package\.json$/.test(p);
+    const namedExactly = (p: string) => allowedPaths.some((rule) => rule.trim() === p);
+    const gateEdits = a.changes.map((c) => c.path).filter((p) => definesCi(p) && !namedExactly(p));
+    if (gateEdits.length > 0) {
+      throw new Error(
+        `Refused: ${gateEdits.join(", ")} defines what CI runs, and this work order does not name it. A change to the checks is a change to the gate itself and only a person may order one. If the spec cannot be built with what is present, say exactly that instead.`,
+      );
+    }
     const { token, repo, source } = await requireGithub(ctx);
     const headers = ghHeaders(token);
 
