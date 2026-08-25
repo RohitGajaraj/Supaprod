@@ -1188,6 +1188,16 @@ export type ToolStepLike = {
  * failing — widening this list would let real defects hide behind a hold that
  * says "not your fault".
  */
+/**
+ * F-57 — the one sentence a GitHub repository-root 404 is translated into when
+ * a workspace binding names that exact repo. Exported so the tool layer stamps
+ * THIS string and the sign below matches THIS string: the claim is pinned in
+ * one place, never spelled twice (see repoRootRefusal in
+ * src/lib/ai/tools/registry.server.ts).
+ */
+export const REPO_ROOT_ACCESS_REFUSED =
+  "the bound repository is not visible to this connection";
+
 const REFUSAL_SIGNS: readonly RegExp[] = [
   /\b401\b/,
   /\b403\b/,
@@ -1200,6 +1210,13 @@ const REFUSAL_SIGNS: readonly RegExp[] = [
   /is not set\b/i,
   /not configured/i,
   /setup pending/i,
+  // F-57: GitHub answers 404, not 401, for a repo an App installation cannot
+  // see — deliberately, so private repos do not leak their existence. Only the
+  // call site can know the 404 was on the repository ROOT with a binding
+  // naming that exact repo, so the tool stamps the pinned sentence above and
+  // this sign matches the stamp. A 404 on any deeper path never carries it and
+  // stays an ordinary failure.
+  new RegExp(REPO_ROOT_ACCESS_REFUSED, "i"),
 ];
 
 /**

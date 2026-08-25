@@ -56,6 +56,7 @@ import { recordErrorEvent } from "@/lib/observability/errors";
 // to a bet's confidence. See the comment on the exports in outcome.functions.ts.
 import { VERDICT_CONFIDENCE_DELTA, clampConfidence, iceOf } from "@/lib/outcome.functions";
 import { webSearch, webFetch, webMap, webCrawl } from "./firecrawl.server";
+import { REPO_ROOT_ACCESS_REFUSED } from "@/lib/spine/driver";
 import {
   missionPlan,
   missionDispatch,
@@ -1033,7 +1034,7 @@ const githubPrOpen = def({
   preview: (a) => `Open PR for issue #${a.issue_number}: "${a.title}" · ${a.path}`,
   run: async (a, ctx) => {
     const { supabase, userId, runId, missionId, workspaceId } = ctx;
-    const { token, repo, actorLabel } = await requireGithub(ctx);
+    const { token, repo, actorLabel, source } = await requireGithub(ctx);
     if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) throw new Error(`Invalid GitHub repo format: ${repo}`);
     // Disallow paths the Builder must never touch.
     const forbiddenPrefixes = [
@@ -1138,6 +1139,10 @@ const githubPrOpen = def({
       async () => {
         // 1) default branch + its head sha
         const repoRes = await fetch(`https://api.github.com/repos/${repo}`, { headers });
+        if (repoRes.status === 404) {
+          const refusal = repoRootRefusal(repo, source);
+          if (refusal) throw refusal;
+        }
         if (!repoRes.ok)
           throw new Error(
             `GitHub repo lookup ${repoRes.status}: ${(await repoRes.text()).slice(0, 300)}`,
@@ -1539,12 +1544,45 @@ async function ghJson<T>(url: string, headers: Record<string, string>, init?: Re
   return (await res.json()) as T;
 }
 
-async function getDefaultBranch(repo: string, headers: Record<string, string>) {
-  const j = await ghJson<{ default_branch: string }>(
-    `https://api.github.com/repos/${repo}`,
-    headers,
+/**
+ * F-57 — a 404 on GET /repos/{owner}/{repo} (the repository ROOT), when the
+ * repo name came from a workspace binding, is GitHub's answer for an
+ * installation that cannot SEE the repo: it says 404 rather than 401/403 on
+ * purpose so private repos do not leak their existence. The binding makes it
+ * unambiguous — a person named this repo, so "not found" can only mean "not
+ * visible to this credential". Translated into the pinned refusal sentence so
+ * the driver's classifier (REFUSAL_SIGNS in spine/driver.ts) files it as
+ * `tools-refused` — no attempt burned, no correction — instead of
+ * `produced-nothing`. NARROW BY DESIGN: only the root, only source
+ * "binding". A 404 on any deeper path, or on an env/user-connection repo,
+ * stays an ordinary failure.
+ */
+function repoRootRefusal(
+  repo: string,
+  source?: "binding" | "user_connection" | "env",
+): Error | null {
+  if (source !== "binding") return null;
+  return new Error(
+    `GitHub answered 404 for the repository root of ${repo}, which the workspace binding names — ${REPO_ROOT_ACCESS_REFUSED}. GitHub says 404 rather than 401 for a private repo the installation cannot see. Grant the GitHub App access to ${repo}, or re-bind the repo on Connectors.`,
   );
-  return j.default_branch;
+}
+
+async function getDefaultBranch(
+  repo: string,
+  headers: Record<string, string>,
+  source?: "binding" | "user_connection" | "env",
+) {
+  const res = await fetch(`https://api.github.com/repos/${repo}`, { headers });
+  if (res.status === 404) {
+    const refusal = repoRootRefusal(repo, source);
+    if (refusal) throw refusal;
+  }
+  if (!res.ok) {
+    throw new Error(
+      `GitHub ${res.status} on /repos/${repo}: ${(await res.text()).slice(0, 300)}`,
+    );
+  }
+  return ((await res.json()) as { default_branch: string }).default_branch;
 }
 
 const STUDIO_PATH_REGEX = /^[^\s/][\w\-./]*[^\s/]$/;
@@ -1649,9 +1687,9 @@ const repoTree = def({
   }),
   preview: (a) => `Read repo tree${a.path ? ` · ${a.path}` : ""}${a.ref ? ` @ ${a.ref}` : ""}`,
   run: async (a, ctx) => {
-    const { token, repo } = await requireGithub(ctx);
+    const { token, repo, source } = await requireGithub(ctx);
     const headers = ghHeaders(token);
-    const ref = a.ref ?? (await getDefaultBranch(repo, headers));
+    const ref = a.ref ?? (await getDefaultBranch(repo, headers, source));
     const j = await ghJson<{
       tree?: Array<{ path: string; type: string; size?: number }>;
       truncated?: boolean;
