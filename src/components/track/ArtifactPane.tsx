@@ -855,7 +855,16 @@ function MemberLine({ m, now }: { m: ChainMember; now: number }) {
   );
 }
 
-export function ArtifactPane({ trackId }: { trackId: string }) {
+export function ArtifactPane({
+  trackId,
+  active: activeProp,
+  onActiveChange,
+}: {
+  trackId: string;
+  /** Controlled tab, so another surface (the chain record) can reveal one. */
+  active?: string | null;
+  onActiveChange?: (station: string) => void;
+}) {
   const fChain = useServerFn(getTrackChain);
   const fArtifacts = useServerFn(getTrackArtifacts);
   const q = useQuery({
@@ -872,7 +881,12 @@ export function ArtifactPane({ trackId }: { trackId: string }) {
     refetchInterval: 10_000,
   });
 
-  const [active, setActive] = React.useState<string | null>(null);
+  const [activeState, setActiveState] = React.useState<string | null>(null);
+  const active = activeProp ?? activeState;
+  const onSelect = (id: string) => {
+    setActiveState(id);
+    onActiveChange?.(id);
+  };
 
   if (q.isLoading) return <Reading>Reading what this work has made.</Reading>;
   if (q.isError) {
@@ -911,7 +925,7 @@ export function ArtifactPane({ trackId }: { trackId: string }) {
         label="Stations on this route"
         tabs={chain.stops.map((s) => ({ id: s.station, label: s.label }))}
         active={current}
-        onSelect={setActive}
+        onSelect={onSelect}
       />
       <TabPanel group={`artifact-pane-${trackId}`} active={current}>
         <StationPanel

@@ -79,6 +79,13 @@ export function TrackRun({ trackId }: { trackId: string }) {
   const fetchTrack = useServerFn(getTrack);
   const fRetry = useServerFn(retryStation);
   const qc = useQueryClient();
+  /*
+   * THE RECORD AND THE PANE SHARE ONE POINTER. Clicking a thing in the record
+   * (TrackChain) reveals the thing itself (the pane) -- item 7's door. Held
+   * here because the two surfaces are siblings, and a pointer living in one of
+   * them would make the other unreachable.
+   */
+  const [paneStation, setPaneStation] = React.useState<string | null>(null);
 
   /*
    * THE TRACK ITSELF, not only the walk's receipts. `getTrack` existed with
@@ -232,7 +239,7 @@ export function TrackRun({ trackId }: { trackId: string }) {
        * beside it (DESIGN-DIRECTION §1); until the two-column frame lands this
        * single column leads with what the work has made.
        */}
-      <ArtifactPane trackId={trackId} />
+      <ArtifactPane trackId={trackId} active={paneStation} onActiveChange={setPaneStation} />
 
       <Region
         title="Run it"
@@ -277,7 +284,7 @@ export function TrackRun({ trackId }: { trackId: string }) {
         ) : null}
       </Region>
 
-      <TrackChain trackId={trackId} />
+      <TrackChain trackId={trackId} onOpenStation={setPaneStation} />
       <TrackActivity trackId={trackId} />
     </div>
   );

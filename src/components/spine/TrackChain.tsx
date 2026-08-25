@@ -61,7 +61,16 @@ function leadFor(m: ChainMember): string {
   return m.title ?? cap(m.word);
 }
 
-function Stop({ stop, now }: { stop: ChainStop; now: number }) {
+function Stop({
+  stop,
+  now,
+  onOpen,
+}: {
+  stop: ChainStop;
+  now: number;
+  /** Present when a run surface can reveal this station's output in place. */
+  onOpen?: (station: string) => void;
+}) {
   // The waiver outranks the gap: a reason a person gave in their own words is
   // worth more than the product explaining where an artifact usually comes from.
   const sub = stop.waivedReason ?? stop.gap;
@@ -85,6 +94,7 @@ function Stop({ stop, now }: { stop: ChainStop; now: number }) {
           tight
           lead={leadFor(m)}
           time={relativeTime(m.createdAt, now)}
+          onClick={onOpen && !m.missing ? () => onOpen(stop.station) : undefined}
           action={
             m.missing ? (
               // `fail`, not `hold`. The lookup RAN and came back without the
@@ -95,8 +105,10 @@ function Stop({ stop, now }: { stop: ChainStop; now: number }) {
               // exception for exactly this case.
               <Value tone="fail">not found</Value>
             ) : m.title ? (
-              <Value>{m.word}</Value>
-            ) : null
+              <Value>{onOpen ? "Show it" : m.word}</Value>
+            ) : (
+              <Value tone="quiet">{m.word}</Value>
+            )
           }
         />
       ))}
@@ -104,7 +116,18 @@ function Stop({ stop, now }: { stop: ChainStop; now: number }) {
   );
 }
 
-export function TrackChain({ trackId }: { trackId: string }) {
+export function TrackChain({
+  trackId,
+  onOpenStation,
+}: {
+  trackId: string;
+  /**
+   * ITEM 7'S DOOR. When a run surface can reveal an artifact as itself, a
+   * member row becomes the way to it: click the thing in the record, see the
+   * thing. Absent (lists that show work only), rows stay read-only facts.
+   */
+  onOpenStation?: (station: string) => void;
+}) {
   const fChain = useServerFn(getTrackChain);
   const q = useQuery({
     queryKey: ["spine-track-chain", trackId],
@@ -139,7 +162,7 @@ export function TrackChain({ trackId }: { trackId: string }) {
       </RecordSpeaks>
 
       {chain.stops.map((stop) => (
-        <Stop key={stop.station} stop={stop} now={now} />
+        <Stop key={stop.station} stop={stop} now={now} onOpen={onOpenStation} />
       ))}
 
       {/* Almost always empty. It exists so that a member filed against a station
