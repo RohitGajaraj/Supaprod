@@ -72,7 +72,18 @@ const NEEDS_ORIGIN: ReadonlySet<WorkShape> = new Set<WorkShape>([
 /** What a move left behind. Rendered as a Receipt, never as a toast. */
 type MoveReceipt = { verb: string; consequence: React.ReactNode; failed?: boolean };
 
-export function TrackStart() {
+export function TrackStart({
+  onCreated,
+}: {
+  /**
+   * WHERE WORK BEGINS IS THE HOST'S CALL (item 4's split, per L1's note on
+   * request 020). Default behaviour stays the inline reveal -- /plan keeps
+   * showing the started track exactly as before, and a browser Back returns
+   * to it. A host that wants to LAND the person on the run passes this and
+   * navigates itself; the component never owns the route.
+   */
+  onCreated?: (track: Track) => void;
+}) {
   const qc = useQueryClient();
   const fStart = useServerFn(startTrack);
   const fList = useServerFn(listTracks);
@@ -126,6 +137,7 @@ export function TrackStart() {
       setStarted(res.track);
       setProblems([]);
       setOpen(false);
+      onCreated?.(res.track);
       setTitle("");
       setShape(null);
       setOrigin("");
