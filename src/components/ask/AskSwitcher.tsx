@@ -49,7 +49,7 @@ const sectionLabel: React.CSSProperties = {
   fontSize: "var(--mrd-t-label)",
   color: "var(--mrd-mute)",
   fontWeight: 500,
-  marginBottom: "var(--sp-space-2)",
+  marginBottom: "var(--mrd-s3)",
 };
 
 export function AskSwitcher({
@@ -92,12 +92,17 @@ export function AskSwitcher({
             Not `primary` either. The send control in the footer is the one
             primary on this surface, and a second would make neither mean it. */}
         {/* TIER: clause 3, resets the pane view in place; no write, so it stays a plain button */}
-        <button type="button" className="rounded-mrd-chip px-mrd-3 py-mrd-2 font-mrd text-mrd-label font-medium text-mrd-mute transition-colors duration-100 hover:bg-mrd-hover hover:text-mrd-body" onClick={onNew} disabled={busy}>
+        <button
+          type="button"
+          className="rounded-mrd-chip px-mrd-3 py-mrd-2 font-mrd text-mrd-label font-medium text-mrd-mute transition-colors duration-100 hover:bg-mrd-hover hover:text-mrd-body"
+          onClick={onNew}
+          disabled={busy}
+        >
           Start fresh
         </button>
       </Actions>
 
-      <div style={{ marginTop: "var(--sp-space-5)" }}>
+      <div style={{ marginTop: "var(--mrd-s6)" }}>
         <div style={sectionLabel}>Recent</div>
         {list.isError ? (
           <ReadFailedLine onRetry={() => void list.refetch()}>
@@ -106,9 +111,7 @@ export function AskSwitcher({
         ) : list.isLoading ? (
           <LoadingState label="Reading your conversations." />
         ) : recent.length === 0 ? (
-          <EmptyRegion title="Nothing asked yet">
-            The one you are in is the first.
-          </EmptyRegion>
+          <EmptyRegion title="Nothing asked yet">The one you are in is the first.</EmptyRegion>
         ) : (
           recent.map((t) => (
             <Row
@@ -142,7 +145,7 @@ export function AskSwitcher({
         )}
       </div>
 
-      <div style={{ marginTop: "var(--sp-space-5)" }}>
+      <div style={{ marginTop: "var(--mrd-s6)" }}>
         {/* A real anchor, wearing the button's own class, so it looks like the
             rest of the chrome and still middle-clicks like a link. */}
         <Link

@@ -43,11 +43,7 @@
  */
 
 import * as React from "react";
-import {
-  Num,
-  ReadFailedLine,
-  RecordSpeaks,
-} from "@/components/meridian/surface-parts";
+import { Num, ReadFailedLine, RecordSpeaks } from "@/components/meridian/surface-parts";
 import type { AskStreamMsg } from "@/lib/ask-stream-core";
 import type { ApprovalQueueItem } from "@/lib/approvals-queue.functions";
 import { recordCitationFor } from "@/lib/ask-record";
@@ -89,7 +85,7 @@ export function toTurns(messages: AskStreamMsg[]): Turn[] {
 
 function Register({ name, children }: { name: string; children: React.ReactNode }) {
   return (
-    <div style={{ marginBottom: "var(--sp-space-5)" }}>
+    <div style={{ marginBottom: "var(--mrd-s6)" }}>
       <div
         style={{
           fontSize: "var(--mrd-t-label)",
@@ -119,9 +115,9 @@ function Said({ children }: { children: React.ReactNode }) {
   return (
     <div
       style={{
-        fontSize: "var(--sp-text-prose)",
+        fontSize: "var(--mrd-t-prose)",
         color: "var(--mrd-ink)",
-        lineHeight: "var(--sp-leading-body)",
+        lineHeight: "var(--mrd-lh-prose)",
         whiteSpace: "pre-wrap",
         // A pasted path or a code fragment breaks inside the column rather than
         // pushing a 392px pane sideways.
@@ -421,7 +417,7 @@ export function AskTurn({
       ) : recordWasEmpty ? (
         <div
           style={{
-            marginBottom: "var(--sp-space-5)",
+            marginBottom: "var(--mrd-s6)",
             fontSize: "var(--mrd-t-base)",
             color: "var(--mrd-mute)",
           }}

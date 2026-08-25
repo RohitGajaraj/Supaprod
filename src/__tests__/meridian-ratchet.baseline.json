@@ -15,15 +15,14 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1589,
-  "fileCount": 136,
+  "totalOccurrences": 1576,
+  "fileCount": 135,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "import:components/ui": 1,
       "usage:components/ui": 4
     },
     "src/components/agents/AgentRelay.tsx": {
-      "--sp-": 3,
       "class:sp-": 2
     },
     "src/components/approvals/SendBack.tsx": {
@@ -33,7 +32,6 @@
       "class:sp-": 7
     },
     "src/components/ask/AskLanding.tsx": {
-      "--sp-": 3,
       "class:sp-": 1
     },
     "src/components/ask/AskPane.tsx": {
@@ -42,11 +40,7 @@
     "src/components/ask/AskRunCard.tsx": {
       "class:sp-": 4
     },
-    "src/components/ask/AskSwitcher.tsx": {
-      "--sp-": 3
-    },
     "src/components/ask/AskTurn.tsx": {
-      "--sp-": 4,
       "class:sp-": 2
     },
     "src/components/ask/SuggestionRail.tsx": {

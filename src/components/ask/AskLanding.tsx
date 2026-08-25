@@ -153,9 +153,9 @@ export function AskLanding({ kind, id, station }: LandedArtifact) {
         display: "flex",
         flexWrap: "wrap",
         alignItems: "flex-start",
-        gap: "var(--sp-space-3)",
+        gap: "var(--mrd-s4)",
         background: "var(--mrd-sink)",
-        border: "1px solid var(--sp-line-soft)",
+        border: "1px solid var(--mrd-line-soft)",
         borderRadius: "var(--mrd-r-card)",
         padding: "14px 16px",
         marginTop: "4px",
@@ -190,7 +190,7 @@ export function AskLanding({ kind, id, station }: LandedArtifact) {
       >
         <div
           style={{
-            fontSize: "var(--sp-text-prose)",
+            fontSize: "var(--mrd-t-prose)",
             lineHeight: "var(--mrd-lh-snug)",
             color: "var(--mrd-ink)",
           }}

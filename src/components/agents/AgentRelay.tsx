@@ -138,7 +138,7 @@ function MiniRelayLine({ workspaceId }: { workspaceId: string | null }) {
       style={{
         display: "flex",
         alignItems: "center",
-        gap: "var(--sp-space-3)",
+        gap: "var(--mrd-s4)",
         minWidth: 0,
       }}
     >
@@ -202,9 +202,9 @@ function StationRelayLine({
       style={{
         display: "flex",
         alignItems: "center",
-        gap: "var(--sp-space-2)",
+        gap: "var(--mrd-s3)",
         minWidth: 0,
-        marginBottom: "var(--sp-space-5)",
+        marginBottom: "var(--mrd-s6)",
       }}
     >
       <AgentMark slug={run.slug} name={run.name} state={run.isGate ? "gate" : "running"} />
