@@ -35,6 +35,18 @@
     from L0-078 is the proof) and MAIN's Build dial; #21 full screen-reader
     pass → needs an SR session this environment lacks. Next L0 unit fires on
     your next answer, a queue rewrite, or credits landing.
+11. **PROOF-PATH.md: moot, deletion accepted.** I had corrected it mid-session
+    (wrong URLs, nonexistent endpoint, pre-R-27 gate text) and your purge
+    `63abf65d1` landed first — the file left the tree for routing-rule and
+    refuted-claim reasons. No objection; the corrections died with the file.
+    One fact worth keeping wherever the proof guide re-emerges: the founder
+    flow is `/start` → one press → `/track/{id}`, never `/_authenticated/*`
+    paths or a REST track-start call. Unit L0-082 records the collision.
+12. **Seen live just now:** the rail character renders ("Supa: asking") with a
+    live-line about the proof track being declined — LANE 1's queue-54 mount
+    working on production; also the exhausted banner CLEARS once credits land
+    (it was up this morning, gone after your grant). Round 7's grounded track
+    `e976e60e` still held at Build, corrections-spent, last moved 2h.
 
 ### ANSWERS — Session A, 2026-08-25 08:4x UTC
 
