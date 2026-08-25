@@ -832,6 +832,36 @@ export function stationGoal(
   // only its slice optimises its slice.
   const mine = seat?.job ? `\n\nYour part in that: ${seat.job}` : "";
   const file = seat?.file ?? FILE_IT[station];
+
+  /*
+   * F-68. A STEP YOU WERE TOLD FAILED MAY NEVER BE REPORTED AS DONE.
+   *
+   * Appended to every seat at every station rather than written into one brief,
+   * because it is not a property of building or of shipping — it is a property
+   * of answering, and every seat answers.
+   *
+   * MEASURED, and it is the only instance in 2,635 runs. At 15:00:03 on
+   * 2026-08-25 the builder wrote *"These changes were staged and committed to a
+   * pull request (#5)"*. Its own calls that turn: `studio.stage` ok,
+   * `studio.stage` ok, **`studio.commit` ok:FALSE**, `studio.pr.open` ok:true.
+   * Staged was true. Committed was false, and the seat had been told so in the
+   * same turn.
+   *
+   * WHY THE SENTENCE IS SHAPED LIKE THIS. It does not say "be accurate", which
+   * is advice rather than a rule. It names the checkable thing — a refusal you
+   * saw — and it gives the honest alternative, which is F-24's lesson and the
+   * reason F-56's prohibition alone was not enough to stop F-63. Reporting the
+   * refusal IS the useful answer: it is what tells a person which wall the work
+   * hit, and the driver now cross-checks the claim against the calls anyway
+   * (`driver.server.ts`), so a seat that ignores this is contradicted on the
+   * record rather than believed.
+   */
+  const truthfulness =
+    "\n\nReport only what your tools actually did. If a call was refused or " +
+    "returned an error, you may not describe that step as done — say plainly " +
+    "which call was refused and what it said, because that is what tells a " +
+    "person which wall this hit. A step you were told failed is not a step you " +
+    "completed, however close the rest of the work came.";
   const back = correction?.trim() ? `\n\n${correction.trim()}` : "";
 
   // THE ID ITSELF, not a description of where to find it. The filing
@@ -852,7 +882,7 @@ export function stationGoal(
       ? `\n\nThe work on this track is on branch \`${branch}\`, not on the default branch. Pass \`ref: "${branch}"\` to repo.tree, repo.read and repo.search, or you will be reading a copy of the project that does not contain it.`
       : "";
 
-  return `${stationJob(station, subject)}${reScoped}${mine}${prior}${back}\n\n${file}${named}${onBranch}`;
+  return `${stationJob(station, subject)}${reScoped}${mine}${prior}${back}\n\n${file}${named}${onBranch}${truthfulness}`;
 }
 
 const FILE_IT: Record<AgentStation, string> = {
