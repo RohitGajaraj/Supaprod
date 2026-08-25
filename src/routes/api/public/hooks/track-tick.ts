@@ -185,7 +185,10 @@ export const Route = createFileRoute("/api/public/hooks/track-tick")({
             }
             driven += 1;
             try {
-              const outcome = await driveTrackOnce(client, row, tickStartedAt);
+              // F-55. `"sweep"` — nobody is watching this one. These are the
+              // transitions acceptance criterion 2 is about, and the only ones a
+              // query proving an untouched run may count.
+              const outcome = await driveTrackOnce(client, row, "sweep", tickStartedAt);
               outcomes.push(outcome.line);
             } catch (e) {
               // One track that throws must never stop the sweep, or a single

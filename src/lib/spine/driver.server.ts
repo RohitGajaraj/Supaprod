@@ -45,6 +45,7 @@ import {
   stationGoal,
   type HoldReason,
   type UpstreamArtifact,
+  type DrivenVia,
 } from "@/lib/spine/driver";
 import {
   CORRECTABLE_HOLDS,
@@ -1137,6 +1138,23 @@ export async function driveTrackOnce(
   supabase: SupabaseClient,
   row: DriveRow,
   /**
+   * F-55. WHO ASKED FOR THIS DRIVE — the sweep, or a person pressing the control.
+   *
+   * REQUIRED, AND THAT IS THE WHOLE POINT. It sits before the optional deadline
+   * so every caller has to state it; a defaulted version would silently answer
+   * for a caller that never considered the question, and the answer it invented
+   * would be the one that CLAIMS autonomy. A required parameter cannot be
+   * forgotten. There are exactly two callers and both now say which they are.
+   *
+   * WHAT IT COSTS TO NOT HAVE IT, measured: on 2026-08-25 a session read
+   * `SELECT from_stage, to_stage, actor, at FROM stage_events`, saw `system` on
+   * every row of track `48eee889`'s walk, and reported it as unattended. Another
+   * session had driven it by hand. `actor` was correct and answers a
+   * neighbouring question — **`driveTrackOnce` stamps `system` either way** — so
+   * acceptance criterion 2 was, until this parameter, not provable by anything.
+   */
+  via: DrivenVia,
+  /**
    * When the TICK started, not when this track did.
    *
    * The deadline is the sweep's, shared across every track it drives, because
@@ -1148,6 +1166,30 @@ export async function driveTrackOnce(
 ): Promise<DriveOutcome> {
   const route = routeOf(row);
   const station = row.station as AgentStation;
+
+  /*
+   * F-55. STAMPED ON ENTRY, ONCE, RATHER THAN ON EACH WAY OUT.
+   *
+   * `driven_at` is written on eight different exit paths, and adding a ninth
+   * field to all eight is how two columns that must agree drift apart. This one
+   * is known before anything happens and cannot change during the drive, so it
+   * is written once, here.
+   *
+   * ON ENTRY SPECIFICALLY, because the case that matters most produces no exit
+   * row worth reading. **A person pressing "run" on a track that then holds is
+   * exactly the "unsticking" acceptance criterion 2 forbids** — and it writes no
+   * `stage_events` row at all, because nothing moved. A field recorded only on
+   * transitions would miss every one of those, which is the half of criterion 2
+   * that is about intervention rather than about progress.
+   *
+   * Unchecked on purpose: a failed write leaves NULL, which reads as "does not
+   * know" and can never be counted as evidence of an unattended run. The
+   * expensive direction is a false claim of autonomy, and this fails away from it.
+   */
+  await supabase
+    .from("spine_tracks" as never)
+    .update({ last_driven_via: via } as never)
+    .eq("id", row.id);
 
   // Catch the record up on gates answered since the last tick BEFORE deciding
   // anything. A person may have approved a call while the workspace was paused
@@ -1901,7 +1943,11 @@ export async function driveTrackOnce(
     entityId: row.id,
     from: station,
     to: arrivedAt ?? "learn",
+    // UNCHANGED, and deliberately. `actor` means "who did this" and the answer
+    // is still the system: agents did the work on both paths. `drivenVia`
+    // carries the different question — whether anybody was there.
     actor: "system",
+    drivenVia: via,
     workspaceId: row.workspace_id,
     userId: row.user_id,
   });

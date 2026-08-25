@@ -34,6 +34,26 @@ export interface StageEventInput {
   to: string;
   /** 'human', an agent slug, or 'system' (cron). Defaults to 'system'. */
   actor?: string;
+  /**
+   * F-55. WAS ANYONE WATCHING when this transition happened?
+   *
+   * `actor` answers WHO DID THIS — production holds agent slugs, `human` and
+   * `system` across 2,000+ rows. It does not answer whether a person was there,
+   * and those are different questions: `driveTrackOnce` stamps `actor: 'system'`
+   * whether the cron called it or somebody pressed the control on a watched run.
+   *
+   * That gap is acceptance criterion 2 in its entirety — *"no human intervention
+   * mid-run"* — and it was found by a session confidently reporting a hand-driven
+   * walk as unattended, having read `actor` and got a true answer to the
+   * neighbouring question.
+   *
+   * `'sweep'` is the unattended cron. `'foreground'` is a person pressing run.
+   * **Absent means the writer does not know**, and it stays absent rather than
+   * defaulting, because a default would answer for callers that never asked —
+   * which is the R-22 hazard pointing the other way round: here the UNSAFE
+   * reading is the one that claims autonomy.
+   */
+  drivenVia?: "sweep" | "foreground" | null;
   workspaceId?: string | null;
   userId?: string | null;
 }
@@ -56,6 +76,10 @@ export async function recordStageEvent(client: unknown, ev: StageEventInput): Pr
       from_stage: ev.from ?? null,
       to_stage: ev.to,
       actor: ev.actor ?? "system",
+      // Written only when the caller knows. `undefined` is dropped by
+      // PostgREST, so a caller that cannot say leaves the column NULL rather
+      // than asserting either answer.
+      driven_via: ev.drivenVia ?? null,
       workspace_id: ev.workspaceId ?? null,
       user_id: ev.userId ?? null,
     });

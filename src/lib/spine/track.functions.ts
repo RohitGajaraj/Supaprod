@@ -2081,7 +2081,12 @@ export const driveTrackNow = createServerFn({ method: "POST" })
 
       // A FRESH CLOCK PER SEAT. This single argument is what separates a watched
       // run from the sweep's rationed one. See the header.
-      const outcome = await driveTrackOnce(supabase, driveRow as never, Date.now());
+      // F-55. `"foreground"` because somebody is looking at this. The whole
+      // point of this walk is that a person pressed a control and is watching it
+      // move, so every transition it writes is disqualified from being evidence
+      // of an unattended run — and now says so on the record instead of being
+      // indistinguishable from the sweep.
+      const outcome = await driveTrackOnce(supabase, driveRow as never, "foreground", Date.now());
 
       steps.push({
         station: outcome.station,
