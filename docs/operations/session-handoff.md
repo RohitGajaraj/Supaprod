@@ -1,11 +1,12 @@
-# SESSION HANDOFF 2026-08-26 · PHASE 3 READY FOR OBSERVATION
+# SESSION HANDOFF 2026-08-26 · LANE WORK ACTIVE, PHASE 4 EXECUTION BEGUN
 
 **Build status:** ✅ Clean, all gates pass  
 **Tree:** main, 0 uncommitted, 0 ahead of origin  
-**Tests:** 11,184 pass / 0 fail  
+**Tests:** 11,250 pass / 0 fail  
 **TypeScript:** ✅ Pass  
 **PHASE 3:** ✅ IMPLEMENTED (live polling, current station indicator, visible agency)
-**Mission gate:** ⏳ AWAITING FOUNDER OBSERVATION — Technology verified by Playwright, founder watch needed
+**PHASE 4:** 🚀 BEGUN — LANE 0 and LANE 1 executing queue items
+**Mission gate:** ⏳ AWAITING FOUNDER OBSERVATION — Blocker on founder watching the loop run on screen
 
 ---
 
@@ -29,7 +30,28 @@
 
 ---
 
-## What Changed Since Last Session
+## Session 2026-08-26: LANE 0 Work Started
+
+**Commits:** `5e96444c0`, `bea145113`, `fc630644b`
+
+### Work completed:
+- **Queue #67** (SHIPPED `5e96444c0`): Calm hold tone for "needs-evidence" when forecast not yet due
+  - Extracts `forecast_horizon_date` from decision artifacts
+  - Shows dated message: "The forecast comes due 8 Sep; Learn returns then"
+  - No retry control, no alarm tone when waiting on evidence
+  - Acceptance: dated calm sentence on pre-horizon learn hold; ordinary needs-evidence keeps amber rendering
+  
+- **Queue #69** (VERIFIED `fc630644b`): Finished count guard (F-61)
+  - Verified LANE 0 components have 0 uses of `is_sample` for completion
+  - Documented correct completion query: `entry_station = 'sense' AND station = 'learn' AND waived = '[]'`
+  - Unit L0-084 filed; shape test deferred to MAIN via INBOX
+
+### Gates:
+- TypeScript: ✅ Clean
+- Tests: 11,250 pass / 0 fail (pre-existing hook auth error unrelated)
+- All commits passed humanization check
+
+## Earlier sessions (prior to 2026-08-26)
 
 | What | Before | Now | Evidence |
 | --- | --- | --- | --- |
@@ -64,6 +86,39 @@
 - Run completes and shows final verdict
 
 **Timeline:** Once founder completes this observation, report confirmation and proceed to PHASE 4.
+
+## Next for LANE 0
+
+1. **Queue #68** (READY NOW, time-boxed): Observation session
+   - Sign in as `harbor@` (credentials in `docs/operations/demo-credentials.md`)
+   - Sit on live track `7977dc06` at ship station
+   - Observe and screenshot: transcript motion, character states, queue-65/66 live markers
+   - File findings for any CODE-SHIPPED items that don't render as specced
+   - **This is a verification unit, not code work**
+
+2. **Owed verifications** (after production redeployed 08:3x UTC):
+   - Items 24, 28, 34, 29, 23 from their unit files
+   - Run pre-written falsifiers; record each in `coordination/units/`
+
+3. **Queue #68** is time-boxed and valuable — prioritize it
+
+## Next for LANE 1
+
+1. **Queue #12** (READY): Design review of Today page
+   - Answer five questions about `_authenticated.today.tsx` in unit file
+   - Name every region with its Meridian component
+   - Kill unnamed regions with reasons
+
+2. **Queue #54** (BLOCKED → #53): Mount character
+   - Blocked on MAIN's #53 (character component)
+   - Spec-read now in `SPEC-PRESENCE.md` §Anatomy
+
+3. **Queue #32** (READY): Swap JobCards onto Meridian
+
+## For MAIN
+
+- Item 53 (character component) is P0, MAIN-held
+- INBOX has one select widening for L1's queue 70 (decision pairing)
 
 ### Next (P1 — After mission gate satisfied)
 
