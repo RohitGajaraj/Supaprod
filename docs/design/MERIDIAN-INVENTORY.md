@@ -1,6 +1,6 @@
 # Meridian inventory — what exists, and who actually renders it
 
-> _Created: 2026-08-22 · Last updated: 2026-08-22_
+> _Created: 2026-08-22 · Last updated: 2026-08-25_
 
 **Take the inventory from the directory and the rules from the contract.**
 [`DESIGN-SYSTEM.md`](./DESIGN-SYSTEM.md) is the contract and it is right about the laws. Its counts go
@@ -102,3 +102,44 @@ These carry the product. Compose from them first.
 - [`DESIGN-SYSTEM.md`](./DESIGN-SYSTEM.md) — the contract. Laws, not counts.
 - [`MERIDIAN-REFERENCE-PARITY.md`](./MERIDIAN-REFERENCE-PARITY.md) — parity against beautifui.dev.
 - [`../planning/initiatives/agent-first-platform.md`](../planning/initiatives/agent-first-platform.md) — why these primitives exist. **Its §7.1 is superseded**: the motion and body-weight corrections were falsified by measurement, and the numbers live in `src/styles/meridian.css`.
+
+## Adoption-candidate map · measured 2026-08-25
+
+> **This section is a study, not a doctrine.** It records one full audit of who imports what on
+> 2026-08-25 and proposes where each under-used component could land next. It binds nobody: a surface's
+> owner may disagree with a candidate home, propose a better one, or leave a component unmounted with a
+> stated reason — the 2026-08-22 note above already honours four such refusals. The ratchet law still
+> governs every adoption: **port, never swap; nothing is hidden and no state is dropped.** If a mount
+> would lose capability, the existing surface wins.
+
+**Method.** One grep per Meridian file over all of `src/` (importers counted, tests and the gallery
+excluded), then each stranded component's props read against its own header comment. Counts regenerate
+with the loop at the top of this file.
+
+**What changed since the 2026-08-22 finding.** Of the twelve then-unreachable components,
+`RunTimeline`, `PlanCard`, `PlanGate`, `ToolStream` and `SelectionActions` have since landed on real
+surfaces (`/runs/$missionId`, the ask family, the spec editor). `DiffTable`, `Chat` and
+`RecommendationCard` were removed from the tree outright. `/today`'s triage card is an inline port of
+`AgentInbox`'s grouping design rather than an import of it, so the component file itself renders nowhere
+again. **Five finished components are gallery-only today**, plus two single-consumer cards with obvious
+second homes:
+
+| Component | Lines | Renders today | Candidate homes (proposed, not ordered by this table) |
+| --- | --- | --- | --- |
+| [`InsightCards`](../../../src/components/meridian/InsightCards.tsx) | ~1.3k | gallery only | `/learn` — its own header names Learn as its station; `LearningDetail.tsx` currently renders plain prose |
+| [`PromotionCard`](../../../src/components/meridian/PromotionCard.tsx) + `NoPromotions` | ~420 | gallery only | `/learn` promotions section; `HouseRulesPanel` entries share the shape |
+| [`FineTuneCard`](../../../src/components/meridian/FineTuneCard.tsx) | ~580 | gallery only | `/design` tunables (guardrail weights, eval thresholds) — its header says "the Design station's property inspector"; `/design` has zero references |
+| [`Flowchart`](../../../src/components/meridian/Flowchart.tsx) | ~577 | gallery only | branch previews where a story forks: spec projections (`plan.spec.$id`), driver path consent |
+| [`AgentInbox`](../../../src/components/meridian/AgentInbox.tsx) | ~475 | gallery only | `/inbox` — that route is still a redirect stub to the signed-in home; the component was built for exactly this door |
+| [`ApprovalCard`](../../../src/components/meridian/ApprovalCard.tsx) | — | `/approvals` only | settle asks, memory-review asks — same question-shape, second home |
+| [`ContextCards`](../../../src/components/meridian/ContextCards.tsx) | — | `/decide` only | answer citations in the ask family (`Answer.tsx`) — excerpts-with-source is the same read |
+
+**StatusChip is its own note.** Six importers is healthy for a young chip, but coloured status text
+still renders raw in older surfaces. A sweep (text → chip) is candidate work anywhere status words
+appear outside `StatusChip`; greyscale salience is the argument in `meridian.css`.
+
+**Proposed order of adoption, if anyone takes this up:** AgentInbox → `/inbox` first (empty door,
+component finished), InsightCards + PromotionCard → `/learn` second (Learn is the moat station),
+FineTuneCard → `/design` third, the StatusChip sweep fourth (broadest blast radius, goes last),
+Flowchart → branch previews fifth. Each adoption states in its commit which capability moved and which
+was already there — the same honesty rule this file runs on.
