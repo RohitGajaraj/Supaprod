@@ -20,3 +20,4 @@
 | A | `docs/AUDIT.md`, `docs/PRODUCT-TRUTH.md`, `docs/lanes/QUEUE-*.md`, `the-first-run/BUILD-QUEUE.md` | Standing director ownership | standing |
 | B | `the-first-run/EXPERIMENT-first-finish.md`, `the-first-run/RULINGS.md`, `the-first-run/FINDINGS-LEDGER.md` | The live acceptance run — driving Round 6/7, the database, and the record of both | 2026-08-25 09:3x |
 | B | `src/lib/ai/loop.server.ts`, `src/lib/deployments.functions.ts`, `src/lib/hosting/**` | R-27 (ship autonomy) — SHIPPED; claim held while Round 7's ship path is proven | 2026-08-25 09:3x |
+| B | `src/lib/spine/driver.server.ts`, `src/lib/spine/track.functions.ts`, `src/routes/api/public/hooks/track-tick.ts`, migration | Queue 63 / F-55: `driven_via` on the transition, so criterion 2 becomes one query | 2026-08-25 10:0x |
