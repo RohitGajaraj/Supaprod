@@ -59,3 +59,18 @@ re-point, and the noun count was already paid down by every fold that created a
 stub.**
 
 Gates: none owed (no code). Dev server not started.
+
+## ADDENDUM, 2026-08-25 — the prds trio is LOAD-BEARING, do not delete
+
+The census called `_authenticated.prads.tsx` + its two children "the one genuine
+deletion". **Wrong on the evidence:** live surfaces GENERATE `/prds/<id>` hrefs
+— `src/components/chat/MessageMeta.tsx:50` documents them as the internal path,
+and `ResearchActivity.test.ts:581,666` plus `ask-record.test.ts:155,159` assert
+Ask research sources carry them. Deleting the stubs would break every old Ask
+answer's source link.
+
+**Revised disposition:** the trio stays as permanent one-hop stubs alongside the
+other 21, UNLESS LANE 0 first re-points href generation at `/plan/spec/$id`
+(their files) and a sweep confirms zero remaining generators. Until both, the
+stubs are what keeps those links true. Item 6's deletable set shrinks to:
+nothing confirmed today.
