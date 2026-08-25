@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1646,
-  "fileCount": 140,
+  "totalOccurrences": 1638,
+  "fileCount": 138,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "import:components/ui": 1,
@@ -48,9 +48,6 @@
     "src/components/ask/AskTurn.tsx": {
       "--sp-": 4,
       "class:sp-": 2
-    },
-    "src/components/ask/AskWorkLine.tsx": {
-      "--sp-": 7
     },
     "src/components/ask/SuggestionRail.tsx": {
       "--sp-": 1,
@@ -347,9 +344,6 @@
     },
     "src/components/supaprod/MissionGraph.tsx": {
       "--ds-": 6
-    },
-    "src/components/supaprod/PageHeader.tsx": {
-      "--font-pixel": 1
     },
     "src/components/supaprod/PixelStat.tsx": {
       "--font-pixel": 1
