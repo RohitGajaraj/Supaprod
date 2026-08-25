@@ -141,7 +141,7 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
     // discards, and `spine_track_members` holding zero rows of kind 'prd' across
     // all 43 tracks. A brief that instructs an impossible call is worse than no
     // brief, because the agent obeys it.
-    file: "Call prd.draft with `opportunity_id`, the bet this work belongs to. If Decide was waived and no bet exists, pass `brief` instead — what the work is and why it exists, in your own words. It writes the spec body itself, so do not compose one to pass in. A spec that is only in your answer is not on the record and Design and Build cannot read it.",
+    file: "Call prd.draft with either `opportunity_id` (the bet this work belongs to, if you have one) or `brief` (what the work is and why it exists, in your own words). You must pass one or the other. It writes the spec body itself, so do not compose one to pass in. A spec that is only in your answer is not on the record and Design and Build cannot read it.",
   },
   "sprint-planner": {
     job: "Break the spec above into the work it actually implies. Do not invent scope the spec does not ask for.",
@@ -780,7 +780,7 @@ const FILE_IT: Record<AgentStation, string> = {
   // a fallback that names an argument the tool does not have is the same defect
   // wearing a different key.
   define:
-    "Finish by calling prd.draft with `opportunity_id`, the bet this work belongs to — or with `brief`, what the work is and why it exists, when Decide was waived and no bet was ever filed. It writes the spec body itself. Then call tasks.create for the work the spec implies. A spec that is only in your answer is not on the record and the next station cannot read it.",
+    "Finish by calling prd.draft. If you have an `opportunity_id` from the context, pass that — it names the bet this spec serves. Otherwise, pass `brief`: what the work is and why it exists, in your own words. You MUST pass one or the other, and the tool will write the spec body itself. Then call tasks.create for each piece of work the spec implies. A spec that is only in your answer is not on the record and the next station cannot read it.",
   design:
     "Finish by calling design.draft with the surface you designed. A design that is only in your answer is not on the record and the next station cannot read it.",
   // F-36, and the same correction as the two Build seats above — it has to be
