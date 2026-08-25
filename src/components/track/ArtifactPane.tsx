@@ -1131,18 +1131,23 @@ export function ArtifactPane({
         active={current}
         onSelect={onSelect}
       />
-      <TabPanel group={`artifact-pane-${trackId}`} active={current}>
-        <StationPanel
-          stop={shown}
-          view={bodies.data?.stops.find((s) => s.station === shown.station)}
-          decisions={bodies.data?.stops
-            .find((s) => s.station === "decide")
-            ?.items.filter((it) => it.kind === "decision" && !it.missing)}
-          everDriven={track.drivenAt !== null}
-          hold={track.hold}
-          now={now}
-        />
-      </TabPanel>
+      {/* The pane polls; when the shown station's body changes (a spec saved,
+          a decision recorded), the change is said politely rather than
+          silently repainting. */}
+      <div aria-live="polite">
+        <TabPanel group={`artifact-pane-${trackId}`} active={current}>
+          <StationPanel
+            stop={shown}
+            view={bodies.data?.stops.find((s) => s.station === shown.station)}
+            decisions={bodies.data?.stops
+              .find((s) => s.station === "decide")
+              ?.items.filter((it) => it.kind === "decision" && !it.missing)}
+            everDriven={track.drivenAt !== null}
+            hold={track.hold}
+            now={now}
+          />
+        </TabPanel>
+      </div>
     </Region>
   );
 }

@@ -183,7 +183,12 @@ export function TrackConsent({
   const now = Date.now();
 
   return (
-    <div className="flex flex-col gap-mrd-5">
+    /*
+     * QUESTIONS ARRIVE ASYNCHRONOUSLY -- a drive can open a gate while the
+     * person watches. A polite region means the arrival is SAID rather than
+     * silently appearing; additions only, so settled churn does not chatter.
+     */
+    <div className="flex flex-col gap-mrd-5" aria-live="polite">
       {open.length === 0 && settled.length > 0 ? (
         <p className="text-mrd-small font-medium text-mrd-body">
           Answered. Picking the work back up.
