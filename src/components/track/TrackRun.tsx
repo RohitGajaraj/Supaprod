@@ -335,6 +335,16 @@ export function TrackRun({
   const answerTheCall = track?.holdReason === "waiting-on-a-person";
   const nowMs = Date.now();
 
+  /*
+   * OUT-OF-TIME IS THE LOOP'S CLOCK, NOT A STOP (F-46/R027). While this press
+   * still has automatic legs, the row may carry `out-of-time` between them --
+   * and showing "Why it stopped" mid-walk reports a pause as a full stop. The
+   * banner yields to the walking state and returns the moment the walk hands
+   * control back for real.
+   */
+  const walkingMidRoute = Boolean(continuing || run.isPending);
+  const showHold = held && !walkingMidRoute;
+
   return (
     <div className="flex flex-col gap-mrd-6">
       {/*
@@ -347,7 +357,7 @@ export function TrackRun({
        */}
       <TrackConsent trackId={trackId} onAnswered={() => run.mutate()} />
 
-      {held && track ? (
+      {showHold && track ? (
         <Region title="Why it stopped" sub="This work is not moving until this clears.">
           <div className="flex flex-col gap-mrd-4">
             <Row
