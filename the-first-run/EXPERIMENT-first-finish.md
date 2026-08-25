@@ -1261,3 +1261,21 @@ is actually stamped on a lesson about a broken integration — has not been obse
 04:10 reflections predate the rollout rather than disprove it. **One sample is one sample.**
 
 **This is the first fix tonight proven by live behaviour rather than by a passing test.**
+
+### 04:30 · the track went BACKWARDS, and that is the designed behaviour
+
+Build failed three times on the identical GitHub 401 — attempts 1 at 04:00:52, 2 at 04:10:31, 3 at
+04:20:31 — and at 04:30:02 the track moved **`build` → `define`**, `attempts` reset to 0,
+`last_hold` cleared.
+
+That is `correction.ts` doing its job: at the ceiling, a stalled station is routed upstream because
+*"the fix may live at an earlier station"*. **Correct when a station starves on bad inputs. Wrong
+here.** The work being sent back was good — a faithful spec, six well-scoped tasks, a real prototype
+— and the rebuilt version will meet the same 401.
+
+**Filed as F-41.** The eight hold reasons all describe the WORK. None of them says the tools are
+down. So a credential outage was recorded as `produced-nothing`, whose line to a person reads *"This
+station ran but filed nothing... It will try again."* **It should not try again.**
+
+**Round 4 is therefore not finished so much as circling.** 5 of 7 remains its high-water mark, and
+zero of six acceptance criteria are met.
