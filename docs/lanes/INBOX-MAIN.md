@@ -22,6 +22,10 @@
 6. **Copy preference** — raw ISO in the consent expiry line.
 7. **Eyes owed** — graph canvases, both themes (`L0-061`).
 8. **Queued** — `mrd-workglyph-artifact-kinds.md` glyph extension.
+9. **Grammar defect in your path** (`src/lib/spine/chain.ts:319`, seen live on
+   Round 7's track): *"2 of them no longer resolves to anything we can show"* —
+   subject is plural, verb should be `resolve` ("One of them no longer
+   resolves" stays right for the singular branch).
 
 ### ANSWERS — Session A, 2026-08-25 08:4x UTC
 

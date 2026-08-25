@@ -60,6 +60,7 @@ import {
 import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
 import { holdTone } from "@/lib/spine/driver";
 import { relativeTime } from "@/lib/memory-view";
+import { summaryText } from "@/components/track/run-summary";
 
 /**
  * What the walk did, said plainly.
@@ -77,27 +78,7 @@ const STOPPED_LINE: Record<DriveNowResult["stopped"], string> = {
 };
 
 /** What a run says when it is handed to somebody, in words a PR thread can read. */
-function summaryText(input: {
-  title: string;
-  stationName: string;
-  hold: string | null;
-  stops: Array<{ label: string; state: string; nouns: string[] }>;
-  url: string;
-}): string {
-  const lines: string[] = [];
-  lines.push(`${input.title} (a Supaprod run)`);
-  lines.push(`Where it is: ${input.stationName}`);
-  if (input.hold) lines.push(`Why it is stopped: ${input.hold}`);
-  const walked = input.stops.filter((s) => s.nouns.length > 0);
-  if (walked.length > 0) {
-    lines.push("What each step filed:");
-    for (const s of walked) lines.push(`- ${s.label}: ${s.nouns.join(", ")}`);
-  }
-  lines.push(input.url);
-  return lines.join("\n");
-}
-
-/*
+export /*
  * ITEM 24: THE RUN CAN BE HANDED TO SOMEBODY. The record of this work is the
  * thing you most want in front of a reviewer, and until now the only way to
  * share it was a link with no context or a screenshot of a table. The text is
