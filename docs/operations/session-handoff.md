@@ -4467,3 +4467,76 @@ secret, `latest_commit_sha` went backwards, and the driver filed a 401 as `produ
 - **Every lane answer this session was produced twice** — an author and an adversarial verifier
   who re-ran the queries. **All of them came back `holds: false` on at least one load-bearing
   claim**, including one that found following its own draft turns `bun test` red. Do that again.
+
+---
+
+# SESSION HANDOFF 2026-08-25 ~15:1x IST (09:4x UTC) · SESSION A (director, Claude Code/Fable) · appended, never replacing
+
+**Four sessions worked this repo today** (A = this one, B = second Claude Code worktree, L0, L1).
+Read `docs/lanes/CLAIMS.md` before touching anything; `docs/AUDIT.md` + `docs/PRODUCT-TRUTH.md`
+are the founder-directed ground-truth pair and both are current as of this session.
+
+## Where the acceptance stands — closest it has ever been
+
+**Round 6 (`48eee889`, harbor Helio Labs) walked FIVE stations unaided today**:
+sense→decide (07:10) →define (07:41) →design (08:50) →**build (09:11 UTC)**, actor `system`,
+attempts 0, hold clear at each advance. When the sweep serves its Build crew, harbor's
+never-tested GitHub binding gets its live answer — watch `tool_calls` for `repo.*` in workspace
+`60000000-…`. The gates between Build and `learn` after today's work: the merge gate (open —
+`STUDIO_AUTO_SHIP=1` confirmed live, qa seat now briefed to walk up to it, F-50 FIXED
+`221a2ac86`), R-27's publish contract (ruled by B, implementation status B's), and the repo
+caveat (harbor's `relay-homeowner-app` can never host — the proof needs a repo scaffolded via
+`provisionRepoForSpec`, queue 58).
+
+## What Session A shipped (all pushed, all gates green: 10,927/0, tsc 0, lint clean)
+
+1. **docs/AUDIT.md** — Working/Broken/Fake/Missing, every claim carrying its query; corrected
+   twice same-day (by B, then merged by A) and honest about it.
+2. **docs/PRODUCT-TRUTH.md** — who/pain/10x + architecture rulings: stations are pipes never the
+   face; ONE character fronts the crew; Brain is a mechanism not a room.
+3. **SPEC-PRESENCE.md + queue 52–55** — the character (working name `Supa`, ONE constant),
+   seven states each mapped to its proving row, three mounts. **52+53 BUILT by A**:
+   `src/lib/presence/character.ts` + `src/components/presence/Character.tsx` (43 tests), and
+   **mounted at the top of TrackRun**. L1 is on the rail/start mounts (54); L0 has AUTO_MAX 8→24
+   (55).
+4. **Item 16 SHIPPED (gated path)** — a confirmed plan now creates a TRACK via `startTrackCore`
+   with the person's confirmed route; answer carries `/track/:id?start=true`; missionId
+   explicitly null until Build opens one (R-24). Guard test in
+   `src/routes/api/__tests__/a-confirmed-plan-creates-a-track.test.ts`.
+5. **F-50 FIXED** — qa seat + FILE_IT.build briefed through checks.run → pr.merge with the
+   stopping rule in words; the old doctrine test rewritten with its history kept.
+6. **F-51 half-fixed** — the forecast grader had NEVER processed a workspace
+   (`auto_derive_enabled` 0/21, the eighth built-but-switched-off). Flipped ON for harbor only
+   (reversible one UPDATE); the tick ran and wrote the product's **first two forecast resolution
+   suggestions ever** (gemini-2.5-flash, verdict `inconclusive` — honest). Settled grades still 0.
+7. **F-53 / SWITCHBOARD.md** — a fan-out sweep found seven MORE silenced subsystems (scheduled
+   evals have no writer for `schedule_cron`; competitor briefs, assumption watch, PostHog ingest
+   all gated shut; outcome detection frozen since the F-39 credential death with **36 approved
+   PRDs waiting**; `memory_expiry_enabled()` gates the DISPLAY not the purge). **And
+   `FIRECRAWL_API_KEY` is now SET** — researcher-tick crawls live, so F-38's founder question
+   shrank to `auto_scout_enabled` + targets.
+8. **Runway verified for L1** — MATCH; F-47 fix live, preventing an 11% understatement today.
+   `docs/operations/runway-verification.md` has every query.
+9. Production **deployed twice** (deploy_project; second fired 09:4x UTC, pending when this was
+   written — verify the preview SHA before trusting it, F-23).
+
+## Open, in order, for whoever picks up
+
+1. **Watch Round 6 at Build** — the harbor GitHub answer arrives on its own; if 401s appear,
+   `tools-refused` (R-26) should catch them now, not attempts.
+2. **Queue 58** — bind the proof workspace to a scaffolded, hostable repo (`provisionRepoForSpec`).
+3. **R-27 implementation** — check with Session B before touching (`workspaces.autonomous_ship_enabled`
+   + the four-proof contract + freeing `studio.revert` alongside).
+4. **Queues 55 (L0), 54 (L1), 57 (seed-forecast quarantine, M), F-53's four queue rows** (not yet
+   written into BUILD-QUEUE — evals scheduling writer, assumption-watch swallowed error,
+   memory-expiry miswiring, outcome-tick silence).
+5. **Lane 0's owed verifications** now unblocked by the deploys (items 23/24/28/29/34 falsifiers,
+   graph canvas both themes).
+6. **The founder's remaining word**: F-38 scout on/off (smaller now — the key exists), and
+   R-27's standing-decision UI once B lands the contract.
+
+## The lesson this session re-paid for
+
+A pipe swallowed a failing gate's exit code TWICE (docs:check once, bun test once — the second
+shipped a red suite claim in a commit message that said green until re-checked). The memory
+existed; the habit did not. `cmd > /tmp/out 2>&1; echo $?` — never `| tail`.
