@@ -339,7 +339,38 @@ const updateTaskStatus = def({
 
 const logSignal = def({
   name: "signals.log",
-  description: "Log a discovery signal (user feedback, support ticket, interview quote).",
+  /*
+   * "EVIDENCE THAT EXISTS" IS NOT PADDING. THE LOOP WAS EATING ITS OWN EXHAUST.
+   *
+   * The old description named three good examples and forbade nothing, so when a
+   * station searched and found nothing it filed THAT -- "No signals found for
+   * X", "Zero active scout targets detected", "This absence has been logged" --
+   * because it had somewhere to write and wanted to show its work.
+   *
+   * MEASURED 2026-08-25 in the live workspace `0b792d52`:
+   *
+   *   SELECT count(*) FILTER (WHERE source='agent'), count(*) FROM signals ...
+   *   -- 54 of 75 agent-authored, and at least 16 are explicitly notes about
+   *      absence rather than about the product.
+   *
+   * **So the evidence table is majority the loop's own reports of failure**, and
+   * every later Discover run reads them as evidence. That is self-reinforcing:
+   * the more often the loop fails to find something, the more absence notes it
+   * writes, the more the next search returns absence notes, the harder the real
+   * customer voice is to see. In that workspace one genuine Canny request sat
+   * under fifty-two notes saying nothing had been found.
+   *
+   * FILING NOTHING IS THE CORRECT OUTCOME when there is nothing, and the loop
+   * already handles it properly: the station produces nothing, the driver holds
+   * `produced-nothing`, and the correction loop escalates `needs-evidence` --
+   * *"this station has nothing to work from, and no other station can make it.
+   * Connect a source, or file the missing input by hand."* That is a true
+   * sentence a person can act on. An absence note is a station DODGING that
+   * outcome by writing a row, and the row is worse than the hold it avoided.
+   */
+  description:
+    "Log a discovery signal: evidence that EXISTS, in the words of the source (user feedback, a support ticket, an interview quote). " +
+    "NEVER log the absence of evidence. 'No signals found', 'zero results', 'no data for X' are not signals — they are the answer to your final message, and filing them puts your own failure into the evidence every later run reads. Finding nothing and filing nothing is a correct, expected outcome; say so in your answer instead.",
   category: "write",
   argsSchema: z.object({
     content: z.string().min(1).max(4000),
