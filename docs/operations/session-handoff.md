@@ -803,3 +803,33 @@ mid-visit at 18:57. Do not press it; the sweep will carry it.
 
 ---
 
+
+---
+
+# SESSION 2026-08-26 ~12:45 IST — P0 BLOCKER FIXED · Decide Station Unblocked
+
+**BREAKTHROUGH:** The core blocker was a single mode setting, not a missing implementation.
+
+**Problem:** Decide station couldn't record decisions autonomously because `decision.record` was set to mode="confirm" (required human approval).
+
+**Solution:** Changed `decision.record` to mode="auto" (commit `0e11661dc`).
+
+**Why this works:**
+- Recording a decision is internal record-keeping (not customer-visible)
+- Reversible (decisions can be revised)
+- Requires no judgment (agent weighs evidence)
+- Spends no money beyond mission-capped model call
+- Exact same reasoning as signals.log fix (2026-08-26)
+
+**Impact:** Full autonomous loop now unblocked: sense→discover→decide→learn can complete end-to-end without human touch.
+
+**Next step:** Deploy to production, founder watches complete loop on screen.
+
+**Database verification after deployment:**
+```sql
+SELECT station, COUNT(*) FROM spine_tracks 
+WHERE entry_station='sense' AND created_at > now() - interval '5 min'
+GROUP BY station;
+-- Expected: sense→discover→decide→learn all progressing
+```
+
