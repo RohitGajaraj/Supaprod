@@ -1,1 +1,1 @@
-S1 · 22:05 IST · WORKING · 13 units pushed (presence, leavable, steer composer+@, consent single-source, value audit, diff view, finished-run honesty, keyboard layer, Discover grouping, door chips) · holding on S0 for rewind/handback/checks-reader signatures + founder for publishable key · src/components/track/** spine/** presence/** discover/** ask/** · 1efdc2b08
+S1 · 00:05 IST · DEVSERVER · browser proof pass over /start + /track (units 01-16), server held only for this check · src/components/track/** presence/** · bcb6a281e
