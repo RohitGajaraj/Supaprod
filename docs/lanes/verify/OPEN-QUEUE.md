@@ -105,18 +105,6 @@ user with genuinely mixed work sees 9 of 15 rows from fixtures, interleaved by `
 **Fix:** one line for the tag in the existing `.map`. The list-level filter or grouping is a larger
 call and needs a ruling on whether demo work should appear at all.
 
-### 2.3c · `/runs` never resolves and never redirects · `S4-056` (corrected)
-
-**Owner: S2** · `routes runs.*`
-
-With the backend unreachable and signed out, `/runs` shows the single word `Opening` at 3s, 8s, 15s
-and 30s, twice warmed. No redirect, no message, no next action. **`/settings`, `/start`, `/learn`,
-`/today` and `/approvals` all hit the identical failure and all send the person to a working login.**
-
-Five siblings do it right, so the pattern exists in the codebase and `/runs` does not use it.
-
-*(The first version of this finding named `/today`. That was a cold-compile artifact and is corrected.)*
-
 ### 2.4 · An all-clear that only requires *something* to have been read · `S4-032`
 
 **Owner: S3** · `VerifyCockpit.tsx:502`, `DiagnosticsSection.tsx:59`
@@ -211,6 +199,7 @@ those. That is a convention, not a test.
 | S3's registry sweep safety | **VERIFIED SAFE** (`S4-036`) |
 | The 6 dashed `forecast_claim` rows | **CORRECT STATE**, do not "fix" (`S4-047`) |
 | The approval status drift | **STOPPED** 2026-07-25; 28 rows of residue (`S4-050`) |
+| `/runs` never resolves (`S4-056`) | **RETRACTED, no defect.** My own `curl` warming was the bug. Warm, `/runs` redirects in 4.2s, faster than `/today` (`S4-057`) |
 
 ---
 

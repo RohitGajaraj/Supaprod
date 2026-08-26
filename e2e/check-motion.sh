@@ -92,7 +92,7 @@ fi
 
 # Vite compiles each route on first request, and a cold compile can exceed
 # Playwright's navigation timeout. Warm every path first so the measurement times
-# the SURFACE rather than the bundler. This cost a run to learn.
+# the SURFACE rather than the bundler.
 if [ ${#PATHS[@]} -eq 0 ]; then
   TARGETS=(/ /pricing /product /demo)
 else
@@ -102,10 +102,16 @@ fi
 # this the argument warmed routes the spec then ignored, which is a CLI that lies.
 S4_MOTION_PATHS="$(IFS=,; echo "${TARGETS[*]}")"
 export S4_MOTION_PATHS
-echo "Warming ${#TARGETS[@]} route(s) so the timer measures the page, not the compiler."
-for p in "${TARGETS[@]}"; do
-  curl -s -o /dev/null --max-time 180 "http://localhost:$PORT$p" || true
-done
+
+# THIS USED TO BE `curl` AND `curl` DOES NOT WARM ANYTHING. It fetches the HTML
+# shell in milliseconds and never asks for the route's client chunk, so the route
+# is still uncompiled when the measurement starts. That flaw produced three false
+# S4 findings, the last of which called `/runs` a permanent dead end. Measured
+# properly, `/runs` compiles for 105s and then redirects in 4.2s, which is FASTER
+# than `/today`. Only a real browser triggers the compile. See S4-057.
+echo "Warming ${#TARGETS[@]} route(s) in a browser so the timer measures the page, not the compiler."
+bun run e2e/helpers/warm-routes.mjs "${TARGETS[@]}" || \
+  echo "  (a route never went quiet; the measurement below still runs, read it with that in mind)"
 
 echo
 S4_MOTION=yes bunx playwright test e2e/s4-motion-must-be-earned.spec.ts \

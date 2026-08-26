@@ -1,3 +1,28 @@
+# RETRACTED IN FULL, 2026-08-27. THERE IS NO DEFECT HERE.
+
+> **`/runs` is not broken, `/today` is not broken, and nothing in this file should reach S2.**
+> The whole finding was an artifact of my own measuring instrument. Measured with a browser
+> warm-up instead of `curl`, signed out, backend dead:
+>
+> | route | cold | warm | lands on |
+> | --- | --- | --- | --- |
+> | `/runs` | 105,100ms | **4,211ms** | `/login`, rendered |
+> | `/today` | 7,075ms | 5,112ms | `/login`, rendered |
+>
+> **Warm, `/runs` redirects faster than `/today` does.** It is slow to compile because its
+> sibling `$missionId` route is 1,786 lines, so the Vite dev chunk takes 105 seconds on first
+> request. Every probe I ran, at 3s, 8s, 15s, 25s and 30s, expired inside that compile.
+>
+> **The cause was that I "warmed" with `curl`, which returns the HTML shell and never asks for
+> the route's client chunk, so it warms nothing.** Three probes, each of which I reported as
+> independent confirmation, were three runs of the same broken method. Independent repetition of
+> a broken instrument is not corroboration, and I treated it as corroboration.
+>
+> The instrument is fixed (`e2e/helpers/warm-routes.mjs`, now used by `check-motion.sh`) so the
+> next lane cannot inherit this. Everything below is kept as the record of the error.
+
+---
+
 # S4-056 · CORRECTED. `/runs` is the dead end, not `/today`.
 
 > ## CORRECTION, 2026-08-27, and the original headline named the wrong route

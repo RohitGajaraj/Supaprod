@@ -67,6 +67,43 @@ const SETTLE_MS = 6_000;
 /** Between the two samples that actually decide it. */
 const GAP_MS = 9_000;
 
+/**
+ * How long a surface gets to FINISH RENDERING before this spec gives up on it.
+ *
+ * A spec that starts sampling a surface which is still loading measures the
+ * LOADING INDICATOR, and a loading indicator always moves. It would then report
+ * every slow route as theatre, which is the exact false positive that cost S4
+ * three wrong findings about `/runs` (`S4-057`).
+ *
+ * Heavy authenticated routes in a browser with an empty cache genuinely need
+ * tens of seconds in dev, because every module in the graph is a separate
+ * request. `/runs` pulls in a 1,786-line sibling. That is slow; it is not a lie.
+ */
+const RENDER_BUDGET_MS = 60_000;
+
+/**
+ * Enough text on screen to be a page rather than a wait state.
+ *
+ * The pending component renders one word. Every real surface in this product,
+ * including the signed-out login, clears this by a wide margin, so the threshold
+ * separates "rendered" from "still spinning" without hard-coding a label that a
+ * lane could rename out from under this spec.
+ */
+const RENDERED_MIN_CHARS = 60;
+
+/** Resolves when the surface is a page, or reports how long it waited in vain. */
+async function waitUntilRendered(
+  page: import("@playwright/test").Page,
+): Promise<{ rendered: boolean; ms: number }> {
+  const started = Date.now();
+  while (Date.now() - started < RENDER_BUDGET_MS) {
+    const chars = await page.evaluate(() => document.body.innerText.trim().length);
+    if (chars >= RENDERED_MIN_CHARS) return { rendered: true, ms: Date.now() - started };
+    await page.waitForTimeout(500);
+  }
+  return { rendered: false, ms: Date.now() - started };
+}
+
 test.skip(
   process.env.S4_MOTION !== "yes",
   "Needs a local dev server pointed at a dead database. Opt in with S4_MOTION=yes.",
@@ -124,14 +161,30 @@ async function frameHash(page: import("@playwright/test").Page): Promise<string>
  * here rather than papered over with a threshold nobody could justify.
  */
 test("report which surfaces still move once nothing can be read", async ({ page }) => {
-  test.setTimeout(60_000 * SURFACES.length);
+  // Render budget + settle + gap + screenshot, per surface, with headroom.
+  test.setTimeout((RENDER_BUDGET_MS + SETTLE_MS + GAP_MS + 25_000) * SURFACES.length);
   mkdirSync(SHOT_DIR, { recursive: true });
 
   const report: string[] = [];
   const moving: string[] = [];
+  const notRendered: string[] = [];
 
   for (const path of SURFACES) {
     await page.goto(`http://localhost:8080${path}`, { waitUntil: "domcontentloaded" });
+
+    // Never judge a surface that has not finished rendering. A wait state moves
+    // by design, so sampling one produces a confident report about nothing.
+    const render = await waitUntilRendered(page);
+    if (!render.rendered) {
+      notRendered.push(path);
+      report.push(
+        `\n=== ${path} NOT JUDGED. It never finished rendering in ${RENDER_BUDGET_MS / 1000}s. ===\n` +
+          `  This is NOT a finding. A surface still loading shows a wait state, and a wait\n` +
+          `  state moves on purpose, so there is nothing here to call theatre.\n` +
+          `  Warm the route first (e2e/helpers/warm-routes.mjs) and run this again.`,
+      );
+      continue;
+    }
 
     await page.waitForTimeout(SETTLE_MS);
     await frameHash(page); // discarded: mount and hydration land in this one
@@ -150,7 +203,10 @@ test("report which surfaces still move once nothing can be read", async ({ page 
           `  screenshot: docs/screenshots/s4-motion/moving${path.replace(/\//g, "_")}.png`,
       );
     } else {
-      report.push(`\n=== ${path} settled. Nothing moves without data. ===`);
+      report.push(
+        `\n=== ${path} settled after rendering in ${(render.ms / 1000).toFixed(1)}s. ` +
+          `Nothing moves without data. ===`,
+      );
     }
   }
 
@@ -159,6 +215,10 @@ test("report which surfaces still move once nothing can be read", async ({ page 
   console.info(
     `Surfaces still redrawing ${GAP_MS / 1000}s after settle with no backend: ` +
       `${moving.length ? moving.join(", ") : "none"}.\n` +
+      (notRendered.length
+        ? `NOT JUDGED because they never finished rendering: ${notRendered.join(", ")}. ` +
+          `Warm them and re-run.\n`
+        : "") +
       "A surface on this list is NOT automatically theatre: ambient background motion lands\n" +
       "here too, and decoration carrying no state claim is honest. Open the screenshots in\n" +
       "docs/screenshots/s4-motion/ and ask whether what moved was a STATE. That judgement is\n" +
