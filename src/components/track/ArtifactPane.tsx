@@ -42,6 +42,7 @@ import { STATION_ARTIFACT } from "@/lib/spine/attach";
 import { relativeTime } from "@/lib/memory-view";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "@tanstack/react-router";
 import { buildSrcDoc, type PrototypeFileRow } from "@/lib/prototype-srcdoc";
 import {
   Action,
@@ -744,6 +745,35 @@ function LearningCard({
         <SettleControls decisionId={decision.artifactId} due={horizonPast} />
       ) : null}
       {decision && resolution ? <ReopenControl decisionId={decision.artifactId} /> : null}
+      {/*
+       * THE TURN-AROUND (RUN-15). A verdict that did not hold is the moment
+       * the person most needs a next move, and until now the card ended at the
+       * grade -- a dead end at exactly the payoff the whole loop exists for.
+       * This hands the expectation back to /start as an opening sentence: one
+       * deliberate press away from another run that starts from what the last
+       * one learned. A held-up verdict offers nothing; it earned its rest.
+       */}
+      {resolution === "miss" || resolution === "inconclusive" ? (
+        <TakeAnotherRun claim={claim ?? item.title} />
+      ) : null}
+    </div>
+  );
+}
+
+/** The quiet bridge from a verdict to the next attempt. */
+function TakeAnotherRun({ claim }: { claim: string | null }) {
+  const navigate = useNavigate();
+  const seed = (claim ?? "").slice(0, 300);
+  return (
+    <div>
+      <Action
+        variant="quiet"
+        onClick={() =>
+          void navigate({ to: "/start", search: seed ? { about: seed } : {} })
+        }
+      >
+        Take another run at this
+      </Action>
     </div>
   );
 }

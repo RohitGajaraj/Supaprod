@@ -94,6 +94,16 @@ const JOBS: Job[] = [
 const OPEN_PLACEHOLDER = "What are you changing, and what should it do?";
 
 export const Route = createFileRoute("/_authenticated/start")({
+  validateSearch: (search: Record<string, unknown>): { about?: string } => ({
+    // RUN-15: the turn-around from Learn lands here with the expectation as
+    // the opening sentence, so "take another run at this" starts from what
+    // the last attempt learned. A plain string, capped -- the composer is
+    // editable and nothing here is a contract, just a head start.
+    about:
+      typeof search.about === "string" && search.about.trim()
+        ? search.about.trim().slice(0, 300)
+        : undefined,
+  }),
   component: StartLanding,
   head: () => ({ meta: [{ title: "Get started · Supaprod" }] }),
 });
@@ -165,8 +175,11 @@ function OpenWorkSection({
 function StartLanding() {
   const navigate = useNavigate();
   const { activeWorkspaceId, activeProductId } = useWorkspace();
+  const { about } = Route.useSearch();
 
-  const [sentence, setSentence] = useState("");
+  // A seeded sentence is a HEAD START, not a decision: the person reads and
+  // edits it like anything else they typed.
+  const [sentence, setSentence] = useState(about ?? "");
   const [selected, setSelected] = useState<WorkShape | null>(null);
   const fieldRef = useRef<HTMLTextAreaElement | null>(null);
 
