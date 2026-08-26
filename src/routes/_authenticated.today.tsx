@@ -1423,13 +1423,39 @@ function Today() {
   const greeting = hour < 12 ? "Good morning." : hour < 18 ? "Good afternoon." : "Good evening.";
 
   const loading = stillWaiting(queue, missions);
+  /*
+   * A QUIET MORNING IS A CLAIM ABOUT THE WORKSPACE, NOT ABOUT THE LAST DAY.
+   *
+   * This asked `stuck.length === 0`, and `stuck` is filtered through
+   * `withinLastDay` (:670). So the test was "nothing became blocked in the last
+   * 24 hours", while the sentence it gates says nothing needs you at all, and
+   * the screen it gates shows a worked Example on the premise that there is
+   * nothing real to look at.
+   *
+   * Measured 2026-08-27: this workspace holds 89 missions waiting on a person
+   * and 85 of them last moved between 8 and 30 days ago. Three are inside the
+   * window today, so the quiet screen does not fire. **When those three age out
+   * it will, and the board will offer an Example while 89 things wait.** That
+   * is not a hypothetical; it is what tomorrow looks like.
+   *
+   * So the quiet test reads the UNWINDOWED rows. `stuck` keeps its window,
+   * because the lane is genuinely about the last day and says so. Being quiet
+   * is a stronger claim than having a quiet lane, and it needs the stronger
+   * test. The cap on `listMissions` still applies, which makes this test
+   * conservative in the safe direction: it can fail to call a morning quiet,
+   * and it cannot call a busy one quiet.
+   */
+  const anythingBlocked = React.useMemo(
+    () => rows.some((m) => STUCK.has(m.status)),
+    [rows],
+  );
   const quietMorning =
     !loading &&
     !queue.isError &&
     !missions.isError &&
     items.length === 0 &&
     shipped.length === 0 &&
-    stuck.length === 0 &&
+    !anythingBlocked &&
     running.length === 0;
 
   /**
