@@ -61,9 +61,7 @@ const clientReturning = (rows: unknown[] | null, failWith?: string) =>
     from: () => ({
       select: () => ({
         in: async () =>
-          failWith
-            ? { data: null, error: { message: failWith } }
-            : { data: rows, error: null },
+          failWith ? { data: null, error: { message: failWith } } : { data: rows, error: null },
       }),
     }),
   }) as never;
@@ -94,9 +92,7 @@ describe("the kinds the checks name are the kinds stations actually file", () =>
     // F-36: `deployment` has never appeared in 1,516 member rows, while
     // `deployments` holds 42 successful ones. Ship's real proof is enforced at
     // release.publish under R-27, not here.
-    const out = await verifyStationOutput(clientReturning([]), "ship", [
-      filed("decision", "ship"),
-    ]);
+    const out = await verifyStationOutput(clientReturning([]), "ship", [filed("decision", "ship")]);
     expect(out.passed).toBe(true);
   });
 });
@@ -104,7 +100,9 @@ describe("the kinds the checks name are the kinds stations actually file", () =>
 describe("the columns the checks name are the columns that exist", () => {
   it("decide passes on a decision carrying forecast_claim", async () => {
     const out = await verifyStationOutput(
-      clientReturning([{ id: "d1", forecast_claim: "checkout completion will fall", forecast_horizon_date: null }]),
+      clientReturning([
+        { id: "d1", forecast_claim: "checkout completion will fall", forecast_horizon_date: null },
+      ]),
       "decide",
       [filed("decision", "decide")],
     );
@@ -161,7 +159,7 @@ describe("the columns the checks name are the columns that exist", () => {
 describe("a check that could not run must not fail the station", () => {
   it("a broken forecast query passes rather than stranding the work", async () => {
     const out = await verifyStationOutput(
-      clientReturning(null, 'column decisions.nope does not exist'),
+      clientReturning(null, "column decisions.nope does not exist"),
       "decide",
       [filed("decision", "decide")],
     );
@@ -170,7 +168,7 @@ describe("a check that could not run must not fail the station", () => {
 
   it("a broken spec query passes rather than stranding the work", async () => {
     const out = await verifyStationOutput(
-      clientReturning(null, 'column prds.nope does not exist'),
+      clientReturning(null, "column prds.nope does not exist"),
       "define",
       [filed("prd", "define")],
     );

@@ -1295,7 +1295,9 @@ export async function verifyStationOutput(
       .select("id, forecast_claim, forecast_horizon_date")
       .in("id", decisionIds);
     if (decisionsError) {
-      console.error(`[driver] decide self-check could not read forecasts: ${decisionsError.message}`);
+      console.error(
+        `[driver] decide self-check could not read forecasts: ${decisionsError.message}`,
+      );
       return { passed: true };
     }
     const hasForecast = (decisions ?? []).some(
