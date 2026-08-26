@@ -270,10 +270,35 @@ FROM spine_tracks
 WHERE entry_station = 'sense' AND station = 'learn' AND waived = '[]';
 ```
 
-It has returned **0 of 93 tracks in three months**. Never ask it through `workspaces.is_sample` —
-F-42 repurposed that flag and the obvious form returns a false 1 (F-61/F-71). One track sits at
-`learn`: it entered at `define` with sense and decide waived, carries no forecast, and proves the
-machinery rather than the loop.
+Never ask it through `workspaces.is_sample` — F-42 repurposed that flag and the obvious form returns
+a false 1 (F-61/F-71).
+
+> **CORRECTED 2026-08-26 (F-79). THAT QUERY NOW RETURNS 1, AND THE ACCEPTANCE IS STILL NOT MET.**
+> Track `d1168015` walked all seven on 2026-08-25 — six `stage_events`, every one `actor='system'`
+> and `driven_via='sweep'`, so nobody pressed anything. **But approval `bdf32286` was raised against
+> its Build mission at 18:11 UTC and rejected at 18:48 UTC**, 2 days 23 hours before `expires_at`, so
+> a person answered a boundary call mid-run. R-18 says *no human touching it mid-run*. The query
+> above cannot see that, and `agent_approvals.decided_by` is **NULL**, so the row cannot even name
+> who. **Anyone running the short form today reports the first acceptance in three months and is
+> wrong.** Ask this instead, and it returns **0**:
+
+```sql
+WITH walked AS (
+  SELECT id FROM spine_tracks
+  WHERE entry_station = 'sense' AND station = 'learn' AND waived = '[]'
+)
+SELECT count(*) FROM walked w
+WHERE w.id NOT IN (            -- nobody answered a boundary call mid-run
+        SELECT m.track_id FROM spine_track_members m
+        JOIN agent_approvals a ON a.mission_id = m.artifact_id
+        WHERE a.decided_at IS NOT NULL)
+  AND w.id NOT IN (            -- and nobody pressed a transition by hand (F-55)
+        SELECT entity_id FROM stage_events WHERE driven_via IS DISTINCT FROM 'sweep');
+```
+
+The older reading — **0 of 93 tracks in three months** — remains the honest state of the loop. One
+other track sits at `learn`: it entered at `define` with sense and decide waived, carries no
+forecast, and proves the machinery rather than the loop.
 
 **Second acceptance, added by the founder 2026-08-26 and equal in weight:** a person who has never
 seen this product opens it, and inside sixty seconds — without being told anything — knows what it

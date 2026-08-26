@@ -50,6 +50,14 @@ entered at `sense`, and **zero have gone `sense` → `learn`**.
 > query is `entry_station = 'sense' AND station = 'learn' AND waived = '[]'`, which returns **0**.
 > **Never ask this with `workspaces.is_sample`**: F-42 repurposed that flag to mean "the sweep may
 > drive here", so the obvious form returns **1** and reads as the acceptance being met (F-61).
+>
+> **AND AS OF 2026-08-26 THE PLAIN FORM ALSO RETURNS 1, AND THE ACCEPTANCE IS STILL NOT MET (F-79).**
+> `d1168015` walked all seven with every transition `driven_via='sweep'` — but a person **rejected
+> approval `bdf32286` against its Build mission at 18:48 UTC**, mid-run, so R-18's *"no human
+> touching it mid-run"* fails. The query cannot see an answered boundary call, and
+> `agent_approvals.decided_by` is NULL so the row cannot name the decider. **Do not report a
+> non-zero result from the short query as the acceptance.** The honest form, which returns **0**, is
+> in [`the-first-run/OPERATING-MODEL-5-SESSIONS.md`](./the-first-run/OPERATING-MODEL-5-SESSIONS.md) §2.
 
 ---
 

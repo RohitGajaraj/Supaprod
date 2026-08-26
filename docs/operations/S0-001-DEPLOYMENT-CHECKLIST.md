@@ -1,8 +1,18 @@
 # S0-001 Deployment Checklist
 
-**Status:** Code IMPLEMENTED, TESTED, READY TO DEPLOY  
+> **SUPERSEDED 2026-08-26 by F-76 — do not deploy from this page.** What shipped could never pass
+> five of its seven stations: it asked for `decisions.forecast_text`, `prds.brief`, and the artifact
+> kinds `design_memory`, `deployment` and `verdict`, none of which exist. The 17 tests below imported
+> nothing but `vitest` and never called `verifyStationOutput`, which was not exported. The "does NOT
+> count an attempt" line was the second defect, not a feature: it left `attempts` at 0, so
+> `MAX_STATION_ATTEMPTS` never tripped and the station would have retried forever at real cost.
+> Repaired in `e13c24b5f` / `a185d3f5c`. Read [`the-first-run/FINDINGS-LEDGER.md`](../../the-first-run/FINDINGS-LEDGER.md)
+> F-76, F-77 and F-78 before acting on anything below.
+
+**Status:** Superseded — see F-76  
 **Commits:** 7d56333da (S0-001 implementation), 1f72c6862 (handoff), 31d1df1ef (tests)  
-**Test Status:** 17 verification tests pass + 11,383 integration tests pass
+**Test Status:** the 17 cited tests tested nothing and have been deleted; the real suite is
+`src/lib/spine/the-self-check-must-ask-the-real-schema.test.ts` (708 pass, 0 fail across `src/lib/spine/`)
 
 ---
 
@@ -12,7 +22,10 @@
 - [x] New hold reason added to `HoldReason` type in `driver.ts`
 - [x] `verifyStationOutput()` function checks all 7 stations
 - [x] Verification placed after crew runs, before advancement decision
-- [x] Failed verification does NOT count an attempt (allows retries)
+- [ ] ~~Failed verification does NOT count an attempt (allows retries)~~ **REVERSED (F-76).** It
+  counts an attempt now. `attempts` is the only thing that bounds a station and the only thing any
+  stuck-work alarm reads; left at 0 the station retries forever while spend rises and the counter
+  says 0.
 - [x] TypeScript compilation clean (`bunx tsc --noEmit`)
 - [x] All tests pass (11,383 integration + 17 S0-001 specific)
 - [x] Git commits pushed to origin/main
