@@ -154,8 +154,28 @@ function OpenWorkSection({
         return (
           <Row
             key={t.id}
+            /*
+             * `tight` HERE, and it is the same rule that took it OFF four other
+             * rows tonight rather than a reversal. The prop is for a row whose
+             * full content has a detail view to open, and this one opens the run
+             * on click. The rows I unclipped had nowhere else to be read.
+             */
+            tight
             lead={t.title}
-            sub={`At ${stationName}${t.hold ? ` · ${t.hold}` : ""}`}
+            /*
+             * THE STATION, NOT THE WHOLE REASON. This pasted the entire hold
+             * sentence into a list row, so the front door carried three lines of
+             * "Discover has been run many times over and the work has not moved
+             * on once. That is the loop rather than any single run, so nothing
+             * further will be spent on it until you look." per item, on a list
+             * whose job is to let a person pick one.
+             *
+             * A person scanning five items wants what it is, where it is, and
+             * whether it needs them. The chip answers the third, this answers the
+             * second, and the reason is a detail one click away on the surface
+             * built to explain it, which now also names the way out (RUN-23).
+             */
+            sub={`At ${stationName}`}
             time={timeText}
             onClick={() => void navigate({ to: "/track/$trackId", params: { trackId: t.id } })}
             action={
