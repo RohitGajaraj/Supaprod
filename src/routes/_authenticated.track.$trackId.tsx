@@ -205,17 +205,31 @@ function TrackPage() {
         {track ? (
           <>
             <RunHeader track={track} liveNow={crewLive} />
-            <Row
-              tight
-              lead={`Running in ${activeWorkspace?.name ?? "your workspace"}${
-                productsVisible && activeProduct ? ` · on ${activeProduct.name}` : ""
-              }`}
-              sub={
-                decideWaived
-                  ? "This one skips the decision, so nothing is being forecast on it."
-                  : undefined
-              }
-            />
+            {/*
+             * THE LOCATION LINE IS GONE, AND THAT IS THE FIX RATHER THAN A CUT.
+             *
+             * It read `Running in {workspace} · on {product}` on EVERY track,
+             * including this one, which is abandoned, and including every held
+             * and finished run. The status chip sits directly above it saying
+             * the opposite, so the header asserted two different things about
+             * one run, which is the drift this screen has already been repaired
+             * for twice.
+             *
+             * And the fact itself was already on screen: the shell's own header
+             * carries `Helio Labs / Prism` as the workspace switcher, a few
+             * pixels above. So the honest repair is not a truer sentence, it is
+             * one fewer. It also recovered the dead band under the title, which
+             * was the largest empty area on the page.
+             *
+             * It rendered as a `Row`, which reserves a leading column for a
+             * glyph or a clock, so it also sat indented from the heading it
+             * belonged to. A list primitive was doing a caption's job.
+             */}
+            {decideWaived ? (
+              <p className="mrd-meta">
+                This one skips the decision, so nothing is being forecast on it.
+              </p>
+            ) : null}
           </>
         ) : (
           <PageHeading
