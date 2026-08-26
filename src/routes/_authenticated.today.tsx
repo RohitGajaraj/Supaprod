@@ -26,6 +26,7 @@ import { taskStatus } from "@/components/meridian/TaskRows";
 import { AskComposer } from "@/components/today/AskComposer";
 import { DecisionQueue } from "@/components/today/DecisionQueue";
 import { FocusNext } from "@/components/today/FocusNext";
+import { HandoverNote } from "@/components/today/HandoverNote";
 import { PushedInsights } from "@/components/today/PushedInsights";
 import { QuietMorning } from "@/components/today/QuietMorning";
 import { RunState, ShippedState } from "@/components/today/RunState";
@@ -1589,6 +1590,13 @@ function Today() {
                   >
                     Stop
                   </Action>
+                ), (row) => (
+                  /* WHERE THE WORK JUST CAME FROM. The founder asked twice to
+                     see the handoff; on the board that is this one line under
+                     each running row, drawn only when a real handover row
+                     exists. It owns its own read and its own silence, so the
+                     route-level wait contract above is untouched. */
+                  <HandoverNote missionId={row.id} workspaceId={workspaceId} />
                 ))}
                 {crewSection(
                   FEED_OPEN,

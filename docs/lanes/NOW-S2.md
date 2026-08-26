@@ -1,1 +1,1 @@
-S2 · not started · IDLE · awaiting first unit · — · —
+S2 · 15:20 IST · WORKING · disk-full incident fixed (8.8G freed, playwright caches will re-download) · new worktree supaprod-control on lane/control · unit: handoffs drawn on board rows · src/components/today/** · 62feb61f4
