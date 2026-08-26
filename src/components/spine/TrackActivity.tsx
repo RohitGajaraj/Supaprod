@@ -370,9 +370,15 @@ export function TrackActivity({
      * This file polls every ten seconds, so without it every arrival was silent
      * to a screen reader. `role="log"` announces ADDITIONS only, so a
      * transcript that grows long does not read the whole column out each time
-     * one entry lands.
+     * one entry lands. `aria-live="polite"` is explicit for browser compatibility,
+     * and `aria-busy` announces when agents are working (queue 71).
      */
-    <div role="log" aria-label="What the agents did, newest first">
+    <div
+      role="log"
+      aria-label="What the agents did, newest first"
+      aria-live="polite"
+      aria-busy={live}
+    >
       <ol className={RUN_STACK}>
         {rows.map((row, i) => {
           if (row.kind === "move") {
