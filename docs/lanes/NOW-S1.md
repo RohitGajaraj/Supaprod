@@ -1,1 +1,1 @@
-S1 · 23:55 IST · DEVSERVER · proving RUN-22 (the handoff names what came with it) on a track with 11 real transitions · src/components/spine/** · RUN-22
+S1 · 00:20 IST · WORKING · RUN-20 now proven end to end (undo pressed on real work: station moved back, artifacts stamped set-aside not deleted, press recorded before any other write) · RUN-21 dash purge + guard · RUN-22 handoff names what came with it · server killed, ports clear · src/components/track/** spine/** · RUN-22
