@@ -180,6 +180,18 @@ re-derives it.
     native to the tool they already have open, so nothing needs teaching. Spec:
     [`SPEC-CONNECTORS.md`](./SPEC-CONNECTORS.md). — *S0, with S2 for the inbound column and S3 for the
     ask-in-place connect control.*
+14. **Teammates cannot address each other, or you.** A station hands to the next and nothing says what
+    was handed over; no teammate can tell another that its output is unusable; nothing can reach you
+    where you already are. **Seven message types and no eighth** — handoff, ask, claim, challenge,
+    escalate, broadcast — with the person as a participant rather than an audience: you `@` a teammate
+    mid-flight and it takes the instruction without restarting, and only a message addressed to you
+    interrupts you. **Challenge is the highest-value one and nobody ships it**: gap #1 made social, a
+    station told its output is bad by something that did not produce it. It renders in the transcript
+    that already exists (R-13) and adds no surface. Spec:
+    [`SPEC-AGENT-COMMS.md`](./SPEC-AGENT-COMMS.md), whose §1 holds the falsifiable guard — **if
+    teammates spend more tokens addressing each other than working, the feature comes out.**
+    — *S0 the model, S1 the transcript and the composer, S2 claim and collision, S3 Slack consent,
+    S4 the budget.*
 
 **A gap you find that is not on this list is still authorised** if it passes the four-part test. Put it
 in coordination/requests/, build it, and add it here with its evidence.

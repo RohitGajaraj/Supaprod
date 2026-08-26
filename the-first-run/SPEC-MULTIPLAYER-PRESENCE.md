@@ -89,6 +89,13 @@ of five one-line files for the human. **The product should work the same way**, 
 — if a teammate is spending tokens reading about other teammates — this feature caused a regression
 and comes out.
 
+**What teammates DO get is addressed messages, which is the opposite thing**: one sender, one
+addressee, one subject, one artifact — bounded by construction, the way an `@` in Slack is bounded and
+reading every channel is not. Seven types and no eighth:
+[`SPEC-AGENT-COMMS.md`](./SPEC-AGENT-COMMS.md). **If a message cannot be understood without the
+sender's reasoning, the message is badly formed** — a defect in the sender, never a case for more
+context.
+
 ---
 
 ## 3 · What is drawn

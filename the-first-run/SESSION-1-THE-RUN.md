@@ -98,6 +98,24 @@ artifact.** Two stations show the customer's own builder instead of ours — Bui
 checks. **A sandbox is never a substitute for a designed pane**: the five stations that need nothing to
 run must be as good as the ones that do.
 
+## The transcript is a channel, not a log
+
+[`SPEC-AGENT-COMMS.md`](./SPEC-AGENT-COMMS.md) is mostly yours. **The transcript R-13 already ruled
+becomes two-way and addressed** — it adds no surface. Seven message types and no eighth: handoff, ask,
+claim, challenge, escalate, broadcast.
+
+Build in this order: **handoff made visible** (the ruling requested twice and mounted zero times — the
+station transition already IS a handoff and nothing says what was handed over) · **ask to a person**,
+folded into `TrackConsent` which is already shipped, not rebuilt beside it · **`@` from the composer**
+with autocomplete of who is actually on this work, which is *steer without restarting* · then
+**challenge**, the highest-value type, rendered quiet rather than alarming and always naming the next
+action.
+
+**It renders as a transcript entry with from- and to-chips in the teammates' colours and the artifact
+inline — never a chat bubble, never an avatar row, never a timestamp gutter.** This is a record of
+work and it should read like one. **Only a message addressed to the person changes the footer**, which
+carries mode rather than position.
+
 ## Presence — the character, and the iron law
 
 `SPEC-PRESENCE.md` governs. The crew becomes **one character** (working name `Supa`,
