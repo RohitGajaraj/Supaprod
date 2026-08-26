@@ -179,13 +179,13 @@ describe("the sentence that makes a quiet answer trustworthy", () => {
    */
   it("gives NO all-clear when nothing could be compared, however many are running", () => {
     expect(checkLine(check([], [], 3), "ready")).toBe(
-      "None of these can be checked for overlap yet — they started before we recorded what they touch.",
+      "None of these can be checked for overlap yet. They started before we recorded what they touch.",
     );
   });
 
   it("reads singular when the one running piece of work cannot be checked", () => {
     expect(checkLine(check([], [], 1), "ready")).toBe(
-      "The one that is running cannot be checked for overlap yet — it started before we recorded what it touches.",
+      "The one that is running cannot be checked for overlap yet. It started before we recorded what it touches.",
     );
   });
 

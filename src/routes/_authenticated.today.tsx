@@ -31,6 +31,7 @@ import { FocusNext } from "@/components/today/FocusNext";
 import { HandoverNote } from "@/components/today/HandoverNote";
 import { OverlapCheck, OverlapNote } from "@/components/today/OverlapNote";
 import { PushedInsights } from "@/components/today/PushedInsights";
+import { waitingNote } from "@/components/today/waiting-age";
 import { trackToBoardRows, type TrackBoardRow } from "@/components/today/tracks-feed";
 import { QuietMorning } from "@/components/today/QuietMorning";
 import { RunState, ShippedState } from "@/components/today/RunState";
@@ -1723,7 +1724,14 @@ function Today() {
                 {crewSection(
                   FEED_REPLY,
                   allReplyRows,
-                  "Nothing moves on these until you answer.",
+                  /* HOW LONG THE OLDEST ONE HAS SAT, said once above the lane.
+                     The lane caps at three standing rows and folds the rest, so
+                     a person reading "89" over three fresh-looking rows has no
+                     way to learn the backlog behind them is three weeks deep.
+                     Measured 2026-08-26: 89 waiting, 85 of them 8 to 30 days
+                     old, the oldest 21 days. waiting-age.ts carries why this is
+                     the oldest rather than a bucket count. */
+                  waitingNote("Nothing moves on these until you answer.", allReplyRows, Date.now()),
                   (row) =>
                     row.proposed ? (
                       /* A PROPOSED MISSION IS NOT ASKING A QUESTION — it is

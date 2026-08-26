@@ -245,8 +245,8 @@ export function checkLine(
   if (c.checked === 0) {
     if (c.unknowable === 0) return null;
     return c.unknowable === 1
-      ? "The one that is running cannot be checked for overlap yet — it started before we recorded what it touches."
-      : "None of these can be checked for overlap yet — they started before we recorded what they touch.";
+      ? "The one that is running cannot be checked for overlap yet. It started before we recorded what it touches."
+      : "None of these can be checked for overlap yet. They started before we recorded what they touch.";
   }
 
   // FOUND NOTHING IS AN ANSWER, AND IT IS SAID OUT LOUD. The graveyard this

@@ -834,7 +834,7 @@ export function TrackRunLeft({
        * words; the steer box below carries the way back either way.
        */}
       <Region
-        title={track?.status === "done" ? "Run it — done" : "Run it"}
+        title={track?.status === "done" ? "Done" : "Run it"}
         sub={
           track?.status === "done"
             ? "This walk is finished."
