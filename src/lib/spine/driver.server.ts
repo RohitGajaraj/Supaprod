@@ -2420,7 +2420,9 @@ export async function driveTrackOnce(
        */
       line: flagged(
         HOLD_LINE["produced-nothing"] +
-          (lastFailure ? ` The last thing it tried was ${lastFailure.tool}, which said: ${lastFailure.error}` : ""),
+          (lastFailure
+            ? ` The last thing it tried was ${lastFailure.tool}, which said: ${lastFailure.error}`
+            : ""),
       ),
       attached,
     };

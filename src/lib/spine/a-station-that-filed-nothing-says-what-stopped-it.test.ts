@@ -36,10 +36,7 @@ import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-const DRIVER = readFileSync(
-  fileURLToPath(new URL("./driver.server.ts", import.meta.url)),
-  "utf8",
-);
+const DRIVER = readFileSync(fileURLToPath(new URL("./driver.server.ts", import.meta.url)), "utf8");
 const BODY = DRIVER.slice(DRIVER.indexOf("export async function driveTrackOnce("));
 
 describe("the produced-nothing line names the last thing that failed", () => {

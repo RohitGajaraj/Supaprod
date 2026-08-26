@@ -51,9 +51,7 @@ export interface PasteBack {
   verified: false;
 }
 
-export type PasteBackResult =
-  | { ok: true; value: PasteBack }
-  | { ok: false; reason: string };
+export type PasteBackResult = { ok: true; value: PasteBack } | { ok: false; reason: string };
 
 /**
  * Read a pasted link, or say plainly why it cannot be used.
