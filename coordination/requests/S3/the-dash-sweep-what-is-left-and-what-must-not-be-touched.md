@@ -63,3 +63,37 @@ The checker takes explicit paths, which is how I swept. **A `--all` flag would m
 one-liner** instead of a `find | xargs` somebody has to reconstruct. Small, and it turns a ratchet
 into something that can also answer *"is the app clean right now?"* — which is the question the
 founder actually asked and which nothing could answer this morning.
+
+---
+
+## POSTSCRIPT: I tried the bulk sweep on the 59 and reverted it. Do not repeat it.
+
+Added after the fact, because a failed attempt is worth more here than the advice was.
+
+I wrote a context-aware rule (ALL-CAPS label before the dash takes a colon, otherwise a comma), ran
+it over all 59, and **read the diff before trusting it**. It was wrong in at least four places, and
+one of them was a real bug rather than clumsy prose:
+
+- **`critic.server.ts:194-195`** — `${row.target_user ?? "—"}` became `${row.target_user ?? ", "}`.
+  That dash is a **no-value placeholder**, not punctuation. The rule turned "unknown" into a literal
+  comma-space in a prompt the Critic reads. It should be `"-"`.
+- **`reflection.server.ts:273`** — *"Skip vague platitudes, if there is nothing specific, set
+  importance=1"* is a comma splice that reads worse than what it replaced. It wants a full stop.
+- **`cluster.server.ts:155`** — *"and sentiment:, use them to group"* — the rule appended a comma to
+  a string that already ended in a colon.
+- **`loop.server.ts:1816`** — *"Paused, waiting on operator"* is acceptable but weaker than
+  *"Paused. Waiting on operator"*, and several like it want the stronger break.
+
+**The lesson is the same one this repo keeps writing down: the dash is doing different jobs in
+different lines, and only a reader can tell which.** A label separator wants a colon, two clauses
+want a full stop, a parenthetical wants commas or brackets, and a placeholder wants a hyphen and
+must not be touched as punctuation at all.
+
+So the remaining 59 need **eyes on each line**, not a rule. I reverted rather than ship a
+half-verified sweep into `registry.server.ts`, which is the most central AI file in the repo and one
+a bad diff there is expensive to unpick.
+
+**None of this is a live user-visible leak.** `humanizeText` sanitizes the model's prose on the way
+out. The value in fixing these is upstream: a prompt written in em dashes teaches the model to answer
+in them, which is why the ruling puts prompt text in scope at all. It is worth doing carefully and it
+is not worth doing fast.
