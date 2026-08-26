@@ -75,9 +75,19 @@ SELECT count(*) FROM decisions WHERE cited_by_count > 0;
 SELECT count(*) FROM assumption_challenges WHERE learning_id IS NOT NULL;
 --    7e settle a code-vs-types contradiction: today.functions.ts:909 says
 --    "learnings carries no is_sample column"; generated types.ts:4755 says it
---    does. Which is true of the LIVE table right now?
+--    does. Which is true of the LIVE table right now? — ANSWERED in A-002:
+--    the column exists; types.ts right, comment wrong.
 SELECT column_name FROM information_schema.columns
 WHERE table_name = 'learnings' ORDER BY ordinal_position;
+
+-- 8. F-86's premise numbers (measured by S0 2026-08-26; R-11 verbatim re-check):
+--    8a decisions carrying a knowable metric + horizon, and past-horizon unresolved
+SELECT count(*) AS with_metric_and_horizon,
+       count(*) FILTER (WHERE forecast_horizon_date < CURRENT_DATE) AS past_horizon
+FROM decisions
+WHERE forecast_how_we_will_know IS NOT NULL AND forecast_horizon_date IS NOT NULL;
+--    8b the empty-table premise the probe is built around
+SELECT count(*) AS rows_ever FROM product_analytics;
 ```
 
 Note on anchors: my `docs/lanes/verify/S4-001-f76.md` cites line numbers re-based to `60dd95e34`.
