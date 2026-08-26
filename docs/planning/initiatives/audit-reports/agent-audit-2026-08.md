@@ -174,7 +174,7 @@ The numbers the whole direction rests on. All queried 2026-08-19.
 | **Motion: `--mrd-d-move` is slow. The other two are not** **CORRECTED 2026-08-20** | **`--mrd-d-press: 120ms` already equals the reference's dominant 0.12s (827 of 1,435 declarations), so "2x slower" is false for it.** `--mrd-d-move: 220ms` vs the reference's 0.12-0.15s is the real gap. **The `enter 0s / exit 0.15s` figure is Linear's published scale, not measured on the reference**, whose only long animations are text streaming and scroll reveal | `claude-log.md` K-25 RULED |
 | ~~**Body weight 400 vs the reference's 450**~~ **FALSIFIED 2026-08-20** | **The reference has no element at weight 450. Measured over 907 text-bearing elements: 400 (prose), 500 (labels), 600 (headings). `document.body` computes 400, same as ours.** Meridian's 400/500/600 ramp already matches. Struck from K-25 | `claude-log.md` K-25 RULED |
 | **No loading policy** | Reference shows nothing for 1000ms; Supaprod flashes `BrandWait` after 150ms with a 300ms minimum | QUEUED K-25 |
-| All 19 beautifui.dev components ported | 11 parity, 5 fixed, 3 ahead | context |
+| All 19 beautifului.dev components ported | 11 parity, 5 fixed, 3 ahead | context |
 | **Plan, Ship, Learn have no reference research. Brain is in no table at all** | Discover, Design, Build done 2026-08-01; Decide partial | QUEUED K-76 to K-79 |
 
 ---
@@ -204,7 +204,7 @@ Recorded because a wrong doc is worse than a missing one.
 | Doc | Was | Now |
 | --- | --- | --- |
 | `README.md` | `agent_memory` is user-scoped; *"say the record travels, never the memory travels"* | **False.** All 1,170 rows workspace-visible, 101 cross-author recalls. Corrected, flagged for founder sign-off since it changes outward answers |
-| `design-reference/README.md` | v5 Tempo declared CURRENT | Meridian, with beautifui.dev named as the reference |
+| `design-reference/README.md` | v5 Tempo declared CURRENT | Meridian, with beautifului.dev named as the reference |
 | `design-reference/DESIGN.md` | v1 Ember, "THE SOURCE OF TRUTH ... in any tool" | Bannered RETIRED |
 | `docs/conventions/design-context.md` | v3 Obsidian "THE design contract" | Corrected to Meridian |
 | `REFERENCE-PATTERNS.md` | *"express it in our own `--sp-*` primitives"* | Meridian |

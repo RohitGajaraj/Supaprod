@@ -44,7 +44,7 @@ import { AgentMark, YouMark } from "@/components/meridian/marks";
  *
  * Founder ruling, 2026-08-18, made while reviewing exactly this class of thing:
  * the retired system's hairlines and section rules are NOT the baseline, the
- * baseline is Meridian and beautifui.dev, and nothing of that kind comes back
+ * baseline is Meridian and beautifului.dev, and nothing of that kind comes back
  * "now or in the future". Rule 1 protects information and composition. A
  * divider is neither.
  *

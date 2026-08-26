@@ -44,10 +44,12 @@ entered at `sense`, zero reached `learn`.
 | | Layer | Does |
 | --- | --- | --- |
 | **01** | the director | tells you what to build |
-| **02** | the operating system | runs the whole lifecycle, seven stations |
+| **02** | the operating system | **decides what is worth building, hands it to whatever builds for you, and checks what actually happened.** Seven stations. **We are not a builder and will not become one** |
 | **03** | the brain | **learns, then guides.** Never "stores" or "remembers". |
 
 They are one product because each is the precondition for the next: you cannot be the brain without the loop that generates outcomes, and you cannot run the loop without being the OS. **Layer 03 is the only one defensible alone**, because it needs the customer's own outcomes labelled over time, which no model has. Ship any one alone and it is a feature.
+
+**We do not generate the code, and this is canon** (`docs/strategy/positioning-locked-2026-08.md` §5N, ruled 2026-08-26). That market is finished and priced — over $48B across Cursor, Lovable, Replit, v0 and Cognition — and **the pain moved without moving to generation**: code review time +441.5% while throughput rose 33.7%, agentic pull requests 5.3x longer to pick up, DORA flat because output queued at review. **Nobody is short of generated code; everybody is short of confidence in it.** So every builder is a substitutable supplier to layer 02, their commoditisation is our tailwind, and generating code ourselves would turn all of them into competitors who will not integrate. **Never describe layer 02 as "runs the lifecycle" in outward copy** — it invites exactly the comparison we refuse. Application answer: `docs/pitch/three-layers-and-why-not-a-builder.md`.
 
 **The last verb is the product.** It **learns and guides**; it does not "remember". Remembering is storage, and storage is not defensible: anyone can hold your decisions, and one frontier release can absorb search over them.
 
@@ -254,6 +256,7 @@ Plus an adversarial read for **runtime-fatal** bugs, the class typechecking cann
 The short version, because it is easy to get wrong:
 
 - **Meridian is the design system and there is no other one.** Tokens in [`src/styles/meridian.css`](./src/styles/meridian.css), components in [`src/components/meridian/`](./src/components/meridian/). **Compose from those.**
+- **Meridian is ported from `https://www.beautifului.dev/`, which is the FLOOR — and you extract its source rather than writing your own.** Standing founder ruling, restated 2026-08-26: *"the codebase is there, so you do not need to generate anything. Literally copy the code, extract it, implement it. Anything on top of that you may create; you must not go below."* The reproducible extraction and the component-by-component parity map are in [`docs/design/MERIDIAN-REFERENCE-PARITY.md`](./docs/design/MERIDIAN-REFERENCE-PARITY.md) — decode the page's own flight payload, never compare against the rendered demo, because a screenshot loses the mechanics and the mechanics are the only part worth having. **A value chosen because it "looked right" is a fail; a value with a reason is not.**
 - **Every prior system is retired**: v1 Ember, v3 Obsidian, v4 Loom, v5 Tempo, and Cadence/ink. That means `--sp-*`, `--ds-*`, `--text-*`, `--hairline`, `--madder*`, `--glacier`, `--font-pixel`, `--raised`, `[data-obsidian]`, and `src/components/shell/primitives.tsx`. They still run, because deleting them in one move is how the 2026-07 rebuild failed. **Never build from them, never extend them, whatever an older doc or skill says** — and this paragraph itself used to say the opposite, which is a large part of why 2,288 occurrences accumulated.
 - **This is enforced, not requested.** `src/__tests__/meridian-ratchet.test.ts` fails `bun test` when a **new** file carries a retired token or a raw colour, and when an **existing** file grows its count. Fix the code; never widen the baseline to pass. `bun run design:ratchet` is only for recording debt you have removed.
 - **No `--mrd-*` token fits? That is a gap in Meridian.** Build it there rather than reaching past it — standing founder ruling, 2026-08-15. A token earns its place on the second caller, is named for meaning rather than appearance, and is measured in both grounds before it ships.

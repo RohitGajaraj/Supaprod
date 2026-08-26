@@ -41,7 +41,7 @@
  *   THE REFUSAL, AND IT IS THE ONE THAT MATTERS. See `chipOf`.
  *
  * DRAWN IN THE ONE RUN VOCABULARY (2026-08-25, item 11). `run-rows.tsx` was
- * ported from beautifui.dev and reached by nothing while three surfaces drew
+ * ported from beautifului.dev and reached by nothing while three surfaces drew
  * three transcripts; this now composes it -- glyph, rail, subject, clock --
  * so one rhythm carries every run view. Motion follows R-20 §4: an arrival
  * animates ONCE on `--mrd-d-enter`, nothing else moves, and every duration on

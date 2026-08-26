@@ -109,7 +109,7 @@ theme, and it loops whether or not anything is true.
 `TrackActivity` and `TrackChain` were built to a founder ruling asking for exactly "show visually
 which agent is working, the handoff, the outcome, like Claude Code" — and sat with **zero importers
 for 24 days** while the founder re-requested the same thing, unaware they existed. `run-rows.tsx` is
-22.8KB of run vocabulary ported from beautifui.dev that nothing imports, while three surfaces each
+22.8KB of run vocabulary ported from beautifului.dev that nothing imports, while three surfaces each
 invented their own. **The default move is always: wire what exists.**
 
 `TrackRun.tsx` is stacked drive-control + `TrackChain` + `TrackActivity`. **Replace the layout, keep
@@ -153,6 +153,29 @@ fleet, swarm, artifacts, signals, trust ledger — all out, with the rename map 
 names (Discover, Decide, Plan, Design, Build, Ship, Learn) **stay as they are**; they are already
 plain. Apply the map inside your prefix and file an ask for anything outside it. **A word renamed in
 one place and left stale in another has made the problem worse.**
+
+## The dev server. Read this one twice.
+
+**Founder's instruction, repeated across sessions and now binding on all five:** *"Do not start the
+dev server until it is required. Once your job is done, close it, because of RAM. When too many dev
+servers are open the system hangs."*
+
+**Five sessions on one laptop means five times the risk, and this machine has already been driven to a
+restart by it** — while the founder was asleep. R-21, and it is a gate, not housekeeping:
+
+```bash
+lsof -ti:5173 || true          # BEFORE you start one. If anything is listening, do not start another.
+bun run dev                     # only for a check that genuinely needs a browser
+kill $(lsof -ti:5173)           # THE MOMENT the check is done. Not at unit end. Not at session end.
+```
+
+- **One dev server on this machine at a time.** If the port is busy, another session holds it — read
+  the `NOW-*.md` files, use their server if the check is in their prefix, or file a request.
+- **Say so in your NOW line while you hold one** (`DEVSERVER` in the status field), and clear it the
+  moment you stop it. That is the only way five sessions can see each other's load.
+- **A unit is not finished while a server it started is still alive**, and a unit claiming a browser
+  check without recording that it stopped the server is rejected on review.
+- Kill orphans before you start: a server from a crashed session looks exactly like a live one.
 
 ---
 

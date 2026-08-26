@@ -14,7 +14,7 @@ import { useElapsed } from "@/components/meridian/use-elapsed";
  * first layer, layer two, layer three, layer five, getting into the depth."
  *
  * ── WHY THIS IS IN MERIDIAN, AND WHY IT WAS THE LAST THING LEFT ─────────
- * beautifui.dev has no equivalent. Its nearest components, Loading State and
+ * beautifului.dev has no equivalent. Its nearest components, Loading State and
  * Thinking, are both already ported and at parity, and neither carries a
  * rotating verb or a per-action noun. So the reference could not answer this
  * one, which is precisely the case the founder's standing ruling covers: where
@@ -90,7 +90,7 @@ import { useElapsed } from "@/components/meridian/use-elapsed";
 /**
  * THE PIXEL GRID, now the only glyph this indicator has.
  *
- * This is beautifui.dev's loading mechanic, already ported into
+ * This is beautifului.dev's loading mechanic, already ported into
  * `meridian/LoadingState` from that site's own source: a 3x3 lattice on a
  * staggered chevron so two fronts are always in flight and the grid never reads
  * as empty mid-cycle.
@@ -284,7 +284,7 @@ export function AgentPulse({
        * is most of what reads as premium.
        *
        * The shimmer is the reference's mechanic, lifted from `LoadingState`
-       * where it was already ported from beautifui.dev's source: a highlight
+       * where it was already ported from beautifului.dev's source: a highlight
        * travelling through the text rather than a pulse changing its brightness.
        * A pulse pulls the eye off whatever sits beside it; a travelling
        * highlight reads as "still going" in peripheral vision and stays quiet

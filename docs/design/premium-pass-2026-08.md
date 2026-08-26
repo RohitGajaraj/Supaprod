@@ -46,7 +46,7 @@ is first-hand.
 
 **Mobbin did not authenticate.** `mcp__mobbin__authenticate` returned an OAuth URL that has to be
 opened in a browser by the founder. There is no way to complete that from here, so it was dropped
-rather than retried, per the brief. beautifui.dev was not re-extracted either: the existing
+rather than retried, per the brief. beautifului.dev was not re-extracted either: the existing
 extraction in [`MERIDIAN-REFERENCE-PARITY.md`](./MERIDIAN-REFERENCE-PARITY.md) is from that page's
 own flight payload with the byte counts recorded, which is a better source than anything a second
 pass would have produced today, and it already answers the components this pass touched.
@@ -383,5 +383,5 @@ one opacity, one background-position and seven substitutions of an existing toke
 
 - [`DESIGN-SYSTEM.md`](./DESIGN-SYSTEM.md) — the contract and the five laws
 - [`MERIDIAN-INVENTORY.md`](./MERIDIAN-INVENTORY.md) — what is built and what renders it
-- [`MERIDIAN-REFERENCE-PARITY.md`](./MERIDIAN-REFERENCE-PARITY.md) — the map against beautifui.dev
+- [`MERIDIAN-REFERENCE-PARITY.md`](./MERIDIAN-REFERENCE-PARITY.md) — the map against beautifului.dev
 - [`REFERENCE-PATTERNS.md`](./REFERENCE-PATTERNS.md) — verified research with source URLs

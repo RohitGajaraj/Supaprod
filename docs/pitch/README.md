@@ -128,6 +128,7 @@ Most work here is an accelerator, incubator, residency or grant application. The
 | What the product can actually do, in code | [`../features/lifecycle-signal-to-learning.md`](../features/lifecycle-signal-to-learning.md), which carries a `file:line` for every structural claim |
 | Pricing and tiers | [`../strategy/pricing/`](../strategy/pricing/README.md) |
 | GTM execution, not positioning | [`../growth/`](../growth/README.md) |
+| [`three-layers-and-why-not-a-builder.md`](./three-layers-and-why-not-a-builder.md) | **The application answer to "why are you not another Lovable or Replit"** (2026-08-26). The three layers in three sentences, the $48B market we deliberately do not enter, the load-bearing numbers (review time +441.5%, agentic PRs 5.3x longer pickup, DORA flat), why neutrality is the asset, and what cannot be reconstructed after the fact. Carries its own say/do-not-say table and the two things that would change the position. **Use this for any accelerator or incubator application; the internal argument is [`../strategy/layer-2-build-question-2026-08.md`](../strategy/layer-2-build-question-2026-08.md).** |
 
 ---
 

@@ -15,7 +15,7 @@ import { Action, Actions } from "./surface-parts";
  * Meridian address at all.
  *
  * ── THE REFERENCE HAS NO FORM PRIMITIVES, AND THAT IS A REAL ANSWER ─────
- * beautifui.dev is this system's floor, so it was read first. It documents
+ * beautifului.dev is this system's floor, so it was read first. It documents
  * nineteen components and NOT ONE is a form control: no input, no textarea, no
  * checkbox, no select, no field label. Its inputs exist only INSIDE purposeful
  * components -- the Chat composer, the Prompt Bar, Search, the Approval Card's
@@ -287,7 +287,7 @@ export type ChoiceOption<T extends string> = {
  *    group: one tab stop, and the arrow keys move within it.
  *
  * ── THE TRACK AND THE THUMB ARE THE REFERENCE'S, NOT INVENTED ───────────
- * `FineTuneCard` ports beautifui.dev's segmented control as a SUNKEN track
+ * `FineTuneCard` ports beautifului.dev's segmented control as a SUNKEN track
  * carrying a RAISED thumb, and that reads correctly for `one` because exactly
  * one option is ever raised. `any` cannot borrow it -- several options can be
  * on at once, and several thumbs in one track is not a track -- so `any` marks

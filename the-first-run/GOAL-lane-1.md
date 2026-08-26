@@ -128,7 +128,7 @@ may widen), `SPEC-ONRAMP.md` (the real click count, which `WorkShape` each card 
 
 **4. GREP MERIDIAN BEFORE BUILDING A COMPONENT.** `the-first-run/MERIDIAN-ADOPTION.md` — 121
 components, 95 adopted, **17 real components built with no door**, including `run-rows.tsx`: 22.8KB
-of run vocabulary ported from beautifui.dev with **zero importers**. **Your unit file must name which
+of run vocabulary ported from beautifului.dev with **zero importers**. **Your unit file must name which
 Meridian component you checked first and why it did not serve.** A unit that cannot answer that is
 rejected. **You are never blocked on Meridian (R-17).** Build what you need LOCALLY in your own path and
 ship it, and in the SAME commit file `coordination/requests/mrd-<name>.md` saying what you needed,
@@ -192,7 +192,7 @@ stall.** MAIN LANE answers in `coordination/answers/`.
 retired token and fails if an **existing** file grows its count. **If no `--mrd-*` token fits, that is
 a gap in Meridian — file a request. Never widen the baseline to pass.** You own `src/styles/**` except
 `meridian.css`, so you are the lane most able to break this by accident. Meridian's bar is
-`beautifui.dev` exactly; the brand ember lives in the logo and never in an interaction state.
+`beautifului.dev` exactly; the brand ember lives in the logo and never in an interaction state.
 
 **Copy rules, from the locked positioning canon:** never *receipts, ledger, company brain, decision
 layer, unattended, first run, provenance*. "Audit trail" and "shared brain" are fine everywhere. Never

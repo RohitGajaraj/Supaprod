@@ -1,6 +1,6 @@
-# Meridian against beautifui.dev: the parity map
+# Meridian against beautifului.dev: the parity map
 
-> _Created 2026-08-15._ **The standard, set by the founder: nothing less than beautifui.dev.**
+> _Created 2026-08-15._ **The standard, set by the founder: nothing less than beautifului.dev.**
 > "If you give me a better version than that, I'm still happy with that, but nothing less than the
 > standards of beautiful UI.dev."
 >

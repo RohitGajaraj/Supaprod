@@ -76,7 +76,7 @@
  * 36px + 28px + hairline here was raised against Meridian's plain 40px gap as a
  * REGRESSION needing approval, on the strength of this file calling itself a
  * rule. The founder overruled it in both directions at once: the hairline is
- * retired vocabulary, the baseline is Meridian and beautifui.dev, and a retired
+ * retired vocabulary, the baseline is Meridian and beautifului.dev, and a retired
  * file that argues with Meridian is to be EDITED rather than deferred to.
  *
  * So, for whoever ports the last callers of `.sp-block`: Meridian's `Region`

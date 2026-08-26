@@ -119,5 +119,5 @@ The proposal was to branch `main`, let both agents build there, and merge or ret
 
 - [`DESIGN-SYSTEM.md`](./DESIGN-SYSTEM.md) — the contract, including §2a on illustration
 - [`REFERENCE-PATTERNS.md`](./REFERENCE-PATTERNS.md) — where each surface's reference research is appended
-- [`MERIDIAN-REFERENCE-PARITY.md`](./MERIDIAN-REFERENCE-PARITY.md) — the component map against beautifui.dev
+- [`MERIDIAN-REFERENCE-PARITY.md`](./MERIDIAN-REFERENCE-PARITY.md) — the component map against beautifului.dev
 - [`../planning/initiatives/agent-first-platform.md`](../planning/initiatives/agent-first-platform.md) — the direction and its evidence

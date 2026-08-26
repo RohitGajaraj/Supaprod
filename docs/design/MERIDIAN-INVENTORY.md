@@ -6,7 +6,7 @@
 [`DESIGN-SYSTEM.md`](./DESIGN-SYSTEM.md) is the contract and it is right about the laws. Its counts go
 stale between passes: it says 88 tokens and 23 components, and on 2026-08-22 the directory held **111
 `--mrd-*` tokens and 47 components**. [`MERIDIAN-REFERENCE-PARITY.md`](./MERIDIAN-REFERENCE-PARITY.md)
-answers a different question, whether we match beautifui.dev, and accounts for 21 of the 47.
+answers a different question, whether we match beautifului.dev, and accounts for 21 of the 47.
 
 This file answers the question neither of them does: **what is built, and is anything rendering it.**
 
@@ -100,7 +100,7 @@ These carry the product. Compose from them first.
 ## Related
 
 - [`DESIGN-SYSTEM.md`](./DESIGN-SYSTEM.md) — the contract. Laws, not counts.
-- [`MERIDIAN-REFERENCE-PARITY.md`](./MERIDIAN-REFERENCE-PARITY.md) — parity against beautifui.dev.
+- [`MERIDIAN-REFERENCE-PARITY.md`](./MERIDIAN-REFERENCE-PARITY.md) — parity against beautifului.dev.
 - [`../planning/initiatives/agent-first-platform.md`](../planning/initiatives/agent-first-platform.md) — why these primitives exist. **Its §7.1 is superseded**: the motion and body-weight corrections were falsified by measurement, and the numbers live in `src/styles/meridian.css`.
 
 ## Adoption-candidate map · measured 2026-08-25

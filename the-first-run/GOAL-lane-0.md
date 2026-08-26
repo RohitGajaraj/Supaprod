@@ -159,7 +159,7 @@ may widen), `SPEC-ONRAMP.md` (the real click count, which `WorkShape` each card 
 
 **4. GREP MERIDIAN BEFORE BUILDING A COMPONENT.** `the-first-run/MERIDIAN-ADOPTION.md` — 121
 components, 95 adopted, **17 real components built with no door**, including `run-rows.tsx`: 22.8KB
-of run vocabulary ported from beautifui.dev with **zero importers**. **Your unit file must name which
+of run vocabulary ported from beautifului.dev with **zero importers**. **Your unit file must name which
 Meridian component you checked first and why it did not serve.** A unit that cannot answer that is
 rejected. **You are never blocked on Meridian (R-17).** Build what you need LOCALLY in your own path and
 ship it, and in the SAME commit file `coordination/requests/mrd-<name>.md` saying what you needed,
@@ -224,7 +224,7 @@ stall.** MAIN LANE answers in `coordination/answers/`.
 `--hairline`, `--raised`, `data-obsidian`, and no raw colours. A test fails if a **new** file carries
 a retired token, and fails if an **existing** file grows its count. **If no `--mrd-*` token fits, that
 is a gap in Meridian — file a request. Never widen the baseline to pass.** Meridian's quality bar is
-`beautifui.dev` exactly, and the brand ember belongs in the logo, never in an interaction state.
+`beautifului.dev` exactly, and the brand ember belongs in the logo, never in an interaction state.
 
 **Gates before every push:** `bunx tsc --noEmit`, `bun test`, `bun run lint`.
 

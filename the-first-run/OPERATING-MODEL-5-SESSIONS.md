@@ -175,7 +175,7 @@ these eight, and any one of them failing is a fail:
 4. **Keyboard-first.** Everything reachable without a mouse; accessibility is not deferred (R-19).
 5. **It survives being left alone** — tab closed, laptop shut, network dropped, session resumed. The
    work continues and the result finds them.
-6. **One visual system, no orphans.** Meridian, ported from beautifui.dev, which is the floor and not
+6. **One visual system, no orphans.** Meridian, ported from beautifului.dev, which is the floor and not
    the ceiling.
 7. **It is honest.** No fabricated progress, no invented number, no seeded memory presented as
    learning. **This is the one the frontier gets right and imitators get wrong**, and it is the only
@@ -391,7 +391,7 @@ grid, optical edges aligned) · type (Meridian scale only; a hardcoded size is a
 reports rather than decorates (a raw duration is a fail; use `--mrd-ease` / `--mrd-d-*`) · a designed
 sad path (empty, loading, failed, held, permission-denied; an empty state that does not say what to do
 next is a fail) · no dead end (every surface offers the next action) · ported not eyeballed
-(beautifui.dev is the **floor**, mechanics from its real source, never from a screenshot) · density
+(beautifului.dev is the **floor**, mechanics from its real source, never from a screenshot) · density
 that earns its space.
 
 **And the Meridian duty:** per region, ask *which Meridian component serves this?* A bespoke div where
@@ -444,7 +444,11 @@ overwrote the others' handoff.
 S2 · 13:40 IST · WORKING · runs board: folding cockpit+fleet+swarm into one board · src/components/runs/** · 83b2070ac
 ```
 
-`<session> · <time> · WORKING|BLOCKED|DONE · what, in a few words · the paths you hold · last commit`.
+`<session> · <time> · WORKING|BLOCKED|DONE|DEVSERVER · what, in a few words · the paths you hold · last commit`.
+
+**`DEVSERVER` is not optional.** While you hold a dev server, say so here, and clear it the moment you
+stop it — five sessions on one laptop is how this machine gets driven to a restart, and the NOW files
+are the only way you can see each other's load.
 
 **Read every other lane's line before you pick up anything**, which after a fetch is one command:
 
@@ -654,3 +658,76 @@ product copy — show the behaviour and let the person name it. Canon:
 
 Read the surface out loud to someone who does not work here. **If they ask what a word means, the
 word is wrong** — not their understanding.
+
+---
+
+## 13 · Meridian is the only design system, and you extract it rather than write it
+
+**Founder, 2026-08-26:** *"Only follow the Meridian design system, and wherever possible incorporate
+all its components and elements into the platform. Meridian is a reference from beautifului.dev — it
+has all the components needed and the codebase is there, so you do not need to generate anything.
+Literally copy the code, extract it, implement it. beautifului.dev and Meridian are the baseline. On
+top of that you may create; you must not go below."*
+
+### The rule
+
+**Do not write a component that already exists in the reference. Extract its source and port it.**
+Choosing a value because it "looked right" is a fail under R-20 §7; a value with a reason is not. This
+is not a style preference — it is the difference between one product and three gutters for one row.
+
+**Every prior design system is retired and this is enforced, not requested:** v1, v3 Obsidian, v4
+Loom, v5 Tempo, Cadence/ink. `bun test` fails if a **new** file carries a retired token (`--sp-*`,
+`--ds-*`, `--text-*`, `--hairline`, `--raised`, `data-obsidian`) or a raw colour, and fails if an
+**existing** file grows its count. **If no `--mrd-*` token fits, that is a gap in Meridian — file it,
+never widen the baseline to pass.**
+
+### How to get the real source, and the domain is `beautifului.dev`
+
+The correct domain is **`https://www.beautifului.dev/`**. Several files in this repo dropped the second
+`u` from it, which is wrong and has been corrected where found.
+
+The extraction is already documented and reproducible —
+[`docs/design/MERIDIAN-REFERENCE-PARITY.md`](../docs/design/MERIDIAN-REFERENCE-PARITY.md) has the
+component-by-component map and the method:
+
+> Fetch `https://www.beautifului.dev/`, decode the `self.__next_f.push([1,"…"])` chunks, JSON-parse
+> each, concatenate, then split on the `<id>:T<hexlen>,` markers. **19 blobs, 191,239 bytes.** Each
+> blob declares its byte length ahead of it, so a truncated read is detectable.
+
+**Never compare against the rendered demo.** A screenshot loses the mechanics, which is the only part
+worth having.
+
+### Who does what
+
+- **S0 fetches the reference and commits the source** into `docs/design/reference-2026-08-26/`, the
+  same way it commits Mobbin pulls. Lanes may not have web access; **a lane blocked on a reference is
+  S0's failure.** S0 also re-checks the reference for anything new since 2026-08-15, since the site
+  ships.
+- **S0 owns `src/components/meridian/**`.** A lane authors a primitive locally and files
+  `coordination/requests/<S>/mrd-<name>.md`. **S0 reviews it hard against R-20's eight and rebuilds it
+  if needed before it enters** — a primitive is used by every future surface, so a mediocre one is a
+  debt charged forever. This is the one review S0 never rushes.
+- **Every lane, per region of every surface: which Meridian component serves this?** A bespoke div
+  where a primitive exists is a fail. **Adoption must go up** — 121 components, 95 adopted, and 17
+  built with no importer, including `run-rows.tsx`, 22.8KB of run vocabulary that three surfaces each
+  reinvented around. A component still unadopted after its natural surface ships **gets deleted with
+  the reason recorded**, because inventory nobody reaches for is the defect this whole phase is about.
+
+### The lens for design decisions
+
+**Founder's instruction: think as a head of design, a head of product, and a consumer psychologist —
+not as an engineer implementing a ticket.**
+
+- **Head of design.** Would this survive being put next to Vercel or Linear on the same screen? R-20's
+  eight are the checklist, and a reviewer must be able to point at the one that failed.
+- **Head of product.** What does the person *do* here, and what did they stop doing? A surface that
+  only tells is a status panel and does not ship (R-03).
+- **Consumer psychology.** Premium is not ornament — it is **confidence, legibility and the absence of
+  doubt.** Three things carry it: **restraint** (one colour for the one live fact, so the eye is never
+  asked to choose), **honesty** (nothing on screen that the data cannot prove — a person who catches
+  one staged state stops trusting all of them), and **relief** (the person arrives tired; every
+  decision you remove is felt). A designed sad path is where cheap products are exposed, and four of
+  seven stations commonly produce nothing.
+
+**"Ultra-premium that actually does the job" is one test, not two:** the surface is beautiful *because*
+every region carries a fact the person came for, and nothing else is on it.

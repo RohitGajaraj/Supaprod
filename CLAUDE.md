@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-> _Last updated: 2026-08-03_
+> _Last updated: 2026-08-26_
 
 **Read [`AGENTS.md`](./AGENTS.md). It is the build manual and it is canonical.** [`README.md`](./README.md) says what the product is and where every other document lives.
 
@@ -8,7 +8,9 @@
 >
 > **Vocabulary: practitioner language everywhere. The register split is retired** (ruled 2026-08-11, measured across 5.9M words). Never *receipts · ledger · company brain · decision layer · unattended · first run · provenance*, on any surface: they score at or near zero in the market's own writing, and the audit that killed the split found we drifted worst in the shop window, not in the product. **"Audit trail" and "shared brain" stay, everywhere**; a practitioner reached for the first of those unprompted, which is the whole test. **"Approve" is settled by what the control does, not by word frequency**: keep it where a click UNBLOCKS something (a merge gate, an approval queue item), use *review* where it only SHOWS you something. **"Remembers", "stores" and "logs" as verbs of the brain stay banned everywhere**, because they claim less than the product delivers. **Never claim accumulated learning in the present tense**; the honest form is *the loop is wired and proven, and it begins accruing on first real use*. Full canon: [`docs/strategy/positioning-locked-2026-08.md`](./docs/strategy/positioning-locked-2026-08.md), with every exact string in [`docs/growth/vocabulary-change-list-2026-08.md`](./docs/growth/vocabulary-change-list-2026-08.md).
 
-> **Three layers, told door then body then brain:** 01 the director (tells you what to build) · 02 the operating system (runs the lifecycle, seven stations) · 03 the brain (**learns, then guides** the next call). Each is the precondition for the next; 03 is the only one defensible alone. Full positioning: [`README.md`](./README.md).
+> **Three layers, told door then body then brain:** 01 the director (tells you what to build) · 02 the operating system (**decides what is worth building, hands it to whatever builds for you, and checks what actually happened** — seven stations) · 03 the brain (**learns, then guides** the next call). Each is the precondition for the next; 03 is the only one defensible alone. Full positioning: [`README.md`](./README.md).
+>
+> **We do not generate the code and will not become a builder** (canon §5N, ruled 2026-08-26). That market is finished and priced at over $48B, and the pain moved without moving to generation — code review time **+441.5%** while throughput rose 33.7%, agentic PRs **5.3x longer** to pick up, DORA flat because output queued at review. **Nobody is short of generated code; everybody is short of confidence in it.** Every builder is a substitutable supplier to layer 02, so their commoditisation is our tailwind. **Never write "runs the lifecycle" in outward copy** — it invites the comparison we refuse. Ruling: [`docs/strategy/positioning-locked-2026-08.md`](./docs/strategy/positioning-locked-2026-08.md) §5N · application answer: [`docs/pitch/three-layers-and-why-not-a-builder.md`](./docs/pitch/three-layers-and-why-not-a-builder.md).
 
 
 This file is deliberately short. Claude Code loads it into **every** session, so anything written here is paid for on every request. It holds only what is specific to Claude Code and true nowhere else.
@@ -29,7 +31,10 @@ not the current plan.
 | [`BUILD-QUEUE.md`](./the-first-run/BUILD-QUEUE.md) | The single ordered backlog. A lane takes the topmost item **it owns by path** |
 | [`FINDINGS-LEDGER.md`](./the-first-run/FINDINGS-LEDGER.md) | **What was found, FIXED, still OPEN, or investigated and proved FALSE. Read it before re-investigating anything** |
 | [`THE-ONE-SCREEN.md`](./the-first-run/THE-ONE-SCREEN.md) | The target architecture, station by station |
-| [`GOAL-main-lane.md`](./the-first-run/GOAL-main-lane.md) · [`GOAL-lane-0.md`](./the-first-run/GOAL-lane-0.md) · [`GOAL-lane-1.md`](./the-first-run/GOAL-lane-1.md) | The three paste-ready session goals |
+| **[`OPERATING-MODEL-5-SESSIONS.md`](./the-first-run/OPERATING-MODEL-5-SESSIONS.md)** | **CURRENT, from 2026-08-26. Every session reads this first.** The user lens, the structural defect (three surfaces, not 119 routes), the authorised feature gaps, the frontier standard, path ownership for five sessions, the git-only coordination protocol, the plain-words naming law, and the Meridian extraction rule |
+| [`SURFACE-MAP.md`](./the-first-run/SURFACE-MAP.md) | **Every route and every component directory, with its owner and whether it is kept, folded, deleted or audited first.** Nothing is unassigned |
+| `SESSION-0-CONDUCTOR.md` … `SESSION-4-THE-PROVING-GROUND.md` | The five session briefs. S0 is Claude Code and holds the database, migrations, deploys and merges; S1–S3 build; S4 writes no product code and only proves. Paste-ready copies: [`docs/prompts/MASTER-PROMPT-five-sessions.md`](./docs/prompts/MASTER-PROMPT-five-sessions.md) |
+| [`GOAL-main-lane.md`](./the-first-run/GOAL-main-lane.md) · [`GOAL-lane-0.md`](./the-first-run/GOAL-lane-0.md) · [`GOAL-lane-1.md`](./the-first-run/GOAL-lane-1.md) | The **superseded** three-lane goals. Kept for the acceptance wording; the five-session model above replaces the assignments |
 
 **The acceptance, and nothing else counts as done:** one piece of work enters at the first station and
 completes all seven, driven entirely by agents, with no human touching it mid-run, and a person can

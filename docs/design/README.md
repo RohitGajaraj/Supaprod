@@ -61,9 +61,9 @@ on a design.
 
 [`MERIDIAN-REFERENCE-PARITY.md`](./MERIDIAN-REFERENCE-PARITY.md) is also trustworthy, and it is the
 one to read before touching a Meridian component. It maps all 19 components against the
-beautifui.dev source, records which gaps were real and what was done about each, and carries the
+beautifului.dev source, records which gaps were real and what was done about each, and carries the
 measured contrast table for the five semantic roles. **The founder's standard is recorded there:
-nothing less than beautifui.dev.** It also lists the traps that cost time — a colgroup silently
+nothing less than beautifului.dev.** It also lists the traps that cost time — a colgroup silently
 overruled, an instrument aimed at a preview panel, `body { letter-spacing: 0 }` resetting a whole
 document tree.
 

@@ -13,7 +13,7 @@
  *
  * ── WHY THE GEOMETRY IS NOT A CHOICE EITHER ─────────────────────────────
  * This is `TaskRows`' status pill, to the pixel: `h-[22px] rounded-full px-2`
- * with an 11.5px label. That component is the port of beautifui.dev's "Task
+ * with an 11.5px label. That component is the port of beautifului.dev's "Task
  * Rows", whose entire subject is live agent status, so its pill IS the
  * reference's status chip and the job here is to mimic it rather than to
  * reinterpret it. What changes is only what fills it: a 16% tint of the status

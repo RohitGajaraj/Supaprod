@@ -20,7 +20,7 @@ import { WorkGlyph, glyphForArtifactKind } from "./work-glyphs";
  * defensible on its own and none of them was chosen against its neighbours.
  *
  * ── WHERE EVERY NUMBER BELOW COMES FROM, AND IT IS NOT PREFERENCE ────────
- * `Thinking` is beautifui.dev's "Thinking" ported from that page's own source,
+ * `Thinking` is beautifului.dev's "Thinking" ported from that page's own source,
  * and it is the reference's DENSE TRACE: a rail, a glyph, a subject, a
  * qualifier, rows that arrive as work happens. All three run views are that
  * object. So the rhythm is read off it rather than invented:

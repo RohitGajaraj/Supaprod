@@ -189,7 +189,7 @@ The evidence gate that would catch this is computed every hop and never enforced
 
 ### 1.10 Meridian has no vocabulary for an agent working
 
-93 tokens, 36 components, all 19 beautifui.dev components ported, debt frozen at 5,864. Genuinely strong — and missing every primitive an agent-first surface needs:
+93 tokens, 36 components, all 19 beautifului.dev components ported, debt frozen at 5,864. Genuinely strong — and missing every primitive an agent-first surface needs:
 
 | Missing | Evidence |
 | --- | --- |
@@ -832,7 +832,7 @@ Every extension below is justified against Meridian's own law: a token earns its
 > `src/styles/meridian.css`, never from a document about it.**
 
 
-Meridian's own standing rule is that beautifui.dev is the floor and the mechanics get ported from source. These two were never ported because they are not visible in a component, only in a token file.
+Meridian's own standing rule is that beautifului.dev is the floor and the mechanics get ported from source. These two were never ported because they are not visible in a component, only in a token file.
 
 **Motion is roughly twice as slow as the premium reference, and the asymmetry is inverted.** Meridian ships `--mrd-d-press: 120ms`, `--mrd-d-move: 220ms`, `--mrd-d-enter: 420ms`. Linear's shipped scale, read from its bundle, is `0s / 0.15s / 0.1s / 0.25s / 0.35s` — the entire scale sits **below** Material's 200-500ms band, and the governing choice is **enter 0s, exit 0.15s**.
 

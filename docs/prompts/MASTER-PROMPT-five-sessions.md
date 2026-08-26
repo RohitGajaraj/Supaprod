@@ -70,6 +70,9 @@ sessions can design against something real.
 Every unit: rewrite docs/lanes/NOW-S0.md (one line), append your block to docs/lanes/log/S0.md, and
 read every other NOW file before you pick anything up. Commit with git commit -F (never -m, never
 git add -A), push every commit, and commit before any long gate. The laptop closes; nothing is lost.
+DEV SERVER: never start one unless a check genuinely needs a browser. Check `lsof -ti:5173` first --
+only one on this machine at a time -- say DEVSERVER in your NOW line while you hold it, and kill it
+the moment the check is done. Five sessions on one laptop has frozen this machine.
 Scan your session reminder for every skill, agent, plugin and MCP before each piece of work and use
 them. Spawn subagents for any audit or sweep. Say which model you are using.
 Report: what changed, what is live, what is next, what I must decide.
@@ -116,6 +119,9 @@ Every unit: build it, then DRIVE it in a browser and record what actually happen
 done. Start the dev server only for the check and stop it the moment the check is done.
 Rewrite docs/lanes/NOW-S1.md every unit; append to docs/lanes/log/S1.md; never write BUILDLOG.md.
 Commit with git commit -F (never -m, never git add -A) and push every commit.
+DEV SERVER: never start one unless a check genuinely needs a browser. Check `lsof -ti:5173` first --
+only one on this machine at a time -- say DEVSERVER in your NOW line while you hold it, and kill it
+the moment the check is done, not at unit end. Five sessions on one laptop has frozen this machine.
 Scan your session reminder for every skill, agent, plugin, MCP and extension and use them.
 Playwright is yours — never point it at production.
 ```
@@ -158,12 +164,15 @@ mounted once in the shell, visible on every surface. Read SPEC-MULTIPLAYER-PRESE
 a line of it. A cursor whose position cannot be traced to a row is theatre, and theatre gets the
 feature deleted rather than fixed.
 
-run-rows.tsx is 22.8KB of run vocabulary already ported from beautifui.dev with zero importers.
+run-rows.tsx is 22.8KB of run vocabulary already ported from beautifului.dev with zero importers.
 Start there. Wire what exists before you add anything.
 
 Every unit: build it, then DRIVE it in a browser. A mount is not a render — open the route and look.
 Rewrite docs/lanes/NOW-S2.md every unit; append to docs/lanes/log/S2.md; never write BUILDLOG.md.
 Commit with git commit -F (never -m, never git add -A) and push every commit.
+DEV SERVER: never start one unless a check genuinely needs a browser. Check `lsof -ti:5173` first --
+only one on this machine at a time -- say DEVSERVER in your NOW line while you hold it, and kill it
+the moment the check is done, not at unit end. Five sessions on one laptop has frozen this machine.
 Scan your session reminder for every skill, agent, plugin, MCP and extension and use them.
 Playwright is yours — never point it at production.
 ```
@@ -215,6 +224,9 @@ Every unit: build it, then DRIVE it in a browser. A fix in one field is not a fi
 shape, so sweep every field mechanically after any copy or validation change.
 Rewrite docs/lanes/NOW-S3.md every unit; append to docs/lanes/log/S3.md; never write BUILDLOG.md.
 Commit with git commit -F (never -m, never git add -A) and push every commit.
+DEV SERVER: never start one unless a check genuinely needs a browser. Check `lsof -ti:5173` first --
+only one on this machine at a time -- say DEVSERVER in your NOW line while you hold it, and kill it
+the moment the check is done, not at unit end. Five sessions on one laptop has frozen this machine.
 Scan your session reminder for every skill, agent, plugin, MCP and extension and use them.
 Playwright is yours — never point it at production.
 ```
@@ -264,5 +276,8 @@ duplicates once starved the very track we were watching. Local dev server, start
 stopped the moment it is done.
 Rewrite docs/lanes/NOW-S4.md every pass; append to docs/lanes/log/S4.md.
 Commit with git commit -F (never -m, never git add -A) and push every commit.
+DEV SERVER: never start one unless a check genuinely needs a browser. Check `lsof -ti:5173` first --
+only one on this machine at a time -- say DEVSERVER in your NOW line while you hold it, and kill it
+the moment the check is done, not at unit end. Five sessions on one laptop has frozen this machine.
 Scan your session reminder for every skill, agent, plugin, MCP and extension and use them.
 ```

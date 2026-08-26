@@ -113,7 +113,7 @@ The test before committing: **would someone who liked yesterday's screen prefer 
 
 #### The floor is Meridian, never a retired system (founder ruling, 2026-08-18)
 
-This clause was being read backwards, and the reading is the reason it needs writing down. "Today's design" means **Meridian and beautifui.dev**. It does **not** mean whatever the retired systems happened to draw.
+This clause was being read backwards, and the reading is the reason it needs writing down. "Today's design" means **Meridian and beautifului.dev**. It does **not** mean whatever the retired systems happened to draw.
 
 **What happened.** Porting Design and Discover, the ratchet law was cited to defend the retired `.sp-block` rhythm: 36px margin plus 28px padding plus a `1px` hairline between every section, against Meridian's 40px gap and no rule. It was raised as a regression to be approved, because the retired stylesheet says of itself *"It is a rule, not decoration"*. The founder's answer:
 

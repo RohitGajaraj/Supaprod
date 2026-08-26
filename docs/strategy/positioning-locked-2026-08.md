@@ -302,6 +302,34 @@ The six-PM thread is one cluster of nine spanning four years: Tolga (four tools 
 
 **The audit's headline finding inverts the assumption the register split rested on:** we drifted worst on **public** surfaces, not in-product — 4 public files gave 31 changes from 15 surfaces, while **305 in-product surfaces gave 26**. The invented vocabulary concentrated exactly where we were trying hardest to sound differentiated. Exact strings: [`../growth/vocabulary-change-list-2026-08.md`](../growth/vocabulary-change-list-2026-08.md).
 
+## §5N. We are not a builder, and layer 02 is restated — founder question, 2026-08-26
+
+**Founder asked the strongest form of the objection:** *"Why cannot our platform be another Lovable, another Replit? Today they let you build anything and manage it. We can also be that, and on top of that tell you what to build."*
+
+**Ruled: no to generating the code, yes to owning the handoff.** Three reasons, each sufficient alone.
+
+**① The market that generates code is finished and priced.** Cursor ~$4B ARR · Lovable $500M · Replit $525M · Vercel/v0 $9.3B · Cognition $492M run-rate at a $25B pre. **Combined over $48B.** Entering it is a model-quality war fought with capital we do not have, on the one axis where being small is purely a disadvantage. Our own teardown already concluded it: *"the user is already in Cursor or Claude Code, and that is fine — we should not fight it."*
+
+**② The pain moved, and it did not move to generation.** Code review time **+441.5%** while throughput rose 33.7%; agentic pull requests **5.3x longer to pick up**; DORA flat because output queued at review. **Nobody is short of generated code. Everybody is short of confidence in it.** Every dollar of that $48B makes our market larger. Their success is our market forming, which is the strongest structural position available to us and it should be said plainly in every application.
+
+**③ Neutrality is the asset and generating code would destroy it.** Today Lovable, Replit, Cursor, Codex and Claude Code are **substitutable suppliers**; their commoditisation is our tailwind. The moment we generate code every one of them is a competitor who will not integrate, and a customer must abandon the builder they already like in order to use us. **The frontier converged on the same answer**: Codex returns a reviewable pull request rather than a running app, and Linear made agents first-class assignees and integrates Cursor, Devin and Codegen rather than replacing them. **The winning position above the build layer routes work to builders; it is not a builder.**
+
+### Layer 02, restated — this is the wording change
+
+| Retired, because it invites the comparison we just refused | Canon from 2026-08-26 |
+| --- | --- |
+| "Runs the whole lifecycle. Seven stations…" | **"Decides what is worth building, hands it to whatever builds for you, and checks what actually happened."** |
+
+The stations are unchanged and stay as they are — this is how layer 02 is *described*, not how it is built. **Layer 02 is where we meet the buyer; layer 03 is why they stay.** The moat is untouched: the forecast captured at decision time, written at Decide, which is why a route without Decide has no moat (R-25).
+
+### The one exception, and it is a build not a market entry
+
+**A sandboxed first-party build path**, so a run can complete and a stranger can see a full loop with zero setup. The case is empirical: **all five walls that have ever stopped a real run sat at the handoff to somebody else's world** — a repo the product stopped recognising (F-49), a merge gate no station was briefed to approach (F-50), dependencies a customer's repo cannot install (F-56), a CI gate the builder disabled (F-63), and billing (F-64). Same cause five times. **It is the fallback and the demo path, never the default and never a competitor.** Whether to build it is the one open founder call: [`layer-2-build-question-2026-08.md`](./layer-2-build-question-2026-08.md).
+
+### What would overturn this
+
+**A builder shipping layers 01 and 03 credibly.** Lovable or Replit adding a decision record with a forecast at commit time collapses the distinction. Neither has, and neither is incentivised to — their metric is apps shipped and a forecast slows shipping down. **But Notion shipped a free version of the lifecycle framing on 2026-07-09**, so name this threat before an investor names it. Application-facing version, with the say / do-not-say table: [`../pitch/three-layers-and-why-not-a-builder.md`](../pitch/three-layers-and-why-not-a-builder.md).
+
 ## 6. Routed to the lanes
 
 **Lane 1 (function/gaps):** forecast capture at decision time is the priority build — it is the only un-backfillable asset and it is one feature. Then confidence grades on outcome labels (30–40% of lift-showing experiments show no long-term lift; a p<0.05 result is wrong ~1 in 4). Intervention logging is wired but starved and begins accruing now.

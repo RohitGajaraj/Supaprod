@@ -636,7 +636,7 @@
    * things at once: it caps you at five series, and it tells the reader that
    * "Chocolate" is a status.
    *
-   * These are beautifui.dev's own values, read off that page in both themes on
+   * These are beautifului.dev's own values, read off that page in both themes on
    * 2026-08-15, and used deliberately rather than re-derived. The founder asked
    * for the reference's orange by name and confirmed it reads well on both
    * grounds; re-solving it in OKLCH would land somewhere near it and not be it.
@@ -731,7 +731,7 @@
   /*
    * ── TYPE, RE-SOLVED FROM THE REFERENCE 2026-08-15 ─────────────────────
    *
-   * Founder ruling: use beautifui.dev's typography, and use it across the
+   * Founder ruling: use beautifului.dev's typography, and use it across the
    * whole app, because it "looks ultra premium and it looks light and it's
    * not overpowering". These values are MEASURED off that page rather than
    * eyeballed — every rendered text node was walked and its computed
@@ -2269,7 +2269,7 @@ body {
  *
  * Founder, 2026-08-15: "a user wants to enter or type anything in the text
  * field, there is a box appearing on the border lines — why is that box even
- * required". It is not, and the reference agrees: beautifui.dev's composer
+ * required". It is not, and the reference agrees: beautifului.dev's composer
  * moves its border one step, from `line` to `line-strong`, and draws nothing
  * else.
  *

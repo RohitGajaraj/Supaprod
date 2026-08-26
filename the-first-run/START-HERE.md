@@ -14,7 +14,7 @@ founder has never seen a single journey run end to end. Four accelerators have d
 | --- | --- |
 | `TrackActivity` + `TrackChain` — built 2026-08-01 to a founder ruling asking for exactly "show visually which agent is working, the handoff, the outcome, like Claude Code" | **Zero importers for 24 days.** The founder re-requested the same thing on 08-25, unaware it existed |
 | `resolveApprovalPolicy` — a whole approval-policy engine | **Zero callers.** Dead code |
-| `run-rows.tsx` — 22.8KB of run vocabulary ported from beautifui.dev | **Zero importers**, while three surfaces each invented their own |
+| `run-rows.tsx` — 22.8KB of run vocabulary ported from beautifului.dev | **Zero importers**, while three surfaces each invented their own |
 | `driveTrackOnce` — the thing that moves work | **One caller**, a cron. No person could move their own work |
 
 **So the default move is always: wire what exists.** A unit that adds a component must name, in its

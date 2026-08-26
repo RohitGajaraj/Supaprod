@@ -672,7 +672,7 @@ discussion in the comment is stripped before counting.
 
 ---
 
-## K-04, K-05, K-06, K-07 · BUILT · 2026-08-20 00:31 · reworked against the beautifui.dev floor
+## K-04, K-05, K-06, K-07 · BUILT · 2026-08-20 00:31 · reworked against the beautifului.dev floor
 
 **All four were assembled rather than designed, and this replaces them.** The founder named six
 worked examples and said explicitly that satisfying six and nothing else is the same failure one
@@ -682,7 +682,7 @@ run views rebuilt on them.
 **Did.**
 
 1. **`run-rows.tsx`, one rhythm for the three views of a run.** Every column, gutter, glyph size and
-   type stop is read off `Thinking`, which is beautifui.dev's own dense trace ported from that
+   type stop is read off `Thinking`, which is beautifului.dev's own dense trace ported from that
    page's source, because all three views ARE that object. 28px row (`min-h-7`), 8px gutter
    (`gap-2`), 4px between rows (`gap-1`), 14px glyph, 12.5px subject, 11.5px qualifier, 1px rail
    stopping at the last row. The one value not in the reference is the clock column at 40px, which
@@ -731,7 +731,7 @@ run views rebuilt on them.
 **Unsure.** Five, and the first two are the ones to overturn if I got them wrong.
 
 1. **PlanCard's subject came DOWN from 13px to 12.5**, and the ratchet law forbids shrinking type.
-   My argument: the floor that law protects is Meridian and beautifui.dev, and 12.5 is `Thinking`'s
+   My argument: the floor that law protects is Meridian and beautifului.dev, and 12.5 is `Thinking`'s
    dense-trace row. 13 was a number I picked two hours earlier, not a shipped design anyone liked.
    The card's TITLE stays at 13, which is the ladder's "a card's subject", a different role. **If
    the ratchet is read literally, the fix is to take the other two UP to 13 rather than this one
@@ -978,7 +978,7 @@ of the three on the jump list.
 
 **Did.** Built `src/components/meridian/Flowchart.tsx`, a 27-test suite, and a six-case gallery
 panel. **I found the reference's real source rather than working from the item's figures**: the
-component's full TypeScript is embedded in beautifui.dev's own document, and searching that page for
+component's full TypeScript is embedded in beautifului.dev's own document, and searching that page for
 `FLOWCHART — an agent workflow` returns it. The provenance note in the file says how to re-fetch it.
 
 **## K-80 · QUESTION · six of the item's measured figures do not match the source**
@@ -1049,7 +1049,7 @@ card is still expressible.
    component rather than a hole in the test: the smallest possible `dy` is `ROW_GAP` at 64, and 0.55
    of that is 35.2, already above the floor of 24. The floor only applies once a MEASURED short node
    pulls two rows closer than the estimate does. Written into the test rather than left as a gap.
-4. **`agent-audit-2026-08.md` §6 says "All 19 beautifui.dev components ported"** and the item corrects
+4. **`agent-audit-2026-08.md` §6 says "All 19 beautifului.dev components ported"** and the item corrects
    it to twenty. That correction is now true: the count is twenty and all twenty have a Meridian file.
    The register line should move from `context` to `CLOSED`.
 
@@ -2896,7 +2896,7 @@ writing anything. The third answer, "Keep planning", cannot commit without a not
 card is orchid, and a `you` chip says a person is required instead.
 
 **The reference is Claude Code's permission prompt, named before building and written up in
-[`REFERENCE-PATTERNS.md`](../../design/REFERENCE-PATTERNS.md) in the same commit.** beautifui.dev has
+[`REFERENCE-PATTERNS.md`](../../design/REFERENCE-PATTERNS.md) in the same commit.** beautifului.dev has
 no gate among its twenty components, which is the same kind of gap its missing form controls were, so
 the model came from the most-used agent gate in this market: numbered answers, a full sentence each,
 a digit to take one, **and no accent on any of them.** Its third answer, "No, and tell Claude what to

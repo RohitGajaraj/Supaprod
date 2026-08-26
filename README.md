@@ -64,10 +64,12 @@ This file is the front door: what the product is, why it holds, and where every 
 | | Layer | What it does | The word for it |
 | --- | --- | --- | --- |
 | **01** | **The director** | Tells you what to build. Reads your signals, your product data, your competitors and your own past calls, and ranks what is worth doing next. | *marigold* `#e8b44c` |
-| **02** | **The operating system** | Runs the whole lifecycle. Seven stations that agents walk on their own, inside boundaries a human sets in advance. | *blue* |
+| **02** | **The operating system** | Decides what is worth building, hands it to whatever builds for you, and checks what actually happened. Seven stations that agents walk on their own, inside boundaries a human sets in advance. **We are not a builder and will not become one** — restated 2026-08-26, canon §5N. | *blue* |
 | **03** | **The brain** | Learns, and then guides. Not where the record lives: it compounds, tells you what is right next time, and warns before you repeat what was wrong. | *green* |
 
 **Why the order is not arbitrary.** The door is who it is for, so it earns attention. The body is what it does, so it earns belief. The brain is why it wins, so it earns the close. Leading with the brain sounds like a database; leading with the door and never reaching the brain sounds like a workflow tool.
+
+**Why we do not also generate the code, which is the first question a good investor asks.** That market is finished and priced — over $48B across Cursor, Lovable, Replit, v0 and Cognition — and **the pain moved without moving to generation**: code review time +441.5% while throughput rose 33.7%, agentic pull requests 5.3x longer to pick up, DORA flat because output queued at review. **Nobody is short of generated code; everybody is short of confidence in it.** So every builder is a substitutable supplier to layer 02 and their commoditisation is our tailwind, where generating code ourselves would turn all of them into competitors who will not integrate. Full ruling: [`docs/strategy/positioning-locked-2026-08.md`](./docs/strategy/positioning-locked-2026-08.md) §5N; the application answer is [`docs/pitch/three-layers-and-why-not-a-builder.md`](./docs/pitch/three-layers-and-why-not-a-builder.md).
 
 **Why all three have to be one product**, which is the earned insight and the answer to "isn't this three companies": *you cannot be the brain without owning the loop that generates outcomes, and you cannot run the loop without being the operating system.* Each layer is the precondition for the next. Ship any one alone and it is a feature.
 

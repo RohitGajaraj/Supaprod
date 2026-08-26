@@ -1002,7 +1002,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
    *      /runs four times teaches you the page, not which of ten similar
    *      14px glyphs opens it.
    *   3. It is the opposite of the reference this system is being held to.
-   *      beautifui.dev's left plane names every destination, always, and that
+   *      beautifului.dev's left plane names every destination, always, and that
    *      legibility is most of why it reads as premium rather than as dense.
    *
    * The manual toggle stays — a reader who wants the space can still take it,

@@ -30,7 +30,7 @@ own header names:
 > subject sizes (12.5, 12.5, 13), two of them with no time column at all... Every one of those passed
 > typecheck, tests and the ratchet. That is the arbitrariness failure.*
 
-And its numbers are not preference — `Thinking` is **ported from beautifui.dev's own source**, which
+And its numbers are not preference — `Thinking` is **ported from beautifului.dev's own source**, which
 is the standard `DESIGN-SYSTEM.md` sets.
 
 | Component | What it draws |
@@ -43,7 +43,7 @@ is the standard `DESIGN-SYSTEM.md` sets.
 | `RunRail`, `RunRailBreak` | the vertical spine connecting steps, and its discontinuity |
 
 **Ruled: backlog item 5 (the run's step list) composes `run-rows`. It does not invent one.** This is
-exactly the vocabulary asked for, it already matches beautifui.dev, and building a second one would
+exactly the vocabulary asked for, it already matches beautifului.dev, and building a second one would
 recreate the arbitrariness failure the file was written to end.
 
 ## The other unadopted components, and what each is for
@@ -67,7 +67,7 @@ and why that one did not serve.** A unit that cannot answer that is rejected on 
 
 ## What MAIN owes
 
-When a lane files a genuine gap, MAIN designs the primitive against **beautifui.dev as the floor**
+When a lane files a genuine gap, MAIN designs the primitive against **beautifului.dev as the floor**
 (ported from real source, never from a screenshot), builds it in `src/components/meridian/`,
 documents it in `docs/design/DESIGN-SYSTEM.md`, and answers the request with the component name and
 its props. **Lanes never add to `meridian/`.**

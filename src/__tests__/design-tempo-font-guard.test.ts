@@ -31,7 +31,7 @@ const BANNED_FACES: Array<{ name: string; pattern: RegExp }> = [
   // behind it, and it outlived the thing it was protecting.
   //
   // It is now the ADOPTED mono face of Meridian, on a founder ruling of
-  // 2026-08-15 to take beautifui.dev's typography across the whole app. It is
+  // 2026-08-15 to take beautifului.dev's typography across the whole app. It is
   // declared and self-hosted exactly like Plex: see the @font-face block in
   // src/styles/meridian.css ("--mrd-mono"), the woff2 in
   // public/fonts/jetbrains/, and the OFL note beside it.

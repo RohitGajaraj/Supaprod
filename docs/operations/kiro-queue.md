@@ -195,9 +195,9 @@ So you know what is covered and do not attempt it:
 
 **What you do not decide alone:** anything touching a migration, production data, or a claim about what is live. Those are not judgment calls, they are things the repo has already been burned by guessing at. Nine features once shipped that passed every test and did nothing in production, and none was found by reading code.
 
-### The bar is beautifui.dev, and it is a floor rather than an inspiration
+### The bar is beautifului.dev, and it is a floor rather than an inspiration
 
-**Founder ruling, 2026-08-19, stated three times in one session because the work kept missing it.** Meridian is not "inspired by" beautifui.dev. **It is ported from it.** Where a pattern exists there, the job is to mimic it, not to reinterpret it. Where one does not, the job is to build something that would not look out of place beside it.
+**Founder ruling, 2026-08-19, stated three times in one session because the work kept missing it.** Meridian is not "inspired by" beautifului.dev. **It is ported from it.** Where a pattern exists there, the job is to mimic it, not to reinterpret it. Where one does not, the job is to build something that would not look out of place beside it.
 
 > *"Just randomly, we cannot code and create some buttons, some random components. It needs to be a world-class, top-notch product."*
 
@@ -2120,7 +2120,7 @@ The standing rule since 2026-08-01: **research the best proven product in that c
 
 **What.** Build `src/components/meridian/Flowchart.tsx`: a node-and-edge canvas for showing a branching sequence, with a dotted ground, typed nodes, and orthogonal connectors.
 
-**Why.** **The reference ships twenty components and Meridian has nineteen.** `agent-audit-2026-08.md` §6 records "All 19 beautifui.dev components ported", which was true when written. Enumerated off the live site on 2026-08-20 there are **twenty**: Loading State · Thinking · Streaming Text · Approval Card · Tool Chips · Task Rows · Chat · Prompt Bar · Recommendation Card · Context Cards · Diff Table · Records Table · Filter Table · Sidebar Nav · Search · **Flowchart** · Insight Cards · Code Block · Fine-tune Card · Selection Actions. Every one but `Flowchart` has a Meridian file. `grep -rli flowchart src/` returns only `station-glyphs.tsx`, which is an icon, and the repo has **no graph library at all** (`reactflow`, `dagre`, `elkjs` all return nothing), so there is nothing to lean on.
+**Why.** **The reference ships twenty components and Meridian has nineteen.** `agent-audit-2026-08.md` §6 records "All 19 beautifului.dev components ported", which was true when written. Enumerated off the live site on 2026-08-20 there are **twenty**: Loading State · Thinking · Streaming Text · Approval Card · Tool Chips · Task Rows · Chat · Prompt Bar · Recommendation Card · Context Cards · Diff Table · Records Table · Filter Table · Sidebar Nav · Search · **Flowchart** · Insight Cards · Code Block · Fine-tune Card · Selection Actions. Every one but `Flowchart` has a Meridian file. `grep -rli flowchart src/` returns only `station-glyphs.tsx`, which is an icon, and the repo has **no graph library at all** (`reactflow`, `dagre`, `elkjs` all return nothing), so there is nothing to lean on.
 
 It also happens to be the primitive the direction already asked for. [`../planning/initiatives/agent-first-platform.md`](../planning/initiatives/agent-first-platform.md) §6.3 specifies **the Run Map, "a canvas for watching, not authoring"**, and there is currently no component that can draw one.
 

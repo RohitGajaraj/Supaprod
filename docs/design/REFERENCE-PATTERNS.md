@@ -1025,7 +1025,7 @@ described below.
 
 **Read this section before "fixing" anything back to match the source.** Each item below is a
 place where the reference is wrong for this product, and every one of them looks like a bug to
-someone comparing against beautifui.dev.
+someone comparing against beautifului.dev.
 
 ### Timing
 
@@ -1102,7 +1102,7 @@ browser tab, or use the payload and say so.
 
 ## The permission prompt, read off Claude Code, for `PlanGate` (K-23, 2026-08-20)
 
-**The reference for a gate is not beautifui.dev.** It documents twenty components and none of them
+**The reference for a gate is not beautifului.dev.** It documents twenty components and none of them
 is a permission prompt, which is the same kind of gap its missing form controls were: it is a
 vocabulary for agentic interfaces and this decision belongs to the class of things a coding agent
 does. So the reference named before building was **Claude Code's own permission prompt**, on the

@@ -419,7 +419,7 @@ it come back to you and you design it and pass it on?"*
 gutters, three subject sizes, and two with no time column — every one of which passed typecheck,
 tests and the ratchet. **A design system with three authors becomes three design systems**, and the
 drift is invisible to every automated check we have. MAIN also holds the two references a lane cannot
-see: Mobbin, and beautifui.dev as the floor to port from.
+see: Mobbin, and beautifului.dev as the floor to port from.
 
 **Why a lane is still never blocked.** The flow:
 
@@ -430,7 +430,7 @@ see: Mobbin, and beautifui.dev as the floor to port from.
 3. **MAIN reviews within the hour**, and does one of three things: names an existing Meridian
    component the lane missed; **promotes the lane's component into `src/components/meridian/`**,
    generalised, tokenised and documented in `docs/design/DESIGN-SYSTEM.md`; or designs a better one
-   against beautifui.dev and Mobbin and hands it back.
+   against beautifului.dev and Mobbin and hands it back.
 4. **The lane swaps its local component for the Meridian one** in a follow-up unit and deletes its own.
 
 **So the answer to "does it come back to you" is yes — but never as a blocker.** The lane keeps
@@ -493,7 +493,7 @@ stands, because that is one line of CSS, not a mobile product.
 **Founder:** *"Along with enterprise review you need to do the DESIGN review — absolutely delivering a
 premium platform. How modern, how premium, how ultra-premium. Stickiness high. And all the Meridian
 components should in some form be utilised across the surfaces, because Meridian is built on
-beautifui.dev."*
+beautifului.dev."*
 
 **Ruled: every lane push passes an ENTERPRISE review and a DESIGN review. Both are gates. Neither is
 advisory.** A push that is correct and cheap-looking is rejected, exactly as one that is beautiful
@@ -518,7 +518,7 @@ one.** If MAIN can fix it in place it fixes it (R-16 §2); if it is structural i
    as the happy path. **An empty state that does not say what to do next is a fail.** This is where
    cheap products are exposed, and ours has four of seven stations commonly producing nothing.
 6. **NO DEAD END.** Every surface offers the next action (R-03). A screen that only tells is a fail.
-7. **PORTED, NOT EYEBALLED.** beautifui.dev is the **floor**, and mechanics come from its real source,
+7. **PORTED, NOT EYEBALLED.** beautifului.dev is the **floor**, and mechanics come from its real source,
    never from a screenshot. A value chosen because it "looked right" is a fail; a value with a reason
    is not.
 8. **DENSITY EARNS ITS SPACE.** Premium is not empty. Every region either carries a fact the person
@@ -528,7 +528,7 @@ one.** If MAIN can fix it in place it fixes it (R-16 §2); if it is structural i
 
 **Target: every Meridian component is used somewhere real, or is deleted.** Measured 2026-08-25: 121
 components, 95 adopted, **17 real components built with no importer** — including `run-rows.tsx`,
-22.8KB of run vocabulary ported from beautifui.dev that nothing reached for while three surfaces each
+22.8KB of run vocabulary ported from beautifului.dev that nothing reached for while three surfaces each
 invented their own.
 
 - **Every design review asks, per region: which Meridian component serves this?** A region using a
@@ -537,7 +537,7 @@ invented their own.
   land. A component still unadopted after its natural surface ships gets **deleted with the reason**,
   because inventory nobody reaches for is the defect this whole mission is about.
 - **This is not decoration.** Meridian is where the premium already lives — it was ported from
-  beautifui.dev deliberately. **Using it IS the shortest path to the look the founder wants**, and
+  beautifului.dev deliberately. **Using it IS the shortest path to the look the founder wants**, and
   reinventing beside it is how the product got three gutters for one row.
 
 ### When a lane authors a Meridian component (with R-17)

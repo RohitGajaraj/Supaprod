@@ -3482,7 +3482,7 @@ different component.**
 
 ### What I did NOT verify, stated plainly
 
-**Visual quality against the beautifui.dev bar.** I checked structure, reuse,
+**Visual quality against the beautifului.dev bar.** I checked structure, reuse,
 enforcement and tests -- 26 pass, and the full suite is 9,915 with 0 failures on
 the merged tree, up 26 from before this landed. I did not look at it rendered, in
 either ground, at any width. **For a component whose whole purpose is a surface,
@@ -4758,7 +4758,7 @@ Delays: **1,434 of 1,435 are `0s`.** Easing: `ease-out` on 1,031.
 
   **The "enter 0s, exit 0.15s" prescription in the item is Linear's published
   scale, not the reference's measured behaviour.** For Meridian's own token file
-  the founder ruling names beautifui.dev as the floor. Linear is the right source
+  the founder ruling names beautifului.dev as the floor. Linear is the right source
   for K-24 and K-26 information models; it is not the source for this token.
 
 - Meridian's `--mrd-ease: cubic-bezier(0.22, 1, 0.36, 1)` is out-quint, the
@@ -5365,7 +5365,7 @@ this could be called verified.
 **One disagreement, recorded rather than acted on.** `--mrd-d-press` went 120 -> 100ms on the
 intersection of Linear and the reference. **On the reference alone, 0.12s is dominant by a
 distance: 827 of 1,435 transition declarations, against 96 at 0.1s.** The founder ruling names
-beautifui.dev as the floor for this file, not Linear, so by that rule 120ms was already
+beautifului.dev as the floor for this file, not Linear, so by that rule 120ms was already
 correct. **It is 20ms on a press acknowledgement and 0.1s is genuinely in the reference's
 scale, so this is not worth a rejection** -- but the reasoning is worth having on the record if
 the token is ever revisited, because "intersection of two references" and "dominant value on

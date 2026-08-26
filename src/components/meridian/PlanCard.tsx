@@ -52,7 +52,7 @@ import { Action, Actions, Approve } from "./surface-parts";
  *
  * The subject came DOWN from 13px to 12.5, which needs saying because the ratchet
  * law forbids shrinking type. The floor that law protects is Meridian and
- * beautifui.dev, never a number I picked two hours earlier: 12.5 is `Thinking`'s
+ * beautifului.dev, never a number I picked two hours earlier: 12.5 is `Thinking`'s
  * dense-trace row and this is a dense trace. The card's TITLE stays at 13, which
  * is the ladder's "a card's subject", a different role.
  *

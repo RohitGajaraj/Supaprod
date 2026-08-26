@@ -112,13 +112,13 @@ still guessing at. Full notes in that folder's README.
   Today · Approvals · Runs · Brain · Threads · Guardrails, which is our object model shown to a
   customer: the same mistake as the station menu R-01 killed. **This is how 84 routes become nine.**
 
-## 3. What this means against Meridian and beautifui.dev
+## 3. What this means against Meridian and beautifului.dev
 
 - **Meridian is the only system and it is not negotiable.** Tokens only: `--mrd-*`. No raw colour, no
   retired token. If the preview pane needs a primitive Meridian lacks — a step row with a live timer,
   a version chip, an inline question card — **file a request. That is a real Meridian gap and MAIN
   will build it in `src/components/meridian/`.** Never widen the baseline to pass.
-- **The bar is beautifui.dev exactly, and it is a floor, not an inspiration.** Port mechanics from
+- **The bar is beautifului.dev exactly, and it is a floor, not an inspiration.** Port mechanics from
   real source, never from a screenshot.
 - **Restraint on colour stands.** One colour for the fact the person came for — what is live now.
   Everything settled is quiet. The brand ember stays in the logo and never in an interaction state.
