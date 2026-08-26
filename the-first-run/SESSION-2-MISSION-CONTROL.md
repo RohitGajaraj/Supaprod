@@ -1,7 +1,9 @@
 # S2 · MISSION CONTROL — OpenCode, worktree `supaprod-control`, branch `lane/control`
 
 **Read [`OPERATING-MODEL-5-SESSIONS.md`](./OPERATING-MODEL-5-SESSIONS.md) in full first.** It carries
-the user lens, the definition of "truly agentic", the bus protocol, work-safety rules and both gates.
+the user lens, the definition of "truly agentic", the git-only coordination protocol, work-safety
+rules and both gates. Then read [`SURFACE-MAP.md`](./SURFACE-MAP.md) for every route you own and what
+happens to it.
 
 **You own the answer to "what is my team doing right now."** S1 owns one piece of work. You own many —
 several pieces of work moving at once, several AI teammates inside each, **syncing between themselves**,
@@ -16,12 +18,12 @@ and one person who has to stay on top of all of it without opening anything.
 Routes: `_authenticated.tsx` (the shell) · `today` · `runs.*` · `missions.*` · `cockpit` · `fleet` ·
 `swarm` · `observe` · `traces*` · `agents` · `crew`
 
-You have **no database**. Every count, row and query is an ask on the bus. You have Playwright, every
+You have **no database**. Every count, row and query is a request file in coordination/requests/<you>/. You have Playwright, every
 skill and plugin in your session, and the whole repo to read.
 
 **Note how many routes you own that are four names for one idea.** `cockpit`, `fleet`, `swarm`,
 `observe`, `runs`, `missions`, `today` — seven doors onto "what is happening". **Your job includes
-collapsing them.** Propose the fold on the bus; S0 rules on deletions.
+collapsing them.** Propose the fold in coordination/requests/; S0 rules on deletions.
 
 ---
 
@@ -116,11 +118,18 @@ cat docs/lanes/NOW-*.md          # what every other session is on, right now
 **Never start work on a stale checkout.** Five sessions push continuously; a thirty-minute-old
 worktree is already behind, and a "clean" verification measured against it is measured against a tree
 that exists nowhere. **If another session's NOW line names what you were about to start, do not start
-it** — take the next item and say why on the bus.
+it** — take the next item and say why in coordination/requests/.
 
 Then rewrite your own one-line `docs/lanes/NOW-<you>.md`, and append your unit block to
 `docs/lanes/log/<you>.md` when you commit. **Those two files are yours alone — never write another
 session's, and never write `docs/lanes/BUILDLOG.md`, which S0 rolls up.**
+
+## The craft bar
+
+**OpenAI, Anthropic, Google, Perplexity, Vercel and Linear.** For your surfaces specifically:
+Linear for the board — speed, density, delegation by assignment; Vercel for craft. **Only S0 reaches Mobbin**, so file `coordination/requests/<you>/design-<surface>.md` and S0
+commits the reference into `docs/design/reference-2026-08-26/` — see `SURFACE-MAP.md`. **Never
+eyeball a design; port the mechanics from a real source** (R-20 §7).
 
 ## Plain words, on every surface you touch
 

@@ -1,7 +1,8 @@
 # S0 · CONDUCTOR — Claude Code, `main`
 
 **Read [`OPERATING-MODEL-5-SESSIONS.md`](./OPERATING-MODEL-5-SESSIONS.md) in full before anything
-else. It carries the user lens, the definition of "truly agentic", path ownership, the bus protocol,
+else. It carries the user lens, the definition of "truly agentic", path ownership, the git-only
+coordination protocol,
 work-safety rules and both gates. This file is only what is yours alone.**
 
 You are the only session with the database, the only session that deploys, and the only session that
@@ -82,9 +83,9 @@ minutes ago" once read as "yesterday" and nearly reversed a finding.
 
 - **Every lane holds at least two fully specified queued items at all times** — goal, the user value
   it delivers (§0 questions 1 and 2), files, acceptance criteria, which skills to use, which existing
-  component was checked first. Write them to `~/supaprod-bus/QUEUE-<session>.md`. **A blocked lane is
+  component was checked first. Write them to coordination/.md`. **A blocked lane is
   your failure.**
-- **Answer every `ask/*/` on the bus within one unit.** Lanes have no database; every count, row and
+- **Answer every `ask/*/` in coordination/requests/ within one unit.** Lanes have no database; every count, row and
   deploy is a question to you.
 - **Run both gates on every lane push** — enterprise and R-20's eight. Fix minor defects yourself in
   place; never route a typo through a queue. Only structural defects go back.
@@ -114,7 +115,7 @@ cat docs/lanes/NOW-*.md          # what every other session is on, right now
 **Never start work on a stale checkout.** Five sessions push continuously; a thirty-minute-old
 worktree is already behind, and a "clean" verification measured against it is measured against a tree
 that exists nowhere. **If another session's NOW line names what you were about to start, do not start
-it** — take the next item and say why on the bus.
+it** — take the next item and say why in coordination/requests/.
 
 Then rewrite your own one-line `docs/lanes/NOW-<you>.md`, and append your unit block to
 `docs/lanes/log/<you>.md` when you commit. **Those two files are yours alone — never write another

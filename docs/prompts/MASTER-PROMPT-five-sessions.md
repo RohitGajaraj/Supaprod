@@ -23,8 +23,8 @@ MCPs, every skill, agent, plugin and extension in the session reminder — is av
 and all five are told to use whatever they have.
 
 **Setup, once:** create the four Conductor workspaces above from `main`, then
-`mkdir -p ~/supaprod-bus/{heartbeat,claims}` and the `ask/answer/broadcast` folders per session — or
-just check `~/supaprod-bus/BUS.md`, which already exists and explains itself.
+`mkdir -p coordination/,claims}` and the `ask/answer/broadcast` folders per session — or
+just check coordination/.md`, which already exists and explains itself.
 
 ---
 
@@ -38,7 +38,7 @@ Then read, in full and in order:
   the-first-run/OPERATING-MODEL-5-SESSIONS.md   <- every rule, read all of it
   the-first-run/SESSION-0-CONDUCTOR.md          <- your job
   docs/research/agentic-product-patterns-2026-08.md
-Then ~/supaprod-bus/BUS.md and cat docs/lanes/NOW-*.md.
+Then cat docs/lanes/NOW-*.md and every coordination/requests/*/.
 
 You are the only session with the database (Lovable MCP), the only one that deploys or publishes,
 the only one that merges to main, and the only one that may touch src/lib/spine/**. Re-authorize
@@ -60,7 +60,7 @@ Your first four moves, in order:
 3. Build gap #1 from OPERATING-MODEL §0.6: stations must check their own output before handing on,
    and retry with the failure in context rather than dying at MAX_STATION_ATTEMPTS. This is the
    highest-value change in the product.
-4. Fill ~/supaprod-bus/QUEUE-S1..S4.md with two fully specified items each, then keep them at two or
+4. Fill docs/lanes/QUEUE-S1..S4.md with two fully specified items each, then keep them at two or
    more forever. A blocked lane is your failure, not theirs.
 
 Also: START-HERE.md points at docs/design-reference/mobbin-2026-08/ which does not exist. Pull Mobbin
@@ -91,12 +91,12 @@ Then read, in full and in order:
   the-first-run/SESSION-1-THE-RUN.md            <- your job
   the-first-run/THE-ONE-SCREEN.md
   the-first-run/SPEC-PRESENCE.md and SPEC-MULTIPLAYER-PRESENCE.md
-Then ~/supaprod-bus/BUS.md and ~/supaprod-bus/QUEUE-S1.md.
+Then docs/lanes/QUEUE-S1.md and coordination/answers/S1/.
 
 You own the screen the whole product is judged on: one piece of work, from handover to verdict.
 You own src/components/{track,spine,presence,decisions,learn,ask,discover}/** and the routes
 track.$trackId, start, decide, learn, discover. Write nothing else, ever. You have no database —
-every count, row or deploy is an ask on the bus to S0, who answers in minutes.
+every count, row or deploy is a request file in coordination/requests/<you>/ to S0, who answers in minutes.
 
 Work continuously and autonomously until I say STOP.
 
@@ -136,7 +136,7 @@ Then read, in full and in order:
   the-first-run/SESSION-2-MISSION-CONTROL.md    <- your job
   the-first-run/SPEC-MULTIPLAYER-PRESENCE.md    <- a build spec, not a suggestion
   docs/research/agentic-product-patterns-2026-08.md
-Then ~/supaprod-bus/BUS.md and ~/supaprod-bus/QUEUE-S2.md.
+Then docs/lanes/QUEUE-S2.md and coordination/answers/S2/.
 
 You own the answer to "what is my team doing right now" — many pieces of work at once, several AI
 teammates inside each, syncing between themselves, and one person staying on top of all of it
@@ -144,9 +144,9 @@ without opening anything.
 
 You own src/components/{shell,runs,today,observe,crew,agents,traces,mission,missions}/** and the
 routes _authenticated.tsx, today, runs.*, missions.*, cockpit, fleet, swarm, observe, traces*,
-agents, crew. Write nothing else. You have no database — everything is an ask on the bus to S0.
+agents, crew. Write nothing else. You have no database — everything is a request file in coordination/requests/<you>/ to S0.
 
-You own seven doors onto one idea. Collapsing them is part of the job: propose the fold on the bus,
+You own seven doors onto one idea. Collapsing them is part of the job: propose the fold in coordination/requests/,
 S0 rules on deletions. Apply the plain-word rename map in OPERATING-MODEL §12 inside your prefix.
 
 Work continuously and autonomously until I say STOP.
@@ -184,7 +184,7 @@ Then read, in full and in order:
   the-first-run/SESSION-3-THE-PLATFORM.md       <- your job
   the-first-run/THE-ONE-SCREEN.md
   docs/strategy/positioning-locked-2026-08.md   <- the banned words, before you write any copy
-Then ~/supaprod-bus/BUS.md and ~/supaprod-bus/QUEUE-S3.md.
+Then docs/lanes/QUEUE-S3.md and coordination/answers/S3/.
 
 You own everything between "a stranger arrives" and "they are working", plus everything that makes
 this a product a company can buy: onboarding, account and workspace creation, members, settings,
@@ -194,7 +194,7 @@ You own src/components/{onboarding,settings,billing,admin,system,governance,engi
 plg,public,landing}/**, src/styles/** except meridian.css, and the routes settings, onboarding,
 admin.*, integrations, notifications, boundary, govern, guardrails, engine-room, budgets, approvals,
 login, signup, forgot-password, checkout*. Write nothing else. You have no database — everything is
-an ask on the bus to S0.
+a request file in coordination/requests/<you>/ to S0.
 
 Work continuously and autonomously until I say STOP.
 
@@ -233,7 +233,7 @@ Then read, in full and in order:
   the-first-run/OPERATING-MODEL-5-SESSIONS.md      <- every rule, read all of it
   the-first-run/SESSION-4-THE-PROVING-GROUND.md    <- your job
   the-first-run/FINDINGS-LEDGER.md                 <- read before re-investigating anything
-Then ~/supaprod-bus/BUS.md and ~/supaprod-bus/QUEUE-S4.md.
+Then docs/lanes/QUEUE-S4.md and coordination/answers/S4/.
 
 You write no product code. None. You own e2e/** and docs/lanes/verify/** and nothing else in this
 repository. You cannot fix what you find — you prove it, name it precisely, and hand it back. A

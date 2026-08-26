@@ -113,5 +113,6 @@ It is something we have to feed.
 | [`SESSION-2-MISSION-CONTROL.md`](./SESSION-2-MISSION-CONTROL.md) | Many pieces of work at once, and the multiplayer cursor layer |
 | [`SESSION-3-THE-PLATFORM.md`](./SESSION-3-THE-PLATFORM.md) | The sixty seconds, the boundary, and everything a company must have to buy this |
 | [`SESSION-4-THE-PROVING-GROUND.md`](./SESSION-4-THE-PROVING-GROUND.md) | Writes no product code. Proves or disproves every claim the other four make |
+| [`SURFACE-MAP.md`](./SURFACE-MAP.md) | **Every route and every component directory in the repo, with its owner and what happens to it** — keep, fold, delete, or audit-first. 113 routes become roughly 41. Also holds the design-reference protocol: only S0 reaches Mobbin, so lanes request through `coordination/requests/` and S0 commits the reference so every worktree can see it. |
 | [`SPEC-MULTIPLAYER-PRESENCE.md`](./SPEC-MULTIPLAYER-PRESENCE.md) | Named, coloured teammates with live cursors across every surface — and the law that stops it being theatre |
 

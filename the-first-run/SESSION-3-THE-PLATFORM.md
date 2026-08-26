@@ -1,7 +1,9 @@
 # S3 · THE PLATFORM — OpenCode, worktree `supaprod-platform`, branch `lane/platform`
 
 **Read [`OPERATING-MODEL-5-SESSIONS.md`](./OPERATING-MODEL-5-SESSIONS.md) in full first.** It carries
-the user lens, the definition of "truly agentic", the bus protocol, work-safety rules and both gates.
+the user lens, the definition of "truly agentic", the git-only coordination protocol, work-safety
+rules and both gates. Then read [`SURFACE-MAP.md`](./SURFACE-MAP.md) for every route you own and what
+happens to it.
 
 **You own everything between "a stranger arrives" and "they are working" — and everything that makes
 this a product a company can actually buy.** S1 and S2 build the thing. You build the reason a person
@@ -18,7 +20,7 @@ Routes: `settings` · `onboarding` · `admin.*` · `integrations` · `notificati
 `govern` · `guardrails` · `engine-room` · `budgets` · `approvals` · `login` · `signup` ·
 `forgot-password` · `checkout*`
 
-You have **no database**. Every count, row and query is an ask on the bus. You have Playwright, every
+You have **no database**. Every count, row and query is a request file in coordination/requests/<you>/. You have Playwright, every
 skill and plugin in your session, and the whole repo to read.
 
 ---
@@ -85,7 +87,7 @@ mobile is.
 ### 4 · 119 routes, and what they should be
 
 `REIMAGINING.md` argues nine surfaces. Most of the deletable ones are in your prefix. **Map which of
-your routes fold into which, propose it on the bus with the reasoning, and let S0 rule.** Never delete
+your routes fold into which, propose it in coordination/requests/ with the reasoning, and let S0 rule.** Never delete
 a route unilaterally, and never leave a fold half-done — a route folded without its callers redirected
 is a 404 in production.
 
@@ -118,11 +120,18 @@ cat docs/lanes/NOW-*.md          # what every other session is on, right now
 **Never start work on a stale checkout.** Five sessions push continuously; a thirty-minute-old
 worktree is already behind, and a "clean" verification measured against it is measured against a tree
 that exists nowhere. **If another session's NOW line names what you were about to start, do not start
-it** — take the next item and say why on the bus.
+it** — take the next item and say why in coordination/requests/.
 
 Then rewrite your own one-line `docs/lanes/NOW-<you>.md`, and append your unit block to
 `docs/lanes/log/<you>.md` when you commit. **Those two files are yours alone — never write another
 session's, and never write `docs/lanes/BUILDLOG.md`, which S0 rolls up.**
+
+## The craft bar
+
+**OpenAI, Anthropic, Google, Perplexity, Vercel and Linear.** For your surfaces specifically:
+Vercel for the marketing and empty-state craft, Linear for settings density and speed. **Only S0 reaches Mobbin**, so file `coordination/requests/<you>/design-<surface>.md` and S0
+commits the reference into `docs/design/reference-2026-08-26/` — see `SURFACE-MAP.md`. **Never
+eyeball a design; port the mechanics from a real source** (R-20 §7).
 
 ## Plain words, on every surface you touch
 

@@ -82,7 +82,7 @@ opportunities). **We built the graph and never drew it.**
   exists in the data.** A unit that adds a destination is rejected on review.
 - **Before adding a route, component or page, say in your unit file which of the three surfaces it
   lives inside.** If the honest answer is "its own", the answer is no.
-- **S0 arbitrates every fold and owns every deletion.** Propose on the bus, with the callers you
+- **S0 arbitrates every fold and owns every deletion.** Propose in coordination/requests/, with the callers you
   found and where they redirect to. **A route folded without its callers redirected is a 404 in
   production.**
 - **The measure of a good session is that the count went down.** Routes, components, doors, concepts.
@@ -157,12 +157,15 @@ re-derives it.
     — *S3.*
 
 **A gap you find that is not on this list is still authorised** if it passes the four-part test. Put it
-on the bus, build it, and add it here with its evidence.
+in coordination/requests/, build it, and add it here with its evidence.
 
 ### The standard, stated so it can be failed
 
-*"If OpenAI, Anthropic, Google or Perplexity shipped this, how would it behave on day one?"* Not a
-mood — these eight, and any one of them failing is a fail:
+*"If OpenAI, Anthropic, Google, Perplexity, **Vercel** or **Linear** shipped this, how would it behave
+on day one?"* The last two are the sharpest craft references available and the founder named them:
+**Vercel** for surface craft, motion, empty states and the sandbox shape; **Linear** for speed,
+keyboard-first density, and delegation-by-assignment done without inventing vocabulary. Not a mood —
+these eight, and any one of them failing is a fail:
 
 1. **It works the first time for someone who was told nothing.** No tour, no tooltip, no docs link.
 2. **Work starts visibly in under a second.** Nothing blocks on a spinner past ~2s without saying, in
@@ -245,7 +248,7 @@ description of it.
 ## 3 · The five sessions and what each owns
 
 Ownership is by path and it is absolute. **Two writers on one path is what broke `main` on
-2026-08-22.** If you need a file outside your prefix, file an ask on the bus. Never reach in, not
+2026-08-22.** If you need a file outside your prefix, file a request file in coordination/requests/<you>/. Never reach in, not
 even for a one-line fix, not even when you are certain.
 
 | | Runs on | Worktree / branch | Owns (writes) |
@@ -258,6 +261,11 @@ even for a one-line fix, not even when you are certain.
 
 **Everything not listed is read-only to everyone but S0.** Read the whole repo freely; write only your
 prefix.
+
+**[`SURFACE-MAP.md`](./SURFACE-MAP.md) is the complete version of this table** — all 113 product
+routes and all 50 component directories, each with an owner and a disposition (keep, fold, delete, or
+audit-first). **Nothing is unassigned.** If a path is not in it, it was added after 2026-08-26 and
+needs an owner before anyone writes in it.
 
 **Why S4 writes no product code at all.** R-11: a lane never signs off its own work. Every session
 has an incentive to believe its own unit shipped, and this repo has paid for that belief repeatedly —
@@ -277,56 +285,55 @@ does not exist.** The brain earns its first pixel when the first real learning e
 
 ---
 
-## 4 · How five worktrees actually talk to each other
+## 4 · How five worktrees talk to each other — git, and only git
 
-Conductor gives each session an isolated git worktree of this repo on **one Mac**. That gives us two
-channels, and they do different jobs. Using the wrong one is how the last three weeks lost work.
+**Founder's ruling, 2026-08-26: "this communication needs to be established only through GIT, because
+that is the only common channel for all of you."** An earlier draft of this section proposed a local
+directory outside the repo as a fast side-channel. **That is retired.** It was invisible to anything
+but this one Mac, it left no record, and a second channel is a second place to forget to look.
 
-### Channel A — git. Durable, reviewable, survives everything.
+**Everything goes through git. All of it. And the design that makes that work is one writer per
+path** — no two sessions ever write the same file, so there is never a merge, never a lock, and never
+a lost write. A file three sessions write is a file three sessions lose; that already happened here,
+three handoffs overwritten inside ten minutes.
 
-- Each lane lives on its own branch and **pushes every single commit**: `git push -u origin HEAD`.
-- **S0 is the only session that merges into `main`.** Lanes never push to `main`. Lovable deploys from
-  `main`, so a lane pushing straight there ships a half-finished surface to production.
-- Start of every unit, without exception: `git fetch origin && git merge --no-edit origin/main`.
-  A behind-count is measured against your branch's configured upstream, not against `main` — so fetch
-  and merge explicitly rather than trusting a status line.
-- **Verify on the merged tree, never on your own.** Three worktrees each report "clean" against a tree
-  missing the other two lanes' work. Merge `origin/main` before you claim anything is green.
+| Path | Who writes it | What it is |
+| --- | --- | --- |
+| `docs/lanes/NOW-<S>.md` | that session only | **One line**, rewritten every unit. The merged view of the whole fleet is `cat docs/lanes/NOW-*.md` |
+| `docs/lanes/log/<S>.md` | that session only | Append-only unit history. Merged view: `cat docs/lanes/log/*.md \| sort` |
+| `docs/lanes/QUEUE-<S>.md` | **S0** only | The next items. That session reads, never writes |
+| `coordination/requests/<S>/*.md` | that session only | Anything only S0 can do: a DB count, a deploy, a migration, a design reference, a ruling, a blocked path |
+| `coordination/answers/<S>/*.md` | **S0** only | The answer, naming the committed path of anything it produced |
+| `docs/lanes/verify/*.md` | **S4** only | Verdicts |
+| `docs/lanes/BUILDLOG.md` | **S0** only | The rolled-up narrative. **No lane writes it any more** |
+| `docs/design/reference-2026-08-26/**` | **S0** only | Mobbin pulls, committed so the lanes can see them |
 
-### Channel B — the local bus. Fast, and conflict-free by construction.
+### The cadence
 
-A directory **outside every worktree**, so it is never in a diff and never merges:
+**Before every unit** — not once at session start:
 
+```bash
+git fetch origin && git rebase origin/main
+cat docs/lanes/NOW-*.md                 # what every other session is on, right now
+cat coordination/answers/<you>/*.md     # anything S0 answered since your last pull
+cat docs/lanes/QUEUE-<you>.md           # what is next
 ```
-/Users/rohitgajaraj/supaprod-bus/
-  heartbeat/<session>.json          # ONLY that session writes it
-  claims/<session>.jsonl            # append-only: paths this session is touching right now
-  ask/<session>/NNN-slug.md         # session -> S0: a DB query, a deploy, a ruling, a blocked path
-  answer/<session>/NNN-slug.md      # S0 -> session
-  broadcast/<session>/<ts>-slug.md  # anything every session should see
-  QUEUE-<session>.md                # S0 writes, that session reads only
-```
 
-**The one rule that makes this work: you write only files that carry your own name, and you read
-everyone's.** No two sessions ever write the same file, so there is no merge, no lock, and no lost
-write. A shared handoff file written by three lanes at once is how three sessions overwrote each
-other inside ten minutes on 2026-08-25.
+**If another session's NOW line names what you were about to start, do not start it.** Take the next
+item and say why in your own NOW line. That is the entire purpose of the file.
 
-Cadence:
-- **Every session, every unit:** rewrite your `heartbeat/<session>.json` — current item, last commit
-  sha, ISO timestamp, and whether a dev server is alive. Append to `claims/<session>.jsonl` the paths
-  you are about to touch, and append a `release` line when you commit.
-- **Before you touch a path,** grep every other session's `claims/*.jsonl` for it. If it is claimed and
-  not released, file an ask instead of writing.
-- **Every session, between units:** read `QUEUE-<you>.md`, `answer/<you>/`, and everyone's
-  `broadcast/`. Newest first.
-- **S0, every unit:** read all `ask/*/`, answer within one unit, and keep every lane holding at least
-  two fully specified queued items. **A blocked lane is S0's failure, not the lane's.**
+**After every unit:** rewrite your `NOW-<S>.md`, append to `log/<S>.md`, commit explicit paths, push.
+**Pushing is how you speak.** An unpushed commit is a thought nobody heard.
 
-If the bus directory does not exist, create it. It is intentionally not in git; the durable record of
-anything that mattered goes into a commit.
+**S0, every unit:** read every `coordination/requests/*/`, answer within one unit, and keep every lane
+holding at least two fully specified queued items. **A blocked lane is S0's failure, not the lane's.**
 
----
+### Branches
+
+Each lane lives on its own branch and pushes every commit: `git push -u origin HEAD`. **S0 is the only
+session that merges into `main`** — Lovable deploys from `main`, so a lane pushing straight there
+ships a half-finished surface to production. **Verify on the merged tree, never on your own:** five
+worktrees means every session can report "clean" against a tree that exists nowhere.
 
 ## 5 · Sync first, then work safety. Both non-negotiable.
 
@@ -429,7 +436,7 @@ what the others are on and not duplicate it. **The design constraint is that a f
 write is a file three sessions lose:** on 2026-08-25 three sessions closed within ten minutes and each
 overwrote the others' handoff.
 
-**So: one file per session, single writer, and the merged view is a `cat`.** Same law as the bus.
+**So: one file per session, single writer, and the merged view is a `cat`.** Same law as section 4.
 
 ### `docs/lanes/NOW-<S>.md` — exactly one line, rewritten by its owner every unit
 
@@ -447,9 +454,9 @@ git fetch origin && git show origin/main:docs/lanes/NOW-S0.md origin/main:docs/l
 ```
 
 **If another lane's line names what you were about to start, do not start it.** Take the next item
-instead and say why on the bus. That is the whole point of the file.
+instead and say why in coordination/requests/. That is the whole point of the file.
 
-Sub-minute latency lives on the local bus (`~/supaprod-bus/heartbeat/<S>.json`), which does not need a
+Sub-minute latency lives on the local bus (`docs/lanes/NOW-<S>.md`), which does not need a
 push to be visible. The `NOW-` file is the durable version that survives a fetch from any worktree.
 
 ### `docs/lanes/log/<S>.md` — your own append-only history
@@ -528,7 +535,7 @@ unre-checkable because nobody wrote down the query.
   reopened, whatever the buildlog says.
 
 **If a credit, quota or auth limit stops you** — Lovable token expiry, an MCP that will not connect, a
-model quota — **say so in one line on the bus and switch tools rather than reporting a blocker.**
+model quota — **say so in one line in coordination/requests/ and switch tools rather than reporting a blocker.**
 Playwright, chrome-devtools and the Chrome plugin are three separate paths to a browser. Only a
 credential boundary is a real blocker, and for those the founder has granted standing authority to
 re-authorize: file the ask, name exactly what you need, and keep working on everything that does not

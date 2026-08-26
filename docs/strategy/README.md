@@ -59,6 +59,7 @@ Everything in [`archive/`](./archive/) is history. It is kept so a decision can 
 | [`archive/v7-agentic-product-os.md`](./archive/v7-agentic-product-os.md) | Positioning and market detail | v11, and the current claim in [`../../README.md`](../../README.md). |
 | `v1` to `v6`, `v4-stress-test`, `v5-chief-of-staff` | Earlier positioning, the wedge UX, the adversarial review | v11. |
 | [`archive/v4-feature-map.md`](./archive/v4-feature-map.md) | The engine and agent-mesh map | Superseded for positioning, but it is still **the fullest description of the agent mesh, the handoff contract and the HITL gate matrix**. Read it for that alone. |
+| [`layer-2-build-question-2026-08.md`](./layer-2-build-question-2026-08.md) | **Should Supaprod generate the code too, like Lovable and Replit?** (2026-08-26, proposal, founder ruling pending). The answer is no to codegen — that market is over $48B and our neutrality is what makes layers 1 and 3 valuable — **yes to owning the handoff**, which is what Build already is and has never finished, and one exception that is not optional: a sandboxed first-party build path so a run can close and a stranger can see a full loop with zero setup. Ends with the single ruling being asked for. |
 
 ---
 

@@ -1,7 +1,9 @@
 # S4 · THE PROVING GROUND — OpenCode, worktree `supaprod-proof`, branch `lane/proof`
 
 **Read [`OPERATING-MODEL-5-SESSIONS.md`](./OPERATING-MODEL-5-SESSIONS.md) in full first.** It carries
-the user lens, the definition of "truly agentic", the bus protocol, work-safety rules and both gates.
+the user lens, the definition of "truly agentic", the git-only coordination protocol, work-safety
+rules and both gates. Then read [`SURFACE-MAP.md`](./SURFACE-MAP.md) for every route you own and what
+happens to it.
 
 **You write no product code. None.** You own `e2e/**` and `docs/lanes/verify/**` and nothing else in
 this repository. You cannot fix what you find — you can only prove it, name it precisely, and hand it
@@ -34,15 +36,15 @@ reproduce is reopened, whatever it says.
 
 ### The loop
 
-1. Read `docs/lanes/BUILDLOG.md` for units claimed since your last pass, and the bus
-   (`~/supaprod-bus/broadcast/*/`) for anything a session wants proven.
+1. Read every `docs/lanes/log/*.md` for units claimed since your last pass, and every
+   `coordination/requests/*/` for anything a session wants proven.
 2. `git fetch origin && git merge --no-edit origin/main` — **verify on the merged tree, never on your
    own.** Five worktrees means every session reports "clean" against a tree missing the others' work.
 3. For each claim: **do the thing a user would do**, in a browser, and record what actually happened.
 4. Write `docs/lanes/verify/<date>-<unit>.md`: the claim as made, what you did, what happened, the
    verdict — **CONFIRMED / FALSE / UNREPRODUCIBLE** — and for anything short of CONFIRMED, the
    narrowest reproduction.
-5. Commit, push, and broadcast the verdict on the bus. Append to `BUILDLOG.md` — **append, never
+5. Commit, push, and broadcast the verdict in coordination/requests/. Append to `BUILDLOG.md` — **append, never
    replace**; five sessions write it.
 
 ### The rules of evidence
@@ -72,7 +74,7 @@ reproduce is reopened, whatever it says.
 production rows, and six duplicates once starved the very track we were watching — its "proof" ids
 were abandoned at `sense`. Start a local dev server for the check, **stop it the moment the check is
 done** (R-21 — three servers on this laptop has forced a restart), or use the guarded workspace S0
-names on the bus.
+names in coordination/requests/.
 
 ---
 
@@ -101,7 +103,7 @@ cat docs/lanes/NOW-*.md          # what every other session is on, right now
 **Never start work on a stale checkout.** Five sessions push continuously; a thirty-minute-old
 worktree is already behind, and a "clean" verification measured against it is measured against a tree
 that exists nowhere. **If another session's NOW line names what you were about to start, do not start
-it** — take the next item and say why on the bus.
+it** — take the next item and say why in coordination/requests/.
 
 Then rewrite your own one-line `docs/lanes/NOW-<you>.md`, and append your unit block to
 `docs/lanes/log/<you>.md` when you commit. **Those two files are yours alone — never write another

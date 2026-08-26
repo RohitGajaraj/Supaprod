@@ -1,7 +1,9 @@
 # S1 · THE RUN — OpenCode, worktree `supaprod-run`, branch `lane/run`
 
 **Read [`OPERATING-MODEL-5-SESSIONS.md`](./OPERATING-MODEL-5-SESSIONS.md) in full first.** It carries
-the user lens, the definition of "truly agentic", the bus protocol, work-safety rules and both gates.
+the user lens, the definition of "truly agentic", the git-only coordination protocol, work-safety
+rules and both gates. Then read [`SURFACE-MAP.md`](./SURFACE-MAP.md) for every route you own and what
+happens to it.
 
 **You own the screen the whole product is judged on.** If a person cannot hand over a piece of work,
 watch it get done, review what came back and be told whether it worked — on one surface, without
@@ -16,7 +18,7 @@ navigating and without being taught anything — nothing the other four sessions
 Routes: `_authenticated.track.$trackId.tsx` · `_authenticated.start.tsx` ·
 `_authenticated.decide.tsx` · `_authenticated.learn.tsx` · `_authenticated.discover.tsx`
 
-You have **no database**. Every count, row, query and deploy is an ask on the bus. You have
+You have **no database**. Every count, row, query and deploy is a request file in coordination/requests/<you>/. You have
 Playwright, every skill and plugin in your session, and the whole repo to read.
 
 ---
@@ -130,11 +132,18 @@ cat docs/lanes/NOW-*.md          # what every other session is on, right now
 **Never start work on a stale checkout.** Five sessions push continuously; a thirty-minute-old
 worktree is already behind, and a "clean" verification measured against it is measured against a tree
 that exists nowhere. **If another session's NOW line names what you were about to start, do not start
-it** — take the next item and say why on the bus.
+it** — take the next item and say why in coordination/requests/.
 
 Then rewrite your own one-line `docs/lanes/NOW-<you>.md`, and append your unit block to
 `docs/lanes/log/<you>.md` when you commit. **Those two files are yours alone — never write another
 session's, and never write `docs/lanes/BUILDLOG.md`, which S0 rolls up.**
+
+## The craft bar
+
+**OpenAI, Anthropic, Google, Perplexity, Vercel and Linear.** For your surfaces specifically:
+Vercel for surface craft and motion, Linear for speed and keyboard-first density. **Only S0 reaches Mobbin**, so file `coordination/requests/<you>/design-<surface>.md` and S0
+commits the reference into `docs/design/reference-2026-08-26/` — see `SURFACE-MAP.md`. **Never
+eyeball a design; port the mechanics from a real source** (R-20 §7).
 
 ## Plain words, on every surface you touch
 
