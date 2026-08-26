@@ -169,7 +169,7 @@ export function deriveCharacter(input: PresenceInput): Presence {
   if (input.feedDead) {
     return {
       state: "out-of-touch",
-      line: "I've lost sight of the run — the reads are failing. The work itself may be fine.",
+      line: "I've lost sight of the run. The reads are failing. The work itself may be fine.",
     };
   }
 
@@ -210,14 +210,14 @@ export function deriveCharacter(input: PresenceInput): Presence {
   if (hold === ASKING_HOLD) {
     return {
       state: "asking",
-      line: "I need you for this one — the question is on the card below.",
+      line: "I need you for this one. The question is on the card below.",
     };
   }
 
   if (hold === BLOCKED_HOLD) {
     return {
       state: "blocked",
-      line: "A door I need is locked. Reconnect it and start me again — redoing the work would not open it.",
+      line: "A door I need is locked. Reconnect it and start me again. Redoing the work would not open it.",
     };
   }
 
@@ -225,7 +225,7 @@ export function deriveCharacter(input: PresenceInput): Presence {
     if (input.currentTool) {
       return { state: "working", line: `I'm ${verbForTool(input.currentTool)}.` };
     }
-    return { state: "thinking", line: "I'm on it — you can leave this page and I'll keep going." };
+    return { state: "thinking", line: "I'm on it, you can leave this page and I'll keep going." };
   }
 
   if (input.result?.stopped === "finished" || hold === DONE_HOLD) {
@@ -247,14 +247,14 @@ export function deriveCharacter(input: PresenceInput): Presence {
   if (hold) {
     return {
       state: "awake",
-      line: "I've stopped — the reason is on the hold line. I'll carry on when it clears.",
+      line: "I've stopped. The reason is on the hold line, and I'll carry on when it clears.",
     };
   }
 
   if (input.track.drivenAt === null) {
     return {
       state: "awake",
-      line: "I'm ready — press run and I'll walk this from the top.",
+      line: "I'm ready, press run and I'll walk this from the top.",
     };
   }
 

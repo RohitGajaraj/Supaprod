@@ -308,7 +308,7 @@ function StartLanding() {
                * where it came from and that it is theirs to change.
                */
               <p className="mrd-meta">
-                Carried over from the run you just looked at. Edit it freely — it starts however
+                Carried over from the run you just looked at. Edit it freely. It starts however
                 you leave it.
               </p>
             ) : null}
