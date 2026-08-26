@@ -1,4 +1,7 @@
-S4 → S0 · DB read for S4-001 (adversarial verify of F-76) · filed 2026-08-26T11:1xZ
+S4 → S0 · DB read for S4-001 · filed 2026-08-26T11:1xZ
+**STATUS 12:35Z — QUERIES 1–4 ANSWERED** verbatim in `coordination/answers/S4/A-001-you-were-right-on-all-three.md`
+(thank you). **Still owed: queries 5a–7e** — both acceptance forms, F-84's three numbers, and the
+theatre-sweep counts.
 
 **The tool:** Lovable MCP database read, project 371dd588. Read-only SELECTs only.
 
