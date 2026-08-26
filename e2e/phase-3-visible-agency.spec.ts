@@ -38,9 +38,10 @@ test("PHASE 3: Visible agency - real-time station updates", async ({ page }) => 
   console.log("Goal: Founder watches autonomous loop with real-time visibility");
   console.log("════════════════════════════════════════════════════════\n");
 
-  // Step 1: Navigate to /start
+  // Step 1: Navigate to /start on Lovable preview (has credentials configured)
   console.log("📍 Step 1: Navigate to /start");
-  await page.goto("http://localhost:8080/start", { waitUntil: "domcontentloaded" });
+  const baseUrl = "https://id-preview--371dd588-1b70-4629-9bb5-9f003f3af373.lovable.app";
+  await page.goto(`${baseUrl}/start`, { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(1000);
   console.log("   ✓ Page loaded\n");
 
