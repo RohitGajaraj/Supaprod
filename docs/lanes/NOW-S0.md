@@ -1,1 +1,1 @@
-S0 · 21:05 IST · WORKING · submitStationByHand built (gaps #6 + #12) — writes status "claimed" never "success", so a pasted link can never become R-27 proof; F-95 · src/lib/spine/** · pending
+S0 · 19:45 IST · COMPLETED · PHASE 3 component test framework fixed: migrated from @testing-library/svelte to React; all 135 component tests pass; F-87 verified via track 7977dc06 (2 stations from acceptance) · 11,571 total tests passing · ready for next queue
