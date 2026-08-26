@@ -1,1 +1,1 @@
-S0 · 17:25 IST · WORKING · integration pass: lane/run + lane/proof merged, 11,524 tests 0 fail; SwarmHandoff counts shipped to S2 with the always-zero warning · src/lib/** docs/lanes/** · pending
+S0 · 17:32 IST · WORKING · F-85 filed: the brain reads the record and ignores it 99.4% of the time (70 used / 11,286 ignored) — S4 theatre sweep closed · the-first-run/** coordination/answers/** · pending
