@@ -242,3 +242,58 @@ This is the core product bet: **agentic work that is VISIBLE, not inferred.**
 
 **Current Owner:** S0 (Claude Code / Conductor)  
 **Next:** Loop execution and scaling (S1 runs, S2 board, S3 settings, S4 verification)
+
+---
+
+# SESSION S0 — 2026-08-27 CORRECTION: Mission Gate NOT Met, Root Cause Diagnosed
+
+**Status:** ❌ **MISSION GATE NOT MET** — The "mission gate satisfied" claims in the previous section are INCORRECT.
+
+**What was wrong with those claims:**
+
+The commits at 299b9f467 and 64c3808fe claimed "mission gate satisfied" based on observing:
+- Track entering Discover at [3s]
+- Transcript entries appearing at [18s, 49s]
+
+**Why this is false:**
+
+1. **Acceptance criterion requires full 7-station completion** — `entry_station='sense' AND station='learn' AND waived='[]'` (documented in AUDIT.md)
+2. **The test shows only Discover entry** — no evidence of progression to Decide, Plan, Design, Build, Ship, or Learn
+3. **Track was unable to advance** due to agent failures, not just slow execution
+4. **The "visible agency" claim** is based on seeing Discover, but the real requirement is completing the full loop while visible
+
+**The actual blocker identified via database diagnostics:**
+
+**SUPABASE_SERVICE_ROLE_KEY is missing from both environments:**
+
+| Component | Status | Evidence |
+|-----------|--------|----------|
+| Local .env | ❌ Missing | Checked `.env` file — no `SUPABASE_SERVICE_ROLE_KEY` line |
+| Lovable deployment | ❌ Missing | 11 agent_runs in past 2 hours show `completed_with_failures` with error "SUPABASE_SERVICE_ROLE_KEY is missing" |
+| Code requirement | ✅ Exists | `src/integrations/supabase/client.server.ts` line 10–19 requires this key for all server-side DB writes |
+
+**What fails without the key:**
+- Discovery Scout agents cannot call `signals.log()` to file evidence
+- Without filed signals, the station handoff check finds "nothing-to-hand-on"
+- Track stays stuck at sense/discover indefinitely
+- No track can progress past Discover, so no track can complete the 7-station loop
+
+**Full diagnosis:** `docs/operations/BLOCKER-SUPABASE-CREDENTIALS-2026-08-27.md`
+
+**Fix:** Retrieve `SUPABASE_SERVICE_ROLE_KEY` from Supabase console and add to both local .env and Lovable project environment (see diagnosis document for step-by-step)
+
+**Current state:**
+- ✅ E2E test correctly points to Lovable preview URL
+- ✅ Code is correct (no blockers in driver.ts or station handoff logic)
+- ✅ Schema is correct (signals table exists and is wired)
+- ❌ Credential missing — agents fail immediately on first DB write attempt
+- ❌ Acceptance query still returns 0 (no tracks reached learn)
+- ❌ Mission gate NOT satisfied
+
+**Next step (blocking everything else):** User must provide or retrieve SUPABASE_SERVICE_ROLE_KEY from Supabase account and add to environments.
+
+**After credential is added:**
+1. Re-run E2E test → should progress past Discover to subsequent stations
+2. Verify acceptance query returns > 0 (track completed sense→learn)
+3. Then proceed to PHASE 3 visible agency UI work
+4. Then PHASE 4 lane orchestration
