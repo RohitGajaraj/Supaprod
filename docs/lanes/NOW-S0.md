@@ -1,1 +1,1 @@
-S0 · 20:35 IST · WORKING · F-92: the sense graveyard root cause was fixed 2026-08-25 17:27; all 28 died BEFORE it, 0 since, 24 recoverable — release blocked on tool permission · the-first-run/** · pending
+S0 · 20:45 IST · WORKING · F-93: agent_runs.trace_id added — a run can name its own tool calls; the join S2 needs (and that misled 3 investigations today) now exists · src/lib/ai/** supabase/** · pending

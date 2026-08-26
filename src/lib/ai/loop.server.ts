@@ -744,6 +744,26 @@ export async function runAgentLoop(
       agent_name: agent.name,
       input: input.goal,
       status: "running",
+      /*
+       * F-93 — SO THE RUN CAN NAME ITS OWN TOOL CALLS, AFTERWARDS.
+       *
+       * `tool_calls.trace_id` is the only key the two tables share, and until
+       * this line `agent_runs` had no such column: `driver.server.ts:2713` notes
+       * that the ids "are carried down from each `runAgentLoop` result rather
+       * than looked up", because looking them up was impossible. The link
+       * existed only in memory, for the life of the run.
+       *
+       * Measured cost, in one day: `tool_calls.trace_id` matched 0 of 1,689
+       * `agent_runs.id`, three investigations were nearly concluded wrongly on
+       * it, and twice a workspace filter was used as a stand-in and returned a
+       * different track's crew. **A join that does not exist is worse than a slow
+       * one, because it invites a plausible substitute.**
+       *
+       * `traceId` is already in scope here (minted above, line ~626) and already
+       * stamped onto every `tool_calls` row this run writes. Recording it costs
+       * one column and closes the question permanently.
+       */
+      trace_id: traceId,
       workspace_id: workspaceId,
       mission_id: input.missionId ?? null,
       track_id: input.trackId ?? null,
