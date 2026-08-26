@@ -36,7 +36,23 @@ WHERE w.id NOT IN (SELECT m.track_id FROM spine_track_members m
                    JOIN agent_approvals a ON a.mission_id = m.artifact_id
                    WHERE a.decided_at IS NOT NULL)
   AND w.id NOT IN (SELECT entity_id FROM stage_events WHERE driven_via IS DISTINCT FROM 'sweep');
+
+-- 6. F-84's numbers are S0 claims about production; R-11 applies to them too.
+--    6a the headline: tracks carrying a terminal hold, by hold and station
+SELECT last_hold, station, count(*) FROM spine_tracks
+WHERE last_hold IN ('given-up','station-cannot-finish','tools-refused','going-in-circles')
+GROUP BY 1, 2 ORDER BY 3 DESC;
+--    6b the denominator and the sweep-eligible remainder
+SELECT count(*) AS total,
+       count(*) FILTER (WHERE last_hold IS NULL OR last_hold NOT IN
+         ('given-up','station-cannot-finish','tools-refused','going-in-circles')) AS sweep_eligible
+FROM spine_tracks;
+--    6c the sweep is running: cron job runs in the last 6h with outcomes
+SELECT status, count(*) FROM cron.job_run_details
+WHERE jobid = 68 AND start_time > now() - interval '6 hours' GROUP BY 1;
 ```
+
+Note on anchors: my `docs/lanes/verify/S4-001-f76.md` cites line numbers re-based to `60dd95e34`.
 
 **What it unblocks:** attack vector 2 of `docs/lanes/verify/S4-001-f76.md` — whether the fixed
 checks name the LIVE schema rather than S0's summary of it. R-11 is exactly why the verifier asks
