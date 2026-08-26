@@ -1851,7 +1851,17 @@ function Today() {
                      is filed with S0. */
                   "Nothing moves on these until you answer. This lane shows the last 24 hours, so anything waiting longer is not here.",
                   (row) =>
-                    row.proposed ? (
+                    /* A TRACK IS NOT ANSWERING A QUESTION HERE, so it is not
+                       offered a Reply. Seen live 2026-08-27: a track parked on
+                       going-in-circles sat in this lane wearing a Reply button,
+                       and nothing had asked anything — the loop ran out of road.
+                       Reply opens an Ask conversation, while a track's answer
+                       belongs in its own steer composer on the run, which is
+                       where its one exit (rewindTrackTo) also lives. The row
+                       already opens that run, so the honest verb is none: the
+                       same call C2-006 made when Stop was removed from track
+                       rows for naming a mutation that could not run on them. */
+                    row.isTrack ? null : row.proposed ? (
                       /* A PROPOSED MISSION IS NOT ASKING A QUESTION — it is
                          waiting for a person to review and launch it, and the
                          launch control lives on the run. Naming the act beats
