@@ -136,7 +136,7 @@ export function TakeOver({ trackId, track }: { trackId: string; track: Track }) 
                written `claimed`, never `success`, so it can never become the
                proof the production gate reads. Saying so here is cheaper than
                a person discovering it at Ship. */
-            hint="GitHub or GitLab. Nothing here checks it. You are telling us it shipped."
+            hint="A pull request on GitHub or GitLab, or the address it went live at. Nothing here checks it. You are telling us it shipped."
           >
             <Input
               id={urlId}
