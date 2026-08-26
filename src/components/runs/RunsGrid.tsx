@@ -1,4 +1,6 @@
 import * as React from "react";
+import type { StepProgress } from "@/components/runs/step-progress";
+import { skippedClause } from "@/components/runs/step-progress";
 
 import {
   RecordsTable,
@@ -124,7 +126,7 @@ const STATE_RANK: Record<ReturnType<typeof runState>, number> = {
 export type RunsGridProps = {
   rows: StudioSessionListItem[];
   /** How far through the plan each run is, by mission id. */
-  progressById: Map<string, { done: number; total: number }>;
+  progressById: Map<string, StepProgress>;
   /**
    * The one run the Gate above is showing, and the only mark on this surface
    * allowed to move. SYSTEM.md allows exactly one, and this list used to give
@@ -384,15 +386,19 @@ function markState(s: StudioSessionListItem): RunMarkState {
  */
 function doing(
   s: StudioSessionListItem,
-  progressById: Map<string, { done: number; total: number }>,
+  progressById: Map<string, StepProgress>,
 ): React.ReactNode[] {
   const state = runState(s);
   const files = s.changeset?.file_count ?? 0;
   const p = progressById.get(s.mission_id);
+  /* The skipped clause, for the reason in step-progress.ts: STEP_DONE counts a
+     skipped step as done, and better than one in four of them is. */
+  const skipped = skippedClause(p);
   const steps =
     p && p.total > 0 ? (
       <>
         step <Figure>{p.done}</Figure> of <Figure>{p.total}</Figure>
+        {skipped ? `, ${skipped}` : ""}
       </>
     ) : null;
   const evidence = completionEvidence({

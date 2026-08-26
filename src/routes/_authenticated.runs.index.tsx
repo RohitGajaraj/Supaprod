@@ -251,6 +251,7 @@
  */
 
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { stepProgress, type StepProgress } from "@/components/runs/step-progress";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import * as React from "react";
@@ -846,8 +847,8 @@ function BuildPage() {
     refetchInterval: live > 0 ? 5000 : false,
   });
   const progressById = React.useMemo(() => {
-    const map = new Map<string, { done: number; total: number }>();
-    for (const m of plan.data?.missions ?? []) map.set(m.id, missionProgress(m.steps));
+    const map = new Map<string, StepProgress>();
+    for (const m of plan.data?.missions ?? []) map.set(m.id, stepProgress(m.steps));
     return map;
   }, [plan.data]);
 

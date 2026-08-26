@@ -138,6 +138,8 @@
  */
 
 import * as React from "react";
+import type { StepProgress } from "@/components/runs/step-progress";
+import { skippedClause } from "@/components/runs/step-progress";
 import { Link } from "@tanstack/react-router";
 
 import type { StudioSessionListItem } from "@/lib/studio.functions";
@@ -353,12 +355,17 @@ function holderPhrase(s: StudioSessionListItem): string {
 function cardSub(
   s: StudioSessionListItem,
   state: RunState,
-  progress: { done: number; total: number } | undefined,
+  progress: StepProgress | undefined,
 ): React.ReactNode {
+  /* "step 6 of 8" reads as "six of these eight were carried out", and 69 of the
+     360 steps in this product are `skipped`, which STEP_DONE counts as done. So
+     the count stands and the omission is named. See step-progress.ts. */
+  const skipped = skippedClause(progress);
   const steps =
     progress && progress.total > 0 ? (
       <>
         step <Figure>{progress.done}</Figure> of <Figure>{progress.total}</Figure>
+        {skipped ? `, ${skipped}` : ""}
       </>
     ) : null;
 
@@ -449,7 +456,7 @@ export function RunBoard({
   rows: StudioSessionListItem[];
   /** mission_id -> plan progress, from the listMissions query this route was
    *  already running for the list rows. */
-  progressById: Map<string, { done: number; total: number }>;
+  progressById: Map<string, StepProgress>;
   showAll: boolean;
   onShowAll: () => void;
   onOpen: (missionId: string) => void;
