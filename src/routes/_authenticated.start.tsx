@@ -5,6 +5,8 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { Action, Eyebrow, PageHeading } from "@/components/meridian/surface-parts";
 import { Row } from "@/components/meridian/rows";
+import { StatusChip } from "@/components/meridian/StatusChip";
+import { holdTone } from "@/lib/spine/driver";
 import { Receipt } from "@/components/meridian/Receipt";
 import { Composer, PickCard } from "@/components/meridian/onramp-parts";
 import { CharacterMark } from "@/components/presence/Character";
@@ -120,7 +122,7 @@ function OpenWorkSection({
 }: {
   openRuns: any[];
   navigate: ReturnType<typeof useNavigate>;
-}) {
+  }) {
   return (
     <section className="flex flex-col gap-mrd-3" aria-label="Your open work">
       <Eyebrow>Your open work</Eyebrow>
@@ -130,13 +132,29 @@ function OpenWorkSection({
         const whenMoved = ago(t.drivenAt);
         const timeText = whenMoved ? `moved ${whenMoved}` : "not yet started";
 
+        /*
+         * THE TONE COMES FROM THE RAW REASON, never the sentence -- the same
+         * rule the run page paid for once (`TrackStart` painted every hold
+         * amber by testing wording). And an open track with NO hold wears no
+         * chip at all: between sweeps it is not running and not stuck, and a
+         * green "Running" there is exactly the claim this product refuses.
+         * The chip exists only where the record says whose move it is.
+         */
+        const tone = t.holdReason ? holdTone(t.holdReason) : null;
         return (
           <Row
             key={t.id}
-            lead={`${t.title} · At ${stationName}`}
-            sub={t.hold ?? t.summary}
+            lead={t.title}
+            sub={`At ${stationName}${t.hold ? ` · ${t.hold}` : ""}`}
             time={timeText}
             onClick={() => void navigate({ to: "/track/$trackId", params: { trackId: t.id } })}
+            action={
+              tone ? (
+                <StatusChip status={tone} pulse={tone === "you"}>
+                  {tone === "you" ? "Waiting on you" : "On hold"}
+                </StatusChip>
+              ) : undefined
+            }
           />
         );
       })}
