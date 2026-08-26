@@ -68,6 +68,7 @@ import { relativeTime } from "@/lib/memory-view";
 import { formatDeadlineDate } from "@/components/track/expiry-deadline";
 import { summaryText } from "@/components/track/run-summary";
 import { runTabState } from "@/components/track/run-tab";
+import { SteerComposer } from "@/components/track/SteerComposer";
 import { triesLine } from "@/components/track/hold-tries";
 import { runPosition } from "@/components/track/run-position";
 
@@ -823,6 +824,19 @@ export function TrackRunLeft({
        * nothing pulses -- an idle track reads idle.
        */}
       <TrackActivity trackId={trackId} onLiveChange={onCrewLive} />
+
+      {/*
+       * THE STEER BOX (RUN-03), AT THE PANE'S FOOT -- below the transcript,
+       * where a reader finishes and answers, sticky so a long record never
+       * buries it. One instruction back into moving work from the surface the
+       * work is on; `steerTrack` existed with zero callers until this mounted,
+       * which made Start and Stop the run's whole vocabulary. The finished case
+       * says so rather than rendering a form that can do nothing.
+       */}
+      <SteerComposer
+        trackId={trackId}
+        finished={track?.status === "done" || track?.status === "abandoned"}
+      />
     </div>
   );
 }

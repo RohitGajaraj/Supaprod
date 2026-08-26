@@ -334,6 +334,33 @@ export function TrackActivity({
     return () => window.clearTimeout(timer);
   }, [q.data, rows]);
 
+  /*
+   * FOLLOW THE WORK, POLITELY. Newest entries now land at the BOTTOM, so the
+   * reading position that shows the live entry is the end of the scroll. On
+   * every arrival: if the person is already near the end, keep them there; if
+   * they scrolled up to reread, leave them alone. The distance test runs
+   * against whichever ancestor actually scrolls, found at call time -- this
+   * component owns neither the pane nor its overflow.
+   */
+  const endRef = React.useRef<HTMLDivElement | null>(null);
+  const followLive = React.useCallback(() => {
+    const el = endRef.current;
+    if (!el || typeof el.scrollIntoView !== "function") return;
+    const scroller = el.closest(".mrd-workbench-pane");
+    if (scroller) {
+      const box = scroller as HTMLElement;
+      const distance = box.scrollHeight - box.scrollTop - box.clientHeight;
+      // jsdom and zero-size layouts report 0 everywhere, which reads as "at the
+      // bottom" -- the safe default for a guard like this.
+      if (distance > 200) return;
+    }
+    el.scrollIntoView({ block: "nearest" });
+  }, []);
+  React.useEffect(() => {
+    if (!q.data) return;
+    followLive();
+  }, [q.data, rows.length, followLive]);
+
   if (q.isLoading) return <Reading>Reading what happened.</Reading>;
   if (q.isError)
     return (
@@ -360,32 +387,82 @@ export function TrackActivity({
     );
   }
 
-  // Newest first, turns and station moves in one stream: a marker sits
-  // between the rows it belongs between (activity-rows.ts).
-  const last = rows.length - 1;
+  /*
+   * OLDEST FIRST -- a transcript reads top to bottom like one (THE-ONE-SCREEN:
+   * "newest last, the live entry still ticking"). `mergeActivityRows` sorts
+   * newest first because its marker logic thinks in recency; reversing at the
+   * render boundary keeps that logic untouched. The rail now grows DOWNWARD
+   * through the work and stops under the newest entry, which is the honest
+   * direction: the line ends where the record ends.
+   */
+  const ordered = [...rows].reverse();
 
   return (
-    /*
-     * THE TRANSCRIPT IS A LOG, and that is a role rather than a decoration.
-     * This file polls every ten seconds, so without it every arrival was silent
-     * to a screen reader. `role="log"` announces ADDITIONS only, so a
-     * transcript that grows long does not read the whole column out each time
-     * one entry lands. `aria-live="polite"` is explicit for browser compatibility,
-     * and `aria-busy` announces when agents are working (queue 71).
-     */
-    <div
-      role="log"
-      aria-label="What the agents did, newest first"
-      aria-live="polite"
-      aria-busy={live}
-    >
-      <ol className={RUN_STACK}>
-        {rows.map((row, i) => {
-          if (row.kind === "move") {
-            // WHO CAUSED THIS LEG (queue 65). press names the person, sweep
-            // names the loop, continuation says it carried on alone. Rows
-            // with no provable driver never reach this list at all.
+    <>
+      {/*
+       * THE TRANSCRIPT IS A LOG, and that is a role rather than a decoration.
+       * This file polls every ten seconds, so without it every arrival was silent
+       * to a screen reader. `role="log"` announces ADDITIONS only, so a
+       * transcript that grows long does not read the whole column out each time
+       * one entry lands. `aria-live="polite"` is explicit for browser compatibility,
+       * and `aria-busy` announces when agents are working (queue 71).
+       */}
+      <div
+        role="log"
+        aria-label="What the agents did, in order"
+        aria-live="polite"
+        aria-busy={live}
+      >
+        <ol className={RUN_STACK}>
+          {ordered.map((row, i) => {
+            if (row.kind === "move") {
+              // WHO CAUSED THIS LEG (queue 65). press names the person, sweep
+              // names the loop, continuation says it carried on alone. Rows
+              // with no provable driver never reach this list at all.
+              const arrived = primed.current && !seen.current.has(row.key);
+              return (
+                <li
+                  key={row.key}
+                  className={RUN_ROW}
+                  style={
+                    arrived
+                      ? { animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }
+                      : undefined
+                  }
+                >
+                  <RunClock at={row.at} />
+                  <span className="flex flex-col items-center self-stretch">
+                    <RunGlyph kind="station" station={glyphForStation(row.to as AgentStation)} />
+                    {i === ordered.length - 1 ? null : <RunRail />}
+                  </span>
+                  <span className="min-w-0 pb-1">
+                    <span className={RUN_LINE}>
+                      <RunSubject>{`Moved to ${row.toName}`}</RunSubject>
+                    </span>
+                    <RunMeta>{row.line}</RunMeta>
+                  </span>
+                </li>
+              );
+            }
+
+            const t = row.turn;
+            // The handoff. Marked when the station changes from the turn that
+            // ran BEFORE this one chronologically -- in oldest-first order that
+            // is the previous TURN upward from here, skipping move markers,
+            // which are not seats.
+            let previous: Turn | undefined;
+            for (let j = i - 1; j >= 0; j--) {
+              const r = ordered[j];
+              if (r.kind === "turn") {
+                previous = r.turn;
+                break;
+              }
+            }
+            const handedOver =
+              Boolean(t.stationName) && previous != null && previous.stationName !== t.stationName;
+
             const arrived = primed.current && !seen.current.has(row.key);
+
             return (
               <li
                 key={row.key}
@@ -396,98 +473,72 @@ export function TrackActivity({
                     : undefined
                 }
               >
-                <RunClock at={row.at} />
+                <RunClock at={Date.parse(t.at)} />
+
+                {/* The rail stops on the last row of the STREAM, which in
+                    reading order is the NEWEST entry: a line continuing past it
+                    claims another one is already coming. */}
                 <span className="flex flex-col items-center self-stretch">
-                  <RunGlyph kind="station" station={glyphForStation(row.to as AgentStation)} />
-                  {i === last ? null : <RunRail />}
+                  <RunGlyph
+                    kind={handedOver ? "handoff" : "station"}
+                    station={handedOver ? undefined : glyphForStation(t.station)}
+                  />
+                  {i === ordered.length - 1 ? null : <RunRail />}
                 </span>
+
                 <span className="min-w-0 pb-1">
                   <span className={RUN_LINE}>
-                    <RunSubject>{`Moved to ${row.toName}`}</RunSubject>
+                    <RunSubject>{headline(t)}</RunSubject>
+                    {chipOf(t)}
                   </span>
-                  <RunMeta>{row.line}</RunMeta>
+
+                  <RunMeta>
+                    {[
+                      handedOver && previous?.stationName
+                        ? `picked up from ${previous.stationName}`
+                        : t.stationName,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </RunMeta>
+
+                  <RunRollup items={rollupOf(t, titles)} />
+
+                  {/* THE PLATFORM'S REASON, ABOVE THE AGENT'S. `halted_reason` and
+                      `failure_kind` are written by the runtime rather than by the
+                      seat, so when both are present the unfakeable one is read
+                      first. It was on the row all along and no surface drew it:
+                      a Build seat halted `out_of_credit` on this very track and
+                      the transcript said only "Stopped". */}
+                  {t.stopLine ? <RunNote>{t.stopLine}</RunNote> : null}
+
+                  {/* The agent's own last line, trimmed and never rewritten. One
+                      line is enough to tell whether it understood the job; the
+                      full text lives on the run. Wraps rather than truncates:
+                      half a reason is worse than a wrapped one. */}
+                  {t.said ? (
+                    <RunNote>{t.said.length > 160 ? `${t.said.slice(0, 160)}...` : t.said}</RunNote>
+                  ) : null}
                 </span>
               </li>
             );
-          }
-
-          const t = row.turn;
-          // The handoff. Marked when the station changes from the TURN that ran
-          // before this one -- skipping move markers, which are not seats.
-          let previous: Turn | undefined;
-          for (let j = i + 1; j < rows.length; j++) {
-            const r = rows[j];
-            if (r.kind === "turn") {
-              previous = r.turn;
-              break;
-            }
-          }
-          const handedOver =
-            Boolean(t.stationName) && previous != null && previous.stationName !== t.stationName;
-
-          const arrived = primed.current && !seen.current.has(row.key);
-
-          return (
-            <li
-              key={row.key}
-              className={RUN_ROW}
-              style={
-                arrived
-                  ? { animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }
-                  : undefined
-              }
-            >
-              <RunClock at={Date.parse(t.at)} />
-
-              {/* The rail stops on the last row of the STREAM, not of this
-                  render pass: a line continuing past the newest entry claims
-                  another one is already coming. */}
-              <span className="flex flex-col items-center self-stretch">
-                <RunGlyph
-                  kind={handedOver ? "handoff" : "station"}
-                  station={handedOver ? undefined : glyphForStation(t.station)}
-                />
-                {i === last ? null : <RunRail />}
-              </span>
-
-              <span className="min-w-0 pb-1">
-                <span className={RUN_LINE}>
-                  <RunSubject>{headline(t)}</RunSubject>
-                  {chipOf(t)}
-                </span>
-
-                <RunMeta>
-                  {[
-                    handedOver && previous?.stationName
-                      ? `picked up from ${previous.stationName}`
-                      : t.stationName,
-                  ]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </RunMeta>
-
-                <RunRollup items={rollupOf(t, titles)} />
-
-                {/* THE PLATFORM'S REASON, ABOVE THE AGENT'S. `halted_reason` and
-                    `failure_kind` are written by the runtime rather than by the
-                    seat, so when both are present the unfakeable one is read
-                    first. It was on the row all along and no surface drew it:
-                    a Build seat halted `out_of_credit` on this very track and
-                    the transcript said only "Stopped". */}
-                {t.stopLine ? <RunNote>{t.stopLine}</RunNote> : null}
-
-                {/* The agent's own last line, trimmed and never rewritten. One
-                    line is enough to tell whether it understood the job; the
-                    full text lives on the run. Wraps rather than truncates:
-                    half a reason is worse than a wrapped one. */}
-                {t.said ? (
-                  <RunNote>{t.said.length > 160 ? `${t.said.slice(0, 160)}...` : t.said}</RunNote>
-                ) : null}
-              </span>
-            </li>
-          );
-        })}
-      </ol>
-    </div>
+          })}
+        </ol>
+      </div>
+      {/*
+       * THE LIVE ENTRY STAYS IN VIEW (RUN-02). A transcript that grows at the
+       * bottom while the viewport sits above it hides exactly the entries worth
+       * watching, so when the reader is already near the end each arrival pulls
+       * them back to it. Someone who scrolled up to reread is never dragged --
+       * distance from the bottom past ~200px means they went somewhere on
+       * purpose.
+       */}
+      <div
+        ref={endRef}
+        aria-hidden="true"
+        style={{ height: 1 }}
+        data-testid="transcript-end"
+      />
+    </>
   );
 }
