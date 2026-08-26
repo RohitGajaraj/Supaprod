@@ -1,1 +1,1 @@
-S0 · 20:45 IST · WORKING · F-93: agent_runs.trace_id added — a run can name its own tool calls; the join S2 needs (and that misled 3 investigations today) now exists · src/lib/ai/** supabase/** · pending
+S0 · 20:52 IST · WORKING · collision derivation built (shared read is not a collision; contested = someone writes) + F-94 · src/lib/presence/** · pending
