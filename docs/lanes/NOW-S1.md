@@ -1,1 +1,1 @@
-S1 · 18:05 IST · WORKING · Discover inline actions (keep/discard a signal, rename a theme) in ArtifactPane — the pane's own declared next unit · src/components/discover/** track/** · 1c82d0d7c
+S1 · 19:05 IST · WORKING · 7 units pushed (RUN-01…07: presence honesty, leavable, steer composer, consent single-source, hold guards, class echo, Discover actions) · blocked on .env for browser drive — request filed · src/components/track/** spine/** presence/** discover/** ask/** · 3f5f6c45e
