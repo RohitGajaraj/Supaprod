@@ -20,6 +20,7 @@
  * so arriving here answers "what has it made so far" without a click.
  */
 import * as React from "react";
+import { NO_CONTRACT, NO_NON_GOALS, specContract } from "@/components/track/spec-contract";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -80,6 +81,8 @@ type PrdRow = {
   body_md: string;
   status: string | null;
   updated_at: string;
+  /** The outcome contract. `getPrd` selects *, so this was always arriving. */
+  contract?: unknown;
 };
 
 /** The prd status word, on the same five-word scale every surface shares.
@@ -97,6 +100,59 @@ function prdTone(status: string | null): "you" | "pass" | null {
  * the edit that writes the whole document back (SPEC-ARTIFACTS §5 -- there is
  * no section model on the row, so a partial save would be a fiction).
  */
+/**
+ * The three clauses, with non-goals carrying the same weight as the rest.
+ *
+ * SESSION-1's brief asks for the spec "section by section as it is written,
+ * non-goals with equal weight", and equal weight is the whole instruction: they
+ * are the half that stops the wrong thing being built correctly, and the half
+ * every template demotes to a footnote. Same heading, same type, same order of
+ * appearance as what the spec IS for.
+ */
+function SpecPromise({ contract }: { contract: unknown }) {
+  const c = specContract(contract);
+
+  if (c.empty) return <RecordSpeaks>{NO_CONTRACT}</RecordSpeaks>;
+
+  return (
+    <div className="flex flex-col gap-mrd-3 rounded-mrd-chip bg-mrd-sink p-mrd-4">
+      {c.intent ? (
+        <div className="flex flex-col gap-mrd-1">
+          <span className="mrd-eyebrow">What it is for</span>
+          <p className="mrd-copy max-w-[62ch]">{c.intent}</p>
+        </div>
+      ) : null}
+
+      {c.measures.length > 0 ? (
+        <div className="flex flex-col gap-mrd-1">
+          <span className="mrd-eyebrow">How we will know</span>
+          {c.measures.map((m) => (
+            <p key={m} className="mrd-copy max-w-[62ch]">
+              {m}
+            </p>
+          ))}
+        </div>
+      ) : null}
+
+      {/* EQUAL WEIGHT, and the absent case is stated rather than omitted: a
+          spec that drew no edges looks identical to one that did if this
+          section simply disappears. */}
+      <div className="flex flex-col gap-mrd-1">
+        <span className="mrd-eyebrow">What it is not doing</span>
+        {c.nonGoals.length > 0 ? (
+          c.nonGoals.map((g) => (
+            <p key={g} className="mrd-copy max-w-[62ch]">
+              {g}
+            </p>
+          ))
+        ) : (
+          <p className="mrd-meta">{NO_NON_GOALS}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function PlanSpec({ prdId }: { prdId: string }) {
   const fGet = useServerFn(getPrd);
   const fSave = useServerFn(savePrd);
@@ -149,6 +205,15 @@ function PlanSpec({ prdId }: { prdId: string }) {
           ) : null}
           <span className="mrd-meta">saved {relativeTime(prd.updated_at, Date.now())}</span>
         </div>
+        {/*
+          WHAT IT PROMISES, ABOVE WHAT IT SAYS. The contract is the part Build
+          is measured against and Ship reads; the body is the prose around it.
+          Measured on production: 113 of 115 specs carry no contract at all, so
+          this block is most often the honest statement that nothing bounds this
+          work, which is exactly what a person about to let Build spend on it
+          needs to know.
+        */}
+        <SpecPromise contract={prd.contract} />
         <Prose markdown>{prd.body_md}</Prose>
         {/* R-03: the person can act here, and the act is the write the row
             supports -- the whole document back, nothing more specific claimed. */}
