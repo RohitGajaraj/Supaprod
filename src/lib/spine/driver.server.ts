@@ -1174,6 +1174,148 @@ async function forecastDueDate(supabase: SupabaseClient, trackId: string): Promi
   }
 }
 
+/**
+ * S0-001: SELF-VERIFYING SPINE — Check if a station's output meets quality before advancing.
+ *
+ * Applied AFTER the crew completes and files output. Returns whether the output
+ * quality is good enough to hand to the next station. If not, the track is held
+ * at "self-check-failed" and re-driven on the next tick.
+ *
+ * This implements Devin's pattern: do the work, reread the output, verify it
+ * against the task, and if it fails, retry with the failure in context. The
+ * verification is done here; retries happen by re-dispatching the station.
+ */
+async function verifyStationOutput(
+  supabase: SupabaseClient,
+  station: AgentStation,
+  attached: Attachment[],
+): Promise<{ passed: boolean; reason?: string }> {
+  // If no output was produced, the existing `produced-nothing` hold is sufficient
+  if (attached.length === 0) {
+    return { passed: true }; // No output, so no verification needed
+  }
+
+  // Group attached artifacts by kind
+  const byKind = new Map<string, string[]>();
+  for (const att of attached) {
+    if (!byKind.has(att.artifactKind)) {
+      byKind.set(att.artifactKind, []);
+    }
+    byKind.get(att.artifactKind)!.push(att.artifactId);
+  }
+
+  // Station-specific quality checks. Each check verifies that:
+  // 1. The right KIND of artifact was produced
+  // 2. The artifact has the right STRUCTURE (not empty, has required fields)
+  //
+  // The checks are lenient: they verify the bare minimum to know the work was
+  // actually done, not that it was done well. A signal that exists but is
+  // vague is still a signal; a decision with a forecast is still a decision.
+
+  if (station === "sense") {
+    // Sense must file signals
+    const signalIds = byKind.get("signal") ?? [];
+    if (signalIds.length === 0) {
+      return { passed: false, reason: "No signals were filed" };
+    }
+    // Check that signals have content (not empty strings)
+    const { data: signals } = await supabase
+      .from("signals" as never)
+      .select("id, title")
+      .in("id", signalIds);
+    const hasContent = (signals ?? []).some(
+      (s: { title?: string }) => s.title && s.title.trim().length > 0,
+    );
+    if (!hasContent) {
+      return { passed: false, reason: "Signals were filed but have no content" };
+    }
+    return { passed: true };
+  }
+
+  if (station === "decide") {
+    // Decide must file decisions
+    const decisionIds = byKind.get("decision") ?? [];
+    if (decisionIds.length === 0) {
+      return { passed: false, reason: "No decision was recorded" };
+    }
+    // Check that decisions have a forecast (the key output of Decide)
+    const { data: decisions } = await supabase
+      .from("decisions" as never)
+      .select("id, forecast_text, forecast_horizon_date")
+      .in("id", decisionIds);
+    const hasForecast = (decisions ?? []).some(
+      (d: { forecast_text?: string; forecast_horizon_date?: string }) =>
+        (d.forecast_text && d.forecast_text.trim().length > 0) ||
+        d.forecast_horizon_date,
+    );
+    if (!hasForecast) {
+      return { passed: false, reason: "Decision was recorded but has no forecast" };
+    }
+    return { passed: true };
+  }
+
+  if (station === "define") {
+    // Define must file specs (prds)
+    const specIds = byKind.get("prd") ?? [];
+    if (specIds.length === 0) {
+      return { passed: false, reason: "No spec was drafted" };
+    }
+    // Check that specs have content
+    const { data: specs } = await supabase
+      .from("prds" as never)
+      .select("id, title, brief")
+      .in("id", specIds);
+    const hasContent = (specs ?? []).some(
+      (p: { title?: string; brief?: string }) =>
+        (p.title && p.title.trim().length > 0) ||
+        (p.brief && p.brief.trim().length > 0),
+    );
+    if (!hasContent) {
+      return { passed: false, reason: "Spec was drafted but has no content" };
+    }
+    return { passed: true };
+  }
+
+  if (station === "design") {
+    // Design must file design artifacts
+    const designIds = byKind.get("design_memory") ?? [];
+    if (designIds.length === 0) {
+      return { passed: false, reason: "No design was drafted" };
+    }
+    return { passed: true };
+  }
+
+  if (station === "build") {
+    // Build must file missions or stages (changes made to code)
+    const hasMission = (byKind.get("mission") ?? []).length > 0;
+    if (!hasMission) {
+      return { passed: false, reason: "No changes were staged for commit" };
+    }
+    return { passed: true };
+  }
+
+  if (station === "ship") {
+    // Ship must file deployments
+    const deploymentIds = byKind.get("deployment") ?? [];
+    if (deploymentIds.length === 0) {
+      return { passed: false, reason: "No deployment was recorded" };
+    }
+    return { passed: true };
+  }
+
+  if (station === "learn") {
+    // Learn must file verdicts (verification results)
+    const verdictIds = byKind.get("verdict") ?? [];
+    if (verdictIds.length === 0) {
+      return { passed: false, reason: "No verdict was recorded" };
+    }
+    return { passed: true };
+  }
+
+  // Unknown station, default to pass (no verification rule)
+  return { passed: true };
+}
+
 export async function driveTrackOnce(
   supabase: SupabaseClient,
   row: DriveRow,
@@ -1979,6 +2121,44 @@ export async function driveTrackOnce(
       ),
       attached,
     };
+  }
+
+  /*
+   * S0-001 — A STATION PRODUCED OUTPUT BUT IT FAILED SELF-VERIFICATION.
+   *
+   * If the crew filed artifacts and nothing else stopped it (no refusal, no
+   * timeout), verify that the output quality is good enough to hand to the next
+   * station. If verification fails, hold at "self-check-failed" without counting
+   * an attempt, so the station can retry and improve the work on the next tick.
+   *
+   * This is NOT a failure condition: the work exists and the crew ran cleanly.
+   * It is a quality gate the station applies to itself before advancing, using
+   * Devin's pattern (check, reread, retry if fails).
+   */
+  if (producedThisVisit && !failed && !haltedAs && !overBudget && !ranLong) {
+    const verification = await verifyStationOutput(supabase, station, attached);
+    if (!verification.passed) {
+      await supabase
+        .from("spine_tracks" as never)
+        .update({
+          // attempts deliberately UNCHANGED: quality check is not a failure.
+          last_hold: "self-check-failed",
+          driven_at: new Date().toISOString(),
+        } as never)
+        .eq("id", row.id);
+      return {
+        trackId: row.id,
+        station,
+        moved: false,
+        arrivedAt: null,
+        hold: "self-check-failed",
+        line: say(
+          `${holdLine("self-check-failed", { station }) ?? HOLD_LINE["self-check-failed"]}` +
+            (verification.reason ? ` (${verification.reason})` : ""),
+        ),
+        attached,
+      };
+    }
   }
 
   /*

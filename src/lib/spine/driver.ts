@@ -473,6 +473,20 @@ export type HoldReason =
    * time; the question nobody asked was "is this converging?".
    */
   | "going-in-circles"
+  /**
+   * S0-001. THE STATION PRODUCED OUTPUT BUT IT FAILED SELF-VERIFICATION.
+   *
+   * A station can file something and still fail to do its job well enough to
+   * hand to the next station. This hold distinguishes that from `produced-nothing`
+   * (filed no output) and `nothing-to-hand-on` (filed wrong type). The output
+   * exists but did not pass the quality check the station applies to itself.
+   *
+   * This is a recoverable error: the track is held here, not counted as an
+   * attempt, and the next dispatch will retry with the context of what failed.
+   * Unlike tool refusals, this is always resolvable by better work from the
+   * station itself, so it does not reach a person.
+   */
+  | "self-check-failed"
   /* ---------------------------------------------------------------------- *
    * THE CORRECTION LOOP'S OWN HOLDS (founder ruling 2026-08-02).
    *
@@ -1063,6 +1077,9 @@ export const HOLD_LINE: Record<HoldReason, string> = {
   done: "The route is finished. This work has been graded.",
   "produced-nothing":
     "This station ran but filed nothing, so there is nothing to hand to the next one. It will try again.",
+  // S0-001: the output exists but did not pass the station's own verification
+  "self-check-failed":
+    "This station filed something, but it did not meet the quality it checks for before handing it on. The output exists and will be examined again the next time this station runs.",
   // Names what is MISSING rather than what arrived, because the next station is
   // what a person has to unblock and the stray artifact is not the problem.
   "nothing-to-hand-on":
@@ -1198,6 +1215,7 @@ const STATION_SPECIFIC: ReadonlySet<HoldReason> = new Set<HoldReason>([
   "given-up",
   "tools-refused",
   "going-in-circles",
+  "self-check-failed",
 ]);
 
 /** Station display names, read from the one vocabulary the whole product uses. */
