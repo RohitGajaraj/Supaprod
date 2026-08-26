@@ -205,10 +205,23 @@ run_scanner() {
       # Reported separately from the literal so the fix is obvious: the author
       # typed an entity, and the message should say so rather than sending them
       # hunting for a character their editor will not show them.
-      if ($stripped =~ $banned_entity) {
+      # CODE THAT REMOVES THE ENTITY IS NOT CODE THAT SHIPS IT.
+      #
+      # `.replace(/&nbsp;/g, " ")` and `"&nbsp;": " "` are the FIX, and flagging
+      # them made this guard fire on four decoder tables. That is the same shape
+      # as a text guard matching its own explanatory prose, and it matters more
+      # now the hook blocks by default: a strict guard that cries wolf is a guard
+      # somebody switches off.
+      #
+      # Deliberately narrow. It exempts only an entity mapped TO A PLAIN SPACE
+      # (`, " "` or `: " "`), which is the decode signature. A line that ADDS an
+      # entity, including inside a replacement string, still trips.
+      my $decodes_entity = $stripped =~ /$banned_entity[^,:]*[,:]\s*(["\x27])\s\1/;
+      if ($stripped =~ $banned_entity && !$decodes_entity) {
         my ($ent) = $stripped =~ /($banned_entity)/;
         push @names, "html-entity-dash($ent)";
       }
+      next if !@names;
       printf "  %s:%s  %s\n", $file, (defined $lineno ? $lineno : "?"), join(", ", @names);
       $hits++;
     }

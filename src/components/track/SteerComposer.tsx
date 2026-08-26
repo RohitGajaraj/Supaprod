@@ -53,9 +53,7 @@ export const STEER_MAX = 2000;
  * activity read the transcript already polls, so this costs no second fetch
  * (same query key, TanStack serves both from one cache entry).
  */
-export function rosterFromTurns(
-  turns: Array<{ agentName: string }> | undefined,
-): string[] {
+export function rosterFromTurns(turns: Array<{ agentName: string }> | undefined): string[] {
   const seen = new Set<string>();
   const roster: string[] = [];
   for (const t of turns ?? []) {
@@ -217,7 +215,9 @@ export function SteerComposer({
           }}
           onSubmit={submit}
           busy={send.isPending}
-          placeholder={roster.length ? `Say what to change — try @${roster[0]}` : "Say what to change"}
+          placeholder={
+            roster.length ? `Say what to change, try @${roster[0]}` : "Say what to change"
+          }
           label="Steer this work without stopping it"
           hint="Enter to send · @ to name someone here"
           submitLabel="Send it"

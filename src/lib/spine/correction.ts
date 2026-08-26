@@ -693,7 +693,7 @@ export function selfCheckNote(to: AgentStation, reason: string | null): string {
   const why = reason
     ? `The check said: ${reason}.`
     : `The check did not say why, so re-read what is on the record and judge it yourself.`;
-  return `${head} ${why} This did not come back from another station — nothing downstream has seen it yet. Fix exactly that and file it again. Do not file the same thing twice.`;
+  return `${head} ${why} This did not come back from another station, nothing downstream has seen it yet. Fix exactly that and file it again. Do not file the same thing twice.`;
 }
 
 /**

@@ -145,7 +145,7 @@ export function parseDesignMd(markdown: string): DesignMemoryDocument {
     const tokensText = tokensMatch[1];
     const lines = tokensText.split("\n");
     lines.forEach((line, idx) => {
-      const match = line.match(/^-\s+`(.+?)`:\s+(.+?)(?:\s*—\s*(.+))?$/);
+      const match = line.match(/^-\s+`(.+?)`:\s+(.+?)(?:\s*, \s*(.+))?$/);
       if (match) {
         const [, name, value, description] = match;
         const category = name.includes("color")
@@ -222,7 +222,7 @@ export function renderDesignMd(doc: DesignMemoryDocument): string {
   if (doc.tokens.length > 0) {
     lines.push("## Design Tokens\n");
     doc.tokens.forEach((t) => {
-      lines.push(`- \`${t.name}\`: ${t.value}${t.description ? ` — ${t.description}` : ""}`);
+      lines.push(`- \`${t.name}\`: ${t.value}${t.description ? `, ${t.description}` : ""}`);
     });
     lines.push("");
   }
@@ -231,7 +231,7 @@ export function renderDesignMd(doc: DesignMemoryDocument): string {
     lines.push("## Audit Trail\n");
     doc.audit.slice(-5).forEach((entry) => {
       lines.push(
-        `- ${new Date(entry.timestamp).toISOString().split("T")[0]}: ${entry.action} (${entry.author})${entry.notes ? ` — ${entry.notes}` : ""}`,
+        `- ${new Date(entry.timestamp).toISOString().split("T")[0]}: ${entry.action} (${entry.author})${entry.notes ? `, ${entry.notes}` : ""}`,
       );
     });
     lines.push("");

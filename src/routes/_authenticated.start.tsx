@@ -132,7 +132,7 @@ function OpenWorkSection({
 }: {
   openRuns: any[];
   navigate: ReturnType<typeof useNavigate>;
-  }) {
+}) {
   return (
     <section className="flex flex-col gap-mrd-3" aria-label="Your open work">
       <Eyebrow>Your open work</Eyebrow>
@@ -308,8 +308,8 @@ function StartLanding() {
                * where it came from and that it is theirs to change.
                */
               <p className="mrd-meta">
-                Carried over from the run you just looked at. Edit it freely — it starts however
-                you leave it.
+                Carried over from the run you just looked at. Edit it freely. It starts however you
+                leave it.
               </p>
             ) : null}
             <Composer
@@ -343,9 +343,7 @@ function StartLanding() {
           <Receipt verb="It did not start" consequence={problems.join(" ")} failed />
         ) : null}
 
-        {openRuns.length > 0 ? (
-          <OpenWorkSection openRuns={openRuns} navigate={navigate} />
-        ) : null}
+        {openRuns.length > 0 ? <OpenWorkSection openRuns={openRuns} navigate={navigate} /> : null}
 
         <div data-mrd="" className="flex flex-col gap-mrd-3">
           <p className="mrd-meta">Pick one if it fits. Not picking is fine.</p>
