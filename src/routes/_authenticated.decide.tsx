@@ -215,6 +215,8 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { sourceWords } from "@/components/decisions/source-words";
+import { wordFor } from "@/lib/spine/chain";
 import { Row, Line } from "@/components/meridian/rows";
 import {
   Action,
@@ -2839,11 +2841,25 @@ function DecideSurface() {
               ...(provenanceSources.length > 0
                 ? [
                     <span key="sources">
-                      <Num>{provenance.data?.source_signals?.length ?? 0}</Num> signal
-                      {(provenance.data?.source_signals?.length ?? 0) === 1 ? "" : "s"} behind it,
+                      {/*
+                       * `wordFor`, NOT the literal word. S0 renamed the display
+                       * word for this kind from "signal" to "finding" in
+                       * KIND_WORD on 2026-08-27, because section 12's map is
+                       * explicit that a practitioner does not say signals. This
+                       * sentence had its own hardcoded copy, so the product was
+                       * saying both words on two surfaces about one thing. One
+                       * vocabulary, read from the place that owns it.
+                       */}
+                      <Num>{provenance.data?.source_signals?.length ?? 0}</Num>{" "}
+                      {wordFor("signal", provenance.data?.source_signals?.length ?? 0)} behind it,
                       from <Num>{provenanceSources.length}</Num> separate source
                       {provenanceSources.length === 1 ? "" : "s"}:{" "}
-                      {provenanceSources.slice(0, 2).join(", ")}
+                      {/*
+                       * The stored value, read as words. These are column values
+                       * like `competitive_research`, and showing a person the
+                       * underscore is showing them the database.
+                       */}
+                      {provenanceSources.slice(0, 2).map(sourceWords).join(", ")}
                       {provenanceSources.length > 2 ? " and more" : ""}.
                     </span>,
                   ]
