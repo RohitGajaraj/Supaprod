@@ -190,7 +190,7 @@ export function deriveCharacter(input: PresenceInput): Presence {
     if (input.currentTool) {
       return { state: "working", line: `I'm ${verbForTool(input.currentTool)}.` };
     }
-    return { state: "thinking", line: "I'm on it — working out the next step." };
+    return { state: "thinking", line: "I'm on it — you can leave this page and I'll keep going." };
   }
 
   if (input.result?.stopped === "finished" || hold === DONE_HOLD) {
