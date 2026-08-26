@@ -9,6 +9,8 @@
  *   a review (mode=review). Memory is recalled and prepended.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { resolveApprovalPolicy } from "@/lib/ai/approval-policy";
+import { approvalRecordFor } from "@/lib/ai/approval-policy.server";
 import { humanizeText } from "./humanize";
 import { PLAIN_PUNCTUATION_RULE } from "@/lib/ai/house-style";
 import {
@@ -1762,6 +1764,66 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
       if (heldForYou) mode = "review";
     }
     const isWrite = def.category === "write" || def.category === "planning";
+
+    /*
+     * ── WHAT THIS WORKSPACE HAS ALREADY ANSWERED (THE-ONE-SCREEN) ─────────
+     *
+     * `resolveApprovalPolicy` has been written, fully tested and reachable from
+     * nothing since it landed: zero callers outside its own tests and one
+     * component comment describing what it WOULD do. This is the call site that
+     * comment was written about.
+     *
+     * The point is that an answer a person already gave should not be asked for
+     * again. A workspace that has turned this tool down every time it was
+     * offered has said what it thinks; putting the question in the queue an
+     * eighth time is not caution, it is not listening.
+     *
+     * IT CAN ONLY EVER TIGHTEN, which is what makes it safe to wire into the
+     * gate rather than beside it. `isNeverLaxerThanDefault` is the invariant and
+     * the module exports it precisely so a caller can assert it against real
+     * numbers. Nothing a workspace does with its record can make a tool ask
+     * LESS than the trust ramp already decided, so this cannot widen a gate.
+     *
+     * A failed read returns `undefined`, and `undefined` means "nobody has ruled
+     * on this", which is the ordinary case and the safe one: the default stands.
+     */
+    const policy = ctx.workspaceId
+      ? resolveApprovalPolicy({
+          tool: call.name,
+          record: await approvalRecordFor(supabase, ctx.workspaceId, call.name),
+        })
+      : resolveApprovalPolicy({ tool: call.name });
+
+    if (policy.decision === "disabled") {
+      /*
+       * SWITCHED OFF, so it is not run and NOT queued. Raising an approval here
+       * would be asking a question whose answer is on the record seven times
+       * over, and every one of those rows expires unanswered and ages the queue
+       * F-84 measured.
+       *
+       * The refusal carries the policy's own sentence, which already says how to
+       * turn it back on, so the agent can tell the person something true rather
+       * than "the tool failed".
+       */
+      steps.push({
+        kind: "tool_call",
+        name: call.name,
+        args: call.args as Json,
+        ok: false,
+        error: policy.reason,
+        status: "error",
+      });
+      conv.push({ role: "assistant", content: assistantContent });
+      conv.push({
+        role: "user",
+        content: `Tool refused: ${policy.reason} Do not ask again this run; pick another tool or finalize.`,
+      });
+      continue;
+    }
+
+    // The record can tighten an auto call into one that waits. It never does the
+    // reverse; see the invariant above.
+    if (policy.decision === "always-human" && mode === "auto") mode = "review";
 
     if (!isControlFlow && isWrite && (mode === "confirm" || mode === "review")) {
       /* THE GATE DECLARES ITS OWN DEFAULT, and the deadline is part of the
