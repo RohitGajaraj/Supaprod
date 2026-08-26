@@ -16,6 +16,7 @@
     "check:tests": "bash scripts/check-test-runner.sh",
     "format": "prettier --write .",
     "test": "bun test",
+    "check:motion": "bash e2e/check-motion.sh",
     "cost:track": "bash scripts/cost-track.sh",
     "cost:summary": "bash scripts/cost-summary.sh",
     "clean:workspace": "bash scripts/clean-workspace.sh",
