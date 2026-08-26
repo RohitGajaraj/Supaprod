@@ -313,7 +313,7 @@ export function goalForEvent(evt: EventRow): string {
     case "signal.clustered":
       return (
         `A new theme emerged from signals (severity: ${num(p.severity)}, frequency: ${num(p.frequency)}). ` +
-        `Review the cluster against existing themes and opportunities — merge if overlapping, promote to an opportunity if novel and high-signal, and surface any strategic implication. ${UNTRUSTED_WARNING}\n` +
+        `Review the cluster against existing themes and opportunities. Merge if overlapping, promote to an opportunity if novel and high-signal, and surface any strategic implication. ${UNTRUSTED_WARNING}\n` +
         untrustedSignalBlock({ title, summary: (p.summary as string) ?? "" })
       );
     case "outcome.recorded":

@@ -325,9 +325,9 @@ export const checkBackendHealth = createServerFn({ method: "GET" }).handler(
       } else if (!warnedDrift) {
         warnedDrift = true;
         console.error(
-          `[health] backend drift — apply these migrations:\n${drifted
+          `[health] backend drift, apply these migrations:\n${drifted
             .map(
-              (e) => `  - supabase/migrations/${e.since}_*.sql (${e.table}.${e.column}) — ${e.why}`,
+              (e) => `  - supabase/migrations/${e.since}_*.sql (${e.table}.${e.column}): ${e.why}`,
             )
             .join("\n")}`,
         );

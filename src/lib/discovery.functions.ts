@@ -2426,14 +2426,14 @@ async function dropSampleSpecChunks(
   );
 }
 
-export const CONTRACT_FROM_INTENT_SYSTEM = `You are the Supaprod contract author. Given a one-line product intent plus standing workspace context and precedent (prior specs, docs, notes, meetings — numbered chunks you may draw from), draft a full Outcome Contract in seconds so the human edits deltas instead of writing from a blank page.
+export const CONTRACT_FROM_INTENT_SYSTEM = `You are the Supaprod contract author. Given a one-line product intent plus standing workspace context and precedent (prior specs, docs, notes, meetings; numbered chunks you may draw from), draft a full Outcome Contract in seconds so the human edits deltas instead of writing from a blank page.
 Rules:
 - intent: restate the bet as one tight, sharpened paragraph (not the one-liner verbatim).
 - success_metrics: up to 6 falsifiable acceptance criteria / success metrics, most load-bearing first.
 - non_goals: up to 5 explicit out-of-scope statements.
 - budget_estimate: a rough size/effort note (e.g. "Size M, roughly 2-3 days"). Null if nothing in the intent or context supports an estimate.
 - blast_radius: what breaks or is at risk if this goes wrong. Null if genuinely unclear.
-- ambiguity_policy: one sentence on how to resolve ambiguity while building this — default to the reversible interpretation, log the assumption, escalate only if irreversible or over budget.
+- ambiguity_policy: one sentence on how to resolve ambiguity while building this. Default to the reversible interpretation, log the assumption, escalate only if irreversible or over budget.
 - clarifying_questions: at most 5 questions, ONLY the ones that are genuinely load-bearing and cannot be inferred from the intent or context. Empty array if there is nothing that actually blocks starting.
 - narrative: a short Markdown body (${SPEC_SECTION_ORDER.map((section) => `## ${section}`).join(", ")}), under 400 words, restating the same content for human reading. Cite context chunks inline as [n] where you draw from them.
 - Ground everything you can in the provided context. Where nothing supports a field, still fill intent/success_metrics/non_goals from the intent alone, but leave budget_estimate/blast_radius/ambiguity_policy null rather than inventing specifics.
@@ -2476,7 +2476,7 @@ export const draftContractFromIntent = createServerFn({ method: "POST" })
     }));
     const contextBlock =
       chunks.length === 0
-        ? "\n\n(No standing context or precedent found for this intent — draft from the intent alone.)"
+        ? "\n\n(No standing context or precedent found for this intent. Draft from the intent alone.)"
         : `\n\nSTANDING CONTEXT + PRECEDENT (cite as [n] in the narrative if you draw from it):\n${chunks
             .map(
               (c, i) =>
@@ -2683,7 +2683,7 @@ Rules:
 - "eval": a qualitative or behavioral claim an LLM judge can grade against the spec's intent. Most product claims land here.
 - "ci": already covered by the standard CI gate (type-check, lint, automated tests) with no new artifact needed. Use ONLY for claims that are inherently about code correctness or build health, not product behavior.
 - "uat": requires a human to manually verify (visual or design judgment, external system state, anything an LLM cannot check from text alone).
-- "unverifiable": not falsifiable as written — vague, unmeasurable, or opinion, and cannot become a real oracle without rewriting the clause itself.
+- "unverifiable": not falsifiable as written: vague, unmeasurable, or opinion, and cannot become a real oracle without rewriting the clause itself.
 - Exactly one classification per clause, indexed to match the input.
 - No em dashes, no en dashes, no AI cliches (delve, leverage, unlock, game-changer, crucial).
 - Output ONLY valid JSON: {"classifications": [{"index": 0, "oracle_kind": "eval" | "ci" | "uat" | "unverifiable", "rationale": "max 140 chars"}]}`;
@@ -3709,7 +3709,7 @@ export const generatePrd = createServerFn({ method: "POST" })
 Problem: ${opp.problem}
 Target user: ${opp.target_user ?? "Not specified"}
 Hypothesis: ${opp.hypothesis ?? ""}
-ICE — Impact:${opp.impact} Confidence:${opp.confidence} Ease:${opp.ease}`;
+ICE. Impact:${opp.impact} Confidence:${opp.confidence} Ease:${opp.ease}`;
 
       /**
        * A SECOND PRESS MINTED A SECOND SPEC.

@@ -34,7 +34,7 @@ export async function indexFinding(
       // EMBED-CHOKEPOINT: thread context so this finding embedding logs + BYO-routes.
       embedding = await embedOne(content, { supabase, userId, surfaceRef: "finding" });
     } catch (e) {
-      console.error("[brain] embedding unavailable — storing finding without vector:", e);
+      console.error("[brain] embedding unavailable, storing finding without vector:", e);
     }
 
     // rag_chunks has a UNIQUE index on (user_id, source_kind, source_id,
