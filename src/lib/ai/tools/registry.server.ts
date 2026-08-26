@@ -374,7 +374,29 @@ const logSignal = def({
    * outcome by writing a row, and the row is worse than the hold it avoided.
    */
   description:
-    "Log a discovery signal: evidence that EXISTS, in the words of the source (user feedback, a support ticket, an interview quote). " +
+    /*
+     * "IN THE WORDS OF THE SOURCE" WAS TOO NARROW, AND IT COST THE LOOP ITS
+     * FIRST STATION (2026-08-27).
+     *
+     * The examples were all verbatim human utterances, so a crew reading this
+     * concluded that measured behaviour is not a signal. Three agents on track
+     * `a30238f5` said so in as many words: *"no user-sourced signals exist ...
+     * all available references (41% abandonment on address re-confirm, session
+     * replays)"*, and filed nothing. They had FOUND the evidence and refused it
+     * on a definition.
+     *
+     * That workspace holds 258 signals, 33 tagged `redundant-address-entry` and
+     * 18 `address-friction`, against a track about reusing a saved delivery
+     * address. Discover produced zero artifacts across twelve drives and went
+     * terminal on the F-43 ceiling, and so did the other sense-entry track.
+     *
+     * NEITHER OF THE TWO REFUSALS BELOW WANTED THIS. One forbids filing the
+     * ABSENCE of evidence; the other forbids citing the product's OWN
+     * artifacts. A session replay and a measured abandonment rate are neither:
+     * they come from outside the loop and they are about the world. So the
+     * examples widen and both NEVERs stay exactly as they were.
+     */
+    "Log a discovery signal: evidence that EXISTS and came from outside this product. A quote is one kind (user feedback, a support ticket, an interview) and so is observed behaviour (a session replay, a funnel or abandonment measurement, an error rate, a support-volume trend). What matters is that a person or their behaviour outside the loop produced it, not that it is a sentence somebody said. " +
     "NEVER log the absence of evidence. 'No signals found', 'zero results', 'no data for X' are not signals. They are the answer to your final message, and filing them puts your own failure into the evidence every later run reads. Finding nothing and filing nothing is a correct, expected outcome; say so in your answer instead. " +
     "NEVER cite this product's own work as a source. A PRD, spec, decision, changeset, mission, forecast or workspace brief is something the loop wrote, not something a person outside it said. The tool refuses those and the refusal is not a bug to work around.",
   category: "write",

@@ -73,9 +73,22 @@ describe("the tool tells the agent what NOT to file", () => {
   });
 
   /** The original purpose survives: it is still the tool for real evidence. */
-  it("still asks for evidence in the words of the source", () => {
+  it("still asks for evidence that exists, from outside the loop", () => {
+    /*
+     * WIDENED 2026-08-27, and the assertion had to widen with it. This read
+     * `toContain("interview quote")`, pinning a definition whose examples were
+     * all verbatim human utterances. Three Discover agents concluded from it
+     * that a session replay and a 41% abandonment measurement are not signals,
+     * found the evidence, refused it, and filed nothing across twelve drives in
+     * a workspace holding 258 signals.
+     *
+     * What this rule actually protects is unchanged and asserted below: do not
+     * file the ABSENCE of evidence, and do not cite the product's own work.
+     * Neither of those excludes observed behaviour.
+     */
     expect(DESCRIPTION).toContain("evidence that EXISTS");
-    expect(DESCRIPTION).toContain("interview quote");
+    expect(DESCRIPTION).toContain("interview");
+    expect(DESCRIPTION).toContain("came from outside this product");
   });
 });
 
