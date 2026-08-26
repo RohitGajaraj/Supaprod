@@ -55,7 +55,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { getTrackActivity, getTrackChain } from "@/lib/spine/track.functions";
 import { countKinds, type Turn } from "@/lib/spine/activity";
 import { handoffLine, turnsAtStation, whatCameWith } from "@/components/spine/handed-over";
-import { humanizeText } from "@/lib/ai/humanize";
 import { mergeActivityRows } from "@/components/spine/activity-rows";
 import type { AgentStation } from "@/lib/agent-vocabulary";
 import { GLYPH_FOR_STATION, type StationGlyphKind } from "@/components/meridian/station-glyphs";
@@ -199,54 +198,6 @@ export function hasLiveVisit(turns: Array<Pick<Turn, "outcome">>): boolean {
  * rollup is the normal case, not the edge one. `RunRollup` drops falsy items so
  * a hole never prints as a stray separator.
  */
-/**
- * The agent's own last line, as a person should read it.
- *
- * ── WHY THIS RUNS THE SANITIZER AT RENDER, WHICH LOOKS LIKE THE WRONG END ──
- * Measured on production, 2026-08-26: **1,375 of 2,771 `agent_runs.output` rows
- * contain an em or en dash, and the newest was written today.** That column is
- * this line, so roughly half of every transcript in the product is showing the
- * punctuation the founder asked us to remove, on his own workspace. It is the
- * single largest source of them on any surface, and no sweep of our source can
- * see it: the model wrote it into the database.
- *
- * Fixing the write path is right and is filed to S0, but a write-path fix
- * changes nothing about the 1,375 rows that already exist, and those are what a
- * person reads today. So the same rule is applied on the way out.
- *
- * ── THIS IS A BRIDGE, AND HERE IS THE CONDITION THAT ENDS IT ──────────────
- * The real fix is on the write path: `loop.server.ts` never calls the sanitizer
- * at all, and the two writes that carry the model's prose are at **`:964` and
- * `:2493`, inside `finalize(finalMsg)`**. Corrected after S4 grouped the table
- * by status: those two produce `completed` (60.6% dashed) and
- * `completed_with_failures` (67.8%), while the `halted` writes are 0% dashed
- * because a halted output is a canned taxonomy string a person wrote. People
- * writing constants do not produce em dashes at 60%; models do.
- * **When those go through the sanitizer AND the existing rows are backfilled,
- * delete this function and print `t.said` again.** Said out loud
- * because a render-side normaliser with no stated end date gets either removed
- * by someone who thinks it is a mistake or built upon by someone who thinks it
- * is the design, and both are wrong.
- *
- * ── IT IS THE REPO'S OWN RULE, NOT A SECOND ONE ────────────────────────────
- * `humanizeText` is the chokepoint the runtime already uses, it leaves fenced
- * and inline code untouched, and it is idempotent by its own contract, so text
- * that was cleaned on write is unchanged here. When S0 closes the write path,
- * this becomes a no-op rather than a conflict.
- *
- * ── "NEVER REWRITTEN" STILL HOLDS, AND THE DISTINCTION IS THE POINT ────────
- * The row is untouched and the wording is untouched. This normalises punctuation
- * and strips invisible characters. Nothing here changes what the agent SAID,
- * which is the property the transcript's honesty rests on.
- */
-export function saidLine(said: string | null | undefined): string | null {
-  if (!said) return null;
-  const clean = humanizeText(said);
-  // Truncate AFTER cleaning, so the 160th character is a character a person
-  // will actually see rather than one the sanitizer was about to remove.
-  return clean.length > 160 ? `${clean.slice(0, 160)}...` : clean;
-}
-
 export function rollupOf(t: Turn, titles: TitleBook): React.ReactNode[] {
   const took =
     t.outcome === "working" ? (
@@ -582,11 +533,21 @@ export function TrackActivity({
                       the transcript said only "Stopped". */}
                   {t.stopLine ? <RunNote>{t.stopLine}</RunNote> : null}
 
-                  {/* The agent's own last line. One line is enough to tell
-                      whether it understood the job; the full text lives on the
-                      run. The wording is untouched; `saidLine` normalises only
-                      punctuation, for the reason set out on that function. */}
-                  {saidLine(t.said) ? <RunNote>{saidLine(t.said)}</RunNote> : null}
+                  {/* The agent's own last line, trimmed and never rewritten.
+                      One line is enough to tell whether it understood the job;
+                      the full text lives on the run.
+
+                      This printed through a sanitiser for four hours on
+                      2026-08-26, because 1,375 of 2,771 `agent_runs.output`
+                      rows carried an em dash the model had written. S0 wrapped
+                      all seven write sites in `loop.server.ts` and backfilled
+                      the stored rows; measured again after, every one of those
+                      columns reads zero. Both conditions that bridge named for
+                      its own removal were met, so it is gone rather than left
+                      as a permanent no-op nobody dares delete. */}
+                  {t.said ? (
+                    <RunNote>{t.said.length > 160 ? `${t.said.slice(0, 160)}...` : t.said}</RunNote>
+                  ) : null}
                 </span>
               </li>
             );
