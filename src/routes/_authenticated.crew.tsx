@@ -265,6 +265,27 @@ function ago(iso: string | null | undefined): string | null {
   return `${Math.floor(hours / 24)}d`;
 }
 
+
+/**
+ * "Last worked 4h ago", and the two ways that sentence goes wrong.
+ *
+ * `ago()` answers "now" under a minute, so the obvious template produces **"Last
+ * worked now ago."** — seen on the live roster 2026-08-27, on the two agents that
+ * had just run. It also answers null for a timestamp it cannot use, which the
+ * same template renders as **"Last worked null ago."**
+ *
+ * Null here means the row HAS a time and we could not read it, which is not the
+ * same as never having run. Saying nothing is the only honest answer: "has not
+ * run here yet" would be a claim about the agent made from a fault in our own
+ * parsing.
+ */
+function lastWorkedLine(iso: string | null | undefined): string | null {
+  if (!iso) return "Has not run here yet.";
+  const when = ago(iso);
+  if (when === null) return null;
+  return when === "now" ? "Last worked just now." : `Last worked ${when} ago.`;
+}
+
 /* ------------------------------------------------------------------ *
  * The surface
  * ------------------------------------------------------------------ */
@@ -640,9 +661,7 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
                         */}
                         {m && m.enabled && m.runs.running === 0 ? (
                           <span className="mt-0.5 block text-mrd-small leading-mrd-snug text-mrd-mute">
-                            {m.runs.lastAt
-                              ? `Last worked ${ago(m.runs.lastAt)} ago.`
-                              : "Has not run here yet."}
+                            {lastWorkedLine(m.runs.lastAt)}
                           </span>
                         ) : null}
                       </span>
