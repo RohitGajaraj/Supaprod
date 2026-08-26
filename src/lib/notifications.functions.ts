@@ -1,4 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
+import { absoluteUrl } from "@/lib/email.server";
+import {
+  verdictEmailSubject,
+  verdictEmailText,
+  verdictEmailHtml,
+} from "@/components/notifications/verdict-email";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -920,40 +926,86 @@ export async function dispatchVerdictEmail(
           ? "It did not go the way we expected"
           : "It went partly the way we expected";
 
+    /*
+     * THREE FIELDS, NOT ONE. The select read `forecast_claim` alone while the
+     * template renders the pairing in full: the claim, HOW WE WOULD KNOW, and
+     * WHEN IT WAS DUE. Those last two are what make a forecast checkable rather
+     * than a slogan, and S4-052 is what happens without them — two verdicts
+     * graded four days early against an observable nobody read.
+     *
+     * Null-safe by construction: the template omits each line when its field is
+     * absent, and only falls back to "carried no written expectation" when
+     * `forecast_claim` itself is null. That keeps the positive absence intact,
+     * which is the one thing this mail must never fake.
+     */
     let forecastClaim: string | null = null;
+    let forecastCheck: string | null = null;
+    let forecastDue: string | null = null;
     if (args.decisionId) {
       const { data: decision } = await supabase
         .from("decisions")
-        .select("forecast_claim")
+        .select("forecast_claim, forecast_how_we_will_know, forecast_horizon_date")
         .eq("id", args.decisionId)
         .maybeSingle();
-      forecastClaim =
-        (decision as { forecast_claim?: string | null } | null)?.forecast_claim ?? null;
+      const d = decision as {
+        forecast_claim?: string | null;
+        forecast_how_we_will_know?: string | null;
+        forecast_horizon_date?: string | null;
+      } | null;
+      forecastClaim = d?.forecast_claim ?? null;
+      forecastCheck = d?.forecast_how_we_will_know ?? null;
+      forecastDue = d?.forecast_horizon_date ?? null;
     }
 
-    const lines = [
-      headline,
-      "",
-      forecastClaim
-        ? `What we expected: ${forecastClaim}`
-        : "This work carried no written expectation, so there is nothing to compare the result against.",
-      `What happened: ${args.summary}`,
-    ];
-
-    if (args.metricLabel && args.metricValue) {
-      lines.push(`${args.metricLabel}: ${args.metricValue}`);
+    /*
+     * THE SUBJECT NEEDS THE WORK'S NAME, and the dispatch had only its id.
+     * "Supaprod: it missed" is a status word; "Supaprod: <the work> missed" is
+     * about something.
+     *
+     * THE HREF SHAPE, STATED RATHER THAN INFERRED, because S3 refused to guess
+     * it and was right to: a dead link in a mail cannot be fixed after it is
+     * sent. The route is `src/routes/_authenticated.track.$trackId.tsx`, so the
+     * address is `/track/<id>`, made absolute through the same `absoluteUrl`
+     * the waitlist mail uses. Null when there is no track, and the template
+     * drops the button rather than rendering one that goes nowhere.
+     */
+    let trackTitle = "your work";
+    let trackHref: string | null = null;
+    if (args.trackId) {
+      const { data: track } = await supabase
+        .from("spine_tracks")
+        .select("title")
+        .eq("id", args.trackId)
+        .maybeSingle();
+      trackTitle = (track as { title?: string | null } | null)?.title ?? trackTitle;
+      /*
+       * ROOT-RELATIVE, and this is not a style choice. `VerdictEmailPayload`
+       * documents `trackHref` as "root-relative path of the run", and both
+       * `verdictEmailText` and `verdictEmailHtml` call `absoluteUrl` on it
+       * themselves. Passing an absolute URL here would prefix it twice and put
+       * a dead link in a mail nobody can fix after it is sent, which is the
+       * exact failure S3 refused to guess at when they filed this.
+       */
+      trackHref = `/track/${args.trackId}`;
     }
 
-    lines.push(
-      "",
-      "You are getting this because work you started finished while you were away.",
-      "Change it in Settings, under Notifications.",
-    );
+    const payload = {
+      trackTitle,
+      trackHref,
+      verdict: args.verdict,
+      summary: args.summary,
+      metricLabel: args.metricLabel ?? null,
+      metricValue: args.metricValue ?? null,
+      forecastClaim,
+      forecastCheck,
+      forecastDue,
+    };
 
     const { sent, reason } = await sendEmail({
       to,
-      subject: `Supaprod: ${headline.toLowerCase()}`,
-      text: lines.join("\n"),
+      subject: verdictEmailSubject(payload),
+      text: verdictEmailText(payload),
+      html: verdictEmailHtml(payload),
     });
     return { sent, reason };
   } catch (e) {
