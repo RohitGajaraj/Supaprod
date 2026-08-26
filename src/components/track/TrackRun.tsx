@@ -43,7 +43,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { TrackChain } from "@/components/spine/TrackChain";
 import { TrackActivity } from "@/components/spine/TrackActivity";
-import { Character } from "@/components/presence/Character";
+import { RunPresence } from "@/components/presence/RunPresence";
 import { ArtifactPane } from "@/components/track/ArtifactPane";
 import { TrackConsent } from "@/components/track/TrackConsent";
 import { Action, Region } from "@/components/meridian/surface-parts";
@@ -562,8 +562,14 @@ export function TrackRunLeft({
        * never staged. When the run asks, the consent card directly below IS
        * this character's voice; when a tool refuses, it says the door is
        * locked rather than promising a retry (R-26).
+       *
+       * `RunPresence` holds the one distinction the derivation cannot see:
+       * while this pane's first read is in flight nothing is claimed at all,
+       * so a person arriving from /start reads "Reading this piece of work"
+       * instead of the false alarm "I can't find this piece of work".
        */}
-      <Character
+      <RunPresence
+        loading={trackQ.isLoading}
         input={{
           track: track
             ? { status: track.status, holdReason: track.holdReason, drivenAt: track.drivenAt }

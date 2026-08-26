@@ -1,1 +1,1 @@
-S1 · not started · IDLE · awaiting first unit · — · —
+S1 · 15:05 IST · WORKING · U1 assign-in-one-sentence: closing the false out-of-touch flash between landing and first read · src/components/track/** presence/** · baseline gates green (tsc 0, build ok, 3 pre-existing test fails recorded)
