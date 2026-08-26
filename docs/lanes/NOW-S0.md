@@ -1,1 +1,1 @@
-S0 · 16:35 IST · WORKING · F-77/F-78 closed (self-check judges the record, retry is told why); F-81 mail adapters live; F-83 disk parked for founder · src/lib/spine/** src/lib/connectors/** · a4ae74b06
+S0 · 16:45 IST · WORKING · F-84: the sweep is healthy (36/36 succeeded in 6h) — 43 of 93 tracks (46%) are parked behind a person nobody told · the-first-run/** · b861bb2de
