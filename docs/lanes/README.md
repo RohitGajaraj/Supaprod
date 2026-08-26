@@ -58,6 +58,7 @@ reopened, whatever the buildlog says.
 | [`S4-012-premerge-run12-13-c2-004.md`](./verify/S4-012-premerge-run12-13-c2-004.md) | RUN-12/13 and C2-004, checked before the merge |
 | [`S4-013-queue72-tone-comment.md`](./verify/S4-013-queue72-tone-comment.md) | Queue 72's tone, checked |
 | [`S4-014-f86-metric-probe.md`](./verify/S4-014-f86-metric-probe.md) | F-86's metric probe — whether the type really makes the lie unrepresentable |
+| [`S4-015-run14-15.md`](./verify/S4-015-run14-15.md) | RUN-14 and 15, checked |
 
 ## Superseded
 

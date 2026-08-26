@@ -1,1 +1,1 @@
-S0 · 18:30 IST · WORKING · mrd-email-palette promoted into Meridian (S3 authored, S0 reviewed) + drift guard that reads meridian.css and bites; 11,567 tests 0 fail · src/components/meridian/** · pending
+S0 · 18:46 IST · WORKING · integration pass 7: 3 lanes merged, S4-015 linked · the-first-run/** docs/lanes/** · pending
