@@ -270,14 +270,14 @@ export async function autoReflect(
             'Return strict JSON: {"lesson":string, "what_worked":string, "what_to_change":string, ' +
             '"importance":1|2|3|4|5, "depends_on_current_state":boolean}. ' +
             'lesson <= 240 chars, written in second person ("You"). importance: 1 = trivial, 5 = pivotal. ' +
-            "Skip vague platitudes — if there is nothing specific, set importance=1. " +
+            "Skip vague platitudes. If there is nothing specific, set importance=1. " +
             // A lesson is about HOW YOU WORK. The run that prompted it happened
             // in a workspace with a particular thing broken or missing that
             // day, and that condition will be repaired while the lesson keeps
             // being recalled. See the file header for what this cost.
             "A lesson is about HOW YOU WORK, not about what this workspace currently contains. " +
-            "If it only holds while some present condition holds — an integration that is down, a " +
-            "table that is empty, a source nobody has configured yet — set depends_on_current_state " +
+            "If it only holds while some present condition holds (an integration that is down, a " +
+            "table that is empty, a source nobody has configured yet), set depends_on_current_state " +
             "true and it will be given a shelf life. " +
             "Never write a standing prohibition on work you may not do: a condition you met today " +
             "is a fact about today, and stating it as a rule makes it outlive the thing it described.",
