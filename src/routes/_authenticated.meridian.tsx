@@ -2701,7 +2701,7 @@ function SpendCases() {
           note="Every call is refused at this ceiling. Raise it and the work carries on."
         />
       </Case>
-      <Case label="A ledger that went backwards, which the bar refuses to draw">
+      <Case label="A track record that went backwards, which the bar refuses to draw">
         <Spend
           label="This run"
           spent={-2}

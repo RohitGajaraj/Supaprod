@@ -240,7 +240,7 @@ function ProofPage() {
             style={{ color: "var(--mrd-mute)", margin: 0, lineHeight: 1.6 }}
           >
             No public decisions yet. Every one of these is a real call from Supaprod's own build,
-            shared by its owner, receipt and all, never seeded or staged. That is why this section
+            shared by its owner with its evidence, never seeded or staged. That is why this section
             is honestly empty until one exists.
           </p>
         </div>
