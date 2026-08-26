@@ -1048,7 +1048,7 @@ function Boundary({ member, onChanged }: { member: CrewMember; onChanged: () => 
             evidence={
               <>
                 <Figure>{t.score}</Figure> out of <Figure>100</Figure>, from{" "}
-                <Figure>{t.samples}</Figure> signals
+                <Figure>{t.samples}</Figure> entries in the record
               </>
             }
           >
@@ -1397,7 +1397,7 @@ function MemberRecord({ member }: { member: CrewMember }) {
                 }
                 sub={
                   <>
-                    from <Figure>{t.samples}</Figure> signals
+                    from <Figure>{t.samples}</Figure> entries in the record
                   </>
                 }
               />
