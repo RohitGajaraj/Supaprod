@@ -351,6 +351,7 @@ export function TrackRunLeft({
   trackId,
   autoStart = false,
   onCrewLive,
+  onDriveState,
   crewLive = false,
 }: {
   trackId: string;
@@ -366,6 +367,12 @@ export function TrackRunLeft({
   /** QUEUE 71: the transcript's answer to "is a crew here right now", lifted
    * so the composition can share it with the right pane. */
   onCrewLive?: (live: boolean) => void;
+  /**
+   * Whether a press in this tab has legs left to cancel, and how to cancel
+   * them. Lifted because the Stop belongs in the footer under both panes
+   * (THE-ONE-SCREEN:21) and this pane cannot reach it.
+   */
+  onDriveState?: (s: { canStop: boolean; stop: () => void }) => void;
   /**
    * RUN-02: the same live fact, handed BACK by the composition, so this pane's
    * own presence reads it. A run driven by the sweep while this tab was closed
@@ -630,6 +637,22 @@ export function TrackRunLeft({
   React.useEffect(() => {
     onCrewLive?.(crewLive || walkingMidRoute);
   }, [crewLive, walkingMidRoute, onCrewLive]);
+
+  /*
+   * THE FOOTER'S STOP LIVES OUTSIDE THIS PANE, so the fact that there is
+   * something to stop has to travel out of it. Same shape as the crewLive lift
+   * above rather than a second mechanism.
+   *
+   * The handler is read through a ref so this effect depends only on WHETHER a
+   * press is walking, not on a function identity that changes every render.
+   * Reporting on identity would fire on every paint and the footer would
+   * re-render for nothing.
+   */
+  const stopRef = React.useRef<() => void>(() => undefined);
+  stopRef.current = () => setLegsLeft(0);
+  React.useEffect(() => {
+    onDriveState?.({ canStop: continuing, stop: () => stopRef.current() });
+  }, [continuing, onDriveState]);
 
   const showHold = held && !walkingMidRoute && !isCalmHold;
   /*
@@ -911,16 +934,18 @@ export function TrackRunLeft({
         }
       >
         {track?.status === "done" || track?.status === "abandoned" ? null : continuing ? (
-          <div className="flex flex-wrap items-center gap-mrd-3">
-            <Action variant="primary" busy onClick={() => undefined}>
-              Walking the route
-            </Action>
-            {/* Stoppable at any moment: this cancels the LEGS THIS PRESS bought,
-                never the leg in flight -- a server walk cannot be un-walked. */}
-            <Action variant="quiet" onClick={() => setLegsLeft(0)}>
-              Stop after this leg
-            </Action>
-          </div>
+          /*
+           * THE STOP IS NOT HERE ANY MORE, and that is the ruling rather than a
+           * tidy-up. THE-ONE-SCREEN:21 puts it in the footer under both panes,
+           * and the reason is legibility: it used to sit inside the same box as
+           * Run it, so stopping a run meant scrolling back to the control you
+           * started it from. There is exactly ONE Stop on this surface and it
+           * is the footer's; a second copy here would be the duplication this
+           * screen keeps being repaired for.
+           */
+          <Action variant="primary" busy onClick={() => undefined}>
+            Walking the route
+          </Action>
         ) : (
           <Action
             variant="primary"
