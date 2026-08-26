@@ -82,9 +82,9 @@
  *
  *   - no evidence at all         nothing links this run back to that stage.
  *   - `signalCount === null`     the opportunity carries no theme, so nothing
- *                                was counted. NOT "no signals".
+ *                                was counted. NOT "no things we found".
  *   - `signalCount === 0`        the theme is real and holds none. This one IS
- *                                "no signals".
+ *                                "no things we found".
  *   - `checks === null`          no check result has ever been read for this
  *                                pull request. Not passed, not failed.
  *   - `deployments === []`       read, and nothing has deployed.
@@ -307,13 +307,13 @@ function Discover({
           <Stat>none counted, nothing links it to a theme</Stat>
         </Fact>
       ) : e.signalCount === 0 ? (
-        <Fact label="Signals behind it" sub={e.theme ? `on ${e.theme.title}` : undefined}>
+        <Fact label="What we found" sub={e.theme ? `on ${e.theme.title}` : undefined}>
           <Stat>its theme holds none yet</Stat>
         </Fact>
       ) : (
-        <Fact label="Signals behind it" sub={e.theme ? `on ${e.theme.title}` : undefined}>
+        <Fact label="What we found" sub={e.theme ? `on ${e.theme.title}` : undefined}>
           <Stat>
-            <Figure>{e.signalCount}</Figure> {e.signalCount === 1 ? "signal" : "signals"}
+            <Figure>{e.signalCount}</Figure> {e.signalCount === 1 ? "what we found" : "things we found"}
           </Stat>
         </Fact>
       )}
@@ -322,7 +322,7 @@ function Discover({
         <RunRow
           key={s.id}
           tight
-          lead={s.excerpt || s.title || "a signal"}
+          lead={s.excerpt || s.title || "what we found"}
           sub={s.source}
           time={ago(s.at)}
         />

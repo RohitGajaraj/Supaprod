@@ -247,7 +247,7 @@ const ROUTES: Partial<
 };
 
 const KIND_LABEL: Record<ArtifactKind, string> = {
-  signal: "Signal",
+  signal: "What we found",
   theme: "Theme",
   opportunity: "Opportunity",
   // LOOM W2: the IA word is "spec" on every user-facing surface; the
