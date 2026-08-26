@@ -1245,8 +1245,7 @@ async function verifyStationOutput(
       .in("id", decisionIds);
     const hasForecast = (decisions ?? []).some(
       (d: { forecast_text?: string; forecast_horizon_date?: string }) =>
-        (d.forecast_text && d.forecast_text.trim().length > 0) ||
-        d.forecast_horizon_date,
+        (d.forecast_text && d.forecast_text.trim().length > 0) || d.forecast_horizon_date,
     );
     if (!hasForecast) {
       return { passed: false, reason: "Decision was recorded but has no forecast" };
@@ -1267,8 +1266,7 @@ async function verifyStationOutput(
       .in("id", specIds);
     const hasContent = (specs ?? []).some(
       (p: { title?: string; brief?: string }) =>
-        (p.title && p.title.trim().length > 0) ||
-        (p.brief && p.brief.trim().length > 0),
+        (p.title && p.title.trim().length > 0) || (p.brief && p.brief.trim().length > 0),
     );
     if (!hasContent) {
       return { passed: false, reason: "Spec was drafted but has no content" };
