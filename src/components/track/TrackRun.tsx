@@ -650,9 +650,25 @@ export function TrackRunLeft({
    */
   const stopRef = React.useRef<() => void>(() => undefined);
   stopRef.current = () => setLegsLeft(0);
+  /*
+   * `continuing` ALONE WAS NOT ENOUGH, and driving it is what showed that.
+   * It is true only BETWEEN legs -- `legsLeft > 0` AND a returned result that
+   * stopped out-of-window with more to do. While a leg is actually in flight it
+   * is false, so a Stop gated on it existed for the gaps and not for the walk.
+   * Watched live at 36 seconds into a press: the footer correctly said work was
+   * happening and offered nothing to stop it. THE-ONE-SCREEN asks for a Stop
+   * that always works, and a control that is absent for most of the thing it
+   * governs does not.
+   *
+   * `run.isPending` is this tab's press being in flight, which is exactly the
+   * other half. Pressing Stop sets the legs to zero, so nothing further is
+   * bought; the leg already running cannot be un-walked, which is why the
+   * control has always said "Stop after this leg" rather than "Stop".
+   */
+  const canStop = continuing || run.isPending;
   React.useEffect(() => {
-    onDriveState?.({ canStop: continuing, stop: () => stopRef.current() });
-  }, [continuing, onDriveState]);
+    onDriveState?.({ canStop, stop: () => stopRef.current() });
+  }, [canStop, onDriveState]);
 
   const showHold = held && !walkingMidRoute && !isCalmHold;
   /*
