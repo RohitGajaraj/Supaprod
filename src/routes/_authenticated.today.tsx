@@ -24,6 +24,7 @@ import { ReasonField } from "@/components/meridian/forms";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import { taskStatus } from "@/components/meridian/TaskRows";
 import { AskComposer } from "@/components/today/AskComposer";
+import { callsWaitingByMission } from "@/components/today/calls-waiting";
 import { DecisionQueue } from "@/components/today/DecisionQueue";
 import { ElapsedRunning, parseableInstant } from "@/components/today/ElapsedRunning";
 import { FocusNext } from "@/components/today/FocusNext";
@@ -56,6 +57,7 @@ import { tierFromProbability } from "@/lib/confidence";
 import { cancelMission, listMissions, type MissionListRow } from "@/lib/missions.functions";
 import { listLearnings } from "@/lib/outcome.functions";
 import { listTracks } from "@/lib/spine/track.functions";
+import { listStudioSessions } from "@/lib/studio.functions";
 import { approvalsQueueKey, missionsKey, invalidateShellReads } from "@/lib/query-keys";
 import { stillWaiting } from "@/lib/query-state";
 import "@/styles/today.css";
@@ -602,6 +604,7 @@ function Today() {
   const fetchMissions = useServerFn(listMissions);
   const fetchLearnings = useServerFn(listLearnings);
   const fetchTracks = useServerFn(listTracks);
+  const fListSessions = useServerFn(listStudioSessions);
   const fCancelMission = useServerFn(cancelMission);
   const decide = useServerFn(decideApprovalItem);
   const snooze = useServerFn(snoozeApprovalItem);
@@ -630,6 +633,15 @@ function Today() {
   const tracks = useQuery({
     queryKey: ["shell", "open-tracks"],
     queryFn: () => fetchTracks(),
+  });
+  /* WHO IS ACTUALLY WAITING ON YOU. A gated mission keeps status "running",
+     so the lanes alone would call it agent work; this read (the same shared
+     app-wide key the strip and /runs use) carries each mission's open-call
+     count and the rows below reclassify by it. */
+  const fetchSessions = useServerFn(listStudioSessions);
+  const sessions = useQuery({
+    queryKey: ["studio-sessions", false],
+    queryFn: () => fListSessions({ data: { includeArchived: false } }),
   });
 
   /* Both memoised on the QUERY's data rather than derived inline. A bare
@@ -661,6 +673,13 @@ function Today() {
     [rows],
   );
   const running = React.useMemo(() => rows.filter((m) => WORKING.has(m.status)), [rows]);
+
+  /* THE GATE COUNT PER RUNNING MISSION, so "waiting on an agent" is never
+     said about work that is actually waiting on you. See calls-waiting.ts. */
+  const gatesByMission = React.useMemo(
+    () => callsWaitingByMission(sessions.data?.sessions),
+    [sessions.data],
+  );
 
   // The track record read. CHARACTER-IDENTICAL KEY to Brain's, so the two
   // surfaces are two consumers of ONE request and the tab opens on a cache hit.
@@ -909,13 +928,40 @@ function Today() {
     };
   }, [tracks.data, openTrackIds, openTrack]);
 
+  /* RUNNING WORK HELD AT A GATE belongs in Waiting-on-you, not Running: the
+     loop stopped for a call and the call is yours. State carries the count in
+     plain words; the row's verb stays Reply, because an answer goes back into
+     the run the same way. */
+  const gatedRows = React.useMemo<CrewRow[]>(
+    () =>
+      running
+        .filter((m) => gatesByMission.has(m.id))
+        .map((m) => {
+          const n = gatesByMission.get(m.id) ?? 0;
+          return {
+            id: m.id,
+            who: m.current_agent_slug ? agentDisplayName(m.current_agent_slug) : null,
+            title: stripAutoPrefix(m.current_sub_goal ?? m.title),
+            state: (
+              <>
+                <Num>{n}</Num> {n === 1 ? "call" : "calls"} waiting on you
+              </>
+            ),
+            at: feedInstant(m.updated_at, m.created_at),
+            onOpen: openRun(m.id),
+          };
+        })
+        .sort((a, b) => b.at - a.at),
+    [running, gatesByMission, openRun],
+  );
+
   const allReplyRows = React.useMemo(
-    () => [...replyRows, ...trackCrewRows.reply],
-    [replyRows, trackCrewRows],
+    () => [...replyRows, ...gatedRows, ...trackCrewRows.reply],
+    [replyRows, gatedRows, trackCrewRows],
   );
   const allLiveRows = React.useMemo(
-    () => [...liveRows, ...trackCrewRows.live],
-    [liveRows, trackCrewRows],
+    () => [...liveRows.filter((r) => !gatesByMission.has(r.id)), ...trackCrewRows.live],
+    [liveRows, gatesByMission, trackCrewRows],
   );
   const allOpenRows = React.useMemo(
     () => [...openRows, ...trackCrewRows.open],
@@ -1660,6 +1706,13 @@ function Today() {
               <ReadFailedLine onRetry={() => void tracks.refetch()}>
                 The loop's work could not be read, so something started from a sentence may be
                 missing here. Retry before you treat the morning as clear.
+              </ReadFailedLine>
+            ) : stillWaiting(sessions) ? (
+              <Reading>Reading which runs need your answer.</Reading>
+            ) : sessions.isError ? (
+              <ReadFailedLine onRetry={() => void sessions.refetch()}>
+                The gate check did not load, so a run waiting on you may be sitting in Running.
+                Retry before you treat the morning as clear.
               </ReadFailedLine>
             ) : crewTotal > 0 ? (
               <div
