@@ -743,3 +743,26 @@ has never been called in anger and F-70's brain has never had anything real to h
 **The live track is `d1168015`** — `build`, `out-of-time` mid-crew, `attempts 0`, healthy and
 resumable. **Five of seven stations, every transition `sweep`, nine drives, zero presses.** A crew was
 mid-visit at 18:57. Do not press it; the sweep will carry it.
+
+---
+
+# SESSION 2026-08-26 12:15 IST — Core Blocker Identified & Mapped
+
+**Status:** Code deployed to production. Narrowest autonomous loop (sense → discover) verified working. Core blocker for mission gate identified and mapped.
+
+**Key Finding:** Decide station exists but never calls `decision.record` tool. This is why:
+- 304 decisions rows exist (ID only)
+- 0 decision forecasts exist
+- 0 precedent pool outcomes exist
+- Learn station never runs
+
+**Narrowest working proof:** sense → discover is fully autonomous, signals cluster into themes, driver advances through both stations without human touch.
+
+**Next session action:**
+1. Founder watches sense → discover work on production (2-3 min)
+2. Implement `decision.record` call in Decide station
+3. Re-test full loop end-to-end
+4. Mission gate complete
+
+**Blocker is architectural, not a bug:** the tool exists, the schema is ready, only the invocation point is missing. Implementation should be 1-2 hour fix once Decide dispatch code is located.
+
