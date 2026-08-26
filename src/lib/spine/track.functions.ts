@@ -43,6 +43,7 @@ import {
 import { holdLine, type HoldReason } from "@/lib/spine/driver";
 import { driveTrackOnce, DRIVE_SELECT } from "@/lib/spine/driver.server";
 import { recordTrackDrive } from "@/lib/spine/track-drives.server";
+import { readPasteBack, pasteBackLine } from "@/lib/spine/paste-back";
 import {
   ARTIFACT_SOURCE,
   buildChain,
@@ -2332,4 +2333,145 @@ export const driveTrackNow = createServerFn({ method: "POST" })
       (stopped === "stalled" && steps.length === FOREGROUND_MAX_SEATS);
 
     return { track, steps, stopped, more };
+  });
+
+/**
+ * TAKE A STEP OVER BY HAND AND HAND IT BACK (gap #6 + gap #12's first mechanism).
+ *
+ * ── THE TWO GAPS THIS CLOSES, WHICH ARE THE SAME SHAPE ─────────────────────
+ * Gap #6: *"You cannot take a step over by hand and hand it back."* The operating
+ * model calls the 40-point spread between the ~60% of work people use AI for and
+ * the 0-20% they fully delegate **exactly this**, and says it is what we sell into.
+ * Gap #12: when somebody else's builder made the change, nothing brings the
+ * outcome back.
+ *
+ * Both are one person supplying what a station could not produce. So one function.
+ *
+ * ── THE RULE THAT MATTERS MORE THAN THE FEATURE ────────────────────────────
+ * **A handback must never write `deployments.status = 'success'`.**
+ *
+ * `release.publish` requires exactly such a row, and R-27 gates the production
+ * deploy on **proof rather than a click**. A pasted URL is a person's claim; it
+ * proves nothing merged, deployed or passed a check. Writing `success` from one
+ * would MANUFACTURE the evidence R-27 exists to demand — the single most
+ * expensive thing this function could do, and it would look like a feature.
+ *
+ * So it writes `status: 'claimed'`, which cannot satisfy `release.publish`. **That
+ * is the design, not a limitation.** F-36's missing member row gets written; the
+ * proof does not.
+ *
+ * ── AND IT COSTS THE TRACK ITS UNATTENDED CLAIM, ON PURPOSE ────────────────
+ * `recordTrackDrive(..., via: "press")` runs FIRST, before anything else can
+ * fail. R-18 forbids counting a run a person touched as unattended, and this is
+ * a person touching it. F-79 caught a false acceptance that survived because a
+ * human act left no trace; this one leaves the trace before it does the work.
+ */
+export const submitStationByHand = createServerFn({ method: "POST" })
+  .inputValidator((d: { trackId: string; url: string }) =>
+    z.object({ trackId: z.string().uuid(), url: z.string().min(1) }).parse(d),
+  )
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context, data }): Promise<{ ok: boolean; line: string }> => {
+    const { supabase, userId } = context;
+
+    const paste = readPasteBack(data.url);
+    if (!paste.ok) return { ok: false, line: paste.reason };
+
+    const { data: row } = await supabase
+      .from("spine_tracks" as never)
+      .select(SELECT)
+      .eq("id", data.trackId)
+      .maybeSingle();
+    if (!row) return { ok: false, line: "That work could not be found." };
+    const raw = row as unknown as TrackRow;
+
+    if (raw.status !== "open") {
+      return { ok: false, line: "This work is closed, so there is no station to hand back to." };
+    }
+
+    /*
+     * THE TRACE FIRST. If the writes below fail, the record still says a person
+     * reached in — which is the safe direction to be wrong in. The reverse order
+     * could leave a track that was touched and does not say so.
+     */
+    await recordTrackDrive(supabase, {
+      trackId: raw.id,
+      station: raw.station as AgentStation,
+      via: "press",
+      entryHold: (raw.last_hold ?? null) as HoldReason | null,
+    });
+
+    const station = raw.station as AgentStation;
+    if (station !== "build" && station !== "ship") {
+      // Honest refusal rather than a note filed nowhere. The other five stations
+      // produce artifacts a link cannot stand in for, and pretending otherwise
+      // would put an empty row where a spec or a decision should be.
+      return {
+        ok: false,
+        line: `A pasted link can stand in for Build or Ship. ${station} produces something a link cannot, so hand that station its own work instead.`,
+      };
+    }
+
+    if (station === "ship") {
+      const { data: dep, error } = await supabase
+        .from("deployments" as never)
+        .insert({
+          user_id: userId,
+          workspace_id: raw.workspace_id,
+          deploy_url: paste.value.url,
+          // NOT 'success'. See the header: 'success' is what release.publish
+          // demands as proof, and a claim is not proof.
+          status: "claimed",
+          triggered_by: "handback",
+        } as never)
+        .select("id")
+        .single();
+      if (error || !dep) {
+        return { ok: false, line: "That did not save. Nothing was recorded against the work." };
+      }
+      await supabase.from("spine_track_members" as never).insert({
+        track_id: raw.id,
+        station,
+        artifact_kind: "deployment",
+        artifact_id: (dep as { id: string }).id,
+        workspace_id: raw.workspace_id,
+        user_id: userId,
+      } as never);
+    } else {
+      const { data: cs, error } = await supabase
+        .from("studio_changesets" as never)
+        .insert({
+          user_id: userId,
+          workspace_id: raw.workspace_id,
+          repo: paste.value.target,
+          pr_url: paste.value.url,
+          // `pr_open`, never `merged`. We were told a PR exists; nobody checked
+          // whether it landed, and `merged` is what promotion reads.
+          status: "pr_open",
+          title: "Handed back by a person",
+        } as never)
+        .select("id")
+        .single();
+      if (error || !cs) {
+        return { ok: false, line: "That did not save. Nothing was recorded against the work." };
+      }
+      await supabase.from("spine_track_members" as never).insert({
+        track_id: raw.id,
+        station,
+        artifact_kind: "changeset",
+        artifact_id: (cs as { id: string }).id,
+        workspace_id: raw.workspace_id,
+        user_id: userId,
+      } as never);
+    }
+
+    // Released so the sweep picks it up again, the same clearing `retryStation`
+    // does. The press above is what keeps the record honest about why it moved.
+    const now = new Date().toISOString();
+    await supabase
+      .from("spine_tracks" as never)
+      .update({ attempts: 0, last_hold: null, driven_at: now, updated_at: now } as never)
+      .eq("id", raw.id);
+
+    return { ok: true, line: pasteBackLine(paste.value) };
   });

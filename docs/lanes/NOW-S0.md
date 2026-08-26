@@ -1,1 +1,1 @@
-S0 · 21:00 IST · WORKING · handback paste-back core built: a pasted link is a claim, never a proof (verified:false, claimedByPerson:true always) · src/lib/spine/** · pending
+S0 · 21:05 IST · WORKING · submitStationByHand built (gaps #6 + #12) — writes status "claimed" never "success", so a pasted link can never become R-27 proof; F-95 · src/lib/spine/** · pending
