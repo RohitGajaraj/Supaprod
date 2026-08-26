@@ -74,29 +74,16 @@ describe("every seat is told how to finish", () => {
   );
 
   /**
-   * OPEN, AND IT IS THE ACCEPTANCE BLOCKER RATHER THAN A DETAIL.
+   * NOT DUPLICATED HERE, ON PURPOSE.
    *
-   * Discover has never cleared. The crew searches a workspace already holding
-   * 258 signals, concludes there is nothing to log because the brief names
-   * `signals.log` and no other way to finish, and files nothing.
+   * The Discover wording itself, and the rule that the STATION's filing text
+   * reaches every seat at every station, are asserted in
+   * `evidence-already-on-the-record-is-evidence.test.ts`, which S0 rewrote to
+   * compose real briefs after this defect. Two files asserting one claim means
+   * one of them gets edited and the other quietly stops meaning anything.
    *
-   * The fix is written and sitting in `FILE_IT.sense`, where the three Discover
-   * seats cannot read it. It becomes reachable the moment `driver.ts:871` stops
-   * choosing between the seat text and the station text and delivers both.
-   *
-   * Left as a todo rather than a failing assertion on purpose: four lanes gate
-   * every push on `bun test`, and turning that red overnight to make a point
-   * about somebody else's file would stop four people from shipping. It flips to
-   * a real assertion the moment the line changes.
+   * This file keeps the half that one does not cover: that each SEAT's own job
+   * and filing text survive composition, and that no seat is handed an empty
+   * filing instruction in the first place.
    */
-  it.todo(
-    "sense seats are told that evidence already in the workspace counts (needs driver.ts:871)",
-    () => {
-      for (const seat of stationCrew("sense")) {
-        const brief = stationGoal("sense", TRACK, [], seat);
-        expect(brief).toContain("signals.list");
-        expect(brief).toContain("ALREADY IN THIS WORKSPACE COUNTS");
-      }
-    },
-  );
 });
