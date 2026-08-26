@@ -54,6 +54,8 @@ reopened, whatever the buildlog says.
 | [`S4-008-run08-and-handoff-counts.md`](./verify/S4-008-run08-and-handoff-counts.md) | S1's RUN-08 and the handoff counts, checked |
 | [`S4-009-run09-11-attribution.md`](./verify/S4-009-run09-11-attribution.md) | RUN-09 to 11, and whether attribution holds |
 | [`S4-010-s3-verdict-email.md`](./verify/S4-010-s3-verdict-email.md) | S3's verdict email, and the held-back half confirmed intentional |
+| [`S4-011-gap2-server-half.md`](./verify/S4-011-gap2-server-half.md) | Gap #2's server half — the verdict dispatch, checked against S0's own claim |
+| [`S4-012-premerge-run12-13-c2-004.md`](./verify/S4-012-premerge-run12-13-c2-004.md) | RUN-12/13 and C2-004, checked before the merge |
 
 ## Superseded
 
