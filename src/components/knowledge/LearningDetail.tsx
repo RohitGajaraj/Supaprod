@@ -204,8 +204,7 @@ export function LearningDetail({ id }: { id: string }) {
   const fGradeContext = useServerFn(getLearningGradeContext);
   const gradeCtx = useQuery({
     queryKey: ["learning-grade-context", id],
-    queryFn: () =>
-      fGradeContext({ data: { learningId: id, prdId: l?.prd_id ?? undefined } }),
+    queryFn: () => fGradeContext({ data: { learningId: id, prdId: l?.prd_id ?? undefined } }),
     enabled: Boolean(l),
   });
   const gradedDecision = gradeCtx.data?.decision ?? null;
@@ -323,8 +322,53 @@ export function LearningDetail({ id }: { id: string }) {
           sub="A person looked again and said otherwise. Nothing was deleted."
         >
           {overturnedCalls(overturns).map((r, i) => (
-            <Line key={i} label={r.line} sub={r.note ? `You wrote instead: "${r.note}"` : undefined} />
+            <Line
+              key={i}
+              label={r.line}
+              sub={r.note ? `You wrote instead: "${r.note}"` : undefined}
+            />
           ))}
+        </Region>
+      ) : null}
+
+      {/*
+       * THE PAIRING, AND IT IS THE WHOLE PRODUCT. Added 2026-08-27.
+       *
+       * `getLearningGradeContext` has returned forecastClaim, its horizon and
+       * its resolution since F-65, and its own header says why: "`title` alone
+       * answers which decision, which is a pointer. The three forecast fields
+       * answer WERE WE RIGHT, which is the only question the brain exists for."
+       * Nothing rendered them. The surface showed a link to the decision and
+       * made a person click through to learn what had been predicted, which is
+       * one click too many for the one artifact nobody else can reconstruct.
+       *
+       * IT SITS ABOVE "What it measured" ON PURPOSE. The expectation was written
+       * first, before anyone knew the answer, so it reads first. Putting the
+       * result above the claim would let a reader learn the outcome and then be
+       * shown what we said, which is how hindsight quietly rewrites a forecast.
+       *
+       * ABSENT IS NOT RENDERED AT ALL. A learning with no decision behind it
+       * (most of them: 133 production learnings carried a NULL decision_id when
+       * F-65 landed) genuinely has nothing to compare against, and an empty
+       * "Expected" line would assert a call was made and said nothing. The feed
+       * one level up already tells a person whether a call exists, so silence
+       * here is not a gap.
+       */}
+      {gradedDecision?.forecastClaim ? (
+        <Region
+          title="What we expected"
+          sub="Written at Decide, before the outcome was known. This is the claim the result above is graded against."
+        >
+          <Line label={gradedDecision.forecastClaim}>
+            {gradedDecision.forecastResolution ? (
+              <Value>{gradedDecision.forecastResolution}</Value>
+            ) : null}
+          </Line>
+          {gradedDecision.forecastHorizonDate ? (
+            <Line label="Due" sub="The date the claim came up for grading">
+              <Value>{new Date(gradedDecision.forecastHorizonDate).toLocaleDateString()}</Value>
+            </Line>
+          ) : null}
         </Region>
       ) : null}
 

@@ -110,9 +110,33 @@ const ENTRIES: { date: string; title: string; body: string; fromPulse?: boolean 
   },
 ];
 
+/**
+ * DERIVED FROM THE NEWEST ENTRY, never typed by hand.
+ *
+ * The header read `updated="August 9, 2026"` while the newest entry below was
+ * dated 2026-08-10. A hand-typed date sitting inches from the data it claims to
+ * describe had already drifted by a day, and nothing could catch it because the
+ * two were never connected.
+ *
+ * This is the derivation law the rest of the repo uses for keycaps and station
+ * names, applied to a date: read it from the same source that renders it, so
+ * the two cannot disagree. Adding an entry now updates the header for free, and
+ * forgetting to add one shows the real age instead of a comfortable one.
+ */
+const NEWEST = ENTRIES.reduce((latest, e) => (e.date > latest ? e.date : latest), ENTRIES[0].date);
+
 function UpdatesPage() {
   return (
-    <LegalPageShell eyebrow="Product" title="Changelog" updated="August 9, 2026">
+    <LegalPageShell
+      eyebrow="Product"
+      title="Changelog"
+      updated={new Date(`${NEWEST}T00:00:00Z`).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        timeZone: "UTC",
+      })}
+    >
       <p style={{ marginBottom: 8 }}>
         What shipped, in plain language. No marketing spin, dated against the real build log.
       </p>
@@ -140,7 +164,10 @@ function UpdatesPage() {
               >
                 {e.title}
               </h3>
-              <p className="text-mrd-prose" style={{ color: "var(--mrd-mute)", margin: 0, lineHeight: 1.6 }}>
+              <p
+                className="text-mrd-prose"
+                style={{ color: "var(--mrd-mute)", margin: 0, lineHeight: 1.6 }}
+              >
                 {e.body}
               </p>
             </div>
@@ -151,7 +178,10 @@ function UpdatesPage() {
       {/* PC-15: fed by shipped rows tagged fromPulse above. Honest empty
           state until a real one exists post-beta, never a fabricated one. */}
       <div style={{ marginTop: 48, paddingTop: 28, borderTop: "1px solid var(--soft-stone)" }}>
-        <h2 className="mrd-subtitle" style={{ fontWeight: 600, color: "var(--ink)", margin: "0 0 6px" }}>
+        <h2
+          className="mrd-subtitle"
+          style={{ fontWeight: 600, color: "var(--ink)", margin: "0 0 6px" }}
+        >
           You said, we changed
         </h2>
         {ENTRIES.some((e) => e.fromPulse) ? (

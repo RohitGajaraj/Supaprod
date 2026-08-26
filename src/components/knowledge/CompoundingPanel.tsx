@@ -123,7 +123,13 @@ export function deltaOf(l: {
  *
  * Month keys are UTC slices of the ISO timestamp, matching monthKey there.
  */
-export type MonthTally = { key: string; label: string; validated: number; missed: number; mixed: number };
+export type MonthTally = {
+  key: string;
+  label: string;
+  validated: number;
+  missed: number;
+  mixed: number;
+};
 
 export function monthStrip(
   learnings: { verdict?: string | null; created_at: string }[],
@@ -309,6 +315,31 @@ export function CompoundingPanel() {
                   <span className={outcome.tone || undefined}>{outcome.word}</span>
                   {" · "}
                   {recordedBy(l.recorded_by_agent_slug)}
+                  {/*
+                   * WAS THERE A CALL TO GRADE THIS AGAINST, and it is the one
+                   * fact this feed was missing. A verdict on its own is a
+                   * status word. The forecast written at Decide, before anyone
+                   * knew the answer, is the half no competitor can reconstruct
+                   * afterwards, and this feed existed to show the record
+                   * compounding while carrying only the second half of it.
+                   *
+                   * THE CLAIM ITSELF IS NOT PRINTED HERE ON PURPOSE. Row is one
+                   * or two lines by founder ruling and depth is a click away;
+                   * a forecast sentence would truncate and push the verdict off
+                   * the line. What belongs at a glance is whether the pairing
+                   * EXISTS, which is checkable in three words. The sentence is
+                   * one click into the memo.
+                   *
+                   * AND THE ABSENT CASE IS STATED RATHER THAN LEFT BLANK. A
+                   * waived Decide (F-61) genuinely has nothing to compare
+                   * against, and saying so is what stops a reader assuming we
+                   * simply did not look. Marked `mine` rather than `inferred`
+                   * because it is a fact about the record, not arithmetic on
+                   * top of it.
+                   */}
+                  {" · "}
+                  <Provenance source="mine" />
+                  {l.forecast_claim ? "against a written call" : "no call was written"}
                   {delta != null ? (
                     <>
                       {" · "}

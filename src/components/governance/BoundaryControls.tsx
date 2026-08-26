@@ -322,7 +322,29 @@ function autonomyConsequence(
   }
 }
 
-export function BoundaryControls() {
+export function BoundaryControls({
+  /**
+   * Suppress the "Everything is paused" readout, for a page that already
+   * carries the pause SWITCH itself.
+   *
+   * WHY A PROP RATHER THAN A DELETE. Settings now renders this panel beside
+   * ControlsPanel, which owns the switch (setWorkspacePause). Two places
+   * stating the same fact is a defect twice over: it is redundant, and the two
+   * reads can disagree while one query is stale, which is how a person comes to
+   * distrust both. But this panel ALSO renders alone at /engine-room?room=safety
+   * where there is no switch, and deleting the readout would leave that surface
+   * with no pause signal at all. So the caller that has a better answer says so,
+   * and the caller that does not keeps the readout.
+   *
+   * The SWITCH wins over the READOUT when both are present: a control that shows
+   * its own state is strictly better than a line that shows state and offers
+   * nothing, which would leave a person reading "paused" and hunting for where
+   * to change it.
+   */
+  pauseShownElsewhere = false,
+}: {
+  pauseShownElsewhere?: boolean;
+} = {}) {
   const qc = useQueryClient();
   const { activeWorkspaceId } = useWorkspace();
   const fBoundary = useServerFn(getBoundary);
@@ -786,7 +808,7 @@ export function BoundaryControls() {
                   }}
                 />
               </Line>
-              {data.paused ? (
+              {data.paused && !pauseShownElsewhere ? (
                 <Line
                   label="Everything is paused"
                   sub="A kill switch is on for this workspace, so nothing runs whatever the boundary says."
