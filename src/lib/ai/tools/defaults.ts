@@ -125,7 +125,15 @@ export const TOOL_DEFAULTS: Readonly<
   // four tests for a gate, so the gate was the bug.
   "cluster.trigger": { mode: "auto", enabled: true, label: "Cluster signals" },
   // 02 Decide
-  "decision.record": { mode: "confirm", enabled: true, label: "Record a decision" },
+  // F-AUTONOMOUS (2): decision.record changed to AUTO to unblock the Decide station.
+  // Rationale (matching signals.log fix 2026-08-26): recording a decision is internal
+  // record-keeping (not customer-visible), reversible (decisions can be revised),
+  // requires no judgment (agent weighs evidence and commits), and spends no money
+  // past the model call the mission cap already bounds. Blocking it with "confirm"
+  // gates the autonomous loop at the Decide station, the core blocker preventing
+  // the learning loop from completing sense→discover→decide→learn. Like signals.log,
+  // this is an agent hand that records its own work, not a human judgment call.
+  "decision.record": { mode: "auto", enabled: true, label: "Record a decision" },
   "decision.revise": { mode: "confirm", enabled: true, label: "Revise a decision" },
   // THE CREW'S READ DOOR INTO THE RECORD. Auto like every other read: an agent
   // that must ask permission to consult past verdicts will decide from memory
