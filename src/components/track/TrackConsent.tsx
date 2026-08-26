@@ -100,6 +100,13 @@ export function TrackConsent({
   const [decliningId, setDecliningId] = React.useState<string | null>(null);
   /** Whether the reason field currently targets the CLASS rather than the instance. */
   const [declineAll, setDeclineAll] = React.useState(false);
+  /**
+   * THE CLASS AN ANSWER COVERED, SAID BACK (queue item 1's acceptance). A
+   * widening that is stated at press time but never confirmed afterwards reads
+   * as an instance answer once the card settles -- and a person who does not
+   * know they widened their own policy cannot narrow it again.
+   */
+  const [answeredClassOf, setAnsweredClassOf] = React.useState<number | null>(null);
 
   const invalidate = () => {
     void qc.invalidateQueries({ queryKey: ["track-gates", trackId] });
@@ -136,11 +143,35 @@ export function TrackConsent({
       setAnsweringId(null);
       setDecliningId(null);
       setDeclineAll(false);
+      // Only a SETTLED class answer gets the echo -- never the click.
+      if (classCountRef.current !== null) {
+        setAnsweredClassOf(classCountRef.current);
+        classCountRef.current = null;
+      }
       invalidate();
       if (onAnswered) onAnswered();
     },
-    onError: () => setAnsweringId(null),
+    onError: () => {
+      setAnsweringId(null);
+      classCountRef.current = null;
+    },
   });
+
+  /** The reach of the class answer in flight, remembered for the settled echo. */
+  const classCountRef = React.useRef<number | null>(null);
+
+  /** Fires the class answer; its reach is echoed only once the server settles. */
+  const answerClass = (
+    gateId: string,
+    toolName: string,
+    verdict: "approve" | "reject",
+    count: number,
+    reason?: string,
+  ) => {
+    setAnsweringId(gateId);
+    classCountRef.current = count;
+    decideClass.mutate({ toolName, verdict, reason });
+  };
 
   /*
    * DEFERRAL IS REAL, SO IT HAS A REAL CONTROL (§3.6): there is no dismiss
@@ -298,7 +329,7 @@ export function TrackConsent({
                   onCommit={(reason) => {
                     setAnsweringId(g.approvalId);
                     if (declineAll) {
-                      decideClass.mutate({ toolName: g.toolName ?? "", verdict: "reject", reason });
+                      answerClass(g.approvalId, g.toolName ?? "", "reject", classCount, reason);
                     } else {
                       decide.mutate({
                         approvalId: g.approvalId,
@@ -321,10 +352,9 @@ export function TrackConsent({
                   {approveAllAllowed ? (
                     <Action
                       busy={busy}
-                      onClick={() => {
-                        setAnsweringId(g.approvalId);
-                        decideClass.mutate({ toolName: g.toolName ?? "", verdict: "approve" });
-                      }}
+                      onClick={() =>
+                        answerClass(g.approvalId, g.toolName ?? "", "approve", classCount)
+                      }
                     >
                       {`Answer all ${classCount} questions like this one in this workspace`}
                     </Action>
@@ -372,8 +402,14 @@ export function TrackConsent({
         );
       })}
 
-      {/* WHAT ALREADY SETTLED, NEWEST FIRST. Rendered, never hidden (§4.3):
-          an answer made in another tab still happened and still shows. */}
+      {/*
+       * WHAT ALREADY SETTLED, NEWEST FIRST. Rendered, never hidden (§4.3):
+           an answer made in another tab still happened and still shows. */}
+      {answeredClassOf !== null ? (
+        <p role="status" aria-live="polite" className="mrd-meta">
+          {`Answered all ${answeredClassOf} like this one in this workspace. The same call will not ask again.`}
+        </p>
+      ) : null}
       {settled.map((g) => (
         <p key={`settled-${g.approvalId}`} className="mrd-meta">
           {settledLine(g.status)} · {whoAsked(g)} · waited {stoppedFor(g.askedAtMs, now)}
