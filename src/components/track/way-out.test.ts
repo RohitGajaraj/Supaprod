@@ -1,6 +1,9 @@
 import { describe, expect, it } from "bun:test";
 
 import { wayOut } from "./way-out";
+
+/** Both Take it over controls on screen, which is the common case mid-route. */
+const BOTH_OPEN = { undo: true, handback: true };
 import { HOLD_LINE } from "@/lib/spine/driver";
 
 describe("no dead end, ever", () => {
@@ -12,7 +15,7 @@ describe("no dead end, ever", () => {
      * is the exact defect this file exists to remove.
      */
     for (const reason of Object.keys(HOLD_LINE)) {
-      expect(() => wayOut(reason)).not.toThrow();
+      expect(() => wayOut(reason, BOTH_OPEN)).not.toThrow();
     }
     expect(Object.keys(HOLD_LINE).length).toBe(18);
   });
@@ -29,7 +32,7 @@ describe("no dead end, ever", () => {
       "given-up",
     ];
     for (const reason of silent) {
-      const w = wayOut(reason);
+      const w = wayOut(reason, BOTH_OPEN);
       expect(w.next).toBeTruthy();
       expect(w.next!.length).toBeGreaterThan(20);
     }
@@ -50,7 +53,7 @@ describe("no dead end, ever", () => {
       "waiting-on-a-person",
       "done",
     ]) {
-      expect(wayOut(reason).next).toBeNull();
+      expect(wayOut(reason, BOTH_OPEN).next).toBeNull();
     }
   });
 
@@ -58,23 +61,63 @@ describe("no dead end, ever", () => {
     // Take it over offers exactly two moves: send it back a step, and do it by
     // hand. A pause lifted at workspace level is neither, so it must not claim
     // the controls below will help.
-    expect(wayOut("paused").onThisScreen).toBe(false);
+    expect(wayOut("paused", BOTH_OPEN).onThisScreen).toBe(false);
     for (const reason of ["going-in-circles", "tools-refused", "given-up", "no-agent"]) {
-      expect(wayOut(reason).onThisScreen).toBe(true);
+      expect(wayOut(reason, BOTH_OPEN).onThisScreen).toBe(true);
     }
+  });
+
+  /*
+   * THE REGRESSION THIS FILE EXISTS TO HOLD, and it was found by driving the
+   * feature rather than by reading it. A track going in circles AT THE FIRST
+   * STATION ON ITS ROUTE was told "send it back a step, or do this step
+   * yourself", directly above a region stating in as many words that there was
+   * nothing to send it back to and offering no handback either. Pointing at a
+   * door that is not there is the same defect as pointing at none.
+   */
+  it("never offers a control the screen is not showing", () => {
+    const nothingOpen = wayOut("going-in-circles", { undo: false, handback: false });
+    expect(nothingOpen.next).not.toContain("Send it back");
+    expect(nothingOpen.next).not.toContain("hand the result in");
+    expect(nothingOpen.onThisScreen).toBe(false);
+    // And it still says something useful: for a run that will not converge,
+    // changing the instruction is the only thing that changes the outcome.
+    expect(nothingOpen.next).toContain("box below");
+  });
+
+  it("offers exactly what is open, and both in one clause when both are", () => {
+    expect(wayOut("going-in-circles", { undo: true, handback: false }).next).toContain(
+      "Send it back a step",
+    );
+    expect(wayOut("going-in-circles", { undo: false, handback: true }).next).toContain(
+      "hand the result in",
+    );
+    const both = wayOut("going-in-circles", BOTH_OPEN).next!;
+    expect(both).toContain("Send it back a step, or do this step yourself.");
+    // One clause, not two sentences bolted together.
+    expect(both).not.toContain("Send it back a step so it starts");
+  });
+
+  it("keeps the diagnosis even when nothing here can act", () => {
+    // A pause is lifted at workspace level, so no control on this screen helps.
+    // The person is still owed the reason, and must not be sent to a door.
+    const paused = wayOut("paused", BOTH_OPEN);
+    expect(paused.next).toContain("pause is lifted");
+    expect(paused.next).not.toContain("Send it back");
+    expect(paused.onThisScreen).toBe(false);
   });
 
   it("says nothing about a hold written by a newer deploy", () => {
     // `last_hold` is a text column. A confident wrong instruction is worse than
     // silence, which is the rule holdTone already runs on.
-    expect(wayOut("some-reason-from-the-future").next).toBeNull();
+    expect(wayOut("some-reason-from-the-future", BOTH_OPEN).next).toBeNull();
     expect(wayOut(null).next).toBeNull();
     expect(wayOut(undefined).next).toBeNull();
   });
 
   it("carries no em dash on any branch", () => {
     for (const reason of Object.keys(HOLD_LINE)) {
-      expect(wayOut(reason).next ?? "").not.toMatch(/[—–]/);
+      expect(wayOut(reason, BOTH_OPEN).next ?? "").not.toMatch(/[—–]/);
     }
   });
 });

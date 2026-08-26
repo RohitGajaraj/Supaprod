@@ -47,39 +47,97 @@ export type WayOut = {
   onThisScreen: boolean;
 };
 
+/**
+ * What this screen can offer, in the order it is worth offering for a reason.
+ *
+ * `steer` is last on purpose and it is not a consolation prize: for a run that
+ * will not converge it is often the ONLY thing that changes the outcome, since
+ * sending it back to the same instruction produces the same circle.
+ */
+type Offer = "undo" | "handback" | "steer";
+
+/** Which controls the run screen is actually showing right now. */
+export type Available = { undo: boolean; handback: boolean };
+
 const NOTHING: WayOut = { next: null, onThisScreen: false };
-const elsewhere = (next: string): WayOut => ({ next, onThisScreen: false });
-const here = (next: string): WayOut => ({ next, onThisScreen: true });
 
-const WAY_OUT: Record<HoldReason, WayOut> = {
-  paused: elsewhere("Nothing on this screen will move it until the pause is lifted for the whole workspace."),
-  "no-agent": here("Nobody on your team covers this step yet, so no amount of trying will fill it. You can do this step yourself and hand the result in."),
-  stalled: here("It has come back with nothing several times, so another try lands in the same place. Send it back a step so it starts from different ground, or do this step yourself."),
-  "going-in-circles": here("It has been round this many times without moving, so trying again changes nothing. Send it back a step, or do this step yourself."),
-  "tools-refused": here("A door it needs is locked, and no step can unlock it for itself. Open it, or do this step yourself and hand the result in."),
-  "station-cannot-finish": here("It has everything it needs and still cannot finish, so this one needs you rather than another try. Send it back a step, or do it yourself."),
-  "corrections-spent": here("It has been sent back for this same fix as often as it is allowed. Doing this step yourself is the way out."),
-  "given-up": here("Nothing more will be tried here on its own. Doing this step yourself is the way out."),
-
-  // The ten that already end with their own next step. See the header.
-  "waiting-on-a-person": NOTHING,
-  done: NOTHING,
-  "produced-nothing": NOTHING,
-  "self-check-failed": NOTHING,
-  "nothing-to-hand-on": NOTHING,
-  "out-of-time": NOTHING,
-  "over-budget": NOTHING,
-  "out-of-credit": NOTHING,
-  "needs-evidence": NOTHING,
-  "needs-a-waived-station": NOTHING,
+/**
+ * The diagnosis, which is true whatever the screen is showing, kept apart from
+ * the OFFER, which depends on what this track can actually do. They were one
+ * string until the first drive of this feature put "send it back a step" on a
+ * track sitting at the first station on its route, with the section below it
+ * saying in as many words that there was nothing to send it back to. Pointing
+ * at a door that is not there is the same defect as pointing at none.
+ */
+const DIAGNOSIS: Partial<Record<HoldReason, string>> = {
+  paused: "Nothing on this screen will move it until the pause is lifted for the whole workspace.",
+  "no-agent": "Nobody on your team covers this step yet, so no amount of trying will fill it.",
+  stalled: "It has come back with nothing several times, so another try lands in the same place.",
+  "going-in-circles": "It has been round this many times without moving, so trying again changes nothing.",
+  "tools-refused": "A door it needs is locked, and no step can unlock it for itself.",
+  "station-cannot-finish": "It has everything it needs and still cannot finish, so this one needs you rather than another try.",
+  "corrections-spent": "It has been sent back for this same fix as often as it is allowed.",
+  "given-up": "Nothing more will be tried here on its own.",
 };
+
+/** What is worth offering for each, best first. Empty means nothing here helps. */
+const OFFERS: Partial<Record<HoldReason, Offer[]>> = {
+  paused: [],
+  "no-agent": ["handback"],
+  stalled: ["undo", "handback", "steer"],
+  "going-in-circles": ["undo", "handback", "steer"],
+  "tools-refused": ["handback"],
+  "station-cannot-finish": ["handback", "undo", "steer"],
+  "corrections-spent": ["handback", "undo", "steer"],
+  "given-up": ["handback", "undo", "steer"],
+};
+
+const SENTENCE: Record<Offer, string> = {
+  undo: "Send it back a step so it starts from different ground.",
+  handback: "Do this step yourself and hand the result in.",
+  steer: "Say what to change in the box below, and it reaches whoever picks this up next.",
+};
+
+/** Both doors open, and saying so in one clause reads better than two. */
+const BOTH = "Send it back a step, or do this step yourself.";
 
 /**
  * Tolerant of an unknown string, the same way `holdTone` is and for the same
  * reason: `last_hold` is a text column, so a value written by a newer deploy has
  * to come out as silence rather than as a confident wrong instruction.
+ *
+ * `available` is what the Take it over region is drawing at this moment. Passing
+ * it is what stops this sentence promising a control that is not on the screen.
  */
-export function wayOut(hold: string | null | undefined): WayOut {
+export function wayOut(
+  hold: string | null | undefined,
+  available: Available = { undo: false, handback: false },
+): WayOut {
   if (!hold) return NOTHING;
-  return WAY_OUT[hold as HoldReason] ?? NOTHING;
+  const diagnosis = DIAGNOSIS[hold as HoldReason];
+  if (!diagnosis) return NOTHING;
+
+  const wanted = OFFERS[hold as HoldReason] ?? [];
+  const can = (o: Offer) =>
+    o === "undo" ? available.undo : o === "handback" ? available.handback : true;
+
+  const usable = wanted.filter(can);
+  if (usable.length === 0) {
+    // Honest, and it is the whole point: this screen cannot clear this one, so
+    // it does not pretend otherwise. The hold's own line already said what
+    // happened; adding a false door would be worse than adding nothing.
+    return { next: diagnosis, onThisScreen: false };
+  }
+
+  const offer =
+    usable.includes("undo") && usable.includes("handback")
+      ? BOTH
+      : SENTENCE[usable[0] as Offer];
+
+  return {
+    next: `${diagnosis} ${offer}`,
+    // The steer box is on this screen too, but it is not under Take it over, so
+    // a steer-only way out must not borrow that pointer.
+    onThisScreen: usable.some((o) => o === "undo" || o === "handback"),
+  };
 }

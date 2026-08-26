@@ -215,11 +215,15 @@ export function hasLiveVisit(turns: Array<Pick<Turn, "outcome">>): boolean {
  * person reads today. So the same rule is applied on the way out.
  *
  * ── THIS IS A BRIDGE, AND HERE IS THE CONDITION THAT ENDS IT ──────────────
- * The real fix is on the write path: `humanizeText` is applied to `outputText`
- * at `runtime.server.ts:2074` and `:2814`, but `loop.server.ts:1411-1413` and
- * `:1485-1487` update `agent_runs` with `output: msg` directly, and those two
- * are the bypass. **When those go through the sanitizer AND the existing rows
- * are backfilled, delete this function and print `t.said` again.** Said out loud
+ * The real fix is on the write path: `loop.server.ts` never calls the sanitizer
+ * at all, and the two writes that carry the model's prose are at **`:964` and
+ * `:2493`, inside `finalize(finalMsg)`**. Corrected after S4 grouped the table
+ * by status: those two produce `completed` (60.6% dashed) and
+ * `completed_with_failures` (67.8%), while the `halted` writes are 0% dashed
+ * because a halted output is a canned taxonomy string a person wrote. People
+ * writing constants do not produce em dashes at 60%; models do.
+ * **When those go through the sanitizer AND the existing rows are backfilled,
+ * delete this function and print `t.said` again.** Said out loud
  * because a render-side normaliser with no stated end date gets either removed
  * by someone who thinks it is a mistake or built upon by someone who thinks it
  * is the design, and both are wrong.
