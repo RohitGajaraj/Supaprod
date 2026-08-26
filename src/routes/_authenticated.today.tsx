@@ -29,6 +29,10 @@ import { ElapsedRunning, parseableInstant } from "@/components/today/ElapsedRunn
 import { FocusNext } from "@/components/today/FocusNext";
 import { HandoverNote } from "@/components/today/HandoverNote";
 import { PushedInsights } from "@/components/today/PushedInsights";
+import {
+  trackToBoardRows,
+  type TrackBoardRow,
+} from "@/components/today/tracks-feed";
 import { QuietMorning } from "@/components/today/QuietMorning";
 import { RunState, ShippedState } from "@/components/today/RunState";
 import { ago, daysSince, withinLastDay } from "@/components/today/when";
@@ -51,6 +55,7 @@ import { openAsk } from "@/lib/ask-open";
 import { tierFromProbability } from "@/lib/confidence";
 import { cancelMission, listMissions, type MissionListRow } from "@/lib/missions.functions";
 import { listLearnings } from "@/lib/outcome.functions";
+import { listTracks } from "@/lib/spine/track.functions";
 import { approvalsQueueKey, missionsKey, invalidateShellReads } from "@/lib/query-keys";
 import { stillWaiting } from "@/lib/query-state";
 import "@/styles/today.css";
@@ -574,6 +579,7 @@ function Today() {
   const fetchQueue = useServerFn(getApprovalsQueue);
   const fetchMissions = useServerFn(listMissions);
   const fetchLearnings = useServerFn(listLearnings);
+  const fetchTracks = useServerFn(listTracks);
   const fCancelMission = useServerFn(cancelMission);
   const decide = useServerFn(decideApprovalItem);
   const snooze = useServerFn(snoozeApprovalItem);
@@ -593,6 +599,15 @@ function Today() {
     queryKey: ["today", "learnings", workspaceId],
     queryFn: () => fetchLearnings({ data: { workspaceId: workspaceId ?? undefined } }),
     enabled: Boolean(workspaceId),
+  });
+  /* THE WORK THE MISSION LIST CANNOT SEE. `/start` creates a spine track and
+     no mission, so without this read that work never appeared on the board at
+     all. The key is the SHELL'S (`["shell","open-tracks"]`, AppFrame's own
+     query): one shared cache entry, the shell's cadence driving it, and no
+     second request while the shell is up. */
+  const tracks = useQuery({
+    queryKey: ["shell", "open-tracks"],
+    queryFn: () => fetchTracks(),
   });
 
   /* Both memoised on the QUERY's data rather than derived inline. A bare
@@ -813,6 +828,80 @@ function Today() {
     [shipped, stuck, openRun],
   );
 
+  /* SPINE WORK, INTO THE SAME THREE SECTIONS. Rows built from `spine_tracks`
+     (the work `/start` creates — which the mission list never sees) merge into
+     the feed so a reader meets ONE "Running", ONE "Waiting on you", ONE
+     "Finished", whichever engine drives the work. A track its own mission
+     already shows is dropped before grouping (`tracks-feed.ts`), so nothing
+     renders twice. */
+  const openTrackIds = React.useMemo(
+    () => new Set(rows.map((m) => m.trackId).filter((t): t is string => !!t)),
+    [rows],
+  );
+  const openTrack = React.useCallback(
+    (trackId: string) => () =>
+      void navigate({ to: "/track/$trackId", params: { trackId } }),
+    [navigate],
+  );
+  const trackCrewRows = React.useMemo(() => {
+    const grouped = trackToBoardRows(tracks.data, openTrackIds, ago);
+    const base = (r: TrackBoardRow): CrewRow => ({
+      id: r.id,
+      who: null,
+      title: r.title,
+      state: (
+        <>
+          {`at ${r.stationWord}`}
+          {r.lastMoved ? ` · moved ${r.lastMoved} ago` : ""}
+        </>
+      ),
+      at: r.at,
+      onOpen: openTrack(r.trackId),
+    });
+    return {
+      reply: grouped.waiting.map((r): CrewRow => ({
+        ...base(r),
+        state: <>{r.holdLine ?? "Waiting on your answer"}</>,
+      })),
+      // A held track says WHY before it says when it moved: stopped-for-a-
+      // reason must not read as slow.
+      live: grouped.running.map((r): CrewRow => ({
+        ...base(r),
+        state:
+          r.holdLine && r.lastMoved ? (
+            <>
+              {r.holdLine} · moved {r.lastMoved} ago
+            </>
+          ) : r.holdLine ? (
+            <>{r.holdLine}</>
+          ) : (
+            base(r).state
+          ),
+      })),
+      open: grouped.finished.map((r): CrewRow => ({
+        ...base(r),
+        state: <>{r.lastMoved ? `done · moved ${r.lastMoved} ago` : "done"}</>,
+      })),
+    };
+  }, [tracks.data, openTrackIds, openTrack]);
+
+  const allReplyRows = React.useMemo(
+    () => [...replyRows, ...trackCrewRows.reply],
+    [replyRows, trackCrewRows],
+  );
+  const allLiveRows = React.useMemo(
+    () => [...liveRows, ...trackCrewRows.live],
+    [liveRows, trackCrewRows],
+  );
+  const allOpenRows = React.useMemo(
+    () => [...openRows, ...trackCrewRows.open],
+    [openRows, trackCrewRows],
+  );
+  /* The board's own count of spine work standing somewhere, used by the quiet
+     line below: "no agent is working" must stay true when only tracks move. */
+  const trackTotal =
+    trackCrewRows.reply.length + trackCrewRows.live.length + trackCrewRows.open.length;
+
   /** Which run is composing its reply. One at a time; opening one closes the
    *  other, because two open fields in one scan band is a form nobody reads. */
   const [replyTo, setReplyTo] = React.useState<string | null>(null);
@@ -844,11 +933,11 @@ function Today() {
 
   const feedSections = React.useMemo(
     () => [
-      { key: FEED_REPLY, all: replyRows },
-      { key: FEED_LIVE, all: liveRows },
-      { key: FEED_OPEN, all: openRows },
+      { key: FEED_REPLY, all: allReplyRows },
+      { key: FEED_LIVE, all: allLiveRows },
+      { key: FEED_OPEN, all: allOpenRows },
     ],
-    [replyRows, liveRows, openRows],
+    [allReplyRows, allLiveRows, allOpenRows],
   );
 
   /* The flattened visible order, which is what the keys move through. A row
@@ -901,7 +990,7 @@ function Today() {
     [moveFeed],
   );
 
-  const crewTotal = replyRows.length + liveRows.length + openRows.length;
+  const crewTotal = allReplyRows.length + allLiveRows.length + allOpenRows.length;
 
   /** One feed section: heading with its real count, one sentence saying what
    *  the group costs, three rows standing, and the rest behind a count that
@@ -957,9 +1046,9 @@ function Today() {
      by the lane that was empty. So the assurances are collected and said once,
      on the region's own line, where all three fit and read as one sentence. */
   const crewQuiet = [
-    stuck.length === 0 ? "nothing stopped" : null,
-    running.length === 0 ? "no agent is working" : null,
-    shipped.length === 0 ? "nothing went live" : null,
+    stuck.length === 0 && trackCrewRows.reply.length === 0 ? "nothing stopped" : null,
+    running.length === 0 && trackCrewRows.live.length === 0 ? "no agent is working" : null,
+    shipped.length === 0 && trackCrewRows.open.length === 0 ? "nothing went live" : null,
   ].filter((s): s is string => s !== null);
   const crewQuietLine =
     crewQuiet.length === 0
@@ -1541,6 +1630,13 @@ function Today() {
                 The run record did not load, so this cannot say what went live, what stopped or what
                 is still going.
               </ReadFailedLine>
+            ) : stillWaiting(tracks) ? (
+              <Reading>Reading the work the loop is driving.</Reading>
+            ) : tracks.isError ? (
+              <ReadFailedLine onRetry={() => void tracks.refetch()}>
+                The loop's work could not be read, so something started from a sentence may be
+                missing here. Retry before you treat the morning as clear.
+              </ReadFailedLine>
             ) : crewTotal > 0 ? (
               <div
                 role="listbox"
@@ -1550,7 +1646,7 @@ function Today() {
               >
                 {crewSection(
                   FEED_REPLY,
-                  replyRows,
+                  allReplyRows,
                   "Nothing moves on these until you answer.",
                   (row) => (
                     <Action
@@ -1582,7 +1678,7 @@ function Today() {
                       />
                     ) : null,
                 )}
-                {crewSection(FEED_LIVE, liveRows, "Waiting on an agent, not on you.", (row) => (
+                {crewSection(FEED_LIVE, allLiveRows, "Waiting on an agent, not on you.", (row) => (
                   <Action
                     variant="quiet"
                     busy={cancelRun.isPending}
@@ -1604,7 +1700,7 @@ function Today() {
                 ))}
                 {crewSection(
                   FEED_OPEN,
-                  openRows,
+                  allOpenRows,
                   "Finished. Open one to see how it ended, and what it left behind.",
                   (row) => <Door onClick={row.onOpen}>Open</Door>,
                 )}

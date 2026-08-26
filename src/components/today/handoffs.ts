@@ -56,11 +56,19 @@ export function newestHandoverByMission(
 }
 
 /**
- * THE LINE, in the words a colleague would use, and three honest absences:
+ * THE LINE, in the words a colleague would use, and four honest absences:
  * an unknown sender stays unnamed rather than becoming "the agent"; a missing
  * elapsed time drops the clock rather than printing a wrong one; a handover
- * with no task headline shows only the change of hands, because a sentence we
- * composed to fill the gap is exactly what this product must never write.
+ * with no task headline shows only the change of hands; and the artefact
+ * count appears only when there is one, because a zero here means the sender
+ * attached nothing rather than that we failed to look.
+ *
+ * EVIDENCE COUNT IS NEVER DRAWN, and that is S0's declared contract, not this
+ * file's taste: the field is 0 for every live handoff today because the
+ * evidence gate is default-OFF (`the-handoff-says-what-travelled-with-it`
+ * pins the warning), so rendering it would tell the reader *checked, and
+ * none found* when the truth is *nobody was asked*. It becomes drawable the
+ * day that test stops passing.
  */
 export function handoverLine(
   m: SwarmHandoff | undefined,
@@ -71,5 +79,8 @@ export function handoverLine(
   const handed = from ? `Handed over by ${from}` : "Handed over";
   const clock = whenAgo ? ` ${whenAgo} ago` : "";
   const task = typeof m.task === "string" ? m.task.trim() : "";
-  return task.length > 0 ? `${handed}${clock}: “${task}”` : `${handed}${clock}.`;
+  const count = typeof m.artifact_count === "number" && m.artifact_count > 0 ? m.artifact_count : 0;
+  const carried = count > 0 ? ` · ${count} ${count === 1 ? "item" : "items"} passed` : "";
+  const body = task.length > 0 ? `${handed}${clock}: “${task}”` : `${handed}${clock}.`;
+  return `${body}${carried}`;
 }
