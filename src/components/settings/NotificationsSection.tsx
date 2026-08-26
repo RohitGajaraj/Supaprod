@@ -112,9 +112,24 @@ export function NotificationsSection() {
 
   const save = useMutation({
     mutationFn: (updated: Partial<UserNotificationPreferences>) => fUpdate({ data: updated }),
-    onSuccess: () => {
+    onSuccess: (result, updated) => {
       qc.invalidateQueries({ queryKey: ["notificationPreferences"] });
       qc.invalidateQueries({ queryKey: ["notifications"] });
+      // THE WRITE MUST HAVE TAKEN, not merely succeeded. A key the server's
+      // schema does not know is stripped silently before the upsert, which
+      // would return success while dropping exactly what the person changed.
+      // Until the email_verdict key lands in PreferencesUpdateSchema
+      // (coordination/requests/S3/verdict-notify-trigger.md ask 3), this check
+      // is what keeps the toggle from lying about a save it cannot make.
+      const dropped = Object.entries(updated).filter(
+        ([k, v]) => k in result.preferences && (result.preferences as Record<string, unknown>)[k] !== v,
+      );
+      if (dropped.length > 0) {
+        toast.error(
+          "That did not save. The change was accepted and then dropped, which usually means this setting is still arriving on the server. Nothing you chose is wrong; try again shortly or say so to support.",
+        );
+        return;
+      }
       setDirty(false);
       toast.success("Saved. The next alert obeys it.");
     },
