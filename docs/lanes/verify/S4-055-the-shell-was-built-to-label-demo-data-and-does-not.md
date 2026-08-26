@@ -56,6 +56,39 @@ For two of the three users, **two of their three workspaces are demo**. For the 
 so that person has no real workspace at all and nothing on screen distinguishes what they are looking
 at from their own work.
 
+## And it is not only the switcher. The lists do it too.
+
+`listTracks` (`track.functions.ts`) is the reader behind `/start`'s **"Your open work"**. In full:
+
+```ts
+.from("spine_tracks").select(SELECT).eq("status", "open")
+.order("updated_at", { ascending: false }).limit(50);
+```
+
+**No workspace filter. No `is_sample` filter.** It relies entirely on RLS, and RLS scopes by
+*membership*, which includes demo workspaces. So a person's open-work list is every open track from
+every workspace they belong to, merged, sorted by recency, with nothing marking which are fixtures.
+
+Measured across every user who would see anything:
+
+| user | tracks on their list | from demo | from real |
+| --- | --- | --- | --- |
+| `22a73000…` | **15** | **9** | 6 |
+| `50000000-ffff…` | 10 | 10 | 0 |
+| `9e7958c5…` | 8 | 8 | 0 |
+| `20000000-ffff…` | 7 | 7 | 0 |
+| `868ae33b…` | 5 | 5 | 0 |
+| `45a746ff…` | 4 | 4 | 0 |
+| three more | 3 each | 3 each | 0 |
+| `60000000-ffff…` | 3 | 0 | **3** |
+
+**Nine of ten users have demo data in their open-work list. For eight of them it is entirely demo.**
+And the one user with genuinely mixed work sees **9 of 15 rows from fixtures**, interleaved by
+`updated_at` so they are not even grouped.
+
+That user is the interesting case: they have real work, they are looking at a list that is 60%
+someone else's demo, and the sort order guarantees the two are shuffled together.
+
 ## Why this belongs in the premium queue rather than a backlog
 
 A person cannot tell demo data from their own. Everything downstream inherits that: a count, a

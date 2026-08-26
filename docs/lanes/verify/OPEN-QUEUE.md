@@ -89,6 +89,22 @@ in the machine-is-working colour and tells a screen reader *"&lt;agent&gt;, runn
 
 *(Corrected from the original audit: it does **not** animate. Only `gate` animates.)*
 
+### 2.3b · Demo data is unlabelled everywhere a person looks · `S4-055`
+
+**Owner: S3** (`src/components/shell/**`), with **S0** for the readers in `src/lib/**`
+
+`use-workspace.tsx:17-21` carries `is_sample` to the client with a comment saying it exists *"so the
+shell can label it (a tag + a banner)"*. `ScopeMenu.tsx:132-147` renders `{w.name}` and nothing else.
+
+And the lists do not filter either: `listTracks` has **no workspace filter and no `is_sample`
+filter**, relying on RLS, which scopes by membership and membership includes demo workspaces.
+
+**Nine of ten users have demo data in their open-work list. For eight it is entirely demo.** The one
+user with genuinely mixed work sees 9 of 15 rows from fixtures, interleaved by `updated_at`.
+
+**Fix:** one line for the tag in the existing `.map`. The list-level filter or grouping is a larger
+call and needs a ruling on whether demo work should appear at all.
+
 ### 2.4 · An all-clear that only requires *something* to have been read · `S4-032`
 
 **Owner: S3** · `VerifyCockpit.tsx:502`, `DiagnosticsSection.tsx:59`
