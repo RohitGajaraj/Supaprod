@@ -484,6 +484,15 @@ type CrewRow = {
   state: React.ReactNode;
   /** Epoch ms of the last thing that happened. Newest first in a section. */
   at: number;
+  /**
+   * A sentence the ROW cannot hold, drawn on the line underneath it.
+   *
+   * The state slot sits beside a truncating title and does not wrap, so it is
+   * for a few words. The driver's hold sentences are real prose and run to 250
+   * characters, and they are worth reading rather than clipping. Same place
+   * `HandoverNote` puts what a row cannot carry.
+   */
+  note?: string | null;
   onOpen: () => void;
   /**
    * THE ACT THE ROW NEEDS, when "reply" is not it. A proposed mission is
@@ -574,7 +583,20 @@ function CrewLine({
         <span className="min-w-0 flex-1 truncate text-mrd-label font-medium text-mrd-ink">
           {row.title}
         </span>
-        <span className="flex shrink-0 items-baseline gap-mrd-2 text-mrd-data text-mrd-mute">
+        {/* BOUNDED, FOR THE SAME REASON THE TITLE IS. This span is `shrink-0`
+            so a live clock like "19h 23m running" is never clipped, and that
+            was safe only while every state line was short. It is not any more:
+            a parked track carries the driver's own hold sentence, and those run
+            to 250 characters ("This station has been run many times over and
+            the work has not moved on once. That is the loop rather than any
+            single run, so nothing further will be spent on it until you look.")
+            In a shrink-0 span that squeezes the title to nothing and breaks the
+            row. Two open tracks in this workspace are in exactly that state.
+            A ceiling with truncation keeps every ordinary state intact, since
+            they are far under it, and degrades the pathological one instead of
+            destroying the row around it. The full sentence is on the run, one
+            click away, which is the argument the title's own truncation makes. */}
+        <span className="flex min-w-0 max-w-[40ch] shrink-0 items-baseline gap-mrd-2 truncate text-mrd-data text-mrd-mute">
           {row.who ? `${row.who} · ` : ""}
           {row.state}
         </span>
@@ -921,7 +943,8 @@ function Today() {
     return {
       reply: grouped.waiting.map((r): CrewRow => ({
         ...base(r),
-        state: <>{r.holdLine ?? "Waiting on your answer"}</>,
+        state: <>{r.holdLine ?? "waiting on your answer"}</>,
+        note: r.reason,
       })),
       // A held track says WHY before it says when it moved: stopped-for-a-
       // reason must not read as slow.
@@ -1826,8 +1849,20 @@ function Today() {
                         Reply
                       </Action>
                     ),
-                  (row) =>
-                    replyTo === row.id ? (
+                  (row) => (
+                    <>
+                      {/* WHY IT STOPPED, on the line under the row. Parked work
+                          carries the driver's own sentence and it is 250
+                          characters of real prose; the row's state slot is a
+                          few words wide and does not wrap. Drawn verbatim: this
+                          surface is not entitled to reword the product's voice,
+                          only to put it where it fits. */}
+                      {row.note ? (
+                        <p className="px-mrd-2 pb-mrd-2 text-mrd-data leading-mrd-prose text-mrd-mute">
+                          {row.note}
+                        </p>
+                      ) : null}
+                      {replyTo === row.id ? (
                       <ReasonField
                         id={`feed-reply-${row.id}`}
                         label={`Answer ${row.who ?? "this run"}`}
@@ -1841,7 +1876,9 @@ function Today() {
                         }}
                         onCancel={() => setReplyTo(null)}
                       />
-                    ) : null,
+                      ) : null}
+                    </>
+                  ),
                 )}
                 {crewSection(
                   FEED_LIVE,

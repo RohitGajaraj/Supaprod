@@ -49,7 +49,10 @@ describe("trackToBoardRows", () => {
       (iso) => (iso ? "2m" : null),
     );
     expect(waiting).toHaveLength(1);
-    expect(waiting[0]?.holdLine).toBe("A call is waiting on you at Decide.");
+    // The row says the short fact; the sentence rides UNDER it, verbatim. A
+    // 250-character hold in a row's state slot squeezes the title to nothing.
+    expect(waiting[0]?.holdLine).toBe("waiting on your answer");
+    expect(waiting[0]?.reason).toBe("A call is waiting on you at Decide.");
     expect(running).toHaveLength(0);
   });
 
@@ -110,7 +113,10 @@ describe("trackToBoardRows", () => {
       );
       expect(running, `${held} must not read as running`).toHaveLength(0);
       expect(waiting, `${held} belongs to the person`).toHaveLength(1);
-      expect(waiting[0]?.holdLine).toBe(`Stopped: ${held}.`);
+      // "stopped, needs you", never "waiting on your answer": nothing was
+      // asked. The loop ran out of road and will not try again on its own.
+      expect(waiting[0]?.holdLine).toBe("stopped, needs you");
+      expect(waiting[0]?.reason).toBe(`Stopped: ${held}.`);
     }
   });
 

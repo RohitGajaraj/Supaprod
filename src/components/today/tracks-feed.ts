@@ -62,6 +62,22 @@ export type TrackBoardRow = {
   lastMoved: string | null;
   /** The stop reason verbatim, when the track is held on something else. */
   holdLine: string | null;
+  /**
+   * THE FULL REASON, WHICH DOES NOT BELONG IN A ROW'S SCAN BAND.
+   *
+   * The driver writes real sentences and they are good ones, but they run to
+   * 250 characters ("This station has been run many times over and the work has
+   * not moved on once. That is the loop rather than any single run, so nothing
+   * further will be spent on it until you look."). A row gives its state a
+   * fixed slot beside a truncating title, so a paragraph there squeezes the
+   * title away and breaks the row.
+   *
+   * So the row says the short fact and this carries the sentence to the line
+   * UNDER it, which is exactly where `HandoverNote` already puts the thing a
+   * row cannot hold. Nothing is shortened or reworded on the way: the driver's
+   * copy is the product's voice and this file is not entitled to edit it.
+   */
+  reason: string | null;
   /** The track's own watchable address. */
   trackId: string;
 };
@@ -116,6 +132,7 @@ export function trackToBoardRows(
       trackId: t.id,
       lastMoved: null as string | null,
       holdLine: null as string | null,
+      reason: null as string | null,
     };
 
     if (t.status === "done") {
@@ -125,7 +142,15 @@ export function trackToBoardRows(
     if (t.status !== "open") continue;
 
     if (t.holdReason === PERSON_HOLD || cannotMove(t.holdReason)) {
-      waiting.push({ ...base, kind: "waiting-on-you", holdLine: t.hold });
+      /* Parked work says STOPPED, not "waiting on your answer": nothing was
+         asked, the loop ran out of road and will not try again on its own.
+         Those are different states and a person acts on them differently. */
+      waiting.push({
+        ...base,
+        kind: "waiting-on-you",
+        holdLine: cannotMove(t.holdReason) ? "stopped, needs you" : "waiting on your answer",
+        reason: t.hold ?? null,
+      });
       continue;
     }
 
