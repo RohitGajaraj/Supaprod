@@ -30,6 +30,7 @@ import {
   type StationArtifactView,
 } from "@/lib/spine/track.functions";
 import { getPrd, savePrd } from "@/lib/discovery.functions";
+import { deleteSignal, renameTheme, setThemeStatus } from "@/lib/discovery.functions";
 import { setDecisionForecast, updateDecision } from "@/lib/decisions.functions";
 import { deferForecastCheck, reopenForecast, settleForecast } from "@/lib/forecast.functions";
 import type { ChainMember, ChainStop } from "@/lib/spine/chain";
@@ -423,18 +424,40 @@ function DecisionVerdict({ decisionId }: { decisionId: string }) {
 }
 
 /*
- * ── DISCOVER'S TWO ARTIFACTS ────────────────────────────────────────────────
- * Signals as they landed, clusters as they formed. Read-only in this slice:
- * their inline actions are the next unit, so nothing here pretends at a
- * control it does not have yet.
+ * ── DISCOVER'S TWO ARTIFACTS, NOW ACTIONABLE ────────────────────────────────
+ * Signals as they landed, clusters as they formed. The actions are THE
+ * ONE-SCREEN's ruled set -- keep/discard a signal, rename a theme -- and they
+ * write through the same server functions the full Discover surface uses
+ * (`deleteSignal`, `renameTheme`, `setThemeStatus`), so the record cannot
+ * disagree about a signal dismissed here versus there. A discard is a removal,
+ * said in its own words; a theme decline records its reason and can be taken
+ * back, which is what makes declining safe.
  */
-function SignalCard({ item, now }: { item: ArtifactView; now: number }) {
+function SignalCard({
+  item,
+  now,
+  trackId,
+}: {
+  item: ArtifactView;
+  now: number;
+  trackId: string;
+}) {
   const f = item.fields;
   const content = str(f.content);
   const source = str(f.source);
   const sourceKind = str(f.source_kind);
   const url = str(f.url);
   const themeId = str(f.theme_id);
+
+  const fDelete = useServerFn(deleteSignal);
+  const qc = useQueryClient();
+  const del = useMutation({
+    mutationFn: () => fDelete({ data: { id: item.artifactId } }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["track-artifacts", trackId] });
+      void qc.invalidateQueries({ queryKey: ["spine-track-chain", trackId] });
+    },
+  });
 
   return (
     <div className="flex flex-col gap-mrd-2 border-b border-mrd-line-soft pb-mrd-3 last:border-0">
@@ -452,21 +475,32 @@ function SignalCard({ item, now }: { item: ArtifactView; now: number }) {
           .filter(Boolean)
           .join(" · ")}
       </span>
-      {url ? (
-        <a
-          href={url}
-          target="_blank"
-          rel="noreferrer"
-          className="text-mrd-small font-medium text-mrd-you underline underline-offset-2"
-        >
-          Open the source
-        </a>
-      ) : null}
+      <div className="flex items-center gap-mrd-4">
+        {url ? (
+          <a
+            href={url}
+            target="_blank"
+            rel="noreferrer"
+            className="text-mrd-small font-medium text-mrd-you underline underline-offset-2"
+          >
+            Open the source
+          </a>
+        ) : null}
+        {del.isError ? (
+          <span role="status" className="text-mrd-small text-mrd-body">
+            {(del.error as Error).message}
+          </span>
+        ) : (
+          <Action variant="quiet" busy={del.isPending} onClick={() => del.mutate()}>
+            {del.isPending ? "Removing it" : "Discard this signal"}
+          </Action>
+        )}
+      </div>
     </div>
   );
 }
 
-function ThemeCard({ item }: { item: ArtifactView }) {
+function ThemeCard({ item, trackId }: { item: ArtifactView; trackId: string }) {
   const f = item.fields;
   const summary = str(f.summary);
   const status = str(f.status);
@@ -474,6 +508,33 @@ function ThemeCard({ item }: { item: ArtifactView }) {
   const frequency = num(f.frequency);
   const severity = num(f.severity);
   const confidence = num(f.confidence);
+
+  const fRename = useServerFn(renameTheme);
+  const fStatus = useServerFn(setThemeStatus);
+  const qc = useQueryClient();
+  /** Which inline editor is open, if any. One at a time on one card. */
+  const [openPanel, setOpenPanel] = React.useState<"rename" | "dismiss" | null>(null);
+  const invalidate = () => {
+    void qc.invalidateQueries({ queryKey: ["track-artifacts", trackId] });
+    void qc.invalidateQueries({ queryKey: ["spine-track-chain", trackId] });
+  };
+
+  const rename = useMutation({
+    mutationFn: (title: string) =>
+      fRename({ data: { theme_id: item.artifactId, title } }),
+    onSuccess: () => {
+      setOpenPanel(null);
+      invalidate();
+    },
+  });
+  const setStatus = useMutation({
+    mutationFn: (input: { status: "new" | "dismissed"; reason?: string }) =>
+      fStatus({ data: { theme_id: item.artifactId, ...input } }),
+    onSuccess: () => {
+      setOpenPanel(null);
+      invalidate();
+    },
+  });
 
   return (
     <div className="flex flex-col gap-mrd-2 border-b border-mrd-line-soft pb-mrd-3 last:border-0">
@@ -493,6 +554,57 @@ function ThemeCard({ item }: { item: ArtifactView }) {
       {status === "dismissed" ? (
         <span className="text-mrd-small text-mrd-mute">
           Dismissed{statusReason ? `: ${statusReason}` : ""}
+        </span>
+      ) : null}
+
+      <div className="flex flex-wrap items-center gap-mrd-2">
+        {status !== "dismissed" ? (
+          <Action variant="quiet" onClick={() => setOpenPanel(openPanel === "dismiss" ? null : "dismiss")}>
+            Not a pattern
+          </Action>
+        ) : (
+          <Action
+            variant="quiet"
+            busy={setStatus.isPending}
+            onClick={() => setStatus.mutate({ status: "new" })}
+          >
+            {setStatus.isPending ? "Bringing it back" : "Bring it back"}
+          </Action>
+        )}
+        <Action variant="quiet" onClick={() => setOpenPanel(openPanel === "rename" ? null : "rename")}>
+          Rename this theme
+        </Action>
+      </div>
+
+      {openPanel === "rename" ? (
+        <ReasonField
+          id={`theme-rename-${item.artifactId}`}
+          label="What should this theme be called?"
+          hint="Your name replaces the generated one, everywhere this theme appears."
+          placeholder="Checkout friction on mobile"
+          commitLabel="Rename it"
+          cancelLabel="Keep the current name"
+          busy={rename.isPending}
+          onCommit={(title) => rename.mutate(title)}
+          onCancel={() => setOpenPanel(null)}
+        />
+      ) : null}
+      {openPanel === "dismiss" ? (
+        <ReasonField
+          id={`theme-dismiss-${item.artifactId}`}
+          label="Why is this not a pattern?"
+          hint="Recorded beside the decline, so bringing it back later starts from what you knew."
+          placeholder="Two of the four mentions are the same account"
+          commitLabel="Dismiss it"
+          cancelLabel="Keep it"
+          busy={setStatus.isPending}
+          onCommit={(reason) => setStatus.mutate({ status: "dismissed", reason })}
+          onCancel={() => setOpenPanel(null)}
+        />
+      ) : null}
+      {(rename.error || setStatus.error) && openPanel === null ? (
+        <span role="status" className="text-mrd-small text-mrd-body">
+          {((rename.error ?? setStatus.error) as Error).message}
         </span>
       ) : null}
     </div>
@@ -1107,6 +1219,7 @@ function StationPanel({
   everDriven,
   hold,
   now,
+  trackId,
 }: {
   stop: ChainStop;
   view?: StationArtifactView;
@@ -1115,6 +1228,8 @@ function StationPanel({
   everDriven: boolean;
   hold: string | null;
   now: number;
+  /** Routes the Discover cards' writes back to this pane's cache entries. */
+  trackId: string;
 }) {
   if (stop.state === "waived") {
     // The person's own words for why this station is off the route. Never an
@@ -1159,9 +1274,9 @@ function StationPanel({
       case "decision":
         return <DecisionCard item={item} />;
       case "signal":
-        return <SignalCard item={item} now={now} />;
+        return <SignalCard item={item} now={now} trackId={trackId} />;
       case "theme":
-        return <ThemeCard item={item} />;
+        return <ThemeCard item={item} trackId={trackId} />;
       case "learning":
         return <LearningCard item={item} decisions={decisions} />;
       case "changeset":
@@ -1358,6 +1473,7 @@ export function ArtifactPane({
             everDriven={track.drivenAt !== null}
             hold={track.hold}
             now={now}
+            trackId={trackId}
           />
         </TabPanel>
       </div>
