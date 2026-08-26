@@ -1,1 +1,1 @@
-S0 · 20:00 IST · WORKING · F-90: is_sample was documented backwards in CLAUDE.md — the flag that gates real money; corrected, and it names the guarded workspace that fixes F-89 · CLAUDE.md the-first-run/** · pending
+S0 · 20:10 IST · WORKING · steer migration APPLIED (mission_id nullable + CHECK validated) — gap #5 works at all 7 stations; 10 press tracks abandoned, open 69→59 · supabase/** coordination/answers/** · pending
