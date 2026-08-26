@@ -30,10 +30,7 @@ import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-const SRC = readFileSync(
-  fileURLToPath(new URL("./track.functions.ts", import.meta.url)),
-  "utf8",
-);
+const SRC = readFileSync(fileURLToPath(new URL("./track.functions.ts", import.meta.url)), "utf8");
 const FN = SRC.slice(SRC.indexOf("export const submitStationByHand"));
 
 describe("it never writes the row release.publish reads as proof", () => {
