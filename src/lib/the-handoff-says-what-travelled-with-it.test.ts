@@ -38,7 +38,13 @@ const counts = (payload: unknown) => {
 
 describe("what travelled with the handoff", () => {
   it("counts the artifacts the sender attached", () => {
-    const p = { task: "ship it", artifacts: [{ kind: "prd", id: "a" }, { kind: "theme", id: "b" }] };
+    const p = {
+      task: "ship it",
+      artifacts: [
+        { kind: "prd", id: "a" },
+        { kind: "theme", id: "b" },
+      ],
+    };
     expect(counts(p).artifact_count).toBe(2);
   });
 
