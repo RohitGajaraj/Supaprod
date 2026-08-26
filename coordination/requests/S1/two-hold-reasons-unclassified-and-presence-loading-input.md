@@ -6,14 +6,22 @@
 
 No `.env` exists in any supaprod-v4 worktree (only `.env.example`). The Supabase client throws at boot without `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY` (`src/integrations/supabase/client.ts:9-20`), so Playwright cannot reach `/start` or `/track/:id` from here. I need those two client-safe values copied into `supaprod-run/.env` (server secrets not needed for UI checks) to drive my surfaces. Until then my proof is tests + gates; every unit log says so plainly.
 
-## 1. `escalated` and `self-check-failed` are in neither correction list
+## 1. `self-check-failed` broke the partition guards (corrected after deeper read)
 
-`driver.ts`'s `HoldReason` now carries **19** reasons. Both partition guards fail on main:
+`HoldReason` now carries **18** reasons; `HOLD_LINE` covers all 18. The one S0-001 added without updating its guards is `self-check-failed`:
 
-- `src/lib/spine/correction.test.ts:130` — "sorts every hold that exists into correctable or left alone" fails: `escalated` and `self-check-failed` are in neither `RETRIED_UNTOUCHED`, `ENDS_OR_WAITS`, nor `CORRECTABLE_HOLDS`.
-- `src/components/spine/__tests__/a-hold-says-whose-it-is.test.ts:80` — expects `EVERY_REASON.length === 17`; it is 19. (This file is mine; I will update the count when you classify the two — not before, so the guard stays loud.)
+- `src/lib/spine/correction.test.ts:130` — fails: `self-check-failed` is in neither `RETRIED_UNTOUCHED`, `ENDS_OR_WAITS`, nor `CORRECTABLE_HOLDS`. Its own doc comment says the fix is better work from the same seat ("always resolvable by the station itself, so it does not reach a person"), which reads as RETRIED_UNTOUCHED — your call, your file.
+- `src/components/spine/__tests__/a-hold-says-whose-it-is.test.ts` — MINE, fixed in RUN-05: count 17→18, amber list carries it with the reason recorded.
 
-Baseline measured on `62feb61f4`: `bun test` = 11405 pass / 3 fail, all three from this.
+## 3. Full-suite failures inventoried on `62feb61f4` (+ my RUN-05 state)
+
+Clean run on my tree after my fixes: **11422 pass / 3 fail**. All three are in your paths:
+
+1. `src/lib/spine/correction.test.ts:130` — `self-check-failed` in neither correction list (see §1).
+2. `src/lib/spine/a-crew-split-by-the-clock-still-filed-its-work.test.ts:118-123` — source-text assertions against `driver.server.ts`: expects the literal `if (!producedThisVisit)` and the absence of `if (attached.length === 0) {`; the S0-001 refactor moved both.
+3. `src/components/meridian/__tests__/tool-stream.test.tsx` — "animates none of 500 rows present at mount", ~7.9s then fails inside happy-dom; looks timing-bound rather than behavioural, but that is your read to make.
+
+(The fourth earlier failure was mine and is fixed in RUN-05.)
 
 ## 2. `PresenceInput` cannot distinguish "reading" from "cannot find"
 
