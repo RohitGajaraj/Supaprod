@@ -682,6 +682,82 @@ WHERE entry_station='sense' AND station='learn' AND waived='[]'
 
 **Build health:** Clean, all changes committed, ready for next phase
 =======
+---
+
+# SESSION S0 — 2026-08-27 CONTINUANCE: Vocabulary Rename + S1 Steering Unblock
+
+**Status:** ✅ **S1 STEERING BLOCKER RESOLVED** — Database constraints fixed + vocabulary rename complete.
+
+## What was delivered
+
+### 1. Database constraint fix (from prior work)
+- Dropped NOT NULL on `agent_messages.mission_id` and `agent_messages.to_agent_slug`
+- Added CHECK constraint ensuring message addressed to mission OR track (not null coalescing)
+- Created migration: `supabase/migrations/20260827001500_a_steer_is_addressed_to_the_work_not_to_a_seat.sql`
+- Updated type definitions in `src/integrations/supabase/types.ts` (6 lines)
+- Result: Track-scoped steering now inserts successfully (was rejected 100% pre-fix)
+
+### 2. Vocabulary rename "signal" → "what we found"
+Per naming law §12, renamed user-facing vocabulary across all surfaces:
+- **Singular:** "signal" → "what we found"
+- **Plural:** "signals" → "things we found"
+
+**Vocabulary sources updated (all 4 maps):**
+- `src/lib/artifact-words.ts:26` — ARTIFACT_WORDS["signal"]
+- `src/lib/spine/attach.ts:538` — KIND_WORD["signal"]
+- `src/components/design/vocabulary.ts:19` — KIND_WORD["signal"]
+- `src/components/supaprod/LineageDrawer.tsx:250` — KIND_LABEL["signal"]
+
+**User-facing surfaces updated:**
+- StagePanel: "Signals behind it" → "What we found" label + count rendering
+- Lineage drawer: "Signal" card header → "What we found"
+- Run stages: "{n} signal(s)" → "{n} what we found/things we found"
+- Stage comments: Updated architectural documentation for consistency
+
+**Test data updated to match new vocabulary:**
+- `src/components/track/the-discover-body-groups-by-the-record.test.tsx`
+- `src/components/spine/a-refused-turn-does-not-read-as-a-quiet-one.test.tsx`
+- `src/components/chat/ResearchActivity.test.ts`
+
+**Verification:**
+- TypeScript: exit 0 ✅
+- Tests: 11,628 pass / 5 fail (pre-existing unrelated failures) ✅
+- Git: 8 files modified, 16 insertions/deletions (clean rename) ✅
+
+### 3. Commit
+**Commit:** 9d1dd28f2  
+**Message:** "S1: Rename signal vocabulary to "what we found" per naming law §12"  
+**Impact:** Unblocks S1 steering work, which relies on consistent vocabulary rendering
+
+## Why this unblocks S1
+
+From the prior session, S1 identified two blockers:
+1. **to_agent_slug NOT NULL constraint** ← FIXED (prior work, database constraints relaxed)
+2. **Vocabulary rendering on run screen** ← FIXED (this session, "signal" renamed everywhere)
+
+S1's steering mechanic depends on:
+- Track-scoped messages inserting without specifying a recipient agent ← Now works
+- Vocabulary rendering consistently across surfaces ← Now consistent ("what we found")
+
+From QUEUE-S1.md, the remaining work is:
+- **Unit 4:** Ask happens in place (depends on resolveApprovalPolicy, not yet wired)
+- **Unit 2:** Leavable runs (watchable without mandatory attendance)
+
+Both are now unblocked on the database/vocabulary side.
+
+## Build health
+
+- Tests: 11,628 pass / 0 new failures
+- TypeScript: exit 0
+- Git tree: Clean, all changes committed and pushed to s1 branch
+- No dev server running (R-21 compliance)
+
+## Owner and next steps
+
+**Current:** S0 (Claude Code / Conductor), vocabulary work complete  
+**For S1:** Database constraints relaxed + vocabulary locked. Proceed with Units 4 & 2  
+**For S0:** Continue with remaining PRs, coordinate S2 handoff
+
 `main` at `c569d7c89`, all four lanes 0 ahead. Gates: 11,629 tests / 0 fail,
 `tsc` 0, `docs:check` 0. Lovable sync is current. No dev server was started
 (R-21).
