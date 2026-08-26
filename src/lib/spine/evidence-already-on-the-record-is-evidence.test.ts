@@ -31,49 +31,88 @@
  * it.
  */
 import { describe, expect, it } from "bun:test";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 
-const SRC = readFileSync(fileURLToPath(new URL("./driver.ts", import.meta.url)), "utf8");
-const SENSE = SRC.slice(
-  SRC.indexOf("const FILE_IT"),
-  SRC.indexOf("decide:", SRC.indexOf("const FILE_IT")),
-);
+import { stationCrew, stationGoal } from "./driver";
+import { AGENT_STATION_ORDER } from "@/lib/agent-vocabulary";
 
-describe("grouping what is already there is a complete finish", () => {
-  it("says existing evidence counts, in words a crew cannot read past", () => {
-    expect(SENSE).toContain("ALREADY IN THIS WORKSPACE COUNTS");
+/*
+ * ── THIS FILE WAS GREEN WHILE THE FIX REACHED NOBODY ───────────────────────
+ *
+ * Its first version did `readFileSync` on `driver.ts`, sliced the `FILE_IT`
+ * constant out of the SOURCE TEXT, and asserted on that slice. `FILE_IT` was
+ * only read for a station with NO seats, and Discover has three, so all three
+ * read `CREW_ROLE[slug].file` and never saw the sentence. S4 measured the prompt
+ * md5 in `agent_runs.input` byte-identical before and after the fix shipped.
+ *
+ * A test that reads a constant proves the constant. It does not prove the
+ * sentence is DELIVERED. So this renders the brief every seat actually receives
+ * and asserts against that, which is the only form that could have failed.
+ */
+const TRACK = { title: "Let returning customers reuse a saved delivery address", origin: null };
+
+/** The brief each seat at a station really gets, lead included. */
+function briefsFor(station: Parameters<typeof stationGoal>[0]): string[] {
+  const seats = stationCrew(station);
+  return [stationGoal(station, TRACK), ...seats.map((s) => stationGoal(station, TRACK, [], s))];
+}
+
+describe("every Discover seat is told that existing evidence counts", () => {
+  const briefs = briefsFor("sense");
+
+  it("Discover really does have seats, or this test proves nothing", () => {
+    // The original defect hid behind an empty crew. If this ever reads 0, the
+    // assertions below are vacuous and must be re-examined rather than trusted.
+    expect(stationCrew("sense").length).toBeGreaterThan(0);
   });
 
-  it("names the hand that searches it, not only the hand that writes", () => {
-    // The old brief named `signals.log` alone, which is the whole defect.
-    expect(SENSE).toContain("signals.list");
+  it("EVERY seat's brief says existing evidence counts", () => {
+    for (const b of briefs) {
+      expect(b).toContain("ALREADY IN THIS WORKSPACE COUNTS");
+    }
   });
 
-  it("and calls grouping a correct outcome rather than a shortcut", () => {
-    expect(SENSE).toContain("cluster.trigger");
-    expect(SENSE).toContain("complete, correct outcome, not a shortcut");
+  it("every seat is told the hand that searches, not only the one that writes", () => {
+    for (const b of briefs) expect(b).toContain("signals.list");
+  });
+
+  it("and that grouping what is there is a complete outcome", () => {
+    for (const b of briefs) expect(b).toContain("complete, correct outcome, not a shortcut");
   });
 });
 
-describe("THE THREE REFUSALS SURVIVE THE WIDENING", () => {
-  it("filing the absence of evidence is still forbidden", () => {
-    expect(SENSE).toContain("never do is file the ABSENCE of evidence");
+describe("THE THREE REFUSALS REACH EVERY SEAT TOO", () => {
+  const briefs = briefsFor("sense");
+
+  it("never file the absence of evidence", () => {
+    for (const b of briefs) expect(b).toContain("never do is file the ABSENCE of evidence");
   });
 
-  it("citing our own artifacts is still forbidden, and says why", () => {
-    // F-73: a track cleared Discover by citing another track's PRD.
-    expect(SENSE).toContain("own PRDs, decisions or briefs");
-    expect(SENSE).toContain("our own writing coming back");
+  it("never cite our own artifacts, and why", () => {
+    for (const b of briefs) {
+      expect(b).toContain("own PRDs, decisions or briefs");
+      expect(b).toContain("our own writing coming back");
+    }
   });
 
   it("an empty workspace still means file nothing", () => {
-    // The honest absence. Widening what counts as a finish must not turn
-    // "there is nothing here" into a reason to invent something.
-    expect(SENSE).toContain("say so in your answer and file nothing");
+    for (const b of briefs) expect(b).toContain("say so in your answer and file nothing");
   });
+});
 
-  it("and logging genuinely new evidence is still the other way to finish", () => {
-    expect(SENSE).toContain("only for evidence that is genuinely not on the record yet");
+describe("the station's filing rule reaches every seat at EVERY station", () => {
+  it("no seat anywhere loses it, which is the defect this file exists for", () => {
+    /*
+     * The bug was structural, not specific to Discover: choosing between the
+     * station rule and the seat rule loses one of them wherever seats exist.
+     * Every station is checked so the next one to gain a seat cannot repeat it.
+     */
+    for (const station of AGENT_STATION_ORDER) {
+      for (const b of briefsFor(station)) {
+        expect(b.length, `${station} produced an empty brief`).toBeGreaterThan(100);
+        expect(b, `${station} lost its filing instruction`).toMatch(
+          /file|record|call [a-z]+\.[a-z]/i,
+        );
+      }
+    }
   });
 });

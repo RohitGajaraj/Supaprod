@@ -367,6 +367,14 @@ export function stationCrew(station: AgentStation): CrewRole[] {
   ).map((e) => ({
     slug: e.slug,
     job: CREW_ROLE[e.slug]?.job ?? "",
+    /*
+     * `?? ""` and not `?? FILE_IT[...]`: a cast seat with no `CREW_ROLE` entry
+     * gets NO seat-specific filing line, which is correct now that the station
+     * rule is appended above rather than chosen between. Before that change this
+     * empty string beat the fallback, because "" is not nullish, and such a seat
+     * would have been told nothing about filing at all. Latent rather than live
+     * when S4 found it: 0 of 15 active cast seats lack an entry.
+     */
     file: CREW_ROLE[e.slug]?.file ?? "",
   }));
 }
@@ -868,7 +876,28 @@ export function stationGoal(
   // job, then what already exists, then what it must file. An agent that knows
   // only its slice optimises its slice.
   const mine = seat?.job ? `\n\nYour part in that: ${seat.job}` : "";
-  const file = seat?.file ?? FILE_IT[station];
+  /*
+   * BOTH, NOT EITHER, AND MY OWN FIX PROVED WHY (S4 -> S0, 2026-08-27).
+   *
+   * This read `seat?.file ?? FILE_IT[station]`, so the station's filing rule was
+   * delivered ONLY to a station with no seats. Discover has three, so all three
+   * read `CREW_ROLE[slug].file` and none of them ever saw `FILE_IT.sense`.
+   *
+   * I rewrote `FILE_IT.sense` to say that evidence already on the record counts,
+   * shipped it, and it reached nobody. S4 measured the prompt md5 in
+   * `agent_runs.input` as byte-identical before and after, per seat, on a live
+   * track. The sentence I replaced was still in the 22:50 brief.
+   *
+   * This is F-32 from the other side, and `:113` already warns about it on the
+   * strategist seat: `stationGoal` composes the STATION job and the SEAT job, so
+   * a rule that must reach everyone has to be in both places or appended to
+   * both. Choosing between them is what loses it.
+   *
+   * Appending rather than duplicating into three seats: the station rule is one
+   * sentence and it travels to every seat automatically, so the next person to
+   * edit it edits it once.
+   */
+  const file = [FILE_IT[station], seat?.file?.trim()].filter(Boolean).join(" ");
 
   /*
    * F-68. A STEP YOU WERE TOLD FAILED MAY NEVER BE REPORTED AS DONE.
