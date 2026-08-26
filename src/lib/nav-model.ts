@@ -219,7 +219,7 @@ export const PRIMARY_NAV: readonly NavItemDef[] = [
   // purpose: the keycap is a letter of the word next to it, so the row teaches
   // its own shortcut.
   {
-    to: "/today",
+    to: "/runs",
     label: "Runs",
     index: "",
     zone: "operations",
@@ -393,7 +393,7 @@ export function navKeyHint(item: NavItemDef): string {
       return "h"; // sHip; `s` is Settings
     case "/learn":
       return "l";
-    case "/today":
+    case "/runs":
       return "r"; // its own first letter, freed by the prefix
     case "/crew":
       /*

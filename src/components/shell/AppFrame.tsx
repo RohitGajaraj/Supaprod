@@ -373,7 +373,7 @@ const RAIL = [
   // started. /runs is the same surface the route used to call /build, renamed
   // because a run is the whole lifecycle and never was the build leg.
   {
-    to: "/today",
+    to: "/runs",
     label: "Runs",
     Icon: IconRuns,
     count: "runs",
@@ -777,7 +777,7 @@ function since(iso: string | null): string | null {
 function RailNew({ narrow }: { narrow: boolean }) {
   return (
     <Link
-      to="/today"
+      to="/runs"
       className="sp-new"
       /* Named out loud only when the label is not on screen, so a screen
          reader is never handed the same words twice. */
@@ -1529,7 +1529,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
         title: "Open the run that is working",
       };
     }
-    if (running.length > 1) return { go: go("/today"), title: "See every run" };
+    if (running.length > 1) return { go: go("/runs"), title: "See every run" };
     /* Nothing in the mission world is working, but a spine run moved moments
      * ago -- so the door opens THE address of that run, not a list. The track
      * is named by its own row; this mapping is read, not guessed (the

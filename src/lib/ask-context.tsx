@@ -82,7 +82,7 @@ export function scopeForPath(
   if (pathname.startsWith("/brain") || pathname.startsWith("/knowledge")) {
     return { kinds: ["doc", "note", "finding"], label: "Brain" };
   }
-  if (pathname.startsWith("/today") || pathname.startsWith("/build")) {
+  if (pathname.startsWith("/runs") || pathname.startsWith("/build")) {
     return { kinds: ["mission"], label: "your runs" };
   }
   // LABEL WITHOUT KINDS is a real state, not a half-finished one: the chip
