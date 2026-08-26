@@ -48,6 +48,14 @@ Directly above those bars, and above the fold at 1280×800, a stranger reads:
 So the sentence claims the acceptance R-18's honest query has returned **0** for three months, and
 the illustration under it demonstrates that claim using a clock.
 
+> **CORRECTION, 2026-08-27, after S3 challenged it.** An earlier draft of this verdict said
+> "autonomous" is on **the canon's** banned list. That is ambiguous and half wrong, and the ambiguity
+> is the finding: see `S4-046`. `OPERATING-MODEL-5-SESSIONS.md:32` and `:735` do ban it in product
+> copy, twice. `positioning-locked-2026-08.md` does **not** ban it, and at `:269` uses it itself as a
+> measured claim. **S3 was right about the positioning canon and I was right about the operating
+> model.** The correct citation is the operating model, and the false capability claim stands on its
+> own without the adjective either way.
+
 ## What a stranger actually understands, which is the question that was asked
 
 **The comprehension half is good, and it deserves saying as plainly as the defect.** Above the fold
