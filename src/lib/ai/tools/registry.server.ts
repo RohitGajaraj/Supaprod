@@ -48,6 +48,9 @@ import {
 import { submitDelegation } from "@/lib/delegate/openhands.server";
 import { DELEGATE_TASK_MAX_CHARS } from "@/lib/delegate/provider";
 import { rememberOutcome } from "@/lib/ai/memory.server";
+// Gap #2: the verdict has to reach somebody who closed the tab. Best-effort by
+// contract — it never throws, so it cannot cost the verdict already written.
+import { dispatchVerdictEmail } from "@/lib/notifications.functions";
 // The in-house error floor, so a memory write that silently produced nothing is a
 // row someone can query rather than a console line in a Worker. Server-only file,
 // so the admin client this lazy-loads is available. See learning.record.
@@ -5531,6 +5534,35 @@ const learningRecord = def({
         },
       });
     }
+
+    /*
+     * THE VERDICT GOES TO THE PERSON WHO LEFT (authorised gap #2, F-84).
+     *
+     * Here, in the AGENT path, and deliberately not in `recordOutcome`'s human
+     * settle path: that person is looking at the result already, and mailing
+     * somebody a thing they are reading is how a channel teaches people to
+     * ignore it.
+     *
+     * AWAITED, for the reason the `rememberOutcome` block above says in its own
+     * words: an unawaited promise in a Cloudflare Worker can be dropped when the
+     * request settles. `dispatchVerdictEmail` never throws — every failure path
+     * returns — so awaiting it cannot cost the verdict that is already written.
+     *
+     * `resolvedDecisionId` travels because the pairing IS the product: what was
+     * expected beside what happened. A null one is the honest absence rather than
+     * an unread forecast; the dispatch reads the claim itself so it can tell the
+     * two apart.
+     */
+    await dispatchVerdictEmail(supabase, {
+      userId,
+      learningId,
+      verdict: a.verdict,
+      summary: a.summary,
+      decisionId: resolvedDecisionId,
+      metricLabel: a.metric_label ?? null,
+      metricValue: a.metric_value ?? null,
+      trackId: trackId ?? null,
+    });
 
     return {
       learning_id: learningId,

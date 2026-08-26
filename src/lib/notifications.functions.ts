@@ -796,3 +796,134 @@ export async function sendDueDigests(
 
   return { scanned: rows.length, sent, slackPosted };
 }
+
+/**
+ * THE VERDICT REACHES A PERSON WHO CLOSED THE TAB (authorised gap #2).
+ *
+ * WHAT THIS CLOSES, AND WHY IT IS RANKED SECOND OF THE AUTHORISED GAPS. The
+ * whole frontier is async: submit and leave, the result comes to you. We required
+ * attendance and called it visible agency. Nothing — no email, push or digest —
+ * carried a verdict to somebody who had left. Measured 2026-08-26 (F-84), that
+ * costs **46.2% of all work ever created**: 43 of 93 tracks sit in
+ * `TERMINAL_HOLDS` the sweep refuses BY DESIGN, waiting on a person nobody told.
+ *
+ * S1 is shipping the promise in the same phase — *"I'm on it, you can leave this
+ * page"* — and **a promise without this is a lie under standard #7.** They land
+ * together on purpose.
+ *
+ * AGENT PATH ONLY, and the distinction is S3's. The human settle path
+ * (`recordOutcome` from the Learn panel) does NOT email: **that person is present
+ * by definition**, and mailing somebody a result they are looking at is how a
+ * notification channel teaches people to ignore it.
+ *
+ * BEST-EFFORT BY CONTRACT. Every failure path returns rather than throws, and the
+ * caller is expected to ignore the result: **a mail failure must never fail the
+ * tool that produced the verdict.** Losing the work because the post office was
+ * shut would be a far worse defect than a missing email.
+ *
+ * PLAIN TEXT FOR NOW, deliberately. S3's HTML template is held out of `main`
+ * pending a Meridian-derived email palette (email clients strip CSS custom
+ * properties, so `var(--mrd-*)` cannot travel). Text sends today and reads
+ * correctly everywhere; the HTML slots in beside it with no change here.
+ */
+export async function dispatchVerdictEmail(
+  supabase: SupabaseClient,
+  args: {
+    userId: string;
+    learningId: string;
+    /** What the record says happened, in the product's own three words. */
+    verdict: "validated" | "missed" | "mixed";
+    /** The crew's sentence about the outcome. */
+    summary: string;
+    /**
+     * The bet this verdict settles (F-65's `resolvedDecisionId`), or null when
+     * nothing resolved.
+     *
+     * **The forecast is read HERE rather than passed in, and null genuinely means
+     * none.** The email tells a person "this work carried no written expectation"
+     * when there is no decision, and that sentence must never be a stand-in for
+     * "I did not look". A null id is the positive absence — the waived-Decide
+     * shape F-61 describes — and a set id is looked up so the claim on screen is
+     * the claim that was written before the outcome was known.
+     */
+    decisionId?: string | null;
+    metricLabel?: string | null;
+    metricValue?: string | null;
+    /** Where the person lands to see it beside the work. */
+    trackId?: string | null;
+  },
+): Promise<{ sent: boolean; reason: string }> {
+  try {
+    const { data: prefs } = await supabase
+      .from("user_notification_preferences")
+      .select("email_verdict")
+      .eq("user_id", args.userId)
+      .maybeSingle();
+
+    // Absent row means never configured, which is the default and the default is
+    // on — the same reading `dispatchInstantEmail` takes.
+    if (prefs && (prefs as { email_verdict?: boolean }).email_verdict === false) {
+      return { sent: false, reason: "the person turned verdict email off" };
+    }
+
+    const to = await resolveUserEmail(supabase, args.userId);
+    if (!to) return { sent: false, reason: "could not resolve recipient email" };
+
+    /*
+     * THE PAIRING IS THE PRODUCT, so it is the subject line and the first two
+     * lines of the body: what was expected, beside what happened. A verdict on
+     * its own is a status word; the forecast beside it is the only thing here no
+     * other vendor can reconstruct after the fact.
+     *
+     * When no forecast was written — a waived Decide, F-61's shape — the mail
+     * says so rather than implying one existed. An honest absence beats an
+     * invented baseline.
+     */
+    const headline =
+      args.verdict === "validated"
+        ? "It went the way we expected"
+        : args.verdict === "missed"
+          ? "It did not go the way we expected"
+          : "It went partly the way we expected";
+
+    let forecastClaim: string | null = null;
+    if (args.decisionId) {
+      const { data: decision } = await supabase
+        .from("decisions")
+        .select("forecast_claim")
+        .eq("id", args.decisionId)
+        .maybeSingle();
+      forecastClaim = (decision as { forecast_claim?: string | null } | null)?.forecast_claim ?? null;
+    }
+
+    const lines = [
+      headline,
+      "",
+      forecastClaim
+        ? `What we expected: ${forecastClaim}`
+        : "This work carried no written expectation, so there is nothing to compare the result against.",
+      `What happened: ${args.summary}`,
+    ];
+
+    if (args.metricLabel && args.metricValue) {
+      lines.push(`${args.metricLabel}: ${args.metricValue}`);
+    }
+
+    lines.push(
+      "",
+      "You are getting this because work you started finished while you were away.",
+      "Change it in Settings, under Notifications.",
+    );
+
+    const { sent, reason } = await sendEmail({
+      to,
+      subject: `Supaprod: ${headline.toLowerCase()}`,
+      text: lines.join("\n"),
+    });
+    return { sent, reason };
+  } catch (e) {
+    // Swallowed by contract. See the header: the verdict is already on the
+    // record, and a mail failure must not unwind the tool that filed it.
+    return { sent: false, reason: e instanceof Error ? e.message : String(e) };
+  }
+}

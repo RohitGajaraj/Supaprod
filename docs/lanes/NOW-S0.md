@@ -1,1 +1,1 @@
-S0 · 17:31 IST · WORKING · integration pass 3: run+proof+platform merged, 11,529 tests 0 fail; press-site guard reviewed 3→4 (S1 r-shortcut is a human act) · docs/lanes/** src/lib/spine/** · pending
+S0 · 17:44 IST · WORKING · gap #2 server half LIVE: email_verdict column applied + dispatchVerdictEmail fires from learning.record (agent path only); 11,537 tests 0 fail · src/lib/** supabase/migrations/** · pending
