@@ -1,4 +1,5 @@
 import type { Track } from "@/lib/spine/track.functions";
+import { TERMINAL_HOLDS } from "@/lib/spine/correction";
 import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
 
 /**
@@ -26,9 +27,12 @@ import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
  * THREE DESTINATIONS, MATCHING THE FEED'S OWN SECTIONS so a reader merges
  * nothing in their head:
  *
- *   waiting on you   `holdReason === "waiting-on-a-person"` — the loop
- *                    stopped for a call, the same need the replies section
- *                    serves for mission runs.
+ *   waiting on you   `holdReason === "waiting-on-a-person"`, the loop stopped
+ *                    for a call, the same need the replies section serves for
+ *                    mission runs. AND every `TERMINAL_HOLDS` reason, because
+ *                    the sweep will never revisit those and one human press is
+ *                    the only exit that exists. Both need a person; only one
+ *                    of them used to say so.
  *   running          open and driven inside the freshness window the rest of
  *                    the product already uses (`IDLE_AFTER_MS`, ten minutes,
  *                    derived from the spine tick). An open track driven
@@ -64,6 +68,29 @@ export type TrackBoardRow = {
 
 const PERSON_HOLD = "waiting-on-a-person";
 
+/**
+ * PARKED WORK GOES TO THE PERSON, BECAUSE A PERSON IS THE ONLY EXIT.
+ *
+ * `TERMINAL_HOLDS` is the sweep's own list, imported rather than restated:
+ * `track-tick` excludes these from selection and `decideDrive` refuses them
+ * again, so a track holding one WILL NOT be driven, ever, without a human
+ * press. Restating the list here would let the surface and the sweep drift
+ * into disagreeing about what "cannot move" means, which is the failure
+ * `parked-work-must-be-visible.test.ts` pins on the server half.
+ *
+ * Until now every one of them landed in RUNNING, because the only branch above
+ * tested for `waiting-on-a-person`. So a track held on `given-up` sat in the
+ * lane whose sentence is "waiting on an agent, not on you", when no agent was
+ * ever coming. S4 measured eight of the nine real open tracks in that state on
+ * 2026-08-27, one of them across 316 drives.
+ *
+ * That is the silence `getParkedWork` was written to end, arriving on the
+ * board from the other direction: not a missing count, a row in the wrong lane.
+ */
+function cannotMove(holdReason: string | null | undefined): boolean {
+  return !!holdReason && (TERMINAL_HOLDS as readonly string[]).includes(holdReason);
+}
+
 export function trackToBoardRows(
   tracks: readonly Track[] | undefined,
   knownTrackIds: ReadonlySet<string>,
@@ -97,7 +124,7 @@ export function trackToBoardRows(
     }
     if (t.status !== "open") continue;
 
-    if (t.holdReason === PERSON_HOLD) {
+    if (t.holdReason === PERSON_HOLD || cannotMove(t.holdReason)) {
       waiting.push({ ...base, kind: "waiting-on-you", holdLine: t.hold });
       continue;
     }
