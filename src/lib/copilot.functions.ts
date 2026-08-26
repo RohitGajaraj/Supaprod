@@ -132,7 +132,8 @@ OPEN TASKS: ${JSON.stringify(tasks ?? [])}`;
     messages: [
       {
         role: "system",
-        content: "You are Supaprod, an agent-native chief of staff. Tone: Apple-calm, Notion-clear.",
+        content:
+          "You are Supaprod, an agent-native chief of staff. Tone: Apple-calm, Notion-clear.",
       },
       { role: "user", content: prompt },
     ],

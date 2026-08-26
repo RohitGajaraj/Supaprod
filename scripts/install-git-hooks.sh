@@ -27,15 +27,27 @@ echo "[git-hooks] post-merge hook installed"
 
 # F-HUMANIZE-HOOK: pre-commit backstop for the humanized-output convention.
 # Scans the staged diff for banned em/en dashes and invisible characters.
-# Warn-only by default so it never blocks a commit; set HUMANIZE_STRICT=1 to
-# make a hit fail the commit.
+# BLOCKING BY DEFAULT since 2026-08-26, on the founder's instruction that no AI
+# fingerprint may reach a user-facing surface. It was warn-only, which is how a
+# warning becomes furniture: the check ran, printed, exited 0, and the dashes
+# shipped anyway.
+#
+# Flipping it cost nothing on the day it was flipped: all 548 user-facing files
+# scanned clean, so strict mode had no backlog to clear. Set HUMANIZE_STRICT=0
+# to fall back to warn-only for a single commit.
+#
+# NOTE what this can and cannot see. It scans SOURCE. The em dashes actually
+# visible in the running application were never in the source: they were in
+# model-written text that agents wrote into the DATABASE through tool arguments,
+# which no source scan can reach. That hole is closed separately by
+# `humanizeToolArgs` at the tool-call chokepoint in `runtime.server.ts`.
 PRECOMMIT=".git/hooks/pre-commit"
 cat > "$PRECOMMIT" <<'EOF'
 #!/usr/bin/env bash
 # Auto-installed by scripts/install-git-hooks.sh: humanized-output backstop.
 # Convention: docs/conventions/humanized-output.md.
 if [ -f scripts/check-humanized.sh ]; then
-  if [ "${HUMANIZE_STRICT:-0}" = "1" ]; then
+  if [ "${HUMANIZE_STRICT:-1}" = "1" ]; then
     STRICT=1 bash scripts/check-humanized.sh
   else
     bash scripts/check-humanized.sh || true

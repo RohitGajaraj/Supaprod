@@ -2556,7 +2556,6 @@ export const enforceTouchList = createServerFn({ method: "POST" })
     return { ok: true, removed };
   });
 
-
 // SANDBOX: previewable file types + a payload cap for the $0 self-contained preview.
 const PREVIEWABLE_HTML = /\.html?$/i;
 const MAX_PREVIEW_BYTES = 512_000;

@@ -35,7 +35,12 @@ import { Dialog } from "@/components/meridian/Dialog";
 import { Spend } from "@/components/meridian/Spend";
 import { MarkStack } from "@/components/meridian/marks";
 import { StatusChip } from "@/components/meridian/StatusChip";
-import { Flowchart, flowFromSteps, type FlowEdge, type FlowNode } from "@/components/meridian/Flowchart";
+import {
+  Flowchart,
+  flowFromSteps,
+  type FlowEdge,
+  type FlowNode,
+} from "@/components/meridian/Flowchart";
 import { RunMap, type RunMapStation } from "@/components/meridian/RunMap";
 import { AGENT_STATION_ORDER } from "@/lib/agent-vocabulary";
 import {
@@ -214,7 +219,9 @@ function Panel({ title, note, children }: { title: string; note: string; childre
     <section className="border-t border-mrd-line py-10">
       <header className="mb-6">
         <h2 className="text-mrd-h3 leading-mrd-tight font-medium text-mrd-ink">{title}</h2>
-        <p className="mt-1 max-w-[68ch] text-mrd-base leading-mrd-prose text-mrd-prose text-mrd-body">{note}</p>
+        <p className="mt-1 max-w-[68ch] text-mrd-base leading-mrd-prose text-mrd-prose text-mrd-body">
+          {note}
+        </p>
       </header>
       {children}
     </section>
@@ -1726,7 +1733,12 @@ function AgentInboxCases() {
           sessions={reachable(
             [1, 2, 3, 4].map((n) => ({
               id: `b${n}`,
-              title: ["Shorten the verify step", "Drop the Zendesk source", "Raise the daily ceiling", "Rename the Plan station"][n - 1]!,
+              title: [
+                "Shorten the verify step",
+                "Drop the Zendesk source",
+                "Raise the daily ceiling",
+                "Rename the Plan station",
+              ][n - 1]!,
               need: "needs-input" as const,
               activity: "waiting on you",
               agentSlug: ["critic", "researcher", "operations", "ux-architect"][n - 1]!,
@@ -2006,7 +2018,14 @@ function RunTimelineCases() {
   const liveStart = Date.now() - 96_000;
 
   const long: TimelineEvent[] = [
-    { id: "l1", at: NOW - 52 * 60_000, kind: "station", station: "decide", label: "Decide opened", state: "done" },
+    {
+      id: "l1",
+      at: NOW - 52 * 60_000,
+      kind: "station",
+      station: "decide",
+      label: "Decide opened",
+      state: "done",
+    },
     {
       id: "l2",
       at: NOW - 51 * 60_000,
@@ -2062,7 +2081,14 @@ function RunTimelineCases() {
   ];
 
   const failed: TimelineEvent[] = [
-    { id: "f1", at: NOW - 9 * 60_000, kind: "station", station: "build", label: "Build opened", state: "done" },
+    {
+      id: "f1",
+      at: NOW - 9 * 60_000,
+      kind: "station",
+      station: "build",
+      label: "Build opened",
+      state: "done",
+    },
     {
       id: "f2",
       at: NOW - 8 * 60_000,
@@ -2096,7 +2122,14 @@ function RunTimelineCases() {
   ];
 
   const liveEvents: TimelineEvent[] = [
-    { id: "v1", at: liveStart, kind: "station", station: "build", label: "Build opened", state: "done" },
+    {
+      id: "v1",
+      at: liveStart,
+      kind: "station",
+      station: "build",
+      label: "Build opened",
+      state: "done",
+    },
     {
       id: "v2",
       at: liveStart + 60_000,
@@ -2392,7 +2425,12 @@ function PlanCardCases() {
      the mark rule and the case a reader meets on an ad-hoc plan. */
   const stationless: PlanStep[] = [
     { id: "n1", label: "Read the two conflicting tickets", state: "done", agentSlug: "researcher" },
-    { id: "n2", label: "Decide which one is the real complaint", state: "active", agentSlug: "strategist" },
+    {
+      id: "n2",
+      label: "Decide which one is the real complaint",
+      state: "active",
+      agentSlug: "strategist",
+    },
     { id: "n3", label: "Write it up", state: "pending", agentSlug: "sprint-planner" },
   ];
 
@@ -2414,7 +2452,11 @@ function PlanCardCases() {
         <PlanCard steps={[five[4]]} onApprove={noop} />
       </Case>
       <Case label="A skip with nobody's reason on it">
-        <PlanCard steps={[{ id: "x", label: "Put a surface in front of it", state: "skipped", station: "design" }]} />
+        <PlanCard
+          steps={[
+            { id: "x", label: "Put a surface in front of it", state: "skipped", station: "design" },
+          ]}
+        />
       </Case>
       <Case label="A step that failed">
         <PlanCard steps={broken} />
@@ -2481,7 +2523,13 @@ function ControlCases() {
       </Case>
 
       <Case label="Dead, and no longer shouting">
-        <Actions trailing={<Action variant="destructive" disabled>Stop this run</Action>}>
+        <Actions
+          trailing={
+            <Action variant="destructive" disabled>
+              Stop this run
+            </Action>
+          }
+        >
           <Approve disabled>Approve the plan</Approve>
           <Action variant="primary" disabled>
             Hand it over
@@ -2861,9 +2909,27 @@ function OneSetCases() {
       <Case label="The plan it committed to">
         <PlanCard
           steps={[
-            { id: "o1", label: "Read the outage thread", state: "done", agentSlug: "researcher", station: "discover" },
-            { id: "o2", label: "Write the firmware notice", state: "active", agentSlug: "builder", station: "build" },
-            { id: "o3", label: "Open the pull request", state: "pending", agentSlug: "builder", station: "ship" },
+            {
+              id: "o1",
+              label: "Read the outage thread",
+              state: "done",
+              agentSlug: "researcher",
+              station: "discover",
+            },
+            {
+              id: "o2",
+              label: "Write the firmware notice",
+              state: "active",
+              agentSlug: "builder",
+              station: "build",
+            },
+            {
+              id: "o3",
+              label: "Open the pull request",
+              state: "pending",
+              agentSlug: "builder",
+              station: "ship",
+            },
           ]}
         />
       </Case>
@@ -2871,8 +2937,24 @@ function OneSetCases() {
       <Case label="What actually happened">
         <RunTimeline
           events={[
-            { id: "o1", at: t, kind: "station", station: "discover", label: "Read the outage thread", agentSlug: "researcher", durationMs: 41_000, state: "done" },
-            { id: "o2", at: t + 60_000, kind: "repo", label: "Write the firmware notice", agentSlug: "builder", state: "working" },
+            {
+              id: "o1",
+              at: t,
+              kind: "station",
+              station: "discover",
+              label: "Read the outage thread",
+              agentSlug: "researcher",
+              durationMs: 41_000,
+              state: "done",
+            },
+            {
+              id: "o2",
+              at: t + 60_000,
+              kind: "repo",
+              label: "Write the firmware notice",
+              agentSlug: "builder",
+              state: "working",
+            },
           ]}
           now={t + 9 * 60_000}
         />
@@ -2881,9 +2963,29 @@ function OneSetCases() {
       <Case label="What it called while doing it">
         <ToolStream
           rows={[
-            { id: "o1", tool: "web.search", at: t, argument: "firmware reboot homeowner confusion", durationMs: 2_400, state: "done" },
-            { id: "o2", tool: "repo.read", at: t + 30_000, argument: "src/components/notices/FirmwareNotice.tsx", durationMs: 700, state: "done" },
-            { id: "o3", tool: "studio.checks.run", at: t + 60_000, argument: "bun test", state: "running" },
+            {
+              id: "o1",
+              tool: "web.search",
+              at: t,
+              argument: "firmware reboot homeowner confusion",
+              durationMs: 2_400,
+              state: "done",
+            },
+            {
+              id: "o2",
+              tool: "repo.read",
+              at: t + 30_000,
+              argument: "src/components/notices/FirmwareNotice.tsx",
+              durationMs: 700,
+              state: "done",
+            },
+            {
+              id: "o3",
+              tool: "studio.checks.run",
+              at: t + 60_000,
+              argument: "bun test",
+              state: "running",
+            },
           ]}
           working
         />
@@ -2928,7 +3030,14 @@ function FlowchartCases() {
       { id: "spec", row: 2, x: 0.26, station: "plan", title: "Draft the spec" },
       { id: "park", row: 2, x: 0.76, station: "learn", title: "File it against the theme" },
       { id: "build", row: 3, x: 0.26, station: "build", title: "Write the notice" },
-      { id: "ship", row: 4, x: 0.26, station: "ship", kind: "Gate", title: "Open the pull request" },
+      {
+        id: "ship",
+        row: 4,
+        x: 0.26,
+        station: "ship",
+        kind: "Gate",
+        title: "Open the pull request",
+      },
     ],
     edges: [
       { from: "signal", to: "rank" },
@@ -3005,7 +3114,11 @@ function RunMapCases() {
         { id: "s2", label: "Draft the spec", state: "done", station: "plan" },
       ],
     },
-    { station: "design", state: "skipped", waivedReason: "The notice reuses a shipped component, so there is nothing new to draw" },
+    {
+      station: "design",
+      state: "skipped",
+      waivedReason: "The notice reuses a shipped component, so there is nothing new to draw",
+    },
     {
       station: "build",
       state: "active",
@@ -3316,7 +3429,8 @@ function PromotionCardCases() {
             },
             {
               key: "e2",
-              label: "Two later sends recovered once the window was widened, with nothing else changed",
+              label:
+                "Two later sends recovered once the window was widened, with nothing else changed",
               onOpen: noop,
             },
           ]}
@@ -3346,7 +3460,11 @@ function PromotionCardCases() {
           learnedIn={null}
           kind="reflection"
           evidence={[
-            { key: "n1", label: "A person corrected the agent on this twice in one week", onOpen: noop },
+            {
+              key: "n1",
+              label: "A person corrected the agent on this twice in one week",
+              onOpen: noop,
+            },
           ]}
           guides={["Discover asks for the expectation at capture instead of inferring it later."]}
         />

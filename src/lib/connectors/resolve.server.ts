@@ -278,8 +278,16 @@ export async function resolveProviderAuth(args: {
    */
   cache?: ProviderAuthCache;
 }): Promise<ResolvedConnector> {
-  const { userClient, userId, workspaceId, productId, provider, resourceKind, requiredCapability, cache } =
-    args;
+  const {
+    userClient,
+    userId,
+    workspaceId,
+    productId,
+    provider,
+    resourceKind,
+    requiredCapability,
+    cache,
+  } = args;
 
   // Tier gate — checked BEFORE any credential work so we never materialize auth
   // for an unauthorized tier. Fails CLOSED: any lookup error defaults to 'free'

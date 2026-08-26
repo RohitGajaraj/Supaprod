@@ -265,7 +265,7 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
      * — because a rule whose cost the agent understands survives pressure that a
      * bare prohibition does not.
      */
-    job: "Build to the spec and the design above, using only what this repository already has. Establish the file layout for yourself with repo.tree and read what it names with repo.read before you conclude that anything is missing: repo.search is GitHub's code search index, it does not reliably reach a private repository, and it has returned zero hits on a repo whose tree plainly held the very file the work was about. An empty repo.search is not evidence the code is absent, and you may never report code as missing on the strength of one — if the tree genuinely does not hold it, say the repository does not contain it and say which tree you read. Read the repository's manifest — package.json, deno.json or the equivalent — and its existing tests before you write any, and match the libraries and the test runner already in use. You cannot add a dependency: nothing installs one for you, and an import the repository cannot resolve fails its checks in seconds and stops the work here, however good the code is. If the spec genuinely cannot be built with what is present, say that plainly instead of importing something that is not. NEVER change what the checks themselves run: the CI workflow files, the scripts block of package.json or deno.json, or any lint, typecheck or test configuration are not yours to edit, however reasonable the change looks and however plainly it would make the build pass — a check you have altered proves nothing about your work, and turning one off to get a change through is the one failure this station can commit that is worse than not building at all. If a check is stopping you, the honest move is the one above: say what it is refusing and why the spec cannot be built with what is present. Stop at anything your boundary does not let you do alone.",
+    job: "Build to the spec and the design above, using only what this repository already has. Establish the file layout for yourself with repo.tree and read what it names with repo.read before you conclude that anything is missing: repo.search is GitHub's code search index, it does not reliably reach a private repository, and it has returned zero hits on a repo whose tree plainly held the very file the work was about. An empty repo.search is not evidence the code is absent, and you may never report code as missing on the strength of one, if the tree genuinely does not hold it, say the repository does not contain it and say which tree you read. Read the repository's manifest, package.json, deno.json or the equivalent, and its existing tests before you write any, and match the libraries and the test runner already in use. You cannot add a dependency: nothing installs one for you, and an import the repository cannot resolve fails its checks in seconds and stops the work here, however good the code is. If the spec genuinely cannot be built with what is present, say that plainly instead of importing something that is not. NEVER change what the checks themselves run: the CI workflow files, the scripts block of package.json or deno.json, or any lint, typecheck or test configuration are not yours to edit, however reasonable the change looks and however plainly it would make the build pass, a check you have altered proves nothing about your work, and turning one off to get a change through is the one failure this station can commit that is worse than not building at all. If a check is stopping you, the honest move is the one above: say what it is refusing and why the spec cannot be built with what is present. Stop at anything your boundary does not let you do alone.",
     // F-36. This said `studio.stage` and stopped there, and staging is one step
     // of six. `studio.commit` puts the work on an isolated `studio/*` branch and
     // is EXPLICITLY autonomous by founder ruling 2026-07-08 —
@@ -295,7 +295,7 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
      *
      * A refusal a station cannot act on is not a floor, it is a wall.
      */
-    file: "Call studio.stage with the change you made, then studio.commit to put it on its own branch. Work that is staged and never committed stays in the workspace and cannot be shipped, so stopping at stage leaves the job half done. If studio.commit REFUSES a path it is not allowed to write — CI config, a migration, env, a lockfile, or the manifest that defines what the checks run — that is not a dead end: call studio.unstage on exactly that path and commit the rest. The rest of the changeset is untouched. A staged path you cannot commit and do not unstage traps the whole changeset, and every later attempt refuses it the same way.",
+    file: "Call studio.stage with the change you made, then studio.commit to put it on its own branch. Work that is staged and never committed stays in the workspace and cannot be shipped, so stopping at stage leaves the job half done. If studio.commit REFUSES a path it is not allowed to write, CI config, a migration, env, a lockfile, or the manifest that defines what the checks run, that is not a dead end: call studio.unstage on exactly that path and commit the rest. The rest of the changeset is untouched. A staged path you cannot commit and do not unstage traps the whole changeset, and every later attempt refuses it the same way.",
   },
   qa: {
     /*
@@ -325,7 +325,7 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
     // `AUTO_SHIP_ENABLED`), the CALL files the question instead of running.
     // A seat that never calls it never even raises the question, so the gate
     // nobody could answer was a gate nobody was ever shown (R-27's evidence).
-    file: "If it does not meet the spec, call studio.stage with the fix and studio.commit to append it to the same branch. When it does meet the spec, call studio.pr.open so there is a pull request for Ship to point at, then studio.checks.run to learn whether CI is green at that head. When the checks are green, call studio.pr.merge — it re-proves CI fresh and refuses red, and where the workspace's governance wants a person it files that question rather than running, which is the gate working: stop there and say so. Do not pass work you would not sign off.",
+    file: "If it does not meet the spec, call studio.stage with the fix and studio.commit to append it to the same branch. When it does meet the spec, call studio.pr.open so there is a pull request for Ship to point at, then studio.checks.run to learn whether CI is green at that head. When the checks are green, call studio.pr.merge, it re-proves CI fresh and refuses red, and where the workspace's governance wants a person it files that question rather than running, which is the gate working: stop there and say so. Do not pass work you would not sign off.",
   },
   // 06 Ship
   "release-verifier": {
@@ -348,7 +348,7 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
     // agent's own argument is the ONLY link that can exist, and a verdict
     // recorded without it attaches to nothing and re-ranks nothing.
     // `stationGoal` names the exact id when the track has filed one.
-    file: "Call learning.record with the verdict, and pass `prd_id` — the spec this work was graded against. Without it the grade attaches to no spec, so it can never move the bet behind it. A grade that is only in your answer never reaches the next piece of work.",
+    file: "Call learning.record with the verdict, and pass `prd_id`, the spec this work was graded against. Without it the grade attaches to no spec, so it can never move the bet behind it. A grade that is only in your answer never reaches the next piece of work.",
   },
   "insight-keeper": {
     job: "Say what this outcome means for the NEXT piece of work. Generalise beyond this one bet without overclaiming from a single result.",
@@ -367,6 +367,14 @@ export function stationCrew(station: AgentStation): CrewRole[] {
   ).map((e) => ({
     slug: e.slug,
     job: CREW_ROLE[e.slug]?.job ?? "",
+    /*
+     * `?? ""` and not `?? FILE_IT[...]`: a cast seat with no `CREW_ROLE` entry
+     * gets NO seat-specific filing line, which is correct now that the station
+     * rule is appended above rather than chosen between. Before that change this
+     * empty string beat the fallback, because "" is not nullish, and such a seat
+     * would have been told nothing about filing at all. Latent rather than live
+     * when S4 found it: 0 of 15 active cast seats lack an entry.
+     */
     file: CREW_ROLE[e.slug]?.file ?? "",
   }));
 }
@@ -868,7 +876,28 @@ export function stationGoal(
   // job, then what already exists, then what it must file. An agent that knows
   // only its slice optimises its slice.
   const mine = seat?.job ? `\n\nYour part in that: ${seat.job}` : "";
-  const file = seat?.file ?? FILE_IT[station];
+  /*
+   * BOTH, NOT EITHER, AND MY OWN FIX PROVED WHY (S4 -> S0, 2026-08-27).
+   *
+   * This read `seat?.file ?? FILE_IT[station]`, so the station's filing rule was
+   * delivered ONLY to a station with no seats. Discover has three, so all three
+   * read `CREW_ROLE[slug].file` and none of them ever saw `FILE_IT.sense`.
+   *
+   * I rewrote `FILE_IT.sense` to say that evidence already on the record counts,
+   * shipped it, and it reached nobody. S4 measured the prompt md5 in
+   * `agent_runs.input` as byte-identical before and after, per seat, on a live
+   * track. The sentence I replaced was still in the 22:50 brief.
+   *
+   * This is F-32 from the other side, and `:113` already warns about it on the
+   * strategist seat: `stationGoal` composes the STATION job and the SEAT job, so
+   * a rule that must reach everyone has to be in both places or appended to
+   * both. Choosing between them is what loses it.
+   *
+   * Appending rather than duplicating into three seats: the station rule is one
+   * sentence and it travels to every seat automatically, so the next person to
+   * edit it edits it once.
+   */
+  const file = [FILE_IT[station], seat?.file?.trim()].filter(Boolean).join(" ");
 
   /*
    * F-68. A STEP YOU WERE TOLD FAILED MAY NEVER BE REPORTED AS DONE.
@@ -895,7 +924,7 @@ export function stationGoal(
    */
   const truthfulness =
     "\n\nReport only what your tools actually did. If a call was refused or " +
-    "returned an error, you may not describe that step as done — say plainly " +
+    "returned an error, you may not describe that step as done, say plainly " +
     "which call was refused and what it said, because that is what tells a " +
     "person which wall this hit. A step you were told failed is not a step you " +
     "completed, however close the rest of the work came.";
@@ -923,8 +952,35 @@ export function stationGoal(
 }
 
 const FILE_IT: Record<AgentStation, string> = {
+  /*
+   * "FILE WHAT YOU FOUND" READ AS "FILE WHAT YOU FOUND THAT IS NEW", AND THAT
+   * IS WHY DISCOVER HAS NEVER CLEARED (2026-08-27).
+   *
+   * This brief named one hand, `signals.log`, so a crew that searched a
+   * workspace ALREADY FULL of evidence concluded there was nothing to log and
+   * filed nothing. Both sense-entry tracks on the real workspace died of it,
+   * across twelve drives each, and the F-43 ceiling was right to stop them:
+   * they genuinely produced nothing.
+   *
+   * What they were looking at, measured on that workspace: 258 signals, of
+   * which 81 come from genuinely outside sources, including an analytics-
+   * dashboard row titled "41 percent of abandonments happened on the redundant
+   * address re-confirm screen" and a session-replay row about redundant address
+   * entry, both tagged `address-friction`, against a track about reusing a saved
+   * delivery address.
+   *
+   * The crew QUOTED that 41 percent figure back and still reported "no
+   * user-sourced evidence exists", because it read the number out of a PRD
+   * rather than out of the signals table, and F-73 correctly forbids citing our
+   * own artifacts. Every part of that was working as designed. The brief simply
+   * never said that evidence already on the record is evidence.
+   *
+   * So grouping what is already there is now named as a complete outcome. The
+   * anti-exhaust rules are untouched and restated, because widening what counts
+   * as a finish is exactly when a crew starts looking for a cheaper one.
+   */
   sense:
-    "Finish by filing what you found: call signals.log for each piece of evidence, and research.synthesize or cluster.trigger to group them. A finding that is only in your answer is not on the record and the next station cannot read it.",
+    "Finish by putting evidence on this track's record. Evidence ALREADY IN THIS WORKSPACE COUNTS: search it first with signals.list, and if what you need is already there, group it with cluster.trigger or research.synthesize and you are done. That is a complete, correct outcome, not a shortcut. Call signals.log only for evidence that is genuinely not on the record yet. What you may never do is file the ABSENCE of evidence, or cite this product's own PRDs, decisions or briefs as a source: a number you read in our own spec is not a finding, it is our own writing coming back. If the workspace truly holds nothing about this, say so in your answer and file nothing. A finding that is only in your answer is not on the record and the next station cannot read it.",
   decide:
     "Finish by calling decision.record with the alternatives you weighed and your forecast: what you expect to happen, the observable that will settle it, and the date it comes due as an ISO timestamp with an offset. A decision that is only in your answer is not on the record and the next station cannot read it, and one with no forecast is refused.",
   // Same correction as the `prd-writer` seat above, and it has to be made in
@@ -932,7 +988,7 @@ const FILE_IT: Record<AgentStation, string> = {
   // a fallback that names an argument the tool does not have is the same defect
   // wearing a different key.
   define:
-    "Finish by calling prd.draft. If you have an `opportunity_id` from the context, pass that — it names the bet this spec serves. Otherwise, pass `brief`: what the work is and why it exists, in your own words. You MUST pass one or the other, and the tool will write the spec body itself. Then call tasks.create for each piece of work the spec implies. A spec that is only in your answer is not on the record and the next station cannot read it.",
+    "Finish by calling prd.draft. If you have an `opportunity_id` from the context, pass that, it names the bet this spec serves. Otherwise, pass `brief`: what the work is and why it exists, in your own words. You MUST pass one or the other, and the tool will write the spec body itself. Then call tasks.create for each piece of work the spec implies. A spec that is only in your answer is not on the record and the next station cannot read it.",
   design:
     "Finish by calling design.draft with the surface you designed. A design that is only in your answer is not on the record and the next station cannot read it.",
   // F-36, and the same correction as the two Build seats above — it has to be
@@ -940,10 +996,10 @@ const FILE_IT: Record<AgentStation, string> = {
   // entry, and a fallback that stops one step short is the same defect wearing
   // a different key. (Exactly how F-32 was found to be half-fixed.)
   build:
-    "Finish by calling studio.stage with the change you made, then studio.commit to put it on its own branch, then studio.pr.open so there is a pull request Ship can point at, then studio.checks.run for the CI verdict, and when it is green call studio.pr.merge. If studio.commit refuses a path it may not write, call studio.unstage on that path and commit the rest rather than stopping: a staged path you cannot commit and do not unstage traps the whole changeset. The merge re-proves CI fresh and refuses red, and where governance wants a person it files that question instead of running — that is the gate working, so stop there and say so. Work that is only in your answer is not on the record, and a pull request nobody moves toward the merge gate sits open forever.",
+    "Finish by calling studio.stage with the change you made, then studio.commit to put it on its own branch, then studio.pr.open so there is a pull request Ship can point at, then studio.checks.run for the CI verdict, and when it is green call studio.pr.merge. If studio.commit refuses a path it may not write, call studio.unstage on that path and commit the rest rather than stopping: a staged path you cannot commit and do not unstage traps the whole changeset. The merge re-proves CI fresh and refuses red, and where governance wants a person it files that question instead of running, that is the gate working, so stop there and say so. Work that is only in your answer is not on the record, and a pull request nobody moves toward the merge gate sits open forever.",
   ship: "Finish by calling release.publish so the release can be pointed at. A release that is only in your answer did not happen.",
   learn:
-    "Finish by calling learning.record with the verdict, and pass `prd_id` — the spec this work was graded against — so the grade attaches to it. A grade that is only in your answer is not on the record and never reaches the next piece of work.",
+    "Finish by calling learning.record with the verdict, and pass `prd_id`, the spec this work was graded against, so the grade attaches to it. A grade that is only in your answer is not on the record and never reaches the next piece of work.",
 };
 
 /**
@@ -990,7 +1046,7 @@ function stationJob(station: AgentStation, subject: string): string {
       // checked — and the forecast captured at decision time is the whole
       // point of this station. Thin evidence belongs in the confidence and in
       // what would settle it, not in a refusal to make the call.
-      return `Decide whether ${subject} is worth doing. Someone asked for this work, which obliges you to make a call on it — it is not on its own a reason to do it. Weigh what the evidence supports and say so plainly, without finding a reason. **A "no" is a decision and you file it the same way as a yes**, with what you would need to see to change it. What you must not do is decline to decide: thin or absent evidence is a fact about your confidence and about what would settle it, and both of those go in the forecast.`;
+      return `Decide whether ${subject} is worth doing. Someone asked for this work, which obliges you to make a call on it, it is not on its own a reason to do it. Weigh what the evidence supports and say so plainly, without finding a reason. **A "no" is a decision and you file it the same way as a yes**, with what you would need to see to change it. What you must not do is decline to decide: thin or absent evidence is a fact about your confidence and about what would settle it, and both of those go in the forecast.`;
     case "define":
       return `Write the spec for ${subject} It must state the outcome it is trying to move and how anyone would know it worked, because that is what the outcome is graded against later.`;
     case "design":

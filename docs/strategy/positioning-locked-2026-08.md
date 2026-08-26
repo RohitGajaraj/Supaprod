@@ -200,7 +200,7 @@ Beat 2 is verbatim from an operator (Bal Sieber, 2026-06-27). Those three jobs *
 
 | Surface | ~~Register~~ *(retired)* | Use | Never |
 | --- | --- | --- | --- |
-| **Landing page, brief, listings** | ~~public~~ | the three beats · *less operator, more director* · evidence · history · track record · ready/review/stuck | receipts · ledger · audit trail · company brain · operating system · unattended |
+| **Landing page, brief, listings** | ~~public~~ | the three beats · *less operator, more director* · evidence · history · track record · ready/review/stuck · **audit trail** | receipts · ledger · ~~audit trail~~ *(struck 2026-08-27: it is a KEEP word everywhere, see the warning above)* · company brain · operating system · unattended |
 | **In-product** | ~~private~~ | context governance · drift · gate · memory life cycle · audit trail · current-vs-stale | receipt · unattended (dead in both registers) |
 | **VC / accelerator** | analytical | the five below | any present-tense compounding claim |
 | **Community / Slack** | practitioner | plain problem language only | all deck vocabulary — *"'cracked' is VC BS"* was said twice in one thread |

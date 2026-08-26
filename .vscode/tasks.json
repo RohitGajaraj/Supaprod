@@ -1,66 +1,73 @@
 {
   "version": "2.0.0",
-  "_comment": "Parallel lanes as VS Code INTEGRATED-TERMINAL tabs. Cmd+Shift+P -> Tasks: Run Task -> pick a lane, or 'Lanes 0-1: open all' to spawn both. Each opens a dedicated terminal already inside that lane's worktree and starts a CLEAN Claude session there. Also available from any terminal as `ob 0` / `ob 1` (shell function in ~/.zshrc). REWRITTEN 2026-08-05: these tasks used to launch a continuous autonomous build loop whose briefing named scripts/lane.sh, .remember/LANE.md and docs/planning/feature-dashboard.md. All three of those were deleted from the repo, so the task started a lane that had no claim ledger to claim from, no board to pick work off, and no briefing to read - it looked like it launched and then had nothing to do. The loop is recoverable from git history if it is ever wanted back; a task that silently launches a broken one is not worth keeping in the meantime. The lanes themselves are real worktrees sharing Supaprod/.git, so each costs only its working tree. To add one: git worktree add ../cadence-lane-N -b parallel/lane-N, then copy a block below. See docs/operations/parallel-build.md.",
   "tasks": [
     {
-      "label": "Lane 0",
+      "label": "Main",
       "type": "shell",
-      "command": "claude",
-      "options": { "cwd": "/Users/rohitgajaraj/Projects/My Projects/My Builds/cadence-lane-0" },
+      "command": "zsh",
+      "args": [
+        "-lc",
+        "cd \"/Users/rohit/My Projects/My Builds/Supaprod\" && git switch main && echo \"--- Main repo ---\" && pwd && git status --short --branch && exec zsh -l"
+      ],
+      "options": {
+        "cwd": "/Users/rohit/My Projects/My Builds/Supaprod"
+      },
       "presentation": {
-        "panel": "dedicated",
-        "group": "lanes",
         "reveal": "always",
-        "focus": true,
-        "echo": true
+        "panel": "dedicated",
+        "group": "worktrees",
+        "clear": true,
+        "focus": true
       },
       "problemMatcher": []
     },
     {
       "label": "Lane 1",
       "type": "shell",
-      "command": "claude",
-      "options": { "cwd": "/Users/rohitgajaraj/Projects/My Projects/My Builds/cadence-lane-1" },
+      "command": "zsh",
+      "args": [
+        "-lc",
+        "cd \"/Users/rohit/My Projects/My Builds/Supaprod.worktrees/worktree-1\" && git switch worktree-1 && echo \"--- Lane 1 ---\" && pwd && git status --short --branch && exec zsh -l"
+      ],
+      "options": {
+        "cwd": "/Users/rohit/My Projects/My Builds/Supaprod.worktrees/worktree-1"
+      },
       "presentation": {
-        "panel": "dedicated",
-        "group": "lanes",
         "reveal": "always",
-        "focus": true,
-        "echo": true
+        "panel": "dedicated",
+        "group": "worktrees",
+        "clear": true,
+        "focus": true
       },
       "problemMatcher": []
     },
     {
-      "label": "Lane 0: shell only",
+      "label": "Lane 2",
       "type": "shell",
-      "command": "exec zsh -l",
-      "options": { "cwd": "/Users/rohitgajaraj/Projects/My Projects/My Builds/cadence-lane-0" },
+      "command": "zsh",
+      "args": [
+        "-lc",
+        "cd \"/Users/rohit/My Projects/My Builds/Supaprod.worktrees/worktree-2\" && git switch worktree-2 && echo \"--- Lane 2 ---\" && pwd && git status --short --branch && exec zsh -l"
+      ],
+      "options": {
+        "cwd": "/Users/rohit/My Projects/My Builds/Supaprod.worktrees/worktree-2"
+      },
       "presentation": {
-        "panel": "dedicated",
-        "group": "lanes",
         "reveal": "always",
-        "focus": true,
-        "echo": true
+        "panel": "dedicated",
+        "group": "worktrees",
+        "clear": true,
+        "focus": true
       },
       "problemMatcher": []
     },
     {
-      "label": "Lane 1: shell only",
-      "type": "shell",
-      "command": "exec zsh -l",
-      "options": { "cwd": "/Users/rohitgajaraj/Projects/My Projects/My Builds/cadence-lane-1" },
-      "presentation": {
-        "panel": "dedicated",
-        "group": "lanes",
-        "reveal": "always",
-        "focus": true,
-        "echo": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Lanes 0-1: open all",
-      "dependsOn": ["Lane 0", "Lane 1"],
+      "label": "Worktrees: open all",
+      "dependsOn": [
+        "Main",
+        "Lane 1",
+        "Lane 2"
+      ],
       "problemMatcher": []
     }
   ]

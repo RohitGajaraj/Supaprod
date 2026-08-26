@@ -97,6 +97,7 @@ bun test               # unit and integration
 bun run build          # production build to a Cloudflare Worker
 bun run lint           # ESLint
 bun run docs:check     # doc anti-rot check, run before committing doc changes
+bun run check:motion   # dead backend test: what still moves when nothing can be read
 bun run cost:track     # capture this session's token spend
 ```
 

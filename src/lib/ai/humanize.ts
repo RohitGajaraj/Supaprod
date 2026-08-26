@@ -144,3 +144,38 @@ export function humanizeText(input: string): string {
   // be code, so this runs after reassembly rather than per-segment).
   return out.replace(/[ \t]+$/, "");
 }
+
+/**
+ * THE SAME CLEANUP, APPLIED TO TOOL ARGUMENTS.
+ *
+ * `humanizeText` guarded STREAMED model text from the day it shipped. A tool
+ * ARGUMENT is model-written text too, and nothing guarded it: `signals.log({
+ * title })` handed the model's raw string to a column that the Sense and
+ * Discover surfaces render.
+ *
+ * MEASURED 2026-08-26 on live data: **120 of 1,483 `signals.title` rows carry an
+ * em or en dash**, against **0 of 113 `prds.body_md`**. The split is exactly
+ * which path wrote them. `scripts/check-humanized.sh` could not have found this
+ * at any setting, because it scans source files and this text was never in the
+ * source.
+ *
+ * SAFE ON IDENTIFIERS, WHICH IS WHY IT CAN RUN ON EVERY ARGUMENT. The rewrites
+ * only ever touch U+2013 and U+2014. An ASCII hyphen is untouched, so file
+ * paths, slugs, uuids, branch names and URLs pass through unchanged. A
+ * typographic dash has no business in any of those to begin with.
+ *
+ * Structure is preserved exactly: objects, arrays, numbers, booleans and null
+ * come back as they went in, and only string leaves are rewritten.
+ */
+export function humanizeToolArgs<T>(args: T): T {
+  if (typeof args === "string") return humanizeText(args) as unknown as T;
+  if (Array.isArray(args)) return args.map((v) => humanizeToolArgs(v)) as unknown as T;
+  if (args && typeof args === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(args as Record<string, unknown>)) {
+      out[k] = humanizeToolArgs(v);
+    }
+    return out as unknown as T;
+  }
+  return args;
+}

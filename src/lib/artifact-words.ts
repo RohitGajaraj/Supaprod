@@ -23,7 +23,9 @@
 
 const ARTIFACT_WORDS: Record<string, string> = {
   // The audit vocabulary.
-  signal: "signal",
+  // §12: a practitioner does not say "signals". Display word only; the stored
+  // `artifact_kind` is still `signal`.
+  signal: "finding",
   opportunity: "opportunity",
   decision: "decision",
   spec: "spec",

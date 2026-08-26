@@ -535,7 +535,21 @@ export function gatesOpenedBy(
  * user-facing copy, so they are said the way the rest of the product says them.
  */
 export const KIND_WORD: Readonly<Record<string, { one: string; many: string }>> = {
-  signal: { one: "signal", many: "signals" },
+  /*
+   * "finding", not "signal". OPERATING-MODEL §12's rename map is explicit —
+   * *Signals -> what we found. A practitioner does not say "signals"* — and it
+   * assigns the ruling and the sweep to S0.
+   *
+   * "What we found" cannot be counted ("its 3 what we found"), and this map
+   * feeds counted sentences, so it takes the countable noun form of the same
+   * idea. §12 offers *evidence* as the alternative and that has the same
+   * problem, being a mass noun.
+   *
+   * The DATABASE still stores `artifact_kind = 'signal'`. This is the display
+   * word and nothing else: renaming the stored kind would rewrite history to
+   * match a wording decision, which is the opposite of what the record is for.
+   */
+  signal: { one: "finding", many: "findings" },
   theme: { one: "cluster", many: "clusters" },
   prd: { one: "spec", many: "specs" },
   task: { one: "task", many: "tasks" },

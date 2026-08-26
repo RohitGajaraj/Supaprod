@@ -364,6 +364,22 @@ export type CorrectionInputs = {
    */
   filed: readonly string[];
   /**
+   * What THIS station filed, as `spine_track_members.artifact_kind`.
+   *
+   * SEPARATE FROM `filed`, WHICH IS TRACK-WIDE, and the difference is the whole
+   * point. S4 measured 2026-08-27 that **20 of 32 held tracks had filed work at
+   * the very station whose hold said it "finished empty"** — one had 20 signals
+   * at Discover, `attempts` reading 0, 56 drives, and a sentence telling the
+   * reader to go and look at the station. Track-wide `filed` cannot see that,
+   * because a track that filed at Discover and stalled at Design has a non-empty
+   * `filed` either way.
+   *
+   * Optional because a caller that cannot read it must not be forced to guess:
+   * `undefined` means nobody looked, and the sentence stays neutral rather than
+   * asserting something nothing checked.
+   */
+  filedAtThisStation?: readonly string[];
+  /**
    * Whether the precondition no station can produce is satisfied now.
    *
    * Only consulted when the failing station's `from` is null, which today is
@@ -502,6 +518,43 @@ export function correctableTo(
  * question asked in one direction: what did this station need, is it there, and
  * is there anywhere to send the work so that it will be.
  */
+
+/**
+ * THE SENTENCE THIS HOLD SHOWS A PERSON, AND IT USED TO BE WRONG TWICE.
+ *
+ * It read: *"has what it needs on the record and still finished empty
+ * MAX_STATION_ATTEMPTS times"*, interpolating the CONSTANT. So it told a person
+ * "3 times" on 13 tracks whose counter read 0, and it never once reported what
+ * actually happened.
+ *
+ * The second error is worse than the arithmetic. **20 of 32 held tracks had
+ * filed work at the very station the sentence said finished empty** (S4,
+ * 2026-08-27: Discover 15 of 21 holding 695 rows between them, Design 3 of 7,
+ * Decide 2 of 4). One track had 20 signals at Discover and a sentence sending
+ * its reader to inspect the station that produced them.
+ *
+ * A hold that misreports the work is worse than a hold with no sentence: it
+ * spends a person's attention on the wrong thing and it teaches them the
+ * product does not know what happened.
+ *
+ * So the count is read from the row, and the premise is only asserted when it
+ * was checked and is true. Where the station DID file, the sentence says that
+ * instead, because "it produced this and still cannot move on" is a different
+ * problem from "it produced nothing", and they need different eyes.
+ */
+function stationCannotFinishLine(i: CorrectionInputs): string {
+  const tail =
+    "Nothing earlier on this route can fix that, so it needs your eyes on the station rather than on the work.";
+  const tries = i.attempts === 1 ? "once" : `${i.attempts} times`;
+  const producedHere = i.filedAtThisStation?.length ?? 0;
+
+  if (producedHere > 0) {
+    const what = producedHere === 1 ? "one thing" : `${producedHere} things`;
+    return `${label(i.station)} filed ${what} here and the route still cannot move past it. ${tail}`;
+  }
+  return `${label(i.station)} has what it needs on the record and still finished empty ${tries}. ${tail}`;
+}
+
 export function decideCorrection(i: CorrectionInputs): CorrectionDecision {
   // A hold that is not a station failing has nothing to correct. Money, clocks,
   // kill switches and open boundary calls are all handled where they arise, and
@@ -574,7 +627,7 @@ export function decideCorrection(i: CorrectionInputs): CorrectionDecision {
     return {
       action: "escalate",
       reason: "station-cannot-finish",
-      because: `${label(i.station)} has what it needs on the record and still finished empty ${MAX_STATION_ATTEMPTS} times. Nothing earlier on this route can fix that, so it needs your eyes on the station rather than on the work.`,
+      because: stationCannotFinishLine(i),
     };
   }
 
@@ -693,7 +746,39 @@ export function selfCheckNote(to: AgentStation, reason: string | null): string {
   const why = reason
     ? `The check said: ${reason}.`
     : `The check did not say why, so re-read what is on the record and judge it yourself.`;
-  return `${head} ${why} This did not come back from another station — nothing downstream has seen it yet. Fix exactly that and file it again. Do not file the same thing twice.`;
+  return `${head} ${why} This did not come back from another station, nothing downstream has seen it yet. Fix exactly that and file it again. Do not file the same thing twice.`;
+}
+
+/**
+ * WHAT THE LAST ATTEMPT ANSWERED, HANDED BACK TO THE NEXT ONE.
+ *
+ * `selfCheckNote` closed half of Devin's loop: a station that FILED something
+ * bad is told what its own check refused. The other half stayed open, and it is
+ * the half that has been costing the most.
+ *
+ * A station held `produced-nothing` filed nothing at all, so there is no output
+ * to re-check and `selfCheckNote` has nothing to say. It was re-dispatched with
+ * exactly the inputs it had last time and no memory of what it had already
+ * concluded. MEASURED on track `a30238f5`, 2026-08-27: three runs at Discover,
+ * each independently answering *"no user-sourced evidence exists"*, none of them
+ * aware that the previous run had already searched and said the same thing. That
+ * is not a retry, it is the same run three times at three times the price.
+ *
+ * The crew's own answer is the most informative thing about that failure and it
+ * was already on the record in `agent_runs.output`. This hands it back.
+ *
+ * WHY IT NAMES THE ANSWER RATHER THAN SUMMARISING IT: a summary is a model call,
+ * and this file makes none. The words the crew wrote are what it needs to see,
+ * verbatim and truncated, so it recognises its own reasoning and does not spend
+ * another dispatch reconstructing it.
+ */
+export function producedNothingNote(to: AgentStation, lastAnswer: string | null): string {
+  const head = `${label(to)} is running again because its last attempt put NOTHING on the record.`;
+  if (!lastAnswer?.trim()) {
+    return `${head} What it concluded was not recorded, so start from the record rather than from a fresh search, and if the answer is genuinely that nothing is there, say exactly what is missing.`;
+  }
+  const said = lastAnswer.trim().slice(0, 600);
+  return `${head} It answered, in its own words: "${said}" Repeating that search will produce that answer again. Either use what is ALREADY on the record, or name precisely what is missing and why nothing on the record can stand in for it. Do not send back the same conclusion in different words.`;
 }
 
 /**

@@ -293,9 +293,7 @@ Return STRICT JSON only, no prose, no markdown fences.`;
       // Deterministic slices, no new model call. With no summary the title
       // alone still names the grouping.
       const concept = (t.summary ?? "").trim().slice(0, 160);
-      const rationale = `Founded theme "${t.title.slice(0, 120)}"${
-        concept ? ` (${concept})` : ""
-      }`;
+      const rationale = `Founded theme "${t.title.slice(0, 120)}"${concept ? ` (${concept})` : ""}`;
       try {
         const edges = claimedIds.map((sid) => ({
           user_id: userId,

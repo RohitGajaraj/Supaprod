@@ -374,7 +374,29 @@ const logSignal = def({
    * outcome by writing a row, and the row is worse than the hold it avoided.
    */
   description:
-    "Log a discovery signal: evidence that EXISTS, in the words of the source (user feedback, a support ticket, an interview quote). " +
+    /*
+     * "IN THE WORDS OF THE SOURCE" WAS TOO NARROW, AND IT COST THE LOOP ITS
+     * FIRST STATION (2026-08-27).
+     *
+     * The examples were all verbatim human utterances, so a crew reading this
+     * concluded that measured behaviour is not a signal. Three agents on track
+     * `a30238f5` said so in as many words: *"no user-sourced signals exist ...
+     * all available references (41% abandonment on address re-confirm, session
+     * replays)"*, and filed nothing. They had FOUND the evidence and refused it
+     * on a definition.
+     *
+     * That workspace holds 258 signals, 33 tagged `redundant-address-entry` and
+     * 18 `address-friction`, against a track about reusing a saved delivery
+     * address. Discover produced zero artifacts across twelve drives and went
+     * terminal on the F-43 ceiling, and so did the other sense-entry track.
+     *
+     * NEITHER OF THE TWO REFUSALS BELOW WANTED THIS. One forbids filing the
+     * ABSENCE of evidence; the other forbids citing the product's OWN
+     * artifacts. A session replay and a measured abandonment rate are neither:
+     * they come from outside the loop and they are about the world. So the
+     * examples widen and both NEVERs stay exactly as they were.
+     */
+    "Log a discovery signal: evidence that EXISTS and came from outside this product. A quote is one kind (user feedback, a support ticket, an interview) and so is observed behaviour (a session replay, a funnel or abandonment measurement, an error rate, a support-volume trend). What matters is that a person or their behaviour outside the loop produced it, not that it is a sentence somebody said. " +
     "NEVER log the absence of evidence. 'No signals found', 'zero results', 'no data for X' are not signals. They are the answer to your final message, and filing them puts your own failure into the evidence every later run reads. Finding nothing and filing nothing is a correct, expected outcome; say so in your answer instead. " +
     "NEVER cite this product's own work as a source. A PRD, spec, decision, changeset, mission, forecast or workspace brief is something the loop wrote, not something a person outside it said. The tool refuses those and the refusal is not a bug to work around.",
   category: "write",
@@ -5336,6 +5358,90 @@ const learningRecord = def({
         (fromTrack as { artifact_id?: string | null } | null)?.artifact_id ?? null;
     }
 
+    /*
+     * ── THE GUARD THAT WAS PROSE, MADE A PREDICATE (S4-052, 2026-08-27) ────
+     *
+     * This tool's description already names this exact failure, and names it
+     * well: *"If the evidence is not in yet, DO NOT CALL THIS TOOL AT ALL ...
+     * a wrong confident verdict is not a wrong row, it is wrong advice for
+     * months."* That paragraph was the only thing between a model and a wrong
+     * verdict.
+     *
+     * IT HAS BEEN TESTED TWICE AND FAILED TWICE. `learning.record` has fired
+     * exactly two times in this product's life, and they are the first two rows
+     * ever to carry `decision_id` at all (133 learnings before them, NULL on
+     * every one). Both graded decision `663c7376`, whose forecast was *"The PRD
+     * will be approved and design gate cleared within 3 business days"*, read
+     * by *"prd.get will return status='approved' and design_gate_status=
+     * 'cleared'"*, due 2026-08-29. Both verdicts were written on 2026-08-25 at
+     * 19:40, FOUR DAYS BEFORE THE HORIZON, and both graded a different claim
+     * entirely: tablet checkout abandonment.
+     *
+     * So the pairing this product sells, a verdict measured against a forecast
+     * recorded before the outcome was known, has never once happened. The rows
+     * were joined by a foreign key and nothing checked that they were about the
+     * same thing.
+     *
+     * TWO COMPARISONS, EACH ONE LINE OF ARITHMETIC. Neither needs judgement,
+     * which is precisely why neither should have been left to it.
+     */
+    if (resolvedDecisionId) {
+      const { data: bet } = await supabase
+        .from("decisions")
+        .select("forecast_claim,forecast_how_we_will_know,forecast_horizon_date")
+        .eq("id", resolvedDecisionId)
+        .maybeSingle();
+      const forecast = bet as {
+        forecast_claim?: string | null;
+        forecast_how_we_will_know?: string | null;
+        forecast_horizon_date?: string | null;
+      } | null;
+
+      // 1 · NOT BEFORE THE HORIZON. The date is on the decision row and needs
+      //     no interpretation. A verdict passed its own due date may be wrong;
+      //     a verdict before it cannot be right, because the thing it grades
+      //     has not finished happening.
+      const due = forecast?.forecast_horizon_date;
+      if (due && Date.parse(due) > Date.now()) {
+        return {
+          ok: false,
+          reason:
+            `This bet is not due until ${due.slice(0, 10)}, so there is no outcome to grade yet. ` +
+            `Do not record a verdict now: the spec stays on the Learn desk and comes back when it is due. ` +
+            `The forecast is "${forecast?.forecast_claim ?? "unstated"}".`,
+        };
+      }
+
+      // 2 · IT MUST GRADE THE THING THAT WAS PREDICTED. Deliberately the
+      //     weakest possible test: it refuses only when the verdict shares NOT
+      //     ONE significant word with the observable the forecast named. That
+      //     catches the measured failure (a process-speed forecast graded with
+      //     a checkout metric, zero overlap) and stays silent on the ordinary
+      //     case of the same fact worded differently, which is not this tool's
+      //     business to police.
+      const observable = forecast?.forecast_how_we_will_know ?? "";
+      if (observable.trim()) {
+        const significant = (t: string) =>
+          new Set(
+            (t.toLowerCase().match(/[a-z_][a-z0-9_]{3,}/g) ?? []).filter(
+              (w) => !FORECAST_STOPWORDS.has(w),
+            ),
+          );
+        const want = significant(observable);
+        const got = significant(`${a.summary} ${a.metric_label ?? ""} ${a.metric_value ?? ""}`);
+        const shared = [...want].some((w) => got.has(w));
+        if (want.size > 0 && !shared) {
+          return {
+            ok: false,
+            reason:
+              `This verdict does not mention what the forecast said it would be measured by. ` +
+              `The bet was "${forecast?.forecast_claim ?? "unstated"}", to be read by "${observable}". ` +
+              `Grade that, or record nothing: a verdict against a different claim re-ranks the bet behind it and becomes wrong advice for months.`,
+          };
+        }
+      }
+    }
+
     if (resolvedPrdId) {
       const { data: prd } = await supabase
         .from("prds")
@@ -6863,6 +6969,45 @@ const criticEvaluate = def({
   preview: (a) => `Critic: red-team ${a.target_kind} ${a.target_id.slice(0, 8)}`,
   run: (args, ctx) => runCriticTool(args, ctx),
 });
+
+/**
+ * Words too common to prove a verdict is about the forecast's own observable.
+ *
+ * Deliberately short. This list exists to stop "within", "return" and "status"
+ * from counting as a match, not to do language processing: the overlap test it
+ * serves refuses only on ZERO shared significant words, so a longer list would
+ * make the guard stricter than its evidence supports.
+ */
+const FORECAST_STOPWORDS = new Set([
+  "will",
+  "with",
+  "within",
+  "that",
+  "this",
+  "from",
+  "have",
+  "been",
+  "than",
+  "then",
+  "when",
+  "what",
+  "which",
+  "return",
+  "returns",
+  "value",
+  "result",
+  "outcome",
+  "after",
+  "before",
+  "days",
+  "day",
+  "week",
+  "weeks",
+  "actual",
+  "expected",
+  "measure",
+  "measured",
+]);
 
 export const TOOL_REGISTRY: Record<string, ToolDef> = Object.fromEntries(
   [

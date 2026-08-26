@@ -32,6 +32,10 @@ import { dispatchVerdictEmail } from "./notifications.functions";
 const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), "utf8");
 const REGISTRY = read("./ai/tools/registry.server.ts");
 const NOTIF = read("./notifications.functions.ts");
+const VERDICT_TEMPLATE = readFileSync(
+  fileURLToPath(new URL("../components/notifications/verdict-email.ts", import.meta.url)),
+  "utf8",
+);
 
 /** A client that answers the preference read, then the decision read. */
 const client = (opts: { emailVerdict?: boolean | null; forecast?: string | null }) =>
@@ -112,19 +116,55 @@ describe("the wiring says what it must", () => {
 
   it("the forecast is read here, so the absence line cannot mean 'I did not look'", () => {
     const fn = NOTIF.slice(NOTIF.indexOf("export async function dispatchVerdictEmail"));
-    expect(fn).toContain('.select("forecast_claim")');
-    expect(fn).toContain("carried no written expectation");
+    /*
+     * THREE FIELDS NOW, not one. The claim alone is a slogan; `how we would
+     * know` and `when it was due` are what make it checkable, and S4-052 is
+     * what happens without them: two verdicts graded four days early against an
+     * observable nobody read.
+     */
+    expect(fn).toContain("forecast_claim, forecast_how_we_will_know, forecast_horizon_date");
+    // The honest-absence sentence moved into the template with the rest of the
+    // copy; asserting it here would be asserting a string nothing sends.
+    expect(VERDICT_TEMPLATE).toContain("carried no written expectation");
   });
 
   it("the copy pairs expected with happened, which is the product", () => {
+    // Asserted where the copy now LIVES. The dispatch builds a payload and the
+    // template writes the sentences.
+    expect(VERDICT_TEMPLATE).toContain("What we expected");
+    expect(VERDICT_TEMPLATE).toContain("What actually happened");
+  });
+
+  it("passes a ROOT-RELATIVE href, because the template absolutizes it itself", () => {
+    // Absolute here would be prefixed twice and land a dead link in a mail
+    // nobody can fix after it is sent.
     const fn = NOTIF.slice(NOTIF.indexOf("export async function dispatchVerdictEmail"));
-    expect(fn).toContain("What we expected:");
-    expect(fn).toContain("What happened:");
+    expect(fn).toContain("trackHref = `/track/${args.trackId}`");
+    expect(fn).not.toContain("absoluteUrl(`/track/");
+  });
+
+  it("and the dispatch actually calls the template rather than rolling its own", () => {
+    const fn = NOTIF.slice(NOTIF.indexOf("export async function dispatchVerdictEmail"));
+    for (const call of [
+      "verdictEmailSubject(payload)",
+      "verdictEmailText(payload)",
+      "verdictEmailHtml(payload)",
+    ]) {
+      expect(fn).toContain(call);
+    }
   });
 
   it("uses no banned vocabulary on a surface a person reads", () => {
-    const fn = NOTIF.slice(NOTIF.indexOf("export async function dispatchVerdictEmail"));
-    const copy = [...fn.matchAll(/"([^"]{12,})"/g)].map((m) => m[1]).join(" | ");
+    /*
+     * GREPS THE TEMPLATE, NOT THE DISPATCH, and S3 named this before it bit.
+     * The copy moved out of `dispatchVerdictEmail` into `verdict-email.ts`, so
+     * a check still reading the dispatch would pass while pointing at a string
+     * nothing sends. That is the same defect as a guard that checks zero sites,
+     * which this repo has now paid for four separate times.
+     */
+    const copy = [...VERDICT_TEMPLATE.matchAll(/"([^"]{12,})"|`([^`]{12,})`/g)]
+      .map((m) => m[1] ?? m[2])
+      .join(" | ");
     for (const banned of ["receipts", "ledger", "company brain", "unattended", "provenance"]) {
       expect(copy.toLowerCase()).not.toContain(banned);
     }

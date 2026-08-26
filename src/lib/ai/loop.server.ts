@@ -9,6 +9,10 @@
  *   a review (mode=review). Memory is recalled and prepended.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { resolveApprovalPolicy } from "@/lib/ai/approval-policy";
+import { approvalRecordFor } from "@/lib/ai/approval-policy.server";
+import { humanizeText } from "./humanize";
+import { PLAIN_PUNCTUATION_RULE } from "@/lib/ai/house-style";
 import {
   callModel,
   CreditExhaustedError,
@@ -62,6 +66,28 @@ const MAX_RUNNING_PER_WORKSPACE = 5;
 // throws — a metering hiccup must never mask or delay the halt/fail handling it sits
 // beside. No-op where credits_enabled() is off, which production is not (refundAbandonedRunCredits's own
 // guard).
+
+/**
+ * THE LAST GATE ON THE AGENT'S OWN LINE.
+ *
+ * `agent_runs.output` is what the run transcript prints, so it is the sentence a
+ * person actually reads, roughly every second turn. `humanizeText` guarded the
+ * STREAMED text in `runtime.server.ts` and never these writes.
+ *
+ * MEASURED 2026-08-27 by S3 on live data: **1,375 of 2,773 rows carried an em or
+ * en dash, 49.6 percent, newest the same evening** — against 0 of 1,484
+ * `signals.title` after that column was fixed. Every source sweep this week was
+ * structurally incapable of seeing it, because no source scanner reads a
+ * database.
+ *
+ * Every `output:` write in this file goes through here, and a test asserts that
+ * rather than trusting it, because there were SEVEN of them and an eighth would
+ * otherwise arrive unsanitised.
+ */
+function runOutput(text: string): string {
+  return humanizeText(text);
+}
+
 async function refundIfAbandoned(
   supabase: SupabaseClient,
   userId: string,
@@ -706,6 +732,10 @@ export async function runAgentLoop(
           agent_name: agent.name,
           input: input.goal,
           status: "queued",
+          // Over-cap runs are enqueued here and promoted by resume-runs. They
+          // carry the trace minted above, so the promoted run's tool calls join
+          // back to this row instead of being unknowable.
+          trace_id: traceId,
           workspace_id: workspaceId,
           mission_id: input.missionId ?? null,
           track_id: input.trackId ?? null,
@@ -961,7 +991,7 @@ export async function runAgentLoop(
               : anyToolStepFailed(steps)
                 ? "completed_with_failures"
                 : "completed",
-            output: finalMsg,
+            output: runOutput(finalMsg),
             duration_ms: Date.now() - startedAt,
           })
           .eq("id", runId);
@@ -1410,7 +1440,7 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
             .from("agent_runs")
             .update({
               status: "halted",
-              output: msg,
+              output: runOutput(msg),
               // AFD-06 / INSTRUMENT: `halted_reason` and `halted_at` are READ
               // in three places and were WRITTEN in none. The governance
               // Controls panel renders "· {halted_reason}" next to a halted
@@ -1484,7 +1514,7 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
             .from("agent_runs")
             .update({
               status: "halted",
-              output: msg,
+              output: runOutput(msg),
               // The TAXONOMY, not the sentence -- the same rule the governance
               // branch above follows, because a reader groups by the reason and
               // the human wording is already in `output`.
@@ -1520,7 +1550,7 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
             .from("agent_runs")
             .update({
               status: "failed",
-              output: errMsg,
+              output: runOutput(errMsg),
               // AFD-06: classify the failure at the moment we know what it was.
               // `failure_kind` is read by the observability dashboard's failure
               // breakdown, which filters `.not("failure_kind","is",null)` and
@@ -1735,6 +1765,66 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
     }
     const isWrite = def.category === "write" || def.category === "planning";
 
+    /*
+     * ── WHAT THIS WORKSPACE HAS ALREADY ANSWERED (THE-ONE-SCREEN) ─────────
+     *
+     * `resolveApprovalPolicy` has been written, fully tested and reachable from
+     * nothing since it landed: zero callers outside its own tests and one
+     * component comment describing what it WOULD do. This is the call site that
+     * comment was written about.
+     *
+     * The point is that an answer a person already gave should not be asked for
+     * again. A workspace that has turned this tool down every time it was
+     * offered has said what it thinks; putting the question in the queue an
+     * eighth time is not caution, it is not listening.
+     *
+     * IT CAN ONLY EVER TIGHTEN, which is what makes it safe to wire into the
+     * gate rather than beside it. `isNeverLaxerThanDefault` is the invariant and
+     * the module exports it precisely so a caller can assert it against real
+     * numbers. Nothing a workspace does with its record can make a tool ask
+     * LESS than the trust ramp already decided, so this cannot widen a gate.
+     *
+     * A failed read returns `undefined`, and `undefined` means "nobody has ruled
+     * on this", which is the ordinary case and the safe one: the default stands.
+     */
+    const policy = ctx.workspaceId
+      ? resolveApprovalPolicy({
+          tool: call.name,
+          record: await approvalRecordFor(supabase, ctx.workspaceId, call.name),
+        })
+      : resolveApprovalPolicy({ tool: call.name });
+
+    if (policy.decision === "disabled") {
+      /*
+       * SWITCHED OFF, so it is not run and NOT queued. Raising an approval here
+       * would be asking a question whose answer is on the record seven times
+       * over, and every one of those rows expires unanswered and ages the queue
+       * F-84 measured.
+       *
+       * The refusal carries the policy's own sentence, which already says how to
+       * turn it back on, so the agent can tell the person something true rather
+       * than "the tool failed".
+       */
+      steps.push({
+        kind: "tool_call",
+        name: call.name,
+        args: call.args as Json,
+        ok: false,
+        error: policy.reason,
+        status: "error",
+      });
+      conv.push({ role: "assistant", content: assistantContent });
+      conv.push({
+        role: "user",
+        content: `Tool refused: ${policy.reason} Do not ask again this run; pick another tool or finalize.`,
+      });
+      continue;
+    }
+
+    // The record can tighten an auto call into one that waits. It never does the
+    // reverse; see the invariant above.
+    if (policy.decision === "always-human" && mode === "auto") mode = "review";
+
     if (!isControlFlow && isWrite && (mode === "confirm" || mode === "review")) {
       /* THE GATE DECLARES ITS OWN DEFAULT, and the deadline is part of the
        * question rather than a sweeper's opinion later.
@@ -1819,7 +1909,7 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
             .from("agent_runs")
             .update({
               status: "waiting_approval",
-              output: pauseMsg,
+              output: runOutput(pauseMsg),
               // AFD-06 / INSTRUMENT: agent time spent BEFORE the gate, written
               // now because a paused run may never come back — all 7
               // waiting_approval rows in production are from a single day and
@@ -2045,7 +2135,7 @@ export async function resumeAgentLoop(
   const { data: run } = await supabase
     .from("agent_runs")
     .select(
-      "id,user_id,agent_id,agent_slug,agent_name,input,workspace_id,status,mission_id,mission_spend_cap_usd,mission_token_cap,model,created_at",
+      "id,user_id,agent_id,agent_slug,agent_name,input,workspace_id,status,mission_id,mission_spend_cap_usd,mission_token_cap,model,created_at,trace_id",
     )
     .eq("id", runId)
     .maybeSingle();
@@ -2237,7 +2327,37 @@ export async function resumeAgentLoop(
     }
   }
 
-  const traceId = (cp?.state as { traceId?: string } | undefined)?.traceId ?? crypto.randomUUID();
+  /*
+   * ── THE ROW'S TRACE WINS, AND A ROW WITHOUT ONE GETS STAMPED ────────────
+   *
+   * This used to read the checkpoint, then mint. Both halves were wrong for the
+   * run that matters most: a QUEUED run promoted for the first time has no
+   * checkpoint, so it minted a fresh id, spent a whole run emitting `tool_calls`
+   * under it, and never wrote it anywhere. `tool_calls.trace_id` is the only key
+   * that reaches `agent_runs`, so that run's work was unjoinable the moment it
+   * finished, permanently -- nothing backfills this. Measured 2026-08-26:
+   * **5 of 2,771 runs carry a trace, and 5 of the 393 created in the last two
+   * days**, so this is arriving fresh rather than being a legacy-rows story.
+   *
+   * The row is now the authority: every insert path mints one. The checkpoint
+   * stays as the fallback for rows written before this change, and the mint
+   * stays below it so a resume never fails for want of an id. When the row had
+   * none, it is stamped -- once, and never overwritten, because a second trace
+   * on one run would orphan the first half of its own tool calls.
+   */
+  const traceId =
+    (run as { trace_id?: string | null }).trace_id ??
+    (cp?.state as { traceId?: string } | undefined)?.traceId ??
+    crypto.randomUUID();
+  if (!(run as { trace_id?: string | null }).trace_id) {
+    // Best effort: a failed stamp costs this run its joinability, which is what
+    // the situation already was. It must never cost the run its resume.
+    try {
+      await supabase.from("agent_runs").update({ trace_id: traceId }).eq("id", runId);
+    } catch (e) {
+      console.error("trace stamp failed:", e);
+    }
+  }
   // Model resolution: prefer the stored run.model, then checkpoint state, then vault-aware
   // resolver (same logic as the fresh-dispatch path). run.model is the user's picker value
   // ("auto", "qwen/qwen-plus", …); checkpoint state carries the already-resolved model from
@@ -2490,7 +2610,7 @@ export async function resumeAgentLoop(
             : anyToolStepFailed(steps)
               ? "completed_with_failures"
               : "completed",
-          output: finalMsg,
+          output: runOutput(finalMsg),
           ...(elapsedMs === null ? {} : { duration_ms: elapsedMs }),
         })
         .eq("id", runId)
@@ -2875,7 +2995,7 @@ export async function executeApproval(
           .from("agent_runs")
           .update({
             status: "failed",
-            output: msg,
+            output: runOutput(msg),
             failure_kind: classifyFailureCode(msg),
             ...(failedElapsedMs === null ? {} : { duration_ms: failedElapsedMs }),
           })

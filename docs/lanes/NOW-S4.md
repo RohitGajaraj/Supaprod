@@ -1,1 +1,1 @@
-S4 · 17:00 UTC · WORKING · F-99 two ceilings verified (dead track filed first artifact in 34h); schema alignment verified; F-99 proven on real work · .env blocked (different machine) · e2e/** docs/lanes/verify/** · 2046d8bfd
+S4 · 19:35 UTC · WORKING · S4-043: the terminal hold on 32 parked tracks states "finished empty 3 times" from a CONSTANT it never reads (13 have attempts=0) and 20 of 32 filed work at that very station. It sends the person to inspect a station that filed 20 signals · e2e/** docs/lanes/verify/** · pending

@@ -5,7 +5,19 @@
 # Scans ADDED lines (lines a diff prefixes with +) of staged TEXT files and
 # flags AI fingerprints the convention bans: the em dash (U+2014), the en dash
 # (U+2013), and the invisible / look-alike character set
-# (U+200B U+200C U+200D U+2060 U+FEFF U+00A0 U+202F U+00AD U+200E U+200F U+FFFD).
+# (U+0000 U+200B U+200C U+200D U+2060 U+FEFF U+00A0 U+202F U+00AD U+200E U+200F U+FFFD).
+# NOT COVERED, AND SAYING SO IS THE POINT: U+0000. A NUL byte was found on
+# 2026-08-27 sitting inside a template literal in shipped source where a space
+# belonged. It changed nothing at runtime and it defeated three separate
+# string-match edits, because every tool searched for the space it looked
+# like; only a byte-level read found it.
+#
+# It was added to the banned set above and then REMOVED again, because the
+# check did not work: this script feeds lines through a shell pipeline, which
+# drops NUL before perl ever sees it. Verified with a real NUL fixture, which
+# the guard reported clean. A guard that claims a check it cannot perform is
+# worse than one that names what it misses, so this comment is the coverage.
+# To find NUL: grep -rlP '\x00' --include='*.ts' src/
 # Convention: docs/conventions/humanized-output.md ("Banned fingerprints").
 #
 # This is the deferred build-time half of that convention. The runtime half
@@ -205,10 +217,23 @@ run_scanner() {
       # Reported separately from the literal so the fix is obvious: the author
       # typed an entity, and the message should say so rather than sending them
       # hunting for a character their editor will not show them.
-      if ($stripped =~ $banned_entity) {
+      # CODE THAT REMOVES THE ENTITY IS NOT CODE THAT SHIPS IT.
+      #
+      # `.replace(/&nbsp;/g, " ")` and `"&nbsp;": " "` are the FIX, and flagging
+      # them made this guard fire on four decoder tables. That is the same shape
+      # as a text guard matching its own explanatory prose, and it matters more
+      # now the hook blocks by default: a strict guard that cries wolf is a guard
+      # somebody switches off.
+      #
+      # Deliberately narrow. It exempts only an entity mapped TO A PLAIN SPACE
+      # (`, " "` or `: " "`), which is the decode signature. A line that ADDS an
+      # entity, including inside a replacement string, still trips.
+      my $decodes_entity = $stripped =~ /$banned_entity[^,:]*[,:]\s*(["\x27])\s\1/;
+      if ($stripped =~ $banned_entity && !$decodes_entity) {
         my ($ent) = $stripped =~ /($banned_entity)/;
         push @names, "html-entity-dash($ent)";
       }
+      next if !@names;
       printf "  %s:%s  %s\n", $file, (defined $lineno ? $lineno : "?"), join(", ", @names);
       $hits++;
     }

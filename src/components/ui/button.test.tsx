@@ -2,6 +2,35 @@ import { describe, expect, test, beforeEach, afterEach, spyOn } from "bun:test";
 import * as React from "react";
 import { Button, buttonVariants } from "./button";
 
+/**
+ * Force `import.meta.env.DEV` on for the deprecation tests, and put it back.
+ *
+ * The obvious call, defining DEV with only `configurable: true`, throws under bun:
+ * 'process.env' only accepts a configurable, writable, and enumerable data
+ * descriptor. In bun `import.meta.env` IS `process.env`, so the descriptor needs
+ * all three flags. These two tests failed on every machine running bun 1.4.0 while
+ * passing elsewhere, and three sessions reported three different pass counts
+ * because of it.
+ *
+ * Restoring needs the same care and for a second reason: `process.env` coerces
+ * values to strings, so writing back an `undefined` original would store the
+ * STRING "undefined", which is truthy, and would leak DEV=on into every test that
+ * ran afterwards. When there was no original, delete the key instead.
+ */
+function setDevFlag(value: unknown): void {
+  const env = import.meta.env as unknown as Record<string, unknown>;
+  if (value === undefined) {
+    delete env.DEV;
+    return;
+  }
+  Object.defineProperty(env, "DEV", {
+    value,
+    configurable: true,
+    writable: true,
+    enumerable: true,
+  });
+}
+
 describe("Button component variant consolidation", () => {
   // Capture console warnings for deprecation tests
   let consoleWarnSpy: ReturnType<typeof spyOn> | null = null;
@@ -82,7 +111,7 @@ describe("Button component variant consolidation", () => {
     test('obsidian "primary" maps to Tempo "accent" with deprecation warning', () => {
       // Run in a simulated browser context for warning to trigger
       const originalEnv = import.meta.env.DEV;
-      Object.defineProperty(import.meta.env, "DEV", { value: true, configurable: true });
+      setDevFlag(true);
       Object.defineProperty(window, "navigator", { value: { userAgent: "" }, writable: true });
 
       const el = Button.render({ variant: "primary" as any, children: "Click me" }, null);
@@ -98,13 +127,13 @@ describe("Button component variant consolidation", () => {
       );
       expect(deprecationWarning).toBe(true);
 
-      Object.defineProperty(import.meta.env, "DEV", { value: originalEnv, configurable: true });
+      setDevFlag(originalEnv);
     });
 
     test('obsidian "quiet" maps to Tempo "tertiary" with deprecation warning', () => {
       // Run in a simulated browser context for warning to trigger
       const originalEnv = import.meta.env.DEV;
-      Object.defineProperty(import.meta.env, "DEV", { value: true, configurable: true });
+      setDevFlag(true);
       Object.defineProperty(window, "navigator", { value: { userAgent: "" }, writable: true });
 
       const el = Button.render({ variant: "quiet" as any, children: "Skip" }, null);
@@ -120,7 +149,7 @@ describe("Button component variant consolidation", () => {
       );
       expect(deprecationWarning).toBe(true);
 
-      Object.defineProperty(import.meta.env, "DEV", { value: originalEnv, configurable: true });
+      setDevFlag(originalEnv);
     });
 
     test("obsidian secondary variant works without warning (same name as Tempo)", () => {

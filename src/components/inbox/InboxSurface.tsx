@@ -15,7 +15,7 @@ import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { openAsk } from "@/lib/ask-open";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
-import { listMissions } from "@/lib/missions.functions";
+import { listMissions, type MissionListRow } from "@/lib/missions.functions";
 import { approvalsQueueKey, missionsKey } from "@/lib/query-keys";
 import { stillWaiting } from "@/lib/query-state";
 
@@ -28,6 +28,11 @@ import { stillWaiting } from "@/lib/query-state";
  * from `listMissions`, the same two resolvers Today composes its triage card
  * from, under the same shared cache keys. Nothing here is sample data; where a
  * group has nothing real to show, the component draws nothing for it.
+ *
+ * SPEND TRANSPARENCY. Each run shows its cost, and the page headline includes
+ * the total workspace spend. Cost is "—" when unknown (no checkpointed traces
+ * yet), never a fabricated $0.00. Totaling unknown costs is the sum of the
+ * known ones only, which is honest about what is measured.
  */
 const SUBTITLE = "Every call and run in one list, grouped by what each one needs from you.";
 
@@ -57,6 +62,16 @@ function withWhen(state: React.ReactNode, iso: string | null | undefined): React
   ) : (
     state
   );
+}
+
+/** Compute total spend across missions, null = unknown (has any null values) */
+function workspaceSpendTotal(rows: MissionListRow[]): number | null {
+  let total = 0;
+  for (const m of rows) {
+    if (m.cost_usd === null) return null; // Any unknown makes the total unknown
+    total += m.cost_usd;
+  }
+  return total;
 }
 
 export function InboxSurface() {
@@ -185,6 +200,9 @@ export function InboxSurface() {
     return [...callSessions, ...runSessions];
   }, [queue.data, missions.data, navigate]);
 
+  const missionRows = missions.data?.missions ?? [];
+  const workspaceSpend = workspaceSpendTotal(missionRows);
+
   const waitingOnYou = sessions.filter((s) => s.need === "needs-input").length;
   const runningCount = sessions.filter((s) => s.need === "working").length;
 
@@ -225,10 +243,17 @@ export function InboxSurface() {
     );
   }
 
+  const spendNote = workspaceSpend !== null ? `Workspace spend: $${workspaceSpend.toFixed(2)}` : null;
+
   return (
     <Surface>
       <div className="flex flex-col gap-mrd-7">
-        <PageHeading title={headline} sub={SUBTITLE} />
+        <div className="flex items-end justify-between gap-mrd-4">
+          <PageHeading title={headline} sub={SUBTITLE} />
+          {spendNote && (
+            <p className="mrd-meta">{spendNote}</p>
+          )}
+        </div>
 
         {reading ? (
           <Reading>Reading what needs you.</Reading>

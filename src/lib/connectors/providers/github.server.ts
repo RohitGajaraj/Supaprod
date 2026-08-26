@@ -69,12 +69,35 @@ export async function appJwt(): Promise<string> {
   if (!appId) {
     throw new Error("GITHUB_APP_ID is not set. GitHub App connect is setup pending.");
   }
+  /*
+   * AN INTEGER, AND GITHUB REJECTS THE STRING (found 2026-08-27 by minting one).
+   *
+   * `process.env` hands back a string, and this passed it straight into the
+   * `iss` claim. GitHub answers **401 with "'Issuer' claim ('iss') must be an
+   * Integer"**, so every GitHub App token this product has ever tried to mint
+   * was refused before it reached a repository.
+   *
+   * It presents as "Bad credentials" downstream, which is what sent F-101
+   * looking for a missing or revoked key: `builder` and `qa` both reported a
+   * 401 on track 8391835f and Build has been unable to read a repo since. A
+   * malformed claim and a wrong key are the same status code and very nearly
+   * the same sentence.
+   *
+   * Validated rather than coerced: `Number("abc")` is NaN, which serialises to
+   * `null` and produces a third 401 that says something else again.
+   */
+  const issuer = Number(appId);
+  if (!Number.isInteger(issuer)) {
+    throw new Error(
+      `GITHUB_APP_ID must be the App's numeric id, and this one is not a number. GitHub rejects a non-integer issuer with a 401 that reads like a bad key.`,
+    );
+  }
   const key = await importAppKey();
   const now = Math.floor(Date.now() / 1000);
   const signingInput = `${b64urlJson({ alg: "RS256", typ: "JWT" })}.${b64urlJson({
     iat: now - 60,
     exp: now + 540,
-    iss: appId,
+    iss: issuer,
   })}`;
   const sig = await crypto.subtle.sign(
     "RSASSA-PKCS1-v1_5",

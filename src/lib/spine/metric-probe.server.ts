@@ -197,7 +197,7 @@ export async function probeObservable(
     return {
       readable: false,
       source: source.id,
-      reason: `The ${source.id} reading did not come back, so there is no number — not a zero.`,
+      reason: `The ${source.id} reading did not come back, so there is no number, not a zero.`,
     };
   }
 

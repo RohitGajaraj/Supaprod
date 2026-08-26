@@ -74,7 +74,7 @@ export type MissionDetail = {
   messages: {
     id: string;
     from_agent_slug: string | null;
-    to_agent_slug: string;
+    to_agent_slug: string | null;
     kind: string;
     payload: JsonValue;
     source_run_id: string | null;

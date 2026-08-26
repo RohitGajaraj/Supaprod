@@ -331,7 +331,7 @@ describe("the sentence", () => {
       ],
     });
     const said = describeChain(chain);
-    expect(said).toContain("1 signal");
+    expect(said).toContain("1 finding");
     expect(said).toContain("1 spec");
     expect(said).not.toContain("prd");
   });
@@ -376,6 +376,6 @@ describe("the sentence", () => {
       status: "open",
       members: [member({ station: "not-a-station" })],
     });
-    expect(describeChain(chain)).toContain("1 signal");
+    expect(describeChain(chain)).toContain("1 finding");
   });
 });

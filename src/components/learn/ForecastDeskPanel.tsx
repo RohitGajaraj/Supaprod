@@ -60,8 +60,19 @@ function AgentSettledRow({
 
   return (
     <div>
+      {/*
+        NOT `tight`. Measured on production: 174 forecast claims, mean 137
+        characters, longest 300, and ALL 174 are over seventy, which is about
+        what one clamped line shows. So the claim was cut on every row without
+        exception, and this row's only action is "Disagree", which opens a
+        reopen form rather than the claim. There was nowhere to read it.
+
+        `tight`'s contract is a row whose full content has a detail view to
+        open. A forecast claim is the thing the product exists to have captured
+        before the outcome was known; clipping it on the surface where the
+        verdict lands is the worst place in the app to save a line.
+      */}
       <Row
-        tight
         lead={r.forecast_claim ?? r.title ?? ""}
         sub={[
           r.forecast_resolution
@@ -208,7 +219,6 @@ export function ForecastDeskPanel() {
           {due.map((d) => (
             <Row
               key={d.id}
-              tight
               lead={d.claim}
               sub={[
                 d.howWeWillKnow,

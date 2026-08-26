@@ -67,6 +67,46 @@ run_gate "build"      bun run build
 
 echo "${DIM}────────────────────────────────────────────────────────────${OFF}"
 
+# ── THE FIFTH GATE, WHICH IS NOT RUN HERE AND SAYS SO ──────────────────────
+#
+# The four gates above prove the code COMPILES, TYPES, TESTS and BUILDS. Not one
+# of them can tell whether what a person sees on the screen is true. A progress
+# bar driven by setInterval passes all four, forever.
+#
+# The dead backend test answers that question: point the app at a database that
+# does not exist, open the surface, and see what is still redrawing afterwards.
+# Motion that survives a dead backend is a clock, not a row.
+#
+# IT IS NOT RUN INSIDE THIS SCRIPT ON PURPOSE. It needs a dev server on port 8080
+# and takes minutes, and four lanes run these gates whenever they like. Wiring it
+# in would have lanes fighting over one port and would make the fast gate slow
+# enough to skip. So this prints the exact command, and only when the diff you are
+# about to push actually changes something a person looks at.
+CHANGED="$(git diff --name-only HEAD 2>/dev/null; git diff --name-only --cached 2>/dev/null; \
+           git diff --name-only origin/main...HEAD 2>/dev/null)"
+RENDERING="$(echo "$CHANGED" | grep -E '^src/(components|routes)/' | grep -v '/api/' | sort -u)"
+
+if [ -n "$RENDERING" ]; then
+  # Turn changed route files into the paths you would actually open. Flat routes:
+  # drop the _authenticated prefix and the .index suffix, dots become slashes.
+  ROUTES="$(echo "$RENDERING" | grep -E '^src/routes/.*\.tsx$' \
+    | sed -e 's|^src/routes/||' -e 's|\.tsx$||' \
+    | grep -v '\$' \
+    | sed -e 's|^_authenticated\.||' -e 's|\.index$||' -e 's|^index$||' \
+    | tr '.' '/' | sed -e 's|^|/|' -e 's|^//|/|' | sort -u | tr '\n' ' ')"
+  echo ""
+  echo "${BOLD}One thing these four gates cannot check${OFF}"
+  echo "  Your diff changes $(echo "$RENDERING" | wc -l | tr -d ' ') file(s) a person looks at."
+  echo "  Nothing above can tell whether the motion on those surfaces is earned."
+  if [ -n "$(echo "$ROUTES" | tr -d ' ')" ]; then
+    echo "    ${BOLD}bun run check:motion${OFF} ${ROUTES}"
+  else
+    echo "    ${BOLD}bun run check:motion${OFF} <the routes that render your components>"
+  fi
+  echo "  ${DIM}It boots against a dead database and reports what is still redrawing.${OFF}"
+  echo "  ${DIM}Needs port 8080 free, and it refuses to start if a lane already holds it.${OFF}"
+fi
+
 if [ -n "$FAILED" ]; then
   # THE LAST LINE, and it names what to fix.
   echo "${RED}${BOLD}GATES FAILED: ${FAILED}${OFF}- do not commit or push."

@@ -70,8 +70,12 @@ import { summaryText } from "@/components/track/run-summary";
 import { runTabState } from "@/components/track/run-tab";
 import { keyAction, shouldIgnoreKey } from "@/components/track/run-keys";
 import { SteerComposer } from "@/components/track/SteerComposer";
+import { TakeOver } from "@/components/track/TakeOver";
 import { RunCost } from "@/components/track/RunCost";
 import { triesLine } from "@/components/track/hold-tries";
+import { wayOut } from "@/components/track/way-out";
+import { takeOver } from "@/components/track/take-over";
+import type { SpineRoute } from "@/lib/spine/route";
 import { runPosition } from "@/components/track/run-position";
 
 /**
@@ -306,7 +310,12 @@ function RunRouteHeader({
         <StepMeter noun="Station" steps={meter} note={clock} />
         {settled ? (
           <div className="flex flex-col gap-mrd-2">
-            <RunMap stops={stops} mode="replay" orientation="stack" label="The route this work took" />
+            <RunMap
+              stops={stops}
+              mode="replay"
+              orientation="stack"
+              label="The route this work took"
+            />
             <div>
               <Action variant="quiet" onClick={() => setExpanded(false)}>
                 Collapse the route again
@@ -342,6 +351,7 @@ export function TrackRunLeft({
   trackId,
   autoStart = false,
   onCrewLive,
+  onDriveState,
   crewLive = false,
 }: {
   trackId: string;
@@ -357,6 +367,12 @@ export function TrackRunLeft({
   /** QUEUE 71: the transcript's answer to "is a crew here right now", lifted
    * so the composition can share it with the right pane. */
   onCrewLive?: (live: boolean) => void;
+  /**
+   * Whether a press in this tab has legs left to cancel, and how to cancel
+   * them. Lifted because the Stop belongs in the footer under both panes
+   * (THE-ONE-SCREEN:21) and this pane cannot reach it.
+   */
+  onDriveState?: (s: { canStop: boolean; stop: () => void }) => void;
   /**
    * RUN-02: the same live fact, handed BACK by the composition, so this pane's
    * own presence reads it. A run driven by the sweep while this tab was closed
@@ -622,7 +638,54 @@ export function TrackRunLeft({
     onCrewLive?.(crewLive || walkingMidRoute);
   }, [crewLive, walkingMidRoute, onCrewLive]);
 
+  /*
+   * THE FOOTER'S STOP LIVES OUTSIDE THIS PANE, so the fact that there is
+   * something to stop has to travel out of it. Same shape as the crewLive lift
+   * above rather than a second mechanism.
+   *
+   * The handler is read through a ref so this effect depends only on WHETHER a
+   * press is walking, not on a function identity that changes every render.
+   * Reporting on identity would fire on every paint and the footer would
+   * re-render for nothing.
+   */
+  const stopRef = React.useRef<() => void>(() => undefined);
+  stopRef.current = () => setLegsLeft(0);
+  /*
+   * `continuing` ALONE WAS NOT ENOUGH, and driving it is what showed that.
+   * It is true only BETWEEN legs -- `legsLeft > 0` AND a returned result that
+   * stopped out-of-window with more to do. While a leg is actually in flight it
+   * is false, so a Stop gated on it existed for the gaps and not for the walk.
+   * Watched live at 36 seconds into a press: the footer correctly said work was
+   * happening and offered nothing to stop it. THE-ONE-SCREEN asks for a Stop
+   * that always works, and a control that is absent for most of the thing it
+   * governs does not.
+   *
+   * `run.isPending` is this tab's press being in flight, which is exactly the
+   * other half. Pressing Stop sets the legs to zero, so nothing further is
+   * bought; the leg already running cannot be un-walked, which is why the
+   * control has always said "Stop after this leg" rather than "Stop".
+   */
+  const canStop = continuing || run.isPending;
+  React.useEffect(() => {
+    onDriveState?.({ canStop, stop: () => stopRef.current() });
+  }, [canStop, onDriveState]);
+
   const showHold = held && !walkingMidRoute && !isCalmHold;
+  /*
+   * The way out is computed FROM WHAT THE SCREEN IS SHOWING, not from the hold
+   * alone. Caught on the first drive: a track going in circles at the first
+   * station on its route was told to send it back a step, directly above a
+   * region saying there was nothing to send it back to. Pointing at a door that
+   * is not there is the same defect as pointing at none.
+   */
+  const holdTakeOver = track
+    ? takeOver({ status: track.status, station: track.station, route: track.route as SpineRoute })
+    : null;
+  const holdWayOut = wayOut(
+    track?.holdReason,
+    { undo: Boolean(holdTakeOver?.undoTo), handback: Boolean(holdTakeOver?.handback) },
+    track ? (AGENT_STATIONS[track.station]?.name ?? null) : null,
+  );
   const showCalmHold = isCalmHold && !walkingMidRoute;
 
   /*
@@ -768,6 +831,32 @@ export function TrackRunLeft({
                 </StatusChip>
               }
             />
+            {/*
+              * WHAT WILL ACTUALLY CLEAR IT (RUN-23). Eight of the eighteen hold
+              * reasons name no way out at all, and the only control here says
+              * "let this station try again", which for those eight does the
+              * same thing again. A person read a reason and was told nothing
+              * about what to do, which is the dead end R-20 section 5 forbids.
+              *
+              * Read from the RAW reason, never the prose. Branching on wording
+              * is how every hold once painted amber.
+              *
+              * The retry control is deliberately left in place below: somebody
+              * who has just unlocked a refused tool elsewhere comes back here
+              * wanting exactly that button. The dead end was the missing
+              * sentence, not the button.
+              */}
+            {holdWayOut.next ? (
+              <Row
+                lead={holdWayOut.next}
+                sub={
+                  holdWayOut.onThisScreen
+                    ? "Both of those are under Take it over, just below."
+                    : undefined
+                }
+              />
+            ) : null}
+
             {answerTheCall ? null : (
               <div>
                 <Action busy={release.isPending} onClick={() => release.mutate()}>
@@ -834,26 +923,45 @@ export function TrackRunLeft({
        * words; the steer box below carries the way back either way.
        */}
       <Region
-        title={track?.status === "done" ? "Run it (done)" : "Run it"}
+        /*
+         * ONE SENTENCE WHEN THERE IS NOTHING TO DRIVE, NOT THREE.
+         *
+         * A finished run used to say it three times in one column: the heading
+         * carried "(done)", the sub said "This walk is finished", and a row
+         * under them said "It reached the end of its route" -- with the status
+         * chip at the top of the page already saying Finished. An abandoned one
+         * was worse than repetitive: the sub described the control's normal job,
+         * "walks this work through its route now", on a run that cannot be
+         * walked, and then repeated the header's own sentence back.
+         *
+         * So the closed case gets one line that says what happened AND what it
+         * means for this control, which is the only part the header did not
+         * already cover. The heading stays plain: the chip and this sentence
+         * both carry the state, and a third copy in the heading is the one that
+         * was earning nothing.
+         */
+        title="Run it"
         sub={
           track?.status === "done"
-            ? "This walk is finished."
-            : "Walks this work through its route now, station by station, and stops the moment something needs you."
+            ? "This walk is finished, so there is nothing left to drive."
+            : track?.status === "abandoned"
+              ? "This work was abandoned, so there is nothing left to drive."
+              : "Walks this work through its route now, station by station, and stops the moment something needs you."
         }
       >
-        {track?.status === "done" || track?.status === "abandoned" ? (
-          <Row lead={track.status === "done" ? "It reached the end of its route." : "This work was abandoned here."} />
-        ) : continuing ? (
-          <div className="flex flex-wrap items-center gap-mrd-3">
-            <Action variant="primary" busy onClick={() => undefined}>
-              Walking the route
-            </Action>
-            {/* Stoppable at any moment: this cancels the LEGS THIS PRESS bought,
-                never the leg in flight -- a server walk cannot be un-walked. */}
-            <Action variant="quiet" onClick={() => setLegsLeft(0)}>
-              Stop after this leg
-            </Action>
-          </div>
+        {track?.status === "done" || track?.status === "abandoned" ? null : continuing ? (
+          /*
+           * THE STOP IS NOT HERE ANY MORE, and that is the ruling rather than a
+           * tidy-up. THE-ONE-SCREEN:21 puts it in the footer under both panes,
+           * and the reason is legibility: it used to sit inside the same box as
+           * Run it, so stopping a run meant scrolling back to the control you
+           * started it from. There is exactly ONE Stop on this surface and it
+           * is the footer's; a second copy here would be the duplication this
+           * screen keeps being repaired for.
+           */
+          <Action variant="primary" busy onClick={() => undefined}>
+            Walking the route
+          </Action>
         ) : (
           <Action
             variant="primary"
@@ -894,26 +1002,35 @@ export function TrackRunLeft({
                     : undefined
               }
             />
-             {capReached ? (
-               <Row
-                 tight
-                 lead={`It walked every automatic leg (${AUTO_MAX}) and still has route ahead.`}
-                 sub="Nothing was stopped silently: press Run it now to buy another set of legs."
-               />
-             ) : null}
-             {/*
-              * THE PER-SEAT LIST IS DELIBERATELY ABSENT (SPEC-LAYOUT §0 ruled
-              * this deletion; it never landed). The transcript below already
-              * renders every seat the moment its run row lands -- who acted,
-              * what they filed, what it cost. Printing the same walk a second
-              * time from the mutation's return value meant one fact about one
-              * run with two freshesses, which is how a header once said Running
-              * over a hold. The mutation's own outcome above is the only thing
-              * here that the queries cannot say.
-              */}
-           </div>
-         ) : null}
-       </Region>
+            {capReached ? (
+              <Row
+                lead={`It walked every automatic leg (${AUTO_MAX}) and still has route ahead.`}
+                sub="Nothing was stopped silently: press Run it now to buy another set of legs."
+              />
+            ) : null}
+            {/*
+             * THE PER-SEAT LIST IS DELIBERATELY ABSENT (SPEC-LAYOUT §0 ruled
+             * this deletion; it never landed). The transcript below already
+             * renders every seat the moment its run row lands -- who acted,
+             * what they filed, what it cost. Printing the same walk a second
+             * time from the mutation's return value meant one fact about one
+             * run with two freshesses, which is how a header once said Running
+             * over a hold. The mutation's own outcome above is the only thing
+             * here that the queries cannot say.
+             */}
+          </div>
+        ) : null}
+      </Region>
+
+      {/*
+       * RUN-20: THE CONTROLS THAT ARE NOT START AND STOP. Sending a step back
+       * and handing a step in by hand are the two moves a person makes when
+       * what came back is wrong, and neither had a door -- `rewindTrackTo` and
+       * `submitStationByHand` were on `main` with zero importers. They sit here,
+       * under the control that drives the run forward and above the record of
+       * what it did, because all three act on where the work stands.
+       */}
+      {track ? <TakeOver trackId={trackId} track={track} /> : null}
 
       {/*
        * QUEUE 71: THE PANE POLLS AT VISIT SPEED WHENEVER A CREW IS HERE, not
