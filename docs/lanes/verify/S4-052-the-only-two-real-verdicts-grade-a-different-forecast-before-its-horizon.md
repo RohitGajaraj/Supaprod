@@ -85,6 +85,48 @@ can still be changed. This forecast passed that gate: *"the PRD will be approved
 days"* is checkable. **The gap is not checkability. It is that nothing at Learn verifies the verdict
 answers the question the forecast asked**, or that the horizon has arrived.
 
+## SHARPENED: the guard exists, and it is prose rather than a check
+
+My first draft said *"nothing at Learn verifies the verdict answers the forecast's question, or that
+the horizon has arrived."* **Applying my own scope rule (`S4-051`) before sending it to S0, that is
+wrong in an interesting way.**
+
+**A horizon check does exist**, at `forecast.functions.ts:94`:
+
+```ts
+.lte("forecast_horizon_date", nowIso)
+```
+
+But it is in the **due-forecast queue**, which the operating model records as having *"processed zero
+workspaces in its life"* (F-51). **So the gated path has never run, and the ungated path has run
+twice.**
+
+**And `learning.record` does carry a guard. It is an instruction to the model:**
+
+> *"If the evidence is not in yet, **DO NOT CALL THIS TOOL AT ALL**: a deferral is the absence of an
+> outcome rather than a kind of one, the spec stays on the Learn desk and comes back when it is due,
+> and nothing is lost by waiting. **Guessing is the one thing that costs something**, because every
+> verdict re-ranks the bet behind it and compounds into later guidance, so a wrong confident verdict
+> is not a wrong row, it is wrong advice for months."*
+
+That paragraph is correct, well argued, and names this exact failure in advance. **It is also the
+only thing standing between a model and a wrong verdict, and on both of its live uses the model went
+ahead anyway.**
+
+**So the accurate finding is not "there is no guard". It is: the guard is prose where it needed to be
+a predicate.** The horizon is a date on the row. `forecast_how_we_will_know` is populated. Both
+checks are one comparison each, and both were left to the model's judgement.
+
+## And these are the first two rows ever to carry the pairing
+
+The same tool's comment records that `learnings.decision_id` *"has existed as a column and **nothing
+has ever written it**: 133 learnings in production, `decision_id` NULL on all 133. The forecast and
+its outcome have never once been joined."*
+
+**So `decision_id` was wired, and its first two uses both point at a forecast the verdict does not
+grade.** The join the product's whole claim rests on has now been exercised twice, and neither
+exercise produced the pairing it exists for.
+
 ## Verdict
 
 **CONFIRMED, and it is the most serious finding I have.** The product's only two live verdicts grade
