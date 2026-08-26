@@ -882,32 +882,26 @@ export function TrackRunLeft({
                     : undefined
               }
             />
-            {capReached ? (
-              <Row
-                tight
-                lead={`It walked every automatic leg (${AUTO_MAX}) and still has route ahead.`}
-                sub="Nothing was stopped silently: press Run it now to buy another set of legs."
-              />
-            ) : null}
-            {/*
-             * EVERY SEAT, INCLUDING THE ONES THAT FILED NOTHING. A seat that
-             * produced no artifact is a real event and the most useful one to
-             * see, because it is where a route quietly stops paying off.
-             */}
-            {result.steps.map((step, i) => (
-              <Row
-                key={`${step.station ?? "none"}-${i}`}
-                lead={step.line}
-                sub={
-                  step.produced > 0
-                    ? `Filed ${step.produced} ${step.produced === 1 ? "thing" : "things"}.`
-                    : undefined
-                }
-              />
-            ))}
-          </div>
-        ) : null}
-      </Region>
+             {capReached ? (
+               <Row
+                 tight
+                 lead={`It walked every automatic leg (${AUTO_MAX}) and still has route ahead.`}
+                 sub="Nothing was stopped silently: press Run it now to buy another set of legs."
+               />
+             ) : null}
+             {/*
+              * THE PER-SEAT LIST IS DELIBERATELY ABSENT (SPEC-LAYOUT §0 ruled
+              * this deletion; it never landed). The transcript below already
+              * renders every seat the moment its run row lands -- who acted,
+              * what they filed, what it cost. Printing the same walk a second
+              * time from the mutation's return value meant one fact about one
+              * run with two freshesses, which is how a header once said Running
+              * over a hold. The mutation's own outcome above is the only thing
+              * here that the queries cannot say.
+              */}
+           </div>
+         ) : null}
+       </Region>
 
       {/*
        * QUEUE 71: THE PANE POLLS AT VISIT SPEED WHENEVER A CREW IS HERE, not
