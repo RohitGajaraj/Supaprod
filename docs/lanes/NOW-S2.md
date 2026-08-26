@@ -1,1 +1,1 @@
-S2 · 19:15 IST · WORKING · browser verification done (board driven live; server killed) · C2-005 + plain-words + rail presence CONFIRMED on real data · C2-001/002/003 need running work to show live — paths test-proven, live render unconfirmed (no mutation allowed on prod data) · 4290724cf
+S2 · 20:10 IST · WORKING · board units C2-001…009 shipped and live-verified (server killed) · waiting on S0: fold ruling (inventory filed), collision derivation, guardrail-prose ruling · next: D1–D4 on ruling · 4290724cf
