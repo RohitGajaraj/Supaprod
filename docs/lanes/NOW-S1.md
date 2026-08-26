@@ -1,1 +1,1 @@
-S1 · 01:55 IST · WORKING · RUN-26 Ship can show what it made · RUN-27 the dash bridge removed, its exit condition met and verified in the database · RUN-28 Decide's metric probe mounted, the first of the five runnables and dead code until tonight · S0 reachable and turning asks round in the hour · PUSH STILL BLOCKED, 25 commits · src/components/track/** spine/** · RUN-28
+S1 · 02:00 IST · DEVSERVER · craft pass on the run screen: screenshotting against Mobbin references (founder granted direct access), premium bar per R-20 §7 · src/components/track/** · RUN-28
