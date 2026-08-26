@@ -85,9 +85,23 @@ describe("both callers have to say which they are", () => {
     // Exactly one continuation: the auto-continue timer. A second one appearing
     // is a call site claiming nobody acted when the code cannot know that.
     expect([...TRACKRUN.matchAll(/run\.mutate\("continuation"\)/g)].length).toBe(1);
-    // The three human acts: composer landing (auto-start), the Run control,
-    // and a gate being answered.
-    expect([...TRACKRUN.matchAll(/run\.mutate\("press"\)/g)].length).toBe(3);
+    /*
+     * FOUR HUMAN ACTS SINCE 2026-08-26, and the number moved for the right
+     * reason. This count is a canary, not a cap: a new `press` site must be
+     * REVIEWED before it is accepted, which is exactly what happened here.
+     *
+     * S1 added the `r` keyboard shortcut (`run-keys.ts`), whose own comment says
+     * it "mirrors the Run-it control exactly, including every state where the
+     * control refuses to exist." A person pressing a key is a person acting, so
+     * `press` is correct and `continuation` would have been a client claiming
+     * autonomy for a human act — the precise direction F-55 exists to fail away
+     * from, and the one that made criterion 2 unprovable before `driven_via`.
+     *
+     * The four, reviewed 2026-08-26: composer landing (:487) · the `r` shortcut
+     * (:671) · a gate being answered (:717) · the Run control (:851).
+     * **If this number moves again, review the new site before changing it.**
+     */
+    expect([...TRACKRUN.matchAll(/run\.mutate\("press"\)/g)].length).toBe(4);
     // No call site left that never considered the question.
     expect(TRACKRUN).not.toContain("run.mutate()");
   });

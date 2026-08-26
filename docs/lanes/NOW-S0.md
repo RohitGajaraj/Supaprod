@@ -1,1 +1,1 @@
-S0 · 17:32 IST · WORKING · F-85 filed: the brain reads the record and ignores it 99.4% of the time (70 used / 11,286 ignored) — S4 theatre sweep closed · the-first-run/** coordination/answers/** · pending
+S0 · 17:31 IST · WORKING · integration pass 3: run+proof+platform merged, 11,529 tests 0 fail; press-site guard reviewed 3→4 (S1 r-shortcut is a human act) · docs/lanes/** src/lib/spine/** · pending
