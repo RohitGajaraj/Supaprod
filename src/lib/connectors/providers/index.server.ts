@@ -25,6 +25,11 @@ import { productboardAdapter } from "./productboard.server";
 import { figmaAdapter } from "./figma.server";
 import { jiraAdapter } from "./jira.server";
 import {
+  gmailAdapter,
+  microsoftMailAdapter,
+  microsoftOutlookAdapter,
+} from "./mail-family.server";
+import {
   linearAdapter,
   notionAdapter,
   googleDocsAdapter,
@@ -54,9 +59,14 @@ export const CONNECTOR_ADAPTERS: Record<ProviderId, ConnectorAdapter> = {
   google_docs: googleDocsAdapter,
   google_calendar: stubAdapter,
   google_tasks: stubAdapter,
-  microsoft_outlook: stubAdapter,
-  gmail: stubAdapter,
-  microsoft_mail: stubAdapter,
+  // Real since 2026-08-26 (F-81), the "separate pass" gateway-era-adapters named.
+  // Gmail was the sharpest of the three: `pull-ingestors.server.ts:48` has been
+  // running `ingestGmailSignals` against a live grant this whole time, so the
+  // connection worked and only the control that reports on it was lying. Email is
+  // also how a verdict reaches somebody who closed the tab (gap #2).
+  microsoft_outlook: microsoftOutlookAdapter,
+  gmail: gmailAdapter,
+  microsoft_mail: microsoftMailAdapter,
   // Real since 2026-08-15. Both write a `connections` row, so both are reachable
   // from the Verify control, and both were telling a good connection it had failed.
   figma: figmaAdapter,
