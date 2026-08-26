@@ -30,12 +30,20 @@ import { join } from "node:path";
 
 import { findRepoRoot } from "./helpers/auth";
 
+/**
+ * SAMPLE SANDBOX WORKSPACE — the guarded workspace for e2e.
+ * `is_sample = true` → sweep provably skips it (track-tick.ts:85).
+ * Workspace ID: b90da531-34aa-4009-bcce-2162b87f50ac ("Sample sandbox").
+ * F-90 reversal: is_sample=true means demo fixture sweep SKIPS (not "may drive").
+ */
+const SAMPLE_SANDBOX_WORKSPACE_ID = "b90da531-34aa-4009-bcce-2162b87f50ac";
+
 const SHOT_DIR = join(findRepoRoot(), "docs", "screenshots", "s4-002");
 const CHECKPOINTS = [10, 30, 60] as const;
 
 test.skip(
   process.env.S4_SIXTY !== "yes",
-  "Needs a local server + .env; records only, never submits. Opt in with S4_SIXTY=yes.",
+  "Needs a local server + .env + Sample sandbox workspace; records only, never submits. Opt in with S4_SIXTY=yes.",
 );
 
 test("the sixty seconds — what a stranger can read at 10s, 30s, 60s", async ({ page }) => {
