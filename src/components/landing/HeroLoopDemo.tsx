@@ -159,11 +159,26 @@ export function HeroLoopDemo() {
          * makes, and shipping the gate is the claim nobody else in 5.9M words
          * can make. Saying we gate is stronger here than saying we do not.
          *
-         * Found by S4 (S4-039), who was right about the sentences. One
-         * correction to their note for the record: "autonomous" is NOT on the
-         * banned list. "Unattended" is (positioning-locked:203), and the canon
-         * itself uses "32% autonomous" as a measured claim at :269. The defect
-         * was the false capability, not the adjective.
+         * Found by S4 (S4-039), who was right about the sentences.
+         *
+         * AND RIGHT ABOUT THE ADJECTIVE, WHICH I FIRST DISPUTED. I checked
+         * positioning-locked:203, found "autonomous" absent from the landing
+         * Never column, saw the canon use "32% autonomous" at :269, and told
+         * S4 the word was fine. I had checked one file and called it "the
+         * canon". OPERATING-MODEL-5-SESSIONS.md:32 and :735 ban "agentic",
+         * "autonomous", "AI-native", "orchestration" and "intelligence" in
+         * product copy, twice, in the file every session is told to read
+         * first. It is banned. The word is gone from the copy above either
+         * way, but this note said otherwise and would have licensed the next
+         * person to put it back.
+         *
+         * (:269's use is the accelerator argument, and its own scope paragraph
+         * limits it to one station on the evidence model that earned it, so it
+         * was never landing copy. Separately, S4 found that :203's table is
+         * residue: its Register column is struck through because the register
+         * split was retired on 2026-08-11, and the per-surface Never columns
+         * were never updated with it. That is why absence from :203 proves
+         * nothing, and it is S0's to reconcile, not mine.)
          */}
         <p className="text-sm text-zinc-400 mb-2">HOW A RUN MOVES</p>
         <p className="text-lg font-medium text-white mb-1">One sentence in. Seven stations.</p>
