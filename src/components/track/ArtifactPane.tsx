@@ -1717,10 +1717,17 @@ function StationPanel({
     return (
       <div className="flex flex-col gap-mrd-3">
         <RecordSpeaks>{`${stop.label} ran and filed no ${noun}.`}</RecordSpeaks>
-        {/* NOT `tight`: that prop's contract is "a row whose full content has a
-            detail view to open", and a hold sentence has none. Clipping it hid
-            the only copy of the reason the work stopped. */}
-        {hold ? <Row lead={hold} /> : null}
+        {/*
+          NOT A `Row` AT ALL, AND THE CLIP WAS ONLY HALF OF IT.
+          `tight` truncated this sentence, and `tight`'s contract is a row whose
+          full content has a detail view to open, which a hold has none of. But
+          `Row` also reserves a fixed 34px mark slot whether or not it carries a
+          mark, so a lone sentence rendered through it sat indented from the
+          prose directly above it, aligned to a rail that had nothing on it. Two
+          sentences, one voice, two left edges. It is prose, so it renders as
+          prose, next to the line it belongs with.
+        */}
+        {hold ? <RecordSpeaks>{hold}</RecordSpeaks> : null}
       </div>
     );
   }

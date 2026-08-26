@@ -8,6 +8,7 @@ import { PageHeading } from "@/components/meridian/surface-parts";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { Row } from "@/components/meridian/rows";
 import { TrackRunLeft, TrackPaneRight } from "@/components/track/TrackRun";
+import { RunFooter } from "@/components/track/RunFooter";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { getTrack, type Track } from "@/lib/spine/track.functions";
 import { nextStation, waiverFor, type SpineRoute } from "@/lib/spine/route";
@@ -176,6 +177,11 @@ function TrackPage() {
    * from one source: the transcript's own running rows.
    */
   const [crewLive, setCrewLive] = React.useState(false);
+  /* The footer's Stop, reported up by the pane that owns the press. */
+  const [drive, setDrive] = React.useState<{ canStop: boolean; stop: () => void }>({
+    canStop: false,
+    stop: () => undefined,
+  });
 
   const get = useServerFn(getTrack);
   // THE HEADER READS THE SAME CACHE ENTRY TRACKRUN POLLS -- same key, same
@@ -249,12 +255,33 @@ function TrackPage() {
             autoStart={start === true}
             onCrewLive={setCrewLive}
             crewLive={crewLive}
+            onDriveState={setDrive}
           />
         </div>
         <div className="mrd-workbench-pane mrd-workbench-pane--artifact">
           <TrackPaneRight trackId={trackId} isRunning={crewLive} promised={track?.origin ?? null} />
         </div>
       </div>
+
+      {/*
+       * THE FOOTER (THE-ONE-SCREEN:21), which this screen shipped without.
+       *
+       * A third child of a two-row grid takes an implicit `auto` row, so the
+       * panes' `minmax(0,1fr)` gives it its height and no change is needed in
+       * workbench.css, which is another lane's file.
+       *
+       * It renders only with a track, because every word in it is derived from
+       * one and a footer over a failed read would be describing nothing.
+       */}
+      {track ? (
+        <RunFooter
+          status={track.status}
+          tone={holdTone(track.holdReason)}
+          walking={drive.canStop}
+          crewLive={crewLive}
+          onStop={drive.stop}
+        />
+      ) : null}
     </div>
   );
 }
