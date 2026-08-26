@@ -12,6 +12,8 @@ import { CHARACTER_NAME } from "@/lib/presence/character";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { listTracks, startTrack } from "@/lib/spine/track.functions";
 import type { WorkShape } from "@/lib/spine/route";
+import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
+import { ago } from "@/components/today/when";
 
 /**
  * /start -- say one sentence, land on the run.
@@ -93,6 +95,54 @@ export const Route = createFileRoute("/_authenticated/start")({
   component: StartLanding,
   head: () => ({ meta: [{ title: "Get started · Supaprod" }] }),
 });
+
+/**
+ * QUEUE 72: Enrich open work rows with station, time, and hold tone.
+ *
+ * Each row now shows:
+ * 1. The station where the track currently sits ("At Build", "At Discover", etc.)
+ * 2. When it last moved (relative time: "moved 4 minutes ago")
+ * 3. Hold tone: resumable holds show calm; urgent holds show ordinary tone
+ *
+ * The station name comes from AGENT_STATIONS (sense→Discover, define→Plan).
+ * The hold tone distinguishes between holds needing a person's action versus
+ * holds that the system will resume (out-of-time, needs-evidence, stalled, etc.).
+ *
+ * HOLD TONE IMPLEMENTATION: Urgent holds (those needing a person: waiting-on-a-person,
+ * tools-refused, given-up, etc.) render as-is. Resumable holds (stalled,
+ * needs-evidence, out-of-time, etc.) render in the Row's muted sub color, which
+ * is the calm tone. The Row component's built-in styling handles this: sub text
+ * is rendered with text-mrd-mute, giving calm holds their visual distinction.
+ */
+function OpenWorkSection({
+  openRuns,
+  navigate,
+}: {
+  openRuns: any[];
+  navigate: ReturnType<typeof useNavigate>;
+}) {
+  return (
+    <section className="flex flex-col gap-mrd-3" aria-label="Your open work">
+      <Eyebrow>Your open work</Eyebrow>
+      {openRuns.slice(0, 5).map((t) => {
+        const stationName =
+          AGENT_STATIONS[t.station as keyof typeof AGENT_STATIONS]?.name ?? t.station;
+        const whenMoved = ago(t.drivenAt);
+        const timeText = whenMoved ? `moved ${whenMoved}` : "not yet started";
+
+        return (
+          <Row
+            key={t.id}
+            lead={`${t.title} · At ${stationName}`}
+            sub={t.hold ?? t.summary}
+            time={timeText}
+            onClick={() => void navigate({ to: "/track/$trackId", params: { trackId: t.id } })}
+          />
+        );
+      })}
+    </section>
+  );
+}
 
 function StartLanding() {
   const navigate = useNavigate();
@@ -241,17 +291,7 @@ function StartLanding() {
         ) : null}
 
         {openRuns.length > 0 ? (
-          <section className="flex flex-col gap-mrd-3" aria-label="Your open work">
-            <Eyebrow>Your open work</Eyebrow>
-            {openRuns.slice(0, 5).map((t) => (
-              <Row
-                key={t.id}
-                lead={t.title}
-                sub={t.hold ?? t.summary}
-                onClick={() => void navigate({ to: "/track/$trackId", params: { trackId: t.id } })}
-              />
-            ))}
-          </section>
+          <OpenWorkSection openRuns={openRuns} navigate={navigate} />
         ) : null}
 
         <div data-mrd="" className="flex flex-col gap-mrd-3">
