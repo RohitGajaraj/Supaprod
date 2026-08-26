@@ -51,6 +51,9 @@ reopened, whatever the buildlog says.
 | [`S4-005-theatre-sweep.md`](./verify/S4-005-theatre-sweep.md) | The hunt for state no row can prove — **the finding that ends a feature rather than fixing it** |
 | [`S4-006-s1-run01-07.md`](./verify/S4-006-s1-run01-07.md) | S1's first seven units, checked against what they claim |
 | [`S4-007-s2-and-f84-test.md`](./verify/S4-007-s2-and-f84-test.md) | S2's board work, and F-84's parked-work claim put under test |
+| [`S4-008-run08-and-handoff-counts.md`](./verify/S4-008-run08-and-handoff-counts.md) | S1's RUN-08 and the handoff counts, checked |
+| [`S4-009-run09-11-attribution.md`](./verify/S4-009-run09-11-attribution.md) | RUN-09 to 11, and whether attribution holds |
+| [`S4-010-s3-verdict-email.md`](./verify/S4-010-s3-verdict-email.md) | S3's verdict email, and the held-back half confirmed intentional |
 
 ## Superseded
 
