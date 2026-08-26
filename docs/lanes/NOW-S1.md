@@ -1,1 +1,1 @@
-S1 · 02:00 IST · DEVSERVER · craft pass on the run screen: screenshotting against Mobbin references (founder granted direct access), premium bar per R-20 §7 · src/components/track/** · RUN-28
+S1 · 02:20 IST · WORKING · craft loop: RUN-29 header stopped contradicting its own chip and the character stopped being cut off · RUN-30 a closed run says it once not three times · RUN-31 a station's output now visibly LANDS, keyed on arrival and nothing else · RunMap name-tone defect filed to S0 (their prefix) · PUSH STILL BLOCKED · src/components/track/** spine/** presence/** · RUN-31
