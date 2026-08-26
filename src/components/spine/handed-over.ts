@@ -52,16 +52,52 @@ export function whatCameWith(turns: readonly Turn[]): string[] {
 }
 
 /**
+ * English plural for the record's own kind words.
+ *
+ * Deliberately small: the words this sees are a closed set the record writes
+ * (signal, decision, spec, task, prototype, change, deployment, mission, run),
+ * and every one of them is regular. The sibilant rule is here so a future kind
+ * ending in s, x, ch or sh does not render as "sketchs".
+ */
+function plural(word: string, n: number): string {
+  if (n === 1) return word;
+  return /(s|x|z|ch|sh)$/i.test(word) ? `${word}es` : `${word}s`;
+}
+
+/** Kind words in the order they first landed, each with how many there were. */
+function counted(words: readonly string[]): Array<{ word: string; n: number }> {
+  const order: string[] = [];
+  const tally = new Map<string, number>();
+  for (const w of words) {
+    if (!tally.has(w)) order.push(w);
+    tally.set(w, (tally.get(w) ?? 0) + 1);
+  }
+  return order.map((word) => ({ word, n: tally.get(word) ?? 0 }));
+}
+
+/**
  * The line under a handoff row.
  *
- * Lists up to two by name and counts the rest, because a station that filed six
- * things turns the meta line into a paragraph and the reader came here for the
- * shape of the run, not an inventory. The full list is in the record beside it.
+ * ── THREE OF A KIND ARE COUNTED, NOT REPEATED ──────────────────────────────
+ * Caught on the running product: a Discover station that filed three signals
+ * rendered "with its signal, signal and 1 more", which reads like a stutter and
+ * hides the actual number. Same-kind items are tallied, so it reads "with its 3
+ * signals" and the count is the fact.
+ *
+ * ── AND IT NAMES TWO KINDS, THEN COUNTS ────────────────────────────────────
+ * A station that filed six kinds would turn the meta line into a paragraph, and
+ * a reader is here for the shape of the run, not an inventory. The rest is in
+ * the record beside it.
  */
 export function handoffLine(fromStationName: string, words: readonly string[]): string {
   const from = `picked up from ${fromStationName}`;
   if (words.length === 0) return `${from}, which filed nothing`;
-  if (words.length === 1) return `${from} with its ${words[0]}`;
-  if (words.length === 2) return `${from} with its ${words[0]} and ${words[1]}`;
-  return `${from} with its ${words[0]}, ${words[1]} and ${words.length - 2} more`;
+
+  const groups = counted(words);
+  const say = (g: { word: string; n: number }) =>
+    g.n === 1 ? g.word : `${g.n} ${plural(g.word, g.n)}`;
+
+  if (groups.length === 1) return `${from} with its ${say(groups[0]!)}`;
+  if (groups.length === 2) return `${from} with its ${say(groups[0]!)} and ${say(groups[1]!)}`;
+  return `${from} with its ${say(groups[0]!)}, ${say(groups[1]!)} and ${groups.length - 2} more`;
 }

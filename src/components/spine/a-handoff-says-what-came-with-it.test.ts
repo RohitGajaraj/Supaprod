@@ -58,6 +58,24 @@ describe("the line under a handoff", () => {
     expect(handoffLine("Discover", [])).toBe("picked up from Discover, which filed nothing");
   });
 
+  it("counts repeats instead of stuttering, which the running product showed", () => {
+    /*
+     * THE LIVE DEFECT. A Discover station that filed three signals rendered
+     * "with its signal, signal and 1 more" on real data: it reads as a stutter
+     * and buries the number the reader wanted.
+     */
+    expect(handoffLine("Discover", ["signal", "signal", "signal"])).toBe(
+      "picked up from Discover with its 3 signals",
+    );
+    expect(handoffLine("Plan", ["spec", "task", "task", "task"])).toBe(
+      "picked up from Plan with its spec and 3 tasks",
+    );
+    // A sibilant kind must not become "sketchs" if one is ever added.
+    expect(handoffLine("Design", ["sketch", "sketch"])).toBe(
+      "picked up from Design with its 2 sketches",
+    );
+  });
+
   it("names one, names two, and counts the rest", () => {
     expect(handoffLine("Plan", ["spec"])).toBe("picked up from Plan with its spec");
     expect(handoffLine("Plan", ["spec", "design"])).toBe(
