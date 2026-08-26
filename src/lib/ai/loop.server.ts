@@ -707,6 +707,10 @@ export async function runAgentLoop(
           agent_name: agent.name,
           input: input.goal,
           status: "queued",
+          // Over-cap runs are enqueued here and promoted by resume-runs. They
+          // carry the trace minted above, so the promoted run's tool calls join
+          // back to this row instead of being unknowable.
+          trace_id: traceId,
           workspace_id: workspaceId,
           mission_id: input.missionId ?? null,
           track_id: input.trackId ?? null,
@@ -2047,7 +2051,7 @@ export async function resumeAgentLoop(
   const { data: run } = await supabase
     .from("agent_runs")
     .select(
-      "id,user_id,agent_id,agent_slug,agent_name,input,workspace_id,status,mission_id,mission_spend_cap_usd,mission_token_cap,model,created_at",
+      "id,user_id,agent_id,agent_slug,agent_name,input,workspace_id,status,mission_id,mission_spend_cap_usd,mission_token_cap,model,created_at,trace_id",
     )
     .eq("id", runId)
     .maybeSingle();
@@ -2239,7 +2243,37 @@ export async function resumeAgentLoop(
     }
   }
 
-  const traceId = (cp?.state as { traceId?: string } | undefined)?.traceId ?? crypto.randomUUID();
+  /*
+   * ── THE ROW'S TRACE WINS, AND A ROW WITHOUT ONE GETS STAMPED ────────────
+   *
+   * This used to read the checkpoint, then mint. Both halves were wrong for the
+   * run that matters most: a QUEUED run promoted for the first time has no
+   * checkpoint, so it minted a fresh id, spent a whole run emitting `tool_calls`
+   * under it, and never wrote it anywhere. `tool_calls.trace_id` is the only key
+   * that reaches `agent_runs`, so that run's work was unjoinable the moment it
+   * finished, permanently -- nothing backfills this. Measured 2026-08-26:
+   * **5 of 2,771 runs carry a trace, and 5 of the 393 created in the last two
+   * days**, so this is arriving fresh rather than being a legacy-rows story.
+   *
+   * The row is now the authority: every insert path mints one. The checkpoint
+   * stays as the fallback for rows written before this change, and the mint
+   * stays below it so a resume never fails for want of an id. When the row had
+   * none, it is stamped -- once, and never overwritten, because a second trace
+   * on one run would orphan the first half of its own tool calls.
+   */
+  const traceId =
+    (run as { trace_id?: string | null }).trace_id ??
+    (cp?.state as { traceId?: string } | undefined)?.traceId ??
+    crypto.randomUUID();
+  if (!(run as { trace_id?: string | null }).trace_id) {
+    // Best effort: a failed stamp costs this run its joinability, which is what
+    // the situation already was. It must never cost the run its resume.
+    try {
+      await supabase.from("agent_runs").update({ trace_id: traceId }).eq("id", runId);
+    } catch (e) {
+      console.error("trace stamp failed:", e);
+    }
+  }
   // Model resolution: prefer the stored run.model, then checkpoint state, then vault-aware
   // resolver (same logic as the fresh-dispatch path). run.model is the user's picker value
   // ("auto", "qwen/qwen-plus", …); checkpoint state carries the already-resolved model from
