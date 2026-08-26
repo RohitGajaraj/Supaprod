@@ -37,7 +37,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { listStudioSessions } from "@/lib/studio.functions";
 import { listMissions } from "@/lib/missions.functions";
-import { missionProgress } from "@/lib/delegate-desk";
+import { stepProgress, type StepProgress } from "@/components/runs/step-progress";
 import { RunBoard } from "@/components/runs/RunBoard";
 import { runState } from "@/components/runs/run-state";
 import { ReadFailed, Reading } from "@/components/meridian/surface-parts";
@@ -71,8 +71,8 @@ export function BoardPanel({ open, onClose }: { open: boolean; onClose: () => vo
     refetchInterval: open && live > 0 ? 5000 : false,
   });
   const progressById = React.useMemo(() => {
-    const map = new Map<string, { done: number; total: number }>();
-    for (const m of plan.data?.missions ?? []) map.set(m.id, missionProgress(m.steps));
+    const map = new Map<string, StepProgress>();
+    for (const m of plan.data?.missions ?? []) map.set(m.id, stepProgress(m.steps));
     return map;
   }, [plan.data]);
 
