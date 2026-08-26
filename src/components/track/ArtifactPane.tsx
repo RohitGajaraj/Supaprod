@@ -24,6 +24,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import {
+  checkForecastObservable,
   getTrackArtifacts,
   getTrackChain,
   type ArtifactView,
@@ -40,6 +41,8 @@ import type { ChainMember, ChainStop } from "@/lib/spine/chain";
 import { wordFor } from "@/lib/spine/chain";
 import { STATION_ARTIFACT } from "@/lib/spine/attach";
 import { relativeTime } from "@/lib/memory-view";
+import { useWorkspace } from "@/hooks/use-workspace";
+import { releaseStanding, shortSha } from "@/components/track/release-words";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
@@ -265,8 +268,19 @@ function DecisionCard({ item }: { item: ArtifactView }) {
       {alternatives.length > 0 ? (
         <div className="flex flex-col gap-mrd-2">
           <span className="mrd-eyebrow">Rejected</span>
+          {/*
+            NOT `tight`, and this one was the most expensive of the four.
+            Measured on production 2026-08-27: across 603 stored alternatives the
+            MEAN length is 185 characters and the longest is 366. One clamped
+            line shows perhaps seventy, so roughly two thirds of every rejected
+            option was hidden on the field this card's own comment calls "the
+            field that makes a decision a decision". `tight`'s contract is a row
+            whose full content has a detail view to open; an alternative is a
+            string on the decision row and has none, so the clip was the only
+            copy a person would ever see.
+          */}
           {alternatives.map((a) => (
-            <Row key={a} tight lead={a} />
+            <Row key={a} lead={a} />
           ))}
         </div>
       ) : null}
@@ -329,6 +343,81 @@ function DecisionCard({ item }: { item: ArtifactView }) {
 }
 
 /*
+ * ── IS WHAT YOU ARE ABOUT TO PROMISE CHECKABLE? ────────────────────────────
+ * SPEC-BUILD-PATHS ranks this first of the five runnables, by value rather than
+ * by station order, and the reason is a timing one: without it nobody discovers
+ * that a forecast's observable was never readable until the horizon arrives, by
+ * which point the verdict cannot land and the run has spent everything it was
+ * going to spend. Asking at the moment of the promise is the only cheap moment
+ * there is.
+ *
+ * `metric-probe.server.ts` was written for exactly this and had ZERO importers
+ * repo-wide; its only reference was its own test. S0 wrapped it as a server fn
+ * on request, and this is its first door.
+ *
+ * ── IT ANSWERS ABOUT THE WORDS, NOT ABOUT A ROW ────────────────────────────
+ * The probe deliberately takes the forecast's own text rather than a decision
+ * id, so it can be asked BEFORE anything is written. That is what lets the
+ * answer arrive while the field is still editable, which is the entire point:
+ * an answer after the record is written is a post-mortem.
+ *
+ * ── AND IT NEVER BLOCKS THE PRESS ──────────────────────────────────────────
+ * A person may record a forecast this workspace cannot read today, and that is
+ * their call to make: the source may be connected next week. What they may not
+ * do is make it WITHOUT KNOWING. So this informs and never disables, and the
+ * refusal is rendered in the probe's own words, which already name what to
+ * connect.
+ */
+function ObservableProbe({ text }: { text: string }) {
+  const { activeWorkspaceId } = useWorkspace();
+  const fCheck = useServerFn(checkForecastObservable);
+  const trimmed = text.trim();
+
+  /*
+   * Debounced so the question is asked about a SETTLED sentence rather than
+   * about every keystroke. This timer schedules a read; it never asserts a
+   * state, which is the line the presence rules draw.
+   */
+  const [settled, setSettled] = React.useState("");
+  React.useEffect(() => {
+    const id = setTimeout(() => setSettled(trimmed), 700);
+    return () => clearTimeout(id);
+  }, [trimmed]);
+
+  const ready = settled.length > 0 && Boolean(activeWorkspaceId);
+  const q = useQuery({
+    queryKey: ["forecast-observable", settled, activeWorkspaceId],
+    queryFn: () =>
+      fCheck({ data: { howWeWillKnow: settled, workspaceId: activeWorkspaceId as string } }),
+    enabled: ready,
+    staleTime: 60_000,
+  });
+
+  if (!ready) return null;
+  if (q.isLoading) return <span className="mrd-meta">Checking whether this can be read.</span>;
+  if (q.isError) {
+    return (
+      <ReadFailedLine>
+        The check did not run, so nothing here knows whether this can be read.
+      </ReadFailedLine>
+    );
+  }
+  if (!q.data) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-mrd-3">
+      <StatusChip status={q.data.checkable ? "pass" : "hold"}>
+        {q.data.checkable ? "Readable now" : "Not readable yet"}
+      </StatusChip>
+      {/* VERBATIM. The probe writes this for the person it would have stopped,
+          and it already names the next action where there is one. A second
+          voice on one answer is how two copies come to disagree. */}
+      <span className="mrd-meta">{q.data.because}</span>
+    </div>
+  );
+}
+
+/*
  * SAY WHAT YOU EXPECT. Write-once, enforced by the server and the database;
  * the form says so BEFORE the press, because a field you cannot edit later is
  * exactly the thing to know going in. This control is the only thing that can
@@ -383,6 +472,9 @@ function ForecastForm({ decisionId }: { decisionId: string }) {
           placeholder="Escalation rate for this intent drops below 10%"
         />
       </Field>
+      {/* The answer arrives while the field is still editable, which is the
+          whole reason the probe takes words rather than a decision id. */}
+      <ObservableProbe text={know} />
       <Field label="Due by" htmlFor={`fc-day-${decisionId}`}>
         <Input
           id={`fc-day-${decisionId}`}
@@ -1129,6 +1221,70 @@ function ChangesetDiffView({ changesetId }: { changesetId: string }) {
   );
 }
 
+/*
+ * ── THE SHIP CARD ──────────────────────────────────────────────────────────
+ * What went out, and where. Ship was the ONLY station of the seven whose own
+ * output rendered nothing: `deployment` fell through this file's switch to
+ * `null` while the columns it needed were already being fetched and handed in
+ * (`track.functions.ts:1184`). The data reached the component and was dropped
+ * on the last line.
+ *
+ * THE ONE THING IT MUST NOT DO is let a `claimed` row read like a `success`
+ * one. A person pasting a deploy address through the handback writes `claimed`,
+ * deliberately and permanently, because `release.publish` reads `success` and a
+ * typed address must never satisfy the gate that says this shipped. The chip
+ * separates them and the sentence says what is missing, because a different
+ * colour alone is a thing people learn to stop noticing.
+ */
+function ReleaseCard({ item }: { item: ArtifactView }) {
+  const f = item.fields;
+  const standing = releaseStanding(str(f.status));
+  const env = str(f.environment);
+  const url = str(f.deploy_url);
+  const sha = shortSha(str(f.commit_sha));
+  const provider = str(f.provider);
+  // `deployed_at` is null on a row that never reached the provider, so the
+  // record's own creation time is the honest fallback for "when this appeared".
+  const at = str(f.deployed_at) ?? item.createdAt;
+
+  const under = [provider ? `via ${provider}` : "", sha ? `commit ${sha}` : ""]
+    .filter(Boolean)
+    .join(" · ");
+
+  return (
+    <div className="flex flex-col gap-mrd-4">
+      <div className="flex flex-wrap items-center gap-mrd-3">
+        {standing.tone === "quiet" ? (
+          // An unfamiliar provider word does not get an outcome chip. See
+          // release-words.ts: a confident wrong colour is worse than none.
+          <span className="mrd-meta">{standing.word}</span>
+        ) : (
+          <StatusChip status={standing.tone}>{standing.word}</StatusChip>
+        )}
+        {env ? <Value tone="quiet">{env}</Value> : null}
+        <span className="mrd-meta">{relativeTime(at, Date.now())}</span>
+      </div>
+
+      {standing.note ? <RecordSpeaks>{standing.note}</RecordSpeaks> : null}
+
+      {under ? <span className="mrd-meta">{under}</span> : null}
+
+      {url ? (
+        <a
+          href={url}
+          target="_blank"
+          rel="noreferrer"
+          className="text-mrd-small font-medium text-mrd-you underline underline-offset-2"
+        >
+          Open what went out
+        </a>
+      ) : (
+        <RecordSpeaks>No address was recorded, so there is nothing to open.</RecordSpeaks>
+      )}
+    </div>
+  );
+}
+
 function ChangesetCard({ item }: { item: ArtifactView }) {
   const f = item.fields;
   const summary = str(f.summary);
@@ -1483,6 +1639,62 @@ function StationPanel({
   /** Routes the Discover cards' writes back to this pane's cache entries. */
   trackId: string;
 }) {
+  /*
+   * ── WHAT JUST LANDED, AND ONLY WHAT JUST LANDED ────────────────────────
+   * The founder's ask is that the agentic work be SEEN. The most convincing
+   * moment this pane has is the one where a station's output APPEARS: the spec
+   * that was not there a second ago, the code change, the release. Until now it
+   * blinked into existence between two polls, so the single event worth
+   * noticing looked identical to a re-render.
+   *
+   * SO THE MOTION ENCODES A FACT AND NOTHING ELSE. An item animates only when
+   * its key was absent on the previous pass, which is the same primed/seen pair
+   * `TrackActivity` and `SenseBody` already run on. Nothing animates on first
+   * paint, because arriving at a finished run is not an arrival; nothing
+   * animates on a refetch that returned the same rows; and nothing loops. A
+   * surface that replayed this on every poll would be showing work that is not
+   * happening, which is the one thing this product may never do.
+   *
+   * ── STAGGER, CAPPED ──────────────────────────────────────────────────────
+   * When a station files six things at once they land in sequence rather than
+   * together, which reads as a hand putting them down instead of a flash. The
+   * step is capped so a burst of twenty does not turn into a second of
+   * choreography: past the sixth they share the last delay. Frequency of use
+   * cuts the duration, and this is a thing a person watching a run sees often.
+   *
+   * Inline style rather than a class, deliberately: meridian.css's
+   * reduced-motion block matches on the style attribute, so declared as a
+   * utility it would keep animating for someone who asked it not to.
+   */
+  const primed = React.useRef(false);
+  const seen = React.useRef<Set<string>>(new Set());
+  const landedKeys = (view?.items ?? stop.members).map((m) => `${m.kind}:${m.artifactId}`);
+  const landedSig = landedKeys.join("|");
+  React.useEffect(() => {
+    if (landedKeys.length === 0) return;
+    if (!primed.current) {
+      for (const k of landedKeys) seen.current.add(k);
+      primed.current = true;
+      return;
+    }
+    const t = window.setTimeout(() => {
+      for (const k of landedKeys) seen.current.add(k);
+    }, 0);
+    return () => window.clearTimeout(t);
+    // `landedSig` is the value that matters; the array identity changes every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [landedSig]);
+
+  let landedSoFar = 0;
+  const arrival = (key: string): React.CSSProperties | undefined => {
+    if (!primed.current || seen.current.has(key)) return undefined;
+    const step = Math.min(landedSoFar++, 5) * 40;
+    return {
+      animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both",
+      animationDelay: `${step}ms`,
+    };
+  };
+
   if (stop.state === "waived") {
     // The person's own words for why this station is off the route. Never an
     // empty pane (SPEC-ARTIFACTS §2).
@@ -1505,7 +1717,17 @@ function StationPanel({
     return (
       <div className="flex flex-col gap-mrd-3">
         <RecordSpeaks>{`${stop.label} ran and filed no ${noun}.`}</RecordSpeaks>
-        {hold ? <Row tight lead={hold} /> : null}
+        {/*
+          NOT A `Row` AT ALL, AND THE CLIP WAS ONLY HALF OF IT.
+          `tight` truncated this sentence, and `tight`'s contract is a row whose
+          full content has a detail view to open, which a hold has none of. But
+          `Row` also reserves a fixed 34px mark slot whether or not it carries a
+          mark, so a lone sentence rendered through it sat indented from the
+          prose directly above it, aligned to a rail that had nothing on it. Two
+          sentences, one voice, two left edges. It is prose, so it renders as
+          prose, next to the line it belongs with.
+        */}
+        {hold ? <RecordSpeaks>{hold}</RecordSpeaks> : null}
       </div>
     );
   }
@@ -1537,6 +1759,8 @@ function StationPanel({
         return <PlanSpec prdId={item.artifactId} />;
       case "prototype":
         return <PrototypeCard item={item} />;
+      case "deployment":
+        return <ReleaseCard item={item} />;
       default:
         return null;
     }
@@ -1563,7 +1787,11 @@ function StationPanel({
     const missionItems = items.filter((it) => it.kind === "mission" && !it.missing);
     return (
       <div className="flex flex-col gap-mrd-4">
-        {primaryItem ? bodyFor(primaryItem) : null}
+        {primaryItem ? (
+          <div style={arrival(`${primaryItem.kind}:${primaryItem.artifactId}`)}>
+            {bodyFor(primaryItem)}
+          </div>
+        ) : null}
         {stepItems.length > 0 ? <TaskSteps items={stepItems} /> : null}
         {missionItems.map((m) => (
           <MissionCard key={`mission:${m.artifactId}`} item={m} />
@@ -1578,8 +1806,11 @@ function StationPanel({
           if ((item.kind === "task" || item.kind === "mission") && !item.missing) {
             return null;
           }
+          const key = `${item.kind}:${item.artifactId}`;
           return (
-            <MemberLine key={`${item.kind}:${item.artifactId}`} m={toMemberLine(item)} now={now} />
+            <div key={key} style={arrival(key)}>
+              <MemberLine m={toMemberLine(item)} now={now} />
+            </div>
           );
         })}
       </div>
