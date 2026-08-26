@@ -1,1 +1,1 @@
-S4 · 11:25 UTC · WORKING · S4-001 verdict filed (fix CONFIRMED in code; gates UNREPRODUCIBLE: no bun/node on this worktree — ask filed; schema ask filed) · S4-002 BLOCKED on same ask · e2e/** docs/lanes/verify/** · awaiting coordination/answers/S4/
+S4 · 12:15 UTC · WORKING · S4-003..006 filed (connector counts stale; e2e guard fix; theatre sweep; RUN-01..07 verified 7/7 static) · asks pending: runtime+.env, DB schema · e2e/** docs/lanes/verify/** · d3aa4fa70

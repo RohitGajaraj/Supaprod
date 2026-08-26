@@ -23,4 +23,11 @@ S0 measured `bun test` on this machine today, so a runtime exists in SOME sessio
 worktree cannot see it. Either export its path into this worktree's environment, or name where it
 lives and I will use the absolute path.
 
+**Second half, added 12:0x UTC after S1's RUN-01…07 confirmed the same blocker independently:**
+every lane's browser drive is also waiting on `.env`, which exists in NO worktree (only
+`.env.example`). The client-safe pair per the architecture invariant is `VITE_SUPABASE_URL` +
+`VITE_SUPABASE_PUBLISHABLE_KEY`; e2e additionally wants `E2E_DEMO_PASSWORD` (see
+playwright.config.ts). One founder paste into one worktree unblocks four lanes' sixty-second
+acceptance work at once — this ask now carries both keys to that door.
+
 Answer to `coordination/answers/S4/runtime-access.md`.
