@@ -1223,11 +1223,6 @@ export async function verifyStationOutput(
   station: AgentStation,
   attached: Attachment[],
 ): Promise<{ passed: boolean; reason?: string }> {
-  // If no output was produced, the existing `produced-nothing` hold is sufficient
-  if (attached.length === 0) {
-    return { passed: true }; // No output, so no verification needed
-  }
-
   // Group attached artifacts by kind
   const byKind = new Map<string, string[]>();
   for (const att of attached) {
@@ -1236,6 +1231,23 @@ export async function verifyStationOutput(
     }
     byKind.get(att.artifactKind)!.push(att.artifactId);
   }
+
+  /*
+   * NOTHING TO READ IS NOT A VERDICT — AND THIS IS NOT THE BANNED PREDICATE.
+   *
+   * `a-crew-split-by-the-clock-still-filed-its-work` forbids deciding
+   * PRODUCED-NOTHING from the raw harvest count, because a crew split by the
+   * clock files its work in an earlier seat and leaves this visit's harvest
+   * empty. S0-001 reintroduced `attached.length === 0` here and tripped that
+   * guard, which had predicted in its own comment that "a reader fixing
+   * something nearby" would do exactly this.
+   *
+   * Nothing here decides produced-nothing: the caller settles that through
+   * `didStationProduce` and only calls this when the station DID produce. With
+   * no artifacts grouped there is simply no verdict to compute, and an
+   * uncomputable check passes rather than stranding the work.
+   */
+  if (byKind.size === 0) return { passed: true };
 
   // Station-specific quality checks. Each check verifies that:
   // 1. The right KIND of artifact was produced

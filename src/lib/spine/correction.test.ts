@@ -65,6 +65,20 @@ const RETRIED_UNTOUCHED: HoldReason[] = [
   "out-of-time",
   "out-of-credit",
   "needs-evidence",
+  /*
+   * S0-002, 2026-08-26. `self-check-failed` means the station ran, filed
+   * something, and its own quality check refused it. That is close in shape to
+   * `nothing-to-hand-on`, which sits in CORRECTABLE_HOLDS — but it stays HERE,
+   * and the difference is deliberate.
+   *
+   * Widening CORRECTABLE_HOLDS widens what the correction loop may reroute
+   * upstream, and the test below calls that set closed on purpose. Nothing about
+   * a quality refusal says an EARLIER station is at fault; the station that
+   * failed its own check is the one that should try again. It now counts an
+   * attempt, so three tries hand it to `given-up`, which is already classified
+   * and already routes. Retry here, reroute there, and no new authority.
+   */
+  "self-check-failed",
   "given-up",
 ];
 
