@@ -825,6 +825,13 @@ function routeOf(row: DriveRow): SpineRoute {
  * produced-nothing hold is what catches the consequence if the thin brief means
  * the station cannot do its job.
  */
+/** Plain words for the extra columns a brief carries. See `ArtifactSource.also`. */
+const LABEL_FOR: Record<string, string> = {
+  forecast_claim: "What we expected",
+  forecast_how_we_will_know: "How we would know",
+  forecast_horizon_date: "Expected by",
+};
+
 async function loadUpstream(
   supabase: SupabaseClient,
   trackId: string,
@@ -858,16 +865,37 @@ async function loadUpstream(
       const source = ARTIFACT_SOURCE[kind];
       const cols = ["id", `title:${source.title}`];
       if (source.body) cols.push(`body:${source.body}`);
+      // Extra columns that belong in the brief but are not the row's own text.
+      // Today only a decision has any: its forecast, which Learn must grade
+      // against and which reached no station until 2026-08-27.
+      for (const extra of source.also ?? []) cols.push(extra);
       const { data } = await supabase
         .from(source.table as never)
         .select(cols.join(","))
         .in("id", ids);
-      for (const r of (data ?? []) as unknown as Array<{
-        id: string;
-        title: string | null;
-        body?: string | null;
-      }>) {
-        found.set(`${kind}:${r.id}`, { title: r.title ?? "untitled", body: r.body ?? null });
+      for (const r of (data ?? []) as unknown as Array<
+        {
+          id: string;
+          title: string | null;
+          body?: string | null;
+        } & Record<string, unknown>
+      >) {
+        /*
+         * Appended and LABELLED, so the reading station knows what it is looking
+         * at. An unlabelled date under a rationale is noise; "Expected by:" is
+         * the difference between carrying a value and communicating it.
+         *
+         * Absent columns are skipped rather than printed empty: a decision with
+         * no horizon must not read as one due on nothing.
+         */
+        const extras = (source.also ?? [])
+          .map((c) => {
+            const v = r[c];
+            return v == null || v === "" ? null : `${LABEL_FOR[c] ?? c}: ${String(v)}`;
+          })
+          .filter(Boolean);
+        const body = [r.body ?? null, ...extras].filter(Boolean).join("\n") || null;
+        found.set(`${kind}:${r.id}`, { title: r.title ?? "untitled", body });
       }
     }),
   );
