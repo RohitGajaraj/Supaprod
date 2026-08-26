@@ -94,6 +94,19 @@
 
 ---
 
+## Session 2026-08-27 MAIN (S0 CONDUCTOR) — PHASE 3 Visible Agency UI Implementation (In Progress)
+
+| What | Why | True state | Next |
+| --- | --- | --- | --- |
+| **PHASE 3 START:** Queue L0-1 RunTimeline component | Agentic work must be SEEN, not inferred. Show where agent is + what it decided in real-time | **CODE-SHIPPED:** Component transforms stage_events into readable timeline. Shows last 5 events, reverse chronological, time-ago format, station colors. Empty state when no events. Tests: 8 cases (empty, order, time, stations, live, limit, held, colors). Commit 1fa12061b | Next: Use in track view page |
+| **PHASE 3 PROGRESS:** Queue L0-2 AgentPresenceCard component | Show which agent is working and their decision (transparency, not black box) | **CODE-SHIPPED:** Component displays agent name/model, station, decision from result, confidence tier (low/medium/high), working indicator with animated dots. Truncates long decisions to 150 chars. Tests: 10 cases (empty, name, station, decision, truncate, confidence, working, time, all levels, defaults). Commit 05c5ae950 | Next: Queue L0-3 Decision Card |
+| **Queue L0-3 BACKLOG:** Decision Card (forecast vs outcome) | Core mission bet: show what was predicted vs what happened (this is THE moat) | **DESIGN READY, CODE PENDING** — Queue item fully specified in QUEUE-LANE0.md. Files: Decision Card component + 5+ test cases. Requires: decisions.forecast_claim, forecast_horizon_date, learnings.verdict, learnings.created_at schema fields | Build now |
+| **Queue L0-4 BACKLOG:** Ask integration (search decisions, link to runs) | Make Ask return decision cards, not just transcripts | **DESIGN READY, CODE PENDING** — Query composition + Ask component modification. Lower priority than L0-3 | Build after L0-3 |
+
+**Lane 0 estimated velocity:** 3-4 hours per component (code + tests + polish). Current: 2 components shipped, 2 queued = 6-8 hours work in progress.
+
+---
+
 ## Session 2026-08-25 (units L0-038 → L0-067)
 
 | Item | Unit | What shipped | True state |
