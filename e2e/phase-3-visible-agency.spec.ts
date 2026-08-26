@@ -52,7 +52,7 @@ test("PHASE 3: Visible agency - real-time station updates", async ({ page }) => 
 
   // Step 3: Create track
   console.log("📍 Step 3: Create track");
-  await page.locator('button:has-text("Start")').click();
+  await page.locator('button:has-text("Start it")').click();
   await page.waitForURL(/\/track\/[a-z0-9\-]+/, { timeout: 15000 });
   const trackId = page.url().match(/\/track\/([a-z0-9\-]+)/)?.[1];
   console.log(`   ✓ Track created: ${trackId}\n`);
