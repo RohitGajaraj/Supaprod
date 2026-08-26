@@ -1,1 +1,1 @@
-S2 · 15:20 IST · WORKING · disk-full incident fixed (8.8G freed, playwright caches will re-download) · new worktree supaprod-control on lane/control · unit: handoffs drawn on board rows · src/components/today/** · 62feb61f4
+S2 · 16:05 IST · WORKING · C2-001 shipped (handovers on running rows, b5f755325) · rail presence verified wired, nothing to rebuild · waiting on S0: collision derivation + swarmhandoff counts + fold ruling + dev env/creds (3 asks filed) · src/components/{today,shell}/** · b5f755325
