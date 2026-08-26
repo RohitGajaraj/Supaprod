@@ -344,7 +344,7 @@ export async function resolveProviderAuth(args: {
           }
           if (!bindingConnectionAllowed(lookup)) {
             console.warn(
-              `[connectors] KI-34: refusing product binding for ${provider} — bound connection owner not a workspace member; falling through`,
+              `[connectors] KI-34: refusing product binding for ${provider}: bound connection owner not a workspace member; falling through`,
             );
           } else {
             const auth = await materializeAuth(conn as ConnectionRow, provider);
@@ -408,7 +408,7 @@ export async function resolveProviderAuth(args: {
           }
           if (!bindingConnectionAllowed(lookup)) {
             console.warn(
-              `[connectors] KI-34: refusing workspace binding for ${provider} — bound connection owner is not a member of the binding's workspace (possible cross-tenant binding); falling through`,
+              `[connectors] KI-34: refusing workspace binding for ${provider}: bound connection owner is not a member of the binding's workspace (possible cross-tenant binding); falling through`,
             );
           } else {
             const auth = await materializeAuth(conn as ConnectionRow, provider);

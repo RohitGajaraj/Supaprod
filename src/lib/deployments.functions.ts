@@ -947,7 +947,7 @@ export async function unattendedShipIsGradable(
       // redirected the agent into disabling the check instead.
       return {
         ok: false,
-        why: `this change edits what the checks themselves run (${offending.join(", ")}), so a green check proves nothing about it — the change could have altered its own grader. Ship it yourself if editing that file is genuinely the work; otherwise drop that path from the changeset and say the spec cannot be built with what is present, which is the alternative Build is already briefed to give.`,
+        why: `this change edits what the checks themselves run (${offending.join(", ")}), so a green check proves nothing about it. The change could have altered its own grader. Ship it yourself if editing that file is genuinely the work; otherwise drop that path from the changeset and say the spec cannot be built with what is present, which is the alternative Build is already briefed to give.`,
       };
     }
 
@@ -1447,7 +1447,7 @@ export async function promoteChangesetToProductionCore(
         // exists for — and points at the warnings that already named the misses,
         // instead of overwriting them with a clean-sweep claim.
         if (carried.length > 1) {
-          const limit = `Supaprod can only record ONE of them against the release itself, so Ship and the release document will name a single spec — the others are settled on Learn but will not appear here.`;
+          const limit = `Supaprod can only record ONE of them against the release itself, so Ship and the release document will name a single spec. The others are settled on Learn but will not appear here.`;
           warnings.push(
             settled.length === carried.length
               ? `This release carried ${carried.length} specs and all of them were closed out: ${carried.join(", ")}. ${limit}`

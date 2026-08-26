@@ -231,7 +231,7 @@ export function renderDesignMd(doc: DesignMemoryDocument): string {
     lines.push("## Audit Trail\n");
     doc.audit.slice(-5).forEach((entry) => {
       lines.push(
-        `- ${new Date(entry.timestamp).toISOString().split("T")[0]}: ${entry.action} (${entry.author})${entry.notes ? ` — ${entry.notes}` : ""}`,
+        `- ${new Date(entry.timestamp).toISOString().split("T")[0]}: ${entry.action} (${entry.author})${entry.notes ? `: ${entry.notes}` : ""}`,
       );
     });
     lines.push("");
