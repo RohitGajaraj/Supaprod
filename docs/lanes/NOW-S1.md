@@ -1,1 +1,1 @@
-S1 · 02:20 IST · DEVSERVER · premium pass 2: verifying the arrival motion stays still on first paint, then judging both themes · src/components/track/** · RUN-31
+S1 · 02:50 IST · WORKING · RUN-32 sentences stop being clipped (decision alternatives measured at 185 chars mean, clamped to one line) · RUN-33 the ruled footer exists at last, Stop moved into it and now available for the WHOLE walk instead of only between legs · PUSH BLOCKED, force-with-lease denied in this session, so S0 cannot see RUN-20 onward · src/components/track/** spine/** presence/** · RUN-33
