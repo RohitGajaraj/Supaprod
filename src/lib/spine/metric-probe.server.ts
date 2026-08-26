@@ -93,10 +93,8 @@ async function countFor(
 ): Promise<number | null> {
   try {
     let q = supabase.from(table as never).select("id", { count: "exact", head: true });
-    if (workspaceId) q = (q as never as { eq: (a: string, b: string) => never }).eq(
-      "workspace_id",
-      workspaceId,
-    );
+    if (workspaceId)
+      q = (q as never as { eq: (a: string, b: string) => never }).eq("workspace_id", workspaceId);
     if (extra) q = extra(q as never);
     const { count, error } = (await q) as unknown as { count: number | null; error: unknown };
     // `error` is read rather than discarded — F-76 shipped because it was not.
