@@ -217,7 +217,7 @@ export function deriveCharacter(input: PresenceInput): Presence {
   if (hold === BLOCKED_HOLD) {
     return {
       state: "blocked",
-      line: "A door I need is locked. Reconnect it and start me again, because redoing the work would not open it.",
+      line: "A door I need is locked. Reconnect it and start me again; redoing the work would not open it.",
     };
   }
 
@@ -225,7 +225,10 @@ export function deriveCharacter(input: PresenceInput): Presence {
     if (input.currentTool) {
       return { state: "working", line: `I'm ${verbForTool(input.currentTool)}.` };
     }
-    return { state: "thinking", line: "I'm on it. You can leave this page and I'll keep going." };
+    return {
+      state: "thinking",
+      line: "I'm on it, and you can leave this page while I keep going.",
+    };
   }
 
   if (input.result?.stopped === "finished" || hold === DONE_HOLD) {

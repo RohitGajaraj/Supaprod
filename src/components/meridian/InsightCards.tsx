@@ -748,7 +748,7 @@ function TrendBody({ insight }: { insight: TrendInsight }) {
                 className="mt-0.5 block font-mrd-mono text-mrd-lead font-semibold tracking-[-0.01em] tabular-nums"
                 style={{ color: tone }}
               >
-                {last === undefined ? "Not yet" : format(last)}
+                {last === undefined ? "-" : format(last)}
               </span>
               {/*
                * WHERE IT STARTED, not how far it moved, and the difference is

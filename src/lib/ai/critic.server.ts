@@ -191,9 +191,9 @@ export async function runCritic(
       ? `OPPORTUNITY
 Title: ${row.title}
 Problem: ${row.problem ?? ""}
-Target user: ${row.target_user ?? "n/a"}
-Hypothesis: ${row.hypothesis ?? "n/a"}
-ICE, Impact:${row.impact} Confidence:${row.confidence} Ease:${row.ease}`
+Target user: ${row.target_user ?? "-"}
+Hypothesis: ${row.hypothesis ?? "-"}
+ICE. Impact:${row.impact} Confidence:${row.confidence} Ease:${row.ease}`
       : `SPEC
 Title: ${row.title}
 Body:
@@ -207,14 +207,14 @@ ${(row.body_md ?? "").slice(0, 6000)}`;
     target.kind === "prd"
       ? `You are the Critic agent doing a pre-review RED TEAM of a product SPEC (PRD) before a human approves it for build. Judge it like an engineer + PM would: is it unambiguous, testable, and scoped?
 Evaluate the spec specifically for:
-- AMBIGUITY, requirements that read two ways; vague terms ("fast", "intuitive", "etc.") with no definition.
-- UNTESTABLE / UNMEASURABLE acceptance criteria, success conditions a QA engineer couldn't verify pass/fail.
-- SCOPE CREEP, work beyond the stated problem/opportunity, or that could be cut without losing the core.
-- UNSTATED ASSUMPTIONS & DEPENDENCIES, what must already be true or built first that the spec never names.
-- MISSING EDGE CASES, error / empty / loading / permission / concurrency states the spec ignores.
+- AMBIGUITY: requirements that read two ways; vague terms ("fast", "intuitive", "etc.") with no definition.
+- UNTESTABLE / UNMEASURABLE acceptance criteria: success conditions a QA engineer couldn't verify pass/fail.
+- SCOPE CREEP: work beyond the stated problem/opportunity, or that could be cut without losing the core.
+- UNSTATED ASSUMPTIONS & DEPENDENCIES: what must already be true or built first that the spec never names.
+- MISSING EDGE CASES: error / empty / loading / permission / concurrency states the spec ignores.
 Return STRICT JSON only:
-{"verdict":"ship|revise|kill","summary":"max 240 chars","risks":["ambiguity / scope / dependency / edge-case, quote the spec where useful"],"kill_criteria":["what makes this spec un-shippable AS WRITTEN"],"missing_evidence":["untestable/unmeasurable acceptance criteria, unstated assumptions, and open questions to resolve before build"],"confidence":0.0-1.0}
-Be specific and quote the spec. No filler. Only judge what the spec actually says, do not invent requirements. "ship" only when the spec is clear, testable, and scoped; "kill" when it is fundamentally unbuildable as framed; "revise" otherwise.`
+{"verdict":"ship|revise|kill","summary":"max 240 chars","risks":["ambiguity / scope / dependency / edge-case; quote the spec where useful"],"kill_criteria":["what makes this spec un-shippable AS WRITTEN"],"missing_evidence":["untestable/unmeasurable acceptance criteria, unstated assumptions, and open questions to resolve before build"],"confidence":0.0-1.0}
+Be specific and quote the spec. No filler. Only judge what the spec actually says. Do not invent requirements. "ship" only when the spec is clear, testable, and scoped; "kill" when it is fundamentally unbuildable as framed; "revise" otherwise.`
       : `You are the Critic agent. Red-team the proposal before a human approves it.
 Return STRICT JSON only:
 {"verdict":"ship|revise|kill","summary":"max 240 chars","risks":["..."],"kill_criteria":["..."],"missing_evidence":["..."],"confidence":0.0-1.0}

@@ -86,26 +86,42 @@ export function VouchersPanel() {
                 {rows.map((v) => (
                   <tr key={v.id} style={{ borderTop: "1px solid var(--mrd-edge)" }}>
                     <td style={td()}>
-                      <code
-                        style={{ fontFamily: "var(--mrd-mono)", color: "var(--mrd-ink)" }}
-                      >
+                      <code style={{ fontFamily: "var(--mrd-mono)", color: "var(--mrd-ink)" }}>
                         {v.code}
                       </code>
                     </td>
                     <td style={td()}>{v.kind}</td>
                     <td style={td()}>{v.plan_tier ?? "-"}</td>
                     <td style={td()}>{v.credits ?? "-"}</td>
+                    {/* R-22: AN UNSET CEILING IS NOT A CHOSEN ONE, AND THIS CELL
+                        USED TO SAY IT WAS. A null `max_redemptions` rendered as
+                        "no limit", which reads as a decision somebody made. Nobody
+                        can make it here: `issue_voucher` takes `_max_redemptions`
+                        as a NON-NULL number, so no path in the product produces a
+                        null. It is an absence.
+                        And the absence resolves to the UNSAFE reading, which is the
+                        hazard R-22 generalises. `redeem_voucher` guards the cap with
+                        `if _v.max_redemptions is not null then ... end if`
+                        (20260622040000), so a null skips the check entirely and the
+                        code keeps granting credits with no ceiling and no backstop.
+                        So the cell says both halves: that nothing set a cap, and what
+                        that currently costs. The real repair is a safe default on the
+                        read side and belongs in a migration, not in this table —
+                        filed in coordination/requests/S3/. */}
                     <td style={td()}>
-                      {v.redemptions_count} / {v.max_redemptions ?? "no limit"}
+                      {v.max_redemptions === null ? (
+                        <>{v.redemptions_count} · no cap set, so it keeps granting</>
+                      ) : (
+                        <>
+                          {v.redemptions_count} / {v.max_redemptions}
+                        </>
+                      )}
                     </td>
                     <td style={td()}>{v.expires_at?.slice(0, 10) ?? "-"}</td>
                     <td style={td()}>{v.active ? "yes" : "no"}</td>
                     <td style={td()}>
                       <div style={{ display: "flex", gap: "var(--space-1)" }}>
-                        <Action
-                          style={{ padding: "6px 10px" }}
-                          onClick={() => setOpenId(v.id)}
-                        >
+                        <Action style={{ padding: "6px 10px" }} onClick={() => setOpenId(v.id)}>
                           Redemptions
                         </Action>
                         {v.active ? (

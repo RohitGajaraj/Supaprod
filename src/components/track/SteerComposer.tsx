@@ -216,7 +216,7 @@ export function SteerComposer({
           onSubmit={submit}
           busy={send.isPending}
           placeholder={
-            roster.length ? `Say what to change, try @${roster[0]}` : "Say what to change"
+            roster.length ? `Say what to change, or try @${roster[0]}` : "Say what to change"
           }
           label="Steer this work without stopping it"
           hint="Enter to send · @ to name someone here"
