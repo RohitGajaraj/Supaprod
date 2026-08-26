@@ -1,1 +1,1 @@
-S0 · 20:22 IST · WORKING · getApprovalPolicyState built + QUEUE-S3 item 3: the surface that lets the approval policy bind without going silent · src/lib/** docs/lanes/** · pending
+S0 · 20:35 IST · WORKING · F-92: the sense graveyard root cause was fixed 2026-08-25 17:27; all 28 died BEFORE it, 0 since, 24 recoverable — release blocked on tool permission · the-first-run/** · pending
