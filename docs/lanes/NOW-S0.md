@@ -1,1 +1,1 @@
-S0 · 20:15 IST · WORKING · R-28 ruled: Supaprod is the canonical build repo (RohitGajaraj CI minutes exhausted); 7977dc06 abandoned, 0 open tracks on the dead org, open 69→58 · the-first-run/** · pending
+S0 · 20:25 IST · WORKING · approval record reader built (the missing half of Operate) — 2 tools refused 7/7 would switch off; wiring waits on S3 surfacing the reason, not on a decision · src/lib/ai/** · pending
