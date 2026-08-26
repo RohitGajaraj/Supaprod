@@ -9,6 +9,7 @@
  *   a review (mode=review). Memory is recalled and prepended.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { humanizeText } from "./humanize";
 import {
   callModel,
   CreditExhaustedError,
@@ -62,6 +63,28 @@ const MAX_RUNNING_PER_WORKSPACE = 5;
 // throws — a metering hiccup must never mask or delay the halt/fail handling it sits
 // beside. No-op where credits_enabled() is off, which production is not (refundAbandonedRunCredits's own
 // guard).
+
+/**
+ * THE LAST GATE ON THE AGENT'S OWN LINE.
+ *
+ * `agent_runs.output` is what the run transcript prints, so it is the sentence a
+ * person actually reads, roughly every second turn. `humanizeText` guarded the
+ * STREAMED text in `runtime.server.ts` and never these writes.
+ *
+ * MEASURED 2026-08-27 by S3 on live data: **1,375 of 2,773 rows carried an em or
+ * en dash, 49.6 percent, newest the same evening** — against 0 of 1,484
+ * `signals.title` after that column was fixed. Every source sweep this week was
+ * structurally incapable of seeing it, because no source scanner reads a
+ * database.
+ *
+ * Every `output:` write in this file goes through here, and a test asserts that
+ * rather than trusting it, because there were SEVEN of them and an eighth would
+ * otherwise arrive unsanitised.
+ */
+function runOutput(text: string): string {
+  return humanizeText(text);
+}
+
 async function refundIfAbandoned(
   supabase: SupabaseClient,
   userId: string,
@@ -961,7 +984,7 @@ export async function runAgentLoop(
               : anyToolStepFailed(steps)
                 ? "completed_with_failures"
                 : "completed",
-            output: finalMsg,
+            output: runOutput(finalMsg),
             duration_ms: Date.now() - startedAt,
           })
           .eq("id", runId);
@@ -1410,7 +1433,7 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
             .from("agent_runs")
             .update({
               status: "halted",
-              output: msg,
+              output: runOutput(msg),
               // AFD-06 / INSTRUMENT: `halted_reason` and `halted_at` are READ
               // in three places and were WRITTEN in none. The governance
               // Controls panel renders "· {halted_reason}" next to a halted
@@ -1484,7 +1507,7 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
             .from("agent_runs")
             .update({
               status: "halted",
-              output: msg,
+              output: runOutput(msg),
               // The TAXONOMY, not the sentence -- the same rule the governance
               // branch above follows, because a reader groups by the reason and
               // the human wording is already in `output`.
@@ -1520,7 +1543,7 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
             .from("agent_runs")
             .update({
               status: "failed",
-              output: errMsg,
+              output: runOutput(errMsg),
               // AFD-06: classify the failure at the moment we know what it was.
               // `failure_kind` is read by the observability dashboard's failure
               // breakdown, which filters `.not("failure_kind","is",null)` and
@@ -1819,7 +1842,7 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
             .from("agent_runs")
             .update({
               status: "waiting_approval",
-              output: pauseMsg,
+              output: runOutput(pauseMsg),
               // AFD-06 / INSTRUMENT: agent time spent BEFORE the gate, written
               // now because a paused run may never come back — all 7
               // waiting_approval rows in production are from a single day and
@@ -2490,7 +2513,7 @@ export async function resumeAgentLoop(
             : anyToolStepFailed(steps)
               ? "completed_with_failures"
               : "completed",
-          output: finalMsg,
+          output: runOutput(finalMsg),
           ...(elapsedMs === null ? {} : { duration_ms: elapsedMs }),
         })
         .eq("id", runId)
@@ -2875,7 +2898,7 @@ export async function executeApproval(
           .from("agent_runs")
           .update({
             status: "failed",
-            output: msg,
+            output: runOutput(msg),
             failure_kind: classifyFailureCode(msg),
             ...(failedElapsedMs === null ? {} : { duration_ms: failedElapsedMs }),
           })
