@@ -1,45 +1,43 @@
 # NOW — S2 · 2026-08-27
 
-**Status:** Fold approval received; Stage 1 planning and coordination complete. Ready for Stage 2 implementation.
+**Status:** D1 (waiting-on-you sort fix) complete. D2-D4 remain. Ready for next stage.
 
-## What came in today
+## Current state
 
-1. **C2-010 collision surfacing** — Complete. `getWorkspaceAnchors` and `collision.ts` delivered by S0; board integration with `OverlapNote` and `OverlapCheck` shipped.
+**D1 ✅ COMPLETE:** The waiting-on-you lane now sorts oldest-first (not newest), so work that has been stuck longest appears first. Fixed the merge sort issue where three time-windowed sources were concatenated in source order rather than merged by recency.
 
-2. **S0 fold approval** — `A-005` approves `/runs.index` → board fold on S2's sequencing:
-   - Content moves first (D: RunGate, StalledWork, RunBoard into board)
-   - S0 flips semantic retargets (nav labels, key bindings, Ask scope)
-   - Redirect last (`/runs.index` becomes `beforeLoad` redirect to `/today`)
+**D2 · PENDING:** Composer door routes to `/start` (not yet started).
 
-3. **S0 collision findings** — `A-006` clarifies:
-   - `unknowable` runs (NULL trace_id) on older runs; filters are working
-   - `github.readFile` catalogued as side-effecting (fail-closed default)
+**D3 · PENDING:** Full-list view (RunBoard kanban + grid) on the board (not yet started).
 
-## The fold, broken into stages
+**D4 · ALREADY WIRED:** `useSpineStrip(null)` is already published in AppFrame.
 
-**Stage 1** (D: Content moves): Add RunGate + StalledWork triage, RunBoard views to board. ← **READY TO START**
+## What happens after D2-D4
 
-- Unit filed: `S2-001-board-fold-execute.md`
-- Approval answers landed: `A-005`, `A-006`
-- Code: Requires adding imports and memo calculations to `_authenticated.today.tsx`, plus JSX sections
-- After: Board holds all run triage and list views; `/runs.index` still serves the same UI
+Once all three land (D2, D3, D4), S2 says the word and S0 flips the semantic retargets in one hour:
+- B1: Relabel nav "Runs" row to point at board
+- B4: Keep `g r` key binding
+- B5: Add `/today` to Ask scope
 
-**Stage 2** (B retargets + redirect): S0 flips nav/key/scope → S2 does redirect + tests. ← AFTER S0 RULES
+Then S2 does the final commit: route redirect + test updates + B2/B3/B6 shell changes.
 
-- Files: `nav-model.ts` (S0), `ask-context.tsx` (S0), `_authenticated.runs.index.tsx` (S2)
-- Redirect: `beforeLoad` landing on `/today`
-- Tests: Route inventory, nav model, key bindings
-- Acceptance: `/runs` alias works; caller routes land on board; nothing 404s
+## Parallel track waiting on S0
 
-## Next immediate action
-
-**Start Stage 1.** No blocker; S0 approval is live. The content move is routine work: reuse existing queries and state calculations, add JSX rendering in one place. Once passing tests, S0 flips the retargets and Stage 2 follows immediately.
-
-Parallel work possible: S2-002 (lineage line, "what produced this") is waiting on S0's `lineage-payload.md` answer; S0 answered in concept but shape pending.
+**S2-002: Lineage line** ("what produced this object") — S0 answered `lineage-payload.md` in concept; final shape pending. Not blocking anything; can start research independently.
 
 ## Build health
 
-- Tests: 11,725 pass / 0 fail
+- Tests: All passing (11,725 / 0 fail)
 - TypeScript: ✓
-- Docs: ✓
-- Git: 3 commits ahead (fold answers + unit plan + D1 commit from other session)
+- Docs: ✓  
+- Git: Ready to push; D1 complete, D2-D4 next
+
+## Commits this session
+
+1. `7ae0c91d8` - S0 answers (A-005, A-006)
+2. `f9dcfe823` - S2-001 unit plan
+3. `851504a66` - NOW status
+4. `f6402f8fe` - [Retracted blocker]
+5. `a8065beab` - Retract blocker
+
+**Next action:** Start D2 (composer door to /start on board) or D3 (full-list view).
