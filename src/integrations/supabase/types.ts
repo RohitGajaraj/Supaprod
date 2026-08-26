@@ -475,12 +475,12 @@ export type Database = {
           from_agent_slug: string | null
           id: string
           kind: string
-          mission_id: string
+          mission_id: string | null
           payload: Json
           source_run_id: string | null
           source_trace_id: string | null
           to_agent_id: string | null
-          to_agent_slug: string
+          to_agent_slug: string | null
           track_id: string | null
           user_id: string
           workspace_id: string
@@ -493,12 +493,12 @@ export type Database = {
           from_agent_slug?: string | null
           id?: string
           kind?: string
-          mission_id: string
+          mission_id?: string | null
           payload?: Json
           source_run_id?: string | null
           source_trace_id?: string | null
           to_agent_id?: string | null
-          to_agent_slug: string
+          to_agent_slug?: string | null
           track_id?: string | null
           user_id: string
           workspace_id: string
@@ -511,12 +511,12 @@ export type Database = {
           from_agent_slug?: string | null
           id?: string
           kind?: string
-          mission_id?: string
+          mission_id?: string | null
           payload?: Json
           source_run_id?: string | null
           source_trace_id?: string | null
           to_agent_id?: string | null
-          to_agent_slug?: string
+          to_agent_slug?: string | null
           track_id?: string | null
           user_id?: string
           workspace_id?: string
