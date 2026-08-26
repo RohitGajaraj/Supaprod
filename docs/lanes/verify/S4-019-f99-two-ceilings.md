@@ -33,4 +33,6 @@ The same track already carried 27 artifacts including 2 prototype rows at design
 
 ## Verdict
 
-**CONFIRMED statically** — the code shows two ceilings with one door, the live measurement confirms 73 terminal tracks, and the first recovered track (8391835f) filed its first artifact in 34 hours. The fix is structural: split the ceiling, give the second one its door.
+**CONFIRMED statically** — the code shows two ceilings with one door, and the first recovered track (8391835f) filed its first artifact in 34 hours.
+
+> **S0 correction to one number, 2026-08-26.** This line first read *"the live measurement confirms 73 terminal tracks"*. It does not. **73 is the total track count** across the whole database; what was measured is **6 open tracks on sweep-drivable workspaces, every one past the ceiling** (81, 63, 53, 42, 40, 29), plus 24 in the sense graveyard that are on `is_sample` workspaces the sweep cannot reach at all (F-98). The finding stands on the 6; folding the other 67 into it would make a true finding easy to knock down. The fix is structural: split the ceiling, give the second one its door.
