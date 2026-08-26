@@ -290,7 +290,7 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
    */
   {
     id: "you",
-    label: "Account",
+    label: "You",
     desc: "Your name, what may interrupt you, and what this workspace costs.",
     sections: [
       {
@@ -308,9 +308,26 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
           },
         ],
         label: "Profile",
-        keywords: ["name", "avatar", "picture", "identity", "theme", "dark", "light", "density", "appearance", "timezone", "working hours", "quiet hours"],
+        keywords: [
+          "name",
+          "avatar",
+          "picture",
+          "identity",
+          "theme",
+          "dark",
+          "light",
+          "density",
+          "appearance",
+          "timezone",
+          "working hours",
+          "quiet hours",
+        ],
       },
-      { id: "notifications", label: "Notifications", keywords: ["email", "digest", "alert", "interrupt", "quiet"] },
+      {
+        id: "notifications",
+        label: "Notifications",
+        keywords: ["email", "digest", "alert", "interrupt", "quiet"],
+      },
       /*
        * "BILLING", NOT "PLAN", AND THIS IS A COLLISION FIX RATHER THAN A TIDY-UP.
        *
@@ -340,7 +357,24 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
         label: "Billing",
         // Credits folded in here, so every word for the balance and the top-up has to
         // reach this door or the fold made them unfindable.
-        keywords: ["plan", "tier", "upgrade", "downgrade", "cancel", "invoice", "payment", "card", "subscription", "credits", "credit", "balance", "top-up", "topup", "buy", "redeem"],
+        keywords: [
+          "plan",
+          "tier",
+          "upgrade",
+          "downgrade",
+          "cancel",
+          "invoice",
+          "payment",
+          "card",
+          "subscription",
+          "credits",
+          "credit",
+          "balance",
+          "top-up",
+          "topup",
+          "buy",
+          "redeem",
+        ],
       },
       /*
        * CREDITS FOLDS INTO BILLING, 2026-08-17 (founder agreed on the same read).
@@ -388,13 +422,36 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
     sections: [
       {
         id: "connections",
-        label: "Connectors",
-        keywords: ["connect", "integration", "integrations", "source", "sources", "sync", "binding", "oauth", "slack", "linear", "notion", "github", "calendar", "gmail"],
+        label: "Connected tools",
+        keywords: [
+          "connect",
+          "integration",
+          "integrations",
+          "source",
+          "sources",
+          "sync",
+          "binding",
+          "oauth",
+          "slack",
+          "linear",
+          "notion",
+          "github",
+          "calendar",
+          "gmail",
+        ],
       },
       // Folded into Connectors, which shows the same bindings. Address only.
       { id: "sync", label: "Sync and bindings", door: false, foldsInto: "connections" },
-      { id: "interop", label: "Agent access", keywords: ["mcp", "token", "api", "external agent", "outside"] },
-      { id: "data", label: "Your data", keywords: ["export", "download", "delete", "privacy", "gdpr", "retention"] },
+      {
+        id: "interop",
+        label: "Outside access",
+        keywords: ["mcp", "token", "api", "external agent", "outside"],
+      },
+      {
+        id: "data",
+        label: "Your data",
+        keywords: ["export", "download", "delete", "privacy", "gdpr", "retention"],
+      },
       /*
        * ── MODELS MOVED HERE, 2026-08-17 ─────────────────────────────────────
        * Founder: "Models and keys would come in data and access only, right? Why is it
@@ -413,7 +470,7 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
        */
       {
         id: "ai",
-        label: "Models and keys",
+        label: "Models",
         subs: [
           {
             label: "Your own provider keys",
@@ -466,8 +523,16 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
       },
       {
         id: "autonomy",
-        label: "Autonomy and approvals",
-        keywords: ["approval", "approvals", "permission", "kill switch", "pause", "autopilot", "trust"],
+        label: "What they may do without asking",
+        keywords: [
+          "approval",
+          "approvals",
+          "permission",
+          "kill switch",
+          "pause",
+          "autopilot",
+          "trust",
+        ],
       },
     ],
   },
@@ -485,12 +550,27 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
             keywords: ["invite", "invitation", "teammate", "team", "member", "people", "seat"],
           },
         ],
-        label: "Brief and voice",
+        label: "About your company",
         // People lives on this pane (MembersCard, TeamCard), which is why "invite"
         // and "member" belong here and nowhere else.
-        keywords: ["brief", "voice", "tone", "constitution", "people", "members", "member", "invite", "team", "roles"],
+        keywords: [
+          "brief",
+          "voice",
+          "tone",
+          "constitution",
+          "people",
+          "members",
+          "member",
+          "invite",
+          "team",
+          "roles",
+        ],
       },
-      { id: "brand", label: "Brand", keywords: ["design", "design system", "logo", "colour", "color"] },
+      {
+        id: "brand",
+        label: "Brand",
+        keywords: ["design", "design system", "logo", "colour", "color"],
+      },
       { id: "products", label: "Products", keywords: ["product", "repo", "app", "ships"] },
       // Dead pane, live address. See section 4 of the header.
       { id: "memory", label: "Memory", door: false },

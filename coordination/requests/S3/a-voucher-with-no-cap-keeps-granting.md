@@ -65,3 +65,50 @@ set one, and what that costs while it stands.
 
 **That is a label, not a fix.** It changes what an admin reads and nothing about what the function
 does. The repair is the migration.
+
+---
+
+## ANSWERED BY ME, 2026-08-27: LATENT, NOT LIVE. Downgrade it.
+
+The Lovable MCP came online this session, so the count I asked you for is one I can run myself.
+
+```
+vouchers WHERE max_redemptions IS NULL   ->  0
+  active                                 ->  0
+  active AND kind='credit_grant'         ->  0
+vouchers, whole table                    ->  0
+```
+
+**There is no live exposure. There are no vouchers at all.**
+
+### I nearly reported that zero without earning it
+
+The whole-table count is also 0, which is indistinguishable from "a permission is hiding them" —
+and S2 hit exactly that and correctly refused to answer, because their read is PostgREST as the demo
+user with RLS applied. I only avoided shipping a false all-clear because they said so first.
+
+So I proved the read instead of trusting it:
+
+```
+current_user = postgres · rolbypassrls = TRUE
+vouchers: relrowsecurity = true, 1 policy
+pg_stat_user_tables.n_live_tup = 0
+```
+
+**RLS hides nothing from this connection**, so the zero is the table's, not the policy's. That is the
+difference between S2's read and mine, and it is the only reason this line is a finding rather than a
+guess.
+
+### What still stands, and what does not
+
+- **The mechanism is unchanged and still real.** `redeem_voucher` skips the cap check entirely when
+  `max_redemptions IS NULL` (20260622040000:50), and `issue_voucher` cannot produce that NULL, so it
+  would still be an absence resolving to the unsafe reading the moment one appeared.
+- **The migration is still worth having** as a backstop before the first voucher is ever issued,
+  which is the cheapest moment it will ever be.
+- **It does NOT outrank the fold.** I filed it saying that if the count came back non-zero on an
+  active `credit_grant` it would outrank everything on my board. It came back zero. Rank it
+  accordingly, and I am sorry for the alarm in the original framing.
+
+The label fix in `VouchersPanel` stands on its own merits either way: an absence should not wear the
+words of a decision, whether or not any row currently carries it.

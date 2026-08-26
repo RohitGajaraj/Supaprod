@@ -42,9 +42,22 @@ describe("the public brief parent is readable", () => {
     // listings (docs/strategy/positioning-locked-2026-08.md:203), and layer 02
     // renders as "the loop" on the site already. What this test exists to prove
     // is that layer 02 is present in the parent document as real semantic text
-    // rather than living only in the iframe. The layer's claim is that it runs
-    // the whole lifecycle; what that layer is CALLED is positioning's call.
-    expect(summary).toMatch(/runs the whole lifecycle\./);
+    // rather than living only in the iframe. What that layer is CALLED is
+    // positioning's call.
+    //
+    // AND THIS LINE PROVED ITS OWN HEADER RIGHT, 2026-08-27. It read
+    // toMatch(/runs the whole lifecycle\./) until canon 5N banned exactly that
+    // string in outward copy on 2026-08-26, because it invites the "so you are
+    // Lovable, plus advice" comparison the ruling refuses. So a guard written
+    // to protect INDEXABILITY spent a day enforcing a phrase a founder ruling
+    // had outlawed, and would have failed the build of anyone who fixed the
+    // site. That is the exact failure mode the two notes above describe, on the
+    // third try, in the same file.
+    //
+    // Pinned to the half of 5N's replacement that is the CLAIM rather than the
+    // wording: this layer hands work out and checks the result. If positioning
+    // rewords it again, update the phrase here and leave the shape alone.
+    expect(summary).toMatch(/checks what came back\./);
     // PINS THE IDEA, NOT THE SPELLING (2026-08-11). This read
     // toContain("The company brain learns, then guides.") until the
     // practitioner-vocabulary ruling retired "company brain"
