@@ -1,1 +1,1 @@
-S4 · not started · IDLE · awaiting first unit · — · —
+S4 · 11:25 UTC · WORKING · S4-001 verdict filed (fix CONFIRMED in code; gates UNREPRODUCIBLE: no bun/node on this worktree — ask filed; schema ask filed) · S4-002 BLOCKED on same ask · e2e/** docs/lanes/verify/** · awaiting coordination/answers/S4/

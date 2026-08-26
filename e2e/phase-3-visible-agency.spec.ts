@@ -9,6 +9,29 @@
 
 import { test, expect } from "@playwright/test";
 
+/*
+ * GUARDED OFF BY DEFAULT (S4, 2026-08-26), same reasons as round-8.spec.ts:
+ *
+ * 1. THIS TEST IS A USER. It presses /start and "Run it now" unauthenticated-
+ *    guard-free, creating a REAL spine_tracks row per run wherever :8080
+ *    points. Six duplicate tracks starved the watched run this way on
+ *    2026-08-25.
+ *
+ * 2. ITS VERDICT PRINTING IS THEATRE. The "MISSION GATE CONDITION: SATISFIED"
+ *    block below logs success or failure without affecting pass/fail — the
+ *    only real asserts are the last two lines. Same species as the deleted
+ *    S0-001 tests' hardcoded "MISSION GATE MET".
+ *
+ * Its station detection (an "At X" region read) is better than round-8's
+ * includes-over-the-whole-page, but .first() can mis-grab when several
+ * sections match. Opt in only against a local server you started yourself:
+ *   PHASE3_PRESS=yes bunx playwright test e2e/phase-3-visible-agency.spec.ts
+ */
+test.skip(
+  process.env.PHASE3_PRESS !== "yes",
+  "Creates a real track per run and its console verdict does not affect pass/fail; opt in explicitly with PHASE3_PRESS=yes.",
+);
+
 test("PHASE 3: Visible agency - real-time station updates", async ({ page }) => {
   console.log("\n════════════════════════════════════════════════════════");
   console.log("🔷 PHASE 3 VISIBLE AGENCY TEST");
