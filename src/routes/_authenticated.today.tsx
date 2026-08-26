@@ -31,7 +31,6 @@ import { FocusNext } from "@/components/today/FocusNext";
 import { HandoverNote } from "@/components/today/HandoverNote";
 import { OverlapCheck, OverlapNote } from "@/components/today/OverlapNote";
 import { PushedInsights } from "@/components/today/PushedInsights";
-import { waitingNote } from "@/components/today/waiting-age";
 import { trackToBoardRows, type TrackBoardRow } from "@/components/today/tracks-feed";
 import { QuietMorning } from "@/components/today/QuietMorning";
 import { RunState, ShippedState } from "@/components/today/RunState";
@@ -1724,14 +1723,28 @@ function Today() {
                 {crewSection(
                   FEED_REPLY,
                   allReplyRows,
-                  /* HOW LONG THE OLDEST ONE HAS SAT, said once above the lane.
-                     The lane caps at three standing rows and folds the rest, so
-                     a person reading "89" over three fresh-looking rows has no
-                     way to learn the backlog behind them is three weeks deep.
-                     Measured 2026-08-26: 89 waiting, 85 of them 8 to 30 days
-                     old, the oldest 21 days. waiting-age.ts carries why this is
-                     the oldest rather than a bucket count. */
-                  waitingNote("Nothing moves on these until you answer.", allReplyRows, Date.now()),
+                  /* THE BOUNDARY, SAID OUT LOUD, because the omission it covers
+                     is large and silent. This lane is filtered by
+                     `withinLastDay` (:670), so work whose last movement was over
+                     24 hours ago is not here AND IS NOT COUNTED. Measured
+                     2026-08-27: 89 missions are waiting on a person and 85 of
+                     them last moved between 8 and 30 days ago, so the lane
+                     showed 3. The longer a thing waits, the more certainly it
+                     disappears from the one surface that exists to say what
+                     needs you.
+
+                     NO NUMBER IS PRINTED HERE, and that is the honest choice
+                     rather than the lazy one. `listMissions` is `.limit(50)`
+                     ordered by `updated_at` descending (missions.functions.ts
+                     :244-245), so the client is handed the 50 most RECENTLY
+                     touched of 108 and the oldest waiting work is precisely
+                     what falls off the end. Any count or "oldest" computed here
+                     would be drawn from the newest 50 and would understate by a
+                     margin nobody could see. A stated boundary is true; a
+                     number from a capped read is a wrong number wearing a
+                     fact's clothes. The real count needs a server-side read and
+                     is filed with S0. */
+                  "Nothing moves on these until you answer. This lane shows the last 24 hours, so anything waiting longer is not here.",
                   (row) =>
                     row.proposed ? (
                       /* A PROPOSED MISSION IS NOT ASKING A QUESTION — it is
