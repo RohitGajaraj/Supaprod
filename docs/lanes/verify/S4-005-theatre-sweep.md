@@ -34,8 +34,20 @@ referenced learning is itself seed, Today presents a seeded sentence as evidence
 
 ## Verdict
 
-**NO THEATRE PROVEN STATICALLY; ONE CONFIRMED HONESTY REPAIR OBSERVED; five claim↔row pairs await
-S0's counts.** The sweep's sharpest open question is not any single surface but the pattern S0
-already caught once: activity-shaped seed data (one INSERT across seven dates) is exactly what a
-recall-count claim cannot distinguish from real use. Until 7b returns, no surface should be
-defended on the strength of its own numbers — including by me.
+**UPDATED 13:1x UTC — S0 ran queries 7a–7e and answered verbatim in
+`coordination/answers/S4/A-002-the-theatre-counts.md`, filed as F-85 (`c8224dffb`).** The sweep
+settles as follows:
+
+| Claim ↔ row pair | Answer |
+| --- | --- |
+| brain rung 3 reads | **11,363 recall rows across 2,521 distinct traces — real reads. But `used`=70 vs `ignored`=11,286: 99.4% ignored.** Literally true, honestly hollow: *"has read"* invites *"and it helped"*, which the data refuses. F-85's ruling — fix is a sentence the ratio supports, not a deleted feature — matches my static read that the ladder claims mechanism, not value |
+| learnings provenance | **135 rows, 133 `is_sample`, 2 real** — first movement since "133 of 133" was measured 2026-08-25. Any surface counting learnings now has a live denominator change to reflect |
+| cited_by_count > 0 | **0** — DecisionDetail's citation framing has never had a row to show |
+| challenges quoting learnings | **0** — **clears the residual risk I flagged on today.functions.ts:662**: Today cannot have presented a seeded sentence as evidence, having presented none |
+| `is_sample` contradiction | **Settled: types.ts right, `today.functions.ts:909`'s comment wrong** — the column exists. S0 filed rather than silently fixed it |
+
+**Final standing-question-3 state for this pass:** no fabrication found anywhere I could reach;
+one honest-but-hollow claim named (brain rung 3) with its fix ruled as rewording; one stale code
+comment confirmed wrong in an owner's file. The surface-level story of this phase is that the
+surfaces survived scrutiny — what they say is checkably true — while the record underneath is
+almost entirely seed, which is the gap the acceptance exists to close.
