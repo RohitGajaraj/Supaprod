@@ -1,4 +1,5 @@
 import type { HoldReason } from "@/lib/spine/driver";
+import { TERMINAL_HOLDS } from "@/lib/spine/correction";
 
 /**
  * WHEN A RUN STOPS, THE SCREEN SAYS WHAT WILL START IT AGAIN. NO DEAD END, EVER.
@@ -98,6 +99,35 @@ const SENTENCE: Record<Offer, string> = {
   steer: "Say what to change in the box below, and it reaches whoever picks this up next.",
 };
 
+/**
+ * A STEER ALONE IS NOT A WAY OUT OF A TERMINAL HOLD, AND SAYING IT IS WOULD BE
+ * WORSE THAN THE DEAD END THIS FILE REMOVED.
+ *
+ * `steerTrack` inserts one row. It does not touch `last_hold`, `attempts` or
+ * `station_drives`, so it changes nothing about whether the work will run. On a
+ * hold in `TERMINAL_HOLDS` the sweep removes the track from selection entirely
+ * (`track-tick.ts`), so the message is stored and **nothing ever arrives to
+ * consume it**. The person would have written an instruction, been told it
+ * reaches whoever picks this up next, and had it sit there forever. That failure
+ * looks like success, which is the one shape worse than saying nothing.
+ *
+ * Undo and handback do NOT need this pairing: both clear `last_hold`, `attempts`
+ * and `station_drives` themselves, so the track becomes drivable again as part
+ * of the same act.
+ *
+ * Caught by S4 on the drive trace, against my own claim: the press that consumed
+ * my steer carried `entry_hold = out-of-time`, which is not terminal. The track
+ * read `going-in-circles` by the time I looked, and I read the state at read
+ * time as the state at the moment the steer landed.
+ */
+const TERMINAL: ReadonlySet<string> = new Set<string>(TERMINAL_HOLDS);
+
+function steerSentence(hold: string, stationName: string | null): string {
+  if (!TERMINAL.has(hold)) return SENTENCE.steer;
+  const press = stationName ? `press Let ${stationName} try again` : "start it again yourself";
+  return `Say what to change in the box below, then ${press}. Nothing will pick this up on its own while it is stopped here.`;
+}
+
 /** Both doors open, and saying so in one clause reads better than two. */
 const BOTH = "Send it back a step, or do this step yourself.";
 
@@ -112,6 +142,8 @@ const BOTH = "Send it back a step, or do this step yourself.";
 export function wayOut(
   hold: string | null | undefined,
   available: Available = { undo: false, handback: false },
+  /** Named so a terminal hold can point at the exact control that restarts it. */
+  stationName: string | null = null,
 ): WayOut {
   if (!hold) return NOTHING;
   const diagnosis = DIAGNOSIS[hold as HoldReason];
@@ -129,10 +161,13 @@ export function wayOut(
     return { next: diagnosis, onThisScreen: false };
   }
 
+  const first = usable[0] as Offer;
   const offer =
     usable.includes("undo") && usable.includes("handback")
       ? BOTH
-      : SENTENCE[usable[0] as Offer];
+      : first === "steer"
+        ? steerSentence(hold, stationName)
+        : SENTENCE[first];
 
   return {
     next: `${diagnosis} ${offer}`,

@@ -642,10 +642,11 @@ export function TrackRunLeft({
   const holdTakeOver = track
     ? takeOver({ status: track.status, station: track.station, route: track.route as SpineRoute })
     : null;
-  const holdWayOut = wayOut(track?.holdReason, {
-    undo: Boolean(holdTakeOver?.undoTo),
-    handback: Boolean(holdTakeOver?.handback),
-  });
+  const holdWayOut = wayOut(
+    track?.holdReason,
+    { undo: Boolean(holdTakeOver?.undoTo), handback: Boolean(holdTakeOver?.handback) },
+    track ? (AGENT_STATIONS[track.station]?.name ?? null) : null,
+  );
   const showCalmHold = isCalmHold && !walkingMidRoute;
 
   /*
