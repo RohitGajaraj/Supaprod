@@ -1514,11 +1514,21 @@ function DecideSurface() {
       (provenance.data?.source_signals ?? []).map((sig) => {
         const said = (sig.content ?? sig.title ?? "").trim();
         const when = ago(sig.created_at);
+        /*
+         * `sourceLabel`, not the stored token. These are column values like
+         * `competitive_research` and `sales-call`, and the evidence cards were
+         * printing them as stored, so the one section titled "What people
+         * actually said" attributed quotes to a database identifier. The
+         * humaniser knows the brands it knows and prettifies the rest, and it
+         * answers "An unnamed source" for a null rather than the word
+         * "unattributed", which read like a verdict on the evidence.
+         */
+        const from = sourceLabel(sig.source);
         return {
           id: sig.id,
-          title: `${sig.source ?? "unattributed"}${when ? `, ${when} ago` : ""}`,
+          title: `${from}${when ? `, ${when} ago` : ""}`,
           body: said,
-          source: { label: sig.source ?? "signal", kind: "chat" as const },
+          source: { label: from, kind: "chat" as const },
         };
       }),
     [provenance.data],
@@ -2538,8 +2548,10 @@ function DecideSurface() {
               <CtxHead>What backs it</CtxHead>
               {activeSignals !== null ? (
                 <CtxBody>
-                  <Num>{activeSignals}</Num> {activeSignals === 1 ? "signal" : "signals"} in the
-                  record
+                  {/* One vocabulary. S0 renamed the display word for this kind
+                      to "finding" in KIND_WORD; this line still said the old one
+                      while the same page said the new one two sections above. */}
+                  <Num>{activeSignals}</Num> {wordFor("signal", activeSignals)} in the record
                 </CtxBody>
               ) : activeOpp?.theme_id ? (
                 /* IT HAS A CLUSTER AND WE DID NOT LOOK IT UP, which is not the
