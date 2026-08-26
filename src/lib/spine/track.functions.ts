@@ -2429,14 +2429,27 @@ export const submitStationByHand = createServerFn({ method: "POST" })
       if (error || !dep) {
         return { ok: false, line: "That did not save. Nothing was recorded against the work." };
       }
-      await supabase.from("spine_track_members" as never).insert({
+      /*
+       * ONLY THE FIVE COLUMNS THIS TABLE HAS. `spine_track_members` is
+       * `track_id, artifact_kind, artifact_id, station, created_at` — no
+       * `workspace_id`, no `user_id`. My first version passed both, and `as never`
+       * hid it from the typechecker exactly as F-76's phantom columns did.
+       * The error is READ, not discarded: a member row that fails to write leaves
+       * the artifact orphaned and the station still looking empty, which is the
+       * silent half of the same defect.
+       */
+      const { error: memberErr } = await supabase.from("spine_track_members" as never).insert({
         track_id: raw.id,
         station,
         artifact_kind: "deployment",
         artifact_id: (dep as { id: string }).id,
-        workspace_id: raw.workspace_id,
-        user_id: userId,
       } as never);
+      if (memberErr) {
+        return {
+          ok: false,
+          line: "The deploy was recorded but could not be attached to this work. Nothing has moved.",
+        };
+      }
     } else {
       const { data: cs, error } = await supabase
         .from("studio_changesets" as never)
@@ -2455,14 +2468,19 @@ export const submitStationByHand = createServerFn({ method: "POST" })
       if (error || !cs) {
         return { ok: false, line: "That did not save. Nothing was recorded against the work." };
       }
-      await supabase.from("spine_track_members" as never).insert({
+      // Same five columns, same reason. See the note above.
+      const { error: memberErr } = await supabase.from("spine_track_members" as never).insert({
         track_id: raw.id,
         station,
         artifact_kind: "changeset",
         artifact_id: (cs as { id: string }).id,
-        workspace_id: raw.workspace_id,
-        user_id: userId,
       } as never);
+      if (memberErr) {
+        return {
+          ok: false,
+          line: "The pull request was recorded but could not be attached to this work. Nothing has moved.",
+        };
+      }
     }
 
     // Released so the sweep picks it up again, the same clearing `retryStation`

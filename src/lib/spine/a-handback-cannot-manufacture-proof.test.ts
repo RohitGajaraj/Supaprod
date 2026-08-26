@@ -84,3 +84,55 @@ describe("it refuses what a link cannot stand in for", () => {
     expect(FN).toContain("produces something a link cannot");
   });
 });
+
+describe("it writes only columns that exist, which I got wrong first", () => {
+  /*
+   * THE DEFECT I SHIPPED WHILE WRITING THIS FILE.
+   *
+   * My first version inserted `workspace_id` and `user_id` into
+   * `spine_track_members`. That table has exactly five columns —
+   * `track_id, artifact_kind, artifact_id, station, created_at` — and neither of
+   * those is among them. **`as never` hid it from the typechecker**, and the
+   * insert had no error check, so it would have failed SILENTLY: the deployment
+   * row written, the member row refused, the station still looking empty and
+   * nothing anywhere saying why.
+   *
+   * That is F-76 exactly, committed by the person who spent the morning fixing
+   * F-76, in the same commit as a test about not inventing columns. The lesson
+   * is not "be careful" — it is that `as never` turns a compile error into a
+   * runtime one, so any table it touches needs a written-down column list.
+   */
+  /*
+   * A PRECISE NEGATIVE, NOT A KEY PARSER.
+   *
+   * My first guard extracted every `key:` from the insert and checked it against
+   * a column list. It was unreliable in both directions: it captured `id` from
+   * the type annotation `(dep as { id: string })` and missed `station`, which is
+   * shorthand. **A guard I cannot trust is worse than none** — it fails on drift
+   * that is not there and gets believed — which is the same reason I declined to
+   * write the READ_ONLY_TOOLS drift guard an hour earlier.
+   *
+   * So it asserts the exact thing that went wrong instead: the two phantom
+   * columns are not in either insert.
+   */
+  const PHANTOM = ["workspace_id", "user_id"];
+
+  it("the spine_track_members inserts carry neither phantom column", () => {
+    const inserts = [
+      ...FN.matchAll(/spine_track_members[\s\S]{0,200}?\.insert\(\{([\s\S]*?)\} as never\)/g),
+    ];
+    expect(inserts.length, "expected both member inserts to be found").toBe(2);
+    for (const m of inserts) {
+      for (const bad of PHANTOM) {
+        expect(m[1], `spine_track_members has no column "${bad}"`).not.toContain(bad);
+      }
+    }
+  });
+
+  it("and a refused member row is reported, never swallowed", () => {
+    // An orphaned artifact with no member row is a station that looks empty for
+    // a reason nobody can see.
+    expect(FN).toContain("error: memberErr");
+    expect(FN).toContain("could not be attached to this work");
+  });
+});
