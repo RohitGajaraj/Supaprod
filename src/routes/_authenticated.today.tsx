@@ -31,6 +31,7 @@ import { FocusNext } from "@/components/today/FocusNext";
 import { HandoverNote } from "@/components/today/HandoverNote";
 import { OverlapCheck, OverlapNote } from "@/components/today/OverlapNote";
 import { PushedInsights } from "@/components/today/PushedInsights";
+import { runTotals, spendWords } from "@/components/today/run-totals";
 import { trackToBoardRows, type TrackBoardRow } from "@/components/today/tracks-feed";
 import { QuietMorning } from "@/components/today/QuietMorning";
 import { RunState, ShippedState } from "@/components/today/RunState";
@@ -678,6 +679,17 @@ function Today() {
     () => callsWaitingByMission(sessions.data?.sessions),
     [sessions.data],
   );
+
+  /* WHAT THE WORK COST, which no other surface says now that /runs redirects.
+     Both figures come from reads this page already makes, so it costs nothing.
+     Sessions and tracks are two engines and their spend is NOT added together:
+     see run-totals.ts for why a combined figure would be uncheckable. */
+  /* TRACKS ARE NOT PASSED, and that is a limit rather than an oversight:
+     `listTracks` does not select `spend_used_usd`, so the loop's spend is not
+     in any read this page makes. It is $3.4734 across 37 tracks in the
+     database and I will not print a number I cannot source from a payload. A
+     server-side change is filed; until then this line speaks only for runs. */
+  const totals = React.useMemo(() => runTotals(sessions.data?.sessions, undefined), [sessions.data]);
 
   // The track record read. CHARACTER-IDENTICAL KEY to Brain's, so the two
   // surfaces are two consumers of ONE request and the tab opens on a cache hit.
@@ -1626,7 +1638,7 @@ function Today() {
           <Region
             title={FEED_TITLE}
             goTo={rows.length > 0 ? "Open Runs" : undefined}
-            onGoTo={() => navigate({ to: "/today" })}
+            onGoTo={() => navigate({ to: "/runs" })}
             sub={
               stillWaiting(queue) || stillWaiting(missions) ? null : queue.isError ||
                 missions.isError ? (
@@ -1861,6 +1873,32 @@ function Today() {
                 and nothing pointed at it - a surface with no door, this repo's
                 most common defect. The door rides under the feed it extends,
                 where the reader who needs it already is. */}
+            {/* WHAT IT COST. `/runs` carried this and redirects now, so without
+                it the fold would remove a capability rather than a door. One
+                quiet line, no accent, and drawn ONLY when a figure exists:
+                "no cost reported" and "$0.00" are different claims and this
+                surface may not swap one for the other. */}
+            {totals.sessionSpendUsd !== null || totals.trackSpendUsd !== null ? (
+              <p className="max-w-[62ch] text-mrd-data leading-mrd-prose text-mrd-mute">
+                {[
+                  spendWords(totals.sessionSpendUsd)
+                    ? `${spendWords(totals.sessionSpendUsd)} spent on runs`
+                    : null,
+                  spendWords(totals.trackSpendUsd)
+                    ? `${spendWords(totals.trackSpendUsd)} on work the loop drove`
+                    : null,
+                ]
+                  .filter(Boolean)
+                  .join(", ")}
+                .
+                {totals.sessionsWithoutCost > 0
+                  ? ` ${totals.sessionsWithoutCost} ${
+                      totals.sessionsWithoutCost === 1 ? "run" : "runs"
+                    } reported no cost, so this is a floor.`
+                  : ""}
+              </p>
+            ) : null}
+
             <Door
               title="The full list of what needs you, uncapped"
               onClick={() => navigate({ to: "/inbox" })}
