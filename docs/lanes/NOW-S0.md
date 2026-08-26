@@ -1,1 +1,1 @@
-S0 · 19:40 IST · WORKING · F-88: studio.unstage was built, enabled and never briefed — the way out of a refused commit that trapped f9354439 and stranded 7977dc06 at ship · src/lib/spine/** src/lib/ai/** · pending
+S0 · 19:50 IST · WORKING · F-89: e2e wrote 10 real tracks to production, 8 of 10 sweep drives went to them; 7977dc06 is given-up but NOT from starvation — the changeset was never merged · the-first-run/** coordination/answers/** · pending
