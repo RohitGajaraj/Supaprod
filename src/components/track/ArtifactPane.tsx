@@ -40,6 +40,7 @@ import type { ChainMember, ChainStop } from "@/lib/spine/chain";
 import { wordFor } from "@/lib/spine/chain";
 import { STATION_ARTIFACT } from "@/lib/spine/attach";
 import { relativeTime } from "@/lib/memory-view";
+import { releaseStanding, shortSha } from "@/components/track/release-words";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
@@ -1129,6 +1130,70 @@ function ChangesetDiffView({ changesetId }: { changesetId: string }) {
   );
 }
 
+/*
+ * ── THE SHIP CARD ──────────────────────────────────────────────────────────
+ * What went out, and where. Ship was the ONLY station of the seven whose own
+ * output rendered nothing: `deployment` fell through this file's switch to
+ * `null` while the columns it needed were already being fetched and handed in
+ * (`track.functions.ts:1184`). The data reached the component and was dropped
+ * on the last line.
+ *
+ * THE ONE THING IT MUST NOT DO is let a `claimed` row read like a `success`
+ * one. A person pasting a deploy address through the handback writes `claimed`,
+ * deliberately and permanently, because `release.publish` reads `success` and a
+ * typed address must never satisfy the gate that says this shipped. The chip
+ * separates them and the sentence says what is missing, because a different
+ * colour alone is a thing people learn to stop noticing.
+ */
+function ReleaseCard({ item }: { item: ArtifactView }) {
+  const f = item.fields;
+  const standing = releaseStanding(str(f.status));
+  const env = str(f.environment);
+  const url = str(f.deploy_url);
+  const sha = shortSha(str(f.commit_sha));
+  const provider = str(f.provider);
+  // `deployed_at` is null on a row that never reached the provider, so the
+  // record's own creation time is the honest fallback for "when this appeared".
+  const at = str(f.deployed_at) ?? item.createdAt;
+
+  const under = [provider ? `via ${provider}` : "", sha ? `commit ${sha}` : ""]
+    .filter(Boolean)
+    .join(" · ");
+
+  return (
+    <div className="flex flex-col gap-mrd-4">
+      <div className="flex flex-wrap items-center gap-mrd-3">
+        {standing.tone === "quiet" ? (
+          // An unfamiliar provider word does not get an outcome chip. See
+          // release-words.ts: a confident wrong colour is worse than none.
+          <span className="mrd-meta">{standing.word}</span>
+        ) : (
+          <StatusChip status={standing.tone}>{standing.word}</StatusChip>
+        )}
+        {env ? <Value tone="quiet">{env}</Value> : null}
+        <span className="mrd-meta">{relativeTime(at, Date.now())}</span>
+      </div>
+
+      {standing.note ? <RecordSpeaks>{standing.note}</RecordSpeaks> : null}
+
+      {under ? <span className="mrd-meta">{under}</span> : null}
+
+      {url ? (
+        <a
+          href={url}
+          target="_blank"
+          rel="noreferrer"
+          className="text-mrd-small font-medium text-mrd-you underline underline-offset-2"
+        >
+          Open what went out
+        </a>
+      ) : (
+        <RecordSpeaks>No address was recorded, so there is nothing to open.</RecordSpeaks>
+      )}
+    </div>
+  );
+}
+
 function ChangesetCard({ item }: { item: ArtifactView }) {
   const f = item.fields;
   const summary = str(f.summary);
@@ -1537,6 +1602,8 @@ function StationPanel({
         return <PlanSpec prdId={item.artifactId} />;
       case "prototype":
         return <PrototypeCard item={item} />;
+      case "deployment":
+        return <ReleaseCard item={item} />;
       default:
         return null;
     }
