@@ -5336,6 +5336,90 @@ const learningRecord = def({
         (fromTrack as { artifact_id?: string | null } | null)?.artifact_id ?? null;
     }
 
+    /*
+     * ── THE GUARD THAT WAS PROSE, MADE A PREDICATE (S4-052, 2026-08-27) ────
+     *
+     * This tool's description already names this exact failure, and names it
+     * well: *"If the evidence is not in yet, DO NOT CALL THIS TOOL AT ALL ...
+     * a wrong confident verdict is not a wrong row, it is wrong advice for
+     * months."* That paragraph was the only thing between a model and a wrong
+     * verdict.
+     *
+     * IT HAS BEEN TESTED TWICE AND FAILED TWICE. `learning.record` has fired
+     * exactly two times in this product's life, and they are the first two rows
+     * ever to carry `decision_id` at all (133 learnings before them, NULL on
+     * every one). Both graded decision `663c7376`, whose forecast was *"The PRD
+     * will be approved and design gate cleared within 3 business days"*, read
+     * by *"prd.get will return status='approved' and design_gate_status=
+     * 'cleared'"*, due 2026-08-29. Both verdicts were written on 2026-08-25 at
+     * 19:40, FOUR DAYS BEFORE THE HORIZON, and both graded a different claim
+     * entirely: tablet checkout abandonment.
+     *
+     * So the pairing this product sells, a verdict measured against a forecast
+     * recorded before the outcome was known, has never once happened. The rows
+     * were joined by a foreign key and nothing checked that they were about the
+     * same thing.
+     *
+     * TWO COMPARISONS, EACH ONE LINE OF ARITHMETIC. Neither needs judgement,
+     * which is precisely why neither should have been left to it.
+     */
+    if (resolvedDecisionId) {
+      const { data: bet } = await supabase
+        .from("decisions")
+        .select("forecast_claim,forecast_how_we_will_know,forecast_horizon_date")
+        .eq("id", resolvedDecisionId)
+        .maybeSingle();
+      const forecast = bet as {
+        forecast_claim?: string | null;
+        forecast_how_we_will_know?: string | null;
+        forecast_horizon_date?: string | null;
+      } | null;
+
+      // 1 · NOT BEFORE THE HORIZON. The date is on the decision row and needs
+      //     no interpretation. A verdict passed its own due date may be wrong;
+      //     a verdict before it cannot be right, because the thing it grades
+      //     has not finished happening.
+      const due = forecast?.forecast_horizon_date;
+      if (due && Date.parse(due) > Date.now()) {
+        return {
+          ok: false,
+          reason:
+            `This bet is not due until ${due.slice(0, 10)}, so there is no outcome to grade yet. ` +
+            `Do not record a verdict now: the spec stays on the Learn desk and comes back when it is due. ` +
+            `The forecast is "${forecast?.forecast_claim ?? "unstated"}".`,
+        };
+      }
+
+      // 2 · IT MUST GRADE THE THING THAT WAS PREDICTED. Deliberately the
+      //     weakest possible test: it refuses only when the verdict shares NOT
+      //     ONE significant word with the observable the forecast named. That
+      //     catches the measured failure (a process-speed forecast graded with
+      //     a checkout metric, zero overlap) and stays silent on the ordinary
+      //     case of the same fact worded differently, which is not this tool's
+      //     business to police.
+      const observable = forecast?.forecast_how_we_will_know ?? "";
+      if (observable.trim()) {
+        const significant = (t: string) =>
+          new Set(
+            (t.toLowerCase().match(/[a-z_][a-z0-9_]{3,}/g) ?? []).filter(
+              (w) => !FORECAST_STOPWORDS.has(w),
+            ),
+          );
+        const want = significant(observable);
+        const got = significant(`${a.summary} ${a.metric_label ?? ""} ${a.metric_value ?? ""}`);
+        const shared = [...want].some((w) => got.has(w));
+        if (want.size > 0 && !shared) {
+          return {
+            ok: false,
+            reason:
+              `This verdict does not mention what the forecast said it would be measured by. ` +
+              `The bet was "${forecast?.forecast_claim ?? "unstated"}", to be read by "${observable}". ` +
+              `Grade that, or record nothing: a verdict against a different claim re-ranks the bet behind it and becomes wrong advice for months.`,
+          };
+        }
+      }
+    }
+
     if (resolvedPrdId) {
       const { data: prd } = await supabase
         .from("prds")
@@ -6863,6 +6947,45 @@ const criticEvaluate = def({
   preview: (a) => `Critic: red-team ${a.target_kind} ${a.target_id.slice(0, 8)}`,
   run: (args, ctx) => runCriticTool(args, ctx),
 });
+
+/**
+ * Words too common to prove a verdict is about the forecast's own observable.
+ *
+ * Deliberately short. This list exists to stop "within", "return" and "status"
+ * from counting as a match, not to do language processing: the overlap test it
+ * serves refuses only on ZERO shared significant words, so a longer list would
+ * make the guard stricter than its evidence supports.
+ */
+const FORECAST_STOPWORDS = new Set([
+  "will",
+  "with",
+  "within",
+  "that",
+  "this",
+  "from",
+  "have",
+  "been",
+  "than",
+  "then",
+  "when",
+  "what",
+  "which",
+  "return",
+  "returns",
+  "value",
+  "result",
+  "outcome",
+  "after",
+  "before",
+  "days",
+  "day",
+  "week",
+  "weeks",
+  "actual",
+  "expected",
+  "measure",
+  "measured",
+]);
 
 export const TOOL_REGISTRY: Record<string, ToolDef> = Object.fromEntries(
   [
