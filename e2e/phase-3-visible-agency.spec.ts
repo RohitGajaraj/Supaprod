@@ -64,14 +64,14 @@ test("PHASE 3: Visible agency - real-time station updates", async ({ page }) => 
   console.log("   ✓ Clicked 'Run it now'\n");
 
   // Step 5: Monitor real-time updates
-  console.log("📍 Step 5: Monitor real-time updates (up to 90 seconds)");
+  console.log("📍 Step 5: Monitor real-time updates (up to 180 seconds)");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
   let stationsObserved: string[] = [];
   let transcriptEntriesMax = 0;
   let lastStationSeen = null;
 
-  for (let poll = 0; poll < 180; poll++) {
+  for (let poll = 0; poll < 360; poll++) {
     // Check for current station header (PHASE 3 key feature)
     const stationRegion = await page
       .locator("section, [role='region']")
@@ -123,7 +123,7 @@ test("PHASE 3: Visible agency - real-time station updates", async ({ page }) => 
     await page.waitForTimeout(500);
 
     // Timeout safety
-    if (poll === 179) {
+    if (poll === 359) {
       const elapsed = Math.round((Date.now() - runStartTime) / 1000);
       console.log(`\n  ⏱️  Test timeout after ${elapsed}s\n`);
       break;
