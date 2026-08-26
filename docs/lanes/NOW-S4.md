@@ -1,1 +1,1 @@
-S4 · 00:15 UTC · DEVSERVER · sweeping every PUBLIC route for raw errors and broken copy, dummy env, killing the moment it ends · e2e/** docs/lanes/verify/** · 64e36d378
+S4 · 00:30 UTC · WORKING · server stopped, ports clear, dummy .env removed · public sweep: 12/13 routes render with NO database (good news, unmeasured until now); the one 500 was my own instrument, not filed · S4-037 hero strip shows a loop that is not ours · e2e/** docs/lanes/verify/** · pending
