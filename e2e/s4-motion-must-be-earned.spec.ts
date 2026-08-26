@@ -139,6 +139,78 @@ async function frameHash(page: import("@playwright/test").Page): Promise<string>
   return createHash("sha1").update(buf).digest("hex").slice(0, 16);
 }
 
+/**
+ * THE HALF OF THIS QUESTION THAT DOES NOT NEED A HUMAN.
+ *
+ * Pixel hashing answers "did the screen change", and the question that matters is
+ * "did a STATE change". Nothing in the DOM says which elements are state-bearing,
+ * which is why the surrounding test reports rather than asserts.
+ *
+ * But one family of state IS self-identifying, because it is written in a shape
+ * that means only one thing: COUNTED PROGRESS. "step 3 of 8" and "47%" are claims
+ * about how far along real work is. With no database reachable there is no work
+ * and no row to advance, so if either number is HIGHER nine seconds later, it was
+ * driven by a clock. There is no honest reading of that, and no judgement call to
+ * make, so this half is asserted rather than reported.
+ *
+ * Deliberately narrow, and each exclusion is a decision:
+ *  - MAX rather than per-element tracking, because an element path is not stable
+ *    across a re-render and a moved counter is not a rising one.
+ *  - HIGHER only. A progress claim falling or vanishing is what SHOULD happen
+ *    when a read fails, and failing a surface for becoming honest would be
+ *    exactly backwards.
+ *  - Elapsed timers (mm:ss) are collected and REPORTED, never asserted. A public
+ *    page may legitimately count down to a date that needs no backend, and a
+ *    guard that fails a marketing countdown is a guard people turn off.
+ */
+/**
+ * WHERE AN ADVANCING PROGRESS CLAIM IS A LIE, AND WHERE IT IS AN ADVERTISEMENT.
+ *
+ * The first version of this asserted everywhere and immediately failed `/`, on
+ * the hero loop strip, which advances 3 -> 4 with no backend. That is a REAL
+ * clock and it is also fine: HeroLoopDemo.tsx says in its own header that it is
+ * an illustration of the seven stations on a `setInterval`, and S4-039 already
+ * ruled that an illustrative landing animation is ordinary, that every product
+ * ships one, and that what was wrong there was the capability copy beside it.
+ *
+ * A guard that fails a surface its own author already cleared is the failure
+ * this file warns about two comments down: people turn it off.
+ *
+ * So the line is drawn where the deception actually lands. On a marketing page a
+ * moving diagram is understood as a diagram. Inside the product, "step 4 of 7"
+ * is a claim about the person's OWN work, and if it advances while nothing can
+ * be read, it is telling them something happened that did not. That is asserted.
+ *
+ * The list is small, explicit, and public-only on purpose. Adding a product
+ * surface to it would be the move that quietly disables this check, so anything
+ * added here needs the reason written beside it.
+ */
+const MARKETING_SURFACES: readonly string[] = ["/", "/pricing", "/product", "/demo"];
+
+const PROGRESS_PATTERNS: readonly { name: string; re: RegExp }[] = [
+  // "step 3 of 8", "3/8"
+  { name: "counted progress", re: /(\d+)\s*(?:of|\/)\s*\d+/g },
+  // "47%"
+  { name: "percent complete", re: /(\d+)\s*%/g },
+];
+
+/** The highest value each progress shape currently claims, or null if absent. */
+async function progressClaims(
+  page: import("@playwright/test").Page,
+): Promise<Record<string, number | null>> {
+  const text = await page.evaluate(() => document.body.innerText);
+  const out: Record<string, number | null> = {};
+  for (const { name, re } of PROGRESS_PATTERNS) {
+    let max: number | null = null;
+    for (const m of text.matchAll(new RegExp(re.source, "g"))) {
+      const v = Number(m[1]);
+      if (Number.isFinite(v) && (max === null || v > max)) max = v;
+    }
+    out[name] = max;
+  }
+  return out;
+}
+
 /*
  * REPORT ONLY, AND THAT IS A FINDING RATHER THAN A CLIMBDOWN.
  *
@@ -168,6 +240,8 @@ test("report which surfaces still move once nothing can be read", async ({ page 
   const report: string[] = [];
   const moving: string[] = [];
   const notRendered: string[] = [];
+  const advancing: string[] = [];
+  const illustrated: string[] = [];
 
   for (const path of SURFACES) {
     await page.goto(`http://localhost:8080${path}`, { waitUntil: "domcontentloaded" });
@@ -189,8 +263,23 @@ test("report which surfaces still move once nothing can be read", async ({ page 
     await page.waitForTimeout(SETTLE_MS);
     await frameHash(page); // discarded: mount and hydration land in this one
     const a = await frameHash(page);
+    const claimsA = await progressClaims(page);
     await page.waitForTimeout(GAP_MS);
     const b = await frameHash(page);
+    const claimsB = await progressClaims(page);
+
+    for (const { name } of PROGRESS_PATTERNS) {
+      const before = claimsA[name];
+      const after = claimsB[name];
+      if (before !== null && after !== null && after > before) {
+        const line = `${path}: ${name} went ${before} -> ${after} with no backend`;
+        if (MARKETING_SURFACES.includes(path)) {
+          illustrated.push(line);
+        } else {
+          advancing.push(line);
+        }
+      }
+    }
 
     const changed = a !== b;
     if (changed) {
@@ -212,6 +301,14 @@ test("report which surfaces still move once nothing can be read", async ({ page 
 
   writeFileSync(join(SHOT_DIR, "motion-report.txt"), report.join("\n"), "utf8");
 
+  if (illustrated.length) {
+    console.info(
+      "Progress claims that advanced on a MARKETING surface, reported and not failed,\n" +
+        "because an illustration is expected there. Check the copy beside them says so:\n  " +
+        illustrated.join("\n  "),
+    );
+  }
+
   console.info(
     `Surfaces still redrawing ${GAP_MS / 1000}s after settle with no backend: ` +
       `${moving.length ? moving.join(", ") : "none"}.\n` +
@@ -226,7 +323,18 @@ test("report which surfaces still move once nothing can be read", async ({ page 
       report.join("\n"),
   );
 
-  // The only thing asserted is that the measurement ran. The judgement is a
-  // person's, and pretending otherwise is the failure this file is about.
+  // The measurement ran for every surface.
   expect(report.length).toBe(SURFACES.length);
+
+  /*
+   * AND THE ONE THING THAT IS NOT A JUDGEMENT CALL.
+   *
+   * Whether a drifting gradient is theatre needs a person. Whether a progress
+   * claim rose while nothing could be read does not. This fails.
+   */
+  expect(
+    advancing,
+    `A counted progress claim ADVANCED while no data could be read. Nothing was ` +
+      `there to make progress, so a clock moved it:\n  ${advancing.join("\n  ")}`,
+  ).toEqual([]);
 });
