@@ -77,6 +77,26 @@ describe("handoverLine", () => {
     );
   });
 
+  it("counts the items that travelled when the sender attached some", () => {
+    const line = handoverLine(msg({ artifact_count: 14 } as Partial<SwarmHandoff>), "4m");
+    expect(line).toContain("· 14 items passed");
+    expect(handoverLine(msg({ artifact_count: 1 } as Partial<SwarmHandoff>), null)).toContain(
+      "· 1 item passed",
+    );
+  });
+
+  it("never draws the evidence count while it is zero on every live handoff", () => {
+    // S0's declared contract: evidence_count is 0 for all live handoffs until
+    // HANDOFF_EVIDENCE_GATE flips; rendering a zero would claim a check that
+    // never ran.
+    const line = handoverLine(
+      msg({ artifact_count: 2, evidence_count: 0 } as Partial<SwarmHandoff>),
+      "1m",
+    );
+    expect(line).not.toContain("evidence");
+    expect(line).not.toContain("source");
+  });
+
   it("survives an unnamed sender, a missing clock, and an empty task", () => {
     expect(handoverLine(msg({ from_agent_slug: null }), "4m")).toBe(
       'Handed over 4m ago: “Draft the launch spec”',
