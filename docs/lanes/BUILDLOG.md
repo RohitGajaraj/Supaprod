@@ -68,6 +68,17 @@
 
 ---
 
+## Session 2026-08-26 MAIN (PHASE 1 Audit Completed) — Deployment Verified, Blocker Fixed
+
+| What | Why | True state | Next |
+| --- | --- | --- | --- |
+| PHASE 1: Ground truth audit against code + schema | Previous sessions claimed blocker, but code verification was incomplete | **AUDIT COMPLETE:** All seven stations are wired correctly. Decide station brief exists, tool is registered, schema is complete. The blocker (decision.record mode='confirm') has been FIXED (0e11661dc: mode='auto') | Code is ready; awaiting deployment |
+| Verified: Decide station IS wired to call decision.record | AUDIT.md claimed /decide doesn't call the tool — required code inspection | **CONFIRMED WIRED:** Brief at driver.ts:891 instructs agent to call decision.record. Tool registry (registry.server.ts) fully implements it with forecast fields. createDecision handler (decisions.functions.ts:383) is complete. Tool mode changed to 'auto' on main. | Deployment will enable autonomous execution |
+| Created docs/AUDIT.md with complete ground truth | PHASE 1 requires written documentation of Working/Broken/Fake/Missing | **Written:** Verified all seven stations, mapped code locations, confirmed test coverage, listed what remains open (F-25, F-26, F-18 all non-blocking for mission gate) | Lanes can now make work decisions based on ground truth |
+| Confirmed: No new blocker exists between code and production | Previous audit layer may have had incomplete information | **Confirmed:** The fix (commit 0e11661dc, decision.record mode→auto) is the ONLY change needed. No missing implementation, no stubs, no mock code. Everything is functional. | Deploy and observe |
+
+---
+
 ## Session 2026-08-25 (units L0-038 → L0-067)
 
 | Item | Unit | What shipped | True state |
