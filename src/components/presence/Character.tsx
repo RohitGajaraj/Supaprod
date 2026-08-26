@@ -161,22 +161,44 @@ export function CharacterMark({
   state,
   size = 40,
   className = "",
+  hue,
+  label,
 }: {
   state: CharacterState;
   size?: number;
   className?: string;
+  /**
+   * ONE TEAMMATE'S OWN COLOUR, and only ever for the many-teammates case.
+   *
+   * SPEC-MULTIPLAYER-PRESENCE §1 narrows the one-character ruling: more than one
+   * teammate genuinely acting at once means each is drawn, **same body, its own
+   * colour and its own name**, and identity is carried by colour and name and
+   * never by a different avatar per seat. So this tints the SAME face rather
+   * than swapping it, which is why it is a hue rather than a variant.
+   *
+   * The value comes from `agentMark(slug).hue`, a palette that already exists in
+   * agent-vocabulary and is deliberately held in a teal-to-blue range so it
+   * cannot be mistaken for the semantic status colours. Meridian needed no new
+   * token, which is the whole reason this looked like it needed one and did not.
+   */
+  hue?: string | null;
+  /** The teammate's name, for the screen reader, when this is not Supa alone. */
+  label?: string | null;
 }) {
   return (
     <span
       data-mrd=""
       data-presence-state={state}
       role="img"
-      aria-label={`${CHARACTER_NAME}: ${state.replace(/-/g, " ")}`}
+      aria-label={`${label ?? CHARACTER_NAME}: ${state.replace(/-/g, " ")}`}
       className={`inline-flex shrink-0 items-center justify-center rounded-mrd-ctl ${MARK_FACE[state]} ${className}`}
       style={{
         width: size,
         height: size,
         animation: MARK_MOTION[state],
+        /* Inline beats the face classes, so the tint replaces the shared chip
+           colour while the state's own motion is untouched. */
+        ...(hue ? { backgroundColor: `color-mix(in oklch, ${hue} 20%, transparent)`, color: hue } : null),
       }}
     >
       <svg width="60%" height="60%" viewBox="0 0 24 24" aria-hidden="true">

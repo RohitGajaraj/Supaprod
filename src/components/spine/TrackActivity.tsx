@@ -186,6 +186,36 @@ export function hasLiveVisit(turns: Array<Pick<Turn, "outcome">>): boolean {
 }
 
 /**
+ * WHICH teammates are in flight, not merely whether any are.
+ *
+ * Same rule as `hasLiveVisit` above and deliberately built on the same two
+ * outcomes, so the boolean and the list can never disagree about whether work is
+ * open. SPEC-MULTIPLAYER-PRESENCE needs the identities: one acting is one
+ * character, two or more are drawn each with its own colour and name.
+ *
+ * Deduped by slug because one seat can hold several rows in a visit, and a
+ * person watching two teammates must not be shown four.
+ */
+export function liveSeats(
+  turns: Array<Pick<Turn, "outcome" | "agentSlug" | "agentName">>,
+): Array<{ slug: string | null; name: string; waiting: boolean }> {
+  const seen = new Map<string, { slug: string | null; name: string; waiting: boolean }>();
+  for (const t of turns) {
+    if (t.outcome !== "working" && t.outcome !== "waiting") continue;
+    const key = t.agentSlug ?? t.agentName;
+    if (!key) continue;
+    const prior = seen.get(key);
+    // A seat with any waiting row is waiting; otherwise it is working.
+    seen.set(key, {
+      slug: t.agentSlug ?? null,
+      name: t.agentName,
+      waiting: (prior?.waiting ?? false) || t.outcome === "waiting",
+    });
+  }
+  return [...seen.values()];
+}
+
+/**
  * Every figure and every artifact this turn amounted to, in one line.
  *
  * ONE PLACE FOR A DURATION ON A ROW, live or finished. The elapsed figure used
@@ -234,6 +264,7 @@ export function TrackActivity({
   trackId,
   isRunning = false,
   onLiveChange,
+  onLiveSeats,
 }: {
   trackId: string;
   isRunning?: boolean;
@@ -246,6 +277,8 @@ export function TrackActivity({
    * pulses, which is the correct answer for an idle track.
    */
   onLiveChange?: (live: boolean) => void;
+  /** WHICH teammates are in flight, for the multiplayer presence case. */
+  onLiveSeats?: (seats: Array<{ slug: string | null; name: string; waiting: boolean }>) => void;
 }) {
   const fetchActivity = useServerFn(getTrackActivity);
   const fetchChain = useServerFn(getTrackChain);
@@ -271,6 +304,20 @@ export function TrackActivity({
   React.useEffect(() => {
     onLiveChange?.(live);
   }, [live, onLiveChange]);
+
+  /*
+   * WHO is in flight, for the presence slot. Same source and same rule as
+   * `live` above, so the two cannot disagree. Keyed on the identities rather
+   * than the array so a poll returning the same seats does not re-render the
+   * presence block.
+   */
+  const seats = React.useMemo(() => liveSeats(q.data?.turns ?? []), [q.data]);
+  const seatSig = seats.map((s) => `${s.slug ?? s.name}:${s.waiting ? "w" : "r"}`).join("|");
+  React.useEffect(() => {
+    onLiveSeats?.(seats);
+    // `seatSig` is the value that matters; the array identity changes each poll.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seatSig, onLiveSeats]);
 
   /*
    * WHAT THE ARTIFACTS ARE CALLED, AND WHY THIS COSTS NOTHING EXTRA.
