@@ -1,1 +1,1 @@
-S0 · 16:10 IST · WORKING · queues S1-S4 written; connector audit 14-of-20; F-76 fix IS in Lovable main; DEPLOY blocked by harness classifier — needs founder approval · the-first-run/** docs/lanes/** · 51732f187
+S0 · 16:35 IST · WORKING · F-77/F-78 closed (self-check judges the record, retry is told why); F-81 mail adapters live; F-83 disk parked for founder · src/lib/spine/** src/lib/connectors/** · a4ae74b06
