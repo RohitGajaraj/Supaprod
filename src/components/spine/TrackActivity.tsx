@@ -214,6 +214,16 @@ export function hasLiveVisit(turns: Array<Pick<Turn, "outcome">>): boolean {
  * changes nothing about the 1,375 rows that already exist, and those are what a
  * person reads today. So the same rule is applied on the way out.
  *
+ * ── THIS IS A BRIDGE, AND HERE IS THE CONDITION THAT ENDS IT ──────────────
+ * The real fix is on the write path: `humanizeText` is applied to `outputText`
+ * at `runtime.server.ts:2074` and `:2814`, but `loop.server.ts:1411-1413` and
+ * `:1485-1487` update `agent_runs` with `output: msg` directly, and those two
+ * are the bypass. **When those go through the sanitizer AND the existing rows
+ * are backfilled, delete this function and print `t.said` again.** Said out loud
+ * because a render-side normaliser with no stated end date gets either removed
+ * by someone who thinks it is a mistake or built upon by someone who thinks it
+ * is the design, and both are wrong.
+ *
  * ── IT IS THE REPO'S OWN RULE, NOT A SECOND ONE ────────────────────────────
  * `humanizeText` is the chokepoint the runtime already uses, it leaves fenced
  * and inline code untouched, and it is idempotent by its own contract, so text
