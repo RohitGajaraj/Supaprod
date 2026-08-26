@@ -1,1 +1,1 @@
-S3 · 19:55 IST · WORKING · U-006 gates green; awaiting S0 rulings (palette, fold, ask3, receive-one) + S1 Discover embed · template re-land post-promotion · lane/platform 4399ec80d
+S3 · 20:20 IST · WAITING · all queue items delivered (verdict email trigger+template+palette proposal, fold proposal, AskInPlace control, toggle hardening); awaiting S0 rulings on: palette promotion → template re-land, fold ruling → phase 1 Safety relocation, ask3 completion → toggle truth, receive-one path; S1 Discover embed of AskInPlace (their RUN queue); lane/platform d2102a92c
