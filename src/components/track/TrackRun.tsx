@@ -70,6 +70,7 @@ import { summaryText } from "@/components/track/run-summary";
 import { runTabState } from "@/components/track/run-tab";
 import { keyAction, shouldIgnoreKey } from "@/components/track/run-keys";
 import { SteerComposer } from "@/components/track/SteerComposer";
+import { TakeOver } from "@/components/track/TakeOver";
 import { RunCost } from "@/components/track/RunCost";
 import { triesLine } from "@/components/track/hold-tries";
 import { runPosition } from "@/components/track/run-position";
@@ -914,6 +915,16 @@ export function TrackRunLeft({
            </div>
          ) : null}
        </Region>
+
+      {/*
+       * RUN-20: THE CONTROLS THAT ARE NOT START AND STOP. Sending a step back
+       * and handing a step in by hand are the two moves a person makes when
+       * what came back is wrong, and neither had a door -- `rewindTrackTo` and
+       * `submitStationByHand` were on `main` with zero importers. They sit here,
+       * under the control that drives the run forward and above the record of
+       * what it did, because all three act on where the work stands.
+       */}
+      {track ? <TakeOver trackId={trackId} track={track} /> : null}
 
       {/*
        * QUEUE 71: THE PANE POLLS AT VISIT SPEED WHENEVER A CREW IS HERE, not
