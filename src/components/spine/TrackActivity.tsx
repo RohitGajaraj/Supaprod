@@ -54,6 +54,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { getTrackActivity, getTrackChain } from "@/lib/spine/track.functions";
 import { countKinds, type Turn } from "@/lib/spine/activity";
+import { handoffLine, turnsAtStation, whatCameWith } from "@/components/spine/handed-over";
 import { mergeActivityRows } from "@/components/spine/activity-rows";
 import type { AgentStation } from "@/lib/agent-vocabulary";
 import { GLYPH_FOR_STATION, type StationGlyphKind } from "@/components/meridian/station-glyphs";
@@ -461,6 +462,30 @@ export function TrackActivity({
             const handedOver =
               Boolean(t.stationName) && previous != null && previous.stationName !== t.stationName;
 
+            /*
+             * WHAT CAME WITH IT. The mark and the sender were already here; the
+             * thing that changed hands never was, and that is the half a person
+             * needs. Read from the whole stretch the previous station ran, not
+             * from the turn immediately before the move, which is very often the
+             * one that checked the work rather than the one that produced it.
+             *
+             * The slice is O(rows) inside a map over rows. A transcript is tens
+             * of entries and this keeps the tested derivation as the only copy
+             * of the rule; a hand-rolled backward walk here would be a second.
+             */
+            const handedLine =
+              handedOver && previous?.stationName
+                ? handoffLine(
+                    previous.stationName,
+                    whatCameWith(
+                      turnsAtStation(
+                        ordered.slice(0, i).flatMap((r) => (r.kind === "turn" ? [r.turn] : [])),
+                        previous.stationName,
+                      ),
+                    ),
+                  )
+                : null;
+
             const arrived = primed.current && !seen.current.has(row.key);
 
             return (
@@ -493,11 +518,7 @@ export function TrackActivity({
                   </span>
 
                   <RunMeta>
-                    {[
-                      handedOver && previous?.stationName
-                        ? `picked up from ${previous.stationName}`
-                        : t.stationName,
-                    ]
+                    {[handedLine ?? t.stationName]
                       .filter(Boolean)
                       .join(" · ")}
                   </RunMeta>
