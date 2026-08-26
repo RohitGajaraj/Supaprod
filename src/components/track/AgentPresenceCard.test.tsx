@@ -11,21 +11,34 @@ describe("AgentPresenceCard", () => {
     track_id: "track-1",
     mission_id: "mission-1",
     agent_name: "Claude",
+    agent_slug: "calibrate-insights",
+    agent_id: null,
     model: "claude-opus-4",
     status: "in_progress",
-    metadata: {
+    delegate_meta: {
       confidence: "high",
       action: "planning",
       reasoning: "user specified high priority",
     },
-    result: {
-      decision:
-        "Break down the task into three phases with clear acceptance criteria",
-    },
+    output: "Break down the task into three phases with clear acceptance criteria",
+    input: "",
+    attempt: null,
+    credits_refunded: false,
+    duration_ms: null,
+    failure_kind: null,
+    halted_at: null,
+    halted_reason: null,
+    last_checkpoint_at: null,
+    mission_spend_cap_usd: null,
+    mission_token_cap: null,
+    resume_count: null,
+    resume_lease_at: new Date().toISOString(),
+    spend_used_usd: 0,
+    step_index: 0,
+    tokens_used: 0,
+    user_id: "user-1",
+    workspace_id: "ws-1",
     created_at: new Date(Date.now() - 5000).toISOString(),
-    updated_at: new Date().toISOString(),
-    tool_name: null,
-    tool_result: null,
   };
 
   it("renders no activity state when no agent run", () => {
@@ -50,23 +63,39 @@ describe("AgentPresenceCard", () => {
     expect(screen.getByText("Design")).toBeTruthy();
   });
 
-  it("displays decision text from result", () => {
+  it("displays decision text from delegate_meta action", () => {
     render(
       <AgentPresenceCard agentRun={mockAgentRun} station="Decide" />
+    );
+
+    // delegate_meta.action takes priority: "planning: user specified high priority"
+    expect(screen.getByText(/planning/i)).toBeTruthy();
+  });
+
+  it("displays output text when delegate_meta has no action", () => {
+    const runWithOutput: AgentRun = {
+      ...mockAgentRun,
+      delegate_meta: {},
+      output: "Break down the task into phases",
+    };
+
+    render(
+      <AgentPresenceCard agentRun={runWithOutput} station="Decide" />
     );
 
     expect(screen.getByText(/Break down the task/i)).toBeTruthy();
   });
 
-  it("truncates long decisions to 150 chars", () => {
-    const longDecision = "a".repeat(200);
-    const runWithLongDecision: AgentRun = {
+  it("truncates long output to 150 chars", () => {
+    const longOutput = "a".repeat(200);
+    const runWithLongOutput: AgentRun = {
       ...mockAgentRun,
-      result: { decision: longDecision },
+      delegate_meta: {},
+      output: longOutput,
     };
 
     render(
-      <AgentPresenceCard agentRun={runWithLongDecision} station="Decide" />
+      <AgentPresenceCard agentRun={runWithLongOutput} station="Decide" />
     );
 
     const text = screen.getByText(/^a+…$/);
@@ -108,7 +137,7 @@ describe("AgentPresenceCard", () => {
     for (const level of confidenceLevels) {
       const run: AgentRun = {
         ...mockAgentRun,
-        metadata: { confidence: level } as any,
+        delegate_meta: { confidence: level },
       };
 
       render(
@@ -123,7 +152,7 @@ describe("AgentPresenceCard", () => {
   it("defaults to medium confidence if not specified", () => {
     const run: AgentRun = {
       ...mockAgentRun,
-      metadata: {} as any,
+      delegate_meta: {},
     };
 
     render(
@@ -146,16 +175,11 @@ describe("AgentPresenceCard", () => {
     expect(screen.getByText("Research Agent")).toBeTruthy();
   });
 
-  it("shows default agent name if not provided", () => {
-    const runNoName: AgentRun = {
-      ...mockAgentRun,
-      agent_name: null,
-    };
-
+  it("shows provided agent name in the header", () => {
     render(
-      <AgentPresenceCard agentRun={runNoName} station="Discover" />
+      <AgentPresenceCard agentRun={mockAgentRun} station="Discover" />
     );
 
-    expect(screen.getByText("Agent")).toBeTruthy();
+    expect(screen.getByText("Claude")).toBeTruthy();
   });
 });

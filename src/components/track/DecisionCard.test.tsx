@@ -12,7 +12,7 @@ describe("DecisionCard", () => {
     track_id: "track-1",
     mission_id: "mission-1",
     forecast_claim: "Market will adopt this feature within Q4 2026",
-    forecast_horizon_date: new Date(Date.now() + 86400000).toISOString(), // tomorrow
+    forecast_horizon_date: new Date(Date.now() + 86400000).toISOString(),
     created_at: new Date(Date.now() - 86400000).toISOString(),
     updated_at: new Date().toISOString(),
     title: "",
@@ -27,14 +27,23 @@ describe("DecisionCard", () => {
 
   const mockLearning: Learning = {
     id: "1",
-    track_id: "track-1",
     decision_id: "1",
     verdict: "correct - feature adoption exceeded 40% in Q4",
-    metadata: {
-      confidence: 0.85,
-      sampleSize: 150,
-      resolvedBy: "agent",
-    },
+    summary: "Adoption target met",
+    new_ice: null,
+    prior_ice: null,
+    mission_id: null,
+    opportunity_id: null,
+    prd_id: null,
+    product_id: null,
+    user_id: "user-1",
+    workspace_id: "ws-1",
+    is_sample: false,
+    embedding: null,
+    embedding_model: null,
+    metric_label: null,
+    metric_value: null,
+    recorded_by_agent_slug: "calibrate-insights",
     created_at: new Date(Date.now() - 3600000).toISOString(),
     updated_at: new Date().toISOString(),
   };
@@ -98,38 +107,20 @@ describe("DecisionCard", () => {
     expect(screen.getByText(/ACTUAL/)).toBeTruthy();
   });
 
-  it("displays confidence percentage when present in metadata", () => {
-    render(<DecisionCard decision={mockDecision} learning={mockLearning} />);
-
-    expect(screen.getByText(/85%/)).toBeTruthy();
-    expect(screen.getByText(/Confidence/)).toBeTruthy();
-  });
-
-  it("displays sample size when present in metadata", () => {
-    render(<DecisionCard decision={mockDecision} learning={mockLearning} />);
-
-    expect(screen.getByText(/150/)).toBeTruthy();
-    expect(screen.getByText(/Sample size/)).toBeTruthy();
-  });
-
-  it("shows auto-graded indicator when resolvedBy is agent", () => {
+  it("shows auto-graded indicator when recorded_by_agent_slug is set", () => {
     render(<DecisionCard decision={mockDecision} learning={mockLearning} />);
 
     expect(screen.getByText(/auto-graded/i)).toBeTruthy();
   });
 
-  it("shows human resolution indicator when resolvedBy is human", () => {
+  it("shows no auto-graded indicator when recorded_by_agent_slug is null", () => {
     const humanLearning: Learning = {
       ...mockLearning,
-      metadata: {
-        ...mockLearning.metadata,
-        resolvedBy: "human",
-      },
+      recorded_by_agent_slug: null,
     };
 
     render(<DecisionCard decision={mockDecision} learning={humanLearning} />);
 
-    // Should not show auto-graded, but the component handles this gracefully
     expect(screen.queryByText(/auto-graded/i)).toBeFalsy();
   });
 
@@ -151,35 +142,6 @@ describe("DecisionCard", () => {
     expect(screen.getByText(/This is how you learn/i)).toBeTruthy();
   });
 
-  it("handles decision with no confidence gracefully", () => {
-    const minimumLearning: Learning = {
-      ...mockLearning,
-      metadata: {},
-    };
-
-    render(<DecisionCard decision={mockDecision} learning={minimumLearning} />);
-
-    // Should still render without confidence display
-    expect(screen.getByText(/RIGHT/)).toBeTruthy();
-    expect(screen.queryByText(/Confidence/)).toBeFalsy();
-  });
-
-  it("handles learning with null metadata gracefully", () => {
-    const nullMetadataLearning: Learning = {
-      ...mockLearning,
-      metadata: null,
-    };
-
-    render(
-      <DecisionCard
-        decision={mockDecision}
-        learning={nullMetadataLearning}
-      />
-    );
-
-    expect(screen.getByText(/RIGHT/)).toBeTruthy();
-  });
-
   it("displays verdict when forecast claim is missing", () => {
     const minimalDecision: Decision = {
       ...mockDecision,
@@ -192,7 +154,7 @@ describe("DecisionCard", () => {
   });
 
   it("displays horizon date when set", () => {
-    const horizonDate = new Date(2026, 11, 31).toISOString(); // Dec 31, 2026
+    const horizonDate = new Date(2026, 11, 31).toISOString();
     const decisionWithHorizon: Decision = {
       ...mockDecision,
       forecast_horizon_date: horizonDate,
@@ -200,7 +162,6 @@ describe("DecisionCard", () => {
 
     render(<DecisionCard decision={decisionWithHorizon} />);
 
-    // Should display some date format
     expect(screen.getByText(/By:/)).toBeTruthy();
   });
 

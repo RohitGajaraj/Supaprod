@@ -28,8 +28,6 @@ interface DecisionVerdictDisplay {
   actual: string;
   actualDate: string;
   verdict: "RIGHT" | "WRONG" | "INCONCLUSIVE" | "PENDING";
-  confidence?: number;
-  sampleSize?: number;
   resolvedBy?: "human" | "agent";
 }
 
@@ -65,8 +63,6 @@ export function AskDecisionCard({
     let actual = "Waiting for outcome…";
     let actualDate = "";
     let verdictType: "RIGHT" | "WRONG" | "INCONCLUSIVE" | "PENDING" = "PENDING";
-    let confidence: number | undefined;
-    let sampleSize: number | undefined;
     let resolvedBy: "human" | "agent" | undefined;
 
     if (learning && learning.verdict) {
@@ -88,11 +84,8 @@ export function AskDecisionCard({
         verdictType = "INCONCLUSIVE";
       }
 
-      // Metadata from learning
-      const metadata = (learning.metadata as Record<string, any>) || {};
-      confidence = metadata.confidence as number | undefined;
-      sampleSize = metadata.sampleSize as number | undefined;
-      resolvedBy = metadata.resolvedBy as "human" | "agent" | undefined;
+      // Resolve who graded: non-null recorded_by_agent_slug means agent
+      resolvedBy = learning.recorded_by_agent_slug != null ? "agent" : "human";
     }
 
     setVerdict({
@@ -101,8 +94,6 @@ export function AskDecisionCard({
       actual,
       actualDate,
       verdict: verdictType,
-      confidence,
-      sampleSize,
       resolvedBy,
     });
   }, [decision, learning]);
@@ -149,20 +140,6 @@ export function AskDecisionCard({
         </div>
       </div>
 
-      {/* Metadata: confidence and sample size */}
-      {verdict.confidence !== undefined && (
-        <div className="flex items-center gap-2 px-2 py-1 rounded bg-zinc-800/30 text-xs">
-          <span className="text-zinc-400">Confidence:</span>
-          <span className="font-medium text-white">{Math.round(verdict.confidence * 100)}%</span>
-          {verdict.sampleSize && (
-            <>
-              <span className="text-zinc-600">·</span>
-              <span className="text-zinc-400">n=</span>
-              <span className="font-medium text-white">{verdict.sampleSize}</span>
-            </>
-          )}
-        </div>
-      )}
     </div>
   );
 }

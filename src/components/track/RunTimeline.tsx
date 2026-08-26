@@ -61,7 +61,7 @@ export function RunTimeline({ trackId, events = [], isLive = false }: RunTimelin
     }
 
     const transformed = events.map((event) => {
-      const createdAt = new Date(event.created_at).getTime();
+      const createdAt = new Date(event.at).getTime();
       const now = new Date().getTime();
       const elapsed = Math.max(0, (now - createdAt) / 1000);
 
@@ -75,16 +75,16 @@ export function RunTimeline({ trackId, events = [], isLive = false }: RunTimelin
       // Human-readable action description
       const action =
         event.actor === "system"
-          ? `Agent entered ${STATION_DISPLAY_NAMES[event.station] || event.station}`
-          : `Held at ${STATION_DISPLAY_NAMES[event.station] || event.station}`;
+          ? `Agent entered ${STATION_DISPLAY_NAMES[event.to_stage] || event.to_stage}`
+          : `Held at ${STATION_DISPLAY_NAMES[event.to_stage] || event.to_stage}`;
 
       return {
-        stationName: event.station,
-        displayName: STATION_DISPLAY_NAMES[event.station] || event.station,
+        stationName: event.to_stage,
+        displayName: STATION_DISPLAY_NAMES[event.to_stage] || event.to_stage,
         timestamp: createdAt,
         readableTime: timeString,
         action,
-        color: STATION_COLORS[event.station] || "bg-zinc-500",
+        color: STATION_COLORS[event.to_stage] || "bg-zinc-500",
       };
     });
 

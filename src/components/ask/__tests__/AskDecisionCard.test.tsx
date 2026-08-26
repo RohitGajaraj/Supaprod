@@ -29,13 +29,22 @@ describe("AskDecisionCard", () => {
   const mockLearning: Learning = {
     id: "learn-1",
     decision_id: "dec-1",
-    track_id: "track-1",
     verdict: "correct - API consistently under 100ms",
-    metadata: {
-      confidence: 0.92,
-      sampleSize: 500,
-      resolvedBy: "agent",
-    },
+    summary: "API performance met the forecast target",
+    new_ice: null,
+    prior_ice: null,
+    mission_id: null,
+    opportunity_id: null,
+    prd_id: null,
+    product_id: null,
+    user_id: "user-1",
+    workspace_id: "ws-1",
+    is_sample: false,
+    embedding: null,
+    embedding_model: null,
+    metric_label: null,
+    metric_value: null,
+    recorded_by_agent_slug: "calibrate-insights",
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
@@ -85,23 +94,7 @@ describe("AskDecisionCard", () => {
     expect(screen.getByText(/INCONCLUSIVE/)).toBeTruthy();
   });
 
-  it("displays confidence percentage", () => {
-    render(
-      <AskDecisionCard decision={mockDecision} learning={mockLearning} />
-    );
-
-    expect(screen.getByText(/92%/)).toBeTruthy();
-  });
-
-  it("displays sample size", () => {
-    render(
-      <AskDecisionCard decision={mockDecision} learning={mockLearning} />
-    );
-
-    expect(screen.getByText("500")).toBeTruthy();
-  });
-
-  it("shows auto-graded indicator", () => {
+  it("shows agent-resolved indicator when recorded_by_agent_slug is set", () => {
     render(
       <AskDecisionCard decision={mockDecision} learning={mockLearning} />
     );

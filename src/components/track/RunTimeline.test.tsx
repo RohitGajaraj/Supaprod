@@ -9,42 +9,39 @@ describe("RunTimeline", () => {
   const mockEvents: StageEvent[] = [
     {
       id: "1",
-      track_id: "track-1",
-      station: "sense",
+      entity_id: "track-1",
+      entity_type: "track",
+      to_stage: "sense",
+      from_stage: null,
       actor: "system",
-      status: "started",
-      created_at: new Date(Date.now() - 10000).toISOString(),
-      updated_at: new Date().toISOString(),
-      message: null,
-      output: null,
+      at: new Date(Date.now() - 10000).toISOString(),
       driven_via: null,
-      holds_for: null,
+      user_id: null,
+      workspace_id: null,
     },
     {
       id: "2",
-      track_id: "track-1",
-      station: "discover",
+      entity_id: "track-1",
+      entity_type: "track",
+      to_stage: "discover",
+      from_stage: "sense",
       actor: "system",
-      status: "completed",
-      created_at: new Date(Date.now() - 5000).toISOString(),
-      updated_at: new Date().toISOString(),
-      message: null,
-      output: null,
+      at: new Date(Date.now() - 5000).toISOString(),
       driven_via: null,
-      holds_for: null,
+      user_id: null,
+      workspace_id: null,
     },
     {
       id: "3",
-      track_id: "track-1",
-      station: "decide",
+      entity_id: "track-1",
+      entity_type: "track",
+      to_stage: "decide",
+      from_stage: "discover",
       actor: "system",
-      status: "completed",
-      created_at: new Date(Date.now() - 2000).toISOString(),
-      updated_at: new Date().toISOString(),
-      message: null,
-      output: null,
+      at: new Date(Date.now() - 2000).toISOString(),
       driven_via: null,
-      holds_for: null,
+      user_id: null,
+      workspace_id: null,
     },
   ];
 
@@ -82,18 +79,17 @@ describe("RunTimeline", () => {
   });
 
   it("limits display to last 5 events", () => {
-    const manyEvents = Array.from({ length: 10 }, (_, i) => ({
+    const manyEvents: StageEvent[] = Array.from({ length: 10 }, (_, i) => ({
       id: String(i),
-      track_id: "track-1",
-      station: ["sense", "discover", "decide", "define", "design"][i % 5] as any,
-      actor: "system" as const,
-      status: "completed" as const,
-      created_at: new Date(Date.now() - i * 1000).toISOString(),
-      updated_at: new Date().toISOString(),
-      message: null,
-      output: null,
+      entity_id: "track-1",
+      entity_type: "track",
+      to_stage: ["sense", "discover", "decide", "define", "design"][i % 5],
+      from_stage: null,
+      actor: "system",
+      at: new Date(Date.now() - i * 1000).toISOString(),
       driven_via: null,
-      holds_for: null,
+      user_id: null,
+      workspace_id: null,
     }));
 
     render(<RunTimeline trackId="track-1" events={manyEvents} />);
@@ -105,16 +101,15 @@ describe("RunTimeline", () => {
   it("handles held events (actor !== system)", () => {
     const heldEvent: StageEvent = {
       id: "4",
-      track_id: "track-1",
-      station: "decide",
+      entity_id: "track-1",
+      entity_type: "track",
+      to_stage: "decide",
+      from_stage: "discover",
       actor: "human",
-      status: "held",
-      created_at: new Date(Date.now() - 1000).toISOString(),
-      updated_at: new Date().toISOString(),
-      message: null,
-      output: null,
+      at: new Date(Date.now() - 1000).toISOString(),
       driven_via: null,
-      holds_for: null,
+      user_id: null,
+      workspace_id: null,
     };
 
     render(<RunTimeline trackId="track-1" events={[heldEvent]} />);
@@ -134,16 +129,15 @@ describe("RunTimeline", () => {
     for (const { station, color } of colorTests) {
       const event: StageEvent = {
         id: `event-${station}`,
-        track_id: "track-1",
-        station: station as any,
+        entity_id: "track-1",
+        entity_type: "track",
+        to_stage: station,
+        from_stage: null,
         actor: "system",
-        status: "completed",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        message: null,
-        output: null,
+        at: new Date().toISOString(),
         driven_via: null,
-        holds_for: null,
+        user_id: null,
+        workspace_id: null,
       };
 
       const { container } = render(

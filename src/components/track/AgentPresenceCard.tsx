@@ -53,23 +53,23 @@ export function AgentPresenceCard({
       return;
     }
 
-    // Parse agent run metadata to extract decision/action
-    const metadata = (agentRun.metadata as Record<string, any>) || {};
-    const result = (agentRun.result as Record<string, any>) || {};
+    // Parse agent run fields to extract decision/action
+    const delegateMeta = (agentRun.delegate_meta as Record<string, unknown>) || {};
+    const output = agentRun.output || "";
 
     // Human-readable decision description
     let decision = "Working...";
-    if (result.decision) {
-      decision = String(result.decision).substring(0, 150);
-      if (String(result.decision).length > 150) {
+    if (delegateMeta.action) {
+      decision = `${delegateMeta.action}: ${delegateMeta.reasoning || "proceeding"}`;
+    } else if (output) {
+      decision = output.substring(0, 150);
+      if (output.length > 150) {
         decision += "…";
       }
-    } else if (metadata.action) {
-      decision = `${metadata.action}: ${metadata.reasoning || "proceeding"}`;
     }
 
     // Extract confidence tier
-    const confidence = (metadata.confidence || "medium") as "low" | "medium" | "high";
+    const confidence = ((delegateMeta.confidence as string) || "medium") as "low" | "medium" | "high";
 
     // Model from run metadata
     const model = agentRun.model || "Claude";
