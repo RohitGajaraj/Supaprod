@@ -106,8 +106,20 @@ describe("the sheet cannot invent a door", () => {
 });
 
 describe("the surface lookup answers with the right one", () => {
-  it("prefers the longest match, so one run is not the board", () => {
-    expect(surfaceKeysFor("/runs")?.path).toBe("/runs");
+  it("does not let a bare prefix inherit a longer path's keys", () => {
+    /*
+     * THIS USED TO ASSERT THE PAIR and now asserts the absence, because the
+     * fold took the shorter half away: `/runs` declared a ⌘↵ that submitted the
+     * composer inside `_authenticated.runs.index.tsx`, and that file is a
+     * redirect now, so the entry went with it.
+     *
+     * The property being guarded is unchanged and this is the sharper way to
+     * state it. `/runs/$missionId` is still declared, so a bare prefix match in
+     * declaration order would hand `/runs` the single-run keys, which is the
+     * mistake `surfaceKeysFor`'s own comment describes `railOwnerOf` fixing.
+     * Null is the honest answer: `/runs` is a redirect and has no keyboard.
+     */
+    expect(surfaceKeysFor("/runs")).toBeNull();
     expect(surfaceKeysFor("/runs/abc123")?.path).toBe("/runs/$missionId");
   });
 
