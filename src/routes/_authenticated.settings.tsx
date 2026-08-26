@@ -684,7 +684,9 @@ function SettingsPage() {
               title="What they may do without asking"
               sub="Every tool, the ceiling on a run, what routes itself, and the switch that stops all of it."
             />
-            <BoundaryControls />
+            {/* ControlsPanel below owns the pause switch, so this panel's
+                read-only pause line would be the same fact twice. */}
+            <BoundaryControls pauseShownElsewhere />
             <ControlsPanel onOpenQueue={() => navigate({ to: "/approvals" })} />
           </>
         )}
