@@ -787,7 +787,17 @@ function Today() {
             onOpen: openRun(m.id),
           };
         })
-        .sort((a, b) => b.at - a.at),
+        /* OLDEST FIRST, and this lane is the ONLY one that sorts this way.
+           Running and Finished sort newest-first because for work in motion the
+           story is recency. Here the story is the opposite: nothing in this lane
+           moves until a person acts, so the longer a thing has sat the more it
+           needs them. Sorting it newest-first, which is what this line used to
+           do, put the freshest arrival on top and buried the oldest behind a cap
+           of three and an overflow control. Measured 2026-08-27: the oldest gate
+           in this workspace has been waiting 33 days, and it was the last row of
+           a folded list. The brief's words for this lane are "sorted by what
+           needs a person soonest", and recency is not that. */
+        .sort((a, b) => a.at - b.at),
     [stuck, openRun],
   );
 
@@ -946,12 +956,22 @@ function Today() {
             onOpen: openRun(m.id),
           };
         })
-        .sort((a, b) => b.at - a.at),
+        /* Same lane, same rule: oldest first. These rows come from the sessions
+           read rather than the windowed mission list, so unlike the rows above
+           they can genuinely be weeks old, which is exactly why they must not
+           sort to the bottom. */
+        .sort((a, b) => a.at - b.at),
     [running, gatesByMission, openRun],
   );
 
+  /* THE MERGE MUST RE-SORT, or the per-list ordering above is decorative.
+     Three sources feed this lane: blocked missions (windowed to 24 hours),
+     gated sessions (NOT windowed, so genuinely weeks old) and spine tracks.
+     Concatenating them put every gated row after every mission row regardless
+     of age, so the 33-day gate still sorted below a mission blocked ten minutes
+     ago. Oldest first across the whole lane, for the reason on replyRows. */
   const allReplyRows = React.useMemo(
-    () => [...replyRows, ...gatedRows, ...trackCrewRows.reply],
+    () => [...replyRows, ...gatedRows, ...trackCrewRows.reply].sort((a, b) => a.at - b.at),
     [replyRows, gatedRows, trackCrewRows],
   );
   const allLiveRows = React.useMemo(
