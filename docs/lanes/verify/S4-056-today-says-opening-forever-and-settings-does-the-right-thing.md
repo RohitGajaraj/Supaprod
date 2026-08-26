@@ -66,6 +66,38 @@ decide, sending the person to a login page that works. **Six routes, one conditi
 is a permanent dead end.** That the other five get it right is what makes this a defect rather than a
 missing feature.
 
+## What the hang is NOT, which is the part that saves the fixer time
+
+Reproduced three times, twice-warmed each time. On the third I instrumented it:
+
+```
+url: /runs          text: "Opening"      after 25s
+console errors: NONE
+failed requests: 0
+```
+
+**Nothing throws and nothing fails.** No error, no rejected promise, no failed fetch. The route
+simply never leaves the pending state and never redirects.
+
+Eliminated by reading the routes, so nobody repeats it:
+
+| suspect | ruled out because |
+| --- | --- |
+| a child `beforeLoad` on `runs.index` | there is none. Nor on `today`, `settings` or `start` |
+| a child `loader` | none on any of the four |
+| `validateSearch` | `runs.index:385` has one, and so does `settings:319`, which resolves fine |
+| a thrown render error | zero console errors, zero page errors |
+| a hanging network call | zero failed requests, and the guard's own comment says `getSession()` reads localStorage with no network roundtrip |
+
+**The shared guard is identical for all six routes**: `_authenticated.tsx:57` renders
+`<BrandWait label="Opening" />` as the `pendingComponent`, and `:58-64` runs
+`supabase.auth.getSession()` then `throw redirect({ to: "/login" })`.
+
+So the same guard redirects five routes and does not redirect this one, with nothing erroring.
+**I have characterised the symptom firmly and I have not found the cause**, and I am not going to
+guess at it: the next step is a router-level look at whether `/runs` matches the `_authenticated`
+tree the way its siblings do, and that belongs to whoever owns the route.
+
 ## Against the standard
 
 - **Frontier standard #2:** *"Nothing blocks on a spinner past ~2s without saying, in plain words,
