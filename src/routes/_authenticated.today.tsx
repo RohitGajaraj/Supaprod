@@ -29,11 +29,10 @@ import { DecisionQueue } from "@/components/today/DecisionQueue";
 import { ElapsedRunning, parseableInstant } from "@/components/today/ElapsedRunning";
 import { FocusNext } from "@/components/today/FocusNext";
 import { HandoverNote } from "@/components/today/HandoverNote";
+import { OverlapCheck, OverlapNote } from "@/components/today/OverlapNote";
 import { PushedInsights } from "@/components/today/PushedInsights";
-import {
-  trackToBoardRows,
-  type TrackBoardRow,
-} from "@/components/today/tracks-feed";
+import { waitingNote } from "@/components/today/waiting-age";
+import { trackToBoardRows, type TrackBoardRow } from "@/components/today/tracks-feed";
 import { QuietMorning } from "@/components/today/QuietMorning";
 import { RunState, ShippedState } from "@/components/today/RunState";
 import { ago, daysSince, withinLastDay } from "@/components/today/when";
@@ -734,9 +733,7 @@ function Today() {
   /* Resolved once here rather than inline in the block's evidence line, so the
      JSX below reads as what is printed and not as how it was parsed. */
   const learningVerdictClass = learning ? LEARNING_VERDICT_CLASS[learning.verdict] : undefined;
-  const learningIce = learning
-    ? iceMovement(learning.prior_ice, learning.new_ice)
-    : null;
+  const learningIce = learning ? iceMovement(learning.prior_ice, learning.new_ice) : null;
   const oldest = React.useMemo(
     () =>
       rows.reduce<string | null>(
@@ -766,8 +763,7 @@ function Today() {
    * pane with a half sentence would send it.
    */
   const openRun = React.useCallback(
-    (id: string) => () =>
-      void navigate({ to: "/runs/$missionId", params: { missionId: id } }),
+    (id: string) => () => void navigate({ to: "/runs/$missionId", params: { missionId: id } }),
     [navigate],
   );
 
@@ -820,53 +816,54 @@ function Today() {
   );
 
   const openRows = React.useMemo<CrewRow[]>(
-    () => [
-      ...shipped.map((m): CrewRow => {
-        const when = ago(m.completed_at);
-        return {
-          id: m.id,
-          who: m.current_agent_slug ? agentDisplayName(m.current_agent_slug) : null,
-          title: cleanTitle(m.title),
-          state: (
-            <>
-              {m.hop_count > 0 ? (
-                <>
-                  <Num>{m.hop_count}</Num> {m.hop_count === 1 ? "handoff" : "handoffs"} ·{" "}
-                </>
-              ) : null}
-              {/* `completed_with_failures` is NOT a failure: it went out, and
-                  the hole in it is a fact about the thing that shipped.
-                  `ShippedState` says "partial", which is the whole of what is
-                  true. */}
-              <ShippedState partial={m.status === "completed_with_failures"} />
-              {when ? ` ${when}` : ""}
-            </>
-          ),
-          at: feedInstant(m.completed_at, m.updated_at),
-          onOpen: openRun(m.id),
-        };
-      }),
-      ...stuck
-        .filter((m) => taskStatus(m.status) !== "blocked")
-        .map((m): CrewRow => {
-          const when = ago(m.completed_at ?? m.updated_at);
+    () =>
+      [
+        ...shipped.map((m): CrewRow => {
+          const when = ago(m.completed_at);
           return {
             id: m.id,
             who: m.current_agent_slug ? agentDisplayName(m.current_agent_slug) : null,
             title: cleanTitle(m.title),
-            /* `halted` and `cancelled` read as two different facts in the line:
-               a deliberate stop and the engine stopping are not the same news. */
             state: (
               <>
-                <RunState status={m.status} />
+                {m.hop_count > 0 ? (
+                  <>
+                    <Num>{m.hop_count}</Num> {m.hop_count === 1 ? "handoff" : "handoffs"} ·{" "}
+                  </>
+                ) : null}
+                {/* `completed_with_failures` is NOT a failure: it went out, and
+                  the hole in it is a fact about the thing that shipped.
+                  `ShippedState` says "partial", which is the whole of what is
+                  true. */}
+                <ShippedState partial={m.status === "completed_with_failures"} />
                 {when ? ` ${when}` : ""}
               </>
             ),
-            at: feedInstant(m.completed_at ?? m.updated_at, m.created_at),
+            at: feedInstant(m.completed_at, m.updated_at),
             onOpen: openRun(m.id),
           };
         }),
-    ].sort((a, b) => b.at - a.at),
+        ...stuck
+          .filter((m) => taskStatus(m.status) !== "blocked")
+          .map((m): CrewRow => {
+            const when = ago(m.completed_at ?? m.updated_at);
+            return {
+              id: m.id,
+              who: m.current_agent_slug ? agentDisplayName(m.current_agent_slug) : null,
+              title: cleanTitle(m.title),
+              /* `halted` and `cancelled` read as two different facts in the line:
+               a deliberate stop and the engine stopping are not the same news. */
+              state: (
+                <>
+                  <RunState status={m.status} />
+                  {when ? ` ${when}` : ""}
+                </>
+              ),
+              at: feedInstant(m.completed_at ?? m.updated_at, m.created_at),
+              onOpen: openRun(m.id),
+            };
+          }),
+      ].sort((a, b) => b.at - a.at),
     [shipped, stuck, openRun],
   );
 
@@ -881,8 +878,7 @@ function Today() {
     [rows],
   );
   const openTrack = React.useCallback(
-    (trackId: string) => () =>
-      void navigate({ to: "/track/$trackId", params: { trackId } }),
+    (trackId: string) => () => void navigate({ to: "/track/$trackId", params: { trackId } }),
     [navigate],
   );
   const trackCrewRows = React.useMemo(() => {
@@ -1069,7 +1065,12 @@ function Today() {
   const crewSection = (
     name: string,
     all: CrewRow[],
-    note: string,
+    /* A NODE RATHER THAN A STRING since 2026-08-26, so a section's own sentence
+       can carry a clause that has to be READ before it can be written — Running
+       says what it could not check for overlap, and that is only knowable from a
+       query. The base sentence still stands alone, so nothing here can resolve a
+       wait to nothing. */
+    note: React.ReactNode,
     verbFor: (row: CrewRow) => React.ReactNode,
     extraFor?: (row: CrewRow) => React.ReactNode,
   ) => {
@@ -1608,25 +1609,24 @@ function Today() {
             goTo={rows.length > 0 ? "Open Runs" : undefined}
             onGoTo={() => navigate({ to: "/runs" })}
             sub={
-              stillWaiting(queue) || stillWaiting(missions)
-                ? null
-                : queue.isError || missions.isError
-                  ? "This could not be read."
-                  : (
+              stillWaiting(queue) || stillWaiting(missions) ? null : queue.isError ||
+                missions.isError ? (
+                "This could not be read."
+              ) : (
+                <>
+                  {items.length > 0 ? (
                     <>
-                      {items.length > 0 ? (
-                        <>
-                          <Num>{items.length}</Num> waiting on you. Nothing has happened yet, so
-                          undo is free.
-                        </>
-                      ) : (
-                        <>Nothing is waiting on you.</>
-                      )}
-                      {crewQuietLine
-                        ? ` ${crewQuietLine.charAt(0).toUpperCase()}${crewQuietLine.slice(1)}.`
-                        : null}
+                      <Num>{items.length}</Num> waiting on you. Nothing has happened yet, so undo is
+                      free.
                     </>
-                  )
+                  ) : (
+                    <>Nothing is waiting on you.</>
+                  )}
+                  {crewQuietLine
+                    ? ` ${crewQuietLine.charAt(0).toUpperCase()}${crewQuietLine.slice(1)}.`
+                    : null}
+                </>
+              )
             }
           >
             {/* THE CALLS. The queue keeps its whole self: walk mode, bulk verbs,
@@ -1724,7 +1724,14 @@ function Today() {
                 {crewSection(
                   FEED_REPLY,
                   allReplyRows,
-                  "Nothing moves on these until you answer.",
+                  /* HOW LONG THE OLDEST ONE HAS SAT, said once above the lane.
+                     The lane caps at three standing rows and folds the rest, so
+                     a person reading "89" over three fresh-looking rows has no
+                     way to learn the backlog behind them is three weeks deep.
+                     Measured 2026-08-26: 89 waiting, 85 of them 8 to 30 days
+                     old, the oldest 21 days. waiting-age.ts carries why this is
+                     the oldest rather than a bucket count. */
+                  waitingNote("Nothing moves on these until you answer.", allReplyRows, Date.now()),
                   (row) =>
                     row.proposed ? (
                       /* A PROPOSED MISSION IS NOT ASKING A QUESTION — it is
@@ -1765,33 +1772,52 @@ function Today() {
                       />
                     ) : null,
                 )}
-                {crewSection(FEED_LIVE, allLiveRows, "Waiting on an agent, not on you.", (row) =>
-                  row.isTrack ? null : (
-                    <Action
-                      variant="quiet"
-                      busy={cancelRun.isPending}
-                      onClick={(event) => {
-                        /* The row itself opens the run; stopping it must not. */
-                        event.stopPropagation();
-                        void cancelRunAt(row.id);
-                      }}
-                    >
-                      Stop
-                    </Action>
+                {crewSection(
+                  FEED_LIVE,
+                  allLiveRows,
+                  <>
+                    Waiting on an agent, not on you.
+                    <OverlapCheck workspaceId={workspaceId} />
+                  </>,
+                  (row) =>
+                    row.isTrack ? null : (
+                      <Action
+                        variant="quiet"
+                        busy={cancelRun.isPending}
+                        onClick={(event) => {
+                          /* The row itself opens the run; stopping it must not. */
+                          event.stopPropagation();
+                          void cancelRunAt(row.id);
+                        }}
+                      >
+                        Stop
+                      </Action>
+                    ),
+                  (row) => (
+                    <>
+                      {/* WHERE THE WORK JUST CAME FROM. The founder asked twice to
+                          see the handoff; on the board that is this one line under
+                          each running row, drawn only when a real handover row
+                          exists. It owns its own read and its own silence, so the
+                          route-level wait contract above is untouched. */}
+                      <HandoverNote missionId={row.id} workspaceId={workspaceId} />
+                      {/* WHO ELSE IS ON THE SAME THING. Only where one of them is
+                          WRITING, because a shared read is a healthy afternoon and a
+                          mark that is always on is furniture. A track row carries a
+                          track id, not a mission id, so it is not asked. */}
+                      {row.isTrack ? null : (
+                        <OverlapNote missionId={row.id} workspaceId={workspaceId} />
+                      )}
+                    </>
                   ),
-                (row) => (
-                  /* WHERE THE WORK JUST CAME FROM. The founder asked twice to
-                     see the handoff; on the board that is this one line under
-                     each running row, drawn only when a real handover row
-                     exists. It owns its own read and its own silence, so the
-                     route-level wait contract above is untouched. */
-                  <HandoverNote missionId={row.id} workspaceId={workspaceId} />
-                ))}
+                )}
                 {crewSection(
                   FEED_OPEN,
                   allOpenRows,
                   "Finished. Open one to see how it ended, and what it left behind.",
-                  (row) => <Door onClick={row.onOpen}>Open</Door>,
+                  (row) => (
+                    <Door onClick={row.onOpen}>Open</Door>
+                  ),
                 )}
               </div>
             ) : null}
@@ -1814,7 +1840,6 @@ function Today() {
         {quietMorning ? <QuietMorning /> : null}
 
         <PushedInsights />
-
 
         {stillWaiting(learnings) ? (
           <Reading>Reading what it learned.</Reading>

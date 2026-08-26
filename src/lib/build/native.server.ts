@@ -163,6 +163,9 @@ export const nativeBuildDriver: BuildDriver = {
         // than the first attempt.
         input: goal,
         status: "queued",
+        // Enqueued now, promoted by resume-runs later. The trace is minted at
+        // insert so the promoted run's tool calls join back to this row.
+        trace_id: crypto.randomUUID(),
         workspace_id: ctx.workspaceId,
         mission_id: mission.id,
         // The workspace's ceiling, resolved the way every other writer resolves

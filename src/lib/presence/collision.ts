@@ -76,6 +76,58 @@ function kindFromIdKey(key: string): string {
   return key === "id" ? "row" : `row:${key.replace(/_id$/, "")}`;
 }
 
+/** A Postgres uuid, which is the shape of every row id in this schema. */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * The key two anchors must share to be on the same thing.
+ *
+ * ── WHY THE KIND IS NOT THE IDENTITY ───────────────────────────────────────
+ * The kind does two jobs and only one of them is identity: it decides the noun
+ * a person reads (`row:prd` -> "spec"), and it used to decide grouping too. So
+ * one PRD named `prd_id` by one run and `id` by another landed in two buckets
+ * that were never compared. Measured against live rows 2026-08-26 (S2): PRD
+ * `e9e5b033` held by FOUR runs, reported as two unrelated pairs; and the
+ * two-run form of the same split returns no collision at all, so the surface
+ * says *"Nobody is on the same thing"* over a real overlap. **Reporting people
+ * as apart when they are together is the direction this file exists not to fail
+ * in** — F-76 wearing this surface's clothes.
+ *
+ * So identity is the id, not the key that named it. **For uuids only.** A
+ * non-uuid id keeps its kind in the key, because `signal_id: "1"` and
+ * `theme_id: "1"` are two different things, and a mark that fires on things
+ * that are not the same is the other way this surface dies.
+ */
+function groupKeyOf(a: Pick<Anchor, "targetKind" | "targetId">): string {
+  const kind = a.targetKind.startsWith("row") && UUID.test(a.targetId) ? "row" : a.targetKind;
+  return `${kind}\u0000${a.targetId}`;
+}
+
+/**
+ * The kind to SHOW for a group: the most specific one anybody named.
+ *
+ * Grouping collapsed `row:prd` and `row` onto one bucket; display must not, or
+ * the reader loses the noun and gets "item" where the product knows "spec".
+ * `row:prd` beats bare `row`; a tie between two specific kinds goes to the
+ * most-named and then to first seen, so the pick never depends on the order
+ * rows came back in.
+ */
+function displayKindOf(group: readonly Anchor[]): string {
+  const counts = new Map<string, number>();
+  for (const a of group) counts.set(a.targetKind, (counts.get(a.targetKind) ?? 0) + 1);
+
+  let best = group[0]!.targetKind;
+  for (const a of group) {
+    if (a.targetKind === best) continue;
+    const specific = a.targetKind !== "row";
+    const bestIsSpecific = best !== "row";
+    if (specific && !bestIsSpecific) best = a.targetKind;
+    else if (specific === bestIsSpecific && counts.get(a.targetKind)! > counts.get(best)!)
+      best = a.targetKind;
+  }
+  return best;
+}
+
 /**
  * The one thing this call names, or null.
  *
@@ -116,43 +168,10 @@ export function targetOf(args: unknown): { targetKind: string; targetId: string 
  * Distinct by `runId`: the same run appearing twice is one teammate, not two,
  * and reporting it as a collision would make a busy agent look like a crowd.
  */
-/**
- * ONE ENTITY, NAMED TWO WAYS, IS ONE ENTITY (S2 -> S0, 2026-08-26).
- *
- * `targetOf` derives the kind from WHICH ARGUMENT KEY named the thing: `prd_id`
- * gives `row:prd`, a bare `id` gives `row`, because `id` alone cannot name its
- * table. Both readings are right. Grouping on the kind was not.
- *
- * S2 proved it on live data. PRD `e9e5b033` was anchored by four runs, two
- * naming it `prd_id` and two naming it `id`, and one of the four was
- * `design.draft`, which WRITES. The truth was: someone is drafting a design
- * against a spec two other runs are reading. Keyed by kind, that split into two
- * unrelated pairs, and the two-run version of the same shape returns `[]` while
- * the surface says "Nobody is on the same thing" over a real overlap.
- *
- * That is this file's own stated failure mode arriving from the side it was not
- * watching. Not crying wolf: a confident all-clear. F-76 in this surface's
- * clothes.
- *
- * SO THE BUCKET IS THE ENTITY, NOT THE WORDING. Anchors group by id within a
- * FAMILY, every `row*` kind together and `file` on its own. The family split
- * stays because a path and a row id are different namespaces, and merging them
- * would trade this false negative for a false positive.
- */
-function familyOf(targetKind: string): string {
-  return targetKind === "file" ? "file" : "row";
-}
-
-/** `row:prd` beats a bare `row`: report the reading that names the table. */
-function mostSpecificKind(anchors: readonly Anchor[]): string {
-  const named = anchors.find((a) => a.targetKind !== "row");
-  return named ? named.targetKind : anchors[0].targetKind;
-}
-
 export function collisionsFrom(anchors: readonly Anchor[]): Collision[] {
   const byTarget = new Map<string, Anchor[]>();
   for (const a of anchors) {
-    const key = `${familyOf(a.targetKind)} ${a.targetId}`;
+    const key = groupKeyOf(a);
     const list = byTarget.get(key);
     if (list) list.push(a);
     else byTarget.set(key, [a]);
@@ -165,7 +184,7 @@ export function collisionsFrom(anchors: readonly Anchor[]): Collision[] {
     if (distinct.length < 2) continue;
 
     out.push({
-      targetKind: mostSpecificKind(distinct),
+      targetKind: displayKindOf(distinct),
       targetId: distinct[0]!.targetId,
       runs: distinct.map((a) => ({
         runId: a.runId,

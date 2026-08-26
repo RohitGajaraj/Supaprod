@@ -388,6 +388,8 @@ async function recordVerifierRun(
         input: args.input,
         output: args.output,
         status: args.status,
+        // The verifier is its own actor on the trace, so it gets its own id.
+        trace_id: crypto.randomUUID(),
         last_checkpoint_at: new Date().toISOString(),
       })
       .select("id")
