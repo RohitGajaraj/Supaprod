@@ -2534,3 +2534,160 @@ export const submitStationByHand = createServerFn({ method: "POST" })
 
     return { ok: true, line: pasteBackLine(paste.value) };
   });
+
+/**
+ * UNDO A STEP, NOT THE RUN (gap #5, S1's request of 2026-08-26).
+ *
+ * ── WHAT THIS IS FOR ───────────────────────────────────────────────────────
+ * `retryStation` only clears a hold on the station the track is ALREADY on.
+ * There was no way to re-run a station that PASSED, which is what "undo a step"
+ * means when Plan wrote a wrong spec and Build has already consumed it.
+ *
+ * ── THE ONE THING IT MUST NOT DO ───────────────────────────────────────────
+ * Delete the work it is undoing. The obvious implementation removes the
+ * artifacts so the station looks fresh, and that is exactly wrong here: the
+ * record of what happened is the product, and a history edited to look tidy
+ * cannot support a verdict measured against a forecast. **Supersession is a
+ * stamp.** The row stays, the artifact stays, `superseded_at` says when it was
+ * undone, and every read that gates progression asks for what is standing.
+ *
+ * ── AND IT COSTS THE TRACK ITS CLAIM ───────────────────────────────────────
+ * A rewind is a person reaching into a run, so the press is recorded BEFORE
+ * anything else can fail — R-18, and F-79's false acceptance, which survived
+ * precisely because a human act left no trace. If the writes below fail, the
+ * record still says somebody reached in, which is the safe direction.
+ *
+ * The drive ceiling is cleared for the same reason `retryStation` clears it
+ * (F-99): arriving at a station the track has already burned twelve drives on
+ * would re-hold `going-in-circles` on the next tick, and the undo would be a
+ * button whose visible effect is real and whose actual effect is nothing.
+ */
+export const rewindTrackTo = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { trackId: string; station: AgentStation }) =>
+    z
+      .object({
+        trackId: z.string().uuid(),
+        station: z.enum(AGENT_STATION_ORDER as unknown as [string, ...string[]]),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }): Promise<{ track: Track | null; refused: string | null }> => {
+    const { supabase } = context;
+    try {
+      const { data: row } = await supabase
+        .from("spine_tracks" as never)
+        .select(SELECT)
+        .eq("id", data.trackId)
+        .maybeSingle();
+      if (!row) return { track: null, refused: "That work could not be found." };
+
+      const raw = row as unknown as TrackRow;
+      const track = rowToTrack(raw);
+      const target = data.station as AgentStation;
+      const current = raw.station as AgentStation;
+
+      const targetIdx = AGENT_STATION_ORDER.indexOf(target);
+      const currentIdx = AGENT_STATION_ORDER.indexOf(current);
+
+      /*
+       * FORWARD IS NOT AN UNDO. Sending a track to a station it has not reached
+       * would skip the stations between, and every one of them is a precondition
+       * for what follows -- the forecast is written at Decide and nowhere else,
+       * so a track moved forward past it can never show the one thing the
+       * product claims. Refused rather than clamped: a clamp would do something
+       * other than what was asked without saying so.
+       */
+      if (targetIdx < 0 || currentIdx < 0) {
+        return { track, refused: "That is not a station on this route." };
+      }
+      if (targetIdx >= currentIdx) {
+        return {
+          track,
+          refused:
+            target === current
+              ? "This work is already at that step. Use release if it is stuck."
+              : "That step is ahead of this work, and undo only goes back.",
+        };
+      }
+
+      const path = Array.isArray(raw.path) ? (raw.path as unknown as string[]) : [];
+      if (path.length > 0 && !path.includes(target)) {
+        return {
+          track,
+          refused: "That step is not on this route, so there is nothing to go back to.",
+        };
+      }
+
+      // THE PRESS GOES FIRST. See the header: a failed write below must not be
+      // able to leave a rewind that nothing recorded.
+      await recordTrackDrive(supabase, {
+        trackId: raw.id,
+        station: current,
+        via: "press",
+        entryHold: (raw.last_hold ?? null) as HoldReason | null,
+      });
+
+      /*
+       * Superseded: the target station's own output AND everything after it,
+       * because re-walking from Design means Design's prototype is being
+       * redone and the mission Build raised from it no longer describes the
+       * work. Stations BEFORE the target are untouched and still stand.
+       *
+       * Already-superseded rows are left alone so a second rewind does not
+       * rewrite the first one's timestamp and lose when the work was undone.
+       */
+      const undone = AGENT_STATION_ORDER.slice(targetIdx);
+      const { error: supErr } = await supabase
+        .from("spine_track_members" as never)
+        .update({ superseded_at: new Date().toISOString() } as never)
+        .eq("track_id", raw.id)
+        .in("station", undone as unknown as string[])
+        .is("superseded_at", null);
+      if (supErr) {
+        return {
+          track,
+          refused:
+            "The earlier work could not be marked as undone, so nothing was moved. Nothing has changed.",
+        };
+      }
+
+      const now = new Date().toISOString();
+      const { data: updated, error } = await supabase
+        .from("spine_tracks" as never)
+        .update({
+          station: target,
+          attempts: 0,
+          // F-99: a station the track has already burned its drives on would
+          // re-hold `going-in-circles` on the very next tick.
+          station_drives: 0,
+          last_hold: null,
+          driven_at: now,
+          updated_at: now,
+        } as never)
+        .eq("id", raw.id)
+        .select(SELECT)
+        .single();
+      if (error || !updated) {
+        return {
+          track,
+          refused: "The earlier work was marked as undone but the step did not move. Try again.",
+        };
+      }
+
+      // from !== to here, so unlike the `retryStation` call this one actually
+      // inserts. See F-62: that guard silently dropped every same-station event.
+      await recordStageEvent(supabase, {
+        entityType: "spine_track",
+        entityId: raw.id,
+        from: current,
+        to: target,
+        actor: "person",
+        drivenVia: "press",
+      });
+
+      return { track: rowToTrack(updated as unknown as TrackRow), refused: null };
+    } catch {
+      return { track: null, refused: "That work could not be moved back." };
+    }
+  });

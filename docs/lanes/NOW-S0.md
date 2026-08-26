@@ -1,1 +1,1 @@
-S0 · 21:05 IST · WORKING · submitStationByHand built (gaps #6 + #12) — writes status "claimed" never "success", so a pasted link can never become R-27 proof; F-95 · src/lib/spine/** · pending
+S0 · 21:55 IST · WORKING · rewindTrackTo landed (gap #5) — supersedes, never deletes; 5 gating reads now ask for standing work only. F-99 fixed: the release path never cleared the F-43 drive ceiling, so "unstick" could not unstick anything · src/lib/spine/** · pending

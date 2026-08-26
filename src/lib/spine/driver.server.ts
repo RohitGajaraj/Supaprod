@@ -494,6 +494,7 @@ async function linkSpecToMissionOrThrow(
     .select("artifact_id")
     .eq("track_id", row.id)
     .eq("artifact_kind", "prd")
+    .is("superseded_at", null)
     // NEWEST, and this ordering is only safe because of the `missionHasSpecParent`
     // guard below. On its own it does NOT do what it used to claim.
     //
@@ -724,6 +725,9 @@ async function missionForTrack(
       .select("artifact_id")
       .eq("track_id", row.id)
       .eq("artifact_kind", "mission")
+      // A mission raised from a spec that has since been undone describes work
+      // nobody asked for any more.
+      .is("superseded_at", null)
       .limit(1)
       .maybeSingle();
     const found = (existing as { artifact_id?: string } | null)?.artifact_id;
@@ -828,6 +832,9 @@ async function loadUpstream(
     .from("spine_track_members" as never)
     .select("artifact_kind, artifact_id, created_at")
     .eq("track_id", trackId)
+    // Undone work is not context. A brief built from a superseded spec would
+    // ask the station to redo the work by describing the wrong version of it.
+    .is("superseded_at", null)
     .order("created_at", { ascending: true });
   if (error || !members) return [];
 
@@ -1157,6 +1164,7 @@ async function forecastDueDate(supabase: SupabaseClient, trackId: string): Promi
       .select("artifact_id")
       .eq("track_id", trackId)
       .eq("artifact_kind", "decision")
+      .is("superseded_at", null)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -1248,7 +1256,11 @@ async function filedAtStation(
       .from("spine_track_members" as never)
       .select("artifact_kind, artifact_id")
       .eq("track_id", trackId)
-      .eq("station", station);
+      .eq("station", station)
+      // STANDING WORK ONLY. A rewind supersedes what it undid; counting those
+      // rows here would let the station it sent back pass its self-check on the
+      // very output that was rejected.
+      .is("superseded_at", null);
     if (error) {
       console.error(`[driver] could not read what ${station} filed: ${error.message}`);
       return [];

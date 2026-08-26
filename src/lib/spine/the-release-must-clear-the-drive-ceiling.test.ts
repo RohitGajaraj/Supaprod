@@ -48,9 +48,17 @@ const releases = (src: string) =>
 describe("a person's release clears BOTH ceilings", () => {
   it("every release in track.functions.ts resets station_drives", () => {
     const found = releases(TRACK_FNS);
-    // retryStation and submitStationByHand. If a third release path appears it
-    // is caught here rather than shipping with half a reset.
-    expect(found.length).toBe(2);
+    /*
+     * retryStation, submitStationByHand, and rewindTrackTo.
+     *
+     * This count is the point of the assertion, and it has already earned its
+     * keep: `rewindTrackTo` landed later the same day and this test failed on
+     * the count before the code shipped, which is exactly the intended catch —
+     * a new release path is forced to be looked at rather than inheriting half
+     * a reset by omission. Raise it only after checking the new path resets
+     * `station_drives` too.
+     */
+    expect(found.length).toBe(3);
     for (const u of found) {
       expect(u, "a release that leaves station_drives cannot un-stick anything").toContain(
         "station_drives: 0",
