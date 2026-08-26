@@ -99,6 +99,23 @@ and put them on screen. **If a surface teaches vocabulary, it has already lost t
 
 ---
 
+## 3.5 · The strongest objection to multi-agent visibility, and the answer
+
+Raised publicly under a multi-agent demo (practitioner `@ishpaul_777`, 2026-08-26): *"an agent will
+burn more tokens thinking about what other agent is doing than actually working on the task; git
+worktrees is the right solution, not giving the agent more context which is task-unrelated."*
+
+**Correct about agents, wrong about people, and the distinction is load-bearing:** isolation is for the
+worker, visibility is for the human. A teammate never reads another teammate's transcript — that is
+context pollution and token burn. The human reads all of it at once, rendered from rows that already
+exist, costing the agents nothing because they are not participants in it. Collision detection is a row
+comparison, never a model call; **the moment it needs one, it is wrong.** And what one teammate
+genuinely needs from another is the **artifact** — the spec, the diff, the signals — never the
+narrative. Full constraints, with the checks S4 runs against them:
+[`../../the-first-run/SPEC-MULTIPLAYER-PRESENCE.md`](../../the-first-run/SPEC-MULTIPLAYER-PRESENCE.md) §2.5.
+
+---
+
 ## 4 · What this does NOT change
 
 - **The forecast at decision time remains the moat**, unchanged by any of the above. None of the nine

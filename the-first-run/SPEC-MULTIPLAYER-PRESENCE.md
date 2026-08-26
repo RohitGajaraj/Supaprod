@@ -56,6 +56,41 @@ specific row. If S4 finds one, the layer is removed, not patched.
 
 ---
 
+## 2.5 · The objection that must be answered, and it is a good one
+
+Raised publicly against exactly this kind of feature (a practitioner, `@ishpaul_777`, under a
+multi-agent demo the founder circulated on 2026-08-26):
+
+> *"Basically an agent will burn more tokens thinking about what other agent is doing than actually
+> working on the task. Git worktrees is the right solution to the problem you are solving, not giving
+> the agent more context which is task-unrelated."*
+
+**He is right about agents and wrong about people, and the distinction is the whole design.**
+
+| | Isolation | Visibility |
+| --- | --- | --- |
+| **For the agent** | **Yes.** A teammate works in its own sandbox and does **not** read another teammate's transcript. Cross-reading is context pollution and token burn, and it makes every run slower and dumber | **No** |
+| **For the person** | No | **Yes.** The human is the one who needs all of it at once, and today gets none of it |
+
+**So three hard constraints follow, and S4 checks them:**
+
+1. **No teammate is ever fed another teammate's transcript, reasoning or output as context** in order
+   to make this layer work. The layer is a **read of state for a human**, rendered from rows that
+   already exist. It costs the agents nothing because they are not participants in it.
+2. **Collision detection is a cheap deterministic check, never a reasoning step.** Two teammates
+   targeting the same object is a row comparison — same id, same path, same file — not an agent asking
+   another agent what it is doing. **The moment collision detection needs a model call, it is wrong.**
+3. **What a teammate genuinely needs from another is the artifact, not the narrative.** The handoff
+   passes the spec, the diff, the signals — a finished thing with a name. It never passes "here is what
+   the other one has been thinking".
+
+**This is also why our own five worktrees are the right shape**: isolation for the workers, one `cat`
+of five one-line files for the human. **The product should work the same way**, and if it ever does not
+— if a teammate is spending tokens reading about other teammates — this feature caused a regression
+and comes out.
+
+---
+
 ## 3 · What is drawn
 
 ### 3.1 The cursor layer — every surface
