@@ -144,8 +144,10 @@ const waits = WAIT_TAG
     )
   : [];
 
-/** The three reads Today makes. Each owns a region, so each owns a wait. */
-const READS = ["queue", "missions", "learnings"] as const;
+/** The four reads Today makes. Each owns a region, so each owns a wait.
+ *  `tracks` joined when the board took over spine work (`/start` creates a
+ *  track and no mission, so that work was invisible here before). */
+const READS = ["queue", "missions", "learnings", "tracks"] as const;
 
 describe("Today renders something for every read in flight", () => {
   it("has no wait branch that resolves to nothing", () => {
