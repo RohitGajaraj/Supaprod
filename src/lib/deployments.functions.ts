@@ -313,7 +313,7 @@ async function landedShaForChangeset(
 function zeroCaptureMessage(read: DeployReadOutcome, shortSha: string): string {
   switch (read) {
     case "read-failed":
-      return `Supaprod could not reach your repository's deployment record, so nothing was recorded — and this says nothing either way about whether your pipeline deployed the commit this change landed as (${shortSha}). Try again; if it keeps failing, re-check the GitHub connection in Settings → Connected accounts.`;
+      return `Supaprod could not reach your repository's deployment record, so nothing was recorded. This says nothing either way about whether your pipeline deployed the commit this change landed as (${shortSha}). Try again; if it keeps failing, re-check the GitHub connection in Settings → Connected accounts.`;
     case "not-connected":
       return "Supaprod has no connection it can use to ask this repository what it deployed, so it did not look. Connect GitHub in Settings → Connected accounts, then try again.";
     case "no-repo":
@@ -1133,7 +1133,7 @@ export async function promoteChangesetToProductionCore(
       if (observed) {
         const builtAt = observed.deploy_url ? ` It is serving at ${observed.deploy_url}.` : "";
         throw new Error(
-          `This preview was published by your own pipeline, not by Supaprod — Supaprod only read it from your repository's deployment record — so there is nothing here to move to production.${builtAt} Promote it where it was built; Supaprod records the production deploy once your provider reports it.`,
+          `This preview was published by your own pipeline, not by Supaprod, which only read it from your repository's deployment record, so there is nothing here to move to production.${builtAt} Promote it where it was built; Supaprod records the production deploy once your provider reports it.`,
         );
       }
       throw new Error(
@@ -1352,7 +1352,7 @@ export async function promoteChangesetToProductionCore(
       if (lineageRead === "failed") {
         warnings.push(
           prdIds.length === 0
-            ? "The deploy is live, but Supaprod could not read which specs this release came from, and the change itself carries no spec link — so it closed the loop on nothing and armed no outcome window. That is a failed read, NOT proof this release is unlinked: check on Learn whether a spec of yours is waiting on this one before treating it as unmeasured."
+            ? "The deploy is live, but Supaprod could not read which specs this release came from, and the change itself carries no spec link, so it closed the loop on nothing and armed no outcome window. That is a failed read, NOT proof this release is unlinked: check on Learn whether a spec of yours is waiting on this one before treating it as unmeasured."
             : "The deploy is live, but Supaprod could not read which specs this release came from, so it may have closed the loop on fewer of them than it should have. Check on Learn that every spec in this release has an outcome window.",
         );
       }
@@ -1451,7 +1451,7 @@ export async function promoteChangesetToProductionCore(
           warnings.push(
             settled.length === carried.length
               ? `This release carried ${carried.length} specs and all of them were closed out: ${carried.join(", ")}. ${limit}`
-              : `This release carried ${carried.length} specs — ${carried.join(", ")} — and ${carried.length - settled.length} of them did not close out cleanly; the warnings above name which and why. ${limit}`,
+              : `This release carried ${carried.length} specs (${carried.join(", ")}), and ${carried.length - settled.length} of them did not close out cleanly; the warnings above name which and why. ${limit}`,
           );
         }
 

@@ -311,7 +311,7 @@ export const checkBackendHealth = createServerFn({ method: "GET" }).handler(
         // The code rides along because this is where a schema-cache answer
         // (see ABSENT_CODES) lands, and "unverified" with no code attached is
         // the shape of report that sends the next person back to the probe.
-        inconclusive.push(code ? `${label} — probe answered ${code}` : label);
+        inconclusive.push(code ? `${label}: probe answered ${code}` : label);
       });
 
       // The banner can only say how many, and it reaches the user, not the
