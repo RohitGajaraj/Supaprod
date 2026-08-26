@@ -20,19 +20,8 @@
  * as "as expected / not what we expected / partly as expected".
  */
 
-import {
-  absoluteUrl,
-  EMBER_DEEP,
-  emailButton,
-  emailLead,
-  emailShell,
-} from "@/lib/email.server";
-import {
-  EMAIL_BODY,
-  EMAIL_INK,
-  EMAIL_LINE,
-  EMAIL_MUTE,
-} from "@/components/meridian/email-palette";
+import { absoluteUrl, EMBER_DEEP, emailButton, emailLead, emailShell } from "@/lib/email.server";
+import { EMAIL_BODY, EMAIL_INK, EMAIL_LINE, EMAIL_MUTE } from "@/components/meridian/email-palette";
 
 export type VerdictEmailPayload = {
   /** Title of the piece of work, from spine_tracks. Falls back to a plain noun. */

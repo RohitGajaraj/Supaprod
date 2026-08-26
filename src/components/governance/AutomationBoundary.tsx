@@ -55,14 +55,7 @@ import {
  * not on you", and "armed, idle" is a condition rather than a decision anyone
  * can make. Orchid there would send a reader hunting a button that is not there.
  */
-import {
-  NothingYet,
-  ReadFailed,
-  Reading,
-  Region,
-  Toggle,
-  Value,
-} from "@/components/meridian/surface-parts";
+import { ReadFailed, Reading, Region, Toggle, Value } from "@/components/meridian/surface-parts";
 import { Line, Row } from "@/components/meridian/rows";
 
 type Receipt = { verb: string; consequence: string; failed?: boolean } | null;
@@ -131,14 +124,25 @@ export function AutomationBoundary({
 
   return (
     <Region title={title} sub={sub}>
-      {q.isError ? (
+      {/* LOADING IS ASKED FIRST, AND THE EMPTY BRANCH IS GONE.
+          It used to read "These switches belong to a workspace, and none is
+          open" — a sentence that could never be true where it stood. The early
+          return above this block already sends every workspace-less render
+          away, so by here a workspace IS open, and the message named the one
+          cause it had just ruled out.
+          It was also unreachable. `getWorkspaceAutomationImpl` coerces a
+          missing row to `{}` and returns `{ state, platform }` on every path,
+          so a settled success never carries falsy data. What is left is a
+          defensive narrowing for `q.data` below, and a read that came back
+          with nothing is a failed read from a person's side rather than an
+          empty one — so it says so and offers the same retry, instead of
+          dead-ending on a diagnosis of its own. */}
+      {q.isLoading ? (
+        <Reading>Reading what runs without asking.</Reading>
+      ) : q.isError || !q.data ? (
         <ReadFailed onRetry={() => void q.refetch()}>
           {(q.error as Error)?.message ?? "The switches did not come back."}
         </ReadFailed>
-      ) : q.isLoading ? (
-        <Reading>Reading what runs without asking.</Reading>
-      ) : !q.data ? (
-        <NothingYet>These switches belong to a workspace, and none is open.</NothingYet>
       ) : (
         <>
           {receipt ? <Line label={receipt.consequence} /> : null}
