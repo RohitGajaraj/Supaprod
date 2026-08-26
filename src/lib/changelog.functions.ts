@@ -327,7 +327,7 @@ export const publishChangelogEntry = createServerFn({ method: "POST" })
         return {
           published: false,
           reason: "not-merged",
-          message: `This change has not merged yet — it is "${changeset.status}" — so there is no release to publish. Merge the pull request first.`,
+          message: `This change has not merged yet, it is "${changeset.status}", so there is no release to publish. Merge the pull request first.`,
           entryId: null,
         };
       }

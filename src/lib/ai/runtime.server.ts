@@ -45,7 +45,7 @@ import { evaluateGuardrails, type GuardrailRule } from "./guardrails.server";
 import { withFloor } from "./guardrail-floor";
 import { retrieve, formatContextBlock, type RetrievedChunk } from "../rag/retriever.server";
 import { resolvePrompt, logPromptRun, withHumanizeDirective } from "./prompts.server";
-import { humanizeText, isFenceOpen } from "./humanize";
+import { humanizeText, humanizeToolArgs, isFenceOpen } from "./humanize";
 import { entitlementsFor, normalizePlanTier } from "../entitlements";
 // AFD-04, the refusal half. Telemetry only: these fill ai_events.error_code
 // (a column that has existed since the first schema and was written by nothing)
@@ -670,7 +670,7 @@ async function callAnthropic(
   // "silent data loss" risk the research phase flagged).
   const toolCalls = (j.content ?? [])
     .filter((c) => c.type === "tool_use" && c.name)
-    .map((c) => ({ id: c.id ?? "", name: c.name as string, args: c.input }));
+    .map((c) => ({ id: c.id ?? "", name: c.name as string, args: humanizeToolArgs(c.input) }));
   return {
     text:
       j.content
@@ -715,7 +715,7 @@ export function extractOpenAiToolCalls(
       } catch {
         args = tc.function?.arguments ?? {};
       }
-      return { id: tc.id ?? "", name: tc.function?.name as string, args };
+      return { id: tc.id ?? "", name: tc.function?.name as string, args: humanizeToolArgs(args) };
     });
   return calls.length ? calls : undefined;
 }

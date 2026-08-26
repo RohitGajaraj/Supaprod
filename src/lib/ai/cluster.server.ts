@@ -152,7 +152,7 @@ export async function clusterSignalsCore(
     .join("\n");
 
   const system = `You are a senior product researcher. Cluster raw user signals into 3-7 distinct themes.
-Each signal may carry tags: (ontology facets) and sentiment: — use them to group related pain and gauge severity.
+Each signal may carry tags: (ontology facets) and sentiment:, use them to group related pain and gauge severity.
 For each theme provide: title (max 60 chars), summary (max 200 chars), severity (1-5), confidence (0-1), and the indexes of member signals.
 Return STRICT JSON only, no prose, no markdown fences.`;
 
@@ -293,9 +293,7 @@ Return STRICT JSON only, no prose, no markdown fences.`;
       // Deterministic slices, no new model call. With no summary the title
       // alone still names the grouping.
       const concept = (t.summary ?? "").trim().slice(0, 160);
-      const rationale = `Founded theme "${t.title.slice(0, 120)}"${
-        concept ? ` (${concept})` : ""
-      }`;
+      const rationale = `Founded theme "${t.title.slice(0, 120)}"${concept ? ` (${concept})` : ""}`;
       try {
         const edges = claimedIds.map((sid) => ({
           user_id: userId,

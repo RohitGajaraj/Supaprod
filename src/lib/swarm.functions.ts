@@ -58,7 +58,7 @@ export type SwarmMission = {
 export type SwarmHandoff = {
   id: string;
   from_agent_slug: string | null;
-  to_agent_slug: string;
+  to_agent_slug: string | null;
   kind: string;
   mission_id: string;
   task: string;
@@ -361,7 +361,7 @@ export const getSwarmHud = createServerFn({ method: "POST" })
       (handoffsRes.data ?? []) as Array<{
         id: string;
         from_agent_slug: string | null;
-        to_agent_slug: string;
+        to_agent_slug: string | null;
         kind: string;
         mission_id: string;
         payload: J;

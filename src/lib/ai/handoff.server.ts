@@ -432,6 +432,10 @@ export async function enqueueHandoff(
       agent_name: args.to.name,
       input: composedGoal || args.payload.task,
       status: "queued",
+      // The receiver is a separate actor with its own trace. Minted here so the
+      // run it will become is joinable the moment it exists; without it the
+      // handoff's whole half of the mission is unknowable.
+      trace_id: crypto.randomUUID(),
       workspace_id: args.workspace_id,
       mission_id: args.mission_id,
       mission_spend_cap_usd: await resolveMissionSpendCap(
@@ -522,7 +526,7 @@ export function renderHandoffBlock(
   if (p.artifacts?.length) {
     sections.push(
       "Artifacts you can read with your tools:\n" +
-        p.artifacts.map((a) => `- ${a.kind} ${a.id}${a.title ? ` — ${a.title}` : ""}`).join("\n"),
+        p.artifacts.map((a) => `- ${a.kind} ${a.id}${a.title ? `, ${a.title}` : ""}`).join("\n"),
     );
   }
   if (p.constraints?.length) {

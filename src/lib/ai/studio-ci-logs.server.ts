@@ -121,7 +121,7 @@ export async function fetchFailingCiDetail(args: {
     if (!c.conclusion || !FAILING.has(c.conclusion)) continue;
     const summaryRaw = [c.output?.title, c.output?.summary, c.output?.text]
       .filter((s): s is string => typeof s === "string" && s.trim().length > 0)
-      .join(" — ");
+      .join(", ");
     const summary = summaryRaw ? summaryRaw.slice(0, PER_CHECK_OUTPUT_CAP) : null;
     // Actions-backed check runs share their id with the workflow job, so the
     // job-logs endpoint usually resolves. Best-effort only.

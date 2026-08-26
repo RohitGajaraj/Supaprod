@@ -610,6 +610,7 @@ export type Database = {
           status: string
           step_index: number
           tokens_used: number
+          trace_id: string | null
           track_id: string | null
           user_id: string
           workspace_id: string | null
@@ -640,6 +641,7 @@ export type Database = {
           status?: string
           step_index?: number
           tokens_used?: number
+          trace_id?: string | null
           track_id?: string | null
           user_id: string
           workspace_id?: string | null
@@ -670,6 +672,7 @@ export type Database = {
           status?: string
           step_index?: number
           tokens_used?: number
+          trace_id?: string | null
           track_id?: string | null
           user_id?: string
           workspace_id?: string | null

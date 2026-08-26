@@ -1108,6 +1108,9 @@ export async function runCiPollTick() {
           agent_name: "Studio",
           input: goal,
           status: "queued",
+          // Same as every other enqueue: the run owns its trace from birth, or
+          // its tool calls can never be joined back to it.
+          trace_id: crypto.randomUUID(),
           workspace_id: cs.workspace_id,
           mission_id: cs.mission_id,
         });

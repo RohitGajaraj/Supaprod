@@ -185,6 +185,12 @@ export const runAgent = createServerFn({ method: "POST" })
         agent_name: agent.name,
         input: data.input,
         status: "running",
+          // A run names its own tool calls or it is unknowable forever: nothing
+          // backfills this, and `getWorkspaceAnchors` excludes an untraced run
+          // rather than reporting it as touching nothing. Minted at insert so
+          // the run owns its trace from birth; `resumeAgentLoop` honours the
+          // row's value rather than minting a second one.
+        trace_id: crypto.randomUUID(),
       })
       .select()
       .single();

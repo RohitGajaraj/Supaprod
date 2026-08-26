@@ -23,6 +23,7 @@
  */
 import { autoTag, inferSentiment } from "@/lib/sensing/normalize";
 import { screenIngestText, INGEST_REVIEW_TAG } from "@/lib/ingest-guardrails";
+import { humanizeText } from "@/lib/ai/humanize";
 import type { SignalCandidate } from "./kinds";
 
 /** A row ready to insert into public.signals. */
@@ -92,6 +93,25 @@ export function prepareSignalRows(
     const sentiment = c.sentiment ?? inferSentiment(basisText);
 
     if (c.externalId) seen.add(c.externalId);
+
+    /*
+     * THE LAST GATE BEFORE MODEL-WRITTEN TEXT BECOMES SOMETHING A USER READS.
+     *
+     * `humanizeText` shipped at the AI chokepoint in `runtime.server.ts`, and it
+     * only ever saw STREAMED text. A tool ARGUMENT is model-written text too, and
+     * it never passed through it: `signals.log({ title })` wrote the model's
+     * string straight into a column the Sense and Discover surfaces render.
+     *
+     * Measured 2026-08-26: **120 of 1,483 `signals.title` rows carry an em or en
+     * dash**, against 0 of 113 `prds.body_md` — the split is exactly which path
+     * wrote them. `scripts/check-humanized.sh` could never have caught it: it
+     * scans source files, and this text is not in the source, it is in the
+     * database.
+     *
+     * Screening above deliberately still runs on the ORIGINAL string, so nothing
+     * can smuggle a banned phrase past `screenIngestText` by hiding it in a
+     * character this rewrites.
+     */
     rows.push({
       user_id: userId,
       workspace_id: workspaceId,
@@ -99,8 +119,8 @@ export function prepareSignalRows(
       external_id: c.externalId ?? null,
       source: c.source,
       source_kind: c.sourceKind,
-      title: c.title,
-      content,
+      title: humanizeText(c.title),
+      content: humanizeText(content),
       url: c.url ?? null,
       tags,
       sentiment,
