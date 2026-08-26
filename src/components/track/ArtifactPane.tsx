@@ -24,6 +24,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import {
+  checkForecastObservable,
   getTrackArtifacts,
   getTrackChain,
   type ArtifactView,
@@ -40,6 +41,7 @@ import type { ChainMember, ChainStop } from "@/lib/spine/chain";
 import { wordFor } from "@/lib/spine/chain";
 import { STATION_ARTIFACT } from "@/lib/spine/attach";
 import { relativeTime } from "@/lib/memory-view";
+import { useWorkspace } from "@/hooks/use-workspace";
 import { releaseStanding, shortSha } from "@/components/track/release-words";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { supabase } from "@/integrations/supabase/client";
@@ -330,6 +332,81 @@ function DecisionCard({ item }: { item: ArtifactView }) {
 }
 
 /*
+ * ── IS WHAT YOU ARE ABOUT TO PROMISE CHECKABLE? ────────────────────────────
+ * SPEC-BUILD-PATHS ranks this first of the five runnables, by value rather than
+ * by station order, and the reason is a timing one: without it nobody discovers
+ * that a forecast's observable was never readable until the horizon arrives, by
+ * which point the verdict cannot land and the run has spent everything it was
+ * going to spend. Asking at the moment of the promise is the only cheap moment
+ * there is.
+ *
+ * `metric-probe.server.ts` was written for exactly this and had ZERO importers
+ * repo-wide; its only reference was its own test. S0 wrapped it as a server fn
+ * on request, and this is its first door.
+ *
+ * ── IT ANSWERS ABOUT THE WORDS, NOT ABOUT A ROW ────────────────────────────
+ * The probe deliberately takes the forecast's own text rather than a decision
+ * id, so it can be asked BEFORE anything is written. That is what lets the
+ * answer arrive while the field is still editable, which is the entire point:
+ * an answer after the record is written is a post-mortem.
+ *
+ * ── AND IT NEVER BLOCKS THE PRESS ──────────────────────────────────────────
+ * A person may record a forecast this workspace cannot read today, and that is
+ * their call to make: the source may be connected next week. What they may not
+ * do is make it WITHOUT KNOWING. So this informs and never disables, and the
+ * refusal is rendered in the probe's own words, which already name what to
+ * connect.
+ */
+function ObservableProbe({ text }: { text: string }) {
+  const { activeWorkspaceId } = useWorkspace();
+  const fCheck = useServerFn(checkForecastObservable);
+  const trimmed = text.trim();
+
+  /*
+   * Debounced so the question is asked about a SETTLED sentence rather than
+   * about every keystroke. This timer schedules a read; it never asserts a
+   * state, which is the line the presence rules draw.
+   */
+  const [settled, setSettled] = React.useState("");
+  React.useEffect(() => {
+    const id = setTimeout(() => setSettled(trimmed), 700);
+    return () => clearTimeout(id);
+  }, [trimmed]);
+
+  const ready = settled.length > 0 && Boolean(activeWorkspaceId);
+  const q = useQuery({
+    queryKey: ["forecast-observable", settled, activeWorkspaceId],
+    queryFn: () =>
+      fCheck({ data: { howWeWillKnow: settled, workspaceId: activeWorkspaceId as string } }),
+    enabled: ready,
+    staleTime: 60_000,
+  });
+
+  if (!ready) return null;
+  if (q.isLoading) return <span className="mrd-meta">Checking whether this can be read.</span>;
+  if (q.isError) {
+    return (
+      <ReadFailedLine>
+        The check did not run, so nothing here knows whether this can be read.
+      </ReadFailedLine>
+    );
+  }
+  if (!q.data) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-mrd-3">
+      <StatusChip status={q.data.checkable ? "pass" : "hold"}>
+        {q.data.checkable ? "Readable now" : "Not readable yet"}
+      </StatusChip>
+      {/* VERBATIM. The probe writes this for the person it would have stopped,
+          and it already names the next action where there is one. A second
+          voice on one answer is how two copies come to disagree. */}
+      <span className="mrd-meta">{q.data.because}</span>
+    </div>
+  );
+}
+
+/*
  * SAY WHAT YOU EXPECT. Write-once, enforced by the server and the database;
  * the form says so BEFORE the press, because a field you cannot edit later is
  * exactly the thing to know going in. This control is the only thing that can
@@ -384,6 +461,9 @@ function ForecastForm({ decisionId }: { decisionId: string }) {
           placeholder="Escalation rate for this intent drops below 10%"
         />
       </Field>
+      {/* The answer arrives while the field is still editable, which is the
+          whole reason the probe takes words rather than a decision id. */}
+      <ObservableProbe text={know} />
       <Field label="Due by" htmlFor={`fc-day-${decisionId}`}>
         <Input
           id={`fc-day-${decisionId}`}
