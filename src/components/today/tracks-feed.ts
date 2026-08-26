@@ -1,4 +1,5 @@
 import type { Track } from "@/lib/spine/track.functions";
+import { TERMINAL_HOLDS } from "@/lib/spine/correction";
 import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
 
 /**
@@ -26,9 +27,12 @@ import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
  * THREE DESTINATIONS, MATCHING THE FEED'S OWN SECTIONS so a reader merges
  * nothing in their head:
  *
- *   waiting on you   `holdReason === "waiting-on-a-person"` — the loop
- *                    stopped for a call, the same need the replies section
- *                    serves for mission runs.
+ *   waiting on you   `holdReason === "waiting-on-a-person"`, the loop stopped
+ *                    for a call, the same need the replies section serves for
+ *                    mission runs. AND every `TERMINAL_HOLDS` reason, because
+ *                    the sweep will never revisit those and one human press is
+ *                    the only exit that exists. Both need a person; only one
+ *                    of them used to say so.
  *   running          open and driven inside the freshness window the rest of
  *                    the product already uses (`IDLE_AFTER_MS`, ten minutes,
  *                    derived from the spine tick). An open track driven
@@ -58,11 +62,50 @@ export type TrackBoardRow = {
   lastMoved: string | null;
   /** The stop reason verbatim, when the track is held on something else. */
   holdLine: string | null;
+  /**
+   * THE FULL REASON, WHICH DOES NOT BELONG IN A ROW'S SCAN BAND.
+   *
+   * The driver writes real sentences and they are good ones, but they run to
+   * 250 characters ("This station has been run many times over and the work has
+   * not moved on once. That is the loop rather than any single run, so nothing
+   * further will be spent on it until you look."). A row gives its state a
+   * fixed slot beside a truncating title, so a paragraph there squeezes the
+   * title away and breaks the row.
+   *
+   * So the row says the short fact and this carries the sentence to the line
+   * UNDER it, which is exactly where `HandoverNote` already puts the thing a
+   * row cannot hold. Nothing is shortened or reworded on the way: the driver's
+   * copy is the product's voice and this file is not entitled to edit it.
+   */
+  reason: string | null;
   /** The track's own watchable address. */
   trackId: string;
 };
 
 const PERSON_HOLD = "waiting-on-a-person";
+
+/**
+ * PARKED WORK GOES TO THE PERSON, BECAUSE A PERSON IS THE ONLY EXIT.
+ *
+ * `TERMINAL_HOLDS` is the sweep's own list, imported rather than restated:
+ * `track-tick` excludes these from selection and `decideDrive` refuses them
+ * again, so a track holding one WILL NOT be driven, ever, without a human
+ * press. Restating the list here would let the surface and the sweep drift
+ * into disagreeing about what "cannot move" means, which is the failure
+ * `parked-work-must-be-visible.test.ts` pins on the server half.
+ *
+ * Until now every one of them landed in RUNNING, because the only branch above
+ * tested for `waiting-on-a-person`. So a track held on `given-up` sat in the
+ * lane whose sentence is "waiting on an agent, not on you", when no agent was
+ * ever coming. S4 measured eight of the nine real open tracks in that state on
+ * 2026-08-27, one of them across 316 drives.
+ *
+ * That is the silence `getParkedWork` was written to end, arriving on the
+ * board from the other direction: not a missing count, a row in the wrong lane.
+ */
+function cannotMove(holdReason: string | null | undefined): boolean {
+  return !!holdReason && (TERMINAL_HOLDS as readonly string[]).includes(holdReason);
+}
 
 export function trackToBoardRows(
   tracks: readonly Track[] | undefined,
@@ -89,6 +132,7 @@ export function trackToBoardRows(
       trackId: t.id,
       lastMoved: null as string | null,
       holdLine: null as string | null,
+      reason: null as string | null,
     };
 
     if (t.status === "done") {
@@ -97,8 +141,16 @@ export function trackToBoardRows(
     }
     if (t.status !== "open") continue;
 
-    if (t.holdReason === PERSON_HOLD) {
-      waiting.push({ ...base, kind: "waiting-on-you", holdLine: t.hold });
+    if (t.holdReason === PERSON_HOLD || cannotMove(t.holdReason)) {
+      /* Parked work says STOPPED, not "waiting on your answer": nothing was
+         asked, the loop ran out of road and will not try again on its own.
+         Those are different states and a person acts on them differently. */
+      waiting.push({
+        ...base,
+        kind: "waiting-on-you",
+        holdLine: cannotMove(t.holdReason) ? "stopped, needs you" : "waiting on your answer",
+        reason: t.hold ?? null,
+      });
       continue;
     }
 
