@@ -26,6 +26,7 @@
  * same window. A missing table must never take a station's page down.
  */
 import { createServerFn } from "@tanstack/react-start";
+import { isForecastCheckable } from "./metric-probe.server";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
@@ -2691,3 +2692,36 @@ export const rewindTrackTo = createServerFn({ method: "POST" })
       return { track: null, refused: "That work could not be moved back." };
     }
   });
+
+/**
+ * IS WHAT YOU JUST PROMISED CHECKABLE? ASKED AT THE MOMENT OF THE PROMISE.
+ *
+ * `metric-probe.server.ts` has answered this since the day it shipped and
+ * NOTHING HAS EVER ASKED IT. Repo-wide, its only importer was its own test, so
+ * the module ranked first in `SPEC-BUILD-PATHS` §2 was dead code.
+ *
+ * ── WHY THIS IS THE FIRST OF THE FIVE RUNNABLES ────────────────────────────
+ * Without it the verdict can never land, and the failure is silent and late: a
+ * forecast is captured, the horizon arrives weeks later, and only THEN does
+ * anyone discover the observable was never readable. There is no verdict to
+ * measure against the forecast, which is the one thing the product claims. The
+ * probe answers at the moment of the call, which is the only moment it is cheap.
+ *
+ * ── IT TAKES THE WORDS, NOT AN ID, AND THAT IS THE POINT ───────────────────
+ * `howWeWillKnow` is the forecast's own sentence, so this is askable at Decide
+ * **before the row exists**. Narrowing it to a `decisionId` would move the
+ * answer to after the promise was written, which is exactly the timing that
+ * makes it useless.
+ *
+ * A pure passthrough. `because` is returned verbatim, because it already names
+ * the next action where there is one, and a second copy of that sentence on a
+ * surface is how one message comes to disagree with itself.
+ */
+export const checkForecastObservable = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { howWeWillKnow: string; workspaceId: string }) =>
+    z.object({ howWeWillKnow: z.string().max(500), workspaceId: z.string().uuid() }).parse(d),
+  )
+  .handler(async ({ context, data }): Promise<{ checkable: boolean; because: string }> =>
+    isForecastCheckable(context.supabase, data.howWeWillKnow, data.workspaceId),
+  );
