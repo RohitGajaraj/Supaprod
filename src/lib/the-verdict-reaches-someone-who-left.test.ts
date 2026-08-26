@@ -43,7 +43,9 @@ const client = (opts: { emailVerdict?: boolean | null; forecast?: string | null 
             table === "user_notification_preferences"
               ? {
                   data:
-                    opts.emailVerdict === null ? null : { email_verdict: opts.emailVerdict ?? true },
+                    opts.emailVerdict === null
+                      ? null
+                      : { email_verdict: opts.emailVerdict ?? true },
                   error: null,
                 }
               : { data: { forecast_claim: opts.forecast ?? null }, error: null },

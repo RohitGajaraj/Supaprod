@@ -893,7 +893,8 @@ export async function dispatchVerdictEmail(
         .select("forecast_claim")
         .eq("id", args.decisionId)
         .maybeSingle();
-      forecastClaim = (decision as { forecast_claim?: string | null } | null)?.forecast_claim ?? null;
+      forecastClaim =
+        (decision as { forecast_claim?: string | null } | null)?.forecast_claim ?? null;
     }
 
     const lines = [
