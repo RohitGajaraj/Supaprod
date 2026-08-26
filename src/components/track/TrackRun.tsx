@@ -68,6 +68,7 @@ import { relativeTime } from "@/lib/memory-view";
 import { formatDeadlineDate } from "@/components/track/expiry-deadline";
 import { summaryText } from "@/components/track/run-summary";
 import { runTabState } from "@/components/track/run-tab";
+import { keyAction, shouldIgnoreKey } from "@/components/track/run-keys";
 import { SteerComposer } from "@/components/track/SteerComposer";
 import { RunCost } from "@/components/track/RunCost";
 import { triesLine } from "@/components/track/hold-tries";
@@ -643,6 +644,36 @@ export function TrackRunLeft({
     };
   }, [tabWord]);
 
+  /*
+   * TWO KEYS, NO CHORDS (RUN-10 / standard #4). `/` lands in the steer box,
+   * `r` starts a walk -- the two controls a watcher reaches for repeatedly.
+   * The guard lives in run-keys.ts and is tested there; its short form is that
+   * a key pressed while somebody is TYPING, or with a modifier held, is not a
+   * shortcut and never becomes one.
+   */
+  const finished = track?.status === "done" || track?.status === "abandoned";
+  const steerFieldRef = React.useRef<HTMLTextAreaElement | null>(null);
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (shouldIgnoreKey(e)) return;
+      const action = keyAction(e.key);
+      if (!action) return;
+      if (action === "steer") {
+        e.preventDefault();
+        steerFieldRef.current?.focus();
+        return;
+      }
+      // `r` mirrors the Run-it control exactly, including every state where
+      // the control refuses to exist.
+      if (finished || walkingMidRoute || run.isPending) return;
+      e.preventDefault();
+      setLegsLeft(AUTO_MAX);
+      run.mutate("press");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [finished, walkingMidRoute, run]);
+
   return (
     <div className="flex flex-col gap-mrd-6">
       {/*
@@ -894,12 +925,10 @@ export function TrackRunLeft({
        * buries it. One instruction back into moving work from the surface the
        * work is on; `steerTrack` existed with zero callers until this mounted,
        * which made Start and Stop the run's whole vocabulary. The finished case
-       * says so rather than rendering a form that can do nothing.
+       * says so rather than rendering a form that can do nothing. `/` from
+       * anywhere on this page lands here (RUN-10).
        */}
-      <SteerComposer
-        trackId={trackId}
-        finished={track?.status === "done" || track?.status === "abandoned"}
-      />
+      <SteerComposer trackId={trackId} finished={finished} fieldRef={steerFieldRef} />
     </div>
   );
 }
