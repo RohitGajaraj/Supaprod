@@ -1,53 +1,124 @@
-# PRODUCT-TRUTH.md — The One Problem We Solve
+# PHASE 2: Product Truth — What We Build and Why — 2026-08-26
 
-> **One-page product thesis.** Rewritten 2026-08-25 under the founder's Phase 2 mandate, and reshaped
-> by **F-70**: every visible trace of accumulated learning in this product is seed data — re-verified
-> live against production the day this page was written. Canon it obeys:
-> [`docs/strategy/positioning-locked-2026-08.md`](./strategy/positioning-locked-2026-08.md). Evidence:
-> [`the-first-run/FINDINGS-LEDGER.md`](../the-first-run/FINDINGS-LEDGER.md). If this page and
-> [`RULINGS.md`](../the-first-run/RULINGS.md) disagree, RULINGS.md wins.
+> **One page.** The user, the painful job, what SupaProd does instead, why it is 10x, what we delete. Authority: The founder has this authority. If the seven stations or the brain are the wrong shape for the real job, merge them, cut them, or rename them.
 
 ---
 
-## Who the user is
+## The User
 
-**The individual PM or founding PM who ships with agents.** Not "product teams" — nobody
-self-identifies as a team, and the land motion is one person who can start without procurement. They
-sit in the Energized or Conflicted 76%: already measurably faster with agents, already tired. So we
-sell relief, never throughput — 82% report the speed already; speed is the thing that is hurting them.
+**The front door: the individual PM or founding PM.** Not the team (nobody self-identifies as a team). Not the CTO (they have engineers). **The person who owns the call — what to build, why, whether it worked.**
 
-## The one painful job
+Two mindsets within this door:
+- **Energized (41%):** Excited about AI, hopeful, least burned out. **Primary target.**
+- **Conflicted (35%):** Curious AND overwhelmed AND tired. They feel the judgment gap hardest. **Primary target — they can start today.**
 
-**Did the change do what we said it would do — and can we defend the call?** A practitioner named
-the pain before we did: *"PMs got faster at shipping but didn't get better at defending why. The
-judgment gap got exposed."* Three parts of the job do not compress into an agent: **deciding what is
-worth doing, defining what good looks like, and catching when the system is confidently wrong.**
-Those are stations decide, define and learn. The rest of the job is reps, and the reps are leaving.
+**Reach them:** Talk about relief and judgment, never throughput or obligation. 82% already have speed. Speed is the disease.
 
-## What they suffer today without us
+**Scale:** Individual contributor buys themselves (PLG path). Expansion needs the VP of Product who wants the record (sales motion).
 
-**Slack archaeology presented as rigor.** The plan is in Notion, the code is in GitHub, the debate is
-in Slack, and no surface says *here is what we chose, why, and how we will know*. Causes can be
-rebuilt afterwards — Vercel's COO reconstructed the true cause of a lost deal from Slack, email and
-call recordings with an agent built in two days, running for about $1,000 a year — so the record is
-not the scarce thing. **The forecast is.** What a team believed would happen, before the outcome was
-known, leaves no trace unless something captured it at the moment of the call. Today nothing does. So
-every "I knew it" is unfalsifiable, every retro is oral history, and the same bet gets made twice
-because nothing learned is standing at the next decision.
+---
 
-## What SupaProd does instead
+## The Painful Job: The Judgment Gap
 
-A person types one sentence. Agents walk the work through the stations — sense · decide · define ·
-design · build · ship · learn — while the person watches one screen: a transcript of what each agent
-did on the left, the current artifact on the right, one Stop control, no navigating. **At decide, the
-forecast goes on the record before the outcome is known** — what we expect, and when we will know. It
-is the only station that writes one, which is why a route without it has no moat (R-25). In an
-ordinary workspace the person holds one gate — the merge approval, a click that unblocks ship — and
-the production deploy is gated by proof, not by a click (R-27), so a run inside boundaries a human
-set in advance completes on its own. At learn, the verdict lands against the forecast — predicted
-beside actual, win or lose — a decision and its outcome on one audit trail.
+**What happens today:**
 
-**What is proven, measured 2026-08-25.** Six of the seven stations have done their jobs for real,
+A PM owns the whole arc: talk to users, decide what is worth building, write the spec, get it built and shipped, launch it, handle support, and learn from the result. That arc is smeared across **15 tools with a human manually carrying context across every seam.** The cost of switching, reconciling, and re-explaining at each seam **now exceeds the cost of the work itself.**
+
+**The deeper pain:** Building commoditizes (code has a fast oracle, compiles in seconds). **Deciding what to build does not** (feedback lands in weeks to quarters). When an agent makes the engineer 5x faster, the PM's bottleneck shifts from "Can we build this?" to "Should we build this?" — and the ability to defend a call does not improve on its own.
+
+**The name for this, from the community:** *"AI can accelerate delivery fast enough that the bottleneck moves. The teams I've seen get into trouble post-AI aren't the ones with slow pipelines. They're the ones where PMs got faster at shipping but didn't get better at defending why. **The judgment gap got exposed.**"*
+
+---
+
+## What SupaProd Does Instead
+
+**One governed loop that owns the full arc, end to end.**
+
+A PM enters signals (what is happening, what customers say, what competitors are doing, what their past calls were). The system surfaces what matters, proposes a decision to make, runs the work (or hands it to a builder), ships the outcome, measures what actually happened, and **writes that verdict back against the decision that caused it** — changing what the system surfaces next.
+
+Seven stations, named for what a product operator actually does:
+
+| Station | Job |
+| --- | --- |
+| **Sense** | Catalog what is happening: signals, customer voice, product data, competitors, past decisions |
+| **Discover** | Cluster into themes: what patterns emerge? What is the real problem? |
+| **Decide** | Record a decision: what are we choosing? Why? What do we expect to happen? |
+| **Plan** | Spec it: acceptance criteria, success metric, any constraints |
+| **Design** | Show it: clickable prototype, before code, so we can see if we want this |
+| **Build** | Make it: handed to a builder (ours or yours); SupaProd watches, not makes |
+| **Learn** | Measure it: what actually happened? Was the forecast right? Write the verdict back |
+
+**The loop is a cycle, not a line.** The verdict from Learn re-ranks what Discover surfaces next. The system does not end with a report. It ends by changing what you are shown.
+
+**Agents walk all seven stations.** A human sets boundaries in advance (autonomy level, approval gates, tool access). The agent does not ask for permission station by station — it works within those boundaries and tells you what it did.
+
+**The product user can watch it happen on one screen.** A run timeline shows where the agent is, what it decided, what it changed, and what it needs. Not a dashboard of numbers. A live trace of thinking.
+
+---
+
+## Why It Is 10x
+
+**1. The forecast captured at decision time is not recoverable any other way.**
+
+The **record** is backfillable (a shrewd observer can reconstruct a decision weeks later from Slack, emails, calls). The **outcome** is largely derivable (logs show what shipped). The **forecast** — what you believed would happen, recorded *before* you found out — leaves no trace unless something captures it at the moment of the call. It is the only irreplaceable signal.
+
+That forecast, bound to a decision, is the moat. It is what lets an outcome change the next call instead of just becoming a report.
+
+**2. The judgment gap is a recognized, named buying requirement.**
+
+AI governance platforms got their inaugural Gartner Magic Quadrant in June 2026 and are forecast at $492M growing 45.3% a year. SupaProd does not fight that category — it owns the part of it that is specific to product decisions: *context governance* in the community's word. When agents do the work, being able to answer "why did we decide this, on what evidence, and who signed off" becomes the control that lets you let them run at all.
+
+**3. An agent-writable substrate cannot be a low-level tool.**
+
+Agents can write into a spreadsheet or GitHub issue, but they cannot write a **decision with its evidence, its author, a verdict slot, and a human gate.** Low-level tools are agent-writable but not agent-governable. That is the seam we sit in, and it is exactly what enterprise customers are staffing PMs to build by hand today.
+
+**4. The rework KPI is measurable and it moves fast.**
+
+When feedback on a decision goes from quarters to minutes, teams drop rework hard — spec mismatches, clarification loops, reopened tickets all collapse. SupaProd is the only product that measures rework because it is the only one that owns the full arc and the record together. That is the operational lever that proves the forecast thesis works.
+
+---
+
+## What We Delete
+
+**We are not building any of these:**
+
+| Refuse | Why |
+| --- | --- |
+| **A builder** | That market is finished, priced at $48B, and the pain moved. Nobody is short of generated code; everybody is short of confidence in it. Builders are substitutable suppliers; we embed them. |
+| **A seven-station diagram as the hero** | Stations are a commodity at ~15 named companies. A heavily-diagrammed lifecycle is the visual signature of SAFe, which this buyer is actively ripping out. |
+| **A Critic that red-teams the user's call** | Automated code review lost because "a thing roasts your code" depletes social capital. We flag, we never gate. The user always owns the judgment. |
+| **Throughput features** | 82% of PMs already have speed. Selling speed is selling the disease. We sell relief. |
+| **"The outcome ledger cannot be backfilled"** | False. The forecast cannot be. Stop claiming records are defensible — they are. Lead with what is actually defensible. |
+| **Single-entry loops** | The loop is a cycle with two doors: Discover for new problems, Build → Learn for cheap-to-test ones. No default; both are real paths. |
+| **An unbroken full-station walk in production** | Three station-to-station handoffs were never written by any code until 2026-08-10. Prove Discover → Decide → Learn on real data first. The other half is the builder's domain. |
+
+---
+
+## The Architecture: Still Open Questions
+
+**The seven stations are hypotheses, not commitments.** These are the things we get to decide together, and they are not small:
+
+1. **Should Decide be wired to record forecasts?** Yes, and P0 — this is the irreplaceable signal. But should it force-gate on a forecast? (Answer: no. Gate on evidence, not prediction.)
+
+2. **Should Learn re-rank Discover immediately, or accumulate verdicts first?** Today: immediately. Open question: should there be a hold until *N* verdicts land on the same theme?
+
+3. **Should Build be a station or a doorway to external builders?** Today: both. Open question: do we need the station form, or is it just orchestration metadata?
+
+4. **Should the loop have five stations instead of seven?** Open question. The founding PM uses three: Decide, Plan, Learn. The enterprise PM uses all seven. Do we optimize for one path and gate the others, or is the flexibility the feature?
+
+These are not blocked. They ship. But they are measured against the real job, not assumed to be right because the diagram says so.
+
+---
+
+## What "Done" Looks Like
+
+The mission gate: **A founder watches a complete sense → learn loop run end to end on screen, with everything functional.** Not demos. Not stubs. Real signals flowing through real agents with the user able to see and steer what is happening.
+
+Then: **The acceptance query returns > 0.** One track enters at Sense, produces real output, learns from it, and is visibly changed by that learning.
+
+The acceptance query: `SELECT id FROM spine_tracks WHERE entry_station='sense' AND station='learn' AND waived='[]' LIMIT 1`
+
+**Today: 0 rows.** Target: > 0 rows, in production, with the founder watching.
 driven by agents. The honest acceptance query — `entry_station='sense' AND station='learn' AND
 waived='[]'` — returns **0 of 93 tracks, ever** (never ask this via `workspaces.is_sample`, which
 returns a false 1 — F-61/F-71). The furthest genuine run stands at **ship, right now** (track
