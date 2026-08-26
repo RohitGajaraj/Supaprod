@@ -15,6 +15,7 @@
 import { describe, it, expect } from "bun:test";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { resolveToolMode } from "@/lib/ai/loop.server";
 import { TOOL_DEFAULTS, resolveToolAccess, UNLISTED_TOOL_DEFAULT } from "./defaults";
 
 /**
@@ -78,12 +79,16 @@ describe("platform tool defaults", () => {
     }
   });
 
-  it("keeps the two R-27 did NOT touch pinned at review", () => {
+  it("keeps delegate.openhands pinned at review — the one R-27 and F-75 both left alone", () => {
     // The merge has its own switch (`AUTO_SHIP_ENABLED`) and delegating to an
     // outside agent is a different act from deploying our own reviewed change:
     // none of R-27's four preconditions says anything about what somebody else's
     // agent will do.
-    expect(TOOL_DEFAULTS["studio.pr.merge"]?.mode).toBe("review");
+    // studio.pr.merge moved to `confirm` under F-75 so STUDIO_AUTO_SHIP can
+    // actually release it; its gate is asserted by resolved mode above, which is
+    // the stronger check. delegate.openhands stays pinned: handing work to a
+    // third-party agent is a different act, and no precondition either ruling
+    // added says anything about what somebody else's agent will do.
     expect(TOOL_DEFAULTS["delegate.openhands"]?.mode).toBe("review");
   });
 
@@ -172,9 +177,28 @@ describe("risk floors stay above any earned record (governance canon)", () => {
     }
   });
 
-  it("keeps the merge gate at review, the strictest mode", () => {
-    // Its own record argues for it: 21 approvals against 7 genuine rejections, the only
-    // tool a human actually overrules.
-    expect(TOOL_DEFAULTS["studio.pr.merge"]?.mode).toBe("review");
+  /**
+   * AMENDED BY F-75, AND THE SEEDED LITERAL WAS A PROXY FOR THE WRONG THING.
+   *
+   * The property worth guarding is *the merge is gated unless someone opts in* —
+   * not the string in this table. Asserting the string is what let
+   * `STUDIO_AUTO_SHIP=1` sit set and inert: a seeded `review` short-circuits
+   * `resolveApprovalMode` (`trust.server.ts:226`) **before the flag is read**, so
+   * the opt-in could never do anything and the test happily agreed.
+   *
+   * The two assertions below are stronger than the one they replace: they check
+   * the RESOLVED mode, in both flag states, which is what a run actually gets.
+   * Its own record still argues for the gate — 21 approvals against 7 genuine
+   * rejections, the only tool a human actually overrules.
+   */
+  it("never defaults the merge gate to auto", () => {
+    expect(TOOL_DEFAULTS["studio.pr.merge"]?.mode).not.toBe("auto");
+  });
+
+  it("resolves the merge to review while the ship flag is off", () => {
+    // `mergeReleased` is false without STUDIO_AUTO_SHIP, and the force-review
+    // branch then pins it regardless of the seed. This is the real floor.
+    const seeded = TOOL_DEFAULTS["studio.pr.merge"]!.mode;
+    expect(resolveToolMode("studio.pr.merge", seeded, "trusted", true)).toBe("review");
   });
 });

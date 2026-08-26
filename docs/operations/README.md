@@ -98,4 +98,5 @@ Both were separate top-level folders until 2026-08-04. They are operational conc
 - [Start here mission gate](./start-here-mission-gate.md) — Mission gate entry note (moved from repo root 2026-08-25 for placement only; content untouched)
 
 - [Mission gate observation](./mission-gate-observation.md) — Mission gate observation (moved from `docs/` root 2026-08-25 for placement only; content untouched)
+- [Mission gate deployment readiness](./mission-gate-deployment-readiness.md) — moved from repo root 2026-08-25 for placement only; content untouched
 

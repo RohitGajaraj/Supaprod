@@ -226,7 +226,39 @@ export const TOOL_DEFAULTS: Readonly<
    * nobody answered to proof the loop must produce.**
    */
   "release.publish": { mode: "confirm", enabled: true, label: "Publish a release" },
-  "studio.pr.merge": { mode: "review", enabled: true, label: "Merge a PR" },
+  /*
+   * F-75. `STUDIO_AUTO_SHIP=1` WAS SET AND DID NOTHING, AND THIS LINE IS WHY.
+   *
+   * The founder set the secret. The code could not act on it:
+   *
+   *   TOOL_DEFAULTS["studio.pr.merge"].mode = "review"   (this line, as it was)
+   *   resolveApprovalMode(mode, arc)  ->  `if (toolMode === "review") return "review"`
+   *                                       trust.server.ts:226, BEFORE the flag is read
+   *   strictestOf("review", …)        ->  "review"
+   *   mode = mergeReleased ? released : "review"  ->  "review" either way
+   *
+   * `agent_tools` holds **zero override rows**, so the seeded value was the only
+   * value there has ever been, and every run stopped at Build and filed a merge
+   * approval no matter what the secret said.
+   *
+   * **THIS IS THE SAME DEFECT AS R-27's, IN THE ONE TOOL I LEFT ALONE.** This
+   * morning I found `release.publish` inert for exactly this reason and fixed it
+   * by moving its seed to `confirm` — and wrote a test asserting `studio.pr.merge`
+   * stays at `review` because "the merge keeps its own switch". **The switch was
+   * already broken when I wrote that sentence.**
+   *
+   * WHY `confirm` IS SAFE HERE, and it is safe in both directions:
+   *  - **Flag OFF** — `loop.server.ts` reads
+   *    `mode = mergeReleased || shipReleased ? released : "review"`, and with
+   *    `AUTO_SHIP_ENABLED` false `mergeReleased` is false, so the merge is pinned
+   *    to `review` regardless of this seed. Nothing changes for anyone who has
+   *    not opted in.
+   *  - **Flag ON** — the arc decides, which is what the flag was always meant to
+   *    mean: `observing` review · `proving` confirm · `trusted` auto. And
+   *    `studio.pr.merge` still proves CI green in-tool at the head sha and
+   *    refuses red, so an opted-in workspace cannot merge a broken change.
+   */
+  "studio.pr.merge": { mode: "confirm", enabled: true, label: "Merge a PR" },
   // R-27. Moves WITH `release.publish`, and would be wrong to leave behind:
   // `AUTO_SHIP_ENABLED` had already freed the merge and not the rollback, so the
   // product could merge to a default branch by itself and could not roll back by
