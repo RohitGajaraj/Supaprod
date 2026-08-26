@@ -75,10 +75,16 @@ export function activeMention(
 export function SteerComposer({
   trackId,
   finished = false,
+  fieldRef: externalFieldRef,
 }: {
   trackId: string;
   /** A closed track has nothing running to steer, and saying so beats a form. */
   finished?: boolean;
+  /**
+   * RUN-10: lets the host focus the field from the keyboard layer (`/`). The
+   * primitive already takes a ref; this is a straight passthrough.
+   */
+  fieldRef?: React.RefObject<HTMLTextAreaElement | null>;
 }) {
   const fSteer = useServerFn(steerTrack);
   const fetchActivity = useServerFn(getTrackActivity);
@@ -95,7 +101,8 @@ export function SteerComposer({
   const [value, setValue] = React.useState("");
   const [caret, setCaret] = React.useState<number | null>(null);
   const [pick, setPick] = React.useState(0);
-  const fieldRef = React.useRef<HTMLTextAreaElement | null>(null);
+  const ownFieldRef = React.useRef<HTMLTextAreaElement | null>(null);
+  const fieldRef = externalFieldRef ?? ownFieldRef;
 
   /** The textarea owns the caret; these are the moments it can have moved. */
   const syncCaret = () => setCaret(fieldRef.current?.selectionStart ?? null);
