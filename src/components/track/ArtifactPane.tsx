@@ -1628,6 +1628,62 @@ function StationPanel({
   /** Routes the Discover cards' writes back to this pane's cache entries. */
   trackId: string;
 }) {
+  /*
+   * ── WHAT JUST LANDED, AND ONLY WHAT JUST LANDED ────────────────────────
+   * The founder's ask is that the agentic work be SEEN. The most convincing
+   * moment this pane has is the one where a station's output APPEARS: the spec
+   * that was not there a second ago, the code change, the release. Until now it
+   * blinked into existence between two polls, so the single event worth
+   * noticing looked identical to a re-render.
+   *
+   * SO THE MOTION ENCODES A FACT AND NOTHING ELSE. An item animates only when
+   * its key was absent on the previous pass, which is the same primed/seen pair
+   * `TrackActivity` and `SenseBody` already run on. Nothing animates on first
+   * paint, because arriving at a finished run is not an arrival; nothing
+   * animates on a refetch that returned the same rows; and nothing loops. A
+   * surface that replayed this on every poll would be showing work that is not
+   * happening, which is the one thing this product may never do.
+   *
+   * ── STAGGER, CAPPED ──────────────────────────────────────────────────────
+   * When a station files six things at once they land in sequence rather than
+   * together, which reads as a hand putting them down instead of a flash. The
+   * step is capped so a burst of twenty does not turn into a second of
+   * choreography: past the sixth they share the last delay. Frequency of use
+   * cuts the duration, and this is a thing a person watching a run sees often.
+   *
+   * Inline style rather than a class, deliberately: meridian.css's
+   * reduced-motion block matches on the style attribute, so declared as a
+   * utility it would keep animating for someone who asked it not to.
+   */
+  const primed = React.useRef(false);
+  const seen = React.useRef<Set<string>>(new Set());
+  const landedKeys = (view?.items ?? stop.members).map((m) => `${m.kind}:${m.artifactId}`);
+  const landedSig = landedKeys.join("|");
+  React.useEffect(() => {
+    if (landedKeys.length === 0) return;
+    if (!primed.current) {
+      for (const k of landedKeys) seen.current.add(k);
+      primed.current = true;
+      return;
+    }
+    const t = window.setTimeout(() => {
+      for (const k of landedKeys) seen.current.add(k);
+    }, 0);
+    return () => window.clearTimeout(t);
+    // `landedSig` is the value that matters; the array identity changes every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [landedSig]);
+
+  let landedSoFar = 0;
+  const arrival = (key: string): React.CSSProperties | undefined => {
+    if (!primed.current || seen.current.has(key)) return undefined;
+    const step = Math.min(landedSoFar++, 5) * 40;
+    return {
+      animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both",
+      animationDelay: `${step}ms`,
+    };
+  };
+
   if (stop.state === "waived") {
     // The person's own words for why this station is off the route. Never an
     // empty pane (SPEC-ARTIFACTS §2).
@@ -1710,7 +1766,11 @@ function StationPanel({
     const missionItems = items.filter((it) => it.kind === "mission" && !it.missing);
     return (
       <div className="flex flex-col gap-mrd-4">
-        {primaryItem ? bodyFor(primaryItem) : null}
+        {primaryItem ? (
+          <div style={arrival(`${primaryItem.kind}:${primaryItem.artifactId}`)}>
+            {bodyFor(primaryItem)}
+          </div>
+        ) : null}
         {stepItems.length > 0 ? <TaskSteps items={stepItems} /> : null}
         {missionItems.map((m) => (
           <MissionCard key={`mission:${m.artifactId}`} item={m} />
@@ -1725,8 +1785,11 @@ function StationPanel({
           if ((item.kind === "task" || item.kind === "mission") && !item.missing) {
             return null;
           }
+          const key = `${item.kind}:${item.artifactId}`;
           return (
-            <MemberLine key={`${item.kind}:${item.artifactId}`} m={toMemberLine(item)} now={now} />
+            <div key={key} style={arrival(key)}>
+              <MemberLine m={toMemberLine(item)} now={now} />
+            </div>
           );
         })}
       </div>
