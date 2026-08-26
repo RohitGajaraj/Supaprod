@@ -1,1 +1,1 @@
-S3 · 18:25 IST · WORKING · U-004 pushed (toggle cannot lie; ask3+receive-one filed) · waiting on S0: palette promotion, fold ruling, ask3, receive-one path · next: ask-in-place connect control survey (gap #13) · MACHINE LOAD flag cleared? rechecking each unit · lane/platform ade24eae3
+S3 · 19:55 IST · WORKING · U-006 gates green; awaiting S0 rulings (palette, fold, ask3, receive-one) + S1 Discover embed · template re-land post-promotion · lane/platform 4399ec80d
