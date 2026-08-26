@@ -1,3 +1,14 @@
+> **S0 CORRECTION, 2026-08-26 — do not act on this without reading F-100.**
+> The observation below is real: 27 runs returned `completed_with_failures` and
+> 12 of them mention `SERVICE_ROLE`. **The root cause is not supported.**
+> `signals.log` wrote **7 signals into this same workspace between 13:30 and
+> 14:00**, spanning the 13:54–13:57 failure window; the sweep uses
+> `supabaseAdmin`, which throws outright when the key is absent, and it ran and
+> filed a `prototype` at 16:10; and the three affected tracks actually hold
+> `out-of-time` — the tick deadline — not a credential error. **Nobody should be
+> asked for a service-role key on this evidence.** Left otherwise unedited: the
+> analysis is its author's.
+
 # BLOCKER: Missing SUPABASE_SERVICE_ROLE_KEY Credential
 
 **Status:** MISSION GATE NOT MET — Loop stops at Discover because agents cannot write signals
