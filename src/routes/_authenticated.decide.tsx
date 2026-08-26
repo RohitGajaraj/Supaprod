@@ -215,7 +215,7 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { sourceWords } from "@/components/decisions/source-words";
+import { sourceLabel } from "@/components/discover/format";
 import { wordFor } from "@/lib/spine/chain";
 import { Row, Line } from "@/components/meridian/rows";
 import {
@@ -2855,11 +2855,15 @@ function DecideSurface() {
                       from <Num>{provenanceSources.length}</Num> separate source
                       {provenanceSources.length === 1 ? "" : "s"}:{" "}
                       {/*
-                       * The stored value, read as words. These are column values
-                       * like `competitive_research`, and showing a person the
-                       * underscore is showing them the database.
+                       * `sourceLabel` from the Discover surface, which is the
+                       * one humaniser this product already had: brand names for
+                       * the sources it knows, and a token prettifier for the
+                       * rest, so `competitive_research` reads "Competitive
+                       * research". I first wrote a second helper here and that
+                       * was the same defect I keep filing against other lanes:
+                       * the thing already existed, in my own prefix.
                        */}
-                      {provenanceSources.slice(0, 2).map(sourceWords).join(", ")}
+                      {provenanceSources.slice(0, 2).map((x) => sourceLabel(x)).join(", ")}
                       {provenanceSources.length > 2 ? " and more" : ""}.
                     </span>,
                   ]
