@@ -1483,6 +1483,20 @@ function Today() {
     () => rows.some((m) => STUCK.has(m.status)),
     [rows],
   );
+  /*
+   * `crewTotal === 0` CARRIES THE TRACKS, and leaving it out was a second way
+   * to claim a quiet morning over work that is on screen. Every clause here
+   * counts MISSIONS: `items`, `shipped`, `anythingBlocked` and `running` all
+   * read the mission list, and none of them can see a spine track. `/start`
+   * creates a track and no mission (C2-003), so a workspace driving three
+   * tracks and no missions satisfied every test above while three rows stood
+   * in the feed underneath the sentence saying nothing needed anyone.
+   *
+   * This workspace has three open tracks right now, so it is the live case
+   * rather than a hypothetical. `crewTotal` is the feed's own total across all
+   * three lanes and both engines, which makes it the same number the reader is
+   * looking at.
+   */
   const quietMorning =
     !loading &&
     !queue.isError &&
@@ -1490,7 +1504,8 @@ function Today() {
     items.length === 0 &&
     shipped.length === 0 &&
     !anythingBlocked &&
-    running.length === 0;
+    running.length === 0 &&
+    crewTotal === 0;
 
   /**
    * A FAILED READ IS NOT A QUIET MORNING, and this sentence is where the two
@@ -1536,8 +1551,28 @@ function Today() {
     if (missions.isError) return "Your run record did not load.";
     if (queue.isError) return "Your review queue did not load.";
     if (justLanded && criticResult) return "Your first brief is ready.";
+    /*
+     * ONE SENTENCE ON A QUIET MORNING, not two negations.
+     *
+     * `stateSentence` at all-zero produces "Nothing is ready for your review."
+     * followed by " Nothing is stuck.", and this is the HEADLINE, the first
+     * line a person reads. Together with the region sub below it that made five
+     * negations in the first viewport, which is the audit finding that cost
+     * this surface the home slot on 2026-08-25.
+     *
+     * A quiet morning is this product working, not failing: the boundaries
+     * held, the crew got on with it, and nothing needed a person. That deserves
+     * one clear sentence rather than an inventory of absences. It stays a
+     * negation because the fact IS negative and dressing it up would be worse,
+     * but one honest negation reads as calm and four read as broken.
+     *
+     * Every other branch is untouched. When there is something to say, the
+     * counted sentence says it.
+     */
+    if (quietMorning) return "Nothing needs you right now.";
     return stateSentence({ ready: items.length, stuck: stuck.length, shipped: shipped.length });
   }, [
+    quietMorning,
     loading,
     queue.isError,
     missions.isError,
@@ -1710,12 +1745,35 @@ function Today() {
                       <Num>{items.length}</Num> waiting on you. Nothing has happened yet, so undo is
                       free.
                     </>
+                  ) : quietMorning ? (
+                    /* SILENT ON A QUIET MORNING, and this is the wall coming
+                       down. An audit of the real first sixty seconds found this
+                       surface opening with FIVE NEGATIONS in one viewport, and
+                       that finding is why `/start` took the home slot from it
+                       on 2026-08-25 (post-auth-home.ts). Four of the five were
+                       here, in one sentence: "Nothing is waiting on you.
+                       Nothing stopped, no agent is working and nothing went
+                       live."
+
+                       When the whole board is quiet, `QuietMorning` renders
+                       directly below and says the same thing once, in the
+                       positive, with a worked example of what an arrival looks
+                       like. Saying it four more times first does not make it
+                       truer, it just makes the screen read as broken. So this
+                       says nothing and lets the considered screen carry it.
+
+                       The negations STAY when the board is not quiet, because
+                       then they are news: an empty review queue beside three
+                       running rows is a fact worth printing. */
+                    null
                   ) : (
-                    <>Nothing is waiting on you.</>
+                    <>
+                      Nothing is waiting on you.
+                      {crewQuietLine
+                        ? ` ${crewQuietLine.charAt(0).toUpperCase()}${crewQuietLine.slice(1)}.`
+                        : null}
+                    </>
                   )}
-                  {crewQuietLine
-                    ? ` ${crewQuietLine.charAt(0).toUpperCase()}${crewQuietLine.slice(1)}.`
-                    : null}
                 </>
               )
             }
