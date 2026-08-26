@@ -205,15 +205,31 @@ export function Character({
     <div
       data-mrd=""
       data-presence-state={presence.state}
-      className={`flex items-center gap-3 ${className}`}
+      /*
+       * TOP-ALIGNED, not centred. Once the sentence is allowed to wrap, centring
+       * the mark against a block whose height changes with the words makes the
+       * mark drift up and down as the run moves. Aligning it to the name is also
+       * how every reference renders a speaker beside what they said.
+       */
+      className={`flex items-start gap-3 ${className}`}
     >
       <CharacterMark state={presence.state} size={size} />
       <div className="min-w-0">
         <div className="text-mrd-label text-mrd-mute">{CHARACTER_NAME}</div>
         {/* aria-live: the line changes as the walk moves, and the transcript
             a11y work (queue #21) established that a silent live surface is a
-            defect, not a default. Polite, because the sentence is ambient. */}
-        <p aria-live="polite" className="text-mrd-body text-mrd-ink truncate">
+            defect, not a default. Polite, because the sentence is ambient.
+
+            AND IT WRAPS. It carried `truncate` until 2026-08-27, which is
+            `nowrap` plus an ellipsis, so on the run screen the character's own
+            voice was cut mid-sentence: "I've stopped, the reason is on the hold
+            line. I'll carry ..." -- the half that said what happens next was the
+            half thrown away. Every line this thing says is one or two sentences
+            written to be read whole; a surface that clips the product's own
+            voice to protect a row height has the priority backwards. The height
+            changes when the state changes, which is a handful of times in a run
+            and is not a reason to say less. */}
+        <p aria-live="polite" className="text-mrd-body text-mrd-ink">
           {presence.line}
         </p>
       </div>

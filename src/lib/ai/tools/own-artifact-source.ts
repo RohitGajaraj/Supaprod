@@ -107,10 +107,10 @@ export function namesOwnArtifact(source: string | null | undefined): string | nu
  */
 export function ownArtifactRefusal(source: string, kind: string): string {
   return (
-    `"${source}" names this product's own ${kind}, which is not evidence about the world, ` +
+    `"${source}" names this product's own ${kind}, which is not evidence about the world. ` +
     `it is something the loop wrote. A spec cited as a signal becomes evidence for the next ` +
     `decision, which becomes the next spec. File what a person outside this product said or ` +
-    `did, naming where it came from; if there is none, file nothing and say so, that is a ` +
+    `did, naming where it came from; if there is none, file nothing and say so. That is a ` +
     `correct, expected outcome, not a failure.`
   );
 }

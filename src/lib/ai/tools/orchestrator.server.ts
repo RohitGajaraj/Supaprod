@@ -317,7 +317,7 @@ export const missionPlan = def({
         insErr = (await supabase.from("mission_steps").insert(bare)).error;
       }
     }
-    if (insErr) throw new Error(`mission.plan: persist failed, ${insErr.message}`);
+    if (insErr) throw new Error(`mission.plan: persist failed: ${insErr.message}`);
 
     return {
       mission_id: missionId,
@@ -340,7 +340,7 @@ const DispatchArgs = z.object({}).optional();
 export const missionDispatch = def({
   name: "mission.dispatch",
   description:
-    "Enqueue child agent_runs for every mission step whose dependencies are satisfied. Idempotent, already-dispatched steps are skipped.",
+    "Enqueue child agent_runs for every mission step whose dependencies are satisfied. Idempotent. Already-dispatched steps are skipped.",
   category: "planning",
   argsSchema: DispatchArgs as unknown as z.ZodTypeAny,
   preview: () => "Dispatch ready mission steps",

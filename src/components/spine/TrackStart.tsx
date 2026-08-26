@@ -412,7 +412,6 @@ export function TrackStart({
 
           {needsOrigin ? (
             <Row
-              tight
               lead="This work skips Discover"
               sub="Nothing was sensed and nothing was decided, so the reason above is the only thing Learn will have to grade the outcome against later."
             />

@@ -26,6 +26,7 @@
  * same window. A missing table must never take a station's page down.
  */
 import { createServerFn } from "@tanstack/react-start";
+import { isForecastCheckable } from "./metric-probe.server";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
@@ -61,6 +62,8 @@ import { expiryDefaultFor } from "@/lib/ai/approval-expiry";
 import { MAX_BULK_DECISIONS } from "@/lib/approvals-queue.functions";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { TERMINAL_HOLDS } from "./correction";
+import { HOLD_LINE } from "./driver";
 import {
   buildActivity,
   type MemberRow as ActivityMemberRow,
@@ -2691,3 +2694,139 @@ export const rewindTrackTo = createServerFn({ method: "POST" })
       return { track: null, refused: "That work could not be moved back." };
     }
   });
+
+/**
+ * IS WHAT YOU JUST PROMISED CHECKABLE? ASKED AT THE MOMENT OF THE PROMISE.
+ *
+ * `metric-probe.server.ts` has answered this since the day it shipped and
+ * NOTHING HAS EVER ASKED IT. Repo-wide, its only importer was its own test, so
+ * the module ranked first in `SPEC-BUILD-PATHS` §2 was dead code.
+ *
+ * ── WHY THIS IS THE FIRST OF THE FIVE RUNNABLES ────────────────────────────
+ * Without it the verdict can never land, and the failure is silent and late: a
+ * forecast is captured, the horizon arrives weeks later, and only THEN does
+ * anyone discover the observable was never readable. There is no verdict to
+ * measure against the forecast, which is the one thing the product claims. The
+ * probe answers at the moment of the call, which is the only moment it is cheap.
+ *
+ * ── IT TAKES THE WORDS, NOT AN ID, AND THAT IS THE POINT ───────────────────
+ * `howWeWillKnow` is the forecast's own sentence, so this is askable at Decide
+ * **before the row exists**. Narrowing it to a `decisionId` would move the
+ * answer to after the promise was written, which is exactly the timing that
+ * makes it useless.
+ *
+ * A pure passthrough. `because` is returned verbatim, because it already names
+ * the next action where there is one, and a second copy of that sentence on a
+ * surface is how one message comes to disagree with itself.
+ */
+export const checkForecastObservable = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { howWeWillKnow: string; workspaceId: string }) =>
+    z.object({ howWeWillKnow: z.string().max(500), workspaceId: z.string().uuid() }).parse(d),
+  )
+  .handler(async ({ context, data }): Promise<{ checkable: boolean; because: string }> =>
+    isForecastCheckable(context.supabase, data.howWeWillKnow, data.workspaceId),
+  );
+
+/**
+ * WORK THAT IS PARKED, AND THE PRODUCT HAS NEVER SAID SO.
+ *
+ * ── THE MEASUREMENT THAT FORCED THIS ───────────────────────────────────────
+ * S4, 2026-08-27: **eight of the nine real open tracks are held on a reason the
+ * sweep will never revisit.** `track-tick` excludes `TERMINAL_HOLDS` from
+ * selection, and `decideDrive` refuses them again, so those eight have not been
+ * driven since 2026-08-25 while live tracks were driven seconds before the
+ * measurement. One human press each is the only exit that exists.
+ *
+ * **Nothing on any surface says they are waiting.** They sit at `status = open`,
+ * so every open-work count in the product includes eight pieces of work that
+ * cannot move, and a person reading "nine open" is told nine things are in
+ * flight when one is.
+ *
+ * ── WHY THIS, AND NOT A BULK RELEASE OR AN ABANDON ─────────────────────────
+ * A bulk release spends a full crew on each of eight tracks that have already
+ * failed three or more attempts apiece, one of them across 316 drives, with
+ * **no new information since the last failure**. That is the "spending to learn
+ * nothing" the correction budget exists to prevent, and it would be spending a
+ * person's money to find out what the record already says.
+ *
+ * Abandoning them closes real filed work to make a count look tidy, which makes
+ * the number right by deleting the problem it measures.
+ *
+ * The defect is the SILENCE. So this says the true thing, and leaves the choice
+ * where it belongs: with the person, one track at a time, each with the reason
+ * it stopped and the one action that clears it.
+ *
+ * Reader only. It moves nothing, and deliberately: a surface that reports parked
+ * work must not also be the thing that unparks it without being asked.
+ */
+export const getParkedWork = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { workspaceId: string }) =>
+    z.object({ workspaceId: z.string().uuid() }).parse(d),
+  )
+  .handler(
+    async ({
+      context,
+      data,
+    }): Promise<{
+      parked: Array<{
+        trackId: string;
+        title: string;
+        station: string;
+        hold: string;
+        line: string;
+        stoppedAt: string | null;
+        drives: number;
+      }>;
+      openTotal: number;
+    }> => {
+      const { supabase } = context;
+      const { data: rows, error } = await supabase
+        .from("spine_tracks" as never)
+        .select("id,title,station,last_hold,driven_at,station_drives")
+        .eq("workspace_id", data.workspaceId)
+        .eq("status", "open");
+
+      /*
+       * A FAILED READ IS NOT AN EMPTY BOARD. F-76 in one line: returning
+       * `parked: []` here would tell a person nothing is stuck at the exact
+       * moment the product cannot see, and `openTotal: 0` would make the
+       * silence look like good news.
+       */
+      if (error || !rows) return { parked: [], openTotal: -1 };
+
+      const open = rows as unknown as Array<{
+        id: string;
+        title: string | null;
+        station: string;
+        last_hold: string | null;
+        driven_at: string | null;
+        station_drives: number | null;
+      }>;
+
+      const terminal = new Set<string>(TERMINAL_HOLDS as readonly string[]);
+      const parked = open
+        .filter((t) => t.last_hold && terminal.has(t.last_hold))
+        .map((t) => ({
+          trackId: t.id,
+          title: t.title ?? "Untitled work",
+          station: t.station,
+          hold: t.last_hold!,
+          // The product's own sentence for this hold, not a new one invented
+          // here. Two wordings for one state is how a surface starts disagreeing
+          // with the record it reads from.
+          line:
+            holdLine(t.last_hold as HoldReason, { station: t.station as AgentStation }) ??
+            HOLD_LINE[t.last_hold as HoldReason],
+          stoppedAt: t.driven_at,
+          drives: t.station_drives ?? 0,
+        }))
+        // Longest-parked first: the one that has been waiting since Monday is
+        // the one a person most needs to see, and it is the one a newest-first
+        // list buries.
+        .sort((x, y) => (x.stoppedAt ?? "").localeCompare(y.stoppedAt ?? ""));
+
+      return { parked, openTotal: open.length };
+    },
+  );

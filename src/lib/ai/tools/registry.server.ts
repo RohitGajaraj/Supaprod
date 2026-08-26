@@ -374,9 +374,31 @@ const logSignal = def({
    * outcome by writing a row, and the row is worse than the hold it avoided.
    */
   description:
-    "Log a discovery signal: evidence that EXISTS, in the words of the source (user feedback, a support ticket, an interview quote). " +
-    "NEVER log the absence of evidence. 'No signals found', 'zero results', 'no data for X' are not signals, they are the answer to your final message, and filing them puts your own failure into the evidence every later run reads. Finding nothing and filing nothing is a correct, expected outcome; say so in your answer instead. " +
-    "NEVER cite this product's own work as a source. A PRD, spec, decision, changeset, mission, forecast or workspace brief is something the loop wrote, not something a person outside it said, the tool refuses those and the refusal is not a bug to work around.",
+    /*
+     * "IN THE WORDS OF THE SOURCE" WAS TOO NARROW, AND IT COST THE LOOP ITS
+     * FIRST STATION (2026-08-27).
+     *
+     * The examples were all verbatim human utterances, so a crew reading this
+     * concluded that measured behaviour is not a signal. Three agents on track
+     * `a30238f5` said so in as many words: *"no user-sourced signals exist ...
+     * all available references (41% abandonment on address re-confirm, session
+     * replays)"*, and filed nothing. They had FOUND the evidence and refused it
+     * on a definition.
+     *
+     * That workspace holds 258 signals, 33 tagged `redundant-address-entry` and
+     * 18 `address-friction`, against a track about reusing a saved delivery
+     * address. Discover produced zero artifacts across twelve drives and went
+     * terminal on the F-43 ceiling, and so did the other sense-entry track.
+     *
+     * NEITHER OF THE TWO REFUSALS BELOW WANTED THIS. One forbids filing the
+     * ABSENCE of evidence; the other forbids citing the product's OWN
+     * artifacts. A session replay and a measured abandonment rate are neither:
+     * they come from outside the loop and they are about the world. So the
+     * examples widen and both NEVERs stay exactly as they were.
+     */
+    "Log a discovery signal: evidence that EXISTS and came from outside this product. A quote is one kind (user feedback, a support ticket, an interview) and so is observed behaviour (a session replay, a funnel or abandonment measurement, an error rate, a support-volume trend). What matters is that a person or their behaviour outside the loop produced it, not that it is a sentence somebody said. " +
+    "NEVER log the absence of evidence. 'No signals found', 'zero results', 'no data for X' are not signals. They are the answer to your final message, and filing them puts your own failure into the evidence every later run reads. Finding nothing and filing nothing is a correct, expected outcome; say so in your answer instead. " +
+    "NEVER cite this product's own work as a source. A PRD, spec, decision, changeset, mission, forecast or workspace brief is something the loop wrote, not something a person outside it said. The tool refuses those and the refusal is not a bug to work around.",
   category: "write",
   argsSchema: z.object({
     content: z.string().min(1).max(4000),
@@ -817,7 +839,7 @@ const remember = def({
 const memoryReflect = def({
   name: "memory.reflect",
   description:
-    "Record a one-paragraph lesson from this run so future runs of the same agent can recall it. Optional, the system reflects automatically on clean completion. Use this only when you want to capture a lesson mid-run (e.g. before a handoff).",
+    "Record a one-paragraph lesson from this run so future runs of the same agent can recall it. Optional. The system reflects automatically on clean completion. Use this only when you want to capture a lesson mid-run (e.g. before a handoff).",
   category: "memory",
   argsSchema: z.object({
     note: z.string().max(400).optional(),
@@ -1616,7 +1638,7 @@ function assertStudioPathAllowed(path: string) {
       // Names the alternative, not just the refusal. F-24: a prohibition whose
       // escape hatch the agent cannot see gets the same behaviour under a new
       // name — which is precisely how F-63 happened, one rule up.
-      `Studio is not allowed to modify ${path} (CI, migrations, env, lockfiles and the manifests that define what the checks run are out of scope). If a check is stopping the work, say the spec cannot be built with what is present, never change what the check does.`,
+      `Studio is not allowed to modify ${path} (CI, migrations, env, lockfiles and the manifests that define what the checks run are out of scope). If a check is stopping the work, say the spec cannot be built with what is present. Never change what the check does.`,
     );
   }
 }
@@ -1660,7 +1682,7 @@ function repoRootRefusal(
 ): Error | null {
   if (source !== "binding") return null;
   return new Error(
-    `GitHub answered 404 for the repository root of ${repo}, which the workspace binding names, ${REPO_ROOT_ACCESS_REFUSED}. GitHub says 404 rather than 401 for a private repo the installation cannot see. Grant the GitHub App access to ${repo}, or re-bind the repo on Connectors.`,
+    `GitHub answered 404 for the repository root of ${repo}, which the workspace binding names: ${REPO_ROOT_ACCESS_REFUSED}. GitHub says 404 rather than 401 for a private repo the installation cannot see. Grant the GitHub App access to ${repo}, or re-bind the repo on Connectors.`,
   );
 }
 
@@ -1789,7 +1811,7 @@ function stalePrPointerRefusal(changeset: ChangesetRow, repo: string): Error | n
   if (on && on.toLowerCase() === repo.toLowerCase()) return null;
   const named = on ?? `a repository this URL does not name (${changeset.pr_url})`;
   return new Error(
-    `Refused: this changeset's pull request is #${changeset.pr_number ?? "?"} on ${named}, and this workspace is bound to ${repo}. A pull request on one repository is not evidence about another, so the stored pointer is not returned and no pull request is opened here. The work is not lost, the branch and the pull request are still on ${named}. Say exactly that: this changeset was opened against ${named} and the workspace now names ${repo}, so a person has to settle which repository the work belongs to. Do not open, commit or report a pull request on ${repo} until they have.`,
+    `Refused: this changeset's pull request is #${changeset.pr_number ?? "?"} on ${named}, and this workspace is bound to ${repo}. A pull request on one repository is not evidence about another, so the stored pointer is not returned and no pull request is opened here. The work is not lost. The branch and the pull request are still on ${named}. Say exactly that: this changeset was opened against ${named} and the workspace now names ${repo}, so a person has to settle which repository the work belongs to. Do not open, commit or report a pull request on ${repo} until they have.`,
   );
 }
 
@@ -1869,7 +1891,7 @@ const repoTree = def({
       ref,
       total: entries.length,
       truncated,
-      ...(truncated ? { note: `Listing capped at ${CAP} entries, narrow with the path arg.` } : {}),
+      ...(truncated ? { note: `Listing capped at ${CAP} entries. Narrow with the path arg.` } : {}),
       entries: entries.slice(0, CAP),
     };
   },
@@ -1962,7 +1984,7 @@ const repoSearch = def({
    */
   description:
     "Studio: GitHub code search scoped to the connected repo. Returns matching paths with text fragments. Read-only. Use to locate the code relevant to the work order. " +
-    "ZERO HITS IS NOT EVIDENCE THE CODE IS ABSENT. This is GitHub's code search index rather than the repository itself, and private repositories are frequently not indexed at all, an unindexed repo returns total 0 exactly as a repo with no match does, and you cannot tell them apart from here. Before you conclude that anything is missing, call repo.tree, which reads the git tree itself and has no index to miss it, then repo.read the paths it shows. Never report code as absent on the strength of an empty search.",
+    "ZERO HITS IS NOT EVIDENCE THE CODE IS ABSENT. This is GitHub's code search index rather than the repository itself, and private repositories are frequently not indexed at all. An unindexed repo returns total 0 exactly as a repo with no match does, and you cannot tell them apart from here. Before you conclude that anything is missing, call repo.tree, which reads the git tree itself and has no index to miss it, then repo.read the paths it shows. Never report code as absent on the strength of an empty search.",
   category: "read",
   argsSchema: z.object({
     query: z.string().min(1).max(200),
@@ -2190,7 +2212,7 @@ const studioStage = def({
         const missing = wanted.filter((w) => !known.has(w));
         if (missing.length > 0) {
           throw new Error(
-            `Refused: ${missing.join(", ")} ${missing.length === 1 ? "is" : "are"} imported by this change and ${missing.length === 1 ? "is" : "are"} not in the repository's package.json, so the checks cannot resolve ${missing.length === 1 ? "it" : "them"} and this would fail in seconds. You cannot add a dependency, nothing installs one for you. Use what the repository already has (read package.json and the existing tests to see what that is), or say plainly that the spec cannot be built with what is present.`,
+            `Refused: ${missing.join(", ")} ${missing.length === 1 ? "is" : "are"} imported by this change and ${missing.length === 1 ? "is" : "are"} not in the repository's package.json, so the checks cannot resolve ${missing.length === 1 ? "it" : "them"} and this would fail in seconds. You cannot add a dependency. Nothing installs one for you. Use what the repository already has (read package.json and the existing tests to see what that is), or say plainly that the spec cannot be built with what is present.`,
           );
         }
       }
@@ -2413,7 +2435,7 @@ const studioStage = def({
       total_staged_paths: count ?? staged.length,
       note:
         changeset.status === "staged"
-          ? "Staged in the platform only, call studio.commit to push to a studio/* branch."
+          ? "Staged in the platform only. Call studio.commit to push to a studio/* branch."
           : "Changeset already has commits — studio.commit again to push these changes to the same branch.",
     };
   },
@@ -2474,7 +2496,7 @@ const studioStage = def({
 const studioUnstage = def({
   name: "studio.unstage",
   description:
-    "Studio: remove one or more paths from this mission's staged changeset, so studio.commit stops trying to write them. THIS IS THE WAY OUT when studio.commit refuses a staged path it is not allowed to write (CI config, migrations, env, lockfiles, or a manifest that defines what the checks run): unstage that path, then commit the rest, the rest of the changeset is untouched. It removes the staged INTENT only. It does not revert a commit already pushed to the branch, it does not change the file on the repo, and it is not an undo for work that has merged.",
+    "Studio: remove one or more paths from this mission's staged changeset, so studio.commit stops trying to write them. THIS IS THE WAY OUT when studio.commit refuses a staged path it is not allowed to write (CI config, migrations, env, lockfiles, or a manifest that defines what the checks run): unstage that path, then commit the rest. The rest of the changeset is untouched. It removes the staged INTENT only. It does not revert a commit already pushed to the branch, it does not change the file on the repo, and it is not an undo for work that has merged.",
   category: "write",
   /*
    * Shape-drift, on studio.stage's precedent: the two ways a model gets a
@@ -2569,7 +2591,7 @@ const studioUnstage = def({
     notes.push(
       remaining.length === 0
         ? "The changeset now has no staged changes; studio.commit will refuse until something is staged."
-        : `${remaining.length} path${remaining.length === 1 ? "" : "s"} still staged, call studio.commit to push ${remaining.length === 1 ? "it" : "them"}.`,
+        : `${remaining.length} path${remaining.length === 1 ? "" : "s"} still staged. Call studio.commit to push ${remaining.length === 1 ? "it" : "them"}.`,
     );
 
     return {
@@ -2649,7 +2671,7 @@ const studioCommit = def({
     if (forbidden.length > 0) {
       const one = forbidden.length === 1;
       throw new Error(
-        `Refused: ${forbidden.join(", ")} ${one ? "is" : "are"} staged on this changeset, and Studio may not commit ${one ? "it" : "them"}, CI, migrations, env, lockfiles and the manifests that define what the checks run are out of scope. This does not have to end the run: call studio.unstage with ${one ? "that path" : "those paths"} and commit the rest. Unstaging removes the staged edit only; the file on the repo stays exactly as it is. Do not re-stage ${one ? "it" : "them"} to get past this, if a check is stopping the work, say the spec cannot be built with what is present.`,
+        `Refused: ${forbidden.join(", ")} ${one ? "is" : "are"} staged on this changeset, and Studio may not commit ${one ? "it" : "them"}. CI, migrations, env, lockfiles and the manifests that define what the checks run are out of scope. This does not have to end the run: call studio.unstage with ${one ? "that path" : "those paths"} and commit the rest. Unstaging removes the staged edit only; the file on the repo stays exactly as it is. Do not re-stage ${one ? "it" : "them"} to get past this. If a check is stopping the work, say the spec cannot be built with what is present.`,
       );
     }
 
@@ -2884,7 +2906,7 @@ const ciLogs = def({
 const studioFixCommit = def({
   name: "studio.fix.commit",
   description:
-    "Studio: append staged CI-fix changes to this mission's EXISTING pr_open studio branch. Only valid AFTER a human opened the PR (studio.pr.open), that prior human gate is why this runs without a fresh gate; the merge gate still holds. Bounded by the changeset's fix budget. For first commits use studio.commit.",
+    "Studio: append staged CI-fix changes to this mission's EXISTING pr_open studio branch. Only valid AFTER a human opened the PR (studio.pr.open). That prior human gate is why this runs without a fresh gate; the merge gate still holds. Bounded by the changeset's fix budget. For first commits use studio.commit.",
   category: "write",
   argsSchema: z.object({
     message: z.string().min(4).max(280),
@@ -3582,7 +3604,7 @@ const studioPrMerge = def({
         );
         if (!res.ok) {
           throw new Error(
-            `GitHub merge ${res.status}: ${(await res.text()).slice(0, 300)}, the PR may have conflicts or pending required checks.`,
+            `GitHub merge ${res.status}: ${(await res.text()).slice(0, 300)}. The PR may have conflicts or pending required checks.`,
           );
         }
         const j = (await res.json()) as { sha: string; merged: boolean };
@@ -3919,7 +3941,7 @@ const researchSynthesize = def({
 const prdDraft = def({
   name: "prd.draft",
   description:
-    "Draft a spec, from an opportunity or from a brief. Pass opportunity_id when a bet already exists: it reads the opportunity, its theme, and supporting signals. Pass brief instead when this work entered mid-lifecycle and no bet was ever filed, say what the work is and why it exists, in the words of the job you were given. At least one of the two is required, and if you pass both the opportunity is used and the brief is ignored. Nothing in this toolset creates an opportunity, so do not stall waiting for one, never pass an id of another kind in its place, and never invent a uuid to fill the field, pass brief instead. Writes a draft spec with problem, goals, non-goals, user stories, success metrics, and risks. If the bet already carries a spec, that existing spec is returned (`existing: true`) instead of a second draft being minted, read it with prd.get and build on it rather than drafting again.",
+    "Draft a spec, from an opportunity or from a brief. Pass opportunity_id when a bet already exists: it reads the opportunity, its theme, and supporting signals. Pass brief instead when this work entered mid-lifecycle and no bet was ever filed. Say what the work is and why it exists, in the words of the job you were given. At least one of the two is required, and if you pass both the opportunity is used and the brief is ignored. Nothing in this toolset creates an opportunity, so do not stall waiting for one, never pass an id of another kind in its place, and never invent a uuid to fill the field. Pass brief instead. Writes a draft spec with problem, goals, non-goals, user stories, success metrics, and risks. If the bet already carries a spec, that existing spec is returned (`existing: true`) instead of a second draft being minted. Read it with prd.get and build on it rather than drafting again.",
   category: "write",
   /**
    * Both fields are optional here and the either/or is enforced in `run`, which
@@ -3936,8 +3958,8 @@ const prdDraft = def({
   }),
   preview: (a) =>
     a.opportunity_id
-      ? `Draft spec for opportunity ${a.opportunity_id.slice(0, 8)}${a.title ? `, "${a.title}"` : ""}`
-      : `Draft spec from a brief, with no bet behind it${a.title ? `, "${a.title}"` : ""}`,
+      ? `Draft spec for opportunity ${a.opportunity_id.slice(0, 8)}${a.title ? `: "${a.title}"` : ""}`
+      : `Draft spec from a brief, with no bet behind it${a.title ? `: "${a.title}"` : ""}`,
   run: async (a, { supabase, userId, traceId, runId, agentSlug, workspaceId }) => {
     const brief = a.brief?.trim() ?? "";
     if (!a.opportunity_id && !brief) {
@@ -3977,7 +3999,7 @@ const prdDraft = def({
        * bet the agent is looking for. */
       if (!data)
         throw new Error(
-          `No opportunity ${a.opportunity_id} exists for this user. Do not retry with a different id: if you were not handed a real bet id, you cannot invent one and nothing in this toolset creates one. Call prd.draft again with \`brief\` instead, what the work is and why it exists, and leave opportunity_id out.`,
+          `No opportunity ${a.opportunity_id} exists for this user. Do not retry with a different id: if you were not handed a real bet id, you cannot invent one and nothing in this toolset creates one. Call prd.draft again with \`brief\` instead (what the work is and why it exists) and leave opportunity_id out.`,
         );
       opp = data;
     }
@@ -4618,7 +4640,7 @@ function sinceIso(iso: string): number {
 const prdSearch = def({
   name: "prd.search",
   description:
-    'Search the workspace\'s specs by keyword before you draft one, answers "does a spec already serve this bet?" Each hit carries id, title, lifecycle status (draft/review/approved/shipped), the opportunity it serves, and whether it shipped. Check here before calling prd.draft on a bet: drafting against a bet that already has a spec returns the old one instead of writing a new draft.',
+    'Search the workspace\'s specs by keyword before you draft one. Answers "does a spec already serve this bet?" Each hit carries id, title, lifecycle status (draft/review/approved/shipped), the opportunity it serves, and whether it shipped. Check here before calling prd.draft on a bet: drafting against a bet that already has a spec returns the old one instead of writing a new draft.',
   category: "read",
   argsSchema: z.object({
     query: z.string().max(200).optional(),
@@ -5334,6 +5356,90 @@ const learningRecord = def({
         .maybeSingle();
       resolvedDecisionId =
         (fromTrack as { artifact_id?: string | null } | null)?.artifact_id ?? null;
+    }
+
+    /*
+     * ── THE GUARD THAT WAS PROSE, MADE A PREDICATE (S4-052, 2026-08-27) ────
+     *
+     * This tool's description already names this exact failure, and names it
+     * well: *"If the evidence is not in yet, DO NOT CALL THIS TOOL AT ALL ...
+     * a wrong confident verdict is not a wrong row, it is wrong advice for
+     * months."* That paragraph was the only thing between a model and a wrong
+     * verdict.
+     *
+     * IT HAS BEEN TESTED TWICE AND FAILED TWICE. `learning.record` has fired
+     * exactly two times in this product's life, and they are the first two rows
+     * ever to carry `decision_id` at all (133 learnings before them, NULL on
+     * every one). Both graded decision `663c7376`, whose forecast was *"The PRD
+     * will be approved and design gate cleared within 3 business days"*, read
+     * by *"prd.get will return status='approved' and design_gate_status=
+     * 'cleared'"*, due 2026-08-29. Both verdicts were written on 2026-08-25 at
+     * 19:40, FOUR DAYS BEFORE THE HORIZON, and both graded a different claim
+     * entirely: tablet checkout abandonment.
+     *
+     * So the pairing this product sells, a verdict measured against a forecast
+     * recorded before the outcome was known, has never once happened. The rows
+     * were joined by a foreign key and nothing checked that they were about the
+     * same thing.
+     *
+     * TWO COMPARISONS, EACH ONE LINE OF ARITHMETIC. Neither needs judgement,
+     * which is precisely why neither should have been left to it.
+     */
+    if (resolvedDecisionId) {
+      const { data: bet } = await supabase
+        .from("decisions")
+        .select("forecast_claim,forecast_how_we_will_know,forecast_horizon_date")
+        .eq("id", resolvedDecisionId)
+        .maybeSingle();
+      const forecast = bet as {
+        forecast_claim?: string | null;
+        forecast_how_we_will_know?: string | null;
+        forecast_horizon_date?: string | null;
+      } | null;
+
+      // 1 · NOT BEFORE THE HORIZON. The date is on the decision row and needs
+      //     no interpretation. A verdict passed its own due date may be wrong;
+      //     a verdict before it cannot be right, because the thing it grades
+      //     has not finished happening.
+      const due = forecast?.forecast_horizon_date;
+      if (due && Date.parse(due) > Date.now()) {
+        return {
+          ok: false,
+          reason:
+            `This bet is not due until ${due.slice(0, 10)}, so there is no outcome to grade yet. ` +
+            `Do not record a verdict now: the spec stays on the Learn desk and comes back when it is due. ` +
+            `The forecast is "${forecast?.forecast_claim ?? "unstated"}".`,
+        };
+      }
+
+      // 2 · IT MUST GRADE THE THING THAT WAS PREDICTED. Deliberately the
+      //     weakest possible test: it refuses only when the verdict shares NOT
+      //     ONE significant word with the observable the forecast named. That
+      //     catches the measured failure (a process-speed forecast graded with
+      //     a checkout metric, zero overlap) and stays silent on the ordinary
+      //     case of the same fact worded differently, which is not this tool's
+      //     business to police.
+      const observable = forecast?.forecast_how_we_will_know ?? "";
+      if (observable.trim()) {
+        const significant = (t: string) =>
+          new Set(
+            (t.toLowerCase().match(/[a-z_][a-z0-9_]{3,}/g) ?? []).filter(
+              (w) => !FORECAST_STOPWORDS.has(w),
+            ),
+          );
+        const want = significant(observable);
+        const got = significant(`${a.summary} ${a.metric_label ?? ""} ${a.metric_value ?? ""}`);
+        const shared = [...want].some((w) => got.has(w));
+        if (want.size > 0 && !shared) {
+          return {
+            ok: false,
+            reason:
+              `This verdict does not mention what the forecast said it would be measured by. ` +
+              `The bet was "${forecast?.forecast_claim ?? "unstated"}", to be read by "${observable}". ` +
+              `Grade that, or record nothing: a verdict against a different claim re-ranks the bet behind it and becomes wrong advice for months.`,
+          };
+        }
+      }
     }
 
     if (resolvedPrdId) {
@@ -6548,7 +6654,7 @@ const webMapTool = def({
 const webCrawlTool = def({
   name: "web.crawl",
   description:
-    "Crawl a bounded set of pages on a domain (max 25 pages, depth 2). Costs real credits, prefer web.search + web.fetch unless you genuinely need many pages. Defaults to a confirm approval gate.",
+    "Crawl a bounded set of pages on a domain (max 25 pages, depth 2). Costs real credits. Prefer web.search + web.fetch unless you genuinely need many pages. Defaults to a confirm approval gate.",
   category: "read",
   argsSchema: z.object({
     url: z.string().url().max(500),
@@ -6863,6 +6969,45 @@ const criticEvaluate = def({
   preview: (a) => `Critic: red-team ${a.target_kind} ${a.target_id.slice(0, 8)}`,
   run: (args, ctx) => runCriticTool(args, ctx),
 });
+
+/**
+ * Words too common to prove a verdict is about the forecast's own observable.
+ *
+ * Deliberately short. This list exists to stop "within", "return" and "status"
+ * from counting as a match, not to do language processing: the overlap test it
+ * serves refuses only on ZERO shared significant words, so a longer list would
+ * make the guard stricter than its evidence supports.
+ */
+const FORECAST_STOPWORDS = new Set([
+  "will",
+  "with",
+  "within",
+  "that",
+  "this",
+  "from",
+  "have",
+  "been",
+  "than",
+  "then",
+  "when",
+  "what",
+  "which",
+  "return",
+  "returns",
+  "value",
+  "result",
+  "outcome",
+  "after",
+  "before",
+  "days",
+  "day",
+  "week",
+  "weeks",
+  "actual",
+  "expected",
+  "measure",
+  "measured",
+]);
 
 export const TOOL_REGISTRY: Record<string, ToolDef> = Object.fromEntries(
   [

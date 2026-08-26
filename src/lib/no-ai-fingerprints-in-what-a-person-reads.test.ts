@@ -63,35 +63,23 @@ const RENDERED = ["src/components/", "src/routes/", "src/lib/presence/"];
  * brief is where a dash in text nobody wrote comes from.
  */
 const BASELINE: Record<string, number> = {
-  "src/lib/ai/tools/registry.server.ts": 30,
-  "src/lib/ai/loop.server.ts": 7,
-  "src/lib/deployments.functions.ts": 7,
-  "src/lib/ai/critic.server.ts": 4,
-  "src/lib/ai/research.server.ts": 4,
-  "src/lib/discovery.functions.ts": 4,
-  "src/lib/ai/reflection.server.ts": 3,
-  "src/lib/ai/tools/orchestrator.server.ts": 3,
-  "src/lib/health.functions.ts": 3,
+  /*
+   * RATCHETED DOWN 2026-08-27, from 29 entries to 2.
+   *
+   * The founder reported seeing em dashes in the running application, and the
+   * sweep that followed cleaned 106 source lines across 34 files. Twenty-six of
+   * the entries that used to sit here reached ZERO and their lines are deleted
+   * rather than zeroed, so the ground cannot be refilled quietly.
+   *
+   * The two that remain are honest. `registry.server.ts` still holds 4 in tool
+   * descriptions, which are load bearing (F-88 turned on a tool description
+   * being the only thing that told a station an escape existed), so they get
+   * swept deliberately rather than mechanically.
+   *
+   * Never widen these. Lower one or delete its line.
+   */
+  "src/lib/ai/tools/registry.server.ts": 4,
   "src/lib/ai/decision-alternatives.ts": 2,
-  "src/lib/ai/tools/own-artifact-source.ts": 2,
-  "src/lib/build/ard-block.ts": 2,
-  "src/lib/changelog.functions.ts": 2,
-  "src/lib/connectors/resolve.server.ts": 2,
-  "src/lib/design-interchange.functions.ts": 2,
-  "src/lib/studio.functions.ts": 2,
-  "src/lib/ai/cluster.server.ts": 1,
-  "src/lib/ai/handoff.server.ts": 1,
-  "src/lib/ai/mission-advance.server.ts": 1,
-  "src/lib/ai/studio-ci-logs.server.ts": 1,
-  "src/lib/ai/verify-green.server.ts": 1,
-  "src/lib/audio.functions.ts": 1,
-  "src/lib/copilot.functions.ts": 1,
-  "src/lib/design-scaffold.functions.ts": 1,
-  "src/lib/outcome.functions.ts": 1,
-  "src/lib/rag/findings.server.ts": 1,
-  "src/lib/reactor.functions.ts": 1,
-  "src/lib/spine/correction.ts": 1,
-  "src/lib/spine/metric-probe.server.ts": 1,
 };
 
 type Hit = { file: string; line: number; text: string };

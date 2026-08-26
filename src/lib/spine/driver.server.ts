@@ -1069,6 +1069,19 @@ async function correctIfPossible(
     attempts: row.attempts ?? 0,
     corrections: at.corrections,
     filed: at.filed,
+    /*
+     * STATION-SCOPED, because track-wide `filed` cannot answer the question the
+     * hold sentence asserts. A track that filed at Discover and stalled at
+     * Design has a non-empty `filed` either way, which is how 20 of 32 held
+     * tracks came to carry a sentence saying the station "finished empty" while
+     * that station held its work (S4, 2026-08-27).
+     *
+     * `filedAtStation` already exists and already excludes superseded rows, so
+     * this costs one read that the self-check on the same tick also makes.
+     */
+    filedAtThisStation: (await filedAtStation(supabase, row.id, at.station)).map(
+      (a) => a.artifactKind,
+    ),
     externalMet,
     priorHold: (row.last_hold as HoldReason | null) ?? null,
   });

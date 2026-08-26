@@ -1975,7 +1975,7 @@ export async function draftOutcomeVerdict(
   const actualParts: string[] = [];
   if (data.metricLabel || data.metricValue) {
     actualParts.push(
-      `Metric, ${data.metricLabel ?? "value"}: ${data.metricValue ?? "(no value)"}.`,
+      `Metric (${data.metricLabel ?? "value"}): ${data.metricValue ?? "(no value)"}.`,
     );
   }
   if (str(data.notes)) actualParts.push(`Operator notes: ${data.notes!.trim()}.`);

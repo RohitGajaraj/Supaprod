@@ -30,7 +30,25 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
     {
       icon: KeyRound,
       label: "Your model keys, or ours",
-      detail: "Bring your own keys or run on managed ones. Your choice.",
+      /*
+       * THIS PROMISED EVERY VISITOR SOMETHING ONE TIER HAS. It read "Bring your
+       * own keys or run on managed ones. Your choice." on the panel headed "the
+       * rules the agents cannot break", which is the strongest promise on the
+       * page. Bring-your-own-keys is enterprise-only and ENFORCED: entitlements
+       * .ts:275 sets `byokAllowed: enterprise`, and byokeys.functions.ts:162
+       * refuses any caller without that entitlement.
+       *
+       * The pricing page said so plainly at the same time, in entitlements
+       * .ts:480: "Bring your own model keys, the only tier that can". So a
+       * visitor reading both was told a choice was theirs on one page and
+       * reserved for a sales conversation on the next.
+       *
+       * Corrected on the landing rather than on pricing, because pricing was
+       * the one telling the truth. Same class as the hero claiming "No human
+       * intervention" while TrustClose promised merge can never skip approval:
+       * a surface asserting a capability the wiring does not give it.
+       */
+      detail: "Run on managed keys, or bring your own on Enterprise.",
     },
     {
       icon: GitMerge,

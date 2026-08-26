@@ -63,6 +63,9 @@ reopened, whatever the buildlog says.
 | [`S4-017-f89-f90.md`](./verify/S4-017-f89-f90.md) | F-89 and F-90 checked — the press tracks and the inverted flag |
 | [`S4-019-f99-two-ceilings.md`](./verify/S4-019-f99-two-ceilings.md) | F-99 verified independently: two ceilings, one door, and the first track recovered by the fix |
 | [`S4-020-schema-alignment.md`](./verify/S4-020-schema-alignment.md) | Component property access checked against the real PostgREST schema |
+| [`S4-028-standing-question-3-the-theatre-audit.md`](./verify/S4-028-standing-question-3-the-theatre-audit.md) | S4's verdict, linked on integration so the doc gate can see it |
+| [`S4-039-the-stranger-in-a-real-browser-and-the-timer-caught-on-camera.md`](./verify/S4-039-the-stranger-in-a-real-browser-and-the-timer-caught-on-camera.md) | S4's verdict, linked on integration so the doc gate can see it |
+| [`S4-040-standing-question-1-answered-the-loop-works-and-one-human-touch-fails-it.md`](./verify/S4-040-standing-question-1-answered-the-loop-works-and-one-human-touch-fails-it.md) | S4's verdict, linked on integration so the doc gate can see it |
 
 ## Superseded
 

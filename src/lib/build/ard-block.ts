@@ -296,7 +296,7 @@ export function formatArdWorkOrderBlock(
   if (omitted.length > 0) {
     const listed = omitted.map((o) => `${o.key} (${o.chars} chars)`).join(", ");
     out.push(
-      `(ARD budgeted to ${capChars} chars: ${omitted.length} key${omitted.length === 1 ? "" : "s"} dropped to fit, ${listed}. The JSON above is complete and parseable exactly as it stands; every dropped key is named inside it under "omitted_for_budget" with where to fetch it.)`,
+      `(ARD budgeted to ${capChars} chars: ${omitted.length} key${omitted.length === 1 ? "" : "s"} dropped to fit: ${listed}. The JSON above is complete and parseable exactly as it stands; every dropped key is named inside it under "omitted_for_budget" with where to fetch it.)`,
     );
   }
   if (overBudget) {
@@ -330,7 +330,7 @@ export const SCAFFOLD_BLOCK_MAX_CHARS = ARD_SCAFFOLD_HTML_CAP;
  * a false approval builds the wrong thing with confidence.
  */
 export const SCAFFOLD_BLOCK_HEADER =
-  "THE MOCKUP FOR THIS SPEC, from the design station, build the UI against this markup: same structure, same states, same copy";
+  "THE MOCKUP FOR THIS SPEC, from the design station; build the UI against this markup: same structure, same states, same copy";
 
 /**
  * PURE. Render the gate-approved scaffold as its OWN fenced `html` section.

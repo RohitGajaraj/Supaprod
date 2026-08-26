@@ -31,7 +31,7 @@ import { FocusNext } from "@/components/today/FocusNext";
 import { HandoverNote } from "@/components/today/HandoverNote";
 import { OverlapCheck, OverlapNote } from "@/components/today/OverlapNote";
 import { PushedInsights } from "@/components/today/PushedInsights";
-import { waitingNote } from "@/components/today/waiting-age";
+import { runTotals, spendWords } from "@/components/today/run-totals";
 import { trackToBoardRows, type TrackBoardRow } from "@/components/today/tracks-feed";
 import { QuietMorning } from "@/components/today/QuietMorning";
 import { RunState, ShippedState } from "@/components/today/RunState";
@@ -680,6 +680,17 @@ function Today() {
     [sessions.data],
   );
 
+  /* WHAT THE WORK COST, which no other surface says now that /runs redirects.
+     Both figures come from reads this page already makes, so it costs nothing.
+     Sessions and tracks are two engines and their spend is NOT added together:
+     see run-totals.ts for why a combined figure would be uncheckable. */
+  /* TRACKS ARE NOT PASSED, and that is a limit rather than an oversight:
+     `listTracks` does not select `spend_used_usd`, so the loop's spend is not
+     in any read this page makes. It is $3.4734 across 37 tracks in the
+     database and I will not print a number I cannot source from a payload. A
+     server-side change is filed; until then this line speaks only for runs. */
+  const totals = React.useMemo(() => runTotals(sessions.data?.sessions, undefined), [sessions.data]);
+
   // The track record read. CHARACTER-IDENTICAL KEY to Brain's, so the two
   // surfaces are two consumers of ONE request and the tab opens on a cache hit.
   const fCalibration = useServerFn(getForecastCalibration);
@@ -788,7 +799,17 @@ function Today() {
             onOpen: openRun(m.id),
           };
         })
-        .sort((a, b) => b.at - a.at),
+        /* OLDEST FIRST, and this lane is the ONLY one that sorts this way.
+           Running and Finished sort newest-first because for work in motion the
+           story is recency. Here the story is the opposite: nothing in this lane
+           moves until a person acts, so the longer a thing has sat the more it
+           needs them. Sorting it newest-first, which is what this line used to
+           do, put the freshest arrival on top and buried the oldest behind a cap
+           of three and an overflow control. Measured 2026-08-27: the oldest gate
+           in this workspace has been waiting 33 days, and it was the last row of
+           a folded list. The brief's words for this lane are "sorted by what
+           needs a person soonest", and recency is not that. */
+        .sort((a, b) => a.at - b.at),
     [stuck, openRun],
   );
 
@@ -947,12 +968,22 @@ function Today() {
             onOpen: openRun(m.id),
           };
         })
-        .sort((a, b) => b.at - a.at),
+        /* Same lane, same rule: oldest first. These rows come from the sessions
+           read rather than the windowed mission list, so unlike the rows above
+           they can genuinely be weeks old, which is exactly why they must not
+           sort to the bottom. */
+        .sort((a, b) => a.at - b.at),
     [running, gatesByMission, openRun],
   );
 
+  /* THE MERGE MUST RE-SORT, or the per-list ordering above is decorative.
+     Three sources feed this lane: blocked missions (windowed to 24 hours),
+     gated sessions (NOT windowed, so genuinely weeks old) and spine tracks.
+     Concatenating them put every gated row after every mission row regardless
+     of age, so the 33-day gate still sorted below a mission blocked ten minutes
+     ago. Oldest first across the whole lane, for the reason on replyRows. */
   const allReplyRows = React.useMemo(
-    () => [...replyRows, ...gatedRows, ...trackCrewRows.reply],
+    () => [...replyRows, ...gatedRows, ...trackCrewRows.reply].sort((a, b) => a.at - b.at),
     [replyRows, gatedRows, trackCrewRows],
   );
   const allLiveRows = React.useMemo(
@@ -1392,13 +1423,39 @@ function Today() {
   const greeting = hour < 12 ? "Good morning." : hour < 18 ? "Good afternoon." : "Good evening.";
 
   const loading = stillWaiting(queue, missions);
+  /*
+   * A QUIET MORNING IS A CLAIM ABOUT THE WORKSPACE, NOT ABOUT THE LAST DAY.
+   *
+   * This asked `stuck.length === 0`, and `stuck` is filtered through
+   * `withinLastDay` (:670). So the test was "nothing became blocked in the last
+   * 24 hours", while the sentence it gates says nothing needs you at all, and
+   * the screen it gates shows a worked Example on the premise that there is
+   * nothing real to look at.
+   *
+   * Measured 2026-08-27: this workspace holds 89 missions waiting on a person
+   * and 85 of them last moved between 8 and 30 days ago. Three are inside the
+   * window today, so the quiet screen does not fire. **When those three age out
+   * it will, and the board will offer an Example while 89 things wait.** That
+   * is not a hypothetical; it is what tomorrow looks like.
+   *
+   * So the quiet test reads the UNWINDOWED rows. `stuck` keeps its window,
+   * because the lane is genuinely about the last day and says so. Being quiet
+   * is a stronger claim than having a quiet lane, and it needs the stronger
+   * test. The cap on `listMissions` still applies, which makes this test
+   * conservative in the safe direction: it can fail to call a morning quiet,
+   * and it cannot call a busy one quiet.
+   */
+  const anythingBlocked = React.useMemo(
+    () => rows.some((m) => STUCK.has(m.status)),
+    [rows],
+  );
   const quietMorning =
     !loading &&
     !queue.isError &&
     !missions.isError &&
     items.length === 0 &&
     shipped.length === 0 &&
-    stuck.length === 0 &&
+    !anythingBlocked &&
     running.length === 0;
 
   /**
@@ -1724,14 +1781,28 @@ function Today() {
                 {crewSection(
                   FEED_REPLY,
                   allReplyRows,
-                  /* HOW LONG THE OLDEST ONE HAS SAT, said once above the lane.
-                     The lane caps at three standing rows and folds the rest, so
-                     a person reading "89" over three fresh-looking rows has no
-                     way to learn the backlog behind them is three weeks deep.
-                     Measured 2026-08-26: 89 waiting, 85 of them 8 to 30 days
-                     old, the oldest 21 days. waiting-age.ts carries why this is
-                     the oldest rather than a bucket count. */
-                  waitingNote("Nothing moves on these until you answer.", allReplyRows, Date.now()),
+                  /* THE BOUNDARY, SAID OUT LOUD, because the omission it covers
+                     is large and silent. This lane is filtered by
+                     `withinLastDay` (:670), so work whose last movement was over
+                     24 hours ago is not here AND IS NOT COUNTED. Measured
+                     2026-08-27: 89 missions are waiting on a person and 85 of
+                     them last moved between 8 and 30 days ago, so the lane
+                     showed 3. The longer a thing waits, the more certainly it
+                     disappears from the one surface that exists to say what
+                     needs you.
+
+                     NO NUMBER IS PRINTED HERE, and that is the honest choice
+                     rather than the lazy one. `listMissions` is `.limit(50)`
+                     ordered by `updated_at` descending (missions.functions.ts
+                     :244-245), so the client is handed the 50 most RECENTLY
+                     touched of 108 and the oldest waiting work is precisely
+                     what falls off the end. Any count or "oldest" computed here
+                     would be drawn from the newest 50 and would understate by a
+                     margin nobody could see. A stated boundary is true; a
+                     number from a capped read is a wrong number wearing a
+                     fact's clothes. The real count needs a server-side read and
+                     is filed with S0. */
+                  "Nothing moves on these until you answer. This lane shows the last 24 hours, so anything waiting longer is not here.",
                   (row) =>
                     row.proposed ? (
                       /* A PROPOSED MISSION IS NOT ASKING A QUESTION — it is
@@ -1775,10 +1846,28 @@ function Today() {
                 {crewSection(
                   FEED_LIVE,
                   allLiveRows,
-                  <>
-                    Waiting on an agent, not on you.
-                    <OverlapCheck workspaceId={workspaceId} />
-                  </>,
+                  /* THE NOTE HAS TO SURVIVE ITS OWN LANE BEING EMPTY.
+                     "Waiting on an agent, not on you" is true of rows in this
+                     lane and FALSE of a lane with none, and it rendered anyway:
+                     a section draws its head and its note whatever the count.
+                     Measured 2026-08-27, agent_runs holds ZERO rows in any
+                     in-flight status, so this is the state the board is in
+                     today, not an edge case.
+                     At zero it says what is true and points at the act that
+                     would change it, WITHOUT a number: listMissions is capped
+                     at 50 of 89, so any count printed here would be a floor
+                     wearing a total's clothes. The count that IS honest is
+                     already on the lane above, on its own head. */
+                  allLiveRows.length > 0 ? (
+                    <>
+                      Waiting on an agent, not on you.
+                      <OverlapCheck workspaceId={workspaceId} />
+                    </>
+                  ) : allReplyRows.length > 0 ? (
+                    <>Nothing is running. The work above is waiting on you, not on an agent.</>
+                  ) : (
+                    <>Nothing is running.</>
+                  ),
                   (row) =>
                     row.isTrack ? null : (
                       <Action
@@ -1828,6 +1917,32 @@ function Today() {
                 and nothing pointed at it - a surface with no door, this repo's
                 most common defect. The door rides under the feed it extends,
                 where the reader who needs it already is. */}
+            {/* WHAT IT COST. `/runs` carried this and redirects now, so without
+                it the fold would remove a capability rather than a door. One
+                quiet line, no accent, and drawn ONLY when a figure exists:
+                "no cost reported" and "$0.00" are different claims and this
+                surface may not swap one for the other. */}
+            {totals.sessionSpendUsd !== null || totals.trackSpendUsd !== null ? (
+              <p className="max-w-[62ch] text-mrd-data leading-mrd-prose text-mrd-mute">
+                {[
+                  spendWords(totals.sessionSpendUsd)
+                    ? `${spendWords(totals.sessionSpendUsd)} spent on runs`
+                    : null,
+                  spendWords(totals.trackSpendUsd)
+                    ? `${spendWords(totals.trackSpendUsd)} on work the loop drove`
+                    : null,
+                ]
+                  .filter(Boolean)
+                  .join(", ")}
+                .
+                {totals.sessionsWithoutCost > 0
+                  ? ` ${totals.sessionsWithoutCost} ${
+                      totals.sessionsWithoutCost === 1 ? "run" : "runs"
+                    } reported no cost, so this is a floor.`
+                  : ""}
+              </p>
+            ) : null}
+
             <Door
               title="The full list of what needs you, uncapped"
               onClick={() => navigate({ to: "/inbox" })}
@@ -1931,11 +2046,34 @@ function Today() {
           </div>
         ) : null}
 
+        {/*
+          * THE DOOR THAT SAID IT STARTED WORK AND DID NOT. This block read
+          * "Start something new" over a composer whose submit is `openAsk()`,
+          * which opens the Ask pane. Asking is a real act and a good one, but a
+          * person reading "give the crew its next outcome" expects work to
+          * exist afterwards, and none did. The most-visited surface in the
+          * product was promising the one act it does not perform.
+          *
+          * So the composer is named for what it does, and the act it was
+          * standing in for gets its own door beside it. `/start` is the door
+          * that creates a track, and 41 of the last 43 tracks entered at
+          * `sense` through it, so it is the live way work begins.
+          *
+          * DELIBERATELY A LINK AND NOT A SECOND COMPOSER. Which engine the
+          * board's own composer should drive is a real question with three
+          * candidates and it is not mine to settle; it is filed as
+          * D2-the-consolidated-start-door.md for S0 and S1. A link removes the
+          * false promise today without pre-empting that ruling, and it cannot
+          * become a fourth way to start work.
+          */}
         <div data-page-composer className="today-composer">
           <div>
-            <div className="today-kicker">Start something new</div>
+            <div className="today-kicker">Ask the crew</div>
             <div className="today-composer-copy">
-              Ask a question or give the crew its next outcome.
+              Ask a question about this workspace, or talk through what to do next.{" "}
+              <Door title="Start a new piece of work" onClick={() => navigate({ to: "/start" })}>
+                Start a piece of work
+              </Door>
             </div>
           </div>
           <AskComposer />

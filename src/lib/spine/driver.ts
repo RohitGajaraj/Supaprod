@@ -923,8 +923,35 @@ export function stationGoal(
 }
 
 const FILE_IT: Record<AgentStation, string> = {
+  /*
+   * "FILE WHAT YOU FOUND" READ AS "FILE WHAT YOU FOUND THAT IS NEW", AND THAT
+   * IS WHY DISCOVER HAS NEVER CLEARED (2026-08-27).
+   *
+   * This brief named one hand, `signals.log`, so a crew that searched a
+   * workspace ALREADY FULL of evidence concluded there was nothing to log and
+   * filed nothing. Both sense-entry tracks on the real workspace died of it,
+   * across twelve drives each, and the F-43 ceiling was right to stop them:
+   * they genuinely produced nothing.
+   *
+   * What they were looking at, measured on that workspace: 258 signals, of
+   * which 81 come from genuinely outside sources, including an analytics-
+   * dashboard row titled "41 percent of abandonments happened on the redundant
+   * address re-confirm screen" and a session-replay row about redundant address
+   * entry, both tagged `address-friction`, against a track about reusing a saved
+   * delivery address.
+   *
+   * The crew QUOTED that 41 percent figure back and still reported "no
+   * user-sourced evidence exists", because it read the number out of a PRD
+   * rather than out of the signals table, and F-73 correctly forbids citing our
+   * own artifacts. Every part of that was working as designed. The brief simply
+   * never said that evidence already on the record is evidence.
+   *
+   * So grouping what is already there is now named as a complete outcome. The
+   * anti-exhaust rules are untouched and restated, because widening what counts
+   * as a finish is exactly when a crew starts looking for a cheaper one.
+   */
   sense:
-    "Finish by filing what you found: call signals.log for each piece of evidence, and research.synthesize or cluster.trigger to group them. A finding that is only in your answer is not on the record and the next station cannot read it.",
+    "Finish by putting evidence on this track's record. Evidence ALREADY IN THIS WORKSPACE COUNTS: search it first with signals.list, and if what you need is already there, group it with cluster.trigger or research.synthesize and you are done. That is a complete, correct outcome, not a shortcut. Call signals.log only for evidence that is genuinely not on the record yet. What you may never do is file the ABSENCE of evidence, or cite this product's own PRDs, decisions or briefs as a source: a number you read in our own spec is not a finding, it is our own writing coming back. If the workspace truly holds nothing about this, say so in your answer and file nothing. A finding that is only in your answer is not on the record and the next station cannot read it.",
   decide:
     "Finish by calling decision.record with the alternatives you weighed and your forecast: what you expect to happen, the observable that will settle it, and the date it comes due as an ISO timestamp with an offset. A decision that is only in your answer is not on the record and the next station cannot read it, and one with no forecast is refused.",
   // Same correction as the `prd-writer` seat above, and it has to be made in

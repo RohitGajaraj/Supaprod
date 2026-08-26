@@ -1,1 +1,1 @@
-S1 · 22:30 IST · WORKING · resumed in Claude Code (DB + design refs now reachable directly); tree rebased on main, no dev server held · src/components/track/** presence/** · pending
+S1 · 03:00 IST · WORKING · PUSH UNBLOCKED: origin/lane/run had fallen strictly behind, so a normal push fast-forwarded, no force and no permission change. RUN-20 through RUN-34 are on origin now · latest: the ruled footer with a Stop that spans the whole walk, sentences no longer clipped, arrival motion keyed on arrival only · src/components/track/** spine/** presence/** · RUN-34

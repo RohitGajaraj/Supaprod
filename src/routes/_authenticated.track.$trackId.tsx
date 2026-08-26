@@ -8,6 +8,7 @@ import { PageHeading } from "@/components/meridian/surface-parts";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { Row } from "@/components/meridian/rows";
 import { TrackRunLeft, TrackPaneRight } from "@/components/track/TrackRun";
+import { RunFooter } from "@/components/track/RunFooter";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { getTrack, type Track } from "@/lib/spine/track.functions";
 import { nextStation, waiverFor, type SpineRoute } from "@/lib/spine/route";
@@ -176,6 +177,11 @@ function TrackPage() {
    * from one source: the transcript's own running rows.
    */
   const [crewLive, setCrewLive] = React.useState(false);
+  /* The footer's Stop, reported up by the pane that owns the press. */
+  const [drive, setDrive] = React.useState<{ canStop: boolean; stop: () => void }>({
+    canStop: false,
+    stop: () => undefined,
+  });
 
   const get = useServerFn(getTrack);
   // THE HEADER READS THE SAME CACHE ENTRY TRACKRUN POLLS -- same key, same
@@ -190,7 +196,21 @@ function TrackPage() {
   const track = trackQ.data ?? null;
   const decideWaived = track ? waiverFor(track.route, "decide") !== null : false;
 
-  const settled = track?.status === "done";
+  /*
+   * ABANDONED IS SETTLED TOO, and leaving it out was a gap rather than a
+   * decision. The inversion narrows the walking rail and gives the page to what
+   * the run produced, and its reason is that nothing is walking any more, so
+   * the wide column is spent on a transcript nobody is watching while the thing
+   * a person actually came to read stays in the narrow half.
+   *
+   * That reason applies to an abandoned run exactly as it does to a finished
+   * one: it has stopped for good and what is left is what it made.
+   * workbench.css's own comment already describes the trigger more broadly than
+   * the code implemented it, "track.status === done OR the walk's own finished
+   * result", so this closes the gap between the two rather than widening the
+   * rule.
+   */
+  const settled = track?.status === "done" || track?.status === "abandoned";
 
   return (
     /*
@@ -205,17 +225,31 @@ function TrackPage() {
         {track ? (
           <>
             <RunHeader track={track} liveNow={crewLive} />
-            <Row
-              tight
-              lead={`Running in ${activeWorkspace?.name ?? "your workspace"}${
-                productsVisible && activeProduct ? ` · on ${activeProduct.name}` : ""
-              }`}
-              sub={
-                decideWaived
-                  ? "This one skips the decision, so nothing is being forecast on it."
-                  : undefined
-              }
-            />
+            {/*
+             * THE LOCATION LINE IS GONE, AND THAT IS THE FIX RATHER THAN A CUT.
+             *
+             * It read `Running in {workspace} · on {product}` on EVERY track,
+             * including this one, which is abandoned, and including every held
+             * and finished run. The status chip sits directly above it saying
+             * the opposite, so the header asserted two different things about
+             * one run, which is the drift this screen has already been repaired
+             * for twice.
+             *
+             * And the fact itself was already on screen: the shell's own header
+             * carries `Helio Labs / Prism` as the workspace switcher, a few
+             * pixels above. So the honest repair is not a truer sentence, it is
+             * one fewer. It also recovered the dead band under the title, which
+             * was the largest empty area on the page.
+             *
+             * It rendered as a `Row`, which reserves a leading column for a
+             * glyph or a clock, so it also sat indented from the heading it
+             * belonged to. A list primitive was doing a caption's job.
+             */}
+            {decideWaived ? (
+              <p className="mrd-meta">
+                This one skips the decision, so nothing is being forecast on it.
+              </p>
+            ) : null}
           </>
         ) : (
           <PageHeading
@@ -235,12 +269,33 @@ function TrackPage() {
             autoStart={start === true}
             onCrewLive={setCrewLive}
             crewLive={crewLive}
+            onDriveState={setDrive}
           />
         </div>
         <div className="mrd-workbench-pane mrd-workbench-pane--artifact">
           <TrackPaneRight trackId={trackId} isRunning={crewLive} promised={track?.origin ?? null} />
         </div>
       </div>
+
+      {/*
+       * THE FOOTER (THE-ONE-SCREEN:21), which this screen shipped without.
+       *
+       * A third child of a two-row grid takes an implicit `auto` row, so the
+       * panes' `minmax(0,1fr)` gives it its height and no change is needed in
+       * workbench.css, which is another lane's file.
+       *
+       * It renders only with a track, because every word in it is derived from
+       * one and a footer over a failed read would be describing nothing.
+       */}
+      {track ? (
+        <RunFooter
+          status={track.status}
+          tone={holdTone(track.holdReason)}
+          walking={drive.canStop}
+          crewLive={crewLive}
+          onStop={drive.stop}
+        />
+      ) : null}
     </div>
   );
 }
