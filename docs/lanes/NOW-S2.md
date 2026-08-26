@@ -1,1 +1,1 @@
-S2 · 20:10 IST · WORKING · board units C2-001…009 shipped and live-verified (server killed) · waiting on S0: fold ruling (inventory filed), collision derivation, guardrail-prose ruling · next: D1–D4 on ruling · 4290724cf
+S2 · 22:58 IST · WORKING · C2-010 the collision mark shipped (mission unit 4, the one never built) · server killed, 8081 clear · drawn mark render-proven; live drive showed the read firing 200 with zero active runs to mark · filed: trace_id written on 1 insert path of 6 · lane/control

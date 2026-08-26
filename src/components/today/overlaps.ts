@@ -58,6 +58,24 @@ export interface Overlap {
 
 /** What `checkLine` needs to say what was and was not checked. */
 export interface OverlapCheck {
+  /**
+   * Active runs that produced an anchor, so the comparison could actually run.
+   *
+   * WHY THIS IS A SEPARATE NUMBER AND NOT AN INFERENCE FROM THE OTHERS.
+   * F-93 gave `agent_runs` a `trace_id`, and `loop.server.ts` writes it —
+   * measured live 2026-08-26, three runs created at 17:17–17:20 UTC carry one.
+   * **Five of the six insert paths do not** (`agents.functions.ts:180`,
+   * `handoff.server.ts:427`, `verify-green.server.ts:381`,
+   * `native.server.ts:155`, `ci-poll-tick.ts:1104`), and the gap is live rather
+   * than historical: at 17:20:03 a `researcher` run was written with no trace
+   * thirteen seconds before a `customer-insights` run that had one.
+   *
+   * So untraceable runs keep arriving, and `unknowable` can be non-zero while
+   * `checked` is zero. A sentence that led with "nobody is on the same thing" in
+   * that state would be the F-76 lie exactly: a confident all-clear from a
+   * comparison that never ran. Filed to S0 as `trace-id-written-on-one-path`.
+   */
+  checked: number;
   /** Contested overlaps found, whether or not a board row could carry them. */
   found: number;
   /** Of those, the ones that landed on a mission row and are drawn. */
@@ -116,6 +134,7 @@ export function check(
   const contested = (collisions ?? []).filter((c) => c.contested);
   const drawn = contestedOverlapsByMission(anchors, collisions).size;
   return {
+    checked: anchors?.length ?? 0,
     found: contested.length,
     drawn,
     offBoard: Math.max(0, contested.length - drawn),
@@ -216,6 +235,19 @@ export function checkLine(
     caveats.push(`${c.offBoard} ${c.offBoard === 1 ? "is" : "are"} on work not listed here`);
   }
   const tail = caveats.length === 0 ? "" : ` ${sentenceOf(caveats)}.`;
+
+  // NOTHING WAS COMPARED, SO THERE IS NO ALL-CLEAR TO GIVE. Reachable today and
+  // not a hypothetical: five of the six `agent_runs` insert paths write no
+  // `trace_id`, so a workspace whose active runs all came through one of them
+  // has nothing to compare. "Nobody is on the same thing" there would be a
+  // confident answer produced by a comparison that never ran — F-76 wearing
+  // this surface's clothes.
+  if (c.checked === 0) {
+    if (c.unknowable === 0) return null;
+    return c.unknowable === 1
+      ? "The one that is running cannot be checked for overlap yet — it started before we recorded what it touches."
+      : "None of these can be checked for overlap yet — they started before we recorded what they touch.";
+  }
 
   // FOUND NOTHING IS AN ANSWER, AND IT IS SAID OUT LOUD. The graveyard this
   // surface is built against was a screen that returned nothing and looked the

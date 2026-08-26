@@ -149,22 +149,53 @@ describe("the line a person reads on the row", () => {
 
 describe("the sentence that makes a quiet answer trustworthy", () => {
   it("says nobody is on the same thing OUT LOUD, rather than drawing nothing", () => {
-    expect(checkLine(check([], [], 0), "ready")).toBe("Nobody is on the same thing.");
+    // One run WAS compared and came back clear. That is the only state in which
+    // this sentence is earned.
+    expect(checkLine(check([anchor({ runId: "r1" })], [], 0), "ready")).toBe(
+      "Nobody is on the same thing.",
+    );
   });
 
   it("never calls unrecorded runs clear — the failure that matters here", () => {
-    expect(checkLine(check([], [], 2), "ready")).toBe(
+    expect(checkLine(check([anchor({ runId: "r1" })], [], 2), "ready")).toBe(
       "Nobody is on the same thing. 2 started before we recorded what they touch, so they cannot be checked.",
     );
   });
 
   it("reads singular for one unrecorded run", () => {
-    expect(checkLine(check([], [], 1), "ready")).toContain("so it cannot be checked");
+    expect(checkLine(check([anchor({ runId: "r1" })], [], 1), "ready")).toContain(
+      "so it cannot be checked",
+    );
+  });
+
+  /*
+   * THE REASON `checked` EXISTS, and it is a live state rather than a
+   * hypothetical. `loop.server.ts` writes `trace_id` (measured: three runs at
+   * 17:17–17:20 UTC on 2026-08-26 carry one) and the other five `agent_runs`
+   * insert paths do not — at 17:20:03 an untraced run was written thirteen
+   * seconds before a traced one. A workspace whose active runs all came through
+   * those paths can compare nothing, and answering "nobody is on the same
+   * thing" there is a confident all-clear from a comparison that never ran.
+   */
+  it("gives NO all-clear when nothing could be compared, however many are running", () => {
+    expect(checkLine(check([], [], 3), "ready")).toBe(
+      "None of these can be checked for overlap yet — they started before we recorded what they touch.",
+    );
+  });
+
+  it("reads singular when the one running piece of work cannot be checked", () => {
+    expect(checkLine(check([], [], 1), "ready")).toBe(
+      "The one that is running cannot be checked for overlap yet — it started before we recorded what it touches.",
+    );
+  });
+
+  it("says nothing at all when nothing is running", () => {
+    expect(checkLine(check([], [], 0), "ready")).toBeNull();
   });
 
   it("says so when a real overlap has no row on this board to carry it", () => {
     const c = check([anchor({ runId: "r1", missionId: null })], [collision()], 0);
-    expect(c).toEqual({ found: 1, drawn: 0, offBoard: 1, unknowable: 0 });
+    expect(c).toEqual({ checked: 1, found: 1, drawn: 0, offBoard: 1, unknowable: 0 });
     expect(checkLine(c, "ready")).toBe("1 is on work not listed here.");
   });
 
