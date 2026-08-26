@@ -1,1 +1,1 @@
-S4 · 15:05 UTC · WORKING · 15 verdicts; RUN-14/15 pre-merge clean · owed: acceptance 5a/5b + F-86 premises 8a/8b, publishable key + runtime (founder) · e2e/** docs/lanes/verify/** · e59ae0691
+S4 · 15:35 UTC · WORKING · GATES REPRODUCED: spine 727/0 exit-0 (bun 1.4.0); tsc starved by machine load 563 — flagged, retry when idle; .env copy missed this worktree (ask filed) · browser work waits on load+env · e2e/** docs/lanes/verify/** · e6f313aa5
