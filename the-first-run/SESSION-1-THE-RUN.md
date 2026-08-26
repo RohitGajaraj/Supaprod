@@ -84,6 +84,20 @@ Numbered so you can take them in order. Each is one unit: build it, drive it, co
 
 ---
 
+## The right pane, and what runs inside it
+
+[`SPEC-BUILD-PATHS.md`](./SPEC-BUILD-PATHS.md) §2 is yours to build the surface of. **Five of the seven
+stations need something to RUN before a person can judge it**, and the ranking is by value rather than
+station order: Decide's metric probe (proving the forecast's observable is readable today — without it
+the verdict can never land), the Design prototype (clickable, in a frame, because the expensive mistake
+here is building the wrong thing correctly), Ship's preview deploy, Discover's connector dry-run,
+Learn's live verdict query, and only then Build.
+
+**S0 builds the primitive and every probe; you build the frame, the states and the actions on the
+artifact.** Two stations show the customer's own builder instead of ours — Build shows their PR and its
+checks. **A sandbox is never a substitute for a designed pane**: the five stations that need nothing to
+run must be as good as the ones that do.
+
 ## Presence — the character, and the iron law
 
 `SPEC-PRESENCE.md` governs. The crew becomes **one character** (working name `Supa`,

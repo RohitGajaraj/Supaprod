@@ -5,7 +5,11 @@
 > that, and on top of that tell you what to build. Lovable and Replit are layer 2. Before that we have
 > layer 1, telling you what to build. Layer 3 is knowing how it works and guiding your next move."_
 >
-> **Status: proposal. The founder rules; this is not canon until he does.** It obeys
+> **Status: RULED 2026-08-26, the same day. The founder ruled HYBRID — both build paths ship — which
+> is a stronger version of what this document argued, not a rejection of it. Canon is
+> [`positioning-locked-2026-08.md`](./positioning-locked-2026-08.md) §5N and what ships is
+> [`../../the-first-run/SPEC-BUILD-PATHS.md`](../../the-first-run/SPEC-BUILD-PATHS.md). Kept for the
+> reasoning, which still holds: no to competing on code generation, yes to owning the handoff.** It obeys
 > [`positioning-locked-2026-08.md`](./positioning-locked-2026-08.md) and cites
 > [`../research/competitive-landscape.md`](../research/competitive-landscape.md),
 > [`../research/chatprd-teardown-2026-08.md`](../research/chatprd-teardown-2026-08.md) and

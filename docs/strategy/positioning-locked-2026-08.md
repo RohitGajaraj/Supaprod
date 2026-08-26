@@ -322,9 +322,25 @@ The six-PM thread is one cluster of nine spanning four years: Tolga (four tools 
 
 The stations are unchanged and stay as they are — this is how layer 02 is *described*, not how it is built. **Layer 02 is where we meet the buyer; layer 03 is why they stay.** The moat is untouched: the forecast captured at decision time, written at Decide, which is why a route without Decide has no moat (R-25).
 
+### AMENDED 2026-08-26, same day — the founder ruled HYBRID, and it strengthens the position
+
+*"I think we need to do both. What if a user does not have their own coding agent? Then it needs to be done within our platform, and we charge on credits. Whoever wants to hand off to their own coding agent, we leave that open, like ChatPRD does. And once the part is done, how do we take those insights back and close the loop?"*
+
+**Two paths, and neither blocks the other.** Bring your own builder — Cursor, Claude Code, Lovable, v0, Replit, Codex — and we hand over the spec, the acceptance criteria and **the forecast**, in that builder's own idiom. Or build it here, metered on credits, for a customer with no coding agent, no repo, or no wish to leave.
+
+**This does not soften §5N, it sharpens it, because of one fact:** **the verdict is measured against the forecast, not against the code.** We never need to know *how* a change was built to say whether it did what we said it would — only that **it shipped** and **what happened**, both obtainable without owning the builder. **Owning build was never what closed the loop.** So the first-party path is a fallback and a preview surface, never a product line, and "build anything here" is never marketed.
+
+**The wording, therefore:** layer 02 **decides what is worth building, hands it to whatever builds for you — yours or ours — and checks what actually happened**. The phrase *yours or ours* is doing real work and should not be dropped — it is what makes us the only surface in this market that does not care which builder you use.
+
+**And the highest-value preview is one station earlier than the obvious one.** Lovable and Replit show a live preview because their product *is* the app. Ours is not. **Our preview belongs at Design — an interactive prototype a person can click before anyone writes code** — because the expensive mistake in an enterprise product is not a bad implementation, it is building the wrong thing correctly. **Their preview saves rework; ours prevents it.**
+
+**And the sandbox is broader than "show the code being built" — five of the seven stations need something to RUN before a person can judge it, and the two that matter most are not about code at all.** ① **Decide** must prove the metric its forecast names can actually be read today, or the verdict can never land — `forecast_resolution` is never written and the grader has processed **zero workspaces in its life**. ② **Ship** must produce a preview deploy, which is precisely the proof R-27 gates the production deploy on, and precisely what `release.publish` requires and the loop cannot produce. Then ③ **Design**'s clickable prototype, ④ **Discover**'s connector dry-run, ⑤ **Learn**'s live verdict query, and only then Build. **One isolated-execution primitive, six callers, never touching production.**
+
+Full spec, including the four handback mechanisms that close the loop when somebody else built it: [`../../the-first-run/SPEC-BUILD-PATHS.md`](../../the-first-run/SPEC-BUILD-PATHS.md).
+
 ### The one exception, and it is a build not a market entry
 
-**A sandboxed first-party build path**, so a run can complete and a stranger can see a full loop with zero setup. The case is empirical: **all five walls that have ever stopped a real run sat at the handoff to somebody else's world** — a repo the product stopped recognising (F-49), a merge gate no station was briefed to approach (F-50), dependencies a customer's repo cannot install (F-56), a CI gate the builder disabled (F-63), and billing (F-64). Same cause five times. **It is the fallback and the demo path, never the default and never a competitor.** Whether to build it is the one open founder call: [`layer-2-build-question-2026-08.md`](./layer-2-build-question-2026-08.md).
+**A sandboxed first-party build path**, so a run can complete and a stranger can see a full loop with zero setup. The case is empirical: **all five walls that have ever stopped a real run sat at the handoff to somebody else's world** — a repo the product stopped recognising (F-49), a merge gate no station was briefed to approach (F-50), dependencies a customer's repo cannot install (F-56), a CI gate the builder disabled (F-63), and billing (F-64). Same cause five times. **It is the fallback and the demo path, never the default and never a competitor.** **ANSWERED 2026-08-26: build it, scoped as above.** Its main job is the Design prototype, not code generation. See [`layer-2-build-question-2026-08.md`](./layer-2-build-question-2026-08.md) for the original argument and [`../../the-first-run/SPEC-BUILD-PATHS.md`](../../the-first-run/SPEC-BUILD-PATHS.md) for what ships.
 
 ### What would overturn this
 

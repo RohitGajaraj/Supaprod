@@ -155,6 +155,20 @@ re-derives it.
    and money stays his.** — *S0 to propose.*
 10. **Search across work, and export.** Both untouched, both table stakes at the scale being aimed for.
     — *S3.*
+11. **Nothing in the product ever RUNS in front of the person.** Ruled hybrid on 2026-08-26: both build
+    paths ship, and one isolated-execution primitive serves five stations. **The two highest-value uses
+    are not about code** — Decide proving its forecast's metric is readable today (without which the
+    verdict can never land, and the grader has processed zero workspaces in its life), and Ship's
+    preview deploy, which is precisely the proof R-27 gates production on and precisely what the loop
+    cannot produce (F-36). Then Design's clickable prototype, Discover's connector dry-run, Learn's live
+    verdict query, and last of all Build. Spec: [`SPEC-BUILD-PATHS.md`](./SPEC-BUILD-PATHS.md).
+    — *S0 the primitive and every probe, S1 the surfaces, S3 the credit meter and connections.*
+12. **The handback.** When somebody else's builder made the change, nothing brings the outcome back.
+    Four mechanisms, cheapest first: paste a PR or deploy URL, a repository app reporting four events,
+    the customer's own telemetry read one metric per forecast, and the handoff out as a formatted brief
+    with the forecast travelling alongside it. **The load-bearing fact: the verdict is measured against
+    the forecast, not against the code**, which is why bring-your-own-builder does not break the loop.
+    — *S0, with S1 for the paste-back surface and S3 for connections.*
 
 **A gap you find that is not on this list is still authorised** if it passes the four-part test. Put it
 in coordination/requests/, build it, and add it here with its evidence.

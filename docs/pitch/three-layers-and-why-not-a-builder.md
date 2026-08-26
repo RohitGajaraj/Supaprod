@@ -23,7 +23,7 @@ Three layers, and each is the precondition for the next:
 1. **Tell you what to build.** Evidence in, a decision out, with what we expect written down before
    the outcome is known.
 2. **Run it end to end.** The decision becomes a plan, a design, a change, a deploy — handed to
-   whatever builds for you, and checked at every step.
+   whatever builds for you, **yours or ours**, and checked at every step.
 3. **Learn from it, then guide the next call.** The verdict lands against the expectation. What was
    believed, beside what happened.
 
@@ -97,11 +97,41 @@ than it is — the four declines came from claims that did not survive a second 
 
 ---
 
-## The one thing that is still an open founder call
+## The hybrid, and why it does not weaken any of the above
 
-Whether we build a **sandboxed first-party build path**, so a run can complete and a stranger can see
-a full loop with zero setup. The case for it is empirical, not aesthetic: **all five walls that have
-ever stopped a real run sat at the handoff to somebody else's world** — a repo the product stopped
+**Both build paths ship, ruled 2026-08-26.** Hand the spec, the acceptance criteria and the forecast to
+the builder they already use — Cursor, Claude Code, Lovable, v0, Replit, Codex. Or build it here,
+metered on credits, for a customer with no coding agent, no repo, or no wish to leave.
+
+**The reason neither breaks the loop is worth saying out loud in a room, because it is the part people
+assume is false:** *the verdict is measured against the forecast, not against the code.* We never need
+to know **how** a change was built to say whether it did what we said it would — only that **it
+shipped** and **what happened**. Both come back without owning the builder, and the forecast was
+written before any builder was chosen.
+
+**So the first-party path is a fallback and a preview surface, never a product line.** We do not market
+"build anything here", and a person who arrives wanting that is in the wrong product.
+
+**And the sharpest product point in this whole position:** our most valuable preview sits one station
+earlier than theirs. Lovable and Replit show a live preview because their product *is* the app. Ours is
+not. **Ours is an interactive prototype at Design — clickable before anyone writes code — because the
+expensive mistake in an enterprise product is not a bad implementation, it is building the wrong thing
+correctly.** Their preview saves rework; ours prevents it.
+
+## The four ways an outcome gets back
+
+Because "we do not own the builder" is only credible with an answer to this: **paste a PR or deploy URL
+back** (day one, zero integration) · **a repository app** telling us four things and nothing more — PR
+opened, checks, merged, deployed · **the customer's own telemetry**, one named metric per forecast, read
+on the horizon date, which is the one that closes the moat · and **the handoff out**, a formatted brief
+rather than a link, with the forecast travelling alongside it. Full spec:
+[`../../the-first-run/SPEC-BUILD-PATHS.md`](../../the-first-run/SPEC-BUILD-PATHS.md).
+
+## What was an open call and is now settled
+
+**Ruled 2026-08-26: build the sandbox, scoped to the Design prototype first.** The case was empirical
+rather than aesthetic: **all five walls that have ever stopped a real run sat at the handoff to
+somebody else's world** — a repo the product stopped
 recognising, a merge gate no station was briefed to approach, dependencies a customer's repo cannot
 install, a CI gate the builder disabled, and billing. Same cause five times.
 

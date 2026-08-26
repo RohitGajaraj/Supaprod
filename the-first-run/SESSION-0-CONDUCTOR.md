@@ -61,6 +61,26 @@ Two known traps in this area, already paid for:
 - **A fair guard can delete the only stuck signal.** Exempting a failure from an attempt counter also
   removes the alarm. Watch spend rising while a counter stays 0.
 
+### 1b · The sandbox primitive, and the two probes that matter more than the prototype
+
+[`SPEC-BUILD-PATHS.md`](./SPEC-BUILD-PATHS.md) §2 and §5 are yours. **One isolated-execution service
+with six callers, scope-limited, ephemeral, and never touching production** — building six previews
+instead is the expensive mistake.
+
+Build the probes in value order, not station order:
+
+1. **Decide's metric probe.** Prove the observable a forecast names can be read today, returning a
+   number. **Without this the verdict can never land**, and the grader has processed zero workspaces in
+   its life (F-51). It is cheap and it makes the moat mechanically sound.
+2. **Ship's preview deploy.** R-27 gates the production deploy on **proof, not a click** — the preview
+   deploy IS that proof, and `release.publish` already requires a `deployments` row with
+   `status='success'` that the loop cannot produce (F-36). **This is the missing mechanism.**
+3. Then the Design prototype runtime, Discover's connector dry-run, Learn's live verdict query, Build.
+
+**And the handback** (§3): paste-it-back first because it needs no integration, then the repository app
+reporting four events and nothing more, then the outcome signal — one named metric per forecast, read
+on the horizon date, which is the one that closes the moat.
+
 ### 2 · Drive real tracks and watch them, every session, more than once
 
 **Watch a run; do not only read the code.** Three of five defects found in one night came from

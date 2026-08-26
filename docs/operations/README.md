@@ -93,6 +93,7 @@ Both were separate top-level folders until 2026-08-04. They are operational conc
 | [`deploy-and-observe.md`](./deploy-and-observe.md) | The deploy-then-watch checklist for the mission gate. Moved off `docs/` root on 2026-08-26; root holds four files only. |
 | [`deployment-record-decide-fix.md`](./deployment-record-decide-fix.md) | What was deployed when the Decide-station fix went out. Moved off root and undated in the same pass. |
 | [`session-handoff-decide-blocker.md`](./session-handoff-decide-blocker.md) | The handoff written when the Decide-station blocker was fixed. Undated and linked on 2026-08-26 — the canonical rolling handoff is [`session-handoff.md`](./session-handoff.md), and a dated duplicate beside it is rot the doc gate catches. |
+| [`S0-001-DEPLOYMENT-CHECKLIST.md`](./S0-001-DEPLOYMENT-CHECKLIST.md) | The S0 deployment checklist. Linked on 2026-08-26 to clear the doc gate; written by a concurrent session. |
 - [Round 8 status](./status-round-8.md) — the live Round 8 readiness board (moved from repo root 2026-08-25 for placement only; content untouched, author's to edit)
 - [Round 8 results](./round-8-results.md) — moved from repo root 2026-08-25 for placement only; content untouched, author's to edit
 - [Phase 3: visible agency](./phase-3-visible-agency.md) — moved from `docs/` root 2026-08-25 for placement only; content untouched, author's to edit
