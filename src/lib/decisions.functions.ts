@@ -805,3 +805,123 @@ export const resolveAssumptionChallenge = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ASK INTEGRATION (Queue L0-4): Query decisions and learnings for Ask responses
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Get decisions with learnings for a track, for rendering decision cards in Ask.
+ *
+ * Returns all decisions from a specific track, joined with their learning outcomes
+ * if resolved. Used by Ask to show "here's what we forecast would happen and here's
+ * what actually happened" side-by-side.
+ */
+export const getDecisionsForAsk = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({
+      trackId: z.string().uuid(),
+    }).parse(i ?? {}),
+  )
+  .handler(async ({ context, data }) => {
+    const { supabase } = context;
+
+    try {
+      // Get all decisions from the track
+      const { data: decisions, error: decisionsError } = await supabase
+        .from("decisions")
+        .select(
+          "id,title,rationale,forecast_claim,forecast_how_we_will_know,forecast_horizon_date,forecast_resolution,forecast_resolved_at,created_at",
+        )
+        .eq("track_id", data.trackId)
+        .order("created_at", { ascending: false });
+
+      if (decisionsError) throw decisionsError;
+      if (!decisions || decisions.length === 0) {
+        return { decisions: [] };
+      }
+
+      // Fetch learnings for each decision
+      const decisionsWithLearnings = await Promise.all(
+        decisions.map(async (decision) => {
+          const { data: learning } = await supabase
+            .from("learnings")
+            .select("id,verdict,metadata,created_at")
+            .eq("decision_id", decision.id)
+            .maybeSingle();
+
+          return {
+            decision,
+            learning: learning || null,
+          };
+        }),
+      );
+
+      return { decisions: decisionsWithLearnings };
+    } catch (error) {
+      console.error("Failed to fetch decisions for Ask:", error);
+      return { decisions: [] };
+    }
+  });
+
+/**
+ * Search decisions by intent/keywords for Ask autocomplete and discovery.
+ *
+ * When user asks "what did we decide about signup flow?", this searches all
+ * decisions in the workspace for matches on forecast_claim and returns both
+ * the forecast and the actual outcome (learning).
+ */
+export const searchDecisionsForAsk = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({
+      query: z.string().max(200),
+      limit: z.number().int().min(1).max(50).default(10),
+    }).parse(i ?? {}),
+  )
+  .handler(async ({ context, data }) => {
+    const { supabase } = context;
+
+    try {
+      if (!data.query || data.query.trim().length === 0) {
+        return { decisions: [] };
+      }
+
+      // Text search on forecast_claim (future: semantic via embeddings)
+      const { data: decisions, error: decisionsError } = await supabase
+        .from("decisions")
+        .select(
+          "id,title,rationale,forecast_claim,forecast_how_we_will_know,forecast_horizon_date,forecast_resolution,forecast_resolved_at,created_at",
+        )
+        .or(`forecast_claim.ilike.%${data.query.trim()}%,title.ilike.%${data.query.trim()}%`)
+        .order("created_at", { ascending: false })
+        .limit(data.limit);
+
+      if (decisionsError) throw decisionsError;
+      if (!decisions || decisions.length === 0) {
+        return { decisions: [] };
+      }
+
+      // Fetch learnings for each decision
+      const decisionsWithLearnings = await Promise.all(
+        decisions.map(async (decision) => {
+          const { data: learning } = await supabase
+            .from("learnings")
+            .select("id,verdict,metadata,created_at")
+            .eq("decision_id", decision.id)
+            .maybeSingle();
+
+          return {
+            decision,
+            learning: learning || null,
+          };
+        }),
+      );
+
+      return { decisions: decisionsWithLearnings };
+    } catch (error) {
+      console.error("Failed to search decisions for Ask:", error);
+      return { decisions: [] };
+    }
+  });
