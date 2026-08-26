@@ -98,6 +98,42 @@ describe("no dead end, ever", () => {
     expect(both).not.toContain("Send it back a step so it starts");
   });
 
+  /*
+   * S4 CAUGHT THIS AGAINST MY OWN CLAIM, on the drive trace rather than on the
+   * row. `steerTrack` inserts a message and touches no hold, no attempts and no
+   * station_drives, and the sweep removes a terminally held track from selection
+   * entirely. So on those four holds a steer is stored and NOTHING EVER ARRIVES
+   * TO CONSUME IT. Telling a person their instruction "reaches whoever picks
+   * this up next" would be a failure that looks like success, which is worse
+   * than the dead end this file was written to remove.
+   */
+  it("never promises a lone steer will be picked up on a terminal hold", () => {
+    for (const terminal of ["going-in-circles", "given-up", "station-cannot-finish"]) {
+      const only = wayOut(terminal, { undo: false, handback: false }, "Discover");
+      expect(only.next).toContain("box below");
+      // The pairing: an instruction AND a press, because one without the other
+      // does nothing on a track the sweep will not select.
+      expect(only.next).toContain("Let Discover try again");
+      expect(only.next).toContain("Nothing will pick this up on its own");
+    }
+  });
+
+  it("does not demand a press where the sweep will still come", () => {
+    // `stalled` is not terminal, so the work is still selectable and a steer on
+    // its own genuinely does reach the next run.
+    const notTerminal = wayOut("stalled", { undo: false, handback: false }, "Discover");
+    expect(notTerminal.next).toContain("reaches whoever picks this up next");
+    expect(notTerminal.next).not.toContain("try again");
+  });
+
+  it("needs no press when undo or handback is the offer, since both clear the hold", () => {
+    // rewindTrackTo and submitStationByHand each reset last_hold, attempts and
+    // station_drives, so the track becomes drivable as part of the same act.
+    const withUndo = wayOut("going-in-circles", { undo: true, handback: false }, "Discover");
+    expect(withUndo.next).toContain("Send it back a step");
+    expect(withUndo.next).not.toContain("Nothing will pick this up");
+  });
+
   it("keeps the diagnosis even when nothing here can act", () => {
     // A pause is lifted at workspace level, so no control on this screen helps.
     // The person is still owed the reason, and must not be sent to a door.
