@@ -1,1 +1,1 @@
-S0 · 20:52 IST · WORKING · getWorkspaceAnchors built — S2 collision ask CLOSED; unknowableRuns reported separately so a NULL trace never reads as "safe" · src/lib/** · pending
+S0 · 21:00 IST · WORKING · handback paste-back core built: a pasted link is a claim, never a proof (verified:false, claimedByPerson:true always) · src/lib/spine/** · pending
