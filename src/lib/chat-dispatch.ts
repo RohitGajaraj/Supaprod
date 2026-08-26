@@ -117,7 +117,7 @@ export function dispatchBlockRoute(block: DispatchBlock): { to: string; label: s
     case "no-specialists":
       return { to: "/agents", label: "Open Agents" };
     case "dispatch-failed":
-      return { to: "/runs", label: "Open Runs" };
+      return { to: "/today", label: "Open Runs" };
     case "no-workspace":
     case "conductor-unavailable":
     case "preflight-failed":
