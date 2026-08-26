@@ -1,15 +1,24 @@
 // F-CONN Phase 1 — provider adapter dispatch map (server-only).
 //
-// TWELVE ARE REAL AND EIGHT ARE STILL STUBS, and the stub is not harmless: its
-// validate returns `{ok: false, detail: "adapter not implemented"}`, and
-// `verifyConnection` is what the "Test it" control calls, so every stubbed
-// provider tells a person their good connection has failed. That is worse than no
-// button, because it reports a defect that does not exist.
+// SEVENTEEN ARE REAL AND THREE ARE STILL STUBS — measured at `27338f062`,
+// 2026-08-26. The stub is not harmless: its validate returns
+// `{ok: false, detail: "adapter not implemented"}`, and `verifyConnection` is
+// what the "Test it" control calls, so every stubbed provider tells a person
+// their good connection has failed. That is worse than no button, because it
+// reports a defect that does not exist.
 //
-// The eight that remain are the calendar and mail family, figma and jira. Each
-// needs its own transport built first, which is what made linear, notion and
+// The three that remain are `google_calendar`, `google_tasks` and `firecrawl`.
+// Each needs its own transport built first, which is what made linear, notion and
 // google_docs cheap to finish: routing their feature code through the credential
 // chokepoint had already established exactly how each takes a token.
+//
+// THE SHA ON THAT NUMBER IS NOT DECORATION, and S4 filed the reason (F-80,
+// `docs/lanes/verify/S4-003-connector-counts.md`). This header read "TWELVE ARE
+// REAL AND EIGHT ARE STILL STUBS" and named figma and jira among the stubs, while
+// its own inline comments twelve lines below said both were real. It was true
+// when written and nobody re-ran it — the same failure as F-76 and F-80, three
+// times in one file. **A count in prose carries the sha it was measured at, or it
+// is a claim rather than evidence.**
 
 import type { ProviderId } from "../registry";
 import { githubAdapter } from "./github.server";

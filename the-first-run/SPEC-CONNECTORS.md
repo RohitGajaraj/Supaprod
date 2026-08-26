@@ -16,18 +16,24 @@ I went looking to design a connector layer and found one. **Measured 2026-08-26 
 
 > ### ⇢ AUDITED BY S0, 2026-08-26 — the route-by-route number job 1c owed, and it refines the line below
 >
+> **RE-MEASURED AT `27338f062`: 17 real / 3 stubs.** The block below was measured at `51732f187`
+> and F-81 made the mail family real hours later, so it was stale within the day. S4 caught it
+> (`docs/lanes/verify/S4-003-connector-counts.md`) and the lesson is F-80's, one layer up: **a count
+> in prose carries the sha it was measured at.** The three remaining stubs are `google_calendar`,
+> `google_tasks` and `firecrawl` — gmail, microsoft_mail and microsoft_outlook are now real.
+>
 > *"About twenty providers are already written"* is true of the **catalogue** and not of the
 > **wiring**. `registry.ts` declares **20**. `providers/index.server.ts:38` maps them to adapters:
 >
-> - **14 real** — github · intercom · stripe · slack · zendesk · hubspot · salesforce · canny ·
+> - **14 real at `51732f187`, 17 at `27338f062`** — github · intercom · stripe · slack · zendesk · hubspot · salesforce · canny ·
 >   productboard · linear · notion · google_docs · figma · jira
-> - **6 `stubAdapter`**, which answer *"adapter not implemented"* — google_calendar · google_tasks ·
->   microsoft_outlook · **gmail** · microsoft_mail · firecrawl
+> - **6 `stubAdapter` at `51732f187`, 3 at `27338f062`** — google_calendar · google_tasks ·
+>   ~~microsoft_outlook~~ · ~~gmail~~ · ~~microsoft_mail~~ (all three real since F-81) · firecrawl
 > - **4 hold a live connection in production** (`SELECT provider, status, count(*) FROM connections
 >   GROUP BY 1,2`): github 2 · salesforce 1 · linear 1 · slack 1. All four have real adapters, so
 >   nothing in use is currently broken.
 >
-> **The honest headline is 14 of 20 wired, 4 in use.**
+> **The honest headline is 17 of 20 wired at `27338f062`, 4 in use.**
 >
 > **Against the four that carry the loop, three already have real code:**
 > 1. **An issue tracker in and out — BUILT AND REACHABLE.** `src/lib/linear.functions.ts` (11.3KB)
@@ -39,7 +45,9 @@ I went looking to design a connector layer and found one. **Measured 2026-08-26 
 > 2. **The repository handback** — `github-repo.server.ts` and `gitlab-repo.server.ts` exist.
 > 3. **Slack or email to a person who left** — Slack has ingest **and** digest
 >    (`slack-digest.server.ts`). **Email does not: `gmail` is a `stubAdapter` even though
->    `pull-ingestors.server.ts:48` wires `ingestGmailSignals`.** See F-81.
+>    `pull-ingestors.server.ts:48` wires `ingestGmailSignals`.** **FIXED in F-81 (`27338f062`):**
+>    gmail, microsoft_mail and microsoft_outlook now have real `validate()`s, and a guard fails if
+>    anything wired in `pull-ingestors` resolves to a stub.
 > 4. **One analytics source for the verdict — GENUINELY MISSING**, and it is the one that closes the
 >    moat. This is Decide's metric probe (§1b), and the grader has processed zero workspaces in its
 >    life (F-51).

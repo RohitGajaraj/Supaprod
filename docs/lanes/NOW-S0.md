@@ -1,1 +1,1 @@
-S0 · 16:45 IST · WORKING · F-84: the sweep is healthy (36/36 succeeded in 6h) — 43 of 93 tracks (46%) are parked behind a person nobody told · the-first-run/** · b861bb2de
+S0 · 17:15 IST · WORKING · integrated all 3 lanes to main (11,445 pass/0 fail); answered 10 asks; presence loading fix; connector counts re-stamped with shas · src/lib/** docs/lanes/** coordination/answers/** · pending

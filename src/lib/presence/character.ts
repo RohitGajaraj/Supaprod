@@ -65,6 +65,19 @@ export interface PresenceInput {
     holdReason: string | null;
     drivenAt: string | null;
   } | null;
+  /**
+   * The first read has not settled yet, so `track` being null means "not back",
+   * not "not there". Optional, and absent behaves exactly as before.
+   *
+   * S1 → S0, 2026-08-26. Without this, `/track/:id?start=true` shows
+   * `out-of-touch` — *"I can't find this piece of work"* — for the whole of the
+   * first read, so **the first sentence the character says after being handed
+   * work is a false alarm.** That is the honesty standard failing at the worst
+   * possible moment, on the surface the whole product is judged by in sixty
+   * seconds. S1 patched around it by not mounting the character until the read
+   * settled; this is the fix underneath, so every future mount inherits it.
+   */
+  loading?: boolean;
   /** The newest walk result, if a walk has run this visit. */
   result: Pick<DriveNowResult, "stopped" | "more"> | null;
   /** A leg is in flight right now (`run.isPending`). */
@@ -157,6 +170,28 @@ export function deriveCharacter(input: PresenceInput): Presence {
     return {
       state: "out-of-touch",
       line: "I've lost sight of the run — the reads are failing. The work itself may be fine.",
+    };
+  }
+
+  /*
+   * NOT BACK YET IS NOT NOT THERE, and the order matters as much as the line.
+   *
+   * Below `feedDead`, because a dead feed still beats everything and a loading
+   * flag must never talk over one. Above `!input.track`, because that branch
+   * reads a null row as an absent one — true after the read settles, a false
+   * alarm before it.
+   */
+  if (input.loading && !input.track) {
+    /*
+     * `awake` — "present, nothing in flight" — and NOT `working` or `thinking`.
+     * Both of those claim a run is under way, which is precisely what has not
+     * been read yet; a state the data cannot prove is a state you do not draw.
+     * `awake` claims only presence, and the line says the one thing that is
+     * certainly true.
+     */
+    return {
+      state: "awake",
+      line: "Reading this piece of work now.",
     };
   }
 
