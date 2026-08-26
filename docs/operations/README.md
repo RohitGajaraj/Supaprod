@@ -105,3 +105,6 @@ Both were separate top-level folders until 2026-08-04. They are operational conc
 
 - [Mission gate observation](./mission-gate-observation.md) — Mission gate observation (moved from `docs/` root 2026-08-25 for placement only; content untouched)
 - [Mission gate deployment readiness](./mission-gate-deployment-readiness.md) — moved from repo root 2026-08-25 for placement only; content untouched
+
+- [Phase 1-2 complete](./PHASE-1-2-COMPLETE.md) — a concurrent session's audit and product-truth summary. Linked 2026-08-26 to clear the doc gate; content is its author's to edit
+- [Phase 3 test harness](./PHASE-3-TEST-HARNESS.md) — that session's checklist for running the acceptance query against a deployment. Same provenance, same rule

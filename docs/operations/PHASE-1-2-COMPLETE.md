@@ -7,7 +7,7 @@
 ### Phase 1: Ground Truth Audit (docs/AUDIT.md)
 Identified working/broken/fake/missing across the product:
 - **Working:** RLS tenancy, signal ingestion, tick scheduling, memory matching, prototype rendering
-- **Broken:** Restatement fold, mission completion (7.7%), decisions never written, forecasts never resolved, six stations unsteerable
+- **Broken:** Restatement fold, mission completion (7.7%), decisions never written, forecasts never resolved, six of the seven stations unsteerable
 - **Fake:** Lifecycle diagrams, design gate, deferral handling  
 - **Missing:** Run timeline UI (exists but component discovery gap), stop control, intent token, dialog primitive, spend display, forecast grading
 
