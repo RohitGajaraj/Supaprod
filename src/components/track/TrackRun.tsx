@@ -610,6 +610,18 @@ export function TrackRunLeft({
     setWalkStartedAt((prev) => (walkingMidRoute ? (prev ?? Date.now()) : null));
   }, [walkingMidRoute]);
 
+  /*
+   * QUEUE 71 + RUN-18: THE ONE LIVE FACT NOW COVERS BOTH SOURCES OF MOTION --
+   * seats the record says are working AND a press this tab is walking. The
+   * header chip reads the same merged fact, which is why it stopped flashing
+   * On-hold between automatic legs: an out-of-time row written mid-press is
+   * real, but while the next leg is already in flight the truthful headline is
+   * that the work is moving.
+   */
+  React.useEffect(() => {
+    onCrewLive?.(crewLive || walkingMidRoute);
+  }, [crewLive, walkingMidRoute, onCrewLive]);
+
   const showHold = held && !walkingMidRoute && !isCalmHold;
   const showCalmHold = isCalmHold && !walkingMidRoute;
 
