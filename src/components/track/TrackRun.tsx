@@ -262,11 +262,59 @@ function RunRouteHeader({
                 ? "Nothing is driving it right now."
                 : "It has not been driven yet.";
 
+  /*
+   * THE FINISHED-RUN COLLAPSE (SPEC-LAYOUT §5.2). A finished route's step list
+   * collapses to one settled line -- the walk is over, and seven rows of
+   * history push everything a person came back to read below the fold. The
+   * line counts what actually happened off the same derived stops the map
+   * draws, so the two can never disagree; clicking it re-expands, and replay
+   * mode strips the map of every live control.
+   */
+  const settled = track.status === "done";
+  const [expanded, setExpanded] = React.useState(false);
+  const ranCount = stops.filter((s) => s.state === "done").length;
+  const waivedCount = stops.filter((s) => s.state === "skipped").length;
+  const collapsedLine = [
+    `${stops.length} stations`,
+    `${ranCount} ran`,
+    ...(waivedCount > 0 ? [`${waivedCount} taken off the route`] : []),
+    clock,
+  ].join(" · ");
+
+  if (settled && !expanded) {
+    return (
+      <Region title="Route complete" sub={doing}>
+        <button
+          type="button"
+          data-mrd=""
+          onClick={() => setExpanded(true)}
+          aria-expanded={false}
+          className="flex w-full items-center justify-between gap-mrd-3 rounded-mrd-chip px-mrd-3 py-mrd-2 text-left transition-colors enabled:hover:bg-mrd-hover"
+          style={{ transitionDuration: "var(--mrd-d-press)" }}
+        >
+          <span className="mrd-meta">{collapsedLine}</span>
+          <span className="text-mrd-small font-medium text-mrd-body">Show them</span>
+        </button>
+      </Region>
+    );
+  }
+
   return (
-    <Region title={`At ${stationName}`} sub={doing}>
+    <Region title={settled ? "Route complete" : `At ${stationName}`} sub={doing}>
       <div className="flex flex-col gap-mrd-4">
         <StepMeter noun="Station" steps={meter} note={clock} />
-        <RunMap stops={stops} mode="live" orientation="stack" label="The route this work takes" />
+        {settled ? (
+          <div className="flex flex-col gap-mrd-2">
+            <RunMap stops={stops} mode="replay" orientation="stack" label="The route this work took" />
+            <div>
+              <Action variant="quiet" onClick={() => setExpanded(false)}>
+                Collapse the route again
+              </Action>
+            </div>
+          </div>
+        ) : (
+          <RunMap stops={stops} mode="live" orientation="stack" label="The route this work takes" />
+        )}
       </div>
     </Region>
   );
@@ -734,11 +782,25 @@ export function TrackRunLeft({
        * holds, the control, and the transcript.
        */}
 
+      {/*
+       * THE RUN CONTROL, AND ITS TWO HONEST ABSENCES. A finished route has
+       * nothing to drive, so the control is REMOVED and one line takes its
+       * place (SPEC-LAYOUT §5.4) -- a greyed primary that looks pressable and
+       * does nothing is the affordance failure this surface already paid for
+       * once on RunMap's own Stop. Abandoned work says the same in its own
+       * words; the steer box below carries the way back either way.
+       */}
       <Region
-        title="Run it"
-        sub="Walks this work through its route now, station by station, and stops the moment something needs you."
+        title={track?.status === "done" ? "Run it — done" : "Run it"}
+        sub={
+          track?.status === "done"
+            ? "This walk is finished."
+            : "Walks this work through its route now, station by station, and stops the moment something needs you."
+        }
       >
-        {continuing ? (
+        {track?.status === "done" || track?.status === "abandoned" ? (
+          <Row lead={track.status === "done" ? "It reached the end of its route." : "This work was abandoned here."} />
+        ) : continuing ? (
           <div className="flex flex-wrap items-center gap-mrd-3">
             <Action variant="primary" busy onClick={() => undefined}>
               Walking the route
