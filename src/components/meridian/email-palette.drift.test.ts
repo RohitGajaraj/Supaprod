@@ -41,7 +41,12 @@ const MODULE = read("./email-palette.ts");
  * `[data-theme="light"]` re-declares after the dark default, so the final match
  * wins in both CSS and here.
  */
-function lightGroundValue(token: string): { l: number; c: number; h: number; alpha: number | null } {
+function lightGroundValue(token: string): {
+  l: number;
+  c: number;
+  h: number;
+  alpha: number | null;
+} {
   const re = new RegExp(
     `${token}:\\s*oklch\\(\\s*([0-9.]+)\\s+([0-9.]+)\\s+([0-9.]+)\\s*(?:/\\s*([0-9.]+)\\s*)?\\)`,
     "g",
