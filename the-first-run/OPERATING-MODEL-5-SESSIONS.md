@@ -270,7 +270,14 @@ FROM spine_tracks
 WHERE entry_station = 'sense' AND station = 'learn' AND waived = '[]';
 ```
 
-Never ask it through `workspaces.is_sample` — F-42 repurposed that flag and the obvious form returns
+**CORRECTED 2026-08-26 (F-90): `is_sample = true` means "a demo fixture, and NO tick may spend a
+model call on it" — the sweep SKIPS those workspaces.** `track-tick.ts:85` excludes them by id
+through `sampleWorkspaceIds`, which selects `.eq("is_sample", true)`. Earlier wording here and in
+`CLAUDE.md` said it meant *"the sweep may drive here"*, which is backwards, and it is a flag that
+gates real money. **That also makes an `is_sample = true` workspace the guarded place for an e2e
+spec to write** — the sweep provably will not drive it (F-89).
+
+Never ask the acceptance through `workspaces.is_sample` — the obvious form returns
 a false 1 (F-61/F-71).
 
 > **CORRECTED 2026-08-26 (F-79). THAT QUERY NOW RETURNS 1, AND THE ACCEPTANCE IS STILL NOT MET.**
@@ -479,6 +486,20 @@ that matter here:
 - **Playwright MCP** (all sessions): drive the real UI. Note that a spec pressing production creates
   production rows — six duplicate tracks once starved the very run we were watching. **Point Playwright
   at a local dev server you start and stop, or at a guarded workspace S0 names. Never at production.**
+
+  > **THE GUARDED WORKSPACE, NAMED 2026-08-26 (F-89/F-90):
+  > `b90da531-34aa-4009-bcce-2162b87f50ac` — "Sample sandbox".**
+  >
+  > It carries `is_sample = true`, and **that is what makes it safe**: `track-tick.ts:85` excludes
+  > sample workspaces by id through `sampleWorkspaceIds` (`.eq("is_sample", true)`), so **the sweep
+  > provably will not drive anything a spec creates there.** No model spend, no drive slots taken,
+  > no starving a real track.
+  >
+  > **This is not optional and the guard has already failed once.** On 2026-08-26 a
+  > `phase-3-visible-agency` run wrote **10 real tracks** into the LIVE workspace
+  > `60000000-…` — the same one holding the closest acceptance attempt this product has had — and
+  > **8 of the next 10 sweep drives went to them** (F-89). A local dev server talks to the Lovable
+  > production database through `.env`, so "Track created" in a spec's output is a production row.
 - **Mobbin MCP** (S0 certainly; try it in OpenCode, and if it is not there say so and file an ask):
   600k screens from teams who ship world-class product. Pull patterns for agent presence, live
   progress, parallel work, onboarding, empty states. **Port mechanics, never screenshots.** S0 commits

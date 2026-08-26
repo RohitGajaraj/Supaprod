@@ -1,1 +1,1 @@
-S0 · 19:50 IST · WORKING · F-89: e2e wrote 10 real tracks to production, 8 of 10 sweep drives went to them; 7977dc06 is given-up but NOT from starvation — the changeset was never merged · the-first-run/** coordination/answers/** · pending
+S0 · 20:00 IST · WORKING · F-90: is_sample was documented backwards in CLAUDE.md — the flag that gates real money; corrected, and it names the guarded workspace that fixes F-89 · CLAUDE.md the-first-run/** · pending

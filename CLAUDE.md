@@ -48,8 +48,14 @@ entered at `sense`, and **zero have gone `sense` → `learn`**.
 > **waived**, so it walked five stations, and because the forecast is written at Decide and nowhere
 > else it **carries no forecast** — it cannot show the one thing the product claims. The measured
 > query is `entry_station = 'sense' AND station = 'learn' AND waived = '[]'`, which returns **0**.
-> **Never ask this with `workspaces.is_sample`**: F-42 repurposed that flag to mean "the sweep may
-> drive here", so the obvious form returns **1** and reads as the acceptance being met (F-61).
+> **Never ask this with `workspaces.is_sample`** — the obvious form returns **1** and reads as the
+> acceptance being met (F-61). **But the reason this file used to give was backwards, corrected
+> 2026-08-26 (F-90): `is_sample = true` means "a demo fixture, and NO tick may spend on it", so the
+> sweep SKIPS those workspaces.** `track-tick.ts:85` excludes them by id via `sampleWorkspaceIds`,
+> which selects `.eq("is_sample", true)`. It does not mean "the sweep may drive here". Adding the
+> flag rescues nothing either way: the false 1 is `d1168015`, which sits on a REAL workspace and
+> fails the acceptance for a different reason entirely (F-79 — a person answered a boundary call
+> mid-run).
 >
 > **AND AS OF 2026-08-26 THE PLAIN FORM ALSO RETURNS 1, AND THE ACCEPTANCE IS STILL NOT MET (F-79).**
 > `d1168015` walked all seven with every transition `driven_via='sweep'` — but a person **rejected
