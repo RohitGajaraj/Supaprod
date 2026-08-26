@@ -32,6 +32,7 @@ import { HandoverNote } from "@/components/today/HandoverNote";
 import { OverlapCheck, OverlapNote } from "@/components/today/OverlapNote";
 import { PushedInsights } from "@/components/today/PushedInsights";
 import { runTotals, spendWords } from "@/components/today/run-totals";
+import { lastMovedAt, stillnessLine } from "@/components/today/last-movement";
 import { trackToBoardRows, type TrackBoardRow } from "@/components/today/tracks-feed";
 import { QuietMorning } from "@/components/today/QuietMorning";
 import { RunState, ShippedState } from "@/components/today/RunState";
@@ -712,6 +713,16 @@ function Today() {
      database and I will not print a number I cannot source from a payload. A
      server-side change is filed; until then this line speaks only for runs. */
   const totals = React.useMemo(() => runTotals(sessions.data?.sessions, undefined), [sessions.data]);
+
+  /* WHEN ANYTHING LAST MOVED. The brief's third glance-fact is "what changed",
+     and its honest form is this: there is no per-user last-seen watermark in
+     the database (when.ts and today-lanes.functions.ts:542 both say so), so
+     "since you last looked" cannot be drawn. When the workspace last moved can.
+     Reads the rows already on hand; speaks only once movement has stopped. */
+  const stillness = React.useMemo(
+    () => stillnessLine(lastMovedAt(Date.now(), rows, tracks.data), Date.now(), ago),
+    [rows, tracks.data],
+  );
 
   // The track record read. CHARACTER-IDENTICAL KEY to Brain's, so the two
   // surfaces are two consumers of ONE request and the tab opens on a cache hit.
@@ -1773,6 +1784,19 @@ function Today() {
                 admits its own wait AND its own refusal in the JSX. At zero no
                 section draws at all, so the assurances live once on the card's
                 own sub-line above, where all three fit as one sentence. */}
+            {/* THE SILENCE, NAMED. A truthfully quiet board and a broken one
+                look identical, and that is the expensive confusion: a person
+                cannot tell from a calm screen whether the crew finished or the
+                sweep died three days ago. This draws ABOVE the read-state chain
+                on purpose, because the state it speaks for is the one where
+                every lane below it is empty. It says nothing while work is
+                fresh, since the rows carry their own clocks. */}
+            {stillness ? (
+              <p className="mb-mrd-4 max-w-[62ch] text-mrd-data leading-mrd-prose text-mrd-mute">
+                {stillness}
+              </p>
+            ) : null}
+
             {stillWaiting(missions) ? (
               <Reading>Reading the run record.</Reading>
             ) : missions.isError ? (
