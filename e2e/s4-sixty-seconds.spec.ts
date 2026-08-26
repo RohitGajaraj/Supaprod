@@ -30,20 +30,36 @@ import { join } from "node:path";
 
 import { findRepoRoot } from "./helpers/auth";
 
-/**
- * SAMPLE SANDBOX WORKSPACE — the guarded workspace for e2e.
- * `is_sample = true` → sweep provably skips it (track-tick.ts:85).
- * Workspace ID: b90da531-34aa-4009-bcce-2162b87f50ac ("Sample sandbox").
- * F-90 reversal: is_sample=true means demo fixture sweep SKIPS (not "may drive").
+/*
+ * WHAT MAKES THIS SPEC SAFE, AND IT IS NOT THE SANDBOX WORKSPACE.
+ *
+ * An earlier revision of this file declared
+ * `const SAMPLE_SANDBOX_WORKSPACE_ID = "b90da531-…"` beside a comment about
+ * F-90, and referenced it nowhere. The log entry for that change said the spec
+ * had been "updated to target Sample sandbox" and it had not been: a constant
+ * and a comment landed, and no behaviour changed. **S4 filed exactly that defect
+ * against another lane the same day (S4-013), so it is removed here rather than
+ * left to imply a guard that does not exist.** An unused guard is worse than no
+ * guard, because the next reader stops looking.
+ *
+ * The real safety property is one line long: **THIS SPEC NEVER SUBMITS.** It
+ * types into the composer and stops. `page.fill` writes nothing anywhere; only
+ * the press does, and there is no press in this file. That is why the workspace
+ * it runs against does not matter here.
+ *
+ * The sandbox workspace `b90da531-34aa-4009-bcce-2162b87f50ac` ("Sample
+ * sandbox", `is_sample = true`, which `track-tick.ts:85` provably excludes from
+ * the sweep) belongs in the specs that DO press — `phase-3-visible-agency` and
+ * `round-8` — and it has to be reached by signing in and selecting it, not by
+ * declaring its uuid. Naming a uuid in a file is not scoping a session to it.
  */
-const SAMPLE_SANDBOX_WORKSPACE_ID = "b90da531-34aa-4009-bcce-2162b87f50ac";
 
 const SHOT_DIR = join(findRepoRoot(), "docs", "screenshots", "s4-002");
 const CHECKPOINTS = [10, 30, 60] as const;
 
 test.skip(
   process.env.S4_SIXTY !== "yes",
-  "Needs a local server + .env + Sample sandbox workspace; records only, never submits. Opt in with S4_SIXTY=yes.",
+  "Needs a local server + .env; records only, never submits. Opt in with S4_SIXTY=yes.",
 );
 
 test("the sixty seconds — what a stranger can read at 10s, 30s, 60s", async ({ page }) => {
