@@ -145,7 +145,7 @@ For product managers. ${TAGLINE} Nothing irreversible happens without you.
 
 ## The three layers
 1. The director: tells you what to build. Ranks your signals, product data, competitors and past calls.
-2. The loop: runs the whole lifecycle. Seven stations agents walk on their own, inside boundaries a human sets in advance.
+2. The loop: decides what is worth building, hands it to whatever builds for you, yours or ours, and checks what actually happened. Seven stations agents walk on their own, inside boundaries a human sets in advance.
 3. The shared brain: learns, and then guides. Tells you what is right next time, and warns before you repeat what was wrong.
 
 Each layer is the precondition for the next. Ship any one alone and it is a feature, not a company.
@@ -154,7 +154,7 @@ Each layer is the precondition for the next. Ship any one alone and it is a feat
 The compounding, not the record. Any vendor can store decisions. A settled outcome is written back against the decision that caused it and re-ranks what Discover and Decide surface next, which needs your outcomes labelled over time and no model ships with those. The loop does not end in a report; it ends by changing what you are shown.
 
 Seven stations: Discover, Decide, Plan, Design, Build, Ship, Learn. One governed engine.
-When a build breaks, Supaprod diagnoses the failure, revises its own spec, rebuilds, and drives the checks back to green. That loop runs on its own and is bounded: two corrections per track, three verify cycles per mission, then it stops and hands one person the specific thing only they can supply. On a cap it reports the failure rather than a silent green. The fixed floor is the merge gate: nothing merges, ships, or takes an irreversible outward action without a human approval.
+When a build breaks, Supaprod diagnoses the failure, revises its own spec, rebuilds, and drives the checks back to green. That loop runs on its own and is bounded: two corrections per track, three verify cycles per mission, then it stops and hands one person the specific thing only they can supply. On a cap it reports the failure rather than a silent green. The floor is the merge gate: by default nothing merges, ships, or takes an irreversible outward action without a human approval, and no workspace setting can change it. A platform secret can let an agent that earned it merge alone, and only after the change is merged, CI was green at that commit, a live preview exists at it, and a forecast was recorded to grade it. Rolling back is never graduated.
 
 ## Live proof
 - Track record: /proof (publishes our calibration score live, including an honest zero until outcomes land)

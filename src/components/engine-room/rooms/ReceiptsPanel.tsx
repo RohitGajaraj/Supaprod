@@ -584,7 +584,7 @@ export function ReceiptsPanel() {
         ) : (
           <div className="flex flex-col gap-mrd-4">
             <NothingHere>
-              Nothing on the record yet. A decision, or an autonomous action you let through, leaves
+              Nothing on the record yet. A decision, or an action you let an agent take, leaves
               evidence the moment it happens.
             </NothingHere>
             <Actions>

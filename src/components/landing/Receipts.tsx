@@ -76,17 +76,43 @@ export function Receipts() {
   //
   // /demo IS THE REPLACEMENT AND IT IS A WEAKER ONE, WHICH IS WORTH SAYING.
   // The teardown ran on the READER'S OWN document, which is what made it
-  // checkable rather than merely viewable; /demo is a seeded workspace they can
-  // read but not touch. It qualifies for this list under the rule above (no
-  // account, and something real on the other side) and it does not qualify
-  // under the spirit of it. It is here to keep the beat at two links rather
-  // than one, not because it is as good.
+  // checkable rather than merely viewable.
+  //
+  // ── AND IT GOT WEAKER AGAIN WITHOUT THIS PARAGRAPH NOTICING ──────────────
+  // The line above used to continue "/demo is a seeded workspace they can read
+  // but not touch", and the link below was labelled "A real workspace, no
+  // login". BOTH WENT STALE ON 2026-08-22, when a founder ruling stripped the
+  // three live sections out of /demo and left the film. That removal was
+  // right: the page reached the database through the service-role client on an
+  // unauthenticated route, so one constant staying correct was the only thing
+  // between a public page and a real tenant's decisions. Deleting the sections
+  // removed the risk instead of guarding it.
+  //
+  // What nobody did was come back here. So this section, whose heading is
+  // "Evidence, not claims" and whose own rule four paragraphs up is that "a
+  // link that resolves to an empty page is not a receipt, it is a claim with
+  // extra steps", promised a stranger a workspace to walk and handed them a
+  // 2:22 film. Corrected 2026-08-27 to describe what is actually there.
+  //
+  // THE HARDER QUESTION IS LEFT FOR THE LANDING REVISION, deliberately. A film
+  // is real and worth watching, but it is a claim with production values
+  // rather than something a stranger can check, so under this section's own
+  // rule it is thin. The honest options are to find a second checkable
+  // artifact or to run this beat on one link. That is a design decision for
+  // the revision the founder has already scoped, not something to settle in a
+  // label, and /updates carries the checkable half in the meantime.
   //
   // Do NOT restore an /proof row to fill the gap: Receipts.test.ts fails on it,
   // and the reason is four paragraphs up.
   const artifacts = [
-    { label: "A real workspace, no login", href: "/demo" },
-    { label: "What shipped this week", href: "/updates" },
+    { label: "Watch a full loop run, no login", href: "/demo" },
+    // "What shipped this week" until 2026-08-27, when the newest entry on
+    // /updates was 17 days old. The label promised a cadence the log does not
+    // keep, which is the same defect as the /demo one above: a link describing
+    // what we intended rather than what is there. The log is genuinely dated
+    // and genuinely checkable, so the honest label is about the dating rather
+    // than the frequency.
+    { label: "The dated log of what shipped", href: "/updates" },
   ];
 
   return (
@@ -118,8 +144,13 @@ export function Receipts() {
                 claims only what a stranger can go and check right now, with no
                 account, on the two links beside it. */}
             <p className="text-lg text-zinc-400" style={{ maxWidth: "48ch" }}>
-              Every link here opens a page you can check without an account: walk a real seeded
-              workspace, read the dated log of what shipped. Supaprod has run on its own loop since
+              {/* "walk a real seeded workspace" until 2026-08-27, and by then
+                  there was no workspace to walk: the 2026-08-22 ruling stripped
+                  the live sections out of /demo and left the film. The label
+                  beside this paragraph was stale for the same reason and in the
+                  same words. See the note on `artifacts`. */}
+              Every link here opens a page you can check without an account: watch a full loop run
+              end to end, read the dated log of what shipped. Supaprod has run on its own loop since
               June 2026.
             </p>
             <div className="cap-scrim hidden md:flex flex-col gap-2.5 mt-12 py-6 px-8 -mx-8">

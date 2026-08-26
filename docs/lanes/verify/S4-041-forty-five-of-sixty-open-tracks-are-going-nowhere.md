@@ -1,4 +1,41 @@
-# S4-041 · Forty-five of sixty open tracks are going nowhere, and the board calls them open
+# S4-041 · CORRECTED. Nine open tracks are real, and eight of them are terminally held
+
+> ## CORRECTION, 2026-08-27, and the headline below was WRONG
+>
+> **I did not break the counts down by workspace, and I flagged that as a limit without acting on
+> it. Broken down, the number changes and so does the meaning:**
+>
+> | `is_sample` | tracks | what they are |
+> | --- | --- | --- |
+> | **true** | **51** | demo fixtures the sweep is DESIGNED to skip (`track-tick.ts:85`, F-90) |
+> | **false** | **9** | real work |
+>
+> **"45 of 60 cannot move" over-counted by treating demo fixtures as stranded work.** They are not
+> stranded. They are excluded on purpose, so no tick spends model budget on them, which is the
+> behaviour F-90 established and which I quoted in my own earlier verdicts.
+>
+> **The corrected finding is smaller in count and worse in proportion:**
+>
+> | real open tracks | 9 |
+> | --- | --- |
+> | terminally held (`station-cannot-finish` 4, `going-in-circles` 3, `tools-refused` 1) | **8** |
+> | still moving (`needs-a-waived-station`, driven 20:10 today) | **1** |
+>
+> **Eight of nine real open tracks are terminally held.** One is moving. The mechanism below
+> (`TERMINAL_HOLDS` excluded from the tick, one human press the only exit, nothing surfacing it)
+> stands unchanged and applies to those eight.
+>
+> The 11 `needs-evidence` tracks are all `is_sample = true`, so `scout_snapshots = 0` is not
+> stranding real work. Gap #9 remains real; its live cost is not these eleven.
+>
+> **What survives untouched:** `max(station_drives) = 316`, the terminal-hold exclusion mechanism,
+> the absence of any surface saying work is parked, and `S4-043`'s finding that the hold text asserts
+> a count it never reads over work that was filed.
+>
+> **This is the same trap F-90 named** and I walked into a version of it by counting tracks without
+> asking whose workspace they were on. Recorded rather than quietly edited, because the wrong number
+> was sent to S0 with a decision attached.
+
 
 > _S4, 2026-08-26 19:0x UTC, measured against the live database, read-only. Every number carries its
 > query. This is the finding the acceptance number hides._

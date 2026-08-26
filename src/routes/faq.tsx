@@ -4,6 +4,31 @@
 // This page surfaces Supaprod in AI-generated answers by matching their indexing rules.
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPageShell, LegalSection } from "@/components/supaprod/LegalPageShell";
+import { CONNECTOR_REGISTRY, PROVIDERS_WITHOUT_ADAPTERS } from "@/lib/connectors/registry";
+
+/**
+ * DERIVED, BECAUSE THE HAND-WRITTEN VERSION WAS WRONG FOR TWELVE DAYS.
+ *
+ * This answer named "Linear, Jira, Notion, Figma and the Google and Microsoft
+ * suites" as not built. All but two of those had real adapters: figma, jira and
+ * linear landed 2026-08-15, the mail family on 2026-08-26. The sentence was true
+ * when written and nothing connected it to the code, so nothing failed when it
+ * stopped being true. It told buyers the two integrations a product team is most
+ * likely to require returned nothing.
+ *
+ * Reading the list instead of remembering it means shipping an adapter updates
+ * this page for free. `adapter-map-matches-registry.test.ts` fails if the list
+ * and the real server adapter map ever disagree, which is what keeps this from
+ * becoming a second thing to maintain.
+ */
+const NOT_BUILT = PROVIDERS_WITHOUT_ADAPTERS.map((id) => CONNECTOR_REGISTRY[id].label);
+
+/** English, not `join(", ")`: a bare comma list reads like a machine wrote it. */
+function andList(items: readonly string[]): string {
+  if (items.length === 0) return "";
+  if (items.length === 1) return items[0];
+  return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+}
 
 const SITE = "https://supaprod.ai";
 const TITLE = "FAQ · Supaprod";
@@ -96,8 +121,8 @@ const FAQ: FaqEntry[] = [
   {
     q: "What does Supaprod integrate with?",
     a: [
-      "GitHub is the deepest and the one to start with: it reads signals from your repository, and it can open and merge pull requests. Slack, Intercom, Zendesk, Stripe, HubSpot, Salesforce, Canny and Productboard have working adapters that feed signals into Discover.",
-      "Linear, Jira, Notion, Figma and the Google and Microsoft suites appear in the connector list but their adapters are not built yet, so connecting one will not return signals. They are listed because they are next, not because they work today. Better to say so here than to let you find it after you have connected one.",
+      "GitHub is the deepest and the one to start with: it reads signals from your repository, and it can open and merge pull requests. Linear, Jira, Notion, Figma, Google Docs, Gmail, Outlook, Microsoft Mail, Slack, Intercom, Zendesk, Stripe, HubSpot, Salesforce, Canny and Productboard all have working adapters that feed signals into Discover.",
+      `${NOT_BUILT.length} are listed and not built: ${andList(NOT_BUILT)}. Connecting one authorises the account and returns no signals. They are there because they are next, not because they work today, and it is better to say so here than to let you find out after you have connected one.`,
     ],
   },
 ];

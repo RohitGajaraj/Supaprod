@@ -307,15 +307,15 @@ describe("settings-sections - derivations", () => {
     // These used to differ from the rendered nav ("Models & keys" here vs
     // "Models and keys" on screen) because the route carried its own door list.
     // It reads this module now, so the two cannot drift again.
-    expect(sectionLabel("ai")).toBe("Models and keys");
+    expect(sectionLabel("ai")).toBe("Models");
     /* "Who works here", not "Roster": a house word nobody types, and "Agents" would
        have collided with its own group heading. The keywords still carry "roster". */
     expect(sectionLabel("staff")).toBe("Who works here");
-    expect(sectionLabel("workspace")).toBe("Brief and voice");
-    expect(sectionLabel("autonomy")).toBe("Autonomy and approvals");
+    expect(sectionLabel("workspace")).toBe("About your company");
+    expect(sectionLabel("autonomy")).toBe("What they may do without asking");
     // Founder ruling 2026-07-29 (commit 9900c049): "Sources is now Connectors,
     // in the nav label, the head and every line of prose."
-    expect(sectionLabel("connections")).toBe("Connectors");
+    expect(sectionLabel("connections")).toBe("Connected tools");
     expect(sectionLabel("nope" as SectionId)).toBe("nope");
   });
 });
@@ -460,25 +460,34 @@ describe("settings-sections - typeahead, the shortcut into any of the twelve", (
      */
     expect(doorByTypeahead("y", "autonomy")).toBe("data");
     expect(doorByTypeahead("d", "autonomy")).toBeNull();
-    expect(doorByTypeahead("br", "autonomy")).toBe("workspace"); // Brief and voice
+    // "Brief and voice" became "About your company" on 2026-08-27, so this door
+    // moved from B to A. That is a typeahead IMPROVEMENT rather than a cost: A
+    // had no door of its own (the old "Agent access" is now "Outside access"),
+    // and B drops from a three-way to a pair.
+    expect(doorByTypeahead("a", "autonomy")).toBe("workspace");
+    expect(doorByTypeahead("br", "autonomy")).toBe("brand");
     // Credits folded into Billing, so "cre" has no door of its own to reach.
     expect(doorByTypeahead("cre", "autonomy")).toBeNull();
   });
 
   it("a single repeated letter cycles through every door that starts with it", () => {
     /*
-     * B IS THE THREE-WAY NOW: "Brief and voice", "Brand" and "Billing". It used to
-     * be P, on Products/Profile/Plan, and renaming Plan to Billing left P with only
-     * two -- so the case this test exists for moved rather than disappeared.
-     * Pressing b three times must visit all three and come back round.
+     * B IS A PAIR NOW: "Brand" and "Billing". It has moved twice, which is the
+     * point of keeping this test rather than deleting it. It was P
+     * (Products/Profile/Plan); renaming Plan to Billing left P with two and made B
+     * a three-way with "Brief and voice"; renaming that to "About your company" on
+     * 2026-08-27 moved it to A and left B with this pair. The CASE keeps moving and
+     * the case is what is pinned: pressing the same letter must visit every door
+     * that starts with it and come back round.
      */
     const first = doorByTypeahead("b", "autonomy");
-    expect(first).toBe("workspace"); // Brief and voice
+    expect(first).toBe("brand");
     const second = doorByTypeahead("b", first!);
-    expect(second).toBe("brand");
+    expect(second).toBe("billing");
+    // Round again: with the pair, the third press returns to the first door.
     const third = doorByTypeahead("b", second!);
-    expect(third).toBe("billing");
-    expect(doorByTypeahead("b", third!)).toBe("workspace");
+    expect(third).toBe("brand");
+    expect(doorByTypeahead("b", third!)).toBe("billing");
   });
 
   it("a refining buffer is allowed to keep matching the door you are on", () => {

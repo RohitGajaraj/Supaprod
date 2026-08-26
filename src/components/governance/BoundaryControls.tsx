@@ -43,6 +43,13 @@ import {
 import type { BoundaryEvent } from "@/lib/boundary-ledger";
 import { relativeTime } from "@/lib/memory-view";
 import { updateToolMode } from "@/lib/agent_loop.functions";
+/* THE SENTENCE THAT LETS THE POLICY BIND. `resolveApprovalPolicy` can switch a
+   tool off once a workspace has refused it every time, and S0 deliberately did
+   NOT wire it to the gate, because a tool that stops working with no
+   explanation is the dead end R-20 §5 forbids. The policy already writes the
+   sentence for the person; `getApprovalPolicyState` is the read that carries it
+   out, and this file is the surface it was queued to. See A-004. */
+import { getApprovalPolicyState } from "@/lib/approvals-queue.functions";
 import { humanWriteError } from "@/lib/roles.functions";
 import { TrustGraduationsBlock } from "@/components/governance/TrustGraduations";
 import { AutomationBoundary } from "@/components/governance/AutomationBoundary";
@@ -315,7 +322,29 @@ function autonomyConsequence(
   }
 }
 
-export function BoundaryControls() {
+export function BoundaryControls({
+  /**
+   * Suppress the "Everything is paused" readout, for a page that already
+   * carries the pause SWITCH itself.
+   *
+   * WHY A PROP RATHER THAN A DELETE. Settings now renders this panel beside
+   * ControlsPanel, which owns the switch (setWorkspacePause). Two places
+   * stating the same fact is a defect twice over: it is redundant, and the two
+   * reads can disagree while one query is stale, which is how a person comes to
+   * distrust both. But this panel ALSO renders alone at /engine-room?room=safety
+   * where there is no switch, and deleting the readout would leave that surface
+   * with no pause signal at all. So the caller that has a better answer says so,
+   * and the caller that does not keeps the readout.
+   *
+   * The SWITCH wins over the READOUT when both are present: a control that shows
+   * its own state is strictly better than a line that shows state and offers
+   * nothing, which would leave a person reading "paused" and hunting for where
+   * to change it.
+   */
+  pauseShownElsewhere = false,
+}: {
+  pauseShownElsewhere?: boolean;
+} = {}) {
   const qc = useQueryClient();
   const { activeWorkspaceId } = useWorkspace();
   const fBoundary = useServerFn(getBoundary);
@@ -338,6 +367,16 @@ export function BoundaryControls() {
   const ledger = useQuery({
     queryKey: ["boundary-ledger", activeWorkspaceId],
     queryFn: () => fLedger(),
+  });
+
+  /* Same independence, for the same reason: if this read fails, the settings a
+     person came here to change still work. It is scoped to the workspace
+     because one team's refusals must never quiet another team's tools. */
+  const fPolicy = useServerFn(getApprovalPolicyState);
+  const policy = useQuery({
+    queryKey: ["approval-policy-state", activeWorkspaceId],
+    queryFn: () => fPolicy({ data: { workspaceId: activeWorkspaceId as string } }),
+    enabled: !!activeWorkspaceId,
   });
 
   /* MOVING A BOUNDARY IS A DECISION, NOT A PREFERENCE. Friction is scaled to
@@ -450,6 +489,22 @@ export function BoundaryControls() {
   const autonomy: AutonomyPolicy = data?.autonomy ?? SHIPPED_AUTONOMY_POLICY;
   const chose = (f: AutonomyField) => autonomy.chosen.includes(f);
   const total = data ? data.alone.length + data.asks.length + data.never.length : 0;
+
+  /* ONLY THE TOOLS WHOSE ANSWER THE RECORD ACTUALLY MOVED. The read returns
+     every tool this workspace has ever ruled on, but a tool sitting at its
+     shipped default is not a finding and listing it would bury the two that
+     are. `tightenedFromDefault` is the server's own comparison, and it can only
+     ever mean "stricter": the policy is proved never to loosen. */
+  const changedByAnswers = (policy.data?.tools ?? []).filter((t) => t.tightenedFromDefault);
+
+  /* The registry name is an identifier, and §12 says a word a person would not
+     say out loud does not go on a surface. The boundary read already carries
+     the label for every tool it knows, so this borrows it and falls back to the
+     raw name rather than inventing a second naming rule. */
+  const toolLabel = (name: string): string => {
+    const all = data ? [...data.alone, ...data.asks, ...data.never] : [];
+    return all.find((t) => t.name === name)?.label ?? name;
+  };
 
   /* REPORT THE RUNNING SYSTEM, NOT THE STORED SETTING: the loop demotes a
    * low-risk `confirm` tool with no floor to auto and runs it inline, so the
@@ -642,6 +697,48 @@ export function BoundaryControls() {
             "Nothing is switched off.",
           )}
 
+          {/* WHY A TOOL WENT QUIET, and it is the half that makes the policy
+              safe to bind. Refuse the same request enough times and
+              `resolveApprovalPolicy` switches that tool off rather than asking
+              an eighth time. That is correct, and it is also an invisible state
+              change until something says it out loud, which is why S0 shipped
+              the reader and held the gate wiring back for this surface (A-004).
+              The policy's own sentence is rendered VERBATIM: it is written for
+              the person the gate would have interrupted, and rewording it here
+              would put a second voice on one decision. */}
+          <Region
+            title="What your answers changed"
+            sub="Turn the same request down every time and the crew stops asking. Anything that went quiet says so here, with the count behind it."
+          >
+            {policy.isLoading ? (
+              <Reading>Reading what your answers changed.</Reading>
+            ) : policy.isError ? (
+              <ReadFailedLine onRetry={() => void policy.refetch()}>
+                {(policy.error as Error)?.message ??
+                  "That did not come back, so this is not a claim that nothing changed."}
+              </ReadFailedLine>
+            ) : changedByAnswers.length === 0 ? (
+              <NothingHere>
+                Nothing has gone quiet. Every tool is doing what the settings above say, and one you
+                turn down three times running will appear here naming itself.
+              </NothingHere>
+            ) : (
+              changedByAnswers.map((t) => (
+                <Row
+                  key={t.tool}
+                  tight
+                  lead={toolLabel(t.tool)}
+                  sub={t.reason}
+                  action={
+                    <Value>
+                      <Num>{t.rejected}</Num> turned down, <Num>{t.approved}</Num> approved
+                    </Value>
+                  }
+                />
+              ))
+            )}
+          </Region>
+
           {/* The ceiling. A spend limit IS a boundary. */}
           {data.isOwner ? (
             <Region
@@ -711,7 +808,7 @@ export function BoundaryControls() {
                   }}
                 />
               </Line>
-              {data.paused ? (
+              {data.paused && !pauseShownElsewhere ? (
                 <Line
                   label="Everything is paused"
                   sub="A kill switch is on for this workspace, so nothing runs whatever the boundary says."

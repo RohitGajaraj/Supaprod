@@ -1,16 +1,34 @@
 /**
- * 60-SECOND FIRST-USE DEMONSTRATION
+ * THE HERO LOOP STRIP: an ILLUSTRATION of the seven stations, on a timer.
  *
- * Shows autonomous 7-station loop progression with zero human interaction.
- * Auto-plays on page load. Repeats. Clean, professional, shows the core value:
- * "One sentence in. Everything else automatic."
+ * WHAT IT IS AND IS NOT, stated first because this header used to say the
+ * opposite and the copy below was written from it. It read "shows autonomous
+ * 7-station loop progression with zero human interaction" and "One sentence in.
+ * Everything else automatic."
  *
- * Stations animate left-to-right with real timing (~3s per major station).
- * Each station shows: (1) agent working, (2) output created, (3) handoff to next.
- * Total animation: ~35-40 seconds, loops every 50s.
+ * IT IS NOT A LIVE RUN. The bars advance on `setInterval(..., 50)` against
+ * `TOTAL_CYCLE`, with no database behind them, which is ordinary and honest for
+ * a landing animation. S4 confirmed it renders identically on a page booted
+ * against a database that does not exist (S4-039).
+ *
+ * SO THE HEADER MUST NOT DESCRIBE IT AS AUTONOMY, because the copy inside this
+ * component gets written from this paragraph. "Zero human interaction" is the
+ * wording of R-18, the acceptance the whole build exists to reach and which the
+ * honest query still returns 0 for, and it directly contradicts TrustClose's
+ * promise on the same page that merge can never skip your approval. The
+ * capability sentences were corrected on 2026-08-27; see the note beside them.
+ *
+ * The animation itself stays. S4 was explicit that an illustrative animation is
+ * ordinary and every product ships one, and that what failed was the two
+ * capability sentences and the station names, not the craft.
+ *
+ * Stations animate left to right, about 3s each, looping every 50s. The names
+ * are DERIVED from AGENT_STATION_ORDER rather than listed here; see the note on
+ * STATIONS for the three separate defects that came from listing them locally.
  */
 
 import { useEffect, useState } from "react";
+import { AGENT_STATIONS, AGENT_STATION_ORDER } from "@/lib/agent-vocabulary";
 
 type StationState = "pending" | "working" | "complete";
 
@@ -21,15 +39,35 @@ interface StationProgress {
   progress: number; // 0-100
 }
 
-const STATIONS = [
-  { name: "sense", displayName: "Sense" },
-  { name: "discover", displayName: "Discover" },
-  { name: "decide", displayName: "Decide" },
-  { name: "define", displayName: "Define" },
-  { name: "design", displayName: "Design" },
-  { name: "build", displayName: "Build" },
-  { name: "ship", displayName: "Ship" },
-];
+/**
+ * DERIVED FROM THE CONSTANT THAT DEFINES THE LOOP, so the strip cannot drift
+ * from it again. Ruled by S4 (S4-037, S4-039) after measuring the served HTML,
+ * and this local array was wrong in three ways at once on the first screen a
+ * stranger sees:
+ *
+ *   IT INVENTED A STATION. `discover` is not in AGENT_STATION_ORDER. Sense and
+ *     Discover are the SAME step under its internal id and its surface name, so
+ *     the strip listed it twice and a stranger counting the loop counted eight.
+ *   IT PUT TWO INTERNAL SLUGS ON THE MOST PUBLIC SURFACE THERE IS. "Sense" and
+ *     "Define". Operating model section 12 names those two specifically and says
+ *     they never appear on a surface; the founder ruling of 2026-08-01 beside
+ *     `sense` in agent-vocabulary.ts says the first station is called Discover
+ *     "on every surface, with no exceptions".
+ *   IT DROPPED LEARN. That is the station that grades the outcome against the
+ *     forecast, which README and CLAUDE.md both call the moat, and the hero copy
+ *     three lines above this strip says "grades it. guides the next call."
+ *
+ * The same page already rendered the correct seven further down, so a visitor
+ * scrolling one page met two vocabularies and the wrong one first.
+ *
+ * Reading AGENT_STATIONS[slug].name rather than hardcoding the display strings
+ * is the half that makes this durable: the map carries the founder's rulings on
+ * what each station is CALLED, so a future rename lands here for free.
+ */
+const STATIONS = AGENT_STATION_ORDER.map((slug) => ({
+  name: slug,
+  displayName: AGENT_STATIONS[slug].name,
+}));
 
 const STATION_DURATION = 3000; // 3 seconds per station
 const INTER_STATION_DELAY = 200; // 200ms between stations
@@ -42,7 +80,7 @@ export function HeroLoopDemo() {
       displayName: s.displayName,
       state: "pending",
       progress: 0,
-    }))
+    })),
   );
 
   const [cycleTime, setCycleTime] = useState(0);
@@ -95,9 +133,58 @@ export function HeroLoopDemo() {
     <div className="mt-12 rounded-lg border border-zinc-800 bg-zinc-950 p-8">
       {/* Header */}
       <div className="mb-8">
-        <p className="text-sm text-zinc-400 mb-2">AUTONOMOUS EXECUTION</p>
-        <p className="text-lg font-medium text-white mb-1">One sentence. Seven stations. Fully automatic.</p>
-        <p className="text-sm text-zinc-500">No clicks mid-run. No human intervention. Agent decides, builds, ships.</p>
+        {/*
+         * THIS CLAIMED SOMETHING THE PRODUCT HAS NEVER DONE, on the first
+         * screen a stranger sees. It read:
+         *
+         *   AUTONOMOUS EXECUTION
+         *   One sentence. Seven stations. Fully automatic.
+         *   No clicks mid-run. No human intervention. Agent decides, builds, ships.
+         *
+         * "No clicks mid-run. No human intervention." is not marketing language,
+         * it is the WORDING OF R-18, the acceptance this whole build exists to
+         * reach, asserted on the public page as already accomplished. Measured
+         * against the live database on 2026-08-27, the honest form of the
+         * acceptance query returns 0. The nearest track (d1168015) walked all
+         * seven with every transition sweep-driven and still fails, because one
+         * person rejected one approval thirty-seven minutes into the run.
+         *
+         * AND THE SAME PAGE CONTRADICTED IT. TrustClose three sections down
+         * promises "Merge, revert, and delegate can never skip your approval."
+         * Both cannot be true, and the one we intend to keep is the promise.
+         *
+         * The replacement is the canon's own better story rather than a hedge.
+         * positioning-locked 5:269: every operator in the corpus says agents
+         * need human gates, so "we have graduated autonomy" is a claim everyone
+         * makes, and shipping the gate is the claim nobody else in 5.9M words
+         * can make. Saying we gate is stronger here than saying we do not.
+         *
+         * Found by S4 (S4-039), who was right about the sentences.
+         *
+         * AND RIGHT ABOUT THE ADJECTIVE, WHICH I FIRST DISPUTED. I checked
+         * positioning-locked:203, found "autonomous" absent from the landing
+         * Never column, saw the canon use "32% autonomous" at :269, and told
+         * S4 the word was fine. I had checked one file and called it "the
+         * canon". OPERATING-MODEL-5-SESSIONS.md:32 and :735 ban "agentic",
+         * "autonomous", "AI-native", "orchestration" and "intelligence" in
+         * product copy, twice, in the file every session is told to read
+         * first. It is banned. The word is gone from the copy above either
+         * way, but this note said otherwise and would have licensed the next
+         * person to put it back.
+         *
+         * (:269's use is the accelerator argument, and its own scope paragraph
+         * limits it to one station on the evidence model that earned it, so it
+         * was never landing copy. Separately, S4 found that :203's table is
+         * residue: its Register column is struck through because the register
+         * split was retired on 2026-08-11, and the per-surface Never columns
+         * were never updated with it. That is why absence from :203 proves
+         * nothing, and it is S0's to reconcile, not mine.)
+         */}
+        <p className="text-sm text-zinc-400 mb-2">HOW A RUN MOVES</p>
+        <p className="text-lg font-medium text-white mb-1">One sentence in. Seven stations.</p>
+        <p className="text-sm text-zinc-500">
+          Agents do the work. You gate what matters, and every step is on the record.
+        </p>
       </div>
 
       {/* Input */}

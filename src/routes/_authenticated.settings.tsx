@@ -270,6 +270,7 @@ import { RedeemCodeCard } from "@/components/settings/RedeemCodeCard";
 import { MembersCard } from "@/components/settings/MembersCard";
 import { TeamCard } from "@/components/settings/TeamCard";
 import { ControlsPanel } from "@/components/governance/ControlsPanel";
+import { BoundaryControls } from "@/components/governance/BoundaryControls";
 import { DesignMemoryPanel } from "@/components/knowledge/DesignMemoryPanel";
 import { ARC_CHOICE, MODE_CHOICE } from "@/components/crew/crew-words";
 import { stationCrew } from "@/lib/spine/driver";
@@ -648,14 +649,44 @@ function SettingsPage() {
         )}
         {active === "autonomy" && (
           <>
+            {/*
+             * THE BOUNDARY NOW LIVES WHERE ITS NAME IS, 2026-08-27.
+             *
+             * This pane used to render ControlsPanel alone and its own comment
+             * said the quiet part out loud: "the boundary has one home and this
+             * is not it". So the settings section titled for what agents may do
+             * did not contain the controls that decide what agents may do.
+             * Those are updateToolMode, setWorkspaceAutonomyPolicy and
+             * setWorkspaceSpendPolicy, and all three live in BoundaryControls,
+             * which was only reachable at /engine-room?room=safety.
+             *
+             * A person asking the single question an enterprise buyer asks
+             * ("what can these agents do without asking me?") arrived at a page
+             * named for that question, read a description of the answer, and
+             * had to leave to change it. That is the defect the founder called
+             * out, and it is the reason 13,299 lines across four routes felt
+             * like it did not do its job.
+             *
+             * MOUNTED, NOT MOVED. BoundaryControls is unchanged and still
+             * renders at its old address, so nothing breaks and no redirect
+             * flips: ~108 production references reach /engine-room and
+             * source-reading tests pin those chains, so the fold itself is S0's
+             * ruling (coordination/requests/S3/fold-boundary-four-into-one.md).
+             * This makes settings the real destination FIRST, so that when the
+             * ruling lands the fold is a redirect rather than a build.
+             *
+             * ORDER IS THE READING ORDER, and it is deliberate: what they may
+             * do, then what runs on a schedule, then the switch that stops all
+             * of it. The stop is last because it is the thing you reach for
+             * when the first two are wrong, not the thing you set first.
+             */}
             <PageHeading
-              title="Autonomy and approvals"
-              // It no longer says "set the boundary here". The boundary has one
-              // home and this is not it; what this pane does is state what that
-              // boundary currently allows, beside the two things that ARE set
-              // here and nowhere else: the kill switch and the auto-pipelines.
-              sub="What the crew may do without you, what routes itself, and the switch that stops all of it."
+              title="What they may do without asking"
+              sub="Every tool, the ceiling on a run, what routes itself, and the switch that stops all of it."
             />
+            {/* ControlsPanel below owns the pause switch, so this panel's
+                read-only pause line would be the same fact twice. */}
+            <BoundaryControls pauseShownElsewhere />
             <ControlsPanel onOpenQueue={() => navigate({ to: "/approvals" })} />
           </>
         )}

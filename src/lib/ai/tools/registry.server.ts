@@ -374,7 +374,29 @@ const logSignal = def({
    * outcome by writing a row, and the row is worse than the hold it avoided.
    */
   description:
-    "Log a discovery signal: evidence that EXISTS, in the words of the source (user feedback, a support ticket, an interview quote). " +
+    /*
+     * "IN THE WORDS OF THE SOURCE" WAS TOO NARROW, AND IT COST THE LOOP ITS
+     * FIRST STATION (2026-08-27).
+     *
+     * The examples were all verbatim human utterances, so a crew reading this
+     * concluded that measured behaviour is not a signal. Three agents on track
+     * `a30238f5` said so in as many words: *"no user-sourced signals exist ...
+     * all available references (41% abandonment on address re-confirm, session
+     * replays)"*, and filed nothing. They had FOUND the evidence and refused it
+     * on a definition.
+     *
+     * That workspace holds 258 signals, 33 tagged `redundant-address-entry` and
+     * 18 `address-friction`, against a track about reusing a saved delivery
+     * address. Discover produced zero artifacts across twelve drives and went
+     * terminal on the F-43 ceiling, and so did the other sense-entry track.
+     *
+     * NEITHER OF THE TWO REFUSALS BELOW WANTED THIS. One forbids filing the
+     * ABSENCE of evidence; the other forbids citing the product's OWN
+     * artifacts. A session replay and a measured abandonment rate are neither:
+     * they come from outside the loop and they are about the world. So the
+     * examples widen and both NEVERs stay exactly as they were.
+     */
+    "Log a discovery signal: evidence that EXISTS and came from outside this product. A quote is one kind (user feedback, a support ticket, an interview) and so is observed behaviour (a session replay, a funnel or abandonment measurement, an error rate, a support-volume trend). What matters is that a person or their behaviour outside the loop produced it, not that it is a sentence somebody said. " +
     "NEVER log the absence of evidence. 'No signals found', 'zero results', 'no data for X' are not signals. They are the answer to your final message, and filing them puts your own failure into the evidence every later run reads. Finding nothing and filing nothing is a correct, expected outcome; say so in your answer instead. " +
     "NEVER cite this product's own work as a source. A PRD, spec, decision, changeset, mission, forecast or workspace brief is something the loop wrote, not something a person outside it said. The tool refuses those and the refusal is not a bug to work around.",
   category: "write",
@@ -4762,6 +4784,24 @@ const decisionRecord = def({
       title: z.string().min(1).max(200),
       rationale: z.string().min(1).max(4000),
       alternatives_considered: z.array(z.string().min(1).max(500)).min(1).max(10),
+      /*
+       * ── A "NO" IS A DECISION, AND UNTIL NOW IT HAD NOWHERE TO GO ─────────
+       *
+       * The Decide brief tells the crew, in these words: *"A 'no' is a decision
+       * and you file it the same way as a yes."* They do. On 2026-08-26 a
+       * strategist filed *"Do not implement address reuse until post-fix
+       * abandonment evidence emerges"* with a real forecast behind it.
+       *
+       * It was stored `status: "approved"`, because `decisions.status` offers
+       * approved, pending, standing and superseded and NOTHING THAT MEANS NO.
+       * So the spine read an approved decision and walked the track on to
+       * Define, Design and Build, to construct the thing the decision had just
+       * refused. The one station whose job is to stop work could not.
+       *
+       * Defaults to `build`, so every existing caller keeps its meaning and no
+       * decision silently becomes a refusal.
+       */
+      call: z.enum(["build", "do-not-build"]).default("build"),
       prd_id: z.string().uuid().optional(),
 
       /*
@@ -4929,7 +4969,13 @@ const decisionRecord = def({
         forecast_claim: a.forecast_claim,
         forecast_how_we_will_know: a.forecast_how_we_will_know,
         forecast_horizon_date: a.forecast_horizon_date,
-        status: gate.status,
+        /*
+         * A refusal outranks the review's "approved", and only that one. If the
+         * gate wants a person to look, it still does: a no-go with a
+         * provenance problem is not more trustworthy for being a no. `declined` is
+         * new and nothing constrains `status`, so no migration is needed.
+         */
+        status: a.call === "do-not-build" && gate.status === "approved" ? "declined" : gate.status,
         decided_by_agent_slug: agentSlug ?? null,
         /**
          * 'agent' — and until 2026-08-11 the database refused this value, so

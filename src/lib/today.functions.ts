@@ -953,7 +953,12 @@ export const getCompounding = createServerFn({ method: "GET" })
     let q = db
       .from("learnings")
       .select(
-        "id, verdict, summary, prior_ice, new_ice, created_at, opportunity:opportunities(title,is_sample)",
+        // `decision:decisions(forecast_claim)` is the pairing. The feed showed
+        // what happened and never what was expected, which is the half the
+        // product's whole claim rests on. To-one embed, flattened below exactly
+        // like the opportunity one, because PostgREST may widen either to an
+        // array.
+        "id, verdict, summary, prior_ice, new_ice, created_at, opportunity:opportunities(title,is_sample), decision:decisions(forecast_claim)",
       )
       .order("created_at", { ascending: false })
       .limit(50);
@@ -974,16 +979,26 @@ export const getCompounding = createServerFn({ method: "GET" })
         | { title: string | null; is_sample?: boolean | null }
         | { title: string | null; is_sample?: boolean | null }[]
         | null;
+      decision: { forecast_claim: string | null } | { forecast_claim: string | null }[] | null;
     };
     let sampleDerived = 0;
     const learnings: CompoundingLearning[] = ((data ?? []) as Wire[]).map(
-      ({ opportunity, ...rest }) => {
+      ({ opportunity, decision, ...rest }) => {
         const opp = Array.isArray(opportunity) ? opportunity[0] : opportunity;
+        const dec = Array.isArray(decision) ? decision[0] : decision;
         // `=== true` on purpose: a null or unreadable opportunity counts as NOT
         // a sample. That under-reports the warning rather than labelling a
         // user's own outcome an example, which is the error worth avoiding.
         if (opp?.is_sample === true) sampleDerived++;
-        return { ...rest, opportunity_title: opp?.title ?? null };
+        // A blank claim is the same as none: an empty string would render an
+        // empty expectation line, which asserts a forecast existed and was
+        // silent rather than that none was written.
+        const claim = dec?.forecast_claim?.trim();
+        return {
+          ...rest,
+          opportunity_title: opp?.title ?? null,
+          forecast_claim: claim ? claim : null,
+        };
       },
     );
 

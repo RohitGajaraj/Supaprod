@@ -96,7 +96,39 @@ const LAYERS: Layer[] = [
     // under this one), it is a shape the page already draws, and it hands
     // straight off to the section that proves it.
     name: "the loop",
-    claim: "It runs the whole lifecycle.",
+    /*
+     * THIS READ "It runs the whole lifecycle." UNTIL 2026-08-27, AND THAT
+     * EXACT STRING IS BANNED IN OUTWARD COPY by canon 5N, ruled 2026-08-26.
+     * CLAUDE.md states it in one line: never write "runs the lifecycle"
+     * outward, because it invites the comparison we refuse. It was still live
+     * on supaprod.ai when I checked the running site.
+     *
+     * WHY THE PHRASE IS THE PROBLEM AND NOT THE LAYER. Saying we run the whole
+     * lifecycle invites "so you are Lovable, plus advice", and 5N refused that
+     * on three grounds: the code-generation market is finished and priced at
+     * over 48B, the pain moved to REVIEW rather than generation (review time
+     * +441.5% against 33.7% more throughput), and neutrality is the asset.
+     * Every builder is a substitutable supplier to this layer, so their
+     * commoditisation is our tailwind. Generating code turns all of them into
+     * competitors who will not integrate.
+     *
+     * THE REPLACEMENT IS THE CANON'S OWN, not a rewording of mine. 5N gives it
+     * as a table row: "Decides what is worth building, hands it to whatever
+     * builds for you, and checks what actually happened." The claim carries
+     * the two halves that separate this layer from 01, which already says "It
+     * tells you what to build"; the context below carries the sentence whole.
+     *
+     * "YOURS OR OURS" IS LOAD BEARING AND MUST NOT BE DROPPED. 5N says so in
+     * those words, because the hybrid amendment the same day ruled we DO build
+     * in two scoped places, and that phrase is what makes us the only surface
+     * here that does not care which builder a customer already uses.
+     *
+     * The layer NAME is untouched. The long note above about keeping "the
+     * loop" rather than "the operating system" is a different ruling about a
+     * different job and it still holds. Do not read this change as licence to
+     * revisit it, and do not restore the old claim from that note's phrasing.
+     */
+    claim: "It hands the work out, and checks what came back.",
     /* A CYCLE WITH TWO WAYS IN, NOT A LINE THAT STARTS AT DISCOVER.
      * Founder-approved 2026-08-10. Copy only — the stations and the engine are
      * unchanged, and the default entry point for a new run has not moved.
@@ -135,7 +167,7 @@ const LAYERS: Layer[] = [
      * Build then Learn is not a shortcut. It is what you do when building the
      * thing is cheaper than arguing about it. */
     context:
-      "Two ways in: start at Discover when the problem is new, or Build and Learn when it is cheaper to try than to argue. Either way the loop closes, and what you learn re-ranks what comes next.",
+      "It decides what is worth building, hands it to whatever builds for you, yours or ours, and checks what actually happened. Two ways in: Discover when the problem is new, or Build and Learn when trying beats arguing. Either way the loop closes, and what you learn re-ranks what comes next.",
     hue: "#6cb0f5",
   },
   {

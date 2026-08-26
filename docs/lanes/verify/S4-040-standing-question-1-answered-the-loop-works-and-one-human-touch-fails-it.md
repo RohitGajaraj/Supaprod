@@ -83,6 +83,17 @@ d94a259e  verdict=missed  recorded_by_agent_slug=data-analyst    is_sample=false
 **A verdict, against a forecast, graded `missed`, written by agents, not seed, tied to the decision
 that made the bet.** That is the product's entire claim, and it happened.
 
+> **CORRECTION, 2026-08-27. The clause "against a forecast" is WRONG and I am withdrawing it. See
+> `S4-052`.** The two learnings are tied to the decision by `decision_id`, and I took the foreign key
+> as evidence of the pairing. It is not. The forecast says *"the PRD will be approved and design gate
+> cleared within 3 business days"* with a horizon of **2026-08-29**; the learnings grade *"tablet
+> abandonment ~33% against a ≤5% target"* and were written on **2026-08-25**, two hours after the
+> forecast and four days before its horizon. `forecast_resolution` is still `null`.
+>
+> **The rows are real and agent-written, which is what I verified. They do not grade what was
+> predicted, which is what I claimed.** The loop moved; the payoff did not land. I merged two
+> separable things.
+
 So the honest sentence is not *"nothing works."* It is:
 
 > **The loop completed a real walk end to end, produced a forecast at Decide and a graded verdict at

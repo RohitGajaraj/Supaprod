@@ -49,7 +49,10 @@ describe("trackToBoardRows", () => {
       (iso) => (iso ? "2m" : null),
     );
     expect(waiting).toHaveLength(1);
-    expect(waiting[0]?.holdLine).toBe("A call is waiting on you at Decide.");
+    // The row says the short fact; the sentence rides UNDER it, verbatim. A
+    // 250-character hold in a row's state slot squeezes the title to nothing.
+    expect(waiting[0]?.holdLine).toBe("waiting on your answer");
+    expect(waiting[0]?.reason).toBe("A call is waiting on you at Decide.");
     expect(running).toHaveLength(0);
   });
 
@@ -73,20 +76,48 @@ describe("trackToBoardRows", () => {
   });
 
   it("carries a non-person hold on a running row so stopped does not read as slow", () => {
+    // `no-agent` is a hold the sweep WILL revisit: cast an agent for that
+    // station and the track moves on its own. It stays in Running, carrying
+    // its reason. `tools-refused` used to be the example here and no longer
+    // qualifies, because it is terminal: see the test below.
     const { running } = trackToBoardRows(
       [
         track({
           id: "h",
           drivenAt: minsAgo(30),
-          holdReason: "tools-refused",
-          hold: "A door the work needs is locked.",
+          holdReason: "no-agent",
+          hold: "No agent is cast for this station.",
         }),
       ],
       new Set(),
       (iso) => (iso ? "30m" : null),
     );
     expect(running).toHaveLength(1);
-    expect(running[0]?.holdLine).toBe("A door the work needs is locked.");
+    expect(running[0]?.holdLine).toBe("No agent is cast for this station.");
+  });
+
+  it("PUTS PARKED WORK IN FRONT OF THE PERSON, because no agent is coming", () => {
+    /*
+     * Every TERMINAL_HOLDS reason used to land in Running, whose sentence is
+     * "waiting on an agent, not on you", when the sweep excludes exactly those
+     * from selection and one human press is the only exit. S4 measured eight of
+     * the nine real open tracks in that state on 2026-08-27, one across 316
+     * drives. The list is imported from the sweep rather than restated, so the
+     * surface cannot drift from what actually gets driven.
+     */
+    for (const held of ["given-up", "station-cannot-finish", "tools-refused", "going-in-circles"]) {
+      const { waiting, running } = trackToBoardRows(
+        [track({ id: held, drivenAt: minsAgo(30), holdReason: held, hold: `Stopped: ${held}.` })],
+        new Set(),
+        (iso) => (iso ? "30m" : null),
+      );
+      expect(running, `${held} must not read as running`).toHaveLength(0);
+      expect(waiting, `${held} belongs to the person`).toHaveLength(1);
+      // "stopped, needs you", never "waiting on your answer": nothing was
+      // asked. The loop ran out of road and will not try again on its own.
+      expect(waiting[0]?.holdLine).toBe("stopped, needs you");
+      expect(waiting[0]?.reason).toBe(`Stopped: ${held}.`);
+    }
   });
 
   it("files done tracks as finished and drops abandoned ones", () => {

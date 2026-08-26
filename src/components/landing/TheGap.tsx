@@ -46,8 +46,13 @@ const START_MS = 260;
 const MISSING_ANSWER = "heads, threads, scrollback";
 
 /**
- * Named complimentarily, as the AI-native home of that craft (founder ruling
+ * Named complimentarily, as the home built for that craft (founder ruling
  * 2026-07-25). No superiority claim, no partnership implied, nothing untrue.
+ *
+ * The wording was "its AI-native home" until 2026-08-27. The intent that
+ * ruling protects is unchanged and is the reason the line still reads as a
+ * compliment; only the adjective moved, because OPERATING-MODEL-5-SESSIONS.md
+ * :32 and :735 ban "AI-native" in product copy and that ruling is later.
  * Decisions is the one row with an empty cell: it reads as an absence.
  *
  * Rows corrected 2026-07-25 (founder): v0 and Lovable generate UI CODE, not
@@ -362,7 +367,7 @@ export function TheGap() {
           className={revealCls("mb-5 font-mono text-mrd-tiny uppercase text-zinc-500 md:text-mrd-small")}
           style={{ transitionDelay: revealDelay(60), letterSpacing: "0.14em" }}
         >
-          Every craft got its AI-native home
+          Every craft got a home built for agents
         </p>
 
         {/* The ledger of homes. Every tool here is named as the home of its

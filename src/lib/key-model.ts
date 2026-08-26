@@ -167,12 +167,6 @@ export const SURFACE_KEYS: readonly SurfaceKeys[] = [
     keys: [{ key: "⌘S", does: "Saves your edits." }],
   },
   {
-    path: "/runs",
-    label: "Runs",
-    source: "src/routes/_authenticated.runs.index.tsx",
-    keys: [{ key: "⌘↵", does: "Starts the run, from inside the box.", destructive: true }],
-  },
-  {
     path: "/runs/$missionId",
     label: "One run",
     source: "src/routes/_authenticated.runs.$missionId.tsx",

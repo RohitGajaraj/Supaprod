@@ -367,6 +367,14 @@ export function stationCrew(station: AgentStation): CrewRole[] {
   ).map((e) => ({
     slug: e.slug,
     job: CREW_ROLE[e.slug]?.job ?? "",
+    /*
+     * `?? ""` and not `?? FILE_IT[...]`: a cast seat with no `CREW_ROLE` entry
+     * gets NO seat-specific filing line, which is correct now that the station
+     * rule is appended above rather than chosen between. Before that change this
+     * empty string beat the fallback, because "" is not nullish, and such a seat
+     * would have been told nothing about filing at all. Latent rather than live
+     * when S4 found it: 0 of 15 active cast seats lack an entry.
+     */
     file: CREW_ROLE[e.slug]?.file ?? "",
   }));
 }
@@ -868,7 +876,28 @@ export function stationGoal(
   // job, then what already exists, then what it must file. An agent that knows
   // only its slice optimises its slice.
   const mine = seat?.job ? `\n\nYour part in that: ${seat.job}` : "";
-  const file = seat?.file ?? FILE_IT[station];
+  /*
+   * BOTH, NOT EITHER, AND MY OWN FIX PROVED WHY (S4 -> S0, 2026-08-27).
+   *
+   * This read `seat?.file ?? FILE_IT[station]`, so the station's filing rule was
+   * delivered ONLY to a station with no seats. Discover has three, so all three
+   * read `CREW_ROLE[slug].file` and none of them ever saw `FILE_IT.sense`.
+   *
+   * I rewrote `FILE_IT.sense` to say that evidence already on the record counts,
+   * shipped it, and it reached nobody. S4 measured the prompt md5 in
+   * `agent_runs.input` as byte-identical before and after, per seat, on a live
+   * track. The sentence I replaced was still in the 22:50 brief.
+   *
+   * This is F-32 from the other side, and `:113` already warns about it on the
+   * strategist seat: `stationGoal` composes the STATION job and the SEAT job, so
+   * a rule that must reach everyone has to be in both places or appended to
+   * both. Choosing between them is what loses it.
+   *
+   * Appending rather than duplicating into three seats: the station rule is one
+   * sentence and it travels to every seat automatically, so the next person to
+   * edit it edits it once.
+   */
+  const file = [FILE_IT[station], seat?.file?.trim()].filter(Boolean).join(" ");
 
   /*
    * F-68. A STEP YOU WERE TOLD FAILED MAY NEVER BE REPORTED AS DONE.
@@ -923,8 +952,35 @@ export function stationGoal(
 }
 
 const FILE_IT: Record<AgentStation, string> = {
+  /*
+   * "FILE WHAT YOU FOUND" READ AS "FILE WHAT YOU FOUND THAT IS NEW", AND THAT
+   * IS WHY DISCOVER HAS NEVER CLEARED (2026-08-27).
+   *
+   * This brief named one hand, `signals.log`, so a crew that searched a
+   * workspace ALREADY FULL of evidence concluded there was nothing to log and
+   * filed nothing. Both sense-entry tracks on the real workspace died of it,
+   * across twelve drives each, and the F-43 ceiling was right to stop them:
+   * they genuinely produced nothing.
+   *
+   * What they were looking at, measured on that workspace: 258 signals, of
+   * which 81 come from genuinely outside sources, including an analytics-
+   * dashboard row titled "41 percent of abandonments happened on the redundant
+   * address re-confirm screen" and a session-replay row about redundant address
+   * entry, both tagged `address-friction`, against a track about reusing a saved
+   * delivery address.
+   *
+   * The crew QUOTED that 41 percent figure back and still reported "no
+   * user-sourced evidence exists", because it read the number out of a PRD
+   * rather than out of the signals table, and F-73 correctly forbids citing our
+   * own artifacts. Every part of that was working as designed. The brief simply
+   * never said that evidence already on the record is evidence.
+   *
+   * So grouping what is already there is now named as a complete outcome. The
+   * anti-exhaust rules are untouched and restated, because widening what counts
+   * as a finish is exactly when a crew starts looking for a cheaper one.
+   */
   sense:
-    "Finish by filing what you found: call signals.log for each piece of evidence, and research.synthesize or cluster.trigger to group them. A finding that is only in your answer is not on the record and the next station cannot read it.",
+    "Finish by putting evidence on this track's record. Evidence ALREADY IN THIS WORKSPACE COUNTS: search it first with signals.list, and if what you need is already there, group it with cluster.trigger or research.synthesize and you are done. That is a complete, correct outcome, not a shortcut. Call signals.log only for evidence that is genuinely not on the record yet. What you may never do is file the ABSENCE of evidence, or cite this product's own PRDs, decisions or briefs as a source: a number you read in our own spec is not a finding, it is our own writing coming back. If the workspace truly holds nothing about this, say so in your answer and file nothing. A finding that is only in your answer is not on the record and the next station cannot read it.",
   decide:
     "Finish by calling decision.record with the alternatives you weighed and your forecast: what you expect to happen, the observable that will settle it, and the date it comes due as an ISO timestamp with an offset. A decision that is only in your answer is not on the record and the next station cannot read it, and one with no forecast is refused.",
   // Same correction as the `prd-writer` seat above, and it has to be made in
