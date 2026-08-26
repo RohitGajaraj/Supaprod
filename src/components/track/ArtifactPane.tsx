@@ -31,6 +31,9 @@ import {
 } from "@/lib/spine/track.functions";
 import { getPrd, savePrd } from "@/lib/discovery.functions";
 import { deleteSignal, renameTheme, setThemeStatus } from "@/lib/discovery.functions";
+import { getChangesetDiff } from "@/lib/studio.functions";
+import { computeHunks } from "@/lib/ai/studio-hunks";
+import { CodeDiff } from "@/components/studio/CodeDiff";
 import { setDecisionForecast, updateDecision } from "@/lib/decisions.functions";
 import { deferForecastCheck, reopenForecast, settleForecast } from "@/lib/forecast.functions";
 import type { ChainMember, ChainStop } from "@/lib/spine/chain";
@@ -42,6 +45,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { buildSrcDoc, type PrototypeFileRow } from "@/lib/prototype-srcdoc";
 import {
   Action,
+  Diffstat,
   Reading,
   ReadFailedLine,
   RecordSpeaks,
@@ -988,6 +992,113 @@ function PrototypeCard({ item }: { item: ArtifactView }) {
   );
 }
 
+/*
+ * THE DIFF, FILE BY FILE (THE-ONE-SCREEN station 5). Read from
+ * `getChangesetDiff` -- the same read the builder's own ChangesPanel renders --
+ * so the run shows the change exactly as it exists, never a summary of it.
+ * Per-file counts come from the same hunk engine the curation UI uses, so a
+ * "+12 -3" here agrees with what opening that file elsewhere will show.
+ */
+function ChangesetDiffView({ changesetId }: { changesetId: string }) {
+  const fDiff = useServerFn(getChangesetDiff);
+  const q = useQuery({
+    queryKey: ["studio-diff", changesetId],
+    queryFn: () => fDiff({ data: { changesetId } }),
+    staleTime: 10_000,
+  });
+  const [openPath, setOpenPath] = React.useState<string | null>(null);
+
+  if (q.isLoading) return <Reading>Reading the change.</Reading>;
+  if (q.isError)
+    return (
+      <ReadFailedLine>The change's files could not be read, so nothing is shown rather than something wrong.</ReadFailedLine>
+    );
+
+  const changes = (q.data?.changes ?? []) as Array<{
+    id: string;
+    path: string;
+    op: string;
+    base_content: string | null;
+    new_content: string | null;
+  }>;
+  if (!changes.length) {
+    return <RecordSpeaks>No files on this change yet.</RecordSpeaks>;
+  }
+
+  const OP_WORD: Record<string, string> = {
+    create: "new file",
+    update: "modified",
+    delete: "deleted",
+  };
+
+  // Counted from the same alignment the diff view renders. Very large files are
+  // labelled rather than measured: an O(lines²) pass on a minified bundle to
+  // print two numbers is a bad trade.
+  const COUNT_CHAR_CAP = 200_000;
+  let addedTotal = 0;
+  let removedTotal = 0;
+  let oversized = 0;
+
+  return (
+    <div className="flex flex-col gap-mrd-2 rounded-mrd-chip bg-mrd-sink p-mrd-4">
+      <span className="mrd-eyebrow">The change, file by file</span>
+      {changes.map((c) => {
+        const big =
+          (c.base_content?.length ?? 0) + (c.new_content?.length ?? 0) > COUNT_CHAR_CAP;
+        let added = 0;
+        let removed = 0;
+        if (!big) {
+          for (const h of computeHunks(c.base_content ?? "", c.new_content ?? "")) {
+            added += h.modifiedLines.length;
+            removed += h.baseLines.length;
+          }
+          addedTotal += added;
+          removedTotal += removed;
+        } else {
+          oversized += 1;
+        }
+        const open = openPath === c.path;
+        return (
+          <div key={c.id} className="flex flex-col">
+            <button
+              type="button"
+              data-mrd=""
+              onClick={() => setOpenPath(open ? null : c.path)}
+              aria-expanded={open}
+              className="flex w-full items-center justify-between gap-mrd-3 rounded-mrd-chip px-mrd-2 py-mrd-1 text-left transition-colors enabled:hover:bg-mrd-hover"
+              style={{ transitionDuration: "var(--mrd-d-press)" }}
+            >
+              <span className="min-w-0 truncate font-mrd-mono text-mrd-data text-mrd-body">
+                {c.path}
+              </span>
+              <span className="flex shrink-0 items-center gap-mrd-3">
+                <span className="mrd-meta">{OP_WORD[c.op] ?? c.op}</span>
+                {big ? (
+                  <span className="mrd-meta">large file</span>
+                ) : (
+                  <Diffstat added={added} removed={removed} />
+                )}
+              </span>
+            </button>
+            {open ? (
+              <div className="mt-mrd-2 overflow-x-auto">
+                <CodeDiff base={c.base_content ?? ""} next={c.new_content ?? ""} path={c.path} />
+              </div>
+            ) : null}
+          </div>
+        );
+      })}
+      <span className="mrd-meta">
+        {[
+          `${changes.length} ${changes.length === 1 ? "file" : "files"}`,
+          `+${addedTotal} −${removedTotal}`,
+          ...(oversized > 0 ? [`${oversized} too large to count`] : []),
+        ].join(" · ")}
+      </span>
+    </div>
+  );
+}
+
 function ChangesetCard({ item }: { item: ArtifactView }) {
   const f = item.fields;
   const summary = str(f.summary);
@@ -1019,6 +1130,8 @@ function ChangesetCard({ item }: { item: ArtifactView }) {
           Open the pull request
         </a>
       ) : null}
+
+      <ChangesetDiffView changesetId={item.artifactId} />
 
       {/* THE REVIEW, OR THE TRUTH ABOUT ITS ABSENCE. */}
       <div className="flex flex-col gap-mrd-2 rounded-mrd-chip bg-mrd-sink p-mrd-4">
@@ -1212,6 +1325,115 @@ export function MissionCard({ item }: { item: ArtifactView }) {
   );
 }
 
+/*
+ * DISCOVER'S BODY -- the grouping, visible (THE-ONE-SCREEN station 1).
+ *
+ * Under the primary-plus-lines rule this station rendered ONE signal card and
+ * a column of bare titles, which is why the product's most convincing moment
+ * -- evidence visibly becoming a pattern -- never happened on the surface that
+ * exists for it. Here the themes lead, the signals filed under each one sit
+ * directly beneath it, and everything not yet clustered reads as exactly that.
+ * The order is derived from `fields.theme_id` on every signal; nothing is
+ * inferred from timing or prose.
+ *
+ * MOTION REPORTS THE EVENT (R-20 §4): a theme section that was not on screen
+   at first paint animates once when it arrives -- that arrival IS the
+   clustering having happened. Signals do not move of their own accord; only
+   the fact that a pattern now exists gets an entrance. prefers-reduced-motion
+   removes it through the same inline-animation rule as everywhere else.
+ */
+export function SenseBody({
+  items,
+  now,
+  trackId,
+}: {
+  items: ArtifactView[];
+  now: number;
+  trackId: string;
+}) {  const primed = React.useRef(false);
+  const seenThemes = React.useRef<Set<string>>(new Set());
+
+  const themes = items.filter((it) => it.kind === "theme" && !it.missing);
+  const signals = items.filter((it) => it.kind === "signal" && !it.missing);
+  const missing = items.filter((it) => it.missing);
+
+  const byTheme = new Map<string, ArtifactView[]>();
+  const loose: ArtifactView[] = [];
+  for (const s of signals) {
+    const tid = str(s.fields.theme_id);
+    if (tid && themes.some((t) => t.artifactId === tid)) {
+      const list = byTheme.get(tid) ?? [];
+      list.push(s);
+      byTheme.set(tid, list);
+    } else {
+      loose.push(s);
+    }
+  }
+
+  /*
+   * ARRIVALS ANIMATE ONCE, THE FIRST PAINT DOES NOT -- the transcript's exact
+   * pattern. A theme known at mount is history; one that shows up on a later
+   * poll is the machine finding a pattern in front of you.
+   */
+  const freshThemes = new Set<string>();
+  if (!primed.current && themes.length > 0) {
+    for (const t of themes) seenThemes.current.add(t.artifactId);
+    primed.current = true;
+  } else if (primed.current) {
+    for (const t of themes) {
+      if (!seenThemes.current.has(t.artifactId)) {
+        seenThemes.current.add(t.artifactId);
+        freshThemes.add(t.artifactId);
+      }
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-mrd-5">
+      {themes.map((t) => {
+        const members = byTheme.get(t.artifactId) ?? [];
+        const arrived = freshThemes.has(t.artifactId);
+        return (
+          <section
+            key={t.artifactId}
+            aria-label={t.title ?? t.word}
+            style={
+              arrived
+                ? { animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }
+                : undefined
+            }
+            className="flex flex-col gap-mrd-2 border-b border-mrd-line-soft pb-mrd-4 last:border-0"
+          >
+            <ThemeCard item={t} trackId={trackId} />
+            {members.map((s) => (
+              <SignalCard key={s.artifactId} item={s} now={now} trackId={trackId} />
+            ))}
+          </section>
+        );
+      })}
+
+      {loose.length > 0 ? (
+        <section aria-label="Not yet clustered" className="flex flex-col gap-mrd-2">
+          <span className="mrd-meta">
+            {loose.length === 1
+              ? "One piece of evidence does not sit with any pattern yet."
+              : `${loose.length} pieces of evidence do not sit with a pattern yet.`}
+          </span>
+          {loose.map((s) => (
+            <SignalCard key={s.artifactId} item={s} now={now} trackId={trackId} />
+          ))}
+        </section>
+      ) : null}
+
+      {/* Members the lookup ran on and did not find: kept as titles, never
+          hidden -- the chain's own rule, applied here too. */}
+      {missing.map((m) => (
+        <MemberLine key={`${m.kind}:${m.artifactId}`} m={toMemberLine(m)} now={now} />
+      ))}
+    </div>
+  );
+}
+
 function StationPanel({
   stop,
   view,
@@ -1291,6 +1513,15 @@ function StationPanel({
   };
 
   if (items) {
+    /*
+     * DISCOVER GETS ITS OWN BODY (THE-ONE-SCREEN station 1). Signals grouped
+     * under their themes, the not-yet-clustered named as such -- see
+     * SenseBody. Everything else keeps the primary-plus-lines shape below.
+     */
+    if (stop.station === "sense") {
+      return <SenseBody items={items.filter((it) => it.kind === "signal" || it.kind === "theme" || it.missing)} now={now} trackId={trackId} />;
+    }
+
     /*
      * TASKS AND MISSIONS NEVER GET TO BE PRIMARY — no station expects them —
      * so under the primary-plus-lines rule they rendered as bare titles
