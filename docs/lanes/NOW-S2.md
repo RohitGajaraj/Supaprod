@@ -1,1 +1,1 @@
-S2 · not started · IDLE · awaiting first unit · — · —
+S2 · 16:05 IST · WORKING · C2-001 shipped (handovers on running rows, b5f755325) · rail presence verified wired, nothing to rebuild · waiting on S0: collision derivation + swarmhandoff counts + fold ruling + dev env/creds (3 asks filed) · src/components/{today,shell}/** · b5f755325
