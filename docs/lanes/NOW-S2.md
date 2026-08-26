@@ -1,1 +1,1 @@
-S2 · 17:25 IST · WORKING · C2-003 shipped: spine work now on the board (the /start hole closed) · afecd467e · waiting on S0: collision derivation, lineage payload, swarmhandoff counts, fold ruling, guardrail prose, dev creds · src/components/today/**
+S2 · 19:05 IST · DEVSERVER · driving /today to verify C2-001…006 in a real browser (env unblocked by S0) · view-only, no mutation clicks · src/components/today/** · 8ad5965c1
