@@ -1,1 +1,1 @@
-S1 · 22:30 IST · WORKING · resumed in Claude Code (DB + design refs now reachable directly); tree rebased on main, no dev server held · src/components/track/** presence/** · pending
+S1 · 23:10 IST · WORKING · RUN-20 shipped (send a step back / hand it in by hand — both server fns had zero importers); drove the steer fix and it is STILL refused on a second NOT NULL (to_agent_slug) — filed with full schema evidence · server killed, ports clear · src/components/track/** · RUN-20
