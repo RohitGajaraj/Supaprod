@@ -8,6 +8,12 @@
 > are cited inline from Mobbin (600k-screen library, MAIN-only access); lanes get the mechanics
 > in words here, which is what R-20 requires anyway — port mechanics, never screenshots.
 
+> **AMENDED 2026-08-26 by [`SPEC-MULTIPLAYER-PRESENCE.md`](./SPEC-MULTIPLAYER-PRESENCE.md).** The
+> one-character ruling below stands for **one piece of work with one teammate acting**. When more than
+> one teammate is genuinely working at once, each is drawn — same body, its own colour and name, with
+> a live cursor at the object its newest `tool_calls` row targeted. The character is a species, not an
+> individual. The roster is still never browsable.
+
 ## The ruling
 
 **The crew becomes ONE character.** Fifteen seat slugs (`discovery-scout`, `strategist`,

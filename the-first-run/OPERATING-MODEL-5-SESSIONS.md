@@ -34,6 +34,154 @@ footing as a tenant leak. Never write "agentic", "autonomous", "AI-native", "orc
 
 ---
 
+## 0.5 · The defect, named by the founder 2026-08-26 — and it is not missing features
+
+> *"Features and capability may be there, but structuring is not there. Connectivity is not there.
+> Visually, it's not making sense for me. I'm not seeing this as one connected item. That is the main
+> problem."*
+
+**Take this literally. It outranks every backlog item in this repo.** We have 119 routes, 121 Meridian
+components, seven stations, a brain, an engine room, four names for the boundary concept and seven
+doors onto "what is happening". A person arriving at that does not see a product. They see an
+inventory. **Nothing on the queue fixes this, because everything on the queue adds to it.**
+
+### The rule that follows, and it binds all five sessions
+
+**There are exactly three surfaces. Everything else is a view inside one of them, or it does not
+exist.**
+
+| Surface | What it is | Owner |
+| --- | --- | --- |
+| **The run** | One piece of work, from handover to verdict. The transcript on the left, the thing being made on the right, the mode and Stop in the footer | S1 |
+| **The board** | Every piece of work at once — what is running, who has it, what changed, what needs you | S2 |
+| **Settings** | Everything that is genuinely configuration, reached rarely | S3 |
+
+A person is always in exactly one of these three and can always get to the other two. Brain, memory,
+approvals, guardrails, govern, boundary, engine room, crew, agents, traces, fleet, swarm, cockpit,
+observe, missions, today, discover, decide, define, design, ship, learn — **not one of those is a
+destination.** Each is either a view inside the run, a column on the board, a section of settings, or
+it is deleted. `THE-ONE-SCREEN.md` already ruled most of these individually; this states the general
+law so nobody has to re-litigate them one at a time.
+
+### Connectedness — the specific thing that is missing
+
+Right now the objects are islands. A decision does not visibly come from a track; a spec does not
+visibly come from a decision; a diff does not visibly come from a spec; a verdict does not visibly
+land against the forecast that predicted it. **Each of those links exists in the data and appears on
+no surface.**
+
+**Every object shows, in place: what produced it, and what it feeds.** That is one line on each,
+clickable, and it is what turns an inventory into one connected item. It is also nearly free —
+`decisions`, `spine_tracks`, `changesets`, `deployments` and `agent_memory` already carry the lineage;
+on real lineage, decide's largest inbound source is already learn (36 edges against 9 from
+opportunities). **We built the graph and never drew it.**
+
+### What every session does about it, starting now
+
+- **Every unit either removes a surface, folds one into another, or draws a connection that already
+  exists in the data.** A unit that adds a destination is rejected on review.
+- **Before adding a route, component or page, say in your unit file which of the three surfaces it
+  lives inside.** If the honest answer is "its own", the answer is no.
+- **S0 arbitrates every fold and owns every deletion.** Propose on the bus, with the callers you
+  found and where they redirect to. **A route folded without its callers redirected is a 404 in
+  production.**
+- **The measure of a good session is that the count went down.** Routes, components, doors, concepts.
+  Adoption of what already exists goes up; inventory goes down. That is the whole shape of this phase.
+
+---
+
+## 0.6 · Where you MAY add — standing authority, and the gaps that are real
+
+**Founder, 2026-08-26:** *"It's not only about structure. If there is genuinely some gap in features,
+I authorise you to approve it, build it and fix it. What needs to be built for this platform to be
+loved by millions of users?"*
+
+§0.5 says stop adding destinations. **It does not say stop building.** Those are different
+instructions and confusing them is how a team polishes an inventory. The rule is:
+
+**Fold surfaces. Build capabilities.**
+
+### The four-part test before you add anything
+
+Answer all four in your unit file. Three out of four is a no.
+
+1. **Which of the six verbs does it serve** — assign, manage, operate, value-audit, review, ship — and
+   **what does the user do today instead?**
+2. **Does it remove a step from the person, or add one?** If it adds one, it is not a capability, it is
+   a chore with a nicer name.
+3. **Can it be shown working in under thirty seconds, to someone told nothing?** If it can only be
+   described, it is not finished.
+4. **Which of the three surfaces does it live inside?** If the honest answer is "its own", the answer
+   is no.
+
+### The gaps that are real, ranked. These are authorised — build them.
+
+Each is a genuine missing capability, not a structural fold. Each is named with its evidence so nobody
+re-derives it.
+
+1. **Stations do not check their own output before handing on.** Replit verifies before you see it;
+   Devin rereads its own error and reruns; Codex returns a PR that already passed checks. Ours advance
+   regardless. **This is the mechanism behind the ~46-track `sense` graveyard and three months of the
+   acceptance query returning 0.** — *S0, `src/lib/spine/**`.*
+2. **Nothing reaches a person who left the page.** The whole frontier is async: submit and leave, the
+   result comes to you. We require attendance and call it visible agency. **No notification, email,
+   push or digest exists that carries a verdict to someone who closed the tab.** — *S3, with S0 for the
+   trigger.*
+3. **Three missing steps between Build and Ship, and no station crewed for any of them** — a commit, a
+   merge, and a recorded preview deploy. `studio.commit` appears **0 times in `driver.ts`**; Build is
+   briefed only on `studio.stage`, step one of six. `ship` has never written a track-member row while
+   `deployments` holds 42 successful ones. **This blocks the acceptance directly.** (F-36) — *S0.*
+4. **The return edge does not fire.** The due-forecast queue exists and has processed **zero
+   workspaces in its life** (F-51). Notion's shape is the model: give it a job, set a schedule, it
+   comes back. Until this runs, `learn` starves and the brain starves with it. — *S0.*
+5. **You cannot steer without restarting, and you cannot undo a step.** Devin lets you intervene at any
+   point. We offer Start and Stop, which makes this a batch job. — *S1.*
+6. **You cannot take a step over by hand and hand it back.** The 40-point gap between the ~60% of work
+   people use AI for and the 0–20% they can fully delegate is exactly this, and it is what we sell
+   into. — *S1.*
+7. **"Was it worth it" has no surface.** Spend and token caps live on `agent_runs`; nothing shows cost
+   and elapsed time against what was promised at the outset. **Value audit is one of the six verbs and
+   it is entirely unbuilt.** — *S1 for the surface, S0 for the numbers.*
+8. **Many teammates working at once is invisible.** Specced 2026-08-26 in
+   [`SPEC-MULTIPLAYER-PRESENCE.md`](./SPEC-MULTIPLAYER-PRESENCE.md). — *S2 for the layer, S0 for the
+   derivation.*
+9. **Evidence ingestion has never worked in production.** `scout_targets` is 0 in **21 of 21**
+   workspaces, `scout_snapshots` is **0 rows ever**, `scout_runs` stopped 2026-07-25 after 98 runs that
+   captured nothing — and `scout-tick.ts:78` returns `{ok: true, skipped: true}`, **a dormant pipeline
+   reporting SUCCESS to `pg_cron`**, which is why a month passed unnoticed. Agents were told to gather
+   evidence from a pipeline that has never delivered any, correctly reported there was none, and their
+   honest reports hardened into 144 standing prohibitions. **Turning it on starts paid crawling against
+   real sites, so S0 proposes it with the cost and the founder confirms the key — that one is money,
+   and money stays his.** — *S0 to propose.*
+10. **Search across work, and export.** Both untouched, both table stakes at the scale being aimed for.
+    — *S3.*
+
+**A gap you find that is not on this list is still authorised** if it passes the four-part test. Put it
+on the bus, build it, and add it here with its evidence.
+
+### The standard, stated so it can be failed
+
+*"If OpenAI, Anthropic, Google or Perplexity shipped this, how would it behave on day one?"* Not a
+mood — these eight, and any one of them failing is a fail:
+
+1. **It works the first time for someone who was told nothing.** No tour, no tooltip, no docs link.
+2. **Work starts visibly in under a second.** Nothing blocks on a spinner past ~2s without saying, in
+   plain words, what it is doing.
+3. **No raw error ever reaches a person.** Every failure names the thing that failed and the next
+   action. A refused station is not a failed station (R-26).
+4. **Keyboard-first.** Everything reachable without a mouse; accessibility is not deferred (R-19).
+5. **It survives being left alone** — tab closed, laptop shut, network dropped, session resumed. The
+   work continues and the result finds them.
+6. **One visual system, no orphans.** Meridian, ported from beautifui.dev, which is the floor and not
+   the ceiling.
+7. **It is honest.** No fabricated progress, no invented number, no seeded memory presented as
+   learning. **This is the one the frontier gets right and imitators get wrong**, and it is the only
+   item on this list that deletes a feature rather than sending it back.
+8. **It gets out of the way.** The fewest possible decisions between the person and the outcome. Count
+   them; every one you remove is the feature.
+
+---
+
 ## 1 · What "truly agentic" means here, stated so it can be failed
 
 Five properties. Each is falsifiable. A surface that has fewer than all five is a dashboard with a
@@ -94,7 +242,7 @@ description of it.
 
 ---
 
-## 3 · The four sessions and what each owns
+## 3 · The five sessions and what each owns
 
 Ownership is by path and it is absolute. **Two writers on one path is what broke `main` on
 2026-08-22.** If you need a file outside your prefix, file an ask on the bus. Never reach in, not
@@ -129,7 +277,7 @@ does not exist.** The brain earns its first pixel when the first real learning e
 
 ---
 
-## 4 · How four worktrees actually talk to each other
+## 4 · How five worktrees actually talk to each other
 
 Conductor gives each session an isolated git worktree of this repo on **one Mac**. That gives us two
 channels, and they do different jobs. Using the wrong one is how the last three weeks lost work.
@@ -274,3 +422,91 @@ query was written down.
 
 **Report honestly.** If a test fails, say so with the output. If a step was skipped, say that. Never
 report progress as completion, and never describe the remaining distance as smaller than it is.
+
+---
+
+## 9 · What the frontier actually ships, and the three things it does that we do not
+
+_Researched 2026-08-26. Ported as mechanics, per R-20 §7 — never as screenshots._
+
+| Product | The mechanic that works | What we take |
+| --- | --- | --- |
+| **Claude Code** | The primary surface is a **transcript**, not a dashboard. Capability is layered — memory, hooks, skills, subagents, MCP — and each layer appears only at the moment it is needed; the user never meets a shelf of them. Permission mode is an **autonomy dial set once**, not a question asked per action | Confirms R-13: the left pane is the transcript. The footer is the dial. Connectors and skills are reached at the moment of need, never browsed first |
+| **Codex in ChatGPT** | A command centre with **built-in worktrees**: queue many tasks, each in its own sandbox, results arrive as **separate reviewable pull requests**. Async by default — submit and leave, results come to you | S2's shape exactly. And the returned unit is reviewable — a diff, a decision, a spec — never "status changed to design" |
+| **Cursor 2.0 / Composer 2** | Parallel tool calling: reads up to 15 files simultaneously before editing. The agent determines its own next steps without step-by-step prompting | Show the fan-out. When five things are being read at once, that is more convincing than any spinner — and it is true |
+| **Replit Agent 4** | Parallel execution across isolated micro-VMs, and it **builds *and verifies* before letting you test**. Fewer round trips, longer first build, and the user prefers it | **The single most important one for us.** See below |
+| **Devin** | A persistent environment you can watch live and **intervene in at any point** to redirect. A self-debugging loop: read the error output, reason about the cause, apply a fix, rerun | Steer without restart. And the self-debug loop is precisely what our stations lack — they stall at `MAX_STATION_ATTEMPTS` instead of reading their own failure |
+| **Manus 1.6** | Chat Mode beside Agent Mode: **the user picks how much autonomy this particular task gets** | The footer mode becomes choosable, not just reported |
+| **Linear** | You delegate by **assigning the issue to the agent** — the gesture people already know. Many in parallel, progress monitorable | Zero new vocabulary. Never teach a verb the user already has |
+| **Notion 3.3 Custom Agents** | Give it a job, set a trigger or a schedule, it runs unattended | This is exactly the `learn` return edge: a scheduled agent that comes back when the horizon closes |
+| **Amoeba** | "Many, coordinated" agents on one project with shared visibility, **collision detection**, clear ownership, Mission Control, and *guide / take over / spawn parallel help* | S2's brief, close to verbatim |
+
+### The three things all of them do that Supaprod does not
+
+1. **They verify before they hand over.** Replit builds and tests before you see it; Devin reruns until green; Codex returns a PR that passed checks. **Our stations produce and advance regardless of whether what they produced is any good** — which is the whole reason 46 tracks sit in a `sense` graveyard and the honest acceptance query has returned 0 for three months. A station that cannot check its own output is not autonomous, it is merely unattended.
+2. **They let you leave.** Async is the default and the result comes to you. Gemini's line is the model: *"I'm on it — you can leave this page in the meantime."* Ours currently requires a person to sit and watch, and calls that "visible agency". Visible must not mean mandatory.
+3. **They borrow a gesture the user already has.** Assign an issue. Review a diff. Merge a PR. We invented seven station names and put them on screen — which is exactly what R-01 forbids and R-13 replaced. **If a surface teaches vocabulary, it has already lost the sixty seconds.**
+
+---
+
+## 10 · Testing and validating is half the job, not the tail of it
+
+The founder's instruction, and it is binding: **do not just build, add features and move on.** This
+repo's characteristic failure is not bad code. It is confident claims about code that was never
+driven. Three examples that each cost a week: a "Round 8 proven" claim whose two cited tracks were
+`sense`/`abandoned`; a spec that detected stations with `pageContent.includes()` against a strip
+rendering all seven names; three headline metrics proving the product worked that were all seed data,
+unre-checkable because nobody wrote down the query.
+
+**The rules, for every session:**
+
+- **A unit is not done when it compiles. It is done when it has been driven.** Open the route, take
+  the action a user would take, and record what happened. `bunx tsc --noEmit` and `bun run lint`
+  passing is not a gate here — `bun test` holds the invariants, and even green tests are not a driven
+  surface.
+- **Watch a run; do not only read the code.** Three of five defects found in one night came from
+  driving a real track. Code review had missed all three for weeks.
+- **Assert on what your fix uniquely controls, across two cycles.** A fast empty tick looks identical
+  whether your filter worked or the work was simply held.
+- **A test name says what it intended to reach, not what it reached.** When many tests naming one
+  surface fail together, suspect one broken precondition, not many bugs.
+- **Suspect the instrument when a known-good control fails as badly as the broken case.**
+- **Never pipe a gate into `tail`** — it returns `tail`'s exit code and `main` has shipped red that
+  way. **The 12 pre-existing test failures are known: do not claim them and do not silently fix them.**
+- **S4 is the adversary and its verdict outranks the builder's.** A unit S4 cannot reproduce is
+  reopened, whatever the buildlog says.
+
+**If a credit, quota or auth limit stops you** — Lovable token expiry, an MCP that will not connect, a
+model quota — **say so in one line on the bus and switch tools rather than reporting a blocker.**
+Playwright, chrome-devtools and the Chrome plugin are three separate paths to a browser. Only a
+credential boundary is a real blocker, and for those the founder has granted standing authority to
+re-authorize: file the ask, name exactly what you need, and keep working on everything that does not
+depend on it.
+
+---
+
+## 11 · The persona, restated 2026-08-26 — and the six verbs that replace station names on screen
+
+**Founder, 2026-08-26:** *"If I have to deliver my work and the entire thing is taken care of by
+virtual teammates, they have to assign, manage, operate, value-audit, review and ship."*
+
+**The user is the person accountable for an outcome who is not doing the work — a delegator whose team is AI teammates.** They do not walk a
+lifecycle. They run a team they do not want to micromanage. Every one of these six is a gesture they
+already have from managing people, which is why none of them needs teaching.
+
+| Verb | What the user does | What must be trivial | Owner |
+| --- | --- | --- | --- |
+| **Assign** | Hands over a piece of work | One sentence. No project, no config, no connector picked first. Linear's gesture: give it to someone and walk away | S1 |
+| **Manage** | Sees who has what, what is stuck, what is colliding | One glance: what is running, who owns it, what changed in the last minute, where two efforts overlap | S2 |
+| **Operate** | Sets the boundaries once, then leaves | A stated authority — spend ceiling, blast radius, tool set, expiry — set once, widened by class, never re-asked per action | S3 |
+| **Value audit** | Asks whether it was worth it | Cost and elapsed time against what was promised at the outset. Predicted beside actual beside what it cost | S1 + S0 |
+| **Review** | Looks at what came back and responds | A reviewable unit — a diff, a spec, a decision, a preview — with approve, send-one-instruction-back, undo-a-step, in place | S1 |
+| **Ship** | Lets it go out | Gated by proof, not by a click (R-27). At most one human gate, and it is the irreversible one | S1 + S0 |
+
+**The station names stay entirely off-surface** (R-01, R-13, and now this). These six verbs are the
+vocabulary the product speaks. **A user who has ever managed a person can operate this product
+without being taught anything — that is the test.**
+
+Full derivation, with sources and the nine-product teardown it came from:
+[`docs/research/agentic-product-patterns-2026-08.md`](../docs/research/agentic-product-patterns-2026-08.md).
+**Read it before any "make it more agentic" work.** It exists so nobody pays for that sweep twice.

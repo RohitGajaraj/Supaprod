@@ -102,3 +102,16 @@ mounted only in the component gallery. Re-measured today: all of them now reach 
 repeat that line. The real gap is narrower and better news: **`RunMap` already has a `"live"` mode and
 already takes a seven-station shape.** The seven-station live view is not something we have to design.
 It is something we have to feed.
+
+## The five-session model — 2026-08-26, current
+
+| File | What it settles |
+| --- | --- |
+| **[`OPERATING-MODEL-5-SESSIONS.md`](./OPERATING-MODEL-5-SESSIONS.md)** | **Every session reads this first.** The user lens, the structural defect (§0.5 — three surfaces, not 119 routes), the authorised feature gaps and the frontier standard (§0.6), what "truly agentic" means so it can be failed, path ownership for five sessions, the worktree bus protocol, work-safety rules, both gates, and the six-verb persona |
+| [`SESSION-0-CONDUCTOR.md`](./SESSION-0-CONDUCTOR.md) | Claude Code on `main` — database, deploys, merges, the spine, and keeping four lanes unblocked |
+| [`SESSION-1-THE-RUN.md`](./SESSION-1-THE-RUN.md) | The one screen: assign, watch, steer, review, verdict |
+| [`SESSION-2-MISSION-CONTROL.md`](./SESSION-2-MISSION-CONTROL.md) | Many pieces of work at once, and the multiplayer cursor layer |
+| [`SESSION-3-THE-PLATFORM.md`](./SESSION-3-THE-PLATFORM.md) | The sixty seconds, the boundary, and everything a company must have to buy this |
+| [`SESSION-4-THE-PROVING-GROUND.md`](./SESSION-4-THE-PROVING-GROUND.md) | Writes no product code. Proves or disproves every claim the other four make |
+| [`SPEC-MULTIPLAYER-PRESENCE.md`](./SPEC-MULTIPLAYER-PRESENCE.md) | Named, coloured teammates with live cursors across every surface — and the law that stops it being theatre |
+
