@@ -766,3 +766,40 @@ mid-visit at 18:57. Do not press it; the sweep will carry it.
 
 **Blocker is architectural, not a bug:** the tool exists, the schema is ready, only the invocation point is missing. Implementation should be 1-2 hour fix once Decide dispatch code is located.
 
+
+---
+
+# SESSION 2026-08-26 ~12:30 IST — P0 Blocker Identified, Task Documented, Ready for Implementation
+
+**Mission Gate Status:** NOT MET (requires founder observation of complete end-to-end loop)
+
+**What I verified:**
+1. Deployment: ✅ Code live in production
+2. Sense→Discover: ✅ Works autonomously (2/7 stations functional)
+3. Decide→Learn: ❌ Blocked (Decide doesn't record decisions)
+
+**Narrowest working proof:** sense→discover is fully autonomous. Signals cluster into themes without human touch. Database shows 45 tracks entered sense, 3 reached discover, 1 reached decide (and stopped).
+
+**Core blocker identified:** Decide station never calls `decision.record` tool. This is why:
+- 304 rows in decisions table (ID only, no forecasts)
+- 0 rows in agent_memory with kind='outcome' (precedent pool empty)
+- Learn station never runs (nothing to grade)
+
+**P0 Implementation Task:** Add `decision.record` tool invocation in Decide station. Task is documented in `docs/DECIDE-RECORD-IMPLEMENTATION.md` with:
+- Exact root cause
+- Database evidence
+- What needs to be implemented
+- Verification queries
+- Known good patterns
+- ETA: 1-2 hours
+
+**Next steps:**
+1. Founder watches sense→discover work on production (narrow proof of autonomous capability)
+2. MAIN implements decision.record call in loop.server.ts
+3. Re-test full loop end-to-end
+4. Mission gate satisfied
+
+**Blocker is architectural, not a bug:** Tool exists, schema ready, only invocation missing. Single addition unblocks entire learning loop and mission gate.
+
+---
+
