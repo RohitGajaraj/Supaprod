@@ -1182,10 +1182,43 @@ async function forecastDueDate(supabase: SupabaseClient, trackId: string): Promi
  * at "self-check-failed" and re-driven on the next tick.
  *
  * This implements Devin's pattern: do the work, reread the output, verify it
- * against the task, and if it fails, retry with the failure in context. The
- * verification is done here; retries happen by re-dispatching the station.
+ * against the task, and if it fails, retry. The verification is done here;
+ * retries happen by re-dispatching the station.
+ *
+ * S0-002 — CORRECTED. FIVE OF THE SEVEN CHECKS COULD NEVER PASS, AND THE
+ * SIXTH CLAIM ABOVE WAS NOT TRUE EITHER.
+ *
+ * As first written this asked the database for columns and artifact kinds that
+ * do not exist, measured 2026-08-26 against the live schema and all 1,516
+ * `spine_track_members` rows:
+ *
+ *   decide  `decisions.forecast_text`  -> the column is `forecast_claim`
+ *   define  `prds.brief`               -> the column is `body_md`
+ *   design  kind `design_memory`       -> design files `prototype` (19 rows)
+ *   ship    kind `deployment`          -> never filed once, and that is F-36
+ *   learn   kind `verdict`             -> learn files `learning` (4 rows)
+ *
+ * Only `sense` and `build` named anything real. PostgREST rejects a select
+ * naming a column that does not exist, so `data` came back null, `data ?? []`
+ * turned that into an empty list, and "the query failed" was read as "the work
+ * is empty". A decision carrying a real claim with a 2026-09-15 horizon failed
+ * the forecast check.
+ *
+ * 17 unit tests passed throughout, because they mock the same assumptions the
+ * function makes. Nothing asked the schema.
+ *
+ * THE RULE THAT FOLLOWS, and it is why each check below is shaped this way:
+ * **a check that could not be COMPUTED must pass.** Only a positive reading of
+ * missing or empty output may fail a station. A quality gate is an optimisation;
+ * a quality gate that stalls the loop on its own bug is a defect with a budget.
+ * The `error` is now read rather than discarded, and it is logged loudly.
+ *
+ * The retry also carries no feedback: `reason` is never persisted, only the
+ * coarse `self-check-failed` hold, and `priorHold` reaches `correction.ts`
+ * alone rather than the station brief. So a retry re-runs identical inputs. That
+ * is why the caller now counts an attempt — see the call site.
  */
-async function verifyStationOutput(
+export async function verifyStationOutput(
   supabase: SupabaseClient,
   station: AgentStation,
   attached: Attachment[],
@@ -1219,12 +1252,16 @@ async function verifyStationOutput(
       return { passed: false, reason: "No signals were filed" };
     }
     // Check that signals have content (not empty strings)
-    const { data: signals } = await supabase
+    const { data: signals, error: signalsError } = await supabase
       .from("signals" as never)
       .select("id, title")
       .in("id", signalIds);
+    if (signalsError) {
+      console.error(`[driver] sense self-check could not read signals: ${signalsError.message}`);
+      return { passed: true };
+    }
     const hasContent = (signals ?? []).some(
-      (s: { title?: string }) => s.title && s.title.trim().length > 0,
+      (s: { title?: string | null }) => s.title && s.title.trim().length > 0,
     );
     if (!hasContent) {
       return { passed: false, reason: "Signals were filed but have no content" };
@@ -1238,14 +1275,21 @@ async function verifyStationOutput(
     if (decisionIds.length === 0) {
       return { passed: false, reason: "No decision was recorded" };
     }
-    // Check that decisions have a forecast (the key output of Decide)
-    const { data: decisions } = await supabase
+    // Check that decisions have a forecast (the key output of Decide, and the
+    // one thing the product claims). The column is `forecast_claim` — 82 call
+    // sites and the generated types agree, and `forecast_text` has never existed.
+    const { data: decisions, error: decisionsError } = await supabase
       .from("decisions" as never)
-      .select("id, forecast_text, forecast_horizon_date")
+      .select("id, forecast_claim, forecast_horizon_date")
       .in("id", decisionIds);
+    if (decisionsError) {
+      console.error(`[driver] decide self-check could not read forecasts: ${decisionsError.message}`);
+      return { passed: true };
+    }
     const hasForecast = (decisions ?? []).some(
-      (d: { forecast_text?: string; forecast_horizon_date?: string }) =>
-        (d.forecast_text && d.forecast_text.trim().length > 0) || d.forecast_horizon_date,
+      (d: { forecast_claim?: string | null; forecast_horizon_date?: string | null }) =>
+        (d.forecast_claim && d.forecast_claim.trim().length > 0) ||
+        Boolean(d.forecast_horizon_date),
     );
     if (!hasForecast) {
       return { passed: false, reason: "Decision was recorded but has no forecast" };
@@ -1259,14 +1303,19 @@ async function verifyStationOutput(
     if (specIds.length === 0) {
       return { passed: false, reason: "No spec was drafted" };
     }
-    // Check that specs have content
-    const { data: specs } = await supabase
+    // Check that specs have content. The body column is `body_md`; `brief` has
+    // never existed on `prds`.
+    const { data: specs, error: specsError } = await supabase
       .from("prds" as never)
-      .select("id, title, brief")
+      .select("id, title, body_md")
       .in("id", specIds);
+    if (specsError) {
+      console.error(`[driver] define self-check could not read specs: ${specsError.message}`);
+      return { passed: true };
+    }
     const hasContent = (specs ?? []).some(
-      (p: { title?: string; brief?: string }) =>
-        (p.title && p.title.trim().length > 0) || (p.brief && p.brief.trim().length > 0),
+      (p: { title?: string | null; body_md?: string | null }) =>
+        (p.title && p.title.trim().length > 0) || (p.body_md && p.body_md.trim().length > 0),
     );
     if (!hasContent) {
       return { passed: false, reason: "Spec was drafted but has no content" };
@@ -1275,8 +1324,10 @@ async function verifyStationOutput(
   }
 
   if (station === "design") {
-    // Design must file design artifacts
-    const designIds = byKind.get("design_memory") ?? [];
+    // Design files `prototype` — 19 rows across the whole history. The kind
+    // `design_memory` has never been filed by anything, so asking for it failed
+    // every design that ever ran.
+    const designIds = byKind.get("prototype") ?? [];
     if (designIds.length === 0) {
       return { passed: false, reason: "No design was drafted" };
     }
@@ -1293,18 +1344,29 @@ async function verifyStationOutput(
   }
 
   if (station === "ship") {
-    // Ship must file deployments
-    const deploymentIds = byKind.get("deployment") ?? [];
-    if (deploymentIds.length === 0) {
-      return { passed: false, reason: "No deployment was recorded" };
-    }
+    /*
+     * SHIP GETS NO KIND CHECK HERE, DELIBERATELY, AND F-36 IS THE REASON.
+     *
+     * A `deployment` artifact kind has never been filed — not once in 1,516
+     * member rows — while `deployments` holds 42 successful rows. That gap IS
+     * F-36: ship has never written a track-member row. Demanding the kind here
+     * would fail every ship that has ever run, and it would do it in the hold
+     * that does not count an attempt, so the work would never move again.
+     *
+     * Ship's real proof is a `deployments` row with `status = 'success'`, and it
+     * is enforced where it belongs, at `release.publish` under R-27. A quality
+     * self-check must not quietly become a second production gate that the loop
+     * cannot satisfy.
+     */
     return { passed: true };
   }
 
   if (station === "learn") {
-    // Learn must file verdicts (verification results)
-    const verdictIds = byKind.get("verdict") ?? [];
-    if (verdictIds.length === 0) {
+    // Learn files `learning` — the only kind it has ever filed. The kind
+    // `verdict` has never existed, so this failed the one station that closes
+    // the loop, on the one track that has ever reached it.
+    const learningIds = byKind.get("learning") ?? [];
+    if (learningIds.length === 0) {
       return { passed: false, reason: "No verdict was recorded" };
     }
     return { passed: true };
@@ -2126,12 +2188,31 @@ export async function driveTrackOnce(
    *
    * If the crew filed artifacts and nothing else stopped it (no refusal, no
    * timeout), verify that the output quality is good enough to hand to the next
-   * station. If verification fails, hold at "self-check-failed" without counting
-   * an attempt, so the station can retry and improve the work on the next tick.
+   * station. If verification fails, hold at "self-check-failed" and count an
+   * attempt, so the station retries a bounded number of times and then routes to
+   * `decideCorrection` like every other station that cannot finish.
    *
-   * This is NOT a failure condition: the work exists and the crew ran cleanly.
-   * It is a quality gate the station applies to itself before advancing, using
-   * Devin's pattern (check, reread, retry if fails).
+   * S0-002 — IT COUNTS AN ATTEMPT NOW, AND IT DID NOT BEFORE.
+   *
+   * The original left `attempts` unchanged, reasoning that a quality check is
+   * not a failure. The reasoning is fair and the effect was not: `attempts` is
+   * the ONLY thing that bounds a station. Leaving it at 0 meant
+   * `MAX_STATION_ATTEMPTS` never tripped, `given-up` never fired,
+   * `decideCorrection` was never reached, and every stuck-work alarm keyed on
+   * the counter stayed silent — while each tick re-ran the full crew at real
+   * cost. Spend rising while a counter stays 0 is the exact shape this repo has
+   * already paid for once.
+   *
+   * A free retry would also buy nothing here. `reason` is not persisted and
+   * `priorHold` reaches `correction.ts` rather than the station brief, so the
+   * retry re-runs identical inputs and produces an identical result. An
+   * unbounded retry that cannot learn is strictly worse than a bounded one.
+   * Feeding the reason back into the brief is the follow-up that makes this
+   * Devin's loop in full; until then, bounded is the honest shape.
+   *
+   * `needs-evidence` below still leaves `attempts` alone and is right to: it
+   * waits on a CLOCK, which resolves itself and costs nothing to wait for. This
+   * one waits on a crew, which does not and does.
    */
   if (producedThisVisit && !failed && !haltedAs && !overBudget && !ranLong) {
     const verification = await verifyStationOutput(supabase, station, attached);
@@ -2139,7 +2220,9 @@ export async function driveTrackOnce(
       await supabase
         .from("spine_tracks" as never)
         .update({
-          // attempts deliberately UNCHANGED: quality check is not a failure.
+          // Counted: `attempts` is the only thing that bounds a station, and the
+          // only thing any stuck-work alarm reads. See the block above.
+          attempts: (row.attempts ?? 0) + 1,
           last_hold: "self-check-failed",
           driven_at: new Date().toISOString(),
         } as never)
