@@ -109,6 +109,21 @@ describe("every seat is told how to finish", () => {
    * agents doing EXACTLY what they were briefed to do. The defect is the brief,
    * not the crew.
    *
+   * NAMING IT IN THE BRIEF IS NOT ENOUGH, and this is the part that would have
+   * cost a wasted cycle. Two more things drop the forecast before it arrives:
+   *
+   *   1. `chain.ts:120` is `decision: { table: "decisions", title: "title",
+   *      body: "rationale" }`. Only `rationale` is selected, so not one of the
+   *      ELEVEN `forecast_*` columns on `decisions` is ever loaded.
+   *   2. `driver.ts:871` is `describeUpstream(upstream, station === "learn" ?
+   *      ["prd"] : [])`, and `describeUpstream` inlines only the two NEWEST
+   *      bodies plus the yardstick. On a full walk the decision is among the
+   *      oldest, so even a forecast-carrying body would be dropped at Learn.
+   *
+   * So the fix is three changes and any one alone does nothing: carry the
+   * forecast columns in the decision's body, make the decision a yardstick at
+   * Learn, and name the forecast in the brief.
+   *
    * Left as a todo rather than a failing assertion for the same reason as before:
    * four lanes gate every push on `bun test`, and the fix is S0's, in S0's file.
    * It flips to a real assertion the moment the Learn brief names the forecast.

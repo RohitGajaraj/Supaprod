@@ -71,10 +71,30 @@ proposed in `S4-052` before I knew the cause:
 Guarded meanwhile in `src/lib/spine/every-seat-is-told-how-to-finish.test.ts` as a todo carrying the
 assertion, so it flips green the moment the brief changes.
 
+## Adding it to the brief is NOT enough, and this is the part that would have cost a cycle
+
+I filed the fix above as one change, then went and checked whether the forecast's VALUES could even
+reach the seat. They cannot. Two more things drop them first:
+
+| where | what it does |
+| --- | --- |
+| `chain.ts:120` | `decision: { table: "decisions", title: "title", body: "rationale" }` |
+| `driver.ts:871` | `describeUpstream(upstream, station === "learn" ? ["prd"] : [])` |
+
+**Only `rationale` is selected**, so not one of the **eleven** `forecast_*` columns on `decisions`
+is ever loaded. And `describeUpstream` inlines only the two NEWEST bodies plus the yardstick, whose
+only entry at Learn is `prd`. On a full seven-station walk the decision is among the oldest
+artifacts, so even a forecast-carrying body would be dropped before the seat read it.
+
+**Three changes, and any one alone does nothing:**
+
+1. `chain.ts:120` carries the forecast columns in the decision's body.
+2. `driver.ts:871` makes `decision` a yardstick at Learn, beside `prd`.
+3. `FILE_IT.learn` names the forecast, so the seat grades it.
+
 ## What I am not claiming
 
 - **I did not check the other five stations for the same shape.** Learn was checked because it is
   where the forecast would have to be read.
-- **I did not establish that adding the forecast to the brief is sufficient.** The seat also needs
-  the forecast's VALUES, and whether `describeUpstream` carries the decision row's forecast columns
-  into the brief is unverified.
+- **I did not verify that `decisions.title` and a forecast-carrying body fit the inline budget.**
+  `describeUpstream` bounds how much it inlines, and three more columns is more text.
