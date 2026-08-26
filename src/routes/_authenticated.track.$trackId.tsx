@@ -196,7 +196,21 @@ function TrackPage() {
   const track = trackQ.data ?? null;
   const decideWaived = track ? waiverFor(track.route, "decide") !== null : false;
 
-  const settled = track?.status === "done";
+  /*
+   * ABANDONED IS SETTLED TOO, and leaving it out was a gap rather than a
+   * decision. The inversion narrows the walking rail and gives the page to what
+   * the run produced, and its reason is that nothing is walking any more, so
+   * the wide column is spent on a transcript nobody is watching while the thing
+   * a person actually came to read stays in the narrow half.
+   *
+   * That reason applies to an abandoned run exactly as it does to a finished
+   * one: it has stopped for good and what is left is what it made.
+   * workbench.css's own comment already describes the trigger more broadly than
+   * the code implemented it, "track.status === done OR the walk's own finished
+   * result", so this closes the gap between the two rather than widening the
+   * rule.
+   */
+  const settled = track?.status === "done" || track?.status === "abandoned";
 
   return (
     /*
