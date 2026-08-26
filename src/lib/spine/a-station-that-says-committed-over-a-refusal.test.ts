@@ -284,7 +284,27 @@ describe("a detected overclaim adds a sentence and changes nothing else", () => 
 
   /** The run was already `completed_with_failures`. The status was never the lie. */
   it("never rewrites the run's own account", () => {
-    expect(CODE).not.toContain('.from("agent_runs")');
+    /*
+     * NARROWED 2026-08-27, from a file-wide ban on touching `agent_runs` to a
+     * ban on WRITING to it, which is the invariant this test is named for.
+     *
+     * The blanket form also forbade READING, and reading is how a retry learns
+     * what it already concluded: `lastAnswerOnTrack` hands the crew's own
+     * previous answer back to a `produced-nothing` retry, which is the other
+     * half of the loop §1 asks for. Measured on track `a30238f5`, three runs at
+     * Discover each answered "no user-sourced evidence exists" without knowing
+     * the one before it had said the same.
+     *
+     * A read cannot rewrite an account. The write is what this guards, so the
+     * write is what it checks.
+     */
+    const writes = [
+      ...CODE.matchAll(/\.from\("agent_runs"\)[\s\S]{0,200}?\.(update|insert|upsert|delete)\(/g),
+    ];
+    expect(
+      writes.map((m) => m[1]),
+      "the driver wrote to agent_runs",
+    ).toEqual([]);
   });
 
   it("adds itself to the sentence rather than replacing the reason", () => {

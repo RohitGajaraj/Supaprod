@@ -96,8 +96,8 @@ const FAQ: FaqEntry[] = [
   {
     q: "What does Supaprod integrate with?",
     a: [
-      "GitHub is the deepest and the one to start with: it reads signals from your repository, and it can open and merge pull requests. Slack, Intercom, Zendesk, Stripe, HubSpot, Salesforce, Canny and Productboard have working adapters that feed signals into Discover.",
-      "Linear, Jira, Notion, Figma and the Google and Microsoft suites appear in the connector list but their adapters are not built yet, so connecting one will not return signals. They are listed because they are next, not because they work today. Better to say so here than to let you find it after you have connected one.",
+      "GitHub is the deepest and the one to start with: it reads signals from your repository, and it can open and merge pull requests. Linear, Jira, Notion, Figma, Google Docs, Gmail, Outlook, Microsoft Mail, Slack, Intercom, Zendesk, Stripe, HubSpot, Salesforce, Canny and Productboard all have working adapters that feed signals into Discover.",
+      "Three are listed and not built: Google Calendar, Google Tasks and Firecrawl. Connecting one authorises the account and returns no signals. They are there because they are next, not because they work today, and it is better to say so here than to let you find out after you have connected one.",
     ],
   },
 ];

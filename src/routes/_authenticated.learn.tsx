@@ -670,8 +670,19 @@ function Learn() {
               ) : null
             }
           >
+            {/*
+              NOT `tight`. Measured on production: 135 learning summaries, mean
+              181 characters, longest 631, and 134 of the 135 over seventy, which
+              is roughly what one clamped line shows. This row has no onClick and
+              nothing else on the desk opens it, so the clipped half was simply
+              lost: what the loop learned, cut mid-sentence on the surface built
+              to report it.
+
+              The highlight rows below KEEP tight, and the difference is the
+              contract rather than the length: clicking one focuses it and it is
+              rendered in full above. That is the detail view `tight` asks for.
+            */}
             <Row
-              tight
               lead={
                 lastSettled.summary.trim() ||
                 lastSettled.opportunity_title ||

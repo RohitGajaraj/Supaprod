@@ -25,6 +25,27 @@ export type CompoundingLearning = {
   prior_ice: number | string | null;
   new_ice: number | string | null;
   created_at: string;
+  /**
+   * WHAT WAS EXPECTED, beside what happened. Added 2026-08-27.
+   *
+   * The pairing IS the product: a verdict on its own is a status word, and the
+   * forecast written at Decide, before anyone knew the answer, is the one thing
+   * no competitor can reconstruct afterwards. This feed existed to show the
+   * record compounding and carried only the second half of it.
+   *
+   * NULL IS A POSITIVE ABSENCE, not a failed read. A learning whose decision
+   * carried no written expectation (the waived-Decide shape, F-61) genuinely
+   * has nothing to compare against, and the surface must say so rather than
+   * leave a gap that reads as "we did not look".
+   *
+   * OPTIONAL, not required, and the distinction is load bearing. `rescoresOf`
+   * is shared with `OutcomeHistory`, which reads `listLearnings` and does not
+   * carry the decision embed. Making this required would force that caller to
+   * invent a field it never reads, which is how a type stops describing the
+   * data and starts describing the type. Absent and null mean the same thing
+   * to every reader: nothing to compare against.
+   */
+  forecast_claim?: string | null;
 };
 
 /** A learning whose ICE actually moved, with the numeric delta resolved. */

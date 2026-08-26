@@ -56,6 +56,7 @@ import {
   holdForHalt,
   isEnvironmentFailure,
   needIsMet,
+  producedNothingNote,
   selfCheckNote,
   STATION_NEEDS,
 } from "@/lib/spine/correction";
@@ -1797,6 +1798,16 @@ export async function driveTrackOnce(
    * informative failure, and a station should hear that first rather than about
    * its own earlier refusal.
    */
+  /*
+   * The other half of the same loop. `selfCheckBack` speaks to a station that
+   * filed something bad; this speaks to one that filed nothing, which is the
+   * more common and until now the more silent failure.
+   */
+  const producedNothingBack =
+    !correctionBack && row.last_hold === "produced-nothing"
+      ? producedNothingNote(station, await lastAnswerOnTrack(supabase, row.id))
+      : null;
+
   const selfCheckBack =
     !correctionBack && row.last_hold === "self-check-failed"
       ? selfCheckNote(
@@ -1811,7 +1822,7 @@ export async function driveTrackOnce(
         )
       : null;
 
-  const backNote = correctionBack ?? selfCheckBack;
+  const backNote = correctionBack ?? selfCheckBack ?? producedNothingBack;
   const cap = await resolveTrackSpendCap(
     supabase,
     row.workspace_id,
@@ -2818,6 +2829,35 @@ async function refusedToolInTraces(
  * The hold stays `produced-nothing` — nothing WAS filed, and that is the honest
  * classification. Only the line changes, to name the obstacle.
  */
+/**
+ * THE LAST THING THIS TRACK'S CREW ACTUALLY SAID.
+ *
+ * Read for the `produced-nothing` retry, so a station is not re-dispatched with
+ * no memory of the conclusion it reached ten minutes ago. One row, newest first.
+ *
+ * Fail-soft to null: a station told nothing gets the weaker note rather than no
+ * run, because an unreadable transcript is a reason to be less specific, never a
+ * reason to stop the work.
+ */
+async function lastAnswerOnTrack(
+  supabase: SupabaseClient,
+  trackId: string,
+): Promise<string | null> {
+  try {
+    const { data } = await supabase
+      .from("agent_runs")
+      .select("output")
+      .eq("track_id", trackId)
+      .not("output", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    return (data as { output?: string | null } | null)?.output ?? null;
+  } catch {
+    return null;
+  }
+}
+
 async function lastFailingTool(
   supabase: SupabaseClient,
   traceIds: string[],

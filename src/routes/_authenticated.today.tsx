@@ -32,6 +32,7 @@ import { HandoverNote } from "@/components/today/HandoverNote";
 import { OverlapCheck, OverlapNote } from "@/components/today/OverlapNote";
 import { PushedInsights } from "@/components/today/PushedInsights";
 import { runTotals, spendWords } from "@/components/today/run-totals";
+import { lastMovedAt, stillnessLine } from "@/components/today/last-movement";
 import { trackToBoardRows, type TrackBoardRow } from "@/components/today/tracks-feed";
 import { QuietMorning } from "@/components/today/QuietMorning";
 import { RunState, ShippedState } from "@/components/today/RunState";
@@ -484,6 +485,15 @@ type CrewRow = {
   state: React.ReactNode;
   /** Epoch ms of the last thing that happened. Newest first in a section. */
   at: number;
+  /**
+   * A sentence the ROW cannot hold, drawn on the line underneath it.
+   *
+   * The state slot sits beside a truncating title and does not wrap, so it is
+   * for a few words. The driver's hold sentences are real prose and run to 250
+   * characters, and they are worth reading rather than clipping. Same place
+   * `HandoverNote` puts what a row cannot carry.
+   */
+  note?: string | null;
   onOpen: () => void;
   /**
    * THE ACT THE ROW NEEDS, when "reply" is not it. A proposed mission is
@@ -574,7 +584,20 @@ function CrewLine({
         <span className="min-w-0 flex-1 truncate text-mrd-label font-medium text-mrd-ink">
           {row.title}
         </span>
-        <span className="flex shrink-0 items-baseline gap-mrd-2 text-mrd-data text-mrd-mute">
+        {/* BOUNDED, FOR THE SAME REASON THE TITLE IS. This span is `shrink-0`
+            so a live clock like "19h 23m running" is never clipped, and that
+            was safe only while every state line was short. It is not any more:
+            a parked track carries the driver's own hold sentence, and those run
+            to 250 characters ("This station has been run many times over and
+            the work has not moved on once. That is the loop rather than any
+            single run, so nothing further will be spent on it until you look.")
+            In a shrink-0 span that squeezes the title to nothing and breaks the
+            row. Two open tracks in this workspace are in exactly that state.
+            A ceiling with truncation keeps every ordinary state intact, since
+            they are far under it, and degrades the pathological one instead of
+            destroying the row around it. The full sentence is on the run, one
+            click away, which is the argument the title's own truncation makes. */}
+        <span className="flex min-w-0 max-w-[40ch] shrink-0 items-baseline gap-mrd-2 truncate text-mrd-data text-mrd-mute">
           {row.who ? `${row.who} · ` : ""}
           {row.state}
         </span>
@@ -690,6 +713,16 @@ function Today() {
      database and I will not print a number I cannot source from a payload. A
      server-side change is filed; until then this line speaks only for runs. */
   const totals = React.useMemo(() => runTotals(sessions.data?.sessions, undefined), [sessions.data]);
+
+  /* WHEN ANYTHING LAST MOVED. The brief's third glance-fact is "what changed",
+     and its honest form is this: there is no per-user last-seen watermark in
+     the database (when.ts and today-lanes.functions.ts:542 both say so), so
+     "since you last looked" cannot be drawn. When the workspace last moved can.
+     Reads the rows already on hand; speaks only once movement has stopped. */
+  const stillness = React.useMemo(
+    () => stillnessLine(lastMovedAt(Date.now(), rows, tracks.data), Date.now(), ago),
+    [rows, tracks.data],
+  );
 
   // The track record read. CHARACTER-IDENTICAL KEY to Brain's, so the two
   // surfaces are two consumers of ONE request and the tab opens on a cache hit.
@@ -921,7 +954,8 @@ function Today() {
     return {
       reply: grouped.waiting.map((r): CrewRow => ({
         ...base(r),
-        state: <>{r.holdLine ?? "Waiting on your answer"}</>,
+        state: <>{r.holdLine ?? "waiting on your answer"}</>,
+        note: r.reason,
       })),
       // A held track says WHY before it says when it moved: stopped-for-a-
       // reason must not read as slow.
@@ -1449,6 +1483,20 @@ function Today() {
     () => rows.some((m) => STUCK.has(m.status)),
     [rows],
   );
+  /*
+   * `crewTotal === 0` CARRIES THE TRACKS, and leaving it out was a second way
+   * to claim a quiet morning over work that is on screen. Every clause here
+   * counts MISSIONS: `items`, `shipped`, `anythingBlocked` and `running` all
+   * read the mission list, and none of them can see a spine track. `/start`
+   * creates a track and no mission (C2-003), so a workspace driving three
+   * tracks and no missions satisfied every test above while three rows stood
+   * in the feed underneath the sentence saying nothing needed anyone.
+   *
+   * This workspace has three open tracks right now, so it is the live case
+   * rather than a hypothetical. `crewTotal` is the feed's own total across all
+   * three lanes and both engines, which makes it the same number the reader is
+   * looking at.
+   */
   const quietMorning =
     !loading &&
     !queue.isError &&
@@ -1456,7 +1504,8 @@ function Today() {
     items.length === 0 &&
     shipped.length === 0 &&
     !anythingBlocked &&
-    running.length === 0;
+    running.length === 0 &&
+    crewTotal === 0;
 
   /**
    * A FAILED READ IS NOT A QUIET MORNING, and this sentence is where the two
@@ -1502,8 +1551,28 @@ function Today() {
     if (missions.isError) return "Your run record did not load.";
     if (queue.isError) return "Your review queue did not load.";
     if (justLanded && criticResult) return "Your first brief is ready.";
+    /*
+     * ONE SENTENCE ON A QUIET MORNING, not two negations.
+     *
+     * `stateSentence` at all-zero produces "Nothing is ready for your review."
+     * followed by " Nothing is stuck.", and this is the HEADLINE, the first
+     * line a person reads. Together with the region sub below it that made five
+     * negations in the first viewport, which is the audit finding that cost
+     * this surface the home slot on 2026-08-25.
+     *
+     * A quiet morning is this product working, not failing: the boundaries
+     * held, the crew got on with it, and nothing needed a person. That deserves
+     * one clear sentence rather than an inventory of absences. It stays a
+     * negation because the fact IS negative and dressing it up would be worse,
+     * but one honest negation reads as calm and four read as broken.
+     *
+     * Every other branch is untouched. When there is something to say, the
+     * counted sentence says it.
+     */
+    if (quietMorning) return "Nothing needs you right now.";
     return stateSentence({ ready: items.length, stuck: stuck.length, shipped: shipped.length });
   }, [
+    quietMorning,
     loading,
     queue.isError,
     missions.isError,
@@ -1676,12 +1745,35 @@ function Today() {
                       <Num>{items.length}</Num> waiting on you. Nothing has happened yet, so undo is
                       free.
                     </>
+                  ) : quietMorning ? (
+                    /* SILENT ON A QUIET MORNING, and this is the wall coming
+                       down. An audit of the real first sixty seconds found this
+                       surface opening with FIVE NEGATIONS in one viewport, and
+                       that finding is why `/start` took the home slot from it
+                       on 2026-08-25 (post-auth-home.ts). Four of the five were
+                       here, in one sentence: "Nothing is waiting on you.
+                       Nothing stopped, no agent is working and nothing went
+                       live."
+
+                       When the whole board is quiet, `QuietMorning` renders
+                       directly below and says the same thing once, in the
+                       positive, with a worked example of what an arrival looks
+                       like. Saying it four more times first does not make it
+                       truer, it just makes the screen read as broken. So this
+                       says nothing and lets the considered screen carry it.
+
+                       The negations STAY when the board is not quiet, because
+                       then they are news: an empty review queue beside three
+                       running rows is a fact worth printing. */
+                    null
                   ) : (
-                    <>Nothing is waiting on you.</>
+                    <>
+                      Nothing is waiting on you.
+                      {crewQuietLine
+                        ? ` ${crewQuietLine.charAt(0).toUpperCase()}${crewQuietLine.slice(1)}.`
+                        : null}
+                    </>
                   )}
-                  {crewQuietLine
-                    ? ` ${crewQuietLine.charAt(0).toUpperCase()}${crewQuietLine.slice(1)}.`
-                    : null}
                 </>
               )
             }
@@ -1750,6 +1842,19 @@ function Today() {
                 admits its own wait AND its own refusal in the JSX. At zero no
                 section draws at all, so the assurances live once on the card's
                 own sub-line above, where all three fit as one sentence. */}
+            {/* THE SILENCE, NAMED. A truthfully quiet board and a broken one
+                look identical, and that is the expensive confusion: a person
+                cannot tell from a calm screen whether the crew finished or the
+                sweep died three days ago. This draws ABOVE the read-state chain
+                on purpose, because the state it speaks for is the one where
+                every lane below it is empty. It says nothing while work is
+                fresh, since the rows carry their own clocks. */}
+            {stillness ? (
+              <p className="mb-mrd-4 max-w-[62ch] text-mrd-data leading-mrd-prose text-mrd-mute">
+                {stillness}
+              </p>
+            ) : null}
+
             {stillWaiting(missions) ? (
               <Reading>Reading the run record.</Reading>
             ) : missions.isError ? (
@@ -1804,7 +1909,17 @@ function Today() {
                      is filed with S0. */
                   "Nothing moves on these until you answer. This lane shows the last 24 hours, so anything waiting longer is not here.",
                   (row) =>
-                    row.proposed ? (
+                    /* A TRACK IS NOT ANSWERING A QUESTION HERE, so it is not
+                       offered a Reply. Seen live 2026-08-27: a track parked on
+                       going-in-circles sat in this lane wearing a Reply button,
+                       and nothing had asked anything — the loop ran out of road.
+                       Reply opens an Ask conversation, while a track's answer
+                       belongs in its own steer composer on the run, which is
+                       where its one exit (rewindTrackTo) also lives. The row
+                       already opens that run, so the honest verb is none: the
+                       same call C2-006 made when Stop was removed from track
+                       rows for naming a mutation that could not run on them. */
+                    row.isTrack ? null : row.proposed ? (
                       /* A PROPOSED MISSION IS NOT ASKING A QUESTION — it is
                          waiting for a person to review and launch it, and the
                          launch control lives on the run. Naming the act beats
@@ -1826,8 +1941,20 @@ function Today() {
                         Reply
                       </Action>
                     ),
-                  (row) =>
-                    replyTo === row.id ? (
+                  (row) => (
+                    <>
+                      {/* WHY IT STOPPED, on the line under the row. Parked work
+                          carries the driver's own sentence and it is 250
+                          characters of real prose; the row's state slot is a
+                          few words wide and does not wrap. Drawn verbatim: this
+                          surface is not entitled to reword the product's voice,
+                          only to put it where it fits. */}
+                      {row.note ? (
+                        <p className="px-mrd-2 pb-mrd-2 text-mrd-data leading-mrd-prose text-mrd-mute">
+                          {row.note}
+                        </p>
+                      ) : null}
+                      {replyTo === row.id ? (
                       <ReasonField
                         id={`feed-reply-${row.id}`}
                         label={`Answer ${row.who ?? "this run"}`}
@@ -1841,7 +1968,9 @@ function Today() {
                         }}
                         onCancel={() => setReplyTo(null)}
                       />
-                    ) : null,
+                      ) : null}
+                    </>
+                  ),
                 )}
                 {crewSection(
                   FEED_LIVE,

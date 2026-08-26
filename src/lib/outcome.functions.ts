@@ -2079,11 +2079,14 @@ export const listLearnings = createServerFn({ method: "GET" })
   )
   .handler(async ({ context, data }) => {
     const db = context.supabase as unknown as SupabaseClient;
-    let q = db
-      .from("learnings")
-      .select(
-        "id, prd_id, opportunity_id, workspace_id, verdict, summary, metric_label, metric_value, prior_ice, new_ice, created_at, recorded_by_agent_slug, opportunity:opportunities(title, theme_id)",
-      );
+    let q = db.from("learnings").select(
+      // `decision:decisions(forecast_claim)` is the pairing. A verdict on its own
+      // is a status word; the call written at Decide, before anyone knew the
+      // answer, is the half nothing else can reconstruct afterwards. To-one
+      // embed, flattened below like the opportunity one because PostgREST may
+      // widen either to an array.
+      "id, prd_id, opportunity_id, workspace_id, verdict, summary, metric_label, metric_value, prior_ice, new_ice, created_at, recorded_by_agent_slug, opportunity:opportunities(title, theme_id), decision:decisions(forecast_claim)",
+    );
     if (data.workspaceId) q = q.eq("workspace_id", data.workspaceId);
     // `not(...is.null)` rather than a comparison: in SQL a NULL never satisfies
     // one, so a bare filter would have looked like it worked while quietly
@@ -2121,10 +2124,12 @@ export const listLearnings = createServerFn({ method: "GET" })
         | { title: string | null; theme_id: string | null }
         | { title: string | null; theme_id: string | null }[]
         | null;
+      decision: { forecast_claim: string | null } | { forecast_claim: string | null }[] | null;
     };
     const rows = (learnings ?? []) as LearningWire[];
-    const flattened = rows.map(({ opportunity, ...rest }) => {
+    const flattened = rows.map(({ opportunity, decision, ...rest }) => {
       const opp = Array.isArray(opportunity) ? opportunity[0] : opportunity;
+      const dec = Array.isArray(decision) ? decision[0] : decision;
       // opportunity_theme_id feeds the reinforcement seam (ranking.ts
       // outcomeSupportFromCounts): the queue folds each theme's decisive
       // outcome record into the order of NEW bets on the same evidence.
@@ -2132,6 +2137,10 @@ export const listLearnings = createServerFn({ method: "GET" })
         ...rest,
         opportunity_title: opp?.title ?? null,
         opportunity_theme_id: opp?.theme_id ?? null,
+        // A blank claim is the same as none. An empty string would render an
+        // empty expectation, which asserts a call existed and said nothing
+        // rather than that none was written.
+        forecast_claim: dec?.forecast_claim?.trim() ? dec.forecast_claim.trim() : null,
       };
     });
     return { learnings: flattened };

@@ -750,6 +750,38 @@ export function selfCheckNote(to: AgentStation, reason: string | null): string {
 }
 
 /**
+ * WHAT THE LAST ATTEMPT ANSWERED, HANDED BACK TO THE NEXT ONE.
+ *
+ * `selfCheckNote` closed half of Devin's loop: a station that FILED something
+ * bad is told what its own check refused. The other half stayed open, and it is
+ * the half that has been costing the most.
+ *
+ * A station held `produced-nothing` filed nothing at all, so there is no output
+ * to re-check and `selfCheckNote` has nothing to say. It was re-dispatched with
+ * exactly the inputs it had last time and no memory of what it had already
+ * concluded. MEASURED on track `a30238f5`, 2026-08-27: three runs at Discover,
+ * each independently answering *"no user-sourced evidence exists"*, none of them
+ * aware that the previous run had already searched and said the same thing. That
+ * is not a retry, it is the same run three times at three times the price.
+ *
+ * The crew's own answer is the most informative thing about that failure and it
+ * was already on the record in `agent_runs.output`. This hands it back.
+ *
+ * WHY IT NAMES THE ANSWER RATHER THAN SUMMARISING IT: a summary is a model call,
+ * and this file makes none. The words the crew wrote are what it needs to see,
+ * verbatim and truncated, so it recognises its own reasoning and does not spend
+ * another dispatch reconstructing it.
+ */
+export function producedNothingNote(to: AgentStation, lastAnswer: string | null): string {
+  const head = `${label(to)} is running again because its last attempt put NOTHING on the record.`;
+  if (!lastAnswer?.trim()) {
+    return `${head} What it concluded was not recorded, so start from the record rather than from a fresh search, and if the answer is genuinely that nothing is there, say exactly what is missing.`;
+  }
+  const said = lastAnswer.trim().slice(0, 600);
+  return `${head} It answered, in its own words: "${said}" Repeating that search will produce that answer again. Either use what is ALREADY on the record, or name precisely what is missing and why nothing on the record can stand in for it. Do not send back the same conclusion in different words.`;
+}
+
+/**
  * The sentence written to memory so the NEXT piece of work does not repeat this.
  *
  * Written as guidance rather than as an incident report, because it is recalled

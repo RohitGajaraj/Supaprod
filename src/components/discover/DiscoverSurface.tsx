@@ -228,6 +228,7 @@
  */
 
 import { AutomationBoundary } from "@/components/governance/AutomationBoundary";
+import { wordFor } from "@/lib/spine/chain";
 import { Row, Line } from "@/components/meridian/rows";
 import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -2621,7 +2622,13 @@ export function DiscoverSurface({
                  same reason: one loud account and a broad pattern read the same
                  by volume and are opposite decisions. */
               <span key="ev">
-                <Num>{focused.theme.frequency}</Num> signal{plural(focused.theme.frequency)} from{" "}
+                {/* `wordFor`, not the literal word. S0 renamed the display word
+                    for this kind from "signal" to "finding" in KIND_WORD, and
+                    this surface still said the old one while the run screen and
+                    the Decide desk said the new one: one product, two words for
+                    one thing. */}
+                <Num>{focused.theme.frequency}</Num> {wordFor("signal", focused.theme.frequency)}{" "}
+                from{" "}
                 <Num>{focusedSources.length}</Num> separate source
                 {plural(focusedSources.length)}
                 {focusedSources.length > 0
@@ -2665,7 +2672,7 @@ export function DiscoverSurface({
               focusedMembers.length > 0 || memberShortfall ? (
                 <div key="members">
                   <div className="flex flex-wrap items-baseline justify-between gap-mrd-inline">
-                    <CtxHead>Every signal in this cluster</CtxHead>
+                    <CtxHead>Every finding in this cluster</CtxHead>
                     {/* THE CLAIM STOPS WHERE THE READ STOPS. `listSignals`
                         returns the newest 200 signals in the workspace and says
                         nothing about what it dropped, so a loud cluster can hold

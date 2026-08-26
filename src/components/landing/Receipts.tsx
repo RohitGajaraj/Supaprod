@@ -106,7 +106,13 @@ export function Receipts() {
   // and the reason is four paragraphs up.
   const artifacts = [
     { label: "Watch a full loop run, no login", href: "/demo" },
-    { label: "What shipped this week", href: "/updates" },
+    // "What shipped this week" until 2026-08-27, when the newest entry on
+    // /updates was 17 days old. The label promised a cadence the log does not
+    // keep, which is the same defect as the /demo one above: a link describing
+    // what we intended rather than what is there. The log is genuinely dated
+    // and genuinely checkable, so the honest label is about the dating rather
+    // than the frequency.
+    { label: "The dated log of what shipped", href: "/updates" },
   ];
 
   return (

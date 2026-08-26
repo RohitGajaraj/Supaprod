@@ -215,6 +215,8 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { sourceLabel } from "@/components/discover/format";
+import { wordFor } from "@/lib/spine/chain";
 import { Row, Line } from "@/components/meridian/rows";
 import {
   Action,
@@ -1512,11 +1514,21 @@ function DecideSurface() {
       (provenance.data?.source_signals ?? []).map((sig) => {
         const said = (sig.content ?? sig.title ?? "").trim();
         const when = ago(sig.created_at);
+        /*
+         * `sourceLabel`, not the stored token. These are column values like
+         * `competitive_research` and `sales-call`, and the evidence cards were
+         * printing them as stored, so the one section titled "What people
+         * actually said" attributed quotes to a database identifier. The
+         * humaniser knows the brands it knows and prettifies the rest, and it
+         * answers "An unnamed source" for a null rather than the word
+         * "unattributed", which read like a verdict on the evidence.
+         */
+        const from = sourceLabel(sig.source);
         return {
           id: sig.id,
-          title: `${sig.source ?? "unattributed"}${when ? `, ${when} ago` : ""}`,
+          title: `${from}${when ? `, ${when} ago` : ""}`,
           body: said,
-          source: { label: sig.source ?? "signal", kind: "chat" as const },
+          source: { label: from, kind: "chat" as const },
         };
       }),
     [provenance.data],
@@ -2536,8 +2548,10 @@ function DecideSurface() {
               <CtxHead>What backs it</CtxHead>
               {activeSignals !== null ? (
                 <CtxBody>
-                  <Num>{activeSignals}</Num> {activeSignals === 1 ? "signal" : "signals"} in the
-                  record
+                  {/* One vocabulary. S0 renamed the display word for this kind
+                      to "finding" in KIND_WORD; this line still said the old one
+                      while the same page said the new one two sections above. */}
+                  <Num>{activeSignals}</Num> {wordFor("signal", activeSignals)} in the record
                 </CtxBody>
               ) : activeOpp?.theme_id ? (
                 /* IT HAS A CLUSTER AND WE DID NOT LOOK IT UP, which is not the
@@ -2839,11 +2853,29 @@ function DecideSurface() {
               ...(provenanceSources.length > 0
                 ? [
                     <span key="sources">
-                      <Num>{provenance.data?.source_signals?.length ?? 0}</Num> signal
-                      {(provenance.data?.source_signals?.length ?? 0) === 1 ? "" : "s"} behind it,
+                      {/*
+                       * `wordFor`, NOT the literal word. S0 renamed the display
+                       * word for this kind from "signal" to "finding" in
+                       * KIND_WORD on 2026-08-27, because section 12's map is
+                       * explicit that a practitioner does not say signals. This
+                       * sentence had its own hardcoded copy, so the product was
+                       * saying both words on two surfaces about one thing. One
+                       * vocabulary, read from the place that owns it.
+                       */}
+                      <Num>{provenance.data?.source_signals?.length ?? 0}</Num>{" "}
+                      {wordFor("signal", provenance.data?.source_signals?.length ?? 0)} behind it,
                       from <Num>{provenanceSources.length}</Num> separate source
                       {provenanceSources.length === 1 ? "" : "s"}:{" "}
-                      {provenanceSources.slice(0, 2).join(", ")}
+                      {/*
+                       * `sourceLabel` from the Discover surface, which is the
+                       * one humaniser this product already had: brand names for
+                       * the sources it knows, and a token prettifier for the
+                       * rest, so `competitive_research` reads "Competitive
+                       * research". I first wrote a second helper here and that
+                       * was the same defect I keep filing against other lanes:
+                       * the thing already existed, in my own prefix.
+                       */}
+                      {provenanceSources.slice(0, 2).map((x) => sourceLabel(x)).join(", ")}
                       {provenanceSources.length > 2 ? " and more" : ""}.
                     </span>,
                   ]

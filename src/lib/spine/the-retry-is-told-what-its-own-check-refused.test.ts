@@ -125,14 +125,14 @@ describe("the driver wires both, and only where it should", () => {
   });
 
   it("the brief-time verification reads the record alone, because there is no harvest yet", () => {
-    const at = BODY.indexOf("selfCheckBack");
+    const at = BODY.indexOf("const selfCheckBack =");
     const block = BODY.slice(at, at + 500);
     expect(block).toContain("filedAtStation(");
     expect(block).not.toContain("unionFiled(");
   });
 
   it("the self-check note is written only for a self-check hold", () => {
-    const at = BODY.indexOf("selfCheckBack");
+    const at = BODY.indexOf("const selfCheckBack =");
     expect(at).toBeGreaterThan(-1);
     const block = BODY.slice(at, at + 400);
     expect(block).toContain('row.last_hold === "self-check-failed"');
@@ -141,10 +141,19 @@ describe("the driver wires both, and only where it should", () => {
   it("a correction from a later station outranks it", () => {
     // Both can be true at once; the downstream failure is the more informative
     // one and must be what the station hears.
-    const at = BODY.indexOf("selfCheckBack");
+    const at = BODY.indexOf("const selfCheckBack =");
     const block = BODY.slice(at, at + 400);
     expect(block).toContain("!correctionBack");
-    expect(BODY).toContain("const backNote = correctionBack ?? selfCheckBack;");
+    /*
+     * THREE NOW, and the order is the ruling. A correction from a later station
+     * is the most informative failure. The self-check note comes next: something
+     * FILED and refused is more specific than nothing filed. `producedNothingBack`
+     * is last because it speaks to the emptiest case, a station that put nothing
+     * on the record at all.
+     */
+    expect(BODY).toContain(
+      "const backNote = correctionBack ?? selfCheckBack ?? producedNothingBack;",
+    );
   });
 
   it("filedAtStation asks for this track AND this station, not one of the two", () => {
