@@ -143,7 +143,7 @@ export function AskInPlace({
           <Action
             key={id}
             variant={id === connectable[0] ? "default" : "quiet"}
-            disabled={actions.busy}
+            busy={actions.busy}
             title={`Connecting opens ${label(id)}.`}
             onClick={() => setTrustFor(id)}
           >

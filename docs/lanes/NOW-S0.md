@@ -1,1 +1,1 @@
-S0 · 19:00 IST · WORKING · F-87 fixed by watching a live track: ship said "it will try again" over an unmerged PR no retry could fix; 7977dc06 is 2 stations from the first acceptance and 1 tick from terminal · src/lib/spine/** · pending
+S0 · 19:25 IST · WORKING · S1 found steer broken in prod by driving the UI (agent_messages.mission_id NOT NULL) — migration written, BLOCKED on tool permission for ALTER TABLE; fixed S3 busy-prop a11y guard · supabase/migrations/** src/components/connections/** · pending
