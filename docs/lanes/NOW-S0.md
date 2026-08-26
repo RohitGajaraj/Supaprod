@@ -1,1 +1,1 @@
-S0 · 17:35 IST · WORKING · all 4 lanes integrated to main, 11,518 tests 0 fail; S3 email held back on the Meridian ratchet (ruling filed) · docs/lanes/** coordination/answers/** · pending
+S0 · 17:25 IST · WORKING · integration pass: lane/run + lane/proof merged, 11,524 tests 0 fail; SwarmHandoff counts shipped to S2 with the always-zero warning · src/lib/** docs/lanes/** · pending

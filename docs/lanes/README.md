@@ -49,6 +49,7 @@ reopened, whatever the buildlog says.
 | [`S4-003-connector-counts.md`](./verify/S4-003-connector-counts.md) | The connector wiring number, and how fast it went stale |
 | [`S4-004-e2e-evidence-audit.md`](./verify/S4-004-e2e-evidence-audit.md) | What `e2e/**` actually proves, and the unguarded track factory it found |
 | [`S4-005-theatre-sweep.md`](./verify/S4-005-theatre-sweep.md) | The hunt for state no row can prove — **the finding that ends a feature rather than fixing it** |
+| [`S4-006-s1-run01-07.md`](./verify/S4-006-s1-run01-07.md) | S1's first seven units, checked against what they claim |
 
 ## Superseded
 
