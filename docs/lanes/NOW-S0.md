@@ -1,1 +1,1 @@
-S0 · 20:25 IST · WORKING · approval record reader built (the missing half of Operate) — 2 tools refused 7/7 would switch off; wiring waits on S3 surfacing the reason, not on a decision · src/lib/ai/** · pending
+S0 · 20:22 IST · WORKING · getApprovalPolicyState built + QUEUE-S3 item 3: the surface that lets the approval policy bind without going silent · src/lib/** docs/lanes/** · pending

@@ -60,6 +60,42 @@
 - **CHECKED FIRST:** `BoundaryControls.tsx`, `autonomy-policy.ts`, and the four routes. Say which
   existing surface you kept.
 
+## 3 · Why a tool went quiet — the surface that lets the policy bind
+
+- **Goal:** on the "What it's allowed to do" page, show the tools this workspace's own answers have
+  changed, each with **the policy's own sentence** and a way to turn it back on.
+- **User value (§0 q1/q2):** the person stops being asked the same question they have already
+  refused seven times, **and can see why a tool went quiet instead of finding out by it not
+  working.** What they stop doing: answering a queue that never learns.
+- **THIS IS THE THING THAT UNBLOCKS THE BINDING, and it is worth knowing why.** The engine is built
+  and correct and has **zero callers** (`resolveApprovalPolicy`). I built the missing record half
+  today (`approvalRecordFor`), and the invariant is proved by test: **a record can switch a tool OFF
+  or make it ask more often, and can NEVER earn a tool more autonomy.** So wiring it to the gate is
+  safe. **I did not wire it, and not for safety — for silence.** A tool that stops working with no
+  explanation is a dead end (R-20 §5). Once your page can show the reason, the gate call is three
+  lines and the behaviour binds without going quiet.
+- **The read is already built and waiting for you — you are not blocked on me:**
+  `getApprovalPolicyState({ workspaceId })` in `src/lib/approvals-queue.functions.ts`. Read-only,
+  changes no behaviour, and returns per tool: `decision`, `reason`, `approved`, `rejected`,
+  `tightenedFromDefault`.
+- **What it returns today, measured 2026-08-26:**
+  `delegate.openhands` 0 approved / 7 rejected → `disabled` · `calendar.create` 0 approved / 7
+  rejected → `disabled`. **Fourteen requests for two tools refused every single time.** That is the
+  doctrine's own line made visible: *"a long approvals queue is a policy failure to surface, not a
+  workload to render."*
+- **Files:** `src/components/governance/**` and `src/components/settings/**` — the same page as your
+  queue item 2's fold, so this is a region on a surface you are already building, **not a new
+  destination**.
+- **Acceptance:** a person sees which tools their own answers switched off, reads the reason in the
+  product's words rather than a status token, and can turn one back on. Only tools with a real
+  record appear — a tool nobody has answered is at its default and is **not** a finding, so it must
+  not be listed as one. Designed empty state: most workspaces will have nothing here, and that is
+  healthy rather than broken. Both themes, `--mrd-*` only.
+- **CHECKED FIRST:** `BoundaryControls.tsx` and your queue item 2 fold. Say what you reused.
+- **Do NOT** invent a second autonomy ladder here. Earning more autonomy is `trust-ramp.ts`'s job and
+  its promotions are themselves approval items; two ladders driven by counting rows is the worst
+  outcome available.
+
 ## Standing, every unit
 
 `git fetch origin && git rebase origin/main` · `cat docs/lanes/NOW-*.md` ·

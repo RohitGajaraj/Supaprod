@@ -39,6 +39,8 @@
  * workspace I'm a member of" read this queue has always done.
  */
 import { createServerFn } from "@tanstack/react-start";
+import { resolveApprovalPolicy } from "@/lib/ai/approval-policy";
+import { approvalRecordFor } from "@/lib/ai/approval-policy.server";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -1653,3 +1655,94 @@ export const sendBackApprovalItem = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
+
+/**
+ * WHY A TOOL WENT QUIET — the policy's own sentence, per workspace.
+ *
+ * ── THE HALF THAT MAKES THE POLICY SAFE TO BIND ────────────────────────────
+ * `resolveApprovalPolicy` can switch a tool off when a workspace has refused it
+ * every time. That is the point — the doctrine's line is *"a long approvals queue
+ * is a policy failure to surface, not a workload to render"*, and asking a
+ * question whose answer you already have, seven times, is worse than not offering
+ * it.
+ *
+ * **But a tool that stops working with no explanation is a dead end**, which
+ * R-20 §5 forbids outright, and it is the reason the policy is NOT yet wired to
+ * the gate. The module already writes a sentence for the person —
+ * *"You have turned down all 7 requests to do this and approved none, so it is
+ * switched off rather than asked again. Turning it back on is yours."*
+ * **This read is how that sentence reaches a surface.** Once S3 renders it, the
+ * gate call is three lines and the behaviour can bind without going silent.
+ *
+ * ── WHAT IT RETURNS TODAY, MEASURED 2026-08-26 ─────────────────────────────
+ *   delegate.openhands   0 approved · 7 rejected  ->  disabled
+ *   calendar.create      0 approved · 7 rejected  ->  disabled
+ *
+ * Only tools this workspace has actually ruled on appear. A tool nobody has
+ * answered has no record, sits at its axis default, and is not a finding.
+ *
+ * READ-ONLY, and it changes no behaviour. It reports what the policy WOULD say.
+ */
+export const getApprovalPolicyState = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => z.object({ workspaceId: z.string().uuid() }).parse(d))
+  .handler(
+    async ({
+      context,
+      data,
+    }): Promise<{
+      tools: Array<{
+        tool: string;
+        decision: string;
+        reason: string;
+        approved: number;
+        rejected: number;
+        tightenedFromDefault: boolean;
+      }>;
+    }> => {
+      const { supabase } = context;
+
+      const { data: rows, error } = await supabase
+        .from("agent_approvals")
+        .select("tool_name")
+        .eq("workspace_id", data.workspaceId)
+        .in("status", ["approved", "rejected"]);
+
+      // A failed read claims nothing rather than reporting an empty policy,
+      // which would read as "no tool has ever been ruled on" — the positive
+      // claim F-76 was built out of.
+      if (error || !rows) return { tools: [] };
+
+      const names = [...new Set((rows as Array<{ tool_name?: string }>).map((r) => r.tool_name))]
+        .filter((n): n is string => Boolean(n))
+        .sort();
+
+      const tools: Array<{
+        tool: string;
+        decision: string;
+        reason: string;
+        approved: number;
+        rejected: number;
+        tightenedFromDefault: boolean;
+      }> = [];
+
+      for (const tool of names) {
+        const record = await approvalRecordFor(supabase as never, data.workspaceId, tool);
+        if (!record) continue;
+        const withRecord = resolveApprovalPolicy({ tool, record });
+        const bare = resolveApprovalPolicy({ tool });
+        tools.push({
+          tool,
+          decision: withRecord.decision,
+          reason: withRecord.reason,
+          approved: record.approved,
+          rejected: record.rejected,
+          // The record can only ever tighten (see the invariant test), so this
+          // says "the answers changed something" rather than "which direction".
+          tightenedFromDefault: withRecord.decision !== bare.decision,
+        });
+      }
+
+      return { tools };
+    },
+  );
