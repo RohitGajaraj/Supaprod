@@ -1,7 +1,34 @@
-# S4-056 · `/today` says "Opening" forever. `/settings`, on the same failure, does the right thing.
+# S4-056 · CORRECTED. `/runs` is the dead end, not `/today`.
 
-> _S4, 2026-08-27. Driven in a real browser against a dead backend, using the runner from
-> `check-motion.sh`. Server stopped, port clear, dummy env removed._
+> ## CORRECTION, 2026-08-27, and the original headline named the wrong route
+>
+> **The first version of this verdict said `/today` sits on "Opening" forever. It does not.** I had
+> not warmed the route before timing it, so the twenty-five seconds I measured was Vite compiling on
+> first request, not the product hanging. That is the second time tonight a cold compile fooled an
+> instrument of mine; the first cost a Playwright navigation timeout.
+>
+> **Re-run with every route requested twice before measuring, four samples each:**
+>
+> | route | 3s | 8s | 15s | 30s |
+> | --- | --- | --- | --- | --- |
+> | **`/runs`** | `Opening` | `Opening` | `Opening` | **`Opening`** |
+> | `/today` | `Opening` | → `/login` | `/login` | **login painted** |
+> | `/start` | `Opening` | **login painted** | login | login |
+> | `/learn` | | | | resolved to login |
+> | `/approvals` | | | | resolved to login |
+>
+> **`/runs` is the permanent dead end.** Thirty seconds, twice warmed, never redirects, never
+> resolves, one word throughout.
+>
+> **`/today` resolves**, though it is the slowest of the four that do: it redirects by 8s and the
+> login page does not paint until somewhere between 15s and 30s. That is worth its own look but it is
+> not a dead end, and calling it one was wrong.
+>
+> **Method note, since it caught me twice:** never time a surface on a dev server without requesting
+> it first. The bundler's first compile is indistinguishable from a hang, and it is slower than most
+> real hangs.
+
+## The measurement
 
 ## The measurement
 
@@ -10,7 +37,7 @@ routes for twenty-five seconds:
 
 | | at 2s | at 10s | at 25s |
 | --- | --- | --- | --- |
-| **`/today`** | `Opening` | `Opening` | **`Opening`** |
+| `/today` *(unwarmed, see correction)* | `Opening` | `Opening` | `Opening` |
 | `/settings` | `Opening` | redirected to `/login` | `/login` |
 
 And `/login` itself, watched for thirty seconds on the same dead backend:
@@ -30,12 +57,14 @@ That sample caught the redirect in flight. Watched directly, the page is fine.)*
 
 ## The defect
 
-**`/today` never resolves and never redirects.** Twenty-five seconds on a single word, no spinner
-copy, no timeout, no error, no sign-in, no next action. The word is "Opening", so the page is not even
-claiming to be loading data; it is claiming to be opening, indefinitely.
+**`/runs` never resolves and never redirects.** Thirty seconds on a single word, twice warmed, no
+spinner copy, no timeout, no error, no sign-in, no next action. The word is "Opening", so the page is
+not even claiming to be loading data; it is claiming to be opening, indefinitely.
 
-`/settings`, hitting exactly the same failure, decides within seconds and sends the person somewhere
-they can act. **Two routes, one condition, one of them a permanent dead end.**
+`/settings`, `/start`, `/learn`, `/today` and `/approvals` all hit exactly the same failure and all
+decide, sending the person to a login page that works. **Six routes, one condition, and only `/runs`
+is a permanent dead end.** That the other five get it right is what makes this a defect rather than a
+missing feature.
 
 ## Against the standard
 
@@ -65,10 +94,14 @@ The route already has a sibling doing it correctly on the identical failure. Wha
 does to decide "no session, go to `/login`", `/today` needs the same, plus a bound on how long it will
 sit in the undecided state before saying so.
 
-**Owner: S2** (`routes today`, per the ownership table). The bound on the undecided state is the part
-worth doing carefully, because it is the one that also covers a slow backend rather than a dead one.
+**Owner: S2** (`routes runs.*`, per the ownership table). Five sibling routes already do it correctly,
+so the pattern is in the codebase; `/runs` just does not use it.
+
+**A second, smaller thing for the same owner:** `/today` resolves but is the slowest to, redirecting
+at 8s and not painting the login until between 15s and 30s. Not a dead end, worth a look.
 
 ## Verdict
 
-**CONFIRMED.** `/today` is a permanent dead end under a failure its own sibling route handles
-correctly. `/login` is exemplary under the same conditions and should not be touched.
+**CONFIRMED, with the route corrected.** `/runs` is a permanent dead end under a failure that five
+sibling routes handle correctly. `/today` resolves and my original headline was wrong. `/login` is
+exemplary under the same conditions and should not be touched.
