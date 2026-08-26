@@ -1,0 +1,163 @@
+import { test, expect } from "@playwright/test";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { join } from "node:path";
+
+import { findRepoRoot } from "./helpers/auth";
+
+/**
+ * MOTION MUST BE EARNED. THE DEAD BACKEND TEST, AS A SPEC RATHER THAN A RULE.
+ *
+ * `S4-051` formalised the rule and `S4-039` proved it by hand: point the app at
+ * a database that does not exist, open a surface, and watch what still moves.
+ * Motion that continues with no backend is a clock. Motion that stops is data.
+ *
+ * A rule nobody can run is a slogan, so this is the rule as a spec. It exists
+ * because the direction is that the visual aspects of the agentic workflow
+ * should be SEEN, with stickiness and interactivity, and generation tooling now
+ * makes motion cheap to produce. Cheap to produce is also cheap to fake, and a
+ * timer-driven progress bar and a run-driven one are the same picture.
+ *
+ * ── WHAT THIS ASSERTS, AND WHAT IT DELIBERATELY DOES NOT ───────────────────
+ * It asserts only that a surface reaches a STEADY STATE when nothing can be
+ * read. It does NOT assert that a surface is static: a spinner while a request
+ * is in flight is honest, a skeleton is honest, and a transition that settles is
+ * honest. All of those stop. What cannot stop is a `setInterval` driving a state
+ * label, which is the one thing this catches and the one thing the operating
+ * model calls theatre by name.
+ *
+ * ── HOW IT DECIDES ─────────────────────────────────────────────────────────
+ * Three samples of the rendered text, spaced past any plausible settle time. If
+ * sample 2 and sample 3 differ, something is still changing long after every
+ * request has failed, and the only thing left driving it is a clock.
+ *
+ * The first sample is discarded on purpose. Mount, hydration and the first
+ * failed fetch all land inside it, and a surface is allowed to change while it
+ * is still finding out that nothing is there.
+ *
+ * ── RUNNING IT ─────────────────────────────────────────────────────────────
+ *   lsof -ti:8080 first, and say DEVSERVER in your NOW line while you hold it.
+ *   Write a .env whose VITE_SUPABASE_URL points at a port with nothing on it:
+ *     VITE_SUPABASE_URL=http://localhost:54321
+ *   bun run dev, then:
+ *     S4_MOTION=yes bunx playwright test e2e/s4-motion-must-be-earned.spec.ts \
+ *       --no-deps --project=chromium-desktop
+ *   Kill the server the moment it finishes. Remove the dummy .env.
+ *
+ * This spec presses nothing and submits nothing, so it cannot write a row
+ * wherever it is pointed. Keep it that way.
+ */
+
+const SHOT_DIR = join(findRepoRoot(), "docs", "screenshots", "s4-motion");
+
+/** Public surfaces only: everything here renders without a session. */
+const SURFACES = ["/", "/pricing", "/product", "/demo"] as const;
+
+/** Past mount, hydration, and the first failed request. */
+const SETTLE_MS = 6_000;
+/** Between the two samples that actually decide it. */
+const GAP_MS = 9_000;
+
+test.skip(
+  process.env.S4_MOTION !== "yes",
+  "Needs a local dev server pointed at a dead database. Opt in with S4_MOTION=yes.",
+);
+
+// A stranger has no session, and a signed-out render is the honest one here.
+test.use({ storageState: { cookies: [], origins: [] } });
+
+/**
+ * A hash of the rendered viewport.
+ *
+ * ── WHY PIXELS, AFTER TWO INSTRUMENTS FAILED ───────────────────────────────
+ * The first version of this spec sampled rendered TEXT and passed on `/`, which
+ * is the one surface already PROVEN to animate with no backend (`S4-039`, with
+ * screenshots). A second attempt sampled every element's `class` and `style`
+ * attribute and reported **zero of 549 elements changed** over fifteen seconds.
+ * Both were wrong: hashing the viewport over the same window gives three
+ * different hashes at 6s, 15s and 25s.
+ *
+ * The station strip changes its FILL, and a fill can move without touching text
+ * and without touching an attribute this side can read. So the only instrument
+ * that reliably sees "the screen changed" is the screen.
+ *
+ * ── THE COST, AND HOW IT IS CONTAINED ──────────────────────────────────────
+ * Pixels are noisier than text: a caret blink, a gradient, an easing curve
+ * mid-flight all differ. Two things contain it. The first sample is discarded so
+ * mount and hydration are excluded, and the two that decide are taken **nine
+ * seconds apart, six seconds after load**, by which point any honest transition
+ * has finished. Anything still redrawing then is on a clock.
+ */
+async function frameHash(page: import("@playwright/test").Page): Promise<string> {
+  const buf = await page.screenshot();
+  return createHash("sha1").update(buf).digest("hex").slice(0, 16);
+}
+
+/*
+ * REPORT ONLY, AND THAT IS A FINDING RATHER THAN A CLIMBDOWN.
+ *
+ * This asserted `moving` was empty until it was run against real pages. It then
+ * flagged ALL FOUR, including `/pricing`, `/product` and `/demo`, which carry no
+ * state machine at all. They move because these pages have AMBIENT BACKGROUND
+ * MOTION, and decoration that carries no state claim is explicitly not theatre by
+ * the definition at the top of this file.
+ *
+ * So pixel hashing answers "did the screen change" and the question that matters
+ * is "did a STATE change". Three instruments were tried and none separates them:
+ * rendered text misses a fill, class and style attributes miss it too, and pixels
+ * catch every drifting gradient.
+ *
+ * A gate that fails every surface teaches people to skip it, which is worse than
+ * no gate. So it reports, and a person reads the report. **The discriminator is
+ * still a human looking at what moved**, which is how `S4-039` was proved, and
+ * automating it needs a signal none of these three instruments carry: which
+ * elements are STATE-BEARING. That is a real open problem and it is written down
+ * here rather than papered over with a threshold nobody could justify.
+ */
+test("report which surfaces still move once nothing can be read", async ({ page }) => {
+  test.setTimeout(60_000 * SURFACES.length);
+  mkdirSync(SHOT_DIR, { recursive: true });
+
+  const report: string[] = [];
+  const moving: string[] = [];
+
+  for (const path of SURFACES) {
+    await page.goto(`http://localhost:8080${path}`, { waitUntil: "domcontentloaded" });
+
+    await page.waitForTimeout(SETTLE_MS);
+    await frameHash(page); // discarded: mount and hydration land in this one
+    const a = await frameHash(page);
+    await page.waitForTimeout(GAP_MS);
+    const b = await frameHash(page);
+
+    const changed = a !== b;
+    if (changed) {
+      moving.push(path);
+      await page.screenshot({ path: join(SHOT_DIR, `moving${path.replace(/\//g, "_")}.png`) });
+      report.push(
+        `\n=== ${path} STILL MOVING ${GAP_MS}ms after settle, with no backend ===\n` +
+          `  frame at settle+0s : ${a}\n` +
+          `  frame at settle+${GAP_MS / 1000}s : ${b}\n` +
+          `  screenshot: docs/screenshots/s4-motion/moving${path.replace(/\//g, "_")}.png`,
+      );
+    } else {
+      report.push(`\n=== ${path} settled. Nothing moves without data. ===`);
+    }
+  }
+
+  writeFileSync(join(SHOT_DIR, "motion-report.txt"), report.join("\n"), "utf8");
+
+  console.info(
+    `Surfaces still redrawing ${GAP_MS / 1000}s after settle with no backend: ` +
+      `${moving.length ? moving.join(", ") : "none"}.\n` +
+      "A surface on this list is NOT automatically theatre: ambient background motion lands\n" +
+      "here too, and decoration carrying no state claim is honest. Open the screenshots in\n" +
+      "docs/screenshots/s4-motion/ and ask whether what moved was a STATE. That judgement is\n" +
+      "not automated and this spec does not pretend to make it.\n" +
+      report.join("\n"),
+  );
+
+  // The only thing asserted is that the measurement ran. The judgement is a
+  // person's, and pretending otherwise is the failure this file is about.
+  expect(report.length).toBe(SURFACES.length);
+});
