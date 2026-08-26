@@ -199,6 +199,7 @@ those. That is a convention, not a test.
 | S3's registry sweep safety | **VERIFIED SAFE** (`S4-036`) |
 | The 6 dashed `forecast_claim` rows | **CORRECT STATE**, do not "fix" (`S4-047`) |
 | The approval status drift | **STOPPED** 2026-07-25; 28 rows of residue (`S4-050`) |
+| `/runs` never resolves (`S4-056`) | **RETRACTED, no defect.** My own `curl` warming was the bug. Warm, `/runs` redirects in 4.2s, faster than `/today` (`S4-057`) |
 
 ---
 
