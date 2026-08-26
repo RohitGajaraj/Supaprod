@@ -492,6 +492,13 @@ type CrewRow = {
    * whose answer really does go back into the run as a reply.
    */
   proposed?: boolean;
+  /**
+   * TRUE FOR SPINE TRACKS. The section's Stop verb calls `cancelMission`,
+   * which is a MISSION mutation; handing it a track id would fail at runtime,
+   * so a track row takes no Stop and its control stays the row itself
+   * (opening the work). There is no track-stop write to offer yet.
+   */
+  isTrack?: boolean;
 };
 
 /** `at` DRIVES SORT, so it may never be NaN: `b.at - a.at` against NaN sorts
@@ -864,6 +871,7 @@ function Today() {
     const base = (r: TrackBoardRow): CrewRow => ({
       id: r.id,
       who: null,
+      isTrack: true,
       title: r.title,
       state: (
         <>
@@ -1704,19 +1712,21 @@ function Today() {
                       />
                     ) : null,
                 )}
-                {crewSection(FEED_LIVE, allLiveRows, "Waiting on an agent, not on you.", (row) => (
-                  <Action
-                    variant="quiet"
-                    busy={cancelRun.isPending}
-                    onClick={(event) => {
-                      /* The row itself opens the run; stopping it must not. */
-                      event.stopPropagation();
-                      void cancelRunAt(row.id);
-                    }}
-                  >
-                    Stop
-                  </Action>
-                ), (row) => (
+                {crewSection(FEED_LIVE, allLiveRows, "Waiting on an agent, not on you.", (row) =>
+                  row.isTrack ? null : (
+                    <Action
+                      variant="quiet"
+                      busy={cancelRun.isPending}
+                      onClick={(event) => {
+                        /* The row itself opens the run; stopping it must not. */
+                        event.stopPropagation();
+                        void cancelRunAt(row.id);
+                      }}
+                    >
+                      Stop
+                    </Action>
+                  ),
+                (row) => (
                   /* WHERE THE WORK JUST CAME FROM. The founder asked twice to
                      see the handoff; on the board that is this one line under
                      each running row, drawn only when a real handover row
