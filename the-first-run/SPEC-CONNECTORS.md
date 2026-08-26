@@ -14,6 +14,39 @@
 
 I went looking to design a connector layer and found one. **Measured 2026-08-26 by inspection:**
 
+> ### ⇢ AUDITED BY S0, 2026-08-26 — the route-by-route number job 1c owed, and it refines the line below
+>
+> *"About twenty providers are already written"* is true of the **catalogue** and not of the
+> **wiring**. `registry.ts` declares **20**. `providers/index.server.ts:38` maps them to adapters:
+>
+> - **14 real** — github · intercom · stripe · slack · zendesk · hubspot · salesforce · canny ·
+>   productboard · linear · notion · google_docs · figma · jira
+> - **6 `stubAdapter`**, which answer *"adapter not implemented"* — google_calendar · google_tasks ·
+>   microsoft_outlook · **gmail** · microsoft_mail · firecrawl
+> - **4 hold a live connection in production** (`SELECT provider, status, count(*) FROM connections
+>   GROUP BY 1,2`): github 2 · salesforce 1 · linear 1 · slack 1. All four have real adapters, so
+>   nothing in use is currently broken.
+>
+> **The honest headline is 14 of 20 wired, 4 in use.**
+>
+> **Against the four that carry the loop, three already have real code:**
+> 1. **An issue tracker in and out — BUILT AND REACHABLE.** `src/lib/linear.functions.ts` (11.3KB)
+>    exports `listLinearTeams`, `searchLinearIssues`, `importLinearIssue`,
+>    `createLinearIssuesFromTasks`, `pullLinearIssue`, `pushLinearIssue`; `sync.functions.ts:577,678`
+>    calls pull and push, and it is reached from route `_authenticated.sync.tsx` and
+>    `components/ship/WhatShipped.tsx`. **Do not rebuild this — verify it against a real Linear
+>    workspace and fix what breaks.**
+> 2. **The repository handback** — `github-repo.server.ts` and `gitlab-repo.server.ts` exist.
+> 3. **Slack or email to a person who left** — Slack has ingest **and** digest
+>    (`slack-digest.server.ts`). **Email does not: `gmail` is a `stubAdapter` even though
+>    `pull-ingestors.server.ts:48` wires `ingestGmailSignals`.** See F-81.
+> 4. **One analytics source for the verdict — GENUINELY MISSING**, and it is the one that closes the
+>    moat. This is Decide's metric probe (§1b), and the grader has processed zero workspaces in its
+>    life (F-51).
+>
+> So the remaining connector work is **narrower than this spec reads**: finish email, prove Linear
+> against a real workspace, and build the verdict's metric source.
+
 **~20 provider integrations, already written**, in `src/lib/connectors/providers/`:
 GitHub (`github.server.ts` 14.3KB, `github-repo.server.ts` 12.6KB, ingest, signals) · GitLab ·
 **Jira** (`jira.server.ts`) · **Linear** (`src/lib/linear.functions.ts`, with `pullLinearIssue`,

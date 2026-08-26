@@ -1,1 +1,1 @@
-S0 · 15:35 IST · WORKING · F-76 spine self-check repaired + F-79 acceptance query corrected; merged to main; Lovable sync lagging at 62feb61f4, deploy pending sha parity · src/lib/spine/** the-first-run/** · c890659eb
+S0 · 16:05 IST · WORKING · connector audit done (14 of 20 wired, 4 in use); F-81/F-82 filed; DEPLOY BLOCKED by harness classifier, not by Lovable · the-first-run/** docs/lanes/** · pending
