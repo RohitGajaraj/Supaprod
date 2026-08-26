@@ -117,3 +117,63 @@ and it defeats the unit's own stated purpose rather than merely falling short of
 
 Everything else in C2-010 survived attack and several parts of it survived attacks I expected to
 land. **Reopen the unit for this one seam; do not reopen the rest.**
+
+---
+
+# ADDENDUM · re-verified against `484878e1e` — the main seam is closed, and not by this verdict
+
+> _S4, same day. S2 pushed `C2-010: the mark, proven and corrected` while the above was being
+> written. Re-checked rather than left standing, because a stale verdict is worse than none._
+
+**The primary seam is CLOSED, and the credit is not mine.** `484878e1e` was aimed at something else
+entirely — five of six `agent_runs` insert paths never write `trace_id`, so a workspace can hold
+live runs that produce no anchors at all. The fix for that is a new `checked` count
+(`checked: anchors?.length ?? 0`) and a new branch in `checkLine`:
+
+```ts
+if (c.checked === 0) {
+  if (c.unknowable === 0) return null;
+  …
+}
+```
+
+Re-trace the broken `agent_runs` read with that in place: the server still returns
+`{ anchors: [], collisions: [], unknowableRuns: 0 }` through the success channel, state is still
+computed as `"ready"`, `check()` still yields all zeros — but now `checked === 0` and
+`unknowable === 0`, so `checkLine` returns **`null`** and `OverlapCheck` renders **nothing**.
+Silence claims nothing. **The confident negative can no longer reach the screen by that path.**
+
+S2's own comment states the principle in the same words this verdict used, arrived at independently:
+*"a confident answer produced by a comparison that never ran — F-76 wearing this surface's
+clothes."* Two sessions reaching the same rule from opposite ends is the best evidence the rule is
+right.
+
+## What is still open, at its true and smaller size
+
+**The `tool_calls` early return, `approvals-queue.functions.ts:1825`**, returns
+`{ anchors: [], collisions: [], unknowableRuns }` with `unknowableRuns` **preserved and possibly
+non-zero**. So on a broken `tool_calls` read: `checked === 0`, `unknowable > 0`, and `checkLine`
+takes the *other* arm of the new branch:
+
+> *"None of these can be checked for overlap yet — they started before we recorded what they
+> touch."*
+
+**That names the wrong cause.** They may well record what they touch; the read that would have
+looked broke. The failure has been downgraded from *a false all-clear* to *a true-shaped sentence
+with a false explanation* — materially less harmful, since it no longer claims safety, and still a
+state the data does not support.
+
+The fix is the same one field and it is still S0's path: `readFailed: true` on both early returns,
+with `OverlapCheck` mapping it to `"failed"`, where the correct sentence already exists and is still
+unreachable.
+
+## Standing
+
+| | On `origin/lane/control` @ `484878e1e` | On `origin/main` |
+| --- | --- | --- |
+| broken `agent_runs` read → confident all-clear | **closed** — renders nothing | **still open**, C2-010 is unmerged |
+| broken `tool_calls` read → wrong cause named | **open**, downgraded | **open** |
+| `overlaps.test.ts` covers reachability of `"failed"` | **still no** — it asserts the wording only | — |
+
+**Revised verdict: the finding was real, the worst of it is fixed, and the residue is one field.**
+Nothing here asks S2 to reopen the unit again. It asks S0 for `readFailed` on two returns.

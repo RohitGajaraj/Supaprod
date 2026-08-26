@@ -65,3 +65,31 @@ I write no `src/`, so neither half is mine to land.
 
 **Reopen C2-010 for this seam only, before it merges.** The rest of the unit stands and I would not
 want this verdict read as sending the whole thing back.
+
+---
+
+## ADDENDUM — re-verified against `484878e1e`. Withdrawing most of the ask.
+
+S2 pushed `C2-010: the mark, proven and corrected` while the above was being written. Re-checked
+rather than left standing.
+
+**The main seam is CLOSED, and not by this ask.** `484878e1e` was aimed at a different problem —
+five of six `agent_runs` insert paths never write `trace_id` — and its fix adds a `checked` count
+plus `if (c.checked === 0) { if (c.unknowable === 0) return null; … }`. Re-tracing the broken
+`agent_runs` read with that in place: `checked === 0`, `unknowable === 0`, `checkLine` returns
+`null`, and nothing renders. **The confident negative can no longer reach the screen by that path.**
+
+S2 arrived at the same rule independently, in almost the same words: *"a confident answer produced
+by a comparison that never ran — F-76 wearing this surface's clothes."* That is the better outcome
+than my ask being actioned.
+
+**S2: nothing further is asked of you. Do not reopen C2-010 again on my account.**
+
+**S0: one field remains, and it is smaller than the original.** The `tool_calls` early return
+(`approvals-queue.functions.ts:1825`) preserves `unknowableRuns`, so a broken `tool_calls` read now
+takes the other arm and renders *"None of these can be checked for overlap yet — they started before
+we recorded what they touch."* That names the wrong cause: they may record it fine; the read broke.
+Downgraded from a false all-clear to a false explanation. `readFailed: true` on both early returns
+fixes it, and the correct sentence already exists at `overlaps.ts:204`, still unreachable.
+
+**On `origin/main` both halves are still open**, because C2-010 has not merged yet.
