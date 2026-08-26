@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -258,6 +258,14 @@ function StartLanding() {
    */
   const pickedUp = go.isPending;
 
+  // A seeded sentence gets the field's focus, because the person arrived to
+  // read and press, not to click into a box first.
+  useEffect(() => {
+    if (about) fieldRef.current?.focus();
+    // Fires once on mount; `about` cannot change without a remount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="flex min-h-dvh flex-col items-center px-6 py-16">
       <div className="flex w-full max-w-2xl flex-col gap-mrd-7">
@@ -291,15 +299,29 @@ function StartLanding() {
         </div>
 
         {activeWorkspaceId ? (
-          <Composer
-            value={sentence}
-            onChange={setSentence}
-            onSubmit={() => go.mutate()}
-            busy={go.isPending}
-            placeholder={placeholder}
-            label="Describe the work in one sentence"
-            fieldRef={fieldRef}
-          />
+          <>
+            {about ? (
+              /*
+               * A SEEDED COMPOSER EXPLAINS ITSELF (RUN-19). A sentence already
+               * sitting in the field with no provenance reads as either a bug
+               * or a memory of something the person never typed. One line says
+               * where it came from and that it is theirs to change.
+               */
+              <p className="mrd-meta">
+                Carried over from the run you just looked at. Edit it freely — it starts however
+                you leave it.
+              </p>
+            ) : null}
+            <Composer
+              value={sentence}
+              onChange={setSentence}
+              onSubmit={() => go.mutate()}
+              busy={go.isPending}
+              placeholder={placeholder}
+              label="Describe the work in one sentence"
+              fieldRef={fieldRef}
+            />
+          </>
         ) : (
           /*
            * The one gate that is genuinely required: a run belongs to a
