@@ -30,12 +30,7 @@ import {
 import {
   listConnections,
   listWorkspaceBindings,
-  saveGatewayConnection,
-  startGatewayConnect,
-  startGithubAppConnect,
-  startNativeOAuthConnect,
   requestConnector,
-  verifyConnection,
   verifyEnvCredential,
   disconnectConnection,
   deleteConnection,
@@ -45,16 +40,15 @@ import {
 } from "@/lib/connections.functions";
 import {
   listMySuiteConnections,
-  startSuiteConnect,
   disconnectSuiteConnection,
-  type SuiteProduct,
-  type SuiteProvider,
 } from "@/lib/calendar-connections.functions";
-import { connectAppUser } from "@/integrations/lovable/appUserConnectorClient";
 import { useConfirm } from "@/hooks/use-confirm";
-import { useConnectPoll } from "@/hooks/use-connect-poll";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { ConnectTrustDialog } from "./ConnectTrustDialog";
+// The connect/verify flows live in their own module since the ask-in-place
+// control became the third consumer (see its header). This file keeps the
+// list, the catalogue and the drill-down.
+import { SUITE_PROVIDERS, useConnectorActions } from "./useConnectorActions";
 import { ProviderMark } from "@/components/meridian/source-marks";
 import { latestIso, relTimeCaps } from "@/components/discover/format";
 
@@ -162,41 +156,14 @@ import { latestIso, relTimeCaps } from "@/components/discover/format";
  * Anchorable via /settings?section=connections and ?connector=<id>.
  */
 
-const GATEWAY_BASE_URL = "https://connector-gateway.lovable.dev";
-
 /**
  * AN ADDRESS WEARING A QUIET CONTROL'S FACE. "Open sync" is a NAVIGATION, so
- * the element stays a router `<Link>` and only the paint comes from Meridian: a
- * `<button>` that programmatically navigates loses the middle click, the
- * modifier click and the status bar, and a `<button>` inside an `<a>` is markup
- * browsers repair unpredictably.
- *
- * NOT `run-parts.tsx`'s `LINK_AS_CONTROL`, which is the same idea in the
- * DEFAULT face. This control was `ghost` here, and the Line beside it carries
- * the form's own Request button; levelling the two would put the secondary act
- * at the weight of the primary one. So it is the quiet face, and the missing
- * piece is a shared quiet variant of that constant in Meridian rather than a
- * second face invented here.
- *
- * `hover:` and NOT `enabled:hover:`, which is the trap both `CONTROL_SHAPE` and
- * `LINK_AS_CONTROL` record: `:enabled` matches form controls only, so an anchor
- * wearing the prefixed utilities would have no hover state at all.
+ * the element stays a router `<Link>` and only the paint comes from Meridian.
+ * `hover:` and NOT `enabled:hover:` — `:enabled` matches form controls only,
+ * so an anchor wearing the prefixed utilities would have no hover state at all
+ * (the trap CONTROL_SHAPE's own header records).
  */
 const LINK_AS_QUIET_CONTROL = `${CONTROL_SHAPE} text-mrd-mute hover:bg-mrd-hover hover:text-mrd-body`;
-
-// Registry providers backed by the multi-account suite-connections layer
-// (stored in user_calendar_connections, native OAuth - not the single-
-// connection-per-provider connections table). SW-7: extended beyond
-// calendar to also cover Gmail/Outlook Mail, same table, a "product" column.
-const SUITE_PROVIDERS: Partial<
-  Record<ProviderId, { provider: SuiteProvider; product: SuiteProduct }>
-> = {
-  google_calendar: { provider: "google", product: "calendar" },
-  gmail: { provider: "google", product: "mail" },
-  google_tasks: { provider: "google", product: "tasks" },
-  microsoft_outlook: { provider: "microsoft", product: "calendar" },
-  microsoft_mail: { provider: "microsoft", product: "mail" },
-};
 
 function setupHintFor(spec: ProviderSpec): string {
   if (spec.setupHint) return spec.setupHint;
@@ -238,104 +205,6 @@ function ago(iso: string): string {
   return relTimeCaps(iso).toLowerCase();
 }
 
-/**
- * The connect/verify flows, shared between the sources list and the
- * ConnectorDetail drill-down (one implementation, two surfaces). GitHub is
- * a full-page App-install redirect; gateway providers and calendars use the
- * connector-gateway popup (web_message) and persist only the connection id.
- */
-function useConnectorActions(qc: QueryClient) {
-  const fStartGithub = useServerFn(startGithubAppConnect);
-  const fStartGateway = useServerFn(startGatewayConnect);
-  const fSaveGateway = useServerFn(saveGatewayConnection);
-  const fStartNative = useServerFn(startNativeOAuthConnect);
-  const fVerify = useServerFn(verifyConnection);
-  const fStartSuite = useServerFn(startSuiteConnect);
-
-  const startConnectionsPoll = useConnectPoll(["connections"]);
-  const startCalendarPoll = useConnectPoll(["calendar-connections"]);
-
-  const mGithub = useMutation({
-    mutationFn: () => fStartGithub(),
-    onSuccess: ({ installUrl }) => {
-      // Open GitHub in a new tab so the user keeps their place in the app.
-      // The callback writes to the DB; the parent tab detects it via polling.
-      window.open(installUrl, "_blank", "noopener");
-      startConnectionsPoll();
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-  // Native OAuth (SW-7): Supaprod's own registered app. Same mechanics as
-  // mGithub: a new tab (not a same-tab redirect), so the callback's
-  // close-tab page actually closes something and the Settings tab keeps
-  // polling for the new connection instead of being navigated away.
-  const mNative = useMutation({
-    mutationFn: (spec: ProviderSpec) => fStartNative({ data: { provider: spec.id } }),
-    onSuccess: ({ authorizeUrl }) => {
-      window.open(authorizeUrl, "_blank", "noopener");
-      startConnectionsPoll();
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-  // Gateway OAuth popup - same client mechanics as the calendar connect flow:
-  // open the popup first (so it isn't blocked), start the web_message OAuth
-  // session server-side, then wait for the gateway's postMessage. On success
-  // we persist only the gateway connection id - never a token.
-  const mGateway = useMutation({
-    mutationFn: async (spec: ProviderSpec) => {
-      const method = spec.authMethods.find((m) => m.kind === "oauth_gateway");
-      if (!method || method.kind !== "oauth_gateway") {
-        throw new Error(`${spec.label} does not support OAuth connect yet.`);
-      }
-      const result = await connectAppUser({
-        connectorId: method.connectorId,
-        gatewayBaseUrl: GATEWAY_BASE_URL,
-        start: (targetOrigin) => fStartGateway({ data: { provider: spec.id, targetOrigin } }),
-      });
-      if (!result.success || !result.connectionId) {
-        throw new Error(result.error ?? "Connect failed");
-      }
-      return fSaveGateway({ data: { provider: spec.id, connectionId: result.connectionId } });
-    },
-    onSuccess: () => {
-      toast.success("Connected");
-      qc.invalidateQueries({ queryKey: ["connections"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-  // Suite connect (SW-7): native OAuth, same new-tab+poll mechanics as
-  // mNative/mGithub - Google/Microsoft's own consent screen, not a gateway
-  // popup. Multi-account (a user can connect several accounts of the same
-  // product), so success just invalidates the list; there is no separate
-  // "save" step, the callback route writes the connection directly.
-  const mSuite = useMutation({
-    mutationFn: (args: { provider: SuiteProvider; product: SuiteProduct }) =>
-      fStartSuite({ data: args }),
-    onSuccess: ({ authorizeUrl }) => {
-      window.open(authorizeUrl, "_blank", "noopener");
-      startCalendarPoll();
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-  const mVerify = useMutation({
-    mutationFn: (id: string) => fVerify({ data: { id } }),
-    onSuccess: (r) => {
-      if (r.ok) toast.success("Connection verified");
-      else toast.error(r.connection.status_detail ?? "Verification failed");
-      qc.invalidateQueries({ queryKey: ["connections"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const busy =
-    mGithub.isPending ||
-    mGateway.isPending ||
-    mNative.isPending ||
-    mSuite.isPending ||
-    mVerify.isPending;
-
-  return { mGithub, mGateway, mNative, mSuite, mVerify, busy };
-}
 
 // Per-provider status the two regions are built from.
 type CardStatus = "connected" | "active" | "connect" | "soon";
