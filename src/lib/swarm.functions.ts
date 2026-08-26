@@ -63,6 +63,25 @@ export type SwarmHandoff = {
   mission_id: string;
   task: string;
   created_at: string;
+  /**
+   * How many artifacts travelled with the handoff. S2 → S0, 2026-08-26: the
+   * board can say what was handed over rather than only that something was.
+   * Read off `payload.artifacts`, which `HandoffPayload` already carries and the
+   * runtime already writes — no new read, no new column.
+   */
+  artifact_count: number;
+  /**
+   * How many evidence rows travelled with it.
+   *
+   * **THIS IS 0 FOR EVERY LIVE HANDOFF TODAY, AND A SURFACE MUST NOT IMPLY
+   * OTHERWISE.** `handoff.server.ts:86` states it plainly: *"no handoff in the
+   * live loop carries `evidence_ids` today"* — the evidence gate is default-OFF
+   * until the founder flips `HANDOFF_EVIDENCE_GATE`, and agents are not yet
+   * citing. So a "0 evidence" badge would read as *checked, and none found*,
+   * when the truth is *nobody was asked*. Draw it only once it can be non-zero.
+   * `artifact_count` has no such problem — artifact-bearing handoffs are common.
+   */
+  evidence_count: number;
 };
 
 export type SwarmApproval = {
@@ -356,6 +375,12 @@ export const getSwarmHud = createServerFn({ method: "POST" })
       mission_id: h.mission_id,
       created_at: h.created_at,
       task: typeof h.payload?.task === "string" ? (h.payload.task as string) : "",
+      // Counted rather than carried: the board needs the number, not the rows,
+      // and shipping the ids would put artifact titles on a surface that has not
+      // asked for them. `Array.isArray` because payload is free-form jsonb and a
+      // malformed row must read as 0 rather than throw on `.length`.
+      artifact_count: Array.isArray(h.payload?.artifacts) ? h.payload.artifacts.length : 0,
+      evidence_count: Array.isArray(h.payload?.evidence_ids) ? h.payload.evidence_ids.length : 0,
     }));
 
     const approvals: SwarmApproval[] = (approvalsRes.data ?? []) as Array<{
