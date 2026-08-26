@@ -76,7 +76,11 @@ describe("the record is counted the way the contract describes", () => {
 
   it("consecutive refusals are newest-first and reset on any approval", async () => {
     // Newest first: two refusals, then an approval. The streak is 2, not 3.
-    const r = await approvalRecordFor(rows(["rejected", "rejected", "approved", "rejected"]), "w1", "t");
+    const r = await approvalRecordFor(
+      rows(["rejected", "rejected", "approved", "rejected"]),
+      "w1",
+      "t",
+    );
     expect(r?.consecutiveRejections).toBe(2);
     expect(r?.rejected).toBe(3);
   });
