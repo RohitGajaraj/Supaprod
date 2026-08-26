@@ -1,1 +1,1 @@
-S1 · 22:55 IST · DEVSERVER · driving the steer fix (S0 A-003) + RUN-20 take-over controls; server held only for this check · src/components/track/** · RUN-20
+S1 · 23:10 IST · WORKING · RUN-20 shipped (send a step back / hand it in by hand — both server fns had zero importers); drove the steer fix and it is STILL refused on a second NOT NULL (to_agent_slug) — filed with full schema evidence · server killed, ports clear · src/components/track/** · RUN-20
