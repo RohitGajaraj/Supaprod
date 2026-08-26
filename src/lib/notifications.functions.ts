@@ -215,6 +215,14 @@ export type UserNotificationPreferences = {
   digest_frequency: "daily" | "weekly";
   digest_stakeholder_update: boolean;
   digest_stakeholder_audience: PackAudience;
+  /**
+   * The verdict email. Its COLUMN shipped this morning and these three
+   * declarations did not, which is the whole defect S3 reported: the toggle
+   * rendered, `PreferencesUpdateSchema.parse` **silently stripped the unknown
+   * key**, the upsert succeeded, and the response carried the old value. A
+   * control that reports a save it did not make.
+   */
+  email_verdict: boolean;
   updated_at: string;
 };
 
@@ -247,6 +255,9 @@ export const getNotificationPreferences = createServerFn({ method: "GET" })
       digest_frequency: "daily",
       digest_stakeholder_update: false,
       digest_stakeholder_audience: "exec",
+      // Matches the column's own DEFAULT true: a verdict is the one email the
+      // product exists to send, so silence here would be the wrong default.
+      email_verdict: true,
       updated_at: new Date().toISOString(),
     };
 
@@ -273,7 +284,30 @@ const PreferencesUpdateSchema = z.object({
   digest_frequency: z.enum(["daily", "weekly"]).optional(),
   digest_stakeholder_update: z.boolean().optional(),
   digest_stakeholder_audience: z.enum(["exec", "eng", "board"]).optional(),
+  email_verdict: z.boolean().optional(),
 });
+
+/*
+ * A PREFERENCE THE SCHEMA DOES NOT LIST IS SILENTLY DISCARDED, SO THE COMPILER
+ * IS MADE TO CARE.
+ *
+ * `z.object().parse` drops unknown keys without raising anything. That is why
+ * `email_verdict` could ship as a COLUMN this morning, render as a toggle, and
+ * save nothing at all: three declarations were missing and every layer reported
+ * success. The generated `types.ts` could not have caught it either — it is
+ * regenerated on its own schedule and still has no `email_verdict` in it hours
+ * after the migration ran.
+ *
+ * So the check that exists is the one that can be trusted here: every editable
+ * field on the type must be accepted by the schema. Add a preference and forget
+ * the schema, and this line stops compiling instead of shipping a toggle that
+ * lies.
+ */
+type EditablePreference = Exclude<keyof UserNotificationPreferences, "user_id" | "updated_at">;
+type SchemaAccepts = keyof z.infer<typeof PreferencesUpdateSchema>;
+type EveryPreferenceIsSavable = EditablePreference extends SchemaAccepts ? true : never;
+const _everyPreferenceIsSavable: EveryPreferenceIsSavable = true;
+void _everyPreferenceIsSavable;
 
 export const updateNotificationPreferences = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
