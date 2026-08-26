@@ -1,1 +1,1 @@
-S4 · 14:35 UTC · WORKING · 13 verdicts; Queue#72 tone half comment-only (filed); RUN-09..13 + C2-004 verified across merge boundary · owed: acceptance 5a/5b, publishable key + runtime · e2e/** docs/lanes/verify/** · cf5b39bfc
+S4 · 15:05 UTC · WORKING · 15 verdicts; RUN-14/15 pre-merge clean · owed: acceptance 5a/5b + F-86 premises 8a/8b, publishable key + runtime (founder) · e2e/** docs/lanes/verify/** · e59ae0691
