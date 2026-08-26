@@ -1552,7 +1552,11 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
         title: "Open the run that is working",
       };
     }
-    if (running.length > 1) return { go: go("/runs"), title: "See every run" };
+    /* THE BOARD BY NAME, not through the alias. This said `/runs`, which the
+       fold turned into a redirect to `/today`, so the most-used control in the
+       shell took a person through a bounce to reach a page it could have named.
+       It always MEANT the board and now it says so. */
+    if (running.length > 1) return { go: go("/today"), title: "See every run" };
     /* Nothing in the mission world is working, but a spine run moved moments
      * ago -- so the door opens THE address of that run, not a list. The track
      * is named by its own row; this mapping is read, not guessed (the
