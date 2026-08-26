@@ -1,1 +1,1 @@
-S1 · 15:05 IST · WORKING · U1 assign-in-one-sentence: closing the false out-of-touch flash between landing and first read · src/components/track/** presence/** · baseline gates green (tsc 0, build ok, 3 pre-existing test fails recorded)
+S1 · 18:05 IST · WORKING · Discover inline actions (keep/discard a signal, rename a theme) in ArtifactPane — the pane's own declared next unit · src/components/discover/** track/** · 1c82d0d7c
