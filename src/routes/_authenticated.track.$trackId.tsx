@@ -79,8 +79,16 @@ export const Route = createFileRoute("/_authenticated/track/$trackId")({
  * for pass because reaching the end of a route is a completion, not a graded
  * outcome -- the product has never graded a forecast, and "Passed" would claim
  * one.
+ *
+ * `liveNow` is RUN-18's input: work in motion outranks a hold row written
+ * between automatic legs. An out-of-time hold lands mid-press by design; while
+ * the next leg is already walking, the truthful headline is Running, and the
+ * hold sentence returns the moment the walk hands control back.
  */
-function runStatus(track: Track): {
+function runStatus(
+  track: Track,
+  liveNow = false,
+): {
   status: "you" | "agent" | "pass" | "hold";
   word: string;
   pulse: boolean;
@@ -98,6 +106,9 @@ function runStatus(track: Track): {
     return { status: "hold", word: "Abandoned", pulse: false, second: undefined };
   }
   const tone = holdTone(track.holdReason);
+  if (tone !== "you" && liveNow) {
+    return { status: "agent", word: "Running", pulse: true, second: undefined };
+  }
   if (tone === "you") {
     return {
       status: "you",
@@ -117,11 +128,11 @@ function runStatus(track: Track): {
   return { status: "agent", word: "Running", pulse: true, second: undefined };
 }
 
-function RunHeader({ track }: { track: Track }) {
+function RunHeader({ track, liveNow = false }: { track: Track; liveNow?: boolean }) {
   const stationName = AGENT_STATIONS[track.station]?.name ?? track.station;
   const next = nextStation(track.route as SpineRoute, track.station);
   const nextName = next ? (AGENT_STATIONS[next]?.name ?? next) : null;
-  const s = runStatus(track);
+  const s = runStatus(track, liveNow);
 
   return (
     <header className="flex flex-wrap items-start justify-between gap-mrd-4">
@@ -193,7 +204,7 @@ function TrackPage() {
       <header className="mrd-workbench-header">
         {track ? (
           <>
-            <RunHeader track={track} />
+            <RunHeader track={track} liveNow={crewLive} />
             <Row
               tight
               lead={`Running in ${activeWorkspace?.name ?? "your workspace"}${
