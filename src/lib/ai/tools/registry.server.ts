@@ -4784,6 +4784,24 @@ const decisionRecord = def({
       title: z.string().min(1).max(200),
       rationale: z.string().min(1).max(4000),
       alternatives_considered: z.array(z.string().min(1).max(500)).min(1).max(10),
+      /*
+       * ── A "NO" IS A DECISION, AND UNTIL NOW IT HAD NOWHERE TO GO ─────────
+       *
+       * The Decide brief tells the crew, in these words: *"A 'no' is a decision
+       * and you file it the same way as a yes."* They do. On 2026-08-26 a
+       * strategist filed *"Do not implement address reuse until post-fix
+       * abandonment evidence emerges"* with a real forecast behind it.
+       *
+       * It was stored `status: "approved"`, because `decisions.status` offers
+       * approved, pending, standing and superseded and NOTHING THAT MEANS NO.
+       * So the spine read an approved decision and walked the track on to
+       * Define, Design and Build, to construct the thing the decision had just
+       * refused. The one station whose job is to stop work could not.
+       *
+       * Defaults to `build`, so every existing caller keeps its meaning and no
+       * decision silently becomes a refusal.
+       */
+      call: z.enum(["build", "do-not-build"]).default("build"),
       prd_id: z.string().uuid().optional(),
 
       /*
@@ -4951,7 +4969,13 @@ const decisionRecord = def({
         forecast_claim: a.forecast_claim,
         forecast_how_we_will_know: a.forecast_how_we_will_know,
         forecast_horizon_date: a.forecast_horizon_date,
-        status: gate.status,
+        /*
+         * A refusal outranks the review's "approved", and only that one. If the
+         * gate wants a person to look, it still does: a no-go with a
+         * provenance problem is not more trustworthy for being a no. `declined` is
+         * new and nothing constrains `status`, so no migration is needed.
+         */
+        status: a.call === "do-not-build" && gate.status === "approved" ? "declined" : gate.status,
         decided_by_agent_slug: agentSlug ?? null,
         /**
          * 'agent' — and until 2026-08-11 the database refused this value, so

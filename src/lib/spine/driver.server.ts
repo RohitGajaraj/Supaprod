@@ -33,7 +33,7 @@ import { createMission } from "@/lib/ai/handoff.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { recordTrackDrive } from "@/lib/spine/track-drives.server";
 import { recordLineage } from "@/lib/lineage.functions";
-import { nextStation, waiverFor, type SpineRoute } from "@/lib/spine/route";
+import { nextStation, waive, waiverFor, type SpineRoute } from "@/lib/spine/route";
 import {
   decideDrive,
   holdLine,
@@ -2464,7 +2464,46 @@ export async function driveTrackOnce(
     };
   }
 
-  const arrivedAt = nextStation(route, station);
+  /*
+   * ── A DECISION NOT TO BUILD MUST STOP THE BUILDING ────────────────────────
+   *
+   * The Decide brief tells the crew *"A 'no' is a decision and you file it the
+   * same way as a yes"*, and on 2026-08-26 a strategist did exactly that:
+   * *"Do not implement address reuse until post-fix abandonment evidence
+   * emerges"*, with a forecast behind it, on track `a30238f5`.
+   *
+   * The spine walked it on to Define regardless, because `decisions.status`
+   * had no value meaning no and the row was stored `approved`. Four stations of
+   * agents were about to specify, design and build the thing the one station
+   * whose job is stopping work had just refused. **That is the most expensive
+   * defect this loop can have: Decide exists to prevent spend, and it could not.**
+   *
+   * WHY WAIVE RATHER THAN CLOSE THE TRACK. A refusal is not the end of the
+   * work, it is an answer with a bet attached: that decision's forecast comes
+   * due 2026-10-15 and is genuinely checkable. Closing the track would throw the
+   * bet away and the loop would never learn whether the "no" was right. So the
+   * four building stations are waived and the track walks Decide -> Learn, which
+   * is the route the spine already knows how to express.
+   *
+   * `outcome-contested` is the reopen trigger, so if the verdict later shows the
+   * refusal was wrong, the stations come back rather than needing a person to
+   * remember this happened.
+   */
+  let onwardRoute = route;
+  if (station === "decide") {
+    const declined = await decisionWasRefusal(supabase, row.id);
+    if (declined) {
+      for (const skipped of ["define", "design", "build", "ship"] as AgentStation[]) {
+        onwardRoute = waive(onwardRoute, skipped, {
+          by: "policy",
+          reason: "The call was not to build, so there is nothing to specify or ship.",
+          reopensWhen: "outcome-contested",
+        });
+      }
+    }
+  }
+
+  const arrivedAt = nextStation(onwardRoute, station);
 
   /**
    * THE STATION FILED SOMETHING, AND NOT WHAT COMES NEXT NEEDS.
@@ -3143,4 +3182,36 @@ async function overclaimedBySeat(
     ...(await toolOutcomesInTrace(supabase, result.trace_id)),
   ];
   return contradictedClaim(seat, claimed, calls);
+}
+
+/**
+ * DID THIS TRACK'S DECIDE SAY NO?
+ *
+ * Reads the newest decision filed against this track and asks one question of
+ * it. `declined` is written by `decision.record` when the crew passes
+ * `call: "do-not-build"`, and it is the only status that means the answer was no
+ * — `approved`, `pending`, `standing` and `superseded` all mean the work stands.
+ *
+ * Fail-soft to false, deliberately: a track that cannot be read must keep its
+ * ordinary route. Guessing "refused" on an unreadable row would silently cancel
+ * four stations of real work, which is the more expensive way to be wrong.
+ */
+async function decisionWasRefusal(supabase: SupabaseClient, trackId: string): Promise<boolean> {
+  try {
+    const { data: member } = await supabase
+      .from("spine_track_members" as never)
+      .select("artifact_id")
+      .eq("track_id", trackId)
+      .eq("artifact_kind", "decision")
+      .is("superseded_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const id = (member as { artifact_id?: string } | null)?.artifact_id;
+    if (!id) return false;
+    const { data } = await supabase.from("decisions").select("status").eq("id", id).maybeSingle();
+    return (data as { status?: string } | null)?.status === "declined";
+  } catch {
+    return false;
+  }
 }
