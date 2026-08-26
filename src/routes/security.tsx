@@ -79,11 +79,34 @@ function SecurityPage() {
         </p>
       </LegalSection>
 
+      {/*
+       * REWRITTEN 2026-08-27 because the old wording was no longer true, and on
+       * a security page a stale absolute is worse than a weaker accurate claim.
+       *
+       * It read "a fixed floor, not a setting that can be dialed away". R-27 was
+       * revised on 2026-08-25 (loop.server.ts:106): AUTO_SHIP_ENABLED, read from
+       * the STUDIO_AUTO_SHIP platform secret, un-pins `studio.pr.merge` from
+       * `review` so an agent that has earned ambient trust merges without a
+       * click. It is off by default and no workspace setting can reach it, but
+       * "cannot be dialed away" was false the moment that secret existed.
+       *
+       * A reviewer who takes us at our word here and later finds that flag stops
+       * believing the rest of the page, which costs more than the sentence was
+       * worth. What replaces it is longer and stronger: it names the default,
+       * names who can change it, and names the four things that still have to be
+       * PROVEN even when it is changed. `studio.revert` is deliberately not
+       * graduated, so the product can never roll back without a person.
+       */}
       <LegalSection title="The merge gate">
         <p>
-          Agents can draft, propose, and build, but nothing merges, ships, or takes an irreversible
-          outward action without a human approval through the real approval flow. This is a fixed
-          floor, not a setting that can be dialed away.
+          Agents can draft, propose, and build. By default nothing merges, ships, or takes an
+          irreversible outward action without a human approval through the real approval flow, and
+          no workspace setting can change that. The only thing that can is a platform secret we
+          hold, and enabling it does not remove the gate: an agent may merge on its own only after
+          it has earned that on its own record, and only when the change has proven four things
+          first. It is merged, CI was green at that exact commit, a live preview exists at that same
+          commit, and a forecast was recorded to grade the result against. Rolling back is never
+          graduated, so the product can never roll back its own work without a person.
         </p>
       </LegalSection>
 
