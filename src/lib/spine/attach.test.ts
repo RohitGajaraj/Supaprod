@@ -245,7 +245,7 @@ describe("describeAttachments says only what landed", () => {
       { artifactKind: "signal", artifactId: B, station: "sense" },
       { artifactKind: "task", artifactId: A, station: "sense" },
     ]);
-    expect(line).toBe("It produced 2 signals and 1 task, now part of this work.");
+    expect(line).toBe("It produced 2 findings and 1 task, now part of this work.");
   });
 
   it("carries no dash characters, per the voice rules", () => {

@@ -250,7 +250,7 @@ export async function runVerifyCycleIfNeeded(
     .select("id");
   if (claimError) {
     console.error(
-      "verify-green: cycle claim failed (pre-migration or transient) — completing normally:",
+      "verify-green: cycle claim failed (pre-migration or transient), completing normally:",
       claimError.message,
     );
     return "not_applicable";

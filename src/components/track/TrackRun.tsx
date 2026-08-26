@@ -306,7 +306,12 @@ function RunRouteHeader({
         <StepMeter noun="Station" steps={meter} note={clock} />
         {settled ? (
           <div className="flex flex-col gap-mrd-2">
-            <RunMap stops={stops} mode="replay" orientation="stack" label="The route this work took" />
+            <RunMap
+              stops={stops}
+              mode="replay"
+              orientation="stack"
+              label="The route this work took"
+            />
             <div>
               <Action variant="quiet" onClick={() => setExpanded(false)}>
                 Collapse the route again
@@ -834,7 +839,7 @@ export function TrackRunLeft({
        * words; the steer box below carries the way back either way.
        */}
       <Region
-        title={track?.status === "done" ? "Done" : "Run it"}
+        title={track?.status === "done" ? "Run it (done)" : "Run it"}
         sub={
           track?.status === "done"
             ? "This walk is finished."
@@ -842,7 +847,13 @@ export function TrackRunLeft({
         }
       >
         {track?.status === "done" || track?.status === "abandoned" ? (
-          <Row lead={track.status === "done" ? "It reached the end of its route." : "This work was abandoned here."} />
+          <Row
+            lead={
+              track.status === "done"
+                ? "It reached the end of its route."
+                : "This work was abandoned here."
+            }
+          />
         ) : continuing ? (
           <div className="flex flex-wrap items-center gap-mrd-3">
             <Action variant="primary" busy onClick={() => undefined}>
@@ -894,26 +905,26 @@ export function TrackRunLeft({
                     : undefined
               }
             />
-             {capReached ? (
-               <Row
-                 tight
-                 lead={`It walked every automatic leg (${AUTO_MAX}) and still has route ahead.`}
-                 sub="Nothing was stopped silently: press Run it now to buy another set of legs."
-               />
-             ) : null}
-             {/*
-              * THE PER-SEAT LIST IS DELIBERATELY ABSENT (SPEC-LAYOUT §0 ruled
-              * this deletion; it never landed). The transcript below already
-              * renders every seat the moment its run row lands -- who acted,
-              * what they filed, what it cost. Printing the same walk a second
-              * time from the mutation's return value meant one fact about one
-              * run with two freshesses, which is how a header once said Running
-              * over a hold. The mutation's own outcome above is the only thing
-              * here that the queries cannot say.
-              */}
-           </div>
-         ) : null}
-       </Region>
+            {capReached ? (
+              <Row
+                tight
+                lead={`It walked every automatic leg (${AUTO_MAX}) and still has route ahead.`}
+                sub="Nothing was stopped silently: press Run it now to buy another set of legs."
+              />
+            ) : null}
+            {/*
+             * THE PER-SEAT LIST IS DELIBERATELY ABSENT (SPEC-LAYOUT §0 ruled
+             * this deletion; it never landed). The transcript below already
+             * renders every seat the moment its run row lands -- who acted,
+             * what they filed, what it cost. Printing the same walk a second
+             * time from the mutation's return value meant one fact about one
+             * run with two freshesses, which is how a header once said Running
+             * over a hold. The mutation's own outcome above is the only thing
+             * here that the queries cannot say.
+             */}
+          </div>
+        ) : null}
+      </Region>
 
       {/*
        * QUEUE 71: THE PANE POLLS AT VISIT SPEED WHENEVER A CREW IS HERE, not

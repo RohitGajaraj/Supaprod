@@ -321,7 +321,7 @@ export const extractActionsFromTranscript = createServerFn({ method: "POST" })
       }
 
       const system = `You are an executive assistant. Extract every concrete action item from the meeting transcript below.
-Return JSON with key "action_items" — an array of objects with: title (brief action description), owner (person responsible, if named), due_date (if mentioned, ISO format), raw_text (the verbatim excerpt that surfaced this action).
+Return JSON with key "action_items", an array of objects with: title (brief action description), owner (person responsible, if named), due_date (if mentioned, ISO format), raw_text (the verbatim excerpt that surfaced this action).
 Only include real commitments, not vague discussion points.`;
 
       const userMsg = `Meeting transcript:\n\n${transcript.transcript_text.slice(0, 8000)}`;

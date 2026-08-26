@@ -702,8 +702,8 @@ function TrendBody({ insight }: { insight: TrendInsight }) {
                 aria-pressed={i === view}
                 onClick={() => setView(i)}
                 className={`rounded-full px-2 py-0.5 text-mrd-tiny font-medium transition-[background-color,color,transform] duration-150 active:scale-[0.96] ${
- i === view ? "bg-mrd-lift text-mrd-ink" : "text-mrd-mute hover:text-mrd-body"
- } ${FOCUS_RING}`}
+                  i === view ? "bg-mrd-lift text-mrd-ink" : "text-mrd-mute hover:text-mrd-body"
+                } ${FOCUS_RING}`}
               >
                 {option.label}
               </button>
@@ -937,10 +937,10 @@ function SplitBody({ insight }: { insight: SplitInsight }) {
             aria-pressed={selected === segment.id}
             onClick={() => setSelected(segment.id)}
             className={`flex items-center gap-1.5 rounded-full px-1.5 py-0.5 text-mrd-data transition-[background-color,color,transform] duration-150 active:scale-[0.96] ${
- selected === segment.id
- ? "bg-mrd-lift text-mrd-ink"
- : "text-mrd-body hover:bg-mrd-hover hover:text-mrd-ink"
- } ${FOCUS_RING}`}
+              selected === segment.id
+                ? "bg-mrd-lift text-mrd-ink"
+                : "text-mrd-body hover:bg-mrd-hover hover:text-mrd-ink"
+            } ${FOCUS_RING}`}
           >
             <span
               aria-hidden
@@ -1030,8 +1030,8 @@ function ThresholdBody({ insight }: { insight: ThresholdInsight }) {
                 aria-pressed={i === view}
                 onClick={() => setView(i)}
                 className={`rounded-full px-2 py-0.5 text-mrd-tiny font-medium transition-[background-color,color,transform] duration-150 active:scale-[0.96] ${
- i === view ? "bg-mrd-lift text-mrd-ink" : "text-mrd-mute hover:text-mrd-body"
- } ${FOCUS_RING}`}
+                  i === view ? "bg-mrd-lift text-mrd-ink" : "text-mrd-mute hover:text-mrd-body"
+                } ${FOCUS_RING}`}
               >
                 {option.label}
               </button>

@@ -139,7 +139,7 @@ describe("what must NOT get a chip, or the chip stops meaning anything", () => {
   it("leaves a with-failures turn that filed its work alone", () => {
     // 810 of 2,272 track-linked runs carry this status and most did the job.
     expect(chipMarkup(DID_THE_WORK)).toBeNull();
-    expect(headline(DID_THE_WORK)).toBe("Discovery Scout filed 2 signals");
+    expect(headline(DID_THE_WORK)).toBe("Discovery Scout filed 2 findings");
   });
 
   it("leaves a clean run that had nothing to add alone", () => {

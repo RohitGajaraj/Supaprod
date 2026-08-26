@@ -364,7 +364,7 @@ Rules:
 - Use an inline <style> block in <head> for any additional custom styles beyond the base stylesheet.
 - Use a clean SaaS design aesthetic: white background, slate/gray text, subtle borders.
 - For accent color use #0f172a (slate) for buttons and highlights; never use indigo or bright colors.
-- Show the MAIN screen for the spec — the primary user interaction surface.
+- Show the MAIN screen for the spec, the primary user interaction surface.
 - Use placeholder text for variable content: [User Name], [Date], [Description], etc.
 - Mark interactive elements clearly (buttons, inputs, dropdowns) using the class names: btn btn-primary, btn btn-secondary, input, .card, .badge.
 - Include a slim <nav> with class="brand" span for the product name; ${
