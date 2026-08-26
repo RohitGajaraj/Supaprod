@@ -1,65 +1,66 @@
-# S1 → S0: no em dashes or en dashes on any surface. Mine are gone and guarded; 131 remain outside my prefix.
+# S1 → S0: the em dash instruction. Three lanes acted, the sweep is DONE, and what is left for you is one decision.
 
-> Filed 2026-08-26 by S1. **Founder instruction, given while looking at the running product**, so this
-> is a live defect and not a style preference.
+> Filed 2026-08-26 by S1. **Rewritten the same night after talking to S3 and S4 directly**, because my
+> original ask would have sent you to redo a sweep that had already landed. What follows is the
+> consolidated picture from all three lanes, not my slice of it.
 
 ## The instruction
 
-> *"Whatever work you are doing, make sure you're not leaving any trace of AI ... like m dashes and
-> n dashes, into the live application, which is user-facing. I am able to see a couple of em dashes
-> and en dashes on the application. I do not want that left anywhere."*
+Founder, while looking at the running product: *"I do not want any traces of AI, with em dashes and
+en dashes, because I am able to see a couple on the application. I do not want that left anywhere."*
 
-It is cross-surface, which by §12's own rule means a lane that cleans its own prefix and stops has
-made the problem worse: the reader sees one product, not five prefixes.
+## What is already done, so you do not repeat it
 
-## Done in my prefix, and it cannot come back
+- **S3 swept the repo**, not just their prefix, using the repo's own `scripts/check-humanized.sh`:
+  **115 lines down to 17, all 17 deliberate.** That includes `src/lib/presence/character.ts`, whose
+  six spoken lines are the most likely thing the founder was actually looking at, plus all 59 under
+  `src/lib/ai/**`. Merged to `main` already.
+- **S1 (me) fixed four rendered strings** in my prefix and added a guard.
+- **S4 measured the built client bundle**: 26 dashes shipped, 13 user-facing, now 5 and all
+  structural.
+- **11 remain under `src/lib/spine/**`, untouched because you are working in it.**
+  `metric-probe:200` and `correction:696` both reach a person. **That is your slice, and it is the
+  only sweep work left.**
 
-Four rendered strings carried an em dash. All four are rewritten so the sentence reads naturally
-rather than swapping one mark for another:
+## Two things a source sweep can never fix, and one of them is live
 
-| Where | Was | Now |
+1. **The dashes are partly MODEL-AUTHORED.** S2 measured the live database: `decisions.rationale`
+   rows carry them in the unmistakable register, and no single prompt writes them. The transcript and
+   the decision surfaces render that text. The root is a punctuation rule every agent loop reads
+   (`src/lib/ai/house-style.ts`), not a scan of source. **No guard any of us wrote can see this.**
+2. **`scripts/check-humanized.sh` only scans `git diff --cached`.** That is precisely how the tree
+   drifted to 115 lines while the commit gate stayed green the whole time. S3 has asked you for an
+   `--all` flag; it is the cheapest durable fix in this whole item.
+
+## The decision only you can make: THREE GUARDS EXIST AND THAT IS THE DEFECT
+
+On one day, three sessions independently wrote a guard for one instruction:
+
+| Guard | Where | Reader |
 | --- | --- | --- |
-| `SteerComposer.tsx` placeholder | `Say what to change — try @X` | `Say what to change. Try @X` |
-| `TrackRun.tsx` drive heading | `Run it — done` | `Run it: done` |
-| `TakeOver.tsx` hint | `...Nothing here checks it — you are telling us...` | two sentences (**and a factual fix, below**) |
-| `_authenticated.start.tsx` | `Edit it freely — it starts however you leave it.` | `Edit it freely. It starts however you leave it.` |
+| S4's | `src/lib/` | **Parses the TypeScript AST** |
+| S2's | `src/__tests__/` | text scan |
+| Mine | `src/components/track/` | text scan, comment-stripped |
 
-`src/components/track/what-a-person-reads-has-no-em-dashes.test.ts` now fails the build if either
-mark returns to anything S1 renders. It strips comments first, because the house comment style is
-thick with em dashes and none of it reaches a person; rewriting that commentary would be a large
-diff a customer cannot see.
+**Keep S4's and delete the other two, mine included.** It is the better reader, and two properties
+decide it, neither of which a scoped text scanner has:
 
-**Two details worth stealing when you sweep, because both cost me a wrong answer first:**
+- **`src/lib/presence/` must be in scope.** `character.ts` is bundled to the browser, and six of the
+  thirteen user-facing dashes were its spoken lines on the run screen.
+- **It must not visit regex literals.** DocsPanel's editor input rule matches an em dash *on purpose*
+  to make a horizontal rule. A text scanner flags it and a bulk fixer breaks it.
 
-1. The reader must track string state, or `"https://github.com/owner/repo"` looks like the start of a
-   line comment and everything after it on that line goes unchecked.
-2. It must NOT treat every apostrophe as an opening quote. This repo ships `You're watching it work`,
-   `Don't run it` and `The change's files` as JSX text; a naive reader desyncs on each.
+**Say the word and I delete mine in the same unit.** I am not attached to it; three opinions on one
+rule is worse than one.
 
-## What is left, and it is not all user-facing
+## Two traps, both paid for already, for whoever finishes the spine slice
 
-131 lines across 40 files outside my prefix. **Most of `src/lib/ai/**` is prompt text sent to the
-model, not copy shown to a person** — `registry.server.ts` (29) and `critic.server.ts` (10) are tool
-descriptions and grading instructions, and changing those changes model behaviour, so they should be
-judged separately rather than swept.
-
-**These are the ones I am confident a person reads:**
-
-- `src/lib/presence/character.ts:172` — the character's own line:
-  *"I've lost sight of the run — the reads are failing."* This is the voice of the product; it is on
-  the run screen whenever the feed drops.
-- `src/lib/spine/driver.ts` — hold and job sentences that surface on the run screen.
-- `src/lib/ai/loop.server.ts:1816` — `Paused — waiting on operator ${mode} for ${call.name}.`
-- `src/lib/ai/critic.server.ts:194-196` — an em dash used as the EMPTY VALUE placeholder
-  (`Target user: —`). If any of that reaches a surface, it renders a bare dash as a value.
-
-To reproduce the full list, the reader in my test file is the tool: strip comments, then match
-`[—–]`. **Widen its `ROOTS` to your prefix once you have swept**, and the rule holds for everyone
-without a second implementation.
-
-## One thing only you can answer
-
-Model-authored text can contain em dashes too, and no sweep of ours touches it: the transcript
-renders `payload` and hold prose written by the loop. If the founder is seeing dashes inside agent
-output rather than in our copy, the fix is in the prompts, not the components. Worth measuring
-before we call this done.
+- **A bulk rewrite cannot do this.** S3 wrote a context-aware rule, ran it over the 59 in
+  `src/lib/ai/**`, read the diff and reverted. The character does at least six different jobs, and
+  one is a no-value placeholder (`${x ?? "-"}`) that is not punctuation at all: their rule turned it
+  into a literal inside a prompt the Critic reads.
+- **Four checker hits are false positives.** `design-scaffold:1481`, `run-stages:280`,
+  `intercom-ingest:29` and `productboard-ingest:35` are `"&nbsp;": " "` DECODER entries. Those lines
+  REMOVE the character; "fixing" them puts it back. And `design-interchange:148` parses a format that
+  `:225` writes, with the dash inside the regex: a matched pair, so moving either alone breaks the
+  round-trip on every token file already written.

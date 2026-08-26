@@ -30,9 +30,35 @@ import { join } from "node:path";
  * CODE begins a comment.
  *
  * ── SCOPE IS S1'S PREFIX, BECAUSE A LANE CANNOT GREEN ANOTHER LANE'S FILES ──
- * 108 more sit outside it, mostly under `src/lib/**`, which is S0's. Widening
- * this test to those would fail the build for four other sessions over copy they
- * own. It is filed to them instead; the scope grows when the sweep lands.
+ * Widening this test to another lane's files would fail the build for a session
+ * over copy it owns.
+ *
+ * ── THIS IS ONE OF THREE, AND THAT IS A DEFECT, NOT A BELT AND BRACES ──────
+ * Three sessions each wrote a guard for the same founder instruction on the same
+ * day: this one, S2's under `src/__tests__/`, and S4's under `src/lib/`, which
+ * parses the TypeScript AST rather than scanning text. **S4's is the better
+ * reader and S0 should keep exactly one.** Two properties decide it, and neither
+ * scoped scanner has both: `src/lib/presence/` must be IN scope, because
+ * `character.ts` is bundled to the browser and six of the thirteen user-facing
+ * dashes were its spoken lines on the run screen; and the reader must NOT visit
+ * regex literals, because DocsPanel's editor input rule matches an em dash on
+ * purpose to make a horizontal rule. This file is kept only until that one
+ * covers these paths, and is then deleted rather than left as a second opinion.
+ *
+ * ── AND A TEXT SWEEP CANNOT FINISH THE JOB ────────────────────────────────
+ * S2 measured the live database: `decisions.rationale` rows carry em dashes in
+ * the unmistakable register, and no single prompt writes them. Model-authored
+ * text is rendered by this surface and no scan of source can reach it; the root
+ * is a punctuation rule every agent loop reads (`src/lib/ai/house-style.ts`).
+ * The repo also already had `scripts/check-humanized.sh`, which only scans
+ * `git diff --cached` -- which is how the tree drifted to 115 lines while the
+ * commit gate stayed green.
+ *
+ * ── TWO TRAPS FOR WHOEVER WIDENS THIS (S3 hit both, expensively) ──────────
+ * A bulk rewrite cannot do it: the character does at least six different jobs,
+ * including a no-value placeholder (`${x ?? "-"}`) that is not punctuation at
+ * all. And four checker hits under `src/lib/**` are `"&nbsp;": " "` DECODER
+ * entries whose lines REMOVE the character; "fixing" those puts it back.
  */
 
 const ROOTS = [
