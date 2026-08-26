@@ -774,10 +774,33 @@ function since(iso: string | null): string | null {
  * not own. A `?compose` search param on the runs route is the right fix and it
  * belongs to that route.
  */
+/*
+ * ── RE-AIMED 2026-08-27, AND THE COMMENT ABOVE WAS TRUE WHEN IT WAS WRITTEN ──
+ *
+ * It said `/runs` carries "the product's only real dispatcher: the Hand work
+ * over composer, with its two doors (from a goal, from a spec)". That composer
+ * was 1,434 lines and the fold deleted it; `/runs` is a redirect to the board
+ * now. So this control, labelled **New work item**, opened a LIST. That is the
+ * precise lie the comment above warns about and this file records twice
+ * already: a control that opens something which is not what it is named.
+ *
+ * The fold moved the content and nothing moved the door. Third one of these
+ * tonight, and the pattern is worth naming: a redirect keeps every link
+ * WORKING, which is what made the fold safe, and that is exactly why a link
+ * whose *meaning* died goes unnoticed. Nothing 404s. It just quietly starts
+ * lying.
+ *
+ * `/start` is where work begins: it creates a spine track and walks it, and 41
+ * of the last 43 tracks in this workspace entered there. It is also where the
+ * board's own composer sends a person (D2), so the two agree.
+ *
+ * Still a real `<Link>`, for the reason the original gave: middle click, copy
+ * link address and open-in-new-tab all work, and none of them work on a button.
+ */
 function RailNew({ narrow }: { narrow: boolean }) {
   return (
     <Link
-      to="/runs"
+      to="/start"
       className="sp-new"
       /* Named out loud only when the label is not on screen, so a screen
          reader is never handed the same words twice. */
