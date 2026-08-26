@@ -853,9 +853,41 @@ export const retryStation = createServerFn({ method: "POST" })
       }
 
       const now = new Date().toISOString();
+      /*
+       * `station_drives` IS RESET HERE, AND WITHOUT IT THIS CONTROL CANNOT WORK.
+       *
+       * F-43 added a second ceiling: `MAX_STATION_DRIVES = 12` counts every
+       * dispatch, so a station that never fails and never produces stops being
+       * dispatched forever. It is the right net. It had no door.
+       *
+       * This control reset `attempts` and left `station_drives` alone, so a
+       * released track cleared its hold, was driven once, tripped the F-43
+       * ceiling and re-held as `going-in-circles` — terminal — within one tick.
+       * MEASURED 2026-08-26: two tracks released by hand at 40 and 29 drives
+       * both re-held inside ten minutes, spending nothing, and every open track
+       * on a real workspace was already past 12 (81, 63, 53, 42, 40, 29). The
+       * button cleared a hold, the board showed the work moving, and it was
+       * terminal again before anyone looked twice.
+       *
+       * Reset only where a PERSON acted. The automatic resume in
+       * `driver.server.ts` deliberately does NOT do this: clearing the ceiling
+       * on a machine path would let escalate → resume → escalate run forever,
+       * which is the billing cycle F-43 exists to stop. A press is different
+       * because somebody chose it and the press is on the record.
+       *
+       * The cost is real and is the point: those two tracks re-held for free,
+       * and after this they will dispatch a crew and spend. That is a person
+       * deciding to spend, which is the only kind of spend this should buy.
+       */
       const { data: updated, error } = await supabase
         .from("spine_tracks" as never)
-        .update({ attempts: 0, last_hold: null, driven_at: now, updated_at: now } as never)
+        .update({
+          attempts: 0,
+          station_drives: 0,
+          last_hold: null,
+          driven_at: now,
+          updated_at: now,
+        } as never)
         .eq("id", data.trackId)
         .select(SELECT)
         .single();
@@ -2486,9 +2518,18 @@ export const submitStationByHand = createServerFn({ method: "POST" })
     // Released so the sweep picks it up again, the same clearing `retryStation`
     // does. The press above is what keeps the record honest about why it moved.
     const now = new Date().toISOString();
+    // Same reset, same reason as `retryStation` above: a handback is a person
+    // acting, and without `station_drives` the release is a no-op on any track
+    // that has already reached the F-43 ceiling.
     await supabase
       .from("spine_tracks" as never)
-      .update({ attempts: 0, last_hold: null, driven_at: now, updated_at: now } as never)
+      .update({
+        attempts: 0,
+        station_drives: 0,
+        last_hold: null,
+        driven_at: now,
+        updated_at: now,
+      } as never)
       .eq("id", raw.id);
 
     return { ok: true, line: pasteBackLine(paste.value) };
