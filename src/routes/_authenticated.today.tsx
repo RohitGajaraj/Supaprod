@@ -185,7 +185,14 @@ export const Route = createFileRoute("/_authenticated/today")({
    as LIVE and is labelled "partial" on its row: it shipped, and the hole in it
    is a fact about the thing that shipped, not a different lane. */
 const LIVE = new Set(["completed", "done", "completed_with_failures"]);
-const STUCK = new Set(["failed", "halted", "cancelled", "blocked"]);
+/* `proposed` BELONGS HERE even though it is not a failure: the trigger tick
+   raises a proposed mission and then waits for a person to promote it
+   (studio.functions.ts fetches them separately for exactly that gate). The
+   lane sets below route STUCK rows by taskStatus — blocked ones become
+   Waiting-on-you — so leaving "proposed" out made the single most common
+   person-gate in the product (232 of 349 missions at last measure)
+   invisible on the board: in no lane, counted by no quiet line. */
+const STUCK = new Set(["failed", "halted", "cancelled", "blocked", "proposed"]);
 /* Deliberately NOT `queued` or `dispatched`. A queued run has no agent on it,
    and "Still running" would then be claiming work that has not started. */
 const WORKING = new Set(["running", "in_progress"]);
@@ -477,6 +484,14 @@ type CrewRow = {
   /** Epoch ms of the last thing that happened. Newest first in a section. */
   at: number;
   onOpen: () => void;
+  /**
+   * THE ACT THE ROW NEEDS, when "reply" is not it. A proposed mission is
+   * waiting for a person to REVIEW AND LAUNCH it — the trigger tick raised
+   * it and nobody has promoted it — so its verb opens the run's launch
+   * control rather than an Ask composer. Absent for every other blocked row,
+   * whose answer really does go back into the run as a reply.
+   */
+  proposed?: boolean;
 };
 
 /** `at` DRIVES SORT, so it may never be NaN: `b.at - a.at` against NaN sorts
@@ -740,6 +755,7 @@ function Today() {
             id: m.id,
             who: m.current_agent_slug ? agentDisplayName(m.current_agent_slug) : null,
             title: cleanTitle(m.title),
+            proposed: m.status === "proposed",
             state: (
               <>
                 <RunState status={m.status} />
@@ -1648,19 +1664,29 @@ function Today() {
                   FEED_REPLY,
                   allReplyRows,
                   "Nothing moves on these until you answer.",
-                  (row) => (
-                    <Action
-                      variant="quiet"
-                      onClick={(event) => {
-                        /* The row itself opens the run; picking up the compose
-                           field must not navigate away from it. */
-                        event.stopPropagation();
-                        setReplyTo(replyTo === row.id ? null : row.id);
-                      }}
-                    >
-                      Reply
-                    </Action>
-                  ),
+                  (row) =>
+                    row.proposed ? (
+                      /* A PROPOSED MISSION IS NOT ASKING A QUESTION — it is
+                         waiting for a person to review and launch it, and the
+                         launch control lives on the run. Naming the act beats
+                         a composer that would send words nobody asked for
+                         into a run that has not started. */
+                      <Door title="Open the run to review and launch it" onClick={row.onOpen}>
+                        Review &amp; launch
+                      </Door>
+                    ) : (
+                      <Action
+                        variant="quiet"
+                        onClick={(event) => {
+                          /* The row itself opens the run; picking up the compose
+                             field must not navigate away from it. */
+                          event.stopPropagation();
+                          setReplyTo(replyTo === row.id ? null : row.id);
+                        }}
+                      >
+                        Reply
+                      </Action>
+                    ),
                   (row) =>
                     replyTo === row.id ? (
                       <ReasonField
