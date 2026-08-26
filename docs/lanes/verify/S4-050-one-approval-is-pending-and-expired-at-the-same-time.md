@@ -64,6 +64,43 @@ defect whether a person or a seed script wrote it, because the readers cannot bo
 needs the write paths audited rather than the rows, and it is the question that decides whether this
 is a seeding bug or a product one.
 
+## SETTLED: the question above, answered in the same session
+
+I said the narrowest thing to settle was whether a **non-seeded** approval had ever drifted the same
+way. It has, and the answer reshapes the severity in both directions.
+
+```sql
+SELECT (id::text LIKE '60000000-%') AS looks_seeded, status, escalation_state,
+       count(*), min(created_at)::date, max(created_at)::date
+FROM agent_approvals
+WHERE (status='pending') <> (escalation_state='pending')
+GROUP BY 1,2,3;
+```
+
+| seeded | status | escalation_state | n | oldest | newest |
+| --- | --- | --- | --- | --- | --- |
+| **no** | pending | expired | **18** | 2026-07-24 | 2026-07-25 |
+| **no** | pending | escalated | **6** | 2026-07-25 | 2026-07-25 |
+| yes | pending | expired | 3 | 2026-07-24 | 2026-07-25 |
+| yes | pending | escalated | 1 | 2026-07-25 | 2026-07-25 |
+
+**Twenty-four of the twenty-eight drifted rows are NOT seeded.** So this is a product bug, not a
+fixture bug, and my "probably fixtures" caveat was wrong about the population even though it was
+right about those four particular rows.
+
+**But every drifted row was created in a two-day window, 2026-07-24 to 2026-07-25, and nothing has
+drifted in the month since.** So the bug is real, it was live, and it has stopped. That is a
+different and much smaller thing than a defect writing bad rows today.
+
+**Revised severity: a historical bug that left twenty-eight contradictory rows behind.** The write
+path is no longer producing them. The residue still misreports, because the two surfaces still read
+two different fields, so the rows keep lying until someone reconciles them.
+
+**What still needs deciding, and it is small:** reconcile the 28, or leave them and accept that any
+`status`-reading surface counts 28 approvals the system considers expired or escalated. Reconciling
+is a one-statement backfill; leaving them is defensible only if nothing user-facing reads `status`,
+and `approvals-queue.functions.ts:235` does.
+
 ## The wider count, for whoever picks this up
 
 ```sql
