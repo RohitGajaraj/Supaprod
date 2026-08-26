@@ -38,18 +38,39 @@
 
 ---
 
+## ROOT CAUSE: Missing SUPABASE_SERVICE_ROLE_KEY Credential
+
+**Critical Finding (2026-08-27):**
+
+The primary blocker preventing loop progression is the absence of `SUPABASE_SERVICE_ROLE_KEY` environment variable.
+
+| Evidence | Location |
+| --- | --- |
+| Dev server warning on startup | `scripts/check-dev-node.mjs` explicitly warns: "Server functions that go through src/integrations/supabase/client.server.ts (admin, RLS-bypassing) will throw where they are called" |
+| Code requirement | `src/integrations/supabase/client.server.ts` lines 10–19 require the key and throw if missing |
+| Agent failures | 11 agent_runs in past 2 hours show `status='completed_with_failures'` with error: "SUPABASE_SERVICE_ROLE_KEY is missing, preventing signals.log" |
+| Dependency chain | Discovery Scout → calls `signals.log()` → requires service role key → fails → no signals filed → track cannot advance |
+
+**Why this matters:**
+- `signals.log()` is a server function that bypasses RLS (Row-Level Security)
+- Station handoff checks require signals to be filed by previous station
+- Without signals, `needIsMet()` check fails with "nothing-to-hand-on" hold
+- Track stays stuck at current station indefinitely
+
+---
+
 ## BROKEN 🔴 — Loop Cannot Complete
 
-| Issue | Finding | Evidence | Impact |
+| Issue | Finding | Evidence | Root Cause |
 | --- | --- | --- | --- |
-| **Loop times out Discover→Decide** | E2E test stops progressing after station entry | Track at Discover for 90s, no progression | BLOCKS ALL E2E VERIFICATION |
-| **No Ship station reached** | Zero tracks have `station='ship'` | Query: `SELECT COUNT(*) FROM spine_tracks WHERE station='ship'` → **0** | Acceptance criterion unreachable |
-| **No Learn station reached** | Zero tracks have `station='learn'` | Query: `SELECT COUNT(*) FROM spine_tracks WHERE station='learn'` → **0** | Feedback loop never closes |
-| **Acceptance query is 0** | `entry_station='sense' AND station='learn' AND waived='[]'` returns 0 | Verified: zero rows | Mission gate NOT met |
-| **Design is a bottleneck** | 4 open, 1 abandoned tracks stuck at design (50% of all sense-entry tracks) | 1+ days per track at design | Progression blocked before Build |
-| **Tracks abandoned mid-loop** | 2 of 8 sense-entry tracks status='abandoned' | Both before reaching decide | No diagnostics recorded |
-| **Decide station not advancing** | 3 tracks stuck at decide (open) | No visibility into why | Loop progression stops here |
-| **No diagnostics per track** | No hold_reason, no error log, no transcript of decisions at stuck stations | Queries fail: columns don't exist | Cannot debug stuck tracks |
+| **Discover→Decide hangs indefinitely** | E2E test stops progressing after Discover entry | Track at Discover for 90s+, no progression to Decide | Discovery Scout completes but cannot file signals (missing credential) |
+| **Signals not being filed** | Agent_runs show `completed_with_failures`; signals.log() throws | 11 recent failures; error message explicitly names missing credential | SUPABASE_SERVICE_ROLE_KEY absent from environment |
+| **No Ship station reached** | Zero tracks have `station='ship'` | `SELECT COUNT(*) FROM spine_tracks WHERE station='ship'` → **0** | Loop cannot progress past earlier blocks |
+| **No Learn station reached** | Zero tracks have `station='learn'` | `SELECT COUNT(*) FROM spine_tracks WHERE station='learn'` → **0** | Loop never completes; feedback cycle broken |
+| **Acceptance query is 0** | `entry_station='sense' AND station='learn' AND waived='[]'` returns 0 | Verified: zero rows | Mission gate unreachable without loop completion |
+| **Design bottleneck** | 4 open, 1 abandoned tracks stuck at design | 1+ days per track | Consequence of earlier stations failing; design is not itself the issue |
+| **Tracks abandoned mid-loop** | 2 of 8 sense-entry tracks status='abandoned' | Both before reaching decide | Likely due to agent failures cascading from signal filing error |
+| **Decide station not advancing** | 3 tracks stuck at decide (open) | No visibility into why decision to advancement handoff fails | Related to upstream signal filing failures |
 
 ---
 
