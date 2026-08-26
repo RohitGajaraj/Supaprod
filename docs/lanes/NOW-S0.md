@@ -1,1 +1,1 @@
-S0 · 20:10 IST · WORKING · steer migration APPLIED (mission_id nullable + CHECK validated) — gap #5 works at all 7 stations; 10 press tracks abandoned, open 69→59 · supabase/** coordination/answers/** · pending
+S0 · 20:15 IST · WORKING · R-28 ruled: Supaprod is the canonical build repo (RohitGajaraj CI minutes exhausted); 7977dc06 abandoned, 0 open tracks on the dead org, open 69→58 · the-first-run/** · pending

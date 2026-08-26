@@ -755,6 +755,40 @@ waiver.** REQ-2 asked for three lines; it was six, in three files, plus five tes
 
 ---
 
+## R-28 · `Supaprod/relay-homeowner-app` is the canonical build repo — 2026-08-26
+
+**Founder delegated this to S0 with full authority; ruled and executed the same unit.**
+
+**The reason is CI minutes, and it is decisive rather than a preference.** The
+`RohitGajaraj` account exhausted its 2,000-minute monthly GitHub Actions allowance, so **CI does not
+run there at all**. The `Supaprod` org was created for that reason on 2026-08-25. And CI green is not
+optional anywhere in this loop: `studio.pr.merge` re-proves checks fresh and refuses red, R-27 gates
+the production deploy on proof, and Ship reads `github.ci.read` before it will publish. **A repo
+where CI cannot run is a repo where nothing can ship**, whatever the code says.
+
+**The evidence agrees with the reasoning, which is why this is a ruling and not a guess.** The only
+track that has ever walked all seven stations — `d1168015` — built on **`Supaprod/…` PR #1** at
+18:10, after the cutover. The track that stalled at Ship — `7977dc06` — built on
+**`RohitGajaraj/… PR #5`** at 13:01, before it. The furthest-travelling run is the one on the org
+with working CI.
+
+**Consequences, executed 2026-08-26:**
+
+- **New work already goes to `Supaprod`** — the newest changeset in the database carries that repo,
+  so no binding change was needed. This ruling records the state rather than creating it.
+- **Pre-cutover changesets are stranded and are not worth rescuing.** They point at PRs in an org
+  with no CI minutes, so no amount of driving moves them. `7977dc06` was **abandoned**: it was
+  already `given-up` (terminal, the sweep skips it) and its changeset was ALSO trapped by F-67's
+  staged path. Leaving it `open` reported a dead run as live work on every board. `48eee889` was
+  already abandoned.
+- **Zero open tracks now reference the exhausted org**, verified by query.
+
+**Do not "fix" a stranded pre-cutover track by merging its old PR.** The work is re-stageable in
+`Supaprod` in one clean run, which is what a fresh track does anyway, and merging into an org we have
+left would put the change somewhere the product no longer deploys from.
+
+---
+
 ## R-27 · The production deploy is gated by PROOF, not by a click — 2026-08-25
 
 **Delegated by the founder, 13:5x IST, answering my ask on F-18:** *"On item number three, you make
