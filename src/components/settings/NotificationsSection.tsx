@@ -28,8 +28,9 @@
  * 2026-08-26, S3: added the "When work finishes" region for the verdict email
  * (gap #2). It renders only once the fetched row carries `email_verdict`, so
  * the surface cannot ship ahead of S0's column; see
- * coordination/requests/S3/verdict-notify-trigger.md. The template it sends is
- * src/components/notifications/verdict-email.ts.
+ * coordination/requests/S3/verdict-notify-trigger.md. The template it sends
+ * re-lands once the email palette is promoted
+ * (coordination/requests/S3/mrd-email-palette.md).
  *
  * KEPT: every server function, both preference paths (the server-stored matrix
  * and the device-local interaction feedback), the same query keys, and the
