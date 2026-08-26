@@ -82,7 +82,10 @@ describe("F-77 · the check judges the record, not the visit", () => {
       {
         from: () => ({
           select: () => ({
-            in: async () => ({ data: [{ id: "id-prd", title: "The spec", body_md: null }], error: null }),
+            in: async () => ({
+              data: [{ id: "id-prd", title: "The spec", body_md: null }],
+              error: null,
+            }),
           }),
         }),
       } as never,

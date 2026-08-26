@@ -1255,8 +1255,11 @@ async function filedAtStation(
     }
     return ((data ?? []) as Array<{ artifact_kind?: string; artifact_id?: string }>)
       .filter((r) => r.artifact_kind && r.artifact_id)
-      .map((r) => ({ artifactKind: r.artifact_kind!, artifactId: r.artifact_id!, station })) as
-      Attachment[];
+      .map((r) => ({
+        artifactKind: r.artifact_kind!,
+        artifactId: r.artifact_id!,
+        station,
+      })) as Attachment[];
   } catch (e) {
     console.error(`[driver] could not read what ${station} filed: ${String(e)}`);
     return [];

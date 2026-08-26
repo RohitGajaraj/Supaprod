@@ -24,16 +24,8 @@ import { cannyAdapter } from "./canny.server";
 import { productboardAdapter } from "./productboard.server";
 import { figmaAdapter } from "./figma.server";
 import { jiraAdapter } from "./jira.server";
-import {
-  gmailAdapter,
-  microsoftMailAdapter,
-  microsoftOutlookAdapter,
-} from "./mail-family.server";
-import {
-  linearAdapter,
-  notionAdapter,
-  googleDocsAdapter,
-} from "./gateway-era-adapters.server";
+import { gmailAdapter, microsoftMailAdapter, microsoftOutlookAdapter } from "./mail-family.server";
+import { linearAdapter, notionAdapter, googleDocsAdapter } from "./gateway-era-adapters.server";
 import type { ConnectorAdapter } from "./types.server";
 
 const stubAdapter: ConnectorAdapter = {
