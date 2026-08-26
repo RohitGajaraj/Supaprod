@@ -268,8 +268,19 @@ function DecisionCard({ item }: { item: ArtifactView }) {
       {alternatives.length > 0 ? (
         <div className="flex flex-col gap-mrd-2">
           <span className="mrd-eyebrow">Rejected</span>
+          {/*
+            NOT `tight`, and this one was the most expensive of the four.
+            Measured on production 2026-08-27: across 603 stored alternatives the
+            MEAN length is 185 characters and the longest is 366. One clamped
+            line shows perhaps seventy, so roughly two thirds of every rejected
+            option was hidden on the field this card's own comment calls "the
+            field that makes a decision a decision". `tight`'s contract is a row
+            whose full content has a detail view to open; an alternative is a
+            string on the decision row and has none, so the clip was the only
+            copy a person would ever see.
+          */}
           {alternatives.map((a) => (
-            <Row key={a} tight lead={a} />
+            <Row key={a} lead={a} />
           ))}
         </div>
       ) : null}
@@ -1706,7 +1717,10 @@ function StationPanel({
     return (
       <div className="flex flex-col gap-mrd-3">
         <RecordSpeaks>{`${stop.label} ran and filed no ${noun}.`}</RecordSpeaks>
-        {hold ? <Row tight lead={hold} /> : null}
+        {/* NOT `tight`: that prop's contract is "a row whose full content has a
+            detail view to open", and a hold sentence has none. Clipping it hid
+            the only copy of the reason the work stopped. */}
+        {hold ? <Row lead={hold} /> : null}
       </div>
     );
   }

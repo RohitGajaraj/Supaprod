@@ -809,7 +809,6 @@ export function TrackRunLeft({
               */}
             {holdWayOut.next ? (
               <Row
-                tight
                 lead={holdWayOut.next}
                 sub={
                   holdWayOut.onThisScreen
@@ -964,7 +963,6 @@ export function TrackRunLeft({
             />
             {capReached ? (
               <Row
-                tight
                 lead={`It walked every automatic leg (${AUTO_MAX}) and still has route ahead.`}
                 sub="Nothing was stopped silently: press Run it now to buy another set of legs."
               />
