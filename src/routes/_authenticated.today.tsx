@@ -863,7 +863,21 @@ function Today() {
         ...base(r),
         state: <>{r.holdLine ?? "Waiting on your answer"}</>,
       })),
-      live: grouped.running.map(base),
+      // A held track says WHY before it says when it moved: stopped-for-a-
+      // reason must not read as slow.
+      live: grouped.running.map((r): CrewRow => ({
+        ...base(r),
+        state:
+          r.holdLine && r.lastMoved ? (
+            <>
+              {r.holdLine} · moved {r.lastMoved} ago
+            </>
+          ) : r.holdLine ? (
+            <>{r.holdLine}</>
+          ) : (
+            base(r).state
+          ),
+      })),
       open: grouped.finished.map((r): CrewRow => ({
         ...base(r),
         state: <>{r.lastMoved ? `done · moved ${r.lastMoved} ago` : "done"}</>,

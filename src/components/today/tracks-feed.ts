@@ -108,6 +108,10 @@ export function trackToBoardRows(
       ...base,
       kind: "running",
       lastMoved: fresh ? (formatAgo(t.drivenAt) ?? "now") : formatAgo(t.drivenAt),
+      // A hold that is NOT on the person means the work has stopped for its own
+      // reason; carrying the reason keeps a stopped track from reading as a
+      // merely slow one, which is the exact confusion the hold field exists to
+      // prevent (spine_tracks.last_hold).
       holdLine: t.holdReason ? (t.hold ?? null) : null,
     });
   }

@@ -72,6 +72,23 @@ describe("trackToBoardRows", () => {
     expect(running[0]?.lastMoved).toBe("3h");
   });
 
+  it("carries a non-person hold on a running row so stopped does not read as slow", () => {
+    const { running } = trackToBoardRows(
+      [
+        track({
+          id: "h",
+          drivenAt: minsAgo(30),
+          holdReason: "tools-refused",
+          hold: "A door the work needs is locked.",
+        }),
+      ],
+      new Set(),
+      (iso) => (iso ? "30m" : null),
+    );
+    expect(running).toHaveLength(1);
+    expect(running[0]?.holdLine).toBe("A door the work needs is locked.");
+  });
+
   it("files done tracks as finished and drops abandoned ones", () => {
     const { finished, running, waiting } = trackToBoardRows(
       [track({ id: "d", status: "done" }), track({ id: "x", status: "abandoned" })],
