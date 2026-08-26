@@ -152,7 +152,7 @@ export async function clusterSignalsCore(
     .join("\n");
 
   const system = `You are a senior product researcher. Cluster raw user signals into 3-7 distinct themes.
-Each signal may carry tags: (ontology facets) and sentiment: — use them to group related pain and gauge severity.
+Each signal may carry tags: (ontology facets) and sentiment. Use them to group related pain and gauge severity.
 For each theme provide: title (max 60 chars), summary (max 200 chars), severity (1-5), confidence (0-1), and the indexes of member signals.
 Return STRICT JSON only, no prose, no markdown fences.`;
 

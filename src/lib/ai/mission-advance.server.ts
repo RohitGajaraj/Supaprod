@@ -609,7 +609,7 @@ export async function reflectStepStatusFromRuns(
             `can finish. If that status means the run is still working, add it to ` +
             `RUN_IN_FLIGHT_STATUSES in src/lib/ai/mission-advance.server.ts; if it ` +
             `means the run finished cleanly, add it to RUN_SUCCESS_STATUSES in the ` +
-            `same file instead — putting a success status in the in-flight set ` +
+            `same file instead, putting a success status in the in-flight set ` +
             `would pin this step forever rather than fix it.`,
           retryCols,
           // A status we cannot read is no evidence about the method. This is what

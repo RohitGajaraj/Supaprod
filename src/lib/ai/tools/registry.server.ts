@@ -375,8 +375,8 @@ const logSignal = def({
    */
   description:
     "Log a discovery signal: evidence that EXISTS, in the words of the source (user feedback, a support ticket, an interview quote). " +
-    "NEVER log the absence of evidence. 'No signals found', 'zero results', 'no data for X' are not signals — they are the answer to your final message, and filing them puts your own failure into the evidence every later run reads. Finding nothing and filing nothing is a correct, expected outcome; say so in your answer instead. " +
-    "NEVER cite this product's own work as a source. A PRD, spec, decision, changeset, mission, forecast or workspace brief is something the loop wrote, not something a person outside it said — the tool refuses those and the refusal is not a bug to work around.",
+    "NEVER log the absence of evidence. 'No signals found', 'zero results', 'no data for X' are not signals. They are the answer to your final message, and filing them puts your own failure into the evidence every later run reads. Finding nothing and filing nothing is a correct, expected outcome; say so in your answer instead. " +
+    "NEVER cite this product's own work as a source. A PRD, spec, decision, changeset, mission, forecast or workspace brief is something the loop wrote, not something a person outside it said. The tool refuses those and the refusal is not a bug to work around.",
   category: "write",
   argsSchema: z.object({
     content: z.string().min(1).max(4000),
@@ -817,7 +817,7 @@ const remember = def({
 const memoryReflect = def({
   name: "memory.reflect",
   description:
-    "Record a one-paragraph lesson from this run so future runs of the same agent can recall it. Optional — the system reflects automatically on clean completion. Use this only when you want to capture a lesson mid-run (e.g. before a handoff).",
+    "Record a one-paragraph lesson from this run so future runs of the same agent can recall it. Optional. The system reflects automatically on clean completion. Use this only when you want to capture a lesson mid-run (e.g. before a handoff).",
   category: "memory",
   argsSchema: z.object({
     note: z.string().max(400).optional(),
@@ -827,7 +827,7 @@ const memoryReflect = def({
     if (!agentSlug) throw new Error("memory.reflect requires an agent context");
     // Pull the current run input as the "goal"; fall back to the model's note.
     let goal = a.note ?? "(mid-run reflection)";
-    let finalMsg = a.note ?? "(no final message yet — mid-run)";
+    let finalMsg = a.note ?? "(no final message yet, mid-run)";
     if (runId) {
       const { data: run } = await supabase
         .from("agent_runs")
@@ -1248,7 +1248,7 @@ const githubPrOpen = def({
         }
 
         // 5) open PR
-        const prBody = `${a.body.trim()}\n\nCloses #${a.issue_number}\n\n_Opened by the Supaprod Builder agent — approval-gated, single file (\`${a.path}\`) · acting as ${actorLabel}._`;
+        const prBody = `${a.body.trim()}\n\nCloses #${a.issue_number}\n\n_Opened by the Supaprod Builder agent, approval-gated, single file (\`${a.path}\`) · acting as ${actorLabel}._`;
         const prRes = await fetch(`https://api.github.com/repos/${repo}/pulls`, {
           method: "POST",
           headers,
@@ -1616,7 +1616,7 @@ function assertStudioPathAllowed(path: string) {
       // Names the alternative, not just the refusal. F-24: a prohibition whose
       // escape hatch the agent cannot see gets the same behaviour under a new
       // name — which is precisely how F-63 happened, one rule up.
-      `Studio is not allowed to modify ${path} (CI, migrations, env, lockfiles and the manifests that define what the checks run are out of scope). If a check is stopping the work, say the spec cannot be built with what is present — never change what the check does.`,
+      `Studio is not allowed to modify ${path} (CI, migrations, env, lockfiles and the manifests that define what the checks run are out of scope). If a check is stopping the work, say the spec cannot be built with what is present. Never change what the check does.`,
     );
   }
 }
@@ -1660,7 +1660,7 @@ function repoRootRefusal(
 ): Error | null {
   if (source !== "binding") return null;
   return new Error(
-    `GitHub answered 404 for the repository root of ${repo}, which the workspace binding names — ${REPO_ROOT_ACCESS_REFUSED}. GitHub says 404 rather than 401 for a private repo the installation cannot see. Grant the GitHub App access to ${repo}, or re-bind the repo on Connectors.`,
+    `GitHub answered 404 for the repository root of ${repo}, which the workspace binding names: ${REPO_ROOT_ACCESS_REFUSED}. GitHub says 404 rather than 401 for a private repo the installation cannot see. Grant the GitHub App access to ${repo}, or re-bind the repo on Connectors.`,
   );
 }
 
@@ -1789,7 +1789,7 @@ function stalePrPointerRefusal(changeset: ChangesetRow, repo: string): Error | n
   if (on && on.toLowerCase() === repo.toLowerCase()) return null;
   const named = on ?? `a repository this URL does not name (${changeset.pr_url})`;
   return new Error(
-    `Refused: this changeset's pull request is #${changeset.pr_number ?? "?"} on ${named}, and this workspace is bound to ${repo}. A pull request on one repository is not evidence about another, so the stored pointer is not returned and no pull request is opened here. The work is not lost — the branch and the pull request are still on ${named}. Say exactly that: this changeset was opened against ${named} and the workspace now names ${repo}, so a person has to settle which repository the work belongs to. Do not open, commit or report a pull request on ${repo} until they have.`,
+    `Refused: this changeset's pull request is #${changeset.pr_number ?? "?"} on ${named}, and this workspace is bound to ${repo}. A pull request on one repository is not evidence about another, so the stored pointer is not returned and no pull request is opened here. The work is not lost. The branch and the pull request are still on ${named}. Say exactly that: this changeset was opened against ${named} and the workspace now names ${repo}, so a person has to settle which repository the work belongs to. Do not open, commit or report a pull request on ${repo} until they have.`,
   );
 }
 
@@ -1869,9 +1869,7 @@ const repoTree = def({
       ref,
       total: entries.length,
       truncated,
-      ...(truncated
-        ? { note: `Listing capped at ${CAP} entries — narrow with the path arg.` }
-        : {}),
+      ...(truncated ? { note: `Listing capped at ${CAP} entries. Narrow with the path arg.` } : {}),
       entries: entries.slice(0, CAP),
     };
   },
@@ -1964,7 +1962,7 @@ const repoSearch = def({
    */
   description:
     "Studio: GitHub code search scoped to the connected repo. Returns matching paths with text fragments. Read-only. Use to locate the code relevant to the work order. " +
-    "ZERO HITS IS NOT EVIDENCE THE CODE IS ABSENT. This is GitHub's code search index rather than the repository itself, and private repositories are frequently not indexed at all — an unindexed repo returns total 0 exactly as a repo with no match does, and you cannot tell them apart from here. Before you conclude that anything is missing, call repo.tree, which reads the git tree itself and has no index to miss it, then repo.read the paths it shows. Never report code as absent on the strength of an empty search.",
+    "ZERO HITS IS NOT EVIDENCE THE CODE IS ABSENT. This is GitHub's code search index rather than the repository itself, and private repositories are frequently not indexed at all. An unindexed repo returns total 0 exactly as a repo with no match does, and you cannot tell them apart from here. Before you conclude that anything is missing, call repo.tree, which reads the git tree itself and has no index to miss it, then repo.read the paths it shows. Never report code as absent on the strength of an empty search.",
   category: "read",
   argsSchema: z.object({
     query: z.string().min(1).max(200),
@@ -2192,7 +2190,7 @@ const studioStage = def({
         const missing = wanted.filter((w) => !known.has(w));
         if (missing.length > 0) {
           throw new Error(
-            `Refused: ${missing.join(", ")} ${missing.length === 1 ? "is" : "are"} imported by this change and ${missing.length === 1 ? "is" : "are"} not in the repository's package.json, so the checks cannot resolve ${missing.length === 1 ? "it" : "them"} and this would fail in seconds. You cannot add a dependency — nothing installs one for you. Use what the repository already has (read package.json and the existing tests to see what that is), or say plainly that the spec cannot be built with what is present.`,
+            `Refused: ${missing.join(", ")} ${missing.length === 1 ? "is" : "are"} imported by this change and ${missing.length === 1 ? "is" : "are"} not in the repository's package.json, so the checks cannot resolve ${missing.length === 1 ? "it" : "them"} and this would fail in seconds. You cannot add a dependency. Nothing installs one for you. Use what the repository already has (read package.json and the existing tests to see what that is), or say plainly that the spec cannot be built with what is present.`,
           );
         }
       }
@@ -2415,7 +2413,7 @@ const studioStage = def({
       total_staged_paths: count ?? staged.length,
       note:
         changeset.status === "staged"
-          ? "Staged in the platform only — call studio.commit to push to a studio/* branch."
+          ? "Staged in the platform only. Call studio.commit to push to a studio/* branch."
           : "Changeset already has commits — studio.commit again to push these changes to the same branch.",
     };
   },
@@ -2476,7 +2474,7 @@ const studioStage = def({
 const studioUnstage = def({
   name: "studio.unstage",
   description:
-    "Studio: remove one or more paths from this mission's staged changeset, so studio.commit stops trying to write them. THIS IS THE WAY OUT when studio.commit refuses a staged path it is not allowed to write (CI config, migrations, env, lockfiles, or a manifest that defines what the checks run): unstage that path, then commit the rest — the rest of the changeset is untouched. It removes the staged INTENT only. It does not revert a commit already pushed to the branch, it does not change the file on the repo, and it is not an undo for work that has merged.",
+    "Studio: remove one or more paths from this mission's staged changeset, so studio.commit stops trying to write them. THIS IS THE WAY OUT when studio.commit refuses a staged path it is not allowed to write (CI config, migrations, env, lockfiles, or a manifest that defines what the checks run): unstage that path, then commit the rest. The rest of the changeset is untouched. It removes the staged INTENT only. It does not revert a commit already pushed to the branch, it does not change the file on the repo, and it is not an undo for work that has merged.",
   category: "write",
   /*
    * Shape-drift, on studio.stage's precedent: the two ways a model gets a
@@ -2511,7 +2509,7 @@ const studioUnstage = def({
     const { supabase, missionId } = ctx;
     if (!missionId) throw new Error("studio.unstage requires a mission (dispatch via Studio)");
     const changeset = await getActiveChangeset(supabase, missionId);
-    if (!changeset) throw new Error("no active changeset — nothing is staged to remove");
+    if (!changeset) throw new Error("no active changeset, nothing is staged to remove");
 
     /*
      * A merged changeset is finished, and pulling a row out of it would change
@@ -2571,7 +2569,7 @@ const studioUnstage = def({
     notes.push(
       remaining.length === 0
         ? "The changeset now has no staged changes; studio.commit will refuse until something is staged."
-        : `${remaining.length} path${remaining.length === 1 ? "" : "s"} still staged — call studio.commit to push ${remaining.length === 1 ? "it" : "them"}.`,
+        : `${remaining.length} path${remaining.length === 1 ? "" : "s"} still staged. Call studio.commit to push ${remaining.length === 1 ? "it" : "them"}.`,
     );
 
     return {
@@ -2651,7 +2649,7 @@ const studioCommit = def({
     if (forbidden.length > 0) {
       const one = forbidden.length === 1;
       throw new Error(
-        `Refused: ${forbidden.join(", ")} ${one ? "is" : "are"} staged on this changeset, and Studio may not commit ${one ? "it" : "them"} — CI, migrations, env, lockfiles and the manifests that define what the checks run are out of scope. This does not have to end the run: call studio.unstage with ${one ? "that path" : "those paths"} and commit the rest. Unstaging removes the staged edit only; the file on the repo stays exactly as it is. Do not re-stage ${one ? "it" : "them"} to get past this — if a check is stopping the work, say the spec cannot be built with what is present.`,
+        `Refused: ${forbidden.join(", ")} ${one ? "is" : "are"} staged on this changeset, and Studio may not commit ${one ? "it" : "them"}. CI, migrations, env, lockfiles and the manifests that define what the checks run are out of scope. This does not have to end the run: call studio.unstage with ${one ? "that path" : "those paths"} and commit the rest. Unstaging removes the staged edit only; the file on the repo stays exactly as it is. Do not re-stage ${one ? "it" : "them"} to get past this. If a check is stopping the work, say the spec cannot be built with what is present.`,
       );
     }
 
@@ -2886,7 +2884,7 @@ const ciLogs = def({
 const studioFixCommit = def({
   name: "studio.fix.commit",
   description:
-    "Studio: append staged CI-fix changes to this mission's EXISTING pr_open studio branch. Only valid AFTER a human opened the PR (studio.pr.open) — that prior human gate is why this runs without a fresh gate; the merge gate still holds. Bounded by the changeset's fix budget. For first commits use studio.commit.",
+    "Studio: append staged CI-fix changes to this mission's EXISTING pr_open studio branch. Only valid AFTER a human opened the PR (studio.pr.open). That prior human gate is why this runs without a fresh gate; the merge gate still holds. Bounded by the changeset's fix budget. For first commits use studio.commit.",
   category: "write",
   argsSchema: z.object({
     message: z.string().min(4).max(280),
@@ -2896,7 +2894,7 @@ const studioFixCommit = def({
     const { supabase, missionId } = ctx;
     if (!missionId) throw new Error("studio.fix.commit requires a mission");
     const changeset = await getActiveChangeset(supabase, missionId);
-    if (!changeset) throw new Error("no active changeset — nothing to fix");
+    if (!changeset) throw new Error("no active changeset, nothing to fix");
     if (changeset.status !== "pr_open") {
       throw new Error(
         "studio.fix.commit only appends to a branch whose PR a human already opened. Use studio.commit (operator-gated) instead.",
@@ -3584,7 +3582,7 @@ const studioPrMerge = def({
         );
         if (!res.ok) {
           throw new Error(
-            `GitHub merge ${res.status}: ${(await res.text()).slice(0, 300)} — the PR may have conflicts or pending required checks.`,
+            `GitHub merge ${res.status}: ${(await res.text()).slice(0, 300)}. The PR may have conflicts or pending required checks.`,
           );
         }
         const j = (await res.json()) as { sha: string; merged: boolean };
@@ -3921,7 +3919,7 @@ const researchSynthesize = def({
 const prdDraft = def({
   name: "prd.draft",
   description:
-    "Draft a spec, from an opportunity or from a brief. Pass opportunity_id when a bet already exists: it reads the opportunity, its theme, and supporting signals. Pass brief instead when this work entered mid-lifecycle and no bet was ever filed — say what the work is and why it exists, in the words of the job you were given. At least one of the two is required, and if you pass both the opportunity is used and the brief is ignored. Nothing in this toolset creates an opportunity, so do not stall waiting for one, never pass an id of another kind in its place, and never invent a uuid to fill the field — pass brief instead. Writes a draft spec with problem, goals, non-goals, user stories, success metrics, and risks. If the bet already carries a spec, that existing spec is returned (`existing: true`) instead of a second draft being minted — read it with prd.get and build on it rather than drafting again.",
+    "Draft a spec, from an opportunity or from a brief. Pass opportunity_id when a bet already exists: it reads the opportunity, its theme, and supporting signals. Pass brief instead when this work entered mid-lifecycle and no bet was ever filed. Say what the work is and why it exists, in the words of the job you were given. At least one of the two is required, and if you pass both the opportunity is used and the brief is ignored. Nothing in this toolset creates an opportunity, so do not stall waiting for one, never pass an id of another kind in its place, and never invent a uuid to fill the field. Pass brief instead. Writes a draft spec with problem, goals, non-goals, user stories, success metrics, and risks. If the bet already carries a spec, that existing spec is returned (`existing: true`) instead of a second draft being minted. Read it with prd.get and build on it rather than drafting again.",
   category: "write",
   /**
    * Both fields are optional here and the either/or is enforced in `run`, which
@@ -3938,8 +3936,8 @@ const prdDraft = def({
   }),
   preview: (a) =>
     a.opportunity_id
-      ? `Draft spec for opportunity ${a.opportunity_id.slice(0, 8)}${a.title ? ` — "${a.title}"` : ""}`
-      : `Draft spec from a brief, with no bet behind it${a.title ? ` — "${a.title}"` : ""}`,
+      ? `Draft spec for opportunity ${a.opportunity_id.slice(0, 8)}${a.title ? `: "${a.title}"` : ""}`
+      : `Draft spec from a brief, with no bet behind it${a.title ? `: "${a.title}"` : ""}`,
   run: async (a, { supabase, userId, traceId, runId, agentSlug, workspaceId }) => {
     const brief = a.brief?.trim() ?? "";
     if (!a.opportunity_id && !brief) {
@@ -3979,7 +3977,7 @@ const prdDraft = def({
        * bet the agent is looking for. */
       if (!data)
         throw new Error(
-          `No opportunity ${a.opportunity_id} exists for this user. Do not retry with a different id: if you were not handed a real bet id, you cannot invent one and nothing in this toolset creates one. Call prd.draft again with \`brief\` instead — what the work is and why it exists — and leave opportunity_id out.`,
+          `No opportunity ${a.opportunity_id} exists for this user. Do not retry with a different id: if you were not handed a real bet id, you cannot invent one and nothing in this toolset creates one. Call prd.draft again with \`brief\` instead (what the work is and why it exists) and leave opportunity_id out.`,
         );
       opp = data;
     }
@@ -4620,7 +4618,7 @@ function sinceIso(iso: string): number {
 const prdSearch = def({
   name: "prd.search",
   description:
-    'Search the workspace\'s specs by keyword before you draft one — answers "does a spec already serve this bet?" Each hit carries id, title, lifecycle status (draft/review/approved/shipped), the opportunity it serves, and whether it shipped. Check here before calling prd.draft on a bet: drafting against a bet that already has a spec returns the old one instead of writing a new draft.',
+    'Search the workspace\'s specs by keyword before you draft one. Answers "does a spec already serve this bet?" Each hit carries id, title, lifecycle status (draft/review/approved/shipped), the opportunity it serves, and whether it shipped. Check here before calling prd.draft on a bet: drafting against a bet that already has a spec returns the old one instead of writing a new draft.',
   category: "read",
   argsSchema: z.object({
     query: z.string().max(200).optional(),
@@ -6550,7 +6548,7 @@ const webMapTool = def({
 const webCrawlTool = def({
   name: "web.crawl",
   description:
-    "Crawl a bounded set of pages on a domain (max 25 pages, depth 2). Costs real credits — prefer web.search + web.fetch unless you genuinely need many pages. Defaults to a confirm approval gate.",
+    "Crawl a bounded set of pages on a domain (max 25 pages, depth 2). Costs real credits. Prefer web.search + web.fetch unless you genuinely need many pages. Defaults to a confirm approval gate.",
   category: "read",
   argsSchema: z.object({
     url: z.string().url().max(500),

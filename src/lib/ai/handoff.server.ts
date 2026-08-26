@@ -522,7 +522,7 @@ export function renderHandoffBlock(
   if (p.artifacts?.length) {
     sections.push(
       "Artifacts you can read with your tools:\n" +
-        p.artifacts.map((a) => `- ${a.kind} ${a.id}${a.title ? ` — ${a.title}` : ""}`).join("\n"),
+        p.artifacts.map((a) => `- ${a.kind} ${a.id}${a.title ? `: ${a.title}` : ""}`).join("\n"),
     );
   }
   if (p.constraints?.length) {

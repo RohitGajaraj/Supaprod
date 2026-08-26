@@ -108,7 +108,7 @@ function parsePlan(text: string): { steps: PlannedStep[]; summary?: string } | n
 export const missionPlan = def({
   name: "mission.plan",
   description:
-    "Decompose THIS mission into a small DAG (1–6 steps). Persists mission_steps for later dispatch. Call exactly once near the start of the run.",
+    "Decompose THIS mission into a small DAG (1 to 6 steps). Persists mission_steps for later dispatch. Call exactly once near the start of the run.",
   category: "planning",
   argsSchema: PlanArgs,
   preview: (a) => `Plan mission${a.goal ? `: "${a.goal.slice(0, 80)}"` : ""}`,
@@ -317,7 +317,7 @@ export const missionPlan = def({
         insErr = (await supabase.from("mission_steps").insert(bare)).error;
       }
     }
-    if (insErr) throw new Error(`mission.plan: persist failed — ${insErr.message}`);
+    if (insErr) throw new Error(`mission.plan: persist failed: ${insErr.message}`);
 
     return {
       mission_id: missionId,
@@ -340,7 +340,7 @@ const DispatchArgs = z.object({}).optional();
 export const missionDispatch = def({
   name: "mission.dispatch",
   description:
-    "Enqueue child agent_runs for every mission step whose dependencies are satisfied. Idempotent — already-dispatched steps are skipped.",
+    "Enqueue child agent_runs for every mission step whose dependencies are satisfied. Idempotent. Already-dispatched steps are skipped.",
   category: "planning",
   argsSchema: DispatchArgs as unknown as z.ZodTypeAny,
   preview: () => "Dispatch ready mission steps",

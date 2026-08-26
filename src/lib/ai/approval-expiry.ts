@@ -172,7 +172,7 @@ export function expiryNote(
     (override?.actual ?? declared) === "proceed" ? "Proceeded unasked" : "Cancelled unrun";
   const declaredClause = `this call's declared default is to ${declared} because ${why}`;
   const head = `${opening}: nobody answered by ${deadline}, and ${declaredClause}`;
-  if (override) return `${head} — but ${override.because}. Nothing ran.`;
+  if (override) return `${head}, but ${override.because}. Nothing ran.`;
   if (declared === "proceed") return `${head}. To undo: ${toolConsequence(toolName).undo}`;
   return `${head}. Nothing ran.`;
 }
