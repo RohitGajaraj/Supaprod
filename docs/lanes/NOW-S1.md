@@ -1,1 +1,1 @@
-S1 · 00:45 IST · DEVSERVER · driving the steer end to end now that S0 dropped the to_agent_slug constraint; will report exactly what happens · src/components/track/** · RUN-24
+S1 · 01:05 IST · WORKING · STEER PROVEN END TO END on S0's fix: sent, stored track-scoped with a null recipient, consumed by a run 50s later. RUN-23 corrected by the same drive (it offered doors the track did not have). Filing corrected: the dashed-output call sites are :964/:2493, not the two I named · server killed, ports clear · PUSH STILL BLOCKED · src/components/track/** spine/** · RUN-25

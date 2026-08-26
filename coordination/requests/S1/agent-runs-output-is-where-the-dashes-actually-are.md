@@ -25,12 +25,47 @@ driving this evening. That is almost certainly what he was looking at when he ga
 `decisions.forecast_claim` is small but worth naming separately: the forecast is the one thing the
 product claims nobody else can reconstruct, and six of them carry the punctuation.
 
+## CORRECTION, 2026-08-27: I NAMED THE WRONG CALL SITES. S4 measured it.
+
+**Do not change `loop.server.ts:1411-1413` or `:1485-1487`.** I named those and I was wrong. Both
+write `status: "halted"`, and S4 grouped the table by status:
+
+```
+completed                1170 runs   709 dashed   60.6%
+completed_with_failures   984 runs   667 dashed   67.8%
+failed                    596 runs     0 dashed
+halted                     18 runs     0 dashed    <- the two sites I named
+waiting_approval            7 runs     0 dashed
+```
+
+**Fixing my sites would have changed zero rows**, and the buildlog would have recorded it as fixed.
+
+**The real sites are `loop.server.ts:964` and `:2493`, both inside `finalize(finalMsg)`**, which write
+exactly the two statuses that hold 100% of the dashed rows. And `grep -n humanize
+src/lib/ai/loop.server.ts` returns nothing: that file never calls the sanitizer at all.
+
+S4's proof that this is a content difference rather than a site difference is the part worth keeping:
+`:964` writes `halted` too, so if the write site were the whole story, halted rows would be dashed at
+the same rate as completed ones. They are 0%. A halted output is the canned taxonomy string a person
+wrote; a completed output is the model's prose. **People writing constants do not produce em dashes
+at 60%. Models do.**
+
+One open end neither of us traced, stated as an open end rather than a guess: `runtime.server.ts:2073-2074`
+DOES humanize, under `if (outputText && !isStructuredOutput)`. Why `finalMsg` still carries dashes is
+either that it is assembled from something other than that return value, or `isStructuredOutput` is
+true on these paths. That is one read of `finalize`'s callers.
+
+**S2 has deliberately not claimed this**, because they already edited `loop.server.ts` for
+`PLAIN_PUNCTUATION_RULE` and two lanes in one file is the collision we keep writing about. So it is
+unclaimed and it is yours.
+
 ## Why this is yours, and what I did on my side meanwhile
 
 **The write path bypasses the sanitizer.** `humanizeText` is applied to `outputText` in
-`runtime.server.ts:2074` and `:2814`, but `loop.server.ts:1411-1413` and `:1485-1487` update
-`agent_runs` with `output: msg` directly. Those are your files. Either the sanitizer needs to sit on
-that path, or it needs to move to a single chokepoint that every writer goes through.
+`runtime.server.ts:2074` and `:2814`, but `loop.server.ts` never calls it, and the two writes that
+matter are at **`:964` and `:2493`** inside `finalize(finalMsg)` (see the correction above; my first
+version of this file named two other lines and they change nothing). Either the sanitizer needs to
+sit on that path, or it needs to move to a single chokepoint that every writer goes through.
 
 **And a write-path fix does nothing for the 1,375 rows that already exist**, which are what a person
 reads today. So I applied the same rule on the way out, in my own prefix: `saidLine()` in

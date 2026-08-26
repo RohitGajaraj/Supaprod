@@ -74,6 +74,8 @@ import { TakeOver } from "@/components/track/TakeOver";
 import { RunCost } from "@/components/track/RunCost";
 import { triesLine } from "@/components/track/hold-tries";
 import { wayOut } from "@/components/track/way-out";
+import { takeOver } from "@/components/track/take-over";
+import type { SpineRoute } from "@/lib/spine/route";
 import { runPosition } from "@/components/track/run-position";
 
 /**
@@ -630,7 +632,20 @@ export function TrackRunLeft({
   }, [crewLive, walkingMidRoute, onCrewLive]);
 
   const showHold = held && !walkingMidRoute && !isCalmHold;
-  const holdWayOut = wayOut(track?.holdReason);
+  /*
+   * The way out is computed FROM WHAT THE SCREEN IS SHOWING, not from the hold
+   * alone. Caught on the first drive: a track going in circles at the first
+   * station on its route was told to send it back a step, directly above a
+   * region saying there was nothing to send it back to. Pointing at a door that
+   * is not there is the same defect as pointing at none.
+   */
+  const holdTakeOver = track
+    ? takeOver({ status: track.status, station: track.station, route: track.route as SpineRoute })
+    : null;
+  const holdWayOut = wayOut(track?.holdReason, {
+    undo: Boolean(holdTakeOver?.undoTo),
+    handback: Boolean(holdTakeOver?.handback),
+  });
   const showCalmHold = isCalmHold && !walkingMidRoute;
 
   /*
