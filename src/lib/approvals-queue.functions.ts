@@ -41,6 +41,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { resolveApprovalPolicy } from "@/lib/ai/approval-policy";
 import { approvalRecordFor } from "@/lib/ai/approval-policy.server";
+import {
+  collisionsFrom,
+  targetOf,
+  type Anchor,
+  type Collision,
+} from "@/lib/presence/collision";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -1744,5 +1750,109 @@ export const getApprovalPolicyState = createServerFn({ method: "GET" })
       }
 
       return { tools };
+    },
+  );
+
+/**
+ * WHO IS ABOUT TO TOUCH THE SAME THING — the read behind S2's collision mark.
+ *
+ * `SPEC-MULTIPLAYER-PRESENCE` §4 gives the derivation to S0 and the mark to S2.
+ * The derivation is pure and lives in `src/lib/presence/collision.ts`; this is
+ * only the read that feeds it.
+ *
+ * ── IT COULD NOT BE WRITTEN UNTIL TODAY ────────────────────────────────────
+ * S2 specified anchors as "newest `tool_calls` row per ACTIVE `agent_run`", and
+ * that join did not exist: `tool_calls.trace_id` matched **0 of 1,689**
+ * `agent_runs.id` because `agent_runs` had no such column (F-93). The link lived
+ * in memory for the life of a run and then was gone. The column exists now, so
+ * this read is ordinary.
+ *
+ * ── THE TWO HONESTY RULES IT INHERITS ──────────────────────────────────────
+ * **A run with a NULL `trace_id` is UNKNOWABLE, never "touched nothing".** Every
+ * run created before 2026-08-26 is NULL forever, because the correlation was
+ * never recorded. Treating those as idle would report two agents as safely apart
+ * when nobody knows — the failure direction that matters on a collision surface.
+ * They are excluded from anchors rather than counted as clear.
+ *
+ * **A call that names no target contributes no anchor**, and a run with no anchor
+ * is absent from the view rather than shown as safe. Same distinction, one layer
+ * down, enforced in `targetOf`.
+ */
+export const getWorkspaceAnchors = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => z.object({ workspaceId: z.string().uuid() }).parse(d))
+  .handler(
+    async ({
+      context,
+      data,
+    }): Promise<{ anchors: Anchor[]; collisions: Collision[]; unknowableRuns: number }> => {
+      const { supabase } = context;
+
+      // Active runs only, the same set the presence layer treats as live.
+      const { data: runs, error: runsErr } = await supabase
+        .from("agent_runs")
+        .select("id,agent_slug,mission_id,trace_id")
+        .eq("workspace_id", data.workspaceId)
+        .in("status", ["running", "in_progress"]);
+
+      // A failed read claims nothing. Reporting "no collisions" because a query
+      // broke is the one answer this surface must never give.
+      if (runsErr || !runs) return { anchors: [], collisions: [], unknowableRuns: 0 };
+
+      const live = runs as Array<{
+        id: string;
+        agent_slug: string | null;
+        mission_id: string | null;
+        trace_id: string | null;
+      }>;
+
+      // Counted and reported, not silently dropped: a surface that says "2 runs
+      // cannot be checked" is honest, and one that omits them is not.
+      const unknowableRuns = live.filter((r) => !r.trace_id).length;
+      const traceable = live.filter((r) => r.trace_id);
+      if (traceable.length === 0) return { anchors: [], collisions: [], unknowableRuns };
+
+      const { data: calls, error: callsErr } = await supabase
+        .from("tool_calls")
+        .select("trace_id,tool_name,args,created_at")
+        .in(
+          "trace_id",
+          traceable.map((r) => r.trace_id as string),
+        )
+        .order("created_at", { ascending: false })
+        .limit(400);
+
+      if (callsErr || !calls) return { anchors: [], collisions: [], unknowableRuns };
+
+      // Newest call per trace. The list is already newest-first, so the first
+      // hit per trace wins and nothing needs sorting again.
+      const newestByTrace = new Map<string, { tool_name: string; args: unknown; created_at: string }>();
+      for (const c of calls as Array<{
+        trace_id: string;
+        tool_name: string;
+        args: unknown;
+        created_at: string;
+      }>) {
+        if (!newestByTrace.has(c.trace_id)) newestByTrace.set(c.trace_id, c);
+      }
+
+      const anchors: Anchor[] = [];
+      for (const run of traceable) {
+        const call = newestByTrace.get(run.trace_id as string);
+        if (!call) continue;
+        const target = targetOf(call.args);
+        if (!target) continue; // Names nothing: no anchor, and not "safe".
+        anchors.push({
+          runId: run.id,
+          agentSlug: run.agent_slug,
+          missionId: run.mission_id,
+          toolName: call.tool_name,
+          targetKind: target.targetKind,
+          targetId: target.targetId,
+          createdAt: call.created_at,
+        });
+      }
+
+      return { anchors, collisions: collisionsFrom(anchors), unknowableRuns };
     },
   );
