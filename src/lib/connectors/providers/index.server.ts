@@ -19,6 +19,14 @@
 // when written and nobody re-ran it — the same failure as F-76 and F-80, three
 // times in one file. **A count in prose carries the sha it was measured at, or it
 // is a claim rather than evidence.**
+//
+// AND A SHA WAS NOT ENOUGH, which is why this sentence is now checked rather
+// than dated (2026-08-27). A sha makes a stale number honest about being stale;
+// it does not stop the next reader taking it as current, and S4 filed that same
+// staleness a second time. `the-connector-count-cannot-go-stale.test.ts` derives
+// both numbers from the map below and fails if this paragraph disagrees with
+// them, so finishing a stub now tells you which sentence to edit instead of
+// leaving a true-looking claim behind. Mutation-tested in both directions.
 
 import type { ProviderId } from "../registry";
 import { githubAdapter } from "./github.server";
