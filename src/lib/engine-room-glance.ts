@@ -146,6 +146,25 @@ export interface RoomTabMeta {
   label: string;
   technical: string;
   descriptor: string;
+  /**
+   * ENGINEERING TOOLING, NOT A PRODUCT SURFACE. The address still answers and
+   * the view still renders; no tab is drawn for it while you are standing
+   * somewhere else.
+   *
+   * WHY THIS FLAG EXISTS. Twenty-seven writes reach the Engine Room, and NINE
+   * of them are eval-suite and prompt-version CRUD. A product lead who opens
+   * this to ask "how well is the machine scoring" was being shown a suite
+   * editor and a prompt-version manager as peers of their own quality score.
+   * Those nine writes are real and worth keeping; they belong to whoever runs
+   * the workspace, which is Admin, and `/admin/quality` mounts the very same
+   * components rather than copying them.
+   *
+   * MARKING RATHER THAN DELETING is deliberate. `?view=suites` is linked from
+   * the `/evals` legacy redirect and from the calibration panel's own rows, so
+   * removing the entry would strand saved links to prove a point about the nav.
+   * A door that is not advertised still opens.
+   */
+  operator?: true;
 }
 
 export const ROOM_TAB_META: Record<RoomKey, RoomTabMeta[]> = {
@@ -225,6 +244,8 @@ export const ROOM_TAB_META: Record<RoomKey, RoomTabMeta[]> = {
       label: "What we test",
       technical: "Eval suites",
       descriptor: "The checks we run the machine against.",
+      // Six of the nine engineering writes. Lives at /admin/quality now.
+      operator: true,
     },
     {
       id: "drift",
@@ -244,6 +265,8 @@ export const ROOM_TAB_META: Record<RoomKey, RoomTabMeta[]> = {
       label: "Its instructions",
       technical: "Prompts",
       descriptor: "The instructions the agents actually run on.",
+      // The other three. Lives at /admin/quality now.
+      operator: true,
     },
     {
       id: "proof",
@@ -341,6 +364,26 @@ export const ROOM_TAB_META: Record<RoomKey, RoomTabMeta[]> = {
 /** The plain label for a room's view id (falls back to the id if unknown). */
 export function tabLabel(room: RoomKey, viewId: string): string {
   return ROOM_TAB_META[room].find((t) => t.id === viewId)?.label ?? viewId;
+}
+
+/**
+ * WHICH TABS ARE DRAWN, as opposed to which addresses answer.
+ *
+ * Two different questions, and conflating them is how a nav either advertises
+ * engineering tooling to a product lead or strands every saved link. Resolution
+ * always reads the FULL list (`ROOM_TAB_META[room]`); only drawing goes through
+ * here.
+ *
+ * An operator view is drawn while it is the ACTIVE one. A strip that hides the
+ * tab you are currently standing on loses the reader their place in order to
+ * make a point about the nav, which is a worse defect than the one it fixes.
+ *
+ * Extracted from the route's JSX so the rule can be asserted without a DOM.
+ * Inline, it was one more piece of behaviour that could only be checked by
+ * opening the page and remembering what to look for.
+ */
+export function drawnRoomTabs(room: RoomKey, activeView: string): RoomTabMeta[] {
+  return ROOM_TAB_META[room].filter((t) => !t.operator || t.id === activeView);
 }
 
 function fmtUsd(n: number): string {

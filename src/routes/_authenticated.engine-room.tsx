@@ -129,7 +129,13 @@ import { SpendRoom } from "@/components/engine-room/rooms/SpendRoom";
 import { QualityRoom } from "@/components/engine-room/rooms/QualityRoom";
 import { SafetyRoom } from "@/components/engine-room/rooms/SafetyRoom";
 import { RecordRoom } from "@/components/engine-room/rooms/RecordRoom";
-import { ROOM_NAMES, ROOM_QUESTIONS, ROOM_TAB_META, type RoomKey } from "@/lib/engine-room-glance";
+import {
+  ROOM_NAMES,
+  ROOM_QUESTIONS,
+  ROOM_TAB_META,
+  drawnRoomTabs,
+  type RoomKey,
+} from "@/lib/engine-room-glance";
 import { listWorkspaceBindings } from "@/lib/connections.functions";
 import { listSyncMappings } from "@/lib/integrations.functions";
 import { Surface } from "@/components/meridian/Surface";
@@ -380,9 +386,17 @@ function EngineRoomPage() {
               combines with nothing, so it is what `role="tablist"` actually
               describes. The other two turned out to be a filter and a
               duplicated navigation control; see EngineChrome. */}
+          {/* OPERATOR VIEWS DRAW NO TAB. Nine of this surface's twenty-seven
+              writes are eval-suite and prompt-version CRUD, and a product lead
+              asking "how well is the machine scoring" was shown a suite editor
+              as a peer of their own score. Those views still ANSWER -- the
+              `/evals` redirect and the calibration rows both point at
+              `?view=suites` -- and they are drawn while you are standing in one,
+              so the strip never hides your own place. Their home is
+              /admin/quality, which mounts the same components. */}
           <Tabs
             group={`room-${room}`}
-            tabs={tabs.map((t) => ({ id: t.id, label: t.label }))}
+            tabs={drawnRoomTabs(room, activeView).map((t) => ({ id: t.id, label: t.label }))}
             active={activeView}
             onSelect={(id) => void navigate({ search: { room, view: id } })}
             label={`${ROOM_NAMES[room]} views`}

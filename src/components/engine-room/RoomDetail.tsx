@@ -7,6 +7,7 @@ import { ReadFailed } from "@/components/meridian/surface-parts";
 import {
   ROOM_QUESTIONS,
   ROOM_TAB_META,
+  drawnRoomTabs,
   type RoomKey,
   type RoomTabMeta,
 } from "@/lib/engine-room-glance";
@@ -188,8 +189,20 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
   const { rooms } = useEngineRoomGlance();
   const status = rooms.find((r) => r.key === room);
   const tabs = ROOM_TAB_META[room];
+  /*
+   * RESOLUTION READS THE FULL LIST so every saved address still lands, including
+   * the operator views that draw no tab (`?view=suites`, `?view=prompts`, and the
+   * `/evals` redirect that points at the first of them).
+   */
   const activeView = tabs.some((t) => t.id === view) ? view : tabs[0]!.id;
   const activeMeta = tabs.find((t) => t.id === activeView) ?? tabs[0]!;
+  /*
+   * DRAWING EXCLUDES THEM -- unless you are standing in one, in which case the
+   * tab appears so the strip can show where you are. A surface that hides the
+   * tab you are currently on is worse than one that never hid it: the reader
+   * loses their place to make a point about the nav.
+   */
+  const drawnTabs = drawnRoomTabs(room, activeView);
   const Body = ROOM_BODY[room];
 
   React.useEffect(() => {
@@ -262,7 +275,7 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
           strip stays as the mobile sub-tab switcher, where the rail collapses. */}
       <div className="md:hidden">
         <ViewSwitch
-          views={tabs.map((t) => ({ id: t.id, label: t.label }))}
+          views={drawnTabs.map((t) => ({ id: t.id, label: t.label }))}
           active={activeView}
           onSelect={onSetView}
           label={`${ROOM_QUESTIONS[room]} views`}
