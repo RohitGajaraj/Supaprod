@@ -38,16 +38,25 @@ export function RunFooter({
   const mode = footerMode({ status, tone, walking, crewLive });
 
   return (
+    /*
+     * A BAR, NOT A FOURTH BOX. The workbench already stacks a bordered header
+     * and two bordered panes; adding a card under them made a screen that reads
+     * as a dashboard of containers rather than one surface. A status bar is
+     * also the truer form for what this carries: mode and one control, always
+     * present, never competing with the work above it. One hairline separates
+     * it, and the type is quiet, because a footer that shouts is a footer people
+     * stop reading.
+     */
     <footer
       data-mrd=""
-      className="flex flex-wrap items-center justify-between gap-mrd-3 rounded-mrd-pane border border-mrd-line bg-mrd-sheet px-mrd-6 py-mrd-4"
+      className="flex flex-wrap items-center justify-between gap-mrd-3 border-t border-mrd-line px-mrd-2 pt-mrd-4"
     >
       {/*
        * `aria-live` polite: the mode changes as the run moves, and a person who
        * is not watching the pane still needs to be told it started asking. The
        * transcript a11y work settled that a silent live surface is a defect.
        */}
-      <p aria-live="polite" className="min-w-0 text-mrd-body text-mrd-ink">
+      <p aria-live="polite" className="min-w-0 text-mrd-base text-mrd-mute">
         {mode.line}
       </p>
 
