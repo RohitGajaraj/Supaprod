@@ -108,3 +108,4 @@ Both were separate top-level folders until 2026-08-04. They are operational conc
 
 - [Phase 1-2 complete](./PHASE-1-2-COMPLETE.md) — a concurrent session's audit and product-truth summary. Linked 2026-08-26 to clear the doc gate; content is its author's to edit
 - [Phase 3 test harness](./PHASE-3-TEST-HARNESS.md) — that session's checklist for running the acceptance query against a deployment. Same provenance, same rule
+- [Current status](./current-status.md) — a concurrent session's status note. **Renamed from a dated filename 2026-08-26** to clear the doc gate; content untouched and its author's to edit. Note the one-board rule: live status belongs in [`docs/planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md), and this page should fold into it rather than becoming a second board
