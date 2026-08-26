@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import * as React from "react";
 
 import "../styles/workbench.css";
 import { PageHeading } from "@/components/meridian/surface-parts";
@@ -155,6 +156,16 @@ function TrackPage() {
   const { start } = Route.useSearch();
   const { activeWorkspace, activeProduct, productsVisible } = useWorkspace();
 
+  /*
+   * QUEUE 71 ON THIS ROUTE, WHERE IT WAS MISSING. The route composes the two
+   * panes itself rather than through `TrackRun`, and its first draft dropped
+   * the crew-live lift entirely -- so the artifact pane polled at idle speed
+   * and the presence slot read this tab's press only, while the transcript
+   * below both said Working. One fact about one run now reaches every pane
+   * from one source: the transcript's own running rows.
+   */
+  const [crewLive, setCrewLive] = React.useState(false);
+
   const get = useServerFn(getTrack);
   // THE HEADER READS THE SAME CACHE ENTRY TRACKRUN POLLS -- same key, same
   // ten-second beat. This used to be its own unpolled key, and the drift was
@@ -208,10 +219,15 @@ function TrackPage() {
       </header>
       <div className="mrd-workbench-panes" data-settled={settled ? "true" : undefined}>
         <div className="mrd-workbench-pane">
-          <TrackRunLeft trackId={trackId} autoStart={start === true} />
+          <TrackRunLeft
+            trackId={trackId}
+            autoStart={start === true}
+            onCrewLive={setCrewLive}
+            crewLive={crewLive}
+          />
         </div>
         <div className="mrd-workbench-pane mrd-workbench-pane--artifact">
-          <TrackPaneRight trackId={trackId} />
+          <TrackPaneRight trackId={trackId} isRunning={crewLive} />
         </div>
       </div>
     </div>

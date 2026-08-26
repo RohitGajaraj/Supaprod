@@ -69,15 +69,19 @@ const AMBER: HoldReason[] = [
   "out-of-credit",
   "needs-evidence",
   "needs-a-waived-station",
+  // S0-001's addition: the station filed something its own check refused. The
+  // fix is better work from the same seat -- it retries with the failure as
+  // context and never reaches a person -- so amber is the honest tone.
+  "self-check-failed",
 ];
 
 describe("every hold reason is classified, and the set is closed", () => {
-  it("covers all seventeen with no reason in two lists and none in neither", () => {
+  it("covers all eighteen with no reason in two lists and none in neither", () => {
     // THE GUARD ON THE GUARD. Both lists above are hand-written, so a reason
     // added to `HoldReason` could land in neither and silently take a default
     // colour. `HOLD_LINE` has to name every hold a person can hit, which is what
     // makes it the register to check against.
-    expect(EVERY_REASON.length).toBe(17);
+    expect(EVERY_REASON.length).toBe(18);
     const listed = [...ORCHID, ...AMBER, "done" as HoldReason];
     expect(new Set(listed).size).toBe(listed.length);
     expect([...listed].sort()).toEqual([...EVERY_REASON].sort());
@@ -89,7 +93,7 @@ describe("every hold reason is classified, and the set is closed", () => {
     }
   });
 
-  it("gives amber to the ten waiting on a condition", () => {
+  it("gives amber to every hold waiting on a condition", () => {
     for (const reason of AMBER) {
       expect(holdTone(reason), `${reason} is asking for a person`).toBe("hold");
     }

@@ -43,7 +43,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { TrackChain } from "@/components/spine/TrackChain";
 import { TrackActivity } from "@/components/spine/TrackActivity";
-import { Character } from "@/components/presence/Character";
+import { RunPresence } from "@/components/presence/RunPresence";
 import { ArtifactPane } from "@/components/track/ArtifactPane";
 import { TrackConsent } from "@/components/track/TrackConsent";
 import { Action, Region } from "@/components/meridian/surface-parts";
@@ -67,6 +67,8 @@ import { holdTone } from "@/lib/spine/driver";
 import { relativeTime } from "@/lib/memory-view";
 import { formatDeadlineDate } from "@/components/track/expiry-deadline";
 import { summaryText } from "@/components/track/run-summary";
+import { runTabState } from "@/components/track/run-tab";
+import { SteerComposer } from "@/components/track/SteerComposer";
 import { triesLine } from "@/components/track/hold-tries";
 import { runPosition } from "@/components/track/run-position";
 
@@ -290,6 +292,7 @@ export function TrackRunLeft({
   trackId,
   autoStart = false,
   onCrewLive,
+  crewLive = false,
 }: {
   trackId: string;
   /**
@@ -304,6 +307,14 @@ export function TrackRunLeft({
   /** QUEUE 71: the transcript's answer to "is a crew here right now", lifted
    * so the composition can share it with the right pane. */
   onCrewLive?: (live: boolean) => void;
+  /**
+   * RUN-02: the same live fact, handed BACK by the composition, so this pane's
+   * own presence reads it. A run driven by the sweep while this tab was closed
+   * used to render the character as "Ready when you are" above a transcript
+   * that said Working -- two sentences about one moment, and the quiet one was
+   * the lie.
+   */
+  crewLive?: boolean;
 }) {
   const drive = useServerFn(driveTrackNow);
   const fetchTrack = useServerFn(getTrack);
@@ -552,6 +563,37 @@ export function TrackRunLeft({
   const showHold = held && !walkingMidRoute && !isCalmHold;
   const showCalmHold = isCalmHold && !walkingMidRoute;
 
+  /*
+   * WORK IS WORK WHEREVER IT WAS STARTED (RUN-02). The header's live line and
+   * the route's active stop read this tab's press OR the record's own running
+   * seats; without the second half, a run the sweep drove while this tab was
+   * closed rendered as parked above a transcript that said Working.
+   */
+  const workingNow = walkingMidRoute || crewLive;
+
+  /*
+   * THE TAB TITLE CARRIES THE ONE LIVE FACT (RUN-02: watchable AND leavable).
+   * After the person switches tabs, the tab is where they look; one word of
+   * news -- Working, or Waiting on you -- derived from rows, nothing else.
+   * Stands down entirely during a focus block, which owns the title
+   * (`use-flow-mode`), and restores the page's own title on every change.
+   */
+  const tabWord = runTabState({
+    status: track?.status ?? null,
+    holdReason: track?.holdReason ?? null,
+    walking: run.isPending,
+    crewLive,
+  });
+  React.useEffect(() => {
+    if (!tabWord) return;
+    if (document.documentElement.classList.contains("flow")) return;
+    const prev = document.title;
+    document.title = `${tabWord} · ${prev}`;
+    return () => {
+      document.title = prev;
+    };
+  }, [tabWord]);
+
   return (
     <div className="flex flex-col gap-mrd-6">
       {/*
@@ -562,14 +604,22 @@ export function TrackRunLeft({
        * never staged. When the run asks, the consent card directly below IS
        * this character's voice; when a tool refuses, it says the door is
        * locked rather than promising a retry (R-26).
+       *
+       * `RunPresence` holds the one distinction the derivation cannot see:
+       * while this pane's first read is in flight nothing is claimed at all,
+       * so a person arriving from /start reads "Reading this piece of work"
+       * instead of the false alarm "I can't find this piece of work".
        */}
-      <Character
+      <RunPresence
+        loading={trackQ.isLoading}
         input={{
           track: track
             ? { status: track.status, holdReason: track.holdReason, drivenAt: track.drivenAt }
             : null,
           result: result ? { stopped: result.stopped, more: result.more } : null,
-          walking: run.isPending,
+          // A crew the sweep is driving is working, exactly as a leg this tab
+          // pressed is: presence reads the record, not this tab's own press.
+          walking: run.isPending || crewLive,
           continuing,
           feedDead: trackQ.isError,
         }}
@@ -597,7 +647,7 @@ export function TrackRunLeft({
       {track ? (
         <RunRouteHeader
           track={track}
-          walking={walkingMidRoute}
+          walking={workingNow}
           walkStartedAt={walkStartedAt}
           continuing={continuing}
           legsLeft={legsLeft}
@@ -774,6 +824,19 @@ export function TrackRunLeft({
        * nothing pulses -- an idle track reads idle.
        */}
       <TrackActivity trackId={trackId} onLiveChange={onCrewLive} />
+
+      {/*
+       * THE STEER BOX (RUN-03), AT THE PANE'S FOOT -- below the transcript,
+       * where a reader finishes and answers, sticky so a long record never
+       * buries it. One instruction back into moving work from the surface the
+       * work is on; `steerTrack` existed with zero callers until this mounted,
+       * which made Start and Stop the run's whole vocabulary. The finished case
+       * says so rather than rendering a form that can do nothing.
+       */}
+      <SteerComposer
+        trackId={trackId}
+        finished={track?.status === "done" || track?.status === "abandoned"}
+      />
     </div>
   );
 }
@@ -816,7 +879,12 @@ export function TrackRun({ trackId, autoStart = false }: { trackId: string; auto
   const [crewLive, setCrewLive] = React.useState(false);
   return (
     <div className="flex flex-col gap-mrd-6">
-      <TrackRunLeft trackId={trackId} autoStart={autoStart} onCrewLive={setCrewLive} />
+      <TrackRunLeft
+        trackId={trackId}
+        autoStart={autoStart}
+        onCrewLive={setCrewLive}
+        crewLive={crewLive}
+      />
       <TrackPaneRight trackId={trackId} isRunning={crewLive} />
     </div>
   );

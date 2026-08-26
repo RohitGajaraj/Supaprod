@@ -1,1 +1,1 @@
-S1 · not started · IDLE · awaiting first unit · — · —
+S1 · 19:05 IST · WORKING · 7 units pushed (RUN-01…07: presence honesty, leavable, steer composer, consent single-source, hold guards, class echo, Discover actions) · blocked on .env for browser drive — request filed · src/components/track/** spine/** presence/** discover/** ask/** · 3f5f6c45e
