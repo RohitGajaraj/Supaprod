@@ -5,6 +5,7 @@
 // that means something. `demo_click` still fires from LandingNav and
 // LoopWalkthrough, so the funnel keeps that step.
 import { MarkGlint } from "./MarkGlint";
+import { HeroLoopDemo } from "./HeroLoopDemo";
 
 /**
  * Beat 1 - Hero. Monumental register (founder ruling 2026-07-15): the
@@ -653,6 +654,20 @@ export function Hero() {
             <span>to know</span>
             <span className="hero-spec-key whitespace-nowrap">if you were right</span>
           </div>
+        </div>
+
+        {/* 60-SECOND FIRST-USE DEMONSTRATION
+           *
+           * Added 2026-08-27 to address the product self-explanation criterion.
+           * Shows autonomous 7-station loop progression with zero human intervention.
+           * Auto-plays on page load, repeats every 50s. No credential required.
+           *
+           * This demonstrates the core value ("One sentence in. Everything else
+           * automatic.") visually in the first viewport, so a visitor immediately
+           * understands what the product does, without needing to watch a video or
+           * enter an invite code. Total animation time: ~35-40 seconds. */}
+        <div className="mt-16">
+          <HeroLoopDemo />
         </div>
       </div>
     </section>
