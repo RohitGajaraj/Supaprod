@@ -829,3 +829,32 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     envFallback: { tokenEnv: "FIRECRAWL_API_KEY" },
   },
 };
+
+/**
+ * WHICH PROVIDERS ACTUALLY RETURN SIGNALS, as data a client surface can read.
+ *
+ * Added 2026-08-27 after the FAQ spent twelve days telling buyers that Linear,
+ * Jira, Notion and Figma "are not built yet". They were: figma, jira and linear
+ * went real on 2026-08-15 and the mail family on 2026-08-26 (F-81), and the
+ * sentence describing them was written before that and never revisited.
+ *
+ * The real map lives in `providers/index.server.ts`, which is server-only, so a
+ * public page could not read it and had to restate it from memory. Restating is
+ * how it drifted. This is the same list as DATA, client-safe, so the FAQ derives
+ * its answer instead of remembering it.
+ *
+ * `adapter-map-matches-registry.test.ts` fails if this and the real adapter map
+ * ever disagree, which is the half that makes deriving safe rather than merely
+ * tidier: without it this becomes a second thing to keep in sync, and two lists
+ * that can drift are worse than one list that is wrong.
+ */
+export const PROVIDERS_WITHOUT_ADAPTERS: readonly ProviderId[] = [
+  "google_calendar",
+  "google_tasks",
+  "firecrawl",
+] as const;
+
+/** True when connecting this provider actually returns signals today. */
+export function providerReturnsSignals(id: ProviderId): boolean {
+  return !PROVIDERS_WITHOUT_ADAPTERS.includes(id);
+}
