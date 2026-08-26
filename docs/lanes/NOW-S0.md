@@ -1,1 +1,1 @@
-S0 · 18:46 IST · WORKING · integration pass 7: 3 lanes merged, S4-015 linked · the-first-run/** docs/lanes/** · pending
+S0 · 19:00 IST · WORKING · F-87 fixed by watching a live track: ship said "it will try again" over an unmerged PR no retry could fix; 7977dc06 is 2 stations from the first acceptance and 1 tick from terminal · src/lib/spine/** · pending

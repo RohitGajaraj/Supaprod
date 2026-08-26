@@ -2394,6 +2394,9 @@ export async function driveTrackOnce(
   }
 
   if (!producedThisVisit) {
+    // F-87: read before the write, so the line can name what actually stopped it.
+    // One query, only on the path where the station already filed nothing.
+    const lastFailure = await lastFailingTool(supabase, traceIds);
     await supabase
       .from("spine_tracks" as never)
       .update({
@@ -2408,7 +2411,17 @@ export async function driveTrackOnce(
       moved: false,
       arrivedAt: null,
       hold: "produced-nothing",
-      line: flagged(HOLD_LINE["produced-nothing"]),
+      /*
+       * F-87. The generic line alone told track `7977dc06` "it will try again"
+       * while its real obstacle was an unmerged PR no retry could fix. Naming the
+       * last thing that did not work costs one query on a path where the station
+       * already filed nothing, and it is the difference between a person waiting
+       * and a person merging.
+       */
+      line: flagged(
+        HOLD_LINE["produced-nothing"] +
+          (lastFailure ? ` The last thing it tried was ${lastFailure.tool}, which said: ${lastFailure.error}` : ""),
+      ),
       attached,
     };
   }
@@ -2740,6 +2753,63 @@ async function refusedToolInTraces(
         error: (r as { error?: string | null }).error ?? null,
       })),
     );
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * F-87 — THE NEWEST FAILING TOOL, WHETHER OR NOT IT REFUSED.
+ *
+ * `refusedToolInTraces` above answers a narrower question: did a tool refuse for
+ * a CREDENTIAL reason (401, 403, not configured, token expired). That set is
+ * deliberately narrow and should stay narrow — it decides a terminal hold.
+ *
+ * This one answers "what was the last thing that did not work", and it decides
+ * nothing. It only supplies a SENTENCE.
+ *
+ * ── WHY IT EXISTS, MEASURED LIVE 2026-08-26 13:20 UTC ──────────────────────
+ * Track `7977dc06` sat at `ship`, one attempt from terminal, entry `sense` and
+ * `waived = '[]'` — **two stations from the first acceptance this product has
+ * ever had.** Its ship crew worked correctly: `ship.list_releases`,
+ * `ship.in_production`, `build.changeset_history`, `build.list_sessions` all
+ * `ok: true`. Then:
+ *
+ *   github.ci.read   ok:false  "GitHub get-pr 404: Not Found"
+ *   release.publish  ok:false  "Only a merged changeset can promote. Merge the PR first."
+ *
+ * Neither carries a credential signature, so neither is a refusal, and both fall
+ * to `produced-nothing`, whose line reads *"This station ran but filed nothing…
+ * It will try again."*
+ *
+ * **That sentence is false in the way that matters.** Ship did not fail to
+ * produce; it declined to publish an unmerged changeset, which is it working. No
+ * retry can fix an unmerged PR, so "it will try again" points a person at
+ * patience when what is needed is a merge. A board that says this is a dead end
+ * wearing a progress bar, and R-20 §5 forbids exactly that.
+ *
+ * The hold stays `produced-nothing` — nothing WAS filed, and that is the honest
+ * classification. Only the line changes, to name the obstacle.
+ */
+async function lastFailingTool(
+  supabase: SupabaseClient,
+  traceIds: string[],
+): Promise<{ tool: string; error: string } | null> {
+  if (!traceIds.length) return null;
+  try {
+    const { data, error } = await supabase
+      .from("tool_calls")
+      .select("tool_name,error,created_at")
+      .in("trace_id", traceIds)
+      .eq("ok", false)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    // A read that failed proves nothing, so it claims nothing.
+    if (error || !data?.length) return null;
+    const row = data[0] as { tool_name?: string; error?: string | null };
+    const err = (row.error ?? "").trim();
+    if (!err) return null;
+    return { tool: row.tool_name ?? "a tool", error: err.slice(0, 200) };
   } catch {
     return null;
   }
