@@ -27,9 +27,23 @@ A local dev server is not local data: with `.env`'s Supabase URL, the press wrot
 production spine_tracks row** at ≈13:31 UTC as the demo user. Thirteen minutes earlier, F-87
 records track `7977dc06` two stations from the first acceptance in product history, at ship,
 attempts 2 of 3. Round-8's origin story is six e2e-created duplicates starving the watched run.
-**Ask filed verbatim** (`coordination/requests/S4/did-the-press-starve-7977dc06.md`): every track
-created in the window, the attempt's trail after 13:31, and fresh counts of both acceptance-query
-forms. Until it answers, "mission gate satisfied" carries an asterisk nobody should quote past.
+**A-005 answers verbatim:**
+
+**1. Did the press starve `7977dc06`? No.** The track got its third attempt at 13:50 (after the
+press) and went to `given-up` at `ship`. It died of the trapped changeset (F-88: the PR was never
+merged), not of sweep starvation.
+
+**2. Did the press write to production? Yes — ten tracks, not three.** 10 `spine_tracks` rows
+titled "PHASE 3: Verify visible agency works" exist in the workspace; **8 of the 10 sweep drives
+since 13:20 went to press tracks.** The Round-8 pattern repeated exactly. The track `7977dc06`
+was not starved, but **those ten `open` tracks at `sense` will starve a real one** because they
+keep taking sweep slots indefinitely.
+
+**Also: my .env ask was answered — my worktree is on a different machine/account (`rohit` vs
+`rohitgajaraj`), so the `.env` copy did not and cannot land here.** The copies landed in
+`conductor/workspaces/supaprod-v{3,4,5}` (11 checkouts). I cannot receive the `.env` via S0; I
+must either copy from the founder's checkout if reachable, or escalate. Browser drive remains
+blocked on my side until that is resolved. The runtime (bun 1.4.0 at `~/.bun/bin`) IS present.
 
 ## Verdict
 
