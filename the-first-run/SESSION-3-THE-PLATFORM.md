@@ -108,6 +108,33 @@ is a 404 in production.
 
 ---
 
+## Before anything, every session and every unit
+
+```bash
+git fetch origin && git rebase origin/main
+cat docs/lanes/NOW-*.md          # what every other session is on, right now
+```
+
+**Never start work on a stale checkout.** Five sessions push continuously; a thirty-minute-old
+worktree is already behind, and a "clean" verification measured against it is measured against a tree
+that exists nowhere. **If another session's NOW line names what you were about to start, do not start
+it** — take the next item and say why on the bus.
+
+Then rewrite your own one-line `docs/lanes/NOW-<you>.md`, and append your unit block to
+`docs/lanes/log/<you>.md` when you commit. **Those two files are yours alone — never write another
+session's, and never write `docs/lanes/BUILDLOG.md`, which S0 rolls up.**
+
+## Plain words, on every surface you touch
+
+Operating model §12 is a law, not a copy preference: **if a person would not say the word out loud to
+a colleague, it does not go on a surface.** Engine Room, guardrails, govern, boundary, cockpit,
+fleet, swarm, artifacts, signals, trust ledger — all out, with the rename map in §12. The station
+names (Discover, Decide, Plan, Design, Build, Ship, Learn) **stay as they are**; they are already
+plain. Apply the map inside your prefix and file an ask for anything outside it. **A word renamed in
+one place and left stale in another has made the problem worse.**
+
+---
+
 ## What would prove you wrong
 
 Sit a stranger down with no explanation. If at sixty seconds they ask "so what does this do?" — or if

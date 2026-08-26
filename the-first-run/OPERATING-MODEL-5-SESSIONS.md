@@ -328,7 +328,29 @@ anything that mattered goes into a commit.
 
 ---
 
-## 5 · Work safety. Non-negotiable, because the laptop closes.
+## 5 · Sync first, then work safety. Both non-negotiable.
+
+### The first command of every session, and of every unit inside it
+
+```bash
+git fetch origin && git rebase origin/main      # lanes, on your own branch
+git pull --rebase origin main                   # S0, on main
+```
+
+**Founder's instruction, and it is binding: no session starts work without syncing to `main` first.**
+A lane that does not pull is editing stale files, and its "clean" verification is measured against a
+tree missing four other sessions' work. This is not a nicety — three worktrees each reported green
+against a tree that did not exist anywhere.
+
+Do it again **before every unit**, not once at session start. Five sessions push continuously; a
+thirty-minute-old checkout is already behind. And a behind-count is measured against your branch's
+configured upstream rather than against `main`, so fetch and rebase explicitly rather than trusting a
+status line.
+
+If the rebase conflicts inside your own prefix, resolve it. If it conflicts **outside** your prefix,
+you have written where you should not have — stop, take yours out, and file an ask.
+
+### Work safety
 
 The founder closes the laptop mid-session and nothing may be lost.
 
@@ -400,30 +422,59 @@ that matter here:
 
 ---
 
-## 8 · Reporting
+## 8 · Reporting — one line everyone can see, and no two sessions writing one file
 
-Every unit appends to `docs/lanes/BUILDLOG.md` — **append, never replace**, three lanes write it —
-in this shape:
+The founder asked for a shared one-liner per lane so that every session, on its next fetch, can see
+what the others are on and not duplicate it. **The design constraint is that a file three sessions
+write is a file three sessions lose:** on 2026-08-25 three sessions closed within ten minutes and each
+overwrote the others' handoff.
+
+**So: one file per session, single writer, and the merged view is a `cat`.** Same law as the bus.
+
+### `docs/lanes/NOW-<S>.md` — exactly one line, rewritten by its owner every unit
 
 ```
-### <session> · <ISO time> · <unit id> — <one line>
+S2 · 13:40 IST · WORKING · runs board: folding cockpit+fleet+swarm into one board · src/components/runs/** · 83b2070ac
+```
+
+`<session> · <time> · WORKING|BLOCKED|DONE · what, in a few words · the paths you hold · last commit`.
+
+**Read every other lane's line before you pick up anything**, which after a fetch is one command:
+
+```bash
+git fetch origin && git show origin/main:docs/lanes/NOW-S0.md origin/main:docs/lanes/NOW-S1.md ... 2>/dev/null
+# or simply, after the rebase:  cat docs/lanes/NOW-*.md
+```
+
+**If another lane's line names what you were about to start, do not start it.** Take the next item
+instead and say why on the bus. That is the whole point of the file.
+
+Sub-minute latency lives on the local bus (`~/supaprod-bus/heartbeat/<S>.json`), which does not need a
+push to be visible. The `NOW-` file is the durable version that survives a fetch from any worktree.
+
+### `docs/lanes/log/<S>.md` — your own append-only history
+
+Append one block per unit. **Your own file, so it never conflicts.** The merged history is
+`cat docs/lanes/log/*.md | sort`. S0 rolls the narrative up into `docs/lanes/BUILDLOG.md`; **no lane
+writes BUILDLOG.md directly any more.**
+
+```
+### <S> · <ISO time> · <unit id> — <one line>
 WHAT: what changed, with paths
 WHY IT MATTERS TO A USER: the answer to §0 questions 1 and 2, in one sentence
-CHECKED FIRST: the existing component/function considered and why it did not serve
+CHECKED FIRST: the existing component or function considered, and why it did not serve
 GATES: enterprise pass/fail · design pass/fail (name the failing one of the eight if any)
-PROOF: the command run, the route opened, the screenshot path — or "not verified" said plainly
+PROOF: the command run, the route opened, the screenshot path — or "not verified", said plainly
 NEXT: the next unit
 COMMIT: <sha>
 ```
 
-**A number without its query is not evidence.** Record the SQL, the command, the file:line. Three
-metrics that proved the product worked were all seed data and nobody could re-check them because no
+**A number without its query is not evidence.** Record the SQL, the command, the `file:line`. Three
+metrics that proved the product worked were all seed data, and nobody could re-check them because no
 query was written down.
 
 **Report honestly.** If a test fails, say so with the output. If a step was skipped, say that. Never
 report progress as completion, and never describe the remaining distance as smaller than it is.
-
----
 
 ## 9 · What the frontier actually ships, and the three things it does that we do not
 
@@ -485,28 +536,114 @@ depend on it.
 
 ---
 
-## 11 · The persona, restated 2026-08-26 — and the six verbs that replace station names on screen
+## 11 · The persona, and the capability register — CORRECTED 2026-08-26
 
-**Founder, 2026-08-26:** *"If I have to deliver my work and the entire thing is taken care of by
-virtual teammates, they have to assign, manage, operate, value-audit, review and ship."*
+**Correction, and it is mine to own.** An earlier draft of this section said the six verbs *replace
+the station names on screen*. **That was wrong and the founder rejected it.** The stations —
+Discover, Decide, Plan, Design, Build, Ship, Learn — are how the work moves and they stay exactly as
+they are. Nothing here renames or removes them.
 
-**The user is the person accountable for an outcome who is not doing the work — a delegator whose team is AI teammates.** They do not walk a
-lifecycle. They run a team they do not want to micromanage. Every one of these six is a gesture they
-already have from managing people, which is why none of them needs teaching.
+### The persona
 
-| Verb | What the user does | What must be trivial | Owner |
-| --- | --- | --- | --- |
-| **Assign** | Hands over a piece of work | One sentence. No project, no config, no connector picked first. Linear's gesture: give it to someone and walk away | S1 |
-| **Manage** | Sees who has what, what is stuck, what is colliding | One glance: what is running, who owns it, what changed in the last minute, where two efforts overlap | S2 |
-| **Operate** | Sets the boundaries once, then leaves | A stated authority — spend ceiling, blast radius, tool set, expiry — set once, widened by class, never re-asked per action | S3 |
-| **Value audit** | Asks whether it was worth it | Cost and elapsed time against what was promised at the outset. Predicted beside actual beside what it cost | S1 + S0 |
-| **Review** | Looks at what came back and responds | A reviewable unit — a diff, a spec, a decision, a preview — with approve, send-one-instruction-back, undo-a-step, in place | S1 |
-| **Ship** | Lets it go out | Gated by proof, not by a click (R-27). At most one human gate, and it is the irreversible one | S1 + S0 |
+**Founder, 2026-08-26:** *"If I have to deliver my work and the entire thing is taken care of by AI
+teammates, they have to assign, manage, operate, value-audit, review and ship."*
 
-**The station names stay entirely off-surface** (R-01, R-13, and now this). These six verbs are the
-vocabulary the product speaks. **A user who has ever managed a person can operate this product
-without being taught anything — that is the test.**
+**The user is the person accountable for an outcome who is not doing the work — a delegator whose
+team is AI teammates.** They do not walk a lifecycle. They run a team they do not want to
+micromanage. That is a different person from the one the seven stations were drawn for, and both are
+true at once: the stations are how the machine moves the work, the delegation is how the person
+experiences it.
+
+### What the founder was actually naming: the capability register
+
+Those six are **things an AI teammate must be able to do**, not labels for anything. And the founder
+was explicit that the list is not closed: *"there might be n number of other tasks which an agent
+might want to do from our platform perspective."* So this is a register, it is open, and **every
+session adds to it as it finds a capability the teammates need and do not have.**
+
+| Capability | State today | Owner |
+| --- | --- | --- |
+| **Assign** — hand a piece of work to a teammate | Partial. `/start` takes a sentence; assignment from elsewhere does not exist | S1 |
+| **Manage** — sequence, reprioritise, see what is stuck | Missing as a surface | S2 |
+| **Operate** — act inside a stated authority without asking | Engine exists, **zero callers** (`resolveApprovalPolicy`, `autonomy-policy.ts`) | S3 |
+| **Value-audit** — was it worth what it cost | **Entirely unbuilt.** Spend caps live on `agent_runs`; nothing shows cost against what was promised | S1 + S0 |
+| **Review** — check what came back, respond in place | Partial. The right pane exists; approve / one-instruction-back / undo do not | S1 |
+| **Ship** — let it out, gated by proof not a click | Blocked. Three missing steps between Build and Ship, no station crewed for any (F-36) | S0 |
+| **Verify its own output before handing on** | **Missing, and it is gap #1.** Stations advance regardless | S0 |
+| **Hand off with context** — pass to another teammate and say what was passed | Data exists, never drawn | S2 |
+| **Sync** — see what another teammate already has, and not redo it | Missing. This is the collision case | S2 |
+| **Ask** — escalate to a person, in place, once, answer covers the class | Partial. `TrackConsent` exists; 90 queued asks died detached from the work | S1 |
+| **Refuse** — say the door is locked and which one, without retry theatre | Ruled (R-26), partly wired | S1 |
+| **Recall** — check what was learned before deciding | Tools exist with **zero calls across 2,652 runs** | S0 |
+| **Schedule** — come back when the window closes | Queue exists, has processed **zero workspaces** (F-51) | S0 |
+| **Notify** — reach a person who left the page | **Missing entirely.** Gap #2 | S3 |
+| **Hand back** — let a person take a step by hand and return it | Missing | S1 |
+| **Undo** — revert a step without restarting the run | Missing | S1 |
+| **Report cost** — what this spent, in money and time | Data exists, no surface | S1 |
+
+**Add a row when you find one.** A capability a teammate needs and does not have is a real gap under
+§0.6 and is authorised — it does not need a new destination, so it does not conflict with §0.5.
 
 Full derivation, with sources and the nine-product teardown it came from:
 [`docs/research/agentic-product-patterns-2026-08.md`](../docs/research/agentic-product-patterns-2026-08.md).
 **Read it before any "make it more agentic" work.** It exists so nobody pays for that sweep twice.
+
+---
+
+## 12 · Plain words. The naming law, and it is cross-surface
+
+**Founder, 2026-08-26:** *"At the platform level — Engine Room, safety and other things — those look
+like rattling words. It's not to the point. How can I make it simple so people literally understand,
+rather than rattling it? Use the words that are commonly understood, across every surface, not just
+one section."*
+
+**The law: if a person would not use the word out loud to a colleague, it does not go on a surface.**
+Not in a nav item, not in a heading, not in a button, not in an empty state, not in a toast. This is
+not a copy pass on one page — **it is cross-surface, and a session that renames a thing in its own
+prefix and leaves it stale elsewhere has made the problem worse.** Grep the claim, not the spelling:
+one word travels under seven wordings and escaped six sweeps in a day.
+
+### The stations keep their names, because they are already plain
+
+Discover · Decide · Plan · Design · Build · Ship · Learn. Those are ordinary words and everyone knows
+them. The internal slugs (`sense`, `define`) never appear on a surface; the surface names above do.
+**This section is not about them.**
+
+### The rename map — jargon out, plain words in
+
+Proposed by MAIN under the founder's grant. **S0 rules on each row and owns the sweep; a lane applies
+it inside its own prefix and files an ask for anything outside.** Never change a word in one place
+only.
+
+| Today, on a surface | Plain word | Why |
+| --- | --- | --- |
+| Engine Room · Guardrails · Govern · Boundary · Safety | **What it's allowed to do** | Four routes and a mood for one idea: the spend ceiling, the blast radius, the tool set, the expiry. Say the idea |
+| Approvals | **Waiting for you** | Names who is blocked and on what. "Approvals" names a queue, which is why 90 of them died in one |
+| Crew · Agents · Fleet · Swarm | **Your team** | Four words for the same people |
+| Cockpit · Mission Control · Observe · Today | **Work** | The board. One name |
+| Missions · Tracks · Runs | **a piece of work** | Three nouns for one object. Pick the one a person would say |
+| Brain · Memory · Knowledge | **What we've learned** | And it stays honestly empty until a real learning exists (R-06, F-70) |
+| Trust ledger | **Track record** | `ledger` is banned outright by the vocabulary canon |
+| Signals | **What we found** | Or *evidence*. A practitioner does not say "signals" |
+| Artifacts | **What was made** | Or just the thing: the spec, the diff, the design |
+| Forecast | **What we expect** | Keep *forecast* internally; on screen, say the expectation |
+| Verdict | **What actually happened** | Beside the expectation. That pairing is the product |
+| Traces | **Activity** | |
+| Evals · eval-health | **Quality** | |
+| Budgets | **Spending** | |
+| Delegate | **Assign** | Linear's gesture, and the word people already use |
+| Drift · Impact · Stakeholder | *fold, then delete* | None survives the "would you say it out loud" test, and none is a destination under §0.5 |
+
+**The banned list from the positioning canon still binds and is not up for renegotiation:** never
+*receipts · ledger · company brain · decision layer · unattended · first run · provenance*, on any
+surface. **Audit trail** and **shared brain** stay. **Approve** only where a click *unblocks*
+something; **review** where it only shows you something. **Never claim accumulated learning in the
+present tense.** And never write *agentic · autonomous · AI-native · orchestration · intelligence* in
+product copy — show the behaviour and let the person name it. Canon:
+`docs/strategy/positioning-locked-2026-08.md`, exact strings in
+`docs/growth/vocabulary-change-list-2026-08.md`.
+
+### The test, before any word ships
+
+Read the surface out loud to someone who does not work here. **If they ask what a word means, the
+word is wrong** — not their understanding.

@@ -21,9 +21,17 @@ whole product lives (§3 below).
   `docs/design/reference-2026-08-26/`** so the four OpenCode sessions can see them. `START-HERE.md`
   currently points at `docs/design-reference/mobbin-2026-08/`, **which does not exist**. Fix that
   claim or create the directory; a lane cannot design against a path that is not there.
-- **Migrations** — hand-written, applied individually, **never via Lovable**. Note that Lovable loses
-  `schema_migrations` rows: seven vanished at once while the schema stayed correct, so never diagnose
-  from the ledger alone.
+- **Migrations — hand-written, applied ONE BY ONE, never handed to Lovable as a batch.** Founder's
+  instruction, and it is binding: Lovable concatenates migrations and drops statements out of the
+  middle. **Apply each migration on its own, verify the schema after each one, and only then apply the
+  next.** Lovable also loses `schema_migrations` rows — seven vanished at once while the schema itself
+  stayed correct — so **never diagnose from the ledger; read the schema.**
+- **Deploy and publish are yours alone, and they are a three-step act: verify, deploy, verify again.**
+  No other session can do it and none may claim it happened. Publish status has lied more than once —
+  three times in one night — so confirm with an independent read of a changed file, not with the
+  publish response. Lovable's GitHub sync has stalled for 24 minutes; an empty commit unsticks the
+  webhook. **Unpushed local work looks identical to shipped work**: check ahead-of-origin before you
+  check the code.
 - **Merging.** Lanes push their own branches. You integrate into `main`, several times an hour, and
   you are the reason `main` stays deployable.
 
@@ -93,6 +101,33 @@ Untouched or under-served right now: onboarding, billing, tenancy, notifications
 offline states, accessibility, admin, connectors, export, Settings, and the 119 routes that
 `REIMAGINING.md` argues should be nine. **Which of the 119 map onto which nine is an open founder
 question — map it, propose it, and do not let a lane guess it.**
+
+---
+
+## Before anything, every session and every unit
+
+```bash
+git fetch origin && git rebase origin/main
+cat docs/lanes/NOW-*.md          # what every other session is on, right now
+```
+
+**Never start work on a stale checkout.** Five sessions push continuously; a thirty-minute-old
+worktree is already behind, and a "clean" verification measured against it is measured against a tree
+that exists nowhere. **If another session's NOW line names what you were about to start, do not start
+it** — take the next item and say why on the bus.
+
+Then rewrite your own one-line `docs/lanes/NOW-<you>.md`, and append your unit block to
+`docs/lanes/log/<you>.md` when you commit. **Those two files are yours alone — never write another
+session's, and never write `docs/lanes/BUILDLOG.md`, which S0 rolls up.**
+
+## Plain words, on every surface you touch
+
+Operating model §12 is a law, not a copy preference: **if a person would not say the word out loud to
+a colleague, it does not go on a surface.** Engine Room, guardrails, govern, boundary, cockpit,
+fleet, swarm, artifacts, signals, trust ledger — all out, with the rename map in §12. The station
+names (Discover, Decide, Plan, Design, Build, Ship, Learn) **stay as they are**; they are already
+plain. Apply the map inside your prefix and file an ask for anything outside it. **A word renamed in
+one place and left stale in another has made the problem worse.**
 
 ---
 

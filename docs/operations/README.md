@@ -88,6 +88,10 @@ Both were separate top-level folders until 2026-08-04. They are operational conc
 | [`parallel-build.md`](./parallel-build.md) | **Retired 2026-08-03, description only.** The lane mechanics and the atomic claim ledger at `~/.cadence-parallel`. Reviving this means rebuilding the worktrees; do not assume the commands still work. |
 | [`security/audit-findings-july.md`](./security/audit-findings-july.md) | Superseded by [`../security/`](./security/README.md), which owns audit state now. |
 | [`archive/session-handoff-2026-08-05-evening.md`](./archive/session-handoff-2026-08-05-evening.md) | **A single evening's handoff, rotated out of the live one.** Archived because a dated filename marks a record of one event, not a living doc. [`session-handoff.md`](./session-handoff.md) is the live pair-half and carries the current cursor; this is the snapshot it replaced. Read it only when a question reaches past what the live one still says. |
+| [`DECIDE-RECORD-IMPLEMENTATION.md`](./DECIDE-RECORD-IMPLEMENTATION.md) | The work spec for the Decide-station blocker — why `decision.record` was unreachable and what was changed. Moved here from `docs/` root on 2026-08-26; root holds four files only. The fix itself is recorded in [`../AUDIT.md`](../AUDIT.md). |
+| [`VERIFY-MISSION-GATE-FIX.md`](./VERIFY-MISSION-GATE-FIX.md) | The verification plan for the `signals.log` fix that unblocked the first station. |
+| [`deploy-and-observe.md`](./deploy-and-observe.md) | The deploy-then-watch checklist for the mission gate. Moved off `docs/` root on 2026-08-26; root holds four files only. |
+| [`deployment-record-decide-fix.md`](./deployment-record-decide-fix.md) | What was deployed when the Decide-station fix went out. Moved off root and undated in the same pass. |
 - [Round 8 status](./status-round-8.md) — the live Round 8 readiness board (moved from repo root 2026-08-25 for placement only; content untouched, author's to edit)
 - [Round 8 results](./round-8-results.md) — moved from repo root 2026-08-25 for placement only; content untouched, author's to edit
 - [Phase 3: visible agency](./phase-3-visible-agency.md) — moved from `docs/` root 2026-08-25 for placement only; content untouched, author's to edit
@@ -99,4 +103,3 @@ Both were separate top-level folders until 2026-08-04. They are operational conc
 
 - [Mission gate observation](./mission-gate-observation.md) — Mission gate observation (moved from `docs/` root 2026-08-25 for placement only; content untouched)
 - [Mission gate deployment readiness](./mission-gate-deployment-readiness.md) — moved from repo root 2026-08-25 for placement only; content untouched
-

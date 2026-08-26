@@ -34,7 +34,10 @@ why, offer an override at every step, and recover legibly from error.
 
 ## 2 · The persona, restated 2026-08-26 — the delegator, not the operator
 
-**Founder's framing, and it supersedes the station vocabulary on every user-facing surface:**
+**Founder's framing. CORRECTED 2026-08-26 — an earlier draft of this section said these six replace
+the station names on screen. That was wrong and the founder rejected it. The stations (Discover,
+Decide, Plan, Design, Build, Ship, Learn) stay exactly as they are. These six are things an AI
+teammate must be able to DO, and the founder was explicit that the list is open:**
 *"If I have to deliver my work and the entire thing is taken care of by AI teammates, they have
 to assign, manage, operate, value-audit, review and ship."*
 
@@ -43,7 +46,7 @@ person from the one the seven-station model was drawn for. They do not walk a li
 team they do not want to micromanage. **Six verbs, and every one of them is a gesture the user
 already has from managing people.**
 
-| Verb | What the user does | What the product must make trivial | Where it lives |
+| Capability | What the user does | What the product must make trivial | Where it lives |
 | --- | --- | --- | --- |
 | **Assign** | Hands over a piece of work | One sentence, no project, no config, no connector picked first. The gesture is Linear's: give it to someone and walk away | `/start`, and assignment from anywhere a piece of work appears |
 | **Manage** | Sees who has what, what is stuck, what is colliding, what to reprioritise | One glance answers: what is running, who owns it, what changed in the last minute, where two efforts overlap. Amoeba's collision detection is the bar | The multi-run board |
@@ -52,11 +55,12 @@ already has from managing people.**
 | **Review** | Looks at what came back and responds | A reviewable unit — a diff, a spec, a decision, a preview — with approve, send-one-instruction-back, and undo-a-step in place. Never a status change to acknowledge | The right pane of the run |
 | **Ship** | Lets it go out | Gated by proof, not by a click (R-27). The person holds at most one gate and it is the irreversible one | Ship, and the deploy record |
 
-**Why this matters more than it looks.** The seven stations are how the *machine* is built; these six
-are how the *person* thinks. R-01 already ruled that stations are a progress display and never a menu,
-and R-13 replaced the station widget with a transcript. This finishes that move: **the station names
-stay entirely off-surface, and these six verbs are the vocabulary the product speaks.** A user who
-has managed a person can operate this product without being taught anything.
+**Why this matters more than it looks.** The seven stations are how the *machine* moves work; these
+six are what the *team* must be able to do. Both are true at once and neither replaces the other. The
+open capability register — including the eleven further capabilities the teammates need and mostly do
+not have — lives in
+[`the-first-run/OPERATING-MODEL-5-SESSIONS.md`](../../the-first-run/OPERATING-MODEL-5-SESSIONS.md) §11.
+A user who has managed a person should be able to operate this product without being taught anything.
 
 **The line that follows from it:** *give the work to the team, set what they may spend and touch, and
 get back something you can actually review — with what it cost, and whether it did what it said.*

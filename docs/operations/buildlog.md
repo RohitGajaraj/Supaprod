@@ -3,8 +3,8 @@
 Newest first. **What changed · why · what is next.** One entry per logical unit.
 
 This file is a build record, not a status board — status lives in
-[`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md), and what was found lives in
-[`the-first-run/FINDINGS-LEDGER.md`](./the-first-run/FINDINGS-LEDGER.md).
+[`docs/planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md), and what was found lives in
+[`the-first-run/FINDINGS-LEDGER.md`](../../the-first-run/FINDINGS-LEDGER.md).
 
 ---
 
