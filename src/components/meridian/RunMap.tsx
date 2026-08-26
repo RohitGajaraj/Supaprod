@@ -383,9 +383,35 @@ function StopFace({
         >
           <StationGlyph kind={GLYPH_FOR_STATION[stop.station]} size={16} />
         </span>
+        {/*
+         * A STATION THE WORK NEVER REACHED MUST NOT READ AS LOUD AS ONE IT
+         * FINISHED (S1 -> S0, 2026-08-27, found against six real agent-run
+         * surfaces).
+         *
+         * `markTone` already dims a `pending` glyph to `--mrd-faint`. The NAME
+         * stayed full ink, and the name carries the weight in this row, so on an
+         * abandoned track at Ship the route drew seven identical-looking stops
+         * while the meter above said "6 of 7 done". The glyph was telling the
+         * truth and the label was talking over it.
+         *
+         * THIS IS NOT THE RATCHET. The law above records that muting the DONE
+         * glyphs was refused, because that quietens a shipped surface to make
+         * room for a new state. Nothing here dims a state that HAPPENED: pending
+         * is the absence of one, and it is being aligned with the tone its own
+         * glyph already takes. No existing weight moves.
+         *
+         * `mute` rather than `faint`: a label needs to stay readable, and
+         * `faint` is the glyph's weight, not a word's. Waived keeps its rule and
+         * its strike, because "deliberately skipped" and "not reached" are
+         * different facts and the strike is what separates them.
+         */}
         <span
           className={`min-w-0 truncate text-mrd-label font-medium ${
-            waived ? "text-mrd-mute line-through decoration-mrd-line" : "text-mrd-ink"
+            waived
+              ? "text-mrd-mute line-through decoration-mrd-line"
+              : stop.state === "pending"
+                ? "text-mrd-mute"
+                : "text-mrd-ink"
           }`}
         >
           {meta.name}
