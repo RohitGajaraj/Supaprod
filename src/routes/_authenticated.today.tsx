@@ -25,6 +25,7 @@ import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import { taskStatus } from "@/components/meridian/TaskRows";
 import { AskComposer } from "@/components/today/AskComposer";
 import { DecisionQueue } from "@/components/today/DecisionQueue";
+import { ElapsedRunning, parseableInstant } from "@/components/today/ElapsedRunning";
 import { FocusNext } from "@/components/today/FocusNext";
 import { HandoverNote } from "@/components/today/HandoverNote";
 import { PushedInsights } from "@/components/today/PushedInsights";
@@ -743,13 +744,16 @@ function Today() {
       running
         .map((m) => {
           /* The sub-goal, not the title: what the agent is actually doing right
-             now is the sentence this product is for. */
-          const elapsed = ago(m.created_at);
+             now is the sentence this product is for.
+             THE CLOCK TICKS rather than freezing at poll time — a real elapsed
+             from the mission's own created_at (ElapsedRunning for the honest
+             cases; the plain word when the timestamp cannot drive a clock). */
+          const startedAt = parseableInstant(m.created_at);
           return {
             id: m.id,
             who: m.current_agent_slug ? agentDisplayName(m.current_agent_slug) : null,
             title: stripAutoPrefix(m.current_sub_goal ?? m.title),
-            state: <>{elapsed ? `${elapsed} running` : "running"}</>,
+            state: startedAt ? <ElapsedRunning startedAt={startedAt} /> : <>running</>,
             at: feedInstant(m.updated_at, m.created_at),
             onOpen: openRun(m.id),
           };

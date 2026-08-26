@@ -95,7 +95,7 @@ export function PushedInsights() {
         </span>
       </div>
       <p className="today-notices-sub">
-        New evidence changed a standing call or connected signals you had treated separately.
+        New evidence changed a standing call, or connected two things you had treated separately.
       </p>
       <div className="today-notice-list">
         {insights.map((i) => {
