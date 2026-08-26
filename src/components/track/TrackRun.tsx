@@ -73,6 +73,7 @@ import { SteerComposer } from "@/components/track/SteerComposer";
 import { TakeOver } from "@/components/track/TakeOver";
 import { RunCost } from "@/components/track/RunCost";
 import { triesLine } from "@/components/track/hold-tries";
+import { wayOut } from "@/components/track/way-out";
 import { runPosition } from "@/components/track/run-position";
 
 /**
@@ -629,6 +630,7 @@ export function TrackRunLeft({
   }, [crewLive, walkingMidRoute, onCrewLive]);
 
   const showHold = held && !walkingMidRoute && !isCalmHold;
+  const holdWayOut = wayOut(track?.holdReason);
   const showCalmHold = isCalmHold && !walkingMidRoute;
 
   /*
@@ -774,6 +776,33 @@ export function TrackRunLeft({
                 </StatusChip>
               }
             />
+            {/*
+              * WHAT WILL ACTUALLY CLEAR IT (RUN-23). Eight of the eighteen hold
+              * reasons name no way out at all, and the only control here says
+              * "let this station try again", which for those eight does the
+              * same thing again. A person read a reason and was told nothing
+              * about what to do, which is the dead end R-20 section 5 forbids.
+              *
+              * Read from the RAW reason, never the prose. Branching on wording
+              * is how every hold once painted amber.
+              *
+              * The retry control is deliberately left in place below: somebody
+              * who has just unlocked a refused tool elsewhere comes back here
+              * wanting exactly that button. The dead end was the missing
+              * sentence, not the button.
+              */}
+            {holdWayOut.next ? (
+              <Row
+                tight
+                lead={holdWayOut.next}
+                sub={
+                  holdWayOut.onThisScreen
+                    ? "Both of those are under Take it over, just below."
+                    : undefined
+                }
+              />
+            ) : null}
+
             {answerTheCall ? null : (
               <div>
                 <Action busy={release.isPending} onClick={() => release.mutate()}>
