@@ -50,8 +50,17 @@ import { findRepoRoot } from "./helpers/auth";
 
 const SHOT_DIR = join(findRepoRoot(), "docs", "screenshots", "s4-motion");
 
-/** Public surfaces only: everything here renders without a session. */
-const SURFACES = ["/", "/pricing", "/product", "/demo"] as const;
+/**
+ * Public surfaces by default; override with S4_MOTION_PATHS="/today,/runs".
+ *
+ * The default set is public because those render with no session. A lane
+ * checking its own signed-in surface passes its paths in and supplies a
+ * storageState, and the honesty question is identical either way.
+ */
+const SURFACES: readonly string[] = (process.env.S4_MOTION_PATHS ?? "/,/pricing,/product,/demo")
+  .split(",")
+  .map((p) => p.trim())
+  .filter(Boolean);
 
 /** Past mount, hydration, and the first failed request. */
 const SETTLE_MS = 6_000;
