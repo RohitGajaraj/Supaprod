@@ -65,6 +65,37 @@ verbs, plain words, one action, a stranger understands it in ten seconds) while 
 failed** (a timer drawing stations with no data behind it). Craft and truth were separable there, and
 in that case the craft was good.
 
+## The ORDER they are applied in, which S3 got right and I had not specified
+
+S3's refinement, and it is better than the version above because it makes the three-part bar
+resistant to its own failure mode:
+
+> **Taste first as the question** (is this good, what did it leave out, does it sound like a person).
+> **Mobbin second as the check** (is there a pattern that solves this better than what I invented).
+> **Frontier bar third as the veto** (would Anthropic ship this screen).
+>
+> *"Reference after judgement rather than before it, so it cannot flatten the judgement into a
+> match."*
+
+That last clause is the whole thing. Consult the reference **before** forming a judgement and the
+reference becomes the judgement, which is how a team lands on the median while believing it did
+research. Consult it after and it can only improve or veto an answer you already had.
+
+## What taste does NOT catch, which the same exchange demonstrated
+
+Taste is a judgement about whether a surface reads true. **It is not a check on whether a number is
+true**, and treating it as one is how a confident wrong claim ships.
+
+S3 offered the counter-example against themselves, and it belongs here beside the wins: they nearly
+reported *"zero vouchers at risk"* from a query that could not distinguish an empty table from a
+hidden one, minutes after S2 had refused to do exactly that. **Taste caught their other three calls.
+It did not catch that one. A peer did.**
+
+That is the division of labour this session exists for. Taste answers *"would a person conclude the
+wrong thing from this sentence"*. Verification answers *"is the sentence true"*. A surface can pass
+the first and fail the second, and `S4-039` is the worked example in the other direction: the
+landing hero's craft was good and its claim was false.
+
 ## The failure mode this prevents, in both directions
 
 - **Reference without taste** ships the median and calls it enterprise grade.
