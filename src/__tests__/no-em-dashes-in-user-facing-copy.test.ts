@@ -41,7 +41,14 @@ import { join } from "node:path";
  * comment either way.
  */
 
-const ROOTS = ["src/components", "src/routes"] as const;
+/* `src/lib/presence` IS IN SCOPE and its absence was a real hole, found by S4.
+   character.ts is BUNDLED TO THE BROWSER and holds the teammate's spoken lines
+   on the run screen, so six user-facing dashes sat in a directory this gate
+   called clean. scripts/check-humanized.sh made the identical assumption and
+   states it at its line 78, that "everything else under src/lib is server logic
+   whose dashes never leave". The build disproves it. Anything under src/lib
+   that reaches the client belongs here. */
+const ROOTS = ["src/components", "src/routes", "src/lib/presence"] as const;
 const DASH = /[—–]/;
 
 /** Strip `//` and block comments. `'` is text, never a delimiter: see above. */
@@ -53,23 +60,56 @@ function stripComments(src: string): string {
     const c = src[i]!;
     const next = src[i + 1];
     if (mode === null) {
-      if (c === "/" && next === "/") { mode = "line"; i += 2; continue; }
-      if (c === "/" && next === "*") { mode = "block"; i += 2; continue; }
-      if (c === '"') { mode = "dq"; out.push(c); i += 1; continue; }
-      if (c === "`") { mode = "tpl"; out.push(c); i += 1; continue; }
-      out.push(c); i += 1; continue;
+      if (c === "/" && next === "/") {
+        mode = "line";
+        i += 2;
+        continue;
+      }
+      if (c === "/" && next === "*") {
+        mode = "block";
+        i += 2;
+        continue;
+      }
+      if (c === '"') {
+        mode = "dq";
+        out.push(c);
+        i += 1;
+        continue;
+      }
+      if (c === "`") {
+        mode = "tpl";
+        out.push(c);
+        i += 1;
+        continue;
+      }
+      out.push(c);
+      i += 1;
+      continue;
     }
     if (mode === "line") {
-      if (c === "\n") { mode = null; out.push("\n"); }
-      i += 1; continue;
+      if (c === "\n") {
+        mode = null;
+        out.push("\n");
+      }
+      i += 1;
+      continue;
     }
     if (mode === "block") {
-      if (c === "*" && next === "/") { mode = null; i += 2; continue; }
+      if (c === "*" && next === "/") {
+        mode = null;
+        i += 2;
+        continue;
+      }
       if (c === "\n") out.push("\n");
-      i += 1; continue;
+      i += 1;
+      continue;
     }
     out.push(c);
-    if (c === "\\") { if (src[i + 1] !== undefined) out.push(src[i + 1]!); i += 2; continue; }
+    if (c === "\\") {
+      if (src[i + 1] !== undefined) out.push(src[i + 1]!);
+      i += 2;
+      continue;
+    }
     if (mode === "dq" && c === '"') mode = null;
     else if (mode === "tpl" && c === "`") mode = null;
     i += 1;

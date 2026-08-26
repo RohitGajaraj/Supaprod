@@ -31,7 +31,6 @@ import { FocusNext } from "@/components/today/FocusNext";
 import { HandoverNote } from "@/components/today/HandoverNote";
 import { OverlapCheck, OverlapNote } from "@/components/today/OverlapNote";
 import { PushedInsights } from "@/components/today/PushedInsights";
-import { waitingNote } from "@/components/today/waiting-age";
 import { trackToBoardRows, type TrackBoardRow } from "@/components/today/tracks-feed";
 import { QuietMorning } from "@/components/today/QuietMorning";
 import { RunState, ShippedState } from "@/components/today/RunState";
@@ -788,7 +787,17 @@ function Today() {
             onOpen: openRun(m.id),
           };
         })
-        .sort((a, b) => b.at - a.at),
+        /* OLDEST FIRST, and this lane is the ONLY one that sorts this way.
+           Running and Finished sort newest-first because for work in motion the
+           story is recency. Here the story is the opposite: nothing in this lane
+           moves until a person acts, so the longer a thing has sat the more it
+           needs them. Sorting it newest-first, which is what this line used to
+           do, put the freshest arrival on top and buried the oldest behind a cap
+           of three and an overflow control. Measured 2026-08-27: the oldest gate
+           in this workspace has been waiting 33 days, and it was the last row of
+           a folded list. The brief's words for this lane are "sorted by what
+           needs a person soonest", and recency is not that. */
+        .sort((a, b) => a.at - b.at),
     [stuck, openRun],
   );
 
@@ -947,12 +956,22 @@ function Today() {
             onOpen: openRun(m.id),
           };
         })
-        .sort((a, b) => b.at - a.at),
+        /* Same lane, same rule: oldest first. These rows come from the sessions
+           read rather than the windowed mission list, so unlike the rows above
+           they can genuinely be weeks old, which is exactly why they must not
+           sort to the bottom. */
+        .sort((a, b) => a.at - b.at),
     [running, gatesByMission, openRun],
   );
 
+  /* THE MERGE MUST RE-SORT, or the per-list ordering above is decorative.
+     Three sources feed this lane: blocked missions (windowed to 24 hours),
+     gated sessions (NOT windowed, so genuinely weeks old) and spine tracks.
+     Concatenating them put every gated row after every mission row regardless
+     of age, so the 33-day gate still sorted below a mission blocked ten minutes
+     ago. Oldest first across the whole lane, for the reason on replyRows. */
   const allReplyRows = React.useMemo(
-    () => [...replyRows, ...gatedRows, ...trackCrewRows.reply],
+    () => [...replyRows, ...gatedRows, ...trackCrewRows.reply].sort((a, b) => a.at - b.at),
     [replyRows, gatedRows, trackCrewRows],
   );
   const allLiveRows = React.useMemo(
@@ -1724,14 +1743,28 @@ function Today() {
                 {crewSection(
                   FEED_REPLY,
                   allReplyRows,
-                  /* HOW LONG THE OLDEST ONE HAS SAT, said once above the lane.
-                     The lane caps at three standing rows and folds the rest, so
-                     a person reading "89" over three fresh-looking rows has no
-                     way to learn the backlog behind them is three weeks deep.
-                     Measured 2026-08-26: 89 waiting, 85 of them 8 to 30 days
-                     old, the oldest 21 days. waiting-age.ts carries why this is
-                     the oldest rather than a bucket count. */
-                  waitingNote("Nothing moves on these until you answer.", allReplyRows, Date.now()),
+                  /* THE BOUNDARY, SAID OUT LOUD, because the omission it covers
+                     is large and silent. This lane is filtered by
+                     `withinLastDay` (:670), so work whose last movement was over
+                     24 hours ago is not here AND IS NOT COUNTED. Measured
+                     2026-08-27: 89 missions are waiting on a person and 85 of
+                     them last moved between 8 and 30 days ago, so the lane
+                     showed 3. The longer a thing waits, the more certainly it
+                     disappears from the one surface that exists to say what
+                     needs you.
+
+                     NO NUMBER IS PRINTED HERE, and that is the honest choice
+                     rather than the lazy one. `listMissions` is `.limit(50)`
+                     ordered by `updated_at` descending (missions.functions.ts
+                     :244-245), so the client is handed the 50 most RECENTLY
+                     touched of 108 and the oldest waiting work is precisely
+                     what falls off the end. Any count or "oldest" computed here
+                     would be drawn from the newest 50 and would understate by a
+                     margin nobody could see. A stated boundary is true; a
+                     number from a capped read is a wrong number wearing a
+                     fact's clothes. The real count needs a server-side read and
+                     is filed with S0. */
+                  "Nothing moves on these until you answer. This lane shows the last 24 hours, so anything waiting longer is not here.",
                   (row) =>
                     row.proposed ? (
                       /* A PROPOSED MISSION IS NOT ASKING A QUESTION — it is
