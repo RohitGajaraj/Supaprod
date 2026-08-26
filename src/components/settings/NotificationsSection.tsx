@@ -25,6 +25,12 @@
  * the half that survives greyscale. `Loading` became `Reading` and not
  * `LoadingState`, whose own header forbids an elapsed timer on a plain fetch.
  *
+ * 2026-08-26, S3: added the "When work finishes" region for the verdict email
+ * (gap #2). It renders only once the fetched row carries `email_verdict`, so
+ * the surface cannot ship ahead of S0's column; see
+ * coordination/requests/S3/verdict-notify-trigger.md. The template it sends is
+ * src/components/notifications/verdict-email.ts.
+ *
  * KEPT: every server function, both preference paths (the server-stored matrix
  * and the device-local interaction feedback), the same query keys, and the
  * single Save. Interaction feedback still applies instantly with no save,
@@ -55,6 +61,14 @@ import { getFeedbackPrefs, setFeedbackPrefs, fireFeedback } from "@/lib/interact
 
 type Category = "Approvals" | "Health" | "Budget" | "Drift";
 type Channel = "app" | "email" | "digest";
+
+/**
+ * The verdict-email preference arrives with S0's migration (request:
+ * coordination/requests/S3/verdict-notify-trigger.md). Until the fetched row
+ * carries the key, this whole region stays hidden rather than offering a save
+ * that cannot persist, so the surface can never ship ahead of its column.
+ */
+type PrefsPlusVerdict = UserNotificationPreferences & { email_verdict?: boolean };
 
 const CATEGORIES: { key: Category; label: string; sub: string }[] = [
   {
@@ -117,6 +131,8 @@ export function NotificationsSection() {
   const [frequency, setFrequency] = useState<"daily" | "weekly">("daily");
   const [stakeholder, setStakeholder] = useState(false);
   const [audience, setAudience] = useState<"exec" | "eng" | "board">("exec");
+  // null = the preference has not shipped yet; the region stays hidden.
+  const [verdictEmail, setVerdictEmail] = useState<boolean | null>(null);
   const [dirty, setDirty] = useState(false);
 
   // Device-local, applied instantly, never part of the save.
@@ -124,17 +140,18 @@ export function NotificationsSection() {
   const [haptics, setHaptics] = useState(() => getFeedbackPrefs().haptics);
 
   useEffect(() => {
-    const p = prefs.data?.preferences;
-    if (!p) return;
+    const row = prefs.data?.preferences as PrefsPlusVerdict | undefined;
+    if (!row) return;
     setMatrix({
-      Approvals: { app: p.in_app_approvals, email: p.email_approvals, digest: p.digest_approvals },
-      Health: { app: p.in_app_health, email: p.email_health, digest: p.digest_health },
-      Budget: { app: p.in_app_budget, email: p.email_budget, digest: p.digest_budget },
-      Drift: { app: p.in_app_drift, email: p.email_drift, digest: p.digest_drift },
+      Approvals: { app: row.in_app_approvals, email: row.email_approvals, digest: row.digest_approvals },
+      Health: { app: row.in_app_health, email: row.email_health, digest: row.digest_health },
+      Budget: { app: row.in_app_budget, email: row.email_budget, digest: row.digest_budget },
+      Drift: { app: row.in_app_drift, email: row.email_drift, digest: row.digest_drift },
     });
-    setFrequency(p.digest_frequency);
-    setStakeholder(p.digest_stakeholder_update ?? false);
-    setAudience(p.digest_stakeholder_audience ?? "exec");
+    setFrequency(row.digest_frequency);
+    setStakeholder(row.digest_stakeholder_update ?? false);
+    setAudience(row.digest_stakeholder_audience ?? "exec");
+    setVerdictEmail(typeof row.email_verdict === "boolean" ? row.email_verdict : null);
     setDirty(false);
   }, [prefs.data]);
 
@@ -160,6 +177,9 @@ export function NotificationsSection() {
       digest_frequency: frequency,
       digest_stakeholder_update: stakeholder,
       digest_stakeholder_audience: audience,
+      // Omitted entirely until the column exists, so the save can never name a
+      // field the database does not know.
+      ...(verdictEmail !== null ? { email_verdict: verdictEmail } : {}),
     });
 
   const reachable = CATEGORIES.filter((c) => CHANNELS.some((ch) => matrix[c.key][ch.key])).length;
@@ -192,12 +212,15 @@ export function NotificationsSection() {
       <PageHeading
         title="Notifications"
         sub={
-          reachable === 0 ? (
+          reachable === 0 && verdictEmail !== true ? (
             "Nothing reaches you. Every alert is currently silent, including the ones waiting on your decision."
           ) : (
             <>
               <Num>{reachable}</Num> of the four things that can interrupt you currently do. The
               rest stay silent until you come looking.
+              {verdictEmail === true
+                ? " Work that finishes while you are away also emails you what came of it."
+                : ""}
             </>
           )
         }
@@ -223,6 +246,27 @@ export function NotificationsSection() {
           </Line>
         ))}
       </Region>
+
+      {verdictEmail !== null && (
+        <Region
+          title="When work finishes"
+          sub="The result finds you, even with the tab closed. It goes to the address on your account."
+        >
+          <Line
+            label="Email me what came of it"
+            sub="What was expected beside what actually happened, and a link to the work. Sends as soon as the result lands, whatever the hour."
+          >
+            <Toggle
+              checked={verdictEmail}
+              label="Email me what came of finished work"
+              onChange={(next) => {
+                setVerdictEmail(next);
+                setDirty(true);
+              }}
+            />
+          </Line>
+        </Region>
+      )}
 
       <Region title="The digest">
         <Line

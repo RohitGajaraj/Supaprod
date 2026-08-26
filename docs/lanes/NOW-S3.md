@@ -1,1 +1,1 @@
-S3 · not started · IDLE · awaiting first unit · — · —
+S3 · 17:05 IST · WORKING · unit 1 pushed: verdict-email template + settings toggle + S0 trigger contract filed · src/components/notifications/** settings/NotificationsSection.tsx coordination/requests/S3/verdict-notify-trigger.md · awaiting S0 on email_verdict column + dispatch call; next: queue item 2 fold-boundary-four-into-one
