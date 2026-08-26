@@ -50,6 +50,31 @@ FROM spine_tracks;
 --    6c the sweep is running: cron job runs in the last 6h with outcomes
 SELECT status, count(*) FROM cron.job_run_details
 WHERE jobid = 68 AND start_time > now() - interval '6 hours' GROUP BY 1;
+
+-- 7. S4-005 theatre sweep, the half only the database can settle:
+--    7a learnings: total vs sample-flagged (column per generated types.ts:4755).
+--    CAVEAT: treat the flag as evidence, not gospel — F-42 caught is_sample
+--    lying on workspaces, so if sample_rows=0 while every summary reads like
+--    demo copy, say that instead of the number.
+SELECT count(*) AS total,
+       count(*) FILTER (WHERE is_sample) AS flagged_sample,
+       count(*) FILTER (WHERE NOT is_sample) AS flagged_real
+FROM learnings;
+--    7b recall reality: distinct traces vs rows, and the outcome mix
+SELECT count(*) AS rows,
+       count(DISTINCT trace_id) AS distinct_reads,
+       count(*) FILTER (WHERE outcome = 'used') AS used,
+       count(*) FILTER (WHERE outcome = 'ignored') AS ignored
+FROM memory_recall_log;
+--    7c decisions ever cited by a later call
+SELECT count(*) FROM decisions WHERE cited_by_count > 0;
+--    7d assumption challenges that quote a learning as evidence
+SELECT count(*) FROM assumption_challenges WHERE learning_id IS NOT NULL;
+--    7e settle a code-vs-types contradiction: today.functions.ts:909 says
+--    "learnings carries no is_sample column"; generated types.ts:4755 says it
+--    does. Which is true of the LIVE table right now?
+SELECT column_name FROM information_schema.columns
+WHERE table_name = 'learnings' ORDER BY ordinal_position;
 ```
 
 Note on anchors: my `docs/lanes/verify/S4-001-f76.md` cites line numbers re-based to `60dd95e34`.
