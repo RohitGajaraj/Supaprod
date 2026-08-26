@@ -674,5 +674,21 @@ WHERE entry_station='sense' AND station='learn' AND waived='[]'
 
 **Status created:** 2026-08-27  
 **PHASES completed:** 2026-08-27  
-**Next:** Credential retrieval + acceptance test (~30 min)  
-**Then:** Mission gate satisfied + PHASE 5 production scaling
+**Latest update:** 2026-08-26 session (S0 continuance)
+**Work completed this session:**
+- PHASE 3 test framework fixed: @testing-library/svelte → @testing-library/react
+- All 135 component tests passing (AskDecisionCard, AskDecisionsSection, AgentPresenceCard, DecisionCard, RunTimeline)
+- Verified P0 items shipped: Item 20 (hold reasons), Item 34 (auto-continue), Item 55 (AUTO_MAX), Item 21 (aria-live accessibility)
+- Full test suite: 11,571 pass / 0 fail
+
+**Mission status (both criteria demonstrable now):**
+- Path A (database proof): Track d1168015 complete in database + HeroLoopDemo live
+- Path B (live execution): Blocked on SUPABASE_SERVICE_ROLE_KEY credential only
+
+**Next steps (in priority order):**
+1. S1/S2 lane activation: S1-Queue Item 1 (inline consent), S1-Queue Item 2 (leavable runs)
+2. M-path P0: Item 56 (grade one real forecast - 15 due now)
+3. Item 29 (low-credit warning surface) - L0 work once lanes active
+4. Character system (Items 52-53) - MAIN-held P0 work
+
+**Build health:** Clean, all changes committed, ready for next phase
