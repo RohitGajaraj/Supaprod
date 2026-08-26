@@ -42,6 +42,13 @@ import { getTrackActivity, steerTrack } from "@/lib/spine/track.functions";
 export const ROSTER_MAX = 5;
 
 /**
+ * What the server accepts and what the loop injects -- kept in ONE place so a
+ * change to either breaks here, loudly, instead of truncating somebody's
+ * sentence quietly.
+ */
+export const STEER_MAX = 2000;
+
+/**
  * Who has actually been on this work, newest first — derived from the same
  * activity read the transcript already polls, so this costs no second fetch
  * (same query key, TanStack serves both from one cache entry).
@@ -101,6 +108,8 @@ export function SteerComposer({
   const [value, setValue] = React.useState("");
   const [caret, setCaret] = React.useState<number | null>(null);
   const [pick, setPick] = React.useState(0);
+  /** How many characters a send just dropped, when it had to drop any. */
+  const [truncated, setTruncated] = React.useState<number | null>(null);
   const ownFieldRef = React.useRef<HTMLTextAreaElement | null>(null);
   const fieldRef = externalFieldRef ?? ownFieldRef;
 
@@ -119,6 +128,7 @@ export function SteerComposer({
     onSuccess: () => {
       setValue("");
       setCaret(null);
+      setTruncated(null);
     },
   });
 
@@ -143,6 +153,16 @@ export function SteerComposer({
     }
     const text = value.trim();
     if (!text || send.isPending) return;
+    // THE SERVER WOULD SLICE THIS SILENTLY (steerTrack caps at 2000, and the
+    // loop slices the same amount at injection). A person whose last
+    // sentence vanished has been lied to by a form -- so the cut happens here,
+    // where it can be SAID.
+    if (text.length > STEER_MAX) {
+      send.mutate(text.slice(0, STEER_MAX));
+      setTruncated(text.length - STEER_MAX);
+      return;
+    }
+    setTruncated(null);
     send.mutate(text);
   };
 
@@ -243,6 +263,11 @@ export function SteerComposer({
       {sentNote ? (
         <p role="status" aria-live="polite" className="mrd-meta">
           {sentNote}
+        </p>
+      ) : null}
+      {truncated !== null ? (
+        <p role="status" aria-live="polite" className="mrd-meta">
+          {`Only the first ${STEER_MAX} characters were sent; ${truncated.toLocaleString()} were left off. Send the rest as a second message if it matters.`}
         </p>
       ) : null}
       {send.isError ? (
