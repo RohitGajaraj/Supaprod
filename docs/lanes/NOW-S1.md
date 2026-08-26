@@ -1,1 +1,1 @@
-S1 · 00:20 IST · WORKING · browser proof done (units live, 1 production bug found in steer insert — request filed) · server killed · src/components/track/** presence/** · e3f0f47e7
+S1 · 22:30 IST · WORKING · resumed in Claude Code (DB + design refs now reachable directly); tree rebased on main, no dev server held · src/components/track/** presence/** · pending
