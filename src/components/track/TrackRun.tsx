@@ -885,22 +885,33 @@ export function TrackRunLeft({
        * words; the steer box below carries the way back either way.
        */}
       <Region
-        title={track?.status === "done" ? "Run it (done)" : "Run it"}
+        /*
+         * ONE SENTENCE WHEN THERE IS NOTHING TO DRIVE, NOT THREE.
+         *
+         * A finished run used to say it three times in one column: the heading
+         * carried "(done)", the sub said "This walk is finished", and a row
+         * under them said "It reached the end of its route" -- with the status
+         * chip at the top of the page already saying Finished. An abandoned one
+         * was worse than repetitive: the sub described the control's normal job,
+         * "walks this work through its route now", on a run that cannot be
+         * walked, and then repeated the header's own sentence back.
+         *
+         * So the closed case gets one line that says what happened AND what it
+         * means for this control, which is the only part the header did not
+         * already cover. The heading stays plain: the chip and this sentence
+         * both carry the state, and a third copy in the heading is the one that
+         * was earning nothing.
+         */
+        title="Run it"
         sub={
           track?.status === "done"
-            ? "This walk is finished."
-            : "Walks this work through its route now, station by station, and stops the moment something needs you."
+            ? "This walk is finished, so there is nothing left to drive."
+            : track?.status === "abandoned"
+              ? "This work was abandoned, so there is nothing left to drive."
+              : "Walks this work through its route now, station by station, and stops the moment something needs you."
         }
       >
-        {track?.status === "done" || track?.status === "abandoned" ? (
-          <Row
-            lead={
-              track.status === "done"
-                ? "It reached the end of its route."
-                : "This work was abandoned here."
-            }
-          />
-        ) : continuing ? (
+        {track?.status === "done" || track?.status === "abandoned" ? null : continuing ? (
           <div className="flex flex-wrap items-center gap-mrd-3">
             <Action variant="primary" busy onClick={() => undefined}>
               Walking the route
