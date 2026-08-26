@@ -269,15 +269,28 @@ function StartLanding() {
   return (
     <div className="flex min-h-dvh flex-col items-center px-6 py-16">
       <div className="flex w-full max-w-2xl flex-col gap-mrd-7">
-        <div className="flex items-baseline justify-between">
-          <Eyebrow>Supaprod</Eyebrow>
-          {/* The founder compares this against /today side by side (R-15), so
-              the old app stays one quiet link away rather than gone. */}
-          <a href="/today" className="mrd-meta transition-colors hover:text-mrd-body">
-            Open Supaprod
-          </a>
-        </div>
-
+        {/*
+         * THE COMPARISON ROW IS GONE, AND THE LABEL IS WHY IT HAD TO GO.
+         *
+         * It read: an eyebrow saying "Supaprod" beside a link saying "Open
+         * Supaprod", on the first screen of Supaprod, pointing at /today. Three
+         * problems in two elements. The eyebrow repeated the wordmark already
+         * sitting in the shell's top left. The link offered to open the product
+         * a person is already inside, which is the kind of sentence that makes
+         * someone doubt they are where they think they are. And the destination
+         * is in the left rail as "Today", one click away, on every screen.
+         *
+         * It was scaffolding: the founder wanted to compare this against the old
+         * board side by side while it was being built. R-15 is cited in the code
+         * it came from, but R-15 rules on WHERE to build (final url, not a /v2
+         * tree) and asks for nothing on this page. The comparison survives
+         * intact through the nav.
+         *
+         * Removed rather than relabelled because a correct label would leave a
+         * lone link floating above a heading, which is worse than no row: the
+         * front door of the product is the one screen that should carry nothing
+         * a customer does not need.
+         */}
         <PageHeading
           title="What needs doing?"
           sub="One sentence starts a run. You watch it happen here, and it asks you nothing unless it must."
