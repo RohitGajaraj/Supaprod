@@ -1964,11 +1964,34 @@ function Today() {
           </div>
         ) : null}
 
+        {/*
+          * THE DOOR THAT SAID IT STARTED WORK AND DID NOT. This block read
+          * "Start something new" over a composer whose submit is `openAsk()`,
+          * which opens the Ask pane. Asking is a real act and a good one, but a
+          * person reading "give the crew its next outcome" expects work to
+          * exist afterwards, and none did. The most-visited surface in the
+          * product was promising the one act it does not perform.
+          *
+          * So the composer is named for what it does, and the act it was
+          * standing in for gets its own door beside it. `/start` is the door
+          * that creates a track, and 41 of the last 43 tracks entered at
+          * `sense` through it, so it is the live way work begins.
+          *
+          * DELIBERATELY A LINK AND NOT A SECOND COMPOSER. Which engine the
+          * board's own composer should drive is a real question with three
+          * candidates and it is not mine to settle; it is filed as
+          * D2-the-consolidated-start-door.md for S0 and S1. A link removes the
+          * false promise today without pre-empting that ruling, and it cannot
+          * become a fourth way to start work.
+          */}
         <div data-page-composer className="today-composer">
           <div>
-            <div className="today-kicker">Start something new</div>
+            <div className="today-kicker">Ask the crew</div>
             <div className="today-composer-copy">
-              Ask a question or give the crew its next outcome.
+              Ask a question about this workspace, or talk through what to do next.{" "}
+              <Door title="Start a new piece of work" onClick={() => navigate({ to: "/start" })}>
+                Start a piece of work
+              </Door>
             </div>
           </div>
           <AskComposer />
