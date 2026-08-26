@@ -10,11 +10,11 @@
  * embedding in a turn's answer column and includes citation/provenance.
  */
 
-import { useEffect, useState } from 'react';
-import type { Database } from '@/integrations/supabase/types';
+import { useEffect, useState } from "react";
+import type { Database } from "@/integrations/supabase/types";
 
-type Decision = Database['public']['Tables']['decisions']['Row'];
-type Learning = Database['public']['Tables']['learnings']['Row'];
+type Decision = Database["public"]["Tables"]["decisions"]["Row"];
+type Learning = Database["public"]["Tables"]["learnings"]["Row"];
 
 interface AskDecisionCardProps {
   decision: Decision;
@@ -27,24 +27,24 @@ interface DecisionVerdictDisplay {
   predictedDate: string;
   actual: string;
   actualDate: string;
-  verdict: 'RIGHT' | 'WRONG' | 'INCONCLUSIVE' | 'PENDING';
+  verdict: "RIGHT" | "WRONG" | "INCONCLUSIVE" | "PENDING";
   confidence?: number;
   sampleSize?: number;
-  resolvedBy?: 'human' | 'agent';
+  resolvedBy?: "human" | "agent";
 }
 
 const VERDICT_COLORS = {
-  RIGHT: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/20',
-  WRONG: 'bg-rose-500/20 text-rose-400 border-rose-500/20',
-  INCONCLUSIVE: 'bg-amber-500/20 text-amber-400 border-amber-500/20',
-  PENDING: 'bg-zinc-600/20 text-zinc-400 border-zinc-600/20',
+  RIGHT: "bg-emerald-500/20 text-emerald-400 border-emerald-500/20",
+  WRONG: "bg-rose-500/20 text-rose-400 border-rose-500/20",
+  INCONCLUSIVE: "bg-amber-500/20 text-amber-400 border-amber-500/20",
+  PENDING: "bg-zinc-600/20 text-zinc-400 border-zinc-600/20",
 };
 
 const VERDICT_ICONS = {
-  RIGHT: '✓',
-  WRONG: '✕',
-  INCONCLUSIVE: '?',
-  PENDING: '⏳',
+  RIGHT: "✓",
+  WRONG: "✕",
+  INCONCLUSIVE: "?",
+  PENDING: "⏳",
 };
 
 export function AskDecisionCard({
@@ -56,40 +56,43 @@ export function AskDecisionCard({
 
   useEffect(() => {
     // Prediction
-    const predicted = (decision.forecast_claim || 'No forecast recorded') as string;
+    const predicted = (decision.forecast_claim || "No forecast recorded") as string;
     const predictedDate = decision.forecast_horizon_date
       ? new Date(decision.forecast_horizon_date).toLocaleDateString()
-      : 'No horizon set';
+      : "No horizon set";
 
     // Resolution
-    let actual = 'Waiting for outcome…';
-    let actualDate = '';
-    let verdictType: 'RIGHT' | 'WRONG' | 'INCONCLUSIVE' | 'PENDING' = 'PENDING';
+    let actual = "Waiting for outcome…";
+    let actualDate = "";
+    let verdictType: "RIGHT" | "WRONG" | "INCONCLUSIVE" | "PENDING" = "PENDING";
     let confidence: number | undefined;
     let sampleSize: number | undefined;
-    let resolvedBy: 'human' | 'agent' | undefined;
+    let resolvedBy: "human" | "agent" | undefined;
 
     if (learning && learning.verdict) {
       actual = learning.verdict as string;
       actualDate = new Date(learning.created_at).toLocaleDateString();
 
       // Verdict mapping
-      if (actual.toLowerCase().includes('correct') || actual.toLowerCase().includes('right')) {
-        verdictType = 'RIGHT';
-      } else if (actual.toLowerCase().includes('wrong') || actual.toLowerCase().includes('incorrect')) {
-        verdictType = 'WRONG';
+      if (actual.toLowerCase().includes("correct") || actual.toLowerCase().includes("right")) {
+        verdictType = "RIGHT";
       } else if (
-        actual.toLowerCase().includes('inconclusive') ||
-        actual.toLowerCase().includes('unclear')
+        actual.toLowerCase().includes("wrong") ||
+        actual.toLowerCase().includes("incorrect")
       ) {
-        verdictType = 'INCONCLUSIVE';
+        verdictType = "WRONG";
+      } else if (
+        actual.toLowerCase().includes("inconclusive") ||
+        actual.toLowerCase().includes("unclear")
+      ) {
+        verdictType = "INCONCLUSIVE";
       }
 
       // Metadata from learning
-      const metadata = learning.metadata as Record<string, any> || {};
+      const metadata = (learning.metadata as Record<string, any>) || {};
       confidence = metadata.confidence as number | undefined;
       sampleSize = metadata.sampleSize as number | undefined;
-      resolvedBy = metadata.resolvedBy as 'human' | 'agent' | undefined;
+      resolvedBy = metadata.resolvedBy as "human" | "agent" | undefined;
     }
 
     setVerdict({
@@ -112,10 +115,12 @@ export function AskDecisionCard({
     <div className="space-y-3 rounded-lg border border-zinc-800 bg-zinc-900/30 p-3">
       {/* Verdict badge */}
       {showResolution && (
-        <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded border font-medium text-xs ${VERDICT_COLORS[verdict.verdict]}`}>
+        <div
+          className={`inline-flex items-center gap-1.5 px-2 py-1 rounded border font-medium text-xs ${VERDICT_COLORS[verdict.verdict]}`}
+        >
           <span>{VERDICT_ICONS[verdict.verdict]}</span>
           <span>{verdict.verdict}</span>
-          {verdict.resolvedBy === 'agent' && (
+          {verdict.resolvedBy === "agent" && (
             <span className="text-xs opacity-75 ml-0.5">(auto-graded)</span>
           )}
         </div>
@@ -133,7 +138,7 @@ export function AskDecisionCard({
         {/* Actual */}
         <div className="border border-zinc-800 rounded p-2 bg-emerald-500/5">
           <p className="text-xs font-medium text-zinc-400 mb-1">ACTUAL</p>
-          {verdict.verdict === 'PENDING' ? (
+          {verdict.verdict === "PENDING" ? (
             <p className="text-xs text-zinc-500 italic">{verdict.actual}</p>
           ) : (
             <>

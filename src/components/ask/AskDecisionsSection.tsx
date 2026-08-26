@@ -9,11 +9,11 @@
  * "Answer", "From the record", etc.
  */
 
-import type { Database } from '@/integrations/supabase/types';
-import { AskDecisionCard } from './AskDecisionCard';
+import type { Database } from "@/integrations/supabase/types";
+import { AskDecisionCard } from "./AskDecisionCard";
 
-type Decision = Database['public']['Tables']['decisions']['Row'];
-type Learning = Database['public']['Tables']['learnings']['Row'];
+type Decision = Database["public"]["Tables"]["decisions"]["Row"];
+type Learning = Database["public"]["Tables"]["learnings"]["Row"];
 
 export interface DecisionWithLearning {
   decision: Decision;
@@ -37,9 +37,7 @@ export function AskDecisionsSection({
 
   return (
     <div className="space-y-3 mt-4 pt-3 border-t border-zinc-800">
-      <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wide px-1">
-        {title}
-      </p>
+      <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wide px-1">{title}</p>
 
       <div className="space-y-2">
         {decisions.map((item) => (

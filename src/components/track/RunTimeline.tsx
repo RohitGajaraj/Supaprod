@@ -8,31 +8,31 @@
  * User value: Complete transparency + no manual refresh needed
  */
 
-import { useEffect, useState } from 'react';
-import type { Database } from '@/integrations/supabase/types';
+import { useEffect, useState } from "react";
+import type { Database } from "@/integrations/supabase/types";
 
-type StageEvent = Database['public']['Tables']['stage_events']['Row'];
+type StageEvent = Database["public"]["Tables"]["stage_events"]["Row"];
 
 const STATION_DISPLAY_NAMES: Record<string, string> = {
-  sense: 'Sense',
-  discover: 'Discover',
-  decide: 'Decide',
-  define: 'Define',
-  design: 'Design',
-  build: 'Build',
-  ship: 'Ship',
-  learn: 'Learn',
+  sense: "Sense",
+  discover: "Discover",
+  decide: "Decide",
+  define: "Define",
+  design: "Design",
+  build: "Build",
+  ship: "Ship",
+  learn: "Learn",
 };
 
 const STATION_COLORS: Record<string, string> = {
-  sense: 'bg-blue-500',
-  discover: 'bg-purple-500',
-  decide: 'bg-emerald-500',
-  define: 'bg-amber-500',
-  design: 'bg-rose-500',
-  build: 'bg-indigo-500',
-  ship: 'bg-cyan-500',
-  learn: 'bg-green-500',
+  sense: "bg-blue-500",
+  discover: "bg-purple-500",
+  decide: "bg-emerald-500",
+  define: "bg-amber-500",
+  design: "bg-rose-500",
+  build: "bg-indigo-500",
+  ship: "bg-cyan-500",
+  learn: "bg-green-500",
 };
 
 interface TimelineEvent {
@@ -50,11 +50,7 @@ interface RunTimelineProps {
   isLive?: boolean;
 }
 
-export function RunTimeline({
-  trackId,
-  events = [],
-  isLive = false,
-}: RunTimelineProps) {
+export function RunTimeline({ trackId, events = [], isLive = false }: RunTimelineProps) {
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
 
   // Transform stage_events into timeline display format
@@ -77,9 +73,10 @@ export function RunTimeline({
       }
 
       // Human-readable action description
-      const action = event.actor === 'system'
-        ? `Agent entered ${STATION_DISPLAY_NAMES[event.station] || event.station}`
-        : `Held at ${STATION_DISPLAY_NAMES[event.station] || event.station}`;
+      const action =
+        event.actor === "system"
+          ? `Agent entered ${STATION_DISPLAY_NAMES[event.station] || event.station}`
+          : `Held at ${STATION_DISPLAY_NAMES[event.station] || event.station}`;
 
       return {
         stationName: event.station,
@@ -87,7 +84,7 @@ export function RunTimeline({
         timestamp: createdAt,
         readableTime: timeString,
         action,
-        color: STATION_COLORS[event.station] || 'bg-zinc-500',
+        color: STATION_COLORS[event.station] || "bg-zinc-500",
       };
     });
 
@@ -122,21 +119,14 @@ export function RunTimeline({
           <div key={`${event.timestamp}-${idx}`} className="flex gap-3">
             {/* Timeline dot */}
             <div className="flex flex-col items-center gap-2">
-              <div
-                className={`w-3 h-3 rounded-full ${event.color}`}
-                title={event.displayName}
-              />
-              {idx < timelineEvents.length - 1 && (
-                <div className="w-0.5 h-6 bg-zinc-700" />
-              )}
+              <div className={`w-3 h-3 rounded-full ${event.color}`} title={event.displayName} />
+              {idx < timelineEvents.length - 1 && <div className="w-0.5 h-6 bg-zinc-700" />}
             </div>
 
             {/* Event details */}
             <div className="flex-1 min-w-0 pt-0.5">
               <div className="flex items-baseline gap-2">
-                <p className="text-sm font-medium text-white truncate">
-                  {event.action}
-                </p>
+                <p className="text-sm font-medium text-white truncate">{event.action}</p>
               </div>
               <p className="text-xs text-zinc-400 mt-1">{event.readableTime}</p>
             </div>
@@ -146,8 +136,8 @@ export function RunTimeline({
 
       {/* Key message */}
       <p className="text-xs text-zinc-500 px-1">
-        Station progression shows where your agent is working right now.
-        All decisions are automatic once started.
+        Station progression shows where your agent is working right now. All decisions are automatic
+        once started.
       </p>
     </div>
   );

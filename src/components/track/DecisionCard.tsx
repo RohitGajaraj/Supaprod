@@ -10,35 +10,35 @@
  * User value: Judgment compounds over time because the system learns
  */
 
-import { useEffect, useState } from 'react';
-import type { Database } from '@/integrations/supabase/types';
+import { useEffect, useState } from "react";
+import type { Database } from "@/integrations/supabase/types";
 
-type Decision = Database['public']['Tables']['decisions']['Row'];
-type Learning = Database['public']['Tables']['learnings']['Row'];
+type Decision = Database["public"]["Tables"]["decisions"]["Row"];
+type Learning = Database["public"]["Tables"]["learnings"]["Row"];
 
 interface DecisionVerdict {
   predicted: string;
   predictedDate: string;
   actual: string;
   actualDate: string;
-  verdict: 'RIGHT' | 'WRONG' | 'INCONCLUSIVE' | 'PENDING';
+  verdict: "RIGHT" | "WRONG" | "INCONCLUSIVE" | "PENDING";
   confidence?: number;
   sampleSize?: number;
-  resolvedBy?: 'human' | 'agent';
+  resolvedBy?: "human" | "agent";
 }
 
 const VERDICT_COLORS = {
-  RIGHT: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/20',
-  WRONG: 'bg-rose-500/20 text-rose-400 border-rose-500/20',
-  INCONCLUSIVE: 'bg-amber-500/20 text-amber-400 border-amber-500/20',
-  PENDING: 'bg-zinc-600/20 text-zinc-400 border-zinc-600/20',
+  RIGHT: "bg-emerald-500/20 text-emerald-400 border-emerald-500/20",
+  WRONG: "bg-rose-500/20 text-rose-400 border-rose-500/20",
+  INCONCLUSIVE: "bg-amber-500/20 text-amber-400 border-amber-500/20",
+  PENDING: "bg-zinc-600/20 text-zinc-400 border-zinc-600/20",
 };
 
 const VERDICT_ICONS = {
-  RIGHT: '✓',
-  WRONG: '✕',
-  INCONCLUSIVE: '?',
-  PENDING: '⏳',
+  RIGHT: "✓",
+  WRONG: "✕",
+  INCONCLUSIVE: "?",
+  PENDING: "⏳",
 };
 
 interface DecisionCardProps {
@@ -47,11 +47,7 @@ interface DecisionCardProps {
   showResolution?: boolean;
 }
 
-export function DecisionCard({
-  decision,
-  learning,
-  showResolution = true,
-}: DecisionCardProps) {
+export function DecisionCard({ decision, learning, showResolution = true }: DecisionCardProps) {
   const [verdict, setVerdict] = useState<DecisionVerdict | null>(null);
 
   useEffect(() => {
@@ -61,40 +57,43 @@ export function DecisionCard({
     }
 
     // Prediction
-    const predicted = (decision.forecast_claim || 'No forecast recorded') as string;
+    const predicted = (decision.forecast_claim || "No forecast recorded") as string;
     const predictedDate = decision.forecast_horizon_date
       ? new Date(decision.forecast_horizon_date).toLocaleDateString()
-      : 'No horizon set';
+      : "No horizon set";
 
     // Resolution
-    let actual = 'Waiting for outcome…';
-    let actualDate = '';
-    let verdictType: 'RIGHT' | 'WRONG' | 'INCONCLUSIVE' | 'PENDING' = 'PENDING';
+    let actual = "Waiting for outcome…";
+    let actualDate = "";
+    let verdictType: "RIGHT" | "WRONG" | "INCONCLUSIVE" | "PENDING" = "PENDING";
     let confidence: number | undefined;
     let sampleSize: number | undefined;
-    let resolvedBy: 'human' | 'agent' | undefined;
+    let resolvedBy: "human" | "agent" | undefined;
 
     if (learning && learning.verdict) {
       actual = learning.verdict as string;
       actualDate = new Date(learning.created_at).toLocaleDateString();
 
       // Verdict mapping (simplified: in real implementation, this comes from forecast_resolution)
-      if (actual.toLowerCase().includes('correct') || actual.toLowerCase().includes('right')) {
-        verdictType = 'RIGHT';
-      } else if (actual.toLowerCase().includes('wrong') || actual.toLowerCase().includes('incorrect')) {
-        verdictType = 'WRONG';
+      if (actual.toLowerCase().includes("correct") || actual.toLowerCase().includes("right")) {
+        verdictType = "RIGHT";
       } else if (
-        actual.toLowerCase().includes('inconclusive') ||
-        actual.toLowerCase().includes('unclear')
+        actual.toLowerCase().includes("wrong") ||
+        actual.toLowerCase().includes("incorrect")
       ) {
-        verdictType = 'INCONCLUSIVE';
+        verdictType = "WRONG";
+      } else if (
+        actual.toLowerCase().includes("inconclusive") ||
+        actual.toLowerCase().includes("unclear")
+      ) {
+        verdictType = "INCONCLUSIVE";
       }
 
       // Confidence from learning metadata
-      const metadata = learning.metadata as Record<string, any> || {};
+      const metadata = (learning.metadata as Record<string, any>) || {};
       confidence = metadata.confidence as number | undefined;
       sampleSize = metadata.sampleSize as number | undefined;
-      resolvedBy = metadata.resolvedBy as 'human' | 'agent' | undefined;
+      resolvedBy = metadata.resolvedBy as "human" | "agent" | undefined;
     }
 
     setVerdict({
@@ -121,10 +120,12 @@ export function DecisionCard({
     <div className="space-y-4">
       {/* Verdict badge */}
       {showResolution && (
-        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-medium text-sm ${VERDICT_COLORS[verdict.verdict]}`}>
+        <div
+          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-medium text-sm ${VERDICT_COLORS[verdict.verdict]}`}
+        >
           <span className="text-lg">{VERDICT_ICONS[verdict.verdict]}</span>
           <span>{verdict.verdict}</span>
-          {verdict.resolvedBy === 'agent' && (
+          {verdict.resolvedBy === "agent" && (
             <span className="text-xs ml-1 opacity-75">(auto-graded)</span>
           )}
         </div>
@@ -142,7 +143,7 @@ export function DecisionCard({
         {/* Actual */}
         <div className="border border-zinc-800 rounded-lg p-3 bg-emerald-500/5">
           <p className="text-xs font-medium text-zinc-400 mb-2">ACTUAL</p>
-          {verdict.verdict === 'PENDING' ? (
+          {verdict.verdict === "PENDING" ? (
             <p className="text-sm text-zinc-500 italic">{verdict.actual}</p>
           ) : (
             <>
@@ -170,9 +171,9 @@ export function DecisionCard({
 
       {/* Key message */}
       <p className="text-xs text-zinc-500 px-1">
-        {verdict.verdict === 'PENDING'
-          ? 'Waiting for the horizon date to arrive. This forecast cannot be graded until then.'
-          : 'This is how you learn. The forecast was captured before the outcome was known. Your next call gets smarter because of this.'}
+        {verdict.verdict === "PENDING"
+          ? "Waiting for the horizon date to arrive. This forecast cannot be graded until then."
+          : "This is how you learn. The forecast was captured before the outcome was known. Your next call gets smarter because of this."}
       </p>
     </div>
   );

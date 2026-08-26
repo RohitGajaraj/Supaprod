@@ -820,9 +820,11 @@ export const resolveAssumptionChallenge = createServerFn({ method: "POST" })
 export const getDecisionsForAsk = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>
-    z.object({
-      trackId: z.string().uuid(),
-    }).parse(i ?? {}),
+    z
+      .object({
+        trackId: z.string().uuid(),
+      })
+      .parse(i ?? {}),
   )
   .handler(async ({ context, data }) => {
     const { supabase } = context;
@@ -875,10 +877,12 @@ export const getDecisionsForAsk = createServerFn({ method: "POST" })
 export const searchDecisionsForAsk = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>
-    z.object({
-      query: z.string().max(200),
-      limit: z.number().int().min(1).max(50).default(10),
-    }).parse(i ?? {}),
+    z
+      .object({
+        query: z.string().max(200),
+        limit: z.number().int().min(1).max(50).default(10),
+      })
+      .parse(i ?? {}),
   )
   .handler(async ({ context, data }) => {
     const { supabase } = context;

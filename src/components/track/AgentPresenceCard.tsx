@@ -8,30 +8,30 @@
  * User value: Not a black box — see exactly what the agent decided
  */
 
-import { useEffect, useState } from 'react';
-import type { Database } from '@/integrations/supabase/types';
+import { useEffect, useState } from "react";
+import type { Database } from "@/integrations/supabase/types";
 
-type AgentRun = Database['public']['Tables']['agent_runs']['Row'];
+type AgentRun = Database["public"]["Tables"]["agent_runs"]["Row"];
 
 interface AgentPresence {
   agentName: string;
   model: string;
   station: string;
   decision: string;
-  confidence?: 'low' | 'medium' | 'high';
+  confidence?: "low" | "medium" | "high";
   timestamp: string;
 }
 
 const CONFIDENCE_COLORS = {
-  low: 'bg-amber-500/20 text-amber-400 border-amber-500/20',
-  medium: 'bg-blue-500/20 text-blue-400 border-blue-500/20',
-  high: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/20',
+  low: "bg-amber-500/20 text-amber-400 border-amber-500/20",
+  medium: "bg-blue-500/20 text-blue-400 border-blue-500/20",
+  high: "bg-emerald-500/20 text-emerald-400 border-emerald-500/20",
 };
 
 const CONFIDENCE_LABELS = {
-  low: 'Low confidence',
-  medium: 'Medium confidence',
-  high: 'High confidence',
+  low: "Low confidence",
+  medium: "Medium confidence",
+  high: "High confidence",
 };
 
 interface AgentPresenceCardProps {
@@ -42,7 +42,7 @@ interface AgentPresenceCardProps {
 
 export function AgentPresenceCard({
   agentRun,
-  station = 'working',
+  station = "working",
   isWorking = false,
 }: AgentPresenceCardProps) {
   const [presence, setPresence] = useState<AgentPresence | null>(null);
@@ -54,26 +54,26 @@ export function AgentPresenceCard({
     }
 
     // Parse agent run metadata to extract decision/action
-    const metadata = agentRun.metadata as Record<string, any> || {};
-    const result = agentRun.result as Record<string, any> || {};
+    const metadata = (agentRun.metadata as Record<string, any>) || {};
+    const result = (agentRun.result as Record<string, any>) || {};
 
     // Human-readable decision description
-    let decision = 'Working...';
+    let decision = "Working...";
     if (result.decision) {
       decision = String(result.decision).substring(0, 150);
       if (String(result.decision).length > 150) {
-        decision += '…';
+        decision += "…";
       }
     } else if (metadata.action) {
-      decision = `${metadata.action}: ${metadata.reasoning || 'proceeding'}`;
+      decision = `${metadata.action}: ${metadata.reasoning || "proceeding"}`;
     }
 
     // Extract confidence tier
-    const confidence = (metadata.confidence || 'medium') as 'low' | 'medium' | 'high';
+    const confidence = (metadata.confidence || "medium") as "low" | "medium" | "high";
 
     // Model from run metadata
-    const model = agentRun.model || 'Claude';
-    const agentName = agentRun.agent_name || 'Agent';
+    const model = agentRun.model || "Claude";
+    const agentName = agentRun.agent_name || "Agent";
 
     const createdAt = new Date(agentRun.created_at);
     const now = new Date();
@@ -128,8 +128,14 @@ export function AgentPresenceCard({
               <div className="flex items-center gap-1.5 mb-2">
                 <div className="flex gap-1">
                   <div className="w-1 h-1 rounded-full bg-blue-500 animate-pulse" />
-                  <div className="w-1 h-1 rounded-full bg-blue-500 animate-pulse" style={{ animationDelay: '0.2s' }} />
-                  <div className="w-1 h-1 rounded-full bg-blue-500 animate-pulse" style={{ animationDelay: '0.4s' }} />
+                  <div
+                    className="w-1 h-1 rounded-full bg-blue-500 animate-pulse"
+                    style={{ animationDelay: "0.2s" }}
+                  />
+                  <div
+                    className="w-1 h-1 rounded-full bg-blue-500 animate-pulse"
+                    style={{ animationDelay: "0.4s" }}
+                  />
                 </div>
                 <span className="text-xs text-blue-400">Deciding…</span>
               </div>
@@ -140,7 +146,9 @@ export function AgentPresenceCard({
 
         {/* Confidence tier */}
         {presence.confidence && (
-          <div className={`inline-flex items-center px-2 py-1 rounded border text-xs font-medium ${CONFIDENCE_COLORS[presence.confidence]}`}>
+          <div
+            className={`inline-flex items-center px-2 py-1 rounded border text-xs font-medium ${CONFIDENCE_COLORS[presence.confidence]}`}
+          >
             {CONFIDENCE_LABELS[presence.confidence]}
           </div>
         )}
