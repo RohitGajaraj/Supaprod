@@ -150,11 +150,30 @@ describe("Build verification tools: nothing they added lowered an existing floor
     expect(resolveToolMode("delegate.openhands", "auto", "trusted", true)).toBe("review");
   });
 
-  it("leaves the build lane's own autonomy set untouched", () => {
+  it("holds the build lane's own autonomy set to exactly four, on purpose", () => {
+    /*
+     * A CLOSED SET, and this line is where changing it has to be argued.
+     *
+     * `studio.unstage` joined 2026-08-26 (F-88), and it FOLLOWS the 2026-07-08
+     * ruling rather than widening it. The asymmetry was the defect: the lane
+     * could CREATE a staged intent autonomously (`studio.stage`) and could not
+     * WITHDRAW one, so a commit refused by F-63's floor left the changeset
+     * trapped — every later commit refusing it identically, forever. Changeset
+     * `f9354439` sat there from 2026-08-25 13:01 and stranded track `7977dc06`
+     * at `ship`, two stations from the first acceptance this product has recorded.
+     *
+     * It touches strictly less than `studio.stage`, which created the thing it
+     * removes: staged intent only, never the branch, never the repo, never a
+     * merge. The ruling's guarantee is intact — the WHAT still lands only through
+     * the review-pinned `studio.pr.merge` gate, which is asserted just above.
+     *
+     * Anything added here later must answer the same question in the same place.
+     */
     expect([...BUILD_LANE_AUTONOMOUS].sort()).toEqual([
       "studio.commit",
       "studio.pr.open",
       "studio.stage",
+      "studio.unstage",
     ]);
   });
 

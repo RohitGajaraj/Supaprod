@@ -36,7 +36,41 @@ export const HIGH_RISK_MIN_CONFIRM = new Set(["calendar.create"]);
  * HIGH_RISK_MIN_CONFIRM into this exemption set (the generic high-risk
  * demotion in resolveToolMode skips these three).
  */
-export const BUILD_LANE_AUTONOMOUS = new Set(["studio.stage", "studio.commit", "studio.pr.open"]);
+/**
+ * F-88, 2026-08-26 — `studio.unstage` joins, and it FOLLOWS the ruling above
+ * rather than extending it.
+ *
+ * THE ASYMMETRY WAS THE BUG. `studio.stage` is autonomous: the build lane may
+ * CREATE a staged intent without asking. `studio.unstage` was not: the same lane
+ * could not WITHDRAW one. **A station that can enter a state it cannot leave is
+ * trapped there**, and that is not a floor protecting anyone — it is a wall.
+ *
+ * WHAT THAT COST, MEASURED. F-63's floor refuses a commit that would write CI
+ * config, a lockfile, or the manifest the checks run from. A builder refused
+ * there leaves the path staged, and **every later `studio.commit` refuses the
+ * whole changeset identically, forever.** Changeset `f9354439` has been stuck
+ * exactly there since 2026-08-25 13:01, which is why track `7977dc06` — entry
+ * `sense`, `waived='[]'`, two stations from the first acceptance this product has
+ * ever recorded — sits at `ship` behind a PR that was never merged.
+ *
+ * IT IS LESS CONSEQUENTIAL THAN EVERY MEMBER ALREADY HERE, which is why this is
+ * not a widening. `studio.unstage` "removes the staged INTENT only. It does not
+ * revert a commit already pushed to the branch, it does not change the file on
+ * the repo, and it is not an undo for work that has merged." So it touches
+ * strictly less than `studio.stage`, which created the thing it removes, and the
+ * ruling's own guarantee is untouched: **the WHAT still only lands through the
+ * review-pinned `studio.pr.merge` gate.**
+ *
+ * The alternative — briefing the escape while leaving it floored — would swap a
+ * trapped changeset for a queued approval, and 90 of those died detached from
+ * the work that raised them. An escape that files a question is a second wall.
+ */
+export const BUILD_LANE_AUTONOMOUS = new Set([
+  "studio.stage",
+  "studio.unstage",
+  "studio.commit",
+  "studio.pr.open",
+]);
 /**
  * DELIBERATELY ABSENT FROM BOTH FLOORS: Build's pre-pull-request verification
  * checks (studio.review, studio.secrets.scan, studio.tests.plan,

@@ -1,1 +1,1 @@
-S0 · 19:25 IST · WORKING · S1 found steer broken in prod by driving the UI (agent_messages.mission_id NOT NULL) — migration written, BLOCKED on tool permission for ALTER TABLE; fixed S3 busy-prop a11y guard · supabase/migrations/** src/components/connections/** · pending
+S0 · 19:40 IST · WORKING · F-88: studio.unstage was built, enabled and never briefed — the way out of a refused commit that trapped f9354439 and stranded 7977dc06 at ship · src/lib/spine/** src/lib/ai/** · pending

@@ -272,7 +272,30 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
     // `BUILD_LANE_AUTONOMOUS` in `trust-ramp.ts`, enforced at
     // `loop.server.ts:193`. The permission has existed since July and no station
     // was ever told the tool was there.
-    file: "Call studio.stage with the change you made, then studio.commit to put it on its own branch. Work that is staged and never committed stays in the workspace and cannot be shipped, so stopping at stage leaves the job half done.",
+    /*
+     * F-88. THE SAME DEFECT AS THE COMMENT ABOVE, ONE TOOL LATER.
+     *
+     * F-36's note ends *"the permission has existed since July and no station was
+     * ever told the tool was there."* `studio.unstage` is that sentence again:
+     * it exists (`registry.server.ts:2477`), it is `mode: "auto"` and enabled
+     * (`defaults.ts:174`), so the builder may call it without asking — and **no
+     * station brief mentioned it anywhere.**
+     *
+     * Its own description says what it is for: *"THIS IS THE WAY OUT when
+     * studio.commit refuses a staged path it is not allowed to write."*
+     *
+     * WHAT THAT COST, AND IT IS STILL COSTING IT. F-63's floor refuses a commit
+     * that would write CI config, a lockfile or a manifest. A builder that stages
+     * one and is refused has no idea the escape exists, so the changeset is
+     * TRAPPED: `studio.commit` refuses it forever and every later attempt refuses
+     * the same way. Changeset `f9354439` has been stuck exactly there since
+     * 2026-08-25 13:01, which is why track `7977dc06` — entry `sense`,
+     * `waived='[]'`, **two stations from the first acceptance this product has
+     * ever recorded** — sits at `ship` with a PR that was never merged.
+     *
+     * A refusal a station cannot act on is not a floor, it is a wall.
+     */
+    file: "Call studio.stage with the change you made, then studio.commit to put it on its own branch. Work that is staged and never committed stays in the workspace and cannot be shipped, so stopping at stage leaves the job half done. If studio.commit REFUSES a path it is not allowed to write — CI config, a migration, env, a lockfile, or the manifest that defines what the checks run — that is not a dead end: call studio.unstage on exactly that path and commit the rest. The rest of the changeset is untouched. A staged path you cannot commit and do not unstage traps the whole changeset, and every later attempt refuses it the same way.",
   },
   qa: {
     /*
@@ -917,7 +940,7 @@ const FILE_IT: Record<AgentStation, string> = {
   // entry, and a fallback that stops one step short is the same defect wearing
   // a different key. (Exactly how F-32 was found to be half-fixed.)
   build:
-    "Finish by calling studio.stage with the change you made, then studio.commit to put it on its own branch, then studio.pr.open so there is a pull request Ship can point at, then studio.checks.run for the CI verdict, and when it is green call studio.pr.merge. The merge re-proves CI fresh and refuses red, and where governance wants a person it files that question instead of running — that is the gate working, so stop there and say so. Work that is only in your answer is not on the record, and a pull request nobody moves toward the merge gate sits open forever.",
+    "Finish by calling studio.stage with the change you made, then studio.commit to put it on its own branch, then studio.pr.open so there is a pull request Ship can point at, then studio.checks.run for the CI verdict, and when it is green call studio.pr.merge. If studio.commit refuses a path it may not write, call studio.unstage on that path and commit the rest rather than stopping: a staged path you cannot commit and do not unstage traps the whole changeset. The merge re-proves CI fresh and refuses red, and where governance wants a person it files that question instead of running — that is the gate working, so stop there and say so. Work that is only in your answer is not on the record, and a pull request nobody moves toward the merge gate sits open forever.",
   ship: "Finish by calling release.publish so the release can be pointed at. A release that is only in your answer did not happen.",
   learn:
     "Finish by calling learning.record with the verdict, and pass `prd_id` — the spec this work was graded against — so the grade attaches to it. A grade that is only in your answer is not on the record and never reaches the next piece of work.",
