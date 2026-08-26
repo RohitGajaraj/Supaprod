@@ -1,1 +1,1 @@
-S4 · 17:00 UTC · WORKING · F-99 two ceilings verified (dead track filed first artifact in 34h); schema alignment verified; F-99 proven on real work · .env blocked (different machine) · e2e/** docs/lanes/verify/** · 2046d8bfd
+S4 · 17:30 UTC · WORKING · S4-021 filed: F-101 second defect is the display rule not the row (4 render sites, owner dropped by design). Theatre audit running across 8 surface regions · BLOCKED on machine: no Lovable MCP, no .env, no node — ask filed · e2e/** docs/lanes/verify/** · 926178430
