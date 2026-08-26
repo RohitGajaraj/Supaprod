@@ -1626,7 +1626,7 @@ function Today() {
           <Region
             title={FEED_TITLE}
             goTo={rows.length > 0 ? "Open Runs" : undefined}
-            onGoTo={() => navigate({ to: "/runs" })}
+            onGoTo={() => navigate({ to: "/today" })}
             sub={
               stillWaiting(queue) || stillWaiting(missions) ? null : queue.isError ||
                 missions.isError ? (
