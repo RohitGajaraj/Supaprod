@@ -667,6 +667,36 @@ export function correctionNote(
 }
 
 /**
+ * What a station is told when its OWN check refused what it filed (F-78).
+ *
+ * The sibling of `correctionNote`, and it exists for the same reason stated one
+ * layer earlier: a station that is re-driven and not told what went wrong files
+ * the same thing again. `correctionNote` covers work sent BACK from a later
+ * station; this covers a station that never handed on because it refused itself.
+ *
+ * WHY THIS WAS MISSING AND WHAT IT COST. S0-001 shipped the self-check with a
+ * comment promising Devin's loop — *"read the error output, reason about the
+ * cause, apply a fix, rerun"* — but `reason` was never persisted and `priorHold`
+ * reaches this file rather than the station brief, so the retry re-ran identical
+ * inputs and produced an identical failure. An unbounded retry that cannot learn
+ * is strictly worse than a bounded one, which is why F-76 bounded it with an
+ * attempt. **This is the half that makes it a loop rather than a repetition.**
+ *
+ * The reason is RECOMPUTED at brief time from what is on the record, never
+ * stored — the same choice `correctionNote` makes and for the same two reasons:
+ * it costs no model call, and it cannot go stale. If the crew fixed the problem
+ * in a later seat of the same visit, the recomputed reason is simply absent and
+ * no note is written.
+ */
+export function selfCheckNote(to: AgentStation, reason: string | null): string {
+  const head = `${label(to)} is running again because its OWN check refused what it filed last time.`;
+  const why = reason
+    ? `The check said: ${reason}.`
+    : `The check did not say why, so re-read what is on the record and judge it yourself.`;
+  return `${head} ${why} This did not come back from another station — nothing downstream has seen it yet. Fix exactly that and file it again. Do not file the same thing twice.`;
+}
+
+/**
  * The sentence written to memory so the NEXT piece of work does not repeat this.
  *
  * Written as guidance rather than as an incident report, because it is recalled

@@ -56,6 +56,7 @@ import {
   holdForHalt,
   isEnvironmentFailure,
   needIsMet,
+  selfCheckNote,
   STATION_NEEDS,
 } from "@/lib/spine/correction";
 import {
@@ -1218,6 +1219,56 @@ async function forecastDueDate(supabase: SupabaseClient, trackId: string): Promi
  * alone rather than the station brief. So a retry re-runs identical inputs. That
  * is why the caller now counts an attempt — see the call site.
  */
+/**
+ * Everything this station has filed on this track, not just this visit's harvest.
+ *
+ * F-77. `verifyStationOutput` judges what it is handed, and it used to be handed
+ * `attached` — the artifacts harvested on THIS visit. A crew whose seats span the
+ * tick deadline files its work in an earlier seat and leaves the next visit's
+ * harvest empty, which is the whole reason
+ * `a-crew-split-by-the-clock-still-filed-its-work` exists. Judging a station on
+ * one visit is the same blind spot one layer up: a station that filed a `prd` in
+ * seat 1 and nothing in seat 2 would be refused for filing nothing.
+ *
+ * It is also what makes F-78 possible without a migration — the reason a station
+ * failed its own check can be RECOMPUTED at brief time from the record, so
+ * nothing has to be stored and nothing can go stale.
+ *
+ * A read failure returns an empty list rather than throwing: the caller unions
+ * this with the live harvest, so the worst case is the behaviour that was there
+ * before this function existed.
+ */
+async function filedAtStation(
+  supabase: SupabaseClient,
+  trackId: string,
+  station: AgentStation,
+): Promise<Attachment[]> {
+  try {
+    const { data, error } = await supabase
+      .from("spine_track_members" as never)
+      .select("artifact_kind, artifact_id")
+      .eq("track_id", trackId)
+      .eq("station", station);
+    if (error) {
+      console.error(`[driver] could not read what ${station} filed: ${error.message}`);
+      return [];
+    }
+    return ((data ?? []) as Array<{ artifact_kind?: string; artifact_id?: string }>)
+      .filter((r) => r.artifact_kind && r.artifact_id)
+      .map((r) => ({ artifactKind: r.artifact_kind!, artifactId: r.artifact_id!, station })) as
+      Attachment[];
+  } catch (e) {
+    console.error(`[driver] could not read what ${station} filed: ${String(e)}`);
+    return [];
+  }
+}
+
+/** The live harvest plus the record, deduped by artifact id. */
+function unionFiled(attached: Attachment[], onRecord: Attachment[]): Attachment[] {
+  const seen = new Set(attached.map((a) => a.artifactId));
+  return [...attached, ...onRecord.filter((a) => !seen.has(a.artifactId))];
+}
+
 export async function verifyStationOutput(
   supabase: SupabaseClient,
   station: AgentStation,
@@ -1687,7 +1738,7 @@ export async function driveTrackOnce(
   // present, the problem is that it was not good enough, and telling the station
   // "it is missing" when it is sitting there would be wrong by the time it read
   // it.
-  const backNote =
+  const correctionBack =
     history.last && history.last.to === station
       ? correctionNote(
           history.last.from,
@@ -1695,6 +1746,44 @@ export async function driveTrackOnce(
           needIsMet(STATION_NEEDS[history.last.from], filed) ? "not-enough" : "absent",
         )
       : null;
+
+  /*
+   * F-78 — WHY THIS STATION IS RUNNING AGAIN WHEN NOBODY SENT IT BACK.
+   *
+   * The paragraph above applies word for word to the self-check, and until now it
+   * did not reach it. A station held at `self-check-failed` was re-dispatched with
+   * the same inputs it had the first time: `verification.reason` went into the
+   * human-readable line and nowhere else, and `priorHold` is read by correction.ts
+   * rather than by the brief. So the crew re-ran, filed the same thing, and failed
+   * the same check — which is why F-76 had to bound the retry with an attempt
+   * instead of leaving it free. This is the half that makes it Devin's loop
+   * rather than a repetition.
+   *
+   * The reason is RECOMPUTED here from what is on the record, never stored — the
+   * same choice `correctionNote` makes, for the same two reasons: no model call,
+   * and it cannot go stale. If a later seat of the previous visit already fixed
+   * the problem, the recomputed check passes, the reason is absent, and the
+   * station is told nothing rather than being sent after a fault it no longer has.
+   *
+   * A correction outranks it: work sent back from a later station is the more
+   * informative failure, and a station should hear that first rather than about
+   * its own earlier refusal.
+   */
+  const selfCheckBack =
+    !correctionBack && row.last_hold === "self-check-failed"
+      ? selfCheckNote(
+          station,
+          (
+            await verifyStationOutput(
+              supabase,
+              station,
+              await filedAtStation(supabase, row.id, station),
+            )
+          ).reason ?? null,
+        )
+      : null;
+
+  const backNote = correctionBack ?? selfCheckBack;
   const cap = await resolveTrackSpendCap(
     supabase,
     row.workspace_id,
@@ -2229,7 +2318,14 @@ export async function driveTrackOnce(
    * one waits on a crew, which does not and does.
    */
   if (producedThisVisit && !failed && !haltedAs && !overBudget && !ranLong) {
-    const verification = await verifyStationOutput(supabase, station, attached);
+    // F-77: judged on everything this station has filed, not just this visit's
+    // harvest, so a crew split by the clock is not refused for its earlier seat's
+    // work being invisible here.
+    const verification = await verifyStationOutput(
+      supabase,
+      station,
+      unionFiled(attached, await filedAtStation(supabase, row.id, station)),
+    );
     if (!verification.passed) {
       await supabase
         .from("spine_tracks" as never)
