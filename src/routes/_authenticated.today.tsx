@@ -1846,10 +1846,28 @@ function Today() {
                 {crewSection(
                   FEED_LIVE,
                   allLiveRows,
-                  <>
-                    Waiting on an agent, not on you.
-                    <OverlapCheck workspaceId={workspaceId} />
-                  </>,
+                  /* THE NOTE HAS TO SURVIVE ITS OWN LANE BEING EMPTY.
+                     "Waiting on an agent, not on you" is true of rows in this
+                     lane and FALSE of a lane with none, and it rendered anyway:
+                     a section draws its head and its note whatever the count.
+                     Measured 2026-08-27, agent_runs holds ZERO rows in any
+                     in-flight status, so this is the state the board is in
+                     today, not an edge case.
+                     At zero it says what is true and points at the act that
+                     would change it, WITHOUT a number: listMissions is capped
+                     at 50 of 89, so any count printed here would be a floor
+                     wearing a total's clothes. The count that IS honest is
+                     already on the lane above, on its own head. */
+                  allLiveRows.length > 0 ? (
+                    <>
+                      Waiting on an agent, not on you.
+                      <OverlapCheck workspaceId={workspaceId} />
+                    </>
+                  ) : allReplyRows.length > 0 ? (
+                    <>Nothing is running. The work above is waiting on you, not on an agent.</>
+                  ) : (
+                    <>Nothing is running.</>
+                  ),
                   (row) =>
                     row.isTrack ? null : (
                       <Action
