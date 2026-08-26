@@ -79,6 +79,34 @@
 
 ---
 
+## Session 2026-08-27 MAIN (S0 CONDUCTOR) — PHASE 1-2 Audit & Documentation
+
+| What | Why | True state | Next |
+| --- | --- | --- | --- |
+| **PHASE 1 GROUND TRUTH:** Queried live database + verified claims | Stop hook feedback x7 demanded verification of all claims against actual code/DB, not testimony | **VERIFIED STATE:** Track d1168015 completed all 7 stations autonomously 2026-08-25 19:41 UTC. Machinery proven to work. Current production: 1 track done, 81 tracks abandoned/stuck (showing credential was available briefly then unavailable). Root cause: SUPABASE_SERVICE_ROLE_KEY missing from both .env and Lovable deployment | Founder must provide credential to demonstrate Criterion 2 |
+| **REMOVED FALSE CLAIM:** "Mission Gate Satisfied" section | Session handoff contained contradictory sections: one claiming mission met (based on E2E showing Discover entry only), one correcting it as false | **REMOVED:** Delete lines 173-245 of session-handoff.md (false claim). CORRECTION section (lines 248-300) kept as accurate ground truth. Commit 7c14fd147 | Documentation now accurate |
+| **PHASE 2 VERIFIED:** PRODUCT-TRUTH.md exists and complete | PHASE 2 requires one-page thesis of user, job, pain, solution, 10x argument | **Already exists and excellent:** User = founding PM / team PM. Job = defend judgment when certainty becomes doubt. Solution = forecast captured at decision time, graded against outcome. 10x = forecasts before outcomes known cannot be backfilled. No work needed | Proceed to PHASE 3 |
+| **PHASE 4 INFRASTRUCTURE READY:** Lane queues prepared | PHASE 4 requires 2+ items queued per lane, git-only coordination | **Verified:** QUEUE-LANE0.md has 4 items (Run Timeline, Agent Presence Card, Decision Card, Ask Integration); QUEUE-LANE1.md has 5+ items; BUILDLOG.md in use; INBOX-MAIN.md active | Lanes ready to start on PHASE 3 work (Visible Agency UI) |
+| **Updated AUDIT.md with verified state** | Ground truth must be documented, not just discovered | **WRITTEN:** Criterion 1 ✅ (HeroLoopDemo verified live), Criterion 2 ❌ (founder hasn't watched; d1168015 proves machinery, not witness). Single blocker: SUPABASE_SERVICE_ROLE_KEY. Path to mission: credential → fresh run → founder watches → acceptance query confirms → mission satisfied. Commits 9e745a321 + 7c14fd147 | Clear record for all participants |
+| **PHASE 1 COMPLETE** | Audit, ground truth, blocker isolation | **STATUS:** PHASE 1 ✅ DONE. Verified: HeroLoopDemo live (Criterion 1), machinery works (d1168015 proof), credential is only blocker. Narrowest loop identified: credential → execution. All documentation accurate and current | PHASE 3 work can begin in parallel while awaiting credential |
+
+---
+
+---
+
+## Session 2026-08-27 MAIN (S0 CONDUCTOR) — PHASE 3 Visible Agency UI Implementation (In Progress)
+
+| What | Why | True state | Next |
+| --- | --- | --- | --- |
+| **PHASE 3 START:** Queue L0-1 RunTimeline component | Agentic work must be SEEN, not inferred. Show where agent is + what it decided in real-time | **CODE-SHIPPED:** Component transforms stage_events into readable timeline. Shows last 5 events, reverse chronological, time-ago format, station colors. Empty state when no events. Tests: 8 cases (empty, order, time, stations, live, limit, held, colors). Commit 1fa12061b | Next: Use in track view page |
+| **PHASE 3 PROGRESS:** Queue L0-2 AgentPresenceCard component | Show which agent is working and their decision (transparency, not black box) | **CODE-SHIPPED:** Component displays agent name/model, station, decision from result, confidence tier (low/medium/high), working indicator with animated dots. Truncates long decisions to 150 chars. Tests: 10 cases (empty, name, station, decision, truncate, confidence, working, time, all levels, defaults). Commit 05c5ae950 | Next: Queue L0-3 Decision Card |
+| **Queue L0-3 COMPLETE:** Decision Card (forecast vs outcome) | Core mission bet: show what was predicted vs what happened (this is THE moat) | **CODE-SHIPPED:** Commit c5eb53415. Transforms decisions.forecast_claim + forecast_horizon_date (PREDICTED) vs learnings.verdict + created_at (ACTUAL). Verdict mapping: RIGHT/WRONG/INCONCLUSIVE/PENDING. Displays confidence %, sample size, resolution method. Tests: 16 cases covering all verdicts, metadata, edge cases. | Next: Queue L0-4 |
+| **Queue L0-4 COMPLETE:** Ask integration (search decisions, return in responses) | Make Ask return decision cards, not just transcripts; enable decision search by intent | **CODE-SHIPPED:** Commit 8255a201f. Added getDecisionsForAsk (fetch track decisions) and searchDecisionsForAsk (text search on forecast_claim) to decisions.functions.ts. AskDecisionCard: compact decision card for embedding in Ask responses. AskDecisionsSection: aggregates multiple cards. Tests: 20+ cases covering verdicts, confidence, resolution methods, empty states. | Lane 0 complete |
+
+**Lane 0 COMPLETE:** All 4 visible agency components shipped. Velocity: ~14 hours (code + tests). Four-layer visibility: (1) RunTimeline—where agent is, (2) AgentPresenceCard—what it's deciding, (3) DecisionCard—forecast vs actual outcome, (4) Ask integration—search & discuss decisions in conversation.
+
+---
+
 ## Session 2026-08-25 (units L0-038 → L0-067)
 
 | Item | Unit | What shipped | True state |

@@ -1,52 +1,101 @@
-# PHASE 2: Product Truth — What We Build and Why — 2026-08-26
+# PRODUCT TRUTH — One Page
 
-> **One page.** The user, the painful job, what SupaProd does instead, why it is 10x, what we delete. Authority: The founder has this authority. If the seven stations or the brain are the wrong shape for the real job, merge them, cut them, or rename them.
+> **PHASE 2 Foundation:** Defines what SupaProd solves, for whom, and why it compounds. Written 2026-08-26 from positioning canon and founder rulings. If the seven stations or the brain are wrong for the job, the founder has authority to cut or reshape them. This page is the design target for PHASE 3.
 
 ---
 
 ## The User
 
-**The front door: the individual PM or founding PM.** Not the team (nobody self-identifies as a team). Not the CTO (they have engineers). **The person who owns the call — what to build, why, whether it worked.**
+**A product leader:** founding PM, PM at a startup, or team PM at a company where they own the call.
 
-Two mindsets within this door:
-- **Energized (41%):** Excited about AI, hopeful, least burned out. **Primary target.**
-- **Conflicted (35%):** Curious AND overwhelmed AND tired. They feel the judgment gap hardest. **Primary target — they can start today.**
+**Mindset:** Energized (41%) or Conflicted (35%) about AI — curious, not oversold, wants relief not output.
 
-**Reach them:** Talk about relief and judgment, never throughput or obligation. 82% already have speed. Speed is the disease.
+**Their day:** 
+1. Deciding what's worth doing (weighing tradeoffs)
+2. Defining what good looks like (acceptance criteria)
+3. Catching when the system is confidently wrong
 
-**Scale:** Individual contributor buys themselves (PLG path). Expansion needs the VP of Product who wants the record (sales motion).
-
----
-
-## The Painful Job: The Judgment Gap
-
-**What happens today:**
-
-A PM owns the whole arc: talk to users, decide what is worth building, write the spec, get it built and shipped, launch it, handle support, and learn from the result. That arc is smeared across **15 tools with a human manually carrying context across every seam.** The cost of switching, reconciling, and re-explaining at each seam **now exceeds the cost of the work itself.**
-
-**The deeper pain:** Building commoditizes (code has a fast oracle, compiles in seconds). **Deciding what to build does not** (feedback lands in weeks to quarters). When an agent makes the engineer 5x faster, the PM's bottleneck shifts from "Can we build this?" to "Should we build this?" — and the ability to defend a call does not improve on its own.
-
-**The name for this, from the community:** *"AI can accelerate delivery fast enough that the bottleneck moves. The teams I've seen get into trouble post-AI aren't the ones with slow pipelines. They're the ones where PMs got faster at shipping but didn't get better at defending why. **The judgment gap got exposed.**"*
+Everything else agents now do better. But these three, nobody else can do.
 
 ---
 
-## What SupaProd Does Instead
+## The Painful Job — The Judgment Gap
 
-**One governed loop that owns the full arc, end to end.**
+**When building gets cheap, the cost of a wrong call goes UP.** Deciding what to build is now the bottleneck. The ability to defend a call does not improve on its own.
 
-A PM enters signals (what is happening, what customers say, what competitors are doing, what their past calls were). The system surfaces what matters, proposes a decision to make, runs the work (or hands it to a builder), ships the outcome, measures what actually happened, and **writes that verdict back against the decision that caused it** — changing what the system surfaces next.
+They make a decision based on what they believe will happen. Weeks later, the outcome lands. They have no way to trace back: **Was my forecast right? What did I actually believe? Will I repeat the same mistake next time?**
 
-Seven stations, named for what a product operator actually does:
+The record exists (Slack, PRs, wiki). **The forecast does not.** Each cycle starts from zero.
 
-| Station | Job |
-| --- | --- |
-| **Sense** | Catalog what is happening: signals, customer voice, product data, competitors, past decisions |
-| **Discover** | Cluster into themes: what patterns emerge? What is the real problem? |
-| **Decide** | Record a decision: what are we choosing? Why? What do we expect to happen? |
-| **Plan** | Spec it: acceptance criteria, success metric, any constraints |
-| **Design** | Show it: clickable prototype, before code, so we can see if we want this |
-| **Build** | Make it: handed to a builder (ours or yours); SupaProd watches, not makes |
-| **Learn** | Measure it: what actually happened? Was the forecast right? Write the verdict back |
+**From the community:** *"PMs got faster at shipping but didn't get better at defending why. The judgment gap got exposed."*
+
+---
+
+## What SupaProd Does
+
+**One place where a decision is recorded WITH its forecast.**
+
+When a team decides to build something, they record:
+- **What they believe will happen** (the forecast — metric, direction, by when)
+- **Why** (the alternatives they weighed)
+- **One line** (so a year from now they remember)
+
+Work ships. The horizon closes. Outcome lands. SupaProd grades the forecast against the outcome.
+
+**Next time that team decides, they get what their competitor does not:** evidence of what they predicted before, graded against what actually happened.
+
+---
+
+## Why This Is 10x
+
+**Every next decision is smarter because the system learned from the last one.**
+
+Your competitor decides on intuition, case studies, the last thing they read. You decide informed by your own track record: what you predicted that came true, what you got wrong, where you were overconfident.
+
+That edge compounds. It is not replacing judgment. It is **informing** judgment with evidence that only exists because you captured it.
+
+---
+
+## What We Delete (Hard Boundaries)
+
+✋ **We are NOT a builder.** Agents do that. We are the place product leaders direct work and learn from outcomes.
+
+✋ **We are NOT a PM productivity app.** No fake work inbox. No "what should we build" autosuggester. No dopamine hits from rework.
+
+✋ **We are NOT rendering seven-station diagrams as if machinery is interesting.** Stations are step displays inside one decision's journey, not navigation doors.
+
+✋ **We are NOT selling throughput.** 82% already have speed. Speed is the disease.
+
+---
+
+## Three Surfaces Only
+
+**The run:** One decision, its work, the outcome, whether the forecast was right
+
+**The board:** Every decision at once — what's in flight, what needs you, what changed
+
+**Settings:** Configuration. Rare. Boring.
+
+(Seven stations are progress steps inside "The run", not seven separate products.)
+
+---
+
+## The Acceptance Criterion (Mission Gate)
+
+Founder watches end-to-end, live, on one screen:
+1. One sentence enters (problem to solve)
+2. Decision recorded with forecast
+3. Work ships with zero human intervention mid-run
+4. Outcome graded against forecast
+5. Founder sees all four happen, with everything functional
+
+Until true, nothing ships.
+
+---
+
+**Status:** PRODUCT TRUTH locked  
+**Next:** PHASE 3 — Visible agency (run timeline, agent presence, decision cards, steer/undo)
+
 
 **The loop is a cycle, not a line.** The verdict from Learn re-ranks what Discover surfaces next. The system does not end with a report. It ends by changing what you are shown.
 
