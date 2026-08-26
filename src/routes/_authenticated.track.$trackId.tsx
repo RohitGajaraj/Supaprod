@@ -227,7 +227,7 @@ function TrackPage() {
           />
         </div>
         <div className="mrd-workbench-pane mrd-workbench-pane--artifact">
-          <TrackPaneRight trackId={trackId} isRunning={crewLive} />
+          <TrackPaneRight trackId={trackId} isRunning={crewLive} promised={track?.origin ?? null} />
         </div>
       </div>
     </div>

@@ -69,6 +69,7 @@ import { formatDeadlineDate } from "@/components/track/expiry-deadline";
 import { summaryText } from "@/components/track/run-summary";
 import { runTabState } from "@/components/track/run-tab";
 import { SteerComposer } from "@/components/track/SteerComposer";
+import { RunCost } from "@/components/track/RunCost";
 import { triesLine } from "@/components/track/hold-tries";
 import { runPosition } from "@/components/track/run-position";
 
@@ -849,9 +850,12 @@ export function TrackRunLeft({
 export function TrackPaneRight({
   trackId,
   isRunning = false,
+  promised = null,
 }: {
   trackId: string;
   isRunning?: boolean;
+  /** RUN-08: the person's opening sentence, for the value audit beside the record. */
+  promised?: string | null;
 }) {
   const [paneStation, setPaneStation] = React.useState<string | null>(null);
   return (
@@ -863,6 +867,7 @@ export function TrackPaneRight({
         isRunning={isRunning}
       />
       <TrackChain trackId={trackId} onOpenStation={setPaneStation} />
+      <RunCost trackId={trackId} promised={promised} />
     </div>
   );
 }
