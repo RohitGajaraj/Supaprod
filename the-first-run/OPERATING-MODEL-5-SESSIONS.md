@@ -169,6 +169,17 @@ re-derives it.
     with the forecast travelling alongside it. **The load-bearing fact: the verdict is measured against
     the forecast, not against the code**, which is why bring-your-own-builder does not break the loop.
     — *S0, with S1 for the paste-back surface and S3 for connections.*
+13. **The four integrations that carry the loop are not finished, while about twenty providers sit
+    built.** `src/lib/connectors/providers/` already holds GitHub, GitLab, Jira, Linear, Slack, Figma,
+    Stripe, Zendesk, Intercom, HubSpot, Salesforce, Canny, Productboard, Gmail and Outlook, plus a
+    **generic MCP client**, and Supaprod is already an MCP server the customer's own agents can write
+    back through. **So this is a wiring job, not a building job** — and the four that matter are an
+    issue tracker in and out, the repository handback, one analytics source for the verdict, and Slack
+    or email reaching a person who left. **Build those before the sixteenth evidence adapter.** And
+    **an issue assigned to Supaprod in Linear or Jira should become a piece of work** — the gesture is
+    native to the tool they already have open, so nothing needs teaching. Spec:
+    [`SPEC-CONNECTORS.md`](./SPEC-CONNECTORS.md). — *S0, with S2 for the inbound column and S3 for the
+    ask-in-place connect control.*
 
 **A gap you find that is not on this list is still authorised** if it passes the four-part test. Put it
 in coordination/requests/, build it, and add it here with its evidence.
@@ -745,3 +756,45 @@ not as an engineer implementing a ticket.**
 
 **"Ultra-premium that actually does the job" is one test, not two:** the surface is beautiful *because*
 every region carries a fact the person came for, and nothing else is on it.
+
+---
+
+## 14 · Research: at the moment of need, by the session that needs it, written down once
+
+**Founder's ruling, 2026-08-26:** *"Whatever comes into the picture while they're building, they should
+ask, and they should build it. We can give the Linear access if they want."*
+
+**There is no up-front research phase.** It produces a document nobody reads and a backlog nobody
+builds. Research is part of the unit that needs it.
+
+**But research nobody records is research bought twice**, and this repo has paid for that repeatedly —
+which is why `docs/research/` exists, why the 35-agent brand audit was committed rather than left in a
+session directory, and why the nine-product agentic teardown was written down the day it was done.
+
+### The four steps, every time
+
+1. **Look before you research.** `docs/research/` for anything market, product or design;
+   `docs/research/integrations/` for a tool's API; `the-first-run/FINDINGS-LEDGER.md` before
+   re-investigating any defect. **If a file answers your question, read it and stop.** A symptom marked
+   FIXED means check the commit and move on.
+2. **Time-box it to the decision you actually face.** Not *"everything about the Jira API"* —
+   *"can I create an issue with a custom field, and what scope does that need?"* One decision, one
+   answer, one date.
+3. **Write it down where the next session will look**, in the same commit as the work, linked from its
+   folder index. Every claim carries the date it was checked, and **what you did not verify is stated
+   plainly** — a gap named is useful, a gap hidden costs the next session a day.
+4. **Ask for access in one line naming three things:** the tool, the exact scope, what it unblocks.
+   `coordination/requests/<S>/access-<tool>.md`. **S0 answers or escalates within the same unit.**
+   Anything involving money, a customer's real data, or a credential the founder holds personally goes
+   to him; everything else S0 decides.
+
+**And keep building while you wait.** A blocked integration is not a blocked unit — do the part that
+does not need the credential, and say in your NOW line what you are waiting on. **Switch tools rather
+than reporting a blocker:** Playwright, chrome-devtools and the Chrome plugin are three paths to a
+browser, and only a credential boundary is a real blocker.
+
+### The one thing that is not a research question
+
+**Whether something already exists in this repo.** That is a grep, and it takes thirty seconds.
+`TrackActivity` and `TrackChain` were rebuilt because nobody ran it. **Twenty connector providers,
+121 Meridian components and a full MCP server are sitting here.** Grep first, always.

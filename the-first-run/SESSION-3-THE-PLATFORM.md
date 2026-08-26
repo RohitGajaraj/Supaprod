@@ -142,6 +142,21 @@ names (Discover, Decide, Plan, Design, Build, Ship, Learn) **stay as they are**;
 plain. Apply the map inside your prefix and file an ask for anything outside it. **A word renamed in
 one place and left stale in another has made the problem worse.**
 
+## Research, when you hit something you do not know
+
+Operating model §14. **At the moment of need, by you, time-boxed to the decision you actually face —
+and written down once.** Look first: `docs/research/` for market, product or design;
+`docs/research/integrations/<tool>.md` for an API; `FINDINGS-LEDGER.md` before re-investigating any
+defect. **If a file answers it, read it and stop.**
+
+Need access to a tool? One line naming three things — the tool, the exact scope, what it unblocks — in
+`coordination/requests/<you>/access-<tool>.md`. **S0 answers or escalates within the unit. Keep
+building while you wait**, and say in your NOW line what you are waiting on.
+
+**And whether something already exists here is not a research question — it is a grep, and it takes
+thirty seconds.** About twenty connector providers, 121 Meridian components and a full MCP server are
+already in this repo.
+
 ## The dev server. Read this one twice.
 
 **Founder's instruction, repeated across sessions and now binding on all five:** *"Do not start the

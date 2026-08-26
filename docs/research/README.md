@@ -70,5 +70,6 @@ Nothing here is superseded by age. A 2026-06 competitor sweep is still true abou
 | Market, competitor, operator, investor evidence | **here** |
 | **Product and design patterns** lifted from a proven product | [`../design/REFERENCE-PATTERNS.md`](../design/REFERENCE-PATTERNS.md), in the same session |
 | The reasoning a piece of research changed | [`../strategy/strategic-inputs-log.md`](../strategy/strategic-inputs-log.md), with the decision in [`strategy/session-decisions.md`](../strategy/session-decisions.md) |
+| [`integrations/README.md`](./integrations/README.md) | **Integration research, one file per tool, written at the moment of need** (2026-08-26). Read before researching any tool — around twenty providers already exist in the repo, including Jira, Linear, GitHub, Slack and Figma, plus a generic MCP client. The folder exists so nobody pays for the same API research twice. |
 
 **Read before starting a new research pass.** This corpus is large enough that the same sweep has been run twice before.

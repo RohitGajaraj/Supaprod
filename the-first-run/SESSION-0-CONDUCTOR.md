@@ -81,6 +81,26 @@ Build the probes in value order, not station order:
 reporting four events and nothing more, then the outcome signal — one named metric per forecast, read
 on the horizon date, which is the one that closes the moat.
 
+### 1c · Audit the connector layer before anyone adds to it
+
+[`SPEC-CONNECTORS.md`](./SPEC-CONNECTORS.md) is yours, and **§1 is the whole reason it exists**: about
+twenty providers are already written — GitHub, GitLab, Jira, Linear, Slack, Figma, Stripe, Zendesk,
+Intercom, HubSpot, Salesforce, Canny, Productboard, Gmail, Outlook — plus a **generic MCP client**, and
+Supaprod is already an MCP server the customer's own agents can write outcomes back through.
+
+**Audit what of that is actually wired, route by route, and report the number. Nothing else in that
+spec starts before this.** Then build only the four that carry the loop, in order: an issue tracker in
+and out, the repository handback, one analytics source for the verdict, and Slack or email reaching a
+person who left the page.
+
+**And an issue assigned to Supaprod in Linear or Jira should become a piece of work** — the gesture is
+native to the tool the person already has open, so nothing needs teaching. Inbound work is a column on
+the board, never a page.
+
+**Answer every `access-<tool>.md` request within the unit.** Grant what you can; escalate money, real
+customer data, and credentials the founder holds personally. **A lane waiting on a credential is your
+failure.**
+
 ### 2 · Drive real tracks and watch them, every session, more than once
 
 **Watch a run; do not only read the code.** Three of five defects found in one night came from
@@ -149,6 +169,21 @@ fleet, swarm, artifacts, signals, trust ledger — all out, with the rename map 
 names (Discover, Decide, Plan, Design, Build, Ship, Learn) **stay as they are**; they are already
 plain. Apply the map inside your prefix and file an ask for anything outside it. **A word renamed in
 one place and left stale in another has made the problem worse.**
+
+## Research, when you hit something you do not know
+
+Operating model §14. **At the moment of need, by you, time-boxed to the decision you actually face —
+and written down once.** Look first: `docs/research/` for market, product or design;
+`docs/research/integrations/<tool>.md` for an API; `FINDINGS-LEDGER.md` before re-investigating any
+defect. **If a file answers it, read it and stop.**
+
+Need access to a tool? One line naming three things — the tool, the exact scope, what it unblocks — in
+`coordination/requests/<you>/access-<tool>.md`. **S0 answers or escalates within the unit. Keep
+building while you wait**, and say in your NOW line what you are waiting on.
+
+**And whether something already exists here is not a research question — it is a grep, and it takes
+thirty seconds.** About twenty connector providers, 121 Meridian components and a full MCP server are
+already in this repo.
 
 ## The dev server. Read this one twice.
 

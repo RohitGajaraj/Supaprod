@@ -28,7 +28,7 @@ surface · `AUDIT` real work exists behind it, its shape is undecided — S0 rul
 | `_authenticated.opportunities.tsx` | FOLD → run, Discover view | What we found |
 | `_authenticated.decide.tsx` | FOLD → run, Decide view | The call, and what we expect |
 | `_authenticated.plan.index.tsx` | FOLD → run, Plan view | The plan |
-| `_authenticated.plan.spec.$id.tsx` | FOLD → run, right pane | The plan |
+| `_authenticated.plan.spec.$id.tsx` | FOLD → run, right pane. **Carries a live integration caller** — `createLinearIssuesFromTasks`. The fold moves it into the run; it does not drop it | The plan |
 | `_authenticated.prds.tsx` · `prds.index.tsx` · `prds.$id.tsx` | FOLD → run, Plan view. Three routes for one object | The plan |
 | `_authenticated.design.tsx` | FOLD → run, Design view | The design |
 | `_authenticated.build.index.tsx` · `build.$missionId.tsx` | FOLD → run, Build view | The change |
@@ -68,7 +68,7 @@ station names stay (Discover · Decide · Plan · Design · Build · Ship · Lea
 | `_authenticated.traces.tsx` · `traces.$traceId.tsx` | FOLD → the run's activity, and the board's what-changed | Activity |
 | `_authenticated.threads.tsx` | DELETE — a collaboration surface, killed by R-04 | — |
 | `_authenticated.inbox.tsx` | DELETE — fold anything real into *Waiting for you* | — |
-| `_authenticated.sync.tsx` | AUDIT — S0 rules what is behind it before anything is done | — |
+| `_authenticated.sync.tsx` | AUDIT — **and it is not empty.** `src/lib/sync.functions.ts` calls `pullLinearIssue` and `pushLinearIssue`. **Folding it must move the caller, never drop it** (`SPEC-CONNECTORS.md` §1) | — |
 | `_authenticated.drift.tsx` | DELETE | — |
 | `_authenticated.impact.tsx` | FOLD → the verdict in the run | What actually happened |
 | `_authenticated.stakeholder.tsx` | DELETE | — |
@@ -153,6 +153,13 @@ signed-in product is three surfaces. **The measure of a good session is that thi
 and every fold must land with its redirect in the same commit.
 
 **If a route is not in this table, it was added after 2026-08-26 and needs an owner. File it.**
+
+**Standing warning, learned the same day this map was written.** I marked two routes for folding before
+checking what called into them, and both carry live Linear integration. **Before you fold or delete
+anything, grep for what reaches its server functions** — the route is the door, not the feature, and a
+fold that drops a caller is a silent regression that typechecks. Anything reached from
+`src/routes/api/public/hooks/sense-tick.ts` deserves the same care; it is the cron the whole evidence
+path hangs off.
 
 ---
 
