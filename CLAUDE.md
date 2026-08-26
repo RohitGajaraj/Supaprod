@@ -47,15 +47,26 @@ entered at `sense`, and **zero have gone `sense` → `learn`**.
 > One track has: `3fbf73c9`, on 2026-08-01. It entered at `define` with `sense` and `decide`
 > **waived**, so it walked five stations, and because the forecast is written at Decide and nowhere
 > else it **carries no forecast** — it cannot show the one thing the product claims. The measured
-> query is `entry_station = 'sense' AND station = 'learn' AND waived = '[]'`, which returns **0**.
-> **Never ask this with `workspaces.is_sample`** — the obvious form returns **1** and reads as the
-> acceptance being met (F-61). **But the reason this file used to give was backwards, corrected
-> 2026-08-26 (F-90): `is_sample = true` means "a demo fixture, and NO tick may spend on it", so the
-> sweep SKIPS those workspaces.** `track-tick.ts:85` excludes them by id via `sampleWorkspaceIds`,
-> which selects `.eq("is_sample", true)`. It does not mean "the sweep may drive here". Adding the
-> flag rescues nothing either way: the false 1 is `d1168015`, which sits on a REAL workspace and
-> fails the acceptance for a different reason entirely (F-79 — a person answered a boundary call
-> mid-run).
+> query is `entry_station = 'sense' AND station = 'learn' AND waived = '[]'`, and **as of 2026-08-26
+> it returns 1, not the 0 this file used to promise** (F-97). The 1 is `d1168015`, and it is NOT the
+> acceptance: a person answered a boundary call mid-run (F-79), which R-18 disqualifies. **That query
+> on its own has stopped being the test.** The one that returns **0**, measured today, subtracts the
+> tracks whose approvals a person decided — F-79 as a join rather than a sentence someone must recall:
+>
+> ```sql
+> SELECT count(*) FROM spine_tracks t
+> WHERE t.entry_station = 'sense' AND t.station = 'learn' AND t.waived = '[]'
+>   AND t.id NOT IN (SELECT r.track_id FROM agent_approvals a
+>                    JOIN agent_runs r ON r.mission_id = a.mission_id
+>                    WHERE a.decided_at IS NOT NULL AND r.track_id IS NOT NULL);
+> ```
+>
+> **Never ask this with `workspaces.is_sample`** — that form returns **2** today (`3fbf73c9` and
+> `d1168015`, both on a real workspace). **And the reason this file used to give was backwards,
+> corrected 2026-08-26 (F-90): `is_sample = true` means "a demo fixture, and NO tick may spend on
+> it", so the sweep SKIPS those workspaces.** `track-tick.ts:85` excludes them by id via
+> `sampleWorkspaceIds`, which selects `.eq("is_sample", true)`. It does not mean "the sweep may drive
+> here".
 >
 > **AND AS OF 2026-08-26 THE PLAIN FORM ALSO RETURNS 1, AND THE ACCEPTANCE IS STILL NOT MET (F-79).**
 > `d1168015` walked all seven with every transition `driven_via='sweep'` — but a person **rejected
