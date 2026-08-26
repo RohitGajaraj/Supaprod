@@ -49,6 +49,7 @@
  * `useElapsed` with the WORK's start time, never the component's.
  */
 import * as React from "react";
+import { AgentMark } from "@/components/meridian/marks";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -517,11 +518,42 @@ export function TrackActivity({
                     {chipOf(t)}
                   </span>
 
-                  <RunMeta>
-                    {[handedLine ?? t.stationName]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  </RunMeta>
+                  {/*
+                   * THE TWO TEAMMATES, ON THE ROW WHERE THE WORK CHANGED HANDS.
+                   *
+                   * SESSION-1's brief asks for from- and to-chips in the
+                   * teammates' own colours, and rules out the shapes that would
+                   * be easier: never a chat bubble, never an avatar row, never a
+                   * timestamp gutter. This is a record of work and it should
+                   * read like one, so the pair sits INSIDE the line that already
+                   * describes the handover rather than becoming a row of faces
+                   * above it.
+                   *
+                   * Both marks come from run rows: `previous.agentSlug` ran
+                   * before this one, `t.agentSlug` picked it up. Neither is
+                   * inferred, and the arrow is the same one `Receipt` already
+                   * uses for a handoff, so the gesture is not a new invention.
+                   */}
+                  {handedOver && handedLine ? (
+                    <span className="flex flex-wrap items-center gap-mrd-2">
+                      <AgentMark
+                        slug={previous?.agentSlug}
+                        name={previous?.agentName}
+                        state="quiet"
+                      />
+                      <span aria-hidden className="text-mrd-faint">
+                        &rarr;
+                      </span>
+                      <AgentMark
+                        slug={t.agentSlug}
+                        name={t.agentName}
+                        state={t.outcome === "working" ? "running" : "idle"}
+                      />
+                      <RunMeta>{handedLine}</RunMeta>
+                    </span>
+                  ) : (
+                    <RunMeta>{handedLine ?? t.stationName}</RunMeta>
+                  )}
 
                   <RunRollup items={rollupOf(t, titles)} />
 
