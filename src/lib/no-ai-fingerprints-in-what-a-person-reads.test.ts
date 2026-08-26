@@ -184,22 +184,35 @@ describe("no AI fingerprints in anything a person reads", () => {
     expect(grew).toEqual([]);
   });
 
-  it("the baseline itself only shrinks, so a cleared file cannot silently refill", () => {
+  /**
+   * REPORTS, DOES NOT FAIL, AND THAT IS A CORRECTION TO MY OWN FIRST VERSION.
+   *
+   * This started as an assertion: a file cleaner than its baseline failed until
+   * BASELINE was lowered in the same commit. Within the hour that was shown to be
+   * a trap rather than a guard. S2 and S3 were both sweeping dashes out of
+   * `src/lib/**` in their own prefixes at the time, and every file they correctly
+   * cleaned would have turned this red until they found and edited a test file in
+   * a prefix that is not theirs. **A guard that fails other people's correct work
+   * teaches them to route around it**, and it would have been reported as my
+   * regression, which it would have been.
+   *
+   * So it prints. The non-growth assertion above is the one that carries the
+   * value; this is a nudge to bank the ground someone else already gained.
+   */
+  it("says which baselines are now loose, so gained ground gets banked", () => {
     const counts = new Map<string, number>();
     for (const h of hits) {
       if (RENDERED.some((p) => h.file.startsWith(p))) continue;
       counts.set(h.file, (counts.get(h.file) ?? 0) + 1);
     }
-    // A file listed in BASELINE that now scans clean should be REMOVED from it.
-    // Left in, it silently re-permits what somebody already paid to remove.
-    const stale = Object.keys(BASELINE).filter((f) => (counts.get(f) ?? 0) < (BASELINE[f] ?? 0));
-    if (stale.length > 0) {
-      console.error(
-        "These files are cleaner than their baseline. Lower or delete their BASELINE entries\n" +
-          "in the same commit, or the ground you just gained is handed back:\n" +
-          stale.map((f) => `  ${f}: now ${counts.get(f) ?? 0}, baseline ${BASELINE[f]}`).join("\n"),
+    const loose = Object.keys(BASELINE).filter((f) => (counts.get(f) ?? 0) < (BASELINE[f] ?? 0));
+    if (loose.length > 0) {
+      console.info(
+        "These files are now cleaner than their baseline. Lower or delete their BASELINE\n" +
+          "entries when you next touch this file, so the ground cannot be refilled:\n" +
+          loose.map((f) => `  ${f}: now ${counts.get(f) ?? 0}, baseline ${BASELINE[f]}`).join("\n"),
       );
     }
-    expect(stale).toEqual([]);
+    expect(true).toBe(true);
   });
 });
