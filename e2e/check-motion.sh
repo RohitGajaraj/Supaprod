@@ -5,6 +5,7 @@
 #   bash e2e/check-motion.sh              # the four public surfaces
 #   bash e2e/check-motion.sh /today /runs # or any paths you name
 #   bash e2e/check-motion.sh --signed-in /today /approvals   # product surfaces
+#   bash e2e/check-motion.sh --signed-in --phone /today      # at 390x844
 #
 # Run this before you commit a surface that moves. It boots the app against a
 # database that does not exist and tells you what is STILL redrawing afterwards.
@@ -40,10 +41,16 @@ SIGNED_IN=0
 
 # `--signed-in` measures the surfaces where a person watches their OWN work.
 # Signed out, all six of those redirect to /login and you measure the login page.
-if [ "${1:-}" = "--signed-in" ]; then
-  SIGNED_IN=1
-  shift
-fi
+while true; do
+  case "${1:-}" in
+    --signed-in) SIGNED_IN=1; shift ;;
+    # A phone. Error copy is longer than the data it replaces, so the failure
+    # states are where a narrow column breaks first.
+    --phone) S4_MOTION_VIEWPORT="390x844"; export S4_MOTION_VIEWPORT; shift ;;
+    --viewport) S4_MOTION_VIEWPORT="${2:?--viewport needs WxH}"; export S4_MOTION_VIEWPORT; shift 2 ;;
+    *) break ;;
+  esac
+done
 PATHS=("$@")
 
 if lsof -ti:"$PORT" >/dev/null 2>&1; then
