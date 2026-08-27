@@ -18,6 +18,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
+
+import { isPreMigration } from "@/lib/read-failure";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabase as anonSupabase } from "@/integrations/supabase/client";
@@ -311,10 +313,39 @@ export const listPublicDecisions = createServerFn({ method: "GET" }).handler(
         .not("share_slug", "is", null)
         .order("created_at", { ascending: false })
         .limit(50);
-      if (error || !data) return [];
+      /*
+       * ── F-146: "WE COULD NOT READ THEM" AND "THERE ARE NONE" WERE ONE ─────
+       *
+       * Found by S4. This returned `[]` on an error AND in a bare catch, with
+       * no log and no marker, and it feeds `/proof` — **the page whose entire
+       * job is showing real decisions as evidence.** So a database that did not
+       * answer and a workspace with no public decisions produced the same
+       * screen, on the one surface where that distinction IS the product.
+       *
+       * The page's own head says it: *"We publish our own calibration score.
+       * Including the misses."* A page arguing that it publishes numbers it
+       * cannot dress up must not quietly publish an empty list it could not
+       * read.
+       *
+       * The route was already right and could not act: it uses
+       * `Promise.allSettled` and has an honest `tableReady: false` state, but
+       * this function caught internally so the rejected branch could never fire.
+       *
+       * A MISSING COLUMN STILL FAILS SOFT, per `read-failure.ts`: migrations and
+       * deploys are two switches with no enforced order, and a public marketing
+       * page must not 500 because a column has not landed yet.
+       */
+      if (error) {
+        if (isPreMigration(error)) return [];
+        throw new Error(`The public decisions could not be read: ${error.message}`);
+      }
 
-      return toPublicDecisionList(data as RawPublicDecisionRow[], sampleIds);
-    } catch {
+      return toPublicDecisionList((data ?? []) as RawPublicDecisionRow[], sampleIds);
+    } catch (e) {
+      // Re-raised so the route can tell the page. Anything else still degrades,
+      // because a marketing page falling over is worse than a quiet one.
+      if (e instanceof Error && e.message.includes("could not be read")) throw e;
+      console.error(`[proof] public decisions unavailable: ${e instanceof Error ? e.message : e}`);
       return [];
     }
   },

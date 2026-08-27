@@ -292,8 +292,13 @@ export const listMissions = createServerFn({ method: "GET" })
        * "what needs a person soonest".
        */
       const BLOCKED_STATUSES = ["failed", "halted", "cancelled", "blocked", "proposed"] as const;
+      /* How many of the longest-waiting blocked rows travel alongside the
+         recent page. Enough that the lane can reach past its own overflow
+         control, small enough that it stays one bounded read. */
+      const OLDEST_BLOCKED_ROWS = 25;
       let totalBlocked: number | null = null;
       let oldestBlockedAt: string | null = null;
+      let oldestBlockedRows: typeof data = [];
       try {
         let countQ = supabase
           .from("missions")
@@ -304,15 +309,42 @@ export const listMissions = createServerFn({ method: "GET" })
         const { count } = await countQ;
         totalBlocked = count ?? null;
 
+        /*
+         * ── THE ROWS, NOT ONLY THE TIMESTAMP ────────────────────────────────
+         *
+         * This asked for the oldest blocked row's `updated_at` and threw the
+         * row away, so the lane could SAY "the oldest has been waiting 40 days"
+         * and could not show it. That sentence was written to explain the gap
+         * honestly, and it did - but a lane whose stated job is "what needs a
+         * person soonest" that structurally cannot reach the thing that has
+         * waited longest is a capability gap wearing a disclosure.
+         *
+         * WHY THE ROW QUERY ABOVE CANNOT JUST FLIP TO ASCENDING, which is the
+         * fix S1 applied to the approvals queue for the same defect (RUN-100:
+         * six reads ordered DESC, so the cap discarded the OLDEST on a page
+         * that sorts oldest-first). Here the 50 feed four lanes, and three of
+         * them want recency: Running, Finished and the shell's live line are
+         * about work in motion. Flipping would starve them to fix one lane.
+         *
+         * So both ends are fetched and merged. This query already existed and
+         * already ordered ascending; it now returns rows instead of one column,
+         * which costs no extra round trip. The enrichment below is batched over
+         * whatever `missions` holds, so the extra rows are enriched with it.
+         */
         let oldestQ = supabase
           .from("missions")
-          .select("updated_at")
+          .select(
+            "id,title,goal,status,hop_count,current_agent_id,created_at,updated_at,completed_at,build_driver",
+          )
           .in("status", BLOCKED_STATUSES as unknown as string[])
           .order("updated_at", { ascending: true })
-          .limit(1);
+          .limit(OLDEST_BLOCKED_ROWS);
         if (input?.workspaceId) oldestQ = oldestQ.eq("workspace_id", input.workspaceId);
         if (productMissionIds) oldestQ = oldestQ.in("id", productMissionIds);
         const { data: oldest } = await oldestQ;
+        oldestBlockedRows = (oldest ?? []) as typeof data;
+        /* Still the FIRST row of an ascending read, so this number did not
+           change meaning when the query grew. */
         oldestBlockedAt = (oldest?.[0] as { updated_at?: string } | undefined)?.updated_at ?? null;
       } catch {
         // Best-effort, like the enrichment below. A lane that cannot count still
@@ -324,7 +356,14 @@ export const listMissions = createServerFn({ method: "GET" })
         totalBlocked = null;
       }
 
-      const missions = data ?? [];
+      /* MERGED BY ID, RECENT PAGE FIRST. The two reads overlap whenever a
+         blocked row is also recently touched, and a duplicate id would render
+         the same run twice in one lane. Order is not asserted here: every lane
+         on the board sorts for itself, and `the-waiting-lane-puts-the-oldest-first`
+         pins the one that sorts by age. */
+      const byId = new Map<string, NonNullable<typeof data>[number]>();
+      for (const m of [...(data ?? []), ...(oldestBlockedRows ?? [])]) byId.set(m.id, m);
+      const missions = [...byId.values()];
       if (missions.length === 0) return { missions: [], totalBlocked, oldestBlockedAt };
       const ids = missions.map((m) => m.id);
 
@@ -394,7 +433,12 @@ export const listMissions = createServerFn({ method: "GET" })
              * there returns 42703 and takes the whole read with it. The run is
              * where the link is written and therefore where it can be read.
              */
-            .select("id,mission_id,status,created_at,agent_slug,track_id")
+            /*
+             * `spend_used_usd` — F-145. What this run actually cost, recorded on
+             * the run itself. See the cost block below for why it replaced a
+             * four-hop derivation.
+             */
+            .select("id,mission_id,status,created_at,agent_slug,track_id,spend_used_usd")
             .in("mission_id", ids)
             .order("created_at", { ascending: true }),
         ]);
@@ -440,37 +484,45 @@ export const listMissions = createServerFn({ method: "GET" })
            */
           if (r.track_id) trackByMission.set(r.mission_id, r.track_id);
         }
-        const runIds = [...missionByRun.keys()];
-        if (runIds.length) {
-          const { data: cps } = await supabase
-            .from("agent_run_checkpoints")
-            .select("run_id,step_index,state")
-            .in("run_id", runIds)
-            .order("step_index", { ascending: false });
-          const missionByTrace = new Map<string, string>();
-          const seenRun = new Set<string>();
-          for (const cp of cps ?? []) {
-            if (seenRun.has(cp.run_id)) continue;
-            seenRun.add(cp.run_id);
-            const traceId = (cp.state as { traceId?: string } | null)?.traceId;
-            const missionId = missionByRun.get(cp.run_id);
-            if (traceId && missionId) missionByTrace.set(traceId, missionId);
-          }
-          const traceIds = [...missionByTrace.keys()];
-          if (traceIds.length) {
-            const { data: events } = await supabase
-              .from("ai_events")
-              .select("trace_id,est_cost_usd")
-              .in("trace_id", traceIds);
-            for (const e of events ?? []) {
-              const missionId = e.trace_id ? missionByTrace.get(e.trace_id) : undefined;
-              if (!missionId) continue;
-              costByMission.set(
-                missionId,
-                (costByMission.get(missionId) ?? 0) + Number(e.est_cost_usd ?? 0),
-              );
-            }
-          }
+        /*
+         * ── F-145: A FOUR-HOP DERIVATION SAID $0.00 OVER REAL SPEND ─────────
+         *
+         * S1 measured it on /inbox: **"Workspace spend: $0.00" for a workspace
+         * whose 622 runs carry a populated `spend_used_usd` totalling $8.31.**
+         *
+         * The old path was mission -> runs -> NEWEST checkpoint per run ->
+         * `state.traceId` -> `ai_events.est_cost_usd`. Four hops, and a break at
+         * any one of them produced a mission that COST NOTHING rather than one
+         * whose cost was UNKNOWN. Summing those gives a confident zero, which is
+         * the same false-negative shape as every other read fixed tonight: a
+         * narrow lookup returning empty and the surface reading empty as fact.
+         *
+         * The `seenRun` dedupe made it worse in a way that is invisible from the
+         * code: it took only the newest checkpoint per run, so a run whose LAST
+         * checkpoint carried no `traceId` contributed nothing even when an
+         * earlier one did.
+         *
+         * ── WHY THE RUN COLUMN IS CANONICAL, AND IT IS NOT ONLY ROBUSTNESS ──
+         * Measured: `spend_used_usd` is populated on **all 2,847 runs**, total
+         * $30.35. So the direct read is one hop and complete.
+         *
+         * But the deciding argument is what the two numbers MEAN. `est_cost_usd`
+         * is an ESTIMATE attached to a model event; `spend_used_usd` is what was
+         * RECORDED against the run. The question this surface asks is "what did
+         * this work cost", and the recorded spend is the answer while the
+         * estimate is a model of it. A surface should not prefer a model of a
+         * fact it already holds.
+         *
+         * `ai_events` keeps its own job — per-event attribution, which the run
+         * column cannot give — and this is not a second cost source appearing on
+         * one screen: it REPLACES the derivation rather than sitting beside it,
+         * so there is still exactly one answer to "what did this cost".
+         */
+        for (const r of runs ?? []) {
+          if (!r.mission_id) continue;
+          const spend = Number(r.spend_used_usd ?? 0);
+          if (!Number.isFinite(spend) || spend <= 0) continue;
+          costByMission.set(r.mission_id, (costByMission.get(r.mission_id) ?? 0) + spend);
         }
       } catch (e) {
         console.error("[missions] list enrichment failed (degrading):", e);
@@ -566,7 +618,11 @@ export const getMission = createServerFn({ method: "POST" })
     // Pull trace_id from the first ai_events row per run (cheap, no join).
     const { data: runs } = await supabase
       .from("agent_runs")
-      .select("id,agent_slug,agent_name,status,input,output,created_at,last_checkpoint_at")
+      // `spend_used_usd` — F-145, same ruling as the list above: cost is read
+      // from the run that spent it rather than derived four hops away.
+      .select(
+        "id,agent_slug,agent_name,status,input,output,created_at,last_checkpoint_at,spend_used_usd",
+      )
       .eq("mission_id", data.missionId)
       .order("created_at", { ascending: true });
 
@@ -666,13 +722,29 @@ export const getMission = createServerFn({ method: "POST" })
       tokens_out: 0,
       trace_id: firstHopTrace,
     };
+    /*
+     * ── F-145 ON THE DETAIL PAGE TOO, AND THE SPLIT IS DELIBERATE ───────────
+     *
+     * COST comes from the runs, for the same reason as the list: `spend_used_usd`
+     * is populated on all 2,847 runs and is what was RECORDED, while
+     * `est_cost_usd` is an estimate reached through four hops that produce a
+     * confident $0.00 when any one of them breaks.
+     *
+     * TOKENS stay on the trace path, because `ai_events` is the only place they
+     * exist. That is not two cost sources on one screen — it is one source per
+     * QUESTION, which is the distinction that keeps a surface honest: cost is
+     * asked of the thing that spent it, tokens of the thing that counted them.
+     */
+    for (const r of runs ?? []) {
+      const spend = Number((r as { spend_used_usd?: number | null }).spend_used_usd ?? 0);
+      if (Number.isFinite(spend) && spend > 0) usage.cost_usd += spend;
+    }
     if (traceIds.length) {
       const { data: events } = await supabase
         .from("ai_events")
-        .select("est_cost_usd,prompt_tokens,completion_tokens")
+        .select("prompt_tokens,completion_tokens")
         .in("trace_id", traceIds);
       for (const e of events ?? []) {
-        usage.cost_usd += Number(e.est_cost_usd ?? 0);
         usage.tokens_in += e.prompt_tokens ?? 0;
         usage.tokens_out += e.completion_tokens ?? 0;
       }

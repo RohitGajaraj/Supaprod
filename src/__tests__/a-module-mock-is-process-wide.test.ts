@@ -78,12 +78,16 @@ function mocksByModule(): Map<string, string[]> {
  * depends on file order. **This list may shrink and must never grow.**
  */
 const KNOWN_SHARED: readonly string[] = [
+  /*
+   * `@/lib/ai/memory.server` and `@/lib/observability/errors` WERE here and are
+   * resolved (F-147): the two `learning.record` files that both owned them are
+   * now one file. The reverse-direction test below is what forced this line to
+   * be deleted rather than left as a stale description of a fixed problem.
+   */
   "@tanstack/react-router",
   "@tanstack/react-start",
   "@/hooks/use-workspace",
   "@/lib/ai/runtime.server",
-  "@/lib/ai/memory.server",
-  "@/lib/observability/errors",
   "@/lib/connectors/providers/github.server",
 ];
 

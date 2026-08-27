@@ -38,26 +38,52 @@ describe("consumeLastCapturedError", () => {
     expect(consumeLastCapturedError()).toBeUndefined();
   });
 
-  it("expires after the 5s TTL: a stale capture reads as undefined, not the old error", () => {
-    globalThis.dispatchEvent(new ErrorEvent("error", { error: new Error("stale") }));
+  /*
+   * ── F-148: A ONE-MILLISECOND MARGIN AGAINST THE WALL CLOCK ────────────────
+   *
+   * These read `Date.now = () => realNow() + 4_999`, and `realNow()` is called
+   * at READ time rather than at capture time. The event records `at = T0`; by
+   * the time the assertion runs the real clock is `T0 + delta`, so the stub
+   * returns `T0 + delta + 4999` and the elapsed time is `4999 + delta`.
+   *
+   * **Any delta over one millisecond expires a capture the test calls fresh.**
+   * Under full-suite load that is a coin flip, which is exactly what S3
+   * reported: failed twice in one evening, passed alone and on re-run.
+   *
+   * A suite that fails one run in three teaches every lane to re-run rather
+   * than read the output, and that habit is what most of tonight's findings
+   * needed somebody NOT to have.
+   *
+   * Fixed by controlling the clock for the WRITE as well as the read, so
+   * neither end touches the wall clock and the elapsed time is exactly the
+   * number in the test. `advanceTo` makes both cases read as what they are:
+   * one millisecond inside the window and one millisecond outside it.
+   */
+  const atFixedClock = (msSinceCapture: number, assert: () => void) => {
     const realNow = Date.now;
+    const base = realNow();
     try {
-      Date.now = () => realNow() + 5_001;
-      expect(consumeLastCapturedError()).toBeUndefined();
+      Date.now = () => base;
+      globalThis.dispatchEvent(new ErrorEvent("error", { error: new Error("boom") }));
+      Date.now = () => base + msSinceCapture;
+      assert();
     } finally {
       Date.now = realNow;
     }
+  };
+
+  it("expires after the 5s TTL: a stale capture reads as undefined, not the old error", () => {
+    atFixedClock(5_001, () => expect(consumeLastCapturedError()).toBeUndefined());
   });
 
   it("a fresh capture inside the TTL window is still returned", () => {
-    globalThis.dispatchEvent(new ErrorEvent("error", { error: new Error("fresh") }));
-    const realNow = Date.now;
-    try {
-      Date.now = () => realNow() + 4_999;
-      expect(consumeLastCapturedError()).toBeDefined();
-    } finally {
-      Date.now = realNow;
-    }
+    atFixedClock(4_999, () => expect(consumeLastCapturedError()).toBeDefined());
+  });
+
+  it("and the boundary itself is exact, which the old wall-clock version could not assert", () => {
+    // Exactly TTL_MS is INSIDE the window: the module tests `> TTL_MS`. With the
+    // clock controlled this is a fact rather than a race.
+    atFixedClock(5_000, () => expect(consumeLastCapturedError()).toBeDefined());
   });
 
   it("a later capture overwrites an earlier, unconsumed one", () => {

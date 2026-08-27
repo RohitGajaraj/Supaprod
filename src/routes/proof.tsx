@@ -53,6 +53,14 @@ export const Route = createFileRoute("/proof")({
               supersessionsCaughtTotal: 0,
             },
       decisions: dec.status === "fulfilled" ? dec.value : [],
+      /*
+       * F-146. The route already used `allSettled` and already had an honest
+       * "we cannot say" state; what it could not do was TELL the two apart,
+       * because `listPublicDecisions` caught internally and always resolved.
+       * Now a real read failure rejects, and the page can say it could not read
+       * them instead of publishing an empty list as evidence.
+       */
+      decisionsUnreadable: dec.status === "rejected",
     };
   },
   head: () => ({
@@ -222,7 +230,7 @@ function CalibrationHero({
 }
 
 function ProofPage() {
-  const { calibration, decisions } = Route.useLoaderData();
+  const { calibration, decisions, decisionsUnreadable } = Route.useLoaderData();
   const { predictionHitRate, supersessionsCaughtTotal } = calibration;
 
   return (
@@ -264,9 +272,27 @@ function ProofPage() {
               maxWidth: "var(--mrd-measure)",
             }}
           >
-            No public decisions yet. Every one of these is a real call from Supaprod's own build,
-            shared by its owner with its evidence, never seeded or staged. That is why this section
-            is honestly empty until one exists.
+            {decisionsUnreadable ? (
+              <>
+                {/*
+                 * F-146. The sentence below claims this section is "honestly
+                 * empty", and that is a claim the page cannot make when it did
+                 * not manage to read the list. On a page whose whole argument
+                 * is that it publishes numbers it cannot dress up, an
+                 * unreadable list presented as an empty one is the one lie it
+                 * must not tell.
+                 */}
+                These did not load, so this is not a list of no decisions. It is a page that could
+                not read them. Reload, and if it stays like this the fault is ours rather than an
+                empty record.
+              </>
+            ) : (
+              <>
+                No public decisions yet. Every one of these is a real call from Supaprod's own
+                build, shared by its owner with its evidence, never seeded or staged. That is why
+                this section is honestly empty until one exists.
+              </>
+            )}
           </p>
         </div>
       ) : (
