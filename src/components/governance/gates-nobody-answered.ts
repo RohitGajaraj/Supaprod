@@ -35,8 +35,18 @@ export interface GateRow {
 }
 
 export interface UnansweredGates {
-  /** The sentence, or null when nothing expired. */
+  /** What happened, or null when nothing expired. */
   said: string | null;
+  /**
+   * What to do about it, split from `said` so a surface can put the fact on a
+   * label and the remedy on the line under it.
+   *
+   * They were one sentence until the boundary's blocks were rebuilt as fact
+   * lines: run together they made a label nobody would finish reading, and the
+   * half that ends "beat leaving it there" is the half that decides whether
+   * anybody acts. Null whenever `said` is.
+   */
+  act: string | null;
   /** Gates seen in the expired state. */
   expired: number;
   /** True when the read was at its cap, so `expired` is a floor. */
@@ -55,11 +65,11 @@ export function unansweredGates(
   toolLabel: (name: string) => string,
 ): UnansweredGates {
   if (!approvals || approvals.length === 0) {
-    return { said: null, expired: 0, capped: false };
+    return { said: null, act: null, expired: 0, capped: false };
   }
 
   const dead = approvals.filter((a) => a.escalation_state === "expired");
-  if (dead.length === 0) return { said: null, expired: 0, capped: false };
+  if (dead.length === 0) return { said: null, act: null, expired: 0, capped: false };
 
   const capped = approvals.length >= GATE_READ_LIMIT;
   const names = [...new Set(dead.map((a) => a.tool_name).filter((n): n is string => !!n))]
@@ -78,7 +88,8 @@ export function unansweredGates(
         : ` (${names[0]}, ${names[1]} and ${names.length - 2} more)`;
 
   return {
-    said: `${count} ${verb} never answered${which} and expired, so the work stopped rather than waiting. Granting one or switching it off both beat leaving it there.`,
+    said: `${count} ${verb} never answered${which} and expired, so the work stopped rather than waiting.`,
+    act: "Granting one or switching it off both beat leaving it there.",
     expired: dead.length,
     capped,
   };

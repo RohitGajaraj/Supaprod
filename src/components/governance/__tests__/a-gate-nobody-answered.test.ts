@@ -37,8 +37,12 @@ describe("a gate nobody answered", () => {
     expect(r.expired).toBe(2);
     expect(r.said).toContain("2 requests were never answered");
     expect(r.said).toContain("Commit code and prd.revise");
-    // The point of the sentence is what to DO, not that something is broken.
-    expect(r.said).toContain("Granting one or switching it off");
+    /* The remedy is a SEPARATE field now, so a surface can put the fact on a
+       label and what to do on the line under it. Run together they made a
+       label nobody would finish reading, and the remedy is the half that
+       decides whether anybody acts. */
+    expect(r.said).not.toContain("Granting one");
+    expect(r.act).toBe("Granting one or switching it off both beat leaving it there.");
   });
 
   it("reads as English about one", () => {
@@ -118,5 +122,30 @@ describe("what became of every gate", () => {
     expect(whatBecameOfThem(null)).toBeNull();
     expect(whatBecameOfThem(undefined)).toBeNull();
     expect(whatBecameOfThem({ total: 0, answered: 0, expired: 0 })).toBeNull();
+  });
+});
+
+/**
+ * The remedy travels with the fact or not at all. A surface that draws `said`
+ * and forgets `act` shows a person a problem and no move, which is the failure
+ * this module's own header warns about: a line that only reports a problem on
+ * a settings page is a line that gets skipped.
+ */
+describe("the remedy never goes missing on its own", () => {
+  it("act is present exactly when said is", () => {
+    const label = (n: string) => n;
+    const cases: GateRow[][] = [
+      [],
+      [{ tool_name: "a", escalation_state: "pending" }],
+      [{ tool_name: "a", escalation_state: "expired" }],
+      [
+        { tool_name: "a", escalation_state: "expired" },
+        { tool_name: "b", escalation_state: "expired" },
+      ],
+    ];
+    for (const rows of cases) {
+      const r = unansweredGates(rows, label);
+      expect(Boolean(r.act), JSON.stringify(rows)).toBe(Boolean(r.said));
+    }
   });
 });

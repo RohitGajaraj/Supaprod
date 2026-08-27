@@ -686,19 +686,57 @@ export function BoundaryControls({
    * without it: the disclosure is a property of showing a policy list, not a
    * decision three callers make separately.
    */
-  const block = (key: string, title: string, sub: string, tools: BoundaryTool[], empty: string) => {
+  /**
+   * A REGION SUB IS ONE SENTENCE, AND THE EVIDENCE GETS ITS OWN LINES.
+   *
+   * This is a correction to my own work over the last day. The evidence on this
+   * screen arrived one unit at a time and each new sentence was appended to the
+   * block's `sub`, because that was where the last one went. Rendered, the
+   * "what they do alone" heading carried FIVE sentences:
+   *
+   *   No approval, no interruption. This is where the leverage is. Your crew
+   *   has done these 412 times without asking in the last 30 days. The most
+   *   recent was Commit code. 16 of these are set to come to you first and will
+   *   not, because every agent starts out running alone except on the risky
+   *   calls. You can lower that per agent on Crew. 12 of these are what we
+   *   ship, not settings anybody here has made.
+   *
+   * Every clause is true and the paragraph is unreadable, which is the founder's
+   * complaint about this surface in his own words: plain, simple, and it must
+   * still do the job. A wall under a heading does not do the job -- nobody
+   * reads the fourth sentence of a sub.
+   *
+   * So the `sub` keeps the one line that says what the block IS, and each fact
+   * becomes a `Line`: a label somebody can scan and a second line that explains
+   * it. Same words, same order, four times as likely to be read. Nothing is
+   * dropped, which matters -- every one of those sentences exists because the
+   * screen was claiming something it could not prove without it.
+   */
+  const block = (
+    key: string,
+    title: string,
+    sub: string,
+    tools: BoundaryTool[],
+    empty: string,
+    facts: { label: string; sub?: string }[] = [],
+  ) => {
     const ours = oursNotYours(tools);
-    const said = ours ? `${sub} ${ours}` : sub;
     const open = showAll[key] ?? false;
     const shown = open ? tools : tools.slice(0, VISIBLE);
+    const lines = [...facts, ...(ours ? [{ label: ours }] : [])];
     return (
       <Region
         title={title}
-        sub={said}
+        sub={sub}
         toggle={tools.length > VISIBLE ? (open ? "Show fewer" : `All ${tools.length}`) : undefined}
         onToggle={() => setShowAll((s) => ({ ...s, [key]: !open }))}
         toggled={open}
       >
+        {/* The evidence first, because it is what the reader came to check, and
+            the settings under it are what they came to change. */}
+        {lines.map((f) => (
+          <Line key={f.label} label={f.label} sub={f.sub} />
+        ))}
         {tools.length === 0 ? (
           <NothingHere>{empty}</NothingHere>
         ) : (
@@ -935,18 +973,18 @@ export function BoundaryControls({
           {block(
             "asks",
             "What still comes to you",
+            "Each of these costs one interruption every time it happens.",
+            asks,
+            "Nothing asks. Your crew runs the loop on its own.",
             /* The whole history first, because it carries the denominator, then
                the named tools from the capped read. One says how often a gate
                dies here; the other says which ones. */
             [
-              "Each of these costs one interruption every time it happens.",
-              gateHistory,
-              unanswered.said,
-            ]
-              .filter(Boolean)
-              .join(" "),
-            asks,
-            "Nothing asks. Your crew runs the loop on its own.",
+              ...(gateHistory ? [{ label: gateHistory }] : []),
+              ...(unanswered.said
+                ? [{ label: unanswered.said, sub: unanswered.act ?? undefined }]
+                : []),
+            ],
           )}
 
           {block(
