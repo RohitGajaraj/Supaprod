@@ -131,6 +131,7 @@
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { messageForPerson } from "@/lib/error-copy";
+import { SlowRead } from "@/components/shell/SlowRead";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
@@ -419,7 +420,11 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
   }
 
   const sub = crew.isLoading ? (
-    "Reading the boundary in force."
+    /* MEASURED AT 6.9 SECONDS on the running product 2026-08-27, holding this
+       one static sentence the whole way, which is the state a person cannot
+       tell from a hung one. `inline` because `PageHeading` draws its sub
+       inside a `<p>` and the block form cannot legally go there. */
+    <SlowRead inline>Reading the boundary in force.</SlowRead>
   ) : crew.isError ? (
     "The boundary did not load."
   ) : crew.data?.empty ? (
@@ -950,9 +955,7 @@ function Proposals({ member, onDecided }: { member: CrewMember; onDecided: () =>
       ) : null}
 
       {decide.isError ? (
-        <ReadFailed
-              detail="Nothing was granted and nothing was refused. The proposal is still open."
-            >
+        <ReadFailed detail="Nothing was granted and nothing was refused. The proposal is still open.">
           {messageForPerson(decide.error)}
         </ReadFailed>
       ) : null}
@@ -1363,7 +1366,9 @@ function Lessons({ slug, name }: { slug: string; name: string }) {
   if (q.isError) {
     return (
       <Region title="What it has learned">
-        <ReadFailed error={q.error} onRetry={() => void q.refetch()}>Its lessons did not load.</ReadFailed>
+        <ReadFailed error={q.error} onRetry={() => void q.refetch()}>
+          Its lessons did not load.
+        </ReadFailed>
       </Region>
     );
   }

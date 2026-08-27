@@ -111,3 +111,50 @@ describe("SlowRead", () => {
     expect(screen.getByText("Reading.")).toBeTruthy();
   });
 });
+
+describe("SlowRead inline", () => {
+  /*
+   * THE PROPERTY THAT MAKES IT SAFE IS ABOUT THE DOM, NOT ABOUT THE LOOK.
+   *
+   * `PageHeading` draws its `sub` inside a `<p>`, and crew's loading state —
+   * the one measured at 6.9 seconds on the running product — lives there. A
+   * `<p>` or a `<div>` inside a `<p>` is not a nesting mistake the browser
+   * tolerates: the parser CLOSES the outer paragraph and rehangs everything
+   * after it, so React's tree and the document's tree stop agreeing. Asserting
+   * "no block element is emitted" is asserting the thing that would actually
+   * break, rather than asserting how it looks.
+   */
+  const BLOCKS = "p,div,ul,ol,li,h1,h2,h3,section,article";
+
+  it("emits NO block element, which is the whole reason it exists", async () => {
+    const { container } = render(
+      <SlowRead inline afterMs={10}>
+        Reading the boundary in force.
+      </SlowRead>,
+    );
+    await waitFor(() => expect(container.textContent).toMatch(/\d/));
+    expect(container.querySelector(BLOCKS)).toBeNull();
+  });
+
+  it("is bare text while the read is still ordinary, adding nothing to the slot", () => {
+    const { container } = render(
+      <SlowRead inline afterMs={100_000}>
+        Reading the boundary in force.
+      </SlowRead>,
+    );
+    expect(container.textContent).toBe("Reading the boundary in force.");
+    expect(container.querySelector(BLOCKS)).toBeNull();
+  });
+
+  it("keeps the sentence and adds the figure once the read has earned it", async () => {
+    const { container } = render(
+      <SlowRead inline afterMs={10}>
+        Reading the boundary in force.
+      </SlowRead>,
+    );
+    await waitFor(() => {
+      expect(container.textContent).toContain("Reading the boundary in force.");
+      expect(container.textContent).toMatch(/\d+\.\d/);
+    });
+  });
+});

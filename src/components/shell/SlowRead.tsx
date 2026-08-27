@@ -1,4 +1,5 @@
 import { LoadingState } from "@/components/meridian/LoadingState";
+import { useElapsed } from "@/components/meridian/use-elapsed";
 import { Reading } from "@/components/meridian/surface-parts";
 import { useSlowRead } from "@/components/shell/use-slow-read";
 
@@ -26,11 +27,41 @@ import { useSlowRead } from "@/components/shell/use-slow-read";
 export function SlowRead({
   children = "Reading.",
   afterMs,
+  inline = false,
 }: {
   children?: string;
   afterMs?: number;
+  /**
+   * FOR THE SLOTS THAT CANNOT TAKE A BLOCK, and there are real ones.
+   *
+   * `PageHeading` renders its `sub` inside a `<p>`. Crew's loading state lives
+   * there, and it is the one I MEASURED at 6.9 seconds, so it is precisely the
+   * case this component exists for — and it is the one place the component
+   * could not go, because both `Reading` and `LoadingState` draw block
+   * elements and a `<p>` inside a `<p>` is not nesting, it is the browser
+   * closing the first one and rearranging the DOM underneath you.
+   *
+   * So the inline form gives up the pixel grid and keeps the half that
+   * carries the information: the sentence, and the figure after it. No
+   * wrapper, no live region of its own, nothing that changes the shape of the
+   * slot it sits in.
+   */
+  inline?: boolean;
 }) {
   const { slow, startedAt } = useSlowRead(afterMs);
+  /* Called unconditionally, as hooks must be, and told to stay asleep unless
+     this branch will actually render the figure. `useElapsed`'s `active` flag
+     exists so a caller does not pay for a 100ms interval it will never show. */
+  const elapsed = useElapsed(startedAt, slow && inline);
+
+  if (inline) {
+    if (!slow) return <>{children}</>;
+    return (
+      <>
+        {children} <span className="font-mrd-mono mrd-meta tabular-nums">{elapsed}</span>
+      </>
+    );
+  }
 
   if (!slow) return <Reading>{children}</Reading>;
 
