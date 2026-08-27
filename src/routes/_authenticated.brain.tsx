@@ -1487,8 +1487,13 @@ function MemoryPage() {
     return (
       <Surface wide>
         <RecordHead title="The record is still here." sub="You are not signed in any more." />
-        <ReadFailed error={brain.error ?? stats.error} detail="Nothing on the record has changed.">
-          {endedSession}
+        {/* The sentence about the session comes from the PRIMITIVE, which
+            derives it from the error and pairs it with the one control that
+            can work. Passing `endedSession` as the body too printed it twice,
+            one line under itself -- caught by rendering, not by review. The
+            body says the thing the heading does not: what is still true. */}
+        <ReadFailed error={brain.error ?? stats.error}>
+          Everything the record holds is still here, exactly as it was.
         </ReadFailed>
       </Surface>
     );
