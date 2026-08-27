@@ -33,6 +33,7 @@ import { OverlapCheck, OverlapNote } from "@/components/today/OverlapNote";
 import { PushedInsights } from "@/components/today/PushedInsights";
 import { runTotals, spendWords } from "@/components/today/run-totals";
 import { lastMovedAt, stillnessLine } from "@/components/today/last-movement";
+import { failureLine } from "@/components/track/error-copy";
 import { trackToBoardRows, type TrackBoardRow } from "@/components/today/tracks-feed";
 import { QuietMorning } from "@/components/today/QuietMorning";
 import { RunState, ShippedState } from "@/components/today/RunState";
@@ -835,7 +836,9 @@ function Today() {
       void queryClient.invalidateQueries({ queryKey: ["today"] });
       invalidateShellReads(queryClient);
     },
-    onError: (error: Error) => toast.error(error.message),
+    /* Cancelling failed, so the run did not stop. Say that, and let the
+       server's own words through only if they were written for a person. */
+    onError: (error: Error) => toast.error(failureLine("The run is still going.", error)),
   });
   /* `mutate` is stable across renders, so the row wiring below can depend on
      this without rebuilding the crew list every time the component renders. */
@@ -1389,7 +1392,13 @@ function Today() {
       restore(context?.previous);
       record({
         verb: "Nothing was recorded",
-        consequence: error.message,
+        /* WHAT IS STILL TRUE, not what the server called the failure. This
+           printed `error.message` into the product's own voice, so a person
+           read "Nothing was recorded" and then a log line. The useful fact
+           after a failed decision is that the optimistic update was rolled
+           back one line above: the call is where it was. `failureLine` appends
+           the server's sentence only when it was written for a person. */
+        consequence: failureLine("The call is still waiting on you.", error),
         at: stamp(),
         failed: true,
       });
@@ -1413,7 +1422,13 @@ function Today() {
       restore(context?.previous);
       record({
         verb: "Nothing was recorded",
-        consequence: error.message,
+        /* WHAT IS STILL TRUE, not what the server called the failure. This
+           printed `error.message` into the product's own voice, so a person
+           read "Nothing was recorded" and then a log line. The useful fact
+           after a failed decision is that the optimistic update was rolled
+           back one line above: the call is where it was. `failureLine` appends
+           the server's sentence only when it was written for a person. */
+        consequence: failureLine("The call is still waiting on you.", error),
         at: stamp(),
         failed: true,
       });
@@ -1496,7 +1511,13 @@ function Today() {
       restore(context?.previous);
       record({
         verb: "Nothing was recorded",
-        consequence: error.message,
+        /* WHAT IS STILL TRUE, not what the server called the failure. This
+           printed `error.message` into the product's own voice, so a person
+           read "Nothing was recorded" and then a log line. The useful fact
+           after a failed decision is that the optimistic update was rolled
+           back one line above: the call is where it was. `failureLine` appends
+           the server's sentence only when it was written for a person. */
+        consequence: failureLine("The call is still waiting on you.", error),
         at: stamp(),
         failed: true,
       });
