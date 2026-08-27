@@ -843,7 +843,7 @@ export function BoundaryControls({
             "alone",
             "What they do alone",
             looserThanSet.length > 0
-              ? `No approval, no interruption. This is where the leverage is. ${looserThanSet.length} of these ${looserThanSet.length === 1 ? "is" : "are"} set to come to you first and will not, because your agents have earned the trust that clears them.`
+              ? `No approval, no interruption. This is where the leverage is. ${looserThanSet.length} of these ${looserThanSet.length === 1 ? "is" : "are"} set to come to you first and will not, because every agent starts out running alone except on the risky calls. You can lower that per agent on Crew.`
               : "No approval, no interruption. This is where the leverage is.",
             alone,
             "Nothing runs without you yet. Every one of these is a person in the loop.",
