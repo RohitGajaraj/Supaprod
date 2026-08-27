@@ -460,8 +460,35 @@ async function proseWiderThanMeasure(page: import("@playwright/test").Page): Pro
       const declared = el.style.maxWidth.trim();
       const pixelBound = /^\d+(\.\d+)?px$/.test(declared);
       if (ch <= 76 && !pixelBound) continue;
+      /*
+       * THE EXACT ch VALUE, so the fix is a conversion rather than a guess.
+       *
+       * S3 declined to convert /product's 340px caps blind, and was right to:
+       * getting from a pixel width to a character one needs the font's real
+       * advance, and guessing at a visible width on a public page is how a
+       * "tidy-up" ships a narrower column than the one it replaced.
+       *
+       * The `ch` unit is the advance of "0" in the element's own font, so a
+       * probe carrying that font measures it exactly. 340px at 8.5px per
+       * character is 40ch, and that is a value somebody can type with a
+       * straight face.
+       */
+      let exact = "";
+      if (pixelBound) {
+        const chProbe = document.createElement("span");
+        chProbe.style.cssText = "position:absolute;visibility:hidden;width:1ch;";
+        el.appendChild(chProbe);
+        const adv = chProbe.getBoundingClientRect().width;
+        chProbe.remove();
+        const px = parseFloat(declared);
+        if (adv > 0 && Number.isFinite(px)) {
+          exact =
+            ` -> ${(px / adv).toFixed(1)}ch exactly` +
+            ` (${getComputedStyle(el).fontSize}, 1ch = ${adv.toFixed(2)}px)`;
+        }
+      }
       const how = pixelBound
-        ? ` [capped in PIXELS: ${declared.trim()}, which cannot track type]`
+        ? ` [capped in PIXELS: ${declared.trim()}, which cannot track type${exact}]`
         : "";
       out.push(`${ch}ch over ${lines.length} line(s)${how}: ${text.slice(0, 50)}...`);
     }

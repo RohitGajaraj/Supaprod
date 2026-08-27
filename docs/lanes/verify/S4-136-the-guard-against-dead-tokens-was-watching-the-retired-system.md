@@ -32,17 +32,48 @@ the scanner was **pointed at the right thing**.
 A second gap, smaller: `declaredTokens()` read `src/styles/*.css` and **not `src/styles.css`**, which
 is a sibling of that directory rather than a file in it, and is the largest stylesheet in the repo.
 
-## Widened, and it found four live orphans on six call sites
+> ## CORRECTION · it is TWO, not four, and I made the mistake this file is about
+>
+> **`--mrd-fail-bright` and `--mrd-pass-bright` are not orphans. They are prose.** Each appears
+> exactly once, inside a doc comment in `room-parts.tsx` that exists to record that they were
+> **removed**. S2 caught it, and the engine room's failure colour paints correctly.
+>
+> **The cause is the same defect this verdict is about, one level down.** I built the allowlist from
+> an ad-hoc scan of my own that did **not strip comments**, while the guard it feeds **does**. Two
+> instruments, one list, and the wrong one wrote it down. Emptying the allowlist and running the real
+> guard settles it in one command:
+>
+> ```
+> + "--mrd-raised used bare in src/styles.css, src/components/mission/MissionOnboarding.tsx"
+> + "--mrd-you-text used bare in src/components/product/DesignScaffoldPanel.tsx"
+> ```
+>
+> **Two, and the comment-only pair is not among them.** This repo writes long comments that quote the
+> code they replaced, so any scan of `src` that skips that step will keep finding the past. S2 has
+> lost three assertions to the same thing today.
+>
+> **And my own test could not catch it**, which is the part worth keeping. It asserted each excused
+> name was UNDECLARED — true of any string nobody has ever defined, including one that only exists in
+> a sentence. It has been replaced by one that requires an entry to be undeclared **and actually seen
+> by the scanner**, mutation-tested: a name nothing uses now fails the suite. That is the assertion
+> that would have stopped this reaching a verdict.
+>
+> **`--mrd-raised` is real, and both of us were right about it.** It is live on `lane/proof` at
+> `MissionOnboarding.tsx:112` and `:141`; on `origin/main` those uses are already gone. S2 checked
+> main, I measured my branch. S2 also found and fixed the one that mattered most —
+> `.today-hero`, the board's featured band, painting no background at all — and **deleted** the
+> declaration rather than repointing it, on the reasoning that removing a rule which never applied
+> cannot change a pixel while choosing a fill would. That is the same line I drew for `--mrd-mute`,
+> drawn better.
+
+## Widened, and it found TWO live orphans
 
 | token | sites | what it draws |
 | --- | --- | --- |
 | **`--mrd-raised`** | `src/styles.css:2203`, `MissionOnboarding.tsx:112`, `:141` | a background, on the mission onboarding textarea and a hover |
-| **`--mrd-fail-bright`** | `RoomDetail.tsx` | **a FAILURE colour in the engine room** |
-| **`--mrd-pass-bright`** | `RoomDetail.tsx` | its pass counterpart |
 | **`--mrd-you-text`** | `DesignScaffoldPanel.tsx` | text ink on the design scaffold |
 
-**125 `--mrd-*` declared, 129 used bare, 4 declared nowhere.** Every one of them renders nothing
-today.
+**125 `--mrd-*` declared, 129 used bare, 2 declared nowhere** once comments are stripped.
 
 `--mrd-raised` is the one to read twice: `--raised` is on `CLAUDE.md`'s retired list, so this looks
 like a retired name that was given the Meridian prefix and never declared anywhere.
@@ -81,6 +112,6 @@ version's slightly wider net.
 
 - **CONFIRMED: the guard watched only the retired token family.** Widened to Meridian, plus the
   stylesheet it never read.
-- **CONFIRMED: 4 tokens, 6 call sites, all painting nothing.** Owners: `--mrd-raised` and
-  `--mrd-you-text` → **S3** (`mission/**`, `product/**`); `--mrd-fail-bright` and `--mrd-pass-bright`
-  → **S2** (`engine-room/**`). The token itself is **S0's** call.
+- **CONFIRMED: 2 tokens painting nothing** — `--mrd-raised` (S2 fixed the worst site, `.today-hero`)
+  and `--mrd-you-text` (`product/**`). The two I attributed to the engine room were comment text and
+  are withdrawn.
