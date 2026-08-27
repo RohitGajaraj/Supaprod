@@ -869,6 +869,34 @@ export function TrackRunLeft({
       {showHold && track ? (
         <Region title="Why it stopped" sub="This work is not moving until this clears.">
           <div className="flex flex-col gap-mrd-4">
+            {/*
+             * WHAT THE STATION ITSELF SAID, above the kind of stop it was.
+             *
+             * `track.hold` is derived from the coarse `holdReason` -- the kind a
+             * LIST needs -- so a refused tool reads "this station could not use
+             * a tool it needed", which is true and unactionable. `holdBecause`
+             * is the sentence the driver stored verbatim at the stop, and for a
+             * refusal it names the tool and quotes it: "It was studio.pr.merge,
+             * which said: ...".
+             *
+             * Tonight I watched a Build station fail six times saying "GitHub is
+             * not connected" in its own prose while the hold line said "This
+             * station ran but filed nothing. It will try again." The station
+             * said the true thing, the surface said a false one, and the
+             * transcript was the only place they met. This is where they meet
+             * now.
+             *
+             * FIRST, not appended to the kind: the specific sentence is what a
+             * person can act on, and the kind is context for it rather than the
+             * other way round.
+             *
+             * NULL IS THE COMMON CASE AND STAYS SILENT. The column is written
+             * only at the two stops that have words of their own, and every
+             * track that stopped before it existed reads null. So this adds a
+             * line when there is one and changes nothing when there is not.
+             */}
+            {track.holdBecause ? <Row lead={track.holdBecause} /> : null}
+
             <Row
               lead={track.hold ?? undefined}
               sub={[

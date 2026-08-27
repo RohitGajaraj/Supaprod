@@ -8,68 +8,47 @@
  * then visibly grouping into themes as clustering runs", and calls that "the
  * single most convincing thing in the product, because it is the machine
  * finding a pattern in front of you". A state word is not a pattern. The
- * pattern has a name, and the name is one row away.
+ * pattern has a name.
  *
- * ── WHY NAMING IT RATHER THAN GROUPING THE LIST ───────────────────────────
- * Grouping was the first idea and the data refused it. Measured across every
- * signal filed to a track: 1,133 of 1,133 carry a `theme_id`, and only 315 of
- * those themes are members of the SAME track. Grouping the pane by theme would
- * put 818 signals under a heading the pane cannot name, which trades a word
- * that withholds for a heading that lies.
+ * ── THE FIRST VERSION WAS BUILT THE WRONG WAY ROUND, AND IT IS WORTH SAYING
+ * I measured today's rows first: 1,133 signals filed to tracks all carry a
+ * `theme_id`, and only 315 of those themes were attached to the same track. So
+ * I resolved the title from track MEMBERSHIP and designed the card to degrade
+ * for the other 818 -- name the pattern where we have it, print "clustered"
+ * where we do not.
  *
- * Naming degrades honestly instead. Where the theme was filed to this track the
- * card says which pattern took it; where it was not, the card says it was
- * clustered and stops, exactly as it does today. Nothing is claimed that a row
- * on this track does not carry.
+ * The founder corrected the approach, and the correction is the useful part:
+ * that is fitting the platform to whatever data happens to be sitting in the
+ * database, and most of ours is demo seed. A measurement is a fair way to
+ * choose what to build FIRST. It is not a fair way to choose what the thing IS.
  *
- * ── AND IT IS NOT A SECOND SOURCE OF TRUTH ────────────────────────────────
- * The title comes from the theme member the chain already returns, the same
- * object the pane renders as a `ThemeCard` further down the list. A card and
- * its neighbour cannot disagree about a theme's name because they are reading
- * the same row.
+ * The truth is `signals.theme_id -> themes.id`, and it holds whether or not
+ * anything remembered to attach the theme to this track. Membership is
+ * bookkeeping -- and S0 established it is not even that: members are a
+ * PRODUCTION CLAIM, read by `didStationProduce` as proof a station made
+ * something, so attaching a theme another track's clustering pass created would
+ * make a station report work it did not do. The 818 were never missing.
+ *
+ * ── SO THE NAME TRAVELS WITH THE SIGNAL ───────────────────────────────────
+ * `theme_title` is resolved at the source (F-129), one query for the pane, no
+ * cap and no membership anywhere near it. Every signal names its pattern.
+ *
+ * Its fail direction matters and is preserved here: a failed theme read leaves
+ * `theme_title` ABSENT, while a theme that is genuinely gone is carried as
+ * null. So "this signal's cluster has no name" and "we could not read the
+ * names" stay apart, and neither is invented.
  */
-
-/** The little the lookup needs from a chain member. */
-export type ThemeLike = {
-  kind: string;
-  artifactId: string;
-  title?: string | null;
-  missing?: boolean;
-};
-
-export type StopLike<T> = { items: readonly T[] };
-
-/**
- * Every theme this track filed, by id.
- *
- * `missing` rows are excluded for the reason the chain draws the distinction at
- * all: it means the lookup ran and the row was not there, so there is no title
- * to show and claiming one would be an invention.
- */
-export function themesOnTrack<T extends ThemeLike>(
-  stops: readonly StopLike<T>[] | undefined,
-): Map<string, string> {
-  const byId = new Map<string, string>();
-  if (!stops) return byId;
-  for (const stop of stops) {
-    for (const it of stop.items) {
-      if (it.kind !== "theme" || it.missing) continue;
-      const title = typeof it.title === "string" ? it.title.trim() : "";
-      if (title) byId.set(it.artifactId, title);
-    }
-  }
-  return byId;
-}
 
 /**
  * The meta-line fragment for a signal: the pattern it joined, or the plain fact
- * that it joined one, or nothing at all when it never did.
+ * that it joined one when the name could not be read, or nothing at all when it
+ * never joined a pattern.
  */
 export function clusteredInto(
   themeId: string | null | undefined,
-  themes: ReadonlyMap<string, string> | undefined,
+  themeTitle: string | null | undefined,
 ): string {
   if (!themeId) return "";
-  const title = themes?.get(themeId);
+  const title = typeof themeTitle === "string" ? themeTitle.trim() : "";
   return title ? `clustered into ${title}` : "clustered";
 }

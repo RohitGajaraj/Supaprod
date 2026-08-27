@@ -40,7 +40,7 @@ import { computeHunks } from "@/lib/ai/studio-hunks";
 import { CodeDiff } from "@/components/studio/CodeDiff";
 import { setDecisionForecast, updateDecision } from "@/lib/decisions.functions";
 import { decisionsForGrading } from "@/components/track/graded-decisions";
-import { clusteredInto, themesOnTrack } from "@/components/track/clustered-into";
+import { clusteredInto } from "@/components/track/clustered-into";
 import { deferForecastCheck, reopenForecast, settleForecast } from "@/lib/forecast.functions";
 import type { ChainMember, ChainStop } from "@/lib/spine/chain";
 import { wordFor } from "@/lib/spine/chain";
@@ -621,18 +621,7 @@ function DecisionVerdict({ decisionId }: { decisionId: string }) {
  * said in its own words; a theme decline records its reason and can be taken
  * back, which is what makes declining safe.
  */
-function SignalCard({
-  item,
-  now,
-  trackId,
-  themes,
-}: {
-  item: ArtifactView;
-  now: number;
-  trackId: string;
-  /** Every theme this track filed, by id. See `clustered-into.ts`. */
-  themes?: ReadonlyMap<string, string>;
-}) {
+function SignalCard({ item, now, trackId }: { item: ArtifactView; now: number; trackId: string }) {
   const f = item.fields;
   const content = str(f.content);
   const source = str(f.source);
@@ -673,7 +662,7 @@ function SignalCard({
            * `clustered-into.ts` for why, and for the 1,133 / 315 measurement
            * that ruled grouping out.
            */
-          clusteredInto(themeId, themes),
+          clusteredInto(themeId, str(f.theme_title)),
         ]
           .filter(Boolean)
           .join(" · ")}
@@ -1740,7 +1729,6 @@ function StationPanel({
   stop,
   view,
   decisions,
-  themes,
   everDriven,
   hold,
   now,
@@ -1750,8 +1738,6 @@ function StationPanel({
   view?: StationArtifactView;
   /** Every decision this track filed, for the by-key learning join. */
   decisions?: ArtifactView[];
-  /** Theme titles by id, so a signal can name the pattern it joined. */
-  themes?: ReadonlyMap<string, string>;
   everDriven: boolean;
   hold: string | null;
   now: number;
@@ -1867,7 +1853,7 @@ function StationPanel({
       case "decision":
         return <DecisionCard item={item} />;
       case "signal":
-        return <SignalCard item={item} now={now} trackId={trackId} themes={themes} />;
+        return <SignalCard item={item} now={now} trackId={trackId} />;
       case "theme":
         return <ThemeCard item={item} trackId={trackId} />;
       case "learning":
@@ -2114,11 +2100,6 @@ export function ArtifactPane({
              * larger haystack finds the same needle or none.
              */
             decisions={decisionsForGrading(bodies.data?.stops)}
-            /* Built from every stop for the same reason the decisions are: a
-               theme filed at one station names a signal filed at another, and
-               scoping the lookup to one stop would silently drop the pairs that
-               cross. */
-            themes={themesOnTrack(bodies.data?.stops)}
             everDriven={track.drivenAt !== null}
             hold={track.hold}
             now={now}
