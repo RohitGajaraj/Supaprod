@@ -41,7 +41,13 @@ import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { useSelection } from "@/components/shell/use-selection";
 import { Receipt } from "@/components/meridian/Receipt";
 import { Surface } from "@/components/meridian/Surface";
-import { duplicateWork, redoingSettledWork, repeatLine } from "@/components/today/duplicate-work";
+import {
+  duplicateWork,
+  redoingSettledWork,
+  repeatBadge,
+  repeatLine,
+  subjectKey,
+} from "@/components/today/duplicate-work";
 import { SlowRead } from "@/components/shell/SlowRead";
 import { stripAutoPrefix, cleanTitle } from "@/components/plan/format";
 import { useConfirm } from "@/hooks/use-confirm";
@@ -1121,10 +1127,33 @@ function Today() {
      Concatenating them put every gated row after every mission row regardless
      of age, so the 33-day gate still sorted below a mission blocked ten minutes
      ago. Oldest first across the whole lane, for the reason on replyRows. */
-  const allReplyRows = React.useMemo(
-    () => [...replyRows, ...gatedRows, ...trackCrewRows.reply].sort((a, b) => a.at - b.at),
-    [replyRows, gatedRows, trackCrewRows],
-  );
+  const allReplyRows = React.useMemo(() => {
+    const merged = [...replyRows, ...gatedRows, ...trackCrewRows.reply].sort((a, b) => a.at - b.at);
+    /*
+     * A ROW THAT IS THE FOURTH COPY SAYS SO (2026-08-27).
+     *
+     * The lane note says how much of this list repeats itself. That is the
+     * fact a person needs before they start, and on its own it is a warning
+     * they cannot act on, because it does not say WHICH rows it was about.
+     * Measured live: 89 proposals under 48 subjects, one of them raised seven
+     * times. Somebody working down this lane answers the same request seven
+     * times without the rows ever admitting they are the same request.
+     *
+     * It goes in `note`, which this type already defines as "a sentence the
+     * ROW cannot hold, drawn on the line underneath it" — the state slot beside
+     * the title does not wrap and is for a few words. Where a row already has
+     * a note, usually a driver hold sentence worth reading, this is APPENDED
+     * rather than substituted: which of the two matters more is the reader's
+     * call and not this line's.
+     */
+    const size = new Map(duplicateWork(merged).groups.map((g) => [g.key, g.total]));
+    if (size.size === 0) return merged;
+    return merged.map((r) => {
+      const badge = repeatBadge(size.get(subjectKey(r.title)) ?? 0);
+      if (!badge) return r;
+      return { ...r, note: r.note ? `${r.note} ${badge}` : badge };
+    });
+  }, [replyRows, gatedRows, trackCrewRows]);
   const allLiveRows = React.useMemo(
     () => [...liveRows.filter((r) => !gatesByMission.has(r.id)), ...trackCrewRows.live],
     [liveRows, gatesByMission, trackCrewRows],

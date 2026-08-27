@@ -185,3 +185,21 @@ export function repeatLine(dup: DuplicateWork, redoing: number): string | null {
   }
   return `${parts.join(", and ")}.`;
 }
+
+/**
+ * WHAT A SINGLE ROW SHOULD SAY ABOUT BEING ONE OF SEVERAL.
+ *
+ * The lane note says how much of the list repeats itself, which is the fact a
+ * person needs before they start. This is the one they need while they are in
+ * it: a row that looks like a decision to make is often the fourth copy of a
+ * decision three rows above. Without it the count is a warning nobody can act
+ * on, because the reader still cannot tell WHICH rows it was about.
+ *
+ * "on this list" for the same reason every other sentence in this file carries
+ * it: the client holds 50 of 111 rows, so the true number of copies may be
+ * higher and this must not be read as the workspace's total.
+ */
+export function repeatBadge(total: number): string | null {
+  if (total < 2) return null;
+  return `One of ${total} identical requests on this list.`;
+}

@@ -1,6 +1,12 @@
 import { describe, expect, it } from "bun:test";
 
-import { duplicateWork, redoingSettledWork, repeatLine, subjectKey } from "./duplicate-work";
+import {
+  duplicateWork,
+  redoingSettledWork,
+  repeatBadge,
+  repeatLine,
+  subjectKey,
+} from "./duplicate-work";
 
 /**
  * THE NUMBERS THIS PINS ARE FROM THE LIVE DATABASE, 2026-08-27.
@@ -122,5 +128,19 @@ describe("repeatLine", () => {
     expect(repeatLine({ distinct: 2, repeated: 1, groups: [] }, 1)).toBe(
       "1 of these repeats another on this list, and 1 asks for work this board already shows as finished.",
     );
+  });
+});
+
+describe("repeatBadge", () => {
+  it("says nothing about a row that is the only one of its kind", () => {
+    // Every row carrying "One of 1" would be noise on every row on the board,
+    // which is R-20 section 8: a region either carries a fact the person came
+    // for or is removed.
+    expect(repeatBadge(1)).toBeNull();
+    expect(repeatBadge(0)).toBeNull();
+  });
+
+  it("tells a row it is one of several, so the lane's count can be acted on", () => {
+    expect(repeatBadge(7)).toBe("One of 7 identical requests on this list.");
   });
 });
