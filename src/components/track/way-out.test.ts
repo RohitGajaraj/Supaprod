@@ -183,6 +183,12 @@ describe("the switched-off step tells the truth about itself", () => {
     const out = wayOut("no-agent", BOTH_OPEN);
     expect(out.next).toContain("switched off");
     expect(out.next).toContain("Agents");
+    /*
+     * AND DOES NOT RESTATE THE HOLD LINE ABOVE IT. `HOLD_LINE["no-agent"]`
+     * already says "No agent is picking this step up". This sentence carries
+     * only what that one cannot: which thing is off, and the door.
+     */
+    expect(out.next).not.toContain("nothing will pick it up");
     // The old sentence claimed a team gap and claimed the gap was permanent.
     // Turning the agent back on is one control, so neither may return.
     expect(out.next).not.toContain("your team");

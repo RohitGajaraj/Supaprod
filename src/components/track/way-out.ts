@@ -94,6 +94,19 @@ const DIAGNOSIS: Partial<Record<HoldReason, string>> = {
    * their situation is unfixable when the fix is a toggle is worse than saying
    * nothing, which is what this file was written to stop.
    *
+   * -- AND IT NO LONGER RESTATES THE LINE ABOVE IT ------------------------
+   * S0 fixed their half of F-134 while I was fixing mine, and the two then
+   * said the same thing eight lines apart. `HOLD_LINE["no-agent"]` now reads
+   * "No agent is picking this step up, so it needs you", which is the EFFECT,
+   * correctly and without the false cause it used to give. This sentence
+   * opened by restating that effect before reaching the cause.
+   *
+   * Two sentences agreeing at that distance are worse than two contradicting,
+   * because a contradiction at least tells a reader something is wrong, while
+   * agreement leaves them unable to tell which line is the surface's own claim
+   * and no reason to look. So this one now carries only what the line above
+   * cannot: WHICH thing is off, and the door that turns it back on.
+   *
    * It says Agents and not Crew on purpose. The route is `/crew` and the label
    * has been Agents since 2026-08-15, and a sentence that points at a door by
    * a name the product no longer prints is the same dead end in a nicer coat.
@@ -106,7 +119,7 @@ const DIAGNOSIS: Partial<Record<HoldReason, string>> = {
    * yet") and has the reproduction.
    */
   "no-agent":
-    "The agent that covers this step is switched off, so nothing will pick it up until it is switched back on under Agents.",
+    "The agent that covers it is switched off, and turning it back on under Agents is what starts this again.",
   stalled: "It has come back with nothing several times, so another try lands in the same place.",
   "going-in-circles":
     "It has been round this many times without moving, so trying again changes nothing.",
