@@ -31,6 +31,7 @@ import { useNavigate } from "@tanstack/react-router";
 
 import { pollMs } from "@/components/shell/poll";
 import { listStudioSessions } from "@/lib/studio.functions";
+import { listDueForecasts } from "@/lib/forecast.functions";
 import { listPendingOutcomes } from "@/lib/outcome.functions";
 import { runState } from "@/components/runs/run-state";
 import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
@@ -70,6 +71,7 @@ export function useSpineStrip(active: AgentStation | null): void {
   const navigate = useNavigate();
   const fList = useServerFn(listStudioSessions);
   const fListPending = useServerFn(listPendingOutcomes);
+  const fDueForecasts = useServerFn(listDueForecasts);
 
   // The board's exact key, so the two share one fetch rather than racing two.
   const sessions = useQuery({
@@ -91,7 +93,54 @@ export function useSpineStrip(active: AgentStation | null): void {
   });
 
   const rows = sessions.data?.sessions;
-  const pendingCount = pendingOutcomes.data?.pending.length ?? 0;
+  /* THE OTHER THING THAT COMES DUE AT LEARN, and it is the one the product is
+     actually about.
+
+     This badge counted only shipped specs with no outcome recorded. Measured
+     2026-08-27 by S1: **0** of 21 shipped specs are unsettled, so the badge was
+     correctly quiet - and **15 decision forecasts are past their horizon with
+     no verdict written**, which nothing outside /learn was surfacing.
+
+     A forecast with no verdict is the one thing this product claims as its
+     moat: what a team believed would happen, recorded before the outcome was
+     known. A station badge that stays silent while fifteen of them come due is
+     silent about the only thing the station is for.
+
+     WHY THESE TWO ARE SUMMED WHEN `run-totals.ts` REFUSES TO SUM. That file
+     keeps session spend and track spend apart because they are two engines and
+     the total "would invent a number nobody can check against either source".
+     The test it implies is whether the sum is checkable where the badge points,
+     and here it is: both are "an outcome nobody has recorded", the act a person
+     performs is identical, and /learn lists both. Different tables, no overlap
+     - `prds` with a shipped date against `decisions` past a horizon.
+
+     `["forecast-due"]` IS THE DESK'S OWN KEY, deliberately. `ForecastDeskPanel`
+     and the inbox already read it, so a third reader costs one fetch and the
+     three cannot disagree about how many are due. */
+  const dueForecasts = useQuery({
+    queryKey: ["forecast-due"],
+    queryFn: () => fDueForecasts(),
+    staleTime: 60_000,
+    refetchInterval: (query) => pollMs(60_000, query.state.fetchFailureCount),
+  });
+
+  /* `total`, NEVER `due.length`. `listDueForecastsImpl` selects with
+     `count: "exact"` AND `.limit(DUE_FORECAST_PAGE)`, so the array is one page
+     and the count is the population. Rendering the page length as the number
+     is the defect S1 measured across the approvals queue the same day: 116
+     pending gates behind a limit of 100, and every surface said 100. */
+  const outcomesDue = React.useMemo(() => {
+    const specs = pendingOutcomes.data?.pending.length;
+    const forecasts = dueForecasts.data?.total;
+    /* BOTH OR NEITHER. A total assembled from one of two reads is not a total,
+       and this line has no room to say which half it is missing. Silence is
+       what this hook already did when the outcome read failed, so this is the
+       existing behaviour extended rather than a new rule. */
+    if (specs === undefined || forecasts === undefined) return null;
+    return specs + forecasts;
+  }, [pendingOutcomes.data, dueForecasts.data]);
+
+  const pendingCount = outcomesDue ?? 0;
 
   const sessionsFailed = sessions.isError;
 
