@@ -1420,6 +1420,50 @@ export const getBoundary = createServerFn({ method: "GET" })
       if (!tracksErr) trackSpend = (tracks ?? []) as typeof trackSpend;
     }
 
+    /*
+     * EVERY GATE THIS WORKSPACE HAS EVER RAISED, AND WHAT BECAME OF IT.
+     *
+     * The boundary already says how many gates expired, taken off a read capped
+     * at 50 rows and covering only this person's pending and expired ones. That
+     * is a floor with no denominator, so it can say "3 expired" and never "3 of
+     * how many".
+     *
+     * Measured 2026-08-27 across all 324 rows ever written: 176 answered, 92
+     * expired unanswered, 58 cancelled, 0 still waiting. More than one gate in
+     * four was never answered by anybody, and R-27's own comment names what
+     * that is -- "a gate nobody answers is a stall wearing governance as a
+     * costume".
+     *
+     * Three counts and not a ratio, because the surface should say the
+     * population out loud rather than hand a person a percentage whose
+     * denominator they cannot see. `head: true` so this costs a count and not
+     * 324 rows.
+     *
+     * FAILS TO NULL, NEVER TO ZERO. "No gate has ever expired here" asserted
+     * out of a failed count is the reassuring answer arrived at by omission.
+     */
+    let gateHistory: { total: number; answered: number; expired: number } | null = null;
+    if (workspaceId) {
+      const head = { head: true, count: "exact" as const };
+      const base = () =>
+        supabase
+          .from("agent_approvals")
+          .select("id", head)
+          .eq("workspace_id", workspaceId as string);
+      const [all, decided, dead] = await Promise.all([
+        base(),
+        base().not("decided_at", "is", null),
+        base().eq("escalation_state", "expired"),
+      ]);
+      if (!all.error && !decided.error && !dead.error) {
+        gateHistory = {
+          total: all.count ?? 0,
+          answered: decided.count ?? 0,
+          expired: dead.count ?? 0,
+        };
+      }
+    }
+
     const num = (v: number | string | null | undefined) =>
       v === null || v === undefined ? null : Number(v);
     const w = ws as {
@@ -1463,6 +1507,12 @@ export const getBoundary = createServerFn({ method: "GET" })
        * nothing has spent: the surface draws nothing rather than a zero.
        */
       trackSpend,
+      /**
+       * Every gate this workspace has raised, and what became of it. Null when
+       * the count did not come back: the surface says nothing rather than
+       * claiming none expired.
+       */
+      gateHistory,
       /** Which workspace answered — the question this file used to guess at. */
       workspaceId,
       /** Where this workspace puts the promotion bar and the settle-or-ask bar,

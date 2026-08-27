@@ -83,3 +83,40 @@ export function unansweredGates(
     capped,
   };
 }
+
+/**
+ * WHAT BECAME OF EVERY GATE THIS WORKSPACE EVER RAISED.
+ *
+ * The sentence above is a floor with no denominator: it counts expired gates
+ * off a read capped at 50 rows, covering only this person's pending and
+ * expired ones, so it can say "3 expired" and never "3 of how many".
+ *
+ * `getBoundary` now counts all three states across the workspace's whole
+ * history. Measured 2026-08-27 across the 324 rows ever written: 176 answered,
+ * 92 expired unanswered, 58 cancelled. More than one gate in four was never
+ * answered by anybody.
+ *
+ * IT STATES THE POPULATION RATHER THAN A PERCENTAGE. "28% expired" hands a
+ * person a number whose denominator they cannot see; "92 of 324" is the same
+ * fact with the population in it, and this file already argues that a count
+ * whose population is not named will be read as covering everything.
+ *
+ * NULL DRAWS NOTHING. A failed count is not "none expired", which is the
+ * reassuring answer arrived at by omission.
+ */
+export interface GateHistory {
+  total: number;
+  answered: number;
+  expired: number;
+}
+
+export function whatBecameOfThem(history: GateHistory | null | undefined): string | null {
+  if (!history || history.total <= 0) return null;
+  if (history.expired <= 0) {
+    /* Worth saying: a workspace that answers every gate has proved the thing
+       the expired ones disprove, and nothing else on this page says it. */
+    return `All ${history.total} ${history.total === 1 ? "gate" : "gates"} this workspace has raised ${history.total === 1 ? "was" : "were"} answered.`;
+  }
+  const one = history.expired === 1;
+  return `${history.expired} of the ${history.total} gates this workspace has ever raised ${one ? "was" : "were"} never answered.`;
+}

@@ -59,7 +59,7 @@ import { TrustGraduationsBlock } from "@/components/governance/TrustGraduations"
 import { AutomationBoundary } from "@/components/governance/AutomationBoundary";
 import { ceilingReality, TRACKS } from "@/components/governance/ceiling-reality";
 import { whereTheCrewStands } from "@/components/governance/where-the-crew-stands";
-import { unansweredGates } from "@/components/governance/gates-nobody-answered";
+import { unansweredGates, whatBecameOfThem } from "@/components/governance/gates-nobody-answered";
 import { whatTheyActuallyDid } from "@/components/governance/what-they-actually-did";
 import { Link } from "@tanstack/react-router";
 import { Field, Input } from "@/components/meridian/forms";
@@ -547,6 +547,8 @@ export function BoundaryControls({
   /* The same pair for the whole piece of work. TRACKS carries `seesHalts:
      false`, so the sentence reports a cost and claims nothing about halting. */
   const trackSpent = ceilingReality(data?.trackSpend, TRACKS);
+  /* How often a gate dies here, with the population in the sentence. */
+  const gateHistory = whatBecameOfThem(data?.gateHistory);
 
   // Never null, even before the read lands: the shipped numbers ARE the policy
   // until a workspace says otherwise, so there is no such thing as "no policy".
@@ -924,9 +926,16 @@ export function BoundaryControls({
           {block(
             "asks",
             "What still comes to you",
-            unanswered.said
-              ? `Each of these costs one interruption every time it happens. ${unanswered.said}`
-              : "Each of these costs one interruption every time it happens.",
+            /* The whole history first, because it carries the denominator, then
+               the named tools from the capped read. One says how often a gate
+               dies here; the other says which ones. */
+            [
+              "Each of these costs one interruption every time it happens.",
+              gateHistory,
+              unanswered.said,
+            ]
+              .filter(Boolean)
+              .join(" "),
             asks,
             "Nothing asks. Your crew runs the loop on its own.",
           )}
