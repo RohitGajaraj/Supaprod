@@ -601,7 +601,7 @@ export function TraceDetail({ id }: { id: string }) {
         <div data-mrd="" className="flex flex-col gap-mrd-6">
           <PageHeading title={shortTitle} />
           {TRACE_ID.test(id) ? (
-            <ReadFailedLine onRetry={() => void trace.refetch()}>
+            <ReadFailedLine error={trace.error} onRetry={() => void trace.refetch()}>
               {failureLine("This trace did not load, so nothing here is its record.", trace.error)}
             </ReadFailedLine>
           ) : (

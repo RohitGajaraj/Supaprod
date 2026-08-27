@@ -130,7 +130,7 @@ export function BoardPanel({ open, onClose }: { open: boolean; onClose: () => vo
           {sessions.isLoading ? (
             <Reading>Reading the record.</Reading>
           ) : sessions.isError ? (
-            <ReadFailed onRetry={() => void sessions.refetch()}>
+            <ReadFailed error={sessions.error} onRetry={() => void sessions.refetch()}>
               The runs did not load, so this board is not the whole picture.
             </ReadFailed>
           ) : (

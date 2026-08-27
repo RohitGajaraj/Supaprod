@@ -1934,7 +1934,7 @@ function Today() {
             {stillWaiting(queue) ? (
               <Reading>Reading what needs you.</Reading>
             ) : queue.isError ? (
-              <ReadFailedLine onRetry={() => void queue.refetch()}>
+              <ReadFailedLine error={queue.error} onRetry={() => void queue.refetch()}>
                 Your decisions are unchanged and this could not read them. Retry before you treat
                 the morning as clear.
               </ReadFailedLine>
@@ -2007,21 +2007,21 @@ function Today() {
             {stillWaiting(missions) ? (
               <Reading>Reading the run record.</Reading>
             ) : missions.isError ? (
-              <ReadFailedLine onRetry={() => void missions.refetch()}>
+              <ReadFailedLine error={missions.error} onRetry={() => void missions.refetch()}>
                 The run record did not load, so this cannot say what went live, what stopped or what
                 is still going.
               </ReadFailedLine>
             ) : stillWaiting(tracks) ? (
               <Reading>Reading the work the loop is driving.</Reading>
             ) : tracks.isError ? (
-              <ReadFailedLine onRetry={() => void tracks.refetch()}>
+              <ReadFailedLine error={tracks.error} onRetry={() => void tracks.refetch()}>
                 The loop's work could not be read, so something started from a sentence may be
                 missing here. Retry before you treat the morning as clear.
               </ReadFailedLine>
             ) : stillWaiting(sessions) ? (
               <Reading>Reading which runs need your answer.</Reading>
             ) : sessions.isError ? (
-              <ReadFailedLine onRetry={() => void sessions.refetch()}>
+              <ReadFailedLine error={sessions.error} onRetry={() => void sessions.refetch()}>
                 The gate check did not load, so a run waiting on you may be sitting in Running.
                 Retry before you treat the morning as clear.
               </ReadFailedLine>
@@ -2299,7 +2299,7 @@ function Today() {
              fetch worked. */
           <div className="today-learned">
             <Region title={LEARNING_BLOCK}>
-              <ReadFailedLine onRetry={() => void learnings.refetch()}>
+              <ReadFailedLine error={learnings.error} onRetry={() => void learnings.refetch()}>
                 The outcome record did not load, so this cannot show what changed next.
               </ReadFailedLine>
             </Region>

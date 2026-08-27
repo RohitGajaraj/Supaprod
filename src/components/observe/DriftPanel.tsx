@@ -322,7 +322,7 @@ export function DriftPanel() {
   // differently on each.
   if (error) {
     return (
-      <ReadFailedLine onRetry={() => void refetch()}>
+      <ReadFailedLine error={error} onRetry={() => void refetch()}>
         The drift record did not load, so this is not a claim that nothing moved.{" "}
         {messageForPerson(error)}
       </ReadFailedLine>
