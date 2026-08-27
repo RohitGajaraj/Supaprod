@@ -90,18 +90,20 @@ smuggled into this one.
 - **CONFIRMED: four live type errors were mine**, written tonight, in the checks I was using to judge
   other people's code.
 - **Fixed and gated**, mutation-tested both ways.
-- **OPEN: `src/**/*.test.ts` is still excluded**, and the compiler ran out of memory measuring it.
+- **OPEN: `src/**/*.test.ts` is still excluded**, carries **414** type errors of its own, and the
+  compiler could not complete the check reliably enough to gate it here.
 
 ---
 
-## Follow-up · the unit suite is 797 files and 423 type errors
+## Follow-up · the unit suite is 797 files and 414 type errors, and the ratchet did not ship
 
 **Sized in the next unit, and the first answer was wrong in the most dangerous direction.**
 
 | | |
 | --- | --- |
 | test files in `src/` | **797** |
-| type errors when they are checked | **423** |
+| type errors **in the test files themselves** | **414** |
+| further errors in files they import | 9 |
 
 **My first probe reported ZERO, and I nearly filed it.** The run had exhausted the compiler's heap and
 died before emitting anything, and `grep -c "error TS"` counted a crash as a clean bill of health.
@@ -115,10 +117,24 @@ the output filled with errors from a completely different file — `'probe' is p
 > passed.** That is the same lesson as `/pricing` reporting "0 below AA of 0 judged", and it is the
 > third time tonight the population, not the count, was the thing that mattered.
 
-**Not gated, and that is a decision rather than an omission.** 423 errors is not a cleanup that fits
-in a unit, and switching the gate on would fail every lane's build on debt none of them wrote. It
-wants the ratchet treatment the Meridian scan already has: freeze the current count, fail on an
-increase, and let it fall.
+**The number needed a second correction too.** The first split was 423, and **9 of those are in
+`src/routes/api/**`** — files the tests *import*, reported only because a tests config must add Node
+and Bun globals that the browser config does not have. They are an artifact of the probe, not a
+property of the code. **414 is the honest number**, and freezing a total that moves when a `types`
+field moves would have frozen the wrong thing.
+
+**I BUILT THE RATCHET AND WITHDREW IT.** `scripts/test-types-ratchet.sh` froze the count, failed on an
+increase, and carried the anti-vacuity guard this finding is about — tsc prints *"Found N errors"* only
+when it completes, so a run without that line refuses instead of passing.
+
+**It refused on three consecutive runs.** The compiler could not finish this project on this machine
+once other work was in flight, and the two earlier completions were luck. **The guard was right every
+time**, which is the one good thing here: it caught a real crash rather than a simulated one, and
+never once reported a crash as a clean suite.
+
+**A gate that refuses on every run is not a gate**, so it is not shipped. Removed rather than left
+half-wired. The measurement stands, the enforcement does not, and that is stated rather than left for
+somebody to discover.
 
 **The `e2e/` gate shipped because its number was 5, four of them mine and all five fixed in the same
 unit.** The difference between the two is the size of the number, and nothing else.
