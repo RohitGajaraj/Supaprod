@@ -215,6 +215,7 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { failureLine } from "@/components/track/error-copy";
 import { sourceLabel } from "@/components/discover/format";
 import { wordFor } from "@/lib/spine/chain";
 import { Row, Line } from "@/components/meridian/rows";
@@ -2763,7 +2764,11 @@ function DecideSurface() {
           reason, which is different information, and the way back. */}
         {opps.error ? (
           <ReadFailed onRetry={() => void opps.refetch()}>
-            {(opps.error as Error).message}
+            {/* The comment above is right that this line carries the reason, and
+                a transport string is not one. It carries the server's sentence
+                where the server wrote one for a person, and the surface's own
+                otherwise, so the line is never empty. */}
+            {failureLine("The bets on the table did not come back.", opps.error)}
           </ReadFailed>
         ) : loading ? (
           <Reading>Reading the bets on the table.</Reading>

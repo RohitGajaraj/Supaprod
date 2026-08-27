@@ -228,6 +228,7 @@
  */
 
 import { AutomationBoundary } from "@/components/governance/AutomationBoundary";
+import { failureLine } from "@/components/track/error-copy";
 import { wordFor } from "@/lib/spine/chain";
 import { Row, Line } from "@/components/meridian/rows";
 import * as React from "react";
@@ -445,7 +446,9 @@ function RenameClusterForm({
         />
       </Field>
       {save.isError ? (
-        <p className="text-mrd-fail text-mrd-base">{(save.error as Error).message}</p>
+        <p className="text-mrd-fail text-mrd-base">
+          {failureLine("That did not save, so nothing changed.", save.error)}
+        </p>
       ) : null}
       <Actions>
         <Action type="submit" disabled={!canSave}>

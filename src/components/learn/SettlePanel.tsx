@@ -53,6 +53,7 @@
  */
 
 import * as React from "react";
+import { failureLine } from "@/components/track/error-copy";
 import { Row, Line } from "@/components/meridian/rows";
 import {
   Action,
@@ -426,8 +427,8 @@ export function SettlePanel({
         verb: "It stayed on your desk",
         consequence: (
           <>
-            {v.target.title}. The check date did not move, so this is still waiting on you.{" "}
-            {e.message}
+            {v.target.title}.{" "}
+            {failureLine("The check date did not move, so this is still waiting on you.", e)}
           </>
         ),
         at: clock(),
@@ -484,7 +485,7 @@ export function SettlePanel({
            landed when it knows. */
         consequence: (
           <>
-            {v.target.title}. The verdict is not on the record. {e.message}
+            {v.target.title}. {failureLine("The verdict is not on the record.", e)}
           </>
         ),
         at: clock(),
@@ -831,7 +832,7 @@ export function SettlePanel({
 
           {draft.isError ? (
             <ReadFailedLine onRetry={() => draft.mutate(target.prdId)}>
-              The draft did not come back, and nothing was written. {(draft.error as Error).message}
+              {failureLine("The draft did not come back, and nothing was written.", draft.error)}
             </ReadFailedLine>
           ) : null}
         </div>

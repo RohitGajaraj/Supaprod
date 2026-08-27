@@ -108,6 +108,7 @@
  */
 
 import * as React from "react";
+import { failureLine } from "@/components/track/error-copy";
 import { Row, Line, Who } from "@/components/meridian/rows";
 import { Num, Actions, Door } from "@/components/meridian/surface-parts";
 import type { ReactNode } from "react";
@@ -926,7 +927,7 @@ function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string })
     return (
       <Region title="Precedent">
         <ReadFailedLine onRetry={() => void q.refetch()}>
-          Could not read this bet's judgment. {(q.error as Error).message}
+          {failureLine("Could not read this bet's judgment.", q.error)}
         </ReadFailedLine>
       </Region>
     );
