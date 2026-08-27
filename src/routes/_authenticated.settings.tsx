@@ -697,9 +697,10 @@ function SettingsPage() {
               title="What they may do without asking"
               sub="Every tool, the ceiling on a run, what routes itself, and the switch that stops all of it."
             />
-            {/* ControlsPanel below owns the pause switch, so this panel's
-                read-only pause line would be the same fact twice. */}
-            <BoundaryControls pauseShownElsewhere />
+            {/* BoundaryControls owns the kill switch now (S0 ruling A-006
+                section 2): one editor, and it is the panel that edits every
+                other boundary. ControlsPanel below keeps a readout. */}
+            <BoundaryControls />
             <ControlsPanel controlsOnly onOpenQueue={() => navigate({ to: "/approvals" })} />
           </>
         )}

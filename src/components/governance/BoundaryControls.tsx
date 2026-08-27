@@ -19,6 +19,7 @@ import {
   ReadFailedLine,
   Reading,
   Region,
+  Toggle,
   Value,
 } from "@/components/meridian/surface-parts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -31,6 +32,7 @@ import {
   getBoundary,
   getDeclinedLedger,
   setWorkspaceAutonomyPolicy,
+  setWorkspacePause,
   setWorkspaceSpendPolicy,
 } from "@/lib/governance.functions";
 import type { BoundaryTool } from "@/lib/governance.functions";
@@ -53,7 +55,7 @@ import { getApprovalPolicyState } from "@/lib/approvals-queue.functions";
 import { humanWriteError } from "@/lib/roles.functions";
 import { TrustGraduationsBlock } from "@/components/governance/TrustGraduations";
 import { AutomationBoundary } from "@/components/governance/AutomationBoundary";
-import { Input } from "@/components/meridian/forms";
+import { Field, Input } from "@/components/meridian/forms";
 import { MoreItem, MoreMenu } from "@/components/meridian/MoreMenu";
 import { Receipt } from "@/components/meridian/Receipt";
 
@@ -352,6 +354,7 @@ export function BoundaryControls({
   const fSetMode = useServerFn(updateToolMode);
   const fSetCap = useServerFn(setWorkspaceSpendPolicy);
   const fSetAutonomy = useServerFn(setWorkspaceAutonomyPolicy);
+  const fSetPause = useServerFn(setWorkspacePause);
 
   const [receipt, setReceipt] = React.useState<BoundaryReceipt | null>(null);
   const [showAll, setShowAll] = React.useState<Record<string, boolean>>({});
@@ -542,6 +545,47 @@ export function BoundaryControls({
       setReceipt({
         verb: "The boundary did not move",
         consequence: humanWriteError(e, "It is still where it was."),
+        failed: true,
+      }),
+  });
+
+  /**
+   * THE KILL SWITCH, AND THIS IS NOW ITS ONLY EDITOR (S0 ruling A-006 §2).
+   *
+   * It used to live on ControlsPanel while this panel drew a read-only
+   * "Everything is paused" line, and the two were mounted on the same settings
+   * pane. Two editors of one switch is worse than two names for one
+   * destination: a stale readout beside a live toggle can tell a person the
+   * OPPOSITE of the truth about whether their agents are running, and that is
+   * the one fact on this page nobody may be wrong about.
+   *
+   * It belongs here because this panel is the boundary editor, and stopping
+   * everything is the outermost boundary there is. ControlsPanel keeps a
+   * readout that names where the switch lives.
+   */
+  const [pauseReason, setPauseReason] = React.useState("");
+  const setPause = useMutation({
+    mutationFn: (next: boolean) =>
+      fSetPause({
+        data: { workspaceId: activeWorkspaceId!, paused: next, reason: pauseReason || null },
+      }),
+    onSuccess: (_r, next) => {
+      setReceipt({
+        verb: next ? "You stopped the crew" : "You let the crew run",
+        // Resume copy stays honest: a halted run does not pick itself back up,
+        // the agents simply become dispatchable again.
+        consequence: next
+          ? "Every agent is holding mid-step. Nothing was lost, and nothing runs until you turn this back on."
+          : "They can be dispatched again. Runs that were already halted do not pick themselves back up.",
+      });
+      setPauseReason("");
+      void qc.invalidateQueries({ queryKey: ["boundary"] });
+      void qc.invalidateQueries({ queryKey: ["governance"] });
+    },
+    onError: (e: Error) =>
+      setReceipt({
+        verb: "That switch did not save",
+        consequence: humanWriteError(e, "The crew is as it was."),
         failed: true,
       }),
   });
@@ -810,14 +854,45 @@ export function BoundaryControls({
                   }}
                 />
               </Line>
-              {data.paused && !pauseShownElsewhere ? (
-                <Line
-                  label="Everything is paused"
-                  sub="A kill switch is on for this workspace, so nothing runs whatever the boundary says."
-                >
-                  <Value tone="fail">Paused</Value>
-                </Line>
-              ) : null}
+              {/*
+               * THE SWITCH ITSELF, not a line reporting one set elsewhere.
+               *
+               * It reads `data.paused` from the SAME `getBoundary` read as
+               * every other row in this panel, so the control and the state it
+               * shows cannot drift apart -- which is precisely what could
+               * happen while a second editor lived on another panel.
+               *
+               * Drawn whatever the state, because "nothing is stopped" is a
+               * fact a person came here to confirm, and a switch that appears
+               * only once it is thrown is a switch nobody can find in advance.
+               */}
+              <Line
+                label="Agents may run"
+                sub={
+                  data.paused
+                    ? "A kill switch is on for this workspace, so nothing runs whatever the boundary says."
+                    : "Turn this off and every agent holds mid-step. Nothing is lost."
+                }
+              >
+                <Toggle
+                  checked={!data.paused}
+                  disabled={setPause.isPending}
+                  label="Agents may run"
+                  onChange={() => setPause.mutate(!data.paused)}
+                />
+              </Line>
+              <Field
+                label={data.paused ? "Why you are resuming" : "Why you are pausing"}
+                htmlFor="boundary-pause-reason"
+              >
+                <Input
+                  id="boundary-pause-reason"
+                  value={pauseReason}
+                  onChange={(e) => setPauseReason(e.target.value)}
+                  disabled={setPause.isPending}
+                  placeholder="Optional. It lands in the audit trail."
+                />
+              </Field>
             </Region>
           ) : null}
 

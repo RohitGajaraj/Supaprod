@@ -97,6 +97,7 @@ import {
   Reading,
   Region,
   Toggle,
+  Value,
 } from "@/components/meridian/surface-parts";
 import { Field, Input } from "@/components/meridian/forms";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -243,12 +244,10 @@ export function ControlsPanel({
    * it guarded. Nothing on this panel writes a tool boundary any more, so
    * asking whether the reader may is asking about a control that is not here.
    */
-  const pauseWrite = useGovernedWrite("kill_switches", activeWorkspaceId);
   const qc = useQueryClient();
   const navigate = useNavigate();
   const overviewFn = useServerFn(getGovernanceOverview);
   const boundaryFn = useServerFn(getBoundary);
-  const pauseFn = useServerFn(setWorkspacePause);
   const listSubsFn = useServerFn(listEventSubscriptions);
   const upsertSubFn = useServerFn(upsertEventSubscription);
   const deleteSubFn = useServerFn(deleteEventSubscription);
@@ -289,26 +288,6 @@ export function ControlsPanel({
     consequence: string,
     handoff?: { slug: string | null | undefined } | null,
   ) => setCommitted((c) => [...c, { verb, consequence, at: new Date().toISOString(), handoff }]);
-
-  const [reason, setReason] = useState("");
-  const pauseMut = useMutation({
-    mutationFn: (next: boolean) =>
-      pauseFn({ data: { workspaceId: activeWorkspaceId!, paused: next, reason: reason || null } }),
-    onSuccess: (_d, next) => {
-      // Resume copy stays honest: halted runs do not resume by themselves in
-      // production, agents simply become dispatchable again.
-      commit(
-        next ? "You stopped the crew" : "You let the crew run",
-        next
-          ? "Every agent is holding mid-step. Nothing was lost, and nothing runs until you turn this back on."
-          : "They can be dispatched again. Runs that were already halted do not pick themselves back up.",
-      );
-      setReason("");
-      qc.invalidateQueries({ queryKey: ["governance"] });
-    },
-    onError: (e: Error) =>
-      toast.error(humanWriteError(e, "That switch did not save. The crew is as it was.")),
-  });
 
   type UpsertSubInput = {
     id?: string;
@@ -387,8 +366,6 @@ export function ControlsPanel({
   const data = overview.data;
   const ks = data?.killState;
   const killed = !!(ks?.system_paused || ks?.workspace_paused);
-  const killDisabled =
-    pauseMut.isPending || !!ks?.system_paused || !activeWorkspaceId || !pauseWrite.allowed;
   const stuck = (data?.approvals ?? []).filter((a) => a.escalation_state === "expired").length;
   const subs = subsQ.data?.subscriptions ?? [];
   const runs = data?.runs ?? [];
@@ -446,11 +423,10 @@ export function ControlsPanel({
    *  everybody including the owner. Below that, the role is the reason, and it
    *  is said here rather than left as a switch that does nothing. */
   const pauseSub = ks?.system_paused
-    ? "A system-wide pause is on. This unlocks when that lifts."
-    : (pauseWrite.reason ??
-      (killed
-        ? "Every agent is holding. Nothing was lost, and nothing runs until you turn this back on."
-        : "Turning this off holds every agent mid-step, reversibly."));
+    ? "A system-wide pause is on, which locks the switch for everybody including the owner."
+    : killed
+      ? "Every agent is holding. Nothing was lost. The switch is on the boundary above."
+      : "Nothing is stopped. The switch that stops it is on the boundary above.";
 
   return (
     <>
@@ -516,30 +492,23 @@ export function ControlsPanel({
           <Reading>Reading whether the crew is running.</Reading>
         ) : (
           <>
+            {/*
+             * A READOUT, NOT AN EDITOR (S0 ruling A-006 section 2).
+             *
+             * BoundaryControls is the only editor of this switch now. It was
+             * a live toggle here while that panel drew a read-only line, and
+             * both were mounted on the same settings pane -- so one stale
+             * read could show a person the OPPOSITE of the truth about
+             * whether their agents were running. That is the one fact on this
+             * page nobody may be wrong about, and two editors of it is worse
+             * than two names for one destination.
+             *
+             * The state still reads from THIS panel's own `overview`, so this
+             * line is never a guess about what the other panel holds.
+             */}
             <Line label="Agents may run" sub={pauseSub}>
-              <Toggle
-                checked={!killed}
-                disabled={killDisabled}
-                label="Agents may run"
-                onChange={() => pauseMut.mutate(!ks?.workspace_paused)}
-              />
+              <Value tone={killed ? "fail" : undefined}>{killed ? "Paused" : "Running"}</Value>
             </Line>
-            {/* `htmlFor`/`id`: the retired `Field` was a `<label>` wrapping its
-                control and bound the two by containment. Meridian's binds by
-                name, so without the pair this input would have no accessible
-                name at all. */}
-            <Field
-              label={killed ? "Why you are resuming" : "Why you are pausing"}
-              htmlFor="pause-reason"
-            >
-              <Input
-                id="pause-reason"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                disabled={killDisabled}
-                placeholder="Optional. It lands in the audit log."
-              />
-            </Field>
             {ks?.reason ? <div style={NOTE}>On record: {ks.reason}</div> : null}
           </>
         )}
