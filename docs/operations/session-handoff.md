@@ -12,14 +12,44 @@ loop cannot produce"*, and [`SESSION-0-CONDUCTOR.md`](../../the-first-run/SESSIO
 second of five. Measured against the live database, every link in that chain
 exists and every one has worked before:
 
-| Link | Evidence it has run |
-| --- | --- |
-| `ci-poll-tick` | active on `*/2 * * * *` |
-| Deno preview deploy | **13 rows**, written by `ci-poll-tick` |
-| `studio.pr.merge` | **14 approvals EXECUTED** |
-| Production promotion | **1 row**, by `promote` |
+| Link | Exists in code | Has run on SAMPLE | Has run on REAL work |
+| --- | --- | --- | --- |
+| `ci-poll-tick` | yes, active `*/2 * * * *` | — | — |
+| Deno preview deploy | yes | **13 rows** | **0** |
+| `studio.pr.merge` | yes | **14 executed** | **0** |
+| Production promotion | yes | 1 row by `promote` | 3 rows, `provider='github'` |
 
-**Nothing on that list needs building.** What stopped is the merge, and two dates
+**Nothing on that list needs building. But only the first column is evidence
+about the platform; the middle column is evidence about fixtures.**
+
+> **CORRECTION, made against my own finding.** The first version of this section
+> read *"13 deno previews, 14 merges executed, nothing needs building"* and
+> presented that as proof the chain has worked. **Every one of those rows is on a
+> sample workspace.** On real work: **one changeset has ever merged, zero Deno
+> previews exist, and no merge approval has ever executed.** That is the same
+> mistake S4 made three times in one night and corrected each time, made by the
+> session that had just been told about it.
+>
+> The founder's own rule, relayed the same hour: a measurement of current rows
+> may shape PRIORITY and must not shape DESIGN, and most of these rows are demo
+> seed. Here it had shaped a *conclusion*, which is worse.
+>
+> **The conclusion that survives is unchanged: the critical path is deploying
+> `main`,** because nothing downstream can run while every merge queues for a
+> person who stopped answering on 2026-07-10. What does not survive is the
+> comfort that the rest of the chain is proven.
+
+### And the correction sharpens the marker question, from "check" to "expect"
+
+The one real changeset that **did** reach `merged` — `helio-labs/atlas-installer-portal`
+— produced **zero Deno deployment rows**. So the preview step has never succeeded
+on real work even when handed exactly what it needs. Meanwhile all 13 sample
+previews are against `RohitGajaraj/Test-Project-Cadence`, a repo scaffolded by us,
+and `renderStarterTemplate` writes `supaprod.json` into every repo it scaffolds.
+
+**That is what a missing marker looks like.** So the `supaprod.json` question below
+is not a loose end to check afterwards; it is the most likely next blocker once
+the merge starts running, and it costs one file at the repo root. What stopped is the merge, and two dates
 say it exactly: the last executed merge was **2026-07-10 17:14** and the last
 Deno preview was **2026-07-10 21:22**. Since then, of every merge approval filed:
 **21 expired undecided, 8 rejected** (most recently 2026-08-25 18:11, which is
