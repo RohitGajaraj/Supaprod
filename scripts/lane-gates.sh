@@ -79,6 +79,24 @@ run_gate "tsc"        bunx tsc --noEmit
 # be right for both. It lives IN e2e/ rather than at the repo root: root holds
 # four files by rule, and docs-doctor is right to say so.
 run_gate "tsc:e2e"    bunx tsc --noEmit -p e2e/tsconfig.json
+# ── FINISHED WORK THAT NEVER REACHED A SCREEN ─────────────────────────────
+#
+# The most common defect found on these surfaces is not wrong logic. It is a
+# component or a server function that is exported, complete, correct, and
+# imported by NOTHING. S3 found five by hand in one night -- MessageMetaFooter,
+# AskInPlace, LiveTicker, OutcomeHistory, AutoChip -- and called the class
+# "completely invisible to every gate we have".
+#
+# It was invisible because the detector for it REPORTED and exited 0, and no
+# gate ran it. This lane wrote that detector. It finds all five. Nothing called
+# it, which is the same shape as a baseline comparison computed and never
+# printed.
+#
+# It is a RATCHET: 141 server functions and 80 components is debt nobody in
+# flight wrote, so it fails on an INCREASE and never on the number itself.
+# Baseline in e2e/unreachable-baseline.json, and the check prints the new
+# number when you improve it.
+run_gate "unreachable" bun run check:unreachable
 run_gate "docs:check" bash scripts/docs-doctor.sh
 run_gate "test"       bun test
 run_gate "build"      bun run build

@@ -211,3 +211,85 @@ for (const [file, n] of [...compByFile].sort((a, b) => b[1] - a[1]).slice(0, 10)
  */
 console.log("\nEvery component orphan:");
 for (const o of componentOrphans) console.log(`  ${o.name}  (${o.file})`);
+
+/*
+ * ── THE RATCHET ────────────────────────────────────────────────────────────
+ *
+ * This check found every one of the orphans another lane discovered by hand --
+ * MessageMetaFooter, AskInPlace, LiveTicker, OutcomeHistory, AutoChip -- and
+ * they called that class "the most common defect I have found, and completely
+ * invisible to every gate we have."
+ *
+ * It was invisible because this script REPORTED and exited 0, and no gate ran
+ * it. The detector existed, found everything, and told nobody. That is the
+ * same shape as a baseline comparison computed and never printed.
+ *
+ * So it now fails on an INCREASE and never on the number itself: 141 and 80
+ * are debt nobody in flight wrote, and a check that fails everywhere on the
+ * day it is switched on is one somebody reverts.
+ *
+ * ANTI-VACUITY: if either population is zero the scan did not run, and a
+ * scan of nothing must never report clean. That guard is here because a
+ * sizing run earlier tonight reported "0 errors" from a compiler that had
+ * died, and the zero looked exactly like a pass.
+ */
+import { readFileSync as readBaseline } from "node:fs";
+import { join as joinBaseline, dirname as dirnameBaseline } from "node:path";
+import { fileURLToPath as fileURLToPathBaseline } from "node:url";
+
+const BASE_DIR = dirnameBaseline(fileURLToPathBaseline(import.meta.url));
+let frozen;
+try {
+  frozen = JSON.parse(
+    readBaseline(joinBaseline(BASE_DIR, "..", "unreachable-baseline.json"), "utf8"),
+  );
+} catch {
+  frozen = null;
+}
+
+if (frozen) {
+  const fnTotal = typeof total === "number" ? total : 0;
+  const compTotal = typeof componentTotal === "number" ? componentTotal : 0;
+  if (fnTotal === 0 || compTotal === 0) {
+    console.error(
+      "\nREFUSING: one of the populations is empty, so this scan did not run.\n" +
+        "A scan of nothing reports clean, which is the one answer it must never give.",
+    );
+    process.exit(1);
+  }
+  const over = [];
+  if (orphans.length > frozen.serverFunctions) {
+    over.push(
+      `server functions ${frozen.serverFunctions} -> ${orphans.length}`,
+    );
+  }
+  if (componentOrphans.length > frozen.components) {
+    over.push(`components ${frozen.components} -> ${componentOrphans.length}`);
+  }
+  if (over.length) {
+    console.error(
+      `\nUNREACHABLE COUNT ROSE: ${over.join(", ")}.\n` +
+        "Something exported is imported by nothing. That is finished work that never\n" +
+        "reached a screen, which is the most common defect found on these surfaces and\n" +
+        "is invisible to tsc, eslint, the build and the tests.\n" +
+        "If the rise is deliberate, lower nothing and say why; otherwise wire it up.",
+    );
+    process.exit(1);
+  }
+  const under = [];
+  if (orphans.length < frozen.serverFunctions) {
+    under.push(`server functions ${frozen.serverFunctions} -> ${orphans.length}`);
+  }
+  if (componentOrphans.length < frozen.components) {
+    under.push(`components ${frozen.components} -> ${componentOrphans.length}`);
+  }
+  if (under.length) {
+    console.log(
+      `\nIMPROVED: ${under.join(", ")}. Lower the numbers in e2e/unreachable-baseline.json.`,
+    );
+  } else {
+    console.log(
+      `\nHolding at ${orphans.length} server functions and ${componentOrphans.length} components with no importer.`,
+    );
+  }
+}
