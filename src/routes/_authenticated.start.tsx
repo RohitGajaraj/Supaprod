@@ -154,8 +154,28 @@ function OpenWorkSection({
         return (
           <Row
             key={t.id}
+            /*
+             * `tight` HERE, and it is the same rule that took it OFF four other
+             * rows tonight rather than a reversal. The prop is for a row whose
+             * full content has a detail view to open, and this one opens the run
+             * on click. The rows I unclipped had nowhere else to be read.
+             */
+            tight
             lead={t.title}
-            sub={`At ${stationName}${t.hold ? ` · ${t.hold}` : ""}`}
+            /*
+             * THE STATION, NOT THE WHOLE REASON. This pasted the entire hold
+             * sentence into a list row, so the front door carried three lines of
+             * "Discover has been run many times over and the work has not moved
+             * on once. That is the loop rather than any single run, so nothing
+             * further will be spent on it until you look." per item, on a list
+             * whose job is to let a person pick one.
+             *
+             * A person scanning five items wants what it is, where it is, and
+             * whether it needs them. The chip answers the third, this answers the
+             * second, and the reason is a detail one click away on the surface
+             * built to explain it, which now also names the way out (RUN-23).
+             */
+            sub={`At ${stationName}`}
             time={timeText}
             onClick={() => void navigate({ to: "/track/$trackId", params: { trackId: t.id } })}
             action={
@@ -269,15 +289,28 @@ function StartLanding() {
   return (
     <div className="flex min-h-dvh flex-col items-center px-6 py-16">
       <div className="flex w-full max-w-2xl flex-col gap-mrd-7">
-        <div className="flex items-baseline justify-between">
-          <Eyebrow>Supaprod</Eyebrow>
-          {/* The founder compares this against /today side by side (R-15), so
-              the old app stays one quiet link away rather than gone. */}
-          <a href="/today" className="mrd-meta transition-colors hover:text-mrd-body">
-            Open Supaprod
-          </a>
-        </div>
-
+        {/*
+         * THE COMPARISON ROW IS GONE, AND THE LABEL IS WHY IT HAD TO GO.
+         *
+         * It read: an eyebrow saying "Supaprod" beside a link saying "Open
+         * Supaprod", on the first screen of Supaprod, pointing at /today. Three
+         * problems in two elements. The eyebrow repeated the wordmark already
+         * sitting in the shell's top left. The link offered to open the product
+         * a person is already inside, which is the kind of sentence that makes
+         * someone doubt they are where they think they are. And the destination
+         * is in the left rail as "Today", one click away, on every screen.
+         *
+         * It was scaffolding: the founder wanted to compare this against the old
+         * board side by side while it was being built. R-15 is cited in the code
+         * it came from, but R-15 rules on WHERE to build (final url, not a /v2
+         * tree) and asks for nothing on this page. The comparison survives
+         * intact through the nav.
+         *
+         * Removed rather than relabelled because a correct label would leave a
+         * lone link floating above a heading, which is worse than no row: the
+         * front door of the product is the one screen that should carry nothing
+         * a customer does not need.
+         */}
         <PageHeading
           title="What needs doing?"
           sub="One sentence starts a run. You watch it happen here, and it asks you nothing unless it must."

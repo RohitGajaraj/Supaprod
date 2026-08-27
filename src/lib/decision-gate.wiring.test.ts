@@ -74,7 +74,19 @@ describe("the decision gate is wired, not merely written", () => {
     it(`${f} decides the status instead of asserting one`, () => {
       const src = stripComments(read(f));
       expect(src).toContain("decideDecisionReview(");
-      expect(src).toContain("status: gate.status");
+      /*
+       * WIDENED 2026-08-26 from the literal `status: gate.status`, because
+       * `decision.record` now overrides a gate "approved" to "declined" when the
+       * crew passes `call: "do-not-build"` — a refusal, which `decisions.status`
+       * previously had no value for and which the spine therefore read as a go.
+       *
+       * The rule this test is named for is unchanged and still checked: the
+       * status must DERIVE from the gate. What it may not be is a bare literal,
+       * which is the thing that made an auto-approval unauditable. So it asserts
+       * the gate is the source and that no constant is assigned instead.
+       */
+      expect(src).toContain("gate.status");
+      expect(src).not.toMatch(/status: "(approved|pending)",/);
     });
 
     it(`${f} records the auto-approval so a human can find and overturn it`, () => {

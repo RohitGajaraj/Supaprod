@@ -289,11 +289,22 @@ describe("every station is briefed with what it needs", () => {
   });
 
   it("never dumps the whole history into one brief", () => {
-    // The constant exists so a track round the loop does not carry everything into
-    // every prompt. By Learn the cluster and the decision are old news.
+    /*
+     * The constant exists so a track round the loop does not carry everything
+     * into every prompt, and the cluster still proves it.
+     *
+     * THE DECISION IS NO LONGER "OLD NEWS" AT LEARN (2026-08-27). It carries the
+     * forecast, and a verdict settles a forecast, so it is a yardstick beside the
+     * spec rather than history. S4 measured what excluding it cost: 18 of 18 runs
+     * by the two grading seats had no forecast anywhere in their input, so no
+     * verdict this product has ever written was measured against a prediction.
+     */
     const goal = at("learn").goal;
     expect(goal).not.toContain("BODY(origin)");
-    expect(goal).not.toContain("BODY(decide)");
+  });
+
+  it("but Learn is shown the decision, because that is what it grades against", () => {
+    expect(at("learn").goal).toContain("BODY(decide)");
   });
 });
 

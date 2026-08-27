@@ -5,6 +5,7 @@
  * `confirm` or `review` mode are queued as agent_approvals instead of run.
  */
 import { z } from "zod";
+import { humanizeText } from "@/lib/ai/humanize";
 import {
   defaultChecks,
   defaultSetup,
@@ -4784,6 +4785,24 @@ const decisionRecord = def({
       title: z.string().min(1).max(200),
       rationale: z.string().min(1).max(4000),
       alternatives_considered: z.array(z.string().min(1).max(500)).min(1).max(10),
+      /*
+       * ── A "NO" IS A DECISION, AND UNTIL NOW IT HAD NOWHERE TO GO ─────────
+       *
+       * The Decide brief tells the crew, in these words: *"A 'no' is a decision
+       * and you file it the same way as a yes."* They do. On 2026-08-26 a
+       * strategist filed *"Do not implement address reuse until post-fix
+       * abandonment evidence emerges"* with a real forecast behind it.
+       *
+       * It was stored `status: "approved"`, because `decisions.status` offers
+       * approved, pending, standing and superseded and NOTHING THAT MEANS NO.
+       * So the spine read an approved decision and walked the track on to
+       * Define, Design and Build, to construct the thing the decision had just
+       * refused. The one station whose job is to stop work could not.
+       *
+       * Defaults to `build`, so every existing caller keeps its meaning and no
+       * decision silently becomes a refusal.
+       */
+      call: z.enum(["build", "do-not-build"]).default("build"),
       prd_id: z.string().uuid().optional(),
 
       /*
@@ -4931,9 +4950,25 @@ const decisionRecord = def({
         workspace_id: workspaceId ?? null,
         mission_id: missionId ?? null,
         prd_id: a.prd_id ?? null,
-        title: a.title,
-        rationale: a.rationale,
-        alternatives_considered: a.alternatives_considered,
+        /*
+         * SANITISED AT THE SINK, because the arg-level pass did not hold.
+         *
+         * `humanizeToolArgs` runs at both provider extractors, and a decision
+         * written at 23:10 UTC still came out with an em dash in its rationale,
+         * rendered on the Decide card, which is the most important surface in
+         * the product. S1 found it on the running product, not in a query.
+         *
+         * The rule this repo keeps re-learning: sanitise where a value is
+         * WRITTEN, not only where it arrives. A sink is one place; the paths
+         * into it are many, and one of them is always missed.
+         *
+         * `forecast_claim` below matters most: it is immutable by trigger, so
+         * this insert is the ONLY chance to get it right. A dash written there
+         * can never be corrected, by anyone, ever.
+         */
+        title: humanizeText(a.title),
+        rationale: humanizeText(a.rationale),
+        alternatives_considered: a.alternatives_considered.map((x) => humanizeText(x)),
         /*
          * ALWAYS THREE VALUES, NEVER A NULL. The schema refuses the call
          * outright without all three, so there is no branch of this tool that
@@ -4948,10 +4983,16 @@ const decisionRecord = def({
          * change to these three, so this insert is the only moment they are
          * writable and there is no repair path if the agent guessed.
          */
-        forecast_claim: a.forecast_claim,
-        forecast_how_we_will_know: a.forecast_how_we_will_know,
+        forecast_claim: humanizeText(a.forecast_claim),
+        forecast_how_we_will_know: humanizeText(a.forecast_how_we_will_know),
         forecast_horizon_date: a.forecast_horizon_date,
-        status: gate.status,
+        /*
+         * A refusal outranks the review's "approved", and only that one. If the
+         * gate wants a person to look, it still does: a no-go with a
+         * provenance problem is not more trustworthy for being a no. `declined` is
+         * new and nothing constrains `status`, so no migration is needed.
+         */
+        status: a.call === "do-not-build" && gate.status === "approved" ? "declined" : gate.status,
         decided_by_agent_slug: agentSlug ?? null,
         /**
          * 'agent' — and until 2026-08-11 the database refused this value, so

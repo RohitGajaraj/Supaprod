@@ -68,14 +68,31 @@ describe("the spec reaches Learn whole", () => {
   });
 
   it("does not start inlining everything to get there", () => {
-    // The constant exists for a reason. The cluster and the decision are the oldest
-    // two and must still arrive named only, or this fix has become "send the whole
-    // history" and the prompt grows with every lap.
+    /*
+     * The constant exists for a reason and this still guards it: the cluster and
+     * the prototype are neither a yardstick nor one of the newest two, and must
+     * arrive named only, or this has become "send the whole history" and the
+     * prompt grows with every lap.
+     *
+     * THE DECISION MOVED OUT OF THIS LIST 2026-08-27, and that is the fix rather
+     * than a loosening. It used to be here as one of "the oldest two", stale
+     * context by position. It is not stale: it carries the FORECAST, and a
+     * verdict at Learn settles that forecast. S4 measured what its absence cost —
+     * 18 of 18 runs by the two grading seats had no forecast anywhere in their
+     * input, so no verdict this product has written was ever measured against a
+     * prediction.
+     *
+     * One artifact moved from "stale context" to "yardstick". The budget is
+     * otherwise untouched, and the two assertions below still hold it.
+     */
     const goal = stationGoal("learn", track, historyAtLearn());
     expect(goal).not.toContain("THEME BODY: nine reports, four sources.");
-    expect(goal).not.toContain("We will rebuild the re-confirm step.");
-    // And the prototype, which is neither the yardstick nor one of the newest two.
     expect(goal).not.toContain("Two fields, one confirm.");
+  });
+
+  it("but the decision DOES arrive whole, because the forecast is the measure", () => {
+    const goal = stationGoal("learn", track, historyAtLearn());
+    expect(goal).toContain("We will rebuild the re-confirm step.");
   });
 
   it("inlines the newest spec only, when a track has been round the loop", () => {

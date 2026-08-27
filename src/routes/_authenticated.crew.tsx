@@ -615,6 +615,36 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
                               ? "Switched off. It will not be dispatched."
                               : (agentBlurb(e.slug) ?? e.relayVerb)}
                         </span>
+                        {/*
+                          WHEN IT LAST DID ANYTHING, which this page held and
+                          never showed. `CrewRunTally.lastAt` has been on every
+                          roster row all along and was rendered only inside the
+                          member view, so learning which of seventeen teammates
+                          has gone quiet meant opening seventeen cards. That is
+                          this lane's own failure test, applied to the team:
+                          if a person has to open each one to find out whether
+                          any of them needs them, the surface has failed.
+
+                          Measured 2026-08-27, and the spread is the argument:
+                          prd-writer last ran minutes ago and ux-architect
+                          twenty-nine hours ago, and the two cards were
+                          identical. Sixteen of the seventeen have run here.
+
+                          Silent while it is RUNNING, because the mark beside
+                          the name already says so and a card should carry one
+                          live signal, not two. Silent when the tally is null
+                          rather than guessing a date it does not have; "has not
+                          run here yet" is the one thing worth saying, and it is
+                          said, because a teammate that has never worked is a
+                          different fact from one that is merely quiet now.
+                        */}
+                        {m && m.enabled && m.runs.running === 0 ? (
+                          <span className="mt-0.5 block text-mrd-small leading-mrd-snug text-mrd-mute">
+                            {m.runs.lastAt
+                              ? `Last worked ${ago(m.runs.lastAt)} ago.`
+                              : "Has not run here yet."}
+                          </span>
+                        ) : null}
                       </span>
                     </button>
                   );

@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { humanizeText } from "@/lib/ai/humanize";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -185,11 +186,11 @@ export const runAgent = createServerFn({ method: "POST" })
         agent_name: agent.name,
         input: data.input,
         status: "running",
-          // A run names its own tool calls or it is unknowable forever: nothing
-          // backfills this, and `getWorkspaceAnchors` excludes an untraced run
-          // rather than reporting it as touching nothing. Minted at insert so
-          // the run owns its trace from birth; `resumeAgentLoop` honours the
-          // row's value rather than minting a second one.
+        // A run names its own tool calls or it is unknowable forever: nothing
+        // backfills this, and `getWorkspaceAnchors` excludes an untraced run
+        // rather than reporting it as touching nothing. Minted at insert so
+        // the run owns its trace from birth; `resumeAgentLoop` honours the
+        // row's value rather than minting a second one.
         trace_id: crypto.randomUUID(),
       })
       .select()
@@ -219,7 +220,23 @@ export const runAgent = createServerFn({ method: "POST" })
         // `queued` in both `run-state.ts` and `build-status.ts`, so a finished run
         // reads as one waiting to start. Two live rows carry it, both real rather
         // than demo, and this line is their only source.
-        .update({ output: output + tag, status: "completed", duration_ms: duration })
+        /*
+         * SANITISED HERE TOO, and this writer is why the column was not closed.
+         *
+         * `loop.server.ts` routes its seven `output` writes through `runOutput`.
+         * This is an eighth, in a different file, and it writes the MODEL'S OWN
+         * TEXT. S1 measured the consequence the right way: not the column total,
+         * which a backfill makes meaningless, but the count of rows created
+         * SINCE the fix — 9 of them, newest 23:30:21 UTC.
+         *
+         * A column total answers a question about history. Only "rows written
+         * after the fix" answers whether the path is open.
+         */
+        .update({
+          output: humanizeText(output + tag),
+          status: "completed",
+          duration_ms: duration,
+        })
         .eq("id", runRow!.id)
         .select()
         .single();
@@ -229,7 +246,7 @@ export const runAgent = createServerFn({ method: "POST" })
         .from("agent_runs")
         .update({
           status: "failed",
-          output: e instanceof Error ? e.message : "Failed",
+          output: humanizeText(e instanceof Error ? e.message : "Failed"),
           duration_ms: Date.now() - t0,
           // AFD-06: the third writer that marked a run failed and said nothing
           // about why. The observability failure breakdown reads this column

@@ -94,7 +94,7 @@ function runStatus(
   word: string;
   pulse: boolean;
   second: string | undefined;
-} {
+} | null {
   if (track.status === "done") {
     return {
       status: "pass",
@@ -126,7 +126,23 @@ function runStatus(
       second: track.hold ?? undefined,
     };
   }
-  return { status: "agent", word: "Running", pulse: true, second: undefined };
+  /*
+   * NO CHIP, AND THIS IS THE HONESTY FIX RATHER THAN A GAP.
+   *
+   * The fallback used to return "Running" for any open track with no hold. That
+   * is every track sitting between sweeps, which is most of them: caught at
+   * 1024px on a real run where the header said Running while the pane directly
+   * beneath it said "Nothing is driving it right now" and the character said
+   * "Ready when you are." Three statements about one run, and the loudest was
+   * the false one.
+   *
+   * Nothing is running here, nothing is holding it, and nobody is waiting on
+   * anybody. This system already has a word for that and it is silence: the
+   * spec chip follows the same rule, "quiet in this system means nothing to
+   * report, and a chip that says nothing is noise". So the chip is absent and
+   * the two honest sentences below it carry the state.
+   */
+  return null;
 }
 
 function RunHeader({ track, liveNow = false }: { track: Track; liveNow?: boolean }) {
@@ -153,11 +169,18 @@ function RunHeader({ track, liveNow = false }: { track: Track; liveNow?: boolean
       </div>
       <div className="flex flex-col items-end gap-mrd-1">
         {/* The override word rides as children: StatusChip's contract is "more
-            specific about the same state, never different". */}
-        <StatusChip status={s.status} pulse={s.pulse}>
-          {s.word}
-        </StatusChip>
-        {s.second ? <span className="mrd-meta max-w-[36ch] text-right">{s.second}</span> : null}
+            specific about the same state, never different". Absent entirely
+            when there is nothing to report; see `runStatus`. */}
+        {s ? (
+          <>
+            <StatusChip status={s.status} pulse={s.pulse}>
+              {s.word}
+            </StatusChip>
+            {s.second ? (
+              <span className="mrd-meta max-w-[36ch] text-right">{s.second}</span>
+            ) : null}
+          </>
+        ) : null}
       </div>
     </header>
   );

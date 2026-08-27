@@ -178,7 +178,19 @@ export function SteerComposer({
   }
 
   return (
-    <div className="sticky bottom-0 flex flex-col gap-mrd-2 bg-mrd-sheet pt-mrd-2">
+    /*
+     * A HAIRLINE ABOVE IT, BECAUSE STICKY WITHOUT AN EDGE READS AS BROKEN.
+     *
+     * Caught at 1024x768 on a real run: the pane is short there, so the route
+     * list scrolls under this composer, and with a background matching the pane
+     * and no edge the last row appeared to be cut in half by nothing. The
+     * behaviour was right and the drawing was not.
+     *
+     * One hairline says the bar is a bar, and content passing behind it reads as
+     * passing behind something rather than dissolving. Same mark the footer and
+     * every other pinned edge in this system uses; nothing new is introduced.
+     */
+    <div className="sticky bottom-0 flex flex-col gap-mrd-2 border-t border-mrd-line bg-mrd-sheet pt-mrd-3">
       {/*
        * THE ROSTER LIST. It is a SIBLING of the textarea, not an ancestor, so
        * its own keydown never sees a keystroke -- arrows, Tab and Escape are

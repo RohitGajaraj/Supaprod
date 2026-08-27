@@ -33,7 +33,7 @@ import { createMission } from "@/lib/ai/handoff.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { recordTrackDrive } from "@/lib/spine/track-drives.server";
 import { recordLineage } from "@/lib/lineage.functions";
-import { nextStation, waiverFor, type SpineRoute } from "@/lib/spine/route";
+import { nextStation, waive, waiverFor, type SpineRoute } from "@/lib/spine/route";
 import {
   decideDrive,
   holdLine,
@@ -825,6 +825,13 @@ function routeOf(row: DriveRow): SpineRoute {
  * produced-nothing hold is what catches the consequence if the thin brief means
  * the station cannot do its job.
  */
+/** Plain words for the extra columns a brief carries. See `ArtifactSource.also`. */
+const LABEL_FOR: Record<string, string> = {
+  forecast_claim: "What we expected",
+  forecast_how_we_will_know: "How we would know",
+  forecast_horizon_date: "Expected by",
+};
+
 async function loadUpstream(
   supabase: SupabaseClient,
   trackId: string,
@@ -858,16 +865,37 @@ async function loadUpstream(
       const source = ARTIFACT_SOURCE[kind];
       const cols = ["id", `title:${source.title}`];
       if (source.body) cols.push(`body:${source.body}`);
+      // Extra columns that belong in the brief but are not the row's own text.
+      // Today only a decision has any: its forecast, which Learn must grade
+      // against and which reached no station until 2026-08-27.
+      for (const extra of source.also ?? []) cols.push(extra);
       const { data } = await supabase
         .from(source.table as never)
         .select(cols.join(","))
         .in("id", ids);
-      for (const r of (data ?? []) as unknown as Array<{
-        id: string;
-        title: string | null;
-        body?: string | null;
-      }>) {
-        found.set(`${kind}:${r.id}`, { title: r.title ?? "untitled", body: r.body ?? null });
+      for (const r of (data ?? []) as unknown as Array<
+        {
+          id: string;
+          title: string | null;
+          body?: string | null;
+        } & Record<string, unknown>
+      >) {
+        /*
+         * Appended and LABELLED, so the reading station knows what it is looking
+         * at. An unlabelled date under a rationale is noise; "Expected by:" is
+         * the difference between carrying a value and communicating it.
+         *
+         * Absent columns are skipped rather than printed empty: a decision with
+         * no horizon must not read as one due on nothing.
+         */
+        const extras = (source.also ?? [])
+          .map((c) => {
+            const v = r[c];
+            return v == null || v === "" ? null : `${LABEL_FOR[c] ?? c}: ${String(v)}`;
+          })
+          .filter(Boolean);
+        const body = [r.body ?? null, ...extras].filter(Boolean).join("\n") || null;
+        found.set(`${kind}:${r.id}`, { title: r.title ?? "untitled", body });
       }
     }),
   );
@@ -2464,7 +2492,46 @@ export async function driveTrackOnce(
     };
   }
 
-  const arrivedAt = nextStation(route, station);
+  /*
+   * ── A DECISION NOT TO BUILD MUST STOP THE BUILDING ────────────────────────
+   *
+   * The Decide brief tells the crew *"A 'no' is a decision and you file it the
+   * same way as a yes"*, and on 2026-08-26 a strategist did exactly that:
+   * *"Do not implement address reuse until post-fix abandonment evidence
+   * emerges"*, with a forecast behind it, on track `a30238f5`.
+   *
+   * The spine walked it on to Define regardless, because `decisions.status`
+   * had no value meaning no and the row was stored `approved`. Four stations of
+   * agents were about to specify, design and build the thing the one station
+   * whose job is stopping work had just refused. **That is the most expensive
+   * defect this loop can have: Decide exists to prevent spend, and it could not.**
+   *
+   * WHY WAIVE RATHER THAN CLOSE THE TRACK. A refusal is not the end of the
+   * work, it is an answer with a bet attached: that decision's forecast comes
+   * due 2026-10-15 and is genuinely checkable. Closing the track would throw the
+   * bet away and the loop would never learn whether the "no" was right. So the
+   * four building stations are waived and the track walks Decide -> Learn, which
+   * is the route the spine already knows how to express.
+   *
+   * `outcome-contested` is the reopen trigger, so if the verdict later shows the
+   * refusal was wrong, the stations come back rather than needing a person to
+   * remember this happened.
+   */
+  let onwardRoute = route;
+  if (station === "decide") {
+    const declined = await decisionWasRefusal(supabase, row.id);
+    if (declined) {
+      for (const skipped of ["define", "design", "build", "ship"] as AgentStation[]) {
+        onwardRoute = waive(onwardRoute, skipped, {
+          by: "policy",
+          reason: "The call was not to build, so there is nothing to specify or ship.",
+          reopensWhen: "outcome-contested",
+        });
+      }
+    }
+  }
+
+  const arrivedAt = nextStation(onwardRoute, station);
 
   /**
    * THE STATION FILED SOMETHING, AND NOT WHAT COMES NEXT NEEDS.
@@ -3143,4 +3210,36 @@ async function overclaimedBySeat(
     ...(await toolOutcomesInTrace(supabase, result.trace_id)),
   ];
   return contradictedClaim(seat, claimed, calls);
+}
+
+/**
+ * DID THIS TRACK'S DECIDE SAY NO?
+ *
+ * Reads the newest decision filed against this track and asks one question of
+ * it. `declined` is written by `decision.record` when the crew passes
+ * `call: "do-not-build"`, and it is the only status that means the answer was no
+ * — `approved`, `pending`, `standing` and `superseded` all mean the work stands.
+ *
+ * Fail-soft to false, deliberately: a track that cannot be read must keep its
+ * ordinary route. Guessing "refused" on an unreadable row would silently cancel
+ * four stations of real work, which is the more expensive way to be wrong.
+ */
+async function decisionWasRefusal(supabase: SupabaseClient, trackId: string): Promise<boolean> {
+  try {
+    const { data: member } = await supabase
+      .from("spine_track_members" as never)
+      .select("artifact_id")
+      .eq("track_id", trackId)
+      .eq("artifact_kind", "decision")
+      .is("superseded_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const id = (member as { artifact_id?: string } | null)?.artifact_id;
+    if (!id) return false;
+    const { data } = await supabase.from("decisions").select("status").eq("id", id).maybeSingle();
+    return (data as { status?: string } | null)?.status === "declined";
+  } catch {
+    return false;
+  }
 }
