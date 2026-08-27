@@ -129,7 +129,7 @@
  *   following by hand in every place after.
  */
 
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { messageForPerson } from "@/lib/error-copy";
 import { SlowRead } from "@/components/shell/SlowRead";
 import { needsALookLine } from "@/components/crew/crew-words";
@@ -1468,6 +1468,44 @@ function MemberRecord({ member }: { member: CrewMember }) {
                 </>
               }
             />
+            {/*
+             * THE FAILURE COUNT GETS A DOOR (2026-08-27).
+             *
+             * The roster card now says "12 runs did not finish" and this view
+             * said "47 runs, 35 finished, 12 failed", and both stopped there. A
+             * person learned that twelve runs failed and could not reach ONE of
+             * them. R-20 section 6: a screen that only tells is a fail.
+             *
+             * THE DESTINATION WAS ALREADY BUILT AND I TRACED IT BEFORE POINTING
+             * AT IT, because a door onto the right page in the wrong state is
+             * worse than none - the defect fixed on SystemAlerts href earlier
+             * today. The chain: SpendRoom reads view and agent, view
+             * "by-agent" with an agent renders AgentSpendDetail, and that
+             * component lists the agent runs from agent_runs. SpendRoom:143
+             * already builds this exact link shape for its own rows, so this is
+             * the address that surface uses about itself.
+             *
+             * NOT room=record. That room accepts an agent param and IGNORES it,
+             * checked, its body never reads it, so a link there would land on
+             * an unfiltered trace list wearing the agent name.
+             *
+             * Drawn only when something actually failed, so a healthy teammate
+             * gains no furniture.
+             */}
+            {r.failed > 0 ? (
+              <CtxRow
+                name="What did not finish"
+                sub={
+                  <Link
+                    to="/engine-room"
+                    search={{ room: "spend", view: "by-agent", agent: member.slug }}
+                    className="text-mrd-you underline underline-offset-2"
+                  >
+                    Open the runs for this one
+                  </Link>
+                }
+              />
+            ) : null}
             {r.lastAt ? <CtxRow name="Last run" sub={`${ago(r.lastAt)} ago`} /> : null}
           </>
         )}
