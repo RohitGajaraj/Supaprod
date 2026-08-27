@@ -117,7 +117,7 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { failureLine } from "@/components/track/error-copy";
+import { failureLine } from "@/lib/error-copy";
 import { Row, Who } from "@/components/meridian/rows";
 import {
   Action,
@@ -602,7 +602,7 @@ export function TraceDetail({ id }: { id: string }) {
           <PageHeading title={shortTitle} />
           {TRACE_ID.test(id) ? (
             <ReadFailedLine onRetry={() => void trace.refetch()}>
-              {failureLine("This trace did not load, so nothing below is its record.", trace.error)}
+              {failureLine("This trace did not load, so nothing here is its record.", trace.error)}
             </ReadFailedLine>
           ) : (
             // A MISTYPED ID AND A FAILED READ ARE DIFFERENT FACTS, and the reader

@@ -88,7 +88,7 @@
 // reach the client. Mounting the timeline there would mean interpolating a clock
 // AND the silence durations, which is fabricated data on a product surface.
 import { Link, useNavigate } from "@tanstack/react-router";
-import { failureLine } from "@/components/track/error-copy";
+import { failureLine } from "@/lib/error-copy";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useMemo, type CSSProperties } from "react";

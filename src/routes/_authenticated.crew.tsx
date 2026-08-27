@@ -130,7 +130,7 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { messageForPerson } from "@/components/track/error-copy";
+import { messageForPerson } from "@/lib/error-copy";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";

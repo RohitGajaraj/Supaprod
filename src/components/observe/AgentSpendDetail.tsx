@@ -62,7 +62,7 @@
  * drill into a mission.
  */
 import { useNavigate } from "@tanstack/react-router";
-import { failureLine } from "@/components/track/error-copy";
+import { failureLine } from "@/lib/error-copy";
 import { Row, Line } from "@/components/meridian/rows";
 import {
   NothingYet,
