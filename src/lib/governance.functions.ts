@@ -25,7 +25,6 @@ import {
   type RejectionPattern,
   type RejectionRow,
 } from "@/lib/rejection-learning";
-import { resolveToolAccess } from "@/lib/ai/tools/defaults";
 import {
   buildLedger,
   type LedgerApprovalRow,
@@ -546,24 +545,33 @@ export const listGovernApprovals = createServerFn({ method: "POST" })
     const titleOf = new Map<string, string>(
       (missions.data ?? []).map((m) => [m.id as string, cleanTitle(m.title as string)]),
     );
-    const { TOOL_REGISTRY } = await import("@/lib/ai/tools/registry.server");
-    const effectiveMode = new Map(
-      resolveToolAccess(
-        Object.keys(TOOL_REGISTRY),
-        (tools.data ?? []) as Array<{
-          tool_name: string;
-          mode: string | null;
-          enabled: boolean | null;
-        }>,
-      ).map((t) => [t.tool_name, { tool_name: t.tool_name, mode: t.mode as string }]),
-    );
-    const riskOf = new Map<string, "high" | "medium" | "low">(
-      [...effectiveMode.values()].map((t) => [
-        t.tool_name as string,
-        (t.mode === "review" ? "high" : t.mode === "auto" ? "low" : "medium") as
-          "high" | "medium" | "low",
-      ]),
-    );
+    /*
+     * THE APPROVALS QUEUE CALLED A SUPERVISION SETTING A RISK, AND UNDERSTATED
+     * FOURTEEN TOOLS BY DOING IT.
+     *
+     * This used to build `riskOf` by relabelling the effective mode:
+     *
+     *     mode === "review" ? "high" : mode === "auto" ? "low" : "medium"
+     *
+     * which is not an assessment of anything. It is how closely a person
+     * decided to watch the tool, wearing the word for how hard the tool is to
+     * undo. ApprovalsPanel renders it as both: "High risk" in the chip, and
+     * `RISK_NOTE` underneath saying what it would touch -- "Stays in this
+     * workspace, and you can undo it" for low, "Hard to walk back" for high.
+     *
+     * Measured across the 74 registered tools, 23 got the wrong word and 14 of
+     * those were understated. `studio.commit`, `studio.pr.merge`,
+     * `studio.revert`, `release.publish` and `agent.spawn` all seed to `confirm`
+     * and were therefore reported "medium", which prints "Reaches outside, and
+     * it can be walked back" beside a merge. `toolRisk` calls all five high.
+     * A person deciding an approval was being told an irreversible act is
+     * reversible, on the screen where they decide it.
+     *
+     * `toolRisk` is the same function the loop's own gate calls, and it fails
+     * closed to "high" for a tool it does not know, so a tool added tomorrow
+     * over-warns rather than under-warns. The mode is still on this row under
+     * its own name; nothing was lost by taking the word back.
+     */
 
     // Median human response time across decided approvals — real timestamps only.
     const waits = approvals
@@ -602,7 +610,7 @@ export const listGovernApprovals = createServerFn({ method: "POST" })
     // agent's decided-on work actually turn out well, once real signal came
     // in (public.learnings), not just "did the human say yes". No FK exists
     // between learnings and decisions (both key off prd_id independently), so
-    // this is two queries joined in JS, same idiom as titleOf/riskOf above.
+    // this is two queries joined in JS, same idiom as titleOf above.
     let outcomeByAgent: Record<string, AgentOutcomeRecord> = {};
     if (agentSlugs.length) {
       const { data: learningRows } = await db
@@ -649,7 +657,7 @@ export const listGovernApprovals = createServerFn({ method: "POST" })
       approvals: approvals.map((a) => ({
         ...a,
         mission_title: a.mission_id ? (titleOf.get(a.mission_id) ?? null) : null,
-        risk: riskOf.get(a.tool_name) ?? "medium",
+        risk: toolRisk(a.tool_name),
       })),
       trackByAgent,
       outcomeByAgent,

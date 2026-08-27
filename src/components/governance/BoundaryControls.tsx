@@ -547,23 +547,35 @@ export function BoundaryControls({
    * of `resolveToolMode` that does this. An under-report is the direction that
    * gets someone hurt.
    *
-   * IT READ `t.risk` UNTIL NOW, AND COULD NEVER FIRE. `getBoundary` does not
-   * return a risk; it returns the MODE relabelled --
-   * `mode === "review" ? "high" : mode === "auto" ? "low" : "medium"` -- so a
-   * tool in `confirm` is always "medium" and `t.risk === "low"` was
-   * unsatisfiable by construction. `demoted` has always been empty, and the
-   * headline has under-reported real reach for exactly as long, which is the
-   * outcome the paragraph above was written to prevent.
+   * CORRECTION, 2026-08-27. THE COMMENT THAT STOOD HERE FOR ONE COMMIT SAID
+   * THIS PREDICATE COULD NEVER FIRE, AND THAT WAS WRONG. It claimed
+   * `BoundaryTool.risk` is the mode relabelled. That relabelling is real and it
+   * is a defect, but it lives in `listGovernApprovals`, which feeds the
+   * APPROVALS QUEUE -- a different server function in the same file, whose
+   * `riskOf` map I read while looking for this one. `getBoundary` sets
+   * `risk: toolRisk(raw.tool_name)` and always has, so `t.risk` and
+   * `toolRisk(t.name)` are the same value and the change was behaviourally a
+   * no-op. Nothing shipped broken; a false claim about the codebase did, and it
+   * is corrected here rather than left for the next reader to trip over.
    *
-   * `toolRisk` is the function the loop's own branch calls
-   * (`mode === "confirm" && toolRisk(toolName) === "low"`, loop.server.ts), it
-   * is a pure module with no imports, and it returns real per-tool values --
-   * prd.get low, studio.commit high, an unknown tool high. Quoting the branch
-   * now means quoting it.
+   * The relabelling itself is now fixed at its real address, where it was
+   * understating fourteen tools on the screen a person decides approvals on.
    *
-   * FILED WITH S0: `BoundaryTool.risk` should stop being a mode restatement, in
-   * governance.functions.ts. That file already imports `toolRisk` and uses it
-   * elsewhere. Until it does, no consumer should read that field as a risk.
+   * `toolRisk` STAYS in the predicate anyway, because it is the function the
+   * loop's own branch calls -- `mode === "confirm" && toolRisk(toolName) ===
+   * "low"` -- and quoting the branch means quoting it rather than a field that
+   * happens to agree today.
+   *
+   * AND THE PREDICATE IS STILL TOO NARROW, which is the finding that survived
+   * the correction. It catches only the low-risk inline clear. The arc dial is
+   * the bigger door: `resolveApprovalMode` turns EVERY `confirm` tool into
+   * `auto` on a trusted arc, all 93 `agent_autonomy` rows are trusted and
+   * `loadAgentArc` defaults the rest to trusted, so on the live database 17 of
+   * the 21 confirm-seeded tools run without asking -- including studio.commit,
+   * studio.revert and release.publish, none of which this line catches. The
+   * headline still under-reports. Fixing that needs the resolved mode from the
+   * server, which is the next unit.
+   *
    */
   const runsAloneDespiteAsking = (t: BoundaryTool) =>
     t.mode === "confirm" && toolRisk(t.name) === "low" && t.floor === null;
