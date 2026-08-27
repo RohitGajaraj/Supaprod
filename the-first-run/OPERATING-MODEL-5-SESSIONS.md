@@ -293,6 +293,13 @@ a false 1 (F-61/F-71).
 WITH walked AS (
   SELECT id FROM spine_tracks
   WHERE entry_station = 'sense' AND station = 'learn' AND waived = '[]'
+    -- ARRIVED AT LEARN IS NOT GRADED AT LEARN (F-131, 2026-08-27). `status` is
+    -- written 'done' only when the route completes; a track waiting on its
+    -- forecast holds `needs-evidence` at 'learn' with status 'open'. F-104's
+    -- real forecast is due 2026-10-15, so without this the FIRST run that
+    -- actually worked would report the acceptance met for two months before
+    -- anything was graded. Changes nothing today: both learn tracks are 'done'.
+    AND status = 'done'
 )
 SELECT count(*) FROM walked w
 WHERE w.id NOT IN (            -- nobody answered a boundary call mid-run

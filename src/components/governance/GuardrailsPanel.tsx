@@ -331,6 +331,11 @@ export function GuardrailsPanel({
    * click below an overview card already carrying "8 always on".
    */
   const floor = overview.data?.floor ?? [];
+  /**
+   * WHAT THE CREW DECIDED WITHOUT YOU. See the Region near the bottom of this
+   * file for why it belongs on this page and nowhere else.
+   */
+  const decidedAlone = overview.data?.decidedAlone ?? [];
   const isFloor = makeIsFloor(floor);
 
   /* Whether this workspace's screen has gone quiet, said above the list. Read
@@ -602,6 +607,38 @@ export function GuardrailsPanel({
           )}
         </Region>
       ) : null}
+
+      <Region
+        title="What your crew decided alone"
+        sub="Every time the platform acted without asking you, and the reason it acted on. Change any of these by overturning them; the record stays."
+      >
+        {decidedAlone.length === 0 ? (
+          <NothingYet>
+            Nothing has been decided without you. Either nothing has met the bar yet, or nothing has
+            come up that could be decided this way.
+          </NothingYet>
+        ) : (
+          decidedAlone.map((d) => (
+            <Row
+              key={d.id}
+              lead={d.what}
+              sub={
+                <>
+                  {d.reason ?? "No reason was stored, which is itself worth knowing."}
+                  {d.because.length > 0 ? (
+                    <>
+                      {" · "}
+                      <Num>{d.because.length}</Num> {d.because.length === 1 ? "fact" : "facts"} on
+                      the record
+                    </>
+                  ) : null}
+                </>
+              }
+              time={relTime(d.at)}
+            />
+          ))
+        )}
+      </Region>
 
       {/* THE COMMIT. What each decision above actually caused, kept on screen
           rather than flashed and lost. */}

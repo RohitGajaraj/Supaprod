@@ -56,6 +56,15 @@ entered at `sense`, and **zero have gone `sense` → `learn`**.
 > ```sql
 > SELECT count(*) FROM spine_tracks t
 > WHERE t.entry_station = 'sense' AND t.station = 'learn' AND t.waived = '[]'
+>   -- ARRIVED AT LEARN IS NOT GRADED AT LEARN. Added 2026-08-27 (F-131), and it
+>   -- is a false positive that would have fired on the FIRST run that worked.
+>   -- `status = 'done'` is written only when the route completes; a track waiting
+>   -- on its forecast holds `needs-evidence` at station 'learn' with status
+>   -- 'open'. F-104's real forecast is due 2026-10-15, so the first track to walk
+>   -- the loop would sit ungraded at Learn for two months while this query
+>   -- reported the acceptance met. It changes nothing today: both learn tracks
+>   -- are already 'done' and `station='learn' AND status<>'done'` returns 0.
+>   AND t.status = 'done'
 >   -- A person ANSWERED a boundary call mid-run (F-79).
 >   AND t.id NOT IN (SELECT r.track_id FROM agent_approvals a
 >                    JOIN agent_runs r ON r.mission_id = a.mission_id

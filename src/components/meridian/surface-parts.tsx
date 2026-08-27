@@ -1141,7 +1141,26 @@ export function ReadFailedLine({
       aria-live="polite"
       className="max-w-[68ch] text-mrd-base leading-mrd-prose"
     >
-      <span className="text-mrd-fail">{out.detail ?? children}</span>
+      {/*
+       * APPENDED, NOT SUBSTITUTED, and `??` was a regression I shipped an hour
+       * ago (S1 -> S0, 2026-08-27).
+       *
+       * With `??`, an ended session REPLACED the caller's own sentence. S1
+       * screenshotted `/learn`: three regions, three identical lines reading
+       * "Your session ended...", and nothing on the page saying WHICH read
+       * failed. The sentences that were lost are the ones that carried the
+       * information: "Nothing here would be trustworthy until it loads", "What
+       * came back from people did not load".
+       *
+       * `ReadFailed`, the boxed half, always had this right: children stay as
+       * the heading and the ended sentence becomes the detail, so it reads
+       * "What shipped did not load. Your session ended." That is the shape the
+       * line wants too, and the fix is one character of logic.
+       */}
+      <span className="text-mrd-fail">
+        {children}
+        {out.detail ? <> {out.detail}</> : null}
+      </span>
       {out.act ? (
         <>
           {" "}

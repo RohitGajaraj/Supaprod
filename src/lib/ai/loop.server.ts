@@ -12,7 +12,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveApprovalPolicy } from "@/lib/ai/approval-policy";
 import { approvalRecordFor } from "@/lib/ai/approval-policy.server";
 import { humanizeText } from "./humanize";
-import { PLAIN_PUNCTUATION_RULE } from "@/lib/ai/house-style";
+import { PLAIN_NAMES_RULE, PLAIN_PUNCTUATION_RULE } from "@/lib/ai/house-style";
 import {
   callModel,
   CreditExhaustedError,
@@ -905,6 +905,26 @@ export async function runAgentLoop(
 
   const system = [
     agent.system_prompt,
+    /*
+     * THE HOUSE STYLE, WHICH WAS IMPORTED AND NEVER USED (2026-08-27).
+     *
+     * `PLAIN_PUNCTUATION_RULE` was written to stop the model producing em
+     * dashes, imported into this file, and referenced nowhere. So it has never
+     * reached a model, which is why dashes kept arriving in output while four
+     * separate sanitisers were being built downstream to remove them. The rule
+     * existed; the prompt never carried it.
+     *
+     * `PLAIN_NAMES_RULE` is beside it for the same reason and the same class:
+     * S2 read `checkout_single_address` out of a review card on `/today`, in
+     * prose a person reads. A sanitiser cannot fix that one — only the writer
+     * knows the human name — so the rule has to be where the writer is.
+     *
+     * Both are in EVERY agent's system prompt rather than in seven station
+     * briefs, because voice is not a station's business and a rule repeated
+     * seven times drifts six ways.
+     */
+    PLAIN_PUNCTUATION_RULE,
+    PLAIN_NAMES_RULE,
     voiceBlock,
     briefBlock,
     houseRulesBlock,
@@ -2461,6 +2481,11 @@ export async function resumeAgentLoop(
     }
     const system = [
       agent.system_prompt,
+      // The same two rules as the fresh path above. A resumed run is the same
+      // agent writing for the same person, and a voice that changes when a run
+      // is picked up again is a voice nobody trusts.
+      PLAIN_PUNCTUATION_RULE,
+      PLAIN_NAMES_RULE,
       voiceBlock,
       briefBlock,
       houseRulesBlock,

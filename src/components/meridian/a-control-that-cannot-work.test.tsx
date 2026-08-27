@@ -73,3 +73,23 @@ describe("THE 128 CALLERS MUST NOT BREAK", () => {
     expect(body).toContain("if (!ended) return { detail, label: retryLabel, act: onRetry };");
   });
 });
+
+describe("THE REGRESSION: the caller's own sentence must survive", () => {
+  it("ReadFailedLine appends the ended sentence rather than replacing it", () => {
+    /*
+     * `{out.detail ?? children}` discarded what the caller said. S1 screenshotted
+     * three regions on /learn showing three identical "Your session ended" lines
+     * with nothing saying WHICH read failed. The sentences lost were the ones
+     * carrying the information.
+     */
+    expect(SRC).not.toContain("{out.detail ?? children}");
+    expect(SRC).toContain("{out.detail ? <> {out.detail}</> : null}");
+  });
+
+  it("and the boxed half still keeps children as its heading", () => {
+    // ReadFailed always had this right: the caller names the read, the detail
+    // says why, and the door does something that can work.
+    expect(SRC).toContain("<span>{children}</span>");
+    expect(SRC).toContain("{out.detail}</p>");
+  });
+});
