@@ -1051,6 +1051,7 @@ function Today() {
           ) : (
             base(r).state
           ),
+        note: r.reason,
       })),
       open: grouped.finished.map((r): CrewRow => ({
         ...base(r),
@@ -2106,6 +2107,16 @@ function Today() {
                     ),
                   (row) => (
                     <>
+                      {/* WHY IT IS HELD, in full, on the line under the row. The
+                          driver writes real sentences past 200 characters and
+                          the state slot is a few words wide, so the row says
+                          "held" and the reason reads properly here. Same split
+                          the waiting lane uses. */}
+                      {row.note ? (
+                        <p className="px-mrd-2 pb-mrd-2 text-mrd-data leading-mrd-prose text-mrd-mute">
+                          {row.note}
+                        </p>
+                      ) : null}
                       {/* WHERE THE WORK JUST CAME FROM. The founder asked twice to
                           see the handoff; on the board that is this one line under
                           each running row, drawn only when a real handover row
