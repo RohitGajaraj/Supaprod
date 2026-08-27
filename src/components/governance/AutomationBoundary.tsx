@@ -29,6 +29,7 @@
  * what this product says it is built on.
  */
 import * as React from "react";
+import { humanWriteError } from "@/lib/roles.functions";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -141,7 +142,7 @@ export function AutomationBoundary({
         <Reading>Reading what runs without asking.</Reading>
       ) : q.isError || !q.data ? (
         <ReadFailed onRetry={() => void q.refetch()}>
-          {(q.error as Error)?.message ?? "The switches did not come back."}
+          {humanWriteError(q.error, "The switches did not come back.")}
         </ReadFailed>
       ) : (
         <>

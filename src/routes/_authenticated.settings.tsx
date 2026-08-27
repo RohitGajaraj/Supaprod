@@ -168,7 +168,7 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { readFailureMessage } from "@/lib/roles.functions";
+import { readFailureMessage, sessionEndedMessage } from "@/lib/roles.functions";
 import { Row, Line } from "@/components/meridian/rows";
 import {
   Action,
@@ -926,10 +926,21 @@ function ProfileSection() {
          * will work. Disabling it here would lock somebody out of a security
          * action at precisely the moment the product looks broken to them,
          * which is when they are most likely to want it.
+         *
+         * EXCEPT WHEN THE SESSION IS WHAT ENDED, and the first version of this
+         * sentence got that wrong. Looking at the rendered page caught it: it
+         * read "Your password can still be changed below. Your session ended."
+         * Those contradict, and the second one wins -- changing a password
+         * re-authenticates, so an ended session breaks that too. When the read
+         * failed for THAT reason the line says the one true thing and stops.
          */}
         <ReadFailedLine onRetry={() => void profile.refetch()}>
-          Your profile did not load, so your name, role and hours cannot be saved yet. Your password
-          can still be changed below. {readFailureMessage(profile.error)}
+          {sessionEndedMessage(profile.error) ?? (
+            <>
+              Your profile did not load, so your name, role and hours cannot be saved yet. Your
+              password can still be changed below. {readFailureMessage(profile.error)}
+            </>
+          )}
         </ReadFailedLine>
       </>
     );
