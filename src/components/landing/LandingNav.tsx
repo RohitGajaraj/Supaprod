@@ -139,7 +139,12 @@ export function LandingNav() {
           title={isMachineView ? "Switch to human view" : "Switch to machine-readable view"}
           aria-label="Machine-readable view"
           aria-pressed={isMachineView}
-          className="text-xs font-mono text-zinc-400 hover:text-zinc-300 border border-white/10 rounded px-1.5 py-0.5 transition-colors"
+          /* 21x22 at every width, under the 24px floor on BOTH axes, and it is
+             the smallest control on the page. `inline-flex` with a 24px
+             minimum in each direction and the glyph centred grows the target
+             without changing the border box's visual weight: the border still
+             hugs a single monospace letter, it just has room around it now. */
+          className="inline-flex min-h-[24px] min-w-[24px] items-center justify-center rounded border border-white/10 px-1.5 py-0.5 font-mono text-xs text-zinc-400 transition-colors hover:text-zinc-300"
           onClick={toggle}
         >
           M

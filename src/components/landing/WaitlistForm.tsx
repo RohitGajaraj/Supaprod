@@ -228,7 +228,13 @@ export function WaitlistForm({ waitlistCount }: { waitlistCount: number | null }
         <button
           type="button"
           onClick={() => setShowBet(true)}
-          className="inline-block text-xs text-zinc-500 hover:text-zinc-300 underline underline-offset-4 decoration-zinc-700 mb-5 transition-colors duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
+          /* 243x16, under the 24px floor, and a BUTTON -- so no inline
+             exception is available to it whatever the text around it does.
+             `py-1 -mt-1 mb-4` grows the hit box by 4px each way and pays for
+             it exactly: the top comes back as negative margin, and the bottom
+             comes out of `mb-5` (20px) becoming `mb-4` (16px) + 4px padding.
+             Same 20px gap below as before. */
+          className="-mt-1 mb-4 inline-block py-1 text-xs text-zinc-500 underline decoration-zinc-700 underline-offset-4 transition-colors duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:text-zinc-300"
         >
           Add the bet you want red-teamed (optional)
         </button>
