@@ -138,6 +138,7 @@ import { SettledTrail, type SettledLine } from "@/components/approvals/SettledTr
 import { UndatedCalls, type UndatedCall } from "@/components/approvals/UndatedCalls";
 import { SendBackSheet, canSendBack } from "@/components/approvals/SendBack";
 import { waitingSince } from "@/components/approvals/stopped-for";
+import { countIsAFloor, notTheWholeQueue } from "@/components/approvals/not-the-whole-queue";
 
 export const Route = createFileRoute("/_authenticated/approvals")({
   component: ApprovalsSurface,
@@ -593,6 +594,16 @@ function ApprovalsSurface() {
         : null;
 
   const n = allItems.length;
+
+  /*
+   * WHETHER THE NUMBER ABOVE IS A TOTAL OR A FLOOR. `getApprovalsQueue` bounds
+   * every family it federates, and this page has always rendered the result as
+   * an exact count in the largest type on the screen. See
+   * `not-the-whole-queue.ts` for the 116-against-100 measurement.
+   */
+  const gaps = queue.data?.incomplete;
+  const floor = countIsAFloor(gaps);
+  const shortLine = notTheWholeQueue(gaps);
   /* "CALL" AND "DECISION" WERE THE SAME OBJECT IN TWO WORDS, one inch apart.
      The shell above this page reads "83 decisions are ready for you"
      (AppFrame.tsx), and this headline read "83 calls need you" off the same
@@ -622,10 +633,20 @@ function ApprovalsSurface() {
       queue.isError
       ? "Approvals"
       : n === 0
-        ? "Nothing is ready for you."
+        ? /*
+           * ZERO IS THE ONE COUNT A CAP CANNOT SOFTEN, and it is also the one
+           * that must not be said when a family failed to load. `notTheWholeQueue`
+           * renders under this either way; what changes here is that "Nothing
+           * is ready for you." is only allowed when the queue actually knows
+           * that. A capped family cannot produce zero, so this reads the
+           * failure case alone.
+           */
+          floor
+          ? "Approvals"
+          : "Nothing is ready for you."
         : n === 1
-          ? "1 decision is ready for you."
-          : `${n} decisions are ready for you.`;
+          ? `${floor ? "At least 1 decision is" : "1 decision is"} ready for you.`
+          : `${floor ? "At least " : ""}${n} decisions are ready for you.`;
 
   /* THE THIRD FACT, which this surface used to collapse into the first. A
      person in no workspace at all was told "Nothing is ready for you.", which
@@ -685,6 +706,17 @@ function ApprovalsSurface() {
             <p className="mt-mrd-3 text-mrd-base leading-mrd-prose text-mrd-prose text-mrd-body">
               Settled in order, oldest first. The one in front of you is the one that moves, and the
               rest are listed under it.
+            </p>
+          ) : null}
+          {/*
+            WHAT THE QUEUE COULD NOT SHOW YOU, next to the number rather than
+            in a log. Rendered whatever `n` is: a family that failed to load
+            can leave this page reading zero, and "Nothing is ready for you"
+            over a broken read is the worst sentence this surface can say.
+          */}
+          {shortLine ? (
+            <p className="mt-mrd-3 text-mrd-base leading-mrd-prose text-mrd-prose text-mrd-hold">
+              {shortLine}
             </p>
           ) : null}
         </header>

@@ -18,6 +18,7 @@ import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 import { listMissions, type MissionListRow } from "@/lib/missions.functions";
 import { approvalsQueueKey, missionsKey } from "@/lib/query-keys";
 import { stillWaiting } from "@/lib/query-state";
+import { countIsAFloor, notTheWholeQueue } from "@/components/approvals/not-the-whole-queue";
 
 /**
  * THE INBOX SURFACE. One list of everything the crew holds, sorted by who needs
@@ -231,6 +232,16 @@ export function InboxSurface() {
   const missionRows = missions.data?.missions ?? [];
   const workspaceSpend = workspaceSpendTotal(missionRows);
 
+  /*
+   * WHETHER THE COUNTS BELOW ARE TOTALS OR FLOORS. `getApprovalsQueue` bounds
+   * every family it federates and degrades a failed one to an empty list, and
+   * this page has always rendered the result as an exact number. See
+   * `not-the-whole-queue.ts` for the measurement that found it.
+   */
+  const queueGaps = queue.data?.incomplete;
+  const floor = countIsAFloor(queueGaps);
+  const shortLine = notTheWholeQueue(queueGaps);
+
   const waitingOnYou = sessions.filter((s) => s.need === "needs-input").length;
   const runningCount = sessions.filter((s) => s.need === "working").length;
 
@@ -262,13 +273,24 @@ export function InboxSurface() {
        */
       return runningCount > 0 ? (
         <>
+          {floor ? "At least " : null}
           <Num>{waitingOnYou}</Num> need you. <Num>{runningCount}</Num> still running.
         </>
       ) : (
         <>
+          {floor ? "At least " : null}
           <Num>{waitingOnYou}</Num> need you.
         </>
       );
+    /*
+     * "NOTHING WAITS ON YOU" IS A CLAIM AND A CAPPED OR FAILED READ CANNOT
+     * MAKE IT. A family that failed to load degrades to an empty list so one
+     * refusal cannot blank the other nine, which is right, and it can leave
+     * this page reading zero. Saying nothing needs you over a broken read is
+     * the worst sentence an inbox can say, so it falls back to naming itself
+     * and `shortLine` below carries the reason.
+     */
+    if (floor) return runningCount > 0 ? <>{runningCount} still running.</> : "Inbox";
     if (runningCount > 0)
       return (
         <>
@@ -276,7 +298,7 @@ export function InboxSurface() {
         </>
       );
     return "Nothing needs you.";
-  }, [reading, queue.isError, missions.isError, waitingOnYou, runningCount]);
+  }, [reading, queue.isError, missions.isError, waitingOnYou, runningCount, floor]);
 
   if (!readingWorkspaces && workspaces.length === 0) {
     return (
@@ -300,6 +322,12 @@ export function InboxSurface() {
       <div className="flex flex-col gap-mrd-7">
         <div className="flex items-end justify-between gap-mrd-4">
           <PageHeading title={headline} sub={SUBTITLE} />
+          {/*
+            WHAT THE QUEUE COULD NOT SHOW, beside the number rather than in a
+            log. Same sentence as /approvals, from one module, so the two
+            surfaces cannot give a person two answers about one queue.
+          */}
+          {shortLine ? <p className="text-mrd-hold">{shortLine}</p> : null}
           {spendNote && <p className="mrd-meta">{spendNote}</p>}
         </div>
 
