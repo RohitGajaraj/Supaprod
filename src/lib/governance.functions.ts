@@ -1135,6 +1135,9 @@ export const getBoundary = createServerFn({ method: "GET" })
       category: string | null;
       mode: string | null;
       enabled: boolean | null;
+      /* `loadAccountTools` already computes this and `getBoundary` was dropping
+         it. See `chosen` on BoundaryTool. */
+      is_default?: boolean;
     };
 
     /*
@@ -1213,6 +1216,9 @@ export const getBoundary = createServerFn({ method: "GET" })
         category: raw.category ?? null,
         mode,
         runsAs,
+        // F-139. `is_default` is "no override row", so `chosen` is its inverse.
+        // Absent means we could not tell, and we do not claim a person chose.
+        chosen: raw.is_default === false,
         risk,
         floor,
       };
@@ -1335,6 +1341,32 @@ export type BoundaryTool = {
   risk: "low" | "medium" | "high";
   /** The lowest supervision this tool may ever have, or null if unconstrained. */
   floor: "confirm" | "review" | null;
+  /**
+   * Did a person set this, or did we assume it?
+   *
+   * ── S3'S ASK, AND THE FACT WAS ALREADY BEING COMPUTED (F-139) ────────────
+   * `BoundaryControls` already marks the five autonomy thresholds with *"This
+   * is the number we ship, not one you set."* The tools could not carry the
+   * same line, on the one screen that exists to answer exactly that question.
+   *
+   * `loadAccountTools` computes `is_default: !over` — whether this account has
+   * an `agent_tools` row deviating from the shipped default — and `getBoundary`
+   * threw it away. The fact existed and was dropped one function later, which
+   * is the shape this session has spent the night on.
+   *
+   * WHAT IT LETS A SURFACE SAY, in S3's words: three states instead of two.
+   * You set this and it runs looser; **we assumed this and it runs looser**;
+   * you set this and it holds. The middle one is the one nobody could see, and
+   * by S3's own U-097 measurement it is almost all of them — 92 of 93 autonomy
+   * rows have `set_at = created_at`, so the reach came from a default nobody
+   * chose rather than from trust anyone earned.
+   *
+   * THE CAVEAT, STATED RATHER THAN HIDDEN: this means "an override row exists",
+   * not "a human typed it". Today those rows come from the settings surface, so
+   * the two coincide, and if anything ever writes `agent_tools` automatically
+   * this stops meaning what it says and must be re-derived from who wrote it.
+   */
+  chosen: boolean;
 };
 
 /* ------------------------------------------------------------------ *

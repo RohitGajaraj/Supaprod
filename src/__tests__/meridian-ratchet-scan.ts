@@ -208,6 +208,47 @@ export const RETIRED_MARKERS: ReadonlyArray<{ id: string; pattern: RegExp; linea
   { id: "data-obsidian", pattern: /data-obsidian/g, lineage: "Obsidian" },
 
   /*
+   * ── THE RETIRED SYSTEM REACHED THROUGH A FRIENDLY NAME (F-138) ──────────
+   *
+   * Found independently by S3 and S4, and it is the fourth instance this week
+   * of a guard reporting success while the thing it guards is happening.
+   *
+   * Every marker above matches a retired token LITERALLY. `src/styles.css` then
+   * defines dozens of friendly names as `var(--ds-...)`, so a component writing
+   * `var(--canvas)` or `var(--rose)` draws from the retired v3 palette and this
+   * scan counted **zero**. Not weakened, BYPASSED, with nothing in the output
+   * saying so — while `CLAUDE.md` states the ratchet as enforced rather than
+   * requested.
+   *
+   * The ceiling was the thing that broke. The ratchet's whole design is that
+   * debt cannot GROW, and through an alias **a brand new file could be written
+   * entirely in the retired system today and pass green.**
+   *
+   * ── WHAT IS IN THE LIST, AND THE TWO THINGS DELIBERATELY LEFT OUT ────────
+   * 64 aliases are declared. 10 are already matched by a marker above
+   * (`--glacier`, `--hairline*`, `--raised`, `--madder`, `--text-*`) and would
+   * double-count. **13 are shadcn's own contract** — `--background`,
+   * `--foreground`, `--card`, `--primary`, `--border` and their kin. Those
+   * resolve through `--ds-*` today, but they are the component library's
+   * interface rather than the Supaprod palette, and flagging them would put
+   * every shadcn primitive in the baseline for a naming coincidence. Repointing
+   * them is a separate job with a different argument.
+   *
+   * That leaves the 41 below: the v3 palette, its easings and its surfaces.
+   *
+   * ── IT MATCHES USE, NEVER DECLARATION ───────────────────────────────────
+   * `var(--canvas)` and not `--canvas:`, so `styles.css` defining the alias is
+   * not itself a violation. The declaration is how the old system is kept
+   * reachable while it is being removed; the USE is the debt.
+   */
+  {
+    id: "--ds- via alias",
+    pattern:
+      /var\(--(surface-card-deep|surface-recessed|cta-grad-bottom|shadow-elevated|pencil-apricot|pencil-blossom|surface-raised|surface-hover|cta-grad-top|ember-active|surface-card|action-blue|ease-in-out|pencil-lime|violet-soft|deep-green|ember-soft|focus-blue|focus-ring|ink-subtle|soft-stone|ink-faint|ink-muted|dur-base|dur-slow|ease-out|marigold|cta-ink|emerald|hero-bg|saffron|canvas|agent|amber|coral|hover|paper|ease|moss|rose|ink)\)/g,
+    lineage: "v3 design-system, reached through styles.css",
+  },
+
+  /*
    * ── THE HOLE THIS GUARD SHIPPED WITH, CLOSED 2026-08-15 ─────────────────
    * The first version counted retired TOKENS and raw colour and stopped there,
    * and it reported `_authenticated.today.tsx` as clean. It is not clean: it
