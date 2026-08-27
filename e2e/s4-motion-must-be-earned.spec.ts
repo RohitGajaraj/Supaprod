@@ -624,6 +624,24 @@ const GALLERY_SURFACES: readonly string[] = ["/meridian"];
  * it. It is a triage signal for "which page should I look at", and the list it
  * prints is the thing to act on. A lane chasing the number itself would end up
  * deleting a card body that was doing its job.
+ *
+ * ── AND IT PENALISES THE FIX. READ THIS BEFORE ACTING ON A RISE ────────────
+ * /learn went from 7 to 9 the moment S0's F-120 reached main. That change is an
+ * IMPROVEMENT: four reads in forecast.functions.ts used to swallow their error
+ * and return empty, and ForecastDeskPanel returned null when all three came back
+ * empty, so a failed read made the whole desk VANISH from the page. It now says
+ *
+ *   "Your forecasts did not load, so an empty desk here would not mean there is
+ *    nothing to settle."
+ *
+ * A surface that used to disappear silently now explains itself, and this metric
+ * scores that as a REGRESSION of one.
+ *
+ * There is no threshold that fixes this, because "a new honest sentence" and "a
+ * duplicated sentence" are the same event to a counter. A RISE IS A PROMPT TO
+ * READ THE LIST, NEVER A VERDICT — and a rise straight after a lane ships an
+ * error state is the most likely place for the count to be wrong and the surface
+ * to be better.
  */
 /*
  * `went wrong` is deliberately anchored to `something went wrong` rather than
@@ -644,7 +662,14 @@ async function failureStatements(
       .split("\n")
       .map((l) => l.trim())
       .filter(Boolean);
-    const distinct = Array.from(new Set(lines.filter((l) => re.test(l))));
+    /*
+     * The station strip prints "count unavailable" once per station on EVERY
+     * surface. It is honest and it is not this surface announcing a failed read,
+     * so counting it adds a constant to every score and tells nobody anything.
+     */
+    const distinct = Array.from(
+      new Set(lines.filter((l) => re.test(l) && !/^count unavailable$/i.test(l))),
+    );
     const retries = lines.filter((l) => /^try again$/i.test(l)).length;
     return { distinct, retries };
   }, FAILURE_SENTENCE.source);
