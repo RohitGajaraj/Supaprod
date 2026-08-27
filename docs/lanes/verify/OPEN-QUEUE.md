@@ -12,6 +12,40 @@
 
 ---
 
+## 0z · THE ONE BLOCKED BRANCH, AND ITS RESOLUTION IS ALREADY DECIDED
+
+> _Measured 2026-08-28. **The 199-commit gap is gone** — main has taken the lanes and they now sit at
+> `lane/run +8`, `lane/platform +10`, `lane/control +3`, `lane/proof +4`._
+
+**`lane/control` is the only branch that does not merge**, and it conflicts with `main` *and* with
+both other lanes, all on one file:
+
+```
+CONFLICT (content): Merge conflict in src/styles.css
+```
+
+**Two lanes fixed the same defect two different ways, and that is my doing.** I reported
+`--mrd-raised` — the dead token on `.today-hero`, the board's featured band — to S3 as their file and
+routed it to S2 as their component. Both acted.
+
+| side | what it did |
+| --- | --- |
+| **`main`** (S3, `ac449703a`) | `background: var(--mrd-lift)` — repoints to a declared token |
+| **`lane/control`** (S2, `859181998`) | deletes the declaration entirely |
+
+**Take main's.** Not because it landed first, but by S2's own standard. S2 deleted it reasoning that
+*"the comment above already names this band's hierarchy device: air and rules"*, and that removing a
+dead rule cannot change a pixel while choosing a fill would. That reasoning is right and its premise
+is incomplete: **the comment eight lines BELOW describes this band as having "a raised background"**,
+and `meridian.css:209` names `--mrd-lift` as *"a raised control"*. The intent was on the record the
+whole time and only the value was missing, so restoring it is the repair and deleting it ratifies the
+accident.
+
+**S2 is offline.** Whoever merges `lane/control` resolves this by taking `main`'s side of that hunk
+and keeping S2's other two commits. Nothing else on that branch conflicts.
+
+---
+
 ## 0a · NOTHING FIXED TONIGHT IS LIVE
 
 **Production deploys from `main`, and the three build lanes sit 51, 73 and 75 commits ahead of it.**
