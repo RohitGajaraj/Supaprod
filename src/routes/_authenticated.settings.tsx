@@ -273,6 +273,9 @@ import { MembersCard } from "@/components/settings/MembersCard";
 import { TeamCard } from "@/components/settings/TeamCard";
 import { ControlsPanel } from "@/components/governance/ControlsPanel";
 import { BoundaryControls } from "@/components/governance/BoundaryControls";
+import { GuardrailsPanel } from "@/components/governance/GuardrailsPanel";
+import { HouseRulesPanel } from "@/components/governance/HouseRulesPanel";
+import { RoutinesPanel } from "@/components/engine-room/rooms/RoutinesPanel";
 import { DesignMemoryPanel } from "@/components/knowledge/DesignMemoryPanel";
 import { ARC_CHOICE, MODE_CHOICE } from "@/components/crew/crew-words";
 import { stationCrew } from "@/lib/spine/driver";
@@ -702,6 +705,34 @@ function SettingsPage() {
                 other boundary. ControlsPanel below keeps a readout. */}
             <BoundaryControls />
             <ControlsPanel controlsOnly onOpenQueue={() => navigate({ to: "/approvals" })} />
+            {/*
+             * THE REST OF WHAT "ALLOWED" MEANS, mounted 2026-08-27 so the fold
+             * S0 ruled in A-006 can remove a DOOR without removing a
+             * CAPABILITY.
+             *
+             * The Safety room has six views and this page held two of them. A
+             * redirect on top of that would have dropped the guardrail rules,
+             * the house rules and the background jobs -- which is the one thing
+             * the ruling forbids, and the quick version of this change.
+             *
+             * They belong here on their own merit rather than as fold luggage.
+             * The founder's question is "what can these agents do without
+             * asking me", and the honest answer has four parts: what they may
+             * DO (the boundary above), what they may SAY (guardrails), the
+             * standing rules they answer to (house rules), and what runs while
+             * nobody is watching (routines). Reading order follows that
+             * sentence.
+             *
+             * MOUNTED, NOT MOVED. Each still renders at its Engine Room
+             * address, so nothing breaks before the redirect lands.
+             *
+             * Incidents, the sixth view, is deliberately NOT here: it is a log
+             * of what already happened, and this page is what is allowed to
+             * happen next. It belongs under the record.
+             */}
+            <GuardrailsPanel />
+            <HouseRulesPanel />
+            <RoutinesPanel />
           </>
         )}
         {active === "ai" && <ModelsSection />}
