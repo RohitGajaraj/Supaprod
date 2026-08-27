@@ -75,6 +75,30 @@ One extra `NOT IN`. `track_drives.driven_via` already records it; nothing new ne
   If that is wrong, the same query needs a third clause, and that is a ruling rather than a
   measurement.
 
+## The two clauses catch different tracks, and neither catches both
+
+This stopped being an argument and became a measurement. The only two tracks that come near the
+acceptance:
+
+| track | station | presses | decided approvals | caught by |
+| --- | --- | --- | --- | --- |
+| `d1168015` | **`learn`** | **0** | **3** | the approvals clause ONLY |
+| `a30238f5` | `ship` | **7** | **0** | the presses clause ONLY |
+
+**Each is invisible to the clause that catches the other.**
+
+- With only the **published** clause (decided approvals), `a30238f5` passes the moment it reaches
+  `learn`. Seven presses, unseen.
+- With only the **press** clause, `d1168015` passes today. It is already at `learn` with
+  `waived = '[]'`, and **three answered calls are unseen**.
+
+S1 found the same thing from the other direction, building the run screen: of 106 tracks, 20 have any
+drive recorded, 19 carry at least one human drive, and **exactly one was moved only by the loop** —
+`d1168015`. From the drive record alone it reads as the acceptance. **A person answered three calls on
+it, and an answer is not a move, so nothing in the drive data can see them.**
+
+**That is the whole argument for two clauses, made by the data rather than by me.**
+
 ## Why it matters more than one track
 
 The whole build exists to reach this number. **A query that reports a pass the rule does not allow is
