@@ -376,7 +376,7 @@
  * The payload carries no due-count, so none is claimed anywhere below.
  */
 import { lazy, Suspense, useState, type ReactNode } from "react";
-import { sessionEndedMessage } from "@/lib/error-copy";
+import { SessionEnded, endedSessionFor } from "@/components/system/SessionEnded";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
@@ -1478,23 +1478,23 @@ function MemoryPage() {
    * per-panel honesty, because there the panels disagree and the reader needs
    * to know which half is real.
    */
-  const endedSession =
-    sessionEndedMessage(brain.error) ??
-    sessionEndedMessage(stats.error) ??
-    sessionEndedMessage(standing.error) ??
-    sessionEndedMessage(compounding.error);
+  const endedSession = endedSessionFor(brain.error, stats.error, standing.error, compounding.error);
   if (endedSession) {
     return (
       <Surface wide>
-        <RecordHead title="The record is still here." sub="You are not signed in any more." />
-        {/* The sentence about the session comes from the PRIMITIVE, which
-            derives it from the error and pairs it with the one control that
-            can work. Passing `endedSession` as the body too printed it twice,
-            one line under itself -- caught by rendering, not by review. The
-            body says the thing the heading does not: what is still true. */}
-        <ReadFailed error={brain.error ?? stats.error}>
+        {/* The sentence about the session comes from the PRIMITIVE inside
+            SessionEnded, which derives it from the error and pairs it with the
+            one control that can work. The body says what the heading does not:
+            what is still true. Passing the sentence as the body TOO printed it
+            twice, one line under itself, which only the screen showed. */}
+        <SessionEnded
+          head={
+            <RecordHead title="The record is still here." sub="You are not signed in any more." />
+          }
+          error={brain.error ?? stats.error}
+        >
           Everything the record holds is still here, exactly as it was.
-        </ReadFailed>
+        </SessionEnded>
       </Surface>
     );
   }

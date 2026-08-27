@@ -275,6 +275,7 @@ import { TeamCard } from "@/components/settings/TeamCard";
 import { ControlsPanel } from "@/components/governance/ControlsPanel";
 import { BoundaryControls } from "@/components/governance/BoundaryControls";
 import { getBoundary } from "@/lib/governance.functions";
+import { SessionEnded, endedSessionFor } from "@/components/system/SessionEnded";
 import { GuardrailsPanel } from "@/components/governance/GuardrailsPanel";
 import { HouseRulesPanel } from "@/components/governance/HouseRulesPanel";
 import { RoutinesPanel } from "@/components/engine-room/rooms/RoutinesPanel";
@@ -3498,18 +3499,11 @@ function BoundaryPane() {
     queryKey: ["boundary", activeWorkspaceId],
     queryFn: () => fBoundary(),
   });
-  const ended = sessionEndedMessage(b.error);
-  if (ended) {
+  if (endedSessionFor(b.error)) {
     return (
-      <>
-        <PageHeading
-          title="What they may do without asking"
-          sub="You are not signed in any more."
-        />
-        <ReadFailed error={b.error}>
-          Nothing about what your agents may do has changed while you were away.
-        </ReadFailed>
-      </>
+      <SessionEnded title="What they may do without asking" error={b.error}>
+        Nothing about what your agents may do has changed while you were away.
+      </SessionEnded>
     );
   }
   return (
