@@ -139,12 +139,22 @@ export function writeDeniedReason(
  * where the second one looks authoritative.
  *
  * `error-copy` decides by SHAPE rather than by a list of strings somebody has
- * already seen, and that is strictly better -- proven the day it shipped. A
- * TanStack query function that returns undefined instead of throwing produces
- * `["decisions",{}] data is undefined`, and S4 photographed that being read by
- * a person on Settings and Brain. My fingerprint list passed it straight
- * through, because nobody had seen it before to add it. The shape test refuses
- * it without having to know it exists.
+ * already seen, and that is the whole reason to prefer it: a list can only
+ * refuse yesterday's junk.
+ *
+ * THE EXAMPLE THAT PROMPTED THIS TURNED OUT NOT TO BE REAL, and it is recorded
+ * because the correction matters more than the anecdote. S4 photographed
+ * `["decisions",{}] data is undefined` -- a React Query cache key -- apparently
+ * being read by a person, and my fingerprint list did pass it straight through.
+ * They then withdrew it: the string came from their own route-interception
+ * shim resolving where the real middleware throws, not from the product. S1
+ * reproduced with a genuinely corrupted token and no key appeared on any of
+ * seven surfaces.
+ *
+ * The consolidation stands on its own merits regardless, which is why it was
+ * not reverted: two lists that can disagree is a defect whether or not either
+ * has leaked yet, and this one was the second copy of a decision S0 had already
+ * ruled into one home.
  *
  * `sessionEndedMessage` is re-exported because it is mine and it still runs
  * first: an ended session is the one failure the reader can fix in a single
