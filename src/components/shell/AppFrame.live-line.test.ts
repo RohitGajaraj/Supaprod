@@ -56,3 +56,47 @@ describe("the live line on the board", () => {
     expect(SRC.slice(memoEnd - 400, memoEnd)).toContain("onTheBoard,");
   });
 });
+
+describe("the shell states a bounded count as a bound", () => {
+  /*
+   * `AppFrame` took `queue.data?.items.length ?? 0` and put it in two places a
+   * person acts on: the rail's hot number, which is what they navigate by, and
+   * the live line's sentence.
+   *
+   * `getApprovalsQueue` bounds every one of ten families and degrades a family
+   * that throws to an empty list, so that length is what SURVIVED the read, not
+   * what is waiting. S1 measured the gap: 116 specs pending a design gate
+   * against a limit of 100.
+   *
+   * The board's headline was fixed for this first. Fixing one surface and not
+   * the other would be worse than fixing neither: two counts of one population
+   * within a viewport, one hedged and one not, reads as the two disagreeing.
+   */
+  it("knows whether the count is a floor", () => {
+    expect(SRC).toContain("const gatesArePartial = countIsAFloor(queue.data?.incomplete);");
+  });
+
+  it("uses the board's own wording in the sentence", () => {
+    expect(SRC).toContain('const lead = gatesArePartial ? "At least " : "";');
+  });
+
+  it("MARKS THE RAIL CHIP, which has no room for the word", () => {
+    // "52+" is the compact form of "At least 52". The title carries the
+    // sentence for anyone who stops on it.
+    expect(SRC).toContain('{count === "gates" && gatesArePartial ? "+" : ""}');
+    expect(SRC).toContain('"More are waiting than this counts"');
+  });
+
+  it("marks only the count that can actually be bounded", () => {
+    // The Runs row counts a different read and must not inherit a caveat that
+    // is not true of it.
+    const at = SRC.indexOf('{count === "gates" && gatesArePartial ? "+" : ""}');
+    expect(at).toBeGreaterThan(-1);
+    expect(SRC.slice(at - 500, at)).toContain('count === "gates"');
+  });
+
+  it("recomputes when the gap does", () => {
+    const memoEnd = SRC.indexOf("    strip,\n    movingRuns,\n  ]);");
+    expect(SRC.slice(memoEnd - 500, memoEnd)).toContain("gatesArePartial,");
+  });
+});
