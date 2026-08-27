@@ -52,6 +52,27 @@ people: one was a real gap (S3 shipped the banner), one was documented as a gap 
 looked, and one was superseded and should be deleted. **The list is where to look, not a delete
 order.**
 
+## The safety model is proof, not permission, and the public copy says permission
+
+**One tool of seventy-four always requires a person** (`delegate.openhands`). 52 tools are seeded
+`auto`, 21 `confirm`, and a `trusted` arc turns every `confirm` into `auto` — all 93 agent rows are
+trusted. Of the four high-risk tools floored to `review`, **two are released back out
+unconditionally**: `studio.revert` and `release.publish`.
+
+**This is deliberate and it is defensible.** Every release carries a written argument about
+reversibility: a branch and draft PR are reversible, a rollback to a known-good commit is reversible
+by definition, and a publish is gated not on a click but on **merged + CI green at that sha + a live
+preview + a recorded forecast**. *"A change nobody can grade cannot ship itself."* That is a stronger
+guarantee than a click.
+
+**The problem is that the public copy describes permission.** Three surfaces said an absolute the
+wiring does not keep — the landing trust badge twice, and `llms.txt`, which is what every crawler and
+agent reads. S3 fixed all three. **The honest sentence already existed on `index.tsx`** and is
+stronger than the false one.
+
+**This is the one I would look at first outward**, because it is the last thing a visitor reads
+before deciding whether an agent touching their repository is safe.
+
 ## The meta-finding, which outranks all of it
 
 **Four guards reported success while the thing they guarded was happening.** My `curl` warming that
