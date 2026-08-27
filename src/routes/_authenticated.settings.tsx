@@ -3556,6 +3556,12 @@ function BoundaryPane() {
           sentence ("Your crew does N of M things without asking") renders at
           region level rather than as a second page title. */}
       <BoundaryControls headingShownElsewhere />
+      {/* Directly after the boundary, because a ceiling is the boundary
+          expressed in money. U-062 said this and put it three regions later,
+          behind ControlsPanel, so the page carried "The ceiling" and "What you
+          will not spend past" separated by the stop switch and the
+          auto-pipelines. All the limits read together now. */}
+      <BudgetsPanel controlsOnly />
       <ControlsPanel controlsOnly onOpenQueue={() => navigate({ to: "/approvals" })} />
       {/*
        * THE REST OF WHAT "ALLOWED" MEANS, mounted 2026-08-27 so the fold
@@ -3588,8 +3594,7 @@ function BoundaryPane() {
           ceilings have already SAID stays with the record in the Engine Room.
           Placed directly after the boundary because a ceiling is the boundary
           expressed in money. */}
-      <BudgetsPanel controlsOnly />
-      <GuardrailsPanel />
+      <GuardrailsPanel controlsOnly />
       <HouseRulesPanel />
       <RoutinesPanel />
     </>

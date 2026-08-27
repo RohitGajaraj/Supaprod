@@ -192,7 +192,22 @@ function emptyRule(): RuleForm {
 /** Shown when a guardrail write failed for a reason the database wrote. */
 const GUARDRAIL_WRITE_FAILED = "That rule did not save. Nothing on this surface changed.";
 
-export function GuardrailsPanel() {
+export function GuardrailsPanel({
+  /**
+   * DRAW THE RULES AND NOT WHAT THEY CAUGHT.
+   *
+   * "What they caught" is a log of every time a rule fired. It is real and it
+   * matters, and it is not an answer to "what may these agents say", which is
+   * the question the Settings pane mounting this panel is titled for. Same line
+   * drawn for ControlsPanel's spend log (U-038), BudgetsPanel's alert history
+   * (U-062) and the Safety room's incidents (U-076): the controls move onto the
+   * one screen, the record of what already happened stays with the record.
+   *
+   * The Engine Room passes nothing and gets the whole panel, so the flag
+   * decides where a region is DRAWN and never whether it exists.
+   */
+  controlsOnly = false,
+}: { controlsOnly?: boolean } = {}) {
   const confirm = useConfirm();
   // A guardrail is the `guardrail_rules` governed surface: owner or admin, the
   // same pair can_manage_workspace() enforces on every write policy below it.
@@ -521,41 +536,43 @@ export function GuardrailsPanel() {
         ) : null}
       </Region>
 
-      <Region
-        title="What they caught"
-        sub="Every time a rule fired, and on what. The match is stored, the rest of the call is not."
-      >
-        {hits.length === 0 ? (
-          <NothingYet>
-            Nothing has been caught. Either nothing has tripped a rule, or no calls have run through
-            them yet.
-          </NothingYet>
-        ) : (
-          hits.map((h) => (
-            <Row
-              key={h.id}
-              tight
-              lead={
-                <>
-                  {h.rule_name} <Value tone={ACTION_TONE[h.action] ?? "hold"}>{h.action}</Value>
-                </>
-              }
-              sub={
-                <>
-                  {h.side === "output" ? "On the way back" : "On the way out"}
-                  {h.matched ? (
-                    <>
-                      {" · "}
-                      <Num>{h.matched}</Num>
-                    </>
-                  ) : null}
-                </>
-              }
-              time={relTime(h.created_at)}
-            />
-          ))
-        )}
-      </Region>
+      {!controlsOnly ? (
+        <Region
+          title="What they caught"
+          sub="Every time a rule fired, and on what. The match is stored, the rest of the call is not."
+        >
+          {hits.length === 0 ? (
+            <NothingYet>
+              Nothing has been caught. Either nothing has tripped a rule, or no calls have run
+              through them yet.
+            </NothingYet>
+          ) : (
+            hits.map((h) => (
+              <Row
+                key={h.id}
+                tight
+                lead={
+                  <>
+                    {h.rule_name} <Value tone={ACTION_TONE[h.action] ?? "hold"}>{h.action}</Value>
+                  </>
+                }
+                sub={
+                  <>
+                    {h.side === "output" ? "On the way back" : "On the way out"}
+                    {h.matched ? (
+                      <>
+                        {" · "}
+                        <Num>{h.matched}</Num>
+                      </>
+                    ) : null}
+                  </>
+                }
+                time={relTime(h.created_at)}
+              />
+            ))
+          )}
+        </Region>
+      ) : null}
 
       {/* THE COMMIT. What each decision above actually caused, kept on screen
           rather than flashed and lost. */}
