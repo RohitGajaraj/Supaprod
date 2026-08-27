@@ -34,6 +34,37 @@ export function stripAutoPrefix(title: string): string {
 }
 
 /**
+ * THE SAME MARKER, WHEREVER IT SITS, WHICH IS NOT ONLY AT THE FRONT.
+ *
+ * `stripAutoPrefix` above is anchored with `^`, and that was right for the case
+ * it was written for: a title the trigger pipeline stamped. **It is wrong for
+ * text the loop composed.** Evidence lines carry the marker mid-sentence -
+ * "From [auto] Investigate the ..." - and an anchored strip leaves it there.
+ *
+ * S1 found this on `/approvals` and fixed it in a function private to that
+ * route. THAT ROUTE FOLDS (SURFACE-MAP, R-04), so the fix would have died with
+ * the door, which is the thing this lane exists to stop. It lives here now,
+ * beside the family it belongs to, and outlives any surface.
+ *
+ * ── IT IS NOT ONLY A DISPLAY CONCERN ───────────────────────────────────────
+ * The board's duplicate detection keys on a normalised title. With the anchored
+ * strip, "Investigate the flake" and "From [auto] Investigate the flake" are
+ * two different subjects, so the same request raised twice is counted twice and
+ * the note that exists to say "this is the same work" stays silent on the exact
+ * case it was built for. A marker that is never content must never be key
+ * material.
+ *
+ * ── WHY THIS IS SAFE TO DO GLOBALLY ────────────────────────────────────────
+ * `[auto]` is not English and it is not a subject. It marks a call the loop
+ * raised itself, it is never copy for a person, and no title legitimately
+ * contains the literal token. There is no string this can merge that a reader
+ * would call distinct.
+ */
+export function stripAutoMarkers(text: string): string {
+  return text.replace(/\[auto\]\s*/gi, "").trim();
+}
+
+/**
  * The same strip, for a value that may be null or undefined.
  *
  * WHY THIS EXISTS. An audit on 2026-08-05 found roughly thirty surfaces

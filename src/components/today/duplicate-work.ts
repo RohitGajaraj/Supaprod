@@ -1,4 +1,4 @@
-import { stripAutoPrefix } from "@/components/plan/format";
+import { stripAutoMarkers } from "@/components/plan/format";
 
 /**
  * THE SAME REQUEST, RAISED AGAIN, COUNTED ONCE.
@@ -101,8 +101,15 @@ import { stripAutoPrefix } from "@/components/plan/format";
  * ── EXACT MATCHES ONLY, AND THAT IS A DELIBERATE FLOOR ─────────────────────
  * Nothing here is fuzzy: no stemming, no edit distance, no embedding. Two rows
  * collide when their titles are identical after trimming, collapsing runs of
- * whitespace, folding case and dropping the machine `[auto]` prefix that
- * `stripAutoPrefix` already removes at render.
+ * whitespace, folding case and dropping the machine `[auto]` marker WHEREVER IT
+ * SITS, via `stripAutoMarkers`.
+ *
+ * That last one was anchored to the front until 2026-08-27 and it cost real
+ * matches. The loop composes evidence lines that carry the marker mid-sentence
+ * - "From [auto] Investigate the ..." - so "Investigate the flake" and "From
+ * [auto] Investigate the flake" keyed as two different subjects, and the note
+ * that exists to say "this is the same work" stayed silent on the exact case it
+ * was built for. A marker that is never content must never be key material.
  *
  * **A false collision is worse than a missed one**, and by a long way. Telling
  * someone two different requests are the same invites them to dismiss work that
@@ -153,7 +160,7 @@ export interface DuplicateWork {
 
 /** The comparison key. Everything fuzzy is deliberately absent. */
 export function subjectKey(title: string | null | undefined): string {
-  return stripAutoPrefix(String(title ?? ""))
+  return stripAutoMarkers(String(title ?? ""))
     .replace(/\s+/g, " ")
     .trim()
     .toLowerCase();
@@ -184,7 +191,9 @@ export function duplicateWork(rows: readonly Workish[] | undefined): DuplicateWo
     repeated += bucket.length - 1;
     groups.push({
       key,
-      title: stripAutoPrefix(String(bucket[0].title ?? "")),
+      /* THE SAME STRIP AS THE KEY, or the group can be titled with a marker the
+         key promised was gone. This leaked mid-sentence markers to the reader. */
+      title: stripAutoMarkers(String(bucket[0].title ?? "")),
       ids: bucket.map((b) => b.id),
       total: bucket.length,
       settled: bucket.filter((b) => SETTLED.has(String(b.status ?? ""))).length,

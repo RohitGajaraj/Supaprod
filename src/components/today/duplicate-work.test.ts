@@ -144,3 +144,36 @@ describe("repeatBadge", () => {
     expect(repeatBadge(7)).toBe("One of 7 identical requests on this list.");
   });
 });
+
+describe("the [auto] marker is never key material", () => {
+  /*
+   * The strip was anchored to the front until 2026-08-27. The loop composes
+   * evidence lines carrying the marker mid-sentence, so the same request raised
+   * twice keyed as two subjects and the note stayed silent on its own case.
+   * S1 found the anchoring on `/approvals`; the fix lives in `plan/format` now
+   * because that route folds and a fix inside a door dies with it.
+   */
+  it("keys the same subject the same whether the marker leads or sits inside", () => {
+    expect(subjectKey("From [auto] Investigate the flake")).toBe(
+      subjectKey("From Investigate the flake"),
+    );
+  });
+
+  it("still strips a leading marker, which is what it always did", () => {
+    expect(subjectKey("[auto] Ship the parser")).toBe(subjectKey("Ship the parser"));
+  });
+
+  it("strips every marker, not just the first", () => {
+    expect(subjectKey("[auto] a [auto] b")).toBe("a b");
+  });
+
+  it("DOES NOT TITLE A GROUP WITH A MARKER THE KEY PROMISED WAS GONE", () => {
+    const rows = [
+      { id: "1", title: "From [auto] Investigate the flake", status: "pending" },
+      { id: "2", title: "From Investigate the flake", status: "pending" },
+    ];
+    const out = duplicateWork(rows);
+    expect(out.groups).toHaveLength(1);
+    expect(out.groups[0]!.title).not.toContain("[auto]");
+  });
+});
