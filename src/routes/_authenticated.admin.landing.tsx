@@ -210,7 +210,7 @@ function AdminLanding() {
                 time={String(n)}
               />
             );
-          }          )
+          })
         )}
       </Region>
 
