@@ -53,9 +53,15 @@ const STYLES = join(ROOT, "src", "styles");
  */
 function declaredTokens(): Set<string> {
   const out = new Set<string>();
-  for (const f of readdirSync(STYLES)) {
-    if (!f.endsWith(".css")) continue;
-    const css = readFileSync(join(STYLES, f), "utf8");
+  const sheets = readdirSync(STYLES)
+    .filter((f) => f.endsWith(".css"))
+    .map((f) => join(STYLES, f));
+  // `src/styles.css` is a sibling of the styles/ DIRECTORY, not inside it, and
+  // it declares tokens too. Reading only the directory made this guard blind to
+  // the largest stylesheet in the repo.
+  sheets.push(join(ROOT, "src", "styles.css"));
+  for (const sheet of sheets) {
+    const css = readFileSync(sheet, "utf8");
     for (const m of css.matchAll(/^\s*(--[a-z0-9-]+)\s*:/gim)) out.add(m[1]);
   }
   // Set from TSX: style={{ "--sp-hue": … }}
@@ -68,7 +74,7 @@ function declaredTokens(): Set<string> {
         continue;
       }
       if (!e.name.endsWith(".tsx")) continue;
-      for (const m of readFileSync(full, "utf8").matchAll(/"(--sp-[a-z0-9-]+)"\s*:/gi)) {
+      for (const m of readFileSync(full, "utf8").matchAll(/"(--(?:sp|mrd)-[a-z0-9-]+)"\s*:/gi)) {
         out.add(m[1]);
       }
     }
@@ -94,7 +100,21 @@ function usedWithoutFallback(): Map<string, string[]> {
       const raw = readFileSync(full, "utf8");
       const src = e.name.endsWith(".css") ? stripCssComments(raw) : stripComments(raw);
       // `var(--x)` where the next non-space character closes the call.
-      for (const m of src.matchAll(/var\(\s*(--sp-[a-z0-9-]+)\s*\)/gi)) {
+      /*
+       * THIS REGEX SAID `--sp-` UNTIL 2026-08-27, AND `--sp-*` IS THE RETIRED
+       * SYSTEM.
+       *
+       * CLAUDE.md: "Meridian is the only design system, and this is enforced,
+       * not requested." The guard against a token that resolves to nothing was
+       * watching the family being REMOVED and not the one being written. Its
+       * own anti-vacuity test could not notice, because the `--sp-` inputs it
+       * checks are genuinely non-empty; the whole `--mrd-` family was simply
+       * outside its scope.
+       *
+       * Widening it found four live orphans on six call sites. See
+       * MERIDIAN_ORPHANS below.
+       */
+      for (const m of src.matchAll(/var\(\s*(--(?:sp|mrd)-[a-z0-9-]+)\s*\)/gi)) {
         const list = found.get(m[1]) ?? [];
         list.push(full.slice(ROOT.length + 1));
         found.set(m[1], list);
@@ -105,13 +125,41 @@ function usedWithoutFallback(): Map<string, string[]> {
   return found;
 }
 
-describe("no --sp- token is used without a fallback unless it is defined", () => {
-  it("every bare var(--sp-*) resolves to something", () => {
+/**
+ * FOUR THAT WERE ALREADY BROKEN WHEN THIS GUARD LEARNED TO SEE THEM.
+ *
+ * Every one of these renders NOTHING today: an unresolvable `var()` is the
+ * empty string, so the declaration is dropped and the property falls back to
+ * its inherited value. They are listed rather than fixed because choosing the
+ * replacement is a Meridian decision -- `--mrd-raised` is almost certainly
+ * reaching for `--mrd-lift`, and "almost certainly" is not a thing the verify
+ * lane gets to decide about a design system.
+ *
+ * THIS LIST MAY ONLY EVER SHRINK. A new orphan fails the test; removing one
+ * from here without fixing the call site fails it too, because the guard then
+ * sees it.
+ *
+ * Reported to the owners on 2026-08-27:
+ *   --mrd-raised      src/styles.css:2203, MissionOnboarding.tsx:112 and :141
+ *   --mrd-you-text    DesignScaffoldPanel.tsx
+ *   --mrd-fail-bright RoomDetail.tsx   <- a FAILURE colour that does not paint
+ *   --mrd-pass-bright RoomDetail.tsx   <- and its pass counterpart
+ */
+const MERIDIAN_ORPHANS = new Set([
+  "--mrd-raised",
+  "--mrd-you-text",
+  "--mrd-fail-bright",
+  "--mrd-pass-bright",
+]);
+
+describe("no design-system token is used bare unless something declares it", () => {
+  it("every bare var(--sp-*) and var(--mrd-*) resolves to something", () => {
     const declared = declaredTokens();
     const used = usedWithoutFallback();
     const orphans: string[] = [];
     for (const [token, files] of used) {
       if (declared.has(token)) continue;
+      if (MERIDIAN_ORPHANS.has(token)) continue;
       orphans.push(`${token} used bare in ${[...new Set(files)].slice(0, 3).join(", ")}`);
     }
     // Sorted so a failure reads the same way twice and a diff is legible.
@@ -126,6 +174,24 @@ describe("no --sp- token is used without a fallback unless it is defined", () =>
     expect(declared.has("--sp-radius-card")).toBe(true);
     expect(declared.has("--sp-scrim")).toBe(true);
     expect(usedWithoutFallback().size).toBeGreaterThan(20);
+  });
+
+  it("watches the CURRENT design system, not only the retired one", () => {
+    // The regression this guards: the scan said `--sp-` for months while
+    // Meridian was the only system anybody was writing. If this drops to zero,
+    // the guard has quietly gone back to watching nothing that ships.
+    const used = usedWithoutFallback();
+    const meridian = [...used.keys()].filter((t) => t.startsWith("--mrd-"));
+    expect(meridian.length).toBeGreaterThan(20);
+  });
+
+  it("the four known Meridian orphans are still exactly what is excused", () => {
+    // The allowlist may only shrink. If a name in here is now declared, delete
+    // it from the list; if the call site is gone, delete it too. Either way
+    // this test says so rather than letting the excuse outlive the defect.
+    const declared = declaredTokens();
+    const stillOrphaned = [...MERIDIAN_ORPHANS].filter((t) => !declared.has(t));
+    expect(stillOrphaned.sort()).toEqual([...MERIDIAN_ORPHANS].sort());
   });
 
   it("the two that were invented are gone from the code", () => {
@@ -308,6 +374,24 @@ describe("no text-heading/text-copy class is used unless a stylesheet declares i
     const used = usedTextClasses();
     expect(used.size).toBeGreaterThan(3);
     expect([...used.values()].reduce((n, f) => n + f.length, 0)).toBeGreaterThan(10);
+  });
+
+  it("watches the CURRENT design system, not only the retired one", () => {
+    // The regression this guards: the scan said `--sp-` for months while
+    // Meridian was the only system anybody was writing. If this drops to zero,
+    // the guard has quietly gone back to watching nothing that ships.
+    const used = usedWithoutFallback();
+    const meridian = [...used.keys()].filter((t) => t.startsWith("--mrd-"));
+    expect(meridian.length).toBeGreaterThan(20);
+  });
+
+  it("the four known Meridian orphans are still exactly what is excused", () => {
+    // The allowlist may only shrink. If a name in here is now declared, delete
+    // it from the list; if the call site is gone, delete it too. Either way
+    // this test says so rather than letting the excuse outlive the defect.
+    const declared = declaredTokens();
+    const stillOrphaned = [...MERIDIAN_ORPHANS].filter((t) => !declared.has(t));
+    expect(stillOrphaned.sort()).toEqual([...MERIDIAN_ORPHANS].sort());
   });
 
   it("the two that were invented are gone from the code", () => {
