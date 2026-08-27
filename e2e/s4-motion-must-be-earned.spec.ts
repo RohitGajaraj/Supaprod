@@ -301,6 +301,19 @@ const GALLERY_SURFACES: readonly string[] = ["/meridian"];
  *
  * Counted on `innerText`, deduplicated, because the question is how many
  * DISTINCT sentences a person reads, not how many components rendered.
+ *
+ * ── THE UNIT IS A SENTENCE, NOT A CAUSE, AND THE DIFFERENCE MATTERS ────────
+ * A card's heading and its body are two lines and count as two. S3 fixed
+ * /guardrails and reported it "six to three"; this still read six, and both are
+ * right about different things. Reading the page settles it: after their fix a
+ * person sees THREE CAUSES (the room summary, the boundary, the rules) carried
+ * by five or six SENTENCES, because one card legitimately has a heading and a
+ * body.
+ *
+ * So this number will not fall to a cause count, and nobody should try to make
+ * it. It is a triage signal for "which page should I look at", and the list it
+ * prints is the thing to act on. A lane chasing the number itself would end up
+ * deleting a card body that was doing its job.
  */
 /*
  * `went wrong` is deliberately anchored to `something went wrong` rather than
@@ -514,8 +527,8 @@ test("report which surfaces still move once nothing can be read", async ({ page 
       );
     } else if (failures.distinct.length) {
       notes.push(
-        `\n--- ${path}: ONE ${FAILURE_MODE}, ${failures.distinct.length} distinct failure ` +
-          `statement(s), ${failures.retries} "Try again" ---\n  ` +
+        `\n--- ${path}: ONE ${FAILURE_MODE}, ${failures.distinct.length} failure SENTENCE(S) ` +
+          `(a card heading and its body are two), ${failures.retries} "Try again" ---\n  ` +
           failures.distinct.join("\n  ") +
           (failures.distinct.length > 2 ? `\n  ABOVE TWO. One dead read should say so once.` : ""),
       );
