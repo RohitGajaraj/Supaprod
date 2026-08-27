@@ -7,177 +7,236 @@
       "failureSentences": 1,
       "retries": 0,
       "unnamed": 0,
-      "wideProse": 0
+      "wideProse": 0,
+      "contrastBelow": 0,
+      "mode": "signed-in"
     },
     "/approvals": {
       "failureSentences": 2,
       "retries": 1,
       "unnamed": 0,
-      "wideProse": 0
+      "wideProse": 0,
+      "contrastBelow": 0,
+      "mode": "signed-in"
     },
     "/brain": {
       "failureSentences": 6,
       "retries": 1,
       "unnamed": 0,
-      "wideProse": 0
+      "wideProse": 0,
+      "contrastBelow": 0,
+      "mode": "signed-in"
     },
     "/learn": {
       "failureSentences": 8,
       "retries": 3,
       "unnamed": 0,
-      "wideProse": 0
+      "wideProse": 0,
+      "contrastBelow": 2,
+      "mode": "signed-in"
     },
     "/threads": {
       "failureSentences": 2,
       "retries": 0,
       "unnamed": 0,
-      "wideProse": 1
+      "wideProse": 1,
+      "contrastBelow": 0,
+      "mode": "signed-in"
     },
     "/guardrails": {
       "failureSentences": 5,
       "retries": 1,
       "unnamed": 0,
-      "wideProse": 0
+      "wideProse": 0,
+      "contrastBelow": 0,
+      "mode": "signed-in"
     },
     "/engine-room": {
       "failureSentences": 3,
       "retries": 0,
       "unnamed": 0,
-      "wideProse": 0
+      "wideProse": 0,
+      "contrastBelow": 0,
+      "mode": "signed-in"
     },
     "/settings": {
       "failureSentences": 1,
       "retries": 0,
       "unnamed": 0,
-      "wideProse": 0
+      "wideProse": 0,
+      "contrastBelow": 0,
+      "mode": "signed-in"
     },
     "/start": {
       "failureSentences": 1,
       "retries": 0,
       "unnamed": 0,
-      "wideProse": 0
+      "wideProse": 0,
+      "contrastBelow": 0,
+      "mode": "signed-in"
     },
     "/plan": {
       "failureSentences": 0,
       "retries": 0,
       "unnamed": 0,
-      "wideProse": 0
+      "wideProse": 0,
+      "contrastBelow": 0,
+      "mode": "signed-in"
     },
     "/ship": {
       "failureSentences": 0,
       "retries": 0,
       "unnamed": 0,
-      "wideProse": 0
+      "wideProse": 0,
+      "contrastBelow": 2,
+      "mode": "signed-in"
     },
     "/inbox": {
       "failureSentences": 0,
       "retries": 0,
       "unnamed": 0,
-      "wideProse": 0
+      "wideProse": 0,
+      "contrastBelow": 0,
+      "mode": "signed-in"
     },
     "/crew": {
       "failureSentences": 3,
       "retries": 1,
       "unnamed": 0,
-      "wideProse": 0
+      "wideProse": 0,
+      "contrastBelow": 0,
+      "mode": "signed-in"
     },
     "/decide": {
       "failureSentences": 2,
       "retries": 1,
       "unnamed": 0,
-      "wideProse": 0
+      "wideProse": 0,
+      "contrastBelow": 2,
+      "mode": "signed-in"
     },
     "/design": {
       "failureSentences": 3,
       "retries": 1,
       "unnamed": 0,
-      "wideProse": 0
+      "wideProse": 0,
+      "contrastBelow": 2,
+      "mode": "signed-in"
     },
     "/discover": {
       "failureSentences": 4,
       "retries": 1,
       "unnamed": 0,
-      "wideProse": 0
+      "wideProse": 0,
+      "contrastBelow": 2,
+      "mode": "signed-in"
     },
     "/build": {
       "failureSentences": 4,
       "retries": 0,
       "unnamed": 0,
-      "wideProse": 0
+      "wideProse": 0,
+      "contrastBelow": 2,
+      "mode": "signed-in"
     },
     "/sync": {
       "failureSentences": 4,
       "retries": 0,
       "unnamed": 0,
-      "wideProse": 0
+      "wideProse": 0,
+      "contrastBelow": 0,
+      "mode": "signed-in"
     },
     "/": {
       "failureSentences": 0,
       "retries": 0,
       "unnamed": 0,
-      "wideProse": 1
+      "wideProse": 1,
+      "contrastBelow": 83,
+      "mode": "public"
     },
     "/pricing": {
       "failureSentences": 0,
       "retries": 0,
       "unnamed": 0,
-      "wideProse": 3
+      "wideProse": 3,
+      "contrastBelow": 0,
+      "mode": "public"
     },
     "/faq": {
       "failureSentences": 0,
       "retries": 0,
       "unnamed": 0,
-      "wideProse": 6
+      "wideProse": 6,
+      "contrastBelow": 7,
+      "mode": "public"
     },
     "/security": {
       "failureSentences": 0,
       "retries": 0,
       "unnamed": 0,
-      "wideProse": 6
+      "wideProse": 6,
+      "contrastBelow": 7,
+      "mode": "public"
     },
     "/privacy": {
       "failureSentences": 0,
       "retries": 0,
       "unnamed": 0,
-      "wideProse": 6
+      "wideProse": 6,
+      "contrastBelow": 7,
+      "mode": "public"
     },
     "/ard": {
       "failureSentences": 0,
       "retries": 0,
       "unnamed": 0,
-      "wideProse": 2
+      "wideProse": 2,
+      "contrastBelow": 0,
+      "mode": "public"
     },
     "/updates": {
       "failureSentences": 0,
       "retries": 0,
       "unnamed": 0,
-      "wideProse": 1
+      "wideProse": 1,
+      "contrastBelow": 7,
+      "mode": "public"
     },
     "/subprocessors": {
       "failureSentences": 0,
       "retries": 0,
       "unnamed": 0,
-      "wideProse": 6
+      "wideProse": 6,
+      "contrastBelow": 0,
+      "mode": "public"
     },
     "/investors": {
       "failureSentences": 0,
       "retries": 0,
       "unnamed": 0,
-      "wideProse": 4
+      "wideProse": 4,
+      "contrastBelow": 0,
+      "mode": "public"
     },
     "/brief": {
       "failureSentences": 0,
       "retries": 0,
       "unnamed": 0,
-      "wideProse": 4
+      "wideProse": 4,
+      "contrastBelow": 0,
+      "mode": "public"
     },
     "/checkout": {
       "failureSentences": 0,
       "retries": 0,
       "unnamed": 1,
-      "wideProse": 0
+      "wideProse": 0,
+      "contrastBelow": 0,
+      "mode": "public"
     }
   },
   "_this_is_a_direction_not_a_target": "MATCHING YOUR BASELINE DOES NOT MEAN A SURFACE IS CORRECT. These are the numbers the product happened to produce on one night, several of them from surfaces whose fixes were sitting unmerged on a lane branch. A measurement is a fair way to choose what to fix FIRST. It is not a fair way to decide what the thing should BE, and a baseline is the exact shape that quietly turns one into the other. Read the LIST the report prints, not the number, and lower a baseline entry whenever a real fix lands rather than treating the old value as the goal. Founder's correction, relayed 2026-08-27.",
-  "_the_zeros_need_reading_not_celebrating": "/plan, /ship and /inbox score 0. That is NOT automatically good. Their previous 1 was entirely the station strip's 'count unavailable', so with a dead backend they now say NOTHING about their own failed reads. Silence on failure is the /proof shape: a person cannot tell 'nothing to show' from 'we could not look'. A zero here is a prompt to open the screenshot, exactly like a rise is."
+  "_the_zeros_need_reading_not_celebrating": "/plan, /ship and /inbox score 0. That is NOT automatically good. Their previous 1 was entirely the station strip's 'count unavailable', so with a dead backend they now say NOTHING about their own failed reads. Silence on failure is the /proof shape: a person cannot tell 'nothing to show' from 'we could not look'. A zero here is a prompt to open the screenshot, exactly like a rise is.",
+  "_contrast_measured": "2026-08-27 on lane/proof, before S3's cc23c49fc and 0b295b0a2 reached it. Dark theme, one browser, dead backend: a light-theme regression is invisible to these numbers."
 }

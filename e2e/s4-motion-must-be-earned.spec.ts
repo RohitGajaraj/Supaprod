@@ -360,6 +360,9 @@ function loadBaseline(): Record<string, Partial<SurfaceNumbers>> {
 
 const BASELINE = loadBaseline();
 
+/** Signed out is a different page at the same path, so the number is labelled. */
+const RUN_MODE: "public" | "signed-in" = process.env.S4_MOTION_STATE ? "signed-in" : "public";
+
 /**
  * PROSE WIDER THAN MERIDIAN'S OWN MEASURE.
  *
@@ -1027,6 +1030,7 @@ test("report which surfaces still move once nothing can be read", async ({ page 
   /** Kept apart from `report`, whose length is asserted one-per-surface. */
   const notes: string[] = [];
   const drift: string[] = [];
+  const contrastWorse: string[] = [];
   const advancing: string[] = [];
   const illustrated: string[] = [];
 
@@ -1124,28 +1128,6 @@ test("report which surfaces still move once nothing can be read", async ({ page 
       );
     }
 
-    const moved = compareToBaseline(
-      path,
-      {
-        failureSentences: failures.distinct.length,
-        retries: failures.retries,
-        unnamed: unnamed.length,
-        wideProse: wide.length,
-      },
-      BASELINE,
-    );
-    if (moved) drift.push(moved);
-
-    const noFocus = await controlsWithNoVisibleFocus(page);
-    if (noFocus.length) {
-      notes.push(
-        `\n--- ${path}: ${noFocus.length} control shape(s) that look IDENTICAL when focused ---\n  ` +
-          noFocus.join("\n  ") +
-          `\n  This product prints keyboard shortcuts in its own rail. A control with no focus` +
-          `\n  treatment strands the person who took that invitation.`,
-      );
-    }
-
     // Always noted, pass or fail, because a count with no population behind it
     // is not a measurement. A clean surface says how many it judged.
     const contrast = await textBelowContrast(page);
@@ -1162,6 +1144,56 @@ test("report which surfaces still move once nothing can be read", async ({ page 
               : ``)
           : ` none`),
     );
+
+    const moved = compareToBaseline(
+      path,
+      {
+        failureSentences: failures.distinct.length,
+        retries: failures.retries,
+        unnamed: unnamed.length,
+        wideProse: wide.length,
+        contrastBelow: contrast.below,
+      },
+      BASELINE,
+      RUN_MODE,
+    );
+    if (moved) drift.push(moved);
+
+    /*
+     * THE ONE CHECK IN HERE THAT FAILS A BUILD ON A COUNT.
+     *
+     * Everything else this spec measures needs a person to say whether it is a
+     * defect: a drifting gradient may be decoration, a long line may be a
+     * table, a rising failure count may be a surface that started explaining
+     * itself. Contrast does not. 4.5:1 is a published threshold, the ratio is
+     * arithmetic on two colours, and a surface that drops below it today after
+     * clearing it yesterday is a regression with no second reading.
+     *
+     * A RATCHET, NOT A BAR. It fails on getting WORSE than the recorded
+     * number, never on the number itself, so tonight's 83 on `/` blocks
+     * nobody. Existing debt is a queue; new debt is a bug.
+     *
+     * It is only armed when the baseline was taken in the SAME run mode, since
+     * the same path signed out is a different page.
+     */
+    const wasBelow = BASELINE[path]?.contrastBelow;
+    const modeMatches = !BASELINE[path]?.mode || BASELINE[path]?.mode === RUN_MODE;
+    if (typeof wasBelow === "number" && modeMatches && contrast.below > wasBelow) {
+      contrastWorse.push(
+        `${path}: ${wasBelow} -> ${contrast.below} below AA` +
+          (contrast.failures.length ? `, worst shapes: ${contrast.failures.slice(0, 3).join("; ")}` : ""),
+      );
+    }
+
+    const noFocus = await controlsWithNoVisibleFocus(page);
+    if (noFocus.length) {
+      notes.push(
+        `\n--- ${path}: ${noFocus.length} control shape(s) that look IDENTICAL when focused ---\n  ` +
+          noFocus.join("\n  ") +
+          `\n  This product prints keyboard shortcuts in its own rail. A control with no focus` +
+          `\n  treatment strands the person who took that invitation.`,
+      );
+    }
 
     const clipped = await clippedAndUnreachable(page);
     if (clipped.length) {
@@ -1224,6 +1256,14 @@ test("report which surfaces still move once nothing can be read", async ({ page 
    * Whether a drifting gradient is theatre needs a person. Whether a progress
    * claim rose while nothing could be read does not. This fails.
    */
+  expect(
+    contrastWorse,
+    `Text on a surface dropped BELOW WCAG AA where it used to clear it. 4.5:1 for body ` +
+      `text is a published threshold, not a preference, and this is a ratchet: it fails on ` +
+      `getting worse than the recorded number, never on the number itself:\n  ` +
+      `${contrastWorse.join("\n  ")}`,
+  ).toEqual([]);
+
   expect(
     advancing,
     `A counted progress claim ADVANCED while no data could be read. Nothing was ` +
