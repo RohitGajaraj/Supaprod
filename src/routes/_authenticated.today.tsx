@@ -330,9 +330,26 @@ type Settled = { verb: string; consequence: React.ReactNode; at: string; failed?
  */
 function stateSentence(n: {
   ready: number;
-  stuck: number;
-  waiting: number;
-  shipped: number;
+  /**
+   * NULL MEANS THE RUN RECORD HAS NOT ANSWERED, and it is not the same as zero.
+   *
+   * This file's own rule for the headline is that "every read the sentence
+   * counts is answered for before it counts", because these numbers "cannot
+   * tell a zero it read from a zero it never got". That rule was enforced by
+   * refusing to draw the headline at all until BOTH reads landed, which is
+   * correct and costs more than it needs to: measured on the running board
+   * 2026-08-27, the review queue answered by 15s and the run record by 22s, so
+   * for seven seconds the page showed fifty-two review cards under a heading
+   * that said only "Today".
+   *
+   * Admitting null keeps the rule and drops the cost. The clause a read pays
+   * for is omitted while that read is outstanding, so nothing is ever counted
+   * from a hole, and the half the surface DOES know says itself as soon as it
+   * knows it.
+   */
+  stuck: number | null;
+  waiting: number | null;
+  shipped: number | null;
 }): React.ReactNode {
   const first =
     n.ready === 0 ? (
@@ -347,8 +364,11 @@ function stateSentence(n: {
       </>
     );
 
+  /* Silent, not zero. Every branch below reads a number the run record owns,
+     and the final fallback is the sentence " Nothing is stuck." — which is
+     exactly the false claim this would make from an unanswered read. */
   const second =
-    n.stuck > 0 ? (
+    n.stuck === null || n.waiting === null || n.shipped === null ? null : n.stuck > 0 ? (
       n.stuck === 1 ? (
         <>
           {" "}
@@ -1680,7 +1700,11 @@ function Today() {
    * hiding the other.
    */
   const headline = React.useMemo(() => {
-    if (loading) return "Today";
+    /* WAITS ON THE REVIEW QUEUE ONLY. The first clause counts `queue` and
+       nothing else; the second counts the run record and is omitted while that
+       is outstanding. `quietMorning` below still requires BOTH, through
+       `loading`, because "nothing needs you" is a claim over every read. */
+    if (stillWaiting(queue)) return "Today";
     if (missions.isError && queue.isError)
       return "Neither your run record nor your review queue loaded.";
     if (missions.isError) return "Your run record did not load.";
@@ -1705,11 +1729,12 @@ function Today() {
      * counted sentence says it.
      */
     if (quietMorning) return "Nothing needs you right now.";
+    const recordAnswered = !stillWaiting(missions);
     return stateSentence({
       ready: items.length,
-      stuck: stoppedAll.length,
-      waiting: proposedAll.length,
-      shipped: shipped.length,
+      stuck: recordAnswered ? stoppedAll.length : null,
+      waiting: recordAnswered ? proposedAll.length : null,
+      shipped: recordAnswered ? shipped.length : null,
     });
   }, [
     quietMorning,

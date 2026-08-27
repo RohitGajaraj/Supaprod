@@ -313,8 +313,31 @@ describe("Today never prints a claim it has not read yet", () => {
     expect(memo, "the headline is no longer a useMemo with a statement body").not.toBeNull();
     const body = memo![1];
 
-    // Still says the surface's name while it counts, rather than "Reading...".
-    expect(body).toMatch(/if \([^)]*loading[^)]*\) return "Today";/);
+    // A THIRD TIME, 2026-08-27, and the header above predicted it. This pinned
+    // the symbol `loading`, and the headline now waits on `stillWaiting(queue)`
+    // instead, because the two reads no longer have to land together: the first
+    // clause counts the queue and the second is omitted while the run record is
+    // outstanding. Measured on the running board, the queue answered at 15s and
+    // the record at 22s, so the old gate showed fifty-two review cards under a
+    // heading that said only "Today" for seven seconds.
+    //
+    // So this matches the RULE — something still-reading sends the headline to
+    // the surface's own name rather than to "Reading..." — and not the name of
+    // whichever expression currently carries it.
+    // `[^)]*` cannot cross the inner paren of `stillWaiting(queue)`, so the
+    // condition is matched lazily instead of by excluding the character.
+    expect(body).toMatch(/if \(.*?(loading|stillWaiting).*?\)\s*return "Today";/);
+
+    // AND THE PROPERTY THAT REPLACED THE OLD GATE, asserted rather than
+    // assumed. Waiting on both reads was what used to guarantee no count came
+    // from a hole. Now the counts the run record owns must each be handed over
+    // as null while it is still reading, and `stateSentence` omits the clause
+    // they pay for. If a future edit passes a raw `.length` here again, the
+    // headline goes back to printing " Nothing is stuck." from a read that has
+    // not answered, which is the exact defect this whole case exists for.
+    expect(body).toMatch(/stuck:\s*\w+\s*\?[^,]*:\s*null/);
+    expect(body).toMatch(/waiting:\s*\w+\s*\?[^,]*:\s*null/);
+    expect(body).toMatch(/shipped:\s*\w+\s*\?[^,]*:\s*null/);
 
     // Every read the sentence counts has to be answered for first. Two of the
     // three counts in `stateSentence` -- stuck and shipped -- come from
@@ -454,7 +477,10 @@ describe("Today's triage feed", () => {
 
   it("reads calls first, then blocked-on-you, then live, then finished", () => {
     const order = ["FEED_CALLS", "FEED_REPLY", "FEED_LIVE", "FEED_OPEN"].map(at);
-    expect(order.every((i) => i > -1), "a section marker is never rendered").toBe(true);
+    expect(
+      order.every((i) => i > -1),
+      "a section marker is never rendered",
+    ).toBe(true);
     expect(
       [...order].sort((a, b) => a - b),
       "the sections drifted out of the priority order",
