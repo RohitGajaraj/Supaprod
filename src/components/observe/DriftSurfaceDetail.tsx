@@ -51,7 +51,7 @@
  * on a number.
  */
 import { useMemo, useState, type ReactNode } from "react";
-import { failureLine } from "@/components/track/error-copy";
+import { failureLine } from "@/lib/error-copy";
 import { Row, Line } from "@/components/meridian/rows";
 import {
   Action,

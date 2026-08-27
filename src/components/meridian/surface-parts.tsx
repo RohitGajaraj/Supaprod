@@ -11,6 +11,7 @@ import * as React from "react";
  * runtime edge from Meridian back into `shell/`.
  */
 import type { Selection } from "@/components/shell/use-selection";
+import { sessionEndedMessage } from "@/lib/error-copy";
 
 /*
  * THE CHROME FIVE SURFACES HAD EACH GROWN A PRIVATE COPY OF.
@@ -94,11 +95,7 @@ export function Figure({ children }: { children: React.ReactNode }) {
  * has no numerical reason to wear.
  */
 export function Eyebrow({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="block mrd-eyebrow">
-      {children}
-    </span>
-  );
+  return <span className="block mrd-eyebrow">{children}</span>;
 }
 
 /** The page's one h1, and the sentence under it. `--mrd-t-h2` is the step every
@@ -109,9 +106,7 @@ export function PageHeading({ title, sub }: { title: React.ReactNode; sub?: Reac
   return (
     <header data-mrd="">
       <h1 className="text-mrd-h2 leading-mrd-tight font-medium text-mrd-ink">{title}</h1>
-      {sub ? (
-        <p className="mt-mrd-3 max-w-[74ch] mrd-copy">{sub}</p>
-      ) : null}
+      {sub ? <p className="mt-mrd-3 max-w-[74ch] mrd-copy">{sub}</p> : null}
     </header>
   );
 }
@@ -313,15 +308,7 @@ export function Region({
            * `src/styles/__tests__/one-utility-name-means-one-thing.test.ts`.
            */}
           {title ? (
-            <h2
-              className={
-                lead
-                  ? "mrd-title"
-                  : "mrd-subtitle"
-              }
-            >
-              {title}
-            </h2>
+            <h2 className={lead ? "mrd-title" : "mrd-subtitle"}>{title}</h2>
           ) : (
             <span aria-hidden />
           )}
@@ -1046,17 +1033,65 @@ function FailMark() {
  * the other four files rule this out in their own words, the Engine Room's
  * most plainly, and this is now the only place the decision is made.
  */
+/**
+ * A CONTROL THAT CANNOT WORK IS WORSE THAN NO CONTROL (S1 -> S0, 2026-08-27).
+ *
+ * S1 forced a 401 with the exact string auth throws and photographed
+ * `/approvals`. Every sentence on the screen was true:
+ *
+ *     ! The queue did not load.
+ *       Nothing has been settled and nothing has been lost...
+ *       [ Try again ]
+ *
+ * The button was not. Their session had ended, so "Try again" re-reads with the
+ * same dead token and fails identically, forever. Nothing else on the screen
+ * mentions signing in, and the one way out offered is the one that cannot work.
+ * A person presses it three times and concludes the product is broken.
+ *
+ * That is the contradiction class this repo already knows — two halves each
+ * correct, the composition wrong — arriving in a CONTROL rather than a sentence,
+ * which is worse, because a sentence that misleads costs a reader a moment and a
+ * control that misleads costs them their trust.
+ *
+ * **128 files render one of these two**, so it was every read-failure surface in
+ * the product.
+ *
+ * The `error` prop is OPTIONAL on purpose: every existing caller keeps compiling
+ * and behaving exactly as before, and a caller that has the error and passes it
+ * gets the honest way out. `sessionEndedMessage` is anchored so a sentence
+ * ABOUT authorisation is not mistaken for the auth layer refusing.
+ */
+function wayOut(
+  error: unknown,
+  onRetry: (() => void) | undefined,
+  retryLabel: string,
+  detail: React.ReactNode,
+): { detail: React.ReactNode; label: string; act: (() => void) | undefined } {
+  const ended = sessionEndedMessage(error);
+  if (!ended) return { detail, label: retryLabel, act: onRetry };
+  return {
+    detail: ended,
+    label: "Sign in",
+    // Same door the rest of the product uses when a session ends.
+    act: () => window.location.assign("/login"),
+  };
+}
+
 export function ReadFailed({
   children,
   onRetry,
   retryLabel = "Try again",
   detail = "Nothing has been changed and nothing has been lost. This screen just could not read it.",
+  error,
 }: {
   children: React.ReactNode;
   onRetry?: () => void;
   retryLabel?: string;
   detail?: React.ReactNode;
+  /** The error itself, when the caller has it. See `wayOut` above. */
+  error?: unknown;
 }) {
+  const out = wayOut(error, onRetry, retryLabel, detail);
   return (
     <section
       data-mrd=""
@@ -1068,10 +1103,10 @@ export function ReadFailed({
         <FailMark />
         <span>{children}</span>
       </h2>
-      <p className="mt-mrd-3 max-w-[62ch] mrd-copy">{detail}</p>
-      {onRetry ? (
+      <p className="mt-mrd-3 max-w-[62ch] mrd-copy">{out.detail}</p>
+      {out.act ? (
         <div className="mt-mrd-5">
-          <Action onClick={onRetry}>{retryLabel}</Action>
+          <Action onClick={out.act}>{out.label}</Action>
         </div>
       ) : null}
     </section>
@@ -1090,11 +1125,15 @@ export function ReadFailedLine({
   children,
   onRetry,
   retryLabel = "Try again",
+  error,
 }: {
   children: React.ReactNode;
   onRetry?: () => void;
   retryLabel?: string;
+  /** The error itself, when the caller has it. See `wayOut` above. */
+  error?: unknown;
 }) {
+  const out = wayOut(error, onRetry, retryLabel, null);
   return (
     <div
       data-mrd=""
@@ -1102,11 +1141,11 @@ export function ReadFailedLine({
       aria-live="polite"
       className="max-w-[68ch] text-mrd-base leading-mrd-prose"
     >
-      <span className="text-mrd-fail">{children}</span>
-      {onRetry ? (
+      <span className="text-mrd-fail">{out.detail ?? children}</span>
+      {out.act ? (
         <>
           {" "}
-          <Door onClick={onRetry}>{retryLabel}</Door>
+          <Door onClick={out.act}>{out.label}</Door>
         </>
       ) : null}
     </div>
