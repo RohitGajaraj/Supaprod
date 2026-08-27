@@ -3,6 +3,7 @@ import { Row } from "@/components/meridian/rows";
 import { Action, Approve, BulkBar, Door, Num } from "@/components/meridian/surface-parts";
 
 import { canSendBack } from "@/components/approvals/SendBack";
+import { callSubject } from "@/components/meridian/call-subject";
 import { waitingSince } from "@/components/meridian/stopped-for";
 import { stripAutoPrefix } from "@/components/plan/format";
 import { plainMarkers } from "@/lib/preview-line";
@@ -157,7 +158,11 @@ function OpenCall({
         ) : (
           <span>{agentDisplayName(item.agentSlug)}</span>
         )}
-        <span>{item.projectName ?? item.project ?? "This workspace"}</span>
+        {/* NOTHING RATHER THAN "This workspace". `callSubject` carries the
+            reasoning: the payload cannot tell a workspace-wide call from one
+            whose project lookup missed, so the fallback was a scope claim made
+            on a call that reported no scope. */}
+        {callSubject(item) ? <span>{callSubject(item)}</span> : null}
         {item.impact ? <span>{item.impact}</span> : null}
         <span className="today-open-pos">
           <Num>{position}</Num> of <Num>{total}</Num>
@@ -489,7 +494,9 @@ export function DecisionQueue({
               tight
               marks={<AgentMark slug={item.agentSlug} state="waiting" />}
               lead={stripAutoPrefix(item.title)}
-              sub={`${agentDisplayName(item.agentSlug)} · ${item.projectName ?? item.project ?? "This workspace"}`}
+              sub={[agentDisplayName(item.agentSlug), callSubject(item)]
+                .filter(Boolean)
+                .join(" · ")}
               time={ago(item.timestamp)}
               onClick={() => onFocus(item.id)}
               action={<Pick item={item} selection={selection} />}
