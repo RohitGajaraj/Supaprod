@@ -3,7 +3,12 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { join } from "node:path";
 
-import { compareToBaseline, populationComparable, type SurfaceNumbers } from "./helpers/baseline";
+import {
+  compareToBaseline,
+  populationComparable,
+  type BaselineEntry,
+  type SurfaceNumbers,
+} from "./helpers/baseline";
 import { findRepoRoot } from "./helpers/auth";
 
 /**
@@ -191,6 +196,23 @@ const VIEWPORT = (() => {
   return { width: w, height: h };
 })();
 
+/**
+ * THE WIDTH THE PAGE ACTUALLY HAS, not the one the flags asked for.
+ *
+ * `VIEWPORT` is `undefined` unless --viewport or --phone was passed, because
+ * that is how it is handed to `test.use`. Reading `VIEWPORT.width` therefore
+ * threw on every DEFAULT run, which is most of them, and it did so AFTER the
+ * gate had gone green: `bun test` does not run Playwright specs, so tsc,
+ * eslint, the build and the doc check all passed a spec that could not start.
+ *
+ * Asking the page is both safer and more honest -- it reports the size the
+ * measurement was actually taken at, including Playwright's own default.
+ */
+function viewportLabel(page: import("@playwright/test").Page): string {
+  const v = page.viewportSize();
+  return v ? `${v.width}x${v.height}` : "unknown";
+}
+
 test.use({
   storageState: process.env.S4_MOTION_STATE
     ? process.env.S4_MOTION_STATE
@@ -347,10 +369,10 @@ async function failEveryAuthenticatedRead(page: import("@playwright/test").Page)
  * The one check here that DOES fail the build is the advancing progress claim,
  * because a counter that rises with no data behind it cannot be a flake.
  */
-function loadBaseline(): Record<string, Partial<SurfaceNumbers>> {
+function loadBaseline(): Record<string, BaselineEntry> {
   try {
     const raw = readFileSync(join(findRepoRoot(), "e2e", "surface-baseline.json"), "utf8");
-    return (JSON.parse(raw).surfaces ?? {}) as Record<string, Partial<SurfaceNumbers>>;
+    return (JSON.parse(raw).surfaces ?? {}) as Record<string, BaselineEntry>;
   } catch {
     // A missing or unreadable baseline must never fail a measurement run: the
     // numbers are the point and the comparison is the convenience.
@@ -1432,7 +1454,7 @@ test("report which surfaces still move once nothing can be read", async ({ page 
       },
       BASELINE,
       RUN_MODE,
-      `${VIEWPORT.width}x${VIEWPORT.height}`,
+      viewportLabel(page),
     );
     if (moved) drift.push(moved);
 
@@ -1457,7 +1479,7 @@ test("report which surfaces still move once nothing can be read", async ({ page 
     const wasJudged = BASELINE[path]?.contrastJudged;
     const modeMatches = !BASELINE[path]?.mode || BASELINE[path]?.mode === RUN_MODE;
     const wasViewport = BASELINE[path]?.viewport;
-    const viewportMatches = !wasViewport || wasViewport === `${VIEWPORT.width}x${VIEWPORT.height}`;
+    const viewportMatches = !wasViewport || wasViewport === viewportLabel(page);
     /*
      * A rising count on a page that rendered DIFFERENTLY is not a regression,
      * and this ratchet fails builds, so it declines to judge that case rather

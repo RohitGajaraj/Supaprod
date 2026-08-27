@@ -61,6 +61,22 @@ export type RunMode = "public" | "signed-in";
 export type Viewport = string;
 
 /**
+ * WHAT A BASELINE FILE ACTUALLY HOLDS.
+ *
+ * The numbers plus the two things that say whether they are comparable at all.
+ * This existed only as an inline shape at the call site, so the spec read
+ * `.mode`, `.viewport` and `.contrastJudged` off a `Partial<SurfaceNumbers>`
+ * that has none of them -- four type errors that ran correctly and were never
+ * reported, because `e2e/` is not in tsconfig's include.
+ */
+export type BaselineEntry = Partial<SurfaceNumbers> & {
+  mode?: RunMode;
+  viewport?: Viewport;
+  /** Population behind `contrastBelow`; guards against comparing two renders. */
+  contrastJudged?: number;
+};
+
+/**
  * IS THIS THE SAME PAGE THE BASELINE SAW?
  *
  * A signed-in surface does not render the same number of elements every run.
@@ -104,7 +120,7 @@ export const CHECKS = [
 export function compareToBaseline(
   path: string,
   now: SurfaceNumbers,
-  baseline: Record<string, Partial<SurfaceNumbers> & { mode?: RunMode; viewport?: Viewport }>,
+  baseline: Record<string, BaselineEntry>,
   mode?: RunMode,
   viewport?: Viewport,
 ): string | null {
