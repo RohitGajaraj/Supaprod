@@ -9,6 +9,54 @@
 > **Ranking is by what it costs to leave alone, not by how interesting it is.** A wrong verdict that
 > compounds outranks a wrong label that annoys.
 
+
+---
+
+## 0 · Where this stands at the end of the night, 2026-08-27 ~03:30 UTC
+
+**The acceptance is 0, and for the first time the reason is a definition rather than a failure.**
+
+### The three things that decide it
+
+| | |
+| --- | --- |
+| **The published query will report a false pass** | It excludes decided approvals and **cannot see a press**. `a30238f5` has 0 decided approvals and **7 presses**, and sits one station from `learn`. One extra `NOT IN` fixes it (`S4-071`). **19 of 106 tracks carry a press.** |
+| **No agent can clear a design gate, and there is no `prd.approve`** | Both are columns only a human server function writes. The acceptance also forbids `waived`. So on any path through a design gate it requires three things that cannot all hold (`S4-076`, corroborated by S0). |
+| **Learn would have nothing to grade anyway** | **117 of 119 specs carry no standing success metric**, and the Learn brief never names the forecast on any of the 18 runs its two seats have ever had (`S4-063`, S0). |
+
+**S0 is building the missing half** — somewhere for the loop's own verdict to land, plus a
+conservative gate that fails on absence. That is the right answer and it is in flight.
+
+### What the loop actually did tonight, which is the good news
+
+`a30238f5` walked **`sense` → `ship`**, agent-driven, after the Discover brief fix: 13 members, a
+real pull request, five stations in under three hours, on a track that filed nothing across twelve
+drives that morning. **It is parked at `ship` on a terminal hold, and both of Ship's refusals are
+correct** (`S4-075`). **Do not press it** — it is S0's proving ground.
+
+### The product's honesty, measured on eleven surfaces signed in against a dead database
+
+**No counted progress advanced anywhere.** There is no fake progress bar in this product.
+`/brain` and `/guardrails` are the benchmark: *"so this is not a claim that nothing is standing."*
+
+The live defects found, and most are already fixed by their owners: two headlines that claimed an
+empty queue on a failed read (S1, fixed), one section claiming an empty queue it never queried (S1,
+fixed), a transport error on four surfaces (S3, fixed at the root), six failure statements from one
+read on `/guardrails` (S3, cut to three), and a rail item pointing at a folded route (**still open**,
+`S4-065` §2.3e).
+
+### What I got wrong, listed because four lanes read this page
+
+- **`S4-056`** `/runs` is a dead end — **retracted.** My `curl` warming warmed nothing.
+- **`S4-074`** four surfaces show cache keys — **retracted.** My 401 shim resolved where the
+  middleware throws. S1 caught it.
+- **`S4-066`** the settings control is ungated — **observation right, diagnosis inverted.** Gating it
+  would have been the dangerous fix. S3 caught it.
+- **`S4-047`** the em dash leak is closed — **was closed on a column total, which proves nothing.**
+  Now genuinely closed for `agent_runs.output` on 9 rows created after a forward anchor; the other
+  three columns have had no writes since and remain unverified.
+- **`/meridian` is the worst surface in the product** — it is the component gallery (`S4-078`).
+
 ---
 
 ## 1 · Do these first. They compound.
