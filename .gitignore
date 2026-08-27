@@ -288,3 +288,4 @@ __pycache__/
 # referenced by no build step and no route. public/film/ is what film.tsx serves.
 videos/
 .render-failures.mjs
+.shoot.mjs
