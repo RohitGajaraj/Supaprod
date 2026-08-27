@@ -159,6 +159,26 @@ positively so null, NaN and out-of-range all ask. No seat calls it: an agent can
 only ask for its spec to be **argued against**, and a clearance is a consequence
 of surviving that.
 
+### The chain was verified as runnable, not only as built
+
+After F-124b it would be fair to ask whether the F-116 chain is another thing
+that exists in code and has never run. Checked, and it can run the moment `main`
+deploys:
+
+| Check | Result |
+| --- | --- |
+| Is the toolset per seat? | **No.** `resolveToolAccess(Object.keys(TOOL_REGISTRY), overrides)` — every agent gets every registered tool unless an override turns it off |
+| `agent_tools` override rows | **97, none disabled, none touching these tools** |
+| `critic.evaluate` mode | `auto` → under arc `trusted`, executes inline |
+| `prd.draft` | `auto` → inline |
+| `design.draft` | `confirm` → under `trusted`, inline |
+| `learning.record` | `confirm` → under `trusted`, inline |
+| Arc in force | `trusted` on all 93 rows, and `loadAgentArc` defaults the other 190 agents to trusted |
+
+So nothing in the chain queues for a person, and nothing is switched off. **This
+is the check F-114 existed for**: a rule the model was never given, and a tool a
+seat cannot reach, fail the same way and look the same from outside.
+
 ---
 
 ## The recurring shape, found six times in one session
