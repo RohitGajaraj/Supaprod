@@ -2099,8 +2099,15 @@ function Today() {
                 send-back and the a/d/z keys live in DecisionQueue and were not
                 moved. Its own controls spell out the review act, so this section
                 carries no second Review label; the heading names the group. */}
+            {/* THE SAME `refetch` THE FAILURE BRANCH BELOW ALREADY USES. `SlowRead`
+                offers it only past 15 seconds and never says the read failed,
+                because it has not - the sentence and the ticking figure stay,
+                and all that appears is something to press. Measured on this
+                board 2026-08-27: "Reading the run record. 22.4s" with no
+                control anywhere near it, so a reader who could see exactly how
+                long they had waited had no move except reloading the page. */}
             {stillWaiting(queue) ? (
-              <SlowRead>Reading what needs you.</SlowRead>
+              <SlowRead onRetry={() => void queue.refetch()}>Reading what needs you.</SlowRead>
             ) : queue.isError ? (
               <ReadFailedLine error={queue.error} onRetry={() => void queue.refetch()}>
                 Your decisions are unchanged and this could not read them. Retry before you treat
@@ -2312,21 +2319,25 @@ function Today() {
             ) : null}
 
             {stillWaiting(missions) ? (
-              <SlowRead>Reading the run record.</SlowRead>
+              <SlowRead onRetry={() => void missions.refetch()}>Reading the run record.</SlowRead>
             ) : missions.isError ? (
               <ReadFailedLine error={missions.error} onRetry={() => void missions.refetch()}>
                 The run record did not load, so this cannot say what went live, what stopped or what
                 is still going.
               </ReadFailedLine>
             ) : stillWaiting(tracks) ? (
-              <SlowRead>Reading the work the loop is driving.</SlowRead>
+              <SlowRead onRetry={() => void tracks.refetch()}>
+                Reading the work the loop is driving.
+              </SlowRead>
             ) : tracks.isError ? (
               <ReadFailedLine error={tracks.error} onRetry={() => void tracks.refetch()}>
                 The loop's work could not be read, so something started from a sentence may be
                 missing here. Retry before you treat the morning as clear.
               </ReadFailedLine>
             ) : stillWaiting(sessions) ? (
-              <SlowRead>Reading which runs need your answer.</SlowRead>
+              <SlowRead onRetry={() => void sessions.refetch()}>
+                Reading which runs need your answer.
+              </SlowRead>
             ) : sessions.isError ? (
               <ReadFailedLine error={sessions.error} onRetry={() => void sessions.refetch()}>
                 The gate check did not load, so a run waiting on you may be sitting in Running.
@@ -2664,7 +2675,7 @@ function Today() {
         <PushedInsights />
 
         {stillWaiting(learnings) ? (
-          <SlowRead>Reading what it learned.</SlowRead>
+          <SlowRead onRetry={() => void learnings.refetch()}>Reading what it learned.</SlowRead>
         ) : learnings.isError ? (
           /* SAME REGION, SAME NAME, WHICHEVER WAY THE READ WENT. The failed arm
              called itself "Latest learning" and the loaded arm "It learned one

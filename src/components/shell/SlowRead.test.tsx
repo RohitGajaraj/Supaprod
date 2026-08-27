@@ -1,5 +1,6 @@
 import { render, screen, waitFor, renderHook } from "@testing-library/react";
 import { describe, expect, it } from "bun:test";
+import { readFileSync } from "node:fs";
 
 import { SlowRead } from "./SlowRead";
 import { useSlowRead, SLOW_READ_MS } from "./use-slow-read";
@@ -155,5 +156,77 @@ describe("SlowRead inline", () => {
       expect(container.textContent).toContain("Reading the boundary in force.");
       expect(container.textContent).toMatch(/\d+\.\d/);
     });
+  });
+});
+
+describe("a read that has gone on too long offers a way out", () => {
+  /*
+   * ── THE MEASUREMENT ────────────────────────────────────────────────────────
+   * The running board, 2026-08-27, signed in: "Reading the run record. 22.4s".
+   * The figure is the fix that already shipped, and it answers "is this
+   * moving". After fifteen seconds that is not the question any more. The
+   * reader knew exactly how long they had been waiting and had no move except
+   * reloading the page.
+   *
+   * ── IT DOES NOT CLAIM THE READ FAILED ─────────────────────────────────────
+   * Because it has not. The sentence stays, the figure keeps counting, and all
+   * that is added is something to press. A merely slow read still lands; a
+   * wedged one - a dropped connection that will never resolve - is the case
+   * this component was built for, and it is indistinguishable from the first
+   * until somebody acts.
+   */
+  it("offers nothing before the threshold, however slow it already is", () => {
+    const { container } = render(
+      <SlowRead afterMs={10} onRetry={() => {}}>
+        Reading the run record.
+      </SlowRead>,
+    );
+    expect(container.querySelector("button")).toBeNull();
+  });
+
+  it("OFFERS NOTHING AT ALL WHEN THE CALLER HAS NO RETRY", async () => {
+    // Absent `onRetry` nothing changes, so no call site gains a dead control.
+    // Waits on the escalation this file already tests for rather than sleeping:
+    // `a-timeout-is-not-a-wait` bans a bare setTimeout in a test, and it caught
+    // this one.
+    const { container } = render(<SlowRead afterMs={10}>Reading the run record.</SlowRead>);
+    await waitFor(() => expect(container.querySelector('[aria-hidden="true"]')).not.toBeNull());
+    expect(container.querySelector("button")).toBeNull();
+  });
+
+  it("KEEPS SAYING IT IS STILL READING, never that it failed", () => {
+    const { container } = render(
+      <SlowRead afterMs={10} onRetry={() => {}}>
+        Reading the run record.
+      </SlowRead>,
+    );
+    expect(container.textContent).toContain("Reading the run record.");
+    expect(container.textContent).not.toContain("failed");
+    expect(container.textContent).not.toContain("could not");
+  });
+
+  it("measures patience from the READ, not from the quiet threshold", () => {
+    // A caller that stays silent for longer must not push the way out further
+    // away with it: the reader's patience does not restart because the surface
+    // chose to say nothing for the first ten seconds.
+    const src = readFileSync("src/components/shell/use-slow-read.ts", "utf8");
+    expect(src).toContain("STUCK_READ_MS - (Date.now() - startedAt)");
+  });
+
+  it("flips once rather than riding the elapsed clock", () => {
+    // `useElapsed` re-renders ten times a second. Deriving this from it would
+    // put the whole subtree on that clock to learn one thing that changes once.
+    const src = readFileSync("src/components/shell/use-slow-read.ts", "utf8");
+    expect(src).toContain("const [stuck, setStuck] = useState(false);");
+  });
+
+  it("puts the control OUTSIDE the aria-hidden block on the pixel branch", () => {
+    // The one control on that branch has to be reachable by everyone, and it
+    // must not sit inside the live region, which would announce it on every
+    // update.
+    const src = readFileSync("src/components/shell/SlowRead.tsx", "utf8");
+    const at = src.indexOf("{wayOut ? (\n        <p className=");
+    const live = src.indexOf('<p role="status" className="sr-only">');
+    expect(at).toBeGreaterThan(live);
   });
 });
