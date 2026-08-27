@@ -4,6 +4,8 @@ import { wayOut } from "./way-out";
 
 /** Both Take it over controls on screen, which is the common case mid-route. */
 const BOTH_OPEN = { undo: true, handback: true };
+/** What `wayOut` appends when both Take it over controls are on screen. */
+const BOTH_SENTENCE = "Send it back a step, or do this step yourself.";
 import { HOLD_LINE, leadAgentFor } from "@/lib/spine/driver";
 import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
 import type { AgentStation } from "@/lib/agent-vocabulary";
@@ -236,5 +238,47 @@ describe("a way out never repeats the line above it", () => {
     for (const hold of Object.keys(OWNED_BY_THE_HOLD_LINE)) {
       expect((wayOut(hold, BOTH_OPEN).next ?? "").length).toBeGreaterThan(20);
     }
+  });
+});
+
+describe("where the record already explained itself, only the door is added", () => {
+  /*
+   * `station-cannot-finish` is the largest hold in the database, 36 of 106
+   * tracks. A person there read the same fact three times: the specific line
+   * stored in `last_hold_because`, then `HOLD_LINE`, then this file restating
+   * both. `HOLD_LINE` states the cause, the repetition AND that it needs a
+   * person, so there was nothing left for a diagnosis to carry.
+   */
+  for (const hold of ["station-cannot-finish", "corrections-spent"]) {
+    it(`offers a door and no restatement for ${hold}`, () => {
+      const out = wayOut(hold, BOTH_OPEN);
+      expect(out.next).toBe(BOTH_SENTENCE);
+      expect(out.onThisScreen).toBe(true);
+    });
+  }
+
+  it("falls to the steer, and a terminal hold says a steer alone will not restart it", () => {
+    /*
+     * With neither Take it over control on screen the offer is the steer, and
+     * `station-cannot-finish` is in TERMINAL_HOLDS, so the sweep has stopped
+     * selecting it. The steer sentence says so rather than implying a message
+     * will be picked up: storing an instruction nothing will ever consume is
+     * the dead end this file exists to remove.
+     */
+    const out = wayOut("station-cannot-finish", { undo: false, handback: false });
+    expect(out.next).toContain("Nothing will pick this up on its own");
+    expect(out.onThisScreen).toBe(false);
+  });
+
+  it("still says nothing at all where the screen cannot help", () => {
+    // The original contract, unchanged: no diagnosis and no door invents none.
+    expect(wayOut("done", BOTH_OPEN)).toEqual({ next: null, onThisScreen: false });
+    expect(wayOut(null)).toEqual({ next: null, onThisScreen: false });
+  });
+
+  it("keeps a diagnosis wherever one still earns its place", () => {
+    // The other six are unaffected: their hold line names no way out at all.
+    expect(wayOut("paused", BOTH_OPEN).next).toContain("Nothing on this screen can lift it");
+    expect(wayOut("no-agent", BOTH_OPEN).next).toContain("switched off");
   });
 });

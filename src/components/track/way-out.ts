@@ -123,9 +123,6 @@ const DIAGNOSIS: Partial<Record<HoldReason, string>> = {
   stalled: "Another try lands in the same place.",
   "going-in-circles": "Trying again changes nothing.",
   "tools-refused": "A door it needs is locked, and no step can unlock it for itself.",
-  "station-cannot-finish":
-    "It has everything it needs and still cannot finish, so this one needs you rather than another try.",
-  "corrections-spent": "It has been sent back for this same fix as often as it is allowed.",
   "given-up": "Nothing more will be tried here on its own.",
 };
 
@@ -224,14 +221,33 @@ export function wayOut(
   stationName: string | null = null,
 ): WayOut {
   if (!hold) return NOTHING;
-  const diagnosis = DIAGNOSIS[hold as HoldReason];
-  if (!diagnosis) return NOTHING;
+
+  /*
+   * A MISSING DIAGNOSIS IS NOT A MISSING WAY OUT, AND IT USED TO BE.
+   *
+   * This returned nothing at all without a diagnosis, which forced every hold
+   * that wanted to offer a control to also carry a sentence. Two of them had
+   * nothing left to say: for `station-cannot-finish` and `corrections-spent`,
+   * `HOLD_LINE` already states the cause, the repetition and that it needs a
+   * person, so the diagnosis could only restate it. On the largest hold in the
+   * database that produced the same fact three times in one box, counting the
+   * specific line stored in `last_hold_because` above both.
+   *
+   * The offer IS a way out. Where the record has already explained itself, the
+   * honest thing to add is the door and nothing else.
+   *
+   * With neither a diagnosis nor a usable offer this still returns NOTHING,
+   * which is the original contract: a hold this screen cannot help with says
+   * nothing rather than inventing a door.
+   */
+  const diagnosis = DIAGNOSIS[hold as HoldReason] ?? null;
 
   const wanted = OFFERS[hold as HoldReason] ?? [];
   const can = (o: Offer) =>
     o === "undo" ? available.undo : o === "handback" ? available.handback : true;
 
   const usable = wanted.filter(can);
+  if (usable.length === 0 && !diagnosis) return NOTHING;
   if (usable.length === 0) {
     // Honest, and it is the whole point: this screen cannot clear this one, so
     // it does not pretend otherwise. The hold's own line already said what
@@ -248,7 +264,7 @@ export function wayOut(
         : SENTENCE[first];
 
   return {
-    next: `${diagnosis} ${offer}`,
+    next: diagnosis ? `${diagnosis} ${offer}` : offer,
     // The steer box is on this screen too, but it is not under Take it over, so
     // a steer-only way out must not borrow that pointer.
     onThisScreen: usable.some((o) => o === "undo" || o === "handback"),
