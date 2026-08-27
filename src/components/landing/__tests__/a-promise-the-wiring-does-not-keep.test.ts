@@ -44,19 +44,37 @@ function prose(src: string): string {
   return src.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, " ");
 }
 
-const MERGE = /\bmerg(e|es|ed|ing)\b/i;
+/**
+ * WIDENED AFTER GETTING IT WRONG ONCE. The first version of this guard knew
+ * only MERGE, so the sentence that replaced the merge absolute -- "rolling back
+ * is never automatic at all" -- sailed straight through it, and that sentence
+ * was false too. `SHIP_AUTONOMY_TOOLS` holds `studio.revert` with no flag on
+ * it, so `resolveToolMode("studio.revert", "confirm", "trusted")` returns
+ * `auto`; run it and see. A guard scoped to the one word we happened to be
+ * looking at is a guard that certifies the next mistake.
+ *
+ * So the shape is an ABSOLUTE about an IRREVERSIBLE ACT and a PERSON, whatever
+ * the act is called.
+ */
+const IRREVERSIBLE =
+  /\b(merg(e|es|ed|ing)|revert(s|ed|ing)?|roll(s|ed|ing)? back|rollback(s)?|rolling back|ship(s|ped|ping)?|publish(es|ed|ing)?|deploy(s|ed|ing)?|delete(s|d)?)\b/i;
 const ABSOLUTE = /\b(always|never)\b/i;
 /**
- * The two shapes the promise took, and both had to be caught. The detail line
- * paired merge with APPROVAL ("can never skip your approval"); the label paired
- * it with a PERSON ("Merge is always human"), which says the same thing with no
- * approval word in it. A guard that only knew the first would have passed the
- * headline while failing its own footnote.
+ * THREE shapes, and the third is why this guard exists in its widened form.
+ *
+ *   "can never skip your approval"   an absolute about APPROVAL
+ *   "Merge is always human"          an absolute about a PERSON, no approval word
+ *   "Rolling back is never automatic" an absolute about AUTONOMY, neither of those
+ *
+ * The first version of this file knew only the first two, and the third is the
+ * sentence I wrote to replace them -- which was false in its turn. A guard that
+ * checks the wording of the last mistake certifies the next one.
  */
-const WHO = /\b(approv(e|es|ed|al|als)|human|humans|person|people|you|your)\b/i;
+const WHO =
+  /\b(approv(e|es|ed|al|als)|human|humans|person|people|you|your|automatic|automatically|by itself|on its own|unassisted|without asking|graduated)\b/i;
 
 describe("a promise the wiring does not keep", () => {
-  it("no outward surface makes merge plus a person an absolute", () => {
+  it("no outward surface makes an irreversible act plus a person an absolute", () => {
     const offenders: string[] = [];
     for (const path of outwardFiles()) {
       let src: string;
@@ -66,7 +84,7 @@ describe("a promise the wiring does not keep", () => {
         continue; // a route this repo has since folded is not a failure here
       }
       for (const sentence of prose(src).split(/(?<=[.!?])\s+|\n/)) {
-        if (MERGE.test(sentence) && WHO.test(sentence) && ABSOLUTE.test(sentence)) {
+        if (IRREVERSIBLE.test(sentence) && WHO.test(sentence) && ABSOLUTE.test(sentence)) {
           offenders.push(`${path}: ${sentence.trim().slice(0, 120)}`);
         }
       }
@@ -84,13 +102,27 @@ describe("a promise the wiring does not keep", () => {
   it("and what replaced them names the default, which is the true claim", () => {
     const said = prose(readFileSync("src/components/landing/TrustClose.tsx", "utf8"));
     expect(said).toContain("By default nothing merges without you");
-    // The stronger half survives, because revert really is never graduated.
-    expect(said).toContain("Rolling back is never automatic");
+    // And it says nothing about revert, because there is no true short sentence
+    // about revert: it graduates with no flag at all. /security carries the long
+    // one, which is where a claim needing a paragraph belongs.
+    expect(said.toLowerCase()).not.toContain("rolling back");
   });
 
   it("security still states the honest form the badge now agrees with", () => {
     const said = prose(readFileSync("src/routes/security.tsx", "utf8"));
     expect(said).toContain("no workspace setting can change that");
     expect(said.toLowerCase()).toContain("platform secret");
+  });
+
+  /**
+   * The claim that replaced it has to be the WEAKER one, not a differently
+   * worded reassurance. `studio.revert` graduates to `auto` on a trusted arc,
+   * so a page saying the product cannot roll back on its own is wrong however
+   * confidently it is phrased.
+   */
+  it("security no longer says the product cannot roll back on its own", () => {
+    const said = prose(readFileSync("src/routes/security.tsx", "utf8"));
+    expect(said).not.toContain("can never roll back its own work");
+    expect(said).toContain("Rolling back is the one thing gated less");
   });
 });

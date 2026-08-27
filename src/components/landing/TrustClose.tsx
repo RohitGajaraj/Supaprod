@@ -72,11 +72,29 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
      * even then four things have to be proven first. This badge now agrees with
      * that page instead of contradicting it, in the space a badge has.
      *
-     * REVERT KEEPS ITS ABSOLUTE, because revert actually has one: `studio.revert`
-     * is deliberately not graduated and stays review-pinned whatever the flag
-     * says, which loop.server.ts states in its own comment. Dropping a true
-     * absolute alongside a false one would have cost us the stronger claim in
-     * order to fix the weaker.
+     * AND REVERT DOES NOT KEEP AN ABSOLUTE EITHER, which is the second half of
+     * the same lesson and the one I got wrong first. loop.server.ts:130 says
+     * "studio.revert and delegate.openhands are NOT graduated -- they stay
+     * review-pinned regardless of this flag", and that sentence is true only of
+     * `AUTO_SHIP_ENABLED`. There is a second path with no flag on it at all:
+     * `SHIP_AUTONOMY_TOOLS` holds `studio.revert`, so `shipReleased` is true for
+     * it on every call and the mode never reaches the review pin. R-27 put it
+     * there on purpose and gives a good reason -- the merge can already run
+     * alone, so gating the UNDO harder than the DO leaves the loop unable to
+     * fix what it broke.
+     *
+     * EXECUTED RATHER THAN TRACED, because a safety claim is not worth a
+     * reading of four files: `resolveToolMode("studio.revert", "confirm", arc)`
+     * returns review · confirm · AUTO · AUTO across observing · proving ·
+     * trusted · ambient, `agent_tools` holds no override row for it, and all 93
+     * `agent_autonomy` rows are `trusted` with `loadAgentArc` defaulting the
+     * rest to trusted. A rollback runs with nobody asked, today, with no secret
+     * set.
+     *
+     * So the badge claims the ONE thing that survives contact with the wiring:
+     * the merge default. It says nothing about revert, because there is no true
+     * short sentence about revert and a badge has no room for the long one.
+     * /security carries that, in the paragraph this card links to.
      *
      * This is the class the note four cards above already named, one turn
      * further on: not a surface asserting a capability the wiring withholds,
@@ -85,8 +103,7 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
     {
       icon: GitMerge,
       label: "Merge waits for your approval",
-      detail:
-        "By default nothing merges without you, and no workspace setting can change that. Rolling back is never automatic at all.",
+      detail: "By default nothing merges without you, and no workspace setting can change that.",
     },
   ];
 
