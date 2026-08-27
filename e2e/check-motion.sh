@@ -129,6 +129,34 @@ if ! curl -sf -o /dev/null --max-time 10 "http://localhost:$PORT/"; then
   exit 1
 fi
 
+# ── WHOSE SERVER IS THIS? ───────────────────────────────────────────────────
+#
+# S2 lost two checks to this and it is the worst failure this harness can have,
+# because the output looks completely normal.
+#
+# The refusal at the top of this file closes the case where the port is ALREADY
+# held. It does not close the race: if something takes :$PORT between that check
+# and `bun run dev`, Vite does not fail. It prints "Port 8080 is in use, trying
+# another one" and quietly serves on 8081, while every measurement here goes to
+# whoever holds 8080. S2 ran that against a checkout of a DIFFERENT WORKSPACE and
+# reported on its tree as if it were their own; what gave it away was a rail
+# label they had already changed and watched render.
+#
+# So the server is asked to prove it is ours before anything is measured. A dead
+# backend run against the wrong repo would pass every check in this file and
+# every finding from it would be junk.
+SERVER_PID="$(lsof -t -i :"$PORT" -sTCP:LISTEN 2>/dev/null | head -1)"
+SERVER_CWD="$(lsof -a -p "${SERVER_PID:-0}" -d cwd -Fn 2>/dev/null | grep '^n' | cut -c2-)"
+if [ -n "$SERVER_CWD" ] && [ "$SERVER_CWD" != "$(pwd)" ]; then
+  echo "REFUSING: :$PORT is served from a DIFFERENT tree."
+  echo "  measuring: $(pwd)"
+  echo "  serving:   $SERVER_CWD"
+  echo "Vite falls through to another port silently, so this run would have"
+  echo "measured that tree and reported it as this one. Stop that server first."
+  exit 1
+fi
+echo "Server verified as this tree: ${SERVER_CWD:-unknown}"
+
 # Vite compiles each route on first request, and a cold compile can exceed
 # Playwright's navigation timeout. Warm every path first so the measurement times
 # the SURFACE rather than the bundler.
