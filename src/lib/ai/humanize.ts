@@ -45,6 +45,16 @@ const EXOTIC_SPACE_RE = new RegExp("[\\u00a0\\u202f\\u2002-\\u200a]", "g");
 
 // Regex patterns for dash normalization (hoisted to avoid recompilation in the hot path).
 const NUMERIC_RANGE_RE = new RegExp(`(\\d)[ \\t]*[${DASH_CLASS}][ \\t]*(\\d)`, "g");
+/** `run–time`: an EN dash joining two words is a compound, and a hyphen keeps it one. */
+const WORD_JOIN_EN_RE = /([A-Za-z])\u2013([A-Za-z])/g;
+/** `, —` — the comma already did the work, so the dash is redundant. */
+const AFTER_COMMA_RE = new RegExp(`,[ \\t]*[${DASH_CLASS}][ \\t]*`, "g");
+/** `— .` / `— ,` — the punctuation that follows is the sentence's real end. */
+const BEFORE_PUNCT_RE = new RegExp(`[ \\t]*[${DASH_CLASS}][ \\t]*(?=[.,;:!?])`, "g");
+/** A dash that opens the string has nothing to separate from. */
+const LEADING_DASH_RE = new RegExp(`^[ \\t]*[${DASH_CLASS}][ \\t]*`, "gm");
+/** A dash that closes it has nothing to separate either. */
+const TRAILING_DASH_RE = new RegExp(`[ \\t]*[${DASH_CLASS}][ \\t]*$`, "gm");
 const SPACED_DASH_RE = new RegExp(`[ \\t]+[${DASH_CLASS}][ \\t]+`, "g");
 const ANY_DASH_RE = new RegExp(`[${DASH_CLASS}]`, "g");
 
@@ -55,15 +65,50 @@ const ANY_DASH_RE = new RegExp(`[${DASH_CLASS}]`, "g");
  * never touched because they are ASCII "-", not U+2013/U+2014.
  */
 function normalizeDashes(segment: string): string {
+  /*
+   * ── A COMMA IS RIGHT FOR ONE CASE AND WRONG FOR FIVE (S1 → S0, 2026-08-27) ──
+   *
+   * This replaced every dash with a comma unconditionally. That is correct for
+   * the aside — "The run, which was held, never moved." — and it produced five
+   * results MORE obviously machine-made than the dash they replaced:
+   *
+   *     "It said this —"          ->  "It said this ,"     dangling comma
+   *     "— and then it stopped."  ->  ", and then it..."   opens with a comma
+   *     "It stopped — ."          ->  "It stopped, ."
+   *     "First, — then second."   ->  "First,, then..."    doubled comma
+   *     "a run–time decision"     ->  "a run, time..."     A DIFFERENT SENTENCE
+   *
+   * The founder's instruction is that no trace of machine writing is left where
+   * a person can see it. We had not removed the tell, we had swapped it for a
+   * stranger one, and the compound case changed the meaning outright.
+   *
+   * ORDER IS THE RULE. Each case below removes a dash the general rule would
+   * mishandle, so the unconditional comma at the end only ever sees the aside it
+   * is right for.
+   *
+   * THE EN/EM SPLIT IS DELIBERATE, and it follows what the two characters are
+   * for: an EN dash joins (`run–time`, `design–build`), so unspaced it becomes a
+   * hyphen and the compound survives. An EM dash separates, so unspaced it stays
+   * a comma.
+   *
+   * Context whitespace is [ \t] and never a newline: a dash must not swallow a
+   * line break, which keeps streaming line-by-line identical to whole-text.
+   */
   let out = segment;
-  // Context whitespace is [ \t] (never a newline): a dash must not swallow a
-  // line break, and keeping it intra-line makes streaming line-by-line identical
-  // to whole-text humanizing.
-  // Numeric range: 1-6 / 1 - 6 → "1 to 6".
+  // 1 · A range: "1-6" / "1 - 6" -> "1 to 6".
   out = out.replace(NUMERIC_RANGE_RE, "$1 to $2");
-  // Spaced separator dash ( word - word ) → ", ".
+  // 2 · A compound: "run–time" -> "run-time". Before anything turns it into a comma.
+  out = out.replace(WORD_JOIN_EN_RE, "$1-$2");
+  // 3 · The comma already separated: ", —" -> ", ".
+  out = out.replace(AFTER_COMMA_RE, ", ");
+  // 4 · Real punctuation follows: "— ." -> ".".
+  out = out.replace(BEFORE_PUNCT_RE, "");
+  // 5 · Nothing to separate from at either edge.
+  out = out.replace(LEADING_DASH_RE, "");
+  out = out.replace(TRAILING_DASH_RE, "");
+  // 6 · The aside, which is the case a comma is right for.
   out = out.replace(SPACED_DASH_RE, ", ");
-  // Any remaining dash (unspaced or edge) → comma.
+  // 7 · Anything left is an unspaced em dash, most often a list.
   out = out.replace(ANY_DASH_RE, ", ");
   return out;
 }
