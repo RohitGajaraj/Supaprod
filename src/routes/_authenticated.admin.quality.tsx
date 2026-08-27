@@ -77,8 +77,7 @@ function AdminQualityPage() {
    * else the moment you click -- the surest way to teach somebody that this
    * page is not the real one.
    */
-  const openSuite = (id: string) =>
-    void navigate({ to: "/admin/quality", search: { suite: id } });
+  const openSuite = (id: string) => void navigate({ to: "/admin/quality", search: { suite: id } });
 
   if (suite) {
     return (

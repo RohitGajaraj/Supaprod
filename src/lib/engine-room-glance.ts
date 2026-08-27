@@ -225,7 +225,8 @@ export const ROOM_TAB_META: Record<RoomKey, RoomTabMeta[]> = {
       id: "diagnostics",
       label: "Is it me or you?",
       technical: "Reliability SLO and runaway missions",
-      descriptor: "Whether the platform is having a bad day, before you go looking at your own work.",
+      descriptor:
+        "Whether the platform is having a bad day, before you go looking at your own work.",
     },
     {
       id: "score",

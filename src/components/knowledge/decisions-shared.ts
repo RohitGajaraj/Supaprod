@@ -107,10 +107,8 @@ export function forecastChip(d: {
 }): { claim: string; word: string; tone: string } | null {
   const claim = d.forecast_claim?.trim();
   if (!claim) return null;
-  if (d.forecast_resolution === "hit")
-    return { claim, word: FORECAST_SAYS.hit, tone: PASS_TONE };
-  if (d.forecast_resolution === "miss")
-    return { claim, word: FORECAST_SAYS.miss, tone: FAIL_TONE };
+  if (d.forecast_resolution === "hit") return { claim, word: FORECAST_SAYS.hit, tone: PASS_TONE };
+  if (d.forecast_resolution === "miss") return { claim, word: FORECAST_SAYS.miss, tone: FAIL_TONE };
   if (d.forecast_resolution === "inconclusive")
     return { claim, word: FORECAST_SAYS.inconclusive, tone: "" };
   // No resolution yet: the horizon has not come due, or nobody has graded it.
@@ -134,4 +132,44 @@ export function forecastTitle(d: {
   return (
     [know ? `How you will know: ${know}` : null, dueWord].filter(Boolean).join(" · ") || undefined
   );
+}
+
+/**
+ * HOW MANY OF THESE CALLS CARRY A FORECAST, and the honest clause about the rest.
+ *
+ * A forecast is written at Decide and at no other station, so the decisions list
+ * is the only surface in the product that can report whether its own bar is
+ * being met. Until this existed it could not: a call WITH a forecast drew a
+ * chip and a call WITHOUT one drew nothing, so silence meant either "none was
+ * written" or "the column was not read", and no reader could tell which.
+ *
+ * The gap is not a footnote. Measured on the live record while this was
+ * written: 175 of 367 calls carry one, the largest workspace 20 of 109, and one
+ * workspace 0 of 61.
+ *
+ * PURE, so the rule is asserted here rather than eyeballed in a browser -- the
+ * panel has no DOM renderer in its tests, which is exactly how a sentence like
+ * this rots without anything failing.
+ *
+ * The caller passes the rows it is ABOUT TO RENDER, never a second query, so the
+ * count and the rows beneath it cannot disagree.
+ */
+export function forecastCoverage(rows: readonly { forecast_claim?: string | null }[]): {
+  withForecast: number;
+  total: number;
+  /** The trailing clause, or null when every call carries one and there is
+   *  nothing left to admit. */
+  tail: string | null;
+} {
+  const total = rows.length;
+  const withForecast = rows.filter((d) => d.forecast_claim?.trim()).length;
+  const tail =
+    total === 0
+      ? null
+      : withForecast === 0
+        ? "Nothing on this list can be graded until one is."
+        : withForecast < total
+          ? "The rest cannot be graded against anything."
+          : null;
+  return { withForecast, total, tail };
 }

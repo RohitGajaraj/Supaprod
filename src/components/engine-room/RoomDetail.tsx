@@ -131,7 +131,9 @@ export function PanelPending({ children }: { children?: React.ReactNode }) {
 
 export function VerdictSentence({ children }: { children: React.ReactNode }) {
   return (
-    <p className="mb-mrd-5 max-w-[74ch] leading-mrd-prose text-mrd-prose text-mrd-body">{children}</p>
+    <p className="mb-mrd-5 max-w-[74ch] leading-mrd-prose text-mrd-prose text-mrd-body">
+      {children}
+    </p>
   );
 }
 
