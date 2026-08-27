@@ -21,6 +21,20 @@
  *     live:  upsertBinding, removeBinding, addProductBinding
  *     dead:  upsertProductBinding, removeProductBinding, listProducts
  *
+ * ── WHAT THE PAIRING DOES AND DOES NOT MEAN ───────────────────────────────
+ * "Live writer plus dead writer" does NOT mean the dead one duplicates the live
+ * one. It means the TABLE is in use and this OPERATION has no caller. Both
+ * happen and they need opposite fixes:
+ *
+ *   connection_bindings   a genuine duplicate. upsertProductBinding does what
+ *                         addProductBinding already does. One copy won.
+ *   missions              NOT a duplicate. renameMission appears exactly once in
+ *                         the repo, its own definition, and nothing else renames
+ *                         a mission. The operation is simply unreachable.
+ *
+ * A duplicate gets deleted. An unwired operation gets a surface, or gets deleted
+ * deliberately. Reading the row is what tells you which.
+ *
  * ── WHAT TO LOOK FOR IN THE OUTPUT ─────────────────────────────────────────
  * An EDIT operation on the dead side is the most interesting row, because it
  * usually means a person cannot do that thing at all: `updateTask`,

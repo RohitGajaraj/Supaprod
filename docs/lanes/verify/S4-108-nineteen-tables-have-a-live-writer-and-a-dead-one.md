@@ -37,6 +37,28 @@ Each is either a surface that was never built, or one built against the other wr
 are worth knowing and neither is visible from the source of the function itself**, which reads
 perfectly well.
 
+## One of the three, diagnosed rather than left ranked
+
+**`renameMission` appears exactly once in the whole repo: its own definition** at
+`missions.functions.ts:848`. There is a rename UI in `ArtifactPane.tsx`, and it renames a **theme**
+(`renameTheme`), not a mission.
+
+**So a person cannot rename a run.** The capability was written and no surface can reach it.
+
+### And that corrects my own framing above
+
+I called these "a duplicate path where one copy won". **`renameMission` is not a duplicate of
+anything.** The `missions` table has live writers — `startOrchestratedMission`, `cancelMission`,
+`promoteMission` — but none of them renames. The table is in use; this *operation* is not.
+
+So the check's real meaning is narrower and better than the words I gave it:
+
+> **The table is live, so this is not a dead feature area. This particular operation has no caller.**
+
+That distinction decides what to do with the row. A duplicate gets deleted; an unwired operation gets
+a surface or gets deleted deliberately. **`connection_bindings` is genuinely the first kind and
+`missions` is the second, and my original framing collapsed them.**
+
 ## The rest of the nineteen, by table
 
 `tasks`, `sync_mappings`, `connection_bindings`, `signals`, `missions`, `artifact_lineage`, `prds`,
