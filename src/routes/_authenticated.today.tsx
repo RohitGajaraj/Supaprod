@@ -51,6 +51,12 @@ import {
   subjectKey,
 } from "@/components/today/duplicate-work";
 import { SlowRead } from "@/components/shell/SlowRead";
+import {
+  bucketTabs,
+  inBucket,
+  worthFiltering,
+  type QueueBucket,
+} from "@/components/today/queue-buckets";
 import { stripAutoPrefix, cleanTitle } from "@/components/plan/format";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -1375,9 +1381,34 @@ function Today() {
   const enterQueue = React.useCallback(() => setWalkRequested(true), []);
   const leaveQueue = React.useCallback(() => setWalkRequested(false), []);
   const [focusedId, setFocusedId] = React.useState<string | null>(null);
+
+  /*
+   * THE FILTER THE FOLD WAS ABOUT TO COST A PERSON.
+   *
+   * `/approvals` carries five text tabs over `filterBucket`, each with a count,
+   * and SURFACE-MAP marks that route FOLD. The board it folds into had no
+   * filter at all, so the fold would have quietly removed the only way anyone
+   * had to triage fifty-two calls. This lane's rule is that the fold removes a
+   * door, not a capability.
+   *
+   * `bucket` NARROWS WHAT THE QUEUE SHOWS AND NOTHING ELSE. The headline, the
+   * lane note and `quietMorning` all keep reading `items`, the whole set,
+   * because "52 decisions are ready for your review" is a fact about the
+   * workspace and must not move when a reader looks at one bucket. A count that
+   * changes with a filter is a count nobody can quote.
+   *
+   * The active bucket self-heals: if the one you were in empties as you settle
+   * its last call, `tabs` stops offering it and this falls back to all of them
+   * rather than leaving you in a bucket that no longer exists.
+   */
+  const [bucket, setBucket] = React.useState<QueueBucket | null>(null);
+  const bucketList = React.useMemo(() => bucketTabs(items), [items]);
+  const activeBucket = bucketList.some((t) => t.id === bucket) ? bucket : null;
+  const visibleItems = React.useMemo(() => inBucket(items, activeBucket), [items, activeBucket]);
+
   const focused = React.useMemo(
-    () => items.find((i) => i.id === focusedId) ?? items[0] ?? null,
-    [items, focusedId],
+    () => visibleItems.find((i) => i.id === focusedId) ?? visibleItems[0] ?? null,
+    [visibleItems, focusedId],
   );
 
   const selection = useSelection(React.useMemo(() => items.map((i) => i.id), [items]));
@@ -2053,8 +2084,41 @@ function Today() {
                   <section aria-label={FEED_CALLS} className="flex flex-col">
                     <FeedHead name={FEED_CALLS} count={items.length} />
                     <div className="mt-mrd-3">
+                      {/* TEXT TABS, NOT A FACET EXPLOSION, which is the taste law
+                          `approvals-queue.functions.ts` states over this very vocabulary. The
+                          labels and the order are /approvals' own, not reworded, so the two
+                          surfaces cannot come to disagree about what a bucket is.
+                      
+                          IT DRAWS NOTHING WHEN THERE IS NOTHING TO CHOOSE. One bucket is not a
+                          choice, and an empty bucket is never offered - which is why `spend`
+                          does not appear here: its own comment says "nothing routes into it
+                          yet because no spend-gate READ exists in the codebase today", and
+                          /approvals draws it anyway as a permanently empty tab. */}
+                      {worthFiltering(bucketList) ? (
+                        <div className="mb-mrd-4 flex flex-wrap items-center gap-mrd-3">
+                          <Action
+                            variant="quiet"
+                            aria-pressed={activeBucket === null}
+                            onClick={() => setBucket(null)}
+                            title="Every call waiting on you"
+                          >
+                            All <Num>{items.length}</Num>
+                          </Action>
+                          {bucketList.map((t) => (
+                            <Action
+                              key={t.id}
+                              variant="quiet"
+                              aria-pressed={activeBucket === t.id}
+                              onClick={() => setBucket(t.id)}
+                              title={`Only the ${t.label.toLowerCase()}`}
+                            >
+                              {t.label} <Num>{t.count}</Num>
+                            </Action>
+                          ))}
+                        </div>
+                      ) : null}
                       <DecisionQueue
-                        items={items}
+                        items={visibleItems}
                         focused={focused}
                         onFocus={setFocusedId}
                         walking={walking}
