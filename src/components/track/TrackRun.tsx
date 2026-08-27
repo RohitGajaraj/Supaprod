@@ -38,7 +38,7 @@
  * guesses, and a status display that guesses removes that ability entirely.
  */
 import * as React from "react";
-import { failureLine } from "@/components/track/error-copy";
+import { failureLine } from "@/lib/error-copy";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 

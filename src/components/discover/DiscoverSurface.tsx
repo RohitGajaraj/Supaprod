@@ -228,7 +228,7 @@
  */
 
 import { AutomationBoundary } from "@/components/governance/AutomationBoundary";
-import { failureLine } from "@/components/track/error-copy";
+import { failureLine } from "@/lib/error-copy";
 import { wordFor } from "@/lib/spine/chain";
 import { Row, Line } from "@/components/meridian/rows";
 import * as React from "react";
@@ -1722,7 +1722,7 @@ export function DiscoverSurface({
       });
     } catch (e) {
       setFileNote({
-        text: `${file.name} could not be read. ${(e as Error).message || "The browser refused it."}`,
+        text: failureLine(`${file.name} could not be read, so nothing went into the composer.`, e),
         failed: true,
       });
     } finally {

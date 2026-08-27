@@ -42,6 +42,7 @@
  * row every time.
  */
 import { useState } from "react";
+import { failureLine } from "@/lib/error-copy";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
@@ -79,7 +80,7 @@ export function RewindButton({ prdId, hasSnapshot, onCommit, onReverted }: Rewin
       onReverted?.();
     },
     onError: (e: Error) =>
-      onCommit("Nothing was taken back", `The spec is unchanged. ${e.message}`, true),
+      onCommit("Nothing was taken back", failureLine("The spec is unchanged.", e), true),
   });
 
   if (!hasSnapshot) return null;
@@ -117,7 +118,6 @@ export function RewindButton({ prdId, hasSnapshot, onCommit, onReverted }: Rewin
             (every-meridian-utility-paints refuses font-mrd-w-*), so both stay
             explicit literals - the ratchet law makes today's design the floor,
             and this dialog was tuned as a set. */}
-
 
         <AlertDialog.Content className="fixed top-1/2 left-1/2 z-50 w-[440px] max-w-[92vw] -translate-x-1/2 -translate-y-1/2 rounded-mrd-pane border border-mrd-line bg-mrd-float p-mrd-6 shadow-mrd-pane outline-none">
           <AlertDialog.Title

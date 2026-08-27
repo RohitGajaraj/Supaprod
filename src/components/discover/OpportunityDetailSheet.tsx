@@ -108,7 +108,7 @@
  */
 
 import * as React from "react";
-import { failureLine } from "@/components/track/error-copy";
+import { failureLine } from "@/lib/error-copy";
 import { Row, Line, Who } from "@/components/meridian/rows";
 import { Num, Actions, Door } from "@/components/meridian/surface-parts";
 import type { ReactNode } from "react";

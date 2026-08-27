@@ -32,7 +32,7 @@
  * highlight, Tab accepts, Escape closes, all handled on this wrapper.
  */
 import * as React from "react";
-import { failureLine } from "@/components/track/error-copy";
+import { failureLine } from "@/lib/error-copy";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
