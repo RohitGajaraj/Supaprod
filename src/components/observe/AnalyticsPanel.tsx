@@ -62,6 +62,7 @@
  * missing column.
  */
 import { useServerFn } from "@tanstack/react-start";
+import { failureLine } from "@/lib/error-copy";
 import { Row, Line } from "@/components/meridian/rows";
 import {
   Action,
@@ -108,7 +109,7 @@ function fmtMs(ms: number) {
   return `${(ms / 1000).toFixed(1)}s`;
 }
 function errText(e: unknown) {
-  return e instanceof Error ? e.message : "The read failed.";
+  return failureLine("The read failed.", e);
 }
 
 /** The window. `n` and `unit` are split so the numeral can wear mono and the
