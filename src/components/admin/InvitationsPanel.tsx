@@ -64,8 +64,19 @@ function queryError(q: { isError: boolean; error: unknown; data: unknown }): str
 }
 
 export function InvitationsPanel() {
+  /*
+   * `data-mrd` is what makes the focus ring Meridian's, and its absence was
+   * live behaviour rather than a lint.
+   *
+   * AuthedLayout mounts `data-obsidian` on <html> for the whole authenticated
+   * tree, and meridian.css remaps `--focus-ring` to `--mrd-focus` only INSIDE a
+   * `[data-mrd]` subtree. `Surface` does not set it, so every keyboard focus
+   * ring on this panel drew in the retired `--ds-focus-color` while the rest of
+   * the app drew Meridian's. The token ratchet cannot see it: the retired value
+   * arrives through an alias.
+   */
   return (
-    <div style={{ display: "grid", gap: "var(--space-4)" }}>
+    <div data-mrd="" style={{ display: "grid", gap: "var(--space-4)" }}>
       <InviteCreator />
       <InviteList />
       <DomainList />

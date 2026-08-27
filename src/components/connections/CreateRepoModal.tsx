@@ -82,7 +82,9 @@ export function CreateRepoModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      {/* See the note in VouchersPanel: without `data-mrd`, this dialog's
+          focus ring resolves to the retired --ds-focus-color. */}
+      <DialogContent data-mrd="" className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Github className="h-4 w-4" />
