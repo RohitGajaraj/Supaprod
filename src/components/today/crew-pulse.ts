@@ -32,6 +32,25 @@ import type { SwarmHud } from "@/lib/swarm.functions";
  * many components ask, which is the same argument `OverlapNote`'s header makes
  * for enriching rows from one shared read.
  *
+ * ── WHY IT IS ON THE QUIET PATH ONLY, AND STAYS THERE ──────────────────────
+ * The obvious extension is to draw this on a BUSY board too: fifty-two
+ * decisions waiting while the crew has not run for days looks fine and is
+ * stalled, which seemed more dangerous than a quiet board, not less.
+ *
+ * It is not, and `agent-activity.ts` had already settled it. That file defines
+ * the product's one notion of stale — `STALE_AFTER_MS`, thirty minutes, the
+ * same window `notifications.functions.ts` uses — and states what it may mean:
+ * "stale means one thing only: SOMETHING WAS SUPPOSED TO BE HAPPENING AND
+ * NOTHING HAS." It then names this exact trap: "a session waiting on a person
+ * is silent because the person has not answered, and painting that as stale
+ * blames the machine for the human's pause."
+ *
+ * A board with fifty-two decisions waiting on a PERSON and a quiet crew is the
+ * crew behaving correctly. An alarm there would fire for every reader who has
+ * a backlog, which is every reader this product is for. So the quiet path is
+ * the only place the question "is anything running?" is genuinely open, and
+ * this stays there.
+ *
  * ── WHAT IS DELIBERATELY NOT CLAIMED ───────────────────────────────────────
  * `throughput.total_runs` is tempting and is NOT used. Its handler bounds it
  * with `.gte("created_at", oneHourAgoIso)`, so it counts the last HOUR — on a
