@@ -137,7 +137,7 @@
  */
 
 import * as React from "react";
-import { failureLine } from "@/lib/error-copy";
+import { failureLine, sessionEndedMessage } from "@/lib/error-copy";
 import { Row } from "@/components/meridian/rows";
 import {
   Action,
@@ -542,6 +542,58 @@ function Learn() {
     a.download = "decision-record.md";
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  /*
+   * AN ENDED SESSION IS ONE FACT ABOUT THE TAB, NOT FIVE ABOUT THE PAGE.
+   *
+   * Photographed against a session whose token no longer answers: /learn drew
+   * "Your session ended. Sign in again and this will load." THREE times, in
+   * three regions, with three identical doors. Every one of them was correct.
+   * The page was still wrong, because the reader needs one fact and one door,
+   * and the third copy teaches them the screen is not thinking.
+   *
+   * It happens because each region answers for its own read, and each read
+   * failed for the same reason. Nothing was in a position to notice they were
+   * the same reason -- which is the shape S3 hit on the settings boundary and
+   * S4's metric keeps pointing at: a defect that exists in no component and
+   * only in the sum.
+   *
+   * ── WHY IT IS AN EARLY RETURN AND NOT A BANNER ────────────────────────────
+   * A banner over regions that are still drawing their own failures is four
+   * statements instead of three. When the session is gone NOTHING on this page
+   * can be read, so there is nothing to draw underneath: the honest page is the
+   * fact, what is still true, and the way back.
+   *
+   * ── WHAT IT REFUSES TO CATCH ──────────────────────────────────────────────
+   * Only an ENDED SESSION, never a general failure. If one read fails and the
+   * others succeed, the regions keep their own honesty and say which fact is
+   * missing -- that is exactly the case where per-region detail is the thing
+   * the reader needs, and collapsing it would hide which half is real.
+   */
+  const endedSession =
+    sessionEndedMessage(outcome.error) ??
+    sessionEndedMessage(ledgerQ.error) ??
+    sessionEndedMessage(lastQ.error) ??
+    sessionEndedMessage(pendingQ.error) ??
+    sessionEndedMessage(settledQ.error);
+
+  if (endedSession) {
+    return (
+      <Surface>
+        <div className="flex flex-col items-start gap-mrd-5">
+          <PageHeading
+            /* The title says what is STILL TRUE, which is the half a person is
+               actually frightened about on the page that holds their record.
+               "The record did not load" is the machine's problem; that the
+               record is still there is theirs. */
+            title="The record is still here."
+            sub={`Nothing you have learned is lost. ${endedSession}`}
+          />
+          <Action onClick={() => window.location.assign("/login")}>Sign in</Action>
+        </div>
+      </Surface>
+    );
   }
 
   return (
