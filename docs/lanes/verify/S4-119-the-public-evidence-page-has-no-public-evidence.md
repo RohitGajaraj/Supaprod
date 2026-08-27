@@ -90,6 +90,23 @@ rate with nothing behind it.
 
 **Checked and clean.** The number is small and the page says how small, which is the whole standard.
 
+### The second public number is also 4, and also stated plainly
+
+`supersessionsCaught` reads `artifact_lineage` for the four supersession relations, over 60 days,
+excluding sample workspaces:
+
+| relation | rows | **on a real workspace, last 60d** |
+| --- | --- | --- |
+| `supersedes` | 29 | **3** |
+| `contradicts` | 15 | **1** |
+
+**Four.** And `proof.tsx:197` renders *"{n} decision{s} caught and corrected by a later call"*, which
+with the value 4 reads "4 decisions caught and corrected by a later call" and pluralises correctly.
+
+**So both of `/proof`'s public numbers are 4, and both are stated at their true size.** The page is
+honest twice over. What it does not have is anything to be honest ABOUT, and that is the finding at
+the top of this file rather than a fault in the page.
+
 ## What I am not claiming
 
 - **I did not open `/proof` on a working backend.** With a dead one it renders a route-level error
