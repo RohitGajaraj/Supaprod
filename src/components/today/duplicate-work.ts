@@ -48,17 +48,32 @@ import { stripAutoPrefix } from "@/components/plan/format";
  * the title is not the key this chose over a better one, it is the only key
  * that exists, and matching on it is a floor rather than a design.
  *
- * **`replayed_from_mission_id` IS THE REAL RELATION AND NOTHING WRITES IT.**
- * It is on the table, it names precisely "this mission repeats that one", and
- * it is non-null on 0 of 111 rows. That is the same shape as the finding the
- * founder corrected: the relation exists and the bookkeeping never happens.
- * When it is written, "one of 7 identical" stops being an inference from a
- * string and becomes a fact the record already holds — and near-duplicates,
- * which this deliberately cannot see, come with it.
+ * `replayed_from_mission_id` NAMES A NARROWER RELATION AND IT IS FULLY WIRED.
  *
- * It is NOT read here today, because a branch that can never fire is the
- * dead-code failure this repo keeps paying for. The gap is the thing to fix;
- * this is what the board can honestly say until it is.
+ * CORRECTING MYSELF, because the first version of this header said "NOTHING
+ * WRITES IT" and that is false. The whole loop exists:
+ * `MissionOrchestratorDetail` passes `replayedFrom` into
+ * `startOrchestratedMission`, which writes the column, and the same file reads
+ * it back to draw a "replayed from" door. It is non-null on 0 of 111 rows here
+ * because nobody has clicked Replay in this workspace, not because anything is
+ * missing.
+ *
+ * HOW I GOT IT WRONG IS THE POINT. I read 0 of 111 and concluded the write did
+ * not exist — inferring the platform from whatever data happened to be sitting
+ * in the table, which is precisely the error the founder had just corrected on
+ * another lane, made inside my own note about that correction. The code was one
+ * grep away and I reached for the database instead.
+ *
+ * WHAT IT DOES AND DOES NOT SOLVE. It records a deliberate re-run of one
+ * specific mission. It says nothing about two DIFFERENT missions raised
+ * independently about the same subject, which is what this module counts and
+ * what the brief's fourth glance-fact asks for. So it is not the key this is
+ * waiting for; a subject relation on `missions` would be, and there is none.
+ *
+ * AND IF ONE IS EVER ADDED, THIS GOES rather than staying as a fallback. Two
+ * keys for one relation is how the next person gets a different count from the
+ * same table, which is the 7-versus-41 gap this file is already living with.
+ * (S1's caution, and it is right.)
  *
  * ── EXACT MATCHES ONLY, AND THAT IS A DELIBERATE FLOOR ─────────────────────
  * Nothing here is fuzzy: no stemming, no edit distance, no embedding. Two rows
