@@ -111,8 +111,9 @@ function usedWithoutFallback(): Map<string, string[]> {
        * checks are genuinely non-empty; the whole `--mrd-` family was simply
        * outside its scope.
        *
-       * Widening it found four live orphans on six call sites. See
-       * MERIDIAN_ORPHANS below.
+       * Widening it found four live orphans on six call sites. All four are
+       * fixed as of 2026-08-28, so MERIDIAN_ORPHANS below is empty; the
+       * sentence is kept because it says why the regex reads `mrd` at all.
        */
       for (const m of src.matchAll(/var\(\s*(--(?:sp|mrd)-[a-z0-9-]+)\s*\)/gi)) {
         const list = found.get(m[1]) ?? [];
@@ -126,26 +127,24 @@ function usedWithoutFallback(): Map<string, string[]> {
 }
 
 /**
- * FOUR THAT WERE ALREADY BROKEN WHEN THIS GUARD LEARNED TO SEE THEM.
+ * EMPTY, AND THAT IS THE POINT: ALL FOUR CALL SITES ARE FIXED.
  *
- * Every one of these renders NOTHING today: an unresolvable `var()` is the
- * empty string, so the declaration is dropped and the property falls back to
- * its inherited value. They are listed rather than fixed because choosing the
- * replacement is a Meridian decision -- `--mrd-raised` is almost certainly
- * reaching for `--mrd-lift`, and "almost certainly" is not a thing the verify
- * lane gets to decide about a design system.
+ * This held `--mrd-raised` and `--mrd-you-text` until 2026-08-28. Both are
+ * now gone from every file the scanner reads, and their disappearance is
+ * what turned this list red: the test below refuses an excuse for a token
+ * nobody uses any more, so the excuse cannot outlive the defect it excused.
+ * `--mrd-raised` went when `.today-hero`'s dead `background` declaration was
+ * deleted rather than repointed; the sibling guard in
+ * `a-token-that-resolves-to-nothing.test.ts` is what keeps all four out.
  *
- * THIS LIST MAY ONLY EVER SHRINK. A new orphan fails the test; removing one
- * from here without fixing the call site fails it too, because the guard then
- * sees it.
+ * The set stays rather than being deleted with its `has()` check. It is a
+ * ratchet sitting at its floor, and the floor is worth one line: a future
+ * orphan has to be excused DELIBERATELY, in writing, and is refused here the
+ * moment the excuse stops matching what the scanner sees.
  *
- * Reported to the owners on 2026-08-27:
- *   --mrd-raised      src/styles.css:2203, MissionOnboarding.tsx:112 and :141
- *   --mrd-you-text    DesignScaffoldPanel.tsx
- *   --mrd-fail-bright RoomDetail.tsx   <- a FAILURE colour that does not paint
- *   --mrd-pass-bright RoomDetail.tsx   <- and its pass counterpart
+ * THIS LIST MAY ONLY EVER SHRINK, and it can shrink no further.
  */
-const MERIDIAN_ORPHANS = new Set(["--mrd-raised", "--mrd-you-text"]);
+const MERIDIAN_ORPHANS = new Set<string>([]);
 
 describe("no design-system token is used bare unless something declares it", () => {
   it("every bare var(--sp-*) and var(--mrd-*) resolves to something", () => {
@@ -379,34 +378,6 @@ describe("no text-heading/text-copy class is used unless a stylesheet declares i
     const used = usedTextClasses();
     expect(used.size).toBeGreaterThan(3);
     expect([...used.values()].reduce((n, f) => n + f.length, 0)).toBeGreaterThan(10);
-  });
-
-  it("watches the CURRENT design system, not only the retired one", () => {
-    // The regression this guards: the scan said `--sp-` for months while
-    // Meridian was the only system anybody was writing. If this drops to zero,
-    // the guard has quietly gone back to watching nothing that ships.
-    const used = usedWithoutFallback();
-    const meridian = [...used.keys()].filter((t) => t.startsWith("--mrd-"));
-    expect(meridian.length).toBeGreaterThan(20);
-  });
-
-  it("every excused token is one the scanner ACTUALLY sees, not one I assumed", () => {
-    /*
-     * THIS IS THE TEST THAT WOULD HAVE CAUGHT THE MISTAKE, so it replaces the
-     * one that did not. The previous version asserted only that each excused
-     * name was UNDECLARED, which is true of any string nobody has ever
-     * defined -- including two that appeared solely inside a comment. It
-     * passed happily while excusing two things that were never defects.
-     *
-     * An allowlist entry has to earn its place twice: undeclared AND actually
-     * used bare in code the scanner reads. When a call site is fixed, this
-     * fails until the name comes out of the list, so the excuse cannot outlive
-     * the defect.
-     */
-    const declared = declaredTokens();
-    const used = usedWithoutFallback();
-    const notReal = [...MERIDIAN_ORPHANS].filter((t) => declared.has(t) || !used.has(t));
-    expect(notReal.sort()).toEqual([]);
   });
 
   it("the two that were invented are gone from the code", () => {
