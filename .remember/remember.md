@@ -4,6 +4,16 @@
 and all four lanes sit 9 to 16 commits ahead. Every fix is inert until a merge, and that merge is the
 founder's call. S0 declined to take it unilaterally.
 
+## Measured 2026-08-27 08:37 UTC, both forms
+
+| | |
+| --- | --- |
+| plain form (`CLAUDE.md`) | **1** |
+| honest form **plus presses** (`S4-071`) | **0** |
+| `a30238f5` | station `ship`, hold `given-up` |
+
+**Nothing has changed since the fixes landed on lane branches, because none of them is deployed.**
+
 ## The acceptance, and why it is 0
 
 The loop worked. `a30238f5` walked `sense` to `ship` agent-driven after S0's Discover fix: 13

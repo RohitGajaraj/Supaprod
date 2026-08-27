@@ -112,23 +112,48 @@ const GAP_MS = 9_000;
 const RENDER_BUDGET_MS = 60_000;
 
 /**
- * Enough text on screen to be a page rather than a wait state.
+ * WHEN HAS A SURFACE FINISHED ARRIVING?
  *
- * The pending component renders one word. Every real surface in this product,
- * including the signed-out login, clears this by a wide margin, so the threshold
- * separates "rendered" from "still spinning" without hard-coding a label that a
- * lane could rename out from under this spec.
+ * This used to be "at least 60 characters of text", a number I got by looking at
+ * the nav chrome and picking something above it. The founder's correction, sent
+ * via S1, is what sent me back to it:
+ *
+ *   a measurement is a fair way to choose what to build FIRST
+ *   it is not a fair way to choose what the thing IS
+ *
+ * 60 was the second kind wearing the first kind's clothes. It encodes today's
+ * shell: trim the rail, rename two nav items, and a genuinely rendered page falls
+ * under the line and is reported NOT JUDGED. That threshold was measuring our own
+ * sidebar rather than the product.
+ *
+ * The principled rule needs no number from today: A SURFACE HAS ARRIVED WHEN IT
+ * STOPS CHANGING. Two consecutive identical samples is the page saying it is
+ * done, and it holds whatever the shell weighs. It is the same rule the census
+ * reached after its own threshold bug, and arriving at it twice from opposite
+ * directions is the argument for it.
+ *
+ * The only floor left is emptiness, because "" is stable too and is not a page.
  */
-const RENDERED_MIN_CHARS = 60;
+const RENDERED_MIN_CHARS = 1;
 
 /** Resolves when the surface is a page, or reports how long it waited in vain. */
 async function waitUntilRendered(
   page: import("@playwright/test").Page,
 ): Promise<{ rendered: boolean; ms: number }> {
   const started = Date.now();
+  let previous: string | null = null;
+  let stable = 0;
   while (Date.now() - started < RENDER_BUDGET_MS) {
-    const chars = await page.evaluate(() => document.body.innerText.trim().length);
-    if (chars >= RENDERED_MIN_CHARS) return { rendered: true, ms: Date.now() - started };
+    const text = await page.evaluate(() => document.body.innerText.trim());
+    if (text.length >= RENDERED_MIN_CHARS && text !== "Opening") {
+      if (text === previous) {
+        stable += 1;
+        if (stable >= 2) return { rendered: true, ms: Date.now() - started };
+      } else {
+        stable = 0;
+      }
+      previous = text;
+    }
     await page.waitForTimeout(500);
   }
   return { rendered: false, ms: Date.now() - started };
