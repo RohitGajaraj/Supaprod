@@ -56,6 +56,17 @@ FROM spine_tracks t JOIN workspaces w ON w.id = t.workspace_id
 WHERE w.is_sample = false GROUP BY 1 ORDER BY 2 DESC;
 ```
 
+**The expected floor is 5, not 0**, and knowing that is what stops the result
+being misread. Of the 37, five cannot be reached by the sweep at all: four hold
+`station-cannot-finish` and one `going-in-circles`, both of which are in
+`TERMINAL_HOLDS`. The other **32 are genuinely drivable** — every one is
+non-terminal AND under the `MAX_STATION_DRIVES = 12` ceiling, so F-43 will not
+stop them on the first tick the way F-99 describes. The highest `station_drives`
+in the group, 90, belongs to a terminal track.
+
+So: 37 → about 5 means the fix worked completely. 37 → 30 means it reached the
+brief and not the outcome. 37 → 37 means it reached neither.
+
 Re-run it a day after the deploy. **If `sense` does not fall well below 37, the
 fix reached the BRIEF and not the OUTCOME.** That distinction caught both
 sessions in one night: mine when a `FILE_IT` rewrite never reached a seat, S4's
