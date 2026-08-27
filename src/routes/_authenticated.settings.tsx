@@ -687,7 +687,7 @@ function SettingsPage() {
             {/* ControlsPanel below owns the pause switch, so this panel's
                 read-only pause line would be the same fact twice. */}
             <BoundaryControls pauseShownElsewhere />
-            <ControlsPanel onOpenQueue={() => navigate({ to: "/approvals" })} />
+            <ControlsPanel controlsOnly onOpenQueue={() => navigate({ to: "/approvals" })} />
           </>
         )}
         {active === "ai" && <ModelsSection />}
