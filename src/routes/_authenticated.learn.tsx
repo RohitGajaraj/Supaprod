@@ -137,6 +137,7 @@
  */
 
 import * as React from "react";
+import { plainProse } from "@/components/track/plain-prose";
 import { endedSessionOn, failureLine } from "@/lib/error-copy";
 import { Row } from "@/components/meridian/rows";
 import {
@@ -841,7 +842,9 @@ function Learn() {
             <Reading>Reading the record.</Reading>
           ) : lead ? (
             <>
-              <RecordSpeaks evidence={leadEvidence || null}>{lead.summary}</RecordSpeaks>
+              <RecordSpeaks evidence={leadEvidence || null}>
+                {plainProse(lead.summary)}
+              </RecordSpeaks>
               {/* The retired recess carried its own 4px lead-in and the rows
                   under it carried none, so the space is stated here rather than
                   lost: `Region` and `RecordSpeaks` both set no outer margin on
@@ -853,7 +856,7 @@ function Learn() {
                       <Row
                         key={i}
                         tight
-                        lead={h.summary}
+                        lead={plainProse(h.summary) ?? undefined}
                         sub={
                           h.metricLabel && h.metricValue ? (
                             <>

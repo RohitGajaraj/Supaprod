@@ -40,3 +40,25 @@ describe("agent prose with its markdown syntax off the screen", () => {
     expect(plainProse("")).toBe("");
   });
 });
+
+describe("where it is applied, and where it must not be", () => {
+  it("is safe on the shapes a display site passes", () => {
+    // Row subs and leads take `string | undefined`, so the null has to be
+    // coalesced at the call site rather than here; this pins the contract they
+    // are coalescing.
+    expect(plainProse(null)).toBeNull();
+    expect(plainProse("**Ship it**")).toBe("Ship it");
+  });
+
+  it("does not round-trip a form value, which is why inputs are left raw", () => {
+    /*
+     * NOT A TEST OF THIS FUNCTION SO MUCH AS OF WHERE IT GOES. `plainProse` is
+     * lossy by design: it removes characters. Applied to a textarea's `value`
+     * it would silently rewrite what a person is about to save, so the settle
+     * panel's `value={summary}` and the forecast desk's `value={rationale}` are
+     * deliberately untouched while their DISPLAY siblings are stripped.
+     */
+    const typed = "**keep my markers**";
+    expect(plainProse(typed)).not.toBe(typed);
+  });
+});

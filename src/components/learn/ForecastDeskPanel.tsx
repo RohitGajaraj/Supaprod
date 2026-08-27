@@ -1,4 +1,5 @@
 import * as React from "react";
+import { plainProse } from "@/components/track/plain-prose";
 import { failureLine, reasonLine } from "@/lib/error-copy";
 import { Row, Line } from "@/components/meridian/rows";
 import {
@@ -288,7 +289,10 @@ export function ForecastDeskPanel() {
             {picked.suggestion ? (
               <Line
                 label={`A draft says ${FORECAST_SAYS[picked.suggestion.verdict]}`}
-                sub={picked.suggestion.rationale}
+                /* Display, so the markers come off. The textarea below holds the
+                   same text as a VALUE and is deliberately left raw: stripping
+                   there would silently change what the person saves. */
+                sub={plainProse(picked.suggestion.rationale) ?? undefined}
               />
             ) : null}
 
