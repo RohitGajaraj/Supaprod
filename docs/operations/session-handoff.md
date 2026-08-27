@@ -43,6 +43,38 @@ and doing it while three other lanes hold unmerged work would be out of step wit
 how they are running. It is the founder's call, and F-124 exists to make it a
 single one.
 
+### The cheapest possible proof it worked, after the deploy
+
+S4's before-picture, measured 2026-08-27 on real workspaces only. **37 of 55
+tracks sit at `sense` and 35 of those are held** — so on real work the
+seven-station loop has been a one-station loop, and Discover is not a station it
+passes through but the place it stops.
+
+```sql
+SELECT t.station, count(*), count(*) FILTER (WHERE t.last_hold IS NOT NULL)
+FROM spine_tracks t JOIN workspaces w ON w.id = t.workspace_id
+WHERE w.is_sample = false GROUP BY 1 ORDER BY 2 DESC;
+```
+
+Re-run it a day after the deploy. **If `sense` does not fall well below 37, the
+fix reached the BRIEF and not the OUTCOME.** That distinction caught both
+sessions in one night: mine when a `FILE_IT` rewrite never reached a seat, S4's
+when a check measured the container instead of the line. It needs no new
+instrument.
+
+### Three things to check beside the deploy, not behind it
+
+1. **`supaprod.json` at the root of `Supaprod/relay-homeowner-app`.** See below.
+2. **Five conflicted pull requests.** S4 measured every real merge failure in the
+   product's life: eight, of which **five are `GitHub merge 405: Pull Request has
+   merge conflicts`**. Nothing automated resolves those, and under F-75
+   auto-merge the loop meets them again with no person in the run. F-127b makes
+   the track say so by name when it does, instead of "this station could not use
+   a tool it needed".
+3. **The workspace binding**, corrected in F-110/F-111. An unbound workspace used
+   to fall through to a deployment-wide `GITHUB_REPO`, and four tenants had
+   written into one repository that way.
+
 ### The one unknown that could still stall it
 
 Whether `Supaprod/relay-homeowner-app` carries a **`supaprod.json`** marker at its
