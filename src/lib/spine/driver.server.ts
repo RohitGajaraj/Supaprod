@@ -27,6 +27,7 @@
  * STOPS, leaving the track where it is. Autonomy here means nobody has to press
  * go, never that policy stopped applying.
  */
+import { trackGoalSentence } from "@/lib/track-origin";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { runAgentLoop } from "@/lib/ai/loop.server";
 import { createMission } from "@/lib/ai/handoff.server";
@@ -751,7 +752,19 @@ async function missionForTrack(
 
     const mission = await createMission(supabase, row.user_id, row.workspace_id, {
       title: row.title,
-      goal: row.origin ? `${row.title}. ${row.origin}` : row.title,
+      /*
+       * F-121 (S1 -> S0). This was `${row.title}. ${row.origin}`, which renders
+       * the sentence twice when a track's origin IS its title. Live on
+       * `6199f3df`, and stored that way in `missions.goal` rather than doubled
+       * at render time, so it is a bad row and not a bad render.
+       *
+       * It will grow rather than shrink: the sentence a person types at /start
+       * becomes BOTH the title and the origin, so exact-match is the natural
+       * result of the newest way to start work. `trackGoalSentence` returns the
+       * title plus only what the origin actually adds, and returns an origin
+       * that carries its own fact untouched.
+       */
+      goal: trackGoalSentence(row.title, row.origin),
       starting_agent_id: agentId,
     });
     if (!mission?.id) return null;
