@@ -1389,6 +1389,37 @@ export const getBoundary = createServerFn({ method: "GET" })
       }
     }
 
+    /*
+     * WHAT A WHOLE PIECE OF WORK COSTS, so the track ceiling gets the same
+     * treatment as the per-goal one. U-088 left this line without its other
+     * half because no reader returned per-track spend; `spine_tracks` carries
+     * it directly.
+     *
+     * Measured 2026-08-27: 106 tracks, every one carrying a figure, the most
+     * expensive $0.7255 against a $5.00 ceiling. So this ceiling has not been
+     * approached either, and a person setting it is entitled to know that
+     * before deciding it is doing something.
+     *
+     * NO HALT COLUMN HERE, and the surface says nothing about stopping as a
+     * result. `agent_runs` carries `halted_reason`; `spine_tracks` does not, so
+     * "none of them stopped here" would be a claim out of a field that does not
+     * exist. `TRACKS.seesHalts` is false and the sentence is shorter for it.
+     *
+     * Fails soft and separately like every other piece of evidence on this
+     * screen: no rows means no sentence, never a zero.
+     */
+    let trackSpend: Array<{ spend_used_usd: number | string | null }> = [];
+    if (workspaceId) {
+      const { data: tracks, error: tracksErr } = await supabase
+        .from("spine_tracks")
+        .select("spend_used_usd")
+        .eq("workspace_id", workspaceId)
+        .not("spend_used_usd", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (!tracksErr) trackSpend = (tracks ?? []) as typeof trackSpend;
+    }
+
     const num = (v: number | string | null | undefined) =>
       v === null || v === undefined ? null : Number(v);
     const w = ws as {
@@ -1426,6 +1457,12 @@ export const getBoundary = createServerFn({ method: "GET" })
        * draw nothing rather than a zero.
        */
       didAlone,
+      /**
+       * The last 50 pieces of work and what each spent, so the track ceiling can
+       * say what it says about the per-goal one. Empty when the read failed or
+       * nothing has spent: the surface draws nothing rather than a zero.
+       */
+      trackSpend,
       /** Which workspace answered — the question this file used to guess at. */
       workspaceId,
       /** Where this workspace puts the promotion bar and the settle-or-ask bar,

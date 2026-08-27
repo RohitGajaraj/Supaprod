@@ -57,7 +57,7 @@ import { getApprovalPolicyState } from "@/lib/approvals-queue.functions";
 import { humanWriteError } from "@/lib/roles.functions";
 import { TrustGraduationsBlock } from "@/components/governance/TrustGraduations";
 import { AutomationBoundary } from "@/components/governance/AutomationBoundary";
-import { ceilingReality } from "@/components/governance/ceiling-reality";
+import { ceilingReality, TRACKS } from "@/components/governance/ceiling-reality";
 import { whereTheCrewStands } from "@/components/governance/where-the-crew-stands";
 import { unansweredGates } from "@/components/governance/gates-nobody-answered";
 import { whatTheyActuallyDid } from "@/components/governance/what-they-actually-did";
@@ -544,6 +544,10 @@ export function BoundaryControls({
   });
 
   const data = b.data;
+  /* The same pair for the whole piece of work. TRACKS carries `seesHalts:
+     false`, so the sentence reports a cost and claims nothing about halting. */
+  const trackSpent = ceilingReality(data?.trackSpend, TRACKS);
+
   // Never null, even before the read lands: the shipped numbers ARE the policy
   // until a workspace says otherwise, so there is no such thing as "no policy".
   const autonomy: AutonomyPolicy = data?.autonomy ?? SHIPPED_AUTONOMY_POLICY;
@@ -1074,15 +1078,23 @@ export function BoundaryControls({
             <Line
               label="Dollars one piece of work may spend"
               sub={
-                data.trackCapUsd === null ? (
-                  "No ceiling. Work continues through every station until it finishes."
-                ) : (
-                  <>
-                    <Num>${data.trackCapUsd.toFixed(2)}</Num> across every station, every agent and
-                    every retry. Work that reaches it stops and waits, and raising this carries on
-                    from where it stopped.
-                  </>
-                )
+                <>
+                  {data.trackCapUsd === null ? (
+                    "No ceiling. Work continues through every station until it finishes."
+                  ) : (
+                    <>
+                      <Num>${data.trackCapUsd.toFixed(2)}</Num> across every station, every agent
+                      and every retry. Work that reaches it stops and waits, and raising this
+                      carries on from where it stopped.
+                    </>
+                  )}
+                  {/* The other half, which this line went without in U-088
+                      because no reader returned per-track spend. It says
+                      nothing about STOPPING: `spine_tracks` has no halt column,
+                      so the run line's "none of them stopped here" would be a
+                      claim out of a field that does not exist here. */}
+                  {trackSpent.said ? <span className="mt-1 block">{trackSpent.said}</span> : null}
+                </>
               }
             >
               {!data.isOwner ? (
