@@ -24,7 +24,24 @@ export function transitionLine(via: TrackTransition["drivenVia"]): string | null
   return null;
 }
 
-/** The handoff fields `getMission` already returns, and nothing more. */
+/** A steer's payload carries the person's sentence under `message`. */
+function steerMessage(payload: unknown): string | null {
+  let v: unknown = payload;
+  if (typeof v === "string") {
+    const t = v.trim();
+    if (!t.startsWith("{")) return null;
+    try {
+      v = JSON.parse(t);
+    } catch {
+      return null;
+    }
+  }
+  if (!v || typeof v !== "object") return null;
+  const m = (v as Record<string, unknown>).message;
+  return typeof m === "string" && m.trim() ? m.trim() : null;
+}
+
+/** The message fields both reads return, and nothing more. */
 export type HandoffRow = {
   id: string;
   kind: string;
@@ -53,6 +70,28 @@ export type ActivityRow =
    * As its own row it needs no turn at all: it has a time of its own, a sender,
    * a receiver and the instruction that travelled.
    */
+  /**
+   * WHAT THE PERSON SAID INTO THE RUN.
+   *
+   * SESSION-1's third unit is "steer without restarting" and SPEC-AGENT-COMMS
+   * says the person is "a participant, not an audience". Both were half true:
+   * the steer lands, an agent consumes it, and the work changes. Nothing ever
+   * showed it back. `agent_messages` has two INSERTs for track-scoped messages
+   * in `track.functions.ts` and no SELECT anywhere, so after a reload there was
+   * no evidence on any screen that the instruction existed.
+   *
+   * A participant whose messages vanish is an audience. This is the row that
+   * makes them a participant.
+   */
+  | {
+      kind: "said";
+      at: number;
+      key: string;
+      /** The person's own words, never composed. */
+      message: string;
+      /** True once an agent has taken it. A fact from `consumed_by_run_id`. */
+      pickedUp: boolean;
+    }
   | {
       kind: "handoff";
       at: number;
@@ -106,6 +145,20 @@ export function mergeActivityRows(
     });
   }
   for (const h of handoffs) {
+    if (h.kind === "steer") {
+      const message = steerMessage(h.payload);
+      // Nothing written means nothing to show. A "you said something" row with
+      // no words is the caption problem again.
+      if (!message) continue;
+      rows.push({
+        kind: "said",
+        at: Date.parse(h.created_at),
+        key: `said:${h.id}`,
+        message,
+        pickedUp: h.consumed_by_run_id !== null,
+      });
+      continue;
+    }
     const task = taskAsked(h.payload);
     // No instruction written means there is nothing to show a person. The row
     // is dropped rather than drawn empty: a handoff entry that says only that a

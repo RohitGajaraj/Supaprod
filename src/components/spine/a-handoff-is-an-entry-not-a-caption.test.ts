@@ -73,3 +73,49 @@ describe("a handoff is an entry in the transcript", () => {
     expect(after).toEqual(before);
   });
 });
+
+describe("what the person said is in the record too", () => {
+  const steer = (over: Partial<HandoffRow> = {}): HandoffRow => ({
+    id: "s1",
+    kind: "steer",
+    from_agent_slug: null,
+    to_agent_slug: null,
+    payload: { message: "Skip the market research and use what is already here." },
+    created_at: "2026-08-26T19:11:54.000Z",
+    consumed_by_run_id: null,
+    ...over,
+  });
+
+  it("carries the person's own words", () => {
+    const [row] = mergeActivityRows([], [], [steer()]);
+    expect(row.kind).toBe("said");
+    if (row.kind !== "said") return;
+    expect(row.message).toBe("Skip the market research and use what is already here.");
+  });
+
+  it("says whether an agent has actually taken it", () => {
+    /*
+     * The fact a person wants is not that the product received the steer, it is
+     * that something has picked it up. A steer sitting unconsumed while the run
+     * works is the one state where silence would be a lie about being heard.
+     */
+    const [waiting] = mergeActivityRows([], [], [steer({ consumed_by_run_id: null })]);
+    const [taken] = mergeActivityRows([], [], [steer({ consumed_by_run_id: "run-7" })]);
+    expect(waiting.kind === "said" && waiting.pickedUp).toBe(false);
+    expect(taken.kind === "said" && taken.pickedUp).toBe(true);
+  });
+
+  it("is dropped when no words were written", () => {
+    expect(mergeActivityRows([], [], [steer({ payload: {} })])).toEqual([]);
+    expect(mergeActivityRows([], [], [steer({ payload: { message: "  " } })])).toEqual([]);
+  });
+
+  it("sits in time among the turns, not in a list of its own", () => {
+    const rows = mergeActivityRows(
+      [turn("r1", "2026-08-26T18:00:00.000Z"), turn("r2", "2026-08-26T20:00:00.000Z")],
+      [],
+      [steer()],
+    );
+    expect(rows.map((r) => r.kind)).toEqual(["turn", "said", "turn"]);
+  });
+});

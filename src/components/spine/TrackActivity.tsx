@@ -53,6 +53,7 @@ import { humanizeText } from "@/lib/ai/humanize";
 import { AgentMark } from "@/components/meridian/marks";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { supabase } from "@/integrations/supabase/client";
 
 import { getTrackActivity, getTrackChain } from "@/lib/spine/track.functions";
 import { countKinds, type Turn } from "@/lib/spine/activity";
@@ -402,6 +403,35 @@ export function TrackActivity({
     })),
   });
 
+  /*
+   * WHAT THE PERSON SAID INTO THIS RUN.
+   *
+   * Track-scoped messages -- a steer typed into the composer -- carry a
+   * `track_id` and no `mission_id`, so the mission read above cannot see them.
+   * `track.functions.ts` has two INSERTs for them and no SELECT anywhere, which
+   * means the product has been recording a person's instructions and never
+   * showing one back. After a reload there was no evidence on any screen that
+   * the steer existed.
+   *
+   * Read directly through the browser client under RLS, which is the pattern
+   * `ArtifactPane`'s `PrototypeCard` already uses for `prototypes` and
+   * `prototype_files`. A server function would be the other option and is S0's
+   * to add; this needs no new surface area and the row is the person's own.
+   */
+  const saidQ = useQuery({
+    queryKey: ["track-said", trackId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("agent_messages")
+        .select("id,kind,from_agent_slug,to_agent_slug,payload,created_at,consumed_by_run_id")
+        .eq("track_id", trackId)
+        .order("created_at", { ascending: true });
+      if (error) throw new Error(error.message);
+      return (data ?? []) as unknown as HandoffRow[];
+    },
+    refetchInterval: isRunning || live ? 2_000 : 30_000,
+  });
+
   const handoffs = React.useMemo<HandoffRow[]>(
     () =>
       missionQs.flatMap((q) =>
@@ -434,8 +464,12 @@ export function TrackActivity({
   const seen = React.useRef<Set<string>>(new Set());
   const primed = React.useRef(false);
   const rows = React.useMemo(
-    () => mergeActivityRows(q.data?.turns ?? [], q.data?.transitions ?? [], handoffs),
-    [q.data, handoffs],
+    () =>
+      mergeActivityRows(q.data?.turns ?? [], q.data?.transitions ?? [], [
+        ...handoffs,
+        ...(saidQ.data ?? []),
+      ]),
+    [q.data, handoffs, saidQ.data],
   );
   React.useEffect(() => {
     if (!q.data) return;
@@ -557,6 +591,50 @@ export function TrackActivity({
                       <RunSubject>{`Moved to ${row.toName}`}</RunSubject>
                     </span>
                     <RunMeta>{row.line}</RunMeta>
+                  </span>
+                </li>
+              );
+            }
+
+            if (row.kind === "said") {
+              /*
+               * THE PERSON'S OWN LINE, IN THE RECORD WITH EVERYTHING ELSE.
+               *
+               * Same row shape as every other entry -- clock, glyph, rail --
+               * because a steer IS part of what happened to this work and a
+               * separate treatment would make it commentary alongside the
+               * record rather than part of it. SPEC-AGENT-COMMS is explicit
+               * that this is not chat: no bubble, no avatar row, no timestamp
+               * gutter.
+               *
+               * `pickedUp` is read from `consumed_by_run_id` and is the fact a
+               * person actually wants: not that the product received it, but
+               * that an agent has taken it. Until then it says so, because a
+               * steer sitting unconsumed while the run works is the one state
+               * where saying nothing would be a lie about being heard.
+               */
+              const arrived = primed.current && !seen.current.has(row.key);
+              return (
+                <li
+                  key={row.key}
+                  className={RUN_ROW}
+                  style={
+                    arrived
+                      ? { animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }
+                      : undefined
+                  }
+                >
+                  <RunClock at={row.at} />
+                  <span className="flex flex-col items-center self-stretch">
+                    <RunGlyph kind="handoff" />
+                    {i === ordered.length - 1 ? null : <RunRail />}
+                  </span>
+                  <span className="min-w-0 pb-1">
+                    <span className={RUN_LINE}>
+                      <RunSubject>You said</RunSubject>
+                      {row.pickedUp ? null : <RunMeta>not picked up yet</RunMeta>}
+                    </span>
+                    <RunNote>{row.message}</RunNote>
                   </span>
                 </li>
               );
