@@ -51,7 +51,7 @@
  * on a number.
  */
 import { useMemo, useState, type ReactNode } from "react";
-import { failureLine } from "@/lib/error-copy";
+import { failureLine, messageForPerson } from "@/lib/error-copy";
 import { Row, Line } from "@/components/meridian/rows";
 import {
   Action,
@@ -416,7 +416,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
       <Region title={id} goTo="All surfaces" onGoTo={back}>
         <ReadFailedLine onRetry={() => void refetch()}>
           This surface did not load, so nothing here is a claim about whether it drifted.{" "}
-          {(error as Error).message}
+          {messageForPerson(error)}
         </ReadFailedLine>
       </Region>
     );
