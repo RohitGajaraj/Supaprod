@@ -2285,6 +2285,23 @@ function Today() {
                           {row.note}
                         </p>
                       ) : null}
+                      {/* WHAT WAS HANDED TO YOU, BEFORE YOU DECIDE ON IT.
+                          The founder asked twice to see the handoff and it was
+                          drawn under RUNNING rows only. Measured against the
+                          live database 2026-08-27: 26 handoffs exist, across 10
+                          missions — 7 finished, 3 blocked, and ZERO running.
+                          The lane's own note four hundred lines below records
+                          that `agent_runs` holds no in-flight rows at all. So
+                          the one event the brief calls "worth drawing" was
+                          wired to the only lane none of them are in, and has
+                          never appeared.
+                          It belongs here most of all: this lane is where a
+                          person decides, and "Handed over by the orchestrator
+                          3h ago: <task> · 4 items passed" is the artifact that
+                          arrived, not a status change. It owns its own read and
+                          its own silence, and a track row simply finds no
+                          mission handoff and draws nothing. */}
+                      <HandoverNote missionId={row.id} workspaceId={workspaceId} />
                       {replyTo === row.id ? (
                         <ReasonField
                           id={`feed-reply-${row.id}`}
@@ -2378,6 +2395,18 @@ function Today() {
                   "Finished. Open one to see how it ended, and what it left behind.",
                   (row) => (
                     <Door onClick={row.onOpen}>Open</Door>
+                  ),
+                  /* HOW IT GOT DONE, on the row that says it is done. SEVEN of
+                     the ten missions carrying a handoff are finished, so
+                     without this the event the brief calls "worth drawing"
+                     stays invisible for the majority of the work that actually
+                     has one. "Handed over by the orchestrator · 4 items passed"
+                     is the agentic half of a finished run made visible rather
+                     than implied, which is the whole difference between a
+                     status and a record. Silent when no handover exists, so a
+                     settled lane gains no furniture. */
+                  (row) => (
+                    <HandoverNote missionId={row.id} workspaceId={workspaceId} />
                   ),
                 )}
               </div>
