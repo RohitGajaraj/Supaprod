@@ -1,0 +1,182 @@
+{
+  "_readme": "S4 baseline, measured 2026-08-27 against a dead backend. Per surface: failure sentences a person reads for ONE dead read, Try again controls, control shapes a screen reader cannot name, and prose lines past 76ch or capped inline in pixels. check-motion.sh diffs against this and prints REGRESSED or IMPROVED.",
+  "_measured_at": "2026-08-27",
+  "_note": "Several surfaces have fixes on lane branches that had not merged when this was taken. Where a number looks high, check the lane before treating it as current.",
+  "surfaces": {
+    "/today": {
+      "failureSentences": 2,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/approvals": {
+      "failureSentences": 3,
+      "retries": 1,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/brain": {
+      "failureSentences": 7,
+      "retries": 1,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/learn": {
+      "failureSentences": 7,
+      "retries": 2,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/threads": {
+      "failureSentences": 3,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 1
+    },
+    "/guardrails": {
+      "failureSentences": 6,
+      "retries": 1,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/engine-room": {
+      "failureSentences": 4,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/settings": {
+      "failureSentences": 2,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/start": {
+      "failureSentences": 2,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/plan": {
+      "failureSentences": 1,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/ship": {
+      "failureSentences": 1,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/inbox": {
+      "failureSentences": 1,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/crew": {
+      "failureSentences": 3,
+      "retries": 1,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/decide": {
+      "failureSentences": 3,
+      "retries": 1,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/design": {
+      "failureSentences": 4,
+      "retries": 1,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/discover": {
+      "failureSentences": 5,
+      "retries": 1,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/build": {
+      "failureSentences": 5,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/sync": {
+      "failureSentences": 5,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 1
+    },
+    "/pricing": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 3
+    },
+    "/faq": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 6
+    },
+    "/security": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 6
+    },
+    "/privacy": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 4
+    },
+    "/ard": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 2
+    },
+    "/updates": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 1
+    },
+    "/subprocessors": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 6
+    },
+    "/investors": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 4
+    },
+    "/brief": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 4
+    },
+    "/checkout": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 1,
+      "wideProse": 0
+    }
+  },
+  "_this_is_a_direction_not_a_target": "MATCHING YOUR BASELINE DOES NOT MEAN A SURFACE IS CORRECT. These are the numbers the product happened to produce on one night, several of them from surfaces whose fixes were sitting unmerged on a lane branch. A measurement is a fair way to choose what to fix FIRST. It is not a fair way to decide what the thing should BE, and a baseline is the exact shape that quietly turns one into the other. Read the LIST the report prints, not the number, and lower a baseline entry whenever a real fix lands rather than treating the old value as the goal. Founder's correction, relayed 2026-08-27."
+}

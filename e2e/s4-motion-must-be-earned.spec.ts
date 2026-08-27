@@ -1,8 +1,9 @@
 import { test, expect } from "@playwright/test";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { join } from "node:path";
 
+import { compareToBaseline, type SurfaceNumbers } from "./helpers/baseline";
 import { findRepoRoot } from "./helpers/auth";
 
 /**
@@ -293,6 +294,46 @@ async function failEveryAuthenticatedRead(page: import("@playwright/test").Page)
     );
   }
 }
+
+/**
+ * THE BASELINE, SO A NUMBER BECOMES A DIRECTION.
+ *
+ * Every measurement in this file is an absolute, and an absolute is the hardest
+ * kind of number to act on. "/learn has 7 failure sentences" invites an argument
+ * about whether 7 is bad. "/learn had 7 and now has 9" does not.
+ *
+ * `surface-baseline.json` holds what each surface measured on 2026-08-27. This
+ * prints REGRESSED and IMPROVED against it, per surface, per check.
+ *
+ * ── WHY THIS DOES NOT FAIL THE BUILD, WHICH IS A DELIBERATE CHOICE ──────────
+ * The repo already ratchets Meridian tokens this way and that one DOES fail, so
+ * the obvious move is to match it. I am not doing that yet, on evidence from
+ * tonight: these numbers moved run to run while I was building them. /today read
+ * 2 on one pass and 4 on another, and /guardrails read 7 on a pass where it had
+ * already redirected away. Some of that was instrument bugs I have since fixed,
+ * and I have not proven that ALL of it was.
+ *
+ * A ratchet that flakes is worse than no ratchet, because the first false red
+ * teaches four lanes to pass `--no-verify` and the check is dead. Making this a
+ * gate needs a stable-run study first: the same commit measured several times,
+ * and every number identical. That study is a morning's work and nobody has done
+ * it, so the honest state is a loud report and a written reason.
+ *
+ * The one check here that DOES fail the build is the advancing progress claim,
+ * because a counter that rises with no data behind it cannot be a flake.
+ */
+function loadBaseline(): Record<string, Partial<SurfaceNumbers>> {
+  try {
+    const raw = readFileSync(join(findRepoRoot(), "e2e", "surface-baseline.json"), "utf8");
+    return (JSON.parse(raw).surfaces ?? {}) as Record<string, Partial<SurfaceNumbers>>;
+  } catch {
+    // A missing or unreadable baseline must never fail a measurement run: the
+    // numbers are the point and the comparison is the convenience.
+    return {};
+  }
+}
+
+const BASELINE = loadBaseline();
 
 /**
  * PROSE WIDER THAN MERIDIAN'S OWN MEASURE.
@@ -646,6 +687,7 @@ test("report which surfaces still move once nothing can be read", async ({ page 
   const notRendered: string[] = [];
   /** Kept apart from `report`, whose length is asserted one-per-surface. */
   const notes: string[] = [];
+  const drift: string[] = [];
   const advancing: string[] = [];
   const illustrated: string[] = [];
 
@@ -742,6 +784,18 @@ test("report which surfaces still move once nothing can be read", async ({ page 
           `\n  On a failure screen the only control is often the only way out.`,
       );
     }
+
+    const moved = compareToBaseline(
+      path,
+      {
+        failureSentences: failures.distinct.length,
+        retries: failures.retries,
+        unnamed: unnamed.length,
+        wideProse: wide.length,
+      },
+      BASELINE,
+    );
+    if (moved) drift.push(moved);
 
     const clipped = await clippedAndUnreachable(page);
     if (clipped.length) {
