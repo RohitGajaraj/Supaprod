@@ -1,12 +1,7 @@
 import * as React from "react";
 
 import { glyphForSlug } from "@/components/shell/agent-glyphs";
-import {
-  Action,
-  ACTION_LINK_FACE,
-  CONTROL_SHAPE,
-  Eyebrow,
-} from "@/components/meridian/surface-parts";
+import { Action, ACTION_LINK_FACE, Eyebrow } from "@/components/meridian/surface-parts";
 import { YouMark } from "@/components/meridian/marks";
 import { agentBlurb, agentDisplayName } from "@/lib/agent-vocabulary";
 import type { RunState } from "./run-state";

@@ -166,7 +166,6 @@ import {
   IconApprovals,
   IconAsk,
   IconBrain,
-  IconCrew,
   IconEngine,
   IconBoard,
   IconFind,

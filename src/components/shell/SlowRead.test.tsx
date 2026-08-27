@@ -1,5 +1,5 @@
 import * as React from "react";
-import { render, screen, waitFor, renderHook, act } from "@testing-library/react";
+import { render, screen, waitFor, renderHook } from "@testing-library/react";
 import { describe, expect, it } from "bun:test";
 
 import { SlowRead } from "./SlowRead";

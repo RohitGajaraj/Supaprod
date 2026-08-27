@@ -1,6 +1,5 @@
 import type { SwarmHandoff } from "@/lib/swarm.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { withinLastDay } from "./when";
 
 /**
  * WHERE A RUNNING PIECE OF WORK JUST CAME FROM.
