@@ -56,6 +56,11 @@ Split by workspace:
 shape as `agent_approvals.decided_by` being NULL in `S4-040`: the column that would settle who did it
 is empty, so the honest statement is *"the record cannot say"*, not *"an agent did"*.
 
+> **The comparison is weaker than it reads, and the correction is mine.** `decided_by` is populated on
+> **158 of 176** answered approvals; only 18 cannot name the decider. So that column is mostly
+> working and `S4-040` overstated it from a single row.
+> **`forecast_resolved_by_agent_slug` is the stronger case on its own evidence: NULL on all 91.**
+
 Midnight timestamps, a NULL resolver on every row, and a ten-day silence are the signature of seeded
 data rather than a working loop. **`S4-063` stands.**
 
