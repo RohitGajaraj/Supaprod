@@ -468,6 +468,62 @@ async function proseWiderThanMeasure(page: import("@playwright/test").Page): Pro
 }
 
 /**
+ * CAN A KEYBOARD USER SEE WHERE THEY ARE?
+ *
+ * This product ships keyboard shortcuts as a first-class idea — `g o`, `g v`,
+ * `g w`, `g r` are printed in the rail itself — so it is inviting people to
+ * drive it without a mouse. A focus ring is what makes that invitation real. A
+ * control that takes focus and looks identical while focused strands the person
+ * who accepted the invitation, and it is invisible to every other check in this
+ * file because nothing about it is wrong until you press Tab.
+ *
+ * ── HOW IT DECIDES ─────────────────────────────────────────────────────────
+ * Focus the element, then compare the computed `outline`, `boxShadow`,
+ * `borderColor` and `backgroundColor` against their unfocused values. ANY change
+ * counts: a ring, a glow, a border shift, a fill. This deliberately does not
+ * care WHICH, because a product is allowed to design its own focus treatment and
+ * the only failure is having none.
+ *
+ * `:focus-visible` is why this focuses rather than inspecting stylesheets. Many
+ * designs show a ring only for keyboard focus, and the computed style after a
+ * programmatic `.focus()` reflects that correctly in Chromium.
+ *
+ * Reported, not asserted. I have no baseline for this yet and a gate that fires
+ * on its first run before anyone has agreed the rule is how a check gets turned
+ * off. It fires on nothing or on a short list; either way the list is the point.
+ */
+async function controlsWithNoVisibleFocus(
+  page: import("@playwright/test").Page,
+): Promise<string[]> {
+  return page.evaluate(() => {
+    const shape = (el: HTMLElement) => {
+      const cs = getComputedStyle(el);
+      return [cs.outline, cs.outlineOffset, cs.boxShadow, cs.borderColor, cs.backgroundColor].join(
+        "|",
+      );
+    };
+    const out: string[] = [];
+    const sel = 'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    const all = Array.from(document.querySelectorAll<HTMLElement>(sel))
+      .filter((el) => el.offsetParent !== null || el.getClientRects().length > 0)
+      .filter((el) => !el.hasAttribute("disabled"))
+      .slice(0, 25);
+
+    const active = document.activeElement as HTMLElement | null;
+    for (const el of all) {
+      const before = shape(el);
+      el.focus();
+      const after = shape(el);
+      if (before !== after) continue;
+      const cls = el.className?.toString().trim().split(/\s+/).slice(0, 2).join(".");
+      out.push(`${el.tagName.toLowerCase()}${cls ? "." + cls : ""}`);
+    }
+    active?.focus();
+    return Array.from(new Set(out)).slice(0, 8);
+  });
+}
+
+/**
  * CONTROLS A SCREEN READER CANNOT NAME.
  *
  * Every other check in this file asks whether the screen tells the truth. This
@@ -821,6 +877,16 @@ test("report which surfaces still move once nothing can be read", async ({ page 
       BASELINE,
     );
     if (moved) drift.push(moved);
+
+    const noFocus = await controlsWithNoVisibleFocus(page);
+    if (noFocus.length) {
+      notes.push(
+        `\n--- ${path}: ${noFocus.length} control shape(s) that look IDENTICAL when focused ---\n  ` +
+          noFocus.join("\n  ") +
+          `\n  This product prints keyboard shortcuts in its own rail. A control with no focus` +
+          `\n  treatment strands the person who took that invitation.`,
+      );
+    }
 
     const clipped = await clippedAndUnreachable(page);
     if (clipped.length) {
