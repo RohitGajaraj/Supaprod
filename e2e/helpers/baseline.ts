@@ -40,6 +40,43 @@ export type SurfaceNumbers = {
 export type RunMode = "public" | "signed-in";
 
 /**
+ * AND THE VIEWPORT, FOR THE SAME REASON AS THE RUN MODE.
+ *
+ * A baseline entry records whether it was taken signed in, because the same
+ * path signed out is the login page. It did NOT record the WIDTH, and a
+ * responsive layout at 390 is a different set of elements from the same page
+ * at 1280 -- different components, different counts, sometimes different
+ * colours.
+ *
+ * Measured 2026-08-28: contrast at 390 matched the desktop numbers exactly on
+ * all six public surfaces checked (`/` 83 below of 233 judged against 83 of
+ * 248), so nothing was being hidden. **That is a fact about today's CSS, not a
+ * property of the check.** The ratchet was comparing a phone run to desktop
+ * numbers and getting the right answer by luck.
+ *
+ * So the width is recorded and a mismatch refuses to compare, exactly like the
+ * mode. An entry with no viewport recorded still compares, so existing
+ * baselines keep working.
+ */
+export type Viewport = string;
+
+/**
+ * WHAT A BASELINE FILE ACTUALLY HOLDS.
+ *
+ * The numbers plus the two things that say whether they are comparable at all.
+ * This existed only as an inline shape at the call site, so the spec read
+ * `.mode`, `.viewport` and `.contrastJudged` off a `Partial<SurfaceNumbers>`
+ * that has none of them -- four type errors that ran correctly and were never
+ * reported, because `e2e/` is not in tsconfig's include.
+ */
+export type BaselineEntry = Partial<SurfaceNumbers> & {
+  mode?: RunMode;
+  viewport?: Viewport;
+  /** Population behind `contrastBelow`; guards against comparing two renders. */
+  contrastJudged?: number;
+};
+
+/**
  * IS THIS THE SAME PAGE THE BASELINE SAW?
  *
  * A signed-in surface does not render the same number of elements every run.
@@ -83,8 +120,9 @@ export const CHECKS = [
 export function compareToBaseline(
   path: string,
   now: SurfaceNumbers,
-  baseline: Record<string, Partial<SurfaceNumbers> & { mode?: RunMode }>,
+  baseline: Record<string, BaselineEntry>,
   mode?: RunMode,
+  viewport?: Viewport,
 ): string | null {
   const was = baseline[path];
   if (!was) return `  ${path}: no baseline entry. Add it once this surface settles.`;
@@ -96,6 +134,10 @@ export function compareToBaseline(
    */
   if (was.mode && mode && was.mode !== mode) {
     return `  ${path}: baseline was taken ${was.mode}, this run is ${mode}. Not compared.`;
+  }
+
+  if (was.viewport && viewport && was.viewport !== viewport) {
+    return `  ${path}: baseline was taken at ${was.viewport}, this run is ${viewport}. Not compared.`;
   }
 
   const moved: string[] = [];

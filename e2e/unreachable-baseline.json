@@ -1,0 +1,7 @@
+{
+  "_what": "Frozen counts for check:unreachable. It may only go DOWN.",
+  "_why": "141 server functions and 80 components with no importer is pre-existing debt nobody in flight wrote. Failing every lane on it is how a check gets reverted rather than fixed, so this freezes the number and fails only on an INCREASE. Lower these when you land a fix; the check tells you the new number.",
+  "_measured": "2026-08-28, deterministic across consecutive runs.",
+  "serverFunctions": 141,
+  "components": 80
+}

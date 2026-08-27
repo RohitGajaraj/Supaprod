@@ -61,6 +61,61 @@ echo "${BOLD}lane-gates${OFF}  ${DIM}$(git rev-parse --abbrev-ref HEAD 2>/dev/nu
 echo "${DIM}────────────────────────────────────────────────────────────${OFF}"
 
 run_gate "tsc"        bunx tsc --noEmit
+# ── AND THE HARNESS, WHICH tsc HAS NEVER SEEN ──────────────────────────────
+#
+# tsconfig.json includes `src/**` only, so `e2e/**` -- every check that proves
+# this product works -- was never typechecked. Measured 2026-08-28 by appending
+# `const x: number = "not a number"` to a spec: `bunx tsc --noEmit` reported it
+# ZERO times.
+#
+# That is not academic. It hid a null-dereference I introduced the same night:
+# `VIEWPORT.width` where VIEWPORT is undefined on any run without --viewport,
+# which is most runs. tsc passed, eslint passed, the build passed, the doc
+# check passed, and the spec could not start. `bun test` does not run Playwright
+# specs, so no gate here could have caught it either.
+#
+# It needs its own config rather than a wider include, because the harness is
+# Node and Bun code while `src` is browser code, and one `types` field cannot
+# be right for both. It lives IN e2e/ rather than at the repo root: root holds
+# four files by rule, and docs-doctor is right to say so.
+run_gate "tsc:e2e"    bunx tsc --noEmit -p e2e/tsconfig.json
+# ── FINISHED WORK THAT NEVER REACHED A SCREEN ─────────────────────────────
+#
+# The most common defect found on these surfaces is not wrong logic. It is a
+# component or a server function that is exported, complete, correct, and
+# imported by NOTHING. S3 found five by hand in one night -- MessageMetaFooter,
+# AskInPlace, LiveTicker, OutcomeHistory, AutoChip -- and called the class
+# "completely invisible to every gate we have".
+#
+# It was invisible because the detector for it REPORTED and exited 0, and no
+# gate ran it. This lane wrote that detector. It finds all five. Nothing called
+# it, which is the same shape as a baseline comparison computed and never
+# printed.
+#
+# It is a RATCHET: 141 server functions and 80 components is debt nobody in
+# flight wrote, so it fails on an INCREASE and never on the number itself.
+# Baseline in e2e/unreachable-baseline.json, and the check prints the new
+# number when you improve it.
+run_gate "unreachable" bun run check:unreachable
+# ── AND THE ROUTE AROUND THE DESIGN-SYSTEM RATCHET ────────────────────────
+#
+# Meridian is the only design system and that is enforced. The enforcement
+# catches `var(--canvas)` written literally. It does NOT catch the same
+# retired system reached one hop away, through an alias in styles.css that
+# resolves to --ds-*.
+#
+# 59 such aliases exist and 46 files use one, and this check said exactly that
+# while exiting 0, with nothing running it. So the alias route stayed open
+# the whole time the direct one was being closed.
+#
+# Frozen at 46 and failing only on growth, for the same reason as above.
+#
+# `check:dead-writers` is deliberately NOT here. It lists tables carrying both
+# a live and a dead writer, and whether a dead writer is a defect or a
+# deliberate leftover needs a judgement per table. A gate that fails on a
+# judgement is one people learn to route around, which is the argument this
+# lane used to keep tap-target sizes out of the gate too.
+run_gate "aliases"     bun run check:retired-aliases
 run_gate "docs:check" bash scripts/docs-doctor.sh
 run_gate "test"       bun test
 run_gate "build"      bun run build

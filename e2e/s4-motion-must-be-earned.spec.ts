@@ -3,7 +3,12 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { join } from "node:path";
 
-import { compareToBaseline, populationComparable, type SurfaceNumbers } from "./helpers/baseline";
+import {
+  compareToBaseline,
+  populationComparable,
+  type BaselineEntry,
+  type SurfaceNumbers,
+} from "./helpers/baseline";
 import { findRepoRoot } from "./helpers/auth";
 
 /**
@@ -191,6 +196,23 @@ const VIEWPORT = (() => {
   return { width: w, height: h };
 })();
 
+/**
+ * THE WIDTH THE PAGE ACTUALLY HAS, not the one the flags asked for.
+ *
+ * `VIEWPORT` is `undefined` unless --viewport or --phone was passed, because
+ * that is how it is handed to `test.use`. Reading `VIEWPORT.width` therefore
+ * threw on every DEFAULT run, which is most of them, and it did so AFTER the
+ * gate had gone green: `bun test` does not run Playwright specs, so tsc,
+ * eslint, the build and the doc check all passed a spec that could not start.
+ *
+ * Asking the page is both safer and more honest -- it reports the size the
+ * measurement was actually taken at, including Playwright's own default.
+ */
+function viewportLabel(page: import("@playwright/test").Page): string {
+  const v = page.viewportSize();
+  return v ? `${v.width}x${v.height}` : "unknown";
+}
+
 test.use({
   storageState: process.env.S4_MOTION_STATE
     ? process.env.S4_MOTION_STATE
@@ -347,10 +369,10 @@ async function failEveryAuthenticatedRead(page: import("@playwright/test").Page)
  * The one check here that DOES fail the build is the advancing progress claim,
  * because a counter that rises with no data behind it cannot be a flake.
  */
-function loadBaseline(): Record<string, Partial<SurfaceNumbers>> {
+function loadBaseline(): Record<string, BaselineEntry> {
   try {
     const raw = readFileSync(join(findRepoRoot(), "e2e", "surface-baseline.json"), "utf8");
-    return (JSON.parse(raw).surfaces ?? {}) as Record<string, Partial<SurfaceNumbers>>;
+    return (JSON.parse(raw).surfaces ?? {}) as Record<string, BaselineEntry>;
   } catch {
     // A missing or unreadable baseline must never fail a measurement run: the
     // numbers are the point and the comparison is the convenience.
@@ -891,6 +913,11 @@ async function targetsTooSmallToHit(
   shapes: number;
   under24: number;
   judged: number;
+  rawUnder44: number;
+  rawUnder24: number;
+  excusedInline: number;
+  excusedSpaced: number;
+  excusedHidden: number;
 }> {
   return page.evaluate(() => {
     const SEL =
@@ -908,11 +935,123 @@ async function targetsTooSmallToHit(
     const boxes = els.map((el) => el.getBoundingClientRect());
     const out: string[] = [];
     let under24 = 0;
+    /*
+     * THE RAW COUNT, BEFORE ANY EXEMPTION, so two people can compare numbers.
+     *
+     * S3 reproduced 20 under-floor controls on `/` where this reported 17. I
+     * told them my inline-link exemption was excusing footer links, tightened
+     * it, and the number did not move -- because those links were never being
+     * excused. The explanation was wrong and the fix was unrelated.
+     *
+     * The cause of that whole exchange is that this printed ONE number built
+     * from three filters, so any disagreement about it needed a code read.
+     * Reporting the raw count beside the judged one makes the filters visible:
+     * if the raw numbers agree and the judged ones do not, the difference is a
+     * filter and not the page.
+     */
+    let rawUnder44 = 0;
+    let rawUnder24 = 0;
+    let excusedInline = 0;
+    let excusedSpaced = 0;
+    let excusedHidden = 0;
 
     els.forEach((el, i) => {
       const r = boxes[i];
-      const min = Math.min(r.width, r.height);
+      /*
+       * THE HIT AREA, NOT THE BOX, and they are not the same thing.
+       *
+       * `getBoundingClientRect()` measures the element. It does NOT include an
+       * absolutely-positioned `::after` overlay, which is the standard way to
+       * grow a target without moving any layout -- the only safe fix for a
+       * control inside a centred row, where padding grows the row.
+       *
+       * So a correct fix would have been invisible to this check, and it would
+       * have gone on reporting a defect that had been repaired. It now probes
+       * the four corners of the 44px box around the element's centre with
+       * `elementFromPoint`: if the element or its own descendant answers there,
+       * the person's thumb reaches it, whatever the box says.
+       */
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      /*
+       * elementFromPoint RETURNS null OFF-VIEWPORT, and that is a silent false
+       * failure rather than a missing measurement.
+       *
+       * A control below the fold answers `null` at every probe, so the hit
+       * test finds nothing, the size falls back to the bounding box, and a
+       * control someone has ALREADY FIXED with an overlay reports as still
+       * failing. S3 hit exactly this: their first run on the legal footer
+       * reported six nulls and they nearly read it as six failures.
+       *
+       * So the probe only runs where it can mean something, and an element
+       * outside the viewport keeps its box measurement and is LABELLED, rather
+       * than being quietly graded on a test that could not run.
+       */
+      const inViewport =
+        r.bottom > 22 &&
+        r.right > 22 &&
+        r.top < window.innerHeight - 22 &&
+        r.left < window.innerWidth - 22;
+      const reach = (dx: number, dy: number): boolean => {
+        const hit = document.elementFromPoint(cx + dx, cy + dy);
+        /*
+         * `hit.contains(el)` WOULD BE WRONG AND IT WAS IN THE FIRST DRAFT.
+         *
+         * That is true whenever the probe lands on an ANCESTOR -- the row, the
+         * rail, eventually <body> -- and clicking an ancestor does not activate
+         * the link inside it. It made `a.sp-brand` disappear from every surface
+         * and briefly looked like good news.
+         *
+         * Only the element itself, or something inside it, means the thumb
+         * actually lands on the control.
+         */
+        return !!hit && (hit === el || el.contains(hit));
+      };
+      /*
+       * PROBE BOTH THRESHOLDS, because one of them is the floor and the other
+       * is the bar, and a fix often lands between them.
+       *
+       * The first version tested 44 only, so a hit area grown to 33 -- which
+       * clears WCAG's 24 and is the largest square that fits beside a
+       * neighbour 6px away -- was invisible, and the check reported the
+       * unchanged box as still failing. An instrument that can only see the
+       * bar cannot tell a repair from nothing at all.
+       */
+      const span = (half: number): { w: number; h: number } => ({
+        w: reach(-half, 0) && reach(half, 0) ? half * 2 : r.width,
+        h: reach(0, -half) && reach(0, half) ? half * 2 : r.height,
+      });
+      const at44 = inViewport ? span(21) : { w: r.width, h: r.height };
+      // 12, not 11: the floor is 24 across, so the half-span is 12. Probing at
+      // 11 measures 22 and can never clear a threshold it does not test.
+      const at24 = inViewport ? span(12) : { w: r.width, h: r.height };
+      const hitW = Math.max(r.width, at44.w, at24.w);
+      const hitH = Math.max(r.height, at44.h, at24.h);
+      const min = Math.min(hitW, hitH);
       if (min >= 44) return;
+      /*
+       * A SKIP LINK IS 1x1 ON PURPOSE AND IS NOT A TOUCH TARGET.
+       *
+       * `/settings` reported two controls under the floor and both were
+       * `a 1x1 "Skip to the settings"` -- the visually-hidden-until-focused
+       * pattern, which exists FOR accessibility. I was one message away from
+       * asking a lane to pad it, which would have broken a working skip link
+       * to satisfy a number about thumbs.
+       *
+       * That is the second time this lane has nearly recommended removing an
+       * accessibility affordance by measuring it as a defect: the first was a
+       * password control on Settings that S3 caught. Both times the check was
+       * right about the pixels and wrong about the object.
+       *
+       * Nothing a thumb can hit is 4px. A box that small is a hidden idiom, so
+       * it is excused and COUNTED, never silently dropped.
+       */
+      if (min <= 4) {
+        excusedHidden++;
+        return;
+      }
+      rawUnder44++;
+      if (min < 24) rawUnder24++;
 
       /*
        * WCAG'S INLINE EXCEPTION IS FOR A LINK IN A SENTENCE, NOT A LINK IN A
@@ -941,25 +1080,50 @@ async function targetsTooSmallToHit(
           .map((n) => n.textContent ?? "")
           .join("")
           .trim();
-        if (prose.length >= 8) return;
+        if (prose.length >= 8) {
+          excusedInline++;
+          return;
+        }
       }
 
       // Spaced far from every other control? Then a mis-tap is not the risk.
       const need = 44 - min;
-      const crowded = boxes.some((o, j) => {
-        if (j === i) return false;
+      /*
+       * HOW MUCH ROOM IS THERE, which is the first question anyone fixing this
+       * has to answer and the one the report did not carry.
+       *
+       * Growing a hit area past the gap to the next control does not fix a
+       * small target, it creates a wrong-target: two controls claiming the same
+       * pixel is worse than one that is hard to hit. So the distance to the
+       * nearest neighbour is printed beside the size, and it is the budget.
+       */
+      let nearest = Infinity;
+      for (let j = 0; j < boxes.length; j++) {
+        if (j === i) continue;
+        const o = boxes[j];
         const dx = Math.max(0, Math.max(r.left - o.right, o.left - r.right));
         const dy = Math.max(0, Math.max(r.top - o.bottom, o.top - r.bottom));
-        return Math.hypot(dx, dy) < need;
-      });
-      if (!crowded) return;
+        const d = Math.hypot(dx, dy);
+        if (d < nearest) nearest = d;
+      }
+      const crowded = nearest < need;
+      if (!crowded) {
+        excusedSpaced++;
+        return;
+      }
 
       if (min < 24) under24++;
       const cls = el.className?.toString().trim().split(/\s+/).slice(0, 2).join(".");
       const label = (el.innerText || el.getAttribute("aria-label") || "").trim().slice(0, 24);
       out.push(
         `${el.tagName.toLowerCase()}${cls ? "." + cls : ""} ` +
-          `${Math.round(r.width)}x${Math.round(r.height)}${min < 24 ? " UNDER 24" : ""}` +
+          `${Math.round(r.width)}x${Math.round(r.height)}` +
+          (hitW !== r.width || hitH !== r.height
+            ? ` (hit area ${Math.round(hitW)}x${Math.round(hitH)})`
+            : "") +
+          (Number.isFinite(nearest) ? ` [${Math.round(nearest)}px to nearest]` : "") +
+          (inViewport ? "" : " (off-viewport: box only, hit area NOT tested)") +
+          `${min < 24 ? " UNDER 24" : ""}` +
           (label ? ` "${label}"` : ""),
       );
     });
@@ -979,6 +1143,11 @@ async function targetsTooSmallToHit(
       shapes: counts.size,
       under24,
       judged: els.length,
+      rawUnder44,
+      rawUnder24,
+      excusedInline,
+      excusedSpaced,
+      excusedHidden,
     };
   });
 }
@@ -1374,6 +1543,7 @@ test("report which surfaces still move once nothing can be read", async ({ page 
       },
       BASELINE,
       RUN_MODE,
+      viewportLabel(page),
     );
     if (moved) drift.push(moved);
 
@@ -1397,6 +1567,8 @@ test("report which surfaces still move once nothing can be read", async ({ page 
     const wasBelow = BASELINE[path]?.contrastBelow;
     const wasJudged = BASELINE[path]?.contrastJudged;
     const modeMatches = !BASELINE[path]?.mode || BASELINE[path]?.mode === RUN_MODE;
+    const wasViewport = BASELINE[path]?.viewport;
+    const viewportMatches = !wasViewport || wasViewport === viewportLabel(page);
     /*
      * A rising count on a page that rendered DIFFERENTLY is not a regression,
      * and this ratchet fails builds, so it declines to judge that case rather
@@ -1404,14 +1576,14 @@ test("report which surfaces still move once nothing can be read", async ({ page 
      */
     const samePage =
       typeof wasJudged !== "number" || populationComparable(contrast.sampled, wasJudged);
-    if (typeof wasBelow === "number" && modeMatches && !samePage && contrast.below > wasBelow) {
+    if (typeof wasBelow === "number" && modeMatches && viewportMatches && !samePage && contrast.below > wasBelow) {
       notes.push(
         `\n--- ${path}: contrast rose ${wasBelow} -> ${contrast.below}, but the page rendered ` +
           `${contrast.sampled} elements against a baseline of ${wasJudged}. NOT COMPARED: that is ` +
           `a different render, not a regression. ---`,
       );
     }
-    if (typeof wasBelow === "number" && modeMatches && samePage && contrast.below > wasBelow) {
+    if (typeof wasBelow === "number" && modeMatches && viewportMatches && samePage && contrast.below > wasBelow) {
       contrastWorse.push(
         `${path}: ${wasBelow} -> ${contrast.below} below AA` +
           (contrast.failures.length ? `, worst shapes: ${contrast.failures.slice(0, 3).join("; ")}` : ""),
@@ -1442,7 +1614,10 @@ test("report which surfaces still move once nothing can be read", async ({ page 
     notes.push(
       `\n--- ${path}: touch targets, ${taps.belowElements} control(s) under 44px and crowded ` +
         `in ${taps.shapes} shape(s), ${taps.under24} of those controls under the WCAG 24px floor, ` +
-        `of ${taps.judged} controls on the page ---` +
+        `of ${taps.judged} controls on the page. RAW, before any exemption: ` +
+        `${taps.rawUnder44} under 44 and ${taps.rawUnder24} under 24 ` +
+        `(${taps.excusedInline} excused as inline-in-prose, ${taps.excusedSpaced} as spaced, ` +
+        `${taps.excusedHidden} as visually-hidden idioms like skip links) ---` +
         (taps.under44.length ? `\n  ` + taps.under44.join(`\n  `) : ` none`),
     );
 
@@ -1474,7 +1649,38 @@ test("report which surfaces still move once nothing can be read", async ({ page 
     }
   }
 
-  writeFileSync(join(SHOT_DIR, "motion-report.txt"), [...report, ...notes].join("\n"), "utf8");
+  /*
+   * THE BASELINE COMPARISON WAS COLLECTED AND NEVER PRINTED.
+   *
+   * `drift` was declared, pushed to on every surface, and read by nothing. So
+   * every REGRESSED and IMPROVED line this spec has ever computed went into an
+   * array and stopped there, and the baseline in surface-baseline.json has been
+   * decorative since it was written.
+   *
+   * Found by adding the viewport guard and looking for its "Not compared"
+   * message in a real run. It was not missing -- it was never routed. That is
+   * the exact shape this lane has spent the night finding in other people's
+   * code: a check that runs, computes the right answer, and reports it nowhere.
+   *
+   * A RISE IS A PROMPT TO READ THE LIST, NEVER A VERDICT. `/learn` rose 7 to 9
+   * when a vanishing panel started explaining itself, which is an improvement
+   * the count cannot tell from a regression.
+   */
+  const driftBlock = drift.length
+    ? [
+        "",
+        "=== AGAINST THE RECORDED BASELINE ===",
+        ...drift,
+        "A RISE IS A PROMPT TO READ THE LIST, NEVER A VERDICT: a surface that starts",
+        "explaining itself scores worse and is better. Only contrast fails a build.",
+      ]
+    : ["", "=== AGAINST THE RECORDED BASELINE: nothing moved. ==="];
+
+  writeFileSync(
+    join(SHOT_DIR, "motion-report.txt"),
+    [...report, ...notes, ...driftBlock].join("\n"),
+    "utf8",
+  );
 
   if (illustrated.length) {
     console.info(
@@ -1495,7 +1701,7 @@ test("report which surfaces still move once nothing can be read", async ({ page 
       "here too, and decoration carrying no state claim is honest. Open the screenshots in\n" +
       "docs/screenshots/s4-motion/ and ask whether what moved was a STATE. That judgement is\n" +
       "not automated and this spec does not pretend to make it.\n" +
-      [...report, ...notes].join("\n"),
+      [...report, ...notes, ...driftBlock].join("\n"),
   );
 
   // The measurement ran for every surface.

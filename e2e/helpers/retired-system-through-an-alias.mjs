@@ -76,3 +76,46 @@ for (const [f, list] of [...hits].sort((a, b) => b[1].length - a[1].length).slic
   console.log(`  ${f}`);
   console.log(`      ${list.slice(0, 6).join("  ")}`);
 }
+
+/*
+ * ── THE RATCHET ────────────────────────────────────────────────────────────
+ *
+ * This printed 46 files reaching the retired --ds-* system through an alias,
+ * said "every one passes the ratchet", and exited 0. Nothing ran it.
+ *
+ * That is the third detector this lane wrote that reported the truth to
+ * nobody, and it is the reason the alias route stayed open while the direct
+ * one was being closed: S0's marker set catches `var(--canvas)` written
+ * literally, and this catches the same system reached one hop away.
+ *
+ * Frozen at today's numbers and failing only on an INCREASE, because 46 files
+ * is debt nobody in flight wrote.
+ *
+ * ANTI-VACUITY: zero aliases means the scan did not run. A scan of nothing
+ * must never report clean.
+ */
+const FROZEN_ALIAS_FILES = 46;
+const FROZEN_ALIASES = 59;
+
+if (aliases.size === 0) {
+  console.error(
+    "\nREFUSING: no aliases found at all, so this scan did not run.\n" +
+      "A scan of nothing reports clean, which is the one answer it must never give.",
+  );
+  process.exit(1);
+}
+if (hits.size > FROZEN_ALIAS_FILES) {
+  console.error(
+    `\nRETIRED-SYSTEM REACH GREW: ${FROZEN_ALIAS_FILES} -> ${hits.size} files.\n` +
+      "Meridian is the only design system and this is the route around the ratchet:\n" +
+      "an alias in styles.css resolving to --ds-*. Point the new use at a --mrd-* token.",
+  );
+  process.exit(1);
+}
+if (hits.size < FROZEN_ALIAS_FILES) {
+  console.log(
+    `\nIMPROVED: ${FROZEN_ALIAS_FILES} -> ${hits.size} files. Lower FROZEN_ALIAS_FILES.`,
+  );
+} else {
+  console.log(`\nHolding at ${hits.size} files reaching the retired system through an alias.`);
+}
