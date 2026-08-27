@@ -198,10 +198,7 @@ export function HeroLoopDemo() {
       <div className="mb-8">
         <div className="flex gap-1 mb-4">
           {stations.map((station, idx) => (
-            <div
-              key={station.name}
-              className="flex-1 h-2 rounded-full bg-zinc-800 overflow-hidden"
-            >
+            <div key={station.name} className="flex-1 h-2 rounded-full bg-zinc-800 overflow-hidden">
               <div
                 className={`h-full transition-all duration-200 ${
                   station.state === "complete"
@@ -288,9 +285,14 @@ export function HeroLoopDemo() {
 
       {/* Key Message */}
       <div className="mt-6 pt-4 border-t border-zinc-800">
-        <p className="text-xs text-zinc-500">
-          Every station is an agent making real decisions, creating real outputs, handed off by evidence, not by guess.
-          You set the boundaries once. The loop handles the rest.
+        {/* Bounded to the prose measure. Unbounded, this set 122 CHARACTERS on
+            a single line at 1280 wide -- nearly double `--mrd-measure`'s 68ch
+            -- on the first screen a stranger reads. Measured by S4 as rendered
+            line boxes rather than container width, which is the distinction
+            that makes the number real. */}
+        <p className="max-w-[var(--mrd-measure)] text-xs text-zinc-500">
+          Every station is an agent making real decisions, creating real outputs, handed off by
+          evidence, not by guess. You set the boundaries once. The loop handles the rest.
         </p>
       </div>
     </div>
