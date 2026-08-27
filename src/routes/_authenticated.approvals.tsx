@@ -106,7 +106,7 @@
  */
 
 import { createFileRoute } from "@tanstack/react-router";
-import { failureLine } from "@/components/track/error-copy";
+import { failureLine } from "@/lib/error-copy";
 import { approvalsQueueKey, APPROVALS_QUEUE_PREFIX, invalidateShellReads } from "@/lib/query-keys";
 import { isModalOpen } from "@/lib/overlay";
 import { useServerFn } from "@tanstack/react-start";

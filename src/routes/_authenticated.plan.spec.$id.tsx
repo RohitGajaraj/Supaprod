@@ -300,7 +300,7 @@
  * returns no design row per spec, so /plan reads `listDesignWork` beside it.
  */
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
-import { failureLine } from "@/components/track/error-copy";
+import { failureLine } from "@/lib/error-copy";
 import { Row, Line } from "@/components/meridian/rows";
 import { Num, Door, Actions } from "@/components/meridian/surface-parts";
 // The bar that anchors to a passage selection and hands the words to the crew.

@@ -38,7 +38,7 @@ import { Receipt } from "@/components/meridian/Receipt";
    name, reads no token and renders nothing. `BulkBar` takes the object it
    returns, which is why Meridian imports the type from here too. */
 import { useSelection } from "@/components/shell/use-selection";
-import { failureLine } from "@/components/track/error-copy";
+import { failureLine } from "@/lib/error-copy";
 
 /** The three columns, in plain words. NOW used to be printed in ember: ember
  *  marks the human and the one thing waiting on you, never a column heading, so

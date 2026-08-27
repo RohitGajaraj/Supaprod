@@ -156,7 +156,7 @@ import { Receipt } from "@/components/meridian/Receipt";
 import { Surface } from "@/components/meridian/Surface";
 import { CtxBody, CtxHead, CtxRow } from "@/components/meridian/ContextColumn";
 import { AgentMark, YouMark } from "@/components/meridian/marks";
-import { failureLine } from "@/components/track/error-copy";
+import { failureLine } from "@/lib/error-copy";
 
 const searchSchema = z.object({ c: z.string().optional() });
 

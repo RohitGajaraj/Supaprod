@@ -18,7 +18,7 @@ import { gateDispatch } from "@/lib/build/repo-gate";
 import { isDispatchRefusal, dispatchRefusalReason } from "@/lib/build/dispatch-refusal";
 import { RepoGateDialog } from "@/components/studio/RepoGateDialog";
 import { ago } from "@/components/runs/run-state";
-import { failureLine } from "@/components/track/error-copy";
+import { failureLine } from "@/lib/error-copy";
 
 /**
  * A ROUTER LINK INSIDE A SENTENCE, painted the way Meridian paints a door.

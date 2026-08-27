@@ -20,7 +20,7 @@
  * so arriving here answers "what has it made so far" without a click.
  */
 import * as React from "react";
-import { failureLine } from "@/components/track/error-copy";
+import { failureLine } from "@/lib/error-copy";
 import { humanizeText } from "@/lib/ai/humanize";
 import { NO_CONTRACT, NO_NON_GOALS, specContract } from "@/components/track/spec-contract";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";

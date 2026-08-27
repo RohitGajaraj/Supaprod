@@ -36,7 +36,7 @@
  * not block; it does not follow that a person may never move their own work.
  */
 import * as React from "react";
-import { failureLine } from "@/components/track/error-copy";
+import { failureLine } from "@/lib/error-copy";
 import { Row } from "@/components/meridian/rows";
 import { Actions } from "@/components/meridian/surface-parts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
