@@ -153,7 +153,6 @@ const Unknown = () => (
   </svg>
 );
 
-
 /*
  * ── THE FIVE THAT SHARED ONE MARK ─────────────────────────────────────────────
  * Founder: "it would be great if you could differentiate the logos for Archivist,
