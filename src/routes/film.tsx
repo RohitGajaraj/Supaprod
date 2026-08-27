@@ -15,6 +15,7 @@
  * film, and burying the film under a pitch would be answering a question they
  * did not ask.
  */
+import { PUBLIC_FOOTER_LINKS } from "@/components/supaprod/site-links";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SupaprodWordmark } from "@/components/supaprod/SupaprodWordmark";
 import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
@@ -142,13 +143,7 @@ function FilmPage() {
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4">
           <p className="m-0 text-xs text-zinc-600">&copy; 2026 Supaprod</p>
           <div className="flex flex-wrap gap-5">
-            {[
-              { href: "/security", label: "Security" },
-              { href: "/proof", label: "Proof" },
-              { href: "/updates", label: "Changelog" },
-              { href: "/privacy", label: "Privacy" },
-              { href: "/terms", label: "Terms" },
-            ].map((l) => (
+            {PUBLIC_FOOTER_LINKS.map((l) => (
               <a
                 key={l.href}
                 href={l.href}
