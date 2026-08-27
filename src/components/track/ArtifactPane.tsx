@@ -23,6 +23,7 @@ import * as React from "react";
 import { failureLine } from "@/lib/error-copy";
 import { humanizeText } from "@/lib/ai/humanize";
 import { panelSaysItFiledNothing } from "@/components/track/who-reports-an-empty-station";
+import { groupByThePattern } from "@/components/track/group-by-the-pattern";
 import { justGrouped } from "@/components/track/just-grouped";
 import { plainProse } from "@/lib/plain-prose";
 /*
@@ -1749,18 +1750,15 @@ export function SenseBody({
   const signals = items.filter((it) => it.kind === "signal" && !it.missing);
   const missing = items.filter((it) => it.missing);
 
-  const byTheme = new Map<string, ArtifactView[]>();
-  const loose: ArtifactView[] = [];
-  for (const s of signals) {
-    const tid = str(s.fields.theme_id);
-    if (tid && themes.some((t) => t.artifactId === tid)) {
-      const list = byTheme.get(tid) ?? [];
-      list.push(s);
-      byTheme.set(tid, list);
-    } else {
-      loose.push(s);
-    }
-  }
+  /*
+   * GROUPED BY THE PATTERN THE SIGNAL NAMES, not by what this track happens to
+   * hold. See `group-by-the-pattern.ts`: 818 of the 1,133 signals on tracks
+   * name a theme that is not a member of the same track, and every one of them
+   * used to be drawn under "do not sit with a pattern yet".
+   */
+  const themeIdsOnTrack = new Set(themes.map((t) => t.artifactId));
+  const { groups, ungrouped: loose } = groupByThePattern(signals, themeIdsOnTrack);
+  const themeById = new Map(themes.map((t) => [t.artifactId, t]));
 
   /*
    * ARRIVALS ANIMATE ONCE, THE FIRST PAINT DOES NOT -- the transcript's exact
@@ -1782,10 +1780,15 @@ export function SenseBody({
   const freshThemes = new Set<string>();
   const freshlyGrouped = new Set<string>();
 
-  const placementOf = (sig: ArtifactView): string => {
-    const tid = str(sig.fields.theme_id);
-    return tid && themes.some((t) => t.artifactId === tid) ? tid : "";
-  };
+  /*
+   * The placement an arrival is measured against is now the GROUP a signal
+   * lands in, so a signal joining a pattern whose card we do not hold animates
+   * exactly like one joining a pattern we do. Before, those 818 could never
+   * appear to group at all.
+   */
+  const groupOfSignal = new Map<string, string>();
+  for (const g of groups) for (const sg of g.signals) groupOfSignal.set(sg.artifactId, g.themeId);
+  const placementOf = (sig: ArtifactView): string => groupOfSignal.get(sig.artifactId) ?? "";
 
   if (!primed.current && items.length > 0) {
     for (const t of themes) seenThemes.current.add(t.artifactId);
@@ -1818,13 +1821,15 @@ export function SenseBody({
 
   return (
     <div className="flex flex-col gap-mrd-5">
-      {themes.map((t) => {
-        const members = byTheme.get(t.artifactId) ?? [];
-        const arrived = freshThemes.has(t.artifactId);
+      {groups.map((g) => {
+        const t = themeById.get(g.themeId);
+        const members = g.signals;
+        const arrived = freshThemes.has(g.themeId);
+        const heading = t?.title ?? t?.word ?? g.title ?? "This pattern";
         return (
           <section
-            key={t.artifactId}
-            aria-label={t.title ?? t.word}
+            key={g.themeId}
+            aria-label={heading}
             style={
               arrived
                 ? { animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }
@@ -1832,7 +1837,18 @@ export function SenseBody({
             }
             className="flex flex-col gap-mrd-2 border-b border-mrd-line-soft pb-mrd-4 last:border-0"
           >
-            <ThemeCard item={t} trackId={trackId} />
+            {t ? (
+              <ThemeCard item={t} trackId={trackId} />
+            ) : (
+              /*
+               * NAMED BUT NOT HELD. The theme is not a member of this track, so
+               * there is no artifact to open and no card to draw. The pattern's
+               * NAME is on the signal row (F-129), and printing it is the whole
+               * point: it is what the machine found. Nothing here pretends to
+               * be a theme card, because a card implies something to open.
+               */
+              <span className="mrd-eyebrow">{g.title}</span>
+            )}
             {members.map((s) => (
               <div
                 key={s.artifactId}
