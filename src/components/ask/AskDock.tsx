@@ -89,7 +89,7 @@ export function AskDock({ pane: Pane = AskPane }: { pane?: React.ComponentType }
             <SupaprodMark size={17} />
           </span>
           {/*
-           * R-25's INTERIM, WHICH HAS BEEN RULED AND UNBUILT SINCE 2026-08-25.
+           * R-24's INTERIM, WHICH HAS BEEN RULED AND UNBUILT SINCE 2026-08-25.
            * The ruling, verbatim: "AskDock must stop saying 'What should we
            * build?' while it opens a chat. That copy promises the loop and
            * delivers a conversation."

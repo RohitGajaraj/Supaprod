@@ -83,7 +83,7 @@ describe("a surface that owns the prompt gets the dock out of its way", () => {
 });
 
 /**
- * R-25's INTERIM, ENFORCED SO IT CANNOT SILENTLY COME BACK.
+ * R-24's INTERIM, ENFORCED SO IT CANNOT SILENTLY COME BACK.
  *
  * The ruling: "AskDock must stop saying 'What should we build?' while it opens
  * a chat. That copy promises the loop and delivers a conversation." It stood
