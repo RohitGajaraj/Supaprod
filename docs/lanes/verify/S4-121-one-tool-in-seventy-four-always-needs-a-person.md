@@ -65,7 +65,12 @@ preview and a recorded forecast.
 
 - **I ran nothing.** Four files traced. Twice tonight source-derived reasoning of mine was wrong, and
   this deserves the same suspicion.
-- **`BUILD_LANE_AUTONOMOUS` is imported at `loop.server.ts:44` and I did not trace it.** It may floor
-  or release more.
+- ~~**`BUILD_LANE_AUTONOMOUS` is imported and I did not trace it.**~~ **TRACED, and it does not change
+  the count.** It holds `studio.stage`, `studio.unstage`, `studio.commit` and `studio.pr.open`, and at
+  `:318-322` it EXEMPTS them from the high-risk min-confirm floor rather than adding one. The founder
+  ruling of 2026-07-08 is stated inline: build-lane mechanics run autonomously with **no contract
+  precondition**, because a branch and a draft PR are reversible and **the decisive `studio.pr.merge`
+  gate stays**. So it releases four already-auto tools and floors none, and the tally is unchanged:
+  one tool of seventy-four always needs a person.
 - **Seeds are not the whole story**: `agent_tools` override rows exist, and S0 measured 97 of them
   with none disabled and none touching the four gates above.
