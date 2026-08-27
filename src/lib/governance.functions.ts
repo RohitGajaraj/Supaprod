@@ -475,11 +475,40 @@ export const MISSION_CONCURRENCY_CAP = 5;
  */
 export const listGovernApprovals = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  /*
+   * ── F-149: THE COLUMN EXISTS AND TWO COMMENTS SAID IT DID NOT ────────────
+   *
+   * `approvals-queue.functions.ts` states in two places that `agent_approvals`
+   * "predates workspace tenancy (no workspace_id column), so this stays
+   * unscoped", and the queue reads that family unscoped on that basis. **The
+   * column exists and every one of the 324 rows carries it**, including 28 of
+   * the 29 pending. The loop has written it at `loop.server.ts:1906` all along.
+   *
+   * The cost landed on the inbox: its "N need you" mixed one workspace's calls
+   * and runs with EVERY workspace's approvals, in one figure, with no seam. S1
+   * and S2 both found it, both declined to fix it alone because they believed a
+   * schema change was needed, and I went as far as writing a migration before
+   * checking the data. **It was a false comment, not a missing column**, and the
+   * same file's own `GATE_SOURCE` table already said `hasWorkspace: true` for
+   * this family — the code contradicted itself and the prose won.
+   *
+   * OPTIONAL, so this is additive: omitted, the read is exactly what it was.
+   * Every existing caller keeps the RLS-wide answer, and only a caller that
+   * asks for one workspace gets one.
+   */
+  .inputValidator((i: unknown) =>
+    z
+      .object({ workspaceId: z.string().uuid().optional() })
+      .optional()
+      .parse(i ?? {}),
+  )
+  .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
     // mission_id postdates the generated Supabase types — untyped client +
     // explicit row casts, the studio.functions.ts precedent.
     const db = supabase as unknown as SupabaseClient;
+    /** F-149. Null keeps the original cross-workspace read. */
+    const scopeToWorkspace = data?.workspaceId ?? null;
     type ApprovalRow = {
       id: string;
       agent_slug: string | null;
@@ -501,19 +530,29 @@ export const listGovernApprovals = createServerFn({ method: "POST" })
       "id,agent_slug,tool_name,args,rationale,status,escalation_state,expires_at,created_at,decided_at,error";
     let rows: Partial<ApprovalRow>[] | null = null;
     let error: { message: string } | null = null;
-    ({ data: rows, error } = await db
+    /*
+     * F-149. Both reads take the scope. The fallback exists for a MISSING
+     * `mission_id` column and has nothing to do with tenancy, so scoping one
+     * and not the other would make a workspace's queue depend on whether a
+     * different migration had landed.
+     *
+     * Built as variables rather than one chain because PostgREST's builder has
+     * no conditional step. I reached for a generic helper with an `as never`
+     * cast first; it compiled the cast and then lost `.order` off the end,
+     * which is the same "the type system is not looking here" family as the
+     * `.apply()` I invented on `listStudioSessions` an hour ago.
+     */
+    let approvalsQ = db
       .from("agent_approvals")
       .select(`${baseColumns},mission_id`)
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(50));
+      .eq("user_id", userId);
+    if (scopeToWorkspace) approvalsQ = approvalsQ.eq("workspace_id", scopeToWorkspace);
+    ({ data: rows, error } = await approvalsQ.order("created_at", { ascending: false }).limit(50));
+
     if (error && /mission_id/.test(error.message)) {
-      ({ data: rows, error } = await db
-        .from("agent_approvals")
-        .select(baseColumns)
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(50));
+      let fallbackQ = db.from("agent_approvals").select(baseColumns).eq("user_id", userId);
+      if (scopeToWorkspace) fallbackQ = fallbackQ.eq("workspace_id", scopeToWorkspace);
+      ({ data: rows, error } = await fallbackQ.order("created_at", { ascending: false }).limit(50));
     }
     if (error) throw new Error(error.message);
     const approvals = (rows ?? []).map((a) => ({
