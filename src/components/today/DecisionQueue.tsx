@@ -207,6 +207,31 @@ function OpenCall({
                 </Door>,
               ]
             : []),
+          /* THE CLAIM THIS CARD MAKES ABOUT PRESSING APPROVE, and the correction it
+             cannot yet make when the claim stops being true.
+          
+             `approveConsequence` reads like "Approve · unblocks Build for this spec".
+             A gate can outlive the work it was holding: the run completes unanswered
+             and the gate is still sitting here, so the sentence promises a release
+             that answering it will not produce.
+          
+             S1 built the correction for /approvals — `still-holds-work.ts`, rendering
+             "The work this was holding has already finished, so answering it now
+             releases nothing" on `gatesLiveWork === false`, and NEVER on null,
+             because null is "we could not say" and reading that as "the work ended"
+             would invent a history. That route folds into this board, so the
+             correction has to travel with the call or the fold turns a queue that
+             admits when it is stale into one that does not.
+          
+             IT IS NOT WIRED HERE BECAUSE THE FIELD IS NOT IN THIS TREE YET, and I am
+             deliberately NOT deriving it locally: `gatesLiveWork` resolves through
+             `mission_id` to that mission's NEWEST run, and S1 already measured the
+             same question through `run_id` and got a different number wearing the
+             same words. A client-side guess here would be a confident wrong
+             correction, which is worse than the missing one.
+          
+             WHEN `gatesLiveWork` REACHES `ApprovalQueueItem`, DRAW THE CORRECTION
+             HERE, directly under this line. */
           <span key="consequence" className="block max-w-[var(--mrd-measure)]">
             {item.approveConsequence}
           </span>,
