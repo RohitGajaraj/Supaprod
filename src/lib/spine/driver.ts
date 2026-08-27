@@ -1039,7 +1039,40 @@ const FILE_IT: Record<AgentStation, string> = {
   // a different key. (Exactly how F-32 was found to be half-fixed.)
   build:
     "Finish by calling studio.stage with the change you made, then studio.commit to put it on its own branch, then studio.pr.open so there is a pull request Ship can point at, then studio.checks.run for the CI verdict, and when it is green call studio.pr.merge. If studio.commit refuses a path it may not write, call studio.unstage on that path and commit the rest rather than stopping: a staged path you cannot commit and do not unstage traps the whole changeset. The merge re-proves CI fresh and refuses red, and where governance wants a person it files that question instead of running, that is the gate working, so stop there and say so. Work that is only in your answer is not on the record, and a pull request nobody moves toward the merge gate sits open forever.",
-  ship: "Finish by calling release.publish so the release can be pointed at. A release that is only in your answer did not happen.",
+  /*
+   * ── A FORECAST IS THE REASON TO SHIP, NOT A CONDITION FOR SHIPPING ───────
+   * (F-115, measured on live runs 2026-08-27)
+   *
+   * Two tracks sat at `ship` on `given-up` with attempts exhausted, and one of
+   * them, `a30238f5`, is the track that walked five stations and opened a real
+   * pull request. Its `release-verifier` runs say, in the model's own words:
+   *
+   *   *"the spec requires <=5% abandonment on the tablet address re-confirm
+   *   screen within 7 days of full rollout, but the actual outcome is 67%
+   *   tablet checkout completion, meaning ~33% abandonment, far above the
+   *   target. Shipping cannot proceed until the success metric is met."*
+   *
+   * **That condition can never be satisfied.** The metric is a claim about what
+   * will be true SEVEN DAYS AFTER FULL ROLLOUT. Refusing to roll out until the
+   * post-rollout number has moved is a deadlock in one sentence, and the seat
+   * was not being stupid: its prompt says *"check it against the spec it was
+   * built from"*, the number is written in the spec, and nothing anywhere told
+   * it which numbers in a spec are already-true and which are predictions.
+   *
+   * This is the same class as F-114 and the Learn brief above: the product's
+   * central object, the forecast recorded before the outcome is known, was
+   * being READ by seats that had never been told what it is. At Learn nobody
+   * read it. At Ship somebody read it and mistook it for a requirement. Both
+   * failures are one missing sentence, in opposite directions.
+   *
+   * SO THE RULE IS STATED IN BOTH DIRECTIONS, because half of it invites the
+   * other failure. "Never refuse a forecast for being unmet" alone would let a
+   * seat ship against a prediction nobody can ever check, which is worse: an
+   * ungradeable forecast makes the verdict at Learn impossible and quietly
+   * removes the one thing this product sells. So the legitimate refusal is
+   * named too, and it is about MEASURABILITY, never about the value.
+   */
+  ship: "Finish by calling release.publish so the release can be pointed at. A release that is only in your answer did not happen. A success metric in the spec is a FORECAST: a claim about what will be true AFTER this is live. It is graded at Learn and it is the REASON to ship, never a condition for shipping. NEVER refuse to ship because a predicted number has not happened yet, because it cannot have. What you check before shipping is whether the change is READY: it exists, review passed, it can be turned back off. Refuse a forecast only when it cannot be MEASURED, meaning it does not say what will be observed or by when.",
   /*
    * ── GRADE THE PREDICTION, NOT THE SPEC (S4 -> S0, 2026-08-27) ────────────
    *
