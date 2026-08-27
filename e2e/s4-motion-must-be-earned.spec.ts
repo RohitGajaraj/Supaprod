@@ -60,6 +60,9 @@ const SHOT_DIR = join(findRepoRoot(), "docs", "screenshots", "s4-motion");
  * design, so the fix is for this line to stop looking like a secret rather
  * than for the guard to learn about this file.
  */
+/** What the report should call the failure, so the label matches the run. */
+const FAILURE_MODE = process.env.S4_MOTION_EXPIRED === "yes" ? "expired session" : "dead backend";
+
 const SHOT_SUFFIX = process.env.S4_MOTION_VIEWPORT ? "_" + process.env.S4_MOTION_VIEWPORT : "";
 
 /**
@@ -206,6 +209,37 @@ async function frameHash(page: import("@playwright/test").Page): Promise<string>
  *    page may legitimately count down to a date that needs no backend, and a
  *    guard that fails a marketing countdown is a guard people turn off.
  */
+/**
+ * AN EXPIRED SESSION IS NOT THE SAME FAILURE AS A DEAD DATABASE.
+ *
+ * S1 built this shim independently and it found something the dead-port harness
+ * could not, so it belongs here rather than in one lane's worktree.
+ *
+ * A dead port fails every request identically, including the ones the shell
+ * needs. An expired session is narrower and more common: the app loads, the
+ * route guard passes because `getSession()` reads localStorage and asks nobody,
+ * and then every authenticated READ comes back 401. That is what a person
+ * actually sees when they leave a tab open overnight.
+ *
+ * The difference is not academic. Rendering it is how S0 and S1 found that every
+ * ReadFailed in the product offers a "Try again" that CANNOT WORK: retrying a
+ * request whose session has ended returns the same 401 forever, so the one
+ * control the failure state offers is the one thing guaranteed not to help.
+ *
+ * Turned on with S4_MOTION_EXPIRED=yes, and it changes nothing unless asked.
+ */
+async function failEveryAuthenticatedRead(page: import("@playwright/test").Page): Promise<void> {
+  if (process.env.S4_MOTION_EXPIRED !== "yes") return;
+  // The exact shape auth returns, so the product's own error mapping is exercised
+  // rather than a generic network failure it would never see in production.
+  const body = JSON.stringify({ message: "Invalid token", code: 401 });
+  for (const pattern of ["**/rest/v1/**", "**/_serverFn/**", "**/auth/v1/user**"]) {
+    await page.route(pattern, (route) =>
+      route.fulfill({ status: 401, contentType: "application/json", body }),
+    );
+  }
+}
+
 /**
  * HOW MANY TIMES DOES ONE DEAD READ ANNOUNCE ITSELF?
  *
@@ -368,6 +402,8 @@ test("report which surfaces still move once nothing can be read", async ({ page 
   const advancing: string[] = [];
   const illustrated: string[] = [];
 
+  await failEveryAuthenticatedRead(page);
+
   for (const path of SURFACES) {
     await page.goto(`http://localhost:8080${path}`, { waitUntil: "domcontentloaded" });
 
@@ -426,7 +462,7 @@ test("report which surfaces still move once nothing can be read", async ({ page 
     const failures = await failureStatements(page);
     if (failures.distinct.length) {
       notes.push(
-        `\n--- ${path}: ONE dead backend, ${failures.distinct.length} distinct failure ` +
+        `\n--- ${path}: ONE ${FAILURE_MODE}, ${failures.distinct.length} distinct failure ` +
           `statement(s), ${failures.retries} "Try again" ---\n  ` +
           failures.distinct.join("\n  ") +
           (failures.distinct.length > 2 ? `\n  ABOVE TWO. One dead read should say so once.` : ""),

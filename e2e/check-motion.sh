@@ -6,6 +6,7 @@
 #   bash e2e/check-motion.sh /today /runs # or any paths you name
 #   bash e2e/check-motion.sh --signed-in /today /approvals   # product surfaces
 #   bash e2e/check-motion.sh --signed-in --phone /today      # at 390x844
+#   bash e2e/check-motion.sh --expired-session /today        # session ended, not backend dead
 #
 # Run this before you commit a surface that moves. It boots the app against a
 # database that does not exist and tells you what is STILL redrawing afterwards.
@@ -47,6 +48,11 @@ while true; do
     # A phone. Error copy is longer than the data it replaces, so the failure
     # states are where a narrow column breaks first.
     --phone) S4_MOTION_VIEWPORT="390x844"; export S4_MOTION_VIEWPORT; shift ;;
+    # An expired session rather than a dead database: the shell loads, the guard
+    # passes because it reads localStorage, and every authenticated read 401s.
+    # That is what a tab left open overnight looks like, and it is the case that
+    # showed every "Try again" in the product retrying into the same 401.
+    --expired-session) S4_MOTION_EXPIRED=yes; export S4_MOTION_EXPIRED; SIGNED_IN=1; shift ;;
     --viewport) S4_MOTION_VIEWPORT="${2:?--viewport needs WxH}"; export S4_MOTION_VIEWPORT; shift 2 ;;
     *) break ;;
   esac
