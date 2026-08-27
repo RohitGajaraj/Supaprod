@@ -29,6 +29,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 
+import { useWorkspace } from "@/hooks/use-workspace";
+import { studioSessionsKey } from "@/lib/query-keys";
 import { pollMs } from "@/components/shell/poll";
 import { listStudioSessions } from "@/lib/studio.functions";
 import { listDueForecastsHere } from "@/lib/forecast.functions";
@@ -69,14 +71,23 @@ export function stripPollMs(failures: number): number | false {
 
 export function useSpineStrip(active: AgentStation | null): void {
   const navigate = useNavigate();
+  /* THE WORKSPACE THIS STRIP IS STANDING IN (F-141).
+     Both run queries behind `listStudioSessions` read `.eq("user_id", userId)`
+     and, until S0 added the optional filter, nothing narrowed them to a
+     workspace. So this strip tallied every workspace the user belongs to and
+     drew the result directly under a breadcrumb naming ONE, above a board whose
+     every other number is scoped. It said "89 runs waiting on you" at Discover
+     and switching workspace did not change it. */
+  const { activeWorkspace } = useWorkspace();
+  const workspaceId = activeWorkspace?.id ?? null;
   const fList = useServerFn(listStudioSessions);
   const fListPending = useServerFn(listPendingOutcomes);
   const fDueForecasts = useServerFn(listDueForecastsHere);
 
   // The board's exact key, so the two share one fetch rather than racing two.
   const sessions = useQuery({
-    queryKey: ["studio-sessions", false],
-    queryFn: () => fList({ data: { includeArchived: false } }),
+    queryKey: studioSessionsKey(workspaceId),
+    queryFn: () => fList({ data: { includeArchived: false, workspaceId } }),
     refetchInterval: (query) => stripPollMs(query.state.fetchFailureCount),
   });
 
@@ -147,6 +158,8 @@ export function useSpineStrip(active: AgentStation | null): void {
   const pendingCount = outcomesDue ?? 0;
 
   const sessionsFailed = sessions.isError;
+  /* Whether every number on this strip is a floor rather than a count. */
+  const sessionsBounded = sessions.data?.bounded === true;
 
   const stages = React.useMemo<RunStage[] | null>(() => {
     // A FAILED READ IS NOT A LOADING STATE, and until 2026-08-10 this hook could
@@ -250,16 +263,25 @@ export function useSpineStrip(active: AgentStation | null): void {
        *                    pending". The chip's muted styling already says it.
        */
       const runWord = (n: number) => (n === 1 ? "run" : "runs");
+      /* AT LEAST, WHEN THE READ WAS BOUNDED. `listStudioSessions` caps at 100
+         builder runs, 100 others, and 200 assembled sessions, and reports
+         `bounded` rather than how many it dropped - which is the honest shape,
+         because a second count is the only thing that could say how many.
+         So the number stops being a count and becomes a floor: weaker than the
+         figure and true, rather than stronger and sometimes false.
+         Only the SESSION-derived counts take it. The Learn badge's outcomes come
+         from two other reads and must not inherit a caveat that is not theirs. */
+      const floor = (text: string) => (sessionsBounded ? `At least ${text}` : text);
       const note = b.gate
-        ? `${b.gate} ${runWord(b.gate)} waiting on you`
+        ? floor(`${b.gate} ${runWord(b.gate)} waiting on you`)
         : b.failed
-          ? `${b.failed} failed`
+          ? floor(`${b.failed} failed`)
           : b.working
-            ? `${b.working} running`
+            ? floor(`${b.working} running`)
             : b.held
-              ? `${b.held} held`
+              ? floor(`${b.held} held`)
               : b.total
-                ? `${b.total} ${runWord(b.total)}${learnExtra}`
+                ? floor(`${b.total} ${runWord(b.total)}`) + learnExtra
                 : isLearn && pendingCount > 0
                   ? `${pendingCount} ${pendingCount === 1 ? "outcome" : "outcomes"} to record`
                   : "";
@@ -276,7 +298,7 @@ export function useSpineStrip(active: AgentStation | null): void {
                 : "quiet";
       return { station, state, note };
     });
-  }, [rows, pendingCount, sessionsFailed]);
+  }, [rows, pendingCount, sessionsFailed, sessionsBounded]);
 
   usePublishRunStrip(
     stages

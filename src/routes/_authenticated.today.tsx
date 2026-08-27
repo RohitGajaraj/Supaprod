@@ -86,7 +86,12 @@ import { cancelMission, listMissions, type MissionListRow } from "@/lib/missions
 import { listLearnings } from "@/lib/outcome.functions";
 import { listTracks } from "@/lib/spine/track.functions";
 import { listStudioSessions } from "@/lib/studio.functions";
-import { approvalsQueueKey, missionsKey, invalidateShellReads } from "@/lib/query-keys";
+import {
+  approvalsQueueKey,
+  missionsKey,
+  studioSessionsKey,
+  invalidateShellReads,
+} from "@/lib/query-keys";
 import { stillWaiting } from "@/lib/query-state";
 import "@/styles/today.css";
 
@@ -640,8 +645,8 @@ function Today() {
      count and the rows below reclassify by it. */
   const fetchSessions = useServerFn(listStudioSessions);
   const sessions = useQuery({
-    queryKey: ["studio-sessions", false],
-    queryFn: () => fListSessions({ data: { includeArchived: false } }),
+    queryKey: studioSessionsKey(workspaceId),
+    queryFn: () => fListSessions({ data: { includeArchived: false, workspaceId } }),
   });
 
   /* Both memoised on the QUERY's data rather than derived inline. A bare
