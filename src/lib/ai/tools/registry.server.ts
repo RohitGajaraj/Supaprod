@@ -5,6 +5,7 @@
  * `confirm` or `review` mode are queued as agent_approvals instead of run.
  */
 import { z } from "zod";
+import { humanizeText } from "@/lib/ai/humanize";
 import {
   defaultChecks,
   defaultSetup,
@@ -4949,9 +4950,25 @@ const decisionRecord = def({
         workspace_id: workspaceId ?? null,
         mission_id: missionId ?? null,
         prd_id: a.prd_id ?? null,
-        title: a.title,
-        rationale: a.rationale,
-        alternatives_considered: a.alternatives_considered,
+        /*
+         * SANITISED AT THE SINK, because the arg-level pass did not hold.
+         *
+         * `humanizeToolArgs` runs at both provider extractors, and a decision
+         * written at 23:10 UTC still came out with an em dash in its rationale,
+         * rendered on the Decide card, which is the most important surface in
+         * the product. S1 found it on the running product, not in a query.
+         *
+         * The rule this repo keeps re-learning: sanitise where a value is
+         * WRITTEN, not only where it arrives. A sink is one place; the paths
+         * into it are many, and one of them is always missed.
+         *
+         * `forecast_claim` below matters most: it is immutable by trigger, so
+         * this insert is the ONLY chance to get it right. A dash written there
+         * can never be corrected, by anyone, ever.
+         */
+        title: humanizeText(a.title),
+        rationale: humanizeText(a.rationale),
+        alternatives_considered: a.alternatives_considered.map((x) => humanizeText(x)),
         /*
          * ALWAYS THREE VALUES, NEVER A NULL. The schema refuses the call
          * outright without all three, so there is no branch of this tool that
@@ -4966,8 +4983,8 @@ const decisionRecord = def({
          * change to these three, so this insert is the only moment they are
          * writable and there is no repair path if the agent guessed.
          */
-        forecast_claim: a.forecast_claim,
-        forecast_how_we_will_know: a.forecast_how_we_will_know,
+        forecast_claim: humanizeText(a.forecast_claim),
+        forecast_how_we_will_know: humanizeText(a.forecast_how_we_will_know),
         forecast_horizon_date: a.forecast_horizon_date,
         /*
          * A refusal outranks the review's "approved", and only that one. If the
