@@ -957,7 +957,58 @@ async function targetsTooSmallToHit(
 
     els.forEach((el, i) => {
       const r = boxes[i];
-      const min = Math.min(r.width, r.height);
+      /*
+       * THE HIT AREA, NOT THE BOX, and they are not the same thing.
+       *
+       * `getBoundingClientRect()` measures the element. It does NOT include an
+       * absolutely-positioned `::after` overlay, which is the standard way to
+       * grow a target without moving any layout -- the only safe fix for a
+       * control inside a centred row, where padding grows the row.
+       *
+       * So a correct fix would have been invisible to this check, and it would
+       * have gone on reporting a defect that had been repaired. It now probes
+       * the four corners of the 44px box around the element's centre with
+       * `elementFromPoint`: if the element or its own descendant answers there,
+       * the person's thumb reaches it, whatever the box says.
+       */
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      const reach = (dx: number, dy: number): boolean => {
+        const hit = document.elementFromPoint(cx + dx, cy + dy);
+        /*
+         * `hit.contains(el)` WOULD BE WRONG AND IT WAS IN THE FIRST DRAFT.
+         *
+         * That is true whenever the probe lands on an ANCESTOR -- the row, the
+         * rail, eventually <body> -- and clicking an ancestor does not activate
+         * the link inside it. It made `a.sp-brand` disappear from every surface
+         * and briefly looked like good news.
+         *
+         * Only the element itself, or something inside it, means the thumb
+         * actually lands on the control.
+         */
+        return !!hit && (hit === el || el.contains(hit));
+      };
+      /*
+       * PROBE BOTH THRESHOLDS, because one of them is the floor and the other
+       * is the bar, and a fix often lands between them.
+       *
+       * The first version tested 44 only, so a hit area grown to 33 -- which
+       * clears WCAG's 24 and is the largest square that fits beside a
+       * neighbour 6px away -- was invisible, and the check reported the
+       * unchanged box as still failing. An instrument that can only see the
+       * bar cannot tell a repair from nothing at all.
+       */
+      const span = (half: number): { w: number; h: number } => ({
+        w: reach(-half, 0) && reach(half, 0) ? half * 2 : r.width,
+        h: reach(0, -half) && reach(0, half) ? half * 2 : r.height,
+      });
+      const at44 = span(21);
+      // 12, not 11: the floor is 24 across, so the half-span is 12. Probing at
+      // 11 measures 22 and can never clear a threshold it does not test.
+      const at24 = span(12);
+      const hitW = Math.max(r.width, at44.w, at24.w);
+      const hitH = Math.max(r.height, at44.h, at24.h);
+      const min = Math.min(hitW, hitH);
       if (min >= 44) return;
       /*
        * A SKIP LINK IS 1x1 ON PURPOSE AND IS NOT A TOUCH TARGET.
@@ -1018,12 +1069,25 @@ async function targetsTooSmallToHit(
 
       // Spaced far from every other control? Then a mis-tap is not the risk.
       const need = 44 - min;
-      const crowded = boxes.some((o, j) => {
-        if (j === i) return false;
+      /*
+       * HOW MUCH ROOM IS THERE, which is the first question anyone fixing this
+       * has to answer and the one the report did not carry.
+       *
+       * Growing a hit area past the gap to the next control does not fix a
+       * small target, it creates a wrong-target: two controls claiming the same
+       * pixel is worse than one that is hard to hit. So the distance to the
+       * nearest neighbour is printed beside the size, and it is the budget.
+       */
+      let nearest = Infinity;
+      for (let j = 0; j < boxes.length; j++) {
+        if (j === i) continue;
+        const o = boxes[j];
         const dx = Math.max(0, Math.max(r.left - o.right, o.left - r.right));
         const dy = Math.max(0, Math.max(r.top - o.bottom, o.top - r.bottom));
-        return Math.hypot(dx, dy) < need;
-      });
+        const d = Math.hypot(dx, dy);
+        if (d < nearest) nearest = d;
+      }
+      const crowded = nearest < need;
       if (!crowded) {
         excusedSpaced++;
         return;
@@ -1034,7 +1098,12 @@ async function targetsTooSmallToHit(
       const label = (el.innerText || el.getAttribute("aria-label") || "").trim().slice(0, 24);
       out.push(
         `${el.tagName.toLowerCase()}${cls ? "." + cls : ""} ` +
-          `${Math.round(r.width)}x${Math.round(r.height)}${min < 24 ? " UNDER 24" : ""}` +
+          `${Math.round(r.width)}x${Math.round(r.height)}` +
+          (hitW !== r.width || hitH !== r.height
+            ? ` (hit area ${Math.round(hitW)}x${Math.round(hitH)})`
+            : "") +
+          (Number.isFinite(nearest) ? ` [${Math.round(nearest)}px to nearest]` : "") +
+          `${min < 24 ? " UNDER 24" : ""}` +
           (label ? ` "${label}"` : ""),
       );
     });

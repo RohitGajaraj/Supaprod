@@ -237,6 +237,42 @@
   color: var(--mrd-ink);
   text-decoration: none;
   border-radius: var(--mrd-r-chip);
+  /* Anchors the hit area below. Changes no layout on its own. */
+  position: relative;
+}
+/*
+ * A THUMB-SIZED HIT AREA THAT MOVES NOTHING.
+ *
+ * Measured at 390x844: this link renders 21x21, under WCAG 2.5.8's 24x24
+ * floor, on every signed-in surface -- it is the rail, not any one page.
+ *
+ * PADDING WOULD NOT WORK HERE. `.sp-lede`, the row it sits in, is also 21px
+ * tall, so growing the link grows the rail header on every authenticated
+ * screen. That is the trap S3 hit on the footer: the box you grow is not the
+ * box that reflows. An absolutely positioned pseudo-element is out of flow, so
+ * it cannot move anything by construction.
+ *
+ * 33px AND NOT 44, AND THE NUMBER IS MEASURED RATHER THAN CHOSEN. The nearest
+ * other control is 6px away. A 44px area needs 11.5px of clearance on each
+ * side and would claim pixels belonging to its neighbour -- two controls
+ * sharing a pixel is a WRONG-target defect, which is worse than a small one.
+ * 21 + 6 + 6 = 33 is the largest square that fits the gap, and it clears the
+ * 24 floor with nine pixels to spare.
+ *
+ * S2 owns shell/ and is offline. Done rather than left, because it is provably
+ * layout-neutral and the measurement is in the harness: `bash
+ * e2e/check-motion.sh --signed-in --phone /settings` reports the hit area and
+ * the distance to the nearest control.
+ */
+.sp-brand::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 33px;
+  height: 33px;
+  transform: translate(-50%, -50%);
+  border-radius: var(--mrd-r-chip);
 }
 .sp-logo {
   width: 21px;
