@@ -60,6 +60,7 @@ import { AutomationBoundary } from "@/components/governance/AutomationBoundary";
 import { ceilingReality } from "@/components/governance/ceiling-reality";
 import { whereTheCrewStands } from "@/components/governance/where-the-crew-stands";
 import { unansweredGates } from "@/components/governance/gates-nobody-answered";
+import { whatTheyActuallyDid } from "@/components/governance/what-they-actually-did";
 import { Link } from "@tanstack/react-router";
 import { Field, Input } from "@/components/meridian/forms";
 import { MoreItem, MoreMenu } from "@/components/meridian/MoreMenu";
@@ -599,6 +600,9 @@ export function BoundaryControls({
    * never answered at all. See gates-nobody-answered.ts.
    */
   const unanswered = unansweredGates(overview.data?.approvals, toolLabel);
+  /* The proof beside the policy: what the block above has actually let through.
+     See what-they-actually-did.ts for what the sentence may and may not claim. */
+  const did = whatTheyActuallyDid(data?.didAlone, toolLabel);
   /** What the whole page resolves against, said in the trust dial's own words. */
   const standing = whereTheCrewStands(data?.arcCounts);
   /** Set to ask you, and does not. The one thing this screen must never leave
@@ -882,9 +886,19 @@ export function BoundaryControls({
           {block(
             "alone",
             "What they do alone",
-            looserThanSet.length > 0
-              ? `No approval, no interruption. This is where the leverage is. ${looserThanSet.length} of these ${looserThanSet.length === 1 ? "is" : "are"} set to come to you first and will not, because every agent starts out running alone except on the risky calls. You can lower that per agent on Crew.`
-              : "No approval, no interruption. This is where the leverage is.",
+            [
+              "No approval, no interruption. This is where the leverage is.",
+              did.said
+                ? did.tool
+                  ? `${did.said} The most recent was ${did.tool}.`
+                  : did.said
+                : null,
+              looserThanSet.length > 0
+                ? `${looserThanSet.length} of these ${looserThanSet.length === 1 ? "is" : "are"} set to come to you first and will not, because every agent starts out running alone except on the risky calls. You can lower that per agent on Crew.`
+                : null,
+            ]
+              .filter(Boolean)
+              .join(" "),
             alone,
             "Nothing runs without you yet. Every one of these is a person in the loop.",
           )}
