@@ -53,6 +53,13 @@ import {
 import { countIsAFloor, notTheWholeQueue } from "@/components/approvals/not-the-whole-queue";
 import { SlowRead } from "@/components/shell/SlowRead";
 import { stateSentence } from "@/components/today/state-sentence";
+import {
+  gradedLine,
+  ungradedAlone,
+  ungradedLine,
+  worthDrawing,
+} from "@/components/today/forecast-line";
+import { listDueForecasts } from "@/lib/forecast.functions";
 import { undatedNote } from "@/components/today/undated-order";
 import {
   bucketEmptyLine,
@@ -755,12 +762,34 @@ function Today() {
   // The track record read. CHARACTER-IDENTICAL KEY to Brain's, so the two
   // surfaces are two consumers of ONE request and the tab opens on a cache hit.
   const fCalibration = useServerFn(getForecastCalibration);
+  const fDueForecasts = useServerFn(listDueForecasts);
+  /* THE SAME KEY THE STATION STRIP AND THE FORECAST DESK READ. A fourth reader
+     on `["forecast-due"]` costs one fetch and the four cannot disagree about
+     how many forecasts are overdue. */
+  const dueForecasts = useQuery({
+    queryKey: ["forecast-due"],
+    queryFn: () => fDueForecasts(),
+    staleTime: 60_000,
+  });
   const calibrationQ = useQuery({
     queryKey: ["forecast-calibration", workspaceId],
     queryFn: () => fCalibration(),
     enabled: Boolean(workspaceId),
   });
   const calibration = calibrationQ.data;
+  /* THE TWO HALVES OF THE TRACK RECORD, side by side and each null until its
+     own read answers. `ungraded` takes `total`, NEVER `due.length`:
+     `listDueForecasts` bounds the array at `DUE_FORECAST_PAGE` and returns the
+     population beside it, and S1 shipped the page length on another surface and
+     understated by three the moment it landed. */
+  const standing = React.useMemo(
+    () => ({
+      resolved: calibration?.prediction.resolved ?? null,
+      hits: calibration?.prediction.hits ?? null,
+      ungraded: dueForecasts.data?.total ?? null,
+    }),
+    [calibration, dueForecasts.data],
+  );
 
   /* THE BRAKE PEDAL A RUNNING ROW CAN HONESTLY OFFER. `cancelMission` stops
      advancement, cancels the run's in-flight steps, releases held build claims
@@ -1933,9 +1962,21 @@ function Today() {
         </div>
 
         {/* THE TRACK RECORD LINE. Insight, not a boxed count: the page states
-            what came true and opens the record, and only once a forecast has
-            actually been graded - a zero never renders as a finding. */}
-        {calibration?.prediction.resolved ? (
+            what came true and opens the record. "A zero never renders as a
+            finding" still holds - `gradedLine` returns null on 0 resolved,
+            because 0 of 0 is not a track record.
+
+            WHAT CHANGED IS THE GUARD AROUND IT. This band used to require a
+            graded forecast to draw at all, so a workspace that had made
+            fifteen forecasts and graded NONE saw no forecast line whatsoever.
+            The product's own claim is that the moat is the forecast captured at
+            decision time; a forecast nobody grades never becomes that, and the
+            surface went quiet at exactly the moment it had something to say.
+
+            And when both facts are true, the record stops hiding its
+            denominator: "1 of 2" over fifteen ungraded is a record built from
+            two of seventeen, which is a different claim. */}
+        {worthDrawing(standing) ? (
           <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
             <WorkGlyph kind="forecast" />
             <RecordSpeaks
@@ -1945,8 +1986,17 @@ function Today() {
                 </Door>
               }
             >
-              Your forecasts came true {calibration.prediction.hits} of{" "}
-              {calibration.prediction.resolved} times.
+              {gradedLine(standing) ? (
+                <>
+                  {gradedLine(standing)}
+                  {ungradedLine(standing) ? ` ${ungradedLine(standing)}` : null}
+                </>
+              ) : (
+                /* ALONE, THE SENTENCE LOSES "more". There is no first sentence
+                   for it to refer back to, and "15 more" with nothing before it
+                   is a lie about a line that is not on the screen. */
+                ungradedAlone(standing)
+              )}
             </RecordSpeaks>
           </div>
         ) : null}
