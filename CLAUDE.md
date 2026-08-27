@@ -114,6 +114,9 @@ bun run build          # production build to a Cloudflare Worker
 bun run lint           # ESLint
 bun run docs:check     # doc anti-rot check, run before committing doc changes
 bun run check:motion   # dead backend test: what still moves when nothing can be read
+bun run check:unreachable      # server functions and components nothing imports
+bun run check:dead-writers     # tables with a live writer and an orphaned one
+bun run check:retired-aliases  # files drawing in the retired system through an alias
 bun run cost:track     # capture this session's token spend
 ```
 
