@@ -1316,6 +1316,67 @@ export const getTrackArtifacts = createServerFn({ method: "GET" })
         }),
       );
 
+      /*
+       * ── F-129: A SIGNAL KNOWS ITS PATTERN AND COULD ONLY SAY "clustered" ──
+       *
+       * The run's Discover pane ended a signal's line with the bare word
+       * "clustered". `SESSION-1` asks that pane to show signals "visibly
+       * grouping into themes as clustering runs" and calls it the most
+       * convincing thing in the product. **A state word is not a pattern.** The
+       * pattern has a name, and `theme_id` was already on the row.
+       *
+       * RESOLVED FROM `signals.theme_id -> themes.id`, WHICH IS THE PLATFORM
+       * TRUTH. S1 shipped a first version that read the title from the theme's
+       * MEMBERSHIP of the track and the founder corrected the approach: 1,133
+       * signals carry a `theme_id` and only 315 of those themes are attached to
+       * the same track, so designing around the other 818 fits the product to a
+       * gap in bookkeeping and bakes today's mess in. **Membership is
+       * bookkeeping; the foreign key is the fact.** It holds whether or not
+       * anything remembered to attach the theme.
+       *
+       * ONE QUERY FOR THE WHOLE PANE, and no cap. S1 rejected doing this from
+       * the client with `listThemes` for the right reason: it is a second read
+       * of the same fact and it stops at the 300 newest, so a signal whose
+       * cluster is older would silently lose its name. A limit fitted to today's
+       * row count is the same mistake one layer down.
+       *
+       * WE DID NOT LOOK, SO WE CLAIM NOTHING: a failed theme read leaves
+       * `theme_title` absent rather than null-and-present, the same fail
+       * direction as the artifact loop above, so "this signal has no name for
+       * its cluster" and "we could not read the names" stay apart.
+       */
+      const themeIds = [
+        ...new Set(
+          [...found.entries()]
+            .filter(([key]) => key.startsWith("signal:"))
+            .map(([, v]) => v.fields.theme_id)
+            .filter((t): t is string => typeof t === "string" && t.length > 0),
+        ),
+      ];
+      if (themeIds.length > 0) {
+        const { data: themeRows, error: themeErr } = await supabase
+          .from("themes")
+          .select("id,title")
+          .in("id", themeIds);
+        if (!themeErr) {
+          const titleById = new Map(
+            ((themeRows ?? []) as Array<{ id: string; title: string | null }>).map((t) => [
+              t.id,
+              t.title ?? null,
+            ]),
+          );
+          for (const [key, v] of found.entries()) {
+            if (!key.startsWith("signal:")) continue;
+            const tid = v.fields.theme_id;
+            if (typeof tid !== "string" || !tid) continue;
+            // `?? null` and not `?? undefined`: the theme id exists and we read
+            // the table successfully, so a miss means that theme row is gone,
+            // which is a fact worth carrying rather than a silence.
+            v.fields.theme_title = titleById.get(tid) ?? null;
+          }
+        }
+      }
+
       const chain = buildChain({
         route: track.route,
         station: track.station,
