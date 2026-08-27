@@ -66,6 +66,9 @@ export function tallyDrives(vias: readonly TransitionVia[]): DriveTally {
 
 const moves = (n: number) => (n === 1 ? "1 move" : `${n} moves`);
 const calls = (n: number) => (n === 1 ? "one call" : `${n} calls`);
+const steerWord = (n: number) => (n === 1 ? "one steer" : `${n} steers`);
+const joinWords = (parts: readonly string[]) =>
+  parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
 
 /**
  * What to say about how this ran, or null when there is nothing to say.
@@ -75,22 +78,50 @@ const calls = (n: number) => (n === 1 ? "one call" : `${n} calls`);
  * than reporting zero, because zero moves and no record of moves read the same
  * and are not the same.
  */
+/**
+ * Everything this line knows about a person being involved, apart from moves.
+ *
+ * NULL AND ZERO ARE DIFFERENT ANSWERS AND THE DIFFERENCE IS THE POINT. Zero is
+ * "we looked and there were none", which is worth saying on a route the loop
+ * moved end to end because it is the other half of the acceptance. Null is
+ * "the read failed, or has not landed", and it must never be drawn as zero:
+ * that would turn a slow query into a claim of autonomy, on the one screen
+ * where that claim is the product.
+ */
+export type HumanTouches = {
+  /** Calls a person decided on this track. */
+  answeredCalls?: number | null;
+  /**
+   * Steers a person typed into this run.
+   *
+   * A STEER IS A TOUCH AND THE FIRST VERSION OF THIS FILE MISSED IT. R-18
+   * forbids a person touching the work mid-run, and typing an instruction into
+   * it is exactly that; counting only answered calls left a loop-only route
+   * able to say nobody was involved while a steer sat in the transcript
+   * directly underneath. The transcript already resolves these, so the count
+   * costs nothing and its absence was the same blind spot twice.
+   */
+  steers?: number | null;
+};
+
 export function howThisRan(
   vias: readonly TransitionVia[] | null | undefined,
-  /**
-   * Calls a person decided on this track, or null when that is not known.
-   *
-   * NULL AND ZERO ARE DIFFERENT ANSWERS AND THE DIFFERENCE IS THE POINT. Zero
-   * is "we looked and nobody answered anything", which is worth saying on a
-   * route the loop moved end to end because it is the other half of the
-   * acceptance. Null is "the read failed, or has not landed", and it must
-   * never be drawn as zero: that would turn a slow query into a claim of
-   * autonomy, on the one screen where that claim is the product.
-   */
-  answeredCalls: number | null = null,
+  touches: HumanTouches = {},
 ): string | null {
   if (!vias || vias.length === 0) return null;
   const t = tallyDrives(vias);
+  const answeredCalls = touches.answeredCalls ?? null;
+  const steers = touches.steers ?? null;
+
+  /*
+   * The two reads are folded into one account of what a person did, and the
+   * unknowns stay unknown: if EITHER is null the line cannot say nobody was
+   * involved, because it did not look everywhere.
+   */
+  const known = answeredCalls !== null && steers !== null;
+  const involved: string[] = [];
+  if (answeredCalls && answeredCalls > 0) involved.push(`answered ${calls(answeredCalls)}`);
+  if (steers && steers > 0) involved.push(`sent ${steerWord(steers)}`);
 
   /*
    * NOTHING RECORDED AT ALL. Every move predates the question, so the honest
@@ -131,13 +162,13 @@ export function howThisRan(
      * them; once it can, warning about a blind spot it no longer has would be
      * its own small dishonesty.
      */
-    if (answeredCalls === null) {
-      return `${opening} Moves are all this counts, and a call answered along the way is not one.`;
+    if (involved.length > 0) {
+      return `${opening} A person ${joinWords(involved)} along the way.`;
     }
-    if (answeredCalls === 0) {
-      return `${opening} Nobody answered a call along the way either.`;
+    if (!known) {
+      return `${opening} Moves are all this counts, and a call answered or a steer sent along the way is not one.`;
     }
-    return `${opening} A person answered ${calls(answeredCalls)} along the way.`;
+    return `${opening} Nobody answered a call or sent a steer along the way either.`;
   }
 
   /*
@@ -146,7 +177,5 @@ export function howThisRan(
    * reader has not been offered an autonomy claim to qualify.
    */
   const base = `${moves(t.total)} on this route: ${list}.`;
-  return answeredCalls && answeredCalls > 0
-    ? `${base} A person also answered ${calls(answeredCalls)}.`
-    : base;
+  return involved.length > 0 ? `${base} A person also ${joinWords(involved)}.` : base;
 }

@@ -522,6 +522,22 @@ export function TrackActivity({
    * up on a LATER poll was not on screen before -- that is an event, and it
    * gets the entrance once, then joins `seen`.
    */
+  /*
+   * STEERS COUNT AS A TOUCH, and they are already resolved here for the
+   * transcript, so this is the same set the rows below are drawn from rather
+   * than a second opinion about it. Both mission-carried and track-carried
+   * steers, which is the pair RUN-94 established are two shapes of one thing.
+   *
+   * Null while either read is outstanding, for the reason spelled out in
+   * `how-this-ran.ts`: a line that has not looked everywhere may not say
+   * nobody was involved.
+   */
+  const steerCount = React.useMemo(() => {
+    if (saidQ.data === undefined) return null;
+    return oncePerId([...fromMissions, ...(saidQ.data ?? [])]).filter((m) => m.kind === "steer")
+      .length;
+  }, [fromMissions, saidQ.data]);
+
   const seen = React.useRef<Set<string>>(new Set());
   const primed = React.useRef(false);
   const rows = React.useMemo(
@@ -628,7 +644,10 @@ export function TrackActivity({
    */
   const ranLine = howThisRan(
     (q.data?.transitions ?? []).map((t) => t.drivenVia),
-    answeredCalls,
+    {
+      answeredCalls,
+      steers: steerCount,
+    },
   );
 
   return (
