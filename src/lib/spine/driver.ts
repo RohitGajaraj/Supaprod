@@ -1281,7 +1281,29 @@ export function decideDrive(input: {
 export const HOLD_LINE: Record<HoldReason, string> = {
   paused: "Everything is paused for this workspace, so nothing ran.",
   "waiting-on-a-person": "A call is in front of you. The work continues once it is decided.",
-  "no-agent": "No agent serves this station yet, so this one needs a person.",
+  /*
+   * ── F-134: THIS WAS FALSE IN THE ONLY STATE THAT REACHES IT (S1) ─────────
+   *
+   * It read "No agent serves this station yet". `no-agent` has two sources:
+   * `leadAgentFor(station) === null`, and an `agent-disabled` halt via
+   * `HALT_HOLD`. S1 ran the first over all seven stations and **every one has a
+   * lead** (sense discovery-scout, decide strategist, define prd-writer, design
+   * ux-architect, build builder, ship release-verifier, learn data-analyst), so
+   * that branch cannot fire and `agent-disabled` is the ONLY way a reader
+   * reaches this sentence. 27 of 283 agents are switched off right now.
+   *
+   * So the line told a person nobody covers the step, when somebody does and was
+   * switched off. Those need different actions: one is hiring, the other is a
+   * toggle.
+   *
+   * WRITTEN TRUE OF BOTH, rather than rewritten for the live one. The null
+   * branch is unreachable today and a station losing its lead tomorrow must not
+   * silently make this a lie again. The SPECIFIC sentence now arrives separately
+   * in `last_hold_because` — "<slug> is switched off, so this run was cancelled
+   * instead of resumed" — which is the kind-for-the-list, sentence-for-the-person
+   * split F-127 exists for.
+   */
+  "no-agent": "No agent is picking this step up, so it needs you.",
   done: "The route is finished. This work has been graded.",
   "produced-nothing":
     "This station ran but filed nothing, so there is nothing to hand to the next one. It will try again.",
