@@ -23,8 +23,8 @@ import { readFileSync } from "node:fs";
  * ── WHY THE MERGE IS ASSERTED SEPARATELY ───────────────────────────────────
  * Fixing the two source lists is not enough and the first attempt at this
  * change proved it. `allReplyRows` concatenates three sources: blocked missions
- * (windowed to 24 hours by `withinLastDay`), gated sessions (NOT windowed, so
- * genuinely weeks old) and spine tracks. Concatenation preserves source order,
+ * (windowed to 24 hours at the time, unwindowed since), gated sessions and
+ * spine tracks. Concatenation preserves source order,
  * so every gated row landed after every mission row whatever its age, and the
  * 33-day gate still sorted below a mission blocked ten minutes ago. **A sorted
  * input into an unsorted merge is a decorative sort.**
@@ -75,9 +75,19 @@ describe("the waiting lane puts the oldest first", () => {
     expect(memoFor("liveRows")).toContain("b.at - a.at");
   });
 
-  it("states its 24 hour boundary out loud, since the lane cannot show past it", () => {
-    // The windowed half of this lane silently omits older work. The omission is
-    // stated rather than hidden; the real count needs a server read (filed).
-    expect(SRC).toContain("This lane shows the last 24 hours");
+  it("is fed by the UNWINDOWED set, so the sentence is no longer needed", () => {
+    /*
+     * SUPERSEDED, and worth recording rather than deleting. This asserted the
+     * lane said "This lane shows the last 24 hours", which was an honest
+     * stopgap while the lane could not show older work.
+     *
+     * The lane no longer windows, so that sentence would now be false. Blocked
+     * work does not age out, and the window also put this lane's own head (1)
+     * against the station strip above it (89) counting the same population
+     * without one, which use-spine-strip.ts records as a screen that "reads as
+     * a contradiction".
+     */
+    expect(SRC).toContain("const blockedAll");
+    expect(SRC).not.toContain("This lane shows the last 24 hours");
   });
 });
