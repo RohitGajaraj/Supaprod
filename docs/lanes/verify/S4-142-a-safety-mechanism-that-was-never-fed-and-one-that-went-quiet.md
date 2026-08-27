@@ -20,7 +20,7 @@ them is the difference between a guarded workspace and an unguarded one.
 | --- | --- | --- | --- |
 | `agent_runs.mission_spend_cap_usd` | **2,555 of 2,847** | **never** | nothing crossed it |
 | `agent_runs.mission_token_cap` | **0 of 2,847** | cannot | **nothing feeds it** |
-| `spine_tracks.spend_cap_usd` | **0 of 106** | cannot | **nothing feeds it** |
+| `spine_tracks.spend_cap_usd` | **0 of 106 rows, but FED BY A RESOLVER** | never | nothing crossed it |
 | `ai_budgets` (any of 4 caps) | **4 of 14** | — | **10 rows hold no cap at all** |
 | `guardrail_rules` | 27 rules, **3 of 21 workspaces** | **no organic hit on record** | **see below** |
 | `agent_approvals` | 324 raised | 176 answered | **113 expired unanswered** |
@@ -45,13 +45,44 @@ of the mechanism — it works — but a `$10` ceiling over a workload whose wors
 number nobody has revisited since it was chosen, and it should not be read as evidence that spending
 is under control. **Nothing has tested it.**
 
+> ## CORRECTION · a null column is not the same defect twice, and S3 caught me flattening it
+>
+> **I listed `spine_tracks.spend_cap_usd` as "never fed" beside `mission_token_cap`. They are not the
+> same thing, and the difference is the whole point of this verdict.**
+>
+> `resolveTrackSpendCap` (`src/lib/spine/track-caps.server.ts`) falls back to
+> `workspaces.default_track_spend_cap_usd` — **$5.00 on all 21 workspaces** — and then to
+> `DEFAULT_TRACK_SPEND_CAP_USD = 5.0` if the read fails. **A null column there is fed by the
+> resolver.** I verified the fallback in the source rather than taking it on report.
+>
+> That fallback is itself a repair: it used to return null on an unset workspace column, on the
+> reasoning that a cleared ceiling was a human decision, until somebody measured it null in all 21
+> workspaces with no surface anywhere that could clear it. Migration `20260824230000` backfilled it
+> and inverted the branch.
+>
+> **So the class has two halves that look identical in a column dump:**
+>
+> | shape | reads as | actually |
+> | --- | --- | --- |
+> | null column **with** a resolver fallback | unfed | **fed by the default** |
+> | null column with **no** resolver | unfed | **genuinely never fed** |
+>
+> **`mission_token_cap` is the second, and it is unfed three ways at once**: no default constant, no
+> resolver, no caller. I checked for all three rather than repeat the mistake in the other direction —
+> the only non-type references in `src/` are the comparison at `runtime.server.ts:264`, a display read
+> in `ControlsPanel.tsx:836`, and a column list. There is no `DEFAULT_MISSION_TOKEN_*` anywhere.
+>
+> **The alarming half is smaller than I reported and sharper for it.** A dump of null columns is not
+> evidence of an unguarded mechanism; a null column with nothing behind it is.
+
 ## The token half has never had anything to compare against
 
 **`mission_token_cap` is NULL on all 2,847 rows.** `checkMissionCaps` compares it before every model
 call, `executeLoop` accepts and writes it, and **no caller anywhere passes one** (S3, measured today).
 The most expensive run used **233,988 tokens** against no ceiling whatsoever.
 
-Same for `spine_tracks.spend_cap_usd`: **0 of 106**, which `S4-127` found from the schema side.
+`spine_tracks.spend_cap_usd` is **0 of 106** too, and is the OTHER half: `S4-127` found it from the
+schema side, and the resolver behind it means the tracks are capped at $5.00 regardless.
 
 ## The guardrails did not go quiet. They may never have spoken
 
@@ -136,8 +167,9 @@ unanswered approval is not autonomous and is not blocked by a decision either.
 
 ## Verdict
 
-- **Two mechanisms are wired and have never been fed**: `mission_token_cap` (0 of 2,847) and
-  `spine_tracks.spend_cap_usd` (0 of 106). They cannot bind and never have.
+- **ONE mechanism is genuinely never fed**: `mission_token_cap`, null on all 2,847 rows, with no
+  default, no resolver and no caller. `spine_tracks.spend_cap_usd` looks identical in a column dump
+  and is not — a resolver caps it at $5.00.
 - **One is fed and has never been within 70x of binding**: the `$10` mission spend cap against a
   worst case of `$0.142`.
 - **`guardrail_hits` is fixture data.** 7,225 of 8,535 are on demo workspaces, and the 1,310 on
