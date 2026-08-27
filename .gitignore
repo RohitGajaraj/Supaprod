@@ -231,18 +231,6 @@ design-reference/Latest Design System - v3 /
 /DESIGN-LANE-STATUS.md
 /POST-LAUNCH.md
 
-# THE FILE THE COMMENT ABOVE ALREADY CALLED UNTRACKED, ACTUALLY UNTRACKED.
-#
-# CLAUDE.md: the handoff is a pair, and `.remember/remember.md` is the untracked
-# half, injected at SessionStart and cleared as it is read. The note six lines up
-# cites it as the standard for session-scoped scratch and it was never listed, so
-# it was only untracked by nobody having written it yet.
-#
-# Found the way these are always found: `git add -A` staged mine, and the rule
-# that it must never be committed lives in a document rather than in the tool
-# that enforces it. A convention two files describe and nothing checks is one
-# `git add -A` away from being broken.
-/.remember/
 
 # Lovable's plan-mode scratch. Calling `send_message` with plan_mode writes a
 # plan file here, named with a date, and docs-doctor hard-FAILS on a dated

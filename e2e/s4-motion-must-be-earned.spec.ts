@@ -284,10 +284,18 @@ async function failEveryAuthenticatedRead(page: import("@playwright/test").Page)
  * ── HOW ch IS MEASURED, since guessing at it would make the number worthless ──
  * A `ch` is the width of the digit zero in the element's OWN font, so it is
  * measured per element with a probe span carrying that element's computed font,
- * rather than approximated from font-size. The threshold is 80 rather than 68:
- * the token is a target, an eight-character tolerance keeps a heading that runs
- * slightly long out of the report, and anything past 80 is not a rounding
- * difference.
+ * rather than approximated from font-size.
+ *
+ * THE THRESHOLD IS 76, WHICH IS 68 PLUS AN EIGHT-CHARACTER TOLERANCE. It said 80
+ * for its first three runs while this comment said "an eight-character
+ * tolerance", and 68 plus 8 is 76. The prose and the number disagreed and the
+ * number was looser.
+ *
+ * That gap is not academic: S2 measured a `today-notice` column rendering at
+ * 79ch, from a cap written as `72ch` on a grid whose font is 14px and filled by
+ * a child at 13px, so the cap counts in one font and the text arrives in
+ * another. At 80 this check would have reported that surface as clean, and the
+ * defect was found by a person measuring it by hand instead.
  *
  * Tables and rows are excluded, as the token's own comment instructs.
  */
@@ -326,7 +334,7 @@ async function proseWiderThanMeasure(page: import("@playwright/test").Page): Pro
       if (lines.length === 0) continue;
       const widest = Math.max(...lines.map((r) => r.width));
       const ch = Math.round(widest / chWidth);
-      if (ch <= 80) continue;
+      if (ch <= 76) continue;
       out.push(`${ch}ch over ${lines.length} line(s): ${text.slice(0, 55)}...`);
     }
     probe.remove();
