@@ -57,15 +57,15 @@ export function StepDot({ status }: { status: StepStatus | string }) {
 /* StatusBadge — mono pill + dot. Status vocabulary from the reference. */
 export function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; fg: string; pulse?: boolean }> = {
-    running: { label: "running", fg: "var(--action-blue)", pulse: true },
+    running: { label: "running", fg: "var(--mrd-agent)", pulse: true },
     queued: { label: "queued", fg: "var(--mrd-mute)" },
-    awaiting_review: { label: "needs you", fg: "var(--coral)", pulse: true },
-    gate: { label: "at gate", fg: "var(--coral)", pulse: true },
-    completed: { label: "completed", fg: "var(--emerald)" },
-    failed: { label: "failed", fg: "var(--rose)" },
+    awaiting_review: { label: "needs you", fg: "var(--mrd-hold)", pulse: true },
+    gate: { label: "at gate", fg: "var(--mrd-hold)", pulse: true },
+    completed: { label: "completed", fg: "var(--mrd-pass)" },
+    failed: { label: "failed", fg: "var(--mrd-fail)" },
     cancelled: { label: "cancelled", fg: "var(--mrd-mute)" },
     planned: { label: "planned", fg: "var(--mrd-faint)" },
-    waiting: { label: "waiting", fg: "var(--coral)" },
+    waiting: { label: "waiting", fg: "var(--mrd-hold)" },
     idle: { label: "idle", fg: "var(--mrd-faint)" },
   };
   const v = map[status] || map.planned;
@@ -123,12 +123,12 @@ export type VerdictTone = "moss" | "ember" | "indigo" | "machine" | "saffron" | 
 // distinct from surrounding body text - "the role color IS the meaning"
 // only holds if the color actually reads as different from plain copy.
 const VERDICT_TONES: Record<VerdictTone, string> = {
-  moss: "var(--emerald)",
+  moss: "var(--mrd-pass)",
   ember: "var(--mrd-you)",
   indigo: "var(--mrd-mute)",
-  machine: "var(--agent)",
-  saffron: "var(--saffron)",
-  madder: "var(--rose)",
+  machine: "var(--mrd-agent)",
+  saffron: "var(--mrd-hold)",
+  madder: "var(--mrd-fail)",
 };
 
 export function VerdictChip({
@@ -197,9 +197,9 @@ export function SurfaceHeader({
    from design-reference/supaprod/loop.jsx (RiskTag). */
 export function RiskTag({ risk }: { risk: string }) {
   const map: Record<string, [string, string]> = {
-    low: ["var(--emerald)", "low risk"],
+    low: ["var(--mrd-pass)", "low risk"],
     medium: ["var(--mrd-you)", "medium risk"],
-    high: ["var(--rose)", "high risk"],
+    high: ["var(--mrd-fail)", "high risk"],
   };
   const [c, label] = map[risk] || map.medium;
   return (

@@ -7,7 +7,7 @@ import { Palette, Check, ArrowRight } from "lucide-react";
 import { analyzeDesignReadiness, readinessGaps, type ReadinessLevel } from "@/lib/design-readiness";
 
 const LEVEL: Record<ReadinessLevel, { label: string; color: string }> = {
-  ready: { label: "Design-ready", color: "var(--emerald)" },
+  ready: { label: "Design-ready", color: "var(--mrd-pass)" },
   developing: { label: "Developing", color: "var(--mrd-you)" },
   early: { label: "Early", color: "var(--mrd-mute)" },
 };
@@ -44,7 +44,7 @@ export function DesignReadinessPanel({ body }: { body: string }) {
 
       {gaps.length === 0 ? (
         <p className="mt-2.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Check className="h-3 w-3" style={{ color: "var(--emerald)" }} strokeWidth={2.2} />
+          <Check className="h-3 w-3" style={{ color: "var(--mrd-pass)" }} strokeWidth={2.2} />
           This spec names every design dimension. It is ready to hand to design.
         </p>
       ) : (

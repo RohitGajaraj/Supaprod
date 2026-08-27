@@ -60,7 +60,7 @@ export function RoadmapHistory({ opportunityId }: { opportunityId: string }) {
         </p>
 
         {summary.currentOutcome ? (
-          <p style={{ color: "var(--ink)", lineHeight: 1.45, marginBottom: 10 }}>
+          <p style={{ color: "var(--mrd-ink)", lineHeight: 1.45, marginBottom: 10 }}>
             Committed for {summary.currentOutcome}
             {summary.currentMeasure ? (
               <span style={{ color: "var(--mrd-faint)" }}>

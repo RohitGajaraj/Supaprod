@@ -248,7 +248,9 @@ export function LoopWalkthrough() {
                 >
                   {r.label}
                 </span>
-                <span className="block text-mrd-small leading-mrd-prose text-zinc-500">{r.gloss}</span>
+                <span className="block text-mrd-small leading-mrd-prose text-zinc-500">
+                  {r.gloss}
+                </span>
               </div>
             ))}
           </div>

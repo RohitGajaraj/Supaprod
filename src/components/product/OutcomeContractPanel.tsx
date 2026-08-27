@@ -268,7 +268,9 @@ function VerifiabilityVerdict({ contract }: { contract: OutcomeContract }) {
         <ShieldAlert className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
         <div className="min-w-0">
           <p className="text-xs font-medium">Verification is hazy</p>
-          <p className="text-mrd-tiny text-muted-foreground mt-0.5 leading-mrd-prose">{grade.reason}</p>
+          <p className="text-mrd-tiny text-muted-foreground mt-0.5 leading-mrd-prose">
+            {grade.reason}
+          </p>
         </div>
       </div>
     );
@@ -284,7 +286,9 @@ function VerifiabilityVerdict({ contract }: { contract: OutcomeContract }) {
       />
       <div className="min-w-0">
         <p className="text-xs font-medium">{label}</p>
-        <p className="text-mrd-tiny text-muted-foreground mt-0.5 leading-mrd-prose">{grade.reason}</p>
+        <p className="text-mrd-tiny text-muted-foreground mt-0.5 leading-mrd-prose">
+          {grade.reason}
+        </p>
       </div>
     </div>
   );
