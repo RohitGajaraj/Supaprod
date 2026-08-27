@@ -204,7 +204,25 @@ describe("the duplicate guard lands before anything is spent", () => {
     expect(out.prd_id).toBe(SPEC_ID);
     expect(db.guardReads()).toBe(1);
     expect(db.inserted.length).toBe(1);
-    expect(modelCalls.length).toBe(1);
+    /*
+     * TWO CALLS, NOT ONE, SINCE F-136, and the number is asserted rather than
+     * loosened because it is a real change in what a draft costs.
+     *
+     *   1  the spec body
+     *   2  the Outcome Contract extracted from that body
+     *
+     * The second is new. `prd.draft` used to insert eight columns and no
+     * contract, so the `{}` default landed on every agent-written spec — 117 of
+     * 119 rows — while the contract is "the part Build is measured against and
+     * Ship reads". A small flash call on text already in hand is the price of a
+     * spec that can be judged at all, and `generatePrd` has paid it since
+     * Mission 3.3.
+     *
+     * The assertion this test exists for is unchanged: the guard failed to read,
+     * generation proceeded anyway, and a read that FAILED is not a read that
+     * found nothing.
+     */
+    expect(modelCalls.length, "the body, and the contract extracted from it").toBe(2);
   });
 
   it("runs no guard at all on the brief path -- there is no bet to be duplicated against", async () => {
