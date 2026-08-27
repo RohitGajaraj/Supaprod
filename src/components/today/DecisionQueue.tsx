@@ -4,7 +4,7 @@ import { Action, Approve, BulkBar, Door, Num } from "@/components/meridian/surfa
 
 import { canSendBack } from "@/components/approvals/SendBack";
 import { stripAutoPrefix } from "@/components/plan/format";
-import { plainMarkers } from "@/components/observe/preview-line";
+import { plainMarkers } from "@/lib/preview-line";
 
 import { Checkbox } from "@/components/meridian/forms";
 import { Gate } from "@/components/meridian/Gate";

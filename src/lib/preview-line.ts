@@ -1,6 +1,16 @@
 /**
  * A MULTI-LINE MARKDOWN BLOB, AS THE ONE LINE A ROW CAN ACTUALLY SHOW.
  *
+ * ── WHY THIS LIVES IN `lib` AND NOT BESIDE ITS FIRST CALLER ────────────────
+ * It started in `components/observe/` next to the surface that needed it, and
+ * moved the moment the board's review card became its second caller: an import
+ * reaching from `today/` into `observe/` is a component tree borrowing another
+ * screen's folder, which is what S0 gave as the reason for `error-copy.ts` and
+ * S1 for `plain-prose.ts`. **A pure function with no JSX deciding what the
+ * product MAY SAY is policy, not presentation.** Two surfaces already agree
+ * through it and a third will; none of them should have to know which screen
+ * happened to need it first.
+ *
  * ── WHAT A PERSON SEES TODAY ───────────────────────────────────────────────
  * `AnalyticsPanel` renders `ai_events.input_preview` straight into a `Row`
  * lead. The column holds whatever the model was sent or said, and that is

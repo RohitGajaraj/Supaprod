@@ -62,7 +62,7 @@
  * missing column.
  */
 import { useServerFn } from "@tanstack/react-start";
-import { previewLine } from "@/components/observe/preview-line";
+import { previewLine } from "@/lib/preview-line";
 import { failureLine } from "@/lib/error-copy";
 import { Row, Line } from "@/components/meridian/rows";
 import {
