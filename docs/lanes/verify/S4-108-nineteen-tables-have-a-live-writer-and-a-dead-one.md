@@ -59,6 +59,23 @@ That distinction decides what to do with the row. A duplicate gets deleted; an u
 a surface or gets deleted deliberately. **`connection_bindings` is genuinely the first kind and
 `missions` is the second, and my original framing collapsed them.**
 
+## All three diagnosed, and only one is airtight
+
+I ranked three and said they were not diagnosed. Diagnosing them changed two of the three.
+
+| | caller? | is the operation reachable another way? | verdict |
+| --- | --- | --- | --- |
+| **`renameMission`** | **none, appears once** | **No.** `missions.functions.ts:857` is the ONLY update that touches a mission's `title`; the others at :769, :982 and :1054 set `status` | **CONFIRMED. A person cannot rename a run.** |
+| `updateTask` | none, appears once | **Partly.** `sync.functions.ts:581` updates `tasks` on a live path, but it is sync-driven | **Likely: no general edit path for a person.** Not proven |
+| `updateProject` | none, appears once | **Unresolved.** `projects.functions.ts:281` is a second update in another function I did not trace | **Not established** |
+
+**`renameMission` is the one I would act on.** The rename UI that exists, in `ArtifactPane.tsx`,
+renames a **theme**. Nothing renames a run.
+
+**And this is why "ranked, not diagnosed" was the right label to put on them.** Reading three rows
+turned one into a confirmed finding, one into a likely one, and one into a question. Had I reported
+all three as "a person cannot do this", two would have been wrong.
+
 ## The rest of the nineteen, by table
 
 `tasks`, `sync_mappings`, `connection_bindings`, `signals`, `missions`, `artifact_lineage`, `prds`,
