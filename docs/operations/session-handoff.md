@@ -256,6 +256,55 @@ and falls soft; anything else is a runtime fact and raises.
 
 ---
 
+## What the integration pass turned out to be for
+
+`main` is integrated and green: **12,849 tests across 866 files, 0 fail**, tsc 0,
+docs 0, build 0. Three passes so far, all four lanes each time.
+
+**The two defects it found on the first pass could not have been seen by any
+lane**, and that is the argument for doing it several times an hour rather than
+once at the end:
+
+1. A guard on one branch caught code on another. `a-failure-line-never-argues-
+   with-itself` asserts a `ReadFailed` given `error` must not also have a child
+   calling `failureLine`, because both answer an ended session and the sign-in
+   sentence then prints twice in one box. Two files did exactly that.
+2. **A tripwire fired.** `a-toggle-that-cannot-deliver` was written to fail the
+   moment any surface began rendering the in-app feed, and to carry instructions
+   for whoever hit it. S2's `SystemAlerts` does. The hold lifted for budget and
+   drift, and the settings page's own copy had gone false with it.
+
+### The recurring shape, now named
+
+**Two sentences agreeing a few lines apart are worse than two contradicting** (S2).
+A contradiction tells a reader something is wrong; agreement leaves them unable
+to tell which line is the surface's own claim. Three instances this week, every
+one **two correct components**, every lane's gates green, and no test either
+session could write sees a composed screen.
+
+`two-lines-on-one-screen-must-not-restate-each-other.test.ts` is the structural
+guard: no shared run of three significant words between a hold line and its way
+out. It asserts no wording, and it found a live restatement on its first run.
+**Its blind spot is named beside it:** it catches saying a thing twice and cannot
+catch saying it zero times, which S1 and I promptly did to the same hold from
+opposite sides.
+
+### Convenience-shaped commands that did more than the sentence in your head
+
+Four from three lanes in one night, worth a named section rather than four
+scattered warnings:
+
+| Command | What it actually does |
+| --- | --- |
+| `cmd \| tail` / `\| head` in a `&&` chain | reports the pipe's exit status, not the command's |
+| `eslint --fix src/routes` | reformatted 27 files across three lanes' prefixes |
+| `git checkout <sha> -- <file>` | **stages** it, so the obvious restore reports success and leaves the reverted code in the tree |
+| `.apply((q) => ...)` on a PostgREST chain | **the method does not exist** and still typechecks, throwing at runtime |
+
+The last is the nastiest: the other three are commands taking a wider path than
+you said, while that one is the type system not looking at all — the same family
+as a wrong column inside a `select` string.
+
 ## What is still open, and whose it is
 
 | Item | Owner |
