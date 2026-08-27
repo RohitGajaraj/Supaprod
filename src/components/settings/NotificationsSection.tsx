@@ -257,7 +257,32 @@ export function NotificationsSection() {
                 key={ch.key}
                 variant={matrix[c.key][ch.key] ? "default" : "quiet"}
                 aria-pressed={matrix[c.key][ch.key]}
-                title={ch.title}
+                /*
+                 * THE APP COLUMN CANNOT DELIVER ANYTHING TODAY, so it does not
+                 * pretend to. Traced end to end rather than assumed: the only
+                 * reader of `in_app_approvals`, `in_app_health`,
+                 * `in_app_budget` and `in_app_drift` is `getNotifications`, and
+                 * NOTHING in src/components or src/routes imports
+                 * `getNotifications` or renders an `AppNotification`. The
+                 * preference is written, the feed is computed, and no surface
+                 * shows it. A closed loop with no output.
+                 *
+                 * Four toggles a person could press, believing they had asked
+                 * to be told something. An affordance is a promise, and this
+                 * one could not be kept.
+                 *
+                 * DISABLED RATHER THAN DELETED, deliberately. The column is not
+                 * a mistake, it is unfinished: Today already has a "What needs
+                 * you" feed and the honest fix is to drive THAT from these
+                 * preferences rather than to build a second feed here, which
+                 * would be two answers to one question. Deleting the column
+                 * would hide the gap instead of naming it, and would throw away
+                 * settings people have already saved.
+                 *
+                 * Email and Digest are untouched and do deliver.
+                 */
+                disabled={ch.key === "app"}
+                title={ch.key === "app" ? "Not delivered anywhere yet" : ch.title}
                 onClick={() => toggle(c.key, ch.key)}
               >
                 {ch.label}
@@ -265,6 +290,10 @@ export function NotificationsSection() {
             ))}
           </Line>
         ))}
+        <Line
+          label="In-app alerts are not switched on yet"
+          sub="Email and the digest work. Nothing in the product shows these as notifications yet, so the App column is held rather than left to look as though it does something."
+        />
       </Region>
 
       {verdictEmail !== null && (
