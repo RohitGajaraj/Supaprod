@@ -1,6 +1,7 @@
 import { render, screen, waitFor, renderHook } from "@testing-library/react";
 import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
+import { execSync } from "node:child_process";
 
 import { SlowRead } from "./SlowRead";
 import { useSlowRead, SLOW_READ_MS } from "./use-slow-read";
@@ -228,5 +229,31 @@ describe("a read that has gone on too long offers a way out", () => {
     const at = src.indexOf("{wayOut ? (\n        <p className=");
     const live = src.indexOf('<p role="status" className="sr-only">');
     expect(at).toBeGreaterThan(live);
+  });
+});
+
+describe("every SlowRead in the product offers a way out", () => {
+  /*
+   * Not a style rule. `SlowRead` exists because a slow read and a hung read are
+   * the same pixels, and the figure only closes half of that: it says the wait
+   * is real, not what to do about it. A site without `onRetry` still ends in a
+   * dead end, just a better-documented one.
+   *
+   * Asserted over the whole tree rather than a list, so a NEW site cannot be
+   * added without one.
+   */
+  it("has no call site left without onRetry", () => {
+    const files = execSync("grep -rl '<SlowRead' src --include=*.tsx || true", { encoding: "utf8" })
+      .split("\n")
+      .filter((f) => f && !f.includes("SlowRead.tsx") && !f.includes("SlowRead.test"));
+
+    const bare: string[] = [];
+    for (const f of files) {
+      const src = readFileSync(f, "utf8");
+      for (const m of src.matchAll(/<SlowRead\b([^]*?)>/g)) {
+        if (!m[1].includes("onRetry")) bare.push(`${f}: ${m[0].slice(0, 60)}`);
+      }
+    }
+    expect(bare).toEqual([]);
   });
 });

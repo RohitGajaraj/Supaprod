@@ -86,7 +86,12 @@ import { cancelMission, listMissions, type MissionListRow } from "@/lib/missions
 import { listLearnings } from "@/lib/outcome.functions";
 import { listTracks } from "@/lib/spine/track.functions";
 import { listStudioSessions } from "@/lib/studio.functions";
-import { approvalsQueueKey, missionsKey, invalidateShellReads } from "@/lib/query-keys";
+import {
+  approvalsQueueKey,
+  missionsKey,
+  studioSessionsKey,
+  invalidateShellReads,
+} from "@/lib/query-keys";
 import { stillWaiting } from "@/lib/query-state";
 import "@/styles/today.css";
 
@@ -640,8 +645,8 @@ function Today() {
      count and the rows below reclassify by it. */
   const fetchSessions = useServerFn(listStudioSessions);
   const sessions = useQuery({
-    queryKey: ["studio-sessions", false],
-    queryFn: () => fListSessions({ data: { includeArchived: false } }),
+    queryKey: studioSessionsKey(workspaceId),
+    queryFn: () => fListSessions({ data: { includeArchived: false, workspaceId } }),
   });
 
   /* Both memoised on the QUERY's data rather than derived inline. A bare
@@ -2124,49 +2129,46 @@ function Today() {
                     from the state it is the exit for. */}
                 {items.length > 0 ? (
                   <section aria-label={FEED_CALLS} className="flex flex-col">
-                    {/* THE HEAD IS DRAWN ONLY WHEN IT HAS A SIBLING TO SEPARATE
-                        IT FROM, which is the settled trail below.
+                    {/* NO HEAD ON THIS GROUP, AND IT TOOK ME THREE GOES TO GET
+                        HERE, so the reasoning is worth more than the diff.
 
-                        Screenshotted on the running board 2026-08-27, signed
-                        in, this region stacked THREE names for one group inside
-                        about a hundred pixels:
+                        The head read "READY FOR YOUR REVIEW  52". Screenshotted
+                        on the running board 2026-08-27, signed in, the reader
+                        met this, in this order, inside about 170px:
 
-                          headline  "52 decisions are ready for your review."
-                          region    "What needs you"
-                          this head "READY FOR YOUR REVIEW  52"
+                          "52 decisions are ready for your review."   headline
+                          "What needs you"                            region
+                          "READY FOR YOUR REVIEW  52"                 here
+                          "All 52   Proposals 37   Gates 10 ..."      filter
 
-                        The phrase appears twice and the number three times.
-                        `AppFrame` states the rule this breaks - the third
-                        statement of one fact inside 100 pixels - and the same
-                        defect was fixed in its live line the same day.
+                        Four elements, three of them saying 52, two of them
+                        saying "ready for your review". `AppFrame` states the
+                        rule this breaks and its own live line was fixed for it
+                        the same day: no third statement of one fact inside 100
+                        pixels.
 
-                        A group name earns its line by distinguishing this group
-                        from another one. When this region holds ONLY the queue,
-                        the region title names it alone and the filter row below
-                        already carries the count on `All`. R-20 section 8: a
-                        region either carries a fact the person came for, or it
-                        goes.
+                        I first removed the head only when nothing was settled,
+                        then only when the region held no other group. Both were
+                        wrong in the same way - they treated this as a question
+                        about SIBLINGS when it is a question about the HEADLINE.
+                        The second version was worse than the first: it restored
+                        the head on any ordinary board, because the crew lanes
+                        below almost always have rows.
 
-                        THE SIBLING IS NOT ONLY THE SETTLED TRAIL, and the first
-                        version of this guard got that wrong within the hour.
-                        This Region runs from the queue to `Finished` and holds
-                        four groups: the calls, the settled receipts, and the
-                        crew lanes `Waiting on you`, `Running` and `Finished`.
-                        Testing `settled.length` alone left an UNLABELLED
-                        52-queue sitting directly above a labelled "Waiting on
-                        you 95" - so the only head in view belonged to the lane,
-                        and the number a reader would attach to the queue was
-                        the wrong one. That is worse than the duplication the
-                        guard was written to remove.
+                        WHAT ACTUALLY NAMES THIS GROUP, now that the head is
+                        gone. The region title above it says whose move it is.
+                        The filter row below carries the count on `All`. And the
+                        sibling groups - "Waiting on you", "Running", "Finished"
+                        - keep their own heads, which is what separates them
+                        from this one: the unlabelled group is the one the
+                        region title is about, and the labelled ones are the
+                        departures from it.
 
                         THE ACCESSIBLE NAME DOES NOT MOVE. `aria-label` on the
-                        section above is unconditional, so the group keeps its
-                        name for a screen reader whether or not the heading is
-                        painted. Dropping a visible duplicate must never cost the
-                        one reader who cannot see the region title. */}
-                    {settled.length > 0 || crewTotal > 0 ? (
-                      <FeedHead name={FEED_CALLS} count={items.length} />
-                    ) : null}
+                        section is unconditional, so the group keeps its name for
+                        a reader who cannot see the region title above it.
+                        Dropping a visible duplicate must never cost the one
+                        person who was relying on it. */}
                     <div className="mt-mrd-3">
                       {/* TEXT TABS, NOT A FACET EXPLOSION, which is the taste law
                           `approvals-queue.functions.ts` states over this very vocabulary. The
