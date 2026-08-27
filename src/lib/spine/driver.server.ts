@@ -28,6 +28,7 @@
  * go, never that policy stopped applying.
  */
 import { trackGoalSentence } from "@/lib/track-origin";
+import { refusalIsAboutTheWork } from "@/lib/spine/refusal-kind";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { runAgentLoop } from "@/lib/ai/loop.server";
 import { createMission } from "@/lib/ai/handoff.server";
@@ -2393,9 +2394,37 @@ export async function driveTrackOnce(
    * the tool and the refusal — which is what R-16 asks for and what
    * "this station filed nothing" could never give.
    */
-  const refusal = producedThisVisit
+  const refusalFound = producedThisVisit
     ? null
     : (refusedTool(steps) ?? (await refusedToolInTraces(supabase, traceIds)));
+
+  /*
+   * ── F-130: A MERGE CONFLICT IS NOT A LOCKED DOOR ───────────────────────
+   *
+   * F-41's premise above is that a refused tool failed "for a reason that has
+   * nothing to do with the work". True of the 401 it was written against, and
+   * **false of a merge conflict**, which is entirely about the work. The
+   * terminality argument fails for it too: `correction.ts` makes
+   * `tools-refused` terminal because "there is no cheap way to test whether
+   * the ask has been met", and a conflict is answered by a plain GET.
+   *
+   * So the most ordinary and most fixable thing in software was permanently
+   * ending a piece of work. S4 measured every real merge failure in this
+   * product's life: eight, of which FIVE are conflicts.
+   *
+   * A refusal that is about the work takes the ORDINARY path instead — the
+   * attempt counts, and three of them hand it to `decideCorrection`, which
+   * sends it back to be redone. That is the right answer here because
+   * `studio.commit` branches off the CURRENT default-branch head, so
+   * rebuilding resolves the conflict with nobody rebasing anything.
+   *
+   * Everything else still takes F-41's path, because for everything else its
+   * premise holds.
+   */
+  const refusal =
+    refusalFound && refusalIsAboutTheWork(refusalFound.tool, refusalFound.error)
+      ? null
+      : refusalFound;
 
   if (refusal) {
     await supabase
