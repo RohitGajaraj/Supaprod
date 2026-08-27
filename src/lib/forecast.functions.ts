@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+
+import { isPreMigration } from "@/lib/read-failure";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
@@ -72,38 +74,12 @@ export const DUE_FORECAST_PAGE = 12;
  * date moved while the row sat unchanged, which teaches people the button is
  * broken.
  */
-/**
- * Is this error the migration window, or is it a real failure?
- *
- * ── TWO TRUE THINGS THAT LOOKED LIKE ONE (F-120, 2026-08-27) ───────────────
- *
- * The reads below used to swallow EVERY error and return an empty result, and
- * the four tests pinning that named a real reason: *"Migrations and deploys are
- * two switches with no enforced order, and PostgREST answers an unknown column
- * with an error rather than a null. Throwing here would take the whole Learn
- * desk down, spec outcomes included, because both live on one route."* That is
- * correct and it is why this predicate exists rather than a blanket throw.
- *
- * But the same swallow also covered timeouts, refused reads and malformed
- * queries, and that half was a lie with teeth. `ForecastDeskPanel` returns null
- * when all three of its reads come back empty, so a total read failure did not
- * render an error and did not render zero: **the desk disappeared from the
- * page**, and a person would reasonably conclude they had nothing to settle.
- *
- * So the two are told apart by the only thing that distinguishes them, which is
- * a fact rather than a judgement:
- *
- *   · A MISSING COLUMN is a deployment-ordering fact. The feature is not there
- *     yet, the desk should stand, and an empty result is the honest answer.
- *   · ANYTHING ELSE is a runtime fact. The data exists and we could not read
- *     it, and reporting zero is a claim we cannot support.
- *
- * The codes are the two PostgREST already uses for this, and `decideDesignGate`
- * checks the identical pair for the identical reason.
+/*
+ * `isPreMigration` moved to `@/lib/read-failure` (F-126). It was written twice
+ * within a day of itself, and two copies of a rule about telling two things
+ * apart is how they drift back together. The reasoning that produced it lives
+ * in that module's header, unabridged.
  */
-function isPreMigration(error: { code?: string } | null | undefined): boolean {
-  return error?.code === "42703" || error?.code === "PGRST204";
-}
 
 export async function listDueForecastsImpl(
   db: SupabaseClient,

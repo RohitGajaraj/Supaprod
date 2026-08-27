@@ -28,6 +28,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { isForecastCheckable } from "./metric-probe.server";
 import { z } from "zod";
+
+import { failSoftOrThrow } from "@/lib/read-failure";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
 import {
@@ -427,9 +429,35 @@ export const listTracks = createServerFn({ method: "GET" })
         .eq("status", "open")
         .order("updated_at", { ascending: false })
         .limit(50);
-      if (error || !data) return [];
-      return (data as unknown as TrackRow[]).map(rowToTrack);
-    } catch {
+      /*
+       * ── F-126: "NOTHING IS IN FLIGHT" WAS ALSO WHAT A FAILED READ SAID ────
+       *
+       * This was `if (error || !data) return []`, so a PostgREST error, an RLS
+       * refusal and an empty workspace produced the same answer, and no caller
+       * could tell them apart. S1 found the consequence on the surface: the
+       * shell's live-work strip and `TrackStart` both render that empty array as
+       * **"Nothing is in flight"**, beside work that may be moving.
+       *
+       * S1 could not reproduce it and said so, which is the right way to hand
+       * over a defect found by inspection. It is real by inspection anyway: the
+       * two states are indistinguishable in the return type, whether or not the
+       * auth middleware currently catches most of the ways to get there.
+       *
+       * The split is F-120's, now shared rather than copied: a missing column is
+       * a deployment-ordering fact and falls soft; anything else is a runtime
+       * fact and is raised, so `useQuery` can set `isError` and a surface can
+       * say "this did not load" instead of "there is nothing here".
+       */
+      if (error) failSoftOrThrow(error, "The work in flight");
+      return ((data ?? []) as unknown as TrackRow[]).map(rowToTrack);
+    } catch (e) {
+      /*
+       * The bare `catch { return [] }` swallowed the throw above along with
+       * everything else, which would have made the whole fix invisible. A thrown
+       * read failure is re-raised; anything genuinely unexpected still returns an
+       * empty board rather than breaking every surface that reads it.
+       */
+      if (e instanceof Error && e.message.includes("could not be read")) throw e;
       return [];
     }
   });
@@ -440,13 +468,30 @@ export const getTrack = createServerFn({ method: "GET" })
   .handler(async ({ context, data }): Promise<Track | null> => {
     const { supabase } = context;
     try {
-      const { data: row } = await supabase
+      /*
+       * ── F-126, THE WORSE HALF ────────────────────────────────────────────
+       *
+       * This did not destructure `error` AT ALL. It read only `row`, so a
+       * refused or failed read produced `undefined`, returned null, and the run
+       * screen rendered **"this piece of work does not exist"** about a track
+       * that does. `listTracks` at least conflated a failure with an empty
+       * board; this one conflates it with a track that was never there.
+       *
+       * Reading only `data` is precisely the F-76 shape, and this is the
+       * highest-stakes instance of it found so far: it is the read behind the
+       * screen a person opens to watch one piece of work move.
+       */
+      const { data: row, error } = await supabase
         .from("spine_tracks" as never)
         .select(SELECT)
         .eq("id", data.trackId)
         .maybeSingle();
+      if (error) failSoftOrThrow(error, "This piece of work");
       return row ? rowToTrack(row as unknown as TrackRow) : null;
-    } catch {
+    } catch (e) {
+      // Re-raised for the same reason as above: a bare catch here would swallow
+      // the distinction this change exists to draw.
+      if (e instanceof Error && e.message.includes("could not be read")) throw e;
       return null;
     }
   });

@@ -25,6 +25,8 @@
  */
 import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
+
+import { isPreMigration } from "@/lib/read-failure";
 import { fileURLToPath } from "node:url";
 
 const flat = (t: string) => t.replace(/\s+/g, " ");
@@ -67,7 +69,17 @@ describe("every read says when it failed", () => {
      * codes are the pair PostgREST already uses. `decideDesignGate` checks the
      * identical pair for the identical reason.
      */
-    expect(FNS).toContain('error?.code === "42703" || error?.code === "PGRST204"');
+    /*
+     * The predicate MOVED to `@/lib/read-failure` in F-126, because it had been
+     * written twice within a day of itself and two copies of a rule about
+     * telling two things apart is how they drift back together. So this asserts
+     * the BEHAVIOUR from the shared module and the four call sites here, rather
+     * than a string that now lives somewhere else.
+     */
+    expect(isPreMigration({ code: "42703" })).toBe(true);
+    expect(isPreMigration({ code: "PGRST204" })).toBe(true);
+    expect(isPreMigration({ code: "57014" })).toBe(false);
+    expect(isPreMigration(null)).toBe(false);
     expect(FNS.split("if (isPreMigration(error))").length - 1).toBe(4);
   });
 
