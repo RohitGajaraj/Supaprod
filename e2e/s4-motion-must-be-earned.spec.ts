@@ -891,6 +891,11 @@ async function targetsTooSmallToHit(
   shapes: number;
   under24: number;
   judged: number;
+  rawUnder44: number;
+  rawUnder24: number;
+  excusedInline: number;
+  excusedSpaced: number;
+  excusedHidden: number;
 }> {
   return page.evaluate(() => {
     const SEL =
@@ -908,11 +913,53 @@ async function targetsTooSmallToHit(
     const boxes = els.map((el) => el.getBoundingClientRect());
     const out: string[] = [];
     let under24 = 0;
+    /*
+     * THE RAW COUNT, BEFORE ANY EXEMPTION, so two people can compare numbers.
+     *
+     * S3 reproduced 20 under-floor controls on `/` where this reported 17. I
+     * told them my inline-link exemption was excusing footer links, tightened
+     * it, and the number did not move -- because those links were never being
+     * excused. The explanation was wrong and the fix was unrelated.
+     *
+     * The cause of that whole exchange is that this printed ONE number built
+     * from three filters, so any disagreement about it needed a code read.
+     * Reporting the raw count beside the judged one makes the filters visible:
+     * if the raw numbers agree and the judged ones do not, the difference is a
+     * filter and not the page.
+     */
+    let rawUnder44 = 0;
+    let rawUnder24 = 0;
+    let excusedInline = 0;
+    let excusedSpaced = 0;
+    let excusedHidden = 0;
 
     els.forEach((el, i) => {
       const r = boxes[i];
       const min = Math.min(r.width, r.height);
       if (min >= 44) return;
+      /*
+       * A SKIP LINK IS 1x1 ON PURPOSE AND IS NOT A TOUCH TARGET.
+       *
+       * `/settings` reported two controls under the floor and both were
+       * `a 1x1 "Skip to the settings"` -- the visually-hidden-until-focused
+       * pattern, which exists FOR accessibility. I was one message away from
+       * asking a lane to pad it, which would have broken a working skip link
+       * to satisfy a number about thumbs.
+       *
+       * That is the second time this lane has nearly recommended removing an
+       * accessibility affordance by measuring it as a defect: the first was a
+       * password control on Settings that S3 caught. Both times the check was
+       * right about the pixels and wrong about the object.
+       *
+       * Nothing a thumb can hit is 4px. A box that small is a hidden idiom, so
+       * it is excused and COUNTED, never silently dropped.
+       */
+      if (min <= 4) {
+        excusedHidden++;
+        return;
+      }
+      rawUnder44++;
+      if (min < 24) rawUnder24++;
 
       /*
        * WCAG'S INLINE EXCEPTION IS FOR A LINK IN A SENTENCE, NOT A LINK IN A
@@ -941,7 +988,10 @@ async function targetsTooSmallToHit(
           .map((n) => n.textContent ?? "")
           .join("")
           .trim();
-        if (prose.length >= 8) return;
+        if (prose.length >= 8) {
+          excusedInline++;
+          return;
+        }
       }
 
       // Spaced far from every other control? Then a mis-tap is not the risk.
@@ -952,7 +1002,10 @@ async function targetsTooSmallToHit(
         const dy = Math.max(0, Math.max(r.top - o.bottom, o.top - r.bottom));
         return Math.hypot(dx, dy) < need;
       });
-      if (!crowded) return;
+      if (!crowded) {
+        excusedSpaced++;
+        return;
+      }
 
       if (min < 24) under24++;
       const cls = el.className?.toString().trim().split(/\s+/).slice(0, 2).join(".");
@@ -979,6 +1032,11 @@ async function targetsTooSmallToHit(
       shapes: counts.size,
       under24,
       judged: els.length,
+      rawUnder44,
+      rawUnder24,
+      excusedInline,
+      excusedSpaced,
+      excusedHidden,
     };
   });
 }
@@ -1442,7 +1500,10 @@ test("report which surfaces still move once nothing can be read", async ({ page 
     notes.push(
       `\n--- ${path}: touch targets, ${taps.belowElements} control(s) under 44px and crowded ` +
         `in ${taps.shapes} shape(s), ${taps.under24} of those controls under the WCAG 24px floor, ` +
-        `of ${taps.judged} controls on the page ---` +
+        `of ${taps.judged} controls on the page. RAW, before any exemption: ` +
+        `${taps.rawUnder44} under 44 and ${taps.rawUnder24} under 24 ` +
+        `(${taps.excusedInline} excused as inline-in-prose, ${taps.excusedSpaced} as spaced, ` +
+        `${taps.excusedHidden} as visually-hidden idioms like skip links) ---` +
         (taps.under44.length ? `\n  ` + taps.under44.join(`\n  `) : ` none`),
     );
 
