@@ -166,7 +166,33 @@ function OpenCall({
         question={stripAutoPrefix(item.title)}
         linesLabel={item.evidence.length ? "Why this needs your call" : undefined}
         lines={[
-          ...facts.map((line, i) => <span key={`fact-${i}`}>{stripAutoPrefix(line)}</span>),
+          /*
+           * THE MEASURE, APPLIED AT THE CALL SITE.
+           *
+           * Meridian already rules this: `--mrd-measure` is 68ch and its own
+           * comment says "prose only, never a table or a row". Nothing on the
+           * board was using it. `meridian/Gate.tsx` draws its lines at the
+           * card's full width, which on a desktop board measured 2026-08-27 is
+           * about 110 characters, and the FIRST fact on a review card is a
+           * whole model paragraph: eight lines of unbroken text, the largest
+           * thing on the screen and the one a person must actually read before
+           * they can approve anything.
+           *
+           * It is capped here rather than in `meridian/Gate.tsx` because that
+           * primitive is S0's and a lane authors locally and files. Capping the
+           * call site fixes the surface a person is looking at without taking
+           * a decision that belongs to the design system, and it does not
+           * block Gate from capping by default later.
+           *
+           * `block` is load-bearing: a max-width on an inline span does
+           * nothing, and the silent version of this change is one that looks
+           * applied and wraps at 110 characters exactly as before.
+           */
+          ...facts.map((line, i) => (
+            <span key={`fact-${i}`} className="block max-w-[var(--mrd-measure)]">
+              {stripAutoPrefix(line)}
+            </span>
+          )),
           ...(hidden > 0
             ? [
                 <Door key="all" title="Open the rest here" onClick={() => setShowAll(true)}>
@@ -174,7 +200,9 @@ function OpenCall({
                 </Door>,
               ]
             : []),
-          <span key="consequence">{item.approveConsequence}</span>,
+          <span key="consequence" className="block max-w-[var(--mrd-measure)]">
+            {item.approveConsequence}
+          </span>,
         ]}
       >
         {/* TIER: Approve. The click releases a decision held for you - the work

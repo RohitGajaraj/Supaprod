@@ -1893,10 +1893,30 @@ function Today() {
               ) : (
                 <>
                   {items.length > 0 ? (
-                    <>
-                      <Num>{items.length}</Num> waiting on you. Nothing has happened yet, so undo is
-                      free.
-                    </>
+                    /*
+                     * THE COUNT IS GONE FROM HERE, AND ONLY THE COUNT.
+                     *
+                     * Screenshotted on the running board 2026-08-27, signed in,
+                     * against real data: the number 52 appeared THREE TIMES
+                     * inside about a hundred pixels. The headline said "52
+                     * decisions are ready for your review", this line said "52
+                     * waiting on you", and the group heading immediately below
+                     * drew "READY FOR YOUR REVIEW 52". A person does not read
+                     * that as emphasis, they read it as a screen that cannot
+                     * tell them one thing once.
+                     *
+                     * `AgentInbox`'s own contract for this slot already says
+                     * which of the three should go: "the heading says what a
+                     * group needs and the count says how many. Neither can say
+                     * the thing a reader actually weighs... that nothing has
+                     * happened yet on a pending call so undo is free." The
+                     * count was mine to stop repeating, and the judgement is
+                     * the half no other element on the screen can carry.
+                     *
+                     * The number is not lost. It is still in the headline and
+                     * still on the group, which is the element that owns it.
+                     */
+                    <>Nothing has happened yet, so undo is free.</>
                   ) : quietMorning /* SILENT ON A QUIET MORNING, and this is the wall coming
                        down. An audit of the real first sixty seconds found this
                        surface opening with FIVE NEGATIONS in one viewport, and
