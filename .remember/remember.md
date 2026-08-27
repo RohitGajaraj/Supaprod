@@ -32,6 +32,35 @@ It is parked at `ship` on `given-up`, a terminal hold, and both of Ship's refusa
    for this (F-116).
 3. **117 of 119 specs carried no success metric**, so Learn had nothing to grade (S0, F-117).
 
+## The structural findings, which describe the product rather than a screen
+
+Each has a one-command check in `e2e/helpers/`, no server, no credentials.
+
+| | |
+| --- | --- |
+| Server functions nothing imports | **141 of 656** |
+| Components nothing imports | **80 of 492** (noisier: a helper used only in its own file counts) |
+| **The Meridian ratchet is bypassed by an alias** | **46 files**, and a NEW file can be written entirely in the retired system today and pass green. **S0's call** |
+| Tables with a live writer and a dead one | **19** |
+| The Linear push was moved off a route and never arrived | capability lost in a fold, and `SURFACE-MAP` had said by name not to drop it |
+| A person cannot rename a run | confirmed; **S2 ruled: delete, do not wire** |
+| Spend accrues against no ceiling | **10 of 14** budget rows |
+| `/proof` prints a raw config error naming an env var to the public | one line |
+
+**An orphan is not waste.** Three rows were resolved three different ways within an hour by three
+people: one was a real gap (S3 shipped the banner), one was documented as a gap before either of us
+looked, and one was superseded and should be deleted. **The list is where to look, not a delete
+order.**
+
+## The meta-finding, which outranks all of it
+
+**Four guards reported success while the thing they guarded was happening.** My `curl` warming that
+warmed nothing. S1's `Gate` printing "Waiting on you" for a status nobody had set. S0's `FILE_IT`
+rewrite that reached no seat. The ratchet matching literals past an alias.
+
+**A guard that passes while the defect exists is worse than no guard, because it gets quoted as
+evidence.** Four lanes hit that shape independently, in four different layers, in one night.
+
 ## What I built, all in `e2e/`
 
 `bash e2e/check-motion.sh [--signed-in] [--phone] [--expired-session] [paths…]`, also
