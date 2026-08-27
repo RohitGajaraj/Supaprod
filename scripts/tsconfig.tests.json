@@ -1,0 +1,37 @@
+{
+  "//": [
+    "THE TEST SUITE HAS NEVER BEEN TYPECHECKED.",
+    "",
+    "tsconfig.json excludes src/**/*.test.ts and src/**/*.test.tsx, so `bunx tsc",
+    "--noEmit` -- one of the four gates every lane runs before every commit --",
+    "has never looked at a single test file. `bun test` transpiles without",
+    "checking, so nothing else looks at them either.",
+    "",
+    "S4 found the same hole in e2e/ and proved it with a deliberate bad",
+    "annotation that tsc reported ZERO times. Four of the five errors hiding",
+    "there were reading fields off types that did not have them, in the checks",
+    "being used to judge other lanes' code.",
+    "",
+    "MEASURED HERE, 2026-08-28: 424 type errors across 185 files. Mutation-",
+    "tested the same way -- a deliberate bad annotation produces exactly one",
+    "error and removing it returns zero -- so the config works and the 424 are",
+    "real.",
+    "",
+    "IT IS NOT A GATE YET AND THAT IS DELIBERATE. Failing every lane on 424",
+    "pre-existing errors is how a check gets reverted rather than fixed; the",
+    "repo's own Meridian ratchet exists because somebody already learned that.",
+    "This makes the number visible and runnable by name (`bun run",
+    "typecheck:tests`) so it can be driven down and then gated, which is the",
+    "order that survives.",
+    "",
+    "Its own config rather than widening the root include, following S4's e2e",
+    "precedent: test files are Bun code and src is browser code, and one",
+    "`types` field cannot be right for both."
+  ],
+  "extends": "../tsconfig.json",
+  "include": ["../src/**/*.test.ts", "../src/**/*.test.tsx"],
+  "exclude": [],
+  "compilerOptions": {
+    "types": ["vite/client", "bun-types"]
+  }
+}

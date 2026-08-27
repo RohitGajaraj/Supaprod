@@ -25,6 +25,43 @@ function prose(src: string): string {
   return src.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, " ");
 }
 
+/**
+ * TWO `ToolMode` TYPES, AND THEY DIFFER BY THE ONE VALUE THAT MATTERS.
+ *
+ *   src/lib/ai/tools/defaults.ts   "auto" | "confirm" | "review" | "off"
+ *   src/lib/ai/trust.server.ts     "auto" | "confirm" | "review"
+ *
+ * `resolveToolAccess` returns the first. `resolveToolMode` takes the second.
+ * This file passed one into the other and NOBODY COULD SEE IT: tsconfig.json
+ * excludes `src/**\/*.test.ts`, so no test file in this repo has ever been
+ * typechecked. S4 found the same hole in e2e/ and proved it with a deliberate
+ * bad annotation that tsc reported zero times.
+ *
+ * IT IS NOT A LIVE DEFECT and it is worth knowing why, because the reason is
+ * upstream of the type. `resolveToolAccess` DROPS an off tool from its list
+ * entirely (`if (mode === "off") return []`), so the loop never hands
+ * `resolveToolMode` an off tool and the narrower union is satisfied in
+ * practice. `getBoundary` guards it explicitly for the same reason.
+ *
+ * BUT THE NARROWER FUNCTION WOULD MISHANDLE ONE IF IT ARRIVED. On `observing`,
+ * `resolveApprovalMode` returns "review" for anything that is not already
+ * "review" -- so an "off" tool handed to it comes back REVIEW-GATED rather
+ * than off, which is a disabled tool switched back on. The only thing standing
+ * between that and a person is a filter two calls upstream.
+ *
+ * Filed for whoever owns `src/lib/ai`: these should be one type. Until then
+ * this file narrows explicitly rather than leaning on the filter, so the guard
+ * says what it means and typechecks.
+ */
+const RESOLVABLE = ["auto", "confirm", "review"] as const;
+type ResolvableMode = (typeof RESOLVABLE)[number];
+
+/** The seeds `resolveToolMode` can actually be asked about. An off tool is not
+ *  one of them, and this is where that is stated rather than assumed. */
+function resolvable(mode: string): mode is ResolvableMode {
+  return (RESOLVABLE as readonly string[]).includes(mode);
+}
+
 describe("the boundary counts what happens", () => {
   it("the arc moves enough tools that reading the seed is a wrong answer", async () => {
     const { TOOL_REGISTRY } = await import("@/lib/ai/tools/registry.server");
@@ -32,7 +69,8 @@ describe("the boundary counts what happens", () => {
 
     const storedAuto = seeded.filter((t) => t.mode === "auto").length;
     const runsAuto = seeded.filter(
-      (t) => resolveToolMode(t.tool_name, t.mode, "trusted", false) === "auto",
+      (t) =>
+        resolvable(t.mode) && resolveToolMode(t.tool_name, t.mode, "trusted", false) === "auto",
     ).length;
 
     // The gap is the bug. If a future change closed it honestly this assertion
