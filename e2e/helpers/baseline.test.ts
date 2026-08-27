@@ -140,3 +140,38 @@ describe("comparing two renders of the same path", () => {
     expect(populationComparable(5, 0)).toBe(false);
   });
 });
+
+describe("a baseline taken at a different width", () => {
+  it("refuses to compare a phone run against desktop numbers", () => {
+    const line = compareToBaseline(
+      "/",
+      { ...clean, contrastBelow: 83 },
+      { "/": { contrastBelow: 83, viewport: "1280x900" } },
+      "public",
+      "390x844",
+    );
+    expect(line).toContain("Not compared");
+  });
+
+  it("compares when the widths agree", () => {
+    const line = compareToBaseline(
+      "/",
+      { ...clean, contrastBelow: 90 },
+      { "/": { failureSentences: 2, retries: 0, unnamed: 0, wideProse: 0, contrastBelow: 83, viewport: "390x844" } },
+      "public",
+      "390x844",
+    );
+    expect(line).toContain("contrastBelow 83 -> 90 REGRESSED");
+  });
+
+  it("still compares when the baseline predates viewports being recorded", () => {
+    const line = compareToBaseline(
+      "/",
+      { ...clean, contrastBelow: 90 },
+      { "/": { failureSentences: 2, retries: 0, unnamed: 0, wideProse: 0, contrastBelow: 83 } },
+      "public",
+      "390x844",
+    );
+    expect(line).toContain("REGRESSED");
+  });
+});

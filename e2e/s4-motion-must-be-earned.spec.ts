@@ -1432,6 +1432,7 @@ test("report which surfaces still move once nothing can be read", async ({ page 
       },
       BASELINE,
       RUN_MODE,
+      `${VIEWPORT.width}x${VIEWPORT.height}`,
     );
     if (moved) drift.push(moved);
 
@@ -1455,6 +1456,8 @@ test("report which surfaces still move once nothing can be read", async ({ page 
     const wasBelow = BASELINE[path]?.contrastBelow;
     const wasJudged = BASELINE[path]?.contrastJudged;
     const modeMatches = !BASELINE[path]?.mode || BASELINE[path]?.mode === RUN_MODE;
+    const wasViewport = BASELINE[path]?.viewport;
+    const viewportMatches = !wasViewport || wasViewport === `${VIEWPORT.width}x${VIEWPORT.height}`;
     /*
      * A rising count on a page that rendered DIFFERENTLY is not a regression,
      * and this ratchet fails builds, so it declines to judge that case rather
@@ -1462,14 +1465,14 @@ test("report which surfaces still move once nothing can be read", async ({ page 
      */
     const samePage =
       typeof wasJudged !== "number" || populationComparable(contrast.sampled, wasJudged);
-    if (typeof wasBelow === "number" && modeMatches && !samePage && contrast.below > wasBelow) {
+    if (typeof wasBelow === "number" && modeMatches && viewportMatches && !samePage && contrast.below > wasBelow) {
       notes.push(
         `\n--- ${path}: contrast rose ${wasBelow} -> ${contrast.below}, but the page rendered ` +
           `${contrast.sampled} elements against a baseline of ${wasJudged}. NOT COMPARED: that is ` +
           `a different render, not a regression. ---`,
       );
     }
-    if (typeof wasBelow === "number" && modeMatches && samePage && contrast.below > wasBelow) {
+    if (typeof wasBelow === "number" && modeMatches && viewportMatches && samePage && contrast.below > wasBelow) {
       contrastWorse.push(
         `${path}: ${wasBelow} -> ${contrast.below} below AA` +
           (contrast.failures.length ? `, worst shapes: ${contrast.failures.slice(0, 3).join("; ")}` : ""),
@@ -1535,7 +1538,38 @@ test("report which surfaces still move once nothing can be read", async ({ page 
     }
   }
 
-  writeFileSync(join(SHOT_DIR, "motion-report.txt"), [...report, ...notes].join("\n"), "utf8");
+  /*
+   * THE BASELINE COMPARISON WAS COLLECTED AND NEVER PRINTED.
+   *
+   * `drift` was declared, pushed to on every surface, and read by nothing. So
+   * every REGRESSED and IMPROVED line this spec has ever computed went into an
+   * array and stopped there, and the baseline in surface-baseline.json has been
+   * decorative since it was written.
+   *
+   * Found by adding the viewport guard and looking for its "Not compared"
+   * message in a real run. It was not missing -- it was never routed. That is
+   * the exact shape this lane has spent the night finding in other people's
+   * code: a check that runs, computes the right answer, and reports it nowhere.
+   *
+   * A RISE IS A PROMPT TO READ THE LIST, NEVER A VERDICT. `/learn` rose 7 to 9
+   * when a vanishing panel started explaining itself, which is an improvement
+   * the count cannot tell from a regression.
+   */
+  const driftBlock = drift.length
+    ? [
+        "",
+        "=== AGAINST THE RECORDED BASELINE ===",
+        ...drift,
+        "A RISE IS A PROMPT TO READ THE LIST, NEVER A VERDICT: a surface that starts",
+        "explaining itself scores worse and is better. Only contrast fails a build.",
+      ]
+    : ["", "=== AGAINST THE RECORDED BASELINE: nothing moved. ==="];
+
+  writeFileSync(
+    join(SHOT_DIR, "motion-report.txt"),
+    [...report, ...notes, ...driftBlock].join("\n"),
+    "utf8",
+  );
 
   if (illustrated.length) {
     console.info(
@@ -1556,7 +1590,7 @@ test("report which surfaces still move once nothing can be read", async ({ page 
       "here too, and decoration carrying no state claim is honest. Open the screenshots in\n" +
       "docs/screenshots/s4-motion/ and ask whether what moved was a STATE. That judgement is\n" +
       "not automated and this spec does not pretend to make it.\n" +
-      [...report, ...notes].join("\n"),
+      [...report, ...notes, ...driftBlock].join("\n"),
   );
 
   // The measurement ran for every surface.

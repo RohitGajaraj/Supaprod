@@ -10,7 +10,8 @@
       "wideProse": 0,
       "contrastBelow": 0,
       "mode": "signed-in",
-      "contrastJudged": 47
+      "contrastJudged": 47,
+      "viewport": "1280x900"
     },
     "/approvals": {
       "failureSentences": 2,
@@ -19,7 +20,8 @@
       "wideProse": 0,
       "contrastBelow": 0,
       "mode": "signed-in",
-      "contrastJudged": 45
+      "contrastJudged": 45,
+      "viewport": "1280x900"
     },
     "/brain": {
       "failureSentences": 6,
@@ -28,7 +30,8 @@
       "wideProse": 0,
       "contrastBelow": 0,
       "mode": "signed-in",
-      "contrastJudged": 59
+      "contrastJudged": 59,
+      "viewport": "1280x900"
     },
     "/learn": {
       "failureSentences": 8,
@@ -37,7 +40,8 @@
       "wideProse": 0,
       "contrastBelow": 2,
       "mode": "signed-in",
-      "contrastJudged": 62
+      "contrastJudged": 62,
+      "viewport": "1280x900"
     },
     "/threads": {
       "failureSentences": 2,
@@ -46,7 +50,8 @@
       "wideProse": 1,
       "contrastBelow": 0,
       "mode": "signed-in",
-      "contrastJudged": 52
+      "contrastJudged": 52,
+      "viewport": "1280x900"
     },
     "/guardrails": {
       "failureSentences": 5,
@@ -55,7 +60,8 @@
       "wideProse": 0,
       "contrastBelow": 0,
       "mode": "signed-in",
-      "contrastJudged": 63
+      "contrastJudged": 63,
+      "viewport": "1280x900"
     },
     "/engine-room": {
       "failureSentences": 3,
@@ -64,7 +70,8 @@
       "wideProse": 0,
       "contrastBelow": 0,
       "mode": "signed-in",
-      "contrastJudged": 66
+      "contrastJudged": 66,
+      "viewport": "1280x900"
     },
     "/settings": {
       "failureSentences": 1,
@@ -73,7 +80,8 @@
       "wideProse": 0,
       "contrastBelow": 0,
       "mode": "signed-in",
-      "contrastJudged": 69
+      "contrastJudged": 69,
+      "viewport": "1280x900"
     },
     "/start": {
       "failureSentences": 1,
@@ -82,7 +90,8 @@
       "wideProse": 0,
       "contrastBelow": 0,
       "mode": "signed-in",
-      "contrastJudged": 59
+      "contrastJudged": 59,
+      "viewport": "1280x900"
     },
     "/plan": {
       "failureSentences": 0,
@@ -91,7 +100,8 @@
       "wideProse": 0,
       "contrastBelow": 0,
       "mode": "signed-in",
-      "contrastJudged": 25
+      "contrastJudged": 25,
+      "viewport": "1280x900"
     },
     "/ship": {
       "failureSentences": 0,
@@ -100,7 +110,8 @@
       "wideProse": 0,
       "contrastBelow": 2,
       "mode": "signed-in",
-      "contrastJudged": 56
+      "contrastJudged": 56,
+      "viewport": "1280x900"
     },
     "/inbox": {
       "failureSentences": 0,
@@ -109,7 +120,8 @@
       "wideProse": 0,
       "contrastBelow": 0,
       "mode": "signed-in",
-      "contrastJudged": 46
+      "contrastJudged": 46,
+      "viewport": "1280x900"
     },
     "/crew": {
       "failureSentences": 3,
@@ -118,7 +130,8 @@
       "wideProse": 0,
       "contrastBelow": 0,
       "mode": "signed-in",
-      "contrastJudged": 91
+      "contrastJudged": 91,
+      "viewport": "1280x900"
     },
     "/decide": {
       "failureSentences": 2,
@@ -127,7 +140,8 @@
       "wideProse": 0,
       "contrastBelow": 2,
       "mode": "signed-in",
-      "contrastJudged": 46
+      "contrastJudged": 46,
+      "viewport": "1280x900"
     },
     "/design": {
       "failureSentences": 3,
@@ -136,7 +150,8 @@
       "wideProse": 0,
       "contrastBelow": 2,
       "mode": "signed-in",
-      "contrastJudged": 49
+      "contrastJudged": 49,
+      "viewport": "1280x900"
     },
     "/discover": {
       "failureSentences": 4,
@@ -145,7 +160,8 @@
       "wideProse": 0,
       "contrastBelow": 2,
       "mode": "signed-in",
-      "contrastJudged": 51
+      "contrastJudged": 51,
+      "viewport": "1280x900"
     },
     "/build": {
       "failureSentences": 4,
@@ -154,7 +170,8 @@
       "wideProse": 0,
       "contrastBelow": 2,
       "mode": "signed-in",
-      "contrastJudged": 56
+      "contrastJudged": 56,
+      "viewport": "1280x900"
     },
     "/sync": {
       "failureSentences": 4,
@@ -163,7 +180,8 @@
       "wideProse": 0,
       "contrastBelow": 0,
       "mode": "signed-in",
-      "contrastJudged": 59
+      "contrastJudged": 59,
+      "viewport": "1280x900"
     },
     "/": {
       "failureSentences": 0,
@@ -172,7 +190,8 @@
       "wideProse": 1,
       "contrastBelow": 83,
       "mode": "public",
-      "contrastJudged": 248
+      "contrastJudged": 248,
+      "viewport": "1280x900"
     },
     "/pricing": {
       "failureSentences": 0,
@@ -181,7 +200,8 @@
       "wideProse": 3,
       "contrastBelow": 0,
       "mode": "public",
-      "contrastJudged": 105
+      "contrastJudged": 105,
+      "viewport": "1280x900"
     },
     "/faq": {
       "failureSentences": 0,
@@ -190,7 +210,8 @@
       "wideProse": 6,
       "contrastBelow": 7,
       "mode": "public",
-      "contrastJudged": 35
+      "contrastJudged": 35,
+      "viewport": "1280x900"
     },
     "/security": {
       "failureSentences": 0,
@@ -199,7 +220,8 @@
       "wideProse": 6,
       "contrastBelow": 7,
       "mode": "public",
-      "contrastJudged": 36
+      "contrastJudged": 36,
+      "viewport": "1280x900"
     },
     "/privacy": {
       "failureSentences": 0,
@@ -208,7 +230,8 @@
       "wideProse": 6,
       "contrastBelow": 7,
       "mode": "public",
-      "contrastJudged": 39
+      "contrastJudged": 39,
+      "viewport": "1280x900"
     },
     "/ard": {
       "failureSentences": 0,
@@ -217,7 +240,8 @@
       "wideProse": 2,
       "contrastBelow": 0,
       "mode": "public",
-      "contrastJudged": 39
+      "contrastJudged": 39,
+      "viewport": "1280x900"
     },
     "/updates": {
       "failureSentences": 0,
@@ -226,7 +250,8 @@
       "wideProse": 1,
       "contrastBelow": 7,
       "mode": "public",
-      "contrastJudged": 50
+      "contrastJudged": 50,
+      "viewport": "1280x900"
     },
     "/subprocessors": {
       "failureSentences": 0,
@@ -235,7 +260,8 @@
       "wideProse": 6,
       "contrastBelow": 0,
       "mode": "public",
-      "contrastJudged": 69
+      "contrastJudged": 69,
+      "viewport": "1280x900"
     },
     "/investors": {
       "failureSentences": 0,
@@ -244,7 +270,8 @@
       "wideProse": 4,
       "contrastBelow": 0,
       "mode": "public",
-      "contrastJudged": 15
+      "contrastJudged": 15,
+      "viewport": "1280x900"
     },
     "/brief": {
       "failureSentences": 0,
@@ -253,7 +280,8 @@
       "wideProse": 4,
       "contrastBelow": 0,
       "mode": "public",
-      "contrastJudged": 15
+      "contrastJudged": 15,
+      "viewport": "1280x900"
     },
     "/checkout": {
       "failureSentences": 0,
@@ -262,7 +290,8 @@
       "wideProse": 0,
       "contrastBelow": 0,
       "mode": "public",
-      "contrastJudged": 24
+      "contrastJudged": 24,
+      "viewport": "1280x900"
     }
   },
   "_this_is_a_direction_not_a_target": "MATCHING YOUR BASELINE DOES NOT MEAN A SURFACE IS CORRECT. These are the numbers the product happened to produce on one night, several of them from surfaces whose fixes were sitting unmerged on a lane branch. A measurement is a fair way to choose what to fix FIRST. It is not a fair way to decide what the thing should BE, and a baseline is the exact shape that quietly turns one into the other. Read the LIST the report prints, not the number, and lower a baseline entry whenever a real fix lands rather than treating the old value as the goal. Founder's correction, relayed 2026-08-27.",
