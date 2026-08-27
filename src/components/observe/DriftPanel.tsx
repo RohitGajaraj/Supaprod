@@ -546,12 +546,3 @@ function PooledLine({
     </Line>
   );
 }
-
-export function useDriftCounts() {
-  const fetchOverview = useServerFn(getDriftOverview);
-  const { data } = useQuery({
-    queryKey: ["drift_overview"],
-    queryFn: () => fetchOverview(),
-  });
-  return { open: data?.openIncidents?.length ?? 0 };
-}

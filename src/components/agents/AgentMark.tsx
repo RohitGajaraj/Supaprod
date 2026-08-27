@@ -56,7 +56,19 @@ export function AgentMark({
 
 /** The called-out treatment: the mark, the name, and optionally what it is
  *  doing right now. The name is quiet by default; nothing here tints plain text,
- *  because the mark already carries the identity. */
+ *  because the mark already carries the identity.
+ *
+ *  NO IMPORTER SINCE IT WAS WRITTEN TWO MONTHS AGO, and it HAS a home:
+ *  `today/DecisionQueue.tsx` draws `<AgentMark/>` beside
+ *  `agentDisplayName(...)` at two sites, which is this component spelled by
+ *  hand. R-20's utilisation duty calls that a fail.
+ *
+ *  Left unwired on 2026-08-27 for one reason, stated so it is not read as an
+ *  oversight: swapping a visual primitive changes layout, no dev server was
+ *  available to look at the result, and this repo's own rule is that a value
+ *  chosen because it "looked right" is a fail. Wire it with a browser open,
+ *  not from a grep. `pixelName` is a retired-vocabulary vestige and should go
+ *  with the same pass. */
 export function AgentBadge({
   slug,
   verb,

@@ -142,14 +142,6 @@ export function IconMoon({ className }: IconProps) {
  * Follow the system. A display, because that is what it is following: not a
  * third brightness, but a deferral to the machine.
  */
-export function IconSystem({ className }: IconProps) {
-  return (
-    <svg {...base} className={className} strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2.8" y="4.2" width="18.4" height="12.4" rx="1.6" />
-      <path d="M8.6 20.2h6.8M12 16.6v3.6" />
-    </svg>
-  );
-}
 
 /** The board: work in columns. */
 export function IconBoard({ className }: IconProps) {

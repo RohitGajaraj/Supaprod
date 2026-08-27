@@ -83,7 +83,18 @@ export const REACH_CHOICE: { value: string; label: string }[] = [
 
 /** The same fact as a phrase, for a surface that STATES the cap rather than
  *  setting it. A surface that can only read must still say the same words as
- *  the one that can write, or the reader learns two names for one boundary. */
+ *  the one that can write, or the reader learns two names for one boundary.
+ *
+ *  NO IMPORTER, AND ITS NATURAL SURFACE HAS NOT SHIPPED. Checked 2026-08-27:
+ *  the only consumer of the reach vocabulary is crew's SELECT, which sets the
+ *  cap and reads `REACH_CHOICE` directly. Nothing yet displays the cap
+ *  read-only, which is the case this exists for.
+ *
+ *  Kept rather than deleted, deliberately. It is four lines derived from
+ *  `REACH_CHOICE`, so it carries no second copy of the fact; deleting it saves
+ *  nothing and invites the next read-only surface to invent its own wording,
+ *  which is precisely the "two names for one boundary" this was written to
+ *  prevent. If that surface never ships, delete this with it. */
 export function reachWord(maxToolRisk: string | null | undefined): string {
   return REACH_CHOICE.find((r) => r.value === (maxToolRisk ?? ""))?.label ?? REACH_CHOICE[0].label;
 }
