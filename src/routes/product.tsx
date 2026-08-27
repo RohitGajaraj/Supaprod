@@ -106,6 +106,10 @@ function ProductPage() {
       className="public-ink bg-[#0a0a0a] min-h-screen"
       style={{ ...PUBLIC_INK_THEME }}
       data-obsidian
+      /* See index.tsx: `.public-ink` reads --mrd-faint and --mrd-mute, the light
+         theme re-declares both DARKER, and this ground does not invert with
+         them. */
+      data-mrd-pinned-dark
     >
       {/* Backdrop: grid + starfield (inherited from landing) */}
       <LandingBackdrop />

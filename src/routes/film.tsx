@@ -66,6 +66,9 @@ function FilmPage() {
   return (
     <div
       className="public-ink flex min-h-screen flex-col bg-[#0a0a0a] text-zinc-100"
+      /* See index.tsx: the light theme re-declares --mrd-faint darker, and this
+         ground does not invert with it. */
+      data-mrd-pinned-dark
       style={{ ...PUBLIC_INK_THEME, isolation: "isolate" }}
     >
       <div style={{ position: "fixed", inset: 0, zIndex: -1, pointerEvents: "none" }} aria-hidden>

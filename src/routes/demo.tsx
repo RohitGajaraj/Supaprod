@@ -114,6 +114,10 @@ function DemoPage() {
   return (
     <div
       className="public-ink min-h-screen flex flex-col bg-[#0a0a0a] text-zinc-100"
+      /* See index.tsx: `.public-ink` reads --mrd-faint and --mrd-mute, and the
+         light theme re-declares both DARKER, which on this ground would invert
+         the fix into a worse failure. */
+      data-mrd-pinned-dark
       style={{ ...PUBLIC_INK_THEME, isolation: "isolate" }}
     >
       {/* The landing starfield, painted behind all content */}
