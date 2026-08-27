@@ -1,6 +1,6 @@
 {
   "_readme": "S4 baseline, measured 2026-08-27 against a dead backend. Per surface: failure sentences a person reads for ONE dead read, Try again controls, control shapes a screen reader cannot name, and prose lines past 76ch or capped inline in pixels. check-motion.sh diffs against this and prints REGRESSED or IMPROVED.",
-  "_measured_at": "2026-08-27, signed-in set re-taken in ONE pass after the station-strip fix",
+  "_measured_at": "2026-08-27. Signed-in set and public set each re-taken in ONE pass after the station-strip fix. Whole file is one instrument.",
   "_note": "Several surfaces have fixes on lane branches that had not merged when this was taken. Where a number looks high, check the lane before treating it as current.",
   "surfaces": {
     "/today": {
@@ -139,7 +139,7 @@
       "failureSentences": 0,
       "retries": 0,
       "unnamed": 0,
-      "wideProse": 4
+      "wideProse": 6
     },
     "/ard": {
       "failureSentences": 0,
