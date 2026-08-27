@@ -41,6 +41,7 @@ import { CodeDiff } from "@/components/studio/CodeDiff";
 import { setDecisionForecast, updateDecision } from "@/lib/decisions.functions";
 import { decisionsForGrading } from "@/components/track/graded-decisions";
 import { clusteredInto } from "@/components/track/clustered-into";
+import { saidOnce } from "@/components/track/said-once";
 import { deferForecastCheck, reopenForecast, settleForecast } from "@/lib/forecast.functions";
 import type { ChainMember, ChainStop } from "@/lib/spine/chain";
 import { wordFor } from "@/lib/spine/chain";
@@ -1600,7 +1601,11 @@ export function MissionCard({ item }: { item: ArtifactView }) {
         {completedAt ? <StatusChip status="pass">Completed</StatusChip> : null}
         {!completedAt && status ? <span className="mrd-meta">{status}</span> : null}
       </span>
-      {goal ? <Prose markdown={false}>{goal}</Prose> : null}
+      {/* Shown once even where the record holds it twice. The write path that
+          doubled it is fixed at the source; two historical rows remain and one
+          of them is on the most-opened track in the database. See
+          `said-once.ts` for why this is a render fix rather than a bridge. */}
+      {saidOnce(goal) ? <Prose markdown={false}>{saidOnce(goal)}</Prose> : null}
       <span className="mrd-meta">
         {[
           hops !== null ? `${hops} ${hops === 1 ? "hop" : "hops"}` : "",
