@@ -36,6 +36,7 @@
  * not block; it does not follow that a person may never move their own work.
  */
 import * as React from "react";
+import { failureLine } from "@/components/track/error-copy";
 import { Row } from "@/components/meridian/rows";
 import { Actions } from "@/components/meridian/surface-parts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -242,7 +243,7 @@ export function TrackStart({
     onError: (e: Error, t) =>
       setMoved({
         verb: "It did not move",
-        consequence: `${t.title} is still at ${AGENT_STATIONS[t.station].name}. ${e.message}`,
+        consequence: failureLine(`${t.title} is still at ${AGENT_STATIONS[t.station].name}.`, e),
         failed: true,
       }),
   });
@@ -277,7 +278,10 @@ export function TrackStart({
     onError: (e: Error, t) =>
       setMoved({
         verb: "Nothing was released",
-        consequence: `${t.title} is still held at ${AGENT_STATIONS[t.station].name}. ${e.message}`,
+        consequence: failureLine(
+          `${t.title} is still held at ${AGENT_STATIONS[t.station].name}.`,
+          e,
+        ),
         failed: true,
       }),
   });

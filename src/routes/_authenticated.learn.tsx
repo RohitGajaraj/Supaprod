@@ -137,6 +137,7 @@
  */
 
 import * as React from "react";
+import { failureLine } from "@/components/track/error-copy";
 import { Row } from "@/components/meridian/rows";
 import {
   Action,
@@ -876,7 +877,11 @@ function Learn() {
             settledOnRecord={outcomes?.total ?? null}
             awaitingVerdict={waiting > 0 ? waiting : undefined}
             loading={stillWaiting(lastQ)}
-            loadError={lastQ.isError ? (lastQ.error as Error).message : null}
+            loadError={
+              lastQ.isError
+                ? failureLine("The last verdict did not load.", lastQ.error)
+                : null
+            }
             onRetry={() => void lastQ.refetch()}
           />
         ) : null}

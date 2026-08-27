@@ -215,6 +215,7 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { failureLine } from "@/components/track/error-copy";
 import { sourceLabel } from "@/components/discover/format";
 import { wordFor } from "@/lib/spine/chain";
 import { Row, Line } from "@/components/meridian/rows";
@@ -794,11 +795,7 @@ function NameABet({ pending, onName }: { pending: boolean; onName: (idea: string
  * conditional, so that distinction is the whole reason not to pass a flag.
  */
 function CtxSection({ children }: { children: React.ReactNode }) {
-  return (
-    <section className="flex flex-col gap-mrd-4 pt-mrd-6 first:pt-0">
-      {children}
-    </section>
-  );
+  return <section className="flex flex-col gap-mrd-4 pt-mrd-6 first:pt-0">{children}</section>;
 }
 
 /**
@@ -1868,10 +1865,17 @@ function DecideSurface() {
         (e as LaneWriteError).laneOnly
           ? {
               verb: "Only half of it moved",
-              consequence: `${title} reads as ${STATUS_META[status].label} here, and the board in Plan did not get the lane: ${e.message}`,
+              consequence: failureLine(
+                `${title} reads as ${STATUS_META[status].label} here, and the board in Plan did not get the lane.`,
+                e,
+              ),
               failed: true,
             }
-          : { verb: "It did not move", consequence: e.message, failed: true },
+          : {
+              verb: "It did not move",
+              consequence: failureLine("Nothing changed.", e),
+              failed: true,
+            },
       );
       // The lifecycle write landed in the lane-only case, so the queue is stale
       // whichever half failed.
@@ -1906,7 +1910,11 @@ function DecideSurface() {
       void qc.invalidateQueries({ queryKey: ["opportunities"] });
     },
     onError: (e: Error) =>
-      setReceipt({ verb: "It was not deleted", consequence: e.message, failed: true }),
+      setReceipt({
+        verb: "It was not deleted",
+        consequence: failureLine("Nothing changed.", e),
+        failed: true,
+      }),
     onSettled: (_d, _e, id) => setBusy(id, false),
   });
 
@@ -2058,7 +2066,11 @@ function DecideSurface() {
       void qc.invalidateQueries({ queryKey: ["roadmap"] });
     },
     onError: (e: Error) =>
-      setReceipt({ verb: "None of them moved", consequence: e.message, failed: true }),
+      setReceipt({
+        verb: "None of them moved",
+        consequence: failureLine("Nothing changed.", e),
+        failed: true,
+      }),
   });
 
   const askDropMany = React.useCallback(
@@ -2150,9 +2162,9 @@ function DecideSurface() {
        * dangerous on the other.
        *
        * `c` for Challenge stays. It is the only verb of the three that is not
-        * an accept or a decline, its letter is the first letter of the word, and
-        * it collides with nothing now the chord owns navigation.
-        */
+       * an accept or a decline, its letter is the first letter of the word, and
+       * it collides with nothing now the chord owns navigation.
+       */
       /**
        * j AND k WALK THE RANKING THE WAY /approvals WALKS ITS QUEUE, and z
        * places from the keyboard, so triage no longer needs a mouse.
@@ -2222,7 +2234,18 @@ function DecideSurface() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [activeOpp, busy, openId, lineageId, keepBet, challenge, dropBet, ordered, showAll, setStatus]);
+  }, [
+    activeOpp,
+    busy,
+    openId,
+    lineageId,
+    keepBet,
+    challenge,
+    dropBet,
+    ordered,
+    showAll,
+    setStatus,
+  ]);
 
   const loading = stillWaiting(opps);
 
@@ -2763,7 +2786,11 @@ function DecideSurface() {
           reason, which is different information, and the way back. */}
         {opps.error ? (
           <ReadFailed onRetry={() => void opps.refetch()}>
-            {(opps.error as Error).message}
+            {/* The comment above is right that this line carries the reason, and
+                a transport string is not one. It carries the server's sentence
+                where the server wrote one for a person, and the surface's own
+                otherwise, so the line is never empty. */}
+            {failureLine("The bets on the table did not come back.", opps.error)}
           </ReadFailed>
         ) : loading ? (
           <Reading>Reading the bets on the table.</Reading>
@@ -2875,7 +2902,10 @@ function DecideSurface() {
                        * was the same defect I keep filing against other lanes:
                        * the thing already existed, in my own prefix.
                        */}
-                      {provenanceSources.slice(0, 2).map((x) => sourceLabel(x)).join(", ")}
+                      {provenanceSources
+                        .slice(0, 2)
+                        .map((x) => sourceLabel(x))
+                        .join(", ")}
                       {provenanceSources.length > 2 ? " and more" : ""}.
                     </span>,
                   ]
@@ -3271,10 +3301,7 @@ function DecideSurface() {
               {/* One verb, and it is the cheap reversible one. See `dropMany`:
                 keeping is three model runs a bet and challenging is one, so
                 neither may ever be spent by a single press on a batch. */}
-              <Action
-                busy={dropMany.isPending}
-                onClick={() => void askDropMany([...picked.ids])}
-              >
+              <Action busy={dropMany.isPending} onClick={() => void askDropMany([...picked.ids])}>
                 {dropMany.isPending ? "Dropping them" : "Drop them"}
               </Action>
             </QueueSelectionBar>

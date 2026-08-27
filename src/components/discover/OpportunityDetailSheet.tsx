@@ -108,6 +108,7 @@
  */
 
 import * as React from "react";
+import { failureLine } from "@/components/track/error-copy";
 import { Row, Line, Who } from "@/components/meridian/rows";
 import { Num, Actions, Door } from "@/components/meridian/surface-parts";
 import type { ReactNode } from "react";
@@ -771,7 +772,9 @@ export function PublishTeardown({
     );
   }
 
-  const failure = toggle.isError ? (toggle.error as Error).message : null;
+  const failure = toggle.isError
+    ? failureLine("That did not change, so it is still as it was.", toggle.error)
+    : null;
 
   if (s.is_public) {
     const slug = s.share_slug;
@@ -926,7 +929,7 @@ function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string })
     return (
       <Region title="Precedent">
         <ReadFailedLine onRetry={() => void q.refetch()}>
-          Could not read this bet's judgment. {(q.error as Error).message}
+          {failureLine("Could not read this bet's judgment.", q.error)}
         </ReadFailedLine>
       </Region>
     );
