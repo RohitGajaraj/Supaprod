@@ -91,3 +91,34 @@ smuggled into this one.
   other people's code.
 - **Fixed and gated**, mutation-tested both ways.
 - **OPEN: `src/**/*.test.ts` is still excluded**, and the compiler ran out of memory measuring it.
+
+---
+
+## Follow-up · the unit suite is 797 files and 423 type errors
+
+**Sized in the next unit, and the first answer was wrong in the most dangerous direction.**
+
+| | |
+| --- | --- |
+| test files in `src/` | **797** |
+| type errors when they are checked | **423** |
+
+**My first probe reported ZERO, and I nearly filed it.** The run had exhausted the compiler's heap and
+died before emitting anything, and `grep -c "error TS"` counted a crash as a clean bill of health.
+
+**The mutation probe is the only reason that did not ship.** I appended
+`const s4ProbeUnit: number = "not a number"` to a test and re-ran, expecting to see it named. Instead
+the output filled with errors from a completely different file — `'probe' is possibly 'undefined'`,
+`Object is possibly 'undefined'`, `No overload matches this call` — which is how a "0" became a "423".
+
+> **A count of zero from a tool that crashed looks exactly like a count of zero from a tool that
+> passed.** That is the same lesson as `/pricing` reporting "0 below AA of 0 judged", and it is the
+> third time tonight the population, not the count, was the thing that mattered.
+
+**Not gated, and that is a decision rather than an omission.** 423 errors is not a cleanup that fits
+in a unit, and switching the gate on would fail every lane's build on debt none of them wrote. It
+wants the ratchet treatment the Meridian scan already has: freeze the current count, fail on an
+increase, and let it fall.
+
+**The `e2e/` gate shipped because its number was 5, four of them mine and all five fixed in the same
+unit.** The difference between the two is the size of the number, and nothing else.
