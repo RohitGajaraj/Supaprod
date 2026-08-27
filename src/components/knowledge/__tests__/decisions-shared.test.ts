@@ -6,6 +6,7 @@ import {
   hasSource,
   displayWho,
   forecastChip,
+  forecastCoverage,
   forecastTitle,
   type DecisionRow,
 } from "../decisions-shared";
@@ -334,7 +335,10 @@ describe("forecastChip", () => {
   });
 
   test("a resolved hit reads in FORECAST_SAYS words, carried by green", () => {
-    const chip = forecastChip({ forecast_claim: "Activation doubles.", forecast_resolution: "hit" });
+    const chip = forecastChip({
+      forecast_claim: "Activation doubles.",
+      forecast_resolution: "hit",
+    });
     expect(chip?.word).toBe("you called it");
     expect(chip?.tone).toBe("sp-pass");
     expect(chip?.claim).toBe("Activation doubles.");
@@ -411,5 +415,45 @@ describe("forecastTitle", () => {
 
   test("ignores a malformed horizon rather than printing Invalid Date", () => {
     expect(forecastTitle({ forecast_horizon_date: "not-a-date" })).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// forecastCoverage - whether the product's own bar is being met, stated
+// ---------------------------------------------------------------------------
+// A forecast is written at Decide and nowhere else, so the decisions list is
+// the only surface that can report this. It could not before: a call with a
+// forecast drew a chip, a call without one drew NOTHING, and silence meant
+// either "none was written" or "the column was not read".
+describe("forecastCoverage", () => {
+  const withClaim = { forecast_claim: "signups go up" };
+  const without = { forecast_claim: null };
+
+  test("counts only claims with real content, so whitespace is not a forecast", () => {
+    const c = forecastCoverage([withClaim, { forecast_claim: "   " }, without, {}]);
+    expect(c.withForecast).toBe(1);
+    expect(c.total).toBe(4);
+  });
+
+  test("admits the gap when some calls carry nothing", () => {
+    expect(forecastCoverage([withClaim, without]).tail).toBe(
+      "The rest cannot be graded against anything.",
+    );
+  });
+
+  test("says nothing can be graded when NO call carries one", () => {
+    // Not hypothetical: one live workspace holds 61 calls and zero forecasts.
+    expect(forecastCoverage([without, without]).tail).toBe(
+      "Nothing on this list can be graded until one is.",
+    );
+  });
+
+  test("adds no clause when every call carries one, since there is nothing to admit", () => {
+    expect(forecastCoverage([withClaim, withClaim]).tail).toBeNull();
+  });
+
+  test("an empty list makes no claim at all", () => {
+    const c = forecastCoverage([]);
+    expect(c).toEqual({ withForecast: 0, total: 0, tail: null });
   });
 });
