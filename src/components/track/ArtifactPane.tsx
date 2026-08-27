@@ -39,6 +39,7 @@ import { getChangesetDiff } from "@/lib/studio.functions";
 import { computeHunks } from "@/lib/ai/studio-hunks";
 import { CodeDiff } from "@/components/studio/CodeDiff";
 import { setDecisionForecast, updateDecision } from "@/lib/decisions.functions";
+import { decisionsForGrading } from "@/components/track/graded-decisions";
 import { deferForecastCheck, reopenForecast, settleForecast } from "@/lib/forecast.functions";
 import type { ChainMember, ChainStop } from "@/lib/spine/chain";
 import { wordFor } from "@/lib/spine/chain";
@@ -2054,9 +2055,36 @@ export function ArtifactPane({
           <StationPanel
             stop={shown}
             view={bodies.data?.stops.find((s) => s.station === shown.station)}
-            decisions={bodies.data?.stops
-              .find((s) => s.station === "decide")
-              ?.items.filter((it) => it.kind === "decision" && !it.missing)}
+            /*
+             * EVERY STOP, NOT JUST DECIDE, and this was hiding the one thing
+             * the product exists to show.
+             *
+             * `LearningCard` finds the call its verdict grades by exact id --
+             * `x.artifactId === decision_id` -- and that fix is already recorded
+             * in its own header, because matching "the first decision on the
+             * decide stop" once put a verdict beside the wrong forecast. What
+             * was never widened is the LIST it searches. A decision recorded at
+             * any other station was invisible to it.
+             *
+             * Measured on `d1168015`, the only track in the database that has
+             * walked all seven stations: its learning carries
+             * `decision_id = 663c7376`, that decision is a member of the track,
+             * it holds a real `forecast_claim` -- "The PRD will be approved and
+             * design gate cleared within 3 business days" -- and it is filed at
+             * the SHIP stop. So the lookup came back empty and the Learn tab
+             * said "Nothing was recorded as expected, so there is nothing to
+             * check against", directly above a graded belief reading "Did not
+             * hold". Two sentences, one screen, and the first was false.
+             *
+             * That is the moat surface. A forecast written at decision time is
+             * the one artifact this product claims nothing else has, and on the
+             * single run that reached Learn it was being denied.
+             *
+             * Widening cannot mis-match, which is why this is the right fix
+             * rather than a lookup by station: the match is an exact id, so a
+             * larger haystack finds the same needle or none.
+             */
+            decisions={decisionsForGrading(bodies.data?.stops)}
             everDriven={track.drivenAt !== null}
             hold={track.hold}
             now={now}
