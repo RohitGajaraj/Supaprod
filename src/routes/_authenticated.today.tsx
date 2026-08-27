@@ -2167,18 +2167,30 @@ function Today() {
                         defect was fixed in its live line the same day.
 
                         A group name earns its line by distinguishing this group
-                        from another one. With nothing settled yet there is no
-                        other group, so the region title names it alone and the
-                        filter row below already carries the count on `All`.
-                        R-20 section 8: a region either carries a fact the person
-                        came for, or it goes.
+                        from another one. When this region holds ONLY the queue,
+                        the region title names it alone and the filter row below
+                        already carries the count on `All`. R-20 section 8: a
+                        region either carries a fact the person came for, or it
+                        goes.
+
+                        THE SIBLING IS NOT ONLY THE SETTLED TRAIL, and the first
+                        version of this guard got that wrong within the hour.
+                        This Region runs from the queue to `Finished` and holds
+                        four groups: the calls, the settled receipts, and the
+                        crew lanes `Waiting on you`, `Running` and `Finished`.
+                        Testing `settled.length` alone left an UNLABELLED
+                        52-queue sitting directly above a labelled "Waiting on
+                        you 95" - so the only head in view belonged to the lane,
+                        and the number a reader would attach to the queue was
+                        the wrong one. That is worse than the duplication the
+                        guard was written to remove.
 
                         THE ACCESSIBLE NAME DOES NOT MOVE. `aria-label` on the
                         section above is unconditional, so the group keeps its
                         name for a screen reader whether or not the heading is
                         painted. Dropping a visible duplicate must never cost the
                         one reader who cannot see the region title. */}
-                    {settled.length > 0 ? (
+                    {settled.length > 0 || crewTotal > 0 ? (
                       <FeedHead name={FEED_CALLS} count={items.length} />
                     ) : null}
                     <div className="mt-mrd-3">
