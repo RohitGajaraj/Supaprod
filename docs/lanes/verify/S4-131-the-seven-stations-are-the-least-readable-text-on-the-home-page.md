@@ -4,6 +4,56 @@
 > surfaces, dead backend. Public surfaces render fully without a database, so this is the shop window
 > measured as a visitor gets it. Every count below names its population._
 
+> ## CORRECTION, same evening, and BOTH numbers below were wrong
+>
+> **The check was measuring the wrong half of the product, and then truncating what it found.**
+>
+> **1. Meridian is built on `oklch()`** — 139 uses in `meridian.css`, 68 in `styles.css`, plus
+> `color-mix()`. The first parser understood only `rgb()`, so it silently skipped every element the
+> design system coloured and judged only components carrying hex literals. `/pricing` reporting *0 of
+> 0 judged* was not a gradient problem, which is what I guessed first and what the gradient work
+> below was aimed at. It was that.
+>
+> Anything the browser understands is now resolved by painting it into a 1x1 canvas and reading the
+> pixel back, in the sRGB the screen actually shows.
+>
+> **2. "12 shapes below AA" was the length of a list capped at 12.** The cap was a display limit and
+> I reported it as the finding. A measurement that silently truncates reads as complete, which is
+> worse than one that refuses to answer. It now returns the true element count, the shape count, and
+> says how many shapes are not listed.
+>
+> **Re-measured with both fixed, nothing unjudged on any surface:**
+>
+> | surface | below AA | in shapes | judged | not computable |
+> | --- | --- | --- | --- | --- |
+> | **`/`** | **83** | 80 | 248 | **0** |
+> | **`/demo`** | **9** | 9 | 14 | **0** |
+> | `/pricing` | 0 | 0 | **105** | **0** |
+> | `/product` | 0 | 0 | 49 | **0** |
+>
+> **`/` is 83, not 12.** A third of its judged text is below AA. **`/demo` is worse in proportion —
+> nine of fourteen** — and was reported as clean by the blind version:
+>
+> ```
+> a.inline-block.px-8       2.41:1 needs 4.5:1 at 14px/500  "Join the beta"
+> a.text-xs.text-zinc-600   2.56:1 needs 4.5:1 at 12px/400  "Security" "ARD" "Changelog"
+>                                                            "Proof" "Privacy" "Terms"
+> p.text-xs.text-zinc-600   2.56:1 needs 4.5:1 at 12px/400  "(c) 2026 Supaprod"
+> p.text-mrd-nano.font-mono 2.56:1 needs 4.5:1 at 10px/400  "The film - 2:22 - sound on"
+> ```
+>
+> **`"Join the beta"` at 2.41:1 is the lowest ratio on any public surface, and it is the primary call
+> to action on the demo page.**
+>
+> **`/pricing` and `/product` are now genuine passes**, at 0 of 105 and 0 of 49. The earlier file
+> said they were not measured, which was true, and this is what they say once they are.
+>
+> **Measured on `lane/proof`, which does NOT contain S3's `cc23c49fc`.** That fix raises `R.faint`
+> to `#787f8b` and is not in these numbers.
+>
+> The station-strip finding below stands and was the reason S3 went looking. Its cause and its fix
+> were right. Its scale was understated by seven times.
+
 ## Why contrast, and why now
 
 Everything else this lane measures is motion or structure. **This is the only measurement of how the
