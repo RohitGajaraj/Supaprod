@@ -3,11 +3,34 @@ import { stripAutoPrefix } from "@/components/plan/format";
 /**
  * THE SAME REQUEST, RAISED AGAIN, COUNTED ONCE.
  *
- * ── WHY THIS IS THE LANE'S WHOLE BET ───────────────────────────────────────
- * The brief's fourth glance-fact is "where two efforts are about to collide:
- * two pieces of work touching the same thing, or two teammates about to redo
- * each other's output", and it names the value line: coordinated agents SPLIT
- * duplicate work instead of repeating it. Nothing on the board says it.
+ * ── THE SECOND HALF OF THE FOURTH GLANCE-FACT. `OverlapNote` IS THE FIRST ──
+ * The brief names two different things with an "or": "two pieces of work
+ * touching the same THING, or two teammates about to redo each other's
+ * OUTPUT". They are not one feature and they cannot share a key.
+ *
+ *   `overlaps.ts` + `OverlapNote`   the first. Two RUNNING pieces of work
+ *                                   contesting the same target — a file, a
+ *                                   spec — derived from what the tools
+ *                                   actually named. Live write contention,
+ *                                   drawn on the running row that owns it.
+ *   this module                     the second. Two WAITING requests with the
+ *                                   same subject. Redundant queued work,
+ *                                   drawn on the waiting lane.
+ *
+ * A CORRECTION TO MY OWN FIRST VERSION, which said "nothing on the board says
+ * it". Half of it already did, and had for a while: OverlapNote is imported by
+ * this route and its own header claims the same brief line. I built this
+ * without checking whether the fourth glance-fact was already served, which is
+ * the mistake this repo names as paying twice for one thing. It survives
+ * because the two halves key on genuinely different relations — `overlaps.ts`
+ * has no notion of a redundant REQUEST, and this has none of a contested
+ * target — and because they draw in different lanes, so neither can repeat the
+ * other on screen.
+ *
+ * **If they ever converge on one key, one of them goes.** Two detectors for
+ * one relation is how the next person gets two different counts for the same
+ * board, which is the trap S1 named and the one the 7-versus-41 gap already
+ * shows the shape of.
  *
  * ── MEASURED, AGAINST THE LIVE DATABASE, 2026-08-27 ────────────────────────
  * This workspace holds 111 missions under 60 distinct titles. Of the 89 that
