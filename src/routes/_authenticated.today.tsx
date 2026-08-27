@@ -1258,6 +1258,19 @@ function Today() {
                 </Action>
               </div>
               {expanded ? over.map(line) : null}
+              {expanded && headCount > all.length ? (
+                /* WHAT THE PAGE COULD NOT REACH. The head says the true total
+                   and the page holds the 50 most recently touched, so expanding
+                   this list ends before the number above it does. Without this
+                   line a person counts the rows, finds fewer than the head
+                   claimed, and concludes the head is wrong — which would undo
+                   the fix that put a true number there. The inbox door at the
+                   foot of this region is where the rest actually are. */
+                <p className="px-mrd-2 py-mrd-1 text-mrd-data text-mrd-mute">
+                  Showing <Num>{all.length}</Num> of <Num>{headCount}</Num>. The rest are in the
+                  inbox.
+                </p>
+              ) : null}
             </>
           ) : null}
         </div>
