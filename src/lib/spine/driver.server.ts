@@ -33,7 +33,7 @@ import { createMission } from "@/lib/ai/handoff.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { recordTrackDrive } from "@/lib/spine/track-drives.server";
 import { recordLineage } from "@/lib/lineage.functions";
-import { nextStation, waive, waiverFor, type SpineRoute } from "@/lib/spine/route";
+import { applyTrigger, nextStation, waive, waiverFor, type SpineRoute } from "@/lib/spine/route";
 import {
   decideDrive,
   holdLine,
@@ -2518,6 +2518,14 @@ export async function driveTrackOnce(
    * remember this happened.
    */
   let onwardRoute = route;
+
+  /*
+   * Asked at LEARN, because that is the only station whose output can contest a
+   * refusal. Checked before the onward step so a reopened station is the next
+   * stop rather than something a later tick discovers.
+   */
+  if (station === "learn") onwardRoute = await reopenIfOutcomeContested(supabase, row, onwardRoute);
+
   if (station === "decide") {
     const declined = await decisionWasRefusal(supabase, row.id);
     if (declined) {
@@ -3224,6 +3232,70 @@ async function overclaimedBySeat(
  * ordinary route. Guessing "refused" on an unreadable row would silently cancel
  * four stations of real work, which is the more expensive way to be wrong.
  */
+/**
+ * A REFUSAL THAT THE OUTCOME CONTESTS MUST BE ABLE TO COME BACK.
+ *
+ * When Decide says no, `driveTrackOnce` waives Define, Design, Build and Ship
+ * with `reopensWhen: "outcome-contested"` and the track walks straight to Learn.
+ * That comment promised the stations return if the verdict later disagrees.
+ *
+ * **Nothing implemented it.** `route.ts` says so in three places: *"Nothing
+ * reads `reopensWhen`"*, *"`applyTrigger` is the evaluator and it has no
+ * caller"*, *"a waiver is a one-way door today"*. So the promise I wrote into
+ * that waiver was a claim outrunning its wiring, which is the exact defect this
+ * repo names, committed in the fix that named it.
+ *
+ * This is the evaluator's first caller, and it fires on the one condition that
+ * can honestly contest a refusal: **Learn graded the bet and the bet did not
+ * hold.** A `missed` or `mixed` verdict against the decision that said no is
+ * evidence the no was wrong, and the four stations it skipped come back.
+ *
+ * A `validated` verdict changes nothing: the refusal was right, and reopening on
+ * agreement would make the trigger meaningless.
+ *
+ * `never` waivers are untouched by `applyTrigger` itself, so a human's
+ * deliberate skip is not undone by a machine reading an outcome.
+ */
+async function reopenIfOutcomeContested(
+  supabase: SupabaseClient,
+  row: DriveRow,
+  route: SpineRoute,
+): Promise<SpineRoute> {
+  // Cheap exit: no waiver carries this trigger, so nothing can fire.
+  if (!route.waived.some((w) => w.reopensWhen === "outcome-contested")) return route;
+  try {
+    /*
+     * Through the track's own members rather than a mission id, because a
+     * driver-run track need not have one and the member row is the link the
+     * spine actually keeps. Superseded rows are excluded: a verdict that a
+     * rewind undid must not reopen anything.
+     */
+    const { data: member } = await supabase
+      .from("spine_track_members" as never)
+      .select("artifact_id")
+      .eq("track_id", row.id)
+      .eq("artifact_kind", "learning")
+      .is("superseded_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const learningId = (member as { artifact_id?: string } | null)?.artifact_id;
+    if (!learningId) return route;
+    const { data } = await supabase
+      .from("learnings")
+      .select("verdict")
+      .eq("id", learningId)
+      .maybeSingle();
+    const verdict = (data as { verdict?: string } | null)?.verdict;
+    if (verdict !== "missed" && verdict !== "mixed") return route;
+    return applyTrigger(route, "outcome-contested");
+  } catch {
+    // An unreadable verdict leaves the route alone. Reopening four stations on a
+    // read error would spend real money on a guess.
+    return route;
+  }
+}
+
 async function decisionWasRefusal(supabase: SupabaseClient, trackId: string): Promise<boolean> {
   try {
     const { data: member } = await supabase
