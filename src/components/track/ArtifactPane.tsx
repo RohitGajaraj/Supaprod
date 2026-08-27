@@ -33,7 +33,7 @@ import { plainProse } from "@/lib/plain-prose";
  * to more. Covering only the measured ones would be fitting the product to the
  * data sitting in the database.
  */
-import { NO_CONTRACT, NO_NON_GOALS, specContract } from "@/components/track/spec-contract";
+import { NO_NON_GOALS, noContractLine, specContract } from "@/components/track/spec-contract";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -125,10 +125,20 @@ function prdTone(status: string | null): "you" | "pass" | null {
  * every template demotes to a footnote. Same heading, same type, same order of
  * appearance as what the spec IS for.
  */
-function SpecPromise({ contract }: { contract: unknown }) {
+function SpecPromise({ contract, body }: { contract: unknown; body: string | null }) {
   const c = specContract(contract);
 
-  if (c.empty) return <RecordSpeaks>{NO_CONTRACT}</RecordSpeaks>;
+  /*
+   * THE BODY IS PASSED IN BECAUSE THE OLD SENTENCE WAS DISPROVED BY IT.
+   *
+   * This block used to say "nothing on the record says what it is for, how
+   * anyone would know it worked, or what it is deliberately not doing" and
+   * then render `prd.body_md` immediately underneath, where 94 of the 117
+   * empty-contract specs set out their success metrics under a heading. See
+   * `spec-contract.ts` for the measurement and for why this detects the
+   * sections rather than extracting them.
+   */
+  if (c.empty) return <RecordSpeaks>{noContractLine(body)}</RecordSpeaks>;
 
   return (
     <div className="flex flex-col gap-mrd-3 rounded-mrd-chip bg-mrd-sink p-mrd-4">
@@ -224,12 +234,18 @@ function PlanSpec({ prdId }: { prdId: string }) {
         {/*
           WHAT IT PROMISES, ABOVE WHAT IT SAYS. The contract is the part Build
           is measured against and Ship reads; the body is the prose around it.
-          Measured on production: 113 of 115 specs carry no contract at all, so
+
+          THE SECOND HALF OF THIS NOTE USED TO BE WRONG AND IS WORTH KEEPING AS
+          A CORRECTION. It read: "113 of 115 specs carry no contract at all, so
           this block is most often the honest statement that nothing bounds this
-          work, which is exactly what a person about to let Build spend on it
-          needs to know.
+          work." The count was right and the conclusion was not. It is now 117
+          of 119, and 96 of those 117 DO bound the work, in the body rendered on
+          the very next line: 94 under a success metrics or acceptance criteria
+          heading, 20 under non-goals, with only 21 saying neither. So the block
+          was most often a false statement standing directly on top of its own
+          disproof. It now reads the body before it speaks.
         */}
-        <SpecPromise contract={prd.contract} />
+        <SpecPromise contract={prd.contract} body={prd.body_md} />
         <Prose markdown>{prd.body_md}</Prose>
         {/* R-03: the person can act here, and the act is the write the row
             supports -- the whole document back, nothing more specific claimed. */}
