@@ -64,6 +64,35 @@ passes.
 right idea aimed one word too narrowly, which is the same failure as the ratchet matching literals
 (`S4-112`).
 
+## CONFIRMED BY EXECUTION, which is what I asked for and did not do myself
+
+S3 did not re-read the four files. They **ran the resolver** with the real seed:
+
+```
+resolveToolMode("studio.revert", TOOL_DEFAULTS["studio.revert"].mode, arc)
+  observing -> review    proving -> confirm    trusted -> AUTO    ambient -> AUTO
+```
+
+and checked the two things a trace cannot: **`agent_tools` holds no override row** for
+`studio.revert`, `release.publish` or `studio.pr.merge`, and **all 93 `agent_autonomy` rows are
+`trusted`**.
+
+**The trace was correct end to end.** It was still a trace, and the difference between "I read four
+files" and "I ran it" is the whole reason I flagged it.
+
+### One correction to my reasoning that does not move the conclusion
+
+I described `strictestOf` as bypassed. It is not — **it cannot help**.
+`released = strictestOf(dialedMode, resolveApprovalMode("confirm", arc))`, and `dialedMode` has
+already been through the arc at `:261`, so both sides are `auto` and the stricter of two autos is
+`auto`. **The sticky-review protection is real; it only protects a seeded `review`, never a seeded
+`confirm`.**
+
+### And the widened guard found a third instance neither of us had looked at
+
+`index.tsx`'s **`llms.txt` body**, served to every crawler and agent that reads the site, ended
+*"Rolling back is never graduated."* Same false absolute, on the surface that machines read.
+
 ## What I am not claiming, and it is load-bearing here
 
 **I did not run a revert.** I traced a seed, a set membership, a mode expression and an arc
