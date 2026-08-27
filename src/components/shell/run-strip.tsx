@@ -156,6 +156,18 @@ export type RunStage = {
    * state already carries, and never invented, an unknown stage says so.
    */
   note: string;
+  /**
+   * True when the counts in `note` are floors rather than counts.
+   *
+   * `listStudioSessions` caps three times (100 builder runs, 100 others, 200
+   * assembled sessions) and reports `bounded` rather than how many it dropped.
+   * The note carries a "+" on the figure, which is the same convention the
+   * rail's own chip uses and the only one that fits: "At least 89 runs waiting
+   * on you" wrapped the Discover chip to two lines and grew the whole strip,
+   * measured on the running board 2026-08-27. This flag is what lets the chip
+   * put the sentence in a `title` for anyone who stops on it.
+   */
+  bounded?: boolean;
 };
 
 /**

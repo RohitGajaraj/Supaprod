@@ -21,13 +21,28 @@ import { nothingStandingYet, ratedPopulation, ratedRecalls } from "../standing-w
 describe("twenty-six rules are not a rule", () => {
   it("says the number, at the size the live database has", () => {
     expect(nothingStandingYet(26)).toBe(
-      "Nothing standing yet. The steward has written 26 rules out of what shipped, and they are waiting on a human.",
+      "Nothing standing yet. The steward has written 26 rules out of what shipped, and they are waiting on a human. Approving one puts it into every agent's prompt before it acts.",
     );
+  });
+
+  /**
+   * S0 traced why nobody had ever approved one: 15 of the 26 were the loop
+   * describing its OWN failures, and an approved rule goes VERBATIM into every
+   * agent's system prompt -- approving one of those would tell the builder, on
+   * every run, that the builder consistently fails. The write now refuses that
+   * shape. The surface still has to say what a yes DOES before asking for it.
+   */
+  it("names the consequence before asking for the decision", () => {
+    for (const n of [1, 11, 26]) {
+      expect(nothingStandingYet(n)).toContain("every agent's prompt before it acts");
+    }
+    // Nothing to decide, nothing to warn about.
+    expect(nothingStandingYet(0)).not.toContain("Approving one");
   });
 
   it("reads as English about one", () => {
     expect(nothingStandingYet(1)).toBe(
-      "Nothing standing yet. The steward has written a rule out of what shipped, and it is waiting on a human.",
+      "Nothing standing yet. The steward has written a rule out of what shipped, and it is waiting on a human. Approving one puts it into every agent's prompt before it acts.",
     );
   });
 

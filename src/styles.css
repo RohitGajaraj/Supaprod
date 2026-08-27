@@ -2209,7 +2209,27 @@ html[data-motion="off"] .ai-pulse-text {
   padding: 26px 22px;
   border-top: 1px solid var(--mrd-edge);
   border-bottom: 1px solid var(--mrd-edge);
-  background: var(--mrd-raised);
+  /*
+   * `var(--mrd-raised)` UNTIL 2026-08-27, AND IT RESOLVED TO NOTHING.
+   *
+   * No such token is declared anywhere in the repo. A bare var() naming an
+   * undeclared custom property resolves to the EMPTY STRING, so the whole
+   * declaration is dropped and the element inherits its parent's ground. The
+   * rule typechecked, linted, built and did not exist on screen, which is the
+   * one failure mode a stylesheet can have that nothing downstream reports.
+   *
+   * `--raised` is on CLAUDE.md's RETIRED list, so this looks like a retired
+   * name that was given the Meridian prefix and never declared -- the case that
+   * reads as migrated when it is not. Raised by S4, who found it by widening a
+   * guard that had only ever scanned the retired `--sp-` family.
+   *
+   * `--mrd-lift` is the replacement and it is named by Meridian's own
+   * declaration rather than by my reading of it: meridian.css:209 comments it
+   * "a raised control, secondary button". The comment eight lines below this
+   * one already describes this band as having "a raised background", so the
+   * intent was on the record the whole time; only the value was missing.
+   */
+  background: var(--mrd-lift);
 }
 .today-hero > * {
   max-width: 760px;

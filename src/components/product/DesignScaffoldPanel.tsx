@@ -179,13 +179,27 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
   const gateChip = gate?.stageEnabled ? (
     <span
       className="rounded-full border hairline px-2 py-0.5 font-mono text-mrd-nano uppercase tracking-wide"
+      /*
+       * THE PENDING ARM NAMED A TOKEN THAT DOES NOT EXIST, so it resolved to
+       * the empty string, the `color` declaration was dropped, and a pending
+       * gate inherited whatever colour was around it -- while `approved` and
+       * `rejected` painted correctly. A chip whose only undecided state is the
+       * one that loses its colour is the wrong way round. Raised by S4.
+       *
+       * `--mrd-you` and not `--mrd-hold`, and Meridian's own comments decide
+       * it rather than my judgement: `--mrd-you` is "ORCHID: a person is
+       * required" and `--mrd-hold` is "AMBER: stopped, and not on you". A gate
+       * sitting at pending is waiting on a person, and this panel keeps its
+       * controls reachable, so orchid is not promising a control that is
+       * absent.
+       */
       style={{
         color:
           gate.status === "approved"
             ? "var(--mrd-pass)"
             : gate.status === "rejected"
               ? "var(--mrd-fail)"
-              : "var(--mrd-you-text)",
+              : "var(--mrd-you)",
       }}
     >
       Gate · {gate.status ?? "pending"}

@@ -69,12 +69,23 @@ describe("a count alone cannot say whether the pile is stale", () => {
   });
 
   it("a failed count answers null rather than zero, and never throws the lane away", () => {
-    const at = SRC.indexOf("const BLOCKED_STATUSES");
-    const block = SRC.slice(at, at + 2000);
-    expect(block).toContain("catch");
+    /*
+     * BOUNDED BY THE CODE, NOT BY A CHARACTER COUNT. This sliced 2,000
+     * characters from `const BLOCKED_STATUSES` and looked for `catch` inside
+     * them, which made the assertion a measurement of how much PROSE sits in
+     * that block. Adding a comment to the query below it pushed the `catch`
+     * past the window and failed a case whose subject is error handling.
+     *
+     * The two anchors are both code and both load-bearing: the block starts at
+     * the statuses it counts and ends at the degrade-to-null it exists for.
+     */
+    const from = SRC.indexOf("const BLOCKED_STATUSES");
+    const to = SRC.indexOf("totalBlocked = null;", from);
+    expect(from, "the blocked statuses moved").toBeGreaterThan(-1);
+    expect(to, "the degrade-to-null went away").toBeGreaterThan(from);
     // NULL, not 0. S2's call and it is right: a failed read degrading to zero
     // puts "Waiting on you 0" at the head of the lane whose job is saying what
     // needs a person. A count that cannot be taken is not a count of zero.
-    expect(block).toContain("totalBlocked = null");
+    expect(SRC.slice(from, to)).toContain("catch");
   });
 });
