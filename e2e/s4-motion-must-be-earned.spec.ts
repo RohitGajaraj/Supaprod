@@ -914,12 +914,34 @@ async function targetsTooSmallToHit(
       const min = Math.min(r.width, r.height);
       if (min >= 44) return;
 
-      // An inline link inside running text is exempt in the standard itself.
+      /*
+       * WCAG'S INLINE EXCEPTION IS FOR A LINK IN A SENTENCE, NOT A LINK IN A
+       * LIST, and the first version of this could not tell the difference.
+       *
+       * It compared the parent's innerText to the link's own, which includes
+       * every SIBLING LINK's text. So a footer column of six links has a
+       * "much longer" parent and excused itself, and a nav bar did the same.
+       * That is how this reported 17 under-floor controls on `/` where S3
+       * reproduced 20: the three we disagreed on were links excused for
+       * sitting beside other links.
+       *
+       * The standard's exception exists because a sentence CONSTRAINS the
+       * link's height -- growing it would break the paragraph. That is only
+       * true when there is real prose around it, so the test is now the
+       * parent's OWN text nodes, ignoring anything inside other elements.
+       *
+       * A footer column is a list of links with no prose between them, so it
+       * is judged. That is the stricter of two defensible readings and it is
+       * chosen deliberately: a link list is exactly where mis-taps happen.
+       */
       const cs = getComputedStyle(el);
       if (el.tagName === "A" && cs.display === "inline") {
-        const parentText = (el.parentElement?.innerText ?? "").trim();
-        const ownText = (el.innerText ?? "").trim();
-        if (parentText.length > ownText.length + 8) return;
+        const prose = Array.from(el.parentElement?.childNodes ?? [])
+          .filter((n) => n.nodeType === 3)
+          .map((n) => n.textContent ?? "")
+          .join("")
+          .trim();
+        if (prose.length >= 8) return;
       }
 
       // Spaced far from every other control? Then a mis-tap is not the risk.
@@ -958,6 +980,55 @@ async function targetsTooSmallToHit(
       under24,
       judged: els.length,
     };
+  });
+}
+
+/**
+ * A PAGE THAT SCROLLS SIDEWAYS.
+ *
+ * On a phone this is the most visible failure a surface can have and the
+ * easiest to ship: one element wider than the viewport drags the whole
+ * document, every column shifts under the thumb, and nothing in a desktop
+ * browser hints at it.
+ *
+ * It reports the OFFENDERS rather than the fact, because "the page scrolls
+ * sideways" is not actionable and "this element is 520px wide in a 390px
+ * viewport" is. An element inside its own `overflow-x: auto` container is
+ * excused: a wide table that scrolls in its own box is the correct pattern and
+ * the one Meridian asks for.
+ */
+async function widerThanTheViewport(
+  page: import("@playwright/test").Page,
+): Promise<{ docOverflowPx: number; culprits: string[] }> {
+  return page.evaluate(() => {
+    const vw = document.documentElement.clientWidth;
+    const docOverflowPx = Math.max(0, Math.round(document.documentElement.scrollWidth - vw));
+    const out: string[] = [];
+    if (docOverflowPx > 0) {
+      for (const el of Array.from(document.querySelectorAll<HTMLElement>("body *"))) {
+        const r = el.getBoundingClientRect();
+        if (r.width < 1 || r.height < 1) continue;
+        if (r.right <= vw + 1) continue;
+        // Inside something that scrolls on purpose? Then it is contained.
+        let scroller: HTMLElement | null = el.parentElement;
+        let contained = false;
+        while (scroller) {
+          const ox = getComputedStyle(scroller).overflowX;
+          if (ox === "auto" || ox === "scroll" || ox === "hidden") {
+            contained = true;
+            break;
+          }
+          scroller = scroller.parentElement;
+        }
+        if (contained) continue;
+        const cls = el.className?.toString().trim().split(/\s+/).slice(0, 2).join(".");
+        out.push(
+          `${el.tagName.toLowerCase()}${cls ? "." + cls : ""} ` +
+            `${Math.round(r.width)}px wide, right edge at ${Math.round(r.right)} in a ${vw}px viewport`,
+        );
+      }
+    }
+    return { docOverflowPx, culprits: [...new Set(out)].slice(0, 6) };
   });
 }
 
@@ -1354,6 +1425,16 @@ test("report which surfaces still move once nothing can be read", async ({ page 
           noFocus.join("\n  ") +
           `\n  This product prints keyboard shortcuts in its own rail. A control with no focus` +
           `\n  treatment strands the person who took that invitation.`,
+      );
+    }
+
+    const sideways = await widerThanTheViewport(page);
+    if (sideways.docOverflowPx > 0) {
+      notes.push(
+        `\n--- ${path}: THE PAGE SCROLLS SIDEWAYS by ${sideways.docOverflowPx}px ---\n  ` +
+          (sideways.culprits.length
+            ? sideways.culprits.join(`\n  `)
+            : `no single element is past the edge; a margin or a transform is doing it`),
       );
     }
 
