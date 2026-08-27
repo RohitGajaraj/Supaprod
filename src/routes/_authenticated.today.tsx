@@ -41,6 +41,7 @@ import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { useSelection } from "@/components/shell/use-selection";
 import { Receipt } from "@/components/meridian/Receipt";
 import { Surface } from "@/components/meridian/Surface";
+import { duplicateWork, redoingSettledWork, repeatLine } from "@/components/today/duplicate-work";
 import { SlowRead } from "@/components/shell/SlowRead";
 import { stripAutoPrefix, cleanTitle } from "@/components/plan/format";
 import { useConfirm } from "@/hooks/use-confirm";
@@ -2121,9 +2122,36 @@ function Today() {
                      now has a source. Under a day it says nothing: "waiting 0
                      days" reads as a bug even when it is arithmetic. */
                   (() => {
+                    /* WHAT THE COUNT ABOVE IS INFLATED BY (2026-08-27).
+                     *
+                     * Measured against the live database: this workspace holds
+                     * 89 proposed missions under 48 distinct subjects, so 41
+                     * are the same request raised again, and 5 ask for work
+                     * whose subject is already completed — one of them
+                     * completed three times over. The lane says how many are
+                     * waiting and has never said how many are the same thing.
+                     * That is the brief's fourth glance-fact, "two teammates
+                     * about to redo each other's output", and it is the one
+                     * this surface has never drawn.
+                     *
+                     * THE SENTENCE IS SCOPED TO THIS PAGE, and it has to be.
+                     * The boundary note directly above records that
+                     * `listMissions` is `.limit(50)` of 111 and that "a number
+                     * from a capped read is a wrong number wearing a fact's
+                     * clothes". So this counts the rows actually rendered and
+                     * says "on this list", which a reader can check by
+                     * scrolling. Where the real repetition is worse, it
+                     * under-reports, which is the only direction that cannot
+                     * talk somebody into dismissing work that was never
+                     * duplicated. */
+                    const repeats = repeatLine(
+                      duplicateWork(allReplyRows),
+                      redoingSettledWork(allReplyRows, rows),
+                    );
+                    const withRepeats = (text: string) => (repeats ? `${text} ${repeats}` : text);
                     const base = "Nothing moves on these until you answer.";
                     const d = daysSince(missions.data?.oldestBlockedAt);
-                    if (d === null || d < 1) return base;
+                    if (d === null || d < 1) return withRepeats(base);
                     /* SAY WHEN THE OLDEST IS NOT ON THE PAGE, because otherwise
                        this line and the row under it look like they disagree.
                        Seen live: the note said 39 days while the top row said
@@ -2142,9 +2170,11 @@ function Today() {
                       : null;
                     const offPage = shownDays !== null && d - shownDays >= 1;
                     const word = d === 1 ? "day" : "days";
-                    return offPage
-                      ? `${base} The oldest has been waiting ${d} ${word}, and is not on this page.`
-                      : `${base} The oldest has been waiting ${d} ${word}.`;
+                    return withRepeats(
+                      offPage
+                        ? `${base} The oldest has been waiting ${d} ${word}, and is not on this page.`
+                        : `${base} The oldest has been waiting ${d} ${word}.`,
+                    );
                   })(),
                   (row) =>
                     /* A TRACK IS NOT ANSWERING A QUESTION HERE, so it is not
