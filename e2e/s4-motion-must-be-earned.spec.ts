@@ -973,6 +973,25 @@ async function targetsTooSmallToHit(
        */
       const cx = r.left + r.width / 2;
       const cy = r.top + r.height / 2;
+      /*
+       * elementFromPoint RETURNS null OFF-VIEWPORT, and that is a silent false
+       * failure rather than a missing measurement.
+       *
+       * A control below the fold answers `null` at every probe, so the hit
+       * test finds nothing, the size falls back to the bounding box, and a
+       * control someone has ALREADY FIXED with an overlay reports as still
+       * failing. S3 hit exactly this: their first run on the legal footer
+       * reported six nulls and they nearly read it as six failures.
+       *
+       * So the probe only runs where it can mean something, and an element
+       * outside the viewport keeps its box measurement and is LABELLED, rather
+       * than being quietly graded on a test that could not run.
+       */
+      const inViewport =
+        r.bottom > 22 &&
+        r.right > 22 &&
+        r.top < window.innerHeight - 22 &&
+        r.left < window.innerWidth - 22;
       const reach = (dx: number, dy: number): boolean => {
         const hit = document.elementFromPoint(cx + dx, cy + dy);
         /*
@@ -1002,10 +1021,10 @@ async function targetsTooSmallToHit(
         w: reach(-half, 0) && reach(half, 0) ? half * 2 : r.width,
         h: reach(0, -half) && reach(0, half) ? half * 2 : r.height,
       });
-      const at44 = span(21);
+      const at44 = inViewport ? span(21) : { w: r.width, h: r.height };
       // 12, not 11: the floor is 24 across, so the half-span is 12. Probing at
       // 11 measures 22 and can never clear a threshold it does not test.
-      const at24 = span(12);
+      const at24 = inViewport ? span(12) : { w: r.width, h: r.height };
       const hitW = Math.max(r.width, at44.w, at24.w);
       const hitH = Math.max(r.height, at44.h, at24.h);
       const min = Math.min(hitW, hitH);
@@ -1103,6 +1122,7 @@ async function targetsTooSmallToHit(
             ? ` (hit area ${Math.round(hitW)}x${Math.round(hitH)})`
             : "") +
           (Number.isFinite(nearest) ? ` [${Math.round(nearest)}px to nearest]` : "") +
+          (inViewport ? "" : " (off-viewport: box only, hit area NOT tested)") +
           `${min < 24 ? " UNDER 24" : ""}` +
           (label ? ` "${label}"` : ""),
       );
