@@ -28,7 +28,7 @@ export type KindVisual = { token: string; fallback: string; label: string };
  */
 export const KIND_VISUAL: Record<string, KindVisual> = {
   decision: { token: "--mrd-you", fallback: "#ffa477", label: "Decision" },
-  signal: { token: "--blossom", fallback: "#e5bddf", label: "Signal" },
+  signal: { token: "--blossom", fallback: "#e5bddf", label: "Finding" },
   theme: { token: "--violet-soft", fallback: "#a67fc9", label: "Theme" },
   opportunity: { token: "--teal", fallback: "#2e9e8f", label: "Opportunity" },
   prd: { token: "--pearl", fallback: "#edeae4", label: "Spec" },
@@ -60,7 +60,7 @@ export const KIND_VISUAL: Record<string, KindVisual> = {
    */
   learning: { token: "--sp-stage-learn", fallback: "#a89f66", label: "Outcome" },
   deployment: { token: "--sp-stage-ship", fallback: "#bd8092", label: "Deploy" },
-  changeset: { token: "--mrd-agent", fallback: "#6d97c2", label: "Changeset" },
+  changeset: { token: "--mrd-agent", fallback: "#6d97c2", label: "Code change" },
   // "Mockup": one static screen, no script. See ArtifactsView for the full note.
   prototype: { token: "--sp-stage-design", fallback: "#ab7fa0", label: "Mockup" },
   // Both are parts OF a spec rather than things of their own, so they share the
@@ -89,6 +89,17 @@ export function kindLabel(kind: string): string {
  * dim 17 trace-ref prefix for a graph node kind. The shared object types use
  * their registered prefix (DESIGN-LOOM dim 17 registry / design-anatomy §4):
  * signal SIG, theme THM, opportunity OPP, prd PRD, mission MIS, decision DEC.
+ *
+ * `SIG` STAYS, AND THIS IS NOT AN OVERSIGHT ABOUT §12. Raised by S1 on
+ * 2026-08-27: §12 bans "signals" and "SIG" reads as short for it. The LABEL was
+ * the drift and is fixed above -- these nodes say "Finding" now. This is not a
+ * label. It is the first half of an identifier, rendered as `SIG-a3f2` beside
+ * the label, and `artifact-words.ts` states the rule it follows in as many
+ * words: *"Display word only; the stored `artifact_kind` is still `signal`."* A
+ * trace ref is minted off the STORED kind, and the prefix is registered across
+ * loops, so renaming it here would make the ref disagree both with the record it
+ * points at and with whatever else mints the same one. `prd` is the same shape
+ * and the same answer: the label reads "Spec" and the ref is still PRD.
  * The graph-only kinds (meeting, roadmap item, task, design memory) carry a
  * local 3-letter code so every node still traces cleanly; they are not part of
  * the shared cross-loop registry. Paired with the shared traceRef(id) helper.
