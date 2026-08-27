@@ -228,7 +228,7 @@ export function DesignMemoryPanel() {
       {items.isLoading ? (
         <Reading>Reading what the design crew treats as settled.</Reading>
       ) : items.isError ? (
-        <ReadFailed onRetry={() => void items.refetch()}>
+        <ReadFailed error={items.error} onRetry={() => void items.refetch()}>
           The design memory did not load. {humanWriteError(items.error, "The read failed.")}
         </ReadFailed>
       ) : rows.length === 0 ? (

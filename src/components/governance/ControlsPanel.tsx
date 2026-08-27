@@ -568,7 +568,7 @@ export function ControlsPanel({
             opposite facts. The Empty is reachable only after a read that
             SUCCEEDED. */}
         {subsQ.isError ? (
-          <ReadFailedLine onRetry={() => void subsQ.refetch()}>
+          <ReadFailedLine error={subsQ.error} onRetry={() => void subsQ.refetch()}>
             Pipeline rules did not load.
           </ReadFailedLine>
         ) : subsQ.isLoading ? (
@@ -750,7 +750,7 @@ export function ControlsPanel({
           arms, and the Empty is reachable only after a read that SUCCEEDED. */}
       <Region title="Consent by consequence" sub={CONSENT_PHILOSOPHY}>
         {boundaryQ.isError ? (
-          <ReadFailedLine onRetry={() => void boundaryQ.refetch()}>
+          <ReadFailedLine error={boundaryQ.error} onRetry={() => void boundaryQ.refetch()}>
             The boundary did not load, so nothing here would be the real reach of any class.
           </ReadFailedLine>
         ) : boundaryQ.isLoading ? (
@@ -891,7 +891,7 @@ export function ControlsPanel({
             }
           >
             {queueQ.isError ? (
-              <ReadFailedLine onRetry={() => void queueQ.refetch()}>
+              <ReadFailedLine error={queueQ.error} onRetry={() => void queueQ.refetch()}>
                 Reactor activity did not load.
               </ReadFailedLine>
             ) : queueQ.isLoading ? (

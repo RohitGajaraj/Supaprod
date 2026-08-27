@@ -109,7 +109,7 @@ export function BoundaryStatement({
         <Reading>Reading what your crew is allowed to do.</Reading>
       ) : boundaryQ.isError ? (
         failureShownElsewhere ? null : (
-          <ReadFailedLine onRetry={() => void boundaryQ.refetch()}>
+          <ReadFailedLine error={boundaryQ.error} onRetry={() => void boundaryQ.refetch()}>
             The boundary did not load, so no count here would be the real one.
           </ReadFailedLine>
         )

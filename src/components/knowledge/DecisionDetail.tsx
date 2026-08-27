@@ -477,7 +477,7 @@ export function DecisionDetail({ id }: { id: string }) {
 
   if (decisions.isError) {
     return (
-      <ReadFailed onRetry={() => void decisions.refetch()}>
+      <ReadFailed error={decisions.error} onRetry={() => void decisions.refetch()}>
         The record did not load, so this is not a claim that the call is gone.{" "}
         {humanWriteError(decisions.error, "")}
       </ReadFailed>

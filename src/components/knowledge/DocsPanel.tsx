@@ -249,7 +249,7 @@ export function DocsPanel() {
 
   if (docs.isError) {
     return (
-      <ReadFailed onRetry={() => void docs.refetch()}>
+      <ReadFailed error={docs.error} onRetry={() => void docs.refetch()}>
         The pages did not load, so this is not a claim that none were written.{" "}
         {humanWriteError(docs.error, "The read failed.")}
       </ReadFailed>
@@ -274,7 +274,7 @@ export function DocsPanel() {
         {selected.isLoading || !doc ? (
           <Reading>Reading the page.</Reading>
         ) : selected.isError ? (
-          <ReadFailed onRetry={() => void selected.refetch()}>
+          <ReadFailed error={selected.error} onRetry={() => void selected.refetch()}>
             The page did not load, so nothing here is safe to edit yet.{" "}
             {humanWriteError(selected.error, "")}
           </ReadFailed>
@@ -450,7 +450,7 @@ export function DocsPanel() {
               {preview.isLoading || !previewDoc ? (
                 <Reading>Reading the page.</Reading>
               ) : preview.isError ? (
-                <ReadFailedLine onRetry={() => void preview.refetch()}>
+                <ReadFailedLine error={preview.error} onRetry={() => void preview.refetch()}>
                   The page did not load, so this is not a claim that it is empty.
                 </ReadFailedLine>
               ) : (
@@ -630,7 +630,10 @@ function ImportPage({
             {!debouncedNotionQuery ? null : notionSearch.isLoading ? (
               <Reading>Searching Notion.</Reading>
             ) : notionSearch.isError ? (
-              <ReadFailedLine onRetry={() => void notionSearch.refetch()}>
+              <ReadFailedLine
+                error={notionSearch.error}
+                onRetry={() => void notionSearch.refetch()}
+              >
                 Notion did not answer, so this is not a claim that nothing matches.{" "}
                 {humanWriteError(notionSearch.error, "")}
               </ReadFailedLine>

@@ -217,7 +217,7 @@ export function LearningDetail({ id }: { id: string }) {
 
   if (learnings.isError) {
     return (
-      <ReadFailed onRetry={() => void learnings.refetch()}>
+      <ReadFailed error={learnings.error} onRetry={() => void learnings.refetch()}>
         The outcomes did not load, so this is not a claim that this one is gone.{" "}
         {humanWriteError(learnings.error, "")}
       </ReadFailed>

@@ -138,7 +138,7 @@ export function GraphTreeView({
   if (tree.isLoading) return <Reading>Tracing what came out of it.</Reading>;
   if (tree.isError) {
     return (
-      <ReadFailed onRetry={() => void tree.refetch()}>
+      <ReadFailed error={tree.error} onRetry={() => void tree.refetch()}>
         The lineage did not load, so this is not a claim that nothing came out of this node.{" "}
         {humanWriteError(tree.error, "The read failed.")}
       </ReadFailed>

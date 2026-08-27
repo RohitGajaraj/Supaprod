@@ -212,7 +212,7 @@ export function MemoryReviewQueue() {
       {queue.isLoading ? (
         <Reading>Reading what is waiting on you.</Reading>
       ) : queue.isError ? (
-        <ReadFailed onRetry={() => void queue.refetch()}>
+        <ReadFailed error={queue.error} onRetry={() => void queue.refetch()}>
           {humanWriteError(queue.error, "The read failed.")}
         </ReadFailed>
       ) : focused ? (

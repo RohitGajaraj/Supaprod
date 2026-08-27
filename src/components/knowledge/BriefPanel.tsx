@@ -303,7 +303,7 @@ export function BriefPanel() {
 
   if (items.isError) {
     return (
-      <ReadFailed onRetry={() => void items.refetch()}>
+      <ReadFailed error={items.error} onRetry={() => void items.refetch()}>
         The brief did not load, so this is not a claim that nothing is written down.{" "}
         {humanWriteError(items.error, "The read failed.")}
       </ReadFailed>

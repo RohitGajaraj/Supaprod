@@ -198,7 +198,7 @@ export function MemoryList() {
 
   if (q.isError) {
     return (
-      <ReadFailed onRetry={() => void q.refetch()}>
+      <ReadFailed error={q.error} onRetry={() => void q.refetch()}>
         {humanWriteError(q.error, "The read failed.")}
       </ReadFailed>
     );

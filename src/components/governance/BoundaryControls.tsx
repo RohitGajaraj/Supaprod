@@ -16,6 +16,7 @@ import {
   NothingHere,
   Num,
   PageHeading,
+  ReadFailed,
   ReadFailedLine,
   Reading,
   Region,
@@ -691,11 +692,15 @@ export function BoundaryControls({
    * So the caller says whether a heading is already above it. The sentence
    * survives either way; only its level changes.
    */
+  /*
+   * ON A FAILED READ THE POSTURE SAYS NOTHING, because the block below reports
+   * it properly with the reason and the way out. Rendered, the two together
+   * read "The boundary could not be read." and then "Your session ended. Sign
+   * in again" as two loose lines -- one cause, stated twice, in two shapes.
+   */
   const posture = b.isLoading ? (
     "Boundary"
-  ) : b.isError ? (
-    "The boundary could not be read."
-  ) : total === 0 ? (
+  ) : b.isError ? null : total === 0 ? (
     "No crew has been given anything to do yet."
   ) : (
     <>
@@ -710,17 +715,19 @@ export function BoundaryControls({
   return (
     <div data-mrd="" className="flex flex-col gap-mrd-6">
       {headingShownElsewhere ? (
-        <div>
-          <p className="text-mrd-base text-mrd-ink">{posture}</p>
-          {postureSub ? <p className="text-mrd-small text-mrd-mute">{postureSub}</p> : null}
-        </div>
+        posture ? (
+          <div>
+            <p className="text-mrd-base text-mrd-ink">{posture}</p>
+            {postureSub ? <p className="text-mrd-small text-mrd-mute">{postureSub}</p> : null}
+          </div>
+        ) : null
       ) : (
         <PageHeading
           title={
             b.isLoading ? (
               "Boundary"
             ) : b.isError ? (
-              "The boundary could not be read."
+              "Boundary"
             ) : total === 0 ? (
               "No crew has been given anything to do yet."
             ) : (
@@ -739,9 +746,12 @@ export function BoundaryControls({
           must not disappear because a different query broke. */}
       <AutomationBoundary workspaceId={activeWorkspaceId ?? null} />
       {b.isError ? (
-        <ReadFailedLine onRetry={() => void b.refetch()}>
-          {humanWriteError(b.error, "The reason did not come back with the error.")}
-        </ReadFailedLine>
+        /* One block, not a headline plus a loose line: what is still true, then
+           the reason and the control, both from the primitive. */
+        <ReadFailed error={b.error} onRetry={() => void b.refetch()}>
+          The boundary could not be read, so nothing here is what your crew is actually allowed to
+          do. Nothing has moved.
+        </ReadFailed>
       ) : b.isLoading ? (
         <Reading>Reading what your crew is allowed to do.</Reading>
       ) : !data ? null : (
@@ -801,7 +811,7 @@ export function BoundaryControls({
             {policy.isLoading ? (
               <Reading>Reading what your answers changed.</Reading>
             ) : policy.isError ? (
-              <ReadFailedLine onRetry={() => void policy.refetch()}>
+              <ReadFailedLine error={policy.error} onRetry={() => void policy.refetch()}>
                 {humanWriteError(
                   policy.error,
                   "That did not come back, so this is not a claim that nothing changed.",

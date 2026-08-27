@@ -224,7 +224,7 @@ export function SupportSignalsPanel() {
         ) : clustersQ.isLoading ? (
           <Reading>Reading what repeats.</Reading>
         ) : clustersQ.isError ? (
-          <ReadFailedLine onRetry={() => void clustersQ.refetch()}>
+          <ReadFailedLine error={clustersQ.error} onRetry={() => void clustersQ.refetch()}>
             {humanWriteError(
               clustersQ.error,
               "The themes did not load, so an empty list here would not mean nothing repeats.",
@@ -329,7 +329,7 @@ function ThemeDetail({
         {q.isLoading ? (
           <Reading>Assembling it.</Reading>
         ) : q.isError ? (
-          <ReadFailedLine onRetry={() => void q.refetch()}>
+          <ReadFailedLine error={q.error} onRetry={() => void q.refetch()}>
             {humanWriteError(q.error, "The reply did not assemble.")}
           </ReadFailedLine>
         ) : q.data ? (

@@ -486,7 +486,7 @@ function FailingCases({ runId }: { runId: string | null }) {
   if (q.isError) {
     return (
       <Region>
-        <ReadFailedLine onRetry={() => void q.refetch()}>
+        <ReadFailedLine error={q.error} onRetry={() => void q.refetch()}>
           This run did not load, so the failures below would not be its real ones.
         </ReadFailedLine>
       </Region>

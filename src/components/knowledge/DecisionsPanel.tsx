@@ -408,7 +408,7 @@ export function DecisionsPanel() {
            string where the ledger goes and no sentence telling them the calls
            were still there. Every other failure arm on Brain leads with the
            claim it is refusing to make and then appends the message. */
-        <ReadFailed onRetry={() => void decisions.refetch()}>
+        <ReadFailed error={decisions.error} onRetry={() => void decisions.refetch()}>
           The calls did not load, so this is not a claim that none are on the record.{" "}
           {humanWriteError(decisions.error, "The read failed.")}
         </ReadFailed>

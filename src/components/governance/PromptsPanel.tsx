@@ -140,7 +140,7 @@ export function PromptsPanel() {
 
   if (templates.isError) {
     return (
-      <ReadFailed onRetry={() => void templates.refetch()}>
+      <ReadFailed error={templates.error} onRetry={() => void templates.refetch()}>
         The prompts did not load, so nothing below would be what the surfaces are actually running.
       </ReadFailed>
     );

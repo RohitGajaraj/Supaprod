@@ -98,7 +98,7 @@ export function TrustGraduationsBlock({
   if (q.isError) {
     return (
       <Region title="Asking for more room">
-        <ReadFailedLine onRetry={() => void q.refetch()}>
+        <ReadFailedLine error={q.error} onRetry={() => void q.refetch()}>
           The proposals did not load, so nothing below is the real queue.
         </ReadFailedLine>
       </Region>

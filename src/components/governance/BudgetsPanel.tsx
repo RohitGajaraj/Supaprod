@@ -424,7 +424,7 @@ export function BudgetsPanel({
   // a spend screen.
   if (overview.isError) {
     return (
-      <ReadFailed onRetry={() => void overview.refetch()}>
+      <ReadFailed error={overview.error} onRetry={() => void overview.refetch()}>
         Your budgets did not load, so nothing here would be the real ceiling.
       </ReadFailed>
     );

@@ -138,7 +138,7 @@ export function StandingRules() {
             that read successfully and found nothing, and on THIS region that
             mistaken reading is "the record tells the crew nothing". Naming what
             did not load is what stops a dead read being heard as a verdict. */}
-        <ReadFailedLine onRetry={() => void q.refetch()}>
+        <ReadFailedLine error={q.error} onRetry={() => void q.refetch()}>
           The standing rules did not load, so this is not a claim that nothing is standing.{" "}
           {humanWriteError(q.error, "The read failed.")}
         </ReadFailedLine>

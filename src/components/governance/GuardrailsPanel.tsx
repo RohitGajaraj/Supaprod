@@ -292,7 +292,7 @@ export function GuardrailsPanel() {
 
   if (overview.isError) {
     return (
-      <ReadFailed onRetry={() => void overview.refetch()}>
+      <ReadFailed error={overview.error} onRetry={() => void overview.refetch()}>
         The rules did not load, so nothing below would be the real boundary.
       </ReadFailed>
     );

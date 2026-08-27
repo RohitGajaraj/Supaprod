@@ -188,7 +188,7 @@ export function GraphNodeStory({
       {story.isLoading ? (
         <Reading>Tracing what it connects to.</Reading>
       ) : story.isError ? (
-        <ReadFailed onRetry={() => void story.refetch()}>
+        <ReadFailed error={story.error} onRetry={() => void story.refetch()}>
           This node did not trace, so this is not a claim that nothing connects to it.{" "}
           {humanWriteError(story.error, "")}
         </ReadFailed>

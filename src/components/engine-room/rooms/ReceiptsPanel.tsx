@@ -293,7 +293,9 @@ function SealPanel() {
   if (sealQ.isError) {
     return (
       <Region title="Tamper check">
-        <ReadFailed onRetry={() => void sealQ.refetch()}>The tamper check did not load.</ReadFailed>
+        <ReadFailed error={sealQ.error} onRetry={() => void sealQ.refetch()}>
+          The tamper check did not load.
+        </ReadFailed>
       </Region>
     );
   }
