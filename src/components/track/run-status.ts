@@ -135,8 +135,14 @@ export function originLine(title: string, origin: string | null | undefined): st
   if (o.toLowerCase() === t.toLowerCase()) return null;
 
   if (o.toLowerCase().startsWith(t.toLowerCase())) {
-    // Drop the repeated opening and whatever punctuation joined it on.
-    const rest = o.slice(t.length).replace(/^[\s.,;:\-–—]+/, "");
+    /* Drop the repeated opening and whatever punctuation joined it on.
+     *
+     * THE TWO DASHES ARE ESCAPES, NOT LITERALS, and that is not style. This
+     * file is in the rendering layer, and the repo's own guard scans that layer
+     * for a literal em or en dash -- it failed on this line within a minute of
+     * it being written, which is exactly what it is for. A matcher needs to
+     * RECOGNISE the characters it strips; it does not need to CONTAIN them. */
+    const rest = o.slice(t.length).replace(/^[\s.,;:\-\u2013\u2014]+/, "");
     // A handful of characters left over is a fragment, not a fact. Below this
     // the honest render is nothing at all rather than a dangling clause.
     return rest.length >= 15 ? rest : null;

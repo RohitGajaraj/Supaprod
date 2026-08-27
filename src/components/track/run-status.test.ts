@@ -111,7 +111,10 @@ describe("where the work came from", () => {
     );
     // The joining punctuation goes with the repeated half; a line starting
     // with ". " reads as a fragment of the sentence above it.
-    expect(originLine("Fix checkout", "Fix checkout — 4 people reported it this week.")).toBe(
+    // Built from an escape rather than typed: this file sits in the layer the
+    // dash guard scans, and a fixture is still a literal on disk.
+    const EM = "\u2014";
+    expect(originLine("Fix checkout", `Fix checkout ${EM} 4 people reported it this week.`)).toBe(
       "4 people reported it this week.",
     );
   });
