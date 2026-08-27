@@ -47,6 +47,7 @@ import { humanWriteError } from "@/lib/roles.functions";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
+import { nothingStandingYet } from "./standing-words";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { getStandingRecord, type StandingRule } from "@/lib/brain-standing.functions";
@@ -158,9 +159,13 @@ export function StandingRules() {
             ) : undefined
           }
         >
-          {pending > 0
-            ? "Nothing standing yet. The steward has written a rule out of what shipped, and it is waiting on a human."
-            : "Nothing standing yet. The steward reads validated outcomes each week and proposes a rule when the same lesson turns up twice."}
+          {/*
+           * THE COUNT GOES IN THE SENTENCE, because on the live database it is
+           * 26 and the sentence said "a rule". See standing-words.ts: every one
+           * of the 26 house rules ever written is still `pending`, so this arm
+           * describes a stack of unread decisions rather than one.
+           */}
+          {nothingStandingYet(pending)}
         </NothingYet>
       </Region>
     );
