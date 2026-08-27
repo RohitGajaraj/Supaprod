@@ -537,19 +537,68 @@ export async function runCiPollTick() {
           const headers = ghHeaders(gh.token);
 
           if (canHost) {
+            /*
+             * ── F-125: THREE SILENT EXITS ON THE LAST STATION'S ONLY PROOF ──
+             *
+             * These were `continue` with nothing said, and the marker check had
+             * no `else` at all. So "we could not read the repo", "we could not
+             * read its head", "this repo is not ours to deploy" and "there was
+             * nothing to do" were **one indistinguishable outcome** in the job
+             * report, on the step that produces the only evidence
+             * `release.publish` accepts.
+             *
+             * THE COST WAS NOT HYPOTHETICAL. This check has run every two
+             * minutes for weeks. Asked today whether the one repo the loop
+             * builds into carries a `supaprod.json` marker, **nothing in the
+             * system could answer**, and the repo is private to the App
+             * installation so it cannot be read from outside either. A check
+             * that has run thousands of times and recorded nothing about what it
+             * found is a check nobody can learn from.
+             *
+             * `failures` is the channel the surrounding code already uses for
+             * exactly this ("it is named in `failures` just above"), and the
+             * volume is bounded because `canHost` has already narrowed this to
+             * merged changesets under a retry backoff.
+             *
+             * The unmarked case is not OUR failure, and its sentence says so: it
+             * names the one file that would fix it, because a merged changeset
+             * that can never deploy is a stall someone has to be told about
+             * rather than a condition to log once and forget.
+             */
             const repoInfoRes = await fetch(`https://api.github.com/repos/${cs.repo}`, {
               headers,
             });
-            if (!repoInfoRes.ok) continue;
+            if (!repoInfoRes.ok) {
+              failures.push(
+                `${cs.id.slice(0, 8)}: could not read ${cs.repo} (${repoInfoRes.status}), so no preview was deployed`,
+              );
+              continue;
+            }
             const defaultBranch =
               ((await repoInfoRes.json()) as { default_branch?: string }).default_branch ?? "main";
             const refRes = await fetch(
               `https://api.github.com/repos/${cs.repo}/git/ref/heads/${encodeURIComponent(defaultBranch)}`,
               { headers },
             );
-            if (!refRes.ok) continue;
+            if (!refRes.ok) {
+              failures.push(
+                `${cs.id.slice(0, 8)}: could not read ${cs.repo}@${defaultBranch} (${refRes.status}), so no preview was deployed`,
+              );
+              continue;
+            }
             const headSha = ((await refRes.json()) as { object: { sha: string } }).object.sha;
-            if (await isSupaprodManaged({ token: gh.token, repo: cs.repo, ref: headSha })) {
+            const managed = await isSupaprodManaged({
+              token: gh.token,
+              repo: cs.repo,
+              ref: headSha,
+            });
+            if (!managed) {
+              failures.push(
+                `${cs.id.slice(0, 8)}: ${cs.repo} has no supaprod.json at its root, so nothing here can deploy a preview for it and this change cannot reach production through us`,
+              );
+              continue;
+            }
+            {
               const files = await collectRepoFiles({
                 token: gh.token,
                 repo: cs.repo,

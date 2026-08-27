@@ -41,12 +41,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { resolveApprovalPolicy } from "@/lib/ai/approval-policy";
 import { approvalRecordFor } from "@/lib/ai/approval-policy.server";
-import {
-  collisionsFrom,
-  targetOf,
-  type Anchor,
-  type Collision,
-} from "@/lib/presence/collision";
+import { collisionsFrom, targetOf, type Anchor, type Collision } from "@/lib/presence/collision";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -115,6 +110,29 @@ export type ApprovalFilter = "all" | "proposals" | "gates" | "memory" | "spend";
 
 export type ApprovalQueueItem = ApprovalItem & {
   kindKey: ApprovalKind;
+  /**
+   * Is the work this gate holds still live?
+   *
+   * ── F-128, MEASURED BY S1 ON THE RENDERED SURFACE ────────────────────────
+   * `/approvals` says "52 decisions are ready for you" and every row promises
+   * "Approve · unblocks Build for this spec". **For 22 of the 29 pending
+   * tool-call gates the run they held is already over**, so approving cannot
+   * unblock anything, and seven more have no `agent_runs` row at all. None is
+   * past its expiry, so nothing will ever clear them; the youngest is 33 days.
+   *
+   * `true` the work is still going, and answering this releases it.
+   * `false` we looked, and it has finished. Approving changes nothing.
+   * `null`  we cannot say: no mission on the gate, no run for the mission, or
+   *         the lookup failed. **Never collapse this into `false`** — it would
+   *         tell a person the work had finished when nothing ever started.
+   *
+   * Age cannot substitute for this. A 33-day-old call whose run is still queued
+   * is genuinely waiting and `created_at` cannot tell the two apart.
+   *
+   * Only tool-call gates carry a meaningful value; every other kind is null,
+   * because a spec, a decision or a house rule is not held open by a run.
+   */
+  gatesLiveWork: boolean | null;
   /** The id to send back on decide - never the composite `item.id`. */
   sourceId: string;
   filterBucket: Exclude<ApprovalFilter, "all">;
@@ -530,6 +548,10 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
         id: `tool_call:${a.id}`,
         kindKey: "tool_call",
         sourceId: a.id,
+        // F-128. Read straight off the row rather than re-derived here, so the
+        // queue and the governance surface cannot disagree about whether the
+        // same gate is holding anything.
+        gatesLiveWork: (a as { gatesLiveWork?: boolean | null }).gatesLiveWork ?? null,
         filterBucket: "gates",
         kind: "GATE",
         kindTone,
@@ -567,6 +589,9 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
       items.push({
         id: `decision:${d.id}`,
         kindKey: "decision",
+        // Not held open by a run: see `gatesLiveWork` on the type. Declared
+        // rather than defaulted, so a new kind has to decide this on purpose.
+        gatesLiveWork: null,
         sourceId: d.id,
         filterBucket: "proposals",
         kind: "PROPOSAL",
@@ -600,6 +625,9 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
       items.push({
         id: `memory_candidate:${c.id}`,
         kindKey: "memory_candidate",
+        // Not held open by a run: see `gatesLiveWork` on the type. Declared
+        // rather than defaulted, so a new kind has to decide this on purpose.
+        gatesLiveWork: null,
         sourceId: c.id,
         filterBucket: "memory",
         kind: "MEMORY",
@@ -628,6 +656,9 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
       items.push({
         id: `house_rule:${r.id}`,
         kindKey: "house_rule",
+        // Not held open by a run: see `gatesLiveWork` on the type. Declared
+        // rather than defaulted, so a new kind has to decide this on purpose.
+        gatesLiveWork: null,
         sourceId: r.id,
         filterBucket: "memory",
         kind: "MEMORY",
@@ -651,6 +682,9 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
       items.push({
         id: `trust_graduation:${t.id}`,
         kindKey: "trust_graduation",
+        // Not held open by a run: see `gatesLiveWork` on the type. Declared
+        // rather than defaulted, so a new kind has to decide this on purpose.
+        gatesLiveWork: null,
         sourceId: t.id,
         filterBucket: "gates",
         kind: "TRUST",
@@ -675,6 +709,9 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
       items.push({
         id: `spec:${p.id}`,
         kindKey: "spec",
+        // Not held open by a run: see `gatesLiveWork` on the type. Declared
+        // rather than defaulted, so a new kind has to decide this on purpose.
+        gatesLiveWork: null,
         sourceId: p.id,
         filterBucket: "proposals",
         kind: "SPEC",
@@ -698,6 +735,9 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
       items.push({
         id: `opportunity:${o.id}`,
         kindKey: "opportunity",
+        // Not held open by a run: see `gatesLiveWork` on the type. Declared
+        // rather than defaulted, so a new kind has to decide this on purpose.
+        gatesLiveWork: null,
         sourceId: o.id,
         filterBucket: "proposals",
         kind: "PROPOSAL",
@@ -807,6 +847,9 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
         items.push({
           id: `assumption_challenge:${c.id}`,
           kindKey: "assumption_challenge",
+          // Not held open by a run: see `gatesLiveWork` on the type. Declared
+          // rather than defaulted, so a new kind has to decide this on purpose.
+          gatesLiveWork: null,
           sourceId: c.id,
           filterBucket: "gates",
           kind: "CHALLENGE",
@@ -829,6 +872,9 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
       items.push({
         id: `design_gate:${p.id}`,
         kindKey: "design_gate",
+        // Not held open by a run: see `gatesLiveWork` on the type. Declared
+        // rather than defaulted, so a new kind has to decide this on purpose.
+        gatesLiveWork: null,
         sourceId: p.id,
         filterBucket: "proposals",
         kind: "DESIGN",
@@ -862,6 +908,9 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
         items.push({
           id: `playbook_proposal:${p.id}`,
           kindKey: "playbook_proposal",
+          // Not held open by a run: see `gatesLiveWork` on the type. Declared
+          // rather than defaulted, so a new kind has to decide this on purpose.
+          gatesLiveWork: null,
           sourceId: p.id,
           filterBucket: "proposals",
           kind: "PLAYBOOK",
@@ -1826,7 +1875,10 @@ export const getWorkspaceAnchors = createServerFn({ method: "GET" })
 
       // Newest call per trace. The list is already newest-first, so the first
       // hit per trace wins and nothing needs sorting again.
-      const newestByTrace = new Map<string, { tool_name: string; args: unknown; created_at: string }>();
+      const newestByTrace = new Map<
+        string,
+        { tool_name: string; args: unknown; created_at: string }
+      >();
       for (const c of calls as Array<{
         trace_id: string;
         tool_name: string;

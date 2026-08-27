@@ -3961,7 +3961,7 @@ const prdDraft = def({
     a.opportunity_id
       ? `Draft spec for opportunity ${a.opportunity_id.slice(0, 8)}${a.title ? `: "${a.title}"` : ""}`
       : `Draft spec from a brief, with no bet behind it${a.title ? `: "${a.title}"` : ""}`,
-  run: async (a, { supabase, userId, traceId, runId, agentSlug, workspaceId }) => {
+  run: async (a, { supabase, userId, traceId, runId, agentSlug, workspaceId, trackId }) => {
     const brief = a.brief?.trim() ?? "";
     if (!a.opportunity_id && !brief) {
       throw new Error(
@@ -4210,6 +4210,74 @@ const prdDraft = def({
       workspaceId: prd.workspace_id ?? specWorkspaceId,
       userId,
     });
+    /*
+     * ── F-123: THE BET AND THE SPEC IT PRODUCED WERE NEVER LINKED ──────────
+     *
+     * MEASURED 2026-08-27: of 33 open specs on real workspaces, **3 carry an
+     * `opportunity_id` and ZERO have any decision pointing at them.** Not one
+     * `decisions.prd_id` in the database is set. So the chain the product is
+     * built on — a bet, the spec that serves it, the outcome that grades it —
+     * is broken at its first joint on every row.
+     *
+     * IT CANNOT BE WRITTEN AT DECIDE, which is why it was never written at all.
+     * `decisions.prd_id` is null by construction there: Decide runs BEFORE
+     * Define, so the spec does not exist yet when the bet is recorded. The link
+     * can only be closed from this end, by the station that creates the thing
+     * being pointed at.
+     *
+     * WHAT IT UNBLOCKS, in three places that each look like separate problems:
+     *   · `spec-gate.ts` gate 3 refuses a spec attached to no recorded bet,
+     *     because nothing could grade it afterwards. Without this link it would
+     *     have refused 30 of 33 real specs FOR A REASON ABOUT OUR OWN PLUMBING,
+     *     and a gate that refuses honest work for its own internal reasons is
+     *     worse than no gate, because the refusal reads as a judgement.
+     *   · `learning.record` needs the decision a verdict is about, and its own
+     *     comment says the two existing recoveries are both dead on the
+     *     driver's route.
+     *   · S4 measured 369 decisions with `cited_by_count` of 0, max 0, and
+     *     called it "the compounding half of the moat with no instance in the
+     *     product's life". A decision nothing points at cannot be cited.
+     *
+     * GUARDED THREE WAYS, because writing the wrong link is worse than none.
+     * Only on a track (a loose spec has no bet to claim), only onto a decision
+     * that has none yet (`.is("prd_id", null)`, so a second spec on the same
+     * track cannot steal the first one's bet), and the failure is REPORTED in
+     * the result rather than thrown: the spec is written and real by this point,
+     * and failing the whole tool over a missing cross-reference would tell the
+     * seat its spec does not exist when it does.
+     */
+    let servedBet: string | null = null;
+    let betLinkNote: string | null = null;
+    if (trackId) {
+      const { data: fromTrack, error: memberErr } = await supabase
+        .from("spine_track_members" as never)
+        .select("artifact_id")
+        .eq("track_id", trackId)
+        .eq("artifact_kind", "decision")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const decisionId = (fromTrack as { artifact_id?: string | null } | null)?.artifact_id ?? null;
+      if (memberErr) {
+        betLinkNote = `The bet behind this spec could not be looked up, so nothing was linked: ${memberErr.message}`;
+      } else if (decisionId) {
+        const { data: linked, error: linkErr } = await supabase
+          .from("decisions")
+          .update({ prd_id: prd.id })
+          .eq("id", decisionId)
+          .is("prd_id", null)
+          .select("id");
+        if (linkErr) {
+          betLinkNote = `This spec could not be attached to the bet it serves: ${linkErr.message}`;
+        } else if (linked && linked.length > 0) {
+          servedBet = decisionId;
+        }
+        // No rows changed means that bet already names a spec. Not an error and
+        // not a silence: the first spec keeps the bet, and this one says so.
+        else betLinkNote = "The bet on this work already names a different spec.";
+      }
+    }
+
     // `opportunity_id` is null on the brief path, and that null is the signal:
     // it is how a reader tells a spec that serves a bet from one that entered
     // mid-lifecycle. The field list stays exactly as it was, so
@@ -4220,6 +4288,9 @@ const prdDraft = def({
       title: prd.title,
       status: prd.status,
       opportunity_id: opp?.id ?? null,
+      /** The decision this spec now serves, when one was on the track. */
+      serves_decision_id: servedBet,
+      ...(betLinkNote ? { bet_link_note: betLinkNote } : {}),
     };
   },
 });

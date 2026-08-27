@@ -30,6 +30,8 @@ import { parsePersonaBoardReview, type PersonaBoardReview } from "@/lib/ai/perso
 import type { RawLineageEdge } from "@/lib/knowledge-graph-view";
 import { resolveLineageCols } from "@/lib/knowledge-graph-view.functions";
 import type { SupabaseClient } from "@supabase/supabase-js";
+
+import { clearSpecIfProven } from "@/lib/spec-gate.server";
 import { SUPERSESSION_RELATIONS } from "@/lib/trust-ledger.functions";
 
 const DESIGN_CRITIC_SYSTEM = `You are the Critic agent's design lens. Evaluate the given screen (a PRD's described UI, or a rendered mockup's HTML) for:
@@ -165,6 +167,15 @@ export type CriticReview = {
   reviewed_at: string;
   /** DSN-02: the design lens, present only for target.kind==="prd" (never opportunities). */
   design?: DesignCriticReview;
+  /**
+   * True when a design read was WANTED and did not come back (F-132).
+   *
+   * The difference between "nobody read the design" and "we could not produce a
+   * design read" is the difference between a fact about the work and a fact
+   * about us, and `spec-gate.ts` gate 8 says a different sentence for each. An
+   * absent `design` key alone could not carry that.
+   */
+  design_unavailable?: boolean;
   /** RPT-41: the persona review board (exec / engineering / customer-of-record), on both kinds. */
   board?: PersonaBoardReview;
 };
@@ -379,6 +390,30 @@ Be specific. No filler. Use "ship" only when risks are bounded and evidence is s
         subject: subject,
       });
       if (design) review.design = design;
+      /*
+       * ── F-132: A BEST-EFFORT PASS NOW GATES A LEVER, SO ITS SILENCE COSTS ──
+       *
+       * `if (design)` alone leaves the key ABSENT, and an absent key cannot say
+       * which of three things happened: the pass failed, the pass ran and found
+       * nothing to review, or nobody wanted one.
+       *
+       * That was harmless while the design lens only augmented a receipt. It
+       * stopped being harmless when `spec-gate.ts` gate 8 started reading a
+       * missing design verdict as **"nobody has read this design back against
+       * the spec"** — a statement about the WORK — when the true cause may be a
+       * second model call of ours that did not return. Refusing honest work for
+       * our own internal reason is the thing that makes a gate read as a
+       * judgement, and I warned against it in F-117 before creating it here.
+       *
+       * We are inside `target.kind === "prd"`, so a design read was WANTED. A
+       * null therefore means we asked and did not get one, and that is a fact
+       * worth writing down rather than an absence to be interpreted later.
+       *
+       * Live: 3 of 5 rows carry the lens, 2 do not, so this is variable rather
+       * than systematic — which is exactly the shape that would have been
+       * blamed on the spec.
+       */
+      else review.design_unavailable = true;
     }
 
     // RPT-41: the persona review board runs on BOTH opportunities and specs, so each
@@ -407,11 +442,62 @@ Be specific. No filler. Use "ship" only when risks are bounded and evidence is s
  */
 export async function runCriticTool(
   args: { target_kind: "opportunity" | "prd"; target_id: string },
-  ctx: { supabase: SupabaseClient; userId: string },
-): Promise<{ ok: boolean; review: CriticReview | null }> {
+  /*
+   * The attribution fields are optional and read only for the record. The
+   * clearance below must never DEPEND on which seat asked, or it becomes a
+   * clearance an agent could shop for by calling from a different seat.
+   */
+  ctx: {
+    supabase: SupabaseClient;
+    userId: string;
+    agentSlug?: string;
+    agentId?: string | null;
+    runId?: string | null;
+  },
+): Promise<{
+  ok: boolean;
+  review: CriticReview | null;
+  spec_status?: string;
+  spec_status_because?: string;
+}> {
   const review = await runCritic(ctx.supabase, ctx.userId, {
     kind: args.target_kind,
     id: args.target_id,
   });
-  return { ok: review !== null, review };
+  if (review === null) return { ok: false, review };
+
+  /*
+   * ── F-116: THE VERDICT NOW HAS SOMEWHERE TO LAND ───────────────────────
+   *
+   * This call is the moment the last input the spec gate needs arrives. The
+   * contract, the bet and the status have been on the row for hours; the
+   * Critic verdict and the design lens are written HERE and nowhere else.
+   *
+   * It also decides who can cause a clearance, which matters more than where
+   * it runs. No seat calls `clearSpecIfProven`. An agent can ask for its spec
+   * to be ARGUED AGAINST, and a clearance is a consequence of surviving that
+   * argument, filed by a different seat than the one that wrote the spec.
+   *
+   * Measured before this existed: 116 of 119 specs sat on a `pending` design
+   * gate that only a human server function can write, and Ship refused all of
+   * them. The judgement was being done and had nowhere to go.
+   *
+   * Opportunities are untouched: the gate is about specs.
+   */
+  if (args.target_kind !== "prd") return { ok: true, review };
+
+  const clearance = await clearSpecIfProven(ctx.supabase, args.target_id, {
+    agentSlug: ctx.agentSlug ?? null,
+    agentId: ctx.agentId ?? null,
+    runId: ctx.runId ?? null,
+  });
+  return {
+    ok: true,
+    review,
+    // Reported on BOTH outcomes. A seat that is told only about a clearance
+    // reads silence as "it cleared", and then reports a spec as ready over the
+    // gate's refusal, which is F-68 with a new subject.
+    spec_status: clearance.cleared ? "approved" : "still needs a person",
+    spec_status_because: clearance.reason,
+  };
 }
