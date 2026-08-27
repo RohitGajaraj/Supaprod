@@ -1211,6 +1211,13 @@ function Today() {
   const crewSection = (
     name: string,
     all: CrewRow[],
+    /* THE TRUE TOTAL, when the page holds fewer rows than exist.
+       `listMissions` returns the first 50 by recency; `totalBlocked` counts
+       every one. The head says the number a person is actually facing, which is
+       also the number the station strip above this board has always shown, so
+       the two stop disagreeing. Undefined keeps `all.length`, which is right
+       for every lane whose rows are all of them. */
+    trueCount: number | undefined,
     /* A NODE RATHER THAN A STRING since 2026-08-26, so a section's own sentence
        can carry a clause that has to be READ before it can be written — Running
        says what it could not check for overlap, and that is only knowable from a
@@ -1220,6 +1227,7 @@ function Today() {
     verbFor: (row: CrewRow) => React.ReactNode,
     extraFor?: (row: CrewRow) => React.ReactNode,
   ) => {
+    const headCount = trueCount ?? all.length;
     const shown = standingRows(name, all);
     const over = all.slice(shown.length);
     const expanded = moreOpen.includes(name);
@@ -1236,7 +1244,7 @@ function Today() {
     );
     return (
       <section role="group" aria-label={name} className="flex flex-col">
-        <FeedHead name={name} count={all.length} />
+        <FeedHead name={name} count={headCount} />
         <p className="mb-mrd-2 max-w-[62ch] text-mrd-data leading-mrd-prose text-mrd-mute">
           {note}
         </p>
@@ -1250,6 +1258,19 @@ function Today() {
                 </Action>
               </div>
               {expanded ? over.map(line) : null}
+              {expanded && headCount > all.length ? (
+                /* WHAT THE PAGE COULD NOT REACH. The head says the true total
+                   and the page holds the 50 most recently touched, so expanding
+                   this list ends before the number above it does. Without this
+                   line a person counts the rows, finds fewer than the head
+                   claimed, and concludes the head is wrong — which would undo
+                   the fix that put a true number there. The inbox door at the
+                   foot of this region is where the rest actually are. */
+                <p className="px-mrd-2 py-mrd-1 text-mrd-data text-mrd-mute">
+                  Showing <Num>{all.length}</Num> of <Num>{headCount}</Num>. The rest are in the
+                  inbox.
+                </p>
+              ) : null}
             </>
           ) : null}
         </div>
@@ -1980,6 +2001,18 @@ function Today() {
                 {crewSection(
                   FEED_REPLY,
                   allReplyRows,
+                  /* ZERO FROM A FAILED COUNT MUST NOT RENDER AS ZERO. S0's
+                     count degrades to 0 rather than throwing, so a broken read
+                     would put "Waiting on you 0" at the head of the lane whose
+                     whole job is saying what needs a person: a false all-clear
+                     produced by a fault, which is the failure every honesty
+                     gate on this surface exists to stop.
+                     `|| undefined` falls back to the row count, which is what
+                     this head showed before the total existed and is honest. A
+                     genuine zero has no rows either, so it still reads 0 and
+                     nothing is lost. Asked S0 for `number | null`; until then
+                     this is the safe read of the value as shipped. */
+                  missions.data?.totalBlocked || undefined,
                   /* THE BOUNDARY, SAID OUT LOUD, because the omission it covers
                      is large and silent. This lane is filtered by
                      `withinLastDay` (:670), so work whose last movement was over
@@ -2001,7 +2034,39 @@ function Today() {
                      number from a capped read is a wrong number wearing a
                      fact's clothes. The real count needs a server-side read and
                      is filed with S0. */
-                  "Nothing moves on these until you answer.",
+                  /* HOW LONG THE OLDEST HAS SAT. I built this earlier tonight
+                     and reverted it, because the only population I could reach
+                     was the windowed one and every row in it was under a day
+                     old, so the clause could not fire. `oldestBlockedAt` counts
+                     over every row rather than the first 50, so the sentence
+                     now has a source. Under a day it says nothing: "waiting 0
+                     days" reads as a bug even when it is arithmetic. */
+                  (() => {
+                    const base = "Nothing moves on these until you answer.";
+                    const d = daysSince(missions.data?.oldestBlockedAt);
+                    if (d === null || d < 1) return base;
+                    /* SAY WHEN THE OLDEST IS NOT ON THE PAGE, because otherwise
+                       this line and the row under it look like they disagree.
+                       Seen live: the note said 39 days while the top row said
+                       21d, both true. `oldestBlockedAt` counts every blocked
+                       row; the page holds the 50 most recently touched, and the
+                       lane sorts oldest-first, so whenever the true oldest is
+                       outside that 50 the first row is younger than this
+                       sentence. Naming it turns an apparent contradiction into
+                       the useful fact, which is that older work exists than
+                       this page can reach. */
+                    const shownOldest = allReplyRows.length
+                      ? Math.min(...allReplyRows.map((r) => r.at).filter((n) => n > 0))
+                      : 0;
+                    const shownDays = shownOldest
+                      ? Math.floor((Date.now() - shownOldest) / 86_400_000)
+                      : null;
+                    const offPage = shownDays !== null && d - shownDays >= 1;
+                    const word = d === 1 ? "day" : "days";
+                    return offPage
+                      ? `${base} The oldest has been waiting ${d} ${word}, and is not on this page.`
+                      : `${base} The oldest has been waiting ${d} ${word}.`;
+                  })(),
                   (row) =>
                     /* A TRACK IS NOT ANSWERING A QUESTION HERE, so it is not
                        offered a Reply. Seen live 2026-08-27: a track parked on
@@ -2069,6 +2134,7 @@ function Today() {
                 {crewSection(
                   FEED_LIVE,
                   allLiveRows,
+                  undefined,
                   /* THE NOTE HAS TO SURVIVE ITS OWN LANE BEING EMPTY.
                      "Waiting on an agent, not on you" is true of rows in this
                      lane and FALSE of a lane with none, and it rendered anyway:
@@ -2136,6 +2202,7 @@ function Today() {
                 {crewSection(
                   FEED_OPEN,
                   allOpenRows,
+                  undefined,
                   "Finished. Open one to see how it ended, and what it left behind.",
                   (row) => (
                     <Door onClick={row.onOpen}>Open</Door>
