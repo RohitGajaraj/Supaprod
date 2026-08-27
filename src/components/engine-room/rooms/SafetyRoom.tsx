@@ -144,8 +144,15 @@ export function SafetyRoom({ view }: RoomBodyProps) {
       <React.Suspense fallback={<PanelReading>Reading what your crew may do alone.</PanelReading>}>
         <BoundaryControls headingShownElsewhere />
       </React.Suspense>
+      {/* THE BOUNDARY ABOVE NAMES A SHARED FAILURE, SO THIS ONE DOES NOT SAY
+          IT AGAIN. Both panels read through the same session, so an expired one
+          fails both, and this room was drawing "Your session ended. Sign in
+          again and this will load." three times: the pane banner and one inside
+          each block. Only a SESSION-ENDED failure is suppressed; a guardrails
+          read that fails on its own still speaks, because nothing else here
+          would report it. */}
       <React.Suspense fallback={<PanelReading>Reading the content screening rules.</PanelReading>}>
-        <GuardrailsPanel />
+        <GuardrailsPanel sessionEndedShownElsewhere />
       </React.Suspense>
     </>
   );
