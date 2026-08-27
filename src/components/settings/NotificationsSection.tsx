@@ -280,6 +280,22 @@ export function NotificationsSection() {
                  * settings people have already saved.
                  *
                  * Email and Digest are untouched and do deliver.
+                 *
+                 * WHEN THIS LIFTS, IT LIFTS FOR TWO OF THE FOUR. S2 has
+                 * SystemAlerts on /today calling getNotifications for BUDGET
+                 * and DRIFT (eb161ca85, not yet merged here). Approvals and
+                 * Health stay disabled after that, for reasons that are not
+                 * oversights: Today's What-needs-you lane reads agent_approvals
+                 * DIRECTLY and never consults this feed, so an approvals toggle
+                 * would promise control it does not have -- the same defect
+                 * pointing the other way -- and a stall alert would be a second
+                 * voice on a lane that already prints each run's clock.
+                 *
+                 * AND THE FEED WAS NEVER DARK BECAUSE OF THESE TOGGLES. The
+                 * gate defaults to ON (`prefs?.in_app_budget ?? true`) and
+                 * user_notification_preferences holds ONE row. It was dark
+                 * because nothing called it, which is the distinction between
+                 * a preference that is off and a feature that is unplugged.
                  */
                 disabled={ch.key === "app"}
                 title={ch.key === "app" ? "Not delivered anywhere yet" : ch.title}

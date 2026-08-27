@@ -61,7 +61,20 @@ describe("a toggle that cannot deliver does not pretend to", () => {
     });
     expect(
       consumers.map((f) => f.split("/src/")[1]),
-      "a surface renders the feed now: re-enable the App column in NotificationsSection",
+      [
+        "A surface renders the feed now, so the hold is over. Re-enable App for",
+        "BUDGET and DRIFT ONLY in NotificationsSection, and leave Approvals and",
+        "Health disabled. S2 shipped SystemAlerts on /today (eb161ca85) drawing",
+        "those two kinds and no others, and the reasons the other two stay are",
+        "not oversights:",
+        "  approvals - Today's What-needs-you lane reads agent_approvals",
+        "    DIRECTLY and never consults getNotifications, so switching that",
+        "    toggle off would not stop Today showing approvals. The control",
+        "    would promise power it does not have, which is this same defect",
+        "    pointing the other way.",
+        "  health - the running lane already prints each run's own clock, so a",
+        "    stall alert would be a second voice on rows that already speak.",
+      ].join("\n"),
     ).toEqual([]);
   });
 
