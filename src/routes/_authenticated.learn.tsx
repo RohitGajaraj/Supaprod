@@ -558,14 +558,23 @@ function Learn() {
            the failure gets its own branch and says which fact is missing. Same
            read, same retry, as the "What paid off" region in the main column. */
         ledgerQ.isError ? (
+          /*
+           * ONE READ, ONE ANNOUNCEMENT. This is `ledgerQ`, the same query the
+           * "What paid off" region announces in the main column -- the comment
+           * above says so and treated it as a reason to give this its own full
+           * failure state. Measured on a dead backend, that made /learn state a
+           * single failed read five times with four retries, and S4's number is
+           * of the SUM, which no one component can see.
+           *
+           * So the main column keeps the sentence, the detail and the control,
+           * and this keeps its heading and one quiet line. Not silence: a
+           * region that vanishes without saying why is the defect this whole
+           * sweep is about. Not a second retry either, because it re-runs the
+           * identical query and refills both halves anyway.
+           */
           <div className="flex flex-col gap-mrd-4">
             <CtxHead>What the record moved</CtxHead>
-            <ReadFailed
-              onRetry={() => void ledgerQ.refetch()}
-              detail="Nothing has been changed and nothing has been lost. Priority has moved by whatever it had moved a moment ago; this screen just could not read it."
-            >
-              How far the record moved things did not load.
-            </ReadFailed>
+            <p className="mrd-meta text-mrd-faint">Not readable right now.</p>
           </div>
         ) : ledger && (movedPriority || revisedBeliefs) ? (
           <div className="flex flex-col gap-mrd-4">
@@ -749,9 +758,17 @@ function Learn() {
                * Same register as the record's other failed reads: what did not
                * happen, and what is safe. The retry beside it is the action, and
                * the message is still in the console for whoever is debugging.
+               *
+               * AND IT NO LONGER RESTATES THE HEADLINE. `outcomes` is
+               * `ledger?.outcomes`, so THIS read is what makes the page's own h1
+               * say "The record is not readable right now." Both sentences began
+               * "The record", eleven lines apart, about one failed query. S3 hit
+               * the identical shape on /guardrails and their fix is the right
+               * one: give one the STATE and the other the CONSEQUENCE. The
+               * headline keeps the state. This keeps what follows from it, which
+               * is the half a person cannot work out for themselves.
                */}
-              The record did not load, so nothing here would be trustworthy. Nothing has been
-              lost.
+              Nothing here would be trustworthy until it loads, and nothing has been lost.
             </ReadFailedLine>
           ) : /* `isLoading` is `isPending && isFetching` in react-query v5, so it
               is false in the gap where a read is pending but not in flight:
@@ -878,9 +895,7 @@ function Learn() {
             awaitingVerdict={waiting > 0 ? waiting : undefined}
             loading={stillWaiting(lastQ)}
             loadError={
-              lastQ.isError
-                ? failureLine("The last verdict did not load.", lastQ.error)
-                : null
+              lastQ.isError ? failureLine("The last verdict did not load.", lastQ.error) : null
             }
             onRetry={() => void lastQ.refetch()}
           />

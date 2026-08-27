@@ -63,6 +63,7 @@ import {
   ReadFailedLine,
   Reading,
   Region,
+  ReadFailed,
 } from "@/components/meridian/surface-parts";
 import { Choices, Field, Input, Textarea } from "@/components/meridian/forms";
 import { Gate } from "@/components/meridian/Gate";
@@ -517,14 +518,27 @@ export function SettlePanel({
 
   if (pendingQ.isError) {
     return (
-      /* THE RETRY IS NEUTRAL, and that is the design system's own ruling rather
-         than a preference here: orchid means a person is required and green and
-         red report outcomes, so a control that merely RE-READS is entitled to
-         none of them. It was `variant="primary"` on the retired layer, which
-         spent the loudest paint in the product on a failed fetch. */
-      <Gate question="What shipped did not load.">
-        <Action onClick={() => void pendingQ.refetch()}>Try again</Action>
-      </Gate>
+      /*
+       * NOT A GATE, AND THE RULE IS ALREADY WRITTEN DOWN IN THIS REPO.
+       * `_authenticated.decide.tsx` states it beside its own failed read: "A
+       * failed read is not a decision, so it never wears the Gate." This wore
+       * one. `Gate` prints "Waiting on you" unconditionally (Gate.tsx:75), so a
+       * dead read rendered a purple chip claiming a person was required, over a
+       * sentence saying the read had failed. Nothing was waiting on anybody.
+       *
+       * That is the same defect the run header's `runStatus` records fixing:
+       * three statements about one run, and the loudest was the false one.
+       * Photographed on /learn at 1440 against a forced 401.
+       *
+       * `ReadFailed` is the right component and carries the retry itself, in
+       * the neutral paint the previous comment here was right about: orchid
+       * means a person is required, and a control that merely RE-READS is
+       * entitled to none of it. Passing the error also gets S0's `wayOut`, so
+       * an ended session offers sign-in instead of a retry that cannot work.
+       */
+      <ReadFailed onRetry={() => void pendingQ.refetch()} error={pendingQ.error}>
+        What shipped did not load.
+      </ReadFailed>
     );
   }
 
@@ -796,11 +810,7 @@ export function SettlePanel({
                       : "Record it"}
               </Approve>
             ) : (
-              <Action
-                variant="primary"
-                busy={drafting}
-                onClick={() => draft.mutate(target.prdId)}
-              >
+              <Action variant="primary" busy={drafting} onClick={() => draft.mutate(target.prdId)}>
                 {drafting
                   ? "Reading the outcome."
                   : `Ask ${agentDisplayName(MEASURE_SLUG)} to draft it`}
