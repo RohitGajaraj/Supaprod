@@ -411,15 +411,23 @@ function stateSentence(n: {
         </>
       )
     ) : n.ready > 0 ? null : n.shipped > 0 ? (
+      /* THE WINDOW LIVES ON THIS CLAUSE, because this is the only clause it is
+         true of. `shipped` is filtered through `withinLastDay`; `ready`,
+         `stuck` and `waiting` are not - they read the whole outstanding set,
+         and blocked work does not age out. The page used to state the window
+         ONCE, under the headline, where it scoped all four. Three quarters of
+         its own sentence were outside it.
+         It costs five words and only on a board that is otherwise clear, since
+         this branch is reached only when nothing is stuck, waiting or ready. */
       n.shipped === 1 ? (
         <>
           {" "}
-          <Num>1</Num> run shipped.
+          <Num>1</Num> run shipped in the last 24 hours.
         </>
       ) : (
         <>
           {" "}
-          <Num>{n.shipped}</Num> runs shipped.
+          <Num>{n.shipped}</Num> runs shipped in the last 24 hours.
         </>
       )
     ) : (
@@ -1951,15 +1959,27 @@ function Today() {
           title={headline}
           sub={
             <>
-              {/* THE HONEST BOUNDARY. The idea this surface is built on is "what
-                  changed since you last looked", and the database has no
-                  per-user watermark to draw that line with — see
-                  src/components/today/when.ts. So it says the window it
-                  actually has. */}
-              In the last 24 hours
+              {/* THE WINDOW USED TO BE STATED HERE AND IT WAS FALSE HERE.
+                  "In the last 24 hours" sat directly under a headline whose
+                  four clauses are `ready`, `stuck`, `waiting` and `shipped` -
+                  and only the LAST of those is filtered through
+                  `withinLastDay`. The other three read the whole outstanding
+                  set, because blocked work does not age out and the review
+                  queue was never windowed at all.
+
+                  Measured on the rendered board 2026-08-27, signed in: this
+                  line sat under "52 decisions are ready for your review", and
+                  the oldest of those 52 had been waiting 49 DAYS. A reader is
+                  entitled to conclude 52 decisions arrived since yesterday.
+
+                  So the boundary moved onto the one clause it describes, in
+                  `stateSentence`, and this slot carries only what is true of
+                  the whole page. The idea the line came from is still right and
+                  still unbuildable: "since you last looked" needs a per-user
+                  watermark the database does not have (see when.ts). That is a
+                  column to add, not a claim to keep making loosely. */}
               {onRecord !== null ? (
                 <>
-                  {" · "}
                   {/* TWO DOORS ON THIS PAGE ONCE CARRIED THE SAME WORDS AND WENT
                       TO DIFFERENT PLACES. This one and the one under the settled
                       calls both read "Open the record": this opens the shared

@@ -579,3 +579,44 @@ describe("Today's triage feed", () => {
     expect(runRefusalAt).toBeGreaterThan(runWaitAt);
   });
 });
+
+describe("the page states a window only where the window is true", () => {
+  /*
+   * "In the last 24 hours" sat under the headline, scoping all four of its
+   * clauses. Only ONE of them is windowed.
+   *
+   *   ready     the review queue. Never windowed. Oldest measured 49 days.
+   *   stuck     `stoppedAll`, from `blockedAll`. Unwindowed - blocked work does
+   *             not age out, and windowing it was removed for exactly that.
+   *   waiting   `proposedAll`, same source, same reason.
+   *   shipped   filtered through `withinLastDay`. The only one.
+   *
+   * So a reader met "52 decisions are ready for your review" with "In the last
+   * 24 hours" underneath, and was entitled to conclude 52 decisions arrived
+   * since yesterday. The oldest had been waiting 49 days.
+   *
+   * These read `src`, which has comments stripped, so the phrase surviving in
+   * the note that explains its removal cannot pass the test by accident.
+   */
+  it("no longer claims a window over the whole headline", () => {
+    expect(src).not.toContain("In the last 24 hours");
+  });
+
+  it("states it on the shipped clause, which is the one it describes", () => {
+    expect(src).toContain("run shipped in the last 24 hours.");
+    expect(src).toContain("runs shipped in the last 24 hours.");
+  });
+
+  it("KEEPS THE FILTER, because the claim was mislocated and not wrong", () => {
+    // `shipped` really is a 24h window. Deleting the filter to make the old
+    // sentence true everywhere would have been the other, worse repair.
+    expect(src).toContain("withinLastDay(m.completed_at)");
+  });
+
+  it("leaves the unwindowed clauses unqualified", () => {
+    // If either of these ever grows "in the last 24 hours", it becomes a false
+    // claim about work that does not age out.
+    expect(src).toContain("runs are stuck.");
+    expect(src).toContain("runs are waiting for you to launch them.");
+  });
+});
