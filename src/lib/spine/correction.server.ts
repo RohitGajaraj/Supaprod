@@ -174,6 +174,7 @@ export async function applyCorrection(
         station: move.to,
         attempts: 0,
         last_hold: null,
+        last_hold_because: null,
         driven_at: now,
         updated_at: now,
       } as never)

@@ -115,6 +115,15 @@ export type Track = {
    * found painting every hold amber by testing the sentence.
    */
   holdReason: string | null;
+  /**
+   * The DRIVER'S OWN SENTENCE for why this stopped, stored verbatim.
+   *
+   * `holdReason` is the coarse kind ('given-up', 'tools-refused'), which is what
+   * a list needs. This is the specific one, naming the stations and the missing
+   * thing, which is what a person needs before they can do anything about it.
+   * Null means the track stopped before the column existed, or is not stopped.
+   */
+  holdBecause: string | null;
   /** When the driver last touched it. Null means it has never been driven. */
   drivenAt: string | null;
   /**
@@ -139,6 +148,7 @@ type TrackRow = {
   waived: unknown;
   updated_at: string;
   last_hold: string | null;
+  last_hold_because?: string | null;
   driven_at: string | null;
   attempts: number | null;
 };
@@ -173,13 +183,14 @@ function rowToTrack(r: TrackRow): Track {
     // other reason exactly as written, so there is no second copy of the words.
     hold: holdLine(r.last_hold, { station: r.station as AgentStation }),
     holdReason: r.last_hold,
+    holdBecause: r.last_hold_because ?? null,
     drivenAt: r.driven_at ?? null,
     attempts: r.attempts ?? 0,
   };
 }
 
 const SELECT =
-  "id,user_id,workspace_id,title,origin,entry_station,station,status,path,waived,updated_at,last_hold,driven_at,attempts," +
+  "id,user_id,workspace_id,title,origin,entry_station,station,status,path,waived,updated_at,last_hold,last_hold_because,driven_at,attempts," +
   // The ONLY edge from a track to the questions it is waiting on.
   // `agent_approvals` has no track back-reference — see SPEC-CONSENT §1.1 and
   // the migration that created this column, which rejects every correlational
@@ -696,6 +707,7 @@ export const advanceTrack = createServerFn({ method: "POST" })
                   station: next,
                   attempts: 0,
                   last_hold: null,
+                  last_hold_because: null,
                   last_driven_via: "press",
                   updated_at: now,
                 }
@@ -703,6 +715,7 @@ export const advanceTrack = createServerFn({ method: "POST" })
                   status: "done",
                   attempts: 0,
                   last_hold: null,
+                  last_hold_because: null,
                   last_driven_via: "press",
                   updated_at: now,
                 }) as never,
@@ -933,6 +946,7 @@ export const retryStation = createServerFn({ method: "POST" })
           attempts: 0,
           station_drives: 0,
           last_hold: null,
+          last_hold_because: null,
           driven_at: now,
           updated_at: now,
         } as never)
@@ -2575,6 +2589,7 @@ export const submitStationByHand = createServerFn({ method: "POST" })
         attempts: 0,
         station_drives: 0,
         last_hold: null,
+        last_hold_because: null,
         driven_at: now,
         updated_at: now,
       } as never)
@@ -2710,6 +2725,7 @@ export const rewindTrackTo = createServerFn({ method: "POST" })
           // re-hold `going-in-circles` on the very next tick.
           station_drives: 0,
           last_hold: null,
+          last_hold_because: null,
           driven_at: now,
           updated_at: now,
         } as never)

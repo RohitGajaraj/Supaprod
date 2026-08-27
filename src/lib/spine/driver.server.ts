@@ -1137,7 +1137,20 @@ async function correctIfPossible(
     const now = new Date().toISOString();
     const { error } = await supabase
       .from("spine_tracks" as never)
-      .update({ attempts: 0, last_hold: null, driven_at: now, updated_at: now } as never)
+      /*
+       * F-127: cleared with the hold, always. A track that has been released and
+       * still carries the sentence explaining why it stopped is the exact defect
+       * this file already records at :521 — "`last_hold` was not cleared, so the
+       * row went on rendering the PREVIOUS reason" — and a stale reason reads as
+       * a current one.
+       */
+      .update({
+        attempts: 0,
+        last_hold: null,
+        last_hold_because: null,
+        driven_at: now,
+        updated_at: now,
+      } as never)
       .eq("id", row.id);
     if (error) return null;
     return {
@@ -1187,9 +1200,35 @@ async function correctIfPossible(
   // stations and the missing thing, is the line returned here and it is what the
   // tick's own record of the sweep carries.
   const hold = holdForCorrection(decision);
+  /*
+   * ── F-127: THE SENTENCE WAS COMPUTED AND THROWN AWAY ───────────────────
+   *
+   * The comment directly above already describes this without naming it as a
+   * defect: the coarse kind is persisted "so the surface that lists work can
+   * render a sentence", while "the specific one, naming both stations and the
+   * missing thing, is the line returned here and it is what the tick's own
+   * record of the sweep carries."
+   *
+   * So the reason exists. It goes into a job record and never onto the track. A
+   * person opening the work an hour later reads "Nothing more will be tried here
+   * on its own" and has no route to the sentence that would tell them what to do.
+   *
+   * Measured on `a30238f5`: finding out why it stopped at ship meant joining
+   * `agent_runs` and reading a seat's output, and the answer turned out to be a
+   * defect in the loop rather than a fact about the work (F-115). None of that
+   * was reachable from the screen this product tells people to watch, and R-18's
+   * acceptance is precisely that a person can watch it happen.
+   *
+   * `decision.because` is the driver's own words, stored verbatim rather than
+   * re-derived, so the screen and the record cannot say different things.
+   */
   await supabase
     .from("spine_tracks" as never)
-    .update({ last_hold: hold, driven_at: new Date().toISOString() } as never)
+    .update({
+      last_hold: hold,
+      last_hold_because: decision.because,
+      driven_at: new Date().toISOString(),
+    } as never)
     .eq("id", row.id);
   return {
     trackId: row.id,
@@ -1691,6 +1730,20 @@ export async function driveTrackOnce(
 
     await supabase
       .from("spine_tracks" as never)
+      /*
+       * ── F-127: NO `last_hold_because` HERE, AND THAT IS THE POINT ────────
+       *
+       * I tried to write one and the typechecker refused, which turned out to be
+       * a design error rather than a syntax one. This branch's line is
+       * `HOLD_LINE[decision.hold]`: a STATIC MAP from kind to sentence. Storing
+       * it would duplicate exactly what `holdLine()` already derives from
+       * `last_hold` when the row is read, while LOOKING like a specific reason
+       * in a column whose whole purpose is that it carries one.
+       *
+       * A generic sentence in a field meant for specifics is worse than a null,
+       * because null is readable as "no more was said" and a generic line is
+       * not. Only the correction path above has words of its own.
+       */
       .update({ last_hold: decision.hold, driven_at: new Date().toISOString() } as never)
       .eq("id", row.id);
     return {
@@ -2694,6 +2747,7 @@ export async function driveTrackOnce(
             // F-43: the work moved, so the convergence counter starts again.
             station_drives: 0,
             last_hold: null,
+            last_hold_because: null,
             driven_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           }
@@ -2701,6 +2755,7 @@ export async function driveTrackOnce(
             status: "done",
             attempts: 0,
             last_hold: null,
+            last_hold_because: null,
             driven_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           }) as never,
