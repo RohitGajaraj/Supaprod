@@ -32,9 +32,13 @@
  * approval with an existing decide resolver, so Today keeps owning them.
  *
  * Workspace scoping (2026-07-18, Change 3): `workspaceId` is optional. Every
- * source that carries a `workspace_id` column is filtered to it when given;
- * sources that don't (agent_approvals/tool-call gates, trust graduation
- * proposals - both predate workspace tenancy) stay unscoped either way.
+ * source that carries a `workspace_id` column is filtered to it when given.
+ *
+ * **Corrected 2026-08-28 (F-149): `agent_approvals` DOES carry one** and is now
+ * scoped like the rest. This paragraph named it as an exception alongside trust
+ * graduation, and it was wrong — all 324 rows have a workspace and the loop has
+ * always written it. `trust_graduation_proposals` remains the only genuine
+ * exception, which `GATE_SOURCE` records as `hasWorkspace: false`.
  * Omitting it keeps the original RLS-wide "everything across every
  * workspace I'm a member of" read this queue has always done.
  */
@@ -276,11 +280,26 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
       playbookRows,
       designWsRows,
     ] = await Promise.all([
-      // listGovernApprovals takes no filter and returns every status (the
-      // Govern surface needs the decided history for the track record) - the
-      // pending filter below narrows it to the queue. agent_approvals predates
-      // workspace tenancy (no workspace_id column), so this stays unscoped.
-      listGovernApprovals().catch((e) => {
+      /*
+       * ── F-149: THE COMMENT THAT USED TO BE HERE WAS FALSE ────────────────
+       *
+       * It read "agent_approvals predates workspace tenancy (no workspace_id
+       * column), so this stays unscoped". **The column exists and all 324 rows
+       * carry it**, including 28 of the 29 pending; `loop.server.ts:1906` has
+       * written it all along, and `GATE_SOURCE` in this very file already says
+       * `hasWorkspace: true` for this family. The code contradicted itself and
+       * the prose won.
+       *
+       * The cost was on the inbox: "N need you" mixed one workspace's calls and
+       * runs with EVERY workspace's approvals. S1 and S2 both found it, both
+       * declined to act because they believed it needed a schema change, and I
+       * had written a migration before checking the data.
+       *
+       * `listGovernApprovals` still returns every STATUS — the Govern surface
+       * needs decided history for the track record — and the pending filter
+       * below narrows it to the queue. Only the tenancy changed.
+       */
+      listGovernApprovals({ data: { workspaceId: wsId ?? undefined } }).catch((e) => {
         familyFailed("tool-call gates")(e);
         return {
           approvals: [],
