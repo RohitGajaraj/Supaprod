@@ -1,3 +1,45 @@
+# CORRECTED WITHIN THE HOUR, AND THE HEADLINE WAS WRONG. FIXTURES AGAIN.
+
+> **I sent S0 "more than half of merge failures were a missing GitHub connection". That is false, and
+> so was the worry beside it about seven approvals never executing.** Both dissolved the moment I
+> asked whose rows they were, which is the question I have now got wrong three times in one night.
+>
+> ### The 7 `approved` rows are seed fixtures, not a silent executor failure
+>
+> Ids run `10000000-2a03-…` through `70000000-2a03-…`, all created at exactly
+> `2026-07-13 08:21:23.130121`, all decided at exactly `09:01:23.130121`, **all carrying the same
+> `merge_sha: "9c41ab2"`** and a `merged_at` of `"wave …"`. `execution_claimed_at` is null because
+> nothing ever ran, because they are fixtures. **There is no unexplained state here and nothing for
+> anyone to investigate.**
+>
+> ### 7 of the 8 connection failures are seeded too
+>
+> | error | rows | seeded | distinct seconds |
+> | --- | --- | --- | --- |
+> | GitHub is not connected | 8 | **7** | 2 |
+> | merge conflicts | 5 | 0 | 5 |
+> | CI still running | 1 | 0 | 1 |
+> | no open Studio PR | 1 | 0 | 1 |
+>
+> ### The real population is EIGHT failed merges, and the dominant cause is conflicts
+>
+> | cause | real rows |
+> | --- | --- |
+> | **GitHub merge 405, pull request has merge conflicts** | **5** |
+> | GitHub is not connected | 1 |
+> | CI still running | 1 |
+> | no open Studio PR | 1 |
+>
+> **Five of eight real merge failures are merge conflicts**, which no deploy resolves and which is a
+> different problem from the binding entirely. The connection error is one row, not eight, so the
+> paragraph I sent S0 arguing that auto-merge will meet it again rests on seven fixtures.
+>
+> **This is `S4-041` and `S4-086` a third time.** In `S4-086` I wrote that knowing the rule is not the
+> same as applying it. I then published a count of merge failures without asking whose rows they
+> were, forty minutes later.
+
+---
+
 # S4-093 · The merge did not only stall waiting for a person. Fifteen were attempted and failed
 
 > _S4, 2026-08-27, measured live. S0's four numbers verified exactly, and the query returns three
