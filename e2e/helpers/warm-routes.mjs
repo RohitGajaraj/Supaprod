@@ -43,10 +43,20 @@ if (paths.length === 0) {
 }
 
 const browser = await chromium.launch();
+/*
+ * Warm with the SAME session the measurement will use. Warming signed out while
+ * measuring signed in compiles `/login` and leaves the product route cold, so
+ * the measurement pays the compile it was supposed to have paid already. That is
+ * the bug this whole helper exists to prevent, reintroduced one level up.
+ */
+const context = await browser.newContext({
+  viewport: { width: 1280, height: 800 },
+  ...(process.env.S4_MOTION_STATE ? { storageState: process.env.S4_MOTION_STATE } : {}),
+});
 let failed = 0;
 
 for (const path of paths) {
-  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  const page = await context.newPage();
   const started = Date.now();
   let note = "";
   try {
