@@ -49,6 +49,7 @@
  * `useElapsed` with the WORK's start time, never the component's.
  */
 import * as React from "react";
+import { humanizeText } from "@/lib/ai/humanize";
 import { AgentMark } from "@/components/meridian/marks";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -229,6 +230,24 @@ export function liveSeats(
  * rollup is the normal case, not the edge one. `RunRollup` drops falsy items so
  * a hole never prints as a stray separator.
  */
+/**
+ * The agent's own last line, as a person should read it.
+ *
+ * See the render site for why this exists and what ends it. In short: the model
+ * writes em dashes into `agent_runs.output`, the write path still does, and this
+ * is the repo's own `humanizeText` applied on the way out rather than a second
+ * rule. Idempotent, so it no-ops on any row already clean.
+ *
+ * "Trimmed, never rewritten" still holds: punctuation moves, prose does not, and
+ * the test beside this file compares the words before and after.
+ */
+export function saidLine(said: string | null | undefined): string | null {
+  if (!said) return null;
+  const clean = humanizeText(said);
+  // Truncate AFTER cleaning, so the 160th character is one a person will see.
+  return clean.length > 160 ? `${clean.slice(0, 160)}...` : clean;
+}
+
 export function rollupOf(t: Turn, titles: TitleBook): React.ReactNode[] {
   const took =
     t.outcome === "working" ? (
@@ -612,21 +631,26 @@ export function TrackActivity({
                       the transcript said only "Stopped". */}
                   {t.stopLine ? <RunNote>{t.stopLine}</RunNote> : null}
 
-                  {/* The agent's own last line, trimmed and never rewritten.
-                      One line is enough to tell whether it understood the job;
-                      the full text lives on the run.
+                  {/* The agent's own last line. One line is enough to tell
+                      whether it understood the job; the full text lives on the
+                      run. The wording is untouched: `saidLine` moves punctuation
+                      and nothing else.
 
-                      This printed through a sanitiser for four hours on
-                      2026-08-26, because 1,375 of 2,771 `agent_runs.output`
-                      rows carried an em dash the model had written. S0 wrapped
-                      all seven write sites in `loop.server.ts` and backfilled
-                      the stored rows; measured again after, every one of those
-                      columns reads zero. Both conditions that bridge named for
-                      its own removal were met, so it is gone rather than left
-                      as a permanent no-op nobody dares delete. */}
-                  {t.said ? (
-                    <RunNote>{t.said.length > 160 ? `${t.said.slice(0, 160)}...` : t.said}</RunNote>
-                  ) : null}
+                      ── THIS BRIDGE CAME BACK, AND MY REMOVING IT WAS THE ERROR ─
+                      RUN-27 deleted it on the strength of a measurement that
+                      read zero across the whole column. That number was true and
+                      it was the wrong question: S0 had just BACKFILLED, so it
+                      described history rather than the write path. Measured
+                      again on 2026-08-27 with the question that matters, rows
+                      written SINCE the fix: 9 dashed rows in `agent_runs.output`,
+                      all 9 after it, the newest at 23:30 UTC. The leak was never
+                      closed; the backfill hid it for five hours.
+
+                      **The exit condition is therefore restated so it cannot be
+                      satisfied by another backfill: delete this when a count of
+                      rows created AFTER the write-path fix reads zero, not when
+                      the column total does.** */}
+                  {saidLine(t.said) ? <RunNote>{saidLine(t.said)}</RunNote> : null}
                 </span>
               </li>
             );
