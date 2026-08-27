@@ -207,6 +207,86 @@ async function frameHash(page: import("@playwright/test").Page): Promise<string>
  *    guard that fails a marketing countdown is a guard people turn off.
  */
 /**
+ * HOW MANY TIMES DOES ONE DEAD READ ANNOUNCE ITSELF?
+ *
+ * S3 asked for this after rendering `/guardrails` against a dead backend and
+ * counting SIX separate failure statements and FOUR "Try again" affordances, all
+ * produced by a single failed read. Their words for why it matters: whatever
+ * route a surface ends up on, one dead read should say so ONCE.
+ *
+ * It is a real quality number because failure states are the ones nobody
+ * designs. They are assembled a component at a time, each one locally correct,
+ * and nobody sees the total until the page is rendered with everything broken,
+ * which is exactly the condition this harness creates and nothing else does.
+ *
+ * Counted on `innerText`, deduplicated, because the question is how many
+ * DISTINCT sentences a person reads, not how many components rendered.
+ */
+/*
+ * `went wrong` is deliberately anchored to `something went wrong` rather than
+ * matched bare. Bare, it counted the TAB LABEL "What went wrong" on /guardrails
+ * as a failure statement and reported 7 where a person reads 6. A metric another
+ * lane is going to act on has to not do that, and the cross-check that caught it
+ * was S3 counting the same page by hand and getting six.
+ */
+const FAILURE_SENTENCE =
+  /(did not load|could not be read|could not read|not readable|is not available|unavailable|something went wrong|session ended|failed to load)/i;
+
+async function failureStatements(
+  page: import("@playwright/test").Page,
+): Promise<{ distinct: string[]; retries: number }> {
+  return page.evaluate((src) => {
+    const re = new RegExp(src, "i");
+    const lines = document.body.innerText
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean);
+    const distinct = Array.from(new Set(lines.filter((l) => re.test(l))));
+    const retries = lines.filter((l) => /^try again$/i.test(l)).length;
+    return { distinct, retries };
+  }, FAILURE_SENTENCE.source);
+}
+
+/**
+ * CONTENT THAT IS WIDER THAN ITS BOX AND CANNOT BE SCROLLED TO.
+ *
+ * A narrow viewport turns a row of seven things into a row of four things and a
+ * cliff. That is fine when the box scrolls and invisible-but-fatal when it does
+ * not: the remaining content exists in the DOM, reads fine to a test that
+ * inspects text, and no person can ever reach it.
+ *
+ * The signal is exact rather than heuristic. `scrollWidth > clientWidth` means
+ * there IS more than fits. `overflow-x: hidden` means it is clipped. Together
+ * they mean unreachable. Elements that scroll (`auto`, `scroll`) are fine and are
+ * not reported, and `visible` is not reported either because the overflow is
+ * still on screen, just outside the box.
+ *
+ * Reported, not asserted: a clipped decorative strip is a real thing a designer
+ * may have chosen, and this cannot tell that from a lost navigation row. The
+ * screenshot beside it can.
+ */
+async function clippedAndUnreachable(page: import("@playwright/test").Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const out: string[] = [];
+    for (const el of Array.from(document.querySelectorAll<HTMLElement>("*"))) {
+      if (el.scrollWidth <= el.clientWidth + 2) continue;
+      if (el.clientWidth === 0) continue;
+      if (getComputedStyle(el).overflowX !== "hidden") continue;
+      // Screen-reader-only text is clipped ON PURPOSE: that is how it is kept
+      // out of the visual layout while staying in the accessibility tree. It is
+      // the one case where "wider than its box and not scrollable" is correct,
+      // and it was the ONLY thing this check found on its first run.
+      if (/(^|\s)(sp-)?sr-only(\s|$)/.test(el.className?.toString() ?? "")) continue;
+      const label = el.className?.toString().trim().split(/\s+/).slice(0, 2).join(".");
+      const lost = el.scrollWidth - el.clientWidth;
+      out.push(`${el.tagName.toLowerCase()}${label ? "." + label : ""} hides ${lost}px`);
+    }
+    // The same class repeats down a list; one line per shape is what is readable.
+    return Array.from(new Set(out)).slice(0, 12);
+  });
+}
+
+/**
  * WHERE AN ADVANCING PROGRESS CLAIM IS A LIE, AND WHERE IT IS AN ADVERTISEMENT.
  *
  * The first version of this asserted everywhere and immediately failed `/`, on
@@ -283,6 +363,8 @@ test("report which surfaces still move once nothing can be read", async ({ page 
   const report: string[] = [];
   const moving: string[] = [];
   const notRendered: string[] = [];
+  /** Kept apart from `report`, whose length is asserted one-per-surface. */
+  const notes: string[] = [];
   const advancing: string[] = [];
   const illustrated: string[] = [];
 
@@ -341,6 +423,25 @@ test("report which surfaces still move once nothing can be read", async ({ page 
       path: join(SHOT_DIR, `surface${path.replace(/\//g, "_")}${SHOT_SUFFIX}.png`),
     });
 
+    const failures = await failureStatements(page);
+    if (failures.distinct.length) {
+      notes.push(
+        `\n--- ${path}: ONE dead backend, ${failures.distinct.length} distinct failure ` +
+          `statement(s), ${failures.retries} "Try again" ---\n  ` +
+          failures.distinct.join("\n  ") +
+          (failures.distinct.length > 2 ? `\n  ABOVE TWO. One dead read should say so once.` : ""),
+      );
+    }
+
+    const clipped = await clippedAndUnreachable(page);
+    if (clipped.length) {
+      notes.push(
+        `\n--- ${path}: content wider than its box and NOT scrollable ---\n  ` +
+          clipped.join("\n  ") +
+          `\n  Open the screenshot: is that decoration, or is it a way out of this screen?`,
+      );
+    }
+
     const changed = a !== b;
     if (changed) {
       moving.push(path);
@@ -360,7 +461,7 @@ test("report which surfaces still move once nothing can be read", async ({ page 
     }
   }
 
-  writeFileSync(join(SHOT_DIR, "motion-report.txt"), report.join("\n"), "utf8");
+  writeFileSync(join(SHOT_DIR, "motion-report.txt"), [...report, ...notes].join("\n"), "utf8");
 
   if (illustrated.length) {
     console.info(
@@ -381,7 +482,7 @@ test("report which surfaces still move once nothing can be read", async ({ page 
       "here too, and decoration carrying no state claim is honest. Open the screenshots in\n" +
       "docs/screenshots/s4-motion/ and ask whether what moved was a STATE. That judgement is\n" +
       "not automated and this spec does not pretend to make it.\n" +
-      report.join("\n"),
+      [...report, ...notes].join("\n"),
   );
 
   // The measurement ran for every surface.
