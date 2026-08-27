@@ -128,6 +128,7 @@
  * ==================================================================
  */
 
+import { RailCrew } from "@/components/shell/RailCrew";
 import { countIsAFloor } from "@/components/approvals/not-the-whole-queue";
 import { pollMs } from "@/components/shell/poll";
 import * as React from "react";
@@ -2192,6 +2193,13 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                 }),
               ])}
             </nav>
+            {/* THE CREW, ON EVERY SURFACE (SPEC-MULTIPLAYER-PRESENCE 3.4).
+                Mounted here, once, rather than per route: the whole point is
+                that one glance answers "who is working and on what" wherever
+                you are standing. It sits below the nav because it is a READ,
+                not a destination - the rows above take you somewhere by name,
+                this one takes you to whatever is moving right now. */}
+            <RailCrew workspaceId={workspaceId} />
             <div className="sp-railfoot">
               {/* THE BOARD, one click from anywhere (founder ruling
                 2026-07-30). It opens the same board /runs draws, over the page
