@@ -578,7 +578,9 @@ export function GuardrailsPanel({
         >
           {hits.length === 0 ? (
             <NothingYet>
-              Every enabled rule above is still checking. Nothing has matched one here.
+              Every call is screened whether or not anything matches, so this list being empty means
+              nothing has matched -- not that nothing was checked. To see a rule work, open one and
+              run a sample through Try it first.
             </NothingYet>
           ) : (
             hits.map((h) => (
