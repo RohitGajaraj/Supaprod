@@ -1722,7 +1722,7 @@ export function DiscoverSurface({
       });
     } catch (e) {
       setFileNote({
-        text: `${file.name} could not be read. ${(e as Error).message || "The browser refused it."}`,
+        text: failureLine(`${file.name} could not be read, so nothing went into the composer.`, e),
         failed: true,
       });
     } finally {

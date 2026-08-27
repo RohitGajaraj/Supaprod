@@ -156,6 +156,7 @@ import { Receipt } from "@/components/meridian/Receipt";
 import { Surface } from "@/components/meridian/Surface";
 import { CtxBody, CtxHead, CtxRow } from "@/components/meridian/ContextColumn";
 import { AgentMark, YouMark } from "@/components/meridian/marks";
+import { failureLine } from "@/components/track/error-copy";
 
 const searchSchema = z.object({ c: z.string().optional() });
 
@@ -391,7 +392,12 @@ function ThreadsSurface() {
       }),
     // A failed write still writes a receipt, and the receipt goes honest
     // immediately. Never a success shape over a failed write.
-    onError: (e: Error) => note({ verb: "Nothing was kept", consequence: e.message, failed: true }),
+    onError: (e: Error) =>
+      note({
+        verb: "Nothing was kept",
+        consequence: failureLine("The thread is as it was.", e),
+        failed: true,
+      }),
     onSettled: () => {
       void qc.invalidateQueries({ queryKey: ["threads"] });
       // A pending candidate is a call waiting on you, and the rail counts it.
@@ -407,7 +413,11 @@ function ThreadsSurface() {
       void qc.invalidateQueries({ queryKey: ["thread", selectedId] });
     },
     onError: (e: Error) =>
-      note({ verb: "The name did not change", consequence: e.message, failed: true }),
+      note({
+        verb: "The name did not change",
+        consequence: failureLine("It still reads as it did.", e),
+        failed: true,
+      }),
   });
 
   async function copyLink() {

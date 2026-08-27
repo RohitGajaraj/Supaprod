@@ -18,6 +18,7 @@ import { gateDispatch } from "@/lib/build/repo-gate";
 import { isDispatchRefusal, dispatchRefusalReason } from "@/lib/build/dispatch-refusal";
 import { RepoGateDialog } from "@/components/studio/RepoGateDialog";
 import { ago } from "@/components/runs/run-state";
+import { failureLine } from "@/components/track/error-copy";
 
 /**
  * A ROUTER LINK INSIDE A SENTENCE, painted the way Meridian paints a door.
@@ -449,7 +450,10 @@ export function ReadyToBuild() {
         lead: refused ? "The build did not start" : "We do not know whether the build started",
         sub: refused
           ? `${dispatchRefusalReason(e.message)} Nothing was dispatched, so the spec is still waiting.`
-          : `${e.message} That is the connection to us failing rather than the dispatch refusing, so the dispatch may have started: a GitHub issue may be open and a builder may be queued. Check Runs before pressing again.`,
+          : failureLine(
+              "The connection to us failed rather than the dispatch refusing, so the dispatch may have started: a GitHub issue may be open and a builder may be queued. Check Runs before pressing again.",
+              e,
+            ),
       });
     },
   });

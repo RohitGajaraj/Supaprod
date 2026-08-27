@@ -166,6 +166,7 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { failureLine } from "@/components/track/error-copy";
 import { Row } from "@/components/meridian/rows";
 import {
   Action,
@@ -1505,7 +1506,11 @@ function Ship() {
       void invalidate();
     },
     onError: (e: Error) =>
-      setReceipt({ verb: "It did not go up", consequence: e.message, failed: true }),
+      setReceipt({
+        verb: "It did not go up",
+        consequence: failureLine("The announcement is still a draft.", e),
+        failed: true,
+      }),
   });
 
   const publish = useMutation({
@@ -1521,7 +1526,11 @@ function Ship() {
       void invalidate();
     },
     onError: (e: Error) =>
-      setReceipt({ verb: "It did not publish", consequence: e.message, failed: true }),
+      setReceipt({
+        verb: "It did not publish",
+        consequence: failureLine("It is still readable only from in here.", e),
+        failed: true,
+      }),
   });
 
   /* -------------------------------------------------------------- *
@@ -1665,7 +1674,11 @@ function Ship() {
       void qc.invalidateQueries({ queryKey: ["changelog", wid] });
     },
     onError: (e: Error) =>
-      setReceipt({ verb: "It did not reach production", consequence: e.message, failed: true }),
+      setReceipt({
+        verb: "It did not reach production",
+        consequence: failureLine("Production is still running what it was.", e),
+        failed: true,
+      }),
   });
 
   /**
@@ -1740,7 +1753,11 @@ function Ship() {
       }
     },
     onError: (e: Error) =>
-      setReceipt({ verb: "It could not check for deploys", consequence: e.message, failed: true }),
+      setReceipt({
+        verb: "It could not check for deploys",
+        consequence: failureLine("Nothing here moved, so what you see may be out of date.", e),
+        failed: true,
+      }),
   });
 
   /**
@@ -1794,7 +1811,7 @@ function Ship() {
     onError: (e: Error) =>
       setReceipt({
         verb: "The release notes were not written",
-        consequence: e.message,
+        consequence: failureLine("The release still has no notes.", e),
         failed: true,
       }),
   });
@@ -1846,7 +1863,7 @@ function Ship() {
     onError: (e: Error) =>
       setReceipt({
         verb: "The release could not be refreshed",
-        consequence: e.message,
+        consequence: failureLine("The entry still reads as it did.", e),
         failed: true,
       }),
   });
@@ -1886,7 +1903,11 @@ function Ship() {
       void qc.invalidateQueries({ queryKey: ["ship-deployments", wid] });
     },
     onError: (e: Error) =>
-      setReceipt({ verb: "The revert did not start", consequence: e.message, failed: true }),
+      setReceipt({
+        verb: "The revert did not start",
+        consequence: failureLine("Production is still running what it was.", e),
+        failed: true,
+      }),
   });
 
   async function askRollback(s: ReleaseState) {
