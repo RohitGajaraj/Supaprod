@@ -694,6 +694,33 @@ function Today() {
         .sort((a, b) => (b.updated_at ?? "").localeCompare(a.updated_at ?? "")),
     [rows],
   );
+  /*
+   * THE LANE READS THE UNWINDOWED SET, AND THE HEADLINE STILL READS `stuck`.
+   *
+   * `stuck` is filtered through `withinLastDay`, which is right for a sentence
+   * about the morning and wrong for the lane whose whole job is "what needs
+   * you". Blocked work does not age out: it stays blocked, and the longer it
+   * waits the more it needs a person. The window deleted exactly the rows the
+   * lane exists to show.
+   *
+   * IT ALSO PUT TWO NUMBERS ON ONE SCREEN THAT READ AS A CONTRADICTION. The
+   * station strip above the board counts the same population without a window
+   * and said "89 runs waiting on you" while this lane's own head said 1.
+   * `use-spine-strip.ts` records that exact failure happening once before, in
+   * its own words: two numbers "right about different objects" with the same
+   * six words between them, so the screen reads as broken.
+   *
+   * The headline keeps `stuck` deliberately. It says "N runs are stuck", and
+   * the STUCK set includes `proposed`, which is a mission a trigger raised and
+   * nobody has launched. Calling 89 of those "stuck" would be a worse sentence
+   * than the one this fixes. Splitting proposed from stuck properly is the real
+   * repair and it is a bigger change than this one; the window is doing that
+   * job by accident today and this leaves it doing so.
+   */
+  const blockedAll = React.useMemo(
+    () => rows.filter((m) => STUCK.has(m.status)),
+    [rows],
+  );
   const running = React.useMemo(() => rows.filter((m) => WORKING.has(m.status)), [rows]);
 
   /* THE GATE COUNT PER RUNNING MISSION, so "waiting on an agent" is never
@@ -813,7 +840,7 @@ function Today() {
 
   const replyRows = React.useMemo<CrewRow[]>(
     () =>
-      stuck
+      blockedAll
         .filter((m) => taskStatus(m.status) === "blocked")
         .map((m) => {
           const when = ago(m.completed_at ?? m.updated_at);
@@ -843,7 +870,7 @@ function Today() {
            a folded list. The brief's words for this lane are "sorted by what
            needs a person soonest", and recency is not that. */
         .sort((a, b) => a.at - b.at),
-    [stuck, openRun],
+    [blockedAll, openRun],
   );
 
   const liveRows = React.useMemo<CrewRow[]>(
@@ -1918,7 +1945,7 @@ function Today() {
                      number from a capped read is a wrong number wearing a
                      fact's clothes. The real count needs a server-side read and
                      is filed with S0. */
-                  "Nothing moves on these until you answer. This lane shows the last 24 hours, so anything waiting longer is not here.",
+                  "Nothing moves on these until you answer.",
                   (row) =>
                     /* A TRACK IS NOT ANSWERING A QUESTION HERE, so it is not
                        offered a Reply. Seen live 2026-08-27: a track parked on
