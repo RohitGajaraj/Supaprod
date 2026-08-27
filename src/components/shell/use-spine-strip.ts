@@ -45,6 +45,47 @@ import { usePublishRunStrip, STATION_ROUTE, type RunStage } from "./run-strip";
  * there would claim the board is a station, which is the exact confusion that
  * put Build's engine at /runs and left the real one unbuilt.
  */
+/**
+ * HOW OFTEN TO ASK, GIVEN HOW THE LAST ASK WENT.
+ *
+ * ── THE DEFECT ─────────────────────────────────────────────────────────────
+ * This poll was a bare `refetchInterval: 5000`. In TanStack Query the interval
+ * and `retry` are independent: `retry` bounds the attempts INSIDE one fetch,
+ * while the interval keeps scheduling NEW fetches whatever the query's state.
+ * So against a backend that is not answering, this asked again every five
+ * seconds, forever.
+ *
+ * **And it asked from everywhere.** `WorkspaceSpine` is mounted for the whole
+ * signed-in session, so this is not one screen misbehaving; it is every screen
+ * in the product hammering a dead backend at 12 requests a minute, hardest at
+ * the moment it is least able to answer. Found by S1 running
+ * `e2e/check-motion.sh --signed-in` against a dead backend: `/learn` and
+ * `/discover` were still redrawing nine seconds after settle, and `/approvals`
+ * was clean only because it is the one route in that set that does not mount
+ * the strip.
+ *
+ * ── IT BACKS OFF, IT DOES NOT STOP, AND THAT IS THE WHOLE DESIGN ───────────
+ * Stopping on error would be the easy fix and the wrong one. The strip's
+ * failure text is "count unavailable", which is honest but useless, and a strip
+ * that gives up stays wrong until the person navigates - so a backend that
+ * comes back would not be noticed. Backing off keeps it self-healing: one
+ * success returns it to five seconds immediately, because the count is a live
+ * signal and five seconds is right when the answer is arriving.
+ *
+ * NOT A LIE, A LOAD PROBLEM, and worth separating. S1 was careful about this
+ * and so am I: the strip keeps saying "count unavailable" throughout, which
+ * stays true, so nothing here was claiming a state it did not have. This is a
+ * cost defect, not an honesty one, which is why it is fixed by arithmetic and
+ * changes no words on the screen.
+ */
+export function stripPollMs(failures: number): number {
+  if (failures <= 0) return 5_000;
+  // Doubling, capped. 10s, 20s, 40s, then a minute for as long as it stays
+  // down. The cap exists so a long outage still notices recovery inside a
+  // minute rather than drifting into hours.
+  return Math.min(60_000, 5_000 * 2 ** Math.min(failures, 4));
+}
+
 export function useSpineStrip(active: AgentStation | null): void {
   const navigate = useNavigate();
   const fList = useServerFn(listStudioSessions);
@@ -54,7 +95,7 @@ export function useSpineStrip(active: AgentStation | null): void {
   const sessions = useQuery({
     queryKey: ["studio-sessions", false],
     queryFn: () => fList({ data: { includeArchived: false } }),
-    refetchInterval: 5000,
+    refetchInterval: (query) => stripPollMs(query.state.fetchFailureCount),
   });
 
   // Pending outcomes for the Learn station badge. 60s staleTime: outcome queue
