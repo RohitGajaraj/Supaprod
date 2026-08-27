@@ -302,7 +302,7 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
           .from("memory_candidates")
           .select("id, content, status, importance, source_kind, created_at")
           .eq("status", "pending")
-          .order("created_at", { ascending: false })
+          .order("created_at", { ascending: true })
           .limit(FAMILY_LIMIT);
         if (wsId) q = q.eq("workspace_id", wsId);
         return q.then(({ data: rows, error }) => {
@@ -338,7 +338,7 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
           .from("prds")
           .select("id,title,status,critic_review,updated_at,project_id")
           .eq("status", "review")
-          .order("updated_at", { ascending: false })
+          .order("updated_at", { ascending: true })
           .limit(FAMILY_LIMIT);
         if (wsId) q = q.eq("workspace_id", wsId);
         return q;
@@ -351,7 +351,7 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
           .select("id,title,critic_review,created_at,project_id")
           .filter("critic_review->>verdict", "in", '("revise","kill")')
           .eq("status", "backlog")
-          .order("created_at", { ascending: false })
+          .order("created_at", { ascending: true })
           .limit(FAMILY_LIMIT);
         if (wsId) q = q.eq("workspace_id", wsId);
         return q;
@@ -363,7 +363,7 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
           .from("assumption_challenges")
           .select("id,assumption_id,signal_id,learning_id,rationale,created_at")
           .eq("status", "open")
-          .order("created_at", { ascending: false })
+          .order("created_at", { ascending: true })
           .limit(FAMILY_LIMIT);
         if (wsId) q = q.eq("workspace_id", wsId);
         return q;
@@ -376,7 +376,7 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
           .from("playbook_proposals")
           .select("id,title,body,created_at,source_learning_ids")
           .eq("status", "proposed")
-          .order("created_at", { ascending: false })
+          .order("created_at", { ascending: true })
           .limit(FAMILY_LIMIT);
         if (wsId) q = q.eq("workspace_id", wsId);
         return q;
@@ -438,7 +438,7 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
           .select("id,title,updated_at,project_id")
           .in("workspace_id", designWsIds)
           .eq("design_gate_status", "pending")
-          .order("updated_at", { ascending: false })
+          .order("updated_at", { ascending: true })
           .limit(FAMILY_LIMIT)
       : {
           data: [] as {
@@ -470,6 +470,24 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
      * round. A family with precisely 100 rows was not truncated and will still
      * be reported as capped; the cost is a surface that softens a count it did
      * not have to. The other error costs a person a call they never saw.
+     */
+    /*
+     * AND THE CAP NOW KEEPS THE OLDEST, WHICH IS THE OTHER HALF OF THE SAME
+     * DEFECT.
+     *
+     * Every family read above ordered DESCENDING and took the newest
+     * `FAMILY_LIMIT` rows. Both surfaces then sort the result oldest first and
+     * `/approvals` says so in as many words: "Settled in order, oldest first."
+     *
+     * So on the design-gate family, 116 rows against a limit of 100, the
+     * sixteen that were dropped were the sixteen OLDEST: precisely the calls a
+     * queue walked oldest-first exists to surface, and precisely the ones that
+     * have waited longest. The page promised the oldest and the read beneath it
+     * had already thrown them away.
+     *
+     * The six bounded reads now order ascending. This changes only WHICH rows
+     * survive the cap and not the order anything is drawn in, because every
+     * consumer sorts for itself.
      */
     const cappedIf = (family: string, n: number): void => {
       if (n >= FAMILY_LIMIT) noteGap(family, "capped");

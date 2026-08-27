@@ -771,8 +771,13 @@ function ApprovalsSurface() {
              * call held has already finished.
              *
              * "Approve · unblocks Build for this spec" is a promise the data
-             * does not support for 22 of the 29 pending calls in this database:
-             * their run is over, they are all 33+ days old, and none is past an
+             * cannot always support. The number this comment used to give was
+             * measured on the wrong join and is corrected here rather than
+             * quietly dropped: "22 of the 29" came from matching approvals to
+             * runs by `run_id`, and `gatesLiveWork` resolves through
+             * `mission_id` to that mission's newest run. On that join the
+             * answer today is 0 finished, 14 live and 15 with no mission at
+             * all. The calls are still all 33+ days old and none is past an
              * expiry that would clear them. Printing both sentences would put
              * "approving unblocks Build" directly above "answering it now
              * releases nothing" and leave the reader to work out which is real.
