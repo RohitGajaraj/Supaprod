@@ -51,6 +51,31 @@ const ITALIC = /(?<![\w*])\*(?=\S)([^*\n]+?)(?<=\S)\*(?![\w*])/g;
 const LEADER = /^\s{0,3}(?:#{1,6}\s+|[-*+]\s+|>\s+|\d{1,3}[.)]\s+)/;
 
 /**
+ * THE SAME MARKERS REMOVED, WITH THE LINES LEFT WHERE THEY ARE.
+ *
+ * The board's review card pushes a decision's whole rationale into one
+ * evidence fact, and evidence may never be truncated — a person is about to
+ * approve on it. So this is the structure-preserving half: emphasis unwrapped,
+ * line-leading markers dropped, every line kept.
+ *
+ * Measured 2026-08-27: 2 of the 39 decisions this account can see carry
+ * markdown in `rationale`, and they carry DIFFERENT kinds — one
+ * `**Product Objectives:**`, one `## Problem`. Unwrapping emphasis alone would
+ * have fixed one of the two, which is why this drops leaders as well.
+ *
+ * `previewLine` is this plus "take the first line", so the two can never
+ * disagree about what a marker is.
+ */
+export function plainMarkers(text: string | null | undefined): string {
+  if (typeof text !== "string") return "";
+  return text
+    .split("\n")
+    .map((raw) => raw.replace(LEADER, "").replace(BOLD, "$1").replace(ITALIC, "$1"))
+    .join("\n")
+    .trim();
+}
+
+/**
  * The first line worth showing, with its markers removed.
  *
  * EMPTY IN, EMPTY OUT. A caller that has nothing must keep saying so in its

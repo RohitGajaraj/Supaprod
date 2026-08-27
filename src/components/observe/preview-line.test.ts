@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
-import { previewLine } from "./preview-line";
+import { plainMarkers, previewLine } from "./preview-line";
 
 /**
  * MEASURED AGAINST THE LIVE DATABASE, 2026-08-27, over the 1,000 `ai_events`
@@ -66,5 +66,44 @@ describe("previewLine", () => {
 
   it("survives a blob that is nothing but headings", () => {
     expect(previewLine("# One\n## Two")).toBe("");
+  });
+});
+
+describe("plainMarkers", () => {
+  /*
+   * THE EVIDENCE HALF. The board pushes a decision's whole rationale into one
+   * fact on the review card, and a person approves on it, so nothing may be
+   * truncated. Measured 2026-08-27: 2 of the 39 decisions this account can see
+   * carry markdown in `rationale`, and they carry different kinds — one
+   * `**Product Objectives:**`, one `## Problem`.
+   */
+  it("keeps every line, which is what makes it safe for evidence", () => {
+    const real = "Here is the spec:\n\n## Problem\nInstallers lose data.";
+    expect(plainMarkers(real)).toBe("Here is the spec:\n\nProblem\nInstallers lose data.");
+  });
+
+  it("unwraps the bold one and the heading one, which needed different rules", () => {
+    expect(plainMarkers("**Product Objectives:**\n1.  **Reduce Alert Fatigue:** hold it")).toBe(
+      "Product Objectives:\nReduce Alert Fatigue: hold it",
+    );
+  });
+
+  it("leaves identifiers alone, exactly as previewLine does", () => {
+    expect(plainMarkers("ramping checkout_single_address to 100%")).toBe(
+      "ramping checkout_single_address to 100%",
+    );
+    expect(plainMarkers("5 * 3 = 15")).toBe("5 * 3 = 15");
+  });
+
+  it("agrees with previewLine about what a marker IS", () => {
+    // One module, one answer. Two spellings of one rule is how the next person
+    // gets two answers from one string.
+    const s = "* **Conversion focus:** Simplifying the checkout.";
+    expect(previewLine(s)).toBe(plainMarkers(s));
+  });
+
+  it("survives absence", () => {
+    expect(plainMarkers(null)).toBe("");
+    expect(plainMarkers(undefined)).toBe("");
   });
 });

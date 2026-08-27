@@ -4,6 +4,7 @@ import { Action, Approve, BulkBar, Door, Num } from "@/components/meridian/surfa
 
 import { canSendBack } from "@/components/approvals/SendBack";
 import { stripAutoPrefix } from "@/components/plan/format";
+import { plainMarkers } from "@/components/observe/preview-line";
 
 import { Checkbox } from "@/components/meridian/forms";
 import { Gate } from "@/components/meridian/Gate";
@@ -190,7 +191,13 @@ function OpenCall({
            */
           ...facts.map((line, i) => (
             <span key={`fact-${i}`} className="block max-w-[var(--mrd-measure)]">
-              {stripAutoPrefix(line)}
+              {/* MARKERS OUT, EVERY LINE KEPT. A decision's whole rationale is pushed
+                  into one evidence fact, and 2 of the 39 decisions this account can see
+                  carry markdown in that column - one "**Product Objectives:**", one
+                  "## Problem". They rendered as literal characters in the one place a
+                  person reads before approving. `plainMarkers` and NOT `previewLine`:
+                  this is evidence, so nothing may be truncated to a first line. */}
+              {plainMarkers(stripAutoPrefix(line))}
             </span>
           )),
           ...(hidden > 0
