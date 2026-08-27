@@ -62,13 +62,48 @@ describe("SlowRead", () => {
   });
 
   it("starts reporting once the read has taken long enough to owe a figure", async () => {
-    render(<SlowRead afterMs={10}>Reading the run record.</SlowRead>);
-    // The sentence survives the escalation: the reader is not told a different
-    // thing is happening, only how long the same thing has taken.
+    const { container } = render(<SlowRead afterMs={10}>Reading the run record.</SlowRead>);
     await waitFor(() => {
-      const el = screen.getByText("Reading the run record.");
-      expect(el.tagName).not.toBe("P");
+      const hidden = container.querySelector("[aria-hidden]");
+      expect(hidden, "the visual loader has not appeared").not.toBeNull();
+      // The sentence survives the escalation: the reader is not told a
+      // different thing is happening, only how long it has taken.
+      expect(hidden!.textContent).toContain("Reading the run record.");
+      // A figure is actually being reported, not just a different wrapper.
+      expect(hidden!.textContent).toMatch(/\d/);
     });
+  });
+
+  it("KEEPS THE TICKING FIGURE OUT OF THE LIVE REGION, so a listener is not read a stream of numbers", async () => {
+    // `use-elapsed` ticks every 100ms and `LoadingState` puts the figure inside
+    // its own `role="status" aria-live="polite"`. The board draws three of
+    // these at once, and the load this component exists for was measured at
+    // twenty-two seconds, so a screen-reader user would be read numbers for
+    // twenty-two seconds. R-19 defers small screens and does NOT defer
+    // accessibility, naming aria-live on async updates specifically.
+    const { container } = render(<SlowRead afterMs={10}>Reading the run record.</SlowRead>);
+    await waitFor(() => expect(container.querySelector("[aria-hidden]")).not.toBeNull());
+
+    // Nothing that can still SPEAK may carry the figure. `LoadingState` brings
+    // its own live region and that one is meant to be inside the hidden half —
+    // being hidden is exactly what silences it — so the rule is about what is
+    // left audible, not about where every live region sits.
+    const audible = [...container.querySelectorAll('[role="status"], [aria-live]')].filter(
+      (el) => !el.closest("[aria-hidden]"),
+    );
+    expect(audible.length, "nothing is left to announce the wait at all").toBeGreaterThan(0);
+    for (const live of audible) {
+      expect(
+        live.textContent ?? "",
+        "an audible live region carries the ticking figure",
+      ).not.toMatch(/\d+\.\d/);
+    }
+
+    // And what is left audible still says something. Read from `audible` and
+    // not from a bare querySelector: the first `role="status"` in the tree is
+    // LoadingState's own, the silenced one, and asserting on it would pass
+    // while proving nothing about what a person actually hears.
+    expect(audible.map((el) => el.textContent ?? "").join(" ")).toContain("Still reading.");
   });
 
   it("still says something when no sentence is supplied", () => {
