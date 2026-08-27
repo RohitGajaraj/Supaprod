@@ -241,6 +241,42 @@ export function deriveCharacter(input: PresenceInput): Presence {
     return { state: "resting", line: "Taking the next step…" };
   }
 
+  /*
+   * ── CLOSED WORK FIRST, BECAUSE THE HOLD BRANCH LIES ABOUT IT ─────────────
+   *
+   * S1 photographed this on an abandoned track. Supa said:
+   *
+   *     "I've stopped, the reason is on the hold line. I'll carry on when it
+   *      clears."
+   *
+   * Two false claims in one sentence, on a screen contradicting both. **There
+   * is no hold line** on that surface, so it points at something nothing is
+   * drawing — which `TrackRun` already names: *"Pointing at a door that is not
+   * there is the same defect as pointing at none."* And **"I'll carry on"
+   * promises work that is closed**, eight lines above two controls that say the
+   * opposite and say it well: *"This work was abandoned, so there is nothing
+   * left to drive"* and *"This work is closed, so there is no step to take
+   * over."*
+   *
+   * THE COMMENT BELOW WAS RIGHT AND OUTLIVED ITS CONDITION. Deferring to the
+   * hold line is correct WHILE a hold line exists and something will clear it.
+   * Neither is true once the work is closed, and the branch never asked.
+   *
+   * `done` is here too, which S1 raised without asserting: a finished track
+   * reaches the done branch only via `result.stopped === "finished"` or the
+   * done hold, so one read from the database with neither would fall through to
+   * the same promise about work that is over.
+   */
+  if (input.track.status === "abandoned" || input.track.status === "done") {
+    const closed = input.track.status === "abandoned";
+    return {
+      state: "awake",
+      line: closed
+        ? "I stopped here and this work was closed, so I will not pick it up again."
+        : "This work is finished. There is nothing left for me to do on it.",
+    };
+  }
+
   // Any other hold: stopped for a reason the hold line already states. The
   // character defers to it rather than restating it in different words —
   // two sentences disagreeing about one stop is how surfaces drift.

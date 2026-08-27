@@ -1005,8 +1005,32 @@ const FILE_IT: Record<AgentStation, string> = {
   // both places: this is the fallback used when a station has no crew entry, and
   // a fallback that names an argument the tool does not have is the same defect
   // wearing a different key.
+  /*
+   * ── A SPEC ABOUT THE LOOP'S OWN DIFFICULTY IS NOT A SPEC (2026-08-27) ────
+   *
+   * Found by watching track `a30238f5` walk. Define filed three specs, and the
+   * third was titled *"Design failed to proceed from existing specs because
+   * they lacked concrete, implementation-grade detail"*, with a body opening
+   * *"Design has been unable to produce working mockups for the address screen
+   * due to insufficient detail."*
+   *
+   * That is a spec about a STATION FAILURE rather than about the work, which is
+   * the loop eating its own exhaust — the same defect `signals.log` refuses at
+   * Discover ("NEVER log the absence of evidence") and `own-artifact-source`
+   * refuses for citations, arriving one station over.
+   *
+   * **AND IT COST THE RUN THE SHIP.** The newest spec wins, so that one
+   * superseded the two real ones, and Ship read it and refused: *"the PRD is
+   * still in draft... success_metric_count: 0"*. The station was right to
+   * refuse; it was grading a document about a process problem.
+   *
+   * The rule is the same one Discover already has: a station's difficulty is
+   * something to SAY, not something to FILE. Filing it puts a run's own trouble
+   * into the record every later station reads, and the record is what the
+   * product sells.
+   */
   define:
-    "Finish by calling prd.draft. If you have an `opportunity_id` from the context, pass that, it names the bet this spec serves. Otherwise, pass `brief`: what the work is and why it exists, in your own words. You MUST pass one or the other, and the tool will write the spec body itself. Then call tasks.create for each piece of work the spec implies. A spec that is only in your answer is not on the record and the next station cannot read it.",
+    'Finish by calling prd.draft. If you have an `opportunity_id` from the context, pass that, it names the bet this spec serves. Otherwise, pass `brief`: what the work is and why it exists, in your own words. You MUST pass one or the other, and the tool will write the spec body itself. Then call tasks.create for each piece of work the spec implies. NEVER write a spec ABOUT THIS RUN\'S OWN DIFFICULTY: "Design could not proceed", "the existing specs lacked detail", "more information is needed" are not specs, they are your answer, and a spec is what the next station builds from. If the work cannot be specified from what is on the record, say exactly what is missing in your answer and file nothing, because a spec about our own trouble supersedes the real ones and the loop then grades the wrong document. A spec that is only in your answer is not on the record and the next station cannot read it.',
   design:
     "Finish by calling design.draft with the surface you designed. A design that is only in your answer is not on the record and the next station cannot read it.",
   // F-36, and the same correction as the two Build seats above — it has to be
