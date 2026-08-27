@@ -42,6 +42,13 @@ SIGNED_IN=0
 
 # `--signed-in` measures the surfaces where a person watches their OWN work.
 # Signed out, all six of those redirect to /login and you measure the login page.
+# Flags may appear anywhere, including AFTER paths. They used to have to come
+# first, and `check-motion.sh /pricing / --signed-in` silently treated
+# `--signed-in` as a PATH, navigated to it, and failed the run on a surface that
+# does not exist. A CLI that turns a flag into a 404 is a CLI that lies.
+ARGS=()
+for a in "$@"; do ARGS+=("$a"); done
+set -- "${ARGS[@]}"
 while true; do
   case "${1:-}" in
     --signed-in) SIGNED_IN=1; shift ;;
@@ -57,7 +64,17 @@ while true; do
     *) break ;;
   esac
 done
-PATHS=("$@")
+# Now sweep up any flags that followed a path.
+PATHS=()
+for a in "$@"; do
+  case "$a" in
+    --signed-in) SIGNED_IN=1 ;;
+    --phone) S4_MOTION_VIEWPORT="390x844"; export S4_MOTION_VIEWPORT ;;
+    --expired-session) S4_MOTION_EXPIRED=yes; export S4_MOTION_EXPIRED; SIGNED_IN=1 ;;
+    -*) echo "REFUSING: unknown option $a"; exit 1 ;;
+    *) PATHS+=("$a") ;;
+  esac
+done
 
 if lsof -ti:"$PORT" >/dev/null 2>&1; then
   echo "REFUSING: something is already listening on :$PORT."

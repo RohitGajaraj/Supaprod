@@ -240,6 +240,32 @@ async function frameHash(page: import("@playwright/test").Page): Promise<string>
  * request whose session has ended returns the same 401 forever, so the one
  * control the failure state offers is the one thing guaranteed not to help.
  *
+ * ── WHAT IT ACTUALLY EXERCISES, CORRECTED BY S1 WHO BUILT IT ───────────────
+ * I wrote "the middleware runs" in this header, from S1's own description, and
+ * they have since measured all three states and corrected it. It is worth having
+ * exactly, because it decides what this mode may claim:
+ *
+ *   exp moved into the past, refresh token intact
+ *     -> supabase-js spends the refresh token and the session RECOVERS before
+ *        the page finishes loading. Full data renders. Nothing to see.
+ *   access AND refresh both broken
+ *     -> the guard finds no usable session and REDIRECTS TO /login, so no
+ *        in-app failure copy renders at all.
+ *   signature corrupted, expiry untouched          <- the state worth having
+ *     -> `auth-middleware.ts` calls `supabase.auth.getClaims(token)`, which
+ *        ACCEPTS a broken signature. The guard passes, the shell renders, and
+ *        every query underneath is rejected.
+ *
+ * So the mechanism is THE DATA LAYER REFUSING, not the middleware throwing. The
+ * errors that reach the components are real and carry the real strings, which is
+ * why the sign-in doors verified this way are genuinely verified.
+ *
+ * S1's reason for keeping it, which is the best one: it is the ONLY state that
+ * exposes a server function SWALLOWING its error. A swallowed 401 returns an
+ * empty list, and the screen then reports an empty desk rather than a failed
+ * read. That is how they found TrackStart saying "Nothing is in flight" on /plan
+ * beside work that was moving.
+ *
  * ── WHAT THIS MODE CANNOT DO, AND IT COST A RETRACTED FINDING ──────────────
  * A route interception is NOT the middleware. `requireSupabaseAuth` THROWS; this
  * fulfils a response, and the TanStack Start serverFn client does not
@@ -334,8 +360,23 @@ async function proseWiderThanMeasure(page: import("@playwright/test").Page): Pro
       if (lines.length === 0) continue;
       const widest = Math.max(...lines.map((r) => r.width));
       const ch = Math.round(widest / chWidth);
-      if (ch <= 76) continue;
-      out.push(`${ch}ch over ${lines.length} line(s): ${text.slice(0, 55)}...`);
+
+      /*
+       * A PIXEL CAP ON PROSE IS A DEFECT EVEN WHEN THE CHARACTER COUNT PASSES.
+       *
+       * S3's find: /pricing bounded a paragraph at `maxWidth: 640px`, roughly
+       * 91ch. Somebody DID cap it, in a unit that cannot track type, so the
+       * measure drifts the day the font scale moves and nothing warns anyone.
+       * A ch threshold is blind to it whenever the current font happens to land
+       * inside the bound, which is exactly when it looks fine and is not.
+       */
+      const declared = el.style.maxWidth || cs.maxWidth;
+      const pixelBound = /^\d+(\.\d+)?px$/.test(declared.trim());
+      if (ch <= 76 && !pixelBound) continue;
+      const how = pixelBound
+        ? ` [capped in PIXELS: ${declared.trim()}, which cannot track type]`
+        : "";
+      out.push(`${ch}ch over ${lines.length} line(s)${how}: ${text.slice(0, 50)}...`);
     }
     probe.remove();
     return Array.from(new Set(out)).slice(0, 6);
