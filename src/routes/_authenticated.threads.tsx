@@ -119,6 +119,7 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { threadName } from "@/components/ask/thread-name";
 import { Row, Line, Who } from "@/components/meridian/rows";
 import {
   Action,
@@ -463,7 +464,25 @@ function ThreadsSurface() {
   const headline = thread.isLoading
     ? "Reading the thread."
     : selectedId
-      ? title || "Untitled thread"
+      ? /*
+         * NAMED BY WHAT WAS ASKED, when nobody renamed it.
+         *
+         * `conversations.title` defaults to "New conversation" and 24 of the 84
+         * conversations in this database still carry it while HOLDING
+         * messages, so a third of every thread list is identical words over
+         * different subjects. `AskSwitcher` already names this problem for its
+         * own control and fixed the button; the thread itself kept the label.
+         *
+         * The first message is exact here -- this view has the whole list, so
+         * it is what was actually asked rather than the most recent line. The
+         * summaries in the rail carry only the newest message, which would be a
+         * poor name for a long thread, so they keep the stored title with the
+         * snippet beneath it and are left alone.
+         *
+         * A name a person CHOSE always wins; this only ever replaces the
+         * default and the empty string.
+         */
+        (threadName(title, messages[0]?.content) ?? "Untitled thread")
       : list.isLoading
         ? "Reading your threads."
         : // A FAILED READ IS NOT AN EMPTY WORKSPACE. This fell through to
