@@ -65,6 +65,14 @@ import type { SpineRoute } from "@/lib/spine/route";
  */
 export type ArtifactSource = {
   table: string;
+  /**
+   * Extra columns appended to the body, labelled, when they hold a value.
+   *
+   * For the one case where the row's own text is not the whole of what the next
+   * station needs: a decision's `rationale` explains the call, and the FORECAST
+   * is what a later station has to grade against.
+   */
+  also?: readonly string[];
   /** The column on THIS table that best names the row. */
   title: string;
   /**
@@ -117,7 +125,26 @@ export const ARTIFACT_SOURCE: Readonly<Record<string, ArtifactSource>> = {
   // the set would have compiled perfectly and failed on the first real read,
   // which is the documented failure mode for this client and the reason each of
   // these was checked against the generated types rather than guessed.
-  decision: { table: "decisions", title: "title", body: "rationale" },
+  /*
+   * THE FORECAST TRAVELS WITH THE DECISION, OR LEARN CANNOT GRADE IT.
+   *
+   * A decision carried `title` and `rationale` into the next station's brief and
+   * nothing else, so the three forecast columns — the claim, the observable that
+   * settles it, and the date it comes due — reached no station. S4 measured the
+   * consequence across the whole population: **18 of 18 runs by the two Learn
+   * seats have no "forecast" anywhere in their input**, including two composed
+   * briefs of 7,800 characters. Not truncation, not deploy lag. It was never
+   * sent.
+   *
+   * `CLAUDE.md` calls the forecast captured at decision time the moat. It is
+   * being captured. Nothing has ever read it back.
+   */
+  decision: {
+    table: "decisions",
+    title: "title",
+    body: "rationale",
+    also: ["forecast_claim", "forecast_how_we_will_know", "forecast_horizon_date"],
+  },
   prototype: { table: "prototypes", title: "name", body: "description" },
   // A learning's `summary` IS its text, so it is both the name and the body.
   // Named twice on purpose rather than special-cased: the handoff wants the

@@ -129,7 +129,13 @@ import { SpendRoom } from "@/components/engine-room/rooms/SpendRoom";
 import { QualityRoom } from "@/components/engine-room/rooms/QualityRoom";
 import { SafetyRoom } from "@/components/engine-room/rooms/SafetyRoom";
 import { RecordRoom } from "@/components/engine-room/rooms/RecordRoom";
-import { ROOM_NAMES, ROOM_QUESTIONS, ROOM_TAB_META, type RoomKey } from "@/lib/engine-room-glance";
+import {
+  ROOM_NAMES,
+  ROOM_QUESTIONS,
+  ROOM_TAB_META,
+  drawnRoomTabs,
+  type RoomKey,
+} from "@/lib/engine-room-glance";
 import { listWorkspaceBindings } from "@/lib/connections.functions";
 import { listSyncMappings } from "@/lib/integrations.functions";
 import { Surface } from "@/components/meridian/Surface";
@@ -328,7 +334,9 @@ function EngineRoomPage() {
             <h2 className="text-mrd-tiny font-medium tracking-wide text-mrd-mute uppercase">
               The engine calls this
             </h2>
-            <p className="text-mrd-label leading-mrd-prose text-mrd-prose text-mrd-body">{meta.technical}</p>
+            <p className="text-mrd-label leading-mrd-prose text-mrd-prose text-mrd-body">
+              {meta.technical}
+            </p>
           </div>
         }
       >
@@ -348,7 +356,31 @@ function EngineRoomPage() {
               title={ROOM_QUESTIONS[room]}
               sub={
                 status?.error != null ? (
-                  "This room's summary did not load."
+                  /*
+                   * SAYS WHAT IS STILL TRUE, because the state word directly
+                   * below already says what happened.
+                   *
+                   * This read "This room's summary did not load." with a
+                   * `failed` StateWord stacked under it reading "Did not load"
+                   * -- the same fact, in the same words, twice, two lines
+                   * apart. Rendered on Safety with the backend unreachable it
+                   * was the first two of FIVE failure statements in one
+                   * viewport, and a wall of them makes a product look more
+                   * broken than it is.
+                   *
+                   * The chip owns the state. This sentence owns the
+                   * consequence, which is the half a reader actually needs and
+                   * which nothing on the header was saying.
+                   *
+                   * AND IT SCOPES THE FAILURE TO THE SUMMARY. Only the room's
+                   * own glance read failed here; the tabs below make their own
+                   * reads and report their own outcomes. It also deliberately
+                   * does NOT say "nothing has been lost" -- the panel below
+                   * already says that, and a first draft of this line said it
+                   * too, which just moved the duplication rather than removing
+                   * it.
+                   */
+                  "So there is no verdict for this room right now."
                 ) : status?.glance ? (
                   <>
                     {status.glance.verdict}
@@ -380,9 +412,17 @@ function EngineRoomPage() {
               combines with nothing, so it is what `role="tablist"` actually
               describes. The other two turned out to be a filter and a
               duplicated navigation control; see EngineChrome. */}
+          {/* OPERATOR VIEWS DRAW NO TAB. Nine of this surface's twenty-seven
+              writes are eval-suite and prompt-version CRUD, and a product lead
+              asking "how well is the machine scoring" was shown a suite editor
+              as a peer of their own score. Those views still ANSWER -- the
+              `/evals` redirect and the calibration rows both point at
+              `?view=suites` -- and they are drawn while you are standing in one,
+              so the strip never hides your own place. Their home is
+              /admin/quality, which mounts the same components. */}
           <Tabs
             group={`room-${room}`}
-            tabs={tabs.map((t) => ({ id: t.id, label: t.label }))}
+            tabs={drawnRoomTabs(room, activeView).map((t) => ({ id: t.id, label: t.label }))}
             active={activeView}
             onSelect={(id) => void navigate({ search: { room, view: id } })}
             label={`${ROOM_NAMES[room]} views`}

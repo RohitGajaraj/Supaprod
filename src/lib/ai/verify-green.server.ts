@@ -27,6 +27,7 @@
  * Kill switch: VERIFY_UNTIL_GREEN=off restores the pre-PC-07 completion path.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { humanizeText } from "@/lib/ai/humanize";
 import {
   computeVerdict,
   loadMissionTestPlan,
@@ -386,7 +387,9 @@ async function recordVerifierRun(
         agent_slug: "verifier",
         agent_name: "Verifier",
         input: args.input,
-        output: args.output,
+        // Same reason as the other seven: this is the last gate before a
+        // sentence a person reads in the transcript.
+        output: args.output == null ? null : humanizeText(args.output),
         status: args.status,
         // The verifier is its own actor on the trace, so it gets its own id.
         trace_id: crypto.randomUUID(),

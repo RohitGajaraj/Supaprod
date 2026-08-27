@@ -85,3 +85,46 @@ theirs first, then mine.**
 **Meanwhile, inside my own prefix and touching no route:** the plain-words renames (done), and
 building the consolidated control on the settings `autonomy` section so that when you rule, the
 destination already exists and the fold is a redirect rather than a build.
+
+---
+
+## CORRECTION, 2026-08-27, before you rule: my write count was wrong by a factor of nearly three
+
+**I filed "27 distinct writes" and "GuardrailsPanel writes NOTHING". Both are false,
+and the cause is mine.** The grep behind them matched
+`useServerFn(set|update|save|create|delete|add|remove|run|decide|resolve...)`. Every
+write whose verb was **upsert, toggle, seed, test, publish, rollback, apply, enrich,
+acknowledge, extend, supersede, bulk or verify** fell straight through it. That is not a
+rounding error, it is a pattern that could not see a third of the surface, and I read
+the result as a finding instead of checking it.
+
+**Measured again, by counting `useMutation({` call sites rather than guessing at verbs:**
+
+```
+72   useMutation call sites across governance/** and engine-room/**   (I said 27)
+~48  distinct write functions behind them
+```
+
+Per file, largest first: PromptsPanel 6 · EvalSuiteDetail 6 · BudgetsPanel 6 ·
+**GuardrailsPanel 5** · **ControlsPanel 5** · BoundaryControls 4 · ApprovalsPanel 3 ·
+SelfImprovementPanel 3.
+
+**So the two specific claims I built the "almost entirely log" argument on are both
+wrong.** GuardrailsPanel has five mutations, not zero: `upsertGuardrailRule`,
+`deleteGuardrailRule`, `toggleGuardrailRule`, `seedBuiltInGuardrails`,
+`testGuardrailRule`. ControlsPanel has five, not one.
+
+**The conclusion does not change. It gets stronger.** The case was never that the
+surface is inert; it is that six unrelated tools wear one sign. Seventy-two writes under
+that sign is a worse version of the same defect than twenty-seven, and the sort by job
+still holds: roughly 10 writes are "what agents may do", 13 are eval and prompt-version
+tooling, 8 are triage and self-improvement, 8 are events and routines, 6 answer a held
+call, 3 are spending.
+
+**One correction in your favour on the work already done.** U-035 moved the eval and
+prompt panels to `/admin/quality`, which I described as nine writes. It is **thirteen**
+call sites (PromptsPanel 6 + EvalSuiteDetail 6 + EvalsPanel 1). The move was larger than
+I advertised, in the direction you are being asked to rule on.
+
+**Nothing about the fold request changes.** It still needs your ruling, S2's still goes
+first, and I am still not flipping a redirect unilaterally.

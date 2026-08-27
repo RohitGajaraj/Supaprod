@@ -33,7 +33,7 @@ import { createMission } from "@/lib/ai/handoff.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { recordTrackDrive } from "@/lib/spine/track-drives.server";
 import { recordLineage } from "@/lib/lineage.functions";
-import { nextStation, waive, waiverFor, type SpineRoute } from "@/lib/spine/route";
+import { applyTrigger, nextStation, waive, waiverFor, type SpineRoute } from "@/lib/spine/route";
 import {
   decideDrive,
   holdLine,
@@ -825,6 +825,13 @@ function routeOf(row: DriveRow): SpineRoute {
  * produced-nothing hold is what catches the consequence if the thin brief means
  * the station cannot do its job.
  */
+/** Plain words for the extra columns a brief carries. See `ArtifactSource.also`. */
+const LABEL_FOR: Record<string, string> = {
+  forecast_claim: "What we expected",
+  forecast_how_we_will_know: "How we would know",
+  forecast_horizon_date: "Expected by",
+};
+
 async function loadUpstream(
   supabase: SupabaseClient,
   trackId: string,
@@ -858,16 +865,37 @@ async function loadUpstream(
       const source = ARTIFACT_SOURCE[kind];
       const cols = ["id", `title:${source.title}`];
       if (source.body) cols.push(`body:${source.body}`);
+      // Extra columns that belong in the brief but are not the row's own text.
+      // Today only a decision has any: its forecast, which Learn must grade
+      // against and which reached no station until 2026-08-27.
+      for (const extra of source.also ?? []) cols.push(extra);
       const { data } = await supabase
         .from(source.table as never)
         .select(cols.join(","))
         .in("id", ids);
-      for (const r of (data ?? []) as unknown as Array<{
-        id: string;
-        title: string | null;
-        body?: string | null;
-      }>) {
-        found.set(`${kind}:${r.id}`, { title: r.title ?? "untitled", body: r.body ?? null });
+      for (const r of (data ?? []) as unknown as Array<
+        {
+          id: string;
+          title: string | null;
+          body?: string | null;
+        } & Record<string, unknown>
+      >) {
+        /*
+         * Appended and LABELLED, so the reading station knows what it is looking
+         * at. An unlabelled date under a rationale is noise; "Expected by:" is
+         * the difference between carrying a value and communicating it.
+         *
+         * Absent columns are skipped rather than printed empty: a decision with
+         * no horizon must not read as one due on nothing.
+         */
+        const extras = (source.also ?? [])
+          .map((c) => {
+            const v = r[c];
+            return v == null || v === "" ? null : `${LABEL_FOR[c] ?? c}: ${String(v)}`;
+          })
+          .filter(Boolean);
+        const body = [r.body ?? null, ...extras].filter(Boolean).join("\n") || null;
+        found.set(`${kind}:${r.id}`, { title: r.title ?? "untitled", body });
       }
     }),
   );
@@ -2490,6 +2518,14 @@ export async function driveTrackOnce(
    * remember this happened.
    */
   let onwardRoute = route;
+
+  /*
+   * Asked at LEARN, because that is the only station whose output can contest a
+   * refusal. Checked before the onward step so a reopened station is the next
+   * stop rather than something a later tick discovers.
+   */
+  if (station === "learn") onwardRoute = await reopenIfOutcomeContested(supabase, row, onwardRoute);
+
   if (station === "decide") {
     const declined = await decisionWasRefusal(supabase, row.id);
     if (declined) {
@@ -3196,6 +3232,70 @@ async function overclaimedBySeat(
  * ordinary route. Guessing "refused" on an unreadable row would silently cancel
  * four stations of real work, which is the more expensive way to be wrong.
  */
+/**
+ * A REFUSAL THAT THE OUTCOME CONTESTS MUST BE ABLE TO COME BACK.
+ *
+ * When Decide says no, `driveTrackOnce` waives Define, Design, Build and Ship
+ * with `reopensWhen: "outcome-contested"` and the track walks straight to Learn.
+ * That comment promised the stations return if the verdict later disagrees.
+ *
+ * **Nothing implemented it.** `route.ts` says so in three places: *"Nothing
+ * reads `reopensWhen`"*, *"`applyTrigger` is the evaluator and it has no
+ * caller"*, *"a waiver is a one-way door today"*. So the promise I wrote into
+ * that waiver was a claim outrunning its wiring, which is the exact defect this
+ * repo names, committed in the fix that named it.
+ *
+ * This is the evaluator's first caller, and it fires on the one condition that
+ * can honestly contest a refusal: **Learn graded the bet and the bet did not
+ * hold.** A `missed` or `mixed` verdict against the decision that said no is
+ * evidence the no was wrong, and the four stations it skipped come back.
+ *
+ * A `validated` verdict changes nothing: the refusal was right, and reopening on
+ * agreement would make the trigger meaningless.
+ *
+ * `never` waivers are untouched by `applyTrigger` itself, so a human's
+ * deliberate skip is not undone by a machine reading an outcome.
+ */
+async function reopenIfOutcomeContested(
+  supabase: SupabaseClient,
+  row: DriveRow,
+  route: SpineRoute,
+): Promise<SpineRoute> {
+  // Cheap exit: no waiver carries this trigger, so nothing can fire.
+  if (!route.waived.some((w) => w.reopensWhen === "outcome-contested")) return route;
+  try {
+    /*
+     * Through the track's own members rather than a mission id, because a
+     * driver-run track need not have one and the member row is the link the
+     * spine actually keeps. Superseded rows are excluded: a verdict that a
+     * rewind undid must not reopen anything.
+     */
+    const { data: member } = await supabase
+      .from("spine_track_members" as never)
+      .select("artifact_id")
+      .eq("track_id", row.id)
+      .eq("artifact_kind", "learning")
+      .is("superseded_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const learningId = (member as { artifact_id?: string } | null)?.artifact_id;
+    if (!learningId) return route;
+    const { data } = await supabase
+      .from("learnings")
+      .select("verdict")
+      .eq("id", learningId)
+      .maybeSingle();
+    const verdict = (data as { verdict?: string } | null)?.verdict;
+    if (verdict !== "missed" && verdict !== "mixed") return route;
+    return applyTrigger(route, "outcome-contested");
+  } catch {
+    // An unreadable verdict leaves the route alone. Reopening four stations on a
+    // read error would spend real money on a guess.
+    return route;
+  }
+}
+
 async function decisionWasRefusal(supabase: SupabaseClient, trackId: string): Promise<boolean> {
   try {
     const { data: member } = await supabase

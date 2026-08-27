@@ -86,4 +86,52 @@ describe("every seat is told how to finish", () => {
    * and filing text survive composition, and that no seat is handed an empty
    * filing instruction in the first place.
    */
+
+  /**
+   * OPEN, AND IT IS THE PRODUCT'S OWN CLAIM RATHER THAN A DETAIL.
+   *
+   * CLAUDE.md: "The moat is the forecast captured at decision time." The forecast
+   * IS captured: `FILE_IT.decide` refuses a decision without one, naming what you
+   * expect to happen, the observable that will settle it, and the date it comes
+   * due. Then nothing reads it back.
+   *
+   * `FILE_IT.learn` tells the seat to grade against `prd_id`, "the spec this work
+   * was graded against". `data-analyst`'s own job says "grade the outcome against
+   * what the spec above said it was for". Neither ever names the forecast, so the
+   * seat that grades is never told what was predicted.
+   *
+   * MEASURED ON THE LIVE DATABASE, all 18 runs these two seats have ever had:
+   * `input ILIKE '%forecast%'` is FALSE on every one, including the two composed
+   * briefs of 7,800 and 7,842 characters.
+   *
+   * This is the cause of S4-052, and it corrects it: the two verdicts that graded
+   * tablet abandonment against a 5% spec target instead of the forecast were the
+   * agents doing EXACTLY what they were briefed to do. The defect is the brief,
+   * not the crew.
+   *
+   * NAMING IT IN THE BRIEF IS NOT ENOUGH, and this is the part that would have
+   * cost a wasted cycle. Two more things drop the forecast before it arrives:
+   *
+   *   1. `chain.ts:120` is `decision: { table: "decisions", title: "title",
+   *      body: "rationale" }`. Only `rationale` is selected, so not one of the
+   *      ELEVEN `forecast_*` columns on `decisions` is ever loaded.
+   *   2. `driver.ts:871` is `describeUpstream(upstream, station === "learn" ?
+   *      ["prd"] : [])`, and `describeUpstream` inlines only the two NEWEST
+   *      bodies plus the yardstick. On a full walk the decision is among the
+   *      oldest, so even a forecast-carrying body would be dropped at Learn.
+   *
+   * So the fix is three changes and any one alone does nothing: carry the
+   * forecast columns in the decision's body, make the decision a yardstick at
+   * Learn, and name the forecast in the brief.
+   *
+   * Left as a todo rather than a failing assertion for the same reason as before:
+   * four lanes gate every push on `bun test`, and the fix is S0's, in S0's file.
+   * It flips to a real assertion the moment the Learn brief names the forecast.
+   */
+  it.todo("the seats that grade are told what was forecast, not only the spec", () => {
+    for (const seat of stationCrew("learn")) {
+      const brief = stationGoal("learn", TRACK, [], seat);
+      expect(brief.toLowerCase()).toContain("forecast");
+    }
+  });
 });

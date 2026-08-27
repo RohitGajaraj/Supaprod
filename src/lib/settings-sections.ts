@@ -407,7 +407,18 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
        * `?section=health` and every saved link still answer, and nothing was
        * rebuilt to move a heading.
        */
-      { id: "health", label: "Diagnostics", door: false },
+      /*
+       * NO DOOR AND NO KEYWORDS IS A PANE REACHABLE BY NOTHING. Both of the
+       * door-less sections shipped that way: search is their ONLY route, and it
+       * had no word to match on, so Diagnostics and Memory could be opened only
+       * by typing the address. See the invariant test beside this file.
+       */
+      {
+        id: "health",
+        label: "Diagnostics",
+        door: false,
+        keywords: ["health", "diagnostics", "status", "broken", "down", "outage", "failing"],
+      },
     ],
   },
   {
@@ -425,6 +436,7 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
         label: "Connected tools",
         keywords: [
           "connect",
+          "connector",
           "integration",
           "integrations",
           "source",
@@ -445,7 +457,18 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
       {
         id: "interop",
         label: "Outside access",
-        keywords: ["mcp", "token", "api", "external agent", "outside"],
+        keywords: [
+          "mcp",
+          "token",
+          "api",
+          "external agent",
+          "outside",
+          // The pane's own token-name field reads "e.g. claude-desktop, cursor,
+          // my-agent", so these are words it already puts in front of a reader.
+          "cursor",
+          "claude desktop",
+          "ide",
+        ],
       },
       {
         id: "data",
@@ -524,14 +547,47 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
       {
         id: "autonomy",
         label: "What they may do without asking",
+        /*
+         * THESE WENT STALE THE DAY THE PANE CHANGED, AND THE CHANGE WAS MINE.
+         *
+         * Until 2026-08-27 this pane rendered a read plus a door, and the seven
+         * words below described that. Then the boundary controls were mounted
+         * here, so the pane now sets the per-tool mode, the SPEND CEILING on a
+         * run, what routes itself without asking, and the switch that stops
+         * everything -- and not one of those was findable.
+         *
+         * Probed with sixty words a person would actually type: "budget",
+         * "cap", "spend", "limit" and "stop" all returned nothing, on the one
+         * pane that now owns every one of them. The index describing a surface
+         * has to move when the surface does, and nothing made it.
+         */
         keywords: [
           "approval",
           "approvals",
+          "approve",
           "permission",
           "kill switch",
           "pause",
+          "stop",
+          "halt",
           "autopilot",
           "trust",
+          // The spend ceiling lives on this pane (setWorkspaceSpendPolicy).
+          "spend",
+          "budget",
+          "cap",
+          "ceiling",
+          "limit",
+          // Per-tool modes (updateToolMode).
+          "tool",
+          "tools",
+          // Auto-pipelines: what routes an event to an agent unasked.
+          "automation",
+          "automatic",
+          // This file's own header calls this "the pane a security reviewer is
+          // shown", and its contents are the safety contract for unattended work.
+          "security",
+          "safety",
         ],
       },
     ],
@@ -573,7 +629,12 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
       },
       { id: "products", label: "Products", keywords: ["product", "repo", "app", "ships"] },
       // Dead pane, live address. See section 4 of the header.
-      { id: "memory", label: "Memory", door: false },
+      {
+        id: "memory",
+        label: "Memory",
+        door: false,
+        keywords: ["memory", "remember", "recall", "forget", "what it knows"],
+      },
     ],
   },
 ];
@@ -814,7 +875,23 @@ export function searchSections(query: string): readonly SectionId[] {
 
   const tiers: SectionId[][] = [[], [], [], []];
 
-  for (const group of NAV_GROUPS) {
+  /*
+   * SEARCHES EVERY ADDRESS, NOT EVERY DOOR, and reading NAV_GROUPS here was a
+   * real defect rather than a nicety.
+   *
+   * NAV_GROUPS is the DRAWING list: it filters out `door: false`. Searching it
+   * meant a section with no door could never be found by search -- and search
+   * is the only route such a section has, because no door is drawn for it. Two
+   * panes were reachable by typing the URL and by nothing else: Diagnostics,
+   * which renders two real server reads, and Memory.
+   *
+   * That is the same shape as the bug this file's own header describes, where
+   * the Diagnostics door was taken out of the rail on the belief that something
+   * else drew it and nothing did. The whole point of `door: false` is "the
+   * ADDRESS still answers", so the thing that finds addresses must read the
+   * full list.
+   */
+  for (const group of SETTINGS_GROUPS) {
     for (const section of group.sections) {
       const label = section.label.toLowerCase();
       /*
@@ -831,14 +908,24 @@ export function searchSections(query: string): readonly SectionId[] {
         ...(section.subs ?? []).flatMap((t) => [t.label, ...t.keywords]),
       ].map((k) => k.toLowerCase());
 
-      if (label.startsWith(needle)) tiers[0]!.push(section.id);
-      else if (label.includes(needle)) tiers[1]!.push(section.id);
-      else if (words.some((w) => w.startsWith(needle))) tiers[2]!.push(section.id);
-      else if (words.some((w) => w.includes(needle))) tiers[3]!.push(section.id);
+      /*
+       * A RESULT NAMES THE PANE YOU WILL ACTUALLY SEE. `credits` folds into
+       * Billing and renders Billing's pane, so returning `credits` would offer
+       * a row whose heading is not the heading the reader arrives at. Folding
+       * here rather than at the call site keeps that true for every consumer.
+       */
+      const landing = section.foldsInto ?? section.id;
+
+      if (label.startsWith(needle)) tiers[0]!.push(landing);
+      else if (label.includes(needle)) tiers[1]!.push(landing);
+      else if (words.some((w) => w.startsWith(needle))) tiers[2]!.push(landing);
+      else if (words.some((w) => w.includes(needle))) tiers[3]!.push(landing);
     }
   }
 
-  return tiers.flat();
+  // Two sections can now fold onto one pane, so the same door must not be
+  // offered twice. Order is preserved, so the strongest tier still wins.
+  return [...new Set(tiers.flat())];
 }
 
 /**
@@ -852,7 +939,8 @@ export function searchSections(query: string): readonly SectionId[] {
 export function matchReason(section: SectionId, query: string): string | null {
   const needle = query.trim().toLowerCase();
   if (!needle) return null;
-  const def = NAV_GROUPS.flatMap((g) => g.sections).find((s) => s.id === section);
+  // Definition lookup, so it must see door-less sections too (see searchSections).
+  const def = SETTINGS_GROUPS.flatMap((g) => g.sections).find((s) => s.id === section);
   if (!def) return null;
   if (def.label.toLowerCase().includes(needle)) return null;
   return (
@@ -871,7 +959,8 @@ export function matchReason(section: SectionId, query: string): string | null {
 export function subTargetFor(section: SectionId, query: string): SettingsSubTarget | null {
   const needle = query.trim().toLowerCase();
   if (!needle) return null;
-  const def = NAV_GROUPS.flatMap((g) => g.sections).find((sec) => sec.id === section);
+  // Definition lookup, so it must see door-less sections too (see searchSections).
+  const def = SETTINGS_GROUPS.flatMap((g) => g.sections).find((sec) => sec.id === section);
   const subs = def?.subs ?? [];
   if (subs.length === 0) return null;
   return (

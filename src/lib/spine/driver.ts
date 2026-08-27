@@ -338,7 +338,7 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
   },
   // 07 Learn
   "data-analyst": {
-    job: "Grade the outcome against what the spec above said it was for. Record the verdict even when it is a miss; a miss recorded honestly is worth more than a win claimed loosely.",
+    job: "Grade the outcome against THE FORECAST the decision above recorded: what was expected, the observable that settles it, and the date it came due. The spec says what was built; the forecast says what we believed would happen, and that is the thing being graded. Quote the observable's actual value. Record the verdict even when it is a miss; a miss recorded honestly is worth more than a win claimed loosely, and a verdict against a different question is worth less than nothing.",
     // `prd_id` IS NAMED HERE BECAUSE NOTHING ELSE CAN SUPPLY IT ON THIS ROUTE.
     // learning.record falls back to mission -> decision -> spec when the agent
     // omits prd_id, and that fallback cannot fire for a driver-run track: the
@@ -351,7 +351,7 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
     file: "Call learning.record with the verdict, and pass `prd_id`, the spec this work was graded against. Without it the grade attaches to no spec, so it can never move the bet behind it. A grade that is only in your answer never reaches the next piece of work.",
   },
   "insight-keeper": {
-    job: "Say what this outcome means for the NEXT piece of work. Generalise beyond this one bet without overclaiming from a single result.",
+    job: "Say what this outcome means for the NEXT piece of work, starting from whether the forecast above held. A prediction that missed teaches more than one that landed, so say which it was and what you would believe differently now. Generalise beyond this one bet without overclaiming from a single result.",
     // memory.remember WRITES the guidance; memory.promote only raises the standing
     // of a memory that already exists. An earlier version of this instruction
     // said "call memory.promote", and the agent did exactly as told: it passed
@@ -868,7 +868,25 @@ export function stationGoal(
    * the right bodies. Learn is the only station whose measure is several artifacts
    * behind it, and it is the station whose output the whole loop compounds on.
    */
-  const prior = describeUpstream(upstream, station === "learn" ? ["prd"] : []);
+  /*
+   * TWO YARDSTICKS AT LEARN, NOT ONE (S4 -> S0, 2026-08-27).
+   *
+   * This was `["prd"]`, so the DECISION arrived as a bare id. By Learn the record
+   * holds the cluster, the decision, the spec, the prototype, the changeset and
+   * the deployment, and the decision is among the oldest, so it lost its body to
+   * the newest-few rule exactly as the spec used to.
+   *
+   * The spec says what was BUILT. The forecast on the decision says what we
+   * believed would HAPPEN, and that is the thing a verdict settles. S4 measured
+   * the cost across the whole population: 18 of 18 runs by the two grading seats
+   * had no forecast anywhere in their input.
+   *
+   * Both are yardsticks now, and neither replaces the other: grading the
+   * prediction without the spec loses what was actually shipped, and grading the
+   * spec without the prediction is what the product has been doing since it
+   * started keeping forecasts.
+   */
+  const prior = describeUpstream(upstream, station === "learn" ? ["prd", "decision"] : []);
   const seat = role ?? stationCrew(station)[0] ?? null;
 
   // The station's outcome first, so every agent on the crew knows what the
@@ -998,8 +1016,29 @@ const FILE_IT: Record<AgentStation, string> = {
   build:
     "Finish by calling studio.stage with the change you made, then studio.commit to put it on its own branch, then studio.pr.open so there is a pull request Ship can point at, then studio.checks.run for the CI verdict, and when it is green call studio.pr.merge. If studio.commit refuses a path it may not write, call studio.unstage on that path and commit the rest rather than stopping: a staged path you cannot commit and do not unstage traps the whole changeset. The merge re-proves CI fresh and refuses red, and where governance wants a person it files that question instead of running, that is the gate working, so stop there and say so. Work that is only in your answer is not on the record, and a pull request nobody moves toward the merge gate sits open forever.",
   ship: "Finish by calling release.publish so the release can be pointed at. A release that is only in your answer did not happen.",
+  /*
+   * ── GRADE THE PREDICTION, NOT THE SPEC (S4 -> S0, 2026-08-27) ────────────
+   *
+   * This said "grade against the spec" and never mentioned the forecast. So did
+   * both grading seats. S4 measured the whole population: **18 of 18 runs by
+   * `data-analyst` and `insight-keeper` have no "forecast" anywhere in their
+   * input**, including two composed briefs of 7,800 characters.
+   *
+   * `FILE_IT.decide` REFUSES a decision without a forecast. `CLAUDE.md` calls
+   * the forecast captured at decision time the moat, and the one thing no other
+   * vendor can reconstruct after the fact. It was captured on every decision and
+   * read back by nobody, so no verdict this product has ever written was
+   * measured against a prediction.
+   *
+   * This also corrects S4-052, which reported two wrong verdicts as a crew
+   * failure. The crew did exactly what the brief said. The brief was the defect,
+   * and tuning the prompt on that reading would have broken something working.
+   *
+   * The spec still matters and `prd_id` still attaches the grade. What changed
+   * is which question is asked first.
+   */
   learn:
-    "Finish by calling learning.record with the verdict, and pass `prd_id`, the spec this work was graded against, so the grade attaches to it. A grade that is only in your answer is not on the record and never reaches the next piece of work.",
+    "Finish by calling learning.record with the verdict. GRADE THE FORECAST: the decision above states what we expected, how we would know, and when it came due. Say whether that specific claim held, measured by that specific observable, and quote the number you read. If the observable cannot be read, say that rather than grading something adjacent to it, and if the horizon has not arrived yet do not grade at all. Pass `prd_id`, the spec this work was graded against, so the grade attaches to it, and `decision_id` so the verdict is joined to the bet it settles. A grade that is only in your answer is not on the record and never reaches the next piece of work.",
 };
 
 /**

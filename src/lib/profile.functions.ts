@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 
 export const getProfile = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -51,6 +52,55 @@ const UpdateSchema = z.object({
   voice_anchor_text: z.string().max(2000).optional(),
   onboarded: z.boolean().optional(),
 });
+
+/**
+ * A CONTROL THAT REPORTS A SAVE IT NEVER MADE IS THE WORST BUG THIS FILE CAN
+ * SHIP, AND IT HAS SHIPPED TWICE.
+ *
+ * `agentic_model` above is the first: the column existed, the Settings control
+ * sent it, `z.object` stripped the unknown key, the patch reduced to nothing,
+ * the mutation resolved and the toast fired. `email_verdict` on
+ * notifications.functions.ts was the second, found on 2026-08-26, identical
+ * shape. Both were invisible because a stripped key is not an error -- it is
+ * silence, and every layer above reports success.
+ *
+ * So the schema is BOUND TO THE TABLE rather than trusted to remember it. The
+ * column list comes from the generated Supabase types, which are regenerated
+ * from the real database, so adding a profile column and forgetting the schema
+ * stops compiling here instead of failing quietly in front of a person.
+ *
+ * This is deliberately stricter than the equivalent guard on notification
+ * preferences, which binds to a hand-written type: a hand-written type can
+ * forget a column in exactly the same way the schema can, so the two agree with
+ * each other and both are wrong. This one cannot, because its left-hand side is
+ * generated.
+ *
+ * ADDING A COLUMN THAT MUST NOT BE SELF-EDITABLE? Name it in `NotSelfEditable`
+ * WITH ITS REASON. That list is a set of decisions, not a way to silence the
+ * check, and every entry below states why a person may not patch it here.
+ */
+type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
+
+type NotSelfEditable =
+  /** Identity. Set from the auth session, never from a request body. */
+  | "id"
+  /** Written once by the database. */
+  | "created_at"
+  /** Stamped by the handler on every save, so a caller must not choose it. */
+  | "updated_at"
+  /**
+   * AN ACCOUNT HOLD, AND THE ONE EXCLUSION THAT IS A SECURITY BOUNDARY RATHER
+   * THAN A TIDINESS RULE. This door authenticates as the profile's owner and
+   * patches by `id = userId`, so accepting this key would let a suspended
+   * account lift its own suspension in one request.
+   */
+  | "suspended";
+
+type SelfEditableColumn = Exclude<keyof ProfileRow, NotSelfEditable>;
+type SchemaAccepts = keyof z.infer<typeof UpdateSchema>;
+type EverySelfEditableColumnIsSavable = SelfEditableColumn extends SchemaAccepts ? true : never;
+const _everySelfEditableColumnIsSavable: EverySelfEditableColumnIsSavable = true;
+void _everySelfEditableColumnIsSavable;
 
 export const updateProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

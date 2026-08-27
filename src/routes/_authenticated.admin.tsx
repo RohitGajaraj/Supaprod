@@ -79,6 +79,13 @@ const TABS = [
   // Launch is on this list: the admin nav is this console's only door, so a
   // sub-page missing from here is a sub-page nobody finds.
   { id: "/admin/invites", label: "Invites" },
+  // Quality holds the nine eval-suite and prompt-version writes that used to sit
+  // in the Engine Room beside a product lead's own quality score. They change
+  // what EVERY agent in the workspace is measured against and what it runs on,
+  // which is this console's stated job -- changing what other people can do --
+  // and is not a thing a product lead does. Same door rule as Launch and
+  // Invites: absent from this list is absent from the product.
+  { id: "/admin/quality", label: "Quality" },
 ] as const;
 
 /** Names the tab row, and every element id in it is derived from this. */

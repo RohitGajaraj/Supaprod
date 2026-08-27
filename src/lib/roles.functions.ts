@@ -144,6 +144,57 @@ const RAW_DATABASE_FINGERPRINTS: readonly RegExp[] = [
  * The role check in front of each write already answers the common refusal in
  * plain words. This is the floor under everything that check cannot foresee.
  */
+/**
+ * A SESSION THAT ENDED, TOLD AS THE ONE THING THE PERSON CAN DO ABOUT IT.
+ *
+ * `requireSupabaseAuth` throws "Unauthorized: Invalid token", "Unauthorized: No
+ * token provided" and five siblings, and surfaces render a thrown message
+ * straight into their failure copy. So a person on Brain, Learn, Guardrails or
+ * Settings was shown "Unauthorized: Invalid token", spliced mid-sentence into
+ * prose written to a much higher standard. Nobody outside this repo can act on
+ * "Invalid token", and the thing they need to do is not in the sentence.
+ *
+ * It is not a database fingerprint, so it does not belong in the list above:
+ * that list means "the database wrote this, show the fallback instead", and the
+ * fallback is generic by design. An ended session has a BETTER answer than the
+ * generic one, and this is it.
+ *
+ * Returns null when the error is not an auth failure, so callers can fall
+ * through to whatever they would have said.
+ */
+const SESSION_ENDED_FINGERPRINTS: readonly RegExp[] = [
+  /^unauthorized\b/i,
+  /\binvalid token\b/i,
+  /\bno token provided\b/i,
+  /\bjwt expired\b/i,
+  /\bsession(?: has)? expired\b/i,
+];
+
+export function sessionEndedMessage(error: unknown): string | null {
+  const raw =
+    error instanceof Error
+      ? error.message
+      : typeof error === "string"
+        ? error
+        : ((error as { message?: unknown } | null)?.message ?? "");
+  const message = typeof raw === "string" ? raw.trim() : "";
+  if (!message) return null;
+  return SESSION_ENDED_FINGERPRINTS.some((re) => re.test(message))
+    ? "Your session ended. Sign in again and this will load."
+    : null;
+}
+
+/**
+ * The same rule for a failed READ. A surface that renders a thrown message into
+ * its failure copy calls this instead of reaching for `.message`, so an ended
+ * session says what to do about it and a database fingerprint never reaches a
+ * person. Named for reads because "The read failed." is the honest floor here;
+ * writes have their own, which names the write that did not happen.
+ */
+export function readFailureMessage(error: unknown): string {
+  return humanWriteError(error, "The read failed.");
+}
+
 export function humanWriteError(error: unknown, fallback: string): string {
   const raw =
     error instanceof Error
@@ -153,6 +204,10 @@ export function humanWriteError(error: unknown, fallback: string): string {
         : ((error as { message?: unknown } | null)?.message ?? "");
   const message = typeof raw === "string" ? raw.trim() : "";
   if (!message) return fallback;
+  // An ended session outranks the generic fallback: it is the one failure here
+  // that names an action the reader can actually take.
+  const ended = sessionEndedMessage(message);
+  if (ended) return ended;
   if (RAW_DATABASE_FINGERPRINTS.some((re) => re.test(message))) return fallback;
   return message;
 }

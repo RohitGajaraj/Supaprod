@@ -88,7 +88,15 @@ import {
 } from "@/lib/decisions.functions";
 import { initialsFrom } from "@/lib/initials";
 import { AgentMark, YouMark } from "@/components/meridian/marks";
-import { ageOf, displayWho, forecastChip, forecastTitle, OUTCOME_WORD, SOURCE_LABEL } from "./decisions-shared";
+import {
+  ageOf,
+  displayWho,
+  forecastChip,
+  forecastCoverage,
+  forecastTitle,
+  OUTCOME_WORD,
+  SOURCE_LABEL,
+} from "./decisions-shared";
 import { stripAutoPrefix } from "@/components/plan/format";
 import { Receipt } from "@/components/meridian/Receipt";
 
@@ -249,6 +257,26 @@ export function DecisionsPanel() {
   const rows = decisions.data?.decisions ?? [];
   const shown = showAll ? rows : rows.slice(0, VISIBLE_DECISIONS);
   const waiting = rows.filter((d) => d.status === "pending").length;
+  /**
+   * HOW MANY OF THESE CALLS CARRY A FORECAST -- the product's own bar, stated
+   * rather than left to be counted by eye.
+   *
+   * Decide is the ONLY station that writes a forecast, so this list is the only
+   * place the bar can be read. It was invisible: a call with a forecast drew a
+   * chip and a call without one drew nothing, so silence meant either "no
+   * forecast was written" or "the column was not read", and a reader could not
+   * tell which. Measured on the live record while this was written, 175 of 367
+   * calls carried one -- not a rare gap worth a footnote, the majority case.
+   *
+   * COUNTED OVER THE SAME `rows` THE LIST RENDERS, never a second query, so the
+   * sentence and the rows beneath it cannot disagree. Filters narrow `rows`, so
+   * the population is named in the sentence rather than implied. It says
+   * "on this list" and NOT "on the record" for a measured reason: listDecisions
+   * caps at 100, and the largest live workspace holds 109 calls, so a
+   * record-wide claim would be wrong there by nine. The sentence reports what
+   * is in front of the reader, which is the only thing it can see.
+   */
+  const coverage = forecastCoverage(rows);
   const filtered = source !== "all" || status !== "all" || debouncedQ.trim().length > 0;
   // Nothing on the record at all is a different fact from nothing matching a
   // filter, and it wants a different screen: no filter row over an empty
@@ -395,67 +423,89 @@ export function DecisionsPanel() {
           </NothingYet>
         )
       ) : (
-        shown.map((d) => {
-          // FC-01 read side: the forecast rides the same row, one truncated
-          // line with its resolution word. The words come from FORECAST_SAYS
-          // (via forecastChip) so this list and the Forecast Desk cannot drift;
-          // colour only on a settled hit or miss, muted hold otherwise.
-          const fc = forecastChip(d);
-          return (
-            <Row
-              key={d.id}
-              tight
-              marks={
-                d.decided_by_agent_slug ? (
-                  <AgentMark slug={d.decided_by_agent_slug} state="quiet" />
-                ) : (
-                  <YouMark initials={initials} />
-                )
-              }
-              lead={stripAutoPrefix(d.title)}
-              // The second line is a DIFFERENT fact, never more of the first:
-              // where the call stands, and who put it there. The forecast chip,
-              // when the row carries one, is the third: what was believed
-              // beforehand and whether it came true.
-              sub={
-                <>
-                  <span className={OUTCOME_WORD[d.status].tone || undefined}>
-                    {OUTCOME_WORD[d.status].word}
-                  </span>
-                  {" · "}
-                  {whoLine(d)}
-                  {fc ? (
-                    <>
-                      {" · "}
-                      {/* Truncates ITSELF so the resolution word survives the
+        <>
+          {/* THE ONE LINE THAT SAYS WHETHER THE PRODUCT'S OWN BAR IS BEING MET.
+              A forecast is written at Decide and nowhere else, so this list is
+              the only surface that can report it. Population named, never
+              implied: "these" is whatever the filters left, and the count is
+              taken off the same rows drawn below it. */}
+          <p className="text-mrd-small text-mrd-mute">
+            <Num>{coverage.withForecast}</Num> of <Num>{coverage.total}</Num>{" "}
+            {coverage.total === 1 ? "call on this list carries" : "calls on this list carry"} a
+            forecast, written before the outcome was known.
+            {coverage.tail ? ` ${coverage.tail}` : null}
+          </p>
+          {shown.map((d) => {
+            // FC-01 read side: the forecast rides the same row, one truncated
+            // line with its resolution word. The words come from FORECAST_SAYS
+            // (via forecastChip) so this list and the Forecast Desk cannot drift;
+            // colour only on a settled hit or miss, muted hold otherwise.
+            const fc = forecastChip(d);
+            return (
+              <Row
+                key={d.id}
+                tight
+                marks={
+                  d.decided_by_agent_slug ? (
+                    <AgentMark slug={d.decided_by_agent_slug} state="quiet" />
+                  ) : (
+                    <YouMark initials={initials} />
+                  )
+                }
+                lead={stripAutoPrefix(d.title)}
+                // The second line is a DIFFERENT fact, never more of the first:
+                // where the call stands, and who put it there. The forecast chip,
+                // when the row carries one, is the third: what was believed
+                // beforehand and whether it came true.
+                sub={
+                  <>
+                    <span className={OUTCOME_WORD[d.status].tone || undefined}>
+                      {OUTCOME_WORD[d.status].word}
+                    </span>
+                    {" · "}
+                    {whoLine(d)}
+                    {fc ? (
+                      <>
+                        {" · "}
+                        {/* Truncates ITSELF so the resolution word survives the
                           row's own truncate on narrow widths; the full claim is
                           one click away in DecisionDetail. */}
-                      <span
-                        title={forecastTitle(d)}
-                        style={{
-                          display: "inline-block",
-                          maxWidth: 240,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          verticalAlign: "bottom",
-                        }}
-                      >
-                        Forecast: {fc.claim}
-                      </span>
-                      {" · "}
-                      <span className={fc.tone || undefined}>{fc.word}</span>
-                    </>
-                  ) : null}
-                </>
-              }
-              time={ageOf(d.created_at)}
-              onClick={() =>
-                navigate({ to: "/brain", search: { tab: "decisions", decision: d.id } })
-              }
-            />
-          );
-        })
+                        <span
+                          title={forecastTitle(d)}
+                          style={{
+                            display: "inline-block",
+                            maxWidth: 240,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            verticalAlign: "bottom",
+                          }}
+                        >
+                          Forecast: {fc.claim}
+                        </span>
+                        {" · "}
+                        <span className={fc.tone || undefined}>{fc.word}</span>
+                      </>
+                    ) : (
+                      /* ABSENCE IS A FACT AND IT SAYS SO. Drawing nothing here
+                       made "no forecast was written" and "the column was not
+                       read" the same picture, and the first of those is the
+                       one thing this product exists to notice. */
+                      <>
+                        {" · "}
+                        <span className="text-mrd-mute">no forecast</span>
+                      </>
+                    )}
+                  </>
+                }
+                time={ageOf(d.created_at)}
+                onClick={() =>
+                  navigate({ to: "/brain", search: { tab: "decisions", decision: d.id } })
+                }
+              />
+            );
+          })}
+        </>
       )}
 
       {rows.length > VISIBLE_DECISIONS || waiting > 0 ? (

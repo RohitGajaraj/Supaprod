@@ -177,8 +177,10 @@ export function HouseRulesPanel() {
   if (q.isError) {
     return (
       <ReadFailed onRetry={() => void q.refetch()}>
-        {(q.error as Error)?.message ??
-          "The rules did not load, so nothing below would be the real boundary."}
+        {humanWriteError(
+          q.error,
+          "The rules did not load, so nothing below would be the real boundary.",
+        )}
       </ReadFailed>
     );
   }

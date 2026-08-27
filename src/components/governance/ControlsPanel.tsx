@@ -201,6 +201,7 @@ function firedPhrase(iso: string): string {
 export function ControlsPanel({
   onOpenQueue,
   boundaryElsewhere = false,
+  controlsOnly = false,
 }: {
   onOpenQueue?: () => void;
   /**
@@ -213,6 +214,24 @@ export function ControlsPanel({
    * this decides where the statement is drawn and never what it says.
    */
   boundaryElsewhere?: boolean;
+  /**
+   * DRAW THE CONTROLS AND NOT THE HISTORY.
+   *
+   * This panel holds six regions and only four of them set anything. "Recent
+   * runs" is a spend log and "Reactor activity" is a queue of events waiting on
+   * a decision. Both are real and neither is an answer to "what may these
+   * agents do without asking me", which is the question the Settings pane
+   * mounting this panel is titled for.
+   *
+   * The founder's verdict on that pane was that it fails at every depth, and
+   * this is one of the reasons why: a person came for four switches and got
+   * them underneath, then past, a run-by-run spend history.
+   *
+   * The history is NOT deleted and does not move. It still draws at the Engine
+   * Room address, which passes nothing and gets the whole panel, so this flag
+   * decides where a region is drawn and never whether it exists.
+   */
+  controlsOnly?: boolean;
 }) {
   const { activeWorkspaceId } = useWorkspace();
   /**
@@ -778,177 +797,200 @@ export function ControlsPanel({
         )}
       </Region>
 
-      <Region title="Recent runs" sub="What each run spent against the caps it was given.">
-        {/* `runs` is `data?.runs ?? []`, so "no mission runs yet" was asserted
+      {controlsOnly ? (
+        /* WHAT IS NOT DRAWN HERE, AND WHERE IT IS. Hiding two regions without
+           saying so would leave a reader who has seen the full panel elsewhere
+           wondering which of the two surfaces is broken. */
+        <Region
+          title="What each run spent, and what is waiting"
+          sub="The run-by-run spend history and the queue of events waiting on a decision are not on this page, because neither answers what the crew may do. They are in the Engine Room."
+        >
+          <Actions>
+            <Action
+              variant="quiet"
+              onClick={() => void navigate({ to: "/engine-room", search: { room: "safety" } })}
+            >
+              Open the Engine Room
+            </Action>
+          </Actions>
+        </Region>
+      ) : null}
+
+      {!controlsOnly ? (
+        <>
+          <Region title="Recent runs" sub="What each run spent against the caps it was given.">
+            {/* `runs` is `data?.runs ?? []`, so "no mission runs yet" was asserted
             from the first paint of every load. The only overview.isLoading
             guard in this file used to sit in the Boundaries block, three
             regions up, which put one honest region and one asserting region on
             screen together out of a single unfinished read. */}
-        {overview.isLoading ? (
-          <Reading>Reading what the crew has run.</Reading>
-        ) : runs.length === 0 ? (
-          <NothingYet>
-            No mission runs yet. The first one starts when you give the crew a goal.
-          </NothingYet>
-        ) : (
-          runs.map((r) => {
-            const halted = r.status === "halted" || !!r.halted_reason;
-            const tokCap = r.mission_token_cap;
-            const spendCap = r.mission_spend_cap_usd ? Number(r.mission_spend_cap_usd) : null;
-            const tokHot = tokCap ? (r.tokens_used ?? 0) / tokCap >= 0.8 : false;
-            const spendHot = spendCap ? Number(r.spend_used_usd ?? 0) / spendCap >= 0.8 : false;
-            const statusWord = halted ? "halted" : r.status;
-            const statusClass =
-              halted || r.status === "failed"
-                ? "sp-fail"
-                : r.status === "completed"
-                  ? "sp-pass"
-                  : undefined;
-            return (
-              <Row
-                key={r.id}
-                tight
-                // Every run says who made it. The catalog name when the slug is
-                // known, the stored name when it is not.
-                marks={
-                  <AgentMark
-                    slug={r.agent_slug}
-                    name={r.agent_name}
-                    state={
-                      halted || r.status === "failed"
-                        ? "failed"
-                        : r.status === "running"
-                          ? "running"
-                          : "quiet"
-                    }
-                  />
-                }
-                lead={agentDisplayName(r.agent_slug, r.agent_name)}
-                // The second line is the outcome and what it cost, never the
-                // name again. A halted run says why instead of what it spent.
-                sub={
-                  <>
-                    <span className={statusClass}>{statusWord}</span>
-                    {halted && r.halted_reason ? (
-                      <> · {r.halted_reason}</>
-                    ) : (
-                      <>
-                        {" · "}
-                        <span className={tokHot ? "sp-warn" : undefined}>
-                          <Num>{r.tokens_used ?? 0}</Num>
-                          {tokCap ? (
-                            <>
-                              {" of "}
-                              <Num>{tokCap}</Num>
-                            </>
-                          ) : null}
-                          {" tokens"}
-                        </span>
-                        {" · "}
-                        <span className={spendHot ? "sp-warn" : undefined}>
-                          <Num>{fmtUsd(r.spend_used_usd ?? 0)}</Num>
-                          {spendCap ? (
-                            <>
-                              {" of "}
-                              <Num>{fmtUsd(spendCap)}</Num>
-                            </>
-                          ) : null}
-                        </span>
-                      </>
-                    )}
-                  </>
-                }
-                time={relTime(r.created_at)}
-              />
-            );
-          })
-        )}
-      </Region>
-
-      <Region
-        title="Reactor activity"
-        sub={
-          waiting.length > 1 ? (
-            <>
-              <Num>{waiting.length - 1}</Num> more are waiting behind the one at the top of this
-              page. Settle it and the next takes its place.
-            </>
-          ) : (
-            "What the rules above routed, and what came of it."
-          )
-        }
-      >
-        {queueQ.isError ? (
-          <ReadFailedLine onRetry={() => void queueQ.refetch()}>
-            Reactor activity did not load.
-          </ReadFailedLine>
-        ) : queueQ.isLoading ? (
-          <Reading>Reading the reactor queue.</Reading>
-        ) : events.length === 0 ? (
-          <NothingYet>
-            No reactor events yet. One appears the moment a rule above matches.
-          </NothingYet>
-        ) : (
-          events
-            // The one being asked is drawn as the Gate at the top of the page,
-            // so it is not drawn twice.
-            .filter((e) => e.id !== live?.id)
-            .map((e) => {
-              const isPending = e.status === "pending" && e.approval_mode === "confirm";
-              const statusClass =
-                e.status === "dispatched"
-                  ? "sp-pass"
-                  : e.status === "failed"
+            {overview.isLoading ? (
+              <Reading>Reading what the crew has run.</Reading>
+            ) : runs.length === 0 ? (
+              <NothingYet>
+                No mission runs yet. The first one starts when you give the crew a goal.
+              </NothingYet>
+            ) : (
+              runs.map((r) => {
+                const halted = r.status === "halted" || !!r.halted_reason;
+                const tokCap = r.mission_token_cap;
+                const spendCap = r.mission_spend_cap_usd ? Number(r.mission_spend_cap_usd) : null;
+                const tokHot = tokCap ? (r.tokens_used ?? 0) / tokCap >= 0.8 : false;
+                const spendHot = spendCap ? Number(r.spend_used_usd ?? 0) / spendCap >= 0.8 : false;
+                const statusWord = halted ? "halted" : r.status;
+                const statusClass =
+                  halted || r.status === "failed"
                     ? "sp-fail"
-                    : undefined;
-              return (
-                <Line
-                  key={e.id}
-                  label={
-                    <span
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "var(--mrd-s3)",
-                      }}
-                    >
-                      {/* Ember without the blink for the ones queued behind:
-                          exactly one mark on a screen may blink, and it is the
-                          Gate's. */}
+                    : r.status === "completed"
+                      ? "sp-pass"
+                      : undefined;
+                return (
+                  <Row
+                    key={r.id}
+                    tight
+                    // Every run says who made it. The catalog name when the slug is
+                    // known, the stored name when it is not.
+                    marks={
                       <AgentMark
-                        slug={e.target_agent_slug}
+                        slug={r.agent_slug}
+                        name={r.agent_name}
                         state={
-                          isPending
-                            ? "waiting"
-                            : e.status === "failed"
-                              ? "failed"
-                              : e.status === "dispatched"
-                                ? "idle"
-                                : "quiet"
+                          halted || r.status === "failed"
+                            ? "failed"
+                            : r.status === "running"
+                              ? "running"
+                              : "quiet"
                         }
                       />
-                      <span>
-                        <Num>{eventWord(e.event_type)}</Num> to{" "}
-                        {agentDisplayName(e.target_agent_slug)}
+                    }
+                    lead={agentDisplayName(r.agent_slug, r.agent_name)}
+                    // The second line is the outcome and what it cost, never the
+                    // name again. A halted run says why instead of what it spent.
+                    sub={
+                      <>
+                        <span className={statusClass}>{statusWord}</span>
+                        {halted && r.halted_reason ? (
+                          <> · {r.halted_reason}</>
+                        ) : (
+                          <>
+                            {" · "}
+                            <span className={tokHot ? "sp-warn" : undefined}>
+                              <Num>{r.tokens_used ?? 0}</Num>
+                              {tokCap ? (
+                                <>
+                                  {" of "}
+                                  <Num>{tokCap}</Num>
+                                </>
+                              ) : null}
+                              {" tokens"}
+                            </span>
+                            {" · "}
+                            <span className={spendHot ? "sp-warn" : undefined}>
+                              <Num>{fmtUsd(r.spend_used_usd ?? 0)}</Num>
+                              {spendCap ? (
+                                <>
+                                  {" of "}
+                                  <Num>{fmtUsd(spendCap)}</Num>
+                                </>
+                              ) : null}
+                            </span>
+                          </>
+                        )}
+                      </>
+                    }
+                    time={relTime(r.created_at)}
+                  />
+                );
+              })
+            )}
+          </Region>
+
+          <Region
+            title="Reactor activity"
+            sub={
+              waiting.length > 1 ? (
+                <>
+                  <Num>{waiting.length - 1}</Num> more are waiting behind the one at the top of this
+                  page. Settle it and the next takes its place.
+                </>
+              ) : (
+                "What the rules above routed, and what came of it."
+              )
+            }
+          >
+            {queueQ.isError ? (
+              <ReadFailedLine onRetry={() => void queueQ.refetch()}>
+                Reactor activity did not load.
+              </ReadFailedLine>
+            ) : queueQ.isLoading ? (
+              <Reading>Reading the reactor queue.</Reading>
+            ) : events.length === 0 ? (
+              <NothingYet>
+                No reactor events yet. One appears the moment a rule above matches.
+              </NothingYet>
+            ) : (
+              events
+                // The one being asked is drawn as the Gate at the top of the page,
+                // so it is not drawn twice.
+                .filter((e) => e.id !== live?.id)
+                .map((e) => {
+                  const isPending = e.status === "pending" && e.approval_mode === "confirm";
+                  const statusClass =
+                    e.status === "dispatched"
+                      ? "sp-pass"
+                      : e.status === "failed"
+                        ? "sp-fail"
+                        : undefined;
+                  return (
+                    <Line
+                      key={e.id}
+                      label={
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "var(--mrd-s3)",
+                          }}
+                        >
+                          {/* Ember without the blink for the ones queued behind:
+                          exactly one mark on a screen may blink, and it is the
+                          Gate's. */}
+                          <AgentMark
+                            slug={e.target_agent_slug}
+                            state={
+                              isPending
+                                ? "waiting"
+                                : e.status === "failed"
+                                  ? "failed"
+                                  : e.status === "dispatched"
+                                    ? "idle"
+                                    : "quiet"
+                            }
+                          />
+                          <span>
+                            <Num>{eventWord(e.event_type)}</Num> to{" "}
+                            {agentDisplayName(e.target_agent_slug)}
+                          </span>
+                        </span>
+                      }
+                      sub={
+                        <>
+                          {e.error ? <span className="sp-fail">{e.error}</span> : eventLabel(e)}
+                          {" · "}
+                          <Num>{relTime(e.created_at)}</Num>
+                        </>
+                      }
+                    >
+                      <span style={CONTROL_WORD} className={statusClass}>
+                        {isPending ? "waiting on you" : e.status}
                       </span>
-                    </span>
-                  }
-                  sub={
-                    <>
-                      {e.error ? <span className="sp-fail">{e.error}</span> : eventLabel(e)}
-                      {" · "}
-                      <Num>{relTime(e.created_at)}</Num>
-                    </>
-                  }
-                >
-                  <span style={CONTROL_WORD} className={statusClass}>
-                    {isPending ? "waiting on you" : e.status}
-                  </span>
-                </Line>
-              );
-            })
-        )}
-      </Region>
+                    </Line>
+                  );
+                })
+            )}
+          </Region>
+        </>
+      ) : null}
 
       {/* THE COMMIT. What every decision above actually caused, kept on screen
           rather than flashed once and lost. */}
