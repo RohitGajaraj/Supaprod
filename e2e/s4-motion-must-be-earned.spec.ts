@@ -269,6 +269,72 @@ async function failEveryAuthenticatedRead(page: import("@playwright/test").Page)
 }
 
 /**
+ * PROSE WIDER THAN MERIDIAN'S OWN MEASURE.
+ *
+ * `meridian.css:938` sets `--mrd-measure: 68ch` and comments it "prose only,
+ * never a table or a row". S2 found board prose running to 110 characters
+ * because nothing on that surface used the token, and it shipped.
+ *
+ * S2 also made the fair criticism that this harness boots against a dead backend
+ * and is therefore blind to defects that only appear on POPULATED screens. That
+ * is true and it is a real limit. Line measure is the half of that class it does
+ * NOT have to be blind to: failure copy is prose, marketing pages are prose, and
+ * both render fully with no database at all.
+ *
+ * ── HOW ch IS MEASURED, since guessing at it would make the number worthless ──
+ * A `ch` is the width of the digit zero in the element's OWN font, so it is
+ * measured per element with a probe span carrying that element's computed font,
+ * rather than approximated from font-size. The threshold is 80 rather than 68:
+ * the token is a target, an eight-character tolerance keeps a heading that runs
+ * slightly long out of the report, and anything past 80 is not a rounding
+ * difference.
+ *
+ * Tables and rows are excluded, as the token's own comment instructs.
+ */
+async function proseWiderThanMeasure(page: import("@playwright/test").Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const probe = document.createElement("span");
+    probe.textContent = "0";
+    probe.style.cssText = "position:absolute;visibility:hidden;white-space:pre;";
+    document.body.appendChild(probe);
+
+    const out: string[] = [];
+    for (const el of Array.from(document.querySelectorAll<HTMLElement>("p, li, dd, blockquote"))) {
+      if (el.closest("table, [role='row'], [role='table'], [role='grid']")) continue;
+      const text = (el.innerText || "").trim();
+      // Short strings wrap to one line whatever the box is; they are not prose.
+      if (text.length < 120) continue;
+      const cs = getComputedStyle(el);
+      probe.style.font = cs.font || `${cs.fontSize} ${cs.fontFamily}`;
+      const chWidth = probe.getBoundingClientRect().width;
+      if (!chWidth) continue;
+
+      /*
+       * MEASURE THE RENDERED LINE, NOT THE BOX.
+       *
+       * The first version divided `clientWidth` by the ch width, which is the
+       * width of the CONTAINER. A paragraph can sit in a wide box and still
+       * wrap short, and reporting the box as the line would have sent another
+       * lane to fix prose that reads fine. A Range over the text yields one
+       * client rect PER LINE BOX, so the widest rect is the longest line a
+       * person actually reads.
+       */
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const lines = Array.from(range.getClientRects()).filter((r) => r.width > 0);
+      range.detach?.();
+      if (lines.length === 0) continue;
+      const widest = Math.max(...lines.map((r) => r.width));
+      const ch = Math.round(widest / chWidth);
+      if (ch <= 80) continue;
+      out.push(`${ch}ch over ${lines.length} line(s): ${text.slice(0, 55)}...`);
+    }
+    probe.remove();
+    return Array.from(new Set(out)).slice(0, 6);
+  });
+}
+
+/**
  * CONTROLS A SCREEN READER CANNOT NAME.
  *
  * Every other check in this file asks whether the screen tells the truth. This
@@ -576,6 +642,15 @@ test("report which surfaces still move once nothing can be read", async ({ page 
           `(a card heading and its body are two), ${failures.retries} "Try again" ---\n  ` +
           failures.distinct.join("\n  ") +
           (failures.distinct.length > 2 ? `\n  ABOVE TWO. One dead read should say so once.` : ""),
+      );
+    }
+
+    const wide = await proseWiderThanMeasure(page);
+    if (wide.length) {
+      notes.push(
+        `\n--- ${path}: prose past Meridian's 68ch measure ---\n  ` +
+          wide.join("\n  ") +
+          `\n  meridian.css:938 sets --mrd-measure: 68ch, "prose only, never a table or a row".`,
       );
     }
 
