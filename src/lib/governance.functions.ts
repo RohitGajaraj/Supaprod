@@ -1337,133 +1337,111 @@ export const getBoundary = createServerFn({ method: "GET" })
     }
 
     /*
-     * THE PROOF BESIDE THE POLICY, WHICH IS WHAT THIS SCREEN WAS MISSING.
+     * WHAT THE POLICY HAS ACTUALLY LET THROUGH, AND WHAT IT HAS COST.
      *
      * Everything above is what agents MAY do. A person asking "what can these
-     * agents do without asking me" is entitled to see that it has happened, and
-     * `tool_calls` carries it: 1,996 rows in the last 30 days across 61 distinct
-     * tools, measured 2026-08-27.
+     * agents do without asking me" is entitled to see that it has happened,
+     * that the ceilings have or have not been approached, and what became of
+     * the gates that did stop something. Three reads, gathered below.
      *
-     * THE INFERENCE, STATED SO THE SURFACE CAN STATE IT TOO. `tool_calls` does
-     * not record whether an approval gated the call. What it records is that the
-     * call happened. So this counts calls to the tools that run alone TODAY, and
-     * the surface says exactly that rather than "these ran unapproved" -- a
-     * tool moved to `auto` last week makes its older calls look unattended, and
-     * claiming otherwise would be inventing a fact from two facts that do not
-     * compose.
-     *
-     * It is sound in the direction that matters: approvals only ever exist for
-     * `confirm` and `review`, so a tool that is `auto` today had no gate today.
-     *
-     * FAILS SOFT AND SEPARATELY. This is evidence, not policy. If it does not
-     * come back, the boundary a person came here to set still renders, and the
-     * surface draws nothing rather than a zero -- a zero here would read as
-     * "your crew has done nothing", which is the reassuring answer arrived at by
-     * omission that R-22 forbids.
+     * THE INFERENCE IN THE FIRST OF THEM, STATED SO THE SURFACE CAN STATE IT
+     * TOO. `tool_calls` does not record whether an approval gated the call.
+     * What it records is that the call happened. So it counts calls to the
+     * tools that run alone TODAY, and the copy says exactly that rather than
+     * "these ran unapproved" -- a tool moved to `auto` last week makes its
+     * older calls look unattended, and claiming otherwise would invent a fact
+     * from two facts that do not compose. It is sound in the direction that
+     * matters: approvals only ever exist for `confirm` and `review`, so a tool
+     * that is `auto` today had no gate today.
      */
+    /*
+     * THE THREE PIECES OF EVIDENCE, IN ONE ROUND TRIP RATHER THAN FIVE.
+     *
+     * These arrived one unit at a time -- what the tools actually did (U-104),
+     * what a whole piece of work costs (U-122), what became of every gate
+     * (U-123) -- and each was written as its own sequential `await` on a
+     * handler that is already a long chain of them. Five round trips added to
+     * the screen a person opens to answer one question, and nothing between
+     * them depends on anything else: all three need only `workspaceId`, which
+     * is resolved above.
+     *
+     * `Promise.all` makes them one wait. `gateHistory` keeps its own inner
+     * `Promise.all` of three counts, so the whole group is one batch.
+     *
+     * EACH STILL FAILS ALONE. A rejected member of the group would take the
+     * whole handler down, so every branch resolves rather than throws and each
+     * result is checked for its own error exactly as it was before. Evidence
+     * that does not come back leaves the policy on screen; that property is
+     * what these reads were separated from `b` for in the first place.
+     */
+    const since30d = new Date(Date.now() - 30 * 86_400_000).toISOString();
     const aloneNames = alone.map((t) => t.name);
-    let didAlone: { count: number | null; newest: { tool: string; at: string } | null } = {
-      count: null,
-      newest: null,
-    };
-    if (workspaceId && aloneNames.length > 0) {
-      const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
+
+    const readDidAlone = async (): Promise<{
+      count: number | null;
+      newest: { tool: string; at: string } | null;
+    }> => {
+      if (!workspaceId || aloneNames.length === 0) return { count: null, newest: null };
       const {
         data: calls,
         count,
-        error: callsErr,
+        error,
       } = await supabase
         .from("tool_calls")
         .select("tool_name,created_at", { count: "exact" })
         .eq("workspace_id", workspaceId)
         .in("tool_name", aloneNames)
-        .gte("created_at", since)
+        .gte("created_at", since30d)
         .order("created_at", { ascending: false })
         .limit(1);
-      if (!callsErr) {
-        const row = (calls ?? [])[0] as { tool_name: string; created_at: string } | undefined;
-        didAlone = {
-          count: count ?? null,
-          newest: row ? { tool: row.tool_name, at: row.created_at } : null,
-        };
-      }
-    }
+      if (error) return { count: null, newest: null };
+      const row = (calls ?? [])[0] as { tool_name: string; created_at: string } | undefined;
+      return {
+        count: count ?? null,
+        newest: row ? { tool: row.tool_name, at: row.created_at } : null,
+      };
+    };
 
-    /*
-     * WHAT A WHOLE PIECE OF WORK COSTS, so the track ceiling gets the same
-     * treatment as the per-goal one. U-088 left this line without its other
-     * half because no reader returned per-track spend; `spine_tracks` carries
-     * it directly.
-     *
-     * Measured 2026-08-27: 106 tracks, every one carrying a figure, the most
-     * expensive $0.7255 against a $5.00 ceiling. So this ceiling has not been
-     * approached either, and a person setting it is entitled to know that
-     * before deciding it is doing something.
-     *
-     * NO HALT COLUMN HERE, and the surface says nothing about stopping as a
-     * result. `agent_runs` carries `halted_reason`; `spine_tracks` does not, so
-     * "none of them stopped here" would be a claim out of a field that does not
-     * exist. `TRACKS.seesHalts` is false and the sentence is shorter for it.
-     *
-     * Fails soft and separately like every other piece of evidence on this
-     * screen: no rows means no sentence, never a zero.
-     */
-    let trackSpend: Array<{ spend_used_usd: number | string | null }> = [];
-    if (workspaceId) {
-      const { data: tracks, error: tracksErr } = await supabase
+    const readTrackSpend = async (): Promise<Array<{ spend_used_usd: number | string | null }>> => {
+      if (!workspaceId) return [];
+      const { data: tracks, error } = await supabase
         .from("spine_tracks")
         .select("spend_used_usd")
         .eq("workspace_id", workspaceId)
         .not("spend_used_usd", "is", null)
         .order("created_at", { ascending: false })
         .limit(50);
-      if (!tracksErr) trackSpend = (tracks ?? []) as typeof trackSpend;
-    }
+      if (error) return [];
+      return (tracks ?? []) as Array<{ spend_used_usd: number | string | null }>;
+    };
 
-    /*
-     * EVERY GATE THIS WORKSPACE HAS EVER RAISED, AND WHAT BECAME OF IT.
-     *
-     * The boundary already says how many gates expired, taken off a read capped
-     * at 50 rows and covering only this person's pending and expired ones. That
-     * is a floor with no denominator, so it can say "3 expired" and never "3 of
-     * how many".
-     *
-     * Measured 2026-08-27 across all 324 rows ever written: 176 answered, 92
-     * expired unanswered, 58 cancelled, 0 still waiting. More than one gate in
-     * four was never answered by anybody, and R-27's own comment names what
-     * that is -- "a gate nobody answers is a stall wearing governance as a
-     * costume".
-     *
-     * Three counts and not a ratio, because the surface should say the
-     * population out loud rather than hand a person a percentage whose
-     * denominator they cannot see. `head: true` so this costs a count and not
-     * 324 rows.
-     *
-     * FAILS TO NULL, NEVER TO ZERO. "No gate has ever expired here" asserted
-     * out of a failed count is the reassuring answer arrived at by omission.
-     */
-    let gateHistory: { total: number; answered: number; expired: number } | null = null;
-    if (workspaceId) {
+    const readGateHistory = async (): Promise<{
+      total: number;
+      answered: number;
+      expired: number;
+    } | null> => {
+      if (!workspaceId) return null;
       const head = { head: true, count: "exact" as const };
       const base = () =>
-        supabase
-          .from("agent_approvals")
-          .select("id", head)
-          .eq("workspace_id", workspaceId as string);
+        supabase.from("agent_approvals").select("id", head).eq("workspace_id", workspaceId);
       const [all, decided, dead] = await Promise.all([
         base(),
         base().not("decided_at", "is", null),
         base().eq("escalation_state", "expired"),
       ]);
-      if (!all.error && !decided.error && !dead.error) {
-        gateHistory = {
-          total: all.count ?? 0,
-          answered: decided.count ?? 0,
-          expired: dead.count ?? 0,
-        };
-      }
-    }
+      if (all.error || decided.error || dead.error) return null;
+      return {
+        total: all.count ?? 0,
+        answered: decided.count ?? 0,
+        expired: dead.count ?? 0,
+      };
+    };
 
+    const [didAlone, trackSpend, gateHistory] = await Promise.all([
+      readDidAlone(),
+      readTrackSpend(),
+      readGateHistory(),
+    ]);
     const num = (v: number | string | null | undefined) =>
       v === null || v === undefined ? null : Number(v);
     const w = ws as {
