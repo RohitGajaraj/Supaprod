@@ -154,7 +154,20 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
   },
   "design-critic": {
     job: "Read the design back against the standing system and against the spec. Name what does not conform, and what the spec asked for that the design does not do.",
-    file: "If the design needs to change, call design.draft with the corrected version. Say plainly if it is sound as it stands.",
+    /*
+     * ── F-116: A PASS USED TO LEAVE NO TRACE ─────────────────────────────
+     *
+     * This said only *"say plainly if it is sound as it stands"*, so a design
+     * this seat APPROVED wrote nothing anywhere. Only a change (`design.draft`)
+     * left a mark. Downstream, `prds.design_gate_status` therefore meant both
+     * "nobody looked" and "the critic looked and it was fine" -- 116 of 119
+     * rows on `pending` -- and Ship, which reads that column, refused every one
+     * of them. The station was doing the judgement and had nowhere to put it.
+     *
+     * `critic.evaluate` already persists a verdict on the row, including the
+     * design lens. Calling it is how a pass becomes a fact.
+     */
+    file: "If the design needs to change, call design.draft with the corrected version. Then call critic.evaluate on the spec, WHETHER OR NOT you changed anything: a design you judged sound leaves no record unless you file it, and a spec nobody filed a verdict on cannot be told apart from one nobody read.",
   },
   // 05 Build
   builder: {
