@@ -3,7 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { join } from "node:path";
 
-import { compareToBaseline, type SurfaceNumbers } from "./helpers/baseline";
+import { compareToBaseline, populationComparable, type SurfaceNumbers } from "./helpers/baseline";
 import { findRepoRoot } from "./helpers/auth";
 
 /**
@@ -770,6 +770,17 @@ async function textBelowContrast(
       if (layers.length) viaGradient++;
       const a = fg[3];
       let ratio = Infinity;
+      /*
+       * THE RATIO IS NOT THE FINDING, THE TWO COLOURS ARE.
+       *
+       * S0 could not reproduce 4.43 from the token layer and computed 7.10 for
+       * the same token on the same strip. A number with no colours beside it
+       * cannot settle that: it says the tools disagree without saying WHERE.
+       * The resolved foreground and the ground that produced the worst ratio
+       * are what tell you whether the token is wrong or whether something
+       * outside the token layer is painting underneath it.
+       */
+      let worstBg: [number, number, number] = candidates[0];
       for (const cand of candidates) {
         const l1 = lum(
           fg[0] * a + cand[0] * (1 - a),
@@ -778,8 +789,13 @@ async function textBelowContrast(
         );
         const l2 = lum(cand[0], cand[1], cand[2]);
         const one = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
-        if (one < ratio) ratio = one;
+        if (one < ratio) {
+          ratio = one;
+          worstBg = cand;
+        }
       }
+      const hex = (c: [number, number, number]): string =>
+        "#" + c.map((v) => Math.round(v).toString(16).padStart(2, "0")).join("");
 
       const px = parseFloat(cs.fontSize);
       const weight = parseInt(cs.fontWeight, 10) || 400;
@@ -790,7 +806,8 @@ async function textBelowContrast(
       const cls = el.className?.toString().trim().split(/\s+/).slice(0, 2).join(".");
       out.push(
         `${el.tagName.toLowerCase()}${cls ? "." + cls : ""} ${ratio.toFixed(2)}:1 ` +
-          `needs ${need}:1 at ${px}px/${weight} "${own.slice(0, 34)}"`,
+          `needs ${need}:1 at ${px}px/${weight} ` +
+          `[${hex([fg[0], fg[1], fg[2]])} on ${hex(worstBg)}] "${own.slice(0, 34)}"`,
       );
     }
 
@@ -1177,8 +1194,23 @@ test("report which surfaces still move once nothing can be read", async ({ page 
      * the same path signed out is a different page.
      */
     const wasBelow = BASELINE[path]?.contrastBelow;
+    const wasJudged = BASELINE[path]?.contrastJudged;
     const modeMatches = !BASELINE[path]?.mode || BASELINE[path]?.mode === RUN_MODE;
-    if (typeof wasBelow === "number" && modeMatches && contrast.below > wasBelow) {
+    /*
+     * A rising count on a page that rendered DIFFERENTLY is not a regression,
+     * and this ratchet fails builds, so it declines to judge that case rather
+     * than guessing through it. See populationComparable().
+     */
+    const samePage =
+      typeof wasJudged !== "number" || populationComparable(contrast.sampled, wasJudged);
+    if (typeof wasBelow === "number" && modeMatches && !samePage && contrast.below > wasBelow) {
+      notes.push(
+        `\n--- ${path}: contrast rose ${wasBelow} -> ${contrast.below}, but the page rendered ` +
+          `${contrast.sampled} elements against a baseline of ${wasJudged}. NOT COMPARED: that is ` +
+          `a different render, not a regression. ---`,
+      );
+    }
+    if (typeof wasBelow === "number" && modeMatches && samePage && contrast.below > wasBelow) {
       contrastWorse.push(
         `${path}: ${wasBelow} -> ${contrast.below} below AA` +
           (contrast.failures.length ? `, worst shapes: ${contrast.failures.slice(0, 3).join("; ")}` : ""),

@@ -9,7 +9,8 @@
       "unnamed": 0,
       "wideProse": 0,
       "contrastBelow": 0,
-      "mode": "signed-in"
+      "mode": "signed-in",
+      "contrastJudged": 47
     },
     "/approvals": {
       "failureSentences": 2,
@@ -17,7 +18,8 @@
       "unnamed": 0,
       "wideProse": 0,
       "contrastBelow": 0,
-      "mode": "signed-in"
+      "mode": "signed-in",
+      "contrastJudged": 45
     },
     "/brain": {
       "failureSentences": 6,
@@ -25,7 +27,8 @@
       "unnamed": 0,
       "wideProse": 0,
       "contrastBelow": 0,
-      "mode": "signed-in"
+      "mode": "signed-in",
+      "contrastJudged": 59
     },
     "/learn": {
       "failureSentences": 8,
@@ -33,7 +36,8 @@
       "unnamed": 0,
       "wideProse": 0,
       "contrastBelow": 2,
-      "mode": "signed-in"
+      "mode": "signed-in",
+      "contrastJudged": 62
     },
     "/threads": {
       "failureSentences": 2,
@@ -41,7 +45,8 @@
       "unnamed": 0,
       "wideProse": 1,
       "contrastBelow": 0,
-      "mode": "signed-in"
+      "mode": "signed-in",
+      "contrastJudged": 52
     },
     "/guardrails": {
       "failureSentences": 5,
@@ -49,7 +54,8 @@
       "unnamed": 0,
       "wideProse": 0,
       "contrastBelow": 0,
-      "mode": "signed-in"
+      "mode": "signed-in",
+      "contrastJudged": 63
     },
     "/engine-room": {
       "failureSentences": 3,
@@ -57,7 +63,8 @@
       "unnamed": 0,
       "wideProse": 0,
       "contrastBelow": 0,
-      "mode": "signed-in"
+      "mode": "signed-in",
+      "contrastJudged": 66
     },
     "/settings": {
       "failureSentences": 1,
@@ -65,7 +72,8 @@
       "unnamed": 0,
       "wideProse": 0,
       "contrastBelow": 0,
-      "mode": "signed-in"
+      "mode": "signed-in",
+      "contrastJudged": 69
     },
     "/start": {
       "failureSentences": 1,
@@ -73,7 +81,8 @@
       "unnamed": 0,
       "wideProse": 0,
       "contrastBelow": 0,
-      "mode": "signed-in"
+      "mode": "signed-in",
+      "contrastJudged": 59
     },
     "/plan": {
       "failureSentences": 0,
@@ -81,7 +90,8 @@
       "unnamed": 0,
       "wideProse": 0,
       "contrastBelow": 0,
-      "mode": "signed-in"
+      "mode": "signed-in",
+      "contrastJudged": 25
     },
     "/ship": {
       "failureSentences": 0,
@@ -89,7 +99,8 @@
       "unnamed": 0,
       "wideProse": 0,
       "contrastBelow": 2,
-      "mode": "signed-in"
+      "mode": "signed-in",
+      "contrastJudged": 56
     },
     "/inbox": {
       "failureSentences": 0,
@@ -97,7 +108,8 @@
       "unnamed": 0,
       "wideProse": 0,
       "contrastBelow": 0,
-      "mode": "signed-in"
+      "mode": "signed-in",
+      "contrastJudged": 46
     },
     "/crew": {
       "failureSentences": 3,
@@ -105,7 +117,8 @@
       "unnamed": 0,
       "wideProse": 0,
       "contrastBelow": 0,
-      "mode": "signed-in"
+      "mode": "signed-in",
+      "contrastJudged": 91
     },
     "/decide": {
       "failureSentences": 2,
@@ -113,7 +126,8 @@
       "unnamed": 0,
       "wideProse": 0,
       "contrastBelow": 2,
-      "mode": "signed-in"
+      "mode": "signed-in",
+      "contrastJudged": 46
     },
     "/design": {
       "failureSentences": 3,
@@ -121,7 +135,8 @@
       "unnamed": 0,
       "wideProse": 0,
       "contrastBelow": 2,
-      "mode": "signed-in"
+      "mode": "signed-in",
+      "contrastJudged": 49
     },
     "/discover": {
       "failureSentences": 4,
@@ -129,7 +144,8 @@
       "unnamed": 0,
       "wideProse": 0,
       "contrastBelow": 2,
-      "mode": "signed-in"
+      "mode": "signed-in",
+      "contrastJudged": 51
     },
     "/build": {
       "failureSentences": 4,
@@ -137,7 +153,8 @@
       "unnamed": 0,
       "wideProse": 0,
       "contrastBelow": 2,
-      "mode": "signed-in"
+      "mode": "signed-in",
+      "contrastJudged": 56
     },
     "/sync": {
       "failureSentences": 4,
@@ -145,7 +162,8 @@
       "unnamed": 0,
       "wideProse": 0,
       "contrastBelow": 0,
-      "mode": "signed-in"
+      "mode": "signed-in",
+      "contrastJudged": 59
     },
     "/": {
       "failureSentences": 0,
@@ -153,7 +171,8 @@
       "unnamed": 0,
       "wideProse": 1,
       "contrastBelow": 83,
-      "mode": "public"
+      "mode": "public",
+      "contrastJudged": 248
     },
     "/pricing": {
       "failureSentences": 0,
@@ -161,7 +180,8 @@
       "unnamed": 0,
       "wideProse": 3,
       "contrastBelow": 0,
-      "mode": "public"
+      "mode": "public",
+      "contrastJudged": 105
     },
     "/faq": {
       "failureSentences": 0,
@@ -169,7 +189,8 @@
       "unnamed": 0,
       "wideProse": 6,
       "contrastBelow": 7,
-      "mode": "public"
+      "mode": "public",
+      "contrastJudged": 35
     },
     "/security": {
       "failureSentences": 0,
@@ -177,7 +198,8 @@
       "unnamed": 0,
       "wideProse": 6,
       "contrastBelow": 7,
-      "mode": "public"
+      "mode": "public",
+      "contrastJudged": 36
     },
     "/privacy": {
       "failureSentences": 0,
@@ -185,7 +207,8 @@
       "unnamed": 0,
       "wideProse": 6,
       "contrastBelow": 7,
-      "mode": "public"
+      "mode": "public",
+      "contrastJudged": 39
     },
     "/ard": {
       "failureSentences": 0,
@@ -193,7 +216,8 @@
       "unnamed": 0,
       "wideProse": 2,
       "contrastBelow": 0,
-      "mode": "public"
+      "mode": "public",
+      "contrastJudged": 39
     },
     "/updates": {
       "failureSentences": 0,
@@ -201,7 +225,8 @@
       "unnamed": 0,
       "wideProse": 1,
       "contrastBelow": 7,
-      "mode": "public"
+      "mode": "public",
+      "contrastJudged": 50
     },
     "/subprocessors": {
       "failureSentences": 0,
@@ -209,7 +234,8 @@
       "unnamed": 0,
       "wideProse": 6,
       "contrastBelow": 0,
-      "mode": "public"
+      "mode": "public",
+      "contrastJudged": 69
     },
     "/investors": {
       "failureSentences": 0,
@@ -217,7 +243,8 @@
       "unnamed": 0,
       "wideProse": 4,
       "contrastBelow": 0,
-      "mode": "public"
+      "mode": "public",
+      "contrastJudged": 15
     },
     "/brief": {
       "failureSentences": 0,
@@ -225,7 +252,8 @@
       "unnamed": 0,
       "wideProse": 4,
       "contrastBelow": 0,
-      "mode": "public"
+      "mode": "public",
+      "contrastJudged": 15
     },
     "/checkout": {
       "failureSentences": 0,
@@ -233,7 +261,8 @@
       "unnamed": 1,
       "wideProse": 0,
       "contrastBelow": 0,
-      "mode": "public"
+      "mode": "public",
+      "contrastJudged": 24
     }
   },
   "_this_is_a_direction_not_a_target": "MATCHING YOUR BASELINE DOES NOT MEAN A SURFACE IS CORRECT. These are the numbers the product happened to produce on one night, several of them from surfaces whose fixes were sitting unmerged on a lane branch. A measurement is a fair way to choose what to fix FIRST. It is not a fair way to decide what the thing should BE, and a baseline is the exact shape that quietly turns one into the other. Read the LIST the report prints, not the number, and lower a baseline entry whenever a real fix lands rather than treating the old value as the goal. Founder's correction, relayed 2026-08-27.",

@@ -7,7 +7,7 @@
  */
 import { describe, expect, it } from "bun:test";
 
-import { compareToBaseline, type SurfaceNumbers } from "./baseline";
+import { compareToBaseline, populationComparable, type SurfaceNumbers } from "./baseline";
 
 const clean: SurfaceNumbers = {
   failureSentences: 2,
@@ -117,5 +117,26 @@ describe("a baseline taken in a different run mode", () => {
       "signed-in",
     );
     expect(line).toContain("REGRESSED");
+  });
+});
+
+describe("comparing two renders of the same path", () => {
+  it("accepts a population within tolerance", () => {
+    expect(populationComparable(62, 60)).toBe(true);
+    expect(populationComparable(60, 62)).toBe(true);
+  });
+
+  it("rejects the render that dropped the station strip", () => {
+    // measured: /learn alone judges 34, warmed after five routes it judges 62
+    expect(populationComparable(34, 62)).toBe(false);
+  });
+
+  it("rejects /brain moving 31 to 59 between identical runs", () => {
+    expect(populationComparable(31, 59)).toBe(false);
+  });
+
+  it("treats an empty baseline population as comparable only to empty", () => {
+    expect(populationComparable(0, 0)).toBe(true);
+    expect(populationComparable(5, 0)).toBe(false);
   });
 });

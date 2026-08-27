@@ -27,7 +27,64 @@
 > **The signed-in product is in far better shape than the shop window.** Twelve of eighteen
 > authenticated surfaces are clean. The single worst surface in the product is the home page.
 
-## The six signed-in surfaces are one Meridian token
+> ## CORRECTION · it is a STATE, not a token, and S0 was right to refuse the edit
+>
+> **I filed this as "`--mrd-mute` is 0.07 short". The token is not short.** S0 could not reproduce
+> 4.43 from the token layer, computed **7.12** for `--mrd-mute` on `--mrd-sheet`, and declined to
+> nudge a product-wide token on a number they could not reproduce. They asked the one question that
+> settled it: *what resolved foreground and background does your tool report?*
+>
+> It reported the ratio and not the colours, which is a real gap in the instrument. Fixed, and the
+> answer closes the case:
+>
+> ```
+> span.sp-stage-n     4.43:1  [#a19e9a on #393735]  "07"
+> span.sp-stage-state 4.43:1  [#a19e9a on #393735]  "count unavailable"
+> ```
+>
+> `#a19e9a` is `--mrd-mute` exactly. `#393735` is not `--mrd-sheet`. It is this:
+>
+> ```
+> shell.css:742     .sp-stage[data-on="true"] { background: var(--mrd-select) }
+> meridian.css:448  --mrd-select: oklch(0.98 0.003 70 / 0.17)
+> ```
+>
+> **A 17% near-white overlay, on the CURRENT stage only**, and the arithmetic closes to the pixel:
+>
+> | | |
+> | --- | --- |
+> | `--mrd-sheet` | `#12100e` |
+> | `--mrd-select` 17% over sheet | **`#393735`** — exactly what the browser reported |
+> | `--mrd-mute` on sheet | **7.12** — S0's number, the stage you are NOT on |
+> | `--mrd-mute` on select-over-sheet | **4.44** — measured 4.43, the stage you ARE on |
+> | `--mrd-ink` on select-over-sheet | **10.63** |
+>
+> **Both numbers were right and they describe different states.** The hole is a *translucent* token
+> composited over a ground, which is a third colour appearing in neither a list of inks nor a list of
+> grounds — so a source-side guard that asserts every ink against every ground still misses it, and a
+> rendered measurement that reports only a ratio cannot explain it.
+>
+> **The finding is better than the one it replaces: the station you are ON is the least readable one
+> on the strip.** Everything else clears comfortably. The fix is that stage's ink, one selector, not
+> a token every label in the product inherits.
+>
+> **Two corrections landed on top of this, both S0's and one of them against me.**
+>
+> **`--mrd-text` does not exist.** I named it in this file; the token is `--mrd-ink`. `var()` on an
+> undefined custom property **falls through to the inherited value with no error**, so the rule would
+> have looked applied, passed every gate, and changed nothing on screen. That is this lane's own
+> "a guard reporting success while the thing it guards is happening", one layer down, in CSS.
+>
+> **The composite must be done on gamma-encoded channels, not in linear light.** Physically the
+> linear blend is correct and it is not what a browser does. Linear gives `#727170` and a ratio of
+> 1.83; encoded gives `#393735` and 4.40, against 4.43 measured. **The browser hex is the only thing
+> that could adjudicate between two self-consistent arithmetics**, which is the argument for keeping
+> a rendered measurement beside a source-side one rather than choosing.
+>
+> Six surfaces showed it because six have a selected stage. One component, one state, not six
+> defects and not a token.
+
+## The six signed-in surfaces are one component in one state
 
 `/learn`, `/ship`, `/build`, `/decide`, `/design` and `/discover` each report exactly 2, and the two
 are identical everywhere:
