@@ -41,7 +41,7 @@ export function FocusNext({ workspaceId }: { workspaceId: string | null }) {
             Director&rsquo;s read
           </span>
         </div>
-        <ReadFailed onRetry={() => void focus.refetch()}>
+        <ReadFailed error={focus.error} onRetry={() => void focus.refetch()}>
           The brain did not answer, so there is no read on what to build next. This is a failed
           look-up, not a quiet morning.
         </ReadFailed>

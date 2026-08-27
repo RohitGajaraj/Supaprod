@@ -486,7 +486,7 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
         />
 
         {crew.isError ? (
-          <ReadFailed onRetry={() => void crew.refetch()}>
+          <ReadFailed error={crew.error} onRetry={() => void crew.refetch()}>
             The crew did not load, so nothing below is the real boundary.
           </ReadFailed>
         ) : null}
@@ -720,7 +720,7 @@ function MemberView({ slug, onBack }: { slug: string; onBack: () => void }) {
       <Surface>
         <div className="flex flex-col gap-mrd-7">
           <PageHeading title={agentDisplayName(slug)} />
-          <ReadFailed onRetry={() => void member.refetch()}>
+          <ReadFailed error={member.error} onRetry={() => void member.refetch()}>
             This one did not load, so the boundary shown would not be the real one.
           </ReadFailed>
           <Actions>{back}</Actions>
