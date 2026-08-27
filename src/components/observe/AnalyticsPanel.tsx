@@ -62,6 +62,7 @@
  * missing column.
  */
 import { useServerFn } from "@tanstack/react-start";
+import { previewLine } from "@/components/observe/preview-line";
 import { failureLine } from "@/lib/error-copy";
 import { Row, Line } from "@/components/meridian/rows";
 import {
@@ -544,7 +545,21 @@ export function AnalyticsPanel() {
                 <Row
                   key={e.id}
                   tight
-                  lead={(e.input_preview ?? "").trim() || "No preview was recorded."}
+                  /* ONE LINE, WITHOUT THE MARKDOWN. The column holds whatever the model
+                     was sent, and that is markdown: measured against the live database
+                     2026-08-27, 24 of 939 non-empty `input_preview` values carry paired
+                     asterisks, and real rows open "### Growth and Friction" then
+                     "* **Conversion focus:** ...". A Row lead is ONE line, so it showed
+                     the hash, the bullet and the asterisks as literal characters with
+                     the sentence starting forty characters in. Same family as the em
+                     dashes: a machine's formatting reaching a screen that was never
+                     going to render it.
+                  
+                     THE `Pre` BLOCKS FURTHER DOWN ARE LEFT VERBATIM, deliberately. They
+                     show what the model was actually SENT, and a reader there is
+                     checking the payload; removing its formatting would misrepresent
+                     it. The lead is for reading, that is for verifying. */
+                  lead={previewLine(e.input_preview) || "No preview was recorded."}
                   // "ok" repeated down a hundred rows is not information. Only a
                   // failure says anything, and it says it in the fail tone.
                   sub={

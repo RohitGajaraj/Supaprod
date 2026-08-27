@@ -1,0 +1,72 @@
+/**
+ * A MULTI-LINE MARKDOWN BLOB, AS THE ONE LINE A ROW CAN ACTUALLY SHOW.
+ *
+ * ── WHAT A PERSON SEES TODAY ───────────────────────────────────────────────
+ * `AnalyticsPanel` renders `ai_events.input_preview` straight into a `Row`
+ * lead. The column holds whatever the model was sent or said, and that is
+ * markdown. Measured against the live database 2026-08-27, over the 1,000
+ * `ai_events` rows this account can see:
+ *
+ *     input_preview    939 non-empty,  24 carry **bold**
+ *     output_preview   926 non-empty,  25 carry **bold**
+ *     system_preview   939 non-empty,   0
+ *
+ * and the markers are not the half that hurts most. A real row reads:
+ *
+ *     ### Growth and Friction
+ *     * **Conversion focus:** Simplifying the checkout...
+ *
+ * A row lead is ONE line. It gets the hash, the bullet, the asterisks and the
+ * newlines, rendered as literal characters, and the sentence a person came for
+ * starts forty characters in.
+ *
+ * This is the same family as the em dashes the founder has raised twice: a
+ * machine's formatting reaching a screen that was never going to render it.
+ *
+ * ── WHY THIS IS NOT `plainProse`, AND MUST NOT BECOME A SECOND COPY OF IT ──
+ * S1 built `plainProse` (src/components/track/plain-prose.ts) for a different
+ * job on a different surface: unwrapping paired emphasis inside PROSE that
+ * stays prose, in a pane that shows the whole text. It deliberately does not
+ * touch structure, because there is none to remove there.
+ *
+ * A row lead is the opposite problem — the structure is the noise, and only
+ * the first sentence survives the width. So this flattens, and where the two
+ * overlap (paired `**`) they must agree. **If `plainProse` lands in this tree,
+ * this should call it for the emphasis step rather than keep its own**, for
+ * the reason S1 gave me about duplicate detectors: two spellings of one rule
+ * is how the next person gets two answers from one string.
+ *
+ * ── UNDERSCORES ARE LEFT ENTIRELY ALONE, and that is S1's rule ─────────────
+ * `_italic_` is real markdown and stripping it is defensible in general and
+ * wrong in this codebase. These agents write column names, feature flags and
+ * tool names constantly — `checkout_single_address` is on the board right now.
+ * Removing a marker is cosmetic; corrupting an identifier makes the sentence
+ * false. The same reasoning keeps backticks: a name in code font is a name.
+ */
+
+/** Paired emphasis around non-space content. Unpaired markers survive. */
+const BOLD = /\*\*(?=\S)([^*]+?)(?<=\S)\*\*/g;
+const ITALIC = /(?<![\w*])\*(?=\S)([^*\n]+?)(?<=\S)\*(?![\w*])/g;
+/** Structure that opens a line: headings, bullets, quotes, list numbers. */
+const LEADER = /^\s{0,3}(?:#{1,6}\s+|[-*+]\s+|>\s+|\d{1,3}[.)]\s+)/;
+
+/**
+ * The first line worth showing, with its markers removed.
+ *
+ * EMPTY IN, EMPTY OUT. A caller that has nothing must keep saying so in its
+ * own words — this never invents a placeholder, because "no preview was
+ * recorded" is a claim about our data and belongs to the surface, not here.
+ */
+export function previewLine(text: string | null | undefined): string {
+  if (typeof text !== "string") return "";
+  for (const raw of text.split("\n")) {
+    // A heading alone is a label for what follows, not the thing itself, so it
+    // is skipped rather than shown: "### Growth and Friction" tells a reader
+    // nothing the next line does not tell them better.
+    const stripped = raw.replace(LEADER, "").trim();
+    if (!stripped) continue;
+    if (/^#{1,6}\s/.test(raw.trim())) continue;
+    return stripped.replace(BOLD, "$1").replace(ITALIC, "$1");
+  }
+  return "";
+}
