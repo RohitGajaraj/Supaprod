@@ -466,7 +466,16 @@ function ThreadsSurface() {
       ? title || "Untitled thread"
       : list.isLoading
         ? "Reading your threads."
-        : "Nothing asked yet.";
+        : // A FAILED READ IS NOT AN EMPTY WORKSPACE. This fell through to
+          // "Nothing asked yet." whenever the list failed, so a person whose
+          // session had ended was told their workspace was empty -- the same
+          // defect fixed on /start and /approvals, still here because a
+          // headline is not where anyone looks for it. Neutral rather than a
+          // fourth sentence about the failure: the left pane states it and
+          // carries the control, and the right says what follows.
+          list.isError
+          ? "Threads"
+          : "Nothing asked yet.";
 
   const sub = selectedId ? (
     messages.length > 0 ? (

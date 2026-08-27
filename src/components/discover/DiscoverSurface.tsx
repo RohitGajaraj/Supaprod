@@ -228,7 +228,7 @@
  */
 
 import { AutomationBoundary } from "@/components/governance/AutomationBoundary";
-import { failureLine } from "@/lib/error-copy";
+import { failureLine, reasonLine } from "@/lib/error-copy";
 import { wordFor } from "@/lib/spine/chain";
 import { Row, Line } from "@/components/meridian/rows";
 import * as React from "react";
@@ -2551,8 +2551,23 @@ export function DiscoverSurface({
             if (signals.error) void signals.refetch();
             if (themes.error) void themes.refetch();
           }}
+          error={loadError}
         >
-          {loadError.message}
+          {/*
+           * THIS RENDERED `loadError.message` AND IT WAS THE LAST ONE IN THIS
+           * PREFIX. Photographed against a genuinely expired session, /discover
+           * read: "The record could not be read." then "Unauthorized: Invalid
+           * token" then the reassurance then a Try again that could never work.
+           * The headline eleven hundred lines up already states the failure, so
+           * the raw string was not even filling a gap -- it was the second
+           * sentence, and it was the log.
+           *
+           * The headline keeps the state; this carries the consequence, plus
+           * the server's own sentence where the server wrote one for a person.
+           * `error` gets S0's wayOut, so an ended session is handed a sign-in
+           * door rather than a retry against a dead token.
+           */}
+          {reasonLine("Nothing below would be right, so nothing is shown.", loadError)}
         </ReadFailed>
       ) : loading ? (
         <Reading>Reading what your sources have sent.</Reading>
@@ -3001,7 +3016,10 @@ export function DiscoverSurface({
               an-empty-read-is-not-an-empty-workspace.test.ts still allowed;
               that constant comes down to 1 in the same commit. */}
           {opportunities.isError ? (
-            <ReadFailedLine onRetry={() => void opportunities.refetch()} error={opportunities.error}>
+            <ReadFailedLine
+              onRetry={() => void opportunities.refetch()}
+              error={opportunities.error}
+            >
               {opportunities.error instanceof Error
                 ? opportunities.error.message
                 : "The open bets did not load."}

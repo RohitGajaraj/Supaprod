@@ -215,7 +215,7 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { failureLine } from "@/lib/error-copy";
+import { failureLine, reasonLine } from "@/lib/error-copy";
 import { sourceLabel } from "@/components/discover/format";
 import { wordFor } from "@/lib/spine/chain";
 import { Row, Line } from "@/components/meridian/rows";
@@ -2797,7 +2797,7 @@ function DecideSurface() {
                 a transport string is not one. It carries the server's sentence
                 where the server wrote one for a person, and the surface's own
                 otherwise, so the line is never empty. */}
-            {failureLine("The bets on the table did not come back.", opps.error)}
+            {reasonLine("The bets on the table did not come back.", opps.error)}
           </ReadFailed>
         ) : loading ? (
           <Reading>Reading the bets on the table.</Reading>

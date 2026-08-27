@@ -1,5 +1,5 @@
 import * as React from "react";
-import { failureLine } from "@/lib/error-copy";
+import { failureLine, reasonLine } from "@/lib/error-copy";
 import { Row, Line } from "@/components/meridian/rows";
 import { Action, Actions, ReadFailedLine, Region } from "@/components/meridian/surface-parts";
 import { Field, Input, Textarea } from "@/components/meridian/forms";
@@ -304,7 +304,7 @@ export function ForecastDeskPanel() {
                 the pair belongs where there is no region around it. */}
             {settle.isError ? (
               <ReadFailedLine error={settle.error}>
-                {failureLine(
+                {reasonLine(
                   "The verdict did not land, and nothing was written.",
                   settle.error,
                 )}
@@ -312,7 +312,7 @@ export function ForecastDeskPanel() {
             ) : null}
             {defer.isError ? (
               <ReadFailedLine error={defer.error}>
-                {failureLine("The check date did not move.", defer.error)}
+                {reasonLine("The check date did not move.", defer.error)}
               </ReadFailedLine>
             ) : null}
           </div>

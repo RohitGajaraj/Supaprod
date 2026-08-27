@@ -128,7 +128,7 @@
  */
 
 import * as React from "react";
-import { failureLine } from "@/lib/error-copy";
+import { failureLine, reasonLine } from "@/lib/error-copy";
 import { Line } from "@/components/meridian/rows";
 import {
   Action,
@@ -1378,7 +1378,7 @@ function Design() {
              sentence. Same shape the retired `Failed` rendered: the fact in
              red, the way out beside it. */
               <ReadFailedLine onRetry={() => void work.refetch()} error={work.error}>
-                {failureLine("Could not read the drawings.", work.error)}
+                {reasonLine("Could not read the drawings.", work.error)}
               </ReadFailedLine>
             ) : items.length === 0 ? (
               /* STILL AN EMPTY STATE, AND DELIBERATELY NOT A MISSING PRECONDITION.
@@ -1520,7 +1520,7 @@ function Design() {
                 <Reading>Opening it.</Reading>
               ) : item.isError ? (
                 <ReadFailedLine onRetry={() => void item.refetch()} error={item.error}>
-                  {failureLine("Could not open it.", item.error)}
+                  {reasonLine("Could not open it.", item.error)}
                 </ReadFailedLine>
               ) : !focus ? (
                 <NothingYet>That spec is no longer readable from this workspace.</NothingYet>

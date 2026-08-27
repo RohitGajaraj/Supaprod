@@ -177,6 +177,25 @@ export function messageForPerson(err: unknown): string | null {
  * server wrote one for a person. Never returns an empty string, because a
  * failure with nothing said is the silence this whole sweep is about.
  */
+/**
+ * THE REASON ONLY, for a line rendered INSIDE something that already answers an
+ * ended session.
+ *
+ * `ReadFailed` and `ReadFailedLine` call `wayOut`, which replaces their detail
+ * with the sign-in sentence and turns their control into a door. A child that
+ * ALSO called `failureLine` therefore printed "Your session ended. Sign in again
+ * and this will load." twice in one box, once in the sentence and once under it.
+ * Nine sites did, the moment `error` was passed at every call site -- a defect
+ * created by two correct layers meeting, which is this file's recurring theme.
+ *
+ * So: `failureLine` where the line stands alone and nothing else will say it,
+ * `reasonLine` where a wrapper will. Both keep the server's own sentence.
+ */
+export function reasonLine(ownSentence: string, err: unknown): string {
+  const extra = messageForPerson(err);
+  return extra ? `${ownSentence} ${extra}` : ownSentence;
+}
+
 export function failureLine(ownSentence: string, err: unknown): string {
   // Strongest claim first, which is the rule the receipts already follow: an
   // action the reader can take, then a sentence written for a person, then the

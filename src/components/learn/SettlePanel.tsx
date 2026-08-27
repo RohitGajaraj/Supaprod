@@ -53,7 +53,7 @@
  */
 
 import * as React from "react";
-import { failureLine } from "@/lib/error-copy";
+import { failureLine, reasonLine } from "@/lib/error-copy";
 import { Row, Line } from "@/components/meridian/rows";
 import {
   Action,
@@ -842,7 +842,7 @@ export function SettlePanel({
 
           {draft.isError ? (
             <ReadFailedLine onRetry={() => draft.mutate(target.prdId)} error={draft.error}>
-              {failureLine("The draft did not come back, and nothing was written.", draft.error)}
+              {reasonLine("The draft did not come back, and nothing was written.", draft.error)}
             </ReadFailedLine>
           ) : null}
         </div>

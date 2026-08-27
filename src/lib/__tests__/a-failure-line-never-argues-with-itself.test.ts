@@ -136,3 +136,62 @@ describe("a composed failure line never argues with itself", () => {
     expect(unterminated.join("\n")).toBe("");
   });
 });
+
+/**
+ * THE SECOND WAY TWO CORRECT LAYERS PRODUCE ONE WRONG SCREEN.
+ *
+ * `ReadFailed` and `ReadFailedLine` call `wayOut`, which answers an ended
+ * session with the sign-in sentence and a door. A child that also calls
+ * `failureLine` appends the SAME sentence, so the box says "Your session ended.
+ * Sign in again and this will load." twice, once in the line and once beneath
+ * it. Nine sites did this the moment `error` was passed at every call site, and
+ * every one of them was two correct decisions meeting.
+ *
+ * `reasonLine` is the same function without the session half, for exactly this
+ * position. Nothing enforced the choice, so this does.
+ */
+describe("a wrapper and its child do not both answer the ended session", () => {
+  const blocks = (): { file: string; block: string }[] => {
+    const found: { file: string; block: string }[] = [];
+    const walk = (dir: string) => {
+      for (const entry of readdirSync(dir)) {
+        const full = join(dir, entry);
+        if (statSync(full).isDirectory()) {
+          walk(full);
+          continue;
+        }
+        if (!/\.tsx$/.test(full) || /\.test\.tsx$/.test(full)) continue;
+        const src = readFileSync(full, "utf8");
+        for (const m of src.matchAll(
+          /<ReadFailed(?:Line)?\b[\s\S]{0,900}?<\/ReadFailed(?:Line)?>/g,
+        )) {
+          found.push({ file: full.slice(REPO_ROOT.length + 1), block: m[0] });
+        }
+      }
+    };
+    walk(join(REPO_ROOT, "src/components"));
+    walk(join(REPO_ROOT, "src/routes"));
+    return found;
+  };
+
+  it("finds the wrappers at all, so a rename cannot quietly empty this test", () => {
+    expect(blocks().length).toBeGreaterThan(30);
+  });
+
+  it("uses reasonLine, not failureLine, inside a wrapper that was given the error", () => {
+    const doubled = blocks()
+      .filter(({ block }) => block.includes("error=") && block.includes("failureLine("))
+      .map(({ file }) => file);
+
+    expect(
+      [...new Set(doubled)].join("\n"),
+      [
+        "A ReadFailed was given `error` AND its child calls `failureLine`.",
+        "",
+        "Both answer an ended session, so the sign-in sentence prints twice in",
+        "one box. Use `reasonLine` in this position: same function, without the",
+        "session half, which the wrapper is already handling.",
+      ].join("\n"),
+    ).toBe("");
+  });
+});
