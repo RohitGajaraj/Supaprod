@@ -59,3 +59,35 @@ export const PLAIN_PUNCTUATION_RULE =
   "Punctuation: write with ordinary keyboard characters only. Never use an em dash or an en " +
   "dash in anything you write, including titles, summaries, rationales, specs and final " +
   "messages. Use a comma, a full stop, or a plain hyphen instead, and write a range as 1-6.";
+
+/**
+ * NAME THE THING, NOT THE COLUMN (S2 -> S0, 2026-08-27).
+ *
+ * S2 screenshotted `/today` and read this back out of a review card, in prose a
+ * person reads:
+ *
+ *     "...the current focus: (1) ramping checkout_single_address to 100%..."
+ *
+ * A raw identifier is the same family of tell as the em dash: machine writing
+ * surfacing in the product's voice. And the fleet already treats it as
+ * disqualifying in one place and passes it through in another — S1's
+ * `messageForPerson` REJECTS `snake_case` outright as evidence that text was not
+ * written to be read, which is the same split we just closed between
+ * `serverMessage` and `messageForPerson`.
+ *
+ * ── WHY THIS IS A RULE AND NOT A SANITISER ─────────────────────────────────
+ * A sanitiser cannot fix it. An em dash has a known replacement; a column name
+ * does not. `checkout_single_address` might be *"the single-address checkout"*,
+ * or *"the experiment that removed the second address screen"*, and only the
+ * writer knows which. Rewriting it mechanically would produce a sentence that is
+ * WRONG rather than one that is merely machine-flavoured, and a wrong sentence
+ * about a customer's own experiment is worse than an ugly one.
+ *
+ * So this goes where the writer is, and the sanitiser stays out of it.
+ */
+export const PLAIN_NAMES_RULE =
+  "Names: never put a database column, table, flag or code identifier into prose a person reads. " +
+  "checkout_single_address, prd_id and forecast_horizon_date are machine names. Say what the thing " +
+  "IS in your own words, the way you would to a colleague who does not have the schema open. If you " +
+  "genuinely do not know the human name for it, describe what it does rather than pasting what it " +
+  "is called.";

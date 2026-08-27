@@ -141,7 +141,27 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
     // discards, and `spine_track_members` holding zero rows of kind 'prd' across
     // all 43 tracks. A brief that instructs an impossible call is worse than no
     // brief, because the agent obeys it.
-    file: "Call prd.draft with either `opportunity_id` (the bet this work belongs to, if you have one) or `brief` (what the work is and why it exists, in your own words). You must pass one or the other. It writes the spec body itself, so do not compose one to pass in. A spec that is only in your answer is not on the record and Design and Build cannot read it.",
+    /*
+     * ── F-117: 117 OF 119 SPECS CARRIED NO SUCCESS METRIC ────────────────
+     *
+     * Measured on production 2026-08-27. `prd.draft` DOES extract success
+     * metrics — but its own extraction prompt says *"Extract only what the text
+     * supports. Never invent a metric"*, and the text it extracts from is the
+     * body it writes from THIS SEAT'S BRIEF. So a brief that does not say what
+     * would count as the work having worked produces a spec with nothing to
+     * grade, correctly and silently.
+     *
+     * The `job` line above has always said "how anyone would know it worked".
+     * The `file` line, which is the one that says what to actually pass, did
+     * not, and the file line is the one the seat acts on.
+     *
+     * DOWNSTREAM THIS IS NOT COSMETIC. `learning.record` grades a forecast
+     * against an observable; `spec-gate.ts` gate 9 refuses a spec nothing can
+     * check. A spec with no metric can be built and shipped and then never
+     * judged, which is not a missing feature — it is the product's whole claim
+     * going unmade.
+     */
+    file: "Call prd.draft with either `opportunity_id` (the bet this work belongs to, if you have one) or `brief` (what the work is and why it exists, in your own words). You must pass one or the other. Your brief MUST say what would count as this having worked, as something a person could go and check: a number, a rate, an event that either happens or does not, and by when. The spec is written from your brief and nothing invents a measure you did not state, so a brief without one produces a spec that can be built and shipped and then never judged. It writes the spec body itself, so do not compose one to pass in. A spec that is only in your answer is not on the record and Design and Build cannot read it.",
   },
   "sprint-planner": {
     job: "Break the spec above into the work it actually implies. Do not invent scope the spec does not ask for.",
@@ -154,7 +174,20 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
   },
   "design-critic": {
     job: "Read the design back against the standing system and against the spec. Name what does not conform, and what the spec asked for that the design does not do.",
-    file: "If the design needs to change, call design.draft with the corrected version. Say plainly if it is sound as it stands.",
+    /*
+     * ── F-116: A PASS USED TO LEAVE NO TRACE ─────────────────────────────
+     *
+     * This said only *"say plainly if it is sound as it stands"*, so a design
+     * this seat APPROVED wrote nothing anywhere. Only a change (`design.draft`)
+     * left a mark. Downstream, `prds.design_gate_status` therefore meant both
+     * "nobody looked" and "the critic looked and it was fine" -- 116 of 119
+     * rows on `pending` -- and Ship, which reads that column, refused every one
+     * of them. The station was doing the judgement and had nowhere to put it.
+     *
+     * `critic.evaluate` already persists a verdict on the row, including the
+     * design lens. Calling it is how a pass becomes a fact.
+     */
+    file: "If the design needs to change, call design.draft with the corrected version. Then call critic.evaluate on the spec, WHETHER OR NOT you changed anything: a design you judged sound leaves no record unless you file it, and a spec nobody filed a verdict on cannot be told apart from one nobody read.",
   },
   // 05 Build
   builder: {
@@ -1039,7 +1072,40 @@ const FILE_IT: Record<AgentStation, string> = {
   // a different key. (Exactly how F-32 was found to be half-fixed.)
   build:
     "Finish by calling studio.stage with the change you made, then studio.commit to put it on its own branch, then studio.pr.open so there is a pull request Ship can point at, then studio.checks.run for the CI verdict, and when it is green call studio.pr.merge. If studio.commit refuses a path it may not write, call studio.unstage on that path and commit the rest rather than stopping: a staged path you cannot commit and do not unstage traps the whole changeset. The merge re-proves CI fresh and refuses red, and where governance wants a person it files that question instead of running, that is the gate working, so stop there and say so. Work that is only in your answer is not on the record, and a pull request nobody moves toward the merge gate sits open forever.",
-  ship: "Finish by calling release.publish so the release can be pointed at. A release that is only in your answer did not happen.",
+  /*
+   * ── A FORECAST IS THE REASON TO SHIP, NOT A CONDITION FOR SHIPPING ───────
+   * (F-115, measured on live runs 2026-08-27)
+   *
+   * Two tracks sat at `ship` on `given-up` with attempts exhausted, and one of
+   * them, `a30238f5`, is the track that walked five stations and opened a real
+   * pull request. Its `release-verifier` runs say, in the model's own words:
+   *
+   *   *"the spec requires <=5% abandonment on the tablet address re-confirm
+   *   screen within 7 days of full rollout, but the actual outcome is 67%
+   *   tablet checkout completion, meaning ~33% abandonment, far above the
+   *   target. Shipping cannot proceed until the success metric is met."*
+   *
+   * **That condition can never be satisfied.** The metric is a claim about what
+   * will be true SEVEN DAYS AFTER FULL ROLLOUT. Refusing to roll out until the
+   * post-rollout number has moved is a deadlock in one sentence, and the seat
+   * was not being stupid: its prompt says *"check it against the spec it was
+   * built from"*, the number is written in the spec, and nothing anywhere told
+   * it which numbers in a spec are already-true and which are predictions.
+   *
+   * This is the same class as F-114 and the Learn brief above: the product's
+   * central object, the forecast recorded before the outcome is known, was
+   * being READ by seats that had never been told what it is. At Learn nobody
+   * read it. At Ship somebody read it and mistook it for a requirement. Both
+   * failures are one missing sentence, in opposite directions.
+   *
+   * SO THE RULE IS STATED IN BOTH DIRECTIONS, because half of it invites the
+   * other failure. "Never refuse a forecast for being unmet" alone would let a
+   * seat ship against a prediction nobody can ever check, which is worse: an
+   * ungradeable forecast makes the verdict at Learn impossible and quietly
+   * removes the one thing this product sells. So the legitimate refusal is
+   * named too, and it is about MEASURABILITY, never about the value.
+   */
+  ship: "Finish by calling release.publish so the release can be pointed at. A release that is only in your answer did not happen. A success metric in the spec is a FORECAST: a claim about what will be true AFTER this is live. It is graded at Learn and it is the REASON to ship, never a condition for shipping. NEVER refuse to ship because a predicted number has not happened yet, because it cannot have. What you check before shipping is whether the change is READY: it exists, review passed, it can be turned back off. Refuse a forecast only when it cannot be MEASURED, meaning it does not say what will be observed or by when.",
   /*
    * ── GRADE THE PREDICTION, NOT THE SPEC (S4 -> S0, 2026-08-27) ────────────
    *

@@ -27,6 +27,8 @@
  * STOPS, leaving the track where it is. Autonomy here means nobody has to press
  * go, never that policy stopped applying.
  */
+import { trackGoalSentence } from "@/lib/track-origin";
+import { refusalIsAboutTheWork } from "@/lib/spine/refusal-kind";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { runAgentLoop } from "@/lib/ai/loop.server";
 import { createMission } from "@/lib/ai/handoff.server";
@@ -751,7 +753,19 @@ async function missionForTrack(
 
     const mission = await createMission(supabase, row.user_id, row.workspace_id, {
       title: row.title,
-      goal: row.origin ? `${row.title}. ${row.origin}` : row.title,
+      /*
+       * F-121 (S1 -> S0). This was `${row.title}. ${row.origin}`, which renders
+       * the sentence twice when a track's origin IS its title. Live on
+       * `6199f3df`, and stored that way in `missions.goal` rather than doubled
+       * at render time, so it is a bad row and not a bad render.
+       *
+       * It will grow rather than shrink: the sentence a person types at /start
+       * becomes BOTH the title and the origin, so exact-match is the natural
+       * result of the newest way to start work. `trackGoalSentence` returns the
+       * title plus only what the origin actually adds, and returns an origin
+       * that carries its own fact untouched.
+       */
+      goal: trackGoalSentence(row.title, row.origin),
       starting_agent_id: agentId,
     });
     if (!mission?.id) return null;
@@ -1124,7 +1138,20 @@ async function correctIfPossible(
     const now = new Date().toISOString();
     const { error } = await supabase
       .from("spine_tracks" as never)
-      .update({ attempts: 0, last_hold: null, driven_at: now, updated_at: now } as never)
+      /*
+       * F-127: cleared with the hold, always. A track that has been released and
+       * still carries the sentence explaining why it stopped is the exact defect
+       * this file already records at :521 — "`last_hold` was not cleared, so the
+       * row went on rendering the PREVIOUS reason" — and a stale reason reads as
+       * a current one.
+       */
+      .update({
+        attempts: 0,
+        last_hold: null,
+        last_hold_because: null,
+        driven_at: now,
+        updated_at: now,
+      } as never)
       .eq("id", row.id);
     if (error) return null;
     return {
@@ -1174,9 +1201,35 @@ async function correctIfPossible(
   // stations and the missing thing, is the line returned here and it is what the
   // tick's own record of the sweep carries.
   const hold = holdForCorrection(decision);
+  /*
+   * ── F-127: THE SENTENCE WAS COMPUTED AND THROWN AWAY ───────────────────
+   *
+   * The comment directly above already describes this without naming it as a
+   * defect: the coarse kind is persisted "so the surface that lists work can
+   * render a sentence", while "the specific one, naming both stations and the
+   * missing thing, is the line returned here and it is what the tick's own
+   * record of the sweep carries."
+   *
+   * So the reason exists. It goes into a job record and never onto the track. A
+   * person opening the work an hour later reads "Nothing more will be tried here
+   * on its own" and has no route to the sentence that would tell them what to do.
+   *
+   * Measured on `a30238f5`: finding out why it stopped at ship meant joining
+   * `agent_runs` and reading a seat's output, and the answer turned out to be a
+   * defect in the loop rather than a fact about the work (F-115). None of that
+   * was reachable from the screen this product tells people to watch, and R-18's
+   * acceptance is precisely that a person can watch it happen.
+   *
+   * `decision.because` is the driver's own words, stored verbatim rather than
+   * re-derived, so the screen and the record cannot say different things.
+   */
   await supabase
     .from("spine_tracks" as never)
-    .update({ last_hold: hold, driven_at: new Date().toISOString() } as never)
+    .update({
+      last_hold: hold,
+      last_hold_because: decision.because,
+      driven_at: new Date().toISOString(),
+    } as never)
     .eq("id", row.id);
   return {
     trackId: row.id,
@@ -1678,6 +1731,20 @@ export async function driveTrackOnce(
 
     await supabase
       .from("spine_tracks" as never)
+      /*
+       * ── F-127: NO `last_hold_because` HERE, AND THAT IS THE POINT ────────
+       *
+       * I tried to write one and the typechecker refused, which turned out to be
+       * a design error rather than a syntax one. This branch's line is
+       * `HOLD_LINE[decision.hold]`: a STATIC MAP from kind to sentence. Storing
+       * it would duplicate exactly what `holdLine()` already derives from
+       * `last_hold` when the row is read, while LOOKING like a specific reason
+       * in a column whose whole purpose is that it carries one.
+       *
+       * A generic sentence in a field meant for specifics is worse than a null,
+       * because null is readable as "no more was said" and a generic line is
+       * not. Only the correction path above has words of its own.
+       */
       .update({ last_hold: decision.hold, driven_at: new Date().toISOString() } as never)
       .eq("id", row.id);
     return {
@@ -2327,9 +2394,37 @@ export async function driveTrackOnce(
    * the tool and the refusal — which is what R-16 asks for and what
    * "this station filed nothing" could never give.
    */
-  const refusal = producedThisVisit
+  const refusalFound = producedThisVisit
     ? null
     : (refusedTool(steps) ?? (await refusedToolInTraces(supabase, traceIds)));
+
+  /*
+   * ── F-130: A MERGE CONFLICT IS NOT A LOCKED DOOR ───────────────────────
+   *
+   * F-41's premise above is that a refused tool failed "for a reason that has
+   * nothing to do with the work". True of the 401 it was written against, and
+   * **false of a merge conflict**, which is entirely about the work. The
+   * terminality argument fails for it too: `correction.ts` makes
+   * `tools-refused` terminal because "there is no cheap way to test whether
+   * the ask has been met", and a conflict is answered by a plain GET.
+   *
+   * So the most ordinary and most fixable thing in software was permanently
+   * ending a piece of work. S4 measured every real merge failure in this
+   * product's life: eight, of which FIVE are conflicts.
+   *
+   * A refusal that is about the work takes the ORDINARY path instead — the
+   * attempt counts, and three of them hand it to `decideCorrection`, which
+   * sends it back to be redone. That is the right answer here because
+   * `studio.commit` branches off the CURRENT default-branch head, so
+   * rebuilding resolves the conflict with nobody rebasing anything.
+   *
+   * Everything else still takes F-41's path, because for everything else its
+   * premise holds.
+   */
+  const refusal =
+    refusalFound && refusalIsAboutTheWork(refusalFound.tool, refusalFound.error)
+      ? null
+      : refusalFound;
 
   if (refusal) {
     await supabase
@@ -2337,6 +2432,26 @@ export async function driveTrackOnce(
       .update({
         // attempts deliberately UNCHANGED.
         last_hold: "tools-refused",
+        /*
+         * ── F-127, AND THIS IS THE INSTANCE THAT MATTERS MOST ─────────────
+         *
+         * The specific sentence is built four lines below and returned, and it
+         * is the only one on this path that names a real external cause: the
+         * tool, and what that tool actually said.
+         *
+         * S4 measured the real merge failures across the product's life: EIGHT,
+         * of which FIVE are *"GitHub merge 405: Pull Request has merge
+         * conflicts"*. A conflict is not something a deploy or a prompt fixes,
+         * and under F-75 auto-merge the loop will meet it again with no person
+         * in the run. Without this the track would say only "this station could
+         * not use a tool it needed", and the one fact that tells a person what
+         * to do — that the branch will not merge — would sit in a run output.
+         *
+         * Stored WITHOUT the `holdLine` prefix, deliberately: that half is
+         * derived from `last_hold` on read, and storing it too would put the
+         * same sentence on screen twice.
+         */
+        last_hold_because: `It was ${refusal.tool}, which said: ${refusal.error}`,
         driven_at: new Date().toISOString(),
       } as never)
       .eq("id", row.id);
@@ -2681,6 +2796,7 @@ export async function driveTrackOnce(
             // F-43: the work moved, so the convergence counter starts again.
             station_drives: 0,
             last_hold: null,
+            last_hold_because: null,
             driven_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           }
@@ -2688,6 +2804,7 @@ export async function driveTrackOnce(
             status: "done",
             attempts: 0,
             last_hold: null,
+            last_hold_because: null,
             driven_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           }) as never,

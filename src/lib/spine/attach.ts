@@ -149,6 +149,36 @@ export const TOOL_PRODUCTS: Readonly<Record<string, ToolProduct>> = {
   // Discover would file a signal and still be recorded as producing nothing, which
   // is the freeze this file exists to prevent. `SinkResult.ids` was added for it,
   // and `every-station-can-finish.test.ts` pins the field name against this entry.
+  /*
+   * ── WHY A SIGNAL'S THEME IS NOT ATTACHED WITH IT (ruled 2026-08-27) ──────
+   *
+   * S1 measured that 1,133 signals filed to tracks all carry a `theme_id` and
+   * only 315 of those themes are attached to the same track, and flagged the
+   * other 818 as a defect: if a signal is part of this work's record, surely the
+   * pattern it belongs to is too.
+   *
+   * **IT IS NOT A DEFECT, AND ATTACHING THEM WOULD BREAK A LOAD-BEARING CHECK.**
+   * This file's first line says members are "what a station actually produced",
+   * and `didStationProduce` (driver.ts) treats them exactly that way:
+   *
+   *     attachedCount: "Artifacts harvested from the seats that ran in THIS tick"
+   *     if (input.attachedCount > 0) return true;
+   *
+   * A theme created by ANOTHER track's clustering pass is not something this
+   * station made. Filing it here would make a station report that it produced
+   * something when it produced nothing, which `driver.ts` names two lines above
+   * that function as *"exactly the progress-the-work-did-not-buy that
+   * `produced-nothing` exists to refuse."*
+   *
+   * The pattern's name reaches the surface through the foreign key instead
+   * (`signals.theme_id -> themes.id`, resolved in `getTrackArtifacts`), which is
+   * the platform truth and holds whether or not anything was attached. Membership
+   * is bookkeeping about production; the foreign key is the fact about belonging,
+   * and they are different questions.
+   *
+   * If a surface wants "every theme this track's signals belong to", that is a
+   * derived read through `theme_id`. It is not a member row.
+   */
   "signals.log": { kind: "signal", table: "signals", idField: "id" },
   // .insert into prds -> { prd_id, title, status, opportunity_id }
   "prd.draft": { kind: "prd", table: "prds", idField: "prd_id" },
