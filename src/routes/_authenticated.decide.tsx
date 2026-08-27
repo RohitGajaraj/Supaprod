@@ -2278,7 +2278,13 @@ function DecideSurface() {
   // have, and it stays silent while the counts are still loading.
   const headline = React.useMemo(() => {
     if (loading) return "Decide";
-    if (opps.error) return "The bets did not load.";
+    // NOT "The bets did not load." any more, and the reason is worth keeping.
+    // The ReadFailed below is the better of the two: it carries the failure, the
+    // server's sentence where there is one, the fact that nothing was lost, and
+    // the way back. Rendered against a forced 401 this page said the same thing
+    // twice, three lines deep, before the retry. The headline that stated a
+    // failure it could not act on was the half to drop.
+    if (opps.error) return "Decide";
     const n = ranked.length;
     if (n === 0) return "Nothing is ranked yet.";
     if (n === 1) return "One bet is ranked, and it is waiting on you.";
@@ -2781,9 +2787,10 @@ function DecideSurface() {
           }
         />
 
-        {/* A failed read is not a decision, so it never wears the Gate. The
-          headline above already says it did not load; this line carries the
-          reason, which is different information, and the way back. */}
+        {/* A failed read is not a decision, so it never wears the Gate. This is
+          the ONLY place this page states the failure: the headline used to say
+          it too, which read as a stutter once `failureLine` stopped appending a
+          transport string behind it. Verified on screen against a forced 401. */}
         {opps.error ? (
           <ReadFailed onRetry={() => void opps.refetch()}>
             {/* The comment above is right that this line carries the reason, and
