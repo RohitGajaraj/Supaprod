@@ -78,8 +78,8 @@ const DID_THE_WORK = turn({
   stationName: "Discover",
   outcome: "partly",
   made: [
-    { kind: "signal", word: "what we found", id: "162fc64d" },
-    { kind: "signal", word: "what we found", id: "d676c37c" },
+    { kind: "signal", word: "thing we found", id: "162fc64d" },
+    { kind: "signal", word: "thing we found", id: "d676c37c" },
   ],
   tookMs: 76207,
   tokens: 65732,
@@ -139,7 +139,7 @@ describe("what must NOT get a chip, or the chip stops meaning anything", () => {
   it("leaves a with-failures turn that filed its work alone", () => {
     // 810 of 2,272 track-linked runs carry this status and most did the job.
     expect(chipMarkup(DID_THE_WORK)).toBeNull();
-    expect(headline(DID_THE_WORK)).toBe("Discovery Scout filed 2 signals");
+    expect(headline(DID_THE_WORK)).toBe("Discovery Scout filed 2 things we found");
   });
 
   it("leaves a clean run that had nothing to add alone", () => {

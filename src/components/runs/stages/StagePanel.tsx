@@ -303,7 +303,7 @@ function Discover({
           theme was never counted, and saying "0 signals" there would be a
           measurement nobody took. */}
       {e.signalCount == null ? (
-        <Fact label="Signals behind it" sub="signals and opportunities meet on a theme">
+        <Fact label="What we found" sub="opportunities meet them on a theme">
           <Stat>none counted, nothing links it to a theme</Stat>
         </Fact>
       ) : e.signalCount === 0 ? (
@@ -313,7 +313,8 @@ function Discover({
       ) : (
         <Fact label="What we found" sub={e.theme ? `on ${e.theme.title}` : undefined}>
           <Stat>
-            <Figure>{e.signalCount}</Figure> {e.signalCount === 1 ? "what we found" : "things we found"}
+            <Figure>{e.signalCount}</Figure>{" "}
+            {e.signalCount === 1 ? "thing we found" : "things we found"}
           </Stat>
         </Fact>
       )}
@@ -322,7 +323,7 @@ function Discover({
         <RunRow
           key={s.id}
           tight
-          lead={s.excerpt || s.title || "what we found"}
+          lead={s.excerpt || s.title || "a thing we found"}
           sub={s.source}
           time={ago(s.at)}
         />

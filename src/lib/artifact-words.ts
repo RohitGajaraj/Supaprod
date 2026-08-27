@@ -23,7 +23,7 @@
 
 const ARTIFACT_WORDS: Record<string, string> = {
   // The audit vocabulary.
-  signal: "what we found",
+  signal: "thing we found",
   opportunity: "opportunity",
   decision: "decision",
   spec: "spec",

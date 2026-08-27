@@ -681,7 +681,7 @@ WHERE entry_station='sense' AND station='learn' AND waived='[]'
 4. Character system (Items 52-53) - MAIN-held P0 work
 
 **Build health:** Clean, all changes committed, ready for next phase
-=======
+
 ---
 
 # SESSION S0 — 2026-08-27 CONTINUANCE: Vocabulary Rename + S1 Steering Unblock
@@ -761,4 +761,110 @@ Both are now unblocked on the database/vocabulary side.
 `main` at `c569d7c89`, all four lanes 0 ahead. Gates: 11,629 tests / 0 fail,
 `tsc` 0, `docs:check` 0. Lovable sync is current. No dev server was started
 (R-21).
->>>>>>> origin/main
+
+---
+
+# SESSION S0 — 2026-08-28 05:00 IST CLOSE-OUT (Claude Code, worktree `buffalo`, branch `s1`)
+
+**Read the two warnings first. They change what you should do on arrival.**
+
+## ⚠️ Two sessions shared this worktree and this branch
+
+`buffalo` was driven by two Claude sessions at once, both on branch `s1`. There is one index, so
+there is no "my commit" and "their commit". Files changed under me mid-read three separate times,
+and S1 disclosed running `git stash push -u` twice while diagnosing, which swept my uncommitted
+edits for ~30s each time. Both pops were clean and nothing was lost, but **a shared worktree has no
+mechanism to make that safe.** If two sessions must work the same lane, give them separate
+worktrees or serialise them. **S1 holds the commit for this work; I did not run `git commit`.**
+
+## ⚠️ The vocabulary rename (`9d1dd28f2`) was committed on a RED tree
+
+Five tests were failing at HEAD, all asserting the pre-rename word. Measured with `bun test`:
+
+```
+at HEAD, before any fix:  11633 pass · 22 skip · 36 todo ·  5 fail · 727 files
+after the fixes:          11638 pass · 22 skip · 36 todo ·  0 fail · 727 files
+```
+
+The five: `attach.test.ts:248`, `chain.test.ts:334`, `chain.test.ts:379`, `activity.test.ts:132`,
+`a-refused-turn-does-not-read-as-a-quiet-one.test.tsx:142`.
+
+**Open disagreement, deliberately not resolved here.** S1 measured `11628 pass / 5 fail` and reads
+those five as a process-wide `mock.module` collision that only clears in isolation. I measured the
+full suite green after the fix, in the same invocation shape that had just named all five
+(11633 + 5 = 11638 exactly). Neither measurement describes the tree S1 is committing, because it
+now carries a guard test that did not exist when either of us measured. **Whoever picks this up:
+run `bun test` once on the landed tree and let that be the record.** Do not carry either number
+forward on trust.
+
+## What the rename actually got wrong, and the guard that now prevents it
+
+Not merely stale assertions — it put a **heading in a noun slot**. §12 offers two forms,
+*"What we found"* and *"evidence"*, and only the second is a noun. Every call site composes
+`${n} ${word}` or `this ${word}`, so the map form leaked out as *"It produced 1 what we found"*,
+*"Untitled what we found"*, *"Start a mission on this what we found?"* — five surfaces beyond the
+three with tests (CitationsCard, GraphNodeActions, ReceiptDetailSheet, AuditLineageSheet,
+describeAttachments). **That diagnosis is S1's and it is better than mine; I had found only the
+stale assertions.** The split now is: heading positions keep *"What we found"*, counted positions
+take *"thing we found"* / *"things we found"*. S1 added
+`src/lib/spine/a-counted-word-is-a-noun-not-a-heading.test.ts`, which walks the vocabulary maps and
+fails any entry opening with an interrogative. **Prose in a rename table decays silently; that test
+does not.**
+
+## What I landed on the database (applied to production and verified)
+
+`agent_messages` refused **every** track-scoped steer. Two mandatory columns, fixed in order:
+
+- `mission_id` — relaxed earlier, **but no migration file existed**, so a database rebuilt from
+  `supabase/migrations/` alone would still have carried `NOT NULL` and broken steer again.
+- `to_agent_slug` — the one S1 hit. A steer is addressed to the work, not a seat, and several seats
+  run at Discover, so no sentinel slug was written.
+
+Both are now recorded in
+`supabase/migrations/20260827001500_a_steer_is_addressed_to_the_work_not_to_a_seat.sql`, written
+idempotently so it is a no-op against production and the missing history everywhere else. It also
+adds `agent_messages_addressed_to_something` (`mission_id IS NOT NULL OR track_id IS NOT NULL`) —
+until now `mission_id NOT NULL` was what guaranteed a message had an address, and relaxing it
+removed that guarantee silently. The constraint is deliberately **not** keyed to `kind`: `claim` and
+`broadcast` are teammate-to-everyone by design (SPEC-AGENT-COMMS §3), so a per-kind recipient rule
+would block the next two message types before they are written.
+
+**Proof, not assertion.** Inserted a real track-scoped steer in exactly the shape `steerTrack` uses
+(no `mission_id`, no `to_agent_slug`) inside a `DO` block that then raised, forcing rollback:
+`PROOF_OK: track-scoped steer inserted as b2fa71c9… on track 1782da5d… — rolled back`. Row count
+before and after: **156, unchanged**. Production was not polluted.
+
+Measured before the change — `handoff 139 / kickoff 14 / steer 3`, all 156 carrying a slug, and
+**zero track-scoped rows had ever existed.** Not "rare": none, ever, because the constraint refused
+all of them.
+
+`src/integrations/supabase/types.ts` was stale and still declared `mission_id: string` after that
+column became nullable. Six lines corrected across the Row/Insert/Update shapes for both columns.
+`bunx tsc --noEmit` is clean — `agentDisplayName` already accepted `string | null | undefined`, so
+no call site needed touching.
+
+## Still open — nobody has picked these up
+
+1. **`lane/run` (worktree `supaprod-run`) is not safe.** 7 unpushed commits including RUN-17/18/19;
+   diverged from `origin/lane/run` (same units, older SHAs — a rebase after a push, so landing it
+   needs `--force-with-lease`); 101 behind `origin/main`. Its `NOW-S1.md` still carries a stale
+   `DEVSERVER` flag — no dev server is actually running, I checked 5173/8080/8081/4173/3000 and
+   every `vite`/`bun run dev` process. The flag is bookkeeping, not a live RAM hazard.
+2. **Four of S1's seven requests are unanswered** in `coordination/requests/S1/`:
+   `wire-resolveApprovalPolicy-class-answer-widens-authority` (Unit 4 depends on it —
+   `resolveApprovalPolicy` still has zero callers, so an answered class never widens authority),
+   `two-hold-reasons-unclassified-and-presence-loading-input`, `undo-and-handback-server-fns`,
+   `getTrackChecks-reader`, `checkForecast-server-fn`.
+3. **`docs/lanes/NOW-*.md` in this worktree all read "not started · IDLE"** — 101 commits stale.
+   They are not a usable picture of who is doing what. Rebase before trusting them.
+4. **A merge conflict marker was committed** in this file at HEAD (`=======` at 684,
+   `>>>>>>> origin/main` at 764, opener already deleted). Resolved in this pass by keeping both
+   sides. Worth asking how it passed `docs:check`.
+
+## Gates, run individually per the load warning (load average was 21.67)
+
+`bunx tsc --noEmit` → clean · `bun test` → 11638 pass / 0 fail (18.55s) · targeted
+`run-evidence-holds.test.ts` → 2 pass. **`bun run build` and `bun run docs:check` were NOT run** —
+S1 holds the commit and is running the four gates on the final combined tree. Do not read my
+numbers as covering their guard test.
+

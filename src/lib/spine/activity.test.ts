@@ -126,10 +126,10 @@ describe("counting what was made", () => {
     expect(countKinds([{ kind: "prd", word: "spec", id: "1" }])).toBe("a spec");
     expect(
       countKinds([
-        { kind: "signal", word: "signal", id: "1" },
-        { kind: "signal", word: "signal", id: "2" },
+        { kind: "signal", word: "what we found", id: "1" },
+        { kind: "signal", word: "what we found", id: "2" },
       ]),
-    ).toBe("2 signals");
+    ).toBe("2 things we found");
     // `theme` reads as "cluster", which is the whole reason KIND_WORD exists.
     expect(countKinds([{ kind: "theme", word: "cluster", id: "1" }])).toBe("a cluster");
   });

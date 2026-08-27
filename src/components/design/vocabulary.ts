@@ -16,7 +16,7 @@ import type { DesignCriticFinding } from "@/lib/ai/design-critic";
  *  product's own tokens and two of them do not mean in English what they mean
  *  here, so none of them reach a screen unmapped. */
 const KIND_WORD: Record<string, [one: string, many: string]> = {
-  signal: ["what we found", "things we found"],
+  signal: ["thing we found", "things we found"],
   theme: ["theme", "themes"],
   opportunity: ["opportunity", "opportunities"],
   prd: ["spec", "specs"],

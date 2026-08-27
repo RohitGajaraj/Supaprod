@@ -535,7 +535,7 @@ export function gatesOpenedBy(
  * user-facing copy, so they are said the way the rest of the product says them.
  */
 export const KIND_WORD: Readonly<Record<string, { one: string; many: string }>> = {
-  signal: { one: "what we found", many: "things we found" },
+  signal: { one: "thing we found", many: "things we found" },
   theme: { one: "cluster", many: "clusters" },
   prd: { one: "spec", many: "specs" },
   task: { one: "task", many: "tasks" },
