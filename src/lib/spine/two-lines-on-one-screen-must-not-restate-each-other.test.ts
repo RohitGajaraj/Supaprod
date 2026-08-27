@@ -32,6 +32,28 @@
  *
  * It lives here because `HOLD_LINE` is S0's map and the rule is about the map's
  * relationship to what renders beside it. `way-out.ts` stays S1's.
+ *
+ * ── ITS BLIND SPOT, NAMED HERE BECAUSE IT IS INHERENT ──────────────────────
+ * **This catches saying one thing twice. It cannot catch saying it zero times**,
+ * and S1 and I walked into that within the hour of it being written.
+ *
+ * We fixed `corrections-spent` from opposite sides in the same stretch: I cut
+ * the hold line down to the effect alone, while S1 deleted their diagnosis for
+ * that hold as a restatement of the cause my line still carried. Composed, a
+ * person read *"Nothing further will be spent on this until you look."* above
+ * *"Send it back a step, or do this step yourself."* — **and nothing anywhere
+ * said why it had stopped.** This guard passes that happily, because two lines
+ * with nothing in common share no three-word run.
+ *
+ * So the overlap has two failure directions and only one of them is here: left
+ * in place it says the thing twice, removed from both sides it says it never.
+ * **The second is harder to notice**, because every individual line reads well
+ * and the tests come out greener than before.
+ *
+ * The complement lives with S1 in `way-out.ts`'s suite, asserting the cause is
+ * still named. One catches the repeat, one catches the hole, and neither is
+ * complete alone. The division they enforce together is: **the hold line says
+ * WHAT IS HAPPENING, the way out says WHY and WHAT TO DO.**
  */
 import { describe, expect, it } from "bun:test";
 
@@ -172,5 +194,23 @@ describe("THE PROPERTY: no hold says the same thing twice on one screen", () => 
         "and the door, so they compose instead of repeating.",
       ].join("\n"),
     ).toEqual([]);
+  });
+});
+
+describe("and the hold line still says WHAT IS HAPPENING", () => {
+  /*
+   * The half of the division this file can check. The other half — that the way
+   * out names the cause — is S1's, in `way-out.ts`'s own suite, because a guard
+   * that fails on somebody else's file is one they delete rather than read.
+   *
+   * Cheap, and it exists because the hole we made was invisible to everything
+   * else: after both sides trimmed, every line read well and every test passed.
+   */
+  it.each(HOLDS)("%s says something, and something specific", (hold) => {
+    const line = HOLD_LINE[hold];
+    expect(line.length, `${hold} has no line at all`).toBeGreaterThan(20);
+    // Not merely present: an effect a person can act on rather than a status
+    // word. Three significant words is the same bar the overlap test uses.
+    expect(content(line).length, `${hold} says almost nothing`).toBeGreaterThanOrEqual(3);
   });
 });
