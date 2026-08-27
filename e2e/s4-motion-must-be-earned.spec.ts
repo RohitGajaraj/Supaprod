@@ -50,6 +50,20 @@ import { findRepoRoot } from "./helpers/auth";
 
 const SHOT_DIR = join(findRepoRoot(), "docs", "screenshots", "s4-motion");
 
+/**
+ * A filename for a path that may carry a query string.
+ *
+ * `?` and `=` are legal on this filesystem and are a nuisance everywhere else,
+ * and the harness could not reach a view-scoped surface at all until now.
+ * S3 asked for `/settings?section=autonomy` specifically, having noted that a
+ * path census cannot see a query-string view, which is true and was a real gap:
+ * `/engine-room?view=suites` answers and draws no tab, so a surface can exist
+ * with no door and no row in any of my tables.
+ */
+function shotName(path: string): string {
+  return path.replace(/[^a-zA-Z0-9]+/g, "_").replace(/^_|_$/g, "") || "root";
+}
+
 /** Keeps a phone run from overwriting the desk run of the same surface. */
 /*
  * Built by concatenation rather than interpolation on purpose. The guard in
@@ -470,7 +484,7 @@ test("report which surfaces still move once nothing can be read", async ({ page 
      * measured. So the shot is unconditional and named for the path.
      */
     await page.screenshot({
-      path: join(SHOT_DIR, `surface${path.replace(/\//g, "_")}${SHOT_SUFFIX}.png`),
+      path: join(SHOT_DIR, `surface_${shotName(path)}${SHOT_SUFFIX}.png`),
     });
 
     const failures = await failureStatements(page);
@@ -499,13 +513,13 @@ test("report which surfaces still move once nothing can be read", async ({ page 
         `\n=== ${path} STILL MOVING ${GAP_MS}ms after settle, with no backend ===\n` +
           `  frame at settle+0s : ${a}\n` +
           `  frame at settle+${GAP_MS / 1000}s : ${b}\n` +
-          `  screenshot: docs/screenshots/s4-motion/surface${path.replace(/\//g, "_")}${SHOT_SUFFIX}.png`,
+          `  screenshot: docs/screenshots/s4-motion/surface_${shotName(path)}${SHOT_SUFFIX}.png`,
       );
     } else {
       report.push(
         `\n=== ${path} settled after rendering in ${(render.ms / 1000).toFixed(1)}s. ` +
           `Nothing moves without data. ===\n` +
-          `  screenshot: docs/screenshots/s4-motion/surface${path.replace(/\//g, "_")}${SHOT_SUFFIX}.png\n` +
+          `  screenshot: docs/screenshots/s4-motion/surface_${shotName(path)}${SHOT_SUFFIX}.png\n` +
           `  Settling is the pass for MOTION. Open it anyway and read what it SAYS.`,
       );
     }
