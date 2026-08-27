@@ -33,6 +33,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import {
   getBoundary,
   getDeclinedLedger,
+  getGovernanceOverview,
   setWorkspaceAutonomyPolicy,
   setWorkspacePause,
   setWorkspaceSpendPolicy,
@@ -57,6 +58,7 @@ import { getApprovalPolicyState } from "@/lib/approvals-queue.functions";
 import { humanWriteError } from "@/lib/roles.functions";
 import { TrustGraduationsBlock } from "@/components/governance/TrustGraduations";
 import { AutomationBoundary } from "@/components/governance/AutomationBoundary";
+import { ceilingReality } from "@/components/governance/ceiling-reality";
 import { Field, Input } from "@/components/meridian/forms";
 import { MoreItem, MoreMenu } from "@/components/meridian/MoreMenu";
 import { Receipt } from "@/components/meridian/Receipt";
@@ -381,6 +383,26 @@ export function BoundaryControls({
     queryKey: ["boundary-ledger", activeWorkspaceId],
     queryFn: () => fLedger(),
   });
+
+  /**
+   * WHAT THE WORK ACTUALLY COST, read under the key ControlsPanel already uses.
+   *
+   * THE IDENTICAL KEY AND THE IDENTICAL SERVER FUNCTION, so TanStack hands both
+   * panels one cache entry rather than two reads that merely agree today.
+   * Settings mounts this panel and ControlsPanel on the same pane, and two
+   * copies of a spend figure that can disagree while one is stale is how a
+   * person learns to trust neither.
+   *
+   * Independent of `b` on purpose, like the two reads above it: if this fails,
+   * the ceiling a person came here to move still moves. It only ever ADDS a
+   * sentence, so its silence costs nothing and never asserts anything.
+   */
+  const fOverview = useServerFn(getGovernanceOverview);
+  const overview = useQuery({
+    queryKey: ["governance", "overview", activeWorkspaceId],
+    queryFn: () => fOverview({ data: { workspaceId: activeWorkspaceId ?? null } }),
+  });
+  const spent = ceilingReality(overview.data?.runs);
 
   /* Same independence, for the same reason: if this read fails, the settings a
      person came here to change still work. It is scoped to the workspace
@@ -885,19 +907,47 @@ export function BoundaryControls({
            */}
           <Region
             title="The ceiling"
-            sub="What one run may spend before it stops, whatever else it is allowed to do."
+            sub="What the work may spend before it stops, whatever else it is allowed to do, and what it has actually been costing."
           >
+            {/*
+             * "DOLLARS ONE RUN MAY SPEND" NAMED THE WRONG SCOPE, and it named
+             * it smaller than the truth.
+             *
+             * The gate is `mission_cap_state`, which compares this ceiling to
+             * the SUM of `spend_used_usd` across every run sharing a
+             * `mission_id`, falling back to the single run only when there is
+             * no mission (runtime.server.ts:269). The RPC's own comment records
+             * why: the column "was a per-run ceiling wearing a mission name",
+             * so a ten hop goal got ten separate ceilings and could spend ten
+             * times the number on screen with every check passing. That was
+             * fixed in the engine. The label was not, so the screen still
+             * promises a per-step brake for a whole-goal one.
+             *
+             * "Goal" and not "mission": ControlsPanel already tells a person
+             * the first run "starts when you give the crew a goal", and §12
+             * forbids putting a third noun on one object.
+             *
+             * The second sentence is what the founder asked this screen for --
+             * what you expected beside what actually happened. It is measured
+             * per RUN and says "runs", because these rows carry no mission id
+             * to sum by; see ceiling-reality.ts on why understating is the safe
+             * direction for an amount spent.
+             */}
             <Line
-              label="Dollars one run may spend"
+              label="Dollars one goal may spend"
               sub={
-                data.capUsd === null ? (
-                  "No ceiling. A run continues until it finishes or something else stops it."
-                ) : (
-                  <>
-                    <Num>${data.capUsd.toFixed(2)}</Num>. A run that reaches it halts and says so,
-                    and the halt is on the record.
-                  </>
-                )
+                <>
+                  {data.capUsd === null ? (
+                    "No ceiling. A goal continues until it finishes or something else stops it."
+                  ) : (
+                    <>
+                      <Num>${data.capUsd.toFixed(2)}</Num>, counted across every agent the goal is
+                      handed to rather than per step. Work that reaches it halts and says so, and
+                      the halt is on the record.
+                    </>
+                  )}
+                  {spent.said ? <span className="mt-1 block">{spent.said}</span> : null}
+                </>
               }
             >
               {!data.isOwner ? (
@@ -908,7 +958,7 @@ export function BoundaryControls({
                   min={1}
                   step={1}
                   defaultValue={data.capUsd ?? undefined}
-                  aria-label="Dollars one run may spend before it stops"
+                  aria-label="Dollars one goal may spend before it stops"
                   style={{ width: 96, textAlign: "right" }}
                   disabled={setCap.isPending}
                   onBlur={(e) => {

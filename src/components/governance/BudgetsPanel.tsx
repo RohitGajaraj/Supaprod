@@ -491,9 +491,26 @@ export function BudgetsPanel({
           role that may set one. */}
       <GovernedWriteNote reason={capWrite.reason} />
 
+      {/*
+       * "THERE IS NO SEPARATE CEILING ON ANY ONE MISSION" WAS FALSE, and it was
+       * being said one pane away from the control that sets one.
+       *
+       * `workspaces.default_mission_spend_cap_usd` carries $10.00 on every one
+       * of the 21 workspaces (measured 2026-08-27), the boundary panel on this
+       * same settings page edits it, and `mission_cap_state` checks it before
+       * every model call. Three surfaces used to give three answers about the
+       * per-goal ceiling and the reassuring one was wrong -- the same defect
+       * engine-room-glance.ts records itself closing in 2026-08-03, reopened
+       * here in the opposite direction: a surface UNDERSTATING its own controls
+       * teaches a person to distrust it just as fast as one overstating them.
+       *
+       * The line now says what this ceiling's scope actually is, which is the
+       * fact that made the old sentence tempting: these windows are the whole
+       * workspace over time, and the per-goal one is somewhere else.
+       */}
       <Region
         title="What you will not spend past"
-        sub="Checked before every call. Past the ceiling the call is refused and the run stops with the reason on the record. There is no separate ceiling on any one mission."
+        sub="Checked before every call. Past the ceiling the call is refused and the run stops with the reason on the record. This one covers the whole workspace over a window; what any single goal may spend is a separate ceiling, set with the rest of the boundary."
       >
         {windows.map((w) => {
           const editing = editCap === w.key;
