@@ -65,7 +65,7 @@ export const Route = createFileRoute("/film")({
 function FilmPage() {
   return (
     <div
-      className="flex min-h-screen flex-col bg-[#0a0a0a] text-zinc-100"
+      className="public-ink flex min-h-screen flex-col bg-[#0a0a0a] text-zinc-100"
       style={{ ...PUBLIC_INK_THEME, isolation: "isolate" }}
     >
       <div style={{ position: "fixed", inset: 0, zIndex: -1, pointerEvents: "none" }} aria-hidden>

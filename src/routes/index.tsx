@@ -264,7 +264,7 @@ function LandingPage() {
     <MachineViewContainer machineContent={MACHINE_CONTENT} title="Supaprod">
       {/* data-obsidian scopes the token set (styles.css) so brand components
           (SupaprodMark, machine view) resolve their CSS variables out here. */}
-      <div className="bg-[#0a0a0a] min-h-screen landing-root" data-obsidian>
+      <div className="bg-[#0a0a0a] min-h-screen landing-root public-ink" data-obsidian>
         {/* Keyboard focus is a human action: the double-ring ember focus
             state, separated from the control by the ink itself. */}
         <style>{`

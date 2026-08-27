@@ -90,7 +90,9 @@ function useDemoSessionId() {
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-mrd-nano font-mono uppercase tracking-widest text-zinc-600 mb-3">{children}</p>
+    <p className="text-mrd-nano font-mono uppercase tracking-widest text-zinc-600 mb-3">
+      {children}
+    </p>
   );
 }
 
@@ -111,7 +113,7 @@ function DemoPage() {
 
   return (
     <div
-      className="min-h-screen flex flex-col bg-[#0a0a0a] text-zinc-100"
+      className="public-ink min-h-screen flex flex-col bg-[#0a0a0a] text-zinc-100"
       style={{ ...PUBLIC_INK_THEME, isolation: "isolate" }}
     >
       {/* The landing starfield, painted behind all content */}
