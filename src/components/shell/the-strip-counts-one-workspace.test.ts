@@ -62,21 +62,19 @@ describe("the strip", () => {
 
   it("CALLS ITS NUMBERS A FLOOR WHEN THE READ WAS BOUNDED", () => {
     expect(code).toContain("const sessionsBounded = sessions.data?.bounded === true;");
-    expect(code).toContain("sessionsBounded ? `At least ${text}` : text");
+    expect(code).toContain("sessionsBounded,");
   });
 
-  it("marks every session-derived note, not just the loudest", () => {
-    // A strip where only the gate line hedges reads as the other six being
-    // exact, which is the same wrong claim in a quieter voice.
-    for (const branch of ["waiting on you", "failed", "running", "held"]) {
-      expect(code).toContain(`floor(\``);
-    }
-    expect(code.match(/floor\(`/g)?.length).toBeGreaterThanOrEqual(5);
-  });
-
-  it("LEAVES THE LEARN BADGE ALONE, because it is a different read", () => {
-    // Outcomes come from `listPendingOutcomes` and `listDueForecastsHere`.
-    // Neither is bounded by this flag and neither may inherit its caveat.
-    expect(code).toContain("floor(`${b.total} ${runWord(b.total)}`) + learnExtra");
+  it("DECIDES THE WORDS AND THE BOUND TOGETHER, in one tested function", () => {
+    /*
+     * These two were separate expressions here, so the only available check was
+     * reading this file and matching a string - and that is how a `bounded`
+     * flag shipped that marked the Learn badge with a caveat belonging to a
+     * read it never made. Four titles on the rendered strip where three were
+     * true. The behaviour now lives in `stage-note.ts` and is asserted there
+     * against values rather than against source.
+     */
+    expect(code).toContain("const { note, bounded } = stageNote(b, {");
+    expect(code).toContain("return { station, state, note, bounded };");
   });
 });

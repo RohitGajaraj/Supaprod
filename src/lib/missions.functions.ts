@@ -292,8 +292,13 @@ export const listMissions = createServerFn({ method: "GET" })
        * "what needs a person soonest".
        */
       const BLOCKED_STATUSES = ["failed", "halted", "cancelled", "blocked", "proposed"] as const;
+      /* How many of the longest-waiting blocked rows travel alongside the
+         recent page. Enough that the lane can reach past its own overflow
+         control, small enough that it stays one bounded read. */
+      const OLDEST_BLOCKED_ROWS = 25;
       let totalBlocked: number | null = null;
       let oldestBlockedAt: string | null = null;
+      let oldestBlockedRows: typeof data = [];
       try {
         let countQ = supabase
           .from("missions")
@@ -304,15 +309,42 @@ export const listMissions = createServerFn({ method: "GET" })
         const { count } = await countQ;
         totalBlocked = count ?? null;
 
+        /*
+         * ── THE ROWS, NOT ONLY THE TIMESTAMP ────────────────────────────────
+         *
+         * This asked for the oldest blocked row's `updated_at` and threw the
+         * row away, so the lane could SAY "the oldest has been waiting 40 days"
+         * and could not show it. That sentence was written to explain the gap
+         * honestly, and it did - but a lane whose stated job is "what needs a
+         * person soonest" that structurally cannot reach the thing that has
+         * waited longest is a capability gap wearing a disclosure.
+         *
+         * WHY THE ROW QUERY ABOVE CANNOT JUST FLIP TO ASCENDING, which is the
+         * fix S1 applied to the approvals queue for the same defect (RUN-100:
+         * six reads ordered DESC, so the cap discarded the OLDEST on a page
+         * that sorts oldest-first). Here the 50 feed four lanes, and three of
+         * them want recency: Running, Finished and the shell's live line are
+         * about work in motion. Flipping would starve them to fix one lane.
+         *
+         * So both ends are fetched and merged. This query already existed and
+         * already ordered ascending; it now returns rows instead of one column,
+         * which costs no extra round trip. The enrichment below is batched over
+         * whatever `missions` holds, so the extra rows are enriched with it.
+         */
         let oldestQ = supabase
           .from("missions")
-          .select("updated_at")
+          .select(
+            "id,title,goal,status,hop_count,current_agent_id,created_at,updated_at,completed_at,build_driver",
+          )
           .in("status", BLOCKED_STATUSES as unknown as string[])
           .order("updated_at", { ascending: true })
-          .limit(1);
+          .limit(OLDEST_BLOCKED_ROWS);
         if (input?.workspaceId) oldestQ = oldestQ.eq("workspace_id", input.workspaceId);
         if (productMissionIds) oldestQ = oldestQ.in("id", productMissionIds);
         const { data: oldest } = await oldestQ;
+        oldestBlockedRows = (oldest ?? []) as typeof data;
+        /* Still the FIRST row of an ascending read, so this number did not
+           change meaning when the query grew. */
         oldestBlockedAt = (oldest?.[0] as { updated_at?: string } | undefined)?.updated_at ?? null;
       } catch {
         // Best-effort, like the enrichment below. A lane that cannot count still
@@ -324,7 +356,14 @@ export const listMissions = createServerFn({ method: "GET" })
         totalBlocked = null;
       }
 
-      const missions = data ?? [];
+      /* MERGED BY ID, RECENT PAGE FIRST. The two reads overlap whenever a
+         blocked row is also recently touched, and a duplicate id would render
+         the same run twice in one lane. Order is not asserted here: every lane
+         on the board sorts for itself, and `the-waiting-lane-puts-the-oldest-first`
+         pins the one that sorts by age. */
+      const byId = new Map<string, NonNullable<typeof data>[number]>();
+      for (const m of [...(data ?? []), ...(oldestBlockedRows ?? [])]) byId.set(m.id, m);
+      const missions = [...byId.values()];
       if (missions.length === 0) return { missions: [], totalBlocked, oldestBlockedAt };
       const ids = missions.map((m) => m.id);
 
