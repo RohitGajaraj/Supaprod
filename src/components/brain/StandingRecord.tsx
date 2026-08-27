@@ -47,7 +47,7 @@ import { humanWriteError } from "@/lib/roles.functions";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { nothingStandingYet } from "./standing-words";
+import { nothingStandingYet, ratedPopulation } from "./standing-words";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { getStandingRecord, type StandingRule } from "@/lib/brain-standing.functions";
@@ -232,10 +232,22 @@ function recallLine(
   // true whether or not the log is readable.
   if (r.memoriesReached === 0) return "No run has reached for one of these yet.";
 
-  // The counts below come from memory_recall_log, a separate table. When it
-  // cannot be read every count is 0, and a 0 draws no clause rather than a
-  // claim that nothing helped.
-  const rated = r.helped > 0 || r.contradicted > 0;
+  /*
+   * The counts below come from memory_recall_log, a separate table. When it
+   * cannot be read every count is 0, and a 0 draws no clause rather than a
+   * claim that nothing helped.
+   *
+   * AND THEY CARRY THEIR OWN POPULATION, which they did not. This line used to
+   * put "12,531 recalls on the record" and "70 helped" on one axis, and the
+   * only arithmetic available to a reader gives 0.6% and the conclusion that
+   * the brain surfaces memories nobody uses. `outcome` DEFAULTS to `ignored`
+   * and is upgraded only when a human rates the trace, so `ignored` is the
+   * absence of a verdict rather than a verdict. Measured 2026-08-27: 91% of
+   * RATED recalls helped, and 99.4% of recalls were never rated. See
+   * standing-words.ts.
+   */
+  const population = ratedPopulation(r.helped, r.contradicted);
+  const rated = population !== null;
   return (
     <>
       A run has read <Figure>{r.memoriesReached}</Figure> of these back
@@ -248,6 +260,8 @@ function recallLine(
       {rated ? (
         <>
           {" · "}
+          {population}
+          {", "}
           {/* The only colour on this line, and both halves report an OUTCOME:
               what a rating said actually happened. Green and red are never a
               need in this system, and nothing here asks for a person. */}
