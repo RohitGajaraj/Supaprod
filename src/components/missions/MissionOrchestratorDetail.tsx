@@ -1520,7 +1520,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                  planRows.length === 0 and printed "No steps yet" about a mission
                  that may have plenty. A read failure names itself and offers the
                  read again; only a genuinely empty plan earns the empty state. */
-              <ReadFailedLine onRetry={() => steps.refetch()}>
+              <ReadFailedLine error={steps.error} onRetry={() => steps.refetch()}>
                 The mission's steps could not be read just now.
               </ReadFailedLine>
             ) : planRows.length === 0 ? (

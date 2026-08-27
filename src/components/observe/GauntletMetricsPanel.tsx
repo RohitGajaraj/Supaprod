@@ -303,7 +303,7 @@ export function GauntletMetricsPanel() {
         {accuracyQ.isLoading ? (
           <Reading>Reading what your bets came to.</Reading>
         ) : accuracyError ? (
-          <ReadFailedLine onRetry={() => void accuracyQ.refetch()}>
+          <ReadFailedLine error={accuracyQ.error} onRetry={() => void accuracyQ.refetch()}>
             Outcome accuracy did not load, so nothing here is a claim about your bets.{" "}
             {accuracyError}
           </ReadFailedLine>
@@ -337,7 +337,7 @@ export function GauntletMetricsPanel() {
         {liftQ.isLoading ? (
           <Reading>Reading the split.</Reading>
         ) : liftError ? (
-          <ReadFailedLine onRetry={() => void liftQ.refetch()}>
+          <ReadFailedLine error={liftQ.error} onRetry={() => void liftQ.refetch()}>
             The split did not load, so nothing here is a claim about your precedent. {liftError}
           </ReadFailedLine>
         ) : liftHasNumber ? (
@@ -378,7 +378,7 @@ export function GauntletMetricsPanel() {
         {memQ.isLoading ? (
           <Reading>Reading the record.</Reading>
         ) : memError ? (
-          <ReadFailedLine onRetry={() => void memQ.refetch()}>
+          <ReadFailedLine error={memQ.error} onRetry={() => void memQ.refetch()}>
             The record did not load, so nothing here is a claim about what it learned. {memError}
           </ReadFailedLine>
         ) : memHasData ? (
