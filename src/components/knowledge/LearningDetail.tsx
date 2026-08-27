@@ -425,62 +425,90 @@ export function LearningDetail({ id }: { id: string }) {
       {/* Link back up the loop. The priority recentres the graph (reuse the
           lineage view, never orphan); the spec opens in Plan; the decision it
           graded opens in Decide. */}
-      {l.opportunity_id || l.prd_id || gradedDecision ? (
-        <Region title="Where it points">
-          {gradedDecision ? (
-            <Line
-              // The wording names the relationship, not the mechanism: this
-              // outcome is the grade on that call.
-              label={`Graded the decision "${gradedDecision.title}"`}
-              sub="The call this outcome was measured against"
+      {/*
+       * THE REGION DRAWS WHATEVER IT FINDS, INCLUDING NOTHING, and that is the
+       * change. It used to render only when one of the three links existed, so
+       * an outcome with no links at all simply had no "Where it points" section
+       * and a reader could not tell an unlinked outcome from one they had
+       * scrolled past.
+       *
+       * Measured on the live database, 2026-08-27: 135 learnings, and 133 carry
+       * a NULL `decision_id` -- F-65 records the same number and the reason,
+       * which is that the column only started being written that day. 35 carry
+       * no opportunity, spec or decision at all. So the silent case is not the
+       * edge case here; it is almost every row a person opens today.
+       *
+       * A MISSING LINK IS NOT "THERE WAS NO CALL", and the difference is the
+       * whole value of this panel. Saying nothing lets a reader conclude the
+       * outcome was never measured against anything, which on this surface is
+       * the reassuring reading of a gap in our own wiring.
+       */}
+      <Region title="Where it points">
+        {!gradedDecision ? (
+          <Line
+            label="No call is linked to this outcome"
+            sub="So there is nothing here to grade it against. The link is written when a decision is graded, and outcomes recorded before that was wired carry none even where a call existed."
+          />
+        ) : null}
+        {gradedDecision ? (
+          <Line
+            // The wording names the relationship, not the mechanism: this
+            // outcome is the grade on that call.
+            label={`Graded the decision "${gradedDecision.title}"`}
+            sub="The call this outcome was measured against"
+          >
+            <Action
+              variant="quiet"
+              onClick={() =>
+                navigate({
+                  to: "/brain",
+                  search: { tab: "decisions", decision: gradedDecision.id },
+                })
+              }
             >
-              <Action
-                variant="quiet"
-                onClick={() =>
-                  navigate({
-                    to: "/brain",
-                    search: { tab: "decisions", decision: gradedDecision.id },
-                  })
-                }
-              >
-                Open the decision
-              </Action>
-            </Line>
-          ) : null}
-          {l.opportunity_id ? (
-            <Line
-              label={l.opportunity_title ? `"${l.opportunity_title}"` : "The priority it re-ranked"}
-              sub="Its whole history, and everything it connects to"
+              Open the decision
+            </Action>
+          </Line>
+        ) : null}
+        {l.opportunity_id ? (
+          <Line
+            label={l.opportunity_title ? `"${l.opportunity_title}"` : "The priority it re-ranked"}
+            sub="Its whole history, and everything it connects to"
+          >
+            <Action
+              variant="quiet"
+              onClick={() =>
+                navigate({
+                  to: "/brain",
+                  search: {
+                    tab: "graph",
+                    focusKind: "opportunity",
+                    focusId: l.opportunity_id!,
+                  },
+                })
+              }
             >
-              <Action
-                variant="quiet"
-                onClick={() =>
-                  navigate({
-                    to: "/brain",
-                    search: {
-                      tab: "graph",
-                      focusKind: "opportunity",
-                      focusId: l.opportunity_id!,
-                    },
-                  })
-                }
-              >
-                Trace it in the graph
-              </Action>
-            </Line>
-          ) : null}
-          {l.prd_id ? (
-            <Line label="The spec it graded" sub="What was actually built, and what it promised">
-              <Action
-                variant="quiet"
-                onClick={() => navigate({ to: "/plan/spec/$id", params: { id: l.prd_id! } })}
-              >
-                Open the spec
-              </Action>
-            </Line>
-          ) : null}
-        </Region>
-      ) : null}
+              Trace it in the graph
+            </Action>
+          </Line>
+        ) : null}
+        {l.prd_id ? (
+          <Line label="The spec it graded" sub="What was actually built, and what it promised">
+            <Action
+              variant="quiet"
+              onClick={() => navigate({ to: "/plan/spec/$id", params: { id: l.prd_id! } })}
+            >
+              Open the spec
+            </Action>
+          </Line>
+        ) : null}
+        {!l.opportunity_id && !l.prd_id ? (
+          <Line
+            label="Nothing else is linked either"
+            sub="No priority and no spec, so this outcome stands on its own summary. An outcome the loop drove carries all three."
+          />
+        ) : null}
+      </Region>
 
       <Region title="Elsewhere">
         <Line label="Trace id" sub="The id this outcome answers to across the record">
