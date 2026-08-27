@@ -191,7 +191,26 @@ export function SteerComposer({
      * passing behind something rather than dissolving. Same mark the footer and
      * every other pinned edge in this system uses; nothing new is introduced.
      */
-    <div className="sticky bottom-0 flex flex-col gap-mrd-2 border-t border-mrd-line bg-mrd-sheet pt-mrd-3">
+    /*
+     * FLUSH WITH THE PANE, NOT SIXTEEN PIXELS ABOVE IT.
+     *
+     * `bottom: 0` on a sticky element resolves against its scroll container's
+     * PADDING box, and `.mrd-workbench-pane` carries `padding: var(--mrd-s5)`.
+     * So this bar pinned 16px short of the pane's bottom edge and a strip of
+     * whatever was scrolled to that position showed underneath it. Measured in
+     * a browser at 1440: the pane's content box ends at 829.5 and this ended at
+     * 813, and the heading "Why it stopped" was sitting in the gap, below the
+     * input, looking like a rendering fault.
+     *
+     * The negative offset cancels exactly that padding and the matching
+     * `pb-mrd-5` puts it back inside, so the bar's own opaque background now
+     * reaches the pane's edge and the input keeps the same breathing room it
+     * had. Both halves name `--mrd-s5`, which is the same token the pane's
+     * padding uses -- that coupling is deliberate and is the point: this bar is
+     * flush with its container BECAUSE it cancels its container's inset, and if
+     * one moves the other must.
+     */
+    <div className="sticky -bottom-mrd-5 flex flex-col gap-mrd-2 border-t border-mrd-line bg-mrd-sheet pt-mrd-3 pb-mrd-5">
       {/*
        * THE ROSTER LIST. It is a SIBLING of the textarea, not an ancestor, so
        * its own keydown never sees a keystroke -- arrows, Tab and Escape are
