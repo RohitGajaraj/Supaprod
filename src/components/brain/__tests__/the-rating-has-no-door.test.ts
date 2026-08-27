@@ -80,8 +80,22 @@ describe("the rating has no door", () => {
     expect(importers).toEqual([]);
   });
 
+  /**
+   * "UNRATED RATHER THAN UNHELPFUL" IS THE LOAD-BEARING CLAUSE, and it goes
+   * FIRST. `outcome` is NOT NULL with a default of `ignored`, so 12,454 rows
+   * assert a verdict nobody reached and the schema cannot say "unknown".
+   * Anybody measuring whether the brain helps finds a 0.6% usefulness rate that
+   * is not a measurement of the brain. A reader who takes only the first clause
+   * must still have the true reading.
+   */
+  it("it says what those rows are not, before what is missing", () => {
+    expect(RATING_HAS_NO_DOOR).toStartWith("The rest are unrated rather than unhelpful");
+    const said = RATING_HAS_NO_DOOR;
+    expect(said.indexOf("unrated")).toBeLessThan(said.indexOf("no surface"));
+  });
+
   it("the sentence names the missing control, not a broken feature", () => {
-    expect(RATING_HAS_NO_DOOR).toContain("No surface offers this today");
+    expect(RATING_HAS_NO_DOOR).toContain("no surface offers a rating today");
     const said = RATING_HAS_NO_DOOR.toLowerCase();
     expect(said).not.toContain("broken");
     expect(said).not.toContain("does not work");

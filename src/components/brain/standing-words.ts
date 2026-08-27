@@ -109,6 +109,23 @@ export function ratedPopulation(helped: number, contradicted: number): string | 
  * BY, so a rating really would move what the crew reads first. What is missing
  * is the control. Naming the missing half precisely is the difference between a
  * bug report and a fact.
+ *
+ * ── AND "THE REST ARE UNRATED RATHER THAN UNHELPFUL" IS THE LOAD-BEARING HALF ──
+ *
+ * S4 raised this and it is sharper than the count. `outcome` is NOT NULL with a
+ * default of `ignored`, written when a memory is surfaced and never rated. So
+ * 12,454 rows assert a verdict that no human and no agent ever reached, in a
+ * column named `outcome`, and the schema has no way to say "unknown".
+ *
+ * The trap that lays for whoever looks next: anybody measuring whether the
+ * brain helps finds a 0.6% usefulness rate and reports it. It is not a
+ * measurement of the brain. It is the shape of a missing control. S4 nearly
+ * sent me the opposite conclusion from the same table -- `count(outcome)`
+ * returns 12,531 of 12,531, because it counts the default -- and the tell was
+ * a number that is suspiciously total.
+ *
+ * So the sentence says what those rows are NOT before it says what is missing.
+ * A reader who takes only the first clause still has the true reading.
  */
 export const RATING_HAS_NO_DOOR =
-  "No surface offers this today, so the count is what was rated before the control was taken out.";
+  "The rest are unrated rather than unhelpful, and no surface offers a rating today, so this count is what was rated before the control was taken out.";
