@@ -780,8 +780,8 @@ function EventDetail({ data, onBack }: { data: EventDetailData; onBack: () => vo
         <Region title="Why it failed">
           <div className="mt-mrd-4">
             <Pre>
-            <span className="sp-fail">{e.error_message}</span>
-          </Pre>
+              <span className="sp-fail">{e.error_message}</span>
+            </Pre>
           </div>
         </Region>
       ) : null}

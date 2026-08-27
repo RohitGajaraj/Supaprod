@@ -1646,6 +1646,24 @@ function Today() {
 
   const loading = stillWaiting(queue, missions);
   /*
+   * THE TWO READS, SEPARATELY, BECAUSE THE HEADLINE NOW ASKS THEM SEPARATELY.
+   *
+   * `loading` is true while EITHER is outstanding, which is right for anything
+   * that needs both and wrong as a dependency for something that does not. The
+   * headline waits only on the queue, so when the queue lands while the record
+   * is still reading, `loading` does not change — and a memo keyed on it would
+   * not recompute.
+   *
+   * It happened to work anyway, which is worse than failing: `items.length`
+   * went 0 -> 52 in the same tick and that IS in the dependency list, so the
+   * headline updated for a reason unrelated to the read it was waiting on. In a
+   * workspace whose queue answers with ZERO items nothing in that list would
+   * have changed, and the headline would have sat on "Today" after its read had
+   * landed. Found by the exhaustive-deps warning my own change introduced.
+   */
+  const queueAnswered = !stillWaiting(queue);
+  const recordAnswered = !stillWaiting(missions);
+  /*
    * A QUIET MORNING IS A CLAIM ABOUT THE WORKSPACE, NOT ABOUT THE LAST DAY.
    *
    * This asked `stuck.length === 0`, and `stuck` is filtered through
@@ -1734,7 +1752,7 @@ function Today() {
        nothing else; the second counts the run record and is omitted while that
        is outstanding. `quietMorning` below still requires BOTH, through
        `loading`, because "nothing needs you" is a claim over every read. */
-    if (stillWaiting(queue)) return "Today";
+    if (!queueAnswered) return "Today";
     if (missions.isError && queue.isError)
       return "Neither your run record nor your review queue loaded.";
     if (missions.isError) return "Your run record did not load.";
@@ -1759,7 +1777,6 @@ function Today() {
      * counted sentence says it.
      */
     if (quietMorning) return "Nothing needs you right now.";
-    const recordAnswered = !stillWaiting(missions);
     return stateSentence({
       ready: items.length,
       stuck: recordAnswered ? stoppedAll.length : null,
@@ -1768,7 +1785,8 @@ function Today() {
     });
   }, [
     quietMorning,
-    loading,
+    queueAnswered,
+    recordAnswered,
     queue.isError,
     missions.isError,
     justLanded,

@@ -326,7 +326,17 @@ describe("Today never prints a claim it has not read yet", () => {
     // whichever expression currently carries it.
     // `[^)]*` cannot cross the inner paren of `stillWaiting(queue)`, so the
     // condition is matched lazily instead of by excluding the character.
-    expect(body).toMatch(/if \(.*?(loading|stillWaiting).*?\)\s*return "Today";/);
+    // A FOURTH TIME, and within hours of the third. The condition became
+    // `!queueAnswered`, a hoisted boolean, because the memo's dependency list
+    // needed a stable value to key on — `loading` is true while EITHER read is
+    // outstanding, so a memo keyed on it does not recompute when the queue
+    // alone lands. That is a correctness fix, and this guard called it a
+    // regression, exactly as it did for the three changes before it.
+    //
+    // So it matches any condition that speaks about a READ'S STATE rather than
+    // any particular spelling of one. Some anchor is needed or the assertion is
+    // vacuous; this is the widest anchor that still means something.
+    expect(body).toMatch(/if \(.*?(loading|stillWaiting|Answered).*?\)\s*return "Today";/);
 
     // AND THE PROPERTY THAT REPLACED THE OLD GATE, asserted rather than
     // assumed. Waiting on both reads was what used to guarantee no count came
