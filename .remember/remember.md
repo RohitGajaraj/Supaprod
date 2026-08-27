@@ -14,6 +14,19 @@ founder's call. S0 declined to take it unilaterally.
 
 **Nothing has changed since the fixes landed on lane branches, because none of them is deployed.**
 
+**AND THE GAP IS COMPOUNDING.** Commits ahead of `main`, measured twice a few hours apart:
+
+| lane | earlier | later |
+| --- | --- | --- |
+| `lane/run` | +36 | **+44** |
+| `lane/platform` | +63 | **+70** |
+| `lane/control` | +58 | **+68** |
+
+**182 commits across three lanes, none of them exercised against production.** Every hour of lane
+work makes the eventual merge larger and less testable, and the risk is not linear: three lanes
+editing overlapping surfaces for a day produces conflicts nobody has seen yet. **The cost of waiting
+is not zero and it is not flat.**
+
 ## The acceptance, and why it is 0
 
 The loop worked. `a30238f5` walked `sense` to `ship` agent-driven after S0's Discover fix: 13
