@@ -649,7 +649,9 @@ function SignalCard({ item, now, trackId }: { item: ArtifactView; now: number; t
       <span className="text-mrd-label font-medium leading-mrd-snug text-mrd-ink">
         {item.title ?? (content ? content.slice(0, 120) : item.word)}
       </span>
-      {content ? <Prose markdown={false}>{content}</Prose> : null}
+      {/* 13 of the signal rows carry `**bold**`, and this renders them. Same
+          tell as the rationale above; see `plain-prose.ts`. */}
+      {plainProse(content) ? <Prose markdown={false}>{plainProse(content)}</Prose> : null}
       <span className="mrd-meta">
         {[
           source,
@@ -1609,7 +1611,11 @@ export function MissionCard({ item }: { item: ArtifactView }) {
           doubled it is fixed at the source; two historical rows remain and one
           of them is on the most-opened track in the database. See
           `said-once.ts` for why this is a render fix rather than a bridge. */}
-      {saidOnce(goal) ? <Prose markdown={false}>{saidOnce(goal)}</Prose> : null}
+      {/* `saidOnce` for the doubled sentence, `plainProse` for the markers: 3
+          mission goals carry `**bold**`. Two different defects on one string. */}
+      {plainProse(saidOnce(goal)) ? (
+        <Prose markdown={false}>{plainProse(saidOnce(goal))}</Prose>
+      ) : null}
       <span className="mrd-meta">
         {[
           hops !== null ? `${hops} ${hops === 1 ? "hop" : "hops"}` : "",
