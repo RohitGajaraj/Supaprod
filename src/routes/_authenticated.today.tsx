@@ -35,6 +35,7 @@ import { lastMovedAt, stillnessLine } from "@/components/today/last-movement";
 import { failureLine } from "@/lib/error-copy";
 import { trackToBoardRows, type TrackBoardRow } from "@/components/today/tracks-feed";
 import { CrewPulseNote } from "@/components/today/CrewPulseNote";
+import { SystemAlerts } from "@/components/today/SystemAlerts";
 import { QuietMorning } from "@/components/today/QuietMorning";
 import { RunState, ShippedState } from "@/components/today/RunState";
 import { ago, daysSince, withinLastDay } from "@/components/today/when";
@@ -1958,6 +1959,20 @@ function Today() {
               stops meaning anything. Swept the rest in the same pass; the four
               that remain are honest (the rail's Runs row lands where runs are
               listed, and build.index's two are S1's to retitle per A-005). */}
+          {/* SPEND NEARING A CAP, AND OUTPUT DRIFTING. Two conditions this
+              product computes against real tables and showed nobody:
+              `getNotifications` had exactly ONE mention in src, its own
+              definition, while Settings offered four "App" toggles that wrote a
+              preference no surface read. Neither is derivable from anything
+              Today reads, so this is the only board they can appear on.
+
+              ABOVE the decisions on purpose. A reached spend cap blocks the
+              calls that produce those decisions, so answering the queue first
+              would be working under a condition nobody told you about. It draws
+              nothing at all when there is nothing to say, which is almost every
+              morning, so it costs the fold nothing on an ordinary one. */}
+          <SystemAlerts />
+
           <Region
             title={FEED_TITLE}
             sub={
