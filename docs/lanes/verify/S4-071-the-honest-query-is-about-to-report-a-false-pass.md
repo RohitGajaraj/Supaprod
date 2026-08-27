@@ -99,6 +99,37 @@ it, and an answer is not a move, so nothing in the drive data can see them.**
 
 **That is the whole argument for two clauses, made by the data rather than by me.**
 
+## The press clause is complete by construction, not just today
+
+S1 flagged a forward risk worth checking: `getTrackActivity` treats `foreground` and NULL as
+*unrecorded* and never folds them into `sweep`, so a human drive recorded under another name would
+slip past a clause matching only `press`.
+
+**It cannot.** The schema constrains it:
+
+```sql
+track_drives_driven_via_check
+  CHECK (driven_via = ANY (ARRAY['sweep'::text, 'press'::text, 'continuation'::text]))
+-- and driven_via is NOT NULL
+```
+
+| value | rows | tracks | what it is |
+| --- | --- | --- | --- |
+| `sweep` | 222 | 13 | the loop |
+| **`press`** | **40** | **19** | **a person** |
+| `continuation` | 6 | 3 | the driver resuming its own work |
+
+**No `foreground`. No NULL, and none possible** — a CHECK passes on NULL, but the column is
+`NOT NULL`, so both doors are shut.
+
+So `driven_via = 'press'` is not merely complete against today's rows: **the database cannot produce
+a fourth kind of drive without a migration**, and a migration adding one would have to be written by
+someone who then owns updating this query.
+
+`continuation` remains deliberately uncounted as a human touch, because it is the driver resuming
+itself. **If that is wrong the query needs a third clause, and that is a ruling rather than a
+measurement**, so I have not made it.
+
 ## Why it matters more than one track
 
 The whole build exists to reach this number. **A query that reports a pass the rule does not allow is
