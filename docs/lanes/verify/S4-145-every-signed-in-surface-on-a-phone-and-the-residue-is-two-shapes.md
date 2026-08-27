@@ -46,9 +46,40 @@ secondary chrome — small text, quiet button — because it is drawn as an *apo
 moment the person has no alternative action, and on a phone it is the moment they are least able to
 aim.
 
-**Suggested standard, and this is a decision rather than a question:** any control that only appears
-in a failure or empty state is held to 44x44, not 24x24. It is the smallest population of controls in
-the product and the highest-stakes one.
+> ### REVISED, and S3's version is sharper than mine
+>
+> **I decided "any control that only appears in a failure or empty state is held to 44x44". That
+> standard is aimed at the wrong property, and the product had already implemented the right one.**
+>
+> ```ts
+> // surface-parts.tsx:411
+> export const CONTROL_SHAPE =
+>   "inline-flex h-8 max-md:min-h-11 max-md:min-w-11 items-center gap-2 rounded-mrd-ctl …";
+> ```
+>
+> **`min-h-11` is 44px, applied below `md`.** Every `Action` in the product is already 44x44 on a
+> phone, and `meridian/__tests__/a-control-is-big-enough-to-hit.test.ts` exists to keep it that way.
+> Somebody reached my conclusion before me and applied it to the primitive.
+>
+> **`Door` never got it, because `Door` is drawn as prose.** `surface-parts.tsx:791` styles it
+> `rounded-mrd-xs text-mrd-body underline decoration-dotted` — no height, no padding — and
+> `ReadFailedLine` renders the retry as `<Door>`.
+>
+> **So the real finding is one line, and it is better than the one I filed:**
+>
+> > **The recovery control is small because it was drawn as PROSE rather than as a control.**
+>
+> Not because failure states are neglected. `Door` is the general inline door used mid-sentence
+> across the product, so a blanket 44x44 does not reach it — and padding it would change the line box
+> of every sentence it sits in, which is the `items-center` trap in a new place: **the box you grow is
+> not the box that reflows.** The fix is a standalone variant of `Door`, or `ReadFailedLine` using a
+> control-shaped primitive, and both are Meridian's call.
+>
+> **`meridian/` is S0's and S0 is offline**, so it sits measured and unowned beside the brand link,
+> with the mechanism attached rather than a padding class applied blind.
+
+**The superseded standard, kept because the reasoning still holds for anything genuinely
+failure-only:** such a control is the smallest population in the product and the highest-stakes one.
 
 ## The rail element
 
