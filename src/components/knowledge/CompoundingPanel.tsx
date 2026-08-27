@@ -288,6 +288,42 @@ export function CompoundingPanel() {
         </div>
       ) : null}
 
+      {/*
+       * HOW OFTEN THE LOOP ACTUALLY CLOSES, stated rather than counted by eye.
+       *
+       * An outcome graded against a forecast written before anyone knew the
+       * answer is the whole claim of this product. An outcome with no forecast
+       * behind it is still a real outcome, and it is NOT that claim. This feed
+       * showed both identically, so the one number that says whether the loop
+       * is closing was invisible on the page built to show it.
+       *
+       * Measured on the live record while this was written: 42 of 163 outcomes
+       * had a written expectation. That is not a footnote, it is most of the
+       * feed, and a reader is owed it.
+       *
+       * Counted off the same `learnings` the rows below render, never a second
+       * query, so the sentence and the rows cannot disagree. The population is
+       * named for the same reason it is on the decisions list: this is what is
+       * on screen, not a claim about the whole record.
+       */}
+      {learnings.length > 0 ? (
+        <p
+          style={{
+            marginTop: "var(--mrd-s5)",
+            fontSize: "var(--mrd-t-micro)",
+            color: "var(--mrd-mute)",
+          }}
+        >
+          <Num>{learnings.filter((l) => l.forecast_claim).length}</Num> of{" "}
+          <Num>{learnings.length}</Num>{" "}
+          {learnings.length === 1 ? "outcome here was" : "outcomes here were"} graded against an
+          expectation written before the result was known.
+          {learnings.filter((l) => l.forecast_claim).length === 0
+            ? " None of them can show whether the call was right."
+            : null}
+        </p>
+      ) : null}
+
       <div style={{ marginTop: "var(--mrd-s5)" }}>
         {learnings.map((l) => {
           const delta = deltaOf(l);
@@ -324,12 +360,23 @@ export function CompoundingPanel() {
                    * afterwards, and this feed existed to show the record
                    * compounding while carrying only the second half of it.
                    *
-                   * THE CLAIM ITSELF IS NOT PRINTED HERE ON PURPOSE. Row is one
-                   * or two lines by founder ruling and depth is a click away;
-                   * a forecast sentence would truncate and push the verdict off
-                   * the line. What belongs at a glance is whether the pairing
-                   * EXISTS, which is checkable in three words. The sentence is
-                   * one click into the memo.
+                   * THE CLAIM ITSELF IS PRINTED HERE NOW, reversing what this
+                   * comment used to say. It argued the row should carry only
+                   * whether the pairing EXISTS, because a forecast sentence
+                   * would truncate and push the verdict off the line.
+                   *
+                   * The founder asked for the opposite in plain words: see what
+                   * they expected BESIDE what actually happened. "against a
+                   * written call" tells a reader a forecast exists without
+                   * telling them what it said, which is the pairing described
+                   * rather than shown -- on the one feed that exists to show it.
+                   *
+                   * The length objection was real and is answered rather than
+                   * ignored: the claim truncates ITSELF, so it can never push
+                   * anything off the line, and the verdict is rendered BEFORE
+                   * it and cannot be displaced. That is the pattern
+                   * DecisionsPanel already uses for the same sentence on the
+                   * other half of the pair, so the two now read alike.
                    *
                    * AND THE ABSENT CASE IS STATED RATHER THAN LEFT BLANK. A
                    * waived Decide (F-61) genuinely has nothing to compare
@@ -340,7 +387,26 @@ export function CompoundingPanel() {
                    */}
                   {" · "}
                   <Provenance source="mine" />
-                  {l.forecast_claim ? "against a written call" : "no call was written"}
+                  {l.forecast_claim ? (
+                    <>
+                      {"expected: "}
+                      <span
+                        title={l.forecast_claim}
+                        style={{
+                          display: "inline-block",
+                          maxWidth: 260,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          verticalAlign: "bottom",
+                        }}
+                      >
+                        {l.forecast_claim}
+                      </span>
+                    </>
+                  ) : (
+                    "no call was written"
+                  )}
                   {delta != null ? (
                     <>
                       {" · "}
