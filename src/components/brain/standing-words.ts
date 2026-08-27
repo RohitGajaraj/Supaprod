@@ -21,14 +21,31 @@
  * refresh rule watches.
  */
 
-/** Said when the workspace has approved nothing, with however many drafts wait. */
+/**
+ * Said when the workspace has approved nothing, with however many drafts wait.
+ *
+ * IT NAMES THE CONSEQUENCE BEFORE ASKING FOR THE DECISION, which it did not.
+ * S0 traced why nobody had ever approved one: 15 of the 26 were the loop
+ * describing its OWN failures ("the qa and builder agents consistently fail
+ * when resolving database integrity issues"), and an approved rule goes
+ * VERBATIM into every agent's system prompt. Approving one of those would have
+ * told the builder, on every run, that the builder consistently fails. The
+ * write now refuses that shape mechanically, so the queue is product knowledge
+ * only.
+ *
+ * But the surface still sent a person to decide without telling them what a
+ * yes DOES. A decision that changes how every agent behaves on every run is not
+ * one to make from a button label, and the standing arm below already carries
+ * this sentence for rules that are live. It belongs on the arm that asks for
+ * the decision at least as much.
+ */
 export function nothingStandingYet(pending: number): string {
   if (pending <= 0) {
     return "Nothing standing yet. The steward reads validated outcomes each week and proposes a rule when the same lesson turns up twice.";
   }
   const what = pending === 1 ? "a rule" : `${pending} rules`;
   const they = pending === 1 ? "it is" : "they are";
-  return `Nothing standing yet. The steward has written ${what} out of what shipped, and ${they} waiting on a human.`;
+  return `Nothing standing yet. The steward has written ${what} out of what shipped, and ${they} waiting on a human. Approving one puts it into every agent's prompt before it acts.`;
 }
 
 /**
