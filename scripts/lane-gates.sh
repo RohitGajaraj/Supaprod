@@ -135,6 +135,78 @@ if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
   fi
 fi
 
+# ── AND WILL IT MERGE WITH THE OTHER LANES? ────────────────────────────────
+#
+# The check above compares against `main` ONLY, and on 2026-08-27 that was not
+# enough. All four branches merged into main cleanly and TWO OF THEM CONFLICTED
+# WITH EACH OTHER, in `src/routes/_authenticated.approvals.tsx`: one lane was
+# reworking how the approvals queue counts and pages, the other was adding how
+# long a call has waited, same file, both correct.
+#
+# No lane's gate could see it, and not by oversight. A conflict between two
+# lanes is invisible to a main-only check BY CONSTRUCTION, because main contains
+# neither side yet. Both branches answer "merges cleanly into origin/main" right
+# up until the second one lands, and then the second one owns a conflict it had
+# no way to know about.
+#
+# THE REFS ARE REFRESHED FIRST, and that is the part that makes the answer worth
+# printing. A sibling comparison against a ref last fetched hours ago answers a
+# question about the past, and "clean" is precisely the answer nobody goes back
+# to re-check. The fetch is read-only, writes only remote-tracking refs, and is
+# bounded: if it cannot finish, this SAYS its view is stale rather than printing
+# a reassuring line it cannot support.
+#
+# Informational, like the main check. A conflict with another lane is not a
+# reason to hold your commit. It is a reason to say something today instead of
+# discovering it at the deploy, when both sides have moved on.
+case "${MERGE_BRANCH:-}" in
+  lane/*)
+    ( git fetch -q --no-tags origin "+refs/heads/lane/*:refs/remotes/origin/lane/*" >/dev/null 2>&1 ) &
+    FETCH_PID=$!
+    FETCH_WAITED=0
+    while kill -0 "$FETCH_PID" 2>/dev/null && [ "$FETCH_WAITED" -lt 25 ]; do
+      sleep 1; FETCH_WAITED=$((FETCH_WAITED + 1))
+    done
+    SIBLING_REFS_FRESH=1
+    if kill -0 "$FETCH_PID" 2>/dev/null; then
+      kill "$FETCH_PID" 2>/dev/null
+      SIBLING_REFS_FRESH=0
+    fi
+    wait "$FETCH_PID" 2>/dev/null || SIBLING_REFS_FRESH=0
+
+    SIBLING_SEEN=0
+    SIBLING_CONFLICTS=0
+    for SIB in $(git for-each-ref --format='%(refname:short)' 'refs/remotes/origin/lane/*' 2>/dev/null); do
+      [ "$SIB" = "origin/$MERGE_BRANCH" ] && continue
+      SIBLING_SEEN=$((SIBLING_SEEN + 1))
+      if ! git merge-tree --write-tree --name-only HEAD "$SIB" >/tmp/lane-gates-sib.$$ 2>&1; then
+        SIBLING_CONFLICTS=$((SIBLING_CONFLICTS + 1))
+        echo ""
+        echo "${BOLD}Conflicts with ${SIB}${OFF} ${DIM}- not with main, only with that lane${OFF}"
+        grep '^CONFLICT' /tmp/lane-gates-sib.$$ 2>/dev/null | sed 's/^/  /' | head -6
+        # Name the other side's commit, so the message you send has a subject
+        # line in it rather than a request for one.
+        grep '^CONFLICT' /tmp/lane-gates-sib.$$ 2>/dev/null \
+          | sed -n 's/.* in \(.*\)$/\1/p' | head -3 | while read -r CF; do
+            [ -n "$CF" ] || continue
+            THEIRS="$(git log -1 --format='%h %s' "origin/main..$SIB" -- "$CF" 2>/dev/null)"
+            [ -n "$THEIRS" ] && echo "  ${DIM}their side: ${THEIRS}${OFF}"
+          done
+      fi
+      rm -f /tmp/lane-gates-sib.$$
+    done
+
+    if [ "$SIBLING_SEEN" -gt 0 ] && [ "$SIBLING_CONFLICTS" = "0" ]; then
+      if [ "$SIBLING_REFS_FRESH" = "1" ]; then
+        echo "${DIM}Merges cleanly with all ${SIBLING_SEEN} other lane(s), refs just fetched.${OFF}"
+      else
+        echo "${DIM}No conflict with ${SIBLING_SEEN} other lane(s) - but the refs could not be${OFF}"
+        echo "${DIM}refreshed, so that is true of the last fetch, not of now.${OFF}"
+      fi
+    fi
+    ;;
+esac
+
 if [ -n "$FAILED" ]; then
   # THE LAST LINE, and it names what to fix.
   echo "${RED}${BOLD}GATES FAILED: ${FAILED}${OFF}- do not commit or push."

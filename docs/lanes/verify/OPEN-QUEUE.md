@@ -14,7 +14,18 @@
 
 ## 0a · NOTHING FIXED TONIGHT IS LIVE
 
-**Production deploys from `main`, and all four lanes sit 9 to 16 commits ahead of it.**
+**Production deploys from `main`, and the three build lanes sit 51, 73 and 75 commits ahead of it.**
+
+> **Re-measured 2026-08-27 evening, and the earlier line in this slot said "9 to 16".** That was
+> true when it was written and it now understates the gap by roughly five times, which is the
+> problem with writing a number into a sentence and leaving it there. 199 commits, up from 182 at
+> midday.
+>
+> **The gap is no longer only a size, it has started producing collisions.** All four branches merge
+> cleanly into `main` individually, and `lane/run` and `lane/control` now conflict with EACH OTHER in
+> `src/routes/_authenticated.approvals.tsx` — a conflict that did not exist at the midday
+> measurement. See [S4-130](./S4-130-a-clean-merge-into-main-does-not-mean-the-lanes-agree.md); the
+> gate now catches this class before the deploy does.
 
 Every fix in this document — S0's four, S1's three, S3's transport and duplication work, my harness —
 is **inert until someone merges to `main`**. `a30238f5` will keep failing at Ship for the old reason

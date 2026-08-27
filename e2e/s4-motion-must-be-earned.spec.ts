@@ -579,6 +579,239 @@ async function unnamedControls(page: import("@playwright/test").Page): Promise<s
 }
 
 /**
+ * TEXT A PERSON CANNOT READ, AT THE ONE THRESHOLD THAT IS NOT A MATTER OF TASTE.
+ *
+ * Everything else this spec measures is either motion or structure. This is the
+ * one measurement of how the product LOOKS that does not need an opinion: WCAG
+ * AA is 4.5:1 for body text and 3:1 for large text, the ratio is arithmetic on
+ * two colours, and the same numbers are what a frontier lab's own audit would
+ * run. "Premium" is mostly judgement. This part of it is not.
+ *
+ * WHAT IT REFUSES TO GUESS, and this is most of the care in here:
+ *
+ *   - Only an element with its OWN text node is judged. A wrapper is not graded
+ *     on the colour of its child's text.
+ *   - The effective background is the first ANCESTOR painting an opaque colour.
+ *     If anything in that chain paints an image or a gradient, or a colour with
+ *     partial alpha, the true backdrop is not computable from styles, and the
+ *     element is counted as NOT JUDGED rather than assumed to be on white.
+ *   - Text colour with alpha is composited over that background before the
+ *     ratio, because `rgba(255,255,255,.55)` on a dark ground is a real
+ *     contrast and pretending it is white is a fake one.
+ *
+ * KNOWN LIMIT, stated rather than discovered later: an `opacity` on an ANCESTOR
+ * fades text without changing either computed colour, so a faded block reads as
+ * its unfaded ratio here. This under-reports; it never invents a failure.
+ */
+async function textBelowContrast(
+  page: import("@playwright/test").Page,
+): Promise<{
+  failures: string[];
+  below: number;
+  shapes: number;
+  sampled: number;
+  unjudged: number;
+  viaGradient: number;
+}> {
+  return page.evaluate(() => {
+    /*
+     * MERIDIAN IS BUILT ON oklch(), AND THAT MADE THE FIRST VERSION OF THIS
+     * CHECK MEASURE THE WRONG HALF OF THE PRODUCT.
+     *
+     * meridian.css uses oklch() 139 times and styles.css 68, plus color-mix().
+     * A parser that understood only `rgb()` therefore skipped every element
+     * coloured by the design system and judged only the components carrying hex
+     * literals. That is how /pricing reported "0 below AA of 0 judged" with 105
+     * elements untouched, and it is why the population is printed beside every
+     * count in here: the number was visibly empty rather than quietly partial.
+     *
+     * So anything the browser understands is resolved by PAINTING it into a 1x1
+     * canvas and reading the pixel back - oklch(), color-mix(), lab(), a named
+     * colour, all of it, in the sRGB the screen actually shows. The rgb() fast
+     * path stays first because it is most of the calls.
+     *
+     * An invalid colour leaves `fillStyle` at whatever it held, so two
+     * different sentinels are tried: if the value sticks to each of them, the
+     * browser rejected it and this returns null rather than a sentinel's colour.
+     */
+    const probe = document.createElement("canvas");
+    probe.width = 1;
+    probe.height = 1;
+    const ctx = probe.getContext("2d", { willReadFrequently: true });
+
+    function parse(c: string): [number, number, number, number] | null {
+      const m = c.match(/^rgba?\(([^)]+)\)$/);
+      if (m) {
+        const p = m[1].split(/[,/]/).map((s) => parseFloat(s.trim()));
+        if (p.length >= 3 && !p.slice(0, 3).some((n) => Number.isNaN(n))) {
+          return [p[0], p[1], p[2], p.length > 3 && !Number.isNaN(p[3]) ? p[3] : 1];
+        }
+      }
+      if (!ctx || !c || c === "none" || c === "transparent") return null;
+      ctx.fillStyle = "#010203";
+      ctx.fillStyle = c;
+      const first = ctx.fillStyle;
+      ctx.fillStyle = "#040506";
+      ctx.fillStyle = c;
+      if (ctx.fillStyle !== first) return null;
+      ctx.clearRect(0, 0, 1, 1);
+      ctx.fillRect(0, 0, 1, 1);
+      const d = ctx.getImageData(0, 0, 1, 1).data;
+      return [d[0], d[1], d[2], d[3] / 255];
+    }
+    function lum(r: number, g: number, b: number): number {
+      const f = (v: number): number => {
+        const s = v / 255;
+        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+      };
+      return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+    }
+
+    const out: string[] = [];
+    let sampled = 0;
+    let unjudged = 0;
+    let viaGradient = 0;
+
+    for (const el of Array.from(document.querySelectorAll<HTMLElement>("body *"))) {
+      if (el.closest("[aria-hidden='true']")) continue;
+      const own = Array.from(el.childNodes)
+        .filter((n) => n.nodeType === 3)
+        .map((n) => n.textContent ?? "")
+        .join("")
+        .trim();
+      if (own.length < 2) continue;
+      const rect = el.getBoundingClientRect();
+      if (rect.width < 1 || rect.height < 1) continue;
+      const cs = getComputedStyle(el);
+      if (cs.visibility === "hidden" || cs.display === "none") continue;
+      if (parseFloat(cs.opacity) < 0.1) continue;
+
+      const fg = parse(cs.color);
+      if (!fg) {
+        unjudged++;
+        continue;
+      }
+
+      /*
+       * A GRADIENT IS NOT ONE BACKDROP, IT IS A RANGE, so it is not a reason to
+       * give up. Every colour stop becomes a candidate backdrop and the WORST
+       * ratio is the one reported: text is readable only if it is readable at
+       * the hardest point along the thing it sits on.
+       *
+       * This is what turned /pricing from "0 below AA of 0 judged" into an
+       * actual answer. Refusing to guess was right; refusing to compute what
+       * IS computable was just poor coverage wearing the same coat.
+       *
+       * A url() image still cannot be judged from styles and is still counted
+       * as unjudged, which is where axe-core stops for every one of these.
+       */
+      const layers: [number, number, number, number][] = [];
+      let base: [number, number, number] | null = null;
+      let uncomputable = false;
+      let node: HTMLElement | null = el;
+      while (node) {
+        const ns = getComputedStyle(node);
+        const bi = ns.backgroundImage;
+        if (bi && bi !== "none") {
+          if (bi.includes("url(")) {
+            uncomputable = true;
+            break;
+          }
+          const stops = (bi.match(/(?:rgba?|oklch|oklab|lab|lch|hsla?|color|color-mix)\([^()]*(?:\([^()]*\)[^()]*)*\)/g) ?? [])
+            .map(parse)
+            .filter((c): c is [number, number, number, number] => c !== null);
+          if (!stops.length) {
+            uncomputable = true;
+            break;
+          }
+          for (const st of stops) layers.push(st);
+        }
+        const nb = parse(ns.backgroundColor);
+        if (nb && nb[3] > 0.95) {
+          base = [nb[0], nb[1], nb[2]];
+          break;
+        }
+        if (nb && nb[3] > 0) layers.push(nb);
+        node = node.parentElement;
+      }
+      /*
+       * Nothing opaque all the way to the root is not a failure to compute: an
+       * unpainted canvas renders WHITE, so that is the backdrop, and saying so
+       * is more honest than discarding the element.
+       */
+      if (!uncomputable && !base) base = [255, 255, 255];
+      if (uncomputable || !base) {
+        unjudged++;
+        continue;
+      }
+
+      /*
+       * APPROXIMATION, AND IT IS THE ONE SOFT EDGE IN HERE. Each translucent
+       * layer is composited directly over the base rather than over the stack
+       * beneath it, so a gradient sitting on a tinted panel is spanned rather
+       * than reproduced exactly. The rendered backdrop at any pixel falls
+       * inside the range these candidates cover, which is what a worst-case
+       * floor needs. It is not a claim to reproduce the paint.
+       */
+      const candidates: [number, number, number][] = [base];
+      for (const ly of layers) {
+        const la = ly[3];
+        candidates.push([
+          ly[0] * la + base[0] * (1 - la),
+          ly[1] * la + base[1] * (1 - la),
+          ly[2] * la + base[2] * (1 - la),
+        ]);
+      }
+
+      sampled++;
+      if (layers.length) viaGradient++;
+      const a = fg[3];
+      let ratio = Infinity;
+      for (const cand of candidates) {
+        const l1 = lum(
+          fg[0] * a + cand[0] * (1 - a),
+          fg[1] * a + cand[1] * (1 - a),
+          fg[2] * a + cand[2] * (1 - a),
+        );
+        const l2 = lum(cand[0], cand[1], cand[2]);
+        const one = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+        if (one < ratio) ratio = one;
+      }
+
+      const px = parseFloat(cs.fontSize);
+      const weight = parseInt(cs.fontWeight, 10) || 400;
+      const large = px >= 24 || (px >= 18.66 && weight >= 700);
+      const need = large ? 3 : 4.5;
+      if (ratio >= need) continue;
+
+      const cls = el.className?.toString().trim().split(/\s+/).slice(0, 2).join(".");
+      out.push(
+        `${el.tagName.toLowerCase()}${cls ? "." + cls : ""} ${ratio.toFixed(2)}:1 ` +
+          `needs ${need}:1 at ${px}px/${weight} "${own.slice(0, 34)}"`,
+      );
+    }
+
+    const counts = new Map<string, number>();
+    for (const s of out) counts.set(s, (counts.get(s) ?? 0) + 1);
+    /*
+     * THE LIST IS CAPPED AND THE COUNT IS NOT, because the first version of
+     * this reported the length of the capped list as the finding. `/` came back
+     * as "12 below AA" and 12 was the cap: the true number was larger and the
+     * report had no way to say so. A measurement that silently truncates is
+     * worse than one that refuses to answer, because it reads as complete.
+     */
+    return {
+      failures: [...counts].map(([s, n]) => (n > 1 ? `${s} x${n}` : s)).slice(0, 12),
+      below: out.length,
+      shapes: counts.size,
+      sampled,
+      unjudged,
+      viaGradient,
+    };
+  });
+}
+
+/**
  * SURFACES THAT ARE SUPPOSED TO SHOW EVERY FAILURE AT ONCE.
  *
  * `/meridian` is the design system's gallery: "Every component, in both grounds,
@@ -912,6 +1145,23 @@ test("report which surfaces still move once nothing can be read", async ({ page 
           `\n  treatment strands the person who took that invitation.`,
       );
     }
+
+    // Always noted, pass or fail, because a count with no population behind it
+    // is not a measurement. A clean surface says how many it judged.
+    const contrast = await textBelowContrast(page);
+    notes.push(
+      `\n--- ${path}: contrast, ${contrast.below} element(s) below WCAG AA ` +
+        `in ${contrast.shapes} shape(s), of ${contrast.sampled} judged, ` +
+        `${contrast.viaGradient} against a gradient's worst stop ` +
+        `(${contrast.unjudged} not computable from styles) ---` +
+        (contrast.failures.length
+          ? `\n  ` +
+            contrast.failures.join(`\n  `) +
+            (contrast.shapes > contrast.failures.length
+              ? `\n  ... and ${contrast.shapes - contrast.failures.length} more shape(s) not listed`
+              : ``)
+          : ` none`),
+    );
 
     const clipped = await clippedAndUnreachable(page);
     if (clipped.length) {
