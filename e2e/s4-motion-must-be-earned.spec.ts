@@ -442,7 +442,17 @@ async function unnamedControls(page: import("@playwright/test").Page): Promise<s
       const cls = el.className?.toString().trim().split(/\s+/).slice(0, 2).join(".");
       out.push(`${el.tagName.toLowerCase()}${cls ? "." + cls : ""}`);
     }
-    return Array.from(new Set(out)).slice(0, 10);
+    /*
+     * Count the ELEMENTS behind each shape, not just the shapes.
+     *
+     * /checkout reported "1 control shape" and it is TWO inputs, both
+     * `input.text-mrd-prose`, one for a name and one for an email. Deduping to a
+     * shape is what makes the list readable on a page with forty rows, and
+     * printing only the shape understates the defect on a page with two.
+     */
+    const counts = new Map<string, number>();
+    for (const shape of out) counts.set(shape, (counts.get(shape) ?? 0) + 1);
+    return [...counts].map(([shape, n]) => (n > 1 ? `${shape} x${n}` : shape)).slice(0, 10);
   });
 }
 
