@@ -1,6 +1,6 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it, test } from "bun:test";
 
-import { failureLine, messageForPerson } from "./error-copy";
+import { failureLine, messageForPerson, sessionEndedMessage } from "./error-copy";
 
 describe("what a person may read when something fails", () => {
   it("keeps the sentences this product's own server functions write", () => {
@@ -35,7 +35,9 @@ describe("what a person may read when something fails", () => {
   });
 
   it("refuses anything carrying an identifier a person cannot use", () => {
-    expect(messageForPerson(new Error("Track a30238f5-767b-4a2b-854d-3624f714f068 was not found."))).toBeNull();
+    expect(
+      messageForPerson(new Error("Track a30238f5-767b-4a2b-854d-3624f714f068 was not found.")),
+    ).toBeNull();
     expect(messageForPerson(new Error("The column forecast_claim is immutable here."))).toBeNull();
   });
 
@@ -51,14 +53,64 @@ describe("what a person may read when something fails", () => {
 
   it("always says something, because silence is the defect being fixed", () => {
     const own = "Nothing moved.";
-    expect(failureLine(own, new Error("Unauthorized: Invalid token"))).toBe(own);
-    expect(failureLine(own, new Error("That step is ahead of this work, and undo only goes back."))).toBe(
-      "Nothing moved. That step is ahead of this work, and undo only goes back.",
-    );
+    // This used to assert the ended-session case and no longer can: that string
+    // now has a BETTER answer than the surface's own sentence alone, which is
+    // the whole of S3's correction. The property it was written to protect is
+    // unchanged, so it is asserted here with a failure nothing can improve on.
+    expect(
+      failureLine(
+        own,
+        new Error('null value in column "to_agent_slug" violates not-null constraint'),
+      ),
+    ).toBe(own);
+    expect(
+      failureLine(own, new Error("That step is ahead of this work, and undo only goes back.")),
+    ).toBe("Nothing moved. That step is ahead of this work, and undo only goes back.");
     expect(failureLine(own, null)).toBe(own);
   });
 
   it("carries no em dash of its own", () => {
     expect(failureLine("Nothing moved.", new Error("x"))).not.toMatch(/[—–]/);
   });
+});
+
+/*
+ * THE ENDED SESSION, which S3 found and I had wrong.
+ *
+ * `messageForPerson` rejects "Unauthorized: Invalid token" correctly and then
+ * leaves the reader with only the surface's own sentence. That is right about
+ * the string and wrong about the moment: this is the one failure on the list
+ * the reader can fix in a single action, and no other part of the screen is
+ * going to tell them so.
+ */
+test("an ended session says what to do about it, where silence used to be", () => {
+  // The exact string S4 read on /learn.
+  expect(sessionEndedMessage(new Error("Unauthorized: Invalid token"))).toBe(
+    "Your session ended. Sign in again and this will load.",
+  );
+  expect(sessionEndedMessage(new Error("jwt expired"))).not.toBeNull();
+  expect(sessionEndedMessage(new Error("Auth session missing!"))).not.toBeNull();
+});
+
+test("it does not claim an ended session over an unrelated failure", () => {
+  expect(sessionEndedMessage(new Error("That step is ahead of this work."))).toBeNull();
+  expect(sessionEndedMessage(new Error("Failed to fetch"))).toBeNull();
+  expect(sessionEndedMessage(new Error(""))).toBeNull();
+  // "unauthorized" anchored at the start only: a sentence ABOUT authorisation
+  // is not the auth layer refusing, and must not be answered with sign in.
+  expect(sessionEndedMessage(new Error("The reviewer is unauthorized for this repo."))).toBeNull();
+});
+
+test("failureLine puts the action a reader can take ahead of everything else", () => {
+  // Before this, the whole line was just the surface's own sentence.
+  expect(failureLine("This is still waiting for you.", new Error("Unauthorized"))).toBe(
+    "This is still waiting for you. Your session ended. Sign in again and this will load.",
+  );
+  // A real server sentence still wins when the session is fine.
+  expect(
+    failureLine(
+      "Nothing moved.",
+      new Error("That step is ahead of this work, and undo only goes back."),
+    ),
+  ).toBe("Nothing moved. That step is ahead of this work, and undo only goes back.");
 });
