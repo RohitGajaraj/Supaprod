@@ -87,9 +87,14 @@ entered at `sense`, and **zero have gone `sense` → `learn`**.
 > **AND AS OF 2026-08-26 THE PLAIN FORM ALSO RETURNS 1, AND THE ACCEPTANCE IS STILL NOT MET (F-79).**
 > `d1168015` walked all seven with every transition `driven_via='sweep'` — but a person **rejected
 > approval `bdf32286` against its Build mission at 18:48 UTC**, mid-run, so R-18's *"no human
-> touching it mid-run"* fails. The query cannot see an answered boundary call, and
-> `agent_approvals.decided_by` is NULL so the row cannot name the decider. **Do not report a
-> non-zero result from the short query as the acceptance.** The honest form, which returns **0**, is
+> touching it mid-run"* fails. The query cannot see an answered boundary call, because **an answer
+> is not a transition** — which is the whole reason the join form below is needed at all.
+> `bdf32286` happens to carry no `decided_by`, so that particular row cannot name who answered.
+> **Corrected 2026-08-27 (S1 and S4 independently): that is true of the row and false of the
+> column.** Measured: **158 of 176 answered approvals DO name the decider, 18 do not.** The earlier
+> wording here read as a permanent limitation of the schema, and anybody planning around it would
+> have concluded the decider is unrecoverable when it is recorded on 90% of answered calls. **Do not
+> report a non-zero result from the short query as the acceptance.** The honest form, which returns **0**, is
 > in [`the-first-run/OPERATING-MODEL-5-SESSIONS.md`](./the-first-run/OPERATING-MODEL-5-SESSIONS.md) §2.
 
 ---

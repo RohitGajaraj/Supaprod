@@ -1944,6 +1944,21 @@ export async function driveTrackOnce(
    */
   let haltedAs: HoldReason | null = null;
   /**
+   * The halt's OWN sentence, which names the thing that stopped the run.
+   *
+   * ── F-134 (S1 -> S0): the true sentence existed and never reached a screen ──
+   * `result.halted` carries `{ kind, reason }` and only the kind was kept. The
+   * reason for an `agent-disabled` halt is *"<slug> is switched off, so this run
+   * was cancelled instead of resumed"* — it NAMES THE AGENT, which is exactly
+   * what `last_hold_because` exists to carry.
+   *
+   * My F-127 note argues that branch should write nothing, and it is right about
+   * what it was looking at: `HOLD_LINE[kind]` is a static map the reader already
+   * derives. This is not that. A generic line in a column meant for specifics is
+   * worse than a null; a specific one is the whole point of the column.
+   */
+  let haltedBecause: string | null = null;
+  /**
    * F-68 — the first seat this tick that reported an outcome its own calls
    * refuse to support, or null when every seat's account holds up.
    *
@@ -2115,6 +2130,24 @@ export async function driveTrackOnce(
        * for seat two either.
        */
       if (result.halted) {
+        // F-134. Captured BEFORE the kind is mapped, because this is the only
+        // place the halt's own words are in scope and the write is 100 lines
+        // below. Set unconditionally and read only when `haltedAs` is truthy,
+        // so an unmapped halt kind can leave a value nothing ever uses.
+        //
+        // Written flat rather than inside a second guarded block on the same
+        // variable: my first version added one, and the sibling guard in
+        // `a-halted-run-is-not-a-station-that-failed` finds the halt branch by
+        // searching for that opening line. A second occurrence made it slice the
+        // wrong block. The test was right and the edit was ambiguous.
+        //
+        // The phrasing here is deliberate too. My first comment QUOTED the line
+        // the guard searches for, so the search found this comment instead of
+        // the code -- a guard matching its own documentation, which is the
+        // fourth time that shape has cost me tonight and the first time I did it
+        // to somebody else's guard. Their test reads raw source; mine strips
+        // comments, which is exactly why only theirs caught it.
+        haltedBecause = result.halted.reason?.trim() || null;
         haltedAs = holdForHalt(result.halted.kind);
         if (haltedAs) break;
       }
@@ -2232,7 +2265,11 @@ export async function driveTrackOnce(
   if (haltedAs) {
     await supabase
       .from("spine_tracks" as never)
-      .update({ last_hold: haltedAs, driven_at: new Date().toISOString() } as never)
+      .update({
+        last_hold: haltedAs,
+        last_hold_because: haltedBecause,
+        driven_at: new Date().toISOString(),
+      } as never)
       .eq("id", row.id);
     return {
       trackId: row.id,
