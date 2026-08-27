@@ -21,7 +21,12 @@ import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
-import { CONNECTOR_REGISTRY, type ProviderId, type ProviderSpec } from "@/lib/connectors/registry";
+import {
+  CONNECTOR_REGISTRY,
+  providerReturnsSignals,
+  type ProviderId,
+  type ProviderSpec,
+} from "@/lib/connectors/registry";
 import {
   buildConnectorCatalog,
   type CatalogEntry,
@@ -655,7 +660,29 @@ export function AccountConnectionsSection({
                   // IS the subject here.
                   mark={<ProviderMark provider={a.entry.id} tone="brand" size={18} />}
                   lead={a.entry.label}
-                  sub={can ? a.entry.flowLabel : "Waiting on an admin"}
+                  /*
+                   * SAYS WHEN CONNECTING IT WILL NOT PRODUCE ANYTHING YET.
+                   *
+                   * Three providers in the registry point at the shared stub
+                   * rather than a real adapter, so they authorise fine and then
+                   * return no signals. The PUBLIC FAQ has named them since
+                   * U-034, derived from `PROVIDERS_WITHOUT_ADAPTERS` -- and the
+                   * shelf where a person actually presses Connect said nothing.
+                   *
+                   * So we were more honest to a stranger reading marketing than
+                   * to a customer one click from an OAuth screen, who would
+                   * grant access to their calendar and get silence back.
+                   *
+                   * Read from the same export the FAQ reads, so the two cannot
+                   * drift, and stated on the row rather than after the fact.
+                   */
+                  sub={
+                    !providerReturnsSignals(a.entry.id)
+                      ? "Connects, but sends nothing back yet"
+                      : can
+                        ? a.entry.flowLabel
+                        : "Waiting on an admin"
+                  }
                   title={can ? connectHintFor(a.entry) : setupHintFor(spec)}
                   // A cell nobody can connect dims and never lights up: an
                   // affordance is a promise.
@@ -961,7 +988,19 @@ export function ConnectorDetail({
         <div className="flex flex-col gap-mrd-7">
           <PageHeading
             title={titled}
-            sub={`${spec.description} Connect it once and what it syncs starts feeding the shared brain.`}
+            /*
+             * THE PROMISE HAS TO BE TRUE OF THIS PROVIDER. "Connect it once and
+             * what it syncs starts feeding the shared brain" is the strongest
+             * claim on this surface and it is false for the three providers
+             * that still point at the shared stub: they authorise, and nothing
+             * comes back. Making that promise on the screen immediately before
+             * an OAuth grant is the worst place in the product to make it.
+             */
+            sub={
+              providerReturnsSignals(provider)
+                ? `${spec.description} Connect it once and what it syncs starts feeding the shared brain.`
+                : `${spec.description} You can connect it now, and it will hold the credential, but nothing flows back from it yet.`
+            }
           />
           <Actions>
             <Action variant="primary" busy={busy} onClick={() => setShowTrust(true)}>
