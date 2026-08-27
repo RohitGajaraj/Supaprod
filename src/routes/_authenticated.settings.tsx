@@ -3552,7 +3552,10 @@ function BoundaryPane() {
       {/* BoundaryControls owns the kill switch now (S0 ruling A-006
                 section 2): one editor, and it is the panel that edits every
                 other boundary. ControlsPanel below keeps a readout. */}
-      <BoundaryControls />
+      {/* The pane's own PageHeading is above; this panel's data-derived posture
+          sentence ("Your crew does N of M things without asking") renders at
+          region level rather than as a second page title. */}
+      <BoundaryControls headingShownElsewhere />
       <ControlsPanel controlsOnly onOpenQueue={() => navigate({ to: "/approvals" })} />
       {/*
        * THE REST OF WHAT "ALLOWED" MEANS, mounted 2026-08-27 so the fold

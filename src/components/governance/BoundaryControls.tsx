@@ -344,8 +344,16 @@ export function BoundaryControls({
    * to change it.
    */
   pauseShownElsewhere = false,
+  /**
+   * True when the surface mounting this panel already draws a page heading, as
+   * settings does -- its title is the door's own name and has to stay that.
+   * The posture sentence then renders at region level instead of as a second
+   * page title. See the note beside `posture` below.
+   */
+  headingShownElsewhere = false,
 }: {
   pauseShownElsewhere?: boolean;
+  headingShownElsewhere?: boolean;
 } = {}) {
   const qc = useQueryClient();
   const { activeWorkspaceId } = useWorkspace();
@@ -666,29 +674,65 @@ export function BoundaryControls({
     );
   };
 
+  /**
+   * THE POSTURE SENTENCE, AND WHY IT STOPS BEING A PAGE HEADING.
+   *
+   * "Your crew does N of M things without asking" is the single most useful
+   * line on this panel: it is the whole question answered in one sentence, from
+   * the same read as the controls under it. It must not be lost.
+   *
+   * But this panel is now mounted inside a page that already has a heading --
+   * settings, whose title is the door's own name and has to stay that by the
+   * door-and-page guard -- so it was drawing a SECOND page title directly under
+   * the first. Two page titles on one pane is two h1s for a screen reader and,
+   * on a failed read, it was the largest thing on the screen saying the same
+   * thing a line under it already said.
+   *
+   * So the caller says whether a heading is already above it. The sentence
+   * survives either way; only its level changes.
+   */
+  const posture = b.isLoading ? (
+    "Boundary"
+  ) : b.isError ? (
+    "The boundary could not be read."
+  ) : total === 0 ? (
+    "No crew has been given anything to do yet."
+  ) : (
+    <>
+      Your crew does <Num>{trulyAlone.length}</Num> of <Num>{total}</Num> things without asking.
+    </>
+  );
+  const postureSub =
+    total > 0
+      ? "Set once, in advance. Moving a boundary never interrupts work that is already running."
+      : undefined;
+
   return (
     <div data-mrd="" className="flex flex-col gap-mrd-6">
-      <PageHeading
-        title={
-          b.isLoading ? (
-            "Boundary"
-          ) : b.isError ? (
-            "The boundary could not be read."
-          ) : total === 0 ? (
-            "No crew has been given anything to do yet."
-          ) : (
-            <>
-              Your crew does <Num>{trulyAlone.length}</Num> of <Num>{total}</Num> things without
-              asking.
-            </>
-          )
-        }
-        sub={
-          total > 0
-            ? "Set once, in advance. Moving a boundary never interrupts work that is already running."
-            : undefined
-        }
-      />
+      {headingShownElsewhere ? (
+        <div>
+          <p className="text-mrd-base text-mrd-ink">{posture}</p>
+          {postureSub ? <p className="text-mrd-small text-mrd-mute">{postureSub}</p> : null}
+        </div>
+      ) : (
+        <PageHeading
+          title={
+            b.isLoading ? (
+              "Boundary"
+            ) : b.isError ? (
+              "The boundary could not be read."
+            ) : total === 0 ? (
+              "No crew has been given anything to do yet."
+            ) : (
+              <>
+                Your crew does <Num>{trulyAlone.length}</Num> of <Num>{total}</Num> things without
+                asking.
+              </>
+            )
+          }
+          sub={postureSub}
+        />
+      )}
 
       {/* WORKSPACE-WIDE POLICY, ABOVE THE PER-TOOL EXCEPTIONS, and OUTSIDE the
           `b` guards deliberately: these switches do not depend on that read and
