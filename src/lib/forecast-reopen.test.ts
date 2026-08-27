@@ -163,17 +163,36 @@ describe("reopenForecastImpl", () => {
 });
 
 describe("getForecastHistoryImpl", () => {
-  test("fails soft, because the desk must stand before the migration lands", async () => {
-    const failing = {
+  const failingWith = (error: { message: string; code?: string }) =>
+    ({
       from: () => ({
         select: () => ({
-          eq: () => ({
-            order: () => ({ limit: async () => ({ data: null, error: { message: "no table" } }) }),
-          }),
+          eq: () => ({ order: () => ({ limit: async () => ({ data: null, error }) }) }),
         }),
       }),
-    } as never;
-    expect(await getForecastHistoryImpl(failing, "d1")).toEqual({ history: [] });
+    }) as never;
+
+  test("fails soft, because the desk must stand before the migration lands", async () => {
+    // A MISSING COLUMN only. PostgREST answers an unknown column with an error
+    // rather than a null, and migrations and deploys are two switches with no
+    // enforced order, so this window is real and the desk should survive it.
+    expect(
+      await getForecastHistoryImpl(
+        failingWith({ message: "column does not exist", code: "42703" }),
+        "d1",
+      ),
+    ).toEqual({ history: [] });
+  });
+
+  /*
+   * THE HALF THE ORIGINAL DID NOT DISTINGUISH (F-120). The soft fail above used
+   * to cover every error, so an unreadable history rendered as "no history":
+   * a statement about the forecast, made out of a failure to read anything.
+   */
+  test("but a real failure is raised rather than shown as no history", async () => {
+    await expect(getForecastHistoryImpl(failingWith({ message: "boom" }), "d1")).rejects.toThrow(
+      /could not be read/,
+    );
   });
 });
 

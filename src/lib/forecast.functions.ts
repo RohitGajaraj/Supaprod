@@ -72,6 +72,39 @@ export const DUE_FORECAST_PAGE = 12;
  * date moved while the row sat unchanged, which teaches people the button is
  * broken.
  */
+/**
+ * Is this error the migration window, or is it a real failure?
+ *
+ * ── TWO TRUE THINGS THAT LOOKED LIKE ONE (F-120, 2026-08-27) ───────────────
+ *
+ * The reads below used to swallow EVERY error and return an empty result, and
+ * the four tests pinning that named a real reason: *"Migrations and deploys are
+ * two switches with no enforced order, and PostgREST answers an unknown column
+ * with an error rather than a null. Throwing here would take the whole Learn
+ * desk down, spec outcomes included, because both live on one route."* That is
+ * correct and it is why this predicate exists rather than a blanket throw.
+ *
+ * But the same swallow also covered timeouts, refused reads and malformed
+ * queries, and that half was a lie with teeth. `ForecastDeskPanel` returns null
+ * when all three of its reads come back empty, so a total read failure did not
+ * render an error and did not render zero: **the desk disappeared from the
+ * page**, and a person would reasonably conclude they had nothing to settle.
+ *
+ * So the two are told apart by the only thing that distinguishes them, which is
+ * a fact rather than a judgement:
+ *
+ *   · A MISSING COLUMN is a deployment-ordering fact. The feature is not there
+ *     yet, the desk should stand, and an empty result is the honest answer.
+ *   · ANYTHING ELSE is a runtime fact. The data exists and we could not read
+ *     it, and reporting zero is a claim we cannot support.
+ *
+ * The codes are the two PostgREST already uses for this, and `decideDesignGate`
+ * checks the identical pair for the identical reason.
+ */
+function isPreMigration(error: { code?: string } | null | undefined): boolean {
+  return error?.code === "42703" || error?.code === "PGRST204";
+}
+
 export async function listDueForecastsImpl(
   db: SupabaseClient,
   nowIso: string,
@@ -103,7 +136,34 @@ export async function listDueForecastsImpl(
     .or(dueCheckFilter(nowIso))
     .order("forecast_horizon_date", { ascending: true })
     .limit(DUE_FORECAST_PAGE);
-  if (error) return { due: [], total: 0 };
+  /*
+   * ── F-120: AN UNREADABLE DESK USED TO REPORT AN EMPTY ONE ────────────────
+   *
+   * `return { due: [], total: 0 }` made "the query failed" and "nothing is
+   * overdue" the same answer on the one desk whose entire purpose is that
+   * overdue calls get answered.
+   *
+   * IT WAS WORSE THAN A WRONG NUMBER, because `ForecastDeskPanel` returns null
+   * when all three of its reads come back empty. That null is deliberate and
+   * right ("an account that has never recorded a forecast should not be shown a
+   * desk for settling them") but it turned a total read failure into the desk
+   * DISAPPEARING FROM THE PAGE. Not an error, not "nothing due": gone. A person
+   * would conclude they had nothing to settle.
+   *
+   * The sibling in this very feature already fixed this and wrote down why:
+   * `auditDueForecasts` throws, with a comment reading "A FAILED READ IS NOT AN
+   * EMPTY QUEUE, and the old return made the two identical". The tick learned
+   * it; the desk it feeds did not.
+   *
+   * Throwing is what `useQuery` needs to set `isError`, which is the only way
+   * the panel can tell the difference.
+   */
+  if (error) {
+    // The desk must stand before the migration lands; it must not stand silently
+    // empty when the table is there and unreadable.
+    if (isPreMigration(error)) return { due: [], total: 0 };
+    throw new Error(`The forecasts that are due could not be read: ${error.message}`);
+  }
 
   const nowMs = Date.parse(nowIso);
   const due = (data ?? [])
@@ -332,7 +392,11 @@ export async function getForecastHistoryImpl(
   // goes live when the migration is applied and the code when publish is
   // clicked, and a throw here would take the whole Learn desk down rather than
   // hiding one panel.
-  if (error) return { history: [] };
+  // Same rule as the due list above: a failed read is not an empty history.
+  if (error) {
+    if (isPreMigration(error)) return { history: [] };
+    throw new Error(`This forecast's history could not be read: ${error.message}`);
+  }
   return {
     history: ((data ?? []) as Array<Record<string, unknown>>).map((r) => ({
       resolution: String(r.resolution) as ForecastResolution,
@@ -373,7 +437,12 @@ export async function listAgentSettledForecastsImpl(
     .not("forecast_resolved_by_agent_slug", "is", null)
     .order("forecast_resolved_at", { ascending: false })
     .limit(8);
-  if (error) return { settled: [] };
+  // Same rule: reporting "your crew has settled nothing" over an unreadable
+  // table is the claim most likely to be believed and least likely to be true.
+  if (error) {
+    if (isPreMigration(error)) return { settled: [] };
+    throw new Error(`What your crew settled could not be read: ${error.message}`);
+  }
   return { settled: (data ?? []) as unknown as AgentSettledForecast[] };
 }
 
@@ -385,7 +454,15 @@ export async function getForecastCallRateImpl(db: SupabaseClient): Promise<Forec
     .neq("forecast_resolution", "inconclusive")
     .order("forecast_resolved_at", { ascending: false })
     .limit(10);
-  if (error) return summarizeForecastCalls([]);
+  /*
+   * Same rule, and this one was the most misleading of the four: summarising an
+   * EMPTY array produces a real-looking rate built on no rows, so an unreadable
+   * table rendered as a confident score rather than as a blank.
+   */
+  if (error) {
+    if (isPreMigration(error)) return summarizeForecastCalls([]);
+    throw new Error(`Your forecast record could not be read: ${error.message}`);
+  }
   return summarizeForecastCalls(
     ((data ?? []) as Array<{ forecast_resolution: string | null }>).map((r) => ({
       resolution: r.forecast_resolution,
