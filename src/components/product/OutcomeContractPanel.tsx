@@ -131,6 +131,9 @@ function ArdImportControl({
   return (
     <div className="mt-3">
       <textarea
+        /* A placeholder is not a label: it disappears the moment somebody types
+           and screen readers do not announce it consistently. R-19. */
+        aria-label="Paste an ARD document or an Outcome Contract"
         value={text}
         onChange={(e) => {
           setText(e.target.value);
@@ -766,6 +769,11 @@ function AddClauseControl({
   return (
     <div className="mt-2 flex items-start gap-2">
       <textarea
+        /* The label changes with the thing being written, so it is derived from
+           the same condition as the placeholder rather than restating one. */
+        aria-label={
+          isMetric ? "What has to be true on outcome day" : "One thing this spec will not do"
+        }
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder={
@@ -958,6 +966,9 @@ function ClauseRow({
     return (
       <li className="flex items-start gap-2">
         <textarea
+          /* This one had no placeholder either, so with no label it announced
+             as an unnamed edit box. */
+          aria-label="Edit this line"
           value={text}
           onChange={(e) => setText(e.target.value)}
           className="flex-1 min-h-[60px] rounded-md border hairline bg-background px-2 py-1.5 text-xs outline-none focus:border-foreground resize-y"

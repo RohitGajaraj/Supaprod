@@ -126,6 +126,9 @@ export function ProductAnalyticsPanel({
         {editingEvent ? (
           <div className="flex items-center gap-2">
             <input
+              /* A placeholder that is an EXAMPLE is the worst kind to lean on:
+                 it names one value rather than the field. R-19. */
+              aria-label="Event name to link"
               autoFocus
               value={eventDraft}
               onChange={(e) => setEventDraft(e.target.value)}

@@ -137,6 +137,9 @@ export function LaunchPlanPanel({ prdId }: Props) {
                   : "Not armed"}
               </p>
               <input
+                /* A bare number box with no placeholder and no label announced
+                   as nothing at all. R-19. */
+                aria-label="Days from launch to the outcome check"
                 type="number"
                 min={1}
                 max={365}

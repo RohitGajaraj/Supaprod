@@ -242,6 +242,7 @@ export function OutcomeCard({ prd, invalidateKey }: Props) {
             ))}
           </div>
           <textarea
+            aria-label="What actually happened"
             value={summary}
             onChange={(e) => {
               markTouched();
@@ -252,6 +253,7 @@ export function OutcomeCard({ prd, invalidateKey }: Props) {
           />
           <div className="flex flex-wrap gap-2">
             <input
+              aria-label="Metric label, optional"
               value={metricLabel}
               onChange={(e) => {
                 markTouched();
@@ -261,6 +263,7 @@ export function OutcomeCard({ prd, invalidateKey }: Props) {
               className="flex-1 min-w-[160px] rounded-md border hairline bg-background px-3 py-1.5 text-xs outline-none focus:border-foreground"
             />
             <input
+              aria-label="Metric value, optional"
               value={metricValue}
               onChange={(e) => {
                 markTouched();
