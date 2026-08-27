@@ -50,7 +50,7 @@
  */
 import * as React from "react";
 import { humanizeText } from "@/lib/ai/humanize";
-import { plainProse } from "@/components/track/plain-prose";
+import { plainProse } from "@/lib/plain-prose";
 import { AgentMark } from "@/components/meridian/marks";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";

@@ -137,7 +137,7 @@
  */
 
 import * as React from "react";
-import { plainProse } from "@/components/track/plain-prose";
+import { plainProse } from "@/lib/plain-prose";
 import { endedSessionOn, failureLine } from "@/lib/error-copy";
 import { Row } from "@/components/meridian/rows";
 import {

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { plainProse } from "@/components/track/plain-prose";
+import { plainProse } from "@/lib/plain-prose";
 import { failureLine, reasonLine } from "@/lib/error-copy";
 import { Row, Line } from "@/components/meridian/rows";
 import {

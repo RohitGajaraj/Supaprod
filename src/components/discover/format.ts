@@ -1,3 +1,4 @@
+import { plainProse } from "@/lib/plain-prose";
 import type { CriticReview } from "@/lib/discovery.functions";
 
 export type VerdictWord = "SHIP" | "REVISE" | "KILL" | "WATCH" | "PENDING";
@@ -240,14 +241,42 @@ function looksLikeJson(text: string): boolean {
 /** Strip markdown and URL noise. `keepBreaks` preserves paragraph structure for
  * the detail view; the feed preview collapses everything onto one clean line. */
 function stripSignalNoise(text: string, keepBreaks: boolean): string {
-  let out = text
+  const withoutLinks = text
     .replace(/!\[[^\]]*\]\([^)]*\)/g, " ") // image markdown, gone
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1") // link markdown, keep the text
     .replace(/<https?:\/\/[^>\s]*>/gi, " ") // autolinks, gone
     .replace(/https?:\/\/\S+/gi, " ") // bare URLs, gone
     .replace(/```[\s\S]*?```/g, " ") // fenced code, gone
     .replace(/`([^`]*)`/g, "$1") // inline code, keep its text
-    .replace(/\*\*|__|~~/g, "") // bold and strike markers, gone
+    .replace(/__|~~/g, ""); // underscore-bold and strike markers, gone
+
+  /*
+   * ASTERISK EMPHASIS IS ONE RULE AND IS NOT SPELLED TWICE.
+   *
+   * This step used to read `/\*\*|__|~~/`, which removed every `**` whether or
+   * not it wrapped anything and never saw a single-asterisk `*word*` at all.
+   * Measured over the 1,487 signals carrying content: 13 have `**`, which it
+   * caught; one has real emphasis it did not, reading "no sync-log data exists
+   * to confirm *how* the overwrite occurs", asterisks and all, on the feed.
+   *
+   * `plainProse` is the rule the run screen and the learn surfaces already use,
+   * and two spellings of one rule is how the next person gets two answers from
+   * one string. It is also the stricter of the two: it unwraps only markers
+   * that close around real text, so a bullet, an unmatched asterisk and an
+   * arithmetic `2 * 3` survive rather than being silently edited.
+   *
+   * It runs HERE rather than first because the steps above have just taken the
+   * backticks off inline code, and an asterisk inside a code span is a literal
+   * a reader wants to see, not emphasis.
+   *
+   * `__` and `~~` stay even though both are zero across those 1,487 rows. Zero
+   * today is a fact about the rows we happen to hold, not about what an agent
+   * may write tomorrow, and the underscore pair is the one case where stripping
+   * is safe -- a lone `_` is left alone everywhere, because the identifiers
+   * these agents write (`checkout_single_address`) run through this same text
+   * and corrupting one makes the sentence false.
+   */
+  let out = (plainProse(withoutLinks) ?? withoutLinks)
     .replace(/^\s{0,3}#{1,6}\s+/gm, "") // heading markers, gone
     .replace(/^\s{0,3}>\s?/gm, "") // blockquote markers, gone
     .replace(/^\s{0,3}[-*+]\s+/gm, ""); // list bullets, gone

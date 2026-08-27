@@ -36,6 +36,20 @@
  * Only markers that open and close around non-space content are removed, so a
  * bullet at the start of a line, a multiplication sign with spaces around it,
  * and an unmatched asterisk all survive untouched.
+ *
+ * -- WHY IT SITS IN `lib` AND NOT UNDER THE SCREEN THAT NEEDED IT FIRST -----
+ * It was written for the run screen and lived in `components/track/`. Four
+ * other trees now import it -- learn, spine, the learn route, and the discover
+ * feed -- and none of them has anything to do with a track. It follows
+ * `error-copy.ts` here for the reason S0 gave for that one: a pure function
+ * with no JSX, deciding what the product MAY SAY, is policy rather than
+ * presentation, and policy should not be reached for through a sibling
+ * screen's folder.
+ *
+ * `stripSignalNoise` in the discover feed calls it for exactly this step. That
+ * file previously carried its own `/\*\*|__|~~/` strip, which was blunter in
+ * one direction and blind in the other, and two spellings of one rule is how
+ * the next person gets two answers from one string.
  */
 
 /** The text with paired asterisk emphasis unwrapped, everything else intact. */

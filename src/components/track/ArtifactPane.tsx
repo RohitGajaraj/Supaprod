@@ -22,7 +22,7 @@
 import * as React from "react";
 import { failureLine } from "@/lib/error-copy";
 import { humanizeText } from "@/lib/ai/humanize";
-import { plainProse } from "@/components/track/plain-prose";
+import { plainProse } from "@/lib/plain-prose";
 /*
  * EVERY plain-text `Prose` on this pane runs agent-written text through
  * `plainProse`, including the columns that carry no markdown today. Four of
@@ -660,7 +660,7 @@ function SignalCard({ item, now, trackId }: { item: ArtifactView; now: number; t
         {item.title ?? (content ? content.slice(0, 120) : item.word)}
       </span>
       {/* 13 of the signal rows carry `**bold**`, and this renders them. Same
-          tell as the rationale above; see `plain-prose.ts`. */}
+          tell as the rationale above; see `lib/plain-prose.ts`. */}
       {plainProse(content) ? <Prose markdown={false}>{plainProse(content)}</Prose> : null}
       <span className="mrd-meta">
         {[
