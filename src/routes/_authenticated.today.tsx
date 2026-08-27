@@ -2020,9 +2020,28 @@ function Today() {
                   (() => {
                     const base = "Nothing moves on these until you answer.";
                     const d = daysSince(missions.data?.oldestBlockedAt);
-                    return d !== null && d >= 1
-                      ? `${base} The oldest has been waiting ${d} ${d === 1 ? "day" : "days"}.`
-                      : base;
+                    if (d === null || d < 1) return base;
+                    /* SAY WHEN THE OLDEST IS NOT ON THE PAGE, because otherwise
+                       this line and the row under it look like they disagree.
+                       Seen live: the note said 39 days while the top row said
+                       21d, both true. `oldestBlockedAt` counts every blocked
+                       row; the page holds the 50 most recently touched, and the
+                       lane sorts oldest-first, so whenever the true oldest is
+                       outside that 50 the first row is younger than this
+                       sentence. Naming it turns an apparent contradiction into
+                       the useful fact, which is that older work exists than
+                       this page can reach. */
+                    const shownOldest = allReplyRows.length
+                      ? Math.min(...allReplyRows.map((r) => r.at).filter((n) => n > 0))
+                      : 0;
+                    const shownDays = shownOldest
+                      ? Math.floor((Date.now() - shownOldest) / 86_400_000)
+                      : null;
+                    const offPage = shownDays !== null && d - shownDays >= 1;
+                    const word = d === 1 ? "day" : "days";
+                    return offPage
+                      ? `${base} The oldest has been waiting ${d} ${word}, and is not on this page.`
+                      : `${base} The oldest has been waiting ${d} ${word}.`;
                   })(),
                   (row) =>
                     /* A TRACK IS NOT ANSWERING A QUESTION HERE, so it is not
