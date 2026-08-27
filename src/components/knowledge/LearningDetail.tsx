@@ -348,13 +348,30 @@ export function LearningDetail({ id }: { id: string }) {
        * result above the claim would let a reader learn the outcome and then be
        * shown what we said, which is how hindsight quietly rewrites a forecast.
        *
-       * ABSENT IS NOT RENDERED AT ALL. A learning with no decision behind it
-       * (most of them: 133 production learnings carried a NULL decision_id when
-       * F-65 landed) genuinely has nothing to compare against, and an empty
-       * "Expected" line would assert a call was made and said nothing. The feed
-       * one level up already tells a person whether a call exists, so silence
-       * here is not a gap.
+       * ABSENT IS NOW STATED, reversing what this comment used to say. The old
+       * argument was that an empty "Expected" line would assert a call was made
+       * and said nothing, and that the feed one level up already tells you
+       * whether one exists. The first half is right, which is why this is a
+       * SENTENCE and not an empty field. The second half does not survive
+       * arriving here from a link, a search or a reload, where there is no feed
+       * above to have read.
+       *
+       * And it is not the rare case. Measured on the live record: 163 learnings,
+       * all graded, and 42 with a written expectation. So 121 of 163 detail
+       * pages showed a measurement with nothing to grade it against and nothing
+       * saying why -- which reads as an omission by the product rather than a
+       * fact about the work, on the one surface whose whole subject is whether
+       * we were right.
        */}
+      {!gradedDecision?.forecastClaim ? (
+        <Region title="What we expected">
+          <p className="text-mrd-small leading-mrd-prose text-mrd-mute">
+            Nothing was written down before this shipped, so the result below cannot be graded
+            against a call. A forecast is written at Decide and nowhere else.
+          </p>
+        </Region>
+      ) : null}
+
       {gradedDecision?.forecastClaim ? (
         <Region
           title="What we expected"
