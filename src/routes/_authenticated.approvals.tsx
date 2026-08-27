@@ -136,7 +136,7 @@ import { FilterExcludedEverything, QueueFilters } from "@/components/approvals/Q
 import { SettledTrail, type SettledLine } from "@/components/approvals/SettledTrail";
 import { UndatedCalls, type UndatedCall } from "@/components/approvals/UndatedCalls";
 import { SendBackSheet, canSendBack } from "@/components/approvals/SendBack";
-import { waitingSince } from "@/components/meridian/stopped-for";
+import { waitingSince } from "@/components/approvals/stopped-for";
 
 export const Route = createFileRoute("/_authenticated/approvals")({
   component: ApprovalsSurface,
