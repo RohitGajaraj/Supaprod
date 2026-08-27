@@ -573,6 +573,54 @@ export const listGovernApprovals = createServerFn({ method: "POST" })
       .sort((x, y) => x - y);
     const medianResponseMs = waits.length ? waits[Math.floor(waits.length / 2)] : null;
 
+    /*
+     * ── IS THE WORK BEHIND EACH PENDING GATE STILL LIVE? (F-128) ───────────
+     *
+     * One query for the whole queue rather than one per row. Only PENDING gates
+     * are asked about: a decided approval's run status changes nothing a person
+     * can act on, and the queue is the only reader of this field.
+     *
+     * `waiting_approval` and `halted` are LIVE. A run halted at a gate is
+     * precisely the run this approval exists to release, and calling it finished
+     * would hide the one gate that still matters. `completed`,
+     * `completed_with_failures` and `failed` are over: whatever this approval
+     * was holding has stopped either way, and "it failed" is not a reason to
+     * keep promising that approving will unblock it.
+     *
+     * A FAILED LOOKUP LEAVES EVERY GATE AT null, not at false. Saying "the work
+     * behind this has finished" on the strength of a query we could not run is
+     * the F-76 shape on a surface built to tell people the truth about what
+     * needs them.
+     */
+    const LIVE_RUN_STATUSES = new Set(["waiting_approval", "halted"]);
+    const pendingMissionIds = [
+      ...new Set(
+        approvals
+          .filter((a) => a.status === "pending" && a.mission_id)
+          .map((a) => a.mission_id as string),
+      ),
+    ];
+    const liveByMission = new Map<string, boolean>();
+    if (pendingMissionIds.length > 0) {
+      const { data: runRows, error: runErr } = await db
+        .from("agent_runs")
+        .select("mission_id,status,created_at")
+        .in("mission_id", pendingMissionIds)
+        .order("created_at", { ascending: false });
+      if (runErr) {
+        console.error(
+          `approvals queue: run status unreadable, gates left unknown: ${runErr.message}`,
+        );
+      } else {
+        for (const r of (runRows ?? []) as Array<{ mission_id: string; status: string }>) {
+          // Newest first, so the first row seen for a mission is the current one.
+          if (!liveByMission.has(r.mission_id)) {
+            liveByMission.set(r.mission_id, LIVE_RUN_STATUSES.has(r.status));
+          }
+        }
+      }
+    }
+
     // CORE-UX-TRUST: the per-agent track record, now surfaced HERE (the point of
     // decision moved off Today into Govern → Approvals). All-time decided rows for
     // the agents in this queue (RLS-scoped to the caller); honest, no fabricated
@@ -650,6 +698,33 @@ export const listGovernApprovals = createServerFn({ method: "POST" })
         ...a,
         mission_title: a.mission_id ? (titleOf.get(a.mission_id) ?? null) : null,
         risk: riskOf.get(a.tool_name) ?? "medium",
+        /*
+         * ── F-128: 22 OF 29 PENDING GATES HELD WORK THAT HAD ALREADY FINISHED ──
+         *
+         * S1 measured `/approvals` against the database. The screen says
+         * *"52 decisions are ready for you"*, and each row promises
+         * *"Approve · unblocks Build for this spec"*. For 22 of the 29 pending
+         * tool-call gates, **the run they held is over**, so approving cannot
+         * unblock anything. Seven more (`memory.promote`) have no `agent_runs`
+         * row at all. None is past its expiry, so nothing will ever clear them,
+         * and the youngest is 33 days old.
+         *
+         * That is the founder's own bar failing on the one surface whose entire
+         * job is telling a person what needs them: a screen implying work that is
+         * not real.
+         *
+         * AGE CANNOT CARRY IT, which is why this is a field rather than a
+         * heuristic S1 could compute. A 33-day-old call whose run is still queued
+         * is genuinely waiting; one whose run finished is not; and `created_at`
+         * cannot tell them apart.
+         *
+         * THREE STATES, NOT TWO, and the null is load-bearing. `false` means "we
+         * looked and the work is over". `null` means "we cannot say" — no
+         * mission on the approval, or no run row for that mission — and those
+         * seven `memory.promote` rows are exactly that case. Collapsing them
+         * would tell a person the work had finished when nothing ever started.
+         */
+        gatesLiveWork: a.mission_id ? (liveByMission.get(a.mission_id) ?? null) : null,
       })),
       trackByAgent,
       outcomeByAgent,
