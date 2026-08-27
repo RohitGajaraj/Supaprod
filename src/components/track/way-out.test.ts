@@ -249,13 +249,20 @@ describe("where the record already explained itself, only the door is added", ()
    * both. `HOLD_LINE` states the cause, the repetition AND that it needs a
    * person, so there was nothing left for a diagnosis to carry.
    */
-  for (const hold of ["station-cannot-finish", "corrections-spent"]) {
-    it(`offers a door and no restatement for ${hold}`, () => {
-      const out = wayOut(hold, BOTH_OPEN);
-      expect(out.next).toBe(BOTH_SENTENCE);
-      expect(out.onThisScreen).toBe(true);
-    });
-  }
+  it("offers a door and no restatement for station-cannot-finish", () => {
+    const out = wayOut("station-cannot-finish", BOTH_OPEN);
+    expect(out.next).toBe(BOTH_SENTENCE);
+    expect(out.onThisScreen).toBe(true);
+  });
+
+  /*
+   * `corrections-spent` WAS IN THIS SET AND IS NOT ANY MORE, which is worth
+   * recording rather than quietly editing. Its hold line said the cause when I
+   * removed my sentence as a restatement; within the hour S0 reduced that line
+   * to the effect alone, and the cause left the screen. The two holds look
+   * alike and differ in the one thing that matters: what the line above still
+   * says. See the hole guard below.
+   */
 
   it("falls to the steer, and a terminal hold says a steer alone will not restart it", () => {
     /*
@@ -280,5 +287,30 @@ describe("where the record already explained itself, only the door is added", ()
     // The other six are unaffected: their hold line names no way out at all.
     expect(wayOut("paused", BOTH_OPEN).next).toContain("Nothing on this screen can lift it");
     expect(wayOut("no-agent", BOTH_OPEN).next).toContain("switched off");
+  });
+});
+
+describe("removing an overlap from both sides at once leaves a hole", () => {
+  /*
+   * S0's guard asserts the two lines do not say one thing TWICE. This asserts
+   * the other failure, which we produced in the same hour by each fixing
+   * `corrections-spent` from one side: their hold line became the effect alone,
+   * I deleted my sentence as a restatement, and the CAUSE left the screen
+   * entirely. Nothing said the work had been sent back for the same fix as
+   * often as it is allowed.
+   *
+   * The division to hold to, from S0: the hold line carries WHAT IS HAPPENING,
+   * this file carries WHY and WHAT TO DO. So where a hold line states only an
+   * effect, the way out must still name the cause.
+   */
+  it("still names the cause for corrections-spent, which the hold line no longer does", () => {
+    const out = wayOut("corrections-spent", BOTH_OPEN);
+    expect(out.next).toContain("sent back for this same fix");
+    expect(out.next).toContain("Send it back a step");
+  });
+
+  it("does not put the effect back, which is the half S0's line owns", () => {
+    // "Nothing further will be spent on this until you look." is theirs.
+    expect(wayOut("corrections-spent", BOTH_OPEN).next).not.toContain("Nothing further");
   });
 });

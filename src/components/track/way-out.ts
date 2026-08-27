@@ -123,6 +123,25 @@ const DIAGNOSIS: Partial<Record<HoldReason, string>> = {
   stalled: "Another try lands in the same place.",
   "going-in-circles": "Trying again changes nothing.",
   "tools-refused": "A door it needs is locked, and no step can unlock it for itself.",
+  /*
+   * THE CAUSE, BECAUSE S0'S LINE NOW CARRIES ONLY THE EFFECT.
+   *
+   * Their guard caught `corrections-spent` restating itself and we each fixed
+   * it from one side in the same hour: `HOLD_LINE` became "Nothing further will
+   * be spent on this until you look", and I had deleted this entry as a
+   * restatement. Both edits were right on their own and the composition lost
+   * the cause altogether -- nothing on the screen said the work had been sent
+   * back for the same fix as often as it is allowed.
+   *
+   * That is the third artifact S0 named: when two lanes write to one screen
+   * region, the composed text is a thing neither owns, and removing an overlap
+   * from both sides at once leaves a hole exactly as easily as leaving one
+   * leaves a repeat. Their division is the one to follow, and it is now
+   * written where a reader of either file will meet it: the hold line carries
+   * WHAT IS HAPPENING, this file carries WHY and WHAT TO DO.
+   */
+  "corrections-spent":
+    "It has been sent back for this same fix as often as it is allowed and is still short of it.",
   "given-up": "Nothing more will be tried here on its own.",
 };
 
