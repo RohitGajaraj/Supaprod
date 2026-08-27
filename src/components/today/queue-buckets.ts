@@ -109,3 +109,45 @@ export function inBucket(
   const all = [...(items ?? [])];
   return bucket === null ? all : all.filter((i) => i.filterBucket === bucket);
 }
+
+/**
+ * WHAT THE QUEUE SAYS WHEN THE FILTER EXCLUDED EVERYTHING, WHICH IS NOT WHAT AN
+ * EMPTY QUEUE SAYS.
+ *
+ * ── THE DEFECT THIS EXISTS FOR, AND IT WAS MINE ────────────────────────────
+ * The board renders its queue behind `focused ? ... : null`, where `focused` is
+ * the first visible item. That guard was written when "no visible item" had
+ * exactly one cause: nothing is waiting. **Adding a filter gave the same
+ * observable condition a second cause, and every guard downstream kept the old
+ * meaning.**
+ *
+ * Shipped behaviour before this: filter to Gates, settle the last gate, and the
+ * whole section disappears - the queue, its heading, AND THE TAB ROW ITSELF,
+ * because the row was rendered inside the branch its own state can delete. What
+ * is left is a region title and a sentence about undo, with 52 calls still
+ * waiting and no control on screen to reach them. R-20 section 6: no dead ends.
+ *
+ * A control must never live inside the branch its own state can delete. The row
+ * now draws from the unfiltered `items`, so the way back survives the state
+ * that needs it.
+ *
+ * ── WHY A SENTENCE OF ITS OWN AND NOT THE EMPTY-QUEUE ONE ──────────────────
+ * S1 states the rule from `/approvals`, which hit this first: *"Nothing needs
+ * you" and "nothing matches Gates" are different facts and the second must not
+ * wear the first's clothes.* It is the same rule this repo already enforces
+ * between loading, empty and failed, one filter across.
+ *
+ * So this names the bucket that is empty AND the number that is not, because
+ * the second fact is the one the old behaviour destroyed. A person who filtered
+ * to Gates and cleared them has not finished their morning, and a screen that
+ * implies they have is lying by omission.
+ */
+export function bucketEmptyLine(bucket: QueueBucket, othersWaiting: number): string {
+  const nothingHere = `Nothing in ${LABEL[bucket]} is waiting on you.`;
+  // Defensive: the caller only draws this with items outstanding, but a
+  // sentence that claims other work exists must never be built from a zero.
+  if (othersWaiting <= 0) return nothingHere;
+  return othersWaiting === 1
+    ? `${nothingHere} 1 other call still is.`
+    : `${nothingHere} ${othersWaiting} other calls still are.`;
+}

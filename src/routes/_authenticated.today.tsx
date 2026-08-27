@@ -52,6 +52,7 @@ import {
 } from "@/components/today/duplicate-work";
 import { SlowRead } from "@/components/shell/SlowRead";
 import {
+  bucketEmptyLine,
   bucketTabs,
   inBucket,
   worthFiltering,
@@ -2112,7 +2113,14 @@ function Today() {
               </ReadFailedLine>
             ) : (
               <>
-                {focused ? (
+                {/* DRAWN BY THE UNFILTERED QUEUE, NOT BY THE FOCUSED ITEM, and the
+                    difference is a dead end. This guard used to read `focused`,
+                    which is the first VISIBLE item, so a filter that excluded
+                    everything deleted the whole section - the queue, its heading
+                    and the tab row itself, which lived inside the branch its own
+                    state could delete. A control must never be reachable only
+                    from the state it is the exit for. */}
+                {items.length > 0 ? (
                   <section aria-label={FEED_CALLS} className="flex flex-col">
                     <FeedHead name={FEED_CALLS} count={items.length} />
                     <div className="mt-mrd-3">
@@ -2149,18 +2157,42 @@ function Today() {
                           ))}
                         </div>
                       ) : null}
-                      <DecisionQueue
-                        items={visibleItems}
-                        focused={focused}
-                        onFocus={setFocusedId}
-                        walking={walking}
-                        onWalk={enterQueue}
-                        onLeave={leaveQueue}
-                        selection={selection}
-                        verbs={verbs}
-                        bulk={bulkVerbs}
-                        onOpenAgent={(agent) => navigate({ to: "/crew", search: { agent } })}
-                      />
+                      {focused ? (
+                        <DecisionQueue
+                          items={visibleItems}
+                          focused={focused}
+                          onFocus={setFocusedId}
+                          walking={walking}
+                          onWalk={enterQueue}
+                          onLeave={leaveQueue}
+                          selection={selection}
+                          verbs={verbs}
+                          bulk={bulkVerbs}
+                          onOpenAgent={(agent) => navigate({ to: "/crew", search: { agent } })}
+                        />
+                      ) : activeBucket ? (
+                        /* THE FILTER EXCLUDED EVERYTHING, which is not the same fact as
+                           an empty queue and must not wear its words. `bucketEmptyLine`
+                           carries the reasoning and the sentence.
+
+                           `role="status"` because this replaces the queue after an
+                           answer settles, so a screen reader is told the list it was
+                           working is now empty and why. R-19 defers small screens; it
+                           does not defer this. */
+                        <p
+                          role="status"
+                          className="flex flex-wrap items-center gap-mrd-3 text-mrd-mute"
+                        >
+                          {bucketEmptyLine(activeBucket, items.length)}
+                          <Action
+                            variant="quiet"
+                            onClick={() => setBucket(null)}
+                            title="Every call waiting on you"
+                          >
+                            Show all <Num>{items.length}</Num>
+                          </Action>
+                        </p>
+                      ) : null}
                     </div>
                   </section>
                 ) : null}
