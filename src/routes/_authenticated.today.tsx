@@ -313,7 +313,26 @@ type Settled = { verb: string; consequence: React.ReactNode; at: string; failed?
  * one of those decisions, and it is not — the stuck thing is a RUN. The short
  * form is better English and a false sentence, so it loses.
  */
-function stateSentence(n: { ready: number; stuck: number; shipped: number }): React.ReactNode {
+/**
+ * `waiting` JOINED 2026-08-27, AND IT IS NOT A SYNONYM FOR `stuck`.
+ *
+ * `stuck` now counts only work that STOPPED: failed, halted, cancelled,
+ * blocked. `waiting` counts `proposed` missions, which an ambient trigger
+ * raised and nobody has launched. Nothing went wrong with those, and this
+ * workspace holds 89 of them, so folding them into "runs are stuck" would tell
+ * a person 89 things had broken when none of them had started.
+ *
+ * PRECEDENCE, and it is the order a reader needs. A failure outranks a queue:
+ * something that broke wants attention before something that has not begun.
+ * `shipped` stays last for the reason it always was, as the good news that only
+ * gets the line when nothing else claims it.
+ */
+function stateSentence(n: {
+  ready: number;
+  stuck: number;
+  waiting: number;
+  shipped: number;
+}): React.ReactNode {
   const first =
     n.ready === 0 ? (
       "Nothing is ready for your review."
@@ -338,6 +357,18 @@ function stateSentence(n: { ready: number; stuck: number; shipped: number }): Re
         <>
           {" "}
           <Num>{n.stuck}</Num> runs are stuck.
+        </>
+      )
+    ) : n.waiting > 0 && n.ready === 0 ? (
+      n.waiting === 1 ? (
+        <>
+          {" "}
+          <Num>1</Num> run is waiting for you to launch it.
+        </>
+      ) : (
+        <>
+          {" "}
+          <Num>{n.waiting}</Num> runs are waiting for you to launch them.
         </>
       )
     ) : n.ready > 0 ? null : n.shipped > 0 ? (
@@ -720,6 +751,28 @@ function Today() {
   const blockedAll = React.useMemo(
     () => rows.filter((m) => STUCK.has(m.status)),
     [rows],
+  );
+  /*
+   * STOPPED AND UNLAUNCHED ARE NOT THE SAME WORD.
+   *
+   * `STUCK` holds `failed`, `halted`, `cancelled`, `blocked` AND `proposed`,
+   * which is right for routing every one of them into the lane that needs a
+   * person. It is wrong for the HEADLINE, which says "N runs are stuck": a
+   * `proposed` mission is one an ambient trigger raised and nobody has launched
+   * yet. Nothing went wrong with it. This workspace holds 89 of them, so the
+   * headline was one unwindowed read away from telling a person that 89 runs
+   * were stuck when none of them had started.
+   *
+   * Both counts are unwindowed, for the reason the lane is: neither stopped
+   * work nor an unlaunched proposal ages out of needing you.
+   */
+  const stoppedAll = React.useMemo(
+    () => blockedAll.filter((m) => m.status !== "proposed"),
+    [blockedAll],
+  );
+  const proposedAll = React.useMemo(
+    () => blockedAll.filter((m) => m.status === "proposed"),
+    [blockedAll],
   );
   const running = React.useMemo(() => rows.filter((m) => WORKING.has(m.status)), [rows]);
 
@@ -1209,7 +1262,9 @@ function Today() {
      by the lane that was empty. So the assurances are collected and said once,
      on the region's own line, where all three fit and read as one sentence. */
   const crewQuiet = [
-    stuck.length === 0 && trackCrewRows.reply.length === 0 ? "nothing stopped" : null,
+    /* "nothing stopped" is a claim about STOPPED work, so it reads `stoppedAll`
+       rather than the windowed set that also counts unlaunched proposals. */
+    stoppedAll.length === 0 && trackCrewRows.reply.length === 0 ? "nothing stopped" : null,
     running.length === 0 && trackCrewRows.live.length === 0 ? "no agent is working" : null,
     shipped.length === 0 && trackCrewRows.open.length === 0 ? "nothing went live" : null,
   ].filter((s): s is string => s !== null);
@@ -1597,7 +1652,12 @@ function Today() {
      * counted sentence says it.
      */
     if (quietMorning) return "Nothing needs you right now.";
-    return stateSentence({ ready: items.length, stuck: stuck.length, shipped: shipped.length });
+    return stateSentence({
+      ready: items.length,
+      stuck: stoppedAll.length,
+      waiting: proposedAll.length,
+      shipped: shipped.length,
+    });
   }, [
     quietMorning,
     loading,
@@ -1606,7 +1666,8 @@ function Today() {
     justLanded,
     criticResult,
     items.length,
-    stuck.length,
+    stoppedAll.length,
+    proposedAll.length,
     shipped.length,
   ]);
 
