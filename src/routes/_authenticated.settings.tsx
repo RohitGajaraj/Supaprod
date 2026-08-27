@@ -167,7 +167,7 @@
  * rendered. Destructive actions keep their confirmation.
  */
 
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { redirect, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { readFailureMessage, sessionEndedMessage } from "@/lib/roles.functions";
 import { Row, Line } from "@/components/meridian/rows";
 import {
@@ -332,6 +332,31 @@ export const Route = createFileRoute("/_authenticated/settings")({
     connector: typeof search.connector === "string" ? search.connector : undefined,
     checkout: typeof search.checkout === "string" ? search.checkout : undefined,
   }),
+  /**
+   * `?section=memory` LANDS ON BRAIN INSTEAD OF ON AN APOLOGY.
+   *
+   * That pane's entire content was a heading reading "It is not set here any
+   * more" and a button to Brain. This file's own IA header has called it dead
+   * weight since the fold -- "a pane that exists to apologise for itself ...
+   * should be a redirect to /brain, not a section" -- and nothing had made it
+   * one.
+   *
+   * It got WORSE before it got better, and that was mine: U-039 gave the
+   * section keywords so search could finally find it, because a door-less
+   * pane search cannot reach is unreachable by anything. That fix was right
+   * and its effect was to make an apology easier to arrive at.
+   *
+   * A redirect keeps every saved link and every search hit working and spends
+   * no click on a dead end. Done in `beforeLoad` so the pane never paints:
+   * rendering the apology and then navigating away would show the reader the
+   * dead end on the way past it.
+   */
+  beforeLoad: ({ search }) => {
+    const asked =
+      (search as { section?: string; tab?: string }).section ??
+      (search as { section?: string; tab?: string }).tab;
+    if (asked === "memory") throw redirect({ to: "/brain" });
+  },
   component: SettingsPage,
   head: () => ({ meta: [{ title: "Settings · Supaprod" }] }),
   /*
@@ -658,8 +683,6 @@ function SettingsPage() {
           </>
         )}
         {/* No door in the index; the address still answers so old links land. */}
-        {active === "memory" && <MemorySection onOpen={() => navigate({ to: "/brain" })} />}
-
         {active === "staff" && (
           <RosterSection
             onOpenCrew={(slug) => navigate({ to: "/crew", search: slug ? { agent: slug } : {} })}
@@ -1896,21 +1919,6 @@ function DiagnosticsMoved({ onOpen }: { onOpen: () => void }) {
         body="Whether the platform is having a bad day, the reliability window, and any run that went away with your credits all sit under Quality."
         action={<Action onClick={onOpen}>Open Diagnostics</Action>}
       />
-    </>
-  );
-}
-
-function MemorySection({ onOpen }: { onOpen: () => void }) {
-  return (
-    <>
-      <PageHeading title="Memory" sub="It is not set here any more." />
-      {/* `NothingHere` rather than `NothingYet`: no `Region` draws a container
-          around this, so the branch IS the whole pane and the box is the only
-          thing giving the sentence somewhere to sit. */}
-      <NothingHere action={<Action onClick={onOpen}>Open Brain</Action>}>
-        What the loop knows, what it learned, and the gate that reviews a new memory all live in
-        Brain now.
-      </NothingHere>
     </>
   );
 }
