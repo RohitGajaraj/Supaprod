@@ -52,7 +52,20 @@ on the record and the next station cannot read it."*
 
 - **A 24-hour window during a four-lane build night is not a normal day.** Much of this is lanes
   exercising the product deliberately, and the ratio on a customer's workspace may differ entirely.
-- **I did not split by `is_sample`**, and after getting that wrong three times tonight I am naming it
-  rather than implying the split does not matter. These are all workspaces.
+- ~~**I did not split by `is_sample`.**~~ **CLOSED, one query later, and it strengthens the finding:**
+
+  ```sql
+  SELECT w.is_sample, count(*), round(sum(r.tokens_used)/1000.0)
+  FROM agent_runs r LEFT JOIN workspaces w ON w.id = r.workspace_id
+  WHERE r.created_at > now() - interval '24 hours' GROUP BY 1;
+  -- false | 166 | 7103      (one row: there is no other)
+  ```
+
+  **All 166 runs are on REAL workspaces. Zero sample.** So the whole 7.1M tokens, all 68 runs that
+  finished with failures, and all 31 artifacts are real work. The split I flagged as missing would
+  have been the one thing that could have softened this, and it does the opposite.
+
+  Chased immediately rather than left in the "not claiming" list, because leaving it there is what
+  I did three times tonight before somebody else had to ask.
 - **`completed_with_failures` is not broken down by what failed.** `failure_kind` is empty on every
   row in the window, so the record does not say.
