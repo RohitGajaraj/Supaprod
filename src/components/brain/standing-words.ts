@@ -82,3 +82,33 @@ export function ratedPopulation(helped: number, contradicted: number): string | 
   if (rated === 0) return null;
   return rated === 1 ? "one of them rated" : `${rated} of them rated`;
 }
+
+/**
+ * NOTHING IN THE PRODUCT CAN RATE A RECALL, AND THE RATED COUNT IMPLIES
+ * OTHERWISE.
+ *
+ * `ratedPopulation` above gives "77 of them rated" its denominator, which was
+ * the fix for a misleading ratio. It left a second implication standing: that
+ * rating is something that happens here.
+ *
+ * `submitFeedback` is the only writer of `memory_recall_log.outcome`. Its only
+ * caller is `MessageMetaFooter` in components/chat. THAT COMPONENT IS MOUNTED
+ * NOWHERE -- zero importers in src/ outside its own file.
+ *
+ * Measured on the live database, 2026-08-28: all 77 rated recalls fall between
+ * 29 June and 23 July, and the last one was 23 July. Nothing since, because
+ * nothing can.
+ *
+ * So the count is a closed window, and a person reading it is entitled to know
+ * that rather than to wonder why their own runs never appear in it. This is the
+ * same shape as the guardrail line: the silence has a cause, the cause is ours,
+ * and saying so is what stops a reader inventing a worse explanation.
+ *
+ * IT DOES NOT SAY THE FEATURE IS BROKEN. The path is wired end to end -- a
+ * rating bumps `importance`, and importance is in the recall RPC's own ORDER
+ * BY, so a rating really would move what the crew reads first. What is missing
+ * is the control. Naming the missing half precisely is the difference between a
+ * bug report and a fact.
+ */
+export const RATING_HAS_NO_DOOR =
+  "No surface offers this today, so the count is what was rated before the control was taken out.";
