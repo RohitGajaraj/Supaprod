@@ -99,3 +99,37 @@ describe("the order says where it stops meaning something", () => {
     expect(memo).toContain("return at - bt;");
   });
 });
+
+describe("one group, one name", () => {
+  /*
+   * The region stacked THREE names for one group inside ~100px:
+   *
+   *   headline   "52 decisions are ready for your review."
+   *   region     "What needs you"
+   *   group head "READY FOR YOUR REVIEW  52"
+   *
+   * The phrase twice, the number three times. `AppFrame` states the rule this
+   * breaks - no third statement of one fact inside 100 pixels - and its own
+   * live line was fixed for the same defect on the same day.
+   *
+   * A group NAME earns its line by separating this group from another one.
+   */
+  it("draws the group head only when the settled trail gives it a sibling", () => {
+    expect(SRC).toContain(
+      "{settled.length > 0 ? (\n                      <FeedHead name={FEED_CALLS}",
+    );
+  });
+
+  it("KEEPS THE ACCESSIBLE NAME UNCONDITIONALLY", () => {
+    // Dropping a visible duplicate must never cost the one reader who cannot
+    // see the region title above it.
+    expect(SRC).toContain("<section aria-label={FEED_CALLS}");
+    const at = SRC.indexOf("<section aria-label={FEED_CALLS}");
+    // The label is on the section itself, not inside the conditional below it.
+    expect(SRC.slice(at - 200, at)).not.toContain("settled.length > 0");
+  });
+
+  it("leaves the count reachable, on the filter row's All", () => {
+    expect(SRC).toContain("All <Num>{items.length}</Num>");
+  });
+});

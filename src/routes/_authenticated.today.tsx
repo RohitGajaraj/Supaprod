@@ -2150,7 +2150,37 @@ function Today() {
                     from the state it is the exit for. */}
                 {items.length > 0 ? (
                   <section aria-label={FEED_CALLS} className="flex flex-col">
-                    <FeedHead name={FEED_CALLS} count={items.length} />
+                    {/* THE HEAD IS DRAWN ONLY WHEN IT HAS A SIBLING TO SEPARATE
+                        IT FROM, which is the settled trail below.
+
+                        Screenshotted on the running board 2026-08-27, signed
+                        in, this region stacked THREE names for one group inside
+                        about a hundred pixels:
+
+                          headline  "52 decisions are ready for your review."
+                          region    "What needs you"
+                          this head "READY FOR YOUR REVIEW  52"
+
+                        The phrase appears twice and the number three times.
+                        `AppFrame` states the rule this breaks - the third
+                        statement of one fact inside 100 pixels - and the same
+                        defect was fixed in its live line the same day.
+
+                        A group name earns its line by distinguishing this group
+                        from another one. With nothing settled yet there is no
+                        other group, so the region title names it alone and the
+                        filter row below already carries the count on `All`.
+                        R-20 section 8: a region either carries a fact the person
+                        came for, or it goes.
+
+                        THE ACCESSIBLE NAME DOES NOT MOVE. `aria-label` on the
+                        section above is unconditional, so the group keeps its
+                        name for a screen reader whether or not the heading is
+                        painted. Dropping a visible duplicate must never cost the
+                        one reader who cannot see the region title. */}
+                    {settled.length > 0 ? (
+                      <FeedHead name={FEED_CALLS} count={items.length} />
+                    ) : null}
                     <div className="mt-mrd-3">
                       {/* TEXT TABS, NOT A FACET EXPLOSION, which is the taste law
                           `approvals-queue.functions.ts` states over this very vocabulary. The
