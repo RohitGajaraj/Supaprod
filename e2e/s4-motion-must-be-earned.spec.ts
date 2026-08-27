@@ -370,8 +370,26 @@ async function proseWiderThanMeasure(page: import("@playwright/test").Page): Pro
        * A ch threshold is blind to it whenever the current font happens to land
        * inside the bound, which is exactly when it looks fine and is not.
        */
-      const declared = el.style.maxWidth || cs.maxWidth;
-      const pixelBound = /^\d+(\.\d+)?px$/.test(declared.trim());
+      /*
+       * ONLY THE INLINE, AUTHORED VALUE COUNTS AS A PIXEL CAP.
+       *
+       * `getComputedStyle().maxWidth` RESOLVES ch, em and % to pixels, so
+       * reading it flags every capped element on earth, including one correctly
+       * written as `68ch`. The first version of this did exactly that and
+       * reported /decide as pixel-capped at 653.57px — a fractional pixel is the
+       * fingerprint of a computed value, not something anybody typed.
+       *
+       * `el.style.maxWidth` is the inline value as AUTHORED, so `maxWidth: 640`
+       * in a component shows as `640px` and `68ch` shows as `68ch`. That is the
+       * only reading that can tell a pixel cap from a character one.
+       *
+       * The cost is stated rather than hidden: a px cap written in a CSS FILE is
+       * invisible to this, because the cascade has already resolved it by the
+       * time the DOM can be asked. Catching those needs the stylesheet, not the
+       * element.
+       */
+      const declared = el.style.maxWidth.trim();
+      const pixelBound = /^\d+(\.\d+)?px$/.test(declared);
       if (ch <= 76 && !pixelBound) continue;
       const how = pixelBound
         ? ` [capped in PIXELS: ${declared.trim()}, which cannot track type]`
