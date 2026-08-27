@@ -563,7 +563,25 @@ function ApprovalsSurface() {
      here has happened yet, so nothing is owed. */
   const headline = queue.isLoading
     ? "Approvals"
-    : n === 0
+    : /*
+       * A FAILED READ IS NOT AN EMPTY QUEUE, and this heading was the one place
+       * on the page that had not learned it. `queue.isError` was never consulted
+       * here, so a failed read fell through to n === 0 and printed "Nothing is
+       * ready for you." in the largest type on the screen, directly above the
+       * error card explaining that the queue could not be read. The page
+       * asserted the queue was empty and unreadable in the same breath, and a
+       * person believing the heading would walk away from work that is sitting
+       * there.
+       *
+       * The rest of this file already knows the rule: :580 checks !isError
+       * before deciding somebody is in no workspace, and the card below branches
+       * on it too. The heading takes the neutral title, the same one it wears
+       * while loading, because a heading that cannot know the count must not
+       * imply one. The card underneath carries the explanation.
+       */
+      queue.isError
+      ? "Approvals"
+      : n === 0
       ? "Nothing is ready for you."
       : n === 1
         ? "1 decision is ready for you."

@@ -20,6 +20,7 @@
  * so arriving here answers "what has it made so far" without a click.
  */
 import * as React from "react";
+import { failureLine } from "@/components/track/error-copy";
 import { humanizeText } from "@/lib/ai/humanize";
 import { NO_CONTRACT, NO_NON_GOALS, specContract } from "@/components/track/spec-contract";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -673,7 +674,7 @@ function SignalCard({
         ) : null}
         {del.isError ? (
           <span role="status" className="text-mrd-small text-mrd-body">
-            {(del.error as Error).message}
+            {failureLine("It is still here, and nothing was removed.", del.error)}
           </span>
         ) : (
           <Action variant="quiet" busy={del.isPending} onClick={() => del.mutate()}>

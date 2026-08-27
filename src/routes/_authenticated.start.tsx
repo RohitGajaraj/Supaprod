@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Action, Eyebrow, PageHeading } from "@/components/meridian/surface-parts";
+import { ReadFailedLine, Action, Eyebrow, PageHeading } from "@/components/meridian/surface-parts";
 import { Row } from "@/components/meridian/rows";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { holdTone } from "@/lib/spine/driver";
@@ -376,7 +376,28 @@ function StartLanding() {
           <Receipt verb="It did not start" consequence={problems.join(" ")} failed />
         ) : null}
 
-        {openRuns.length > 0 ? <OpenWorkSection openRuns={openRuns} navigate={navigate} /> : null}
+        {/*
+         * A FAILED READ IS NOT AN EMPTY DESK. `runs.data` is undefined when the
+         * read fails, so `openRuns` falls to [] and this section vanished. On
+         * the front door that is the worst place for it: a person opens this
+         * screen to see what is in flight, finds nothing where their work
+         * usually is, and concludes they have none. Silence here is a stronger
+         * claim than a sentence would be.
+         *
+         * Third of this family tonight, after the approvals heading and the run
+         * route. The zero came from the error rather than from the desk.
+         */}
+        {runs.isError ? (
+          <section className="flex flex-col gap-mrd-3" aria-label="Your open work">
+            <Eyebrow>Your open work</Eyebrow>
+            <ReadFailedLine onRetry={() => void runs.refetch()}>
+              Your open work did not load. Whatever is running is still running; this screen just
+              could not read it.
+            </ReadFailedLine>
+          </section>
+        ) : openRuns.length > 0 ? (
+          <OpenWorkSection openRuns={openRuns} navigate={navigate} />
+        ) : null}
 
         <div data-mrd="" className="flex flex-col gap-mrd-3">
           <p className="mrd-meta">Pick one if it fits. Not picking is fine.</p>
