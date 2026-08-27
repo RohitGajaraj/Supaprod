@@ -160,11 +160,17 @@ export function trackToBoardRows(
       ...base,
       kind: "running",
       lastMoved: fresh ? (formatAgo(t.drivenAt) ?? "now") : formatAgo(t.drivenAt),
-      // A hold that is NOT on the person means the work has stopped for its own
-      // reason; carrying the reason keeps a stopped track from reading as a
-      // merely slow one, which is the exact confusion the hold field exists to
-      // prevent (spine_tracks.last_hold).
-      holdLine: t.holdReason ? (t.hold ?? null) : null,
+      /* A hold that is NOT on the person means the work stopped for its own
+         reason, and carrying that reason keeps a stopped track from reading as
+         a merely slow one, which is the confusion the hold field exists to
+         prevent (spine_tracks.last_hold).
+         SPLIT THE SAME WAY THE WAITING ROWS ARE. The reason is a full sentence
+         from the driver and runs past 200 characters; the row's state slot is a
+         few words wide and truncates. "held" keeps the fact in the scan band
+         and the sentence goes underneath, in full, which beats the same
+         sentence clipped mid-word. */
+      holdLine: t.holdReason ? "held" : null,
+      reason: t.holdReason ? (t.hold ?? null) : null,
     });
   }
 

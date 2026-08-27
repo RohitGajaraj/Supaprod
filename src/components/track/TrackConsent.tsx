@@ -23,6 +23,7 @@
  * again at the same gate and burn a seat saying so.
  */
 import * as React from "react";
+import { failureLine } from "@/components/track/error-copy";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -393,9 +394,23 @@ export function TrackConsent({
               {/* A refusal comes back as words from the server; repeating them
                   is the only honest option, because the client knows strictly
                   less than the handler did. */}
-              {decide.error ? <RecordSpeaks>{(decide.error as Error).message}</RecordSpeaks> : null}
+              {/* The comment above is right that a refusal comes back as words
+                  from the server and repeating them is the only honest option.
+                  It holds only while the words WERE written for a person, and
+                  the same channel also carries transport strings. `failureLine`
+                  keeps the refusal and drops the machine's half. */}
+              {decide.error ? (
+                <RecordSpeaks>
+                  {failureLine("Your answer was not recorded, so the call still stands.", decide.error)}
+                </RecordSpeaks>
+              ) : null}
               {decideClass.error ? (
-                <RecordSpeaks>{(decideClass.error as Error).message}</RecordSpeaks>
+                <RecordSpeaks>
+                  {failureLine(
+                    "Your answer was not recorded, so the call still stands.",
+                    decideClass.error,
+                  )}
+                </RecordSpeaks>
               ) : null}
             </div>
           </CallGate>

@@ -4,6 +4,7 @@
 #
 #   bash e2e/check-motion.sh              # the four public surfaces
 #   bash e2e/check-motion.sh /today /runs # or any paths you name
+#   bash e2e/check-motion.sh --signed-in /today /approvals   # product surfaces
 #
 # Run this before you commit a surface that moves. It boots the app against a
 # database that does not exist and tells you what is STILL redrawing afterwards.
@@ -34,8 +35,16 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 PORT=8080
-PATHS=("$@")
 DUMMY_ENV_WRITTEN=0
+SIGNED_IN=0
+
+# `--signed-in` measures the surfaces where a person watches their OWN work.
+# Signed out, all six of those redirect to /login and you measure the login page.
+if [ "${1:-}" = "--signed-in" ]; then
+  SIGNED_IN=1
+  shift
+fi
+PATHS=("$@")
 
 if lsof -ti:"$PORT" >/dev/null 2>&1; then
   echo "REFUSING: something is already listening on :$PORT."
@@ -109,6 +118,17 @@ export S4_MOTION_PATHS
 # S4 findings, the last of which called `/runs` a permanent dead end. Measured
 # properly, `/runs` compiles for 105s and then redirects in 4.2s, which is FASTER
 # than `/today`. Only a real browser triggers the compile. See S4-057.
+if [ "$SIGNED_IN" = "1" ]; then
+  # A fabricated session, checked by nothing, sent nowhere. The route guard reads
+  # localStorage and makes no network call, so this is enough to render the
+  # authenticated shell while every data read behind it fails. That is the point.
+  mkdir -p playwright/.auth
+  bun run e2e/helpers/dead-backend-session.mjs > playwright/.auth/dead.json
+  S4_MOTION_STATE="$(pwd)/playwright/.auth/dead.json"
+  export S4_MOTION_STATE
+  echo "Measuring SIGNED IN, against a database that does not exist."
+fi
+
 echo "Warming ${#TARGETS[@]} route(s) in a browser so the timer measures the page, not the compiler."
 bun run e2e/helpers/warm-routes.mjs "${TARGETS[@]}" || \
   echo "  (a route never went quiet; the measurement below still runs, read it with that in mind)"

@@ -109,8 +109,20 @@ test.skip(
   "Needs a local dev server pointed at a dead database. Opt in with S4_MOTION=yes.",
 );
 
-// A stranger has no session, and a signed-out render is the honest one here.
-test.use({ storageState: { cookies: [], origins: [] } });
+/**
+ * Signed out by default, because a stranger has no session and the public
+ * surfaces render without one.
+ *
+ * `S4_MOTION_STATE` points at a storageState file instead, which is how the
+ * PRODUCT surfaces get measured: signed out they all redirect to `/login` and
+ * the measurement is of the login page. See `e2e/helpers/dead-backend-session.mjs`
+ * for what that state is and why it is a test double rather than a credential.
+ */
+test.use({
+  storageState: process.env.S4_MOTION_STATE
+    ? process.env.S4_MOTION_STATE
+    : { cookies: [], origins: [] },
+});
 
 /**
  * A hash of the rendered viewport.
@@ -281,20 +293,36 @@ test("report which surfaces still move once nothing can be read", async ({ page 
       }
     }
 
+    /*
+     * PHOTOGRAPH EVERY SURFACE, not only the ones that moved.
+     *
+     * This used to shoot only the movers, which meant a surface that SETTLED was
+     * never seen by anybody. That is backwards: settling is the pass condition
+     * for motion and says nothing about whether the words on it are true. It
+     * cost a real gap, `/work` came back "settled, nothing moves" in a sweep of
+     * seven and was the one surface whose copy I could not read afterwards.
+     *
+     * The dead backend test is worth as much for what a surface SAYS as for what
+     * it does, and both findings in S4-065 were read off screenshots rather than
+     * measured. So the shot is unconditional and named for the path.
+     */
+    await page.screenshot({ path: join(SHOT_DIR, `surface${path.replace(/\//g, "_")}.png`) });
+
     const changed = a !== b;
     if (changed) {
       moving.push(path);
-      await page.screenshot({ path: join(SHOT_DIR, `moving${path.replace(/\//g, "_")}.png`) });
       report.push(
         `\n=== ${path} STILL MOVING ${GAP_MS}ms after settle, with no backend ===\n` +
           `  frame at settle+0s : ${a}\n` +
           `  frame at settle+${GAP_MS / 1000}s : ${b}\n` +
-          `  screenshot: docs/screenshots/s4-motion/moving${path.replace(/\//g, "_")}.png`,
+          `  screenshot: docs/screenshots/s4-motion/surface${path.replace(/\//g, "_")}.png`,
       );
     } else {
       report.push(
         `\n=== ${path} settled after rendering in ${(render.ms / 1000).toFixed(1)}s. ` +
-          `Nothing moves without data. ===`,
+          `Nothing moves without data. ===\n` +
+          `  screenshot: docs/screenshots/s4-motion/surface${path.replace(/\//g, "_")}.png\n` +
+          `  Settling is the pass for MOTION. Open it anyway and read what it SAYS.`,
       );
     }
   }

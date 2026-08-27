@@ -20,6 +20,8 @@
  * so arriving here answers "what has it made so far" without a click.
  */
 import * as React from "react";
+import { failureLine } from "@/components/track/error-copy";
+import { humanizeText } from "@/lib/ai/humanize";
 import { NO_CONTRACT, NO_NON_GOALS, specContract } from "@/components/track/spec-contract";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -291,7 +293,29 @@ function num(v: unknown): number | null {
 function DecisionCard({ item }: { item: ArtifactView }) {
   const f = item.fields;
   const status = str(f.status);
-  const rationale = str(f.rationale);
+  /*
+   * ── A BRIDGE, AND THE CONDITION THAT ENDS IT ──────────────────────────
+   * Measured on production 2026-08-27: decisions.rationale holds 1 dashed row
+   * of 367, and it is the NEWEST row in the table, written at 23:10:27 UTC.
+   * S0's backfill ran around 17:30 UTC and measured zero, so this row was
+   * written clean-slate afterwards and came out dashed. The column's WRITE PATH
+   * is not sanitised; the clean history is what hid it.
+   *
+   * The seven sites S0 wrapped were agent_runs.output in loop.server.ts.
+   * Whatever writes a decision's rationale is a different writer and never got
+   * runOutput. Filed to them with the row and the timestamp.
+   *
+   * Until that lands the founder would otherwise meet an em dash in the middle
+   * of the most important card in the product, so the repo's own sanitiser runs
+   * over it here. It is idempotent, so it no-ops the moment the write path is
+   * closed. **When the writer sanitises AND the stored rows are clean, delete
+   * this and render the column directly**, exactly as the transcript's bridge
+   * was deleted in RUN-27 once both of its conditions were met.
+   *
+   * The words are untouched; humanizeText moves punctuation and strips
+   * invisible characters, and leaves fenced code alone.
+   */
+  const rationale = str(f.rationale) ? humanizeText(str(f.rationale) as string) : null;
   const alternatives = Array.isArray(f.alternatives_considered)
     ? f.alternatives_considered.filter((a): a is string => typeof a === "string")
     : [];
@@ -650,7 +674,7 @@ function SignalCard({
         ) : null}
         {del.isError ? (
           <span role="status" className="text-mrd-small text-mrd-body">
-            {(del.error as Error).message}
+            {failureLine("It is still here, and nothing was removed.", del.error)}
           </span>
         ) : (
           <Action variant="quiet" busy={del.isPending} onClick={() => del.mutate()}>
