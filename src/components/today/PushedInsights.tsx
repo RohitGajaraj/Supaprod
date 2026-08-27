@@ -72,7 +72,7 @@ export function PushedInsights() {
             <h2 id="today-notices-title">What changed while you were away</h2>
           </div>
         </div>
-        <ReadFailedLine error={pushed.error} onRetry={() => void pushed.refetch()}>
+        <ReadFailedLine onRetry={() => void pushed.refetch()}>
           This did not load, so nothing here can be trusted to be the full picture. Something may
           have changed while you were away.
         </ReadFailedLine>

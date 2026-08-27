@@ -232,7 +232,7 @@ export function AnalyticsPanel() {
         {overview.isLoading ? (
           <Reading>Reading the AI event history.</Reading>
         ) : overview.isError ? (
-          <ReadFailedLine error={overview.error} onRetry={() => void overview.refetch()}>
+          <ReadFailedLine onRetry={() => void overview.refetch()}>
             The event history did not load, so nothing here is a claim about what you spent.{" "}
             {errText(overview.error)}
           </ReadFailedLine>
@@ -366,7 +366,7 @@ export function AnalyticsPanel() {
         {byAgentQ.isLoading ? (
           <Reading>Reading the agent history.</Reading>
         ) : byAgentQ.isError ? (
-          <ReadFailedLine error={byAgentQ.error} onRetry={() => void byAgentQ.refetch()}>
+          <ReadFailedLine onRetry={() => void byAgentQ.refetch()}>
             Agent spend did not load, so this is not a claim that no agent ran.{" "}
             {errText(byAgentQ.error)}
           </ReadFailedLine>
@@ -415,7 +415,7 @@ export function AnalyticsPanel() {
           not find out". */}
       {unitQ.isError ? (
         <Region title="What each outcome cost">
-          <ReadFailedLine error={unitQ.error} onRetry={() => void unitQ.refetch()}>
+          <ReadFailedLine onRetry={() => void unitQ.refetch()}>
             The outcome history did not load. {errText(unitQ.error)}
           </ReadFailedLine>
         </Region>
@@ -472,7 +472,7 @@ export function AnalyticsPanel() {
             <Actions>
               <Action onClick={() => setOpenId(null)}>Back to the runs</Action>
             </Actions>
-            <ReadFailedLine error={detail.error} onRetry={() => void detail.refetch()}>
+            <ReadFailedLine onRetry={() => void detail.refetch()}>
               This call did not load. {errText(detail.error)}
             </ReadFailedLine>
           </Region>
@@ -506,7 +506,7 @@ export function AnalyticsPanel() {
             overview.isLoading ? (
               <Reading>Reading the AI event history.</Reading>
             ) : overview.isError ? (
-              <ReadFailedLine error={overview.error} onRetry={() => void overview.refetch()}>
+              <ReadFailedLine onRetry={() => void overview.refetch()}>
                 The event history did not load, so this is not a claim that no model ran.
               </ReadFailedLine>
             ) : byModel.length === 0 ? (
@@ -530,7 +530,7 @@ export function AnalyticsPanel() {
             events.isLoading ? (
               <Reading>Reading the last calls on the record.</Reading>
             ) : events.isError ? (
-              <ReadFailedLine error={events.error} onRetry={() => void events.refetch()}>
+              <ReadFailedLine onRetry={() => void events.refetch()}>
                 The calls did not load, so this is not a claim that nothing ran.{" "}
                 {errText(events.error)}
               </ReadFailedLine>
@@ -567,7 +567,7 @@ export function AnalyticsPanel() {
           ) : guards.isLoading ? (
             <Reading>Reading the guardrail hits.</Reading>
           ) : guards.isError ? (
-            <ReadFailedLine error={guards.error} onRetry={() => void guards.refetch()}>
+            <ReadFailedLine onRetry={() => void guards.refetch()}>
               The guardrail hits did not load, so this is not a claim that nothing fired.{" "}
               {errText(guards.error)}
             </ReadFailedLine>

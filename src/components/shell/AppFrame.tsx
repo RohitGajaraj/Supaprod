@@ -131,6 +131,7 @@
 import * as React from "react";
 import { approvalsQueueKey, missionsKey } from "@/lib/query-keys";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { sessionEndedMessage } from "@/lib/error-copy";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -1242,6 +1243,32 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     // session, so it is read once and not polled with the missions.
     staleTime: 10 * 60_000,
   });
+  /*
+   * AN ENDED SESSION IS ONE FACT ABOUT THE TAB, AND IT IS SAID ONCE.
+   *
+   * ReadFailed and ReadFailedLine learned to offer a Sign in door instead of a
+   * retry when the error says the session ended (S0's `wayOut`), and I passed
+   * `error` at fourteen reads across my surfaces. S1 then drove a genuinely
+   * expired session and found what that composes into: the learn page said "Your
+   * session ended. Sign in again and this will load." three times, in three
+   * regions, with three identical doors.** Today would have said it five times.
+   *
+   * A dead token fails every read in the tab at once. It is not a fact about
+   * the run record, or the queue, or the roster. It is a fact about you, and a
+   * person needs ONE door. So the shell says it once, above everything, and the
+   * regions go back to naming which read failed, which is the thing they know
+   * and the shell does not.
+   *
+   * Derived from the shell's own five queries rather than a sixth: whichever
+   * failed first the answer is identical, and it costs no request.
+   */
+  const sessionEnded =
+    sessionEndedMessage(missions.error) ??
+    sessionEndedMessage(queue.error) ??
+    sessionEndedMessage(openTracks.error) ??
+    sessionEndedMessage(crew.error) ??
+    sessionEndedMessage(roster.error);
+
   const slugById = React.useMemo(() => {
     const map = new Map<string, string>();
     for (const a of (roster.data?.agents ?? []) as RosterRow[]) {
@@ -2160,6 +2187,25 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
           {/* The work region is a scroll container and nothing else. A ported
             surface opts into .sp-inner; an unported one renders raw so its
             own padding is not doubled. See shell.css TRANSITION RULE. */}
+          {/* SAID ONCE, ABOVE EVERYTHING, because it is true of the tab and
+              not of any one region. Sits outside `sp-work`'s key so it does not
+              remount on navigation: the session is still ended on the next
+              page, and a notice that flickers away when you click something
+              reads as a glitch rather than a fact. */}
+          {sessionEnded ? (
+            <div
+              role="alert"
+              className="flex items-baseline gap-mrd-3 border-b border-mrd-line bg-mrd-sheet px-mrd-5 py-mrd-3 text-mrd-data leading-mrd-prose text-mrd-ink"
+            >
+              <span>{sessionEnded}</span>
+              <Link
+                to="/login"
+                className="whitespace-nowrap text-mrd-you underline underline-offset-2"
+              >
+                Sign in
+              </Link>
+            </div>
+          ) : null}
           <main className="sp-work" key={pathname}>
             {children}
           </main>

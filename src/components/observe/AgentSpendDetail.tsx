@@ -149,7 +149,7 @@ export function AgentSpendDetail({ id }: { id: string }) {
         goTo={BACK}
         onGoTo={onBack}
       >
-        <ReadFailedLine error={q.error} onRetry={() => void q.refetch()}>
+        <ReadFailedLine onRetry={() => void q.refetch()}>
           {failureLine("The spend for this agent did not load.", q.error)}
         </ReadFailedLine>
       </Region>

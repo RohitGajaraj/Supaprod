@@ -498,7 +498,7 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
         />
 
         {crew.isError ? (
-          <ReadFailed error={crew.error} onRetry={() => void crew.refetch()}>
+          <ReadFailed onRetry={() => void crew.refetch()}>
             The crew did not load, so nothing below is the real boundary.
           </ReadFailed>
         ) : null}
@@ -732,7 +732,7 @@ function MemberView({ slug, onBack }: { slug: string; onBack: () => void }) {
       <Surface>
         <div className="flex flex-col gap-mrd-7">
           <PageHeading title={agentDisplayName(slug)} />
-          <ReadFailed error={member.error} onRetry={() => void member.refetch()}>
+          <ReadFailed onRetry={() => void member.refetch()}>
             This one did not load, so the boundary shown would not be the real one.
           </ReadFailed>
           <Actions>{back}</Actions>
@@ -951,7 +951,6 @@ function Proposals({ member, onDecided }: { member: CrewMember; onDecided: () =>
 
       {decide.isError ? (
         <ReadFailed
-              error={decide.error}
               detail="Nothing was granted and nothing was refused. The proposal is still open."
             >
           {messageForPerson(decide.error)}
@@ -1364,7 +1363,7 @@ function Lessons({ slug, name }: { slug: string; name: string }) {
   if (q.isError) {
     return (
       <Region title="What it has learned">
-        <ReadFailed error={q.error} onRetry={() => void q.refetch()}>Its lessons did not load.</ReadFailed>
+        <ReadFailed onRetry={() => void q.refetch()}>Its lessons did not load.</ReadFailed>
       </Region>
     );
   }

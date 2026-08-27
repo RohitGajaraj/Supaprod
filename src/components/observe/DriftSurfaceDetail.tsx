@@ -414,7 +414,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
   if (error) {
     return (
       <Region title={id} goTo="All surfaces" onGoTo={back}>
-        <ReadFailedLine error={error} onRetry={() => void refetch()}>
+        <ReadFailedLine onRetry={() => void refetch()}>
           This surface did not load, so nothing here is a claim about whether it drifted.{" "}
           {messageForPerson(error)}
         </ReadFailedLine>
