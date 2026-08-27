@@ -269,6 +269,51 @@ async function failEveryAuthenticatedRead(page: import("@playwright/test").Page)
 }
 
 /**
+ * CONTROLS A SCREEN READER CANNOT NAME.
+ *
+ * Every other check in this file asks whether the screen tells the truth. This
+ * one asks whether it can be USED, which is the same standard applied to a
+ * person who is not looking at it.
+ *
+ * A button with an icon and no accessible name is announced as "button" and
+ * nothing else. On the failure states this harness specialises in, that is
+ * sharper than usual: those screens are mostly a sentence and a way out, so an
+ * unnamed control is frequently the ONLY control, and losing it loses the page.
+ *
+ * The four ways a control gets a name are all accepted: its own text, its
+ * `aria-label`, an `aria-labelledby` that resolves, or a `title`. An
+ * `aria-hidden` control is skipped, because it is deliberately not in the tree.
+ *
+ * Reported rather than asserted, for now. I have not established a clean number
+ * on this product, and a gate that fires on its first run before anyone has
+ * agreed the rule is how a check gets switched off.
+ */
+async function unnamedControls(page: import("@playwright/test").Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const out: string[] = [];
+    const sel = 'button, a[href], input, select, textarea, [role="button"], [role="link"]';
+    for (const el of Array.from(document.querySelectorAll<HTMLElement>(sel))) {
+      if (el.closest("[aria-hidden='true']")) continue;
+      if (el.offsetParent === null && el.getClientRects().length === 0) continue;
+      const labelledby = (el.getAttribute("aria-labelledby") ?? "")
+        .split(/\s+/)
+        .filter(Boolean)
+        .some((id) => document.getElementById(id)?.textContent?.trim());
+      const named =
+        (el.innerText || el.textContent || "").trim() ||
+        el.getAttribute("aria-label")?.trim() ||
+        el.getAttribute("title")?.trim() ||
+        (el as HTMLInputElement).labels?.length ||
+        labelledby;
+      if (named) continue;
+      const cls = el.className?.toString().trim().split(/\s+/).slice(0, 2).join(".");
+      out.push(`${el.tagName.toLowerCase()}${cls ? "." + cls : ""}`);
+    }
+    return Array.from(new Set(out)).slice(0, 10);
+  });
+}
+
+/**
  * SURFACES THAT ARE SUPPOSED TO SHOW EVERY FAILURE AT ONCE.
  *
  * `/meridian` is the design system's gallery: "Every component, in both grounds,
@@ -531,6 +576,15 @@ test("report which surfaces still move once nothing can be read", async ({ page 
           `(a card heading and its body are two), ${failures.retries} "Try again" ---\n  ` +
           failures.distinct.join("\n  ") +
           (failures.distinct.length > 2 ? `\n  ABOVE TWO. One dead read should say so once.` : ""),
+      );
+    }
+
+    const unnamed = await unnamedControls(page);
+    if (unnamed.length) {
+      notes.push(
+        `\n--- ${path}: ${unnamed.length} control shape(s) a screen reader cannot name ---\n  ` +
+          unnamed.join("\n  ") +
+          `\n  On a failure screen the only control is often the only way out.`,
       );
     }
 
