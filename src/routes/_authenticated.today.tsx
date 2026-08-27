@@ -1228,8 +1228,21 @@ function Today() {
     extraFor?: (row: CrewRow) => React.ReactNode,
   ) => {
     const headCount = trueCount ?? all.length;
-    const shown = standingRows(name, all);
-    const over = all.slice(shown.length);
+    /*
+     * EXPANDING A LANE USED TO REMOVE THE CONTROL THAT COLLAPSES IT.
+     *
+     * `standingRows` returns ALL rows once a lane is expanded, which is right
+     * for its other caller: the keyboard order has to walk everything on
+     * screen. Used here it made `over` empty, and the whole `over.length > 0`
+     * block is what draws the toggle, so opening a lane deleted "Show fewer"
+     * and a person could not close it again. Found by clicking it.
+     *
+     * The cap and the remainder are constants of the list, not of its open
+     * state. `expanded` decides whether the remainder is DRAWN, one line below,
+     * which is what that ternary always intended.
+     */
+    const shown = all.slice(0, LANE_ROWS);
+    const over = all.slice(LANE_ROWS);
     const expanded = moreOpen.includes(name);
     const line = (row: CrewRow) => (
       <CrewLine
