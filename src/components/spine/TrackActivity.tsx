@@ -60,6 +60,7 @@ import { getTrackActivity, getTrackChain } from "@/lib/spine/track.functions";
 import { countKinds, type Turn } from "@/lib/spine/activity";
 import { handoffLine, turnsAtStation, whatCameWith } from "@/components/spine/handed-over";
 import { carriedByMission, oncePerId } from "@/components/spine/what-a-mission-carries";
+import { howThisRan } from "@/components/track/how-this-ran";
 import { getMission } from "@/lib/missions.functions";
 import { type HandoffRow, mergeActivityRows } from "@/components/spine/activity-rows";
 import type { AgentStation } from "@/lib/agent-vocabulary";
@@ -570,8 +571,27 @@ export function TrackActivity({
    */
   const ordered = [...rows].reverse();
 
+  /*
+   * HOW THE WORK MOVED, ABOVE THE RECORD OF IT MOVING.
+   *
+   * `driven_via` is stamped on every transition and has reached this component
+   * all along, read one row at a time to caption a single leg and never as a
+   * whole. The product's central claim is that work walks the route on its own,
+   * and this is the only place on any surface where the record can answer that.
+   *
+   * OUTSIDE `role="log"` ON PURPOSE. The log announces ADDITIONS, and this is a
+   * standing summary of everything below it; inside, a screen reader would hear
+   * it re-announced as though a new entry had landed every time a poll changed
+   * the count.
+   *
+   * The sentence carries its own scope and never says "unattended". See
+   * `how-this-ran.ts` for the track that makes that non-negotiable.
+   */
+  const ranLine = howThisRan((q.data?.transitions ?? []).map((t) => t.drivenVia));
+
   return (
     <>
+      {ranLine ? <p className="mrd-meta">{ranLine}</p> : null}
       {/*
        * THE TRANSCRIPT IS A LOG, and that is a role rather than a decoration.
        * This file polls every ten seconds, so without it every arrival was silent
