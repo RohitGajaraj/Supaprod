@@ -60,6 +60,8 @@ function stripComments(source: string): string {
 }
 
 const src = stripComments(readFileSync(ROUTE, "utf8"));
+/** The headline builder, which moved out of the route on 2026-08-27. */
+const SENTENCE = readFileSync("src/components/today/state-sentence.tsx", "utf8");
 
 /**
  * Everything the Today component actually renders, which is where these rules
@@ -603,8 +605,19 @@ describe("the page states a window only where the window is true", () => {
   });
 
   it("states it on the shipped clause, which is the one it describes", () => {
-    expect(src).toContain("run shipped in the last 24 hours.");
-    expect(src).toContain("runs shipped in the last 24 hours.");
+    /*
+     * READ FROM `state-sentence.tsx`, NOT THIS ROUTE. The headline builder was
+     * extracted on 2026-08-27 so the sentence could be RENDERED and asserted
+     * rather than grepped - a source assertion cannot tell "At least 52" from
+     * "At least52", and that wording had no other way to be checked because
+     * this workspace's largest family holds 10 calls against a limit of 100,
+     * so the capped path never fires here.
+     *
+     * `state-sentence.test.tsx` now asserts the rendered text. These stay as
+     * the cheap structural check that the window is on ONE clause.
+     */
+    expect(SENTENCE).toContain("run shipped in the last 24 hours.");
+    expect(SENTENCE).toContain("runs shipped in the last 24 hours.");
   });
 
   it("KEEPS THE FILTER, because the claim was mislocated and not wrong", () => {
@@ -616,7 +629,7 @@ describe("the page states a window only where the window is true", () => {
   it("leaves the unwindowed clauses unqualified", () => {
     // If either of these ever grows "in the last 24 hours", it becomes a false
     // claim about work that does not age out.
-    expect(src).toContain("runs are stuck.");
-    expect(src).toContain("runs are waiting for you to launch them.");
+    expect(SENTENCE).toContain("runs are stuck.");
+    expect(SENTENCE).toContain("runs are waiting for you to launch them.");
   });
 });

@@ -30,6 +30,17 @@ import { countIsAFloor, notTheWholeQueue } from "@/components/approvals/not-the-
  */
 
 const SRC = readFileSync("src/routes/_authenticated.today.tsx", "utf8");
+/**
+ * The headline builder, extracted from the route on 2026-08-27 so its wording
+ * could be RENDERED and asserted rather than grepped. A source assertion cannot
+ * tell "At least 52" from "At least52", and that wording had no other way to be
+ * checked: this workspace's largest family holds 10 calls against a limit of
+ * 100, so the capped path never fires here, and patching the gap into the
+ * response failed because the server function's body is TSS-framed.
+ * `state-sentence.test.tsx` asserts the rendered text; these two are the cheap
+ * structural half.
+ */
+const SENTENCE = readFileSync("src/components/today/state-sentence.tsx", "utf8");
 
 describe("the signal", () => {
   it("is a floor exactly when the queue reported a gap", () => {
@@ -56,11 +67,13 @@ describe("the board", () => {
   it("calls the count a floor rather than hiding it", () => {
     // Weaker than hiding on purpose: the number is still the most useful thing
     // on screen, and only its exactness was never earned.
-    expect(SRC).toContain('{n.partial ? "At least " : null}');
+    expect(SENTENCE).toContain('{n.partial ? "At least " : null}');
   });
 
   it("REFUSES 'Nothing is ready' ON A ZERO IT CANNOT TRUST", () => {
-    expect(SRC).toContain('"Some of your queue did not load, so this cannot say what is waiting."');
+    expect(SENTENCE).toContain(
+      '"Some of your queue did not load, so this cannot say what is waiting."',
+    );
   });
 
   it("draws the reason with the shared sentence, not a second wording", () => {
