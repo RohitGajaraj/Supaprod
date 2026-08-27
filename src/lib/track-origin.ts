@@ -44,8 +44,22 @@
  */
 export const ORIGIN_REMAINDER_MIN = 15;
 
-/** Punctuation and space that only joined the title to what followed it. */
-const JOINER = /^[\s.,;:—–-]+/;
+/**
+ * Punctuation and space that only joined the title to what followed it.
+ *
+ * ESCAPED, NOT LITERAL, and I got this wrong an hour after being warned about
+ * it. S1 hit the identical defect in RUN-67 and told me so in the same message
+ * that reported the bug this file fixes: *"a matcher needs to recognise the
+ * characters it strips, not contain them."* I then wrote the literal characters
+ * into this class anyway.
+ *
+ * It is not pedantry. The founder's standing instruction is that no em or en
+ * dash reaches anything user-facing, and a scanner that greps the source cannot
+ * tell a dash being MATCHED from a dash being PRINTED. So a literal here spends
+ * the guard's credibility: either it reports a hit nobody should act on, or
+ * somebody widens the guard to allow this shape and the real ones get through.
+ */
+const JOINER = /^[\s.,;:\u2014\u2013-]+/;
 
 const squash = (s: string) => s.trim().replace(/\s+/g, " ");
 
