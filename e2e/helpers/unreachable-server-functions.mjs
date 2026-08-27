@@ -95,6 +95,16 @@ console.log("Worst files:");
 for (const [file, n] of [...byFile].sort((a, b) => b[1] - a[1]).slice(0, 10)) {
   console.log(`  ${String(n).padStart(2)}  ${file}`);
 }
+console.log(
+  "\nAN ORPHAN IS NOT WASTE, AND THIS LIST IS NOT A DELETE ORDER.\n" +
+    "  S3 found `getWorkspacePauseState` on a list like this one. Its own comment NAMED its\n" +
+    '  intended consumer, "used by AppShell", and AppShell never imported it. A workspace pause\n' +
+    "  holds every agent mid-step, so with the banner missing every empty queue in the product read\n" +
+    "  as QUIET rather than HELD. They shipped the banner rather than deleting the function.\n" +
+    "  So a row here is one of three things and only reading it tells you which: a gap worth\n" +
+    "  closing, something staged ahead of a surface, or genuine dead weight.",
+);
+
 console.log("\nEvery orphan:");
 for (const o of orphans) console.log(`  ${o.name}  (${o.file})`);
 
@@ -129,6 +139,12 @@ for (const o of componentOrphans) compByFile.set(o.file, (compByFile.get(o.file)
 console.log(
   `\n${componentOrphans.length} of ${componentTotal} exported components in src/components ` +
     `have NO importer.`,
+);
+console.log(
+  "  THIS HALF IS NOISIER THAN THE SERVER HALF. A helper component that is exported but used only\n" +
+    "  inside its own file counts here, which is a hygiene question rather than a screen nobody can\n" +
+    "  reach. A file with several orphans is more likely a component library with unused exports\n" +
+    "  than a lost feature. Read the file before believing the row.",
 );
 console.log("Worst files:");
 for (const [file, n] of [...compByFile].sort((a, b) => b[1] - a[1]).slice(0, 10)) {
