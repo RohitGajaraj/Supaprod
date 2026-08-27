@@ -185,6 +185,9 @@ async function decideAndClear(
     designVerdict: verdictOf(design?.verdict),
     successMetrics: metricsOf(row.contract),
     servesABet,
+    // F-132: read straight off the review the Critic persisted, so the gate can
+    // tell "nobody looked" from "our own look did not come back".
+    designReadUnavailable: review?.design_unavailable === true,
     consideredBy: by.agentSlug ?? null,
   };
 

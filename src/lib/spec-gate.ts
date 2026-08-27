@@ -111,6 +111,15 @@ export type SpecReviewInputs = {
   /** Whether the spec serves a recorded bet: an opportunity or a decision. */
   servesABet: boolean;
   /**
+   * True when a design read was wanted and did not come back.
+   *
+   * Never a gate of its own: it changes only WHICH sentence gate 8 says, so a
+   * person is told whether the next move is theirs or ours. `false` and
+   * `undefined` both mean "no evidence our own pass failed", which is the
+   * honest default for every row written before this existed.
+   */
+  designReadUnavailable?: boolean;
+  /**
    * The seat whose filed review is being read here, for the record.
    *
    * Never a gate. It changes no outcome and must not: a clearance that depended
@@ -294,7 +303,21 @@ export function decideSpecReview(i: SpecReviewInputs): SpecReviewDecision {
    * the design review, it was to stop a completed one from being invisible.
    */
   if (i.designVerdict === null) {
-    return ask("Nobody has read this design back against the spec yet.");
+    /*
+     * TWO SENTENCES, BECAUSE THE ABSENCE HAS TWO CAUSES (F-132).
+     *
+     * The design lens is a best-effort second pass in `critic.server.ts`, and a
+     * failed one used to leave no trace at all. So "nobody read the design" and
+     * "our own design read did not come back" arrived here identically, and this
+     * gate would have said the first while the second was true — blaming the
+     * spec for our plumbing, which is precisely what makes a refusal read as a
+     * judgement on the work.
+     */
+    return ask(
+      i.designReadUnavailable === true
+        ? "The design read did not come back, so this is waiting on us rather than on you. It will be tried again."
+        : "Nobody has read this design back against the spec yet.",
+    );
   }
   if (i.designVerdict !== "ship") {
     return ask("The design does not do what the spec asked for yet.");

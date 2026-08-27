@@ -167,6 +167,15 @@ export type CriticReview = {
   reviewed_at: string;
   /** DSN-02: the design lens, present only for target.kind==="prd" (never opportunities). */
   design?: DesignCriticReview;
+  /**
+   * True when a design read was WANTED and did not come back (F-132).
+   *
+   * The difference between "nobody read the design" and "we could not produce a
+   * design read" is the difference between a fact about the work and a fact
+   * about us, and `spec-gate.ts` gate 8 says a different sentence for each. An
+   * absent `design` key alone could not carry that.
+   */
+  design_unavailable?: boolean;
   /** RPT-41: the persona review board (exec / engineering / customer-of-record), on both kinds. */
   board?: PersonaBoardReview;
 };
@@ -381,6 +390,30 @@ Be specific. No filler. Use "ship" only when risks are bounded and evidence is s
         subject: subject,
       });
       if (design) review.design = design;
+      /*
+       * ── F-132: A BEST-EFFORT PASS NOW GATES A LEVER, SO ITS SILENCE COSTS ──
+       *
+       * `if (design)` alone leaves the key ABSENT, and an absent key cannot say
+       * which of three things happened: the pass failed, the pass ran and found
+       * nothing to review, or nobody wanted one.
+       *
+       * That was harmless while the design lens only augmented a receipt. It
+       * stopped being harmless when `spec-gate.ts` gate 8 started reading a
+       * missing design verdict as **"nobody has read this design back against
+       * the spec"** — a statement about the WORK — when the true cause may be a
+       * second model call of ours that did not return. Refusing honest work for
+       * our own internal reason is the thing that makes a gate read as a
+       * judgement, and I warned against it in F-117 before creating it here.
+       *
+       * We are inside `target.kind === "prd"`, so a design read was WANTED. A
+       * null therefore means we asked and did not get one, and that is a fact
+       * worth writing down rather than an absence to be interpreted later.
+       *
+       * Live: 3 of 5 rows carry the lens, 2 do not, so this is variable rather
+       * than systematic — which is exactly the shape that would have been
+       * blamed on the spec.
+       */
+      else review.design_unavailable = true;
     }
 
     // RPT-41: the persona review board runs on BOTH opportunities and specs, so each

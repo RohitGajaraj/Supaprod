@@ -114,3 +114,36 @@ describe("the clearance can never erase the red-team that already happened", () 
     expect(GATE).toContain('.eq("status", inputs.status ?? "")');
   });
 });
+
+describe("the design pass records its own silence (F-132)", () => {
+  const CRITIC = readFileSync(
+    fileURLToPath(new URL("../ai/critic.server.ts", import.meta.url)),
+    "utf8",
+  );
+
+  it("a wanted design read that did not come back is written down", () => {
+    /*
+     * `if (design) review.design = design;` alone left the key ABSENT, and an
+     * absent key cannot say which of three things happened: the pass failed, it
+     * ran and found nothing, or nobody wanted one.
+     *
+     * Harmless while the lens only augmented a receipt. It stopped being
+     * harmless the moment `spec-gate.ts` gate 8 began reading a missing design
+     * verdict as "nobody has read this design back" — a claim about the WORK,
+     * over what may be a second model call of ours that did not return.
+     */
+    expect(CRITIC).toContain("else review.design_unavailable = true;");
+  });
+
+  it("only inside the branch where a design read was WANTED", () => {
+    // We are under `target.kind === "prd"`, so a null means we asked and did not
+    // get one. Outside it, nobody asked and there is nothing to record.
+    const branch = CRITIC.slice(CRITIC.indexOf('if (target.kind === "prd") {'));
+    expect(branch.slice(0, 1800)).toContain("design_unavailable");
+  });
+
+  it("and the type says what the flag is FOR, not just that it exists", () => {
+    expect(CRITIC).toContain("design_unavailable?: boolean;");
+    expect(CRITIC).toContain("a fact about the work and a fact");
+  });
+});
