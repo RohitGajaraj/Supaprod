@@ -97,6 +97,25 @@ run_gate "tsc:e2e"    bunx tsc --noEmit -p e2e/tsconfig.json
 # Baseline in e2e/unreachable-baseline.json, and the check prints the new
 # number when you improve it.
 run_gate "unreachable" bun run check:unreachable
+# ── AND THE ROUTE AROUND THE DESIGN-SYSTEM RATCHET ────────────────────────
+#
+# Meridian is the only design system and that is enforced. The enforcement
+# catches `var(--canvas)` written literally. It does NOT catch the same
+# retired system reached one hop away, through an alias in styles.css that
+# resolves to --ds-*.
+#
+# 59 such aliases exist and 46 files use one, and this check said exactly that
+# while exiting 0, with nothing running it. So the alias route stayed open
+# the whole time the direct one was being closed.
+#
+# Frozen at 46 and failing only on growth, for the same reason as above.
+#
+# `check:dead-writers` is deliberately NOT here. It lists tables carrying both
+# a live and a dead writer, and whether a dead writer is a defect or a
+# deliberate leftover needs a judgement per table. A gate that fails on a
+# judgement is one people learn to route around, which is the argument this
+# lane used to keep tap-target sizes out of the gate too.
+run_gate "aliases"     bun run check:retired-aliases
 run_gate "docs:check" bash scripts/docs-doctor.sh
 run_gate "test"       bun test
 run_gate "build"      bun run build
