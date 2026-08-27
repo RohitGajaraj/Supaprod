@@ -409,6 +409,45 @@ export function TrackActivity({
   });
 
   /*
+   * CALLS A PERSON ANSWERED ON THIS WORK.
+   *
+   * The line above the transcript reports how the work MOVED, and an answer is
+   * not a move, so nothing in the transition record can see one. On `d1168015`
+   * that gap is the whole story: 19 drives, every one the sweep, and three
+   * calls a person decided mid-run. Without this read the honest version of
+   * that line has to warn about its own blind spot forever.
+   *
+   * `agent_approvals` carries `mission_id` itself, so this is one read against
+   * the missions already resolved above rather than a join through
+   * `agent_runs`. Direct under RLS, the same pattern as the steer read below
+   * and `ArtifactPane`'s `PrototypeCard`.
+   *
+   * `decided_at` IS THE TEST AND NOT `status`. R-18 forbids a person TOUCHING
+   * the run; a call sitting unanswered in front of somebody is the loop asking,
+   * which is allowed, and only the answer is the touch.
+   *
+   * A FAILED OR PENDING READ RESOLVES TO NULL, NEVER ZERO, and `howThisRan`
+   * treats the two differently on purpose. Zero says nobody answered anything;
+   * null says nothing at all. Drawing a slow query as zero would turn latency
+   * into a claim of autonomy on the one screen where that claim is the product.
+   */
+  const answeredQ = useQuery({
+    queryKey: ["track-answered-calls", trackId, missionIds.join(",")],
+    enabled: missionIds.length > 0,
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("agent_approvals")
+        .select("id", { count: "exact", head: true })
+        .in("mission_id", missionIds)
+        .not("decided_at", "is", null);
+      if (error) throw new Error(error.message);
+      return count ?? 0;
+    },
+    staleTime: 60_000,
+  });
+  const answeredCalls = missionIds.length === 0 ? null : (answeredQ.data ?? null);
+
+  /*
    * WHAT THE PERSON SAID INTO THIS RUN.
    *
    * Track-scoped messages -- a steer typed into the composer -- carry a
@@ -587,7 +626,10 @@ export function TrackActivity({
    * The sentence carries its own scope and never says "unattended". See
    * `how-this-ran.ts` for the track that makes that non-negotiable.
    */
-  const ranLine = howThisRan((q.data?.transitions ?? []).map((t) => t.drivenVia));
+  const ranLine = howThisRan(
+    (q.data?.transitions ?? []).map((t) => t.drivenVia),
+    answeredCalls,
+  );
 
   return (
     <>

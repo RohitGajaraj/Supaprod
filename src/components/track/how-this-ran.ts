@@ -65,6 +65,7 @@ export function tallyDrives(vias: readonly TransitionVia[]): DriveTally {
 }
 
 const moves = (n: number) => (n === 1 ? "1 move" : `${n} moves`);
+const calls = (n: number) => (n === 1 ? "one call" : `${n} calls`);
 
 /**
  * What to say about how this ran, or null when there is nothing to say.
@@ -74,7 +75,20 @@ const moves = (n: number) => (n === 1 ? "1 move" : `${n} moves`);
  * than reporting zero, because zero moves and no record of moves read the same
  * and are not the same.
  */
-export function howThisRan(vias: readonly TransitionVia[] | null | undefined): string | null {
+export function howThisRan(
+  vias: readonly TransitionVia[] | null | undefined,
+  /**
+   * Calls a person decided on this track, or null when that is not known.
+   *
+   * NULL AND ZERO ARE DIFFERENT ANSWERS AND THE DIFFERENCE IS THE POINT. Zero
+   * is "we looked and nobody answered anything", which is worth saying on a
+   * route the loop moved end to end because it is the other half of the
+   * acceptance. Null is "the read failed, or has not landed", and it must
+   * never be drawn as zero: that would turn a slow query into a claim of
+   * autonomy, on the one screen where that claim is the product.
+   */
+  answeredCalls: number | null = null,
+): string | null {
   if (!vias || vias.length === 0) return null;
   const t = tallyDrives(vias);
 
@@ -110,8 +124,29 @@ export function howThisRan(vias: readonly TransitionVia[] | null | undefined): s
       t.total === 1
         ? "The only move on this route was made by the loop on its own."
         : `All ${t.total} moves on this route were made by the loop on its own.`;
-    return `${opening} Moves are all this counts, and a call answered along the way is not one.`;
+
+    /*
+     * THE CAVEAT IS REPLACED BY THE FACT AS SOON AS THERE IS ONE. While the
+     * answered-call count is unknown this line has to warn that it cannot see
+     * them; once it can, warning about a blind spot it no longer has would be
+     * its own small dishonesty.
+     */
+    if (answeredCalls === null) {
+      return `${opening} Moves are all this counts, and a call answered along the way is not one.`;
+    }
+    if (answeredCalls === 0) {
+      return `${opening} Nobody answered a call along the way either.`;
+    }
+    return `${opening} A person answered ${calls(answeredCalls)} along the way.`;
   }
 
-  return `${moves(t.total)} on this route: ${list}.`;
+  /*
+   * ON A MIXED ROUTE A PERSON IS ALREADY NAMED, so an answered call is an
+   * addition rather than a correction, and zero is not worth a sentence: the
+   * reader has not been offered an autonomy claim to qualify.
+   */
+  const base = `${moves(t.total)} on this route: ${list}.`;
+  return answeredCalls && answeredCalls > 0
+    ? `${base} A person also answered ${calls(answeredCalls)}.`
+    : base;
 }

@@ -68,3 +68,52 @@ describe("how this ran", () => {
     );
   });
 });
+
+describe("what the moves cannot see", () => {
+  const SWEPT: "sweep"[] = ["sweep", "sweep", "sweep", "sweep", "sweep", "sweep", "sweep"];
+
+  it("keeps the caveat only while the answered count is unknown", () => {
+    expect(howThisRan(SWEPT, null)).toContain("a call answered along the way is not one");
+  });
+
+  it("replaces the caveat with the fact once it can see one", () => {
+    /*
+     * `d1168015`: every move the loop's, and three calls a person decided
+     * mid-run. This is the sentence that stops it reading as the acceptance.
+     */
+    const line = howThisRan(SWEPT, 3);
+    expect(line).toBe(
+      "All 7 moves on this route were made by the loop on its own. A person answered 3 calls along the way.",
+    );
+    expect(line).not.toContain("is not one");
+  });
+
+  it("says nobody answered only when it actually looked", () => {
+    expect(howThisRan(SWEPT, 0)).toBe(
+      "All 7 moves on this route were made by the loop on its own. Nobody answered a call along the way either.",
+    );
+  });
+
+  it("never lets a read that has not landed read as nobody", () => {
+    /*
+     * The failure this guards is latency becoming a claim of autonomy on the
+     * one screen where autonomy is the product.
+     */
+    expect(howThisRan(SWEPT, null)).not.toContain("Nobody answered");
+  });
+
+  it("counts one call as a phrase rather than a digit", () => {
+    expect(howThisRan(SWEPT, 1)).toContain("A person answered one call along the way.");
+  });
+
+  it("adds the answer to a mixed route without qualifying it", () => {
+    const line = howThisRan(["sweep", "press"], 2);
+    expect(line).toContain("A person also answered 2 calls.");
+    expect(line).not.toContain("is not one");
+  });
+
+  it("stays quiet about zero on a mixed route", () => {
+    // A person is already named, so there is no autonomy claim to qualify.
+    expect(howThisRan(["sweep", "press"], 0)).not.toContain("answered");
+  });
+});
