@@ -180,6 +180,7 @@ import {
   Num,
   PageHeading,
   Picker,
+  ReadFailed,
   ReadFailedLine,
   Reading,
   Region,
@@ -273,6 +274,7 @@ import { MembersCard } from "@/components/settings/MembersCard";
 import { TeamCard } from "@/components/settings/TeamCard";
 import { ControlsPanel } from "@/components/governance/ControlsPanel";
 import { BoundaryControls } from "@/components/governance/BoundaryControls";
+import { getBoundary } from "@/lib/governance.functions";
 import { GuardrailsPanel } from "@/components/governance/GuardrailsPanel";
 import { HouseRulesPanel } from "@/components/governance/HouseRulesPanel";
 import { RoutinesPanel } from "@/components/engine-room/rooms/RoutinesPanel";
@@ -663,78 +665,8 @@ function SettingsPage() {
             onOpenCrew={(slug) => navigate({ to: "/crew", search: slug ? { agent: slug } : {} })}
           />
         )}
-        {active === "autonomy" && (
-          <>
-            {/*
-             * THE BOUNDARY NOW LIVES WHERE ITS NAME IS, 2026-08-27.
-             *
-             * This pane used to render ControlsPanel alone and its own comment
-             * said the quiet part out loud: "the boundary has one home and this
-             * is not it". So the settings section titled for what agents may do
-             * did not contain the controls that decide what agents may do.
-             * Those are updateToolMode, setWorkspaceAutonomyPolicy and
-             * setWorkspaceSpendPolicy, and all three live in BoundaryControls,
-             * which was only reachable at /engine-room?room=safety.
-             *
-             * A person asking the single question an enterprise buyer asks
-             * ("what can these agents do without asking me?") arrived at a page
-             * named for that question, read a description of the answer, and
-             * had to leave to change it. That is the defect the founder called
-             * out, and it is the reason 13,299 lines across four routes felt
-             * like it did not do its job.
-             *
-             * MOUNTED, NOT MOVED. BoundaryControls is unchanged and still
-             * renders at its old address, so nothing breaks and no redirect
-             * flips: ~108 production references reach /engine-room and
-             * source-reading tests pin those chains, so the fold itself is S0's
-             * ruling (coordination/requests/S3/fold-boundary-four-into-one.md).
-             * This makes settings the real destination FIRST, so that when the
-             * ruling lands the fold is a redirect rather than a build.
-             *
-             * ORDER IS THE READING ORDER, and it is deliberate: what they may
-             * do, then what runs on a schedule, then the switch that stops all
-             * of it. The stop is last because it is the thing you reach for
-             * when the first two are wrong, not the thing you set first.
-             */}
-            <PageHeading
-              title="What they may do without asking"
-              sub="Every tool, the ceiling on a run, what routes itself, and the switch that stops all of it."
-            />
-            {/* BoundaryControls owns the kill switch now (S0 ruling A-006
-                section 2): one editor, and it is the panel that edits every
-                other boundary. ControlsPanel below keeps a readout. */}
-            <BoundaryControls />
-            <ControlsPanel controlsOnly onOpenQueue={() => navigate({ to: "/approvals" })} />
-            {/*
-             * THE REST OF WHAT "ALLOWED" MEANS, mounted 2026-08-27 so the fold
-             * S0 ruled in A-006 can remove a DOOR without removing a
-             * CAPABILITY.
-             *
-             * The Safety room has six views and this page held two of them. A
-             * redirect on top of that would have dropped the guardrail rules,
-             * the house rules and the background jobs -- which is the one thing
-             * the ruling forbids, and the quick version of this change.
-             *
-             * They belong here on their own merit rather than as fold luggage.
-             * The founder's question is "what can these agents do without
-             * asking me", and the honest answer has four parts: what they may
-             * DO (the boundary above), what they may SAY (guardrails), the
-             * standing rules they answer to (house rules), and what runs while
-             * nobody is watching (routines). Reading order follows that
-             * sentence.
-             *
-             * MOUNTED, NOT MOVED. Each still renders at its Engine Room
-             * address, so nothing breaks before the redirect lands.
-             *
-             * Incidents, the sixth view, is deliberately NOT here: it is a log
-             * of what already happened, and this page is what is allowed to
-             * happen next. It belongs under the record.
-             */}
-            <GuardrailsPanel />
-            <HouseRulesPanel />
-            <RoutinesPanel />
-          </>
-        )}
+        {active === "autonomy" && <BoundaryPane />}
+
         {active === "ai" && <ModelsSection />}
 
         {active === "connections" &&
@@ -3526,6 +3458,122 @@ function CreditsSection() {
           mode="topup"
         />
       ) : null}
+    </>
+  );
+}
+
+/**
+ * THE ONE SCREEN THAT ANSWERS "what can these agents do without asking me".
+ *
+ * Extracted from the settings route so it can hold a branch of its own. It
+ * mounts five panels, each with its own read, and when the session dies they
+ * ALL fail -- so the pane was drawing the same sentence five times over, which
+ * is the wall U-043 removed from Guardrails and U-052 from Brain arriving here
+ * by a third route.
+ *
+ * A DEAD SESSION IS A PAGE-LEVEL FACT. If it ended, none of the five reads can
+ * succeed until the reader signs in, so five panels saying so separately tell
+ * them nothing the first one did. It reads the SAME `["boundary", workspaceId]`
+ * key BoundaryControls uses, so this costs no request and cannot disagree with
+ * the panel it is standing in front of.
+ *
+ * Scoped to the ended session and nothing else: a genuine mixture, where the
+ * boundary reads and the guardrails do not, still gets per-panel honesty --
+ * there the panels disagree and which half is real is exactly what the reader
+ * needs.
+ */
+function BoundaryPane() {
+  const navigate = useNavigate();
+  const { activeWorkspaceId } = useWorkspace();
+  const fBoundary = useServerFn(getBoundary);
+  const b = useQuery({
+    queryKey: ["boundary", activeWorkspaceId],
+    queryFn: () => fBoundary(),
+  });
+  const ended = sessionEndedMessage(b.error);
+  if (ended) {
+    return (
+      <>
+        <PageHeading
+          title="What they may do without asking"
+          sub="You are not signed in any more."
+        />
+        <ReadFailed error={b.error}>
+          Nothing about what your agents may do has changed while you were away.
+        </ReadFailed>
+      </>
+    );
+  }
+  return (
+    <>
+      {/*
+       * THE BOUNDARY NOW LIVES WHERE ITS NAME IS, 2026-08-27.
+       *
+       * This pane used to render ControlsPanel alone and its own comment
+       * said the quiet part out loud: "the boundary has one home and this
+       * is not it". So the settings section titled for what agents may do
+       * did not contain the controls that decide what agents may do.
+       * Those are updateToolMode, setWorkspaceAutonomyPolicy and
+       * setWorkspaceSpendPolicy, and all three live in BoundaryControls,
+       * which was only reachable at /engine-room?room=safety.
+       *
+       * A person asking the single question an enterprise buyer asks
+       * ("what can these agents do without asking me?") arrived at a page
+       * named for that question, read a description of the answer, and
+       * had to leave to change it. That is the defect the founder called
+       * out, and it is the reason 13,299 lines across four routes felt
+       * like it did not do its job.
+       *
+       * MOUNTED, NOT MOVED. BoundaryControls is unchanged and still
+       * renders at its old address, so nothing breaks and no redirect
+       * flips: ~108 production references reach /engine-room and
+       * source-reading tests pin those chains, so the fold itself is S0's
+       * ruling (coordination/requests/S3/fold-boundary-four-into-one.md).
+       * This makes settings the real destination FIRST, so that when the
+       * ruling lands the fold is a redirect rather than a build.
+       *
+       * ORDER IS THE READING ORDER, and it is deliberate: what they may
+       * do, then what runs on a schedule, then the switch that stops all
+       * of it. The stop is last because it is the thing you reach for
+       * when the first two are wrong, not the thing you set first.
+       */}
+      <PageHeading
+        title="What they may do without asking"
+        sub="Every tool, the ceiling on a run, what routes itself, and the switch that stops all of it."
+      />
+      {/* BoundaryControls owns the kill switch now (S0 ruling A-006
+                section 2): one editor, and it is the panel that edits every
+                other boundary. ControlsPanel below keeps a readout. */}
+      <BoundaryControls />
+      <ControlsPanel controlsOnly onOpenQueue={() => navigate({ to: "/approvals" })} />
+      {/*
+       * THE REST OF WHAT "ALLOWED" MEANS, mounted 2026-08-27 so the fold
+       * S0 ruled in A-006 can remove a DOOR without removing a
+       * CAPABILITY.
+       *
+       * The Safety room has six views and this page held two of them. A
+       * redirect on top of that would have dropped the guardrail rules,
+       * the house rules and the background jobs -- which is the one thing
+       * the ruling forbids, and the quick version of this change.
+       *
+       * They belong here on their own merit rather than as fold luggage.
+       * The founder's question is "what can these agents do without
+       * asking me", and the honest answer has four parts: what they may
+       * DO (the boundary above), what they may SAY (guardrails), the
+       * standing rules they answer to (house rules), and what runs while
+       * nobody is watching (routines). Reading order follows that
+       * sentence.
+       *
+       * MOUNTED, NOT MOVED. Each still renders at its Engine Room
+       * address, so nothing breaks before the redirect lands.
+       *
+       * Incidents, the sixth view, is deliberately NOT here: it is a log
+       * of what already happened, and this page is what is allowed to
+       * happen next. It belongs under the record.
+       */}
+      <GuardrailsPanel />
+      <HouseRulesPanel />
+      <RoutinesPanel />
     </>
   );
 }
