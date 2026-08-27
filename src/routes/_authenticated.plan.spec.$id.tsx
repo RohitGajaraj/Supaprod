@@ -300,6 +300,7 @@
  * returns no design row per spec, so /plan reads `listDesignWork` beside it.
  */
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
 import { failureLine, reasonLine } from "@/lib/error-copy";
 import { Row, Line } from "@/components/meridian/rows";
 import { Num, Door, Actions } from "@/components/meridian/surface-parts";
@@ -602,6 +603,53 @@ function SpecEditorPage() {
     queryKey: ["provenance", "prd", id],
     queryFn: () => fProvenance({ data: { kind: "prd", id } }),
   });
+
+  /*
+   * THE RUN THAT RAISED THIS SPEC, which this page has been denying.
+   *
+   * The branch below says "Nothing upstream. This one was written directly
+   * rather than raised by something a customer said" whenever
+   * `prds.opportunity_id` is null. Its comment is careful and correct about the
+   * case it considered: the sentence is false the moment that foreign key is
+   * set. There is a third case it did not.
+   *
+   * A spec the LOOP produced carries no `opportunity_id` at all -- the spine
+   * links work through `spine_track_members`, not through that column.
+   * Measured: 29 of 29 prds that are track members have a null
+   * `opportunity_id`, and all 29 belong to a track that also holds a decision,
+   * a signal or a theme. So every spec this product's own loop has ever written
+   * tells a person nothing raised it, on the surface whose job is showing that
+   * something did.
+   *
+   * That is not a cosmetic slip. The spine exists to make work traceable back
+   * to evidence, and this page was denying the trace for the entire population
+   * it applies to.
+   *
+   * Read directly under RLS, the same pattern `ArtifactPane`'s PrototypeCard
+   * uses. One row, cached hard: membership does not change while a spec is open.
+   */
+  const raisedByQ = useQuery({
+    queryKey: ["spec-raised-by", id],
+    queryFn: async () => {
+      const { data: member, error } = await supabase
+        .from("spine_track_members")
+        .select("track_id")
+        .eq("artifact_id", id)
+        .eq("artifact_kind", "prd")
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      if (!member?.track_id) return null;
+      const { data: track, error: tErr } = await supabase
+        .from("spine_tracks")
+        .select("id,title")
+        .eq("id", member.track_id as string)
+        .maybeSingle();
+      if (tErr) throw new Error(tErr.message);
+      return track ? { id: track.id as string, title: (track.title as string) ?? null } : null;
+    },
+    staleTime: 5 * 60_000,
+  });
+  const raisedBy = raisedByQ.data ?? null;
 
   /**
    * THE BET THIS SPEC WAS WRITTEN FOR, which this surface could not name.
@@ -2851,11 +2899,37 @@ function SpecEditorPage() {
               // opportunity foreign key is set. Keyed on the key itself rather
               // than on the fetched row, so an unreachable bet still gets the
               // honest half.
-              <NothingYet>
-                {specOpportunityId
-                  ? "The chain stops at the bet. Nothing a customer said is linked to it yet."
-                  : "Nothing upstream. This one was written directly rather than raised by something a customer said."}
-              </NothingYet>
+              raisedBy ? (
+                /*
+                 * A RUN RAISED IT, so it was not written directly. Named and
+                 * linked rather than merely denied: the run is where its
+                 * evidence, its decisions and its whole chain actually sit, and
+                 * one click is the difference between a claim and a trace.
+                 */
+                <Row
+                  lead={
+                    raisedBy.title
+                      ? `Raised by a run: ${raisedBy.title}`
+                      : "Raised by a run on this work."
+                  }
+                  sub="The evidence behind it sits on the run, with everything the stations filed."
+                  action={
+                    <Door
+                      onClick={() =>
+                        navigate({ to: "/track/$trackId", params: { trackId: raisedBy.id } })
+                      }
+                    >
+                      Open the run
+                    </Door>
+                  }
+                />
+              ) : (
+                <NothingYet>
+                  {specOpportunityId
+                    ? "The chain stops at the bet. Nothing a customer said is linked to it yet."
+                    : "Nothing upstream. This one was written directly rather than raised by something a customer said."}
+                </NothingYet>
+              )
             ) : (
               // Five, not eight. Depth is a click away, and Discover owns the
               // full chain.
