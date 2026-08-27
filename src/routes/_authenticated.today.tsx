@@ -748,10 +748,7 @@ function Today() {
    * repair and it is a bigger change than this one; the window is doing that
    * job by accident today and this leaves it doing so.
    */
-  const blockedAll = React.useMemo(
-    () => rows.filter((m) => STUCK.has(m.status)),
-    [rows],
-  );
+  const blockedAll = React.useMemo(() => rows.filter((m) => STUCK.has(m.status)), [rows]);
   /*
    * STOPPED AND UNLAUNCHED ARE NOT THE SAME WORD.
    *
@@ -792,7 +789,10 @@ function Today() {
      in any read this page makes. It is $3.4734 across 37 tracks in the
      database and I will not print a number I cannot source from a payload. A
      server-side change is filed; until then this line speaks only for runs. */
-  const totals = React.useMemo(() => runTotals(sessions.data?.sessions, undefined), [sessions.data]);
+  const totals = React.useMemo(
+    () => runTotals(sessions.data?.sessions, undefined),
+    [sessions.data],
+  );
 
   /* WHEN ANYTHING LAST MOVED. The brief's third glance-fact is "what changed",
      and its honest form is this: there is no per-user last-seen watermark in
@@ -1561,10 +1561,7 @@ function Today() {
    * conservative in the safe direction: it can fail to call a morning quiet,
    * and it cannot call a busy one quiet.
    */
-  const anythingBlocked = React.useMemo(
-    () => rows.some((m) => STUCK.has(m.status)),
-    [rows],
-  );
+  const anythingBlocked = React.useMemo(() => rows.some((m) => STUCK.has(m.status)), [rows]);
   /*
    * `crewTotal === 0` CARRIES THE TRACKS, and leaving it out was a second way
    * to claim a quiet morning over work that is on screen. Every clause here
@@ -1844,8 +1841,7 @@ function Today() {
                       <Num>{items.length}</Num> waiting on you. Nothing has happened yet, so undo is
                       free.
                     </>
-                  ) : quietMorning ? (
-                    /* SILENT ON A QUIET MORNING, and this is the wall coming
+                  ) : quietMorning /* SILENT ON A QUIET MORNING, and this is the wall coming
                        down. An audit of the real first sixty seconds found this
                        surface opening with FIVE NEGATIONS in one viewport, and
                        that finding is why `/start` took the home slot from it
@@ -1863,9 +1859,7 @@ function Today() {
 
                        The negations STAY when the board is not quiet, because
                        then they are news: an empty review queue beside three
-                       running rows is a fact worth printing. */
-                    null
-                  ) : (
+                       running rows is a fact worth printing. */ ? null : (
                     <>
                       Nothing is waiting on you.
                       {crewQuietLine
@@ -2054,19 +2048,19 @@ function Today() {
                         </p>
                       ) : null}
                       {replyTo === row.id ? (
-                      <ReasonField
-                        id={`feed-reply-${row.id}`}
-                        label={`Answer ${row.who ?? "this run"}`}
-                        hint="It goes back to the run as your answer, and the work carries on from there."
-                        placeholder="Use the shorter verify step, and leave the migration for later"
-                        commitLabel="Send it"
-                        cancelLabel="Not now"
-                        onCommit={(text) => {
-                          openAsk(`About the run "${row.title}": ${text}`);
-                          setReplyTo(null);
-                        }}
-                        onCancel={() => setReplyTo(null)}
-                      />
+                        <ReasonField
+                          id={`feed-reply-${row.id}`}
+                          label={`Answer ${row.who ?? "this run"}`}
+                          hint="It goes back to the run as your answer, and the work carries on from there."
+                          placeholder="Use the shorter verify step, and leave the migration for later"
+                          commitLabel="Send it"
+                          cancelLabel="Not now"
+                          onCommit={(text) => {
+                            openAsk(`About the run "${row.title}": ${text}`);
+                            setReplyTo(null);
+                          }}
+                          onCancel={() => setReplyTo(null)}
+                        />
                       ) : null}
                     </>
                   ),
@@ -2275,25 +2269,25 @@ function Today() {
         ) : null}
 
         {/*
-          * THE DOOR THAT SAID IT STARTED WORK AND DID NOT. This block read
-          * "Start something new" over a composer whose submit is `openAsk()`,
-          * which opens the Ask pane. Asking is a real act and a good one, but a
-          * person reading "give the crew its next outcome" expects work to
-          * exist afterwards, and none did. The most-visited surface in the
-          * product was promising the one act it does not perform.
-          *
-          * So the composer is named for what it does, and the act it was
-          * standing in for gets its own door beside it. `/start` is the door
-          * that creates a track, and 41 of the last 43 tracks entered at
-          * `sense` through it, so it is the live way work begins.
-          *
-          * DELIBERATELY A LINK AND NOT A SECOND COMPOSER. Which engine the
-          * board's own composer should drive is a real question with three
-          * candidates and it is not mine to settle; it is filed as
-          * D2-the-consolidated-start-door.md for S0 and S1. A link removes the
-          * false promise today without pre-empting that ruling, and it cannot
-          * become a fourth way to start work.
-          */}
+         * THE DOOR THAT SAID IT STARTED WORK AND DID NOT. This block read
+         * "Start something new" over a composer whose submit is `openAsk()`,
+         * which opens the Ask pane. Asking is a real act and a good one, but a
+         * person reading "give the crew its next outcome" expects work to
+         * exist afterwards, and none did. The most-visited surface in the
+         * product was promising the one act it does not perform.
+         *
+         * So the composer is named for what it does, and the act it was
+         * standing in for gets its own door beside it. `/start` is the door
+         * that creates a track, and 41 of the last 43 tracks entered at
+         * `sense` through it, so it is the live way work begins.
+         *
+         * DELIBERATELY A LINK AND NOT A SECOND COMPOSER. Which engine the
+         * board's own composer should drive is a real question with three
+         * candidates and it is not mine to settle; it is filed as
+         * D2-the-consolidated-start-door.md for S0 and S1. A link removes the
+         * false promise today without pre-empting that ruling, and it cannot
+         * become a fourth way to start work.
+         */}
         <div data-page-composer className="today-composer">
           <div>
             <div className="today-kicker">Ask the crew</div>
