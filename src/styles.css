@@ -2209,7 +2209,21 @@ html[data-motion="off"] .ai-pulse-text {
   padding: 26px 22px;
   border-top: 1px solid var(--mrd-edge);
   border-bottom: 1px solid var(--mrd-edge);
-  background: var(--mrd-raised);
+  /* NO BACKGROUND, AND THE LINE THAT WAS HERE NEVER PAINTED ONE.
+     It read `background: var(--mrd-raised)`, and `--mrd-raised` is declared
+     nowhere in this repo. CSS has no undeclared custom properties: a bare
+     var() naming one resolves to the empty string, the whole declaration is
+     dropped, and the property keeps its inherited value. So this rule read
+     correctly in the file, typechecked, passed lint, passed the build, and did
+     not exist on screen.
+     Deleted rather than repointed at a real token, because deleting a dead
+     declaration cannot change a pixel while CHOOSING a fill would - and the
+     comment above already names this band's hierarchy device: "air and rules".
+     The rules are the two borders. If Meridian later wants a fill here that is
+     a design decision with a declared token behind it, not a repair.
+     Found by S4 widening `every-token-used-is-defined` from `--sp-` to
+     `--mrd-`: the guard had been watching the namespace being REMOVED rather
+     than the one everyone writes. */
 }
 .today-hero > * {
   max-width: 760px;
