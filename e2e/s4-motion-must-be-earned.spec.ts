@@ -715,9 +715,12 @@ test("report which surfaces still move once nothing can be read", async ({ page 
     const wide = await proseWiderThanMeasure(page);
     if (wide.length) {
       notes.push(
-        `\n--- ${path}: prose past Meridian's 68ch measure ---\n  ` +
+        `\n--- ${path}: prose measured against Meridian's 68ch ---\n  ` +
           wide.join("\n  ") +
-          `\n  meridian.css:938 sets --mrd-measure: 68ch, "prose only, never a table or a row".`,
+          `\n  meridian.css:938 sets --mrd-measure: 68ch, "prose only, never a table or a row".` +
+          `\n  A line OVER 76ch reads too long today. A line capped INLINE IN PIXELS may read` +
+          `\n  fine today and stops tracking the type scale the moment it moves; /brief is` +
+          `\n  four paragraphs at 28 to 60ch, all correct to read and all pinned at 760px.`,
       );
     }
 
