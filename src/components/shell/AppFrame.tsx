@@ -1047,6 +1047,11 @@ function RailFind({
 
 export function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  /* Whether the surface below is the board, which states the gate count itself.
+     Exact match, not `startsWith`: a child route of /today would be a different
+     surface with its own claims, and inheriting this suppression would silence
+     a fact nothing else is saying. */
+  const onTheBoard = pathname === "/today";
   const navigate = useNavigate();
   // Only the id. The NAME and the product moved to ScopeMenu, which owns the
   // scope control now; keeping a second copy here is how two headers drift.
@@ -1461,7 +1466,26 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     if (missions.isError || openTracks.isError) return "Cannot see what is running";
     if (missions.isLoading) return null;
     if (running.length === 0) {
-      if (gateCount > 0) {
+      /* NOT ON THE BOARD, WHICH IS SAYING IT LOUDER TWO INCHES BELOW.
+       *
+       * This file's own rule, already applied to the station a few lines down,
+       * bans the third statement of one fact inside 100 pixels. The gate count
+       * never got the same treatment, and it is the worst offender because it
+       * is the PRIMARY claim of the surface it duplicates.
+       *
+       * Screenshotted on the running board 2026-08-27, signed in: the top bar
+       * read "52 decisions are ready for you" and the headline 190px below read
+       * "52 decisions are ready for your review." Same number, same things,
+       * near-identical words - which reads as a screen repeating itself rather
+       * than as one surface with one thing to say.
+       *
+       * The header's job is to carry what is happening when you are NOT looking
+       * at the board. On the board, it falls through to what is running, which
+       * the headline does not say. Everywhere else the sentence is unchanged,
+       * and the error branch above is deliberately outside this guard: "Cannot
+       * see what is running" must survive on every surface including this one.
+       */
+      if (gateCount > 0 && !onTheBoard) {
         /* "DECISIONS", NOT "CALLS", and the two surfaces now agree.
          *
          * The shell said "83 calls need you" while /today, one inch below it,
@@ -1525,6 +1549,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     missions.isLoading,
     running.length,
     gateCount,
+    onTheBoard,
     workers,
     unnamedRuns,
     workingStation,
