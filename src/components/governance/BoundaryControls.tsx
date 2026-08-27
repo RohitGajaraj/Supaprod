@@ -58,6 +58,8 @@ import { humanWriteError } from "@/lib/roles.functions";
 import { TrustGraduationsBlock } from "@/components/governance/TrustGraduations";
 import { AutomationBoundary } from "@/components/governance/AutomationBoundary";
 import { ceilingReality } from "@/components/governance/ceiling-reality";
+import { whereTheCrewStands } from "@/components/governance/where-the-crew-stands";
+import { Link } from "@tanstack/react-router";
 import { Field, Input } from "@/components/meridian/forms";
 import { MoreItem, MoreMenu } from "@/components/meridian/MoreMenu";
 import { Receipt } from "@/components/meridian/Receipt";
@@ -589,6 +591,8 @@ export function BoundaryControls({
    */
   const alone = React.useMemo(() => data?.alone ?? [], [data?.alone]);
   const asks = React.useMemo(() => data?.asks ?? [], [data?.asks]);
+  /** What the whole page resolves against, said in the trust dial's own words. */
+  const standing = whereTheCrewStands(data?.arcCounts);
   /** Set to ask you, and does not. The one thing this screen must never leave
    *  a person to discover from a run. */
   const looserThanSet = React.useMemo(() => alone.filter((t) => t.mode !== "auto"), [alone]);
@@ -837,6 +841,34 @@ export function BoundaryControls({
           {/* THE QUEUE EATING ITSELF: an agent asking for more room is the one
               thing worth deciding on a surface about what agents may do alone.
               It leads here exactly as it led on /boundary. */}
+          {/*
+           * WHERE THE CREW STANDS, ABOVE EVERYTHING THE RUNG DECIDES.
+           *
+           * A person reads "your crew does 68 of 74 things without asking" and
+           * has no way from this page to learn WHY, or that a dial exists. It
+           * is not the per-tool settings below: 16 of those 68 are set to come
+           * to you first and run anyway. It is the level every agent sits on,
+           * which `resolveApprovalMode` composes with each tool's mode before
+           * the loop runs anything.
+           *
+           * A FACT HERE, A CONTROL ON CREW. The dial belongs to the agent, and
+           * two editors of one setting is the defect A-006 §2 spent a phase
+           * removing from this very panel. So this states it and opens the
+           * door.
+           */}
+          {standing.said ? (
+            <Region
+              title="Where your crew stands"
+              sub="One level per agent, and it decides every setting below before the loop reads it."
+            >
+              <Line label={standing.said}>
+                <Link to="/crew" className="text-mrd-small underline underline-offset-4">
+                  Change it on Crew
+                </Link>
+              </Line>
+            </Region>
+          ) : null}
+
           <TrustGraduationsBlock />
 
           {block(

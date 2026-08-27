@@ -1177,14 +1177,34 @@ export const getBoundary = createServerFn({ method: "GET" })
       .from("agent_autonomy")
       .select("arc")
       .eq("user_id", userId);
-    const arc: ArcName = ((arcRows ?? []) as { arc: string | null }[]).reduce<ArcName>(
-      (loosest, r) => {
-        const a = r.arc as ArcName;
-        if (!(a in ARC_LOOSENESS)) return loosest;
-        return ARC_LOOSENESS[a] > ARC_LOOSENESS[loosest] ? a : loosest;
-      },
+    const arcList = ((arcRows ?? []) as { arc: string | null }[])
+      .map((r) => r.arc as ArcName)
+      .filter((a) => a in ARC_LOOSENESS);
+    const arc: ArcName = arcList.reduce<ArcName>(
+      (loosest, a) => (ARC_LOOSENESS[a] > ARC_LOOSENESS[loosest] ? a : loosest),
       "trusted",
     );
+    /*
+     * HOW MANY AGENTS SIT ON EACH RUNG, returned so the surface can say the one
+     * setting that decides everything on it.
+     *
+     * The count above resolves to the LOOSEST, which is the right answer for
+     * "what can these agents do without asking me". It is the wrong answer to
+     * describe the crew with: a workspace with nine trusted agents and three
+     * that ask first is not "your agents run alone". So the surface gets both,
+     * and it is the surface's job to say "9 of 12" rather than to generalise.
+     *
+     * Empty means no agent has a row yet, which is NOT the same as no agents:
+     * `loadAgentArc` hands a run with no row `trusted` anyway (SW-7), which is
+     * why the reduce above starts there and not at the strictest rung.
+     */
+    const arcCounts: Record<ArcName, number> = {
+      observing: 0,
+      proving: 0,
+      trusted: 0,
+      ambient: 0,
+    };
+    for (const a of arcList) arcCounts[a] += 1;
 
     const alone: BoundaryTool[] = [];
     const asks: BoundaryTool[] = [];
@@ -1296,6 +1316,11 @@ export const getBoundary = createServerFn({ method: "GET" })
       canSetAutonomy: canWriteWorkspaceRow,
       /** The caller's role, so the surface can say why a control is absent. */
       role,
+      /** The loosest rung any agent sits on: what the buckets above resolve against. */
+      arc,
+      /** How many agents sit on each rung, so the surface can say "9 of 12" rather
+       *  than describing a whole crew by its loosest member. */
+      arcCounts,
       /** Which workspace answered — the question this file used to guess at. */
       workspaceId,
       /** Where this workspace puts the promotion bar and the settle-or-ask bar,
