@@ -1,4 +1,21 @@
 /**
+ * PORTED TO MERIDIAN, 2026-08-27. This drew in `--rose`, `--action-blue` and
+ * `--destructive-foreground`, all of which resolve through styles.css into the
+ * RETIRED `--ds-*` family. The ratchet cannot see that: it fails a file
+ * carrying `--ds-*` directly, and an indirection hides the retired token behind
+ * a friendly name.
+ *
+ * This is the THIRD global banner on every authenticated page, beside
+ * BackendHealthBanner and EverythingIsPausedBanner. All three now draw in one
+ * system; two of them did not this morning.
+ *
+ * Mapped by MEANING, not hue, the same rule as U-061 and U-080: a failed
+ * renewal is an OUTCOME, which is exactly what `--mrd-fail` means here, and the
+ * link that fixes it is an action, which is `--mrd-agent`. The button sits ON
+ * the fail colour, so its text takes `--mrd-sheet` as the readable ground
+ * rather than a retired "destructive-foreground" that named a role no token in
+ * this system has.
+ *
  * Top-of-app billing banner. Three layers:
  *   1. (LOOM W1) the test-mode banner moved to billing surfaces only.
  *   2. Dunning notice — if the most recent subscription is `past_due`,
@@ -164,8 +181,8 @@ export function BillingBanner() {
           data-mrd=""
           className="flex w-full items-center justify-center gap-3 px-4 py-2 text-xs"
           style={{
-            borderBottom: "1px solid color-mix(in oklab, var(--rose) 35%, transparent)",
-            background: "color-mix(in oklab, var(--rose) 10%, transparent)",
+            borderBottom: "1px solid color-mix(in oklab, var(--mrd-fail) 35%, transparent)",
+            background: "color-mix(in oklab, var(--mrd-fail) 10%, transparent)",
             color: "var(--mrd-body)",
           }}
         >
@@ -175,7 +192,7 @@ export function BillingBanner() {
             onClick={openPortal}
             disabled={opening}
             className="rounded-[8px] px-2.5 py-1 text-mrd-tiny font-medium hover:opacity-90 disabled:opacity-60"
-            style={{ background: "var(--rose)", color: "var(--destructive-foreground)" }}
+            style={{ background: "var(--mrd-fail)", color: "var(--mrd-sheet)" }}
           >
             {opening ? "Opening..." : "Update card"}
           </button>
@@ -186,8 +203,8 @@ export function BillingBanner() {
           data-mrd=""
           className="flex w-full items-center justify-center gap-3 px-4 py-2 text-xs"
           style={{
-            borderBottom: "1px solid color-mix(in oklab, var(--rose) 35%, transparent)",
-            background: "color-mix(in oklab, var(--rose) 10%, transparent)",
+            borderBottom: "1px solid color-mix(in oklab, var(--mrd-fail) 35%, transparent)",
+            background: "color-mix(in oklab, var(--mrd-fail) 10%, transparent)",
             color: "var(--mrd-body)",
           }}
         >
@@ -199,7 +216,7 @@ export function BillingBanner() {
             to="/settings"
             search={{ section: "credits" }}
             className="rounded-[8px] px-2.5 py-1 font-medium hover:opacity-90"
-            style={{ background: "var(--rose)", color: "var(--destructive-foreground)" }}
+            style={{ background: "var(--mrd-fail)", color: "var(--mrd-sheet)" }}
           >
             Add credits
           </Link>
@@ -230,7 +247,7 @@ export function BillingBanner() {
             to="/settings"
             search={{ section: "credits" }}
             className="hover:underline"
-            style={{ color: "var(--action-blue)", fontWeight: 500 }}
+            style={{ color: "var(--mrd-agent)", fontWeight: 500 }}
           >
             Add credits
           </Link>
