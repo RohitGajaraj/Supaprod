@@ -47,6 +47,7 @@
  * files.
  */
 import { useState } from "react";
+import { humanWriteError } from "@/lib/roles.functions";
 import { Row, Line } from "@/components/meridian/rows";
 import {
   Num,
@@ -284,7 +285,9 @@ function ForecastBlock({
             <p>{d.forecast_claim}</p>
           </Prose>
           {d.forecast_how_we_will_know ? (
-            <p className="text-mrd-base text-mrd-mute">How we will know: {d.forecast_how_we_will_know}</p>
+            <p className="text-mrd-base text-mrd-mute">
+              How we will know: {d.forecast_how_we_will_know}
+            </p>
           ) : null}
           <p className="text-mrd-base text-mrd-mute">
             {resolutionWord ? (
@@ -323,7 +326,9 @@ function ForecastBlock({
                 <p key={i} className="text-mrd-base text-mrd-mute">
                   {h.resolution ? FORECAST_SAYS[h.resolution as ForecastResolution] : "A verdict"}
                   {h.rationale ? `, ${h.rationale}` : ""}
-                  {h.resolvedByAgentSlug ? ` (settled by ${displayWho(h.resolvedByAgentSlug)})` : ""}
+                  {h.resolvedByAgentSlug
+                    ? ` (settled by ${displayWho(h.resolvedByAgentSlug)})`
+                    : ""}
                   {h.reopenedAt ? `, reopened ${ageOf(h.reopenedAt)}` : ""}
                   {h.reason ? `: ${h.reason}` : ""}
                 </p>
@@ -378,7 +383,10 @@ function ForecastBlock({
           </Field>
           {problem ? <p className="text-mrd-fail text-mrd-base">{problem}</p> : null}
           <Actions>
-            <Action type="submit" disabled={save.isPending || !claim.trim() || !know.trim() || !horizon}>
+            <Action
+              type="submit"
+              disabled={save.isPending || !claim.trim() || !know.trim() || !horizon}
+            >
               {save.isPending ? "Recording" : "Record it"}
             </Action>
             <Action
@@ -471,7 +479,7 @@ export function DecisionDetail({ id }: { id: string }) {
     return (
       <ReadFailed onRetry={() => void decisions.refetch()}>
         The record did not load, so this is not a claim that the call is gone.{" "}
-        {(decisions.error as Error)?.message ?? ""}
+        {humanWriteError(decisions.error, "")}
       </ReadFailed>
     );
   }

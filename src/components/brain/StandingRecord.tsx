@@ -43,6 +43,7 @@
  * and `CrewMark` keeps the shape while dropping the hue. See its own note.
  */
 import { useState, type ReactNode } from "react";
+import { humanWriteError } from "@/lib/roles.functions";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
@@ -124,7 +125,7 @@ export function StandingRules() {
     return (
       <Region title={title} lead>
         {/* THE WHOLE VISIBLE COPY USED TO BE THE EXCEPTION STRING. This was
-            `<Failed>{(q.error as Error).message}</Failed>` and nothing else, on
+            `<Failed>{humanWriteError(q.error, "The read failed.")}</Failed>` and nothing else, on
             the FIRST region a reader meets on this surface. Against a backend
             returning 503, which is the state it was found in, every word on
             screen here was a fetch-error string.
@@ -139,7 +140,7 @@ export function StandingRules() {
             did not load is what stops a dead read being heard as a verdict. */}
         <ReadFailedLine onRetry={() => void q.refetch()}>
           The standing rules did not load, so this is not a claim that nothing is standing.{" "}
-          {(q.error as Error).message}
+          {humanWriteError(q.error, "The read failed.")}
         </ReadFailedLine>
       </Region>
     );

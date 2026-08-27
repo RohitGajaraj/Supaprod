@@ -26,6 +26,7 @@
  * default-expanded root.
  */
 import { useState } from "react";
+import { humanWriteError } from "@/lib/roles.functions";
 import { Row } from "@/components/meridian/rows";
 import {
   Num,
@@ -139,7 +140,7 @@ export function GraphTreeView({
     return (
       <ReadFailed onRetry={() => void tree.refetch()}>
         The lineage did not load, so this is not a claim that nothing came out of this node.{" "}
-        {(tree.error as Error).message}
+        {humanWriteError(tree.error, "The read failed.")}
       </ReadFailed>
     );
   }

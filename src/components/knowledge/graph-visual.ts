@@ -39,25 +39,25 @@ export const KIND_VISUAL: Record<string, KindVisual> = {
   design_memory: { token: "--mauve", fallback: "#b78bc7", label: "Design" },
   /**
    * THE SIX KINDS A LIVE CENSUS FOUND STORED AND UNDECLARED (2026-08-02). Until
-    * this pass they resolved through UNKNOWN_VISUAL, which paints ash and labels
-    * the node with its raw column value, so 146 recorded outcomes rendered grey
-    * and captioned "learning" on a surface whose entire claim is that it remembers
-    * how things turned out.
-    *
-    * THEY TOOK THE LIFECYCLE TOKENS, not new hues. `learning` wearing the LEARN
-    * stage colour says something true that an arbitrary colour could not: where
-    * in the loop the thing was made.
-    *
-    * MERIDIAN PORT, 2026-08-25. `changeset` moves first, on the recorded
-    * precedent in queue-instruments.tsx: --sp-stage-build became --mrd-agent,
-    * azure being a machine working, present tense. The other five stay on their
-    * retired stage names for now -- three of them (--sp-stage-ship/-design/-plan)
-    * were already deleted from ink.css and resolve empty, so their hex
-    * fallbacks carry the paint -- because Meridian has no second stage hue to
-    * give them, and pointing five kinds at one status colour would collapse the
-    * distinctions the palette exists to keep. That is a gap for --mrd-viz to
-    * grow into, not a licence to invent a hue here.
-    */
+   * this pass they resolved through UNKNOWN_VISUAL, which paints ash and labels
+   * the node with its raw column value, so 146 recorded outcomes rendered grey
+   * and captioned "learning" on a surface whose entire claim is that it remembers
+   * how things turned out.
+   *
+   * THEY TOOK THE LIFECYCLE TOKENS, not new hues. `learning` wearing the LEARN
+   * stage colour says something true that an arbitrary colour could not: where
+   * in the loop the thing was made.
+   *
+   * MERIDIAN PORT, 2026-08-25. `changeset` moves first, on the recorded
+   * precedent in queue-instruments.tsx: --sp-stage-build became --mrd-agent,
+   * azure being a machine working, present tense. The other five stay on their
+   * retired stage names for now -- three of them (--sp-stage-ship/-design/-plan)
+   * were already deleted from ink.css and resolve empty, so their hex
+   * fallbacks carry the paint -- because Meridian has no second stage hue to
+   * give them, and pointing five kinds at one status colour would collapse the
+   * distinctions the palette exists to keep. That is a gap for --mrd-viz to
+   * grow into, not a licence to invent a hue here.
+   */
   learning: { token: "--sp-stage-learn", fallback: "#a89f66", label: "Outcome" },
   deployment: { token: "--sp-stage-ship", fallback: "#bd8092", label: "Deploy" },
   changeset: { token: "--mrd-agent", fallback: "#6d97c2", label: "Changeset" },

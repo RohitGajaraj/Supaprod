@@ -31,6 +31,7 @@
  * vs portfolio supersession rules, and the exported BriefPanel signature.
  */
 import { useState } from "react";
+import { humanWriteError } from "@/lib/roles.functions";
 import {
   Num,
   Actions,
@@ -304,7 +305,7 @@ export function BriefPanel() {
     return (
       <ReadFailed onRetry={() => void items.refetch()}>
         The brief did not load, so this is not a claim that nothing is written down.{" "}
-        {(items.error as Error).message}
+        {humanWriteError(items.error, "The read failed.")}
       </ReadFailed>
     );
   }

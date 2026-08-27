@@ -43,6 +43,7 @@
  * existed.
  */
 import { useMemo, useState } from "react";
+import { humanWriteError } from "@/lib/roles.functions";
 import { Row } from "@/components/meridian/rows";
 import {
   Num,
@@ -176,7 +177,7 @@ export function GraphRecordRegions({
     return readStatedAbove ? null : (
       <ReadFailed onRetry={() => void graphQ.refetch()}>
         This did not load, so it is not a claim that nothing here has an outcome or a revision.{" "}
-        {(graphQ.error as Error)?.message ?? ""}
+        {humanWriteError(graphQ.error, "")}
       </ReadFailed>
     );
   }

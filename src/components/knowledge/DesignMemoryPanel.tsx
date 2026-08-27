@@ -34,6 +34,7 @@
 //     carrying the real count the server returned, and a failed write leaves a
 //     failed receipt rather than a red flash and silence.
 import { useState } from "react";
+import { humanWriteError } from "@/lib/roles.functions";
 import { Row } from "@/components/meridian/rows";
 import {
   Num,
@@ -228,7 +229,7 @@ export function DesignMemoryPanel() {
         <Reading>Reading what the design crew treats as settled.</Reading>
       ) : items.isError ? (
         <ReadFailed onRetry={() => void items.refetch()}>
-          The design memory did not load. {(items.error as Error).message}
+          The design memory did not load. {humanWriteError(items.error, "The read failed.")}
         </ReadFailed>
       ) : rows.length === 0 ? (
         <NothingYet action={<Action onClick={() => setAddOpen(true)}>Add design language</Action>}>

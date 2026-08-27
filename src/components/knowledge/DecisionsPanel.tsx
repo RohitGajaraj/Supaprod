@@ -61,6 +61,7 @@
  * export that DecisionDetail imports from here.
  */
 import { useEffect, useState } from "react";
+import { humanWriteError } from "@/lib/roles.functions";
 import { Row } from "@/components/meridian/rows";
 import {
   Num,
@@ -409,7 +410,7 @@ export function DecisionsPanel() {
            claim it is refusing to make and then appends the message. */
         <ReadFailed onRetry={() => void decisions.refetch()}>
           The calls did not load, so this is not a claim that none are on the record.{" "}
-          {(decisions.error as Error).message}
+          {humanWriteError(decisions.error, "The read failed.")}
         </ReadFailed>
       ) : rows.length === 0 ? (
         filtered ? (

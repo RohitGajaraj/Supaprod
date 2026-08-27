@@ -48,6 +48,7 @@
  * components/supaprod, which this lane does not own. It is mounted as it was.
  */
 import { useServerFn } from "@tanstack/react-start";
+import { humanWriteError } from "@/lib/roles.functions";
 import { Row } from "@/components/meridian/rows";
 import {
   Num,
@@ -250,7 +251,7 @@ export function DocsPanel() {
     return (
       <ReadFailed onRetry={() => void docs.refetch()}>
         The pages did not load, so this is not a claim that none were written.{" "}
-        {(docs.error as Error).message}
+        {humanWriteError(docs.error, "The read failed.")}
       </ReadFailed>
     );
   }
@@ -275,7 +276,7 @@ export function DocsPanel() {
         ) : selected.isError ? (
           <ReadFailed onRetry={() => void selected.refetch()}>
             The page did not load, so nothing here is safe to edit yet.{" "}
-            {(selected.error as Error)?.message ?? ""}
+            {humanWriteError(selected.error, "")}
           </ReadFailed>
         ) : (
           <Region
@@ -631,7 +632,7 @@ function ImportPage({
             ) : notionSearch.isError ? (
               <ReadFailedLine onRetry={() => void notionSearch.refetch()}>
                 Notion did not answer, so this is not a claim that nothing matches.{" "}
-                {(notionSearch.error as Error)?.message ?? ""}
+                {humanWriteError(notionSearch.error, "")}
               </ReadFailedLine>
             ) : (notionSearch.data?.pages?.length ?? 0) === 0 ? (
               <NothingHere>

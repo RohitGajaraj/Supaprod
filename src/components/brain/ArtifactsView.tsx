@@ -164,6 +164,7 @@
  */
 
 import { useServerFn } from "@tanstack/react-start";
+import { humanWriteError } from "@/lib/roles.functions";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
@@ -346,7 +347,9 @@ function NameField({
 }) {
   return (
     <label data-mrd="" htmlFor={id} className="flex flex-col gap-mrd-2">
-      <span className="text-mrd-tiny font-medium tracking-wide text-mrd-mute uppercase">{label}</span>
+      <span className="text-mrd-tiny font-medium tracking-wide text-mrd-mute uppercase">
+        {label}
+      </span>
       <input
         id={id}
         value={value}
@@ -658,7 +661,7 @@ export function ArtifactsView() {
           {q.isError ? (
             <ReadFailedLine onRetry={() => void q.refetch()}>
               The shelf did not load, so this is not a claim that your crew has made nothing.{" "}
-              {(q.error as Error).message}
+              {humanWriteError(q.error, "The read failed.")}
             </ReadFailedLine>
           ) : null}
 

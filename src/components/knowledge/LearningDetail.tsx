@@ -38,6 +38,7 @@
  * overturn pairs, as "Reversed history"), and a per-outcome copy-as-markdown.
  */
 import { useServerFn } from "@tanstack/react-start";
+import { humanWriteError } from "@/lib/roles.functions";
 import { Line } from "@/components/meridian/rows";
 import {
   Num,
@@ -218,7 +219,7 @@ export function LearningDetail({ id }: { id: string }) {
     return (
       <ReadFailed onRetry={() => void learnings.refetch()}>
         The outcomes did not load, so this is not a claim that this one is gone.{" "}
-        {(learnings.error as Error)?.message ?? ""}
+        {humanWriteError(learnings.error, "")}
       </ReadFailed>
     );
   }

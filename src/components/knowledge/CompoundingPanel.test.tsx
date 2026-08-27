@@ -582,7 +582,9 @@ describe("learningMarkdown — per-verdict export", () => {
     const md = learningMarkdown(base, {
       decision: { id: "d-123", title: "Ship digest v2" },
     });
-    expect(md).toContain(`Graded the decision: ["Ship digest v2"](/brain?tab=decisions&decision=d-123)`);
+    expect(md).toContain(
+      `Graded the decision: ["Ship digest v2"](/brain?tab=decisions&decision=d-123)`,
+    );
   });
 
   test("includes the overturn history as bullets", () => {

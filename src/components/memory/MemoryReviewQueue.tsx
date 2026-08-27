@@ -34,6 +34,7 @@
  * invalidation on approve, and the exported MemoryReviewQueue signature.
  */
 import { useMemo, useEffect, useState } from "react";
+import { humanWriteError } from "@/lib/roles.functions";
 import { Row } from "@/components/meridian/rows";
 import {
   Actions,
@@ -212,7 +213,7 @@ export function MemoryReviewQueue() {
         <Reading>Reading what is waiting on you.</Reading>
       ) : queue.isError ? (
         <ReadFailed onRetry={() => void queue.refetch()}>
-          {(queue.error as Error).message}
+          {humanWriteError(queue.error, "The read failed.")}
         </ReadFailed>
       ) : focused ? (
         <Gate
