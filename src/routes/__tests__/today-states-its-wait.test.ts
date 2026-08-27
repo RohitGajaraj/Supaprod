@@ -60,6 +60,8 @@ function stripComments(source: string): string {
 }
 
 const src = stripComments(readFileSync(ROUTE, "utf8"));
+/** The headline builder, which moved out of the route on 2026-08-27. */
+const SENTENCE = readFileSync("src/components/today/state-sentence.tsx", "utf8");
 
 /**
  * Everything the Today component actually renders, which is where these rules
@@ -138,11 +140,41 @@ const IMPORTED = new Set(
   ),
 );
 
-const waits = WAIT_TAG
-  ? [...src.matchAll(new RegExp(`<${WAIT_TAG}(\\s[^>]*)?>([\\s\\S]*?)</${WAIT_TAG}>`, "g"))].map(
-      ([, , text]) => text.trim(),
-    )
-  : [];
+/**
+ * THE PROPS ARE SKIPPED BY BRACE DEPTH, NOT BY `[^>]*`.
+ *
+ * The old pattern was `<Tag(\s[^>]*)?>`, which assumes no `>` appears inside a
+ * prop. An arrow function does: `onRetry={() => void queue.refetch()}` closes
+ * the tag, as far as that regex is concerned, at the `=>`. The wait text then
+ * came back as a fragment of JavaScript, three cases failed, and the failure
+ * pointed at the component rather than at the pattern reading it.
+ *
+ * Scanning for the `>` that closes the tag at brace depth zero is what the
+ * question actually is, and it does not care what a future prop contains.
+ */
+function textInside(source: string, tag: string): string[] {
+  const out: string[] = [];
+  const open = `<${tag}`;
+  for (let i = source.indexOf(open); i !== -1; i = source.indexOf(open, i + 1)) {
+    // A tag whose name merely starts with this one is a different tag.
+    const after = source[i + open.length];
+    if (after && !/[\s/>]/.test(after)) continue;
+    let depth = 0;
+    let j = i + open.length;
+    for (; j < source.length; j++) {
+      const c = source[j];
+      if (c === "{") depth++;
+      else if (c === "}") depth--;
+      else if (c === ">" && depth === 0) break;
+    }
+    const close = source.indexOf(`</${tag}>`, j);
+    if (close === -1) continue;
+    out.push(source.slice(j + 1, close).trim());
+  }
+  return out;
+}
+
+const waits = WAIT_TAG ? textInside(src, WAIT_TAG) : [];
 
 /** The five reads Today makes. Each owns a region, so each owns a wait.
  *  `tracks` joined when the board took over spine work (`/start` creates a
@@ -291,7 +323,11 @@ describe("Today never prints a claim it has not read yet", () => {
     // third time on this file. The title is already hoisted to a named constant
     // BECAUSE it has to be identical in both arms, so the constant is the honest
     // anchor: it moves only when the thing this case is about moves.
-    const waitAt = jsx.indexOf(`<${WAIT_TAG}>Reading what it learned.</${WAIT_TAG}>`);
+    /* THE TEXT, NOT THE WHOLE TAG. This pinned `<Tag>Reading what it
+       learned.</Tag>` with no props between them, so adding one to that call
+       site broke a case whose subject is ORDER - the fourth rename-shaped break
+       on this file, and the first caused by a prop rather than a name. */
+    const waitAt = jsx.indexOf("Reading what it learned.");
     const guardAt = jsx.search(/learning\?\.summary\s*\?/);
     const titleAt = jsx.indexOf("LEARNING_BLOCK", guardAt);
     expect(waitAt).toBeGreaterThan(-1);
@@ -574,7 +610,14 @@ describe("Today's triage feed", () => {
      * than read the next time somebody is in a hurry.
      */
     const runWaitAt = jsx.indexOf("Reading the run record.");
-    const runRefusalAt = jsx.indexOf("missions.refetch()");
+    /* SEARCHED FROM THE WAIT, because `missions.refetch()` now appears twice.
+       `SlowRead` takes an `onRetry` so a read that has gone fifteen seconds can
+       offer a way out, and that prop names the same refetch INSIDE the wait
+       branch. A bare `indexOf` finds it and reports the refusal as preceding
+       the wait, which is the opposite of what this case is about. The subject
+       here is that the refusal branch exists and follows the wait; the second
+       occurrence is the one that answers it. */
+    const runRefusalAt = jsx.indexOf("missions.refetch()", runWaitAt);
     expect(runWaitAt).toBeGreaterThan(queueMountedAt);
     expect(runRefusalAt).toBeGreaterThan(runWaitAt);
   });
@@ -603,8 +646,19 @@ describe("the page states a window only where the window is true", () => {
   });
 
   it("states it on the shipped clause, which is the one it describes", () => {
-    expect(src).toContain("run shipped in the last 24 hours.");
-    expect(src).toContain("runs shipped in the last 24 hours.");
+    /*
+     * READ FROM `state-sentence.tsx`, NOT THIS ROUTE. The headline builder was
+     * extracted on 2026-08-27 so the sentence could be RENDERED and asserted
+     * rather than grepped - a source assertion cannot tell "At least 52" from
+     * "At least52", and that wording had no other way to be checked because
+     * this workspace's largest family holds 10 calls against a limit of 100,
+     * so the capped path never fires here.
+     *
+     * `state-sentence.test.tsx` now asserts the rendered text. These stay as
+     * the cheap structural check that the window is on ONE clause.
+     */
+    expect(SENTENCE).toContain("run shipped in the last 24 hours.");
+    expect(SENTENCE).toContain("runs shipped in the last 24 hours.");
   });
 
   it("KEEPS THE FILTER, because the claim was mislocated and not wrong", () => {
@@ -616,7 +670,7 @@ describe("the page states a window only where the window is true", () => {
   it("leaves the unwindowed clauses unqualified", () => {
     // If either of these ever grows "in the last 24 hours", it becomes a false
     // claim about work that does not age out.
-    expect(src).toContain("runs are stuck.");
-    expect(src).toContain("runs are waiting for you to launch them.");
+    expect(SENTENCE).toContain("runs are stuck.");
+    expect(SENTENCE).toContain("runs are waiting for you to launch them.");
   });
 });

@@ -114,10 +114,27 @@ describe("one group, one name", () => {
    *
    * A group NAME earns its line by separating this group from another one.
    */
-  it("draws the group head only when the settled trail gives it a sibling", () => {
+  it("draws the group head only when the region holds another group", () => {
     expect(SRC).toContain(
-      "{settled.length > 0 ? (\n                      <FeedHead name={FEED_CALLS}",
+      "{settled.length > 0 || crewTotal > 0 ? (\n                      <FeedHead name={FEED_CALLS}",
     );
+  });
+
+  it("COUNTS THE CREW LANES AS SIBLINGS, not only the settled trail", () => {
+    /*
+     * The first version of this guard tested `settled.length` alone and was
+     * wrong within the hour. This Region runs from the queue to `Finished` and
+     * holds four groups: the calls, the settled receipts, and the crew lanes
+     * "Waiting on you", "Running" and "Finished".
+     *
+     * On the running board that left an UNLABELLED 52-item queue directly above
+     * a labelled "Waiting on you 95". The only head in view belonged to the
+     * lane, so the number a reader would attach to the queue was the wrong one
+     * - worse than the duplication the guard exists to remove.
+     */
+    const at = SRC.indexOf("<FeedHead name={FEED_CALLS}");
+    expect(at).toBeGreaterThan(-1);
+    expect(SRC.slice(at - 200, at)).toContain("crewTotal > 0");
   });
 
   it("KEEPS THE ACCESSIBLE NAME UNCONDITIONALLY", () => {

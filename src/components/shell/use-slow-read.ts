@@ -52,14 +52,41 @@ import { useEffect, useState } from "react";
 /** Past this, a read stops being ordinary and owes the reader a figure. */
 export const SLOW_READ_MS = 2500;
 
+/**
+ * PAST THIS, A READER HAS RUN OUT OF THINGS TO DO ABOUT IT.
+ *
+ * The threshold above turns silence into a figure, which answers "is this
+ * moving". It does not answer "and what can I do", and after fifteen seconds
+ * that is the only question left. Measured on the running board 2026-08-27:
+ * "Reading the run record. 22.4s" with no control anywhere near it. The reader
+ * knows exactly how long they have been waiting and has no move except
+ * reloading the page.
+ *
+ * FIFTEEN SECONDS, because it is comfortably past any read this product makes
+ * when it is working and comfortably short of the point where somebody has
+ * already given up. It is a constant rather than a token for the same reason
+ * `SLOW_READ_MS` is: Meridian's duration scale is for animation, and a number
+ * here would put this where the next person looking for a transition finds it.
+ */
+export const STUCK_READ_MS = 15_000;
+
 export function useSlowRead(afterMs: number = SLOW_READ_MS): {
   slow: boolean;
+  /**
+   * Long enough that the reader is owed a way out as well as a figure.
+   *
+   * A SECOND BOOLEAN RATHER THAN A COMPARISON ON ELAPSED TIME, deliberately.
+   * `useElapsed` re-renders ten times a second; deriving this from it would put
+   * the whole subtree on that clock to learn one thing that changes once.
+   */
+  stuck: boolean;
   startedAt: number;
 } {
   /* Captured once, on the first render of the read, NOT on the render that
      flips `slow`. This is the instant the elapsed figure has to count from. */
   const [startedAt] = useState(() => Date.now());
   const [slow, setSlow] = useState(afterMs <= 0);
+  const [stuck, setStuck] = useState(false);
 
   useEffect(() => {
     if (afterMs <= 0) {
@@ -70,5 +97,17 @@ export function useSlowRead(afterMs: number = SLOW_READ_MS): {
     return () => clearTimeout(id);
   }, [afterMs]);
 
-  return { slow, startedAt };
+  /* MEASURED FROM THE READ, NOT FROM THE THRESHOLD. `STUCK_READ_MS` is an
+     absolute age, so a caller that passes a longer `afterMs` does not push this
+     out with it - the reader's patience does not restart because the surface
+     chose to stay quiet for longer. */
+  useEffect(() => {
+    const id = setTimeout(
+      () => setStuck(true),
+      Math.max(0, STUCK_READ_MS - (Date.now() - startedAt)),
+    );
+    return () => clearTimeout(id);
+  }, [startedAt]);
+
+  return { slow, stuck, startedAt };
 }
