@@ -10,6 +10,29 @@ import {
   type PushedInsight,
 } from "@/lib/brain-insights.functions";
 
+/**
+ * THE HEADING CLAIMED A PERIOD THIS PRODUCT CANNOT MEASURE.
+ *
+ * It read "What changed while you were away", which is a claim about a window
+ * between two moments: when you last looked, and now. **The first of those does
+ * not exist.** `when.ts` records it plainly - there is no per-user last-seen
+ * watermark in this database - and the read behind this panel has no time
+ * filter at all. It selects `status = 'open'` and `digest = false`, ordered by
+ * `pushed_at`. An insight pushed three weeks ago that nobody answered is in
+ * this list, under a heading saying it changed while you were away.
+ *
+ * Same defect as the board's "In the last 24 hours" subtitle, fixed the same
+ * week on the same surface: a temporal scope stated over data that carries no
+ * such scope. The idea behind it is right and still unbuildable, and it is a
+ * column to add rather than a claim to keep making loosely.
+ *
+ * "Evidence you have not answered" is what the read actually returns, and it
+ * agrees with the count beside it, which says "N open".
+ *
+ * AND THE SUBTITLE NO LONGER OPENS WITH THE KICKER'S OWN WORDS. "New evidence"
+ * sat in the eyebrow and again as the first two words of the sentence under it,
+ * which is the restatement this board spent the week removing everywhere else.
+ */
 export function PushedInsights() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -21,8 +44,9 @@ export function PushedInsights() {
      The query FUNCTION reads `workspaceId` but the KEY did not name it, so every
      workspace shared one cache entry: switch workspace and this panel served the
      previous one's insights until the 10-minute staleTime expired. On a surface
-     headed "What changed while you were away", that is one tenant's evidence
-     rendered under another tenant's heading.
+     headed "What changed while you were away" (renamed since; see the note at
+     the top of this file), that is one tenant's evidence rendered under another
+     tenant's heading.
      FocusNext.tsx in this same folder already keys on workspaceId correctly,
      which is how the divergence was visible at all. */
   const queryKey = ["brain", "pushed-insights", workspaceId] as const;
@@ -58,8 +82,8 @@ export function PushedInsights() {
   });
 
   /* Same doctrine as FocusNext, and the same correction on the same date: a
-     failed read used to return null here, so "What changed while you were away"
-     disappeared entirely rather than saying it could not look. On the one
+     failed read used to return null here, so this panel disappeared entirely
+     rather than saying it could not look. On the one
      surface a person opens to find out what happened overnight, an absent panel
      is read as "nothing happened", which is precisely the opposite of the truth
      when the read failed. Loading still returns null; a failure does not. */
@@ -69,12 +93,12 @@ export function PushedInsights() {
         <div className="today-notices-head">
           <div>
             <div className="today-kicker">New evidence</div>
-            <h2 id="today-notices-title">What changed while you were away</h2>
+            <h2 id="today-notices-title">Evidence you have not answered</h2>
           </div>
         </div>
         <ReadFailedLine error={pushed.error} onRetry={() => void pushed.refetch()}>
-          This did not load, so nothing here can be trusted to be the full picture. Something may
-          have changed while you were away.
+          This did not load, so nothing here can be trusted to be the full picture. Evidence may
+          have arrived that this cannot show.
         </ReadFailedLine>
       </section>
     );
@@ -88,14 +112,15 @@ export function PushedInsights() {
       <div className="today-notices-head">
         <div>
           <div className="today-kicker">New evidence</div>
-          <h2 id="today-notices-title">What changed while you were away</h2>
+          <h2 id="today-notices-title">Evidence you have not answered</h2>
         </div>
         <span className="today-notices-count">
           <Num>{insights.length}</Num> open
         </span>
       </div>
       <p className="today-notices-sub">
-        New evidence changed a standing call, or connected two things you had treated separately.
+        Something arrived that changed a standing call, or connected two things you had treated
+        separately.
       </p>
       <div className="today-notice-list">
         {insights.map((i) => {
