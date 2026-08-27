@@ -132,6 +132,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { messageForPerson } from "@/lib/error-copy";
 import { SlowRead } from "@/components/shell/SlowRead";
+import { needsALookLine } from "@/components/crew/crew-words";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
@@ -679,6 +680,34 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
                         {m && m.enabled && m.runs.running === 0 ? (
                           <span className="mt-0.5 block text-mrd-small leading-mrd-snug text-mrd-mute">
                             {lastWorkedLine(m.runs.lastAt)}
+                          </span>
+                        ) : null}
+                        {/*
+                          WHICH TEAMMATE NEEDS A LOOK. `CrewRunTally.failed` has
+                          been on every roster row all along and appeared
+                          nowhere on the card, so an agent with three runs that
+                          stopped without finishing was indistinguishable from a
+                          healthy quiet one. That is this card's own failure
+                          test, the one written two comments up for `lastAt`:
+                          if a person has to open each one to find out whether
+                          any of them needs them, the surface has failed.
+
+                          THE MARK CANNOT CARRY THIS. `agent-fleet.ts` has a
+                          `stateFor` returning "attention" on failures and the
+                          roster's `stageFor` does not use it — it returns gate,
+                          waiting, running, off or idle, so a failing agent
+                          renders as IDLE. And even if it turned, R-19 keeps
+                          accessibility at full weight: colour must never be the
+                          only signal, and a sentence survives greyscale and a
+                          screen reader where a hue does not.
+
+                          It wears `--mrd-fail` and it is the card's ONE live
+                          signal: it draws only when there is an exception, and
+                          the line above it is mute context rather than a second
+                          claim. */}
+                        {m && m.enabled && needsALookLine(m.runs.failed) ? (
+                          <span className="mt-0.5 block text-mrd-small leading-mrd-snug text-mrd-fail">
+                            {needsALookLine(m.runs.failed)}
                           </span>
                         ) : null}
                       </span>
