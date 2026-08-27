@@ -1403,7 +1403,7 @@ function Today() {
    * rather than leaving you in a bucket that no longer exists.
    */
   const [bucket, setBucket] = React.useState<QueueBucket | null>(null);
-  const bucketList = React.useMemo(() => bucketTabs(items), [items]);
+  const bucketList = React.useMemo(() => bucketTabs(items, bucket), [items, bucket]);
   const activeBucket = bucketList.some((t) => t.id === bucket) ? bucket : null;
   /*
    * OLDEST FIRST, AND THE BOARD WAS SHOWING THE OPPOSITE.

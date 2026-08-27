@@ -63,14 +63,28 @@ export interface BucketTab {
  * order is the vocabulary's own, so the tabs do not reshuffle under a reader
  * as work arrives.
  */
-export function bucketTabs(items: readonly ApprovalQueueItem[] | undefined): BucketTab[] {
+export function bucketTabs(
+  items: readonly ApprovalQueueItem[] | undefined,
+  /**
+   * THE BUCKET THE PERSON IS CURRENTLY IN, KEPT EVEN AT ZERO.
+   *
+   * S1 caught this in the first version, which was purely count-driven. Settle
+   * the last gate while filtered to Gates and that tab's count reaches zero, so
+   * the row deletes the control under the pointer and the list silently widens
+   * back to everything. The person did not ask for that and reads it as the
+   * page losing their place.
+   *
+   * A tab is drawn if it HAS something or if it is the one you are standing in.
+   */
+  active?: QueueBucket | null,
+): BucketTab[] {
   const counts = new Map<QueueBucket, number>();
   for (const it of items ?? []) {
     const b = it.filterBucket as QueueBucket;
     if (!ORDER.includes(b)) continue; // a bucket this build does not know about
     counts.set(b, (counts.get(b) ?? 0) + 1);
   }
-  return ORDER.filter((b) => (counts.get(b) ?? 0) > 0).map((b) => ({
+  return ORDER.filter((b) => (counts.get(b) ?? 0) > 0 || b === active).map((b) => ({
     id: b,
     label: LABEL[b],
     count: counts.get(b) ?? 0,

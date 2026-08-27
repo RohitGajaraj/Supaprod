@@ -83,3 +83,31 @@ describe("inBucket", () => {
     expect(all).toHaveLength(2);
   });
 });
+
+describe("the active bucket at zero", () => {
+  /*
+   * S1 caught this in my first version, which was purely count-driven. It is
+   * the mistake a filter row usually makes: settle the last gate while filtered
+   * to Gates, the count reaches zero, the tab disappears from under the pointer
+   * and the list silently widens back to everything. The person did not ask for
+   * that and reads it as the page losing their place.
+   */
+  it("KEEPS THE TAB YOU ARE STANDING IN, even once you have emptied it", () => {
+    const tabs = bucketTabs([item("memory")], "gates");
+    expect(tabs.map((t) => [t.id, t.count])).toEqual([
+      ["gates", 0],
+      ["memory", 1],
+    ]);
+  });
+
+  it("still does not offer an empty bucket you are NOT in", () => {
+    const tabs = bucketTabs([item("memory")], null);
+    expect(tabs.map((t) => t.id)).toEqual(["memory"]);
+  });
+
+  it("keeps the row drawable so the control does not vanish under the pointer", () => {
+    // One real bucket plus the emptied one you are standing in is still a
+    // choice: going back to All has to remain a thing you can click.
+    expect(worthFiltering(bucketTabs([item("memory")], "gates"))).toBe(true);
+  });
+});
