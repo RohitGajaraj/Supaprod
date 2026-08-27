@@ -52,7 +52,9 @@ describe("the handoff is drawn where the work is", () => {
     // with the evidence off-screen. The waiting lane's rows carry `row.note`,
     // so that block is the anchor: it is where a row's own extra content goes.
     const noteBlock = SRC.indexOf("row.note ?");
-    expect(noteBlock, "the waiting lane no longer renders row.note; re-point this").toBeGreaterThan(-1);
+    expect(noteBlock, "the waiting lane no longer renders row.note; re-point this").toBeGreaterThan(
+      -1,
+    );
     const after = SRC.slice(noteBlock, noteBlock + 1200);
     expect(after, "the handoff is no longer drawn beside the waiting lane's rows").toContain(
       "<HandoverNote",
