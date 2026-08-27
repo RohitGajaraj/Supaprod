@@ -276,6 +276,7 @@ import { ControlsPanel } from "@/components/governance/ControlsPanel";
 import { BoundaryControls } from "@/components/governance/BoundaryControls";
 import { getBoundary } from "@/lib/governance.functions";
 import { SessionEnded, endedSessionFor } from "@/components/system/SessionEnded";
+import { BudgetsPanel } from "@/components/governance/BudgetsPanel";
 import { GuardrailsPanel } from "@/components/governance/GuardrailsPanel";
 import { HouseRulesPanel } from "@/components/governance/HouseRulesPanel";
 import { RoutinesPanel } from "@/components/engine-room/rooms/RoutinesPanel";
@@ -3578,6 +3579,13 @@ function BoundaryPane() {
        * of what already happened, and this page is what is allowed to
        * happen next. It belongs under the record.
        */}
+      {/* HOW MUCH THEY MAY SPEND WITHOUT ASKING, which is the same question as
+          which tools they may use without asking. Phase 2 of the fold S0 ruled
+          in A-006: the ceilings come across, while the log of what those
+          ceilings have already SAID stays with the record in the Engine Room.
+          Placed directly after the boundary because a ceiling is the boundary
+          expressed in money. */}
+      <BudgetsPanel controlsOnly />
       <GuardrailsPanel />
       <HouseRulesPanel />
       <RoutinesPanel />

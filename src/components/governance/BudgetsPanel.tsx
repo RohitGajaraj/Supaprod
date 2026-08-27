@@ -202,7 +202,28 @@ function globalPayload(g: GlobalBudget | null, patch: Partial<Record<string, num
 /** Shown when a ceiling write failed for a reason the database wrote. */
 const CAP_WRITE_FAILED = "That ceiling did not save. Your spend is bounded as it was before.";
 
-export function BudgetsPanel() {
+export function BudgetsPanel({
+  /**
+   * DRAW THE CEILINGS AND NOT WHAT THEY HAVE SAID.
+   *
+   * This panel holds three regions and two of them set something: the global
+   * cap, and the per-thing ceilings. The third, "What the ceilings have said",
+   * is a log of windows that crossed a warning point.
+   *
+   * A SPEND CAP IS A PERMISSION, which is why the controls belong on the pane
+   * titled "What they may do without asking" -- how much a crew may spend
+   * without asking is the same question as which tools it may use without
+   * asking, and answering half of it on one screen and half on another is the
+   * split the founder objected to. The log is not that question; it is what
+   * already happened, and it stays in the Engine Room with the rest of the
+   * record.
+   *
+   * Same shape as ControlsPanel's `controlsOnly` (U-038): the flag decides
+   * where a region is DRAWN and never whether it exists. The Engine Room
+   * passes nothing and gets the whole panel.
+   */
+  controlsOnly = false,
+}: { controlsOnly?: boolean } = {}) {
   /**
    * A spend cap is money, so a read-only role does not set one. A member does:
    * ai_budgets and ai_surface_budgets are the NOT-A-VIEWER tier, not the
@@ -772,55 +793,59 @@ export function BudgetsPanel() {
         ))}
       </Region>
 
-      <Region
-        title="What the ceilings have said"
-        sub="Written when a window crossed the warning point. Acknowledging one clears it from here and changes nothing about the ceiling."
-      >
-        {alerts.length === 0 ? (
-          <NothingYet>
-            Nothing yet. The first note lands the moment a window crosses <Num>{alertPct}%</Num> of
-            its ceiling.
-          </NothingYet>
-        ) : (
-          alerts.map((a) => (
-            <Row
-              key={a.id}
-              lead={
-                <>
-                  {a.scope === "global" ? "Account spend" : `Spend on ${a.surface ?? "a surface"}`}{" "}
-                  reached <Num>{Number(a.pct).toFixed(0)}%</Num> of the{" "}
-                  {a.window_kind === "month" ? "monthly" : "daily"} ceiling
-                </>
-              }
-              sub={
-                <>
-                  {a.kind === "block" ? (
-                    <>
-                      <Value tone="fail">Refused</Value>{" "}
-                    </>
-                  ) : null}
-                  <Num>{fmtUsd(a.usd_used)}</Num> of <Num>{fmtUsd(a.usd_cap)}</Num>
-                </>
-              }
-              time={ago(a.created_at)}
-              tight
-              action={
-                a.acknowledged ? (
-                  <Value>Acknowledged</Value>
-                ) : (
-                  <Action
-                    variant="quiet"
-                    disabled={ackMut.isPending && ackMut.variables === a.id}
-                    onClick={() => ackMut.mutate(a.id)}
-                  >
-                    Acknowledge
-                  </Action>
-                )
-              }
-            />
-          ))
-        )}
-      </Region>
+      {!controlsOnly ? (
+        <Region
+          title="What the ceilings have said"
+          sub="Written when a window crossed the warning point. Acknowledging one clears it from here and changes nothing about the ceiling."
+        >
+          {alerts.length === 0 ? (
+            <NothingYet>
+              Nothing yet. The first note lands the moment a window crosses <Num>{alertPct}%</Num>{" "}
+              of its ceiling.
+            </NothingYet>
+          ) : (
+            alerts.map((a) => (
+              <Row
+                key={a.id}
+                lead={
+                  <>
+                    {a.scope === "global"
+                      ? "Account spend"
+                      : `Spend on ${a.surface ?? "a surface"}`}{" "}
+                    reached <Num>{Number(a.pct).toFixed(0)}%</Num> of the{" "}
+                    {a.window_kind === "month" ? "monthly" : "daily"} ceiling
+                  </>
+                }
+                sub={
+                  <>
+                    {a.kind === "block" ? (
+                      <>
+                        <Value tone="fail">Refused</Value>{" "}
+                      </>
+                    ) : null}
+                    <Num>{fmtUsd(a.usd_used)}</Num> of <Num>{fmtUsd(a.usd_cap)}</Num>
+                  </>
+                }
+                time={ago(a.created_at)}
+                tight
+                action={
+                  a.acknowledged ? (
+                    <Value>Acknowledged</Value>
+                  ) : (
+                    <Action
+                      variant="quiet"
+                      disabled={ackMut.isPending && ackMut.variables === a.id}
+                      onClick={() => ackMut.mutate(a.id)}
+                    >
+                      Acknowledge
+                    </Action>
+                  )
+                }
+              />
+            ))
+          )}
+        </Region>
+      ) : null}
     </>
   );
 }
