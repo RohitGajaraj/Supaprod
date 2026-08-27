@@ -41,6 +41,7 @@
  * Change them in lockstep, or the list and the drill disagree on a number.
  */
 import { useNavigate } from "@tanstack/react-router";
+import { failureLine } from "@/components/track/error-copy";
 import { Row, Line } from "@/components/meridian/rows";
 import {
   Action,
@@ -198,7 +199,7 @@ export function DriftPanel() {
       qc.invalidateQueries({ queryKey: ["drift_overview"] });
     },
     onError: (e: Error) =>
-      commit("You tried to run the drift check", `${e.message} Nothing was rolled up.`, true),
+      commit("You tried to run the drift check", failureLine("Nothing was rolled up.", e), true),
   });
 
   const saveMut = useMutation({
@@ -220,7 +221,7 @@ export function DriftPanel() {
       qc.invalidateQueries({ queryKey: ["drift_overview"] });
     },
     onError: (e: Error) =>
-      commit("You tried to move the baseline", `${e.message} The old one still stands.`, true),
+      commit("You tried to move the baseline", failureLine("The old one still stands.", e), true),
   });
 
   const snapshots = useMemo(() => (data?.snapshots ?? []) as Snapshot[], [data?.snapshots]);
