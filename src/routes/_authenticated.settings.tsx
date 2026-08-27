@@ -168,6 +168,7 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { readFailureMessage } from "@/lib/roles.functions";
 import { Row, Line } from "@/components/meridian/rows";
 import {
   Action,
@@ -339,10 +340,7 @@ export const Route = createFileRoute("/_authenticated/settings")({
   errorComponent: ({ error, reset }) => (
     <Surface>
       <div className="flex flex-col gap-mrd-7">
-        <PageHeading
-          title="Settings did not open."
-          sub={(error as Error)?.message ?? "The read failed."}
-        />
+        <PageHeading title="Settings did not open." sub={readFailureMessage(error)} />
         <Actions>
           <Action variant="primary" onClick={reset}>
             Try again
@@ -912,9 +910,26 @@ function ProfileSection() {
     return (
       <>
         <PageHeading title="Profile" sub="How you are named, and when you are reachable." />
+        {/*
+         * SAYS WHAT DID NOT LOAD, NOT "NOTHING HERE".
+         *
+         * This read "nothing here is safe to save yet", and directly beneath
+         * it PasswordRegion renders a working form -- a sibling, not a child,
+         * so the early return above never reaches it. A reader was told
+         * nothing on the page could be saved while looking at a control that
+         * could.
+         *
+         * THE CONTROL IS RIGHT AND THE SENTENCE WAS WRONG, which is worth
+         * stating because the tempting fix is the dangerous one. Changing a
+         * password goes through supabase.auth and never touches the profile
+         * row, so a failed profile read tells you nothing about whether it
+         * will work. Disabling it here would lock somebody out of a security
+         * action at precisely the moment the product looks broken to them,
+         * which is when they are most likely to want it.
+         */}
         <ReadFailedLine onRetry={() => void profile.refetch()}>
-          Your profile did not load, so nothing here is safe to save yet.{" "}
-          {(profile.error as Error)?.message ?? "The read failed."}
+          Your profile did not load, so your name, role and hours cannot be saved yet. Your password
+          can still be changed below. {readFailureMessage(profile.error)}
         </ReadFailedLine>
       </>
     );
@@ -1120,6 +1135,14 @@ function PasswordRegion() {
 
   const mismatch = confirm.length > 0 && next !== confirm;
   const tooShort = next.length > 0 && next.length < 8;
+  /*
+   * DELIBERATELY INDEPENDENT OF EVERY OTHER READ ON THIS PAGE. Changing a
+   * password re-authenticates and calls supabase.auth.updateUser; it does not
+   * read the profile row, so no failure elsewhere on this pane is evidence that
+   * it will not work. Do not gate this on the profile query: that would take a
+   * security action away from somebody exactly when the product looks broken to
+   * them. The Profile failure line says so in words.
+   */
   const canSubmit = current.length > 0 && next.length >= 8 && !mismatch && !tooShort;
 
   const changePassword = useMutation({
@@ -1682,7 +1705,7 @@ function WorkspaceSection({ scrollToBrief }: { scrollToBrief: boolean }) {
             // A failed read must never render blank fields whose save would wipe
             // the real brief.
             <ReadFailedLine onRetry={() => void brief.refetch()}>
-              The brief did not load. {(brief.error as Error)?.message ?? "The read failed."}
+              The brief did not load. {readFailureMessage(brief.error)}
             </ReadFailedLine>
           ) : (
             /*
@@ -1977,8 +2000,7 @@ function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => vo
       <>
         {head("The roster did not load.")}
         <ReadFailedLine onRetry={() => void crew.refetch()}>
-          Nothing below would be the real boundary.{" "}
-          {(crew.error as Error)?.message ?? "The read failed."}
+          Nothing below would be the real boundary. {readFailureMessage(crew.error)}
         </ReadFailedLine>
       </>
     );
@@ -2508,8 +2530,7 @@ function ModelsSection() {
           sub="Which model runs your work, and whose key pays."
         />
         <ReadFailedLine onRetry={() => void profile.refetch()}>
-          Your model settings did not load.{" "}
-          {(profile.error as Error)?.message ?? "The read failed."}
+          Your model settings did not load. {readFailureMessage(profile.error)}
         </ReadFailedLine>
         <ByoKeysBlock />
       </>
@@ -2820,7 +2841,7 @@ function ByoKeysBlock() {
               <Reading>Reading your keys.</Reading>
             ) : keys.isError ? (
               <ReadFailedLine onRetry={() => void keys.refetch()}>
-                Your keys did not load. {(keys.error as Error)?.message ?? "The read failed."}
+                Your keys did not load. {readFailureMessage(keys.error)}
               </ReadFailedLine>
             ) : keyList.length === 0 ? (
               <NothingYet>No key of your own yet. Until there is one, runs use ours.</NothingYet>
@@ -3009,7 +3030,7 @@ function PlanSection({ checkout }: { checkout?: string }) {
       <>
         <PageHeading title="Plan" sub="What this workspace is entitled to." />
         <ReadFailedLine onRetry={() => void billing.refetch()}>
-          Your plan did not load. {(billing.error as Error)?.message ?? "The read failed."}
+          Your plan did not load. {readFailureMessage(billing.error)}
         </ReadFailedLine>
       </>
     );
@@ -3280,7 +3301,7 @@ function CreditsSection() {
       <Region title="Balance">
         {credits.isError ? (
           <ReadFailedLine onRetry={() => void credits.refetch()}>
-            Your balance did not load. {(credits.error as Error)?.message ?? "The read failed."}
+            Your balance did not load. {readFailureMessage(credits.error)}
           </ReadFailedLine>
         ) : credits.isLoading ? (
           <Reading>Reading your balance.</Reading>
@@ -3333,7 +3354,7 @@ function CreditsSection() {
             <Reading>Reading the price list.</Reading>
           ) : catalog.error ? (
             <ReadFailedLine onRetry={() => void catalog.refetch()}>
-              The price list did not load. {(catalog.error as Error)?.message ?? "The read failed."}
+              The price list did not load. {readFailureMessage(catalog.error)}
             </ReadFailedLine>
           ) : BUNDLES.length === 0 ? (
             <NothingYet>
