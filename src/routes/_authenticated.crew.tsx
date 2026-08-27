@@ -130,6 +130,7 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { messageForPerson } from "@/components/track/error-copy";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
@@ -264,7 +265,6 @@ function ago(iso: string | null | undefined): string | null {
   if (hours < 24) return `${hours}h`;
   return `${Math.floor(hours / 24)}d`;
 }
-
 
 /**
  * "Last worked 4h ago", and the two ways that sentence goes wrong.
@@ -939,7 +939,7 @@ function Proposals({ member, onDecided }: { member: CrewMember; onDecided: () =>
 
       {decide.isError ? (
         <ReadFailed detail="Nothing was granted and nothing was refused. The proposal is still open.">
-          {(decide.error as Error).message}
+          {messageForPerson(decide.error)}
         </ReadFailed>
       ) : null}
 
@@ -1086,7 +1086,7 @@ function Boundary({ member, onChanged }: { member: CrewMember; onChanged: () => 
       {failure ? (
         <div className="mt-mrd-4">
           <ReadFailed detail="The boundary on screen is still whatever it was a moment ago; the change did not land.">
-            {(failure as Error).message}
+            {messageForPerson(failure)}
           </ReadFailed>
         </div>
       ) : null}
@@ -1309,7 +1309,7 @@ function ToolPolicy({ member, onChanged }: { member: CrewMember; onChanged: () =
 
       {mode.error ? (
         <ReadFailed detail="The tool is still set to whatever it was a moment ago; the change did not land.">
-          {(mode.error as Error).message}
+          {messageForPerson(mode.error)}
         </ReadFailed>
       ) : null}
     </>
