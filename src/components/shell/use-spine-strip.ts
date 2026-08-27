@@ -32,6 +32,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { studioSessionsKey } from "@/lib/query-keys";
 import { pollMs } from "@/components/shell/poll";
+import { stageNote } from "@/components/shell/stage-note";
 import { listStudioSessions } from "@/lib/studio.functions";
 import { listDueForecastsHere } from "@/lib/forecast.functions";
 import { listPendingOutcomes } from "@/lib/outcome.functions";
@@ -262,39 +263,16 @@ export function useSpineStrip(active: AgentStation | null): void {
        *                    "why do we need to display 'none' when nothing is
        *                    pending". The chip's muted styling already says it.
        */
-      const runWord = (n: number) => (n === 1 ? "run" : "runs");
-      /* A "+" ON THE FIGURE WHEN THE READ WAS BOUNDED. `listStudioSessions`
-         caps at 100 builder runs, 100 others and 200 assembled sessions, and
-         reports `bounded` rather than how many it dropped - the honest shape,
-         since a second count is the only thing that could say how many. So the
-         number stops being a count and becomes a floor: weaker than the figure
-         and true, rather than stronger and sometimes false.
-
-         "AT LEAST 89" WAS THE FIRST VERSION AND THE SCREEN REJECTED IT. It
-         wrapped the Discover chip to two lines, grew the whole strip, and
-         pushed the board down with it - measured on the running board
-         2026-08-27, where `bounded` comes back TRUE, so this is the ordinary
-         case rather than an edge one. The "+" is the same convention the rail's
-         own count uses, it fits on one line, and the chip carries the sentence
-         in a `title`.
-
-         Only the SESSION-derived counts take it. The Learn badge's outcomes
-         come from two other reads and must not inherit a caveat that is not
-         theirs. */
-      const floor = (n: number) => (sessionsBounded ? `${n}+` : `${n}`);
-      const note = b.gate
-        ? `${floor(b.gate)} ${runWord(b.gate)} waiting on you`
-        : b.failed
-          ? `${floor(b.failed)} failed`
-          : b.working
-            ? `${floor(b.working)} running`
-            : b.held
-              ? `${floor(b.held)} held`
-              : b.total
-                ? `${floor(b.total)} ${runWord(b.total)}${learnExtra}`
-                : isLearn && pendingCount > 0
-                  ? `${pendingCount} ${pendingCount === 1 ? "outcome" : "outcomes"} to record`
-                  : "";
+      /* The words and the bound are decided TOGETHER, in `stage-note.ts`, and
+         that is the fix rather than a tidy-up. As a ternary here the only
+         available check was reading this file and matching a string, which is
+         how a `bounded` flag shipped that marked the Learn badge with a caveat
+         belonging to a read it never made. */
+      const { note, bounded } = stageNote(b, {
+        sessionsBounded,
+        learnCount: pendingCount,
+        isLearn,
+      });
       const state: RunStage["state"] = b.gate
         ? "gate"
         : b.failed
@@ -310,7 +288,7 @@ export function useSpineStrip(active: AgentStation | null): void {
          title. Only true where the note actually carries a session count: a
          chip whose only line is the Learn badge must not claim a bound that
          belongs to a read it did not make. */
-      return { station, state, note, bounded: sessionsBounded && note !== learnExtra.trim() };
+      return { station, state, note, bounded };
     });
   }, [rows, pendingCount, sessionsFailed, sessionsBounded]);
 

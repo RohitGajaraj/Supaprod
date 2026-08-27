@@ -62,35 +62,19 @@ describe("the strip", () => {
 
   it("CALLS ITS NUMBERS A FLOOR WHEN THE READ WAS BOUNDED", () => {
     expect(code).toContain("const sessionsBounded = sessions.data?.bounded === true;");
-    expect(code).toContain("sessionsBounded ? `${n}+` : `${n}`");
+    expect(code).toContain("sessionsBounded,");
   });
 
-  it('USES "+" RATHER THAN "At least", because the screen rejected the words', () => {
+  it("DECIDES THE WORDS AND THE BOUND TOGETHER, in one tested function", () => {
     /*
-     * "At least 89 runs waiting on you" wrapped the Discover chip to two lines,
-     * grew the whole strip and pushed the board down with it - measured on the
-     * running board 2026-08-27, where `bounded` comes back TRUE, so that is the
-     * ordinary case and not an edge one.
-     *
-     * "+" is the same convention the rail's own count uses, and the chip
-     * carries the sentence in a title for anyone who stops on it.
+     * These two were separate expressions here, so the only available check was
+     * reading this file and matching a string - and that is how a `bounded`
+     * flag shipped that marked the Learn badge with a caveat belonging to a
+     * read it never made. Four titles on the rendered strip where three were
+     * true. The behaviour now lives in `stage-note.ts` and is asserted there
+     * against values rather than against source.
      */
-    expect(code).not.toContain("At least ${text}");
-    const frame = readFileSync("src/components/shell/AppFrame.tsx", "utf8");
-    expect(frame).toContain(
-      'title={stage.bounded ? "More are waiting than this counts" : undefined}',
-    );
-  });
-
-  it("marks every session-derived note, not just the loudest", () => {
-    // A strip where only the gate line hedges reads as the other six being
-    // exact, which is the same wrong claim in a quieter voice.
-    expect(code.match(/floor\(b\./g)?.length).toBeGreaterThanOrEqual(5);
-  });
-
-  it("LEAVES THE LEARN BADGE ALONE, because it is a different read", () => {
-    // Outcomes come from `listPendingOutcomes` and `listDueForecastsHere`.
-    // Neither is bounded by this flag and neither may inherit its caveat.
-    expect(code).toContain("bounded: sessionsBounded && note !== learnExtra.trim()");
+    expect(code).toContain("const { note, bounded } = stageNote(b, {");
+    expect(code).toContain("return { station, state, note, bounded };");
   });
 });
