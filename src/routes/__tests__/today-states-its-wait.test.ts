@@ -240,8 +240,26 @@ describe("Today's wait copy is honest", () => {
   });
 
   it("keeps its dashes out of user-facing text", () => {
+    /*
+     * THE CODEPOINTS ARE SPELLED, NOT TYPED, and that is this repo's own
+     * pattern rather than fussiness. `humanize.ts` states it: "Codepoints are
+     * spelled with String.fromCharCode (not literal glyphs) so this file stays
+     * free of the very invisible / irregular characters it exists to strip, and
+     * so the lint rules that ban them in source stay green."
+     *
+     * This guard carried both glyphs literally, which made it the only em dash
+     * left in the code of the 46 files this lane changed. S1 shipped a red
+     * suite tonight over exactly that shape — an en dash and an em dash inside
+     * a character class, caught by the repo's two dash guards — and the
+     * founder's standing instruction is that these characters must not reach a
+     * screen. A guard that has to hold one to do its job should hold it by
+     * number.
+     */
+    const EN = String.fromCharCode(0x2013);
+    const EM = String.fromCharCode(0x2014);
+    const dash = new RegExp(`[${EN}${EM}]`);
     for (const wait of waits) {
-      expect(wait).not.toMatch(/[–—]/);
+      expect(wait).not.toMatch(dash);
     }
   });
 
