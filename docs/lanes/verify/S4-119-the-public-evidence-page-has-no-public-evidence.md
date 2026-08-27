@@ -61,10 +61,37 @@ never leave the first station.
 
 **This is a consequence, not a separate defect**, and it is the most externally visible one.
 
+## The other half, checked, and it is honest
+
+I named `getPublicCalibration` as unchecked. Checking it closed the question in the page's favour.
+
+`computePredictionHitRate` reads **`insights`**, not the forecasts on decisions, filtering
+`resolution IS NOT NULL`, excluding `inconclusive`, and excluding sample workspaces:
+
+| | |
+| --- | --- |
+| insights | 144 |
+| resolved | 36 |
+| pass the filter | 28 |
+| **on a REAL workspace** | **4** |
+
+**So the public hit rate is computed from four data points.** I expected to find a bare percentage
+published on that, which would have been a serious claim on a meaningless sample.
+
+**It is not.** `proof.tsx:152` renders:
+
+> *"Supaprod called {hits} of the last {total} calls right."*
+> *"That is {rate}%, including the misses. We publish this number because a competitor claiming 100%
+> is a competitor not tracking outcomes at all."*
+
+**The denominator is on the screen**, so a visitor reading it sees "of the last 4". And
+`hasData = tableReady && total > 0 && rate !== null` gates the whole block, so it does not render a
+rate with nothing behind it.
+
+**Checked and clean.** The number is small and the page says how small, which is the whole standard.
+
 ## What I am not claiming
 
-- **I did not check `getPublicCalibration`**, the page's other half. The decisions list is what I
-  measured.
 - **I did not open `/proof` on a working backend.** With a dead one it renders a route-level error
   (`S4-102`), so the empty-but-honest state is inferred from the data and the filter rather than
   photographed.
