@@ -31,10 +31,25 @@
  *
  * A row lead is the opposite problem — the structure is the noise, and only
  * the first sentence survives the width. So this flattens, and where the two
- * overlap (paired `**`) they must agree. **If `plainProse` lands in this tree,
- * this should call it for the emphasis step rather than keep its own**, for
- * the reason S1 gave me about duplicate detectors: two spellings of one rule
- * is how the next person gets two answers from one string.
+ * overlap (paired `**`) they must agree.
+ *
+ * **WHEN `@/lib/plain-prose` REACHES THIS TREE, THE EMPHASIS STEP BELOW MUST
+ * CALL IT** rather than keep its own copy — two spellings of one rule is how
+ * the next person gets two answers from one string. It is not here yet: S1
+ * landed it as RUN-91 (`c13c83dc3`) on their own lane, and it is not on main.
+ * It moved OUT of `components/track/` deliberately, on S0's reasoning for
+ * `error-copy.ts`: a pure function with no JSX deciding what the product MAY
+ * SAY is policy, not presentation. So the import will not cross component
+ * trees, and there is no reason left not to compose.
+ *
+ * ── WHERE TEXT MAY BE CLEANED AT ALL, WHICH IS THE RULE BEHIND ALL OF THIS ─
+ * S1 and I made the same call independently on two surfaces and it generalises:
+ * **clean where a person is READING; never where a person is VERIFYING, and
+ * never where the string is on its way back into the record.** The `Pre`
+ * blocks on this surface show what a model was actually SENT, so they stay
+ * verbatim; a form's `value=` binding is round-tripping to storage, so it stays
+ * raw. Both of those are lossy places to be helpful. A row lead and a card's
+ * evidence are neither, which is why they are cleaned.
  *
  * ── UNDERSCORES ARE LEFT ENTIRELY ALONE, and that is S1's rule ─────────────
  * `_italic_` is real markdown and stripping it is defensible in general and
