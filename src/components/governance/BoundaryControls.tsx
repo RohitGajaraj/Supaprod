@@ -652,7 +652,7 @@ export function BoundaryControls({
       <AutomationBoundary workspaceId={activeWorkspaceId ?? null} />
       {b.isError ? (
         <ReadFailedLine onRetry={() => void b.refetch()}>
-          {(b.error as Error)?.message ?? "The reason did not come back with the error."}
+          {humanWriteError(b.error, "The reason did not come back with the error.")}
         </ReadFailedLine>
       ) : b.isLoading ? (
         <Reading>Reading what your crew is allowed to do.</Reading>
@@ -714,8 +714,10 @@ export function BoundaryControls({
               <Reading>Reading what your answers changed.</Reading>
             ) : policy.isError ? (
               <ReadFailedLine onRetry={() => void policy.refetch()}>
-                {(policy.error as Error)?.message ??
-                  "That did not come back, so this is not a claim that nothing changed."}
+                {humanWriteError(
+                  policy.error,
+                  "That did not come back, so this is not a claim that nothing changed.",
+                )}
               </ReadFailedLine>
             ) : changedByAnswers.length === 0 ? (
               <NothingHere>
