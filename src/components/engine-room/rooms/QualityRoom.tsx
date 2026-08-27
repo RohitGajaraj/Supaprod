@@ -7,7 +7,7 @@ import { GraphSlider } from "@/components/meridian/graph-slider";
 import { getEvalHealth } from "@/lib/eval-health.functions";
 import { getGuardrailHitCount } from "@/lib/guardrails.functions";
 import { EVAL_COVERAGE_TARGETS } from "@/lib/evals/coverage";
-import { Row, ErrorRetry, PanelPending, type RoomBodyProps } from "../RoomDetail";
+import { Row, ErrorRetry, PanelPending, type RoomBodyProps } from "../room-parts";
 import { FigureCard } from "../EngineChrome";
 import { Eyebrow } from "@/components/meridian/surface-parts";
 

@@ -22,7 +22,7 @@ import {
   VerdictSentence,
   PanelPending,
   type RoomBodyProps,
-} from "../RoomDetail";
+} from "../room-parts";
 import { QuietAction } from "../EngineChrome";
 import { Eyebrow } from "@/components/meridian/surface-parts";
 

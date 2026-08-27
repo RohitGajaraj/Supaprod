@@ -10,7 +10,7 @@ import {
   VerdictSentence,
   PanelPending,
   type RoomBodyProps,
-} from "../RoomDetail";
+} from "../room-parts";
 import { VerifyCockpit } from "./VerifyCockpit";
 
 // LOOM W2 fold: /govern's approvals and support tabs live in this room now.

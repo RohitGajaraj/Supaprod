@@ -124,7 +124,7 @@ import {
   RoomGlanceCardFailed,
   RoomGlanceCardPending,
 } from "@/components/engine-room/RoomGlanceCard";
-import type { RoomBodyProps } from "@/components/engine-room/RoomDetail";
+import type { RoomBodyProps } from "@/components/engine-room/room-parts";
 import { SpendRoom } from "@/components/engine-room/rooms/SpendRoom";
 import { QualityRoom } from "@/components/engine-room/rooms/QualityRoom";
 import { SafetyRoom } from "@/components/engine-room/rooms/SafetyRoom";

@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { PanelReading } from "../EngineChrome";
 import { BoundaryStatement } from "@/components/governance/BoundaryStatement";
-import { type RoomBodyProps } from "../RoomDetail";
+import { type RoomBodyProps } from "../room-parts";
 
 // LOOM W2 fold: /govern's controls (pause/kill switch), team (roster + trust
 // arcs - "what is it allowed to do?" is exactly the trust question), house
