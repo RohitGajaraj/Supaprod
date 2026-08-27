@@ -1,6 +1,7 @@
 # S4 · The open queue
 
-> _Every S4 finding still open, ranked, with its owner and its fix. Written 2026-08-27._
+> _Every S4 finding still open, ranked, with its owner and its fix. Written 2026-08-27, refreshed
+> the same night after S0 and S1 landed fixes and after the signed-in dead backend sweep._
 >
 > **Why this exists:** fifty-two verdict files is a library, not a work queue. Nobody can act on a
 > library. This is the one page to read, and every row links to the verdict that proves it.
@@ -12,9 +13,25 @@
 
 ## 1 · Do these first. They compound.
 
-### 1.1 · Learn grades the wrong claim, early · `S4-052`
+### 1.1 · The forecast is captured at Decide and graded by nobody · `S4-063` (supersedes `S4-052`)
 
-**Owner: S0** · `src/lib/ai/tools/registry.server.ts`
+**Owner: S0** · `driver.ts:1002`, `chain.ts:120`, `driver.ts:871`
+
+> **`S4-052` blamed the crew and was wrong.** The Learn brief tells the seat to grade against
+> `prd_id`, the SPEC. `data-analyst`'s own job says the same. **Neither ever names the forecast**, so
+> both verdicts were the crew doing exactly what it was told. Measured: `input ILIKE '%forecast%'` is
+> false on **18 of 18** runs those two seats have ever had, including two composed briefs of 7,800
+> and 7,842 characters.
+>
+> **Three changes, and any one alone does nothing:** `chain.ts:120` carries the forecast columns in
+> the decision's body (today it selects `rationale` only, so none of the **eleven** `forecast_*`
+> columns is ever loaded); `driver.ts:871` adds `decision` to Learn's yardstick beside `prd`, or the
+> decision is dropped as one of the oldest artifacts; `FILE_IT.learn` names the forecast.
+>
+> Guarded in `src/lib/spine/every-seat-is-told-how-to-finish.test.ts` as a todo carrying the
+> assertion. The original `S4-052` text follows, and its *proposed fix* still stands.
+
+**Original framing, kept because the fix survives it:** · `src/lib/ai/tools/registry.server.ts`
 
 `learning.record` has fired **twice in the product's life** and produced a wrong verdict both times.
 The forecast said *"the PRD will be approved and design gate cleared within 3 business days"* with a
@@ -104,6 +121,27 @@ user with genuinely mixed work sees 9 of 15 rows from fixtures, interleaved by `
 
 **Fix:** one line for the tag in the existing `.map`. The list-level filter or grouping is a larger
 call and needs a ruling on whether demo work should appear at all.
+
+### 2.3d · A control that contradicts its own page · `S4-066`
+
+**Owner: S3** · `src/routes/_authenticated.settings.tsx:1108` · **live** · higher stakes than a heading
+
+`canSubmit = current.length > 0 && next.length >= 8 && !mismatch && !tooShort`. It consults the field
+values and **never asks whether the profile read succeeded**, so on a page whose own red text says
+*"Your profile did not load, so nothing here is safe to save yet"*, typing a password **enables
+Change password**. A heading misleads; a control acts.
+
+### 2.3e · The rail links to a route that was folded away · `S4-065`
+
+**Owner: S3** (`shell/**`), caused by **S2**'s fold · **live**
+
+`runs.index.tsx:29` is now only `throw redirect({ to: "/today" })`, deliberately. `AppFrame.tsx:376`
+still carries a **primary** item labelled **Runs**, showing a runs count, that lands on **Today**.
+
+### 2.3f · A transport error is on four surfaces · `S4-066`
+
+**Owner: S3** · `Unauthorized: Invalid token` renders to a person on `/learn`, `/brain` (twice),
+`/guardrails` and `/settings`, spliced mid-sentence into copy written to a much higher standard.
 
 ### 2.4 · An all-clear that only requires *something* to have been read · `S4-032`
 
@@ -199,6 +237,13 @@ those. That is a convention, not a test.
 | S3's registry sweep safety | **VERIFIED SAFE** (`S4-036`) |
 | The 6 dashed `forecast_claim` rows | **CORRECT STATE**, do not "fix" (`S4-047`) |
 | The approval status drift | **STOPPED** 2026-07-25; 28 rows of residue (`S4-050`) |
+| `/runs` never resolves (`S4-056`) | **RETRACTED, no defect.** My own `curl` warming was the bug. Warm, `/runs` redirects in 4.2s, faster than `/today` (`S4-057`) |
+| Discover never clears (S0's brief fix) | **FIXED** at `8b724e096` after S4 proved the rewrite reached no seat. All three sense seats now carry it (`S4-060`, `S4-062`) |
+| §2.1 the offer contradicts the hold · §2.3b demo data unlabelled | **S1 reports RUN-48 / earlier runs.** Not yet re-verified by me on `main` |
+| `/approvals` "Nothing is ready for you." on a failed read (`S4-064`) | **FIXED by S1** on `lane/run`, code verified. **Screen not re-measured until it reaches `main`** |
+| `/learn` "Nothing is waiting to graduate" (`S4-064`) | **FIXED by S1** on `lane/run`, code verified, same caveat |
+| The bun 1.4.0 gate failure (`S4-022`, `S4-035`) | **FIXED** (`S4-058`). Was 2 fail on every bun 1.4.0 machine; now 11,686 pass / 0 fail. Six assertions had never once run |
+| The em dash leak "closed" on a column total (`S4-047`) | **RE-OPENED AS UNVERIFIED.** A total cannot close a write path. No `agent_runs` row exists since the fix, so there is nothing to test with yet (`S4-047` correction) |
 | `/runs` never resolves (`S4-056`) | **RETRACTED, no defect.** My own `curl` warming was the bug. Warm, `/runs` redirects in 4.2s, faster than `/today` (`S4-057`) |
 
 ---
