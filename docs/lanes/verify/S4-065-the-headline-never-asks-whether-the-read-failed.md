@@ -9,7 +9,7 @@
 | --- | --- |
 | `/today` | **honest** |
 | `/brain` | **honest, and the best in the product** |
-| `/work` | settled, nothing moves. Content not inspected |
+| `/work` | **CORRECTED: not a route.** I invented the path. The rail's "Work" item points at `/start` (`S4-066`) |
 | `/runs` | folded to `/today` on purpose, but the rail still links to it |
 | `/approvals` | body honest, **headline claims an empty queue** |
 | `/threads` | body honest, **headline claims nothing was ever asked** |
