@@ -107,6 +107,7 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { failureLine } from "@/lib/error-copy";
+import { stillHoldsWork } from "@/components/approvals/still-holds-work";
 import { approvalsQueueKey, APPROVALS_QUEUE_PREFIX, invalidateShellReads } from "@/lib/query-keys";
 import { isModalOpen } from "@/lib/overlay";
 import { useServerFn } from "@tanstack/react-start";
@@ -674,7 +675,8 @@ function ApprovalsSurface() {
           <Reading>Reading the queue.</Reading>
         ) : queue.isError ? (
           <ReadFailed
-            onRetry={() => void queue.refetch()} error={queue.error}
+            onRetry={() => void queue.refetch()}
+            error={queue.error}
             detail="Nothing has been settled and nothing has been lost. The queue is still whatever it was a moment ago; this screen just could not read it."
           >
             The queue did not load.
@@ -694,7 +696,22 @@ function ApprovalsSurface() {
             now={now}
             lines={focusedLines}
             hiddenLineCount={focusedHidden}
-            consequence={focused.approveConsequence}
+            /*
+             * THE CONSEQUENCE IS REPLACED, NOT ARGUED WITH, when the work this
+             * call held has already finished.
+             *
+             * "Approve · unblocks Build for this spec" is a promise the data
+             * does not support for 22 of the 29 pending calls in this database:
+             * their run is over, they are all 33+ days old, and none is past an
+             * expiry that would clear them. Printing both sentences would put
+             * "approving unblocks Build" directly above "answering it now
+             * releases nothing" and leave the reader to work out which is real.
+             *
+             * Silent when the run is live, and silent when we cannot tell --
+             * see `still-holds-work.ts` for why null must never read as
+             * finished.
+             */
+            consequence={stillHoldsWork(focused.gatesLiveWork) ?? focused.approveConsequence}
           >
             <Approve
               shortcut="a"
