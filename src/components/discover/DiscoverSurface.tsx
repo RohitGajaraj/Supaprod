@@ -565,7 +565,7 @@ type NoveltyRead = {
 };
 
 const NOVELTY_BASIS =
-  "Scored when this cluster was built, against your settled decisions and every earlier cluster. Open it to see what it resembles.";
+  "Scored when this theme was built, against your settled decisions and every earlier theme. Open it to see what it resembles.";
 
 /**
  * ALL THREE CLAIMS ARE VERB PHRASES, and that is a constraint rather than a
@@ -815,7 +815,7 @@ export function DiscoverSurface({
         verb: enabled ? "You let it read on its own" : "You took the reading back",
         consequence: enabled
           ? "New findings group without waiting for you. Nothing is promoted without you."
-          : "Nothing clusters until you press the button yourself.",
+          : "Nothing is grouped until you press the button yourself.",
       });
       void qc.invalidateQueries({ queryKey: ["cluster-settings"] });
     },
@@ -1259,7 +1259,7 @@ export function DiscoverSurface({
   const promote = useMutation({
     mutationFn: (themeId: string) => fPromote({ data: { theme_id: themeId } }),
     onSuccess: (res, themeId) => {
-      const title = ranked.find((r) => r.theme.id === themeId)?.theme.title ?? "the cluster";
+      const title = ranked.find((r) => r.theme.id === themeId)?.theme.title ?? "this theme";
       const carried = (res as { evidence?: number } | undefined)?.evidence ?? 0;
       setReceipt({
         verb: "You kept it",
@@ -1305,7 +1305,7 @@ export function DiscoverSurface({
     onSuccess: (_r, v) => {
       const themeId = v.themeId;
       const entry = ranked.find((r) => r.theme.id === themeId);
-      const title = entry?.theme.title ?? "the cluster";
+      const title = entry?.theme.title ?? "this theme";
       const at = entry?.theme.frequency ?? 0;
       setReceipt({
         verb: "You said it is not a pattern",
