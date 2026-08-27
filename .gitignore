@@ -297,3 +297,5 @@ videos/
 .net.mjs
 .probe2.mjs
 .focus.mjs
+.tabs.mjs
+.decidetab.mjs

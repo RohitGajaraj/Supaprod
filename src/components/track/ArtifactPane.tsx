@@ -22,6 +22,7 @@
 import * as React from "react";
 import { failureLine } from "@/lib/error-copy";
 import { humanizeText } from "@/lib/ai/humanize";
+import { plainProse } from "@/components/track/plain-prose";
 import { NO_CONTRACT, NO_NON_GOALS, specContract } from "@/components/track/spec-contract";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -318,7 +319,10 @@ function DecisionCard({ item }: { item: ArtifactView }) {
    * The words are untouched; humanizeText moves punctuation and strips
    * invisible characters, and leaves fenced code alone.
    */
-  const rationale = str(f.rationale) ? humanizeText(str(f.rationale) as string) : null;
+  /* `plainProse` after `humanizeText`: the dashes are the founder's rule and
+     the asterisks are the same tell one layer along. This rationale is the one
+     that put "*after*" on the Decide tab with its markers showing. */
+  const rationale = str(f.rationale) ? plainProse(humanizeText(str(f.rationale) as string)) : null;
   const alternatives = Array.isArray(f.alternatives_considered)
     ? f.alternatives_considered.filter((a): a is string => typeof a === "string")
     : [];

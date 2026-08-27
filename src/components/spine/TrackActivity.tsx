@@ -50,6 +50,7 @@
  */
 import * as React from "react";
 import { humanizeText } from "@/lib/ai/humanize";
+import { plainProse } from "@/components/track/plain-prose";
 import { AgentMark } from "@/components/meridian/marks";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -245,7 +246,9 @@ export function liveSeats(
  */
 export function saidLine(said: string | null | undefined): string | null {
   if (!said) return null;
-  const clean = humanizeText(said);
+  /* 92 of 2,805 `agent_runs.output` rows carry `**bold**`, and this is the line
+     that renders them. Same tell as the dashes, one layer along. */
+  const clean = plainProse(humanizeText(said)) ?? "";
   // Truncate AFTER cleaning, so the 160th character is one a person will see.
   return clean.length > 160 ? `${clean.slice(0, 160)}...` : clean;
 }
