@@ -2,7 +2,7 @@
 // security, changelog) that sit off the homepage footer. Matches the
 // homepage's dark canvas so a footer click never feels like a different
 // site. Kept deliberately plain: these are reference pages, not marketing.
-import { PUBLIC_FOOTER_LINKS } from "./site-links";
+import { FooterLinks } from "./FooterLinks";
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { SupaprodWordmark } from "@/components/supaprod/SupaprodWordmark";
@@ -175,38 +175,19 @@ export function LegalPageShell({
             }}
           >
             {/*
-             * A 44x44 HIT AREA THAT CANNOT REFLOW THE ROW.
+             * A 44x44 HIT AREA THAT CANNOT REFLOW THE ROW, now shared.
              *
              * Measured by S4 at every width: these six render 21px tall against
-             * a 24px floor, on five routes -- terms, privacy, faq, security,
-             * updates. Third standard this one component has failed, after the
-             * 4.10:1 contrast and the hand-rolled duplicate on /demo.
+             * a 24px floor, on the five routes that import this shell. The gap
+             * to the nearest neighbour is 16px, so 21 + 16 + 16 = 53 and a full
+             * 44 fits with room left.
              *
-             * The gap to the nearest neighbour is 16px, so 21 + 16 + 16 = 53 and
-             * a FULL 44 fits with room left. That is the Apple bar rather than
-             * the WCAG one, taken because it costs nothing here.
-             *
-             * AN ABSOLUTELY POSITIONED ::after, not padding. A pseudo-element is
-             * out of flow, so it cannot change the row it sits in -- which is
-             * the `items-center` trap I hit on the landing footer, where `py`
-             * plus an equal negative margin still grew the container because a
-             * centred row follows its tallest child. S4 used the same shape at
-             * 33px on the rail's brand link, where the budget was only 6px.
-             * Structural rather than measured-after-the-fact.
-             *
-             * `isolation: isolate` is deliberate: the overlay must not escape
-             * its own link and swallow a neighbour's pixels.
+             * The rendering moved into `FooterLinks` after this fix reached
+             * five routes and missed the two that draw their own anchors from
+             * the same list. The BOX around them stays here, because a 720px
+             * centred column is this shell's own and not a shared decision.
              */}
-            {PUBLIC_FOOTER_LINKS.map((l) => (
-              <a
-                key={l.href}
-                href={l.href}
-                className="legal-footer-link"
-                style={{ color: C.faint, textDecoration: "none", position: "relative" }}
-              >
-                {l.label}
-              </a>
-            ))}
+            <FooterLinks style={{ color: C.faint }} />
           </div>
         </footer>
       </div>
