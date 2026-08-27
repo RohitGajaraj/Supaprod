@@ -50,6 +50,7 @@ import {
   repeatLine,
   subjectKey,
 } from "@/components/today/duplicate-work";
+import { countIsAFloor, notTheWholeQueue } from "@/components/approvals/not-the-whole-queue";
 import { SlowRead } from "@/components/shell/SlowRead";
 import { undatedNote } from "@/components/today/undated-order";
 import {
@@ -348,6 +349,9 @@ type Settled = { verb: string; consequence: React.ReactNode; at: string; failed?
  */
 function stateSentence(n: {
   ready: number;
+  /** True when the queue reported it could not show everything. `ready` is then
+   *  a floor rather than a count, and a zero means nothing at all. */
+  partial: boolean;
   /**
    * NULL MEANS THE RUN RECORD HAS NOT ANSWERED, and it is not the same as zero.
    *
@@ -369,15 +373,30 @@ function stateSentence(n: {
   waiting: number | null;
   shipped: number | null;
 }): React.ReactNode {
+  /* "AT LEAST" WHEN THE READ WAS BOUNDED, and it is deliberately weaker than
+     hiding the number. The count is still the most useful thing on the screen;
+     it is only its EXACTNESS that was never earned. S1 measured the cost of
+     claiming it: 116 pending design gates against a family limit of 100, so
+     sixteen calls that needed a person were absent from every screen that lists
+     them and no surface could tell. */
   const first =
     n.ready === 0 ? (
-      "Nothing is ready for your review."
+      /* NOT "Nothing is ready" WHEN A FAMILY FAILED. Zero from a partial read is
+         the worst sentence this surface can say, because it is the one a person
+         acts on by closing the tab. */
+      n.partial ? (
+        "Some of your queue did not load, so this cannot say what is waiting."
+      ) : (
+        "Nothing is ready for your review."
+      )
     ) : n.ready === 1 ? (
       <>
+        {n.partial ? "At least " : null}
         <Num>1</Num> decision is ready for your review.
       </>
     ) : (
       <>
+        {n.partial ? "At least " : null}
         <Num>{n.ready}</Num> decisions are ready for your review.
       </>
     );
@@ -749,6 +768,14 @@ function Today() {
      recompute on every render and `useSelection` would be handed a fresh id
      array each time — which is the one input it must be able to compare. */
   const items = React.useMemo(() => queue.data?.items ?? [], [queue.data]);
+  /* WHAT THE QUEUE KNOWS IT DID NOT SHOW. `getApprovalsQueue` bounds every one
+     of ten families and degrades a family that throws to an empty list, so a
+     partial read arrives looking exactly like a complete one. Until this field
+     existed there was no signal in the payload at all and no guard on this
+     surface could have been written - which is why this board waited for it
+     rather than inferring it. */
+  const incomplete = queue.data?.incomplete;
+  const queueIsPartial = countIsAFloor(incomplete);
   const rows: MissionListRow[] = React.useMemo(
     () => missions.data?.missions ?? [],
     [missions.data],
@@ -1786,6 +1813,17 @@ function Today() {
     !loading &&
     !queue.isError &&
     !missions.isError &&
+    /* A PARTIAL READ IS NOT A QUIET MORNING, and this is the case `isError`
+       cannot see. `getApprovalsQueue` degrades a family that THROWS to an empty
+       list so that one refusal cannot blank the other nine - which is right for
+       the queue and fatal for this sentence, because the top-level read then
+       succeeds, `isError` is false, `items` is empty, and every other condition
+       here holds. The board would print "Nothing needs you right now." over a
+       queue that failed to load.
+       There was no signal in the payload until `incomplete` shipped, so this
+       guard could not be written and was deliberately left unwritten rather
+       than guessed at. */
+    !queueIsPartial &&
     items.length === 0 &&
     shipped.length === 0 &&
     !anythingBlocked &&
@@ -1861,12 +1899,14 @@ function Today() {
     if (quietMorning) return "Nothing needs you right now.";
     return stateSentence({
       ready: items.length,
+      partial: queueIsPartial,
       stuck: recordAnswered ? stoppedAll.length : null,
       waiting: recordAnswered ? proposedAll.length : null,
       shipped: recordAnswered ? shipped.length : null,
     });
   }, [
     quietMorning,
+    queueIsPartial,
     queueAnswered,
     recordAnswered,
     queue.isError,
@@ -2269,6 +2309,28 @@ function Today() {
                           last, and reads as the newest thing here. It draws
                           nothing today - every family carries a timestamp - and
                           a sort is exactly where that stops being true. */}
+                      {/* WHY THIS LIST IS NOT EVERYTHING, when it is not. Drawn
+                          ABOVE the undated note on purpose: "part of your queue
+                          did not load" changes whether you trust the screen at
+                          all, and "some of these carry no start time" only
+                          changes how you read the order.
+
+                          The sentence is `notTheWholeQueue`'s, not mine, and
+                          that is the point - three surfaces show this queue and
+                          two spellings of one caveat is how a person gets two
+                          answers about one queue. It names no family, which is
+                          also deliberate: "critic'd opportunities" is right in a
+                          log and, in front of a person, invites them to work out
+                          which of their calls is missing. That is a puzzle, not
+                          an answer. */}
+                      {notTheWholeQueue(incomplete) ? (
+                        <p
+                          role="status"
+                          className="mt-mrd-3 max-w-[var(--mrd-measure)] text-mrd-label leading-mrd-prose text-mrd-mute"
+                        >
+                          {notTheWholeQueue(incomplete)}
+                        </p>
+                      ) : null}
                       {undatedLine ? (
                         <p className="mt-mrd-3 max-w-[var(--mrd-measure)] text-mrd-label leading-mrd-prose text-mrd-faint">
                           {undatedLine}
