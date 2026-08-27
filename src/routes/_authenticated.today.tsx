@@ -1730,10 +1730,21 @@ function Today() {
         ) : null}
 
         <div className="today-lanes">
+          {/* "OPEN RUNS" WAS A DOOR BACK TO THIS PAGE. It navigated to /runs,
+              which the fold turned into a redirect to /today, so the control
+              reloaded the surface the reader was already on. Removed rather
+              than retargeted: the uncapped list already has its own door at the
+              foot of this region ("Open the inbox"), and a second one competing
+              with it would be the duplication the fold exists to remove.
+
+              This is the fold's own blast radius. A redirect keeps every link
+              resolving, which is what made the fold safe, and is exactly why a
+              link whose meaning died is invisible: nothing breaks, it just
+              stops meaning anything. Swept the rest in the same pass; the four
+              that remain are honest (the rail's Runs row lands where runs are
+              listed, and build.index's two are S1's to retitle per A-005). */}
           <Region
             title={FEED_TITLE}
-            goTo={rows.length > 0 ? "Open Runs" : undefined}
-            onGoTo={() => navigate({ to: "/runs" })}
             sub={
               stillWaiting(queue) || stillWaiting(missions) ? null : queue.isError ||
                 missions.isError ? (
