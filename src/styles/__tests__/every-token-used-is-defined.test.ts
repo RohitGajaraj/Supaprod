@@ -145,12 +145,7 @@ function usedWithoutFallback(): Map<string, string[]> {
  *   --mrd-fail-bright RoomDetail.tsx   <- a FAILURE colour that does not paint
  *   --mrd-pass-bright RoomDetail.tsx   <- and its pass counterpart
  */
-const MERIDIAN_ORPHANS = new Set([
-  "--mrd-raised",
-  "--mrd-you-text",
-  "--mrd-fail-bright",
-  "--mrd-pass-bright",
-]);
+const MERIDIAN_ORPHANS = new Set(["--mrd-raised", "--mrd-you-text"]);
 
 describe("no design-system token is used bare unless something declares it", () => {
   it("every bare var(--sp-*) and var(--mrd-*) resolves to something", () => {
@@ -185,13 +180,23 @@ describe("no design-system token is used bare unless something declares it", () 
     expect(meridian.length).toBeGreaterThan(20);
   });
 
-  it("the four known Meridian orphans are still exactly what is excused", () => {
-    // The allowlist may only shrink. If a name in here is now declared, delete
-    // it from the list; if the call site is gone, delete it too. Either way
-    // this test says so rather than letting the excuse outlive the defect.
+  it("every excused token is one the scanner ACTUALLY sees, not one I assumed", () => {
+    /*
+     * THIS IS THE TEST THAT WOULD HAVE CAUGHT THE MISTAKE, so it replaces the
+     * one that did not. The previous version asserted only that each excused
+     * name was UNDECLARED, which is true of any string nobody has ever
+     * defined -- including two that appeared solely inside a comment. It
+     * passed happily while excusing two things that were never defects.
+     *
+     * An allowlist entry has to earn its place twice: undeclared AND actually
+     * used bare in code the scanner reads. When a call site is fixed, this
+     * fails until the name comes out of the list, so the excuse cannot outlive
+     * the defect.
+     */
     const declared = declaredTokens();
-    const stillOrphaned = [...MERIDIAN_ORPHANS].filter((t) => !declared.has(t));
-    expect(stillOrphaned.sort()).toEqual([...MERIDIAN_ORPHANS].sort());
+    const used = usedWithoutFallback();
+    const notReal = [...MERIDIAN_ORPHANS].filter((t) => declared.has(t) || !used.has(t));
+    expect(notReal.sort()).toEqual([]);
   });
 
   it("the two that were invented are gone from the code", () => {
@@ -385,13 +390,23 @@ describe("no text-heading/text-copy class is used unless a stylesheet declares i
     expect(meridian.length).toBeGreaterThan(20);
   });
 
-  it("the four known Meridian orphans are still exactly what is excused", () => {
-    // The allowlist may only shrink. If a name in here is now declared, delete
-    // it from the list; if the call site is gone, delete it too. Either way
-    // this test says so rather than letting the excuse outlive the defect.
+  it("every excused token is one the scanner ACTUALLY sees, not one I assumed", () => {
+    /*
+     * THIS IS THE TEST THAT WOULD HAVE CAUGHT THE MISTAKE, so it replaces the
+     * one that did not. The previous version asserted only that each excused
+     * name was UNDECLARED, which is true of any string nobody has ever
+     * defined -- including two that appeared solely inside a comment. It
+     * passed happily while excusing two things that were never defects.
+     *
+     * An allowlist entry has to earn its place twice: undeclared AND actually
+     * used bare in code the scanner reads. When a call site is fixed, this
+     * fails until the name comes out of the list, so the excuse cannot outlive
+     * the defect.
+     */
     const declared = declaredTokens();
-    const stillOrphaned = [...MERIDIAN_ORPHANS].filter((t) => !declared.has(t));
-    expect(stillOrphaned.sort()).toEqual([...MERIDIAN_ORPHANS].sort());
+    const used = usedWithoutFallback();
+    const notReal = [...MERIDIAN_ORPHANS].filter((t) => declared.has(t) || !used.has(t));
+    expect(notReal.sort()).toEqual([]);
   });
 
   it("the two that were invented are gone from the code", () => {
