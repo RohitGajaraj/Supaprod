@@ -1,6 +1,6 @@
 import { describe, expect, it, test } from "bun:test";
 
-import { failureLine, messageForPerson, sessionEndedMessage } from "./error-copy";
+import { endedSessionOn, failureLine, messageForPerson, sessionEndedMessage } from "./error-copy";
 
 describe("what a person may read when something fails", () => {
   it("keeps the sentences this product's own server functions write", () => {
@@ -175,4 +175,14 @@ test("a thrown object is read the same as a thrown Error", () => {
   expect(messageForPerson(undefined)).toBeNull();
   expect(messageForPerson({ message: 42 })).toBeNull();
   expect(messageForPerson({})).toBeNull();
+});
+
+test("one ended session is found across a page's reads, in any position", () => {
+  const ended = "Your session ended. Sign in again and this will load.";
+  expect(endedSessionOn(new Error("Unauthorized"))).toBe(ended);
+  expect(endedSessionOn(null, undefined, new Error("jwt expired"))).toBe(ended);
+  // A page whose reads all succeeded, and one that failed for a real reason.
+  expect(endedSessionOn(null, undefined)).toBeNull();
+  expect(endedSessionOn(new Error("That step is ahead of this work."))).toBeNull();
+  expect(endedSessionOn()).toBeNull();
 });

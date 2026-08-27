@@ -137,7 +137,7 @@
  */
 
 import * as React from "react";
-import { failureLine, sessionEndedMessage } from "@/lib/error-copy";
+import { endedSessionOn, failureLine } from "@/lib/error-copy";
 import { Row } from "@/components/meridian/rows";
 import {
   Action,
@@ -571,12 +571,13 @@ function Learn() {
    * missing -- that is exactly the case where per-region detail is the thing
    * the reader needs, and collapsing it would hide which half is real.
    */
-  const endedSession =
-    sessionEndedMessage(outcome.error) ??
-    sessionEndedMessage(ledgerQ.error) ??
-    sessionEndedMessage(lastQ.error) ??
-    sessionEndedMessage(pendingQ.error) ??
-    sessionEndedMessage(settledQ.error);
+  const endedSession = endedSessionOn(
+    outcome.error,
+    ledgerQ.error,
+    lastQ.error,
+    pendingQ.error,
+    settledQ.error,
+  );
 
   if (endedSession) {
     return (

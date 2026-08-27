@@ -228,7 +228,7 @@
  */
 
 import { AutomationBoundary } from "@/components/governance/AutomationBoundary";
-import { failureLine, reasonLine } from "@/lib/error-copy";
+import { endedSessionOn, failureLine, reasonLine } from "@/lib/error-copy";
 import { wordFor } from "@/lib/spine/chain";
 import { Row, Line } from "@/components/meridian/rows";
 import * as React from "react";
@@ -830,6 +830,18 @@ export function DiscoverSurface({
   const rows = React.useMemo(() => signals.data?.signals ?? [], [signals.data]);
   type SignalRow = (typeof rows)[number];
   const loadError = (signals.error ?? themes.error) as Error | null;
+
+  /*
+   * ONE ENDED SESSION, SAID ONCE. Measured against a token that no longer
+   * answers: this surface drew "Your session ended. Sign in again and this will
+   * load." three times with three doors, because three regions each answered
+   * for their own read and all three failed for the same reason.
+   *
+   * Only an ended session collapses. A read that failed for a real reason keeps
+   * its own region's honesty, because there the detail IS what the reader needs
+   * -- which half is real is the whole question.
+   */
+  const endedSession = endedSessionOn(signals.error, themes.error);
   // An answer that has not arrived is not the answer "none". This surface is
   // where that was found on production: a workspace with 97 signals, 41 themes
   // and 34 opportunities rendered the first-run "Connect a source" screen for a
@@ -1988,6 +2000,33 @@ export function DiscoverSurface({
       ) : null}
     </>
   );
+
+  /*
+   * ONE FACT, ONE DOOR, AND NOTHING DRAWN UNDERNEATH IT.
+   *
+   * When the session is gone every read on this desk fails, so there is no
+   * ranking to show, no evidence to weigh and no bet to decide. Drawing the
+   * regions anyway gave three identical sign-in doors under a headline that
+   * could not be true. The honest page is the fact, what is still true, and
+   * the way back.
+   *
+   * The title carries the reassurance rather than the failure: what a person
+   * fears on the desk that holds their sources is that the record of what came
+   * in has gone, and it has not.
+   */
+  if (endedSession) {
+    return (
+      <Surface>
+        <div className="flex flex-col items-start gap-mrd-5">
+          <PageHeading
+            title="Your sources are still here."
+            sub={`Nothing that came in has been lost. ${endedSession}`}
+          />
+          <Action onClick={() => window.location.assign("/login")}>Sign in</Action>
+        </div>
+      </Surface>
+    );
+  }
 
   return (
     <Surface

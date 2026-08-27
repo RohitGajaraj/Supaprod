@@ -115,6 +115,34 @@ export function sessionEndedMessage(err: unknown): string | null {
 }
 
 /**
+ * ONE ENDED SESSION ACROSS A WHOLE PAGE'S READS.
+ *
+ * A surface with several reads answers for each of them separately, and when a
+ * session ends they all fail for the same reason. Nothing is in a position to
+ * notice it is the same reason, so /learn drew the sign-in sentence three times
+ * with three doors, /discover three, /decide and /design two each. Every copy
+ * correct; the page wrong, because the reader needs one fact and one door and
+ * the third copy teaches them the screen is not thinking.
+ *
+ * This is the DECISION only, deliberately. It does not render anything, because
+ * what is still true differs on every surface and is the whole value of the
+ * card: on the record that nothing you have learned is lost, on a permissions
+ * page that nothing moved while you were away. A component that guessed that
+ * sentence would be worse than the copies it replaced. Each page writes its own
+ * and calls this to know whether to.
+ *
+ * ONE ENDED READ MEANS ALL OF THEM. A session is a property of the tab, not of
+ * a query, so the first match is enough and there is no counting to do.
+ */
+export function endedSessionOn(...errors: unknown[]): string | null {
+  for (const e of errors) {
+    const ended = sessionEndedMessage(e);
+    if (ended) return ended;
+  }
+  return null;
+}
+
+/**
  * The message if it was written for a person, otherwise null.
  *
  * Callers render their own sentence and append this only when it is non-null,

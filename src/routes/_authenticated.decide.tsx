@@ -215,7 +215,7 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { failureLine, reasonLine } from "@/lib/error-copy";
+import { endedSessionOn, failureLine, reasonLine } from "@/lib/error-copy";
 import { sourceLabel } from "@/components/discover/format";
 import { wordFor } from "@/lib/spine/chain";
 import { Row, Line } from "@/components/meridian/rows";
@@ -2367,6 +2367,37 @@ function DecideSurface() {
       ? "That outcome was recorded in this example workspace, so it did not come from your product."
       : null;
   })();
+
+  /* One session, one statement. Derived here because every read it asks about
+     is declared above this point. */
+  const endedSession = endedSessionOn(opps.error, themes.error, learnings.error);
+
+  /*
+   * ONE ENDED SESSION, ONCE. Measured against a dead token, this station drew
+   * the sign-in sentence twice with two doors, because the bets read and the
+   * themes read failed for the same reason and neither could know that.
+   *
+   * Nothing underneath it survives the loss either: with no bets there is no
+   * ranking, no gate and nothing to decide. The title says what a person on
+   * this station actually wants to hear -- the calls they already made are
+   * still on the record.
+   *
+   * Only an ended session. A single failed read keeps its own region's line,
+   * because there which half is real is the whole question.
+   */
+  if (endedSession) {
+    return (
+      <Surface>
+        <div className="flex flex-col items-start gap-mrd-5">
+          <PageHeading
+            title="Your decisions are still on the record."
+            sub={`Nothing you have settled has been lost. ${endedSession}`}
+          />
+          <Action onClick={() => window.location.assign("/login")}>Sign in</Action>
+        </div>
+      </Surface>
+    );
+  }
 
   return (
     <Surface
