@@ -49,6 +49,7 @@
  * `useElapsed` with the WORK's start time, never the component's.
  */
 import * as React from "react";
+import { humanizeText } from "@/lib/ai/humanize";
 import { AgentMark } from "@/components/meridian/marks";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -186,6 +187,36 @@ export function hasLiveVisit(turns: Array<Pick<Turn, "outcome">>): boolean {
 }
 
 /**
+ * WHICH teammates are in flight, not merely whether any are.
+ *
+ * Same rule as `hasLiveVisit` above and deliberately built on the same two
+ * outcomes, so the boolean and the list can never disagree about whether work is
+ * open. SPEC-MULTIPLAYER-PRESENCE needs the identities: one acting is one
+ * character, two or more are drawn each with its own colour and name.
+ *
+ * Deduped by slug because one seat can hold several rows in a visit, and a
+ * person watching two teammates must not be shown four.
+ */
+export function liveSeats(
+  turns: Array<Pick<Turn, "outcome" | "agentSlug" | "agentName">>,
+): Array<{ slug: string | null; name: string; waiting: boolean }> {
+  const seen = new Map<string, { slug: string | null; name: string; waiting: boolean }>();
+  for (const t of turns) {
+    if (t.outcome !== "working" && t.outcome !== "waiting") continue;
+    const key = t.agentSlug ?? t.agentName;
+    if (!key) continue;
+    const prior = seen.get(key);
+    // A seat with any waiting row is waiting; otherwise it is working.
+    seen.set(key, {
+      slug: t.agentSlug ?? null,
+      name: t.agentName,
+      waiting: (prior?.waiting ?? false) || t.outcome === "waiting",
+    });
+  }
+  return [...seen.values()];
+}
+
+/**
  * Every figure and every artifact this turn amounted to, in one line.
  *
  * ONE PLACE FOR A DURATION ON A ROW, live or finished. The elapsed figure used
@@ -199,6 +230,24 @@ export function hasLiveVisit(turns: Array<Pick<Turn, "outcome">>): boolean {
  * rollup is the normal case, not the edge one. `RunRollup` drops falsy items so
  * a hole never prints as a stray separator.
  */
+/**
+ * The agent's own last line, as a person should read it.
+ *
+ * See the render site for why this exists and what ends it. In short: the model
+ * writes em dashes into `agent_runs.output`, the write path still does, and this
+ * is the repo's own `humanizeText` applied on the way out rather than a second
+ * rule. Idempotent, so it no-ops on any row already clean.
+ *
+ * "Trimmed, never rewritten" still holds: punctuation moves, prose does not, and
+ * the test beside this file compares the words before and after.
+ */
+export function saidLine(said: string | null | undefined): string | null {
+  if (!said) return null;
+  const clean = humanizeText(said);
+  // Truncate AFTER cleaning, so the 160th character is one a person will see.
+  return clean.length > 160 ? `${clean.slice(0, 160)}...` : clean;
+}
+
 export function rollupOf(t: Turn, titles: TitleBook): React.ReactNode[] {
   const took =
     t.outcome === "working" ? (
@@ -234,6 +283,7 @@ export function TrackActivity({
   trackId,
   isRunning = false,
   onLiveChange,
+  onLiveSeats,
 }: {
   trackId: string;
   isRunning?: boolean;
@@ -246,6 +296,8 @@ export function TrackActivity({
    * pulses, which is the correct answer for an idle track.
    */
   onLiveChange?: (live: boolean) => void;
+  /** WHICH teammates are in flight, for the multiplayer presence case. */
+  onLiveSeats?: (seats: Array<{ slug: string | null; name: string; waiting: boolean }>) => void;
 }) {
   const fetchActivity = useServerFn(getTrackActivity);
   const fetchChain = useServerFn(getTrackChain);
@@ -271,6 +323,20 @@ export function TrackActivity({
   React.useEffect(() => {
     onLiveChange?.(live);
   }, [live, onLiveChange]);
+
+  /*
+   * WHO is in flight, for the presence slot. Same source and same rule as
+   * `live` above, so the two cannot disagree. Keyed on the identities rather
+   * than the array so a poll returning the same seats does not re-render the
+   * presence block.
+   */
+  const seats = React.useMemo(() => liveSeats(q.data?.turns ?? []), [q.data]);
+  const seatSig = seats.map((s) => `${s.slug ?? s.name}:${s.waiting ? "w" : "r"}`).join("|");
+  React.useEffect(() => {
+    onLiveSeats?.(seats);
+    // `seatSig` is the value that matters; the array identity changes each poll.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seatSig, onLiveSeats]);
 
   /*
    * WHAT THE ARTIFACTS ARE CALLED, AND WHY THIS COSTS NOTHING EXTRA.
@@ -565,21 +631,26 @@ export function TrackActivity({
                       the transcript said only "Stopped". */}
                   {t.stopLine ? <RunNote>{t.stopLine}</RunNote> : null}
 
-                  {/* The agent's own last line, trimmed and never rewritten.
-                      One line is enough to tell whether it understood the job;
-                      the full text lives on the run.
+                  {/* The agent's own last line. One line is enough to tell
+                      whether it understood the job; the full text lives on the
+                      run. The wording is untouched: `saidLine` moves punctuation
+                      and nothing else.
 
-                      This printed through a sanitiser for four hours on
-                      2026-08-26, because 1,375 of 2,771 `agent_runs.output`
-                      rows carried an em dash the model had written. S0 wrapped
-                      all seven write sites in `loop.server.ts` and backfilled
-                      the stored rows; measured again after, every one of those
-                      columns reads zero. Both conditions that bridge named for
-                      its own removal were met, so it is gone rather than left
-                      as a permanent no-op nobody dares delete. */}
-                  {t.said ? (
-                    <RunNote>{t.said.length > 160 ? `${t.said.slice(0, 160)}...` : t.said}</RunNote>
-                  ) : null}
+                      ── THIS BRIDGE CAME BACK, AND MY REMOVING IT WAS THE ERROR ─
+                      RUN-27 deleted it on the strength of a measurement that
+                      read zero across the whole column. That number was true and
+                      it was the wrong question: S0 had just BACKFILLED, so it
+                      described history rather than the write path. Measured
+                      again on 2026-08-27 with the question that matters, rows
+                      written SINCE the fix: 9 dashed rows in `agent_runs.output`,
+                      all 9 after it, the newest at 23:30 UTC. The leak was never
+                      closed; the backfill hid it for five hours.
+
+                      **The exit condition is therefore restated so it cannot be
+                      satisfied by another backfill: delete this when a count of
+                      rows created AFTER the write-path fix reads zero, not when
+                      the column total does.** */}
+                  {saidLine(t.said) ? <RunNote>{saidLine(t.said)}</RunNote> : null}
                 </span>
               </li>
             );
