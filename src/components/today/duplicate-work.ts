@@ -34,6 +34,32 @@ import { stripAutoPrefix } from "@/components/plan/format";
  * genuinely worse than the page can see, this UNDER-reports, which is the
  * direction that cannot mislead anyone into dismissing real work.
  *
+ * ── THIS IS A FLOOR, AND THE REAL KEY IS MISSING UPSTREAM ──────────────────
+ * The founder corrected S1 tonight on exactly the trap this file could fall
+ * into: "a measurement is a fair way to choose what to build FIRST. It is not
+ * a fair way to choose what the thing IS." Designing around a gap in today's
+ * data bakes today's mess into the product permanently.
+ *
+ * So, checked rather than assumed. `missions` carries NO subject key:
+ * archived_at, auto_trigger_source, build_driver, completed_at, created_at,
+ * current_agent_id, goal, hop_count, id, replayed_from_mission_id, status,
+ * title, updated_at, user_id, verify_cycles, workspace_id. No theme, no
+ * cluster, no opportunity. `spine_tracks` HAS `theme_id`; missions do not. So
+ * the title is not the key this chose over a better one, it is the only key
+ * that exists, and matching on it is a floor rather than a design.
+ *
+ * **`replayed_from_mission_id` IS THE REAL RELATION AND NOTHING WRITES IT.**
+ * It is on the table, it names precisely "this mission repeats that one", and
+ * it is non-null on 0 of 111 rows. That is the same shape as the finding the
+ * founder corrected: the relation exists and the bookkeeping never happens.
+ * When it is written, "one of 7 identical" stops being an inference from a
+ * string and becomes a fact the record already holds — and near-duplicates,
+ * which this deliberately cannot see, come with it.
+ *
+ * It is NOT read here today, because a branch that can never fire is the
+ * dead-code failure this repo keeps paying for. The gap is the thing to fix;
+ * this is what the board can honestly say until it is.
+ *
  * ── EXACT MATCHES ONLY, AND THAT IS A DELIBERATE FLOOR ─────────────────────
  * Nothing here is fuzzy: no stemming, no edit distance, no embedding. Two rows
  * collide when their titles are identical after trimming, collapsing runs of
