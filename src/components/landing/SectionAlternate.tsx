@@ -89,7 +89,21 @@ export function SectionAlternate({
             fontFamily: "var(--mrd-font, system-ui)",
             lineHeight: 1.6,
             color: "#a1a1aa", // zinc-400
-            maxWidth: "340px",
+            /*
+             * 340px until 2026-08-28. See the note on product.tsx's hero
+             * paragraph: a pixel cap stops tracking the type scale, so the day
+             * 14px becomes 15px the measure silently changes its character
+             * count and nothing says so.
+             *
+             * 38.5ch is THIS block's current width, measured by S4 in the
+             * browser with a probe span in the element's own font: 14px,
+             * 1ch = 8.83px, so 340px is 38.51ch. This component draws six times
+             * on /product and all six measured identically.
+             *
+             * Not rounded: 38ch is 3px narrower and 40ch is 13px wider, and
+             * either would be a design change smuggled in under a unit change.
+             */
+            maxWidth: "38.5ch",
           }}
         >
           {body}
