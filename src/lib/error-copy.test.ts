@@ -114,3 +114,48 @@ test("failureLine puts the action a reader can take ahead of everything else", (
     ),
   ).toBe("Nothing moved. That step is ahead of this work, and undo only goes back.");
 });
+
+/*
+ * THINGS THAT LOOK LIKE PROSE AND ARE NOT, all three found by S2 while adopting
+ * this helper across their prefix, and every one of them passed the original
+ * shape test: enough words, no identifier, ending in a full stop. That is the
+ * value of a second reader on a rule whose whole job is judgment.
+ */
+test("a stack frame does not reach a person by ending in a full stop", () => {
+  expect(
+    messageForPerson(
+      "The upstream service returned an unexpected response at handler (src/lib/x.ts:214).",
+    ),
+  ).toBeNull();
+  expect(messageForPerson("It broke at renderRow (TrackRun.tsx:812).")).toBeNull();
+});
+
+test("a body is not a sentence, whatever it ends with", () => {
+  expect(messageForPerson('{"detail":"' + "x".repeat(300) + '"}. It ended in a stop.')).toBeNull();
+  expect(messageForPerson("[1, 2, 3] and then some words about it.")).toBeNull();
+  // The cap alone, with nothing else machine-shaped about it.
+  expect(
+    messageForPerson("A perfectly ordinary sentence. " + "Repeated over and over. ".repeat(12)),
+  ).toBeNull();
+});
+
+test("an address leaks nothing, with or without a scheme", () => {
+  expect(
+    messageForPerson("Failed to reach https://api.example.com/v1/thing gateway timeout."),
+  ).toBeNull();
+  // The half "http" misses, which is why the scheme test is not enough.
+  expect(messageForPerson("The call to api.example.com never came back at all.")).toBeNull();
+});
+
+test("and the good sentences all still survive it", () => {
+  // The regression this whole family risks: a rule that hides real copy is a
+  // worse failure than one that shows a log line, because nobody notices.
+  for (const good of [
+    "That step is ahead of this work, and undo only goes back.",
+    "This work is closed, so there is no station to hand back to.",
+    "Somebody has to choose between the two before this can move.",
+    "That step is ahead of this work. Undo only goes back, so there is nothing behind it to return to.",
+  ]) {
+    expect(messageForPerson(good)).toBe(good);
+  }
+});

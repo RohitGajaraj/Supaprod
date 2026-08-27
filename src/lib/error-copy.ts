@@ -122,6 +122,33 @@ export function messageForPerson(err: unknown): string | null {
   // Written prose ends like prose. A truncated dump usually does not.
   if (!/[.!?]$/.test(text)) return null;
 
+  /*
+   * THREE THINGS THAT LOOK LIKE PROSE AND ARE NOT, found by S2 while adopting
+   * this across their prefix. Each of their examples passed every test above:
+   * enough words, no uuid, no snake_case, ending in a full stop.
+   *
+   * A LENGTH CAP, because there is no upper bound on a truncated body and a
+   * 900-character JSON blob that happens to end in a stop was reaching a
+   * person. Nothing written FOR a person as a failure line runs past 200
+   * characters; past that it is a paragraph, or it is a dump. The number
+   * matches `serverMessage` in the shell, deliberately, so the two can be
+   * consolidated without a behaviour change.
+   */
+  if (text.length > 200) return null;
+
+  /* A body rather than a sentence. JSON and XML announce themselves in the
+   * first character, and no sentence begins with one. */
+  if (/^\s*[<{[]/.test(text)) return null;
+
+  /*
+   * A STACK FRAME OR A URL. "at handler (src/lib/x.ts:214)" reads as ordinary
+   * prose to every rule above -- S2's exact example, and it leaked. The MACHINE
+   * list catches "http" and therefore any absolute URL, but not a bare host or
+   * path, which is the half that still gets through.
+   */
+  if (/\bat\s+\w+\s*\(|\.[jt]sx?:\d+|\/\/[\w.-]+\.\w{2,}/i.test(text)) return null;
+  if (/\b[\w-]+\.(?:com|net|org|io|dev|ai|co)\b/i.test(text)) return null;
+
   return text;
 }
 
