@@ -34,6 +34,7 @@ import { runTotals, spendWords } from "@/components/today/run-totals";
 import { lastMovedAt, stillnessLine } from "@/components/today/last-movement";
 import { failureLine } from "@/lib/error-copy";
 import { trackToBoardRows, type TrackBoardRow } from "@/components/today/tracks-feed";
+import { CrewPulseNote } from "@/components/today/CrewPulseNote";
 import { QuietMorning } from "@/components/today/QuietMorning";
 import { RunState, ShippedState } from "@/components/today/RunState";
 import { ago, daysSince, withinLastDay } from "@/components/today/when";
@@ -2408,6 +2409,14 @@ function Today() {
           </Region>
         </div>
 
+        {/* WHETHER THE QUIET IS THIS PRODUCT WORKING OR THIS PRODUCT STOPPED.
+            `QuietMorning` below teaches what a decision looks like, which is
+            the first-run question. This answers the returning reader's, which
+            is "is anything actually running?" — and it is the half a calm
+            screen has never been able to tell apart. Measured on the live
+            database 2026-08-27: 622 agent runs, 621 of which finished without
+            needing a person. The board said none of it. */}
+        {quietMorning ? <CrewPulseNote workspaceId={workspaceId} /> : null}
         {quietMorning ? <QuietMorning /> : null}
 
         <PushedInsights />
