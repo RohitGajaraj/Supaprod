@@ -61,6 +61,7 @@ import { ceilingReality, TRACKS } from "@/components/governance/ceiling-reality"
 import { whereTheCrewStands } from "@/components/governance/where-the-crew-stands";
 import { unansweredGates, whatBecameOfThem } from "@/components/governance/gates-nobody-answered";
 import { whatTheyActuallyDid } from "@/components/governance/what-they-actually-did";
+import { oursNotYours } from "@/components/governance/who-chose-this";
 import { Link } from "@tanstack/react-router";
 import { Field, Input } from "@/components/meridian/forms";
 import { MoreItem, MoreMenu } from "@/components/meridian/MoreMenu";
@@ -679,13 +680,21 @@ export function BoundaryControls({
   /** One block of the boundary. The menu offers only the moves a floor allows,
    *  and where a move is forbidden the row says why instead of showing a
    *  control that does nothing. */
+  /*
+   * Every block discloses how much of it is ours rather than theirs. Appended
+   * inside `block` rather than at each call site so no block can be added
+   * without it: the disclosure is a property of showing a policy list, not a
+   * decision three callers make separately.
+   */
   const block = (key: string, title: string, sub: string, tools: BoundaryTool[], empty: string) => {
+    const ours = oursNotYours(tools);
+    const said = ours ? `${sub} ${ours}` : sub;
     const open = showAll[key] ?? false;
     const shown = open ? tools : tools.slice(0, VISIBLE);
     return (
       <Region
         title={title}
-        sub={sub}
+        sub={said}
         toggle={tools.length > VISIBLE ? (open ? "Show fewer" : `All ${tools.length}`) : undefined}
         onToggle={() => setShowAll((s) => ({ ...s, [key]: !open }))}
         toggled={open}
