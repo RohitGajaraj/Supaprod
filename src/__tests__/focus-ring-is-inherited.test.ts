@@ -144,10 +144,6 @@ const EXEMPT: ReadonlyArray<{ path: string; why: string }> = [
 
   // Live surfaces with real broken rings, owned by other items. Named here so
   // the debt is visible rather than silently outside the guard.
-  {
-    path: "src/components/supaprod/Sketch.tsx",
-    why: "Live, ring broken. Outside this item's owned files.",
-  },
 ];
 
 const EXEMPT_PATHS = new Set(EXEMPT.map((e) => e.path));
