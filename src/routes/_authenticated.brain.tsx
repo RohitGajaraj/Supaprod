@@ -376,6 +376,7 @@
  * The payload carries no due-count, so none is claimed anywhere below.
  */
 import { lazy, Suspense, useState, type ReactNode } from "react";
+import { sessionEndedMessage } from "@/lib/error-copy";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
@@ -396,6 +397,7 @@ import {
   Door,
   Figure,
   NothingYet,
+  ReadFailed,
   ReadFailedLine,
   Reading,
   Region,
@@ -567,7 +569,11 @@ function RecordHead({ title, sub }: { title: ReactNode; sub?: ReactNode }) {
   return (
     <header data-mrd="">
       <h1 className="text-mrd-h2 leading-mrd-tight font-medium text-mrd-ink">{title}</h1>
-      {sub ? <p className="mt-mrd-3 text-mrd-base leading-mrd-prose text-mrd-prose text-mrd-body">{sub}</p> : null}
+      {sub ? (
+        <p className="mt-mrd-3 text-mrd-base leading-mrd-prose text-mrd-prose text-mrd-body">
+          {sub}
+        </p>
+      ) : null}
     </header>
   );
 }
@@ -971,8 +977,8 @@ export function guidanceLines(args: {
             key: "forecast",
             lead: (
               <>
-                <Figure>{forecast.hits}</Figure> of <Figure>{forecast.resolved}</Figure>{" "}
-                graded forecasts came true lately.
+                <Figure>{forecast.hits}</Figure> of <Figure>{forecast.resolved}</Figure> graded
+                forecasts came true lately.
               </>
             ),
             sub: "Each was written down before it could be checked, then marked against what actually happened.",
@@ -1445,6 +1451,48 @@ function MemoryPage() {
             </span>
           ))
         : undefined;
+
+  /**
+   * ONE CAUSE, ONE STATEMENT.
+   *
+   * Rendered signed in with a dead backend, this page said the same thing five
+   * times: the head, the size line, the standing rules, the map, and the calls
+   * -- each an honest sentence about its own failed read, four of them carrying
+   * a "Try again", and after the transport fix two of them carrying the SAME
+   * "Your session ended" sentence one above the other.
+   *
+   * Every one of those sentences is well written. Five of them about one cause
+   * is still a wall, and a wall makes the product look far more broken than it
+   * is. This is the founder's "layer 1, layer 2, layer 3" complaint on the
+   * surface he named.
+   *
+   * A DEAD SESSION IS A PAGE-LEVEL FACT, not a per-panel one. If the session
+   * ended, every read below failed for that one reason and none of them can
+   * succeed until it is fixed, so five panels reporting it separately tell the
+   * reader nothing the first one did not. It says it once and offers the only
+   * control that can actually work -- signing in again, rather than four
+   * retries that would each re-read with the same dead token.
+   *
+   * Scoped deliberately to the ended session and nothing else: a genuine
+   * mixture of failures, where one read died and the others live, still gets
+   * per-panel honesty, because there the panels disagree and the reader needs
+   * to know which half is real.
+   */
+  const endedSession =
+    sessionEndedMessage(brain.error) ??
+    sessionEndedMessage(stats.error) ??
+    sessionEndedMessage(standing.error) ??
+    sessionEndedMessage(compounding.error);
+  if (endedSession) {
+    return (
+      <Surface wide>
+        <RecordHead title="The record is still here." sub="You are not signed in any more." />
+        <ReadFailed error={brain.error ?? stats.error} detail="Nothing on the record has changed.">
+          {endedSession}
+        </ReadFailed>
+      </Surface>
+    );
+  }
 
   return (
     <Surface wide>
