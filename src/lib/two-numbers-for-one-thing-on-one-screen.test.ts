@@ -68,10 +68,13 @@ describe("a count alone cannot say whether the pile is stale", () => {
     expect(SRC.split("totalBlocked").length - 1).toBeGreaterThanOrEqual(5);
   });
 
-  it("a failed count degrades to zero rather than throwing the lane away", () => {
+  it("a failed count answers null rather than zero, and never throws the lane away", () => {
     const at = SRC.indexOf("const BLOCKED_STATUSES");
     const block = SRC.slice(at, at + 2000);
     expect(block).toContain("catch");
-    expect(block).toContain("totalBlocked = 0");
+    // NULL, not 0. S2's call and it is right: a failed read degrading to zero
+    // puts "Waiting on you 0" at the head of the lane whose job is saying what
+    // needs a person. A count that cannot be taken is not a count of zero.
+    expect(block).toContain("totalBlocked = null");
   });
 });
