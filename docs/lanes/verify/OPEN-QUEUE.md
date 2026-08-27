@@ -12,6 +12,20 @@
 
 ---
 
+## 0a · NOTHING FIXED TONIGHT IS LIVE
+
+**Production deploys from `main`, and all four lanes sit 9 to 16 commits ahead of it.**
+
+Every fix in this document — S0's four, S1's three, S3's transport and duplication work, my harness —
+is **inert until someone merges to `main`**. `a30238f5` will keep failing at Ship for the old reason
+until it does.
+
+**That merge is the founder's call**, not a lane's, and S0 has explicitly declined to take it
+unilaterally. It is the first thing to decide in the morning, because until it happens the measured
+state of the product is last night's, and every number in this file describes code nobody is running.
+
+---
+
 ## 0 · Where this stands at the end of the night, 2026-08-27 ~03:30 UTC
 
 **The acceptance is 0, and for the first time the reason is a definition rather than a failure.**

@@ -59,6 +59,32 @@ is empty, so the honest statement is *"the record cannot say"*, not *"an agent d
 Midnight timestamps, a NULL resolver on every row, and a ten-day silence are the signature of seeded
 data rather than a working loop. **`S4-063` stands.**
 
+## CORRECTION: the 15 is 13 demo fixtures and 2 real, and both real ones are correctly held
+
+**S0 broke it down by workspace and my number meant something different from what I said.**
+
+| `is_sample` | `auto_derive` | workspaces | overdue |
+| --- | --- | --- | --- |
+| true | false | 11 | **13** |
+| false | true | 1 | **2** |
+| false | false | 9 | 0 |
+
+**The 13 are on sample workspaces, which `calibrate-tick` skips by design** because no tick may spend
+on a demo fixture. That is F-90, which I have quoted in my own verdicts all night, and I still
+counted fixtures as a backlog.
+
+**The real backlog is 2, and both already carry a drafted verdict.** They wait because
+`canAutoSettle` requires the linked spec's outcome to have been settled BY A PERSON, which
+deliberately closes the chain of agent-judges-outcome then agent-judges-forecast with no human
+anywhere. **That gate is correct and is not to be touched.**
+
+> **This is `S4-041` again, by me, four hours later.** There I corrected "45 of 60 open tracks cannot
+> move" because I had counted demo fixtures as stranded work, and wrote that the trap was mine. Then
+> I published a count of overdue forecasts without asking whose workspace they were on. **A number
+> without its population is a rumour, and knowing the rule is not the same as applying it.**
+
+## The number that survives, and it is smaller
+
 ## The number that is actionable tonight
 
 ```sql
@@ -66,7 +92,7 @@ SELECT count(*) FROM decisions WHERE forecast_horizon_date < now() AND forecast_
 -- 15
 ```
 
-**Fifteen forecasts are past their horizon and unresolved.** Their due date has arrived and nothing
+**Two real forecasts are past their horizon**, both with a drafted verdict, both correctly waiting on a human outcome settlement. Thirteen more are demo fixtures the tick skips by design. Their due date has arrived and nothing
 has graded them. That is the due-forecast queue `S4-040` found wired to a caller that never runs.
 
 ## Canon corrections
