@@ -100,3 +100,47 @@ export function runStatus(
    */
   return null;
 }
+
+/**
+ * WHERE THIS CAME FROM, with the title not said twice.
+ *
+ * ── WHAT WAS ON SCREEN ────────────────────────────────────────────────────
+ * The run header prints the title, then prints `track.origin` under it. On
+ * `6199f3df` at 1440 those were the same sentence, so the flagship screen
+ * opened by saying the same thing twice, one line apart, before anything else.
+ *
+ * ── AND IT IS NOT A ONE-OFF, WHICH IS WHY THIS IS A FUNCTION ──────────────
+ * Measured across all 106 tracks: 68 carry an origin, 1 is character-identical
+ * to its title, and 3 more BEGIN with the title and then add to it. So 3 of 68
+ * make a person read the title twice before reaching a word they have not
+ * already read. That share will grow rather than shrink: the sentence a person
+ * types at /start becomes both the title and the origin, so the exact-match
+ * case is the natural result of the newest way to start work.
+ *
+ * ── WHAT IT DOES NOT DO, and this is the important half ───────────────────
+ * It does not hide origins. The origin is often the best line on the page --
+ * "This became work on its own because 9 signals say it, severity 4, and the
+ * cluster is 78% confident these belong together" is a fact nothing else on the
+ * screen carries. So the rule removes only the REPEATED prefix, and keeps every
+ * word the title did not already say. Silence is reserved for the case where
+ * there is genuinely nothing left.
+ */
+export function originLine(title: string, origin: string | null | undefined): string | null {
+  const norm = (s: string) => s.trim().replace(/\s+/g, " ");
+  const t = norm(title ?? "");
+  const o = norm(origin ?? "");
+  if (!o) return null;
+  if (!t) return o;
+
+  if (o.toLowerCase() === t.toLowerCase()) return null;
+
+  if (o.toLowerCase().startsWith(t.toLowerCase())) {
+    // Drop the repeated opening and whatever punctuation joined it on.
+    const rest = o.slice(t.length).replace(/^[\s.,;:\-–—]+/, "");
+    // A handful of characters left over is a fragment, not a fact. Below this
+    // the honest render is nothing at all rather than a dangling clause.
+    return rest.length >= 15 ? rest : null;
+  }
+
+  return o;
+}

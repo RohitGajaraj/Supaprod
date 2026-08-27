@@ -290,3 +290,4 @@ videos/
 .render-failures.mjs
 .shoot.mjs
 .expired.mjs
+.probe.mjs

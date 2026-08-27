@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { runStatus } from "./run-status";
+import { originLine, runStatus } from "./run-status";
 import type { Track } from "@/lib/spine/track.functions";
 
 /**
@@ -92,5 +92,47 @@ describe("what the run header claims", () => {
     expect(runStatus(at({ holdReason: "out-of-time" }))?.pulse).toBe(false);
     expect(runStatus(at({ status: "done" }))?.pulse).toBe(false);
     expect(runStatus(at({ status: "abandoned" }))?.pulse).toBe(false);
+  });
+});
+
+describe("where the work came from", () => {
+  const T = "The saved address dropdown shows deleted addresses after a customer removes one";
+
+  it("says nothing when the origin is the title again", () => {
+    // Exactly what was on screen for 6199f3df at 1440.
+    expect(originLine(T, T)).toBeNull();
+    // Whitespace and case are not a difference a reader can see.
+    expect(originLine(T, `  ${T.toUpperCase()}  `)).toBeNull();
+  });
+
+  it("keeps the part the title did not already say", () => {
+    expect(originLine(T, `${T}. This became work because 9 signals say it.`)).toBe(
+      "This became work because 9 signals say it.",
+    );
+    // The joining punctuation goes with the repeated half; a line starting
+    // with ". " reads as a fragment of the sentence above it.
+    expect(originLine("Fix checkout", "Fix checkout — 4 people reported it this week.")).toBe(
+      "4 people reported it this week.",
+    );
+  });
+
+  it("stays silent rather than leaving a dangling scrap", () => {
+    // Below the floor there is no fact left, only the tail of a sentence the
+    // reader has already read. Silence is the honest render.
+    expect(originLine("Fix checkout", "Fix checkout now")).toBeNull();
+    expect(originLine(T, `${T}.`)).toBeNull();
+  });
+
+  it("never hides an origin that carries its own fact", () => {
+    // THE REGRESSION THIS GUARDS. The origin is often the best line on the
+    // page, and a rule written to remove duplication is one edit away from
+    // removing the thing worth reading.
+    const brief =
+      "Homeowners stall at checkout when adding a second monitor, and they mute notifications once alerts arrive one at a time.";
+    expect(originLine(T, brief)).toBe(brief);
+    expect(originLine(T, null)).toBeNull();
+    expect(originLine(T, "")).toBeNull();
+    // No title yet is not a reason to drop the origin.
+    expect(originLine("", brief)).toBe(brief);
   });
 });

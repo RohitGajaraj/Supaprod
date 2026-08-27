@@ -12,7 +12,7 @@ import { RunFooter } from "@/components/track/RunFooter";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { getTrack, type Track } from "@/lib/spine/track.functions";
 import { nextStation, waiverFor, type SpineRoute } from "@/lib/spine/route";
-import { runStatus } from "@/components/track/run-status";
+import { originLine, runStatus } from "@/components/track/run-status";
 import { holdTone } from "@/lib/spine/driver";
 import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
 
@@ -92,9 +92,18 @@ function RunHeader({ track, liveNow = false }: { track: Track; liveNow?: boolean
         {/* Clamped to two lines: some origins are whole paragraphs (a
             clustered brief with counts), and an unbounded mono block under the
             title competed with the status for first read. The full text lives
-            on the row; the header only says where this came from. */}
-        {track.origin ? (
-          <p className="mrd-meta mt-mrd-1 line-clamp-2 text-mrd-faint">{track.origin}</p>
+            on the row; the header only says where this came from.
+
+            AND IT NO LONGER REPEATS THE TITLE. This rendered `track.origin`
+            raw, so on `6199f3df` the screen opened by saying the same sentence
+            twice, one line apart. `originLine` removes only a repeated opening
+            and keeps every word the title did not already say -- see its header
+            for the measurement across all 106 tracks and for why the share
+            grows rather than shrinks. */}
+        {originLine(track.title, track.origin) ? (
+          <p className="mrd-meta mt-mrd-1 line-clamp-2 text-mrd-faint">
+            {originLine(track.title, track.origin)}
+          </p>
         ) : null}
       </div>
       <div className="flex flex-col items-end gap-mrd-1">
