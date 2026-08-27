@@ -151,3 +151,36 @@ demonstrably run on this table tonight.
 the right thing to do eventually and it destroys the test data. Run it after the anchor query has
 come back zero on fresh rows, not before. Tonight it ran first, and it cost the team the ability to
 prove its own fix worked.
+
+---
+
+# THIRD UPDATE: THE ANCHOR HAS DATA NOW, AND ONE COLUMN IS PROVEN CLOSED
+
+Measured against the forward anchor set above, `2026-08-27 00:50:31.106707+00`, on rows that **did
+not exist when the backfill ran** and therefore cannot have been cleaned by it:
+
+| column | rows created after the anchor | dashed |
+| --- | --- | --- |
+| `agent_runs.output` | **9** | **0** |
+| `decisions.rationale` | 0 | 0 |
+| `decisions.forecast_claim` | 0 | 0 |
+| `learnings.summary` | 0 | 0 |
+
+## `agent_runs.output` is CLOSED, and this one is earned
+
+Nine rows written between 00:50 and 01:52 UTC, none dashed. That column carried **1,375 dashed rows
+of 2,773** when this was first measured and was the loudest carrier in the product. **The write path
+is shut.**
+
+This is the first time that claim has been made on evidence a backfill cannot manufacture, and it is
+the third method attempt: a column total said closed and was worthless; rows-since-the-fix said open
+and was destroyed by a backfill; rows-after-a-forward-anchor says closed and nothing can rewrite it.
+
+## The other three are STILL UNVERIFIED, and zero is not a pass
+
+**0 rows created after the anchor means there is nothing to test, not that the test passed.**
+`decisions` and `learnings` have had no writes in that window. Their totals read zero dashed, and
+their totals are exactly what this whole verdict is about.
+
+They stay unverified until each has produced rows after the anchor. Same query, same anchor,
+different table.

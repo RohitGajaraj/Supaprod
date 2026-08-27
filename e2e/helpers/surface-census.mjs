@@ -60,6 +60,26 @@ for (const path of paths) {
     text = `ERROR ${String(e).slice(0, 60)}`;
   }
 
+  /*
+   * HOW MANY TIMES ONE DEAD READ ANNOUNCES ITSELF, per surface.
+   *
+   * S4-070 measured this by hand on six surfaces and four were above the
+   * threshold of two. The number is only useful if every surface has one, and
+   * the census already pays the expensive part: booting, warming and rendering.
+   * Counting sentences on text already in hand costs nothing on top.
+   *
+   * `something went wrong` is anchored rather than bare because bare it counted
+   * the tab label "What went wrong" as an error and reported 7 where a person
+   * reads 6. S3 caught that by counting the same page by hand.
+   */
+  const failure =
+    /(did not load|could not be read|could not read|not readable|is not available|unavailable|something went wrong|session ended|failed to load)/i;
+  const lines = text
+    .split(/(?<=[.!?])\s+|\s{2,}/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  const statements = Array.from(new Set(lines.filter((l) => failure.test(l))));
+
   let verdict;
   if (text.includes("There is no page at this address")) verdict = "404";
   else if (landed.startsWith("/login")) verdict = "login";
@@ -69,21 +89,25 @@ for (const path of paths) {
 
   // The first line a person reads, which is what makes the table worth scanning.
   const headline = (text.split(" · ")[0] || "").slice(0, 70);
-  rows.push({ path, verdict, headline });
-  console.error(`  ${path.padEnd(26)} ${verdict}`);
+  rows.push({ path, verdict, headline, failures: statements.length });
+  console.error(
+    `  ${path.padEnd(26)} ${verdict.padEnd(24)} ` +
+      `${statements.length} failure statement(s)${statements.length > 2 ? "  <- ABOVE TWO" : ""}`,
+  );
   await page.close();
 }
 
 await browser.close();
 
-console.log("| path | what it does | first words |");
-console.log("| --- | --- | --- |");
+console.log("| path | what it does | failure statements | first words |");
+console.log("| --- | --- | --- | --- |");
 for (const r of rows) {
-  console.log(`| \`${r.path}\` | ${r.verdict} | ${r.headline.replace(/\|/g, "/")} |`);
+  const flag = r.failures > 2 ? `**${r.failures}**` : String(r.failures);
+  console.log(`| \`${r.path}\` | ${r.verdict} | ${flag} | ${r.headline.replace(/\|/g, "/")} |`);
 }
 const count = (v) => rows.filter((r) => r.verdict.startsWith(v)).length;
 console.log(
   `\n**${rows.length} paths: ${count("renders")} render, ${count("redirect")} redirect, ` +
     `${count("404")} reach nothing, ${count("login")} bounced to login, ` +
-    `${count("never")} never rendered.**`,
+    `${count("never")} never rendered.**\n\n**${rows.filter((r) => r.failures > 2).length} surfaces announce one dead read more than twice.**`,
 );
