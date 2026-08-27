@@ -51,13 +51,14 @@
 import * as React from "react";
 import { humanizeText } from "@/lib/ai/humanize";
 import { AgentMark } from "@/components/meridian/marks";
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { getTrackActivity, getTrackChain } from "@/lib/spine/track.functions";
 import { countKinds, type Turn } from "@/lib/spine/activity";
 import { handoffLine, turnsAtStation, whatCameWith } from "@/components/spine/handed-over";
-import { mergeActivityRows } from "@/components/spine/activity-rows";
+import { getMission } from "@/lib/missions.functions";
+import { type HandoffRow, mergeActivityRows } from "@/components/spine/activity-rows";
 import type { AgentStation } from "@/lib/agent-vocabulary";
 import { GLYPH_FOR_STATION, type StationGlyphKind } from "@/components/meridian/station-glyphs";
 import {
@@ -362,6 +363,54 @@ export function TrackActivity({
     refetchInterval: isRunning || live ? 500 : 10_000,
   });
 
+  /*
+   * THE REAL HANDOFFS, which have been written all along and never read.
+   *
+   * SESSION-1's first unit is "handoff made visible" because "the station
+   * transition already IS a handoff and nothing says what was handed over".
+   * The line beside the glyph below is INFERRED from a station changing between
+   * turns; meanwhile `agent_messages` holds 143 rows of `kind = 'handoff'`, each
+   * carrying the instruction the sender actually wrote.
+   *
+   * They look unreachable because all 143 have a null `track_id`. They are not:
+   * they carry a `mission_id`, this track's missions are already in the chain as
+   * members of kind "mission", and `getMission` already returns a mission's
+   * messages with exactly these fields. Nothing new is needed on the server --
+   * this is the brief's own "the default move is always: wire what exists".
+   *
+   * One query per mission, and a track holds one or two. Cached hard: a handoff
+   * is written once and never edited, so re-reading it on the transcript's live
+   * cadence would spend requests on a row that cannot change.
+   */
+  const missionIds = React.useMemo(() => {
+    const chain = chainQ.data?.chain;
+    if (!chain) return [] as string[];
+    const ids = new Set<string>();
+    for (const stop of chain.stops) {
+      for (const m of stop.members) if (m.kind === "mission") ids.add(m.artifactId);
+    }
+    for (const m of chain.orphans) if (m.kind === "mission") ids.add(m.artifactId);
+    return [...ids];
+  }, [chainQ.data]);
+
+  const fetchMission = useServerFn(getMission);
+  const missionQs = useQueries({
+    queries: missionIds.map((id) => ({
+      queryKey: ["track-handoffs", id],
+      queryFn: () => fetchMission({ data: { missionId: id } }),
+      staleTime: 5 * 60_000,
+    })),
+  });
+
+  const handoffs = React.useMemo<HandoffRow[]>(
+    () =>
+      missionQs.flatMap((q) =>
+        ((q.data?.messages ?? []) as HandoffRow[]).filter((m) => m.kind === "handoff"),
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [missionQs.map((q) => q.dataUpdatedAt).join(",")],
+  );
+
   const titles = React.useMemo<TitleBook>(() => {
     const book: TitleBook = new Map();
     const chain = chainQ.data?.chain;
@@ -385,8 +434,8 @@ export function TrackActivity({
   const seen = React.useRef<Set<string>>(new Set());
   const primed = React.useRef(false);
   const rows = React.useMemo(
-    () => mergeActivityRows(q.data?.turns ?? [], q.data?.transitions ?? []),
-    [q.data],
+    () => mergeActivityRows(q.data?.turns ?? [], q.data?.transitions ?? [], handoffs),
+    [q.data, handoffs],
   );
   React.useEffect(() => {
     if (!q.data) return;
@@ -513,6 +562,51 @@ export function TrackActivity({
               );
             }
 
+            if (row.kind === "handoff") {
+              /*
+               * THE HANDOFF, AS ITS OWN ENTRY.
+               *
+               * SESSION-1's first unit, and its shape is the brief's: from- and
+               * to-chips in the teammates' colours, the instruction inline,
+               * "never a chat bubble, never an avatar row, never a timestamp
+               * gutter". It reuses the marks and the clock every other row on
+               * this transcript already uses, so nothing new is introduced.
+               *
+               * `waiting` is a fact from the row rather than a mood: a handoff
+               * with no `consumed_by_run_id` is a dispatch nothing has picked
+               * up. Saying so is the difference between a record and a feed.
+               */
+              const arrived = primed.current && !seen.current.has(row.key);
+              return (
+                <li
+                  key={row.key}
+                  className={RUN_ROW}
+                  style={
+                    arrived
+                      ? { animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }
+                      : undefined
+                  }
+                >
+                  <RunClock at={row.at} />
+                  <span className="flex flex-col items-center self-stretch">
+                    <RunGlyph kind="handoff" />
+                    {i === ordered.length - 1 ? null : <RunRail />}
+                  </span>
+                  <span className="min-w-0 pb-1">
+                    <span className={RUN_LINE}>
+                      <AgentMark slug={row.from} state="quiet" />
+                      <span aria-hidden className="text-mrd-faint">
+                        &rarr;
+                      </span>
+                      <AgentMark slug={row.to} state={row.waiting ? "quiet" : "idle"} />
+                      {row.waiting ? <RunMeta>not picked up yet</RunMeta> : null}
+                    </span>
+                    <RunNote>{row.task}</RunNote>
+                  </span>
+                </li>
+              );
+            }
+
             const t = row.turn;
             // The handoff. Marked when the station changes from the turn that
             // ran BEFORE this one chronologically -- in oldest-first order that
@@ -621,6 +715,19 @@ export function TrackActivity({
                     <RunMeta>{handedLine ?? t.stationName}</RunMeta>
                   )}
 
+                  {/*
+                   * THE INSTRUCTION THAT TRAVELLED WITH THE WORK.
+                   *
+                   * Its own line under the two marks rather than appended to them: the
+                   * marks and `handedLine` say who let go and what they had made, and
+                   * this says what the next seat was asked to do. Two different facts,
+                   * and running them together makes a sentence nobody wrote.
+                   *
+                   * `RunNote` is the same quiet register the platform's stop reason and
+                   * the agent's own last line already use on this row, so a handoff does
+                   * not shout louder than a failure.
+                   */}
+
                   <RunRollup items={rollupOf(t, titles)} />
 
                   {/* THE PLATFORM'S REASON, ABOVE THE AGENT'S. `halted_reason` and
@@ -665,12 +772,7 @@ export function TrackActivity({
        * distance from the bottom past ~200px means they went somewhere on
        * purpose.
        */}
-      <div
-        ref={endRef}
-        aria-hidden="true"
-        style={{ height: 1 }}
-        data-testid="transcript-end"
-      />
+      <div ref={endRef} aria-hidden="true" style={{ height: 1 }} data-testid="transcript-end" />
     </>
   );
 }
