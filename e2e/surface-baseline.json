@@ -1,76 +1,76 @@
 {
   "_readme": "S4 baseline, measured 2026-08-27 against a dead backend. Per surface: failure sentences a person reads for ONE dead read, Try again controls, control shapes a screen reader cannot name, and prose lines past 76ch or capped inline in pixels. check-motion.sh diffs against this and prints REGRESSED or IMPROVED.",
-  "_measured_at": "2026-08-27",
+  "_measured_at": "2026-08-27, signed-in set re-taken in ONE pass after the station-strip fix",
   "_note": "Several surfaces have fixes on lane branches that had not merged when this was taken. Where a number looks high, check the lane before treating it as current.",
   "surfaces": {
     "/today": {
-      "failureSentences": 2,
+      "failureSentences": 1,
       "retries": 0,
       "unnamed": 0,
       "wideProse": 0
     },
     "/approvals": {
-      "failureSentences": 3,
+      "failureSentences": 2,
       "retries": 1,
       "unnamed": 0,
       "wideProse": 0
     },
     "/brain": {
-      "failureSentences": 7,
-      "retries": 1,
-      "unnamed": 0,
-      "wideProse": 0
-    },
-    "/learn": {
-      "failureSentences": 7,
-      "retries": 2,
-      "unnamed": 0,
-      "wideProse": 0
-    },
-    "/threads": {
-      "failureSentences": 3,
-      "retries": 0,
-      "unnamed": 0,
-      "wideProse": 1
-    },
-    "/guardrails": {
       "failureSentences": 6,
       "retries": 1,
       "unnamed": 0,
       "wideProse": 0
     },
+    "/learn": {
+      "failureSentences": 8,
+      "retries": 3,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/threads": {
+      "failureSentences": 2,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 1
+    },
+    "/guardrails": {
+      "failureSentences": 5,
+      "retries": 1,
+      "unnamed": 0,
+      "wideProse": 0
+    },
     "/engine-room": {
-      "failureSentences": 4,
+      "failureSentences": 3,
       "retries": 0,
       "unnamed": 0,
       "wideProse": 0
     },
     "/settings": {
-      "failureSentences": 2,
+      "failureSentences": 1,
       "retries": 0,
       "unnamed": 0,
       "wideProse": 0
     },
     "/start": {
-      "failureSentences": 2,
+      "failureSentences": 1,
       "retries": 0,
       "unnamed": 0,
       "wideProse": 0
     },
     "/plan": {
-      "failureSentences": 1,
+      "failureSentences": 0,
       "retries": 0,
       "unnamed": 0,
       "wideProse": 0
     },
     "/ship": {
-      "failureSentences": 1,
+      "failureSentences": 0,
       "retries": 0,
       "unnamed": 0,
       "wideProse": 0
     },
     "/inbox": {
-      "failureSentences": 1,
+      "failureSentences": 0,
       "retries": 0,
       "unnamed": 0,
       "wideProse": 0
@@ -82,31 +82,31 @@
       "wideProse": 0
     },
     "/decide": {
-      "failureSentences": 3,
+      "failureSentences": 2,
       "retries": 1,
       "unnamed": 0,
       "wideProse": 0
     },
     "/design": {
-      "failureSentences": 4,
+      "failureSentences": 3,
       "retries": 1,
       "unnamed": 0,
       "wideProse": 0
     },
     "/discover": {
-      "failureSentences": 5,
+      "failureSentences": 4,
       "retries": 1,
       "unnamed": 0,
       "wideProse": 0
     },
     "/build": {
-      "failureSentences": 5,
+      "failureSentences": 4,
       "retries": 0,
       "unnamed": 0,
       "wideProse": 0
     },
     "/sync": {
-      "failureSentences": 5,
+      "failureSentences": 4,
       "retries": 0,
       "unnamed": 0,
       "wideProse": 0
@@ -179,5 +179,5 @@
     }
   },
   "_this_is_a_direction_not_a_target": "MATCHING YOUR BASELINE DOES NOT MEAN A SURFACE IS CORRECT. These are the numbers the product happened to produce on one night, several of them from surfaces whose fixes were sitting unmerged on a lane branch. A measurement is a fair way to choose what to fix FIRST. It is not a fair way to decide what the thing should BE, and a baseline is the exact shape that quietly turns one into the other. Read the LIST the report prints, not the number, and lower a baseline entry whenever a real fix lands rather than treating the old value as the goal. Founder's correction, relayed 2026-08-27.",
-  "_STALE_AS_OF_2026_08_27": "EVERY SIGNED-IN NUMBER BELOW IS ONE TOO HIGH. The station strip prints 'count unavailable' once per station on every authenticated surface, and the failure-sentence counter matched it as a failure statement, so each signed-in surface carried a constant +1 that said nothing about that surface. Fixed in the spec; these numbers were taken before the fix. /today measured 2 and is 1; /learn measured 7 and is 8 after S0's F-120 added an honest sentence and the strip was removed. DO NOT re-measure and 'correct' a single entry against these: re-measure the whole set in one pass, or the file mixes two instruments. A diff against this file will report a spurious IMPROVED of 1 on every signed-in surface until that happens."
+  "_the_zeros_need_reading_not_celebrating": "/plan, /ship and /inbox score 0. That is NOT automatically good. Their previous 1 was entirely the station strip's 'count unavailable', so with a dead backend they now say NOTHING about their own failed reads. Silence on failure is the /proof shape: a person cannot tell 'nothing to show' from 'we could not look'. A zero here is a prompt to open the screenshot, exactly like a rise is."
 }
