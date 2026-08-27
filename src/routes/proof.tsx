@@ -97,6 +97,11 @@ function Shell({ children }: { children: React.ReactNode }) {
       </header>
 
       <main style={{ flex: 1, padding: "32px 18px" }}>
+        {/* 680px stays: this column holds the decision CARDS as well as the
+            prose, and narrowing it to a reading measure would squeeze the
+            evidence. The three prose blocks inside carry `--mrd-measure`
+            themselves, which is what meridian.css means by "prose only, never
+            a table or a row". */}
         <div style={{ width: "100%", maxWidth: 680, margin: "0 auto" }}>{children}</div>
       </main>
 
@@ -157,6 +162,7 @@ function CalibrationHero({
               lineHeight: 1.6,
               color: "var(--mrd-mute)",
               margin: 0,
+              maxWidth: "var(--mrd-measure)",
             }}
           >
             That is {Math.round(rate * 100)}%, including the misses. We publish this number because
@@ -178,6 +184,7 @@ function CalibrationHero({
               lineHeight: 1.6,
               color: "var(--mrd-mute)",
               margin: 0,
+              maxWidth: "var(--mrd-measure)",
             }}
           >
             This page updates automatically as calibrated outcomes land. We would rather show you an
@@ -237,7 +244,12 @@ function ProofPage() {
         <div className="bento" style={{ padding: 24, textAlign: "center" }}>
           <p
             className="text-mrd-base"
-            style={{ color: "var(--mrd-mute)", margin: 0, lineHeight: 1.6 }}
+            style={{
+              color: "var(--mrd-mute)",
+              margin: "0 auto",
+              lineHeight: 1.6,
+              maxWidth: "var(--mrd-measure)",
+            }}
           >
             No public decisions yet. Every one of these is a real call from Supaprod's own build,
             shared by its owner with its evidence, never seeded or staged. That is why this section
@@ -267,10 +279,7 @@ function ProofPage() {
               >
                 {stripAutoPrefix(d.title)}
               </div>
-              <div
-                className="mrd-eyebrow whitespace-nowrap"
-                style={{ color: "var(--mrd-faint)" }}
-              >
+              <div className="mrd-eyebrow whitespace-nowrap" style={{ color: "var(--mrd-faint)" }}>
                 {agentDisplayName(d.decided_by_agent_slug)} ·{" "}
                 {new Date(d.created_at).toLocaleDateString(undefined, {
                   year: "numeric",
