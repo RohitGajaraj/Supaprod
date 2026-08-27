@@ -22,7 +22,26 @@ founder's call. S0 declined to take it unilaterally.
 | `lane/platform` | +63 | **+70** |
 | `lane/control` | +58 | **+68** |
 
-**182 commits across three lanes, none of them exercised against production.** Every hour of lane
+**182 commits across three lanes, none of them exercised against production.**
+
+**AND THE MERGE ITSELF IS ONE CONFLICTING FILE**, computed with `git merge-tree`, which touches
+nothing:
+
+| branch | against `main` |
+| --- | --- |
+| `lane/run` | **clean** |
+| `lane/platform` | **CONFLICT** — `src/lib/governance.functions.ts` |
+| `lane/control` | **clean** |
+| `lane/proof` | **clean** |
+
+Both sides are known: S0's `F-128` on `main` and S3's `U-092`/`U-093` on `lane/platform`. Both lanes
+have been told. **Three of four branches apply to `main` cleanly today.**
+
+**Read the two numbers together:** 182 unexercised commits is the reason to be careful; one
+conflicting file is the reason it is doable. Re-run
+`git merge-tree --write-tree --name-only origin/main origin/lane/<name>` immediately before the
+deploy, because every lane is still committing.
+ Every hour of lane
 work makes the eventual merge larger and less testable, and the risk is not linear: three lanes
 editing overlapping surfaces for a day produces conflicts nobody has seen yet. **The cost of waiting
 is not zero and it is not flat.**
