@@ -59,6 +59,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getTrackActivity, getTrackChain } from "@/lib/spine/track.functions";
 import { countKinds, type Turn } from "@/lib/spine/activity";
 import { handoffLine, turnsAtStation, whatCameWith } from "@/components/spine/handed-over";
+import { carriedByMission, oncePerId } from "@/components/spine/what-a-mission-carries";
 import { getMission } from "@/lib/missions.functions";
 import { type HandoffRow, mergeActivityRows } from "@/components/spine/activity-rows";
 import type { AgentStation } from "@/lib/agent-vocabulary";
@@ -411,6 +412,15 @@ export function TrackActivity({
    *
    * Track-scoped messages -- a steer typed into the composer -- carry a
    * `track_id` and no `mission_id`, so the mission read above cannot see them.
+   *
+   * THAT IS TRUE OF THE COMPOSER AND IT IS NOT TRUE OF EVERY STEER, which this
+   * comment used to imply and which cost three of the four. Measured: of the 4
+   * rows with `kind = 'steer'`, ONE carries a `track_id` (the composer's, and
+   * the only one this query can see) and THREE carry a `mission_id` instead,
+   * addressed to `builder`. Those three were already being fetched by the
+   * mission read above and then discarded by a `kind === "handoff"` filter, so
+   * a person who steered a mission got the same silence this query was written
+   * to end. Both shapes are now kept and merged below.
    * `track.functions.ts` has two INSERTs for them and no SELECT anywhere, which
    * means the product has been recording a person's instructions and never
    * showing one back. After a reload there was no evidence on any screen that
@@ -435,11 +445,19 @@ export function TrackActivity({
     refetchInterval: isRunning || live ? 2_000 : 30_000,
   });
 
-  const handoffs = React.useMemo<HandoffRow[]>(
-    () =>
-      missionQs.flatMap((q) =>
-        ((q.data?.messages ?? []) as HandoffRow[]).filter((m) => m.kind === "handoff"),
-      ),
+  /*
+   * WHAT THE MISSIONS CARRY, WHICH IS HANDOFFS AND SOME OF THE STEERS.
+   *
+   * `kickoff` is deliberately not here, and this is the one judgement in this
+   * block. Its payload is `{goal, priority, due}`, and the goal is already the
+   * mission goal rendered on the artifact pane, so drawing it would put the
+   * same sentence twice on one screen, which is the exact doubling `saidOnce`
+   * exists to remove. `priority` and `due` appear nowhere else and are worth a
+   * home; the transcript is not it, because a brief is not something that
+   * HAPPENED to the work. 14 rows, all on missions.
+   */
+  const fromMissions = React.useMemo<HandoffRow[]>(
+    () => missionQs.flatMap((q) => carriedByMission((q.data?.messages ?? []) as HandoffRow[])),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [missionQs.map((q) => q.dataUpdatedAt).join(",")],
   );
@@ -468,11 +486,12 @@ export function TrackActivity({
   const primed = React.useRef(false);
   const rows = React.useMemo(
     () =>
-      mergeActivityRows(q.data?.turns ?? [], q.data?.transitions ?? [], [
-        ...handoffs,
-        ...(saidQ.data ?? []),
-      ]),
-    [q.data, handoffs, saidQ.data],
+      mergeActivityRows(
+        q.data?.turns ?? [],
+        q.data?.transitions ?? [],
+        oncePerId([...fromMissions, ...(saidQ.data ?? [])]),
+      ),
+    [q.data, fromMissions, saidQ.data],
   );
   React.useEffect(() => {
     if (!q.data) return;
