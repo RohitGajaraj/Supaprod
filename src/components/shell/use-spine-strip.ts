@@ -29,6 +29,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 
+import { pollMs } from "@/components/shell/poll";
 import { listStudioSessions } from "@/lib/studio.functions";
 import { listPendingOutcomes } from "@/lib/outcome.functions";
 import { runState } from "@/components/runs/run-state";
@@ -46,44 +47,23 @@ import { usePublishRunStrip, STATION_ROUTE, type RunStage } from "./run-strip";
  * put Build's engine at /runs and left the real one unbuilt.
  */
 /**
- * HOW OFTEN TO ASK, GIVEN HOW THE LAST ASK WENT.
+ * The strip's cadence: five seconds while answers arrive, backed off by
+ * `pollMs` while they do not.
  *
- * ── THE DEFECT ─────────────────────────────────────────────────────────────
- * This poll was a bare `refetchInterval: 5000`. In TanStack Query the interval
- * and `retry` are independent: `retry` bounds the attempts INSIDE one fetch,
- * while the interval keeps scheduling NEW fetches whatever the query's state.
- * So against a backend that is not answering, this asked again every five
- * seconds, forever.
+ * THE DEFECT THIS CLOSED. This was a bare `refetchInterval: 5000`, and
+ * `WorkspaceSpine` is mounted for the whole signed-in session - so against a
+ * backend that was not answering it was every screen in the product asking
+ * twelve times a minute, hardest at the moment it was least able to answer.
+ * Found by S1 running `e2e/check-motion.sh --signed-in` against a dead backend.
  *
- * **And it asked from everywhere.** `WorkspaceSpine` is mounted for the whole
- * signed-in session, so this is not one screen misbehaving; it is every screen
- * in the product hammering a dead backend at 12 requests a minute, hardest at
- * the moment it is least able to answer. Found by S1 running
- * `e2e/check-motion.sh --signed-in` against a dead backend: `/learn` and
- * `/discover` were still redrawing nine seconds after settle, and `/approvals`
- * was clean only because it is the one route in that set that does not mount
- * the strip.
+ * NOT A LIE, A LOAD PROBLEM. The strip keeps saying "count unavailable"
+ * throughout, which stays true, so nothing here claimed a state it did not
+ * have. That is why the fix is arithmetic and changes no words on screen.
  *
- * ── IT BACKS OFF, IT DOES NOT STOP, AND THAT IS THE WHOLE DESIGN ───────────
- * Stopping on error would be the easy fix and the wrong one. The strip's
- * failure text is "count unavailable", which is honest but useless, and a strip
- * that gives up stays wrong until the person navigates - so a backend that
- * comes back would not be noticed. Backing off keeps it self-healing: one
- * success returns it to five seconds immediately, because the count is a live
- * signal and five seconds is right when the answer is arriving.
- *
- * NOT A LIE, A LOAD PROBLEM, and worth separating. S1 was careful about this
- * and so am I: the strip keeps saying "count unavailable" throughout, which
- * stays true, so nothing here was claiming a state it did not have. This is a
- * cost defect, not an honesty one, which is why it is fixed by arithmetic and
- * changes no words on the screen.
+ * The reasoning for backing off rather than stopping lives in `poll.ts`.
  */
-export function stripPollMs(failures: number): number {
-  if (failures <= 0) return 5_000;
-  // Doubling, capped. 10s, 20s, 40s, then a minute for as long as it stays
-  // down. The cap exists so a long outage still notices recovery inside a
-  // minute rather than drifting into hours.
-  return Math.min(60_000, 5_000 * 2 ** Math.min(failures, 4));
+export function stripPollMs(failures: number): number | false {
+  return pollMs(5_000, failures);
 }
 
 export function useSpineStrip(active: AgentStation | null): void {
@@ -104,7 +84,10 @@ export function useSpineStrip(active: AgentStation | null): void {
     queryKey: ["pending-outcomes"],
     queryFn: () => fListPending(),
     staleTime: 60_000,
-    refetchInterval: 60_000,
+    /* Ambient, and still backed off. A minute is gentle, but on a dead backend
+       it is still an unbounded loop from every screen in the product, and the
+       reason to exempt it would be that it is only a little wasteful. */
+    refetchInterval: (query) => pollMs(60_000, query.state.fetchFailureCount),
   });
 
   const rows = sessions.data?.sessions;

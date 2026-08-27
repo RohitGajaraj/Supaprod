@@ -1,3 +1,4 @@
+import { pollMs } from "@/components/shell/poll";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -49,7 +50,9 @@ export function HandoverNote({
   const q = useQuery({
     queryKey: ["swarm", "hud", workspaceId],
     queryFn: () => fHud({ data: { workspaceId } }),
-    refetchInterval: 15_000,
+    /* Backed off while the read is failing (`poll.ts`). The base cadence is
+       this note's own statement about how fast the fact it draws moves. */
+    refetchInterval: (q) => pollMs(15_000, q.state.fetchFailureCount),
     refetchIntervalInBackground: false,
   });
 

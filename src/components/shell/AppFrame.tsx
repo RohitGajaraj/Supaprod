@@ -128,6 +128,7 @@
  * ==================================================================
  */
 
+import { pollMs } from "@/components/shell/poll";
 import * as React from "react";
 import { approvalsQueueKey, missionsKey } from "@/lib/query-keys";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
@@ -743,16 +744,22 @@ const LIVE_POLL_WORKING_MS = 4_000;
 const LIVE_POLL_IDLE_MS = 20_000;
 
 /**
- * How often the live line re-reads, given whether anything is actually moving.
+ * How often the live line re-reads, given whether anything is actually moving
+ * AND how the last read went.
  *
- * Returns false while the tab is hidden, so a backgrounded tab costs nothing.
  * The cadence follows the strength of the claim being made: while a run is
  * working the header asserts something second by second and has to keep up;
  * idle, it is only waiting for work to appear.
+ *
+ * THE FAILURE COUNT WAS MISSING UNTIL 2026-08-27 and it is the expensive half.
+ * This hook is mounted for the whole signed-in session, so against a backend
+ * that was not answering it re-asked from every screen in the product, forever,
+ * at the idle cadence. `pollMs` owns the backoff, the cap and the hidden-tab
+ * pause; this function owns only the thing it alone knows, which is how fast
+ * the underlying fact moves.
  */
-function livePoll(anyWorking: boolean): number | false {
-  if (typeof document !== "undefined" && document.visibilityState === "hidden") return false;
-  return anyWorking ? LIVE_POLL_WORKING_MS : LIVE_POLL_IDLE_MS;
+function livePoll(anyWorking: boolean, failures: number): number | false {
+  return pollMs(anyWorking ? LIVE_POLL_WORKING_MS : LIVE_POLL_IDLE_MS, failures);
 }
 
 /**
@@ -1170,7 +1177,10 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     staleTime: 30_000,
     refetchInterval: (query) => {
       const rows = query.state.data?.missions ?? [];
-      return livePoll(rows.some((m) => WORKING.has(m.status)));
+      return livePoll(
+        rows.some((m) => WORKING.has(m.status)),
+        query.state.fetchFailureCount,
+      );
     },
     placeholderData: keepPreviousData,
   });
@@ -1180,7 +1190,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     staleTime: 30_000,
     // A waiting call is not moving, so the queue never needs the fast cadence;
     // it only has to notice a NEW one arriving.
-    refetchInterval: () => livePoll(false),
+    refetchInterval: (query) => livePoll(false, query.state.fetchFailureCount),
     placeholderData: keepPreviousData,
   });
 
@@ -1203,7 +1213,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     queryKey: ["shell", "open-tracks"],
     queryFn: () => fetchOpenTracks(),
     staleTime: 30_000,
-    refetchInterval: () => livePoll(false),
+    refetchInterval: (query) => livePoll(false, query.state.fetchFailureCount),
     placeholderData: keepPreviousData,
   });
   const movingRuns = React.useMemo(() => {

@@ -33,12 +33,14 @@ describe("stripPollMs", () => {
     expect(stripPollMs(3)).toBe(40_000);
   });
 
-  it("CAPS AT A MINUTE, so a long outage still notices recovery", () => {
+  it("CAPS, so a long outage still notices recovery", () => {
     // Uncapped doubling drifts to hours and the strip would stay wrong long
-    // after the backend came back.
-    expect(stripPollMs(4)).toBe(60_000);
-    expect(stripPollMs(50)).toBe(60_000);
-    expect(stripPollMs(1000)).toBe(60_000);
+    // after the backend came back. The cap itself lives in `poll.ts`, shared
+    // with every other live read, which is why this asserts the value rather
+    // than restating the rule.
+    expect(stripPollMs(4)).toBe(80_000);
+    expect(stripPollMs(50)).toBe(80_000);
+    expect(stripPollMs(1000)).toBe(80_000);
   });
 
   it("NEVER STOPS, which is the whole design", () => {
@@ -67,8 +69,17 @@ describe("the query is wired to it", () => {
     expect(SRC).not.toContain("\n    refetchInterval: 5000,");
   });
 
-  it("leaves the slow ambient poll alone", () => {
-    // Pending outcomes is already 60s and is not the one that hammers.
-    expect(SRC).toContain("refetchInterval: 60_000");
+  it("backs the slow ambient poll off too", () => {
+    // A minute is gentle, but on a dead backend it is still an unbounded loop
+    // from every screen. The only argument for exempting it was that it is
+    // merely a little wasteful.
+    expect(SRC).toContain("pollMs(60_000, query.state.fetchFailureCount)");
+  });
+
+  it("DELEGATES to the shared helper rather than carrying its own arithmetic", () => {
+    // Three partial answers to "how often should this ask again" existed in
+    // this codebase and none of them backed off on failure. One place now.
+    expect(SRC).toContain('from "@/components/shell/poll"');
+    expect(SRC).toContain("return pollMs(5_000, failures);");
   });
 });

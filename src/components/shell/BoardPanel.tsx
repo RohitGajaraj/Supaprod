@@ -30,6 +30,7 @@
  * shape IS its value, so the surface has to be wide enough to keep it.
  */
 
+import { pollMs } from "@/components/shell/poll";
 import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -57,7 +58,10 @@ export function BoardPanel({ open, onClose }: { open: boolean; onClose: () => vo
     queryKey: ["studio-sessions", false],
     queryFn: () => fList({ data: { includeArchived: false } }),
     enabled: open,
-    refetchInterval: open ? 5000 : false,
+    /* `false` here means the panel is CLOSED, which is not a failure and not a
+       backoff - there is nothing on screen to keep fresh. While it is open,
+       `poll.ts` owns the cadence and the backoff. */
+    refetchInterval: open ? (q) => pollMs(5000, q.state.fetchFailureCount) : false,
   });
   const rows = React.useMemo(() => sessions.data?.sessions ?? [], [sessions.data]);
   const live = React.useMemo(
@@ -68,7 +72,7 @@ export function BoardPanel({ open, onClose }: { open: boolean; onClose: () => vo
     queryKey: ["build", "plan-progress"],
     queryFn: () => fMissions({ data: {} }),
     enabled: open && rows.length > 0,
-    refetchInterval: open && live > 0 ? 5000 : false,
+    refetchInterval: open && live > 0 ? (q) => pollMs(5000, q.state.fetchFailureCount) : false,
   });
   const progressById = React.useMemo(() => {
     const map = new Map<string, StepProgress>();

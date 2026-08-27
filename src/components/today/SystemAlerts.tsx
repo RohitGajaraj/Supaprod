@@ -1,3 +1,4 @@
+import { pollMs } from "@/components/shell/poll";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -88,7 +89,9 @@ export function SystemAlerts() {
   const q = useQuery({
     queryKey: ["today", "system-alerts"],
     queryFn: () => fNotifications(),
-    refetchInterval: 60_000,
+    /* Backed off while the read is failing (`poll.ts`). The base cadence is
+       this note's own statement about how fast the fact it draws moves. */
+    refetchInterval: (q) => pollMs(60_000, q.state.fetchFailureCount),
     refetchIntervalInBackground: false,
   });
 
