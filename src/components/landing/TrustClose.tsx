@@ -15,7 +15,9 @@ import { WaitlistForm } from "./WaitlistForm";
  * loop claim (its fifth appearance on the page).
  */
 export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) {
-  // Four promises, each one verifiably true of the shipped architecture.
+  // Four promises, each one verifiably true of the shipped architecture -- which
+  // means checked against the wiring, not against what we wish it did. See the
+  // merge card below for the one that was not.
   const promises = [
     {
       icon: BookLock,
@@ -50,10 +52,41 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
        */
       detail: "Run on managed keys, or bring your own on Enterprise.",
     },
+    /*
+     * THIS BADGE STATED A GUARANTEE THE WIRING DOES NOT KEEP, and it stated it
+     * as the last thing a visitor reads before deciding whether an agent
+     * touching their repository is safe.
+     *
+     * It read "Merge is always human" over "Merge, revert, and delegate can
+     * never skip your approval." R-27 was revised on 2026-08-25:
+     * `AUTO_SHIP_ENABLED`, read from the `STUDIO_AUTO_SHIP` platform secret,
+     * un-pins `studio.pr.merge` from `review` so an agent on an ambient trust
+     * arc merges with nobody asked (loop.server.ts:132, defaults.ts:238). The
+     * secret exists and F-75 records that the founder set it. Both absolutes
+     * stopped being true the moment it did.
+     *
+     * THE HONEST FORM WAS ALREADY WRITTEN ON THIS SAME SITE. /security was
+     * corrected on 2026-08-27 for exactly this reason and says so at length: by
+     * default nothing merges without a human approval, no workspace setting can
+     * change that, the only thing that can is a platform secret we hold, and
+     * even then four things have to be proven first. This badge now agrees with
+     * that page instead of contradicting it, in the space a badge has.
+     *
+     * REVERT KEEPS ITS ABSOLUTE, because revert actually has one: `studio.revert`
+     * is deliberately not graduated and stays review-pinned whatever the flag
+     * says, which loop.server.ts states in its own comment. Dropping a true
+     * absolute alongside a false one would have cost us the stronger claim in
+     * order to fix the weaker.
+     *
+     * This is the class the note four cards above already named, one turn
+     * further on: not a surface asserting a capability the wiring withholds,
+     * but a surface asserting a GUARANTEE the wiring does not keep.
+     */
     {
       icon: GitMerge,
-      label: "Merge is always human",
-      detail: "Merge, revert, and delegate can never skip your approval.",
+      label: "Merge waits for your approval",
+      detail:
+        "By default nothing merges without you, and no workspace setting can change that. Rolling back is never automatic at all.",
     },
   ];
 
