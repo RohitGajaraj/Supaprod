@@ -33,31 +33,23 @@ import { useQuery } from "@tanstack/react-query";
 
 import { useWorkspace } from "@/hooks/use-workspace";
 import { getBoundary } from "@/lib/governance.functions";
-import type { BoundaryTool } from "@/lib/governance.functions";
 
 /**
- * THE ONE TOOL RULE THIS COMPONENT RESTATES, AND THE ONLY ONE.
+ * THIS COMPONENT RESTATES NO TOOL RULE AT ALL ANY MORE, WHICH IS THE POINT.
  *
- * `resolveToolMode` (lib/ai/loop.server.ts) carries a branch quoted here
- * verbatim rather than paraphrased:
+ * It used to carry `runsAloneDespiteAsking`, a client-side copy of one branch
+ * of `resolveToolMode`: a low-risk `confirm` tool with no floor is cleared
+ * inline. That branch is real and the restatement was honest, and it was also
+ * a small fraction of the gap it existed to close. The arc dial is the big
+ * door -- `resolveApprovalMode` turns EVERY `confirm` tool into `auto` on a
+ * trusted arc -- so a component quoting one branch reported 52 of 74 where the
+ * loop runs 68.
  *
- *     } else if (mode === "confirm" && toolRisk(toolName) === "low") {
- *       mode = "auto";
- *
- * So a reversible tool that never leaves this workspace does not hold at "come
- * to me first" - the run executes it inline. `getBoundary` buckets on the
- * STORED value, so these tools are listed there under what still comes to you
- * while the loop runs them alone. This block counts them where they actually
- * land and says so; it does not silently renumber the boundary underneath the
- * reader.
- *
- * It reads `floor` and `risk` off the boundary's own rows rather than
- * recomputing either, so there is exactly one client-side restatement of one
- * server rule, and it is this function.
+ * `getBoundary` now calls the real resolver and buckets on `runsAs`, so the
+ * counts below are the loop's own answer and the only thing left to say here
+ * is WHERE the set value and the running one disagree. One server rule, zero
+ * client restatements, and no way for the two to drift.
  */
-export function runsAloneDespiteAsking(t: BoundaryTool): boolean {
-  return t.mode === "confirm" && t.risk === "low" && t.floor === null;
-}
 
 export function BoundaryStatement({
   /**
@@ -95,9 +87,11 @@ export function BoundaryStatement({
   });
 
   const bd = boundaryQ.data;
-  const demoted = (bd?.asks ?? []).filter(runsAloneDespiteAsking);
-  const alone = (bd?.alone.length ?? 0) + demoted.length;
-  const asks = (bd?.asks.length ?? 0) - demoted.length;
+  /* Bucketed by the server on `runsAs`, so nothing is renumbered here. What is
+     left is the disclosure: which of the tools running alone were SET to ask. */
+  const demoted = (bd?.alone ?? []).filter((t) => t.mode !== "auto");
+  const alone = bd?.alone.length ?? 0;
+  const asks = bd?.asks.length ?? 0;
   const never = bd?.never.length ?? 0;
 
   return (
@@ -157,7 +151,7 @@ export function BoundaryStatement({
                     .join(", ")}
                   {demoted.length > 4 ? ` and ${demoted.length - 4} more` : ""}
                   {
-                    " never hold there: each one is reversible and stays inside this workspace, so a run executes it inline rather than stopping to ask. They are counted above as done alone, which is what happens. Switch one off on the boundary to actually stop it."
+                    " never hold there. Your agents have earned enough trust that the loop clears them and runs them inline rather than stopping to ask. They are counted above as done alone, which is what happens. Switch one off on the boundary to actually stop it."
                   }
                 </>
               }

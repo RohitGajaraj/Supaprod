@@ -12,7 +12,6 @@
  * from the real resolver (`getBoundary`), never restated client-side.
  */
 import { Row, Line } from "@/components/meridian/rows";
-import { toolRisk } from "@/lib/tool-consequences";
 import {
   NothingHere,
   Num,
@@ -66,6 +65,28 @@ import { Receipt } from "@/components/meridian/Receipt";
 /** How many tools a block shows before it counts the rest. A boundary is read,
  *  not browsed, and forty rows in one block is a settings page again. */
 const VISIBLE = 8;
+
+/**
+ * The two halves of "you set this, and this is what happens", in the words the
+ * menu itself uses so a person can match a row to the control that moved it.
+ *
+ * Kept as two maps rather than one sentence builder because the SET half is a
+ * choice a person made and the RUNS half is what the loop does with it, and
+ * collapsing them would let a future edit change one voice into the other.
+ */
+const SET_WORD: Record<BoundaryTool["mode"], string> = {
+  auto: "run alone",
+  confirm: "come to you first",
+  review: "wait for you every time",
+  off: "be off",
+};
+
+const WHAT_RUNS: Record<BoundaryTool["runsAs"], string> = {
+  auto: "it runs without asking you.",
+  confirm: "it comes to you first.",
+  review: "it waits for you every time.",
+  off: "it is off.",
+};
 
 type BoundaryReceipt = { verb: string; consequence: React.ReactNode; failed?: boolean };
 
@@ -541,56 +562,36 @@ export function BoundaryControls({
     return all.find((t) => t.name === name)?.label ?? name;
   };
 
-  /* REPORT THE RUNNING SYSTEM, NOT THE STORED SETTING: the loop demotes a
-   * low-risk `confirm` tool with no floor to auto and runs it inline, so the
-   * buckets alone under-report real reach. The predicate quotes the one branch
-   * of `resolveToolMode` that does this. An under-report is the direction that
-   * gets someone hurt.
+  /*
+   * THE SERVER NOW ANSWERS THIS, AND THE HAND-ROLLED PREDICATE THAT USED TO IS
+   * GONE.
    *
-   * CORRECTION, 2026-08-27. THE COMMENT THAT STOOD HERE FOR ONE COMMIT SAID
-   * THIS PREDICATE COULD NEVER FIRE, AND THAT WAS WRONG. It claimed
-   * `BoundaryTool.risk` is the mode relabelled. That relabelling is real and it
-   * is a defect, but it lives in `listGovernApprovals`, which feeds the
-   * APPROVALS QUEUE -- a different server function in the same file, whose
-   * `riskOf` map I read while looking for this one. `getBoundary` sets
-   * `risk: toolRisk(raw.tool_name)` and always has, so `t.risk` and
-   * `toolRisk(t.name)` are the same value and the change was behaviourally a
-   * no-op. Nothing shipped broken; a false claim about the codebase did, and it
-   * is corrected here rather than left for the next reader to trip over.
+   * It read `mode === "confirm" && toolRisk(name) === "low" && floor === null`,
+   * quoting the one branch of `resolveToolMode` that clears a low-risk tool
+   * inline. That branch is real, and it was a small fraction of the gap. The
+   * arc dial is the big door: `resolveApprovalMode` turns EVERY `confirm` tool
+   * into `auto` on a trusted arc, all 93 `agent_autonomy` rows are trusted and
+   * `loadAgentArc` defaults the rest to trusted. Over the 74 registered tools
+   * the stored buckets read 52 auto and the resolver reads 68.
    *
-   * The relabelling itself is now fixed at its real address, where it was
-   * understating fourteen tools on the screen a person decides approvals on.
+   * Reproducing that here would have meant a second copy of the safety
+   * composition living in a component, drifting from the one the loop runs.
+   * `getBoundary` now calls the real resolver and returns `runsAs` beside
+   * `mode`, so this file states no policy of its own -- it reads one field and
+   * shows where the two disagree.
    *
-   * `toolRisk` STAYS in the predicate anyway, because it is the function the
-   * loop's own branch calls -- `mode === "confirm" && toolRisk(toolName) ===
-   * "low"` -- and quoting the branch means quoting it rather than a field that
-   * happens to agree today.
-   *
-   * AND THE PREDICATE IS STILL TOO NARROW, which is the finding that survived
-   * the correction. It catches only the low-risk inline clear. The arc dial is
-   * the bigger door: `resolveApprovalMode` turns EVERY `confirm` tool into
-   * `auto` on a trusted arc, all 93 `agent_autonomy` rows are trusted and
-   * `loadAgentArc` defaults the rest to trusted, so on the live database 17 of
-   * the 21 confirm-seeded tools run without asking -- including studio.commit,
-   * studio.revert and release.publish, none of which this line catches. The
-   * headline still under-reports. Fixing that needs the resolved mode from the
-   * server, which is the next unit.
-   *
+   * TWO CORRECTIONS ON THE RECORD, because the comment that stood here was
+   * wrong for one commit. It claimed `BoundaryTool.risk` was the mode
+   * relabelled and the predicate could never fire. The relabelling was real but
+   * belonged to `listGovernApprovals` -- a different server function in the same
+   * file -- where it was understating fourteen tools on the approvals screen and
+   * is now fixed. `getBoundary` has always set `risk: toolRisk(name)`.
    */
-  const runsAloneDespiteAsking = (t: BoundaryTool) =>
-    t.mode === "confirm" && toolRisk(t.name) === "low" && t.floor === null;
-  const demoted = React.useMemo(
-    () => (data?.asks ?? []).filter(runsAloneDespiteAsking),
-    [data?.asks],
-  );
-  const trulyAlone = React.useMemo(
-    () => [...(data?.alone ?? []), ...demoted],
-    [data?.alone, demoted],
-  );
-  const trulyAsks = React.useMemo(
-    () => (data?.asks ?? []).filter((t) => !runsAloneDespiteAsking(t)),
-    [data?.asks],
-  );
+  const alone = React.useMemo(() => data?.alone ?? [], [data?.alone]);
+  const asks = React.useMemo(() => data?.asks ?? [], [data?.asks]);
+  /** Set to ask you, and does not. The one thing this screen must never leave
+   *  a person to discover from a run. */
+  const looserThanSet = React.useMemo(() => alone.filter((t) => t.mode !== "auto"), [alone]);
 
   // One mutation for all six numbers: they are one policy, and six mutations
   // would be six ways for the surface and the record to disagree.
@@ -675,8 +676,23 @@ export function BoundaryControls({
               key={t.name}
               tight
               lead={t.label}
-              // The different fact: what it does, or what the floor forbids.
-              sub={floorLine(t.floor) ?? t.what ?? t.category}
+              /*
+               * The different fact, in priority order: where the SET value and
+               * the running one disagree, then what a floor forbids, then what
+               * the tool does.
+               *
+               * The disagreement leads because it is the only one of the three
+               * a person can be wrong about without knowing. A row reading
+               * "Come to me first" in a block headed "What they do alone" is a
+               * contradiction the reader will resolve in whichever direction
+               * they already believed, and the reassuring direction is the one
+               * that gets them hurt.
+               */
+              sub={
+                t.mode !== t.runsAs
+                  ? `Set to ${SET_WORD[t.mode]}, and it does not: ${WHAT_RUNS[t.runsAs]}`
+                  : (floorLine(t.floor) ?? t.what ?? t.category)
+              }
               action={
                 /* `hold` AND NOT THE ORCHID: this tool waits on you every
                    single time and there is deliberately no control beside it,
@@ -758,7 +774,7 @@ export function BoundaryControls({
     "No crew has been given anything to do yet."
   ) : (
     <>
-      Your crew does <Num>{trulyAlone.length}</Num> of <Num>{total}</Num> things without asking.
+      Your crew does <Num>{alone.length}</Num> of <Num>{total}</Num> things without asking.
     </>
   );
   const postureSub =
@@ -786,7 +802,7 @@ export function BoundaryControls({
               "No crew has been given anything to do yet."
             ) : (
               <>
-                Your crew does <Num>{trulyAlone.length}</Num> of <Num>{total}</Num> things without
+                Your crew does <Num>{alone.length}</Num> of <Num>{total}</Num> things without
                 asking.
               </>
             )
@@ -826,10 +842,10 @@ export function BoundaryControls({
           {block(
             "alone",
             "What they do alone",
-            demoted.length > 0
-              ? `No approval, no interruption. This is where the leverage is. ${demoted.length} of these ${demoted.length === 1 ? "is" : "are"} set to ask you first and will not, because the loop clears low-risk tools inline.`
+            looserThanSet.length > 0
+              ? `No approval, no interruption. This is where the leverage is. ${looserThanSet.length} of these ${looserThanSet.length === 1 ? "is" : "are"} set to come to you first and will not, because your agents have earned the trust that clears them.`
               : "No approval, no interruption. This is where the leverage is.",
-            trulyAlone,
+            alone,
             "Nothing runs without you yet. Every one of these is a person in the loop.",
           )}
 
@@ -837,7 +853,7 @@ export function BoundaryControls({
             "asks",
             "What still comes to you",
             "Each of these costs one interruption every time it happens.",
-            trulyAsks,
+            asks,
             "Nothing asks. Your crew runs the loop on its own.",
           )}
 

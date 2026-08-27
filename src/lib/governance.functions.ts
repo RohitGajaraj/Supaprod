@@ -1062,6 +1062,55 @@ export const getBoundary = createServerFn({ method: "GET" })
       enabled: boolean | null;
     };
 
+    /*
+     * WHAT ACTUALLY HAPPENS, NOT WHAT IS STORED, AND THIS IS THE WHOLE POINT OF
+     * THE SCREEN.
+     *
+     * The stored mode is a seed. The loop does not run it. `resolveToolMode`
+     * composes the seed with the agent's trust arc and then the safety floors,
+     * and on the arc every agent in this database is on the two answers are not
+     * close. Executed against the real resolver over the 74 registered tools:
+     *
+     *   stored          52 auto · 21 confirm · 1 review
+     *   trusted arc     68 auto ·  4 confirm · 2 review
+     *
+     * So the headline "your crew does N of M things without asking" was
+     * answering 52 of 74 when the truth is 68, and the sixteen it left out
+     * include `studio.commit`, `studio.revert` and `release.publish`. An
+     * UNDER-REPORT is the direction that gets someone hurt: a person reads that
+     * a tool comes to them first, and it does not.
+     *
+     * THE ARC IS PER AGENT AND THIS SCREEN IS PER WORKSPACE, so it takes the
+     * LOOSEST arc present. The question the page answers is "what can these
+     * agents do without asking me", and the answer is yes if ANY of them can.
+     * Taking the strictest, or an average, would report a boundary no agent
+     * actually has. With no rows at all it uses `trusted`, because that is what
+     * `loadAgentArc` hands a run with no row -- founder ruling SW-7, autonomous
+     * by default -- and inventing a stricter default here would print a
+     * reassurance the loop does not honour.
+     *
+     * `contractApproved: false` is the reading before any plan is approved. On
+     * `trusted` and `ambient` it changes nothing at all; on `proving` it moves
+     * five tools, so this reports the floor of what runs unattended rather than
+     * the ceiling. That is the one place the number can still be conservative,
+     * and it is stated on the surface rather than hidden here.
+     */
+    const { resolveToolMode } = await import("@/lib/ai/loop.server");
+    const ARC_LOOSENESS = { observing: 0, proving: 1, trusted: 2, ambient: 3 } as const;
+    type ArcName = keyof typeof ARC_LOOSENESS;
+    const { data: arcRows } = await supabase
+      .from("agent_autonomy")
+      .select("arc")
+      .eq("user_id", userId);
+    const arc: ArcName = ((arcRows ?? []) as { arc: string | null }[]).reduce<ArcName>(
+      (loosest, r) => {
+        const a = r.arc as ArcName;
+        if (!(a in ARC_LOOSENESS)) return loosest;
+        return ARC_LOOSENESS[a] > ARC_LOOSENESS[loosest] ? a : loosest;
+      },
+      "trusted",
+    );
+
     const alone: BoundaryTool[] = [];
     const asks: BoundaryTool[] = [];
     const never: BoundaryTool[] = [];
@@ -1077,18 +1126,27 @@ export const getBoundary = createServerFn({ method: "GET" })
           ? ("confirm" as const)
           : null;
 
+      const mode = (raw.mode ?? "confirm") as BoundaryTool["mode"];
+      /* `off` is not a mode the resolver knows: it means the tool is not offered
+         at all, so there is nothing for an arc to loosen. */
+      const runsAs = mode === "off" ? "off" : resolveToolMode(raw.tool_name, mode, arc, false);
+
       const t: BoundaryTool = {
         name: raw.tool_name,
         label: raw.display_name ?? raw.tool_name,
         what: raw.description ?? null,
         category: raw.category ?? null,
-        mode: (raw.mode ?? "confirm") as BoundaryTool["mode"],
+        mode,
+        runsAs,
         risk,
         floor,
       };
 
+      /* BUCKETED BY WHAT HAPPENS. `mode` stays on the row under its own name so
+         the editor still offers the moves the SET value allows, and the surface
+         can say the two differ where they do. */
       if (raw.enabled === false || t.mode === "off") never.push(t);
-      else if (t.mode === "auto") alone.push(t);
+      else if (t.runsAs === "auto") alone.push(t);
       else asks.push(t);
     }
 
@@ -1189,7 +1247,16 @@ export type BoundaryTool = {
   label: string;
   what: string | null;
   category: string | null;
+  /** What a person SET. The editor offers moves against this. */
   mode: "auto" | "confirm" | "review" | "off";
+  /**
+   * What the loop ACTUALLY does with it, once the trust arc and the safety
+   * floors have had their say. Differs from `mode` for sixteen of the
+   * seventy-four registered tools on the arc this database is on, always in the
+   * looser direction, so a surface that reports `mode` under-reports reach.
+   * Never `off` unless `mode` is: the resolver has nothing to loosen there.
+   */
+  runsAs: "auto" | "confirm" | "review" | "off";
   risk: "low" | "medium" | "high";
   /** The lowest supervision this tool may ever have, or null if unconstrained. */
   floor: "confirm" | "review" | null;
