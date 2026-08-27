@@ -59,6 +59,39 @@ S3's warning is built in: this counts **importers, not mentions**. Their first p
 orphans because it matched any occurrence of the name, including inside the file's own comments.
 `getNeedsYou` has five mentions in `src/lib` and **not one is an import**.
 
+## The same question on the client side
+
+```
+80 of 492 exported components in src/components have NO importer.
+```
+
+**Sixteen percent.** A component nobody imports is the same defect one step closer to the person: a
+screen, or a piece of one, designed and built and impossible to look at.
+
+| file | orphans |
+| --- | --- |
+| `supaprod/Primitives.tsx` | 5 |
+| `landing/replay/Replay.tsx` | 4 |
+| `track/ArtifactPane.tsx` · `discover/DetailKit.tsx` | 3 each |
+
+**`AskInPlace` is in the list** — the component S3 found by hand at 176 lines with zero mounts. So
+the tool independently confirms **both** of their hand-traced findings, `getNotifications` on the
+server side and `AskInPlace` on the client, from a scan that knew about neither.
+
+Route files are excluded, because the router mounts them by convention rather than by import, so
+"nothing imports it" is the correct state there. `S4-068` answered the route question separately:
+nothing in the router is dead.
+
+## A report that hid the row I was looking for
+
+The first version printed only the top ten files by orphan count. **`AskInPlace` never appeared,
+because its file has exactly one.** I spent four steps hunting a false negative in the detection that
+did not exist: the check had found it and the REPORT had hidden it.
+
+Fixed to print every orphan. **A summary that cannot show you the one row you came for is a summary
+that will be trusted and should not be**, and I nearly published "the tool misses known cases" as a
+limitation of the tool rather than of my own output formatting.
+
 ## What I am not claiming
 
 - **An orphan is not automatically waste.** Some are deliberately staged ahead of a surface, and
@@ -67,5 +100,8 @@ orphans because it matched any occurrence of the name, including inside the file
   makes every export reachable.
 - **I did not check whether any orphan is called from a route in `src/routes/api/**`** by a path this
   scan cannot see; the scan does read those files, so a named import there would count.
+- **The component number is noisier than the server one.** A helper component exported but used
+  only inside its own file counts as an orphan here, which is a hygiene issue rather than a screen
+  nobody can reach. `Primitives.tsx` at 5 is more likely that than a lost feature.
 - **This says nothing about how many SURFACES are unreachable** — that is `S4-068`, where the answer
   was that nothing in the router is dead.

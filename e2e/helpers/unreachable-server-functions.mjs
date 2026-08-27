@@ -97,3 +97,54 @@ for (const [file, n] of [...byFile].sort((a, b) => b[1] - a[1]).slice(0, 10)) {
 }
 console.log("\nEvery orphan:");
 for (const o of orphans) console.log(`  ${o.name}  (${o.file})`);
+
+/*
+ * THE SAME QUESTION ON THE CLIENT SIDE.
+ *
+ * S3 found AskInPlace at 176 lines with zero mounts, and RoomDetail, both by
+ * hand. A component nobody imports is the same defect as a server function
+ * nobody imports, and it is closer to the person: it is a screen, or a piece of
+ * one, that was designed and built and can never be looked at.
+ *
+ * A route file is excluded because the ROUTER mounts it by convention rather
+ * than by import, so "nothing imports it" is the normal and correct state there.
+ * S4-068 already answered the route question a different way: nothing in the
+ * router is dead.
+ */
+const componentOrphans = [];
+let componentTotal = 0;
+for (const f of files.filter((f) => /^src\/components\/.*\.tsx$/.test(f))) {
+  const src = readFileSync(f, "utf8");
+  for (const m of src.matchAll(/export\s+(?:default\s+)?function\s+([A-Z][A-Za-z0-9_]*)/g)) {
+    componentTotal += 1;
+    const name = m[1];
+    const users = [...(importedBy.get(name) ?? [])].filter((u) => u !== f);
+    if (users.length === 0) componentOrphans.push({ name, file: f });
+  }
+}
+
+const compByFile = new Map();
+for (const o of componentOrphans) compByFile.set(o.file, (compByFile.get(o.file) ?? 0) + 1);
+
+console.log(
+  `\n${componentOrphans.length} of ${componentTotal} exported components in src/components ` +
+    `have NO importer.`,
+);
+console.log("Worst files:");
+for (const [file, n] of [...compByFile].sort((a, b) => b[1] - a[1]).slice(0, 10)) {
+  console.log(`  ${String(n).padStart(2)}  ${file}`);
+}
+/*
+ * PRINT THE WHOLE LIST, not just the worst files.
+ *
+ * The first version printed only the top ten files by count, and AskInPlace —
+ * the component S3 found BY HAND at 176 lines with zero mounts — never appeared,
+ * because its file has exactly one orphan. I spent four steps hunting a false
+ * negative in the detection that did not exist: the check had found it and the
+ * REPORT had hidden it.
+ *
+ * A summary that cannot show you the one row you are looking for is a summary
+ * that will be trusted and should not be.
+ */
+console.log("\nEvery component orphan:");
+for (const o of componentOrphans) console.log(`  ${o.name}  (${o.file})`);
