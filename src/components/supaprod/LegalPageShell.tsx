@@ -25,7 +25,27 @@ const C = {
   divider: "rgba(255,255,255,0.09)",
   text: "#f4f4f5",
   muted: "#a1a1aa",
-  faint: "#71717a",
+  /*
+   * #71717a UNTIL 2026-08-27, WHICH IS 4.10:1 ON THIS SHELL'S #0a0a0a GROUND
+   * AND FAILS AA. Five routes import this shell -- terms, privacy, faq,
+   * security, updates -- and S4 measured EXACTLY SEVEN failures on each of the
+   * four that are in the baseline, the same seven every time: the "Last
+   * updated" line and the six footer links. One constant, 35 elements.
+   *
+   * #7e7e86 is 4.92:1 on the same ground, and it is deliberately the SAME value
+   * this exact source colour was moved to in TheGap.tsx under cc23c49fc. Two
+   * components carrying the same wrong grey should not end up with two
+   * different right greys.
+   *
+   * IT STAYS A LITERAL RATHER THAN BECOMING --mrd-faint, and the comment above
+   * this object is the reason: public pages are dark-only and must not consult
+   * a theme-flipping token. `[data-theme="light"]` re-declares --mrd-faint at
+   * oklch 0.52, DARKER than the dark value, which on a ground that does not
+   * invert would turn this fix into a worse failure than the one it corrects.
+   * The public shell elsewhere reads those tokens only under
+   * `[data-mrd-pinned-dark]`, and this shell does not stamp it.
+   */
+  faint: "#7e7e86",
   ember: "#FF6B2C",
   emberBright: "#FF6B2C",
 };

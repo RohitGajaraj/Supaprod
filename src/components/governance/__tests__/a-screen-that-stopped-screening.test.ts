@@ -67,3 +67,53 @@ describe("a screen that stopped screening", () => {
     }
   });
 });
+
+/**
+ * THE CLIFF WAS COVERAGE, NOT A BROKEN MECHANISM, and the correction matters
+ * more than the original finding.
+ *
+ * S0 traced it: `callModel` screens unless a caller opts out and the loop never
+ * does, so the absence of the word "guardrail" in loop.server.ts is the absence
+ * of an OPT-OUT. Measured instead, 2026-08-27:
+ *
+ *   27 rules, across                3 workspaces
+ *   workspaces that ran in 30 days  13
+ *   of those, with ANY rule          2
+ *
+ * July's hits were on workspaces that had rules and were busy then; the traffic
+ * moved to workspaces with nothing configured. So the first version of this
+ * module told ELEVEN WORKSPACES OUT OF THIRTEEN that "nothing has tripped a
+ * rule in 33 days", which reads as "yours are quiet" when the truth is "you
+ * have none". An alarm about the wrong thing is how a person learns to ignore
+ * the next one.
+ */
+describe("no rules of your own is not a quiet screen", () => {
+  it("says what is actually true of the majority case", () => {
+    const r = guardrailSilence([], now, 0);
+    expect(r.said).toBe(
+      "You have not written any rules of your own, so only the built-ins have screened anything here.",
+    );
+    expect(r.quietDays).toBeNull();
+  });
+
+  it("and says it even when old hits exist, because they were not yours", () => {
+    // A workspace can carry hits from rules that have since been deleted.
+    // "Nothing has tripped a rule in 33 days" would be an alarm about rules
+    // that are not there.
+    const r = guardrailSilence([ago(33)], now, 0);
+    expect(r.said).toContain("not written any rules of your own");
+    expect(r.said).not.toContain("33 days");
+  });
+
+  it("a workspace that HAS rules still gets the silence alarm", () => {
+    const r = guardrailSilence([ago(33)], now, 4);
+    expect(r.said).toBe("Nothing has tripped a rule in 33 days.");
+  });
+
+  /* Omitting the count keeps the old behaviour, so a caller that has not been
+     taught to pass it is not silently given the wrong sentence. */
+  it("an unknown rule count falls back rather than guessing zero", () => {
+    expect(guardrailSilence([ago(33)], now).said).toBe("Nothing has tripped a rule in 33 days.");
+    expect(guardrailSilence([], now).said).toBe("No rule has caught anything here.");
+  });
+});

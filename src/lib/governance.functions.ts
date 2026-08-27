@@ -1180,14 +1180,34 @@ export const getBoundary = createServerFn({ method: "GET" })
       .from("agent_autonomy")
       .select("arc")
       .eq("user_id", userId);
-    const arc: ArcName = ((arcRows ?? []) as { arc: string | null }[]).reduce<ArcName>(
-      (loosest, r) => {
-        const a = r.arc as ArcName;
-        if (!(a in ARC_LOOSENESS)) return loosest;
-        return ARC_LOOSENESS[a] > ARC_LOOSENESS[loosest] ? a : loosest;
-      },
+    const arcList = ((arcRows ?? []) as { arc: string | null }[])
+      .map((r) => r.arc as ArcName)
+      .filter((a) => a in ARC_LOOSENESS);
+    const arc: ArcName = arcList.reduce<ArcName>(
+      (loosest, a) => (ARC_LOOSENESS[a] > ARC_LOOSENESS[loosest] ? a : loosest),
       "trusted",
     );
+    /*
+     * HOW MANY AGENTS SIT ON EACH RUNG, returned so the surface can say the one
+     * setting that decides everything on it.
+     *
+     * The count above resolves to the LOOSEST, which is the right answer for
+     * "what can these agents do without asking me". It is the wrong answer to
+     * describe the crew with: a workspace with nine trusted agents and three
+     * that ask first is not "your agents run alone". So the surface gets both,
+     * and it is the surface's job to say "9 of 12" rather than to generalise.
+     *
+     * Empty means no agent has a row yet, which is NOT the same as no agents:
+     * `loadAgentArc` hands a run with no row `trusted` anyway (SW-7), which is
+     * why the reduce above starts there and not at the strictest rung.
+     */
+    const arcCounts: Record<ArcName, number> = {
+      observing: 0,
+      proving: 0,
+      trusted: 0,
+      ambient: 0,
+    };
+    for (const a of arcList) arcCounts[a] += 1;
 
     const alone: BoundaryTool[] = [];
     const asks: BoundaryTool[] = [];
@@ -1277,6 +1297,59 @@ export const getBoundary = createServerFn({ method: "GET" })
       autonomy = await loadAutonomyPolicy(supabase as unknown as SupabaseClient, ws.id);
     }
 
+    /*
+     * THE PROOF BESIDE THE POLICY, WHICH IS WHAT THIS SCREEN WAS MISSING.
+     *
+     * Everything above is what agents MAY do. A person asking "what can these
+     * agents do without asking me" is entitled to see that it has happened, and
+     * `tool_calls` carries it: 1,996 rows in the last 30 days across 61 distinct
+     * tools, measured 2026-08-27.
+     *
+     * THE INFERENCE, STATED SO THE SURFACE CAN STATE IT TOO. `tool_calls` does
+     * not record whether an approval gated the call. What it records is that the
+     * call happened. So this counts calls to the tools that run alone TODAY, and
+     * the surface says exactly that rather than "these ran unapproved" -- a
+     * tool moved to `auto` last week makes its older calls look unattended, and
+     * claiming otherwise would be inventing a fact from two facts that do not
+     * compose.
+     *
+     * It is sound in the direction that matters: approvals only ever exist for
+     * `confirm` and `review`, so a tool that is `auto` today had no gate today.
+     *
+     * FAILS SOFT AND SEPARATELY. This is evidence, not policy. If it does not
+     * come back, the boundary a person came here to set still renders, and the
+     * surface draws nothing rather than a zero -- a zero here would read as
+     * "your crew has done nothing", which is the reassuring answer arrived at by
+     * omission that R-22 forbids.
+     */
+    const aloneNames = alone.map((t) => t.name);
+    let didAlone: { count: number | null; newest: { tool: string; at: string } | null } = {
+      count: null,
+      newest: null,
+    };
+    if (workspaceId && aloneNames.length > 0) {
+      const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
+      const {
+        data: calls,
+        count,
+        error: callsErr,
+      } = await supabase
+        .from("tool_calls")
+        .select("tool_name,created_at", { count: "exact" })
+        .eq("workspace_id", workspaceId)
+        .in("tool_name", aloneNames)
+        .gte("created_at", since)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (!callsErr) {
+        const row = (calls ?? [])[0] as { tool_name: string; created_at: string } | undefined;
+        didAlone = {
+          count: count ?? null,
+          newest: row ? { tool: row.tool_name, at: row.created_at } : null,
+        };
+      }
+    }
+
     const num = (v: number | string | null | undefined) =>
       v === null || v === undefined ? null : Number(v);
     const w = ws as {
@@ -1302,6 +1375,18 @@ export const getBoundary = createServerFn({ method: "GET" })
       canSetAutonomy: canWriteWorkspaceRow,
       /** The caller's role, so the surface can say why a control is absent. */
       role,
+      /** The loosest rung any agent sits on: what the buckets above resolve against. */
+      arc,
+      /** How many agents sit on each rung, so the surface can say "9 of 12" rather
+       *  than describing a whole crew by its loosest member. */
+      arcCounts,
+      /**
+       * What the policy above has actually let through: calls in the last 30
+       * days to the tools that run alone today, and the most recent one.
+       * `count: null` means the read did not come back and the surface must
+       * draw nothing rather than a zero.
+       */
+      didAlone,
       /** Which workspace answered — the question this file used to guess at. */
       workspaceId,
       /** Where this workspace puts the promotion bar and the settle-or-ask bar,

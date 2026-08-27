@@ -102,7 +102,15 @@ function ProductPage() {
   ];
 
   return (
-    <div className="bg-[#0a0a0a] min-h-screen" style={{ ...PUBLIC_INK_THEME }} data-obsidian>
+    <div
+      className="public-ink bg-[#0a0a0a] min-h-screen"
+      style={{ ...PUBLIC_INK_THEME }}
+      data-obsidian
+      /* See index.tsx: `.public-ink` reads --mrd-faint and --mrd-mute, the light
+         theme re-declares both DARKER, and this ground does not invert with
+         them. */
+      data-mrd-pinned-dark
+    >
       {/* Backdrop: grid + starfield (inherited from landing) */}
       <LandingBackdrop />
 
@@ -264,7 +272,8 @@ function ProductPage() {
               transition: "background-color 0.2s ease",
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#ff8344"; /* hover tint: no token exists and inkTheme is not mine to extend */
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                "#ff8344"; /* hover tint: no token exists and inkTheme is not mine to extend */
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--mrd-you)";

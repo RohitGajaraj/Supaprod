@@ -58,6 +58,10 @@ import { humanWriteError } from "@/lib/roles.functions";
 import { TrustGraduationsBlock } from "@/components/governance/TrustGraduations";
 import { AutomationBoundary } from "@/components/governance/AutomationBoundary";
 import { ceilingReality } from "@/components/governance/ceiling-reality";
+import { whereTheCrewStands } from "@/components/governance/where-the-crew-stands";
+import { unansweredGates } from "@/components/governance/gates-nobody-answered";
+import { whatTheyActuallyDid } from "@/components/governance/what-they-actually-did";
+import { Link } from "@tanstack/react-router";
 import { Field, Input } from "@/components/meridian/forms";
 import { MoreItem, MoreMenu } from "@/components/meridian/MoreMenu";
 import { Receipt } from "@/components/meridian/Receipt";
@@ -589,6 +593,18 @@ export function BoundaryControls({
    */
   const alone = React.useMemo(() => data?.alone ?? [], [data?.alone]);
   const asks = React.useMemo(() => data?.asks ?? [], [data?.asks]);
+  /*
+   * WHAT ACTUALLY HAPPENS TO A GATE, off the same overview read as the ceiling.
+   * "Each of these costs one interruption" assumes somebody answers it; across
+   * every approval this database has ever written, roughly one in three was
+   * never answered at all. See gates-nobody-answered.ts.
+   */
+  const unanswered = unansweredGates(overview.data?.approvals, toolLabel);
+  /* The proof beside the policy: what the block above has actually let through.
+     See what-they-actually-did.ts for what the sentence may and may not claim. */
+  const did = whatTheyActuallyDid(data?.didAlone, toolLabel);
+  /** What the whole page resolves against, said in the trust dial's own words. */
+  const standing = whereTheCrewStands(data?.arcCounts);
   /** Set to ask you, and does not. The one thing this screen must never leave
    *  a person to discover from a run. */
   const looserThanSet = React.useMemo(() => alone.filter((t) => t.mode !== "auto"), [alone]);
@@ -837,14 +853,52 @@ export function BoundaryControls({
           {/* THE QUEUE EATING ITSELF: an agent asking for more room is the one
               thing worth deciding on a surface about what agents may do alone.
               It leads here exactly as it led on /boundary. */}
+          {/*
+           * WHERE THE CREW STANDS, ABOVE EVERYTHING THE RUNG DECIDES.
+           *
+           * A person reads "your crew does 68 of 74 things without asking" and
+           * has no way from this page to learn WHY, or that a dial exists. It
+           * is not the per-tool settings below: 16 of those 68 are set to come
+           * to you first and run anyway. It is the level every agent sits on,
+           * which `resolveApprovalMode` composes with each tool's mode before
+           * the loop runs anything.
+           *
+           * A FACT HERE, A CONTROL ON CREW. The dial belongs to the agent, and
+           * two editors of one setting is the defect A-006 §2 spent a phase
+           * removing from this very panel. So this states it and opens the
+           * door.
+           */}
+          {standing.said ? (
+            <Region
+              title="Where your crew stands"
+              sub="One level per agent, and it decides every setting below before the loop reads it."
+            >
+              <Line label={standing.said}>
+                <Link to="/crew" className="text-mrd-small underline underline-offset-4">
+                  Change it on Crew
+                </Link>
+              </Line>
+            </Region>
+          ) : null}
+
           <TrustGraduationsBlock />
 
           {block(
             "alone",
             "What they do alone",
-            looserThanSet.length > 0
-              ? `No approval, no interruption. This is where the leverage is. ${looserThanSet.length} of these ${looserThanSet.length === 1 ? "is" : "are"} set to come to you first and will not, because your agents have earned the trust that clears them.`
-              : "No approval, no interruption. This is where the leverage is.",
+            [
+              "No approval, no interruption. This is where the leverage is.",
+              did.said
+                ? did.tool
+                  ? `${did.said} The most recent was ${did.tool}.`
+                  : did.said
+                : null,
+              looserThanSet.length > 0
+                ? `${looserThanSet.length} of these ${looserThanSet.length === 1 ? "is" : "are"} set to come to you first and will not, because every agent starts out running alone except on the risky calls. You can lower that per agent on Crew.`
+                : null,
+            ]
+              .filter(Boolean)
+              .join(" "),
             alone,
             "Nothing runs without you yet. Every one of these is a person in the loop.",
           )}
@@ -852,7 +906,9 @@ export function BoundaryControls({
           {block(
             "asks",
             "What still comes to you",
-            "Each of these costs one interruption every time it happens.",
+            unanswered.said
+              ? `Each of these costs one interruption every time it happens. ${unanswered.said}`
+              : "Each of these costs one interruption every time it happens.",
             asks,
             "Nothing asks. Your crew runs the loop on its own.",
           )}
