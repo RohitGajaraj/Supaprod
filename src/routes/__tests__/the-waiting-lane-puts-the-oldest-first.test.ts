@@ -90,4 +90,29 @@ describe("the waiting lane puts the oldest first", () => {
     expect(SRC).toContain("const blockedAll");
     expect(SRC).not.toContain("This lane shows the last 24 hours");
   });
+
+  it("THE REVIEW QUEUE PUTS THE OLDEST CALL FIRST TOO, and it did not until 2026-08-27", () => {
+    /*
+     * The same defect as the lanes above, one region across.
+     * `approvals-queue.functions.ts:908` sorts the queue NEWEST FIRST
+     * (`b.timestamp` against `a.timestamp`) and this board never re-sorted it,
+     * so the freshest call sat in the card at the top while the oldest waited
+     * at the bottom of a list that shows three rows and folds the rest.
+     *
+     * `/approvals` had already fixed it and recorded the cost: that surface
+     * "used to put the freshest call in front of a person while an 86 HOUR
+     * GATE sat at the bottom of the page".
+     *
+     * ASSERTED ON `waitingSince` RATHER THAN ON THE COMPARATOR'S SHAPE. Two
+     * comparators for one order is how two surfaces come to disagree about
+     * which call is oldest, so what matters is that this board reaches for the
+     * SAME function `/approvals` uses, not that the three lines look a
+     * particular way.
+     */
+    expect(SRC).toContain('from "@/components/approvals/stopped-for"');
+    const memo = memoFor("visibleItems");
+    expect(memo).toContain("waitingSince(a.timestamp)");
+    expect(memo).toContain("waitingSince(b.timestamp)");
+    expect(memo, "the queue is sorted newest first again").toContain("return at - bt;");
+  });
 });

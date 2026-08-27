@@ -57,6 +57,7 @@ import {
   worthFiltering,
   type QueueBucket,
 } from "@/components/today/queue-buckets";
+import { waitingSince } from "@/components/approvals/stopped-for";
 import { stripAutoPrefix, cleanTitle } from "@/components/plan/format";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -1404,7 +1405,38 @@ function Today() {
   const [bucket, setBucket] = React.useState<QueueBucket | null>(null);
   const bucketList = React.useMemo(() => bucketTabs(items), [items]);
   const activeBucket = bucketList.some((t) => t.id === bucket) ? bucket : null;
-  const visibleItems = React.useMemo(() => inBucket(items, activeBucket), [items, activeBucket]);
+  /*
+   * OLDEST FIRST, AND THE BOARD WAS SHOWING THE OPPOSITE.
+   *
+   * `approvals-queue.functions.ts:908` sorts the queue NEWEST FIRST
+   * (`b.timestamp` against `a.timestamp`), and this board never re-sorted it.
+   * So the freshest call sat in the card at the top while the oldest waited at
+   * the bottom of a list that shows three rows and folds the rest behind
+   * "Walk the queue".
+   *
+   * `/approvals` already fixed exactly this and recorded why: that surface
+   * "used to put the freshest call in front of a person while an 86 HOUR GATE
+   * sat at the bottom of the page". It is the same defect this lane fixed in
+   * the waiting lane earlier tonight, for the same reason - nothing in a queue
+   * of calls moves until a person acts, so the longer a thing has sat the more
+   * it needs them, and recency is the opposite of that.
+   *
+   * `waitingSince` is imported rather than reimplemented: two comparators for
+   * one order is how two surfaces come to disagree about which call is oldest.
+   * Nulls sort LAST, as they do there - a call with no timestamp is not the
+   * most urgent thing on the screen, it is a gap in what we know about it.
+   */
+  const visibleItems = React.useMemo(() => {
+    const inFilter = inBucket(items, activeBucket);
+    return inFilter.sort((a, b) => {
+      const at = waitingSince(a.timestamp);
+      const bt = waitingSince(b.timestamp);
+      if (at === null && bt === null) return 0;
+      if (at === null) return 1;
+      if (bt === null) return -1;
+      return at - bt;
+    });
+  }, [items, activeBucket]);
 
   const focused = React.useMemo(
     () => visibleItems.find((i) => i.id === focusedId) ?? visibleItems[0] ?? null,
