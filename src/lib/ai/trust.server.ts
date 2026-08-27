@@ -547,15 +547,54 @@ export async function loadAgentArc(
   userId: string,
   agentId: string,
 ): Promise<Arc> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("agent_autonomy")
     .select("arc")
     .eq("user_id", userId)
     .eq("agent_id", agentId)
     .maybeSingle();
+
+  /*
+   * ── F-119: A FAILED READ USED TO GRANT MORE AUTONOMY THAN ANYONE SET ────
+   *
+   * This destructured `const { data }` and never looked at `error`. So a
+   * refused, timed-out or malformed read arrived as `data: null`, took the
+   * absence branch below, and returned "trusted" — the WIDEST arc short of
+   * ambient. An operator who had deliberately pinned an agent to `observing`
+   * would have had that pin silently discarded by a transient database error,
+   * and nothing anywhere would have said so.
+   *
+   * This is F-76's shape on a permission dial, which is the worst surface it
+   * could land on: everywhere else the cost of confusing "failed" with "empty"
+   * is a surface that says "nothing here". Here the cost is an agent acting
+   * without the review its operator asked for.
+   *
+   * ON ERROR THE ANSWER IS `observing`, WHICH ASKS RATHER THAN FREEZES.
+   * `autonomy-policy.ts` argues, correctly, that a missing POLICY must resolve
+   * to the shipped default rather than to an extreme, because falling closed
+   * there "would freeze the loop ... and the human is back to approving
+   * everything". That argument does not reach this case and the difference is
+   * worth stating: that one is about a workspace-level configuration row whose
+   * absence is a permanent state, while this is one transient read on one tool
+   * call. Falling to `observing` here queues ONE review. It stops nothing.
+   *
+   * And `decision-gate.ts` states the rule that decides it: "the thing we did
+   * not check is the thing that hurts, so 'we had no signal' and 'the signal
+   * was good' must never produce the same answer."
+   */
+  if (error) {
+    console.error(
+      `autonomy arc unreadable for agent ${agentId}, falling back to review: ${error.message}`,
+    );
+    return "observing";
+  }
+
   // Founder ruling 2026-07-08 (SW-7): autonomous by default - an agent with
   // no earned/operator-set arc runs TRUSTED (confirm-seeded tools execute
   // inline; review-pinned tools and the FORCE_REVIEW floor still hold). The
   // ramp remains the dial for tightening (proving/observing) per agent.
+  //
+  // ABSENCE, not failure. The two are now told apart above, and only this
+  // branch is the founder's ruling: an agent nobody has dialled runs trusted.
   return (data as { arc?: Arc } | null)?.arc ?? "trusted";
 }
