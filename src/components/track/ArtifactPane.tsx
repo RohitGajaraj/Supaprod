@@ -33,6 +33,8 @@ import { plainProse } from "@/lib/plain-prose";
  * to more. Covering only the measured ones would be fitting the product to the
  * data sitting in the database.
  */
+import { FORECAST_SAYS } from "@/components/learn/forecast-words";
+import type { ForecastResolution } from "@/lib/brain/forecast-resolution";
 import { NO_NON_GOALS, noContractLine, specContract } from "@/components/track/spec-contract";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -312,6 +314,28 @@ function PlanSpec({ prdId }: { prdId: string }) {
  * because every live forecast so far is agent-authored and a person reading
  * "what we believed" is entitled to know which of us did.
  */
+/**
+ * THE PRODUCT'S WORD FOR A FORECAST'S RESULT, NOT THE COLUMN'S.
+ *
+ * `forecast-words.ts` exists, says so in its own header ("two surfaces must
+ * never call one thing two things"), and had one caller: `ForecastDeskPanel` on
+ * /learn. This pane printed the stored value instead, so /learn said "it went
+ * the other way" and the run screen said "miss" about the same row. 91 of the
+ * 176 forecasts in this database are resolved, so that is the common case and
+ * not an edge.
+ *
+ * It matters most here of all places. §12 maps Verdict to "What actually
+ * happened. Beside the expectation. That pairing is the product." The block
+ * below is that pairing, and half of it was the engine talking.
+ *
+ * AN UNKNOWN VALUE STILL RENDERS, rather than blanking. A fourth resolution
+ * would be a schema change nobody has made, and if one ever arrives a person
+ * seeing the raw word is better served than a person seeing nothing.
+ */
+function forecastSays(resolution: string): string {
+  return FORECAST_SAYS[resolution as ForecastResolution] ?? resolution;
+}
+
 function str(v: unknown): string | null {
   return typeof v === "string" && v.length > 0 ? v : null;
 }
@@ -434,7 +458,7 @@ function DecisionCard({ item }: { item: ArtifactView }) {
                 <StatusChip
                   status={resolution === "hit" ? "pass" : resolution === "miss" ? "fail" : "hold"}
                 >
-                  {resolution}
+                  {forecastSays(resolution)}
                 </StatusChip>
                 {resolutionRationale ? (
                   <span className="min-w-0 text-mrd-small text-mrd-mute">
@@ -955,7 +979,7 @@ function LearningCard({
               <StatusChip
                 status={resolution === "hit" ? "pass" : resolution === "miss" ? "fail" : "hold"}
               >
-                {resolution}
+                {forecastSays(resolution)}
               </StatusChip>
               <span className="min-w-0 text-mrd-small text-mrd-mute">{rationale}</span>
             </span>
