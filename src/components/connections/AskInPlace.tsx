@@ -71,10 +71,7 @@ export function AskInPlace({
     };
   }, [list.data, satisfiedByEnv]);
 
-  const satisfied = useMemo(
-    () => suggest.some(connectedOrActive),
-    [suggest, connectedOrActive],
-  );
+  const satisfied = useMemo(() => suggest.some(connectedOrActive), [suggest, connectedOrActive]);
 
   /** Only providers whose OAuth app somebody actually registered render as
    *  options - the same fact the catalogue's "not yet available" state reads. */
@@ -100,9 +97,8 @@ export function AskInPlace({
 
   if (list.isError) {
     return (
-      <ReadFailedLine onRetry={() => void list.refetch()}>
-        Could not check what this workspace can already read, so connecting here is paused.{" "}
-        {(list.error as Error)?.message ?? "The read failed."}
+      <ReadFailedLine error={list.error} onRetry={() => void list.refetch()}>
+        Could not check what this workspace can already read, so connecting here is paused.
       </ReadFailedLine>
     );
   }
@@ -130,11 +126,7 @@ export function AskInPlace({
   return (
     <div>
       <p className="text-mrd-body">
-        {why ? (
-          <>
-            {why}{" "}
-          </>
-        ) : null}
+        {why ? <>{why} </> : null}
         This needs {need}. Connect one and the work picks up from here; you do not have to go
         looking afterwards.
       </p>

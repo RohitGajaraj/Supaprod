@@ -139,7 +139,9 @@ function CheckoutPage() {
 
         {/* Declared display voice for this page title per answers/R011 cluster 5: the page's largest voice, tuned against its own ground, not a stop. */}
         <h1 style={{ fontSize: 26, marginBottom: 6 }}>Start with {p.name}</h1>
-        <p className="text-mrd-prose" style={{ color: "var(--mrd-mute)", marginBottom: 26 }}>{p.tagline}</p>
+        <p className="text-mrd-prose" style={{ color: "var(--mrd-mute)", marginBottom: 26 }}>
+          {p.tagline}
+        </p>
 
         {/* 1 — plan, switchable here so a buyer who changed their mind does not go back */}
         <section style={{ marginBottom: 22 }}>
@@ -194,8 +196,29 @@ function CheckoutPage() {
 
         {/* 3 — who this is for */}
         <section style={{ marginBottom: 22 }}>
-          <span style={label}>YOUR NAME</span>
+          {/*
+           * REAL LABELS, BOUND BY `htmlFor`. These were `<span style={label}>`:
+           * visible, and associated with nothing. A screen reader announced
+           * "edit text" twice, on the page that takes a name and an email
+           * BEFORE PAYMENT, where a person cannot skip a field. A placeholder
+           * is not a name -- it is a hint that disappears the moment you type.
+           *
+           * The seats control two sections up already does this correctly with
+           * `aria-label="Add a seat"`, which is the tell that this was an
+           * oversight rather than a house style. Found by S4, the only
+           * accessibility defect in 32 surfaces swept, and R-19 puts
+           * accessibility outside what may be deferred.
+           *
+           * `<label htmlFor>` rather than `aria-label` deliberately: it names
+           * the field for a screen reader AND makes the visible text a click
+           * target that focuses the input, which is a gain for everybody rather
+           * than a repair for one group.
+           */}
+          <label htmlFor="checkout-name" style={label}>
+            YOUR NAME
+          </label>
           <input
+            id="checkout-name"
             className="text-mrd-prose"
             style={{ ...field, marginBottom: 14 }}
             value={name}
@@ -203,11 +226,14 @@ function CheckoutPage() {
             placeholder="Alex Rivera"
             autoComplete="name"
           />
-          <span style={label}>WORK EMAIL</span>
+          <label htmlFor="checkout-email" style={label}>
+            WORK EMAIL
+          </label>
           <input
+            id="checkout-email"
             className="text-mrd-prose"
-            style={field}
             type="email"
+            style={field}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@company.com"
@@ -286,12 +312,7 @@ function CheckoutPage() {
 
         {/* 6 — pay. Honest when there is nothing to pay with. */}
         {payable ? (
-          <Action
-            type="button"
-            variant="primary"
-            className="w-full"
-            disabled={!canContinue}
-          >
+          <Action type="button" variant="primary" className="w-full" disabled={!canContinue}>
             Continue to payment · ${total}/mo
           </Action>
         ) : (

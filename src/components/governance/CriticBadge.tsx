@@ -86,7 +86,11 @@ export function CriticBadge({ review, target, invalidateKey }: Props) {
         >
           {run.isPending ? "Reading it" : "Ask the Critic"}
         </Action>
-        {run.isError ? <ReadFailedLine>{(run.error as Error).message}</ReadFailedLine> : null}
+        {run.isError ? (
+          <ReadFailedLine error={run.error}>
+            The review did not run. Nothing about this work changed.
+          </ReadFailedLine>
+        ) : null}
       </>
     );
   }
@@ -203,7 +207,11 @@ export function CriticBadge({ review, target, invalidateKey }: Props) {
               {run.isPending ? "Reading it again" : "Have it read this again"}
             </Action>
           </Actions>
-          {run.isError ? <ReadFailedLine>{(run.error as Error).message}</ReadFailedLine> : null}
+          {run.isError ? (
+            <ReadFailedLine error={run.error}>
+              The review did not run. Nothing about this work changed.
+            </ReadFailedLine>
+          ) : null}
         </div>
       ) : null}
     </>

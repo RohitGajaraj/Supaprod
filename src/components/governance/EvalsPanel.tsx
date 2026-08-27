@@ -132,7 +132,7 @@ export function EvalsPanel({ onOpenSuite }: { onOpenSuite?: (id: string) => void
   // find out" are different facts and you act differently on each.
   if (suitesQ.isError) {
     return (
-      <ReadFailed onRetry={() => void suitesQ.refetch()}>
+      <ReadFailed error={suitesQ.error} onRetry={() => void suitesQ.refetch()}>
         The suites did not load, so nothing below would be the real coverage.
       </ReadFailed>
     );
@@ -164,7 +164,7 @@ export function EvalsPanel({ onOpenSuite }: { onOpenSuite?: (id: string) => void
           from a read that SUCCEEDED is allowed to say nothing. */}
       {coverageQ.isError ? (
         <Region title="What has a guard on it">
-          <ReadFailedLine onRetry={() => void coverageQ.refetch()}>
+          <ReadFailedLine error={coverageQ.error} onRetry={() => void coverageQ.refetch()}>
             The coverage read did not land. The silence here does not mean every surface is guarded,
             it means we could not find out which ones are.
           </ReadFailedLine>
@@ -387,7 +387,11 @@ function CreateSuiteForm({
         />
       </Field>
 
-      {m.isError ? <ReadFailedLine>{(m.error as Error).message}</ReadFailedLine> : null}
+      {m.isError ? (
+        <ReadFailedLine error={m.error}>
+          The check was not created. The suites below are as they were.
+        </ReadFailedLine>
+      ) : null}
 
       <Actions trailing={<Action onClick={onClose}>Leave it</Action>}>
         <Action

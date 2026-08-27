@@ -48,6 +48,7 @@
 //     of it are the workspace's own. Marking which is which is the difference
 //     between a warning a person can weigh and one they must simply trust.
 import { useState } from "react";
+import { humanWriteError } from "@/lib/roles.functions";
 import { Row } from "@/components/meridian/rows";
 import {
   Num,
@@ -143,7 +144,7 @@ export function ContradictionAuditSection({
       ) : audit.isError ? (
         <ReadFailedLine onRetry={() => audit.mutate()}>
           The audit did not run, so this is not a claim that nothing disagrees.{" "}
-          {(audit.error as Error)?.message ?? ""}
+          {humanWriteError(audit.error, "")}
         </ReadFailedLine>
       ) : !report ? (
         /* NOTHING IS STANDING, AND THE OLD COPY SAID IT WAS.

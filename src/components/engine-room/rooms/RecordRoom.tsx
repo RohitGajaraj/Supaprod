@@ -10,12 +10,15 @@ import {
   VerdictSentence,
   PanelPending,
   type RoomBodyProps,
-} from "../RoomDetail";
+} from "../room-parts";
 import { VerifyCockpit } from "./VerifyCockpit";
 
 // LOOM W2 fold: /govern's approvals and support tabs live in this room now.
 // Approvals are ANSWERED on Today (the one queue); this room keeps the
 // reviewable record - a read-only-feeling home is legal per the fold spec.
+const IncidentsPanel = React.lazy(() =>
+  import("@/components/governance/IncidentsPanel").then((m) => ({ default: m.IncidentsPanel })),
+);
 const ApprovalsPanel = React.lazy(() =>
   import("@/components/governance/ApprovalsPanel").then((m) => ({ default: m.ApprovalsPanel })),
 );
@@ -110,6 +113,16 @@ export function RecordRoom({ view }: RoomBodyProps) {
   if (view === "verify") return <VerifyCockpit view={view} />;
   if (view === "traces") return <TracesView />;
   if (view === "approvals") return <ApprovalsView />;
+  /* A log of what already happened, which is this room's subject. Safety still
+     answers ?view=incidents until its own phase of the A-006 fold completes;
+     this is the same panel, mounted, not a copy. */
+  if (view === "incidents") {
+    return (
+      <React.Suspense fallback={<PanelPending />}>
+        <IncidentsPanel />
+      </React.Suspense>
+    );
+  }
   if (view === "support") {
     return (
       <React.Suspense fallback={<PanelPending />}>

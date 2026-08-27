@@ -45,11 +45,16 @@ describe("kindTracePrefix", () => {
 });
 
 describe("kindVisual", () => {
+  /* "Signal" until 2026-08-27. §12 bans the word outright and `artifact-words.ts`
+     renamed the display word to "finding"; the graph kept its own map and drifted.
+     The TRACE PREFIX is still SIG, deliberately, because it is minted off the
+     stored `artifact_kind` rather than off the word a person reads -- asserted
+     above and explained at the map. */
   test("resolves a registered kind to its named token, fallback, and label", () => {
     expect(kindVisual("signal")).toEqual({
       token: "--blossom",
       fallback: "#e5bddf",
-      label: "Signal",
+      label: "Finding",
     });
   });
 

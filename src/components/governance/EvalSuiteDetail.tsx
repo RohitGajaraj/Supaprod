@@ -187,9 +187,8 @@ export function EvalSuiteDetail({ id }: { id: string }) {
     return (
       <>
         <PageHeading title="This suite did not load." />
-        <ReadFailed onRetry={() => void suiteQ.refetch()}>
-          {(suiteQ.error as Error).message}. Nothing below would be its real state, so nothing is
-          shown.
+        <ReadFailed error={suiteQ.error} onRetry={() => void suiteQ.refetch()}>
+          Nothing below would be its real state, so nothing is shown.
         </ReadFailed>
         <Region>{backButton}</Region>
       </>
@@ -304,7 +303,11 @@ export function EvalSuiteDetail({ id }: { id: string }) {
           )}
         </Line>
 
-        {run.isError ? <ReadFailedLine>{(run.error as Error).message}</ReadFailedLine> : null}
+        {run.isError ? (
+          <ReadFailedLine error={run.error}>
+            The check did not run. The last result above is still the most recent one.
+          </ReadFailedLine>
+        ) : null}
 
         <Actions>
           <Action
@@ -483,7 +486,7 @@ function FailingCases({ runId }: { runId: string | null }) {
   if (q.isError) {
     return (
       <Region>
-        <ReadFailedLine onRetry={() => void q.refetch()}>
+        <ReadFailedLine error={q.error} onRetry={() => void q.refetch()}>
           This run did not load, so the failures below would not be its real ones.
         </ReadFailedLine>
       </Region>
@@ -650,7 +653,9 @@ function CaseList({
           </Field>
 
           {create.isError ? (
-            <ReadFailedLine>{(create.error as Error).message}</ReadFailedLine>
+            <ReadFailedLine error={create.error}>
+              The case was not added. This suite still tests what it did before.
+            </ReadFailedLine>
           ) : null}
 
           <Actions trailing={<Action onClick={() => setFormOpen(false)}>Leave it</Action>}>
@@ -750,7 +755,11 @@ function CaseList({
           })
         )}
 
-        {failure ? <ReadFailedLine>{(failure as Error).message}</ReadFailedLine> : null}
+        {failure ? (
+          <ReadFailedLine error={failure}>
+            That case was not saved. It still holds what it held before.
+          </ReadFailedLine>
+        ) : null}
       </Region>
     </>
   );
@@ -847,7 +856,9 @@ function Config({
       </Line>
 
       {(enabled.error ?? remove.error) ? (
-        <ReadFailedLine>{((enabled.error ?? remove.error) as Error).message}</ReadFailedLine>
+        <ReadFailedLine error={enabled.error ?? remove.error}>
+          The suite is unchanged. It is still switched the way it was and still has every case.
+        </ReadFailedLine>
       ) : null}
 
       <Actions>

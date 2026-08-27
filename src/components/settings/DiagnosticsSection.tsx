@@ -110,8 +110,8 @@ export function DiagnosticsSection() {
 
       <Region title="AI calls">
         {sloQ.isError ? (
-          <ReadFailedLine onRetry={() => void sloQ.refetch()}>
-            The call health did not load. {(sloQ.error as Error)?.message ?? "The read failed."}
+          <ReadFailedLine error={sloQ.error} onRetry={() => void sloQ.refetch()}>
+            The call health did not load.
           </ReadFailedLine>
         ) : sloQ.isLoading ? (
           <Reading>Reading call health.</Reading>
@@ -167,8 +167,8 @@ export function DiagnosticsSection() {
 
       <Region title="Runs">
         {runawayQ.isError ? (
-          <ReadFailedLine onRetry={() => void runawayQ.refetch()}>
-            The run scan did not load. {(runawayQ.error as Error)?.message ?? "The read failed."}
+          <ReadFailedLine error={runawayQ.error} onRetry={() => void runawayQ.refetch()}>
+            The run scan did not load.
           </ReadFailedLine>
         ) : runawayQ.isLoading ? (
           <Reading>Scanning runs.</Reading>

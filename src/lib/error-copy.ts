@@ -164,6 +164,24 @@ export function messageForPerson(err: unknown): string | null {
   if (/[0-9a-f]{8}-[0-9a-f]{4}-/i.test(text)) return null;
   if (/\b[a-z]+_[a-z_]+\b/.test(text)) return null;
   if (/\b[a-z]+[A-Z][a-zA-Z]*\(/.test(text)) return null;
+  /*
+   * AND SCREAMING_SNAKE, which is how a CONFIGURATION error names itself.
+   *
+   * The lowercase snake rule above catches a database column. It does not catch
+   * an environment variable, and that gap put this on the PUBLIC /proof page,
+   * which is the page about whether we can be trusted:
+   *
+   *   "Missing Supabase environment variable(s): SUPABASE_SERVICE_ROLE_KEY.
+   *    Connect Supabase in Lovable Cloud."
+   *
+   * It defeats every other test here: four-plus words, no uuid, no lowercase
+   * snake, no call fragment, and it ends in a full stop, because a config error
+   * is WRITTEN as a sentence -- for an operator. It names one of our secrets by
+   * variable and then tells a stranger to go and fix our vendor console.
+   *
+   * A token in this shape is never addressed to the reader of a product page.
+   */
+  if (/\b[A-Z][A-Z0-9]*_[A-Z0-9_]+\b/.test(text)) return null;
 
   // Written prose ends like prose. A truncated dump usually does not.
   if (!/[.!?]$/.test(text)) return null;

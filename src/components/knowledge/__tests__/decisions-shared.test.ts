@@ -7,6 +7,7 @@ import {
   displayWho,
   forecastChip,
   forecastCoverage,
+  forecastDue,
   forecastTitle,
   type DecisionRow,
 } from "../decisions-shared";
@@ -455,5 +456,53 @@ describe("forecastCoverage", () => {
   test("an empty list makes no claim at all", () => {
     const c = forecastCoverage([]);
     expect(c).toEqual({ withForecast: 0, total: 0, tail: null });
+  });
+});
+
+/**
+ * forecastDue - the bets whose date passed and whose answer never arrived.
+ *
+ * Live database, 2026-08-27: 369 decisions, 176 carrying a forecast, 91 graded,
+ * and 15 past their horizon with no resolution. The product's whole claim is
+ * the forecast captured at decision time, and nothing a person browsing their
+ * own calls could see said that fifteen of them had gone unanswered.
+ */
+describe("forecastDue", () => {
+  const now = Date.parse("2026-08-27T12:00:00Z");
+  const day = (n: number) => new Date(now + n * 86_400_000).toISOString().slice(0, 10);
+
+  test("counts a passed horizon with no resolution, and nothing else", () => {
+    const r = forecastDue(
+      [
+        { forecast_horizon_date: day(-3), forecast_resolution: null },
+        { forecast_horizon_date: day(-30), forecast_resolution: null },
+        // Graded: answered, not late.
+        { forecast_horizon_date: day(-9), forecast_resolution: "miss" },
+        // Still running.
+        { forecast_horizon_date: day(5), forecast_resolution: null },
+      ],
+      now,
+    );
+    expect(r.due).toBe(2);
+    expect(r.said).toBe("2 are past the dates they set and have not been graded.");
+  });
+
+  /* A row with no horizon is not late, it is ungradeable, and forecastCoverage
+     already says so. Counting it here would blame a team for missing a date
+     nobody set. */
+  test("a call with no date and a call with a broken one are never late", () => {
+    expect(forecastDue([{ forecast_horizon_date: null }, {}], now).due).toBe(0);
+    expect(forecastDue([{ forecast_horizon_date: "sometime" }], now).due).toBe(0);
+  });
+
+  test("says nothing when there is nothing to say", () => {
+    expect(forecastDue([], now).said).toBeNull();
+    expect(forecastDue([{ forecast_horizon_date: day(2) }], now).said).toBeNull();
+  });
+
+  test("reads as English about one", () => {
+    expect(forecastDue([{ forecast_horizon_date: day(-1) }], now).said).toBe(
+      "One is past the date it set and has not been graded.",
+    );
   });
 });

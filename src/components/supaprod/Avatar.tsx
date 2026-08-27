@@ -38,7 +38,7 @@ export function defaultAvatarVariant(seed: string): number {
 /** The CSS background for a given orb index (used by the avatar + the picker). */
 export function orbBackground(index: number): string {
   const [a, b] = PAIRS[((index % AVATAR_VARIANTS) + AVATAR_VARIANTS) % AVATAR_VARIANTS];
-  return `radial-gradient(circle at 30% 24%, color-mix(in oklab, #fff 16%, transparent) 0%, transparent 48%), linear-gradient(140deg, color-mix(in oklab, var(${a}) 42%, var(--card)) 0%, color-mix(in oklab, var(${b}) 40%, var(--card)) 100%)`;
+  return `radial-gradient(circle at 30% 24%, color-mix(in oklab, #fff 16%, transparent) 0%, transparent 48%), linear-gradient(140deg, color-mix(in oklab, var(${a}) 42%, var(--mrd-lift)) 0%, color-mix(in oklab, var(${b}) 40%, var(--mrd-lift)) 100%)`;
 }
 
 export function Avatar({

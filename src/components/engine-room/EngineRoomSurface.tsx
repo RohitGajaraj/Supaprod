@@ -54,10 +54,11 @@ function roomStatus(
   return { key, loading: false, error: null, glance: build(), retry };
 }
 
-/** Shared glance data source: the engine-room route and RoomDetail (a single
- * room's header) both need the same four verdicts, so the read
- * queries live in one hook rather than being wired twice. TanStack Query
- * dedupes by key regardless of which mounts first.
+/** Shared glance data source: the engine-room route and the room bodies it
+ * mounts need the same four verdicts, so the reads live in one hook rather
+ * than being wired twice. TanStack Query dedupes by key regardless of which
+ * mounts first. (This named RoomDetail as the second consumer; that was a
+ * chassis nothing rendered and it is deleted.)
  *
  * Honesty (LOOM §9b): every room reports its own loading/error/ready state;
  * a failed read renders as an error, never as a healthy verdict. */

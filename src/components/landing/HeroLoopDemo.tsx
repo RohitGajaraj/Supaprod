@@ -130,7 +130,7 @@ export function HeroLoopDemo() {
   const completedCount = stations.filter((s) => s.state === "complete").length;
 
   return (
-    <div className="mt-12 rounded-lg border border-zinc-800 bg-zinc-950 p-8">
+    <div className="mt-12 rounded-lg border border-mrd-line bg-mrd-sheet p-8">
       {/* Header */}
       <div className="mb-8">
         {/*
@@ -180,16 +180,16 @@ export function HeroLoopDemo() {
          * were never updated with it. That is why absence from :203 proves
          * nothing, and it is S0's to reconcile, not mine.)
          */}
-        <p className="text-sm text-zinc-400 mb-2">HOW A RUN MOVES</p>
+        <p className="text-sm text-mrd-body mb-2">HOW A RUN MOVES</p>
         <p className="text-lg font-medium text-white mb-1">One sentence in. Seven stations.</p>
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-mrd-mute">
           Agents do the work. You gate what matters, and every step is on the record.
         </p>
       </div>
 
       {/* Input */}
       <div className="mb-8">
-        <div className="inline-block bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-300">
+        <div className="inline-block bg-mrd-lift border border-mrd-line rounded px-3 py-2 text-sm text-mrd-ink">
           💬 &quot;Improve onboarding flow based on user feedback&quot;
         </div>
       </div>
@@ -198,17 +198,14 @@ export function HeroLoopDemo() {
       <div className="mb-8">
         <div className="flex gap-1 mb-4">
           {stations.map((station, idx) => (
-            <div
-              key={station.name}
-              className="flex-1 h-2 rounded-full bg-zinc-800 overflow-hidden"
-            >
+            <div key={station.name} className="flex-1 h-2 rounded-full bg-mrd-line overflow-hidden">
               <div
                 className={`h-full transition-all duration-200 ${
                   station.state === "complete"
-                    ? "bg-emerald-500"
+                    ? "bg-mrd-pass"
                     : station.state === "working"
-                      ? "bg-blue-500"
-                      : "bg-zinc-700"
+                      ? "bg-mrd-agent"
+                      : "bg-mrd-faint"
                 }`}
                 style={{
                   width: `${station.progress}%`,
@@ -219,7 +216,7 @@ export function HeroLoopDemo() {
         </div>
 
         {/* Station Names */}
-        <div className="flex gap-1 text-xs text-zinc-500">
+        <div className="flex gap-1 text-xs text-mrd-mute">
           {stations.map((station) => (
             <div key={station.name} className="flex-1 text-center truncate">
               {station.displayName}
@@ -230,67 +227,72 @@ export function HeroLoopDemo() {
 
       {/* Status Line */}
       <div className="mb-8 h-6">
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-mrd-body">
           {completedCount === STATIONS.length ? (
-            <span className="text-emerald-400">✓ Complete in ~35 seconds • Restarting…</span>
+            <span className="text-mrd-pass">✓ Complete in ~35 seconds • Restarting…</span>
           ) : firstActiveIndex >= 0 ? (
-            <span className="text-blue-400">
+            <span className="text-mrd-agent">
               ⟳ At {stations[firstActiveIndex].displayName}…{" "}
-              <span className="text-zinc-500">
+              <span className="text-mrd-mute">
                 ({completedCount}/{STATIONS.length} stations done)
               </span>
             </span>
           ) : (
-            <span className="text-zinc-500">Ready to start…</span>
+            <span className="text-mrd-mute">Ready to start…</span>
           )}
         </p>
       </div>
 
       {/* Output Preview */}
-      <div className="rounded bg-zinc-900 border border-zinc-700 p-4">
-        <p className="text-xs text-zinc-500 mb-2">OUTPUT</p>
+      <div className="rounded bg-mrd-lift border border-mrd-line p-4">
+        <p className="text-xs text-mrd-mute mb-2">OUTPUT</p>
         <div className="space-y-2">
           {completedCount > 0 && (
-            <div className="flex items-center gap-2 text-sm text-zinc-300">
-              <span className="w-4 h-4 rounded-full bg-emerald-500/30 border border-emerald-500"></span>
+            <div className="flex items-center gap-2 text-sm text-mrd-ink">
+              <span className="w-4 h-4 rounded-full bg-mrd-pass/30 border border-mrd-pass"></span>
               <span>Spec drafted & reviewed</span>
             </div>
           )}
           {completedCount > 1 && (
-            <div className="flex items-center gap-2 text-sm text-zinc-300">
-              <span className="w-4 h-4 rounded-full bg-emerald-500/30 border border-emerald-500"></span>
+            <div className="flex items-center gap-2 text-sm text-mrd-ink">
+              <span className="w-4 h-4 rounded-full bg-mrd-pass/30 border border-mrd-pass"></span>
               <span>Design prototype created</span>
             </div>
           )}
           {completedCount > 3 && (
-            <div className="flex items-center gap-2 text-sm text-zinc-300">
-              <span className="w-4 h-4 rounded-full bg-emerald-500/30 border border-emerald-500"></span>
+            <div className="flex items-center gap-2 text-sm text-mrd-ink">
+              <span className="w-4 h-4 rounded-full bg-mrd-pass/30 border border-mrd-pass"></span>
               <span>Code changes staged</span>
             </div>
           )}
           {completedCount > 5 && (
-            <div className="flex items-center gap-2 text-sm text-zinc-300">
-              <span className="w-4 h-4 rounded-full bg-emerald-500/30 border border-emerald-500"></span>
+            <div className="flex items-center gap-2 text-sm text-mrd-ink">
+              <span className="w-4 h-4 rounded-full bg-mrd-pass/30 border border-mrd-pass"></span>
               <span>Deployed to production</span>
             </div>
           )}
           {completedCount === STATIONS.length && (
-            <div className="flex items-center gap-2 text-sm text-emerald-400">
-              <span className="w-4 h-4 rounded-full bg-emerald-500"></span>
+            <div className="flex items-center gap-2 text-sm text-mrd-pass">
+              <span className="w-4 h-4 rounded-full bg-mrd-pass"></span>
               <span>→ Outcome being measured</span>
             </div>
           )}
           {completedCount === 0 && (
-            <div className="text-sm text-zinc-500 py-2">Starting agent work…</div>
+            <div className="text-sm text-mrd-mute py-2">Starting agent work…</div>
           )}
         </div>
       </div>
 
       {/* Key Message */}
-      <div className="mt-6 pt-4 border-t border-zinc-800">
-        <p className="text-xs text-zinc-500">
-          Every station is an agent making real decisions, creating real outputs, handed off by evidence, not by guess.
-          You set the boundaries once. The loop handles the rest.
+      <div className="mt-6 pt-4 border-t border-mrd-line">
+        {/* Bounded to the prose measure. Unbounded, this set 122 CHARACTERS on
+            a single line at 1280 wide -- nearly double `--mrd-measure`'s 68ch
+            -- on the first screen a stranger reads. Measured by S4 as rendered
+            line boxes rather than container width, which is the distinction
+            that makes the number real. */}
+        <p className="max-w-[var(--mrd-measure)] text-xs text-mrd-mute">
+          Every station is an agent making real decisions, creating real outputs, handed off by
+          evidence, not by guess. You set the boundaries once. The loop handles the rest.
         </p>
       </div>
     </div>

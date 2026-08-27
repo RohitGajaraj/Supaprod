@@ -181,7 +181,7 @@ export function TestStationPanel({ missionId }: { missionId: string }) {
                 }
                 disabled={toggleUat.isPending}
                 aria-pressed={item.checked}
-                className="loom-press flex w-full items-center gap-3 text-left transition-colors hover:[background-color:var(--hover)]"
+                className="loom-press flex w-full items-center gap-3 text-left transition-colors hover:bg-mrd-hover"
                 style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
               >
                 <StatusDot

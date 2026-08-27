@@ -40,6 +40,7 @@
  * de-emphasis that keeps a reversed assertion visible as history.
  */
 import { useState } from "react";
+import { humanWriteError } from "@/lib/roles.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { Row } from "@/components/meridian/rows";
 import {
@@ -187,9 +188,9 @@ export function GraphNodeStory({
       {story.isLoading ? (
         <Reading>Tracing what it connects to.</Reading>
       ) : story.isError ? (
-        <ReadFailed onRetry={() => void story.refetch()}>
+        <ReadFailed error={story.error} onRetry={() => void story.refetch()}>
           This node did not trace, so this is not a claim that nothing connects to it.{" "}
-          {(story.error as Error)?.message ?? ""}
+          {humanWriteError(story.error, "")}
         </ReadFailed>
       ) : (
         <>
@@ -335,9 +336,9 @@ function StorySection({
         <NothingYet>{emptyText}</NothingYet>
       ) : (
         <>
-          {(showAll ? rows : rows.slice(0, VISIBLE_ROWS)).map(
-            (r) => <Row key={r.id} tight lead={r.peer_title || "Untitled"} sub={r.relation} />,
-          )}
+          {(showAll ? rows : rows.slice(0, VISIBLE_ROWS)).map((r) => (
+            <Row key={r.id} tight lead={r.peer_title || "Untitled"} sub={r.relation} />
+          ))}
 
           {rows.length > VISIBLE_ROWS ? (
             <Actions>

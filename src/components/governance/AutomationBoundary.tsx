@@ -141,7 +141,7 @@ export function AutomationBoundary({
       {q.isLoading ? (
         <Reading>Reading what runs without asking.</Reading>
       ) : q.isError || !q.data ? (
-        <ReadFailed onRetry={() => void q.refetch()}>
+        <ReadFailed error={q.error} onRetry={() => void q.refetch()}>
           {humanWriteError(q.error, "The switches did not come back.")}
         </ReadFailed>
       ) : (

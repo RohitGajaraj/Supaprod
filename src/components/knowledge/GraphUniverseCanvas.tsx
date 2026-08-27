@@ -108,7 +108,10 @@ function oklchToRgb(css: string): string {
   const b = gam(-0.0041960863 * L3 - 0.7034186147 * M3 + 1.707614701 * S3);
   // Hex is the one colour spelling every parser here accepts, and it is built
   // from the converted channels rather than frozen in source.
-  const hx = (x: number) => Math.round(x * 255).toString(16).padStart(2, "0");
+  const hx = (x: number) =>
+    Math.round(x * 255)
+      .toString(16)
+      .padStart(2, "0");
   return `#${hx(r)}${hx(g)}${hx(b)}`;
 }
 
@@ -1201,10 +1204,7 @@ export function GraphUniverseCanvas({
               <span
                 style={{
                   fontSize: "var(--mrd-t-base)",
-                  color:
-                    hoverNode.outcome === "missed"
-                      ? "var(--mrd-fail)"
-                      : "var(--mrd-pass)",
+                  color: hoverNode.outcome === "missed" ? "var(--mrd-fail)" : "var(--mrd-pass)",
                 }}
               >
                 {outcomeLabel(hoverNode.outcome)}

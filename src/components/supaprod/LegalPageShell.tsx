@@ -180,7 +180,28 @@ export function LegalSection({ title, children }: { title: string; children: Rea
   return (
     <section style={legalSectionStyle}>
       <h2 style={{ fontWeight: 600, color: C.text, margin: "0 0 8px" }}>{title}</h2>
-      <div style={{ color: C.muted, lineHeight: 1.7 }}>{children}</div>
+      {/*
+       * THE PROSE CARRIES THE MEASURE, not the page column.
+       *
+       * Five pages render through this shell -- privacy, security, faq, terms,
+       * updates -- and S4 measured six paragraphs on /faq at 81 to 83ch and six
+       * on /security at 80 to 82ch. Consistent enough to be a container rather
+       * than lines that got away, and it was: the shell's column is
+       * `maxWidth: 720`, which is about 83ch at this type.
+       *
+       * WHY HERE AND NOT ON THAT COLUMN. `--mrd-measure` is expressed in `ch`,
+       * and `ch` resolves in the font of the element the property is WRITTEN
+       * ON -- the trap that made today.css declare 72 and render 79. The shell
+       * bounds three columns at 720: this prose, the header nav and the footer.
+       * Putting a ch measure on all three would give three different widths and
+       * pull the chrome out of alignment with itself; putting it on one would
+       * make the other two disagree. Bounding the PROSE leaves the page frame
+       * intact and narrows only what is read at length, which is what the token
+       * is for -- meridian.css says "prose only, never a table or a row".
+       */}
+      <div style={{ color: C.muted, lineHeight: 1.7, maxWidth: "var(--mrd-measure)" }}>
+        {children}
+      </div>
     </section>
   );
 }

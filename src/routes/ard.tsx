@@ -33,7 +33,17 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section style={{ marginTop: 28 }}>
       <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{title}</h2>
-      <div className="text-mrd-prose" style={{ color: "var(--mrd-mute)", lineHeight: 1.6 }}>
+      {/* The prose carries the measure; a code block opts out below. This page
+          bounds its column at 760px, about 87ch at this type -- the widest
+          public measure in the product and the page an external developer
+          reads to implement against us. Bounding the COLUMN would have
+          narrowed the example document with it, which is the one thing here
+          that wants the width: meridian.css says the token is "prose only,
+          never a table or a row". */}
+      <div
+        className="text-mrd-prose"
+        style={{ color: "var(--mrd-mute)", lineHeight: 1.6, maxWidth: "var(--mrd-measure)" }}
+      >
         {children}
       </div>
     </section>
@@ -140,7 +150,12 @@ function ArdPage() {
         >
           The Agent Requirements Document (ARD)
         </h1>
-        <p className="text-mrd-prose" style={{ color: "var(--mrd-mute)", lineHeight: 1.6 }}>
+        {/* The lead sits outside `Section`, so it needs the measure of its own.
+            It is the first paragraph an external developer reads. */}
+        <p
+          className="text-mrd-prose"
+          style={{ color: "var(--mrd-mute)", lineHeight: 1.6, maxWidth: "var(--mrd-measure)" }}
+        >
           Every spec inside Supaprod carries an Outcome Contract: a typed, structured statement of
           what it is trying to achieve, how success is proven, and what is explicitly out of scope.
           The ARD is that same contract published as an open standard, so a coding agent Supaprod
@@ -206,6 +221,10 @@ function ArdPage() {
           <pre
             className="text-mrd-small"
             style={{
+              /* Opting out of the prose measure: a JSON document is read by
+                 scanning structure, not by line, and wrapping it at 68ch would
+                 break the shape that makes it legible. */
+              maxWidth: "none",
               background: "rgba(0,0,0,0.04)",
               border: "1px solid var(--soft-stone)",
               borderRadius: 8,

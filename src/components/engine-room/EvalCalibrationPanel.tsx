@@ -29,7 +29,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 import { listEvalSuites, getEvalCoverage } from "@/lib/evals.functions";
 import { EVAL_COVERAGE_TARGETS } from "@/lib/evals/coverage";
-import { ErrorRetry, PanelPending } from "./RoomDetail";
+import { ErrorRetry, PanelPending } from "./room-parts";
 import { RecordStatus, type RecordTone } from "@/components/meridian/RecordsTable";
 
 // Surface labels (reused from QualityRoom for consistency)

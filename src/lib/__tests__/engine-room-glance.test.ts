@@ -228,6 +228,10 @@ describe("Engine Room naming model (plain outcome on top, technical trace beneat
       "traces",
       "approvals",
       "support",
+      // Incidents joined the record so the Safety fold can remove a door
+      // without removing a capability (A-006). Safety still answers its own
+      // ?view=incidents until that phase completes.
+      "incidents",
     ]);
   });
 

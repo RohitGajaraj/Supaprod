@@ -92,7 +92,9 @@ function ConnectorChips({ showWrite = false }: { showWrite?: boolean }) {
           </svg>
         </span>
       ))}
-      <span className="text-mrd-nano" style={{ color: "var(--mrd-mute)", fontWeight: 500 }}>+ more</span>
+      <span className="text-mrd-nano" style={{ color: "var(--mrd-mute)", fontWeight: 500 }}>
+        + more
+      </span>
       <span
         style={{
           fontSize: 9,
@@ -477,7 +479,9 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             <span className="font-display text-mrd-h1" style={{ fontWeight: 480, lineHeight: 1 }}>
               $0
             </span>
-            <span className="text-mrd-small" style={{ color: "var(--mrd-mute)" }}>/month</span>
+            <span className="text-mrd-small" style={{ color: "var(--mrd-mute)" }}>
+              /month
+            </span>
           </div>
           <p className="text-mrd-tiny" style={{ color: "var(--mrd-mute)", margin: "5px 0 0" }}>
             No credit card needed
@@ -490,7 +494,9 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             <span className="font-display text-mrd-h1" style={{ fontWeight: 480, lineHeight: 1 }}>
               ${displayPrice}
             </span>
-            <span className="text-mrd-base" style={{ color: "var(--mrd-mute)" }}>/mo</span>
+            <span className="text-mrd-base" style={{ color: "var(--mrd-mute)" }}>
+              /mo
+            </span>
           </div>
           <div
             style={{
@@ -722,9 +728,7 @@ function PricingPage() {
             }}
           >
             <SupaprodMark />
-            <span className="font-display text-mrd-prose">
-              Supaprod
-            </span>
+            <span className="font-display text-mrd-prose">Supaprod</span>
           </Link>
           <a
             href="/login"
@@ -825,7 +829,10 @@ function PricingPage() {
                 textAlign: "center",
                 marginTop: 28,
                 lineHeight: 1.6,
-                maxWidth: 640,
+                /* Was 640px, which is roughly 91ch at this size and measured at
+                   86ch over four lines. `--mrd-measure` is the token that
+                   tracks the type instead of guessing in pixels. */
+                maxWidth: "var(--mrd-measure)",
                 marginLeft: "auto",
                 marginRight: "auto",
               }}
@@ -845,6 +852,11 @@ function PricingPage() {
                 textAlign: "center",
                 marginTop: 12,
                 lineHeight: 1.5,
+                /* This carried no bound at all and set 165 CHARACTERS across
+                   two lines, the longest measure on any public page. */
+                maxWidth: "var(--mrd-measure)",
+                marginLeft: "auto",
+                marginRight: "auto",
               }}
             >
               Every plan starts free once your invite code is in. No credit card needed until you

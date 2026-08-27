@@ -71,6 +71,7 @@ import {
 import { humanWriteError } from "@/lib/roles.functions";
 import { useGovernedWrite } from "@/hooks/use-workspace-role";
 import { GovernedWriteNote } from "./GovernedWriteNote";
+import { guardrailSilence } from "./guardrail-silence";
 import { relTime } from "@/components/product/format";
 import { Receipt } from "@/components/meridian/Receipt";
 
@@ -192,7 +193,22 @@ function emptyRule(): RuleForm {
 /** Shown when a guardrail write failed for a reason the database wrote. */
 const GUARDRAIL_WRITE_FAILED = "That rule did not save. Nothing on this surface changed.";
 
-export function GuardrailsPanel() {
+export function GuardrailsPanel({
+  /**
+   * DRAW THE RULES AND NOT WHAT THEY CAUGHT.
+   *
+   * "What they caught" is a log of every time a rule fired. It is real and it
+   * matters, and it is not an answer to "what may these agents say", which is
+   * the question the Settings pane mounting this panel is titled for. Same line
+   * drawn for ControlsPanel's spend log (U-038), BudgetsPanel's alert history
+   * (U-062) and the Safety room's incidents (U-076): the controls move onto the
+   * one screen, the record of what already happened stays with the record.
+   *
+   * The Engine Room passes nothing and gets the whole panel, so the flag
+   * decides where a region is DRAWN and never whether it exists.
+   */
+  controlsOnly = false,
+}: { controlsOnly?: boolean } = {}) {
   const confirm = useConfirm();
   // A guardrail is the `guardrail_rules` governed surface: owner or admin, the
   // same pair can_manage_workspace() enforces on every write policy below it.
@@ -292,7 +308,7 @@ export function GuardrailsPanel() {
 
   if (overview.isError) {
     return (
-      <ReadFailed onRetry={() => void overview.refetch()}>
+      <ReadFailed error={overview.error} onRetry={() => void overview.refetch()}>
         The rules did not load, so nothing below would be the real boundary.
       </ReadFailed>
     );
@@ -321,6 +337,10 @@ export function GuardrailsPanel() {
    */
   const decidedAlone = overview.data?.decidedAlone ?? [];
   const isFloor = makeIsFloor(floor);
+
+  /* Whether this workspace's screen has gone quiet, said above the list. Read
+     once here so the region and any future reader cannot disagree. */
+  const silence = guardrailSilence(hits, Date.now());
 
   // Last fired per rule, from the real hits log. Hits arrive newest first, so
   // the first one seen for a name is the latest.
@@ -526,41 +546,67 @@ export function GuardrailsPanel() {
         ) : null}
       </Region>
 
-      <Region
-        title="What they caught"
-        sub="Every time a rule fired, and on what. The match is stored, the rest of the call is not."
-      >
-        {hits.length === 0 ? (
-          <NothingYet>
-            Nothing has been caught. Either nothing has tripped a rule, or no calls have run through
-            them yet.
-          </NothingYet>
-        ) : (
-          hits.map((h) => (
-            <Row
-              key={h.id}
-              tight
-              lead={
-                <>
-                  {h.rule_name} <Value tone={ACTION_TONE[h.action] ?? "hold"}>{h.action}</Value>
-                </>
-              }
-              sub={
-                <>
-                  {h.side === "output" ? "On the way back" : "On the way out"}
-                  {h.matched ? (
-                    <>
-                      {" · "}
-                      <Num>{h.matched}</Num>
-                    </>
-                  ) : null}
-                </>
-              }
-              time={relTime(h.created_at)}
-            />
-          ))
-        )}
-      </Region>
+      {!controlsOnly ? (
+        <Region
+          title="What they caught"
+          sub={
+            /*
+             * THE GAP, WHICH THE LIST ITSELF CANNOT SHOW.
+             *
+             * A page of July rows and a working screen look identical here, and
+             * on the live database today they are not the same thing:
+             * `guardrail_hits` stops dead on 2026-07-25 while `agent_runs`
+             * carries 2,570 runs in the 30 days since. `silence` speaks only
+             * when the newest hit is a week old or older, and stays quiet when
+             * the first row of the list already answers the question -- a line
+             * saying "last fired 2 hours ago" above a row stamped 2h is how a
+             * page trains people to skim past the line that matters.
+             *
+             * The old empty state offered two readings and picked neither
+             * ("either nothing has tripped a rule, or no calls have run through
+             * them yet"). It could not tell them apart and neither can this,
+             * which is why what replaced it names the control that can.
+             */
+            silence.said ? (
+              <>
+                {silence.said} {silence.action}
+              </>
+            ) : (
+              "Every time a rule fired, and on what. The match is stored, the rest of the call is not."
+            )
+          }
+        >
+          {hits.length === 0 ? (
+            <NothingYet>
+              Every enabled rule above is still checking. Nothing has matched one here.
+            </NothingYet>
+          ) : (
+            hits.map((h) => (
+              <Row
+                key={h.id}
+                tight
+                lead={
+                  <>
+                    {h.rule_name} <Value tone={ACTION_TONE[h.action] ?? "hold"}>{h.action}</Value>
+                  </>
+                }
+                sub={
+                  <>
+                    {h.side === "output" ? "On the way back" : "On the way out"}
+                    {h.matched ? (
+                      <>
+                        {" · "}
+                        <Num>{h.matched}</Num>
+                      </>
+                    ) : null}
+                  </>
+                }
+                time={relTime(h.created_at)}
+              />
+            ))
+          )}
+        </Region>
+      ) : null}
 
       <Region
         title="What your crew decided alone"
