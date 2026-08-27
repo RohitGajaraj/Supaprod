@@ -30,12 +30,18 @@ nothing:
 | branch | against `main` |
 | --- | --- |
 | `lane/run` | **clean** |
-| `lane/platform` | **CONFLICT** — `src/lib/governance.functions.ts` |
+| `lane/platform` | **clean** (was the one conflict; S3 resolved it in `601fdb30f`) |
 | `lane/control` | **clean** |
 | `lane/proof` | **clean** |
 
-Both sides are known: S0's `F-128` on `main` and S3's `U-092`/`U-093` on `lane/platform`. Both lanes
-have been told. **Three of four branches apply to `main` cleanly today.**
+**All four branches now apply to `main` cleanly, and `run × platform` is clean too.** Verified
+independently after S3 pushed, not taken from their report.
+
+The one conflict was `src/lib/governance.functions.ts`: S0's `F-128` **adds** a `gatesLiveWork` field
+to an approval row, S3's `U-092` **corrects** the `risk` field on the same row, and they landed on
+adjacent lines. **Both halves were right**, so the resolution needed no judgement — S0's block
+verbatim plus S3's one-line change. Roughly 30 lines, under ten minutes including a full gate run,
+and S3 took it because they had edited an S0-owned file.
 
 **Read the two numbers together:** 182 unexercised commits is the reason to be careful; one
 conflicting file is the reason it is doable. Re-run
