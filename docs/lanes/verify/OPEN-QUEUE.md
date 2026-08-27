@@ -122,14 +122,17 @@ user with genuinely mixed work sees 9 of 15 rows from fixtures, interleaved by `
 **Fix:** one line for the tag in the existing `.map`. The list-level filter or grouping is a larger
 call and needs a ruling on whether demo work should appear at all.
 
-### 2.3d · A control that contradicts its own page · `S4-066`
+### 2.3d · CLOSED, and my diagnosis was inverted · `S4-066`
 
-**Owner: S3** · `src/routes/_authenticated.settings.tsx:1108` · **live** · higher stakes than a heading
+**Fixed by S3 in `355cd83ab`.** The observation was right: the copy said *"nothing here is safe to
+save yet"* while **Change password** enabled. **The cause was the copy, not the control.**
+`PasswordRegion` is a sibling of `ProfileSection`, and the mutation goes through
+`supabase.auth.signInWithPassword` / `updateUser` and never reads the profile row.
 
-`canSubmit = current.length > 0 && next.length >= 8 && !mismatch && !tooShort`. It consults the field
-values and **never asks whether the profile read succeeded**, so on a page whose own red text says
-*"Your profile did not load, so nothing here is safe to save yet"*, typing a password **enables
-Change password**. A heading misleads; a control acts.
+**Gating the control would have been the dangerous fix** — it removes a security action exactly when
+the product looks broken to the person. **Do not generalise "controls must be gated on reads" from
+this row.** The general form that survives: *a page must not make a blanket claim about what is safe
+when only part of it failed.*
 
 ### 2.3e · The rail links to a route that was folded away · `S4-065`
 
@@ -138,10 +141,14 @@ Change password**. A heading misleads; a control acts.
 `runs.index.tsx:29` is now only `throw redirect({ to: "/today" })`, deliberately. `AppFrame.tsx:376`
 still carries a **primary** item labelled **Runs**, showing a runs count, that lands on **Today**.
 
-### 2.3f · A transport error is on four surfaces · `S4-066`
+### 2.3f · A transport error is on four surfaces · `S4-066` · **fixed at the root**
 
-**Owner: S3** · `Unauthorized: Invalid token` renders to a person on `/learn`, `/brain` (twice),
-`/guardrails` and `/settings`, spliced mid-sentence into copy written to a much higher standard.
+**S3 fixed it in `355cd83ab`, once rather than four times.** `sessionEndedMessage()` in
+`roles.functions.ts` matches all seven strings `auth-middleware` actually throws and returns *"Your
+session ended. Sign in again and this will load."* Nine Settings call sites now go through
+`readFailureMessage()`.
+
+**Still open on `/brain` and `/learn`**, which are not S3's paths. The helper is exported and ready.
 
 ### 2.4 · An all-clear that only requires *something* to have been read · `S4-032`
 
