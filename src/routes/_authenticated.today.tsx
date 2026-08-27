@@ -33,6 +33,7 @@ import { OverlapCheck, OverlapNote } from "@/components/today/OverlapNote";
 import { PushedInsights } from "@/components/today/PushedInsights";
 import { runTotals, spendWords } from "@/components/today/run-totals";
 import { lastMovedAt, stillnessLine } from "@/components/today/last-movement";
+import { failureLine } from "@/components/track/error-copy";
 import { trackToBoardRows, type TrackBoardRow } from "@/components/today/tracks-feed";
 import { QuietMorning } from "@/components/today/QuietMorning";
 import { RunState, ShippedState } from "@/components/today/RunState";
@@ -835,7 +836,9 @@ function Today() {
       void queryClient.invalidateQueries({ queryKey: ["today"] });
       invalidateShellReads(queryClient);
     },
-    onError: (error: Error) => toast.error(error.message),
+    /* Cancelling failed, so the run did not stop. Say that, and let the
+       server's own words through only if they were written for a person. */
+    onError: (error: Error) => toast.error(failureLine("The run is still going.", error)),
   });
   /* `mutate` is stable across renders, so the row wiring below can depend on
      this without rebuilding the crew list every time the component renders. */
@@ -1228,8 +1231,21 @@ function Today() {
     extraFor?: (row: CrewRow) => React.ReactNode,
   ) => {
     const headCount = trueCount ?? all.length;
-    const shown = standingRows(name, all);
-    const over = all.slice(shown.length);
+    /*
+     * EXPANDING A LANE USED TO REMOVE THE CONTROL THAT COLLAPSES IT.
+     *
+     * `standingRows` returns ALL rows once a lane is expanded, which is right
+     * for its other caller: the keyboard order has to walk everything on
+     * screen. Used here it made `over` empty, and the whole `over.length > 0`
+     * block is what draws the toggle, so opening a lane deleted "Show fewer"
+     * and a person could not close it again. Found by clicking it.
+     *
+     * The cap and the remainder are constants of the list, not of its open
+     * state. `expanded` decides whether the remainder is DRAWN, one line below,
+     * which is what that ternary always intended.
+     */
+    const shown = all.slice(0, LANE_ROWS);
+    const over = all.slice(LANE_ROWS);
     const expanded = moreOpen.includes(name);
     const line = (row: CrewRow) => (
       <CrewLine
@@ -1376,7 +1392,13 @@ function Today() {
       restore(context?.previous);
       record({
         verb: "Nothing was recorded",
-        consequence: error.message,
+        /* WHAT IS STILL TRUE, not what the server called the failure. This
+           printed `error.message` into the product's own voice, so a person
+           read "Nothing was recorded" and then a log line. The useful fact
+           after a failed decision is that the optimistic update was rolled
+           back one line above: the call is where it was. `failureLine` appends
+           the server's sentence only when it was written for a person. */
+        consequence: failureLine("The call is still waiting on you.", error),
         at: stamp(),
         failed: true,
       });
@@ -1400,7 +1422,13 @@ function Today() {
       restore(context?.previous);
       record({
         verb: "Nothing was recorded",
-        consequence: error.message,
+        /* WHAT IS STILL TRUE, not what the server called the failure. This
+           printed `error.message` into the product's own voice, so a person
+           read "Nothing was recorded" and then a log line. The useful fact
+           after a failed decision is that the optimistic update was rolled
+           back one line above: the call is where it was. `failureLine` appends
+           the server's sentence only when it was written for a person. */
+        consequence: failureLine("The call is still waiting on you.", error),
         at: stamp(),
         failed: true,
       });
@@ -1483,7 +1511,13 @@ function Today() {
       restore(context?.previous);
       record({
         verb: "Nothing was recorded",
-        consequence: error.message,
+        /* WHAT IS STILL TRUE, not what the server called the failure. This
+           printed `error.message` into the product's own voice, so a person
+           read "Nothing was recorded" and then a log line. The useful fact
+           after a failed decision is that the optimistic update was rolled
+           back one line above: the call is where it was. `failureLine` appends
+           the server's sentence only when it was written for a person. */
+        consequence: failureLine("The call is still waiting on you.", error),
         at: stamp(),
         failed: true,
       });
