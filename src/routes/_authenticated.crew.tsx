@@ -449,7 +449,19 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
        nobody has configured is running on a default, and that deserves better
        than a bracket. */
     <>
-      <Figure>{alone}</Figure> run without asking you, <Figure>{asks}</Figure> ask first
+      <Figure>{alone}</Figure> run without asking you
+      {/* OMITTED AT ZERO, the way the switched-off clause beside it already is.
+          Read on the running product: "16 run without asking you, 0 ask first."
+          Nobody says "0 ask first"; they say none do, or they say nothing at
+          all because the first half already told you. A zero stated as a count
+          is the same defect as the negation wall on the board: an absence
+          dressed as a measurement. The clause returns the moment one agent
+          actually asks, which is when it carries news. */}
+      {asks > 0 ? (
+        <>
+          , <Figure>{asks}</Figure> ask first
+        </>
+      ) : null}
       {off > 0 ? (
         <>
           , <Figure>{off}</Figure> are switched off
