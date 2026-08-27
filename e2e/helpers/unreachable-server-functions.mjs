@@ -105,6 +105,53 @@ console.log(
     "  closing, something staged ahead of a surface, or genuine dead weight.",
 );
 
+/*
+ * THE HIGHEST-SIGNAL SUBSET: an orphan whose OWN COMMENT names a consumer.
+ *
+ * S3's `getWorkspacePauseState` is the case. Its comment said "used by AppShell"
+ * and AppShell never imported it. That is different in kind from something staged
+ * ahead of a surface: the author knew who was meant to call it, wrote it down,
+ * and the wiring never happened. Nobody staged that deliberately.
+ *
+ * So these are ranked first. A row here is a promise the codebase made to itself
+ * and did not keep, and it is the shortest path from this list to a real gap.
+ */
+const NAMES_A_CONSUMER =
+  /\b(used by|rendered by|consumed by|called by|read by|powers|drives|feeds)\b/i;
+
+function commentAbove(src, index) {
+  const before = src.slice(0, index);
+  const start = before.lastIndexOf("/**");
+  if (start === -1) return "";
+  const end = before.indexOf("*/", start);
+  return end === -1 ? before.slice(start) : before.slice(start, end);
+}
+
+const claimed = [];
+for (const o of orphans) {
+  const src = readFileSync(o.file, "utf8");
+  const at = src.indexOf(`export const ${o.name}`);
+  const doc = at === -1 ? "" : commentAbove(src, at);
+  const m = doc.match(NAMES_A_CONSUMER);
+  if (m) {
+    const line = doc
+      .split("\n")
+      .find((l) => NAMES_A_CONSUMER.test(l))
+      ?.replace(/^\s*\*?\s*/, "")
+      .trim();
+    claimed.push({ ...o, why: line?.slice(0, 90) ?? m[0] });
+  }
+}
+
+if (claimed.length) {
+  console.log(
+    `\n${claimed.length} of those name a consumer IN THEIR OWN COMMENT and still have no importer.\n` +
+      "  These are the shortest path to a real gap: the author knew who should call it,\n" +
+      "  wrote it down, and the wiring never happened. Read these first.",
+  );
+  for (const c of claimed) console.log(`  ${c.name}  (${c.file})\n      "${c.why}"`);
+}
+
 console.log("\nEvery orphan:");
 for (const o of orphans) console.log(`  ${o.name}  (${o.file})`);
 
