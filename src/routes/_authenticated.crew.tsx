@@ -424,8 +424,16 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
     /* MEASURED AT 6.9 SECONDS on the running product 2026-08-27, holding this
        one static sentence the whole way, which is the state a person cannot
        tell from a hung one. `inline` because `PageHeading` draws its sub
-       inside a `<p>` and the block form cannot legally go there. */
-    <SlowRead inline>Reading the boundary in force.</SlowRead>
+       inside a `<p>` and the block form cannot legally go there.
+
+       `onRetry` past fifteen seconds, the same `refetch` the failure branch
+       below already uses. This was the LAST `SlowRead` in the product without
+       one, and it is the site the escalation was measured on - 6.9 seconds
+       holding a single sentence. A figure answers "is this moving"; after
+       fifteen seconds the only question left is what to do about it. */
+    <SlowRead inline onRetry={() => void crew.refetch()}>
+      Reading the boundary in force.
+    </SlowRead>
   ) : crew.isError ? (
     "The boundary did not load."
   ) : crew.data?.empty ? (

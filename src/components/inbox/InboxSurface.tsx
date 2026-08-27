@@ -295,16 +295,37 @@ export function InboxSurface() {
    * `not-the-whole-queue.ts` for the measurement that found it.
    */
   const queueGaps = queue.data?.incomplete;
+
   /*
-   * A FAILED VERDICT READ MAKES THE COUNT A FLOOR TOO. `countIsAFloor` answers
-   * for the queue's own families; this page federates one more read on top of
-   * it, and a page that could not ask about verdicts may not say nothing needs
-   * you. Same rule, one source wider.
+   * THE VERDICT READ IS PAGED, AND I ALMOST SHIPPED THE DEFECT I HAD JUST
+   * FINISHED REMOVING FROM THE QUEUE.
+   *
+   * `listDueForecastsImpl` selects with `count: "exact"` AND
+   * `.limit(DUE_FORECAST_PAGE)`, which is 12. `due` is one page; `total` is the
+   * population. There are 15 forecasts past their horizon right now, so taking
+   * `due.length` as the count understates by three today and by more later.
+   * That is RUN-99 wearing a different hat: a bounded read stated as a total,
+   * on the surface whose entire job is telling a person what needs them.
+   *
+   * S2 found it in my code hours after I handed them the rule. The rows stay
+   * the page, because a list is allowed to be a page; the COUNT becomes a
+   * floor.
+   *
+   * A FAILED VERDICT READ ALSO MAKES IT A FLOOR. F-120 made that read throw
+   * rather than return an empty desk, precisely so `isError` can be told apart
+   * from "nothing due", and this is the client half of that fix: a page that
+   * could not ask about verdicts may not answer that nothing needs you.
    */
-  const floor = countIsAFloor(queueGaps) || dueForecasts.isError;
+  const dueShown = dueForecasts.data?.due.length ?? 0;
+  const dueTotal = dueForecasts.data?.total ?? 0;
+  const verdictsPaged = dueTotal > dueShown;
+
+  const floor = countIsAFloor(queueGaps) || dueForecasts.isError || verdictsPaged;
   const shortLine = dueForecasts.isError
     ? "Your verdicts did not load, so this is not everything waiting on you."
-    : notTheWholeQueue(queueGaps);
+    : verdictsPaged
+      ? `${dueTotal - dueShown} more ${dueTotal - dueShown === 1 ? "verdict is" : "verdicts are"} waiting than this lists. Settle these and the rest follow.`
+      : notTheWholeQueue(queueGaps);
 
   const waitingOnYou = sessions.filter((s) => s.need === "needs-input").length;
   const runningCount = sessions.filter((s) => s.need === "working").length;

@@ -4,6 +4,8 @@ import { wayOut } from "./way-out";
 
 /** Both Take it over controls on screen, which is the common case mid-route. */
 const BOTH_OPEN = { undo: true, handback: true };
+/** What `wayOut` appends when both Take it over controls are on screen. */
+const BOTH_SENTENCE = "Send it back a step, or do this step yourself.";
 import { HOLD_LINE, leadAgentFor } from "@/lib/spine/driver";
 import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
 import type { AgentStation } from "@/lib/agent-vocabulary";
@@ -140,7 +142,13 @@ describe("no dead end, ever", () => {
     // A pause is lifted at workspace level, so no control on this screen helps.
     // The person is still owed the reason, and must not be sent to a door.
     const paused = wayOut("paused", BOTH_OPEN);
-    expect(paused.next).toContain("pause is lifted");
+    /*
+     * It no longer repeats what the pause IS, because `HOLD_LINE["paused"]`
+     * says that directly above it. What this line carries is the part that one
+     * cannot: no control on this screen reaches a workspace-wide switch.
+     */
+    expect(paused.next).toContain("Nothing on this screen can lift it");
+    expect(paused.next).not.toContain("workspace");
     expect(paused.next).not.toContain("Send it back");
     expect(paused.onThisScreen).toBe(false);
   });
@@ -183,6 +191,12 @@ describe("the switched-off step tells the truth about itself", () => {
     const out = wayOut("no-agent", BOTH_OPEN);
     expect(out.next).toContain("switched off");
     expect(out.next).toContain("Agents");
+    /*
+     * AND DOES NOT RESTATE THE HOLD LINE ABOVE IT. `HOLD_LINE["no-agent"]`
+     * already says "No agent is picking this step up". This sentence carries
+     * only what that one cannot: which thing is off, and the door.
+     */
+    expect(out.next).not.toContain("nothing will pick it up");
     // The old sentence claimed a team gap and claimed the gap was permanent.
     // Turning the agent back on is one control, so neither may return.
     expect(out.next).not.toContain("your team");
@@ -193,5 +207,110 @@ describe("the switched-off step tells the truth about itself", () => {
     const out = wayOut("no-agent", BOTH_OPEN);
     expect(out.next).toContain("hand the result in");
     expect(out.onThisScreen).toBe(true);
+  });
+});
+
+describe("a way out never repeats the line above it", () => {
+  /*
+   * The three that did. Each rendered directly under `HOLD_LINE[reason]` and
+   * opened by restating it. Asserted against the WORDS the hold line owns, so
+   * an edit that reintroduces the overlap fails here rather than on a screen
+   * nobody is looking at.
+   */
+  const OWNED_BY_THE_HOLD_LINE: Record<string, string[]> = {
+    paused: ["workspace", "paused"],
+    stalled: ["produced nothing", "several times"],
+    "going-in-circles": ["many times", "moved"],
+    "no-agent": ["picking this step up", "nothing will pick it up"],
+  };
+
+  for (const [hold, phrases] of Object.entries(OWNED_BY_THE_HOLD_LINE)) {
+    it(`says nothing the hold line already said, for ${hold}`, () => {
+      const out = wayOut(hold, BOTH_OPEN);
+      expect(out.next).toBeTruthy();
+      for (const phrase of phrases) {
+        expect(out.next?.toLowerCase()).not.toContain(phrase.toLowerCase());
+      }
+    });
+  }
+
+  it("still says something, because silence is the dead end this file removed", () => {
+    for (const hold of Object.keys(OWNED_BY_THE_HOLD_LINE)) {
+      expect((wayOut(hold, BOTH_OPEN).next ?? "").length).toBeGreaterThan(20);
+    }
+  });
+});
+
+describe("where the record already explained itself, only the door is added", () => {
+  /*
+   * `station-cannot-finish` is the largest hold in the database, 36 of 106
+   * tracks. A person there read the same fact three times: the specific line
+   * stored in `last_hold_because`, then `HOLD_LINE`, then this file restating
+   * both. `HOLD_LINE` states the cause, the repetition AND that it needs a
+   * person, so there was nothing left for a diagnosis to carry.
+   */
+  it("offers a door and no restatement for station-cannot-finish", () => {
+    const out = wayOut("station-cannot-finish", BOTH_OPEN);
+    expect(out.next).toBe(BOTH_SENTENCE);
+    expect(out.onThisScreen).toBe(true);
+  });
+
+  /*
+   * `corrections-spent` WAS IN THIS SET AND IS NOT ANY MORE, which is worth
+   * recording rather than quietly editing. Its hold line said the cause when I
+   * removed my sentence as a restatement; within the hour S0 reduced that line
+   * to the effect alone, and the cause left the screen. The two holds look
+   * alike and differ in the one thing that matters: what the line above still
+   * says. See the hole guard below.
+   */
+
+  it("falls to the steer, and a terminal hold says a steer alone will not restart it", () => {
+    /*
+     * With neither Take it over control on screen the offer is the steer, and
+     * `station-cannot-finish` is in TERMINAL_HOLDS, so the sweep has stopped
+     * selecting it. The steer sentence says so rather than implying a message
+     * will be picked up: storing an instruction nothing will ever consume is
+     * the dead end this file exists to remove.
+     */
+    const out = wayOut("station-cannot-finish", { undo: false, handback: false });
+    expect(out.next).toContain("Nothing will pick this up on its own");
+    expect(out.onThisScreen).toBe(false);
+  });
+
+  it("still says nothing at all where the screen cannot help", () => {
+    // The original contract, unchanged: no diagnosis and no door invents none.
+    expect(wayOut("done", BOTH_OPEN)).toEqual({ next: null, onThisScreen: false });
+    expect(wayOut(null)).toEqual({ next: null, onThisScreen: false });
+  });
+
+  it("keeps a diagnosis wherever one still earns its place", () => {
+    // The other six are unaffected: their hold line names no way out at all.
+    expect(wayOut("paused", BOTH_OPEN).next).toContain("Nothing on this screen can lift it");
+    expect(wayOut("no-agent", BOTH_OPEN).next).toContain("switched off");
+  });
+});
+
+describe("removing an overlap from both sides at once leaves a hole", () => {
+  /*
+   * S0's guard asserts the two lines do not say one thing TWICE. This asserts
+   * the other failure, which we produced in the same hour by each fixing
+   * `corrections-spent` from one side: their hold line became the effect alone,
+   * I deleted my sentence as a restatement, and the CAUSE left the screen
+   * entirely. Nothing said the work had been sent back for the same fix as
+   * often as it is allowed.
+   *
+   * The division to hold to, from S0: the hold line carries WHAT IS HAPPENING,
+   * this file carries WHY and WHAT TO DO. So where a hold line states only an
+   * effect, the way out must still name the cause.
+   */
+  it("still names the cause for corrections-spent, which the hold line no longer does", () => {
+    const out = wayOut("corrections-spent", BOTH_OPEN);
+    expect(out.next).toContain("sent back for this same fix");
+    expect(out.next).toContain("Send it back a step");
+  });
+
+  it("does not put the effect back, which is the half S0's line owns", () => {
+    // "Nothing further will be spent on this until you look." is theirs.
+    expect(wayOut("corrections-spent", BOTH_OPEN).next).not.toContain("Nothing further");
   });
 });

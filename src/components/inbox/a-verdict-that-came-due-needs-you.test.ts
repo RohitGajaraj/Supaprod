@@ -31,3 +31,34 @@ describe("a verdict that came due needs you", () => {
     expect(floor).toBe(false);
   });
 });
+
+describe("the verdict read is paged and the count says so", () => {
+  const floorOf = (shown: number, total: number, isError = false) =>
+    countIsAFloor([]) || isError || total > shown;
+
+  it("makes the count a floor when more are due than the page carries", () => {
+    /*
+     * `DUE_FORECAST_PAGE` is 12 and there are 15 forecasts past their horizon
+     * right now, so `due.length` understates by three TODAY. This is RUN-99
+     * wearing a different hat: a bounded read stated as a total, on the surface
+     * whose whole job is telling a person what needs them.
+     */
+    expect(floorOf(12, 15)).toBe(true);
+  });
+
+  it("leaves the count exact when the page holds everything", () => {
+    expect(floorOf(4, 4)).toBe(false);
+    expect(floorOf(0, 0)).toBe(false);
+  });
+
+  it("treats a failed verdict read as a floor as well", () => {
+    // F-120 made that read throw so `isError` can be told from "nothing due".
+    expect(floorOf(0, 0, true)).toBe(true);
+  });
+
+  it("never reads a full page as capped when the total agrees", () => {
+    // Exactly-on-the-page is only capped if the population says so, unlike the
+    // queue's families where the length IS the only signal available.
+    expect(floorOf(12, 12)).toBe(false);
+  });
+});

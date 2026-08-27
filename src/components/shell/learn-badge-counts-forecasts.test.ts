@@ -42,12 +42,15 @@ describe("the count", () => {
 });
 
 describe("the read", () => {
-  it("SHARES THE DESK'S QUERY KEY, so three readers cannot disagree", () => {
-    // `ForecastDeskPanel` and the inbox already read `["forecast-due"]`.
-    // A third reader on the same key costs one fetch.
-    expect(code).toContain('queryKey: ["forecast-due"]');
+  it("READS THE WORKSPACE-SCOPED COUNT, not the desk's cross-workspace one", () => {
+    // Every station on this strip counts THIS workspace's runs. A badge drawn
+    // from an unscoped read says the same kind of thing as its neighbours while
+    // meaning something else, and the desk's unscoped scope is deliberate and
+    // correct for the desk.
+    expect(code).toContain("listDueForecastsHere");
+    expect(code).toContain('queryKey: ["forecast-due", "workspace"]');
     const desk = readFileSync("src/components/learn/ForecastDeskPanel.tsx", "utf8");
-    expect(desk).toContain('queryKey: ["forecast-due"]');
+    expect(desk, "the desk keeps its own unscoped read").toContain('queryKey: ["forecast-due"]');
   });
 
   it("backs off like every other live read in this lane", () => {

@@ -101,52 +101,23 @@ export function runStatus(
   return null;
 }
 
-/**
- * WHERE THIS CAME FROM, with the title not said twice.
+/*
+ * `originLine` USED TO LIVE HERE AND THERE WERE TWO OF IT.
  *
- * ── WHAT WAS ON SCREEN ────────────────────────────────────────────────────
- * The run header prints the title, then prints `track.origin` under it. On
- * `6199f3df` at 1440 those were the same sentence, so the flagship screen
- * opened by saying the same thing twice, one line apart, before anything else.
+ * The canonical one is `src/lib/track-origin.ts`, whose own header states the
+ * unification that had not happened: "the server composes the goal with it, the
+ * run header renders with it, and both say the same thing about the same pair
+ * of strings." The server did. This file carried a second, behaviourally
+ * identical copy, and the run header used that one.
  *
- * ── AND IT IS NOT A ONE-OFF, WHICH IS WHY THIS IS A FUNCTION ──────────────
- * Measured across all 106 tracks: 68 carry an origin, 1 is character-identical
- * to its title, and 3 more BEGIN with the title and then add to it. So 3 of 68
- * make a person read the title twice before reaching a word they have not
- * already read. That share will grow rather than shrink: the sentence a person
- * types at /start becomes both the title and the origin, so the exact-match
- * case is the natural result of the newest way to start work.
+ * Identical is the dangerous case rather than the safe one. Two copies that
+ * agree today are one edit from disagreeing, and the disagreement would show up
+ * as a mission goal and the header above it describing the same track
+ * differently, which is the exact defect `track-origin.ts` was written to end.
+ * It also names its 15-character floor (`ORIGIN_REMAINDER_MIN`) where this one
+ * inlined the number, so the judgement was arguable there and invisible here.
  *
- * ── WHAT IT DOES NOT DO, and this is the important half ───────────────────
- * It does not hide origins. The origin is often the best line on the page --
- * "This became work on its own because 9 signals say it, severity 4, and the
- * cluster is 78% confident these belong together" is a fact nothing else on the
- * screen carries. So the rule removes only the REPEATED prefix, and keeps every
- * word the title did not already say. Silence is reserved for the case where
- * there is genuinely nothing left.
+ * The route now imports it straight from the library. No re-export shim: a
+ * shim would keep the second name alive and the next person would not know
+ * which of the two they were calling.
  */
-export function originLine(title: string, origin: string | null | undefined): string | null {
-  const norm = (s: string) => s.trim().replace(/\s+/g, " ");
-  const t = norm(title ?? "");
-  const o = norm(origin ?? "");
-  if (!o) return null;
-  if (!t) return o;
-
-  if (o.toLowerCase() === t.toLowerCase()) return null;
-
-  if (o.toLowerCase().startsWith(t.toLowerCase())) {
-    /* Drop the repeated opening and whatever punctuation joined it on.
-     *
-     * THE TWO DASHES ARE ESCAPES, NOT LITERALS, and that is not style. This
-     * file is in the rendering layer, and the repo's own guard scans that layer
-     * for a literal em or en dash -- it failed on this line within a minute of
-     * it being written, which is exactly what it is for. A matcher needs to
-     * RECOGNISE the characters it strips; it does not need to CONTAIN them. */
-    const rest = o.slice(t.length).replace(/^[\s.,;:\-\u2013\u2014]+/, "");
-    // A handful of characters left over is a fragment, not a fact. Below this
-    // the honest render is nothing at all rather than a dangling clause.
-    return rest.length >= 15 ? rest : null;
-  }
-
-  return o;
-}

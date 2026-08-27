@@ -164,3 +164,49 @@ describe("the Track a surface receives carries it", () => {
     expect(TRACKS).toContain("holdReason: r.last_hold,");
   });
 });
+
+describe("F-134: a halt names what stopped it, and the hold line stopped lying", () => {
+  const DRIVER_SERVER = code(read("./driver.server.ts"));
+  const DRIVER = code(read("./driver.ts"));
+
+  it("the halt's own sentence is captured where the kind is chosen", () => {
+    /*
+     * `result.halted` carries `{ kind, reason }` and only the kind was kept.
+     * The reason for an agent-disabled halt NAMES THE AGENT — "<slug> is
+     * switched off, so this run was cancelled instead of resumed" — which is
+     * exactly what this column exists to carry.
+     */
+    expect(DRIVER_SERVER).toContain("haltedBecause = result.halted.reason?.trim() || null");
+    // And exactly one `if (haltedAs) {` block, so the sibling guard that locates
+    // the halt branch by that string cannot slice the wrong one.
+    expect(DRIVER_SERVER.split("if (haltedAs) {").length - 1).toBe(1);
+  });
+
+  it("and written when the hold is written", () => {
+    expect(DRIVER_SERVER).toContain("last_hold_because: haltedBecause");
+  });
+
+  it("F-127 is not contradicted, because that branch was generic and this is not", () => {
+    /*
+     * F-127 argued the seat-decision branch should write nothing, and it is
+     * right about what it was looking at: `HOLD_LINE[kind]` is a static map the
+     * reader already derives. A generic line in a column meant for specifics is
+     * worse than a null; a specific one is the point of the column.
+     */
+    const seatStop = DRIVER_SERVER.slice(DRIVER_SERVER.indexOf("last_hold: decision.hold"));
+    expect(seatStop.slice(0, 200)).not.toContain("last_hold_because");
+  });
+
+  it("the no-agent line is true whether nobody covers it or the agent is off", () => {
+    // It read "No agent serves this station yet", and S1 verified all seven
+    // stations HAVE a lead agent, so `agent-disabled` is the only way to reach
+    // it. 27 of 283 agents are switched off. Those need different actions:
+    // one is hiring, the other is a toggle.
+    expect(DRIVER).not.toContain("No agent serves this station yet");
+    expect(DRIVER).toContain("No agent is picking this step up, so it needs you.");
+  });
+
+  it("and it carries no machine punctuation", () => {
+    expect("No agent is picking this step up, so it needs you.").not.toMatch(/[–—]/);
+  });
+});

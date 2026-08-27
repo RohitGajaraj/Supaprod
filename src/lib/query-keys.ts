@@ -43,6 +43,32 @@ export function missionsKey(workspaceId: string | null | undefined) {
 }
 
 /**
+ * The studio sessions the strip, the board and the board panel all read.
+ * `listStudioSessions`.
+ *
+ * ── WHY THIS GREW A WORKSPACE ─────────────────────────────────────────────
+ * The key was `["studio-sessions", false]` for all three, and the read behind
+ * it was `.eq("user_id", userId)` with no workspace filter anywhere (F-141).
+ * So the station strip - the primary "where is the work" control - tallied
+ * every workspace the user belongs to and drew the result directly under a
+ * breadcrumb naming one, above a board whose every other number is scoped.
+ * Switching workspace did not change it.
+ *
+ * S0 gave the read an optional `workspaceId` whose absence is byte-for-byte the
+ * old behaviour. The key has to move with it: one cache entry cannot hold two
+ * workspaces' answers, and whichever surface mounted first would decide what
+ * the others saw. That failure has already happened once in this repo, which is
+ * the whole reason this module exists.
+ *
+ * ALL THREE READERS MOVE TOGETHER, which is why this is a function rather than
+ * three literals. `MissionOrchestratorDetail` invalidates the `["studio-sessions"]`
+ * PREFIX, so it still matches and needs no change.
+ */
+export function studioSessionsKey(workspaceId: string | null | undefined, includeArchived = false) {
+  return ["studio-sessions", includeArchived, workspaceId ?? null] as const;
+}
+
+/**
  * The prefix to invalidate after anything that settles a gate.
  *
  * Deliberately the whole family rather than one workspace's key: approving in one

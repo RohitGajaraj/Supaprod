@@ -922,11 +922,48 @@ async function loadGuardrails(
   workspaceId: string | null | undefined,
 ): Promise<GuardrailRule[]> {
   if (!workspaceId) return withFloor([]);
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("guardrail_rules")
     .select("id,name,kind,pattern,action,applies_to,enabled")
     .eq("workspace_id", workspaceId)
     .eq("enabled", true);
+  /*
+   * ── F-135: A WORKSPACE'S OWN RULES COULD VANISH WITHOUT A WORD ───────────
+   *
+   * This read only `data`. A refused, timed-out or malformed query arrived as
+   * `data: null`, fell through `?? []`, and the call proceeded **with the floor
+   * alone** — so a workspace that had configured rules was screened as though it
+   * had configured none, and nothing anywhere said so.
+   *
+   * THE FLOOR IS WHAT MADE IT INVISIBLE. Because `withFloor` still returns the
+   * built-ins, the call is never unscreened and nothing looks broken: no error,
+   * no empty result, no gap on the page. The safety net hid the hole in the
+   * thing above it, which is the worst version of this shape — everywhere else
+   * tonight a swallowed read produced a visibly wrong answer, and here it
+   * produces a quietly weaker one.
+   *
+   * FOUND WHILE DISPROVING A DIFFERENT CLAIM. S3 and S4 both reported the
+   * guardrail mechanism as a likely regression: 8,525 hits in July, zero in 33
+   * days, 2,570 runs, 27 rules enabled. It is not a regression, and I checked
+   * every link rather than assuming — `loop.server.ts` never passes
+   * `guardrails: false`, `callModel` guards unless a caller opts out, and
+   * `loadGuardrails` applies the floor on both branches. The cliff is
+   * explained by coverage instead: **27 rules exist across 3 workspaces, 13
+   * workspaces ran agents in the last 30 days, and only 2 of those have any
+   * rule at all.** July's hits were on workspaces that had rules and were busy.
+   *
+   * LOGGED, NOT THROWN. A guardrail read failing must not stop the call: the
+   * floor still screens it, and refusing to run because we could not read the
+   * OPTIONAL rules would turn a degraded state into an outage on the safety
+   * path. But it must not be silent either, because the difference between
+   * "this workspace configured nothing" and "we could not read what it
+   * configured" is the difference between a fact and a gap.
+   */
+  if (error) {
+    console.error(
+      `guardrails: configured rules unreadable for workspace ${workspaceId}, screening with the floor only: ${error.message}`,
+    );
+  }
   return withFloor((data ?? []) as GuardrailRule[]);
 }
 

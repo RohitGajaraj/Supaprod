@@ -498,320 +498,384 @@ export const listStudioSessions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>
     z
-      .object({ includeArchived: z.boolean().optional() })
+      .object({
+        includeArchived: z.boolean().optional(),
+        /*
+         * ── F-141: A USER-SCOPED COUNT WAS RENDERED AS A WORKSPACE FACT ─────
+         *
+         * S2 measured it on the primary "where is the work" control. Both run
+         * queries below read `.eq("user_id", userId)` with **no workspace
+         * filter anywhere in the handler**, and the station strip renders the
+         * tally directly under a breadcrumb reading "Helio Labs / Prism",
+         * directly above a board whose every other number is workspace-scoped.
+         * It said "89 runs waiting on you" at Discover, and switching workspace
+         * would not have changed it.
+         *
+         * OPTIONAL, AND THE DEFAULT IS THE OLD BEHAVIOUR. Fifteen consumers
+         * share this read and a scope change silently alters what every one of
+         * them counts, which is exactly why S2 raised it twice rather than
+         * changing it. This follows their own `listDueForecastsHere` shape: a
+         * second door, the original read untouched, and each caller choosing.
+         */
+        workspaceId: z.string().uuid().optional(),
+      })
       .optional()
       .parse(i ?? {}),
   )
-  .handler(async ({ context, data }): Promise<{ sessions: StudioSessionListItem[] }> => {
-    const { supabase, userId } = context;
-    const db = supabase as unknown as SupabaseClient;
-    const includeArchived = data?.includeArchived ?? false;
+  .handler(
+    async ({ context, data }): Promise<{ sessions: StudioSessionListItem[]; bounded: boolean }> => {
+      const { supabase, userId } = context;
+      const db = supabase as unknown as SupabaseClient;
+      const includeArchived = data?.includeArchived ?? false;
+      const workspaceId = data?.workspaceId ?? null;
+      /**
+       * The per-kind read cap, named so the `bounded` flag below cannot drift
+       * from it. Two separate reads keep their own page deliberately: a single
+       * shared limit could push one kind's runs entirely out of the window.
+       */
+      const RUN_PAGE = 100;
 
-    // OBS-10: Build is the one true missions home, so this lists every agent-
-    // mesh mission (Studio/Build code-gen AND orchestrator goal-runs), not just
-    // 'builder' ones. Two runs queries stay fully SEPARATE on purpose (adversarial
-    // review finding) rather than one unfiltered query: (1) keeps the 'build'-kind
-    // cost/run_status computation below byte-identical to the pre-fold behavior —
-    // no risk of a mid-mission `agent.handoff` to a non-builder agent polluting a
-    // Studio session's reported cost/status; (2) keeps each kind's own `.limit(100)`
-    // window independent, so a busy orchestrator mesh can never push a real Studio
-    // session's run out of the fetched window (a single shared limit could).
-    const { data: runs, error } = await db
-      .from("agent_runs")
-      .select("id,mission_id,status,created_at,agent_slug")
-      .eq("user_id", userId)
-      .eq("agent_slug", "builder")
-      .order("created_at", { ascending: false })
-      .limit(100);
-    if (error) throw new Error(error.message);
-    const runRows = (runs ?? []) as {
-      id: string;
-      mission_id: string | null;
-      status: string;
-      created_at: string;
-      agent_slug: string | null;
-    }[];
-    const builderMissionIds = [
-      ...new Set(runRows.map((r) => r.mission_id).filter((m): m is string => !!m)),
-    ];
-
-    const { data: otherRuns, error: otherError } = await db
-      .from("agent_runs")
-      .select("id,mission_id,status,created_at,agent_slug")
-      .eq("user_id", userId)
-      .neq("agent_slug", "builder")
-      .order("created_at", { ascending: false })
-      .limit(100);
-    if (otherError) throw new Error(otherError.message);
-    const otherRunRows = (otherRuns ?? []) as {
-      id: string;
-      mission_id: string | null;
-      status: string;
-      created_at: string;
-      agent_slug: string | null;
-    }[];
-
-    /**
-     * The stage each mission is standing at: the station of the agent on its
-     * MOST RECENT run.
-     *
-     * The re-sort is load-bearing and not tidiness. Each query is ordered
-     * created_at desc on its own, but they are two queries, so concatenating
-     * them puts EVERY builder run ahead of EVERY other-agent run regardless of
-     * time. A mission that built and then handed off to a shipper would read as
-     * still building, which is the exact class of "further along than it is"
-     * lie the strip's own state vocabulary was written to avoid. Merging by
-     * timestamp is what makes "most recent" mean most recent.
-     *
-     * An unrecognised slug maps to null rather than to a guess. A run whose
-     * agent is not in the catalog is at no stage we can name, and naming one
-     * anyway would file a run under a heading it does not belong to.
-     */
-    const stationByMission = new Map<string, AgentStation | null>();
-    for (const r of [...runRows, ...otherRunRows].sort((a, b) =>
-      a.created_at < b.created_at ? 1 : -1,
-    )) {
-      if (!r.mission_id || stationByMission.has(r.mission_id)) continue;
-      stationByMission.set(r.mission_id, agentStation(r.agent_slug));
-    }
-    const otherMissionIds = [
-      ...new Set(otherRunRows.map((r) => r.mission_id).filter((m): m is string => !!m)),
-    ].filter((id) => !builderMissionIds.includes(id));
-
-    // A 'proposed' mission (the trigger-tick's own HITL gate, promoteMission.ts)
-    // has ZERO agent_runs by design — resume-runs ignores it until a human
-    // promotes it — so it would never enter either runs query above, making its
-    // "Review & launch" gate unreachable. Fetch these separately by status.
-    const { data: proposedMissions } = await db
-      .from("missions")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("status", "proposed");
-    const proposedIds = ((proposedMissions ?? []) as { id: string }[])
-      .map((p) => p.id)
-      .filter((id) => !builderMissionIds.includes(id) && !otherMissionIds.includes(id));
-
-    const missionIds = [...builderMissionIds, ...otherMissionIds, ...proposedIds];
-    if (!missionIds.length) return { sessions: [] };
-    const missionKind = new Map<string, "build" | "mission">();
-    for (const id of builderMissionIds) missionKind.set(id, "build");
-    for (const id of otherMissionIds) missionKind.set(id, "mission");
-    for (const id of proposedIds) missionKind.set(id, "mission");
-
-    const [{ data: missions }, { data: changesets }, { data: pendings }, { data: edges }] =
-      await Promise.all([
-        db
-          .from("missions")
-          .select("id,title,goal,status,created_at,updated_at,archived_at,current_agent_id")
-          .in("id", missionIds),
-        db
-          .from("studio_changesets")
-          .select(
-            "id,product_id,mission_id,status,repo,branch,pr_url,pr_number,title,summary,created_at",
-          )
-          .in("mission_id", missionIds)
-          .neq("status", "abandoned")
-          .order("created_at", { ascending: false }),
-        db
-          .from("agent_approvals")
-          .select("id,mission_id")
-          .in("mission_id", missionIds)
-          .eq("status", "pending"),
-        db
-          .from("artifact_lineage")
-          .select("parent_id,child_id")
-          .eq("parent_kind", "prd")
-          .eq("child_kind", "mission")
-          .in("child_id", missionIds),
-      ]);
-
-    // Latest non-abandoned changeset per mission + file counts in one query.
-    const changesetByMission = new Map<string, StudioChangesetSummary>();
-    const changesetIds: string[] = [];
-    for (const cs of (changesets ?? []) as Array<
-      StudioChangesetSummary & { mission_id: string | null; created_at: string }
-    >) {
-      if (cs.mission_id && !changesetByMission.has(cs.mission_id)) {
-        changesetByMission.set(cs.mission_id, { ...cs, file_count: 0 });
-        changesetIds.push(cs.id);
-      }
-    }
-    if (changesetIds.length) {
-      const { data: changeRows } = await db
-        .from("studio_changes")
-        .select("changeset_id")
-        .in("changeset_id", changesetIds);
-      const counts = new Map<string, number>();
-      for (const r of (changeRows ?? []) as { changeset_id: string }[]) {
-        counts.set(r.changeset_id, (counts.get(r.changeset_id) ?? 0) + 1);
-      }
-      for (const cs of changesetByMission.values()) cs.file_count = counts.get(cs.id) ?? 0;
-    }
-
-    const pendingByMission = new Map<string, number>();
-    for (const p of (pendings ?? []) as { mission_id: string | null }[]) {
-      if (p.mission_id)
-        pendingByMission.set(p.mission_id, (pendingByMission.get(p.mission_id) ?? 0) + 1);
-    }
-
-    const prdByMission = new Map<string, string>();
-    for (const e of (edges ?? []) as { parent_id: string; child_id: string }[]) {
-      prdByMission.set(e.child_id, e.parent_id);
-    }
-    const prdIds = [...new Set(prdByMission.values())];
-    const { data: prds } = prdIds.length
-      ? await db.from("prds").select("id,title").in("id", prdIds)
-      : { data: [] as { id: string; title: string }[] };
-    const prdTitle = new Map(
-      (prds ?? []).map((p: { id: string; title: string }) => [p.id, p.title]),
-    );
-
-    // Cost: checkpoint trace → ai_events sum (legacy and new runs alike). Computed
-    // separately per agent-kind run set (never merged) so a 'build'-kind mission's
-    // cost/status can never absorb a different agent's contribution mid-mission.
-    async function costAndStatusByMission(
-      rows: { id: string; mission_id: string | null; status: string }[],
-    ): Promise<{ cost: Map<string, number>; status: Map<string, string> }> {
-      const traces = await traceByRun(
-        supabase,
-        rows.map((r) => r.id),
-      );
-      const traceList = [...new Set(traces.values())];
-      const costByTrace = new Map<string, number>();
-      if (traceList.length) {
-        const { data: events } = await db
-          .from("ai_events")
-          .select("trace_id,est_cost_usd")
-          .in("trace_id", traceList);
-        for (const ev of (events ?? []) as {
-          trace_id: string | null;
-          est_cost_usd: number | null;
-        }[]) {
-          if (ev.trace_id)
-            costByTrace.set(
-              ev.trace_id,
-              (costByTrace.get(ev.trace_id) ?? 0) + (ev.est_cost_usd ?? 0),
-            );
-        }
-      }
-      const cost = new Map<string, number>();
-      const status = new Map<string, string>();
-      for (const r of rows) {
-        if (!r.mission_id) continue;
-        if (!status.has(r.mission_id)) status.set(r.mission_id, r.status);
-        const trace = traces.get(r.id);
-        if (trace)
-          cost.set(r.mission_id, (cost.get(r.mission_id) ?? 0) + (costByTrace.get(trace) ?? 0));
-      }
-      return { cost, status };
-    }
-    const builder = await costAndStatusByMission(runRows);
-    const other = await costAndStatusByMission(otherRunRows);
-
-    /**
-     * The stage a mission that has NOT RUN YET is standing at.
-     *
-     * A `proposed` mission has zero agent_runs by design (the trigger tick's own
-     * HITL gate: nothing runs until a human launches it), so the station derived
-     * from runs above is null for every one of them. Dropping them would leave
-     * the board's strip reading "none" seven times while the list underneath is
-     * full, which looks broken and is not what the record says: the trigger
-     * pre-routes these, `sensing/trigger.ts` sets `current_agent_id` so the
-     * mission "arrives pre-routed to the right Sense agent".
-     *
-     * This is a FALLBACK, never an override. A mission that has run is at the
-     * stage it ran at, because where an agent actually went beats where it was
-     * once addressed.
-     *
-     * AND THE LAST RESORT, which is a derivation and not a guess. Cluster and
-     * missed-outcome proposals carry no assignment at all (documented in
-     * trigger.ts), and on a real workspace they are the majority: 17 of 19 runs
-     * on the founder's board resolved to nothing, so the seven-stage strip read
-     * "none" six times over a full list. That is not honesty, it is a broken
-     * instrument.
-     *
-     * A `proposed` mission stands at the FIRST stage of the spine, because it
-     * has not entered the lifecycle: nothing has been decided, planned,
-     * designed, built, shipped or learned. Position zero in an ordered spine is
-     * where a thing that has not moved is, which is a fact about the ordering
-     * rather than a claim about the work.
-     *
-     * Two things keep this from drifting into a lie. It reads the ORDER rather
-     * than hard-coding "sense", so re-ordering the spine moves it. And it is
-     * scoped to `status === 'proposed'` rather than to "station came back
-     * null", so it can never quietly absorb some other station-less case: an
-     * uncatalogued agent slug still resolves to null and is still counted
-     * nowhere. The trigger tick is the only writer of that status in the
-     * product (`api/public/hooks/trigger-tick.ts`), and every proposal it
-     * writes is sense-stage work.
-     *
-     * Deliberately NOT used: the stage event the tick records alongside, whose
-     * actor falls back to "strategist". That agent's station is `decide`, so
-     * taking it would file every unassigned cluster investigation one stage too
-     * far along. It names who logged the proposal, not who will do it.
-     */
-    const routedIds = [
-      ...new Set(
-        ((missions ?? []) as Array<{ id: string; current_agent_id: string | null }>)
-          .filter((m) => !stationByMission.get(m.id) && m.current_agent_id)
-          .map((m) => m.current_agent_id as string),
-      ),
-    ];
-    const slugByAgentId = new Map<string, string>();
-    if (routedIds.length) {
-      const { data: agentRows } = await db.from("agents").select("id,slug").in("id", routedIds);
-      for (const a of (agentRows ?? []) as { id: string; slug: string }[]) {
-        slugByAgentId.set(a.id, a.slug);
-      }
-    }
-
-    const sessions = (
-      (missions ?? []) as Array<{
+      // OBS-10: Build is the one true missions home, so this lists every agent-
+      // mesh mission (Studio/Build code-gen AND orchestrator goal-runs), not just
+      // 'builder' ones. Two runs queries stay fully SEPARATE on purpose (adversarial
+      // review finding) rather than one unfiltered query: (1) keeps the 'build'-kind
+      // cost/run_status computation below byte-identical to the pre-fold behavior —
+      // no risk of a mid-mission `agent.handoff` to a non-builder agent polluting a
+      // Studio session's reported cost/status; (2) keeps each kind's own `.limit(100)`
+      // window independent, so a busy orchestrator mesh can never push a real Studio
+      // session's run out of the fetched window (a single shared limit could).
+      /*
+       * F-141. Scoped only when a caller asked for one workspace; absent, this is
+       * byte-for-byte the read it always was. Built as a variable rather than one
+       * chain because PostgREST's builder has no conditional step, and inventing
+       * one is how I nearly shipped a `.apply` that does not exist.
+       */
+      let builderQ = db
+        .from("agent_runs")
+        .select("id,mission_id,status,created_at,agent_slug")
+        .eq("user_id", userId)
+        .eq("agent_slug", "builder");
+      if (workspaceId) builderQ = builderQ.eq("workspace_id", workspaceId);
+      const { data: runs, error } = await builderQ
+        .order("created_at", { ascending: false })
+        .limit(RUN_PAGE);
+      if (error) throw new Error(error.message);
+      /*
+       * ── F-141, THE SECOND HALF: THREE CAPS AND NO EXACT COUNT ──────────────
+       *
+       * This read bounds twice at RUN_PAGE and once more at 200 on the assembled
+       * array, and the station strip renders the per-station tallies as facts. So
+       * the numbers were what SURVIVED the read, with nothing able to say so.
+       *
+       * Exactly the shape S1 measured on the approvals queue: 116 pending design
+       * gates against a limit of 100, sixteen calls on no screen at all, and no
+       * surface able to tell. There the fix was a field travelling with the items,
+       * because a caller cannot infer a cap from a result that looks complete.
+       *
+       * `bounded` is that field. It does not say how many were dropped — we do not
+       * know without a second count — only that the answer is a floor. A surface
+       * can then say "at least N", which is weaker than N and true, rather than N,
+       * which is stronger and sometimes false.
+       */
+      const ASSEMBLED_CAP = 200;
+      const runRows = (runs ?? []) as {
         id: string;
-        title: string;
-        goal: string;
+        mission_id: string | null;
         status: string;
         created_at: string;
-        updated_at: string;
-        archived_at: string | null;
-        current_agent_id: string | null;
-      }>
-    )
-      // SESSION-ORG: hide archived sessions unless explicitly requested.
-      .filter((m) => includeArchived || !m.archived_at)
-      .map((m) => {
-        const prdId = prdByMission.get(m.id) ?? null;
-        const kind = missionKind.get(m.id) ?? "mission";
-        const { cost: costByMission, status: runStatusByMission } =
-          kind === "build" ? builder : other;
-        return {
-          mission_id: m.id,
-          kind,
-          title: m.title,
-          status: m.status,
-          goal: m.goal,
-          created_at: m.created_at,
-          updated_at: m.updated_at,
-          run_status: runStatusByMission.get(m.id) ?? null,
-          prd: prdId ? { id: prdId, title: prdTitle.get(prdId) ?? "Spec" } : null,
-          changeset: changesetByMission.get(m.id) ?? null,
-          pending_approvals: pendingByMission.get(m.id) ?? 0,
-          cost_usd: Number((costByMission.get(m.id) ?? 0).toFixed(4)),
-          archived: !!m.archived_at,
-          station:
-            stationByMission.get(m.id) ??
-            (m.current_agent_id ? agentStation(slugByAgentId.get(m.current_agent_id)) : null) ??
-            (m.status === "proposed" ? AGENT_STATION_ORDER[0] : null),
-        };
-      })
-      .sort((a, b) => (a.updated_at < b.updated_at ? 1 : -1));
+        agent_slug: string | null;
+      }[];
+      const builderMissionIds = [
+        ...new Set(runRows.map((r) => r.mission_id).filter((m): m is string => !!m)),
+      ];
 
-    // PC-32 (super light, engine underneath): the underlying queries feeding
-    // this (missions/proposed-missions fetches) are uncapped, so defensively
-    // bound the assembled array we actually return. 200 stays generous
-    // relative to the route's own ~8-visible-plus-reveal-door cap.
-    return { sessions: sessions.slice(0, 200) };
-  });
+      let otherQ = db
+        .from("agent_runs")
+        .select("id,mission_id,status,created_at,agent_slug")
+        .eq("user_id", userId)
+        .neq("agent_slug", "builder");
+      if (workspaceId) otherQ = otherQ.eq("workspace_id", workspaceId);
+      const { data: otherRuns, error: otherError } = await otherQ
+        .order("created_at", { ascending: false })
+        .limit(RUN_PAGE);
+      if (otherError) throw new Error(otherError.message);
+      /** True when either page filled, so a caller knows its count is a floor. */
+      const bounded = (runs?.length ?? 0) >= RUN_PAGE || (otherRuns?.length ?? 0) >= RUN_PAGE;
+      const otherRunRows = (otherRuns ?? []) as {
+        id: string;
+        mission_id: string | null;
+        status: string;
+        created_at: string;
+        agent_slug: string | null;
+      }[];
+
+      /**
+       * The stage each mission is standing at: the station of the agent on its
+       * MOST RECENT run.
+       *
+       * The re-sort is load-bearing and not tidiness. Each query is ordered
+       * created_at desc on its own, but they are two queries, so concatenating
+       * them puts EVERY builder run ahead of EVERY other-agent run regardless of
+       * time. A mission that built and then handed off to a shipper would read as
+       * still building, which is the exact class of "further along than it is"
+       * lie the strip's own state vocabulary was written to avoid. Merging by
+       * timestamp is what makes "most recent" mean most recent.
+       *
+       * An unrecognised slug maps to null rather than to a guess. A run whose
+       * agent is not in the catalog is at no stage we can name, and naming one
+       * anyway would file a run under a heading it does not belong to.
+       */
+      const stationByMission = new Map<string, AgentStation | null>();
+      for (const r of [...runRows, ...otherRunRows].sort((a, b) =>
+        a.created_at < b.created_at ? 1 : -1,
+      )) {
+        if (!r.mission_id || stationByMission.has(r.mission_id)) continue;
+        stationByMission.set(r.mission_id, agentStation(r.agent_slug));
+      }
+      const otherMissionIds = [
+        ...new Set(otherRunRows.map((r) => r.mission_id).filter((m): m is string => !!m)),
+      ].filter((id) => !builderMissionIds.includes(id));
+
+      // A 'proposed' mission (the trigger-tick's own HITL gate, promoteMission.ts)
+      // has ZERO agent_runs by design — resume-runs ignores it until a human
+      // promotes it — so it would never enter either runs query above, making its
+      // "Review & launch" gate unreachable. Fetch these separately by status.
+      const { data: proposedMissions } = await db
+        .from("missions")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("status", "proposed");
+      const proposedIds = ((proposedMissions ?? []) as { id: string }[])
+        .map((p) => p.id)
+        .filter((id) => !builderMissionIds.includes(id) && !otherMissionIds.includes(id));
+
+      const missionIds = [...builderMissionIds, ...otherMissionIds, ...proposedIds];
+      if (!missionIds.length) return { sessions: [], bounded };
+      const missionKind = new Map<string, "build" | "mission">();
+      for (const id of builderMissionIds) missionKind.set(id, "build");
+      for (const id of otherMissionIds) missionKind.set(id, "mission");
+      for (const id of proposedIds) missionKind.set(id, "mission");
+
+      const [{ data: missions }, { data: changesets }, { data: pendings }, { data: edges }] =
+        await Promise.all([
+          db
+            .from("missions")
+            .select("id,title,goal,status,created_at,updated_at,archived_at,current_agent_id")
+            .in("id", missionIds),
+          db
+            .from("studio_changesets")
+            .select(
+              "id,product_id,mission_id,status,repo,branch,pr_url,pr_number,title,summary,created_at",
+            )
+            .in("mission_id", missionIds)
+            .neq("status", "abandoned")
+            .order("created_at", { ascending: false }),
+          db
+            .from("agent_approvals")
+            .select("id,mission_id")
+            .in("mission_id", missionIds)
+            .eq("status", "pending"),
+          db
+            .from("artifact_lineage")
+            .select("parent_id,child_id")
+            .eq("parent_kind", "prd")
+            .eq("child_kind", "mission")
+            .in("child_id", missionIds),
+        ]);
+
+      // Latest non-abandoned changeset per mission + file counts in one query.
+      const changesetByMission = new Map<string, StudioChangesetSummary>();
+      const changesetIds: string[] = [];
+      for (const cs of (changesets ?? []) as Array<
+        StudioChangesetSummary & { mission_id: string | null; created_at: string }
+      >) {
+        if (cs.mission_id && !changesetByMission.has(cs.mission_id)) {
+          changesetByMission.set(cs.mission_id, { ...cs, file_count: 0 });
+          changesetIds.push(cs.id);
+        }
+      }
+      if (changesetIds.length) {
+        const { data: changeRows } = await db
+          .from("studio_changes")
+          .select("changeset_id")
+          .in("changeset_id", changesetIds);
+        const counts = new Map<string, number>();
+        for (const r of (changeRows ?? []) as { changeset_id: string }[]) {
+          counts.set(r.changeset_id, (counts.get(r.changeset_id) ?? 0) + 1);
+        }
+        for (const cs of changesetByMission.values()) cs.file_count = counts.get(cs.id) ?? 0;
+      }
+
+      const pendingByMission = new Map<string, number>();
+      for (const p of (pendings ?? []) as { mission_id: string | null }[]) {
+        if (p.mission_id)
+          pendingByMission.set(p.mission_id, (pendingByMission.get(p.mission_id) ?? 0) + 1);
+      }
+
+      const prdByMission = new Map<string, string>();
+      for (const e of (edges ?? []) as { parent_id: string; child_id: string }[]) {
+        prdByMission.set(e.child_id, e.parent_id);
+      }
+      const prdIds = [...new Set(prdByMission.values())];
+      const { data: prds } = prdIds.length
+        ? await db.from("prds").select("id,title").in("id", prdIds)
+        : { data: [] as { id: string; title: string }[] };
+      const prdTitle = new Map(
+        (prds ?? []).map((p: { id: string; title: string }) => [p.id, p.title]),
+      );
+
+      // Cost: checkpoint trace → ai_events sum (legacy and new runs alike). Computed
+      // separately per agent-kind run set (never merged) so a 'build'-kind mission's
+      // cost/status can never absorb a different agent's contribution mid-mission.
+      async function costAndStatusByMission(
+        rows: { id: string; mission_id: string | null; status: string }[],
+      ): Promise<{ cost: Map<string, number>; status: Map<string, string> }> {
+        const traces = await traceByRun(
+          supabase,
+          rows.map((r) => r.id),
+        );
+        const traceList = [...new Set(traces.values())];
+        const costByTrace = new Map<string, number>();
+        if (traceList.length) {
+          const { data: events } = await db
+            .from("ai_events")
+            .select("trace_id,est_cost_usd")
+            .in("trace_id", traceList);
+          for (const ev of (events ?? []) as {
+            trace_id: string | null;
+            est_cost_usd: number | null;
+          }[]) {
+            if (ev.trace_id)
+              costByTrace.set(
+                ev.trace_id,
+                (costByTrace.get(ev.trace_id) ?? 0) + (ev.est_cost_usd ?? 0),
+              );
+          }
+        }
+        const cost = new Map<string, number>();
+        const status = new Map<string, string>();
+        for (const r of rows) {
+          if (!r.mission_id) continue;
+          if (!status.has(r.mission_id)) status.set(r.mission_id, r.status);
+          const trace = traces.get(r.id);
+          if (trace)
+            cost.set(r.mission_id, (cost.get(r.mission_id) ?? 0) + (costByTrace.get(trace) ?? 0));
+        }
+        return { cost, status };
+      }
+      const builder = await costAndStatusByMission(runRows);
+      const other = await costAndStatusByMission(otherRunRows);
+
+      /**
+       * The stage a mission that has NOT RUN YET is standing at.
+       *
+       * A `proposed` mission has zero agent_runs by design (the trigger tick's own
+       * HITL gate: nothing runs until a human launches it), so the station derived
+       * from runs above is null for every one of them. Dropping them would leave
+       * the board's strip reading "none" seven times while the list underneath is
+       * full, which looks broken and is not what the record says: the trigger
+       * pre-routes these, `sensing/trigger.ts` sets `current_agent_id` so the
+       * mission "arrives pre-routed to the right Sense agent".
+       *
+       * This is a FALLBACK, never an override. A mission that has run is at the
+       * stage it ran at, because where an agent actually went beats where it was
+       * once addressed.
+       *
+       * AND THE LAST RESORT, which is a derivation and not a guess. Cluster and
+       * missed-outcome proposals carry no assignment at all (documented in
+       * trigger.ts), and on a real workspace they are the majority: 17 of 19 runs
+       * on the founder's board resolved to nothing, so the seven-stage strip read
+       * "none" six times over a full list. That is not honesty, it is a broken
+       * instrument.
+       *
+       * A `proposed` mission stands at the FIRST stage of the spine, because it
+       * has not entered the lifecycle: nothing has been decided, planned,
+       * designed, built, shipped or learned. Position zero in an ordered spine is
+       * where a thing that has not moved is, which is a fact about the ordering
+       * rather than a claim about the work.
+       *
+       * Two things keep this from drifting into a lie. It reads the ORDER rather
+       * than hard-coding "sense", so re-ordering the spine moves it. And it is
+       * scoped to `status === 'proposed'` rather than to "station came back
+       * null", so it can never quietly absorb some other station-less case: an
+       * uncatalogued agent slug still resolves to null and is still counted
+       * nowhere. The trigger tick is the only writer of that status in the
+       * product (`api/public/hooks/trigger-tick.ts`), and every proposal it
+       * writes is sense-stage work.
+       *
+       * Deliberately NOT used: the stage event the tick records alongside, whose
+       * actor falls back to "strategist". That agent's station is `decide`, so
+       * taking it would file every unassigned cluster investigation one stage too
+       * far along. It names who logged the proposal, not who will do it.
+       */
+      const routedIds = [
+        ...new Set(
+          ((missions ?? []) as Array<{ id: string; current_agent_id: string | null }>)
+            .filter((m) => !stationByMission.get(m.id) && m.current_agent_id)
+            .map((m) => m.current_agent_id as string),
+        ),
+      ];
+      const slugByAgentId = new Map<string, string>();
+      if (routedIds.length) {
+        const { data: agentRows } = await db.from("agents").select("id,slug").in("id", routedIds);
+        for (const a of (agentRows ?? []) as { id: string; slug: string }[]) {
+          slugByAgentId.set(a.id, a.slug);
+        }
+      }
+
+      const sessions = (
+        (missions ?? []) as Array<{
+          id: string;
+          title: string;
+          goal: string;
+          status: string;
+          created_at: string;
+          updated_at: string;
+          archived_at: string | null;
+          current_agent_id: string | null;
+        }>
+      )
+        // SESSION-ORG: hide archived sessions unless explicitly requested.
+        .filter((m) => includeArchived || !m.archived_at)
+        .map((m) => {
+          const prdId = prdByMission.get(m.id) ?? null;
+          const kind = missionKind.get(m.id) ?? "mission";
+          const { cost: costByMission, status: runStatusByMission } =
+            kind === "build" ? builder : other;
+          return {
+            mission_id: m.id,
+            kind,
+            title: m.title,
+            status: m.status,
+            goal: m.goal,
+            created_at: m.created_at,
+            updated_at: m.updated_at,
+            run_status: runStatusByMission.get(m.id) ?? null,
+            prd: prdId ? { id: prdId, title: prdTitle.get(prdId) ?? "Spec" } : null,
+            changeset: changesetByMission.get(m.id) ?? null,
+            pending_approvals: pendingByMission.get(m.id) ?? 0,
+            cost_usd: Number((costByMission.get(m.id) ?? 0).toFixed(4)),
+            archived: !!m.archived_at,
+            station:
+              stationByMission.get(m.id) ??
+              (m.current_agent_id ? agentStation(slugByAgentId.get(m.current_agent_id)) : null) ??
+              (m.status === "proposed" ? AGENT_STATION_ORDER[0] : null),
+          };
+        })
+        .sort((a, b) => (a.updated_at < b.updated_at ? 1 : -1));
+
+      // PC-32 (super light, engine underneath): the underlying queries feeding
+      // this (missions/proposed-missions fetches) are uncapped, so defensively
+      // bound the assembled array we actually return. 200 stays generous
+      // relative to the route's own ~8-visible-plus-reveal-door cap.
+      return {
+        sessions: sessions.slice(0, ASSEMBLED_CAP),
+        // Either page filled, or the assembly itself was trimmed. Any of the
+        // three means the tally below is a floor rather than a total.
+        bounded: bounded || sessions.length > ASSEMBLED_CAP,
+      };
+    },
+  );
 
 /**
  * SESSION-ORG: soft-archive / un-archive a Build session — reversible, keeps

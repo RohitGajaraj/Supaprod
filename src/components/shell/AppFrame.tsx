@@ -128,6 +128,7 @@
  * ==================================================================
  */
 
+import { countIsAFloor } from "@/components/approvals/not-the-whole-queue";
 import { pollMs } from "@/components/shell/poll";
 import * as React from "react";
 import { approvalsQueueKey, missionsKey } from "@/lib/query-keys";
@@ -1231,6 +1232,14 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   const rows = React.useMemo(() => missions.data?.missions ?? [], [missions.data]);
   const running = React.useMemo(() => rows.filter((m) => WORKING.has(m.status)), [rows]);
   const gateCount = queue.data?.items.length ?? 0;
+  /* WHETHER THAT NUMBER IS A COUNT OR A FLOOR.
+     `getApprovalsQueue` bounds every one of ten families and degrades a family
+     that throws to an empty list, so `items.length` is what SURVIVED the read,
+     not what is waiting. S1 measured the gap: 116 specs pending a design gate
+     against a limit of 100, so sixteen calls that needed a person were on no
+     screen that lists them - including this rail, which is the number people
+     navigate by. */
+  const gatesArePartial = countIsAFloor(queue.data?.incomplete);
 
   /*
    * ── WHAT AGENTS MOVING INTO SETTINGS MUST NOT COST ──────────────────────
@@ -1498,9 +1507,13 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
          * the single most common substantive term at 562.8 per million, while
          * "call" in this sense barely registers and is ambiguous with a phone
          * call in the same breath as agents and runs. */
+        /* "At least" WHEN THE READ WAS BOUNDED, the same wording the board's
+           headline uses. Two surfaces state this count within one viewport and
+           a caveat on one of them only would read as the two disagreeing. */
+        const lead = gatesArePartial ? "At least " : "";
         return gateCount === 1
-          ? "1 decision is ready for you"
-          : `${gateCount} decisions are ready for you`;
+          ? `${lead}1 decision is ready for you`
+          : `${lead}${gateCount} decisions are ready for you`;
       }
       /* A walk with no mission yet lands here, said from its own row. The
        * station is named the way the transcript names one in passing, which is
@@ -1549,6 +1562,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     missions.isLoading,
     running.length,
     gateCount,
+    gatesArePartial,
     onTheBoard,
     workers,
     unnamedRuns,
@@ -2121,11 +2135,24 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                       <Icon />
                       <span className="sp-navlabel">{label}</span>
                       {count && n > 0 ? (
+                        /* THE PLUS IS A FLOOR, and this chip has no room for
+                           the word. `getApprovalsQueue` bounds every family, so
+                           a capped or partly-failed read makes this number what
+                           SURVIVED rather than what is waiting - and this is the
+                           number a person navigates by. "52+" is the compact
+                           form of the board headline's "At least 52"; the title
+                           carries the sentence for anyone who stops on it. */
                         <span
                           className="sp-navcount"
                           data-hot={count === "gates" ? "true" : "false"}
+                          title={
+                            count === "gates" && gatesArePartial
+                              ? "More are waiting than this counts"
+                              : undefined
+                          }
                         >
                           {n}
+                          {count === "gates" && gatesArePartial ? "+" : ""}
                         </span>
                       ) : null}
                       {/* THE HINT, on the door it opens.

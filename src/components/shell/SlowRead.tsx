@@ -28,9 +28,24 @@ export function SlowRead({
   children = "Reading.",
   afterMs,
   inline = false,
+  onRetry,
 }: {
   children?: string;
   afterMs?: number;
+  /**
+   * A WAY OUT, OFFERED ONLY ONCE THE WAIT HAS EARNED IT.
+   *
+   * Optional, and absent it nothing changes. Where it is given, a quiet control
+   * appears past `STUCK_READ_MS` beside the figure.
+   *
+   * IT DOES NOT CLAIM THE READ FAILED, because it has not. The sentence stays
+   * "Reading the run record." and the figure keeps counting; all that is added
+   * is something the reader can press. A read that is merely slow will still
+   * land, and a read that is wedged - a dropped connection that will never
+   * resolve - is the case this component was built for, where the only
+   * alternative today is reloading the page.
+   */
+  onRetry?: () => void;
   /**
    * FOR THE SLOTS THAT CANNOT TAKE A BLOCK, and there are real ones.
    *
@@ -48,17 +63,26 @@ export function SlowRead({
    */
   inline?: boolean;
 }) {
-  const { slow, startedAt } = useSlowRead(afterMs);
+  const { slow, stuck, startedAt } = useSlowRead(afterMs);
   /* Called unconditionally, as hooks must be, and told to stay asleep unless
      this branch will actually render the figure. `useElapsed`'s `active` flag
      exists so a caller does not pay for a 100ms interval it will never show. */
   const elapsed = useElapsed(startedAt, slow && inline);
+  const wayOut = onRetry && stuck;
 
   if (inline) {
     if (!slow) return <>{children}</>;
     return (
       <>
         {children} <span className="font-mrd-mono mrd-meta tabular-nums">{elapsed}</span>
+        {wayOut ? (
+          <>
+            {" "}
+            <button type="button" onClick={onRetry} className="mrd-meta underline">
+              Try again
+            </button>
+          </>
+        ) : null}
       </>
     );
   }
@@ -102,6 +126,16 @@ export function SlowRead({
       <p role="status" className="sr-only">
         {children} Still reading.
       </p>
+      {/* OUTSIDE THE `aria-hidden` WRAPPER, so the one control on this branch is
+          reachable by everyone. The live region above stays a statement; a
+          control inside it would be announced on every update. */}
+      {wayOut ? (
+        <p className="mt-mrd-3">
+          <button type="button" onClick={onRetry} className="mrd-meta underline">
+            Try again
+          </button>
+        </p>
+      ) : null}
     </>
   );
 }

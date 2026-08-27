@@ -102,34 +102,43 @@ describe("the order says where it stops meaning something", () => {
 
 describe("one group, one name", () => {
   /*
-   * The region stacked THREE names for one group inside ~100px:
+   * The board named its review queue three times inside ~170px:
    *
-   *   headline   "52 decisions are ready for your review."
-   *   region     "What needs you"
-   *   group head "READY FOR YOUR REVIEW  52"
+   *   "52 decisions are ready for your review."   headline
+   *   "What needs you"                            region title
+   *   "READY FOR YOUR REVIEW  52"                 group head
+   *   "All 52  Proposals 37  Gates 10 ..."        filter row
    *
-   * The phrase twice, the number three times. `AppFrame` states the rule this
-   * breaks - no third statement of one fact inside 100 pixels - and its own
-   * live line was fixed for the same defect on the same day.
+   * Four elements, three saying 52, two saying "ready for your review".
+   * `AppFrame` states the rule and its own live line was fixed for it the same
+   * day: no third statement of one fact inside 100 pixels.
    *
-   * A group NAME earns its line by separating this group from another one.
+   * TWO WRONG ANSWERS CAME FIRST and are worth recording, because both looked
+   * obviously correct in source. Drawing the head only when something was
+   * settled, then only when the region held another group, both treated this as
+   * a question about SIBLINGS. It is a question about the HEADLINE. The second
+   * was the worse of the two: the crew lanes almost always have rows, so it
+   * restored the duplication on every ordinary board while reading as a fix.
    */
-  it("draws the group head only when the settled trail gives it a sibling", () => {
-    expect(SRC).toContain(
-      "{settled.length > 0 ? (\n                      <FeedHead name={FEED_CALLS}",
-    );
+  it("does not head the calls group at all", () => {
+    expect(SRC).not.toContain("<FeedHead name={FEED_CALLS}");
   });
 
   it("KEEPS THE ACCESSIBLE NAME UNCONDITIONALLY", () => {
     // Dropping a visible duplicate must never cost the one reader who cannot
     // see the region title above it.
     expect(SRC).toContain("<section aria-label={FEED_CALLS}");
-    const at = SRC.indexOf("<section aria-label={FEED_CALLS}");
-    // The label is on the section itself, not inside the conditional below it.
-    expect(SRC.slice(at - 200, at)).not.toContain("settled.length > 0");
   });
 
   it("leaves the count reachable, on the filter row's All", () => {
     expect(SRC).toContain("All <Num>{items.length}</Num>");
+  });
+
+  it("leaves the sibling lanes their heads, which is what separates them", () => {
+    // The unlabelled group is the one the region title is about; the labelled
+    // ones are the departures from it.
+    expect(SRC).toContain("FEED_REPLY");
+    expect(SRC).toContain("FEED_LIVE");
+    expect(SRC).toContain("FEED_OPEN");
   });
 });

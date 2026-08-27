@@ -30,6 +30,8 @@
  * shape IS its value, so the surface has to be wide enough to keep it.
  */
 
+import { useWorkspace } from "@/hooks/use-workspace";
+import { studioSessionsKey } from "@/lib/query-keys";
 import { pollMs } from "@/components/shell/poll";
 import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
@@ -48,6 +50,11 @@ export function BoardPanel({ open, onClose }: { open: boolean; onClose: () => vo
   const navigate = useNavigate();
   const fList = useServerFn(listStudioSessions);
   const fMissions = useServerFn(listMissions);
+  /* THE SAME WORKSPACE THE STRIP AND THE BOARD READ. This panel shares their
+     cache entry, so it has to ask the same question they do or the three would
+     take turns overwriting one entry with three different answers. */
+  const { activeWorkspace } = useWorkspace();
+  const workspaceId = activeWorkspace?.id ?? null;
   const [showAll, setShowAll] = React.useState(false);
 
   // THE BOARD'S OWN KEYS, so this shares one fetch with /runs and with the
@@ -55,8 +62,8 @@ export function BoardPanel({ open, onClose }: { open: boolean; onClose: () => vo
   // `enabled: open` keeps a closed panel free: a control that is on every page
   // must cost nothing until it is used.
   const sessions = useQuery({
-    queryKey: ["studio-sessions", false],
-    queryFn: () => fList({ data: { includeArchived: false } }),
+    queryKey: studioSessionsKey(workspaceId),
+    queryFn: () => fList({ data: { includeArchived: false, workspaceId } }),
     enabled: open,
     /* `false` here means the panel is CLOSED, which is not a failure and not a
        backoff - there is nothing on screen to keep fresh. While it is open,

@@ -1,5 +1,6 @@
 import { describe, it, expect } from "bun:test";
-import { originLine, runStatus } from "./run-status";
+import { runStatus } from "./run-status";
+import { originLine } from "@/lib/track-origin";
 import type { Track } from "@/lib/spine/track.functions";
 
 /**

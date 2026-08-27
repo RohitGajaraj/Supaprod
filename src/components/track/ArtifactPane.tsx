@@ -22,6 +22,7 @@
 import * as React from "react";
 import { failureLine } from "@/lib/error-copy";
 import { humanizeText } from "@/lib/ai/humanize";
+import { panelSaysItFiledNothing } from "@/components/track/who-reports-an-empty-station";
 import { plainProse } from "@/lib/plain-prose";
 /*
  * EVERY plain-text `Prose` on this pane runs agent-written text through
@@ -1828,6 +1829,7 @@ function StationPanel({
   decisions,
   everDriven,
   hold,
+  holdReason,
   now,
   trackId,
 }: {
@@ -1837,6 +1839,12 @@ function StationPanel({
   decisions?: ArtifactView[];
   everDriven: boolean;
   hold: string | null;
+  /**
+   * The RAW `last_hold`, never the prose. `panelSaysItFiledNothing` reads it to
+   * decide whether this panel's own empty sentence would repeat, or contradict,
+   * the hold line rendered directly beneath it.
+   */
+  holdReason: string | null;
   now: number;
   /** Routes the Discover cards' writes back to this pane's cache entries. */
   trackId: string;
@@ -1918,7 +1926,15 @@ function StationPanel({
     const noun = wordFor(STATION_ARTIFACT[stop.station].kind, 1);
     return (
       <div className="flex flex-col gap-mrd-3">
-        <RecordSpeaks>{`${stop.label} ran and filed no ${noun}.`}</RecordSpeaks>
+        {/*
+          WHO REPORTS AN EMPTY STATION, when both lines can. Three hold reasons
+          already say what this station filed, one of them saying the opposite
+          of this sentence. See `who-reports-an-empty-station.ts` for the twelve
+          tracks it was doubling on and why the reason is read raw.
+        */}
+        {panelSaysItFiledNothing(holdReason) ? (
+          <RecordSpeaks>{`${stop.label} ran and filed no ${noun}.`}</RecordSpeaks>
+        ) : null}
         {/*
           NOT A `Row` AT ALL, AND THE CLIP WAS ONLY HALF OF IT.
           `tight` truncated this sentence, and `tight`'s contract is a row whose
@@ -2199,6 +2215,7 @@ export function ArtifactPane({
             decisions={decisionsForGrading(bodies.data?.stops)}
             everDriven={track.drivenAt !== null}
             hold={track.hold}
+            holdReason={track.holdReason ?? null}
             now={now}
             trackId={trackId}
           />

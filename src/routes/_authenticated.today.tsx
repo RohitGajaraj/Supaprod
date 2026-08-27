@@ -50,7 +50,16 @@ import {
   repeatLine,
   subjectKey,
 } from "@/components/today/duplicate-work";
+import { countIsAFloor, notTheWholeQueue } from "@/components/approvals/not-the-whole-queue";
 import { SlowRead } from "@/components/shell/SlowRead";
+import { stateSentence } from "@/components/today/state-sentence";
+import {
+  gradedLine,
+  ungradedAlone,
+  ungradedLine,
+  worthDrawing,
+} from "@/components/today/forecast-line";
+import { listDueForecastsHere } from "@/lib/forecast.functions";
 import { undatedNote } from "@/components/today/undated-order";
 import {
   bucketEmptyLine,
@@ -77,7 +86,12 @@ import { cancelMission, listMissions, type MissionListRow } from "@/lib/missions
 import { listLearnings } from "@/lib/outcome.functions";
 import { listTracks } from "@/lib/spine/track.functions";
 import { listStudioSessions } from "@/lib/studio.functions";
-import { approvalsQueueKey, missionsKey, invalidateShellReads } from "@/lib/query-keys";
+import {
+  approvalsQueueKey,
+  missionsKey,
+  studioSessionsKey,
+  invalidateShellReads,
+} from "@/lib/query-keys";
 import { stillWaiting } from "@/lib/query-state";
 import "@/styles/today.css";
 
@@ -332,115 +346,6 @@ type Settled = { verb: string; consequence: React.ReactNode; at: string; failed?
  * one of those decisions, and it is not — the stuck thing is a RUN. The short
  * form is better English and a false sentence, so it loses.
  */
-/**
- * `waiting` JOINED 2026-08-27, AND IT IS NOT A SYNONYM FOR `stuck`.
- *
- * `stuck` now counts only work that STOPPED: failed, halted, cancelled,
- * blocked. `waiting` counts `proposed` missions, which an ambient trigger
- * raised and nobody has launched. Nothing went wrong with those, and this
- * workspace holds 89 of them, so folding them into "runs are stuck" would tell
- * a person 89 things had broken when none of them had started.
- *
- * PRECEDENCE, and it is the order a reader needs. A failure outranks a queue:
- * something that broke wants attention before something that has not begun.
- * `shipped` stays last for the reason it always was, as the good news that only
- * gets the line when nothing else claims it.
- */
-function stateSentence(n: {
-  ready: number;
-  /**
-   * NULL MEANS THE RUN RECORD HAS NOT ANSWERED, and it is not the same as zero.
-   *
-   * This file's own rule for the headline is that "every read the sentence
-   * counts is answered for before it counts", because these numbers "cannot
-   * tell a zero it read from a zero it never got". That rule was enforced by
-   * refusing to draw the headline at all until BOTH reads landed, which is
-   * correct and costs more than it needs to: measured on the running board
-   * 2026-08-27, the review queue answered by 15s and the run record by 22s, so
-   * for seven seconds the page showed fifty-two review cards under a heading
-   * that said only "Today".
-   *
-   * Admitting null keeps the rule and drops the cost. The clause a read pays
-   * for is omitted while that read is outstanding, so nothing is ever counted
-   * from a hole, and the half the surface DOES know says itself as soon as it
-   * knows it.
-   */
-  stuck: number | null;
-  waiting: number | null;
-  shipped: number | null;
-}): React.ReactNode {
-  const first =
-    n.ready === 0 ? (
-      "Nothing is ready for your review."
-    ) : n.ready === 1 ? (
-      <>
-        <Num>1</Num> decision is ready for your review.
-      </>
-    ) : (
-      <>
-        <Num>{n.ready}</Num> decisions are ready for your review.
-      </>
-    );
-
-  /* Silent, not zero. Every branch below reads a number the run record owns,
-     and the final fallback is the sentence " Nothing is stuck." — which is
-     exactly the false claim this would make from an unanswered read. */
-  const second =
-    n.stuck === null || n.waiting === null || n.shipped === null ? null : n.stuck > 0 ? (
-      n.stuck === 1 ? (
-        <>
-          {" "}
-          <Num>1</Num> run is stuck.
-        </>
-      ) : (
-        <>
-          {" "}
-          <Num>{n.stuck}</Num> runs are stuck.
-        </>
-      )
-    ) : n.waiting > 0 && n.ready === 0 ? (
-      n.waiting === 1 ? (
-        <>
-          {" "}
-          <Num>1</Num> run is waiting for you to launch it.
-        </>
-      ) : (
-        <>
-          {" "}
-          <Num>{n.waiting}</Num> runs are waiting for you to launch them.
-        </>
-      )
-    ) : n.ready > 0 ? null : n.shipped > 0 ? (
-      /* THE WINDOW LIVES ON THIS CLAUSE, because this is the only clause it is
-         true of. `shipped` is filtered through `withinLastDay`; `ready`,
-         `stuck` and `waiting` are not - they read the whole outstanding set,
-         and blocked work does not age out. The page used to state the window
-         ONCE, under the headline, where it scoped all four. Three quarters of
-         its own sentence were outside it.
-         It costs five words and only on a board that is otherwise clear, since
-         this branch is reached only when nothing is stuck, waiting or ready. */
-      n.shipped === 1 ? (
-        <>
-          {" "}
-          <Num>1</Num> run shipped in the last 24 hours.
-        </>
-      ) : (
-        <>
-          {" "}
-          <Num>{n.shipped}</Num> runs shipped in the last 24 hours.
-        </>
-      )
-    ) : (
-      " Nothing is stuck."
-    );
-
-  return (
-    <>
-      {first}
-      {second}
-    </>
-  );
-}
 
 function CriticBrief({
   result,
@@ -740,8 +645,8 @@ function Today() {
      count and the rows below reclassify by it. */
   const fetchSessions = useServerFn(listStudioSessions);
   const sessions = useQuery({
-    queryKey: ["studio-sessions", false],
-    queryFn: () => fListSessions({ data: { includeArchived: false } }),
+    queryKey: studioSessionsKey(workspaceId),
+    queryFn: () => fListSessions({ data: { includeArchived: false, workspaceId } }),
   });
 
   /* Both memoised on the QUERY's data rather than derived inline. A bare
@@ -749,6 +654,14 @@ function Today() {
      recompute on every render and `useSelection` would be handed a fresh id
      array each time — which is the one input it must be able to compare. */
   const items = React.useMemo(() => queue.data?.items ?? [], [queue.data]);
+  /* WHAT THE QUEUE KNOWS IT DID NOT SHOW. `getApprovalsQueue` bounds every one
+     of ten families and degrades a family that throws to an empty list, so a
+     partial read arrives looking exactly like a complete one. Until this field
+     existed there was no signal in the payload at all and no guard on this
+     surface could have been written - which is why this board waited for it
+     rather than inferring it. */
+  const incomplete = queue.data?.incomplete;
+  const queueIsPartial = countIsAFloor(incomplete);
   const rows: MissionListRow[] = React.useMemo(
     () => missions.data?.missions ?? [],
     [missions.data],
@@ -854,12 +767,37 @@ function Today() {
   // The track record read. CHARACTER-IDENTICAL KEY to Brain's, so the two
   // surfaces are two consumers of ONE request and the tab opens on a cache hit.
   const fCalibration = useServerFn(getForecastCalibration);
+  const fDueForecasts = useServerFn(listDueForecastsHere);
+  /* A DIFFERENT KEY BECAUSE IT IS A DIFFERENT QUESTION. The desk asks "every
+     call anywhere that needs settling" and this board asks about the workspace
+     it is showing. Sharing `["forecast-due"]` with the desk would have made one
+     cache entry answer both, so whichever mounted first would decide what the
+     other saw. The station strip reads this same scoped key, so the two
+     workspace-scoped surfaces still cost one fetch between them. */
+  const dueForecasts = useQuery({
+    queryKey: ["forecast-due", "workspace"],
+    queryFn: () => fDueForecasts(),
+    staleTime: 60_000,
+  });
   const calibrationQ = useQuery({
     queryKey: ["forecast-calibration", workspaceId],
     queryFn: () => fCalibration(),
     enabled: Boolean(workspaceId),
   });
   const calibration = calibrationQ.data;
+  /* THE TWO HALVES OF THE TRACK RECORD, side by side and each null until its
+     own read answers. `ungraded` takes `total`, NEVER `due.length`:
+     `listDueForecasts` bounds the array at `DUE_FORECAST_PAGE` and returns the
+     population beside it, and S1 shipped the page length on another surface and
+     understated by three the moment it landed. */
+  const standing = React.useMemo(
+    () => ({
+      resolved: calibration?.prediction.resolved ?? null,
+      hits: calibration?.prediction.hits ?? null,
+      ungraded: dueForecasts.data?.total ?? null,
+    }),
+    [calibration, dueForecasts.data],
+  );
 
   /* THE BRAKE PEDAL A RUNNING ROW CAN HONESTLY OFFER. `cancelMission` stops
      advancement, cancels the run's in-flight steps, releases held build claims
@@ -1786,6 +1724,17 @@ function Today() {
     !loading &&
     !queue.isError &&
     !missions.isError &&
+    /* A PARTIAL READ IS NOT A QUIET MORNING, and this is the case `isError`
+       cannot see. `getApprovalsQueue` degrades a family that THROWS to an empty
+       list so that one refusal cannot blank the other nine - which is right for
+       the queue and fatal for this sentence, because the top-level read then
+       succeeds, `isError` is false, `items` is empty, and every other condition
+       here holds. The board would print "Nothing needs you right now." over a
+       queue that failed to load.
+       There was no signal in the payload until `incomplete` shipped, so this
+       guard could not be written and was deliberately left unwritten rather
+       than guessed at. */
+    !queueIsPartial &&
     items.length === 0 &&
     shipped.length === 0 &&
     !anythingBlocked &&
@@ -1861,12 +1810,14 @@ function Today() {
     if (quietMorning) return "Nothing needs you right now.";
     return stateSentence({
       ready: items.length,
+      partial: queueIsPartial,
       stuck: recordAnswered ? stoppedAll.length : null,
       waiting: recordAnswered ? proposedAll.length : null,
       shipped: recordAnswered ? shipped.length : null,
     });
   }, [
     quietMorning,
+    queueIsPartial,
     queueAnswered,
     recordAnswered,
     queue.isError,
@@ -2019,9 +1970,21 @@ function Today() {
         </div>
 
         {/* THE TRACK RECORD LINE. Insight, not a boxed count: the page states
-            what came true and opens the record, and only once a forecast has
-            actually been graded - a zero never renders as a finding. */}
-        {calibration?.prediction.resolved ? (
+            what came true and opens the record. "A zero never renders as a
+            finding" still holds - `gradedLine` returns null on 0 resolved,
+            because 0 of 0 is not a track record.
+
+            WHAT CHANGED IS THE GUARD AROUND IT. This band used to require a
+            graded forecast to draw at all, so a workspace that had made
+            fifteen forecasts and graded NONE saw no forecast line whatsoever.
+            The product's own claim is that the moat is the forecast captured at
+            decision time; a forecast nobody grades never becomes that, and the
+            surface went quiet at exactly the moment it had something to say.
+
+            And when both facts are true, the record stops hiding its
+            denominator: "1 of 2" over fifteen ungraded is a record built from
+            two of seventeen, which is a different claim. */}
+        {worthDrawing(standing) ? (
           <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
             <WorkGlyph kind="forecast" />
             <RecordSpeaks
@@ -2031,8 +1994,17 @@ function Today() {
                 </Door>
               }
             >
-              Your forecasts came true {calibration.prediction.hits} of{" "}
-              {calibration.prediction.resolved} times.
+              {gradedLine(standing) ? (
+                <>
+                  {gradedLine(standing)}
+                  {ungradedLine(standing) ? ` ${ungradedLine(standing)}` : null}
+                </>
+              ) : (
+                /* ALONE, THE SENTENCE LOSES "more". There is no first sentence
+                   for it to refer back to, and "15 more" with nothing before it
+                   is a lie about a line that is not on the screen. */
+                ungradedAlone(standing)
+              )}
             </RecordSpeaks>
           </div>
         ) : null}
@@ -2132,8 +2104,15 @@ function Today() {
                 send-back and the a/d/z keys live in DecisionQueue and were not
                 moved. Its own controls spell out the review act, so this section
                 carries no second Review label; the heading names the group. */}
+            {/* THE SAME `refetch` THE FAILURE BRANCH BELOW ALREADY USES. `SlowRead`
+                offers it only past 15 seconds and never says the read failed,
+                because it has not - the sentence and the ticking figure stay,
+                and all that appears is something to press. Measured on this
+                board 2026-08-27: "Reading the run record. 22.4s" with no
+                control anywhere near it, so a reader who could see exactly how
+                long they had waited had no move except reloading the page. */}
             {stillWaiting(queue) ? (
-              <SlowRead>Reading what needs you.</SlowRead>
+              <SlowRead onRetry={() => void queue.refetch()}>Reading what needs you.</SlowRead>
             ) : queue.isError ? (
               <ReadFailedLine error={queue.error} onRetry={() => void queue.refetch()}>
                 Your decisions are unchanged and this could not read them. Retry before you treat
@@ -2150,37 +2129,46 @@ function Today() {
                     from the state it is the exit for. */}
                 {items.length > 0 ? (
                   <section aria-label={FEED_CALLS} className="flex flex-col">
-                    {/* THE HEAD IS DRAWN ONLY WHEN IT HAS A SIBLING TO SEPARATE
-                        IT FROM, which is the settled trail below.
+                    {/* NO HEAD ON THIS GROUP, AND IT TOOK ME THREE GOES TO GET
+                        HERE, so the reasoning is worth more than the diff.
 
-                        Screenshotted on the running board 2026-08-27, signed
-                        in, this region stacked THREE names for one group inside
-                        about a hundred pixels:
+                        The head read "READY FOR YOUR REVIEW  52". Screenshotted
+                        on the running board 2026-08-27, signed in, the reader
+                        met this, in this order, inside about 170px:
 
-                          headline  "52 decisions are ready for your review."
-                          region    "What needs you"
-                          this head "READY FOR YOUR REVIEW  52"
+                          "52 decisions are ready for your review."   headline
+                          "What needs you"                            region
+                          "READY FOR YOUR REVIEW  52"                 here
+                          "All 52   Proposals 37   Gates 10 ..."      filter
 
-                        The phrase appears twice and the number three times.
-                        `AppFrame` states the rule this breaks - the third
-                        statement of one fact inside 100 pixels - and the same
-                        defect was fixed in its live line the same day.
+                        Four elements, three of them saying 52, two of them
+                        saying "ready for your review". `AppFrame` states the
+                        rule this breaks and its own live line was fixed for it
+                        the same day: no third statement of one fact inside 100
+                        pixels.
 
-                        A group name earns its line by distinguishing this group
-                        from another one. With nothing settled yet there is no
-                        other group, so the region title names it alone and the
-                        filter row below already carries the count on `All`.
-                        R-20 section 8: a region either carries a fact the person
-                        came for, or it goes.
+                        I first removed the head only when nothing was settled,
+                        then only when the region held no other group. Both were
+                        wrong in the same way - they treated this as a question
+                        about SIBLINGS when it is a question about the HEADLINE.
+                        The second version was worse than the first: it restored
+                        the head on any ordinary board, because the crew lanes
+                        below almost always have rows.
+
+                        WHAT ACTUALLY NAMES THIS GROUP, now that the head is
+                        gone. The region title above it says whose move it is.
+                        The filter row below carries the count on `All`. And the
+                        sibling groups - "Waiting on you", "Running", "Finished"
+                        - keep their own heads, which is what separates them
+                        from this one: the unlabelled group is the one the
+                        region title is about, and the labelled ones are the
+                        departures from it.
 
                         THE ACCESSIBLE NAME DOES NOT MOVE. `aria-label` on the
-                        section above is unconditional, so the group keeps its
-                        name for a screen reader whether or not the heading is
-                        painted. Dropping a visible duplicate must never cost the
-                        one reader who cannot see the region title. */}
-                    {settled.length > 0 ? (
-                      <FeedHead name={FEED_CALLS} count={items.length} />
-                    ) : null}
+                        section is unconditional, so the group keeps its name for
+                        a reader who cannot see the region title above it.
+                        Dropping a visible duplicate must never cost the one
+                        person who was relying on it. */}
                     <div className="mt-mrd-3">
                       {/* TEXT TABS, NOT A FACET EXPLOSION, which is the taste law
                           `approvals-queue.functions.ts` states over this very vocabulary. The
@@ -2257,6 +2245,28 @@ function Today() {
                           last, and reads as the newest thing here. It draws
                           nothing today - every family carries a timestamp - and
                           a sort is exactly where that stops being true. */}
+                      {/* WHY THIS LIST IS NOT EVERYTHING, when it is not. Drawn
+                          ABOVE the undated note on purpose: "part of your queue
+                          did not load" changes whether you trust the screen at
+                          all, and "some of these carry no start time" only
+                          changes how you read the order.
+
+                          The sentence is `notTheWholeQueue`'s, not mine, and
+                          that is the point - three surfaces show this queue and
+                          two spellings of one caveat is how a person gets two
+                          answers about one queue. It names no family, which is
+                          also deliberate: "critic'd opportunities" is right in a
+                          log and, in front of a person, invites them to work out
+                          which of their calls is missing. That is a puzzle, not
+                          an answer. */}
+                      {notTheWholeQueue(incomplete) ? (
+                        <p
+                          role="status"
+                          className="mt-mrd-3 max-w-[var(--mrd-measure)] text-mrd-label leading-mrd-prose text-mrd-mute"
+                        >
+                          {notTheWholeQueue(incomplete)}
+                        </p>
+                      ) : null}
                       {undatedLine ? (
                         <p className="mt-mrd-3 max-w-[var(--mrd-measure)] text-mrd-label leading-mrd-prose text-mrd-faint">
                           {undatedLine}
@@ -2311,21 +2321,25 @@ function Today() {
             ) : null}
 
             {stillWaiting(missions) ? (
-              <SlowRead>Reading the run record.</SlowRead>
+              <SlowRead onRetry={() => void missions.refetch()}>Reading the run record.</SlowRead>
             ) : missions.isError ? (
               <ReadFailedLine error={missions.error} onRetry={() => void missions.refetch()}>
                 The run record did not load, so this cannot say what went live, what stopped or what
                 is still going.
               </ReadFailedLine>
             ) : stillWaiting(tracks) ? (
-              <SlowRead>Reading the work the loop is driving.</SlowRead>
+              <SlowRead onRetry={() => void tracks.refetch()}>
+                Reading the work the loop is driving.
+              </SlowRead>
             ) : tracks.isError ? (
               <ReadFailedLine error={tracks.error} onRetry={() => void tracks.refetch()}>
                 The loop's work could not be read, so something started from a sentence may be
                 missing here. Retry before you treat the morning as clear.
               </ReadFailedLine>
             ) : stillWaiting(sessions) ? (
-              <SlowRead>Reading which runs need your answer.</SlowRead>
+              <SlowRead onRetry={() => void sessions.refetch()}>
+                Reading which runs need your answer.
+              </SlowRead>
             ) : sessions.isError ? (
               <ReadFailedLine error={sessions.error} onRetry={() => void sessions.refetch()}>
                 The gate check did not load, so a run waiting on you may be sitting in Running.
@@ -2663,7 +2677,7 @@ function Today() {
         <PushedInsights />
 
         {stillWaiting(learnings) ? (
-          <SlowRead>Reading what it learned.</SlowRead>
+          <SlowRead onRetry={() => void learnings.refetch()}>Reading what it learned.</SlowRead>
         ) : learnings.isError ? (
           /* SAME REGION, SAME NAME, WHICHEVER WAY THE READ WENT. The failed arm
              called itself "Latest learning" and the loaded arm "It learned one

@@ -20,6 +20,13 @@ import { SPEC_SECTION_ORDER } from "@/lib/spec-sections";
 import { embedOne } from "@/lib/rag/embed.server";
 import { withIdempotency } from "@/lib/runtime/idempotency.server";
 import { callModel } from "@/lib/ai/runtime.server";
+import { compileContractOraclesCore } from "@/lib/discovery.functions";
+import {
+  CONTRACT_FROM_SPEC_SYSTEM,
+  contractFromSpecUserMessage,
+  contractStrings,
+  type ContractDraftJson,
+} from "@/lib/ai/contract-prompt";
 import { extractArrayField, wrapBareArrayField } from "@/lib/ai/json-shape";
 import { namesOwnArtifact, ownArtifactRefusal } from "@/lib/ai/tools/own-artifact-source";
 /* The human path's forecast validation, reused rather than re-derived. Two copies
@@ -4171,11 +4178,100 @@ const prdDraft = def({
         "prd.draft requires a workspace: neither the bet nor this run carried one. `prds.workspace_id` is NOT NULL and its default only fills for a signed-in browser request, so the insert would be refused with a constraint error nobody can act on. Dispatch this run with a workspace.",
       );
     }
+    /*
+     * ── F-136: THE AGENT DOOR NEVER WROTE A CONTRACT ────────────────────────
+     *
+     * S1 measured it: **117 of 119 specs carry an empty `contract`.** Not null,
+     * `{}`. The two that are filled carry the entire designed shape, so nothing
+     * about the feature is unfinished — only one of the two doors ever used it.
+     *
+     * `generatePrd` extracts a contract from the body it just wrote. This tool,
+     * which is the door every AGENT comes through, inserted eight columns and no
+     * contract, so the default `{}` landed on every spec the loop has produced.
+     *
+     * IT IS THE PRODUCT'S CENTRAL CLAIM. The contract is "the part Build is
+     * measured against and Ship reads", so empty means Build was measured
+     * against nothing on almost every spec here. `spec-gate.ts` gate 9 refuses a
+     * spec whose success metrics nothing can check, and without this it would
+     * have refused every agent-written spec for a reason about our own plumbing.
+     *
+     * THE INFORMATION WAS NEVER MISSING, ONLY UNSTRUCTURED: of those 117, all
+     * 117 have a body and 94 set out success metrics or acceptance criteria
+     * under a heading. Define was writing the contract in prose and nothing
+     * lifted it, which is why the fix is an extraction rather than a feature.
+     *
+     * ONE EXTRA MODEL CALL AT DEFINE, deliberately paid. It is a small flash
+     * call on text already in hand, against a spec that can otherwise be built
+     * and shipped and never judged. `generatePrd` has paid it since Mission 3.3.
+     *
+     * FAIL-SOFT: a failed extraction leaves the contract absent rather than
+     * losing the spec. The body is written and real by then, and refusing to
+     * file it because the summary of it did not come back would throw away the
+     * work to protect the index of it.
+     */
+    let contract: Record<string, unknown> | null = null;
+    try {
+      const cres = await callModel(supabase, userId, {
+        surface: "prd",
+        surface_ref: "contract_from_prd_draft",
+        model: DRAFT_MODEL,
+        workspaceId: specWorkspaceId,
+        responseFormat: "json_object",
+        messages: [
+          { role: "system", content: CONTRACT_FROM_SPEC_SYSTEM },
+          { role: "user", content: contractFromSpecUserMessage(a.title ?? derived, body) },
+        ],
+      });
+      const cj = (cres.json ?? {}) as ContractDraftJson;
+      const nowIso = new Date().toISOString();
+      const clause = (text: string) => ({
+        id: crypto.randomUUID(),
+        text,
+        status: "standing" as const,
+        superseded_by: null,
+        // Every clause starts unclassified; `compileContractOraclesCore` below
+        // is what fills these, and F-117's gate 9 reads them.
+        oracle_kind: null,
+        oracle_ref: null,
+        created_at: nowIso,
+      });
+      const metrics = contractStrings(cj.success_metrics, 8);
+      const nonGoals = contractStrings(cj.non_goals, 6);
+      const intent = typeof cj.intent === "string" ? cj.intent.trim().slice(0, 2000) : "";
+      // Only file a contract that says something. An `intent`-less shell with no
+      // metrics is the `{}` this fix exists to stop, wearing more keys.
+      if (intent || metrics.length > 0) {
+        const budget =
+          typeof cj.budget_estimate === "string" ? cj.budget_estimate.trim().slice(0, 200) : null;
+        const blast =
+          typeof cj.blast_radius === "string" ? cj.blast_radius.trim().slice(0, 500) : null;
+        contract = {
+          version: 1,
+          intent,
+          evidence_links: [],
+          success_metrics: metrics.map(clause),
+          non_goals: nonGoals.map(clause),
+          budget: budget || blast ? { estimate: budget, blast_radius: blast } : null,
+          ambiguity_policy:
+            typeof cj.ambiguity_policy === "string"
+              ? cj.ambiguity_policy.trim().slice(0, 1000)
+              : null,
+          drafted_by: "agent",
+          drafted_at: nowIso,
+        };
+      }
+    } catch (e) {
+      console.error(
+        `prd.draft: contract extraction failed, spec filed without one: ${e instanceof Error ? e.message : String(e)}`,
+      );
+    }
+
     const { data: prd, error: pErr } = await supabase
       .from("prds")
       .insert({
         user_id: userId,
         workspace_id: specWorkspaceId,
+        ...(contract ? { contract, contract_migrated_at: new Date().toISOString() } : {}),
         product_id: opp?.product_id ?? null,
         opportunity_id: opp?.id ?? null,
         title: (a.title ?? derived).slice(0, 280),
@@ -4201,6 +4297,30 @@ const prdDraft = def({
       .select("id,title,status,workspace_id")
       .single();
     if (pErr) throw new Error(pErr.message);
+    /*
+     * F-136. The oracles, on the door the loop actually uses.
+     *
+     * Every clause is written `oracle_kind: null` and this is what fills it, and
+     * `spec-gate.ts` gate 9 refuses a spec whose success metrics nothing can
+     * check. F-117 wired this into `generatePrd` on the belief that was the
+     * agent path; it is the human one, so until now no agent-written spec has
+     * ever had a compiled oracle.
+     *
+     * Fire-and-forget for the same reason as the other call site — it makes
+     * model calls and a spec draft must not wait on an eval suite — but the
+     * failure is LOGGED. Nobody is looking at this one while it runs, and a
+     * silent miscompile presents as a spec that simply did not deserve to clear.
+     */
+    if (contract) {
+      void compileContractOraclesCore(supabase, userId, prd.id, {
+        guardConcurrentEdit: true,
+      }).catch((e: unknown) => {
+        console.error(
+          `oracle compile failed for prd.draft spec ${prd.id}: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      });
+    }
+
     // SEAM-1: spec (PRD) creation event, attributed to the acting agent.
     await recordStageEvent(supabase, {
       entityType: "spec",

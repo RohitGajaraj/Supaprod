@@ -1281,7 +1281,29 @@ export function decideDrive(input: {
 export const HOLD_LINE: Record<HoldReason, string> = {
   paused: "Everything is paused for this workspace, so nothing ran.",
   "waiting-on-a-person": "A call is in front of you. The work continues once it is decided.",
-  "no-agent": "No agent serves this station yet, so this one needs a person.",
+  /*
+   * ── F-134: THIS WAS FALSE IN THE ONLY STATE THAT REACHES IT (S1) ─────────
+   *
+   * It read "No agent serves this station yet". `no-agent` has two sources:
+   * `leadAgentFor(station) === null`, and an `agent-disabled` halt via
+   * `HALT_HOLD`. S1 ran the first over all seven stations and **every one has a
+   * lead** (sense discovery-scout, decide strategist, define prd-writer, design
+   * ux-architect, build builder, ship release-verifier, learn data-analyst), so
+   * that branch cannot fire and `agent-disabled` is the ONLY way a reader
+   * reaches this sentence. 27 of 283 agents are switched off right now.
+   *
+   * So the line told a person nobody covers the step, when somebody does and was
+   * switched off. Those need different actions: one is hiring, the other is a
+   * toggle.
+   *
+   * WRITTEN TRUE OF BOTH, rather than rewritten for the live one. The null
+   * branch is unreachable today and a station losing its lead tomorrow must not
+   * silently make this a lie again. The SPECIFIC sentence now arrives separately
+   * in `last_hold_because` — "<slug> is switched off, so this run was cancelled
+   * instead of resumed" — which is the kind-for-the-list, sentence-for-the-person
+   * split F-127 exists for.
+   */
+  "no-agent": "No agent is picking this step up, so it needs you.",
   done: "The route is finished. This work has been graded.",
   "produced-nothing":
     "This station ran but filed nothing, so there is nothing to hand to the next one. It will try again.",
@@ -1319,8 +1341,27 @@ export const HOLD_LINE: Record<HoldReason, string> = {
     "This station needs something that a waived station was the one to file, so nothing is going to file it. Put that station back on the route, or file it yourself.",
   "station-cannot-finish":
     "This station has everything it needs on the record and still finishes with nothing, several times over. That is the station rather than the work, so it needs your eyes.",
-  "corrections-spent":
-    "This work has been sent back for the same fix as often as it is allowed and is still short of it. Nothing further will be spent on it until you look.",
+  /*
+   * ── EFFECT HERE, CAUSE AND DOOR IN THE WAY OUT (F-137) ───────────────────
+   *
+   * This read "This work has been sent back for the same fix as often as it is
+   * allowed and is still short of it. Nothing further will be spent on it until
+   * you look." — and `wayOut`'s diagnosis for the same hold opens "It has been
+   * sent back for this same fix as often as it is allowed." **The same clause,
+   * a few lines apart, on one screen.**
+   *
+   * S2's rule, after removing a count that appeared twice: two sentences
+   * AGREEING at that distance are worse than two contradicting. A contradiction
+   * tells a reader something is wrong; agreement leaves them unable to tell
+   * which line is the surface's own claim, and no reason to look for the
+   * problem.
+   *
+   * So this keeps only the EFFECT, which is the thing a hold line is for, and
+   * the way out keeps the cause and the door. Found by the structural guard in
+   * `two-lines-on-one-screen-must-not-restate-each-other.test.ts` on its first
+   * run, which is the best validation an instrument can have.
+   */
+  "corrections-spent": "Nothing further will be spent on this until you look.",
   "given-up":
     "This station was corrected, came back, and still cannot finish with everything it needs on the record. Nothing more will be tried on it automatically.",
 };
