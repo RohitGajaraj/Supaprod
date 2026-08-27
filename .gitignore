@@ -231,6 +231,7 @@ design-reference/Latest Design System - v3 /
 /DESIGN-LANE-STATUS.md
 /POST-LAUNCH.md
 
+
 # Lovable's plan-mode scratch. Calling `send_message` with plan_mode writes a
 # plan file here, named with a date, and docs-doctor hard-FAILS on a dated
 # filename. One was committed on 2026-08-10 (.lovable/plan/v3-v1-as-12-...md)

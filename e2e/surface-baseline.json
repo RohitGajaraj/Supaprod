@@ -1,0 +1,183 @@
+{
+  "_readme": "S4 baseline, measured 2026-08-27 against a dead backend. Per surface: failure sentences a person reads for ONE dead read, Try again controls, control shapes a screen reader cannot name, and prose lines past 76ch or capped inline in pixels. check-motion.sh diffs against this and prints REGRESSED or IMPROVED.",
+  "_measured_at": "2026-08-27. Signed-in set and public set each re-taken in ONE pass after the station-strip fix. Whole file is one instrument.",
+  "_note": "Several surfaces have fixes on lane branches that had not merged when this was taken. Where a number looks high, check the lane before treating it as current.",
+  "surfaces": {
+    "/today": {
+      "failureSentences": 1,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/approvals": {
+      "failureSentences": 2,
+      "retries": 1,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/brain": {
+      "failureSentences": 6,
+      "retries": 1,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/learn": {
+      "failureSentences": 8,
+      "retries": 3,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/threads": {
+      "failureSentences": 2,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 1
+    },
+    "/guardrails": {
+      "failureSentences": 5,
+      "retries": 1,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/engine-room": {
+      "failureSentences": 3,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/settings": {
+      "failureSentences": 1,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/start": {
+      "failureSentences": 1,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/plan": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/ship": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/inbox": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/crew": {
+      "failureSentences": 3,
+      "retries": 1,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/decide": {
+      "failureSentences": 2,
+      "retries": 1,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/design": {
+      "failureSentences": 3,
+      "retries": 1,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/discover": {
+      "failureSentences": 4,
+      "retries": 1,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/build": {
+      "failureSentences": 4,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/sync": {
+      "failureSentences": 4,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 0
+    },
+    "/": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 1
+    },
+    "/pricing": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 3
+    },
+    "/faq": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 6
+    },
+    "/security": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 6
+    },
+    "/privacy": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 6
+    },
+    "/ard": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 2
+    },
+    "/updates": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 1
+    },
+    "/subprocessors": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 6
+    },
+    "/investors": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 4
+    },
+    "/brief": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 0,
+      "wideProse": 4
+    },
+    "/checkout": {
+      "failureSentences": 0,
+      "retries": 0,
+      "unnamed": 1,
+      "wideProse": 0
+    }
+  },
+  "_this_is_a_direction_not_a_target": "MATCHING YOUR BASELINE DOES NOT MEAN A SURFACE IS CORRECT. These are the numbers the product happened to produce on one night, several of them from surfaces whose fixes were sitting unmerged on a lane branch. A measurement is a fair way to choose what to fix FIRST. It is not a fair way to decide what the thing should BE, and a baseline is the exact shape that quietly turns one into the other. Read the LIST the report prints, not the number, and lower a baseline entry whenever a real fix lands rather than treating the old value as the goal. Founder's correction, relayed 2026-08-27.",
+  "_the_zeros_need_reading_not_celebrating": "/plan, /ship and /inbox score 0. That is NOT automatically good. Their previous 1 was entirely the station strip's 'count unavailable', so with a dead backend they now say NOTHING about their own failed reads. Silence on failure is the /proof shape: a person cannot tell 'nothing to show' from 'we could not look'. A zero here is a prompt to open the screenshot, exactly like a rise is."
+}
