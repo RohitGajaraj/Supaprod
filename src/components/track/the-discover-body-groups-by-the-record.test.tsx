@@ -66,7 +66,7 @@ describe("SenseBody", () => {
         trackId="trk"
       />,
     );
-    expect(getByLabelText("Not yet clustered")).toBeTruthy();
+    expect(getByLabelText("Not yet grouped")).toBeTruthy();
     expect(container.textContent).toContain("Orphan evidence");
   });
 
@@ -74,6 +74,6 @@ describe("SenseBody", () => {
     const { getByLabelText } = ui(
       <SenseBody items={[signal({}, "Lone note")]} now={0} trackId="trk" />,
     );
-    expect(getByLabelText("Not yet clustered")).toBeTruthy();
+    expect(getByLabelText("Not yet grouped")).toBeTruthy();
   });
 });

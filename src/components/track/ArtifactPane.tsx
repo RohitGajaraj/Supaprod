@@ -23,6 +23,7 @@ import * as React from "react";
 import { failureLine } from "@/lib/error-copy";
 import { humanizeText } from "@/lib/ai/humanize";
 import { panelSaysItFiledNothing } from "@/components/track/who-reports-an-empty-station";
+import { justGrouped } from "@/components/track/just-grouped";
 import { plainProse } from "@/lib/plain-prose";
 /*
  * EVERY plain-text `Prose` on this pane runs agent-written text through
@@ -1741,6 +1742,8 @@ export function SenseBody({
 }) {
   const primed = React.useRef(false);
   const seenThemes = React.useRef<Set<string>>(new Set());
+  /** Which theme each signal was last seen in; "" for none. */
+  const seenPlacement = React.useRef<Map<string, string>>(new Map());
 
   const themes = items.filter((it) => it.kind === "theme" && !it.missing);
   const signals = items.filter((it) => it.kind === "signal" && !it.missing);
@@ -1763,10 +1766,30 @@ export function SenseBody({
    * ARRIVALS ANIMATE ONCE, THE FIRST PAINT DOES NOT -- the transcript's exact
    * pattern. A theme known at mount is history; one that shows up on a later
    * poll is the machine finding a pattern in front of you.
+   *
+   * ── IT PRIMES ON THE FIRST DATA, NOT ON THE FIRST THEME ──────────────────
+   * This read `!primed.current && themes.length > 0`, which meant a track that
+   * had signals and no theme yet stayed unprimed. The FIRST theme to arrive
+   * then took the priming branch: recorded as history, drawn without motion.
+   * That is the single moment SESSION-1 calls "the most convincing thing in
+   * the product, because it is the machine finding a pattern in front of you",
+   * and it was the one arrival guaranteed never to animate.
+   *
+   * Priming on the first page of data that exists at all keeps the rule the
+   * transcript states -- nothing already on screen animates -- while letting
+   * the first pattern be an event.
    */
   const freshThemes = new Set<string>();
-  if (!primed.current && themes.length > 0) {
+  const freshlyGrouped = new Set<string>();
+
+  const placementOf = (sig: ArtifactView): string => {
+    const tid = str(sig.fields.theme_id);
+    return tid && themes.some((t) => t.artifactId === tid) ? tid : "";
+  };
+
+  if (!primed.current && items.length > 0) {
     for (const t of themes) seenThemes.current.add(t.artifactId);
+    for (const sig of signals) seenPlacement.current.set(sig.artifactId, placementOf(sig));
     primed.current = true;
   } else if (primed.current) {
     for (const t of themes) {
@@ -1774,6 +1797,22 @@ export function SenseBody({
         seenThemes.current.add(t.artifactId);
         freshThemes.add(t.artifactId);
       }
+    }
+    /*
+     * A SIGNAL JOINING A THEME IS THE GROUPING, and only a NEW theme used to
+     * show it. A pattern that already existed and then gained a piece of
+     * evidence moved that card out of "not yet grouped" and under the theme
+     * with no motion at all, which is the same event and the commoner one.
+     *
+     * Keyed on the placement CHANGING rather than on it being non-empty, so a
+     * signal that has always sat in its theme never animates, and one that
+     * leaves a theme is not treated as arriving in one.
+     */
+    for (const sig of signals) {
+      const now = placementOf(sig);
+      const before = seenPlacement.current.get(sig.artifactId);
+      if (justGrouped(before, now)) freshlyGrouped.add(sig.artifactId);
+      seenPlacement.current.set(sig.artifactId, now);
     }
   }
 
@@ -1795,14 +1834,28 @@ export function SenseBody({
           >
             <ThemeCard item={t} trackId={trackId} />
             {members.map((s) => (
-              <SignalCard key={s.artifactId} item={s} now={now} trackId={trackId} />
+              <div
+                key={s.artifactId}
+                style={
+                  /*
+                   * Only when the theme itself is NOT arriving: the section
+                   * above is already animating, and animating both makes one
+                   * event look like two.
+                   */
+                  freshlyGrouped.has(s.artifactId) && !arrived
+                    ? { animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }
+                    : undefined
+                }
+              >
+                <SignalCard item={s} now={now} trackId={trackId} />
+              </div>
             ))}
           </section>
         );
       })}
 
       {loose.length > 0 ? (
-        <section aria-label="Not yet clustered" className="flex flex-col gap-mrd-2">
+        <section aria-label="Not yet grouped" className="flex flex-col gap-mrd-2">
           <span className="mrd-meta">
             {loose.length === 1
               ? "One piece of evidence does not sit with any pattern yet."
