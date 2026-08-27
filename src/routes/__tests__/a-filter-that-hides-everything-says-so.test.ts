@@ -131,7 +131,16 @@ describe("one group, one name", () => {
   });
 
   it("leaves the count reachable, on the filter row's All", () => {
-    expect(SRC).toContain("All <Num>{items.length}</Num>");
+    /* ASSERTED ON THE PIECES, NOT THE LINE. This pinned the exact one-line
+       JSX, so making the same control honest about a bounded read - it now
+       carries a "+" when `incomplete` is non-empty - broke a case whose subject
+       is that the COUNT survived the group head's removal. The subject is the
+       count being on the All tab; how that tab is formatted is not it. */
+    const at = SRC.indexOf("aria-pressed={activeBucket === null}");
+    expect(at).toBeGreaterThan(-1);
+    const tab = SRC.slice(at, at + 700);
+    expect(tab).toContain("All");
+    expect(tab).toContain("{items.length}");
   });
 
   it("leaves the sibling lanes their heads, which is what separates them", () => {

@@ -83,6 +83,22 @@ describe("the board", () => {
     expect(SRC).toContain('from "@/components/approvals/not-the-whole-queue"');
   });
 
+  it('DOES NOT PROMISE "Every" ON A BOUNDED READ', () => {
+    /*
+     * The `All` tab promised totality twice over on a capped queue: the word
+     * in its title and an exact figure on its face, while the rail chip a few
+     * inches left already read "52+" and the headline read "At least 52".
+     * Three statements of one count inside a viewport, two hedged and one not,
+     * reads as the three disagreeing.
+     */
+    expect(SRC).toContain('? "Every call this could read. More are waiting."');
+    expect(SRC).toContain('{queueIsPartial ? "+" : ""}');
+  });
+
+  it("keeps the plain promise when the queue reported itself in full", () => {
+    expect(SRC).toContain('"Every call waiting on you"');
+  });
+
   it("announces it, because the list empties under the reader", () => {
     const at = SRC.indexOf("{notTheWholeQueue(incomplete)}");
     expect(SRC.slice(Math.max(0, at - 400), at)).toContain('role="status"');
