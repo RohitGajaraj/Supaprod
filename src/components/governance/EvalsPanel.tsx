@@ -387,7 +387,11 @@ function CreateSuiteForm({
         />
       </Field>
 
-      {m.isError ? <ReadFailedLine>{(m.error as Error).message}</ReadFailedLine> : null}
+      {m.isError ? (
+        <ReadFailedLine error={m.error}>
+          The check was not created. The suites below are as they were.
+        </ReadFailedLine>
+      ) : null}
 
       <Actions trailing={<Action onClick={onClose}>Leave it</Action>}>
         <Action

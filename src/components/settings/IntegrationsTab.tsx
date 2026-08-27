@@ -285,8 +285,8 @@ export function IntegrationsTab() {
         {tokensQ.isLoading ? (
           <Reading>Reading the issued tokens.</Reading>
         ) : tokensQ.error ? (
-          <ReadFailedLine onRetry={() => void tokensQ.refetch()}>
-            The token list did not load. {(tokensQ.error as Error).message}
+          <ReadFailedLine error={tokensQ.error} onRetry={() => void tokensQ.refetch()}>
+            The token list did not load.
           </ReadFailedLine>
         ) : tokens.length === 0 ? (
           <NothingYet>No tokens yet. Issue one above to connect an external agent.</NothingYet>

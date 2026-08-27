@@ -177,8 +177,8 @@ export function ProductsTab() {
 
   if (portfolio.error) {
     return (
-      <ReadFailedLine onRetry={() => void portfolio.refetch()}>
-        The portfolio did not load. {(portfolio.error as Error)?.message ?? "The read failed."}
+      <ReadFailedLine error={portfolio.error} onRetry={() => void portfolio.refetch()}>
+        The portfolio did not load.
       </ReadFailedLine>
     );
   }

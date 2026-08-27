@@ -122,7 +122,8 @@ export function NotificationsSection() {
       // (coordination/requests/S3/verdict-notify-trigger.md ask 3), this check
       // is what keeps the toggle from lying about a save it cannot make.
       const dropped = Object.entries(updated).filter(
-        ([k, v]) => k in result.preferences && (result.preferences as Record<string, unknown>)[k] !== v,
+        ([k, v]) =>
+          k in result.preferences && (result.preferences as Record<string, unknown>)[k] !== v,
       );
       if (dropped.length > 0) {
         toast.error(
@@ -159,7 +160,11 @@ export function NotificationsSection() {
     const row = prefs.data?.preferences as PrefsPlusVerdict | undefined;
     if (!row) return;
     setMatrix({
-      Approvals: { app: row.in_app_approvals, email: row.email_approvals, digest: row.digest_approvals },
+      Approvals: {
+        app: row.in_app_approvals,
+        email: row.email_approvals,
+        digest: row.digest_approvals,
+      },
       Health: { app: row.in_app_health, email: row.email_health, digest: row.digest_health },
       Budget: { app: row.in_app_budget, email: row.email_budget, digest: row.digest_budget },
       Drift: { app: row.in_app_drift, email: row.email_drift, digest: row.digest_drift },
@@ -206,9 +211,8 @@ export function NotificationsSection() {
         <PageHeading title="Notifications" sub="When the product may interrupt you, and where." />
         {/* A failed read must not render an empty matrix whose save would
             silence every alert. */}
-        <ReadFailedLine onRetry={() => void prefs.refetch()}>
-          Your preferences did not load, so nothing here is safe to change yet.{" "}
-          {(prefs.error as Error)?.message ?? "The read failed."}
+        <ReadFailedLine error={prefs.error} onRetry={() => void prefs.refetch()}>
+          Your preferences did not load, so nothing here is safe to change yet.
         </ReadFailedLine>
       </>
     );

@@ -479,12 +479,12 @@ function MissionChainPanel() {
       ) : null}
 
       {missionsQ.isError ? (
-        <ReadFailed onRetry={() => void missionsQ.refetch()}>
-          The missions did not load. {(missionsQ.error as Error)?.message}
+        <ReadFailed error={missionsQ.error} onRetry={() => void missionsQ.refetch()}>
+          The missions did not load.
         </ReadFailed>
       ) : chainQ.isError ? (
-        <ReadFailed onRetry={() => void chainQ.refetch()}>
-          This mission&apos;s chain did not load. {(chainQ.error as Error)?.message}
+        <ReadFailed error={chainQ.error} onRetry={() => void chainQ.refetch()}>
+          This mission&apos;s chain did not load.
         </ReadFailed>
       ) : chainQ.data ? (
         <MissionChain chain={chainQ.data} />
@@ -572,8 +572,8 @@ export function ReceiptsPanel() {
       {query.isPending ? (
         <Reading>Reading the record.</Reading>
       ) : query.isError ? (
-        <ReadFailed onRetry={() => void query.refetch()}>
-          The record did not load. {(query.error as Error)?.message}
+        <ReadFailed error={query.error} onRetry={() => void query.refetch()}>
+          The record did not load.
         </ReadFailed>
       ) : receipts.length === 0 ? (
         narrowed ? (

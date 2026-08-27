@@ -213,12 +213,13 @@ export function CompoundingPanel() {
   if (q.isError || lq.isError) {
     return (
       <ReadFailed
+        error={q.error ?? lq.error}
         onRetry={() => {
           void q.refetch();
           void lq.refetch();
         }}
       >
-        {((q.error ?? lq.error) as Error)?.message ?? "The learnings did not load."}
+        The learnings did not load.
       </ReadFailed>
     );
   }

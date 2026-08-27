@@ -95,7 +95,9 @@ function GlanceFigure({ label, value, note }: { label: string; value: string; no
         <Figure>{value}</Figure>
       </span>
       <span className="block leading-mrd-snug text-mrd-prose text-mrd-body">{label}</span>
-      {note ? <span className="block text-mrd-data leading-mrd-snug text-mrd-mute">{note}</span> : null}
+      {note ? (
+        <span className="block text-mrd-data leading-mrd-snug text-mrd-mute">{note}</span>
+      ) : null}
     </span>
   );
 }
@@ -183,7 +185,10 @@ export function RoomGlanceCard({ glance, onOpen }: { glance: RoomGlance; onOpen:
       {glance.latest ? (
         <span className="flex min-w-0 items-baseline gap-mrd-3 text-mrd-small text-mrd-mute">
           <span className="shrink-0">Latest</span>
-          <span className="min-w-0 truncate text-mrd-prose text-mrd-body" title={glance.latest.what}>
+          <span
+            className="min-w-0 truncate text-mrd-prose text-mrd-body"
+            title={glance.latest.what}
+          >
             {glance.latest.what}
           </span>
           {stamp ? (

@@ -178,9 +178,8 @@ export function TeamCard() {
       {invitations.isLoading ? (
         <Reading>Reading the pending invitations.</Reading>
       ) : invitations.isError ? (
-        <ReadFailedLine onRetry={() => void invitations.refetch()}>
-          The pending invitations did not load.{" "}
-          {(invitations.error as Error)?.message ?? "The read failed."}
+        <ReadFailedLine error={invitations.error} onRetry={() => void invitations.refetch()}>
+          The pending invitations did not load.
         </ReadFailedLine>
       ) : pending.length === 0 ? (
         <NothingYet>Nobody is waiting on an invite.</NothingYet>

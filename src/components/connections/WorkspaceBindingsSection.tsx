@@ -99,15 +99,13 @@ export function WorkspaceBindingsSection() {
     >
       {failed ? (
         <ReadFailedLine
+          error={qConnections.error ?? qBindings.error}
           onRetry={() => {
             void qConnections.refetch();
             void qBindings.refetch();
           }}
         >
-          The bindings did not load.{" "}
-          {(qConnections.error as Error)?.message ??
-            (qBindings.error as Error)?.message ??
-            "The read failed."}
+          The bindings did not load.
         </ReadFailedLine>
       ) : isLoading ? (
         <LoadingState label="Reading what each source is pointed at." />

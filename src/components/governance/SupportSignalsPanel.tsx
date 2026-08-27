@@ -163,8 +163,16 @@ export function SupportSignalsPanel() {
             {pass.isPending ? "Reading them" : "Find the themes"}
           </Action>
         </Actions>
-        {add.isError ? <ReadFailedLine>{(add.error as Error).message}</ReadFailedLine> : null}
-        {pass.isError ? <ReadFailedLine>{(pass.error as Error).message}</ReadFailedLine> : null}
+        {add.isError ? (
+          <ReadFailedLine error={add.error}>
+            Nothing was imported. The clusters below are as they were.
+          </ReadFailedLine>
+        ) : null}
+        {pass.isError ? (
+          <ReadFailedLine error={pass.error}>
+            The triage did not run. No signal was reclassified.
+          </ReadFailedLine>
+        ) : null}
       </Region>
 
       {/* What each write actually caused, on the surface, in your own voice. */}

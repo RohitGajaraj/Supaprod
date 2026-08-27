@@ -163,7 +163,11 @@ export function InjectionDefenseCard() {
         ))}
       </Actions>
 
-      {assess.error ? <ReadFailedLine>{(assess.error as Error).message}</ReadFailedLine> : null}
+      {assess.error ? (
+        <ReadFailedLine error={assess.error}>
+          That sample was not assessed. Nothing was recorded and no rule changed.
+        </ReadFailedLine>
+      ) : null}
 
       {verdict ? (
         <>

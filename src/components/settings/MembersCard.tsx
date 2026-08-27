@@ -259,8 +259,8 @@ export function MembersCard() {
       {membersQ.isLoading ? (
         <Reading>Reading who is in this workspace.</Reading>
       ) : membersQ.isError ? (
-        <ReadFailedLine onRetry={() => void membersQ.refetch()}>
-          The member list did not load. {(membersQ.error as Error)?.message ?? "The read failed."}
+        <ReadFailedLine error={membersQ.error} onRetry={() => void membersQ.refetch()}>
+          The member list did not load.
         </ReadFailedLine>
       ) : members.length === 0 ? (
         <NothingYet>Nobody is in this workspace yet. Invite someone below.</NothingYet>

@@ -205,7 +205,6 @@ function ago(iso: string): string {
   return relTimeCaps(iso).toLowerCase();
 }
 
-
 // Per-provider status the two regions are built from.
 type CardStatus = "connected" | "active" | "connect" | "soon";
 
@@ -577,8 +576,8 @@ export function AccountConnectionsSection({
             failed read is one sentence with a way out, not a second box inside
             the first. */}
         {failed ? (
-          <ReadFailedLine onRetry={() => void list.refetch()}>
-            Your connectors did not load. {(list.error as Error)?.message ?? "The read failed."}
+          <ReadFailedLine error={list.error} onRetry={() => void list.refetch()}>
+            Your connectors did not load.
           </ReadFailedLine>
         ) : loading ? (
           <Reading>Reading your connectors.</Reading>
