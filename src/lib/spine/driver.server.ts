@@ -2403,6 +2403,26 @@ export async function driveTrackOnce(
       .update({
         // attempts deliberately UNCHANGED.
         last_hold: "tools-refused",
+        /*
+         * ── F-127, AND THIS IS THE INSTANCE THAT MATTERS MOST ─────────────
+         *
+         * The specific sentence is built four lines below and returned, and it
+         * is the only one on this path that names a real external cause: the
+         * tool, and what that tool actually said.
+         *
+         * S4 measured the real merge failures across the product's life: EIGHT,
+         * of which FIVE are *"GitHub merge 405: Pull Request has merge
+         * conflicts"*. A conflict is not something a deploy or a prompt fixes,
+         * and under F-75 auto-merge the loop will meet it again with no person
+         * in the run. Without this the track would say only "this station could
+         * not use a tool it needed", and the one fact that tells a person what
+         * to do — that the branch will not merge — would sit in a run output.
+         *
+         * Stored WITHOUT the `holdLine` prefix, deliberately: that half is
+         * derived from `last_hold` on read, and storing it too would put the
+         * same sentence on screen twice.
+         */
+        last_hold_because: `It was ${refusal.tool}, which said: ${refusal.error}`,
         driven_at: new Date().toISOString(),
       } as never)
       .eq("id", row.id);

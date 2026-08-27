@@ -57,11 +57,57 @@ describe("the sentence is stored where a surface can read it", () => {
     expect(DRIVER).toContain("last_hold_because: decision.because");
   });
 
-  it("verbatim, never re-derived", () => {
-    // Two derivations of one sentence is two sentences. The screen and the
-    // record must not be able to disagree about why something stopped.
-    expect(DRIVER).not.toContain("last_hold_because: `");
-    expect(DRIVER).not.toContain("last_hold_because: holdLine");
+  it("and never the sentence the reader already derives", () => {
+    /*
+     * MY FIRST VERSION OF THIS TEST WAS WRONG AND FAILED HONESTLY, which is the
+     * useful kind. It asserted `not.toContain("last_hold_because: \`")` — no
+     * template literal at all — and the tools-refused write legitimately
+     * composes one from two facts the driver holds.
+     *
+     * The property I actually meant is narrower: the STORED value must never be
+     * `holdLine(...)`, because that is derived from `last_hold` when the row is
+     * read. Storing it too would put the same sentence on screen twice, and the
+     * two copies could then disagree.
+     *
+     * Checked per assignment rather than per file, so a `holdLine` appearing
+     * legitimately in the RETURNED line a few lines below cannot satisfy or
+     * break it.
+     */
+    const assignments = [...DRIVER.matchAll(/last_hold_because:\s*([^\n]+)/g)].map((m) => m[1]!);
+    expect(assignments.length, "expected the column to be written somewhere").toBeGreaterThan(0);
+    for (const a of assignments) {
+      expect(a, `derived sentence stored: ${a}`).not.toContain("holdLine");
+      expect(a, `derived sentence stored: ${a}`).not.toContain("HOLD_LINE");
+    }
+  });
+
+  it("a refused tool carries what the tool actually said", () => {
+    /*
+     * The instance that matters most. S4 measured the real merge failures across
+     * the product's life: eight, of which FIVE are "GitHub merge 405: Pull
+     * Request has merge conflicts". A conflict is not something a deploy or a
+     * prompt fixes, and under F-75 auto-merge the loop meets it again with no
+     * person in the run. Without this the track says only "this station could
+     * not use a tool it needed".
+     */
+    expect(DRIVER).toContain(
+      "last_hold_because: `It was ${refusal.tool}, which said: ${refusal.error}`",
+    );
+  });
+
+  it("and it stores the specific half only, not the derived prefix", () => {
+    /*
+     * My first attempt sliced 400 characters after the write and asserted no
+     * `holdLine(` in them, which reached past the update and into the RETURNED
+     * line, where `holdLine` belongs. A guard whose window is wrong fails on
+     * correct code, and the fix for that is a narrower window, never a weaker
+     * assertion: the update object itself, and nothing after it.
+     */
+    const start = DRIVER.indexOf('last_hold: "tools-refused"');
+    expect(start).toBeGreaterThan(-1);
+    const update = DRIVER.slice(start, DRIVER.indexOf("} as never)", start));
+    expect(update).toContain("last_hold_because:");
+    expect(update).not.toContain("holdLine");
   });
 
   it("and the generic branch deliberately writes nothing", () => {
