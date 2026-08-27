@@ -47,23 +47,10 @@
  * puts the emphasis on the container rather than on the fact.
  */
 
+import { stoppedFor } from "@/components/meridian/stopped-for";
+
 const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
-
-/** How long it has been stopped, in the shortest true form. */
-function stoppedFor(since: number, now: number): string {
-  const ms = Math.max(0, now - since);
-  if (ms < HOUR) {
-    const m = Math.max(1, Math.round(ms / 60_000));
-    return m === 1 ? "1 minute" : `${m} minutes`;
-  }
-  if (ms < DAY) {
-    const h = Math.round(ms / HOUR);
-    return h === 1 ? "1 hour" : `${h} hours`;
-  }
-  const d = Math.floor(ms / DAY);
-  return d === 1 ? "1 day" : `${d} days`;
-}
 
 /**
  * Four tiers, and the boundaries are chosen from how a working day feels rather

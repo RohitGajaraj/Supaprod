@@ -59,7 +59,7 @@ import {
   worthFiltering,
   type QueueBucket,
 } from "@/components/today/queue-buckets";
-import { waitingSince } from "@/components/approvals/stopped-for";
+import { waitingSince } from "@/components/meridian/stopped-for";
 import { stripAutoPrefix, cleanTitle } from "@/components/plan/format";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useWorkspace } from "@/hooks/use-workspace";

@@ -1,4 +1,4 @@
-import { waitingSince } from "@/components/approvals/stopped-for";
+import { waitingSince } from "@/components/meridian/stopped-for";
 import type { ApprovalQueueItem } from "@/lib/approvals-queue.functions";
 
 /**

@@ -109,7 +109,7 @@ describe("the waiting lane puts the oldest first", () => {
      * SAME function `/approvals` uses, not that the three lines look a
      * particular way.
      */
-    expect(SRC).toContain('from "@/components/approvals/stopped-for"');
+    expect(SRC).toContain('from "@/components/meridian/stopped-for"');
     const memo = memoFor("visibleItems");
     expect(memo).toContain("waitingSince(a.timestamp)");
     expect(memo).toContain("waitingSince(b.timestamp)");

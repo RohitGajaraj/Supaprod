@@ -3,6 +3,7 @@ import { Row } from "@/components/meridian/rows";
 import { Action, Approve, BulkBar, Door, Num } from "@/components/meridian/surface-parts";
 
 import { canSendBack } from "@/components/approvals/SendBack";
+import { waitingSince } from "@/components/meridian/stopped-for";
 import { stripAutoPrefix } from "@/components/plan/format";
 import { plainMarkers } from "@/lib/preview-line";
 
@@ -165,6 +166,12 @@ function OpenCall({
 
       <Gate
         question={stripAutoPrefix(item.title)}
+        /* THE AGE, ON THE CALL BEING SETTLED. `waitingSince` returns null when
+           nothing recorded a time, and `Gate` says that out loud rather than
+           drawing a fresh-looking gate over a fact it does not have. The rows
+           below have always shown this; the gate was the one place that did
+           not, which is the one place it changes what a person does. */
+        since={waitingSince(item.timestamp)}
         linesLabel={item.evidence.length ? "Why this needs your call" : undefined}
         lines={[
           /*
