@@ -839,25 +839,50 @@ export function BoundaryControls({
             )}
           </Region>
 
-          {/* The ceiling. A spend limit IS a boundary. */}
-          {data.isOwner ? (
-            <Region
-              title="The ceiling"
-              sub="What one run may spend before it stops, whatever else it is allowed to do."
+          {/*
+           * THE CEILING, AND THE KILL SWITCH, DRAWN FOR EVERYONE.
+           *
+           * This whole region was inside `data.isOwner`, so a member saw
+           * NOTHING: not the ceiling, not the track cap, and not whether agents
+           * are currently running. That last one is the most important fact on
+           * the page, and a member could not tell.
+           *
+           * It also fails the safe reading. R-22 says an unset ceiling is the
+           * default and never "unlimited", and absent values resolve to the
+           * SAFE reading -- but a member shown no ceiling at all concludes
+           * there is no limit, which is the unsafe reading arrived at by
+           * omission rather than by a claim.
+           *
+           * `getBoundary` already returns capUsd, trackCapUsd, paused and the
+           * caller's `role` to everyone, with a comment on `role` saying it is
+           * there "so the surface can say why a control is absent". The reader
+           * was built for this and the surface never used it.
+           *
+           * So the facts are shown to everyone and only the CONTROLS are
+           * gated, with a line naming who may move them. Seeing the boundary is
+           * the question this page exists to answer; changing it is a
+           * privilege.
+           */}
+          <Region
+            title="The ceiling"
+            sub="What one run may spend before it stops, whatever else it is allowed to do."
+          >
+            <Line
+              label="Dollars one run may spend"
+              sub={
+                data.capUsd === null ? (
+                  "No ceiling. A run continues until it finishes or something else stops it."
+                ) : (
+                  <>
+                    <Num>${data.capUsd.toFixed(2)}</Num>. A run that reaches it halts and says so,
+                    and the halt is on the record.
+                  </>
+                )
+              }
             >
-              <Line
-                label="Dollars one run may spend"
-                sub={
-                  data.capUsd === null ? (
-                    "No ceiling. A run continues until it finishes or something else stops it."
-                  ) : (
-                    <>
-                      <Num>${data.capUsd.toFixed(2)}</Num>. A run that reaches it halts and says so,
-                      and the halt is on the record.
-                    </>
-                  )
-                }
-              >
+              {!data.isOwner ? (
+                <Value>{data.capUsd === null ? "not set" : `$${data.capUsd.toFixed(2)}`}</Value>
+              ) : (
                 <Input
                   type="number"
                   min={1}
@@ -874,23 +899,29 @@ export function BoundaryControls({
                     setCap.mutate(next);
                   }}
                 />
-              </Line>
-              {/* THE ONE THAT ACTUALLY BOUNDS UNATTENDED SPEND: the ceiling on
+              )}
+            </Line>
+            {/* THE ONE THAT ACTUALLY BOUNDS UNATTENDED SPEND: the ceiling on
                   the whole piece of work, across every station and retry. */}
-              <Line
-                label="Dollars one piece of work may spend"
-                sub={
-                  data.trackCapUsd === null ? (
-                    "No ceiling. Work continues through every station until it finishes."
-                  ) : (
-                    <>
-                      <Num>${data.trackCapUsd.toFixed(2)}</Num> across every station, every agent
-                      and every retry. Work that reaches it stops and waits, and raising this
-                      carries on from where it stopped.
-                    </>
-                  )
-                }
-              >
+            <Line
+              label="Dollars one piece of work may spend"
+              sub={
+                data.trackCapUsd === null ? (
+                  "No ceiling. Work continues through every station until it finishes."
+                ) : (
+                  <>
+                    <Num>${data.trackCapUsd.toFixed(2)}</Num> across every station, every agent and
+                    every retry. Work that reaches it stops and waits, and raising this carries on
+                    from where it stopped.
+                  </>
+                )
+              }
+            >
+              {!data.isOwner ? (
+                <Value>
+                  {data.trackCapUsd === null ? "not set" : `$${data.trackCapUsd.toFixed(2)}`}
+                </Value>
+              ) : (
                 <Input
                   type="number"
                   min={1}
@@ -907,34 +938,42 @@ export function BoundaryControls({
                     setTrackCap.mutate(next);
                   }}
                 />
-              </Line>
-              {/*
-               * THE SWITCH ITSELF, not a line reporting one set elsewhere.
-               *
-               * It reads `data.paused` from the SAME `getBoundary` read as
-               * every other row in this panel, so the control and the state it
-               * shows cannot drift apart -- which is precisely what could
-               * happen while a second editor lived on another panel.
-               *
-               * Drawn whatever the state, because "nothing is stopped" is a
-               * fact a person came here to confirm, and a switch that appears
-               * only once it is thrown is a switch nobody can find in advance.
-               */}
-              <Line
-                label="Agents may run"
-                sub={
-                  data.paused
-                    ? "A kill switch is on for this workspace, so nothing runs whatever the boundary says."
-                    : "Turn this off and every agent holds mid-step. Nothing is lost."
-                }
-              >
+              )}
+            </Line>
+            {/*
+             * THE SWITCH ITSELF, not a line reporting one set elsewhere.
+             *
+             * It reads `data.paused` from the SAME `getBoundary` read as
+             * every other row in this panel, so the control and the state it
+             * shows cannot drift apart -- which is precisely what could
+             * happen while a second editor lived on another panel.
+             *
+             * Drawn whatever the state, because "nothing is stopped" is a
+             * fact a person came here to confirm, and a switch that appears
+             * only once it is thrown is a switch nobody can find in advance.
+             */}
+            <Line
+              label="Agents may run"
+              sub={
+                data.paused
+                  ? "A kill switch is on for this workspace, so nothing runs whatever the boundary says."
+                  : "Turn this off and every agent holds mid-step. Nothing is lost."
+              }
+            >
+              {data.isOwner ? (
                 <Toggle
                   checked={!data.paused}
                   disabled={setPause.isPending}
                   label="Agents may run"
                   onChange={() => setPause.mutate(!data.paused)}
                 />
-              </Line>
+              ) : (
+                <Value tone={data.paused ? "fail" : undefined}>
+                  {data.paused ? "Paused" : "Running"}
+                </Value>
+              )}
+            </Line>
+            {data.isOwner ? (
               <Field
                 label={data.paused ? "Why you are resuming" : "Why you are pausing"}
                 htmlFor="boundary-pause-reason"
@@ -947,160 +986,175 @@ export function BoundaryControls({
                   placeholder="Optional. It lands in the audit trail."
                 />
               </Field>
-            </Region>
-          ) : null}
+            ) : (
+              /* WHY THE CONTROLS ARE ABSENT, said rather than left to be
+                   inferred. `role` arrives from getBoundary for exactly this. */
+              <Line
+                label="Who can move these"
+                sub={`An owner or an admin. You are a ${data.role ?? "member"} in this workspace, so you can see the boundary and not change it.`}
+              />
+            )}
+          </Region>
 
           {/* THE TWO BARS THE PLATFORM CROSSES ON ITS OWN. Both were constants
               nobody could see; the canon's fourth floor says a default the user
-              never set must be visible and changeable. */}
-          {data.isOwner ? (
-            <>
-              <Region
-                title="What starts without you"
-                sub="A cluster of evidence becomes a piece of work on its own when it clears all three. Nobody clicks, and the work begins spending against the ceiling above. Clear a field to hand it back to us."
-              >
-                <Line
-                  label="Signals that must say it"
-                  htmlFor="bar-frequency"
-                  sub={`${autonomy.minFrequency} or more independent signals. One complaint is not a theme, and below this a cluster waits for you to start it by hand.${oursNote(chose("minFrequency"))}`}
-                >
-                  <PolicyNumber
-                    id="bar-frequency"
-                    label="Signals a cluster needs before it becomes work"
-                    value={autonomy.minFrequency}
-                    bounds={AUTONOMY_BOUNDS.minFrequency}
-                    step={1}
-                    disabled={setAutonomy.isPending}
-                    onCommit={(next) => setAutonomy.mutate({ field: "minFrequency", next })}
-                  />
-                </Line>
+              never set must be visible and changeable.
+     *
+     * VISIBLE TO EVERYONE, CHANGEABLE BY AN OWNER. This block was inside
+     * `data.isOwner`, so a member could not see what starts without them --
+     * which is the single thing on this page a member most needs to know,
+     * since it is the work that begins with nobody clicking. The canon line
+     * directly above says a default the user never set must be VISIBLE and
+     * changeable, and hiding it from most of the workspace failed the first
+     * half of its own rule.
+     *
+     * The fields render for everyone and disable for anyone who cannot write,
+     * which is this codebase's house pattern for a control you may not use
+     * (AccountConnectionsSection dims a connector nobody can connect). A
+     * disabled field still shows the number, which is the point. The line
+     * below names who may move it. */}
+          <Region
+            title="What starts without you"
+            sub="A cluster of evidence becomes a piece of work on its own when it clears all three. Nobody clicks, and the work begins spending against the ceiling above. Clear a field to hand it back to us."
+          >
+            <Line
+              label="Signals that must say it"
+              htmlFor="bar-frequency"
+              sub={`${autonomy.minFrequency} or more independent signals. One complaint is not a theme, and below this a cluster waits for you to start it by hand.${oursNote(chose("minFrequency"))}`}
+            >
+              <PolicyNumber
+                id="bar-frequency"
+                label="Signals a cluster needs before it becomes work"
+                value={autonomy.minFrequency}
+                bounds={AUTONOMY_BOUNDS.minFrequency}
+                step={1}
+                disabled={setAutonomy.isPending || !data.isOwner}
+                onCommit={(next) => setAutonomy.mutate({ field: "minFrequency", next })}
+              />
+            </Line>
 
-                <Line
-                  label="How much it has to hurt"
-                  htmlFor="bar-severity"
-                  sub={`${autonomy.minSeverity} out of 5 or worse for the people who reported it. An annoyance never opens work on its own.${oursNote(chose("minSeverity"))}`}
-                >
-                  <PolicyNumber
-                    id="bar-severity"
-                    label="Severity a cluster needs before it becomes work, 1 to 5"
-                    value={autonomy.minSeverity}
-                    bounds={AUTONOMY_BOUNDS.minSeverity}
-                    step={1}
-                    disabled={setAutonomy.isPending}
-                    onCommit={(next) => setAutonomy.mutate({ field: "minSeverity", next })}
-                  />
-                </Line>
+            <Line
+              label="How much it has to hurt"
+              htmlFor="bar-severity"
+              sub={`${autonomy.minSeverity} out of 5 or worse for the people who reported it. An annoyance never opens work on its own.${oursNote(chose("minSeverity"))}`}
+            >
+              <PolicyNumber
+                id="bar-severity"
+                label="Severity a cluster needs before it becomes work, 1 to 5"
+                value={autonomy.minSeverity}
+                bounds={AUTONOMY_BOUNDS.minSeverity}
+                step={1}
+                disabled={setAutonomy.isPending || !data.isOwner}
+                onCommit={(next) => setAutonomy.mutate({ field: "minSeverity", next })}
+              />
+            </Line>
 
-                <Line
-                  label="How sure the grouping has to be"
-                  htmlFor="bar-confidence"
-                  sub={`${pct(autonomy.minConfidence)}% sure these signals belong together. Below it the work would start from a brief that is three unrelated complaints stapled together.${oursNote(chose("minConfidence"))}`}
-                >
-                  <PolicyNumber
-                    id="bar-confidence"
-                    label="Percent sure the grouping has to be before work starts"
-                    value={pct(autonomy.minConfidence)}
-                    bounds={{ min: 0, max: 100 }}
-                    step={5}
-                    disabled={setAutonomy.isPending}
-                    onCommit={(next) =>
-                      setAutonomy.mutate({
-                        field: "minConfidence",
-                        next: next === null ? null : next / 100,
-                      })
-                    }
-                  />
-                </Line>
+            <Line
+              label="How sure the grouping has to be"
+              htmlFor="bar-confidence"
+              sub={`${pct(autonomy.minConfidence)}% sure these signals belong together. Below it the work would start from a brief that is three unrelated complaints stapled together.${oursNote(chose("minConfidence"))}`}
+            >
+              <PolicyNumber
+                id="bar-confidence"
+                label="Percent sure the grouping has to be before work starts"
+                value={pct(autonomy.minConfidence)}
+                bounds={{ min: 0, max: 100 }}
+                step={5}
+                disabled={setAutonomy.isPending || !data.isOwner}
+                onCommit={(next) =>
+                  setAutonomy.mutate({
+                    field: "minConfidence",
+                    next: next === null ? null : next / 100,
+                  })
+                }
+              />
+            </Line>
 
-                <Line
-                  label="What moving these costs you, both ways"
-                  sub="Lower them and work starts on evidence you have not read yet, and it spends before you see it. Raise them and real themes sit in Discover until you notice them and start them by hand. Neither direction is the safe one."
-                />
-              </Region>
+            <Line
+              label="What moving these costs you, both ways"
+              sub="Lower them and work starts on evidence you have not read yet, and it spends before you see it. Raise them and real themes sit in Discover until you notice them and start them by hand. Neither direction is the safe one."
+            />
+          </Region>
 
-              <Region
-                title="What an agent may settle on its own"
-                sub="When a shipped bet's outcome window closes, an agent either puts the verdict on the record or hands the call to you. This is where that line sits."
-              >
-                <Line
-                  label="Evidence a verdict needs when nothing rides on it"
-                  htmlFor="bar-settle-floor"
-                  sub={`${pct(autonomy.settleFloor)}% of the case a full one would carry. Below that the verdict comes to you even when it costs almost nothing to be wrong.${oursNote(chose("settleFloor"))}`}
-                >
-                  <PolicyNumber
-                    id="bar-settle-floor"
-                    label="Percent of the evidence a verdict needs when nothing rides on it"
-                    value={pct(autonomy.settleFloor)}
-                    bounds={{ min: 0, max: 100 }}
-                    step={5}
-                    disabled={setAutonomy.isPending}
-                    onCommit={(next) =>
-                      setAutonomy.mutate({
-                        field: "settleFloor",
-                        next: next === null ? null : next / 100,
-                      })
-                    }
-                  />
-                </Line>
+          <Region
+            title="What an agent may settle on its own"
+            sub="When a shipped bet's outcome window closes, an agent either puts the verdict on the record or hands the call to you. This is where that line sits."
+          >
+            <Line
+              label="Evidence a verdict needs when nothing rides on it"
+              htmlFor="bar-settle-floor"
+              sub={`${pct(autonomy.settleFloor)}% of the case a full one would carry. Below that the verdict comes to you even when it costs almost nothing to be wrong.${oursNote(chose("settleFloor"))}`}
+            >
+              <PolicyNumber
+                id="bar-settle-floor"
+                label="Percent of the evidence a verdict needs when nothing rides on it"
+                value={pct(autonomy.settleFloor)}
+                bounds={{ min: 0, max: 100 }}
+                step={5}
+                disabled={setAutonomy.isPending || !data.isOwner}
+                onCommit={(next) =>
+                  setAutonomy.mutate({
+                    field: "settleFloor",
+                    next: next === null ? null : next / 100,
+                  })
+                }
+              />
+            </Line>
 
-                <Line
-                  label="How much higher the bar climbs when a lot rides on it"
-                  htmlFor="bar-settle-span"
-                  sub={`A big bet whose verdict re-ranks other bets needs ${pct(Math.min(1, autonomy.settleFloor + autonomy.settleStakesSpan))}% instead, which nothing short of a number that was read plus two weeks of usage plus the merged change on file can clear.${oursNote(chose("settleStakesSpan"))}`}
-                >
-                  <PolicyNumber
-                    id="bar-settle-span"
-                    label="Percent the evidence bar climbs by when everything rides on the verdict"
-                    value={pct(autonomy.settleStakesSpan)}
-                    bounds={{ min: 0, max: 100 }}
-                    step={5}
-                    disabled={setAutonomy.isPending}
-                    onCommit={(next) =>
-                      setAutonomy.mutate({
-                        field: "settleStakesSpan",
-                        next: next === null ? null : next / 100,
-                      })
-                    }
-                  />
-                </Line>
+            <Line
+              label="How much higher the bar climbs when a lot rides on it"
+              htmlFor="bar-settle-span"
+              sub={`A big bet whose verdict re-ranks other bets needs ${pct(Math.min(1, autonomy.settleFloor + autonomy.settleStakesSpan))}% instead, which nothing short of a number that was read plus two weeks of usage plus the merged change on file can clear.${oursNote(chose("settleStakesSpan"))}`}
+            >
+              <PolicyNumber
+                id="bar-settle-span"
+                label="Percent the evidence bar climbs by when everything rides on the verdict"
+                value={pct(autonomy.settleStakesSpan)}
+                bounds={{ min: 0, max: 100 }}
+                step={5}
+                disabled={setAutonomy.isPending || !data.isOwner}
+                onCommit={(next) =>
+                  setAutonomy.mutate({
+                    field: "settleStakesSpan",
+                    next: next === null ? null : next / 100,
+                  })
+                }
+              />
+            </Line>
 
-                {/* THE CARVE-OUT IS SAID OUT LOUD: a threshold is an argument
+            {/* THE CARVE-OUT IS SAID OUT LOUD: a threshold is an argument
                     about evidence; this is a sentence about what an agent may
                     never be the one to decide. It only ever takes a call back. */}
-                <Line
-                  label="Never settle a bet above this impact"
-                  htmlFor="bar-carve-out"
-                  sub={
-                    autonomy.neverSettleAboveImpact === null
-                      ? "No carve-out. Every bet is judged on its evidence alone, however big it is. Name an impact here and nothing above it is ever settled by an agent."
-                      : `Nothing scored above ${autonomy.neverSettleAboveImpact} is ever settled by an agent, whatever the evidence says. Bets at ${autonomy.neverSettleAboveImpact} and below still answer to the bar above. Clear the field to drop the carve-out.`
-                  }
-                >
-                  <PolicyNumber
-                    id="bar-carve-out"
-                    label="The impact above which an agent never settles a verdict"
-                    value={autonomy.neverSettleAboveImpact}
-                    bounds={AUTONOMY_BOUNDS.neverSettleAboveImpact}
-                    step={1}
-                    disabled={setAutonomy.isPending}
-                    onCommit={(next) =>
-                      setAutonomy.mutate({ field: "neverSettleAboveImpact", next })
-                    }
-                  />
-                </Line>
+            <Line
+              label="Never settle a bet above this impact"
+              htmlFor="bar-carve-out"
+              sub={
+                autonomy.neverSettleAboveImpact === null
+                  ? "No carve-out. Every bet is judged on its evidence alone, however big it is. Name an impact here and nothing above it is ever settled by an agent."
+                  : `Nothing scored above ${autonomy.neverSettleAboveImpact} is ever settled by an agent, whatever the evidence says. Bets at ${autonomy.neverSettleAboveImpact} and below still answer to the bar above. Clear the field to drop the carve-out.`
+              }
+            >
+              <PolicyNumber
+                id="bar-carve-out"
+                label="The impact above which an agent never settles a verdict"
+                value={autonomy.neverSettleAboveImpact}
+                bounds={AUTONOMY_BOUNDS.neverSettleAboveImpact}
+                step={1}
+                disabled={setAutonomy.isPending || !data.isOwner}
+                onCommit={(next) => setAutonomy.mutate({ field: "neverSettleAboveImpact", next })}
+              />
+            </Line>
 
-                <Line
-                  label="Three calls stay yours whatever these say"
-                  sub="A bet nothing was ever attached to that could check it. A win or a miss with no number actually read. And a miss that would hold another agent's promotion on a soft signal. Those are floors, not settings, so no number here can lower them."
-                />
+            <Line
+              label="Three calls stay yours whatever these say"
+              sub="A bet nothing was ever attached to that could check it. A win or a miss with no number actually read. And a miss that would hold another agent's promotion on a soft signal. Those are floors, not settings, so no number here can lower them."
+            />
 
-                <Line
-                  label="What moving these costs you, both ways"
-                  sub="Lower them and verdicts land on your record without you, and a wrong one compounds into every future recommendation. Raise them and every shipped bet waits in Learn for a judgment only you can give, which is the approvals queue coming back under a different name."
-                />
-              </Region>
-            </>
-          ) : null}
+            <Line
+              label="What moving these costs you, both ways"
+              sub="Lower them and verdicts land on your record without you, and a wrong one compounds into every future recommendation. Raise them and every shipped bet waits in Learn for a judgment only you can give, which is the approvals queue coming back under a different name."
+            />
+          </Region>
 
           <DeclinedLedger
             q={ledger}
