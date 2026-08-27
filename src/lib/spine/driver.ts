@@ -1341,8 +1341,27 @@ export const HOLD_LINE: Record<HoldReason, string> = {
     "This station needs something that a waived station was the one to file, so nothing is going to file it. Put that station back on the route, or file it yourself.",
   "station-cannot-finish":
     "This station has everything it needs on the record and still finishes with nothing, several times over. That is the station rather than the work, so it needs your eyes.",
-  "corrections-spent":
-    "This work has been sent back for the same fix as often as it is allowed and is still short of it. Nothing further will be spent on it until you look.",
+  /*
+   * ── EFFECT HERE, CAUSE AND DOOR IN THE WAY OUT (F-137) ───────────────────
+   *
+   * This read "This work has been sent back for the same fix as often as it is
+   * allowed and is still short of it. Nothing further will be spent on it until
+   * you look." — and `wayOut`'s diagnosis for the same hold opens "It has been
+   * sent back for this same fix as often as it is allowed." **The same clause,
+   * a few lines apart, on one screen.**
+   *
+   * S2's rule, after removing a count that appeared twice: two sentences
+   * AGREEING at that distance are worse than two contradicting. A contradiction
+   * tells a reader something is wrong; agreement leaves them unable to tell
+   * which line is the surface's own claim, and no reason to look for the
+   * problem.
+   *
+   * So this keeps only the EFFECT, which is the thing a hold line is for, and
+   * the way out keeps the cause and the door. Found by the structural guard in
+   * `two-lines-on-one-screen-must-not-restate-each-other.test.ts` on its first
+   * run, which is the best validation an instrument can have.
+   */
+  "corrections-spent": "Nothing further will be spent on this until you look.",
   "given-up":
     "This station was corrected, came back, and still cannot finish with everything it needs on the record. Nothing more will be tried on it automatically.",
 };
