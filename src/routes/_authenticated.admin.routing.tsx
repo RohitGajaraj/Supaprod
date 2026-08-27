@@ -59,7 +59,15 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { Row, Line } from "@/components/meridian/rows";
-import { Action, Actions, Num, Picker, ReadFailed, Reading, Region } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  Num,
+  Picker,
+  ReadFailed,
+  Reading,
+  Region,
+} from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -151,10 +159,7 @@ function AdminRouting() {
   const [pinningSurface, setPinningSurface] = useState<RoutingSurface | null>(null);
   function pinRow(surface: RoutingSurface, modelId: string | null) {
     setPinningSurface(surface);
-    pin.mutate(
-      { surface, modelId },
-      { onSettled: () => setPinningSurface(null) },
-    );
+    pin.mutate({ surface, modelId }, { onSettled: () => setPinningSurface(null) });
   }
 
   const table = useQuery({

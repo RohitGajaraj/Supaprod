@@ -22,7 +22,7 @@
 // mute, faint and edge.
 //
 // The one call that was not a table lookup is the overlay itself. It was
-// `color-mix(in oklab, var(--canvas) 78%, black)`, which is opaque, and on the
+// `color-mix(in oklab, var(--mrd-sheet) 78%, black)`, which is opaque, and on the
 // paper ground that composited to a flat mid grey that hid the page completely
 // rather than dimming it. `--mrd-scrim` is the token Meridian built for this
 // and it is measured in both grounds, so the dialog now dims what is behind it
@@ -200,10 +200,10 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
         style={{
           width: "100%",
           maxWidth: 560,
-          background: "var(--card)",
+          background: "var(--mrd-lift)",
           border: "1px solid var(--mrd-edge)",
           borderRadius: "var(--radius-card)",
-          boxShadow: "var(--shadow-elevated)",
+          boxShadow: "var(--mrd-shadow-float)",
           padding: "24px 26px 22px",
         }}
       >

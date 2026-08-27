@@ -466,7 +466,7 @@ export function Hero() {
                * with no account at all. */}
               <a
                 href="#join"
-                // text-[var(--cta-ink)], not text-white. White on ember #FF6B2C
+                // text-[var(--mrd-sheet)], not text-white. White on ember #FF6B2C
                 // computes to 2.84:1, which fails WCAG AA for body text (4.5:1)
                 // and fails even the 3:1 large-text floor. This is the primary
                 // conversion action on the highest-traffic page in the site.
@@ -474,7 +474,7 @@ export function Hero() {
                 // "text on ember fill" at styles.css:2095; it computes to 6.97:1.
                 // .btn-primary already does this correctly via
                 // --primary-foreground. These landing CTAs bypassed the token.
-                className="hero-cta group rounded-full bg-[#FF6B2C] px-8 py-3 font-medium text-[var(--cta-ink)]"
+                className="hero-cta group rounded-full bg-[#FF6B2C] px-8 py-3 font-medium text-[var(--mrd-sheet)]"
               >
                 {/* "Request access" until 2026-08-10 (founder). It replaced
                     "Start free" on 2026-08-07 when the gate went up, and that
@@ -645,7 +645,11 @@ export function Hero() {
               it was the one phrase too wide to hold its line. */}
           <div
             className="hero-spec hero-rise hidden pl-5 font-mono text-mrd-small uppercase text-zinc-400 lg:grid lg:grid-cols-[auto_1fr] lg:gap-x-3 lg:gap-y-3.5"
-            style={{ animationDelay: "120ms", letterSpacing: "0.14em", lineHeight: "var(--mrd-lh-snug)" }}
+            style={{
+              animationDelay: "120ms",
+              letterSpacing: "0.14em",
+              lineHeight: "var(--mrd-lh-snug)",
+            }}
           >
             <span>to decide</span>
             <span className="hero-spec-key whitespace-nowrap">what to build</span>
@@ -657,15 +661,15 @@ export function Hero() {
         </div>
 
         {/* 60-SECOND FIRST-USE DEMONSTRATION
-           *
-           * Added 2026-08-27 to address the product self-explanation criterion.
-           * Shows autonomous 7-station loop progression with zero human intervention.
-           * Auto-plays on page load, repeats every 50s. No credential required.
-           *
-           * This demonstrates the core value ("One sentence in. Everything else
-           * automatic.") visually in the first viewport, so a visitor immediately
-           * understands what the product does, without needing to watch a video or
-           * enter an invite code. Total animation time: ~35-40 seconds. */}
+         *
+         * Added 2026-08-27 to address the product self-explanation criterion.
+         * Shows autonomous 7-station loop progression with zero human intervention.
+         * Auto-plays on page load, repeats every 50s. No credential required.
+         *
+         * This demonstrates the core value ("One sentence in. Everything else
+         * automatic.") visually in the first viewport, so a visitor immediately
+         * understands what the product does, without needing to watch a video or
+         * enter an invite code. Total animation time: ~35-40 seconds. */}
         <div className="mt-16">
           <HeroLoopDemo />
         </div>

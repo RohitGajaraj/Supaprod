@@ -38,15 +38,15 @@ const surface: CSSProperties = {
   alignItems: "center",
   justifyContent: "center",
   padding: 24,
-  background: "var(--canvas)",
+  background: "var(--mrd-sheet)",
   color: "var(--mrd-ink)",
 };
 
 const card: CSSProperties = {
-  background: "var(--card)",
+  background: "var(--mrd-lift)",
   border: "1px solid var(--mrd-edge)",
   borderRadius: "var(--radius-card, 12px)",
-  boxShadow: "var(--shadow-elevated)",
+  boxShadow: "var(--mrd-shadow-float)",
   padding: 32,
   maxWidth: 420,
   width: "100%",

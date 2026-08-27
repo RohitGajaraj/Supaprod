@@ -140,7 +140,7 @@ export function PromptsPanel() {
 
   if (templates.isError) {
     return (
-      <ReadFailed onRetry={() => void templates.refetch()}>
+      <ReadFailed error={templates.error} onRetry={() => void templates.refetch()}>
         The prompts did not load, so nothing below would be what the surfaces are actually running.
       </ReadFailed>
     );
@@ -223,7 +223,9 @@ export function PromptsPanel() {
       })}
 
       {rollback.isError ? (
-        <ReadFailedLine>{(rollback.error as Error).message}</ReadFailedLine>
+        <ReadFailedLine error={rollback.error}>
+          Nothing rolled back. The version that was live is still the one running.
+        </ReadFailedLine>
       ) : null}
 
       {done.map((d, i) => (
@@ -372,8 +374,8 @@ function TemplateDetail({
     return (
       <>
         <PageHeading title="This prompt did not load." />
-        <ReadFailed onRetry={() => void detail.refetch()}>
-          {(detail.error as Error)?.message}. Nothing below would be what the surface is running.
+        <ReadFailed error={detail.error} onRetry={() => void detail.refetch()}>
+          Nothing below would be what the surface is running.
         </ReadFailed>
         <Region>{backButton}</Region>
       </>
@@ -457,7 +459,9 @@ function TemplateDetail({
         </Line>
 
         {(mFork.error ?? mSetActive.error) ? (
-          <ReadFailedLine>{((mFork.error ?? mSetActive.error) as Error).message}</ReadFailedLine>
+          <ReadFailedLine error={mFork.error ?? mSetActive.error}>
+            Nothing changed. The version that was live is still the one running.
+          </ReadFailedLine>
         ) : null}
 
         <Actions>
@@ -491,7 +495,9 @@ function TemplateDetail({
           />
 
           {(mSave.error ?? mPublish.error) ? (
-            <ReadFailedLine>{((mSave.error ?? mPublish.error) as Error).message}</ReadFailedLine>
+            <ReadFailedLine error={mSave.error ?? mPublish.error}>
+              Nothing was saved. Your draft is still here and no agent is running it yet.
+            </ReadFailedLine>
           ) : null}
 
           <Actions>
@@ -754,7 +760,11 @@ function AssignmentBlock({
         </span>
       </Line>
 
-      {save.isError ? <ReadFailedLine>{(save.error as Error).message}</ReadFailedLine> : null}
+      {save.isError ? (
+        <ReadFailedLine error={save.error}>
+          That did not save. The instructions are as they were.
+        </ReadFailedLine>
+      ) : null}
 
       <Actions>
         <Action busy={save.isPending} onClick={() => save.mutate()}>

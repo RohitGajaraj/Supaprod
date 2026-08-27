@@ -38,6 +38,8 @@
  * reintroducing one. Matches the skeleton bars in `_authenticated.brain.tsx`.
  */
 import { useEffect, useState } from "react";
+import { ReadFailed } from "@/components/meridian/surface-parts";
+import { humanWriteError } from "@/lib/roles.functions";
 
 /** Debounce a fast-changing value (search inputs) so server queries fire at
  * most once per pause, not per keystroke. */
@@ -87,7 +89,28 @@ export function AdminSkeleton({ rows = 4, height = 36 }: { rows?: number; height
   );
 }
 
-/** Error state: the cause plus one retry. Distinct from empty, always. */
+/**
+ * Error state: the cause plus one retry. Distinct from empty, always.
+ *
+ * IT IS `ReadFailed` NOW, and the signature is unchanged so all ten call sites
+ * are untouched. What it used to be, rendered on /admin against an unreachable
+ * backend, was three defects in one card:
+ *
+ *   1. "COULD NOT LOAD YOUR ADMIN ACCESS" and "RETRY · RELOADS THIS SECTION"
+ *      were hand-rolled mono + uppercase + 0.11em tracking. That is the retired
+ *      voice this repo spent a redesign removing, still drawing on a surface
+ *      nobody had looked at.
+ *   2. It laid itself out on `--space-4` and `--geist-space-2x`, neither of
+ *      which is a Meridian token.
+ *   3. It printed `message` raw, so a person read "Unauthorized: Invalid
+ *      token". The sweep that removed that string from Settings and governance
+ *      did not reach admin/, and only rendering the page showed it.
+ *
+ * All three are properties of hand-drawing a card that a shared primitive
+ * already draws correctly. The message goes through `humanWriteError`, so an
+ * ended session says to sign in again and a database fingerprint never reaches
+ * a person.
+ */
 export function AdminErrorCard({
   what,
   message,
@@ -97,55 +120,12 @@ export function AdminErrorCard({
   message?: string | null;
   onRetry: () => void;
 }) {
+  // Empty fallback: the sentence above is already complete, so a failure this
+  // cannot improve on adds nothing rather than repeating itself.
+  const said = message ? humanWriteError(message, "") : "";
   return (
-    <div
-      role="alert"
-      className="material-medium"
-      style={{
-        padding: "var(--space-4)",
-        display: "grid",
-        gap: "var(--geist-space-2x)",
-        justifyItems: "start",
-      }}
-    >
-      <span
-        style={{
-          fontFamily: "var(--mrd-mono)",
-          letterSpacing: "0.11em",
-          textTransform: "uppercase",
-          color: "var(--mrd-fail)",
-        }}
-      >
-        Could not load {what}
-      </span>
-      {message ? (
-        <p
-          style={{
-            margin: 0,
-            fontFamily: "var(--mrd-font)",
-            color: "var(--mrd-mute)",
-            maxWidth: 520,
-          }}
-        >
-          {message.slice(0, 160)}
-        </p>
-      ) : null}
-      <button
-        type="button"
-        onClick={onRetry}
-        className="cursor-pointer outline-none hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-        style={{
-          fontFamily: "var(--mrd-mono)",
-          letterSpacing: "0.11em",
-          textTransform: "uppercase",
-          color: "var(--mrd-ink)",
-          background: "none",
-          border: "none",
-          padding: 0,
-        }}
-      >
-        Retry · reloads this section
-      </button>
-    </div>
+    <ReadFailed onRetry={onRetry}>
+      Could not load {what}.{said ? ` ${said}` : ""}
+    </ReadFailed>
   );
 }

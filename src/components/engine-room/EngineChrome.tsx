@@ -81,7 +81,11 @@ export function Crumb({
   here: string;
 }) {
   return (
-    <nav data-mrd="" className="flex items-center gap-mrd-3 text-mrd-small" aria-label="Where you are">
+    <nav
+      data-mrd=""
+      className="flex items-center gap-mrd-3 text-mrd-small"
+      aria-label="Where you are"
+    >
       <button
         type="button"
         onClick={back}
@@ -399,7 +403,12 @@ export function SegmentedFilter<T extends string>({
  */
 export function PanelReading({ children = "Reading." }: { children?: React.ReactNode }) {
   return (
-    <p data-mrd="" className="py-mrd-6 text-mrd-base text-mrd-mute" role="status" aria-live="polite">
+    <p
+      data-mrd=""
+      className="py-mrd-6 text-mrd-base text-mrd-mute"
+      role="status"
+      aria-live="polite"
+    >
       {children}
     </p>
   );

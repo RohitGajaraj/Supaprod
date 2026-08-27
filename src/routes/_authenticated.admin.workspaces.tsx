@@ -709,7 +709,9 @@ function WorkspaceInFocus({
         onToggle={() => setOpenAudit((v) => !v)}
       >
         {audit.length === 0 ? (
-          <NothingHere>Nothing has been done to this workspace yet. You would be the first.</NothingHere>
+          <NothingHere>
+            Nothing has been done to this workspace yet. You would be the first.
+          </NothingHere>
         ) : (
           shownAudit.map((r) => (
             <Row

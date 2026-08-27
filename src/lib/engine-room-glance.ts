@@ -359,6 +359,33 @@ export const ROOM_TAB_META: Record<RoomKey, RoomTabMeta[]> = {
       technical: "Support signals",
       descriptor: "Tickets and feedback flowing back into the loop.",
     },
+    /*
+     * INCIDENTS BELONG WITH THE RECORD, and this is what unblocks the Safety
+     * fold rather than a tidy-up.
+     *
+     * S0 ruled the four-route fold in A-006 with one rule that decides this: a
+     * fold removes a DOOR, never a CAPABILITY. The Safety room has six views
+     * and five of them have somewhere to go -- the boundary, guardrails, house
+     * rules and routines all moved onto the settings pane, and "who can act"
+     * already has its own settings section. Incidents had nowhere, and it
+     * rendered in exactly one place, so redirecting Safety would have deleted
+     * it.
+     *
+     * It belongs HERE because it is a log of what already happened, which is
+     * the Record room's whole subject -- it sits beside the paper trail and
+     * every run rather than beside the controls that decide what is allowed
+     * next. That is the same line I drew in U-038 and U-047 when the spend log
+     * and the event queue stayed behind while their controls moved.
+     *
+     * MOUNTED, NOT MOVED. Safety keeps `?view=incidents` answering until its
+     * own phase completes, which is the ruling's own sequencing.
+     */
+    {
+      id: "incidents",
+      label: "What went wrong",
+      technical: "Incidents",
+      descriptor: "Safety incidents, with what tripped and when.",
+    },
   ],
 };
 

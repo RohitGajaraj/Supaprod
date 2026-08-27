@@ -800,7 +800,9 @@ function PersonInFocus({ userId }: { userId: string }) {
         onToggle={() => setOpenAudit((v) => !v)}
       >
         {audit.length === 0 ? (
-          <NothingHere>Nothing has been done to this account yet. You would be the first.</NothingHere>
+          <NothingHere>
+            Nothing has been done to this account yet. You would be the first.
+          </NothingHere>
         ) : (
           shownAudit.map((r) => (
             <Row

@@ -173,10 +173,10 @@ export function WaitlistForm({ waitlistCount }: { waitlistCount: number | null }
         <button
           type="submit"
           disabled={mutation.isPending}
-          // text-[var(--cta-ink)]: white on ember is 2.84:1 and fails WCAG AA.
+          // text-[var(--mrd-sheet)]: white on ember is 2.84:1 and fails WCAG AA.
           // See the note on Hero.tsx's CTA. This is the site's only conversion
           // form, so it is the worst place to carry the failure.
-          className="h-12 px-7 rounded-full bg-[#FF6B2C] text-[var(--cta-ink)] font-medium text-sm hover:bg-[#ff8344] active:scale-[0.98] transition-[background-color,transform,opacity] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] disabled:opacity-60"
+          className="h-12 px-7 rounded-full bg-[#FF6B2C] text-[var(--mrd-sheet)] font-medium text-sm hover:bg-[#ff8344] active:scale-[0.98] transition-[background-color,transform,opacity] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] disabled:opacity-60"
         >
           {mutation.isPending ? "Joining..." : "Join the beta"}
         </button>

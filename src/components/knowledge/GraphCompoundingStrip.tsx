@@ -140,7 +140,10 @@ export function GraphCompoundingStrip({
   if (!loading && !failed && !hasClaim) {
     return memUnread ? (
       <Region title="What the record holds">
-        <ReadFailedLine onRetry={() => void memQ.refetch()}>
+        <ReadFailedLine
+          error={memQ.error ?? liftQ.error ?? calibrationQ.error}
+          onRetry={() => void memQ.refetch()}
+        >
           This could not be read, so nothing here is a claim that the record is empty.
         </ReadFailedLine>
       </Region>
@@ -171,8 +174,7 @@ export function GraphCompoundingStrip({
             void calibrationQ.refetch();
           }}
         >
-          These numbers did not load, so nothing here is a claim about what the record holds.{" "}
-          {((memQ.error ?? liftQ.error ?? calibrationQ.error) as Error)?.message ?? ""}
+          These numbers did not load, so nothing here is a claim about what the record holds.
         </ReadFailedLine>
       ) : (
         <>

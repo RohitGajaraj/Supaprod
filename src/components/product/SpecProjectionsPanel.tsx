@@ -115,7 +115,7 @@ export function SpecProjectionsPanel({
         style={{
           padding: "var(--geist-gap-section)",
           textAlign: "center",
-          background: "var(--surface-card)",
+          background: "var(--mrd-lift)",
           border: "1px solid var(--mrd-edge)",
           borderRadius: "var(--radius-panel)",
           boxShadow: "var(--top-light)",
@@ -167,9 +167,7 @@ export function SpecProjectionsPanel({
                   textTransform: "uppercase",
                   color: activeTab ? "var(--mrd-ink)" : "var(--mrd-mute)",
                   paddingBottom: 8,
-                  borderBottom: activeTab
-                    ? "2px solid var(--mrd-ink)"
-                    : "2px solid transparent",
+                  borderBottom: activeTab ? "2px solid var(--mrd-ink)" : "2px solid transparent",
                   background: "none",
                   border: "none",
                   cursor: "pointer",

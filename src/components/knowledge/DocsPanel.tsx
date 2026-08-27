@@ -48,6 +48,7 @@
  * components/supaprod, which this lane does not own. It is mounted as it was.
  */
 import { useServerFn } from "@tanstack/react-start";
+import { humanWriteError } from "@/lib/roles.functions";
 import { Row } from "@/components/meridian/rows";
 import {
   Num,
@@ -248,9 +249,9 @@ export function DocsPanel() {
 
   if (docs.isError) {
     return (
-      <ReadFailed onRetry={() => void docs.refetch()}>
+      <ReadFailed error={docs.error} onRetry={() => void docs.refetch()}>
         The pages did not load, so this is not a claim that none were written.{" "}
-        {(docs.error as Error).message}
+        {humanWriteError(docs.error, "The read failed.")}
       </ReadFailed>
     );
   }
@@ -273,9 +274,9 @@ export function DocsPanel() {
         {selected.isLoading || !doc ? (
           <Reading>Reading the page.</Reading>
         ) : selected.isError ? (
-          <ReadFailed onRetry={() => void selected.refetch()}>
+          <ReadFailed error={selected.error} onRetry={() => void selected.refetch()}>
             The page did not load, so nothing here is safe to edit yet.{" "}
-            {(selected.error as Error)?.message ?? ""}
+            {humanWriteError(selected.error, "")}
           </ReadFailed>
         ) : (
           <Region
@@ -449,7 +450,7 @@ export function DocsPanel() {
               {preview.isLoading || !previewDoc ? (
                 <Reading>Reading the page.</Reading>
               ) : preview.isError ? (
-                <ReadFailedLine onRetry={() => void preview.refetch()}>
+                <ReadFailedLine error={preview.error} onRetry={() => void preview.refetch()}>
                   The page did not load, so this is not a claim that it is empty.
                 </ReadFailedLine>
               ) : (
@@ -629,9 +630,12 @@ function ImportPage({
             {!debouncedNotionQuery ? null : notionSearch.isLoading ? (
               <Reading>Searching Notion.</Reading>
             ) : notionSearch.isError ? (
-              <ReadFailedLine onRetry={() => void notionSearch.refetch()}>
+              <ReadFailedLine
+                error={notionSearch.error}
+                onRetry={() => void notionSearch.refetch()}
+              >
                 Notion did not answer, so this is not a claim that nothing matches.{" "}
-                {(notionSearch.error as Error)?.message ?? ""}
+                {humanWriteError(notionSearch.error, "")}
               </ReadFailedLine>
             ) : (notionSearch.data?.pages?.length ?? 0) === 0 ? (
               <NothingHere>

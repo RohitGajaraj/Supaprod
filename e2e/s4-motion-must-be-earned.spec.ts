@@ -1,8 +1,9 @@
 import { test, expect } from "@playwright/test";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { join } from "node:path";
 
+import { compareToBaseline, type SurfaceNumbers } from "./helpers/baseline";
 import { findRepoRoot } from "./helpers/auth";
 
 /**
@@ -50,6 +51,20 @@ import { findRepoRoot } from "./helpers/auth";
 
 const SHOT_DIR = join(findRepoRoot(), "docs", "screenshots", "s4-motion");
 
+/**
+ * A filename for a path that may carry a query string.
+ *
+ * `?` and `=` are legal on this filesystem and are a nuisance everywhere else,
+ * and the harness could not reach a view-scoped surface at all until now.
+ * S3 asked for `/settings?section=autonomy` specifically, having noted that a
+ * path census cannot see a query-string view, which is true and was a real gap:
+ * `/engine-room?view=suites` answers and draws no tab, so a surface can exist
+ * with no door and no row in any of my tables.
+ */
+function shotName(path: string): string {
+  return path.replace(/[^a-zA-Z0-9]+/g, "_").replace(/^_|_$/g, "") || "root";
+}
+
 /** Keeps a phone run from overwriting the desk run of the same surface. */
 /*
  * Built by concatenation rather than interpolation on purpose. The guard in
@@ -60,6 +75,9 @@ const SHOT_DIR = join(findRepoRoot(), "docs", "screenshots", "s4-motion");
  * design, so the fix is for this line to stop looking like a secret rather
  * than for the guard to learn about this file.
  */
+/** What the report should call the failure, so the label matches the run. */
+const FAILURE_MODE = process.env.S4_MOTION_EXPIRED === "yes" ? "expired session" : "dead backend";
+
 const SHOT_SUFFIX = process.env.S4_MOTION_VIEWPORT ? "_" + process.env.S4_MOTION_VIEWPORT : "";
 
 /**
@@ -94,23 +112,48 @@ const GAP_MS = 9_000;
 const RENDER_BUDGET_MS = 60_000;
 
 /**
- * Enough text on screen to be a page rather than a wait state.
+ * WHEN HAS A SURFACE FINISHED ARRIVING?
  *
- * The pending component renders one word. Every real surface in this product,
- * including the signed-out login, clears this by a wide margin, so the threshold
- * separates "rendered" from "still spinning" without hard-coding a label that a
- * lane could rename out from under this spec.
+ * This used to be "at least 60 characters of text", a number I got by looking at
+ * the nav chrome and picking something above it. The founder's correction, sent
+ * via S1, is what sent me back to it:
+ *
+ *   a measurement is a fair way to choose what to build FIRST
+ *   it is not a fair way to choose what the thing IS
+ *
+ * 60 was the second kind wearing the first kind's clothes. It encodes today's
+ * shell: trim the rail, rename two nav items, and a genuinely rendered page falls
+ * under the line and is reported NOT JUDGED. That threshold was measuring our own
+ * sidebar rather than the product.
+ *
+ * The principled rule needs no number from today: A SURFACE HAS ARRIVED WHEN IT
+ * STOPS CHANGING. Two consecutive identical samples is the page saying it is
+ * done, and it holds whatever the shell weighs. It is the same rule the census
+ * reached after its own threshold bug, and arriving at it twice from opposite
+ * directions is the argument for it.
+ *
+ * The only floor left is emptiness, because "" is stable too and is not a page.
  */
-const RENDERED_MIN_CHARS = 60;
+const RENDERED_MIN_CHARS = 1;
 
 /** Resolves when the surface is a page, or reports how long it waited in vain. */
 async function waitUntilRendered(
   page: import("@playwright/test").Page,
 ): Promise<{ rendered: boolean; ms: number }> {
   const started = Date.now();
+  let previous: string | null = null;
+  let stable = 0;
   while (Date.now() - started < RENDER_BUDGET_MS) {
-    const chars = await page.evaluate(() => document.body.innerText.trim().length);
-    if (chars >= RENDERED_MIN_CHARS) return { rendered: true, ms: Date.now() - started };
+    const text = await page.evaluate(() => document.body.innerText.trim());
+    if (text.length >= RENDERED_MIN_CHARS && text !== "Opening") {
+      if (text === previous) {
+        stable += 1;
+        if (stable >= 2) return { rendered: true, ms: Date.now() - started };
+      } else {
+        stable = 0;
+      }
+      previous = text;
+    }
     await page.waitForTimeout(500);
   }
   return { rendered: false, ms: Date.now() - started };
@@ -207,6 +250,471 @@ async function frameHash(page: import("@playwright/test").Page): Promise<string>
  *    guard that fails a marketing countdown is a guard people turn off.
  */
 /**
+ * AN EXPIRED SESSION IS NOT THE SAME FAILURE AS A DEAD DATABASE.
+ *
+ * S1 built this shim independently and it found something the dead-port harness
+ * could not, so it belongs here rather than in one lane's worktree.
+ *
+ * A dead port fails every request identically, including the ones the shell
+ * needs. An expired session is narrower and more common: the app loads, the
+ * route guard passes because `getSession()` reads localStorage and asks nobody,
+ * and then every authenticated READ comes back 401. That is what a person
+ * actually sees when they leave a tab open overnight.
+ *
+ * The difference is not academic. Rendering it is how S0 and S1 found that every
+ * ReadFailed in the product offers a "Try again" that CANNOT WORK: retrying a
+ * request whose session has ended returns the same 401 forever, so the one
+ * control the failure state offers is the one thing guaranteed not to help.
+ *
+ * ── WHAT IT ACTUALLY EXERCISES, CORRECTED BY S1 WHO BUILT IT ───────────────
+ * I wrote "the middleware runs" in this header, from S1's own description, and
+ * they have since measured all three states and corrected it. It is worth having
+ * exactly, because it decides what this mode may claim:
+ *
+ *   exp moved into the past, refresh token intact
+ *     -> supabase-js spends the refresh token and the session RECOVERS before
+ *        the page finishes loading. Full data renders. Nothing to see.
+ *   access AND refresh both broken
+ *     -> the guard finds no usable session and REDIRECTS TO /login, so no
+ *        in-app failure copy renders at all.
+ *   signature corrupted, expiry untouched          <- the state worth having
+ *     -> `auth-middleware.ts` calls `supabase.auth.getClaims(token)`, which
+ *        ACCEPTS a broken signature. The guard passes, the shell renders, and
+ *        every query underneath is rejected.
+ *
+ * So the mechanism is THE DATA LAYER REFUSING, not the middleware throwing. The
+ * errors that reach the components are real and carry the real strings, which is
+ * why the sign-in doors verified this way are genuinely verified.
+ *
+ * S1's reason for keeping it, which is the best one: it is the ONLY state that
+ * exposes a server function SWALLOWING its error. A swallowed 401 returns an
+ * empty list, and the screen then reports an empty desk rather than a failed
+ * read. That is how they found TrackStart saying "Nothing is in flight" on /plan
+ * beside work that was moving.
+ *
+ * ── WHAT THIS MODE CANNOT DO, AND IT COST A RETRACTED FINDING ──────────────
+ * A route interception is NOT the middleware. `requireSupabaseAuth` THROWS; this
+ * fulfils a response, and the TanStack Start serverFn client does not
+ * necessarily treat the two the same. On its first run it produced
+ * "data is undefined" carrying a React Query cache key on four surfaces, S4 filed
+ * it as a product defect (S4-074) and sent another lane three call sites, and it
+ * was this shim. It does not reproduce against a genuinely expired session.
+ *
+ * So: ANY FINDING FROM THIS MODE IS A LEAD, NOT A RESULT. Confirm it against a
+ * real session before filing it or sending it to anyone. The stronger instrument
+ * is to sign in for real and corrupt the stored token in place, which leaves the
+ * middleware and the real error mapping running and fakes only the signature.
+ * That needs credentials this harness deliberately does not have.
+ *
+ * Turned on with S4_MOTION_EXPIRED=yes, and it changes nothing unless asked.
+ */
+async function failEveryAuthenticatedRead(page: import("@playwright/test").Page): Promise<void> {
+  if (process.env.S4_MOTION_EXPIRED !== "yes") return;
+  // The exact shape auth returns, so the product's own error mapping is exercised
+  // rather than a generic network failure it would never see in production.
+  const body = JSON.stringify({ message: "Invalid token", code: 401 });
+  for (const pattern of ["**/rest/v1/**", "**/_serverFn/**", "**/auth/v1/user**"]) {
+    await page.route(pattern, (route) =>
+      route.fulfill({ status: 401, contentType: "application/json", body }),
+    );
+  }
+}
+
+/**
+ * THE BASELINE, SO A NUMBER BECOMES A DIRECTION.
+ *
+ * Every measurement in this file is an absolute, and an absolute is the hardest
+ * kind of number to act on. "/learn has 7 failure sentences" invites an argument
+ * about whether 7 is bad. "/learn had 7 and now has 9" does not.
+ *
+ * `surface-baseline.json` holds what each surface measured on 2026-08-27. This
+ * prints REGRESSED and IMPROVED against it, per surface, per check.
+ *
+ * ── WHY THIS DOES NOT FAIL THE BUILD, WHICH IS A DELIBERATE CHOICE ──────────
+ * The repo already ratchets Meridian tokens this way and that one DOES fail, so
+ * the obvious move is to match it. I am not doing that yet, on evidence from
+ * tonight: these numbers moved run to run while I was building them. /today read
+ * 2 on one pass and 4 on another, and /guardrails read 7 on a pass where it had
+ * already redirected away. Some of that was instrument bugs I have since fixed,
+ * and I have not proven that ALL of it was.
+ *
+ * A ratchet that flakes is worse than no ratchet, because the first false red
+ * teaches four lanes to pass `--no-verify` and the check is dead. Making this a
+ * gate needs a stable-run study first: the same commit measured several times,
+ * and every number identical. That study is a morning's work and nobody has done
+ * it, so the honest state is a loud report and a written reason.
+ *
+ * The one check here that DOES fail the build is the advancing progress claim,
+ * because a counter that rises with no data behind it cannot be a flake.
+ */
+function loadBaseline(): Record<string, Partial<SurfaceNumbers>> {
+  try {
+    const raw = readFileSync(join(findRepoRoot(), "e2e", "surface-baseline.json"), "utf8");
+    return (JSON.parse(raw).surfaces ?? {}) as Record<string, Partial<SurfaceNumbers>>;
+  } catch {
+    // A missing or unreadable baseline must never fail a measurement run: the
+    // numbers are the point and the comparison is the convenience.
+    return {};
+  }
+}
+
+const BASELINE = loadBaseline();
+
+/**
+ * PROSE WIDER THAN MERIDIAN'S OWN MEASURE.
+ *
+ * `meridian.css:938` sets `--mrd-measure: 68ch` and comments it "prose only,
+ * never a table or a row". S2 found board prose running to 110 characters
+ * because nothing on that surface used the token, and it shipped.
+ *
+ * S2 also made the fair criticism that this harness boots against a dead backend
+ * and is therefore blind to defects that only appear on POPULATED screens. That
+ * is true and it is a real limit. Line measure is the half of that class it does
+ * NOT have to be blind to: failure copy is prose, marketing pages are prose, and
+ * both render fully with no database at all.
+ *
+ * ── HOW ch IS MEASURED, since guessing at it would make the number worthless ──
+ * A `ch` is the width of the digit zero in the element's OWN font, so it is
+ * measured per element with a probe span carrying that element's computed font,
+ * rather than approximated from font-size.
+ *
+ * THE THRESHOLD IS 76, WHICH IS 68 PLUS AN EIGHT-CHARACTER TOLERANCE. It said 80
+ * for its first three runs while this comment said "an eight-character
+ * tolerance", and 68 plus 8 is 76. The prose and the number disagreed and the
+ * number was looser.
+ *
+ * That gap is not academic: S2 measured a `today-notice` column rendering at
+ * 79ch, from a cap written as `72ch` on a grid whose font is 14px and filled by
+ * a child at 13px, so the cap counts in one font and the text arrives in
+ * another. At 80 this check would have reported that surface as clean, and the
+ * defect was found by a person measuring it by hand instead.
+ *
+ * Tables and rows are excluded, as the token's own comment instructs.
+ */
+async function proseWiderThanMeasure(page: import("@playwright/test").Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const probe = document.createElement("span");
+    probe.textContent = "0";
+    probe.style.cssText = "position:absolute;visibility:hidden;white-space:pre;";
+    document.body.appendChild(probe);
+
+    const out: string[] = [];
+    for (const el of Array.from(document.querySelectorAll<HTMLElement>("p, li, dd, blockquote"))) {
+      if (el.closest("table, [role='row'], [role='table'], [role='grid']")) continue;
+      const text = (el.innerText || "").trim();
+      // Short strings wrap to one line whatever the box is; they are not prose.
+      if (text.length < 120) continue;
+      const cs = getComputedStyle(el);
+      probe.style.font = cs.font || `${cs.fontSize} ${cs.fontFamily}`;
+      const chWidth = probe.getBoundingClientRect().width;
+      if (!chWidth) continue;
+
+      /*
+       * MEASURE THE RENDERED LINE, NOT THE BOX.
+       *
+       * The first version divided `clientWidth` by the ch width, which is the
+       * width of the CONTAINER. A paragraph can sit in a wide box and still
+       * wrap short, and reporting the box as the line would have sent another
+       * lane to fix prose that reads fine. A Range over the text yields one
+       * client rect PER LINE BOX, so the widest rect is the longest line a
+       * person actually reads.
+       */
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const lines = Array.from(range.getClientRects()).filter((r) => r.width > 0);
+      range.detach?.();
+      if (lines.length === 0) continue;
+      const widest = Math.max(...lines.map((r) => r.width));
+      const ch = Math.round(widest / chWidth);
+
+      /*
+       * A PIXEL CAP ON PROSE IS A DEFECT EVEN WHEN THE CHARACTER COUNT PASSES.
+       *
+       * S3's find: /pricing bounded a paragraph at `maxWidth: 640px`, roughly
+       * 91ch. Somebody DID cap it, in a unit that cannot track type, so the
+       * measure drifts the day the font scale moves and nothing warns anyone.
+       * A ch threshold is blind to it whenever the current font happens to land
+       * inside the bound, which is exactly when it looks fine and is not.
+       */
+      /*
+       * ONLY THE INLINE, AUTHORED VALUE COUNTS AS A PIXEL CAP.
+       *
+       * `getComputedStyle().maxWidth` RESOLVES ch, em and % to pixels, so
+       * reading it flags every capped element on earth, including one correctly
+       * written as `68ch`. The first version of this did exactly that and
+       * reported /decide as pixel-capped at 653.57px — a fractional pixel is the
+       * fingerprint of a computed value, not something anybody typed.
+       *
+       * `el.style.maxWidth` is the inline value as AUTHORED, so `maxWidth: 640`
+       * in a component shows as `640px` and `68ch` shows as `68ch`. That is the
+       * only reading that can tell a pixel cap from a character one.
+       *
+       * The cost is stated rather than hidden: a px cap written in a CSS FILE is
+       * invisible to this, because the cascade has already resolved it by the
+       * time the DOM can be asked. Catching those needs the stylesheet, not the
+       * element.
+       */
+      const declared = el.style.maxWidth.trim();
+      const pixelBound = /^\d+(\.\d+)?px$/.test(declared);
+      if (ch <= 76 && !pixelBound) continue;
+      const how = pixelBound
+        ? ` [capped in PIXELS: ${declared.trim()}, which cannot track type]`
+        : "";
+      out.push(`${ch}ch over ${lines.length} line(s)${how}: ${text.slice(0, 50)}...`);
+    }
+    probe.remove();
+    return Array.from(new Set(out)).slice(0, 6);
+  });
+}
+
+/**
+ * CAN A KEYBOARD USER SEE WHERE THEY ARE?
+ *
+ * This product ships keyboard shortcuts as a first-class idea — `g o`, `g v`,
+ * `g w`, `g r` are printed in the rail itself — so it is inviting people to
+ * drive it without a mouse. A focus ring is what makes that invitation real. A
+ * control that takes focus and looks identical while focused strands the person
+ * who accepted the invitation, and it is invisible to every other check in this
+ * file because nothing about it is wrong until you press Tab.
+ *
+ * ── HOW IT DECIDES ─────────────────────────────────────────────────────────
+ * Focus the element, then compare the computed `outline`, `boxShadow`,
+ * `borderColor` and `backgroundColor` against their unfocused values. ANY change
+ * counts: a ring, a glow, a border shift, a fill. This deliberately does not
+ * care WHICH, because a product is allowed to design its own focus treatment and
+ * the only failure is having none.
+ *
+ * `:focus-visible` is why this focuses rather than inspecting stylesheets. Many
+ * designs show a ring only for keyboard focus, and the computed style after a
+ * programmatic `.focus()` reflects that correctly in Chromium.
+ *
+ * Reported, not asserted. I have no baseline for this yet and a gate that fires
+ * on its first run before anyone has agreed the rule is how a check gets turned
+ * off. It fires on nothing or on a short list; either way the list is the point.
+ */
+async function controlsWithNoVisibleFocus(
+  page: import("@playwright/test").Page,
+): Promise<string[]> {
+  return page.evaluate(() => {
+    const shape = (el: HTMLElement) => {
+      const cs = getComputedStyle(el);
+      return [cs.outline, cs.outlineOffset, cs.boxShadow, cs.borderColor, cs.backgroundColor].join(
+        "|",
+      );
+    };
+    const out: string[] = [];
+    const sel = 'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    const all = Array.from(document.querySelectorAll<HTMLElement>(sel))
+      .filter((el) => el.offsetParent !== null || el.getClientRects().length > 0)
+      .filter((el) => !el.hasAttribute("disabled"))
+      .slice(0, 25);
+
+    const active = document.activeElement as HTMLElement | null;
+    for (const el of all) {
+      const before = shape(el);
+      el.focus();
+      const after = shape(el);
+      if (before !== after) continue;
+      const cls = el.className?.toString().trim().split(/\s+/).slice(0, 2).join(".");
+      out.push(`${el.tagName.toLowerCase()}${cls ? "." + cls : ""}`);
+    }
+    active?.focus();
+    return Array.from(new Set(out)).slice(0, 8);
+  });
+}
+
+/**
+ * CONTROLS A SCREEN READER CANNOT NAME.
+ *
+ * Every other check in this file asks whether the screen tells the truth. This
+ * one asks whether it can be USED, which is the same standard applied to a
+ * person who is not looking at it.
+ *
+ * A button with an icon and no accessible name is announced as "button" and
+ * nothing else. On the failure states this harness specialises in, that is
+ * sharper than usual: those screens are mostly a sentence and a way out, so an
+ * unnamed control is frequently the ONLY control, and losing it loses the page.
+ *
+ * The four ways a control gets a name are all accepted: its own text, its
+ * `aria-label`, an `aria-labelledby` that resolves, or a `title`. An
+ * `aria-hidden` control is skipped, because it is deliberately not in the tree.
+ *
+ * Reported rather than asserted, for now. I have not established a clean number
+ * on this product, and a gate that fires on its first run before anyone has
+ * agreed the rule is how a check gets switched off.
+ */
+async function unnamedControls(page: import("@playwright/test").Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const out: string[] = [];
+    const sel = 'button, a[href], input, select, textarea, [role="button"], [role="link"]';
+    for (const el of Array.from(document.querySelectorAll<HTMLElement>(sel))) {
+      if (el.closest("[aria-hidden='true']")) continue;
+      if (el.offsetParent === null && el.getClientRects().length === 0) continue;
+      const labelledby = (el.getAttribute("aria-labelledby") ?? "")
+        .split(/\s+/)
+        .filter(Boolean)
+        .some((id) => document.getElementById(id)?.textContent?.trim());
+      const named =
+        (el.innerText || el.textContent || "").trim() ||
+        el.getAttribute("aria-label")?.trim() ||
+        el.getAttribute("title")?.trim() ||
+        (el as HTMLInputElement).labels?.length ||
+        labelledby;
+      if (named) continue;
+      const cls = el.className?.toString().trim().split(/\s+/).slice(0, 2).join(".");
+      out.push(`${el.tagName.toLowerCase()}${cls ? "." + cls : ""}`);
+    }
+    /*
+     * Count the ELEMENTS behind each shape, not just the shapes.
+     *
+     * /checkout reported "1 control shape" and it is TWO inputs, both
+     * `input.text-mrd-prose`, one for a name and one for an email. Deduping to a
+     * shape is what makes the list readable on a page with forty rows, and
+     * printing only the shape understates the defect on a page with two.
+     */
+    const counts = new Map<string, number>();
+    for (const shape of out) counts.set(shape, (counts.get(shape) ?? 0) + 1);
+    return [...counts].map(([shape, n]) => (n > 1 ? `${shape} x${n}` : shape)).slice(0, 10);
+  });
+}
+
+/**
+ * SURFACES THAT ARE SUPPOSED TO SHOW EVERY FAILURE AT ONCE.
+ *
+ * `/meridian` is the design system's gallery: "Every component, in both grounds,
+ * before it is wired to anything." It scored 8 failure statements and TEN "Try
+ * again" buttons, the worst in the product by a factor of two, and every one of
+ * them is a SPECIMEN rendering correctly. A catalogue of failure states is
+ * supposed to contain failure states.
+ *
+ * I had "the worst surface in the product" written down before opening the
+ * screenshot. The metric cannot tell a gallery from a page, so it is told.
+ *
+ * Kept as a list of one rather than a pattern, because the honest default is
+ * that a surface counts, and every addition here should cost somebody a
+ * sentence explaining why it does not.
+ */
+const GALLERY_SURFACES: readonly string[] = ["/meridian"];
+
+/**
+ * HOW MANY TIMES DOES ONE DEAD READ ANNOUNCE ITSELF?
+ *
+ * S3 asked for this after rendering `/guardrails` against a dead backend and
+ * counting SIX separate failure statements and FOUR "Try again" affordances, all
+ * produced by a single failed read. Their words for why it matters: whatever
+ * route a surface ends up on, one dead read should say so ONCE.
+ *
+ * It is a real quality number because failure states are the ones nobody
+ * designs. They are assembled a component at a time, each one locally correct,
+ * and nobody sees the total until the page is rendered with everything broken,
+ * which is exactly the condition this harness creates and nothing else does.
+ *
+ * Counted on `innerText`, deduplicated, because the question is how many
+ * DISTINCT sentences a person reads, not how many components rendered.
+ *
+ * ── THE UNIT IS A SENTENCE, NOT A CAUSE, AND THE DIFFERENCE MATTERS ────────
+ * A card's heading and its body are two lines and count as two. S3 fixed
+ * /guardrails and reported it "six to three"; this still read six, and both are
+ * right about different things. Reading the page settles it: after their fix a
+ * person sees THREE CAUSES (the room summary, the boundary, the rules) carried
+ * by five or six SENTENCES, because one card legitimately has a heading and a
+ * body.
+ *
+ * So this number will not fall to a cause count, and nobody should try to make
+ * it. It is a triage signal for "which page should I look at", and the list it
+ * prints is the thing to act on. A lane chasing the number itself would end up
+ * deleting a card body that was doing its job.
+ *
+ * ── AND IT PENALISES THE FIX. READ THIS BEFORE ACTING ON A RISE ────────────
+ * /learn went from 7 to 9 the moment S0's F-120 reached main. That change is an
+ * IMPROVEMENT: four reads in forecast.functions.ts used to swallow their error
+ * and return empty, and ForecastDeskPanel returned null when all three came back
+ * empty, so a failed read made the whole desk VANISH from the page. It now says
+ *
+ *   "Your forecasts did not load, so an empty desk here would not mean there is
+ *    nothing to settle."
+ *
+ * A surface that used to disappear silently now explains itself, and this metric
+ * scores that as a REGRESSION of one.
+ *
+ * There is no threshold that fixes this, because "a new honest sentence" and "a
+ * duplicated sentence" are the same event to a counter. A RISE IS A PROMPT TO
+ * READ THE LIST, NEVER A VERDICT — and a rise straight after a lane ships an
+ * error state is the most likely place for the count to be wrong and the surface
+ * to be better.
+ */
+/*
+ * `went wrong` is deliberately anchored to `something went wrong` rather than
+ * matched bare. Bare, it counted the TAB LABEL "What went wrong" on /guardrails
+ * as a failure statement and reported 7 where a person reads 6. A metric another
+ * lane is going to act on has to not do that, and the cross-check that caught it
+ * was S3 counting the same page by hand and getting six.
+ */
+const FAILURE_SENTENCE =
+  /(did not load|could not be read|could not read|not readable|is not available|unavailable|something went wrong|session ended|failed to load)/i;
+
+async function failureStatements(
+  page: import("@playwright/test").Page,
+): Promise<{ distinct: string[]; retries: number }> {
+  return page.evaluate((src) => {
+    const re = new RegExp(src, "i");
+    const lines = document.body.innerText
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean);
+    /*
+     * The station strip prints "count unavailable" once per station on EVERY
+     * surface. It is honest and it is not this surface announcing a failed read,
+     * so counting it adds a constant to every score and tells nobody anything.
+     */
+    const distinct = Array.from(
+      new Set(lines.filter((l) => re.test(l) && !/^count unavailable$/i.test(l))),
+    );
+    const retries = lines.filter((l) => /^try again$/i.test(l)).length;
+    return { distinct, retries };
+  }, FAILURE_SENTENCE.source);
+}
+
+/**
+ * CONTENT THAT IS WIDER THAN ITS BOX AND CANNOT BE SCROLLED TO.
+ *
+ * A narrow viewport turns a row of seven things into a row of four things and a
+ * cliff. That is fine when the box scrolls and invisible-but-fatal when it does
+ * not: the remaining content exists in the DOM, reads fine to a test that
+ * inspects text, and no person can ever reach it.
+ *
+ * The signal is exact rather than heuristic. `scrollWidth > clientWidth` means
+ * there IS more than fits. `overflow-x: hidden` means it is clipped. Together
+ * they mean unreachable. Elements that scroll (`auto`, `scroll`) are fine and are
+ * not reported, and `visible` is not reported either because the overflow is
+ * still on screen, just outside the box.
+ *
+ * Reported, not asserted: a clipped decorative strip is a real thing a designer
+ * may have chosen, and this cannot tell that from a lost navigation row. The
+ * screenshot beside it can.
+ */
+async function clippedAndUnreachable(page: import("@playwright/test").Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const out: string[] = [];
+    for (const el of Array.from(document.querySelectorAll<HTMLElement>("*"))) {
+      if (el.scrollWidth <= el.clientWidth + 2) continue;
+      if (el.clientWidth === 0) continue;
+      if (getComputedStyle(el).overflowX !== "hidden") continue;
+      // Screen-reader-only text is clipped ON PURPOSE: that is how it is kept
+      // out of the visual layout while staying in the accessibility tree. It is
+      // the one case where "wider than its box and not scrollable" is correct,
+      // and it was the ONLY thing this check found on its first run.
+      if (/(^|\s)(sp-)?sr-only(\s|$)/.test(el.className?.toString() ?? "")) continue;
+      const label = el.className?.toString().trim().split(/\s+/).slice(0, 2).join(".");
+      const lost = el.scrollWidth - el.clientWidth;
+      out.push(`${el.tagName.toLowerCase()}${label ? "." + label : ""} hides ${lost}px`);
+    }
+    // The same class repeats down a list; one line per shape is what is readable.
+    return Array.from(new Set(out)).slice(0, 12);
+  });
+}
+
+/**
  * WHERE AN ADVANCING PROGRESS CLAIM IS A LIE, AND WHERE IT IS AN ADVERTISEMENT.
  *
  * The first version of this asserted everywhere and immediately failed `/`, on
@@ -283,8 +791,13 @@ test("report which surfaces still move once nothing can be read", async ({ page 
   const report: string[] = [];
   const moving: string[] = [];
   const notRendered: string[] = [];
+  /** Kept apart from `report`, whose length is asserted one-per-surface. */
+  const notes: string[] = [];
+  const drift: string[] = [];
   const advancing: string[] = [];
   const illustrated: string[] = [];
+
+  await failEveryAuthenticatedRead(page);
 
   for (const path of SURFACES) {
     await page.goto(`http://localhost:8080${path}`, { waitUntil: "domcontentloaded" });
@@ -338,8 +851,76 @@ test("report which surfaces still move once nothing can be read", async ({ page 
      * measured. So the shot is unconditional and named for the path.
      */
     await page.screenshot({
-      path: join(SHOT_DIR, `surface${path.replace(/\//g, "_")}${SHOT_SUFFIX}.png`),
+      path: join(SHOT_DIR, `surface_${shotName(path)}${SHOT_SUFFIX}.png`),
     });
+
+    const failures = await failureStatements(page);
+    if (GALLERY_SURFACES.includes(path)) {
+      notes.push(
+        `\n--- ${path}: ${failures.distinct.length} failure statement(s), ` +
+          `${failures.retries} "Try again" — NOT SCORED. ` +
+          `This surface is a component gallery and is MEANT to show them all at once.`,
+      );
+    } else if (failures.distinct.length) {
+      notes.push(
+        `\n--- ${path}: ONE ${FAILURE_MODE}, ${failures.distinct.length} failure SENTENCE(S) ` +
+          `(a card heading and its body are two), ${failures.retries} "Try again" ---\n  ` +
+          failures.distinct.join("\n  ") +
+          (failures.distinct.length > 2 ? `\n  ABOVE TWO. One dead read should say so once.` : ""),
+      );
+    }
+
+    const wide = await proseWiderThanMeasure(page);
+    if (wide.length) {
+      notes.push(
+        `\n--- ${path}: prose measured against Meridian's 68ch ---\n  ` +
+          wide.join("\n  ") +
+          `\n  meridian.css:938 sets --mrd-measure: 68ch, "prose only, never a table or a row".` +
+          `\n  A line OVER 76ch reads too long today. A line capped INLINE IN PIXELS may read` +
+          `\n  fine today and stops tracking the type scale the moment it moves; /brief is` +
+          `\n  four paragraphs at 28 to 60ch, all correct to read and all pinned at 760px.`,
+      );
+    }
+
+    const unnamed = await unnamedControls(page);
+    if (unnamed.length) {
+      notes.push(
+        `\n--- ${path}: ${unnamed.length} control shape(s) a screen reader cannot name ---\n  ` +
+          unnamed.join("\n  ") +
+          `\n  On a failure screen the only control is often the only way out.`,
+      );
+    }
+
+    const moved = compareToBaseline(
+      path,
+      {
+        failureSentences: failures.distinct.length,
+        retries: failures.retries,
+        unnamed: unnamed.length,
+        wideProse: wide.length,
+      },
+      BASELINE,
+    );
+    if (moved) drift.push(moved);
+
+    const noFocus = await controlsWithNoVisibleFocus(page);
+    if (noFocus.length) {
+      notes.push(
+        `\n--- ${path}: ${noFocus.length} control shape(s) that look IDENTICAL when focused ---\n  ` +
+          noFocus.join("\n  ") +
+          `\n  This product prints keyboard shortcuts in its own rail. A control with no focus` +
+          `\n  treatment strands the person who took that invitation.`,
+      );
+    }
+
+    const clipped = await clippedAndUnreachable(page);
+    if (clipped.length) {
+      notes.push(
+        `\n--- ${path}: content wider than its box and NOT scrollable ---\n  ` +
+          clipped.join("\n  ") +
+          `\n  Open the screenshot: is that decoration, or is it a way out of this screen?`,
+      );
+    }
 
     const changed = a !== b;
     if (changed) {
@@ -348,19 +929,19 @@ test("report which surfaces still move once nothing can be read", async ({ page 
         `\n=== ${path} STILL MOVING ${GAP_MS}ms after settle, with no backend ===\n` +
           `  frame at settle+0s : ${a}\n` +
           `  frame at settle+${GAP_MS / 1000}s : ${b}\n` +
-          `  screenshot: docs/screenshots/s4-motion/surface${path.replace(/\//g, "_")}${SHOT_SUFFIX}.png`,
+          `  screenshot: docs/screenshots/s4-motion/surface_${shotName(path)}${SHOT_SUFFIX}.png`,
       );
     } else {
       report.push(
         `\n=== ${path} settled after rendering in ${(render.ms / 1000).toFixed(1)}s. ` +
           `Nothing moves without data. ===\n` +
-          `  screenshot: docs/screenshots/s4-motion/surface${path.replace(/\//g, "_")}${SHOT_SUFFIX}.png\n` +
+          `  screenshot: docs/screenshots/s4-motion/surface_${shotName(path)}${SHOT_SUFFIX}.png\n` +
           `  Settling is the pass for MOTION. Open it anyway and read what it SAYS.`,
       );
     }
   }
 
-  writeFileSync(join(SHOT_DIR, "motion-report.txt"), report.join("\n"), "utf8");
+  writeFileSync(join(SHOT_DIR, "motion-report.txt"), [...report, ...notes].join("\n"), "utf8");
 
   if (illustrated.length) {
     console.info(
@@ -381,7 +962,7 @@ test("report which surfaces still move once nothing can be read", async ({ page 
       "here too, and decoration carrying no state claim is honest. Open the screenshots in\n" +
       "docs/screenshots/s4-motion/ and ask whether what moved was a STATE. That judgement is\n" +
       "not automated and this spec does not pretend to make it.\n" +
-      report.join("\n"),
+      [...report, ...notes].join("\n"),
   );
 
   // The measurement ran for every surface.

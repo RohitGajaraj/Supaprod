@@ -1,6 +1,19 @@
 /**
  * BackendHealthBanner — startup drift indicator.
  *
+ * PORTED TO MERIDIAN, 2026-08-27. It drew in `--canvas`, `--ink`, `--line` and
+ * `--amber`, every one of which resolves through styles.css into the RETIRED
+ * `--ds-*` family. The ratchet does not catch it because the indirection hides
+ * the retired token behind a friendly name, so a global banner on every
+ * authenticated page was the last thing in this prefix still drawing in the old
+ * system -- directly above EverythingIsPausedBanner, which is Meridian. Two
+ * global banners in two design languages, stacked.
+ *
+ * The accent maps by MEANING and not by hue, the same rule as the landing port:
+ * `--mrd-hold` is amber and means STOPPED AND NOT ON YOU, which is exactly a
+ * backend missing migrations -- a condition to wait out, not an outcome and not
+ * a decision anybody can take from this banner.
+ *
  * Renders only when the backend is missing migrations this build depends on.
  * Cannot auto-apply (Lovable Cloud Workers have no DDL credentials); the goal
  * is to fail loud and stop users hitting cryptic Postgres errors mid-flow
@@ -23,7 +36,7 @@ function Banner({
   children: React.ReactNode;
   trailing?: React.ReactNode;
 }) {
-  const accent = tone === "warn" ? "var(--amber)" : "var(--mrd-faint)";
+  const accent = tone === "warn" ? "var(--mrd-hold)" : "var(--mrd-faint)";
   return (
     <div
       role="alert"
@@ -37,13 +50,13 @@ function Banner({
         padding: "10px 16px",
         background:
           tone === "warn"
-            ? "color-mix(in oklab, var(--amber) 14%, var(--canvas))"
-            : "var(--canvas)",
+            ? "color-mix(in oklab, var(--mrd-hold) 14%, var(--mrd-sheet))"
+            : "var(--mrd-sheet)",
         borderBottom:
           tone === "warn"
-            ? "1px solid color-mix(in oklab, var(--amber) 40%, transparent)"
-            : "1px solid var(--line)",
-        color: "var(--ink)",
+            ? "1px solid color-mix(in oklab, var(--mrd-hold) 40%, transparent)"
+            : "1px solid var(--mrd-line)",
+        color: "var(--mrd-ink)",
         lineHeight: 1.45,
       }}
     >

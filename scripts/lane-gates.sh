@@ -107,6 +107,34 @@ if [ -n "$RENDERING" ]; then
   echo "  ${DIM}Needs port 8080 free, and it refuses to start if a lane already holds it.${OFF}"
 fi
 
+# ── WILL THIS BRANCH MERGE? ────────────────────────────────────────────────
+#
+# Four lanes commit against one `main` all day and nobody discovers a conflict
+# until somebody attempts the deploy, which is the worst moment to find one. On
+# 2026-08-27 the gap was 182 commits across three lanes and exactly ONE file
+# conflicted; it took ten minutes to resolve once anyone looked, and the looking
+# was the whole difficulty.
+#
+# `git merge-tree` computes the merge WITHOUT touching a branch, a checkout or
+# the working tree, so this is safe to run on every gate and costs a second.
+# Informational only: a conflict with main is not a reason to block a commit on
+# your own lane, it is a reason to know before the deploy does.
+if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
+  MERGE_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
+  if [ "$MERGE_BRANCH" != "main" ]; then
+    if git merge-tree --write-tree --name-only origin/main HEAD >/tmp/lane-gates-merge.$$ 2>&1; then
+      echo "${DIM}Merges cleanly into origin/main.${OFF}"
+    else
+      echo ""
+      echo "${BOLD}This branch does NOT merge cleanly into origin/main${OFF}"
+      grep '^CONFLICT' /tmp/lane-gates-merge.$$ 2>/dev/null | sed 's/^/  /' | head -8
+      echo "  ${DIM}Not a reason to hold this commit. It is a reason to talk to whoever${OFF}"
+      echo "  ${DIM}owns the other side before the deploy finds it.${OFF}"
+    fi
+    rm -f /tmp/lane-gates-merge.$$
+  fi
+fi
+
 if [ -n "$FAILED" ]; then
   # THE LAST LINE, and it names what to fix.
   echo "${RED}${BOLD}GATES FAILED: ${FAILED}${OFF}- do not commit or push."

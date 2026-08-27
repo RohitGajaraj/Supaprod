@@ -1,4 +1,5 @@
 import { QueryClient } from "@tanstack/react-query";
+import { messageForPerson, sessionEndedMessage } from "@/lib/error-copy";
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 import { BrandWait } from "@/components/supaprod/BrandWait";
@@ -34,10 +35,26 @@ function RoutePending() {
 // recovery that is not coming. The policy is stated in full in
 // `src/styles/meridian.css`, under THE LOADING POLICY.
 function RouteError({ error }: { error: Error }) {
-  const message =
-    error instanceof Error && error.message
-      ? error.message
-      : "Something went wrong while loading this page.";
+  /*
+   * THE LAST BOUNDARY IN THE PRODUCT, AND IT WAS PRINTING WHATEVER WAS THROWN.
+   *
+   * This catches every route, public ones included, so a server-side
+   * misconfiguration reached a stranger verbatim. On /proof -- the page about
+   * whether we can be trusted -- it rendered:
+   *
+   *   "Missing Supabase environment variable(s): SUPABASE_SERVICE_ROLE_KEY.
+   *    Connect Supabase in Lovable Cloud."
+   *
+   * One of our secrets named by variable, and an instruction to go and fix our
+   * vendor console, shown to somebody evaluating us.
+   *
+   * `messageForPerson` decides by SHAPE, so it keeps the sentences our server
+   * functions deliberately write for people and drops the ones written for an
+   * operator or a log. `sessionEndedMessage` runs first because an ended
+   * session is the one failure here a reader can fix themselves.
+   */
+  const said = sessionEndedMessage(error) ?? messageForPerson(error);
+  const message = said ?? "Something went wrong while loading this page.";
   return (
     <div
       style={{

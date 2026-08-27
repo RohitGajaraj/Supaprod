@@ -364,7 +364,9 @@ export function TheGap() {
         </h2>
 
         <p
-          className={revealCls("mb-5 font-mono text-mrd-tiny uppercase text-zinc-500 md:text-mrd-small")}
+          className={revealCls(
+            "mb-5 font-mono text-mrd-tiny uppercase text-zinc-500 md:text-mrd-small",
+          )}
           style={{ transitionDelay: revealDelay(60), letterSpacing: "0.14em" }}
         >
           Every craft got a home built for agents
@@ -486,7 +488,7 @@ export function TheGap() {
             words around it. It is a PixelStat now, the app's single way to
             render a metric, so the numeric voice matches every other surface.
             Its colour is passed explicitly rather than via tone="blue":
-            PixelStat resolves that to var(--action-blue), which the public
+            PixelStat resolves that to var(--mrd-agent), which the public
             ink theme does not define, so the token would fall back and lose
             the hue. */}
         <p

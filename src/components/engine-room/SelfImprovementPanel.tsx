@@ -51,7 +51,7 @@ import {
 } from "@/lib/self-improve.functions";
 import type { ProposalSeverity } from "@/lib/self-improve";
 import { SELF_IMPROVE_MODES, type SelfImproveMode } from "@/lib/self-improve-governance";
-import { PanelPending, ErrorRetry } from "./RoomDetail";
+import { PanelPending, ErrorRetry } from "./room-parts";
 import { Eyebrow } from "@/components/meridian/surface-parts";
 
 /**

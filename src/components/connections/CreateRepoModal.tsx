@@ -82,7 +82,9 @@ export function CreateRepoModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      {/* See the note in VouchersPanel: without `data-mrd`, this dialog's
+          focus ring resolves to the retired --ds-focus-color. */}
+      <DialogContent data-mrd="" className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Github className="h-4 w-4" />
@@ -144,7 +146,7 @@ export function CreateRepoModal({
             type="button"
             onClick={() => setIsPrivate((p) => !p)}
             aria-pressed={isPrivate}
-            className="flex w-full items-center gap-2 rounded-md text-left text-sm text-muted-foreground outline-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+            className="flex w-full items-center gap-2 rounded-md text-left text-sm text-muted-foreground outline-none hover:text-foreground"
           >
             {isPrivate ? (
               <Lock className="h-3.5 w-3.5 shrink-0 text-amber-500" />

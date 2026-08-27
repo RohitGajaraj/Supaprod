@@ -757,9 +757,28 @@
  *
  * Leading is `--mrd-lh-snug`: these are lines you scan down, not paragraphs you
  * read. meridian.css declares that stop "UI rows. Was 1.4; the reference's air
- * lives here", which is the retired row token this replaces, by name. */
+ * lives here", which is the retired row token this replaces, by name.
+ *
+ * AND THE ROW DECLARES ITS OWN TYPE STOP, added 2026-08-27, because `ch` is
+ * resolved in the font of the element the property is WRITTEN ON.
+ *
+ * The cap above is correct and stays; the UNIT was wrong. This element
+ * inherited 14px while the sentence inside it renders at `--mrd-t-base` (13px,
+ * "a row's title"), so a column declared as 72 characters measured 636px and
+ * held 79 of the child's characters. Measured by S2 as line-box rects with a
+ * per-element ch probe, which is the only way this is visible at all.
+ *
+ * Setting the stop HERE rather than shrinking the number to ~66ch is the
+ * difference between a fix and a coincidence: 66 would be a magic number that
+ * silently lies again the day the child's size moves, while a row that names
+ * its own stop makes 72ch mean 72 characters of the text actually in it. The
+ * children inherit it instead of overriding a page default.
+ *
+ * It does NOT reintroduce the second cap. There is still exactly one
+ * max-width, on the column, which is the whole point of the note above. */
 .today-notice {
   display: grid;
+  font-size: var(--mrd-t-base);
   grid-template-columns: minmax(0, 72ch) auto;
   justify-content: start;
   gap: var(--mrd-s6);

@@ -173,3 +173,55 @@ export function forecastCoverage(rows: readonly { forecast_claim?: string | null
           : null;
   return { withForecast, total, tail };
 }
+
+/**
+ * THE CALLS WHOSE DATE HAS PASSED AND WHOSE ANSWER NEVER ARRIVED.
+ *
+ * `forecastCoverage` above answers "how many of these can be graded at all".
+ * This answers the second half, and it is the half the product's own claim
+ * rests on: a forecast written at decision time is worth nothing until somebody
+ * settles it against what happened. A horizon date that has gone by with no
+ * resolution is a bet the team made and then stopped watching.
+ *
+ * MEASURED ON THE LIVE DATABASE, 2026-08-27: 369 decisions, 176 carrying a
+ * forecast, 91 graded, and 15 past their date with no resolution. Nothing in
+ * the product said so anywhere a person browsing their own calls would see it.
+ *
+ * IT COUNTS, AND IT DOES NOT SETTLE. The Forecast Desk on /learn owns that
+ * write and owns the queue it drains; a second settle control here would be a
+ * second place for one decision to be made, which is the defect this repo has
+ * found on six surfaces already. This states the fact and names the door.
+ *
+ * A ROW WITH NO HORIZON IS NOT LATE, it is ungradeable, and `forecastCoverage`
+ * already says so. Counting it here would blame a team for missing a date
+ * nobody set.
+ */
+export function forecastDue(
+  rows: readonly {
+    forecast_horizon_date?: string | null;
+    forecast_resolution?: string | null;
+  }[],
+  nowMs: number,
+): {
+  /** Past their horizon with no resolution. */
+  due: number;
+  /** The sentence, or null when there is nothing to say. */
+  said: string | null;
+} {
+  const due = rows.filter((d) => {
+    if (d.forecast_resolution) return false;
+    const at = d.forecast_horizon_date ? Date.parse(d.forecast_horizon_date) : NaN;
+    /* An unparseable date is not a late one. Treating it as late would turn a
+       bad row into an accusation, and the reader cannot act on either. */
+    return Number.isFinite(at) && at < nowMs;
+  }).length;
+
+  if (due === 0) return { due: 0, said: null };
+  return {
+    due,
+    said:
+      due === 1
+        ? "One is past the date it set and has not been graded."
+        : `${due} are past the dates they set and have not been graded.`,
+  };
+}

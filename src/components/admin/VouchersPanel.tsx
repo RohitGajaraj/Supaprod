@@ -25,9 +25,6 @@ import {
   type AdminVoucher,
 } from "@/lib/admin-vouchers.functions";
 
-const FOCUS_RING =
-  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]";
-
 const mutationFailed = (e: unknown) =>
   toast.error(e instanceof Error ? e.message : "The action failed. Nothing was changed.");
 
@@ -58,8 +55,19 @@ export function VouchersPanel() {
     onError: mutationFailed,
   });
 
+  /*
+   * `data-mrd` is what makes the focus ring Meridian's, and its absence was
+   * live behaviour rather than a lint.
+   *
+   * AuthedLayout mounts `data-obsidian` on <html> for the whole authenticated
+   * tree, and meridian.css remaps `--focus-ring` to `--mrd-focus` only INSIDE a
+   * `[data-mrd]` subtree. `Surface` does not set it, so every keyboard focus
+   * ring on this panel drew in the retired `--ds-focus-color` while the rest of
+   * the app drew Meridian's. The token ratchet cannot see it: the retired value
+   * arrives through an alias.
+   */
   return (
-    <div style={{ display: "grid", gap: "var(--space-4)" }}>
+    <div data-mrd="" style={{ display: "grid", gap: "var(--space-4)" }}>
       <VoucherCreator />
       <div className="material-medium" style={card()}>
         <span className="mrd-eyebrow">Vouchers · {list.isLoading ? "…" : rows.length}</span>
@@ -226,14 +234,13 @@ function VoucherCreator() {
           onChange={(e) => setCode(e.target.value.toUpperCase())}
           placeholder="LAUNCH50"
           aria-label="Voucher code"
-          className={`${FOCUS_RING} placeholder:[color:var(--mrd-mute)]`}
+          className="placeholder:[color:var(--mrd-mute)]"
           style={input(140)}
         />
         <select
           value={kind}
           onChange={(e) => setKind(e.target.value as typeof kind)}
           aria-label="Voucher kind"
-          className={FOCUS_RING}
           style={input(140)}
         >
           <option value="credit_grant">credit_grant</option>
@@ -245,7 +252,7 @@ function VoucherCreator() {
           onChange={(e) => setPlanTier(e.target.value)}
           placeholder="plan tier"
           aria-label="Plan tier"
-          className={`${FOCUS_RING} placeholder:[color:var(--mrd-mute)]`}
+          className="placeholder:[color:var(--mrd-mute)]"
           style={input(120)}
         />
         <input
@@ -254,7 +261,7 @@ function VoucherCreator() {
           onChange={(e) => setCredits(e.target.value === "" ? "" : Number(e.target.value))}
           placeholder="credits"
           aria-label="Credits"
-          className={`${FOCUS_RING} placeholder:[color:var(--mrd-mute)]`}
+          className="placeholder:[color:var(--mrd-mute)]"
           style={input(100)}
         />
         <input
@@ -263,7 +270,7 @@ function VoucherCreator() {
           onChange={(e) => setMaxRedemptions(e.target.value === "" ? "" : Number(e.target.value))}
           placeholder="max uses"
           aria-label="Maximum redemptions"
-          className={`${FOCUS_RING} placeholder:[color:var(--mrd-mute)]`}
+          className="placeholder:[color:var(--mrd-mute)]"
           style={input(100)}
         />
         <input
@@ -272,7 +279,7 @@ function VoucherCreator() {
           onChange={(e) => setDays(e.target.value === "" ? "" : Number(e.target.value))}
           placeholder="days"
           aria-label="Expires in days"
-          className={`${FOCUS_RING} placeholder:[color:var(--mrd-mute)]`}
+          className="placeholder:[color:var(--mrd-mute)]"
           style={input(80)}
         />
         <input
@@ -280,7 +287,7 @@ function VoucherCreator() {
           onChange={(e) => setTag(e.target.value)}
           placeholder="campaign tag"
           aria-label="Campaign tag"
-          className={`${FOCUS_RING} placeholder:[color:var(--mrd-mute)]`}
+          className="placeholder:[color:var(--mrd-mute)]"
           style={input(140)}
         />
         <label
@@ -296,7 +303,6 @@ function VoucherCreator() {
             type="checkbox"
             checked={autoLogin}
             onChange={(e) => setAutoLogin(e.target.checked)}
-            className={FOCUS_RING}
             style={{ width: 14, height: 14, accentColor: "var(--mrd-ink)", cursor: "pointer" }}
           />{" "}
           auto-login (signup)

@@ -202,7 +202,28 @@ function globalPayload(g: GlobalBudget | null, patch: Partial<Record<string, num
 /** Shown when a ceiling write failed for a reason the database wrote. */
 const CAP_WRITE_FAILED = "That ceiling did not save. Your spend is bounded as it was before.";
 
-export function BudgetsPanel() {
+export function BudgetsPanel({
+  /**
+   * DRAW THE CEILINGS AND NOT WHAT THEY HAVE SAID.
+   *
+   * This panel holds three regions and two of them set something: the global
+   * cap, and the per-thing ceilings. The third, "What the ceilings have said",
+   * is a log of windows that crossed a warning point.
+   *
+   * A SPEND CAP IS A PERMISSION, which is why the controls belong on the pane
+   * titled "What they may do without asking" -- how much a crew may spend
+   * without asking is the same question as which tools it may use without
+   * asking, and answering half of it on one screen and half on another is the
+   * split the founder objected to. The log is not that question; it is what
+   * already happened, and it stays in the Engine Room with the rest of the
+   * record.
+   *
+   * Same shape as ControlsPanel's `controlsOnly` (U-038): the flag decides
+   * where a region is DRAWN and never whether it exists. The Engine Room
+   * passes nothing and gets the whole panel.
+   */
+  controlsOnly = false,
+}: { controlsOnly?: boolean } = {}) {
   /**
    * A spend cap is money, so a read-only role does not set one. A member does:
    * ai_budgets and ai_surface_budgets are the NOT-A-VIEWER tier, not the
@@ -403,7 +424,7 @@ export function BudgetsPanel() {
   // a spend screen.
   if (overview.isError) {
     return (
-      <ReadFailed onRetry={() => void overview.refetch()}>
+      <ReadFailed error={overview.error} onRetry={() => void overview.refetch()}>
         Your budgets did not load, so nothing here would be the real ceiling.
       </ReadFailed>
     );
@@ -470,9 +491,26 @@ export function BudgetsPanel() {
           role that may set one. */}
       <GovernedWriteNote reason={capWrite.reason} />
 
+      {/*
+       * "THERE IS NO SEPARATE CEILING ON ANY ONE MISSION" WAS FALSE, and it was
+       * being said one pane away from the control that sets one.
+       *
+       * `workspaces.default_mission_spend_cap_usd` carries $10.00 on every one
+       * of the 21 workspaces (measured 2026-08-27), the boundary panel on this
+       * same settings page edits it, and `mission_cap_state` checks it before
+       * every model call. Three surfaces used to give three answers about the
+       * per-goal ceiling and the reassuring one was wrong -- the same defect
+       * engine-room-glance.ts records itself closing in 2026-08-03, reopened
+       * here in the opposite direction: a surface UNDERSTATING its own controls
+       * teaches a person to distrust it just as fast as one overstating them.
+       *
+       * The line now says what this ceiling's scope actually is, which is the
+       * fact that made the old sentence tempting: these windows are the whole
+       * workspace over time, and the per-goal one is somewhere else.
+       */}
       <Region
         title="What you will not spend past"
-        sub="Checked before every call. Past the ceiling the call is refused and the run stops with the reason on the record. There is no separate ceiling on any one mission."
+        sub="Checked before every call. Past the ceiling the call is refused and the run stops with the reason on the record. This one covers the whole workspace over a window; what any single goal may spend is a separate ceiling, set with the rest of the boundary."
       >
         {windows.map((w) => {
           const editing = editCap === w.key;
@@ -772,55 +810,59 @@ export function BudgetsPanel() {
         ))}
       </Region>
 
-      <Region
-        title="What the ceilings have said"
-        sub="Written when a window crossed the warning point. Acknowledging one clears it from here and changes nothing about the ceiling."
-      >
-        {alerts.length === 0 ? (
-          <NothingYet>
-            Nothing yet. The first note lands the moment a window crosses <Num>{alertPct}%</Num> of
-            its ceiling.
-          </NothingYet>
-        ) : (
-          alerts.map((a) => (
-            <Row
-              key={a.id}
-              lead={
-                <>
-                  {a.scope === "global" ? "Account spend" : `Spend on ${a.surface ?? "a surface"}`}{" "}
-                  reached <Num>{Number(a.pct).toFixed(0)}%</Num> of the{" "}
-                  {a.window_kind === "month" ? "monthly" : "daily"} ceiling
-                </>
-              }
-              sub={
-                <>
-                  {a.kind === "block" ? (
-                    <>
-                      <Value tone="fail">Refused</Value>{" "}
-                    </>
-                  ) : null}
-                  <Num>{fmtUsd(a.usd_used)}</Num> of <Num>{fmtUsd(a.usd_cap)}</Num>
-                </>
-              }
-              time={ago(a.created_at)}
-              tight
-              action={
-                a.acknowledged ? (
-                  <Value>Acknowledged</Value>
-                ) : (
-                  <Action
-                    variant="quiet"
-                    disabled={ackMut.isPending && ackMut.variables === a.id}
-                    onClick={() => ackMut.mutate(a.id)}
-                  >
-                    Acknowledge
-                  </Action>
-                )
-              }
-            />
-          ))
-        )}
-      </Region>
+      {!controlsOnly ? (
+        <Region
+          title="What the ceilings have said"
+          sub="Written when a window crossed the warning point. Acknowledging one clears it from here and changes nothing about the ceiling."
+        >
+          {alerts.length === 0 ? (
+            <NothingYet>
+              Nothing yet. The first note lands the moment a window crosses <Num>{alertPct}%</Num>{" "}
+              of its ceiling.
+            </NothingYet>
+          ) : (
+            alerts.map((a) => (
+              <Row
+                key={a.id}
+                lead={
+                  <>
+                    {a.scope === "global"
+                      ? "Account spend"
+                      : `Spend on ${a.surface ?? "a surface"}`}{" "}
+                    reached <Num>{Number(a.pct).toFixed(0)}%</Num> of the{" "}
+                    {a.window_kind === "month" ? "monthly" : "daily"} ceiling
+                  </>
+                }
+                sub={
+                  <>
+                    {a.kind === "block" ? (
+                      <>
+                        <Value tone="fail">Refused</Value>{" "}
+                      </>
+                    ) : null}
+                    <Num>{fmtUsd(a.usd_used)}</Num> of <Num>{fmtUsd(a.usd_cap)}</Num>
+                  </>
+                }
+                time={ago(a.created_at)}
+                tight
+                action={
+                  a.acknowledged ? (
+                    <Value>Acknowledged</Value>
+                  ) : (
+                    <Action
+                      variant="quiet"
+                      disabled={ackMut.isPending && ackMut.variables === a.id}
+                      onClick={() => ackMut.mutate(a.id)}
+                    >
+                      Acknowledge
+                    </Action>
+                  )
+                }
+              />
+            ))
+          )}
+        </Region>
+      ) : null}
     </>
   );
 }

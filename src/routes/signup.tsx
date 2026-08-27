@@ -490,7 +490,29 @@ function SignupPage() {
   return (
     <AuthScaffold
       screenLabel="Sign up"
-      title="Create your workspace"
+      /*
+       * IT CREATES AN ACCOUNT, AND IT SAYS SO.
+       *
+       * "Create your workspace" was wrong about this page twice over. The form
+       * asks for an invite code, an email and a password and collects NO
+       * workspace name -- the first workspace is made behind the person by the
+       * trigger_funnel_signup trigger -- so the heading named a thing the
+       * screen does not do.
+       *
+       * And naming it at all is the framing S3's brief rules out: "the
+       * workspace is not a thing the user creates before they can start ...
+       * create it behind them, ask for a name later, or never". The FLOW
+       * already obeys that. Only this line contradicted it, by presenting our
+       * data model as the reader's first task.
+       *
+       * Two prior audits recorded this exact string and neither fixed it
+       * (agents-c-human-agent-contract.md:1015,
+       * FINAL-agent-presence.md:1079), both with the wider complaint that the
+       * screen says nothing about what the product does. The subhead below
+       * carries that now, which is where a claim belongs; the heading's job is
+       * to be true about the button underneath it.
+       */
+      title="Create your account"
       intro={contextLine}
       subhead={
         <>
@@ -657,7 +679,11 @@ function SignupPage() {
           had not scrolled to yet. A gate has to be visible before the thing it
           gates. */}
       <div style={{ marginBottom: 16 }}>
-        <label htmlFor="signup-invite" className="mrd-eyebrow whitespace-nowrap" style={fieldLabelStyle}>
+        <label
+          htmlFor="signup-invite"
+          className="mrd-eyebrow whitespace-nowrap"
+          style={fieldLabelStyle}
+        >
           Invite code
         </label>
         <input
@@ -734,13 +760,15 @@ function SignupPage() {
       </Action>
       <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "16px 0" }}>
         <span style={{ flex: 1, height: 1, background: "var(--mrd-edge)" }}></span>
-        <span className="mrd-eyebrow whitespace-nowrap">
-          or
-        </span>
+        <span className="mrd-eyebrow whitespace-nowrap">or</span>
         <span style={{ flex: 1, height: 1, background: "var(--mrd-edge)" }}></span>
       </div>
       <form onSubmit={signup}>
-        <label htmlFor="signup-email" className="mrd-eyebrow whitespace-nowrap" style={fieldLabelStyle}>
+        <label
+          htmlFor="signup-email"
+          className="mrd-eyebrow whitespace-nowrap"
+          style={fieldLabelStyle}
+        >
           Work email
         </label>
         <input
@@ -759,7 +787,11 @@ function SignupPage() {
           aria-describedby={formError ? "signup-error" : undefined}
           style={{ marginBottom: 10, width: "100%" }}
         />
-        <label htmlFor="signup-password" className="mrd-eyebrow whitespace-nowrap" style={fieldLabelStyle}>
+        <label
+          htmlFor="signup-password"
+          className="mrd-eyebrow whitespace-nowrap"
+          style={fieldLabelStyle}
+        >
           Password
         </label>
         <div style={{ position: "relative", marginBottom: formError ? 8 : 10 }}>

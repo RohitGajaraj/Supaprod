@@ -52,9 +52,6 @@ import {
   type SignupApproval,
 } from "@/lib/admin-invitations.functions";
 
-const FOCUS_RING =
-  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]";
-
 const mutationFailed = (e: unknown) =>
   toast.error(e instanceof Error ? e.message : "The action failed. Nothing was changed.");
 
@@ -64,8 +61,19 @@ function queryError(q: { isError: boolean; error: unknown; data: unknown }): str
 }
 
 export function InvitationsPanel() {
+  /*
+   * `data-mrd` is what makes the focus ring Meridian's, and its absence was
+   * live behaviour rather than a lint.
+   *
+   * AuthedLayout mounts `data-obsidian` on <html> for the whole authenticated
+   * tree, and meridian.css remaps `--focus-ring` to `--mrd-focus` only INSIDE a
+   * `[data-mrd]` subtree. `Surface` does not set it, so every keyboard focus
+   * ring on this panel drew in the retired `--ds-focus-color` while the rest of
+   * the app drew Meridian's. The token ratchet cannot see it: the retired value
+   * arrives through an alias.
+   */
   return (
-    <div style={{ display: "grid", gap: "var(--space-4)" }}>
+    <div data-mrd="" style={{ display: "grid", gap: "var(--space-4)" }}>
       <InviteCreator />
       <InviteList />
       <DomainList />
@@ -119,14 +127,13 @@ function InviteCreator() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="email@example.com"
           aria-label="Email address"
-          className={`${FOCUS_RING} placeholder:[color:var(--mrd-mute)]`}
+          className="placeholder:[color:var(--mrd-mute)]"
           style={input(220)}
         />
         <select
           value={role}
           onChange={(e) => setRole(e.target.value)}
           aria-label="Role for this invitation"
-          className={FOCUS_RING}
           style={input(120)}
         >
           <option value="member">member</option>
@@ -150,7 +157,7 @@ function InviteCreator() {
         rows={4}
         placeholder={"alice@co.com\nbob@co.com"}
         aria-label="Email addresses, one per line"
-        className={`${FOCUS_RING} placeholder:[color:var(--mrd-mute)]`}
+        className="placeholder:[color:var(--mrd-mute)]"
         style={{ ...input(), width: "100%", fontFamily: "var(--mrd-mono)" }}
       />
       {/* TIER: Action, default face. Bulk write - a secondary path beside the
@@ -304,14 +311,13 @@ function DomainList() {
           onChange={(e) => setDomain(e.target.value)}
           placeholder="acme.com"
           aria-label="Email domain"
-          className={`${FOCUS_RING} placeholder:[color:var(--mrd-mute)]`}
+          className="placeholder:[color:var(--mrd-mute)]"
           style={input(200)}
         />
         <select
           value={role}
           onChange={(e) => setRole(e.target.value)}
           aria-label="Default role for this domain"
-          className={FOCUS_RING}
           style={input(120)}
         >
           <option value="member">member</option>

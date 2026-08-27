@@ -125,9 +125,7 @@ export function LaunchPlanPanel({ prdId }: Props) {
           </div>
 
           <div>
-            <div className="mrd-eyebrow mb-1.5">
-              OUTCOME CHECK ARMED
-            </div>
+            <div className="mrd-eyebrow mb-1.5">OUTCOME CHECK ARMED</div>
             <div className="flex items-center gap-2 flex-wrap">
               <p className="text-sm">
                 {plan.check_by

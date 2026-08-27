@@ -164,6 +164,7 @@
  */
 
 import { useServerFn } from "@tanstack/react-start";
+import { humanWriteError } from "@/lib/roles.functions";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
@@ -346,7 +347,9 @@ function NameField({
 }) {
   return (
     <label data-mrd="" htmlFor={id} className="flex flex-col gap-mrd-2">
-      <span className="text-mrd-tiny font-medium tracking-wide text-mrd-mute uppercase">{label}</span>
+      <span className="text-mrd-tiny font-medium tracking-wide text-mrd-mute uppercase">
+        {label}
+      </span>
       <input
         id={id}
         value={value}
@@ -656,9 +659,9 @@ export function ArtifactsView() {
               stranger may not carry -- the heading avoids it deliberately and the
               error arm was reaching for it one line below. */}
           {q.isError ? (
-            <ReadFailedLine onRetry={() => void q.refetch()}>
+            <ReadFailedLine error={q.error} onRetry={() => void q.refetch()}>
               The shelf did not load, so this is not a claim that your crew has made nothing.{" "}
-              {(q.error as Error).message}
+              {humanWriteError(q.error, "The read failed.")}
             </ReadFailedLine>
           ) : null}
 
@@ -843,7 +846,7 @@ export function ArtifactsView() {
           ) : lineage.isLoading ? (
             <Reading>Reading the record.</Reading>
           ) : lineage.isError ? (
-            <ReadFailedLine onRetry={() => void lineage.refetch()}>
+            <ReadFailedLine error={lineage.error} onRetry={() => void lineage.refetch()}>
               Could not read what came out of this one.
             </ReadFailedLine>
           ) : descendants.length === 0 ? (

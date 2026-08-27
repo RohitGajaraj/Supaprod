@@ -53,6 +53,7 @@
  * BriefPanel's retire confirm already follows.
  */
 import { useState } from "react";
+import { humanWriteError } from "@/lib/roles.functions";
 import { Row } from "@/components/meridian/rows";
 import {
   Num,
@@ -196,7 +197,11 @@ export function MemoryList() {
   if (q.isLoading) return <Reading>Reading what the crew carries.</Reading>;
 
   if (q.isError) {
-    return <ReadFailed onRetry={() => void q.refetch()}>{(q.error as Error).message}</ReadFailed>;
+    return (
+      <ReadFailed error={q.error} onRetry={() => void q.refetch()}>
+        {humanWriteError(q.error, "The read failed.")}
+      </ReadFailed>
+    );
   }
 
   const rows = q.data?.rows ?? [];

@@ -28,7 +28,7 @@ export type KindVisual = { token: string; fallback: string; label: string };
  */
 export const KIND_VISUAL: Record<string, KindVisual> = {
   decision: { token: "--mrd-you", fallback: "#ffa477", label: "Decision" },
-  signal: { token: "--blossom", fallback: "#e5bddf", label: "Signal" },
+  signal: { token: "--blossom", fallback: "#e5bddf", label: "Finding" },
   theme: { token: "--violet-soft", fallback: "#a67fc9", label: "Theme" },
   opportunity: { token: "--teal", fallback: "#2e9e8f", label: "Opportunity" },
   prd: { token: "--pearl", fallback: "#edeae4", label: "Spec" },
@@ -39,28 +39,28 @@ export const KIND_VISUAL: Record<string, KindVisual> = {
   design_memory: { token: "--mauve", fallback: "#b78bc7", label: "Design" },
   /**
    * THE SIX KINDS A LIVE CENSUS FOUND STORED AND UNDECLARED (2026-08-02). Until
-    * this pass they resolved through UNKNOWN_VISUAL, which paints ash and labels
-    * the node with its raw column value, so 146 recorded outcomes rendered grey
-    * and captioned "learning" on a surface whose entire claim is that it remembers
-    * how things turned out.
-    *
-    * THEY TOOK THE LIFECYCLE TOKENS, not new hues. `learning` wearing the LEARN
-    * stage colour says something true that an arbitrary colour could not: where
-    * in the loop the thing was made.
-    *
-    * MERIDIAN PORT, 2026-08-25. `changeset` moves first, on the recorded
-    * precedent in queue-instruments.tsx: --sp-stage-build became --mrd-agent,
-    * azure being a machine working, present tense. The other five stay on their
-    * retired stage names for now -- three of them (--sp-stage-ship/-design/-plan)
-    * were already deleted from ink.css and resolve empty, so their hex
-    * fallbacks carry the paint -- because Meridian has no second stage hue to
-    * give them, and pointing five kinds at one status colour would collapse the
-    * distinctions the palette exists to keep. That is a gap for --mrd-viz to
-    * grow into, not a licence to invent a hue here.
-    */
+   * this pass they resolved through UNKNOWN_VISUAL, which paints ash and labels
+   * the node with its raw column value, so 146 recorded outcomes rendered grey
+   * and captioned "learning" on a surface whose entire claim is that it remembers
+   * how things turned out.
+   *
+   * THEY TOOK THE LIFECYCLE TOKENS, not new hues. `learning` wearing the LEARN
+   * stage colour says something true that an arbitrary colour could not: where
+   * in the loop the thing was made.
+   *
+   * MERIDIAN PORT, 2026-08-25. `changeset` moves first, on the recorded
+   * precedent in queue-instruments.tsx: --sp-stage-build became --mrd-agent,
+   * azure being a machine working, present tense. The other five stay on their
+   * retired stage names for now -- three of them (--sp-stage-ship/-design/-plan)
+   * were already deleted from ink.css and resolve empty, so their hex
+   * fallbacks carry the paint -- because Meridian has no second stage hue to
+   * give them, and pointing five kinds at one status colour would collapse the
+   * distinctions the palette exists to keep. That is a gap for --mrd-viz to
+   * grow into, not a licence to invent a hue here.
+   */
   learning: { token: "--sp-stage-learn", fallback: "#a89f66", label: "Outcome" },
   deployment: { token: "--sp-stage-ship", fallback: "#bd8092", label: "Deploy" },
-  changeset: { token: "--mrd-agent", fallback: "#6d97c2", label: "Changeset" },
+  changeset: { token: "--mrd-agent", fallback: "#6d97c2", label: "Code change" },
   // "Mockup": one static screen, no script. See ArtifactsView for the full note.
   prototype: { token: "--sp-stage-design", fallback: "#ab7fa0", label: "Mockup" },
   // Both are parts OF a spec rather than things of their own, so they share the
@@ -89,6 +89,17 @@ export function kindLabel(kind: string): string {
  * dim 17 trace-ref prefix for a graph node kind. The shared object types use
  * their registered prefix (DESIGN-LOOM dim 17 registry / design-anatomy §4):
  * signal SIG, theme THM, opportunity OPP, prd PRD, mission MIS, decision DEC.
+ *
+ * `SIG` STAYS, AND THIS IS NOT AN OVERSIGHT ABOUT §12. Raised by S1 on
+ * 2026-08-27: §12 bans "signals" and "SIG" reads as short for it. The LABEL was
+ * the drift and is fixed above -- these nodes say "Finding" now. This is not a
+ * label. It is the first half of an identifier, rendered as `SIG-a3f2` beside
+ * the label, and `artifact-words.ts` states the rule it follows in as many
+ * words: *"Display word only; the stored `artifact_kind` is still `signal`."* A
+ * trace ref is minted off the STORED kind, and the prefix is registered across
+ * loops, so renaming it here would make the ref disagree both with the record it
+ * points at and with whatever else mints the same one. `prd` is the same shape
+ * and the same answer: the label reads "Spec" and the ref is still PRD.
  * The graph-only kinds (meeting, roadmap item, task, design memory) carry a
  * local 3-letter code so every node still traces cleanly; they are not part of
  * the shared cross-loop registry. Paired with the shared traceRef(id) helper.
