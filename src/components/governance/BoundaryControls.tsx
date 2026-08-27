@@ -59,6 +59,7 @@ import { TrustGraduationsBlock } from "@/components/governance/TrustGraduations"
 import { AutomationBoundary } from "@/components/governance/AutomationBoundary";
 import { ceilingReality } from "@/components/governance/ceiling-reality";
 import { whereTheCrewStands } from "@/components/governance/where-the-crew-stands";
+import { unansweredGates } from "@/components/governance/gates-nobody-answered";
 import { Link } from "@tanstack/react-router";
 import { Field, Input } from "@/components/meridian/forms";
 import { MoreItem, MoreMenu } from "@/components/meridian/MoreMenu";
@@ -591,6 +592,13 @@ export function BoundaryControls({
    */
   const alone = React.useMemo(() => data?.alone ?? [], [data?.alone]);
   const asks = React.useMemo(() => data?.asks ?? [], [data?.asks]);
+  /*
+   * WHAT ACTUALLY HAPPENS TO A GATE, off the same overview read as the ceiling.
+   * "Each of these costs one interruption" assumes somebody answers it; across
+   * every approval this database has ever written, roughly one in three was
+   * never answered at all. See gates-nobody-answered.ts.
+   */
+  const unanswered = unansweredGates(overview.data?.approvals, toolLabel);
   /** What the whole page resolves against, said in the trust dial's own words. */
   const standing = whereTheCrewStands(data?.arcCounts);
   /** Set to ask you, and does not. The one thing this screen must never leave
@@ -884,7 +892,9 @@ export function BoundaryControls({
           {block(
             "asks",
             "What still comes to you",
-            "Each of these costs one interruption every time it happens.",
+            unanswered.said
+              ? `Each of these costs one interruption every time it happens. ${unanswered.said}`
+              : "Each of these costs one interruption every time it happens.",
             asks,
             "Nothing asks. Your crew runs the loop on its own.",
           )}
