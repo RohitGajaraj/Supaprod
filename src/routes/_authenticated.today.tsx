@@ -6,7 +6,6 @@ import {
   Num,
   PageHeading,
   ReadFailedLine,
-  Reading,
   RecordSpeaks,
   Region,
   Value,
@@ -42,6 +41,7 @@ import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { useSelection } from "@/components/shell/use-selection";
 import { Receipt } from "@/components/meridian/Receipt";
 import { Surface } from "@/components/meridian/Surface";
+import { SlowRead } from "@/components/shell/SlowRead";
 import { stripAutoPrefix, cleanTitle } from "@/components/plan/format";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -1952,7 +1952,7 @@ function Today() {
                 moved. Its own controls spell out the review act, so this section
                 carries no second Review label; the heading names the group. */}
             {stillWaiting(queue) ? (
-              <Reading>Reading what needs you.</Reading>
+              <SlowRead>Reading what needs you.</SlowRead>
             ) : queue.isError ? (
               <ReadFailedLine error={queue.error} onRetry={() => void queue.refetch()}>
                 Your decisions are unchanged and this could not read them. Retry before you treat
@@ -2025,21 +2025,21 @@ function Today() {
             ) : null}
 
             {stillWaiting(missions) ? (
-              <Reading>Reading the run record.</Reading>
+              <SlowRead>Reading the run record.</SlowRead>
             ) : missions.isError ? (
               <ReadFailedLine error={missions.error} onRetry={() => void missions.refetch()}>
                 The run record did not load, so this cannot say what went live, what stopped or what
                 is still going.
               </ReadFailedLine>
             ) : stillWaiting(tracks) ? (
-              <Reading>Reading the work the loop is driving.</Reading>
+              <SlowRead>Reading the work the loop is driving.</SlowRead>
             ) : tracks.isError ? (
               <ReadFailedLine error={tracks.error} onRetry={() => void tracks.refetch()}>
                 The loop's work could not be read, so something started from a sentence may be
                 missing here. Retry before you treat the morning as clear.
               </ReadFailedLine>
             ) : stillWaiting(sessions) ? (
-              <Reading>Reading which runs need your answer.</Reading>
+              <SlowRead>Reading which runs need your answer.</SlowRead>
             ) : sessions.isError ? (
               <ReadFailedLine error={sessions.error} onRetry={() => void sessions.refetch()}>
                 The gate check did not load, so a run waiting on you may be sitting in Running.
@@ -2311,7 +2311,7 @@ function Today() {
         <PushedInsights />
 
         {stillWaiting(learnings) ? (
-          <Reading>Reading what it learned.</Reading>
+          <SlowRead>Reading what it learned.</SlowRead>
         ) : learnings.isError ? (
           /* SAME REGION, SAME NAME, WHICHEVER WAY THE READ WENT. The failed arm
              called itself "Latest learning" and the loaded arm "It learned one

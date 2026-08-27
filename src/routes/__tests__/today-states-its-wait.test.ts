@@ -505,7 +505,21 @@ describe("Today's triage feed", () => {
     // own wait AND its own refusal, now inside the one card rather than in a
     // lane of its own.
     const queueMountedAt = at("<DecisionQueue");
-    const runWaitAt = jsx.indexOf("<Reading>Reading the run record.</Reading>");
+    /*
+     * ANCHORED ON THE SENTENCE, NOT ON THE ELEMENT (2026-08-27).
+     *
+     * This read `"<Reading>Reading the run record.</Reading>"` and so it broke
+     * when the wrapper became `SlowRead`, which draws the identical paragraph
+     * for the first two and a half seconds and then adds an elapsed figure.
+     * Nothing REQ-016 asks for moved: the missions read still names its own
+     * wait, still inside the one card, still before its own refusal.
+     *
+     * The sentence is the contract and the element is an implementation
+     * detail, so this now matches the half that carries the meaning. A test
+     * that fails on a wrapper rename is a test that will be silenced rather
+     * than read the next time somebody is in a hurry.
+     */
+    const runWaitAt = jsx.indexOf("Reading the run record.");
     const runRefusalAt = jsx.indexOf("missions.refetch()");
     expect(runWaitAt).toBeGreaterThan(queueMountedAt);
     expect(runRefusalAt).toBeGreaterThan(runWaitAt);
