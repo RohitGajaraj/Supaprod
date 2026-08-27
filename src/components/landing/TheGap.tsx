@@ -398,7 +398,13 @@ export function TheGap() {
               >
                 <span
                   className="font-mono text-mrd-nano uppercase"
-                  style={{ letterSpacing: "0.12em", color: missing ? "#FF6B2C" : "#71717a" }}
+                  /* #71717a until 2026-08-27: 4.02:1 on this ground, under the
+                     4.5:1 AA floor, measured by S4 in a real browser and
+                     recomputed here. #7e7e86 is 4.82:1 and stays in the same
+                     neutral hue rather than shifting blue, so the craft column
+                     still sits below the sentence beside it. Ember is untouched
+                     and is the one thing on this row meant to be loud. */
+                  style={{ letterSpacing: "0.12em", color: missing ? "#FF6B2C" : "#7e7e86" }}
                 >
                   {row.craft}
                 </span>
