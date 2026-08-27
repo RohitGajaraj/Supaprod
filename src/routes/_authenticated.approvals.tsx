@@ -158,6 +158,23 @@ const SETTLED_APPROVE: Record<ApprovalQueueItem["kindKey"], string> = {
 };
 const SETTLED_REJECT = "Declined. Noted for next time.";
 
+/**
+ * THE VOCABULARY, IN ORDER. What is DRAWN is decided below from what the queue
+ * actually holds, because two of these tabs were furniture.
+ *
+ * `spend` is the clear one. `approvals-queue.functions.ts` says it in as many
+ * words: the bucket "exists as a bucket so the vocabulary is stable, but
+ * nothing routes into it yet because no spend-gate READ exists in the codebase
+ * today." So this row has been drawing `Spend 0` on every load since it was
+ * written, and a tab that can never do anything is exactly what R-20 section 8
+ * calls furniture. It stays in this list, so it appears by itself on the day a
+ * spend gate lands, and it is not drawn until then.
+ *
+ * S2 reached the same conclusion building the board's filter row and did not
+ * copy the empty tab. They offered to add it back for consistency with this
+ * page. The consistency is worth having and this page is the one that was
+ * wrong, so it moves here rather than the furniture moving there.
+ */
 const FILTERS: { id: ApprovalFilter; label: string }[] = [
   { id: "all", label: "All" },
   { id: "proposals", label: "Proposals" },
@@ -165,6 +182,25 @@ const FILTERS: { id: ApprovalFilter; label: string }[] = [
   { id: "memory", label: "Memory" },
   { id: "spend", label: "Spend" },
 ];
+
+/**
+ * The tabs worth drawing, given what is in the queue right now.
+ *
+ * ONE TAB IS NOT A CHOICE, IT IS THE ILLUSION OF ONE. With every call in a
+ * single bucket the row would read `All 5   Memory 5`, two controls that do the
+ * same thing, so nothing is drawn and the queue speaks for itself.
+ *
+ * THE ACTIVE TAB IS KEPT EVEN AT ZERO. Settling the last gate while filtered to
+ * Gates would otherwise delete the control under the pointer and silently widen
+ * the list back to everything, which reads as the page losing your place.
+ */
+export function filtersWorthDrawing(
+  counts: Readonly<Record<ApprovalFilter, number>>,
+  active: ApprovalFilter,
+): { id: ApprovalFilter; label: string }[] {
+  const real = FILTERS.filter((f) => f.id === "all" || counts[f.id] > 0 || f.id === active);
+  return real.length > 2 ? real : [];
+}
 
 /** stripAutoPrefix only removes a LEADING "[auto]". Evidence lines carry it
  *  mid-sentence too ("From [auto] Investigate the ..."), so the marker has to
@@ -263,6 +299,8 @@ function ApprovalsSurface() {
     for (const it of allItems) c[it.filterBucket] += 1;
     return c;
   }, [allItems]);
+
+  const shownFilters = useMemo(() => filtersWorthDrawing(counts, filter), [counts, filter]);
 
   const visibleItems = useMemo(() => {
     const inFilter =
@@ -651,9 +689,9 @@ function ApprovalsSurface() {
           ) : null}
         </header>
 
-        {allItems.length > 0 ? (
+        {allItems.length > 0 && shownFilters.length > 0 ? (
           <QueueFilters
-            filters={FILTERS}
+            filters={shownFilters}
             counts={counts}
             active={filter}
             onSelect={(id) => setFilter(id)}
