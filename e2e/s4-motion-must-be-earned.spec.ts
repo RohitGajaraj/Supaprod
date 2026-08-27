@@ -269,6 +269,24 @@ async function failEveryAuthenticatedRead(page: import("@playwright/test").Page)
 }
 
 /**
+ * SURFACES THAT ARE SUPPOSED TO SHOW EVERY FAILURE AT ONCE.
+ *
+ * `/meridian` is the design system's gallery: "Every component, in both grounds,
+ * before it is wired to anything." It scored 8 failure statements and TEN "Try
+ * again" buttons, the worst in the product by a factor of two, and every one of
+ * them is a SPECIMEN rendering correctly. A catalogue of failure states is
+ * supposed to contain failure states.
+ *
+ * I had "the worst surface in the product" written down before opening the
+ * screenshot. The metric cannot tell a gallery from a page, so it is told.
+ *
+ * Kept as a list of one rather than a pattern, because the honest default is
+ * that a surface counts, and every addition here should cost somebody a
+ * sentence explaining why it does not.
+ */
+const GALLERY_SURFACES: readonly string[] = ["/meridian"];
+
+/**
  * HOW MANY TIMES DOES ONE DEAD READ ANNOUNCE ITSELF?
  *
  * S3 asked for this after rendering `/guardrails` against a dead backend and
@@ -488,7 +506,13 @@ test("report which surfaces still move once nothing can be read", async ({ page 
     });
 
     const failures = await failureStatements(page);
-    if (failures.distinct.length) {
+    if (GALLERY_SURFACES.includes(path)) {
+      notes.push(
+        `\n--- ${path}: ${failures.distinct.length} failure statement(s), ` +
+          `${failures.retries} "Try again" — NOT SCORED. ` +
+          `This surface is a component gallery and is MEANT to show them all at once.`,
+      );
+    } else if (failures.distinct.length) {
       notes.push(
         `\n--- ${path}: ONE ${FAILURE_MODE}, ${failures.distinct.length} distinct failure ` +
           `statement(s), ${failures.retries} "Try again" ---\n  ` +
