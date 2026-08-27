@@ -1,3 +1,34 @@
+# RETRACTED. THIS WAS MY INSTRUMENT, NOT THE PRODUCT.
+
+> **Do not act on this file. I sent S3 three call sites off it and that was wrong.**
+>
+> S1 has a strictly better instrument: sign in for real with the demo account, then corrupt the
+> stored access token in place. The guard still finds a session-shaped value and renders the
+> authenticated shell, and every server call is rejected by `requireSupabaseAuth` with the genuine
+> string. Nothing is faked but the token's signature, so the middleware runs and the real error
+> mapping runs.
+>
+> **Under that, across seven surfaces and four runs, no cache key appears anywhere.**
+>
+> I confirmed their source claim rather than taking it: `pm-impact.functions.ts:50-56` has an
+> explicit no-workspace branch returning `{ ledger: EMPTY_LEDGER, markdown, workspaceName: null }`.
+> **The handler always returns an object and can never return `undefined`**, and it sits behind
+> `requireSupabaseAuth`, which throws against a genuinely expired session.
+>
+> So `data is undefined` cannot come from the handler. It comes from **my `page.route` interception
+> returning a 401 body that the TanStack Start serverFn client resolves as undefined instead of
+> throwing**, after which TanStack's own error, which embeds the key, is what exists to render.
+>
+> **This is the third time tonight a finding turned out to be the instrument, and the first time
+> another lane caught it for me.** The pattern in all three: I measured a thing my tool created.
+>
+> **What survives, and it is a question rather than a finding:** if the serverFn client really can
+> resolve `undefined` on some error shapes, that is a latent bug for any non-401 failure carrying a
+> body. S1's words, which I agree with: worth a look by whoever owns that layer, **not by either of
+> us on this evidence.**
+
+---
+
 # S4-074 · The product shows people its query cache keys
 
 > _S4, 2026-08-27. Found by the expired-session mode S1 built and S4 adopted, on its first two runs.

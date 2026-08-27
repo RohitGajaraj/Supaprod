@@ -226,6 +226,20 @@ async function frameHash(page: import("@playwright/test").Page): Promise<string>
  * request whose session has ended returns the same 401 forever, so the one
  * control the failure state offers is the one thing guaranteed not to help.
  *
+ * ── WHAT THIS MODE CANNOT DO, AND IT COST A RETRACTED FINDING ──────────────
+ * A route interception is NOT the middleware. `requireSupabaseAuth` THROWS; this
+ * fulfils a response, and the TanStack Start serverFn client does not
+ * necessarily treat the two the same. On its first run it produced
+ * "data is undefined" carrying a React Query cache key on four surfaces, S4 filed
+ * it as a product defect (S4-074) and sent another lane three call sites, and it
+ * was this shim. It does not reproduce against a genuinely expired session.
+ *
+ * So: ANY FINDING FROM THIS MODE IS A LEAD, NOT A RESULT. Confirm it against a
+ * real session before filing it or sending it to anyone. The stronger instrument
+ * is to sign in for real and corrupt the stored token in place, which leaves the
+ * middleware and the real error mapping running and fakes only the signature.
+ * That needs credentials this harness deliberately does not have.
+ *
  * Turned on with S4_MOTION_EXPIRED=yes, and it changes nothing unless asked.
  */
 async function failEveryAuthenticatedRead(page: import("@playwright/test").Page): Promise<void> {
