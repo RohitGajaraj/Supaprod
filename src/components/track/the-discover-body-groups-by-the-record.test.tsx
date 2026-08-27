@@ -115,3 +115,42 @@ describe("a pattern this track does not hold is still a pattern", () => {
     expect(getByLabelText("Not yet grouped")).toBeTruthy();
   });
 });
+
+describe("the pattern is named once, not on every card under it", () => {
+  it("does not repeat the heading on each signal inside a group", () => {
+    /*
+     * RUN-116 groups the list by the pattern each signal names, so this card
+     * would otherwise read "grouped into Checkout drop-off" directly beneath a
+     * heading reading "Checkout drop-off". Two sentences agreeing a line apart
+     * are worse than two contradicting: a reader cannot tell which is the
+     * surface's own claim.
+     */
+    const { getByLabelText, container } = ui(
+      <SenseBody
+        items={[signal({ theme_id: "t-away", theme_title: "Checkout drop-off" })]}
+        now={Date.parse("2026-08-26T12:00:00Z")}
+        trackId="track-1"
+      />,
+    );
+    expect(getByLabelText("Checkout drop-off")).toBeTruthy();
+    expect(container.textContent).not.toContain("grouped into");
+  });
+
+  it("does not say grouped on a card sitting under not-yet-grouped", () => {
+    /*
+     * The contradiction, and the worse of the two. A signal whose theme title
+     * could not be read used to render the bare word "grouped" inside the
+     * section saying these do not sit with a pattern yet.
+     */
+    const { getByLabelText, container } = ui(
+      <SenseBody
+        items={[signal({ theme_id: "t-away" })]}
+        now={Date.parse("2026-08-26T12:00:00Z")}
+        trackId="track-1"
+      />,
+    );
+    expect(getByLabelText("Not yet grouped")).toBeTruthy();
+    expect(container.textContent).not.toContain("grouped into");
+    expect(container.textContent).not.toMatch(/·\s*grouped\s*(·|$)/);
+  });
+});

@@ -711,7 +711,18 @@ function DecisionVerdict({ decisionId }: { decisionId: string }) {
  * said in its own words; a theme decline records its reason and can be taken
  * back, which is what makes declining safe.
  */
-function SignalCard({ item, now, trackId }: { item: ArtifactView; now: number; trackId: string }) {
+function SignalCard({
+  item,
+  now,
+  trackId,
+  patternShownAbove = false,
+}: {
+  item: ArtifactView;
+  now: number;
+  trackId: string;
+  /** True when a heading above this card already names its pattern. */
+  patternShownAbove?: boolean;
+}) {
   const f = item.fields;
   const content = str(f.content);
   const source = str(f.source);
@@ -750,11 +761,25 @@ function SignalCard({ item, now, trackId }: { item: ArtifactView; now: number; t
            * that the most convincing thing in the product. A name is the
            * substance of that; a state word is not.
            *
-           * Degrades honestly rather than grouping the list -- see
-           * `clustered-into.ts` for why, and for the 1,133 / 315 measurement
-           * that ruled grouping out.
+           * NOT REPEATED WHERE THE PATTERN IS ALREADY THE HEADING. RUN-116
+           * groups the list by the pattern each signal names, so inside
+           * `SenseBody` this would print "grouped into Checkout drop-off"
+           * directly beneath a heading reading "Checkout drop-off".
+           *
+           * In the ungrouped section it was worse than a repeat. A signal whose
+           * theme title could not be read renders this as the bare word
+           * "grouped", sitting under a heading saying these do not sit with a
+           * pattern yet. Two lines, touching, saying opposite things.
+           *
+           * A signal drawn on its own keeps it, because no heading there
+           * carries the pattern.
+           *
+           * This comment used to say grouping the list was "ruled out" by the
+           * 1,133 / 315 measurement. It was ruled out on the strength of
+           * today's rows, and the founder's correction reversed that: a
+           * measurement chooses what to build FIRST, never what the thing is.
            */
-          clusteredInto(themeId, str(f.theme_title)),
+          patternShownAbove ? null : clusteredInto(themeId, str(f.theme_title)),
         ]
           .filter(Boolean)
           .join(" · ")}
@@ -1863,7 +1888,7 @@ export function SenseBody({
                     : undefined
                 }
               >
-                <SignalCard item={s} now={now} trackId={trackId} />
+                <SignalCard item={s} now={now} trackId={trackId} patternShownAbove />
               </div>
             ))}
           </section>
@@ -1878,7 +1903,7 @@ export function SenseBody({
               : `${loose.length} pieces of evidence do not sit with a pattern yet.`}
           </span>
           {loose.map((s) => (
-            <SignalCard key={s.artifactId} item={s} now={now} trackId={trackId} />
+            <SignalCard key={s.artifactId} item={s} now={now} trackId={trackId} patternShownAbove />
           ))}
         </section>
       ) : null}
