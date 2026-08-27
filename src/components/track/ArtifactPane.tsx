@@ -23,6 +23,8 @@ import * as React from "react";
 import { failureLine } from "@/lib/error-copy";
 import { humanizeText } from "@/lib/ai/humanize";
 import { panelSaysItFiledNothing } from "@/components/track/who-reports-an-empty-station";
+import { groupByThePattern } from "@/components/track/group-by-the-pattern";
+import { justGrouped } from "@/components/track/just-grouped";
 import { plainProse } from "@/lib/plain-prose";
 /*
  * EVERY plain-text `Prose` on this pane runs agent-written text through
@@ -1741,32 +1743,56 @@ export function SenseBody({
 }) {
   const primed = React.useRef(false);
   const seenThemes = React.useRef<Set<string>>(new Set());
+  /** Which theme each signal was last seen in; "" for none. */
+  const seenPlacement = React.useRef<Map<string, string>>(new Map());
 
   const themes = items.filter((it) => it.kind === "theme" && !it.missing);
   const signals = items.filter((it) => it.kind === "signal" && !it.missing);
   const missing = items.filter((it) => it.missing);
 
-  const byTheme = new Map<string, ArtifactView[]>();
-  const loose: ArtifactView[] = [];
-  for (const s of signals) {
-    const tid = str(s.fields.theme_id);
-    if (tid && themes.some((t) => t.artifactId === tid)) {
-      const list = byTheme.get(tid) ?? [];
-      list.push(s);
-      byTheme.set(tid, list);
-    } else {
-      loose.push(s);
-    }
-  }
+  /*
+   * GROUPED BY THE PATTERN THE SIGNAL NAMES, not by what this track happens to
+   * hold. See `group-by-the-pattern.ts`: 818 of the 1,133 signals on tracks
+   * name a theme that is not a member of the same track, and every one of them
+   * used to be drawn under "do not sit with a pattern yet".
+   */
+  const themeIdsOnTrack = new Set(themes.map((t) => t.artifactId));
+  const { groups, ungrouped: loose } = groupByThePattern(signals, themeIdsOnTrack);
+  const themeById = new Map(themes.map((t) => [t.artifactId, t]));
 
   /*
    * ARRIVALS ANIMATE ONCE, THE FIRST PAINT DOES NOT -- the transcript's exact
    * pattern. A theme known at mount is history; one that shows up on a later
    * poll is the machine finding a pattern in front of you.
+   *
+   * ── IT PRIMES ON THE FIRST DATA, NOT ON THE FIRST THEME ──────────────────
+   * This read `!primed.current && themes.length > 0`, which meant a track that
+   * had signals and no theme yet stayed unprimed. The FIRST theme to arrive
+   * then took the priming branch: recorded as history, drawn without motion.
+   * That is the single moment SESSION-1 calls "the most convincing thing in
+   * the product, because it is the machine finding a pattern in front of you",
+   * and it was the one arrival guaranteed never to animate.
+   *
+   * Priming on the first page of data that exists at all keeps the rule the
+   * transcript states -- nothing already on screen animates -- while letting
+   * the first pattern be an event.
    */
   const freshThemes = new Set<string>();
-  if (!primed.current && themes.length > 0) {
+  const freshlyGrouped = new Set<string>();
+
+  /*
+   * The placement an arrival is measured against is now the GROUP a signal
+   * lands in, so a signal joining a pattern whose card we do not hold animates
+   * exactly like one joining a pattern we do. Before, those 818 could never
+   * appear to group at all.
+   */
+  const groupOfSignal = new Map<string, string>();
+  for (const g of groups) for (const sg of g.signals) groupOfSignal.set(sg.artifactId, g.themeId);
+  const placementOf = (sig: ArtifactView): string => groupOfSignal.get(sig.artifactId) ?? "";
+
+  if (!primed.current && items.length > 0) {
     for (const t of themes) seenThemes.current.add(t.artifactId);
+    for (const sig of signals) seenPlacement.current.set(sig.artifactId, placementOf(sig));
     primed.current = true;
   } else if (primed.current) {
     for (const t of themes) {
@@ -1775,17 +1801,35 @@ export function SenseBody({
         freshThemes.add(t.artifactId);
       }
     }
+    /*
+     * A SIGNAL JOINING A THEME IS THE GROUPING, and only a NEW theme used to
+     * show it. A pattern that already existed and then gained a piece of
+     * evidence moved that card out of "not yet grouped" and under the theme
+     * with no motion at all, which is the same event and the commoner one.
+     *
+     * Keyed on the placement CHANGING rather than on it being non-empty, so a
+     * signal that has always sat in its theme never animates, and one that
+     * leaves a theme is not treated as arriving in one.
+     */
+    for (const sig of signals) {
+      const now = placementOf(sig);
+      const before = seenPlacement.current.get(sig.artifactId);
+      if (justGrouped(before, now)) freshlyGrouped.add(sig.artifactId);
+      seenPlacement.current.set(sig.artifactId, now);
+    }
   }
 
   return (
     <div className="flex flex-col gap-mrd-5">
-      {themes.map((t) => {
-        const members = byTheme.get(t.artifactId) ?? [];
-        const arrived = freshThemes.has(t.artifactId);
+      {groups.map((g) => {
+        const t = themeById.get(g.themeId);
+        const members = g.signals;
+        const arrived = freshThemes.has(g.themeId);
+        const heading = t?.title ?? t?.word ?? g.title ?? "This pattern";
         return (
           <section
-            key={t.artifactId}
-            aria-label={t.title ?? t.word}
+            key={g.themeId}
+            aria-label={heading}
             style={
               arrived
                 ? { animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }
@@ -1793,16 +1837,41 @@ export function SenseBody({
             }
             className="flex flex-col gap-mrd-2 border-b border-mrd-line-soft pb-mrd-4 last:border-0"
           >
-            <ThemeCard item={t} trackId={trackId} />
+            {t ? (
+              <ThemeCard item={t} trackId={trackId} />
+            ) : (
+              /*
+               * NAMED BUT NOT HELD. The theme is not a member of this track, so
+               * there is no artifact to open and no card to draw. The pattern's
+               * NAME is on the signal row (F-129), and printing it is the whole
+               * point: it is what the machine found. Nothing here pretends to
+               * be a theme card, because a card implies something to open.
+               */
+              <span className="mrd-eyebrow">{g.title}</span>
+            )}
             {members.map((s) => (
-              <SignalCard key={s.artifactId} item={s} now={now} trackId={trackId} />
+              <div
+                key={s.artifactId}
+                style={
+                  /*
+                   * Only when the theme itself is NOT arriving: the section
+                   * above is already animating, and animating both makes one
+                   * event look like two.
+                   */
+                  freshlyGrouped.has(s.artifactId) && !arrived
+                    ? { animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }
+                    : undefined
+                }
+              >
+                <SignalCard item={s} now={now} trackId={trackId} />
+              </div>
             ))}
           </section>
         );
       })}
 
       {loose.length > 0 ? (
-        <section aria-label="Not yet clustered" className="flex flex-col gap-mrd-2">
+        <section aria-label="Not yet grouped" className="flex flex-col gap-mrd-2">
           <span className="mrd-meta">
             {loose.length === 1
               ? "One piece of evidence does not sit with any pattern yet."

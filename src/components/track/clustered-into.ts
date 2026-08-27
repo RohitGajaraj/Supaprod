@@ -37,6 +37,17 @@
  * `theme_title` ABSENT, while a theme that is genuinely gone is carried as
  * null. So "this signal's cluster has no name" and "we could not read the
  * names" stay apart, and neither is invented.
+ *
+ * -- THE VERB IS "GROUPED" AND THE NOUN IS "THEME", EVERYWHERE ------------
+ * This card said "clustered", the toggle that switches the behaviour on says
+ * "Group new findings without asking", and the artifact is a theme. Three words
+ * for one thing, which §12 settles: the word a person would say out loud is the
+ * one that goes on the surface, and nobody says "clustered into".
+ *
+ * The STORED strings are untouched, exactly as with the signal rename in
+ * RUN-102: `LEGACY_CLUSTER_REASON` is matched against rows and stays
+ * "Clustered into theme", because renaming a value to satisfy a copy law is a
+ * defect dressed as compliance.
  */
 
 /**
@@ -50,5 +61,5 @@ export function clusteredInto(
 ): string {
   if (!themeId) return "";
   const title = typeof themeTitle === "string" ? themeTitle.trim() : "";
-  return title ? `clustered into ${title}` : "clustered";
+  return title ? `grouped into ${title}` : "grouped";
 }

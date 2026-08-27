@@ -66,7 +66,7 @@ describe("SenseBody", () => {
         trackId="trk"
       />,
     );
-    expect(getByLabelText("Not yet clustered")).toBeTruthy();
+    expect(getByLabelText("Not yet grouped")).toBeTruthy();
     expect(container.textContent).toContain("Orphan evidence");
   });
 
@@ -74,6 +74,44 @@ describe("SenseBody", () => {
     const { getByLabelText } = ui(
       <SenseBody items={[signal({}, "Lone note")]} now={0} trackId="trk" />,
     );
-    expect(getByLabelText("Not yet clustered")).toBeTruthy();
+    expect(getByLabelText("Not yet grouped")).toBeTruthy();
+  });
+});
+
+describe("a pattern this track does not hold is still a pattern", () => {
+  it("groups a signal under the theme it names, with no theme row present", () => {
+    /*
+     * THE MEASUREMENT THAT FORCED THIS. Of the 1,133 signals attached to
+     * tracks, 818 name a theme that is not a member of the same track and 0
+     * carry no theme at all. Every one of those 818 was drawn under "N pieces
+     * of evidence do not sit with a pattern yet", which was false for all of
+     * them and true for none.
+     *
+     * `theme_title` is resolved on the signal row itself (F-129) whether or not
+     * the theme is a member, so the pane has always held the name and drawn it
+     * for less than a third of them.
+     */
+    const { getByLabelText, queryByLabelText } = ui(
+      <SenseBody
+        items={[signal({ theme_id: "t-away", theme_title: "Checkout drop-off" })]}
+        now={Date.parse("2026-08-26T12:00:00Z")}
+        trackId="track-1"
+      />,
+    );
+    expect(getByLabelText("Checkout drop-off")).toBeTruthy();
+    expect(queryByLabelText("Not yet grouped")).toBeNull();
+  });
+
+  it("keeps a signal ungrouped when the pattern can be neither drawn nor named", () => {
+    // An absent `theme_title` is a read that failed. A group headed by nothing
+    // is worse than an ungrouped card, so it stays out.
+    const { getByLabelText } = ui(
+      <SenseBody
+        items={[signal({ theme_id: "t-away" })]}
+        now={Date.parse("2026-08-26T12:00:00Z")}
+        trackId="track-1"
+      />,
+    );
+    expect(getByLabelText("Not yet grouped")).toBeTruthy();
   });
 });
