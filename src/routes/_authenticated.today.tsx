@@ -1988,7 +1988,18 @@ function Today() {
                 {crewSection(
                   FEED_REPLY,
                   allReplyRows,
-                  missions.data?.totalBlocked,
+                  /* ZERO FROM A FAILED COUNT MUST NOT RENDER AS ZERO. S0's
+                     count degrades to 0 rather than throwing, so a broken read
+                     would put "Waiting on you 0" at the head of the lane whose
+                     whole job is saying what needs a person: a false all-clear
+                     produced by a fault, which is the failure every honesty
+                     gate on this surface exists to stop.
+                     `|| undefined` falls back to the row count, which is what
+                     this head showed before the total existed and is honest. A
+                     genuine zero has no rows either, so it still reads 0 and
+                     nothing is lost. Asked S0 for `number | null`; until then
+                     this is the safe read of the value as shipped. */
+                  missions.data?.totalBlocked || undefined,
                   /* THE BOUNDARY, SAID OUT LOUD, because the omission it covers
                      is large and silent. This lane is filtered by
                      `withinLastDay` (:670), so work whose last movement was over
