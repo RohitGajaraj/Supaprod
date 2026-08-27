@@ -68,9 +68,38 @@ export type SpecClearance = SpecReviewDecision & {
  * Returns the decision either way, so the tool result can say what happened and
  * a surface can show the same sentence the writer acted on.
  */
+/**
+ * Who caused this clearance to be considered.
+ *
+ * ── WHY THIS IS NOT OPTIONAL DECORATION (S4 -> S0, 2026-08-27) ─────────────
+ * S4 measured the two places this product already lost the answer to "who did
+ * it", and both are the same mistake: `agent_approvals.decided_by` is NULL, so
+ * F-79's disqualifying human act could not be attributed and had to be found by
+ * reading a log; and `forecast_resolved_by_agent_slug` is NULL on **all 91**
+ * resolved forecasts, so not one of the verdicts this product exists to produce
+ * can name its author.
+ *
+ * Their words, and they decided this parameter: *"whatever writes the loop's
+ * verdict should populate its own author column, or you inherit this exact
+ * ambiguity on the new path."*
+ *
+ * A clearance nobody can attribute is also a clearance nobody can learn from.
+ * The correction-rate corpus that `decision-gate.ts` phase (b) will one day
+ * widen its bar on is keyed by agent slug, so an unattributed clearance is a row
+ * that can never earn anything either.
+ */
+export type ClearedBy = {
+  /** The seat whose `critic.evaluate` call produced the verdict being read. */
+  agentSlug?: string | null;
+  agentId?: string | null;
+  /** The run it happened in, so the decision can be traced to its transcript. */
+  runId?: string | null;
+};
+
 export async function clearSpecIfProven(
   client: SupabaseClient,
   prdId: string,
+  by: ClearedBy = {},
 ): Promise<SpecClearance> {
   /*
    * ── IT NEVER THROWS, AND THAT IS A CORRECTNESS RULE, NOT A COURTESY ──────
@@ -94,7 +123,7 @@ export async function clearSpecIfProven(
   });
 
   try {
-    return await decideAndClear(client, prdId, unavailable);
+    return await decideAndClear(client, prdId, by, unavailable);
   } catch (e) {
     return unavailable(
       `The spec review could not be run, so nothing was cleared: ${e instanceof Error ? e.message : String(e)}`,
@@ -105,6 +134,7 @@ export async function clearSpecIfProven(
 async function decideAndClear(
   client: SupabaseClient,
   prdId: string,
+  by: ClearedBy,
   unavailable: (reason: string) => SpecClearance,
 ): Promise<SpecClearance> {
   const { data, error } = await client
@@ -155,6 +185,7 @@ async function decideAndClear(
     designVerdict: verdictOf(design?.verdict),
     successMetrics: metricsOf(row.contract),
     servesABet,
+    consideredBy: by.agentSlug ?? null,
   };
 
   const decision = decideSpecReview(inputs);
@@ -199,6 +230,15 @@ async function decideAndClear(
     action: AUTO_CLEARED_ACTION,
     detail: {
       prd_id: prdId,
+      /*
+       * NAMED, because the two places this product already lost this answer
+       * both lost it by leaving the column null. See `ClearedBy` above. A slug
+       * that is genuinely unknown is written as null AND said out loud in the
+       * `because` list, so "we do not know who" never reads as "nobody".
+       */
+      cleared_by_agent_slug: by.agentSlug ?? null,
+      cleared_by_agent_id: by.agentId ?? null,
+      run_id: by.runId ?? null,
       from_status: inputs.status,
       to_status: decision.status,
       critic_verdict: inputs.criticVerdict,

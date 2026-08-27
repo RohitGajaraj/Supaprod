@@ -110,6 +110,16 @@ export type SpecReviewInputs = {
   successMetrics: readonly { text: string; oracleKind: string | null }[];
   /** Whether the spec serves a recorded bet: an opportunity or a decision. */
   servesABet: boolean;
+  /**
+   * The seat whose filed review is being read here, for the record.
+   *
+   * Never a gate. It changes no outcome and must not: a clearance that depended
+   * on WHICH seat asked would be a clearance an agent could shop for. It exists
+   * only so the audit row and the sentence a person reads can name the actor,
+   * which is the thing `agent_approvals.decided_by` and
+   * `forecast_resolved_by_agent_slug` both failed to do on every row they have.
+   */
+  consideredBy?: string | null;
 };
 
 export type SpecReviewDecision = {
@@ -171,6 +181,18 @@ function factsFor(i: SpecReviewInputs): string[] {
       : `${i.successMetrics.length} success metric${i.successMetrics.length === 1 ? "" : "s"}, ${bad} of which nothing can check.`,
   );
   facts.push(i.servesABet ? "It serves a recorded bet." : "It is attached to no recorded bet.");
+  /*
+   * WHO CAUSED THIS TO BE CONSIDERED, said out loud even when the answer is
+   * nobody-knows. S4 measured two columns in this product that could have named
+   * an actor and were left NULL on every row, and in both cases the absence
+   * later read as "no agent did this" when it only ever meant "the record
+   * cannot say". A fact that admits its own gap does not make that trade.
+   */
+  facts.push(
+    clean(i.consideredBy) === null
+      ? "The record cannot name which seat's review produced this."
+      : `Considered after ${clean(i.consideredBy)} filed its review.`,
+  );
   return facts;
 }
 

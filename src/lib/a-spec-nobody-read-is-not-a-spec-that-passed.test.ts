@@ -278,3 +278,37 @@ describe("the facts are recorded whichever way it went", () => {
     expect(said).toContain("carries no success metric");
   });
 });
+
+describe("the record can name who caused this, or says that it cannot", () => {
+  /*
+   * S4 measured the two places this product already lost the answer to "who did
+   * it", and both lost it the same way: `agent_approvals.decided_by` is NULL, so
+   * F-79's disqualifying human act had to be found by reading a log; and
+   * `forecast_resolved_by_agent_slug` is NULL on ALL 91 resolved forecasts, so
+   * not one verdict this product exists to produce can name its author.
+   *
+   * In both cases the empty column later read as "no agent did this" when it
+   * only ever meant "the record cannot say".
+   */
+  it("names the seat whose review was read", () => {
+    const d = decide({ consideredBy: "design-critic" });
+    expect(d.because.join(" ")).toContain("Considered after design-critic filed its review");
+  });
+
+  it("and says plainly when it cannot, rather than staying silent", () => {
+    const d = decide({ consideredBy: null });
+    expect(d.because.join(" ")).toContain("cannot name which seat's review produced this");
+  });
+
+  it("an unknown actor NEVER changes the outcome", () => {
+    /*
+     * The important half. A clearance that depended on WHICH seat asked would be
+     * one an agent could shop for by calling from a different seat, and a
+     * clearance that REFUSED on an unknown actor would hand every unattributed
+     * call to a person for a reason that is about our plumbing.
+     */
+    expect(decide({ consideredBy: null }).action).toBe("clear");
+    expect(decide({ consideredBy: "design-critic" }).action).toBe("clear");
+    expect(decide({ consideredBy: "some-seat-invented-tomorrow" }).action).toBe("clear");
+  });
+});

@@ -409,7 +409,18 @@ Be specific. No filler. Use "ship" only when risks are bounded and evidence is s
  */
 export async function runCriticTool(
   args: { target_kind: "opportunity" | "prd"; target_id: string },
-  ctx: { supabase: SupabaseClient; userId: string },
+  /*
+   * The attribution fields are optional and read only for the record. The
+   * clearance below must never DEPEND on which seat asked, or it becomes a
+   * clearance an agent could shop for by calling from a different seat.
+   */
+  ctx: {
+    supabase: SupabaseClient;
+    userId: string;
+    agentSlug?: string;
+    agentId?: string | null;
+    runId?: string | null;
+  },
 ): Promise<{
   ok: boolean;
   review: CriticReview | null;
@@ -442,7 +453,11 @@ export async function runCriticTool(
    */
   if (args.target_kind !== "prd") return { ok: true, review };
 
-  const clearance = await clearSpecIfProven(ctx.supabase, args.target_id);
+  const clearance = await clearSpecIfProven(ctx.supabase, args.target_id, {
+    agentSlug: ctx.agentSlug ?? null,
+    agentId: ctx.agentId ?? null,
+    runId: ctx.runId ?? null,
+  });
   return {
     ok: true,
     review,
