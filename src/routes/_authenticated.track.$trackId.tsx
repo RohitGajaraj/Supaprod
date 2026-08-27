@@ -12,7 +12,8 @@ import { RunFooter } from "@/components/track/RunFooter";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { getTrack, type Track } from "@/lib/spine/track.functions";
 import { nextStation, waiverFor, type SpineRoute } from "@/lib/spine/route";
-import { originLine, runStatus } from "@/components/track/run-status";
+import { runStatus } from "@/components/track/run-status";
+import { originLine } from "@/lib/track-origin";
 import { holdTone } from "@/lib/spine/driver";
 import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
 
