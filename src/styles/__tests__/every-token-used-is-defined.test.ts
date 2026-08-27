@@ -145,7 +145,7 @@ function usedWithoutFallback(): Map<string, string[]> {
  *   --mrd-fail-bright RoomDetail.tsx   <- a FAILURE colour that does not paint
  *   --mrd-pass-bright RoomDetail.tsx   <- and its pass counterpart
  */
-const MERIDIAN_ORPHANS = new Set(["--mrd-raised", "--mrd-you-text"]);
+const MERIDIAN_ORPHANS = new Set<string>([]);
 
 describe("no design-system token is used bare unless something declares it", () => {
   it("every bare var(--sp-*) and var(--mrd-*) resolves to something", () => {
