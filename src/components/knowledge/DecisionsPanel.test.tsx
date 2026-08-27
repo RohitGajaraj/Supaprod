@@ -162,10 +162,15 @@ describe("SourceLink", () => {
       rationale: null,
     });
 
-    const handleClick = mock(() => {});
+    /* `as any` until 2026-08-28. It was the only eslint error in this file and
+       it predates this session (3eb543d65). `mock(() => {})` returns a
+       zero-argument mock and the prop wants a mouse handler, so the cast was
+       hiding an arity mismatch rather than a hard-to-express type: giving the
+       mock the event parameter it will actually be called with removes both. */
+    const handleClick = mock((_e: React.MouseEvent) => {});
     const el = SourceLink({
       d: decision,
-      onClick: handleClick as any,
+      onClick: handleClick,
       children: "Clickable Link",
     });
 
