@@ -49,7 +49,7 @@ import { deleteSignal, renameTheme, setThemeStatus } from "@/lib/discovery.funct
 import { getChangesetDiff } from "@/lib/studio.functions";
 import { computeHunks } from "@/lib/ai/studio-hunks";
 import { CodeDiff } from "@/components/studio/CodeDiff";
-import { setDecisionForecast, updateDecision } from "@/lib/decisions.functions";
+import { forecastRefusal, setDecisionForecast, updateDecision } from "@/lib/decisions.functions";
 import { decisionsForGrading } from "@/components/track/graded-decisions";
 import { clusteredInto } from "@/components/track/clustered-into";
 import { saidOnce } from "@/components/track/said-once";
@@ -572,8 +572,37 @@ function ForecastForm({ decisionId }: { decisionId: string }) {
     onError: (e: Error) => setProblem(e.message),
   });
 
-  const ready =
+  const shaped =
     claim.trim().length > 0 && know.trim().length > 0 && /^\d{4}-\d{2}-\d{2}$/.test(day);
+
+  /*
+   * THE REFUSAL ARRIVES BEFORE THE COMMITMENT, NOT AFTER IT.
+   *
+   * `setDecisionForecastSchema` already refuses a horizon that has passed, so
+   * this was never a hole in the write: the server said no and `onError` put
+   * the sentence on screen. What it cost was the moment. This is the one place
+   * the run deliberately slows down, and a person could fill three fields,
+   * press Record the forecast, wait for a round trip and only then be told the
+   * date was never allowed.
+   *
+   * `forecastRefusal` is the same pure function the schema calls and the same
+   * one S3's decision detail calls, so the three cannot drift about what a
+   * valid forecast is. Reused rather than restated: a second copy of this rule
+   * is how a surface starts refusing something the server would have accepted.
+   *
+   * ONLY THE HORIZON RULE CAN FIRE HERE, because `shaped` above already
+   * requires all three parts. The all-three-or-none branch stays reachable
+   * through the schema for every other door.
+   */
+  const refusal = shaped
+    ? forecastRefusal({
+        forecast_claim: claim.trim(),
+        forecast_how_we_will_know: know.trim(),
+        forecast_horizon_date: `${day}T12:00:00Z`,
+      })
+    : null;
+
+  const ready = shaped && !refusal;
 
   return (
     <div className="flex flex-col gap-mrd-3">
@@ -605,6 +634,9 @@ function ForecastForm({ decisionId }: { decisionId: string }) {
           onChange={(e) => setDay(e.currentTarget.value)}
         />
       </Field>
+      {/* Said under the field it is about, in the shared function's own words,
+          the moment the date stops being a forecast. */}
+      {refusal ? <RecordSpeaks>{refusal.message}</RecordSpeaks> : null}
       <span className="mrd-meta">Once recorded this cannot be edited.</span>
       <div>
         <Action
