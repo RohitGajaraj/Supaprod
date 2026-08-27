@@ -3,7 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { join } from "node:path";
 
-import { compareToBaseline, type SurfaceNumbers } from "./helpers/baseline";
+import { compareToBaseline, populationComparable, type SurfaceNumbers } from "./helpers/baseline";
 import { findRepoRoot } from "./helpers/auth";
 
 /**
@@ -359,6 +359,9 @@ function loadBaseline(): Record<string, Partial<SurfaceNumbers>> {
 }
 
 const BASELINE = loadBaseline();
+
+/** Signed out is a different page at the same path, so the number is labelled. */
+const RUN_MODE: "public" | "signed-in" = process.env.S4_MOTION_STATE ? "signed-in" : "public";
 
 /**
  * PROSE WIDER THAN MERIDIAN'S OWN MEASURE.
@@ -767,6 +770,17 @@ async function textBelowContrast(
       if (layers.length) viaGradient++;
       const a = fg[3];
       let ratio = Infinity;
+      /*
+       * THE RATIO IS NOT THE FINDING, THE TWO COLOURS ARE.
+       *
+       * S0 could not reproduce 4.43 from the token layer and computed 7.10 for
+       * the same token on the same strip. A number with no colours beside it
+       * cannot settle that: it says the tools disagree without saying WHERE.
+       * The resolved foreground and the ground that produced the worst ratio
+       * are what tell you whether the token is wrong or whether something
+       * outside the token layer is painting underneath it.
+       */
+      let worstBg: [number, number, number] = candidates[0];
       for (const cand of candidates) {
         const l1 = lum(
           fg[0] * a + cand[0] * (1 - a),
@@ -775,8 +789,13 @@ async function textBelowContrast(
         );
         const l2 = lum(cand[0], cand[1], cand[2]);
         const one = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
-        if (one < ratio) ratio = one;
+        if (one < ratio) {
+          ratio = one;
+          worstBg = cand;
+        }
       }
+      const hex = (c: [number, number, number]): string =>
+        "#" + c.map((v) => Math.round(v).toString(16).padStart(2, "0")).join("");
 
       const px = parseFloat(cs.fontSize);
       const weight = parseInt(cs.fontWeight, 10) || 400;
@@ -787,7 +806,8 @@ async function textBelowContrast(
       const cls = el.className?.toString().trim().split(/\s+/).slice(0, 2).join(".");
       out.push(
         `${el.tagName.toLowerCase()}${cls ? "." + cls : ""} ${ratio.toFixed(2)}:1 ` +
-          `needs ${need}:1 at ${px}px/${weight} "${own.slice(0, 34)}"`,
+          `needs ${need}:1 at ${px}px/${weight} ` +
+          `[${hex([fg[0], fg[1], fg[2]])} on ${hex(worstBg)}] "${own.slice(0, 34)}"`,
       );
     }
 
@@ -1027,6 +1047,7 @@ test("report which surfaces still move once nothing can be read", async ({ page 
   /** Kept apart from `report`, whose length is asserted one-per-surface. */
   const notes: string[] = [];
   const drift: string[] = [];
+  const contrastWorse: string[] = [];
   const advancing: string[] = [];
   const illustrated: string[] = [];
 
@@ -1124,28 +1145,6 @@ test("report which surfaces still move once nothing can be read", async ({ page 
       );
     }
 
-    const moved = compareToBaseline(
-      path,
-      {
-        failureSentences: failures.distinct.length,
-        retries: failures.retries,
-        unnamed: unnamed.length,
-        wideProse: wide.length,
-      },
-      BASELINE,
-    );
-    if (moved) drift.push(moved);
-
-    const noFocus = await controlsWithNoVisibleFocus(page);
-    if (noFocus.length) {
-      notes.push(
-        `\n--- ${path}: ${noFocus.length} control shape(s) that look IDENTICAL when focused ---\n  ` +
-          noFocus.join("\n  ") +
-          `\n  This product prints keyboard shortcuts in its own rail. A control with no focus` +
-          `\n  treatment strands the person who took that invitation.`,
-      );
-    }
-
     // Always noted, pass or fail, because a count with no population behind it
     // is not a measurement. A clean surface says how many it judged.
     const contrast = await textBelowContrast(page);
@@ -1162,6 +1161,71 @@ test("report which surfaces still move once nothing can be read", async ({ page 
               : ``)
           : ` none`),
     );
+
+    const moved = compareToBaseline(
+      path,
+      {
+        failureSentences: failures.distinct.length,
+        retries: failures.retries,
+        unnamed: unnamed.length,
+        wideProse: wide.length,
+        contrastBelow: contrast.below,
+      },
+      BASELINE,
+      RUN_MODE,
+    );
+    if (moved) drift.push(moved);
+
+    /*
+     * THE ONE CHECK IN HERE THAT FAILS A BUILD ON A COUNT.
+     *
+     * Everything else this spec measures needs a person to say whether it is a
+     * defect: a drifting gradient may be decoration, a long line may be a
+     * table, a rising failure count may be a surface that started explaining
+     * itself. Contrast does not. 4.5:1 is a published threshold, the ratio is
+     * arithmetic on two colours, and a surface that drops below it today after
+     * clearing it yesterday is a regression with no second reading.
+     *
+     * A RATCHET, NOT A BAR. It fails on getting WORSE than the recorded
+     * number, never on the number itself, so tonight's 83 on `/` blocks
+     * nobody. Existing debt is a queue; new debt is a bug.
+     *
+     * It is only armed when the baseline was taken in the SAME run mode, since
+     * the same path signed out is a different page.
+     */
+    const wasBelow = BASELINE[path]?.contrastBelow;
+    const wasJudged = BASELINE[path]?.contrastJudged;
+    const modeMatches = !BASELINE[path]?.mode || BASELINE[path]?.mode === RUN_MODE;
+    /*
+     * A rising count on a page that rendered DIFFERENTLY is not a regression,
+     * and this ratchet fails builds, so it declines to judge that case rather
+     * than guessing through it. See populationComparable().
+     */
+    const samePage =
+      typeof wasJudged !== "number" || populationComparable(contrast.sampled, wasJudged);
+    if (typeof wasBelow === "number" && modeMatches && !samePage && contrast.below > wasBelow) {
+      notes.push(
+        `\n--- ${path}: contrast rose ${wasBelow} -> ${contrast.below}, but the page rendered ` +
+          `${contrast.sampled} elements against a baseline of ${wasJudged}. NOT COMPARED: that is ` +
+          `a different render, not a regression. ---`,
+      );
+    }
+    if (typeof wasBelow === "number" && modeMatches && samePage && contrast.below > wasBelow) {
+      contrastWorse.push(
+        `${path}: ${wasBelow} -> ${contrast.below} below AA` +
+          (contrast.failures.length ? `, worst shapes: ${contrast.failures.slice(0, 3).join("; ")}` : ""),
+      );
+    }
+
+    const noFocus = await controlsWithNoVisibleFocus(page);
+    if (noFocus.length) {
+      notes.push(
+        `\n--- ${path}: ${noFocus.length} control shape(s) that look IDENTICAL when focused ---\n  ` +
+          noFocus.join("\n  ") +
+          `\n  This product prints keyboard shortcuts in its own rail. A control with no focus` +
+          `\n  treatment strands the person who took that invitation.`,
+      );
+    }
 
     const clipped = await clippedAndUnreachable(page);
     if (clipped.length) {
@@ -1224,6 +1288,14 @@ test("report which surfaces still move once nothing can be read", async ({ page 
    * Whether a drifting gradient is theatre needs a person. Whether a progress
    * claim rose while nothing could be read does not. This fails.
    */
+  expect(
+    contrastWorse,
+    `Text on a surface dropped BELOW WCAG AA where it used to clear it. 4.5:1 for body ` +
+      `text is a published threshold, not a preference, and this is a ratchet: it fails on ` +
+      `getting worse than the recorded number, never on the number itself:\n  ` +
+      `${contrastWorse.join("\n  ")}`,
+  ).toEqual([]);
+
   expect(
     advancing,
     `A counted progress claim ADVANCED while no data could be read. Nothing was ` +
