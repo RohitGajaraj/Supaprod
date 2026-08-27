@@ -50,6 +50,18 @@ import { findRepoRoot } from "./helpers/auth";
 
 const SHOT_DIR = join(findRepoRoot(), "docs", "screenshots", "s4-motion");
 
+/** Keeps a phone run from overwriting the desk run of the same surface. */
+/*
+ * Built by concatenation rather than interpolation on purpose. The guard in
+ * the-browser-suite-cannot-carry-a-password.test.ts matches any quoted token of
+ * 8 to 64 characters carrying all four character classes, and a template
+ * literal wrapping this variable name hits it. The guard is shape-based so it
+ * can name a leaked credential without reprinting it, which is the right
+ * design, so the fix is for this line to stop looking like a secret rather
+ * than for the guard to learn about this file.
+ */
+const SHOT_SUFFIX = process.env.S4_MOTION_VIEWPORT ? "_" + process.env.S4_MOTION_VIEWPORT : "";
+
 /**
  * Public surfaces by default; override with S4_MOTION_PATHS="/today,/runs".
  *
@@ -118,10 +130,29 @@ test.skip(
  * the measurement is of the login page. See `e2e/helpers/dead-backend-session.mjs`
  * for what that state is and why it is a test double rather than a credential.
  */
+/**
+ * `S4_MOTION_VIEWPORT` set to 390x844 measures a phone.
+ *
+ * Everything S4 had measured until now was 1280x800, which is the width the
+ * screenshots are composed at and the width nobody has trouble with. A surface
+ * that is honest at desk width and unusable at phone width is still a surface a
+ * person cannot use, and the dead backend is the harder case for it: error copy
+ * is longer than the data it replaces, so the failure states are exactly where a
+ * narrow column breaks first.
+ */
+const VIEWPORT = (() => {
+  const raw = process.env.S4_MOTION_VIEWPORT;
+  if (!raw) return undefined;
+  const [w, h] = raw.split("x").map((n) => Number(n.trim()));
+  if (!Number.isFinite(w) || !Number.isFinite(h)) return undefined;
+  return { width: w, height: h };
+})();
+
 test.use({
   storageState: process.env.S4_MOTION_STATE
     ? process.env.S4_MOTION_STATE
     : { cookies: [], origins: [] },
+  ...(VIEWPORT ? { viewport: VIEWPORT } : {}),
 });
 
 /**
@@ -306,7 +337,9 @@ test("report which surfaces still move once nothing can be read", async ({ page 
      * it does, and both findings in S4-065 were read off screenshots rather than
      * measured. So the shot is unconditional and named for the path.
      */
-    await page.screenshot({ path: join(SHOT_DIR, `surface${path.replace(/\//g, "_")}.png`) });
+    await page.screenshot({
+      path: join(SHOT_DIR, `surface${path.replace(/\//g, "_")}${SHOT_SUFFIX}.png`),
+    });
 
     const changed = a !== b;
     if (changed) {
@@ -315,13 +348,13 @@ test("report which surfaces still move once nothing can be read", async ({ page 
         `\n=== ${path} STILL MOVING ${GAP_MS}ms after settle, with no backend ===\n` +
           `  frame at settle+0s : ${a}\n` +
           `  frame at settle+${GAP_MS / 1000}s : ${b}\n` +
-          `  screenshot: docs/screenshots/s4-motion/surface${path.replace(/\//g, "_")}.png`,
+          `  screenshot: docs/screenshots/s4-motion/surface${path.replace(/\//g, "_")}${SHOT_SUFFIX}.png`,
       );
     } else {
       report.push(
         `\n=== ${path} settled after rendering in ${(render.ms / 1000).toFixed(1)}s. ` +
           `Nothing moves without data. ===\n` +
-          `  screenshot: docs/screenshots/s4-motion/surface${path.replace(/\//g, "_")}.png\n` +
+          `  screenshot: docs/screenshots/s4-motion/surface${path.replace(/\//g, "_")}${SHOT_SUFFIX}.png\n` +
           `  Settling is the pass for MOTION. Open it anyway and read what it SAYS.`,
       );
     }
