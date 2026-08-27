@@ -82,11 +82,38 @@ if lsof -ti:"$PORT" >/dev/null 2>&1; then
   exit 1
 fi
 
-# Never clobber a real .env. If one exists, this is not the machine for this test.
+# ── YOUR REAL .env IS BORROWED, NOT CLOBBERED ──────────────────────────────
+#
+# This used to REFUSE when a .env existed and tell you to move it aside. S1 did
+# exactly that, by hand, with their own restore trap, and then suggested the
+# script do it itself. They are right: a check that makes every lane hand-roll
+# the same dangerous two steps is a check that will eventually eat somebody's
+# credentials.
+#
+# So it is moved aside and restored in the cleanup trap, which already runs on
+# EXIT, INT and TERM.
+#
+# AND THE CASE THE TRAP CANNOT COVER: a SIGKILL, or a machine losing power, skips
+# the trap and leaves the real .env parked. So the FIRST thing this script does
+# is put one back if it finds a parked copy and no .env — the recovery runs even
+# on a run that never gets as far as writing the dummy.
+ENV_PARKED=".env.check-motion-parked"
+
+if [ -f "$ENV_PARKED" ] && [ ! -f .env ]; then
+  mv "$ENV_PARKED" .env
+  echo "Restored your .env, parked by a previous run that did not exit cleanly."
+fi
+
+BORROWED_ENV=0
 if [ -f .env ]; then
-  echo "REFUSING: .env exists. This test needs a dummy env pointing at a dead port,"
-  echo "and overwriting your real one is not a trade worth making. Move it aside first."
-  exit 1
+  if [ -f "$ENV_PARKED" ]; then
+    echo "REFUSING: both .env and $ENV_PARKED exist, and I will not guess which is yours."
+    echo "Sort those two out by hand; one of them is a real credential."
+    exit 1
+  fi
+  mv .env "$ENV_PARKED"
+  BORROWED_ENV=1
+  echo "Your .env is parked at $ENV_PARKED and comes back when this exits."
 fi
 
 cleanup() {
@@ -97,6 +124,12 @@ cleanup() {
     lsof -ti:"$PORT" >/dev/null 2>&1 && kill -9 "$(lsof -ti:"$PORT")" 2>/dev/null || true
   fi
   [ "$DUMMY_ENV_WRITTEN" = "1" ] && rm -f .env
+  # Put the real one back. Runs whatever the exit code, and before the port
+  # message, so a failed run still returns your credentials.
+  if [ "${BORROWED_ENV:-0}" = "1" ] && [ -f "$ENV_PARKED" ]; then
+    mv "$ENV_PARKED" .env
+    echo "Your .env is back."
+  fi
   if lsof -ti:"$PORT" >/dev/null 2>&1; then
     echo "WARNING: :$PORT is still busy. Kill it by hand before another lane needs it."
   else
