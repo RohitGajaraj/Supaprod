@@ -827,9 +827,23 @@ export function BoundaryControls({
         />
       )}
 
-      {/* WORKSPACE-WIDE POLICY, ABOVE THE PER-TOOL EXCEPTIONS, and OUTSIDE the
-          `b` guards deliberately: these switches do not depend on that read and
-          must not disappear because a different query broke. */}
+      {/*
+       * WORKSPACE-WIDE POLICY, and OUTSIDE the `b` guards deliberately: these
+       * switches do not depend on that read and must not disappear because a
+       * different query broke. On a failed boundary read they are the only
+       * thing left a person can still act on, which is when stopping scheduled
+       * work matters most.
+       *
+       * I MOVED THIS DOWN AND PUT IT BACK. Read order argues for it: the three
+       * blocks about unattended work -- what may START on a schedule, on what
+       * evidence, and how a run may END the same way -- are one family, and
+       * this one sits at the top while the other two sit at the bottom. But
+       * every candidate position further down is INSIDE the `!data` guard, so
+       * grouping them costs the property above, and a reading-order preference
+       * does not outrank a control staying reachable when the page around it
+       * has failed. Left where it is on purpose, with the reason written down
+       * so the next person does not spend the same hour on it.
+       */}
       <AutomationBoundary workspaceId={activeWorkspaceId ?? null} />
       {b.isError ? (
         /* One block, not a headline plus a loose line: what is still true, then
@@ -842,17 +856,6 @@ export function BoundaryControls({
         <Reading>Reading what your crew is allowed to do.</Reading>
       ) : !data ? null : (
         <>
-          {receipt ? (
-            <Receipt
-              verb={receipt.verb}
-              consequence={receipt.consequence}
-              failed={receipt.failed}
-            />
-          ) : null}
-
-          {/* THE QUEUE EATING ITSELF: an agent asking for more room is the one
-              thing worth deciding on a surface about what agents may do alone.
-              It leads here exactly as it led on /boundary. */}
           {/*
            * WHERE THE CREW STANDS, ABOVE EVERYTHING THE RUNG DECIDES.
            *
@@ -881,6 +884,17 @@ export function BoundaryControls({
             </Region>
           ) : null}
 
+          {receipt ? (
+            <Receipt
+              verb={receipt.verb}
+              consequence={receipt.consequence}
+              failed={receipt.failed}
+            />
+          ) : null}
+
+          {/* THE QUEUE EATING ITSELF: an agent asking for more room is the one
+              thing worth deciding on a surface about what agents may do alone.
+              It leads here exactly as it led on /boundary. */}
           <TrustGraduationsBlock />
 
           {block(
