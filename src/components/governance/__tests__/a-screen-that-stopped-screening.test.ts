@@ -117,3 +117,40 @@ describe("no rules of your own is not a quiet screen", () => {
     expect(guardrailSilence([], now).said).toBe("No rule has caught anything here.");
   });
 });
+
+/**
+ * AN EMPTY HIT LIST IS NOT AN UNSCREENED WORKSPACE, AND THE PAGE HAS TO SAY SO.
+ *
+ * S0 traced the path: `callModel` screens every call unless a caller opts OUT,
+ * and the loop never does. `loadGuardrails` returns `withFloor(...)` on both
+ * branches, so a workspace that configured nothing is still screened. A call
+ * matching no rule correctly writes NO ROW.
+ *
+ * S4 made it urgent. Measured 2026-08-27: `guardrail_hits` is largely PLANTED.
+ * 7,225 rows on sample workspaces share a microsecond a month apart, out of the
+ * demo seed migration; even the 1,310 on real workspaces carry 24 rows at one
+ * instant with the SAME rule_id, which a single screening event cannot produce.
+ * The table cannot be cited in either direction. So the one thing a reader can
+ * safely be told is what the silence means, and it is the opposite of what an
+ * empty list under the heading "What they caught" suggests.
+ */
+describe("an empty list is not an unchecked workspace", () => {
+  it("every sentence that mentions the tester says the screening happens first", () => {
+    for (const r of [
+      guardrailSilence([], now, 0),
+      guardrailSilence([], now, 4),
+      guardrailSilence([ago(33)], now, 4),
+    ]) {
+      expect(r.action).toContain("Every call is screened");
+      expect(r.action).toContain("Try it first");
+      // The order matters: what the silence MEANS, then what to DO about it.
+      expect(r.action!.indexOf("screened")).toBeLessThan(r.action!.indexOf("Try it first"));
+    }
+  });
+
+  it("and it never offers the reassuring reading of an empty list", () => {
+    const words = (guardrailSilence([], now, 4).action ?? "").toLowerCase();
+    expect(words).not.toContain("nothing to worry");
+    expect(words).not.toContain("you are protected");
+  });
+});

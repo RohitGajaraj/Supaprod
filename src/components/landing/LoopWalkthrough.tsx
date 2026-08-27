@@ -267,7 +267,12 @@ export function LoopWalkthrough() {
                 data: { event: "demo_click", sessionKey: getLandingSessionKey() },
               })
             }
-            className="group inline-flex items-baseline gap-2 font-mono text-mrd-small uppercase text-zinc-500 hover:text-white transition-colors"
+            /* 172x18, under the 24px floor. It sits inside a <p>, but it is a
+               call to action on its own line rather than a link inside a
+               sentence, so WCAG 2.5.8's inline exception does not cover it.
+               `py-1 -my-1` grows the hit box and takes the layout effect back
+               out, so the paragraph's rhythm is unchanged. */
+            className="group -my-1 inline-flex items-baseline gap-2 py-1 font-mono text-mrd-small uppercase text-zinc-500 transition-colors hover:text-white"
             style={{ letterSpacing: "0.12em" }}
           >
             Open the live demo

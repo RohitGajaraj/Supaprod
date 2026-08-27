@@ -2,7 +2,7 @@
 // security, changelog) that sit off the homepage footer. Matches the
 // homepage's dark canvas so a footer click never feels like a different
 // site. Kept deliberately plain: these are reference pages, not marketing.
-import { PUBLIC_FOOTER_LINKS } from "./site-links";
+import { FooterLinks } from "./FooterLinks";
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { SupaprodWordmark } from "@/components/supaprod/SupaprodWordmark";
@@ -174,11 +174,20 @@ export function LegalPageShell({
               gap: "var(--geist-space-4x)",
             }}
           >
-            {PUBLIC_FOOTER_LINKS.map((l) => (
-              <a key={l.href} href={l.href} style={{ color: C.faint, textDecoration: "none" }}>
-                {l.label}
-              </a>
-            ))}
+            {/*
+             * A 44x44 HIT AREA THAT CANNOT REFLOW THE ROW, now shared.
+             *
+             * Measured by S4 at every width: these six render 21px tall against
+             * a 24px floor, on the five routes that import this shell. The gap
+             * to the nearest neighbour is 16px, so 21 + 16 + 16 = 53 and a full
+             * 44 fits with room left.
+             *
+             * The rendering moved into `FooterLinks` after this fix reached
+             * five routes and missed the two that draw their own anchors from
+             * the same list. The BOX around them stays here, because a 720px
+             * centred column is this shell's own and not a shared decision.
+             */}
+            <FooterLinks style={{ color: C.faint }} />
           </div>
         </footer>
       </div>

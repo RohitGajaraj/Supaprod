@@ -273,9 +273,19 @@ describe("RESOLVED_LINE mapping", () => {
     const expectedStatuses = ["approved", "executed", "rejected", "failed", "cancelled", "expired"];
     expectedStatuses.forEach((status) => {
       const line = RESOLVED_LINE[status];
-      expect(line).toBeTruthy();
-      expect(line?.text).toBeTruthy();
-      expect(TONES).toContain(line?.tone);
+      /* `RESOLVED_LINE` is indexed by a plain string here, so TypeScript is
+         right that a lookup may miss. Failing the test explicitly is what makes
+         the two assertions below sound rather than optional-chained into
+         silence: a missing entry should fail HERE, naming the status, not pass
+         quietly because `undefined?.text` is undefined and never asserted. */
+      if (!line) throw new Error(`RESOLVED_LINE has no entry for "${status}"`);
+      expect(line.text).toBeTruthy();
+      /* `line?.tone` is `GovTone | undefined` and `toContain` will not take an
+         undefined needle. The `toBeTruthy` above already establishes `line`, so
+         the assertion means what it says once the optional chain is dropped --
+         and if `line` were ever absent the line above fails first, which is the
+         better failure to read. */
+      expect(TONES).toContain(line.tone);
     });
   });
 

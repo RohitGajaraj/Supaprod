@@ -16,20 +16,47 @@ import type { DecisionRow } from "@/lib/decisions.functions";
  * Each test provides a query state and verifies the component renders correctly.
  */
 
+/**
+ * A COMPLETE `DecisionRow`, with the fields each test is about overridden.
+ *
+ * The six fixtures below were hand-built literals missing `meeting_id` and
+ * `snapshot_before`, so none of them was the shape `listDecisions` returns.
+ * They typechecked nowhere until `bun run typecheck:tests` existed, and bun
+ * strips types without resolving them.
+ *
+ * Same factory as decisions-shared.test.ts, for the same reason: padding six
+ * literals with two fields nobody is testing buries the one or two that each
+ * test is actually about.
+ */
+function row(over: Partial<DecisionRow> = {}): DecisionRow {
+  return {
+    id: "dec-1",
+    title: "Test decision",
+    rationale: null,
+    status: "pending",
+    source_kind: "mission",
+    source_label: "Mission ABC",
+    snapshot_before: null,
+    mission_id: null,
+    prd_id: null,
+    meeting_id: null,
+    created_at: new Date().toISOString(),
+    decided_by_agent_slug: null,
+    ...over,
+  } as DecisionRow;
+}
+
 describe("SourceLink", () => {
   test("renders Link to mission when mission_id is present", () => {
-    const decision: DecisionRow = {
-      id: "dec-1",
-      title: "Test decision",
+    const decision: DecisionRow = row({
       status: "pending",
-      created_at: new Date().toISOString(),
       decided_by_agent_slug: null,
       mission_id: "mission-abc",
       prd_id: null,
       source_kind: "mission",
       source_label: "Mission ABC",
       rationale: null,
-    };
+    });
 
     const el = SourceLink({
       d: decision,
@@ -44,18 +71,15 @@ describe("SourceLink", () => {
   });
 
   test("renders Link to PRD when prd_id is present (and mission_id is null)", () => {
-    const decision: DecisionRow = {
-      id: "dec-2",
-      title: "Spec decision",
+    const decision: DecisionRow = row({
       status: "approved",
-      created_at: new Date().toISOString(),
       decided_by_agent_slug: null,
       mission_id: null,
       prd_id: "prd-xyz",
       source_kind: "prd",
       source_label: "Spec XYZ",
       rationale: "Why this spec matters",
-    };
+    });
 
     const el = SourceLink({
       d: decision,
@@ -67,18 +91,15 @@ describe("SourceLink", () => {
   });
 
   test("prioritizes mission_id over prd_id when both are present", () => {
-    const decision: DecisionRow = {
-      id: "dec-3",
-      title: "Dual source",
+    const decision: DecisionRow = row({
       status: "rejected",
-      created_at: new Date().toISOString(),
       decided_by_agent_slug: null,
       mission_id: "mission-1",
       prd_id: "prd-1",
       source_kind: "mission",
       source_label: "Mission",
       rationale: null,
-    };
+    });
 
     const el = SourceLink({
       d: decision,
@@ -90,18 +111,15 @@ describe("SourceLink", () => {
   });
 
   test("renders null when neither mission_id nor prd_id is present (meeting-sourced)", () => {
-    const decision: DecisionRow = {
-      id: "dec-4",
-      title: "Meeting decision",
+    const decision: DecisionRow = row({
       status: "pending",
-      created_at: new Date().toISOString(),
       decided_by_agent_slug: null,
       mission_id: null,
       prd_id: null,
       source_kind: "meeting",
       source_label: "Design Sync",
       rationale: null,
-    };
+    });
 
     const el = SourceLink({
       d: decision,
@@ -112,18 +130,15 @@ describe("SourceLink", () => {
   });
 
   test("applies className and style props to Link", () => {
-    const decision: DecisionRow = {
-      id: "dec-5",
-      title: "Styled decision",
+    const decision: DecisionRow = row({
       status: "approved",
-      created_at: new Date().toISOString(),
       decided_by_agent_slug: null,
       mission_id: "mission-styled",
       prd_id: null,
       source_kind: "mission",
       source_label: "Styled Mission",
       rationale: null,
-    };
+    });
 
     const el = SourceLink({
       d: decision,
@@ -137,23 +152,25 @@ describe("SourceLink", () => {
   });
 
   test("passes onClick handler to Link", () => {
-    const decision: DecisionRow = {
-      id: "dec-6",
-      title: "Clickable decision",
+    const decision: DecisionRow = row({
       status: "pending",
-      created_at: new Date().toISOString(),
       decided_by_agent_slug: null,
       mission_id: "mission-click",
       prd_id: null,
       source_kind: "mission",
       source_label: "Mission",
       rationale: null,
-    };
+    });
 
-    const handleClick = mock(() => {});
+    /* `as any` until 2026-08-28. It was the only eslint error in this file and
+       it predates this session (3eb543d65). `mock(() => {})` returns a
+       zero-argument mock and the prop wants a mouse handler, so the cast was
+       hiding an arity mismatch rather than a hard-to-express type: giving the
+       mock the event parameter it will actually be called with removes both. */
+    const handleClick = mock((_e: React.MouseEvent) => {});
     const el = SourceLink({
       d: decision,
-      onClick: handleClick as any,
+      onClick: handleClick,
       children: "Clickable Link",
     });
 
@@ -207,6 +224,24 @@ describe("DecisionsPanel data states", () => {
     // Expected behavior: Maps rows and renders table structure with decision data
   });
 
+  /*
+   * THIRTY-SIX DECLARED BEHAVIOURS OF THIS PANEL ARE NOT TESTED, and four more
+   * are skipped. They are listed rather than written because the panel cannot
+   * be mounted without a `mock.module` pattern nobody has built, which the
+   * skipped ones say in their own comments.
+   *
+   * They are `test.todo`, so bun reports them as todo rather than as passes --
+   * which is the honest version of this and the reason they stay. Every one of
+   * them also produces a type error under `bun run typecheck:tests`, because
+   * bun's types want a function argument that `test.todo(name)` does not need
+   * at runtime. Thirty-six of the forty-two errors in this file are that, and
+   * none of them is a defect.
+   *
+   * Left alone deliberately: passing a no-op function to satisfy a type would
+   * turn a visible "todo" into something that looks written. The panel's real
+   * gap is that nobody can mount it, and padding these hides that rather than
+   * fixing it.
+   */
   // Legacy todo tests (kept for reference)
   test.todo("renders table header with columns: Decision, Made by, When, Why");
   test.todo("renders VerdictChip with status-mapped tone for each row");

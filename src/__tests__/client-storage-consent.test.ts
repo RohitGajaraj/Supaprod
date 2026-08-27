@@ -207,6 +207,7 @@ function storageWrites(): { store: "local" | "session"; key: string; where: stri
 /** Persists until the person clears it. Adding one is the higher bar. */
 const DECLARED_LOCAL = [
   "cad-density", // functional
+  "mrd-motion", // functional
   "supaprod.ask.conversations.v2", // functional
   "supaprod.feedback.prefs.v1", // functional
   "supaprod.flow.config", // functional

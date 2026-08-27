@@ -42,6 +42,7 @@
  * own keyboard, so binding bare letters here would steal them from the room.
  * Focus moves by click.
  */
+import { stillHoldsWork } from "@/components/approvals/still-holds-work";
 import * as React from "react";
 import { Row } from "@/components/meridian/rows";
 import {
@@ -496,7 +497,31 @@ function FocusedCall({
       </span>,
     );
   }
-  if (expiry) {
+  /*
+   * WHETHER THE WORK IS STILL THERE, BEFORE ANY CLAIM ABOUT WHAT ANSWERING
+   * DOES.
+   *
+   * This panel said "nothing runs until you decide or put it back on the
+   * clock" of every expired gate. F-128 measured the opposite: for 22 of 29
+   * pending tool-call gates the run they held was already OVER, so answering
+   * releases nothing and the sentence promised work that does not exist.
+   *
+   * S0 added `gatesLiveWork` to `listGovernApprovals` for exactly this, and
+   * /approvals and the Today queue both draw it. This panel reads the same
+   * server function and did not, so the same queue told two different stories
+   * depending on which door you came through.
+   *
+   * `stillHoldsWork` REPLACES the expiry consequence rather than sitting
+   * beside it: "nothing runs until you decide" and "the work has already
+   * finished" cannot both be true, and its own header says so. It returns null
+   * when the run is live OR unknowable, so a `null` third state never becomes
+   * a claim -- that is the discipline `gatesLiveWork` was given three states
+   * for.
+   */
+  const stranded = stillHoldsWork(a.gatesLiveWork);
+  if (stranded) {
+    lines.push(<span key="stranded">{stranded}</span>);
+  } else if (expiry) {
     lines.push(
       <span key="expiry">
         {expiry.expired

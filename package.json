@@ -14,6 +14,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "check:tests": "bash scripts/check-test-runner.sh",
+    "typecheck:tests": "tsc -p scripts/tsconfig.tests.json --noEmit",
     "format": "prettier --write .",
     "test": "bun test",
     "check:motion": "bash e2e/check-motion.sh",

@@ -234,45 +234,67 @@ export type UserNotificationPreferences = {
 
 export const getNotificationPreferences = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<{ preferences: UserNotificationPreferences }> => {
-    const { supabase, userId } = context;
-    const { data, error } = await supabase
-      .from("user_notification_preferences")
-      .select("*")
-      .eq("user_id", userId)
-      .maybeSingle();
+  .handler(
+    async ({
+      context,
+    }): Promise<{
+      preferences: UserNotificationPreferences;
+      /**
+       * FALSE WHEN NOBODY HAS EVER SET THESE, and the surface needs it.
+       *
+       * A person with no row gets `defaultPrefs` below -- every switch ON --
+       * and the settings pane renders them exactly as it renders a row somebody
+       * chose. Measured on the live database 2026-08-28: ONE
+       * `user_notification_preferences` row exists against 16 profiles. So
+       * fifteen of sixteen people are looking at eight switches they never
+       * touched, four of which send EMAIL, and concluding they opted in.
+       *
+       * The governance canon's fourth floor already states the rule for the
+       * numeric bars -- a default the user never set is our choice, and the
+       * surface names it as ours. This is the same rule for the one setting
+       * whose defaults leave the building.
+       */
+      chosen: boolean;
+    }> => {
+      const { supabase, userId } = context;
+      const { data, error } = await supabase
+        .from("user_notification_preferences")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
 
-    if (error) throw new Error(error.message);
+      if (error) throw new Error(error.message);
 
-    const defaultPrefs: UserNotificationPreferences = {
-      user_id: userId,
-      email_approvals: true,
-      email_health: true,
-      email_budget: true,
-      email_drift: true,
-      in_app_approvals: true,
-      in_app_health: true,
-      in_app_budget: true,
-      in_app_drift: true,
-      digest_approvals: true,
-      digest_health: true,
-      digest_budget: true,
-      digest_drift: true,
-      digest_frequency: "daily",
-      digest_stakeholder_update: false,
-      digest_stakeholder_audience: "exec",
-      // Matches the column's own DEFAULT true: a verdict is the one email the
-      // product exists to send, so silence here would be the wrong default.
-      email_verdict: true,
-      updated_at: new Date().toISOString(),
-    };
+      const defaultPrefs: UserNotificationPreferences = {
+        user_id: userId,
+        email_approvals: true,
+        email_health: true,
+        email_budget: true,
+        email_drift: true,
+        in_app_approvals: true,
+        in_app_health: true,
+        in_app_budget: true,
+        in_app_drift: true,
+        digest_approvals: true,
+        digest_health: true,
+        digest_budget: true,
+        digest_drift: true,
+        digest_frequency: "daily",
+        digest_stakeholder_update: false,
+        digest_stakeholder_audience: "exec",
+        // Matches the column's own DEFAULT true: a verdict is the one email the
+        // product exists to send, so silence here would be the wrong default.
+        email_verdict: true,
+        updated_at: new Date().toISOString(),
+      };
 
-    if (!data) {
-      return { preferences: defaultPrefs };
-    }
+      if (!data) {
+        return { preferences: defaultPrefs, chosen: false };
+      }
 
-    return { preferences: data as UserNotificationPreferences };
-  });
+      return { preferences: data as UserNotificationPreferences, chosen: true };
+    },
+  );
 
 const PreferencesUpdateSchema = z.object({
   email_approvals: z.boolean().optional(),

@@ -15,7 +15,7 @@
  * film, and burying the film under a pitch would be answering a question they
  * did not ask.
  */
-import { PUBLIC_FOOTER_LINKS } from "@/components/supaprod/site-links";
+import { FooterLinks } from "@/components/supaprod/FooterLinks";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SupaprodWordmark } from "@/components/supaprod/SupaprodWordmark";
 import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
@@ -143,15 +143,9 @@ function FilmPage() {
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4">
           <p className="m-0 text-xs text-zinc-600">&copy; 2026 Supaprod</p>
           <div className="flex flex-wrap gap-5">
-            {PUBLIC_FOOTER_LINKS.map((l) => (
-              <a
-                key={l.href}
-                href={l.href}
-                className="text-xs text-zinc-600 no-underline transition-colors hover:text-zinc-300"
-              >
-                {l.label}
-              </a>
-            ))}
+            {/* See demo.tsx: the link is shared so its hit area cannot be
+                fixed on some footers and not others. */}
+            <FooterLinks className="text-xs text-zinc-600 transition-colors hover:text-zinc-300" />
           </div>
         </div>
       </footer>

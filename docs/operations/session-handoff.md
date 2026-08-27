@@ -1,3 +1,86 @@
+# S3 handoff, 2026-08-28 ~00:30 UTC
+
+**Lane `lane/platform`, 32 commits U-111 to U-141, all pushed, all gated.** The tree is clean and
+every unit is coherent on its own. Nothing is half-landed.
+
+## THE ONE PATTERN WORTH CARRYING FORWARD
+
+**Unreachable finished work is the most common defect on these surfaces.** More common than wrong
+logic, and INVISIBLE TO EVERY GATE: it typechecks, it lints, it builds, its tests pass. Seven
+instances in one night, each a capability wired end to end with no way in:
+
+| What was finished | What was missing | Unit |
+| --- | --- | --- |
+| `BoundaryTool.chosen` (S0 shipped the field) | nothing read it | U-125 |
+| `MessageMetaFooter`, the only caller of `submitFeedback` | mounted nowhere, so **nothing in the product can rate a recall** | U-137 |
+| `AutoChip`, 32 lines | never drawn, so **166 of 369 decisions read as hand-raised** | U-138 |
+| `OutcomeHistory`, 188 lines | built for a tab it never reached | U-140 |
+| `data-motion`, 8 CSS rules + a MutationObserver | **nothing in `src/` ever wrote it** | U-141 |
+| `AskInPlace`, 176 lines | S1's mounts, still open | — |
+| `LiveTicker` | S2's top bar, still open | — |
+
+S4 has now gated the class (`bun run check:unreachable`, baseline 141 server functions / 80
+components, fails on an increase).
+
+**ONE THING THE NEXT SESSION MUST NOT RE-INVESTIGATE, AND MUST NOT TRUST AT FACE VALUE.** That
+detector counts a component orphaned when no STATIC import names it. It does not see
+`React.lazy(() => import("…"))`. I checked ten of the components it lists — `ApprovalsPanel` (5
+callers), `CompoundingPanel` (7), `ArtifactsView` (4), `AgentRosterPanel`, `IncidentsPanel`,
+`SelfImprovementPanel` (2 each), `SupportSignalsPanel`, `EvalCalibrationPanel`, `EvidenceRule`,
+`PairMark` (1 each) — and **every one is mounted**, most through a lazy import in a route. The 80 is
+therefore an upper bound, not a work list. The ratchet is still worth keeping (it cannot regress),
+but do not go mounting things off that output without grepping for the name first. Fixing the
+detector to follow `import(` belongs to S4, who owns `e2e/`.
+
+## What changed that a person can see
+
+- **Boundary / Guardrails, `src/components/governance/BoundaryControls.tsx`** — rebuilt around one
+  question: *what can these agents do without asking me.* Posture headline, then where the crew
+  stands, then three regions each stating the SET-vs-RUNNING disagreement in words
+  (`Set to Ask first, and it does not: …`), then what your answers changed, then the ceiling and the
+  kill switch. Six new pure modules with guards: `ceiling-reality.ts`, `gates-nobody-answered.ts`,
+  `what-they-actually-did.ts`, `where-the-crew-stands.ts`, `who-chose-this.ts`,
+  `guardrail-silence.ts`.
+- **`getBoundary` now buckets on what a tool RUNS AS, not what it is set to** — it composes the seed
+  with the arc dial and the safety floors through `resolveToolMode`, which is what the loop does. A
+  row set to `confirm` on a `trusted` arc runs as `auto`, and the screen used to file it under "asks
+  first". 96 of 97 `agent_tools` rows run as `auto`.
+- **Three-state discipline everywhere** — `false` is not `null`, absent is never claimed as false, a
+  failed read never renders as zero. Four panels used to say the record was empty when the read had
+  failed (U-120).
+- **Tap targets** — 44px floors across the home page, `/product`, the legal footers and the failed-room
+  control. The footer link's target is a centred `::after` overlay because it sits inline in prose and
+  cannot reflow the row.
+- **Motion** — Settings › Appearance now carries the switch the whole product was already obeying.
+  It can only ever AGREE with an operating-system reduced-motion preference, never override it.
+- **`bun run typecheck:tests`** — no test file in this repo had ever been typechecked. Two of mine
+  were not testing anything (U-131) and six fixtures were not the shape the product returns (U-132).
+  Deliberately NOT gated: 414 errors remain, visible and drivable.
+
+## OPEN, and why I did not take them
+
+Each needs an owner who was offline, and each is one small change:
+
+1. **`Door` is 56×21 inline in prose** (`src/components/meridian/`). `CONTROL_SHAPE` already gives
+   every `Action` a 44px floor below `md`; `Door` never got it. The remedy is the `::after` overlay
+   from U-135, which is already shared in `src/styles/public-legibility.css`.
+2. **`ReadFailed` repeats the shell's session sentence and adds a second door.** `AppFrame` already
+   states the rule: the shell says it once, above everything. Same directory as (1).
+3. **Nothing mounts a recall-rating control.** `MessageMetaFooter` and `submitFeedback` both work;
+   the surfaces that would carry "did this help" are S1's. Until one does, the Brain's 77-of-12,531
+   rated count is what was rated before the control was taken out, and U-139 says exactly that on
+   screen rather than implying the rest were unhelpful.
+
+## Do not re-measure these
+
+`guardrail_hits` stop dead on 2026-07-25 and S4 showed most are PLANTED (7,225 sample-workspace rows
+sharing a microsecond a month apart). Spend ceiling is $10 on all 21 workspaces against a max single
+run of $0.142. `mission_token_cap` is NULL on all 2,570 runs with **no resolver and no caller**. 92
+of 324 approvals expired unanswered. 133 of 135 learnings have a NULL `decision_id`. One
+`user_notification_preferences` row against 16 profiles (U-134).
+
+---
+
 # S4 handoff, 2026-08-27 ~04:00 UTC
 
 **FIRST DECISION OF THE MORNING: nothing fixed last night is live.** Production deploys from `main`

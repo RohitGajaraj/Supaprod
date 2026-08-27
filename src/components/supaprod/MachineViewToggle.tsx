@@ -18,7 +18,19 @@ export function MachineViewToggle() {
         background: "none",
         border: "none",
         cursor: "pointer",
-        padding: "2px 0",
+        /* 164x16, under the 24px tap floor. The padding grows the hit box and
+           `minHeight` guarantees it whatever the font resolves to; both are on
+           the button rather than on the two spans so the [X] HUMAN / [ ] MACHINE
+           pair keeps its own baseline and gap. Vertical only: the control is
+           already 164px wide, and horizontal padding would push it off the
+           right edge of the nav it sits in. */
+        padding: "4px 0",
+        /* And the layout effect taken straight back out. Measured: without
+           this the footer grows 536 to 544, because this button sits in an
+           `items-center` row whose height follows its tallest child. The hit
+           box is 24px; the box the layout sees is the 16px it always was. */
+        margin: "-4px 0",
+        minHeight: 24,
         display: "flex",
         alignItems: "center",
         gap: 6,
