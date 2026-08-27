@@ -4023,6 +4023,37 @@ ICE. Impact:${opp.impact} Confidence:${opp.confidence} Ease:${opp.ease}`;
     const { data: prd, error: pErr } = await supabase.from("prds").insert(prdRow).select().single();
     if (pErr) throw new Error(pErr.message);
     if (prd) {
+      /*
+       * ── F-117: THE LOOP'S SPECS WERE THE ONLY ONES NOBODY COMPILED ───────
+       *
+       * `draftContractFromIntent` — the surface a PERSON drafts a contract
+       * through — has fired this since RPT-23. This path, which is the one the
+       * `prd.draft` tool takes and therefore the one every agent-written spec
+       * comes down, never did. So `oracle_kind` stayed null on every clause the
+       * loop ever wrote, and null means "nobody has said how this would be
+       * checked", which is not the same as checkable.
+       *
+       * That matters now because `spec-gate.ts` gate 9 refuses a spec whose
+       * success metrics nothing can check — deliberately, since a spec that can
+       * ship and can never be judged removes the one thing this product sells.
+       * Without this line the gate would have refused every agent-written spec
+       * for a reason that was about our own plumbing rather than about the spec.
+       *
+       * Fire-and-forget for the same reason as the other call site: it makes
+       * model calls, and a spec draft must not wait on an eval suite. But the
+       * failure is LOGGED rather than swallowed. At the other site a human is
+       * looking at the contract while this runs; down here nobody is, and a
+       * silent miscompile would present as a spec that simply did not deserve
+       * to clear.
+       */
+      void compileContractOraclesCore(supabase, userId, prd.id, {
+        guardConcurrentEdit: true,
+      }).catch((e: unknown) => {
+        console.error(
+          `oracle compile failed for agent-drafted spec ${prd.id}: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      });
+
       // SEAM-1: stage history for the created spec (DB default status is draft).
       await recordStageEvent(supabase, {
         entityType: "spec",

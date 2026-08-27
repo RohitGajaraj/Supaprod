@@ -141,7 +141,27 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
     // discards, and `spine_track_members` holding zero rows of kind 'prd' across
     // all 43 tracks. A brief that instructs an impossible call is worse than no
     // brief, because the agent obeys it.
-    file: "Call prd.draft with either `opportunity_id` (the bet this work belongs to, if you have one) or `brief` (what the work is and why it exists, in your own words). You must pass one or the other. It writes the spec body itself, so do not compose one to pass in. A spec that is only in your answer is not on the record and Design and Build cannot read it.",
+    /*
+     * ── F-117: 117 OF 119 SPECS CARRIED NO SUCCESS METRIC ────────────────
+     *
+     * Measured on production 2026-08-27. `prd.draft` DOES extract success
+     * metrics — but its own extraction prompt says *"Extract only what the text
+     * supports. Never invent a metric"*, and the text it extracts from is the
+     * body it writes from THIS SEAT'S BRIEF. So a brief that does not say what
+     * would count as the work having worked produces a spec with nothing to
+     * grade, correctly and silently.
+     *
+     * The `job` line above has always said "how anyone would know it worked".
+     * The `file` line, which is the one that says what to actually pass, did
+     * not, and the file line is the one the seat acts on.
+     *
+     * DOWNSTREAM THIS IS NOT COSMETIC. `learning.record` grades a forecast
+     * against an observable; `spec-gate.ts` gate 9 refuses a spec nothing can
+     * check. A spec with no metric can be built and shipped and then never
+     * judged, which is not a missing feature — it is the product's whole claim
+     * going unmade.
+     */
+    file: "Call prd.draft with either `opportunity_id` (the bet this work belongs to, if you have one) or `brief` (what the work is and why it exists, in your own words). You must pass one or the other. Your brief MUST say what would count as this having worked, as something a person could go and check: a number, a rate, an event that either happens or does not, and by when. The spec is written from your brief and nothing invents a measure you did not state, so a brief without one produces a spec that can be built and shipped and then never judged. It writes the spec body itself, so do not compose one to pass in. A spec that is only in your answer is not on the record and Design and Build cannot read it.",
   },
   "sprint-planner": {
     job: "Break the spec above into the work it actually implies. Do not invent scope the spec does not ask for.",
