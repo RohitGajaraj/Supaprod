@@ -51,6 +51,7 @@ import {
   subjectKey,
 } from "@/components/today/duplicate-work";
 import { SlowRead } from "@/components/shell/SlowRead";
+import { undatedNote } from "@/components/today/undated-order";
 import {
   bucketEmptyLine,
   bucketTabs,
@@ -1432,6 +1433,12 @@ function Today() {
     return inFilter.sort((a, b) => {
       const at = waitingSince(a.timestamp);
       const bt = waitingSince(b.timestamp);
+      /* A ROW WITH NO AGE GOES LAST, AND `undatedNote` BELOW SAYS SO. Wherever
+         an unplaceable row lands, the reader interprets its position as an age;
+         at the bottom of an oldest-first list that reads as "newest", and it
+         could be the oldest thing here. Last is the least wrong PLACE, and it
+         is still wrong on its own - the sentence is the half that fixes it.
+         Neither half works without the other, so they change together. */
       if (at === null && bt === null) return 0;
       if (at === null) return 1;
       if (bt === null) return -1;
@@ -1439,6 +1446,7 @@ function Today() {
     });
   }, [items, activeBucket]);
 
+  const undatedLine = React.useMemo(() => undatedNote(visibleItems), [visibleItems]);
   const focused = React.useMemo(
     () => visibleItems.find((i) => i.id === focusedId) ?? visibleItems[0] ?? null,
     [visibleItems, focusedId],
@@ -2191,6 +2199,17 @@ function Today() {
                           >
                             Show all <Num>{items.length}</Num>
                           </Action>
+                        </p>
+                      ) : null}
+                      {/* WHERE THE ORDER STOPS MEANING SOMETHING. The queue is
+                          sorted oldest first, so a row's position IS a claim
+                          about its age. A call with no timestamp has none, sits
+                          last, and reads as the newest thing here. It draws
+                          nothing today - every family carries a timestamp - and
+                          a sort is exactly where that stops being true. */}
+                      {undatedLine ? (
+                        <p className="mt-mrd-3 max-w-[var(--mrd-measure)] text-mrd-label leading-mrd-prose text-mrd-faint">
+                          {undatedLine}
                         </p>
                       ) : null}
                     </div>

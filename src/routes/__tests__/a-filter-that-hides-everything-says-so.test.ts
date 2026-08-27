@@ -76,3 +76,26 @@ describe("the section that holds the way out", () => {
     expect(SRC.slice(Math.max(0, at - 900), at)).toContain('role="status"');
   });
 });
+
+describe("the order says where it stops meaning something", () => {
+  it("draws the undated note under the queue it describes", () => {
+    expect(SRC).toContain("undatedNote(visibleItems)");
+    expect(SRC).toContain("{undatedLine ? (");
+  });
+
+  it("READS THE VISIBLE SET, not the whole queue", () => {
+    // The note describes the order the person is looking at. Counting undated
+    // calls the filter excluded would explain rows that are not on screen.
+    expect(SRC).toContain("undatedNote(visibleItems)");
+    expect(SRC).not.toContain("undatedNote(items)");
+  });
+
+  it("keeps the unplaceable rows IN the queue, so the verbs still reach them", () => {
+    // Lifting them into their own list would break `focused`, which resolves
+    // through `visibleItems`: Open would set an id the lookup cannot find and
+    // fall through to `visibleItems[0]`, opening a different call.
+    const memo = SRC.slice(SRC.indexOf("const visibleItems"), SRC.indexOf("const undatedLine"));
+    expect(memo).not.toContain("waitingSince(a.timestamp) === null ?");
+    expect(memo).toContain("return at - bt;");
+  });
+});
