@@ -16,7 +16,7 @@ import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Region } from "@/components/meridian/surface-parts";
+import { ReadFailedLine, Region } from "@/components/meridian/surface-parts";
 import { getTrackActivity, getTrackChain } from "@/lib/spine/track.functions";
 import { costLines, costSummary } from "./cost-summary";
 
@@ -57,9 +57,35 @@ export function RunCost({
   const s = costSummary(turns);
   const lines = costLines(s);
 
+  /*
+   * A FAILED READ IS NOT A FREE RUN.
+   *
+   * `q.data` is undefined when the read fails, so `turns` falls to [] and
+   * `s.turns` to 0, and this block used to disappear. Disappearing is not the
+   * neutral act it looks like: on the one panel that reports money, absence
+   * reads as "nothing was spent", and a person reviewing a run that HAS spent
+   * would take silence for a zero. Same family as the approvals heading that
+   * called a failed read an empty queue, and quieter, which is why it survived
+   * longer.
+   *
+   * Checked before the zero branch, because the zero is what the error
+   * MANUFACTURES. Stated with the retry the rest of this surface uses.
+   */
+  if (q.isError) {
+    return (
+      <Region title="What it has cost" sub={promise ? `You asked for: “${promise}”` : undefined}>
+        <ReadFailedLine onRetry={() => void q.refetch()}>
+          What this cost did not load, so nothing here would be trustworthy. Whatever it spent is
+          unchanged.
+        </ReadFailedLine>
+      </Region>
+    );
+  }
+
   if (s.turns === 0) {
     // Not an error and not interesting yet: nothing has been spent because
-    // nothing has run.
+    // nothing has run. Distinct from the branch above, which is a read that
+    // failed rather than a run that has not started.
     return null;
   }
 
