@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1507,
-  "fileCount": 129,
+  "totalOccurrences": 1503,
+  "fileCount": 128,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "import:components/ui": 1,
@@ -212,9 +212,6 @@
     "src/components/meridian/Surface.tsx": {
       "class:sp-": 4
     },
-    "src/components/mission/MissionOnboarding.tsx": {
-      "raw-colour": 3
-    },
     "src/components/observe/AgentSpendDetail.tsx": {
       "class:sp-": 3
     },
@@ -257,7 +254,7 @@
       "usage:components/ui": 2
     },
     "src/components/shell/agent-glyphs.tsx": {
-      "--sp-": 8
+      "--sp-": 7
     },
     "src/components/shell/AppFrame.tsx": {
       "class:sp-": 57

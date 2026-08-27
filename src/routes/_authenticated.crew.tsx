@@ -129,8 +129,10 @@
  *   following by hand in every place after.
  */
 
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { messageForPerson } from "@/lib/error-copy";
+import { SlowRead } from "@/components/shell/SlowRead";
+import { needsALookLine } from "@/components/crew/crew-words";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
@@ -419,7 +421,11 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
   }
 
   const sub = crew.isLoading ? (
-    "Reading the boundary in force."
+    /* MEASURED AT 6.9 SECONDS on the running product 2026-08-27, holding this
+       one static sentence the whole way, which is the state a person cannot
+       tell from a hung one. `inline` because `PageHeading` draws its sub
+       inside a `<p>` and the block form cannot legally go there. */
+    <SlowRead inline>Reading the boundary in force.</SlowRead>
   ) : crew.isError ? (
     "The boundary did not load."
   ) : crew.data?.empty ? (
@@ -449,7 +455,19 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
        nobody has configured is running on a default, and that deserves better
        than a bracket. */
     <>
-      <Figure>{alone}</Figure> run without asking you, <Figure>{asks}</Figure> ask first
+      <Figure>{alone}</Figure> run without asking you
+      {/* OMITTED AT ZERO, the way the switched-off clause beside it already is.
+          Read on the running product: "16 run without asking you, 0 ask first."
+          Nobody says "0 ask first"; they say none do, or they say nothing at
+          all because the first half already told you. A zero stated as a count
+          is the same defect as the negation wall on the board: an absence
+          dressed as a measurement. The clause returns the moment one agent
+          actually asks, which is when it carries news. */}
+      {asks > 0 ? (
+        <>
+          , <Figure>{asks}</Figure> ask first
+        </>
+      ) : null}
       {off > 0 ? (
         <>
           , <Figure>{off}</Figure> are switched off
@@ -486,7 +504,7 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
         />
 
         {crew.isError ? (
-          <ReadFailed onRetry={() => void crew.refetch()}>
+          <ReadFailed error={crew.error} onRetry={() => void crew.refetch()}>
             The crew did not load, so nothing below is the real boundary.
           </ReadFailed>
         ) : null}
@@ -664,6 +682,34 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
                             {lastWorkedLine(m.runs.lastAt)}
                           </span>
                         ) : null}
+                        {/*
+                          WHICH TEAMMATE NEEDS A LOOK. `CrewRunTally.failed` has
+                          been on every roster row all along and appeared
+                          nowhere on the card, so an agent with three runs that
+                          stopped without finishing was indistinguishable from a
+                          healthy quiet one. That is this card's own failure
+                          test, the one written two comments up for `lastAt`:
+                          if a person has to open each one to find out whether
+                          any of them needs them, the surface has failed.
+
+                          THE MARK CANNOT CARRY THIS. `agent-fleet.ts` has a
+                          `stateFor` returning "attention" on failures and the
+                          roster's `stageFor` does not use it — it returns gate,
+                          waiting, running, off or idle, so a failing agent
+                          renders as IDLE. And even if it turned, R-19 keeps
+                          accessibility at full weight: colour must never be the
+                          only signal, and a sentence survives greyscale and a
+                          screen reader where a hue does not.
+
+                          It wears `--mrd-fail` and it is the card's ONE live
+                          signal: it draws only when there is an exception, and
+                          the line above it is mute context rather than a second
+                          claim. */}
+                        {m && m.enabled && needsALookLine(m.runs.failed) ? (
+                          <span className="mt-0.5 block text-mrd-small leading-mrd-snug text-mrd-fail">
+                            {needsALookLine(m.runs.failed)}
+                          </span>
+                        ) : null}
                       </span>
                     </button>
                   );
@@ -720,7 +766,7 @@ function MemberView({ slug, onBack }: { slug: string; onBack: () => void }) {
       <Surface>
         <div className="flex flex-col gap-mrd-7">
           <PageHeading title={agentDisplayName(slug)} />
-          <ReadFailed onRetry={() => void member.refetch()}>
+          <ReadFailed error={member.error} onRetry={() => void member.refetch()}>
             This one did not load, so the boundary shown would not be the real one.
           </ReadFailed>
           <Actions>{back}</Actions>
@@ -1349,7 +1395,9 @@ function Lessons({ slug, name }: { slug: string; name: string }) {
   if (q.isError) {
     return (
       <Region title="What it has learned">
-        <ReadFailed onRetry={() => void q.refetch()}>Its lessons did not load.</ReadFailed>
+        <ReadFailed error={q.error} onRetry={() => void q.refetch()}>
+          Its lessons did not load.
+        </ReadFailed>
       </Region>
     );
   }
@@ -1420,6 +1468,44 @@ function MemberRecord({ member }: { member: CrewMember }) {
                 </>
               }
             />
+            {/*
+             * THE FAILURE COUNT GETS A DOOR (2026-08-27).
+             *
+             * The roster card now says "12 runs did not finish" and this view
+             * said "47 runs, 35 finished, 12 failed", and both stopped there. A
+             * person learned that twelve runs failed and could not reach ONE of
+             * them. R-20 section 6: a screen that only tells is a fail.
+             *
+             * THE DESTINATION WAS ALREADY BUILT AND I TRACED IT BEFORE POINTING
+             * AT IT, because a door onto the right page in the wrong state is
+             * worse than none - the defect fixed on SystemAlerts href earlier
+             * today. The chain: SpendRoom reads view and agent, view
+             * "by-agent" with an agent renders AgentSpendDetail, and that
+             * component lists the agent runs from agent_runs. SpendRoom:143
+             * already builds this exact link shape for its own rows, so this is
+             * the address that surface uses about itself.
+             *
+             * NOT room=record. That room accepts an agent param and IGNORES it,
+             * checked, its body never reads it, so a link there would land on
+             * an unfiltered trace list wearing the agent name.
+             *
+             * Drawn only when something actually failed, so a healthy teammate
+             * gains no furniture.
+             */}
+            {r.failed > 0 ? (
+              <CtxRow
+                name="What did not finish"
+                sub={
+                  <Link
+                    to="/engine-room"
+                    search={{ room: "spend", view: "by-agent", agent: member.slug }}
+                    className="text-mrd-you underline underline-offset-2"
+                  >
+                    Open the runs for this one
+                  </Link>
+                }
+              />
+            ) : null}
             {r.lastAt ? <CtxRow name="Last run" sub={`${ago(r.lastAt)} ago`} /> : null}
           </>
         )}

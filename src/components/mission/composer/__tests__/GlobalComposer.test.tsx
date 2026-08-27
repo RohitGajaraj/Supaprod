@@ -21,7 +21,6 @@
 // modules that `-_auth.server.test.ts` mocks at import time. Pulling that graph
 // in from this file broke six unrelated tests in the full run. A stub keeps this
 // file about GlobalComposer, which is what it is for.
-import * as React from "react";
 import { render, screen, fireEvent, cleanup, act } from "@testing-library/react";
 import { describe, test, expect, mock, beforeEach, afterEach } from "bun:test";
 import type { DictationState } from "@/hooks/use-voice";

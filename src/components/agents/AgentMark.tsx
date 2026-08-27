@@ -19,15 +19,18 @@
  *   · It is a real `role="img"` with a label, where this one was `aria-hidden`,
  *     so an agent's name is now readable by a screen reader.
  *
- * TWO PROPS ARE ACCEPTED AND IGNORED, deliberately, so no consumer breaks:
+ * ONE PROP IS ACCEPTED AND IGNORED, deliberately, so no consumer breaks:
  *   · `size` was a pixel number. The primitive has two sizes, because a mark at
  *     16, 22 and 26 across three surfaces is three sizes nobody chose. Anything
  *     24 or over reads as the large mark; everything else is the small one.
- *   · `pixelName` rendered the name in Geist Pixel. Pixel is retired (founder
- *     ruling 2026-07-29), so it is accepted and does nothing.
+ *
+ * IT WAS TWO UNTIL 2026-08-27. `pixelName` belonged to `AgentBadge`, which was
+ * deleted that day after two months with no importer, and the two imports that
+ * served it went with it. A header describing props that no longer exist is the
+ * same defect as code nothing calls: it costs the next reader a search to find
+ * out it is not true.
  */
 
-import { agentDisplayName, agentRelayVerb } from "@/lib/agent-vocabulary";
 import { AgentMark as Mark, type MarkState } from "@/components/meridian/marks";
 
 /** A pixel size from a legacy call site, mapped onto the two sizes the system
@@ -52,77 +55,4 @@ export function AgentMark({
   name?: string | null;
 }) {
   return <Mark slug={slug} name={name} size={sizeFor(size)} state={state} />;
-}
-
-/** The called-out treatment: the mark, the name, and optionally what it is
- *  doing right now. The name is quiet by default; nothing here tints plain text,
- *  because the mark already carries the identity. */
-export function AgentBadge({
-  slug,
-  verb,
-  size = 22,
-  showVerb = false,
-  live = false,
-  fallbackName,
-}: {
-  slug: string | null | undefined;
-  /** An explicit verb line. If omitted and showVerb is true, the catalog relay
-   *  verb is used. */
-  verb?: string | null;
-  size?: number;
-  showVerb?: boolean;
-  /** True while the agent is genuinely running. It sets the mark's state; it
-   *  never colours the name. */
-  live?: boolean;
-  fallbackName?: string | null;
-  /** Accepted and ignored: Geist Pixel is retired. */
-  pixelName?: boolean;
-}) {
-  const name = agentDisplayName(slug, fallbackName);
-  const v = verb ?? (showVerb ? agentRelayVerb(slug) : null);
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "var(--mrd-s3)",
-        minWidth: 0,
-      }}
-    >
-      <Mark
-        slug={slug}
-        name={fallbackName}
-        size={sizeFor(size)}
-        state={live ? "running" : "idle"}
-      />
-      <span style={{ display: "inline-flex", flexDirection: "column", minWidth: 0 }}>
-        <span
-          style={{
-            fontWeight: "var(--mrd-w-medium)",
-            color: "var(--mrd-ink)",
-            lineHeight: "var(--mrd-lh-snug)",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {name}
-        </span>
-        {v ? (
-          <span
-            style={{
-              fontSize: "var(--mrd-t-base)",
-              color: "var(--mrd-mute)",
-              lineHeight: "var(--mrd-lh-snug)",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
-            {v}
-          </span>
-        ) : null}
-      </span>
-    </span>
-  );
 }

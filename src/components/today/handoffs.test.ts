@@ -49,10 +49,7 @@ describe("newestHandoverByMission", () => {
   });
 
   it("drops a handover older than the surface's own 24-hour window", () => {
-    const byMission = newestHandoverByMission(
-      [msg({ created_at: "2026-08-25T14:59:59Z" })],
-      NOW,
-    );
+    const byMission = newestHandoverByMission([msg({ created_at: "2026-08-25T14:59:59Z" })], NOW);
     expect(byMission.size).toBe(0);
   });
 
@@ -99,7 +96,7 @@ describe("handoverLine", () => {
 
   it("survives an unnamed sender, a missing clock, and an empty task", () => {
     expect(handoverLine(msg({ from_agent_slug: null }), "4m")).toBe(
-      'Handed over 4m ago: “Draft the launch spec”',
+      "Handed over 4m ago: “Draft the launch spec”",
     );
     expect(handoverLine(msg({}), null)).toBe(
       `Handed over by ${agentDisplayName("discovery-scout")}: “Draft the launch spec”`,

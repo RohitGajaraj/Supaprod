@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, test, expect, afterEach } from "bun:test";
 import { render, cleanup, screen } from "@testing-library/react";
-import * as React from "react";
 
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 

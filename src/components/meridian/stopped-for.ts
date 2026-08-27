@@ -9,11 +9,19 @@
  * sentence, and they must agree to the word or the surface contradicts itself
  * one inch apart.
  *
- * StalledWork does not export it. Rather than reach into it, or reword the
- * phrase here and let the two drift, the boundaries and the strings are
- * reproduced EXACTLY and this note says where the original lives. If that file
- * ever exports `stoppedFor`, delete this and import it: the duplication is a
- * debt, recorded rather than hidden.
+ * THAT DEBT IS PAID AND THIS IS THE SINGLE COPY, from 2026-08-27. The two were
+ * verified byte-identical before collapsing, `StalledWork` now imports from
+ * here, and its private helper is gone.
+ *
+ * ── WHY IT LIVES IN MERIDIAN AND NOT IN `approvals/` ───────────────────
+ * It sat next to the surface that first needed it. **That surface folds**
+ * (SURFACE-MAP, R-04), and a phrase four components depend on cannot live
+ * inside a door that is being removed. It is also the wrong direction: `Gate`
+ * is a primitive and now states this fact, and a primitive that imports from a
+ * feature folder inverts the layering.
+ *
+ * So it sits beside the primitives that print it. Nothing about the words
+ * changed in the move.
  *
  * ── WHY A PHRASE AND NOT A CLOCK TIME ───────────────────────────────────
  * "Since 18:31 on 10 August" makes a reader do arithmetic before they can feel

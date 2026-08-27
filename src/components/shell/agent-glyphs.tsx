@@ -23,7 +23,7 @@
  */
 
 import type { ReactElement, SVGProps } from "react";
-import { agentDisplayName, agentStation, type AgentStation } from "@/lib/agent-vocabulary";
+import { agentDisplayName, type AgentStation } from "@/lib/agent-vocabulary";
 
 const g: SVGProps<SVGSVGElement> = {
   viewBox: "0 0 16 16",
@@ -153,7 +153,6 @@ const Unknown = () => (
   </svg>
 );
 
-
 /*
  * ── THE FIVE THAT SHARED ONE MARK ─────────────────────────────────────────────
  * Founder: "it would be great if you could differentiate the logos for Archivist,
@@ -263,13 +262,6 @@ const STATION_TOKEN: Record<AgentStation, string> = {
   ship: "--sp-stage-ship",
   learn: "--sp-stage-learn",
 };
-
-/** The stage hue for an agent slug, as a var() ready for a CSS custom property.
- *  Build is the anchor when the station is unknown, matching the CSS fallback. */
-export function stageHueForSlug(slug: string | null | undefined): string {
-  const station = agentStation(slug);
-  return `var(${station ? STATION_TOKEN[station] : "--sp-stage-build"})`;
-}
 
 export function stageHueForStation(station: AgentStation): string {
   return `var(${STATION_TOKEN[station]})`;
