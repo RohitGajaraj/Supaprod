@@ -3,6 +3,7 @@
 // trigger is a quiet "why" link; the evidence (who committed it, when, into which
 // bucket, with what declared outcome) is revealed only on demand. The history is
 // fetched lazily on open so a board of cards never fans out N queries.
+import { readFailureMessage } from "@/lib/roles.functions";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -80,6 +81,15 @@ export function RoadmapHistory({ opportunityId }: { opportunityId: string }) {
 
         {q.isLoading ? (
           <p style={{ color: "var(--mrd-faint)" }}>Loading</p>
+        ) : q.isError ? (
+          /* A FAILED READ IS NOT AN EMPTY HISTORY, and this popover is titled
+             "Why this is here". Saying "no roadmap history yet" out of a query
+             that did not come back tells a person the decision has no recorded
+             reason, which is the reassuring reading of our own broken read. */
+          <p style={{ color: "var(--mrd-faint)", lineHeight: 1.4 }}>
+            The history did not load, so this is not a claim that there is none.{" "}
+            {readFailureMessage(q.error)}
+          </p>
         ) : events.length === 0 ? (
           <p style={{ color: "var(--mrd-faint)", lineHeight: 1.4 }}>
             No roadmap history yet. Committing this with an outcome records the why.
