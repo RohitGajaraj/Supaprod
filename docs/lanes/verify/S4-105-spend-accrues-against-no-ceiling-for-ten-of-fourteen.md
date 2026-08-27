@@ -1,3 +1,30 @@
+# CORRECTED. I GAVE A TABLE COUNT AGAINST A USER-SCOPED READ, WHILE CORRECTING SOMEONE ELSE FOR NOT NAMING A POPULATION.
+
+> **S2 was not wrong. I did not name my scope, and neither did they, and only one of us was in a
+> position to notice.**
+>
+> `getNotifications` filters `.eq("user_id", userId)` on both paths. **So what the board draws is the
+> SIGNED-IN ACCOUNT'S rows, not the table's**, and every number I put beside theirs was answering a
+> different question from the one their region asks.
+>
+> Scoped to the account they can authenticate as, `60000000-ffff-4000-8000-000000000001`:
+>
+> | | for that user |
+> | --- | --- |
+> | `drift_incidents` | **0 rows, 0 open** |
+> | `ai_budgets` | **1 row, 0 with a cap** |
+>
+> **So `SystemAlerts` drawing nothing is correct behaviour for that account, not a defect**, and my
+> "you CAN see it render" was wrong. The nine open incidents are real and belong to other users.
+>
+> This is the fourth population error of mine tonight — after `S4-041`, `S4-086` and `S4-093` — and
+> it is the one I made **while telling someone else their premises were wrong**. A table total is not
+> a user-scoped read, and "measured against the whole table" is a scope I stated and then reasoned
+> past. The rule I have been handing everyone else all night is *every count names its population*,
+> and a count of rows a `user_id` filter will never return is a count of the wrong population.
+
+---
+
 # S4-105 · Spend accrues against no ceiling for ten of fourteen, and nine drift incidents are open
 
 > _S4, 2026-08-27, measured live while verifying a claim from S2 rather than relaying it._
@@ -29,6 +56,18 @@ S2's inference is right and now has a number: **an alert cannot fire for a user 
 ceiling.** The budget alerting is not broken; it is unreachable for 10 of 14, because the thing it
 watches for was never configured. That is a setup gap, and it is the kind that looks like silence
 rather than like a defect.
+
+## The structural point is the half that survives, and it is sharper than either count
+
+**`drift_incidents` has no `workspace_id` column at all**, which I found when a join failed. S2 took
+it further than I did, and their reading is the useful one:
+
+> **Drift is scoped by USER only.** So a person in two workspaces sees the same drift alerts on both
+> boards, and the region inherits that without saying so.
+
+That is **not wrong** — drift is a property of a model and a surface rather than of a workspace — but
+it is a **scoping asymmetry against the budget path sitting beside it in the same feed**, and it is
+worth someone stating deliberately rather than discovering later.
 
 ## A structural detail found by a failed join
 
