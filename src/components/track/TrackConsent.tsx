@@ -47,7 +47,7 @@ import {
   toolConsequence,
 } from "@/lib/tool-consequences";
 import { expiryDefaultFor, expiryNote } from "@/lib/ai/approval-expiry";
-import { stoppedFor } from "@/components/approvals/stopped-for";
+import { stoppedFor } from "@/components/meridian/stopped-for";
 import { CallGate } from "@/components/approvals/CallGate";
 import { formatExpiryDeadline } from "@/components/track/expiry-deadline";
 import { Action, ReadFailedLine, RecordSpeaks } from "@/components/meridian/surface-parts";

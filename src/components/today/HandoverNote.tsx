@@ -1,3 +1,4 @@
+import { pollMs } from "@/components/shell/poll";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -49,7 +50,9 @@ export function HandoverNote({
   const q = useQuery({
     queryKey: ["swarm", "hud", workspaceId],
     queryFn: () => fHud({ data: { workspaceId } }),
-    refetchInterval: 15_000,
+    /* Backed off while the read is failing (`poll.ts`). The base cadence is
+       this note's own statement about how fast the fact it draws moves. */
+    refetchInterval: (q) => pollMs(15_000, q.state.fetchFailureCount),
     refetchIntervalInBackground: false,
   });
 
@@ -67,5 +70,24 @@ export function HandoverNote({
  */
 export function HandoverLine({ line }: { line: string | null }) {
   if (!line) return null;
-  return <p className="px-mrd-2 pb-mrd-2 text-mrd-data text-mrd-mute">{line}</p>;
+  /*
+   * CAPPED AT MERIDIAN'S OWN MEASURE, for the same reason the review card is.
+   *
+   * `handoverLine` quotes the task verbatim and the tasks are real prose. Seen
+   * on the running board 2026-08-27: "Handed over by Chief of Staff 8h ago:
+   * 'Based on the root cause analysis, write a detailed product requirement
+   * document (PRD) specifying the required system changes to correctly handle
+   * deleted addresses...'" — 232 characters, on a row's own sub-line, running
+   * the full width of the card.
+   *
+   * `--mrd-measure` is 68ch and its comment says "prose only, never a table or
+   * a row". This is prose that happens to sit under a row, which is exactly the
+   * case it means. `leading-mrd-prose` joins it because a line this long at row
+   * leading is a block rather than a sentence.
+   */
+  return (
+    <p className="max-w-[var(--mrd-measure)] px-mrd-2 pb-mrd-2 text-mrd-data leading-mrd-prose text-mrd-mute">
+      {line}
+    </p>
+  );
 }

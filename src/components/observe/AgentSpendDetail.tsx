@@ -62,7 +62,7 @@
  * drill into a mission.
  */
 import { useNavigate } from "@tanstack/react-router";
-import { failureLine } from "@/lib/error-copy";
+import { reasonLine } from "@/lib/error-copy";
 import { Row, Line } from "@/components/meridian/rows";
 import {
   NothingYet,
@@ -149,8 +149,8 @@ export function AgentSpendDetail({ id }: { id: string }) {
         goTo={BACK}
         onGoTo={onBack}
       >
-        <ReadFailedLine onRetry={() => void q.refetch()}>
-          {failureLine("The spend for this agent did not load.", q.error)}
+        <ReadFailedLine error={q.error} onRetry={() => void q.refetch()}>
+          {reasonLine("The spend for this agent did not load.", q.error)}
         </ReadFailedLine>
       </Region>
     );

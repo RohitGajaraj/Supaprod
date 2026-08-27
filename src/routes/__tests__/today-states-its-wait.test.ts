@@ -240,8 +240,26 @@ describe("Today's wait copy is honest", () => {
   });
 
   it("keeps its dashes out of user-facing text", () => {
+    /*
+     * THE CODEPOINTS ARE SPELLED, NOT TYPED, and that is this repo's own
+     * pattern rather than fussiness. `humanize.ts` states it: "Codepoints are
+     * spelled with String.fromCharCode (not literal glyphs) so this file stays
+     * free of the very invisible / irregular characters it exists to strip, and
+     * so the lint rules that ban them in source stay green."
+     *
+     * This guard carried both glyphs literally, which made it the only em dash
+     * left in the code of the 46 files this lane changed. S1 shipped a red
+     * suite tonight over exactly that shape — an en dash and an em dash inside
+     * a character class, caught by the repo's two dash guards — and the
+     * founder's standing instruction is that these characters must not reach a
+     * screen. A guard that has to hold one to do its job should hold it by
+     * number.
+     */
+    const EN = String.fromCharCode(0x2013);
+    const EM = String.fromCharCode(0x2014);
+    const dash = new RegExp(`[${EN}${EM}]`);
     for (const wait of waits) {
-      expect(wait).not.toMatch(/[–—]/);
+      expect(wait).not.toMatch(dash);
     }
   });
 
@@ -313,8 +331,41 @@ describe("Today never prints a claim it has not read yet", () => {
     expect(memo, "the headline is no longer a useMemo with a statement body").not.toBeNull();
     const body = memo![1];
 
-    // Still says the surface's name while it counts, rather than "Reading...".
-    expect(body).toMatch(/if \([^)]*loading[^)]*\) return "Today";/);
+    // A THIRD TIME, 2026-08-27, and the header above predicted it. This pinned
+    // the symbol `loading`, and the headline now waits on `stillWaiting(queue)`
+    // instead, because the two reads no longer have to land together: the first
+    // clause counts the queue and the second is omitted while the run record is
+    // outstanding. Measured on the running board, the queue answered at 15s and
+    // the record at 22s, so the old gate showed fifty-two review cards under a
+    // heading that said only "Today" for seven seconds.
+    //
+    // So this matches the RULE — something still-reading sends the headline to
+    // the surface's own name rather than to "Reading..." — and not the name of
+    // whichever expression currently carries it.
+    // `[^)]*` cannot cross the inner paren of `stillWaiting(queue)`, so the
+    // condition is matched lazily instead of by excluding the character.
+    // A FOURTH TIME, and within hours of the third. The condition became
+    // `!queueAnswered`, a hoisted boolean, because the memo's dependency list
+    // needed a stable value to key on — `loading` is true while EITHER read is
+    // outstanding, so a memo keyed on it does not recompute when the queue
+    // alone lands. That is a correctness fix, and this guard called it a
+    // regression, exactly as it did for the three changes before it.
+    //
+    // So it matches any condition that speaks about a READ'S STATE rather than
+    // any particular spelling of one. Some anchor is needed or the assertion is
+    // vacuous; this is the widest anchor that still means something.
+    expect(body).toMatch(/if \(.*?(loading|stillWaiting|Answered).*?\)\s*return "Today";/);
+
+    // AND THE PROPERTY THAT REPLACED THE OLD GATE, asserted rather than
+    // assumed. Waiting on both reads was what used to guarantee no count came
+    // from a hole. Now the counts the run record owns must each be handed over
+    // as null while it is still reading, and `stateSentence` omits the clause
+    // they pay for. If a future edit passes a raw `.length` here again, the
+    // headline goes back to printing " Nothing is stuck." from a read that has
+    // not answered, which is the exact defect this whole case exists for.
+    expect(body).toMatch(/stuck:\s*\w+\s*\?[^,]*:\s*null/);
+    expect(body).toMatch(/waiting:\s*\w+\s*\?[^,]*:\s*null/);
+    expect(body).toMatch(/shipped:\s*\w+\s*\?[^,]*:\s*null/);
 
     // Every read the sentence counts has to be answered for first. Two of the
     // three counts in `stateSentence` -- stuck and shipped -- come from
@@ -454,7 +505,10 @@ describe("Today's triage feed", () => {
 
   it("reads calls first, then blocked-on-you, then live, then finished", () => {
     const order = ["FEED_CALLS", "FEED_REPLY", "FEED_LIVE", "FEED_OPEN"].map(at);
-    expect(order.every((i) => i > -1), "a section marker is never rendered").toBe(true);
+    expect(
+      order.every((i) => i > -1),
+      "a section marker is never rendered",
+    ).toBe(true);
     expect(
       [...order].sort((a, b) => a - b),
       "the sections drifted out of the priority order",
@@ -505,9 +559,64 @@ describe("Today's triage feed", () => {
     // own wait AND its own refusal, now inside the one card rather than in a
     // lane of its own.
     const queueMountedAt = at("<DecisionQueue");
-    const runWaitAt = jsx.indexOf("<Reading>Reading the run record.</Reading>");
+    /*
+     * ANCHORED ON THE SENTENCE, NOT ON THE ELEMENT (2026-08-27).
+     *
+     * This read `"<Reading>Reading the run record.</Reading>"` and so it broke
+     * when the wrapper became `SlowRead`, which draws the identical paragraph
+     * for the first two and a half seconds and then adds an elapsed figure.
+     * Nothing REQ-016 asks for moved: the missions read still names its own
+     * wait, still inside the one card, still before its own refusal.
+     *
+     * The sentence is the contract and the element is an implementation
+     * detail, so this now matches the half that carries the meaning. A test
+     * that fails on a wrapper rename is a test that will be silenced rather
+     * than read the next time somebody is in a hurry.
+     */
+    const runWaitAt = jsx.indexOf("Reading the run record.");
     const runRefusalAt = jsx.indexOf("missions.refetch()");
     expect(runWaitAt).toBeGreaterThan(queueMountedAt);
     expect(runRefusalAt).toBeGreaterThan(runWaitAt);
+  });
+});
+
+describe("the page states a window only where the window is true", () => {
+  /*
+   * "In the last 24 hours" sat under the headline, scoping all four of its
+   * clauses. Only ONE of them is windowed.
+   *
+   *   ready     the review queue. Never windowed. Oldest measured 49 days.
+   *   stuck     `stoppedAll`, from `blockedAll`. Unwindowed - blocked work does
+   *             not age out, and windowing it was removed for exactly that.
+   *   waiting   `proposedAll`, same source, same reason.
+   *   shipped   filtered through `withinLastDay`. The only one.
+   *
+   * So a reader met "52 decisions are ready for your review" with "In the last
+   * 24 hours" underneath, and was entitled to conclude 52 decisions arrived
+   * since yesterday. The oldest had been waiting 49 days.
+   *
+   * These read `src`, which has comments stripped, so the phrase surviving in
+   * the note that explains its removal cannot pass the test by accident.
+   */
+  it("no longer claims a window over the whole headline", () => {
+    expect(src).not.toContain("In the last 24 hours");
+  });
+
+  it("states it on the shipped clause, which is the one it describes", () => {
+    expect(src).toContain("run shipped in the last 24 hours.");
+    expect(src).toContain("runs shipped in the last 24 hours.");
+  });
+
+  it("KEEPS THE FILTER, because the claim was mislocated and not wrong", () => {
+    // `shipped` really is a 24h window. Deleting the filter to make the old
+    // sentence true everywhere would have been the other, worse repair.
+    expect(src).toContain("withinLastDay(m.completed_at)");
+  });
+
+  it("leaves the unwindowed clauses unqualified", () => {
+    // If either of these ever grows "in the last 24 hours", it becomes a false
+    // claim about work that does not age out.
+    expect(src).toContain("runs are stuck.");
+    expect(src).toContain("runs are waiting for you to launch them.");
   });
 });

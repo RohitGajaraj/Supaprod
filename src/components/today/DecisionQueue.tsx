@@ -3,7 +3,10 @@ import { Row } from "@/components/meridian/rows";
 import { Action, Approve, BulkBar, Door, Num } from "@/components/meridian/surface-parts";
 
 import { canSendBack } from "@/components/approvals/SendBack";
+import { callSubject } from "@/components/meridian/call-subject";
+import { waitingSince } from "@/components/meridian/stopped-for";
 import { stripAutoPrefix } from "@/components/plan/format";
+import { plainMarkers } from "@/lib/preview-line";
 
 import { Checkbox } from "@/components/meridian/forms";
 import { Gate } from "@/components/meridian/Gate";
@@ -155,7 +158,11 @@ function OpenCall({
         ) : (
           <span>{agentDisplayName(item.agentSlug)}</span>
         )}
-        <span>{item.projectName ?? item.project ?? "This workspace"}</span>
+        {/* NOTHING RATHER THAN "This workspace". `callSubject` carries the
+            reasoning: the payload cannot tell a workspace-wide call from one
+            whose project lookup missed, so the fallback was a scope claim made
+            on a call that reported no scope. */}
+        {callSubject(item) ? <span>{callSubject(item)}</span> : null}
         {item.impact ? <span>{item.impact}</span> : null}
         <span className="today-open-pos">
           <Num>{position}</Num> of <Num>{total}</Num>
@@ -164,9 +171,47 @@ function OpenCall({
 
       <Gate
         question={stripAutoPrefix(item.title)}
+        /* THE AGE, ON THE CALL BEING SETTLED. `waitingSince` returns null when
+           nothing recorded a time, and `Gate` says that out loud rather than
+           drawing a fresh-looking gate over a fact it does not have. The rows
+           below have always shown this; the gate was the one place that did
+           not, which is the one place it changes what a person does. */
+        since={waitingSince(item.timestamp)}
         linesLabel={item.evidence.length ? "Why this needs your call" : undefined}
         lines={[
-          ...facts.map((line, i) => <span key={`fact-${i}`}>{stripAutoPrefix(line)}</span>),
+          /*
+           * THE MEASURE, APPLIED AT THE CALL SITE.
+           *
+           * Meridian already rules this: `--mrd-measure` is 68ch and its own
+           * comment says "prose only, never a table or a row". Nothing on the
+           * board was using it. `meridian/Gate.tsx` draws its lines at the
+           * card's full width, which on a desktop board measured 2026-08-27 is
+           * about 110 characters, and the FIRST fact on a review card is a
+           * whole model paragraph: eight lines of unbroken text, the largest
+           * thing on the screen and the one a person must actually read before
+           * they can approve anything.
+           *
+           * It is capped here rather than in `meridian/Gate.tsx` because that
+           * primitive is S0's and a lane authors locally and files. Capping the
+           * call site fixes the surface a person is looking at without taking
+           * a decision that belongs to the design system, and it does not
+           * block Gate from capping by default later.
+           *
+           * `block` is load-bearing: a max-width on an inline span does
+           * nothing, and the silent version of this change is one that looks
+           * applied and wraps at 110 characters exactly as before.
+           */
+          ...facts.map((line, i) => (
+            <span key={`fact-${i}`} className="block max-w-[var(--mrd-measure)]">
+              {/* MARKERS OUT, EVERY LINE KEPT. A decision's whole rationale is pushed
+                  into one evidence fact, and 2 of the 39 decisions this account can see
+                  carry markdown in that column - one "**Product Objectives:**", one
+                  "## Problem". They rendered as literal characters in the one place a
+                  person reads before approving. `plainMarkers` and NOT `previewLine`:
+                  this is evidence, so nothing may be truncated to a first line. */}
+              {plainMarkers(stripAutoPrefix(line))}
+            </span>
+          )),
           ...(hidden > 0
             ? [
                 <Door key="all" title="Open the rest here" onClick={() => setShowAll(true)}>
@@ -174,7 +219,34 @@ function OpenCall({
                 </Door>,
               ]
             : []),
-          <span key="consequence">{item.approveConsequence}</span>,
+          /* THE CLAIM THIS CARD MAKES ABOUT PRESSING APPROVE, and the correction it
+             cannot yet make when the claim stops being true.
+          
+             `approveConsequence` reads like "Approve · unblocks Build for this spec".
+             A gate can outlive the work it was holding: the run completes unanswered
+             and the gate is still sitting here, so the sentence promises a release
+             that answering it will not produce.
+          
+             S1 built the correction for /approvals — `still-holds-work.ts`, rendering
+             "The work this was holding has already finished, so answering it now
+             releases nothing" on `gatesLiveWork === false`, and NEVER on null,
+             because null is "we could not say" and reading that as "the work ended"
+             would invent a history. That route folds into this board, so the
+             correction has to travel with the call or the fold turns a queue that
+             admits when it is stale into one that does not.
+          
+             IT IS NOT WIRED HERE BECAUSE THE FIELD IS NOT IN THIS TREE YET, and I am
+             deliberately NOT deriving it locally: `gatesLiveWork` resolves through
+             `mission_id` to that mission's NEWEST run, and S1 already measured the
+             same question through `run_id` and got a different number wearing the
+             same words. A client-side guess here would be a confident wrong
+             correction, which is worse than the missing one.
+          
+             WHEN `gatesLiveWork` REACHES `ApprovalQueueItem`, DRAW THE CORRECTION
+             HERE, directly under this line. */
+          <span key="consequence" className="block max-w-[var(--mrd-measure)]">
+            {item.approveConsequence}
+          </span>,
         ]}
       >
         {/* TIER: Approve. The click releases a decision held for you - the work
@@ -422,7 +494,9 @@ export function DecisionQueue({
               tight
               marks={<AgentMark slug={item.agentSlug} state="waiting" />}
               lead={stripAutoPrefix(item.title)}
-              sub={`${agentDisplayName(item.agentSlug)} · ${item.projectName ?? item.project ?? "This workspace"}`}
+              sub={[agentDisplayName(item.agentSlug), callSubject(item)]
+                .filter(Boolean)
+                .join(" · ")}
               time={ago(item.timestamp)}
               onClick={() => onFocus(item.id)}
               action={<Pick item={item} selection={selection} />}

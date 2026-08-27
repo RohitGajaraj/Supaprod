@@ -2207,3 +2207,16 @@ html[data-motion="off"] .ai-pulse-text {
   margin-left: auto;
   margin-right: auto;
 }
+/* AN EMPTY HERO IS NOT A HERO, it is eighty pixels of bordered nothing.
+   `FocusNext` returns null while its read is in flight and whenever there is
+   nothing to focus on, but the wrapper above still paints 24px of margin, 52px
+   of padding, a raised background and TWO rules. Seen on the running product
+   2026-08-27: the band sat between the headline and the forecast line on the
+   most-read screen in the product, framing nothing.
+   `:empty` rather than a conditional in the route, because the component owns
+   the decision about whether it has anything to say and the container should
+   not have to duplicate it. React renders no whitespace for a null child, so
+   the selector matches exactly when there is nothing inside. */
+.today-hero:empty {
+  display: none;
+}

@@ -13,6 +13,16 @@ import { TRACK_FRESH_MS } from "@/components/today/tracks-feed";
  * offers is a fixed 24 hours. A surface cannot draw "since you last looked"
  * from data that never recorded when you looked.
  *
+ * THE WATERMARK IS A GAP TO FIX, NOT A SHAPE TO BUILD AROUND, and this
+ * paragraph used to read as though it were the second. The founder corrected
+ * exactly that framing on another lane on 2026-08-27: designing around a gap
+ * in the record bakes today's mess into the product permanently, and "a
+ * measurement is a fair way to choose what to build FIRST, not a fair way to
+ * choose what the thing IS". The brief asks for the deltas since a person last
+ * looked. That is the real feature, it needs one column nobody has written
+ * yet, and this file is what the board can honestly say until then — not a
+ * decision that the brief's version is impossible.
+ *
  * What IS knowable, exactly and without a watermark, is when the workspace last
  * moved at all. On a board whose whole job is to say whether anything is
  * happening, that is the fact underneath the question, and no surface in this

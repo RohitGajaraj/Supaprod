@@ -76,16 +76,6 @@ export function IconBrain({ className }: IconProps) {
   );
 }
 
-/** Crew: the chip, with its legs. An agent is a part, not a person. */
-export function IconCrew({ className }: IconProps) {
-  return (
-    <svg {...base} className={className} strokeLinecap="round" strokeLinejoin="round">
-      <rect x="7" y="7" width="10" height="10" rx="2.2" />
-      <path d="M10 4v3M14 4v3M10 17v3M14 17v3M4 10h3M4 14h3M17 10h3M17 14h3" />
-    </svg>
-  );
-}
-
 /** Engine room: three lines with a node on each. The machinery, on demand. */
 export function IconEngine({ className }: IconProps) {
   return (
@@ -142,14 +132,6 @@ export function IconMoon({ className }: IconProps) {
  * Follow the system. A display, because that is what it is following: not a
  * third brightness, but a deferral to the machine.
  */
-export function IconSystem({ className }: IconProps) {
-  return (
-    <svg {...base} className={className} strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2.8" y="4.2" width="18.4" height="12.4" rx="1.6" />
-      <path d="M8.6 20.2h6.8M12 16.6v3.6" />
-    </svg>
-  );
-}
 
 /** The board: work in columns. */
 export function IconBoard({ className }: IconProps) {

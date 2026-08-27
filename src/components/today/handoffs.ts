@@ -1,6 +1,5 @@
 import type { SwarmHandoff } from "@/lib/swarm.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { withinLastDay } from "./when";
 
 /**
  * WHERE A RUNNING PIECE OF WORK JUST CAME FROM.
@@ -70,10 +69,7 @@ export function newestHandoverByMission(
  * none found* when the truth is *nobody was asked*. It becomes drawable the
  * day that test stops passing.
  */
-export function handoverLine(
-  m: SwarmHandoff | undefined,
-  whenAgo: string | null,
-): string | null {
+export function handoverLine(m: SwarmHandoff | undefined, whenAgo: string | null): string | null {
   if (!m) return null;
   const from = m.from_agent_slug ? agentDisplayName(m.from_agent_slug) : null;
   const handed = from ? `Handed over by ${from}` : "Handed over";
