@@ -106,6 +106,7 @@
  */
 
 import { createFileRoute } from "@tanstack/react-router";
+import { failureLine } from "@/lib/error-copy";
 import { approvalsQueueKey, APPROVALS_QUEUE_PREFIX, invalidateShellReads } from "@/lib/query-keys";
 import { isModalOpen } from "@/lib/overlay";
 import { useServerFn } from "@tanstack/react-start";
@@ -375,7 +376,7 @@ function ApprovalsSurface() {
         {
           id: vars.item.id,
           verb: "Nothing was recorded",
-          consequence: e.message,
+          consequence: failureLine("This is still waiting for you.", e),
           at: new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }),
           failed: true,
         },
@@ -426,7 +427,7 @@ function ApprovalsSurface() {
         {
           id: item.id,
           verb: "Nothing was recorded",
-          consequence: e.message,
+          consequence: failureLine("This is still waiting for you.", e),
           at: new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }),
           failed: true,
         },
@@ -582,10 +583,10 @@ function ApprovalsSurface() {
       queue.isError
       ? "Approvals"
       : n === 0
-      ? "Nothing is ready for you."
-      : n === 1
-        ? "1 decision is ready for you."
-        : `${n} decisions are ready for you.`;
+        ? "Nothing is ready for you."
+        : n === 1
+          ? "1 decision is ready for you."
+          : `${n} decisions are ready for you.`;
 
   /* THE THIRD FACT, which this surface used to collapse into the first. A
      person in no workspace at all was told "Nothing is ready for you.", which
@@ -754,7 +755,9 @@ function ApprovalsSurface() {
 
         {otherWorkspacesCount > 0 ? (
           <p className="text-mrd-label text-mrd-mute">
-            <span className="font-mrd-mono tabular-nums text-mrd-prose text-mrd-body">{otherWorkspacesCount}</span>{" "}
+            <span className="font-mrd-mono tabular-nums text-mrd-prose text-mrd-body">
+              {otherWorkspacesCount}
+            </span>{" "}
             more waiting in your other workspaces.
           </p>
         ) : null}

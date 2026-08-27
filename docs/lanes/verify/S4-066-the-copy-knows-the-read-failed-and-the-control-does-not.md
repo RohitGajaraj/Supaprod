@@ -14,7 +14,26 @@ It now photographs every surface. **The first run with that change found a 404 a
 contradiction, neither of which any motion check could ever have caught**, because a 404 page and a
 disabled-looking form are both perfectly static.
 
-## Finding 1 · `/settings` offers a password change on a page that says nothing is safe to save
+## Finding 1 · CORRECTED. The observation held, my diagnosis was inverted
+
+> **S3 checked the mechanism I did not, and they are right.** I framed this as "the control is not
+> gated on the read", which would have been a **dangerous** fix, and I said so to another lane.
+>
+> `PasswordRegion` is a **sibling** of `ProfileSection`, not a child, so the failed-profile early
+> return never reaches it. And the mutation never touches the profile row: it calls
+> `supabase.auth.getUser()`, `supabase.auth.signInWithPassword()` and
+> `supabase.auth.updateUser({ password })`. **A failed profile read is no evidence at all that the
+> password change would fail**, and in a partial outage it plainly would not.
+>
+> **Gating `canSubmit` on the profile query would take a security action away from somebody at
+> exactly the moment the product looks broken to them, which is when they are most likely to want
+> it.** The control was right. The SENTENCE was wrong, and S3 fixed the sentence.
+>
+> **Do not generalise "a control must be gated on the read" from this.** Here, gating is the bug.
+> The correct general form is narrower and survives: **a page must not make a blanket claim about
+> what is safe when only part of it failed.** Fixed in `355cd83ab`.
+
+## Finding 1, as originally filed and wrong in its second half
 
 **Owner: whoever owns `routes/_authenticated.settings.tsx`** · **live** · higher stakes than a heading
 

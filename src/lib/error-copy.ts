@@ -60,6 +60,42 @@ const MACHINE = [
 ];
 
 /**
+ * THE ONE FAILURE A PERSON CAN FIX THEMSELVES, so it outranks silence.
+ *
+ * S3 found this while converting their own sites and they are right: an ended
+ * session is the most common failure on this list, and `messageForPerson`
+ * answers it with null because "Unauthorized: Invalid token" is machine-shaped
+ * in every way the test looks at. Null is correct about the string and wrong
+ * about the moment. The reader is one click from fixing it, and nothing else on
+ * the surface will tell them so.
+ *
+ * These stay a fingerprint list rather than a shape test on purpose. A shape
+ * test asks "was this written for a person" and the answer here is no; this
+ * asks "do we recognise this specific machine string well enough to replace it
+ * with something better", which only a list can answer. The seven strings
+ * auth-middleware actually throws are what it matches.
+ */
+const SESSION_ENDED = [
+  /^unauthorized\b/i,
+  /\binvalid token\b/i,
+  /\bno token provided\b/i,
+  /\bjwt (?:expired|malformed|invalid)\b/i,
+  /\bsession(?: has)? expired\b/i,
+  /\bnot authenticated\b/i,
+  /\bauth session missing\b/i,
+];
+
+/** The sign-in sentence when the error says the session ended, else null. */
+export function sessionEndedMessage(err: unknown): string | null {
+  const raw = err instanceof Error ? err.message : typeof err === "string" ? err : "";
+  const text = raw.trim();
+  if (!text) return null;
+  return SESSION_ENDED.some((re) => re.test(text))
+    ? "Your session ended. Sign in again and this will load."
+    : null;
+}
+
+/**
  * The message if it was written for a person, otherwise null.
  *
  * Callers render their own sentence and append this only when it is non-null,
@@ -97,6 +133,9 @@ export function messageForPerson(err: unknown): string | null {
  * failure with nothing said is the silence this whole sweep is about.
  */
 export function failureLine(ownSentence: string, err: unknown): string {
-  const extra = messageForPerson(err);
+  // Strongest claim first, which is the rule the receipts already follow: an
+  // action the reader can take, then a sentence written for a person, then the
+  // surface's own honest floor on its own.
+  const extra = sessionEndedMessage(err) ?? messageForPerson(err);
   return extra ? `${ownSentence} ${extra}` : ownSentence;
 }

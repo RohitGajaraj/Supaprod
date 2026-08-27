@@ -300,6 +300,7 @@
  * returns no design row per spec, so /plan reads `listDesignWork` beside it.
  */
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
+import { failureLine } from "@/lib/error-copy";
 import { Row, Line } from "@/components/meridian/rows";
 import { Num, Door, Actions } from "@/components/meridian/surface-parts";
 // The bar that anchors to a passage selection and hands the words to the crew.
@@ -1388,8 +1389,7 @@ function SpecEditorPage() {
   };
 
   const runJob = (job: SelJob) => runJobFrom(job, picked);
-  const runProseJob = (job: SelJob) =>
-    proseSel && runJobFrom(job, { text: proseSel.text });
+  const runProseJob = (job: SelJob) => proseSel && runJobFrom(job, { text: proseSel.text });
 
   const assist = useMutation({
     mutationFn: (v: SelRun & { epoch: number }) => {
@@ -2182,7 +2182,11 @@ function SpecEditorPage() {
                      `rangeToRects`, and Keep maps the words back onto the
                      markdown source by exact unique match (see
                      `keepProposal` for the two honest refusals). */
-                  <div ref={proseRef} onMouseUp={captureProseSelection} onKeyUp={captureProseSelection}>
+                  <div
+                    ref={proseRef}
+                    onMouseUp={captureProseSelection}
+                    onKeyUp={captureProseSelection}
+                  >
                     <SpecProse body={body} citations={citations} />
                     <SelectionActions
                       rects={proseSel?.rects ?? null}
@@ -2266,7 +2270,7 @@ function SpecEditorPage() {
               // heading that already frames it, and the standard caps a region at
               // one bordered box.
               <ReadFailedLine onRetry={() => void routeQ.refetch()}>
-                Could not read this spec's route. {(routeQ.error as Error).message}
+                {failureLine("Could not read this spec's route.", routeQ.error)}
               </ReadFailedLine>
             ) : (
               <>

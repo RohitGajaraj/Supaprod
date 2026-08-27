@@ -51,6 +51,7 @@
  * on a number.
  */
 import { useMemo, useState, type ReactNode } from "react";
+import { failureLine } from "@/lib/error-copy";
 import { Row, Line } from "@/components/meridian/rows";
 import {
   Action,
@@ -246,7 +247,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
       qc.invalidateQueries({ queryKey: ["drift_overview"] });
     },
     onError: (e: Error) =>
-      commit("You tried to run the drift check", `${e.message} Nothing was rolled up.`, true),
+      commit("You tried to run the drift check", failureLine("Nothing was rolled up.", e), true),
   });
 
   const snaps = useMemo(
@@ -299,7 +300,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
     onError: (e: Error, { action }) =>
       commit(
         action === "resolve" ? "You tried to resolve it" : "You tried to reopen it",
-        `${e.message} The incident is unchanged.`,
+        failureLine("The incident is unchanged.", e),
         true,
       ),
   });

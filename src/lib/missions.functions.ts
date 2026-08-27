@@ -207,8 +207,18 @@ export const listMissions = createServerFn({ method: "GET" })
       data: input,
     }): Promise<{
       missions: MissionListRow[];
-      /** Every blocked mission, not just the first page. See the note below. */
-      totalBlocked: number;
+      /**
+       * Every blocked mission, not just the first page. See the note below.
+       *
+       * **NULL WHEN THE COUNT COULD NOT BE TAKEN, never 0.** S2 made the call
+       * and it is right: a failed read degrading to zero puts "Waiting on you 0"
+       * at the head of the lane whose entire job is saying what needs a person.
+       * That is a false all-clear produced by a broken read, which is the exact
+       * failure this repo has spent two days removing. A count that cannot be
+       * taken is not a count of zero, and the surface renders the row count with
+       * no total claim rather than printing a number it does not have.
+       */
+      totalBlocked: number | null;
       /** When the longest-waiting one last moved, so a count can say if it is stale. */
       oldestBlockedAt: string | null;
     }> => {
@@ -244,7 +254,7 @@ export const listMissions = createServerFn({ method: "GET" })
         }
         productMissionIds = [...set];
         if (productMissionIds.length === 0)
-          return { missions: [], totalBlocked: 0, oldestBlockedAt: null };
+          return { missions: [], totalBlocked: null, oldestBlockedAt: null };
       }
 
       let query = supabase
@@ -282,7 +292,7 @@ export const listMissions = createServerFn({ method: "GET" })
        * "what needs a person soonest".
        */
       const BLOCKED_STATUSES = ["failed", "halted", "cancelled", "blocked", "proposed"] as const;
-      let totalBlocked = 0;
+      let totalBlocked: number | null = null;
       let oldestBlockedAt: string | null = null;
       try {
         let countQ = supabase
@@ -292,7 +302,7 @@ export const listMissions = createServerFn({ method: "GET" })
         if (input?.workspaceId) countQ = countQ.eq("workspace_id", input.workspaceId);
         if (productMissionIds) countQ = countQ.in("id", productMissionIds);
         const { count } = await countQ;
-        totalBlocked = count ?? 0;
+        totalBlocked = count ?? null;
 
         let oldestQ = supabase
           .from("missions")
@@ -307,7 +317,11 @@ export const listMissions = createServerFn({ method: "GET" })
       } catch {
         // Best-effort, like the enrichment below. A lane that cannot count still
         // renders its rows; it simply does not claim a total it does not have.
-        totalBlocked = 0;
+        // NULL rather than 0. A failed read degrading to zero puts "Waiting on
+        // you 0" at the head of the lane whose job is saying what needs a person,
+        // which is a false all-clear produced by a broken read. A count that
+        // cannot be taken is not a count of zero.
+        totalBlocked = null;
       }
 
       const missions = data ?? [];
