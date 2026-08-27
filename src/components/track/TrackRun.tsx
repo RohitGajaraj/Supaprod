@@ -44,6 +44,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { TrackChain } from "@/components/spine/TrackChain";
 import { TrackActivity } from "@/components/spine/TrackActivity";
 import { RunPresence } from "@/components/presence/RunPresence";
+import { Teammates, type LiveSeat } from "@/components/presence/Teammates";
 import { ArtifactPane } from "@/components/track/ArtifactPane";
 import { TrackConsent } from "@/components/track/TrackConsent";
 import { Action, Region } from "@/components/meridian/surface-parts";
@@ -648,6 +649,13 @@ export function TrackRunLeft({
    * Reporting on identity would fire on every paint and the footer would
    * re-render for nothing.
    */
+  /*
+   * WHO is working, not just whether anyone is. One teammate stays one
+   * character (SPEC-PRESENCE); two or more are drawn each with its own colour
+   * and name (SPEC-MULTIPLAYER-PRESENCE §1), and both read the same run rows.
+   */
+  const [seats, setSeats] = React.useState<LiveSeat[]>([]);
+
   const stopRef = React.useRef<() => void>(() => undefined);
   stopRef.current = () => setLegsLeft(0);
   /*
@@ -765,6 +773,14 @@ export function TrackRunLeft({
        * so a person arriving from /start reads "Reading this piece of work"
        * instead of the false alarm "I can't find this piece of work".
        */}
+      {/*
+       * The many-teammate case sits ABOVE the character rather than replacing
+       * it: the character is still this run's voice and still says what is
+       * happening, and the row of teammates says who is doing it. Below two, it
+       * renders nothing at all and the surface is exactly as it was.
+       */}
+      <Teammates seats={seats} />
+
       <RunPresence
         loading={trackQ.isLoading}
         input={{
@@ -1040,7 +1056,7 @@ export function TrackRunLeft({
        * follow. When no row says running or queued, nothing speeds up and
        * nothing pulses -- an idle track reads idle.
        */}
-      <TrackActivity trackId={trackId} onLiveChange={onCrewLive} />
+      <TrackActivity trackId={trackId} onLiveChange={onCrewLive} onLiveSeats={setSeats} />
 
       {/*
        * THE STEER BOX (RUN-03), AT THE PANE'S FOOT -- below the transcript,

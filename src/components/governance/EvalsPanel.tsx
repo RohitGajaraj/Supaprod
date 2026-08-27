@@ -85,7 +85,19 @@ const COVERAGE_STATE: Record<string, { word: string; tone: "quiet" | "pass" | "h
   uncovered: { word: "no guard", tone: "hold" },
 };
 
-export function EvalsPanel() {
+/**
+ * WHERE A SUITE ROW GOES WHEN YOU CLICK IT.
+ *
+ * This panel now has two homes -- the Engine Room's `?view=suites` address and
+ * `/admin/quality`, which is where eval-suite editing actually belongs. Mounted
+ * in both, never copied, so the two cannot drift into disagreeing about what a
+ * suite is. The only thing that differs is where a row leads, so that is the
+ * only thing the caller passes.
+ *
+ * Omitted keeps the Engine Room behaviour, which is what every existing caller
+ * relies on.
+ */
+export function EvalsPanel({ onOpenSuite }: { onOpenSuite?: (id: string) => void } = {}) {
   const navigate = useNavigate();
   const listFn = useServerFn(listEvalSuites);
   const trendsFn = useServerFn(getEvalScoreTrends);
@@ -112,7 +124,9 @@ export function EvalsPanel() {
   const trends = trendsQ.data?.trends ?? {};
 
   const openSuite = (id: string) =>
-    navigate({ to: "/engine-room", search: { room: "quality", view: "suites", suite: id } });
+    onOpenSuite
+      ? onOpenSuite(id)
+      : navigate({ to: "/engine-room", search: { room: "quality", view: "suites", suite: id } });
 
   // A read that FAILED is not an empty state. "Nothing here" and "we could not
   // find out" are different facts and you act differently on each.

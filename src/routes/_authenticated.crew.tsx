@@ -265,6 +265,27 @@ function ago(iso: string | null | undefined): string | null {
   return `${Math.floor(hours / 24)}d`;
 }
 
+
+/**
+ * "Last worked 4h ago", and the two ways that sentence goes wrong.
+ *
+ * `ago()` answers "now" under a minute, so the obvious template produces **"Last
+ * worked now ago."** — seen on the live roster 2026-08-27, on the two agents that
+ * had just run. It also answers null for a timestamp it cannot use, which the
+ * same template renders as **"Last worked null ago."**
+ *
+ * Null here means the row HAS a time and we could not read it, which is not the
+ * same as never having run. Saying nothing is the only honest answer: "has not
+ * run here yet" would be a claim about the agent made from a fault in our own
+ * parsing.
+ */
+function lastWorkedLine(iso: string | null | undefined): string | null {
+  if (!iso) return "Has not run here yet.";
+  const when = ago(iso);
+  if (when === null) return null;
+  return when === "now" ? "Last worked just now." : `Last worked ${when} ago.`;
+}
+
 /* ------------------------------------------------------------------ *
  * The surface
  * ------------------------------------------------------------------ */
@@ -615,6 +636,34 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
                               ? "Switched off. It will not be dispatched."
                               : (agentBlurb(e.slug) ?? e.relayVerb)}
                         </span>
+                        {/*
+                          WHEN IT LAST DID ANYTHING, which this page held and
+                          never showed. `CrewRunTally.lastAt` has been on every
+                          roster row all along and was rendered only inside the
+                          member view, so learning which of seventeen teammates
+                          has gone quiet meant opening seventeen cards. That is
+                          this lane's own failure test, applied to the team:
+                          if a person has to open each one to find out whether
+                          any of them needs them, the surface has failed.
+
+                          Measured 2026-08-27, and the spread is the argument:
+                          prd-writer last ran minutes ago and ux-architect
+                          twenty-nine hours ago, and the two cards were
+                          identical. Sixteen of the seventeen have run here.
+
+                          Silent while it is RUNNING, because the mark beside
+                          the name already says so and a card should carry one
+                          live signal, not two. Silent when the tally is null
+                          rather than guessing a date it does not have; "has not
+                          run here yet" is the one thing worth saying, and it is
+                          said, because a teammate that has never worked is a
+                          different fact from one that is merely quiet now.
+                        */}
+                        {m && m.enabled && m.runs.running === 0 ? (
+                          <span className="mt-0.5 block text-mrd-small leading-mrd-snug text-mrd-mute">
+                            {lastWorkedLine(m.runs.lastAt)}
+                          </span>
+                        ) : null}
                       </span>
                     </button>
                   );
