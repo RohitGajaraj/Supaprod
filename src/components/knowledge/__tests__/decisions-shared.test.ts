@@ -16,6 +16,42 @@ import { DECISION_SOURCES } from "@/lib/decisions.functions";
 // ─────────────────────────────────────────────────────────────────────────────
 // SOURCE_LABEL - Decision source to display label mapping
 // ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * A COMPLETE `DecisionRow` WITH THE FIELDS UNDER TEST OVERRIDDEN.
+ *
+ * The fixtures below were hand-built object literals missing four required
+ * fields and carrying one, `agent_slug`, that `DecisionRow` has never had --
+ * the real column is `decided_by_agent_slug`. Every one of them typechecked
+ * nowhere, because `tsconfig.json` excluded every test file from tsc, and bun
+ * strips types without resolving them.
+ *
+ * The BEHAVIOUR was right: `hasSource` reads only the three id fields, so the
+ * assertions were sound. What was wrong is that they were asserted against a
+ * shape the product never produces, which is how a test goes on passing after
+ * the thing it tests has changed.
+ *
+ * A factory rather than four more fields per literal: padding each fixture with
+ * `title`, `rationale`, `source_kind` and `snapshot_before` would bury the one
+ * or two fields each test is actually about.
+ */
+function row(over: Partial<DecisionRow> = {}): DecisionRow {
+  return {
+    id: "d1",
+    title: "A decision",
+    rationale: null,
+    status: "approved",
+    source_kind: "mission",
+    snapshot_before: null,
+    mission_id: null,
+    prd_id: null,
+    meeting_id: null,
+    created_at: "2026-07-12T00:00:00Z",
+    decided_by_agent_slug: null,
+    ...over,
+  } as DecisionRow;
+}
+
 describe("SOURCE_LABEL", () => {
   test("is a Record with all string values", () => {
     expect(typeof SOURCE_LABEL).toBe("object");
@@ -193,93 +229,72 @@ describe("ageOf", () => {
 // ─────────────────────────────────────────────────────────────────────────────
 describe("hasSource", () => {
   test("returns true when mission_id is set", () => {
-    const d: DecisionRow = {
-      id: "d1",
+    const d: DecisionRow = row({
       mission_id: "m1",
       prd_id: null,
       meeting_id: null,
       status: "approved",
-      created_at: "2026-07-12T00:00:00Z",
-      agent_slug: null,
-    };
+    });
     expect(hasSource(d)).toBe(true);
   });
 
   test("returns true when prd_id is set", () => {
-    const d: DecisionRow = {
-      id: "d1",
+    const d: DecisionRow = row({
       mission_id: null,
       prd_id: "p1",
       meeting_id: null,
       status: "approved",
-      created_at: "2026-07-12T00:00:00Z",
-      agent_slug: null,
-    };
+    });
     expect(hasSource(d)).toBe(true);
   });
 
   test("returns true when meeting_id is set", () => {
-    const d: DecisionRow = {
-      id: "d1",
+    const d: DecisionRow = row({
       mission_id: null,
       prd_id: null,
       meeting_id: "mtg1",
       status: "approved",
-      created_at: "2026-07-12T00:00:00Z",
-      agent_slug: null,
-    };
+    });
     expect(hasSource(d)).toBe(true);
   });
 
   test("returns true when multiple sources are set", () => {
-    const d: DecisionRow = {
-      id: "d1",
+    const d: DecisionRow = row({
       mission_id: "m1",
       prd_id: "p1",
       meeting_id: "mtg1",
       status: "approved",
-      created_at: "2026-07-12T00:00:00Z",
-      agent_slug: null,
-    };
+    });
     expect(hasSource(d)).toBe(true);
   });
 
   test("returns false when all sources are null", () => {
-    const d: DecisionRow = {
-      id: "d1",
+    const d: DecisionRow = row({
       mission_id: null,
       prd_id: null,
       meeting_id: null,
       status: "approved",
-      created_at: "2026-07-12T00:00:00Z",
-      agent_slug: null,
-    };
+    });
     expect(hasSource(d)).toBe(false);
   });
 
   test("returns false when all sources are undefined", () => {
-    const d: DecisionRow = {
-      id: "d1",
+    const d: DecisionRow = row({
       mission_id: undefined,
       prd_id: undefined,
       meeting_id: undefined,
       status: "approved",
-      created_at: "2026-07-12T00:00:00Z",
-      agent_slug: null,
-    };
+    });
     expect(hasSource(d)).toBe(false);
   });
 
   test("treats empty string as falsy (no source)", () => {
-    const d: DecisionRow = {
-      id: "d1",
+    const d: DecisionRow = row({
       mission_id: "",
       prd_id: null,
       meeting_id: null,
       status: "approved",
-      created_at: "2026-07-12T00:00:00Z",
-      agent_slug: null,
-    };
+    });
     expect(hasSource(d)).toBe(false);
   });
 });

@@ -1,4 +1,8 @@
-import { describe, expect, test, beforeEach, afterEach, skip } from "bun:test";
+/* `skip` was imported and never exists: bun:test has no such export, and the
+   three skipped tests below use `test.skip`. An import of a name a module does
+   not export is the kind of thing only a typechecker sees, and no test file in
+   this repo had ever been typechecked. */
+import { describe, expect, test, beforeEach, afterEach } from "bun:test";
 import type { ReactElement } from "react";
 import { whenOf, deltaOf, monthStrip } from "./CompoundingPanel";
 import { learningMarkdown, overturnedCalls } from "./LearningDetail";
@@ -68,7 +72,17 @@ describe("whenOf — learning timestamp formatting", () => {
     const result = whenOf(iso);
 
     // Depending on local timezone, this should be "Yesterday"
-    expect(result === "Yesterday" || result.toMatch(/\w{3}\s+\d{1,2}/)).toBe(true);
+    /*
+     * `result.toMatch(...)` WAS A TEST THAT PASSED BY LUCK OF THE TIMEZONE.
+     *
+     * `toMatch` is an expect() matcher and does not exist on a string, so this
+     * threw a TypeError whenever `whenOf` did NOT return "Yesterday" -- and
+     * short-circuited harmlessly whenever it did. The assertion the comment
+     * above describes was never running on the branch it was written for.
+     *
+     * `RegExp.test` is the string-side equivalent and actually evaluates.
+     */
+    expect(result === "Yesterday" || /\w{3}\s+\d{1,2}/.test(result)).toBe(true);
   });
 
   test("handles far past dates", () => {

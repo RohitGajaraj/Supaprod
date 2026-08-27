@@ -3,6 +3,22 @@
 // both component files keep Vite fast-refresh (react-refresh rule: a file
 // must export only components). SourceLink stays in DecisionsPanel.
 import type { DecisionRow, DecisionSource } from "@/lib/decisions.functions";
+
+/*
+ * RE-EXPORTED BECAUSE EVERY CONSUMER OF THIS MODULE ALREADY IMPORTS IT FROM
+ * HERE, and one of them was importing a name this file did not export.
+ *
+ * `decisions-shared.test.ts` has read `type DecisionRow` from this module since
+ * it was written. Bun strips types without resolving them, so the test ran; tsc
+ * would have said so on day one and `tsconfig.json` excluded every test file
+ * from tsc. The import was fiction and nothing could see it.
+ *
+ * Re-exporting rather than repointing the test: the functions here take and
+ * return this shape, so a caller reaching for the type alongside them is asking
+ * the right module. Making that true is better than making the caller go
+ * somewhere else for half of what it needs.
+ */
+export type { DecisionRow, DecisionSource };
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 // The product's three forecast words, already single-sourced for the Forecast
 // Desk. Imported, never restated: two surfaces must not call one outcome two
