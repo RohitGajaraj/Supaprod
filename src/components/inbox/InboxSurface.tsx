@@ -15,6 +15,7 @@ import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { openAsk } from "@/lib/ask-open";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
+import { listDueForecasts } from "@/lib/forecast.functions";
 import { listMissions, type MissionListRow } from "@/lib/missions.functions";
 import { approvalsQueueKey, missionsKey } from "@/lib/query-keys";
 import { stillWaiting } from "@/lib/query-state";
@@ -125,6 +126,37 @@ export function InboxSurface() {
   });
 
   /*
+   * A VERDICT THAT HAS COME DUE NEEDS A PERSON, AND NOTHING WAS TELLING THEM.
+   *
+   * SESSION-1's Learn line: the verdict "arrives on its own; the person does
+   * not go looking." It did not arrive anywhere. `listDueForecasts` exists and
+   * has exactly one caller, `ForecastDeskPanel` on /learn, so the only way to
+   * find out a forecast had come due was to navigate to the desk and look.
+   *
+   * Measured: 176 of the 369 decisions carry a forecast, 91 are settled, 70 are
+   * still running, and **15 are past their horizon with no verdict written**.
+   * None of them reaches this page. The approvals queue federates ten families
+   * and a due forecast is not one of them: its decision family is decisions
+   * with `status = 'pending'`, which is a different question entirely. So a
+   * person with fifteen verdicts waiting was reading "Nothing needs you."
+   *
+   * That is the moat's own closing step. The product's claim is that it records
+   * what you expected and then tells you what actually happened; the second
+   * half was built and then left where nobody would meet it.
+   *
+   * SAME QUERY KEY AS THE DESK, so the two share one fetch and can never
+   * disagree about how many are due. Wire what exists, rather than a second
+   * read with its own filter, which is how the strip and the desk ended up
+   * counting different things.
+   */
+  const fetchDue = useServerFn(listDueForecasts);
+  const dueForecasts = useQuery({
+    queryKey: ["forecast-due"],
+    queryFn: () => fetchDue(),
+    enabled: Boolean(workspaceId),
+  });
+
+  /*
    * QUEUED MISSIONS ARE DELIBERATELY ABSENT. A queued run has no worker on it
    * yet, so it is neither needing a person nor working, and every group here is
    * a claim about whose move it is. They stay visible on Open Runs instead.
@@ -132,6 +164,30 @@ export function InboxSurface() {
   const sessions = React.useMemo<AgentSession[]>(() => {
     const calls = queue.data?.items ?? [];
     const rows = missions.data?.missions ?? [];
+    const due = dueForecasts.data?.due ?? [];
+
+    /*
+     * THE VERDICT ROWS. `need: "needs-input"` because that is exactly what they
+     * are: nothing else can settle a forecast, and no agent may. They open the
+     * desk that can, rather than a read-only view of themselves.
+     *
+     * The claim is the row's words, not the decision's title. "Escalation rate
+     * drops below 10%" is what a person has to judge; the decision's title is
+     * what it was called at the time, and on this surface the judgement is the
+     * point.
+     */
+    const verdictSessions: AgentSession[] = due.map((f) => ({
+      id: `forecast:${f.id}`,
+      title: cleanTitle(f.claim || f.title),
+      need: "needs-input",
+      activity:
+        f.daysLate > 0
+          ? `due ${f.daysLate} ${f.daysLate === 1 ? "day" : "days"} ago, no verdict yet`
+          : "due now, no verdict yet",
+      at: instant(f.horizonDate),
+      agentSlug: null,
+      onOpen: () => void navigate({ to: "/learn" }),
+    }));
 
     const callSessions: AgentSession[] = calls.map((c) => ({
       id: c.id,
@@ -226,8 +282,8 @@ export function InboxSurface() {
       }
     });
 
-    return [...callSessions, ...runSessions];
-  }, [queue.data, missions.data, navigate]);
+    return [...verdictSessions, ...callSessions, ...runSessions];
+  }, [queue.data, missions.data, dueForecasts.data, navigate]);
 
   const missionRows = missions.data?.missions ?? [];
   const workspaceSpend = workspaceSpendTotal(missionRows);
@@ -239,13 +295,29 @@ export function InboxSurface() {
    * `not-the-whole-queue.ts` for the measurement that found it.
    */
   const queueGaps = queue.data?.incomplete;
-  const floor = countIsAFloor(queueGaps);
-  const shortLine = notTheWholeQueue(queueGaps);
+  /*
+   * A FAILED VERDICT READ MAKES THE COUNT A FLOOR TOO. `countIsAFloor` answers
+   * for the queue's own families; this page federates one more read on top of
+   * it, and a page that could not ask about verdicts may not say nothing needs
+   * you. Same rule, one source wider.
+   */
+  const floor = countIsAFloor(queueGaps) || dueForecasts.isError;
+  const shortLine = dueForecasts.isError
+    ? "Your verdicts did not load, so this is not everything waiting on you."
+    : notTheWholeQueue(queueGaps);
 
   const waitingOnYou = sessions.filter((s) => s.need === "needs-input").length;
   const runningCount = sessions.filter((s) => s.need === "working").length;
 
-  const reading = stillWaiting(queue, missions);
+  /*
+   * THE VERDICT READ IS IN THE LOADING GATE, and leaving it out would have
+   * reproduced the exact defect this page keeps being fixed for. With the two
+   * older reads back and empty and this one still in flight, the headline would
+   * say "Nothing needs you." for as long as the forecast query took, and then
+   * fifteen verdicts would appear underneath a sentence saying there were none.
+   * Zero and not-yet-known are different answers.
+   */
+  const reading = stillWaiting(queue, missions, dueForecasts);
 
   const headline = React.useMemo(() => {
     if (reading) return "Inbox";
