@@ -579,6 +579,131 @@ async function unnamedControls(page: import("@playwright/test").Page): Promise<s
 }
 
 /**
+ * TEXT A PERSON CANNOT READ, AT THE ONE THRESHOLD THAT IS NOT A MATTER OF TASTE.
+ *
+ * Everything else this spec measures is either motion or structure. This is the
+ * one measurement of how the product LOOKS that does not need an opinion: WCAG
+ * AA is 4.5:1 for body text and 3:1 for large text, the ratio is arithmetic on
+ * two colours, and the same numbers are what a frontier lab's own audit would
+ * run. "Premium" is mostly judgement. This part of it is not.
+ *
+ * WHAT IT REFUSES TO GUESS, and this is most of the care in here:
+ *
+ *   - Only an element with its OWN text node is judged. A wrapper is not graded
+ *     on the colour of its child's text.
+ *   - The effective background is the first ANCESTOR painting an opaque colour.
+ *     If anything in that chain paints an image or a gradient, or a colour with
+ *     partial alpha, the true backdrop is not computable from styles, and the
+ *     element is counted as NOT JUDGED rather than assumed to be on white.
+ *   - Text colour with alpha is composited over that background before the
+ *     ratio, because `rgba(255,255,255,.55)` on a dark ground is a real
+ *     contrast and pretending it is white is a fake one.
+ *
+ * KNOWN LIMIT, stated rather than discovered later: an `opacity` on an ANCESTOR
+ * fades text without changing either computed colour, so a faded block reads as
+ * its unfaded ratio here. This under-reports; it never invents a failure.
+ */
+async function textBelowContrast(
+  page: import("@playwright/test").Page,
+): Promise<{ failures: string[]; sampled: number; unjudged: number }> {
+  return page.evaluate(() => {
+    function parse(c: string): [number, number, number, number] | null {
+      const m = c.match(/rgba?\(([^)]+)\)/);
+      if (!m) return null;
+      const p = m[1].split(/[,/]/).map((s) => parseFloat(s.trim()));
+      if (p.length < 3 || p.slice(0, 3).some((n) => Number.isNaN(n))) return null;
+      return [p[0], p[1], p[2], p.length > 3 && !Number.isNaN(p[3]) ? p[3] : 1];
+    }
+    function lum(r: number, g: number, b: number): number {
+      const f = (v: number): number => {
+        const s = v / 255;
+        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+      };
+      return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+    }
+
+    const out: string[] = [];
+    let sampled = 0;
+    let unjudged = 0;
+
+    for (const el of Array.from(document.querySelectorAll<HTMLElement>("body *"))) {
+      if (el.closest("[aria-hidden='true']")) continue;
+      const own = Array.from(el.childNodes)
+        .filter((n) => n.nodeType === 3)
+        .map((n) => n.textContent ?? "")
+        .join("")
+        .trim();
+      if (own.length < 2) continue;
+      const rect = el.getBoundingClientRect();
+      if (rect.width < 1 || rect.height < 1) continue;
+      const cs = getComputedStyle(el);
+      if (cs.visibility === "hidden" || cs.display === "none") continue;
+      if (parseFloat(cs.opacity) < 0.1) continue;
+
+      const fg = parse(cs.color);
+      if (!fg) {
+        unjudged++;
+        continue;
+      }
+
+      let bg: [number, number, number] | null = null;
+      let uncomputable = false;
+      let node: HTMLElement | null = el;
+      while (node) {
+        const ns = getComputedStyle(node);
+        if (ns.backgroundImage && ns.backgroundImage !== "none") {
+          uncomputable = true;
+          break;
+        }
+        const nb = parse(ns.backgroundColor);
+        if (nb && nb[3] > 0.95) {
+          bg = [nb[0], nb[1], nb[2]];
+          break;
+        }
+        if (nb && nb[3] > 0) {
+          uncomputable = true;
+          break;
+        }
+        node = node.parentElement;
+      }
+      if (uncomputable || !bg) {
+        unjudged++;
+        continue;
+      }
+
+      sampled++;
+      const a = fg[3];
+      const r = fg[0] * a + bg[0] * (1 - a);
+      const g = fg[1] * a + bg[1] * (1 - a);
+      const b = fg[2] * a + bg[2] * (1 - a);
+      const l1 = lum(r, g, b);
+      const l2 = lum(bg[0], bg[1], bg[2]);
+      const ratio = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+
+      const px = parseFloat(cs.fontSize);
+      const weight = parseInt(cs.fontWeight, 10) || 400;
+      const large = px >= 24 || (px >= 18.66 && weight >= 700);
+      const need = large ? 3 : 4.5;
+      if (ratio >= need) continue;
+
+      const cls = el.className?.toString().trim().split(/\s+/).slice(0, 2).join(".");
+      out.push(
+        `${el.tagName.toLowerCase()}${cls ? "." + cls : ""} ${ratio.toFixed(2)}:1 ` +
+          `needs ${need}:1 at ${px}px/${weight} "${own.slice(0, 34)}"`,
+      );
+    }
+
+    const counts = new Map<string, number>();
+    for (const s of out) counts.set(s, (counts.get(s) ?? 0) + 1);
+    return {
+      failures: [...counts].map(([s, n]) => (n > 1 ? `${s} x${n}` : s)).slice(0, 12),
+      sampled,
+      unjudged,
+    };
+  });
+}
+
+/**
  * SURFACES THAT ARE SUPPOSED TO SHOW EVERY FAILURE AT ONCE.
  *
  * `/meridian` is the design system's gallery: "Every component, in both grounds,
@@ -912,6 +1037,15 @@ test("report which surfaces still move once nothing can be read", async ({ page 
           `\n  treatment strands the person who took that invitation.`,
       );
     }
+
+    // Always noted, pass or fail, because a count with no population behind it
+    // is not a measurement. A clean surface says how many it judged.
+    const contrast = await textBelowContrast(page);
+    notes.push(
+      `\n--- ${path}: contrast, ${contrast.failures.length} text shape(s) below WCAG AA ` +
+        `of ${contrast.sampled} judged (${contrast.unjudged} not computable from styles) ---` +
+        (contrast.failures.length ? `\n  ` + contrast.failures.join(`\n  `) : ` none`),
+    );
 
     const clipped = await clippedAndUnreachable(page);
     if (clipped.length) {
