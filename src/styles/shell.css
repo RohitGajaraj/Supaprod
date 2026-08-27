@@ -742,6 +742,34 @@
   background: var(--mrd-select);
 }
 /*
+ * ── THE STATION YOU ARE ON WAS THE LEAST READABLE ONE (F-142) ──────────────
+ *
+ * `--mrd-select` is a 17% near-white wash, so the selected stage sits on a
+ * COMPOSITE ground rather than on `--mrd-sheet`. `--mrd-mute` reads 7.12:1 on
+ * the plain sheet and **4.44:1 over the composite**, which is under AA.
+ *
+ * S4 measured 4.43 in the browser at #a19e9a on #393735; I computed 7.12 from
+ * the tokens. Both were right about different states, and the state neither
+ * check covered was the one a person is looking at.
+ *
+ * FIXED AS A STATE, NOT AS A TOKEN, and that distinction is the whole finding.
+ * Nudging `--mrd-mute` would have made every label in the product lighter to
+ * repair one state, on six surfaces that are the same component in the same
+ * state rather than six defects. `--mrd-ink` on the same composite is
+ * **10.63:1**, and it also says what the strip is for: the stage you are on
+ * should be the clearest thing on it, not the faintest.
+ *
+ * `--mrd-ink`, NOT `--mrd-text`. S4 named the latter and it does not exist in
+ * meridian.css; a `var()` on an undefined custom property falls through to the
+ * inherited value silently, so the rule would have looked applied and changed
+ * nothing. Checked before shipping rather than after, which is the one habit
+ * this whole night has been about.
+ */
+.sp-stage[data-on="true"] .sp-stage-n,
+.sp-stage[data-on="true"] .sp-stage-state {
+  color: var(--mrd-ink);
+}
+/*
  * IDENTITY IS SHAPE, STATUS IS HUE -- so this bar is a NEUTRAL.
  *
  * It painted `var(--sp-hue)`, set inline per chip from `stageHueForStation`:

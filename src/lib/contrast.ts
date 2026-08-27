@@ -79,6 +79,55 @@ export function contrastRatio(a: Oklch, b: Oklch): number {
 }
 
 /**
+ * A translucent colour painted over a ground, as the browser composites it.
+ *
+ * ── THE HOLE S4 FOUND IN THE GUARD ABOVE (F-142) ───────────────────────────
+ * The AA check asserts every text token against every GROUND token, and that is
+ * not the whole set a person sees. A translucent overlay makes a **third
+ * colour** that appears in neither list:
+ *
+ *   `.sp-stage[data-on="true"] { background: var(--mrd-select) }`
+ *   `--mrd-select: oklch(0.98 0.003 70 / 0.17)`
+ *
+ * A 17% near-white wash over `--mrd-sheet`. So the strip has two grounds, and
+ * only one of them was in the list.
+ *
+ * The consequence was not academic and neither of us had it alone: `--mrd-mute`
+ * reads **7.12:1** on the plain sheet (my number, from source) and **4.44:1**
+ * over the composite (S4's number, from the browser, measured 4.43). Both were
+ * right about different states, and the state nobody checked is the one a person
+ * is looking at — **the station you are ON was the least readable on the strip.**
+ *
+ * ── IT COMPOSITES IN GAMMA-ENCODED sRGB, WHICH I GOT WRONG FIRST ──────────
+ * My first version blended in LINEAR light, which is what you do for physically
+ * correct light mixing and is NOT what CSS does. Browsers composite a
+ * translucent background in the device colour space, on the encoded channels.
+ *
+ * The difference is not subtle and S4's browser reading is what caught it:
+ *
+ *   linear blend    #727170   ratio 1.83   <- my first version, wrong
+ *   encoded blend   #393735   ratio 4.44   <- what Chrome actually painted
+ *
+ * S4 reported #393735 measured. The encoded blend reproduces it exactly, to the
+ * byte, which is the only reason to trust this function at all: an arithmetic
+ * check whose output cannot be matched against a real pixel is a second opinion
+ * nobody can adjudicate.
+ */
+export function over(top: Oklch, alpha: number, ground: Oklch): [number, number, number] {
+  const t = oklchToSrgb(top);
+  const g = oklchToSrgb(ground);
+  return [0, 1, 2].map((i) => t[i]! * alpha + g[i]! * (1 - alpha)) as [number, number, number];
+}
+
+/** The contrast ratio between a colour and an already-composited sRGB triple. */
+export function contrastWithRgb(a: Oklch, rgb: [number, number, number]): number {
+  const la = relativeLuminance(oklchToSrgb(a));
+  const lb = relativeLuminance(rgb);
+  const [hi, lo] = la > lb ? [la, lb] : [lb, la];
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+/**
  * WCAG AA for normal text.
  *
  * Large text is 3.0 and is deliberately NOT offered here: a helper that lets a
