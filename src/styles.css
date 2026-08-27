@@ -2209,27 +2209,38 @@ html[data-motion="off"] .ai-pulse-text {
   padding: 26px 22px;
   border-top: 1px solid var(--mrd-edge);
   border-bottom: 1px solid var(--mrd-edge);
-  /*
-   * `var(--mrd-raised)` UNTIL 2026-08-27, AND IT RESOLVED TO NOTHING.
+  /* ── FOLD RULING (S0, 2026-08-28): DELETED, NOT REPOINTED ────────────────
    *
-   * No such token is declared anywhere in the repo. A bare var() naming an
-   * undeclared custom property resolves to the EMPTY STRING, so the whole
-   * declaration is dropped and the element inherits its parent's ground. The
-   * rule typechecked, linted, built and did not exist on screen, which is the
-   * one failure mode a stylesheet can have that nothing downstream reports.
+   * Two lanes fixed the same dead declaration in opposite directions and both
+   * arguments were good. `background: var(--mrd-raised)` named a token declared
+   * NOWHERE in the repo, and a bare var() on an undeclared custom property
+   * resolves to the empty string, so the whole declaration was dropped. The rule
+   * read correctly, typechecked, linted, built, and did not exist on screen.
    *
-   * `--raised` is on CLAUDE.md's RETIRED list, so this looks like a retired
-   * name that was given the Meridian prefix and never declared -- the case that
-   * reads as migrated when it is not. Raised by S4, who found it by widening a
-   * guard that had only ever scanned the retired `--sp-` family.
+   * One lane repointed it at `--mrd-lift`, citing the comment below this block
+   * which describes the wrapper as painting "a raised background". The other
+   * deleted it, citing the section header above: "one featured moment with air
+   * and rules".
    *
-   * `--mrd-lift` is the replacement and it is named by Meridian's own
-   * declaration rather than by my reading of it: meridian.css:209 comments it
-   * "a raised control, secondary button". The comment eight lines below this
-   * one already describes this band as having "a raised background", so the
-   * intent was on the record the whole time; only the value was missing.
+   * THE DELETION WINS, and the deciding evidence is which comment is a witness.
+   * "Air and rules" is a statement of DESIGN INTENT and it stands on its own:
+   * the rule has 26px/22px of padding (the air) and `border-top`/`border-bottom`
+   * (the two rules). "A raised background" was written while the broken
+   * declaration sat in the file, so it describes THE DECLARATION rather than an
+   * observed pixel. It is a symptom of the bug, not testimony for it.
+   *
+   * And the asymmetry settles what the evidence leaves open: deleting a dead
+   * declaration cannot change a pixel, while choosing a fill would — on the
+   * most-read screen in the product, as a "repair", with no design decision
+   * behind it. If Meridian later wants a fill here that is a decision with a
+   * declared token, not a merge resolution at 1am.
+   *
+   * Found by S4 widening `every-token-used-is-defined` from `--sp-` to `--mrd-`:
+   * the guard had been watching the namespace being REMOVED rather than the one
+   * everyone writes. `--raised` is on CLAUDE.md's retired list, so this was a
+   * retired name given the Meridian prefix and never declared — the case that
+   * reads as migrated when it is not.
    */
-  background: var(--mrd-lift);
 }
 .today-hero > * {
   max-width: 760px;
@@ -2239,7 +2250,11 @@ html[data-motion="off"] .ai-pulse-text {
 /* AN EMPTY HERO IS NOT A HERO, it is eighty pixels of bordered nothing.
    `FocusNext` returns null while its read is in flight and whenever there is
    nothing to focus on, but the wrapper above still paints 24px of margin, 52px
-   of padding, a raised background and TWO rules. Seen on the running product
+   of padding and TWO rules. (It said "a raised background" until 2026-08-28,
+   describing a `var(--mrd-raised)` declaration that named an undeclared token
+   and therefore painted nothing. The ruling above deletes the declaration; this
+   sentence had to lose it too, or the file would go on claiming a fill that has
+   never existed on screen.) Seen on the running product
    2026-08-27: the band sat between the headline and the forecast line on the
    most-read screen in the product, framing nothing.
    `:empty` rather than a conditional in the route, because the component owns

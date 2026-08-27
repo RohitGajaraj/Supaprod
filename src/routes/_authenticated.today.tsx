@@ -2182,13 +2182,33 @@ function Today() {
                           /approvals draws it anyway as a permanently empty tab. */}
                       {worthFiltering(bucketList) ? (
                         <div className="mb-mrd-4 flex flex-wrap items-center gap-mrd-3">
+                          {/* "EVERY" AND AN EXACT COUNT, ON A BOUNDED READ.
+                              `getApprovalsQueue` caps each of ten families, so
+                              when `incomplete` is non-empty this control was
+                              promising totality twice over - the word in its
+                              title and the figure on its face - while the rail
+                              chip a few inches left already said "52+" and the
+                              headline said "At least 52".
+
+                              Three statements of one count inside a viewport,
+                              two of them hedged and one not, reads as the three
+                              disagreeing. Same "+" convention as the rail and
+                              the station strip. */}
                           <Action
                             variant="quiet"
                             aria-pressed={activeBucket === null}
                             onClick={() => setBucket(null)}
-                            title="Every call waiting on you"
+                            title={
+                              queueIsPartial
+                                ? "Every call this could read. More are waiting."
+                                : "Every call waiting on you"
+                            }
                           >
-                            All <Num>{items.length}</Num>
+                            All{" "}
+                            <Num>
+                              {items.length}
+                              {queueIsPartial ? "+" : ""}
+                            </Num>
                           </Action>
                           {bucketList.map((t) => (
                             <Action
