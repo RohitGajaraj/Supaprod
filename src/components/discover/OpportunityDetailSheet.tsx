@@ -1339,7 +1339,7 @@ export function OpportunityDetailSheet({
             >
               <P>
                 {opportunity.theme_id
-                  ? "Promoted from a Discover theme, with its signals attached."
+                  ? "Promoted from a Discover theme, with its findings attached."
                   : "Promoted directly. No theme backs it."}
               </P>
             </Region>

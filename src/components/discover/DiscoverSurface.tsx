@@ -623,7 +623,7 @@ export function DiscoverSurface({
    * `?capture=1` — land ON the capture box rather than merely on this station.
    *
    * The box is at the bottom of this surface by deliberate design, below the
-   * ranked reading, so every control labelled "Capture a signal" that
+   * ranked reading, so every control labelled "Capture a finding" that
    * navigated to a bare `/discover` put the person on the right page with the
    * thing they came for off screen. Same defect `?focus=` had and the same
    * repair; the route's header carries both.
@@ -814,7 +814,7 @@ export function DiscoverSurface({
       setReceipt({
         verb: enabled ? "You let it read on its own" : "You took the reading back",
         consequence: enabled
-          ? "New signals cluster without waiting for you. Nothing is promoted without you."
+          ? "New findings group without waiting for you. Nothing is promoted without you."
           : "Nothing clusters until you press the button yourself.",
       });
       void qc.invalidateQueries({ queryKey: ["cluster-settings"] });
@@ -1591,7 +1591,8 @@ export function DiscoverSurface({
         </React.Fragment>,
       );
     }
-    if (parts.length === 0) return "Nothing was captured. Every line was too short to be a signal.";
+    if (parts.length === 0)
+      return "Nothing was captured. Every line was too short to be a finding.";
     // Joined here rather than by leading spaces inside each fragment, so a
     // sentence that happens to be the only one never opens with a stray space.
     return (
@@ -3768,7 +3769,7 @@ export function DiscoverSurface({
               // back as a validation error after the round trip.
               onChange={(e) => setDraft(e.target.value.slice(0, MAX_BODY_CHARS))}
               placeholder="What did you hear, and where from? One per line."
-              aria-label="Capture a signal"
+              aria-label="Capture a finding"
               rows={3}
               // KEPT AS MEASURED, not rounded onto Meridian's ramp. These four
               // are the height a three-line capture box was tuned to; the
@@ -3985,7 +3986,7 @@ export function DiscoverSurface({
             one. The reading switch now sits underneath, where the question is
             actually asked. */}
           <Line
-            label="Group new signals without asking"
+            label="Group new findings without asking"
             sub={
               clusterSettings.data.enabled ? (
                 clusterSettings.data.last_run_at ? (
@@ -4010,7 +4011,7 @@ export function DiscoverSurface({
             <Toggle
               checked={clusterSettings.data.enabled}
               onChange={(next) => autoSense.mutate(next)}
-              label="Group new signals without asking"
+              label="Group new findings without asking"
               disabled={autoSense.isPending}
               busy={autoSense.isPending}
             />

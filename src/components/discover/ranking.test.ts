@@ -209,7 +209,7 @@ describe("rankOpportunities", () => {
     const ranked = rankOpportunities(opps, corr);
     const best = ranked[0];
     expect(best.rationale).toBe(
-      `Ranked #1: top ICE score, ${REVIEWER} endorsed, backed by 7 signals`,
+      `Ranked #1: top ICE score, ${REVIEWER} endorsed, backed by 7 findings`,
     );
     // SHIP verdict now gets "Proceed with the spec" instead of generic "Draft the spec"
     expect(best.nextAction).toMatch(/proceed|spec|build/);
@@ -394,7 +394,7 @@ describe("rankOpportunities terms", () => {
     expect(ranked[0].terms).toEqual([
       { label: "ICE", detail: "9.0 - highest in queue" },
       { label: `${REVIEWER} endorsed`, detail: "critic run, no kill" },
-      { label: "Signal backing", detail: "7 backing signals" },
+      { label: "Evidence behind it", detail: "7 backing findings" },
     ] satisfies Term[]);
     // A plain lower bet carries only its ICE term (pending, uncorroborated).
     const mid = ranked.find((r) => r.opp.id === "mid")!;
@@ -464,13 +464,13 @@ describe("rankOpportunities terms", () => {
     expect(entry.rationale).toContain(`${REVIEWER} endorsed`);
     expect(entry.rationale.toLowerCase()).toContain("standing top bet");
     expect(entry.rationale).toContain("run proven");
-    expect(entry.rationale).toContain("backed by 7 signals");
+    expect(entry.rationale).toContain("backed by 7 findings");
     expect(entry.terms.map((t) => t.label)).toEqual([
       "ICE",
       `${REVIEWER} endorsed`,
       "On a standing top bet",
       "Theme track record",
-      "Signal backing",
+      "Evidence behind it",
     ]);
   });
 });

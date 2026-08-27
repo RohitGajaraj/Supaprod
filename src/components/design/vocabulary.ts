@@ -9,35 +9,55 @@
  * link", and none of those are guesses about the data, only about the reader.
  */
 
+import { artifactWord } from "@/lib/artifact-words";
 import type { DesignFidelity, DesignGateWord } from "@/lib/design-scaffold.functions";
 import type { DesignCriticFinding } from "@/lib/ai/design-critic";
 
-/** Every artifact kind the lineage can name. `artifact_lineage` stores the
- *  product's own tokens and two of them do not mean in English what they mean
- *  here, so none of them reach a screen unmapped. */
-const KIND_WORD: Record<string, [one: string, many: string]> = {
-  signal: ["signal", "signals"],
-  theme: ["theme", "themes"],
-  opportunity: ["opportunity", "opportunities"],
-  prd: ["spec", "specs"],
-  prd_flow: ["flow", "flows"],
-  prd_scaffold: ["drawing", "drawings"],
-  roadmap_item: ["roadmap item", "roadmap items"],
-  task: ["task", "tasks"],
-  meeting: ["meeting", "meetings"],
-  decision: ["decision", "decisions"],
-  mission: ["run", "runs"],
-  house_rule: ["house rule", "house rules"],
-  design_memory: ["brand rule", "brand rules"],
-  prototype: ["shared link", "shared links"],
-  capability_change: ["capability change", "capability changes"],
+/**
+ * THIS MAP DRIFTED FROM THE CANONICAL ONE AND NOW CANNOT, SILENTLY.
+ *
+ * Operating model §12 bans "signals" outright ("a practitioner does not say
+ * signals"). S0 renamed the display word to "finding" in
+ * `src/lib/artifact-words.ts`, which cites §12 at the entry, and this file went
+ * on saying "signal". The Discover feed hit the same split and left a note
+ * calling it "one product, two words for" one kind. It was four: this file,
+ * `artifact-words.ts` ("finding"), `LineageDrawer` ("Signal") and the knowledge
+ * graph ("SIG").
+ *
+ * The obvious repair is to delete this map and call `artifactWord` for
+ * everything, and it is wrong. Four kinds here carry a word this surface chose
+ * on purpose and the canonical map does not: `mission` reads "run" and not
+ * "mission", which is the word §12 is trying to remove; `prototype` reads
+ * "shared link", which is what the docblock above promises a stranger sees.
+ * Deleting those would fix one drift by causing four.
+ *
+ * So the two are RECONCILED rather than merged. Anything not listed below takes
+ * the canonical word, so a rename there reaches this surface on its own. What
+ * is listed is an override with a reason, and `vocabulary.test.ts` fails if an
+ * override ever matches the canonical word, which is how a stale one gets
+ * noticed instead of outliving its reason.
+ */
+export const DELIBERATE_SINGULAR: Record<string, string> = {
+  // §12 is removing "mission" and "run" both, in favour of naming the work.
+  // Until that lands this surface says the shorter of the two, and it is what
+  // the docblock above promises.
+  mission: "run",
+  // A person setting these up is describing their brand, not the design system.
+  design_memory: "brand rule",
+  // What the reader receives is a link they can open, which is the promise this
+  // file's own header makes.
+  prototype: "shared link",
 };
 
-function kindWord(kind: string, count: number): string {
-  const pair = KIND_WORD[kind];
-  if (pair) return count === 1 ? pair[0] : pair[1];
-  const plain = kind.replace(/_/g, " ");
-  return count === 1 ? plain : `${plain} entries`;
+/** Plurals the canonical map has no opinion about, because it is singular only. */
+const IRREGULAR_PLURAL: Record<string, string> = {
+  opportunity: "opportunities",
+};
+
+export function kindWord(kind: string, count: number): string {
+  const one = DELIBERATE_SINGULAR[kind] ?? artifactWord(kind);
+  if (count === 1) return one;
+  return IRREGULAR_PLURAL[kind] ?? `${one}s`;
 }
 
 /** "2 tasks and 1 run". Never a bare list of internal tokens. */

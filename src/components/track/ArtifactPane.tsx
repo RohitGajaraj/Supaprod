@@ -749,7 +749,7 @@ function SignalCard({ item, now, trackId }: { item: ArtifactView; now: number; t
           </span>
         ) : (
           <Action variant="quiet" busy={del.isPending} onClick={() => del.mutate()}>
-            {del.isPending ? "Removing it" : "Discard this signal"}
+            {del.isPending ? "Removing it" : "Discard this finding"}
           </Action>
         )}
       </div>

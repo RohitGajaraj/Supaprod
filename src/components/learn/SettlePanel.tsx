@@ -96,7 +96,7 @@ type VerdictPick = Verdict | "none";
 
 const VERDICT_OPTIONS: { id: Verdict; label: string; title: string }[] = [
   { id: "validated", label: "It worked", title: "The bet paid off" },
-  { id: "mixed", label: "Mixed", title: "Partly, or the signal is unclear" },
+  { id: "mixed", label: "Mixed", title: "Partly, or the evidence is unclear" },
   { id: "missed", label: "It did not", title: "The bet did not pay off" },
 ];
 
