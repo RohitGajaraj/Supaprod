@@ -97,9 +97,36 @@ describe("the board is wired to it", () => {
     expect(SRC).not.toContain("dueForecasts.data?.due.length");
   });
 
-  it("shares the key the strip and the desk already read", () => {
-    // A fourth reader on one key costs one fetch and the four cannot disagree.
-    expect(SRC).toContain('queryKey: ["forecast-due"]');
+  it("ASKS THE WORKSPACE QUESTION, not the desk's", () => {
+    /*
+     * The defect this pins shut was mine and shipped for one commit.
+     * `getForecastCalibration` resolves `current_user_default_workspace` and
+     * counts ONE workspace. `listDueForecasts` deliberately does not filter at
+     * all - the desk's scope is "every call anywhere that needs settling".
+     *
+     * Pairing them put two populations behind one sentence:
+     *
+     *     "Your forecasts came true 1 of 2 times.   <- this workspace
+     *      2 more are past their date..."            <- every workspace
+     *
+     * Both numbers true, one sentence, no seam a reader could see.
+     */
+    expect(SRC).toContain("listDueForecastsHere");
+    expect(SRC).not.toContain("useServerFn(listDueForecasts)");
+  });
+
+  it("KEYS IT SEPARATELY FROM THE DESK, so one cache entry cannot answer both", () => {
+    // Sharing `["forecast-due"]` would let whichever surface mounted first
+    // decide what the other saw.
+    expect(SRC).toContain('queryKey: ["forecast-due", "workspace"]');
+  });
+
+  it("and the station strip asks the same scoped question", () => {
+    // Every station on that strip counts this workspace's runs, so a
+    // cross-workspace badge beside them means something else in the same words.
+    const strip = readFileSync("src/components/shell/use-spine-strip.ts", "utf8");
+    expect(strip).toContain("listDueForecastsHere");
+    expect(strip).toContain('queryKey: ["forecast-due", "workspace"]');
   });
 
   it("keeps each half null until its own read answers", () => {

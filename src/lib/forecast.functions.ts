@@ -84,13 +84,28 @@ export const DUE_FORECAST_PAGE = 12;
 export async function listDueForecastsImpl(
   db: SupabaseClient,
   nowIso: string,
+  /**
+   * Optional, and the DEFAULT IS STILL EVERY WORKSPACE.
+   *
+   * The desk's unscoped read is deliberate and stays that way; see the note
+   * below. This exists because a WORKSPACE-SCOPED surface cannot borrow a
+   * cross-workspace count without lying about it.
+   *
+   * The board pairs this number with `getForecastCalibration`, which resolves
+   * `current_user_default_workspace` and counts one workspace. Putting an
+   * unscoped count beside a scoped one in a single sentence - "came true 1 of 2
+   * times. 2 more are past their date" - gives a reader one denominator drawn
+   * from two different populations. This repo already has a name for that
+   * failure: two numbers right about different objects.
+   */
+  workspaceId?: string | null,
 ): Promise<{ due: DueForecast[]; total: number }> {
   /**
-   * No workspace filter, deliberately: RLS admits every workspace the caller
-   * belongs to, so the desk is "every call anywhere that needs settling", which
-   * matches listPendingOutcomes sitting beside it.
+   * No workspace filter BY DEFAULT, deliberately: RLS admits every workspace
+   * the caller belongs to, so the desk is "every call anywhere that needs
+   * settling", which matches listPendingOutcomes sitting beside it.
    */
-  const { data, error, count } = await db
+  const matching = db
     .from("decisions")
     // `count: "exact"` alongside the limit, so the surface can say "N more,
     // oldest first" instead of silently hiding the oldest overdue calls. On a
@@ -109,7 +124,15 @@ export async function listDueForecastsImpl(
      * get this wrong and still look like it works. The same mistake shipped
      * twice on the spec queue; see the two comments inside listPendingOutcomes.
      */
-    .or(dueCheckFilter(nowIso))
+    .or(dueCheckFilter(nowIso));
+
+  /* THE FILTER GOES BEFORE `count`, WHICH IS THE WHOLE POINT. `count: "exact"`
+     counts the rows the FILTERS match, not the rows the limit returns, so
+     scoping here scopes the population and the page together. Applying it after
+     `.limit` would page an unscoped set and then count a scoped one. */
+  const { data, error, count } = await (
+    workspaceId ? matching.eq("workspace_id", workspaceId) : matching
+  )
     .order("forecast_horizon_date", { ascending: true })
     .limit(DUE_FORECAST_PAGE);
   /*
@@ -454,6 +477,46 @@ export const listDueForecasts = createServerFn({ method: "GET" })
   .handler(async ({ context }) =>
     listDueForecastsImpl(context.supabase as unknown as SupabaseClient, new Date().toISOString()),
   );
+
+/**
+ * THE SAME COUNT, FOR ONE WORKSPACE.
+ *
+ * ── WHY A SECOND ENTRY POINT RATHER THAN A PARAMETER ON THE FIRST ──────────
+ * `listDueForecasts` is the desk's read and its scope is a designed answer:
+ * "every call anywhere that needs settling". Changing it, or giving it an input
+ * its three existing callers would have to start passing, would put that answer
+ * at risk to serve a different surface. This adds a door rather than moving one.
+ *
+ * ── THE DEFECT IT EXISTS FOR ───────────────────────────────────────────────
+ * `/today` pairs this count with `getForecastCalibration`, which resolves
+ * `current_user_default_workspace` and counts ONE workspace. Read together they
+ * were one sentence with two populations behind it:
+ *
+ *     "Your forecasts came true 1 of 2 times.        <- this workspace
+ *      2 more are past their date..."                 <- every workspace
+ *
+ * Both numbers true, one sentence, and a reader with no way to see the seam.
+ * The station strip had the same problem: its stations count this workspace's
+ * runs, so a cross-workspace badge beside them says the same thing twice with
+ * different meanings.
+ *
+ * The workspace is resolved SERVER-SIDE by the same RPC the calibration read
+ * uses, so the two halves of that sentence cannot answer to different
+ * workspaces. Passing an id from the client would let them.
+ */
+export const listDueForecastsHere = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const db = context.supabase as unknown as SupabaseClient;
+    const { data: ws } = await db.rpc("current_user_default_workspace");
+    const workspaceId = (ws as string | null) ?? null;
+    /* NO WORKSPACE IS NOT EVERY WORKSPACE. If the RPC cannot name one, falling
+       through to the unscoped read would silently answer a different question
+       than the caller asked - the exact substitution this function exists to
+       stop. An empty answer is the honest one. */
+    if (!workspaceId) return { due: [], total: 0 };
+    return listDueForecastsImpl(db, new Date().toISOString(), workspaceId);
+  });
 
 export const settleForecast = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

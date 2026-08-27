@@ -59,7 +59,7 @@ import {
   ungradedLine,
   worthDrawing,
 } from "@/components/today/forecast-line";
-import { listDueForecasts } from "@/lib/forecast.functions";
+import { listDueForecastsHere } from "@/lib/forecast.functions";
 import { undatedNote } from "@/components/today/undated-order";
 import {
   bucketEmptyLine,
@@ -762,12 +762,15 @@ function Today() {
   // The track record read. CHARACTER-IDENTICAL KEY to Brain's, so the two
   // surfaces are two consumers of ONE request and the tab opens on a cache hit.
   const fCalibration = useServerFn(getForecastCalibration);
-  const fDueForecasts = useServerFn(listDueForecasts);
-  /* THE SAME KEY THE STATION STRIP AND THE FORECAST DESK READ. A fourth reader
-     on `["forecast-due"]` costs one fetch and the four cannot disagree about
-     how many forecasts are overdue. */
+  const fDueForecasts = useServerFn(listDueForecastsHere);
+  /* A DIFFERENT KEY BECAUSE IT IS A DIFFERENT QUESTION. The desk asks "every
+     call anywhere that needs settling" and this board asks about the workspace
+     it is showing. Sharing `["forecast-due"]` with the desk would have made one
+     cache entry answer both, so whichever mounted first would decide what the
+     other saw. The station strip reads this same scoped key, so the two
+     workspace-scoped surfaces still cost one fetch between them. */
   const dueForecasts = useQuery({
-    queryKey: ["forecast-due"],
+    queryKey: ["forecast-due", "workspace"],
     queryFn: () => fDueForecasts(),
     staleTime: 60_000,
   });

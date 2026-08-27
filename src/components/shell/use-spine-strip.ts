@@ -31,7 +31,7 @@ import { useNavigate } from "@tanstack/react-router";
 
 import { pollMs } from "@/components/shell/poll";
 import { listStudioSessions } from "@/lib/studio.functions";
-import { listDueForecasts } from "@/lib/forecast.functions";
+import { listDueForecastsHere } from "@/lib/forecast.functions";
 import { listPendingOutcomes } from "@/lib/outcome.functions";
 import { runState } from "@/components/runs/run-state";
 import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
@@ -71,7 +71,7 @@ export function useSpineStrip(active: AgentStation | null): void {
   const navigate = useNavigate();
   const fList = useServerFn(listStudioSessions);
   const fListPending = useServerFn(listPendingOutcomes);
-  const fDueForecasts = useServerFn(listDueForecasts);
+  const fDueForecasts = useServerFn(listDueForecastsHere);
 
   // The board's exact key, so the two share one fetch rather than racing two.
   const sessions = useQuery({
@@ -114,11 +114,15 @@ export function useSpineStrip(active: AgentStation | null): void {
      performs is identical, and /learn lists both. Different tables, no overlap
      - `prds` with a shipped date against `decisions` past a horizon.
 
-     `["forecast-due"]` IS THE DESK'S OWN KEY, deliberately. `ForecastDeskPanel`
-     and the inbox already read it, so a third reader costs one fetch and the
-     three cannot disagree about how many are due. */
+     IT READS THE WORKSPACE-SCOPED COUNT, NOT THE DESK'S. Every station on this
+     strip counts THIS workspace's runs, so a badge drawn from a cross-workspace
+     read would say the same kind of thing as its neighbours while meaning
+     something else. `listDueForecastsHere` resolves the workspace server-side
+     with the same RPC the board's calibration read uses. The board shares this
+     key, so the two workspace-scoped surfaces cost one fetch between them and
+     cannot disagree. */
   const dueForecasts = useQuery({
-    queryKey: ["forecast-due"],
+    queryKey: ["forecast-due", "workspace"],
     queryFn: () => fDueForecasts(),
     staleTime: 60_000,
     refetchInterval: (query) => pollMs(60_000, query.state.fetchFailureCount),
