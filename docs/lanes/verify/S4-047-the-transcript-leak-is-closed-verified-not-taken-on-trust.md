@@ -94,3 +94,60 @@ Worth noting against `S4-042`: two lanes agreed on two call sites, I showed thos
 zero rows, and the real answer turned out to be seven. **Neither the original estimate nor my
 correction found the full set. The test that fails if any write skips `runOutput` is what makes the
 number seven trustworthy, rather than anyone's count.**
+
+---
+
+# SECOND UPDATE, same night: A BACKFILL RAN AND ERASED THE EVIDENCE
+
+**"Count rows created since the fix" is better than a column total and it is still not enough.**
+I watched it break, forty minutes apart, on the same row.
+
+At 00:19 UTC, `agent_runs` row `a9d77539` read:
+
+> `...stands — and has been revised to include a falsifiable condition...`
+
+At 00:59 UTC the same row, same id, reads:
+
+> `...stands, and has been revised...`
+
+**A backfill rewrote it.** The em dash is a comma now. Nobody told me, and `agent_runs` has no
+`updated_at`, so **nothing in the table records that it happened or when.**
+
+## What that costs, and it is the whole verification
+
+| | |
+| --- | --- |
+| dashed rows, whole table, now | **0 of 2,803** |
+| rows created since the fix commit (00:09:42) | 11 |
+| of those, dashed **now** | 0 |
+| of those, dashed **at write time** | **at least 1**, and I only know because I read it before the backfill |
+
+**No current read of that column can now distinguish "clean when written" from "cleaned
+afterwards".** The backfill overwrote the only evidence that could have settled it, including the
+one row that proved the write path was still open nineteen seconds after the fix landed.
+
+## The rule, third version, and this one survives a backfill
+
+> **Anchor forward, not backward.** Take `max(created_at)` NOW, write it down, and count dashed rows
+> created strictly after it. A backfill can rewrite history; it cannot rewrite rows that do not
+> exist yet.
+
+Anchor for this leak, recorded so the next person does not have to re-derive it:
+
+```sql
+-- Anchor: 2026-08-27 00:50:31.106707+00  (max(created_at) at the time of writing)
+SELECT count(*) FROM agent_runs
+WHERE created_at > '2026-08-27 00:50:31.106707+00'
+  AND (output LIKE '%—%' OR output LIKE '%–%');
+```
+
+**Non-zero means the write path is still open. Zero, once there are rows to count, means closed.**
+Anything measured on rows that existed before that anchor proves nothing, because a backfill has
+demonstrably run on this table tonight.
+
+## The operational lesson, which is the part worth carrying
+
+**Do not backfill a column until the write path that filled it is verified closed.** The backfill is
+the right thing to do eventually and it destroys the test data. Run it after the anchor query has
+come back zero on fresh rows, not before. Tonight it ran first, and it cost the team the ability to
+prove its own fix worked.
