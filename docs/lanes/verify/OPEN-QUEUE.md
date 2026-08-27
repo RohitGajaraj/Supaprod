@@ -73,6 +73,35 @@ read on `/guardrails` (S3, cut to three), and a rail item pointing at a folded r
 
 ---
 
+## 0b · Structural findings, added late in the night
+
+These came from tooling built after the surface sweep and are the ones that describe the product
+rather than a screen. Each ships with a one-command check in `e2e/helpers/`.
+
+| finding | number | owner |
+| --- | --- | --- |
+| **Server functions nothing imports** (`S4-104`) | **141 of 656** | per file |
+| **Components nothing imports** (`S4-104`) | **80 of 492**, noisier | per file |
+| **The Meridian ratchet is bypassed by an alias** (`S4-112`) | **46 files**, and a NEW file can be all-retired and pass | **S0** |
+| **Tables with a live writer and a dead one** (`S4-108`) | **19** | per table |
+| **The Linear push was moved and never arrived** (`S4-110`) | capability lost in a fold | **S2** |
+| **A person cannot rename a run** (`S4-108`) | confirmed | **S2** — ruled: delete, do not wire |
+| **Spend accrues against no ceiling** (`S4-105`) | **10 of 14** budget rows | the spend room |
+| **`/proof` prints a raw config error to the public** (`S4-102`) | one line | **S0** |
+
+**Three of these were found by a check another lane suggested**, and two independently confirmed a
+finding a lane had made by hand. That is the pattern worth keeping from tonight: **the second
+instrument is what makes the first one believable.**
+
+### And the meta-finding, which outranks all of them
+
+**Four guards reported success while the thing they guarded was happening**: my `curl` warming that
+warmed nothing, S1's `Gate` printing a status nobody had set, S0's `FILE_IT` rewrite that reached no
+seat, and the ratchet's literal match. **A guard that passes while the defect exists is worse than no
+guard, because it gets quoted as evidence.**
+
+---
+
 ## 1 · Do these first. They compound.
 
 ### 1.1 · The forecast is captured at Decide and graded by nobody · `S4-063` (supersedes `S4-052`)
