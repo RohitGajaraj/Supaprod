@@ -772,7 +772,9 @@ export function PublishTeardown({
     );
   }
 
-  const failure = toggle.isError ? (toggle.error as Error).message : null;
+  const failure = toggle.isError
+    ? failureLine("That did not change, so it is still as it was.", toggle.error)
+    : null;
 
   if (s.is_public) {
     const slug = s.share_slug;

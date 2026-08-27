@@ -30,6 +30,7 @@
  * twice.
  */
 import * as React from "react";
+import { failureLine } from "@/components/track/error-copy";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -83,7 +84,12 @@ export function TakeOver({ trackId, track }: { trackId: string; track: Track }) 
       }
       setNote({ verb: "You sent it back", consequence: undoneLine(station) });
     },
-    onError: (e: Error) => setNote({ verb: "Nothing moved", consequence: e.message, failed: true }),
+    onError: (e: Error) =>
+      setNote({
+        verb: "Nothing moved",
+        consequence: failureLine("The work is unchanged.", e),
+        failed: true,
+      }),
   });
 
   const hand = useMutation({
@@ -98,7 +104,11 @@ export function TakeOver({ trackId, track }: { trackId: string; track: Track }) 
       setNote({ verb: "You handed it back", consequence: res.line });
     },
     onError: (e: Error) =>
-      setNote({ verb: "Nothing was recorded", consequence: e.message, failed: true }),
+      setNote({
+        verb: "Nothing was recorded",
+        consequence: failureLine("The work is unchanged.", e),
+        failed: true,
+      }),
   });
 
   const sending = url.trim().length === 0 || hand.isPending;
