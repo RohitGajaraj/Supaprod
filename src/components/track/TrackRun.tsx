@@ -41,6 +41,7 @@ import * as React from "react";
 import { failureLine } from "@/lib/error-copy";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useNavigate } from "@tanstack/react-router";
 
 import { TrackChain } from "@/components/spine/TrackChain";
 import { TrackActivity } from "@/components/spine/TrackActivity";
@@ -48,7 +49,7 @@ import { RunPresence } from "@/components/presence/RunPresence";
 import { Teammates, type LiveSeat } from "@/components/presence/Teammates";
 import { ArtifactPane } from "@/components/track/ArtifactPane";
 import { TrackConsent } from "@/components/track/TrackConsent";
-import { Action, Region } from "@/components/meridian/surface-parts";
+import { Action, Door, Region } from "@/components/meridian/surface-parts";
 import { Row } from "@/components/meridian/rows";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { Receipt } from "@/components/meridian/Receipt";
@@ -76,6 +77,9 @@ import { TakeOver } from "@/components/track/TakeOver";
 import { RunCost } from "@/components/track/RunCost";
 import { triesLine } from "@/components/track/hold-tries";
 import { wayOut } from "@/components/track/way-out";
+import { buildBlocked } from "@/components/track/build-precondition";
+import { canDispatchToRepo } from "@/lib/new-build.functions";
+import { useWorkspace } from "@/hooks/use-workspace";
 import { takeOver } from "@/components/track/take-over";
 import type { SpineRoute } from "@/lib/spine/route";
 import { runPosition } from "@/components/track/run-position";
@@ -690,6 +694,41 @@ export function TrackRunLeft({
   const holdTakeOver = track
     ? takeOver({ status: track.status, station: track.station, route: track.route as SpineRoute })
     : null;
+  /*
+   * CAN BUILD ACTUALLY OPEN A PULL REQUEST? Asked only while this screen is
+   * showing a hold at Build, so no other run pays for it. `ReadyToBuild` has
+   * gated its own button on this same function for as long as it has existed;
+   * the run screen never asked, and a person sat in front of six identical
+   * failures being told it would try again. See `build-precondition.ts` for the
+   * measurement and for why this is a fact about bindings rather than a branch
+   * on the agent's wording.
+   *
+   * `productId` is passed because omitting it is the documented way this check
+   * LIES: a repo bound to a product is invisible to the workspace-only path,
+   * and the founder's own workspace was once told no repo was connected while
+   * one was bound to Relay.
+   */
+  const navigate = useNavigate();
+  const { activeWorkspace, activeProduct } = useWorkspace();
+  const fCanDispatch = useServerFn(canDispatchToRepo);
+  const repoCheck = useQuery({
+    queryKey: ["track-build-repo", activeWorkspace?.id ?? null, activeProduct?.id ?? null],
+    queryFn: () =>
+      fCanDispatch({
+        data: {
+          ...(activeWorkspace?.id ? { workspaceId: activeWorkspace.id } : {}),
+          ...(activeProduct?.id ? { productId: activeProduct.id } : {}),
+        },
+      }),
+    enabled: Boolean(track && track.station === "build" && showHold),
+    staleTime: 60_000,
+  });
+  const buildStop = buildBlocked({
+    station: track?.station ?? "",
+    held: Boolean(showHold),
+    resolution: repoCheck.data?.resolution ?? null,
+  });
+
   const holdWayOut = wayOut(
     track?.holdReason,
     { undo: Boolean(holdTakeOver?.undoTo), handback: Boolean(holdTakeOver?.handback) },
@@ -870,6 +909,30 @@ export function TrackRunLeft({
                   holdWayOut.onThisScreen
                     ? "Both of those are under Take it over, just below."
                     : undefined
+                }
+              />
+            ) : null}
+
+            {/*
+             * THE PRECONDITION THE RETRY CANNOT SATISFY, said before the retry.
+             *
+             * It sits ABOVE the control on purpose. A person who reads "Let
+             * Build try again" first will press it -- six people-equivalents
+             * already did on this one track, at 373,096 tokens -- and a reason
+             * printed underneath a button has already lost. The door is the
+             * instruction, so the sentence carries no imperative of its own.
+             */}
+            {buildStop ? (
+              <Row
+                lead={buildStop.line}
+                action={
+                  <Door
+                    onClick={() =>
+                      navigate({ to: "/settings", search: { section: "connections" } })
+                    }
+                  >
+                    {buildStop.door}
+                  </Door>
                 }
               />
             ) : null}
