@@ -923,6 +923,39 @@ export function TrackRunLeft({
              * instruction, so the sentence carries no imperative of its own.
              */}
             {buildStop ? (
+              /*
+               * THE SENTENCE IS NOT CONDITIONAL ON A CONTROL, and this is the
+               * second version of this block.
+               *
+               * The first put the line inside `AskInPlace` as its `why` and let
+               * that component own the row. It is built for exactly this
+               * situation, it is S3's, and mounting it here was the obvious
+               * upgrade: connect in place instead of sending someone to a page
+               * of connectors, which is SESSION-1's fourth unit.
+               *
+               * Rendered against this held track it drew NOTHING, and the
+               * reason is worth keeping rather than working around.
+               * `AskInPlace` decides whether the need is met by asking whether
+               * a CONNECTOR EXISTS -- `satisfiedByEnv` counts an admin's env
+               * credential, and the comment on that default is right for its
+               * own purpose: "Supaprod is already reading through it, so asking
+               * would be a lie". But this station's blocker is not a missing
+               * credential. `canDispatchToRepo` runs the same resolution the
+               * dispatch runs, and it fails when no repo RESOLVES -- most often
+               * a credential that exists with no repository bound to this
+               * workspace or product.
+               *
+               * So the two disagree exactly where it matters: the component
+               * concludes the need is satisfied and hides itself at the moment
+               * the station cannot proceed. Putting the explanation inside it
+               * took the explanation down too, which is how the regression
+               * showed up at all.
+               *
+               * The door therefore stays pointed at Settings, which is where
+               * BOTH halves are fixed -- connect the account, and bind the
+               * repository. A control that can only solve half the causes must
+               * not be the only way out of a hold.
+               */
               <Row
                 lead={buildStop.line}
                 action={
