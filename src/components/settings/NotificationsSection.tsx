@@ -94,6 +94,35 @@ const CATEGORIES: { key: Category; label: string; sub: string }[] = [
   },
 ];
 
+/**
+ * The App column now delivers for TWO of the four, and not for the other two.
+ *
+ * ── THE HOLD LIFTED AT INTEGRATION, WHICH IS WHERE IT COULD ONLY LIFT ──────
+ * `a-toggle-that-cannot-deliver.test.ts` was written to fail the moment any
+ * surface began rendering the feed, and to say what to do when it did. It fired
+ * the first time S2's lane and this one were in the same tree: `SystemAlerts` on
+ * /today (eb161ca85) calls `getNotifications` for **budget and drift**, and its
+ * own header confirms the toggle has real power there — *"switching App off for
+ * budget removes it here with no code on this side."*
+ *
+ * Neither lane could have seen this alone. The guard was on one branch and the
+ * capability on another, which is exactly what an integration pass is for.
+ *
+ * ── THE OTHER TWO STAY OFF, AND THEY ARE NOT OVERSIGHTS ────────────────────
+ * **Approvals** — Today's "What needs you" lane reads `agent_approvals`
+ * DIRECTLY and never consults this feed, so switching that toggle off would not
+ * stop Today showing approvals. The control would promise power it does not
+ * have, which is this same defect pointing the other way.
+ *
+ * **Health** — the running lane already prints each run's own clock, so a stall
+ * alert would be a second voice on rows that already speak.
+ *
+ * So the rule is a property of the CATEGORY, not of the column, and it is named
+ * here rather than inlined so the next surface to start drawing a kind has one
+ * place to change.
+ */
+const APP_DELIVERS: ReadonlySet<Category> = new Set<Category>(["Budget", "Drift"]);
+
 const CHANNELS: { key: Channel; label: string; title: string }[] = [
   { key: "app", label: "App", title: "In the app" },
   { key: "email", label: "Email", title: "Straight to your inbox" },
@@ -297,8 +326,12 @@ export function NotificationsSection() {
                  * because nothing called it, which is the distinction between
                  * a preference that is off and a feature that is unplugged.
                  */
-                disabled={ch.key === "app"}
-                title={ch.key === "app" ? "Not delivered anywhere yet" : ch.title}
+                disabled={ch.key === "app" && !APP_DELIVERS.has(c.key)}
+                title={
+                  ch.key === "app" && !APP_DELIVERS.has(c.key)
+                    ? "Not delivered anywhere yet"
+                    : ch.title
+                }
                 onClick={() => toggle(c.key, ch.key)}
               >
                 {ch.label}
@@ -306,9 +339,17 @@ export function NotificationsSection() {
             ))}
           </Line>
         ))}
+        {/*
+         * The sentence had to change with the toggles. It read "In-app alerts
+         * are not switched on yet ... nothing in the product shows these as
+         * notifications yet", which became FALSE for budget and drift the
+         * moment SystemAlerts landed on /today. A held control explaining
+         * itself is honest; the same explanation left standing after the hold
+         * lifts is a page arguing with its own switches.
+         */}
         <Line
-          label="In-app alerts are not switched on yet"
-          sub="Email and the digest work. Nothing in the product shows these as notifications yet, so the App column is held rather than left to look as though it does something."
+          label="Two of these show up in the app, two do not yet"
+          sub="Spend and drift appear on Today. Approvals already have their own lane there and do not need a second voice, and a stalled run prints its own clock, so those two stay held rather than looking as though they do something."
         />
       </Region>
 
