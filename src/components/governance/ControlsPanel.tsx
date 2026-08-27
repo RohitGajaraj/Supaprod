@@ -389,8 +389,11 @@ export function ControlsPanel({
 
   if (overview.error) {
     return (
-      <ReadFailed onRetry={() => void overview.refetch()}>
-        Controls did not load. {(overview.error as Error)?.message}
+      /* The ERROR goes to the primitive rather than its message onto the
+         screen. ReadFailed knows that a dead session gets a way to /login,
+         where a "Try again" would re-read with the same dead token forever. */
+      <ReadFailed error={overview.error} onRetry={() => void overview.refetch()}>
+        Controls did not load.
       </ReadFailed>
     );
   }
