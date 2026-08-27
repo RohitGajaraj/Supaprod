@@ -12,7 +12,7 @@ import { Composer, PickCard } from "@/components/meridian/onramp-parts";
 import { CharacterMark } from "@/components/presence/Character";
 import { CHARACTER_NAME } from "@/lib/presence/character";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { listTracks, startTrack } from "@/lib/spine/track.functions";
+import { listTracks, startTrack, type Track } from "@/lib/spine/track.functions";
 import type { WorkShape } from "@/lib/spine/route";
 import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
 import { ago } from "@/components/today/when";
@@ -130,7 +130,11 @@ function OpenWorkSection({
   openRuns,
   navigate,
 }: {
-  openRuns: any[];
+  /* `Track[]`, which is what `listTracks` returns and always was. This read
+     `any[]`, so every field this row touches -- title, station, holdReason,
+     drivenAt -- was unchecked, on the section that tells a person what their
+     work is doing. A renamed column would have compiled and rendered blank. */
+  openRuns: Track[];
   navigate: ReturnType<typeof useNavigate>;
 }) {
   return (
@@ -345,15 +349,35 @@ function StartLanding() {
                 leave it.
               </p>
             ) : null}
-            <Composer
-              value={sentence}
-              onChange={setSentence}
-              onSubmit={() => go.mutate()}
-              busy={go.isPending}
-              placeholder={placeholder}
-              label="Describe the work in one sentence"
-              fieldRef={fieldRef}
-            />
+            {/*
+             * THE DOCK STANDS DOWN HERE, and the mechanism already existed.
+             * `one-prompt-per-screen.test.ts` records the rule and Today has
+             * carried the mark since it was written: a surface that owns a
+             * composer marks it, and `shell.css` hides the collapsed dock row
+             * via `:has()`. It was never extended to /start, so the first
+             * screen a person meets asked for a sentence twice -- once in this
+             * field under "I'm Supa. Say what needs doing in one sentence", and
+             * again 500px below in a bar reading "What should we build?".
+             *
+             * Photographed at 1440. On the one surface whose entire job is that
+             * single sentence, and the two do not even do the same thing: F-04
+             * measures that the dock files a mission the run workbench cannot
+             * see, which is why only 59 tracks have ever existed.
+             *
+             * `display: contents` so the flex column is unchanged: this adds a
+             * fact for CSS to read, not a box.
+             */}
+            <div data-page-composer className="contents">
+              <Composer
+                value={sentence}
+                onChange={setSentence}
+                onSubmit={() => go.mutate()}
+                busy={go.isPending}
+                placeholder={placeholder}
+                label="Describe the work in one sentence"
+                fieldRef={fieldRef}
+              />
+            </div>
           </>
         ) : (
           /*
