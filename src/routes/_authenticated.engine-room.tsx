@@ -356,7 +356,31 @@ function EngineRoomPage() {
               title={ROOM_QUESTIONS[room]}
               sub={
                 status?.error != null ? (
-                  "This room's summary did not load."
+                  /*
+                   * SAYS WHAT IS STILL TRUE, because the state word directly
+                   * below already says what happened.
+                   *
+                   * This read "This room's summary did not load." with a
+                   * `failed` StateWord stacked under it reading "Did not load"
+                   * -- the same fact, in the same words, twice, two lines
+                   * apart. Rendered on Safety with the backend unreachable it
+                   * was the first two of FIVE failure statements in one
+                   * viewport, and a wall of them makes a product look more
+                   * broken than it is.
+                   *
+                   * The chip owns the state. This sentence owns the
+                   * consequence, which is the half a reader actually needs and
+                   * which nothing on the header was saying.
+                   *
+                   * AND IT SCOPES THE FAILURE TO THE SUMMARY. Only the room's
+                   * own glance read failed here; the tabs below make their own
+                   * reads and report their own outcomes. It also deliberately
+                   * does NOT say "nothing has been lost" -- the panel below
+                   * already says that, and a first draft of this line said it
+                   * too, which just moved the duplication rather than removing
+                   * it.
+                   */
+                  "So there is no verdict for this room right now."
                 ) : status?.glance ? (
                   <>
                     {status.glance.verdict}
