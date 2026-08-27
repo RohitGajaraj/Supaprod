@@ -184,3 +184,47 @@ their totals are exactly what this whole verdict is about.
 
 They stay unverified until each has produced rows after the anchor. Same query, same anchor,
 different table.
+
+---
+
+# FOURTH AND FINAL UPDATE: 44 ROWS OF EVIDENCE, AND THE COLUMN IS CLOSED
+
+Measured against the forward anchor `2026-08-27 00:50:31.106707+00`, on rows that did not exist when
+the backfill ran:
+
+| column | rows created after the anchor | dashed | newest |
+| --- | --- | --- | --- |
+| `agent_runs.output` | **44** | **0** | 2026-08-27 06:00:33 |
+| `decisions.rationale` | 1 | 0 | 2026-08-27 02:09:01 |
+| `learnings.summary` | **0** | 0 | none |
+
+## `agent_runs.output` is closed, and this is no longer a thin result
+
+The third update called it closed on **9** rows. It is now **44**, spanning five more hours of live
+agent traffic, none dashed. That column carried **1,375 dashed rows of 2,773** when this started and
+was the loudest carrier in the product.
+
+**The write path is shut, on evidence a backfill cannot manufacture.**
+
+## `decisions.rationale` has its first post-anchor row and it is clean
+
+One row is not a proof and it is the first evidence this column has produced since the anchor was
+set. It moves from *"nothing to test"* to *"one clean row"*.
+
+## `learnings.summary` is still untested, and zero is still not a pass
+
+**No learning has been written since the anchor.** That is itself worth noticing: `learning.record`
+has fired twice in the product's life (`S4-063`), and nothing has been added tonight, through a night
+in which 44 agent runs completed.
+
+## The method, in its final form
+
+Four attempts, and only the last one holds:
+
+1. **A column total** said closed. Worthless — a backfill makes the total describe history.
+2. **Rows since the fix** said open. Destroyed when a backfill rewrote the one row that proved it.
+3. **Rows after a forward anchor** said closed on 9 rows. Correct, and thin.
+4. **The same anchor, five hours later**, says closed on 44. Correct, and no longer thin.
+
+**Anchor forward, then wait for the population to grow.** A backfill can rewrite history; it cannot
+rewrite rows that do not exist yet, and patience turns that from a technicality into evidence.
