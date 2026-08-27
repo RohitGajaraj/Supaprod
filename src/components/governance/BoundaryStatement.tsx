@@ -151,7 +151,7 @@ export function BoundaryStatement({
                     .join(", ")}
                   {demoted.length > 4 ? ` and ${demoted.length - 4} more` : ""}
                   {
-                    " never hold there. Your agents have earned enough trust that the loop clears them and runs them inline rather than stopping to ask. They are counted above as done alone, which is what happens. Switch one off on the boundary to actually stop it."
+                    " never hold there. Every agent starts out running alone except on the risky calls, so the loop clears these and runs them inline rather than stopping to ask. They are counted above as done alone, which is what happens. Switch one off on the boundary, or lower an agent on Crew, to actually stop it."
                   }
                 </>
               }

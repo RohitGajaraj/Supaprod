@@ -26,6 +26,29 @@
  * pointed at the one control that settles it: the per-rule tester, which runs a
  * sample through the real matcher. Naming a cause we cannot prove would be the
  * same defect one register up from the one being fixed.
+ *
+ * ── CORRECTION, 2026-08-27: THE CLIFF WAS COVERAGE, NOT A BROKEN MECHANISM ──
+ *
+ * S0 traced it rather than assuming, and the answer changed what this should
+ * say. `loop.server.ts` carries no guardrail reference because `callModel`
+ * screens unless a caller opts OUT and the loop never does; the absence of the
+ * word is the absence of an opt-out. Measured instead:
+ *
+ *   27 rules, across                3 workspaces
+ *   workspaces that ran in 30 days  13
+ *   of those, with ANY rule          2
+ *
+ * July's hits were on workspaces that had rules and were busy then. The traffic
+ * moved to workspaces with nothing configured, where only the built-in floor
+ * applies and it found nothing to catch.
+ *
+ * SO THE FIRST VERSION OF THIS MODULE WAS WRONG FOR ELEVEN WORKSPACES OUT OF
+ * THIRTEEN. It said "Nothing has tripped a rule in 33 days" to people who have
+ * no rules of their own, which reads as "yours are quiet" when the truth is
+ * "you have none". That is an alarm about the wrong thing, and an alarm about
+ * the wrong thing is how a person learns to ignore the next one. It now takes
+ * the count of rules this workspace actually wrote and says the matching
+ * sentence.
  */
 
 /** A row of `guardrail_hits` as `getGuardrailOverview` returns it. */
@@ -71,7 +94,29 @@ function days(n: number): string {
 export function guardrailSilence(
   hits: readonly GuardrailHitTime[] | null | undefined,
   nowMs: number,
+  /**
+   * Rules THIS WORKSPACE wrote, not counting the built-in floor. Optional so an
+   * existing caller keeps its behaviour, and every caller that can supply it
+   * should: without it this module cannot tell "your rules are quiet" from "you
+   * have no rules", and it has told eleven workspaces out of thirteen the wrong
+   * one of those.
+   */
+  ownRules?: number,
 ): GuardrailSilence {
+  /*
+   * NO RULES OF YOUR OWN IS NOT A QUIET SCREEN, and it is the majority case:
+   * of the 13 workspaces that ran anything in 30 days, 2 have a rule. Saying
+   * "nothing has tripped a rule" here would be true and useless, and it would
+   * put an alarm on a workspace that has nothing to alarm about yet.
+   */
+  if (ownRules === 0) {
+    return {
+      said: "You have not written any rules of your own, so only the built-ins have screened anything here.",
+      action: HOW_TO_TELL,
+      quietDays: null,
+    };
+  }
+
   if (!hits || hits.length === 0) {
     return {
       said: "No rule has caught anything here.",

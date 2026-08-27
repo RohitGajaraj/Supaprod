@@ -1316,6 +1316,25 @@
   --mrd-pass: oklch(0.74 0.15 152);
   --mrd-fail: oklch(0.66 0.19 27);
   --mrd-hold: oklch(0.79 0.125 78);
+  /* Requested by S3 (U-lane platform), and it is the last thing keeping ten
+     public routes on the retired palette. d.$slug, t.$slug, index, product,
+     demo, proof, subprocessors, film, ard and checkout.return all pin a dark
+     ground and were still drawing text and hairlines through `--ink` and
+     `--soft-stone`, which resolve into the retired --ds-* family.
+
+     S3 tried to move them onto Meridian and `pinned-dark-matches-root` stopped
+     them, CORRECTLY: these two are adaptive and the tokens being replaced were
+     not, so the swap would have put dark ink on a dark ground for any visitor
+     carrying a stored light theme. That is the exact defect the guard was
+     written for on d.$slug, and it would have been re-created on ten pages at
+     once.
+
+     Pinning is the fix the guard's own instruction names first, and it is these
+     two values because a pinned surface is dark whatever the theme says: the
+     root declarations, repeated here so `[data-theme="light"]` cannot reach
+     them. Identical in form to every token above. */
+  --mrd-ink: oklch(0.965 0.003 70);
+  --mrd-line: oklch(0.98 0.003 70 / 0.11);
 }
 
 [data-theme="light"] {

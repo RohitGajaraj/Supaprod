@@ -1,0 +1,60 @@
+/*
+ * THE SHOP WINDOW, AT THE CONTRAST FLOOR.
+ *
+ * MEASURED IN A REAL BROWSER against a dead backend, which is the page exactly
+ * as a visitor gets it, by painting each computed colour into a 1x1 canvas and
+ * reading the pixel back. That method is what made this visible at all: the
+ * design system is oklch and a checker that understands only rgb() silently
+ * skips every element Meridian colours.
+ *
+ *   /       34 text shapes below AA, of two colours only
+ *   /demo    8 text shapes below AA, all one colour
+ *
+ * Both roots paint #0a0a0a, and the two failing colours are Tailwind's zinc-500
+ * and zinc-600 used as TEXT on it:
+ *
+ *   text-zinc-500  #71717a  4.10:1   the whole footer, four trust cards, body copy
+ *   text-zinc-600  #52525b  2.56:1   "The film . 2:22", and eight shapes on /demo
+ *
+ * AA for body text is 4.5:1 and nothing here is large text, so neither clears.
+ *
+ * WHY A SCOPED OVERRIDE AND NOT SEVENTEEN EDITS. The seventeen call sites are
+ * across nine files and every one of them means the same thing: "the quiet step
+ * of the landing palette". Editing them one by one changes seventeen places
+ * where one decision lives, and the eighteenth use written tomorrow would be
+ * wrong again. This binds the decision to the ground it was measured on, so a
+ * new file that reaches for text-zinc-500 inside the public shell gets the
+ * legible value without knowing this exists.
+ *
+ * IT SCOPES TO `.public-ink`, A CLASS THAT DOES NOTHING ELSE, rather than to the
+ * existing `.landing-root`. That one carries scrollbars, focus rings and the
+ * cap-item behaviour from index.tsx, and putting it on /demo, /film and /product
+ * to win a colour would import three unrelated behaviours with it.
+ *
+ * TWO TOKENS, NOT ONE, because collapsing them would delete a step that means
+ * something: zinc-600 is the quietest text the landing has and zinc-500 sits a
+ * stop above it. Meridian already carries exactly that pair, and its own
+ * comment on the lower one is the reason this file needed no new colour:
+ *
+ *   --mrd-mute    oklch(0.7  0.006 70)   labels, metadata
+ *   --mrd-faint   oklch(0.61 0.006 70)   "the quietest stop that is still AA"
+ *
+ * THE FIRST DRAFT OF THIS FILE USED RAW HEX AND THE RATCHET REFUSED IT, which
+ * was the right refusal and led to the better fix. CLAUDE.md states the rule
+ * exactly: if no --mrd-* token fits, that is a gap in Meridian and the token
+ * gets built there; never widen the baseline to pass. A token did fit, so the
+ * measured hex values are gone and the public shell now borrows the design
+ * system's own two quiet stops rather than inventing a third and a fourth.
+ *
+ * Verified in a running browser after the change, not inferred: 0 below AA of
+ * 240 judged on / and 0 of 14 on /demo, by painting each computed colour into a
+ * 1x1 canvas and reading the pixel back.
+ */
+
+.public-ink .text-zinc-600 {
+  color: var(--mrd-faint);
+}
+
+.public-ink .text-zinc-500 {
+  color: var(--mrd-mute);
+}

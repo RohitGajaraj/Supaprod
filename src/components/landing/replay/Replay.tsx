@@ -18,7 +18,26 @@ import { stationProgress, type StationProgress } from "./station-progress";
 const R = {
   text: "#e6e8eb",
   muted: "#8f959e",
-  faint: "#565c66",
+  /*
+   * #565c66 UNTIL 2026-08-27, WHICH IS 2.88:1 ON `card` AND FAILS AA.
+   *
+   * S4 measured the shop window in a real browser: twelve text shapes on `/`
+   * below AA, and the seven worst are the seven STATION NAMES at 2.94:1
+   * against a 4.5:1 floor. The product is told as three layers and seven
+   * stations, and the home page was rendering that one idea as the least
+   * readable text on it. R-19: accessibility is not deferred.
+   *
+   * WCAG HAS NO OBJECTION TO HIERARCHY, only to the floor, so this is the
+   * smallest lift that clears it rather than a flattening. The three steps
+   * still read as three, measured by `contrastRatio` against `card` and
+   * asserted in landing/__tests__/the-shop-window-is-readable.test.ts:
+   *
+   *     text  15.82:1   muted  6.44:1   faint  4.82:1
+   *
+   * A station nobody has reached still recedes. It is now legible while it
+   * does.
+   */
+  faint: "#787f8b",
   border: "rgba(255,255,255,0.09)",
   divider: "rgba(255,255,255,0.05)",
   card: "#0d0d0e",

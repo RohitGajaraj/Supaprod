@@ -71,7 +71,7 @@ const NOTHING: WayOut = { next: null, onThisScreen: false };
  * at a door that is not there is the same defect as pointing at none.
  */
 const DIAGNOSIS: Partial<Record<HoldReason, string>> = {
-  paused: "Nothing on this screen will move it until the pause is lifted for the whole workspace.",
+  paused: "Nothing on this screen can lift it.",
   /*
    * TWO FALSE CLAIMS, AND THE SECOND WAS THE DAMAGING ONE.
    *
@@ -94,6 +94,19 @@ const DIAGNOSIS: Partial<Record<HoldReason, string>> = {
    * their situation is unfixable when the fix is a toggle is worse than saying
    * nothing, which is what this file was written to stop.
    *
+   * -- AND IT NO LONGER RESTATES THE LINE ABOVE IT ------------------------
+   * S0 fixed their half of F-134 while I was fixing mine, and the two then
+   * said the same thing eight lines apart. `HOLD_LINE["no-agent"]` now reads
+   * "No agent is picking this step up, so it needs you", which is the EFFECT,
+   * correctly and without the false cause it used to give. This sentence
+   * opened by restating that effect before reaching the cause.
+   *
+   * Two sentences agreeing at that distance are worse than two contradicting,
+   * because a contradiction at least tells a reader something is wrong, while
+   * agreement leaves them unable to tell which line is the surface's own claim
+   * and no reason to look. So this one now carries only what the line above
+   * cannot: WHICH thing is off, and the door that turns it back on.
+   *
    * It says Agents and not Crew on purpose. The route is `/crew` and the label
    * has been Agents since 2026-08-15, and a sentence that points at a door by
    * a name the product no longer prints is the same dead end in a nicer coat.
@@ -106,17 +119,62 @@ const DIAGNOSIS: Partial<Record<HoldReason, string>> = {
    * yet") and has the reproduction.
    */
   "no-agent":
-    "The agent that covers this step is switched off, so nothing will pick it up until it is switched back on under Agents.",
-  stalled: "It has come back with nothing several times, so another try lands in the same place.",
-  "going-in-circles":
-    "It has been round this many times without moving, so trying again changes nothing.",
+    "The agent that covers it is switched off, and turning it back on under Agents is what starts this again.",
+  stalled: "Another try lands in the same place.",
+  "going-in-circles": "Trying again changes nothing.",
   "tools-refused": "A door it needs is locked, and no step can unlock it for itself.",
-  "station-cannot-finish":
-    "It has everything it needs and still cannot finish, so this one needs you rather than another try.",
-  "corrections-spent": "It has been sent back for this same fix as often as it is allowed.",
+  /*
+   * THE CAUSE, BECAUSE S0'S LINE NOW CARRIES ONLY THE EFFECT.
+   *
+   * Their guard caught `corrections-spent` restating itself and we each fixed
+   * it from one side in the same hour: `HOLD_LINE` became "Nothing further will
+   * be spent on this until you look", and I had deleted this entry as a
+   * restatement. Both edits were right on their own and the composition lost
+   * the cause altogether -- nothing on the screen said the work had been sent
+   * back for the same fix as often as it is allowed.
+   *
+   * That is the third artifact S0 named: when two lanes write to one screen
+   * region, the composed text is a thing neither owns, and removing an overlap
+   * from both sides at once leaves a hole exactly as easily as leaving one
+   * leaves a repeat. Their division is the one to follow, and it is now
+   * written where a reader of either file will meet it: the hold line carries
+   * WHAT IS HAPPENING, this file carries WHY and WHAT TO DO.
+   */
+  "corrections-spent":
+    "It has been sent back for this same fix as often as it is allowed and is still short of it.",
   "given-up": "Nothing more will be tried here on its own.",
 };
 
+/*
+ * ── WHY THESE SENTENCES ARE SO SHORT ──────────────────────────────────────
+ *
+ * Each one renders directly under `HOLD_LINE[reason]`, which has already said
+ * what happened. Three of them used to open by saying it again:
+ *
+ *   paused            "Everything is paused for this workspace, so nothing ran."
+ *                     "Nothing on this screen will move it until the pause is
+ *                      lifted for the whole workspace."
+ *   stalled           "...ran and produced nothing several times..."
+ *                     "It has come back with nothing several times, so..."
+ *   going-in-circles  "...been run many times over and the work has not moved..."
+ *                     "It has been round this many times without moving, so..."
+ *
+ * Two sentences AGREEING a line apart are worse than two contradicting. A
+ * contradiction tells a reader something is wrong; agreement leaves them unable
+ * to tell which line is the surface's own claim, and no reason to look for the
+ * problem. S2 named that after removing a count printed twice 190px apart, and
+ * F-134 produced the same shape across two lanes when S0 and I each fixed one
+ * half of `no-agent` correctly.
+ *
+ * So each of these now carries ONLY what the line above cannot: for `paused`,
+ * that no control here reaches a workspace-wide switch; for the other two, that
+ * repetition is what makes another attempt pointless, which is the premise the
+ * offers below rest on.
+ *
+ * THE OFFER SENTENCE IS APPENDED SEPARATELY, so what looks terse here is not
+ * what a person reads. `stalled` renders as "Another try lands in the same
+ * place. Send it back a step so it starts from different ground."
+ */
 /** What is worth offering for each, best first. Empty means nothing here helps. */
 const OFFERS: Partial<Record<HoldReason, Offer[]>> = {
   paused: [],
@@ -182,14 +240,33 @@ export function wayOut(
   stationName: string | null = null,
 ): WayOut {
   if (!hold) return NOTHING;
-  const diagnosis = DIAGNOSIS[hold as HoldReason];
-  if (!diagnosis) return NOTHING;
+
+  /*
+   * A MISSING DIAGNOSIS IS NOT A MISSING WAY OUT, AND IT USED TO BE.
+   *
+   * This returned nothing at all without a diagnosis, which forced every hold
+   * that wanted to offer a control to also carry a sentence. Two of them had
+   * nothing left to say: for `station-cannot-finish` and `corrections-spent`,
+   * `HOLD_LINE` already states the cause, the repetition and that it needs a
+   * person, so the diagnosis could only restate it. On the largest hold in the
+   * database that produced the same fact three times in one box, counting the
+   * specific line stored in `last_hold_because` above both.
+   *
+   * The offer IS a way out. Where the record has already explained itself, the
+   * honest thing to add is the door and nothing else.
+   *
+   * With neither a diagnosis nor a usable offer this still returns NOTHING,
+   * which is the original contract: a hold this screen cannot help with says
+   * nothing rather than inventing a door.
+   */
+  const diagnosis = DIAGNOSIS[hold as HoldReason] ?? null;
 
   const wanted = OFFERS[hold as HoldReason] ?? [];
   const can = (o: Offer) =>
     o === "undo" ? available.undo : o === "handback" ? available.handback : true;
 
   const usable = wanted.filter(can);
+  if (usable.length === 0 && !diagnosis) return NOTHING;
   if (usable.length === 0) {
     // Honest, and it is the whole point: this screen cannot clear this one, so
     // it does not pretend otherwise. The hold's own line already said what
@@ -206,7 +283,7 @@ export function wayOut(
         : SENTENCE[first];
 
   return {
-    next: `${diagnosis} ${offer}`,
+    next: diagnosis ? `${diagnosis} ${offer}` : offer,
     // The steer box is on this screen too, but it is not under Take it over, so
     // a steer-only way out must not borrow that pointer.
     onThisScreen: usable.some((o) => o === "undo" || o === "handback"),

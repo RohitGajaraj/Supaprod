@@ -22,6 +22,7 @@
 @import "./styles/ink.css";
 @import "./styles/shell.css";
 @import "./styles/primitives.css";
+@import "./styles/public-legibility.css";
 /*
  * MERIDIAN, the current design system (2026-08-14). Loads last so it wins on
  * equal specificity. Everything above it is life support for surfaces not yet
@@ -194,7 +195,9 @@
    * moved. Values are OKLCH for the same reason Meridian's are: equal numeric
    * steps in hex are not equal perceptual steps.
    * ══════════════════════════════════════════════════════════════════════ */
-  --ember: var(--mrd-you); /* was oklch(0.5 0.19 315), value-identical to Meridian's you in this ground; aliased 2026-08-23 so one hue answers "a person is required" */
+  --ember: var(
+    --mrd-you
+  ); /* was oklch(0.5 0.19 315), value-identical to Meridian's you in this ground; aliased 2026-08-23 so one hue answers "a person is required" */
   --ember-active: oklch(0.44 0.185 315);
   --ember-soft: oklch(0.78 0.11 315);
 
@@ -268,7 +271,9 @@
  * in the accents.
  * Activated by toggling `.dark` on <html>. */
 .dark {
-  --ember: var(--mrd-you); /* was oklch(0.72 0.16 315), value-identical to Meridian's you in this ground */
+  --ember: var(
+    --mrd-you
+  ); /* was oklch(0.72 0.16 315), value-identical to Meridian's you in this ground */
   --ember-active: oklch(0.64 0.15 315);
   --ember-soft: oklch(0.45 0.1 315);
 
@@ -1879,7 +1884,9 @@ html[data-motion="off"] .ai-pulse-text {
   --dur-slow: var(--ds-motion-overlay-duration);
 
   /* --- Legacy Ember Editorial aliases → Tempo (un-ported surfaces skin) --- */
-  --ember: var(--mrd-you); /* was var(--ds-ember-600); both grounds value-identical to Meridian's you */
+  --ember: var(
+    --mrd-you
+  ); /* was var(--ds-ember-600); both grounds value-identical to Meridian's you */
   --ember-active: var(--ds-ember-800);
   --ember-soft: var(--ds-ember-900);
   --canvas: var(--ds-background-100);
@@ -2050,7 +2057,9 @@ html[data-motion="off"] .ai-pulse-text {
   --text-muted: color-mix(in oklab, var(--ds-gray-900) 60%, var(--ds-gray-700));
   --text-subtle: var(--ds-gray-700);
   --text-faint: var(--ds-gray-600);
-  --ember: var(--mrd-you); /* was var(--ds-ember-600); both grounds value-identical to Meridian's you */
+  --ember: var(
+    --mrd-you
+  ); /* was var(--ds-ember-600); both grounds value-identical to Meridian's you */
   --ember-soft: var(--ds-ember-900);
   /* Loom ember sub-tokens re-based on the Tempo scale (2026-07-11): the early
      Loom block held retired literals (#ff8a50, rgba(255,107,44,...), #ff7a3d,

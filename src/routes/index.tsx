@@ -264,7 +264,24 @@ function LandingPage() {
     <MachineViewContainer machineContent={MACHINE_CONTENT} title="Supaprod">
       {/* data-obsidian scopes the token set (styles.css) so brand components
           (SupaprodMark, machine view) resolve their CSS variables out here. */}
-      <div className="bg-[#0a0a0a] min-h-screen landing-root" data-obsidian>
+      <div
+        className="bg-[#0a0a0a] min-h-screen landing-root public-ink"
+        data-obsidian
+        /*
+         * PINNED, BECAUSE `.public-ink` NOW READS TWO MERIDIAN TOKENS.
+         *
+         * `--mrd-faint` and `--mrd-mute` are re-declared by
+         * `[data-theme="light"]` at oklch 0.52 and 0.48, which on this page's
+         * #0a0a0a ground are DARKER than the values they replace. A viewer on
+         * the light theme would have got the fix inverted into a worse failure
+         * than the one it corrected. LegalPageShell's own comment warns about
+         * exactly this and is the reason I looked.
+         *
+         * `[data-mrd-pinned-dark]` exists for it, pins both tokens to their
+         * root values, and is kept honest by pinned-dark-matches-root.test.ts.
+         */
+        data-mrd-pinned-dark
+      >
         {/* Keyboard focus is a human action: the double-ring ember focus
             state, separated from the control by the ink itself. */}
         <style>{`

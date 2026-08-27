@@ -340,7 +340,7 @@ export function GuardrailsPanel({
 
   /* Whether this workspace's screen has gone quiet, said above the list. Read
      once here so the region and any future reader cannot disagree. */
-  const silence = guardrailSilence(hits, Date.now());
+  const silence = guardrailSilence(hits, Date.now(), rules.length);
 
   // Last fired per rule, from the real hits log. Hits arrive newest first, so
   // the first one seen for a name is the latest.

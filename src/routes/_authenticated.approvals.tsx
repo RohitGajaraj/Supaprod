@@ -137,6 +137,7 @@ import { FilterExcludedEverything, QueueFilters } from "@/components/approvals/Q
 import { SettledTrail, type SettledLine } from "@/components/approvals/SettledTrail";
 import { UndatedCalls, type UndatedCall } from "@/components/approvals/UndatedCalls";
 import { SendBackSheet, canSendBack } from "@/components/approvals/SendBack";
+import { stripAutoMarkers } from "@/components/plan/format";
 import { waitingSince } from "@/components/meridian/stopped-for";
 import { countIsAFloor, notTheWholeQueue } from "@/components/approvals/not-the-whole-queue";
 
@@ -203,13 +204,24 @@ export function filtersWorthDrawing(
   return real.length > 2 ? real : [];
 }
 
-/** stripAutoPrefix only removes a LEADING "[auto]". Evidence lines carry it
- *  mid-sentence too ("From [auto] Investigate the ..."), so the marker has to
- *  come out wherever it sits: it marks a call the loop raised itself, and it is
- *  never copy for a person to read. */
-function stripAuto(text: string): string {
-  return text.replace(/\[auto\]\s*/gi, "").trim();
-}
+/*
+ * THE PRIVATE COPY IS GONE. It lived here as `stripAuto`, and this route folds,
+ * so the fix would have died with the door.
+ *
+ * `stripAutoMarkers` is byte-identical and lives in `plan/format` beside
+ * `stripAutoPrefix`, `cleanTitle` and `isAutoTitle` -- the module that already
+ * owns this marker and carries its leak audit. S2 moved it there rather than
+ * copying mine, on the argument that a fix inside a folding route is a fix with
+ * a deadline, and then found what the duplication had already cost: their
+ * `subjectKey` normalised with the ANCHORED `stripAutoPrefix`, so "Investigate
+ * the flake" and "From [auto] Investigate the flake" keyed as two subjects. The
+ * note whose whole job is saying "this is the same work" was silent about its
+ * own case.
+ *
+ * `stripAutoPrefix` stays and is not deprecated: anchoring is correct for a
+ * pipeline-stamped title, and collapsing the two would break what `isAutoTitle`
+ * depends on. Two functions, two jobs, one home.
+ */
 
 /** The mission or project a call sits in front of, in the words the queue
  *  already resolved. Null on the families that are workspace wide (memory,
@@ -347,7 +359,7 @@ function ApprovalsSurface() {
     if (since === null) {
       undated.push({
         id: item.id,
-        asking: stripAuto(item.title),
+        asking: stripAutoMarkers(item.title),
         where: subjectOf(item),
         onOpen: () => setFocusedId(item.id),
       });
@@ -355,7 +367,7 @@ function ApprovalsSurface() {
     }
     stalled.push({
       id: item.id,
-      asking: stripAuto(item.title),
+      asking: stripAutoMarkers(item.title),
       since,
       blocking: subjectOf(item) ?? undefined,
       onOpen: () => setFocusedId(item.id),
@@ -659,7 +671,9 @@ function ApprovalsSurface() {
     !workspacesLoading && workspaces.length === 0 && !queue.isLoading && !queue.isError && n === 0;
 
   const focusedSince = focused ? waitingSince(focused.timestamp) : null;
-  const focusedLines = focused ? focused.evidence.slice(0, 3).map(stripAuto) : [];
+  const focusedLines = focused
+    ? focused.evidence.slice(0, 3).map((line: string) => stripAutoMarkers(line))
+    : [];
   const focusedHidden = focused ? Math.max(0, focused.evidence.length - 3) : 0;
 
   return (
@@ -760,7 +774,7 @@ function ApprovalsSurface() {
           <CallGate
             // The "[auto]" marker names a call the loop raised itself and must
             // never reach the sentence being judged.
-            question={stripAuto(focused.title)}
+            question={stripAutoMarkers(focused.title)}
             subject={subjectOf(focused)}
             since={focusedSince}
             now={now}
@@ -868,7 +882,7 @@ function ApprovalsSurface() {
                 id: sendBack.id,
                 sourceId: sendBack.sourceId,
                 kindKey: sendBack.kindKey,
-                title: stripAuto(sendBack.title),
+                title: stripAutoMarkers(sendBack.title),
               }
             : null
         }
