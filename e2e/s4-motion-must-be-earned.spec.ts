@@ -832,6 +832,109 @@ async function textBelowContrast(
 }
 
 /**
+ * CONTROLS TOO SMALL TO HIT WITH A THUMB.
+ *
+ * The second measurement in here that needs no opinion. WCAG 2.5.8 sets the
+ * floor at 24x24 CSS pixels and it is a FLOOR: Apple's guidance is 44x44,
+ * Google's is 48x48, and every frontier-lab product ships to the higher one.
+ * So both numbers are reported, because they answer different questions --
+ * 24 is "does this pass", 44 is "would anyone ship this".
+ *
+ * WHAT IT EXCUSES, and each of these is in the standard rather than invented
+ * here:
+ *
+ *   - An INLINE link inside a sentence. WCAG exempts it explicitly: making it
+ *     44px tall would wreck the paragraph it sits in, and the sentence around
+ *     it is the target. Detected as `display: inline` with text on both sides.
+ *   - Anything hidden, zero-sized, or inside `aria-hidden`.
+ *   - A control whose own box is small but which is SPACED away from every
+ *     other control by at least the shortfall. WCAG 2.5.8's own exception:
+ *     a 24px offset with nothing else within it is not a mis-tap risk.
+ *
+ * It reports and does not fail. Unlike contrast, the honest threshold here is
+ * a judgement about the surface -- a dense data table's row controls and a
+ * marketing page's primary button are not held to one number -- and a check
+ * that fails builds on a judgement is a check people learn to route around.
+ */
+async function targetsTooSmallToHit(
+  page: import("@playwright/test").Page,
+): Promise<{
+  under44: string[];
+  belowElements: number;
+  shapes: number;
+  under24: number;
+  judged: number;
+}> {
+  return page.evaluate(() => {
+    const SEL =
+      'button, a[href], input:not([type="hidden"]), select, textarea, ' +
+      '[role="button"], [role="link"], [role="checkbox"], [role="switch"], ' +
+      '[role="tab"], [role="menuitem"], [role="radio"]';
+    const els = Array.from(document.querySelectorAll<HTMLElement>(SEL)).filter((el) => {
+      if (el.closest("[aria-hidden='true']")) return false;
+      const cs = getComputedStyle(el);
+      if (cs.visibility === "hidden" || cs.display === "none") return false;
+      const r = el.getBoundingClientRect();
+      return r.width >= 1 && r.height >= 1;
+    });
+
+    const boxes = els.map((el) => el.getBoundingClientRect());
+    const out: string[] = [];
+    let under24 = 0;
+
+    els.forEach((el, i) => {
+      const r = boxes[i];
+      const min = Math.min(r.width, r.height);
+      if (min >= 44) return;
+
+      // An inline link inside running text is exempt in the standard itself.
+      const cs = getComputedStyle(el);
+      if (el.tagName === "A" && cs.display === "inline") {
+        const parentText = (el.parentElement?.innerText ?? "").trim();
+        const ownText = (el.innerText ?? "").trim();
+        if (parentText.length > ownText.length + 8) return;
+      }
+
+      // Spaced far from every other control? Then a mis-tap is not the risk.
+      const need = 44 - min;
+      const crowded = boxes.some((o, j) => {
+        if (j === i) return false;
+        const dx = Math.max(0, Math.max(r.left - o.right, o.left - r.right));
+        const dy = Math.max(0, Math.max(r.top - o.bottom, o.top - r.bottom));
+        return Math.hypot(dx, dy) < need;
+      });
+      if (!crowded) return;
+
+      if (min < 24) under24++;
+      const cls = el.className?.toString().trim().split(/\s+/).slice(0, 2).join(".");
+      const label = (el.innerText || el.getAttribute("aria-label") || "").trim().slice(0, 24);
+      out.push(
+        `${el.tagName.toLowerCase()}${cls ? "." + cls : ""} ` +
+          `${Math.round(r.width)}x${Math.round(r.height)}${min < 24 ? " UNDER 24" : ""}` +
+          (label ? ` "${label}"` : ""),
+      );
+    });
+
+    const counts = new Map<string, number>();
+    for (const o of out) counts.set(o, (counts.get(o) ?? 0) + 1);
+    /*
+     * ELEMENTS AND SHAPES ARE TWO NUMBERS AND THE FIRST DRAFT PRINTED THEM AS
+     * ONE. It reported "10 shapes under 44px, 17 of them under 24", which
+     * cannot be true of ten things: `under24` counts ELEMENTS and the list is
+     * deduped and capped. Exactly the defect the contrast check had, made
+     * twice in one night, so both counts are now named for what they count.
+     */
+    return {
+      under44: [...counts].map(([k, n]) => (n > 1 ? `${k} x${n}` : k)).slice(0, 10),
+      belowElements: out.length,
+      shapes: counts.size,
+      under24,
+      judged: els.length,
+    };
+  });
+}
+
+/**
  * SURFACES THAT ARE SUPPOSED TO SHOW EVERY FAILURE AT ONCE.
  *
  * `/meridian` is the design system's gallery: "Every component, in both grounds,
@@ -1226,6 +1329,14 @@ test("report which surfaces still move once nothing can be read", async ({ page 
           `\n  treatment strands the person who took that invitation.`,
       );
     }
+
+    const taps = await targetsTooSmallToHit(page);
+    notes.push(
+      `\n--- ${path}: touch targets, ${taps.belowElements} control(s) under 44px and crowded ` +
+        `in ${taps.shapes} shape(s), ${taps.under24} of those controls under the WCAG 24px floor, ` +
+        `of ${taps.judged} controls on the page ---` +
+        (taps.under44.length ? `\n  ` + taps.under44.join(`\n  `) : ` none`),
+    );
 
     const clipped = await clippedAndUnreachable(page);
     if (clipped.length) {
