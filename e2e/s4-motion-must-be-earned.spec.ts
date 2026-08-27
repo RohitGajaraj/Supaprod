@@ -109,8 +109,20 @@ test.skip(
   "Needs a local dev server pointed at a dead database. Opt in with S4_MOTION=yes.",
 );
 
-// A stranger has no session, and a signed-out render is the honest one here.
-test.use({ storageState: { cookies: [], origins: [] } });
+/**
+ * Signed out by default, because a stranger has no session and the public
+ * surfaces render without one.
+ *
+ * `S4_MOTION_STATE` points at a storageState file instead, which is how the
+ * PRODUCT surfaces get measured: signed out they all redirect to `/login` and
+ * the measurement is of the login page. See `e2e/helpers/dead-backend-session.mjs`
+ * for what that state is and why it is a test double rather than a credential.
+ */
+test.use({
+  storageState: process.env.S4_MOTION_STATE
+    ? process.env.S4_MOTION_STATE
+    : { cookies: [], origins: [] },
+});
 
 /**
  * A hash of the rendered viewport.
