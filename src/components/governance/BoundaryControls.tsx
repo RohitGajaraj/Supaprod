@@ -12,6 +12,7 @@
  * from the real resolver (`getBoundary`), never restated client-side.
  */
 import { Row, Line } from "@/components/meridian/rows";
+import { toolRisk } from "@/lib/tool-consequences";
 import {
   NothingHere,
   Num,
@@ -522,9 +523,28 @@ export function BoundaryControls({
    * low-risk `confirm` tool with no floor to auto and runs it inline, so the
    * buckets alone under-report real reach. The predicate quotes the one branch
    * of `resolveToolMode` that does this. An under-report is the direction that
-   * gets someone hurt. */
+   * gets someone hurt.
+   *
+   * IT READ `t.risk` UNTIL NOW, AND COULD NEVER FIRE. `getBoundary` does not
+   * return a risk; it returns the MODE relabelled --
+   * `mode === "review" ? "high" : mode === "auto" ? "low" : "medium"` -- so a
+   * tool in `confirm` is always "medium" and `t.risk === "low"` was
+   * unsatisfiable by construction. `demoted` has always been empty, and the
+   * headline has under-reported real reach for exactly as long, which is the
+   * outcome the paragraph above was written to prevent.
+   *
+   * `toolRisk` is the function the loop's own branch calls
+   * (`mode === "confirm" && toolRisk(toolName) === "low"`, loop.server.ts), it
+   * is a pure module with no imports, and it returns real per-tool values --
+   * prd.get low, studio.commit high, an unknown tool high. Quoting the branch
+   * now means quoting it.
+   *
+   * FILED WITH S0: `BoundaryTool.risk` should stop being a mode restatement, in
+   * governance.functions.ts. That file already imports `toolRisk` and uses it
+   * elsewhere. Until it does, no consumer should read that field as a risk.
+   */
   const runsAloneDespiteAsking = (t: BoundaryTool) =>
-    t.mode === "confirm" && t.risk === "low" && t.floor === null;
+    t.mode === "confirm" && toolRisk(t.name) === "low" && t.floor === null;
   const demoted = React.useMemo(
     () => (data?.asks ?? []).filter(runsAloneDespiteAsking),
     [data?.asks],
