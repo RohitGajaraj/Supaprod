@@ -135,8 +135,14 @@ export function SafetyRoom({ view }: RoomBodyProps) {
        * so the controls render here, between the statement that says why and
        * the guardrails that say what may be said.
        */}
+      {/* THE ROOM ALREADY HAS A PAGE TITLE. `_authenticated.engine-room.tsx`
+          draws "What is it allowed to do?" above this, so the panel's own
+          PageHeading was a second one under it -- two h1s, and on a failed
+          read the largest thing on the screen restating a line beside it.
+          The posture sentence it carries is the best line on the panel and
+          survives at region level. Same call as the settings mount. */}
       <React.Suspense fallback={<PanelReading>Reading what your crew may do alone.</PanelReading>}>
-        <BoundaryControls />
+        <BoundaryControls headingShownElsewhere />
       </React.Suspense>
       <React.Suspense fallback={<PanelReading>Reading the content screening rules.</PanelReading>}>
         <GuardrailsPanel />
