@@ -44,7 +44,11 @@ export const Route = createFileRoute("/brief")({
       { property: "og:image", content: `${SITE}/og-supaprod.png` },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
-      { property: "og:image:alt", content: "Supaprod: agents that own outcomes, not just output. Seven stations in orbit, the return path from Learn to Discover lit." },
+      {
+        property: "og:image:alt",
+        content:
+          "Supaprod: agents that own outcomes, not just output. Seven stations in orbit, the return path from Learn to Discover lit.",
+      },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: TITLE },
       { name: "twitter:description", content: DESC },

@@ -58,6 +58,19 @@ export function RunFooter({
        */}
       <p aria-live="polite" className="min-w-0 text-mrd-base text-mrd-mute">
         {mode.line}
+        {/*
+         * WHETHER THIS PAGE IS REQUIRED, in the same breath as the mode.
+         *
+         * SESSION-1's second unit: "I'm on it, you can leave this page." The
+         * mode line says the same words for a run the loop is driving and a run
+         * THIS TAB is buying legs for, and those are opposite answers to the
+         * only question a person leaving actually has. See `footer-mode.ts`.
+         *
+         * Same paragraph rather than a second line, because it is a clause of
+         * the mode and not a new fact, and because the footer already carries
+         * `aria-live`: a separate element would announce on its own.
+         */}
+        {mode.leave ? <span className="text-mrd-faint"> {mode.leave}</span> : null}
       </p>
 
       {mode.canStop ? (

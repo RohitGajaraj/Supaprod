@@ -38,7 +38,7 @@ describe("the clustering switch names clustering", () => {
   });
 
   it("says it groups, which is what auto_cluster_enabled does", () => {
-    has("Group new signals without asking", "a label naming what the switch writes");
+    has("Group new findings without asking", "a label naming what the switch writes");
   });
 
   it("keeps its sub-line consistent with the new label", () => {
@@ -66,7 +66,10 @@ describe("the reading switch is on the station that reads", () => {
   it("does not render it while the surface is still resolving or has failed", () => {
     // A switch shown over a failed read invites somebody to set policy against
     // state nobody could confirm.
-    has("!picking && !loading && !loadError ? (\n        <AutomationBoundary", "the same guards the sibling block uses");
+    has(
+      "!picking && !loading && !loadError ? (\n        <AutomationBoundary",
+      "the same guards the sibling block uses",
+    );
   });
 });
 
@@ -74,7 +77,7 @@ describe("the two switches stay distinguishable", () => {
   it("names two different things, not one thing twice", () => {
     // Hard ban on a label and its neighbour saying the same thing: if a reader
     // cannot tell which switch does what, two controls are worse than one.
-    const grouping = SURFACE.includes("Group new signals without asking");
+    const grouping = SURFACE.includes("Group new findings without asking");
     const reading = SURFACE.includes("Reading your sources");
     expect(grouping && reading).toBe(true);
   });

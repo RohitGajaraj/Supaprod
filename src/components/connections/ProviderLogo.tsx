@@ -22,8 +22,10 @@ export function ProviderLogo({ provider, size = 34 }: { provider: ProviderId; si
         justifyContent: "center",
         borderRadius: Math.max(8, Math.round(size * 0.26)),
         // Monotone tile, kept: the ground stays quiet so the official mark
-        // carries the recognition.
-        background: "var(--surface-raised)",
+        // carries the recognition. `--surface-raised` resolved through
+        // styles.css into --ds-gray-200; `--mrd-lift` is this system's raised
+        // ground and every neighbouring line here is already Meridian.
+        background: "var(--mrd-lift)",
         boxShadow: "inset 0 0 0 1px var(--mrd-edge)",
         // Ink for the drawn fallbacks; official geometry ignores it.
         color: "var(--mrd-body)",

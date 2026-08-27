@@ -71,3 +71,78 @@ export const NO_CONTRACT =
 /** Said when the contract exists but drew no edges. The commonest half-state. */
 export const NO_NON_GOALS =
   "No non-goals were written, so nothing here says what this spec leaves out.";
+
+/**
+ * WHETHER THE SPEC SAYS IT SOMEWHERE ELSE, BEFORE THE SCREEN SAYS NOBODY DID.
+ *
+ * -- WHAT WAS ON SCREEN --------------------------------------------------
+ * `SpecPromise` renders `NO_CONTRACT` whenever the `contract` column carries
+ * no intent, no measures and no non-goals, and the sentence it renders says
+ * "nothing on the record says what it is for, how anyone would know it worked,
+ * or what it is deliberately not doing."
+ *
+ * The next element on the pane is `<Prose markdown>{prd.body_md}</Prose>`.
+ *
+ * Measured over the 119 specs in this database: 117 have an empty contract, and
+ * 117 of those 117 have a body. 94 of them carry a line-anchored success
+ * metrics or acceptance criteria heading and 20 carry a non-goals heading.
+ * Only 21 mention neither anywhere. So the sentence was false on 96 of 117, and
+ * its disproof was rendered directly underneath it.
+ *
+ * That is the same defect as the empty upstream link and the zero cost total: a
+ * narrow lookup coming back empty, and a surface reporting it as a fact about
+ * the record rather than a fact about the column it read.
+ *
+ * -- DETECT, DO NOT EXTRACT ----------------------------------------------
+ * This deliberately does NOT parse the sections out and render them as a
+ * contract. Extraction would put text on screen under a heading the author
+ * never agreed to, and a wrong parse would then be a wrong promise. All the
+ * sentence needs is whether the document HAS the section, and if that is wrong
+ * the cost is a softer line rather than an invented one.
+ *
+ * Line-anchored for the same reason. `## Non-Goals`, `**Non-Goals**` and
+ * `Non-goals:` all count; a passing mention inside a paragraph does not, which
+ * is the difference between a spec that sets its boundaries out and one that
+ * merely uses the word. Two of the 96 are exactly that case.
+ *
+ * -- THE COLUMN BEING EMPTY STILL MATTERS AND THE LINE STILL SAYS SO ------
+ * The contract is what Build is measured against and what Ship reads. A body
+ * that explains itself in prose is not a substitute for that, and 0 of the 117
+ * have ever been migrated (`contract_migrated_at` is null on every one). So the
+ * line keeps the weight and drops the false half: it says nothing is filled in,
+ * and then points at where the answer actually is.
+ */
+
+/** Whether the spec body sets these out under a heading of its own. */
+export type ContractInBody = { metrics: boolean; nonGoals: boolean };
+
+const NON_GOALS_HEADING = /^[ \t]*[#*>_-]{0,4}[ \t]*non[- ]?goals?\b/im;
+const METRICS_HEADING =
+  /^[ \t]*[#*>_-]{0,4}[ \t]*(success metrics?|success criteria|acceptance criteria|how we'?ll know)\b/im;
+
+/** What the spec body sets out under its own headings. */
+export function contractInBody(body: string | null | undefined): ContractInBody {
+  const text = typeof body === "string" ? body : "";
+  return {
+    metrics: METRICS_HEADING.test(text),
+    nonGoals: NON_GOALS_HEADING.test(text),
+  };
+}
+
+/**
+ * What to say when the contract is empty, which depends on whether it is true
+ * that nobody wrote this down.
+ */
+export function noContractLine(body: string | null | undefined): string {
+  const found = contractInBody(body);
+  if (!found.metrics && !found.nonGoals) return NO_CONTRACT;
+
+  const says =
+    found.metrics && found.nonGoals
+      ? "how anyone would know it worked, and what it deliberately leaves out"
+      : found.metrics
+        ? "how anyone would know it worked"
+        : "what it deliberately leaves out";
+
+  return `No outcome contract is filled in here, so there is nothing bounded for Build to be measured against. The spec below sets out ${says}, in its own words.`;
+}

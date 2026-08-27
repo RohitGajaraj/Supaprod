@@ -98,7 +98,7 @@ export function TrustGraduationsBlock({
   if (q.isError) {
     return (
       <Region title="Asking for more room">
-        <ReadFailedLine onRetry={() => void q.refetch()}>
+        <ReadFailedLine error={q.error} onRetry={() => void q.refetch()}>
           The proposals did not load, so nothing below is the real queue.
         </ReadFailedLine>
       </Region>
@@ -196,7 +196,11 @@ export function TrustGraduationsBlock({
         </Region>
       ) : null}
 
-      {decide.isError ? <ReadFailedLine>{(decide.error as Error).message}</ReadFailedLine> : null}
+      {decide.isError ? (
+        <ReadFailedLine error={decide.error}>
+          That answer was not recorded. This agent still has the reach it had.
+        </ReadFailedLine>
+      ) : null}
 
       {/* THE COMMIT. No arrow is drawn: nothing picks this up, it is a standing
           rule from now on, and an arrow to nowhere is worse than no arrow. */}

@@ -77,9 +77,8 @@ function ForgotPasswordPage() {
               lineHeight: "var(--mrd-lh-prose)",
             }}
           >
-            If an account exists for{" "}
-            <strong style={{ color: "var(--mrd-ink)" }}>{email}</strong>, the reset link is on
-            its way.
+            If an account exists for <strong style={{ color: "var(--mrd-ink)" }}>{email}</strong>,
+            the reset link is on its way.
           </p>
           <Action
             variant="default"
@@ -91,7 +90,11 @@ function ForgotPasswordPage() {
         </div>
       ) : (
         <form onSubmit={sendResetLink}>
-          <label htmlFor="forgot-email" className="mrd-eyebrow whitespace-nowrap" style={fieldLabelStyle}>
+          <label
+            htmlFor="forgot-email"
+            className="mrd-eyebrow whitespace-nowrap"
+            style={fieldLabelStyle}
+          >
             Work email
           </label>
           <input

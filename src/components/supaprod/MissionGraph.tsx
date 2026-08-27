@@ -28,13 +28,13 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
   const nodeY = 118;
   const color = (st: string) =>
     st === "completed"
-      ? "var(--emerald)"
+      ? "var(--mrd-pass)"
       : st === "running"
-        ? "var(--action-blue)"
+        ? "var(--mrd-agent)"
         : st === "gate"
           ? "var(--mrd-you)"
           : st === "failed"
-            ? "var(--rose)"
+            ? "var(--mrd-fail)"
             : "var(--mrd-mute)";
   const sel = selStep == null ? null : steps[selStep];
   return (
@@ -74,13 +74,13 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
                   y1={nodeY + NH / 2}
                   x2={x2}
                   y2={nodeY + NH / 2}
-                  stroke={done ? "var(--emerald)" : "var(--mrd-edge)"}
+                  stroke={done ? "var(--mrd-pass)" : "var(--mrd-edge)"}
                   strokeWidth="1.4"
                 ></line>
                 <path
                   d={`M ${x2 - 5} ${nodeY + NH / 2 - 3.5} L ${x2} ${nodeY + NH / 2} L ${x2 - 5} ${nodeY + NH / 2 + 3.5}`}
                   fill="none"
-                  stroke={done ? "var(--emerald)" : "var(--mrd-edge)"}
+                  stroke={done ? "var(--mrd-pass)" : "var(--mrd-edge)"}
                   strokeWidth="1.4"
                 ></path>
               </g>
@@ -88,7 +88,7 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
           })}
           {/* orchestrator hub */}
           <g>
-            <circle cx={hubX} cy={hubY} r="15" fill="var(--hero-bg)"></circle>
+            <circle cx={hubX} cy={hubY} r="15" fill="var(--mrd-sheet)"></circle>
             <circle cx={hubX} cy={hubY} r="4" fill="var(--mrd-you)" className="gnode-live"></circle>
             <text
               x={hubX}
@@ -147,7 +147,7 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
                   x={x + 26}
                   y={nodeY + 21}
                   style={{
-                    fill: "var(--agent)",
+                    fill: "var(--mrd-agent)",
                     fontFamily: "'Geist Mono', monospace",
                     fontWeight: 600,
                   }}
@@ -181,7 +181,7 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span className="mono-label" style={{ color: "var(--agent)" }}>
+            <span className="mono-label" style={{ color: "var(--mrd-agent)" }}>
               {sel.agent}
             </span>
             <StatusBadge status={sel.status} />
@@ -195,7 +195,9 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
             </button>
           </div>
           <div style={{ color: "var(--mrd-body)", marginTop: 5 }}>{sel.goal}</div>
-          {sel.note ? <div style={{ color: "var(--rose)", marginTop: 3 }}>{sel.note}</div> : null}
+          {sel.note ? (
+            <div style={{ color: "var(--mrd-fail)", marginTop: 3 }}>{sel.note}</div>
+          ) : null}
         </div>
       ) : (
         <div className="mono-label" style={{ marginTop: 8 }}>

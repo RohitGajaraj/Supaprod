@@ -95,10 +95,7 @@ function ResetPasswordPage() {
           >
             Your password is updated. You are signed in with it now.
           </p>
-          <Link
-            to="/"
-            className={`${ACTION_LINK_FACE.primary} w-full justify-center`}
-          >
+          <Link to="/" className={`${ACTION_LINK_FACE.primary} w-full justify-center`}>
             Continue · opens your workspace
           </Link>
         </div>
@@ -141,16 +138,17 @@ function ResetPasswordPage() {
           >
             This reset link is invalid or has expired.
           </p>
-          <Link
-            to="/forgot-password"
-            className={`${ACTION_LINK_FACE.quiet} w-full justify-center`}
-          >
+          <Link to="/forgot-password" className={`${ACTION_LINK_FACE.quiet} w-full justify-center`}>
             Request a new link · takes a minute
           </Link>
         </div>
       ) : (
         <form onSubmit={updatePassword}>
-          <label htmlFor="reset-password-new" className="mrd-eyebrow whitespace-nowrap" style={fieldLabelStyle}>
+          <label
+            htmlFor="reset-password-new"
+            className="mrd-eyebrow whitespace-nowrap"
+            style={fieldLabelStyle}
+          >
             New password
           </label>
           <div style={{ position: "relative", marginBottom: 10 }}>
@@ -189,7 +187,11 @@ function ResetPasswordPage() {
               {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
             </button>
           </div>
-          <label htmlFor="reset-password-confirm" className="mrd-eyebrow whitespace-nowrap" style={fieldLabelStyle}>
+          <label
+            htmlFor="reset-password-confirm"
+            className="mrd-eyebrow whitespace-nowrap"
+            style={fieldLabelStyle}
+          >
             Retype new password
           </label>
           <input

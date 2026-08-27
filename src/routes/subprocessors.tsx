@@ -57,11 +57,17 @@ function ProcessorRow({ s, first }: { s: SubProcessor; first: boolean }) {
         }}
       >
         <span style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>{s.name}</span>
-        <span className="mrd-eyebrow whitespace-nowrap text-mrd-nano" style={{ color: "var(--mrd-faint)" }}>
+        <span
+          className="mrd-eyebrow whitespace-nowrap text-mrd-nano"
+          style={{ color: "var(--mrd-faint)" }}
+        >
           {CATEGORY_LABEL[s.category]}
         </span>
       </div>
-      <p className="text-mrd-prose" style={{ color: "var(--mrd-mute)", margin: "5px 0 0", lineHeight: 1.5 }}>
+      <p
+        className="text-mrd-prose"
+        style={{ color: "var(--mrd-mute)", margin: "5px 0 0", lineHeight: 1.5 }}
+      >
         {s.purpose}
       </p>
       <p
@@ -79,7 +85,9 @@ function Section({ title, note, items }: { title: string; note?: string; items: 
   if (items.length === 0) return null;
   return (
     <section style={{ marginTop: 36 }}>
-      <h2 className="mrd-subtitle" style={{ fontWeight: 600, color: "var(--ink)", margin: 0 }}>{title}</h2>
+      <h2 className="mrd-subtitle" style={{ fontWeight: 600, color: "var(--ink)", margin: 0 }}>
+        {title}
+      </h2>
       {note && (
         <p
           className="text-mrd-base"
@@ -122,7 +130,10 @@ function SubprocessorsPage() {
         <a href="/" className="font-display text-sm" style={{ color: "var(--ink)" }}>
           Supaprod
         </a>
-        <span className="mrd-eyebrow whitespace-nowrap text-mrd-nano" style={{ color: "var(--mrd-faint)" }}>
+        <span
+          className="mrd-eyebrow whitespace-nowrap text-mrd-nano"
+          style={{ color: "var(--mrd-faint)" }}
+        >
           Trust
         </span>
       </header>
@@ -139,7 +150,12 @@ function SubprocessorsPage() {
             color: "var(--mrd-mute)",
             margin: "12px 0 0",
             lineHeight: 1.6,
-            maxWidth: 600,
+            /* Was 600px, which is about 69ch here -- somebody bounded this
+               prose correctly and in the wrong unit. The value barely moves;
+               what changes is that it now tracks the type instead of a number
+               that happens to be right today. The 720 on `main` above stays: it
+               holds the sub-processor ROWS, not prose. */
+            maxWidth: "var(--mrd-measure)",
           }}
         >
           The third parties that process customer data on Supaprod&apos;s behalf, and what each one

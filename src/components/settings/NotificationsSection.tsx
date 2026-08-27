@@ -94,6 +94,35 @@ const CATEGORIES: { key: Category; label: string; sub: string }[] = [
   },
 ];
 
+/**
+ * The App column now delivers for TWO of the four, and not for the other two.
+ *
+ * ── THE HOLD LIFTED AT INTEGRATION, WHICH IS WHERE IT COULD ONLY LIFT ──────
+ * `a-toggle-that-cannot-deliver.test.ts` was written to fail the moment any
+ * surface began rendering the feed, and to say what to do when it did. It fired
+ * the first time S2's lane and this one were in the same tree: `SystemAlerts` on
+ * /today (eb161ca85) calls `getNotifications` for **budget and drift**, and its
+ * own header confirms the toggle has real power there — *"switching App off for
+ * budget removes it here with no code on this side."*
+ *
+ * Neither lane could have seen this alone. The guard was on one branch and the
+ * capability on another, which is exactly what an integration pass is for.
+ *
+ * ── THE OTHER TWO STAY OFF, AND THEY ARE NOT OVERSIGHTS ────────────────────
+ * **Approvals** — Today's "What needs you" lane reads `agent_approvals`
+ * DIRECTLY and never consults this feed, so switching that toggle off would not
+ * stop Today showing approvals. The control would promise power it does not
+ * have, which is this same defect pointing the other way.
+ *
+ * **Health** — the running lane already prints each run's own clock, so a stall
+ * alert would be a second voice on rows that already speak.
+ *
+ * So the rule is a property of the CATEGORY, not of the column, and it is named
+ * here rather than inlined so the next surface to start drawing a kind has one
+ * place to change.
+ */
+const APP_DELIVERS: ReadonlySet<Category> = new Set<Category>(["Budget", "Drift"]);
+
 const CHANNELS: { key: Channel; label: string; title: string }[] = [
   { key: "app", label: "App", title: "In the app" },
   { key: "email", label: "Email", title: "Straight to your inbox" },
@@ -122,7 +151,8 @@ export function NotificationsSection() {
       // (coordination/requests/S3/verdict-notify-trigger.md ask 3), this check
       // is what keeps the toggle from lying about a save it cannot make.
       const dropped = Object.entries(updated).filter(
-        ([k, v]) => k in result.preferences && (result.preferences as Record<string, unknown>)[k] !== v,
+        ([k, v]) =>
+          k in result.preferences && (result.preferences as Record<string, unknown>)[k] !== v,
       );
       if (dropped.length > 0) {
         toast.error(
@@ -159,7 +189,11 @@ export function NotificationsSection() {
     const row = prefs.data?.preferences as PrefsPlusVerdict | undefined;
     if (!row) return;
     setMatrix({
-      Approvals: { app: row.in_app_approvals, email: row.email_approvals, digest: row.digest_approvals },
+      Approvals: {
+        app: row.in_app_approvals,
+        email: row.email_approvals,
+        digest: row.digest_approvals,
+      },
       Health: { app: row.in_app_health, email: row.email_health, digest: row.digest_health },
       Budget: { app: row.in_app_budget, email: row.email_budget, digest: row.digest_budget },
       Drift: { app: row.in_app_drift, email: row.email_drift, digest: row.digest_drift },
@@ -206,9 +240,8 @@ export function NotificationsSection() {
         <PageHeading title="Notifications" sub="When the product may interrupt you, and where." />
         {/* A failed read must not render an empty matrix whose save would
             silence every alert. */}
-        <ReadFailedLine onRetry={() => void prefs.refetch()}>
-          Your preferences did not load, so nothing here is safe to change yet.{" "}
-          {(prefs.error as Error)?.message ?? "The read failed."}
+        <ReadFailedLine error={prefs.error} onRetry={() => void prefs.refetch()}>
+          Your preferences did not load, so nothing here is safe to change yet.
         </ReadFailedLine>
       </>
     );
@@ -253,7 +286,52 @@ export function NotificationsSection() {
                 key={ch.key}
                 variant={matrix[c.key][ch.key] ? "default" : "quiet"}
                 aria-pressed={matrix[c.key][ch.key]}
-                title={ch.title}
+                /*
+                 * THE APP COLUMN CANNOT DELIVER ANYTHING TODAY, so it does not
+                 * pretend to. Traced end to end rather than assumed: the only
+                 * reader of `in_app_approvals`, `in_app_health`,
+                 * `in_app_budget` and `in_app_drift` is `getNotifications`, and
+                 * NOTHING in src/components or src/routes imports
+                 * `getNotifications` or renders an `AppNotification`. The
+                 * preference is written, the feed is computed, and no surface
+                 * shows it. A closed loop with no output.
+                 *
+                 * Four toggles a person could press, believing they had asked
+                 * to be told something. An affordance is a promise, and this
+                 * one could not be kept.
+                 *
+                 * DISABLED RATHER THAN DELETED, deliberately. The column is not
+                 * a mistake, it is unfinished: Today already has a "What needs
+                 * you" feed and the honest fix is to drive THAT from these
+                 * preferences rather than to build a second feed here, which
+                 * would be two answers to one question. Deleting the column
+                 * would hide the gap instead of naming it, and would throw away
+                 * settings people have already saved.
+                 *
+                 * Email and Digest are untouched and do deliver.
+                 *
+                 * WHEN THIS LIFTS, IT LIFTS FOR TWO OF THE FOUR. S2 has
+                 * SystemAlerts on /today calling getNotifications for BUDGET
+                 * and DRIFT (eb161ca85, not yet merged here). Approvals and
+                 * Health stay disabled after that, for reasons that are not
+                 * oversights: Today's What-needs-you lane reads agent_approvals
+                 * DIRECTLY and never consults this feed, so an approvals toggle
+                 * would promise control it does not have -- the same defect
+                 * pointing the other way -- and a stall alert would be a second
+                 * voice on a lane that already prints each run's clock.
+                 *
+                 * AND THE FEED WAS NEVER DARK BECAUSE OF THESE TOGGLES. The
+                 * gate defaults to ON (`prefs?.in_app_budget ?? true`) and
+                 * user_notification_preferences holds ONE row. It was dark
+                 * because nothing called it, which is the distinction between
+                 * a preference that is off and a feature that is unplugged.
+                 */
+                disabled={ch.key === "app" && !APP_DELIVERS.has(c.key)}
+                title={
+                  ch.key === "app" && !APP_DELIVERS.has(c.key)
+                    ? "Not delivered anywhere yet"
+                    : ch.title
+                }
                 onClick={() => toggle(c.key, ch.key)}
               >
                 {ch.label}
@@ -261,6 +339,18 @@ export function NotificationsSection() {
             ))}
           </Line>
         ))}
+        {/*
+         * The sentence had to change with the toggles. It read "In-app alerts
+         * are not switched on yet ... nothing in the product shows these as
+         * notifications yet", which became FALSE for budget and drift the
+         * moment SystemAlerts landed on /today. A held control explaining
+         * itself is honest; the same explanation left standing after the hold
+         * lifts is a page arguing with its own switches.
+         */}
+        <Line
+          label="Two of these show up in the app, two do not yet"
+          sub="Spend and drift appear on Today. Approvals already have their own lane there and do not need a second voice, and a stalled run prints its own clock, so those two stay held rather than looking as though they do something."
+        />
       </Region>
 
       {verdictEmail !== null && (

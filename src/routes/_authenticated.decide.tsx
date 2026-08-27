@@ -215,7 +215,7 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { failureLine } from "@/lib/error-copy";
+import { endedSessionOn, failureLine, reasonLine } from "@/lib/error-copy";
 import { sourceLabel } from "@/components/discover/format";
 import { wordFor } from "@/lib/spine/chain";
 import { Row, Line } from "@/components/meridian/rows";
@@ -2368,6 +2368,37 @@ function DecideSurface() {
       : null;
   })();
 
+  /* One session, one statement. Derived here because every read it asks about
+     is declared above this point. */
+  const endedSession = endedSessionOn(opps.error, themes.error, learnings.error);
+
+  /*
+   * ONE ENDED SESSION, ONCE. Measured against a dead token, this station drew
+   * the sign-in sentence twice with two doors, because the bets read and the
+   * themes read failed for the same reason and neither could know that.
+   *
+   * Nothing underneath it survives the loss either: with no bets there is no
+   * ranking, no gate and nothing to decide. The title says what a person on
+   * this station actually wants to hear -- the calls they already made are
+   * still on the record.
+   *
+   * Only an ended session. A single failed read keeps its own region's line,
+   * because there which half is real is the whole question.
+   */
+  if (endedSession) {
+    return (
+      <Surface>
+        <div className="flex flex-col items-start gap-mrd-5">
+          <PageHeading
+            title="Your decisions are still on the record."
+            sub={`Nothing you have settled has been lost. ${endedSession}`}
+          />
+          <Action onClick={() => window.location.assign("/login")}>Sign in</Action>
+        </div>
+      </Surface>
+    );
+  }
+
   return (
     <Surface
       context={
@@ -2792,12 +2823,12 @@ function DecideSurface() {
           it too, which read as a stutter once `failureLine` stopped appending a
           transport string behind it. Verified on screen against a forced 401. */}
         {opps.error ? (
-          <ReadFailed onRetry={() => void opps.refetch()}>
+          <ReadFailed onRetry={() => void opps.refetch()} error={opps.error}>
             {/* The comment above is right that this line carries the reason, and
                 a transport string is not one. It carries the server's sentence
                 where the server wrote one for a person, and the surface's own
                 otherwise, so the line is never empty. */}
-            {failureLine("The bets on the table did not come back.", opps.error)}
+            {reasonLine("The bets on the table did not come back.", opps.error)}
           </ReadFailed>
         ) : loading ? (
           <Reading>Reading the bets on the table.</Reading>

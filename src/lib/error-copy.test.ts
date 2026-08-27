@@ -1,6 +1,6 @@
 import { describe, expect, it, test } from "bun:test";
 
-import { failureLine, messageForPerson, sessionEndedMessage } from "./error-copy";
+import { endedSessionOn, failureLine, messageForPerson, sessionEndedMessage } from "./error-copy";
 
 describe("what a person may read when something fails", () => {
   it("keeps the sentences this product's own server functions write", () => {
@@ -113,4 +113,76 @@ test("failureLine puts the action a reader can take ahead of everything else", (
       new Error("That step is ahead of this work, and undo only goes back."),
     ),
   ).toBe("Nothing moved. That step is ahead of this work, and undo only goes back.");
+});
+
+/*
+ * THINGS THAT LOOK LIKE PROSE AND ARE NOT, all three found by S2 while adopting
+ * this helper across their prefix, and every one of them passed the original
+ * shape test: enough words, no identifier, ending in a full stop. That is the
+ * value of a second reader on a rule whose whole job is judgment.
+ */
+test("a stack frame does not reach a person by ending in a full stop", () => {
+  expect(
+    messageForPerson(
+      "The upstream service returned an unexpected response at handler (src/lib/x.ts:214).",
+    ),
+  ).toBeNull();
+  expect(messageForPerson("It broke at renderRow (TrackRun.tsx:812).")).toBeNull();
+});
+
+test("a body is not a sentence, whatever it ends with", () => {
+  expect(messageForPerson('{"detail":"' + "x".repeat(300) + '"}. It ended in a stop.')).toBeNull();
+  expect(messageForPerson("[1, 2, 3] and then some words about it.")).toBeNull();
+  // The cap alone, with nothing else machine-shaped about it.
+  expect(
+    messageForPerson("A perfectly ordinary sentence. " + "Repeated over and over. ".repeat(12)),
+  ).toBeNull();
+});
+
+test("an address leaks nothing, with or without a scheme", () => {
+  expect(
+    messageForPerson("Failed to reach https://api.example.com/v1/thing gateway timeout."),
+  ).toBeNull();
+  // The half "http" misses, which is why the scheme test is not enough.
+  expect(messageForPerson("The call to api.example.com never came back at all.")).toBeNull();
+});
+
+test("and the good sentences all still survive it", () => {
+  // The regression this whole family risks: a rule that hides real copy is a
+  // worse failure than one that shows a log line, because nobody notices.
+  for (const good of [
+    "That step is ahead of this work, and undo only goes back.",
+    "This work is closed, so there is no station to hand back to.",
+    "Somebody has to choose between the two before this can move.",
+    "That step is ahead of this work. Undo only goes back, so there is nothing behind it to return to.",
+  ]) {
+    expect(messageForPerson(good)).toBe(good);
+  }
+});
+
+test("a thrown object is read the same as a thrown Error", () => {
+  // What a fetch rejection and several server helpers actually throw. S3's
+  // original handled it; merging their work into this file dropped it, and S2
+  // caught the regression while wrapping their own helper over this one.
+  expect(sessionEndedMessage({ message: "Unauthorized: Invalid token" })).toBe(
+    "Your session ended. Sign in again and this will load.",
+  );
+  expect(
+    messageForPerson({ message: "That step is ahead of this work, and undo only goes back." }),
+  ).toBe("That step is ahead of this work, and undo only goes back.");
+  // And the shapes that carry no message stay silent rather than throwing.
+  expect(messageForPerson(null)).toBeNull();
+  expect(messageForPerson(undefined)).toBeNull();
+  expect(messageForPerson({ message: 42 })).toBeNull();
+  expect(messageForPerson({})).toBeNull();
+});
+
+test("one ended session is found across a page's reads, in any position", () => {
+  const ended = "Your session ended. Sign in again and this will load.";
+  expect(endedSessionOn(new Error("Unauthorized"))).toBe(ended);
+  expect(endedSessionOn(null, undefined, new Error("jwt expired"))).toBe(ended);
+  // A page whose reads all succeeded, and one that failed for a real reason.
+  expect(endedSessionOn(null, undefined)).toBeNull();
+  expect(endedSessionOn(new Error("That step is ahead of this work."))).toBeNull();
+  expect(endedSessionOn()).toBeNull();
 });

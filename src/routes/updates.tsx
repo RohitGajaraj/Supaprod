@@ -158,7 +158,7 @@ function UpdatesPage() {
                 style={{
                   fontSize: 15,
                   fontWeight: 600,
-                  color: "var(--ink)",
+                  color: "var(--mrd-ink)",
                   margin: "0 0 6px",
                 }}
               >
@@ -177,10 +177,10 @@ function UpdatesPage() {
 
       {/* PC-15: fed by shipped rows tagged fromPulse above. Honest empty
           state until a real one exists post-beta, never a fabricated one. */}
-      <div style={{ marginTop: 48, paddingTop: 28, borderTop: "1px solid var(--soft-stone)" }}>
+      <div style={{ marginTop: 48, paddingTop: 28, borderTop: "1px solid var(--mrd-line)" }}>
         <h2
           className="mrd-subtitle"
-          style={{ fontWeight: 600, color: "var(--ink)", margin: "0 0 6px" }}
+          style={{ fontWeight: 600, color: "var(--mrd-ink)", margin: "0 0 6px" }}
         >
           You said, we changed
         </h2>
@@ -190,7 +190,7 @@ function UpdatesPage() {
               <div key={e.title}>
                 <h3
                   className="text-mrd-prose"
-                  style={{ fontWeight: 600, color: "var(--ink)", margin: "0 0 4px" }}
+                  style={{ fontWeight: 600, color: "var(--mrd-ink)", margin: "0 0 4px" }}
                 >
                   {e.title}
                 </h3>

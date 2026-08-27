@@ -119,6 +119,7 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { threadName } from "@/components/ask/thread-name";
 import { Row, Line, Who } from "@/components/meridian/rows";
 import {
   Action,
@@ -463,10 +464,37 @@ function ThreadsSurface() {
   const headline = thread.isLoading
     ? "Reading the thread."
     : selectedId
-      ? title || "Untitled thread"
+      ? /*
+         * NAMED BY WHAT WAS ASKED, when nobody renamed it.
+         *
+         * `conversations.title` defaults to "New conversation" and 24 of the 84
+         * conversations in this database still carry it while HOLDING
+         * messages, so a third of every thread list is identical words over
+         * different subjects. `AskSwitcher` already names this problem for its
+         * own control and fixed the button; the thread itself kept the label.
+         *
+         * The first message is exact here -- this view has the whole list, so
+         * it is what was actually asked rather than the most recent line. The
+         * summaries in the rail carry only the newest message, which would be a
+         * poor name for a long thread, so they keep the stored title with the
+         * snippet beneath it and are left alone.
+         *
+         * A name a person CHOSE always wins; this only ever replaces the
+         * default and the empty string.
+         */
+        (threadName(title, messages[0]?.content) ?? "Untitled thread")
       : list.isLoading
         ? "Reading your threads."
-        : "Nothing asked yet.";
+        : // A FAILED READ IS NOT AN EMPTY WORKSPACE. This fell through to
+          // "Nothing asked yet." whenever the list failed, so a person whose
+          // session had ended was told their workspace was empty -- the same
+          // defect fixed on /start and /approvals, still here because a
+          // headline is not where anyone looks for it. Neutral rather than a
+          // fourth sentence about the failure: the left pane states it and
+          // carries the control, and the right says what follows.
+          list.isError
+          ? "Threads"
+          : "Nothing asked yet.";
 
   const sub = selectedId ? (
     messages.length > 0 ? (
@@ -530,11 +558,11 @@ function ThreadsSurface() {
             ) : null}
 
             {list.isError ? (
-              <ReadFailedLine onRetry={() => void list.refetch()}>
+              <ReadFailedLine onRetry={() => void list.refetch()} error={list.error}>
                 Your threads did not load.
               </ReadFailedLine>
             ) : searching && found.isError ? (
-              <ReadFailedLine onRetry={() => void found.refetch()}>
+              <ReadFailedLine onRetry={() => void found.refetch()} error={found.error}>
                 The search did not run.
               </ReadFailedLine>
             ) : list.isLoading || (searching && found.isLoading) ? null : visible.length === 0 ? (
@@ -703,14 +731,26 @@ function ThreadsSurface() {
           list.isLoading ? (
             <Reading>Reading what has been asked.</Reading>
           ) : list.isError ? (
-            <ReadFailedLine onRetry={() => void list.refetch()}>
-              The thread list did not load.
-            </ReadFailedLine>
+            /*
+             * ONE READ, ONE ANNOUNCEMENT. This is `list`, the same query the
+             * left pane announces as "Your threads did not load." with its own
+             * retry, on screen at the same time. Measured against a forced 401,
+             * /threads stated one failed read twice, in two wordings, with two
+             * retries -- and the second re-runs the identical query, so pressing
+             * either did the same thing.
+             *
+             * The left pane owns the list and keeps the state and the control.
+             * This pane says what follows from it, which is what a person
+             * standing in an empty right-hand pane actually needs. Not silence:
+             * a pane that goes blank without saying why is the defect this
+             * sweep is about.
+             */
+            <NothingHere>Nothing to open until the list loads.</NothingHere>
           ) : (
             <NothingHere>Nothing has been asked in this workspace yet.</NothingHere>
           )
         ) : thread.isError ? (
-          <ReadFailedLine onRetry={() => void thread.refetch()}>
+          <ReadFailedLine onRetry={() => void thread.refetch()} error={thread.error}>
             This thread did not open.
           </ReadFailedLine>
         ) : thread.isLoading ? (

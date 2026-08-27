@@ -72,11 +72,47 @@ const NOTHING: WayOut = { next: null, onThisScreen: false };
  */
 const DIAGNOSIS: Partial<Record<HoldReason, string>> = {
   paused: "Nothing on this screen will move it until the pause is lifted for the whole workspace.",
-  "no-agent": "Nobody on your team covers this step yet, so no amount of trying will fill it.",
+  /*
+   * TWO FALSE CLAIMS, AND THE SECOND WAS THE DAMAGING ONE.
+   *
+   * This read "Nobody on your team covers this step yet, so no amount of
+   * trying will fill it." Traced against the running code, both halves are
+   * wrong in the only state that produces them.
+   *
+   * `no-agent` has two sources. The driver raises it when
+   * `leadAgentFor(station)` is null, and that cannot happen: all seven
+   * stations have a lead today, which the test beside this file now pins so a
+   * later station cannot quietly make this sentence a lie. The other source is
+   * the live one. `loop.server.ts` sees `agent.enabled === false`, cancels the
+   * run, and halts with kind `agent-disabled`, which `HALT_HOLD` maps here.
+   * 27 of the 283 agents in this database are switched off right now, so this
+   * is a state a person reaches rather than a theoretical branch.
+   *
+   * In that state somebody DOES cover the step. The agent exists, it is
+   * assigned to the station, and it was turned off. And trying is exactly what
+   * fills it: turning it back on is one control on the Agents screen. Telling a person
+   * their situation is unfixable when the fix is a toggle is worse than saying
+   * nothing, which is what this file was written to stop.
+   *
+   * It says Agents and not Crew on purpose. The route is `/crew` and the label
+   * has been Agents since 2026-08-15, and a sentence that points at a door by
+   * a name the product no longer prints is the same dead end in a nicer coat.
+   *
+   * The record already holds the true sentence and the screen never gets it:
+   * the loop stores "<slug> is switched off, so this run was cancelled instead
+   * of resumed", while `last_hold_because` on this path is null by F-127, so
+   * "Why it stopped" renders only the two derived lines. S0 owns the other one
+   * (`HOLD_LINE["no-agent"]`, which still says "No agent serves this station
+   * yet") and has the reproduction.
+   */
+  "no-agent":
+    "The agent that covers this step is switched off, so nothing will pick it up until it is switched back on under Agents.",
   stalled: "It has come back with nothing several times, so another try lands in the same place.",
-  "going-in-circles": "It has been round this many times without moving, so trying again changes nothing.",
+  "going-in-circles":
+    "It has been round this many times without moving, so trying again changes nothing.",
   "tools-refused": "A door it needs is locked, and no step can unlock it for itself.",
-  "station-cannot-finish": "It has everything it needs and still cannot finish, so this one needs you rather than another try.",
+  "station-cannot-finish":
+    "It has everything it needs and still cannot finish, so this one needs you rather than another try.",
   "corrections-spent": "It has been sent back for this same fix as often as it is allowed.",
   "given-up": "Nothing more will be tried here on its own.",
 };

@@ -273,7 +273,7 @@ export function ApprovalsPanel() {
 
   if (q.isError) {
     return (
-      <ReadFailed onRetry={() => void q.refetch()}>
+      <ReadFailed error={q.error} onRetry={() => void q.refetch()}>
         The queue did not load, so nothing here is the real count.
       </ReadFailed>
     );

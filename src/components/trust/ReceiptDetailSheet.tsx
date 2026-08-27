@@ -43,6 +43,7 @@
  */
 
 import * as React from "react";
+import { humanWriteError } from "@/lib/roles.functions";
 import { Row, Line } from "@/components/meridian/rows";
 import { Action, Num, Actions, ReadFailedLine, Value } from "@/components/meridian/surface-parts";
 import { useNavigate } from "@tanstack/react-router";
@@ -131,7 +132,9 @@ export function ShareControl({ decisionId }: { decisionId: string }) {
       <Action busy={m.isPending} onClick={() => m.mutate()}>
         {m.isPending ? "Publishing" : m.isError ? "Try publishing again" : "Publish it"}
       </Action>
-      {m.isError ? <ReadFailedLine>{(m.error as Error).message}</ReadFailedLine> : null}
+      {m.isError ? (
+        <ReadFailedLine>{humanWriteError(m.error, "The read failed.")}</ReadFailedLine>
+      ) : null}
     </>
   );
 }
@@ -211,7 +214,8 @@ export function ReceiptDetail({
         // it takes the plain-button slot (answers/RL0-005).
         goTo={onClose ? "Close" : undefined}
         onGoTo={onClose}
-      >{/* THE RECORD SPEAKING. A receipt either still governs or it has been
+      >
+        {/* THE RECORD SPEAKING. A receipt either still governs or it has been
             replaced, and that is a claim about the workspace rather than a
             status column, so it takes the one lit surface in the product. */}
         <RecordSays

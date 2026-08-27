@@ -83,12 +83,35 @@ export function AskDock({ pane: Pane = AskPane }: { pane?: React.ComponentType }
           onClick={ask.summon}
           // The accessible name is the invitation, not the mechanism. A screen
           // reader hears what it is for, the same as a sighted reader.
-          aria-label="Ask Supaprod what to build"
+          aria-label="Ask Supaprod about your work"
         >
           <span className="sp-dock-mark" aria-hidden="true">
             <SupaprodMark size={17} />
           </span>
-          <span className="sp-dock-prompt">What should we build?</span>
+          {/*
+           * R-24's INTERIM, WHICH HAS BEEN RULED AND UNBUILT SINCE 2026-08-25.
+           * The ruling, verbatim: "AskDock must stop saying 'What should we
+           * build?' while it opens a chat. That copy promises the loop and
+           * delivers a conversation."
+           *
+           * F-04 is the measurement behind it: this box files a MISSION, and
+           * the run workbench cannot see a mission. So the most-seen invitation
+           * in the product asked the question the whole loop is named for, and
+           * what came back was a conversation. The ruling assigned it to lane 0
+           * under the three-lane model; SURFACE-MAP:174 puts components/ask in
+           * this lane now, so it is mine and it is late.
+           *
+           * "Ask about your work" is the pane's own register -- its placeholder
+           * is `Ask about ${scopeLabel}` -- so the row now promises exactly
+           * what opens. It understates rather than overstates: "Hand it over"
+           * is still one click inside, and a door you find is better than a
+           * door you were promised and did not get.
+           *
+           * WHEN QUEUE ITEM 16 LANDS and a dispatch creates a track, this copy
+           * can go back to naming the loop, because the loop will be what it
+           * opens. Not before.
+           */}
+          <span className="sp-dock-prompt">Ask about your work</span>
           {/* THE MOST-SEEN LIVE-AGENT LINE IN THE PRODUCT SAID THE LEAST.
               The dock renders on every authenticated route, so this string is
               on screen more than any other agent indicator, and it read

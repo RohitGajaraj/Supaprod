@@ -110,7 +110,7 @@ export function InjectionDefenseCard() {
           so this cannot claim a boundary the engine does not hold. A failed
           read says so rather than drawing nothing and implying no boundary. */}
       {thresholdsQ.isError ? (
-        <ReadFailedLine onRetry={() => void thresholdsQ.refetch()}>
+        <ReadFailedLine error={thresholdsQ.error} onRetry={() => void thresholdsQ.refetch()}>
           The live thresholds did not load, so the two lines below would not be the real ones.
         </ReadFailedLine>
       ) : flagT !== null && quarT !== null ? (
@@ -163,7 +163,11 @@ export function InjectionDefenseCard() {
         ))}
       </Actions>
 
-      {assess.error ? <ReadFailedLine>{(assess.error as Error).message}</ReadFailedLine> : null}
+      {assess.error ? (
+        <ReadFailedLine error={assess.error}>
+          That sample was not assessed. Nothing was recorded and no rule changed.
+        </ReadFailedLine>
+      ) : null}
 
       {verdict ? (
         <>

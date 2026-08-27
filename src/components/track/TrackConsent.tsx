@@ -197,7 +197,7 @@ export function TrackConsent({
     // FAIL LOUD, NEVER FAIL EMPTY: silence here would tell a person their run
     // needs nothing when nobody could read the table at all (RL0-020).
     return (
-      <ReadFailedLine>
+      <ReadFailedLine error={q.error}>
         The questions this run is waiting on could not be read, so answer nothing until this clears.
       </ReadFailedLine>
     );
@@ -319,7 +319,7 @@ export function TrackConsent({
                       ? `Recorded beside every one of the ${classCount} calls.`
                       : "It goes to the agent working this run and stays on the record beside this call."
                   }
-                  placeholder="Group only the last two weeks, and leave the archived signals out"
+                  placeholder="Group only the last two weeks, and leave the archived findings out"
                   commitLabel={
                     declineAll
                       ? `Turn down all ${classCount} in this workspace`

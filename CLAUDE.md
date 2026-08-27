@@ -56,6 +56,15 @@ entered at `sense`, and **zero have gone `sense` → `learn`**.
 > ```sql
 > SELECT count(*) FROM spine_tracks t
 > WHERE t.entry_station = 'sense' AND t.station = 'learn' AND t.waived = '[]'
+>   -- ARRIVED AT LEARN IS NOT GRADED AT LEARN. Added 2026-08-27 (F-131), and it
+>   -- is a false positive that would have fired on the FIRST run that worked.
+>   -- `status = 'done'` is written only when the route completes; a track waiting
+>   -- on its forecast holds `needs-evidence` at station 'learn' with status
+>   -- 'open'. F-104's real forecast is due 2026-10-15, so the first track to walk
+>   -- the loop would sit ungraded at Learn for two months while this query
+>   -- reported the acceptance met. It changes nothing today: both learn tracks
+>   -- are already 'done' and `station='learn' AND status<>'done'` returns 0.
+>   AND t.status = 'done'
 >   -- A person ANSWERED a boundary call mid-run (F-79).
 >   AND t.id NOT IN (SELECT r.track_id FROM agent_approvals a
 >                    JOIN agent_runs r ON r.mission_id = a.mission_id
@@ -105,6 +114,9 @@ bun run build          # production build to a Cloudflare Worker
 bun run lint           # ESLint
 bun run docs:check     # doc anti-rot check, run before committing doc changes
 bun run check:motion   # dead backend test: what still moves when nothing can be read
+bun run check:unreachable      # server functions and components nothing imports
+bun run check:dead-writers     # tables with a live writer and an orphaned one
+bun run check:retired-aliases  # files drawing in the retired system through an alias
 bun run cost:track     # capture this session's token spend
 ```
 
@@ -115,7 +127,7 @@ bun run cost:track     # capture this session's token spend
 - **Project skills** live in `.claude/skills/`. `supaprod-tempo` and `supaprod-design` are **deprecated stubs**; the design contract is [`docs/design/DESIGN-SYSTEM.md`](./docs/design/DESIGN-SYSTEM.md).
 - **Meridian is the only design system, and this is enforced, not requested.** Every prior one is retired (v1, v3 Obsidian, v4 Loom, v5 Tempo, Cadence/ink). `bun test` fails if a **new** file carries a retired token (`--sp-*`, `--ds-*`, `--text-*`, `--hairline`, `--raised`, `data-obsidian`) or a raw colour, and fails if an **existing** file grows its count. If no `--mrd-*` token fits, that is a gap in Meridian: build it there. Never widen the baseline to pass.
 - **Hooks enforce repo invariants** (commit policy, migration safety, humanization). Treat a hook message as user feedback. Setup: [`docs/operations/hooks.md`](./docs/operations/hooks.md).
-- **Session handoff is a pair.** Write both `.remember/remember.md` (untracked; the plugin injects it at SessionStart and clears it as it reads, so never expect to find it on disk and never commit it) and [`docs/operations/session-handoff.md`](./docs/operations/session-handoff.md) (tracked, survives the read).
+- **Session handoff is a pair, and BOTH halves are now COMMITTED** (founder ruling, 2026-08-27, reversing the previous "never commit it"). Write both `.remember/remember.md` and [`docs/operations/session-handoff.md`](./docs/operations/session-handoff.md). **`.remember/remember.md` is tracked and pushed on purpose:** with several sessions running in parallel, a handoff only one checkout can read is a handoff the other sessions do not get. Commit it so every lane, and every later session, reads the same one off the remote. The plugin still injects it at SessionStart and clears it as it reads, so **do not be surprised to find it empty on disk — the committed copy is the durable one**, and rewrite it rather than assuming it survived.
 
 ## Knowledge graph (graphify)
 

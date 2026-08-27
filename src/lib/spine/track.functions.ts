@@ -28,6 +28,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { isForecastCheckable } from "./metric-probe.server";
 import { z } from "zod";
+
+import { failSoftOrThrow } from "@/lib/read-failure";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
 import {
@@ -113,6 +115,15 @@ export type Track = {
    * found painting every hold amber by testing the sentence.
    */
   holdReason: string | null;
+  /**
+   * The DRIVER'S OWN SENTENCE for why this stopped, stored verbatim.
+   *
+   * `holdReason` is the coarse kind ('given-up', 'tools-refused'), which is what
+   * a list needs. This is the specific one, naming the stations and the missing
+   * thing, which is what a person needs before they can do anything about it.
+   * Null means the track stopped before the column existed, or is not stopped.
+   */
+  holdBecause: string | null;
   /** When the driver last touched it. Null means it has never been driven. */
   drivenAt: string | null;
   /**
@@ -137,6 +148,7 @@ type TrackRow = {
   waived: unknown;
   updated_at: string;
   last_hold: string | null;
+  last_hold_because?: string | null;
   driven_at: string | null;
   attempts: number | null;
 };
@@ -171,13 +183,14 @@ function rowToTrack(r: TrackRow): Track {
     // other reason exactly as written, so there is no second copy of the words.
     hold: holdLine(r.last_hold, { station: r.station as AgentStation }),
     holdReason: r.last_hold,
+    holdBecause: r.last_hold_because ?? null,
     drivenAt: r.driven_at ?? null,
     attempts: r.attempts ?? 0,
   };
 }
 
 const SELECT =
-  "id,user_id,workspace_id,title,origin,entry_station,station,status,path,waived,updated_at,last_hold,driven_at,attempts," +
+  "id,user_id,workspace_id,title,origin,entry_station,station,status,path,waived,updated_at,last_hold,last_hold_because,driven_at,attempts," +
   // The ONLY edge from a track to the questions it is waiting on.
   // `agent_approvals` has no track back-reference — see SPEC-CONSENT §1.1 and
   // the migration that created this column, which rejects every correlational
@@ -427,9 +440,35 @@ export const listTracks = createServerFn({ method: "GET" })
         .eq("status", "open")
         .order("updated_at", { ascending: false })
         .limit(50);
-      if (error || !data) return [];
-      return (data as unknown as TrackRow[]).map(rowToTrack);
-    } catch {
+      /*
+       * ── F-126: "NOTHING IS IN FLIGHT" WAS ALSO WHAT A FAILED READ SAID ────
+       *
+       * This was `if (error || !data) return []`, so a PostgREST error, an RLS
+       * refusal and an empty workspace produced the same answer, and no caller
+       * could tell them apart. S1 found the consequence on the surface: the
+       * shell's live-work strip and `TrackStart` both render that empty array as
+       * **"Nothing is in flight"**, beside work that may be moving.
+       *
+       * S1 could not reproduce it and said so, which is the right way to hand
+       * over a defect found by inspection. It is real by inspection anyway: the
+       * two states are indistinguishable in the return type, whether or not the
+       * auth middleware currently catches most of the ways to get there.
+       *
+       * The split is F-120's, now shared rather than copied: a missing column is
+       * a deployment-ordering fact and falls soft; anything else is a runtime
+       * fact and is raised, so `useQuery` can set `isError` and a surface can
+       * say "this did not load" instead of "there is nothing here".
+       */
+      if (error) failSoftOrThrow(error, "The work in flight");
+      return ((data ?? []) as unknown as TrackRow[]).map(rowToTrack);
+    } catch (e) {
+      /*
+       * The bare `catch { return [] }` swallowed the throw above along with
+       * everything else, which would have made the whole fix invisible. A thrown
+       * read failure is re-raised; anything genuinely unexpected still returns an
+       * empty board rather than breaking every surface that reads it.
+       */
+      if (e instanceof Error && e.message.includes("could not be read")) throw e;
       return [];
     }
   });
@@ -440,13 +479,30 @@ export const getTrack = createServerFn({ method: "GET" })
   .handler(async ({ context, data }): Promise<Track | null> => {
     const { supabase } = context;
     try {
-      const { data: row } = await supabase
+      /*
+       * ── F-126, THE WORSE HALF ────────────────────────────────────────────
+       *
+       * This did not destructure `error` AT ALL. It read only `row`, so a
+       * refused or failed read produced `undefined`, returned null, and the run
+       * screen rendered **"this piece of work does not exist"** about a track
+       * that does. `listTracks` at least conflated a failure with an empty
+       * board; this one conflates it with a track that was never there.
+       *
+       * Reading only `data` is precisely the F-76 shape, and this is the
+       * highest-stakes instance of it found so far: it is the read behind the
+       * screen a person opens to watch one piece of work move.
+       */
+      const { data: row, error } = await supabase
         .from("spine_tracks" as never)
         .select(SELECT)
         .eq("id", data.trackId)
         .maybeSingle();
+      if (error) failSoftOrThrow(error, "This piece of work");
       return row ? rowToTrack(row as unknown as TrackRow) : null;
-    } catch {
+    } catch (e) {
+      // Re-raised for the same reason as above: a bare catch here would swallow
+      // the distinction this change exists to draw.
+      if (e instanceof Error && e.message.includes("could not be read")) throw e;
       return null;
     }
   });
@@ -651,6 +707,7 @@ export const advanceTrack = createServerFn({ method: "POST" })
                   station: next,
                   attempts: 0,
                   last_hold: null,
+                  last_hold_because: null,
                   last_driven_via: "press",
                   updated_at: now,
                 }
@@ -658,6 +715,7 @@ export const advanceTrack = createServerFn({ method: "POST" })
                   status: "done",
                   attempts: 0,
                   last_hold: null,
+                  last_hold_because: null,
                   last_driven_via: "press",
                   updated_at: now,
                 }) as never,
@@ -888,6 +946,7 @@ export const retryStation = createServerFn({ method: "POST" })
           attempts: 0,
           station_drives: 0,
           last_hold: null,
+          last_hold_because: null,
           driven_at: now,
           updated_at: now,
         } as never)
@@ -1256,6 +1315,67 @@ export const getTrackArtifacts = createServerFn({ method: "GET" })
           }
         }),
       );
+
+      /*
+       * ── F-129: A SIGNAL KNOWS ITS PATTERN AND COULD ONLY SAY "clustered" ──
+       *
+       * The run's Discover pane ended a signal's line with the bare word
+       * "clustered". `SESSION-1` asks that pane to show signals "visibly
+       * grouping into themes as clustering runs" and calls it the most
+       * convincing thing in the product. **A state word is not a pattern.** The
+       * pattern has a name, and `theme_id` was already on the row.
+       *
+       * RESOLVED FROM `signals.theme_id -> themes.id`, WHICH IS THE PLATFORM
+       * TRUTH. S1 shipped a first version that read the title from the theme's
+       * MEMBERSHIP of the track and the founder corrected the approach: 1,133
+       * signals carry a `theme_id` and only 315 of those themes are attached to
+       * the same track, so designing around the other 818 fits the product to a
+       * gap in bookkeeping and bakes today's mess in. **Membership is
+       * bookkeeping; the foreign key is the fact.** It holds whether or not
+       * anything remembered to attach the theme.
+       *
+       * ONE QUERY FOR THE WHOLE PANE, and no cap. S1 rejected doing this from
+       * the client with `listThemes` for the right reason: it is a second read
+       * of the same fact and it stops at the 300 newest, so a signal whose
+       * cluster is older would silently lose its name. A limit fitted to today's
+       * row count is the same mistake one layer down.
+       *
+       * WE DID NOT LOOK, SO WE CLAIM NOTHING: a failed theme read leaves
+       * `theme_title` absent rather than null-and-present, the same fail
+       * direction as the artifact loop above, so "this signal has no name for
+       * its cluster" and "we could not read the names" stay apart.
+       */
+      const themeIds = [
+        ...new Set(
+          [...found.entries()]
+            .filter(([key]) => key.startsWith("signal:"))
+            .map(([, v]) => v.fields.theme_id)
+            .filter((t): t is string => typeof t === "string" && t.length > 0),
+        ),
+      ];
+      if (themeIds.length > 0) {
+        const { data: themeRows, error: themeErr } = await supabase
+          .from("themes")
+          .select("id,title")
+          .in("id", themeIds);
+        if (!themeErr) {
+          const titleById = new Map(
+            ((themeRows ?? []) as Array<{ id: string; title: string | null }>).map((t) => [
+              t.id,
+              t.title ?? null,
+            ]),
+          );
+          for (const [key, v] of found.entries()) {
+            if (!key.startsWith("signal:")) continue;
+            const tid = v.fields.theme_id;
+            if (typeof tid !== "string" || !tid) continue;
+            // `?? null` and not `?? undefined`: the theme id exists and we read
+            // the table successfully, so a miss means that theme row is gone,
+            // which is a fact worth carrying rather than a silence.
+            v.fields.theme_title = titleById.get(tid) ?? null;
+          }
+        }
+      }
 
       const chain = buildChain({
         route: track.route,
@@ -2530,6 +2650,7 @@ export const submitStationByHand = createServerFn({ method: "POST" })
         attempts: 0,
         station_drives: 0,
         last_hold: null,
+        last_hold_because: null,
         driven_at: now,
         updated_at: now,
       } as never)
@@ -2665,6 +2786,7 @@ export const rewindTrackTo = createServerFn({ method: "POST" })
           // re-hold `going-in-circles` on the very next tick.
           station_drives: 0,
           last_hold: null,
+          last_hold_because: null,
           driven_at: now,
           updated_at: now,
         } as never)

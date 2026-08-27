@@ -132,7 +132,20 @@ which is what the transcript renders.
 - **The mechanism is a single decided approval**, not a broken loop, not missing artifacts, and not
   the provenance ambiguity I raised in `S4-025` — that ambiguity does not arise here, because all six
   transitions positively record `sweep`.
-- **`agent_approvals.decided_by` is NULL**, so the record cannot say who decided. That is a defect in
-  its own right and it is why this took a join to establish rather than a read.
+- ~~**`agent_approvals.decided_by` is NULL**, so the record cannot say who decided.~~
+  **CORRECTED 2026-08-27, and I generalised from one row.** S1 measured the column and I confirmed it:
+
+  | | |
+  | --- | --- |
+  | approvals decided | **176** |
+  | **that DO name the decider** | **158** |
+  | that cannot | **18** |
+
+  **`bdf32286` is one of the 18.** So the sentence is true of that row and false as a statement about
+  the column, which is how I wrote it. The honest caveat is *"18 of 176 answered calls cannot name
+  who answered"* — a much smaller hole, and the acceptance query can name the decider on about 90% of
+  answered calls.
+
+  The same wording is in `CLAUDE.md` as a general claim. **S0's to change**, and S1 has told them.
 - **The loop itself is demonstrably working.** Anyone reporting "zero in three months" without that
   sentence beside it is reporting the distance as larger than it is.

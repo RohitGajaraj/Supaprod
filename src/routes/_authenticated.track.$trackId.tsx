@@ -12,6 +12,7 @@ import { RunFooter } from "@/components/track/RunFooter";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { getTrack, type Track } from "@/lib/spine/track.functions";
 import { nextStation, waiverFor, type SpineRoute } from "@/lib/spine/route";
+import { originLine, runStatus } from "@/components/track/run-status";
 import { holdTone } from "@/lib/spine/driver";
 import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
 
@@ -74,77 +75,6 @@ export const Route = createFileRoute("/_authenticated/track/$trackId")({
   },
 });
 
-/**
- * The status chip's three inputs, derived once so the header cannot drift from
- * the driver's own vocabulary. `Finished` overrides StatusChip's default word
- * for pass because reaching the end of a route is a completion, not a graded
- * outcome -- the product has never graded a forecast, and "Passed" would claim
- * one.
- *
- * `liveNow` is RUN-18's input: work in motion outranks a hold row written
- * between automatic legs. An out-of-time hold lands mid-press by design; while
- * the next leg is already walking, the truthful headline is Running, and the
- * hold sentence returns the moment the walk hands control back.
- */
-function runStatus(
-  track: Track,
-  liveNow = false,
-): {
-  status: "you" | "agent" | "pass" | "hold";
-  word: string;
-  pulse: boolean;
-  second: string | undefined;
-} | null {
-  if (track.status === "done") {
-    return {
-      status: "pass",
-      word: "Finished",
-      pulse: false,
-      second: "It reached the end of its route.",
-    };
-  }
-  if (track.status === "abandoned") {
-    return { status: "hold", word: "Abandoned", pulse: false, second: undefined };
-  }
-  const tone = holdTone(track.holdReason);
-  if (tone !== "you" && liveNow) {
-    return { status: "agent", word: "Running", pulse: true, second: undefined };
-  }
-  if (tone === "you") {
-    return {
-      status: "you",
-      word: "Waiting on you",
-      pulse: true,
-      second: track.hold ?? undefined,
-    };
-  }
-  if (tone === "hold") {
-    return {
-      status: "hold",
-      word: "On hold",
-      pulse: false,
-      second: track.hold ?? undefined,
-    };
-  }
-  /*
-   * NO CHIP, AND THIS IS THE HONESTY FIX RATHER THAN A GAP.
-   *
-   * The fallback used to return "Running" for any open track with no hold. That
-   * is every track sitting between sweeps, which is most of them: caught at
-   * 1024px on a real run where the header said Running while the pane directly
-   * beneath it said "Nothing is driving it right now" and the character said
-   * "Ready when you are." Three statements about one run, and the loudest was
-   * the false one.
-   *
-   * Nothing is running here, nothing is holding it, and nobody is waiting on
-   * anybody. This system already has a word for that and it is silence: the
-   * spec chip follows the same rule, "quiet in this system means nothing to
-   * report, and a chip that says nothing is noise". So the chip is absent and
-   * the two honest sentences below it carry the state.
-   */
-  return null;
-}
-
 function RunHeader({ track, liveNow = false }: { track: Track; liveNow?: boolean }) {
   const stationName = AGENT_STATIONS[track.station]?.name ?? track.station;
   const next = nextStation(track.route as SpineRoute, track.station);
@@ -162,9 +92,18 @@ function RunHeader({ track, liveNow = false }: { track: Track; liveNow?: boolean
         {/* Clamped to two lines: some origins are whole paragraphs (a
             clustered brief with counts), and an unbounded mono block under the
             title competed with the status for first read. The full text lives
-            on the row; the header only says where this came from. */}
-        {track.origin ? (
-          <p className="mrd-meta mt-mrd-1 line-clamp-2 text-mrd-faint">{track.origin}</p>
+            on the row; the header only says where this came from.
+
+            AND IT NO LONGER REPEATS THE TITLE. This rendered `track.origin`
+            raw, so on `6199f3df` the screen opened by saying the same sentence
+            twice, one line apart. `originLine` removes only a repeated opening
+            and keeps every word the title did not already say -- see its header
+            for the measurement across all 106 tracks and for why the share
+            grows rather than shrinks. */}
+        {originLine(track.title, track.origin) ? (
+          <p className="mrd-meta mt-mrd-1 line-clamp-2 text-mrd-faint">
+            {originLine(track.title, track.origin)}
+          </p>
         ) : null}
       </div>
       <div className="flex flex-col items-end gap-mrd-1">
@@ -176,9 +115,7 @@ function RunHeader({ track, liveNow = false }: { track: Track; liveNow?: boolean
             <StatusChip status={s.status} pulse={s.pulse}>
               {s.word}
             </StatusChip>
-            {s.second ? (
-              <span className="mrd-meta max-w-[36ch] text-right">{s.second}</span>
-            ) : null}
+            {s.second ? <span className="mrd-meta max-w-[36ch] text-right">{s.second}</span> : null}
           </>
         ) : null}
       </div>

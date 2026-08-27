@@ -118,7 +118,7 @@ export function IncidentsPanel() {
   // person acts differently on each.
   if (q.isError) {
     return (
-      <ReadFailed onRetry={() => void q.refetch()}>
+      <ReadFailed error={q.error} onRetry={() => void q.refetch()}>
         The record did not load, so an empty list here would not mean nothing went wrong.
       </ReadFailed>
     );

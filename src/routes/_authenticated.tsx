@@ -8,6 +8,7 @@ import { WorkspaceProvider } from "@/hooks/use-workspace";
 import { FlowModeProvider } from "@/hooks/use-flow-mode";
 import { needsOnboarding } from "@/lib/onboarding-gate";
 import { BackendHealthBanner } from "@/components/system/BackendHealthBanner";
+import { EverythingIsPausedBanner } from "@/components/system/EverythingIsPausedBanner";
 import { BillingBanner } from "@/components/billing/BillingBanner";
 
 import { ShellReadFailed, ShellRouteMissing } from "@/components/meridian/boundary-states";
@@ -220,6 +221,12 @@ function AuthedLayout() {
           <AskProvider>
             {/* Ambient time/weather moved into the per-page TopBar (shell port). */}
             <BackendHealthBanner />
+            {/* A workspace pause holds every agent mid-step, and it was visible
+                on ONE governance panel. It is the state that changes what every
+                other screen means -- an empty queue reads as quiet rather than
+                held -- which is the same reason BackendHealthBanner is here.
+                Draws only when paused. */}
+            <EverythingIsPausedBanner />
             <BillingBanner />
             {!isOnboarding && !isReimaginedSurface && <GotoShortcuts />}
             {isOnboarding || isReimaginedSurface ? (

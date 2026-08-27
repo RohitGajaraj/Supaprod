@@ -111,6 +111,22 @@ describe("every settings pane can be reached without typing a URL", () => {
         if (saysItMoved && offersADoor) continue;
       }
 
+      /*
+       * A REDIRECT IS THE STRONGEST WAY OF NOT BEING STRANDED, and it was the
+       * one this guard could not see.
+       *
+       * `?section=memory` used to render a pane whose whole content was "It is
+       * not set here any more" plus a button to Brain, which satisfied the
+       * apology branch above. It is a `beforeLoad` redirect now, so the address
+       * still answers every saved link and every search hit and the reader
+       * never lands on the dead end at all -- strictly better than an apology,
+       * and this test called it stranded because it only knew about panes.
+       *
+       * Checked against the ROUTE rather than a list here, so it cannot become
+       * an exemption: delete the redirect and this section is stranded again.
+       */
+      if (new RegExp(`asked === "${id}"[^]{0,120}?redirect\\(`).test(route)) continue;
+
       stranded.push(id);
     }
 
@@ -131,10 +147,7 @@ describe("every settings pane can be reached without typing a URL", () => {
     const glance = readFileSync(join(SRC, "lib/engine-room-glance.ts"), "utf8");
     expect(/id: "diagnostics"/.test(glance), "the Quality room has no Diagnostics tab").toBe(true);
 
-    const room = readFileSync(
-      join(SRC, "components/engine-room/rooms/QualityRoom.tsx"),
-      "utf8",
-    );
+    const room = readFileSync(join(SRC, "components/engine-room/rooms/QualityRoom.tsx"), "utf8");
     expect(
       /view === "diagnostics"/.test(room) && /<DiagnosticsSection\s*\/>/.test(room),
       "the Quality room advertises a Diagnostics tab it does not render",

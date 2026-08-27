@@ -143,7 +143,7 @@ export const DESIGNATION_MEANING: Record<Exclude<NonNullable<Designation>, "best
   "needs validation": "High appeal, thin evidence. Let the Critic weigh in before you commit.",
   "quick win": "Low effort for real impact. A fast, safe ship.",
   "heavy lift": "Large effort for the expected return. Consider slicing it smaller.",
-  "watch this week": "Gaining signals, not yet the top bet. Keep it in view.",
+  "watch this week": "Gaining evidence, not yet the top bet. Keep it in view.",
 };
 
 /** A quiet system designation for a non-best bet: the word itself, in its own

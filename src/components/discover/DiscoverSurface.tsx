@@ -228,7 +228,7 @@
  */
 
 import { AutomationBoundary } from "@/components/governance/AutomationBoundary";
-import { failureLine } from "@/lib/error-copy";
+import { endedSessionOn, failureLine, reasonLine } from "@/lib/error-copy";
 import { wordFor } from "@/lib/spine/chain";
 import { Row, Line } from "@/components/meridian/rows";
 import * as React from "react";
@@ -623,7 +623,7 @@ export function DiscoverSurface({
    * `?capture=1` — land ON the capture box rather than merely on this station.
    *
    * The box is at the bottom of this surface by deliberate design, below the
-   * ranked reading, so every control labelled "Capture a signal" that
+   * ranked reading, so every control labelled "Capture a finding" that
    * navigated to a bare `/discover` put the person on the right page with the
    * thing they came for off screen. Same defect `?focus=` had and the same
    * repair; the route's header carries both.
@@ -814,7 +814,7 @@ export function DiscoverSurface({
       setReceipt({
         verb: enabled ? "You let it read on its own" : "You took the reading back",
         consequence: enabled
-          ? "New signals cluster without waiting for you. Nothing is promoted without you."
+          ? "New findings group without waiting for you. Nothing is promoted without you."
           : "Nothing clusters until you press the button yourself.",
       });
       void qc.invalidateQueries({ queryKey: ["cluster-settings"] });
@@ -830,6 +830,18 @@ export function DiscoverSurface({
   const rows = React.useMemo(() => signals.data?.signals ?? [], [signals.data]);
   type SignalRow = (typeof rows)[number];
   const loadError = (signals.error ?? themes.error) as Error | null;
+
+  /*
+   * ONE ENDED SESSION, SAID ONCE. Measured against a token that no longer
+   * answers: this surface drew "Your session ended. Sign in again and this will
+   * load." three times with three doors, because three regions each answered
+   * for their own read and all three failed for the same reason.
+   *
+   * Only an ended session collapses. A read that failed for a real reason keeps
+   * its own region's honesty, because there the detail IS what the reader needs
+   * -- which half is real is the whole question.
+   */
+  const endedSession = endedSessionOn(signals.error, themes.error);
   // An answer that has not arrived is not the answer "none". This surface is
   // where that was found on production: a workspace with 97 signals, 41 themes
   // and 34 opportunities rendered the first-run "Connect a source" screen for a
@@ -1579,7 +1591,8 @@ export function DiscoverSurface({
         </React.Fragment>,
       );
     }
-    if (parts.length === 0) return "Nothing was captured. Every line was too short to be a signal.";
+    if (parts.length === 0)
+      return "Nothing was captured. Every line was too short to be a finding.";
     // Joined here rather than by leading spaces inside each fragment, so a
     // sentence that happens to be the only one never opens with a stray space.
     return (
@@ -1989,6 +2002,33 @@ export function DiscoverSurface({
     </>
   );
 
+  /*
+   * ONE FACT, ONE DOOR, AND NOTHING DRAWN UNDERNEATH IT.
+   *
+   * When the session is gone every read on this desk fails, so there is no
+   * ranking to show, no evidence to weigh and no bet to decide. Drawing the
+   * regions anyway gave three identical sign-in doors under a headline that
+   * could not be true. The honest page is the fact, what is still true, and
+   * the way back.
+   *
+   * The title carries the reassurance rather than the failure: what a person
+   * fears on the desk that holds their sources is that the record of what came
+   * in has gone, and it has not.
+   */
+  if (endedSession) {
+    return (
+      <Surface>
+        <div className="flex flex-col items-start gap-mrd-5">
+          <PageHeading
+            title="Your sources are still here."
+            sub={`Nothing that came in has been lost. ${endedSession}`}
+          />
+          <Action onClick={() => window.location.assign("/login")}>Sign in</Action>
+        </div>
+      </Surface>
+    );
+  }
+
   return (
     <Surface
       context={
@@ -2033,7 +2073,7 @@ export function DiscoverSurface({
                     pair draws its own box, and this sits inside the context
                     rail under a CtxHead that already frames it. Two containers
                     around one sentence is a frame, and the rail is 316px wide. */}
-                <ReadFailedLine onRetry={() => void fleet.refetch()}>
+                <ReadFailedLine onRetry={() => void fleet.refetch()} error={fleet.error}>
                   Who is reading for you did not load.
                 </ReadFailedLine>
               </>
@@ -2054,7 +2094,7 @@ export function DiscoverSurface({
                  possible rendering of a read that produced no information. */
               <>
                 <CtxHead>What is feeding this</CtxHead>
-                <ReadFailedLine onRetry={() => void coverage.refetch()}>
+                <ReadFailedLine onRetry={() => void coverage.refetch()} error={coverage.error}>
                   What is feeding this desk did not load, so nothing here would name a source that
                   has gone quiet.
                 </ReadFailedLine>
@@ -2551,8 +2591,23 @@ export function DiscoverSurface({
             if (signals.error) void signals.refetch();
             if (themes.error) void themes.refetch();
           }}
+          error={loadError}
         >
-          {loadError.message}
+          {/*
+           * THIS RENDERED `loadError.message` AND IT WAS THE LAST ONE IN THIS
+           * PREFIX. Photographed against a genuinely expired session, /discover
+           * read: "The record could not be read." then "Unauthorized: Invalid
+           * token" then the reassurance then a Try again that could never work.
+           * The headline eleven hundred lines up already states the failure, so
+           * the raw string was not even filling a gap -- it was the second
+           * sentence, and it was the log.
+           *
+           * The headline keeps the state; this carries the consequence, plus
+           * the server's own sentence where the server wrote one for a person.
+           * `error` gets S0's wayOut, so an ended session is handed a sign-in
+           * door rather than a retry against a dead token.
+           */}
+          {reasonLine("Nothing below would be right, so nothing is shown.", loadError)}
         </ReadFailed>
       ) : loading ? (
         <Reading>Reading what your sources have sent.</Reading>
@@ -3001,7 +3056,10 @@ export function DiscoverSurface({
               an-empty-read-is-not-an-empty-workspace.test.ts still allowed;
               that constant comes down to 1 in the same commit. */}
           {opportunities.isError ? (
-            <ReadFailedLine onRetry={() => void opportunities.refetch()}>
+            <ReadFailedLine
+              onRetry={() => void opportunities.refetch()}
+              error={opportunities.error}
+            >
               {opportunities.error instanceof Error
                 ? opportunities.error.message
                 : "The open bets did not load."}
@@ -3711,7 +3769,7 @@ export function DiscoverSurface({
               // back as a validation error after the round trip.
               onChange={(e) => setDraft(e.target.value.slice(0, MAX_BODY_CHARS))}
               placeholder="What did you hear, and where from? One per line."
-              aria-label="Capture a signal"
+              aria-label="Capture a finding"
               rows={3}
               // KEPT AS MEASURED, not rounded onto Meridian's ramp. These four
               // are the height a three-line capture box was tuned to; the
@@ -3928,7 +3986,7 @@ export function DiscoverSurface({
             one. The reading switch now sits underneath, where the question is
             actually asked. */}
           <Line
-            label="Group new signals without asking"
+            label="Group new findings without asking"
             sub={
               clusterSettings.data.enabled ? (
                 clusterSettings.data.last_run_at ? (
@@ -3953,7 +4011,7 @@ export function DiscoverSurface({
             <Toggle
               checked={clusterSettings.data.enabled}
               onChange={(next) => autoSense.mutate(next)}
-              label="Group new signals without asking"
+              label="Group new findings without asking"
               disabled={autoSense.isPending}
               busy={autoSense.isPending}
             />

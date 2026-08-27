@@ -98,9 +98,18 @@ describe("the section says only what it knows", () => {
        bare half, correct inside a region that already draws its own container
        -- broke a guard whose requirement it satisfied exactly. What must hold is
        that the failed read says so AND carries the refetch, above its own
-       sentence. */
+       sentence.
+
+       AND IT HAPPENED A SECOND TIME, which is why the shape below is now loose
+       rather than exact. The rewritten version still pinned the tag's full
+       attribute list, so adding `error={changelog.error}` -- which gives an
+       ended session a sign-in door instead of a retry that cannot work, and is
+       strictly MORE of what this test asks for -- broke it again. A guard that
+       fails on an improvement to the thing it guards is testing syntax, not
+       behaviour. The three requirements are asserted with gaps between them so
+       any further prop, in any order, passes. */
     expect(shipSrc).toMatch(
-      /changelog\.isError\s*\?\s*\(\s*<ReadFailed(Line)? onRetry=\{\(\) => void changelog\.refetch\(\)\}>\s*The releases did not load/,
+      /changelog\.isError\s*\?\s*\(\s*<ReadFailed(?:Line)?\b[\s\S]{0,240}?onRetry=\{\(\) => void changelog\.refetch\(\)\}[\s\S]{0,160}?The releases did not load/,
     );
     // The empty state is only reachable after both of those were ruled out.
     expect(shipSrc).toMatch(

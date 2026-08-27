@@ -74,7 +74,7 @@ export function RunCost({
   if (q.isError) {
     return (
       <Region title="What it has cost" sub={promise ? `You asked for: “${promise}”` : undefined}>
-        <ReadFailedLine onRetry={() => void q.refetch()}>
+        <ReadFailedLine onRetry={() => void q.refetch()} error={q.error}>
           What this cost did not load, so nothing here would be trustworthy. Whatever it spent is
           unchanged.
         </ReadFailedLine>

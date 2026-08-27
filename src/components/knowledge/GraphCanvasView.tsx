@@ -49,6 +49,7 @@
  * it had to, and what a drifted key was costing.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
+import { humanWriteError } from "@/lib/roles.functions";
 import {
   Num,
   Action,
@@ -306,9 +307,9 @@ export function GraphCanvasView({
     // A failed read never wears the empty state's clothes: "nothing is
     // connected yet" and "we could not find out" are different facts.
     return (
-      <ReadFailed onRetry={() => void graphQ.refetch()}>
+      <ReadFailed error={graphQ.error} onRetry={() => void graphQ.refetch()}>
         The graph did not load, so this is not a claim that nothing is connected.{" "}
-        {(graphQ.error as Error)?.message ?? ""}
+        {humanWriteError(graphQ.error, "")}
       </ReadFailed>
     );
   }

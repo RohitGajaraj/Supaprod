@@ -15,6 +15,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import { evaluateGuardrails, type GuardrailRule } from "./ai/guardrails.server";
 import { GUARDRAIL_FLOOR } from "@/lib/ai/guardrail-floor";
+import { AUTO_APPROVED_ACTION } from "@/lib/decision-gate.server";
+import { AUTO_CLEARED_ACTION } from "@/lib/spec-gate.constants";
 import { getUserWorkspaceRole, writeDeniedReason, type Role } from "./roles.functions";
 
 const BUILTIN_SEED = [
@@ -97,17 +99,89 @@ export const getGuardrailOverview = createServerFn({ method: "GET" })
     // so the two numbers describe the same thing. RLS is membership-keyed after
     // migration 20260803191000, so the select needs no explicit filter and cannot
     // be widened by a caller.
-    const [rulesRes, hitsRes] = await Promise.all([
+    const [rulesRes, hitsRes, aloneRes] = await Promise.all([
       supabase.from("guardrail_rules").select("*").order("created_at", { ascending: false }),
       supabase
         .from("guardrail_hits")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(100),
+      /*
+       * ── F-118: THE AUDIT ROW NOBODY COULD READ ───────────────────────────
+       *
+       * `decision-gate.server.ts` states the rule it was built on: "an
+       * auto-approval nobody can audit is worse than a queue", and it writes a
+       * `workspace_audit_log` row carrying the gate's exact sentence and every
+       * fact it acted on, so "a human reads this row before overturning".
+       *
+       * **No surface has ever read it.** The rows were written, the reason was
+       * stored verbatim, and the only readers of that table in the codebase are
+       * the two writers and a billing card looking for claim events. So the
+       * audit trail that justified letting the platform act alone existed only
+       * as a promise.
+       *
+       * This is the right surface for it and not merely a spare one. Guardrails
+       * is where a person sets what the crew may do without them; what the crew
+       * then DID without them belongs on the same page, or the policy is set in
+       * one place and exercised somewhere invisible.
+       *
+       * RLS on this table is `is_workspace_member(workspace_id)`, the same lens
+       * the two reads above rely on, so the select is scoped and a caller cannot
+       * widen it.
+       */
+      supabase
+        .from("workspace_audit_log")
+        .select("id,action,detail,created_at")
+        .in("action", [AUTO_APPROVED_ACTION, AUTO_CLEARED_ACTION])
+        .order("created_at", { ascending: false })
+        .limit(20),
     ]);
+
+    /*
+     * ── A FAILED QUERY IS NOT AN EMPTY ONE ───────────────────────────────
+     *
+     * `rulesRes.data ?? []` was reading only `data`, so a refused or malformed
+     * query arrived as "no rules" and the page said "Nothing checks your AI
+     * calls yet" over a table it could not read. That is F-76 exactly, sitting
+     * inside the function whose own comment describes fixing the previous
+     * version of this same class of bug.
+     *
+     * The error is now carried out rather than discarded, so the surface can say
+     * "this did not load" instead of "there is nothing here". The two sentences
+     * send a person to completely different places.
+     */
+    const readFailed =
+      rulesRes.error?.message ?? hitsRes.error?.message ?? aloneRes.error?.message ?? null;
+
     return {
+      readFailed,
       rules: rulesRes.data ?? [],
       hits: hitsRes.data ?? [],
+      /**
+       * What the platform decided without a person, newest first, with the
+       * gate's own sentence and the facts it acted on.
+       *
+       * SHAPED HERE RATHER THAN PASSED THROUGH, and the type checker was right
+       * to insist: the server boundary refuses an opaque `Record<string,
+       * unknown>`, which forced this to decide what the surface actually needs.
+       * The result is better than the blob would have been, because the panel
+       * never has to know the detail schema of two different gates.
+       */
+      decidedAlone: (aloneRes.data ?? []).map((r) => {
+        const row = r as { id: string; action: string; created_at: string; detail: unknown };
+        const d = (row.detail ?? {}) as Record<string, unknown>;
+        return {
+          id: row.id,
+          at: row.created_at,
+          /** Plain words for the thing that moved, never the action slug. */
+          what:
+            row.action === AUTO_CLEARED_ACTION ? "A spec cleared its review" : "A decision landed",
+          /** The gate's own sentence, stored verbatim when it acted. */
+          reason: typeof d.reason === "string" ? d.reason : null,
+          /** Every fact that counted, so a person can overturn it on the evidence. */
+          because: Array.isArray(d.because) ? d.because.map(String) : [],
+        };
+      }),
       builtins: BUILTIN_SEED,
       /**
        * The rules that screen this workspace whether or not it configured any.

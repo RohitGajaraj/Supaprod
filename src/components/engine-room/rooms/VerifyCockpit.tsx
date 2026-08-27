@@ -22,7 +22,7 @@ import {
   VerdictSentence,
   PanelPending,
   type RoomBodyProps,
-} from "../RoomDetail";
+} from "../room-parts";
 import { QuietAction } from "../EngineChrome";
 import { Eyebrow } from "@/components/meridian/surface-parts";
 
@@ -192,8 +192,10 @@ function PendingApprovals({
               {/* The agent slug and the tool name are IDENTIFIERS, which is one
                   of the things mono is for. The verb between them is not. */}
               <div className="truncate text-mrd-base font-medium text-mrd-ink">
-                <span className="font-mrd-mono text-mrd-prose text-mrd-body">{a.agent_slug ?? "agent"}</span> wants{" "}
-                <span className="font-mrd-mono">{a.tool_name}</span>
+                <span className="font-mrd-mono text-mrd-prose text-mrd-body">
+                  {a.agent_slug ?? "agent"}
+                </span>{" "}
+                wants <span className="font-mrd-mono">{a.tool_name}</span>
               </div>
               <div className="mt-0.5 truncate text-mrd-small text-mrd-mute">
                 <span className={RISK_INK[a.risk] ?? "text-mrd-body"}>{a.risk} risk</span>

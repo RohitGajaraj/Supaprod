@@ -107,6 +107,7 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { failureLine } from "@/lib/error-copy";
+import { stillHoldsWork } from "@/components/approvals/still-holds-work";
 import { approvalsQueueKey, APPROVALS_QUEUE_PREFIX, invalidateShellReads } from "@/lib/query-keys";
 import { isModalOpen } from "@/lib/overlay";
 import { useServerFn } from "@tanstack/react-start";
@@ -136,7 +137,8 @@ import { FilterExcludedEverything, QueueFilters } from "@/components/approvals/Q
 import { SettledTrail, type SettledLine } from "@/components/approvals/SettledTrail";
 import { UndatedCalls, type UndatedCall } from "@/components/approvals/UndatedCalls";
 import { SendBackSheet, canSendBack } from "@/components/approvals/SendBack";
-import { waitingSince } from "@/components/approvals/stopped-for";
+import { waitingSince } from "@/components/meridian/stopped-for";
+import { countIsAFloor, notTheWholeQueue } from "@/components/approvals/not-the-whole-queue";
 
 export const Route = createFileRoute("/_authenticated/approvals")({
   component: ApprovalsSurface,
@@ -157,6 +159,23 @@ const SETTLED_APPROVE: Record<ApprovalQueueItem["kindKey"], string> = {
 };
 const SETTLED_REJECT = "Declined. Noted for next time.";
 
+/**
+ * THE VOCABULARY, IN ORDER. What is DRAWN is decided below from what the queue
+ * actually holds, because two of these tabs were furniture.
+ *
+ * `spend` is the clear one. `approvals-queue.functions.ts` says it in as many
+ * words: the bucket "exists as a bucket so the vocabulary is stable, but
+ * nothing routes into it yet because no spend-gate READ exists in the codebase
+ * today." So this row has been drawing `Spend 0` on every load since it was
+ * written, and a tab that can never do anything is exactly what R-20 section 8
+ * calls furniture. It stays in this list, so it appears by itself on the day a
+ * spend gate lands, and it is not drawn until then.
+ *
+ * S2 reached the same conclusion building the board's filter row and did not
+ * copy the empty tab. They offered to add it back for consistency with this
+ * page. The consistency is worth having and this page is the one that was
+ * wrong, so it moves here rather than the furniture moving there.
+ */
 const FILTERS: { id: ApprovalFilter; label: string }[] = [
   { id: "all", label: "All" },
   { id: "proposals", label: "Proposals" },
@@ -164,6 +183,25 @@ const FILTERS: { id: ApprovalFilter; label: string }[] = [
   { id: "memory", label: "Memory" },
   { id: "spend", label: "Spend" },
 ];
+
+/**
+ * The tabs worth drawing, given what is in the queue right now.
+ *
+ * ONE TAB IS NOT A CHOICE, IT IS THE ILLUSION OF ONE. With every call in a
+ * single bucket the row would read `All 5   Memory 5`, two controls that do the
+ * same thing, so nothing is drawn and the queue speaks for itself.
+ *
+ * THE ACTIVE TAB IS KEPT EVEN AT ZERO. Settling the last gate while filtered to
+ * Gates would otherwise delete the control under the pointer and silently widen
+ * the list back to everything, which reads as the page losing your place.
+ */
+export function filtersWorthDrawing(
+  counts: Readonly<Record<ApprovalFilter, number>>,
+  active: ApprovalFilter,
+): { id: ApprovalFilter; label: string }[] {
+  const real = FILTERS.filter((f) => f.id === "all" || counts[f.id] > 0 || f.id === active);
+  return real.length > 2 ? real : [];
+}
 
 /** stripAutoPrefix only removes a LEADING "[auto]". Evidence lines carry it
  *  mid-sentence too ("From [auto] Investigate the ..."), so the marker has to
@@ -262,6 +300,8 @@ function ApprovalsSurface() {
     for (const it of allItems) c[it.filterBucket] += 1;
     return c;
   }, [allItems]);
+
+  const shownFilters = useMemo(() => filtersWorthDrawing(counts, filter), [counts, filter]);
 
   const visibleItems = useMemo(() => {
     const inFilter =
@@ -554,6 +594,16 @@ function ApprovalsSurface() {
         : null;
 
   const n = allItems.length;
+
+  /*
+   * WHETHER THE NUMBER ABOVE IS A TOTAL OR A FLOOR. `getApprovalsQueue` bounds
+   * every family it federates, and this page has always rendered the result as
+   * an exact count in the largest type on the screen. See
+   * `not-the-whole-queue.ts` for the 116-against-100 measurement.
+   */
+  const gaps = queue.data?.incomplete;
+  const floor = countIsAFloor(gaps);
+  const shortLine = notTheWholeQueue(gaps);
   /* "CALL" AND "DECISION" WERE THE SAME OBJECT IN TWO WORDS, one inch apart.
      The shell above this page reads "83 decisions are ready for you"
      (AppFrame.tsx), and this headline read "83 calls need you" off the same
@@ -583,10 +633,20 @@ function ApprovalsSurface() {
       queue.isError
       ? "Approvals"
       : n === 0
-        ? "Nothing is ready for you."
+        ? /*
+           * ZERO IS THE ONE COUNT A CAP CANNOT SOFTEN, and it is also the one
+           * that must not be said when a family failed to load. `notTheWholeQueue`
+           * renders under this either way; what changes here is that "Nothing
+           * is ready for you." is only allowed when the queue actually knows
+           * that. A capped family cannot produce zero, so this reads the
+           * failure case alone.
+           */
+          floor
+          ? "Approvals"
+          : "Nothing is ready for you."
         : n === 1
-          ? "1 decision is ready for you."
-          : `${n} decisions are ready for you.`;
+          ? `${floor ? "At least 1 decision is" : "1 decision is"} ready for you.`
+          : `${floor ? "At least " : ""}${n} decisions are ready for you.`;
 
   /* THE THIRD FACT, which this surface used to collapse into the first. A
      person in no workspace at all was told "Nothing is ready for you.", which
@@ -648,11 +708,22 @@ function ApprovalsSurface() {
               rest are listed under it.
             </p>
           ) : null}
+          {/*
+            WHAT THE QUEUE COULD NOT SHOW YOU, next to the number rather than
+            in a log. Rendered whatever `n` is: a family that failed to load
+            can leave this page reading zero, and "Nothing is ready for you"
+            over a broken read is the worst sentence this surface can say.
+          */}
+          {shortLine ? (
+            <p className="mt-mrd-3 text-mrd-base leading-mrd-prose text-mrd-prose text-mrd-hold">
+              {shortLine}
+            </p>
+          ) : null}
         </header>
 
-        {allItems.length > 0 ? (
+        {allItems.length > 0 && shownFilters.length > 0 ? (
           <QueueFilters
-            filters={FILTERS}
+            filters={shownFilters}
             counts={counts}
             active={filter}
             onSelect={(id) => setFilter(id)}
@@ -675,6 +746,7 @@ function ApprovalsSurface() {
         ) : queue.isError ? (
           <ReadFailed
             onRetry={() => void queue.refetch()}
+            error={queue.error}
             detail="Nothing has been settled and nothing has been lost. The queue is still whatever it was a moment ago; this screen just could not read it."
           >
             The queue did not load.
@@ -694,7 +766,27 @@ function ApprovalsSurface() {
             now={now}
             lines={focusedLines}
             hiddenLineCount={focusedHidden}
-            consequence={focused.approveConsequence}
+            /*
+             * THE CONSEQUENCE IS REPLACED, NOT ARGUED WITH, when the work this
+             * call held has already finished.
+             *
+             * "Approve · unblocks Build for this spec" is a promise the data
+             * cannot always support. The number this comment used to give was
+             * measured on the wrong join and is corrected here rather than
+             * quietly dropped: "22 of the 29" came from matching approvals to
+             * runs by `run_id`, and `gatesLiveWork` resolves through
+             * `mission_id` to that mission's newest run. On that join the
+             * answer today is 0 finished, 14 live and 15 with no mission at
+             * all. The calls are still all 33+ days old and none is past an
+             * expiry that would clear them. Printing both sentences would put
+             * "approving unblocks Build" directly above "answering it now
+             * releases nothing" and leave the reader to work out which is real.
+             *
+             * Silent when the run is live, and silent when we cannot tell --
+             * see `still-holds-work.ts` for why null must never read as
+             * finished.
+             */
+            consequence={stillHoldsWork(focused.gatesLiveWork) ?? focused.approveConsequence}
           >
             <Approve
               shortcut="a"

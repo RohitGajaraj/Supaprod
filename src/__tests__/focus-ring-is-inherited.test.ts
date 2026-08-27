@@ -144,26 +144,6 @@ const EXEMPT: ReadonlyArray<{ path: string; why: string }> = [
 
   // Live surfaces with real broken rings, owned by other items. Named here so
   // the debt is visible rather than silently outside the guard.
-  {
-    path: "src/components/admin/admin-ui.tsx",
-    why: "Live, ring broken. Owned by the admin console port; editing it from here would collide with that item.",
-  },
-  {
-    path: "src/components/admin/InvitationsPanel.tsx",
-    why: "Live, ring broken. Owned by the admin console port; editing it from here would collide with that item.",
-  },
-  {
-    path: "src/components/admin/VouchersPanel.tsx",
-    why: "Live, ring broken. Owned by the admin console port; editing it from here would collide with that item.",
-  },
-  {
-    path: "src/components/connections/CreateRepoModal.tsx",
-    why: "Live, ring broken. Outside this item's owned files.",
-  },
-  {
-    path: "src/components/supaprod/Sketch.tsx",
-    why: "Live, ring broken. Outside this item's owned files.",
-  },
 ];
 
 const EXEMPT_PATHS = new Set(EXEMPT.map((e) => e.path));
@@ -238,7 +218,7 @@ describe("the focus ring is inherited from data-mrd, never declared by a compone
             offenders.map((o) => `  ${o}`).join("\n"),
             "",
             "The fix is the attribute, not a louder utility:",
-            "  put `data-mrd=\"\"` on the component root and DELETE the",
+            '  put `data-mrd=""` on the component root and DELETE the',
             "      `focus-visible:outline-*` classes. meridian.css paints the ring for",
             "      everything under that root.",
             "  a component with an early return needs it on that return TOO, or its",

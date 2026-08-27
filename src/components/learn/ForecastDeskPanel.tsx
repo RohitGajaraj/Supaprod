@@ -1,7 +1,14 @@
 import * as React from "react";
-import { failureLine } from "@/lib/error-copy";
+import { plainProse } from "@/lib/plain-prose";
+import { failureLine, reasonLine } from "@/lib/error-copy";
 import { Row, Line } from "@/components/meridian/rows";
-import { Action, Actions, ReadFailedLine, Region } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  ReadFailed,
+  ReadFailedLine,
+  Region,
+} from "@/components/meridian/surface-parts";
 import { Field, Input, Textarea } from "@/components/meridian/forms";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -76,9 +83,7 @@ function AgentSettledRow({
       <Row
         lead={r.forecast_claim ?? r.title ?? ""}
         sub={[
-          r.forecast_resolution
-            ? FORECAST_SAYS[r.forecast_resolution as ForecastResolution]
-            : null,
+          r.forecast_resolution ? FORECAST_SAYS[r.forecast_resolution as ForecastResolution] : null,
           r.forecast_resolution_rationale,
         ]
           .filter(Boolean)
@@ -200,10 +205,45 @@ export function ForecastDeskPanel() {
   const agentSettled = agentQ.data?.settled ?? [];
   const rate = rateQ.data;
 
+  /*
+   * ── F-120: A FAILED READ MUST NOT LOOK LIKE AN EMPTY DESK ────────────────
+   *
+   * Checked BEFORE the return-null below, and the order is the whole fix. That
+   * null is deliberate and right, but it is written for a workspace with
+   * nothing to settle, and until now a workspace whose reads FAILED took the
+   * same branch. The desk did not show an error and did not show zero: it
+   * vanished from the page, and a person would reasonably conclude they had
+   * nothing due.
+   *
+   * One line covers all three reads because they are one desk. Naming which of
+   * them failed would be more precise and less useful: the answer to any of
+   * them failing is the same, and the retry refetches all three.
+   */
+  const readFailed = dueQ.isError || agentQ.isError || rateQ.isError;
+  if (readFailed) {
+    return (
+      <Region title="Forecasts" sub="What you expected, now that the date you set has passed.">
+        <ReadFailed
+          onRetry={() => {
+            void dueQ.refetch();
+            void agentQ.refetch();
+            void rateQ.refetch();
+          }}
+        >
+          Your forecasts did not load, so an empty desk here would not mean there is nothing to
+          settle.
+        </ReadFailed>
+      </Region>
+    );
+  }
+
   /**
    * No empty scaffolding. An account that has never recorded a forecast should
    * not be shown a desk for settling them, and the honest zero state belongs on
    * a workspace that has at least started.
+   *
+   * Reached only when all three reads SUCCEEDED and came back empty, which is
+   * now a different thing from all three having failed.
    */
   if (due.length === 0 && agentSettled.length === 0 && (rate?.resolved ?? 0) === 0) return null;
 
@@ -249,7 +289,10 @@ export function ForecastDeskPanel() {
             {picked.suggestion ? (
               <Line
                 label={`A draft says ${FORECAST_SAYS[picked.suggestion.verdict]}`}
-                sub={picked.suggestion.rationale}
+                /* Display, so the markers come off. The textarea below holds the
+                   same text as a VALUE and is deliberately left raw: stripping
+                   there would silently change what the person saves. */
+                sub={plainProse(picked.suggestion.rationale) ?? undefined}
               />
             ) : null}
 
@@ -303,16 +346,13 @@ export function ForecastDeskPanel() {
                 region already draws its own heading, and the bordered half of
                 the pair belongs where there is no region around it. */}
             {settle.isError ? (
-              <ReadFailedLine>
-                {failureLine(
-                  "The verdict did not land, and nothing was written.",
-                  settle.error,
-                )}
+              <ReadFailedLine error={settle.error}>
+                {reasonLine("The verdict did not land, and nothing was written.", settle.error)}
               </ReadFailedLine>
             ) : null}
             {defer.isError ? (
-              <ReadFailedLine>
-                {failureLine("The check date did not move.", defer.error)}
+              <ReadFailedLine error={defer.error}>
+                {reasonLine("The check date did not move.", defer.error)}
               </ReadFailedLine>
             ) : null}
           </div>

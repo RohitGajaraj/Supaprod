@@ -32,12 +32,27 @@ import { join } from "node:path";
 
 const ROOT = join(import.meta.dir, "..", "..", "..");
 const TODAY = readFileSync(join(ROOT, "routes", "_authenticated.today.tsx"), "utf8");
+const START = readFileSync(join(ROOT, "routes", "_authenticated.start.tsx"), "utf8");
 const SHELL = readFileSync(join(ROOT, "styles", "shell.css"), "utf8");
 const DOCK = readFileSync(join(ROOT, "components", "ask", "AskDock.tsx"), "utf8");
 
 describe("a surface that owns the prompt gets the dock out of its way", () => {
   it("Today marks its composer", () => {
     expect(TODAY).toMatch(/data-page-composer/);
+  });
+
+  it("and so does Start, which is the surface that needed it most", () => {
+    /* THE RULE WAS WRITTEN AND APPLIED TO ONE SURFACE. /start went unmarked
+       for as long as this test has existed, so the FIRST screen a person
+       meets asked for their sentence twice: once in its own field, under a
+       character saying "Say what needs doing in one sentence", and again 500px
+       below in a bar reading "What should we build?". Photographed at 1440.
+
+       Worse than Today's version, because the two do not do the same thing.
+       F-04 measures that the dock files a MISSION the run workbench cannot
+       see; this field files a track. A person picking the wrong one of two
+       identical-looking invitations gets work the product cannot show them. */
+    expect(START).toMatch(/data-page-composer/);
   });
 
   it("the dock yields to it", () => {
@@ -64,5 +79,32 @@ describe("a surface that owns the prompt gets the dock out of its way", () => {
     // The original case must keep working: two inputs for one conversation is
     // the thing being prevented, whichever way the second one arrives.
     expect(DOCK).toMatch(/if \(ask\.isOpen\) return <Pane \/>;/);
+  });
+});
+
+/**
+ * R-24's INTERIM, ENFORCED SO IT CANNOT SILENTLY COME BACK.
+ *
+ * The ruling: "AskDock must stop saying 'What should we build?' while it opens
+ * a chat. That copy promises the loop and delivers a conversation." It stood
+ * ruled and unbuilt from 2026-08-25, on the most-seen string in the product.
+ *
+ * This guards the ABSENCE rather than the replacement, because the replacement
+ * is copy and copy is allowed to improve. What is not allowed is promising the
+ * loop from a control that opens a conversation -- until queue item 16 makes a
+ * dispatch create a track, at which point delete this test rather than edit it.
+ */
+describe("the dock does not promise the loop while it opens a chat", () => {
+  it("has stopped asking what to build", () => {
+    expect(DOCK).not.toMatch(/What should we build\?/);
+    // The accessible name is the same promise, heard rather than read, and was
+    // the half most likely to be missed.
+    expect(DOCK).not.toMatch(/aria-label="[^"]*what to build/i);
+  });
+
+  it("still invites, rather than going silent", () => {
+    // The failure mode of a copy ruling is deleting the sentence. The dock's
+    // whole purpose is that the door is visible without knowing a shortcut.
+    expect(DOCK).toMatch(/<span className="sp-dock-prompt">[^<]{8,}<\/span>/);
   });
 });

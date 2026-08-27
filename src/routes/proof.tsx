@@ -14,18 +14,46 @@ import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { SupaprodWordmark } from "@/components/supaprod/SupaprodWordmark";
 import { PreSignupCTA } from "@/components/plg/PreSignupCTA";
 import { stripAutoPrefix } from "@/components/plan/format";
+import { calibrationClaim } from "@/components/landing/calibration-claim";
 
 const SITE = "https://supaprod.ai";
 const OG_IMAGE = `${SITE}/og-supaprod.png`;
 
 export const Route = createFileRoute("/proof")({
   ssr: true,
+  /**
+   * A PUBLIC PAGE MAY NOT 500 BECAUSE A READ FAILED.
+   *
+   * This loader awaited both calls bare, so one rejection took the whole page
+   * to "This page hit an error. Something went wrong while loading this page."
+   * Reproduced through the render harness on 2026-08-27, on the committed
+   * version and on this one identically, so it predates both.
+   *
+   * `computePredictionHitRate` and `listPublicDecisions` both already catch and
+   * return an empty shape. `computeSupersessionsCaught` does not, and it calls
+   * `sampleWorkspaceIds()` before its own error check, so an unreachable
+   * database rejects `getPublicCalibration` and the page is gone.
+   *
+   * The route is the right place to decide this rather than the reader: the
+   * page ALREADY has an honest state for "we cannot say", it is what
+   * `tableReady: false` renders, and a page whose whole argument is that we
+   * publish numbers we cannot dress up should degrade to that sentence rather
+   * than to a stack trace. `Promise.allSettled` and not two try/catches,
+   * because a failure in one must never decide the other: the decision list
+   * can render while the score cannot, and the reverse.
+   */
   loader: async () => {
-    const [calibration, decisions] = await Promise.all([
-      getPublicCalibration(),
-      listPublicDecisions(),
-    ]);
-    return { calibration, decisions };
+    const [cal, dec] = await Promise.allSettled([getPublicCalibration(), listPublicDecisions()]);
+    return {
+      calibration:
+        cal.status === "fulfilled"
+          ? cal.value
+          : {
+              predictionHitRate: { rate: null, hits: 0, total: 0, tableReady: false },
+              supersessionsCaughtTotal: 0,
+            },
+      decisions: dec.status === "fulfilled" ? dec.value : [],
+    };
   },
   head: () => ({
     meta: [
@@ -97,6 +125,11 @@ function Shell({ children }: { children: React.ReactNode }) {
       </header>
 
       <main style={{ flex: 1, padding: "32px 18px" }}>
+        {/* 680px stays: this column holds the decision CARDS as well as the
+            prose, and narrowing it to a reading measure would squeeze the
+            evidence. The three prose blocks inside carry `--mrd-measure`
+            themselves, which is what meridian.css means by "prose only, never
+            a table or a row". */}
         <div style={{ width: "100%", maxWidth: 680, margin: "0 auto" }}>{children}</div>
       </main>
 
@@ -133,7 +166,16 @@ function CalibrationHero({
   tableReady: boolean;
   supersessions: number;
 }) {
-  const hasData = tableReady && total > 0 && rate !== null;
+  /*
+   * THREE STATES, AND THE MIDDLE ONE IS THE ADDITION. This page's own argument
+   * is "we would rather show you an honest zero than a number that isn't real
+   * yet", and it then published a percentage the moment `total > 0`. Measured
+   * live on 2026-08-27 with the sample workspaces excluded: FOUR scored
+   * outcomes. "That is 50%" from four observations is noise wearing a percent
+   * sign, on the one page built to prove we do not do that. See
+   * calibration-claim.ts for the threshold and why it is ten.
+   */
+  const claim = calibrationClaim({ hits, total, rate, tableReady });
   return (
     <div className="bento rise-2" style={{ padding: "26px 24px", marginBottom: 22 }}>
       <div
@@ -142,49 +184,27 @@ function CalibrationHero({
       >
         Calibration · updated live
       </div>
-      {hasData ? (
-        <>
-          {/* Declared display voice for this page's hero verdict per answers/R011 cluster 5: tuned against its own ground, not a stop. */}
-          <h1
-            className="font-display"
-            style={{ fontSize: 28, lineHeight: 1.25, margin: "0 0 8px" }}
-          >
-            Supaprod called {hits} of the last {total} calls right.
-          </h1>
-          <p
-            className="text-mrd-prose"
-            style={{
-              lineHeight: 1.6,
-              color: "var(--mrd-mute)",
-              margin: 0,
-            }}
-          >
-            That is {Math.round(rate * 100)}%, including the misses. We publish this number because
-            a competitor claiming 100% is a competitor not tracking outcomes at all.
-          </p>
-        </>
-      ) : (
-        <>
-          {/* Declared display voice for the empty-state hero fallback per answers/R011 cluster 5: kept as declared, judged against its own ground. */}
-          <h1
-            className="font-display"
-            style={{ fontSize: 24, lineHeight: 1.25, margin: "0 0 8px" }}
-          >
-            Not enough recorded outcomes yet.
-          </h1>
-          <p
-            className="text-mrd-prose"
-            style={{
-              lineHeight: 1.6,
-              color: "var(--mrd-mute)",
-              margin: 0,
-            }}
-          >
-            This page updates automatically as calibrated outcomes land. We would rather show you an
-            honest zero than a number that isn't real yet.
-          </p>
-        </>
-      )}
+      {/* Declared display voice for this page's hero verdict per answers/R011
+          cluster 5: tuned against its own ground, not a stop. The empty state
+          keeps its smaller size, because a sentence about having nothing is not
+          the thing this page is here to say. */}
+      <h1
+        className="font-display"
+        style={{ fontSize: claim.kind === "none" ? 24 : 28, lineHeight: 1.25, margin: "0 0 8px" }}
+      >
+        {claim.headline}
+      </h1>
+      <p
+        className="text-mrd-prose"
+        style={{
+          lineHeight: 1.6,
+          color: "var(--mrd-mute)",
+          margin: 0,
+          maxWidth: "var(--mrd-measure)",
+        }}
+      >
+        {claim.body}
+      </p>
       <div
         className="mrd-eyebrow whitespace-nowrap text-mrd-nano"
         style={{
@@ -237,7 +257,12 @@ function ProofPage() {
         <div className="bento" style={{ padding: 24, textAlign: "center" }}>
           <p
             className="text-mrd-base"
-            style={{ color: "var(--mrd-mute)", margin: 0, lineHeight: 1.6 }}
+            style={{
+              color: "var(--mrd-mute)",
+              margin: "0 auto",
+              lineHeight: 1.6,
+              maxWidth: "var(--mrd-measure)",
+            }}
           >
             No public decisions yet. Every one of these is a real call from Supaprod's own build,
             shared by its owner with its evidence, never seeded or staged. That is why this section
@@ -267,10 +292,7 @@ function ProofPage() {
               >
                 {stripAutoPrefix(d.title)}
               </div>
-              <div
-                className="mrd-eyebrow whitespace-nowrap"
-                style={{ color: "var(--mrd-faint)" }}
-              >
+              <div className="mrd-eyebrow whitespace-nowrap" style={{ color: "var(--mrd-faint)" }}>
                 {agentDisplayName(d.decided_by_agent_slug)} ·{" "}
                 {new Date(d.created_at).toLocaleDateString(undefined, {
                   year: "numeric",

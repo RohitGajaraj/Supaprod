@@ -61,6 +61,7 @@
  * export that DecisionDetail imports from here.
  */
 import { useEffect, useState } from "react";
+import { humanWriteError } from "@/lib/roles.functions";
 import { Row } from "@/components/meridian/rows";
 import {
   Num,
@@ -93,6 +94,7 @@ import {
   displayWho,
   forecastChip,
   forecastCoverage,
+  forecastDue,
   forecastTitle,
   OUTCOME_WORD,
   SOURCE_LABEL,
@@ -277,6 +279,9 @@ export function DecisionsPanel() {
    * is in front of the reader, which is the only thing it can see.
    */
   const coverage = forecastCoverage(rows);
+  /* The other half of the same question, off the same rows: how many of these
+     bets went past the date the team set and were never settled. */
+  const overdue = forecastDue(rows, Date.now());
   const filtered = source !== "all" || status !== "all" || debouncedQ.trim().length > 0;
   // Nothing on the record at all is a different fact from nothing matching a
   // filter, and it wants a different screen: no filter row over an empty
@@ -407,9 +412,9 @@ export function DecisionsPanel() {
            string where the ledger goes and no sentence telling them the calls
            were still there. Every other failure arm on Brain leads with the
            claim it is refusing to make and then appends the message. */
-        <ReadFailed onRetry={() => void decisions.refetch()}>
+        <ReadFailed error={decisions.error} onRetry={() => void decisions.refetch()}>
           The calls did not load, so this is not a claim that none are on the record.{" "}
-          {(decisions.error as Error).message}
+          {humanWriteError(decisions.error, "The read failed.")}
         </ReadFailed>
       ) : rows.length === 0 ? (
         filtered ? (
@@ -435,6 +440,30 @@ export function DecisionsPanel() {
             forecast, written before the outcome was known.
             {coverage.tail ? ` ${coverage.tail}` : null}
           </p>
+          {/*
+           * THE SECOND HALF, AND THE ONE THE PRODUCT'S CLAIM RESTS ON. A
+           * forecast written at decision time is worth nothing until somebody
+           * settles it against what happened. On the live database 15 of the
+           * 176 forecasts are past their date with no resolution, and no
+           * surface a person browsing their own calls would look at said so.
+           *
+           * IT COUNTS AND IT DOES NOT SETTLE. The Forecast Desk at the top of
+           * /learn owns that write and the queue it drains; a second settle
+           * control here would be a second place for one decision to be made.
+           * So this states the fact and opens the door.
+           *
+           * Silent when there are none, because "nothing is overdue" is a line
+           * that earns nothing and trains a reader to skip the row it sits in.
+           */}
+          {overdue.said ? (
+            <p className="text-mrd-small text-mrd-mute">
+              {overdue.said}{" "}
+              <Link to="/learn" className="underline underline-offset-4">
+                Settle them
+              </Link>
+              .
+            </p>
+          ) : null}
           {shown.map((d) => {
             // FC-01 read side: the forecast rides the same row, one truncated
             // line with its resolution word. The words come from FORECAST_SAYS

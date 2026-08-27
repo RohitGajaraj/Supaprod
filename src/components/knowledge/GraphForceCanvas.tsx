@@ -1017,10 +1017,7 @@ function GraphHoverCard({
         {verdict ? (
           <span
             style={{
-              color:
-                OUTCOME_TONE[node.outcome!] === "fail"
-                  ? "var(--mrd-fail)"
-                  : "var(--mrd-pass)",
+              color: OUTCOME_TONE[node.outcome!] === "fail" ? "var(--mrd-fail)" : "var(--mrd-pass)",
             }}
           >
             <span style={{ fontSize: "var(--mrd-t-base)" }}>{verdict}</span>

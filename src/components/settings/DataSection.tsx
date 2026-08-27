@@ -35,6 +35,7 @@
  * since R015.
  */
 import { useState } from "react";
+import { humanWriteError } from "@/lib/roles.functions";
 import { Row, Line } from "@/components/meridian/rows";
 import {
   Num,
@@ -144,7 +145,7 @@ export function DataSection({ workspaceId }: { workspaceId?: string }) {
       toast.success(`Exported ${total} records`);
       qc.invalidateQueries({ queryKey: ["export-log"] });
     } catch (e) {
-      toast.error((e as Error)?.message ?? "Export failed");
+      toast.error(humanWriteError(e, "Export failed."));
     } finally {
       setExporting(null);
     }
@@ -160,7 +161,7 @@ export function DataSection({ workspaceId }: { workspaceId?: string }) {
         `Exported ${counts.decisions} decisions, ${counts.outcomes} outcomes, ${counts.houseRules} house rules`,
       );
     } catch (e) {
-      toast.error((e as Error)?.message ?? "Export failed");
+      toast.error(humanWriteError(e, "Export failed."));
     } finally {
       setExporting(null);
     }
@@ -204,11 +205,7 @@ export function DataSection({ workspaceId }: { workspaceId?: string }) {
               </>
             }
           >
-            <Link
-              to="/engine-room"
-              search={{ room: "record" }}
-              className={ACTION_LINK_FACE.quiet}
-            >
+            <Link to="/engine-room" search={{ room: "record" }} className={ACTION_LINK_FACE.quiet}>
               Open the record
             </Link>
           </Line>
@@ -271,9 +268,8 @@ export function DataSection({ workspaceId }: { workspaceId?: string }) {
         {history.isLoading ? (
           <Reading>Reading your exports.</Reading>
         ) : history.isError ? (
-          <ReadFailedLine onRetry={() => void history.refetch()}>
-            The export history did not load.{" "}
-            {(history.error as Error)?.message ?? "The read failed."}
+          <ReadFailedLine error={history.error} onRetry={() => void history.refetch()}>
+            The export history did not load.
           </ReadFailedLine>
         ) : exports.length === 0 ? (
           <NothingYet>
@@ -303,8 +299,8 @@ export function DataSection({ workspaceId }: { workspaceId?: string }) {
         {subs.isLoading ? (
           <Reading>Reading the list.</Reading>
         ) : subs.isError ? (
-          <ReadFailedLine onRetry={() => void subs.refetch()}>
-            The list did not load. {(subs.error as Error)?.message ?? "The read failed."}
+          <ReadFailedLine error={subs.error} onRetry={() => void subs.refetch()}>
+            The list did not load.
           </ReadFailedLine>
         ) : items.length === 0 ? (
           <NothingYet>Nothing outside Supaprod processes your data right now.</NothingYet>

@@ -4,7 +4,9 @@ import { wayOut } from "./way-out";
 
 /** Both Take it over controls on screen, which is the common case mid-route. */
 const BOTH_OPEN = { undo: true, handback: true };
-import { HOLD_LINE } from "@/lib/spine/driver";
+import { HOLD_LINE, leadAgentFor } from "@/lib/spine/driver";
+import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
+import type { AgentStation } from "@/lib/agent-vocabulary";
 
 describe("no dead end, ever", () => {
   it("covers every hold the driver can write", () => {
@@ -155,5 +157,41 @@ describe("no dead end, ever", () => {
     for (const reason of Object.keys(HOLD_LINE)) {
       expect(wayOut(reason, BOTH_OPEN).next ?? "").not.toMatch(/[—–]/);
     }
+  });
+});
+
+describe("the switched-off step tells the truth about itself", () => {
+  /*
+   * THE COPY ASSERTS A CAUSE, SO THE PRECONDITION IS PINNED HERE.
+   *
+   * `no-agent` has two sources and the sentence names only one of them: an
+   * agent that exists and was switched off. That is safe exactly while the
+   * OTHER source cannot fire, which is while every station has a lead agent.
+   * All seven do today. If somebody adds a station without a crew, or empties
+   * one, this fails and they are the person who has to decide what the screen
+   * should say instead, rather than a reader meeting a confident wrong answer.
+   */
+  it("has a lead agent for every station, which is what makes the sentence true", () => {
+    const stations = Object.keys(AGENT_STATIONS) as AgentStation[];
+    expect(stations.length).toBe(7);
+    for (const station of stations) {
+      expect(leadAgentFor(station)).toBeTruthy();
+    }
+  });
+
+  it("names the switch rather than blaming the reader's team", () => {
+    const out = wayOut("no-agent", BOTH_OPEN);
+    expect(out.next).toContain("switched off");
+    expect(out.next).toContain("Agents");
+    // The old sentence claimed a team gap and claimed the gap was permanent.
+    // Turning the agent back on is one control, so neither may return.
+    expect(out.next).not.toContain("your team");
+    expect(out.next).not.toContain("no amount of trying");
+  });
+
+  it("still offers the hand-back, because doing it yourself remains real", () => {
+    const out = wayOut("no-agent", BOTH_OPEN);
+    expect(out.next).toContain("hand the result in");
+    expect(out.onThisScreen).toBe(true);
   });
 });

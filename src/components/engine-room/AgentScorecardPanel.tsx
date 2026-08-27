@@ -123,7 +123,9 @@ function ScorecardRow({ card }: { card: AgentScorecard }) {
           <Glyph />
         </span>
         <div className="min-w-0">
-          <div className="text-mrd-base font-medium text-mrd-ink">{agentDisplayName(card.slug)}</div>
+          <div className="text-mrd-base font-medium text-mrd-ink">
+            {agentDisplayName(card.slug)}
+          </div>
           {stationLabel ? <div className="text-mrd-small text-mrd-mute">{stationLabel}</div> : null}
         </div>
         {card.reverts > 0 ? (

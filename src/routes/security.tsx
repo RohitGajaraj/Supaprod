@@ -105,8 +105,40 @@ function SecurityPage() {
           hold, and enabling it does not remove the gate: an agent may merge on its own only after
           it has earned that on its own record, and only when the change has proven four things
           first. It is merged, CI was green at that exact commit, a live preview exists at that same
-          commit, and a forecast was recorded to grade the result against. Rolling back is never
-          graduated, so the product can never roll back its own work without a person.
+          commit, and a forecast was recorded to grade the result against.
+        </p>
+        {/*
+         * "ROLLING BACK IS NEVER GRADUATED, SO THE PRODUCT CAN NEVER ROLL BACK
+         * ITS OWN WORK WITHOUT A PERSON" WAS FALSE, and it was the reassuring
+         * half of this section.
+         *
+         * `SHIP_AUTONOMY_TOOLS` holds `studio.revert` (loop.server.ts:182), so
+         * `shipReleased` is true for it on every call and the mode never reaches
+         * the review pin -- with no flag involved, unlike the merge. Executed
+         * rather than traced: `resolveToolMode("studio.revert", "confirm", arc)`
+         * returns review, confirm, AUTO, AUTO across the four arcs; `agent_tools`
+         * holds no override row for it; all 93 `agent_autonomy` rows are
+         * `trusted` and `loadAgentArc` defaults the rest to trusted.
+         *
+         * R-27 did that deliberately and the reason is good, so this states the
+         * reason rather than hiding the fact. It reads worse in one sentence and
+         * better in the paragraph, which is the right trade on a page a reviewer
+         * checks against the code.
+         *
+         * AND THE RECORD SENTENCE IS ONLY WHAT THE INSERT ACTUALLY WRITES. The
+         * first draft of it said "with the agent that ran it and the commit it
+         * returned to". `studio_rollbacks` carries user_id, the original
+         * changeset, the revert changeset and the reason (studio-rollbacks.ts:365)
+         * -- no agent and no commit sha. Writing an unchecked reassurance into
+         * the paragraph correcting an unchecked reassurance is the one mistake
+         * this section cannot afford twice.
+         */}
+        <p>
+          Rolling back is the one thing gated less, on purpose. An agent that has earned it can roll
+          a change back to a known-good commit without asking, because the merge can already run on
+          its own and gating the undo harder than the do would leave the loop unable to fix what it
+          broke. Every rollback is written down as it happens, with the change it undid, the
+          reverting change it created, and the reason given for it.
         </p>
       </LegalSection>
 

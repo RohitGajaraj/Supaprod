@@ -160,12 +160,31 @@ describe("listDueForecastsImpl (FC-01)", () => {
    * null. Throwing here would take the whole Learn desk down, spec outcomes
    * included, because both live on one route.
    */
-  it("fails soft rather than breaking the desk it joins", async () => {
+  it("fails soft on a MISSING COLUMN, so the desk stands before the migration lands", async () => {
     const { due } = await listDueForecastsImpl(
-      mockDb({ error: { message: 'column "forecast_next_check_at" does not exist' } }),
+      mockDb({ error: { message: "column does not exist", code: "42703" } }),
       NOW,
     );
     expect(due).toEqual([]);
+  });
+
+  /*
+   * THE OTHER HALF, WHICH THE ORIGINAL TEST DID NOT DISTINGUISH (F-120).
+   *
+   * The soft fail above is right and its reason is unchanged. But it used to
+   * cover EVERY error, including a timeout or a refused read, and that half was
+   * a lie with teeth: `ForecastDeskPanel` returns null when all three of its
+   * reads come back empty, so a total read failure did not render an error and
+   * did not render zero. The desk disappeared from the page.
+   *
+   * A missing column is a deployment-ordering fact. Anything else is a runtime
+   * fact, and reporting zero overdue calls on the one desk whose whole purpose
+   * is that overdue calls get answered is the worst place to guess.
+   */
+  it("but a REAL failure is raised, because an empty desk would be a claim", async () => {
+    await expect(
+      listDueForecastsImpl(mockDb({ error: { message: "statement timeout" } }), NOW),
+    ).rejects.toThrow(/could not be read/);
   });
 
   it("asks for the deferral clause NULL-safely", async () => {
@@ -253,10 +272,20 @@ describe("getForecastCallRateImpl (FC-01)", () => {
     expect(s.label).toBe("You called 2 of the last 3");
   });
 
-  it("fails soft to the honest zero state", async () => {
-    const s = await getForecastCallRateImpl(mockDb({ error: { message: "boom" } }));
+  it("fails soft to the honest zero state on a missing column", async () => {
+    const s = await getForecastCallRateImpl(
+      mockDb({ error: { message: "column does not exist", code: "42703" } }),
+    );
     expect(s.resolved).toBe(0);
     expect(s.label).toBe("Not enough resolved calls yet");
+  });
+
+  it("but raises a real failure, which was the most misleading of the four", async () => {
+    // Summarising an EMPTY array produces a real-looking rate built on no rows,
+    // so an unreadable table used to render as a confident score.
+    await expect(getForecastCallRateImpl(mockDb({ error: { message: "boom" } }))).rejects.toThrow(
+      /could not be read/,
+    );
   });
 });
 
@@ -267,9 +296,17 @@ describe("listAgentSettledForecastsImpl (FC-01)", () => {
     expect(settled).toHaveLength(1);
   });
 
-  it("fails soft", async () => {
-    const { settled } = await listAgentSettledForecastsImpl(mockDb({ error: { message: "boom" } }));
+  it("fails soft on a missing column", async () => {
+    const { settled } = await listAgentSettledForecastsImpl(
+      mockDb({ error: { message: "column does not exist", code: "PGRST204" } }),
+    );
     expect(settled).toEqual([]);
+  });
+
+  it("but raises a real failure rather than claiming the crew settled nothing", async () => {
+    await expect(
+      listAgentSettledForecastsImpl(mockDb({ error: { message: "boom" } })),
+    ).rejects.toThrow(/could not be read/);
   });
 });
 

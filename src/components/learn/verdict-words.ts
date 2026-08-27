@@ -26,5 +26,5 @@ export type Verdict = "validated" | "mixed" | "missed";
 export const VERDICT_SAYS: Record<Verdict, string> = {
   validated: "it worked",
   missed: "it did not work",
-  mixed: "the signal was mixed",
+  mixed: "the evidence was mixed",
 };

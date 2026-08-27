@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { GraphSlider } from "@/components/meridian/graph-slider";
 import { getAnalyticsOverview, getAgentSpendBreakdown } from "@/lib/analytics.functions";
 import { zeroFillDaily } from "@/lib/engine-room-glance";
-import { Row, EmptyRow, ErrorRetry, PanelPending, type RoomBodyProps } from "../RoomDetail";
+import { Row, EmptyRow, ErrorRetry, PanelPending, type RoomBodyProps } from "../room-parts";
 import { FigureCard } from "../EngineChrome";
 import { Eyebrow } from "@/components/meridian/surface-parts";
 
@@ -151,8 +151,9 @@ function ByAgentView({ agent }: { agent?: string }) {
 
 // PC-06's activation funnel left this room (IA 2026-07-11): it is an operator
 // metric, so it lives on the admin observability surface now. An old
-// ?view=funnel deep link falls back to the trend view via RoomDetail's
-// unknown-view normalization.
+// ?view=funnel deep link falls back to the trend view via the route's
+// unknown-view normalization (_authenticated.engine-room.tsx). It used to say
+// RoomDetail, which was a second chassis nothing rendered and is now deleted.
 
 export function SpendRoom({ view, agent }: RoomBodyProps) {
   if (view === "by-agent") return <ByAgentView agent={agent} />;

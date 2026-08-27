@@ -108,7 +108,7 @@
  */
 
 import * as React from "react";
-import { failureLine } from "@/lib/error-copy";
+import { failureLine, reasonLine } from "@/lib/error-copy";
 import { Row, Line, Who } from "@/components/meridian/rows";
 import { Num, Actions, Door } from "@/components/meridian/surface-parts";
 import type { ReactNode } from "react";
@@ -754,7 +754,7 @@ export function PublishTeardown({
        region, which already draws its own container, and the standard caps a
        region at one bordered box. */
     return (
-      <ReadFailedLine onRetry={() => void state.refetch()}>
+      <ReadFailedLine onRetry={() => void state.refetch()} error={state.error}>
         Could not read whether this teardown is public, so nothing here says either way.
       </ReadFailedLine>
     );
@@ -928,8 +928,8 @@ function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string })
   if (q.isError) {
     return (
       <Region title="Precedent">
-        <ReadFailedLine onRetry={() => void q.refetch()}>
-          {failureLine("Could not read this bet's judgment.", q.error)}
+        <ReadFailedLine onRetry={() => void q.refetch()} error={q.error}>
+          {reasonLine("Could not read this bet's judgment.", q.error)}
         </ReadFailedLine>
       </Region>
     );
@@ -1339,7 +1339,7 @@ export function OpportunityDetailSheet({
             >
               <P>
                 {opportunity.theme_id
-                  ? "Promoted from a Discover theme, with its signals attached."
+                  ? "Promoted from a Discover theme, with its findings attached."
                   : "Promoted directly. No theme backs it."}
               </P>
             </Region>

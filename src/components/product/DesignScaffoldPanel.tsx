@@ -164,7 +164,11 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
     <div className="flex justify-end border-t hairline px-4 py-2">
       {/* TIER: Action, quiet face. Flips a workspace setting - a secondary owner
           move, nothing held waits on it. */}
-      <Action variant="quiet" busy={toggleStage.isPending} onClick={() => toggleStage.mutate(!gate.stageEnabled)}>
+      <Action
+        variant="quiet"
+        busy={toggleStage.isPending}
+        onClick={() => toggleStage.mutate(!gate.stageEnabled)}
+      >
         {gate.stageEnabled
           ? "Turn the design stage off for this workspace"
           : "Turn the design stage on for this workspace"}

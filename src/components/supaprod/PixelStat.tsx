@@ -14,7 +14,7 @@ const TONE_COLOR: Record<PixelTone, string> = {
   primary: "var(--mrd-ink)",
   ember: "var(--mrd-you)",
   moss: "var(--mrd-pass)",
-  blue: "var(--action-blue)",
+  blue: "var(--mrd-agent)",
   madder: "var(--mrd-fail)",
 };
 

@@ -339,8 +339,25 @@ export function SketchBarChart({
   // the group aria-label below so an agent reads the takeaway, not just bars.
   const insightText = showInsight ? (insight ?? barInsight(data, formatValue)) : "";
 
+  /*
+   * `data-mrd` so the bars inherit Meridian's focus ring.
+   *
+   * These bars are focusable buttons -- each one takes focus to reveal its
+   * value -- and the ring is how a keyboard reader knows which bar they are
+   * reading. Without this attribute that ring resolved to the retired
+   * `--ds-focus-color`, because AuthedLayout puts `data-obsidian` on <html>
+   * for the whole authenticated tree and meridian.css remaps `--focus-ring`
+   * only inside a `[data-mrd]` subtree.
+   *
+   * With it, `[data-mrd][data-mrd] :focus-visible` draws the ring for every
+   * descendant, so the per-button declaration below is redundant and is gone.
+   * Same fix as U-082 on the admin panels; this file was exempted there as
+   * "outside this item's owned files", which stopped being true when
+   * SURFACE-MAP put supaprod/** in this lane.
+   */
   return (
     <div
+      data-mrd=""
       role="group"
       aria-label={`${ariaLabel ?? "Bar chart"}${insightText ? `. ${insightText}` : ""}`}
     >
@@ -404,7 +421,6 @@ export function SketchBarChart({
               onMouseLeave={() => setHover((h) => (h === i ? null : h))}
               onFocus={() => setHover(i)}
               onBlur={() => setHover((h) => (h === i ? null : h))}
-              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 flex: 1,
                 minWidth: 0,

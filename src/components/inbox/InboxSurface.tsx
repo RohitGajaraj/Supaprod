@@ -15,9 +15,11 @@ import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { openAsk } from "@/lib/ask-open";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
+import { listDueForecasts } from "@/lib/forecast.functions";
 import { listMissions, type MissionListRow } from "@/lib/missions.functions";
 import { approvalsQueueKey, missionsKey } from "@/lib/query-keys";
 import { stillWaiting } from "@/lib/query-state";
+import { countIsAFloor, notTheWholeQueue } from "@/components/approvals/not-the-whole-queue";
 
 /**
  * THE INBOX SURFACE. One list of everything the crew holds, sorted by who needs
@@ -64,13 +66,41 @@ function withWhen(state: React.ReactNode, iso: string | null | undefined): React
   );
 }
 
-/** Compute total spend across missions, null = unknown (has any null values) */
+/**
+ * Total spend across missions. Null = unknown, and the second case below is the
+ * one this surface was getting wrong.
+ *
+ * ── A ZERO OVER WORK THAT RAN IS NOT A ZERO ───────────────────────────────
+ * This page rendered "Workspace spend: $0.00" while the same workspace's runs
+ * carry $8.31 in `agent_runs.spend_used_usd` across 622 rows, every one of them
+ * populated. It is not that the money is missing; it is that this total cannot
+ * see it. `listMissions` derives `cost_usd` along mission -> runs ->
+ * checkpoints -> `state.traceId` -> `ai_events`, and a break anywhere in that
+ * chain yields a mission that costs nothing rather than a mission whose cost is
+ * unknown.
+ *
+ * This module's own header already forbids the shape: cost is "—" when unknown,
+ * "never a fabricated $0.00". That rule was applied to each ROW and never to
+ * the total, so the one number a person reads as the workspace's whole spend
+ * was the one number allowed to invent a zero.
+ *
+ * So: a total of exactly nothing, over missions that plainly RAN, is a failure
+ * to attribute rather than an absence of spend, and it is reported as unknown.
+ * A workspace where nothing has run still totals zero honestly, because there
+ * are no steps to contradict it.
+ *
+ * The attribution chain itself is `missions.functions.ts` and S0's; this stops
+ * the surface stating a number it cannot support in the meantime.
+ */
 function workspaceSpendTotal(rows: MissionListRow[]): number | null {
   let total = 0;
+  let anythingRan = false;
   for (const m of rows) {
     if (m.cost_usd === null) return null; // Any unknown makes the total unknown
     total += m.cost_usd;
+    if ((m.steps?.length ?? 0) > 0) anythingRan = true;
   }
+  if (total === 0 && anythingRan) return null;
   return total;
 }
 
@@ -96,6 +126,37 @@ export function InboxSurface() {
   });
 
   /*
+   * A VERDICT THAT HAS COME DUE NEEDS A PERSON, AND NOTHING WAS TELLING THEM.
+   *
+   * SESSION-1's Learn line: the verdict "arrives on its own; the person does
+   * not go looking." It did not arrive anywhere. `listDueForecasts` exists and
+   * has exactly one caller, `ForecastDeskPanel` on /learn, so the only way to
+   * find out a forecast had come due was to navigate to the desk and look.
+   *
+   * Measured: 176 of the 369 decisions carry a forecast, 91 are settled, 70 are
+   * still running, and **15 are past their horizon with no verdict written**.
+   * None of them reaches this page. The approvals queue federates ten families
+   * and a due forecast is not one of them: its decision family is decisions
+   * with `status = 'pending'`, which is a different question entirely. So a
+   * person with fifteen verdicts waiting was reading "Nothing needs you."
+   *
+   * That is the moat's own closing step. The product's claim is that it records
+   * what you expected and then tells you what actually happened; the second
+   * half was built and then left where nobody would meet it.
+   *
+   * SAME QUERY KEY AS THE DESK, so the two share one fetch and can never
+   * disagree about how many are due. Wire what exists, rather than a second
+   * read with its own filter, which is how the strip and the desk ended up
+   * counting different things.
+   */
+  const fetchDue = useServerFn(listDueForecasts);
+  const dueForecasts = useQuery({
+    queryKey: ["forecast-due"],
+    queryFn: () => fetchDue(),
+    enabled: Boolean(workspaceId),
+  });
+
+  /*
    * QUEUED MISSIONS ARE DELIBERATELY ABSENT. A queued run has no worker on it
    * yet, so it is neither needing a person nor working, and every group here is
    * a claim about whose move it is. They stay visible on Open Runs instead.
@@ -103,6 +164,30 @@ export function InboxSurface() {
   const sessions = React.useMemo<AgentSession[]>(() => {
     const calls = queue.data?.items ?? [];
     const rows = missions.data?.missions ?? [];
+    const due = dueForecasts.data?.due ?? [];
+
+    /*
+     * THE VERDICT ROWS. `need: "needs-input"` because that is exactly what they
+     * are: nothing else can settle a forecast, and no agent may. They open the
+     * desk that can, rather than a read-only view of themselves.
+     *
+     * The claim is the row's words, not the decision's title. "Escalation rate
+     * drops below 10%" is what a person has to judge; the decision's title is
+     * what it was called at the time, and on this surface the judgement is the
+     * point.
+     */
+    const verdictSessions: AgentSession[] = due.map((f) => ({
+      id: `forecast:${f.id}`,
+      title: cleanTitle(f.claim || f.title),
+      need: "needs-input",
+      activity:
+        f.daysLate > 0
+          ? `due ${f.daysLate} ${f.daysLate === 1 ? "day" : "days"} ago, no verdict yet`
+          : "due now, no verdict yet",
+      at: instant(f.horizonDate),
+      agentSlug: null,
+      onOpen: () => void navigate({ to: "/learn" }),
+    }));
 
     const callSessions: AgentSession[] = calls.map((c) => ({
       id: c.id,
@@ -197,16 +282,42 @@ export function InboxSurface() {
       }
     });
 
-    return [...callSessions, ...runSessions];
-  }, [queue.data, missions.data, navigate]);
+    return [...verdictSessions, ...callSessions, ...runSessions];
+  }, [queue.data, missions.data, dueForecasts.data, navigate]);
 
   const missionRows = missions.data?.missions ?? [];
   const workspaceSpend = workspaceSpendTotal(missionRows);
 
+  /*
+   * WHETHER THE COUNTS BELOW ARE TOTALS OR FLOORS. `getApprovalsQueue` bounds
+   * every family it federates and degrades a failed one to an empty list, and
+   * this page has always rendered the result as an exact number. See
+   * `not-the-whole-queue.ts` for the measurement that found it.
+   */
+  const queueGaps = queue.data?.incomplete;
+  /*
+   * A FAILED VERDICT READ MAKES THE COUNT A FLOOR TOO. `countIsAFloor` answers
+   * for the queue's own families; this page federates one more read on top of
+   * it, and a page that could not ask about verdicts may not say nothing needs
+   * you. Same rule, one source wider.
+   */
+  const floor = countIsAFloor(queueGaps) || dueForecasts.isError;
+  const shortLine = dueForecasts.isError
+    ? "Your verdicts did not load, so this is not everything waiting on you."
+    : notTheWholeQueue(queueGaps);
+
   const waitingOnYou = sessions.filter((s) => s.need === "needs-input").length;
   const runningCount = sessions.filter((s) => s.need === "working").length;
 
-  const reading = stillWaiting(queue, missions);
+  /*
+   * THE VERDICT READ IS IN THE LOADING GATE, and leaving it out would have
+   * reproduced the exact defect this page keeps being fixed for. With the two
+   * older reads back and empty and this one still in flight, the headline would
+   * say "Nothing needs you." for as long as the forecast query took, and then
+   * fifteen verdicts would appear underneath a sentence saying there were none.
+   * Zero and not-yet-known are different answers.
+   */
+  const reading = stillWaiting(queue, missions, dueForecasts);
 
   const headline = React.useMemo(() => {
     if (reading) return "Inbox";
@@ -215,11 +326,43 @@ export function InboxSurface() {
     if (queue.isError) return "Your call queue did not load.";
     if (missions.isError) return "Your run record did not load.";
     if (waitingOnYou > 0)
-      return (
+      /*
+       * THE HEADLINE SUMMARISES ACROSS THE GROUPS; IT DOES NOT REPEAT THE FIRST
+       * ONE.
+       *
+       * This read "85 waiting on you." three lines above a section heading
+       * reading "WAITING ON YOU / 85" -- the same count and very nearly the
+       * same words, adjacent, with nothing between them. The section is
+       * `AgentInbox`'s and it is right: a grouped list needs a count per group.
+       * So the heading above it has to earn its line, and restating group one
+       * does not.
+       *
+       * Adding what is NOT waiting on you is what makes it a summary: the
+       * reader learns the shape of the whole list before it breaks apart
+       * underneath. `runningCount` was already computed and already used by the
+       * branch below, so this states a fact the page holds rather than a new
+       * read.
+       */
+      return runningCount > 0 ? (
         <>
-          <Num>{waitingOnYou}</Num> waiting on you.
+          {floor ? "At least " : null}
+          <Num>{waitingOnYou}</Num> need you. <Num>{runningCount}</Num> still running.
+        </>
+      ) : (
+        <>
+          {floor ? "At least " : null}
+          <Num>{waitingOnYou}</Num> need you.
         </>
       );
+    /*
+     * "NOTHING WAITS ON YOU" IS A CLAIM AND A CAPPED OR FAILED READ CANNOT
+     * MAKE IT. A family that failed to load degrades to an empty list so one
+     * refusal cannot blank the other nine, which is right, and it can leave
+     * this page reading zero. Saying nothing needs you over a broken read is
+     * the worst sentence an inbox can say, so it falls back to naming itself
+     * and `shortLine` below carries the reason.
+     */
+    if (floor) return runningCount > 0 ? <>{runningCount} still running.</> : "Inbox";
     if (runningCount > 0)
       return (
         <>
@@ -227,7 +370,7 @@ export function InboxSurface() {
         </>
       );
     return "Nothing needs you.";
-  }, [reading, queue.isError, missions.isError, waitingOnYou, runningCount]);
+  }, [reading, queue.isError, missions.isError, waitingOnYou, runningCount, floor]);
 
   if (!readingWorkspaces && workspaces.length === 0) {
     return (
@@ -243,16 +386,21 @@ export function InboxSurface() {
     );
   }
 
-  const spendNote = workspaceSpend !== null ? `Workspace spend: $${workspaceSpend.toFixed(2)}` : null;
+  const spendNote =
+    workspaceSpend !== null ? `Workspace spend: $${workspaceSpend.toFixed(2)}` : null;
 
   return (
     <Surface>
       <div className="flex flex-col gap-mrd-7">
         <div className="flex items-end justify-between gap-mrd-4">
           <PageHeading title={headline} sub={SUBTITLE} />
-          {spendNote && (
-            <p className="mrd-meta">{spendNote}</p>
-          )}
+          {/*
+            WHAT THE QUEUE COULD NOT SHOW, beside the number rather than in a
+            log. Same sentence as /approvals, from one module, so the two
+            surfaces cannot give a person two answers about one queue.
+          */}
+          {shortLine ? <p className="text-mrd-hold">{shortLine}</p> : null}
+          {spendNote && <p className="mrd-meta">{spendNote}</p>}
         </div>
 
         {reading ? (
@@ -263,6 +411,7 @@ export function InboxSurface() {
               void queue.refetch();
               void missions.refetch();
             }}
+            error={queue.error ?? missions.error}
           >
             {queue.isError && missions.isError
               ? "Nothing was settled and nothing was lost while this page could not read them. Retry before you treat the inbox as clear."

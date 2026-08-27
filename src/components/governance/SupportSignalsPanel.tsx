@@ -163,8 +163,16 @@ export function SupportSignalsPanel() {
             {pass.isPending ? "Reading them" : "Find the themes"}
           </Action>
         </Actions>
-        {add.isError ? <ReadFailedLine>{(add.error as Error).message}</ReadFailedLine> : null}
-        {pass.isError ? <ReadFailedLine>{(pass.error as Error).message}</ReadFailedLine> : null}
+        {add.isError ? (
+          <ReadFailedLine error={add.error}>
+            Nothing was imported. The clusters below are as they were.
+          </ReadFailedLine>
+        ) : null}
+        {pass.isError ? (
+          <ReadFailedLine error={pass.error}>
+            The triage did not run. No signal was reclassified.
+          </ReadFailedLine>
+        ) : null}
       </Region>
 
       {/* What each write actually caused, on the surface, in your own voice. */}
@@ -216,7 +224,7 @@ export function SupportSignalsPanel() {
         ) : clustersQ.isLoading ? (
           <Reading>Reading what repeats.</Reading>
         ) : clustersQ.isError ? (
-          <ReadFailedLine onRetry={() => void clustersQ.refetch()}>
+          <ReadFailedLine error={clustersQ.error} onRetry={() => void clustersQ.refetch()}>
             {humanWriteError(
               clustersQ.error,
               "The themes did not load, so an empty list here would not mean nothing repeats.",
@@ -321,7 +329,7 @@ function ThemeDetail({
         {q.isLoading ? (
           <Reading>Assembling it.</Reading>
         ) : q.isError ? (
-          <ReadFailedLine onRetry={() => void q.refetch()}>
+          <ReadFailedLine error={q.error} onRetry={() => void q.refetch()}>
             {humanWriteError(q.error, "The reply did not assemble.")}
           </ReadFailedLine>
         ) : q.data ? (

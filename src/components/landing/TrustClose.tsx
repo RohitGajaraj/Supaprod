@@ -15,7 +15,9 @@ import { WaitlistForm } from "./WaitlistForm";
  * loop claim (its fifth appearance on the page).
  */
 export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) {
-  // Four promises, each one verifiably true of the shipped architecture.
+  // Four promises, each one verifiably true of the shipped architecture -- which
+  // means checked against the wiring, not against what we wish it did. See the
+  // merge card below for the one that was not.
   const promises = [
     {
       icon: BookLock,
@@ -50,10 +52,58 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
        */
       detail: "Run on managed keys, or bring your own on Enterprise.",
     },
+    /*
+     * THIS BADGE STATED A GUARANTEE THE WIRING DOES NOT KEEP, and it stated it
+     * as the last thing a visitor reads before deciding whether an agent
+     * touching their repository is safe.
+     *
+     * It read "Merge is always human" over "Merge, revert, and delegate can
+     * never skip your approval." R-27 was revised on 2026-08-25:
+     * `AUTO_SHIP_ENABLED`, read from the `STUDIO_AUTO_SHIP` platform secret,
+     * un-pins `studio.pr.merge` from `review` so an agent on an ambient trust
+     * arc merges with nobody asked (loop.server.ts:132, defaults.ts:238). The
+     * secret exists and F-75 records that the founder set it. Both absolutes
+     * stopped being true the moment it did.
+     *
+     * THE HONEST FORM WAS ALREADY WRITTEN ON THIS SAME SITE. /security was
+     * corrected on 2026-08-27 for exactly this reason and says so at length: by
+     * default nothing merges without a human approval, no workspace setting can
+     * change that, the only thing that can is a platform secret we hold, and
+     * even then four things have to be proven first. This badge now agrees with
+     * that page instead of contradicting it, in the space a badge has.
+     *
+     * AND REVERT DOES NOT KEEP AN ABSOLUTE EITHER, which is the second half of
+     * the same lesson and the one I got wrong first. loop.server.ts:130 says
+     * "studio.revert and delegate.openhands are NOT graduated -- they stay
+     * review-pinned regardless of this flag", and that sentence is true only of
+     * `AUTO_SHIP_ENABLED`. There is a second path with no flag on it at all:
+     * `SHIP_AUTONOMY_TOOLS` holds `studio.revert`, so `shipReleased` is true for
+     * it on every call and the mode never reaches the review pin. R-27 put it
+     * there on purpose and gives a good reason -- the merge can already run
+     * alone, so gating the UNDO harder than the DO leaves the loop unable to
+     * fix what it broke.
+     *
+     * EXECUTED RATHER THAN TRACED, because a safety claim is not worth a
+     * reading of four files: `resolveToolMode("studio.revert", "confirm", arc)`
+     * returns review · confirm · AUTO · AUTO across observing · proving ·
+     * trusted · ambient, `agent_tools` holds no override row for it, and all 93
+     * `agent_autonomy` rows are `trusted` with `loadAgentArc` defaulting the
+     * rest to trusted. A rollback runs with nobody asked, today, with no secret
+     * set.
+     *
+     * So the badge claims the ONE thing that survives contact with the wiring:
+     * the merge default. It says nothing about revert, because there is no true
+     * short sentence about revert and a badge has no room for the long one.
+     * /security carries that, in the paragraph this card links to.
+     *
+     * This is the class the note four cards above already named, one turn
+     * further on: not a surface asserting a capability the wiring withholds,
+     * but a surface asserting a GUARANTEE the wiring does not keep.
+     */
     {
       icon: GitMerge,
-      label: "Merge is always human",
-      detail: "Merge, revert, and delegate can never skip your approval.",
+      label: "Merge waits for your approval",
+      detail: "By default nothing merges without you, and no workspace setting can change that.",
     },
   ];
 
