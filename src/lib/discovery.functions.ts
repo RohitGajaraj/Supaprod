@@ -2739,7 +2739,14 @@ export const compileContractOracles = createServerFn({ method: "POST" })
  * machine-checkable eval twin automatically at creation is the RPT-23
  * "attached at creation" half; the savePrd approve gate is the enforcement half.
  */
-async function compileContractOraclesCore(
+/**
+ * EXPORTED FOR THE AGENT DOOR (F-136). `prd.draft` in
+ * `src/lib/ai/tools/registry.server.ts` needs the same compile this file's own
+ * paths get. F-117 added it to `generatePrd` believing that was "the path every
+ * agent-written spec comes down"; it is not — `generatePrd` is called from
+ * `DiscoverSurface.tsx` and nowhere else, so that fix landed on the human door.
+ */
+export async function compileContractOraclesCore(
   supabase: SupabaseClient,
   userId: string,
   prdId: string,
