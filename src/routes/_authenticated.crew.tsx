@@ -938,7 +938,10 @@ function Proposals({ member, onDecided }: { member: CrewMember; onDecided: () =>
       ) : null}
 
       {decide.isError ? (
-        <ReadFailed detail="Nothing was granted and nothing was refused. The proposal is still open.">
+        <ReadFailed
+              error={decide.error}
+              detail="Nothing was granted and nothing was refused. The proposal is still open."
+            >
           {messageForPerson(decide.error)}
         </ReadFailed>
       ) : null}
@@ -1349,7 +1352,7 @@ function Lessons({ slug, name }: { slug: string; name: string }) {
   if (q.isError) {
     return (
       <Region title="What it has learned">
-        <ReadFailed onRetry={() => void q.refetch()}>Its lessons did not load.</ReadFailed>
+        <ReadFailed error={q.error} onRetry={() => void q.refetch()}>Its lessons did not load.</ReadFailed>
       </Region>
     );
   }

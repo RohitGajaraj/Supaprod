@@ -402,7 +402,7 @@ export function CrewMethods({ onBack }: { onBack: () => void }) {
       <Surface>
         <div className="flex flex-col gap-mrd-7">
           <PageHeading title={TITLE} />
-          <ReadFailed onRetry={() => void q.refetch()}>
+          <ReadFailed error={q.error} onRetry={() => void q.refetch()}>
             The record did not load, so no count below would be the real one.
           </ReadFailed>
           <Actions>{back}</Actions>

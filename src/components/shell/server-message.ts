@@ -1,3 +1,5 @@
+import { messageForPerson } from "@/lib/error-copy";
+
 /**
  * THE SERVER'S OWN WORDS FOR A FAILURE, or null when there are none worth showing.
  *
@@ -33,6 +35,32 @@
  * Callers should read: `toast.error(serverMessage(e) ?? "Your own sentence.")`
  */
 export function serverMessage(e: unknown): string | null {
+  /*
+   * ── ONE JUDGEMENT, TWO NAMES (2026-08-27) ─────────────────────────────────
+   * This used to carry its own rules and `messageForPerson` in
+   * `@/lib/error-copy` carried a different set. They were COMPLEMENTARY rather
+   * than redundant, which is the worst version of a duplicate: each rejected
+   * things the other let through, so which one a surface happened to call
+   * decided what a person saw. I found it by adopting the other one across my
+   * prefix without noticing this existed.
+   *
+   * S1 folded this file's three extra rules into `messageForPerson` (the 200
+   * character cap, markup bodies, stack frames and URLs) and matched the cap
+   * exactly so this became a behaviour-preserving delegation rather than a
+   * change. Two implementations of "is this fit to show a person" is precisely
+   * the drift that a single judgement exists to prevent.
+   *
+   * THE NAME SURVIVES because its caller reads well with it and re-pointing a
+   * working call site buys nothing. What must not survive is a second set of
+   * rules behind it.
+   *
+   * THE ONE THING DELEGATION WOULD HAVE LOST, kept here on purpose:
+   * `messageForPerson` takes an `Error` or a `string`. This has always also
+   * accepted a bare `{ message }` object, which is what a fetch rejection and
+   * several server helpers actually throw. Normalising first keeps that caller
+   * working; handing the object straight through would have silently started
+   * returning null for it.
+   */
   const raw =
     typeof e === "string"
       ? e
@@ -41,21 +69,5 @@ export function serverMessage(e: unknown): string | null {
         : typeof e === "object" && e !== null && "message" in e
           ? String((e as { message: unknown }).message)
           : null;
-  if (!raw) return null;
-
-  const msg = raw.trim();
-
-  // Too short to be a sentence, or long enough to be a stack or a dump.
-  if (msg.length < 8 || msg.length > 200) return null;
-
-  // Transport and framework noise. None of these were written for an operator.
-  if (/^(error|failed to fetch|network ?error|internal server error)$/i.test(msg)) return null;
-
-  // An HTML or JSON body that reached us as a message.
-  if (/^\s*[<{[]/.test(msg)) return null;
-
-  // A stack frame, a file:line, or a bare URL. All leak the machine's shape.
-  if (/\bat\s+\w+\s*\(|\.tsx?:\d+|https?:\/\//i.test(msg)) return null;
-
-  return msg;
+  return raw === null ? null : messageForPerson(raw);
 }
