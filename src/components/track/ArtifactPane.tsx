@@ -23,6 +23,16 @@ import * as React from "react";
 import { failureLine } from "@/lib/error-copy";
 import { humanizeText } from "@/lib/ai/humanize";
 import { plainProse } from "@/components/track/plain-prose";
+/*
+ * EVERY plain-text `Prose` on this pane runs agent-written text through
+ * `plainProse`, including the columns that carry no markdown today. Four of
+ * them measure zero right now -- theme summary, learning summary, changeset
+ * summary, task detail -- and that is a fact about this week's rows rather than
+ * about the platform. The same agents write all of these, and the four that DO
+ * carry markers were not special; they were just the ones that had been written
+ * to more. Covering only the measured ones would be fitting the product to the
+ * data sitting in the database.
+ */
 import { NO_CONTRACT, NO_NON_GOALS, specContract } from "@/components/track/spec-contract";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -739,7 +749,7 @@ function ThemeCard({ item, trackId }: { item: ArtifactView; trackId: string }) {
       <span className="text-mrd-label font-medium leading-mrd-snug text-mrd-ink">
         {item.title ?? item.word}
       </span>
-      {summary ? <Prose markdown={false}>{summary}</Prose> : null}
+      {plainProse(summary) ? <Prose markdown={false}>{plainProse(summary)}</Prose> : null}
       <span className="mrd-meta">
         {[
           frequency !== null ? `${frequency} signals` : "",
@@ -924,7 +934,7 @@ function LearningCard({
       {summary ? (
         <div className="flex flex-col gap-mrd-2 rounded-mrd-chip bg-mrd-sink p-mrd-4">
           <span className="mrd-eyebrow">What we now believe</span>
-          <Prose markdown={false}>{summary}</Prose>
+          <Prose markdown={false}>{plainProse(summary)}</Prose>
           <span className="flex flex-wrap items-center gap-mrd-3">
             {verdict === "validated" ? (
               <StatusChip status="pass">Held up</StatusChip>
@@ -1411,7 +1421,7 @@ function ChangesetCard({ item }: { item: ArtifactView }) {
         <span className="text-mrd-label font-medium text-mrd-ink">{item.title ?? item.word}</span>
         <span className="mrd-meta">{relativeTime(item.createdAt, Date.now())}</span>
       </div>
-      {summary ? <Prose markdown={false}>{summary}</Prose> : null}
+      {plainProse(summary) ? <Prose markdown={false}>{plainProse(summary)}</Prose> : null}
       <span className="mrd-meta">
         {[repo, branch ? `branch ${branch}` : "", prUrl ? "pull request open" : ""]
           .filter(Boolean)
@@ -1567,7 +1577,7 @@ export function TaskSteps({ items }: { items: ArtifactView[] }) {
                 {done ? <StatusChip status="pass">Done</StatusChip> : null}
                 {!done && status ? <span className="mrd-meta">{status}</span> : null}
               </span>
-              {detail ? <Prose markdown={false}>{detail}</Prose> : null}
+              {plainProse(detail) ? <Prose markdown={false}>{plainProse(detail)}</Prose> : null}
               {risk || estimate !== null ? (
                 <span className="mrd-meta">
                   {[risk ? `risk: ${risk}` : "", estimate !== null ? `~${estimate}h` : ""]
