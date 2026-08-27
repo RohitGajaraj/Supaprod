@@ -2769,18 +2769,22 @@ export const getParkedWork = createServerFn({ method: "GET" })
     async ({
       context,
       data,
-    }): Promise<{
-      parked: Array<{
-        trackId: string;
-        title: string;
-        station: string;
-        hold: string;
-        line: string;
-        stoppedAt: string | null;
-        drives: number;
-      }>;
-      openTotal: number;
-    }> => {
+    }): Promise<
+      | {
+          ok: true;
+          parked: Array<{
+            trackId: string;
+            title: string;
+            station: string;
+            hold: string;
+            line: string;
+            stoppedAt: string | null;
+            drives: number;
+          }>;
+          openTotal: number;
+        }
+      | { ok: false; because: string }
+    > => {
       const { supabase } = context;
       const { data: rows, error } = await supabase
         .from("spine_tracks" as never)
@@ -2789,12 +2793,28 @@ export const getParkedWork = createServerFn({ method: "GET" })
         .eq("status", "open");
 
       /*
-       * A FAILED READ IS NOT AN EMPTY BOARD. F-76 in one line: returning
-       * `parked: []` here would tell a person nothing is stuck at the exact
-       * moment the product cannot see, and `openTotal: 0` would make the
-       * silence look like good news.
+       * A FAILED READ IS NOT AN EMPTY BOARD, AND NOT A SENTINEL EITHER.
+       *
+       * F-76 in one line: returning an empty list here would tell a person
+       * nothing is stuck at the exact moment the product cannot see, and a zero
+       * total would make that silence look like good news.
+       *
+       * The first version answered with a negative total, which is the same defect
+       * one layer up from the one this function exists to fix: `parked: []`
+       * would tell a person nothing is stuck at the exact moment the product
+       * cannot see, and `-1` is a number that eventually reaches a screen and
+       * reads as "-1 open".
+       *
+       * A caller cannot forget to check `ok`. It can very easily forget that a
+       * negative total means "do not believe this". Fixed before the function
+       * had its first caller, which is the only cheap moment to fix it.
        */
-      if (error || !rows) return { parked: [], openTotal: -1 };
+      if (error || !rows) {
+        return {
+          ok: false,
+          because: "The work list could not be read, so this is not a count of nothing.",
+        };
+      }
 
       const open = rows as unknown as Array<{
         id: string;
@@ -2827,6 +2847,6 @@ export const getParkedWork = createServerFn({ method: "GET" })
         // list buries.
         .sort((x, y) => (x.stoppedAt ?? "").localeCompare(y.stoppedAt ?? ""));
 
-      return { parked, openTotal: open.length };
+      return { ok: true, parked, openTotal: open.length };
     },
   );

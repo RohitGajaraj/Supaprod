@@ -27,6 +27,12 @@ import { fileURLToPath } from "node:url";
 
 const SRC = readFileSync(fileURLToPath(new URL("./track.functions.ts", import.meta.url)), "utf8");
 const FN = SRC.slice(SRC.indexOf("export const getParkedWork"));
+/*
+ * COMMENTS STRIPPED BEFORE ASSERTING ON CODE. The first version of the test
+ * below tripped on this file's own explanation of the defect it fixed, which is
+ * the fourth time in one night this repo has had a guard match its own prose.
+ */
+const CODE = FN.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
 describe("it reports parked work without moving it", () => {
   it("selects on the same TERMINAL_HOLDS the sweep excludes", () => {
@@ -52,8 +58,12 @@ describe("THE F-76 SHAPE, refused: a failed read is not an empty board", () => {
     // `parked: []` with `openTotal: 0` would tell a person nothing is stuck at
     // the exact moment the product cannot see, and the silence would look like
     // good news.
-    expect(FN).toContain("openTotal: -1");
-    expect(FN).toContain("A FAILED READ IS NOT AN EMPTY BOARD");
+    // A DISCRIMINATED RESULT, not a sentinel: `-1` is a number that reaches a
+    // screen and reads as "-1 open", and a caller can forget what it means.
+    // A caller cannot forget to check `ok`.
+    expect(FN).toContain("ok: false");
+    expect(FN).toContain("not a count of nothing");
+    expect(CODE).not.toContain("openTotal: -1");
   });
 });
 
