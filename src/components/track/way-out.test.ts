@@ -140,7 +140,13 @@ describe("no dead end, ever", () => {
     // A pause is lifted at workspace level, so no control on this screen helps.
     // The person is still owed the reason, and must not be sent to a door.
     const paused = wayOut("paused", BOTH_OPEN);
-    expect(paused.next).toContain("pause is lifted");
+    /*
+     * It no longer repeats what the pause IS, because `HOLD_LINE["paused"]`
+     * says that directly above it. What this line carries is the part that one
+     * cannot: no control on this screen reaches a workspace-wide switch.
+     */
+    expect(paused.next).toContain("Nothing on this screen can lift it");
+    expect(paused.next).not.toContain("workspace");
     expect(paused.next).not.toContain("Send it back");
     expect(paused.onThisScreen).toBe(false);
   });
@@ -199,5 +205,36 @@ describe("the switched-off step tells the truth about itself", () => {
     const out = wayOut("no-agent", BOTH_OPEN);
     expect(out.next).toContain("hand the result in");
     expect(out.onThisScreen).toBe(true);
+  });
+});
+
+describe("a way out never repeats the line above it", () => {
+  /*
+   * The three that did. Each rendered directly under `HOLD_LINE[reason]` and
+   * opened by restating it. Asserted against the WORDS the hold line owns, so
+   * an edit that reintroduces the overlap fails here rather than on a screen
+   * nobody is looking at.
+   */
+  const OWNED_BY_THE_HOLD_LINE: Record<string, string[]> = {
+    paused: ["workspace", "paused"],
+    stalled: ["produced nothing", "several times"],
+    "going-in-circles": ["many times", "moved"],
+    "no-agent": ["picking this step up", "nothing will pick it up"],
+  };
+
+  for (const [hold, phrases] of Object.entries(OWNED_BY_THE_HOLD_LINE)) {
+    it(`says nothing the hold line already said, for ${hold}`, () => {
+      const out = wayOut(hold, BOTH_OPEN);
+      expect(out.next).toBeTruthy();
+      for (const phrase of phrases) {
+        expect(out.next?.toLowerCase()).not.toContain(phrase.toLowerCase());
+      }
+    });
+  }
+
+  it("still says something, because silence is the dead end this file removed", () => {
+    for (const hold of Object.keys(OWNED_BY_THE_HOLD_LINE)) {
+      expect((wayOut(hold, BOTH_OPEN).next ?? "").length).toBeGreaterThan(20);
+    }
   });
 });

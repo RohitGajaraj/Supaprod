@@ -71,7 +71,7 @@ const NOTHING: WayOut = { next: null, onThisScreen: false };
  * at a door that is not there is the same defect as pointing at none.
  */
 const DIAGNOSIS: Partial<Record<HoldReason, string>> = {
-  paused: "Nothing on this screen will move it until the pause is lifted for the whole workspace.",
+  paused: "Nothing on this screen can lift it.",
   /*
    * TWO FALSE CLAIMS, AND THE SECOND WAS THE DAMAGING ONE.
    *
@@ -120,9 +120,8 @@ const DIAGNOSIS: Partial<Record<HoldReason, string>> = {
    */
   "no-agent":
     "The agent that covers it is switched off, and turning it back on under Agents is what starts this again.",
-  stalled: "It has come back with nothing several times, so another try lands in the same place.",
-  "going-in-circles":
-    "It has been round this many times without moving, so trying again changes nothing.",
+  stalled: "Another try lands in the same place.",
+  "going-in-circles": "Trying again changes nothing.",
   "tools-refused": "A door it needs is locked, and no step can unlock it for itself.",
   "station-cannot-finish":
     "It has everything it needs and still cannot finish, so this one needs you rather than another try.",
@@ -130,6 +129,36 @@ const DIAGNOSIS: Partial<Record<HoldReason, string>> = {
   "given-up": "Nothing more will be tried here on its own.",
 };
 
+/*
+ * ── WHY THESE SENTENCES ARE SO SHORT ──────────────────────────────────────
+ *
+ * Each one renders directly under `HOLD_LINE[reason]`, which has already said
+ * what happened. Three of them used to open by saying it again:
+ *
+ *   paused            "Everything is paused for this workspace, so nothing ran."
+ *                     "Nothing on this screen will move it until the pause is
+ *                      lifted for the whole workspace."
+ *   stalled           "...ran and produced nothing several times..."
+ *                     "It has come back with nothing several times, so..."
+ *   going-in-circles  "...been run many times over and the work has not moved..."
+ *                     "It has been round this many times without moving, so..."
+ *
+ * Two sentences AGREEING a line apart are worse than two contradicting. A
+ * contradiction tells a reader something is wrong; agreement leaves them unable
+ * to tell which line is the surface's own claim, and no reason to look for the
+ * problem. S2 named that after removing a count printed twice 190px apart, and
+ * F-134 produced the same shape across two lanes when S0 and I each fixed one
+ * half of `no-agent` correctly.
+ *
+ * So each of these now carries ONLY what the line above cannot: for `paused`,
+ * that no control here reaches a workspace-wide switch; for the other two, that
+ * repetition is what makes another attempt pointless, which is the premise the
+ * offers below rest on.
+ *
+ * THE OFFER SENTENCE IS APPENDED SEPARATELY, so what looks terse here is not
+ * what a person reads. `stalled` renders as "Another try lands in the same
+ * place. Send it back a step so it starts from different ground."
+ */
 /** What is worth offering for each, best first. Empty means nothing here helps. */
 const OFFERS: Partial<Record<HoldReason, Offer[]>> = {
   paused: [],
