@@ -33,6 +33,7 @@ import { OverlapCheck, OverlapNote } from "@/components/today/OverlapNote";
 import { PushedInsights } from "@/components/today/PushedInsights";
 import { runTotals, spendWords } from "@/components/today/run-totals";
 import { lastMovedAt, stillnessLine } from "@/components/today/last-movement";
+import { failureLine } from "@/lib/error-copy";
 import { trackToBoardRows, type TrackBoardRow } from "@/components/today/tracks-feed";
 import { QuietMorning } from "@/components/today/QuietMorning";
 import { RunState, ShippedState } from "@/components/today/RunState";
@@ -313,7 +314,26 @@ type Settled = { verb: string; consequence: React.ReactNode; at: string; failed?
  * one of those decisions, and it is not — the stuck thing is a RUN. The short
  * form is better English and a false sentence, so it loses.
  */
-function stateSentence(n: { ready: number; stuck: number; shipped: number }): React.ReactNode {
+/**
+ * `waiting` JOINED 2026-08-27, AND IT IS NOT A SYNONYM FOR `stuck`.
+ *
+ * `stuck` now counts only work that STOPPED: failed, halted, cancelled,
+ * blocked. `waiting` counts `proposed` missions, which an ambient trigger
+ * raised and nobody has launched. Nothing went wrong with those, and this
+ * workspace holds 89 of them, so folding them into "runs are stuck" would tell
+ * a person 89 things had broken when none of them had started.
+ *
+ * PRECEDENCE, and it is the order a reader needs. A failure outranks a queue:
+ * something that broke wants attention before something that has not begun.
+ * `shipped` stays last for the reason it always was, as the good news that only
+ * gets the line when nothing else claims it.
+ */
+function stateSentence(n: {
+  ready: number;
+  stuck: number;
+  waiting: number;
+  shipped: number;
+}): React.ReactNode {
   const first =
     n.ready === 0 ? (
       "Nothing is ready for your review."
@@ -338,6 +358,18 @@ function stateSentence(n: { ready: number; stuck: number; shipped: number }): Re
         <>
           {" "}
           <Num>{n.stuck}</Num> runs are stuck.
+        </>
+      )
+    ) : n.waiting > 0 && n.ready === 0 ? (
+      n.waiting === 1 ? (
+        <>
+          {" "}
+          <Num>1</Num> run is waiting for you to launch it.
+        </>
+      ) : (
+        <>
+          {" "}
+          <Num>{n.waiting}</Num> runs are waiting for you to launch them.
         </>
       )
     ) : n.ready > 0 ? null : n.shipped > 0 ? (
@@ -694,6 +726,52 @@ function Today() {
         .sort((a, b) => (b.updated_at ?? "").localeCompare(a.updated_at ?? "")),
     [rows],
   );
+  /*
+   * THE LANE READS THE UNWINDOWED SET, AND THE HEADLINE STILL READS `stuck`.
+   *
+   * `stuck` is filtered through `withinLastDay`, which is right for a sentence
+   * about the morning and wrong for the lane whose whole job is "what needs
+   * you". Blocked work does not age out: it stays blocked, and the longer it
+   * waits the more it needs a person. The window deleted exactly the rows the
+   * lane exists to show.
+   *
+   * IT ALSO PUT TWO NUMBERS ON ONE SCREEN THAT READ AS A CONTRADICTION. The
+   * station strip above the board counts the same population without a window
+   * and said "89 runs waiting on you" while this lane's own head said 1.
+   * `use-spine-strip.ts` records that exact failure happening once before, in
+   * its own words: two numbers "right about different objects" with the same
+   * six words between them, so the screen reads as broken.
+   *
+   * The headline keeps `stuck` deliberately. It says "N runs are stuck", and
+   * the STUCK set includes `proposed`, which is a mission a trigger raised and
+   * nobody has launched. Calling 89 of those "stuck" would be a worse sentence
+   * than the one this fixes. Splitting proposed from stuck properly is the real
+   * repair and it is a bigger change than this one; the window is doing that
+   * job by accident today and this leaves it doing so.
+   */
+  const blockedAll = React.useMemo(() => rows.filter((m) => STUCK.has(m.status)), [rows]);
+  /*
+   * STOPPED AND UNLAUNCHED ARE NOT THE SAME WORD.
+   *
+   * `STUCK` holds `failed`, `halted`, `cancelled`, `blocked` AND `proposed`,
+   * which is right for routing every one of them into the lane that needs a
+   * person. It is wrong for the HEADLINE, which says "N runs are stuck": a
+   * `proposed` mission is one an ambient trigger raised and nobody has launched
+   * yet. Nothing went wrong with it. This workspace holds 89 of them, so the
+   * headline was one unwindowed read away from telling a person that 89 runs
+   * were stuck when none of them had started.
+   *
+   * Both counts are unwindowed, for the reason the lane is: neither stopped
+   * work nor an unlaunched proposal ages out of needing you.
+   */
+  const stoppedAll = React.useMemo(
+    () => blockedAll.filter((m) => m.status !== "proposed"),
+    [blockedAll],
+  );
+  const proposedAll = React.useMemo(
+    () => blockedAll.filter((m) => m.status === "proposed"),
+    [blockedAll],
+  );
   const running = React.useMemo(() => rows.filter((m) => WORKING.has(m.status)), [rows]);
 
   /* THE GATE COUNT PER RUNNING MISSION, so "waiting on an agent" is never
@@ -712,7 +790,10 @@ function Today() {
      in any read this page makes. It is $3.4734 across 37 tracks in the
      database and I will not print a number I cannot source from a payload. A
      server-side change is filed; until then this line speaks only for runs. */
-  const totals = React.useMemo(() => runTotals(sessions.data?.sessions, undefined), [sessions.data]);
+  const totals = React.useMemo(
+    () => runTotals(sessions.data?.sessions, undefined),
+    [sessions.data],
+  );
 
   /* WHEN ANYTHING LAST MOVED. The brief's third glance-fact is "what changed",
      and its honest form is this: there is no per-user last-seen watermark in
@@ -755,7 +836,9 @@ function Today() {
       void queryClient.invalidateQueries({ queryKey: ["today"] });
       invalidateShellReads(queryClient);
     },
-    onError: (error: Error) => toast.error(error.message),
+    /* Cancelling failed, so the run did not stop. Say that, and let the
+       server's own words through only if they were written for a person. */
+    onError: (error: Error) => toast.error(failureLine("The run is still going.", error)),
   });
   /* `mutate` is stable across renders, so the row wiring below can depend on
      this without rebuilding the crew list every time the component renders. */
@@ -813,7 +896,7 @@ function Today() {
 
   const replyRows = React.useMemo<CrewRow[]>(
     () =>
-      stuck
+      blockedAll
         .filter((m) => taskStatus(m.status) === "blocked")
         .map((m) => {
           const when = ago(m.completed_at ?? m.updated_at);
@@ -843,7 +926,7 @@ function Today() {
            a folded list. The brief's words for this lane are "sorted by what
            needs a person soonest", and recency is not that. */
         .sort((a, b) => a.at - b.at),
-    [stuck, openRun],
+    [blockedAll, openRun],
   );
 
   const liveRows = React.useMemo<CrewRow[]>(
@@ -971,6 +1054,7 @@ function Today() {
           ) : (
             base(r).state
           ),
+        note: r.reason,
       })),
       open: grouped.finished.map((r): CrewRow => ({
         ...base(r),
@@ -1130,6 +1214,13 @@ function Today() {
   const crewSection = (
     name: string,
     all: CrewRow[],
+    /* THE TRUE TOTAL, when the page holds fewer rows than exist.
+       `listMissions` returns the first 50 by recency; `totalBlocked` counts
+       every one. The head says the number a person is actually facing, which is
+       also the number the station strip above this board has always shown, so
+       the two stop disagreeing. Undefined keeps `all.length`, which is right
+       for every lane whose rows are all of them. */
+    trueCount: number | undefined,
     /* A NODE RATHER THAN A STRING since 2026-08-26, so a section's own sentence
        can carry a clause that has to be READ before it can be written — Running
        says what it could not check for overlap, and that is only knowable from a
@@ -1139,8 +1230,22 @@ function Today() {
     verbFor: (row: CrewRow) => React.ReactNode,
     extraFor?: (row: CrewRow) => React.ReactNode,
   ) => {
-    const shown = standingRows(name, all);
-    const over = all.slice(shown.length);
+    const headCount = trueCount ?? all.length;
+    /*
+     * EXPANDING A LANE USED TO REMOVE THE CONTROL THAT COLLAPSES IT.
+     *
+     * `standingRows` returns ALL rows once a lane is expanded, which is right
+     * for its other caller: the keyboard order has to walk everything on
+     * screen. Used here it made `over` empty, and the whole `over.length > 0`
+     * block is what draws the toggle, so opening a lane deleted "Show fewer"
+     * and a person could not close it again. Found by clicking it.
+     *
+     * The cap and the remainder are constants of the list, not of its open
+     * state. `expanded` decides whether the remainder is DRAWN, one line below,
+     * which is what that ternary always intended.
+     */
+    const shown = all.slice(0, LANE_ROWS);
+    const over = all.slice(LANE_ROWS);
     const expanded = moreOpen.includes(name);
     const line = (row: CrewRow) => (
       <CrewLine
@@ -1155,7 +1260,7 @@ function Today() {
     );
     return (
       <section role="group" aria-label={name} className="flex flex-col">
-        <FeedHead name={name} count={all.length} />
+        <FeedHead name={name} count={headCount} />
         <p className="mb-mrd-2 max-w-[62ch] text-mrd-data leading-mrd-prose text-mrd-mute">
           {note}
         </p>
@@ -1169,6 +1274,19 @@ function Today() {
                 </Action>
               </div>
               {expanded ? over.map(line) : null}
+              {expanded && headCount > all.length ? (
+                /* WHAT THE PAGE COULD NOT REACH. The head says the true total
+                   and the page holds the 50 most recently touched, so expanding
+                   this list ends before the number above it does. Without this
+                   line a person counts the rows, finds fewer than the head
+                   claimed, and concludes the head is wrong — which would undo
+                   the fix that put a true number there. The inbox door at the
+                   foot of this region is where the rest actually are. */
+                <p className="px-mrd-2 py-mrd-1 text-mrd-data text-mrd-mute">
+                  Showing <Num>{all.length}</Num> of <Num>{headCount}</Num>. The rest are in the
+                  inbox.
+                </p>
+              ) : null}
             </>
           ) : null}
         </div>
@@ -1182,7 +1300,9 @@ function Today() {
      by the lane that was empty. So the assurances are collected and said once,
      on the region's own line, where all three fit and read as one sentence. */
   const crewQuiet = [
-    stuck.length === 0 && trackCrewRows.reply.length === 0 ? "nothing stopped" : null,
+    /* "nothing stopped" is a claim about STOPPED work, so it reads `stoppedAll`
+       rather than the windowed set that also counts unlaunched proposals. */
+    stoppedAll.length === 0 && trackCrewRows.reply.length === 0 ? "nothing stopped" : null,
     running.length === 0 && trackCrewRows.live.length === 0 ? "no agent is working" : null,
     shipped.length === 0 && trackCrewRows.open.length === 0 ? "nothing went live" : null,
   ].filter((s): s is string => s !== null);
@@ -1272,7 +1392,13 @@ function Today() {
       restore(context?.previous);
       record({
         verb: "Nothing was recorded",
-        consequence: error.message,
+        /* WHAT IS STILL TRUE, not what the server called the failure. This
+           printed `error.message` into the product's own voice, so a person
+           read "Nothing was recorded" and then a log line. The useful fact
+           after a failed decision is that the optimistic update was rolled
+           back one line above: the call is where it was. `failureLine` appends
+           the server's sentence only when it was written for a person. */
+        consequence: failureLine("The call is still waiting on you.", error),
         at: stamp(),
         failed: true,
       });
@@ -1296,7 +1422,13 @@ function Today() {
       restore(context?.previous);
       record({
         verb: "Nothing was recorded",
-        consequence: error.message,
+        /* WHAT IS STILL TRUE, not what the server called the failure. This
+           printed `error.message` into the product's own voice, so a person
+           read "Nothing was recorded" and then a log line. The useful fact
+           after a failed decision is that the optimistic update was rolled
+           back one line above: the call is where it was. `failureLine` appends
+           the server's sentence only when it was written for a person. */
+        consequence: failureLine("The call is still waiting on you.", error),
         at: stamp(),
         failed: true,
       });
@@ -1379,7 +1511,13 @@ function Today() {
       restore(context?.previous);
       record({
         verb: "Nothing was recorded",
-        consequence: error.message,
+        /* WHAT IS STILL TRUE, not what the server called the failure. This
+           printed `error.message` into the product's own voice, so a person
+           read "Nothing was recorded" and then a log line. The useful fact
+           after a failed decision is that the optimistic update was rolled
+           back one line above: the call is where it was. `failureLine` appends
+           the server's sentence only when it was written for a person. */
+        consequence: failureLine("The call is still waiting on you.", error),
         at: stamp(),
         failed: true,
       });
@@ -1479,10 +1617,7 @@ function Today() {
    * conservative in the safe direction: it can fail to call a morning quiet,
    * and it cannot call a busy one quiet.
    */
-  const anythingBlocked = React.useMemo(
-    () => rows.some((m) => STUCK.has(m.status)),
-    [rows],
-  );
+  const anythingBlocked = React.useMemo(() => rows.some((m) => STUCK.has(m.status)), [rows]);
   /*
    * `crewTotal === 0` CARRIES THE TRACKS, and leaving it out was a second way
    * to claim a quiet morning over work that is on screen. Every clause here
@@ -1570,7 +1705,12 @@ function Today() {
      * counted sentence says it.
      */
     if (quietMorning) return "Nothing needs you right now.";
-    return stateSentence({ ready: items.length, stuck: stuck.length, shipped: shipped.length });
+    return stateSentence({
+      ready: items.length,
+      stuck: stoppedAll.length,
+      waiting: proposedAll.length,
+      shipped: shipped.length,
+    });
   }, [
     quietMorning,
     loading,
@@ -1579,7 +1719,8 @@ function Today() {
     justLanded,
     criticResult,
     items.length,
-    stuck.length,
+    stoppedAll.length,
+    proposedAll.length,
     shipped.length,
   ]);
 
@@ -1756,8 +1897,7 @@ function Today() {
                       <Num>{items.length}</Num> waiting on you. Nothing has happened yet, so undo is
                       free.
                     </>
-                  ) : quietMorning ? (
-                    /* SILENT ON A QUIET MORNING, and this is the wall coming
+                  ) : quietMorning /* SILENT ON A QUIET MORNING, and this is the wall coming
                        down. An audit of the real first sixty seconds found this
                        surface opening with FIVE NEGATIONS in one viewport, and
                        that finding is why `/start` took the home slot from it
@@ -1775,9 +1915,7 @@ function Today() {
 
                        The negations STAY when the board is not quiet, because
                        then they are news: an empty review queue beside three
-                       running rows is a fact worth printing. */
-                    null
-                  ) : (
+                       running rows is a fact worth printing. */ ? null : (
                     <>
                       Nothing is waiting on you.
                       {crewQuietLine
@@ -1897,6 +2035,18 @@ function Today() {
                 {crewSection(
                   FEED_REPLY,
                   allReplyRows,
+                  /* ZERO FROM A FAILED COUNT MUST NOT RENDER AS ZERO. S0's
+                     count degrades to 0 rather than throwing, so a broken read
+                     would put "Waiting on you 0" at the head of the lane whose
+                     whole job is saying what needs a person: a false all-clear
+                     produced by a fault, which is the failure every honesty
+                     gate on this surface exists to stop.
+                     `|| undefined` falls back to the row count, which is what
+                     this head showed before the total existed and is honest. A
+                     genuine zero has no rows either, so it still reads 0 and
+                     nothing is lost. Asked S0 for `number | null`; until then
+                     this is the safe read of the value as shipped. */
+                  missions.data?.totalBlocked || undefined,
                   /* THE BOUNDARY, SAID OUT LOUD, because the omission it covers
                      is large and silent. This lane is filtered by
                      `withinLastDay` (:670), so work whose last movement was over
@@ -1918,7 +2068,39 @@ function Today() {
                      number from a capped read is a wrong number wearing a
                      fact's clothes. The real count needs a server-side read and
                      is filed with S0. */
-                  "Nothing moves on these until you answer. This lane shows the last 24 hours, so anything waiting longer is not here.",
+                  /* HOW LONG THE OLDEST HAS SAT. I built this earlier tonight
+                     and reverted it, because the only population I could reach
+                     was the windowed one and every row in it was under a day
+                     old, so the clause could not fire. `oldestBlockedAt` counts
+                     over every row rather than the first 50, so the sentence
+                     now has a source. Under a day it says nothing: "waiting 0
+                     days" reads as a bug even when it is arithmetic. */
+                  (() => {
+                    const base = "Nothing moves on these until you answer.";
+                    const d = daysSince(missions.data?.oldestBlockedAt);
+                    if (d === null || d < 1) return base;
+                    /* SAY WHEN THE OLDEST IS NOT ON THE PAGE, because otherwise
+                       this line and the row under it look like they disagree.
+                       Seen live: the note said 39 days while the top row said
+                       21d, both true. `oldestBlockedAt` counts every blocked
+                       row; the page holds the 50 most recently touched, and the
+                       lane sorts oldest-first, so whenever the true oldest is
+                       outside that 50 the first row is younger than this
+                       sentence. Naming it turns an apparent contradiction into
+                       the useful fact, which is that older work exists than
+                       this page can reach. */
+                    const shownOldest = allReplyRows.length
+                      ? Math.min(...allReplyRows.map((r) => r.at).filter((n) => n > 0))
+                      : 0;
+                    const shownDays = shownOldest
+                      ? Math.floor((Date.now() - shownOldest) / 86_400_000)
+                      : null;
+                    const offPage = shownDays !== null && d - shownDays >= 1;
+                    const word = d === 1 ? "day" : "days";
+                    return offPage
+                      ? `${base} The oldest has been waiting ${d} ${word}, and is not on this page.`
+                      : `${base} The oldest has been waiting ${d} ${word}.`;
+                  })(),
                   (row) =>
                     /* A TRACK IS NOT ANSWERING A QUESTION HERE, so it is not
                        offered a Reply. Seen live 2026-08-27: a track parked on
@@ -1966,19 +2148,19 @@ function Today() {
                         </p>
                       ) : null}
                       {replyTo === row.id ? (
-                      <ReasonField
-                        id={`feed-reply-${row.id}`}
-                        label={`Answer ${row.who ?? "this run"}`}
-                        hint="It goes back to the run as your answer, and the work carries on from there."
-                        placeholder="Use the shorter verify step, and leave the migration for later"
-                        commitLabel="Send it"
-                        cancelLabel="Not now"
-                        onCommit={(text) => {
-                          openAsk(`About the run "${row.title}": ${text}`);
-                          setReplyTo(null);
-                        }}
-                        onCancel={() => setReplyTo(null)}
-                      />
+                        <ReasonField
+                          id={`feed-reply-${row.id}`}
+                          label={`Answer ${row.who ?? "this run"}`}
+                          hint="It goes back to the run as your answer, and the work carries on from there."
+                          placeholder="Use the shorter verify step, and leave the migration for later"
+                          commitLabel="Send it"
+                          cancelLabel="Not now"
+                          onCommit={(text) => {
+                            openAsk(`About the run "${row.title}": ${text}`);
+                            setReplyTo(null);
+                          }}
+                          onCancel={() => setReplyTo(null)}
+                        />
                       ) : null}
                     </>
                   ),
@@ -1986,6 +2168,7 @@ function Today() {
                 {crewSection(
                   FEED_LIVE,
                   allLiveRows,
+                  undefined,
                   /* THE NOTE HAS TO SURVIVE ITS OWN LANE BEING EMPTY.
                      "Waiting on an agent, not on you" is true of rows in this
                      lane and FALSE of a lane with none, and it rendered anyway:
@@ -2024,6 +2207,16 @@ function Today() {
                     ),
                   (row) => (
                     <>
+                      {/* WHY IT IS HELD, in full, on the line under the row. The
+                          driver writes real sentences past 200 characters and
+                          the state slot is a few words wide, so the row says
+                          "held" and the reason reads properly here. Same split
+                          the waiting lane uses. */}
+                      {row.note ? (
+                        <p className="px-mrd-2 pb-mrd-2 text-mrd-data leading-mrd-prose text-mrd-mute">
+                          {row.note}
+                        </p>
+                      ) : null}
                       {/* WHERE THE WORK JUST CAME FROM. The founder asked twice to
                           see the handoff; on the board that is this one line under
                           each running row, drawn only when a real handover row
@@ -2043,6 +2236,7 @@ function Today() {
                 {crewSection(
                   FEED_OPEN,
                   allOpenRows,
+                  undefined,
                   "Finished. Open one to see how it ended, and what it left behind.",
                   (row) => (
                     <Door onClick={row.onOpen}>Open</Door>
@@ -2187,25 +2381,25 @@ function Today() {
         ) : null}
 
         {/*
-          * THE DOOR THAT SAID IT STARTED WORK AND DID NOT. This block read
-          * "Start something new" over a composer whose submit is `openAsk()`,
-          * which opens the Ask pane. Asking is a real act and a good one, but a
-          * person reading "give the crew its next outcome" expects work to
-          * exist afterwards, and none did. The most-visited surface in the
-          * product was promising the one act it does not perform.
-          *
-          * So the composer is named for what it does, and the act it was
-          * standing in for gets its own door beside it. `/start` is the door
-          * that creates a track, and 41 of the last 43 tracks entered at
-          * `sense` through it, so it is the live way work begins.
-          *
-          * DELIBERATELY A LINK AND NOT A SECOND COMPOSER. Which engine the
-          * board's own composer should drive is a real question with three
-          * candidates and it is not mine to settle; it is filed as
-          * D2-the-consolidated-start-door.md for S0 and S1. A link removes the
-          * false promise today without pre-empting that ruling, and it cannot
-          * become a fourth way to start work.
-          */}
+         * THE DOOR THAT SAID IT STARTED WORK AND DID NOT. This block read
+         * "Start something new" over a composer whose submit is `openAsk()`,
+         * which opens the Ask pane. Asking is a real act and a good one, but a
+         * person reading "give the crew its next outcome" expects work to
+         * exist afterwards, and none did. The most-visited surface in the
+         * product was promising the one act it does not perform.
+         *
+         * So the composer is named for what it does, and the act it was
+         * standing in for gets its own door beside it. `/start` is the door
+         * that creates a track, and 41 of the last 43 tracks entered at
+         * `sense` through it, so it is the live way work begins.
+         *
+         * DELIBERATELY A LINK AND NOT A SECOND COMPOSER. Which engine the
+         * board's own composer should drive is a real question with three
+         * candidates and it is not mine to settle; it is filed as
+         * D2-the-consolidated-start-door.md for S0 and S1. A link removes the
+         * false promise today without pre-empting that ruling, and it cannot
+         * become a fourth way to start work.
+         */}
         <div data-page-composer className="today-composer">
           <div>
             <div className="today-kicker">Ask the crew</div>

@@ -38,6 +38,7 @@
  * guesses, and a status display that guesses removes that ability entirely.
  */
 import * as React from "react";
+import { failureLine } from "@/lib/error-copy";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -479,7 +480,7 @@ export function TrackRunLeft({
     onError: (e: Error) =>
       setReleaseNote({
         verb: "Nothing was released",
-        consequence: e.message,
+        consequence: failureLine("Nothing was released, so it is still held.", e),
         failed: true,
       }),
   });
@@ -848,20 +849,20 @@ export function TrackRunLeft({
               }
             />
             {/*
-              * WHAT WILL ACTUALLY CLEAR IT (RUN-23). Eight of the eighteen hold
-              * reasons name no way out at all, and the only control here says
-              * "let this station try again", which for those eight does the
-              * same thing again. A person read a reason and was told nothing
-              * about what to do, which is the dead end R-20 section 5 forbids.
-              *
-              * Read from the RAW reason, never the prose. Branching on wording
-              * is how every hold once painted amber.
-              *
-              * The retry control is deliberately left in place below: somebody
-              * who has just unlocked a refused tool elsewhere comes back here
-              * wanting exactly that button. The dead end was the missing
-              * sentence, not the button.
-              */}
+             * WHAT WILL ACTUALLY CLEAR IT (RUN-23). Eight of the eighteen hold
+             * reasons name no way out at all, and the only control here says
+             * "let this station try again", which for those eight does the
+             * same thing again. A person read a reason and was told nothing
+             * about what to do, which is the dead end R-20 section 5 forbids.
+             *
+             * Read from the RAW reason, never the prose. Branching on wording
+             * is how every hold once painted amber.
+             *
+             * The retry control is deliberately left in place below: somebody
+             * who has just unlocked a refused tool elsewhere comes back here
+             * wanting exactly that button. The dead end was the missing
+             * sentence, not the button.
+             */}
             {holdWayOut.next ? (
               <Row
                 lead={holdWayOut.next}

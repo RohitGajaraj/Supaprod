@@ -168,6 +168,7 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { readFailureMessage, sessionEndedMessage } from "@/lib/roles.functions";
 import { Row, Line } from "@/components/meridian/rows";
 import {
   Action,
@@ -240,6 +241,7 @@ import { CONNECTOR_REGISTRY, type ProviderId, type ProviderSpec } from "@/lib/co
 import {
   matchReason,
   NAV_GROUPS,
+  SETTINGS_GROUPS,
   normalizeSection,
   paneForSection,
   searchSections,
@@ -338,10 +340,7 @@ export const Route = createFileRoute("/_authenticated/settings")({
   errorComponent: ({ error, reset }) => (
     <Surface>
       <div className="flex flex-col gap-mrd-7">
-        <PageHeading
-          title="Settings did not open."
-          sub={(error as Error)?.message ?? "The read failed."}
-        />
+        <PageHeading title="Settings did not open." sub={readFailureMessage(error)} />
         <Actions>
           <Action variant="primary" onClick={reset}>
             Try again
@@ -401,6 +400,17 @@ function SettingsIndex({ active, onSet }: { active: SectionId; onSet: (id: Secti
   );
 
   /*
+   * SEARCH CAN NOW RETURN A SECTION THAT DRAWS NO DOOR, so the row it lands on
+   * has to be findable in a list that includes those. `allItems` above is the
+   * rail's DEFAULT list and is doors-only, which is correct for what it draws;
+   * looking a search hit up in it would have missed Diagnostics and Memory and
+   * then dereferenced undefined, turning a fixed search into a crash.
+   */
+  const everySection: RailItem[] = SETTINGS_GROUPS.flatMap((g) =>
+    g.sections.map((sec) => ({ key: sec.id, label: sec.label, section: g.label })),
+  );
+
+  /*
    * SEARCH GOES INSIDE THE PANES, not across the twelve headings.
    *
    * THE FIRST VERSION OF THIS WAS `label.includes(query)` AND THE FOUNDER BROKE IT IN
@@ -421,8 +431,12 @@ function SettingsIndex({ active, onSet }: { active: SectionId; onSet: (id: Secti
   const hits = searchSections(query);
   const items = query.trim()
     ? hits.length > 0
-      ? hits.map((id) => {
-          const found = allItems.find((i) => i.key === id)!;
+      ? hits.flatMap((id) => {
+          /* Every id searchSections returns is a real section, so this cannot
+             drop a hit today; it is a guard against a future id, never a
+             silent filter, which is why it flatMaps rather than asserting. */
+          const found = everySection.find((i) => i.key === id);
+          if (!found) return [];
           /*
            * NAME THE BLOCK WHEN THERE IS ONE. Founder: typing "invite" should offer
            * "Invite teammates", not the pane that happens to contain it. A sub-target
@@ -431,9 +445,9 @@ function SettingsIndex({ active, onSet }: { active: SectionId; onSet: (id: Secti
            * it so the crumb still says which pane that is.
            */
           const target = subTargetFor(id, query);
-          if (target) return { ...found, label: target.label, section: found.label };
+          if (target) return [{ ...found, label: target.label, section: found.label }];
           const why = matchReason(id, query);
-          return why ? { ...found, label: `${found.label}  ${why}` } : found;
+          return [why ? { ...found, label: `${found.label}  ${why}` } : found];
         })
       : allItems
     : allItems;
@@ -520,7 +534,6 @@ function SettingsIndex({ active, onSet }: { active: SectionId; onSet: (id: Secti
     </div>
   );
 }
-
 
 function SettingsPage() {
   const { section, tab, connector, checkout } = Route.useSearch();
@@ -687,7 +700,7 @@ function SettingsPage() {
             {/* ControlsPanel below owns the pause switch, so this panel's
                 read-only pause line would be the same fact twice. */}
             <BoundaryControls pauseShownElsewhere />
-            <ControlsPanel onOpenQueue={() => navigate({ to: "/approvals" })} />
+            <ControlsPanel controlsOnly onOpenQueue={() => navigate({ to: "/approvals" })} />
           </>
         )}
         {active === "ai" && <ModelsSection />}
@@ -897,9 +910,37 @@ function ProfileSection() {
     return (
       <>
         <PageHeading title="Profile" sub="How you are named, and when you are reachable." />
+        {/*
+         * SAYS WHAT DID NOT LOAD, NOT "NOTHING HERE".
+         *
+         * This read "nothing here is safe to save yet", and directly beneath
+         * it PasswordRegion renders a working form -- a sibling, not a child,
+         * so the early return above never reaches it. A reader was told
+         * nothing on the page could be saved while looking at a control that
+         * could.
+         *
+         * THE CONTROL IS RIGHT AND THE SENTENCE WAS WRONG, which is worth
+         * stating because the tempting fix is the dangerous one. Changing a
+         * password goes through supabase.auth and never touches the profile
+         * row, so a failed profile read tells you nothing about whether it
+         * will work. Disabling it here would lock somebody out of a security
+         * action at precisely the moment the product looks broken to them,
+         * which is when they are most likely to want it.
+         *
+         * EXCEPT WHEN THE SESSION IS WHAT ENDED, and the first version of this
+         * sentence got that wrong. Looking at the rendered page caught it: it
+         * read "Your password can still be changed below. Your session ended."
+         * Those contradict, and the second one wins -- changing a password
+         * re-authenticates, so an ended session breaks that too. When the read
+         * failed for THAT reason the line says the one true thing and stops.
+         */}
         <ReadFailedLine onRetry={() => void profile.refetch()}>
-          Your profile did not load, so nothing here is safe to save yet.{" "}
-          {(profile.error as Error)?.message ?? "The read failed."}
+          {sessionEndedMessage(profile.error) ?? (
+            <>
+              Your profile did not load, so your name, role and hours cannot be saved yet. Your
+              password can still be changed below. {readFailureMessage(profile.error)}
+            </>
+          )}
         </ReadFailedLine>
       </>
     );
@@ -1012,29 +1053,29 @@ function ProfileSection() {
                 boxShadow: "inset 0 1px 0 var(--mrd-sheen), var(--mrd-shadow-card)",
               }}
             />
-          <span style={{ display: "flex", flexWrap: "wrap", gap: 6, maxWidth: 240 }}>
-            {Array.from({ length: AVATAR_VARIANTS }).map((_, i) => {
-              const selected = (avatarChoice ?? defaultAvatarVariant(name)) === i;
-              return (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => chooseAvatar(i)}
-                  aria-label={`Mark ${i + 1}`}
-                  aria-pressed={selected}
-                  style={{
-                    width: 22,
-                    height: 22,
-                    borderRadius: "50%",
-                    padding: 0,
-                    background: orbBackground(i),
-                    border: selected ? "1.5px solid var(--mrd-ink)" : "1px solid var(--mrd-line)",
-                    cursor: "pointer",
-                  }}
-                />
-              );
-            })}
-          </span>
+            <span style={{ display: "flex", flexWrap: "wrap", gap: 6, maxWidth: 240 }}>
+              {Array.from({ length: AVATAR_VARIANTS }).map((_, i) => {
+                const selected = (avatarChoice ?? defaultAvatarVariant(name)) === i;
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => chooseAvatar(i)}
+                    aria-label={`Mark ${i + 1}`}
+                    aria-pressed={selected}
+                    style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: "50%",
+                      padding: 0,
+                      background: orbBackground(i),
+                      border: selected ? "1.5px solid var(--mrd-ink)" : "1px solid var(--mrd-line)",
+                      cursor: "pointer",
+                    }}
+                  />
+                );
+              })}
+            </span>
           </span>
         </Line>
       </Region>
@@ -1105,8 +1146,15 @@ function PasswordRegion() {
 
   const mismatch = confirm.length > 0 && next !== confirm;
   const tooShort = next.length > 0 && next.length < 8;
-  const canSubmit =
-    current.length > 0 && next.length >= 8 && !mismatch && !tooShort;
+  /*
+   * DELIBERATELY INDEPENDENT OF EVERY OTHER READ ON THIS PAGE. Changing a
+   * password re-authenticates and calls supabase.auth.updateUser; it does not
+   * read the profile row, so no failure elsewhere on this pane is evidence that
+   * it will not work. Do not gate this on the profile query: that would take a
+   * security action away from somebody exactly when the product looks broken to
+   * them. The Profile failure line says so in words.
+   */
+  const canSubmit = current.length > 0 && next.length >= 8 && !mismatch && !tooShort;
 
   const changePassword = useMutation({
     mutationFn: async () => {
@@ -1486,7 +1534,12 @@ function ThisWorkspaceRegion() {
             label="Leave this workspace"
             sub="You keep no access here until someone invites you back."
           >
-            <Action variant="quiet" disabled={mLeave.isPending} busy={mLeave.isPending} onClick={() => void askLeave()}>
+            <Action
+              variant="quiet"
+              disabled={mLeave.isPending}
+              busy={mLeave.isPending}
+              onClick={() => void askLeave()}
+            >
               {mLeave.isPending ? "Leaving" : "Leave"}
             </Action>
           </Line>
@@ -1497,8 +1550,8 @@ function ThisWorkspaceRegion() {
             Delete this workspace
           </p>
           <p style={{ fontSize: "var(--mrd-t-small)", color: "var(--mrd-mute)" }}>
-            Deleting {activeWorkspace.name} permanently removes it and everything in it:
-            products, missions, decisions and history. Nothing is kept.
+            Deleting {activeWorkspace.name} permanently removes it and everything in it: products,
+            missions, decisions and history. Nothing is kept.
           </p>
           <Actions>
             <Action
@@ -1535,7 +1588,12 @@ function ThisWorkspaceRegion() {
               >
                 {mCreate.isPending ? "Creating" : "Create"}
               </Action>
-              <Action variant="quiet" disabled={mCreate.isPending} busy={mCreate.isPending} onClick={closeCreate}>
+              <Action
+                variant="quiet"
+                disabled={mCreate.isPending}
+                busy={mCreate.isPending}
+                onClick={closeCreate}
+              >
                 Cancel
               </Action>
             </Actions>
@@ -1543,11 +1601,9 @@ function ThisWorkspaceRegion() {
         )}
         {planBlocked && (
           <p style={{ fontSize: "var(--mrd-t-small)", color: "var(--mrd-mute)" }}>
-            Your current plan does not cover another workspace. A plan change happens on the
-            Billing page.{" "}
-            <Door onClick={() => navigate({ search: { section: "billing" } })}>
-              Open billing
-            </Door>
+            Your current plan does not cover another workspace. A plan change happens on the Billing
+            page.{" "}
+            <Door onClick={() => navigate({ search: { section: "billing" } })}>Open billing</Door>
           </p>
         )}
       </div>
@@ -1640,144 +1696,144 @@ function WorkspaceSection({ scrollToBrief }: { scrollToBrief: boolean }) {
     <div className="flex flex-col gap-mrd-7">
       <ThisWorkspaceRegion />
       <div ref={briefRef} className="flex flex-col gap-mrd-7">
-      <PageHeading
-        title="Brief and voice"
-        sub={
-          brief.isLoading
-            ? "Reading the brief."
-            : brief.isError
-              ? "The brief did not load, so nothing here is safe to save yet."
-              : filled === 0
-                ? "Nothing set. Every mission currently starts with no standing instruction."
-                : `Every mission starts by reading these ${filled} of ${BRIEF_FIELDS.length} answers${activeWorkspace?.name ? `, for ${activeWorkspace.name}` : ""}.`
-        }
-      />
+        <PageHeading
+          title="Brief and voice"
+          sub={
+            brief.isLoading
+              ? "Reading the brief."
+              : brief.isError
+                ? "The brief did not load, so nothing here is safe to save yet."
+                : filled === 0
+                  ? "Nothing set. Every mission currently starts with no standing instruction."
+                  : `Every mission starts by reading these ${filled} of ${BRIEF_FIELDS.length} answers${activeWorkspace?.name ? `, for ${activeWorkspace.name}` : ""}.`
+          }
+        />
 
-      <Region title="What the crew reads before it acts">
-        {brief.isLoading ? (
-          <Reading>Reading the brief.</Reading>
-        ) : brief.isError ? (
-          // A failed read must never render blank fields whose save would wipe
-          // the real brief.
-          <ReadFailedLine onRetry={() => void brief.refetch()}>
-            The brief did not load. {(brief.error as Error)?.message ?? "The read failed."}
-          </ReadFailedLine>
-        ) : (
-          /*
-           * THE STACK STATES ITS OWN GAP NOW. The retired `.sp-field` carried
-           * `margin-top: var(--sp-space-3)` (12px), so six stacked fields were
-           * spaced by the primitive and the Actions row underneath them was not
-           * spaced at all. Meridian's `Field` sets no outer margin, on the same
-           * rule `Actions` and `Pre` follow -- a composition decision belongs to
-           * the composition -- so one 16px column here replaces both, which is
-           * the nearest stop at or above the 12px it had.
-           */
-          <div className="flex flex-col gap-mrd-5">
-            {BRIEF_FIELDS.map((f) => (
-              <Field key={f.key} label={f.label} htmlFor={`brief-${f.key}`}>
+        <Region title="What the crew reads before it acts">
+          {brief.isLoading ? (
+            <Reading>Reading the brief.</Reading>
+          ) : brief.isError ? (
+            // A failed read must never render blank fields whose save would wipe
+            // the real brief.
+            <ReadFailedLine onRetry={() => void brief.refetch()}>
+              The brief did not load. {readFailureMessage(brief.error)}
+            </ReadFailedLine>
+          ) : (
+            /*
+             * THE STACK STATES ITS OWN GAP NOW. The retired `.sp-field` carried
+             * `margin-top: var(--sp-space-3)` (12px), so six stacked fields were
+             * spaced by the primitive and the Actions row underneath them was not
+             * spaced at all. Meridian's `Field` sets no outer margin, on the same
+             * rule `Actions` and `Pre` follow -- a composition decision belongs to
+             * the composition -- so one 16px column here replaces both, which is
+             * the nearest stop at or above the 12px it had.
+             */
+            <div className="flex flex-col gap-mrd-5">
+              {BRIEF_FIELDS.map((f) => (
+                <Field key={f.key} label={f.label} htmlFor={`brief-${f.key}`}>
+                  <Textarea
+                    id={`brief-${f.key}`}
+                    value={form[f.key]}
+                    rows={f.rows}
+                    placeholder={f.placeholder}
+                    aria-describedby={`brief-hint-${f.key}`}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setForm((prev) => ({ ...prev, [f.key]: val }));
+                      setBriefDirty(true);
+                    }}
+                  />
+                  {/*
+                   * NOT `Field`'s own `hint` slot, and the reason is the binding
+                   * rather than the paint: `hint` renders no id, so moving this
+                   * there would leave `aria-describedby` pointing at nothing and
+                   * silently drop the description for anyone reading by ear. The
+                   * 5px top margin is gone because `Field` is a 6px flex column
+                   * now, so the space is stated once instead of twice.
+                   */}
+                  <span
+                    id={`brief-hint-${f.key}`}
+                    style={{
+                      display: "block",
+                      fontSize: "var(--mrd-t-label)",
+                      color: "var(--mrd-mute)",
+                    }}
+                  >
+                    {f.hint}
+                  </span>
+                </Field>
+              ))}
+
+              <Field label="Voice" htmlFor="voice-anchor">
                 <Textarea
-                  id={`brief-${f.key}`}
-                  value={form[f.key]}
-                  rows={f.rows}
-                  placeholder={f.placeholder}
-                  aria-describedby={`brief-hint-${f.key}`}
+                  id="voice-anchor"
+                  value={voiceAnchor}
+                  rows={3}
+                  maxLength={2000}
+                  placeholder="Direct, evidence first, no hype. Challenge weak assumptions. Short declarative sentences."
+                  aria-describedby="voice-hint"
                   onChange={(e) => {
-                    const val = e.target.value;
-                    setForm((prev) => ({ ...prev, [f.key]: val }));
-                    setBriefDirty(true);
+                    setVoiceAnchor(e.target.value);
+                    setVoiceDirty(true);
                   }}
                 />
-                {/*
-                 * NOT `Field`'s own `hint` slot, and the reason is the binding
-                 * rather than the paint: `hint` renders no id, so moving this
-                 * there would leave `aria-describedby` pointing at nothing and
-                 * silently drop the description for anyone reading by ear. The
-                 * 5px top margin is gone because `Field` is a 6px flex column
-                 * now, so the space is stated once instead of twice.
-                 */}
                 <span
-                  id={`brief-hint-${f.key}`}
+                  id="voice-hint"
                   style={{
                     display: "block",
                     fontSize: "var(--mrd-t-label)",
                     color: "var(--mrd-mute)",
                   }}
                 >
-                  {f.hint}
+                  The tone and stance every agent writes in. Leave it empty to skip.
                 </span>
               </Field>
-            ))}
 
-            <Field label="Voice" htmlFor="voice-anchor">
-              <Textarea
-                id="voice-anchor"
-                value={voiceAnchor}
-                rows={3}
-                maxLength={2000}
-                placeholder="Direct, evidence first, no hype. Challenge weak assumptions. Short declarative sentences."
-                aria-describedby="voice-hint"
-                onChange={(e) => {
-                  setVoiceAnchor(e.target.value);
-                  setVoiceDirty(true);
-                }}
-              />
-              <span
-                id="voice-hint"
-                style={{
-                  display: "block",
-                  fontSize: "var(--mrd-t-label)",
-                  color: "var(--mrd-mute)",
-                }}
-              >
-                The tone and stance every agent writes in. Leave it empty to skip.
-              </span>
-            </Field>
-
-            <Actions>
-              <Action
-                variant="primary"
-                disabled={!dirty || save.isPending || profile.isLoading}
-                onClick={() => save.mutate()}
-              >
-                {save.isPending ? "Saving" : dirty ? "Save the brief" : "Saved"}
-              </Action>
-            </Actions>
-          </div>
-        )}
-      </Region>
-
-      {/*
-       * ── THE NESTED BLOCK IS GONE, 2026-08-17 ──────────────────────────────────
-       * Founder, twice: "in Brief and voice, if you go to the bottom, there is an
-       * Invite teammates button, so that is not at all working and opening."
-       *
-       * There is no broken button. TeamCard is fully wired -- email, role, a real
-       * `invite.mutate()`, the join link and the pending list. What was broken is what
-       * the surface LOOKED like: `TeamCard` draws its own `Block title="Invite
-       * teammates"`, and it sat inside `Block title="People"`. A Block renders card
-       * chrome and a heading, so nesting one produced a bordered, titled row inside
-       * another bordered, titled row -- which is the shape this product uses for a
-       * pressable thing everywhere else. He pressed a heading, correctly expecting it
-       * to open something, and nothing happened.
-       *
-       * A control that is not a control is still a defect, and this is the honest fix:
-       * the two cards are siblings at the same rung, each owning its own Block, so the
-       * invite form is visibly a form rather than a closed door.
-       *
-       * `id` so search can land on it: typing "invite" should arrive at this heading.
-       * Duplicated by /admin, which is gated on being an admin, so it stays here until
-       * it has a section of its own.
-       */}
-      <div id={PEOPLE_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
-        {/* MembersCard draws no Block of its own, so it keeps this one. TeamCard does
-            draw one, which is exactly why it must not be inside this. */}
-        <Region title="People">
-          <MembersCard />
+              <Actions>
+                <Action
+                  variant="primary"
+                  disabled={!dirty || save.isPending || profile.isLoading}
+                  onClick={() => save.mutate()}
+                >
+                  {save.isPending ? "Saving" : dirty ? "Save the brief" : "Saved"}
+                </Action>
+              </Actions>
+            </div>
+          )}
         </Region>
-      </div>
-      <TeamCard />
 
-      <AdminDoor />
+        {/*
+         * ── THE NESTED BLOCK IS GONE, 2026-08-17 ──────────────────────────────────
+         * Founder, twice: "in Brief and voice, if you go to the bottom, there is an
+         * Invite teammates button, so that is not at all working and opening."
+         *
+         * There is no broken button. TeamCard is fully wired -- email, role, a real
+         * `invite.mutate()`, the join link and the pending list. What was broken is what
+         * the surface LOOKED like: `TeamCard` draws its own `Block title="Invite
+         * teammates"`, and it sat inside `Block title="People"`. A Block renders card
+         * chrome and a heading, so nesting one produced a bordered, titled row inside
+         * another bordered, titled row -- which is the shape this product uses for a
+         * pressable thing everywhere else. He pressed a heading, correctly expecting it
+         * to open something, and nothing happened.
+         *
+         * A control that is not a control is still a defect, and this is the honest fix:
+         * the two cards are siblings at the same rung, each owning its own Block, so the
+         * invite form is visibly a form rather than a closed door.
+         *
+         * `id` so search can land on it: typing "invite" should arrive at this heading.
+         * Duplicated by /admin, which is gated on being an admin, so it stays here until
+         * it has a section of its own.
+         */}
+        <div id={PEOPLE_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
+          {/* MembersCard draws no Block of its own, so it keeps this one. TeamCard does
+            draw one, which is exactly why it must not be inside this. */}
+          <Region title="People">
+            <MembersCard />
+          </Region>
+        </div>
+        <TeamCard />
+
+        <AdminDoor />
       </div>
     </div>
   );
@@ -1955,8 +2011,7 @@ function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => vo
       <>
         {head("The roster did not load.")}
         <ReadFailedLine onRetry={() => void crew.refetch()}>
-          Nothing below would be the real boundary.{" "}
-          {(crew.error as Error)?.message ?? "The read failed."}
+          Nothing below would be the real boundary. {readFailureMessage(crew.error)}
         </ReadFailedLine>
       </>
     );
@@ -2018,9 +2073,7 @@ function RosterSection({ onOpenCrew }: { onOpenCrew: (slug: string | null) => vo
     /* Anything stored that the catalog has never heard of still renders, at the end,
        so a custom or renamed agent is never silently dropped. */
     .concat(
-      (crew.data?.members ?? []).filter(
-        (m) => !SPECIALIST_CATALOG.some((c) => c.slug === m.slug),
-      ),
+      (crew.data?.members ?? []).filter((m) => !SPECIALIST_CATALOG.some((c) => c.slug === m.slug)),
     )
     .filter((m) => catalogEntry(m.slug)?.status !== "deprecated")
     .sort((a, b) => (catOrder.get(a.slug) ?? 999) - (catOrder.get(b.slug) ?? 999));
@@ -2264,7 +2317,9 @@ function AgentDetail({
       <div className="text-mrd-micro font-medium tracking-[0.08em] text-mrd-mute uppercase">
         {label}
       </div>
-      <div className="text-mrd-label leading-mrd-prose text-mrd-prose text-mrd-body">{children}</div>
+      <div className="text-mrd-label leading-mrd-prose text-mrd-prose text-mrd-body">
+        {children}
+      </div>
     </div>
   );
 
@@ -2282,8 +2337,8 @@ function AgentDetail({
         {role?.file ? (
           <>
             {" "}
-            It hands on <span className="text-mrd-ink">{role.file}</span>, which is what the
-            next station reads.
+            It hands on <span className="text-mrd-ink">{role.file}</span>, which is what the next
+            station reads.
           </>
         ) : entry?.conductor ? (
           <> It runs the loop itself rather than working one station of it.</>
@@ -2293,8 +2348,8 @@ function AgentDetail({
       <Facet label="What it may do without you">
         {(member.arcIsDefault ?? true) ? (
           <>
-            {ARC_CHOICE[member.arc]}. This is our default, not a rule you set, so it is
-            yours to change.
+            {ARC_CHOICE[member.arc]}. This is our default, not a rule you set, so it is yours to
+            change.
           </>
         ) : (
           <>{ARC_CHOICE[member.arc]}. You set this.</>
@@ -2350,8 +2405,8 @@ function AgentDetail({
          * read of them would duplicate the record rather than point at it -- and a
          * duplicate is the one thing he did say may be removed.
          */}
-        Every verdict that came back on {member.name}'s work is written against the call
-        that caused it, on its record. That is what re-ranks its next run.
+        Every verdict that came back on {member.name}'s work is written against the call that caused
+        it, on its record. That is what re-ranks its next run.
       </Facet>
 
       <Facet label="Track record">
@@ -2368,8 +2423,8 @@ function AgentDetail({
             finished
             {trust.outcomesTotal > 0 ? (
               <>
-                , and <Fig>{trust.outcomesValidated}</Fig> of <Fig>{trust.outcomesTotal}</Fig>{" "}
-                calls held up afterwards
+                , and <Fig>{trust.outcomesValidated}</Fig> of <Fig>{trust.outcomesTotal}</Fig> calls
+                held up afterwards
               </>
             ) : null}
             .
@@ -2377,9 +2432,7 @@ function AgentDetail({
               <>
                 {" "}
                 On that record it could run at{" "}
-                <span className="text-mrd-ink">
-                  {ARC_CHOICE[trust.suggestedArc].toLowerCase()}
-                </span>
+                <span className="text-mrd-ink">{ARC_CHOICE[trust.suggestedArc].toLowerCase()}</span>
                 .
               </>
             ) : null}
@@ -2404,7 +2457,11 @@ function AgentDetail({
             className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-mrd-data font-medium transition-colors"
             style={{ color: "var(--mrd-you)", background: "var(--mrd-select)" }}
           >
-            <span aria-hidden className="size-1.5 rounded-full" style={{ background: "var(--mrd-you)" }} />
+            <span
+              aria-hidden
+              className="size-1.5 rounded-full"
+              style={{ background: "var(--mrd-you)" }}
+            />
             {asking === 1
               ? `${member.name} is asking for more room`
               : `${member.name} is asking for more room on ${asking} tools`}
@@ -2479,10 +2536,12 @@ function ModelsSection() {
   if (profile.isError) {
     return (
       <>
-        <PageHeading title="Models and keys" sub="Which model runs your work, and whose key pays." />
+        <PageHeading
+          title="Models and keys"
+          sub="Which model runs your work, and whose key pays."
+        />
         <ReadFailedLine onRetry={() => void profile.refetch()}>
-          Your model settings did not load.{" "}
-          {(profile.error as Error)?.message ?? "The read failed."}
+          Your model settings did not load. {readFailureMessage(profile.error)}
         </ReadFailedLine>
         <ByoKeysBlock />
       </>
@@ -2793,7 +2852,7 @@ function ByoKeysBlock() {
               <Reading>Reading your keys.</Reading>
             ) : keys.isError ? (
               <ReadFailedLine onRetry={() => void keys.refetch()}>
-                Your keys did not load. {(keys.error as Error)?.message ?? "The read failed."}
+                Your keys did not load. {readFailureMessage(keys.error)}
               </ReadFailedLine>
             ) : keyList.length === 0 ? (
               <NothingYet>No key of your own yet. Until there is one, runs use ours.</NothingYet>
@@ -2804,7 +2863,9 @@ function ByoKeysBlock() {
                   label={
                     <>
                       {BYO_PROVIDERS.find((p) => p.id === k.provider)?.label ?? k.provider}
-                      {k.label ? <span style={{ color: "var(--mrd-mute)" }}> · {k.label}</span> : null}
+                      {k.label ? (
+                        <span style={{ color: "var(--mrd-mute)" }}> · {k.label}</span>
+                      ) : null}
                     </>
                   }
                   sub={
@@ -2980,7 +3041,7 @@ function PlanSection({ checkout }: { checkout?: string }) {
       <>
         <PageHeading title="Plan" sub="What this workspace is entitled to." />
         <ReadFailedLine onRetry={() => void billing.refetch()}>
-          Your plan did not load. {(billing.error as Error)?.message ?? "The read failed."}
+          Your plan did not load. {readFailureMessage(billing.error)}
         </ReadFailedLine>
       </>
     );
@@ -3000,9 +3061,7 @@ function PlanSection({ checkout }: { checkout?: string }) {
 
       <Region title="What you are on">
         <Line label={current.name} sub={current.tagline}>
-          {hasSub ? (
-            <Value tone={statusTone}>{statusWord}</Value>
-          ) : null}
+          {hasSub ? <Value tone={statusTone}>{statusWord}</Value> : null}
         </Line>
         {hasSub && renewsLabel ? (
           <Line label={sub?.cancelAtPeriodEnd ? "Access until" : "Renews on"}>
@@ -3253,7 +3312,7 @@ function CreditsSection() {
       <Region title="Balance">
         {credits.isError ? (
           <ReadFailedLine onRetry={() => void credits.refetch()}>
-            Your balance did not load. {(credits.error as Error)?.message ?? "The read failed."}
+            Your balance did not load. {readFailureMessage(credits.error)}
           </ReadFailedLine>
         ) : credits.isLoading ? (
           <Reading>Reading your balance.</Reading>
@@ -3302,99 +3361,100 @@ function CreditsSection() {
           header instead of landing it underneath. */}
       <div id={CREDITS_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
         <Region title="Buy more">
-        {catalog.isLoading ? (
-          <Reading>Reading the price list.</Reading>
-        ) : catalog.error ? (
-          <ReadFailedLine onRetry={() => void catalog.refetch()}>
-            The price list did not load. {(catalog.error as Error)?.message ?? "The read failed."}
-          </ReadFailedLine>
-        ) : BUNDLES.length === 0 ? (
-          <NothingYet>
-            No top-up is published yet. When one is, it appears here at the price that will actually
-            be charged.
-          </NothingYet>
-        ) : (
-          <>
-            {/* A grid, for the same reason the source catalog is one: a ladder
+          {catalog.isLoading ? (
+            <Reading>Reading the price list.</Reading>
+          ) : catalog.error ? (
+            <ReadFailedLine onRetry={() => void catalog.refetch()}>
+              The price list did not load. {readFailureMessage(catalog.error)}
+            </ReadFailedLine>
+          ) : BUNDLES.length === 0 ? (
+            <NothingYet>
+              No top-up is published yet. When one is, it appears here at the price that will
+              actually be charged.
+            </NothingYet>
+          ) : (
+            <>
+              {/* A grid, for the same reason the source catalog is one: a ladder
                 of prices is scanned across, not read down. Token-built rather
                 than borrowing the crew roster's classes, which mean something
                 else. R005 §2: these are CARDS you pick from, so each is a `Cell`
                 with `selected` -- the chosen ring and the toggle aria are the
                 primitive's, and the disabled/title wiring below is unchanged. */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(196px, 1fr))",
-                gap: "var(--mrd-s4)",
-              }}
-            >
-              {BUNDLES.map((b) => {
-                const wouldExceed = remainingTopupRoom !== null && b.credits > remainingTopupRoom;
-                const perCredit = b.priceCents / b.credits;
-                const isBest = Math.abs(perCredit - bestPerCredit) < 1e-9;
-                const selected = selectedBundle?.key === b.key;
-                return (
-                  <Cell
-                    key={b.key}
-                    lead={
-                      <>
-                        <Num>{b.credits.toLocaleString()}</Num> credits
-                      </>
-                    }
-                    sub={`${fmtPrice(b.priceCents)} · ${(perCredit / 100).toFixed(3)} each${
-                      isBest ? " · best rate" : ""
-                    }`}
-                    selected={selected}
-                    disabled={wouldExceed}
-                    title={wouldExceed ? "Past your per-cycle top-up limit." : undefined}
-                    onClick={() => setSelectedKey(b.key)}
-                  />
-                );
-              })}
-            </div>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(196px, 1fr))",
+                  gap: "var(--mrd-s4)",
+                }}
+              >
+                {BUNDLES.map((b) => {
+                  const wouldExceed = remainingTopupRoom !== null && b.credits > remainingTopupRoom;
+                  const perCredit = b.priceCents / b.credits;
+                  const isBest = Math.abs(perCredit - bestPerCredit) < 1e-9;
+                  const selected = selectedBundle?.key === b.key;
+                  return (
+                    <Cell
+                      key={b.key}
+                      lead={
+                        <>
+                          <Num>{b.credits.toLocaleString()}</Num> credits
+                        </>
+                      }
+                      sub={`${fmtPrice(b.priceCents)} · ${(perCredit / 100).toFixed(3)} each${
+                        isBest ? " · best rate" : ""
+                      }`}
+                      selected={selected}
+                      disabled={wouldExceed}
+                      title={wouldExceed ? "Past your per-cycle top-up limit." : undefined}
+                      onClick={() => setSelectedKey(b.key)}
+                    />
+                  );
+                })}
+              </div>
 
-            {/* Honest checkout: while payments are dormant there is no Buy
+              {/* Honest checkout: while payments are dormant there is no Buy
                 button at all, because a disabled buy is still a dead promise. */}
-            {selectedBundle && envSafe ? (
-              <Actions>
-                <Action
-                  variant="primary"
-                  disabled={
-                    remainingTopupRoom !== null && selectedBundle.credits > remainingTopupRoom
-                  }
-                  onClick={() =>
-                    openTopUp(
-                      selectedBundle.key,
-                      `Top-up: ${selectedBundle.credits.toLocaleString()} credits`,
-                    )
-                  }
-                >
-                  Buy {selectedBundle.credits.toLocaleString()} credits ·{" "}
-                  {fmtPrice(selectedBundle.priceCents)}
-                </Action>
-              </Actions>
-            ) : selectedBundle ? (
-              <NothingYet>
-                Buying is not switched on in this build. The prices are live so you can plan against
-                them.
-              </NothingYet>
-            ) : null}
-          </>
-        )}
+              {selectedBundle && envSafe ? (
+                <Actions>
+                  <Action
+                    variant="primary"
+                    disabled={
+                      remainingTopupRoom !== null && selectedBundle.credits > remainingTopupRoom
+                    }
+                    onClick={() =>
+                      openTopUp(
+                        selectedBundle.key,
+                        `Top-up: ${selectedBundle.credits.toLocaleString()} credits`,
+                      )
+                    }
+                  >
+                    Buy {selectedBundle.credits.toLocaleString()} credits ·{" "}
+                    {fmtPrice(selectedBundle.priceCents)}
+                  </Action>
+                </Actions>
+              ) : selectedBundle ? (
+                <NothingYet>
+                  Buying is not switched on in this build. The prices are live so you can plan
+                  against them.
+                </NothingYet>
+              ) : null}
+            </>
+          )}
 
-        {data ? (
-          <NothingYet>
-            <Num>{data.cycleTopupCredits.toLocaleString()}</Num> of{" "}
-            <Num>{data.cycleTopupCapCredits.toLocaleString()}</Num> top-up credits used this cycle.{" "}
-            <a
-              href="mailto:sales@supaprod.ai?subject=Enterprise%20credits"
-              style={{ color: "var(--mrd-ink)" }}
-            >
-              Ask about volume pricing
-            </a>{" "}
-            if you need past the cap.
-          </NothingYet>
-        ) : null}
+          {data ? (
+            <NothingYet>
+              <Num>{data.cycleTopupCredits.toLocaleString()}</Num> of{" "}
+              <Num>{data.cycleTopupCapCredits.toLocaleString()}</Num> top-up credits used this
+              cycle.{" "}
+              <a
+                href="mailto:sales@supaprod.ai?subject=Enterprise%20credits"
+                style={{ color: "var(--mrd-ink)" }}
+              >
+                Ask about volume pricing
+              </a>{" "}
+              if you need past the cap.
+            </NothingYet>
+          ) : null}
         </Region>
       </div>
 
@@ -3417,9 +3477,7 @@ function CreditsSection() {
               lead="Credit top-up"
               sub={
                 /* The purchase went through, which is an outcome. */
-                <Value tone="pass">
-                  +{Number(t.credits_added).toLocaleString()} credits
-                </Value>
+                <Value tone="pass">+{Number(t.credits_added).toLocaleString()} credits</Value>
               }
               time={new Date(t.created_at).toLocaleDateString()}
             />

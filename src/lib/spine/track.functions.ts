@@ -2760,6 +2760,62 @@ export const checkForecastObservable = createServerFn({ method: "POST" })
  * Reader only. It moves nothing, and deliberately: a surface that reports parked
  * work must not also be the thing that unparks it without being asked.
  */
+/** Appends the specific refusal to a generic hold line, when the record has one. */
+function withRefusal(line: string, refusal: { tool: string; error: string } | null): string {
+  return refusal ? `${line} It was ${refusal.tool}, which said: ${refusal.error}` : line;
+}
+
+/**
+ * The newest failed tool call per track, for the tracks that need one.
+ *
+ * One query for the whole page rather than one per row: a board with twelve
+ * parked items must not make twelve round trips to explain them.
+ *
+ * A failed read returns an empty map, so every line falls back to the generic
+ * sentence. Losing the detail is a worse board; inventing it would be a lie.
+ */
+async function refusalsFor(
+  supabase: SupabaseClient,
+  trackIds: string[],
+): Promise<Map<string, { tool: string; error: string }>> {
+  const out = new Map<string, { tool: string; error: string }>();
+  if (!trackIds.length) return out;
+  try {
+    const { data: runs } = await supabase
+      .from("agent_runs")
+      .select("track_id,trace_id")
+      .in("track_id", trackIds)
+      .not("trace_id", "is", null);
+    const traceToTrack = new Map<string, string>();
+    for (const r of (runs ?? []) as Array<{ track_id?: string; trace_id?: string }>) {
+      if (r.trace_id && r.track_id) traceToTrack.set(r.trace_id, r.track_id);
+    }
+    if (traceToTrack.size === 0) return out;
+
+    const { data: calls } = await supabase
+      .from("tool_calls")
+      .select("trace_id,tool_name,error,created_at")
+      .in("trace_id", [...traceToTrack.keys()])
+      .eq("ok", false)
+      .order("created_at", { ascending: false });
+    for (const c of (calls ?? []) as Array<{
+      trace_id?: string;
+      tool_name?: string;
+      error?: string | null;
+    }>) {
+      const track = c.trace_id ? traceToTrack.get(c.trace_id) : undefined;
+      const err = (c.error ?? "").trim();
+      // Newest first, so the first one seen per track is the one to keep.
+      if (track && err && !out.has(track)) {
+        out.set(track, { tool: c.tool_name ?? "a tool", error: err.slice(0, 200) });
+      }
+    }
+  } catch {
+    return out;
+  }
+  return out;
+}
+
 export const getParkedWork = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { workspaceId: string }) =>
@@ -2769,18 +2825,22 @@ export const getParkedWork = createServerFn({ method: "GET" })
     async ({
       context,
       data,
-    }): Promise<{
-      parked: Array<{
-        trackId: string;
-        title: string;
-        station: string;
-        hold: string;
-        line: string;
-        stoppedAt: string | null;
-        drives: number;
-      }>;
-      openTotal: number;
-    }> => {
+    }): Promise<
+      | {
+          ok: true;
+          parked: Array<{
+            trackId: string;
+            title: string;
+            station: string;
+            hold: string;
+            line: string;
+            stoppedAt: string | null;
+            drives: number;
+          }>;
+          openTotal: number;
+        }
+      | { ok: false; because: string }
+    > => {
       const { supabase } = context;
       const { data: rows, error } = await supabase
         .from("spine_tracks" as never)
@@ -2789,12 +2849,28 @@ export const getParkedWork = createServerFn({ method: "GET" })
         .eq("status", "open");
 
       /*
-       * A FAILED READ IS NOT AN EMPTY BOARD. F-76 in one line: returning
-       * `parked: []` here would tell a person nothing is stuck at the exact
-       * moment the product cannot see, and `openTotal: 0` would make the
-       * silence look like good news.
+       * A FAILED READ IS NOT AN EMPTY BOARD, AND NOT A SENTINEL EITHER.
+       *
+       * F-76 in one line: returning an empty list here would tell a person
+       * nothing is stuck at the exact moment the product cannot see, and a zero
+       * total would make that silence look like good news.
+       *
+       * The first version answered with a negative total, which is the same defect
+       * one layer up from the one this function exists to fix: `parked: []`
+       * would tell a person nothing is stuck at the exact moment the product
+       * cannot see, and `-1` is a number that eventually reaches a screen and
+       * reads as "-1 open".
+       *
+       * A caller cannot forget to check `ok`. It can very easily forget that a
+       * negative total means "do not believe this". Fixed before the function
+       * had its first caller, which is the only cheap moment to fix it.
        */
-      if (error || !rows) return { parked: [], openTotal: -1 };
+      if (error || !rows) {
+        return {
+          ok: false,
+          because: "The work list could not be read, so this is not a count of nothing.",
+        };
+      }
 
       const open = rows as unknown as Array<{
         id: string;
@@ -2806,6 +2882,29 @@ export const getParkedWork = createServerFn({ method: "GET" })
       }>;
 
       const terminal = new Set<string>(TERMINAL_HOLDS as readonly string[]);
+
+      /*
+       * THE SPECIFIC REASON, NOT ONLY THE GENERIC ONE.
+       *
+       * `HOLD_LINE["tools-refused"]` says "this station could not use a tool it
+       * needs". True, and it does not tell a person WHICH tool or WHY, so the
+       * one sentence they need to act on is missing from the one place they go
+       * to read it.
+       *
+       * The driver already composes the specific sentence at drive time and
+       * then DISCARDS it: the hold is stored, the reason is not. So it is
+       * re-derived here from the record, the same choice `selfCheckBack` makes,
+       * for the same reason: no model call, and it cannot go stale.
+       *
+       * Measured 2026-08-27: the only tools-refused track in the product is
+       * held on a GitHub 401, and a person reading the board is told a tool
+       * failed without being told it is a credential they can rotate in one
+       * step (F-106).
+       */
+      const refusals = await refusalsFor(
+        supabase,
+        open.filter((t) => t.last_hold === "tools-refused").map((t) => t.id),
+      );
       const parked = open
         .filter((t) => t.last_hold && terminal.has(t.last_hold))
         .map((t) => ({
@@ -2816,9 +2915,11 @@ export const getParkedWork = createServerFn({ method: "GET" })
           // The product's own sentence for this hold, not a new one invented
           // here. Two wordings for one state is how a surface starts disagreeing
           // with the record it reads from.
-          line:
+          line: withRefusal(
             holdLine(t.last_hold as HoldReason, { station: t.station as AgentStation }) ??
-            HOLD_LINE[t.last_hold as HoldReason],
+              HOLD_LINE[t.last_hold as HoldReason],
+            refusals.get(t.id) ?? null,
+          ),
           stoppedAt: t.driven_at,
           drives: t.station_drives ?? 0,
         }))
@@ -2827,6 +2928,6 @@ export const getParkedWork = createServerFn({ method: "GET" })
         // list buries.
         .sort((x, y) => (x.stoppedAt ?? "").localeCompare(y.stoppedAt ?? ""));
 
-      return { parked, openTotal: open.length };
+      return { ok: true, parked, openTotal: open.length };
     },
   );

@@ -122,7 +122,10 @@ export function SafetyRoom({ view }: RoomBodyProps) {
    */
   return (
     <>
-      <BoundaryStatement />
+      {/* The controls below make the same read under the same key, so they fail
+          together. Theirs is the fuller failure and it names what to do, so it
+          is the one that speaks. */}
+      <BoundaryStatement failureShownElsewhere />
       {/*
        * THE CONTROLS BESIDE THE STATEMENT (request 022). Until now the room
        * answered "what is allowed" with what agents may SAY (guardrails) and a

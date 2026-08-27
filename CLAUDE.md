@@ -56,9 +56,16 @@ entered at `sense`, and **zero have gone `sense` → `learn`**.
 > ```sql
 > SELECT count(*) FROM spine_tracks t
 > WHERE t.entry_station = 'sense' AND t.station = 'learn' AND t.waived = '[]'
+>   -- A person ANSWERED a boundary call mid-run (F-79).
 >   AND t.id NOT IN (SELECT r.track_id FROM agent_approvals a
 >                    JOIN agent_runs r ON r.mission_id = a.mission_id
->                    WHERE a.decided_at IS NOT NULL AND r.track_id IS NOT NULL);
+>                    WHERE a.decided_at IS NOT NULL AND r.track_id IS NOT NULL)
+>   -- A person PRESSED it. Added 2026-08-27 (F-112) and the query was blind to
+>   -- this until then: R-18 is "no human touching it mid-run", and a press IS
+>   -- that touch, but it leaves no approval row for the clause above to find.
+>   -- 19 of 106 tracks carry one. `continuation` is NOT counted: that is the
+>   -- driver resuming its own work, not a person.
+>   AND t.id NOT IN (SELECT d.track_id FROM track_drives d WHERE d.driven_via = 'press');
 > ```
 >
 > **Never ask this with `workspaces.is_sample`** — that form returns **2** today (`3fbf73c9` and

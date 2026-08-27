@@ -38,6 +38,7 @@ import { Receipt } from "@/components/meridian/Receipt";
    name, reads no token and renders nothing. `BulkBar` takes the object it
    returns, which is why Meridian imports the type from here too. */
 import { useSelection } from "@/components/shell/use-selection";
+import { failureLine } from "@/lib/error-copy";
 
 /** The three columns, in plain words. NOW used to be printed in ember: ember
  *  marks the human and the one thing waiting on you, never a column heading, so
@@ -272,7 +273,7 @@ export function RoadmapColumns() {
       );
     },
     onError: (e: Error, v) =>
-      commitReceipt("The bet did not move", `${v.title} is where it was. ${e.message}`, true),
+      commitReceipt("The bet did not move", failureLine(`${v.title} is where it was.`, e), true),
   });
 
   // PC-10: one-key rewind of the last placement change (agent roadmap.move or a
@@ -291,7 +292,7 @@ export function RoadmapColumns() {
       );
     },
     onError: (e: Error, v) =>
-      commitReceipt("Nothing was rewound", `${v.title} is unchanged. ${e.message}`, true),
+      commitReceipt("Nothing was rewound", failureLine(`${v.title} is unchanged.`, e), true),
   });
 
   const commit = useMutation({
@@ -308,7 +309,7 @@ export function RoadmapColumns() {
     onError: (e: Error, v) =>
       commitReceipt(
         "The promise was not written",
-        `${v.title} is unchanged on the board. ${e.message}`,
+        failureLine(`${v.title} is unchanged on the board.`, e),
         true,
       ),
   });
@@ -334,7 +335,7 @@ export function RoadmapColumns() {
     onError: (e: Error, v) =>
       commitReceipt(
         "The promise was not saved",
-        `${v.title} still reads as it did. ${e.message}`,
+        failureLine(`${v.title} still reads as it did.`, e),
         true,
       ),
   });

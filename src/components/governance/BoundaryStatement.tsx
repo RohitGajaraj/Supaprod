@@ -59,7 +59,28 @@ export function runsAloneDespiteAsking(t: BoundaryTool): boolean {
   return t.mode === "confirm" && t.risk === "low" && t.floor === null;
 }
 
-export function BoundaryStatement() {
+export function BoundaryStatement({
+  /**
+   * ONE DEAD READ SHOULD SAY SO ONCE.
+   *
+   * This component and BoundaryControls make the IDENTICAL read under the
+   * IDENTICAL key -- deliberately, so the two can never disagree about a count.
+   * The cost of that is that they also fail together, and each was announcing
+   * it separately. Rendered on the Safety room with the backend unreachable,
+   * one failed boundary read produced three statements in a column: this
+   * line, then "The boundary could not be read." as a large heading, then the
+   * reason underneath it.
+   *
+   * When the controls are directly below, they own the failure: theirs is the
+   * fuller one and it names what the reader can do about it. This becomes the
+   * count it always was, and says nothing when there is no count to give.
+   *
+   * Same shape as `pauseShownElsewhere` on BoundaryControls: the component that
+   * can see BOTH decides which one speaks, and neither has to know about the
+   * other's internals.
+   */
+  failureShownElsewhere = false,
+}: { failureShownElsewhere?: boolean } = {}) {
   const { activeWorkspaceId } = useWorkspace();
   const boundaryFn = useServerFn(getBoundary);
 
@@ -87,9 +108,11 @@ export function BoundaryStatement() {
       {boundaryQ.isLoading ? (
         <Reading>Reading what your crew is allowed to do.</Reading>
       ) : boundaryQ.isError ? (
-        <ReadFailedLine onRetry={() => void boundaryQ.refetch()}>
-          The boundary did not load, so no count here would be the real one.
-        </ReadFailedLine>
+        failureShownElsewhere ? null : (
+          <ReadFailedLine onRetry={() => void boundaryQ.refetch()}>
+            The boundary did not load, so no count here would be the real one.
+          </ReadFailedLine>
+        )
       ) : alone + asks + never === 0 ? (
         <NothingYet>
           No tools are switched on for this account yet, so there is nothing to allow or refuse.

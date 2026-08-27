@@ -106,6 +106,7 @@
  */
 
 import { createFileRoute } from "@tanstack/react-router";
+import { failureLine } from "@/lib/error-copy";
 import { approvalsQueueKey, APPROVALS_QUEUE_PREFIX, invalidateShellReads } from "@/lib/query-keys";
 import { isModalOpen } from "@/lib/overlay";
 import { useServerFn } from "@tanstack/react-start";
@@ -375,7 +376,7 @@ function ApprovalsSurface() {
         {
           id: vars.item.id,
           verb: "Nothing was recorded",
-          consequence: e.message,
+          consequence: failureLine("This is still waiting for you.", e),
           at: new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }),
           failed: true,
         },
@@ -426,7 +427,7 @@ function ApprovalsSurface() {
         {
           id: item.id,
           verb: "Nothing was recorded",
-          consequence: e.message,
+          consequence: failureLine("This is still waiting for you.", e),
           at: new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }),
           failed: true,
         },
@@ -563,11 +564,29 @@ function ApprovalsSurface() {
      here has happened yet, so nothing is owed. */
   const headline = queue.isLoading
     ? "Approvals"
-    : n === 0
-      ? "Nothing is ready for you."
-      : n === 1
-        ? "1 decision is ready for you."
-        : `${n} decisions are ready for you.`;
+    : /*
+       * A FAILED READ IS NOT AN EMPTY QUEUE, and this heading was the one place
+       * on the page that had not learned it. `queue.isError` was never consulted
+       * here, so a failed read fell through to n === 0 and printed "Nothing is
+       * ready for you." in the largest type on the screen, directly above the
+       * error card explaining that the queue could not be read. The page
+       * asserted the queue was empty and unreadable in the same breath, and a
+       * person believing the heading would walk away from work that is sitting
+       * there.
+       *
+       * The rest of this file already knows the rule: :580 checks !isError
+       * before deciding somebody is in no workspace, and the card below branches
+       * on it too. The heading takes the neutral title, the same one it wears
+       * while loading, because a heading that cannot know the count must not
+       * imply one. The card underneath carries the explanation.
+       */
+      queue.isError
+      ? "Approvals"
+      : n === 0
+        ? "Nothing is ready for you."
+        : n === 1
+          ? "1 decision is ready for you."
+          : `${n} decisions are ready for you.`;
 
   /* THE THIRD FACT, which this surface used to collapse into the first. A
      person in no workspace at all was told "Nothing is ready for you.", which
@@ -736,7 +755,9 @@ function ApprovalsSurface() {
 
         {otherWorkspacesCount > 0 ? (
           <p className="text-mrd-label text-mrd-mute">
-            <span className="font-mrd-mono tabular-nums text-mrd-prose text-mrd-body">{otherWorkspacesCount}</span>{" "}
+            <span className="font-mrd-mono tabular-nums text-mrd-prose text-mrd-body">
+              {otherWorkspacesCount}
+            </span>{" "}
             more waiting in your other workspaces.
           </p>
         ) : null}

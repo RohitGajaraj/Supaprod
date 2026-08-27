@@ -228,6 +228,7 @@
  */
 
 import { AutomationBoundary } from "@/components/governance/AutomationBoundary";
+import { failureLine } from "@/lib/error-copy";
 import { wordFor } from "@/lib/spine/chain";
 import { Row, Line } from "@/components/meridian/rows";
 import * as React from "react";
@@ -445,7 +446,9 @@ function RenameClusterForm({
         />
       </Field>
       {save.isError ? (
-        <p className="text-mrd-fail text-mrd-base">{(save.error as Error).message}</p>
+        <p className="text-mrd-fail text-mrd-base">
+          {failureLine("That did not save, so nothing changed.", save.error)}
+        </p>
       ) : null}
       <Actions>
         <Action type="submit" disabled={!canSave}>
@@ -817,7 +820,11 @@ export function DiscoverSurface({
       void qc.invalidateQueries({ queryKey: ["cluster-settings"] });
     },
     onError: (e: Error) =>
-      setReceipt({ verb: "The boundary did not move", consequence: e.message, failed: true }),
+      setReceipt({
+        verb: "The boundary did not move",
+        consequence: failureLine("Nothing changed.", e),
+        failed: true,
+      }),
   });
 
   const rows = React.useMemo(() => signals.data?.signals ?? [], [signals.data]);
@@ -1255,7 +1262,11 @@ export function DiscoverSurface({
       invalidate();
     },
     onError: (e: Error) =>
-      setReceipt({ verb: "It did not go through", consequence: e.message, failed: true }),
+      setReceipt({
+        verb: "It did not go through",
+        consequence: failureLine("Nothing changed.", e),
+        failed: true,
+      }),
   });
 
   /**
@@ -1300,7 +1311,11 @@ export function DiscoverSurface({
       invalidate();
     },
     onError: (e: Error) =>
-      setReceipt({ verb: "It did not go through", consequence: e.message, failed: true }),
+      setReceipt({
+        verb: "It did not go through",
+        consequence: failureLine("Nothing changed.", e),
+        failed: true,
+      }),
   });
 
   /**
@@ -1344,7 +1359,11 @@ export function DiscoverSurface({
       invalidate();
     },
     onError: (e: Error) =>
-      setReceipt({ verb: "It did not go back", consequence: e.message, failed: true }),
+      setReceipt({
+        verb: "It did not go back",
+        consequence: failureLine("Nothing changed.", e),
+        failed: true,
+      }),
   });
 
   /**
@@ -1413,7 +1432,11 @@ export function DiscoverSurface({
       invalidate();
     },
     onError: (e: Error) =>
-      setReceipt({ verb: "None of them moved", consequence: e.message, failed: true }),
+      setReceipt({
+        verb: "None of them moved",
+        consequence: failureLine("Nothing changed.", e),
+        failed: true,
+      }),
   });
 
   /**
@@ -1469,7 +1492,11 @@ export function DiscoverSurface({
       invalidate();
     },
     onError: (e: Error) =>
-      setReceipt({ verb: "It did not go through", consequence: e.message, failed: true }),
+      setReceipt({
+        verb: "It did not go through",
+        consequence: failureLine("Nothing changed.", e),
+        failed: true,
+      }),
   });
 
   // The spec brief aggregates every member quote plus the cluster summary,
@@ -1491,7 +1518,11 @@ export function DiscoverSurface({
       navigate({ to: "/plan/spec/$id", params: { id: r.id }, search: { tab: "contract" } });
     },
     onError: (e: Error) =>
-      setReceipt({ verb: "It did not go through", consequence: e.message, failed: true }),
+      setReceipt({
+        verb: "It did not go through",
+        consequence: failureLine("Nothing changed.", e),
+        failed: true,
+      }),
   });
 
   const cluster = useMutation({
@@ -1501,7 +1532,11 @@ export function DiscoverSurface({
       invalidate();
     },
     onError: (e: Error) =>
-      setReceipt({ verb: "It did not go through", consequence: e.message, failed: true }),
+      setReceipt({
+        verb: "It did not go through",
+        consequence: failureLine("Nothing changed.", e),
+        failed: true,
+      }),
   });
 
   /**
@@ -1586,7 +1621,11 @@ export function DiscoverSurface({
       invalidate();
     },
     onError: (e: Error) =>
-      setReceipt({ verb: "Nothing was captured", consequence: e.message, failed: true }),
+      setReceipt({
+        verb: "Nothing was captured",
+        consequence: failureLine("Nothing changed.", e),
+        failed: true,
+      }),
   });
 
   /** A document or a transcript: one signal, kept whole, named. */
@@ -1643,7 +1682,7 @@ export function DiscoverSurface({
     onError: (e: Error) =>
       setReceipt({
         verb: `The ${bodyKind === "transcript" ? "transcript" : "document"} was not added`,
-        consequence: e.message,
+        consequence: failureLine("Nothing changed.", e),
         failed: true,
       }),
   });
@@ -1683,7 +1722,7 @@ export function DiscoverSurface({
       });
     } catch (e) {
       setFileNote({
-        text: `${file.name} could not be read. ${(e as Error).message || "The browser refused it."}`,
+        text: failureLine(`${file.name} could not be read, so nothing went into the composer.`, e),
         failed: true,
       });
     } finally {
@@ -1940,8 +1979,8 @@ export function DiscoverSurface({
   const showStrip = !loading && !loadError && !signalsEmpty && (stripSources || ranked.length > 0);
   const clustersFacts = (
     <>
-      <Num>{rows.length}</Num> signal{plural(rows.length)} in, <Num>{ranked.length}</Num>{" "}
-      cluster{plural(ranked.length)} open
+      <Num>{rows.length}</Num> signal{plural(rows.length)} in, <Num>{ranked.length}</Num> cluster
+      {plural(ranked.length)} open
       {unclustered > 0 ? (
         <>
           , <Num>{unclustered}</Num> loose
@@ -2628,8 +2667,7 @@ export function DiscoverSurface({
                     the Decide desk said the new one: one product, two words for
                     one thing. */}
                 <Num>{focused.theme.frequency}</Num> {wordFor("signal", focused.theme.frequency)}{" "}
-                from{" "}
-                <Num>{focusedSources.length}</Num> separate source
+                from <Num>{focusedSources.length}</Num> separate source
                 {plural(focusedSources.length)}
                 {focusedSources.length > 0
                   ? `: ${focusedSources
@@ -2762,7 +2800,11 @@ export function DiscoverSurface({
           <Action busy={busy} shortcut="m" onClick={() => setPicking(true)}>
             Add to an existing bet
           </Action>
-          <Action busy={busy} shortcut="d" onClick={() => decline.mutate({ themeId: focused.theme.id })}>
+          <Action
+            busy={busy}
+            shortcut="d"
+            onClick={() => decline.mutate({ themeId: focused.theme.id })}
+          >
             Not a pattern
           </Action>
           {renaming ? (
@@ -3031,66 +3073,66 @@ export function DiscoverSurface({
         scatter complaint one step later. Six, then ask. */}
       {!picking && ranked.length > 1 ? (
         <div ref={rankingAnchor} tabIndex={-1}>
-        <Region
-          title="The ranking"
-          /* j AND k WERE BOUND AND DRAWN NOWHERE, which is the same defect as
+          <Region
+            title="The ranking"
+            /* j AND k WERE BOUND AND DRAWN NOWHERE, which is the same defect as
              the seven stations carrying live chords with no keycap: a person
              could only find these by reading the source. The list they move
              through is the one place the hint belongs, and it is the same
              pair /approvals uses for the same job. */
-          sub="j and k move the focus. The one in focus is the one the keys act on. Tick rows to decline a batch of them at once."
-          toggle={
-            rankedVisible.length > VISIBLE_CLUSTERS
-              ? showAllClusters
-                ? "Show fewer"
-                : `Show all ${rankedVisible.length}`
-              : undefined
-          }
-          onToggle={() => setShowAllClusters((v) => !v)}
-          toggled={showAllClusters}
-        >
-          {/* THE FIND FIELD, exactly when the list outgrows one screen - the
+            sub="j and k move the focus. The one in focus is the one the keys act on. Tick rows to decline a batch of them at once."
+            toggle={
+              rankedVisible.length > VISIBLE_CLUSTERS
+                ? showAllClusters
+                  ? "Show fewer"
+                  : `Show all ${rankedVisible.length}`
+                : undefined
+            }
+            onToggle={() => setShowAllClusters((v) => !v)}
+            toggled={showAllClusters}
+          >
+            {/* THE FIND FIELD, exactly when the list outgrows one screen - the
               same threshold that summons "Show all". Searching three clusters
               is noise; finding one of thirty by its name is the job. Mirrors
               the merge picker's field: same component, same Escape-stands-down
               behaviour, substring over title and summary. */}
-          {ranked.length > VISIBLE_CLUSTERS ? (
-            <Field label="Find a cluster" htmlFor="ranking-filter">
-              <Input
-                id="ranking-filter"
-                value={clusterFilter}
-                onChange={(e) => setClusterFilter(e.target.value)}
-                placeholder="Type any part of its name"
-                onKeyDown={(e) => {
-                  if (e.key === "Escape") {
-                    e.preventDefault();
-                    setClusterFilter("");
-                  }
-                }}
-              />
-            </Field>
-          ) : null}
-          {clusterFilter && rankedVisible.length === 0 ? (
-            <CtxBody>
-              Nothing named that. The find matches titles and summaries; the cluster may be
-              settled, under Settled below.
-            </CtxBody>
-          ) : null}
-          {/* WHAT THE READER IS ABOUT TO SCAN, before they scan it. The counts
+            {ranked.length > VISIBLE_CLUSTERS ? (
+              <Field label="Find a cluster" htmlFor="ranking-filter">
+                <Input
+                  id="ranking-filter"
+                  value={clusterFilter}
+                  onChange={(e) => setClusterFilter(e.target.value)}
+                  placeholder="Type any part of its name"
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                      e.preventDefault();
+                      setClusterFilter("");
+                    }
+                  }}
+                />
+              </Field>
+            ) : null}
+            {clusterFilter && rankedVisible.length === 0 ? (
+              <CtxBody>
+                Nothing named that. The find matches titles and summaries; the cluster may be
+                settled, under Settled below.
+              </CtxBody>
+            ) : null}
+            {/* WHAT THE READER IS ABOUT TO SCAN, before they scan it. The counts
               are the three novelty buckets the rows themselves use plus the
               clusters carrying no novelty at all, so the header and the rows can
               never disagree: they read one function. A bucket at zero is not
               drawn, because a count of nothing changes nothing a person does. */}
-          <BatchHeader
-            facts={[
-              {
-                n: rankedVisible.length,
-                label: rankedVisible.length === 1 ? "cluster open" : "clusters open",
-                always: true,
-                title:
-                  "Still waiting on a judgment. Declined, merged and promoted ones are under Settled.",
-              },
-              /* EVERY LABEL CARRIES ITS OWN SUBJECT, because the entry above it
+            <BatchHeader
+              facts={[
+                {
+                  n: rankedVisible.length,
+                  label: rankedVisible.length === 1 ? "cluster open" : "clusters open",
+                  always: true,
+                  title:
+                    "Still waiting on a judgment. Declined, merged and promoted ones are under Settled.",
+                },
+                /* EVERY LABEL CARRIES ITS OWN SUBJECT, because the entry above it
                  may not be drawn. These three used to read "unlike anything on
                  the record" / "partly resemble it" / "closely resemble it", and
                  the "it" in the last two pointed at "the record" in the first.
@@ -3105,41 +3147,41 @@ export function DiscoverSurface({
                  The verb also agrees with the count now. "1 partly resemble it"
                  was wrong in the old copy too, and is easy to miss because the
                  one-cluster case is rare after the first week. */
-              {
-                n: spread.fresh,
-                label:
-                  spread.fresh === 1
-                    ? "resembles nothing on the record"
-                    : "resemble nothing on the record",
-                title: "Scored furthest from your settled decisions and every earlier cluster.",
-              },
-              {
-                n: spread.partial,
-                label:
-                  spread.partial === 1
-                    ? "partly resembles the record"
-                    : "partly resemble the record",
-              },
-              {
-                n: spread.seen,
-                label:
-                  spread.seen === 1
-                    ? "closely resembles the record"
-                    : "closely resemble the record",
-                title:
-                  "Worth killing here: a repeat caught as a cluster costs nothing, and the same repeat caught on Decide has already spent a Critic run.",
-              },
-              {
-                n: spread.unscored,
-                label:
-                  spread.unscored === 1 ? "carries no novelty score" : "carry no novelty score",
-                title:
-                  "Clustered before the brain scored novelty, or scored while it was unavailable. Not the same as resembling nothing.",
-              },
-            ]}
-          />
+                {
+                  n: spread.fresh,
+                  label:
+                    spread.fresh === 1
+                      ? "resembles nothing on the record"
+                      : "resemble nothing on the record",
+                  title: "Scored furthest from your settled decisions and every earlier cluster.",
+                },
+                {
+                  n: spread.partial,
+                  label:
+                    spread.partial === 1
+                      ? "partly resembles the record"
+                      : "partly resemble the record",
+                },
+                {
+                  n: spread.seen,
+                  label:
+                    spread.seen === 1
+                      ? "closely resembles the record"
+                      : "closely resemble the record",
+                  title:
+                    "Worth killing here: a repeat caught as a cluster costs nothing, and the same repeat caught on Decide has already spent a Critic run.",
+                },
+                {
+                  n: spread.unscored,
+                  label:
+                    spread.unscored === 1 ? "carries no novelty score" : "carry no novelty score",
+                  title:
+                    "Clustered before the brain scored novelty, or scored while it was unavailable. Not the same as resembling nothing.",
+                },
+              ]}
+            />
 
-          {/* The bulk bar takes the list's own header slot rather than floating
+            {/* The bulk bar takes the list's own header slot rather than floating
               over it, per `useSelection`'s own note: everything that floats here
               would land on the "Show all" control directly below the rows.
 
@@ -3169,7 +3211,7 @@ export function DiscoverSurface({
               any of them back with one press, and the clusterer re-opens a
               declined cluster on its own once it grows past the escalation
               bar. */}
-          {/* LEFT ON THE RETIRED LAYER, DELIBERATELY. Meridian's
+            {/* LEFT ON THE RETIRED LAYER, DELIBERATELY. Meridian's
               `SelectionActions` shares three quarters of the name and none of
               the job: it takes a text `Range` a reader has highlighted in prose
               and a container to measure against, and its phases describe an
@@ -3179,104 +3221,105 @@ export function DiscoverSurface({
               a text-selection component. Reported instead. Its verb is a
               Meridian `Action` regardless, because a control that paints itself
               does not care what container it sits in. */}
-          <BulkBar selection={picked} total={ranked.length} noun="cluster">
-            <Action
-              disabled={busy || declineMany.isPending}
-              onClick={() => declineMany.mutate([...picked.ids])}
-            >
-              {declineMany.isPending ? "Declining them" : "Not patterns"}
-            </Action>
-          </BulkBar>
+            <BulkBar selection={picked} total={ranked.length} noun="cluster">
+              <Action
+                disabled={busy || declineMany.isPending}
+                onClick={() => declineMany.mutate([...picked.ids])}
+              >
+                {declineMany.isPending ? "Declining them" : "Not patterns"}
+              </Action>
+            </BulkBar>
 
-          {(showAllClusters ? rankedVisible : rankedVisible.slice(0, VISIBLE_CLUSTERS)).map((entry, i) => {
-            /**
-             * WHERE ITS EVIDENCE CAME FROM, IN WORDS, and this row printed our
-             * column values at a person: `${count} from ${source}` rendered "3
-             * from pull_connector, 1 from transcript_action". `sourceLabel` was
-             * already imported into this file for exactly that and is called
-             * four lines away inside the Gate, so the row was the one place the
-             * translation was skipped.
-             *
-             * GROUPED BY THE LABEL, not by the raw token, because the label is
-             * what is on screen: `source_kind: "manual"` with a null `source`
-             * and `source: "note"` are one phrase to a reader, and two lines
-             * saying "A note you wrote" would be the surface exposing its own
-             * storage a second way.
-             */
-            const byLabel = new Map<string, number>();
-            entry.members.forEach((m) => {
-              const label = sourceLabel(m.source, m.source_kind);
-              byLabel.set(label, (byLabel.get(label) ?? 0) + 1);
-            });
-            const sourceList = Array.from(byLabel.entries())
-              .map(([label, count]) => `${label} (${count})`)
-              .join(", ");
+            {(showAllClusters ? rankedVisible : rankedVisible.slice(0, VISIBLE_CLUSTERS)).map(
+              (entry, i) => {
+                /**
+                 * WHERE ITS EVIDENCE CAME FROM, IN WORDS, and this row printed our
+                 * column values at a person: `${count} from ${source}` rendered "3
+                 * from pull_connector, 1 from transcript_action". `sourceLabel` was
+                 * already imported into this file for exactly that and is called
+                 * four lines away inside the Gate, so the row was the one place the
+                 * translation was skipped.
+                 *
+                 * GROUPED BY THE LABEL, not by the raw token, because the label is
+                 * what is on screen: `source_kind: "manual"` with a null `source`
+                 * and `source: "note"` are one phrase to a reader, and two lines
+                 * saying "A note you wrote" would be the surface exposing its own
+                 * storage a second way.
+                 */
+                const byLabel = new Map<string, number>();
+                entry.members.forEach((m) => {
+                  const label = sourceLabel(m.source, m.source_kind);
+                  byLabel.set(label, (byLabel.get(label) ?? 0) + 1);
+                });
+                const sourceList = Array.from(byLabel.entries())
+                  .map(([label, count]) => `${label} (${count})`)
+                  .join(", ");
 
-            /**
-             * NOVELTY AS A CLAIM, WHERE AN INVENTED CONFIDENCE USED TO BE.
-             *
-             * WHAT WAS HERE. `entry.theme.confidence ?? 0.5` bucketed into
-             * high / medium / low and painted green, amber or red inline. Four
-             * separate defects in one expression, and the file's own header
-             * names three of them:
-             *   - This surface's REFERENCE section says outright that no
-             *     comparable product puts a numeric confidence on an
-             *     auto-generated cluster and that "`themes.confidence` stays
-             *     off this surface". The row printed it anyway, one bucket
-             *     removed from a percentage, which invites exactly the argument
-             *     the header refuses to have.
-             *   - The `?? 0.5` printed "medium confidence" for a cluster
-             *     carrying no confidence at all. That is not a rounding, it is
-             *     the surface stating a fact the record does not hold.
-             *   - `fontSize`, `fontWeight` and a literal `--sp-pass` /
-             *     `--sp-warn` / `--sp-fail` on a span break primitives.tsx on
-             *     two counts: "Nothing here carries a literal colour or size"
-             *     and "State is never a hue".
-             *   - And the comment above it claimed the level was "based on
-             *     score, severity, novelty, frequency" when it read one column.
-             *
-             * WHAT REPLACES IT, because a row losing a fact is a row that got
-             * weaker. `noveltyRead` is this file's sanctioned way of speaking
-             * about the brain's number: a sentence rather than an arithmetic,
-             * derived from `themes.novelty`, which is real and is one of the
-             * three terms `scoreTheme` actually ranks on. It returns null when
-             * the column is null, so a cluster with no novelty stored says
-             * nothing instead of guessing, and the Gate has shown this same
-             * claim for the cluster in focus since 2026-08-01. Saying it on the
-             * row is what lets a person choose what to open before opening it.
-             *
-             * AND IT NO LONGER ASSERTS A PRIOR IT CANNOT PRODUCE. See
-             * `noveltyRead`: the bottom bucket used to read "the record has seen
-             * this before", which names a thing, and the row named none.
-             */
-            const rowClaim = noveltyRead(entry.theme.novelty);
+                /**
+                 * NOVELTY AS A CLAIM, WHERE AN INVENTED CONFIDENCE USED TO BE.
+                 *
+                 * WHAT WAS HERE. `entry.theme.confidence ?? 0.5` bucketed into
+                 * high / medium / low and painted green, amber or red inline. Four
+                 * separate defects in one expression, and the file's own header
+                 * names three of them:
+                 *   - This surface's REFERENCE section says outright that no
+                 *     comparable product puts a numeric confidence on an
+                 *     auto-generated cluster and that "`themes.confidence` stays
+                 *     off this surface". The row printed it anyway, one bucket
+                 *     removed from a percentage, which invites exactly the argument
+                 *     the header refuses to have.
+                 *   - The `?? 0.5` printed "medium confidence" for a cluster
+                 *     carrying no confidence at all. That is not a rounding, it is
+                 *     the surface stating a fact the record does not hold.
+                 *   - `fontSize`, `fontWeight` and a literal `--sp-pass` /
+                 *     `--sp-warn` / `--sp-fail` on a span break primitives.tsx on
+                 *     two counts: "Nothing here carries a literal colour or size"
+                 *     and "State is never a hue".
+                 *   - And the comment above it claimed the level was "based on
+                 *     score, severity, novelty, frequency" when it read one column.
+                 *
+                 * WHAT REPLACES IT, because a row losing a fact is a row that got
+                 * weaker. `noveltyRead` is this file's sanctioned way of speaking
+                 * about the brain's number: a sentence rather than an arithmetic,
+                 * derived from `themes.novelty`, which is real and is one of the
+                 * three terms `scoreTheme` actually ranks on. It returns null when
+                 * the column is null, so a cluster with no novelty stored says
+                 * nothing instead of guessing, and the Gate has shown this same
+                 * claim for the cluster in focus since 2026-08-01. Saying it on the
+                 * row is what lets a person choose what to open before opening it.
+                 *
+                 * AND IT NO LONGER ASSERTS A PRIOR IT CANNOT PRODUCE. See
+                 * `noveltyRead`: the bottom bucket used to read "the record has seen
+                 * this before", which names a thing, and the row named none.
+                 */
+                const rowClaim = noveltyRead(entry.theme.novelty);
 
-            /**
-             * THE SCORE THE ORDER IS ACTUALLY MADE OF, on the row it ordered.
-             *
-             * `scoreTheme` returns (0,1] and this list has been sorted on it
-             * since 2026-08-01 while showing nothing of it, so the ranking asked
-             * to be taken on trust: rank 1 was above rank 6 for a reason the
-             * surface kept to itself. Rendered as an integer out of 100 with the
-             * ceiling stated in the meter's own title, never as a bare decimal,
-             * and the 2px bar is what makes two rows comparable at a glance.
-             *
-             * NO MOVEMENT ARROW HERE, and it is absent because the data is. A
-             * theme carries one `novelty` and one `severity`, both written once
-             * at cluster time; nothing anywhere stores what this cluster scored
-             * yesterday. Decide can show a delta because `learnings` keeps
-             * `prior_ice` and `new_ice`; this station has no equivalent column,
-             * and inventing one from the render would be the surface asserting
-             * a history it does not hold.
-             */
-            const rowScore = Math.round(entry.score * 100);
+                /**
+                 * THE SCORE THE ORDER IS ACTUALLY MADE OF, on the row it ordered.
+                 *
+                 * `scoreTheme` returns (0,1] and this list has been sorted on it
+                 * since 2026-08-01 while showing nothing of it, so the ranking asked
+                 * to be taken on trust: rank 1 was above rank 6 for a reason the
+                 * surface kept to itself. Rendered as an integer out of 100 with the
+                 * ceiling stated in the meter's own title, never as a bare decimal,
+                 * and the 2px bar is what makes two rows comparable at a glance.
+                 *
+                 * NO MOVEMENT ARROW HERE, and it is absent because the data is. A
+                 * theme carries one `novelty` and one `severity`, both written once
+                 * at cluster time; nothing anywhere stores what this cluster scored
+                 * yesterday. Decide can show a delta because `learnings` keeps
+                 * `prior_ice` and `new_ice`; this station has no equivalent column,
+                 * and inventing one from the render would be the surface asserting
+                 * a history it does not hold.
+                 */
+                const rowScore = Math.round(entry.score * 100);
 
-            return (
-              <Row
-                key={entry.theme.id}
-                tight
-                focused={entry.theme.id === focusedId}
-                /* THE SHAPE CARRIES THE STATE, and the numeral moved off this
+                return (
+                  <Row
+                    key={entry.theme.id}
+                    tight
+                    focused={entry.theme.id === focusedId}
+                    /* THE SHAPE CARRIES THE STATE, and the numeral moved off this
                    slot to make room for it. The rank was here as a bare mono
                    digit and it was the LEAST useful thing on the row: the list
                    is already in rank order, so the number restated the reader's
@@ -3285,72 +3328,73 @@ export function DiscoverSurface({
                    this the record has met before -- as a ring that survives
                    greyscale. The rank still appears, in the line below, where
                    restating it costs nothing. */
-                marks={
-                  <StatusRing
-                    small
-                    fill={rowClaim?.fill ?? "empty"}
-                    label={
-                      rowClaim
-                        ? `${rowClaim.claim}. ${rowClaim.basis}`
-                        : "No novelty score on this cluster"
+                    marks={
+                      <StatusRing
+                        small
+                        fill={rowClaim?.fill ?? "empty"}
+                        label={
+                          rowClaim
+                            ? `${rowClaim.claim}. ${rowClaim.basis}`
+                            : "No novelty score on this cluster"
+                        }
+                      />
                     }
-                  />
-                }
-                lead={entry.theme.title}
-                sub={
-                  <>
-                    {/* SAY IT ON THE ROW, not only in the Gate. The person scans
+                    lead={entry.theme.title}
+                    sub={
+                      <>
+                        {/* SAY IT ON THE ROW, not only in the Gate. The person scans
                         the ranking to choose what to open; a label that appears
                         only after they have opened it arrives too late to have
                         saved them the trip. Same word as Decide uses on its own
                         list rows, so one vocabulary covers both stations. */}
-                    {entry.theme.is_sample ? (
-                      <>
-                        <b>Example</b>
+                        {entry.theme.is_sample ? (
+                          <>
+                            <b>Example</b>
+                            {" · "}
+                          </>
+                        ) : null}
+                        <Num>#{i + 1}</Num>
                         {" · "}
-                      </>
-                    ) : null}
-                    <Num>#{i + 1}</Num>
-                    {" · "}
-                    <ScoreMeter
-                      value={rowScore}
-                      ceiling={100}
-                      what="Severity, recency and novelty"
-                    />
-                    {" · "}
-                    {entry.theme.frequency} signal{plural(entry.theme.frequency)}
-                    {sourceList ? ` · ${sourceList}` : ""}
-                    {rowClaim ? ` · ${rowClaim.claim}` : ""}
-                    {/* THE CLUSTER CAME BACK ON ITS OWN. escalated_at is written
+                        <ScoreMeter
+                          value={rowScore}
+                          ceiling={100}
+                          what="Severity, recency and novelty"
+                        />
+                        {" · "}
+                        {entry.theme.frequency} signal{plural(entry.theme.frequency)}
+                        {sourceList ? ` · ${sourceList}` : ""}
+                        {rowClaim ? ` · ${rowClaim.claim}` : ""}
+                        {/* THE CLUSTER CAME BACK ON ITS OWN. escalated_at is written
                        by the clusterer's reopen path and was read by nothing -
                        a re-opened declined cluster silently rejoined the
                        ranking with no memory of the earlier no. */}
-                    {entry.theme.escalated_at ? (
-                      <> · returned after declining {since(entry.theme.escalated_at)}</>
-                    ) : null}
-                  </>
-                }
-                time={since(entry.lastAt)}
-                onClick={() => setFocusedId(entry.theme.id)}
-                /* The tick sits outside the clickable region, so choosing a
+                        {entry.theme.escalated_at ? (
+                          <> · returned after declining {since(entry.theme.escalated_at)}</>
+                        ) : null}
+                      </>
+                    }
+                    time={since(entry.lastAt)}
+                    onClick={() => setFocusedId(entry.theme.id)}
+                    /* The tick sits outside the clickable region, so choosing a
                    cluster for a batch never also moves the Gate onto it. */
-                action={
-                  <SelectBox
-                    id={entry.theme.id}
-                    label={`Select ${entry.theme.title}`}
-                    selection={picked}
-                    disabled={busy}
+                    action={
+                      <SelectBox
+                        id={entry.theme.id}
+                        label={`Select ${entry.theme.title}`}
+                        selection={picked}
+                        disabled={busy}
+                      />
+                    }
                   />
-                }
-              />
-            );
-          })}
-          {!showAllClusters && rankedVisible.length > VISIBLE_CLUSTERS ? (
-            <CtxBody>
-              <Num>{rankedVisible.length - VISIBLE_CLUSTERS}</Num> more below the fold.
-            </CtxBody>
-          ) : null}
-          {/* THE READ IS A PAGE, AND IT SAYS SO. `listThemes` returns the newest
+                );
+              },
+            )}
+            {!showAllClusters && rankedVisible.length > VISIBLE_CLUSTERS ? (
+              <CtxBody>
+                <Num>{rankedVisible.length - VISIBLE_CLUSTERS}</Num> more below the fold.
+              </CtxBody>
+            ) : null}
+            {/* THE READ IS A PAGE, AND IT SAYS SO. `listThemes` returns the newest
             page of clusters plus the exact total behind it, so this is the one
             honest place to admit that the ranking is not the whole record. It
             was silent before, and worse than silent: the window used to be
@@ -3364,13 +3408,14 @@ export function DiscoverSurface({
             Saying "this ranks the newest 300" beside a "Show all 212" control
             six pixels up is the surface disagreeing with itself, which is the
             defect the rest of this pass exists to close. */}
-          {themeTotal > themeWindow ? (
-            <CtxBody>
-              The record holds <Num>{themeTotal}</Num> clusters. This reads the newest{" "}
-              <Num>{themeWindow}</Num> of them and ranks the <Num>{ranked.length}</Num> still open.
-            </CtxBody>
-          ) : null}
-        </Region>
+            {themeTotal > themeWindow ? (
+              <CtxBody>
+                The record holds <Num>{themeTotal}</Num> clusters. This reads the newest{" "}
+                <Num>{themeWindow}</Num> of them and ranks the <Num>{ranked.length}</Num> still
+                open.
+              </CtxBody>
+            ) : null}
+          </Region>
         </div>
       ) : null}
 
@@ -3451,8 +3496,8 @@ export function DiscoverSurface({
                              accepted by the server and read by no one; the row
                              is where the judgment lives, so this is where the
                              words for it render. */}
-                          {t.status_reason ? `, because ${t.status_reason}` : ""}{" "}·{" "}
-                          {t.frequency} signal{plural(t.frequency)}
+                          {t.status_reason ? `, because ${t.status_reason}` : ""} · {t.frequency}{" "}
+                          signal{plural(t.frequency)}
                           {heard ? ` · last heard ${heard}` : ""}
                         </>
                       }

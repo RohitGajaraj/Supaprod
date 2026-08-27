@@ -32,6 +32,7 @@
  * highlight, Tab accepts, Escape closes, all handled on this wrapper.
  */
 import * as React from "react";
+import { failureLine } from "@/lib/error-copy";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -284,7 +285,15 @@ export function SteerComposer({
       ) : null}
       {send.isError ? (
         <p role="status" aria-live="polite" className="text-mrd-small text-mrd-body">
-          {(send.error as Error).message}
+          {/*
+           * The product's sentence first, and the server's only when the server
+           * wrote one for a person. This rendered `message` raw, so a database
+           * constraint reached the composer verbatim: a person steering their
+           * run met `null value in column "to_agent_slug" of relation
+           * "agent_messages" violates not-null constraint`. That was useful to
+           * me and useless to them.
+           */}
+          {failureLine("That did not reach the run, so nothing was sent.", send.error)}
         </p>
       ) : null}
     </div>

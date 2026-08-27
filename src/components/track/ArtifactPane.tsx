@@ -20,6 +20,7 @@
  * so arriving here answers "what has it made so far" without a click.
  */
 import * as React from "react";
+import { failureLine } from "@/lib/error-copy";
 import { humanizeText } from "@/lib/ai/humanize";
 import { NO_CONTRACT, NO_NON_GOALS, specContract } from "@/components/track/spec-contract";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -618,15 +619,7 @@ function DecisionVerdict({ decisionId }: { decisionId: string }) {
  * said in its own words; a theme decline records its reason and can be taken
  * back, which is what makes declining safe.
  */
-function SignalCard({
-  item,
-  now,
-  trackId,
-}: {
-  item: ArtifactView;
-  now: number;
-  trackId: string;
-}) {
+function SignalCard({ item, now, trackId }: { item: ArtifactView; now: number; trackId: string }) {
   const f = item.fields;
   const content = str(f.content);
   const source = str(f.source);
@@ -673,7 +666,7 @@ function SignalCard({
         ) : null}
         {del.isError ? (
           <span role="status" className="text-mrd-small text-mrd-body">
-            {(del.error as Error).message}
+            {failureLine("It is still here, and nothing was removed.", del.error)}
           </span>
         ) : (
           <Action variant="quiet" busy={del.isPending} onClick={() => del.mutate()}>
@@ -705,8 +698,7 @@ function ThemeCard({ item, trackId }: { item: ArtifactView; trackId: string }) {
   };
 
   const rename = useMutation({
-    mutationFn: (title: string) =>
-      fRename({ data: { theme_id: item.artifactId, title } }),
+    mutationFn: (title: string) => fRename({ data: { theme_id: item.artifactId, title } }),
     onSuccess: () => {
       setOpenPanel(null);
       invalidate();
@@ -744,7 +736,10 @@ function ThemeCard({ item, trackId }: { item: ArtifactView; trackId: string }) {
 
       <div className="flex flex-wrap items-center gap-mrd-2">
         {status !== "dismissed" ? (
-          <Action variant="quiet" onClick={() => setOpenPanel(openPanel === "dismiss" ? null : "dismiss")}>
+          <Action
+            variant="quiet"
+            onClick={() => setOpenPanel(openPanel === "dismiss" ? null : "dismiss")}
+          >
             Not a pattern
           </Action>
         ) : (
@@ -756,7 +751,10 @@ function ThemeCard({ item, trackId }: { item: ArtifactView; trackId: string }) {
             {setStatus.isPending ? "Bringing it back" : "Bring it back"}
           </Action>
         )}
-        <Action variant="quiet" onClick={() => setOpenPanel(openPanel === "rename" ? null : "rename")}>
+        <Action
+          variant="quiet"
+          onClick={() => setOpenPanel(openPanel === "rename" ? null : "rename")}
+        >
           Rename this theme
         </Action>
       </div>
@@ -789,7 +787,10 @@ function ThemeCard({ item, trackId }: { item: ArtifactView; trackId: string }) {
       ) : null}
       {(rename.error || setStatus.error) && openPanel === null ? (
         <span role="status" className="text-mrd-small text-mrd-body">
-          {((rename.error ?? setStatus.error) as Error).message}
+          {failureLine(
+            "That did not change, so it reads as it did.",
+            rename.error ?? setStatus.error,
+          )}
         </span>
       ) : null}
     </div>
@@ -948,9 +949,7 @@ function TakeAnotherRun({ claim }: { claim: string | null }) {
     <div>
       <Action
         variant="quiet"
-        onClick={() =>
-          void navigate({ to: "/start", search: seed ? { about: seed } : {} })
-        }
+        onClick={() => void navigate({ to: "/start", search: seed ? { about: seed } : {} })}
       >
         Take another run at this
       </Action>
@@ -1221,7 +1220,9 @@ function ChangesetDiffView({ changesetId }: { changesetId: string }) {
   if (q.isLoading) return <Reading>Reading the change.</Reading>;
   if (q.isError)
     return (
-      <ReadFailedLine>The change's files could not be read, so nothing is shown rather than something wrong.</ReadFailedLine>
+      <ReadFailedLine>
+        The change's files could not be read, so nothing is shown rather than something wrong.
+      </ReadFailedLine>
     );
 
   const changes = (q.data?.changes ?? []) as Array<{
@@ -1253,8 +1254,7 @@ function ChangesetDiffView({ changesetId }: { changesetId: string }) {
     <div className="flex flex-col gap-mrd-2 rounded-mrd-chip bg-mrd-sink p-mrd-4">
       <span className="mrd-eyebrow">The change, file by file</span>
       {changes.map((c) => {
-        const big =
-          (c.base_content?.length ?? 0) + (c.new_content?.length ?? 0) > COUNT_CHAR_CAP;
+        const big = (c.base_content?.length ?? 0) + (c.new_content?.length ?? 0) > COUNT_CHAR_CAP;
         let added = 0;
         let removed = 0;
         if (!big) {
@@ -1624,7 +1624,8 @@ export function SenseBody({
   items: ArtifactView[];
   now: number;
   trackId: string;
-}) {  const primed = React.useRef(false);
+}) {
+  const primed = React.useRef(false);
   const seenThemes = React.useRef<Set<string>>(new Set());
 
   const themes = items.filter((it) => it.kind === "theme" && !it.missing);
@@ -1861,7 +1862,13 @@ function StationPanel({
      * SenseBody. Everything else keeps the primary-plus-lines shape below.
      */
     if (stop.station === "sense") {
-      return <SenseBody items={items.filter((it) => it.kind === "signal" || it.kind === "theme" || it.missing)} now={now} trackId={trackId} />;
+      return (
+        <SenseBody
+          items={items.filter((it) => it.kind === "signal" || it.kind === "theme" || it.missing)}
+          now={now}
+          trackId={trackId}
+        />
+      );
     }
 
     /*

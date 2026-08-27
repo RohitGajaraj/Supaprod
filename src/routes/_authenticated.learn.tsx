@@ -137,6 +137,7 @@
  */
 
 import * as React from "react";
+import { failureLine } from "@/lib/error-copy";
 import { Row } from "@/components/meridian/rows";
 import {
   Action,
@@ -153,7 +154,6 @@ import {
 import { Field, Input } from "@/components/meridian/forms";
 import { Gate } from "@/components/meridian/Gate";
 import { Surface } from "@/components/meridian/Surface";
-import { NoPromotions } from "@/components/meridian/PromotionCard";
 import { CtxHead, CtxRow } from "@/components/meridian/ContextColumn";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -736,7 +736,22 @@ function Learn() {
               column above. */}
           {ledgerQ.isError ? (
             <ReadFailedLine onRetry={() => void ledgerQ.refetch()}>
-              The record did not load. {(ledgerQ.error as Error).message}
+              {/*
+               * THE TRANSPORT ERROR DOES NOT GO ON THE SCREEN. This appended
+               * `error.message`, so a person met "The record did not load.
+               * Unauthorized: Invalid token": one sentence in the product's
+               * voice followed by a string meant for a log. The second half
+               * tells a reader nothing they can act on and everything about our
+               * internals, and it is the reason this page reads as unfinished
+               * next to its own sibling twelve lines up, which says "Reload the
+               * page. Nothing here is lost." and stops.
+               *
+               * Same register as the record's other failed reads: what did not
+               * happen, and what is safe. The retry beside it is the action, and
+               * the message is still in the console for whoever is debugging.
+               */}
+              The record did not load, so nothing here would be trustworthy. Nothing has been
+              lost.
             </ReadFailedLine>
           ) : /* `isLoading` is `isPending && isFetching` in react-query v5, so it
               is false in the gap where a read is pending but not in flight:
@@ -862,7 +877,11 @@ function Learn() {
             settledOnRecord={outcomes?.total ?? null}
             awaitingVerdict={waiting > 0 ? waiting : undefined}
             loading={stillWaiting(lastQ)}
-            loadError={lastQ.isError ? (lastQ.error as Error).message : null}
+            loadError={
+              lastQ.isError
+                ? failureLine("The last verdict did not load.", lastQ.error)
+                : null
+            }
             onRetry={() => void lastQ.refetch()}
           />
         ) : null}
@@ -896,11 +915,29 @@ function Learn() {
             question, this renders the pair's own empty state, pointed at where
             standing rules actually live. */}
         <Region title="Lessons put forward to hold everywhere">
-          <NoPromotions
-            action={
-              <Action onClick={() => navigate({ to: "/brain" })}>See the standing rules</Action>
-            }
-          />
+          {/*
+           * AN EMPTY STATE IS A CLAIM, AND THIS ONE HAD NOTHING BEHIND IT.
+           *
+           * `NoPromotions` says "Nothing is waiting to graduate", which a person
+           * reads as checked, and empty. There is no query here at all: the
+           * comment above records why, and declining to fabricate cards from
+           * rows that do not answer the scope question is right. But the
+           * consequence was that this section asserted a fact about data nobody
+           * had looked at, every time, on every workspace.
+           *
+           * So it says the true thing instead. Not knowing is a state this
+           * product is allowed to be in, and saying so costs nothing; claiming
+           * an empty queue that was never read is the one thing the surface may
+           * not do. The way to the rules that DO hold everywhere is unchanged,
+           * because that half was always real.
+           */}
+          <RecordSpeaks>
+            Nothing reads promotions yet, so this cannot tell you whether a lesson is waiting to
+            travel beyond the product it was learned in.
+          </RecordSpeaks>
+          <div className="mt-mrd-3">
+            <Action onClick={() => navigate({ to: "/brain" })}>See the standing rules</Action>
+          </div>
         </Region>
 
         {/* Support notes belong to Discover, which triages them against open bets.

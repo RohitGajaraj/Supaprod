@@ -179,6 +179,11 @@ describe("every door is findable, and every keyword is true", () => {
       "../components/connections/AccountConnectionsSection.tsx",
       "../components/knowledge/DesignMemoryPanel.tsx",
       "../components/governance/ControlsPanel.tsx",
+      // Mounted onto the boundary pane by U-026 and carrying the tool modes,
+      // the spend ceiling and the approval policy. Absent from this list, the
+      // guard was reading the wrong files for the pane it was judging -- the
+      // exact laziness this block's own header warns about.
+      "../components/governance/BoundaryControls.tsx",
       "../components/billing/PlanPicker.tsx",
       "../components/billing/CreditCapsCard.tsx",
       "../lib/connectors/registry.ts",
@@ -202,6 +207,9 @@ describe("every door is findable, and every keyword is true", () => {
       // Reached through "Manage billing", which opens the Stripe portal where the
       // invoices actually are. The capability is real and the word is theirs, not ours.
       "invoice",
+      // The interop pane's token field reads "e.g. claude-desktop, cursor,
+      // my-agent". The word is there; a person searching types the space.
+      "claude desktop",
     ]);
 
     const unfounded: string[] = [];
@@ -214,10 +222,7 @@ describe("every door is findable, and every keyword is true", () => {
         }
       }
     }
-    expect(
-      unfounded,
-      "these keywords promise something the pane never mentions",
-    ).toEqual([]);
+    expect(unfounded, "these keywords promise something the pane never mentions").toEqual([]);
   });
 });
 

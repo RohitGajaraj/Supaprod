@@ -88,6 +88,7 @@
 // reach the client. Mounting the timeline there would mean interpolating a clock
 // AND the silence durations, which is fabricated data on a product surface.
 import { Link, useNavigate } from "@tanstack/react-router";
+import { failureLine } from "@/lib/error-copy";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useMemo, type CSSProperties } from "react";
@@ -238,7 +239,7 @@ function CaptureMissionDecision({
         },
       }),
     onSuccess: () => toast.success("Captured to Decisions"),
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(failureLine("Nothing was captured to Decisions.", e)),
   });
   return (
     /* TIER: `Action`, default face. The test from answers/M10: clicking this
@@ -300,7 +301,7 @@ function GatePanel({
       refetch();
       onResolved();
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (err: Error) => toast.error(failureLine("The call is still waiting on you.", err)),
   });
 
   if (!pendingApprovals || pendingApprovals.length === 0) return null;
@@ -877,7 +878,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
       qc.invalidateQueries({ queryKey: ["mission", missionId] });
       qc.invalidateQueries({ queryKey: ["mission-steps", missionId] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(failureLine("The mission is where it was.", e)),
   });
   const cancel = useMutation({
     mutationFn: () => fCancel({ data: { missionId } }),
@@ -895,7 +896,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
       qc.invalidateQueries({ queryKey: ["mission-steps", missionId] });
       qc.invalidateQueries({ queryKey: ["studio-sessions"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(failureLine("The mission is still running.", e)),
   });
   /* OBS-10: the trigger-tick's own HITL gate — a mission an ambient trigger
    * proposed, or one left stranded at 'queued', that nobody has launched yet.
@@ -917,7 +918,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
       qc.invalidateQueries({ queryKey: ["mission-steps", missionId] });
       qc.invalidateQueries({ queryKey: ["studio-sessions"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(failureLine("The mission has not launched.", e)),
   });
   // D4-REPLAY: re-run this mission's goal as a new mission, optionally with a
   // different model (the server already accepts model), and record the branch
@@ -942,7 +943,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
       toast.success("Replay started · a new mission carries the same goal.");
       navigate({ to: "/build/$missionId", params: { missionId: r.mission_id } });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(failureLine("No replay was started.", e)),
   });
 
   const [view, setView] = useState<"plan" | "when" | "graph">("plan");

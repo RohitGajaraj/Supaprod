@@ -93,7 +93,11 @@ describe("trackToBoardRows", () => {
       (iso) => (iso ? "30m" : null),
     );
     expect(running).toHaveLength(1);
-    expect(running[0]?.holdLine).toBe("No agent is cast for this station.");
+    // The row says the short fact and the sentence rides underneath, verbatim,
+    // the same split the waiting rows use: the driver's reasons run past 200
+    // characters and the state slot truncates.
+    expect(running[0]?.holdLine).toBe("held");
+    expect(running[0]?.reason).toBe("No agent is cast for this station.");
   });
 
   it("PUTS PARKED WORK IN FRONT OF THE PERSON, because no agent is coming", () => {

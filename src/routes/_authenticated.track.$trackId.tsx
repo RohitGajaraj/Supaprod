@@ -276,11 +276,35 @@ function TrackPage() {
           </>
         ) : (
           <PageHeading
-            title={trackQ.isLoading ? "This piece of work" : "That work could not be found."}
+            /*
+             * A FAILED READ IS NOT A MISSING RUN, and this said it was.
+             *
+             * `trackQ.data?.track` is undefined both when the row genuinely is
+             * not there and when the read never completed, so a failed read fell
+             * through to "That work could not be found." with a sub explaining
+             * the address may be out of date or the work belongs to another
+             * workspace. Both sentences are assertions about a row nobody
+             * managed to look at, on the surface the whole product is judged on,
+             * and a person believing them closes the tab on a run that is
+             * sitting there.
+             *
+             * Same family as the approvals heading that called a failed read an
+             * empty queue. Three states now, and they are three different
+             * things: still reading, could not read, and genuinely absent.
+             */
+            title={
+              trackQ.isLoading
+                ? "This piece of work"
+                : trackQ.isError
+                  ? "This run could not be read."
+                  : "That work could not be found."
+            }
             sub={
               trackQ.isLoading
                 ? "Reading the run."
-                : "The address may be out of date, or the work belongs to another workspace. Nothing you were working on is affected."
+                : trackQ.isError
+                  ? "The run itself is untouched and still whatever it was a moment ago. This screen just could not read it."
+                  : "The address may be out of date, or the work belongs to another workspace. Nothing you were working on is affected."
             }
           />
         )}

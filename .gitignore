@@ -287,3 +287,4 @@ __pycache__/
 # Removed 2026-08-26 (F-83): 1.3GB of masters and intermediates, on a 97%-full disk,
 # referenced by no build step and no route. public/film/ is what film.tsx serves.
 videos/
+.render-failures.mjs

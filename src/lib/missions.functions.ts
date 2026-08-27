@@ -201,219 +201,299 @@ export const listMissions = createServerFn({ method: "GET" })
       .optional()
       .parse(i ?? {}),
   )
-  .handler(async ({ context, data: input }): Promise<{ missions: MissionListRow[] }> => {
-    const { supabase } = context;
+  .handler(
+    async ({
+      context,
+      data: input,
+    }): Promise<{
+      missions: MissionListRow[];
+      /**
+       * Every blocked mission, not just the first page. See the note below.
+       *
+       * **NULL WHEN THE COUNT COULD NOT BE TAKEN, never 0.** S2 made the call
+       * and it is right: a failed read degrading to zero puts "Waiting on you 0"
+       * at the head of the lane whose entire job is saying what needs a person.
+       * That is a false all-clear produced by a broken read, which is the exact
+       * failure this repo has spent two days removing. A count that cannot be
+       * taken is not a count of zero, and the surface renders the row count with
+       * no total claim rather than printing a number it does not have.
+       */
+      totalBlocked: number | null;
+      /** When the longest-waiting one last moved, so a count can say if it is stale. */
+      oldestBlockedAt: string | null;
+    }> => {
+      const { supabase } = context;
 
-    // Build-face scoping: a mission carries only workspace_id, so its product
-    // link lives on the studio_changeset it produced (product_id) or on the
-    // spec it was dispatched from (prds.product_id → the prd→mission lineage
-    // edge). When a productId is given, restrict to exactly that product's
-    // builds; no builds yet is an honest empty state, never a cross-product leak.
-    let productMissionIds: string[] | null = null;
-    if (input?.productId) {
-      const productId = input.productId;
-      const [{ data: csRows }, { data: prdRows }] = await Promise.all([
-        supabase.from("studio_changesets").select("mission_id").eq("product_id", productId),
-        supabase.from("prds").select("id").eq("product_id", productId),
-      ]);
-      const set = new Set<string>();
-      for (const r of (csRows ?? []) as { mission_id: string | null }[]) {
-        if (r.mission_id) set.add(r.mission_id);
-      }
-      const prdIds = ((prdRows ?? []) as { id: string }[]).map((p) => p.id);
-      if (prdIds.length) {
-        const { data: edges } = await supabase
-          .from("artifact_lineage")
-          .select("child_id")
-          .eq("parent_kind", "prd")
-          .in("parent_id", prdIds)
-          .eq("child_kind", "mission");
-        for (const e of (edges ?? []) as { child_id: string | null }[]) {
-          if (e.child_id) set.add(e.child_id);
+      // Build-face scoping: a mission carries only workspace_id, so its product
+      // link lives on the studio_changeset it produced (product_id) or on the
+      // spec it was dispatched from (prds.product_id → the prd→mission lineage
+      // edge). When a productId is given, restrict to exactly that product's
+      // builds; no builds yet is an honest empty state, never a cross-product leak.
+      let productMissionIds: string[] | null = null;
+      if (input?.productId) {
+        const productId = input.productId;
+        const [{ data: csRows }, { data: prdRows }] = await Promise.all([
+          supabase.from("studio_changesets").select("mission_id").eq("product_id", productId),
+          supabase.from("prds").select("id").eq("product_id", productId),
+        ]);
+        const set = new Set<string>();
+        for (const r of (csRows ?? []) as { mission_id: string | null }[]) {
+          if (r.mission_id) set.add(r.mission_id);
         }
-      }
-      productMissionIds = [...set];
-      if (productMissionIds.length === 0) return { missions: [] };
-    }
-
-    let query = supabase
-      .from("missions")
-      .select(
-        "id,title,goal,status,hop_count,current_agent_id,created_at,updated_at,completed_at,build_driver",
-      )
-      .order("updated_at", { ascending: false })
-      .limit(50);
-    if (input?.workspaceId) query = query.eq("workspace_id", input.workspaceId);
-    if (productMissionIds) query = query.in("id", productMissionIds);
-    const { data, error } = await query;
-    if (error) throw new Error(error.message);
-    const missions = data ?? [];
-    if (missions.length === 0) return { missions: [] };
-    const ids = missions.map((m) => m.id);
-
-    // Batched enrichment (3 queries across ALL rows, never per-mission):
-    // step dots AND the in-flight step's sub_goal from mission_steps; run
-    // fallback + trace ids from agent_runs + latest checkpoints; cost from
-    // ai_events over those traces. Best-effort — any failure degrades to empty
-    // dots / unknown cost / no sub_goal.
-    const stepsByMission = new Map<string, { status: string }[]>();
-    const runsByMission = new Map<string, { status: string }[]>();
-    /**
-     * The slug of the agent on a mission's MOST RECENT run.
-     *
-     * WHY THIS IS NOT `missions.current_agent_id`. That column is a uuid and it
-     * is not reliably maintained: on the live workspace the one running mission
-     * has none, so the shell header could not name the agent working on it and
-     * fell back to "1 run working" with the generic crew mark. The product's
-     * whole claim is that named agents do the work, and the most-seen line in
-     * it could not name one.
-     *
-     * `agent_runs.agent_slug` is NOT NULL and is written by the thing that
-     * actually runs. It is already fetched here for the step dots, so this
-     * costs one extra column and no extra query. Same lesson as the seven-stage
-     * strip: the fact existed, the reader was looking in the wrong place.
-     */
-    const slugByMission = new Map<string, string>();
-    // REQ-023. Declared out here beside the slug rather than beside `missionByRun`,
-    // because the row map below is outside that block — the first attempt put it
-    // in the inner scope and tsc caught it at the read site.
-    const trackByMission = new Map<string, string>();
-    /**
-     * The sentence the mission is on, keyed by mission. Two maps rather than
-     * one, because `running` must beat `dispatched` no matter which arrives
-     * first in idx order, and a single map with an overwrite rule could not
-     * express that without re-reading what it had already written.
-     *
-     * Both are first-write-wins, which is what makes them "lowest idx": the
-     * select below orders by idx ascending, so a mission's rows arrive in step
-     * order and the earliest live step is the first one seen. This is the same
-     * ordering the step dots already depend on — reverse it and the strip and
-     * the sentence both silently describe the wrong step.
-     */
-    const runningGoalByMission = new Map<string, string>();
-    const dispatchedGoalByMission = new Map<string, string>();
-    const costByMission = new Map<string, number>();
-    try {
-      const [{ data: planSteps }, { data: runs }] = await Promise.all([
-        supabase
-          // `sub_goal` rides along on the query that was already fetching the
-          // step dots. It is the only column here that carries a sentence.
-          .from("mission_steps")
-          .select("mission_id,idx,status,sub_goal")
-          .in("mission_id", ids)
-          .order("idx", { ascending: true }),
-        supabase
-          .from("agent_runs")
-          /*
-           * `track_id` SO A WORKING MISSION CAN NAME THE WORK IT SERVES.
-           *
-           * The loop writes it on every run (`loop.server.ts:610`), and this
-           * select dropped it, so the rail's live line could never prove WHICH
-           * piece of work was moving and fell back to the mission row. The
-           * watchable address is `/track/:id`; a mission id is a container id.
-           *
-           * ON THE RUN AND NOT ON THE MISSION, deliberately: `missions` has no
-           * `track_id` column at all (checked, not assumed), so asking for one
-           * there returns 42703 and takes the whole read with it. The run is
-           * where the link is written and therefore where it can be read.
-           */
-          .select("id,mission_id,status,created_at,agent_slug,track_id")
-          .in("mission_id", ids)
-          .order("created_at", { ascending: true }),
-      ]);
-      for (const s of planSteps ?? []) {
-        const arr = stepsByMission.get(s.mission_id) ?? [];
-        arr.push({ status: s.status });
-        stepsByMission.set(s.mission_id, arr);
-        // An empty sub_goal is not a sentence. The column is NOT NULL and every
-        // row measured non-empty (291/291, 2026-08-06), but a blank one would
-        // render as a stray empty line rather than as nothing, so it is dropped
-        // here and the caller falls back to the title.
-        const goal = (s.sub_goal ?? "").trim();
-        if (!goal) continue;
-        if (s.status === "running" && !runningGoalByMission.has(s.mission_id)) {
-          runningGoalByMission.set(s.mission_id, goal);
-        }
-        if (s.status === "dispatched" && !dispatchedGoalByMission.has(s.mission_id)) {
-          dispatchedGoalByMission.set(s.mission_id, goal);
-        }
-      }
-      const missionByRun = new Map<string, string>();
-      for (const r of runs ?? []) {
-        if (!r.mission_id) continue;
-        missionByRun.set(r.id, r.mission_id);
-        const arr = runsByMission.get(r.mission_id) ?? [];
-        arr.push({ status: r.status });
-        runsByMission.set(r.mission_id, arr);
-        // Ascending by created_at, so each row overwrites the one before it and
-        // the last write per mission is its latest run. Reversing the order
-        // here would silently pin every mission to its FIRST agent.
-        if (r.agent_slug) slugByMission.set(r.mission_id, r.agent_slug);
-        /*
-         * REQ-023. Same last-non-null-wins rule as the slug directly above, and
-         * for the same reason: the runs arrive ascending by `created_at`, so the
-         * final write per mission is its most recent run that knew its track.
-         *
-         * NON-NULL rather than simply latest, deliberately. A mission's runs all
-         * serve one piece of work, so an older run that recorded the track is
-         * still telling the truth about which work this is, whereas a newer run
-         * that recorded none is only telling us it predates the link. Taking the
-         * newest value unconditionally would let a pre-loop run erase a good
-         * answer and send the reader back to the mission door for no gain.
-         */
-        if (r.track_id) trackByMission.set(r.mission_id, r.track_id);
-      }
-      const runIds = [...missionByRun.keys()];
-      if (runIds.length) {
-        const { data: cps } = await supabase
-          .from("agent_run_checkpoints")
-          .select("run_id,step_index,state")
-          .in("run_id", runIds)
-          .order("step_index", { ascending: false });
-        const missionByTrace = new Map<string, string>();
-        const seenRun = new Set<string>();
-        for (const cp of cps ?? []) {
-          if (seenRun.has(cp.run_id)) continue;
-          seenRun.add(cp.run_id);
-          const traceId = (cp.state as { traceId?: string } | null)?.traceId;
-          const missionId = missionByRun.get(cp.run_id);
-          if (traceId && missionId) missionByTrace.set(traceId, missionId);
-        }
-        const traceIds = [...missionByTrace.keys()];
-        if (traceIds.length) {
-          const { data: events } = await supabase
-            .from("ai_events")
-            .select("trace_id,est_cost_usd")
-            .in("trace_id", traceIds);
-          for (const e of events ?? []) {
-            const missionId = e.trace_id ? missionByTrace.get(e.trace_id) : undefined;
-            if (!missionId) continue;
-            costByMission.set(
-              missionId,
-              (costByMission.get(missionId) ?? 0) + Number(e.est_cost_usd ?? 0),
-            );
+        const prdIds = ((prdRows ?? []) as { id: string }[]).map((p) => p.id);
+        if (prdIds.length) {
+          const { data: edges } = await supabase
+            .from("artifact_lineage")
+            .select("child_id")
+            .eq("parent_kind", "prd")
+            .in("parent_id", prdIds)
+            .eq("child_kind", "mission");
+          for (const e of (edges ?? []) as { child_id: string | null }[]) {
+            if (e.child_id) set.add(e.child_id);
           }
         }
+        productMissionIds = [...set];
+        if (productMissionIds.length === 0)
+          return { missions: [], totalBlocked: null, oldestBlockedAt: null };
       }
-    } catch (e) {
-      console.error("[missions] list enrichment failed (degrading):", e);
-    }
 
-    return {
-      missions: missions.map((m) => ({
-        ...m,
-        steps: stepsByMission.get(m.id) ?? runsByMission.get(m.id) ?? [],
-        cost_usd: costByMission.has(m.id) ? costByMission.get(m.id)! : null,
-        current_agent_slug: slugByMission.get(m.id) ?? null,
-        trackId: trackByMission.get(m.id) ?? null,
-        // `running` first, then `dispatched`, then nothing. Never a done step:
-        // a finished sentence presented in the present tense is the same defect
-        // as a fabricated one.
-        current_sub_goal:
-          runningGoalByMission.get(m.id) ?? dispatchedGoalByMission.get(m.id) ?? null,
-      })),
-    };
-  });
+      let query = supabase
+        .from("missions")
+        .select(
+          "id,title,goal,status,hop_count,current_agent_id,created_at,updated_at,completed_at,build_driver",
+        )
+        .order("updated_at", { ascending: false })
+        .limit(50);
+      if (input?.workspaceId) query = query.eq("workspace_id", input.workspaceId);
+      if (productMissionIds) query = query.in("id", productMissionIds);
+      const { data, error } = await query;
+      if (error) throw new Error(error.message);
+
+      /*
+       * ── THE COUNT IS NOT THE LIST, AND THE CAP IS ONLY RIGHT FOR ONE ────────
+       *
+       * `.limit(50)` bounds the ROWS, which is correct: a lane must not render a
+       * thousand of them. It also silently bounded the NUMBER, which is not.
+       *
+       * S2 measured what that costs on one screen: the Waiting-on-you lane read
+       * 35 while the station strip above it read 89 for the same population, six
+       * words apart. `use-spine-strip.ts` already records that shape as the thing
+       * that makes a screen read as broken, and it is worse than a wrong number
+       * because the reader can see both and knows one is lying.
+       *
+       * So the cap stays on the rows and the count is asked for exactly, with
+       * `head: true` so no row travels for it. **The statuses are the ones the
+       * board actually routes on** rather than a second opinion about what
+       * "blocked" means: two definitions of stuck is how this disagreement
+       * started.
+       *
+       * `oldestBlockedAt` travels with it because a count alone cannot say
+       * whether the pile is fresh or a month old, and the lane's whole job is
+       * "what needs a person soonest".
+       */
+      const BLOCKED_STATUSES = ["failed", "halted", "cancelled", "blocked", "proposed"] as const;
+      let totalBlocked: number | null = null;
+      let oldestBlockedAt: string | null = null;
+      try {
+        let countQ = supabase
+          .from("missions")
+          .select("id", { count: "exact", head: true })
+          .in("status", BLOCKED_STATUSES as unknown as string[]);
+        if (input?.workspaceId) countQ = countQ.eq("workspace_id", input.workspaceId);
+        if (productMissionIds) countQ = countQ.in("id", productMissionIds);
+        const { count } = await countQ;
+        totalBlocked = count ?? null;
+
+        let oldestQ = supabase
+          .from("missions")
+          .select("updated_at")
+          .in("status", BLOCKED_STATUSES as unknown as string[])
+          .order("updated_at", { ascending: true })
+          .limit(1);
+        if (input?.workspaceId) oldestQ = oldestQ.eq("workspace_id", input.workspaceId);
+        if (productMissionIds) oldestQ = oldestQ.in("id", productMissionIds);
+        const { data: oldest } = await oldestQ;
+        oldestBlockedAt = (oldest?.[0] as { updated_at?: string } | undefined)?.updated_at ?? null;
+      } catch {
+        // Best-effort, like the enrichment below. A lane that cannot count still
+        // renders its rows; it simply does not claim a total it does not have.
+        // NULL rather than 0. A failed read degrading to zero puts "Waiting on
+        // you 0" at the head of the lane whose job is saying what needs a person,
+        // which is a false all-clear produced by a broken read. A count that
+        // cannot be taken is not a count of zero.
+        totalBlocked = null;
+      }
+
+      const missions = data ?? [];
+      if (missions.length === 0) return { missions: [], totalBlocked, oldestBlockedAt };
+      const ids = missions.map((m) => m.id);
+
+      // Batched enrichment (3 queries across ALL rows, never per-mission):
+      // step dots AND the in-flight step's sub_goal from mission_steps; run
+      // fallback + trace ids from agent_runs + latest checkpoints; cost from
+      // ai_events over those traces. Best-effort — any failure degrades to empty
+      // dots / unknown cost / no sub_goal.
+      const stepsByMission = new Map<string, { status: string }[]>();
+      const runsByMission = new Map<string, { status: string }[]>();
+      /**
+       * The slug of the agent on a mission's MOST RECENT run.
+       *
+       * WHY THIS IS NOT `missions.current_agent_id`. That column is a uuid and it
+       * is not reliably maintained: on the live workspace the one running mission
+       * has none, so the shell header could not name the agent working on it and
+       * fell back to "1 run working" with the generic crew mark. The product's
+       * whole claim is that named agents do the work, and the most-seen line in
+       * it could not name one.
+       *
+       * `agent_runs.agent_slug` is NOT NULL and is written by the thing that
+       * actually runs. It is already fetched here for the step dots, so this
+       * costs one extra column and no extra query. Same lesson as the seven-stage
+       * strip: the fact existed, the reader was looking in the wrong place.
+       */
+      const slugByMission = new Map<string, string>();
+      // REQ-023. Declared out here beside the slug rather than beside `missionByRun`,
+      // because the row map below is outside that block — the first attempt put it
+      // in the inner scope and tsc caught it at the read site.
+      const trackByMission = new Map<string, string>();
+      /**
+       * The sentence the mission is on, keyed by mission. Two maps rather than
+       * one, because `running` must beat `dispatched` no matter which arrives
+       * first in idx order, and a single map with an overwrite rule could not
+       * express that without re-reading what it had already written.
+       *
+       * Both are first-write-wins, which is what makes them "lowest idx": the
+       * select below orders by idx ascending, so a mission's rows arrive in step
+       * order and the earliest live step is the first one seen. This is the same
+       * ordering the step dots already depend on — reverse it and the strip and
+       * the sentence both silently describe the wrong step.
+       */
+      const runningGoalByMission = new Map<string, string>();
+      const dispatchedGoalByMission = new Map<string, string>();
+      const costByMission = new Map<string, number>();
+      try {
+        const [{ data: planSteps }, { data: runs }] = await Promise.all([
+          supabase
+            // `sub_goal` rides along on the query that was already fetching the
+            // step dots. It is the only column here that carries a sentence.
+            .from("mission_steps")
+            .select("mission_id,idx,status,sub_goal")
+            .in("mission_id", ids)
+            .order("idx", { ascending: true }),
+          supabase
+            .from("agent_runs")
+            /*
+             * `track_id` SO A WORKING MISSION CAN NAME THE WORK IT SERVES.
+             *
+             * The loop writes it on every run (`loop.server.ts:610`), and this
+             * select dropped it, so the rail's live line could never prove WHICH
+             * piece of work was moving and fell back to the mission row. The
+             * watchable address is `/track/:id`; a mission id is a container id.
+             *
+             * ON THE RUN AND NOT ON THE MISSION, deliberately: `missions` has no
+             * `track_id` column at all (checked, not assumed), so asking for one
+             * there returns 42703 and takes the whole read with it. The run is
+             * where the link is written and therefore where it can be read.
+             */
+            .select("id,mission_id,status,created_at,agent_slug,track_id")
+            .in("mission_id", ids)
+            .order("created_at", { ascending: true }),
+        ]);
+        for (const s of planSteps ?? []) {
+          const arr = stepsByMission.get(s.mission_id) ?? [];
+          arr.push({ status: s.status });
+          stepsByMission.set(s.mission_id, arr);
+          // An empty sub_goal is not a sentence. The column is NOT NULL and every
+          // row measured non-empty (291/291, 2026-08-06), but a blank one would
+          // render as a stray empty line rather than as nothing, so it is dropped
+          // here and the caller falls back to the title.
+          const goal = (s.sub_goal ?? "").trim();
+          if (!goal) continue;
+          if (s.status === "running" && !runningGoalByMission.has(s.mission_id)) {
+            runningGoalByMission.set(s.mission_id, goal);
+          }
+          if (s.status === "dispatched" && !dispatchedGoalByMission.has(s.mission_id)) {
+            dispatchedGoalByMission.set(s.mission_id, goal);
+          }
+        }
+        const missionByRun = new Map<string, string>();
+        for (const r of runs ?? []) {
+          if (!r.mission_id) continue;
+          missionByRun.set(r.id, r.mission_id);
+          const arr = runsByMission.get(r.mission_id) ?? [];
+          arr.push({ status: r.status });
+          runsByMission.set(r.mission_id, arr);
+          // Ascending by created_at, so each row overwrites the one before it and
+          // the last write per mission is its latest run. Reversing the order
+          // here would silently pin every mission to its FIRST agent.
+          if (r.agent_slug) slugByMission.set(r.mission_id, r.agent_slug);
+          /*
+           * REQ-023. Same last-non-null-wins rule as the slug directly above, and
+           * for the same reason: the runs arrive ascending by `created_at`, so the
+           * final write per mission is its most recent run that knew its track.
+           *
+           * NON-NULL rather than simply latest, deliberately. A mission's runs all
+           * serve one piece of work, so an older run that recorded the track is
+           * still telling the truth about which work this is, whereas a newer run
+           * that recorded none is only telling us it predates the link. Taking the
+           * newest value unconditionally would let a pre-loop run erase a good
+           * answer and send the reader back to the mission door for no gain.
+           */
+          if (r.track_id) trackByMission.set(r.mission_id, r.track_id);
+        }
+        const runIds = [...missionByRun.keys()];
+        if (runIds.length) {
+          const { data: cps } = await supabase
+            .from("agent_run_checkpoints")
+            .select("run_id,step_index,state")
+            .in("run_id", runIds)
+            .order("step_index", { ascending: false });
+          const missionByTrace = new Map<string, string>();
+          const seenRun = new Set<string>();
+          for (const cp of cps ?? []) {
+            if (seenRun.has(cp.run_id)) continue;
+            seenRun.add(cp.run_id);
+            const traceId = (cp.state as { traceId?: string } | null)?.traceId;
+            const missionId = missionByRun.get(cp.run_id);
+            if (traceId && missionId) missionByTrace.set(traceId, missionId);
+          }
+          const traceIds = [...missionByTrace.keys()];
+          if (traceIds.length) {
+            const { data: events } = await supabase
+              .from("ai_events")
+              .select("trace_id,est_cost_usd")
+              .in("trace_id", traceIds);
+            for (const e of events ?? []) {
+              const missionId = e.trace_id ? missionByTrace.get(e.trace_id) : undefined;
+              if (!missionId) continue;
+              costByMission.set(
+                missionId,
+                (costByMission.get(missionId) ?? 0) + Number(e.est_cost_usd ?? 0),
+              );
+            }
+          }
+        }
+      } catch (e) {
+        console.error("[missions] list enrichment failed (degrading):", e);
+      }
+
+      return {
+        missions: missions.map((m) => ({
+          ...m,
+          steps: stepsByMission.get(m.id) ?? runsByMission.get(m.id) ?? [],
+          cost_usd: costByMission.has(m.id) ? costByMission.get(m.id)! : null,
+          current_agent_slug: slugByMission.get(m.id) ?? null,
+          trackId: trackByMission.get(m.id) ?? null,
+          // `running` first, then `dispatched`, then nothing. Never a done step:
+          // a finished sentence presented in the present tense is the same defect
+          // as a fabricated one.
+          current_sub_goal:
+            runningGoalByMission.get(m.id) ?? dispatchedGoalByMission.get(m.id) ?? null,
+        })),
+        totalBlocked,
+        oldestBlockedAt,
+      };
+    },
+  );
 
 export const getMission = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

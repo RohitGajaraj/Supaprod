@@ -30,6 +30,7 @@
  * the surface must not promise a permission the wiring lacks.
  */
 import { useState } from "react";
+import { humanWriteError } from "@/lib/roles.functions";
 import { Row } from "@/components/meridian/rows";
 import {
   Action,
@@ -216,8 +217,10 @@ export function SupportSignalsPanel() {
           <Reading>Reading what repeats.</Reading>
         ) : clustersQ.isError ? (
           <ReadFailedLine onRetry={() => void clustersQ.refetch()}>
-            {(clustersQ.error as Error)?.message ??
-              "The themes did not load, so an empty list here would not mean nothing repeats."}
+            {humanWriteError(
+              clustersQ.error,
+              "The themes did not load, so an empty list here would not mean nothing repeats.",
+            )}
           </ReadFailedLine>
         ) : clusters.length === 0 ? (
           <NothingYet>
@@ -319,7 +322,7 @@ function ThemeDetail({
           <Reading>Assembling it.</Reading>
         ) : q.isError ? (
           <ReadFailedLine onRetry={() => void q.refetch()}>
-            {(q.error as Error)?.message ?? "The reply did not assemble."}
+            {humanWriteError(q.error, "The reply did not assemble.")}
           </ReadFailedLine>
         ) : q.data ? (
           <Prose>
