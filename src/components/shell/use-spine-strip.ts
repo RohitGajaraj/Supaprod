@@ -263,25 +263,35 @@ export function useSpineStrip(active: AgentStation | null): void {
        *                    pending". The chip's muted styling already says it.
        */
       const runWord = (n: number) => (n === 1 ? "run" : "runs");
-      /* AT LEAST, WHEN THE READ WAS BOUNDED. `listStudioSessions` caps at 100
-         builder runs, 100 others, and 200 assembled sessions, and reports
-         `bounded` rather than how many it dropped - which is the honest shape,
-         because a second count is the only thing that could say how many.
-         So the number stops being a count and becomes a floor: weaker than the
-         figure and true, rather than stronger and sometimes false.
-         Only the SESSION-derived counts take it. The Learn badge's outcomes come
-         from two other reads and must not inherit a caveat that is not theirs. */
-      const floor = (text: string) => (sessionsBounded ? `At least ${text}` : text);
+      /* A "+" ON THE FIGURE WHEN THE READ WAS BOUNDED. `listStudioSessions`
+         caps at 100 builder runs, 100 others and 200 assembled sessions, and
+         reports `bounded` rather than how many it dropped - the honest shape,
+         since a second count is the only thing that could say how many. So the
+         number stops being a count and becomes a floor: weaker than the figure
+         and true, rather than stronger and sometimes false.
+
+         "AT LEAST 89" WAS THE FIRST VERSION AND THE SCREEN REJECTED IT. It
+         wrapped the Discover chip to two lines, grew the whole strip, and
+         pushed the board down with it - measured on the running board
+         2026-08-27, where `bounded` comes back TRUE, so this is the ordinary
+         case rather than an edge one. The "+" is the same convention the rail's
+         own count uses, it fits on one line, and the chip carries the sentence
+         in a `title`.
+
+         Only the SESSION-derived counts take it. The Learn badge's outcomes
+         come from two other reads and must not inherit a caveat that is not
+         theirs. */
+      const floor = (n: number) => (sessionsBounded ? `${n}+` : `${n}`);
       const note = b.gate
-        ? floor(`${b.gate} ${runWord(b.gate)} waiting on you`)
+        ? `${floor(b.gate)} ${runWord(b.gate)} waiting on you`
         : b.failed
-          ? floor(`${b.failed} failed`)
+          ? `${floor(b.failed)} failed`
           : b.working
-            ? floor(`${b.working} running`)
+            ? `${floor(b.working)} running`
             : b.held
-              ? floor(`${b.held} held`)
+              ? `${floor(b.held)} held`
               : b.total
-                ? floor(`${b.total} ${runWord(b.total)}`) + learnExtra
+                ? `${floor(b.total)} ${runWord(b.total)}${learnExtra}`
                 : isLearn && pendingCount > 0
                   ? `${pendingCount} ${pendingCount === 1 ? "outcome" : "outcomes"} to record`
                   : "";
@@ -296,7 +306,11 @@ export function useSpineStrip(active: AgentStation | null): void {
               : b.total
                 ? "done"
                 : "quiet";
-      return { station, state, note };
+      /* `bounded` travels with the note so the chip can put the sentence in a
+         title. Only true where the note actually carries a session count: a
+         chip whose only line is the Learn badge must not claim a bound that
+         belongs to a read it did not make. */
+      return { station, state, note, bounded: sessionsBounded && note !== learnExtra.trim() };
     });
   }, [rows, pendingCount, sessionsFailed, sessionsBounded]);
 

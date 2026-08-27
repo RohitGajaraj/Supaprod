@@ -62,21 +62,35 @@ describe("the strip", () => {
 
   it("CALLS ITS NUMBERS A FLOOR WHEN THE READ WAS BOUNDED", () => {
     expect(code).toContain("const sessionsBounded = sessions.data?.bounded === true;");
-    expect(code).toContain("sessionsBounded ? `At least ${text}` : text");
+    expect(code).toContain("sessionsBounded ? `${n}+` : `${n}`");
+  });
+
+  it('USES "+" RATHER THAN "At least", because the screen rejected the words', () => {
+    /*
+     * "At least 89 runs waiting on you" wrapped the Discover chip to two lines,
+     * grew the whole strip and pushed the board down with it - measured on the
+     * running board 2026-08-27, where `bounded` comes back TRUE, so that is the
+     * ordinary case and not an edge one.
+     *
+     * "+" is the same convention the rail's own count uses, and the chip
+     * carries the sentence in a title for anyone who stops on it.
+     */
+    expect(code).not.toContain("At least ${text}");
+    const frame = readFileSync("src/components/shell/AppFrame.tsx", "utf8");
+    expect(frame).toContain(
+      'title={stage.bounded ? "More are waiting than this counts" : undefined}',
+    );
   });
 
   it("marks every session-derived note, not just the loudest", () => {
     // A strip where only the gate line hedges reads as the other six being
     // exact, which is the same wrong claim in a quieter voice.
-    for (const branch of ["waiting on you", "failed", "running", "held"]) {
-      expect(code).toContain(`floor(\``);
-    }
-    expect(code.match(/floor\(`/g)?.length).toBeGreaterThanOrEqual(5);
+    expect(code.match(/floor\(b\./g)?.length).toBeGreaterThanOrEqual(5);
   });
 
   it("LEAVES THE LEARN BADGE ALONE, because it is a different read", () => {
     // Outcomes come from `listPendingOutcomes` and `listDueForecastsHere`.
     // Neither is bounded by this flag and neither may inherit its caveat.
-    expect(code).toContain("floor(`${b.total} ${runWord(b.total)}`) + learnExtra");
+    expect(code).toContain("bounded: sessionsBounded && note !== learnExtra.trim()");
   });
 });

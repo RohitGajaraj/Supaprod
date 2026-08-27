@@ -2010,7 +2010,15 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                     </span>
                   ) : null}
                   <span className="sp-stage-name">{STAGE_LABEL[stage.station]}</span>
-                  <span className="sp-stage-state">{stage.note}</span>
+                  {/* THE "+" IN THE NOTE IS A FLOOR, and the chip has no room
+                    for the sentence. Same convention as the rail's own count a
+                    few hundred lines down; the title carries the words. */}
+                  <span
+                    className="sp-stage-state"
+                    title={stage.bounded ? "More are waiting than this counts" : undefined}
+                  >
+                    {stage.note}
+                  </span>
                   {/* The dot repeats what the note already says in words, for
                     the glance that does not read. It is aria-hidden for the
                     same reason: a screen reader gets "2 waiting on you" and
