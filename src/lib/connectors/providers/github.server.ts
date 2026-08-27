@@ -341,6 +341,18 @@ async function actorLabelFor(auth: ResolvedAuth): Promise<string> {
   return "Supaprod GitHub App";
 }
 
+/**
+ * Whether the deployment-wide `GITHUB_REPO` may stand in for this workspace.
+ *
+ * It may not, ever, for a NAMED workspace: one repo for the whole deployment
+ * cannot be the right answer for two tenants. Kept as a named function rather
+ * than inlined `false` so the rule is greppable and its reason has somewhere to
+ * live, and so a future single-tenant deployment has one obvious place to change.
+ */
+function envRepoIsBoundTo(_workspaceId: string): boolean {
+  return false;
+}
+
 export async function resolveGitHub(args: {
   userId?: string | null;
   workspaceId?: string | null;
@@ -379,6 +391,36 @@ export async function resolveGitHub(args: {
   }
 
   const envRepo = process.env.GITHUB_REPO ? normalizeGithubRepo(process.env.GITHUB_REPO) : null;
+
+  /*
+   * ── A WORKSPACE MUST NOT INHERIT ANOTHER TENANT'S REPOSITORY ─────────────
+   *
+   * `GITHUB_REPO` is ONE repo for the whole deployment. Below, an unbound
+   * workspace fell through to it, which means any workspace without a binding
+   * of its own would stage, commit and open pull requests against whatever
+   * repository that variable happens to name.
+   *
+   * MEASURED 2026-08-27: `studio_changesets` holds rows against
+   * `RohitGajaraj/Test-Project-Cadence` from FOUR different workspaces —
+   * `0b792d52`, `482bdbb2`, `11ea33b6` and `b90da531` — none of which is bound
+   * to it. It has been harmless so far because those are fixtures and that
+   * token is dead, but the path is real and it writes code.
+   *
+   * The env fallback's own comment says it "keeps current behavior alive until
+   * bindings exist". Bindings exist. So it survives only where there is no
+   * workspace to be wrong about: a script or a dev shell with no tenant context.
+   * **A named workspace with no binding is refused, and told exactly that.**
+   *
+   * This is the direction to be wrong in. Refusing costs a person one trip to
+   * Connectors; the alternative writes a customer's spec into a repository
+   * belonging to somebody else.
+   */
+  if (args.workspaceId && !envRepoIsBoundTo(args.workspaceId)) {
+    throw new Error(
+      "No repository is connected for this workspace. Bind one on Connectors, and this will run. " +
+        "It will not borrow another workspace's repository.",
+    );
+  }
 
   if (resolved.source === "user_connection") {
     // Connected account but no workspace binding: only usable when the legacy
