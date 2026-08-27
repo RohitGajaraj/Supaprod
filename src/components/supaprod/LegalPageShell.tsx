@@ -2,6 +2,7 @@
 // security, changelog) that sit off the homepage footer. Matches the
 // homepage's dark canvas so a footer click never feels like a different
 // site. Kept deliberately plain: these are reference pages, not marketing.
+import { PUBLIC_FOOTER_LINKS } from "./site-links";
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { SupaprodWordmark } from "@/components/supaprod/SupaprodWordmark";
@@ -173,14 +174,7 @@ export function LegalPageShell({
               gap: "var(--geist-space-4x)",
             }}
           >
-            {[
-              { href: "/security", label: "Security" },
-              { href: "/ard", label: "ARD" },
-              { href: "/updates", label: "Changelog" },
-              { href: "/proof", label: "Proof" },
-              { href: "/privacy", label: "Privacy" },
-              { href: "/terms", label: "Terms" },
-            ].map((l) => (
+            {PUBLIC_FOOTER_LINKS.map((l) => (
               <a key={l.href} href={l.href} style={{ color: C.faint, textDecoration: "none" }}>
                 {l.label}
               </a>
