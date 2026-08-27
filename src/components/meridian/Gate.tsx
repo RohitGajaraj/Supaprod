@@ -1,3 +1,4 @@
+import { isOverdue, stoppedFor } from "@/components/meridian/stopped-for";
 import * as React from "react";
 
 /**
@@ -51,12 +52,34 @@ import * as React from "react";
  */
 export function Gate({
   question,
+  since,
+  now,
   lines,
   linesLabel,
   children,
 }: {
   /** A question, in plain words. Never a mechanism word. */
   question: React.ReactNode;
+  /**
+   * WHEN THIS CALL STARTED WAITING, in epoch ms. THREE STATES, NOT TWO.
+   *
+   *   undefined  this gate has no age to speak of. Nothing is drawn, which is
+   *              every caller that existed before 2026-08-27.
+   *   null       it HAS an age and we could not read it. Said out loud, because
+   *              a missing time on a call a person is about to settle may never
+   *              be dressed as a fresh one.
+   *   a number   measured, and printed.
+   *
+   * Absence and unknown are different facts and this product has paid for
+   * conflating them before.
+   */
+  since?: number | null;
+  /**
+   * The clock, so the phrase is deterministic and testable. Defaults to now.
+   * Passing it is how a caller that already holds a tick keeps every age on the
+   * surface computed against ONE instant rather than several.
+   */
+  now?: number;
   /** What it actually does. One fact per line, never four ways of saying one. */
   lines?: React.ReactNode[];
   /** Optional caption over the lines, naming where they came from. Read the
@@ -70,10 +93,45 @@ export function Gate({
       data-mrd=""
       className="rounded-mrd-pane border border-mrd-line bg-mrd-sheet px-mrd-6 py-mrd-6 shadow-mrd-card"
     >
-      <span className="flex min-w-0 items-center gap-1.5">
-        <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-mrd-you" />
-        <span className="shrink-0 text-mrd-tiny font-medium text-mrd-you">Waiting on you</span>
-      </span>
+      <div className="flex flex-wrap items-center justify-between gap-mrd-4">
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-mrd-you" />
+          <span className="shrink-0 text-mrd-tiny font-medium text-mrd-you">Waiting on you</span>
+        </span>
+
+        {/*
+         * HOW LONG IT HAS WAITED, ON THE CALL ITSELF.
+         *
+         * The list rows under this gate have always carried an age and the gate
+         * never did, so the one call a person was about to settle was the only
+         * one on the surface that would not say how old it was. Measured on the
+         * rendered board 2026-08-27: the call in the gate had been waiting 49
+         * days and said nothing about it, while the row beneath it read "42d".
+         *
+         * Mono and tabular so the number reads as a measurement rather than a
+         * word, and so it does not jitter as it ticks over. The exact instant
+         * rides along as a title for anyone who needs it; the phrase is what
+         * changes behaviour. Past a day it takes the accent, which is the same
+         * boundary `isOverdue` gives every other surface, so the loudest row and
+         * the call in front of you can never disagree about what is overdue.
+         */}
+        {since === undefined ? null : since === null ? (
+          <span className="shrink-0 text-mrd-small text-mrd-faint">
+            How long this has been waiting is not known.
+          </span>
+        ) : (
+          <span
+            title={new Date(since).toLocaleString()}
+            className={`font-mrd-mono shrink-0 text-mrd-small tabular-nums ${
+              isOverdue(since, now ?? Date.now())
+                ? "font-semibold text-mrd-you"
+                : "font-medium text-mrd-mute"
+            }`}
+          >
+            Waiting {stoppedFor(since, now ?? Date.now())}
+          </span>
+        )}
+      </div>
 
       <h2 className="mt-mrd-4 mrd-title">{question}</h2>
 

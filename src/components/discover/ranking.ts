@@ -181,7 +181,7 @@ export function compareOpportunities<T extends RankableOpportunity>(
 
 /** Build the short rationale sentence from the discriminators that are true or
  * nonzero for this bet, e.g. "Ranked #1: top ICE score, Challenge endorsed,
- * backed by 7 signals". */
+ * backed by 7 findings". */
 function rationaleFor(
   opp: RankableOpportunity,
   rank: number,
@@ -222,7 +222,7 @@ function rationaleFor(
   else if (briefAlignment < 0) clauses.push("a linked bet's assumption is challenged");
 
   if (corroboration > 0) {
-    clauses.push(`backed by ${corroboration} signal${corroboration === 1 ? "" : "s"}`);
+    clauses.push(`backed by ${corroboration} finding${corroboration === 1 ? "" : "s"}`);
   }
 
   return clauses.length > 0 ? `Ranked #${rank}: ${clauses.join(", ")}` : `Ranked #${rank}`;
@@ -265,21 +265,35 @@ function termsFor(
     terms.push({ label: "ICE", detail: ice != null ? ice.toFixed(1) : "no score yet" });
   }
 
-  if (verdict === "SHIP") terms.push({ label: `${reviewer} endorsed`, detail: "critic run, no kill" });
-  else if (verdict === "WATCH") terms.push({ label: "Flagged to watch", detail: "held for more evidence" });
-  else if (verdict === "REVISE") terms.push({ label: `${reviewer} says revise`, detail: "fixable concerns, ranked above kill" });
-  else if (verdict === "KILL") terms.push({ label: `${reviewer} says kill`, detail: "rejected on review" });
+  if (verdict === "SHIP")
+    terms.push({ label: `${reviewer} endorsed`, detail: "critic run, no kill" });
+  else if (verdict === "WATCH")
+    terms.push({ label: "Flagged to watch", detail: "held for more evidence" });
+  else if (verdict === "REVISE")
+    terms.push({ label: `${reviewer} says revise`, detail: "fixable concerns, ranked above kill" });
+  else if (verdict === "KILL")
+    terms.push({ label: `${reviewer} says kill`, detail: "rejected on review" });
 
-  if (briefAlignment > 0) terms.push({ label: "On a standing top bet", detail: "tied to the strategic top bet under watch" });
-  else if (briefAlignment < 0) terms.push({ label: "Linked bet challenged", detail: "the linked bet's assumption is challenged" });
+  if (briefAlignment > 0)
+    terms.push({
+      label: "On a standing top bet",
+      detail: "tied to the strategic top bet under watch",
+    });
+  else if (briefAlignment < 0)
+    terms.push({
+      label: "Linked bet challenged",
+      detail: "the linked bet's assumption is challenged",
+    });
 
-  if (outcomeSupport > 0) terms.push({ label: "Theme track record", detail: "outcomes on this theme run proven" });
-  else if (outcomeSupport < 0) terms.push({ label: "Theme track record", detail: "outcomes on this theme have missed" });
+  if (outcomeSupport > 0)
+    terms.push({ label: "Theme track record", detail: "outcomes on this theme run proven" });
+  else if (outcomeSupport < 0)
+    terms.push({ label: "Theme track record", detail: "outcomes on this theme have missed" });
 
   if (corroboration > 0) {
     terms.push({
-      label: "Signal backing",
-      detail: `${corroboration} backing signal${corroboration === 1 ? "" : "s"}`,
+      label: "Evidence behind it",
+      detail: `${corroboration} backing finding${corroboration === 1 ? "" : "s"}`,
     });
   }
 

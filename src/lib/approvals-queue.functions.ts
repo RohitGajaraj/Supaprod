@@ -146,9 +146,45 @@ export type ApprovalQueueItem = ApprovalItem & {
   agentSlug?: string | null;
 };
 
+/**
+ * A family the queue could not report in full, and why.
+ *
+ * `failed` is the case the handler already degraded for: a source threw, its
+ * items became an empty list so one refused read could not blank the other
+ * nine, and nothing told the user. `capped` is the sibling nobody had counted:
+ * every family read stops at `FAMILY_LIMIT`, and a family standing exactly on
+ * it has almost certainly been cut.
+ *
+ * Both mean the same thing to a person, which is why they share a shape: the
+ * number on the screen is not the whole truth and the surface must stop
+ * stating it as one.
+ */
+export type QueueGap = { family: string; why: "failed" | "capped" };
+
 export type ApprovalsQueueResult = {
   items: ApprovalQueueItem[];
+  /**
+   * Empty when the queue is complete, which is the ordinary case.
+   *
+   * A CAP IS FINE FOR LOOKING AND NEVER FOR CONCLUDING. The reads bound
+   * themselves so one enormous family cannot flood the queue, and that is
+   * correct. What was not correct was three surfaces turning a bounded read
+   * into an exact count and a headline. Measured on 2026-08-27: 116 specs
+   * carry `design_gate_status = 'pending'` in workspaces with the design stage
+   * on, against a limit of 100, so 16 calls that need a person were absent
+   * from the only screens that list them and no surface could say so.
+   */
+  incomplete: QueueGap[];
 };
+
+/**
+ * How many rows any one family may contribute.
+ *
+ * Named rather than repeated at six call sites, because the number has to be
+ * comparable against a result length to know whether it bit, and a literal
+ * repeated seven times is a rule nobody can enforce.
+ */
+export const FAMILY_LIMIT = 100;
 
 /** Tolerant critic_review reader: jsonb object or a stringified copy (mirrors
  *  today.functions.ts's private helper of the same name). */
@@ -200,17 +236,32 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
      * it needs a field on ApprovalsQueueResult plus rendering in ApprovalsTray
      * and Today, which spans files this pass does not own.
      */
+    /*
+     * WHAT THE QUEUE COULD NOT TELL YOU, collected as it happens and returned
+     * with the items. The handler has always degraded correctly and always
+     * silently; this is the field the comment above said was missing.
+     */
+    const incomplete: QueueGap[] = [];
+    const noteGap = (family: string, why: QueueGap["why"]): void => {
+      if (!incomplete.some((g) => g.family === family && g.why === why)) {
+        incomplete.push({ family, why });
+      }
+    };
+
     const familyFailed =
       (family: string) =>
       (e: unknown): void => {
+        noteGap(family, "failed");
         console.error(
           `[approvals-queue] ${family} dropped from the queue: ${e instanceof Error ? e.message : String(e)}`,
         );
       };
     /** Same, for the sources that resolve with a PostgrestError instead of throwing. */
     const noteReadError = (family: string, error: { message: string } | null): void => {
-      if (error)
+      if (error) {
+        noteGap(family, "failed");
         console.error(`[approvals-queue] ${family} dropped from the queue: ${error.message}`);
+      }
     };
 
     const [
@@ -251,8 +302,8 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
           .from("memory_candidates")
           .select("id, content, status, importance, source_kind, created_at")
           .eq("status", "pending")
-          .order("created_at", { ascending: false })
-          .limit(100);
+          .order("created_at", { ascending: true })
+          .limit(FAMILY_LIMIT);
         if (wsId) q = q.eq("workspace_id", wsId);
         return q.then(({ data: rows, error }) => {
           noteReadError("memory graduation", error);
@@ -287,8 +338,8 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
           .from("prds")
           .select("id,title,status,critic_review,updated_at,project_id")
           .eq("status", "review")
-          .order("updated_at", { ascending: false })
-          .limit(100);
+          .order("updated_at", { ascending: true })
+          .limit(FAMILY_LIMIT);
         if (wsId) q = q.eq("workspace_id", wsId);
         return q;
       })(),
@@ -300,8 +351,8 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
           .select("id,title,critic_review,created_at,project_id")
           .filter("critic_review->>verdict", "in", '("revise","kill")')
           .eq("status", "backlog")
-          .order("created_at", { ascending: false })
-          .limit(100);
+          .order("created_at", { ascending: true })
+          .limit(FAMILY_LIMIT);
         if (wsId) q = q.eq("workspace_id", wsId);
         return q;
       })(),
@@ -312,8 +363,8 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
           .from("assumption_challenges")
           .select("id,assumption_id,signal_id,learning_id,rationale,created_at")
           .eq("status", "open")
-          .order("created_at", { ascending: false })
-          .limit(100);
+          .order("created_at", { ascending: true })
+          .limit(FAMILY_LIMIT);
         if (wsId) q = q.eq("workspace_id", wsId);
         return q;
       })(),
@@ -325,8 +376,8 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
           .from("playbook_proposals")
           .select("id,title,body,created_at,source_learning_ids")
           .eq("status", "proposed")
-          .order("created_at", { ascending: false })
-          .limit(100);
+          .order("created_at", { ascending: true })
+          .limit(FAMILY_LIMIT);
         if (wsId) q = q.eq("workspace_id", wsId);
         return q;
       })(),
@@ -372,7 +423,7 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
     // while the read said zero.
     //
     // Fixed at all three sites in one change under the founder's ruling. The
-    // surfaces already bound what they show -- `.limit(100)` here, `.limit(5)`
+    // surfaces already bound what they show -- `.limit(FAMILY_LIMIT)` here, `.limit(5)`
     // and a count on Today -- so this restores a real family rather than
     // flooding a queue.
     noteReadError("design-stage workspace lookup", designWsRows.error);
@@ -387,8 +438,8 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
           .select("id,title,updated_at,project_id")
           .in("workspace_id", designWsIds)
           .eq("design_gate_status", "pending")
-          .order("updated_at", { ascending: false })
-          .limit(100)
+          .order("updated_at", { ascending: true })
+          .limit(FAMILY_LIMIT)
       : {
           data: [] as {
             id: string;
@@ -401,6 +452,52 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
           error: null as { message: string } | null,
         };
     noteReadError("design gates", designGateRes.error);
+
+    /*
+     * A FAMILY STANDING EXACTLY ON ITS LIMIT HAS ALMOST CERTAINLY BEEN CUT.
+     *
+     * Every read above stops at `FAMILY_LIMIT`, which is right: one enormous
+     * family must not flood a queue a person has to walk. What was wrong is
+     * that three surfaces then turned a bounded read into an exact count and
+     * put it in a headline.
+     *
+     * Measured 2026-08-27: 116 specs carry `design_gate_status = 'pending'` in
+     * workspaces with the design stage on, against a limit of 100. Sixteen
+     * calls that need a person were absent from the only screens that list
+     * them, and no surface had any way to know.
+     *
+     * EXACTLY-ON-THE-LIMIT CAN BE A FALSE POSITIVE and that is the right way
+     * round. A family with precisely 100 rows was not truncated and will still
+     * be reported as capped; the cost is a surface that softens a count it did
+     * not have to. The other error costs a person a call they never saw.
+     */
+    /*
+     * AND THE CAP NOW KEEPS THE OLDEST, WHICH IS THE OTHER HALF OF THE SAME
+     * DEFECT.
+     *
+     * Every family read above ordered DESCENDING and took the newest
+     * `FAMILY_LIMIT` rows. Both surfaces then sort the result oldest first and
+     * `/approvals` says so in as many words: "Settled in order, oldest first."
+     *
+     * So on the design-gate family, 116 rows against a limit of 100, the
+     * sixteen that were dropped were the sixteen OLDEST: precisely the calls a
+     * queue walked oldest-first exists to surface, and precisely the ones that
+     * have waited longest. The page promised the oldest and the read beneath it
+     * had already thrown them away.
+     *
+     * The six bounded reads now order ascending. This changes only WHICH rows
+     * survive the cap and not the order anything is drawn in, because every
+     * consumer sorts for itself.
+     */
+    const cappedIf = (family: string, n: number): void => {
+      if (n >= FAMILY_LIMIT) noteGap(family, "capped");
+    };
+    cappedIf("memory graduation", memCandidates.items.length);
+    cappedIf("specs in review", (specRows.data ?? []).length);
+    cappedIf("critic'd opportunities", (oppRows.data ?? []).length);
+    cappedIf("assumption challenges", (challengeRows.data ?? []).length);
+    cappedIf("proposed playbooks", (playbookRows.data ?? []).length);
+    cappedIf("design gates", (designGateRes.data ?? []).length);
 
     // Project resolution, one batched pass for every family that carries a
     // project_id (specs, opportunities, design gates directly; decisions only
@@ -956,6 +1053,7 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
 
     visible.sort((a, b) => (b.timestamp ?? "").localeCompare(a.timestamp ?? ""));
     return {
+      incomplete,
       items: visible.map((it) => ({
         ...it,
         agentSlug: approvalAgentSlug(it.kindKey, agentSlugBySource.get(it.sourceId) ?? null),

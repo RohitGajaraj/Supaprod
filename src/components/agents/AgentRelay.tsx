@@ -29,7 +29,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getMission } from "@/lib/missions.functions";
 import { getSwarmHud } from "@/lib/swarm.functions";
-import { Region } from "@/components/meridian/surface-parts";
+import { ReadFailedLine, Region } from "@/components/meridian/surface-parts";
 import { AgentMark, MarkStack, type MarkState } from "@/components/meridian/marks";
 import type { AgentStation } from "@/lib/agent-vocabulary";
 import {
@@ -128,6 +128,34 @@ function MiniRelayLine({ workspaceId }: { workspaceId: string | null }) {
     refetchIntervalInBackground: false,
   });
   const r = miniRelay(q.data);
+
+  /*
+   * "ALL QUIET" WAS BEING SAID BY A READ THAT HAD NOT ANSWERED (2026-08-27).
+   *
+   * `miniRelay` opens with `hud?.missions ?? []`, so it reports `active: false`
+   * for undefined data exactly as it does for a genuinely idle workspace. This
+   * component drew the same sentence for three different situations: the crew
+   * is idle, the read is still in flight, and the read REFUSED.
+   *
+   * The last one is the expensive one, and the sentence is the strongest form
+   * of it in the product: "Nothing needs you right now" is a confident
+   * all-clear, and a fault was producing it. The second is not free either —
+   * it flashed on every first paint, before anything could possibly be known.
+   *
+   * The order below is the one AppFrame's own live line already uses, and its
+   * comment gives the rule: "A header that says 'Nothing running' before the
+   * read lands would be a false claim about workspace state." Failure speaks,
+   * an unanswered read stays silent, and the all-clear is only said once it has
+   * actually been read.
+   */
+  if (q.isError) {
+    return (
+      <ReadFailedLine>
+        This cannot see what the crew is doing, so quiet here does not mean idle.
+      </ReadFailedLine>
+    );
+  }
+  if (!q.data) return null;
 
   if (!r.active) {
     return <div style={{ color: "var(--mrd-mute)" }}>All quiet. Nothing needs you right now.</div>;

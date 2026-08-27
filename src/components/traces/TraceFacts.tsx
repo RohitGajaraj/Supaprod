@@ -87,7 +87,7 @@ export function CopyButton({ value, what }: { value: string; what: string }) {
       type="button"
       aria-label={`Copy the ${what}`}
       onClick={copy}
-      className={`flex h-6 shrink-0 items-center rounded-mrd-xs px-1.5 text-mrd-tiny font-medium transition-colors duration-100 hover:bg-mrd-hover ${
+      className={`flex h-6 shrink-0 items-center rounded-mrd-xs px-1.5 text-mrd-tiny font-medium transition-colors duration-[var(--mrd-d-press)] hover:bg-mrd-hover ${
         copied ? "text-mrd-pass" : "text-mrd-mute hover:text-mrd-ink"
       }`}
     >

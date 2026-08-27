@@ -38,7 +38,7 @@
 import * as React from "react";
 import { failureLine } from "@/lib/error-copy";
 import { Row } from "@/components/meridian/rows";
-import { Actions } from "@/components/meridian/surface-parts";
+import { Actions, ReadFailedLine } from "@/components/meridian/surface-parts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -423,7 +423,27 @@ export function TrackStart({
         </div>
       ) : null}
 
-      {list.length === 0 && !open ? (
+      {tracks.isError ? (
+        /*
+         * A FAILED READ IS NOT AN EMPTY DESK, and this region was the last
+         * place in the lane still saying otherwise.
+         *
+         * `list` is `tracks.data ?? []`, so a read that fails produces exactly
+         * the same empty array a genuinely empty workspace produces, and the
+         * branch below then tells a person "Nothing is in flight." That is a
+         * claim about their work, made from an absence of information. This
+         * region mounts on /plan and on the run screen, so the sentence lands
+         * next to runs that may well be moving.
+         *
+         * Found by auditing this prefix for S0's F-120 shape -- a component
+         * reading from something that can fail and rendering the empty case
+         * when it does. This was the only one of 16 query-bearing components
+         * here with no `isError` branch anywhere in the file.
+         */
+        <ReadFailedLine onRetry={() => void tracks.refetch()} error={tracks.error}>
+          Your work in flight did not load, so this cannot say what is running.
+        </ReadFailedLine>
+      ) : list.length === 0 && !open ? (
         // The BARE half of the empty pair. This sits under a region heading
         // that already frames it, and the standard caps a region at one
         // bordered box.

@@ -87,9 +87,14 @@ entered at `sense`, and **zero have gone `sense` → `learn`**.
 > **AND AS OF 2026-08-26 THE PLAIN FORM ALSO RETURNS 1, AND THE ACCEPTANCE IS STILL NOT MET (F-79).**
 > `d1168015` walked all seven with every transition `driven_via='sweep'` — but a person **rejected
 > approval `bdf32286` against its Build mission at 18:48 UTC**, mid-run, so R-18's *"no human
-> touching it mid-run"* fails. The query cannot see an answered boundary call, and
-> `agent_approvals.decided_by` is NULL so the row cannot name the decider. **Do not report a
-> non-zero result from the short query as the acceptance.** The honest form, which returns **0**, is
+> touching it mid-run"* fails. The query cannot see an answered boundary call, because **an answer
+> is not a transition** — which is the whole reason the join form below is needed at all.
+> `bdf32286` happens to carry no `decided_by`, so that particular row cannot name who answered.
+> **Corrected 2026-08-27 (S1 and S4 independently): that is true of the row and false of the
+> column.** Measured: **158 of 176 answered approvals DO name the decider, 18 do not.** The earlier
+> wording here read as a permanent limitation of the schema, and anybody planning around it would
+> have concluded the decider is unrecoverable when it is recorded on 90% of answered calls. **Do not
+> report a non-zero result from the short query as the acceptance.** The honest form, which returns **0**, is
 > in [`the-first-run/OPERATING-MODEL-5-SESSIONS.md`](./the-first-run/OPERATING-MODEL-5-SESSIONS.md) §2.
 
 ---
@@ -114,6 +119,9 @@ bun run build          # production build to a Cloudflare Worker
 bun run lint           # ESLint
 bun run docs:check     # doc anti-rot check, run before committing doc changes
 bun run check:motion   # dead backend test: what still moves when nothing can be read
+bun run check:unreachable      # server functions and components nothing imports
+bun run check:dead-writers     # tables with a live writer and an orphaned one
+bun run check:retired-aliases  # files drawing in the retired system through an alias
 bun run cost:track     # capture this session's token spend
 ```
 
@@ -124,7 +132,7 @@ bun run cost:track     # capture this session's token spend
 - **Project skills** live in `.claude/skills/`. `supaprod-tempo` and `supaprod-design` are **deprecated stubs**; the design contract is [`docs/design/DESIGN-SYSTEM.md`](./docs/design/DESIGN-SYSTEM.md).
 - **Meridian is the only design system, and this is enforced, not requested.** Every prior one is retired (v1, v3 Obsidian, v4 Loom, v5 Tempo, Cadence/ink). `bun test` fails if a **new** file carries a retired token (`--sp-*`, `--ds-*`, `--text-*`, `--hairline`, `--raised`, `data-obsidian`) or a raw colour, and fails if an **existing** file grows its count. If no `--mrd-*` token fits, that is a gap in Meridian: build it there. Never widen the baseline to pass.
 - **Hooks enforce repo invariants** (commit policy, migration safety, humanization). Treat a hook message as user feedback. Setup: [`docs/operations/hooks.md`](./docs/operations/hooks.md).
-- **Session handoff is a pair.** Write both `.remember/remember.md` (untracked; the plugin injects it at SessionStart and clears it as it reads, so never expect to find it on disk and never commit it) and [`docs/operations/session-handoff.md`](./docs/operations/session-handoff.md) (tracked, survives the read).
+- **Session handoff is a pair, and BOTH halves are now COMMITTED** (founder ruling, 2026-08-27, reversing the previous "never commit it"). Write both `.remember/remember.md` and [`docs/operations/session-handoff.md`](./docs/operations/session-handoff.md). **`.remember/remember.md` is tracked and pushed on purpose:** with several sessions running in parallel, a handoff only one checkout can read is a handoff the other sessions do not get. Commit it so every lane, and every later session, reads the same one off the remote. The plugin still injects it at SessionStart and clears it as it reads, so **do not be surprised to find it empty on disk — the committed copy is the durable one**, and rewrite it rather than assuming it survived.
 
 ## Knowledge graph (graphify)
 

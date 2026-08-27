@@ -498,7 +498,7 @@ export function RoadmapColumns() {
   // `.sp-empty` line, never a box.
   if (roadmap.isError) {
     return (
-      <ReadFailedLine onRetry={() => void roadmap.refetch()}>
+      <ReadFailedLine onRetry={() => void roadmap.refetch()} error={roadmap.error}>
         {(roadmap.error as Error)?.message ?? "The roadmap did not load."}
       </ReadFailedLine>
     );

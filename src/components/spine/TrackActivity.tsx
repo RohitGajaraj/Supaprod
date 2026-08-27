@@ -50,14 +50,19 @@
  */
 import * as React from "react";
 import { humanizeText } from "@/lib/ai/humanize";
+import { plainProse } from "@/lib/plain-prose";
 import { AgentMark } from "@/components/meridian/marks";
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { supabase } from "@/integrations/supabase/client";
 
 import { getTrackActivity, getTrackChain } from "@/lib/spine/track.functions";
 import { countKinds, type Turn } from "@/lib/spine/activity";
 import { handoffLine, turnsAtStation, whatCameWith } from "@/components/spine/handed-over";
-import { mergeActivityRows } from "@/components/spine/activity-rows";
+import { carriedByMission, oncePerId } from "@/components/spine/what-a-mission-carries";
+import { howThisRan } from "@/components/track/how-this-ran";
+import { getMission } from "@/lib/missions.functions";
+import { type HandoffRow, mergeActivityRows } from "@/components/spine/activity-rows";
 import type { AgentStation } from "@/lib/agent-vocabulary";
 import { GLYPH_FOR_STATION, type StationGlyphKind } from "@/components/meridian/station-glyphs";
 import {
@@ -243,7 +248,9 @@ export function liveSeats(
  */
 export function saidLine(said: string | null | undefined): string | null {
   if (!said) return null;
-  const clean = humanizeText(said);
+  /* 92 of 2,805 `agent_runs.output` rows carry `**bold**`, and this is the line
+     that renders them. Same tell as the dashes, one layer along. */
+  const clean = plainProse(humanizeText(said)) ?? "";
   // Truncate AFTER cleaning, so the 160th character is one a person will see.
   return clean.length > 160 ? `${clean.slice(0, 160)}...` : clean;
 }
@@ -362,6 +369,139 @@ export function TrackActivity({
     refetchInterval: isRunning || live ? 500 : 10_000,
   });
 
+  /*
+   * THE REAL HANDOFFS, which have been written all along and never read.
+   *
+   * SESSION-1's first unit is "handoff made visible" because "the station
+   * transition already IS a handoff and nothing says what was handed over".
+   * The line beside the glyph below is INFERRED from a station changing between
+   * turns; meanwhile `agent_messages` holds 143 rows of `kind = 'handoff'`, each
+   * carrying the instruction the sender actually wrote.
+   *
+   * They look unreachable because all 143 have a null `track_id`. They are not:
+   * they carry a `mission_id`, this track's missions are already in the chain as
+   * members of kind "mission", and `getMission` already returns a mission's
+   * messages with exactly these fields. Nothing new is needed on the server --
+   * this is the brief's own "the default move is always: wire what exists".
+   *
+   * One query per mission, and a track holds one or two. Cached hard: a handoff
+   * is written once and never edited, so re-reading it on the transcript's live
+   * cadence would spend requests on a row that cannot change.
+   */
+  const missionIds = React.useMemo(() => {
+    const chain = chainQ.data?.chain;
+    if (!chain) return [] as string[];
+    const ids = new Set<string>();
+    for (const stop of chain.stops) {
+      for (const m of stop.members) if (m.kind === "mission") ids.add(m.artifactId);
+    }
+    for (const m of chain.orphans) if (m.kind === "mission") ids.add(m.artifactId);
+    return [...ids];
+  }, [chainQ.data]);
+
+  const fetchMission = useServerFn(getMission);
+  const missionQs = useQueries({
+    queries: missionIds.map((id) => ({
+      queryKey: ["track-handoffs", id],
+      queryFn: () => fetchMission({ data: { missionId: id } }),
+      staleTime: 5 * 60_000,
+    })),
+  });
+
+  /*
+   * CALLS A PERSON ANSWERED ON THIS WORK.
+   *
+   * The line above the transcript reports how the work MOVED, and an answer is
+   * not a move, so nothing in the transition record can see one. On `d1168015`
+   * that gap is the whole story: 19 drives, every one the sweep, and three
+   * calls a person decided mid-run. Without this read the honest version of
+   * that line has to warn about its own blind spot forever.
+   *
+   * `agent_approvals` carries `mission_id` itself, so this is one read against
+   * the missions already resolved above rather than a join through
+   * `agent_runs`. Direct under RLS, the same pattern as the steer read below
+   * and `ArtifactPane`'s `PrototypeCard`.
+   *
+   * `decided_at` IS THE TEST AND NOT `status`. R-18 forbids a person TOUCHING
+   * the run; a call sitting unanswered in front of somebody is the loop asking,
+   * which is allowed, and only the answer is the touch.
+   *
+   * A FAILED OR PENDING READ RESOLVES TO NULL, NEVER ZERO, and `howThisRan`
+   * treats the two differently on purpose. Zero says nobody answered anything;
+   * null says nothing at all. Drawing a slow query as zero would turn latency
+   * into a claim of autonomy on the one screen where that claim is the product.
+   */
+  const answeredQ = useQuery({
+    queryKey: ["track-answered-calls", trackId, missionIds.join(",")],
+    enabled: missionIds.length > 0,
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("agent_approvals")
+        .select("id", { count: "exact", head: true })
+        .in("mission_id", missionIds)
+        .not("decided_at", "is", null);
+      if (error) throw new Error(error.message);
+      return count ?? 0;
+    },
+    staleTime: 60_000,
+  });
+  const answeredCalls = missionIds.length === 0 ? null : (answeredQ.data ?? null);
+
+  /*
+   * WHAT THE PERSON SAID INTO THIS RUN.
+   *
+   * Track-scoped messages -- a steer typed into the composer -- carry a
+   * `track_id` and no `mission_id`, so the mission read above cannot see them.
+   *
+   * THAT IS TRUE OF THE COMPOSER AND IT IS NOT TRUE OF EVERY STEER, which this
+   * comment used to imply and which cost three of the four. Measured: of the 4
+   * rows with `kind = 'steer'`, ONE carries a `track_id` (the composer's, and
+   * the only one this query can see) and THREE carry a `mission_id` instead,
+   * addressed to `builder`. Those three were already being fetched by the
+   * mission read above and then discarded by a `kind === "handoff"` filter, so
+   * a person who steered a mission got the same silence this query was written
+   * to end. Both shapes are now kept and merged below.
+   * `track.functions.ts` has two INSERTs for them and no SELECT anywhere, which
+   * means the product has been recording a person's instructions and never
+   * showing one back. After a reload there was no evidence on any screen that
+   * the steer existed.
+   *
+   * Read directly through the browser client under RLS, which is the pattern
+   * `ArtifactPane`'s `PrototypeCard` already uses for `prototypes` and
+   * `prototype_files`. A server function would be the other option and is S0's
+   * to add; this needs no new surface area and the row is the person's own.
+   */
+  const saidQ = useQuery({
+    queryKey: ["track-said", trackId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("agent_messages")
+        .select("id,kind,from_agent_slug,to_agent_slug,payload,created_at,consumed_by_run_id")
+        .eq("track_id", trackId)
+        .order("created_at", { ascending: true });
+      if (error) throw new Error(error.message);
+      return (data ?? []) as unknown as HandoffRow[];
+    },
+    refetchInterval: isRunning || live ? 2_000 : 30_000,
+  });
+
+  /*
+   * WHAT THE MISSIONS CARRY, WHICH IS HANDOFFS AND SOME OF THE STEERS.
+   *
+   * `kickoff` is deliberately not here, and this is the one judgement in this
+   * block. Its payload is `{goal, priority, due}`, and the goal is already the
+   * mission goal rendered on the artifact pane, so drawing it would put the
+   * same sentence twice on one screen, which is the exact doubling `saidOnce`
+   * exists to remove. `priority` and `due` appear nowhere else and are worth a
+   * home; the transcript is not it, because a brief is not something that
+   * HAPPENED to the work. 14 rows, all on missions.
+   */
+  const fromMissions = React.useMemo<HandoffRow[]>(
+    () => missionQs.flatMap((q) => carriedByMission((q.data?.messages ?? []) as HandoffRow[])),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [missionQs.map((q) => q.dataUpdatedAt).join(",")],
+  );
+
   const titles = React.useMemo<TitleBook>(() => {
     const book: TitleBook = new Map();
     const chain = chainQ.data?.chain;
@@ -382,11 +522,32 @@ export function TrackActivity({
    * up on a LATER poll was not on screen before -- that is an event, and it
    * gets the entrance once, then joins `seen`.
    */
+  /*
+   * STEERS COUNT AS A TOUCH, and they are already resolved here for the
+   * transcript, so this is the same set the rows below are drawn from rather
+   * than a second opinion about it. Both mission-carried and track-carried
+   * steers, which is the pair RUN-94 established are two shapes of one thing.
+   *
+   * Null while either read is outstanding, for the reason spelled out in
+   * `how-this-ran.ts`: a line that has not looked everywhere may not say
+   * nobody was involved.
+   */
+  const steerCount = React.useMemo(() => {
+    if (saidQ.data === undefined) return null;
+    return oncePerId([...fromMissions, ...(saidQ.data ?? [])]).filter((m) => m.kind === "steer")
+      .length;
+  }, [fromMissions, saidQ.data]);
+
   const seen = React.useRef<Set<string>>(new Set());
   const primed = React.useRef(false);
   const rows = React.useMemo(
-    () => mergeActivityRows(q.data?.turns ?? [], q.data?.transitions ?? []),
-    [q.data],
+    () =>
+      mergeActivityRows(
+        q.data?.turns ?? [],
+        q.data?.transitions ?? [],
+        oncePerId([...fromMissions, ...(saidQ.data ?? [])]),
+      ),
+    [q.data, fromMissions, saidQ.data],
   );
   React.useEffect(() => {
     if (!q.data) return;
@@ -435,7 +596,7 @@ export function TrackActivity({
       // The LINE half of the failed-read pair, not the boxed one: this renders
       // inside a region that already draws its own container, and the standard
       // caps a region at one bordered box.
-      <ReadFailedLine>
+      <ReadFailedLine error={q.error}>
         The activity did not come back, so nothing here would be trustworthy.
       </ReadFailedLine>
     );
@@ -465,8 +626,33 @@ export function TrackActivity({
    */
   const ordered = [...rows].reverse();
 
+  /*
+   * HOW THE WORK MOVED, ABOVE THE RECORD OF IT MOVING.
+   *
+   * `driven_via` is stamped on every transition and has reached this component
+   * all along, read one row at a time to caption a single leg and never as a
+   * whole. The product's central claim is that work walks the route on its own,
+   * and this is the only place on any surface where the record can answer that.
+   *
+   * OUTSIDE `role="log"` ON PURPOSE. The log announces ADDITIONS, and this is a
+   * standing summary of everything below it; inside, a screen reader would hear
+   * it re-announced as though a new entry had landed every time a poll changed
+   * the count.
+   *
+   * The sentence carries its own scope and never says "unattended". See
+   * `how-this-ran.ts` for the track that makes that non-negotiable.
+   */
+  const ranLine = howThisRan(
+    (q.data?.transitions ?? []).map((t) => t.drivenVia),
+    {
+      answeredCalls,
+      steers: steerCount,
+    },
+  );
+
   return (
     <>
+      {ranLine ? <p className="mrd-meta">{ranLine}</p> : null}
       {/*
        * THE TRANSCRIPT IS A LOG, and that is a role rather than a decoration.
        * This file polls every ten seconds, so without it every arrival was silent
@@ -508,6 +694,95 @@ export function TrackActivity({
                       <RunSubject>{`Moved to ${row.toName}`}</RunSubject>
                     </span>
                     <RunMeta>{row.line}</RunMeta>
+                  </span>
+                </li>
+              );
+            }
+
+            if (row.kind === "said") {
+              /*
+               * THE PERSON'S OWN LINE, IN THE RECORD WITH EVERYTHING ELSE.
+               *
+               * Same row shape as every other entry -- clock, glyph, rail --
+               * because a steer IS part of what happened to this work and a
+               * separate treatment would make it commentary alongside the
+               * record rather than part of it. SPEC-AGENT-COMMS is explicit
+               * that this is not chat: no bubble, no avatar row, no timestamp
+               * gutter.
+               *
+               * `pickedUp` is read from `consumed_by_run_id` and is the fact a
+               * person actually wants: not that the product received it, but
+               * that an agent has taken it. Until then it says so, because a
+               * steer sitting unconsumed while the run works is the one state
+               * where saying nothing would be a lie about being heard.
+               */
+              const arrived = primed.current && !seen.current.has(row.key);
+              return (
+                <li
+                  key={row.key}
+                  className={RUN_ROW}
+                  style={
+                    arrived
+                      ? { animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }
+                      : undefined
+                  }
+                >
+                  <RunClock at={row.at} />
+                  <span className="flex flex-col items-center self-stretch">
+                    <RunGlyph kind="handoff" />
+                    {i === ordered.length - 1 ? null : <RunRail />}
+                  </span>
+                  <span className="min-w-0 pb-1">
+                    <span className={RUN_LINE}>
+                      <RunSubject>You said</RunSubject>
+                      {row.pickedUp ? null : <RunMeta>not picked up yet</RunMeta>}
+                    </span>
+                    <RunNote>{row.message}</RunNote>
+                  </span>
+                </li>
+              );
+            }
+
+            if (row.kind === "handoff") {
+              /*
+               * THE HANDOFF, AS ITS OWN ENTRY.
+               *
+               * SESSION-1's first unit, and its shape is the brief's: from- and
+               * to-chips in the teammates' colours, the instruction inline,
+               * "never a chat bubble, never an avatar row, never a timestamp
+               * gutter". It reuses the marks and the clock every other row on
+               * this transcript already uses, so nothing new is introduced.
+               *
+               * `waiting` is a fact from the row rather than a mood: a handoff
+               * with no `consumed_by_run_id` is a dispatch nothing has picked
+               * up. Saying so is the difference between a record and a feed.
+               */
+              const arrived = primed.current && !seen.current.has(row.key);
+              return (
+                <li
+                  key={row.key}
+                  className={RUN_ROW}
+                  style={
+                    arrived
+                      ? { animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }
+                      : undefined
+                  }
+                >
+                  <RunClock at={row.at} />
+                  <span className="flex flex-col items-center self-stretch">
+                    <RunGlyph kind="handoff" />
+                    {i === ordered.length - 1 ? null : <RunRail />}
+                  </span>
+                  <span className="min-w-0 pb-1">
+                    <span className={RUN_LINE}>
+                      <AgentMark slug={row.from} state="quiet" />
+                      <span aria-hidden className="text-mrd-faint">
+                        &rarr;
+                      </span>
+                      <AgentMark slug={row.to} state={row.waiting ? "quiet" : "idle"} />
+                      {row.waiting ? <RunMeta>not picked up yet</RunMeta> : null}
+                    </span>
+                    <RunNote>{row.task}</RunNote>
                   </span>
                 </li>
               );
@@ -621,6 +896,19 @@ export function TrackActivity({
                     <RunMeta>{handedLine ?? t.stationName}</RunMeta>
                   )}
 
+                  {/*
+                   * THE INSTRUCTION THAT TRAVELLED WITH THE WORK.
+                   *
+                   * Its own line under the two marks rather than appended to them: the
+                   * marks and `handedLine` say who let go and what they had made, and
+                   * this says what the next seat was asked to do. Two different facts,
+                   * and running them together makes a sentence nobody wrote.
+                   *
+                   * `RunNote` is the same quiet register the platform's stop reason and
+                   * the agent's own last line already use on this row, so a handoff does
+                   * not shout louder than a failure.
+                   */}
+
                   <RunRollup items={rollupOf(t, titles)} />
 
                   {/* THE PLATFORM'S REASON, ABOVE THE AGENT'S. `halted_reason` and
@@ -665,12 +953,7 @@ export function TrackActivity({
        * distance from the bottom past ~200px means they went somewhere on
        * purpose.
        */}
-      <div
-        ref={endRef}
-        aria-hidden="true"
-        style={{ height: 1 }}
-        data-testid="transcript-end"
-      />
+      <div ref={endRef} aria-hidden="true" style={{ height: 1 }} data-testid="transcript-end" />
     </>
   );
 }

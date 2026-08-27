@@ -22,7 +22,20 @@
 import * as React from "react";
 import { failureLine } from "@/lib/error-copy";
 import { humanizeText } from "@/lib/ai/humanize";
-import { NO_CONTRACT, NO_NON_GOALS, specContract } from "@/components/track/spec-contract";
+import { plainProse } from "@/lib/plain-prose";
+/*
+ * EVERY plain-text `Prose` on this pane runs agent-written text through
+ * `plainProse`, including the columns that carry no markdown today. Four of
+ * them measure zero right now -- theme summary, learning summary, changeset
+ * summary, task detail -- and that is a fact about this week's rows rather than
+ * about the platform. The same agents write all of these, and the four that DO
+ * carry markers were not special; they were just the ones that had been written
+ * to more. Covering only the measured ones would be fitting the product to the
+ * data sitting in the database.
+ */
+import { FORECAST_SAYS } from "@/components/learn/forecast-words";
+import type { ForecastResolution } from "@/lib/brain/forecast-resolution";
+import { NO_NON_GOALS, noContractLine, specContract } from "@/components/track/spec-contract";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -38,7 +51,10 @@ import { deleteSignal, renameTheme, setThemeStatus } from "@/lib/discovery.funct
 import { getChangesetDiff } from "@/lib/studio.functions";
 import { computeHunks } from "@/lib/ai/studio-hunks";
 import { CodeDiff } from "@/components/studio/CodeDiff";
-import { setDecisionForecast, updateDecision } from "@/lib/decisions.functions";
+import { forecastRefusal, setDecisionForecast, updateDecision } from "@/lib/decisions.functions";
+import { decisionsForGrading } from "@/components/track/graded-decisions";
+import { clusteredInto } from "@/components/track/clustered-into";
+import { saidOnce } from "@/components/track/said-once";
 import { deferForecastCheck, reopenForecast, settleForecast } from "@/lib/forecast.functions";
 import type { ChainMember, ChainStop } from "@/lib/spine/chain";
 import { wordFor } from "@/lib/spine/chain";
@@ -111,10 +127,20 @@ function prdTone(status: string | null): "you" | "pass" | null {
  * every template demotes to a footnote. Same heading, same type, same order of
  * appearance as what the spec IS for.
  */
-function SpecPromise({ contract }: { contract: unknown }) {
+function SpecPromise({ contract, body }: { contract: unknown; body: string | null }) {
   const c = specContract(contract);
 
-  if (c.empty) return <RecordSpeaks>{NO_CONTRACT}</RecordSpeaks>;
+  /*
+   * THE BODY IS PASSED IN BECAUSE THE OLD SENTENCE WAS DISPROVED BY IT.
+   *
+   * This block used to say "nothing on the record says what it is for, how
+   * anyone would know it worked, or what it is deliberately not doing" and
+   * then render `prd.body_md` immediately underneath, where 94 of the 117
+   * empty-contract specs set out their success metrics under a heading. See
+   * `spec-contract.ts` for the measurement and for why this detects the
+   * sections rather than extracting them.
+   */
+  if (c.empty) return <RecordSpeaks>{noContractLine(body)}</RecordSpeaks>;
 
   return (
     <div className="flex flex-col gap-mrd-3 rounded-mrd-chip bg-mrd-sink p-mrd-4">
@@ -192,7 +218,7 @@ function PlanSpec({ prdId }: { prdId: string }) {
   if (q.isLoading) return <Reading>Reading the spec.</Reading>;
   if (q.isError || !prd) {
     return (
-      <ReadFailedLine>
+      <ReadFailedLine error={q.error}>
         The spec did not come back, so nothing here would be trustworthy.
       </ReadFailedLine>
     );
@@ -210,12 +236,18 @@ function PlanSpec({ prdId }: { prdId: string }) {
         {/*
           WHAT IT PROMISES, ABOVE WHAT IT SAYS. The contract is the part Build
           is measured against and Ship reads; the body is the prose around it.
-          Measured on production: 113 of 115 specs carry no contract at all, so
+
+          THE SECOND HALF OF THIS NOTE USED TO BE WRONG AND IS WORTH KEEPING AS
+          A CORRECTION. It read: "113 of 115 specs carry no contract at all, so
           this block is most often the honest statement that nothing bounds this
-          work, which is exactly what a person about to let Build spend on it
-          needs to know.
+          work." The count was right and the conclusion was not. It is now 117
+          of 119, and 96 of those 117 DO bound the work, in the body rendered on
+          the very next line: 94 under a success metrics or acceptance criteria
+          heading, 20 under non-goals, with only 21 saying neither. So the block
+          was most often a false statement standing directly on top of its own
+          disproof. It now reads the body before it speaks.
         */}
-        <SpecPromise contract={prd.contract} />
+        <SpecPromise contract={prd.contract} body={prd.body_md} />
         <Prose markdown>{prd.body_md}</Prose>
         {/* R-03: the person can act here, and the act is the write the row
             supports -- the whole document back, nothing more specific claimed. */}
@@ -282,6 +314,28 @@ function PlanSpec({ prdId }: { prdId: string }) {
  * because every live forecast so far is agent-authored and a person reading
  * "what we believed" is entitled to know which of us did.
  */
+/**
+ * THE PRODUCT'S WORD FOR A FORECAST'S RESULT, NOT THE COLUMN'S.
+ *
+ * `forecast-words.ts` exists, says so in its own header ("two surfaces must
+ * never call one thing two things"), and had one caller: `ForecastDeskPanel` on
+ * /learn. This pane printed the stored value instead, so /learn said "it went
+ * the other way" and the run screen said "miss" about the same row. 91 of the
+ * 176 forecasts in this database are resolved, so that is the common case and
+ * not an edge.
+ *
+ * It matters most here of all places. §12 maps Verdict to "What actually
+ * happened. Beside the expectation. That pairing is the product." The block
+ * below is that pairing, and half of it was the engine talking.
+ *
+ * AN UNKNOWN VALUE STILL RENDERS, rather than blanking. A fourth resolution
+ * would be a schema change nobody has made, and if one ever arrives a person
+ * seeing the raw word is better served than a person seeing nothing.
+ */
+function forecastSays(resolution: string): string {
+  return FORECAST_SAYS[resolution as ForecastResolution] ?? resolution;
+}
+
 function str(v: unknown): string | null {
   return typeof v === "string" && v.length > 0 ? v : null;
 }
@@ -315,7 +369,10 @@ function DecisionCard({ item }: { item: ArtifactView }) {
    * The words are untouched; humanizeText moves punctuation and strips
    * invisible characters, and leaves fenced code alone.
    */
-  const rationale = str(f.rationale) ? humanizeText(str(f.rationale) as string) : null;
+  /* `plainProse` after `humanizeText`: the dashes are the founder's rule and
+     the asterisks are the same tell one layer along. This rationale is the one
+     that put "*after*" on the Decide tab with its markers showing. */
+  const rationale = str(f.rationale) ? plainProse(humanizeText(str(f.rationale) as string)) : null;
   const alternatives = Array.isArray(f.alternatives_considered)
     ? f.alternatives_considered.filter((a): a is string => typeof a === "string")
     : [];
@@ -401,7 +458,7 @@ function DecisionCard({ item }: { item: ArtifactView }) {
                 <StatusChip
                   status={resolution === "hit" ? "pass" : resolution === "miss" ? "fail" : "hold"}
                 >
-                  {resolution}
+                  {forecastSays(resolution)}
                 </StatusChip>
                 {resolutionRationale ? (
                   <span className="min-w-0 text-mrd-small text-mrd-mute">
@@ -486,7 +543,7 @@ function ObservableProbe({ text }: { text: string }) {
   if (q.isLoading) return <span className="mrd-meta">Checking whether this can be read.</span>;
   if (q.isError) {
     return (
-      <ReadFailedLine>
+      <ReadFailedLine error={q.error}>
         The check did not run, so nothing here knows whether this can be read.
       </ReadFailedLine>
     );
@@ -539,8 +596,37 @@ function ForecastForm({ decisionId }: { decisionId: string }) {
     onError: (e: Error) => setProblem(e.message),
   });
 
-  const ready =
+  const shaped =
     claim.trim().length > 0 && know.trim().length > 0 && /^\d{4}-\d{2}-\d{2}$/.test(day);
+
+  /*
+   * THE REFUSAL ARRIVES BEFORE THE COMMITMENT, NOT AFTER IT.
+   *
+   * `setDecisionForecastSchema` already refuses a horizon that has passed, so
+   * this was never a hole in the write: the server said no and `onError` put
+   * the sentence on screen. What it cost was the moment. This is the one place
+   * the run deliberately slows down, and a person could fill three fields,
+   * press Record the forecast, wait for a round trip and only then be told the
+   * date was never allowed.
+   *
+   * `forecastRefusal` is the same pure function the schema calls and the same
+   * one S3's decision detail calls, so the three cannot drift about what a
+   * valid forecast is. Reused rather than restated: a second copy of this rule
+   * is how a surface starts refusing something the server would have accepted.
+   *
+   * ONLY THE HORIZON RULE CAN FIRE HERE, because `shaped` above already
+   * requires all three parts. The all-three-or-none branch stays reachable
+   * through the schema for every other door.
+   */
+  const refusal = shaped
+    ? forecastRefusal({
+        forecast_claim: claim.trim(),
+        forecast_how_we_will_know: know.trim(),
+        forecast_horizon_date: `${day}T12:00:00Z`,
+      })
+    : null;
+
+  const ready = shaped && !refusal;
 
   return (
     <div className="flex flex-col gap-mrd-3">
@@ -572,6 +658,9 @@ function ForecastForm({ decisionId }: { decisionId: string }) {
           onChange={(e) => setDay(e.currentTarget.value)}
         />
       </Field>
+      {/* Said under the field it is about, in the shared function's own words,
+          the moment the date stops being a forecast. */}
+      {refusal ? <RecordSpeaks>{refusal.message}</RecordSpeaks> : null}
       <span className="mrd-meta">Once recorded this cannot be edited.</span>
       <div>
         <Action
@@ -642,13 +731,27 @@ function SignalCard({ item, now, trackId }: { item: ArtifactView; now: number; t
       <span className="text-mrd-label font-medium leading-mrd-snug text-mrd-ink">
         {item.title ?? (content ? content.slice(0, 120) : item.word)}
       </span>
-      {content ? <Prose markdown={false}>{content}</Prose> : null}
+      {/* 13 of the signal rows carry `**bold**`, and this renders them. Same
+          tell as the rationale above; see `lib/plain-prose.ts`. */}
+      {plainProse(content) ? <Prose markdown={false}>{plainProse(content)}</Prose> : null}
       <span className="mrd-meta">
         {[
           source,
           sourceKind ?? "unknown",
           relativeTime(item.createdAt, now),
-          themeId ? "clustered" : "",
+          /*
+           * THE PATTERN, NOT THE STATE WORD. This said "clustered", which is
+           * true and withholds the only interesting part: WHICH pattern the
+           * machine put this signal into. SESSION-1 asks this pane to show
+           * signals "visibly grouping into themes as clustering runs" and calls
+           * that the most convincing thing in the product. A name is the
+           * substance of that; a state word is not.
+           *
+           * Degrades honestly rather than grouping the list -- see
+           * `clustered-into.ts` for why, and for the 1,133 / 315 measurement
+           * that ruled grouping out.
+           */
+          clusteredInto(themeId, str(f.theme_title)),
         ]
           .filter(Boolean)
           .join(" · ")}
@@ -670,7 +773,7 @@ function SignalCard({ item, now, trackId }: { item: ArtifactView; now: number; t
           </span>
         ) : (
           <Action variant="quiet" busy={del.isPending} onClick={() => del.mutate()}>
-            {del.isPending ? "Removing it" : "Discard this signal"}
+            {del.isPending ? "Removing it" : "Discard this finding"}
           </Action>
         )}
       </div>
@@ -718,7 +821,7 @@ function ThemeCard({ item, trackId }: { item: ArtifactView; trackId: string }) {
       <span className="text-mrd-label font-medium leading-mrd-snug text-mrd-ink">
         {item.title ?? item.word}
       </span>
-      {summary ? <Prose markdown={false}>{summary}</Prose> : null}
+      {plainProse(summary) ? <Prose markdown={false}>{plainProse(summary)}</Prose> : null}
       <span className="mrd-meta">
         {[
           frequency !== null ? `${frequency} signals` : "",
@@ -813,6 +916,8 @@ function LearningCard({
   item: ArtifactView;
   /** Every decision the track filed, so the join can be BY KEY. */
   decisions?: ArtifactView[];
+  /** Every theme this track filed, by id, so a signal can name its pattern. */
+  themes?: ReadonlyMap<string, string>;
 }) {
   const f = item.fields;
   /*
@@ -874,7 +979,7 @@ function LearningCard({
               <StatusChip
                 status={resolution === "hit" ? "pass" : resolution === "miss" ? "fail" : "hold"}
               >
-                {resolution}
+                {forecastSays(resolution)}
               </StatusChip>
               <span className="min-w-0 text-mrd-small text-mrd-mute">{rationale}</span>
             </span>
@@ -901,7 +1006,7 @@ function LearningCard({
       {summary ? (
         <div className="flex flex-col gap-mrd-2 rounded-mrd-chip bg-mrd-sink p-mrd-4">
           <span className="mrd-eyebrow">What we now believe</span>
-          <Prose markdown={false}>{summary}</Prose>
+          <Prose markdown={false}>{plainProse(summary)}</Prose>
           <span className="flex flex-wrap items-center gap-mrd-3">
             {verdict === "validated" ? (
               <StatusChip status="pass">Held up</StatusChip>
@@ -1220,7 +1325,7 @@ function ChangesetDiffView({ changesetId }: { changesetId: string }) {
   if (q.isLoading) return <Reading>Reading the change.</Reading>;
   if (q.isError)
     return (
-      <ReadFailedLine>
+      <ReadFailedLine error={q.error}>
         The change's files could not be read, so nothing is shown rather than something wrong.
       </ReadFailedLine>
     );
@@ -1388,7 +1493,7 @@ function ChangesetCard({ item }: { item: ArtifactView }) {
         <span className="text-mrd-label font-medium text-mrd-ink">{item.title ?? item.word}</span>
         <span className="mrd-meta">{relativeTime(item.createdAt, Date.now())}</span>
       </div>
-      {summary ? <Prose markdown={false}>{summary}</Prose> : null}
+      {plainProse(summary) ? <Prose markdown={false}>{plainProse(summary)}</Prose> : null}
       <span className="mrd-meta">
         {[repo, branch ? `branch ${branch}` : "", prUrl ? "pull request open" : ""]
           .filter(Boolean)
@@ -1544,7 +1649,7 @@ export function TaskSteps({ items }: { items: ArtifactView[] }) {
                 {done ? <StatusChip status="pass">Done</StatusChip> : null}
                 {!done && status ? <span className="mrd-meta">{status}</span> : null}
               </span>
-              {detail ? <Prose markdown={false}>{detail}</Prose> : null}
+              {plainProse(detail) ? <Prose markdown={false}>{plainProse(detail)}</Prose> : null}
               {risk || estimate !== null ? (
                 <span className="mrd-meta">
                   {[risk ? `risk: ${risk}` : "", estimate !== null ? `~${estimate}h` : ""]
@@ -1584,7 +1689,15 @@ export function MissionCard({ item }: { item: ArtifactView }) {
         {completedAt ? <StatusChip status="pass">Completed</StatusChip> : null}
         {!completedAt && status ? <span className="mrd-meta">{status}</span> : null}
       </span>
-      {goal ? <Prose markdown={false}>{goal}</Prose> : null}
+      {/* Shown once even where the record holds it twice. The write path that
+          doubled it is fixed at the source; two historical rows remain and one
+          of them is on the most-opened track in the database. See
+          `said-once.ts` for why this is a render fix rather than a bridge. */}
+      {/* `saidOnce` for the doubled sentence, `plainProse` for the markers: 3
+          mission goals carry `**bold**`. Two different defects on one string. */}
+      {plainProse(saidOnce(goal)) ? (
+        <Prose markdown={false}>{plainProse(saidOnce(goal))}</Prose>
+      ) : null}
       <span className="mrd-meta">
         {[
           hops !== null ? `${hops} ${hops === 1 ? "hop" : "hops"}` : "",
@@ -2010,7 +2123,7 @@ export function ArtifactPane({
   if (q.isLoading) return <Reading>Reading what this work has made.</Reading>;
   if (q.isError) {
     return (
-      <ReadFailedLine>
+      <ReadFailedLine error={q.error}>
         The record did not come back, so nothing here would be trustworthy.
       </ReadFailedLine>
     );
@@ -2054,9 +2167,36 @@ export function ArtifactPane({
           <StationPanel
             stop={shown}
             view={bodies.data?.stops.find((s) => s.station === shown.station)}
-            decisions={bodies.data?.stops
-              .find((s) => s.station === "decide")
-              ?.items.filter((it) => it.kind === "decision" && !it.missing)}
+            /*
+             * EVERY STOP, NOT JUST DECIDE, and this was hiding the one thing
+             * the product exists to show.
+             *
+             * `LearningCard` finds the call its verdict grades by exact id --
+             * `x.artifactId === decision_id` -- and that fix is already recorded
+             * in its own header, because matching "the first decision on the
+             * decide stop" once put a verdict beside the wrong forecast. What
+             * was never widened is the LIST it searches. A decision recorded at
+             * any other station was invisible to it.
+             *
+             * Measured on `d1168015`, the only track in the database that has
+             * walked all seven stations: its learning carries
+             * `decision_id = 663c7376`, that decision is a member of the track,
+             * it holds a real `forecast_claim` -- "The PRD will be approved and
+             * design gate cleared within 3 business days" -- and it is filed at
+             * the SHIP stop. So the lookup came back empty and the Learn tab
+             * said "Nothing was recorded as expected, so there is nothing to
+             * check against", directly above a graded belief reading "Did not
+             * hold". Two sentences, one screen, and the first was false.
+             *
+             * That is the moat surface. A forecast written at decision time is
+             * the one artifact this product claims nothing else has, and on the
+             * single run that reached Learn it was being denied.
+             *
+             * Widening cannot mis-match, which is why this is the right fix
+             * rather than a lookup by station: the match is an exact id, so a
+             * larger haystack finds the same needle or none.
+             */
+            decisions={decisionsForGrading(bodies.data?.stops)}
             everDriven={track.drivenAt !== null}
             hold={track.hold}
             now={now}

@@ -45,14 +45,31 @@ function walk(dir: string): string[] {
 const surfaces = [...walk(join(SRC, "components")), ...walk(join(SRC, "routes"))];
 
 describe("a toggle that cannot deliver does not pretend to", () => {
-  it("nothing renders the in-app feed yet, which is why the column is held", () => {
+  /*
+   * ── THE TRIPWIRE FIRED, AND THIS IS WHAT REPLACED IT ─────────────────────
+   *
+   * This test used to assert that NOTHING renders the in-app feed, and to fail
+   * the moment something did, carrying instructions for whoever hit it. It fired
+   * at the first integration that put S2's lane and this one in one tree:
+   * `SystemAlerts` on /today (eb161ca85) calls `getNotifications`.
+   *
+   * A tripwire that has been tripped and acted on must not stay armed, or the
+   * suite stays red forever over a condition somebody already handled. So it is
+   * replaced by the invariant that matters AFTER the lift, which is strictly
+   * more useful than the one before it: **the categories the toggle claims to
+   * control must be the categories something actually draws.**
+   *
+   * Before, the risk was a control promising delivery nobody performed. Now the
+   * risk is the two sets drifting apart in either direction — a toggle enabled
+   * for a kind nothing renders, or a kind rendered that a person cannot switch
+   * off. Both are the same defect and this catches both.
+   */
+  it("something does render the in-app feed now, so the blanket hold is over", () => {
     const consumers = surfaces.filter((f) => {
       /*
        * COMMENTS STRIPPED FIRST. The pane's own note explains this hold and
        * names both symbols, so the first version of this test reported the file
-       * it is guarding as a consumer of the thing it is holding. Third guard of
-       * mine tonight to trip over its own documentation, and each time the
-       * tempting fix is to delete the explanation.
+       * it is guarding as a consumer of the thing it is holding.
        */
       const s = readFileSync(f, "utf8")
         .replace(/\/\*[\s\S]*?\*\//g, "")
@@ -61,26 +78,37 @@ describe("a toggle that cannot deliver does not pretend to", () => {
     });
     expect(
       consumers.map((f) => f.split("/src/")[1]),
-      [
-        "A surface renders the feed now, so the hold is over. Re-enable App for",
-        "BUDGET and DRIFT ONLY in NotificationsSection, and leave Approvals and",
-        "Health disabled. S2 shipped SystemAlerts on /today (eb161ca85) drawing",
-        "those two kinds and no others, and the reasons the other two stay are",
-        "not oversights:",
-        "  approvals - Today's What-needs-you lane reads agent_approvals",
-        "    DIRECTLY and never consults getNotifications, so switching that",
-        "    toggle off would not stop Today showing approvals. The control",
-        "    would promise power it does not have, which is this same defect",
-        "    pointing the other way.",
-        "  health - the running lane already prints each run's own clock, so a",
-        "    stall alert would be a second voice on rows that already speak.",
-      ].join("\n"),
-    ).toEqual([]);
+      "Nothing renders the feed any more, so the App column should go back to being held entirely.",
+    ).not.toEqual([]);
   });
 
-  it("the App column is disabled while that is true", () => {
+  it("App is held for exactly the two categories nothing delivers", () => {
+    /*
+     * THE HOLD LIFTED AT INTEGRATION, which is the event this file was written
+     * to catch. `SystemAlerts` on /today (eb161ca85) draws budget and drift, so
+     * those two toggles now have real power and the blanket
+     * `disabled={ch.key === "app"}` this used to assert would be a control
+     * refusing to work for a channel that works.
+     *
+     * Approvals and Health stay held for the reasons above, so the rule is a
+     * property of the CATEGORY rather than of the column.
+     */
     const pane = readFileSync(join(import.meta.dir, "..", "NotificationsSection.tsx"), "utf8");
-    expect(pane).toContain('disabled={ch.key === "app"}');
+    expect(pane).toContain(
+      'const APP_DELIVERS: ReadonlySet<Category> = new Set<Category>(["Budget", "Drift"])',
+    );
+    expect(pane).toContain('disabled={ch.key === "app" && !APP_DELIVERS.has(c.key)}');
+    expect(pane, "the blanket hold must be gone, not merely joined").not.toContain(
+      'disabled={ch.key === "app"}',
+    );
+  });
+
+  it("and the page no longer says in-app alerts are switched off", () => {
+    // A held control explaining itself is honest. The same explanation left
+    // standing after the hold lifts is a page arguing with its own switches.
+    const pane = readFileSync(join(import.meta.dir, "..", "NotificationsSection.tsx"), "utf8");
+    expect(pane).not.toContain("In-app alerts are not switched on yet");
+    expect(pane).toContain("Two of these show up in the app, two do not yet");
   });
 
   it("Email and Digest are NOT disabled, because they do deliver", () => {

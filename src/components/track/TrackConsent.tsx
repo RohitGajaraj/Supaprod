@@ -47,7 +47,7 @@ import {
   toolConsequence,
 } from "@/lib/tool-consequences";
 import { expiryDefaultFor, expiryNote } from "@/lib/ai/approval-expiry";
-import { stoppedFor } from "@/components/approvals/stopped-for";
+import { stoppedFor } from "@/components/meridian/stopped-for";
 import { CallGate } from "@/components/approvals/CallGate";
 import { formatExpiryDeadline } from "@/components/track/expiry-deadline";
 import { Action, ReadFailedLine, RecordSpeaks } from "@/components/meridian/surface-parts";
@@ -197,7 +197,7 @@ export function TrackConsent({
     // FAIL LOUD, NEVER FAIL EMPTY: silence here would tell a person their run
     // needs nothing when nobody could read the table at all (RL0-020).
     return (
-      <ReadFailedLine>
+      <ReadFailedLine error={q.error}>
         The questions this run is waiting on could not be read, so answer nothing until this clears.
       </ReadFailedLine>
     );
@@ -319,7 +319,7 @@ export function TrackConsent({
                       ? `Recorded beside every one of the ${classCount} calls.`
                       : "It goes to the agent working this run and stays on the record beside this call."
                   }
-                  placeholder="Group only the last two weeks, and leave the archived signals out"
+                  placeholder="Group only the last two weeks, and leave the archived findings out"
                   commitLabel={
                     declineAll
                       ? `Turn down all ${classCount} in this workspace`
@@ -401,7 +401,10 @@ export function TrackConsent({
                   keeps the refusal and drops the machine's half. */}
               {decide.error ? (
                 <RecordSpeaks>
-                  {failureLine("Your answer was not recorded, so the call still stands.", decide.error)}
+                  {failureLine(
+                    "Your answer was not recorded, so the call still stands.",
+                    decide.error,
+                  )}
                 </RecordSpeaks>
               ) : null}
               {decideClass.error ? (

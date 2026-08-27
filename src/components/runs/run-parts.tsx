@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { glyphForSlug } from "@/components/shell/agent-glyphs";
-import { Action, ACTION_LINK_FACE, CONTROL_SHAPE, Eyebrow } from "@/components/meridian/surface-parts";
+import { Action, Eyebrow } from "@/components/meridian/surface-parts";
 import { YouMark } from "@/components/meridian/marks";
 import { agentBlurb, agentDisplayName } from "@/lib/agent-vocabulary";
 import type { RunState } from "./run-state";
@@ -206,33 +206,6 @@ export function Actor({ children }: { children: React.ReactNode }) {
  * ------------------------------------------------------------------ */
 
 /**
- * AN ADDRESS THAT HAS TO LOOK LIKE A CONTROL, and the one reason this is
- * exported.
- *
- * A router `<Link>` renders its own anchor, and a `<button>` inside an `<a>` is
- * invalid markup that browsers repair unpredictably. Where the act is a
- * NAVIGATION -- "Connect one", which goes to /sync -- the element has to stay an
- * anchor so a middle click, a modifier click and the status bar all keep
- * working, and only the paint comes from here. Exported rather than copied,
- * because the copy is what drifts: two spellings of one control is how a system
- * loses a hover state on exactly one screen.
- *
- * IT IS NOT `BUTTON_FACE.default`, and the difference is not cosmetic. `:enabled`
- * matches form controls only, so every `enabled:hover:` utility above is inert on
- * an anchor and the link would have had no hover state at all. An anchor has no
- * disabled state to guard against, so it takes the bare `hover:`.
- *
- * A CONSTANT AND NOT A FUNCTION, which is a lint contract rather than a taste:
- * `react-refresh/only-export-components` runs with `allowConstantExport`, so a
- * module that exports components may also export a constant and may not export a
- * helper.
- *
- * Aliases `ACTION_LINK_FACE.default`, verified byte-identical at the 2026-08-23
- * swap, so the string is owned in one place.
- */
-export const LINK_AS_CONTROL = ACTION_LINK_FACE.default;
-
-/**
  * MERIDIAN'S `Action` UNDER THE NAME A GUARD READS, and nothing else.
  *
  * It holds no paint. `runs-keycaps-match-bindings.test.ts` reads both route
@@ -287,7 +260,9 @@ export function RunRow({
     <>
       <span className="flex w-4 shrink-0 justify-center">{mark}</span>
       <span className="min-w-0 flex-1">
-        <span className={`block text-mrd-label leading-mrd-snug text-mrd-ink ${clamp}`}>{lead}</span>
+        <span className={`block text-mrd-label leading-mrd-snug text-mrd-ink ${clamp}`}>
+          {lead}
+        </span>
         {sub ? (
           <span className={`mt-0.5 block text-mrd-small leading-mrd-snug text-mrd-mute ${clamp}`}>
             {sub}
@@ -338,7 +313,18 @@ export function RunRow({
 export function ContextNote({ head, children }: { head: string; children: React.ReactNode }) {
   return (
     <section data-mrd="" className="mt-mrd-5 first:mt-0">
-      <h2 className="text-mrd-nano font-[650] tracking-mrd-label text-mrd-faint uppercase">{head}</h2>
+      {/* `mrd-eyebrow` IS THIS, and it was being hand-spelled. The utility sets
+          nano size, the micro weight, tight leading, label tracking and
+          uppercase — every property this line was writing out. R-20's
+          utilisation duty calls a bespoke spelling where a primitive exists a
+          fail, and the weight was the last hardcoded one in my paths.
+
+          THE COLOUR MOVES, from `faint` to the eyebrow's own `mute`, and that
+          is the point rather than a side effect. Nineteen files draw this role
+          through the utility; this site was the one that drifted a stop
+          quieter. An eyebrow that is a different colour here than everywhere
+          else is the rhythm failure R-20 §2 describes, not a local decision. */}
+      <h2 className="mrd-eyebrow">{head}</h2>
       <div className="mt-mrd-3 leading-mrd-prose text-mrd-prose text-mrd-body">{children}</div>
     </section>
   );

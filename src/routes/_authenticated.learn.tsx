@@ -137,7 +137,8 @@
  */
 
 import * as React from "react";
-import { failureLine } from "@/lib/error-copy";
+import { plainProse } from "@/lib/plain-prose";
+import { endedSessionOn, failureLine } from "@/lib/error-copy";
 import { Row } from "@/components/meridian/rows";
 import {
   Action,
@@ -544,6 +545,59 @@ function Learn() {
     URL.revokeObjectURL(url);
   }
 
+  /*
+   * AN ENDED SESSION IS ONE FACT ABOUT THE TAB, NOT FIVE ABOUT THE PAGE.
+   *
+   * Photographed against a session whose token no longer answers: /learn drew
+   * "Your session ended. Sign in again and this will load." THREE times, in
+   * three regions, with three identical doors. Every one of them was correct.
+   * The page was still wrong, because the reader needs one fact and one door,
+   * and the third copy teaches them the screen is not thinking.
+   *
+   * It happens because each region answers for its own read, and each read
+   * failed for the same reason. Nothing was in a position to notice they were
+   * the same reason -- which is the shape S3 hit on the settings boundary and
+   * S4's metric keeps pointing at: a defect that exists in no component and
+   * only in the sum.
+   *
+   * ── WHY IT IS AN EARLY RETURN AND NOT A BANNER ────────────────────────────
+   * A banner over regions that are still drawing their own failures is four
+   * statements instead of three. When the session is gone NOTHING on this page
+   * can be read, so there is nothing to draw underneath: the honest page is the
+   * fact, what is still true, and the way back.
+   *
+   * ── WHAT IT REFUSES TO CATCH ──────────────────────────────────────────────
+   * Only an ENDED SESSION, never a general failure. If one read fails and the
+   * others succeed, the regions keep their own honesty and say which fact is
+   * missing -- that is exactly the case where per-region detail is the thing
+   * the reader needs, and collapsing it would hide which half is real.
+   */
+  const endedSession = endedSessionOn(
+    outcome.error,
+    ledgerQ.error,
+    lastQ.error,
+    pendingQ.error,
+    settledQ.error,
+  );
+
+  if (endedSession) {
+    return (
+      <Surface>
+        <div className="flex flex-col items-start gap-mrd-5">
+          <PageHeading
+            /* The title says what is STILL TRUE, which is the half a person is
+               actually frightened about on the page that holds their record.
+               "The record did not load" is the machine's problem; that the
+               record is still there is theirs. */
+            title="The record is still here."
+            sub={`Nothing you have learned is lost. ${endedSession}`}
+          />
+          <Action onClick={() => window.location.assign("/login")}>Sign in</Action>
+        </div>
+      </Surface>
+    );
+  }
+
   return (
     <Surface
       context={
@@ -558,14 +612,23 @@ function Learn() {
            the failure gets its own branch and says which fact is missing. Same
            read, same retry, as the "What paid off" region in the main column. */
         ledgerQ.isError ? (
+          /*
+           * ONE READ, ONE ANNOUNCEMENT. This is `ledgerQ`, the same query the
+           * "What paid off" region announces in the main column -- the comment
+           * above says so and treated it as a reason to give this its own full
+           * failure state. Measured on a dead backend, that made /learn state a
+           * single failed read five times with four retries, and S4's number is
+           * of the SUM, which no one component can see.
+           *
+           * So the main column keeps the sentence, the detail and the control,
+           * and this keeps its heading and one quiet line. Not silence: a
+           * region that vanishes without saying why is the defect this whole
+           * sweep is about. Not a second retry either, because it re-runs the
+           * identical query and refills both halves anyway.
+           */
           <div className="flex flex-col gap-mrd-4">
             <CtxHead>What the record moved</CtxHead>
-            <ReadFailed
-              onRetry={() => void ledgerQ.refetch()}
-              detail="Nothing has been changed and nothing has been lost. Priority has moved by whatever it had moved a moment ago; this screen just could not read it."
-            >
-              How far the record moved things did not load.
-            </ReadFailed>
+            <p className="mrd-meta text-mrd-faint">Not readable right now.</p>
           </div>
         ) : ledger && (movedPriority || revisedBeliefs) ? (
           <div className="flex flex-col gap-mrd-4">
@@ -735,7 +798,7 @@ function Learn() {
               region itself is missing — which is exactly the case in the context
               column above. */}
           {ledgerQ.isError ? (
-            <ReadFailedLine onRetry={() => void ledgerQ.refetch()}>
+            <ReadFailedLine onRetry={() => void ledgerQ.refetch()} error={ledgerQ.error}>
               {/*
                * THE TRANSPORT ERROR DOES NOT GO ON THE SCREEN. This appended
                * `error.message`, so a person met "The record did not load.
@@ -749,9 +812,17 @@ function Learn() {
                * Same register as the record's other failed reads: what did not
                * happen, and what is safe. The retry beside it is the action, and
                * the message is still in the console for whoever is debugging.
+               *
+               * AND IT NO LONGER RESTATES THE HEADLINE. `outcomes` is
+               * `ledger?.outcomes`, so THIS read is what makes the page's own h1
+               * say "The record is not readable right now." Both sentences began
+               * "The record", eleven lines apart, about one failed query. S3 hit
+               * the identical shape on /guardrails and their fix is the right
+               * one: give one the STATE and the other the CONSEQUENCE. The
+               * headline keeps the state. This keeps what follows from it, which
+               * is the half a person cannot work out for themselves.
                */}
-              The record did not load, so nothing here would be trustworthy. Nothing has been
-              lost.
+              Nothing here would be trustworthy until it loads, and nothing has been lost.
             </ReadFailedLine>
           ) : /* `isLoading` is `isPending && isFetching` in react-query v5, so it
               is false in the gap where a read is pending but not in flight:
@@ -771,7 +842,9 @@ function Learn() {
             <Reading>Reading the record.</Reading>
           ) : lead ? (
             <>
-              <RecordSpeaks evidence={leadEvidence || null}>{lead.summary}</RecordSpeaks>
+              <RecordSpeaks evidence={leadEvidence || null}>
+                {plainProse(lead.summary)}
+              </RecordSpeaks>
               {/* The retired recess carried its own 4px lead-in and the rows
                   under it carried none, so the space is stated here rather than
                   lost: `Region` and `RecordSpeaks` both set no outer margin on
@@ -783,7 +856,7 @@ function Learn() {
                       <Row
                         key={i}
                         tight
-                        lead={h.summary}
+                        lead={plainProse(h.summary) ?? undefined}
                         sub={
                           h.metricLabel && h.metricValue ? (
                             <>
@@ -878,9 +951,7 @@ function Learn() {
             awaitingVerdict={waiting > 0 ? waiting : undefined}
             loading={stillWaiting(lastQ)}
             loadError={
-              lastQ.isError
-                ? failureLine("The last verdict did not load.", lastQ.error)
-                : null
+              lastQ.isError ? failureLine("The last verdict did not load.", lastQ.error) : null
             }
             onRetry={() => void lastQ.refetch()}
           />
@@ -946,7 +1017,7 @@ function Learn() {
           because the line already says what it is. */}
         {outcome.isError ? (
           <Region>
-            <ReadFailedLine onRetry={() => void outcome.refetch()}>
+            <ReadFailedLine onRetry={() => void outcome.refetch()} error={outcome.error}>
               What came back from people did not load.
             </ReadFailedLine>
           </Region>

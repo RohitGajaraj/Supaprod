@@ -60,3 +60,54 @@ describe("the footer", () => {
     expect(at({ tone: "hold" }).line).toContain("not on you");
   });
 });
+
+describe("whether this page is required", () => {
+  const base = { status: "open" as const, tone: null, walking: false, crewLive: false };
+
+  it("says you can leave when the loop is driving it", () => {
+    const m = footerMode({ ...base, crewLive: true });
+    expect(m.leave).toBe("You can close this. It carries on without you.");
+    expect(m.canStop).toBe(false);
+  });
+
+  it("does not say you can leave when this tab is buying the legs", () => {
+    /*
+     * The next leg is a `setTimeout` inside `TrackRun`. Close the page and no
+     * further leg is bought, so "Working on its own" reads as permission to
+     * leave in the one mode where leaving changes what happens.
+     */
+    const m = footerMode({ ...base, walking: true });
+    expect(m.leave).not.toContain("carries on without you");
+    expect(m.leave).toContain("finishes the step it is on");
+    expect(m.canStop).toBe(true);
+  });
+
+  it("keeps the two modes distinguishable, which one sentence could not", () => {
+    const walking = footerMode({ ...base, walking: true });
+    const swept = footerMode({ ...base, crewLive: true });
+    expect(walking.line).toBe(swept.line);
+    expect(walking.leave).not.toBe(swept.leave);
+  });
+
+  it("promises nothing about the sweep picking it up afterwards", () => {
+    /*
+     * A track on a terminal hold is removed from the sweep's selection
+     * entirely, and this footer cannot see which. So it claims only the leg
+     * already dispatched, which is a server call and does finish.
+     */
+    const m = footerMode({ ...base, walking: true });
+    for (const promise of ["carries on", "the loop", "picks it up", "resumes"]) {
+      expect(m.leave?.toLowerCase()).not.toContain(promise);
+    }
+  });
+
+  it("says nothing about leaving a run that is not running", () => {
+    // Reassurance about work that is not happening is the failure this surface
+    // is built against.
+    expect(footerMode({ ...base, tone: "you" }).leave).toBeNull();
+    expect(footerMode({ ...base, tone: "hold" }).leave).toBeNull();
+    expect(footerMode(base).leave).toBeNull();
+    expect(footerMode({ ...base, status: "done" }).leave).toBeNull();
+    expect(footerMode({ ...base, status: "abandoned" }).leave).toBeNull();
+  });
+});

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { isOverdue, stoppedFor } from "./stopped-for";
+import { isOverdue, stoppedFor } from "@/components/meridian/stopped-for";
 
 /*
  * THE CALL IN FRONT OF YOU, drawn in Meridian.
@@ -125,7 +125,9 @@ export function CallGate({
         )}
       </div>
 
-      <h2 className="mt-mrd-4 text-mrd-h3 leading-mrd-tight font-medium text-mrd-ink">{question}</h2>
+      <h2 className="mt-mrd-4 text-mrd-h3 leading-mrd-tight font-medium text-mrd-ink">
+        {question}
+      </h2>
 
       {lines.length > 0 || consequence ? (
         /*

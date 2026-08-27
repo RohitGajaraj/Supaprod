@@ -142,7 +142,7 @@ export function TrackChain({
     // already draws its own container, and one sentence does not get a second
     // box around it.
     return (
-      <ReadFailedLine>
+      <ReadFailedLine error={q.error}>
         The record did not come back, so nothing here would be trustworthy.
       </ReadFailedLine>
     );

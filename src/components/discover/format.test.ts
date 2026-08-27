@@ -343,6 +343,33 @@ describe("signalPreview", () => {
     expect(signalPreview("This is **bold** and ~~struck~~")).not.toContain("*");
     expect(signalPreview("This is **bold** and ~~struck~~")).not.toContain("~");
   });
+
+  /*
+   * The four below are the shared asterisk rule, delegated to `plainProse` so
+   * the feed and the run screen cannot disagree about one string. The first is
+   * a real signal in this database, quoted; the other three are what the old
+   * blunt `**`-only strip would have got wrong in the other direction.
+   */
+  test("unwraps single-asterisk emphasis, which the feed used to show raw", () => {
+    const real = "No sync-log data exists to confirm *how* the overwrite occurs.";
+    expect(signalPreview(real)).toBe(
+      "No sync-log data exists to confirm how the overwrite occurs.",
+    );
+  });
+
+  test("leaves arithmetic alone rather than reading it as emphasis", () => {
+    expect(signalPreview("Retries went from 2 * 3 to 12 per hour")).toContain("2 * 3");
+  });
+
+  test("leaves an identifier's underscores intact", () => {
+    const text = "The checkout_single_address flag is still on for 12 accounts";
+    expect(signalPreview(text)).toContain("checkout_single_address");
+  });
+
+  test("still takes the bullet off a list without eating the item", () => {
+    const result = signalPreview("* **Conversion focus:** simplifying the checkout");
+    expect(result).toBe("Conversion focus: simplifying the checkout");
+  });
 });
 
 describe("signalCleanBody", () => {

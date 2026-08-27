@@ -349,7 +349,9 @@ export function Gate({
         <span className="text-mrd-tiny font-medium text-mrd-you">Waiting on you</span>
       </span>
 
-      <h2 className="mt-mrd-4 text-mrd-h3 leading-mrd-tight font-medium text-mrd-ink">{question}</h2>
+      <h2 className="mt-mrd-4 text-mrd-h3 leading-mrd-tight font-medium text-mrd-ink">
+        {question}
+      </h2>
 
       {lines?.length ? (
         <div className="mt-mrd-5 rounded-mrd-card bg-mrd-sink px-mrd-5 py-mrd-4">
@@ -448,10 +450,7 @@ export function CtxRow({ name, sub }: { name: React.ReactNode; sub?: React.React
 /** One region of the context column, ruled off from the one above it. */
 export function CtxSection({ children }: { children: React.ReactNode }) {
   return (
-    <section
-      data-mrd=""
-      className="pt-mrd-5 first:pt-0"
-    >
+    <section data-mrd="" className="pt-mrd-5 first:pt-0">
       {children}
     </section>
   );

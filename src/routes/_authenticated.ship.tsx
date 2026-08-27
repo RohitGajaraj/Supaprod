@@ -166,6 +166,7 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { shipHeadline } from "@/components/ship/ship-headline";
 import { failureLine } from "@/lib/error-copy";
 import { Row } from "@/components/meridian/rows";
 import {
@@ -1942,6 +1943,9 @@ function Ship() {
   // The post in focus is never drawn twice: the list below is the rest.
   const rest = announcements.filter((a) => a.id !== call?.id);
   const waitingCount = announcements.filter((a) => a.status === "pending").length;
+  /* Drafts nobody has sent. They are waiting on the reader, and the headline
+     says so rather than calling them nothing. See `ship-headline.ts`. */
+  const draftCount = announcements.filter((a) => a.status === "draft").length;
   const loading = stillWaiting(posts, changelog);
   /**
    * THE GATE'S OWN WAIT, narrower than `loading` on purpose: the Gate asks only
@@ -2150,13 +2154,22 @@ function Ship() {
     ? "The announcements did not load."
     : loading
       ? "Ship"
-      : waitingCount === 0
-        ? // Said ONCE. The gate below used to repeat this exact sentence as its
-          // question, so the screen printed it twice; the gate now asks what to do.
-          "Nothing is waiting to go out."
-        : waitingCount === 1
-          ? "One announcement is waiting to go out."
-          : `${waitingCount} announcements are waiting to go out.`;
+      : /*
+         * A DRAFT IS NOT NOTHING, and this headline used to say it was.
+         *
+         * It counted only `pending` -- sent for approval and awaiting a
+         * decision -- so with a draft sitting unsent it read "Nothing is
+         * waiting to go out." eight lines above a gate saying "...is still a
+         * draft" with a Send for approval button. Both halves correct about
+         * their own fact, neither able to see the other's, and read together
+         * they contradict. Photographed at 1440 on the live workspace.
+         *
+         * `shipHeadline` keeps the two waits apart rather than adding them up:
+         * waiting on an APPROVER and waiting on YOU are different jobs, and the
+         * second is the one a reader can do something about. Said ONCE, which
+         * is the rule the comment here already carried.
+         */
+        (shipHeadline({ pending: waitingCount, drafts: draftCount }) ?? "Ship");
 
   /** The gap, stated once, under the headline. Never a number we do not have. */
   function gapLine(): React.ReactNode {
@@ -2431,6 +2444,7 @@ function Ship() {
            detail is the reassurance plus the provider's own message. */
           <ReadFailed
             onRetry={() => void members.refetch()}
+            error={members.error}
             detail={
               <>
                 Nothing here has changed. {(members.error as Error | null)?.message?.slice(0, 160)}
@@ -3014,7 +3028,11 @@ function Ship() {
               hand there is nothing true to draw, and the failure is all there
               is. */}
             {applied.isError ? (
-              <ReadFailedLine onRetry={() => void applied.refetch()} retryLabel="Read it again">
+              <ReadFailedLine
+                onRetry={() => void applied.refetch()}
+                error={applied.error}
+                retryLabel="Read it again"
+              >
                 {mergesKnown
                   ? "These are the merges as they last loaded; the refresh just now did not land, so one written up since may still be listed here."
                   : "Which changes have merged did not load, so this station cannot say whether anything is missing from the lists above."}{" "}
@@ -3254,7 +3272,7 @@ function Ship() {
             {docReading ? (
               <Reading>Reading the release notes.</Reading>
             ) : changelog.isError ? (
-              <ReadFailedLine onRetry={() => void changelog.refetch()}>
+              <ReadFailedLine onRetry={() => void changelog.refetch()} error={changelog.error}>
                 The release notes did not load.
               </ReadFailedLine>
             ) : notes.length === 0 ? (
@@ -3434,7 +3452,7 @@ function Ship() {
             {docReading ? (
               <Reading>Reading what has shipped.</Reading>
             ) : changelog.isError ? (
-              <ReadFailedLine onRetry={() => void changelog.refetch()}>
+              <ReadFailedLine onRetry={() => void changelog.refetch()} error={changelog.error}>
                 The releases did not load, so there is no document to assemble.
               </ReadFailedLine>
             ) : !docEntry ? (

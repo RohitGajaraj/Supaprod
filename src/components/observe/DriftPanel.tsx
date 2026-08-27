@@ -41,7 +41,7 @@
  * Change them in lockstep, or the list and the drill disagree on a number.
  */
 import { useNavigate } from "@tanstack/react-router";
-import { failureLine } from "@/lib/error-copy";
+import { failureLine, messageForPerson } from "@/lib/error-copy";
 import { Row, Line } from "@/components/meridian/rows";
 import {
   Action,
@@ -322,9 +322,9 @@ export function DriftPanel() {
   // differently on each.
   if (error) {
     return (
-      <ReadFailedLine onRetry={() => void refetch()}>
+      <ReadFailedLine error={error} onRetry={() => void refetch()}>
         The drift record did not load, so this is not a claim that nothing moved.{" "}
-        {(error as Error).message}
+        {messageForPerson(error)}
       </ReadFailedLine>
     );
   }
@@ -545,13 +545,4 @@ function PooledLine({
       </Value>
     </Line>
   );
-}
-
-export function useDriftCounts() {
-  const fetchOverview = useServerFn(getDriftOverview);
-  const { data } = useQuery({
-    queryKey: ["drift_overview"],
-    queryFn: () => fetchOverview(),
-  });
-  return { open: data?.openIncidents?.length ?? 0 };
 }

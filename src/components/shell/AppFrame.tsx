@@ -128,9 +128,11 @@
  * ==================================================================
  */
 
+import { pollMs } from "@/components/shell/poll";
 import * as React from "react";
 import { approvalsQueueKey, missionsKey } from "@/lib/query-keys";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { sessionEndedMessage } from "@/lib/error-copy";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -165,7 +167,6 @@ import {
   IconApprovals,
   IconAsk,
   IconBrain,
-  IconCrew,
   IconEngine,
   IconBoard,
   IconFind,
@@ -372,11 +373,48 @@ const RAIL = [
   // section is still rendering in the legacy design", and this line is where it
   // started. /runs is the same surface the route used to call /build, renamed
   // because a run is the whole lifecycle and never was the build leg.
+  /*
+   * "STATIONS", NOT "RUNS", AND NO COUNT (2026-08-27, found by S4).
+   *
+   * WHAT A PERSON ACTUALLY GOT, clicked on the running board and recorded:
+   * they pressed the row labelled "Runs", landed on /today, and the **Today**
+   * row lit while the row they had just clicked stayed dark. The rail
+   * contradicted the click. `runs.index.tsx` redirects to /today, so the door
+   * said one place and opened another.
+   *
+   * WHY THE ROW CANNOT SIMPLY GO, and I tried it first: it owns
+   * `LOOP_STATIONS`, so it is the row that lights when somebody presses 1..7.
+   * Removing it puts the keyboard back in the dark that
+   * `AppFrame.rail-covers-keys` was written for. Moving that ownership onto
+   * Today instead fails two more encoded rules: the rail's length is pinned at
+   * seven precisely so a halved rail cannot pass, and the derivation law
+   * requires that field to name a constant, because an array spelled out in
+   * place would be a second copy of the station map. (This sentence avoids
+   * writing that pattern literally: the guard reads this block as SOURCE and
+   * a quotation of the banned shape trips it, which it did on the first try.) S0 has separately ruled relabel-over-remove on a nav row, and
+   * I have overridden that ruling once already and been wrong.
+   *
+   * WHY THE LIT ROW STILL WILL NOT BE THIS ONE, stated plainly rather than
+   * left to be rediscovered: /today has exactly one owner and it is Today, and
+   * the swallow test forbids two rows claiming one door. Every other row
+   * points at a path it owns, which is why Work lights on /start. This one
+   * cannot, while its destination is the board.
+   *
+   * SO THE LABEL STOPS PROMISING A PLACE THAT NO LONGER EXISTS. "Runs" named a
+   * separate surface; it folded. "Stations" names what this row actually owns,
+   * what actually lights it, and what is actually at the top of the screen it
+   * opens: the strip reading 01 Discover through 07 Learn. A person who lands
+   * on Today under this label finds the thing the label named.
+   *
+   * THE COUNT GOES because it was the sharpest part of the promise: a number
+   * advertised for a surface the click does not reach. Nothing readable is
+   * lost, the board says "4 runs are stuck" in its own headline.
+   */
   {
     to: "/runs",
-    label: "Runs",
+    label: "Stations",
     Icon: IconRuns,
-    count: "runs",
+    count: null,
     owns: LOOP_STATIONS,
     tier: "primary",
   },
@@ -706,16 +744,22 @@ const LIVE_POLL_WORKING_MS = 4_000;
 const LIVE_POLL_IDLE_MS = 20_000;
 
 /**
- * How often the live line re-reads, given whether anything is actually moving.
+ * How often the live line re-reads, given whether anything is actually moving
+ * AND how the last read went.
  *
- * Returns false while the tab is hidden, so a backgrounded tab costs nothing.
  * The cadence follows the strength of the claim being made: while a run is
  * working the header asserts something second by second and has to keep up;
  * idle, it is only waiting for work to appear.
+ *
+ * THE FAILURE COUNT WAS MISSING UNTIL 2026-08-27 and it is the expensive half.
+ * This hook is mounted for the whole signed-in session, so against a backend
+ * that was not answering it re-asked from every screen in the product, forever,
+ * at the idle cadence. `pollMs` owns the backoff, the cap and the hidden-tab
+ * pause; this function owns only the thing it alone knows, which is how fast
+ * the underlying fact moves.
  */
-function livePoll(anyWorking: boolean): number | false {
-  if (typeof document !== "undefined" && document.visibilityState === "hidden") return false;
-  return anyWorking ? LIVE_POLL_WORKING_MS : LIVE_POLL_IDLE_MS;
+function livePoll(anyWorking: boolean, failures: number): number | false {
+  return pollMs(anyWorking ? LIVE_POLL_WORKING_MS : LIVE_POLL_IDLE_MS, failures);
 }
 
 /**
@@ -1003,6 +1047,11 @@ function RailFind({
 
 export function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  /* Whether the surface below is the board, which states the gate count itself.
+     Exact match, not `startsWith`: a child route of /today would be a different
+     surface with its own claims, and inheriting this suppression would silence
+     a fact nothing else is saying. */
+  const onTheBoard = pathname === "/today";
   const navigate = useNavigate();
   // Only the id. The NAME and the product moved to ScopeMenu, which owns the
   // scope control now; keeping a second copy here is how two headers drift.
@@ -1133,7 +1182,10 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     staleTime: 30_000,
     refetchInterval: (query) => {
       const rows = query.state.data?.missions ?? [];
-      return livePoll(rows.some((m) => WORKING.has(m.status)));
+      return livePoll(
+        rows.some((m) => WORKING.has(m.status)),
+        query.state.fetchFailureCount,
+      );
     },
     placeholderData: keepPreviousData,
   });
@@ -1143,7 +1195,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     staleTime: 30_000,
     // A waiting call is not moving, so the queue never needs the fast cadence;
     // it only has to notice a NEW one arriving.
-    refetchInterval: () => livePoll(false),
+    refetchInterval: (query) => livePoll(false, query.state.fetchFailureCount),
     placeholderData: keepPreviousData,
   });
 
@@ -1166,7 +1218,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     queryKey: ["shell", "open-tracks"],
     queryFn: () => fetchOpenTracks(),
     staleTime: 30_000,
-    refetchInterval: () => livePoll(false),
+    refetchInterval: (query) => livePoll(false, query.state.fetchFailureCount),
     placeholderData: keepPreviousData,
   });
   const movingRuns = React.useMemo(() => {
@@ -1242,6 +1294,32 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     // session, so it is read once and not polled with the missions.
     staleTime: 10 * 60_000,
   });
+  /*
+   * AN ENDED SESSION IS ONE FACT ABOUT THE TAB, AND IT IS SAID ONCE.
+   *
+   * ReadFailed and ReadFailedLine learned to offer a Sign in door instead of a
+   * retry when the error says the session ended (S0's `wayOut`), and I passed
+   * `error` at fourteen reads across my surfaces. S1 then drove a genuinely
+   * expired session and found what that composes into: the learn page said "Your
+   * session ended. Sign in again and this will load." three times, in three
+   * regions, with three identical doors.** Today would have said it five times.
+   *
+   * A dead token fails every read in the tab at once. It is not a fact about
+   * the run record, or the queue, or the roster. It is a fact about you, and a
+   * person needs ONE door. So the shell says it once, above everything, and the
+   * regions go back to naming which read failed, which is the thing they know
+   * and the shell does not.
+   *
+   * Derived from the shell's own five queries rather than a sixth: whichever
+   * failed first the answer is identical, and it costs no request.
+   */
+  const sessionEnded =
+    sessionEndedMessage(missions.error) ??
+    sessionEndedMessage(queue.error) ??
+    sessionEndedMessage(openTracks.error) ??
+    sessionEndedMessage(crew.error) ??
+    sessionEndedMessage(roster.error);
+
   const slugById = React.useMemo(() => {
     const map = new Map<string, string>();
     for (const a of (roster.data?.agents ?? []) as RosterRow[]) {
@@ -1365,10 +1443,49 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   // idle state and the shell provides enough structure; the words appear the
   // moment data resolves (instant from cache on revisit).
   const liveLead = React.useMemo(() => {
-    if (missions.isError) return "Cannot see what is running";
+    /*
+     * BOTH READS, NOT ONE (S0 -> S2, 2026-08-27, found at the source).
+     *
+     * This guarded `missions` alone, and the line it protects makes a claim
+     * over TWO reads: `running` comes from missions, and `movingRuns` comes
+     * from `openTracks`. So a workspace where missions answered "nothing
+     * running" while the tracks read REFUSED fell straight through to the
+     * literal "Nothing running" at the bottom of this chain. The guard was
+     * checking the wrong query.
+     *
+     * That is the highest-traffic place in the product where "nothing is in
+     * flight" can be a lie, and until 042a47952 it could not even be detected
+     * here: `listTracks` swallowed its own errors and returned `[]`, so a
+     * refusal and an empty workspace were one answer. S0 made a real failure
+     * raise, which is what makes `openTracks.isError` worth reading at all.
+     *
+     * The sentence is unchanged. Whichever of the two died, what the reader
+     * needs to know is the same: this line cannot see, so do not read its
+     * silence as calm.
+     */
+    if (missions.isError || openTracks.isError) return "Cannot see what is running";
     if (missions.isLoading) return null;
     if (running.length === 0) {
-      if (gateCount > 0) {
+      /* NOT ON THE BOARD, WHICH IS SAYING IT LOUDER TWO INCHES BELOW.
+       *
+       * This file's own rule, already applied to the station a few lines down,
+       * bans the third statement of one fact inside 100 pixels. The gate count
+       * never got the same treatment, and it is the worst offender because it
+       * is the PRIMARY claim of the surface it duplicates.
+       *
+       * Screenshotted on the running board 2026-08-27, signed in: the top bar
+       * read "52 decisions are ready for you" and the headline 190px below read
+       * "52 decisions are ready for your review." Same number, same things,
+       * near-identical words - which reads as a screen repeating itself rather
+       * than as one surface with one thing to say.
+       *
+       * The header's job is to carry what is happening when you are NOT looking
+       * at the board. On the board, it falls through to what is running, which
+       * the headline does not say. Everywhere else the sentence is unchanged,
+       * and the error branch above is deliberately outside this guard: "Cannot
+       * see what is running" must survive on every surface including this one.
+       */
+      if (gateCount > 0 && !onTheBoard) {
         /* "DECISIONS", NOT "CALLS", and the two surfaces now agree.
          *
          * The shell said "83 calls need you" while /today, one inch below it,
@@ -1432,6 +1549,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     missions.isLoading,
     running.length,
     gateCount,
+    onTheBoard,
     workers,
     unnamedRuns,
     workingStation,
@@ -2160,6 +2278,25 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
           {/* The work region is a scroll container and nothing else. A ported
             surface opts into .sp-inner; an unported one renders raw so its
             own padding is not doubled. See shell.css TRANSITION RULE. */}
+          {/* SAID ONCE, ABOVE EVERYTHING, because it is true of the tab and
+              not of any one region. Sits outside `sp-work`'s key so it does not
+              remount on navigation: the session is still ended on the next
+              page, and a notice that flickers away when you click something
+              reads as a glitch rather than a fact. */}
+          {sessionEnded ? (
+            <div
+              role="alert"
+              className="flex items-baseline gap-mrd-3 border-b border-mrd-line bg-mrd-sheet px-mrd-5 py-mrd-3 text-mrd-data leading-mrd-prose text-mrd-ink"
+            >
+              <span>{sessionEnded}</span>
+              <Link
+                to="/login"
+                className="whitespace-nowrap text-mrd-you underline underline-offset-2"
+              >
+                Sign in
+              </Link>
+            </div>
+          ) : null}
           <main className="sp-work" key={pathname}>
             {children}
           </main>

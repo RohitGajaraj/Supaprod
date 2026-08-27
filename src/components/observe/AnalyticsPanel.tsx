@@ -62,6 +62,8 @@
  * missing column.
  */
 import { useServerFn } from "@tanstack/react-start";
+import { previewLine } from "@/lib/preview-line";
+import { failureLine } from "@/lib/error-copy";
 import { Row, Line } from "@/components/meridian/rows";
 import {
   Action,
@@ -108,7 +110,7 @@ function fmtMs(ms: number) {
   return `${(ms / 1000).toFixed(1)}s`;
 }
 function errText(e: unknown) {
-  return e instanceof Error ? e.message : "The read failed.";
+  return failureLine("The read failed.", e);
 }
 
 /** The window. `n` and `unit` are split so the numeral can wear mono and the
@@ -231,7 +233,7 @@ export function AnalyticsPanel() {
         {overview.isLoading ? (
           <Reading>Reading the AI event history.</Reading>
         ) : overview.isError ? (
-          <ReadFailedLine onRetry={() => void overview.refetch()}>
+          <ReadFailedLine error={overview.error} onRetry={() => void overview.refetch()}>
             The event history did not load, so nothing here is a claim about what you spent.{" "}
             {errText(overview.error)}
           </ReadFailedLine>
@@ -365,7 +367,7 @@ export function AnalyticsPanel() {
         {byAgentQ.isLoading ? (
           <Reading>Reading the agent history.</Reading>
         ) : byAgentQ.isError ? (
-          <ReadFailedLine onRetry={() => void byAgentQ.refetch()}>
+          <ReadFailedLine error={byAgentQ.error} onRetry={() => void byAgentQ.refetch()}>
             Agent spend did not load, so this is not a claim that no agent ran.{" "}
             {errText(byAgentQ.error)}
           </ReadFailedLine>
@@ -414,7 +416,7 @@ export function AnalyticsPanel() {
           not find out". */}
       {unitQ.isError ? (
         <Region title="What each outcome cost">
-          <ReadFailedLine onRetry={() => void unitQ.refetch()}>
+          <ReadFailedLine error={unitQ.error} onRetry={() => void unitQ.refetch()}>
             The outcome history did not load. {errText(unitQ.error)}
           </ReadFailedLine>
         </Region>
@@ -471,7 +473,7 @@ export function AnalyticsPanel() {
             <Actions>
               <Action onClick={() => setOpenId(null)}>Back to the runs</Action>
             </Actions>
-            <ReadFailedLine onRetry={() => void detail.refetch()}>
+            <ReadFailedLine error={detail.error} onRetry={() => void detail.refetch()}>
               This call did not load. {errText(detail.error)}
             </ReadFailedLine>
           </Region>
@@ -505,7 +507,7 @@ export function AnalyticsPanel() {
             overview.isLoading ? (
               <Reading>Reading the AI event history.</Reading>
             ) : overview.isError ? (
-              <ReadFailedLine onRetry={() => void overview.refetch()}>
+              <ReadFailedLine error={overview.error} onRetry={() => void overview.refetch()}>
                 The event history did not load, so this is not a claim that no model ran.
               </ReadFailedLine>
             ) : byModel.length === 0 ? (
@@ -529,7 +531,7 @@ export function AnalyticsPanel() {
             events.isLoading ? (
               <Reading>Reading the last calls on the record.</Reading>
             ) : events.isError ? (
-              <ReadFailedLine onRetry={() => void events.refetch()}>
+              <ReadFailedLine error={events.error} onRetry={() => void events.refetch()}>
                 The calls did not load, so this is not a claim that nothing ran.{" "}
                 {errText(events.error)}
               </ReadFailedLine>
@@ -543,7 +545,21 @@ export function AnalyticsPanel() {
                 <Row
                   key={e.id}
                   tight
-                  lead={(e.input_preview ?? "").trim() || "No preview was recorded."}
+                  /* ONE LINE, WITHOUT THE MARKDOWN. The column holds whatever the model
+                     was sent, and that is markdown: measured against the live database
+                     2026-08-27, 24 of 939 non-empty `input_preview` values carry paired
+                     asterisks, and real rows open "### Growth and Friction" then
+                     "* **Conversion focus:** ...". A Row lead is ONE line, so it showed
+                     the hash, the bullet and the asterisks as literal characters with
+                     the sentence starting forty characters in. Same family as the em
+                     dashes: a machine's formatting reaching a screen that was never
+                     going to render it.
+                  
+                     THE `Pre` BLOCKS FURTHER DOWN ARE LEFT VERBATIM, deliberately. They
+                     show what the model was actually SENT, and a reader there is
+                     checking the payload; removing its formatting would misrepresent
+                     it. The lead is for reading, that is for verifying. */
+                  lead={previewLine(e.input_preview) || "No preview was recorded."}
                   // "ok" repeated down a hundred rows is not information. Only a
                   // failure says anything, and it says it in the fail tone.
                   sub={
@@ -566,7 +582,7 @@ export function AnalyticsPanel() {
           ) : guards.isLoading ? (
             <Reading>Reading the guardrail hits.</Reading>
           ) : guards.isError ? (
-            <ReadFailedLine onRetry={() => void guards.refetch()}>
+            <ReadFailedLine error={guards.error} onRetry={() => void guards.refetch()}>
               The guardrail hits did not load, so this is not a claim that nothing fired.{" "}
               {errText(guards.error)}
             </ReadFailedLine>
@@ -779,8 +795,8 @@ function EventDetail({ data, onBack }: { data: EventDetailData; onBack: () => vo
         <Region title="Why it failed">
           <div className="mt-mrd-4">
             <Pre>
-            <span className="sp-fail">{e.error_message}</span>
-          </Pre>
+              <span className="sp-fail">{e.error_message}</span>
+            </Pre>
           </div>
         </Region>
       ) : null}

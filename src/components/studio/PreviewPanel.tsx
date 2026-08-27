@@ -85,7 +85,7 @@ export function PreviewPanel({
   // An error never wears the empty state's clothes: name the cause, offer retry.
   if (preview.isError) {
     return (
-      <ReadFailed onRetry={() => void preview.refetch()}>
+      <ReadFailed onRetry={() => void preview.refetch()} error={preview.error}>
         {(preview.error as Error)?.message?.slice(0, 160)}
       </ReadFailed>
     );

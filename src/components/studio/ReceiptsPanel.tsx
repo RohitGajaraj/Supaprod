@@ -33,7 +33,7 @@ export function ReceiptsPanel({ missionId }: { missionId: string }) {
 
   if (chainQ.isError) {
     return (
-      <ReadFailed onRetry={() => void chainQ.refetch()}>
+      <ReadFailed onRetry={() => void chainQ.refetch()} error={chainQ.error}>
         {(chainQ.error as Error)?.message ?? "The chain did not load."}
       </ReadFailed>
     );

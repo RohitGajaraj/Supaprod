@@ -85,14 +85,61 @@ const SESSION_ENDED = [
   /\bauth session missing\b/i,
 ];
 
+/**
+ * The message text out of whatever was thrown.
+ *
+ * A REGRESSION I INTRODUCED AND S2 CAUGHT. S3's original read `{ message }` off
+ * a plain object as well as off an Error, and I dropped that when merging their
+ * `sessionEndedMessage` in. A fetch rejection and several server helpers throw
+ * exactly that shape, so both functions here had quietly started returning null
+ * for the commonest failure of all -- which is the same family of silent
+ * failure this whole file exists to close.
+ */
+function textOf(err: unknown): string {
+  const raw =
+    err instanceof Error
+      ? err.message
+      : typeof err === "string"
+        ? err
+        : ((err as { message?: unknown } | null | undefined)?.message ?? "");
+  return typeof raw === "string" ? raw.trim() : "";
+}
+
 /** The sign-in sentence when the error says the session ended, else null. */
 export function sessionEndedMessage(err: unknown): string | null {
-  const raw = err instanceof Error ? err.message : typeof err === "string" ? err : "";
-  const text = raw.trim();
+  const text = textOf(err);
   if (!text) return null;
   return SESSION_ENDED.some((re) => re.test(text))
     ? "Your session ended. Sign in again and this will load."
     : null;
+}
+
+/**
+ * ONE ENDED SESSION ACROSS A WHOLE PAGE'S READS.
+ *
+ * A surface with several reads answers for each of them separately, and when a
+ * session ends they all fail for the same reason. Nothing is in a position to
+ * notice it is the same reason, so /learn drew the sign-in sentence three times
+ * with three doors, /discover three, /decide and /design two each. Every copy
+ * correct; the page wrong, because the reader needs one fact and one door and
+ * the third copy teaches them the screen is not thinking.
+ *
+ * This is the DECISION only, deliberately. It does not render anything, because
+ * what is still true differs on every surface and is the whole value of the
+ * card: on the record that nothing you have learned is lost, on a permissions
+ * page that nothing moved while you were away. A component that guessed that
+ * sentence would be worse than the copies it replaced. Each page writes its own
+ * and calls this to know whether to.
+ *
+ * ONE ENDED READ MEANS ALL OF THEM. A session is a property of the tab, not of
+ * a query, so the first match is enough and there is no counting to do.
+ */
+export function endedSessionOn(...errors: unknown[]): string | null {
+  for (const e of errors) {
+    const ended = sessionEndedMessage(e);
+    if (ended) return ended;
+  }
+  return null;
 }
 
 /**
@@ -102,8 +149,7 @@ export function sessionEndedMessage(err: unknown): string | null {
  * which is what keeps the product's voice first and the machine's absent.
  */
 export function messageForPerson(err: unknown): string | null {
-  const raw = err instanceof Error ? err.message : typeof err === "string" ? err : "";
-  const text = raw.trim();
+  const text = textOf(err);
   if (!text) return null;
 
   const low = text.toLowerCase();
@@ -140,6 +186,33 @@ export function messageForPerson(err: unknown): string | null {
   // Written prose ends like prose. A truncated dump usually does not.
   if (!/[.!?]$/.test(text)) return null;
 
+  /*
+   * THREE THINGS THAT LOOK LIKE PROSE AND ARE NOT, found by S2 while adopting
+   * this across their prefix. Each of their examples passed every test above:
+   * enough words, no uuid, no snake_case, ending in a full stop.
+   *
+   * A LENGTH CAP, because there is no upper bound on a truncated body and a
+   * 900-character JSON blob that happens to end in a stop was reaching a
+   * person. Nothing written FOR a person as a failure line runs past 200
+   * characters; past that it is a paragraph, or it is a dump. The number
+   * matches `serverMessage` in the shell, deliberately, so the two can be
+   * consolidated without a behaviour change.
+   */
+  if (text.length > 200) return null;
+
+  /* A body rather than a sentence. JSON and XML announce themselves in the
+   * first character, and no sentence begins with one. */
+  if (/^\s*[<{[]/.test(text)) return null;
+
+  /*
+   * A STACK FRAME OR A URL. "at handler (src/lib/x.ts:214)" reads as ordinary
+   * prose to every rule above -- S2's exact example, and it leaked. The MACHINE
+   * list catches "http" and therefore any absolute URL, but not a bare host or
+   * path, which is the half that still gets through.
+   */
+  if (/\bat\s+\w+\s*\(|\.[jt]sx?:\d+|\/\/[\w.-]+\.\w{2,}/i.test(text)) return null;
+  if (/\b[\w-]+\.(?:com|net|org|io|dev|ai|co)\b/i.test(text)) return null;
+
   return text;
 }
 
@@ -150,6 +223,25 @@ export function messageForPerson(err: unknown): string | null {
  * server wrote one for a person. Never returns an empty string, because a
  * failure with nothing said is the silence this whole sweep is about.
  */
+/**
+ * THE REASON ONLY, for a line rendered INSIDE something that already answers an
+ * ended session.
+ *
+ * `ReadFailed` and `ReadFailedLine` call `wayOut`, which replaces their detail
+ * with the sign-in sentence and turns their control into a door. A child that
+ * ALSO called `failureLine` therefore printed "Your session ended. Sign in again
+ * and this will load." twice in one box, once in the sentence and once under it.
+ * Nine sites did, the moment `error` was passed at every call site -- a defect
+ * created by two correct layers meeting, which is this file's recurring theme.
+ *
+ * So: `failureLine` where the line stands alone and nothing else will say it,
+ * `reasonLine` where a wrapper will. Both keep the server's own sentence.
+ */
+export function reasonLine(ownSentence: string, err: unknown): string {
+  const extra = messageForPerson(err);
+  return extra ? `${ownSentence} ${extra}` : ownSentence;
+}
+
 export function failureLine(ownSentence: string, err: unknown): string {
   // Strongest claim first, which is the rule the receipts already follow: an
   // action the reader can take, then a sentence written for a person, then the

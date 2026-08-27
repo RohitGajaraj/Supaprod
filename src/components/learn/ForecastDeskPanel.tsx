@@ -1,5 +1,6 @@
 import * as React from "react";
-import { failureLine } from "@/lib/error-copy";
+import { plainProse } from "@/lib/plain-prose";
+import { failureLine, reasonLine } from "@/lib/error-copy";
 import { Row, Line } from "@/components/meridian/rows";
 import {
   Action,
@@ -288,7 +289,10 @@ export function ForecastDeskPanel() {
             {picked.suggestion ? (
               <Line
                 label={`A draft says ${FORECAST_SAYS[picked.suggestion.verdict]}`}
-                sub={picked.suggestion.rationale}
+                /* Display, so the markers come off. The textarea below holds the
+                   same text as a VALUE and is deliberately left raw: stripping
+                   there would silently change what the person saves. */
+                sub={plainProse(picked.suggestion.rationale) ?? undefined}
               />
             ) : null}
 
@@ -342,13 +346,13 @@ export function ForecastDeskPanel() {
                 region already draws its own heading, and the bordered half of
                 the pair belongs where there is no region around it. */}
             {settle.isError ? (
-              <ReadFailedLine>
-                {failureLine("The verdict did not land, and nothing was written.", settle.error)}
+              <ReadFailedLine error={settle.error}>
+                {reasonLine("The verdict did not land, and nothing was written.", settle.error)}
               </ReadFailedLine>
             ) : null}
             {defer.isError ? (
-              <ReadFailedLine>
-                {failureLine("The check date did not move.", defer.error)}
+              <ReadFailedLine error={defer.error}>
+                {reasonLine("The check date did not move.", defer.error)}
               </ReadFailedLine>
             ) : null}
           </div>
