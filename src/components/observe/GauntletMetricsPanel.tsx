@@ -50,6 +50,7 @@
  * consequence to leave a receipt for.
  */
 import * as React from "react";
+import { failureLine } from "@/components/track/error-copy";
 import { Line } from "@/components/meridian/rows";
 import {
   NothingYet,
@@ -90,7 +91,7 @@ const TREND_WORD: Record<Trend, string> = {
  *  are different facts and a person acts differently on each. */
 function readError(isError: boolean, error: unknown): string | null {
   if (!isError) return null;
-  return error instanceof Error ? error.message : "The read failed.";
+  return failureLine("The read failed.", error);
 }
 
 /**
