@@ -85,10 +85,29 @@ const SESSION_ENDED = [
   /\bauth session missing\b/i,
 ];
 
+/**
+ * The message text out of whatever was thrown.
+ *
+ * A REGRESSION I INTRODUCED AND S2 CAUGHT. S3's original read `{ message }` off
+ * a plain object as well as off an Error, and I dropped that when merging their
+ * `sessionEndedMessage` in. A fetch rejection and several server helpers throw
+ * exactly that shape, so both functions here had quietly started returning null
+ * for the commonest failure of all -- which is the same family of silent
+ * failure this whole file exists to close.
+ */
+function textOf(err: unknown): string {
+  const raw =
+    err instanceof Error
+      ? err.message
+      : typeof err === "string"
+        ? err
+        : ((err as { message?: unknown } | null | undefined)?.message ?? "");
+  return typeof raw === "string" ? raw.trim() : "";
+}
+
 /** The sign-in sentence when the error says the session ended, else null. */
 export function sessionEndedMessage(err: unknown): string | null {
-  const raw = err instanceof Error ? err.message : typeof err === "string" ? err : "";
-  const text = raw.trim();
+  const text = textOf(err);
   if (!text) return null;
   return SESSION_ENDED.some((re) => re.test(text))
     ? "Your session ended. Sign in again and this will load."
@@ -102,8 +121,7 @@ export function sessionEndedMessage(err: unknown): string | null {
  * which is what keeps the product's voice first and the machine's absent.
  */
 export function messageForPerson(err: unknown): string | null {
-  const raw = err instanceof Error ? err.message : typeof err === "string" ? err : "";
-  const text = raw.trim();
+  const text = textOf(err);
   if (!text) return null;
 
   const low = text.toLowerCase();

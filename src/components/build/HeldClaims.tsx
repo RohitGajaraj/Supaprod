@@ -100,7 +100,7 @@ export function HeldClaims() {
         /* `ReadFailedLine` and not `ReadFailed`: the bordered half draws its own
            box, and this already sits inside a Region under a heading. Two
            containers around one sentence is a frame. */
-        <ReadFailedLine onRetry={() => void claims.refetch()}>
+        <ReadFailedLine onRetry={() => void claims.refetch()} error={claims.error}>
           We could not read which files are held, so this is not a statement that none are. A build
           that was refused for a file conflict is still refused.
         </ReadFailedLine>

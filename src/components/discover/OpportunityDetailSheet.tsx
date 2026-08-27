@@ -754,7 +754,7 @@ export function PublishTeardown({
        region, which already draws its own container, and the standard caps a
        region at one bordered box. */
     return (
-      <ReadFailedLine onRetry={() => void state.refetch()}>
+      <ReadFailedLine onRetry={() => void state.refetch()} error={state.error}>
         Could not read whether this teardown is public, so nothing here says either way.
       </ReadFailedLine>
     );
@@ -928,7 +928,7 @@ function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string })
   if (q.isError) {
     return (
       <Region title="Precedent">
-        <ReadFailedLine onRetry={() => void q.refetch()}>
+        <ReadFailedLine onRetry={() => void q.refetch()} error={q.error}>
           {failureLine("Could not read this bet's judgment.", q.error)}
         </ReadFailedLine>
       </Region>

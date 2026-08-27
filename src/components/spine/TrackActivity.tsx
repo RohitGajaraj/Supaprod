@@ -435,7 +435,7 @@ export function TrackActivity({
       // The LINE half of the failed-read pair, not the boxed one: this renders
       // inside a region that already draws its own container, and the standard
       // caps a region at one bordered box.
-      <ReadFailedLine>
+      <ReadFailedLine error={q.error}>
         The activity did not come back, so nothing here would be trustworthy.
       </ReadFailedLine>
     );

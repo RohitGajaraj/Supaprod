@@ -841,7 +841,7 @@ export function SettlePanel({
           </Actions>
 
           {draft.isError ? (
-            <ReadFailedLine onRetry={() => draft.mutate(target.prdId)}>
+            <ReadFailedLine onRetry={() => draft.mutate(target.prdId)} error={draft.error}>
               {failureLine("The draft did not come back, and nothing was written.", draft.error)}
             </ReadFailedLine>
           ) : null}

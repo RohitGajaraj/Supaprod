@@ -2430,7 +2430,7 @@ function Ship() {
            one that was here: the heading is the sentence about the read, and the
            detail is the reassurance plus the provider's own message. */
           <ReadFailed
-            onRetry={() => void members.refetch()}
+            onRetry={() => void members.refetch()} error={members.error}
             detail={
               <>
                 Nothing here has changed. {(members.error as Error | null)?.message?.slice(0, 160)}
@@ -3014,7 +3014,7 @@ function Ship() {
               hand there is nothing true to draw, and the failure is all there
               is. */}
             {applied.isError ? (
-              <ReadFailedLine onRetry={() => void applied.refetch()} retryLabel="Read it again">
+              <ReadFailedLine onRetry={() => void applied.refetch()} error={applied.error} retryLabel="Read it again">
                 {mergesKnown
                   ? "These are the merges as they last loaded; the refresh just now did not land, so one written up since may still be listed here."
                   : "Which changes have merged did not load, so this station cannot say whether anything is missing from the lists above."}{" "}
@@ -3254,7 +3254,7 @@ function Ship() {
             {docReading ? (
               <Reading>Reading the release notes.</Reading>
             ) : changelog.isError ? (
-              <ReadFailedLine onRetry={() => void changelog.refetch()}>
+              <ReadFailedLine onRetry={() => void changelog.refetch()} error={changelog.error}>
                 The release notes did not load.
               </ReadFailedLine>
             ) : notes.length === 0 ? (
@@ -3434,7 +3434,7 @@ function Ship() {
             {docReading ? (
               <Reading>Reading what has shipped.</Reading>
             ) : changelog.isError ? (
-              <ReadFailedLine onRetry={() => void changelog.refetch()}>
+              <ReadFailedLine onRetry={() => void changelog.refetch()} error={changelog.error}>
                 The releases did not load, so there is no document to assemble.
               </ReadFailedLine>
             ) : !docEntry ? (

@@ -2033,7 +2033,7 @@ export function DiscoverSurface({
                     pair draws its own box, and this sits inside the context
                     rail under a CtxHead that already frames it. Two containers
                     around one sentence is a frame, and the rail is 316px wide. */}
-                <ReadFailedLine onRetry={() => void fleet.refetch()}>
+                <ReadFailedLine onRetry={() => void fleet.refetch()} error={fleet.error}>
                   Who is reading for you did not load.
                 </ReadFailedLine>
               </>
@@ -2054,7 +2054,7 @@ export function DiscoverSurface({
                  possible rendering of a read that produced no information. */
               <>
                 <CtxHead>What is feeding this</CtxHead>
-                <ReadFailedLine onRetry={() => void coverage.refetch()}>
+                <ReadFailedLine onRetry={() => void coverage.refetch()} error={coverage.error}>
                   What is feeding this desk did not load, so nothing here would name a source that
                   has gone quiet.
                 </ReadFailedLine>
@@ -3001,7 +3001,7 @@ export function DiscoverSurface({
               an-empty-read-is-not-an-empty-workspace.test.ts still allowed;
               that constant comes down to 1 in the same commit. */}
           {opportunities.isError ? (
-            <ReadFailedLine onRetry={() => void opportunities.refetch()}>
+            <ReadFailedLine onRetry={() => void opportunities.refetch()} error={opportunities.error}>
               {opportunities.error instanceof Error
                 ? opportunities.error.message
                 : "The open bets did not load."}

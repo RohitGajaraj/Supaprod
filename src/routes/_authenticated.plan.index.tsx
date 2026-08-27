@@ -1062,7 +1062,7 @@ function PlanPage() {
                 // The LINE half of the failed-read pair. This sits under a region
                 // heading that already frames it, and the standard caps a region
                 // at one bordered box.
-                <ReadFailedLine onRetry={() => void specs.refetch()}>
+                <ReadFailedLine onRetry={() => void specs.refetch()} error={specs.error}>
                   {(specs.error as Error)?.message ?? "The specs did not load."}
                 </ReadFailedLine>
               ) : specList.length === 0 ? (

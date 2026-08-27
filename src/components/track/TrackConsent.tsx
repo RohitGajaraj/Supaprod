@@ -197,7 +197,7 @@ export function TrackConsent({
     // FAIL LOUD, NEVER FAIL EMPTY: silence here would tell a person their run
     // needs nothing when nobody could read the table at all (RL0-020).
     return (
-      <ReadFailedLine>
+      <ReadFailedLine error={q.error}>
         The questions this run is waiting on could not be read, so answer nothing until this clears.
       </ReadFailedLine>
     );

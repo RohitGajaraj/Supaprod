@@ -1208,7 +1208,7 @@ export function ChangesPanel({
                   `diffUnread` cannot both be true, so it never stacks with the
                   Failed. */}
               {diffStale ? (
-                <ReadFailedLine onRetry={() => void diff.refetch()} retryLabel="Read it again">
+                <ReadFailedLine onRetry={() => void diff.refetch()} error={diff.error} retryLabel="Read it again">
                   This is the last diff that loaded; the refresh just now did not land, so this file
                   may have changed since. {(diff.error as Error)?.message?.slice(0, 160)}
                 </ReadFailedLine>
@@ -1224,7 +1224,7 @@ export function ChangesPanel({
                    how a design system stops being one. */
                 <TermFrame>
                   <div style={{ padding: "var(--mrd-s5) 14px" }}>
-                    <ReadFailedLine onRetry={() => void diff.refetch()}>
+                    <ReadFailedLine onRetry={() => void diff.refetch()} error={diff.error}>
                       The diff did not load. {(diff.error as Error)?.message?.slice(0, 160)}
                     </ReadFailedLine>
                   </div>

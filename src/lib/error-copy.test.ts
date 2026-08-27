@@ -159,3 +159,20 @@ test("and the good sentences all still survive it", () => {
     expect(messageForPerson(good)).toBe(good);
   }
 });
+
+test("a thrown object is read the same as a thrown Error", () => {
+  // What a fetch rejection and several server helpers actually throw. S3's
+  // original handled it; merging their work into this file dropped it, and S2
+  // caught the regression while wrapping their own helper over this one.
+  expect(sessionEndedMessage({ message: "Unauthorized: Invalid token" })).toBe(
+    "Your session ended. Sign in again and this will load.",
+  );
+  expect(
+    messageForPerson({ message: "That step is ahead of this work, and undo only goes back." }),
+  ).toBe("That step is ahead of this work, and undo only goes back.");
+  // And the shapes that carry no message stay silent rather than throwing.
+  expect(messageForPerson(null)).toBeNull();
+  expect(messageForPerson(undefined)).toBeNull();
+  expect(messageForPerson({ message: 42 })).toBeNull();
+  expect(messageForPerson({})).toBeNull();
+});

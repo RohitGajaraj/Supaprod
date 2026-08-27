@@ -263,6 +263,7 @@ export function InboxSurface() {
               void queue.refetch();
               void missions.refetch();
             }}
+            error={queue.error ?? missions.error}
           >
             {queue.isError && missions.isError
               ? "Nothing was settled and nothing was lost while this page could not read them. Retry before you treat the inbox as clear."

@@ -105,7 +105,7 @@ export function AskSwitcher({
       <div style={{ marginTop: "var(--mrd-s6)" }}>
         <div style={sectionLabel}>Recent</div>
         {list.isError ? (
-          <ReadFailedLine onRetry={() => void list.refetch()}>
+          <ReadFailedLine onRetry={() => void list.refetch()} error={list.error}>
             We could not read your conversations. That is not the same as having none.
           </ReadFailedLine>
         ) : list.isLoading ? (

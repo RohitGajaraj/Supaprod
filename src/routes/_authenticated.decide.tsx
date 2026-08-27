@@ -2792,7 +2792,7 @@ function DecideSurface() {
           it too, which read as a stutter once `failureLine` stopped appending a
           transport string behind it. Verified on screen against a forced 401. */}
         {opps.error ? (
-          <ReadFailed onRetry={() => void opps.refetch()}>
+          <ReadFailed onRetry={() => void opps.refetch()} error={opps.error}>
             {/* The comment above is right that this line carries the reason, and
                 a transport string is not one. It carries the server's sentence
                 where the server wrote one for a person, and the surface's own

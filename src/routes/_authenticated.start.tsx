@@ -390,7 +390,7 @@ function StartLanding() {
         {runs.isError ? (
           <section className="flex flex-col gap-mrd-3" aria-label="Your open work">
             <Eyebrow>Your open work</Eyebrow>
-            <ReadFailedLine onRetry={() => void runs.refetch()}>
+            <ReadFailedLine onRetry={() => void runs.refetch()} error={runs.error}>
               Your open work did not load. Whatever is running is still running; this screen just
               could not read it.
             </ReadFailedLine>

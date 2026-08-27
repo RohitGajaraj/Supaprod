@@ -134,7 +134,7 @@ export function AskRunCard({ missionId, initials }: { missionId: string; initial
 
   if (canvas.isError) {
     return (
-      <ReadFailedLine onRetry={() => void canvas.refetch()}>
+      <ReadFailedLine onRetry={() => void canvas.refetch()} error={canvas.error}>
         The run did not report back. Nothing here is a claim about what it did.
       </ReadFailedLine>
     );

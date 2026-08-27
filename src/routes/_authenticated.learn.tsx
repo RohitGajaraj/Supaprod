@@ -744,7 +744,7 @@ function Learn() {
               region itself is missing — which is exactly the case in the context
               column above. */}
           {ledgerQ.isError ? (
-            <ReadFailedLine onRetry={() => void ledgerQ.refetch()}>
+            <ReadFailedLine onRetry={() => void ledgerQ.refetch()} error={ledgerQ.error}>
               {/*
                * THE TRANSPORT ERROR DOES NOT GO ON THE SCREEN. This appended
                * `error.message`, so a person met "The record did not load.
@@ -961,7 +961,7 @@ function Learn() {
           because the line already says what it is. */}
         {outcome.isError ? (
           <Region>
-            <ReadFailedLine onRetry={() => void outcome.refetch()}>
+            <ReadFailedLine onRetry={() => void outcome.refetch()} error={outcome.error}>
               What came back from people did not load.
             </ReadFailedLine>
           </Region>

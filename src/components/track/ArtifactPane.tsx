@@ -192,7 +192,7 @@ function PlanSpec({ prdId }: { prdId: string }) {
   if (q.isLoading) return <Reading>Reading the spec.</Reading>;
   if (q.isError || !prd) {
     return (
-      <ReadFailedLine>
+      <ReadFailedLine error={q.error}>
         The spec did not come back, so nothing here would be trustworthy.
       </ReadFailedLine>
     );
@@ -486,7 +486,7 @@ function ObservableProbe({ text }: { text: string }) {
   if (q.isLoading) return <span className="mrd-meta">Checking whether this can be read.</span>;
   if (q.isError) {
     return (
-      <ReadFailedLine>
+      <ReadFailedLine error={q.error}>
         The check did not run, so nothing here knows whether this can be read.
       </ReadFailedLine>
     );
@@ -1220,7 +1220,7 @@ function ChangesetDiffView({ changesetId }: { changesetId: string }) {
   if (q.isLoading) return <Reading>Reading the change.</Reading>;
   if (q.isError)
     return (
-      <ReadFailedLine>
+      <ReadFailedLine error={q.error}>
         The change's files could not be read, so nothing is shown rather than something wrong.
       </ReadFailedLine>
     );
@@ -2010,7 +2010,7 @@ export function ArtifactPane({
   if (q.isLoading) return <Reading>Reading what this work has made.</Reading>;
   if (q.isError) {
     return (
-      <ReadFailedLine>
+      <ReadFailedLine error={q.error}>
         The record did not come back, so nothing here would be trustworthy.
       </ReadFailedLine>
     );

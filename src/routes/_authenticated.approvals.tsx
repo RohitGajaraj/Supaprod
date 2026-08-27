@@ -674,7 +674,7 @@ function ApprovalsSurface() {
           <Reading>Reading the queue.</Reading>
         ) : queue.isError ? (
           <ReadFailed
-            onRetry={() => void queue.refetch()}
+            onRetry={() => void queue.refetch()} error={queue.error}
             detail="Nothing has been settled and nothing has been lost. The queue is still whatever it was a moment ago; this screen just could not read it."
           >
             The queue did not load.

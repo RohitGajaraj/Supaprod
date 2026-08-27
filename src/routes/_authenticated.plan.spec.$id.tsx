@@ -1657,7 +1657,7 @@ function SpecEditorPage() {
                   which is also why this mirrors the task list's own failure
                   arm instead of replacing the sentence with it. */}
               {tasksQ.isError ? (
-                <ReadFailedLine onRetry={() => void tasksQ.refetch()}>
+                <ReadFailedLine onRetry={() => void tasksQ.refetch()} error={tasksQ.error}>
                   The work on this spec did not load.
                 </ReadFailedLine>
               ) : null}
@@ -2269,7 +2269,7 @@ function SpecEditorPage() {
               // The LINE half of the failed-read pair: this sits under a region
               // heading that already frames it, and the standard caps a region at
               // one bordered box.
-              <ReadFailedLine onRetry={() => void routeQ.refetch()}>
+              <ReadFailedLine onRetry={() => void routeQ.refetch()} error={routeQ.error}>
                 {failureLine("Could not read this spec's route.", routeQ.error)}
               </ReadFailedLine>
             ) : (
@@ -2567,7 +2567,7 @@ function SpecEditorPage() {
               The retry is the read's own, not the Planner's: nothing needs to be
               regenerated, the list simply has to be fetched again. */}
             {tasksQ.isError ? (
-              <ReadFailedLine onRetry={() => void tasksQ.refetch()}>
+              <ReadFailedLine onRetry={() => void tasksQ.refetch()} error={tasksQ.error}>
                 The work on this spec did not load, so nothing here can say whether it has any.{" "}
                 {(tasksQ.error as Error)?.message ?? "No reason was reported."}
               </ReadFailedLine>
@@ -2801,7 +2801,7 @@ function SpecEditorPage() {
               ) : oppsQ.isLoading ? (
                 <Reading>Reading the bet this spec was written for.</Reading>
               ) : oppsQ.isError ? (
-                <ReadFailedLine onRetry={() => void oppsQ.refetch()}>
+                <ReadFailedLine onRetry={() => void oppsQ.refetch()} error={oppsQ.error}>
                   This spec names a bet and the bet did not come back.{" "}
                   {/* Optional chain and a fallback, the convention this file
                     already uses at both of its other failure sites: the route's
@@ -2842,7 +2842,7 @@ function SpecEditorPage() {
             ) : null}
 
             {provQ.isLoading ? null : provQ.isError ? (
-              <ReadFailedLine onRetry={() => provQ.refetch()}>
+              <ReadFailedLine onRetry={() => provQ.refetch()} error={provQ.error}>
                 The chain did not come back.
               </ReadFailedLine>
             ) : signalCount === 0 ? (

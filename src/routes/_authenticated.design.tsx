@@ -1262,7 +1262,7 @@ function Design() {
            prominence, keeps the retry, and says in red what actually happened.
            This is also the one branch in this station that changes component
            family rather than name, so it is written down here. */
-            <ReadFailed onRetry={() => void rules.refetch()}>
+            <ReadFailed onRetry={() => void rules.refetch()} error={rules.error}>
               The brand rules did not load.
             </ReadFailed>
           ) : call ? (
@@ -1377,7 +1377,7 @@ function Design() {
              bordered box, so a second box here would be a frame around a
              sentence. Same shape the retired `Failed` rendered: the fact in
              red, the way out beside it. */
-              <ReadFailedLine onRetry={() => void work.refetch()}>
+              <ReadFailedLine onRetry={() => void work.refetch()} error={work.error}>
                 {failureLine("Could not read the drawings.", work.error)}
               </ReadFailedLine>
             ) : items.length === 0 ? (
@@ -1519,7 +1519,7 @@ function Design() {
               {item.isLoading ? (
                 <Reading>Opening it.</Reading>
               ) : item.isError ? (
-                <ReadFailedLine onRetry={() => void item.refetch()}>
+                <ReadFailedLine onRetry={() => void item.refetch()} error={item.error}>
                   {failureLine("Could not open it.", item.error)}
                 </ReadFailedLine>
               ) : !focus ? (

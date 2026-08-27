@@ -530,11 +530,11 @@ function ThreadsSurface() {
             ) : null}
 
             {list.isError ? (
-              <ReadFailedLine onRetry={() => void list.refetch()}>
+              <ReadFailedLine onRetry={() => void list.refetch()} error={list.error}>
                 Your threads did not load.
               </ReadFailedLine>
             ) : searching && found.isError ? (
-              <ReadFailedLine onRetry={() => void found.refetch()}>
+              <ReadFailedLine onRetry={() => void found.refetch()} error={found.error}>
                 The search did not run.
               </ReadFailedLine>
             ) : list.isLoading || (searching && found.isLoading) ? null : visible.length === 0 ? (
@@ -703,14 +703,26 @@ function ThreadsSurface() {
           list.isLoading ? (
             <Reading>Reading what has been asked.</Reading>
           ) : list.isError ? (
-            <ReadFailedLine onRetry={() => void list.refetch()}>
-              The thread list did not load.
-            </ReadFailedLine>
+            /*
+             * ONE READ, ONE ANNOUNCEMENT. This is `list`, the same query the
+             * left pane announces as "Your threads did not load." with its own
+             * retry, on screen at the same time. Measured against a forced 401,
+             * /threads stated one failed read twice, in two wordings, with two
+             * retries -- and the second re-runs the identical query, so pressing
+             * either did the same thing.
+             *
+             * The left pane owns the list and keeps the state and the control.
+             * This pane says what follows from it, which is what a person
+             * standing in an empty right-hand pane actually needs. Not silence:
+             * a pane that goes blank without saying why is the defect this
+             * sweep is about.
+             */
+            <NothingHere>Nothing to open until the list loads.</NothingHere>
           ) : (
             <NothingHere>Nothing has been asked in this workspace yet.</NothingHere>
           )
         ) : thread.isError ? (
-          <ReadFailedLine onRetry={() => void thread.refetch()}>
+          <ReadFailedLine onRetry={() => void thread.refetch()} error={thread.error}>
             This thread did not open.
           </ReadFailedLine>
         ) : thread.isLoading ? (

@@ -303,7 +303,7 @@ export function ForecastDeskPanel() {
                 region already draws its own heading, and the bordered half of
                 the pair belongs where there is no region around it. */}
             {settle.isError ? (
-              <ReadFailedLine>
+              <ReadFailedLine error={settle.error}>
                 {failureLine(
                   "The verdict did not land, and nothing was written.",
                   settle.error,
@@ -311,7 +311,7 @@ export function ForecastDeskPanel() {
               </ReadFailedLine>
             ) : null}
             {defer.isError ? (
-              <ReadFailedLine>
+              <ReadFailedLine error={defer.error}>
                 {failureLine("The check date did not move.", defer.error)}
               </ReadFailedLine>
             ) : null}

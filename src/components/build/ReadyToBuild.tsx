@@ -506,7 +506,7 @@ export function ReadyToBuild() {
         {/* The bare half of the pair. `ReadFailed` draws its own bordered box
             and this already sits under a Region heading; two containers around
             one sentence is a frame. */}
-        <ReadFailedLine onRetry={() => void specs.refetch()}>
+        <ReadFailedLine onRetry={() => void specs.refetch()} error={specs.error}>
           The spec list did not load, so nothing can be started from here. This is not a statement
           that you have no approved specs.
         </ReadFailedLine>
