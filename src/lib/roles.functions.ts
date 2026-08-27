@@ -118,21 +118,6 @@ export function writeDeniedReason(
  * deliberate: PostgREST flattens the code into the message by the time it
  * reaches a server function, so the code is usually gone and the phrase is not.
  */
-const RAW_DATABASE_FINGERPRINTS: readonly RegExp[] = [
-  /row[- ]level security/i,
-  /violates .*policy/i,
-  /permission denied for/i,
-  /\bpgrst\d*\b/i,
-  /violates (unique|foreign key|check|not-null) constraint/i,
-  /duplicate key value/i,
-  /null value in column/i,
-  /relation "[^"]+" does not exist/i,
-  /column "[^"]+"/i,
-  /\b(42501|42P01|23502|23503|23505|23514|PGRST\d+)\b/,
-  /could not choose a best candidate function/i,
-  /\bJW[ST]\b/,
-  /\bfailed to fetch\b/i,
-];
 
 /**
  * What to SHOW a person when a governed write failed.
@@ -145,51 +130,32 @@ const RAW_DATABASE_FINGERPRINTS: readonly RegExp[] = [
  * plain words. This is the floor under everything that check cannot foresee.
  */
 /**
- * A SESSION THAT ENDED, TOLD AS THE ONE THING THE PERSON CAN DO ABOUT IT.
+ * WHAT TO SHOW A PERSON WHEN A CALL FAILED. One decision, one home.
  *
- * `requireSupabaseAuth` throws "Unauthorized: Invalid token", "Unauthorized: No
- * token provided" and five siblings, and surfaces render a thrown message
- * straight into their failure copy. So a person on Brain, Learn, Guardrails or
- * Settings was shown "Unauthorized: Invalid token", spliced mid-sentence into
- * prose written to a much higher standard. Nobody outside this repo can act on
- * "Invalid token", and the thing they need to do is not in the sentence.
+ * This used to keep its own `sessionEndedMessage` and its own
+ * RAW_DATABASE_FINGERPRINTS list. S1 built the same decision independently and
+ * S0 ruled it into `src/lib/error-copy.ts`, so keeping mine would have been the
+ * exact defect I keep filing against other people: two lists that can disagree,
+ * where the second one looks authoritative.
  *
- * It is not a database fingerprint, so it does not belong in the list above:
- * that list means "the database wrote this, show the fallback instead", and the
- * fallback is generic by design. An ended session has a BETTER answer than the
- * generic one, and this is it.
+ * `error-copy` decides by SHAPE rather than by a list of strings somebody has
+ * already seen, and that is strictly better -- proven the day it shipped. A
+ * TanStack query function that returns undefined instead of throwing produces
+ * `["decisions",{}] data is undefined`, and S4 photographed that being read by
+ * a person on Settings and Brain. My fingerprint list passed it straight
+ * through, because nobody had seen it before to add it. The shape test refuses
+ * it without having to know it exists.
  *
- * Returns null when the error is not an auth failure, so callers can fall
- * through to whatever they would have said.
+ * `sessionEndedMessage` is re-exported because it is mine and it still runs
+ * first: an ended session is the one failure the reader can fix in a single
+ * action, and shape alone would call it machine-shaped and say nothing.
  */
-const SESSION_ENDED_FINGERPRINTS: readonly RegExp[] = [
-  /^unauthorized\b/i,
-  /\binvalid token\b/i,
-  /\bno token provided\b/i,
-  /\bjwt expired\b/i,
-  /\bsession(?: has)? expired\b/i,
-];
-
-export function sessionEndedMessage(error: unknown): string | null {
-  const raw =
-    error instanceof Error
-      ? error.message
-      : typeof error === "string"
-        ? error
-        : ((error as { message?: unknown } | null)?.message ?? "");
-  const message = typeof raw === "string" ? raw.trim() : "";
-  if (!message) return null;
-  return SESSION_ENDED_FINGERPRINTS.some((re) => re.test(message))
-    ? "Your session ended. Sign in again and this will load."
-    : null;
-}
+export { sessionEndedMessage } from "@/lib/error-copy";
+import { sessionEndedMessage as endedMessage, messageForPerson } from "@/lib/error-copy";
 
 /**
  * The same rule for a failed READ. A surface that renders a thrown message into
- * its failure copy calls this instead of reaching for `.message`, so an ended
- * session says what to do about it and a database fingerprint never reaches a
- * person. Named for reads because "The read failed." is the honest floor here;
- * writes have their own, which names the write that did not happen.
+ * its failure copy calls this instead of reaching for `.message`.
  */
 export function readFailureMessage(error: unknown): string {
   return humanWriteError(error, "The read failed.");
@@ -204,12 +170,9 @@ export function humanWriteError(error: unknown, fallback: string): string {
         : ((error as { message?: unknown } | null)?.message ?? "");
   const message = typeof raw === "string" ? raw.trim() : "";
   if (!message) return fallback;
-  // An ended session outranks the generic fallback: it is the one failure here
-  // that names an action the reader can actually take.
-  const ended = sessionEndedMessage(message);
-  if (ended) return ended;
-  if (RAW_DATABASE_FINGERPRINTS.some((re) => re.test(message))) return fallback;
-  return message;
+  // Strongest claim first: an action the reader can take, then a sentence the
+  // server wrote for a person, then this surface's own honest floor.
+  return endedMessage(message) ?? messageForPerson(message) ?? fallback;
 }
 
 const MyRoleSchema = z.object({ workspaceId: z.string().uuid().nullable().optional() }).strip();
