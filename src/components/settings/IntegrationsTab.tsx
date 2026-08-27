@@ -171,7 +171,22 @@ export function IntegrationsTab() {
   const live = tokens.filter((t) => !t.revoked_at).length;
 
   if (!activeWorkspaceId) {
-    return <NothingYet>Pick a workspace to manage its agent access.</NothingYet>;
+    /*
+     * AN INSTRUCTION WITH NO WAY TO FOLLOW IT IS A DEAD END. This read "Pick a
+     * workspace to manage its agent access." and offered nothing to pick with:
+     * no control, no door, and no explanation of why none is named. The
+     * switcher is in the shell header, which a reader who has just been told to
+     * pick one has no reason to know.
+     *
+     * It also fires when the workspace read simply FAILED, where "pick one" is
+     * not advice, it is wrong -- they have one and we could not see it.
+     */
+    return (
+      <NothingYet>
+        No workspace is selected, so there is nothing to grant access to yet. Choose one from the
+        workspace switcher at the top of the window, and this fills in.
+      </NothingYet>
+    );
   }
 
   return (

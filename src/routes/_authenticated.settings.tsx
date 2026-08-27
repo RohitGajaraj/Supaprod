@@ -706,8 +706,13 @@ function SettingsPage() {
           ))}
         {active === "interop" && (
           <>
+            {/* THE SAME NAME AS THE DOOR. The rail row has read "Outside
+                access" since the plain-words rename; this heading still said
+                "Agent access", so the row a person clicked and the page they
+                landed on named the same thing differently, side by side on one
+                screen. The rename moved the index and not the destination. */}
             <PageHeading
-              title="Agent access"
+              title="Outside access"
               sub="What an agent outside Supaprod may read, and on whose key."
             />
             <IntegrationsTab />
