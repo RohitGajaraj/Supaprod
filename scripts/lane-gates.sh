@@ -61,6 +61,24 @@ echo "${BOLD}lane-gates${OFF}  ${DIM}$(git rev-parse --abbrev-ref HEAD 2>/dev/nu
 echo "${DIM}────────────────────────────────────────────────────────────${OFF}"
 
 run_gate "tsc"        bunx tsc --noEmit
+# ── AND THE HARNESS, WHICH tsc HAS NEVER SEEN ──────────────────────────────
+#
+# tsconfig.json includes `src/**` only, so `e2e/**` -- every check that proves
+# this product works -- was never typechecked. Measured 2026-08-28 by appending
+# `const x: number = "not a number"` to a spec: `bunx tsc --noEmit` reported it
+# ZERO times.
+#
+# That is not academic. It hid a null-dereference I introduced the same night:
+# `VIEWPORT.width` where VIEWPORT is undefined on any run without --viewport,
+# which is most runs. tsc passed, eslint passed, the build passed, the doc
+# check passed, and the spec could not start. `bun test` does not run Playwright
+# specs, so no gate here could have caught it either.
+#
+# It needs its own config rather than a wider include, because the harness is
+# Node and Bun code while `src` is browser code, and one `types` field cannot
+# be right for both. It lives IN e2e/ rather than at the repo root: root holds
+# four files by rule, and docs-doctor is right to say so.
+run_gate "tsc:e2e"    bunx tsc --noEmit -p e2e/tsconfig.json
 run_gate "docs:check" bash scripts/docs-doctor.sh
 run_gate "test"       bun test
 run_gate "build"      bun run build

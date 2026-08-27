@@ -11,7 +11,7 @@
       "contrastBelow": 0,
       "mode": "signed-in",
       "contrastJudged": 47,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/approvals": {
       "failureSentences": 2,
@@ -21,7 +21,7 @@
       "contrastBelow": 0,
       "mode": "signed-in",
       "contrastJudged": 45,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/brain": {
       "failureSentences": 6,
@@ -31,7 +31,7 @@
       "contrastBelow": 0,
       "mode": "signed-in",
       "contrastJudged": 59,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/learn": {
       "failureSentences": 8,
@@ -41,7 +41,7 @@
       "contrastBelow": 2,
       "mode": "signed-in",
       "contrastJudged": 62,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/threads": {
       "failureSentences": 2,
@@ -51,7 +51,7 @@
       "contrastBelow": 0,
       "mode": "signed-in",
       "contrastJudged": 52,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/guardrails": {
       "failureSentences": 5,
@@ -61,7 +61,7 @@
       "contrastBelow": 0,
       "mode": "signed-in",
       "contrastJudged": 63,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/engine-room": {
       "failureSentences": 3,
@@ -71,7 +71,7 @@
       "contrastBelow": 0,
       "mode": "signed-in",
       "contrastJudged": 66,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/settings": {
       "failureSentences": 1,
@@ -81,7 +81,7 @@
       "contrastBelow": 0,
       "mode": "signed-in",
       "contrastJudged": 69,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/start": {
       "failureSentences": 1,
@@ -91,7 +91,7 @@
       "contrastBelow": 0,
       "mode": "signed-in",
       "contrastJudged": 59,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/plan": {
       "failureSentences": 0,
@@ -101,7 +101,7 @@
       "contrastBelow": 0,
       "mode": "signed-in",
       "contrastJudged": 25,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/ship": {
       "failureSentences": 0,
@@ -111,7 +111,7 @@
       "contrastBelow": 2,
       "mode": "signed-in",
       "contrastJudged": 56,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/inbox": {
       "failureSentences": 0,
@@ -121,7 +121,7 @@
       "contrastBelow": 0,
       "mode": "signed-in",
       "contrastJudged": 46,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/crew": {
       "failureSentences": 3,
@@ -131,7 +131,7 @@
       "contrastBelow": 0,
       "mode": "signed-in",
       "contrastJudged": 91,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/decide": {
       "failureSentences": 2,
@@ -141,7 +141,7 @@
       "contrastBelow": 2,
       "mode": "signed-in",
       "contrastJudged": 46,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/design": {
       "failureSentences": 3,
@@ -151,7 +151,7 @@
       "contrastBelow": 2,
       "mode": "signed-in",
       "contrastJudged": 49,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/discover": {
       "failureSentences": 4,
@@ -161,7 +161,7 @@
       "contrastBelow": 2,
       "mode": "signed-in",
       "contrastJudged": 51,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/build": {
       "failureSentences": 4,
@@ -171,7 +171,7 @@
       "contrastBelow": 2,
       "mode": "signed-in",
       "contrastJudged": 56,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/sync": {
       "failureSentences": 4,
@@ -181,7 +181,7 @@
       "contrastBelow": 0,
       "mode": "signed-in",
       "contrastJudged": 59,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/": {
       "failureSentences": 0,
@@ -191,7 +191,7 @@
       "contrastBelow": 83,
       "mode": "public",
       "contrastJudged": 248,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/pricing": {
       "failureSentences": 0,
@@ -201,7 +201,7 @@
       "contrastBelow": 0,
       "mode": "public",
       "contrastJudged": 105,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/faq": {
       "failureSentences": 0,
@@ -211,7 +211,7 @@
       "contrastBelow": 7,
       "mode": "public",
       "contrastJudged": 35,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/security": {
       "failureSentences": 0,
@@ -221,7 +221,7 @@
       "contrastBelow": 7,
       "mode": "public",
       "contrastJudged": 36,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/privacy": {
       "failureSentences": 0,
@@ -231,7 +231,7 @@
       "contrastBelow": 7,
       "mode": "public",
       "contrastJudged": 39,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/ard": {
       "failureSentences": 0,
@@ -241,7 +241,7 @@
       "contrastBelow": 0,
       "mode": "public",
       "contrastJudged": 39,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/updates": {
       "failureSentences": 0,
@@ -251,7 +251,7 @@
       "contrastBelow": 7,
       "mode": "public",
       "contrastJudged": 50,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/subprocessors": {
       "failureSentences": 0,
@@ -261,7 +261,7 @@
       "contrastBelow": 0,
       "mode": "public",
       "contrastJudged": 69,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/investors": {
       "failureSentences": 0,
@@ -271,7 +271,7 @@
       "contrastBelow": 0,
       "mode": "public",
       "contrastJudged": 15,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/brief": {
       "failureSentences": 0,
@@ -281,7 +281,7 @@
       "contrastBelow": 0,
       "mode": "public",
       "contrastJudged": 15,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     },
     "/checkout": {
       "failureSentences": 0,
@@ -291,10 +291,11 @@
       "contrastBelow": 0,
       "mode": "public",
       "contrastJudged": 24,
-      "viewport": "1280x900"
+      "viewport": "1280x800"
     }
   },
   "_this_is_a_direction_not_a_target": "MATCHING YOUR BASELINE DOES NOT MEAN A SURFACE IS CORRECT. These are the numbers the product happened to produce on one night, several of them from surfaces whose fixes were sitting unmerged on a lane branch. A measurement is a fair way to choose what to fix FIRST. It is not a fair way to decide what the thing should BE, and a baseline is the exact shape that quietly turns one into the other. Read the LIST the report prints, not the number, and lower a baseline entry whenever a real fix lands rather than treating the old value as the goal. Founder's correction, relayed 2026-08-27.",
   "_the_zeros_need_reading_not_celebrating": "/plan, /ship and /inbox score 0. That is NOT automatically good. Their previous 1 was entirely the station strip's 'count unavailable', so with a dead backend they now say NOTHING about their own failed reads. Silence on failure is the /proof shape: a person cannot tell 'nothing to show' from 'we could not look'. A zero here is a prompt to open the screenshot, exactly like a rise is.",
-  "_contrast_measured": "2026-08-27 on lane/proof, before S3's cc23c49fc and 0b295b0a2 reached it. Dark theme, one browser, dead backend: a light-theme regression is invisible to these numbers."
+  "_contrast_measured": "2026-08-27 on lane/proof, before S3's cc23c49fc and 0b295b0a2 reached it. Dark theme, one browser, dead backend: a light-theme regression is invisible to these numbers.",
+  "_viewport_note": "Stamped 1280x800 because that is what the chromium-desktop project ACTUALLY renders, measured from page.viewportSize() in a real run. I first stamped 1280x900 from memory and every default run answered \"Not compared\", which would have disabled the ratchet everywhere while looking like it was working."
 }
