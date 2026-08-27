@@ -1429,7 +1429,27 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   // idle state and the shell provides enough structure; the words appear the
   // moment data resolves (instant from cache on revisit).
   const liveLead = React.useMemo(() => {
-    if (missions.isError) return "Cannot see what is running";
+    /*
+     * BOTH READS, NOT ONE (S0 -> S2, 2026-08-27, found at the source).
+     *
+     * This guarded `missions` alone, and the line it protects makes a claim
+     * over TWO reads: `running` comes from missions, and `movingRuns` comes
+     * from `openTracks`. So a workspace where missions answered "nothing
+     * running" while the tracks read REFUSED fell straight through to the
+     * literal "Nothing running" at the bottom of this chain. The guard was
+     * checking the wrong query.
+     *
+     * That is the highest-traffic place in the product where "nothing is in
+     * flight" can be a lie, and until 042a47952 it could not even be detected
+     * here: `listTracks` swallowed its own errors and returned `[]`, so a
+     * refusal and an empty workspace were one answer. S0 made a real failure
+     * raise, which is what makes `openTracks.isError` worth reading at all.
+     *
+     * The sentence is unchanged. Whichever of the two died, what the reader
+     * needs to know is the same: this line cannot see, so do not read its
+     * silence as calm.
+     */
+    if (missions.isError || openTracks.isError) return "Cannot see what is running";
     if (missions.isLoading) return null;
     if (running.length === 0) {
       if (gateCount > 0) {
