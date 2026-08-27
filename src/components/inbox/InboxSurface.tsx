@@ -64,13 +64,41 @@ function withWhen(state: React.ReactNode, iso: string | null | undefined): React
   );
 }
 
-/** Compute total spend across missions, null = unknown (has any null values) */
+/**
+ * Total spend across missions. Null = unknown, and the second case below is the
+ * one this surface was getting wrong.
+ *
+ * ── A ZERO OVER WORK THAT RAN IS NOT A ZERO ───────────────────────────────
+ * This page rendered "Workspace spend: $0.00" while the same workspace's runs
+ * carry $8.31 in `agent_runs.spend_used_usd` across 622 rows, every one of them
+ * populated. It is not that the money is missing; it is that this total cannot
+ * see it. `listMissions` derives `cost_usd` along mission -> runs ->
+ * checkpoints -> `state.traceId` -> `ai_events`, and a break anywhere in that
+ * chain yields a mission that costs nothing rather than a mission whose cost is
+ * unknown.
+ *
+ * This module's own header already forbids the shape: cost is "—" when unknown,
+ * "never a fabricated $0.00". That rule was applied to each ROW and never to
+ * the total, so the one number a person reads as the workspace's whole spend
+ * was the one number allowed to invent a zero.
+ *
+ * So: a total of exactly nothing, over missions that plainly RAN, is a failure
+ * to attribute rather than an absence of spend, and it is reported as unknown.
+ * A workspace where nothing has run still totals zero honestly, because there
+ * are no steps to contradict it.
+ *
+ * The attribution chain itself is `missions.functions.ts` and S0's; this stops
+ * the surface stating a number it cannot support in the meantime.
+ */
 function workspaceSpendTotal(rows: MissionListRow[]): number | null {
   let total = 0;
+  let anythingRan = false;
   for (const m of rows) {
     if (m.cost_usd === null) return null; // Any unknown makes the total unknown
     total += m.cost_usd;
+    if ((m.steps?.length ?? 0) > 0) anythingRan = true;
   }
+  if (total === 0 && anythingRan) return null;
   return total;
 }
 
@@ -215,9 +243,30 @@ export function InboxSurface() {
     if (queue.isError) return "Your call queue did not load.";
     if (missions.isError) return "Your run record did not load.";
     if (waitingOnYou > 0)
-      return (
+      /*
+       * THE HEADLINE SUMMARISES ACROSS THE GROUPS; IT DOES NOT REPEAT THE FIRST
+       * ONE.
+       *
+       * This read "85 waiting on you." three lines above a section heading
+       * reading "WAITING ON YOU / 85" -- the same count and very nearly the
+       * same words, adjacent, with nothing between them. The section is
+       * `AgentInbox`'s and it is right: a grouped list needs a count per group.
+       * So the heading above it has to earn its line, and restating group one
+       * does not.
+       *
+       * Adding what is NOT waiting on you is what makes it a summary: the
+       * reader learns the shape of the whole list before it breaks apart
+       * underneath. `runningCount` was already computed and already used by the
+       * branch below, so this states a fact the page holds rather than a new
+       * read.
+       */
+      return runningCount > 0 ? (
         <>
-          <Num>{waitingOnYou}</Num> waiting on you.
+          <Num>{waitingOnYou}</Num> need you. <Num>{runningCount}</Num> still running.
+        </>
+      ) : (
+        <>
+          <Num>{waitingOnYou}</Num> need you.
         </>
       );
     if (runningCount > 0)
@@ -243,16 +292,15 @@ export function InboxSurface() {
     );
   }
 
-  const spendNote = workspaceSpend !== null ? `Workspace spend: $${workspaceSpend.toFixed(2)}` : null;
+  const spendNote =
+    workspaceSpend !== null ? `Workspace spend: $${workspaceSpend.toFixed(2)}` : null;
 
   return (
     <Surface>
       <div className="flex flex-col gap-mrd-7">
         <div className="flex items-end justify-between gap-mrd-4">
           <PageHeading title={headline} sub={SUBTITLE} />
-          {spendNote && (
-            <p className="mrd-meta">{spendNote}</p>
-          )}
+          {spendNote && <p className="mrd-meta">{spendNote}</p>}
         </div>
 
         {reading ? (
