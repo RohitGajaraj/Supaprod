@@ -732,6 +732,10 @@ function SignalCard({
 
   const fDelete = useServerFn(deleteSignal);
   const qc = useQueryClient();
+  /** Whether the person has asked to discard and not yet confirmed. Deliberately
+   *  NOT cleared on failure: a discard that failed leaves both the "for good"
+   *  and the "keep it" doors open, rather than resetting the card under them. */
+  const [confirmingDiscard, setConfirmingDiscard] = React.useState(false);
   const del = useMutation({
     mutationFn: () => fDelete({ data: { id: item.artifactId } }),
     onSuccess: () => {
@@ -784,26 +788,87 @@ function SignalCard({
           .filter(Boolean)
           .join(" · ")}
       </span>
-      <div className="flex items-center gap-mrd-4">
-        {url ? (
-          <a
-            href={url}
-            target="_blank"
-            rel="noreferrer"
-            className="text-mrd-small font-medium text-mrd-you underline underline-offset-2"
-          >
-            Open the source
-          </a>
+      <div className="flex flex-col gap-mrd-2">
+        <div className="flex items-center gap-mrd-4">
+          {url ? (
+            <a
+              href={url}
+              target="_blank"
+              rel="noreferrer"
+              className="text-mrd-small font-medium text-mrd-you underline underline-offset-2"
+            >
+              Open the source
+            </a>
+          ) : null}
+          {/*
+           * ── DISCARDING EVIDENCE IS PERMANENT, SO IT TAKES TWO ACTS ────────
+           *
+           * `deleteSignal` is a hard `DELETE` on `signals`. There is no status
+           * column, no "Bring it back", and no undo anywhere in the product. It
+           * used to fire on ONE click, on a card a person is reading while an
+           * agent works beside them, and a mis-click destroyed a piece of the
+           * evidence the run is built on with nothing to say afterwards.
+           *
+           * Every other destructive control on this pane is already deliberate:
+           * `ThemeCard`'s "Not a pattern" opens a panel and asks why, and that
+           * one is REVERSIBLE. The irreversible control was the casual one.
+           *
+           * IN PLACE, NOT IN A DIALOG. Meridian's `Dialog` exists for exactly
+           * this question, and its own header says to mount it from a surface's
+           * root rather than deep inside a card, because a `position: fixed`
+           * overlay is trapped by any transformed ancestor. A signal card is as
+           * deep inside as it gets. Inline also matches what this pane already
+           * does and what SESSION-1 asks for: every control that changes a thing
+           * sits ON it.
+           *
+           * NO REASON IS ASKED FOR, deliberately. `deleteSignal` takes an id and
+           * nothing else, so a reason field here would collect words the product
+           * then throws away, which is the defect this pane exists not to commit.
+           * If discarding should carry a reason it needs a column first.
+           */}
+          {confirmingDiscard ? (
+            <>
+              <Action
+                variant="quiet"
+                busy={del.isPending}
+                disabled={del.isPending}
+                onClick={() => del.mutate()}
+              >
+                {del.isPending ? "Removing it" : "Discard it for good"}
+              </Action>
+              <Action
+                variant="quiet"
+                disabled={del.isPending}
+                onClick={() => setConfirmingDiscard(false)}
+              >
+                Keep it
+              </Action>
+            </>
+          ) : (
+            <Action variant="quiet" onClick={() => setConfirmingDiscard(true)}>
+              Discard this finding
+            </Action>
+          )}
+        </div>
+
+        {confirmingDiscard && !del.isError ? (
+          <span className="text-mrd-small text-mrd-body">
+            This deletes it for good. Nothing brings it back.
+          </span>
         ) : null}
+
+        {/*
+         * THE FAILURE LINE NO LONGER TAKES THE CONTROL WITH IT. This used to be
+         * the `else` of the button: a discard that failed replaced the only
+         * control on the card with an explanation, so the person was told it did
+         * not work and left with no way to try again. That is the dead end
+         * R-20 §5 forbids, arrived at through an error path.
+         */}
         {del.isError ? (
           <span role="status" className="text-mrd-small text-mrd-body">
             {failureLine("It is still here, and nothing was removed.", del.error)}
           </span>
-        ) : (
-          <Action variant="quiet" busy={del.isPending} onClick={() => del.mutate()}>
-            {del.isPending ? "Removing it" : "Discard this finding"}
-          </Action>
-        )}
+        ) : null}
       </div>
     </div>
   );
