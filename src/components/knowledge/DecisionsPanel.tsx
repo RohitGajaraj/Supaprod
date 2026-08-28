@@ -60,6 +60,7 @@
  * the debounce, the ?decision= drill, VISIBLE_DECISIONS, and the SourceLink
  * export that DecisionDetail imports from here.
  */
+import { AutoChip } from "@/components/supaprod/AutoChip";
 import { useEffect, useState } from "react";
 import { humanWriteError } from "@/lib/roles.functions";
 import { Row } from "@/components/meridian/rows";
@@ -493,6 +494,35 @@ export function DecisionsPanel() {
                     </span>
                     {" · "}
                     {whoLine(d)}
+                    {/*
+                     * 166 OF 369 CALLS WERE RAISED BY THE LOOP ON ITS OWN, and
+                     * this list said nothing about which.
+                     *
+                     * `auto_origin` has been in `listDecisions`' select all
+                     * along, and `AutoChip` was built for exactly this -- its
+                     * own header says "pair with `isAutoTitle` at the call
+                     * site" -- and it is mounted NOWHERE in src/. Meanwhile
+                     * `stripAutoPrefix` above removes the stored "[auto]"
+                     * marker from the title, so the one visible trace of a
+                     * machine-raised call was being taken off and the chip that
+                     * was supposed to replace it never drawn.
+                     *
+                     * Measured 2026-08-28: 369 decisions, 166 with
+                     * `auto_origin`, and 0 still carrying the prefix in their
+                     * title. So the strip works and the replacement never
+                     * arrived, and 45% of the record looks hand-raised.
+                     *
+                     * On the SECOND line rather than beside the title: the
+                     * first line is what was decided, and who raised it is the
+                     * same class of fact as who settled it, which already lives
+                     * here.
+                     */}
+                    {d.auto_origin ? (
+                      <>
+                        {" "}
+                        <AutoChip />
+                      </>
+                    ) : null}
                     {fc ? (
                       <>
                         {" · "}

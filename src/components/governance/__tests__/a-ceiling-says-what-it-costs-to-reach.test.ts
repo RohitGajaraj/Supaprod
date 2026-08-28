@@ -11,7 +11,7 @@
  * These are the four things the sentence beside it must never get wrong.
  */
 import { describe, it, expect } from "bun:test";
-import { ceilingReality, money, type CeilingRun } from "../ceiling-reality";
+import { ceilingReality, money, RUNS, TRACKS, type CeilingRun } from "../ceiling-reality";
 
 const run = (spend: number | string | null, halted?: string | null): CeilingRun => ({
   spend_used_usd: spend,
@@ -85,5 +85,51 @@ describe("a ceiling says what it costs to reach", () => {
     expect(money(0)).toBe("$0.00");
     expect(money(10)).toBe("$10.00");
     expect(ceilingReality([run(0.0053)]).said).toContain("under $0.01");
+  });
+});
+
+/**
+ * THE TRACK CEILING GOT THE SAME TREATMENT, AND ONE CLAUSE LESS.
+ *
+ * U-088 left "Dollars one piece of work may spend" without its other half
+ * because no reader returned per-track spend. `spine_tracks` carries it:
+ * measured 2026-08-27, 106 tracks all with a figure, the most expensive
+ * $0.7255 against a $5.00 ceiling.
+ *
+ * But `spine_tracks` carries NO HALT COLUMN, where `agent_runs` carries
+ * `halted_reason`. So the run line's "and none of them stopped here" would be
+ * a claim made out of a field that does not exist -- true-sounding,
+ * unfalsifiable, and the exact shape this module refuses everywhere else. A
+ * population that cannot see halts says nothing about stopping.
+ */
+describe("a population that cannot see halts says nothing about stopping", () => {
+  const tracks = [run(0.7255), run(0.12), run(0)];
+
+  it("reports the cost and stops there", () => {
+    expect(ceilingReality(tracks, TRACKS).said).toBe(
+      "Your last 3 pieces of work cost $0.73 at the most.",
+    );
+  });
+
+  it("never claims none of them stopped, because it cannot know", () => {
+    const said = ceilingReality(tracks, TRACKS).said ?? "";
+    expect(said).not.toContain("stopped here");
+    expect(ceilingReality(tracks, TRACKS).stopped).toBe(0);
+  });
+
+  it("a halt reason in the rows is ignored rather than counted", () => {
+    // If a track row ever grows one, the subject has to be updated deliberately
+    // rather than the count changing under the copy.
+    const withHalt = [run(1, "mission_spend_cap: reached"), run(0.5)];
+    expect(ceilingReality(withHalt, TRACKS).stopped).toBe(0);
+    expect(ceilingReality(withHalt, RUNS).stopped).toBe(1);
+  });
+
+  it("and the run population still says it, because it can", () => {
+    expect(ceilingReality(tracks, RUNS).said).toContain("none of them stopped here");
+  });
+
+  it("names the thing correctly in the singular", () => {
+    expect(ceilingReality([run(0.42)], TRACKS).said).toBe("Your last piece of work cost $0.42.");
   });
 });

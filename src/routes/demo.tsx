@@ -36,6 +36,7 @@
 //
 // Speaks the landing v2 ink language (founder 2026-07-15): the starfield
 // canvas, zinc text, mono eyebrows, ember reserved for the page's one ask.
+import { FooterLinks } from "@/components/supaprod/FooterLinks";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -286,22 +287,10 @@ function DemoPage() {
         <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-4">
           <p className="text-xs text-zinc-600 m-0">&copy; 2026 Supaprod</p>
           <div className="flex flex-wrap gap-5">
-            {[
-              { href: "/security", label: "Security" },
-              { href: "/ard", label: "ARD" },
-              { href: "/updates", label: "Changelog" },
-              { href: "/proof", label: "Proof" },
-              { href: "/privacy", label: "Privacy" },
-              { href: "/terms", label: "Terms" },
-            ].map((l) => (
-              <a
-                key={l.href}
-                href={l.href}
-                className="text-xs text-zinc-600 hover:text-zinc-300 transition-colors no-underline"
-              >
-                {l.label}
-              </a>
-            ))}
+            {/* Shared so the 44px hit area travels with the link. This footer
+                rendered its own anchors from the shared list, so U-135's tap
+                target reached five routes and missed this one. */}
+            <FooterLinks className="text-xs text-zinc-600 transition-colors hover:text-zinc-300" />
           </div>
         </div>
       </footer>

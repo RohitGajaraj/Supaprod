@@ -30,7 +30,13 @@ export function LandingNav() {
    * and the layout is identical from 640 up. */
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between gap-3 px-4 sm:px-6 py-3 bg-[#0a0a0a]/75 backdrop-blur-md border-b border-white/[0.06]">
-      <Link to="/" className="flex min-w-0 items-center text-white" aria-label="Supaprod home">
+      {/* 96x22 at 390px. The padding buys the two missing pixels of height and
+          the negative margin keeps the bar the same height. */}
+      <Link
+        to="/"
+        className="flex min-w-0 items-center py-1 -my-1 text-white"
+        aria-label="Supaprod home"
+      >
         <SupaprodWordmark tier="public" />
       </Link>
 
@@ -49,7 +55,10 @@ export function LandingNav() {
 
             Safe against the 320px zero-slack measurement in the note above:
             this group is `hidden md:flex` and does not exist below 768. */}
-        <a href="/film" className="text-sm text-zinc-400 hover:text-white transition-colors">
+        <a
+          href="/film"
+          className="inline-block py-1 -my-1 text-sm text-zinc-400 hover:text-white transition-colors"
+        >
           Film
         </a>
         <a
@@ -60,20 +69,33 @@ export function LandingNav() {
               data: { event: "demo_click", sessionKey: getLandingSessionKey() },
             })
           }
-          className="text-sm text-zinc-400 hover:text-white transition-colors"
+          className="inline-block py-1 -my-1 text-sm text-zinc-400 hover:text-white transition-colors"
         >
           Demo
         </a>
-        <a href="/pricing" className="text-sm text-zinc-400 hover:text-white transition-colors">
+        <a
+          href="/pricing"
+          className="inline-block py-1 -my-1 text-sm text-zinc-400 hover:text-white transition-colors"
+        >
           Pricing
         </a>
-        <a href="/security" className="text-sm text-zinc-400 hover:text-white transition-colors">
+        <a
+          href="/security"
+          className="inline-block py-1 -my-1 text-sm text-zinc-400 hover:text-white transition-colors"
+        >
           Security
         </a>
       </div>
 
       <div className="flex items-center gap-4">
-        <a href="/login" className="text-sm text-zinc-400 hover:text-white transition-colors">
+        {/* `inline-block py-1 -my-1`: a 20px tap target at 390x844, under the
+            24px minimum, and this is the only way into the product from the
+            home page on a phone. The equal negative margin means the nav bar's
+            height and rhythm are unchanged. */}
+        <a
+          href="/login"
+          className="inline-block py-1 -my-1 text-sm text-zinc-400 hover:text-white transition-colors"
+        >
           Sign in
         </a>
         {/* THIS SAID "Start free" AND POINTED AT /signup, which was true while
@@ -117,7 +139,12 @@ export function LandingNav() {
           title={isMachineView ? "Switch to human view" : "Switch to machine-readable view"}
           aria-label="Machine-readable view"
           aria-pressed={isMachineView}
-          className="text-xs font-mono text-zinc-400 hover:text-zinc-300 border border-white/10 rounded px-1.5 py-0.5 transition-colors"
+          /* 21x22 at every width, under the 24px floor on BOTH axes, and it is
+             the smallest control on the page. `inline-flex` with a 24px
+             minimum in each direction and the glyph centred grows the target
+             without changing the border box's visual weight: the border still
+             hugs a single monospace letter, it just has room around it now. */
+          className="inline-flex min-h-[24px] min-w-[24px] items-center justify-center rounded border border-white/10 px-1.5 py-0.5 font-mono text-xs text-zinc-400 transition-colors hover:text-zinc-300"
           onClick={toggle}
         >
           M

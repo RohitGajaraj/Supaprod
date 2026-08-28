@@ -40,6 +40,7 @@ That is the whole cookie surface, and it is empty in both directions. No session
 | `supaprod.product.active.<workspaceId>` | [`src/hooks/use-workspace.tsx:146,190`](../../../src/hooks/use-workspace.tsx) | Which product, per workspace. Same reason. | necessary |
 | `supaprod.theme` | [`src/hooks/use-theme.tsx:100,114`](../../../src/hooks/use-theme.tsx), read pre-hydration at [`src/routes/__root.tsx:324`](../../../src/routes/__root.tsx) | Dark or light. | functional |
 | `cad-density` | [`src/hooks/use-density.ts:28`](../../../src/hooks/use-density.ts) | Comfortable or compact rows. | functional |
+| `mrd-motion` | [`src/hooks/use-motion-preference.ts`](../../../src/hooks/use-motion-preference.ts) | Whether the live pulses, shimmers and draw-ins run. Per device, because motion tolerance belongs to the screen somebody is looking at rather than to their account. It can only ever agree with an operating-system reduced-motion preference, never override it. | functional |
 | `supaprod:avatar` | [`src/hooks/use-avatar-choice.ts:30`](../../../src/hooks/use-avatar-choice.ts) | Which avatar the person picked. | functional |
 | `supaprod:rail-narrow` | [`src/components/shell/AppFrame.tsx:555`](../../../src/components/shell/AppFrame.tsx) | Rail collapsed or expanded. | functional |
 | `supaprod.flow.config` | [`src/hooks/use-flow-mode.tsx:96`](../../../src/hooks/use-flow-mode.tsx) | Focus-mode block length and preferences. | functional |
