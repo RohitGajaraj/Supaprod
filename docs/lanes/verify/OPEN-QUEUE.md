@@ -44,6 +44,25 @@ accident.
 **S2 is offline.** Whoever merges `lane/control` resolves this by taking `main`'s side of that hunk
 and keeping S2's other two commits. Nothing else on that branch conflicts.
 
+> ### SUPERSEDED, 2026-08-28 — this note may have discarded a later ruling
+>
+> **Read this before acting on the paragraph above.** When it was written, `main` held S3's
+> **repoint** to `--mrd-lift`, so *"take main's side"* meant *"keep the repoint"*. **S0 afterwards
+> ruled the other way and deleted the declaration entirely** (F-150), on a better argument than
+> either of ours: the section header already states the band's design intent, and the *"a raised
+> background"* comment was written while the broken declaration sat in the file, so it describes the
+> **declaration** rather than an observed pixel. **Deleting a dead rule cannot change a pixel;
+> choosing a fill can** — on the most-read screen in the product, as a "repair", with no design
+> decision behind it.
+>
+> **As of this writing `origin/main` still carries `background: var(--mrd-lift)`**, verified in code
+> with comments stripped — the comment above that line explains the repoint, so a raw grep shows the
+> wrong thing. The ruling and the tree disagree, and this note is the likely reason.
+>
+> **Do not resolve that hunk from this page.** Check what the current ruling is, check what is in the
+> tree, and make them agree. A merge note that outlives the decision it was written under is worse
+> than no note, because it carries the authority of having been written down.
+
 ---
 
 ## 0a · NOTHING FIXED TONIGHT IS LIVE
