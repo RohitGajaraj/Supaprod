@@ -379,8 +379,21 @@ function EngineRoomPage() {
                    * already says that, and a first draft of this line said it
                    * too, which just moved the duplication rather than removing
                    * it.
+                   *
+                   * AND IT NO LONGER OPENS WITH "So". That word made the
+                   * sentence a continuation of the state chip, and the chip
+                   * renders BELOW it -- the note under this block says so in as
+                   * many words, "the state word rides its own line under the
+                   * verdict". So a reader met a conjunction pointing back at
+                   * something they had not read yet, and the line arrived as a
+                   * non-sequitur on the one surface where the product is
+                   * already failing.
+                   *
+                   * Seen rendered on the Safety room with the backend
+                   * unreachable, which is the only way to catch a sentence that
+                   * is correct in the file and wrong in the reading order.
                    */
-                  "So there is no verdict for this room right now."
+                  "There is no verdict for this room right now."
                 ) : status?.glance ? (
                   <>
                     {status.glance.verdict}

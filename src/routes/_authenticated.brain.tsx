@@ -419,6 +419,25 @@ const CompoundingPanel = lazy(() =>
     default: m.CompoundingPanel,
   })),
 );
+/*
+ * BUILT FOR THIS TAB AND MOUNTED NOWHERE UNTIL NOW.
+ *
+ * Its own header says "Brain > Outcomes, mounted beside CompoundingPanel" and
+ * names the three gaps it closes: the recorded memo lived only behind the
+ * ?learning= drill, the bet it graded was two clicks away, and nothing said how
+ * many outcomes paid off against missed. 188 lines of finished work that never
+ * reached a screen, found by scanning my own directories for components with no
+ * importer -- three of the four hits were somebody's completed work.
+ *
+ * It costs nothing to mount: the read is CHARACTER-IDENTICAL to
+ * CompoundingPanel's ["learnings", workspace] key, so the two share one cache
+ * entry and this adds no request. Its own silence contract means it draws
+ * nothing while pending, on error, or with no rows, because the host above owns
+ * those states for the same reads.
+ */
+const OutcomeHistory = lazy(() =>
+  import("@/components/brain/OutcomeHistory").then((m) => ({ default: m.OutcomeHistory })),
+);
 const LearningDetail = lazy(() =>
   import("@/components/knowledge/LearningDetail").then((m) => ({ default: m.LearningDetail })),
 );
@@ -1850,6 +1869,12 @@ function MemoryPage() {
               ) : (
                 <div className="flex flex-col gap-mrd-7">
                   <CompoundingPanel />
+                  {/* The feed says what each outcome taught. This says how they
+                      add up -- paid off against missed, the net ICE movement,
+                      and the memo in full on every row rather than behind a
+                      drill. It draws nothing when there are no outcomes, so an
+                      empty record is unchanged. */}
+                  <OutcomeHistory />
                   {/* The region says what was USED; the list inside says what is
                   STORED. Two different facts, and the used one leads. */}
                   <CrewCarries>

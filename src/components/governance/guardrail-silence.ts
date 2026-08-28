@@ -78,9 +78,35 @@ const SILENT: GuardrailSilence = { said: null, action: null, quietDays: null };
  */
 export const QUIET_DAYS = 7;
 
-/** The one control that settles it, named where a person can act on it. */
+/**
+ * The one control that settles it, and the sentence that has to come first.
+ *
+ * ── AN EMPTY HIT LIST IS NOT AN UNSCREENED WORKSPACE ──────────────────────
+ *
+ * S0 traced the path: `callModel` screens every call unless a caller opts OUT
+ * (`opts.guardrails !== false`), and the loop never opts out. Seven other call
+ * sites do; the loop is not one of them. `loadGuardrails` returns `withFloor(...)`
+ * on both branches, so a workspace that configured nothing is still screened by
+ * the built-in floor. A call that matches no rule correctly writes NO ROW.
+ *
+ * So the absence of hits means "nothing matched", not "nothing was checked",
+ * and a person reading an empty list on a page headed "What they caught" will
+ * reach the opposite conclusion unless the page says so.
+ *
+ * S4 made this urgent rather than merely true. Measured 2026-08-27:
+ * `guardrail_hits` is largely PLANTED -- 7,225 rows on sample workspaces share
+ * a microsecond a month apart, straight out of the demo seed migration, and
+ * even the 1,310 on real workspaces carry 24 rows at one instant with the SAME
+ * rule_id, which one screening event cannot produce. So the table cannot be
+ * cited in either direction: not as proof the rules fire, and not as proof they
+ * do not. What survives is that 439 runs under live rules in 30 days produced
+ * no row at all.
+ *
+ * The tester is still the way to settle it, and it goes second: it is what a
+ * person DOES, and it only helps once they know what the silence means.
+ */
 const HOW_TO_TELL =
-  "Open any rule and run a sample through Try it first: that goes through the same matcher a real call does.";
+  "Every call is screened whether or not anything matches, so an empty list is not an unchecked workspace. To see a rule work, open any of them and run a sample through Try it first.";
 
 function daysBetween(thenMs: number, nowMs: number): number | null {
   if (!Number.isFinite(thenMs) || !Number.isFinite(nowMs)) return null;

@@ -252,7 +252,12 @@ export function RoomGlanceCardFailed({
           type="button"
           onClick={onRetry}
           data-mrd=""
-          className="rounded-mrd-xs text-mrd-label text-mrd-mute transition-colors hover:text-mrd-ink"
+          /* 121x19 at 390x844, under the 24px tap floor, on three cards in this
+             room. It is the only thing a person can act on when a room's read
+             fails, so it is the worst control on the surface to be hard to hit.
+             `py-1 -my-1` grows the hit box and takes the layout effect back
+             out; the line it sits on keeps its height. */
+          className="-my-1 rounded-mrd-xs py-1 text-mrd-label text-mrd-mute transition-colors hover:text-mrd-ink"
           style={{ transitionDuration: "var(--mrd-d-press)" }}
         >
           Read this room again

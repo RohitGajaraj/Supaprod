@@ -47,7 +47,7 @@ import { humanWriteError } from "@/lib/roles.functions";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { nothingStandingYet, ratedPopulation } from "./standing-words";
+import { nothingStandingYet, ratedPopulation, RATING_HAS_NO_DOOR } from "./standing-words";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { getStandingRecord, type StandingRule } from "@/lib/brain-standing.functions";
@@ -276,6 +276,13 @@ function recallLine(
               <Figure>{r.contradicted}</Figure> contradicted by what happened
             </span>
           ) : null}
+          {/* AND WHY THE COUNT IS NOT GROWING. `submitFeedback` is the only
+              writer of a recall outcome and its only caller, MessageMetaFooter,
+              is mounted nowhere -- so no surface can produce another rating.
+              Measured: all 77 fall between 29 June and 23 July. See
+              standing-words.ts. */}
+          {" · "}
+          {RATING_HAS_NO_DOOR}
         </>
       ) : null}
     </>

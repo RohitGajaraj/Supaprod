@@ -57,10 +57,11 @@ import { getApprovalPolicyState } from "@/lib/approvals-queue.functions";
 import { humanWriteError } from "@/lib/roles.functions";
 import { TrustGraduationsBlock } from "@/components/governance/TrustGraduations";
 import { AutomationBoundary } from "@/components/governance/AutomationBoundary";
-import { ceilingReality } from "@/components/governance/ceiling-reality";
+import { ceilingReality, TRACKS } from "@/components/governance/ceiling-reality";
 import { whereTheCrewStands } from "@/components/governance/where-the-crew-stands";
-import { unansweredGates } from "@/components/governance/gates-nobody-answered";
+import { unansweredGates, whatBecameOfThem } from "@/components/governance/gates-nobody-answered";
 import { whatTheyActuallyDid } from "@/components/governance/what-they-actually-did";
+import { oursNotYours } from "@/components/governance/who-chose-this";
 import { Link } from "@tanstack/react-router";
 import { Field, Input } from "@/components/meridian/forms";
 import { MoreItem, MoreMenu } from "@/components/meridian/MoreMenu";
@@ -544,6 +545,12 @@ export function BoundaryControls({
   });
 
   const data = b.data;
+  /* The same pair for the whole piece of work. TRACKS carries `seesHalts:
+     false`, so the sentence reports a cost and claims nothing about halting. */
+  const trackSpent = ceilingReality(data?.trackSpend, TRACKS);
+  /* How often a gate dies here, with the population in the sentence. */
+  const gateHistory = whatBecameOfThem(data?.gateHistory);
+
   // Never null, even before the read lands: the shipped numbers ARE the policy
   // until a workspace says otherwise, so there is no such thing as "no policy".
   const autonomy: AutonomyPolicy = data?.autonomy ?? SHIPPED_AUTONOMY_POLICY;
@@ -673,9 +680,50 @@ export function BoundaryControls({
   /** One block of the boundary. The menu offers only the moves a floor allows,
    *  and where a move is forbidden the row says why instead of showing a
    *  control that does nothing. */
-  const block = (key: string, title: string, sub: string, tools: BoundaryTool[], empty: string) => {
+  /*
+   * Every block discloses how much of it is ours rather than theirs. Appended
+   * inside `block` rather than at each call site so no block can be added
+   * without it: the disclosure is a property of showing a policy list, not a
+   * decision three callers make separately.
+   */
+  /**
+   * A REGION SUB IS ONE SENTENCE, AND THE EVIDENCE GETS ITS OWN LINES.
+   *
+   * This is a correction to my own work over the last day. The evidence on this
+   * screen arrived one unit at a time and each new sentence was appended to the
+   * block's `sub`, because that was where the last one went. Rendered, the
+   * "what they do alone" heading carried FIVE sentences:
+   *
+   *   No approval, no interruption. This is where the leverage is. Your crew
+   *   has done these 412 times without asking in the last 30 days. The most
+   *   recent was Commit code. 16 of these are set to come to you first and will
+   *   not, because every agent starts out running alone except on the risky
+   *   calls. You can lower that per agent on Crew. 12 of these are what we
+   *   ship, not settings anybody here has made.
+   *
+   * Every clause is true and the paragraph is unreadable, which is the founder's
+   * complaint about this surface in his own words: plain, simple, and it must
+   * still do the job. A wall under a heading does not do the job -- nobody
+   * reads the fourth sentence of a sub.
+   *
+   * So the `sub` keeps the one line that says what the block IS, and each fact
+   * becomes a `Line`: a label somebody can scan and a second line that explains
+   * it. Same words, same order, four times as likely to be read. Nothing is
+   * dropped, which matters -- every one of those sentences exists because the
+   * screen was claiming something it could not prove without it.
+   */
+  const block = (
+    key: string,
+    title: string,
+    sub: string,
+    tools: BoundaryTool[],
+    empty: string,
+    facts: { label: string; sub?: string }[] = [],
+  ) => {
+    const ours = oursNotYours(tools);
     const open = showAll[key] ?? false;
     const shown = open ? tools : tools.slice(0, VISIBLE);
+    const lines = [...facts, ...(ours ? [{ label: ours }] : [])];
     return (
       <Region
         title={title}
@@ -684,6 +732,11 @@ export function BoundaryControls({
         onToggle={() => setShowAll((s) => ({ ...s, [key]: !open }))}
         toggled={open}
       >
+        {/* The evidence first, because it is what the reader came to check, and
+            the settings under it are what they came to change. */}
+        {lines.map((f) => (
+          <Line key={f.label} label={f.label} sub={f.sub} />
+        ))}
         {tools.length === 0 ? (
           <NothingHere>{empty}</NothingHere>
         ) : (
@@ -827,9 +880,23 @@ export function BoundaryControls({
         />
       )}
 
-      {/* WORKSPACE-WIDE POLICY, ABOVE THE PER-TOOL EXCEPTIONS, and OUTSIDE the
-          `b` guards deliberately: these switches do not depend on that read and
-          must not disappear because a different query broke. */}
+      {/*
+       * WORKSPACE-WIDE POLICY, and OUTSIDE the `b` guards deliberately: these
+       * switches do not depend on that read and must not disappear because a
+       * different query broke. On a failed boundary read they are the only
+       * thing left a person can still act on, which is when stopping scheduled
+       * work matters most.
+       *
+       * I MOVED THIS DOWN AND PUT IT BACK. Read order argues for it: the three
+       * blocks about unattended work -- what may START on a schedule, on what
+       * evidence, and how a run may END the same way -- are one family, and
+       * this one sits at the top while the other two sit at the bottom. But
+       * every candidate position further down is INSIDE the `!data` guard, so
+       * grouping them costs the property above, and a reading-order preference
+       * does not outrank a control staying reachable when the page around it
+       * has failed. Left where it is on purpose, with the reason written down
+       * so the next person does not spend the same hour on it.
+       */}
       <AutomationBoundary workspaceId={activeWorkspaceId ?? null} />
       {b.isError ? (
         /* One block, not a headline plus a loose line: what is still true, then
@@ -842,17 +909,6 @@ export function BoundaryControls({
         <Reading>Reading what your crew is allowed to do.</Reading>
       ) : !data ? null : (
         <>
-          {receipt ? (
-            <Receipt
-              verb={receipt.verb}
-              consequence={receipt.consequence}
-              failed={receipt.failed}
-            />
-          ) : null}
-
-          {/* THE QUEUE EATING ITSELF: an agent asking for more room is the one
-              thing worth deciding on a surface about what agents may do alone.
-              It leads here exactly as it led on /boundary. */}
           {/*
            * WHERE THE CREW STANDS, ABOVE EVERYTHING THE RUNG DECIDES.
            *
@@ -881,6 +937,17 @@ export function BoundaryControls({
             </Region>
           ) : null}
 
+          {receipt ? (
+            <Receipt
+              verb={receipt.verb}
+              consequence={receipt.consequence}
+              failed={receipt.failed}
+            />
+          ) : null}
+
+          {/* THE QUEUE EATING ITSELF: an agent asking for more room is the one
+              thing worth deciding on a surface about what agents may do alone.
+              It leads here exactly as it led on /boundary. */}
           <TrustGraduationsBlock />
 
           {block(
@@ -906,11 +973,18 @@ export function BoundaryControls({
           {block(
             "asks",
             "What still comes to you",
-            unanswered.said
-              ? `Each of these costs one interruption every time it happens. ${unanswered.said}`
-              : "Each of these costs one interruption every time it happens.",
+            "Each of these costs one interruption every time it happens.",
             asks,
             "Nothing asks. Your crew runs the loop on its own.",
+            /* The whole history first, because it carries the denominator, then
+               the named tools from the capped read. One says how often a gate
+               dies here; the other says which ones. */
+            [
+              ...(gateHistory ? [{ label: gateHistory }] : []),
+              ...(unanswered.said
+                ? [{ label: unanswered.said, sub: unanswered.act ?? undefined }]
+                : []),
+            ],
           )}
 
           {block(
@@ -1060,15 +1134,23 @@ export function BoundaryControls({
             <Line
               label="Dollars one piece of work may spend"
               sub={
-                data.trackCapUsd === null ? (
-                  "No ceiling. Work continues through every station until it finishes."
-                ) : (
-                  <>
-                    <Num>${data.trackCapUsd.toFixed(2)}</Num> across every station, every agent and
-                    every retry. Work that reaches it stops and waits, and raising this carries on
-                    from where it stopped.
-                  </>
-                )
+                <>
+                  {data.trackCapUsd === null ? (
+                    "No ceiling. Work continues through every station until it finishes."
+                  ) : (
+                    <>
+                      <Num>${data.trackCapUsd.toFixed(2)}</Num> across every station, every agent
+                      and every retry. Work that reaches it stops and waits, and raising this
+                      carries on from where it stopped.
+                    </>
+                  )}
+                  {/* The other half, which this line went without in U-088
+                      because no reader returned per-track spend. It says
+                      nothing about STOPPING: `spine_tracks` has no halt column,
+                      so the run line's "none of them stopped here" would be a
+                      claim out of a field that does not exist here. */}
+                  {trackSpent.said ? <span className="mt-1 block">{trackSpent.said}</span> : null}
+                </>
               }
             >
               {!data.isOwner ? (

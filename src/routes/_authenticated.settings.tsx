@@ -202,6 +202,7 @@ import {
 import { toast } from "@/lib/notify";
 import { authErrorMessage } from "@/lib/auth-errors";
 import { supabase } from "@/integrations/supabase/client";
+import { useMotionPreference } from "@/hooks/use-motion-preference";
 import { useDensity } from "@/hooks/use-density";
 import { useTheme, type Theme } from "@/hooks/use-theme";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -770,6 +771,16 @@ const DENSITY_CHOICES = [
 ];
 
 /*
+ * "On" and "Off" rather than "Reduce motion", because the control says what it
+ * DOES to the product rather than naming a preference in the abstract, and
+ * because it cannot force motion ON: the OS preference always wins toward less.
+ */
+const MOTION_CHOICES = [
+  { id: "on" as const, label: "On" },
+  { id: "off" as const, label: "Off" },
+];
+
+/*
  * Suggestions for the timezone field, not a gate: free typing still wins, so a
  * zone outside this list keeps working. The list exists because a free-text
  * field alone invites garbage ("PST", "GMT+2") that every consumer then has
@@ -831,6 +842,7 @@ function ProfileSection() {
 
   const { theme, setTheme } = useTheme();
   const [density, setDensity] = useDensity();
+  const [motion, setMotion] = useMotionPreference();
 
   const [fullName, setFullName] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -1116,6 +1128,31 @@ function ProfileSection() {
           </Line>
           <Line label="Density" sub="Compact drops a row of breathing room. Type stays the same.">
             <Choice value={density} options={DENSITY_CHOICES} onPick={setDensity} label="Density" />
+          </Line>
+          {/*
+           * THE SWITCH THE WHOLE PRODUCT ALREADY OBEYED AND NOBODY COULD SET.
+           *
+           * `html[data-motion="off"]` gates motion in eight rules across
+           * styles.css and ink.css, and `usePrefersReducedMotion` watches the
+           * attribute live so a change lands without a reload. Nothing in src/
+           * ever wrote it: the only non-CSS reference was the observer's own
+           * `attributeFilter`. The CSS, the hook and the watcher were all
+           * written; the switch was not.
+           *
+           * So a person who wanted motion stopped had exactly one route --
+           * change an operating-system preference -- and that is not a setting
+           * this product is entitled to make somebody leave to find. R-19:
+           * accessibility is not deferred.
+           *
+           * The sub names the asymmetry rather than hiding it: this can only
+           * agree with the OS toward less motion, never override it toward
+           * more.
+           */}
+          <Line
+            label="Motion"
+            sub="Turning it off stops the live pulses, shimmers and draw-ins everywhere. If your device already asks for reduced motion, that wins whatever this says."
+          >
+            <Choice value={motion} options={MOTION_CHOICES} onPick={setMotion} label="Motion" />
           </Line>
         </Region>
       </div>
