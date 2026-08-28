@@ -106,3 +106,55 @@ describe("no inline animation on the run screen escapes the toggle", () => {
     expect(ENTER_MOTION).toBe("mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both");
   });
 });
+
+/**
+ * The 49 inline Meridian animations OUTSIDE the run screen are not reachable
+ * from a component fix, and rewriting twenty files would be the wrong shape
+ * anyway. meridian.css gates them, and it gated them for the operating system
+ * only. The twin block is the fix; this is what stops the two drifting.
+ */
+describe("the stylesheet stops motion for the toggle, not only for the OS", () => {
+  const CSS = readFileSync(join(import.meta.dir, "..", "..", "styles", "meridian.css"), "utf8");
+
+  /** Every `mrd-*` keyframe a `[style*="..."]` selector names, within one slice. */
+  function gatedKeyframes(slice: string): string[] {
+    return [...slice.matchAll(/\[style\*="(mrd-[\w-]+)"\]/g)].map((m) => m[1]).sort();
+  }
+
+  const osBlock = (() => {
+    const start = CSS.indexOf(
+      '@media (prefers-reduced-motion: reduce) {\n  [style*="mrd-pixel-on"]',
+    );
+    return CSS.slice(start, CSS.indexOf("\n}\n", start));
+  })();
+  const toggleBlock = (() => {
+    const start = CSS.indexOf('html[data-motion="off"] [style*=');
+    return CSS.slice(start, CSS.indexOf("THE POINTER", start));
+  })();
+
+  it("the in-product toggle reaches the stylesheet at all", () => {
+    // It reached `src/styles.css` five times and `src/styles/` zero times.
+    expect(CSS).toContain('html[data-motion="off"]');
+  });
+
+  it("both blocks gate the same keyframes, so neither can drift", () => {
+    const os = [...new Set(gatedKeyframes(osBlock))];
+    const toggle = [...new Set(gatedKeyframes(toggleBlock))];
+    expect(os.length).toBeGreaterThan(0);
+    expect(toggle).toEqual(os);
+  });
+
+  it("the toggle keeps the lattice visible, not merely still", () => {
+    /*
+     * The rule somebody drops by copying only the obvious one. Stopping
+     * `mrd-pixel-on` parks each cell at its inline `opacity: 0.15`, the trough
+     * of its own envelope, measured at 1.19:1 against the ground: the number
+     * DESIGN-SYSTEM.md law 5 records as this system's caught catastrophe.
+     */
+    expect(toggleBlock).toContain("opacity: 1 !important");
+  });
+
+  it("and freezes the shimmer at its midpoint rather than against an edge", () => {
+    expect(toggleBlock).toContain("background-position: 50% 0 !important");
+  });
+});
