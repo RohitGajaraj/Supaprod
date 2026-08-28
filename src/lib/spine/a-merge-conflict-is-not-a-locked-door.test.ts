@@ -86,7 +86,72 @@ describe("the real refusal strings, as measured", () => {
   });
 });
 
+describe("F-137: the branch had already moved on before the merge was reached", () => {
+  /*
+   * Both halves of the measurement live in DIFFERENT TABLES, and reading either
+   * alone makes the other look like it never happened. `agent_approvals.error`
+   * holds the 5 merge conflicts; `tool_calls.error` holds 7 rows of the PR
+   * failing to OPEN for the same underlying reason, and `studio.pr.merge` has
+   * never failed there at all. Measured 2026-08-28.
+   */
+  it("a branch behind main is about the work, exactly as a conflict is", () => {
+    // The recorded string, 7 rows, under the tool's name at the time.
+    expect(
+      refusalIsAboutTheWork(
+        "studio.pr.open",
+        "branch relay-app/checkout-single-address is 14 commits behind main, rebase required before a PR can open",
+      ),
+    ).toBe(true);
+  });
+
+  it("either phrase alone is enough, since the tools word it differently", () => {
+    expect(refusalIsAboutTheWork("studio.pr.open", "rebase required")).toBe(true);
+    expect(refusalIsAboutTheWork("studio.pr.open", "the branch is behind main")).toBe(true);
+  });
+
+  it("and the merge tool still answers to the stale-branch wording too", () => {
+    expect(refusalIsAboutTheWork("studio.pr.merge", "not mergeable, rebase required")).toBe(true);
+  });
+
+  it("a repo-binding refusal on the same tool is NOT, and stays terminal", () => {
+    /*
+     * The other real failure recorded against this tool. It is a policy refusal
+     * about which repository the evidence belongs to, and rebuilding the branch
+     * would not touch it, so it must keep taking F-41's path.
+     */
+    expect(
+      refusalIsAboutTheWork(
+        "studio.pr.open",
+        "Refused: this changeset's pull request is #5 on RohitGajaraj/relay-homeowner-app, and this workspace is bound to Supaprod/relay-homeowner-app.",
+      ),
+    ).toBe(false);
+  });
+
+  it("the sentence covers the open as well as the merge", () => {
+    // It used to say "could not merge", which is wrong for the case that has
+    // actually happened here seven times.
+    expect(conflictLine()).not.toContain("could not merge");
+    expect(conflictLine()).toContain("could not land");
+  });
+});
+
 describe("both halves are required, so this cannot widen by accident", () => {
+  it("a real refusal containing the word conflict is still excluded by the tool gate", () => {
+    /*
+     * THE LIVE PROOF THAT THE TOOL GATE DOES WORK RATHER THAN BEING ASSERTED TO.
+     * This string is recorded once in `agent_approvals.error`. A path claimed by
+     * another mission is NOT fixed by rebuilding, because the other mission
+     * still holds it, so widening the phrase list without the tool gate would
+     * send good work back to be rewritten over a concurrency clash.
+     */
+    expect(
+      refusalIsAboutTheWork(
+        "studio.commit",
+        'BuilderFileConflict: path "health.json" is claimed by another Studio mission',
+      ),
+    ).toBe(false);
+  });
+
   it("another tool's message mentioning conflict does not count", () => {
     // The tool gate is what keeps the word "conflict" from firing on an
     // unrelated refusal that happens to contain it.
