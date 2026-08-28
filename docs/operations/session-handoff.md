@@ -1,3 +1,72 @@
+# S2 · MISSION CONTROL handoff, 2026-08-28 ~05:20 IST
+
+**Branch `lane/control`, pushed at `e4361662b`, tree clean, 0/0 with origin. No dev server of
+mine; port 8080 is free as far as I am concerned.** Closed on the founder's instruction relayed
+by S0, mid-unit, with the unit finished rather than abandoned.
+
+## DONE this session, last first
+
+- **`e4361662b` The rail carries the working crew, on every surface.**
+  SPEC-MULTIPLAYER-PRESENCE §3.4, the largest item my brief names me owner of.
+  `RailCrew` mounts once in `AppFrame` between the nav and `.sp-railfoot`, so the answer to
+  "who is working and on what" is the same on every surface. Pure derivation in
+  `src/components/shell/rail-crew.ts` (newest anchor per agent), 18 tests across two files.
+  It shares `queryKey: ["presence", "anchors", workspaceId]` with `OverlapNote`, so the board's
+  collision marks and this stack are two renderings of one fetch and cannot disagree.
+- Before it, 31 units on this lane, all gated: the board no longer states more than its reads
+  support (false all-clears, capped-read counts, cross-scope numbers, restatement), every
+  `SlowRead` in the product offers a way out after 15s, and the poll helper backs off on failure.
+
+## OPEN, and it is mine
+
+- **§3.1 the cursor layer and §3.2 the shared-object indicator are NOT BUILT.** §3.3 the
+  collision mark exists but only on the board, via `today/OverlapNote.tsx`; the spec puts it
+  app-wide in the shell. §3.4 is now built, so the remaining three are the whole gap.
+- **The empty-workspace path has never been verified in a browser**, after three attempts that
+  each failed on my instrument rather than the product. Draining server-fn responses does not
+  work: every function has its own shape and a generic drain leaves the page at ~841 characters
+  of nothing. The honest instrument is a genuinely empty workspace, i.e. a second account.
+  `quietMorning`, `CrewPulseNote` and now `RailCrew`'s quiet state are pinned by unit tests only.
+- **The fold is still the founder's call, not mine.** At 1440x900 the first Approve sits at
+  946px. Every remedy costs something real; the analysis is in `docs/lanes/log/S2.md`.
+
+## FOR S0 AND S1 — a swallow that makes a failure indistinguishable from calm
+
+`getWorkspaceAnchors` (`src/lib/approvals-queue.functions.ts`, around line 1947) catches a failed
+`agent_runs` read and **returns `{ anchors: [], collisions: [], unknowableRuns: 0 }` rather than
+throwing**. So `isError` never goes true, and one branch is reached by both "nobody is working"
+and "we could not find out". That is why `RailCrew`'s quiet state is a DOOR to `/start` and not a
+sentence: a sentence there would be a false all-clear on a dead feed. Fix it at the source and the
+door can become the honest sentence the spec asks for. **Do not "fix" the component instead.**
+
+## FOR S4 — §3.4 is built, and here is what to point your standing check at
+
+Your check is that no presence mark exists which cannot be traced to a row. `RailCrew` cannot
+break it structurally, not carefully: `getWorkspaceAnchors` filters `agent_runs` to the live
+statuses and joins `tool_calls` only to those runs' traces, so every mark drawn IS a live run.
+Runs with no `trace_id` are counted, never drawn ("N more are running and not saying what"),
+because dropping them would undercount the crew on the one control that answers "how many".
+
+## DO NOT RE-INVESTIGATE
+
+- **Em dashes.** 0 in user-facing strings across 1175 non-test source files, 0 visible text nodes
+  on the rendered board. Closed.
+- **Meridian adoption.** 49 of 49 components have an importer. Closed.
+- **`missions` has no subject key** (full column list checked). Duplicate detection matches on
+  title as a floor. If a real subject relation lands, the title matching GOES rather than
+  becoming a fallback.
+- **A growing test-failure count on an unchanged tree is a machine report, not a test report.**
+  I watched 2 -> 7 -> 15 timeouts at load average 28-31 with four lanes running gates;
+  `bun test --timeout 30000` returned 12,773 pass, 0 fail on the same tree. A chained gate run
+  returned exit 137 (killed) the same way. Run gates individually with a captured exit code.
+- **Prose is not code.** Four times a sweep of mine reported my own explanatory comment, quoting
+  the line it had replaced, as the defect. Strip comments before scanning.
+
+## MID-FLIGHT WHEN THE CALL LANDED
+
+Nothing half-applied. The RailCrew unit was the in-flight work and it is finished, gated and
+pushed. `src/styles/shell.css` carried a stray trailing newline from CSS I had added and then
+removed; reverted to HEAD, so the file is untouched by me.
 # S3 handoff, 2026-08-28 ~00:30 UTC
 
 **Lane `lane/platform`, 32 commits U-111 to U-141, all pushed, all gated.** The tree is clean and
@@ -78,77 +147,6 @@ sharing a microsecond a month apart). Spend ceiling is $10 on all 21 workspaces 
 run of $0.142. `mission_token_cap` is NULL on all 2,570 runs with **no resolver and no caller**. 92
 of 324 approvals expired unanswered. 133 of 135 learnings have a NULL `decision_id`. One
 `user_notification_preferences` row against 16 profiles (U-134).
----
-
-# S2 · MISSION CONTROL handoff, 2026-08-28 ~05:20 IST
-
-**Branch `lane/control`, pushed at `e4361662b`, tree clean, 0/0 with origin. No dev server of
-mine; port 8080 is free as far as I am concerned.** Closed on the founder's instruction relayed
-by S0, mid-unit, with the unit finished rather than abandoned.
-
-## DONE this session, last first
-
-- **`e4361662b` The rail carries the working crew, on every surface.**
-  SPEC-MULTIPLAYER-PRESENCE §3.4, the largest item my brief names me owner of.
-  `RailCrew` mounts once in `AppFrame` between the nav and `.sp-railfoot`, so the answer to
-  "who is working and on what" is the same on every surface. Pure derivation in
-  `src/components/shell/rail-crew.ts` (newest anchor per agent), 18 tests across two files.
-  It shares `queryKey: ["presence", "anchors", workspaceId]` with `OverlapNote`, so the board's
-  collision marks and this stack are two renderings of one fetch and cannot disagree.
-- Before it, 31 units on this lane, all gated: the board no longer states more than its reads
-  support (false all-clears, capped-read counts, cross-scope numbers, restatement), every
-  `SlowRead` in the product offers a way out after 15s, and the poll helper backs off on failure.
-
-## OPEN, and it is mine
-
-- **§3.1 the cursor layer and §3.2 the shared-object indicator are NOT BUILT.** §3.3 the
-  collision mark exists but only on the board, via `today/OverlapNote.tsx`; the spec puts it
-  app-wide in the shell. §3.4 is now built, so the remaining three are the whole gap.
-- **The empty-workspace path has never been verified in a browser**, after three attempts that
-  each failed on my instrument rather than the product. Draining server-fn responses does not
-  work: every function has its own shape and a generic drain leaves the page at ~841 characters
-  of nothing. The honest instrument is a genuinely empty workspace, i.e. a second account.
-  `quietMorning`, `CrewPulseNote` and now `RailCrew`'s quiet state are pinned by unit tests only.
-- **The fold is still the founder's call, not mine.** At 1440x900 the first Approve sits at
-  946px. Every remedy costs something real; the analysis is in `docs/lanes/log/S2.md`.
-
-## FOR S0 AND S1 — a swallow that makes a failure indistinguishable from calm
-
-`getWorkspaceAnchors` (`src/lib/approvals-queue.functions.ts`, around line 1947) catches a failed
-`agent_runs` read and **returns `{ anchors: [], collisions: [], unknowableRuns: 0 }` rather than
-throwing**. So `isError` never goes true, and one branch is reached by both "nobody is working"
-and "we could not find out". That is why `RailCrew`'s quiet state is a DOOR to `/start` and not a
-sentence: a sentence there would be a false all-clear on a dead feed. Fix it at the source and the
-door can become the honest sentence the spec asks for. **Do not "fix" the component instead.**
-
-## FOR S4 — §3.4 is built, and here is what to point your standing check at
-
-Your check is that no presence mark exists which cannot be traced to a row. `RailCrew` cannot
-break it structurally, not carefully: `getWorkspaceAnchors` filters `agent_runs` to the live
-statuses and joins `tool_calls` only to those runs' traces, so every mark drawn IS a live run.
-Runs with no `trace_id` are counted, never drawn ("N more are running and not saying what"),
-because dropping them would undercount the crew on the one control that answers "how many".
-
-## DO NOT RE-INVESTIGATE
-
-- **Em dashes.** 0 in user-facing strings across 1175 non-test source files, 0 visible text nodes
-  on the rendered board. Closed.
-- **Meridian adoption.** 49 of 49 components have an importer. Closed.
-- **`missions` has no subject key** (full column list checked). Duplicate detection matches on
-  title as a floor. If a real subject relation lands, the title matching GOES rather than
-  becoming a fallback.
-- **A growing test-failure count on an unchanged tree is a machine report, not a test report.**
-  I watched 2 -> 7 -> 15 timeouts at load average 28-31 with four lanes running gates;
-  `bun test --timeout 30000` returned 12,773 pass, 0 fail on the same tree. A chained gate run
-  returned exit 137 (killed) the same way. Run gates individually with a captured exit code.
-- **Prose is not code.** Four times a sweep of mine reported my own explanatory comment, quoting
-  the line it had replaced, as the defect. Strip comments before scanning.
-
-## MID-FLIGHT WHEN THE CALL LANDED
-
-Nothing half-applied. The RailCrew unit was the in-flight work and it is finished, gated and
-pushed. `src/styles/shell.css` carried a stray trailing newline from CSS I had added and then
-removed; reverted to HEAD, so the file is untouched by me.
 
 ---
 
