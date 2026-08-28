@@ -196,13 +196,23 @@ describe("no design-system token is used bare unless something declares it", () 
   });
 
   it("nothing is excused that no longer has a call site", () => {
-    // An exemption excuses a USE, so the only thing that keeps one alive is a
-    // use. If a name in here has no bare call site left, the defect is fixed
-    // and the entry must go -- otherwise it silently pre-approves the next
-    // orphan that happens to reuse the name.
+    /*
+     * MERGED FROM TWO LANES AND STRICTLY STRONGER THAN EITHER.
+     *
+     * S3's framing is the right one and it is theirs: an exemption excuses a
+     * USE, so the only thing that keeps one alive is a use. If a name here has
+     * no bare call site left, the defect is fixed and the entry must go, or it
+     * silently pre-approves the next orphan that reuses the name.
+     *
+     * The `declared` clause is S4's and covers the other way an entry dies: a
+     * token that gets DECLARED is no longer an orphan even though it is still
+     * used, and excusing it would then hide a real reference behind a stale
+     * exemption. Neither lane's version caught both.
+     */
+    const declared = declaredTokens();
     const used = usedWithoutFallback();
-    const excusedButUnused = [...MERIDIAN_ORPHANS].filter((t) => !used.has(t));
-    expect(excusedButUnused.sort()).toEqual([]);
+    const stale = [...MERIDIAN_ORPHANS].filter((t) => !used.has(t) || declared.has(t));
+    expect(stale.sort()).toEqual([]);
   });
 
   it("the four that were excused are fixed, not merely delisted", () => {

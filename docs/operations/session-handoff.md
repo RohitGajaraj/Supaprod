@@ -162,6 +162,35 @@ guard: **a scan of nothing must never report clean.** That rule was earned three
 `0 below AA of 0 judged`, a `0 errors` from a compiler that had died, and a `12,531 of 12,531` that
 was counting a default.
 
+
+### Two kinds of green board, and the remedies are opposite
+
+Sharpened with S2 at the close, and this is the most useful thing in the ledger.
+
+**A tool's silence misread as its verdict.** Three instances tonight:
+
+- a CI check that **never started** — indistinguishable in a branch list from one that ran and failed
+- a gate **killed at exit 137**, which looks exactly like a gate that was not run
+- a compiler that **died mid-run** and reported `0 errors`, which I nearly filed as a clean suite
+
+**No tool having an opinion at all.** One instance, a different shape:
+
+- `background: var(--mrd-raised)` named a property declared nowhere. A bare `var()` on an undeclared
+  custom property is **legal CSS** — the declaration is silently dropped and the element inherits.
+  tsc, eslint and the build were all **correct** to stay silent. There was nothing for them to
+  report. It surfaced only because a guard was widened from the retired `--sp-` family to the one
+  everybody actually writes.
+
+**Both end in a green board and a wrong screen, and that is where the similarity stops.** The first
+three need the runner's status surfaced, so silence can be told from a verdict. The fourth needs a
+check that does not exist yet — S3's proposal is the right one: every `var(--mrd-*)` in the repo must
+name a property `meridian.css` declares. Mechanical, cheap, and it would have caught this on the
+introducing commit.
+
+**Do not treat them as one problem.** A team that hears "our checks missed it" four times will
+harden the checks it has, which fixes three of these and cannot touch the fourth.
+
+
 ## 6 · The habit worth keeping
 
 **Four defects in my own instrument were found by trying to prove a fix, not by hunting a fault.** It

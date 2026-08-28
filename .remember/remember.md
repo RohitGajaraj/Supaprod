@@ -66,6 +66,21 @@ importer — including all five orphans S3 found by hand. It printed them and ex
 
 Every ratchet freezes today's debt, fails only on growth, and carries an anti-vacuity guard.
 
+## Two kinds of green board, and the remedies are opposite
+
+**A tool's silence misread as its verdict** — a CI check that never started, a gate killed at exit
+137, a compiler that died reporting `0 errors`. Three tonight. These need the runner's status
+surfaced so silence can be told from a verdict.
+
+**No tool having an opinion at all** — `var(--mrd-raised)` named a property declared nowhere. A bare
+`var()` on an undeclared custom property is legal CSS, so the rule is silently dropped and the element
+inherits. tsc, eslint and the build were **correct** to say nothing. This needs a check that does not
+exist yet: every `var(--mrd-*)` must name a property `meridian.css` declares.
+
+**Both end in a green board and a wrong screen.** A team that hears "our checks missed it" four times
+will harden the checks it has, which fixes three of these and cannot touch the fourth.
+
+
 ## Three rules this session paid for
 
 1. **A scan of nothing must never report clean.** Earned three times: `0 below AA of 0 judged`,
