@@ -74,6 +74,7 @@ import { useGovernedWrite } from "@/hooks/use-workspace-role";
 import { GovernedWriteNote } from "./GovernedWriteNote";
 import { fmtUsd } from "@/components/product/format";
 import { Receipt } from "@/components/meridian/Receipt";
+import { useConfirm } from "@/hooks/use-confirm";
 
 const SURFACES = [
   "agent",
@@ -408,6 +409,36 @@ export function BudgetsPanel({
     onError: capWriteFailed,
   });
 
+  /*
+   * ── REMOVING A CEILING WAS CHEAPER THAN SETTING ONE ──────────────────────
+   *
+   * Adding a surface budget takes a form and an amount; `deleteSurfaceBudget`
+   * fired straight off the button. So the act that WIDENS what may be spent
+   * cost one click and the act that narrows it cost a form, on the panel whose
+   * whole job is saying what the system is allowed to do.
+   *
+   * The same inversion is recorded twice already: `MembersCard` ("taking away
+   * somebody's access was cheaper than promoting them") says /boundary found it
+   * on its own mode controls too. `useConfirm` is the established destructive
+   * question on 32 surfaces and `MembersCard` sets the wording rule, so this
+   * follows it rather than inventing a shape: name WHICH surface, speak in
+   * second person, and put what cannot be walked back last.
+   *
+   * The row's own success note already says "<surface> has no ceiling of its
+   * own now", which is the consequence stated AFTER the fact. This is the same
+   * sentence moved to before it, where a person can still act on it.
+   */
+  const confirm = useConfirm();
+  const askThenRemoveSurface = async (surface: string) => {
+    const ok = await confirm({
+      title: `Remove the ceiling on ${surface}?`,
+      body: `${surface} has its own limit today. Removing it stops nothing that is running and spends nothing, but this row will no longer hold anything back, and ${surface} falls to whatever the workspace allows. Setting it again means entering the amount and the window from scratch.`,
+      confirmLabel: "Remove the ceiling",
+      destructive: true,
+    });
+    if (ok) removeSurfaceMut.mutate(surface);
+  };
+
   const ackMut = useMutation({
     mutationFn: (id: string) => ackFn({ data: { id } }),
     onSuccess: () => inv(),
@@ -711,7 +742,7 @@ export function BudgetsPanel({
                   variant="quiet"
                   disabled={removeSurfaceMut.isPending || !capWrite.allowed}
                   title={capWrite.reason ?? undefined}
-                  onClick={() => removeSurfaceMut.mutate(row.surface)}
+                  onClick={() => void askThenRemoveSurface(row.surface)}
                 >
                   Remove
                 </Action>
