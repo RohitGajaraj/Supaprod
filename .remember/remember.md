@@ -1,3 +1,167 @@
+# S0 CONDUCTOR — 2026-08-28 ~06:25 IST — SESSION CLOSE, MAIN TAKEN AND DEPLOYED
+
+**Production is live on the full five-lane integration, and it is verified rather than
+announced.** `origin/main` = `86a4509ed`. Every lane is **0 ahead, 0 behind**.
+
+## THE DEPLOY IS VERIFIED BY THE BYTES ON THE WIRE, NOT BY A GREEN TOOL CALL
+
+The Lovable deploy reports `pending` and returns a URL; neither says what SHIPPED. What
+was checked:
+
+| Check | Result |
+| --- | --- |
+| Local build of the integrated tree | `styles-CUgl1fzh.css` |
+| `supaprod.ai` serving now | `styles-CUgl1fzh.css` — same hash |
+| Live `.today-hero` rule | `border-top`, `border-bottom`, `margin`, `padding`, **no `background`** |
+
+**THE FIRST DEPLOY SHIPPED THE WRONG TREE AND ONLY THIS CHECK CAUGHT IT.** `deploy_project`
+fired before Lovable had synced `86a4509ed`, so it published `0ba9043fd` — the previous
+main, which still carried `background: var(--mrd-lift)`. Confirmed by fetching the live
+CSS: the fill was on production. A second deploy after the sync fixed it. **Never treat a
+`pending` deployment id as a deploy; fetch the asset and compare the hash.**
+
+`supaprod.lovable.app` 302s to `supaprod.ai`. Same app, custom domain, Lovable hosting on
+Cloudflare — so `server: cloudflare` on `supaprod.ai` does NOT mean a separate worker
+pipeline. That cost me twenty minutes chasing a deploy path that does not exist.
+
+## MIGRATIONS: ONE NEW, AND IT WAS ALREADY APPLIED. VERIFIED OBJECT BY OBJECT
+
+The founder's concern was that Lovable concatenates migrations and misses some. **It has
+not.** Checked against `information_schema` and `pg_catalog` directly, never
+`schema_migrations`:
+
+- `20260827001500_a_steer_is_addressed_to_the_work_not_to_a_seat.sql` is the only migration
+  new in this integration. `mission_id` and `to_agent_slug` are both already nullable, the
+  `agent_messages_addressed_to_something` CHECK already exists, and 0 of 161 rows violate
+  it. **No DDL was run**: re-running would drop and re-add a live constraint for no gain.
+  The file's own header says it is "a no-op against production, and the missing history
+  everywhere else", which is exactly what it turned out to be.
+- Swept every migration from 08-25 to 08-27 for the objects each claims to create.
+  **17 of 17 present**: 7 functions, 3 indexes, `track_drives`, and `is_sample` on all six
+  tables. Nothing has been skipped.
+
+## THE CI RED IS A BILLING BLOCK, AND IT IS NOW MEASURED RATHER THAN REPORTED
+
+S2 reported it across four runs. S4 could not verify it (`gh` absent in its worktree) and
+correctly logged it as second-hand. **I verified it directly on the run for this very
+integration**, `33130173587`:
+
+> The job was not started because recent account payments have failed or your spending
+> limit needs to be increased.
+
+Every push to main fails in 3–4 seconds for this reason. **A gate that was not run is not a
+failing gate.** `ci.yml` has only a `checks` job and no deploy step, so this blocks
+verification, not shipping. **FOUNDER ACTION, AND NOBODY IN ANY LANE CAN CLEAR IT.**
+
+## WHAT I BUILT
+
+- **F-150** — `MERIDIAN_ORPHANS` excused two tokens whose call sites were all fixed, so the
+  excuse outlived the defect and the guard said so. Also found the same two tests copied
+  verbatim out of the token `describe` into the CSS-**class** `describe` and never
+  repointed, so a class guard was announcing token failures under a heading that does not
+  describe them. Deleted the copies.
+- **F-151** — the vocabulary ruling reached three maps and missed the fourth.
+  `LineageDrawer`'s `KIND_LABEL` is read through `.toLowerCase()` into "How this {label}
+  connects across the product lifecycle", so the product rendered **"How this what we found
+  connects across the product lifecycle."** Same defect as "1 what we found" with a
+  demonstrative instead of a number. The guard now watches that map too, mutation-tested
+  with the real defect.
+- **The fold ruling**, held across four separate merges that each tried to reinstate the
+  fill. Deletion, not repoint. See below.
+
+## FOUR SESSIONS FOUND ONE GUARD INDEPENDENTLY, AND THE FINAL FORM BEATS ALL OF THEM
+
+S4-159, my F-150, S3's U-142, then S4's merge of the last two. Nobody took anybody's word.
+S3 named the right question ("is this token STILL USED BARE") where mine bundled two
+questions into one expression; S4 then restored the `declared` clause because an exemption
+dies **two** ways — its call site disappearing, or the token becoming declared while still
+in use — and neither lane's version caught both. **That is the coordination protocol
+producing something better than any lane had, rather than merely avoiding a collision.**
+
+## THE FOLD RULING, AND WHY IT KEPT COMING BACK
+
+`.today-hero` carried `background: var(--mrd-raised)`, a token declared nowhere, so the
+declaration was dropped and the rule **typechecked, linted, built and did not exist on
+screen**. One lane repointed it at `--mrd-lift`; the ruling DELETED it.
+
+The deciding evidence is which comment is a witness. The "a raised background" comment both
+repointers cited **was written while the broken declaration sat in the file**, so it
+describes the DECLARATION, not an observed pixel — a symptom of the bug, not testimony for
+it. The section header states the real intent, "one featured moment with air and rules",
+and the rule already delivers both: 26px/22px of padding is the air, the two borders are
+the rules.
+
+**S3 then measured the thing that settles it, and S2 verified it independently:** `--mrd-lift`
+is +0.070 on dark and −0.014 on light against `--mrd-bg`. It **inverts direction between
+grounds**. The repoint would have shipped a prominent band in one theme and a 1.4% step in
+the other, and whoever shipped it would only ever have seen the dark one. If a fill is ever
+chosen deliberately, `--mrd-sheet` is the rung — that is a design decision needing a
+browser, not a merge resolution.
+
+**It came back on four separate merges.** S2 proved that main-against-its-branch merged
+clean with zero conflicted paths, so on that path nothing would have raised it. Verified
+comment-stripped after **every** branch merge, because S4's branch had merged origin/main
+and could have carried the fill back behind a clean merge.
+
+## THE VERIFICATION LESSON OF THE NIGHT, AND IT CAUGHT US FIVE TIMES
+
+**A naive `grep` reads prose as code.** S2's own ten-second check,
+`grep 'background: var(--mrd-'`, reports FILL PRESENT on a tree with no fill, because the
+comment explaining the removal quotes the line it replaced. S2 demonstrated the false
+positive on its own commit. **Strip comments before asserting anything about CSS or tokens.**
+The correct check is in S2's final message and exits 0/1/2 rather than printing a line.
+
+## STILL OPEN — READ BEFORE RE-INVESTIGATING
+
+1. **`track_drives` has 323 rows and no reader** (S4, and the sharpest finding of the night).
+   277 sweep drives, 40 human presses across 19 tracks, 6 continuations. `driven_via` is the
+   exact column the acceptance query needs to exclude runs a person pressed, and the only
+   `SELECT` on that table anywhere in the repo is inside a test's documentation string.
+   **The work agents do is recorded faithfully and shown nowhere — the founder's own test
+   failing quietly.** Not a migration; the data is correct and already there.
+2. **A refusal lands in `agent_approvals` OR `tool_calls`**, depending on whether it crossed
+   the approval boundary. **Any claim of the form "tool X has never failed" is false unless
+   it names both tables.** S1 nearly filed a false finding on this and caught it — our
+   dominant defect class (a narrow read coming back empty, taken as a fact about the record
+   rather than about the column read), committed by the session that had been naming it all
+   night, then converted into a check instead of a sentence.
+3. **`tools-refused` promises a specific reason and the one live instance has none** (S1).
+   `driver.server.ts:2491` writes the sentence; track `8391835f` sits at `tools-refused` with
+   `last_hold_because` NULL and `attempts` 0. Same for `given-up` and `going-in-circles`.
+   **NOT to be confused with the 49 of 50 NULLs, which S1 checked and cleared as F-127
+   working as designed** — a generic sentence in a field meant for specifics is worse than a
+   null. Do not record that one as open.
+4. **`check:unreachable` does not follow `React.lazy(() => import(…))`** (S3). Ten of the
+   eighty it lists are mounted. Keep the ratchet, it cannot regress; **do not hand its output
+   to anyone as a backlog.**
+5. **`bun run typecheck:tests` reports 414 errors.** Pre-existing: every erroring file is
+   unchanged versus main. It is not wired into any hook or CI gate — S3 added it as a
+   diagnostic "so it can be driven down and then gated". Not a regression, not a blocker.
+6. **`signals.log`, 28 failures, is two unrelated problems wearing one count** (S1). 17 are a
+   missing `SUPABASE_SERVICE_ROLE_KEY` (ops, not product); 11 are a guard correctly refusing
+   to log this product's own `workspace.brief` as evidence about the world. Split before
+   deciding anything.
+7. **`.remember/remember.md` is TRACKED, while CLAUDE.md calls it untracked.** S3 trusted the
+   document over the index and a `git add -A` deleted 135 of S4's lines. **Until that is
+   reconciled the rule is: append, never write whole.**
+
+## GATES
+
+Run individually with captured exit codes, never chained, because a chained run was killed
+at exit 137 earlier tonight and **a gate that was killed is a gate that was not run**.
+
+`tsc 0 · docs:check 0 · check:unreachable 0 · check:retired-aliases 0 · check:dead-writers 0
+· build 0 · bun test 12,972 pass / 22 skip / 0 fail across 892 files.`
+
+## NO LANE'S WORK WAS LOST, AND IT IS CHECKED RATHER THAN ASSERTED
+
+All six heads — `main`, `lane/run`, `lane/control`, `lane/platform`, `lane/proof`, `s1` —
+were confirmed ancestors of the integration before the push, then fast-forwarded to it.
+Every handoff conflict was resolved as a **union** and then deduplicated only where a section
+was byte-identical or empty, never by taking a side.
+
+---
+
 # S3 (platform lane), night of 2026-08-27 into 08-28
 
 Lane `lane/platform`, head after handoff commit. 32 build units U-111 to U-141, all pushed, all
