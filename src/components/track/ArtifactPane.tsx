@@ -24,6 +24,8 @@ import { failureLine } from "@/lib/error-copy";
 import { humanizeText } from "@/lib/ai/humanize";
 import { panelSaysItFiledNothing } from "@/components/track/who-reports-an-empty-station";
 import { groupByThePattern } from "@/components/track/group-by-the-pattern";
+import { enterMotion } from "@/components/spine/enter-motion";
+import { usePrefersReducedMotion } from "@/components/knowledge/graph-visual";
 import { justGrouped } from "@/components/track/just-grouped";
 import { plainProse } from "@/lib/plain-prose";
 /*
@@ -1919,6 +1921,7 @@ export function SenseBody({
   now: number;
   trackId: string;
 }) {
+  const reducedMotion = usePrefersReducedMotion();
   const primed = React.useRef(false);
   const seenThemes = React.useRef<Set<string>>(new Set());
   /** Which theme each signal was last seen in; "" for none. */
@@ -2008,11 +2011,7 @@ export function SenseBody({
           <section
             key={g.themeId}
             aria-label={heading}
-            style={
-              arrived
-                ? { animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }
-                : undefined
-            }
+            style={enterMotion(arrived, reducedMotion)}
             className="flex flex-col gap-mrd-2 border-b border-mrd-line-soft pb-mrd-4 last:border-0"
           >
             {t ? (
@@ -2041,9 +2040,7 @@ export function SenseBody({
                    * above is already animating, and animating both makes one
                    * event look like two.
                    */
-                  freshlyGrouped.has(s.artifactId) && !arrived
-                    ? { animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }
-                    : undefined
+                  enterMotion(freshlyGrouped.has(s.artifactId) && !arrived, reducedMotion)
                 }
               >
                 <SignalCard item={s} now={now} trackId={trackId} patternShownAbove />
@@ -2125,9 +2122,17 @@ function StationPanel({
    * cuts the duration, and this is a thing a person watching a run sees often.
    *
    * Inline style rather than a class, deliberately: meridian.css's
-   * reduced-motion block matches on the style attribute, so declared as a
-   * utility it would keep animating for someone who asked it not to.
+   * reduced-motion block matches on the style attribute (`[style*="mrd-fade-up"]`
+   * at meridian.css:2089), so declared as a utility it would keep animating for
+   * someone who asked it not to.
+   *
+   * THAT BLOCK ONLY ANSWERS THE OPERATING SYSTEM. It sits under
+   * `@media (prefers-reduced-motion: reduce)`, and `data-motion` appears NOWHERE
+   * in `src/styles/` at all, meridian.css included. So the in-product toggle
+   * never reached this and the motion is gated here instead, at the source. See
+   * `spine/enter-motion.ts`.
    */
+  const reducedMotion = usePrefersReducedMotion();
   const primed = React.useRef(false);
   const seen = React.useRef<Set<string>>(new Set());
   const landedKeys = (view?.items ?? stop.members).map((m) => `${m.kind}:${m.artifactId}`);
@@ -2150,11 +2155,10 @@ function StationPanel({
   let landedSoFar = 0;
   const arrival = (key: string): React.CSSProperties | undefined => {
     if (!primed.current || seen.current.has(key)) return undefined;
+    const motion = enterMotion(true, reducedMotion);
+    if (!motion) return undefined;
     const step = Math.min(landedSoFar++, 5) * 40;
-    return {
-      animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both",
-      animationDelay: `${step}ms`,
-    };
+    return { ...motion, animationDelay: `${step}ms` };
   };
 
   if (stop.state === "waived") {
