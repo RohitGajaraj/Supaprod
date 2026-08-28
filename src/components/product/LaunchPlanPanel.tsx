@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { readFailureMessage } from "@/lib/roles.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckSquare, Rocket, Square } from "lucide-react";
@@ -76,6 +77,15 @@ export function LaunchPlanPanel({ prdId }: Props) {
 
       {planQ.isLoading ? (
         <p className="text-xs text-muted-foreground">Loading…</p>
+      ) : planQ.isError ? (
+        /* A FAILED READ IS NOT AN EMPTY RECORD. Without this arm the sentence
+           below ran, and "No launch plan yet" is a claim about the record made
+           out of a query that did not come back. It reads as an invitation to
+           draft one that already exists. */
+        <p className="text-xs text-muted-foreground">
+          The launch plan did not load, so this is not a claim that there is none.{" "}
+          {readFailureMessage(planQ.error)}
+        </p>
       ) : !plan ? (
         <p className="text-xs text-muted-foreground">
           No launch plan yet. This drafts positioning grounded in the spec's own intent and decision
@@ -137,6 +147,9 @@ export function LaunchPlanPanel({ prdId }: Props) {
                   : "Not armed"}
               </p>
               <input
+                /* A bare number box with no placeholder and no label announced
+                   as nothing at all. R-19. */
+                aria-label="Days from launch to the outcome check"
                 type="number"
                 min={1}
                 max={365}

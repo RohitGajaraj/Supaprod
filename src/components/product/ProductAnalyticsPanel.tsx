@@ -10,6 +10,7 @@
  * Silently absent when no featureEvent is linked (doesn't clutter the detail
  * page until the PM explicitly wires up a tracking event).
  */
+import { readFailureMessage } from "@/lib/roles.functions";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -126,6 +127,9 @@ export function ProductAnalyticsPanel({
         {editingEvent ? (
           <div className="flex items-center gap-2">
             <input
+              /* A placeholder that is an EXAMPLE is the worst kind to lean on:
+                 it names one value rather than the field. R-19. */
+              aria-label="Event name to link"
               autoFocus
               value={eventDraft}
               onChange={(e) => setEventDraft(e.target.value)}
@@ -208,7 +212,17 @@ export function ProductAnalyticsPanel({
           </div>
         )}
 
-        {!hasData && d.featureEvent && (
+        {/* A FAILED READ IS NOT "NO DATA YET". The old sentence invited a
+            refresh, which is the wrong action for a read that did not come
+            back and the right one for a source that has nothing -- and a
+            person cannot tell those apart from it. */}
+        {analytics.isError && d.featureEvent && (
+          <p className="text-mrd-tiny text-muted-foreground">
+            The cohort read did not come back, so this is not a claim that there is nothing to show.{" "}
+            {readFailureMessage(analytics.error)}
+          </p>
+        )}
+        {!analytics.isError && !hasData && d.featureEvent && (
           <p className="text-mrd-tiny text-muted-foreground">
             {d.ingestGated
               ? "Set POSTHOG_PERSONAL_API_KEY + POSTHOG_PROJECT_ID to pull cohort data."

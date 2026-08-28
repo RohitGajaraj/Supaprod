@@ -89,9 +89,33 @@ export function money(n: number): string {
   return `$${n.toFixed(2)}`;
 }
 
-function runsWord(n: number): string {
-  return n === 1 ? "Your last run" : `Your last ${n} runs`;
+function runsWord(n: number, one: string, many: string): string {
+  return n === 1 ? `Your last ${one}` : `Your last ${n} ${many}`;
 }
+
+/**
+ * What the population is called, and whether a halt can be SEEN in it.
+ *
+ * `seesHalts` is the three-state discipline, not a convenience. `agent_runs`
+ * carries `halted_reason`, so a run population can honestly say "and none of
+ * them stopped here". `spine_tracks` carries no halt column at all, so the same
+ * clause on a track population would be a claim made out of a field that does
+ * not exist -- true-sounding, unfalsifiable, and exactly the shape this module
+ * refuses everywhere else. A population that cannot see halts says nothing
+ * about stopping.
+ */
+export interface CeilingSubject {
+  one: string;
+  many: string;
+  seesHalts: boolean;
+}
+
+export const RUNS: CeilingSubject = { one: "run", many: "runs", seesHalts: true };
+export const TRACKS: CeilingSubject = {
+  one: "piece of work",
+  many: "pieces of work",
+  seesHalts: false,
+};
 
 /** "cost $0.05 at the most" reads wrong about a single run, which cost exactly
  *  that. One run gets the plain verb; a population gets the superlative. */
@@ -99,16 +123,19 @@ function costPhrase(population: number, highest: number): string {
   return population === 1 ? `cost ${money(highest)}` : `cost ${money(highest)} at the most`;
 }
 
-export function ceilingReality(runs: readonly CeilingRun[] | null | undefined): CeilingReality {
+export function ceilingReality(
+  runs: readonly CeilingRun[] | null | undefined,
+  what: CeilingSubject = RUNS,
+): CeilingReality {
   if (!runs || runs.length === 0) return NOTHING;
 
   const amounts = runs.map((r) => dollars(r.spend_used_usd)).filter((n): n is number => n !== null);
   if (amounts.length === 0) return NOTHING;
 
-  const stopped = runs.filter((r) => stoppedOnSpend(r.halted_reason)).length;
+  const stopped = what.seesHalts ? runs.filter((r) => stoppedOnSpend(r.halted_reason)).length : 0;
   const highest = Math.max(...amounts);
   const population = amounts.length;
-  const subject = runsWord(population);
+  const subject = runsWord(population, what.one, what.many);
   const cost = costPhrase(population, highest);
 
   /* THE STOPS LEAD WHEN THERE ARE ANY. A ceiling that has actually bound is a
@@ -130,6 +157,11 @@ export function ceilingReality(runs: readonly CeilingRun[] | null | undefined): 
       highest: 0,
       population,
     };
+  }
+
+  /* No halt column, no claim about halting. See CeilingSubject.seesHalts. */
+  if (!what.seesHalts) {
+    return { said: `${subject} ${cost}.`, stopped: 0, highest, population };
   }
 
   const none = population === 1 ? "it did not stop here" : "none of them stopped here";

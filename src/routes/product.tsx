@@ -172,7 +172,27 @@ function ProductPage() {
               fontFamily: "var(--mrd-font)",
               lineHeight: 1.6,
               color: "var(--mrd-mute)",
-              maxWidth: "480px",
+              /*
+               * 480px UNTIL 2026-08-28, AND A PIXEL CAP STOPS TRACKING THE
+               * TYPE SCALE.
+               *
+               * `ch` is the advance of "0" in the element's own font, so a
+               * measure written in ch follows the type when it moves and a
+               * measure written in pixels silently changes its character count
+               * instead. Nobody notices, because nothing on screen looks wrong.
+               *
+               * 54.4ch IS THIS BLOCK'S CURRENT WIDTH, NOT A NEW ONE. S4
+               * measured it in the browser by appending a probe span carrying
+               * this element's own font rather than assuming a ratio: 14px,
+               * 1ch = 8.83px, so 480px is 54.36ch. Not rounded, deliberately --
+               * rounding to 54 or 55 would reintroduce exactly the guess the
+               * measurement was taken to remove.
+               *
+               * It was never TOO WIDE. Meridian's prose measure is 68ch and
+               * this is comfortably inside it; the defect was the unit, not the
+               * number.
+               */
+              maxWidth: "54.4ch",
               marginLeft: "auto",
               marginRight: "auto",
             }}

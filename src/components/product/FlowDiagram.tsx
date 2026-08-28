@@ -1,4 +1,5 @@
 import { useServerFn } from "@tanstack/react-start";
+import { readFailureMessage } from "@/lib/roles.functions";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw, Workflow } from "lucide-react";
 import { toast } from "@/lib/notify";
@@ -148,6 +149,14 @@ export function FlowDiagram({ prdId }: Props) {
 
       {flowQ.isLoading ? (
         <p className="text-mrd-small text-mrd-mute">Loading…</p>
+      ) : flowQ.isError ? (
+        /* A FAILED READ IS NOT AN EMPTY SPEC. "No flow generated yet" offers to
+           generate one, so a reader who acts on it regenerates work that may
+           already exist rather than retrying a read. */
+        <p className="max-w-[62ch] text-mrd-small leading-mrd-prose text-mrd-mute">
+          The flow did not load, so this is not a claim that none has been generated.{" "}
+          {readFailureMessage(flowQ.error)}
+        </p>
       ) : !flow || flow.steps.length === 0 ? (
         <p className="max-w-[62ch] text-mrd-small leading-mrd-prose text-mrd-mute">
           No flow generated yet. This reads the spec's own body and extracts the steps, decision

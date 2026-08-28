@@ -1,50 +1,64 @@
 /**
- * An autonomous verdict must attach to the work it was about.
+ * `learning.record`, in one file because two files cannot own one module mock.
  *
- * WHY THIS EXISTS. A learning that carries no `prd_id` carries no
- * `opportunity_id` either, because the bet is resolved THROUGH the spec. An
- * unattached verdict cannot re-rank the bet that produced it, cannot reach
- * /decide (which drops any learning with no theme), and cannot reach the
- * promotion bar (which joins learnings -> opportunities -> themes). So it is a
- * verdict that taught the product nothing, which is the moat claim quietly
- * failing.
+ * ── WHY THIS IS MERGED (F-147) ─────────────────────────────────────────────
+ * This was two files — `learning-record-attaches-to-its-track` and
+ * `learning-record-memory-failure` — and **both installed a process-wide
+ * `mock.module` for `@/lib/ai/memory.server` and `@/lib/observability/errors`
+ * at module top level.**
  *
- * `learning.record` had two recoveries for a missing `prd_id` and BOTH are dead on
- * the driver's route, as registry.server.ts documents at length: `missionId` is
- * null at Learn because the driver opens a mission only at Build, and the second
- * hop through `decisions.prd_id` is null by construction because at Decide the
- * spec does not exist yet. What remained was the driver naming the spec id in
- * `stationGoal` and the model choosing to copy it into a tool argument.
+ * `mock.module` in Bun is process-wide and the calls run at IMPORT time, before
+ * any test in either file executes. So the second file to be imported
+ * overwrote the first one's mock, the first file's tests then ran against the
+ * second file's stub, and the first file's `afterAll` restored the REAL module
+ * before the second file's tests had run at all.
  *
- * That is a contract enforced by prose. Measured live and quoted in that file: the
- * one track that completed the loop autonomously recorded two verdicts with
- * prd_id, opportunity_id and mission_id ALL null. This file pins the structural
- * fix -- read the spec off the track the driver already filed it against -- and,
- * more importantly, pins the ORDER, because a fallback that overrides what the
- * agent explicitly said would be a worse bug than the one it fixes.
+ * Both files were written carefully. Both captured the real modules first and
+ * both restored them in `afterAll`, which S1 spotted and which is exactly why
+ * restoring is not the fix: **the damage is done at import time, not at call
+ * time.** Two owners of one module cannot be made safe by tidying up after.
+ *
+ * The mocks below are the failure file's, because they are a strict superset:
+ * controllable through module-level state, defaulted in `beforeEach` to exactly
+ * what the resolution tests used to get from their fixed stubs.
+ *
+ * Recorded in `a-module-mock-is-process-wide.test.ts`, which freezes the
+ * remaining collisions so this set can only shrink.
  */
-import { describe, it, expect, afterAll, mock } from "bun:test";
+
+import { describe, it, expect, beforeEach, afterAll, mock } from "bun:test";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ToolDef } from "./registry.server";
 
 const realMemory = await import("@/lib/ai/memory.server");
 const realErrors = await import("@/lib/observability/errors");
 
-// Both are stubbed for the same reason: this file is about which id the tool
-// resolves, and the real versions embed text and write error rows. Restored in
-// afterAll because bun's module mocks are process-wide.
+type RememberResult = { id: string | null; supersedes: string[]; error: string | null };
+
+let rememberResult: RememberResult;
+let rememberThrows: Error | null = null;
+let recorded: Array<{ message: string; ctx: Record<string, unknown> }> = [];
+
 mock.module("@/lib/ai/memory.server", () => ({
   ...realMemory,
-  rememberOutcome: async () => ({ id: "mem-1", supersedes: [], error: null }),
+  rememberOutcome: async (): Promise<RememberResult> => {
+    if (rememberThrows) throw rememberThrows;
+    return rememberResult;
+  },
 }));
+
 mock.module("@/lib/observability/errors", () => ({
   ...realErrors,
-  recordErrorEvent: async () => true,
+  recordErrorEvent: async (err: unknown, ctx: Record<string, unknown> = {}) => {
+    recorded.push({ message: err instanceof Error ? err.message : String(err), ctx });
+    return true;
+  },
 }));
 
 const { TOOL_REGISTRY } = await import("./registry.server");
 const learningRecord = TOOL_REGISTRY["learning.record"] as ToolDef;
 
+// ── Resolution fixtures and helpers (was learning-record-attaches-to-its-track)
 const SPEC_ON_THE_TRACK = "11111111-1111-4111-8111-111111111111";
 const SPEC_THE_AGENT_NAMED = "22222222-2222-4222-8222-222222222222";
 const SPEC_VIA_MISSION = "33333333-3333-4333-8333-333333333333";
@@ -194,9 +208,114 @@ async function record(db: SupabaseClient, ctx: Ctx) {
   };
 }
 
+// ── Memory-failure fixtures and helpers (was learning-record-memory-failure)
+const PRD_ID = "11111111-1111-4111-8111-111111111111";
+
+/** Minimal Supabase stand-in covering exactly the reads/writes this tool makes
+ *  when it is handed a prd_id: the spec, the decision lookup (F-65), the bet,
+ *  the re-score, and the learnings insert that must survive a memory miss.
+ *  It THROWS on any other table on purpose — that is what caught F-65's new
+ *  query rather than letting it pass silently against a permissive fake. */
+function memoryFailureDb() {
+  const inserted: Array<Record<string, unknown>> = [];
+  const client = {
+    from(table: string) {
+      if (table === "prds") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({
+                data: {
+                  opportunity_id: null,
+                  workspace_id: "ws-1",
+                  title: "Inline approvals",
+                },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      /*
+       * F-65 added a decision lookup: `learning.record` now resolves the bet
+       * whose forecast the verdict settles, so the outcome stops being an orphan
+       * (133 production learnings carried decision_id NULL).
+       *
+       * Returns NO ROW on purpose. This test is about a memory-write failure
+       * being reported rather than swallowed, and the tool must behave
+       * identically whether or not a decision resolves — so the case exercised
+       * here is the one where none does, which is also the honest default.
+       */
+      if (table === "decisions") {
+        return {
+          select: () => ({
+            eq: () => ({
+              order: () => ({
+                limit: () => ({
+                  maybeSingle: async () => ({ data: null, error: null }),
+                }),
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === "learnings") {
+        return {
+          insert: (row: Record<string, unknown>) => {
+            inserted.push(row);
+            return {
+              select: () => ({
+                single: async () => ({ data: { id: "learning-1" }, error: null }),
+              }),
+            };
+          },
+        };
+      }
+      throw new Error(`unexpected table in this test: ${table}`);
+    },
+  } as unknown as SupabaseClient;
+  return { client, inserted };
+}
+
+const run = (db: SupabaseClient) =>
+  learningRecord.run(
+    {
+      summary: "Inline approvals cut the wait, activation did not move.",
+      verdict: "mixed",
+      prd_id: PRD_ID,
+    },
+    {
+      supabase: db,
+      userId: "user-1",
+      agentSlug: "critic",
+      missionId: "mission-1",
+      workspaceId: "ws-1",
+    },
+  ) as Promise<{
+    learning_id: string;
+    outcome_memory_id: string | null;
+    outcome_memory_error: string | null;
+  }>;
+
+/*
+ * ONE restore for the whole file, and it is now honest: nothing else in the
+ * process is holding a stub for these two modules while these tests run.
+ */
 afterAll(() => {
   mock.module("@/lib/ai/memory.server", () => realMemory);
   mock.module("@/lib/observability/errors", () => realErrors);
+});
+
+/*
+ * The defaults the resolution tests used to get from their own fixed stubs.
+ * Set for EVERY test in the file so a memory-failure case cannot leak its
+ * configured failure into a resolution case that runs after it — which is the
+ * same cross-contamination this merge exists to remove, one level down.
+ */
+beforeEach(() => {
+  rememberResult = { id: "mem-1", supersedes: [], error: null };
+  rememberThrows = null;
+  recorded = [];
 });
 
 describe("a verdict recorded by the driver finds its own spec", () => {
@@ -310,5 +429,66 @@ describe("a verdict recorded by the driver finds its own spec", () => {
 
     expect(out.learning_id).toBe("learning-1");
     expect(inserted[0].prd_id).toBeNull();
+  });
+});
+
+describe("learning.record: a failed outcome memory is reported, not swallowed", () => {
+  it("writes an error event naming the spec and the learning when nothing was remembered", async () => {
+    rememberResult = { id: null, supersedes: [], error: "no embedding, refused to write a ghost" };
+    const { client } = memoryFailureDb();
+
+    const out = await run(client);
+
+    expect(recorded.length).toBe(1);
+    expect(recorded[0].message).toBe("no embedding, refused to write a ghost");
+    expect(recorded[0].ctx.surface).toBe("learning.record");
+    expect(recorded[0].ctx.failure_kind).toBe("outcome_memory_not_written");
+    expect(recorded[0].ctx.user_id).toBe("user-1");
+    expect(recorded[0].ctx.workspace_id).toBe("ws-1");
+    // Without these the event says a memory failed and gives nobody a way to
+    // find WHICH outcome lost its lesson, which is barely better than the
+    // console line it replaced.
+    expect(recorded[0].ctx.extras).toMatchObject({
+      prd_id: PRD_ID,
+      learning_id: "learning-1",
+      verdict: "mixed",
+      agent_slug: "critic",
+      mission_id: "mission-1",
+    });
+    expect(out.outcome_memory_error).toBe("no embedding, refused to write a ghost");
+    expect(out.outcome_memory_id).toBeNull();
+  });
+
+  it("still returns the learning, because the row is already written", async () => {
+    rememberResult = { id: null, supersedes: [], error: "insert refused" };
+    const { client, inserted } = memoryFailureDb();
+
+    const out = await run(client);
+
+    expect(out.learning_id).toBe("learning-1");
+    expect(inserted.length).toBe(1);
+  });
+
+  it("reports a throw too, so the one case the old catch handled is not lost", async () => {
+    rememberThrows = new Error("agent_memory unreachable");
+    const { client } = memoryFailureDb();
+
+    const out = await run(client);
+
+    expect(out.learning_id).toBe("learning-1");
+    expect(out.outcome_memory_error).toBe("agent_memory unreachable");
+    expect(recorded.length).toBe(1);
+    expect(recorded[0].ctx.failure_kind).toBe("outcome_memory_not_written");
+  });
+
+  it("stays silent and carries the memory id when the write succeeded", async () => {
+    rememberResult = { id: "mem-9", supersedes: [], error: null };
+    const { client } = memoryFailureDb();
+
+    const out = await run(client);
+
+    expect(recorded.length).toBe(0);
+    expect(out.outcome_memory_id).toBe("mem-9");
+    expect(out.outcome_memory_error).toBeNull();
   });
 });

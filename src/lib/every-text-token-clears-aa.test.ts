@@ -30,8 +30,16 @@ import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-import { AA_NORMAL_TEXT, contrastRatio, oklchToSrgb, type Oklch } from "@/lib/contrast";
+import {
+  AA_NORMAL_TEXT,
+  contrastRatio,
+  contrastWithRgb,
+  oklchToSrgb,
+  over,
+  type Oklch,
+} from "@/lib/contrast";
 
+const SHELL = readFileSync(fileURLToPath(new URL("../styles/shell.css", import.meta.url)), "utf8");
 const CSS = readFileSync(fileURLToPath(new URL("../styles/meridian.css", import.meta.url)), "utf8");
 
 /**
@@ -130,5 +138,68 @@ describe("the specific claim that prompted this", () => {
     // `.sp-stage-state` both draw `color: var(--mrd-mute)` with no opacity.
     const r = contrastRatio(DARK.get("--mrd-mute")!, DARK.get("--mrd-sheet")!);
     expect(r).toBeGreaterThan(6.5);
+  });
+});
+
+describe("F-142: a translucent overlay makes a THIRD ground, and it was in neither list", () => {
+  /*
+   * S4 measured `--mrd-mute` at 4.43:1 on the station strip; I computed 7.12
+   * from the tokens. Both were right about different states.
+   *
+   * `.sp-stage[data-on="true"] { background: var(--mrd-select) }` and
+   * `--mrd-select: oklch(0.98 0.003 70 / 0.17)` — a 17% near-white wash. So the
+   * strip has TWO grounds and the AA scan above only knew about one, because a
+   * composite is a colour that appears in no token declaration.
+   *
+   * The state nobody checked was the one a person is looking at: **the station
+   * you are ON was the least readable thing on the strip.**
+   */
+  const SELECT_ALPHA = 0.17;
+  const selectOverSheet = (tokens: Map<string, Oklch>) =>
+    over({ ...tokens.get("--mrd-select-base")! }, SELECT_ALPHA, tokens.get("--mrd-sheet")!);
+
+  it("the overlay is still declared as a 17% wash, so this alpha is not stale", () => {
+    // If somebody changes the alpha, this fails and the assertions below get
+    // re-derived rather than quietly testing the wrong composite.
+    expect(CSS).toContain("--mrd-select: oklch(0.98 0.003 70 / 0.17)");
+  });
+
+  it("the composite reproduces what the browser actually painted", () => {
+    /*
+     * S4 reported #393735 from Chrome. Matching a real pixel is the only reason
+     * to trust this arithmetic: a check whose output cannot be adjudicated
+     * against something rendered is a second opinion nobody can settle.
+     *
+     * It also caught a real error — my first version blended in LINEAR light,
+     * which is physically correct and NOT what CSS does, giving #727170 and a
+     * ratio of 1.83.
+     */
+    const rgb = over({ l: 0.98, c: 0.003, h: 70 }, SELECT_ALPHA, DARK.get("--mrd-sheet")!);
+    const hex = rgb.map((c) => Math.round(c * 255));
+    expect(hex[0]).toBeGreaterThanOrEqual(0x38);
+    expect(hex[0]).toBeLessThanOrEqual(0x3b);
+  });
+
+  it("the SELECTED stage's ink clears AA, which is the fix", () => {
+    const rgb = over({ l: 0.98, c: 0.003, h: 70 }, SELECT_ALPHA, DARK.get("--mrd-sheet")!);
+    expect(contrastWithRgb(DARK.get("--mrd-ink")!, rgb)).toBeGreaterThanOrEqual(AA_NORMAL_TEXT);
+  });
+
+  it("and the rule that puts it there exists, naming a token that is real", () => {
+    /*
+     * S4 named `--mrd-text`, which does not exist. `var()` on an undefined
+     * custom property falls through to the inherited value silently, so the
+     * rule would have looked applied and changed nothing.
+     */
+    expect(SHELL).toContain('.sp-stage[data-on="true"] .sp-stage-n');
+    expect(SHELL).toContain("color: var(--mrd-ink);");
+    expect(CSS).toContain("--mrd-ink:");
+  });
+
+  it("mute on the composite is what S4 measured, so the defect was real", () => {
+    // Recorded rather than asserted as a requirement: this is why the selector
+    // exists, and if the overlay ever lightens this number should be re-read.
+    const rgb = over({ l: 0.98, c: 0.003, h: 70 }, SELECT_ALPHA, DARK.get("--mrd-sheet")!);
+    expect(contrastWithRgb(DARK.get("--mrd-mute")!, rgb)).toBeLessThan(AA_NORMAL_TEXT);
   });
 });

@@ -58,3 +58,32 @@
 .public-ink .text-zinc-500 {
   color: var(--mrd-mute);
 }
+
+/*
+ * THE LEGAL FOOTER'S SIX LINKS, AT A REAL TAP TARGET.
+ *
+ * Measured by S4 at every width: 21px tall against a 24px floor, on the five
+ * routes that share LegalPageShell. The gap to the nearest neighbour is 16px,
+ * so 21 + 16 + 16 = 53 and a full 44 fits with room left -- the Apple bar
+ * rather than the WCAG one, taken because here it costs nothing.
+ *
+ * AN OVERLAY RATHER THAN PADDING. A pseudo-element is out of flow, so it
+ * cannot change the row it sits in. Padding plus an equal negative margin does
+ * NOT have that property inside a centred flex row: the row follows its
+ * tallest child and grows anyway, which is what took the landing footer from
+ * 536 to 544 before I measured it. This shape cannot do that at all.
+ *
+ * Centred on the link rather than anchored to a corner, so the target grows
+ * evenly in both directions and no link reaches further into its neighbour
+ * than into its own text.
+ */
+.legal-footer-link::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44px;
+  height: 44px;
+  min-width: 100%;
+  transform: translate(-50%, -50%);
+}

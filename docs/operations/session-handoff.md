@@ -67,6 +67,86 @@ because dropping them would undercount the crew on the one control that answers 
 Nothing half-applied. The RailCrew unit was the in-flight work and it is finished, gated and
 pushed. `src/styles/shell.css` carried a stray trailing newline from CSS I had added and then
 removed; reverted to HEAD, so the file is untouched by me.
+# S3 handoff, 2026-08-28 ~00:30 UTC
+
+**Lane `lane/platform`, 32 commits U-111 to U-141, all pushed, all gated.** The tree is clean and
+every unit is coherent on its own. Nothing is half-landed.
+
+## THE ONE PATTERN WORTH CARRYING FORWARD
+
+**Unreachable finished work is the most common defect on these surfaces.** More common than wrong
+logic, and INVISIBLE TO EVERY GATE: it typechecks, it lints, it builds, its tests pass. Seven
+instances in one night, each a capability wired end to end with no way in:
+
+| What was finished | What was missing | Unit |
+| --- | --- | --- |
+| `BoundaryTool.chosen` (S0 shipped the field) | nothing read it | U-125 |
+| `MessageMetaFooter`, the only caller of `submitFeedback` | mounted nowhere, so **nothing in the product can rate a recall** | U-137 |
+| `AutoChip`, 32 lines | never drawn, so **166 of 369 decisions read as hand-raised** | U-138 |
+| `OutcomeHistory`, 188 lines | built for a tab it never reached | U-140 |
+| `data-motion`, 8 CSS rules + a MutationObserver | **nothing in `src/` ever wrote it** | U-141 |
+| `AskInPlace`, 176 lines | S1's mounts, still open | — |
+| `LiveTicker` | S2's top bar, still open | — |
+
+S4 has now gated the class (`bun run check:unreachable`, baseline 141 server functions / 80
+components, fails on an increase).
+
+**ONE THING THE NEXT SESSION MUST NOT RE-INVESTIGATE, AND MUST NOT TRUST AT FACE VALUE.** That
+detector counts a component orphaned when no STATIC import names it. It does not see
+`React.lazy(() => import("…"))`. I checked ten of the components it lists — `ApprovalsPanel` (5
+callers), `CompoundingPanel` (7), `ArtifactsView` (4), `AgentRosterPanel`, `IncidentsPanel`,
+`SelfImprovementPanel` (2 each), `SupportSignalsPanel`, `EvalCalibrationPanel`, `EvidenceRule`,
+`PairMark` (1 each) — and **every one is mounted**, most through a lazy import in a route. The 80 is
+therefore an upper bound, not a work list. The ratchet is still worth keeping (it cannot regress),
+but do not go mounting things off that output without grepping for the name first. Fixing the
+detector to follow `import(` belongs to S4, who owns `e2e/`.
+
+## What changed that a person can see
+
+- **Boundary / Guardrails, `src/components/governance/BoundaryControls.tsx`** — rebuilt around one
+  question: *what can these agents do without asking me.* Posture headline, then where the crew
+  stands, then three regions each stating the SET-vs-RUNNING disagreement in words
+  (`Set to Ask first, and it does not: …`), then what your answers changed, then the ceiling and the
+  kill switch. Six new pure modules with guards: `ceiling-reality.ts`, `gates-nobody-answered.ts`,
+  `what-they-actually-did.ts`, `where-the-crew-stands.ts`, `who-chose-this.ts`,
+  `guardrail-silence.ts`.
+- **`getBoundary` now buckets on what a tool RUNS AS, not what it is set to** — it composes the seed
+  with the arc dial and the safety floors through `resolveToolMode`, which is what the loop does. A
+  row set to `confirm` on a `trusted` arc runs as `auto`, and the screen used to file it under "asks
+  first". 96 of 97 `agent_tools` rows run as `auto`.
+- **Three-state discipline everywhere** — `false` is not `null`, absent is never claimed as false, a
+  failed read never renders as zero. Four panels used to say the record was empty when the read had
+  failed (U-120).
+- **Tap targets** — 44px floors across the home page, `/product`, the legal footers and the failed-room
+  control. The footer link's target is a centred `::after` overlay because it sits inline in prose and
+  cannot reflow the row.
+- **Motion** — Settings › Appearance now carries the switch the whole product was already obeying.
+  It can only ever AGREE with an operating-system reduced-motion preference, never override it.
+- **`bun run typecheck:tests`** — no test file in this repo had ever been typechecked. Two of mine
+  were not testing anything (U-131) and six fixtures were not the shape the product returns (U-132).
+  Deliberately NOT gated: 414 errors remain, visible and drivable.
+
+## OPEN, and why I did not take them
+
+Each needs an owner who was offline, and each is one small change:
+
+1. **`Door` is 56×21 inline in prose** (`src/components/meridian/`). `CONTROL_SHAPE` already gives
+   every `Action` a 44px floor below `md`; `Door` never got it. The remedy is the `::after` overlay
+   from U-135, which is already shared in `src/styles/public-legibility.css`.
+2. **`ReadFailed` repeats the shell's session sentence and adds a second door.** `AppFrame` already
+   states the rule: the shell says it once, above everything. Same directory as (1).
+3. **Nothing mounts a recall-rating control.** `MessageMetaFooter` and `submitFeedback` both work;
+   the surfaces that would carry "did this help" are S1's. Until one does, the Brain's 77-of-12,531
+   rated count is what was rated before the control was taken out, and U-139 says exactly that on
+   screen rather than implying the rest were unhelpful.
+
+## Do not re-measure these
+
+`guardrail_hits` stop dead on 2026-07-25 and S4 showed most are PLANTED (7,225 sample-workspace rows
+sharing a microsecond a month apart). Spend ceiling is $10 on all 21 workspaces against a max single
+run of $0.142. `mission_token_cap` is NULL on all 2,570 runs with **no resolver and no caller**. 92
+of 324 approvals expired unanswered. 133 of 135 learnings have a NULL `decision_id`. One
+`user_notification_preferences` row against 16 profiles (U-134).
 
 ---
 
@@ -327,6 +407,55 @@ they are about different errors. `42703`/`PGRST204` is a deployment-ordering fac
 and falls soft; anything else is a runtime fact and raises.
 
 ---
+
+## What the integration pass turned out to be for
+
+`main` is integrated and green: **12,849 tests across 866 files, 0 fail**, tsc 0,
+docs 0, build 0. Three passes so far, all four lanes each time.
+
+**The two defects it found on the first pass could not have been seen by any
+lane**, and that is the argument for doing it several times an hour rather than
+once at the end:
+
+1. A guard on one branch caught code on another. `a-failure-line-never-argues-
+   with-itself` asserts a `ReadFailed` given `error` must not also have a child
+   calling `failureLine`, because both answer an ended session and the sign-in
+   sentence then prints twice in one box. Two files did exactly that.
+2. **A tripwire fired.** `a-toggle-that-cannot-deliver` was written to fail the
+   moment any surface began rendering the in-app feed, and to carry instructions
+   for whoever hit it. S2's `SystemAlerts` does. The hold lifted for budget and
+   drift, and the settings page's own copy had gone false with it.
+
+### The recurring shape, now named
+
+**Two sentences agreeing a few lines apart are worse than two contradicting** (S2).
+A contradiction tells a reader something is wrong; agreement leaves them unable
+to tell which line is the surface's own claim. Three instances this week, every
+one **two correct components**, every lane's gates green, and no test either
+session could write sees a composed screen.
+
+`two-lines-on-one-screen-must-not-restate-each-other.test.ts` is the structural
+guard: no shared run of three significant words between a hold line and its way
+out. It asserts no wording, and it found a live restatement on its first run.
+**Its blind spot is named beside it:** it catches saying a thing twice and cannot
+catch saying it zero times, which S1 and I promptly did to the same hold from
+opposite sides.
+
+### Convenience-shaped commands that did more than the sentence in your head
+
+Four from three lanes in one night, worth a named section rather than four
+scattered warnings:
+
+| Command | What it actually does |
+| --- | --- |
+| `cmd \| tail` / `\| head` in a `&&` chain | reports the pipe's exit status, not the command's |
+| `eslint --fix src/routes` | reformatted 27 files across three lanes' prefixes |
+| `git checkout <sha> -- <file>` | **stages** it, so the obvious restore reports success and leaves the reverted code in the tree |
+| `.apply((q) => ...)` on a PostgREST chain | **the method does not exist** and still typechecks, throwing at runtime |
+
+The last is the nastiest: the other three are commands taking a wider path than
+you said, while that one is the type system not looking at all — the same family
+as a wrong column inside a `select` string.
 
 ## What is still open, and whose it is
 

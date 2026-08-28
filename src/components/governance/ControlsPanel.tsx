@@ -790,7 +790,30 @@ export function ControlsPanel({
 
       {!controlsOnly ? (
         <>
-          <Region title="Recent runs" sub="What each run spent against the caps it was given.">
+          {/*
+           * "AGAINST THE CAPS IT WAS GIVEN" WAS HALF TRUE, and the half that
+           * was not is invisible from the row.
+           *
+           * Measured on the live database 2026-08-27: of 2,570 runs in 30 days,
+           * 2,555 carry a `mission_spend_cap_usd` and ZERO carry a
+           * `mission_token_cap`. Not a few. None, ever.
+           *
+           * `executeLoop` takes an optional `missionTokenCap` and writes it to
+           * the row, and NO CALLER PASSES ONE -- the only three references in
+           * src/ are the type, and the two writes of `?? null`. So the token
+           * gate in `checkMissionCaps` cannot fire, and this row's token figure
+           * is a usage number rather than a comparison.
+           *
+           * The row itself was already honest: it prints "of N" only when a cap
+           * exists, so it says "1,234 tokens" and claims nothing. It was the
+           * REGION HEADING that promised a comparison for both numbers. It now
+           * promises it for the one that has it, and the token figure reads as
+           * what it is. Filed with S0, whose `src/lib/ai` the unwired input is.
+           */}
+          <Region
+            title="Recent runs"
+            sub="What each run spent against the ceiling it was given, and the tokens it used."
+          >
             {/* `runs` is `data?.runs ?? []`, so "no mission runs yet" was asserted
             from the first paint of every load. The only overview.isLoading
             guard in this file used to sit in the Boundaries block, three

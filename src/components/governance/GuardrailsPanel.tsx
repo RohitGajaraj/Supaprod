@@ -38,6 +38,7 @@
  * the enable toggle, the built-in seed, the dry-run harness and the hits log
  * all behave exactly as before.
  */
+import { endedSessionFor } from "@/components/system/SessionEnded";
 import { useServerFn } from "@tanstack/react-start";
 import { Row, Line } from "@/components/meridian/rows";
 import {
@@ -208,7 +209,24 @@ export function GuardrailsPanel({
    * decides where a region is DRAWN and never whether it exists.
    */
   controlsOnly = false,
-}: { controlsOnly?: boolean } = {}) {
+  /**
+   * True when another panel on this surface will already have named a SHARED
+   * failure cause, and this one should not say it twice.
+   *
+   * Seen rendered: the Safety room mounts BoundaryControls and this panel side
+   * by side, both fail on the same expired session, and the screen carries
+   * "Your session ended. Sign in again and this will load." three times -- the
+   * pane banner and one inside each block. That is the defect SessionEnded was
+   * written for, quoted in its own header: "Brain drew five failure statements
+   * and four Try again buttons".
+   *
+   * IT IS NARROW ON PURPOSE. This only suppresses a SESSION-ENDED failure, and
+   * only when the caller says somebody else is naming it. A guardrails read
+   * that fails for any other reason still speaks, because that failure is this
+   * panel's alone and nothing else on the surface would report it.
+   */
+  sessionEndedShownElsewhere = false,
+}: { controlsOnly?: boolean; sessionEndedShownElsewhere?: boolean } = {}) {
   const confirm = useConfirm();
   // A guardrail is the `guardrail_rules` governed surface: owner or admin, the
   // same pair can_manage_workspace() enforces on every write policy below it.
@@ -307,6 +325,10 @@ export function GuardrailsPanel({
   });
 
   if (overview.isError) {
+    /* One cause, said once. See `sessionEndedShownElsewhere` above: an ended
+       session is the surface's fact rather than this panel's, and repeating it
+       teaches a reader that each block is a separate problem. */
+    if (sessionEndedShownElsewhere && endedSessionFor(overview.error)) return null;
     return (
       <ReadFailed error={overview.error} onRetry={() => void overview.refetch()}>
         The rules did not load, so nothing below would be the real boundary.
@@ -578,7 +600,9 @@ export function GuardrailsPanel({
         >
           {hits.length === 0 ? (
             <NothingYet>
-              Every enabled rule above is still checking. Nothing has matched one here.
+              Every call is screened whether or not anything matches, so this list being empty means
+              nothing has matched -- not that nothing was checked. To see a rule work, open one and
+              run a sample through Try it first.
             </NothingYet>
           ) : (
             hits.map((h) => (

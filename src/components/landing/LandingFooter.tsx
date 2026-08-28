@@ -152,7 +152,29 @@ export function LandingFooter() {
                     <a
                       href={l.href}
                       {...(l.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                      className="hover:text-zinc-200 transition-colors duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
+                      /*
+                       * `inline-block py-1 -my-1` IS A TAP TARGET, NOT SPACING.
+                       *
+                       * Measured at 390x844: these links render 17px tall, under
+                       * the 24px minimum, and 20 of the 31 controls on `/` were
+                       * in the same state. WCAG's inline exception covers a link
+                       * inside a SENTENCE, whose height is constrained by the
+                       * text around it. A footer column is a list of links, so
+                       * the exception does not obviously apply and the safe
+                       * reading is that it does not.
+                       *
+                       * The padding grows the hit box to 25px and the equal
+                       * negative margin removes its layout effect, so nothing
+                       * moves: the column keeps its 10px `space-y-2.5` rhythm on
+                       * every width. `inline-block` is what makes the padding
+                       * apply vertically at all -- on an inline element it
+                       * paints without changing the box.
+                       *
+                       * 4px each side and not more: the gap is 10px, so ±4
+                       * leaves 2px between adjacent hit areas and two links
+                       * cannot both claim the same pixel.
+                       */
+                      className="inline-block py-1 -my-1 hover:text-zinc-200 transition-colors duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
                     >
                       {l.label}
                     </a>

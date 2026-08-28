@@ -47,6 +47,7 @@ import { humanWriteError } from "@/lib/roles.functions";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
+import { nothingStandingYet, ratedPopulation, RATING_HAS_NO_DOOR } from "./standing-words";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { getStandingRecord, type StandingRule } from "@/lib/brain-standing.functions";
@@ -158,9 +159,13 @@ export function StandingRules() {
             ) : undefined
           }
         >
-          {pending > 0
-            ? "Nothing standing yet. The steward has written a rule out of what shipped, and it is waiting on a human."
-            : "Nothing standing yet. The steward reads validated outcomes each week and proposes a rule when the same lesson turns up twice."}
+          {/*
+           * THE COUNT GOES IN THE SENTENCE, because on the live database it is
+           * 26 and the sentence said "a rule". See standing-words.ts: every one
+           * of the 26 house rules ever written is still `pending`, so this arm
+           * describes a stack of unread decisions rather than one.
+           */}
+          {nothingStandingYet(pending)}
         </NothingYet>
       </Region>
     );
@@ -227,10 +232,22 @@ function recallLine(
   // true whether or not the log is readable.
   if (r.memoriesReached === 0) return "No run has reached for one of these yet.";
 
-  // The counts below come from memory_recall_log, a separate table. When it
-  // cannot be read every count is 0, and a 0 draws no clause rather than a
-  // claim that nothing helped.
-  const rated = r.helped > 0 || r.contradicted > 0;
+  /*
+   * The counts below come from memory_recall_log, a separate table. When it
+   * cannot be read every count is 0, and a 0 draws no clause rather than a
+   * claim that nothing helped.
+   *
+   * AND THEY CARRY THEIR OWN POPULATION, which they did not. This line used to
+   * put "12,531 recalls on the record" and "70 helped" on one axis, and the
+   * only arithmetic available to a reader gives 0.6% and the conclusion that
+   * the brain surfaces memories nobody uses. `outcome` DEFAULTS to `ignored`
+   * and is upgraded only when a human rates the trace, so `ignored` is the
+   * absence of a verdict rather than a verdict. Measured 2026-08-27: 91% of
+   * RATED recalls helped, and 99.4% of recalls were never rated. See
+   * standing-words.ts.
+   */
+  const population = ratedPopulation(r.helped, r.contradicted);
+  const rated = population !== null;
   return (
     <>
       A run has read <Figure>{r.memoriesReached}</Figure> of these back
@@ -243,6 +260,8 @@ function recallLine(
       {rated ? (
         <>
           {" · "}
+          {population}
+          {", "}
           {/* The only colour on this line, and both halves report an OUTCOME:
               what a rating said actually happened. Green and red are never a
               need in this system, and nothing here asks for a person. */}
@@ -257,6 +276,13 @@ function recallLine(
               <Figure>{r.contradicted}</Figure> contradicted by what happened
             </span>
           ) : null}
+          {/* AND WHY THE COUNT IS NOT GROWING. `submitFeedback` is the only
+              writer of a recall outcome and its only caller, MessageMetaFooter,
+              is mounted nowhere -- so no surface can produce another rating.
+              Measured: all 77 fall between 29 June and 23 July. See
+              standing-words.ts. */}
+          {" · "}
+          {RATING_HAS_NO_DOOR}
         </>
       ) : null}
     </>

@@ -277,7 +277,31 @@ export function NotificationsSection() {
 
       <Region
         title="What reaches you, and how"
-        sub="Your working hours still apply: outside them, anything scheduled waits."
+        /*
+         * IT SAYS WHOSE SETTINGS THESE ARE, because for almost everybody they
+         * are ours.
+         *
+         * With no `user_notification_preferences` row the reader hands back
+         * defaults with every switch ON, and this pane draws them exactly as it
+         * draws a row somebody chose. Measured on the live database 2026-08-28:
+         * ONE row exists against 16 profiles. Fifteen of sixteen people are
+         * looking at eight switches they never touched -- four of which send
+         * EMAIL -- and concluding they opted in.
+         *
+         * The governance canon's fourth floor states the rule for the numeric
+         * bars: a default the user never set is our choice, and the surface
+         * names it as ours rather than presenting it as their policy. The
+         * boundary says it, the autonomy bars say it, and the one setting whose
+         * defaults leave the building did not.
+         *
+         * Same voice as `oursNote` on the boundary, deliberately: one idea, one
+         * wording, wherever it appears.
+         */
+        sub={
+          prefs.data && !prefs.data.chosen
+            ? "Your working hours still apply: outside them, anything scheduled waits. Nobody has changed any of these, so what you see below is what we ship rather than anything you set."
+            : "Your working hours still apply: outside them, anything scheduled waits."
+        }
       >
         {CATEGORIES.map((c) => (
           <Line key={c.key} label={c.label} sub={c.sub}>

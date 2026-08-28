@@ -80,14 +80,52 @@ const SYSTEM_PROMPT = `You are a product-operations steward. Given a workspace's
 
 Good rule examples: "bets touching checkout convert 2x when scoped under a week", "this team consistently underestimates infra work", "positioning changes need two weeks of signal before a verdict is safe to call".
 
+A RULE IS ABOUT THE CUSTOMER'S PRODUCT, MARKET AND TEAM. It is NEVER about Supaprod's own agents, stations, runs or tooling. "This team consistently underestimates infra work" is about the customer's team and is a good rule. "The qa and builder agents consistently fail when resolving database issues" is about our machinery, and it is not a rule at all: it is a bug report wearing a rule's clothes. If a learning describes our loop struggling, that is something to SAY in your answer, never something to draft a rule from. An approved rule goes verbatim into every agent's system prompt, so a rule that tells agents they consistently fail makes the next run worse.
+
 Rules:
 - Only draft a rule when at least 2 learnings genuinely support the same pattern. Never draft a rule from a single learning.
+- Never name one of our own agents (builder, qa, strategist, prd-writer, ux-architect, discovery-scout, release-verifier, data-analyst and the rest) or one of our own stations. If you cannot state the rule without naming our machinery, there is no rule.
 - Each rule is one sentence, plain language, no markdown, no em dashes.
 - Draft at most 3 rules. Fewer, sharper rules beat many vague ones.
 - source_indices are the 1-based indices (from the numbered list you were given) of the learnings that support each rule.
 
 Return STRICT JSON only: {"rules":[{"rule_text":"...","rationale":"one line: why this pattern is real","source_indices":[1,3]}]}
 If no genuine pattern exists, return {"rules":[]}.`;
+
+/**
+ * Our own agents and stations, for the one refusal a prompt cannot be trusted with.
+ *
+ * Slugs rather than loose words: a rule may legitimately be about a customer's
+ * build failing or their qa process, and matching "fail" would empty the queue
+ * instead of cleaning it. What is never legitimate is a standing rule naming
+ * OUR crew, because that rule is injected into that same crew's prompt.
+ */
+const OUR_MACHINERY = [
+  "discovery-scout",
+  "strategist",
+  "prd-writer",
+  "sprint-planner",
+  "ux-architect",
+  "design-critic",
+  "builder",
+  "release-verifier",
+  "data-analyst",
+  "insight-keeper",
+  "customer-insights",
+  "researcher",
+  "orchestrator",
+] as const;
+
+/** True when a drafted rule is about our loop rather than the customer's product. */
+export function namesOurOwnMachinery(ruleText: string): boolean {
+  const t = ruleText.toLowerCase();
+  // Bounded so "builder" does not match inside an unrelated word, and so a
+  // customer's own "researcher" job title in prose is far less likely to hit.
+  return (
+    OUR_MACHINERY.some((slug) => new RegExp(`\\b${slug}\\b`).test(t)) &&
+    /\bagents?\b|\bstation\b/.test(t)
+  );
+}
 
 function parseDraft(text: string): DraftedRule[] {
   try {
@@ -247,6 +285,8 @@ async function distillWorkspace(
   if (drafts.length === 0) return { drafted: 0, skipped: "no genuine pattern found" };
 
   let drafted = 0;
+  /** Drafts refused for being about our own loop rather than the customer's product. */
+  let skippedAboutUs = 0;
   for (const d of drafts) {
     const sourceIds = [
       ...new Set(
@@ -263,6 +303,39 @@ async function distillWorkspace(
     // stored, even though today's only learnings-writer (recordOutcome) is
     // human-typed. Quarantine strips a structurally-confirmed injection;
     // a lexical-only "flag" is kept but surfaced to the human reviewer.
+    /*
+     * ── F-143: A RULE ABOUT OUR OWN MACHINERY IS NOT A RULE ────────────────
+     *
+     * Measured on the live queue: 26 pending house rules, **15 of them about
+     * the loop's own trouble** — "the qa and builder agents consistently fail
+     * when resolving database integrity issues", "the strategist and critic
+     * agents consistently fail during the decision phase". The other 11 are
+     * exactly what this feature is for: "Simplifying the address confirmation
+     * step significantly increases checkout completion rates".
+     *
+     * **Zero rules have ever been approved**, across 9 workspaces since 12
+     * July, and this is very likely why. A queue where more than half the items
+     * would harm the product if approved is a queue a person stops opening.
+     *
+     * IT WOULD HARM THE PRODUCT LITERALLY. An approved rule is injected
+     * VERBATIM into every agent's system prompt, so approving one of these
+     * tells the builder, every run, that the builder consistently fails.
+     *
+     * The prompt above now says so, and this is the half that does not depend
+     * on a model reading it. Same lesson as F-113, where Define specced its own
+     * difficulty and the fix had to become mechanical because prose held only
+     * half the time.
+     *
+     * NARROW ON PURPOSE: it matches our own agent slugs and station names, not
+     * the words "fail" or "error". A genuine product rule may well be about
+     * something failing for a customer, and refusing those would trade one bad
+     * queue for an empty one.
+     */
+    if (namesOurOwnMachinery(d.rule_text)) {
+      skippedAboutUs += 1;
+      continue;
+    }
+
     const screened = assessAndQuarantine(d.rule_text.trim());
     const flagNote =
       screened.verdict.decision === "quarantine"
@@ -285,7 +358,18 @@ async function distillWorkspace(
     if (error) await note(error, "db_error", target.workspaceId);
     else drafted += 1;
   }
-  return { drafted, skipped: "" };
+  /*
+   * F-143. Reported rather than silent, for the reason this whole file's
+   * queue went unread: a refusal nobody can see looks identical to a pass
+   * that found nothing, and the job then says "drafted 0" whether the
+   * steward had no pattern or produced three rules about our own agents.
+   */
+  return {
+    drafted,
+    skipped: skippedAboutUs
+      ? `${skippedAboutUs} draft${skippedAboutUs === 1 ? "" : "s"} refused for being about our own agents rather than the customer's product`
+      : "",
+  };
 }
 
 export const Route = createFileRoute("/api/public/hooks/house-rules-tick")({
