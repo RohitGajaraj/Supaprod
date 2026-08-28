@@ -126,24 +126,34 @@ function usedWithoutFallback(): Map<string, string[]> {
 }
 
 /**
- * FOUR THAT WERE ALREADY BROKEN WHEN THIS GUARD LEARNED TO SEE THEM.
+ * THE ALLOWLIST IS EMPTY, AND KEEPING IT EMPTY IS THE POINT.
  *
- * Every one of these renders NOTHING today: an unresolvable `var()` is the
- * empty string, so the declaration is dropped and the property falls back to
- * its inherited value. They are listed rather than fixed because choosing the
- * replacement is a Meridian decision -- `--mrd-raised` is almost certainly
- * reaching for `--mrd-lift`, and "almost certainly" is not a thing the verify
- * lane gets to decide about a design system.
+ * Four Meridian tokens were excused here on 2026-08-27, the day this guard
+ * learned to see the `--mrd-` family at all: `--mrd-raised`, `--mrd-you-text`,
+ * `--mrd-fail-bright` and `--mrd-pass-bright`. Each rendered NOTHING, because
+ * an unresolvable `var()` is the empty string and the declaration is dropped.
+ * They were listed rather than fixed because picking the replacement is a
+ * Meridian decision and the lane that found them does not get to make it.
  *
- * THIS LIST MAY ONLY EVER SHRINK. A new orphan fails the test; removing one
- * from here without fixing the call site fails it too, because the guard then
- * sees it.
+ * ALL FOUR NOW HAVE ZERO BARE CALL SITES, measured 2026-08-28 with this file's
+ * own `usedWithoutFallback()` rather than with grep, so comments describing the
+ * removals are not counted as uses. `--mrd-raised` was repointed at
+ * `--mrd-lift`; the other three call sites are gone.
  *
- * Reported to the owners on 2026-08-27:
- *   --mrd-raised      src/styles.css:2203, MissionOnboarding.tsx:112 and :141
- *   --mrd-you-text    DesignScaffoldPanel.tsx
- *   --mrd-fail-bright RoomDetail.tsx   <- a FAILURE colour that does not paint
- *   --mrd-pass-bright RoomDetail.tsx   <- and its pass counterpart
+ * ── AND THE TEST BELOW WAS ASKING THE WRONG QUESTION ─────────────────────
+ * The header on this list has always said "THIS LIST MAY ONLY EVER SHRINK …
+ * removing one from here without fixing the call site fails it too, because
+ * the guard then sees it." The test that enforced it asserted
+ * `!declared.has(token)` -- whether the token is DECLARED. That is not the
+ * same question. A token can be undeclared forever while its last call site
+ * disappears, and on that day the excuse outlives the defect: the entry sits
+ * here looking like a live exemption, the main test above skips a name nothing
+ * uses, and the next real orphan to reuse that name is waved straight through.
+ * All four entries were in exactly that state when this was written.
+ *
+ * So the question is now "is this token STILL USED BARE", which is the thing
+ * an exemption is actually excusing. An entry whose call site is fixed fails
+ * and must be deleted, which is what the header always promised.
  */
 const MERIDIAN_ORPHANS = new Set<string>([]);
 
@@ -180,23 +190,40 @@ describe("no design-system token is used bare unless something declares it", () 
     expect(meridian.length).toBeGreaterThan(20);
   });
 
-  it("every excused token is one the scanner ACTUALLY sees, not one I assumed", () => {
+  it("nothing is excused that no longer has a call site", () => {
     /*
-     * THIS IS THE TEST THAT WOULD HAVE CAUGHT THE MISTAKE, so it replaces the
-     * one that did not. The previous version asserted only that each excused
-     * name was UNDECLARED, which is true of any string nobody has ever
-     * defined -- including two that appeared solely inside a comment. It
-     * passed happily while excusing two things that were never defects.
+     * MERGED FROM TWO LANES AND STRICTLY STRONGER THAN EITHER.
      *
-     * An allowlist entry has to earn its place twice: undeclared AND actually
-     * used bare in code the scanner reads. When a call site is fixed, this
-     * fails until the name comes out of the list, so the excuse cannot outlive
-     * the defect.
+     * S3's framing is the right one and it is theirs: an exemption excuses a
+     * USE, so the only thing that keeps one alive is a use. If a name here has
+     * no bare call site left, the defect is fixed and the entry must go, or it
+     * silently pre-approves the next orphan that reuses the name.
+     *
+     * The `declared` clause is S4's and covers the other way an entry dies: a
+     * token that gets DECLARED is no longer an orphan even though it is still
+     * used, and excusing it would then hide a real reference behind a stale
+     * exemption. Neither lane's version caught both.
      */
     const declared = declaredTokens();
     const used = usedWithoutFallback();
-    const notReal = [...MERIDIAN_ORPHANS].filter((t) => declared.has(t) || !used.has(t));
-    expect(notReal.sort()).toEqual([]);
+    const stale = [...MERIDIAN_ORPHANS].filter((t) => !used.has(t) || declared.has(t));
+    expect(stale.sort()).toEqual([]);
+  });
+
+  it("the four that were excused are fixed, not merely delisted", () => {
+    // Emptying the list would be worthless if the call sites were still there,
+    // so this names the four by hand and proves each is gone. Pinned to the
+    // NAMES rather than to the count, because a list that only checks its own
+    // length passes when somebody swaps one orphan for another.
+    const used = usedWithoutFallback();
+    for (const token of [
+      "--mrd-raised",
+      "--mrd-you-text",
+      "--mrd-fail-bright",
+      "--mrd-pass-bright",
+    ]) {
+      expect([token, used.has(token)]).toEqual([token, false]);
+    }
   });
 
   it("the two that were invented are gone from the code", () => {
