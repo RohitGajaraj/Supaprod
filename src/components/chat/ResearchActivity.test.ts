@@ -618,7 +618,7 @@ describe("ResearchActivity", () => {
         meta: makeMeta({
           mode: "both",
           workspace_chunks: 0,
-          sources: [{ kind: "signal", title: "Signal", href: "/signals/1" }],
+          sources: [{ kind: "signal", title: "What we found", href: "/signals/1" }],
         }),
       });
       expect(chipTextsOf(result)).toContain("Workspace");
@@ -641,7 +641,7 @@ describe("ResearchActivity", () => {
         meta: makeMeta({
           mode: "web",
           workspace_chunks: 0,
-          sources: [{ kind: "signal", title: "Signal", href: "/signals/1" }],
+          sources: [{ kind: "signal", title: "What we found", href: "/signals/1" }],
         }),
       });
       expect(chipTextsOf(result)).toContain("Workspace");
