@@ -1,6 +1,6 @@
 # Session handoff
 
-> _Last updated: 2026-08-26, S0 CONDUCTOR_
+> _Last updated: 2026-08-28, S1 THE RUN_
 
 ## The finding that matters most: F-99
 
@@ -845,11 +845,20 @@ no call site needed touching.
 
 ## Still open — nobody has picked these up
 
-1. **`lane/run` (worktree `supaprod-run`) is not safe.** 7 unpushed commits including RUN-17/18/19;
-   diverged from `origin/lane/run` (same units, older SHAs — a rebase after a push, so landing it
-   needs `--force-with-lease`); 101 behind `origin/main`. Its `NOW-S1.md` still carries a stale
-   `DEVSERVER` flag — no dev server is actually running, I checked 5173/8080/8081/4173/3000 and
-   every `vite`/`bun run dev` process. The flag is bookkeeping, not a live RAM hazard.
+1. ~~**`lane/run` (worktree `supaprod-run`) is not safe.**~~ **FALSE, struck by S1 on 2026-08-28.
+   Do not run `--force-with-lease` on `lane/run`.** Measured in the `supaprod-run` worktree after an
+   explicit `git fetch origin`: local `lane/run` and `origin/lane/run` are both
+   `49d80af62c089e26712b5d7684de78a89926f8a4`, `git rev-list --left-right --count
+   origin/lane/run...lane/run` returns `0 0`, and `git status --porcelain` is empty. **Zero ahead,
+   zero behind, identical SHA, clean tree.** There are no unpushed commits and no divergence. The
+   RUN-17/18/19 commits were checked for containment rather than counted: `af455e2f1` (RUN-17),
+   `339bf772e` (RUN-18), `d47ac9f81` (RUN-19) and the two log commits `d0e21b1eb`, `14605bc0b` are
+   **all ancestors of both `origin/lane/run` and `origin/main` already**. Nothing is stranded and
+   nothing needs rescuing. A force-push on this basis would have overwritten a remote that already
+   matched. The "101 behind main" figure was also wrong: `git rev-list --count lane/run..origin/main`
+   is **35**. The stale `DEVSERVER` flag in its `NOW-S1.md` is real and is bookkeeping, not a live
+   RAM hazard. **Lesson for the next session: a divergence claim is cheap to verify and expensive to
+   act on. Fetch, then compare SHAs, before relaying one as actionable.**
 2. **Four of S1's seven requests are unanswered** in `coordination/requests/S1/`:
    `wire-resolveApprovalPolicy-class-answer-widens-authority` (Unit 4 depends on it —
    `resolveApprovalPolicy` still has zero callers, so an answered class never widens authority),
@@ -868,3 +877,84 @@ no call site needed touching.
 S1 holds the commit and is running the four gates on the final combined tree. Do not read my
 numbers as covering their guard test.
 
+
+---
+
+## S1 — THE RUN, close-out 2026-08-28. Landed as `020eff202` on `s1`
+
+### DONE: the rename put a heading where a noun goes, and now a check says so
+
+`9d1dd28f2` renamed the signal vocabulary and **was committed on a red tree** — five tests were
+already failing at HEAD asserting the old wording. The deeper defect was not the stale assertions.
+§12's rename table offers two forms for this idea, *"What we found"* **or** *evidence*, and only the
+second is a noun. The maps took the first. Every call site composes `${n} ${word}` or `this ${word}`,
+so it reached readers as:
+
+| Surface | What it rendered |
+| --- | --- |
+| `describeAttachments` | It produced **1 what we found**, now part of this work. |
+| `CitationsCard` | Untitled **what we found** |
+| `GraphNodeActions` | Start a mission on **this what we found**? |
+| `StagePanel`, Discover | **1 what we found** |
+| `ReceiptDetailSheet`, `AuditLineageSheet` | same word, same break |
+
+**The split the rename was missing:** a heading and a counted noun are two jobs. Heading positions
+keep "What we found" (the `Fact` label, `LineageDrawer`'s `KIND_LABEL`). Counted positions take
+`thing we found` / `things we found`, the same family as the heading, and they compose after a number.
+
+**The guard is the part that matters.** An invariant recorded in prose decays silently; one recorded
+as a check does not. §12 *already* warns that renaming a word in one place and leaving it stale
+elsewhere makes the problem worse, and that warning did not stop this. So the rule is now executable:
+`src/lib/spine/a-counted-word-is-a-noun-not-a-heading.test.ts` walks `KIND_WORD` and `artifactWord`
+and fails any entry opening with what/how/why/when/where/who/which/whose, naming the string it would
+render. Proven by reverting `attach.ts` to the broken value: it goes red with *"KIND_WORD.signal.one
+is 'what we found', which reads '1 what we found'"*. It checks the **maps**, not a screen, because
+the maps are where the mistake is made and a screen test would have caught one of eight surfaces.
+
+### Gates, measured on the exact committed tree, run individually
+
+`bunx tsc --noEmit` → **0** · `bun test` → **11638 pass · 22 skip · 36 todo · 0 fail · 727 files** ·
+`bun run docs:check` → clean of hard rot · `bun run build` → ok · `bunx eslint` on own hunks → **0**.
+
+### CORRECTED, and do not re-investigate it
+
+I reported the five failures as a **process-wide `mock.module` collision** because they passed in
+isolation and failed together. **That was wrong and buffalo-49 was right.** Two sessions were driving
+one shared worktree and index, the tree changed under me between runs, and one of my baselines was
+measured inside a `git stash` window. There is no collision here; the five were the vocabulary defect
+and they cleared. The measurement above is the record. **This is closed, not open.**
+
+**I also caused a real hazard worth naming:** I ran `git stash push -u` twice in a worktree another
+session was actively editing, which swept its uncommitted work into the stash for ~30 seconds each
+time. Both pops were clean and nothing was lost, but it was luck, not method. **Never `git stash`,
+`git checkout` or `git reset` in a shared worktree.** To get a clean baseline, use a second worktree
+or `git show HEAD:<path>`.
+
+### OPEN, and nobody owns these tonight
+
+1. **`docs:check` does not look for merge conflict markers.** That is how a bare `=======` and
+   `>>>>>>> origin/main` sat committed in this very file (found and resolved by buffalo-49 this
+   session). The check is a one-line grep in `docs-doctor` and it belongs there. Not built, because
+   the founder's close-out instruction was explicit about starting nothing new.
+2. **"Untitled thing we found"** (`CitationsCard`, `ReceiptDetailSheet`) is grammatical but clumsy.
+   It reads fine for every other kind ("Untitled spec", "Untitled decision"). If a sweep revisits it,
+   the fix is at the call site, not in the map.
+3. **The four unanswered S1 requests** in `coordination/requests/S1/` still stand, unchanged. Unit 4
+   remains blocked on `wire-resolveApprovalPolicy-class-answer-widens-authority`:
+   `resolveApprovalPolicy` still has zero callers, so an answered class never widens authority.
+4. **The inbox mixes two scopes.** It scopes calls and runs to the active workspace but reads
+   verdicts across every workspace, so "N need you" counts two populations. Blocked on
+   `listDueForecastsHere` reaching main. Note for whoever takes it: `getApprovalsQueue` is *already*
+   not uniformly scoped, because `agent_approvals` predates workspace tenancy.
+5. **The named-only pattern groups on Discover have no controls.** RUN-116 made grouping visible for
+   818 signals whose theme is not a track member; those render as a bare eyebrow with no `ThemeCard`,
+   so the brief's "rename a theme" is true only for the third whose theme happens to be a member.
+   `renameTheme` takes `{ theme_id, title }` and both are in hand, so it is buildable. The open
+   judgement is whether renaming a **non-member** theme is right, given themes are workspace-level —
+   noting that is equally true of renaming a member theme today. Not started.
+
+### The acceptance, unchanged
+
+The honest query still returns **0**. The plain form returns 1 (`d1168015`), disqualified by F-79: a
+person rejected approval `bdf32286` against its Build mission mid-run, so R-18's *"no human touching
+it mid-run"* fails. **Do not report the short query's non-zero result as the acceptance.**
