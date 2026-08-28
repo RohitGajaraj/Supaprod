@@ -928,6 +928,94 @@ function ThemeCard({ item, trackId }: { item: ArtifactView; trackId: string }) {
   );
 }
 
+/**
+ * THE NAME OF A PATTERN THIS TRACK DOES NOT HOLD, AND THE ONE CONTROL IT EARNS.
+ *
+ * 818 of the 1,133 signals on tracks name a theme that is not a member of the
+ * same track (`group-by-the-pattern.ts`). `ThemeCard` draws for the other 315,
+ * and it carries rename. So "rename a theme", which SESSION-1 lists as a
+ * Discover control, reached the minority of the patterns on this pane, and the
+ * heading over the majority was a bare span with nothing a person could do to it.
+ *
+ * -- WHY RENAME, AND WHY ONLY RENAME ---------------------------------------
+ * Rename acts on the exact string this component is displaying. Nothing about
+ * it depends on state we do not hold, and the server already decides whether it
+ * is allowed: `renameTheme` updates `themes` scoped `.eq("user_id", userId)`, so
+ * a theme that is not the reader's cannot be renamed from here whatever this
+ * pane draws. "Not a pattern" is deliberately NOT offered. Dismissing sets a
+ * status, and this surface cannot see the theme's status, frequency, severity
+ * or whether it was already dismissed. `ThemeCard` shows all four BEFORE it
+ * offers that control, and this has none of them. A control that changes state
+ * its own screen cannot show is the thing this pane exists not to do.
+ *
+ * The objection that a theme is workspace level, so renaming it reaches other
+ * tracks, is TRUE and is equally true of the rename already shipped on
+ * `ThemeCard`. It is not a difference between the two cases, so it is not a
+ * reason to withhold the control from one of them.
+ *
+ * -- STILL NOT A CARD -------------------------------------------------------
+ * No card is drawn, for the reason the original comment gave: a card implies
+ * something to open and there is no theme artifact here. This is the name plus
+ * one verb. The rename lands because `theme_title` is resolved live against
+ * `themes` on every read of the pane (F-129, `track.functions.ts`) rather than
+ * copied onto the signal row, so invalidating the pane shows the new name.
+ */
+function PatternName({
+  themeId,
+  title,
+  trackId,
+}: {
+  themeId: string;
+  /** The pattern's name as the record gave it. Never blank: a pattern we cannot
+   *  name is left ungrouped upstream rather than headed with an empty string. */
+  title: string;
+  trackId: string;
+}) {
+  const fRename = useServerFn(renameTheme);
+  const qc = useQueryClient();
+  const [open, setOpen] = React.useState(false);
+
+  const rename = useMutation({
+    mutationFn: (next: string) => fRename({ data: { theme_id: themeId, title: next } }),
+    onSuccess: () => {
+      setOpen(false);
+      void qc.invalidateQueries({ queryKey: ["track-artifacts", trackId] });
+      void qc.invalidateQueries({ queryKey: ["spine-track-chain", trackId] });
+    },
+  });
+
+  return (
+    <div className="flex flex-col gap-mrd-2">
+      <div className="flex flex-wrap items-baseline gap-mrd-2">
+        <span className="mrd-eyebrow">{title}</span>
+        <Action variant="quiet" onClick={() => setOpen((o) => !o)}>
+          Rename this theme
+        </Action>
+      </div>
+
+      {open ? (
+        <ReasonField
+          id={`pattern-rename-${themeId}`}
+          label="What should this theme be called?"
+          hint="Your name replaces the generated one, everywhere this theme appears."
+          placeholder="Checkout friction on mobile"
+          commitLabel="Rename it"
+          cancelLabel="Keep the current name"
+          busy={rename.isPending}
+          onCommit={(next) => rename.mutate(next)}
+          onCancel={() => setOpen(false)}
+        />
+      ) : null}
+
+      {rename.error && !open ? (
+        <span role="status" className="text-mrd-small text-mrd-body">
+          {failureLine("That did not change, so it reads as it did.", rename.error)}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
 /*
  * ── THE LEARN VERDICT ──────────────────────────────────────────────────────
  * PREDICTED · ACTUALLY · WHAT WE NOW BELIEVE (SPEC-ARTIFACTS §9). The predicted
@@ -1864,16 +1952,21 @@ export function SenseBody({
           >
             {t ? (
               <ThemeCard item={t} trackId={trackId} />
-            ) : (
+            ) : g.title ? (
               /*
                * NAMED BUT NOT HELD. The theme is not a member of this track, so
                * there is no artifact to open and no card to draw. The pattern's
                * NAME is on the signal row (F-129), and printing it is the whole
                * point: it is what the machine found. Nothing here pretends to
-               * be a theme card, because a card implies something to open.
+               * be a theme card, because a card implies something to open --
+               * but the name it prints IS renameable, and used not to be.
                */
-              <span className="mrd-eyebrow">{g.title}</span>
-            )}
+              <PatternName themeId={g.themeId} title={g.title} trackId={trackId} />
+            ) : /* Unreachable: `groupByThePattern` sends a pattern it can
+                 neither draw nor name to `ungrouped` rather than heading it
+                 with a blank. Left as nothing rather than as an empty heading,
+                 which is the same call made upstream. */
+            null}
             {members.map((s) => (
               <div
                 key={s.artifactId}
