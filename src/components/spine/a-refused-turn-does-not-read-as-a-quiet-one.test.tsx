@@ -78,8 +78,8 @@ const DID_THE_WORK = turn({
   stationName: "Discover",
   outcome: "partly",
   made: [
-    { kind: "signal", word: "thing we found", id: "162fc64d" },
-    { kind: "signal", word: "thing we found", id: "d676c37c" },
+    { kind: "signal", word: "finding", id: "162fc64d" },
+    { kind: "signal", word: "finding", id: "d676c37c" },
   ],
   tookMs: 76207,
   tokens: 65732,

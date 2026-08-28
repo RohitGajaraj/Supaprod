@@ -82,9 +82,9 @@
  *
  *   - no evidence at all         nothing links this run back to that stage.
  *   - `signalCount === null`     the opportunity carries no theme, so nothing
- *                                was counted. NOT "no things we found".
+ *                                was counted. NOT "no findings".
  *   - `signalCount === 0`        the theme is real and holds none. This one IS
- *                                "no things we found".
+ *                                "no findings".
  *   - `checks === null`          no check result has ever been read for this
  *                                pull request. Not passed, not failed.
  *   - `deployments === []`       read, and nothing has deployed.
@@ -314,7 +314,7 @@ function Discover({
         <Fact label="What we found" sub={e.theme ? `on ${e.theme.title}` : undefined}>
           <Stat>
             <Figure>{e.signalCount}</Figure>{" "}
-            {e.signalCount === 1 ? "thing we found" : "things we found"}
+            {e.signalCount === 1 ? "finding" : "findings"}
           </Stat>
         </Fact>
       )}
@@ -323,7 +323,7 @@ function Discover({
         <RunRow
           key={s.id}
           tight
-          lead={s.excerpt || s.title || "a thing we found"}
+          lead={s.excerpt || s.title || "a finding"}
           sub={s.source}
           time={ago(s.at)}
         />

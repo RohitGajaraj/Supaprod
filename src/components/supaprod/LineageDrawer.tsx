@@ -246,8 +246,18 @@ const ROUTES: Partial<
   mission: (id) => ({ to: "/build/$missionId", params: { missionId: id } }),
 };
 
-const KIND_LABEL: Record<ArtifactKind, string> = {
-  signal: "What we found",
+export const KIND_LABEL: Record<ArtifactKind, string> = {
+  /*
+   * "Finding", not "What we found", and the reason is one line below at the
+   * heading: this map is read through `.toLowerCase()` into "How this {label}
+   * connects across the product lifecycle." The heading form rendered "How this
+   * what we found connects", which is the same defect as "1 what we found" with
+   * a demonstrative in place of a number. Section 12 offers the heading form and
+   * it is correct over a panel; it is wrong the moment anything puts a word in
+   * front of it. `a-counted-word-is-a-noun-not-a-heading` now watches this map
+   * too, so the two cannot drift apart again.
+   */
+  signal: "Finding",
   theme: "Theme",
   opportunity: "Opportunity",
   // LOOM W2: the IA word is "spec" on every user-facing surface; the

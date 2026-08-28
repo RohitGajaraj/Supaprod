@@ -23,6 +23,7 @@ import { KIND_WORD } from "./attach";
 import { wordFor } from "./chain";
 import { artifactWord } from "@/lib/artifact-words";
 import { tallyPhrase } from "@/components/design/vocabulary";
+import { KIND_LABEL } from "@/components/supaprod/LineageDrawer";
 
 /** The words English uses to open a question. None of them opens a noun. */
 const INTERROGATIVES = ["what", "how", "why", "when", "where", "who", "which", "whose"];
@@ -57,13 +58,32 @@ describe("a counted word is a noun, not a heading", () => {
   });
 
   test("tallyPhrase counts a finding without turning it into a question", () => {
-    expect(tallyPhrase([{ kind: "signal", count: 1 }])).toBe("1 thing we found");
-    expect(tallyPhrase([{ kind: "signal", count: 3 }])).toBe("3 things we found");
+    expect(tallyPhrase([{ kind: "signal", count: 1 }])).toBe("1 finding");
+    expect(tallyPhrase([{ kind: "signal", count: 3 }])).toBe("3 findings");
   });
 
   test("wordFor keeps the singular and the plural in the same family", () => {
-    expect(wordFor("signal", 1)).toBe("thing we found");
-    expect(wordFor("signal", 2)).toBe("things we found");
+    expect(wordFor("signal", 1)).toBe("finding");
+    expect(wordFor("signal", 2)).toBe("findings");
+  });
+
+  test("KIND_LABEL cannot open a question either, because it is read after a word", () => {
+    /*
+     * ADDED 2026-08-28, AND IT WAS ALREADY FAILING WHEN IT WAS WRITTEN.
+     *
+     * This map was the fourth vocabulary and the only one nothing watched.
+     * `LineageDrawer` reads it through `.toLowerCase()` into "How this {label}
+     * connects across the product lifecycle", so `signal: "What we found"`
+     * rendered "How this what we found connects". A demonstrative in front of a
+     * heading is the same mistake as a number in front of one, and the guard
+     * above could not see it because it only read the three counted maps.
+     */
+    for (const [kind, label] of Object.entries(KIND_LABEL)) {
+      expect(
+        opensAQuestion(label),
+        `KIND_LABEL["${kind}"] is "${label}", which reads "How this ${label.toLowerCase()} connects"`,
+      ).toBe(false);
+    }
   });
 
   test('the heading "What we found" is still the heading, and is not a counted word', () => {

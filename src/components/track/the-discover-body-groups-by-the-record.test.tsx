@@ -24,7 +24,7 @@ function ui(node: React.ReactNode) {
 let n = 0;
 const signal = (fields: Record<string, unknown>, title?: string): ArtifactView => ({
   kind: "signal",
-  word: "thing we found",
+  word: "finding",
   artifactId: `s-${++n}`,
   createdAt: "2026-08-26T10:00:00Z",
   title: title ?? null,
