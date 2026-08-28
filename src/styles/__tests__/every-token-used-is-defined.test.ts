@@ -127,22 +127,38 @@ function usedWithoutFallback(): Map<string, string[]> {
 }
 
 /**
- * EMPTY, AND THAT IS THE POINT: ALL FOUR CALL SITES ARE FIXED.
+ * THE ALLOWLIST IS EMPTY, AND KEEPING IT EMPTY IS THE POINT.
  *
- * This held `--mrd-raised` and `--mrd-you-text` until 2026-08-28. Both are
- * now gone from every file the scanner reads, and their disappearance is
- * what turned this list red: the test below refuses an excuse for a token
- * nobody uses any more, so the excuse cannot outlive the defect it excused.
- * `--mrd-raised` went when `.today-hero`'s dead `background` declaration was
- * deleted rather than repointed; the sibling guard in
- * `a-token-that-resolves-to-nothing.test.ts` is what keeps all four out.
+ * Four Meridian tokens were excused here on 2026-08-27, the day this guard
+ * learned to see the `--mrd-` family at all: `--mrd-raised`, `--mrd-you-text`,
+ * `--mrd-fail-bright` and `--mrd-pass-bright`. Each rendered NOTHING, because
+ * an unresolvable `var()` is the empty string and the declaration is dropped.
+ * They were listed rather than fixed because picking the replacement is a
+ * Meridian decision and the lane that found them does not get to make it.
  *
- * The set stays rather than being deleted with its `has()` check. It is a
- * ratchet sitting at its floor, and the floor is worth one line: a future
- * orphan has to be excused DELIBERATELY, in writing, and is refused here the
- * moment the excuse stops matching what the scanner sees.
+ * ALL FOUR NOW HAVE ZERO BARE CALL SITES, measured 2026-08-28 with this file's
+ * own `usedWithoutFallback()` rather than with grep, so comments describing the
+ * removals are not counted as uses. `--mrd-raised` was DELETED rather than
+ * repointed: the fold ruling on 2026-08-28 took `.today-hero`'s dead
+ * declaration out instead of pointing it at `--mrd-lift`, because `--mrd-lift`
+ * inverts direction between grounds (+0.070 dark, -0.014 light) and would have
+ * shipped a prominent band in one theme and a 1.4% step in the other. The other
+ * three call sites are gone.
  *
- * THIS LIST MAY ONLY EVER SHRINK, and it can shrink no further.
+ * ── AND THE TEST BELOW WAS ASKING THE WRONG QUESTION ─────────────────────
+ * The header on this list has always said "THIS LIST MAY ONLY EVER SHRINK …
+ * removing one from here without fixing the call site fails it too, because
+ * the guard then sees it." The test that enforced it asserted
+ * `!declared.has(token)` -- whether the token is DECLARED. That is not the
+ * same question. A token can be undeclared forever while its last call site
+ * disappears, and on that day the excuse outlives the defect: the entry sits
+ * here looking like a live exemption, the main test above skips a name nothing
+ * uses, and the next real orphan to reuse that name is waved straight through.
+ * All four entries were in exactly that state when this was written.
+ *
+ * So the question is now "is this token STILL USED BARE", which is the thing
+ * an exemption is actually excusing. An entry whose call site is fixed fails
+ * and must be deleted, which is what the header always promised.
  */
 const MERIDIAN_ORPHANS = new Set<string>([]);
 
@@ -179,23 +195,30 @@ describe("no design-system token is used bare unless something declares it", () 
     expect(meridian.length).toBeGreaterThan(20);
   });
 
-  it("every excused token is one the scanner ACTUALLY sees, not one I assumed", () => {
-    /*
-     * THIS IS THE TEST THAT WOULD HAVE CAUGHT THE MISTAKE, so it replaces the
-     * one that did not. The previous version asserted only that each excused
-     * name was UNDECLARED, which is true of any string nobody has ever
-     * defined -- including two that appeared solely inside a comment. It
-     * passed happily while excusing two things that were never defects.
-     *
-     * An allowlist entry has to earn its place twice: undeclared AND actually
-     * used bare in code the scanner reads. When a call site is fixed, this
-     * fails until the name comes out of the list, so the excuse cannot outlive
-     * the defect.
-     */
-    const declared = declaredTokens();
+  it("nothing is excused that no longer has a call site", () => {
+    // An exemption excuses a USE, so the only thing that keeps one alive is a
+    // use. If a name in here has no bare call site left, the defect is fixed
+    // and the entry must go -- otherwise it silently pre-approves the next
+    // orphan that happens to reuse the name.
     const used = usedWithoutFallback();
-    const notReal = [...MERIDIAN_ORPHANS].filter((t) => declared.has(t) || !used.has(t));
-    expect(notReal.sort()).toEqual([]);
+    const excusedButUnused = [...MERIDIAN_ORPHANS].filter((t) => !used.has(t));
+    expect(excusedButUnused.sort()).toEqual([]);
+  });
+
+  it("the four that were excused are fixed, not merely delisted", () => {
+    // Emptying the list would be worthless if the call sites were still there,
+    // so this names the four by hand and proves each is gone. Pinned to the
+    // NAMES rather than to the count, because a list that only checks its own
+    // length passes when somebody swaps one orphan for another.
+    const used = usedWithoutFallback();
+    for (const token of [
+      "--mrd-raised",
+      "--mrd-you-text",
+      "--mrd-fail-bright",
+      "--mrd-pass-bright",
+    ]) {
+      expect([token, used.has(token)]).toEqual([token, false]);
+    }
   });
 
   it("the two that were invented are gone from the code", () => {
