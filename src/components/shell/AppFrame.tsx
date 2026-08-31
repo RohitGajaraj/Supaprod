@@ -179,7 +179,6 @@ import {
   IconRailCollapse,
   IconRailExpand,
   IconSun,
-  IconRuns,
   IconThreads,
   IconToday,
   IconWork,
