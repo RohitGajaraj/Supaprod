@@ -765,6 +765,19 @@ export const SURFACE_REGISTRY = {
     status: "planned",
   },
   /*
+   * WHAT THIS WORKSPACE ALREADY SAYS ABOUT A SUBJECT, read at the moment a
+   * person is still choosing one (F-184). Lives on `/start`, beside the
+   * composer, as one sentence. `planned` until S1 mounts it there; the probe
+   * behind it is `spine/what-the-evidence-already-says`.
+   */
+  evidence: {
+    kind: "canvas-panel",
+    home: "canvas/01-evidence",
+    opensFrom: "spine-stage-01",
+    status: "planned",
+  },
+
+  /*
    * WHAT ONE STATION LEFT UNSETTLED FOR THE NEXT (S1's #29). Read by the run's
    * artifact pane, which draws §2.1's five-field handoff shape; three of the
    * five shipped in RUN-124 and these are the other two. `planned` until S1
