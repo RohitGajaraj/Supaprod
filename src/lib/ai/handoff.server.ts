@@ -23,6 +23,7 @@ import { resolveMissionSpendCap } from "@/lib/ai/mission-caps.server";
 import { runAttemptColumnsPresent } from "@/lib/ai/run-attempt.server";
 import { callModel } from "@/lib/ai/runtime.server";
 import { recordDecisionOrigins } from "@/lib/lineage.functions";
+import { recordErrorEvent } from "@/lib/observability/errors";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export type HandoffPayload = {
@@ -390,12 +391,56 @@ export async function enqueueHandoff(
     throw new HandoffRejectedError(verdict.reason);
   }
 
+  /*
+   * ── THE TRACK THIS HOP BELONGS TO, WHICH THIS INSERT HAS NEVER RECORDED ────
+   *
+   * `agent_messages.track_id` exists and was **NULL on all 143 handoffs**
+   * (measured 2026-08-31): the column was added for exactly this join and no
+   * writer ever filled it. Anything reading handoffs by track therefore returned
+   * nothing for every track, for ever — and an empty result here reads as "no
+   * station has handed anything on", which is a false negative with no symptom.
+   * S1's #29 is the reader; this is the edge it reads.
+   *
+   * Derived from the source run rather than added to the signature, because
+   * every caller already passes `source_run_id` and the run is the only place
+   * that knows the track. Best-effort by design: the handoff is the thing that
+   * matters and must not fail for a missing back-reference — but the failure is
+   * RECORDED rather than swallowed (F-171: a skip that reaches nobody is a skip
+   * nobody fixes), and the reader carries a mission fallback for the rows
+   * written before this existed.
+   */
+  let trackId: string | null = null;
+  if (args.source_run_id) {
+    // WRAPPED, because a back-reference must not be able to fail the hop it
+    // describes — and `error` only covers a query that RETURNED. A client that
+    // throws would otherwise take the whole handoff down for a nullable column.
+    // Recorded either way rather than swallowed: F-171 is the case where a skip
+    // reached nobody and three surfaces reported healthy for a pass that had
+    // failed on every insert.
+    try {
+      const { data: srcRun, error: runErr } = await supabase
+        .from("agent_runs")
+        .select("track_id")
+        .eq("id", args.source_run_id)
+        .maybeSingle();
+      if (runErr) throw new Error(runErr.message);
+      trackId = (srcRun as { track_id?: string | null } | null)?.track_id ?? null;
+    } catch (e) {
+      await recordErrorEvent(e, {
+        surface: "ai.handoff.track-back-reference",
+        failure_kind: "tool_error",
+        workspace_id: args.workspace_id,
+      });
+    }
+  }
+
   const { data: msg, error: mErr } = await supabase
     .from("agent_messages")
     .insert({
       user_id: userId,
       workspace_id: args.workspace_id,
       mission_id: args.mission_id,
+      track_id: trackId,
       from_agent_id: args.from_agent_id,
       from_agent_slug: args.from_agent_slug,
       to_agent_id: args.to.id,
