@@ -18,7 +18,11 @@ and one person who has to stay on top of all of it without opening anything.
 Routes: `_authenticated.tsx` (the shell) · `today` · `runs.*` · `missions.*` · `cockpit` · `fleet` ·
 `swarm` · `observe` · `traces*` · `agents` · `crew`
 
-You have **no database**. Every count, row and query is a request file in coordination/requests/<you>/. You have Playwright, every
+**You do not WRITE the database** — but as of 2026-08-31 this lane runs Claude Code and **may READ
+Postgres itself** via the Lovable MCP's `query_database`, so a count no longer costs a request and a
+wait. A write, a migration or a deploy is still a request file in `coordination/requests/<you>/`.
+**A number you report names the query that produced it** — a narrow read coming back empty, taken as
+a fact about the record rather than about the column read, is this repo's dominant defect class. You have Playwright, every
 skill and plugin in your session, and the whole repo to read.
 
 **Note how many routes you own that are four names for one idea.** `cockpit`, `fleet`, `swarm`,
@@ -119,7 +123,7 @@ lives in `src/components/meridian/`, which is **S0's prefix: import it freely, n
   the work was simply held. Assert on what your fix uniquely controls, over two cycles.
 - **Measure what writes, not what looks right.** Three wrong numbers in one day came from reading a
   column no writer sets, or inferring state from the shape of an id.
-- **A number without its query is not evidence.** You have no database — so every number you display
+- **A number without its query is not evidence.** You may read Postgres, but every number you display
   comes from a payload; name the field and the writer in your unit file.
 
 ## The cursor layer is yours

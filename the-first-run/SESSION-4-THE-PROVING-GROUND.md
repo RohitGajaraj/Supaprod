@@ -62,7 +62,8 @@ reproduce is reopened, whatever it says.
 - **Two checkouts are only comparable if their env matches.** A fresh worktree has no `.env` and once
   passed a test that fails everywhere else, nearly reversing a correct diagnosis.
 - **A number without its query is not evidence.** Record the SQL, the command, the `file:line`. You
-  have no database — so route every count you need to S0 as an ask, and quote the query it returns.
+  may READ Postgres via `query_database` as of 2026-08-31, but never write it — and whether the
+  number came from your own read or from S0, **quote the query beside it.**
 - **Green on the gates you ran is not green.** `tsc` + `lint` clean is not a gate here; `bun test`
   holds the invariants. **Never pipe a gate into `tail`** — it returns `tail`'s exit code, and `main`
   has shipped red exactly that way. **The 12 pre-existing test failures are known: do not claim them

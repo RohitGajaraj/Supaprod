@@ -190,10 +190,13 @@ minutes ago" once read as "yesterday" and nearly reversed a finding.
   it delivers (§0 questions 1 and 2), files, acceptance criteria, which skills to use, which existing
   component was checked first. Write them to coordination/.md`. **A blocked lane is
   your failure.**
-- **Answer every `ask/*/` in coordination/requests/ within one unit.** Lanes have no database; every count, row and
-  deploy is a question to you.
-- **Run both gates on every lane push** — enterprise and R-20's eight. Fix minor defects yourself in
-  place; never route a typo through a queue. Only structural defects go back.
+- **Answer every `ask/*/` in coordination/requests/ within one unit.** As of 2026-08-31 the lanes run
+  Claude Code and **read Postgres themselves** via `query_database`, so a plain count is no longer a
+  question for you — **every WRITE, migration and deploy still is.** Answer rulings and writes, not
+  lookups a lane can run.
+- **Run FOUR gates on every lane push, not two** — see §G above: enterprise, R-20's eight, **the
+  freeze**, and **the framework gate**. Fix minor defects yourself in place; never route a typo
+  through a queue. Only structural defects go back.
 - **THIRD GATE, added 2026-08-31 — THE FREEZE (§0.7).** Reject any unit that improves the public and
   marketing surface: twenty routes plus `landing/**`, `public/**`, `plg/**`, `supaprod/**`, `brief/**`
   and `product/**`. Four exceptions only — a false claim, a wrong legal page, a broken page, or the

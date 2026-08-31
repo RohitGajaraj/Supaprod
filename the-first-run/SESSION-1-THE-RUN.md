@@ -18,7 +18,11 @@ navigating and without being taught anything — nothing the other four sessions
 Routes: `_authenticated.track.$trackId.tsx` · `_authenticated.start.tsx` ·
 `_authenticated.decide.tsx` · `_authenticated.learn.tsx` · `_authenticated.discover.tsx`
 
-You have **no database**. Every count, row, query and deploy is a request file in coordination/requests/<you>/. You have
+**You do not WRITE the database** — but as of 2026-08-31 this lane runs Claude Code and **may READ
+Postgres itself** via the Lovable MCP's `query_database`, so a count no longer costs a request and a
+wait. A write, a migration or a deploy is still a request file in `coordination/requests/<you>/`.
+**A number you report names the query that produced it** — a narrow read coming back empty, taken as
+a fact about the record rather than about the column read, is this repo's dominant defect class. You have
 Playwright, every skill and plugin in your session, and the whole repo to read.
 
 ---
