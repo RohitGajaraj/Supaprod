@@ -149,6 +149,16 @@ describe("a held track's chip", () => {
       "src/components/track/TrackRun.tsx",
       "src/components/track/footer-mode.ts",
       "src/components/track/nothing-is-coming.ts",
+      /*
+       * ADDED BY RUN-130, and the census is why I noticed rather than a thing I
+       * had to remember. `run-position.ts` decided a station's STATE rather
+       * than its wording, so the violations scan above could never have seen
+       * it: the file names no sentence at all. It was drawing every terminal
+       * hold as `needs-approval` — the state PlanCard gates its Approve control
+       * on — so the same overstatement was being made in a shape a
+       * string-matching guard cannot reach.
+       */
+      "src/components/track/run-position.ts",
       "src/components/track/run-status.ts",
       "src/components/track/run-tab.ts",
       "src/components/track/way-out.ts",
