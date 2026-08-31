@@ -146,6 +146,7 @@ import { CharacterMark } from "@/components/presence/Character";
 import { deriveRailPresence } from "./rail-presence";
 import { GLYPH_FOR_STATION, StationGlyph } from "@/components/meridian/station-glyphs";
 import { RunStripProvider, STAGE_LABEL, STATION_ROUTE, type RunStripSpec } from "./run-strip";
+import { SessionEndedProvider } from "./session-ended";
 import { agentDisplayName, agentStation, type AgentStation } from "@/lib/agent-vocabulary";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
 import { supabase } from "@/integrations/supabase/client";
@@ -2480,7 +2481,15 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
             </div>
           ) : null}
           <main className="sp-work" key={pathname}>
-            {children}
+            {/* THE SAME FACT, CARRIED DOWN RATHER THAN RECOMPUTED (S4-167).
+              The banner above is the ONE door. A region inside that offers a
+              second remedy - "Try again" against a dead token - offers what the
+              product cannot honour. Regions holding an `error` already resolve
+              this through `wayOut`; the workspaces arm has no error to hold,
+              because every board query is workspace-gated and therefore idle in
+              exactly that state. So the shell hands its own answer down. No new
+              read. */}
+            <SessionEndedProvider value={sessionEnded}>{children}</SessionEndedProvider>
           </main>
         </div>
         <BoardPanel open={boardOpen} onClose={() => setBoardOpen(false)} />

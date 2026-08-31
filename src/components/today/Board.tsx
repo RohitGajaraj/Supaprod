@@ -55,6 +55,7 @@ import { FocusNext } from "@/components/today/FocusNext";
 import { HandoverNote } from "@/components/today/HandoverNote";
 import { OverlapCheck, OverlapNote } from "@/components/today/OverlapNote";
 import { CameFrom } from "@/components/today/CameFrom";
+import { useSessionEnded } from "@/components/shell/session-ended";
 import { PushedInsights } from "@/components/today/PushedInsights";
 import { runTotals, spendWords } from "@/components/today/run-totals";
 import { lastMovedAt, stillnessLine } from "@/components/today/last-movement";
@@ -578,6 +579,10 @@ export function Board() {
 
   // Engine-Room: Today names outcomes, decisions and evidence. Agent internals stay recessed.
   useSpineStrip(null);
+
+  /* The shell's own answer to "has this tab's session ended", not a sixth read.
+     Null outside the shell, which keeps every existing remedy where it is. */
+  const sessionEnded = useSessionEnded();
 
   const fetchQueue = useServerFn(getApprovalsQueue);
   const fetchMissions = useServerFn(listMissions);
@@ -1914,7 +1919,15 @@ export function Board() {
           <div className="today-arrival">
             {workspacesUnreadable ? (
               <Region title="The workspaces you are in">
-                <ReadFailedLine onRetry={() => refreshWorkspaces()}>
+                {/* NO SECOND REMEDY WHEN THE SHELL HAS ALREADY GIVEN THE ONE
+                    THAT WORKS (S4-167). A dead token fails every read in the
+                    tab, the shell says so once above everything with a Sign in
+                    door, and "Try again" here would retry into the same
+                    failure. This region keeps NAMING which read failed - the
+                    thing it knows and the shell does not - and drops the offer
+                    it cannot honour. When the session is fine the retry is
+                    real and stays. */}
+                <ReadFailedLine onRetry={sessionEnded ? undefined : () => refreshWorkspaces()}>
                   This could not be read, so it cannot tell a quiet morning from a workspace it
                   never saw.
                 </ReadFailedLine>
