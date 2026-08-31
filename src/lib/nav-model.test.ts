@@ -335,14 +335,21 @@ describe("nav-model - one key, one door, across the WHOLE nav model", () => {
      * forwarding address — which is the shape worth naming, because a pin whose
      * reason expired reads exactly like a pin that is still load-bearing.
      *
-     * ── AND IT IS NOT REPLACED BY ITS NEGATIVE *YET*, ON PURPOSE ──────────
-     * The obvious move is to assert `not.toContain("/runs")`, so F-145's ruling
-     * is enforced by the suite instead of living in a document. I wrote that,
-     * ran it, and it FAILED: the rail literal still carries the row, because
-     * S2's unit removing it had not landed when this line was needed to unblock
-     * them. Committing it would have put a knowingly-red assertion on `main` and
-     * made a lane's green build depend on the order two sessions happened to
-     * push in.
+     * ── AND THE NEGATIVE PIN IS NOW IN, 2026-08-31 (S2) ──────────────────
+     * S0 wrote `not.toContain("/runs")` here first, ran it, and it FAILED: the
+     * rail literal still carried the row, because S2's unit removing it had not
+     * landed when this line was needed to unblock them. Committing it would have
+     * put a knowingly-red assertion on `main` and made a lane's green build
+     * depend on the order two sessions happened to push in. So it was queued
+     * with a note saying when it became safe, and S0 handed it to the commit
+     * that removes the row.
+     *
+     * That commit is `5b9f963f4`. The row is gone, so F-145's ruling is
+     * enforced by the suite from here rather than living in a document - and
+     * R-01 was broken for twenty-six days precisely because nothing asserted
+     * it. Added by S2 at S0's written instruction in
+     * `coordination/answers/S0-A01-the-home-is-start-and-the-board-folds-into-it.md`
+     * §1, which is the only reason a lane is writing in `src/lib/`.
      *
      * So the negative pin is queued rather than smuggled in, and this note is
      * the reason it is safe to add the moment the rail row is gone. The `>= 4`
@@ -350,6 +357,9 @@ describe("nav-model - one key, one door, across the WHOLE nav model", () => {
      * stale claim does not lower the bar in the meantime.
      */
     expect(paths.length).toBeGreaterThanOrEqual(4);
+    // R-01, and it is the founder's F-146: stations are never navigation, so
+    // the door that pointed at /runs may not come back.
+    expect(paths).not.toContain("/runs");
     for (const p of paths) {
       const door = DOORS.find((d) => d.to === p);
       expect(door).toBeDefined();
