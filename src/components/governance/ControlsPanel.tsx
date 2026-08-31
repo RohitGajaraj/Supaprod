@@ -105,12 +105,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "@/lib/notify";
 import { useWorkspace } from "@/hooks/use-workspace";
-import {
-  getBoundary,
-  getGovernanceOverview,
-  setWorkspacePause,
-  MISSION_CONCURRENCY_CAP,
-} from "@/lib/governance.functions";
+import { getBoundary, getGovernanceOverview, setWorkspacePause } from "@/lib/governance.functions";
 import { humanWriteError } from "@/lib/roles.functions";
 import { BoundaryStatement } from "./BoundaryStatement";
 import { useGovernedWrite } from "@/hooks/use-workspace-role";
@@ -522,9 +517,42 @@ export function ControlsPanel({
           <Reading>Reading the limits this workspace runs inside.</Reading>
         ) : (
           <>
-            <Line label="Missions at once" sub="New goals queue when the mesh is at capacity.">
-              <Num>{MISSION_CONCURRENCY_CAP}</Num>
-            </Line>
+            {/*
+             * THIS SAID 5, AND NOTHING HAS EVER LIMITED IT (2026-08-31).
+             *
+             * `MISSION_CONCURRENCY_CAP = 5` is exported from
+             * `governance.functions.ts:463` and has exactly TWO references in the
+             * repository: its own definition, and the `<Num>` that used to render
+             * here. **Nothing reads it**, so nothing queued and nothing was at
+             * capacity. Searched for an enforcement under other names too
+             * (`maxInFlight`, `at capacity`, concurrency limiting in the dispatch
+             * path); every hit is unrelated, being optimistic locking, digest
+             * batching, or the Linear API rate limit.
+             *
+             * MEASURED, BECAUSE A GREP ALONE PROVES ONLY THAT I DID NOT FIND IT.
+             * Live database, same day: **330 of 397 missions are open right now**,
+             * and the peak in a single workspace is **94** open at once, taking
+             * `created_at` to `coalesce(completed_at, archived_at)` as the window.
+             * A cap of five cannot have been in force while ninety-four ran.
+             *
+             * WHY THE NUMBER GOES RATHER THAN THE LINE. This Region is "Standing
+             * limits" and a company reads it to decide whether to put real work
+             * through this (§0.7 rank 5). The absence of a concurrency ceiling is
+             * exactly the kind of thing they need to know, so deleting the row
+             * would hide a real fact; keeping the 5 was standard #7's "invented
+             * number", which is the one bar that deletes a claim rather than
+             * sending it back. So the row stays and says what is true.
+             *
+             * NOT WRITTEN AS "unlimited". R-22's rule is that an absence must
+             * never be dressed as a deliberate choice, and nobody chose this.
+             *
+             * The orphaned constant is in S0's file and is theirs to wire or
+             * delete: `coordination/requests/S3/a-cap-nothing-enforces.md`.
+             */}
+            <Line
+              label="Missions at once"
+              sub="Nothing caps this today. A new goal starts straight away however many are already running, so this is not a limit you can rely on yet."
+            />
             <Line
               label="Approvals past their deadline"
               sub={

@@ -94,7 +94,13 @@ export type CrewRole = {
  * Keyed by slug because the job is the agent's, not the station's: two agents at
  * one station are only worth having if they are asked different questions.
  */
-const CREW_ROLE: Record<string, { job: string; file: string }> = {
+/**
+ * Exported 2026-08-31 so a guard can assert that a seat brief names a tool which
+ * can actually accept that station's artifact (F-168). Reading this module as
+ * TEXT was the alternative, and that is the instrument that broke twice today
+ * once a line re-wrapped -- so the shape is exported rather than scraped.
+ */
+export const CREW_ROLE: Record<string, { job: string; file: string }> = {
   // 01 Discover
   "discovery-scout": {
     job: "Gather the evidence that already exists for this work.",
@@ -128,7 +134,40 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
   },
   critic: {
     job: "Red-team the call that was just made. Argue the strongest case against it, and say what would have to be true for it to be wrong.",
-    file: "Call critic.evaluate on the decision. If it should not stand, call decision.revise rather than leaving the objection in prose.",
+    /*
+     * NAME A TOOL THAT ACCEPTS A DECISION — F-168, 2026-08-31, and it killed the
+     * first clean acceptance candidate this product has ever had.
+     *
+     * This clause said "Call critic.evaluate on the decision." `critic.evaluate`
+     * takes `target_kind: z.enum(["opportunity", "prd"])` and its implementation
+     * reads the `opportunities` or `prds` table — **it cannot accept a
+     * decision.** So the one station whose entire output IS a decision was
+     * briefed to red-team it with the one tool that refuses one.
+     *
+     * The sentence survived because its SECOND half is correct: `decision.revise`
+     * exists and does what it says. A brief that is half right reads as
+     * reasonable, which is exactly why nobody caught it.
+     *
+     * WHAT IT COST, measured on track `d2263583` (S4-172): seven sweep drives,
+     * zero presses, 611,844 tokens with 261,771 at Decide alone, three attempts,
+     * and it died holding `nothing-to-hand-on` — while having PRODUCED six
+     * decisions, every one carrying a forecast. The critic said so in its own
+     * words: *"Critic evaluation cannot be performed because critic.evaluate
+     * only accepts opportunities or PRDs, not decisions."* It then red-teamed in
+     * prose and was marked `completed_with_failures` for doing the right thing
+     * with the only means available.
+     *
+     * WHY THE BRIEF CHANGED AND NOT THE TOOL. Widening `critic.evaluate` looks
+     * like a one-line enum edit and is not: the implementation selects a table
+     * per kind, builds a kind-specific prompt, and persists the verdict onto the
+     * row. And the tool is right as scoped — it red-teams an opportunity or a
+     * spec BEFORE a decision exists. At Decide the artifact IS the decision, and
+     * the two tools that act on one are `decision.record` and `decision.revise`.
+     *
+     * The last clause says what the tool is for, so the seat does not try it
+     * anyway. F-153's lesson: name the thing AND say what it costs.
+     */
+    file: "If the call should not stand, call decision.revise with what changed your mind, rather than leaving the objection in prose. If it stands, say so plainly and name what would have to be true for it to be wrong. Do NOT call critic.evaluate here: it red-teams an opportunity or a spec before a decision exists and it refuses a decision outright, so calling it costs a turn and files an error without telling you anything.",
   },
   // 03 Plan
   "prd-writer": {
@@ -373,7 +412,7 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
     // "unreviewed" is carried into the brief deliberately. The tool returns it
     // when the reviewer did not run, and a seat that reads that as a pass turns
     // a missing check into a clean bill, which is worse than no check at all.
-    file: "If it does not meet the spec, call studio.stage with the fix and studio.commit to append it to the same branch. When it does meet the spec, call studio.review over the staged diff before anything else: it is read-only, it names findings per file, and a verdict of block or revise is work to do rather than an opinion to weigh. A verdict of unreviewed means the reviewer did not run and is not a pass, so say so instead of proceeding as though it were one. Then call studio.pr.open so there is a pull request for Ship to point at, then studio.checks.run to learn whether CI is green at that head. When the checks are green, call studio.pr.merge, it re-proves CI fresh and refuses red, and where the workspace's governance wants a person it files that question rather than running, which is the gate working: stop there and say so. Do not pass work you would not sign off.",
+    file: "If it does not meet the spec, call studio.stage with the fix and studio.commit to append it to the same branch. When it does meet the spec, call studio.review over the staged diff before anything else: it is read-only, it names findings per file, and a verdict of block or revise is work to do rather than an opinion to weigh. A verdict of unreviewed means the reviewer did not run and is not a pass, so say so instead of proceeding as though it were one. Then call studio.pr.open so there is a pull request for Ship to point at. Then studio.checks.run, and this one is REQUIRED rather than suggested: this station cannot hand its work on until the checks have actually run and cleared it, so skipping it does not save you a step, it holds the work here. Read its may_proceed rather than its individual exit codes, because it reports false both when a check fails and when the sandbox could not run, and checks that did not run are never a pass. When the checks are green, call studio.pr.merge, it re-proves CI fresh and refuses red, and where the workspace's governance wants a person it files that question rather than running, which is the gate working: stop there and say so. Do not pass work you would not sign off.",
   },
   // 06 Ship
   "release-verifier": {

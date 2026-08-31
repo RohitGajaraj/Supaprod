@@ -1383,6 +1383,15 @@ export async function verifyStationOutput(
   supabase: SupabaseClient,
   station: AgentStation,
   attached: Attachment[],
+  /**
+   * The track, so Build can read whether its checks actually RAN (F-148).
+   *
+   * Optional because two of the three call sites only want the reason string for
+   * a note, and a note does not need to re-run a gate. **Absent means Build's
+   * check degrades to the filing check it was**, which is stated here rather
+   * than discovered: a caller that wants the gate must pass this.
+   */
+  trackId?: string,
 ): Promise<{ passed: boolean; reason?: string }> {
   // Group attached artifacts by kind
   const byKind = new Map<string, string[]>();
@@ -1514,6 +1523,95 @@ export async function verifyStationOutput(
     const hasMission = (byKind.get("mission") ?? []).length > 0;
     if (!hasMission) {
       return { passed: false, reason: "No changes were staged for commit" };
+    }
+
+    /*
+     * ── THE TEST GATE (F-148). BUILD'S SELF-CHECK COULD NOT FAIL. ───────────
+     *
+     * The `mission` kind above is written by the DRIVER ITSELF, at
+     * `driver.server.ts:773`, BEFORE any seat runs. So the only thing this
+     * branch asked for was already true every time it was asked, and Build's
+     * self-check has never once refused a hand-on. `SPEC-AI-NATIVE-SDLC.md` §2
+     * puts it plainly: what shipped as F-76 is a FILING check, not a
+     * verification check -- it compiles nothing and runs nothing.
+     *
+     * Real execution has existed the whole time at `studio.checks.run`, which
+     * clones the branch into a sandbox and takes real exit codes from `tsc`,
+     * `bun test` and `lint`. It was **one skippable instruction with no gate
+     * behind it**, and measured 2026-08-31 it had run **ONCE in the product's
+     * life** -- against 48 `studio.commit`, 9 `studio.pr.open` and 7
+     * `studio.pr.merge`. Seven merges went in with the checks tool having run a
+     * single time, ever.
+     *
+     * So the gate is: Build may not hand on until its checks have RUN and said
+     * it may proceed. `may_proceed` is the tool's own word, and it is false both
+     * when a check fails AND when the sandbox could not run -- the tool
+     * "never reports green for checks that did not run", which is exactly the
+     * distinction this gate needs and the reason it is read rather than
+     * recomputed here.
+     *
+     * NOT an eighth station: the spine, the acceptance query and R-01 all key on
+     * seven. This is their Test stage adopted as substance, at the Build->Ship
+     * seam where it belongs.
+     */
+    if (!trackId) return { passed: true };
+
+    const { data: runRows, error: runErr } = await supabase
+      .from("agent_runs" as never)
+      .select("trace_id")
+      .eq("track_id", trackId)
+      .not("trace_id", "is", null);
+    /*
+     * A FAILED READ PASSES, AND THIS IS THE ONE BRANCH WHERE THAT COSTS
+     * SOMETHING REAL -- so it is a decision rather than a default.
+     *
+     * Failing CLOSED here would park every Build on this track permanently the
+     * moment a query broke, in the hold that counts an attempt, and no operator
+     * action clears a gate that is wrong about itself. Failing open loses one
+     * gate on one drive and the next drive re-asks. The same choice the decide
+     * and define branches above make, for the same reason, and the console line
+     * is what makes it visible rather than silent.
+     */
+    if (runErr) {
+      console.error(`[driver] build test-gate could not read runs: ${runErr.message}`);
+      return { passed: true };
+    }
+    const traceIds = ((runRows ?? []) as Array<{ trace_id?: string | null }>)
+      .map((r) => r.trace_id)
+      .filter((t): t is string => typeof t === "string" && t.length > 0);
+    // No trace is not a red verdict. An untraced run is unknowable rather than
+    // failing, and F-76's rule is that those are different things.
+    if (traceIds.length === 0) return { passed: true };
+
+    const { data: checkCalls, error: checkErr } = await supabase
+      .from("tool_calls" as never)
+      .select("result, created_at")
+      .eq("tool_name", "studio.checks.run")
+      .in("trace_id", traceIds)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (checkErr) {
+      console.error(`[driver] build test-gate could not read checks: ${checkErr.message}`);
+      return { passed: true };
+    }
+
+    const newest = (checkCalls ?? [])[0] as { result?: unknown } | undefined;
+    if (!newest) {
+      return {
+        passed: false,
+        reason:
+          "The checks were never run on this change. Call studio.checks.run and read its verdict before handing this on.",
+      };
+    }
+    const result = (newest.result ?? {}) as { may_proceed?: boolean; reason?: string };
+    if (result.may_proceed !== true) {
+      return {
+        passed: false,
+        reason:
+          result.reason && result.reason.trim().length > 0
+            ? `The checks did not pass: ${result.reason}`
+            : "The checks ran and did not clear this change to proceed.",
+      };
     }
     return { passed: true };
   }
@@ -2544,6 +2642,9 @@ export async function driveTrackOnce(
       supabase,
       station,
       unionFiled(attached, await filedAtStation(supabase, row.id, station)),
+      // F-148: the track, so Build's gate can read whether its checks RAN. Only
+      // this call site enforces; the note-building one above wants a reason.
+      row.id,
     );
     if (!verification.passed) {
       await supabase
