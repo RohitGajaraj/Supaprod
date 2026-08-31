@@ -103,10 +103,7 @@ describe("which misses still owe a piece of work", () => {
      * here, within the pass, which is exactly the F-158 shape arriving in one
      * batch rather than across two.
      */
-    const out = missesStillOwedWork(
-      [miss({ learningId: "l1" }), miss({ learningId: "l2" })],
-      none,
-    );
+    const out = missesStillOwedWork([miss({ learningId: "l1" }), miss({ learningId: "l2" })], none);
     expect(out.map((m) => m.learningId)).toEqual(["l1"]);
   });
 
