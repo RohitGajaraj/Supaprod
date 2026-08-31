@@ -9,6 +9,7 @@ import { getWorkspaceAnchors } from "@/lib/approvals-queue.functions";
 import { pollMs } from "@/components/shell/poll";
 import { anchorKeyOf, anchoredElements } from "@/components/shell/presence-anchor";
 import { teammateColour } from "@/components/shell/teammate-colour";
+import { rememberAnchors, tracesFrom, type Trace } from "@/components/shell/presence-trace";
 
 /**
  * NAMED, COLOURED TEAMMATES AT THE OBJECT THEY ARE ACTUALLY TOUCHING.
@@ -165,6 +166,52 @@ export function placeAnchors(
   return out.sort((p, q) => Number(p.contested) - Number(q.contested));
 }
 
+/** An object that CHANGED recently and has nobody on it now (§3.2). */
+export interface PlacedTrace {
+  key: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  name: string;
+  colour: string;
+}
+
+/**
+ * Where each recently-changed object is.
+ *
+ * Deliberately a separate function from `placeAnchors` rather than a flag on
+ * it, because the two make DIFFERENT CLAIMS and sharing a code path is how one
+ * quietly acquires the other's treatment. `placeAnchors` says "somebody is on
+ * this, now"; this says "this changed, and nobody is on it". A single function
+ * with an `isTrace` boolean would be one careless edit away from drawing a live
+ * chip over a departed teammate, which is the §2 violation this whole feature
+ * gets deleted for.
+ */
+export function placeTraces(
+  traces: readonly Trace[],
+  elements: Map<string, Element>,
+  active: readonly string[],
+): PlacedTrace[] {
+  const out: PlacedTrace[] = [];
+  for (const t of traces) {
+    const el = elements.get(t.key);
+    if (!el) continue; // Not on this screen. Same rule as a cursor.
+    const box = el.getBoundingClientRect();
+    if (box.width === 0 && box.height === 0) continue;
+    out.push({
+      key: t.key,
+      x: box.x,
+      y: box.y,
+      w: box.width,
+      h: box.height,
+      name: agentDisplayName(t.slug),
+      colour: teammateColour(t.slug, active),
+    });
+  }
+  return out;
+}
+
 export function TeammateCursors({ workspaceId }: { workspaceId: string | null }) {
   const fAnchors = useServerFn(getWorkspaceAnchors);
 
@@ -185,18 +232,29 @@ export function TeammateCursors({ workspaceId }: { workspaceId: string | null })
      write. */
   const collisions = React.useMemo(() => anchors.data?.collisions ?? [], [anchors.data]);
   const [placed, setPlaced] = React.useState<Placed[]>([]);
+  const [traced, setTraced] = React.useState<PlacedTrace[]>([]);
+  /* What we last saw change, kept in a ref rather than state: it is an INPUT to
+     the next measure, not something the render reads, and putting it in state
+     would re-render on every poll that changed nothing. Bounded by construction
+     - `rememberAnchors` drops anything past the window - so it cannot grow with
+     session length. */
+  const seenRef = React.useRef<Map<string, Trace>>(new Map());
 
   React.useEffect(() => {
     if (typeof document === "undefined") return;
-    if (rows.length === 0) {
-      setPlaced([]);
-      return;
-    }
 
     let frame = 0;
     const measure = () => {
       frame = 0;
-      setPlaced(placeAnchors(rows, anchoredElements(document), collisions));
+      /* ONE `now` FOR THE WHOLE PASS, so remembering and expiring cannot
+         disagree by a millisecond about whether a trace is still inside its
+         window. */
+      const now = Date.now();
+      seenRef.current = rememberAnchors(seenRef.current, rows, now);
+      const elements = anchoredElements(document);
+      const active = [...new Set(rows.map((a) => a.agentSlug).filter((x): x is string => !!x))];
+      setPlaced(placeAnchors(rows, elements, collisions));
+      setTraced(placeTraces(tracesFrom(seenRef.current, rows, now), elements, active));
     };
     /* Coalesced into one frame. Every trigger below can fire in bursts - a
        scroll is dozens of events - and measuring per event would read layout
@@ -229,9 +287,22 @@ export function TeammateCursors({ workspaceId }: { workspaceId: string | null })
       window.removeEventListener("resize", schedule);
       mo.disconnect();
     };
-  }, [rows, collisions]);
+    /* `dataUpdatedAt` is in the deps ON PURPOSE and it is the only reason this
+       needs no ticker. A trace expires by the age of its row, so something has
+       to re-evaluate it; the anchors query already polls every 10s, and that
+       stamp changes on every successful fetch even when the payload is
+       structurally identical and `rows` keeps its reference. So expiry is
+       driven by the same read the feature is derived from, at 10s granularity
+       against a 45s window - rather than by a timer, which is what §2 forbids.
 
-  if (placed.length === 0) return null;
+       THE LIMIT, STATED: if the poll stops, a trace can outstay its window
+       until the next measure. A dead feed is already the rail's story to tell
+       (`RailCrew` draws "Cannot see who is working" from this same query), and
+       a stale mark that says "this changed" is far weaker than a stale mark
+       that says "somebody is here". */
+  }, [rows, collisions, anchors.dataUpdatedAt]);
+
+  if (placed.length === 0 && traced.length === 0) return null;
 
   return (
     /* NEVER BLOCKS A CLICK (§3.1: "It rides above the surface and never blocks
@@ -261,6 +332,34 @@ export function TeammateCursors({ workspaceId }: { workspaceId: string | null })
       className="pointer-events-none fixed inset-0"
       style={{ zIndex: "var(--shell-z-tip)" }}
     >
+      {/* THE TRACES FIRST, so a live cursor always paints over a departed one
+          if they land on the same object between two polls. What is happening
+          now outranks what happened a moment ago, on the screen as in the
+          sorting. */}
+      {traced.map((t) => (
+        <div
+          key={`trace-${t.key}`}
+          className="absolute"
+          style={{ transform: `translate(${t.x}px, ${t.y}px)`, width: t.w, height: t.h }}
+        >
+          {/* Dotted and dimmed: a different mark from both the solid "somebody
+              has this" ring and the dashed "two teammates are contesting it"
+              one, because it is a different claim from either. */}
+          <span
+            className="absolute inset-0 rounded-mrd-ctl opacity-60"
+            style={{ outline: `1px dotted var(${t.colour})`, outlineOffset: "2px" }}
+          />
+          {/* PAST TENSE, AND NO CHIP. A name chip is how this layer says
+              "they are here"; a departed teammate must not get one, or the
+              trace becomes the cursor §2 forbids after the run has ended. */}
+          <span
+            className="absolute bottom-full left-0 mb-mrd-1 rounded-mrd-ctl px-mrd-2 py-mrd-1 text-mrd-nano whitespace-nowrap opacity-70"
+            style={{ background: "var(--mrd-lift)", color: "var(--mrd-mute)" }}
+          >
+            {t.name} changed this
+          </span>
+        </div>
+      ))}
       {placed.map((p) => {
         const contested = p.contested;
         return (
