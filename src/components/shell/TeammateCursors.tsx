@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { verbForTool } from "@/lib/presence/character";
-import type { Anchor } from "@/lib/presence/collision";
+import type { Anchor, Collision } from "@/lib/presence/collision";
 import { getWorkspaceAnchors } from "@/lib/approvals-queue.functions";
 import { pollMs } from "@/components/shell/poll";
 import { anchorKeyOf, anchoredElements } from "@/components/shell/presence-anchor";
@@ -64,6 +64,12 @@ interface Placed {
   w: number;
   h: number;
   on: Array<{ slug: string; name: string; verb: string; colour: string }>;
+  /**
+   * SOMEBODY IS WRITING TO THIS, and it is the derivation's word rather than
+   * mine. `Collision.contested` is true when at least one anchor on the object
+   * is a side-effecting tool, decided by `isSideEffectingTool`.
+   */
+  contested: boolean;
 }
 
 /**
@@ -73,7 +79,31 @@ interface Placed {
  * claim, and a test that could only reach it through a rendered component
  * would be testing React.
  */
-export function placeAnchors(anchors: readonly Anchor[], elements: Map<string, Element>): Placed[] {
+export function placeAnchors(
+  anchors: readonly Anchor[],
+  elements: Map<string, Element>,
+  collisions: readonly Collision[] = [],
+): Placed[] {
+  /*
+   * ── WHY THE CONTESTED FLAG IS READ AND NOT RE-DERIVED (A-004) ────────────
+   * This used to say `contested = on.length > 1`, which is wrong, and S0 ruled
+   * against it before I wrote it: **"Draw the mark on contested. Show the rest
+   * quietly or not at all."**
+   *
+   * The reason is measured rather than aesthetic. The tools that name a target
+   * are overwhelmingly READS - `repo.read` 64 calls, `prd.get` 25 - against a
+   * handful that write. **Two teammates reading one PRD is a healthy
+   * afternoon; two REVISING it is the thing worth interrupting somebody
+   * about.** A mark that fires on every shared target is technically correct
+   * and always on, and a mark that is always on is furniture - which is the
+   * fastest way to teach a person to stop looking at the one that matters.
+   *
+   * So the loud treatment is spent only where `collisionsFrom` says a
+   * side-effecting anchor is present, and that judgement stays in S0's
+   * `isSideEffectingTool`, where the tool catalogue lives. Re-deriving it here
+   * would be a second copy of a rule this layer has already had to delete once.
+   */
+  const contestedKeys = new Set(collisions.filter((c) => c.contested).map((c) => anchorKeyOf(c)));
   /* Group by object first, because two teammates on ONE thing is a collision
      (§3.3) and must be drawn once with both of them - not twice, stacked, so
      that the second silently covers the first. */
@@ -119,12 +149,20 @@ export function placeAnchors(anchors: readonly Anchor[], elements: Map<string, E
         colour: teammateColour(slug, active),
       });
     }
-    out.push({ key, x: box.x, y: box.y, w: box.width, h: box.height, on });
+    out.push({
+      key,
+      x: box.x,
+      y: box.y,
+      w: box.width,
+      h: box.height,
+      on,
+      contested: contestedKeys.has(key),
+    });
   }
   /* Contested objects last, so their marks paint over the single ones rather
      than under them. The thing worth interrupting somebody about should not be
      the thing another chip covers. */
-  return out.sort((p, q) => p.on.length - q.on.length);
+  return out.sort((p, q) => Number(p.contested) - Number(q.contested));
 }
 
 export function TeammateCursors({ workspaceId }: { workspaceId: string | null }) {
@@ -142,6 +180,10 @@ export function TeammateCursors({ workspaceId }: { workspaceId: string | null })
   });
 
   const rows = React.useMemo(() => anchors.data?.anchors ?? [], [anchors.data]);
+  /* Read, never re-derived: `contested` is decided in `collisionsFrom` from the
+     tool catalogue, and this layer holds no second opinion about which tools
+     write. */
+  const collisions = React.useMemo(() => anchors.data?.collisions ?? [], [anchors.data]);
   const [placed, setPlaced] = React.useState<Placed[]>([]);
 
   React.useEffect(() => {
@@ -154,7 +196,7 @@ export function TeammateCursors({ workspaceId }: { workspaceId: string | null })
     let frame = 0;
     const measure = () => {
       frame = 0;
-      setPlaced(placeAnchors(rows, anchoredElements(document)));
+      setPlaced(placeAnchors(rows, anchoredElements(document), collisions));
     };
     /* Coalesced into one frame. Every trigger below can fire in bursts - a
        scroll is dozens of events - and measuring per event would read layout
@@ -187,7 +229,7 @@ export function TeammateCursors({ workspaceId }: { workspaceId: string | null })
       window.removeEventListener("resize", schedule);
       mo.disconnect();
     };
-  }, [rows]);
+  }, [rows, collisions]);
 
   if (placed.length === 0) return null;
 
@@ -220,7 +262,7 @@ export function TeammateCursors({ workspaceId }: { workspaceId: string | null })
       style={{ zIndex: "var(--shell-z-tip)" }}
     >
       {placed.map((p) => {
-        const contested = p.on.length > 1;
+        const contested = p.contested;
         return (
           <div
             key={p.key}
