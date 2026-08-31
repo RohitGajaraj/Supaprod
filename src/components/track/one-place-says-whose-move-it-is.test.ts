@@ -35,6 +35,35 @@ import { join } from "node:path";
  * the CONJUNCTION: **a file that derives from `holdTone` and prints "Waiting on
  * you" must also consult `nothingIsComing`.** That permits the nuance and
  * catches exactly the defect, which is a chip derived without the split.
+ *
+ * ── AN OPEN QUESTION THIS GUARD IS LOAD-BEARING ON, RAISED BY S2 ──────────
+ * **The WORDING has not been ruled and this file encodes one reading.** S2's
+ * objection is fair and is recorded here rather than in a message, because a
+ * decision living only in a message did not happen.
+ *
+ * We agree on the placement and that half is settled: parked work belongs in
+ * the person's lane. `tracks-feed.ts:87-108` put it there deliberately after S4
+ * measured **eight of nine real open tracks** sitting under *"waiting on an
+ * agent, not on you"* when no agent was ever coming, one of them across 316
+ * drives. **Nobody wants that back.**
+ *
+ * We differ on one word. S2 reads "Waiting on you" as already true of a parked
+ * track, since a person is the only exit. I read it as overstating, because
+ * this product ALREADY uses that phrase for a queue of answerable items (§12
+ * renames Approvals to *Waiting for you*), so a person reads it, goes looking
+ * for the thing to answer, and there is nothing queued.
+ *
+ * **THE REGRESSION S2 FEARS CANNOT COME THROUGH THIS GUARD, and that is worth
+ * stating precisely.** The guard requires a file to CONSULT `nothingIsComing`.
+ * It does not dictate a word, a lane or a tone. `run-status.ts` keeps
+ * `status: "you"` on a terminal hold, so the chip stays person-toned and parked
+ * work stays exactly where `tracks-feed.ts` put it. Satisfying this test by
+ * moving parked tracks out of the person's lane would be a strictly harder
+ * change than satisfying it correctly.
+ *
+ * **If S0 rules for "Waiting on you"**, the reversal is: change the two words in
+ * `run-status.ts` and `run-tab.ts`, and delete this file. One commit. Recorded
+ * so the ruling is cheaper than the guard, never the other way round.
  */
 
 const SRC = join(process.cwd(), "src");
