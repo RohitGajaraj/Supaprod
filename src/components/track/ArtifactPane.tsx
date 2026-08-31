@@ -29,6 +29,7 @@ import { usePrefersReducedMotion } from "@/components/knowledge/graph-visual";
 import { justGrouped } from "@/components/track/just-grouped";
 import { fileNameFor, stationFile, tookItLine } from "@/components/track/station-file";
 import { WhatWereSolving } from "@/components/track/WhatWereSolving";
+import { OpenQuestions } from "@/components/track/OpenQuestions";
 import { whatItProduced } from "@/components/track/what-it-produced";
 import {
   offerToConnect,
@@ -2131,6 +2132,15 @@ export function SenseBody({
        * and until now the run had the second and not the first.
        */}
       <WhatWereSolving trackId={trackId} hasEvidenceBelow={groups.length > 0 || loose.length > 0} />
+      {/*
+       * WHAT IS STILL UNSETTLED, DRAWN ALWAYS (gap #29). `questions={null}` is
+       * not a placeholder: the reader is S0's and queued, and `QUEUE-S1.md`
+       * rules out deriving this from a client-side `payload` read. So the
+       * section says it cannot tell, which is the truth, rather than drawing an
+       * empty list -- and an empty list here is a FINDING, so inventing one
+       * would be the worst available lie. One prop changes when the reader lands.
+       */}
+      <OpenQuestions trackId={trackId} stationLabel="Discover" questions={null} stationRan />
       {groups.map((g) => {
         const t = themeById.get(g.themeId);
         const members = g.signals;
@@ -2334,6 +2344,13 @@ function StationPanel({
         {/* NO DEAD END, EVER (SESSION-1 unit 5), and this is where the 47
             tracks that filed nothing actually land. */}
         <NothingToRead station={stop.station} />
+        {/* AND WHAT IS STILL UNSETTLED (gap #29). Here as well as in `SenseBody`
+            because THIS is the branch a Discover stop with zero members reaches
+            -- 47 tracks -- and `SenseBody` never runs for them. RUN-134 shipped
+            that exact mistake with `NothingToRead` and it is the same shape. */}
+        {stop.station === "sense" ? (
+          <OpenQuestions trackId={trackId} stationLabel="Discover" questions={null} stationRan />
+        ) : null}
       </div>
     );
   }
