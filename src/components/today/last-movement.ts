@@ -78,7 +78,26 @@ export function lastMovedAt(now: number, ...groups: ReadonlyArray<readonly Movab
   let latest: number | null = null;
   for (const group of groups) {
     for (const row of group ?? []) {
-      for (const iso of [row.updated_at, row.updatedAt, row.drivenAt]) {
+      /*
+       * `drivenAt` IS DELIBERATELY NOT HERE, AND IT USED TO BE.
+       *
+       * **A drive is an attempt, not a movement.** `spine_tracks.driven_at`
+       * advances every time the sweep picks a track up, whether or not anything
+       * changed — and measured 2026-09-01, **58 of 62 open tracks carry a
+       * `driven_at` LATER than their own `updated_at`, 57 of them by more than
+       * five minutes, the worst by 23.5 DAYS.**
+       *
+       * Including it here did not merely blur the number, it **silenced the
+       * sentence this file exists to write.** The sweep runs every 10 minutes
+       * and `TRACK_FRESH_MS` is 10 minutes, so `drivenAt` kept `lastMoved`
+       * permanently fresh and *"Nothing has moved for …"* could almost never
+       * fire — **the drives that move nothing were suppressing the warning that
+       * nothing is moving.**
+       *
+       * `updated_at` is the honest source: it is NOT bumped by a no-op drive,
+       * which is exactly what those 58 rows prove.
+       */
+      for (const iso of [row.updated_at, row.updatedAt]) {
         const ms = instant(iso, now);
         if (ms !== null && (latest === null || ms > latest)) latest = ms;
       }
