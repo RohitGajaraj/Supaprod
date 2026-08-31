@@ -488,7 +488,11 @@ const RAIL = [
    */
   {
     to: "/brain",
-    label: "Brain",
+    /* §12's map, exact string: "Brain · Memory · Knowledge -> **What we've
+       learned**". Applied here because the RAIL LITERAL is in my prefix; the
+       destination stays S3's and I have not touched it. S4 reported three map
+       items outstanding on this rail and this is one of them. */
+    label: "What we've learned",
     Icon: IconBrain,
     count: null,
     owns: BRAIN_PATHS,
@@ -522,7 +526,12 @@ const RAIL = [
    */
   {
     to: "/engine-room",
-    label: "Guardrails",
+    /* §12's map, exact string: "Engine Room · Guardrails · Govern · Boundary ·
+       Safety -> **What it's allowed to do**" - four routes and a mood for one
+       idea. T1-S2 rules this door S3's and says "coordinate, do not both edit
+       it": the LABEL is in my file, the page behind it is theirs, and S3 has
+       been told rather than surprised. */
+    label: "What it's allowed to do",
     Icon: IconEngine,
     count: null,
     owns: ENGINE_ROOM_PATHS,
