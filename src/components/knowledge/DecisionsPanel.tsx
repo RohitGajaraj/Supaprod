@@ -98,6 +98,7 @@ import {
   forecastDue,
   forecastTitle,
   OUTCOME_WORD,
+  outcomeWord,
   SOURCE_LABEL,
 } from "./decisions-shared";
 import { stripAutoPrefix } from "@/components/plan/format";
@@ -489,8 +490,10 @@ export function DecisionsPanel() {
                 // beforehand and whether it came true.
                 sub={
                   <>
-                    <span className={OUTCOME_WORD[d.status].tone || undefined}>
-                      {OUTCOME_WORD[d.status].word}
+                    {/* `outcomeWord`, never a bare index: an unmapped status used
+                        to throw here and take the whole region with it. */}
+                    <span className={outcomeWord(d.status).tone || undefined}>
+                      {outcomeWord(d.status).word}
                     </span>
                     {" · "}
                     {whoLine(d)}

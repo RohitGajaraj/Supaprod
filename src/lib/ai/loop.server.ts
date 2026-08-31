@@ -586,6 +586,16 @@ export function shortenToolResult(result: unknown, cap: number = TOOL_RESULT_CHA
 
   const clone = JSON.parse(full) as unknown;
   const leaves: { get: () => string; set: (v: string) => void }[] = [];
+  /*
+   * Lists are collected WITH THEIR PARENT, because shortening a list has to say
+   * so somewhere, and the only honest place is beside the list itself.
+   */
+  const lists: {
+    get: () => unknown[];
+    set: (v: unknown[]) => void;
+    parent: Record<string, unknown>;
+    key: string;
+  }[] = [];
   const walk = (node: unknown): void => {
     if (Array.isArray(node)) {
       node.forEach((v, i) => {
@@ -601,12 +611,22 @@ export function shortenToolResult(result: unknown, cap: number = TOOL_RESULT_CHA
         const v = o[k];
         if (typeof v === "string") {
           leaves.push({ get: () => o[k] as string, set: (x) => void (o[k] = x) });
-        } else walk(v);
+        } else {
+          if (Array.isArray(v)) {
+            lists.push({
+              get: () => o[k] as unknown[],
+              set: (x) => void (o[k] = x),
+              parent: o,
+              key: k,
+            });
+          }
+          walk(v);
+        }
       }
     }
   };
   walk(clone);
-  if (leaves.length === 0) return overflowNote(full.length, cap);
+  if (leaves.length === 0) return shortenLongestList(clone, lists, cap) ?? overflowNote(full.length, cap);
 
   const originals = leaves.map((l) => l.get());
 
@@ -635,7 +655,36 @@ export function shortenToolResult(result: unknown, cap: number = TOOL_RESULT_CHA
   const longest = originals.reduce((m, o) => Math.max(m, o.length), 0);
   // Below this, a value is metadata rather than content and is never cut.
   const FLOOR = 80;
-  if (applyCeiling(FLOOR) > cap) return overflowNote(full.length, cap);
+  if (applyCeiling(FLOOR) > cap) {
+    /*
+     * A LIST IS NOT A DOCUMENT, AND CUTTING VALUES CANNOT SHORTEN ONE (S4-162).
+     *
+     * Everything above shortens STRING LEAVES, which is right for a file and
+     * useless for a listing: every string in a `repo.tree` result is a path,
+     * every path is under the 80-character floor, so the search has nothing to
+     * cut and this fell through to `overflowNote` -- 178 characters of apology
+     * and NOT ONE PATH.
+     *
+     * MEASURED 2026-08-31: the cliff sat between 100 entries (all kept) and
+     * 110 (zero kept), against `repo.tree`'s own 400-entry cap. And `repo.tree`
+     * is the Build seat's FIRST briefed call, at `driver.ts:301` and `:348`,
+     * described in its own registry entry as "Use FIRST to map the project
+     * before reading or editing anything". So on any repository with more than
+     * about 110 files the seat's opening move returned nothing at all, and it
+     * then reasoned about the project from an empty tree.
+     *
+     * Before the F-149 fix that same call returned roughly 26 real paths inside
+     * a 2,000-character truncation. Making the envelope honest made this case
+     * strictly worse, and that is the defect being closed here.
+     *
+     * So a payload the value-shortener cannot help is TRUNCATED AS A LIST, in
+     * the shape `repo.tree` already models one layer down with its own
+     * `truncated` and `note` fields, so the two never disagree about what
+     * truncation looks like. Falling back to `overflowNote` only when there is
+     * no list to cut keeps the old behaviour for the case it was right for.
+     */
+    return shortenLongestList(clone, lists, cap) ?? overflowNote(full.length, cap);
+  }
 
   let lo = FLOOR;
   let hi = longest;
@@ -645,6 +694,69 @@ export function shortenToolResult(result: unknown, cap: number = TOOL_RESULT_CHA
     else hi = mid - 1;
   }
   applyCeiling(lo);
+  return JSON.stringify(clone);
+}
+
+/**
+ * Keep as much of the longest list as fits, and say what was dropped.
+ *
+ * Returns null when there is nothing it can usefully cut, so the caller can
+ * fall back to the overflow note rather than this deciding for it.
+ */
+function shortenLongestList(
+  clone: unknown,
+  lists: {
+    get: () => unknown[];
+    set: (v: unknown[]) => void;
+    parent: Record<string, unknown>;
+    key: string;
+  }[],
+  cap: number,
+): string | null {
+  let longest: (typeof lists)[number] | null = null;
+  for (const l of lists) {
+    if (!longest || l.get().length > longest.get().length) longest = l;
+  }
+  if (!longest || longest.get().length === 0) return null;
+
+  const whole = longest.get().slice();
+  const parent = longest.parent;
+  const noteKey = `${longest.key}_shortened`;
+  const hadNote = noteKey in parent;
+  const previousNote = parent[noteKey];
+
+  /** Set the list to its first `keep` items, say so, and measure the envelope. */
+  const measure = (keep: number): number => {
+    longest.set(whole.slice(0, keep));
+    parent[noteKey] =
+      `${keep} of ${whole.length} shown. You do NOT hold the whole list. Narrow the call, by path or by prefix, rather than concluding anything from what is missing here.`;
+    return JSON.stringify(clone).length;
+  };
+
+  // Nothing fits even with the list emptied, so the weight is elsewhere.
+  if (measure(0) > cap) {
+    longest.set(whole);
+    if (hadNote) parent[noteKey] = previousNote;
+    else delete parent[noteKey];
+    return null;
+  }
+
+  let lo = 0;
+  let hi = whole.length;
+  while (lo < hi) {
+    const mid = Math.floor((lo + hi + 1) / 2);
+    if (measure(mid) <= cap) lo = mid;
+    else hi = mid - 1;
+  }
+  // An empty list plus a note is a worse answer than the overflow note, which at
+  // least names the size. Only a list with something IN it is an improvement.
+  if (lo === 0) {
+    longest.set(whole);
+    if (hadNote) parent[noteKey] = previousNote;
+    else delete parent[noteKey];
+    return null;
+  }
+  measure(lo);
   return JSON.stringify(clone);
 }
 

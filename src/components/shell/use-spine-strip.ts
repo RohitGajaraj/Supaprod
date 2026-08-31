@@ -50,8 +50,8 @@ import { usePublishRunStrip, type RunStage } from "./run-strip";
  * put Build's engine at /runs and left the real one unbuilt.
  */
 /**
- * The strip's cadence: five seconds while answers arrive, backed off by
- * `pollMs` while they do not.
+ * The strip's cadence, backed off by `pollMs` while answers do not arrive.
+ * The INTERVAL itself is ruled below; this half is about the backoff.
  *
  * THE DEFECT THIS CLOSED. This was a bare `refetchInterval: 5000`, and
  * `WorkspaceSpine` is mounted for the whole signed-in session - so against a
@@ -65,8 +65,56 @@ import { usePublishRunStrip, type RunStage } from "./run-strip";
  *
  * The reasoning for backing off rather than stopping lives in `poll.ts`.
  */
+/**
+ * ── THE CADENCE, RULED 2026-08-31 AND MEASURED RATHER THAN CHOSEN ─────────
+ *
+ * **This was 5 seconds and nobody ever decided that.** It arrived as a bare
+ * `refetchInterval: 5000`; the fix above added BACKOFF, which solved the
+ * dead-backend case and left the interval untouched. S0 confirmed the cadence
+ * was never ruled and handed the ruling here, where the measurement is.
+ *
+ * **WHAT THE STRIP IS ASKING ABOUT, AND HOW OFTEN IT CHANGES.** The counts come
+ * from studio sessions, which move when the spine moves. Stage events, hourly,
+ * service-role:
+ *
+ *   03:00-08:00   270 · 270 · 270 · 270 · 270 · 271     <- F-151's spin
+ *   09:00         109                                    <- it stopped at 09:25
+ *   10:00-14:00     1 ·   1 ·   0 ·   4 ·   1
+ *
+ * **The honest post-fix rate is ~1.4 events an hour — one every ~43 minutes.**
+ * The 24-hour average says one every 17 seconds and that number is a fossil of
+ * the bug: quoting it would be reading a window as if it were a mechanism.
+ *
+ * **THE COST.** `WorkspaceSpine` is mounted for the whole signed-in session, so
+ * 5 seconds is **720 requests an hour, on every surface, forever** — roughly
+ * **500 polls per state change** at the rate above.
+ *
+ * **20 SECONDS, and the two bounds are why it is not 10 and not 60.**
+ * Not 10: that is the PRESENCE cadence, and presence answers *"who is working
+ * right now"*, which is a live actor. This answers *"where is the work"*, which
+ * is a count, and a count is peripheral — a person watching a run start is
+ * looking at the run.
+ * Not 60: a driving track emits its events in a burst, and a minute-late strip
+ * would read as frozen during the one period it matters.
+ *
+ * **A 4x reduction, still inside one burst. The backoff is untouched; its
+ * WORST CASE is not, and saying "unchanged" would have been the flattering
+ * version.** `poll.ts` holds two independent limits — `MAX_DOUBLINGS` 4 and
+ * `MAX_POLL_MS` 120s — and which one binds depends on the base. At 5s,
+ * `5_000 * 2**4` is 80s, UNDER the ceiling, so the doubling count bound it and
+ * the ceiling never applied. At 20s the third doubling crosses 120s, so the
+ * ceiling binds instead and a dead backend is now retried every 2 minutes
+ * rather than every 80 seconds.
+ *
+ * **That is a 40-second-worse recovery notice, and it is the price.** It is
+ * acceptable because the ramp is only reached after three consecutive
+ * failures, one success resets `fetchFailureCount` to zero, and the strip says
+ * *"count unavailable"* throughout — so the cost of the slower retry is
+ * 40 seconds of a caption that is already true, not 40 seconds of a wrong
+ * number.
+ */
 export function stripPollMs(failures: number): number | false {
-  return pollMs(5_000, failures);
+  return pollMs(20_000, failures);
 }
 
 export function useSpineStrip(active: AgentStation | null): void {
@@ -343,9 +391,11 @@ export function useSpineStrip(active: AgentStation | null): void {
  * state where `stages` is null and the region collapses.
  *
  * THE POLL IS NOW APP WIDE, and that is the honest cost of an always-on strip.
- * One query, 5s, deduped with every spine surface and with the board by the
+ * One query, 20s, deduped with every spine surface and with the board by the
  * shared key, so the request count does not change on any surface that already
- * drew a strip and goes from zero to one on the surfaces that did not.
+ * drew a strip and goes from zero to one on the surfaces that did not. The
+ * cadence is ruled at `stripPollMs`, and it is app-wide precisely because this
+ * is mounted app-wide.
  */
 export function WorkspaceSpine(): null {
   // `null` is the whole point: Brain is not a station, so nothing is lit. The

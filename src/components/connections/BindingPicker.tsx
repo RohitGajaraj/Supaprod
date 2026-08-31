@@ -13,6 +13,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { listBindableResources, upsertBinding } from "@/lib/connections.functions";
+import { humanWriteError } from "@/lib/roles.functions";
 
 /**
  * Combobox that binds one provider resource (repo, team, database, …) to the
@@ -76,7 +77,7 @@ export function BindingPicker({
       setQuery("");
       qc.invalidateQueries({ queryKey: ["workspace-bindings"] });
     },
-    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Binding failed"),
+    onError: (e: unknown) => toast.error(humanWriteError(e, "Binding failed")),
   });
 
   return (

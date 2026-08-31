@@ -1,0 +1,9 @@
+{
+  "_what": "The golden set. Verified pairs a change is tested against (gap #24).",
+  "_state": "EMPTY, and deliberately so. See README.md.",
+  "_why_empty": "Of 192 recorded forecasts, 91 are resolved, 12 of those sit on a real workspace, and ZERO of the 12 were graded by an agent. All twelve carry forecast_resolved_at = <date> 00:00:00+00 -- midnight UTC to the microsecond, twelve times out of twelve -- which is a date literal from a backfill rather than a grader's clock.",
+  "_rule": "No case is seeded. A case is admitted only if all four admission tests pass, and lowering a test to fill this file is forbidden: each test exists because a specific number here turned out to be seed data when somebody checked.",
+  "_next_real_candidate": "d2263583 carries FOURTEEN unresolved forecasts across four horizons (2026-09-07, 09-30, 10-15, 11-30) for substantially one claim. The GOVERNING one is 2026-10-15: the driver reads the latest unsuperseded decision (driver.server.ts:1255-1279), not the earliest horizon. Corrected twice on 2026-09-01 -- first repeating another lane's date unmeasured, then publishing min() which is not the driver's rule.",
+  "_measured": "2026-08-31 by S4, against project 371dd588.",
+  "cases": []
+}

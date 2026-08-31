@@ -107,6 +107,18 @@ function cannotMove(holdReason: string | null | undefined): boolean {
   return !!holdReason && (TERMINAL_HOLDS as readonly string[]).includes(holdReason);
 }
 
+/**
+ * A track parked at Learn because its forecast is not due yet.
+ *
+ * **Both halves are required.** `needs-evidence` anywhere else is a real stop —
+ * `way-out.ts` answers it with *"Connect a source, or file the missing input by
+ * hand"* — and only at `learn` does it mean the horizon has not arrived. S1's
+ * `TrackStart.tsx` tests exactly this pair for the same reason.
+ */
+function waitingOnTime(t: { station: string; holdReason: string | null | undefined }): boolean {
+  return t.holdReason === "needs-evidence" && t.station === "learn";
+}
+
 export function trackToBoardRows(
   tracks: readonly Track[] | undefined,
   knownTrackIds: ReadonlySet<string>,
@@ -136,30 +148,79 @@ export function trackToBoardRows(
     };
 
     if (t.status === "done") {
-      finished.push({ ...base, kind: "finished", lastMoved: formatAgo(t.drivenAt ?? t.updatedAt) });
+      /* Same rule on the finished lane: the moment it finished is a state
+         change, and `updated_at` is when that happened. `drivenAt` remains the
+         fallback only for a row that somehow carries no `updatedAt`. */
+      finished.push({ ...base, kind: "finished", lastMoved: formatAgo(t.updatedAt ?? t.drivenAt) });
       continue;
     }
     if (t.status !== "open") continue;
 
     if (t.holdReason === PERSON_HOLD || cannotMove(t.holdReason)) {
-      /* Parked work says STOPPED, not "waiting on your answer": nothing was
-         asked, the loop ran out of road and will not try again on its own.
-         Those are different states and a person acts on them differently. */
+      /*
+       * PARKED WORK SAYS "NEEDS A RESTART". RULED, NOT CHOSEN (A10).
+       *
+       * Both halves of this line matter and they say different things:
+       *   answerable  -> "waiting on your answer"  (a gate; there IS a thing to press)
+       *   parked      -> "needs a restart"         (nothing was asked; the loop
+       *                                             ran out of road and will not
+       *                                             try again on its own)
+       *
+       * THE WORD CHANGED FROM "stopped, needs you" ON 2026-08-31, and the
+       * reason is §12 rather than taste. The rename map already spends
+       * **"Waiting for you"** on Approvals — a queue of ANSWERABLE items — so
+       * any parked row wearing a waiting-on-you phrase sends a person who has
+       * learned this product's vocabulary hunting for something to answer.
+       * There is nothing there: S1 measured **36 of 37** tracks carrying that
+       * chip as terminal holds, exactly one as `waiting-on-a-person`.
+       *
+       * I argued the other side and it lost to a COLLISION rather than to being
+       * wrong — a person genuinely is the only exit on all 36, which is why
+       * parked work stays in the person's lane here. S4 measured eight of nine
+       * real open tracks filed under "waiting on an agent" when no agent was
+       * ever coming, and that is not being undone.
+       *
+       * The exact string matches `run-tab.ts`'s chip, lowercased for this slot,
+       * because a state named two ways on two surfaces is §12's own stated
+       * failure: a word renamed in one place and left stale in another.
+       */
       waiting.push({
         ...base,
         kind: "waiting-on-you",
-        holdLine: cannotMove(t.holdReason) ? "stopped, needs you" : "waiting on your answer",
+        holdLine: cannotMove(t.holdReason) ? "needs a restart" : "waiting on your answer",
         reason: t.hold ?? null,
       });
       continue;
     }
 
-    const movedAt = t.drivenAt ? Date.parse(t.drivenAt) : NaN;
+    /*
+     * "MOVED" MUST MEAN MOVED, AND THIS READ `drivenAt` UNTIL 2026-09-01.
+     *
+     * The row renders this as **"· moved 2m ago"**. `driven_at` advances every
+     * time the sweep picks the track up **whether or not anything changed**, so
+     * that sentence was a freshness claim the data does not support.
+     *
+     * **Measured, service-role: 58 of 62 open tracks have `driven_at` later
+     * than their own `updated_at` — 57 by more than five minutes, and the worst
+     * gap is 23.5 DAYS.** A row saying "moved 2m ago" about work that last
+     * actually changed three weeks ago is fabricated progress, which §0.6
+     * standard #7 and §1's third property both delete a feature over.
+     *
+     * `updatedAt` is when the state changed. It is NOT bumped by a no-op drive
+     * — those 58 rows are the proof — so it is the only one of the two that can
+     * carry this word.
+     *
+     * **The attempt is still worth knowing and is NOT lost:** a track being
+     * driven and not moving is exactly what `holdLine` and the driver's own
+     * sentence underneath report, and S4-179 measured the same shape from the
+     * sweep's side. This line stops claiming the attempt was a change.
+     */
+    const movedAt = t.updatedAt ? Date.parse(t.updatedAt) : NaN;
     const fresh = Number.isFinite(movedAt) && now - movedAt < TRACK_FRESH_MS;
     running.push({
       ...base,
       kind: "running",
-      lastMoved: fresh ? (formatAgo(t.drivenAt) ?? "now") : formatAgo(t.drivenAt),
+      lastMoved: fresh ? (formatAgo(t.updatedAt) ?? "now") : formatAgo(t.updatedAt),
       /* A hold that is NOT on the person means the work stopped for its own
          reason, and carrying that reason keeps a stopped track from reading as
          a merely slow one, which is the confusion the hold field exists to
@@ -169,8 +230,61 @@ export function trackToBoardRows(
          few words wide and truncates. "held" keeps the fact in the scan band
          and the sentence goes underneath, in full, which beats the same
          sentence clipped mid-word. */
-      holdLine: t.holdReason ? "held" : null,
-      reason: t.holdReason ? (t.hold ?? null) : null,
+      /*
+       * A CALENDAR WAIT IS NOT A STOPPAGE, AND IT IS NOT AN AGENT EITHER.
+       *
+       * This row sits in the lane headed *"Waiting on an agent, not on you."*
+       * For a track parked at Learn on an undated forecast, **no agent is
+       * coming** — and the hold's own sentence says so in as many words:
+       * *"The forecast this work is graded against comes due on 2026-10-15.
+       * Learn returns when it does; nothing here is waiting on a person."*
+       * A row reading "held" under that header contradicts the sentence drawn
+       * directly beneath it.
+       *
+       * IT IS THE SAME DEFECT AS S4-043 AND A10, ONE STATION FURTHER ON: work
+       * filed under "waiting on an agent" when nothing is on its way. The
+       * difference is that this one cannot go to the person's lane either —
+       * a person cannot grade a forecast whose horizon has not arrived. It is
+       * a third thing, and it is waiting on the calendar.
+       *
+       * THE WORD IS S1'S AND IS REUSED RATHER THAN INVENTED. `TrackStart.tsx`
+       * already ruled it (queue 67): *"a learn hold whose reason is an undated
+       * forecast is a calendar wait, not a stoppage"* → **"Waiting on time"**.
+       * Lowercased for this slot, exactly as A10's "needs a restart" matches
+       * `run-tab.ts`'s chip — a state named two ways on two surfaces is §12's
+       * own stated failure.
+       *
+       * THE DATE DID NOT COME FREE, AND DRIVING IS WHAT TOLD ME. I wrote here
+       * that `reason` already carried the horizon. **It did not.** On the live
+       * board this row's second line read *"Learn has nothing to work from…
+       * Connect a source, or file the missing input by hand"* — `way-out.ts`'s
+       * generic `needs-evidence` answer — **telling a person to act, directly
+       * under a line saying nothing is waiting on a person.** The date appeared
+       * zero times.
+       *
+       * The cause is one field. `hold` is *"prose… a sentence built from"* the
+       * reason; **`holdBecause` is "the DRIVER'S OWN SENTENCE … stored
+       * verbatim"**, and since F-175 that is the one naming the horizon. This
+       * lane drew `hold` for every state. For THIS state it draws `holdBecause`
+       * when there is one, because the generic sentence does not merely fail to
+       * add the date — it contradicts the row above it.
+       *
+       * **Scoped deliberately to this state.** `hold` stays the sentence for
+       * every other hold, where it is the reader-facing one and no
+       * contradiction exists; swapping it everywhere is a wider change than the
+       * evidence supports.
+       *
+       * MEASURED 2026-08-31, and it is not hypothetical: `d2263583` reached
+       * `learn` at 17:31:31 under sweep — the FIRST track ever to walk there
+       * with zero presses — and its forecast is due in **45 days**. Before this
+       * line it read "held" for all forty-five of them.
+       */
+      holdLine: waitingOnTime(t) ? "waiting on time" : t.holdReason ? "held" : null,
+      reason: waitingOnTime(t)
+        ? (t.holdBecause ?? t.hold ?? null)
+        : t.holdReason
+          ? (t.hold ?? null)
+          : null,
     });
   }
 

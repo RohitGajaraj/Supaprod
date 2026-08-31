@@ -16,6 +16,8 @@
  * canonical helper, not to any one call site. A fifth list written tomorrow
  * that forgets the word again should fail here.
  */
+import { readFileSync } from "node:fs";
+
 import { describe, expect, it } from "vitest";
 
 import { isTerminalStatus } from "@/lib/reliability/runaway";
@@ -47,5 +49,45 @@ describe("a run that finished with failures has finished", () => {
 
   it("treats a status it has never heard of as live, so an unknown word is never silently parked", () => {
     expect(isTerminalStatus("some_status_added_next_year")).toBe(false);
+  });
+});
+
+/*
+ * AND THE HALF THAT WAS MISSING, FOUND BY MUTATION (S4-162).
+ *
+ * Every assertion above is about `isTerminalStatus`, which was ALWAYS RIGHT:
+ * it carried `completed_with_failures` before the fix and carries it after.
+ * The defect was that a CALL SITE did not ask it, and a test of the helper
+ * cannot see a call site.
+ *
+ * Measured 2026-08-31: restoring the exact pre-fix literal at
+ * `ci-poll-tick.ts:1100` left this file at 4 pass / 0 fail, and left all ten
+ * files in the repository that name `ci-poll-tick` at 143 pass / 0 fail.
+ * The commit that shipped the fix claimed "a fifth list written tomorrow
+ * fails". It did not, and this is the assertion that makes it true.
+ *
+ * COMMENTS ARE STRIPPED BEFORE ASSERTING, which is this repository's own hard
+ * lesson: a naive grep reads prose as code, and the comment above the fixed
+ * line explains the defect it replaced. S2 demonstrated that false positive on
+ * its own commit. Without the strip, a correct tree could fail here for
+ * describing what it fixed.
+ */
+describe("no tick decides a mission is over from its own list of words", () => {
+  const TICK = "src/routes/api/public/hooks/ci-poll-tick.ts";
+
+  /** Source with block and line comments removed, so prose is never read as code. */
+  const codeOf = (path: string): string =>
+    readFileSync(path, "utf8")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+
+  it("asks the canonical helper at the park decision", () => {
+    expect(codeOf(TICK)).toContain("isTerminalStatus(mStatus)");
+  });
+
+  it("carries no inline terminal-status list of its own", () => {
+    // The shape, not the spelling: any array literal holding the finished
+    // vocabulary and fed to .includes is a fifth list waiting to forget a word.
+    expect(codeOf(TICK)).not.toMatch(/\[[^\]]*"(blocked|halted|cancelled|failed|completed)"[^\]]*\]\s*\.includes/);
   });
 });

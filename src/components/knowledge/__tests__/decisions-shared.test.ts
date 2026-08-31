@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   SOURCE_LABEL,
   OUTCOME_WORD,
+  outcomeWord,
   ageOf,
   hasSource,
   displayWho,
@@ -119,18 +120,54 @@ describe("SOURCE_LABEL", () => {
 // deciding actually happens.
 // ─────────────────────────────────────────────────────────────────────────────
 describe("OUTCOME_WORD", () => {
-  test("has exactly three statuses", () => {
-    expect(Object.keys(OUTCOME_WORD).length).toBe(3);
+  /*
+   * THIS TEST USED TO READ "has exactly three statuses" AND IT PINNED THE BUG.
+   *
+   * `decisions.status` carries five values and the map had three, one of which
+   * (`rejected`) has never had a row. So 115 of 385 rows (29.9%) hit an
+   * unmapped status, `OUTCOME_WORD[d.status].tone` threw, and the /brain page
+   * rendered 525 characters with no error message at all. A count is not an
+   * invariant: it passed for as long as the map stayed wrong, and it would have
+   * failed the commit that fixed it. Asserting COVERAGE instead.
+   */
+  test("covers every status the column actually produces", () => {
+    // Measured against the live database 2026-09-01. `rejected` is retained
+    // deliberately: it is in the declared union and costs nothing, though it
+    // has never had a row.
+    for (const status of ["approved", "pending", "standing", "superseded", "declined"]) {
+      expect(OUTCOME_WORD[status]).toBeDefined();
+      expect(OUTCOME_WORD[status].word.length).toBeGreaterThan(0);
+    }
+  });
+
+  /*
+   * The crash itself, as a property rather than a case. The page did not fall
+   * over because a particular status was missing; it fell over because a bare
+   * index CAN be undefined. `outcomeWord` must answer for anything.
+   */
+  test("outcomeWord never throws, whatever it is handed", () => {
+    for (const odd of ["", "not-a-status", "APPROVED", null, undefined]) {
+      const got = outcomeWord(odd as string);
+      expect(got.word.length).toBeGreaterThan(0);
+      expect(typeof got.tone).toBe("string");
+    }
+  });
+
+  test("an unknown status admits the gap rather than leaking the slug", () => {
+    expect(outcomeWord("some-future-status").word).toBe("No word for this yet");
+    // §12 keeps slugs off surfaces: the raw value must not be echoed back.
+    expect(outcomeWord("some-future-status").word).not.toContain("some-future-status");
+    expect(outcomeWord("some-future-status").tone).toBe("");
   });
 
   test("approved reads as Kept, and green carries it", () => {
     expect(OUTCOME_WORD.approved.word).toBe("Kept");
-    expect(OUTCOME_WORD.approved.tone).toBe("sp-pass");
+    expect(OUTCOME_WORD.approved.tone).toBe("text-mrd-pass");
   });
 
   test("rejected reads as Dropped, and red carries it", () => {
     expect(OUTCOME_WORD.rejected.word).toBe("Dropped");
-    expect(OUTCOME_WORD.rejected.tone).toBe("sp-fail");
+    expect(OUTCOME_WORD.rejected.tone).toBe("text-mrd-fail");
   });
 
   test("pending stays MONOCHROME and never wears ember", () => {
@@ -138,14 +175,32 @@ describe("OUTCOME_WORD", () => {
     expect(OUTCOME_WORD.pending.tone).toBe("");
   });
 
-  test("every tone is an sp- class or empty, never a raw hue token", () => {
+  /*
+   * Was "every tone is an sp- class or empty". `sp-*` is the RETIRED family, so
+   * that assertion required the debt it was meant to police. The map is ported
+   * to Meridian and the rule is now what it always meant: a tone is a token
+   * class, never a raw hue.
+   */
+  test("every tone is a Meridian class or empty, never a raw hue token", () => {
     Object.values(OUTCOME_WORD).forEach(({ tone }) => {
-      expect(tone === "" || tone.startsWith("sp-")).toBe(true);
+      expect(tone === "" || tone.startsWith("text-mrd-")).toBe(true);
+      expect(tone).not.toMatch(/#|rgb|oklch|sp-/);
     });
   });
 
+  /*
+   * Was `toHaveLength(2)`, which is the same count-instead-of-rule mistake: it
+   * would have to be edited every time a status is named, and it says nothing
+   * about WHICH ones may wear colour. The rule is that green and red carry
+   * OUTCOMES; a call nobody has settled, and one that a later call replaced,
+   * are not outcomes.
+   */
   test("colour is spent on settled outcomes only", () => {
-    expect(Object.values(OUTCOME_WORD).filter((v) => v.tone !== "")).toHaveLength(2);
+    expect(OUTCOME_WORD.pending.tone).toBe("");
+    expect(OUTCOME_WORD.superseded.tone).toBe("");
+    for (const settled of ["approved", "rejected", "standing", "declined"]) {
+      expect(OUTCOME_WORD[settled].tone).not.toBe("");
+    }
   });
 });
 
@@ -356,7 +411,7 @@ describe("forecastChip", () => {
       forecast_resolution: "hit",
     });
     expect(chip?.word).toBe("you called it");
-    expect(chip?.tone).toBe("sp-pass");
+    expect(chip?.tone).toBe("text-mrd-pass");
     expect(chip?.claim).toBe("Activation doubles.");
   });
 
@@ -366,7 +421,7 @@ describe("forecastChip", () => {
       forecast_resolution: "miss",
     });
     expect(chip?.word).toBe("it went the other way");
-    expect(chip?.tone).toBe("sp-fail");
+    expect(chip?.tone).toBe("text-mrd-fail");
   });
 
   test("inconclusive is muted, never a colour", () => {
@@ -386,12 +441,15 @@ describe("forecastChip", () => {
     expect(forecastChip({ forecast_claim: "Signups rise." })?.tone).toBe("");
   });
 
-  test("colour is spent on settled outcomes only, and every tone is an sp- class or empty", () => {
+  test("colour is spent on settled outcomes only, and every tone is a Meridian class or empty", () => {
     const chips = ["hit", "miss", "inconclusive", null].map((r) =>
       forecastChip({ forecast_claim: "x", forecast_resolution: r }),
     );
     for (const chip of chips) {
-      expect(chip!.tone === "" || chip!.tone.startsWith("sp-")).toBe(true);
+      // Moved with OUTCOME_WORD: these tones are READ from it, so porting the
+      // map off the retired `sp-*` family carried forecastChip along, which is
+      // exactly what reading from one place is for.
+      expect(chip!.tone === "" || chip!.tone.startsWith("text-mrd-")).toBe(true);
     }
     expect(chips.filter((c) => c!.tone !== "")).toHaveLength(2);
   });

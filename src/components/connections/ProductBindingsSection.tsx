@@ -43,6 +43,7 @@ import {
   type ConnectionRow,
 } from "@/lib/connections.functions";
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
+import { humanWriteError } from "@/lib/roles.functions";
 import { Picker, Region } from "@/components/meridian/surface-parts";
 
 type Props = {
@@ -94,7 +95,7 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
       setPicking(null);
       qc.invalidateQueries({ queryKey: ["product-bindings", projectId] });
     },
-    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Bind failed"),
+    onError: (e: unknown) => toast.error(humanWriteError(e, "Bind failed")),
   });
 
   const mRemove = useMutation({
@@ -103,7 +104,7 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
       toast.success("Override removed. This product falls back to the workspace binding.");
       qc.invalidateQueries({ queryKey: ["product-bindings", projectId] });
     },
-    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Unbind failed"),
+    onError: (e: unknown) => toast.error(humanWriteError(e, "Unbind failed")),
   });
 
   const providers = (Object.keys(CONNECTOR_REGISTRY) as ProviderId[])

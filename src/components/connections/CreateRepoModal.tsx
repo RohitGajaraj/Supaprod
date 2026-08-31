@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/lib/notify";
 import { createRepoForProduct } from "@/lib/connectors/product-binding.functions";
+import { humanWriteError } from "@/lib/roles.functions";
 
 function slugify(name: string): string {
   return name
@@ -77,7 +78,7 @@ export function CreateRepoModal({
       onOpenChange(false);
       onSuccess?.(res.repo.owner, res.repo.repo);
     },
-    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Repo creation failed"),
+    onError: (e: unknown) => toast.error(humanWriteError(e, "Repo creation failed")),
   });
 
   return (
