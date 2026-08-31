@@ -27,7 +27,9 @@ import { bucketEmptyLine } from "@/components/today/queue-buckets";
  *   - the SECTION is drawn from the unfiltered `items`, so the exit survives
  */
 
-const SRC = readFileSync("src/routes/_authenticated.today.tsx", "utf8");
+// Subject moved 2026-08-31: the board was lifted out of the route file into
+// `src/components/today/Board.tsx`. The CLAIM is unchanged.
+const SRC = readFileSync("src/components/today/Board.tsx", "utf8");
 
 describe("the sentence", () => {
   it("names the bucket that is empty AND the work that is not", () => {

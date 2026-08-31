@@ -46,7 +46,9 @@ import { join } from "node:path";
  * legitimately describes every banned shape in prose in order to ban it.
  */
 
-const ROUTE = join(import.meta.dir, "..", "_authenticated.today.tsx");
+// Subject moved 2026-08-31: the board was lifted out of the route file into
+// `src/components/today/Board.tsx`. The CLAIM is unchanged.
+const ROUTE = join(import.meta.dir, "..", "..", "components", "today", "Board.tsx");
 
 /**
  * Strip comments so prose that NAMES the banned shape does not trip it, while

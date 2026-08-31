@@ -30,7 +30,9 @@ import { readFileSync } from "node:fs";
  * quiet lane, and a stronger claim needs a stronger test.
  */
 
-const SRC = readFileSync("src/routes/_authenticated.today.tsx", "utf8");
+// Subject moved 2026-08-31: the board was lifted out of the route file into
+// `src/components/today/Board.tsx`. The CLAIM is unchanged.
+const SRC = readFileSync("src/components/today/Board.tsx", "utf8");
 
 function block(name: string): string {
   const start = SRC.indexOf(`const ${name} =`);
