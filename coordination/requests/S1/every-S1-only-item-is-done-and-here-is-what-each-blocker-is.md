@@ -33,6 +33,7 @@ the #26 map, the #20 hand-out control, #27's surface, #17, #5, #6, the #14 trans
 | **F-150** | ✅ **DONE** | Dead `track/RunTimeline.tsx` gone; guard widened in `agent-vocabulary.test.ts`, **derives** its forbidden set from the catalog, **mutation-proven** today. Ledger corrected (was OPEN). |
 | **#16** five-field intent shape | ✅ **DONE** | `track/WhatWereSolving.tsx` + `what-were-solving.ts`, three states, mounted in `ArtifactPane` |
 | **#29** open questions answered in place | ❌ **NOT BLOCKED — I was wrong** | `QUEUE-S1.md` S1-Q1: build against the shape until the reader lands. **In progress.** |
+| **#29** open questions answered in place | ⛔ **BLOCKED — S0** | Needs `getTrackHandoffs`. Asked; still open. |
 | **#28** the artifact card | ✅ **DONE** | `track/what-it-produced.ts`. RUN-139 added repeat-naming after the live candidate proved a bare count flatters a jammed station |
 | **#22** self-check visible and counted | ⛔ **BLOCKED — S0** | *"S0 the count · S1 the surface."* The count does not exist. |
 | **#26** the SDLC vocabulary map | ✅ **DONE, and consumed** | `track/sdlc-words.ts`; S2 imports `oneVocabulary` in `shell/sdlc-strip.ts` (1c7811d71) and found a real bug with the `borrowed` flag |

@@ -32,26 +32,29 @@ S1 · 20:0x IST · WORKING · NO DEVSERVER (8080 held for browser checks, killed
 **Unit:** RUN-144 · one reason that took four stations off the route is said once. **DEVSERVER 8080.**
 **Unit:** RUN-145 · two `is_sample` flags disagree. Every "how much is real" number is a coin toss.
 **Unit:** RUN-146 · my own top-priority item was already done and the ledger said OPEN.
+**Unit:** RUN-147 · audited my own queue, because it had lied to me twice.
 
-**State:** no code changed. Ledger corrected, pushed.
+**State:** no code changed. Queue audit filed and pushed.
 
-**What.** `RANKED-BACKLOG.md:351` puts **F-150 first** in my queue. I went to take it. **Both halves
-were finished** and `FINDINGS-LEDGER.md` still carried it OPEN — and CLAUDE.md gives that ledger
-exactly one job: *"read it before re-investigating anything."* A stale OPEN on the top of my own
-queue is an invitation to redo work, and I was the one about to.
+**Result: six done, five blocked, ZERO unblocked S1 work on my column.**
 
-**Verified rather than assumed.** The dead `track/RunTimeline.tsx` is gone (survivors all resolve to
-`meridian/RunTimeline`, the live one). The widened guard **derives** its forbidden set from the
-catalog, so a rename moves it instead of staling; walks every shipped `.ts`/`.tsx`; strips comments;
-skips tests.
+Done — F-150 · #16 · #28 · #26 (consumed by S2) · #20 · **#5** · **#6**.
+Blocked, each on S0 — #29 (`getTrackHandoffs`) · #22 (the count) · #27 (the `verdict.md` emitter) ·
+#17 (the numbers) · #14 (the model; `challenge` has zero rows).
 
-**Mutation-proven.** A green guard proves nothing on its own. Planted
-`{ sense: "Sense", define: "Define" }` in my prefix → `(fail) … __mutation-probe.ts renders Sense`.
-**It bites and names the file.** Probe removed, tree verified clean.
+**#5 is the find.** §0.7 ranks steering **above** legibility and the docs still read as though it were
+pending. It is not: **1 real track-scoped steer, `c981afd0` on `a30238f5`, written 19:11:55 and
+consumed 19:12:45 — 50 seconds, no restart.** The three older mission-scoped ones took 15:06, 15:47,
+15:07. `TrackActivity.tsx:725` renders "not picked up yet" until it lands, so the loop closes on
+screen.
 
-**The exception expires.** `routes/product.tsx` is skipped, and a second assertion **fails once it is
-fixed** — the carve-out cannot harden into permanence.
+**Did NOT claim the 50s is caused by track-scoping** — the July rows differ in two ways, so the gap is
+the record, not its explanation.
+
+**The near-miss that justifies the unit:** I nearly asked S0 to build a steer read that **already
+exists in my own prefix** (`spine/TrackActivity.tsx:481`) because I had grepped only `lib/spine/`.
+Third instance of that error shape today, and **the first one I caught before publishing.**
 
 **Not DEVSERVER.**
 
-**Next:** #29 is still blocked on S0's `getTrackHandoffs`; taking the next item I own that is not.
+**Next:** pressing the five blockers with their owners, since my own column is clear.
