@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { waiverLine, waiverVoices, type WaivedLike } from "./said-once-not-four-times";
 
 const w = (r: string | null): WaivedLike => ({ waivedReason: r });
@@ -97,7 +98,10 @@ describe("the coupling this is only correct because of", () => {
      * Asserting the predicate rather than the spelling: the file must consult
      * `waiverVoices`, and its waived branch must not reach `gap`.
      */
-    const src = readFileSync(new URL("../spine/TrackChain.tsx", import.meta.url).pathname, "utf8");
+    const src = readFileSync(
+      fileURLToPath(new URL("../spine/TrackChain.tsx", import.meta.url)),
+      "utf8",
+    );
     expect(src).toContain("waiverVoices");
     expect(src).toContain("already-said");
   });
@@ -110,7 +114,7 @@ describe("the coupling this is only correct because of", () => {
      * it on a screen.
      */
     const src = readFileSync(
-      new URL("../../lib/spine/driver.server.ts", import.meta.url).pathname,
+      fileURLToPath(new URL("../../lib/spine/driver.server.ts", import.meta.url)),
       "utf8",
     );
     const loop = src.includes('["define", "design", "build", "ship"] as AgentStation[]');
