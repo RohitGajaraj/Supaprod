@@ -38,6 +38,7 @@
  * guesses, and a status display that guesses removes that ability entirely.
  */
 import * as React from "react";
+import { nothingIsComing } from "@/components/track/nothing-is-coming";
 import { failureLine } from "@/lib/error-copy";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -235,6 +236,7 @@ function RunRouteHeader({
 
   const stationName = AGENT_STATIONS[track.station]?.name ?? track.station;
   const tone = holdTone(track.holdReason);
+  const terminallyStopped = nothingIsComing(track.holdReason);
 
   /** How long, in the words of whichever interval is actually known. */
   const clock =
@@ -266,7 +268,18 @@ function RunRouteHeader({
         : track.status === "abandoned"
           ? "This work was abandoned here."
           : tone === "you"
-            ? "It is waiting on you."
+            ? /*
+               * The fourth surface on one screen carrying this claim, and the
+               * argument is `run-status.ts`'s in full: four of the six reasons
+               * `holdTone` calls "you" are the whole of `TERMINAL_HOLDS`, and
+               * 36 of the 37 open tracks reaching here have nothing pending
+               * for anybody. This line sits directly above "Why it stopped",
+               * which is where `way-out.ts` names the restart, so saying
+               * "waiting" here contradicted the paragraph under it.
+               */
+              terminallyStopped
+              ? "It stopped here, and nothing will pick it up again on its own."
+              : "It is waiting on you."
             : tone === "hold"
               ? "It is on hold."
               : track.drivenAt
@@ -564,6 +577,8 @@ export function TrackRunLeft({
    * up, a spec written) and the driver never looks again until someone says so.
    */
   const tone = track ? holdTone(track.holdReason) : null;
+  /* See the chip below, and `nothing-is-coming.ts` for why it is one predicate. */
+  const terminallyStopped = nothingIsComing(track?.holdReason);
   const held = track?.status === "open" && tone !== null;
   const answerTheCall = track?.holdReason === "waiting-on-a-person";
   const nowMs = Date.now();
@@ -910,8 +925,25 @@ export function TrackRunLeft({
                 .filter(Boolean)
                 .join(" ")}
               action={
-                <StatusChip status={tone} pulse={tone === "you"}>
-                  {tone === "you" ? "Waiting on you" : "On hold"}
+                /*
+                 * THE FIFTH AND LAST COPY OF THIS CLAIM ON ONE SCREEN, and the
+                 * one that read worst, because it sat beside the prose that
+                 * already contradicted it: "Nothing more will be tried on it
+                 * automatically", with a chip next to it saying a person was
+                 * being waited on. The words are `run-status.ts`'s, which is
+                 * the rule this chip's own sibling comment states -- one
+                 * vocabulary shared by the driver, the map and the banner --
+                 * so the header chip and this one cannot drift apart.
+                 *
+                 * Pulse follows the same rule it does there: motion is a claim,
+                 * and nothing is moving on a track the sweep has dropped.
+                 */
+                <StatusChip status={tone} pulse={tone === "you" && !terminallyStopped}>
+                  {tone === "you"
+                    ? terminallyStopped
+                      ? "Needs a restart"
+                      : "Waiting on you"
+                    : "On hold"}
                 </StatusChip>
               }
             />

@@ -1,9 +1,34 @@
 import { describe, expect, it } from "bun:test";
 
 import { footerMode } from "./footer-mode";
+import { TERMINAL_HOLDS } from "@/lib/spine/correction";
+import { holdTone } from "@/lib/spine/driver";
+
+describe("the coupling this footer's terminal branch is gated on", () => {
+  it("routes every terminal hold through tone 'you', which is where the branch lives", () => {
+    /*
+     * THE GUARD FOR THE DEFECT THIS UNIT SHIPPED AND THEN CAUGHT.
+     *
+     * The branch is argued from `TERMINAL_HOLDS` and gated on `holdTone`. Those
+     * are two different sets in two different files, and the first version of
+     * this work put the branch under tone "hold" -- correct against the
+     * argument, unreachable against the gate, because all four terminal
+     * reasons are also in `HOLD_NEEDS_PERSON`. Nothing failed. `tsc` passed,
+     * the suite passed, and the branch could not be reached by a single row.
+     *
+     * So the coupling is asserted rather than assumed. Move a terminal reason
+     * out of `HOLD_NEEDS_PERSON` and this fails HERE, naming the footer, rather
+     * than silently sending 36 tracks back to a sentence about a question that
+     * is not open.
+     */
+    for (const hold of TERMINAL_HOLDS) {
+      expect({ hold, tone: holdTone(hold) }).toEqual({ hold, tone: "you" });
+    }
+  });
+});
 
 const at = (o: Partial<Parameters<typeof footerMode>[0]>) =>
-  footerMode({ status: "open", tone: null, walking: false, crewLive: false, ...o });
+  footerMode({ status: "open", tone: null, hold: null, walking: false, crewLive: false, ...o });
 
 describe("the footer", () => {
   it("never says a position", () => {
@@ -61,8 +86,94 @@ describe("the footer", () => {
   });
 });
 
+describe("whether anything is still coming for a stopped run", () => {
+  /*
+   * THE TONE THESE ARRIVE UNDER IS "you", NOT "hold", AND GETTING THAT WRONG
+   * IS WHAT THE FIRST VERSION OF THIS SUITE DID.
+   *
+   * `holdTone` returns "you" for `HOLD_NEEDS_PERSON`, and all four members of
+   * `TERMINAL_HOLDS` are in that set. A version of these tests written against
+   * `tone: "hold"` passed while the branch it described could not be reached
+   * by a single row in the database. So every case below states the tone it is
+   * really testing, and the pair at the bottom pins the two sets apart.
+   */
+  const needsMe = (hold: string | null) =>
+    footerMode({ status: "open", tone: "you", hold, walking: false, crewLive: false });
+
+  it("says nothing is coming, on every hold the sweep refuses", () => {
+    // The four in TERMINAL_HOLDS, named rather than looped over the constant,
+    // so adding a fifth member does not silently pass this on four of five.
+    for (const hold of ["given-up", "station-cannot-finish", "tools-refused", "going-in-circles"]) {
+      expect(needsMe(hold).line).toBe("Stopped here. Nothing will pick it up again on its own.");
+    }
+  });
+
+  it("keeps 'waiting on you' for the one hold where a question really is open", () => {
+    /*
+     * `waiting-on-a-person` is a boundary call with an answer pending, and it
+     * is 1 of the 37 rows reaching this branch. The other 36 have nothing for
+     * the person to answer, which is the whole reason for the split.
+     */
+    expect(needsMe("waiting-on-a-person").line).toBe("Waiting on you.");
+    expect(needsMe("corrections-spent").line).toBe("Waiting on you.");
+  });
+
+  it("leaves the not-on-you branch alone, because no terminal hold reaches it", () => {
+    // 19 open tracks, none terminal. `holdTone` sends every terminal reason to
+    // "you", so this branch never has the question the split exists to answer.
+    for (const hold of ["out-of-time", "needs-evidence", "needs-a-waived-station"]) {
+      const m = footerMode({ status: "open", tone: "hold", hold, walking: false, crewLive: false });
+      expect(m.line).toBe("Stopped, and not on you.");
+    }
+  });
+
+  it("treats an unreadable hold as the softer of the two", () => {
+    /*
+     * `last_hold` is a text column, so a value written by a newer deploy
+     * reaches here as a string this build does not know. `way-out.ts` takes the
+     * same position for the same reason: the wrong direction to guess is the
+     * one that tells a person the loop has quit on work it was going to pick
+     * up anyway.
+     */
+    expect(needsMe(null).line).toBe("Waiting on you.");
+    expect(needsMe("a-reason-from-a-later-deploy").line).toBe("Waiting on you.");
+  });
+
+  it("still offers no Stop and no leave line either way", () => {
+    // Nothing is running in either branch, so there is nothing to stop and
+    // nothing leaving could interrupt.
+    for (const hold of ["given-up", "waiting-on-a-person", null]) {
+      expect(needsMe(hold).canStop).toBe(false);
+      expect(needsMe(hold).leave).toBeNull();
+    }
+  });
+
+  it("does not let the hold leak into a mode that is still running", () => {
+    /*
+     * MEASURED 2026-08-31: zero tracks hold a terminal reason AND carry a run
+     * in flight, so the two cannot co-occur today. This pins the behaviour if
+     * they ever do: something IS working, and the footer says so rather than
+     * reporting a stale column over a live run.
+     */
+    const live = footerMode({
+      status: "open",
+      tone: "you",
+      hold: "given-up",
+      walking: false,
+      crewLive: true,
+    });
+    expect(live.line).toContain("Working on its own");
+  });
+});
+
 describe("whether this page is required", () => {
-  const base = { status: "open" as const, tone: null, walking: false, crewLive: false };
+  const base = {
+    status: "open" as const,
+    tone: null,
+    hold: null,
+    walking: false,
+    crewLive: false,
+  };
 
   it("says you can leave when the loop is driving it", () => {
     const m = footerMode({ ...base, crewLive: true });
