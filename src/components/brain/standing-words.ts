@@ -99,6 +99,36 @@ export function ratedPopulation(helped: number, contradicted: number): string | 
  * 29 June and 23 July, and the last one was 23 July. Nothing since, because
  * nothing can.
  *
+ * ── CORRECTED 2026-09-01, AND IT IS WORSE THAN A CLOSED WINDOW ─────────────
+ * The paragraph above reads those 77 as real ratings from a period when the
+ * control still existed. **They are not ratings at all.** Two measurements,
+ * either of which is sufficient:
+ *
+ *   `SELECT to_char(created_at,'US'), count(*) FROM memory_recall_log
+ *     WHERE outcome IN ('used','contradicted') GROUP BY 1;`
+ *      -> 910182 | 77      ALL of them, one microsecond, one insert.
+ *   `SELECT count(*) FROM ai_feedback;`  -> 0 rows, ever.
+ *
+ * `ai_feedback` is the table `submitFeedback` writes before it touches this
+ * one, so a real rating cannot exist without a row there. **Nobody has ever
+ * rated a recall in this product.** The single-microsecond signature is the
+ * same one F-51 used to expose seeded `guardrail_hits` (7,225 rows sharing a
+ * microsecond) and the 91 midnight-exact forecast resolutions.
+ *
+ * 60 of the 70 `used` and 6 of the 7 `contradicted` sit on sample workspaces.
+ *
+ * WHY THIS MATTERS MORE THAN THE WORDING. "91% of RATED recalls helped" was
+ * being carried as the honest counterweight to F-85's bleak -- by me, by S1,
+ * and in the FINDINGS-LEDGER. **It is a statistic over seed data**, and R-06
+ * with F-70 forbid exactly this: honest emptiness until a real learning
+ * exists. Craft-bar standard #7 names it as the one bar that deletes a claim
+ * rather than sending it back -- "no seeded memory presented as learning".
+ *
+ * THE COUNT ITSELF IS STILL S0's TO FIX. The payload carries raw counts and
+ * cannot tell a fixture from an answer, so the surface says what is true and
+ * the reader learns to exclude them:
+ * `coordination/requests/S3/the-rated-recalls-were-never-rated.md`.
+ *
  * So the count is a closed window, and a person reading it is entitled to know
  * that rather than to wonder why their own runs never appear in it. This is the
  * same shape as the guardrail line: the silence has a cause, the cause is ours,
@@ -128,4 +158,4 @@ export function ratedPopulation(helped: number, contradicted: number): string | 
  * A reader who takes only the first clause still has the true reading.
  */
 export const RATING_HAS_NO_DOOR =
-  "The rest are unrated rather than unhelpful, and no surface offers a rating today, so this count is what was rated before the control was taken out.";
+  "The rest are unrated rather than unhelpful, and no surface offers a rating today. The few that carry one are fixtures rather than answers: they were written in a single insert, and nobody has ever rated a recall here.";
