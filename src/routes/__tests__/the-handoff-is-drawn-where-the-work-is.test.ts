@@ -34,7 +34,9 @@ import { readFileSync } from "node:fs";
  * the lane, three after.
  */
 
-const SRC = readFileSync("src/routes/_authenticated.today.tsx", "utf8")
+// Subject moved 2026-08-31: the board was lifted out of the route file into
+// `src/components/today/Board.tsx`. The CLAIM is unchanged.
+const SRC = readFileSync("src/components/today/Board.tsx", "utf8")
   .replace(/\/\*[\s\S]*?\*\//g, "")
   .replace(/^\s*\/\/.*$/gm, "");
 
