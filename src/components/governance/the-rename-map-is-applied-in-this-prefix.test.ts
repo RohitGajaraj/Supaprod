@@ -154,10 +154,21 @@ describe("§12's rename map holds across this lane's prefix", () => {
  * backgrounded window shows, so it is the one surface that reaches somebody who
  * has stepped away from the page entirely.
  *
- * The titles now match S2's rail doors — **Permissions** and **Learnings** —
- * rather than §12's full phrases, because the founder ruled a door is one word
- * and a tab that disagrees with the door somebody just clicked is the same
- * mismatch §12 exists to prevent, pointing the other way.
+ * The titles match S2's rail doors rather than §12's full phrases, because the
+ * founder ruled a door is one word and a tab disagreeing with the door
+ * somebody just clicked is the same mismatch §12 exists to prevent, pointing the
+ * other way.
+ *
+ * ── AND THE DOORS HAVE ALREADY MOVED ONCE UNDER THIS TEST ─────────────────
+ * They were **Permissions** and **Learnings** for about an hour. The founder
+ * ruled twice more the same night and the rail settled on **Home · Approvals ·
+ * Insights · Threads · Policies**, one predictable word each, so `/brain` is
+ * **Insights** and `/engine-room` is **Policies**.
+ *
+ * That churn is the argument FOR pinning to the door instead of to a phrase we
+ * like. Nobody had to remember the tab existed: this assertion is what carried
+ * the second rename across an ownership boundary, from S2's rail into two route
+ * files they do not own.
  */
 describe("§12 holds in route tab titles, which the checks above cannot see", () => {
   const ROUTES = join(ROOT, "..", "routes");
@@ -198,7 +209,7 @@ describe("§12 holds in route tab titles, which the checks above cannot see", ()
    */
   it("the two tabs say what their rail doors say", () => {
     const all = titles().join("\n");
-    expect(all).toContain("Permissions · Supaprod");
-    expect(all).toContain("Learnings · Supaprod");
+    expect(all).toContain("Policies · Supaprod");
+    expect(all).toContain("Insights · Supaprod");
   });
 });

@@ -215,7 +215,7 @@ export const Route = createFileRoute("/_authenticated/engine-room")({
          * rendering props and JSX text and never looks at a route's `head()`, so
          * a retired word lived in the one place no assertion was pointed.
          */
-        { title: open ? `${ROOM_NAMES[open]} · Permissions · Supaprod` : "Permissions · Supaprod" },
+        { title: open ? `${ROOM_NAMES[open]} · Policies · Supaprod` : "Policies · Supaprod" },
       ],
     };
   },
